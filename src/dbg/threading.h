@@ -6,7 +6,6 @@
 enum WAIT_ID
 {
     WAITID_RUN,
-    WAITID_STOP,
     WAITID_LAST
 };
 

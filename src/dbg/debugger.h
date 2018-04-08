@@ -127,5 +127,6 @@ extern duint maxSkipExceptionCount;
 extern HANDLE mProcHandle;
 extern HANDLE mForegroundHandle;
 extern duint mRtrPreviousCSP;
+extern HANDLE hDebugLoopThread;
 
 #endif // _DEBUGGER_H

@@ -26,7 +26,7 @@
 #define __DBG_MACRO_CONCAT(a, b) a##b
 
 // Trigger an exception if the debugger is not currently active
-#define ASSERT_DEBUGGING(message) ASSERT_TRUE(DbgIsDebugging(), message)
+#define ASSERT_DEBUGGING(message) ASSERT_TRUE(IsFileBeingDebugged(), message)
 
 // Trigger an exception if expression is false
 #define ASSERT_TRUE(...) \

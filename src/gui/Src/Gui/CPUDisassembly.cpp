@@ -276,7 +276,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     copyMenu->addAction(makeAction(DIcon("copy_selection_no_bytes.png"), tr("Selection to File (No Bytes)"), SLOT(copySelectionToFileNoBytesSlot())));
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("&Address"), SLOT(copyAddressSlot()), "ActionCopyAddress"));
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("&RVA"), SLOT(copyRvaSlot()), "ActionCopyRva"));
-    copyMenu->addAction(makeAction(DIcon("fileoffset.png"), tr("&File Offset"), SLOT(copyFileOffsetSlot())));
+    copyMenu->addAction(makeShortcutAction(DIcon("fileoffset.png"), tr("&File Offset"), SLOT(copyFileOffsetSlot()), "ActionCopyFileOffset"));
     copyMenu->addAction(makeAction(DIcon("copy_disassembly.png"), tr("Disassembly"), SLOT(copyDisassemblySlot())));
     copyMenu->addAction(makeAction(DIcon("data-copy.png"), tr("&Data..."), SLOT(copyDataSlot())));
 
@@ -1996,14 +1996,12 @@ void CPUDisassembly::mnemonicBriefSlot()
 
 void CPUDisassembly::mnemonicHelpSlot()
 {
-    BASIC_INSTRUCTION_INFO disasm;
-    DbgDisasmFastAt(rvaToVa(getInitialSelection()), &disasm);
-    if(!*disasm.instruction)
-        return;
-    char* space = strstr(disasm.instruction, " ");
-    if(space)
-        *space = '\0';
-    DbgCmdExecDirect(QString("mnemonichelp %1").arg(disasm.instruction).toUtf8().constData());
+    unsigned char data[16] = { 0xCC };
+    auto addr = rvaToVa(getInitialSelection());
+    DbgMemRead(addr, data, sizeof(data));
+    Zydis zydis;
+    zydis.Disassemble(addr, data);
+    DbgCmdExecDirect(QString("mnemonichelp %1").arg(zydis.Mnemonic().c_str()).toUtf8().constData());
     emit displayLogWidget();
 }
 

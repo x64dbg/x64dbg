@@ -20,14 +20,20 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     mTypes[DataCString] = FormatType { tr("C-Style String"), 1 };
     mTypes[DataCUnicodeString] = FormatType { tr("C-Style Unicode String"), 1 };
     mTypes[DataCShellcodeString] = FormatType { tr("C-Style Shellcode String"), 1 };
-    mTypes[DataString] = FormatType { tr("String"), 1 };
-    mTypes[DataUnicodeString] = FormatType { tr("Unicode String"), 1 };
-    mTypes[DataUTF8String] = FormatType { tr("UTF8 String"), 1 };
-    mTypes[DataUCS4String] = FormatType { tr("UCS4 String"), 1 };
+    mTypes[DataASMByte] = FormatType { tr("ASM-Style BYTE (Hex)"), 16 };
+    mTypes[DataASMWord] = FormatType { tr("ASM-Style WORD (Hex)"), 12 };
+    mTypes[DataASMDWord] = FormatType { tr("ASM-Style DWORD (Hex)"), 8 };
+    mTypes[DataASMQWord] = FormatType { tr("ASM-Style QWORD (Hex)"), 4 };
+    mTypes[DataASMString] = FormatType { tr("ASM-Style String"), 4 };
     mTypes[DataPascalByte] = FormatType { tr("Pascal BYTE (Hex)"), 42 };
     mTypes[DataPascalWord] = FormatType { tr("Pascal WORD (Hex)"), 21 };
     mTypes[DataPascalDword] = FormatType { tr("Pascal DWORD (Hex)"), 10 };
     mTypes[DataPascalQword] = FormatType { tr("Pascal QWORD (Hex)"), 5 };
+    mTypes[DataString] = FormatType { tr("String"), 1 };
+    mTypes[DataUnicodeString] = FormatType { tr("Unicode String"), 1 };
+    mTypes[DataUTF8String] = FormatType { tr("UTF8 String"), 1 };
+    mTypes[DataUCS4String] = FormatType { tr("UCS4 String"), 1 };
+    mTypes[DataHexStream] = FormatType { tr("Hex Stream"), 1 };
     mTypes[DataGUID] = FormatType { tr("GUID"), 1 };
     mTypes[DataIPv4] = FormatType { tr("IP Address (IPv4)"), 5 };
     mTypes[DataIPv6] = FormatType { tr("IP Address (IPv6)"), 1 };
@@ -40,11 +46,12 @@ DataCopyDialog::DataCopyDialog(const QVector<byte_t>* data, QWidget* parent) : Q
     mTypes[DataSHA512_3] = FormatType { "SHA512 (SHA-3)", 1};
 
     for(int i = 0; i < DataLast; i++)
-        ui->comboType->addItem(mTypes[i].name);
+        ui->listType->addItem(mTypes[i].name);
 
-    ui->comboType->setCurrentIndex(DataCByte);
+    QModelIndex index = ui->listType->model()->index(DataCByte, 0);
+    ui->listType->setCurrentIndex(index);
 
-    printData((DataType)ui->comboType->currentIndex());
+    printData((DataType)ui->listType->currentIndex().row());
     Config()->setupWindowPos(this);
 }
 
@@ -123,6 +130,7 @@ static QString formatLoop(const QVector<byte_t>* bytes, int itemsPerLine, QStrin
             else
                 data += ' ';
         }
+
         data += format(((const T*)bytes->constData())[i]);
     }
     return data;
@@ -248,6 +256,105 @@ void DataCopyDialog::printData(DataType type)
     }
     break;
 
+    case DataASMByte:
+    {
+        data = "array DB " + formatLoop<unsigned char>(mData, mTypes[mIndex].itemsPerLine, [](unsigned char n)
+        {
+            QString value = QString().sprintf("%02Xh", n);
+            if(value.at(0).isLetter())
+                value.insert(0, '0');
+
+            return value;
+        });
+    }
+    break;
+
+    case DataASMWord:
+    {
+        data = "array DW " + formatLoop<unsigned short>(mData, mTypes[mIndex].itemsPerLine, [](unsigned short n)
+        {
+            QString value = QString().sprintf("%04Xh", n);
+            if(value.at(0).isLetter())
+                value.insert(0, '0');
+
+            return value;
+        });
+    }
+    break;
+
+    case DataASMDWord:
+    {
+        data = "array DD " + formatLoop<unsigned int>(mData, mTypes[mIndex].itemsPerLine, [](unsigned int n)
+        {
+            QString value = QString().sprintf("%08Xh", n);
+            if(value.at(0).isLetter())
+                value.insert(0, '0');
+
+            return value;
+        });
+    }
+    break;
+
+    case DataASMQWord:
+    {
+        data = "array DQ " + formatLoop<unsigned long long>(mData, mTypes[mIndex].itemsPerLine, [](unsigned long long n)
+        {
+            QString value = QString().sprintf("%016llXh", n);
+            if(value.at(0).isLetter())
+                value.insert(0, '0');
+
+            return value;
+        });
+    }
+    break;
+
+    case DataASMString:
+    {
+        QString line;
+        int index = 0;
+        bool bPrevWasHex = false;
+        while(index < mData->size())
+        {
+            QChar chr = QChar(mData->at(index));
+            if(chr >= ' ' && chr <= '~')
+            {
+                if(line.length() == 0)
+                    line += "\"";
+
+                if(bPrevWasHex)
+                {
+                    line += ",\"";
+                    bPrevWasHex = false;
+                }
+
+                line += chr;
+            }
+            else
+            {
+                QString asmhex = QString().sprintf("%02Xh", mData->at(index));
+                if(asmhex.at(0).isLetter())
+                    asmhex.insert(0, "0");
+
+                if(line.length() == 0)
+                    line += asmhex;
+                else if(!bPrevWasHex)
+                    line += "\"," + asmhex;
+                else
+                    line += "," + asmhex;
+
+                bPrevWasHex = true;
+            }
+
+            index++;
+        }
+
+        if(!bPrevWasHex)
+            line += "\"";
+
+        data = line;
+    }
+    break;
+
     case DataPascalByte:
     {
         data += QString().sprintf("Array [1..%u] of Byte = (\n", mData->size());
@@ -289,6 +396,13 @@ void DataCopyDialog::printData(DataType type)
             return QString().sprintf("$%016llX", n);
         });
         data += "\n);";
+    }
+    break;
+
+    case DataHexStream:
+    {
+        for(int i = 0; i < mData->size(); i++)
+            data += QString().sprintf("%02X", mData->constData()[i]);
     }
     break;
 
@@ -406,9 +520,9 @@ DataCopyDialog::~DataCopyDialog()
     delete ui;
 }
 
-void DataCopyDialog::on_comboType_currentIndexChanged(int index)
+void DataCopyDialog::on_listType_currentRowChanged(int currentRow)
 {
-    mIndex = index;
+    mIndex = currentRow;
     ui->spinBox->setValue(mTypes[mIndex].itemsPerLine);
     printData(DataType(mIndex));
 }

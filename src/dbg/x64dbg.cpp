@@ -752,21 +752,16 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
 */
 extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
 {
+    dputs(QT_TRANSLATE_NOOP("DBG", "Stopping command thread..."));
+    bStopCommandLoopThread = true;
+    MsgFreeStack(gMsgStack);
+    WaitForThreadTermination(hCommandLoopThread);
     dputs(QT_TRANSLATE_NOOP("DBG", "Stopping running debuggee..."));
-    cbDebugStop(0, 0);
-    dputs(QT_TRANSLATE_NOOP("DBG", "Waiting for the debuggee to be stopped..."));
-    if(!waitfor(WAITID_STOP, 10000)) //after this, debugging stopped
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "The debuggee does not close after 10 seconds. Probably the debugger state has been corrupted."));
-    }
+    cbDebugStop(0, 0); //after this, debugging stopped
     dputs(QT_TRANSLATE_NOOP("DBG", "Aborting scripts..."));
     scriptabort();
     dputs(QT_TRANSLATE_NOOP("DBG", "Unloading plugins..."));
     pluginunloadall();
-    dputs(QT_TRANSLATE_NOOP("DBG", "Stopping command thread..."));
-    bStopCommandLoopThread = true;
-    MsgFreeStack(gMsgStack);
-    WaitForThreadTermination(hCommandLoopThread, 10000);
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up allocated data..."));
     cmdfree();
     varfree();

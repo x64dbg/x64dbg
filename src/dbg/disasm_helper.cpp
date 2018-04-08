@@ -294,7 +294,8 @@ bool disasmispossiblestring(duint addr, STRING_TYPE* type)
 {
     unsigned char data[11];
     memset(data, 0, sizeof(data));
-    if(!MemReadUnsafe(addr, data, sizeof(data) - 3))
+    duint bytesRead = 0;
+    if(!MemReadUnsafe(addr, data, sizeof(data) - 3, &bytesRead) && bytesRead < 2)
         return false;
     duint test = 0;
     memcpy(&test, data, sizeof(duint));
@@ -322,8 +323,7 @@ bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode
     if(!MemIsValidReadPtrUnsafe(addr, true) || !disasmispossiblestring(addr))
         return false;
     Memory<unsigned char*> data((maxlen + 1) * 2, "disasmgetstringat:data");
-    if(!MemReadUnsafe(addr, data(), (maxlen + 1) * 2)) //TODO: use safe version?
-        return false;
+    MemReadUnsafe(addr, data(), (maxlen + 1) * 2); //TODO: use safe version?
 
     // Save a few pointer casts
     auto asciiData = (char*)data();

@@ -10,99 +10,10 @@
 #include "value.h"
 #include "disasm_fast.h"
 #include "disasm_helper.h"
-#include "keystone/keystone.h"
 #include "datainst_helper.h"
 #include "debugger.h"
 
 AssemblerEngine assemblerEngine = AssemblerEngine::XEDParse;
-
-namespace Keystone
-{
-    static char* stristr(const char* haystack, const char* needle)
-    {
-        // Case insensitive strstr
-        // https://stackoverflow.com/questions/27303062/strstr-function-like-that-ignores-upper-or-lower-case
-        do
-        {
-            const char* h = haystack;
-            const char* n = needle;
-            while(tolower((unsigned char)*h) == tolower((unsigned char)*n) && *n)
-            {
-                h++;
-                n++;
-            }
-
-            if(*n == 0)
-                return (char*)haystack;
-
-        }
-        while(*haystack++);
-
-        // Not found
-        return nullptr;
-    }
-
-    static bool StrDel(char* Source, const char* Needle)
-    {
-        // Find the location in the string first
-        char* loc = stristr(Source, Needle);
-
-        if(!loc)
-            return false;
-
-        // "Delete" the word by shifting it over
-        auto needleLen = strlen(Needle);
-
-        memmove(loc, loc + needleLen, strlen(loc) - needleLen + 1);
-
-        return true;
-    }
-
-    static XEDPARSE_STATUS XEDParseAssemble(XEDPARSE* XEDParse)
-    {
-        if(!XEDParse)
-            return XEDPARSE_ERROR;
-
-        auto sep = strstr(XEDParse->instr, ";");
-        if(!sep)
-            sep = strstr(XEDParse->instr, "\n");
-        if(sep)
-            *sep = '\0';
-        bool short_command = StrDel(XEDParse->instr, "short ");
-
-        ks_engine* ks;
-        ks_err err = ks_open(KS_ARCH_X86, XEDParse->x64 ? KS_MODE_64 : KS_MODE_32, &ks);
-        if(err != KS_ERR_OK)
-        {
-            strcpy_s(XEDParse->error, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Failed on ks_open()...")));
-            return XEDPARSE_ERROR;
-        }
-        //ks_option(ks, KS_OPT_SYNTAX, KS_OPT_SYNTAX_INTEL);
-        auto result = XEDPARSE_OK;
-        unsigned char* encode;
-        size_t size;
-        size_t count;
-        if(ks_asm(ks, XEDParse->instr, XEDParse->cip, &encode, &size, &count) != KS_ERR_OK)
-        {
-            sprintf_s(XEDParse->error, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "ks_asm() failed: count = %lu, error = %u")), count, ks_errno(ks));
-            result = XEDPARSE_ERROR;
-        }
-        else if(short_command && size > 2)
-        {
-            sprintf_s(XEDParse->error, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "ks_asm() failed: destination is out of range (size = %lu)")), size);
-            result = XEDPARSE_ERROR;
-        }
-        else
-        {
-            XEDParse->dest_size = (unsigned int)min(size, XEDPARSE_MAXASMSIZE);
-            for(size_t i = 0; i < XEDParse->dest_size; i++)
-                XEDParse->dest[i] = encode[i];
-        }
-        ks_free(encode);
-        ks_close(ks);
-        return result;
-    }
-}
 
 namespace asmjit
 {
@@ -146,9 +57,7 @@ bool assemble(duint addr, unsigned char* dest, int destsize, int* size, const ch
     parse.cip = addr;
     strcpy_s(parse.instr, instruction);
     auto DoAssemble = XEDParseAssemble;
-    if(assemblerEngine == AssemblerEngine::Keystone)
-        DoAssemble = Keystone::XEDParseAssemble;
-    else if(assemblerEngine == AssemblerEngine::asmjit)
+    if(assemblerEngine == AssemblerEngine::asmjit || assemblerEngine == AssemblerEngine::Keystone)
         DoAssemble = asmjit::XEDParseAssemble;
     if(DoAssemble(&parse) == XEDPARSE_ERROR)
     {

@@ -68,6 +68,7 @@ static EXCEPTION_DEBUG_INFO lastExceptionInfo = { 0 };
 static char szDebuggeeInitializationScript[MAX_PATH] = "";
 static WString gInitExe, gInitCmd, gInitDir, gDllLoader;
 static CookieQuery cookie;
+static bool bDatabaseLoaded = false;
 char szProgramDir[MAX_PATH] = "";
 char szFileName[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
@@ -90,6 +91,7 @@ duint maxSkipExceptionCount = 10000;
 HANDLE mProcHandle;
 HANDLE mForegroundHandle;
 duint mRtrPreviousCSP = 0;
+HANDLE hDebugLoopThread = nullptr;
 
 static duint dbgcleartracestate()
 {
@@ -1341,6 +1343,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
     // Init program database
     DbLoad(DbLoadSaveType::DebugData);
+    bDatabaseLoaded = true;
 
     SafeSymSetOptions(SYMOPT_IGNORE_CVREC | SYMOPT_DEBUG | SYMOPT_LOAD_LINES | SYMOPT_FAVOR_COMPRESSED | SYMOPT_IGNORE_NT_SYMPATH);
     GuiSymbolLogClear();
@@ -2541,14 +2544,11 @@ void dbgstartscriptthread(CBPLUGINSCRIPT cbScript)
 
 static void debugLoopFunction(void* lpParameter, bool attach)
 {
-    //we are running
-    EXCLUSIVE_ACQUIRE(LockDebugStartStop);
-    lock(WAITID_STOP);
-
     //initialize variables
     bIsAttached = attach;
     dbgsetskipexceptions(false);
     bFreezeStack = false;
+    bDatabaseLoaded = false;
 
     //prepare attach/createprocess
     DWORD pid;
@@ -2609,7 +2609,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
                 if(answer == IDYES && dbgrestartadmin())
                 {
                     fdProcessInfo = &g_pi;
-                    unlock(WAITID_STOP);
                     GuiCloseApplication();
                     return;
                 }
@@ -2622,7 +2621,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
                 error += ", uiAccess=\"true\"";
             }
             fdProcessInfo = &g_pi;
-            unlock(WAITID_STOP);
             dprintf(QT_TRANSLATE_NOOP("DBG", "Error starting process (CreateProcess, %s)!\n"), error.c_str());
             return;
         }
@@ -2633,7 +2631,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "IsWow64Process failed!"));
             StopDebug();
-            unlock(WAITID_STOP);
             return;
         }
         if((mewow64 && !wow64) || (!mewow64 && wow64))
@@ -2643,7 +2640,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
 #else
             dputs(QT_TRANSLATE_NOOP("DBG", "Use x64dbg to debug this process!"));
 #endif // _WIN64
-            unlock(WAITID_STOP);
             return;
         }
 
@@ -2716,6 +2712,9 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         DebugLoop();
     }
 
+    if(bDatabaseLoaded) //fixes data loss when attach failed (https://github.com/x64dbg/x64dbg/issues/1899)
+        DbClose();
+
     //call plugin callback
     PLUG_CB_STOPDEBUG stopInfo;
     stopInfo.reserved = 0;
@@ -2731,7 +2730,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     //cleanup
     dbgcleartracestate();
     dbgClearRtuBreakpoints();
-    DbClose();
     ModClear();
     ThreadClear();
     WatchClear();
@@ -2745,7 +2743,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     varset("$pid", (duint)0, true);
     if(hProcessToken)
         CloseHandle(hProcessToken);
-    unlock(WAITID_STOP); //we are done
+
     pDebuggedEntry = 0;
     pDebuggedBase = 0;
     pCreateProcessBase = 0;

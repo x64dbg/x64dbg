@@ -16,7 +16,7 @@ protected:
     F fn;
     std::tuple<Args...> args;
     bool active = true;
-    std::thread thread;
+    HANDLE hThread;
     CRITICAL_SECTION access;
     HANDLE wakeupSemaphore;
 
@@ -134,10 +134,11 @@ TaskThread_<F, Args...>::TaskThread_(F fn,
     this->wakeupSemaphore = CreateSemaphoreW(nullptr, 0, 1, nullptr);
     InitializeCriticalSection(&this->access);
 
-    this->thread = std::thread([this]
+    this->hThread = CreateThread(nullptr, 0, [](LPVOID thisPtr) -> DWORD
     {
-        this->Loop();
-    });
+        ((TaskThread_<F, Args...>*)thisPtr)->Loop();
+        return 0;
+    }, this, 0, nullptr);
 }
 
 template <typename F, typename... Args>
@@ -148,7 +149,8 @@ TaskThread_<F, Args...>::~TaskThread_()
     LeaveCriticalSection(&this->access);
     ReleaseSemaphore(this->wakeupSemaphore, 1, nullptr);
 
-    this->thread.join(); //TODO: Microsoft C++ exception: std::system_error on exit
+    WaitForSingleObject(this->hThread, INFINITE);
+    CloseHandle(this->hThread);
 
     DeleteCriticalSection(&this->access);
     CloseHandle(this->wakeupSemaphore);

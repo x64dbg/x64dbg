@@ -32,7 +32,6 @@ public:
     int OpCount() const;
     const ZydisDecodedOperand & operator[](int index) const;
     std::string Mnemonic() const;
-    std::string MnemonicId() const;
     const char* MemSizeName(int size) const;
     size_t BranchDestination() const;
     size_t ResolveOpValue(int opindex, const std::function<size_t(ZydisRegister)> & resolveReg) const;

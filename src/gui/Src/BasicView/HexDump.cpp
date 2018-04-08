@@ -11,6 +11,8 @@ HexDump::HexDump(QWidget* parent)
     memset(&data, 0, sizeof(SelectionData_t));
     mSelection = data;
 
+    setDrawDebugOnly(true);
+
     mGuiState = HexDump::NoState;
 
     setRowCount(0);

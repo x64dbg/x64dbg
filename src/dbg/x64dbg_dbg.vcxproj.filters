@@ -81,9 +81,6 @@
     <Filter Include="Header Files\Interfaces/Exports\_scriptapi">
       <UniqueIdentifier>{eb7d9981-6079-4b4b-af18-e44e63451d10}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Third Party\keystone">
-      <UniqueIdentifier>{ccc8108c-36f5-4b8d-8152-7208f109d752}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Commands">
       <UniqueIdentifier>{c753866f-f2d5-4469-b8b0-0c7a6cea607e}</UniqueIdentifier>
     </Filter>
@@ -771,33 +768,6 @@
     </ClInclude>
     <ClInclude Include="encodemap.h">
       <Filter>Header Files\Information</Filter>
-    </ClInclude>
-    <ClInclude Include="keystone\arm.h">
-      <Filter>Header Files\Third Party\keystone</Filter>
-    </ClInclude>
-    <ClInclude Include="keystone\arm64.h">
-      <Filter>Header Files\Third Party\keystone</Filter>
-    </ClInclude>
-    <ClInclude Include="keystone\hexagon.h">
-      <Filter>Header Files\Third Party\keystone</Filter>
-    </ClInclude>
-    <ClInclude Include="keystone\keystone.h">
-      <Filter>Header Files\Third Party\keystone</Filter>
-    </ClInclude>
-    <ClInclude Include="keystone\mips.h">
-      <Filter>Header Files\Third Party\keystone</Filter>
-    </ClInclude>
-    <ClInclude Include="keystone\ppc.h">
-      <Filter>Header Files\Third Party\keystone</Filter>
-    </ClInclude>
-    <ClInclude Include="keystone\sparc.h">
-      <Filter>Header Files\Third Party\keystone</Filter>
-    </ClInclude>
-    <ClInclude Include="keystone\systemz.h">
-      <Filter>Header Files\Third Party\keystone</Filter>
-    </ClInclude>
-    <ClInclude Include="keystone\x86.h">
-      <Filter>Header Files\Third Party\keystone</Filter>
     </ClInclude>
     <ClInclude Include="datainst_helper.h">
       <Filter>Header Files\Utilities</Filter>

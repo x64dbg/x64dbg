@@ -60,9 +60,9 @@ if "%2"=="" (
 echo Building with SonarQube
 build-wrapper --out-dir bw-output build.bat %2
 if not defined APPVEYOR_PULL_REQUEST_NUMBER (
-sonar-scanner -Dsonar.projectKey=x64dbg -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=mrexodia-github -Dsonar.login=%SONARQUBE_TOKEN% -Dsonar.exclusions=src/capstone_wrapper/**,src/dbg/btparser/**,src/gui_build/**,src/zydis_wrapper/zydis/**
+sonar-scanner -Dsonar.projectKey=x64dbg -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=mrexodia-github -Dsonar.login=%SONARQUBE_TOKEN% -Dsonar.exclusions=src/dbg/btparser/**,src/gui_build/**,src/zydis_wrapper/zydis/**
 ) else (
-sonar-scanner -Dsonar.projectKey=x64dbg -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=mrexodia-github -Dsonar.login=%SONARQUBE_TOKEN% -Dsonar.exclusions=src/capstone_wrapper/**,src/dbg/btparser/**,src/gui_build/**,src/zydis_wrapper/zydis/** -Dsonar.analysis.mode=preview -Dsonar.github.pullRequest=%APPVEYOR_PULL_REQUEST_NUMBER% -Dsonar.github.repository=x64dbg/x64dbg -Dsonar.github.oauth=%GITHUB_TOKEN%
+sonar-scanner -Dsonar.projectKey=x64dbg -Dsonar.sources=. -Dsonar.cfamily.build-wrapper-output=bw-output -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=mrexodia-github -Dsonar.login=%SONARQUBE_TOKEN% -Dsonar.exclusions=src/dbg/btparser/**,src/gui_build/**,src/zydis_wrapper/zydis/** -Dsonar.analysis.mode=preview -Dsonar.github.pullRequest=%APPVEYOR_PULL_REQUEST_NUMBER% -Dsonar.github.repository=x64dbg/x64dbg -Dsonar.github.oauth=%GITHUB_TOKEN%
 )
 goto :restorepath
 

@@ -19,7 +19,7 @@ public:
     ~DataCopyDialog();
 
 private slots:
-    void on_comboType_currentIndexChanged(int index);
+    void on_listType_currentRowChanged(int currentRow);
     void on_buttonCopy_clicked();
     void on_spinBox_valueChanged(int arg1);
 
@@ -37,14 +37,20 @@ private:
         DataCString,
         DataCUnicodeString,
         DataCShellcodeString,
-        DataString,
-        DataUnicodeString,
-        DataUTF8String,
-        DataUCS4String,
+        DataASMByte,
+        DataASMWord,
+        DataASMDWord,
+        DataASMQWord,
+        DataASMString,
         DataPascalByte,
         DataPascalWord,
         DataPascalDword,
         DataPascalQword,
+        DataString,
+        DataUnicodeString,
+        DataUTF8String,
+        DataUCS4String,
+        DataHexStream,
         DataGUID,
         DataIPv4,
         DataIPv6,

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>242</height>
+    <width>554</width>
+    <height>521</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,8 +17,24 @@
    <iconset resource="../../resource.qrc">
     <normaloff>:/icons/images/data-copy.png</normaloff>:/icons/images/data-copy.png</iconset>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="0">
+    <widget class="QListWidget" name="listType">
+     <property name="minimumSize">
+      <size>
+       <width>140</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>200</width>
+       <height>16777215</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
     <widget class="QPlainTextEdit" name="editCode">
      <property name="font">
       <font>
@@ -30,32 +46,22 @@
      </property>
     </widget>
    </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QPushButton" name="buttonCopy">
-       <property name="maximumSize">
+   <item row="1" column="0" colspan="2">
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="1">
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
         <size>
-         <width>16777215</width>
-         <height>22</height>
+         <width>30</width>
+         <height>20</height>
         </size>
        </property>
-       <property name="text">
-        <string>Copy</string>
-       </property>
-      </widget>
+      </spacer>
      </item>
-     <item>
-      <widget class="QComboBox" name="comboType">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
-     </item>
-     <item>
+     <item row="0" column="3">
       <widget class="QLabel" name="label">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -68,7 +74,7 @@
        </property>
       </widget>
      </item>
-     <item>
+     <item row="0" column="4">
       <widget class="QSpinBox" name="spinBox">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -87,6 +93,31 @@
        </property>
        <property name="maximum">
         <number>200</number>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QPushButton" name="buttonCopy">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>140</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>240</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Copy</string>
        </property>
       </widget>
      </item>

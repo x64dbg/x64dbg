@@ -36,6 +36,9 @@ void MemUpdateMap()
 
         do
         {
+            if(!DbgIsDebugging())
+                return;
+
             // Query memory attributes
             MEMORY_BASIC_INFORMATION mbi;
             memset(&mbi, 0, sizeof(mbi));
@@ -106,6 +109,9 @@ void MemUpdateMap()
     char curMod[MAX_MODULE_SIZE] = "";
     for(int i = pagecount - 1; i > -1; i--)
     {
+        if(!DbgIsDebugging())
+            return;
+
         auto & currentPage = pageVector.at(i);
         if(!currentPage.info[0] || (scmp(curMod, currentPage.info) && !bListAllPages)) //there is a module
             continue; //skip non-modules
@@ -331,7 +337,7 @@ bool MemoryReadSafePage(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffer, 
 
 bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead, bool cache)
 {
-    if(!MemIsCanonicalAddress(BaseAddress))
+    if(!MemIsCanonicalAddress(BaseAddress) || !DbgIsDebugging())
         return false;
 
     if(cache && !MemIsValidReadPtr(BaseAddress, true))
@@ -383,7 +389,7 @@ bool MemReadUnsafePage(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffer, S
 
 bool MemReadUnsafe(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead)
 {
-    if(!MemIsCanonicalAddress(BaseAddress) || BaseAddress < PAGE_SIZE)
+    if(!MemIsCanonicalAddress(BaseAddress) || BaseAddress < PAGE_SIZE || !DbgIsDebugging())
         return false;
 
     if(!Buffer || !Size)

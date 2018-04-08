@@ -42,6 +42,7 @@ private:
     int mHexLineEditPos;
     int mSignedEditPos;
     int mUnsignedEditPos;
+    int mAsciiLineEditPos;
 };
 
 #endif // WORDEDITDIALOG_H
