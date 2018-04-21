@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>381</width>
-    <height>304</height>
+    <width>453</width>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,156 +18,310 @@
     <normaloff>:/icons/images/document-binary.png</normaloff>:/icons/images/document-binary.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="5" column="0" colspan="4">
-    <widget class="HexLineEdit" name="lineEditCodepage">
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0" colspan="4">
-    <widget class="HexLineEdit" name="lineEditUnicode">
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
-     </property>
-     <property name="inputMask">
-      <string/>
-     </property>
-     <property name="maxLength">
-      <number>32767</number>
-     </property>
-     <property name="frame">
-      <bool>false</bool>
-     </property>
-    </widget>
+   <item row="3" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnOk">
+       <property name="text">
+        <string>&amp;OK</string>
+       </property>
+       <property name="default">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnCancel">
+       <property name="text">
+        <string>&amp;Cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item row="0" column="0">
-    <widget class="QLabel" name="labelAscii">
-     <property name="text">
-      <string>&amp;ASCII:</string>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>2</number>
      </property>
-     <property name="buddy">
-      <cstring>lineEditAscii</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="2">
-    <widget class="QPushButton" name="btnOk">
-     <property name="text">
-      <string>&amp;OK</string>
-     </property>
-     <property name="default">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0" colspan="4">
-    <widget class="HexLineEdit" name="lineEditAscii">
-     <property name="styleSheet">
-      <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
-     </property>
-     <property name="inputMask">
-      <string/>
-     </property>
-     <property name="maxLength">
-      <number>32767</number>
-     </property>
-     <property name="frame">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="0">
-    <widget class="QLabel" name="labelHex">
-     <property name="text">
-      <string>&amp;Hex:</string>
-     </property>
-     <property name="buddy">
-      <cstring>scrollArea</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="3">
-    <widget class="QPushButton" name="btnCancel">
-     <property name="text">
-      <string>&amp;Cancel</string>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="1">
-    <widget class="QCheckBox" name="chkEntireBlock">
-     <property name="text">
-      <string>&amp;Entire Block</string>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="0" colspan="4">
-    <widget class="QScrollArea" name="scrollArea">
-     <property name="focusPolicy">
-      <enum>Qt::NoFocus</enum>
-     </property>
-     <property name="widgetResizable">
-      <bool>true</bool>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignCenter</set>
-     </property>
-     <widget class="QWidget" name="scrollAreaWidgetContents">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>361</width>
-        <height>100</height>
-       </rect>
+     <widget class="QWidget" name="tab">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
+      <attribute name="title">
+       <string>Hex</string>
+      </attribute>
+      <widget class="QWidget" name="verticalLayoutWidget">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>411</width>
+         <height>311</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QLabel" name="labelAscii">
+          <property name="text">
+           <string>&amp;ASCII:</string>
+          </property>
+          <property name="buddy">
+           <cstring>lineEditAscii</cstring>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="HexLineEdit" name="lineEditAscii">
+          <property name="styleSheet">
+           <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
+          </property>
+          <property name="inputMask">
+           <string/>
+          </property>
+          <property name="maxLength">
+           <number>32767</number>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="labelUnicode">
+          <property name="text">
+           <string>&amp;UNICODE:</string>
+          </property>
+          <property name="buddy">
+           <cstring>lineEditUnicode</cstring>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="HexLineEdit" name="lineEditUnicode">
+          <property name="styleSheet">
+           <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
+          </property>
+          <property name="inputMask">
+           <string/>
+          </property>
+          <property name="maxLength">
+           <number>32767</number>
+          </property>
+          <property name="frame">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="labelLastCodepage">
+            <property name="text">
+             <string>Last &amp;Codepage:</string>
+            </property>
+            <property name="buddy">
+             <cstring>lineEditCodepage</cstring>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnCodepage">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Code&amp;page...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="HexLineEdit" name="lineEditCodepage">
+          <property name="styleSheet">
+           <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="labelHex">
+          <property name="text">
+           <string>&amp;Hex:</string>
+          </property>
+          <property name="buddy">
+           <cstring>scrollArea</cstring>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QScrollArea" name="scrollArea">
+          <property name="focusPolicy">
+           <enum>Qt::NoFocus</enum>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <widget class="QWidget" name="scrollAreaWidgetContents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>407</width>
+             <height>122</height>
+            </rect>
+           </property>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="chkKeepSize">
+            <property name="text">
+             <string>&amp;Keep Size</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="chkEntireBlock">
+            <property name="text">
+             <string>&amp;Entire Block</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
      </widget>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="labelUnicode">
-     <property name="text">
-      <string>&amp;UNICODE:</string>
-     </property>
-     <property name="buddy">
-      <cstring>lineEditUnicode</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="0">
-    <widget class="QCheckBox" name="chkKeepSize">
-     <property name="text">
-      <string>&amp;Keep Size</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="labelLastCodepage">
-     <property name="text">
-      <string>Last &amp;Codepage:</string>
-     </property>
-     <property name="buddy">
-      <cstring>lineEditCodepage</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="3">
-    <widget class="QPushButton" name="btnCodepage">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>16777215</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>Code&amp;page...</string>
-     </property>
+     <widget class="QWidget" name="tab_2">
+      <attribute name="title">
+       <string>String</string>
+      </attribute>
+     </widget>
+     <widget class="QWidget" name="tab_3">
+      <attribute name="title">
+       <string>Copy data</string>
+      </attribute>
+      <widget class="QWidget" name="verticalLayoutWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>421</width>
+         <height>321</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QListView" name="listType">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPlainTextEdit" name="plainTextEdit"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <spacer name="horizontalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton">
+            <property name="text">
+             <string>Copy</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Items per line:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="spinBox"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </widget>
     </widget>
    </item>
   </layout>
@@ -179,16 +333,6 @@
    <header>HexLineEdit.h</header>
   </customwidget>
  </customwidgets>
- <tabstops>
-  <tabstop>lineEditAscii</tabstop>
-  <tabstop>lineEditUnicode</tabstop>
-  <tabstop>btnCodepage</tabstop>
-  <tabstop>lineEditCodepage</tabstop>
-  <tabstop>chkKeepSize</tabstop>
-  <tabstop>chkEntireBlock</tabstop>
-  <tabstop>btnOk</tabstop>
-  <tabstop>btnCancel</tabstop>
- </tabstops>
  <resources>
   <include location="../../resource.qrc"/>
  </resources>
