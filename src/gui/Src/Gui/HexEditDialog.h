@@ -42,6 +42,7 @@ private:
     bool mDataInitialized;
 
     QByteArray resizeData(QByteArray & data);
+    bool checkDataRepresentable(int mode); //1=ASCII, 2=Unicode, 3=User-selected codepage, 4=String editor, others(0)=All modes
 };
 
 #endif // HEXEDITDIALOG_H

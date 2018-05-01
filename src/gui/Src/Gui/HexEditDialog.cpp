@@ -114,6 +114,7 @@ void HexEditDialog::dataChangedSlot()
         ui->lineEditAscii->setData(data);
         ui->lineEditUnicode->setData(data);
         ui->lineEditCodepage->setData(data);
+        checkDataRepresentable(0);
         mDataInitialized = true;
     }
 }
@@ -124,6 +125,7 @@ void HexEditDialog::dataEditedSlot()
     ui->lineEditAscii->setData(data);
     ui->lineEditUnicode->setData(data);
     ui->lineEditCodepage->setData(data);
+    checkDataRepresentable(0);
 }
 
 void HexEditDialog::on_lineEditAscii_dataEdited()
@@ -174,5 +176,62 @@ void HexEditDialog::on_btnCodepage_clicked()
     CodepageSelectionDialog codepageDialog(this);
     if(codepageDialog.exec() != QDialog::Accepted)
         return;
+    checkDataRepresentable(3);
     updateCodepage(codepageDialog.getSelectedCodepage());
+}
+
+bool HexEditDialog::checkDataRepresentable(int mode)
+{
+    QTextCodec* codec;
+    QLabel* label;
+    if(mode == 1)
+    {
+        codec = QTextCodec::codecForName("System");
+        label = ui->labelWarningCodepageASCII;
+    }
+    else if(mode == 2)
+    {
+        codec = QTextCodec::codecForName("UTF-16");
+        label = ui->labelWarningCodepageUTF;
+    }
+    else if(mode == 3)
+    {
+        codec = QTextCodec::codecForName(ui->labelLastCodepage->text().toLatin1());
+        label = ui->labelWarningCodepage;
+    }
+    else if(mode == 4)
+    {
+        codec = QTextCodec::codecForName(ui->labelLastCodepage->text().toLatin1());
+        label = ui->labelWarningCodepageString;
+    }
+    else
+    {
+        bool isRepresentable;
+        isRepresentable = checkDataRepresentable(1);
+        isRepresentable = checkDataRepresentable(2) && isRepresentable;
+        isRepresentable = checkDataRepresentable(3) && isRepresentable;
+        isRepresentable = checkDataRepresentable(4) && isRepresentable;
+        return isRepresentable;
+    }
+    if(codec == nullptr)
+    {
+        label->show();
+        return false;
+    }
+    QString test;
+    QByteArray original = mHexEdit->data();
+    QTextCodec::ConverterState converter(QTextCodec::IgnoreHeader);
+    test = codec->toUnicode(original);
+    QByteArray test2;
+    test2 = codec->fromUnicode(test.constData(), test.size(), &converter);
+    if(test2.size() < original.size() || memcmp(test2.constData(), original.constData(), original.size()) != 0)
+    {
+        label->show();
+        return false;
+    }
+    else
+    {
+        label->hide();
+        return true;
+    }
 }
