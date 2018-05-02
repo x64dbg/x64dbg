@@ -352,7 +352,7 @@
              <string>Last &amp;Codepage:</string>
             </property>
             <property name="buddy">
-             <cstring>plainTextEdit_2</cstring>
+             <cstring>stringEditor</cstring>
             </property>
            </widget>
           </item>
@@ -379,7 +379,7 @@
          </layout>
         </item>
         <item>
-         <widget class="QPlainTextEdit" name="plainTextEdit_2"/>
+         <widget class="QPlainTextEdit" name="stringEditor"/>
         </item>
        </layout>
       </widget>
@@ -401,30 +401,24 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
-           <widget class="QListView" name="listType">
+           <widget class="QListWidget" name="listType">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>20</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="baseSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
            </widget>
           </item>
           <item>
-           <widget class="QPlainTextEdit" name="plainTextEdit"/>
+           <widget class="QPlainTextEdit" name="editCode"/>
           </item>
          </layout>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="buttonCopy">
             <property name="text">
              <string>Copy</string>
             </property>
@@ -451,7 +445,14 @@
            </widget>
           </item>
           <item>
-           <widget class="QSpinBox" name="spinBox"/>
+           <widget class="QSpinBox" name="spinBox">
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>256</number>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
