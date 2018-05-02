@@ -87,7 +87,6 @@ public slots:
     void copyRvaSlot();
     void copyFileOffsetSlot();
     void copyDisassemblySlot();
-    void copyDataSlot();
     void labelCopySlot();
     void findCommandSlot();
     void openSourceSlot();
