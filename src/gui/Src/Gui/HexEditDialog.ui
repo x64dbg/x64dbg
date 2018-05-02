@@ -67,11 +67,11 @@
     </layout>
    </item>
    <item row="0" column="0">
-    <widget class="QTabWidget" name="tabWidget">
+    <widget class="QTabWidget" name="tabModeSelect">
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tab">
+     <widget class="QWidget" name="tabHexEdit">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
         <horstretch>0</horstretch>
@@ -317,7 +317,7 @@
        </layout>
       </widget>
      </widget>
-     <widget class="QWidget" name="tab_2">
+     <widget class="QWidget" name="tabStringEditor">
       <attribute name="title">
        <string>String</string>
       </attribute>
@@ -347,12 +347,12 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="labelLastCodePage2">
+           <widget class="QLabel" name="labelLastCodepage2">
             <property name="text">
              <string>Last &amp;Codepage:</string>
             </property>
             <property name="buddy">
-             <cstring>plainEditText_2</cstring>
+             <cstring>plainTextEdit_2</cstring>
             </property>
            </widget>
           </item>
@@ -384,7 +384,7 @@
        </layout>
       </widget>
      </widget>
-     <widget class="QWidget" name="tab_3">
+     <widget class="QWidget" name="tabCopyData">
       <attribute name="title">
        <string>Copy data</string>
       </attribute>

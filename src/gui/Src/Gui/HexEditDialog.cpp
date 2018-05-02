@@ -30,6 +30,7 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     mHexEdit->widget()->setFocus();
     connect(mHexEdit, SIGNAL(dataChanged()), this, SLOT(dataChangedSlot()));
     connect(mHexEdit, SIGNAL(dataEdited()), this, SLOT(dataEditedSlot()));
+    connect(ui->btnCodePage2, SIGNAL(clicked()), this, SLOT(on_btnCodepage_clicked()));
 
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(updateStyle()));
@@ -47,18 +48,18 @@ HexEditDialog::~HexEditDialog()
 
 void HexEditDialog::showEntireBlock(bool show)
 {
-    if(show)
-        ui->chkEntireBlock->show();
-    else
-        ui->chkEntireBlock->hide();
+    ui->chkEntireBlock->setVisible(show);
 }
 
 void HexEditDialog::showKeepSize(bool show)
 {
-    if(show)
-        ui->chkKeepSize->show();
-    else
-        ui->chkKeepSize->hide();
+    ui->chkKeepSize->setVisible(show);
+}
+
+void HexEditDialog::isDataCopiable(bool copyDataEnabled)
+{
+    if(copyDataEnabled == false)
+        ui->tabModeSelect->removeTab(2); //This can't be undone!
 }
 
 void HexEditDialog::updateCodepage()
@@ -70,6 +71,7 @@ void HexEditDialog::updateCodepage()
     ui->lineEditCodepage->setEncoding(QTextCodec::codecForName(allCodecs.at(lastCodepage)));
     ui->lineEditCodepage->setData(mHexEdit->data());
     ui->labelLastCodepage->setText(QString(allCodecs.at(lastCodepage).constData()));
+    ui->labelLastCodepage2->setText(ui->labelLastCodepage->text());
 }
 
 void HexEditDialog::updateCodepage(const QByteArray & name)
@@ -77,6 +79,7 @@ void HexEditDialog::updateCodepage(const QByteArray & name)
     ui->lineEditCodepage->setEncoding(QTextCodec::codecForName(name));
     ui->lineEditCodepage->setData(mHexEdit->data());
     ui->labelLastCodepage->setText(QString(name));
+    ui->labelLastCodepage2->setText(ui->labelLastCodepage->text());
 }
 
 bool HexEditDialog::entireBlock()

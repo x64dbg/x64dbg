@@ -19,6 +19,7 @@ public:
 
     void showEntireBlock(bool show);
     void showKeepSize(bool show);
+    void isDataCopiable(bool copyDataEnabled);
     void updateCodepage();
 
     bool entireBlock();

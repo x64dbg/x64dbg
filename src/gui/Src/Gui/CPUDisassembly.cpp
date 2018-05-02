@@ -1204,6 +1204,7 @@ void CPUDisassembly::findPatternSlot()
 {
     HexEditDialog hexEdit(this);
     hexEdit.showEntireBlock(true);
+    hexEdit.isDataCopiable(false);
     hexEdit.mHexEdit->setOverwriteMode(false);
     hexEdit.setWindowTitle(tr("Find Pattern..."));
     if(hexEdit.exec() != QDialog::Accepted)
