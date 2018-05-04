@@ -315,6 +315,16 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QCheckBox" name="chkCRLF">
+             <property name="text">
+              <string>CR LF</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item>
