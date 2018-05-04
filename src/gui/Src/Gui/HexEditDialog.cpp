@@ -38,6 +38,7 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     connect(mHexEdit, SIGNAL(dataChanged()), this, SLOT(dataChangedSlot()));
     connect(mHexEdit, SIGNAL(dataEdited()), this, SLOT(dataEditedSlot()));
     connect(ui->btnCodePage2, SIGNAL(clicked()), this, SLOT(on_btnCodepage_clicked()));
+    connect(ui->chkCRLF, SIGNAL(clicked()), this, SLOT(on_stringEditor_textChanged()));
 
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
     connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(updateStyle()));
@@ -216,6 +217,8 @@ void HexEditDialog::on_stringEditor_textChanged() //stack overflow?
     stringEditorLock = true;
     QTextCodec::ConverterState converter(QTextCodec::IgnoreHeader); //Don't add BOM for UTF-16
     QString text = ui->stringEditor->document()->toPlainText();
+    if(ui->chkCRLF->checkState() == Qt::Checked)
+        text = text.replace(QChar('\n'), "\r\n");
     QByteArray data = lastCodec->fromUnicode(text.constData(), text.size(), &converter);
     data = resizeData(data);
     ui->lineEditAscii->setData(data);
