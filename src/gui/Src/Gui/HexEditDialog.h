@@ -35,10 +35,13 @@ private slots:
     void on_lineEditUnicode_dataEdited();
     void on_lineEditCodepage_dataEdited();
     void on_btnCodepage_clicked();
+    void on_stringEditor_textChanged();
 
 private:
     Ui::HexEditDialog* ui;
     void updateCodepage(const QByteArray & name);
+    QTextCodec* lastCodec;
+    bool stringEditorLock;
 
     bool mDataInitialized;
 
