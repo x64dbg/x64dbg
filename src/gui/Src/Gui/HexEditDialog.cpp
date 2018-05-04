@@ -26,6 +26,7 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     ui->chkEntireBlock->hide();
 
     mDataInitialized = false;
+    stringEditorLock = false;
 
     //setup hex editor
     mHexEdit = new QHexEdit(this);
@@ -83,8 +84,6 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     QModelIndex index = ui->listType->model()->index(DataCByte, 0);
     ui->listType->setCurrentIndex(index);
 
-    printData((DataType)ui->listType->currentIndex().row());
-
     Config()->setupWindowPos(this);
 }
 
@@ -116,20 +115,20 @@ void HexEditDialog::updateCodepage()
     auto allCodecs = QTextCodec::availableCodecs();
     if(!BridgeSettingGetUint("Misc", "LastCodepage", &lastCodepage) || lastCodepage >= duint(allCodecs.size()))
         return;
-    QTextCodec* codec = QTextCodec::codecForName(allCodecs.at(lastCodepage));
-    ui->lineEditCodepage->setEncoding(codec);
+    lastCodec = QTextCodec::codecForName(allCodecs.at(lastCodepage));
+    ui->lineEditCodepage->setEncoding(lastCodec);
     ui->lineEditCodepage->setData(mHexEdit->data());
-    ui->stringEditor->document()->setPlainText(codec->toUnicode(mHexEdit->data()));
+    ui->stringEditor->document()->setPlainText(lastCodec->toUnicode(mHexEdit->data()));
     ui->labelLastCodepage->setText(QString(allCodecs.at(lastCodepage).constData()));
     ui->labelLastCodepage2->setText(ui->labelLastCodepage->text());
 }
 
 void HexEditDialog::updateCodepage(const QByteArray & name)
 {
-    QTextCodec* codec = QTextCodec::codecForName(name);
-    ui->lineEditCodepage->setEncoding(codec);
+    lastCodec = QTextCodec::codecForName(name);
+    ui->lineEditCodepage->setEncoding(lastCodec);
     ui->lineEditCodepage->setData(mHexEdit->data());
-    ui->stringEditor->document()->setPlainText(codec->toUnicode(mHexEdit->data()));
+    ui->stringEditor->document()->setPlainText(lastCodec->toUnicode(mHexEdit->data()));
     ui->labelLastCodepage->setText(QString(name));
     ui->labelLastCodepage2->setText(ui->labelLastCodepage->text());
 }
@@ -169,7 +168,11 @@ void HexEditDialog::dataChangedSlot()
         ui->lineEditAscii->setData(data);
         ui->lineEditUnicode->setData(data);
         ui->lineEditCodepage->setData(data);
+        ui->stringEditor->document()->setPlainText(lastCodec->toUnicode(data));
         checkDataRepresentable(0);
+
+        printData((DataType)ui->listType->currentIndex().row());
+
         mDataInitialized = true;
     }
 }
@@ -180,6 +183,8 @@ void HexEditDialog::dataEditedSlot()
     ui->lineEditAscii->setData(data);
     ui->lineEditUnicode->setData(data);
     ui->lineEditCodepage->setData(data);
+    ui->stringEditor->document()->setPlainText(lastCodec->toUnicode(data));
+    printData((DataType)ui->listType->currentIndex().row());
     checkDataRepresentable(0);
 }
 
@@ -189,6 +194,8 @@ void HexEditDialog::on_lineEditAscii_dataEdited()
     data = resizeData(data);
     ui->lineEditUnicode->setData(data);
     ui->lineEditCodepage->setData(data);
+    ui->stringEditor->document()->setPlainText(lastCodec->toUnicode(data));
+    printData((DataType)ui->listType->currentIndex().row());
     mHexEdit->setData(data);
 }
 
@@ -198,7 +205,25 @@ void HexEditDialog::on_lineEditUnicode_dataEdited()
     data = resizeData(data);
     ui->lineEditAscii->setData(data);
     ui->lineEditCodepage->setData(data);
+    ui->stringEditor->document()->setPlainText(lastCodec->toUnicode(data));
+    printData((DataType)ui->listType->currentIndex().row());
     mHexEdit->setData(data);
+}
+
+void HexEditDialog::on_stringEditor_textChanged() //stack overflow?
+{
+    if(stringEditorLock || ui->tabModeSelect->currentIndex() != 1) return;
+    stringEditorLock = true;
+    QTextCodec::ConverterState converter(QTextCodec::IgnoreHeader); //Don't add BOM for UTF-16
+    QString text = ui->stringEditor->document()->toPlainText();
+    QByteArray data = lastCodec->fromUnicode(text.constData(), text.size(), &converter);
+    data = resizeData(data);
+    ui->lineEditAscii->setData(data);
+    ui->lineEditUnicode->setData(data);
+    ui->lineEditCodepage->setData(data);
+    printData((DataType)ui->listType->currentIndex().row());
+    mHexEdit->setData(data);
+    stringEditorLock = false;
 }
 
 void HexEditDialog::on_lineEditCodepage_dataEdited()
@@ -207,6 +232,7 @@ void HexEditDialog::on_lineEditCodepage_dataEdited()
     data = resizeData(data);
     ui->lineEditAscii->setData(data);
     ui->lineEditUnicode->setData(data);
+    ui->stringEditor->document()->setPlainText(lastCodec->toUnicode(data));
     mHexEdit->setData(data);
 }
 
@@ -231,8 +257,11 @@ void HexEditDialog::on_btnCodepage_clicked()
     CodepageSelectionDialog codepageDialog(this);
     if(codepageDialog.exec() != QDialog::Accepted)
         return;
-    checkDataRepresentable(3);
+    stringEditorLock = true;
     updateCodepage(codepageDialog.getSelectedCodepage());
+    checkDataRepresentable(3);
+    checkDataRepresentable(4);
+    stringEditorLock = false;
 }
 
 bool HexEditDialog::checkDataRepresentable(int mode)
@@ -251,12 +280,12 @@ bool HexEditDialog::checkDataRepresentable(int mode)
     }
     else if(mode == 3)
     {
-        codec = QTextCodec::codecForName(ui->labelLastCodepage->text().toLatin1());
+        codec = lastCodec;
         label = ui->labelWarningCodepage;
     }
     else if(mode == 4)
     {
-        codec = QTextCodec::codecForName(ui->labelLastCodepage->text().toLatin1());
+        codec = lastCodec;
         label = ui->labelWarningCodepageString;
     }
     else
