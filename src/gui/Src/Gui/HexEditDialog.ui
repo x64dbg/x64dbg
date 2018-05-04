@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>429</width>
-    <height>397</height>
+    <width>414</width>
+    <height>394</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,8 +17,392 @@
    <iconset resource="../../resource.qrc">
     <normaloff>:/icons/images/document-binary.png</normaloff>:/icons/images/document-binary.png</iconset>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="3" column="0">
+  <layout class="QVBoxLayout" name="verticalLayout_4">
+   <item>
+    <widget class="QTabWidget" name="tabModeSelect">
+     <property name="currentIndex">
+      <number>2</number>
+     </property>
+     <widget class="QWidget" name="tabHexEdit">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <attribute name="title">
+       <string>Hex</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_6">
+           <item>
+            <widget class="QLabel" name="labelWarningCodepageASCII">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>Warning: Data cannot be represented in selected codepage.</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="pixmap">
+              <pixmap resource="../../resource.qrc">:/icons/images/fatal-error.png</pixmap>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="labelAscii">
+             <property name="text">
+              <string>ASCII</string>
+             </property>
+             <property name="buddy">
+              <cstring>lineEditAscii</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_5">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="HexLineEdit" name="lineEditAscii">
+           <property name="styleSheet">
+            <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
+           </property>
+           <property name="inputMask">
+            <string/>
+           </property>
+           <property name="maxLength">
+            <number>32767</number>
+           </property>
+           <property name="frame">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_7">
+           <item>
+            <widget class="QLabel" name="labelWarningCodepageUTF">
+             <property name="toolTip">
+              <string>Warning: Data cannot be represented in selected codepage.</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="pixmap">
+              <pixmap resource="../../resource.qrc">:/icons/images/fatal-error.png</pixmap>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="labelUnicode">
+             <property name="text">
+              <string>&amp;UNICODE:</string>
+             </property>
+             <property name="buddy">
+              <cstring>lineEditUnicode</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="HexLineEdit" name="lineEditUnicode">
+           <property name="styleSheet">
+            <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
+           </property>
+           <property name="inputMask">
+            <string/>
+           </property>
+           <property name="maxLength">
+            <number>32767</number>
+           </property>
+           <property name="frame">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QLabel" name="labelWarningCodepage">
+             <property name="toolTip">
+              <string>Warning: Data cannot be represented in selected codepage.</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="pixmap">
+              <pixmap resource="../../resource.qrc">:/icons/images/fatal-error.png</pixmap>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="labelLastCodepage">
+             <property name="text">
+              <string>Last &amp;Codepage:</string>
+             </property>
+             <property name="buddy">
+              <cstring>lineEditCodepage</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_2">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnCodepage">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Code&amp;page...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="HexLineEdit" name="lineEditCodepage">
+           <property name="styleSheet">
+            <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="labelHex">
+           <property name="text">
+            <string>&amp;Hex:</string>
+           </property>
+           <property name="margin">
+            <number>0</number>
+           </property>
+           <property name="indent">
+            <number>20</number>
+           </property>
+           <property name="buddy">
+            <cstring>scrollArea</cstring>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QScrollArea" name="scrollArea">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="widgetResizable">
+            <bool>true</bool>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <widget class="QWidget" name="scrollAreaWidgetContents">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>368</width>
+              <height>121</height>
+             </rect>
+            </property>
+           </widget>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabStringEditor">
+      <attribute name="title">
+       <string>String</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QLabel" name="labelWarningCodepageString">
+             <property name="toolTip">
+              <string>Warning: Data cannot be represented in selected codepage.</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="pixmap">
+              <pixmap resource="../../resource.qrc">:/icons/images/fatal-error.png</pixmap>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="labelLastCodepage2">
+             <property name="text">
+              <string>Last &amp;Codepage:</string>
+             </property>
+             <property name="buddy">
+              <cstring>stringEditor</cstring>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btnCodePage2">
+             <property name="text">
+              <string>Code&amp;page...</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QPlainTextEdit" name="stringEditor"/>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabCopyData">
+      <attribute name="title">
+       <string>Copy data</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_7">
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <item>
+            <widget class="QListWidget" name="listType">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>20</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPlainTextEdit" name="editCode">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>80</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <widget class="QPushButton" name="buttonCopy">
+             <property name="text">
+              <string>Copy</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="horizontalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Items per line:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spinBox">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>256</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QCheckBox" name="chkKeepSize">
@@ -65,401 +449,6 @@
       </widget>
      </item>
     </layout>
-   </item>
-   <item row="0" column="0">
-    <widget class="QTabWidget" name="tabModeSelect">
-     <property name="currentIndex">
-      <number>0</number>
-     </property>
-     <widget class="QWidget" name="tabHexEdit">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <attribute name="title">
-       <string>Hex</string>
-      </attribute>
-      <widget class="QWidget" name="verticalLayoutWidget">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>401</width>
-         <height>321</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_6">
-          <item>
-           <widget class="QLabel" name="labelWarningCodepageASCII">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="toolTip">
-             <string>Warning: Data cannot be represented in selected codepage.</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="pixmap">
-             <pixmap resource="../../resource.qrc">:/icons/images/fatal-error.png</pixmap>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="labelAscii">
-            <property name="text">
-             <string>ASCII</string>
-            </property>
-            <property name="buddy">
-             <cstring>lineEditAscii</cstring>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_5">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="HexLineEdit" name="lineEditAscii">
-          <property name="styleSheet">
-           <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
-          </property>
-          <property name="inputMask">
-           <string/>
-          </property>
-          <property name="maxLength">
-           <number>32767</number>
-          </property>
-          <property name="frame">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_7">
-          <item>
-           <widget class="QLabel" name="labelWarningCodepageUTF">
-            <property name="toolTip">
-             <string>Warning: Data cannot be represented in selected codepage.</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="pixmap">
-             <pixmap resource="../../resource.qrc">:/icons/images/fatal-error.png</pixmap>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="labelUnicode">
-            <property name="text">
-             <string>&amp;UNICODE:</string>
-            </property>
-            <property name="buddy">
-             <cstring>lineEditUnicode</cstring>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_6">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="HexLineEdit" name="lineEditUnicode">
-          <property name="styleSheet">
-           <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
-          </property>
-          <property name="inputMask">
-           <string/>
-          </property>
-          <property name="maxLength">
-           <number>32767</number>
-          </property>
-          <property name="frame">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QLabel" name="labelWarningCodepage">
-            <property name="toolTip">
-             <string>Warning: Data cannot be represented in selected codepage.</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="pixmap">
-             <pixmap resource="../../resource.qrc">:/icons/images/fatal-error.png</pixmap>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="labelLastCodepage">
-            <property name="text">
-             <string>Last &amp;Codepage:</string>
-            </property>
-            <property name="buddy">
-             <cstring>lineEditCodepage</cstring>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btnCodepage">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Code&amp;page...</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="HexLineEdit" name="lineEditCodepage">
-          <property name="styleSheet">
-           <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="labelHex">
-          <property name="text">
-           <string>&amp;Hex:</string>
-          </property>
-          <property name="margin">
-           <number>0</number>
-          </property>
-          <property name="indent">
-           <number>20</number>
-          </property>
-          <property name="buddy">
-           <cstring>scrollArea</cstring>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QScrollArea" name="scrollArea">
-          <property name="focusPolicy">
-           <enum>Qt::NoFocus</enum>
-          </property>
-          <property name="widgetResizable">
-           <bool>true</bool>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignCenter</set>
-          </property>
-          <widget class="QWidget" name="scrollAreaWidgetContents">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>397</width>
-             <height>140</height>
-            </rect>
-           </property>
-          </widget>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </widget>
-     <widget class="QWidget" name="tabStringEditor">
-      <attribute name="title">
-       <string>String</string>
-      </attribute>
-      <widget class="QWidget" name="verticalLayoutWidget_3">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>391</width>
-         <height>301</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_3">
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <widget class="QLabel" name="labelWarningCodepageString">
-            <property name="toolTip">
-             <string>Warning: Data cannot be represented in selected codepage.</string>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-            <property name="pixmap">
-             <pixmap resource="../../resource.qrc">:/icons/images/fatal-error.png</pixmap>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="labelLastCodepage2">
-            <property name="text">
-             <string>Last &amp;Codepage:</string>
-            </property>
-            <property name="buddy">
-             <cstring>stringEditor</cstring>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btnCodePage2">
-            <property name="text">
-             <string>Code&amp;page...</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QPlainTextEdit" name="stringEditor"/>
-        </item>
-       </layout>
-      </widget>
-     </widget>
-     <widget class="QWidget" name="tabCopyData">
-      <attribute name="title">
-       <string>Copy data</string>
-      </attribute>
-      <widget class="QWidget" name="verticalLayoutWidget_2">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>401</width>
-         <height>321</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <widget class="QListWidget" name="listType">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-              <horstretch>20</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPlainTextEdit" name="editCode"/>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <item>
-           <widget class="QPushButton" name="buttonCopy">
-            <property name="text">
-             <string>Copy</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Items per line:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="spinBox">
-            <property name="minimum">
-             <number>1</number>
-            </property>
-            <property name="maximum">
-             <number>256</number>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-     </widget>
-    </widget>
    </item>
   </layout>
  </widget>

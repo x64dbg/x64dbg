@@ -331,7 +331,6 @@ FORMS += \
     Src/Gui/PageMemoryRights.ui \
     Src/Gui/SelectFields.ui \
     Src/Gui/YaraRuleSelectionDialog.ui \
-    Src/Gui/DataCopyDialog.ui \
     Src/Gui/EntropyDialog.ui \
     Src/Gui/AssembleDialog.ui \
     Src/Gui/EditBreakpointDialog.ui \

@@ -16,7 +16,7 @@ typedef PCTSTR(__stdcall* INETNTOPW)(INT Family, PVOID pAddr, wchar_t* pStringBu
 HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexEditDialog)
 {
     ui->setupUi(this);
-    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
+    setWindowFlags((windowFlags() & ~Qt::WindowContextHelpButtonHint) | Qt::WindowMaximizeButtonHint);
     setModal(true); //modal window
 
     //setup text fields
@@ -695,7 +695,8 @@ void HexEditDialog::printData(DataType type)
                 else
                     data += ", ";
             }
-            data += QString("%1.%2.%3.%4").arg(mData.constData()[i * 4]).arg(mData.constData()[i * 4 + 1]).arg(mData.constData()[i * 4 + 2]).arg(mData.constData()[i * 4 + 3]);
+            data += QString("%1.%2.%3.%4").arg((unsigned char)(mData.constData()[i * 4])).arg((unsigned char)(mData.constData()[i * 4 + 1]))
+                    .arg((unsigned char)(mData.constData()[i * 4 + 2])).arg((unsigned char)(mData.constData()[i * 4 + 3]));
         }
     }
     break;
