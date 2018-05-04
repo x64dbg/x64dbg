@@ -21,7 +21,7 @@
    <item>
     <widget class="QTabWidget" name="tabModeSelect">
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tabHexEdit">
       <property name="sizePolicy">
