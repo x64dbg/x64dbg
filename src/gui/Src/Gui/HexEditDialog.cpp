@@ -218,7 +218,10 @@ void HexEditDialog::on_stringEditor_textChanged() //stack overflow?
     QTextCodec::ConverterState converter(QTextCodec::IgnoreHeader); //Don't add BOM for UTF-16
     QString text = ui->stringEditor->document()->toPlainText();
     if(ui->chkCRLF->checkState() == Qt::Checked)
+    {
         text = text.replace(QChar('\n'), "\r\n");
+        text = text.replace("\r\r\n", "\r\n");
+    }
     QByteArray data = lastCodec->fromUnicode(text.constData(), text.size(), &converter);
     data = resizeData(data);
     ui->lineEditAscii->setData(data);
