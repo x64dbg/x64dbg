@@ -317,6 +317,9 @@
            </item>
            <item>
             <widget class="QCheckBox" name="chkCRLF">
+             <property name="toolTip">
+              <string>Convert to Windows style line ending.</string>
+             </property>
              <property name="text">
               <string>CR LF</string>
              </property>
