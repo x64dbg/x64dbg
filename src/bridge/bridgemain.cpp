@@ -342,7 +342,7 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
         BRIDGE_ADDRINFO ptrinfo = info;
         if(!_dbg_addrinfoget(addr_, SEG_DEFAULT, &ptrinfo))
             return false;
-        sprintf_s(info.label, "&%s", ptrinfo.label);
+        _snprintf_s(info.label, _TRUNCATE, "&%s", ptrinfo.label);
     }
     strcpy_s(text, MAX_LABEL_SIZE, info.label);
     return true;
