@@ -11,9 +11,9 @@
 
 class Cleanup
 {
-    const std::function<void()> & fn;
+    std::function<void()> fn;
 public:
-    Cleanup(const std::function<void()> & fn) : fn(fn) { }
+    explicit Cleanup(std::function<void()> fn) : fn(std::move(fn)) { }
     ~Cleanup() { fn(); }
 };
 
