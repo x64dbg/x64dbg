@@ -163,6 +163,19 @@ void SearchListView::searchTextChanged(const QString & text)
         mAbstractSearchList->list()->hide();
         mAbstractSearchList->searchList()->show();
         mCurList = mAbstractSearchList->searchList();
+
+        // filter the list
+        auto filterType = AbstractSearchList::FilterContainsTextCaseInsensitive;
+        switch(mRegexCheckbox->checkState())
+        {
+        case Qt::PartiallyChecked:
+            filterType = AbstractSearchList::FilterRegexCaseInsensitive;
+            break;
+        case Qt::Checked:
+            filterType = AbstractSearchList::FilterRegexCaseSensitive;
+            break;
+        }
+        mAbstractSearchList->filter(text, filterType, mSearchStartCol);
     }
     else
     {
@@ -170,19 +183,6 @@ void SearchListView::searchTextChanged(const QString & text)
         mAbstractSearchList->list()->show();
         mCurList = mAbstractSearchList->list();
     }
-
-    // filter the list
-    auto filterType = AbstractSearchList::FilterContainsTextCaseInsensitive;
-    switch(mRegexCheckbox->checkState())
-    {
-    case Qt::PartiallyChecked:
-        filterType = AbstractSearchList::FilterRegexCaseInsensitive;
-        break;
-    case Qt::Checked:
-        filterType = AbstractSearchList::FilterRegexCaseSensitive;
-        break;
-    }
-    mAbstractSearchList->filter(text, filterType, mSearchStartCol); // TODO: do not filter if text is empty
 
     // attempt to restore previous selection
     bool hasSetSingleSelection = false;
