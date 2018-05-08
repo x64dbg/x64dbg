@@ -14,83 +14,139 @@
 #include "stringutils.h"
 #include "console.h"
 
-class DiaLoadCallback : public IDiaLoadCallback2
+//Taken from: https://msdn.microsoft.com/en-us/library/ms752876(v=vs.85).aspx
+class FileStream : public IStream
 {
-    virtual HRESULT STDMETHODCALLTYPE NotifyDebugDir(
-        /* [in] */ BOOL fExecutable,
-        /* [in] */ DWORD cbData,
-        /* [size_is][in] */ BYTE* pbData) override
+    FileStream(HANDLE hFile)
     {
-        GuiSymbolLogAdd(StringUtils::sprintf("[DIA] NotifyDebugDir: %s\n", StringUtils::ToHex(pbData, cbData).c_str()).c_str());
-        return S_OK;
+        GuiSymbolLogAdd(StringUtils::sprintf("[%x] FileStream()\n", GetCurrentThreadId()).c_str());
+        AddRef();
+        _hFile = hFile;
     }
 
-    virtual HRESULT STDMETHODCALLTYPE NotifyOpenDBG(
-        /* [in] */ LPCOLESTR dbgPath,
-        /* [in] */ HRESULT resultCode) override
+    ~FileStream()
     {
-        GuiSymbolLogAdd(StringUtils::sprintf("[DIA] NotifyOpenDBG: %s, %08X\n", StringUtils::Utf16ToUtf8(dbgPath).c_str(), resultCode).c_str());
-        return S_OK;
-    }
-
-    virtual HRESULT STDMETHODCALLTYPE NotifyOpenPDB(
-        /* [in] */ LPCOLESTR pdbPath,
-        /* [in] */ HRESULT resultCode) override
-    {
-        GuiSymbolLogAdd(StringUtils::sprintf("[DIA] NotifyOpenPDB: %s, %08X\n", StringUtils::Utf16ToUtf8(pdbPath).c_str(), resultCode).c_str());
-        return S_OK;
-    }
-
-    virtual HRESULT STDMETHODCALLTYPE RestrictRegistryAccess(void) override { return S_OK; }
-
-    virtual HRESULT STDMETHODCALLTYPE RestrictSymbolServerAccess(void) override { return S_OK; }
-
-    virtual HRESULT STDMETHODCALLTYPE RestrictDBGAccess(void) override { return S_OK; }
-
-    virtual HRESULT STDMETHODCALLTYPE RestrictOriginalPathAccess(void) override { return S_OK; }
-
-    virtual HRESULT STDMETHODCALLTYPE RestrictReferencePathAccess(void) override { return S_OK; }
-
-    virtual HRESULT STDMETHODCALLTYPE RestrictSystemRootAccess(void) override { return S_OK; }
-
-    //TODO: properly implement IUnknown (https://msdn.microsoft.com/en-us/library/office/cc839627.aspx)
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID rid, _Outptr_ void** ppUnk) override
-    {
-        if(ppUnk == NULL)
+        GuiSymbolLogAdd(StringUtils::sprintf("[%x] ~FileStream()\n", GetCurrentThreadId()).c_str());
+        if(_hFile != INVALID_HANDLE_VALUE)
         {
-            return E_INVALIDARG;
+            ::CloseHandle(_hFile);
         }
-        if(rid == __uuidof(IDiaLoadCallback2))
-            *ppUnk = (IDiaLoadCallback2*)this;
-        else if(rid == __uuidof(IDiaLoadCallback))
-            *ppUnk = (IDiaLoadCallback*)this;
-        else if(rid == __uuidof(IUnknown))
-            *ppUnk = (IUnknown*)this;
-        else
-            *ppUnk = NULL;
-        if(*ppUnk != NULL)
+    }
+
+public:
+    HRESULT static OpenFile(LPCWSTR pName, IStream** ppStream, bool fWrite)
+    {
+        HANDLE hFile = ::CreateFileW(pName, fWrite ? GENERIC_WRITE : GENERIC_READ, FILE_SHARE_READ,
+                                     NULL, fWrite ? CREATE_ALWAYS : OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+        if(hFile == INVALID_HANDLE_VALUE)
+            return HRESULT_FROM_WIN32(GetLastError());
+
+        *ppStream = new FileStream(hFile);
+
+        if(*ppStream == NULL)
+            CloseHandle(hFile);
+
+        return S_OK;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void** ppvObject)
+    {
+        GuiSymbolLogAdd(StringUtils::sprintf("[%x] FileStream::QueryInterface()\n", GetCurrentThreadId()).c_str());
+        if(iid == __uuidof(IUnknown)
+                || iid == __uuidof(IStream)
+                || iid == __uuidof(ISequentialStream))
         {
+            *ppvObject = static_cast<IStream*>(this);
             AddRef();
             return S_OK;
         }
-        return E_NOINTERFACE;
+        else
+            return E_NOINTERFACE;
     }
 
-    ULONG STDMETHODCALLTYPE AddRef() override
+    virtual ULONG STDMETHODCALLTYPE AddRef(void)
     {
-        return 1;
+        GuiSymbolLogAdd(StringUtils::sprintf("[%x] FileStream::AddRef() refcount: %d\n", GetCurrentThreadId(), _refcount).c_str());
+        return (ULONG)InterlockedIncrement(&_refcount);
     }
 
-    ULONG STDMETHODCALLTYPE Release() override
+    virtual ULONG STDMETHODCALLTYPE Release(void)
     {
-        return 1;
+        GuiSymbolLogAdd(StringUtils::sprintf("[%x] FileStream::Release() refcount: %d\n", GetCurrentThreadId(), _refcount).c_str());
+        ULONG res = (ULONG)InterlockedDecrement(&_refcount);
+        if(res == 0)
+            delete this;
+        return res;
     }
+
+    // ISequentialStream Interface
+public:
+    virtual HRESULT STDMETHODCALLTYPE Read(void* pv, ULONG cb, ULONG* pcbRead)
+    {
+        BOOL rc = ReadFile(_hFile, pv, cb, pcbRead, NULL);
+        return (rc) ? S_OK : HRESULT_FROM_WIN32(GetLastError());
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE Write(void const* pv, ULONG cb, ULONG* pcbWritten)
+    {
+        BOOL rc = WriteFile(_hFile, pv, cb, pcbWritten, NULL);
+        return rc ? S_OK : HRESULT_FROM_WIN32(GetLastError());
+    }
+
+    // IStream Interface
+public:
+    virtual HRESULT STDMETHODCALLTYPE SetSize(ULARGE_INTEGER) { return E_NOTIMPL; }
+    virtual HRESULT STDMETHODCALLTYPE CopyTo(IStream*, ULARGE_INTEGER, ULARGE_INTEGER*, ULARGE_INTEGER*) { return E_NOTIMPL; }
+    virtual HRESULT STDMETHODCALLTYPE Commit(DWORD) { return E_NOTIMPL; }
+    virtual HRESULT STDMETHODCALLTYPE Revert(void) { return E_NOTIMPL; }
+    virtual HRESULT STDMETHODCALLTYPE LockRegion(ULARGE_INTEGER, ULARGE_INTEGER, DWORD) { return E_NOTIMPL; }
+    virtual HRESULT STDMETHODCALLTYPE UnlockRegion(ULARGE_INTEGER, ULARGE_INTEGER, DWORD) { return E_NOTIMPL; }
+    virtual HRESULT STDMETHODCALLTYPE Clone(IStream**) { return E_NOTIMPL; }
+
+    virtual HRESULT STDMETHODCALLTYPE Seek(LARGE_INTEGER liDistanceToMove, DWORD dwOrigin, ULARGE_INTEGER* lpNewFilePointer)
+    {
+        DWORD dwMoveMethod;
+
+        switch(dwOrigin)
+        {
+        case STREAM_SEEK_SET:
+            dwMoveMethod = FILE_BEGIN;
+            break;
+        case STREAM_SEEK_CUR:
+            dwMoveMethod = FILE_CURRENT;
+            break;
+        case STREAM_SEEK_END:
+            dwMoveMethod = FILE_END;
+            break;
+        default:
+            return STG_E_INVALIDFUNCTION;
+            break;
+        }
+
+        if(SetFilePointerEx(_hFile, liDistanceToMove, (PLARGE_INTEGER)lpNewFilePointer,
+                            dwMoveMethod) == 0)
+            return HRESULT_FROM_WIN32(GetLastError());
+        return S_OK;
+    }
+
+    virtual HRESULT STDMETHODCALLTYPE Stat(STATSTG* pStatstg, DWORD grfStatFlag)
+    {
+        if(GetFileSizeEx(_hFile, (PLARGE_INTEGER)&pStatstg->cbSize) == 0)
+            return HRESULT_FROM_WIN32(GetLastError());
+        return S_OK;
+    }
+
+private:
+    HANDLE _hFile;
+    LONG _refcount = 0;
 };
 
 class DiaFileStream : public IStream
 {
 private:
     HANDLE _hFile;
+    LONG _refcount;
 
 public:
     DiaFileStream(HANDLE hFile)
@@ -288,7 +344,8 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
 
     if(_wcsicmp(fileExt, L".pdb") == 0)
     {
-        hr = DiaFileStream::OpenFile(file, &m_stream);
+        hr = FileStream::OpenFile(file, &m_stream, false);
+        GuiSymbolLogAdd("FileStream::OpenFile (after)\n");
         if(testError(hr))
         {
             GuiSymbolLogAdd("Unable to open PDB file.\n");
@@ -308,12 +365,12 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
         {
             hr = m_dataSource->loadDataFromIStream(m_stream);
         }
+        GuiSymbolLogAdd("loadDataFromIStream (after)\n");
     }
     else
     {
         // NOTE: Unsupported use with IStream.
-        DiaLoadCallback callback;
-        hr = m_dataSource->loadDataForExe(file, fileDir, &callback);
+        hr = m_dataSource->loadDataForExe(file, fileDir, nullptr);
     }
 
     if(testError(hr))
@@ -397,6 +454,12 @@ bool PDBDiaFile::close()
     {
         m_session->Release();
         m_session = nullptr;
+    }
+
+    if(m_stream)
+    {
+        m_stream->Release();
+        m_stream = nullptr;
     }
 
     if(m_dataSource)
