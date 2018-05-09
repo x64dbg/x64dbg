@@ -77,6 +77,7 @@ struct MODINFO
     duint size = 0; // Module size
     duint hash = 0; // Full module name hash
     duint entry = 0; // Entry point
+    duint headerImageBase = 0; // ImageBase field in OptionalHeader
 
     char name[MAX_MODULE_SIZE]; // Module name (without extension)
     char extension[MAX_MODULE_SIZE]; // File extension (including the dot)

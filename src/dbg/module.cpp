@@ -567,6 +567,8 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
     // OEP can't start at the PE header/offset 0 -- except if module is an EXE.
     Info.entry = moduleOEP + Info.base;
 
+    Info.headerImageBase = HEADER_FIELD(Info.headers, ImageBase);
+
     if(!moduleOEP)
     {
         // If this wasn't an exe, invalidate the entry point
