@@ -23,14 +23,13 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
 
     mHighlightToken.text = "";
     mHighlightingMode = false;
-    mPermanentHighlightingMode = false;
     mShowMnemonicBrief = false;
 
     int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
     Config()->writeUints();
 
     mDisasm = new QBeaEngine(maxModuleSize);
-    mDisasm->UpdateConfig();
+    tokenizerConfigUpdatedSlot();
 
     mCodeFoldingManager = nullptr;
     duint setting;
@@ -147,6 +146,7 @@ void Disassembly::tokenizerConfigUpdatedSlot()
 {
     mDisasm->UpdateConfig();
     mPermanentHighlightingMode = ConfigBool("Disassembler", "PermanentHighlightingMode");
+    mNoCurrentModuleText = ConfigBool("Disassembler", "NoCurrentModuleText");
 }
 
 /************************************************************************************
@@ -2107,7 +2107,7 @@ QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], boo
     if(getLabel && DbgGetLabelAt(cur_addr, SEG_DEFAULT, label_)) //has label
     {
         char module[MAX_MODULE_SIZE] = "";
-        if(DbgGetModuleAt(cur_addr, module) && !QString(label_).startsWith("JMP.&"))
+        if(DbgGetModuleAt(cur_addr, module) && !QString(label_).startsWith("JMP.&") && !mNoCurrentModuleText)
             addrText += " <" + QString(module) + "." + QString(label_) + ">";
         else
             addrText += " <" + QString(label_) + ">";

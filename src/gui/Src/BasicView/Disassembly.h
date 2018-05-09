@@ -252,6 +252,7 @@ protected:
     DisassemblyPopup mDisassemblyPopup;
     CapstoneTokenizer::SingleToken mHighlightToken;
     bool mPermanentHighlightingMode;
+    bool mNoCurrentModuleText;
 };
 
 #endif // DISASSEMBLY_H
