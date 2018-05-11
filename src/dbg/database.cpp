@@ -72,11 +72,6 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
         TraceRecord.saveToDb(root);
         BpCacheSave(root);
         WatchCacheSave(root);
-        if(dbhash != 0)
-        {
-            json_object_set_new(root, "hashAlgorithm", json_string("murmurhash"));
-            json_object_set_new(root, "hash", json_hex(dbhash));
-        }
 
         //save notes
         char* text = nullptr;
@@ -116,6 +111,13 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
         if(json_object_size(pluginRoot))
             json_object_set(root, "plugins", pluginRoot);
         json_decref(pluginRoot);
+
+        //store the file hash only if other data is saved in the database
+        if(dbhash != 0 && json_object_size(root))
+        {
+            json_object_set_new(root, "hashAlgorithm", json_string("murmurhash"));
+            json_object_set_new(root, "hash", json_hex(dbhash));
+        }
     }
 
     auto wdbpath = StringUtils::Utf8ToUtf16(file);
