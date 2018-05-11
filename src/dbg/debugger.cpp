@@ -518,7 +518,7 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
         sprintf_s(PIDnumber, "%u", fdProcessInfo->dwProcessId);
         sprintf_s(TIDnumber, "%u", currentThreadId);
     }
-    sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %s - %sThread: %s%s%s")), szBaseFileName, PIDnumber, modtext, threadName, TIDnumber, threadswitch);
+    sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "%s - PID: %s - %sThread: %s%s%s")), szBaseFileName, PIDnumber, modtext, threadName, TIDnumber, threadswitch);
     GuiUpdateWindowTitle(title);
     GuiUpdateRegisterView();
     GuiUpdateDisassemblyView();

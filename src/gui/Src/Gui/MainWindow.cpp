@@ -947,7 +947,7 @@ void MainWindow::updateWindowTitleSlot(QString filename)
 {
     if(filename.length())
     {
-        setWindowTitle(mWindowMainTitle + QString(" - ") + filename);
+        setWindowTitle(filename + QString(" - ") + mWindowMainTitle);
         windowTitle = filename;
     }
     else
