@@ -22,6 +22,11 @@ private:
     std::vector<SYMBOLPTR> mData;
     QMutex mMutex;
 
+    //Caching of translations to fix a bottleneck
+    QString trImport;
+    QString trExport;
+    QString trSymbol;
+
     enum
     {
         ColAddr,

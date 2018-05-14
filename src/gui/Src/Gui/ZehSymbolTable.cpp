@@ -37,6 +37,10 @@ ZehSymbolTable::ZehSymbolTable(QWidget* parent)
     addColumnAt(2000, tr("Symbol (undecorated)"), true);
     loadColumnFromConfig("Symbol");
     updateColors();
+
+    trImport = tr("Import");
+    trExport = tr("Export");
+    trSymbol = tr("Symbol");
 }
 
 QString ZehSymbolTable::getCellContent(int r, int c)
@@ -54,11 +58,11 @@ QString ZehSymbolTable::getCellContent(int r, int c)
         switch(info->type)
         {
         case sym_import:
-            return tr("Import");
+            return trImport;
         case sym_export:
-            return tr("Export");
+            return trExport;
         case sym_symbol:
-            return tr("Symbol");
+            return trSymbol;
         default:
             __debugbreak();
         }

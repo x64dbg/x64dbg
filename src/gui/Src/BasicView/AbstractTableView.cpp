@@ -611,6 +611,7 @@ void AbstractTableView::resizeEvent(QResizeEvent* event)
     if(event->size().height() != event->oldSize().height())
     {
         updateScrollBarRange(getRowCount());
+        emit viewableRowsChanged(getViewableRowsCount());
         mShouldReload = true;
     }
     QWidget::resizeEvent(event);
@@ -852,8 +853,6 @@ void AbstractTableView::updateScrollBarRange(dsint range)
         verticalScrollBar()->setRange(0, 0);
     verticalScrollBar()->setSingleStep(getRowHeight());
     verticalScrollBar()->setPageStep(viewableRowsCount * getRowHeight());
-
-    emit viewableRowsChanged(viewableRowsCount);
 }
 
 /************************************************************************************

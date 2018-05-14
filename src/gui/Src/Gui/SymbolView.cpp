@@ -48,19 +48,20 @@ public:
     void filter(const QString & filter, FilterType type, int startColumn) override
     {
         mSearchList->setRowCount(0);
+        int newRowCount = 0;
         mSearchList->mData.clear();
         mSearchList->mData.reserve(mList->mData.size());
         mSearchList->mModules = mList->mModules;
         int rows = mList->getRowCount();
-        for(int i = 0, j = 0; i < rows; i++)
+        for(int i = 0; i < rows; i++)
         {
             if(rowMatchesFilter(filter, type, i, startColumn))
             {
-                mSearchList->setRowCount(j + 1);
+                newRowCount++;
                 mSearchList->mData.push_back(mList->mData.at(i));
-                j++;
             }
         }
+        mSearchList->setRowCount(newRowCount);
     }
 
     void addAction(QAction* action)
