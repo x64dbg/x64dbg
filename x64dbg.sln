@@ -3,12 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "x64dbg_bridge", "src\bridge\x64dbg_bridge.vcxproj", "{944D9923-CB1A-6F6C-BCBC-9E00A71954C1}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "x64dbg_exe", "src\exe\x64dbg_exe.vcxproj", "{3A22175E-6B72-FDCC-1603-C4A2163C7900}"
 	ProjectSection(ProjectDependencies) = postProject
 		{944D9923-CB1A-6F6C-BCBC-9E00A71954C1} = {944D9923-CB1A-6F6C-BCBC-9E00A71954C1}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "x64dbg_bridge", "src\bridge\x64dbg_bridge.vcxproj", "{944D9923-CB1A-6F6C-BCBC-9E00A71954C1}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "x64dbg_dbg", "src\dbg\x64dbg_dbg.vcxproj", "{E6548308-401E-3A8A-5819-905DB90522A6}"
 	ProjectSection(ProjectDependencies) = postProject
