@@ -84,6 +84,7 @@ bool ZehSymbolTable::isValidIndex(int r, int c)
 void ZehSymbolTable::sortRows(int column, bool ascending)
 {
     QMutexLocker lock(&mMutex);
+    //TODO: invalid compare when !ascending
     std::stable_sort(mData.begin(), mData.end(), [column, ascending](const SYMBOLPTR & a, const SYMBOLPTR & b)
     {
         SymbolInfoWrapper ainfo, binfo;

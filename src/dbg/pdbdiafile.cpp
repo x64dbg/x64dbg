@@ -19,14 +19,12 @@ class FileStream : public IStream
 {
     FileStream(HANDLE hFile)
     {
-        GuiSymbolLogAdd(StringUtils::sprintf("[%x] FileStream()\n", GetCurrentThreadId()).c_str());
         AddRef();
         _hFile = hFile;
     }
 
     ~FileStream()
     {
-        GuiSymbolLogAdd(StringUtils::sprintf("[%x] ~FileStream()\n", GetCurrentThreadId()).c_str());
         if(_hFile != INVALID_HANDLE_VALUE)
         {
             ::CloseHandle(_hFile);
@@ -52,7 +50,6 @@ public:
 
     virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void** ppvObject)
     {
-        GuiSymbolLogAdd(StringUtils::sprintf("[%x] FileStream::QueryInterface()\n", GetCurrentThreadId()).c_str());
         if(iid == __uuidof(IUnknown)
                 || iid == __uuidof(IStream)
                 || iid == __uuidof(ISequentialStream))
@@ -67,13 +64,11 @@ public:
 
     virtual ULONG STDMETHODCALLTYPE AddRef(void)
     {
-        GuiSymbolLogAdd(StringUtils::sprintf("[%x] FileStream::AddRef() refcount: %d\n", GetCurrentThreadId(), _refcount).c_str());
         return (ULONG)InterlockedIncrement(&_refcount);
     }
 
     virtual ULONG STDMETHODCALLTYPE Release(void)
     {
-        GuiSymbolLogAdd(StringUtils::sprintf("[%x] FileStream::Release() refcount: %d\n", GetCurrentThreadId(), _refcount).c_str());
         ULONG res = (ULONG)InterlockedDecrement(&_refcount);
         if(res == 0)
             delete this;
@@ -140,113 +135,6 @@ public:
 private:
     HANDLE _hFile;
     LONG _refcount = 0;
-};
-
-class DiaFileStream : public IStream
-{
-private:
-    HANDLE _hFile;
-    LONG _refcount;
-
-public:
-    DiaFileStream(HANDLE hFile)
-    {
-        _hFile = hFile;
-    }
-
-    ~DiaFileStream()
-    {
-        if(_hFile != INVALID_HANDLE_VALUE)
-        {
-            ::CloseHandle(_hFile);
-        }
-    }
-
-public:
-    HRESULT static OpenFile(LPCWSTR pName, IStream** ppStream)
-    {
-        HANDLE hFile = ::CreateFileW(pName, GENERIC_READ, FILE_SHARE_READ,
-                                     NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-        if(hFile == INVALID_HANDLE_VALUE)
-            return HRESULT_FROM_WIN32(GetLastError());
-
-        *ppStream = new DiaFileStream(hFile);
-
-        return S_OK;
-    }
-
-    virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void** ppvObject)
-    {
-        if(iid == __uuidof(IUnknown)
-                || iid == __uuidof(IStream)
-                || iid == __uuidof(ISequentialStream))
-        {
-            *ppvObject = static_cast<IStream*>(this);
-            return S_OK;
-        }
-        else
-            return E_NOINTERFACE;
-    }
-
-    virtual ULONG STDMETHODCALLTYPE AddRef(void)
-    {
-        return 1;
-    }
-
-    virtual ULONG STDMETHODCALLTYPE Release(void)
-    {
-        return 1;
-    }
-
-    virtual HRESULT STDMETHODCALLTYPE Read(void* pv, ULONG cb, ULONG* pcbRead)
-    {
-        BOOL rc = ReadFile(_hFile, pv, cb, pcbRead, NULL);
-        return (rc) ? S_OK : HRESULT_FROM_WIN32(GetLastError());
-    }
-
-    virtual HRESULT STDMETHODCALLTYPE Seek(LARGE_INTEGER liDistanceToMove, DWORD dwOrigin,
-                                           ULARGE_INTEGER* lpNewFilePointer)
-    {
-        DWORD dwMoveMethod;
-
-        switch(dwOrigin)
-        {
-        case STREAM_SEEK_SET:
-            dwMoveMethod = FILE_BEGIN;
-            break;
-        case STREAM_SEEK_CUR:
-            dwMoveMethod = FILE_CURRENT;
-            break;
-        case STREAM_SEEK_END:
-            dwMoveMethod = FILE_END;
-            break;
-        default:
-            return STG_E_INVALIDFUNCTION;
-            break;
-        }
-
-        if(SetFilePointerEx(_hFile, liDistanceToMove, (PLARGE_INTEGER)lpNewFilePointer,
-                            dwMoveMethod) == 0)
-            return HRESULT_FROM_WIN32(GetLastError());
-        return S_OK;
-    }
-
-    virtual HRESULT STDMETHODCALLTYPE Stat(STATSTG* pStatstg, DWORD grfStatFlag)
-    {
-        if(GetFileSizeEx(_hFile, (PLARGE_INTEGER)&pStatstg->cbSize) == 0)
-            return HRESULT_FROM_WIN32(GetLastError());
-        return S_OK;
-    }
-
-    virtual HRESULT STDMETHODCALLTYPE Write(void const* pv, ULONG cb, ULONG* pcbWritten) {return E_NOTIMPL;}
-    virtual HRESULT STDMETHODCALLTYPE SetSize(ULARGE_INTEGER) { return E_NOTIMPL; }
-    virtual HRESULT STDMETHODCALLTYPE CopyTo(IStream*, ULARGE_INTEGER, ULARGE_INTEGER*, ULARGE_INTEGER*) { return E_NOTIMPL; }
-    virtual HRESULT STDMETHODCALLTYPE Commit(DWORD) { return E_NOTIMPL; }
-    virtual HRESULT STDMETHODCALLTYPE Revert(void) { return E_NOTIMPL; }
-    virtual HRESULT STDMETHODCALLTYPE LockRegion(ULARGE_INTEGER, ULARGE_INTEGER, DWORD) { return E_NOTIMPL; }
-    virtual HRESULT STDMETHODCALLTYPE UnlockRegion(ULARGE_INTEGER, ULARGE_INTEGER, DWORD) { return E_NOTIMPL; }
-    virtual HRESULT STDMETHODCALLTYPE Clone(IStream**) { return E_NOTIMPL; }
 };
 
 template<typename T>
@@ -345,7 +233,6 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
     if(_wcsicmp(fileExt, L".pdb") == 0)
     {
         hr = FileStream::OpenFile(file, &m_stream, false);
-        GuiSymbolLogAdd("FileStream::OpenFile (after)\n");
         if(testError(hr))
         {
             GuiSymbolLogAdd("Unable to open PDB file.\n");
@@ -365,7 +252,6 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
         {
             hr = m_dataSource->loadDataFromIStream(m_stream);
         }
-        GuiSymbolLogAdd("loadDataFromIStream (after)\n");
     }
     else
     {
@@ -445,7 +331,7 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
 
 bool PDBDiaFile::isOpen() const
 {
-    return m_session != nullptr || m_dataSource != nullptr;
+    return m_session != nullptr || m_dataSource != nullptr || m_stream != nullptr;
 }
 
 bool PDBDiaFile::close()
@@ -456,16 +342,16 @@ bool PDBDiaFile::close()
         m_session = nullptr;
     }
 
-    if(m_stream)
-    {
-        m_stream->Release();
-        m_stream = nullptr;
-    }
-
     if(m_dataSource)
     {
         m_dataSource->Release();
         m_dataSource = nullptr;
+    }
+
+    if(m_stream)
+    {
+        m_stream->Release();
+        m_stream = nullptr;
     }
 
     return true;
@@ -664,9 +550,9 @@ bool PDBDiaFile::enumerateLexicalHierarchy(const Query_t & query)
         {
             while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
+                ScopedDiaSymbol sym(symbol);
                 if(convertSymbolInfo(symbol, symbolInfo, context))
                 {
-                    ScopedDiaSymbol sym(symbol);
                     if(!context.callback(symbolInfo))
                     {
                         return false;
