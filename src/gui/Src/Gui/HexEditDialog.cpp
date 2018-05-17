@@ -16,6 +16,8 @@ typedef PCTSTR(__stdcall* INETNTOPW)(INT Family, PVOID pAddr, wchar_t* pStringBu
 HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexEditDialog)
 {
     ui->setupUi(this);
+    ui->editCode->setFont(ConfigFont("HexEdit"));
+
     setWindowFlags((windowFlags() & ~Qt::WindowContextHelpButtonHint) | Qt::WindowMaximizeButtonHint);
     setModal(true); //modal window
 
@@ -27,6 +29,7 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
 
     mDataInitialized = false;
     stringEditorLock = false;
+    fallbackCodec = QTextCodec::codecForLocale();
 
     //setup hex editor
     mHexEdit = new QHexEdit(this);
@@ -115,8 +118,9 @@ void HexEditDialog::updateCodepage()
     duint lastCodepage;
     auto allCodecs = QTextCodec::availableCodecs();
     if(!BridgeSettingGetUint("Misc", "LastCodepage", &lastCodepage) || lastCodepage >= duint(allCodecs.size()))
-        return;
-    lastCodec = QTextCodec::codecForName(allCodecs.at(lastCodepage));
+        lastCodec = fallbackCodec;
+    else
+        lastCodec = QTextCodec::codecForName(allCodecs.at(lastCodepage));
     ui->lineEditCodepage->setEncoding(lastCodec);
     ui->lineEditCodepage->setData(mHexEdit->data());
     ui->stringEditor->document()->setPlainText(lastCodec->toUnicode(mHexEdit->data()));
@@ -127,6 +131,8 @@ void HexEditDialog::updateCodepage()
 void HexEditDialog::updateCodepage(const QByteArray & name)
 {
     lastCodec = QTextCodec::codecForName(name);
+    if(!lastCodec)
+        lastCodec = fallbackCodec;
     ui->lineEditCodepage->setEncoding(lastCodec);
     ui->lineEditCodepage->setData(mHexEdit->data());
     ui->stringEditor->document()->setPlainText(lastCodec->toUnicode(mHexEdit->data()));

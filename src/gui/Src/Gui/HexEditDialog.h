@@ -41,6 +41,7 @@ private:
     Ui::HexEditDialog* ui;
     void updateCodepage(const QByteArray & name);
     QTextCodec* lastCodec;
+    QTextCodec* fallbackCodec;
     bool stringEditorLock;
 
     bool mDataInitialized;
