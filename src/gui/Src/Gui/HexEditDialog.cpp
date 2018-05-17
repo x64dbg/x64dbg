@@ -124,7 +124,7 @@ void HexEditDialog::updateCodepage()
     ui->lineEditCodepage->setEncoding(lastCodec);
     ui->lineEditCodepage->setData(mHexEdit->data());
     ui->stringEditor->document()->setPlainText(lastCodec->toUnicode(mHexEdit->data()));
-    ui->labelLastCodepage->setText(QString(allCodecs.at(lastCodepage).constData()));
+    ui->labelLastCodepage->setText(lastCodec->name().constData());
     ui->labelLastCodepage2->setText(ui->labelLastCodepage->text());
 }
 
