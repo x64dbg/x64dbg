@@ -203,7 +203,7 @@ MHTabBar* MHTabWidget::tabBar() const
     return mTabBar;
 }
 
-const QList<MIDPKey> & MHTabWidget::MIDP_getItems() const
+QList<MIDPKey> MHTabWidget::MIDP_getItems()
 {
     return mHistory;
 }

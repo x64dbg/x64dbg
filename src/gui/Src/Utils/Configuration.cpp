@@ -607,6 +607,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionWatchDwordQword", Shortcut({tr("Actions"), tr("Watch DWORD/QWORD")}));
     defaultShortcuts.insert("ActionCopyFileOffset", Shortcut({tr("Actions"), tr("Copy File Offset")}));
     defaultShortcuts.insert("ActionToggleRunTrace", Shortcut({tr("Actions"), tr("Start or Stop Run Trace")}));
+    defaultShortcuts.insert("ActionFollowDisasmPopup", Shortcut({tr("Actions"), tr("Popup Window to Follow in Disassembler")}, "Ctrl+1"));
+    defaultShortcuts.insert("ActionFollowDumpPopup", Shortcut({tr("Actions"), tr("Popup Window to Follow in Dump")}, "Ctrl+2"));
 
     Shortcuts = defaultShortcuts;
 

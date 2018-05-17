@@ -268,7 +268,7 @@ void CPUStack::setupContextMenu()
 
     //Follow in Disassembler
     auto disasmIcon = DIcon(ArchValue("processor32.png", "processor64.png"));
-    mFollowDisasm = makeAction(disasmIcon, ArchValue(tr("&Follow DWORD in Disassembler"), tr("&Follow QWORD in Disassembler")), SLOT(followDisasmSlot()));
+    mFollowDisasm = makeAction(disasmIcon, ArchValue(tr("&Follow DWORD in Disassembler"), tr("&Follow QWORD in Disassembler")).append("\t").append(ConfigShortcut("ActionFollowDisasmPopup").toString()), SLOT(followDisasmSlot()));
     mFollowDisasm->setShortcutContext(Qt::WidgetShortcut);
     mFollowDisasm->setShortcut(QKeySequence("enter"));
     mMenuBuilder->addAction(mFollowDisasm, [this](QMenu*)
@@ -278,10 +278,10 @@ void CPUStack::setupContextMenu()
     });
 
     //Follow in Dump
-    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), tr("Follow in Dump"), SLOT(followInDumpSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), tr("Follow in Dump").append("\t").append(ConfigShortcut("ActionFollowDumpPopup").toString()), SLOT(followInDumpSlot())));
 
     //Follow PTR in Dump
-    auto followDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWORD in &Dump"));
+    auto followDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWORD in &Dump")).append("\t").append(ConfigShortcut("ActionFollowDumpPopup").toString());
     mMenuBuilder->addAction(makeAction(DIcon("dump.png"), followDumpName, SLOT(followDumpPtrSlot())), [this](QMenu*)
     {
         duint ptr;
@@ -317,6 +317,47 @@ void CPUStack::setupContextMenu()
         menu->addActions(mPluginMenu->actions());
         return true;
     }));
+
+    mFollowInDataProxy = new FollowInDataProxy(this, [this](int followWay, QVector<QPair<QString, QString>> & followData)
+    {
+        if(!DbgIsDebugging())
+            return;
+
+        auto wIsValidReadPtrCallback = [this]()
+        {
+            duint ptr;
+            return DbgMemRead(rvaToVa(getInitialSelection()), (unsigned char*)&ptr, sizeof(ptr)) && DbgMemIsValidReadPtr(ptr);
+        };
+
+        auto valueText = ToHexString(rvaToVa(getSelectionStart()));
+        auto valueAddrText = QString("[%1]").arg(valueText);
+        if(followWay == GUI_DISASSEMBLY)
+        {
+            if(wIsValidReadPtrCallback())
+                followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(valueAddrText).arg(tr("Disassembler"))
+                                     , QString("disasm \"[%1]\"").arg(valueText)));
+        }
+        else if(followWay == GUI_DUMP)
+        {
+            auto isValidReadPtr = wIsValidReadPtrCallback();
+            if(isValidReadPtr)
+                followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(valueAddrText).arg(tr("Current Dump"))
+                                     , QString("dump \"[%1]\"").arg(valueText)));
+
+            followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(valueText).arg(tr("Current Dump"))
+                                 , QString("dump " + ToHexString(rvaToVa(getInitialSelection())))));
+            if(isValidReadPtr)
+            {
+                QList<QString> tabNames;
+                mMultiDump->getTabNames(tabNames);
+                for(int i = 0; i < tabNames.length(); i++)
+                {
+                    followData.push_back(QPair<QString, QString>(tr("Follow %1 in %2").arg(valueAddrText).arg(tabNames[i])
+                                         , QString("dump \"[%1]\", \"%2\"").arg(valueText).arg(i + 1)));
+                }
+            }
+        }
+    });
 
     mMenuBuilder->loadFromConfig();
 }

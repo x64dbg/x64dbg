@@ -8,6 +8,7 @@
 class CPUWidget;
 class GotoDialog;
 class XrefBrowseDialog;
+class FollowInDataProxy;
 
 class CPUDisassembly : public Disassembly
 {
@@ -123,6 +124,8 @@ private:
     bool getTokenValueText(QString & text);
 
     void pushSelectionInto(bool copyBytes, QTextStream & stream, QTextStream* htmlStream = nullptr);
+    void setupFollowInPopupData(bool isFollowInCPU, QVector<QPair<QString, QString>> & followData);
+    void addFollowInPopupDataItem(QString name, dsint value, bool isFollowInCPU, QVector<QPair<QString, QString>> & followData);
 
     // Menus
     QMenu* mHwSlotSelectMenu;
@@ -171,6 +174,8 @@ private:
     MenuBuilder* mHighlightMenuBuilder;
     bool mHighlightContextMenu = false;
     BreakpointMenu* mBreakpointMenu;
+
+    QPointer<FollowInDataProxy> mFollowInDataProxy;
 };
 
 #endif // CPUDISASSEMBLY_H
