@@ -415,32 +415,42 @@ void MainWindow::setupStatusBar()
 
 void MainWindow::setupLanguagesMenu()
 {
-    QDir translationsDir(QString("%1/../translations/").arg(QCoreApplication::applicationDirPath()));
     QMenu* languageMenu;
     if(tr("Languages") == QString("Languages"))
         languageMenu = new QMenu(QString("Languages"));
     else
         languageMenu = new QMenu(tr("Languages") + QString(" Languages"), this);
     languageMenu->setIcon(DIcon("codepage.png"));
+
     QLocale enUS(QLocale::English, QLocale::UnitedStates);
-    QString wCurrentLocale(currentLocale);
     QAction* action_enUS = new QAction(QString("[%1] %2 - %3").arg(enUS.name()).arg(enUS.nativeLanguageName()).arg(enUS.nativeCountryName()), languageMenu);
     connect(action_enUS, SIGNAL(triggered()), this, SLOT(chooseLanguage()));
     action_enUS->setCheckable(true);
     action_enUS->setChecked(false);
     languageMenu->addAction(action_enUS);
+    connect(languageMenu, SIGNAL(aboutToShow()), this, SLOT(setupLanguagesMenu2())); //Load this menu later, since it requires directory scanning.
+    ui->menuOptions->addMenu(languageMenu);
+}
+
+void MainWindow::setupLanguagesMenu2()
+{
+    QMenu* languageMenu = dynamic_cast<QMenu*>(sender()); //The only sender is languageMenu
+    QAction* action_enUS = languageMenu->actions()[0]; //There is only one action "action_enUS" created by setupLanguagesMenu()
+    QDir translationsDir(QString("%1/../translations/").arg(QCoreApplication::applicationDirPath()));
+    QString wCurrentLocale(currentLocale);
+
     if(!translationsDir.exists())
     {
         // translations dir do not exist
         action_enUS->setChecked(true);
-        ui->menuOptions->addMenu(languageMenu);
+        disconnect(languageMenu, SIGNAL(aboutToShow()), this, 0);
         return;
     }
     if(wCurrentLocale == QString("en_US"))
         action_enUS->setChecked(true);
     QStringList filter;
     filter << "x64dbg_*.qm";
-    QFileInfoList fileList = translationsDir.entryInfoList(filter, QDir::Readable | QDir::Files, QDir::Size);
+    QFileInfoList fileList = translationsDir.entryInfoList(filter, QDir::Readable | QDir::Files, QDir::Size); //Search for all translations
     auto allLocales = QLocale::matchingLocales(QLocale::AnyLanguage, QLocale::AnyScript, QLocale::AnyCountry);
     for(auto i : fileList)
     {
@@ -458,7 +468,7 @@ void MainWindow::setupLanguagesMenu()
             }
         }
     }
-    ui->menuOptions->addMenu(languageMenu);
+    disconnect(languageMenu, SIGNAL(aboutToShow()), this, 0); //Done. Let's disconnect it to prevent it from initializing twice.
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
