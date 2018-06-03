@@ -137,7 +137,7 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
         if(!dumpSuccess)
         {
             String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
-            dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file!(GetLastError() = %s)\n"), error.c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file !(GetLastError() = %s)\n"), error.c_str());
             json_decref(root);
             return;
         }
@@ -200,7 +200,7 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
     if(!dbMap.Map(databasePathW.c_str()))
     {
         String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
-        dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to read database file!(GetLastError() = %s)\n"), error.c_str());
+        dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to read database file !(GetLastError() = %s)\n"), error.c_str());
         return;
     }
 
@@ -375,7 +375,7 @@ void DbSetPath(const char* Directory, const char* ModulePath)
             if(hFile == INVALID_HANDLE_VALUE)
             {
                 String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot write to the program directory(GetLastError() = %s), try running x64dbg as admin...\n"), error.c_str());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot write to the program directory (GetLastError() = %s), try running x64dbg as admin...\n"), error.c_str());
                 return false;
             }
             CloseHandle(hFile);
