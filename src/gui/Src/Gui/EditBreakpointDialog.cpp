@@ -10,13 +10,26 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    if(bp.type == bp_dll)
+    switch(bp.type)
     {
-        setWindowTitle(QString(tr("Edit Breakpoint %1")).arg(QString(bp.mod)));
-    }
-    else
-    {
-        setWindowTitle(QString(tr("Edit Breakpoint %1")).arg(getSymbolicName(bp.addr)));
+    case bp_dll:
+        setWindowTitle(tr("Edit DLL Breakpoint %1").arg(QString(bp.mod)));
+        break;
+    case bp_normal:
+        setWindowTitle(tr("Edit Breakpoint %1").arg(getSymbolicName(bp.addr)));
+        break;
+    case bp_hardware:
+        setWindowTitle(tr("Edit Hardware Breakpoint %1").arg(getSymbolicName(bp.addr)));
+        break;
+    case bp_memory:
+        setWindowTitle(tr("Edit Memory Breakpoint %1").arg(getSymbolicName(bp.addr)));
+        break;
+    case bp_exception:
+        setWindowTitle(tr("Edit Exception Breakpoint %1").arg(getSymbolicName(bp.addr)));
+        break;
+    default:
+        setWindowTitle(tr("Edit Breakpoint %1").arg(getSymbolicName(bp.addr)));
+        break;
     }
     setWindowIcon(DIcon("breakpoint.png"));
     loadFromBp();
