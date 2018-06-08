@@ -226,9 +226,9 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
                 {
                     bool res;
                     if(noFuncOffset)
-                        res = SymbolFromAddressExact(addr, symInfo);
+                        res = SymbolFromAddressExact(val, symInfo);
                     else
-                        res = SymbolFromAddressExactOrLower(addr, symInfo);
+                        res = SymbolFromAddressExactOrLower(val, symInfo);
 
                     if(res)
                     {
