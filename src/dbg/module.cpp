@@ -526,7 +526,19 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         // (this is also the search order used by WinDbg/symchk/dumpbin and anything that uses symsrv)
         // WinDbg even tries HTTP servers before the path in the PE, but that might be taking it a bit too far
 
-        // Program directory
+        // Symbol cache
+        auto cachePath = String(szSymbolCachePath);
+        if(cachePath.back() != '\\')
+            cachePath += '\\';
+        cachePath += StringUtils::sprintf("%s\\%s\\%s", file.c_str(), Info.pdbSignature.c_str(), file.c_str());
+        Info.pdbPaths.push_back(cachePath);
+
+        // Debug directory full path
+        const bool bAllowUncPathsInDebugDirectory = false; // TODO: create setting for this
+        if (!dir.empty() && (bAllowUncPathsInDebugDirectory || !PathIsUNCW(StringUtils::Utf8ToUtf16(Info.pdbFile).c_str())))
+            Info.pdbPaths.push_back(Info.pdbFile);
+
+        // Program directory (debug directory PDB name)
         char pdbPath[MAX_PATH];
         strcpy_s(pdbPath, Info.path);
         auto lastBack = strrchr(pdbPath, '\\');
@@ -537,17 +549,18 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
             Info.pdbPaths.push_back(pdbPath);
         }
 
-        // Debug directory full path
-        const bool bAllowUncPathsInDebugDirectory = false; // TODO: create setting for this
-        if(!dir.empty() && (bAllowUncPathsInDebugDirectory || !PathIsUNCW(StringUtils::Utf8ToUtf16(Info.pdbFile).c_str())))
-            Info.pdbPaths.push_back(Info.pdbFile);
+        // Program directory (file name PDB name)
+        strcpy_s(pdbPath, Info.path);
+        lastBack = strrchr(pdbPath, '\\');
+        if (lastBack)
+        {
+            lastBack[1] = '\0';
+            strncat_s(pdbPath, Info.name, _TRUNCATE);
+            strncat_s(pdbPath, ".pdb", _TRUNCATE);
+            Info.pdbPaths.push_back(pdbPath);
+        }
 
-        // Symbol cache
-        auto cachePath = String(szSymbolCachePath);
-        if(cachePath.back() != '\\')
-            cachePath += '\\';
-        cachePath += StringUtils::sprintf("%s\\%s\\%s", file.c_str(), Info.pdbSignature.c_str(), file.c_str());
-        Info.pdbPaths.push_back(cachePath);
+        
     }
 }
 
