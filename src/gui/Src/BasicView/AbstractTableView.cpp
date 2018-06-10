@@ -44,7 +44,8 @@ AbstractTableView::AbstractTableView(QWidget* parent)
 
     mRowCount = 0;
 
-    mHeaderButtonSytle.setStyleSheet(" QPushButton {\n     background-color: rgb(192, 192, 192);\n     border-style: outset;\n     border-width: 2px;\n     border-color: rgb(128, 128, 128);\n }\n QPushButton:pressed {\n     background-color: rgb(192, 192, 192);\n     border-style: inset;\n }");
+    mHeaderButtonSytle.setStyleSheet(QString(" QPushButton {\n     background-color: %1;\n     border-style: outset;\n     border-width: 2px;\n     border-color: rgb(128, 128, 128);\n }\n QPushButton:pressed {\n     background-color: %1;\n     border-style: inset;\n }")
+                                     .arg(ConfigColor("AbstractTableViewHeaderTextBackgroundColor").name()));
 
     mNbrOfLineToPrint = 0;
 
@@ -129,6 +130,8 @@ void AbstractTableView::updateColors()
     separatorColor = ConfigColor("AbstractTableViewSeparatorColor");
     headerTextColor = ConfigColor("AbstractTableViewHeaderTextColor");
     selectionColor = ConfigColor("AbstractTableViewSelectionColor");
+    mHeaderButtonSytle.setStyleSheet(QString(" QPushButton {\n     background-color: %1;\n     border-style: outset;\n     border-width: 2px;\n     border-color: rgb(128, 128, 128);\n }\n QPushButton:pressed {\n     background-color: %1;\n     border-style: inset;\n }")
+                                     .arg(ConfigColor("AbstractTableViewHeaderTextBackgroundColor").name()));
 }
 
 void AbstractTableView::updateFonts()

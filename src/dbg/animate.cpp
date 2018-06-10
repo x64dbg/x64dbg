@@ -31,6 +31,7 @@ bool _dbg_animatecommand(const char* command)
 {
     if(command) // Animate command
     {
+        GuiAddStatusBarMessage(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Animation started. Use \"pause\" command to stop animation.")));
         strcpy_s(animate_command, command);
         if(hAnimateThread == nullptr)
         {

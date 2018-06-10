@@ -409,7 +409,7 @@ void AppearanceDialog::colorInfoListInit()
     //list entries
     colorInfoListAppend(tr("General Tables:"), "", "");
     colorInfoListAppend(tr("Text"), "AbstractTableViewTextColor", "");
-    colorInfoListAppend(tr("Header Text"), "AbstractTableViewHeaderTextColor", "");
+    colorInfoListAppend(tr("Header Text"), "AbstractTableViewHeaderTextColor", "AbstractTableViewHeaderTextBackgroundColor");
     colorInfoListAppend(tr("Background"), "AbstractTableViewBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "AbstractTableViewSelectionColor", "");
     colorInfoListAppend(tr("Separators"), "AbstractTableViewSeparatorColor", "");

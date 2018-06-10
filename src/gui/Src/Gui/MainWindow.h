@@ -273,6 +273,8 @@ public:
     static QString windowTitle;
 
 private slots:
+    void setupLanguagesMenu2();
+
     void on_actionFaq_triggered();
     void on_actionReloadStylesheet_triggered();
     void on_actionImportSettings_triggered();
