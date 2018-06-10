@@ -494,8 +494,8 @@ void TraceBrowser::setupRightClickContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
 
     MenuBuilder* searchMenu = new MenuBuilder(this, isValid);
-    searchMenu->addAction(makeAction(tr("Constant"), SLOT(searchConstantSlot())));
-    searchMenu->addAction(makeAction(tr("Memory Reference"), SLOT(searchMemRefSlot())));
+    searchMenu->addAction(makeAction(DIcon("search_for_constant.png"), tr("Constant"), SLOT(searchConstantSlot())));
+    searchMenu->addAction(makeAction(DIcon("memory-map.png"), tr("Memory Reference"), SLOT(searchMemRefSlot())));
     mMenuBuilder->addMenu(makeMenu(DIcon("search.png"), tr("&Search")), searchMenu);
 
     // The following code adds a menu to view the information about currently selected instruction. When info box is completed, remove me.
