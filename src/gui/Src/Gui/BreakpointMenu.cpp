@@ -31,8 +31,11 @@ void BreakpointMenu::build(MenuBuilder* builder)
         if(selection == 0)
             return false;
         BPXTYPE bpType = DbgGetBpxTypeAt(selection);
-        if((bpType & bp_normal) == bp_normal)
-            menu->addAction(editSoftwareBreakpointAction);
+        if((bpType & bp_normal) == bp_normal || (bpType & bp_hardware) == bp_hardware)
+            editSoftwareBreakpointAction->setText(tr("Edit"));
+        else
+            editSoftwareBreakpointAction->setText(tr("Set Conditional Breakpoint"));
+        menu->addAction(editSoftwareBreakpointAction);
 
         menu->addAction(toggleBreakpointAction);
 
@@ -119,7 +122,20 @@ void BreakpointMenu::toggleInt3BPActionSlot()
 
 void BreakpointMenu::editSoftBpActionSlot()
 {
-    Breakpoints::editBP(bp_normal, ToHexString(mGetSelection()), (QWidget*)parent());
+    auto selection = mGetSelection();
+    if(selection == 0)
+        return;
+    BPXTYPE bpType = DbgGetBpxTypeAt(selection);
+    if((bpType & bp_hardware) == bp_hardware)
+        Breakpoints::editBP(bp_hardware, ToHexString(selection), dynamic_cast<QWidget*>(parent()));
+    else if((bpType & bp_normal) == bp_normal)
+        Breakpoints::editBP(bp_normal, ToHexString(selection), dynamic_cast<QWidget*>(parent()));
+    else
+    {
+        DbgCmdExecDirect(QString("bp %1").arg(ToHexString(selection)).toUtf8().constData()); //Blocking call
+        if(!Breakpoints::editBP(bp_normal, ToHexString(selection), dynamic_cast<QWidget*>(parent())))
+            Breakpoints::removeBP(bp_normal, selection);
+    }
 }
 
 void BreakpointMenu::toggleHwBpActionSlot()
