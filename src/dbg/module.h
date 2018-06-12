@@ -122,6 +122,7 @@ struct MODINFO
     {
         unmapFile();
         unloadSymbols();
+        GuiInvalidateSymbolSource(base);
     }
 
     bool loadSymbols();
