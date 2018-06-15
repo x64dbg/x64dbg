@@ -108,7 +108,7 @@ SearchListView::SearchListView(bool EnableRegex, QWidget* parent, bool EnableLoc
     connect(mSearchList, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
     connect(mSearchBox, SIGNAL(textChanged(QString)), this, SLOT(searchTextChanged(QString)));
     connect(mRegexCheckbox, SIGNAL(stateChanged(int)), this, SLOT(on_checkBoxRegex_stateChanged(int)));
-    connect(mLockCheckbox, SIGNAL(toggled(bool)), this, SLOT(on_checkBoxLock_toggled(bool)));
+    connect(mLockCheckbox, SIGNAL(toggled(bool)), mSearchBox, SLOT(setDisabled(bool)));
 
     // List input should always be forwarded to the filter edit
     mSearchList->setFocusProxy(mSearchBox);
@@ -266,13 +266,23 @@ void SearchListView::doubleClickedSlot()
 
 void SearchListView::on_checkBoxRegex_stateChanged(int state)
 {
-    Q_UNUSED(state);
-    refreshSearchList();
-}
+    QString tooltip;
+    switch(state)
+    {
+    default:
+    case Qt::Unchecked:
+        //No tooltip
+        break;
+    case Qt::Checked:
+        tooltip = tr("Use case sensitive regular expression");
+        break;
+    case Qt::PartiallyChecked:
+        tooltip = tr("Use case insensitive regular expression");
+        break;
+    }
+    mRegexCheckbox->setToolTip(tooltip);
 
-void SearchListView::on_checkBoxLock_toggled(bool checked)
-{
-    mSearchBox->setDisabled(checked);
+    refreshSearchList();
 }
 
 bool SearchListView::isSearchBoxLocked()

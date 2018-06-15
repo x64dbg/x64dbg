@@ -39,7 +39,6 @@ private slots:
     void doubleClickedSlot();
     void searchSlot();
     void on_checkBoxRegex_stateChanged(int state);
-    void on_checkBoxLock_toggled(bool checked);
 
 signals:
     void enterPressedSignal();

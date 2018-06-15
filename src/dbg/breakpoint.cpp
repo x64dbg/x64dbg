@@ -228,12 +228,13 @@ bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo)
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
     for(auto & i : breakpoints)
     {
-        if(i.second.type == BPDLL && i.second.enabled)
+        BREAKPOINT & bpRef = i.second;
+        if(bpRef.type == BPDLL && bpRef.enabled)
         {
-            if(_stricmp(i.second.mod, module1) == 0)
+            if(_stricmp(bpRef.mod, module1) == 0)
             {
                 BREAKPOINT temp;
-                temp = i.second;
+                temp = bpRef;
                 strcpy_s(temp.mod, module1);
                 temp.addr = ModHashFromName(module1);
                 breakpoints.erase(i.first);
@@ -241,15 +242,15 @@ bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo)
                 *newBpInfo = &newItem.first->second;
                 return true;
             }
-            const char* dashPos = max(strrchr(i.second.mod, '\\'), strrchr(i.second.mod, '/'));
+            const char* dashPos = max(strrchr(bpRef.mod, '\\'), strrchr(bpRef.mod, '/'));
             if(dashPos == nullptr)
-                dashPos = i.second.mod;
+                dashPos = bpRef.mod;
             else
                 dashPos += 1;
             if(dashPos1 != nullptr && _stricmp(dashPos, dashPos1 + 1) == 0) // filename matches
             {
                 BREAKPOINT temp;
-                temp = i.second;
+                temp = bpRef;
                 strcpy_s(temp.mod, dashPos1 + 1);
                 temp.addr = ModHashFromName(dashPos1 + 1);
                 breakpoints.erase(i.first);
