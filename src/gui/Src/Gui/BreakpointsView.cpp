@@ -577,7 +577,7 @@ void BreakpointsView::followBreakpointSlot()
 void BreakpointsView::removeBreakpointSlot()
 {
     for(int i : getSelection())
-        if(isValidBp(i))
+        if(isValidBp(i)) //TODO: remove inactive breakpoints
             Breakpoints::removeBP(selectedBp(i));
 }
 
@@ -593,7 +593,14 @@ void BreakpointsView::editBreakpointSlot()
     if(!isValidBp())
         return;
     auto & bp = selectedBp();
-    Breakpoints::editBP(bp.type, bp.type == bp_dll ? bp.mod : ToPtrString(bp.addr), this);
+    if(bp.type == bp_dll)
+    {
+        Breakpoints::editBP(bp_dll, bp.mod, this);
+    }
+    else if(bp.active || bp.type == bp_exception)
+    {
+        Breakpoints::editBP(bp.type, ToPtrString(bp.addr), this);
+    } //TODO: edit inactive breakpoints
 }
 
 void BreakpointsView::resetHitCountBreakpointSlot()
