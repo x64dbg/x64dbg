@@ -219,7 +219,7 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
             }
             else
             {
-                duint base = ModBaseFromName(DLLName);
+                duint base = ModBaseFromName(DLLName + 1);
                 Address += base ? base : ModHashFromName(DLLName + 1);
             }
 
