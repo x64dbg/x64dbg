@@ -193,6 +193,53 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         return true;
     }
 
+    // If name in a special format "libwinpthread-1.dll":$7792, find the breakpoint even if the DLL might not be loaded yet.
+    const char* separatorPos;
+    separatorPos = strstr(Name, ":$"); //DLL file names cannot contain ":" char anyway, so ignoring the quotes is fine. The following part of RVA expression might contain ":$"?
+    if(separatorPos && Type != BPDLL && Type != BPEXCEPTION)
+    {
+        char* DLLName = _strdup(Name);
+        char* RVAPos = DLLName + (separatorPos - Name);
+        RVAPos[0] = RVAPos[1] = '\0';
+        RVAPos = RVAPos + 2; //Now 2 strings separated by NULs
+        if(valfromstring(RVAPos, &Address)) //"Address" reused here. No usage of original "Address" argument.
+        {
+            if(separatorPos != Name)   //Check if DLL name is surrounded by quotes. Don't be out of bounds!
+            {
+                if(DLLName[0] == '"' && RVAPos[-3] == '"')
+                {
+                    RVAPos[-3] = '\0';
+                    DLLName[0] = '\0';
+                }
+            }
+            if(DLLName[0] != '\0')
+            {
+                duint base = ModBaseFromName(DLLName); //Is the DLL actually loaded?
+                Address += base ? base : ModHashFromName(DLLName);
+            }
+            else
+            {
+                duint base = ModBaseFromName(DLLName);
+                Address += base ? base : ModHashFromName(DLLName + 1);
+            }
+
+            // Perform a lookup by address only
+            BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+            if(!bpInfo)
+                return false;
+
+            // Succeed even if the user didn't request anything
+            if(!Bp)
+                return true;
+
+            *Bp = *bpInfo;
+            Bp->addr = Address;
+            setBpActive(*Bp);
+            return true;
+        }
+        free(DLLName);
+    }
     return false;
 }
 
