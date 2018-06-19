@@ -84,35 +84,57 @@ bool HandlesGetName(HANDLE hProcess, HANDLE remoteHandle, String & name, String 
         if(strcmp(typeName.c_str(), "Process") == 0)
         {
             DWORD PID = GetProcessId(hLocalHandle); //Windows XP SP1
+            if(PID == 0) //The first time could fail because the process didn't specify query permissions.
+            {
+                HANDLE hLocalQueryHandle;
+                if(DuplicateHandle(hProcess, remoteHandle, GetCurrentProcess(), &hLocalQueryHandle, PROCESS_QUERY_INFORMATION, FALSE, 0))
+                {
+                    PID = GetProcessId(hLocalQueryHandle);
+                    CloseHandle(hLocalQueryHandle);
+                }
+            }
+
             if(PID > 0)
-                name = StringUtils::sprintf("PID = %X", PID);
+                name = StringUtils::sprintf("PID: %X", PID);
         }
         else if(strcmp(typeName.c_str(), "Thread") == 0)
         {
-            DWORD TID = 0;
-            DWORD PID = 0;
-            DWORD(__stdcall * pGetThreadId)(HANDLE);
-            DWORD(__stdcall * pGetProcessIdOfThread)(HANDLE);
-            pGetThreadId = (DWORD(__stdcall*)(HANDLE))GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetThreadId");
-            pGetProcessIdOfThread = (DWORD(__stdcall*)(HANDLE))GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetProcessIdOfThread");
-            if(pGetThreadId != NULL && pGetProcessIdOfThread != NULL)
+            auto getTidPid = [](HANDLE hThread, DWORD & TID, DWORD & PID)
             {
-                TID = pGetThreadId(hLocalHandle); //Vista or Server 2003 only
-                PID = pGetProcessIdOfThread(hLocalHandle); //Vista or Server 2003 only
-            }
-            else //Windows XP
-            {
-                THREAD_BASIC_INFORMATION threadInfo;
-                ULONG threadInfoSize = 0;
-                NTSTATUS isok = NtQueryInformationThread(hLocalHandle, ThreadBasicInformation, &threadInfo, sizeof(threadInfo), &threadInfoSize);
-                if(NT_SUCCESS(isok))
+                static auto pGetThreadId = (DWORD(__stdcall*)(HANDLE))GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetThreadId");
+                static auto pGetProcessIdOfThread = (DWORD(__stdcall*)(HANDLE))GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetProcessIdOfThread");
+                if(pGetThreadId != NULL && pGetProcessIdOfThread != NULL) //Vista or Server 2003 only
                 {
-                    TID = (DWORD)threadInfo.ClientId.UniqueThread;
-                    PID = (DWORD)threadInfo.ClientId.UniqueProcess;
+                    TID = pGetThreadId(hThread);
+                    PID = pGetProcessIdOfThread(hThread);
+                }
+                else //Windows XP
+                {
+                    THREAD_BASIC_INFORMATION threadInfo;
+                    ULONG threadInfoSize = 0;
+                    NTSTATUS isok = NtQueryInformationThread(hThread, ThreadBasicInformation, &threadInfo, sizeof(threadInfo), &threadInfoSize);
+                    if(NT_SUCCESS(isok))
+                    {
+                        TID = (DWORD)threadInfo.ClientId.UniqueThread;
+                        PID = (DWORD)threadInfo.ClientId.UniqueProcess;
+                    }
+                }
+            };
+
+            DWORD TID, PID;
+            getTidPid(hLocalHandle, TID, PID);
+            if(TID == 0 || PID == 0) //The first time could fail because the process didn't specify query permissions.
+            {
+                HANDLE hLocalQueryHandle;
+                if(DuplicateHandle(hProcess, remoteHandle, GetCurrentProcess(), &hLocalQueryHandle, THREAD_QUERY_INFORMATION, FALSE, 0))
+                {
+                    getTidPid(hLocalQueryHandle, TID, PID);
+                    CloseHandle(hLocalQueryHandle);
                 }
             }
+
             if(TID > 0 && PID > 0)
-                name = StringUtils::sprintf("TID = %X, PID = %X", TID, PID);
+                name = StringUtils::sprintf("TID: %X, PID: %X", TID, PID);
         }
         if(name.empty())
         {
