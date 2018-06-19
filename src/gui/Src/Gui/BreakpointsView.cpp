@@ -1,4 +1,5 @@
 #include "BreakpointsView.h"
+#include "EditBreakpointDialog.h"
 #include "Bridge.h"
 #include "MenuBuilder.h"
 #include "Breakpoints.h"
@@ -577,8 +578,16 @@ void BreakpointsView::followBreakpointSlot()
 void BreakpointsView::removeBreakpointSlot()
 {
     for(int i : getSelection())
-        if(isValidBp(i)) //TODO: remove inactive breakpoints
-            Breakpoints::removeBP(selectedBp(i));
+    {
+        if(isValidBp(i))
+        {
+            const BRIDGEBP & bp = selectedBp(i);
+            if(bp.active)
+                Breakpoints::removeBP(bp);
+            else
+                DbgCmdExec(QString("bc \"%1\":$%2").arg(bp.mod).arg(ToHexString(bp.addr)));
+        }
+    }
 }
 
 void BreakpointsView::toggleBreakpointSlot()
