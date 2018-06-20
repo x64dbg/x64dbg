@@ -454,6 +454,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(onClose()));
     switch(ConfigUint("Gui", "SIMDRegistersDisplayMode"))
     {
+    default:
     case 0:
         wSIMDRegDispMode = SIMD_REG_DISP_HEX;
         break;
@@ -491,6 +492,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
         wSIMDRegDispMode = SIMD_REG_DISP_QWORD_HEX;
         break;
     }
+    mFpuMode = false;
 
     // precreate ContextMenu Actions
     wCM_Increment = setupAction(DIcon("register_inc.png"), tr("Increment"), this);
@@ -518,6 +520,8 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     wCM_Highlight = setupAction(DIcon("highlight.png"), tr("Highlight"), this);
     mSwitchSIMDDispMode = new QMenu(tr("Change SIMD Register Display Mode"), this);
     mSwitchSIMDDispMode->setIcon(DIcon("simdmode.png"));
+    mSwitchFPUDispMode = new QAction(tr("Change FPU Register ordering"), this);
+    mSwitchFPUDispMode->setCheckable(true);
     SIMDHex = new QAction(tr("Hexadecimal"), mSwitchSIMDDispMode);
     SIMDFloat = new QAction(tr("Float"), mSwitchSIMDDispMode);
     SIMDDouble = new QAction(tr("Double"), mSwitchSIMDDispMode);
@@ -554,6 +558,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     connect(SIMDSQWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
     connect(SIMDUQWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
     connect(SIMDHQWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
+    connect(mSwitchFPUDispMode, SIGNAL(triggered()), this, SLOT(onFpuMode()));
     SIMDHex->setCheckable(true);
     SIMDFloat->setCheckable(true);
     SIMDDouble->setCheckable(true);
@@ -570,7 +575,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     SIMDFloat->setChecked(false);
     SIMDDouble->setChecked(false);
     SIMDSWord->setChecked(false);
-    SIMDUWord->setChecked(true);
+    SIMDUWord->setChecked(false);
     SIMDHWord->setChecked(false);
     SIMDSDWord->setChecked(false);
     SIMDUDWord->setChecked(false);
@@ -2897,6 +2902,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
     SIMDSQWord->setChecked(SIMDSQWord == selectedAction);
     SIMDUQWord->setChecked(SIMDUQWord == selectedAction);
     SIMDHQWord->setChecked(SIMDHQWord == selectedAction);
+    mSwitchFPUDispMode->setChecked(mFpuMode);
 
     if(mSelected != UNKNOWN)
     {
@@ -2979,6 +2985,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
         {
             wMenu.addMenu(mSwitchSIMDDispMode);
         }
+        wMenu.addAction(mSwitchFPUDispMode);
 
         wMenu.exec(this->mapToGlobal(pos));
     }
@@ -2988,6 +2995,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
         wMenu.addAction(wCM_ChangeFPUView);
         wMenu.addAction(wCM_CopyAll);
         wMenu.addMenu(mSwitchSIMDDispMode);
+        wMenu.addAction(mSwitchFPUDispMode);
         wMenu.addSeparator();
         QAction* wHwbpCsp = wMenu.addAction(DIcon("breakpoint.png"), tr("Set Hardware Breakpoint on %1").arg(ArchValue("ESP", "RSP")));
         QAction* wAction = wMenu.exec(this->mapToGlobal(pos));
@@ -3424,6 +3432,12 @@ void RegistersView::setRegisters(REGDUMP* reg)
 void RegistersView::onSIMDMode()
 {
     wSIMDRegDispMode = (SIMD_REG_DISP_MODE)(dynamic_cast<QAction*>(sender())->data().toInt());
+    emit refresh();
+}
+
+void RegistersView::onFpuMode()
+{
+    mFpuMode = !mFpuMode;
     emit refresh();
 }
 
