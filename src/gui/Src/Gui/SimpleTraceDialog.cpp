@@ -15,12 +15,12 @@ SimpleTraceDialog::SimpleTraceDialog(QWidget* parent) :
     if(!BridgeSettingGetUint("Engine", "MaxTraceCount", &setting))
         setting = 50000;
     ui->spinMaxTraceCount->setValue(int(setting));
-    ui->editBreakCondition->setPlaceholderText(tr("Example: eax == 0 && ebx == 0"));
-    ui->editLogText->setPlaceholderText(tr("Example: 0x{p:cip} {i:cip}"));
-    ui->editLogCondition->setPlaceholderText(tr("Example: eax == 0 && ebx == 0"));
-    ui->editCommandText->setPlaceholderText(tr("Example: eax=4;StepOut"));
-    ui->editCommandCondition->setPlaceholderText(tr("Example: eax == 0 && ebx == 0"));
-    ui->editSwitchCondition->setPlaceholderText(tr("Example: mod.party(dis.branchdest(cip)) == 1"));
+    ui->editBreakCondition->setPlaceholderText(tr("Example: %1").arg("eax == 0 && ebx == 0"));
+    ui->editLogText->setPlaceholderText(tr("Example: %1").arg("0x{p:cip} {i:cip}"));
+    ui->editLogCondition->setPlaceholderText(tr("Example: %1").arg("eax == 0 && ebx == 0"));
+    ui->editCommandText->setPlaceholderText(tr("Example: %1").arg("eax=4;StepOut"));
+    ui->editCommandCondition->setPlaceholderText(tr("Example: %1").arg("eax == 0 && ebx == 0"));
+    ui->editSwitchCondition->setPlaceholderText(tr("Example: %1").arg("mod.party(dis.branchdest(cip)) == 1"));
 }
 
 SimpleTraceDialog::~SimpleTraceDialog()
