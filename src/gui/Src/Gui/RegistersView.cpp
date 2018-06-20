@@ -531,18 +531,30 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     SIMDHWord = new QAction(tr("Hexadecimal Word"), mSwitchSIMDDispMode);
     SIMDHDWord = new QAction(tr("Hexadecimal DWord"), mSwitchSIMDDispMode);
     SIMDHQWord = new QAction(tr("Hexadecimal QWord"), mSwitchSIMDDispMode);
-    connect(SIMDHex, SIGNAL(triggered()), this, SLOT(onSIMDHex()));
-    connect(SIMDFloat, SIGNAL(triggered()), this, SLOT(onSIMDFloat()));
-    connect(SIMDDouble, SIGNAL(triggered()), this, SLOT(onSIMDDouble()));
-    connect(SIMDSWord, SIGNAL(triggered()), this, SLOT(onSIMDSWord()));
-    connect(SIMDUWord, SIGNAL(triggered()), this, SLOT(onSIMDUWord()));
-    connect(SIMDHWord, SIGNAL(triggered()), this, SLOT(onSIMDHWord()));
-    connect(SIMDSDWord, SIGNAL(triggered()), this, SLOT(onSIMDSDWord()));
-    connect(SIMDUDWord, SIGNAL(triggered()), this, SLOT(onSIMDUDWord()));
-    connect(SIMDHDWord, SIGNAL(triggered()), this, SLOT(onSIMDHDWord()));
-    connect(SIMDSQWord, SIGNAL(triggered()), this, SLOT(onSIMDSQWord()));
-    connect(SIMDUQWord, SIGNAL(triggered()), this, SLOT(onSIMDUQWord()));
-    connect(SIMDHQWord, SIGNAL(triggered()), this, SLOT(onSIMDHQWord()));
+    SIMDHex->setData(QVariant(SIMD_REG_DISP_HEX));
+    SIMDFloat->setData(QVariant(SIMD_REG_DISP_FLOAT));
+    SIMDDouble->setData(QVariant(SIMD_REG_DISP_DOUBLE));
+    SIMDSWord->setData(QVariant(SIMD_REG_DISP_WORD_SIGNED));
+    SIMDUWord->setData(QVariant(SIMD_REG_DISP_WORD_UNSIGNED));
+    SIMDHWord->setData(QVariant(SIMD_REG_DISP_WORD_HEX));
+    SIMDSDWord->setData(QVariant(SIMD_REG_DISP_DWORD_SIGNED));
+    SIMDUDWord->setData(QVariant(SIMD_REG_DISP_DWORD_UNSIGNED));
+    SIMDHDWord->setData(QVariant(SIMD_REG_DISP_DWORD_HEX));
+    SIMDSQWord->setData(QVariant(SIMD_REG_DISP_QWORD_SIGNED));
+    SIMDUQWord->setData(QVariant(SIMD_REG_DISP_QWORD_UNSIGNED));
+    SIMDHQWord->setData(QVariant(SIMD_REG_DISP_QWORD_HEX));
+    connect(SIMDHex, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
+    connect(SIMDFloat, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
+    connect(SIMDDouble, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
+    connect(SIMDSWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
+    connect(SIMDUWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
+    connect(SIMDHWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
+    connect(SIMDSDWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
+    connect(SIMDUDWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
+    connect(SIMDHDWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
+    connect(SIMDSQWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
+    connect(SIMDUQWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
+    connect(SIMDHQWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
     SIMDHex->setCheckable(true);
     SIMDFloat->setCheckable(true);
     SIMDDouble->setCheckable(true);
@@ -3427,67 +3439,9 @@ void RegistersView::setRegisters(REGDUMP* reg)
     emit refresh();
 }
 
-void RegistersView::onSIMDHex()
+void RegistersView::onSIMDMode()
 {
-    wSIMDRegDispMode = SIMD_REG_DISP_HEX;
-    emit refresh();
-}
-
-void RegistersView::onSIMDFloat()
-{
-    wSIMDRegDispMode = SIMD_REG_DISP_FLOAT;
-    emit refresh();
-}
-
-void RegistersView::onSIMDDouble()
-{
-    wSIMDRegDispMode = SIMD_REG_DISP_DOUBLE;
-    emit refresh();
-}
-
-void RegistersView::onSIMDSWord()
-{
-    wSIMDRegDispMode = SIMD_REG_DISP_WORD_SIGNED;
-    emit refresh();
-}
-void RegistersView::onSIMDUWord()
-{
-    wSIMDRegDispMode = SIMD_REG_DISP_WORD_UNSIGNED;
-    emit refresh();
-}
-void RegistersView::onSIMDHWord()
-{
-    wSIMDRegDispMode = SIMD_REG_DISP_WORD_HEX;
-    emit refresh();
-}
-void RegistersView::onSIMDSDWord()
-{
-    wSIMDRegDispMode = SIMD_REG_DISP_DWORD_SIGNED;
-    emit refresh();
-}
-void RegistersView::onSIMDUDWord()
-{
-    wSIMDRegDispMode = SIMD_REG_DISP_DWORD_UNSIGNED;
-    emit refresh();
-}
-void RegistersView::onSIMDHDWord()
-{
-    wSIMDRegDispMode = SIMD_REG_DISP_DWORD_HEX;
-    emit refresh();
-}
-void RegistersView::onSIMDSQWord()
-{
-    wSIMDRegDispMode = SIMD_REG_DISP_QWORD_SIGNED;
-    emit refresh();
-}
-void RegistersView::onSIMDUQWord()
-{
-    wSIMDRegDispMode = SIMD_REG_DISP_QWORD_UNSIGNED;
-    emit refresh();
-}
-void RegistersView::onSIMDHQWord()
-{
-    wSIMDRegDispMode = SIMD_REG_DISP_QWORD_HEX;
+    wSIMDRegDispMode = (SIMD_REG_DISP_MODE)(dynamic_cast<QAction*>(sender())->data().toInt());
     emit refresh();
 }
 
