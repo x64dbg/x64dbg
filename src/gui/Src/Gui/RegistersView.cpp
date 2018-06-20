@@ -161,22 +161,44 @@ void RegistersView::InitMappings()
     {
         offset++;
 
-        mRegisterMapping.insert(x87r0, "x87r0");
-        mRegisterPlaces.insert(x87r0, Register_Position(offset++, 0, 6, 10 * 2));
-        mRegisterMapping.insert(x87r1, "x87r1");
-        mRegisterPlaces.insert(x87r1, Register_Position(offset++, 0, 6, 10 * 2));
-        mRegisterMapping.insert(x87r2, "x87r2");
-        mRegisterPlaces.insert(x87r2, Register_Position(offset++, 0, 6, 10 * 2));
-        mRegisterMapping.insert(x87r3, "x87r3");
-        mRegisterPlaces.insert(x87r3, Register_Position(offset++, 0, 6, 10 * 2));
-        mRegisterMapping.insert(x87r4, "x87r4");
-        mRegisterPlaces.insert(x87r4, Register_Position(offset++, 0, 6, 10 * 2));
-        mRegisterMapping.insert(x87r5, "x87r5");
-        mRegisterPlaces.insert(x87r5, Register_Position(offset++, 0, 6, 10 * 2));
-        mRegisterMapping.insert(x87r6, "x87r6");
-        mRegisterPlaces.insert(x87r6, Register_Position(offset++, 0, 6, 10 * 2));
-        mRegisterMapping.insert(x87r7, "x87r7");
-        mRegisterPlaces.insert(x87r7, Register_Position(offset++, 0, 6, 10 * 2));
+        if(mFpuMode)
+        {
+            mRegisterMapping.insert(x87r0, "x87r0");
+            mRegisterPlaces.insert(x87r0, Register_Position(offset++, 0, 6, 10 * 2));
+            mRegisterMapping.insert(x87r1, "x87r1");
+            mRegisterPlaces.insert(x87r1, Register_Position(offset++, 0, 6, 10 * 2));
+            mRegisterMapping.insert(x87r2, "x87r2");
+            mRegisterPlaces.insert(x87r2, Register_Position(offset++, 0, 6, 10 * 2));
+            mRegisterMapping.insert(x87r3, "x87r3");
+            mRegisterPlaces.insert(x87r3, Register_Position(offset++, 0, 6, 10 * 2));
+            mRegisterMapping.insert(x87r4, "x87r4");
+            mRegisterPlaces.insert(x87r4, Register_Position(offset++, 0, 6, 10 * 2));
+            mRegisterMapping.insert(x87r5, "x87r5");
+            mRegisterPlaces.insert(x87r5, Register_Position(offset++, 0, 6, 10 * 2));
+            mRegisterMapping.insert(x87r6, "x87r6");
+            mRegisterPlaces.insert(x87r6, Register_Position(offset++, 0, 6, 10 * 2));
+            mRegisterMapping.insert(x87r7, "x87r7");
+            mRegisterPlaces.insert(x87r7, Register_Position(offset++, 0, 6, 10 * 2));
+        }
+        else
+        {
+            mRegisterMapping.insert(x87st0, "ST(0)");
+            mRegisterPlaces.insert(x87st0, Register_Position(offset++, 0, 6, 10 * 2));
+            mRegisterMapping.insert(x87st1, "ST(1)");
+            mRegisterPlaces.insert(x87st1, Register_Position(offset++, 0, 6, 10 * 2));
+            mRegisterMapping.insert(x87st2, "ST(2)");
+            mRegisterPlaces.insert(x87st2, Register_Position(offset++, 0, 6, 10 * 2));
+            mRegisterMapping.insert(x87st3, "ST(3)");
+            mRegisterPlaces.insert(x87st3, Register_Position(offset++, 0, 6, 10 * 2));
+            mRegisterMapping.insert(x87st4, "ST(4)");
+            mRegisterPlaces.insert(x87st4, Register_Position(offset++, 0, 6, 10 * 2));
+            mRegisterMapping.insert(x87st5, "ST(5)");
+            mRegisterPlaces.insert(x87st5, Register_Position(offset++, 0, 6, 10 * 2));
+            mRegisterMapping.insert(x87st6, "ST(6)");
+            mRegisterPlaces.insert(x87st6, Register_Position(offset++, 0, 6, 10 * 2));
+            mRegisterMapping.insert(x87st7, "ST(7)");
+            mRegisterPlaces.insert(x87st7, Register_Position(offset++, 0, 6, 10 * 2));
+        }
 
         offset++;
 
@@ -732,6 +754,15 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     mFPU.insert(MxCsr);
 
     for(REGISTER_NAME i = x87r0; i <= x87r7; i = (REGISTER_NAME)(i + 1))
+    {
+        mMODIFYDISPLAY.insert(i);
+        mUNDODISPLAY.insert(i);
+        mFPUx87.insert(i);
+        mFPUx87_80BITSDISPLAY.insert(i);
+        mFPU.insert(i);
+    }
+
+    for(REGISTER_NAME i = x87st0; i <= x87st7; i = (REGISTER_NAME)(i + 1))
     {
         mMODIFYDISPLAY.insert(i);
         mUNDODISPLAY.insert(i);
@@ -2159,7 +2190,14 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
             if(mRegisterUpdates.contains(x87SW_TOP))
                 p->setPen(ConfigColor("RegistersModifiedColor"));
 
-            newText = QString("ST%1 ").arg(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, reg))->st_value);
+            if(reg >= x87r0 && reg <= x87r7)
+            {
+                newText = QString("ST%1 ").arg(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, reg))->st_value);
+            }
+            else
+            {
+                newText = QString("x87r%1 ").arg((wRegDumpStruct.x87StatusWordFields.TOP + (reg - x87st0)) & 7);
+            }
             width = fontMetrics.width(newText);
             p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
 
@@ -2169,38 +2207,8 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
 
             p->setPen(ConfigColor("RegistersExtraInfoColor"));
 
-            if(reg == x87r0 && mRegisterUpdates.contains(x87TW_0))
-            {
+            if(reg >= x87r0 && reg <= x87r7 && mRegisterUpdates.contains((REGISTER_NAME)(x87TW_0 + (reg - x87r0))))
                 p->setPen(ConfigColor("RegistersModifiedColor"));
-            }
-            else if(reg == x87r1 && mRegisterUpdates.contains(x87TW_1))
-            {
-                p->setPen(ConfigColor("RegistersModifiedColor"));
-            }
-            else if(reg == x87r2 && mRegisterUpdates.contains(x87TW_2))
-            {
-                p->setPen(ConfigColor("RegistersModifiedColor"));
-            }
-            else if(reg == x87r3 && mRegisterUpdates.contains(x87TW_3))
-            {
-                p->setPen(ConfigColor("RegistersModifiedColor"));
-            }
-            else if(reg == x87r4 && mRegisterUpdates.contains(x87TW_4))
-            {
-                p->setPen(ConfigColor("RegistersModifiedColor"));
-            }
-            else if(reg == x87r5 && mRegisterUpdates.contains(x87TW_5))
-            {
-                p->setPen(ConfigColor("RegistersModifiedColor"));
-            }
-            else if(reg == x87r6 && mRegisterUpdates.contains(x87TW_6))
-            {
-                p->setPen(ConfigColor("RegistersModifiedColor"));
-            }
-            else if(reg == x87r7 && mRegisterUpdates.contains(x87TW_7))
-            {
-                p->setPen(ConfigColor("RegistersModifiedColor"));
-            }
 
             newText += GetTagWordStateString(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, reg))->tag) + QString(" ");
 
@@ -2305,7 +2313,11 @@ void RegistersView::displayEditDialog()
         else if(mSelected == x87CW_PC)
             MODIFY_FIELDS_DISPLAY(tr("Edit"), "x87CW_PC", ControlWordPCValueStringTable);
         else if(mSelected == x87SW_TOP)
+        {
             MODIFY_FIELDS_DISPLAY(tr("Edit"), "x87SW_TOP", StatusWordTOPValueStringTable);
+            if(mFpuMode == false)
+                updateRegistersSlot();
+        }
         else if(mFPUYMM.contains(mSelected))
         {
             EditFloatRegister mEditFloat(256, this);
@@ -2668,6 +2680,7 @@ void RegistersView::onCopyAllAction()
     appendRegister(text, REGISTER_NAME::SS, "SS : ", "SS : ");
     if(mShowFpu)
     {
+
         appendRegister(text, REGISTER_NAME::x87r0, "x87r0 : ", "x87r0 : ");
         appendRegister(text, REGISTER_NAME::x87r1, "x87r1 : ", "x87r1 : ");
         appendRegister(text, REGISTER_NAME::x87r2, "x87r2 : ", "x87r2 : ");
@@ -3010,8 +3023,13 @@ void RegistersView::setRegister(REGISTER_NAME reg, duint value)
     // is register-id known?
     if(mRegisterMapping.contains(reg))
     {
-        // map "cax" to "eax" or "rax"
-        QString wRegName = mRegisterMapping.constFind(reg).value();
+        // map x87st0 to x87r0
+        QString wRegName;
+        if(reg >= x87st0 && reg <= x87st7)
+            wRegName = QString().sprintf("st%d", reg - x87st0);
+        else
+            // map "cax" to "eax" or "rax"
+            wRegName = mRegisterMapping.constFind(reg).value();
 
         // flags need to '_' infront
         if(mFlags.contains(reg))
@@ -3217,6 +3235,23 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
         return (char*) &regd->x87FPURegisters[6];
     case x87r7:
         return (char*) &regd->x87FPURegisters[7];
+
+    case x87st0:
+        return (char*) &regd->x87FPURegisters[regd->x87StatusWordFields.TOP & 7];
+    case x87st1:
+        return (char*) &regd->x87FPURegisters[(regd->x87StatusWordFields.TOP + 1) & 7];
+    case x87st2:
+        return (char*) &regd->x87FPURegisters[(regd->x87StatusWordFields.TOP + 2) & 7];
+    case x87st3:
+        return (char*) &regd->x87FPURegisters[(regd->x87StatusWordFields.TOP + 3) & 7];
+    case x87st4:
+        return (char*) &regd->x87FPURegisters[(regd->x87StatusWordFields.TOP + 4) & 7];
+    case x87st5:
+        return (char*) &regd->x87FPURegisters[(regd->x87StatusWordFields.TOP + 5) & 7];
+    case x87st6:
+        return (char*) &regd->x87FPURegisters[(regd->x87StatusWordFields.TOP + 6) & 7];
+    case x87st7:
+        return (char*) &regd->x87FPURegisters[(regd->x87StatusWordFields.TOP + 7) & 7];
 
     case x87TagWord:
         return (char*) &regd->regcontext.x87fpu.TagWord;
@@ -3438,6 +3473,7 @@ void RegistersView::onSIMDMode()
 void RegistersView::onFpuMode()
 {
     mFpuMode = !mFpuMode;
+    InitMappings();
     emit refresh();
 }
 
