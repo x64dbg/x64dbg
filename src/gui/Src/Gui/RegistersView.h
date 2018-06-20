@@ -28,7 +28,7 @@ class RegistersView : public QScrollArea
 
 public:
     // all possible register ids
-    enum REGISTER_NAME
+    enum REGISTER_NAME : int
     {
         CAX, CCX, CDX, CBX, CDI, CBP, CSI, CSP,
         R8, R9, R10, R11, R12, R13, R14, R15,

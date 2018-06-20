@@ -652,77 +652,17 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     mMODIFYDISPLAY.insert(CDI);
     mUNDODISPLAY.insert(CDI);
 #ifdef _WIN64
-    mSETONEZEROTOGGLE.insert(R8);
-    mINCREMENTDECREMET.insert(R8);
-    mCANSTOREADDRESS.insert(R8);
-    mGPR.insert(R8);
-    mLABELDISPLAY.insert(R8);
-    mUINTDISPLAY.insert(R8);
-    mMODIFYDISPLAY.insert(R8);
-    mUNDODISPLAY.insert(R8);
-
-    mSETONEZEROTOGGLE.insert(R9);
-    mINCREMENTDECREMET.insert(R9);
-    mCANSTOREADDRESS.insert(R9);
-    mGPR.insert(R9);
-    mLABELDISPLAY.insert(R9);
-    mUINTDISPLAY.insert(R9);
-    mMODIFYDISPLAY.insert(R9);
-    mUNDODISPLAY.insert(R9);
-
-    mSETONEZEROTOGGLE.insert(R10);
-    mINCREMENTDECREMET.insert(R10);
-    mCANSTOREADDRESS.insert(R10);
-    mGPR.insert(R10);
-    mMODIFYDISPLAY.insert(R10);
-    mUNDODISPLAY.insert(R10);
-    mUINTDISPLAY.insert(R10);
-    mLABELDISPLAY.insert(R10);
-
-    mSETONEZEROTOGGLE.insert(R11);
-    mINCREMENTDECREMET.insert(R11);
-    mCANSTOREADDRESS.insert(R11);
-    mGPR.insert(R11);
-    mMODIFYDISPLAY.insert(R11);
-    mUNDODISPLAY.insert(R11);
-    mUINTDISPLAY.insert(R11);
-    mLABELDISPLAY.insert(R11);
-
-    mSETONEZEROTOGGLE.insert(R12);
-    mINCREMENTDECREMET.insert(R12);
-    mCANSTOREADDRESS.insert(R12);
-    mGPR.insert(R12);
-    mMODIFYDISPLAY.insert(R12);
-    mUNDODISPLAY.insert(R12);
-    mUINTDISPLAY.insert(R12);
-    mLABELDISPLAY.insert(R12);
-
-    mSETONEZEROTOGGLE.insert(R13);
-    mINCREMENTDECREMET.insert(R13);
-    mCANSTOREADDRESS.insert(R13);
-    mGPR.insert(R13);
-    mMODIFYDISPLAY.insert(R13);
-    mUNDODISPLAY.insert(R13);
-    mUINTDISPLAY.insert(R13);
-    mLABELDISPLAY.insert(R13);
-
-    mSETONEZEROTOGGLE.insert(R14);
-    mINCREMENTDECREMET.insert(R14);
-    mCANSTOREADDRESS.insert(R14);
-    mGPR.insert(R14);
-    mMODIFYDISPLAY.insert(R14);
-    mUNDODISPLAY.insert(R14);
-    mUINTDISPLAY.insert(R14);
-    mLABELDISPLAY.insert(R14);
-
-    mSETONEZEROTOGGLE.insert(R15);
-    mINCREMENTDECREMET.insert(R15);
-    mCANSTOREADDRESS.insert(R15);
-    mGPR.insert(R15);
-    mMODIFYDISPLAY.insert(R15);
-    mUNDODISPLAY.insert(R15);
-    mUINTDISPLAY.insert(R15);
-    mLABELDISPLAY.insert(R15);
+    for(REGISTER_NAME i = R8; i <= R15; i = (REGISTER_NAME)(i + 1))
+    {
+        mSETONEZEROTOGGLE.insert(i);
+        mINCREMENTDECREMET.insert(i);
+        mCANSTOREADDRESS.insert(i);
+        mGPR.insert(i);
+        mLABELDISPLAY.insert(i);
+        mUINTDISPLAY.insert(i);
+        mMODIFYDISPLAY.insert(i);
+        mUNDODISPLAY.insert(i);
+    }
 #endif //_WIN64
 
     mSETONEZEROTOGGLE.insert(EFLAGS);
@@ -774,53 +714,14 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     mUNDODISPLAY.insert(MxCsr);
     mFPU.insert(MxCsr);
 
-    mMODIFYDISPLAY.insert(x87r0);
-    mUNDODISPLAY.insert(x87r0);
-    mFPUx87.insert(x87r0);
-    mFPUx87_80BITSDISPLAY.insert(x87r0);
-    mFPU.insert(x87r0);
-
-    mMODIFYDISPLAY.insert(x87r1);
-    mUNDODISPLAY.insert(x87r1);
-    mFPUx87.insert(x87r1);
-    mFPUx87_80BITSDISPLAY.insert(x87r1);
-    mFPU.insert(x87r1);
-
-    mMODIFYDISPLAY.insert(x87r2);
-    mUNDODISPLAY.insert(x87r2);
-    mFPUx87.insert(x87r2);
-    mFPUx87_80BITSDISPLAY.insert(x87r2);
-    mFPU.insert(x87r2);
-
-    mMODIFYDISPLAY.insert(x87r3);
-    mUNDODISPLAY.insert(x87r3);
-    mFPUx87.insert(x87r3);
-    mFPUx87_80BITSDISPLAY.insert(x87r3);
-    mFPU.insert(x87r3);
-
-    mMODIFYDISPLAY.insert(x87r4);
-    mUNDODISPLAY.insert(x87r4);
-    mFPUx87.insert(x87r4);
-    mFPUx87_80BITSDISPLAY.insert(x87r4);
-    mFPU.insert(x87r4);
-
-    mMODIFYDISPLAY.insert(x87r5);
-    mUNDODISPLAY.insert(x87r5);
-    mFPUx87.insert(x87r5);
-    mFPU.insert(x87r5);
-    mFPUx87_80BITSDISPLAY.insert(x87r5);
-
-    mMODIFYDISPLAY.insert(x87r6);
-    mUNDODISPLAY.insert(x87r6);
-    mFPUx87.insert(x87r6);
-    mFPU.insert(x87r6);
-    mFPUx87_80BITSDISPLAY.insert(x87r6);
-
-    mMODIFYDISPLAY.insert(x87r7);
-    mUNDODISPLAY.insert(x87r7);
-    mFPUx87.insert(x87r7);
-    mFPU.insert(x87r7);
-    mFPUx87_80BITSDISPLAY.insert(x87r7);
+    for(REGISTER_NAME i = x87r0; i <= x87r7; i = (REGISTER_NAME)(i + 1))
+    {
+        mMODIFYDISPLAY.insert(i);
+        mUNDODISPLAY.insert(i);
+        mFPUx87.insert(i);
+        mFPUx87_80BITSDISPLAY.insert(i);
+        mFPU.insert(i);
+    }
 
     mSETONEZEROTOGGLE.insert(x87TagWord);
     mFPUx87.insert(x87TagWord);
@@ -925,61 +826,15 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     mMODIFYDISPLAY.insert(x87CW_RC);
     mUNDODISPLAY.insert(x87CW_RC);
 
-    mFPUx87.insert(x87TW_0);
-    mFIELDVALUE.insert(x87TW_0);
-    mTAGWORD.insert(x87TW_0);
-    mFPU.insert(x87TW_0);
-    mMODIFYDISPLAY.insert(x87TW_0);
-    mUNDODISPLAY.insert(x87TW_0);
-
-    mFPUx87.insert(x87TW_1);
-    mFIELDVALUE.insert(x87TW_1);
-    mTAGWORD.insert(x87TW_1);
-    mFPU.insert(x87TW_1);
-    mMODIFYDISPLAY.insert(x87TW_1);
-    mUNDODISPLAY.insert(x87TW_1);
-
-    mFPUx87.insert(x87TW_2);
-    mFIELDVALUE.insert(x87TW_2);
-    mTAGWORD.insert(x87TW_2);
-    mFPU.insert(x87TW_2);
-    mMODIFYDISPLAY.insert(x87TW_2);
-    mUNDODISPLAY.insert(x87TW_2);
-
-    mFPUx87.insert(x87TW_3);
-    mFIELDVALUE.insert(x87TW_3);
-    mTAGWORD.insert(x87TW_3);
-    mFPU.insert(x87TW_3);
-    mMODIFYDISPLAY.insert(x87TW_3);
-    mUNDODISPLAY.insert(x87TW_3);
-
-    mFPUx87.insert(x87TW_4);
-    mFIELDVALUE.insert(x87TW_4);
-    mTAGWORD.insert(x87TW_4);
-    mFPU.insert(x87TW_4);
-    mMODIFYDISPLAY.insert(x87TW_4);
-    mUNDODISPLAY.insert(x87TW_4);
-
-    mFPUx87.insert(x87TW_5);
-    mFIELDVALUE.insert(x87TW_5);
-    mTAGWORD.insert(x87TW_5);
-    mFPU.insert(x87TW_5);
-    mMODIFYDISPLAY.insert(x87TW_5);
-    mUNDODISPLAY.insert(x87TW_5);
-
-    mFPUx87.insert(x87TW_6);
-    mFIELDVALUE.insert(x87TW_6);
-    mTAGWORD.insert(x87TW_6);
-    mFPU.insert(x87TW_6);
-    mMODIFYDISPLAY.insert(x87TW_6);
-    mUNDODISPLAY.insert(x87TW_6);
-
-    mFPUx87.insert(x87TW_7);
-    mFIELDVALUE.insert(x87TW_7);
-    mTAGWORD.insert(x87TW_7);
-    mFPU.insert(x87TW_7);
-    mMODIFYDISPLAY.insert(x87TW_7);
-    mUNDODISPLAY.insert(x87TW_7);
+    for(REGISTER_NAME i = x87TW_0; i <= x87TW_7; i = (REGISTER_NAME)(i + 1))
+    {
+        mFPUx87.insert(i);
+        mFIELDVALUE.insert(i);
+        mTAGWORD.insert(i);
+        mFPU.insert(i);
+        mMODIFYDISPLAY.insert(i);
+        mUNDODISPLAY.insert(i);
+    }
 
     mFPUx87.insert(x87CW_PC);
     mFIELDVALUE.insert(x87CW_PC);
@@ -1078,173 +933,30 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     mMODIFYDISPLAY.insert(MxCsr_RC);
     mUNDODISPLAY.insert(MxCsr_RC);
 
-    mMODIFYDISPLAY.insert(MM0);
-    mUNDODISPLAY.insert(MM0);
-    mFPUMMX.insert(MM0);
-    mFPU.insert(MM0);
-    mMODIFYDISPLAY.insert(MM1);
-    mUNDODISPLAY.insert(MM1);
-    mFPUMMX.insert(MM1);
-    mFPU.insert(MM1);
-    mFPUMMX.insert(MM2);
-    mMODIFYDISPLAY.insert(MM2);
-    mUNDODISPLAY.insert(MM2);
-    mFPU.insert(MM2);
-    mFPUMMX.insert(MM3);
-    mMODIFYDISPLAY.insert(MM3);
-    mUNDODISPLAY.insert(MM3);
-    mFPU.insert(MM3);
-    mFPUMMX.insert(MM4);
-    mMODIFYDISPLAY.insert(MM4);
-    mUNDODISPLAY.insert(MM4);
-    mFPU.insert(MM4);
-    mFPUMMX.insert(MM5);
-    mMODIFYDISPLAY.insert(MM5);
-    mUNDODISPLAY.insert(MM5);
-    mFPU.insert(MM5);
-    mFPUMMX.insert(MM6);
-    mMODIFYDISPLAY.insert(MM6);
-    mUNDODISPLAY.insert(MM6);
-    mFPU.insert(MM6);
-    mFPUMMX.insert(MM7);
-    mMODIFYDISPLAY.insert(MM7);
-    mUNDODISPLAY.insert(MM7);
-    mFPU.insert(MM7);
+    for(REGISTER_NAME i = MM0; i <= MM7; i = (REGISTER_NAME)(i + 1))
+    {
+        mMODIFYDISPLAY.insert(i);
+        mUNDODISPLAY.insert(i);
+        mFPUMMX.insert(i);
+        mFPU.insert(i);
+    }
 
-    mFPUXMM.insert(XMM0);
-    mMODIFYDISPLAY.insert(XMM0);
-    mUNDODISPLAY.insert(XMM0);
-    mFPU.insert(XMM0);
-    mFPUXMM.insert(XMM1);
-    mMODIFYDISPLAY.insert(XMM1);
-    mUNDODISPLAY.insert(XMM1);
-    mFPU.insert(XMM1);
-    mFPUXMM.insert(XMM2);
-    mMODIFYDISPLAY.insert(XMM2);
-    mUNDODISPLAY.insert(XMM2);
-    mFPU.insert(XMM2);
-    mFPUXMM.insert(XMM3);
-    mMODIFYDISPLAY.insert(XMM3);
-    mUNDODISPLAY.insert(XMM3);
-    mFPU.insert(XMM3);
-    mFPUXMM.insert(XMM4);
-    mMODIFYDISPLAY.insert(XMM4);
-    mUNDODISPLAY.insert(XMM4);
-    mFPU.insert(XMM4);
-    mFPUXMM.insert(XMM5);
-    mMODIFYDISPLAY.insert(XMM5);
-    mUNDODISPLAY.insert(XMM5);
-    mFPU.insert(XMM5);
-    mFPUXMM.insert(XMM6);
-    mMODIFYDISPLAY.insert(XMM6);
-    mUNDODISPLAY.insert(XMM6);
-    mFPU.insert(XMM6);
-    mFPUXMM.insert(XMM7);
-    mMODIFYDISPLAY.insert(XMM7);
-    mUNDODISPLAY.insert(XMM7);
-    mFPU.insert(XMM7);
-#ifdef _WIN64
-    mFPUXMM.insert(XMM8);
-    mMODIFYDISPLAY.insert(XMM8);
-    mUNDODISPLAY.insert(XMM8);
-    mFPU.insert(XMM8);
-    mFPUXMM.insert(XMM9);
-    mMODIFYDISPLAY.insert(XMM9);
-    mUNDODISPLAY.insert(XMM9);
-    mFPU.insert(XMM9);
-    mFPUXMM.insert(XMM10);
-    mMODIFYDISPLAY.insert(XMM10);
-    mUNDODISPLAY.insert(XMM10);
-    mFPU.insert(XMM10);
-    mFPUXMM.insert(XMM11);
-    mMODIFYDISPLAY.insert(XMM11);
-    mUNDODISPLAY.insert(XMM11);
-    mFPU.insert(XMM11);
-    mFPUXMM.insert(XMM12);
-    mMODIFYDISPLAY.insert(XMM12);
-    mUNDODISPLAY.insert(XMM12);
-    mFPU.insert(XMM12);
-    mFPUXMM.insert(XMM13);
-    mMODIFYDISPLAY.insert(XMM13);
-    mUNDODISPLAY.insert(XMM13);
-    mFPU.insert(XMM13);
-    mFPUXMM.insert(XMM14);
-    mMODIFYDISPLAY.insert(XMM14);
-    mUNDODISPLAY.insert(XMM14);
-    mFPU.insert(XMM14);
-    mFPUXMM.insert(XMM15);
-    mMODIFYDISPLAY.insert(XMM15);
-    mUNDODISPLAY.insert(XMM15);
-    mFPU.insert(XMM15);
-#endif
+    for(REGISTER_NAME i = XMM0; i <= ArchValue(XMM7, XMM15); i = (REGISTER_NAME)(i + 1))
+    {
+        mFPUXMM.insert(i);
+        mMODIFYDISPLAY.insert(i);
+        mUNDODISPLAY.insert(i);
+        mFPU.insert(i);
+    }
 
-    mFPUYMM.insert(YMM0);
-    mMODIFYDISPLAY.insert(YMM0);
-    mUNDODISPLAY.insert(YMM0);
-    mFPU.insert(YMM0);
-    mFPUYMM.insert(YMM1);
-    mMODIFYDISPLAY.insert(YMM1);
-    mUNDODISPLAY.insert(YMM1);
-    mFPU.insert(YMM1);
-    mFPUYMM.insert(YMM2);
-    mMODIFYDISPLAY.insert(YMM2);
-    mUNDODISPLAY.insert(YMM2);
-    mFPU.insert(YMM2);
-    mFPUYMM.insert(YMM3);
-    mMODIFYDISPLAY.insert(YMM3);
-    mUNDODISPLAY.insert(YMM3);
-    mFPU.insert(YMM3);
-    mFPUYMM.insert(YMM4);
-    mMODIFYDISPLAY.insert(YMM4);
-    mUNDODISPLAY.insert(YMM4);
-    mFPU.insert(YMM4);
-    mFPUYMM.insert(YMM5);
-    mMODIFYDISPLAY.insert(YMM5);
-    mUNDODISPLAY.insert(YMM5);
-    mFPU.insert(YMM5);
-    mFPUYMM.insert(YMM6);
-    mMODIFYDISPLAY.insert(YMM6);
-    mUNDODISPLAY.insert(YMM6);
-    mFPU.insert(YMM6);
-    mFPUYMM.insert(YMM7);
-    mMODIFYDISPLAY.insert(YMM7);
-    mUNDODISPLAY.insert(YMM7);
-    mFPU.insert(YMM7);
+    for(REGISTER_NAME i = YMM0; i <= ArchValue(YMM7, YMM15); i = (REGISTER_NAME)(i + 1))
+    {
+        mFPUYMM.insert(i);
+        mMODIFYDISPLAY.insert(i);
+        mUNDODISPLAY.insert(i);
+        mFPU.insert(i);
+    }
 
-#ifdef _WIN64
-    mFPUYMM.insert(YMM8);
-    mMODIFYDISPLAY.insert(YMM8);
-    mUNDODISPLAY.insert(YMM8);
-    mFPU.insert(YMM8);
-    mFPUYMM.insert(YMM9);
-    mMODIFYDISPLAY.insert(YMM9);
-    mUNDODISPLAY.insert(YMM9);
-    mFPU.insert(YMM9);
-    mFPUYMM.insert(YMM10);
-    mMODIFYDISPLAY.insert(YMM10);
-    mUNDODISPLAY.insert(YMM10);
-    mFPU.insert(YMM10);
-    mFPUYMM.insert(YMM11);
-    mMODIFYDISPLAY.insert(YMM11);
-    mUNDODISPLAY.insert(YMM11);
-    mFPU.insert(YMM11);
-    mFPUYMM.insert(YMM12);
-    mMODIFYDISPLAY.insert(YMM12);
-    mUNDODISPLAY.insert(YMM12);
-    mFPU.insert(YMM12);
-    mFPUYMM.insert(YMM13);
-    mMODIFYDISPLAY.insert(YMM13);
-    mUNDODISPLAY.insert(YMM13);
-    mFPU.insert(YMM13);
-    mFPUYMM.insert(YMM14);
-    mMODIFYDISPLAY.insert(YMM14);
-    mUNDODISPLAY.insert(YMM14);
-    mFPU.insert(YMM14);
-    mFPUYMM.insert(YMM15);
-    mMODIFYDISPLAY.insert(YMM15);
-    mUNDODISPLAY.insert(YMM15);
-    mFPU.insert(YMM15);
-#endif
     //registers that should not be changed
     mNoChange.insert(LastError);
     mNoChange.insert(LastStatus);
