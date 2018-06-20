@@ -65,7 +65,7 @@ public:
         UNKNOWN
     };
 
-    enum SIMD_REG_DISP_MODE
+    enum SIMD_REG_DISP_MODE : int
     {
         SIMD_REG_DISP_HEX,
         SIMD_REG_DISP_FLOAT,
@@ -173,18 +173,7 @@ protected slots:
     void onHighlightSlot();
     void InitMappings();
     // switch SIMD display modes
-    void onSIMDHex();
-    void onSIMDFloat();
-    void onSIMDDouble();
-    void onSIMDSWord();
-    void onSIMDUWord();
-    void onSIMDHWord();
-    void onSIMDSDWord();
-    void onSIMDUDWord();
-    void onSIMDHDWord();
-    void onSIMDSQWord();
-    void onSIMDUQWord();
-    void onSIMDHQWord();
+    void onSIMDMode();
     void onClose();
     QString getRegisterLabel(REGISTER_NAME);
     int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2);
