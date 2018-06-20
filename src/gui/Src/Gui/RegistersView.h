@@ -29,7 +29,7 @@ class RegistersView : public QScrollArea
 
 public:
     // all possible register ids
-    enum REGISTER_NAME
+    enum REGISTER_NAME : int
     {
         CAX, CCX, CDX, CBX, CDI, CBP, CSI, CSP,
 #ifdef _WIN64
