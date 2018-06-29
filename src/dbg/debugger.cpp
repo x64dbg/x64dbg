@@ -463,7 +463,7 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
             char szSourceFile[MAX_STRING_SIZE] = "";
             int line = 0;
             if(SymGetSourceLine(cip, szSourceFile, &line))
-                GuiLoadSourceFile(szSourceFile, line);
+                GuiLoadSourceFileEx(szSourceFile, cip);
         }
         GuiDisasmAt(disasm_addr, cip);
     }
@@ -1780,7 +1780,6 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 
 static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 {
-
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     PLUG_CB_OUTPUTDEBUGSTRING callbackInfo;
     callbackInfo.DebugString = DebugString;
@@ -1795,12 +1794,16 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
             if(str != lastDebugText) //fix for every string being printed twice
             {
                 if(str != "\n")
-                    dprintf(QT_TRANSLATE_NOOP("DBG", "DebugString: \"%s\"\n"), StringUtils::Escape(str).c_str());
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "DebugString: \"%s\"\n"), StringUtils::Escape(str, false).c_str());
                 lastDebugText = str;
             }
             else
                 lastDebugText.clear();
         }
+    }
+    else
+    {
+        //TODO: implement Windows 10 unicode debug string
     }
 
     if(settingboolget("Events", "DebugStrings"))
