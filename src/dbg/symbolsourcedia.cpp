@@ -267,22 +267,7 @@ bool SymbolSourceDIA::loadSourceLinesAsync()
             lineInfo.rva = info.virtualAddress;
             lineInfo.lineNumber = info.lineNumber;
 
-            uint32_t idx = -1;
-            for(uint32_t n = 0; n < _sourceFiles.size(); n++)
-            {
-                const String & str = _sourceFiles[n];
-                size_t size = str.size();
-                if(size != info.fileName.size())
-                    continue;
-                if(str[0] != info.fileName[0])
-                    continue;
-                if(str[size - 1] != info.fileName[size - 1])
-                    continue;
-                if(str != info.fileName)
-                    continue;
-                idx = n;
-                break;
-            }
+            auto idx = findSourceFile(info.fileName);
             if(idx == -1)
             {
                 idx = _sourceFiles.size();
@@ -292,11 +277,19 @@ bool SymbolSourceDIA::loadSourceLinesAsync()
 
             _lockLines.lock();
 
-            _lines.insert(std::make_pair(lineInfo.rva, lineInfo));
+            _linesData.push_back(lineInfo);
+            _lines.insert({ lineInfo.rva, _linesData.size() - 1 });
 
             _lockLines.unlock();
         }
 
+    }
+
+    _sourceLines.resize(_sourceFiles.size());
+    for(size_t i = 0; i < _linesData.size(); i++)
+    {
+        auto & line = _linesData[i];
+        _sourceLines[line.sourceFileIdx].insert({ line.lineNumber, i });
     }
 
     if(_requiresShutdown)
@@ -310,6 +303,22 @@ bool SymbolSourceDIA::loadSourceLinesAsync()
     GuiUpdateAllViews();
 
     return true;
+}
+
+uint32_t SymbolSourceDIA::findSourceFile(const std::string & fileName) const
+{
+    //TODO: make this fast
+    uint32_t idx = -1;
+    for(uint32_t n = 0; n < _sourceFiles.size(); n++)
+    {
+        const String & str = _sourceFiles[n];
+        if(stricmp(str.c_str(), fileName.c_str()) == 0)
+        {
+            idx = n;
+            break;
+        }
+    }
+    return idx;
 }
 
 bool SymbolSourceDIA::findSymbolExact(duint rva, SymbolInfo & symInfo)
@@ -385,18 +394,39 @@ bool SymbolSourceDIA::findSourceLineInfo(duint rva, LineInfo & lineInfo)
 {
     ScopedSpinLock lock(_lockLines);
 
-    auto it = _lines.find(rva);
-    if(it != _lines.end())
-    {
-        const CachedLineInfo & cached = it->second;
-        lineInfo.lineNumber = cached.lineNumber;
-        lineInfo.disp = 0;
-        lineInfo.size = 0;
-        lineInfo.sourceFile = _sourceFiles[cached.sourceFileIdx];
-        return true;
-    }
+    auto found = _lines.find(rva);
+    if(found == _lines.end())
+        return false;
 
-    return false;
+    auto & cached = _linesData.at(found->second);
+    lineInfo.rva = cached.rva;
+    lineInfo.lineNumber = cached.lineNumber;
+    lineInfo.disp = 0;
+    lineInfo.size = 0;
+    lineInfo.sourceFile = _sourceFiles[cached.sourceFileIdx];
+    return true;
+}
+
+bool SymbolSourceDIA::findSourceLineInfo(const std::string & file, int line, LineInfo & lineInfo)
+{
+    ScopedSpinLock lock(_lockLines);
+
+    auto sourceIdx = findSourceFile(file);
+    if(sourceIdx == -1)
+        return false;
+
+    auto & lineMap = _sourceLines[sourceIdx];
+    auto found = lineMap.find(line);
+    if(found == lineMap.end())
+        return false;
+
+    auto & cached = _linesData.at(found->second);
+    lineInfo.rva = cached.rva;
+    lineInfo.lineNumber = cached.lineNumber;
+    lineInfo.disp = 0;
+    lineInfo.size = 0;
+    lineInfo.sourceFile = _sourceFiles[cached.sourceFileIdx];
+    return true;
 }
 
 //http://en.cppreference.com/w/cpp/algorithm/lower_bound

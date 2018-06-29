@@ -114,6 +114,11 @@ public:
         return false; // Stub
     }
 
+    virtual bool findSourceLineInfo(const std::string & file, int line, LineInfo & lineInfo)
+    {
+        return false; // Stub
+    }
+
     virtual bool findSymbolByName(const std::string & name, SymbolInfo & symInfo, bool caseSensitive)
     {
         return false; // Stub

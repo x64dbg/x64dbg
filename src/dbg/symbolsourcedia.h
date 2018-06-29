@@ -55,8 +55,7 @@ class SymbolSourceDIA : public SymbolSourceBase
         ~ScopedDecrement() { _counter--; }
     };
 
-private:
-    bool _isOpen;
+private: //symbols
     std::vector<SymbolInfo> _symData;
 
     struct AddrIndex
@@ -87,18 +86,25 @@ private:
         }
     };
     std::vector<NameIndex> _symNameMap; //name -> data index (sorted on name)
-
     //Symbol addresses to index in _symNames (TODO: refactor to std::vector)
     std::map<duint, size_t> _symAddrs;
-
     //std::map<duint, SymbolInfo> _sym;
-    std::map<duint, CachedLineInfo> _lines;
+
+private: //line info
+    //TODO: make this source file stuff smarter
+    std::vector<CachedLineInfo> _linesData;
+    std::map<duint, size_t> _lines; //addr -> line
+    std::vector<String> _sourceFiles;
+    std::vector<std::map<int, size_t>> _sourceLines; //uses index in _sourceFiles
+
+private: //general
     HANDLE _symbolsThread = nullptr;
     HANDLE _sourceLinesThread = nullptr;
-    std::string _path;
     std::atomic<bool> _requiresShutdown;
     std::atomic<duint> _loadCounter;
-    std::vector<String> _sourceFiles;
+
+    bool _isOpen;
+    std::string _path;
     duint _imageBase;
     duint _imageSize;
     SpinLock _lockSymbols;
@@ -144,6 +150,8 @@ public:
 
     virtual bool findSourceLineInfo(duint rva, LineInfo & lineInfo) override;
 
+    virtual bool findSourceLineInfo(const std::string & file, int line, LineInfo & lineInfo) override;
+
     virtual bool findSymbolByName(const std::string & name, SymbolInfo & symInfo, bool caseSensitive) override;
 
     virtual bool findSymbolsByPrefix(const std::string & prefix, const std::function<bool(const SymbolInfo &)> & cbSymbol, bool caseSensitive) override;
@@ -155,6 +163,7 @@ private:
     void loadPDBAsync();
     bool loadSymbolsAsync();
     bool loadSourceLinesAsync();
+    uint32_t findSourceFile(const std::string & fileName) const;
 
     static DWORD WINAPI SymbolsThread(void* parameter);
     static DWORD WINAPI SourceLinesThread(void* parameter);
