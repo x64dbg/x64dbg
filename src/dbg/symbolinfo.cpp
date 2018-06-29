@@ -367,3 +367,22 @@ bool SymGetSourceLine(duint Cip, char* FileName, int* Line, DWORD* disp)
 
     return true;
 }
+
+bool SymGetSourceAddr(duint Module, const char* FileName, int Line, duint* Address)
+{
+    SHARED_ACQUIRE(LockModules);
+    auto modInfo = ModInfoFromAddr(Module);
+    if(!modInfo)
+        return false;
+
+    auto sym = modInfo->symbols;
+    if(!sym || sym == &EmptySymbolSource)
+        return false;
+
+    LineInfo lineInfo;
+    if(!sym->findSourceLineInfo(FileName, Line, lineInfo))
+        return false;
+
+    *Address = lineInfo.rva + modInfo->base;
+    return true;
+}

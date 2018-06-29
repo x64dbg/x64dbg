@@ -197,15 +197,17 @@ static void _memupdatemap()
 
 static duint _getaddrfromline(const char* szSourceFile, int line, duint* disp)
 {
-    LONG displacement = 0;
-    IMAGEHLP_LINE64 lineData;
-    memset(&lineData, 0, sizeof(lineData));
-    lineData.SizeOfStruct = sizeof(lineData);
-    if(!SymGetLineFromName64(fdProcessInfo->hProcess, NULL, szSourceFile, line, &displacement, &lineData))
-        return 0;
     if(disp)
-        *disp = displacement;
-    return (duint)lineData.Address;
+        *disp = 0;
+    return 0;
+}
+
+static duint _getaddrfromlineex(duint mod, const char* szSourceFile, int line)
+{
+    duint addr = 0;
+    if(SymGetSourceAddr(mod, szSourceFile, line, &addr))
+        return addr;
+    return 0;
 }
 
 static bool _getsourcefromaddr(duint addr, char* szSourceFile, int* line)
@@ -481,4 +483,5 @@ void dbgfunctionsinit()
     _dbgfunctions.DbGetHash = DbGetHash;
     _dbgfunctions.SymAutoComplete = SymAutoComplete;
     _dbgfunctions.RefreshModuleList = _refreshmodulelist;
+    _dbgfunctions.GetAddrFromLineEx = _getaddrfromlineex;
 }

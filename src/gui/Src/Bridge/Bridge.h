@@ -114,7 +114,7 @@ signals:
     void updateSEHChain();
     void updateArgumentView();
     void symbolRefreshCurrent();
-    void loadSourceFile(const QString path, int line, int selection);
+    void loadSourceFile(const QString path, duint addr);
     void setIconMenuEntry(int hEntry, QIcon icon);
     void setIconMenu(int hMenu, QIcon icon);
     void setCheckedMenuEntry(int hEntry, bool checked);

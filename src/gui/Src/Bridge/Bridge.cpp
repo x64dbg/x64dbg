@@ -490,7 +490,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_LOAD_SOURCE_FILE:
-        emit loadSourceFile(QString((const char*)param1), (int)param2, 0);
+        emit loadSourceFile(QString((const char*)param1), (duint)param2);
         break;
 
     case GUI_MENU_SET_ICON:

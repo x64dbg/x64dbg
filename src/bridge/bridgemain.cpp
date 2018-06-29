@@ -1461,9 +1461,14 @@ BRIDGE_IMPEXP void GuiUpdateSEHChain()
     _gui_sendmessage(GUI_UPDATE_SEHCHAIN, 0, 0);
 }
 
-BRIDGE_IMPEXP void GuiLoadSourceFile(const char* path, int line)
+extern "C" __declspec(dllexport) void GuiLoadSourceFile(const char* path, int line)
 {
-    _gui_sendmessage(GUI_LOAD_SOURCE_FILE, (void*)path, (void*)line);
+    return;
+}
+
+BRIDGE_IMPEXP void GuiLoadSourceFileEx(const char* path, duint addr)
+{
+    _gui_sendmessage(GUI_LOAD_SOURCE_FILE, (void*)path, (void*)addr);
 }
 
 BRIDGE_IMPEXP void GuiMenuSetIcon(int hMenu, const ICONDATA* icon)

@@ -1748,9 +1748,10 @@ void CPUDisassembly::openSourceSlot()
 {
     char szSourceFile[MAX_STRING_SIZE] = "";
     int line = 0;
-    if(!DbgFunctions()->GetSourceFromAddr(rvaToVa(getInitialSelection()), szSourceFile, &line))
+    auto sel = rvaToVa(getInitialSelection());
+    if(!DbgFunctions()->GetSourceFromAddr(sel, szSourceFile, &line))
         return;
-    emit Bridge::getBridge()->loadSourceFile(szSourceFile, 0, line);
+    emit Bridge::getBridge()->loadSourceFile(szSourceFile, sel);
     emit displaySourceManagerWidget();
 }
 

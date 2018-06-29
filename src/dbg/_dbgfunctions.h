@@ -198,6 +198,7 @@ typedef bool(*MODRELOCATIONSINRANGE)(duint addr, duint size, ListOf(DBGRELOCATIO
 typedef duint(*DBGETHASH)();
 typedef int(*SYMAUTOCOMPLETE)(const char* Search, char** Buffer, int MaxSymbols);
 typedef void(*REFRESHMODULELIST)();
+typedef duint(*GETADDRFROMLINEEX)(duint mod, const char* szSourceFile, int line);
 
 //The list of all the DbgFunctions() return value.
 //WARNING: This list is append only. Do not insert things in the middle or plugins would break.
@@ -274,6 +275,7 @@ typedef struct DBGFUNCTIONS_
     DBGETHASH DbGetHash;
     SYMAUTOCOMPLETE SymAutoComplete;
     REFRESHMODULELIST RefreshModuleList;
+    GETADDRFROMLINEEX GetAddrFromLineEx;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

@@ -24,4 +24,6 @@ String SymGetSymbolicName(duint Address);
 */
 bool SymGetSourceLine(duint Cip, char* FileName, int* Line, DWORD* displacement = nullptr);
 
+bool SymGetSourceAddr(duint Module, const char* FileName, int Line, duint* Address);
+
 #endif // _SYMBOLINFO_H

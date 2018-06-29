@@ -535,7 +535,7 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 
         // Debug directory full path
         const bool bAllowUncPathsInDebugDirectory = false; // TODO: create setting for this
-        if (!dir.empty() && (bAllowUncPathsInDebugDirectory || !PathIsUNCW(StringUtils::Utf8ToUtf16(Info.pdbFile).c_str())))
+        if(!dir.empty() && (bAllowUncPathsInDebugDirectory || !PathIsUNCW(StringUtils::Utf8ToUtf16(Info.pdbFile).c_str())))
             Info.pdbPaths.push_back(Info.pdbFile);
 
         // Program directory (debug directory PDB name)
@@ -552,7 +552,7 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         // Program directory (file name PDB name)
         strcpy_s(pdbPath, Info.path);
         lastBack = strrchr(pdbPath, '\\');
-        if (lastBack)
+        if(lastBack)
         {
             lastBack[1] = '\0';
             strncat_s(pdbPath, Info.name, _TRUNCATE);
@@ -560,7 +560,7 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
             Info.pdbPaths.push_back(pdbPath);
         }
 
-        
+
     }
 }
 
