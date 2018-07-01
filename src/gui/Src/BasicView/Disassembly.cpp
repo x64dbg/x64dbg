@@ -456,19 +456,19 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         formatOpcodeString(mInstBuffer.at(rowOffset), richBytes);
         for(int i = 0; i < richBytes.size(); i++)
         {
-            RichTextPainter::CustomRichText_t & curByte1 = richBytes.at(i);
+            RichTextPainter::CustomRichText_t & curByte = richBytes.at(i);
             DBGRELOCATIONINFO relocInfo;
-            curByte1.highlightColor = mDisassemblyRelocationUnderlineColor;
+            curByte.highlightColor = mDisassemblyRelocationUnderlineColor;
             if(DbgFunctions()->ModRelocationAtAddr(cur_addr + i, &relocInfo))
             {
                 bool prevInSameReloc = relocInfo.rva < cur_addr + i - DbgFunctions()->ModBaseFromAddr(cur_addr + i);
-                curByte1.highlight = true;
-                curByte1.highlightConnectPrev = prevInSameReloc;
+                curByte.highlight = true;
+                curByte.highlightConnectPrev = prevInSameReloc;
             }
             else
             {
-                curByte1.highlight = false;
-                curByte1.highlightConnectPrev = false;
+                curByte.highlight = false;
+                curByte.highlightConnectPrev = false;
             }
 
             DBGPATCHINFO patchInfo;
@@ -476,19 +476,19 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             {
                 if((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)) == patchInfo.newbyte)
                 {
-                    curByte1.textColor = mModifiedBytesColor;
-                    curByte1.textBackground = mModifiedBytesBackgroundColor;
+                    curByte.textColor = mModifiedBytesColor;
+                    curByte.textBackground = mModifiedBytesBackgroundColor;
                 }
                 else
                 {
-                    curByte1.textColor = mRestoredBytesColor;
-                    curByte1.textBackground = mRestoredBytesBackgroundColor;
+                    curByte.textColor = mRestoredBytesColor;
+                    curByte.textBackground = mRestoredBytesBackgroundColor;
                 }
             }
             else
             {
-                curByte1.textColor = mBytesColor;
-                curByte1.textBackground = mBytesBackgroundColor;
+                curByte.textColor = mBytesColor;
+                curByte.textBackground = mBytesBackgroundColor;
             }
         }
 
