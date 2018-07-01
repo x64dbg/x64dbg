@@ -394,12 +394,13 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
     }
     break;
 
-    case 1: //draw bytes (TODO: some spaces between bytes)
+    case 1: //draw bytes
     {
+        const Instruction_t & instr = mInstBuffer.at(rowOffset);
         //draw functions
         Function_t funcType;
         FUNCTYPE funcFirst = DbgGetFunctionTypeAt(cur_addr);
-        FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + mInstBuffer.at(rowOffset).length - 1);
+        FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + instr.length - 1);
         if(funcLast == FUNC_END && funcFirst != FUNC_SINGLE)
             funcFirst = funcLast;
         switch(funcFirst)
@@ -452,60 +453,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         int jumpsize = paintJumpsGraphic(painter, x + funcsize, y - 1, wRVA, branchType != Instruction_t::None && branchType != Instruction_t::Call); //jump line
 
         //draw bytes
-        RichTextPainter::List richBytes;
-        formatOpcodeString(mInstBuffer.at(rowOffset), richBytes);
-        for(int i = 0; i < richBytes.size(); i++)
-        {
-            RichTextPainter::CustomRichText_t & curByte = richBytes.at(i);
-            DBGRELOCATIONINFO relocInfo;
-            curByte.highlightColor = mDisassemblyRelocationUnderlineColor;
-            if(DbgFunctions()->ModRelocationAtAddr(cur_addr + i, &relocInfo))
-            {
-                bool prevInSameReloc = relocInfo.rva < cur_addr + i - DbgFunctions()->ModBaseFromAddr(cur_addr + i);
-                curByte.highlight = true;
-                curByte.highlightConnectPrev = prevInSameReloc;
-            }
-            else
-            {
-                curByte.highlight = false;
-                curByte.highlightConnectPrev = false;
-            }
-
-            DBGPATCHINFO patchInfo;
-            if(DbgFunctions()->PatchGetEx(cur_addr + i, &patchInfo))
-            {
-                if((unsigned char)(mInstBuffer.at(rowOffset).dump.at(i)) == patchInfo.newbyte)
-                {
-                    curByte.textColor = mModifiedBytesColor;
-                    curByte.textBackground = mModifiedBytesBackgroundColor;
-                }
-                else
-                {
-                    curByte.textColor = mRestoredBytesColor;
-                    curByte.textBackground = mRestoredBytesBackgroundColor;
-                }
-            }
-            else
-            {
-                curByte.textColor = mBytesColor;
-                curByte.textBackground = mBytesBackgroundColor;
-            }
-        }
-
-        if(mCodeFoldingManager && mCodeFoldingManager->isFolded(cur_addr))
-        {
-            RichTextPainter::CustomRichText_t curByte;
-            curByte.textColor = mBytesColor;
-            curByte.textBackground = mBytesBackgroundColor;
-            curByte.highlightColor = mDisassemblyRelocationUnderlineColor;
-            curByte.highlightWidth = 1;
-            curByte.flags = RichTextPainter::FlagAll;
-            curByte.highlight = false;
-            curByte.textColor = mBytesColor;
-            curByte.textBackground = mBytesBackgroundColor;
-            curByte.text = "...";
-            richBytes.push_back(curByte);
-        }
+        auto richBytes = getRichBytes(instr);
         RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, richBytes, mFontMetrics);
     }
     break;
@@ -1781,6 +1729,73 @@ void Disassembly::prepareDataRange(dsint startRva, dsint endRva, const std::func
     }
 }
 
+RichTextPainter::List Disassembly::getRichBytes(const Instruction_t & instr) const
+{
+    RichTextPainter::List richBytes;
+    std::vector<std::pair<size_t, bool>> realBytes;
+    formatOpcodeString(instr, richBytes, realBytes);
+    dsint cur_addr = rvaToVa(instr.rva);
+
+    if(!richBytes.empty() && richBytes.back().text.endsWith(' '))
+        richBytes.back().text.chop(1); //remove trailing space if exists
+
+    for(size_t i = 0; i < richBytes.size(); i++)
+    {
+        auto byteIdx = realBytes[i].first;
+        auto isReal = realBytes[i].second;
+        RichTextPainter::CustomRichText_t & curByte = richBytes.at(i);
+        DBGRELOCATIONINFO relocInfo;
+        curByte.highlightColor = mDisassemblyRelocationUnderlineColor;
+        if(DbgFunctions()->ModRelocationAtAddr(cur_addr + byteIdx, &relocInfo))
+        {
+            bool prevInSameReloc = relocInfo.rva < cur_addr + byteIdx - DbgFunctions()->ModBaseFromAddr(cur_addr + byteIdx);
+            curByte.highlight = isReal;
+            curByte.highlightConnectPrev = i > 0 && prevInSameReloc;
+        }
+        else
+        {
+            curByte.highlight = false;
+            curByte.highlightConnectPrev = false;
+        }
+
+        DBGPATCHINFO patchInfo;
+        if(isReal && DbgFunctions()->PatchGetEx(cur_addr + byteIdx, &patchInfo))
+        {
+            if((unsigned char)(instr.dump.at(byteIdx)) == patchInfo.newbyte)
+            {
+                curByte.textColor = mModifiedBytesColor;
+                curByte.textBackground = mModifiedBytesBackgroundColor;
+            }
+            else
+            {
+                curByte.textColor = mRestoredBytesColor;
+                curByte.textBackground = mRestoredBytesBackgroundColor;
+            }
+        }
+        else
+        {
+            curByte.textColor = mBytesColor;
+            curByte.textBackground = mBytesBackgroundColor;
+        }
+    }
+
+    if(mCodeFoldingManager && mCodeFoldingManager->isFolded(cur_addr))
+    {
+        RichTextPainter::CustomRichText_t curByte;
+        curByte.textColor = mBytesColor;
+        curByte.textBackground = mBytesBackgroundColor;
+        curByte.highlightColor = mDisassemblyRelocationUnderlineColor;
+        curByte.highlightWidth = 1;
+        curByte.flags = RichTextPainter::FlagAll;
+        curByte.highlight = false;
+        curByte.textColor = mBytesColor;
+        curByte.textBackground = mBytesBackgroundColor;
+        curByte.text = "...";
+        richBytes.push_back(curByte);
+    }
+    return richBytes;
+}
+
 void Disassembly::prepareData()
 {
     dsint wViewableRowsCount = getViewableRowsCount();
@@ -1817,7 +1832,7 @@ void Disassembly::reloadData()
 /************************************************************************************
                         Public Methods
 ************************************************************************************/
-duint Disassembly::rvaToVa(dsint rva)
+duint Disassembly::rvaToVa(dsint rva) const
 {
     return mMemPage->va(rva);
 }
