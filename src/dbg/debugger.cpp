@@ -1142,6 +1142,11 @@ void cbStep()
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
+
+    if(IsBPXEnabled(CIP))
+        return;
+    //TODO: hardware breakpoints
+
     if(!stepRepeat || !--stepRepeat)
     {
         DebugUpdateGuiSetStateAsync(CIP, true);
