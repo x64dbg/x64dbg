@@ -30,6 +30,8 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     connect(Bridge::getBridge(), SIGNAL(updateArgumentView()), mArgumentWidget, SLOT(refreshData()));
     mDisas->setCodeFoldingManager(mSideBar->getCodeFoldingManager());
 
+    ui->mTopLeftUpperHSplitter->setCollapsible(0, true); //allow collapsing of the side bar
+
     ui->mTopLeftUpperLeftFrameLayout->addWidget(mSideBar);
     ui->mTopLeftUpperRightFrameLayout->addWidget(mDisas);
 
