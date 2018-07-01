@@ -957,5 +957,6 @@ void Zydis::BytesGroup(uint8_t* prefixSize, uint8_t* opcodeSize, uint8_t* group1
         *opcodeSize = mInstr.length;
         *group1Size = 0;
         *group2Size = 0;
+        *group3Size = 0;
     }
 }
