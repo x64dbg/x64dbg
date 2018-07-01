@@ -78,7 +78,7 @@ PROCESS_INFORMATION* fdProcessInfo = &g_pi;
 HANDLE hActiveThread;
 HANDLE hProcessToken;
 bool bUndecorateSymbolNames = true;
-bool bEnableSourceDebugging = true;
+bool bEnableSourceDebugging = false;
 bool bTraceRecordEnabledDuringTrace = true;
 bool bSkipInt3Stepping = false;
 bool bIgnoreInconsistentBreakpoints = false;
