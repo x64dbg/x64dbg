@@ -1142,6 +1142,14 @@ void cbStep()
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
+
+    // Do not step if there is an enable breakpoint at CIP
+    BREAKPOINT bp;
+    if((BpGet(CIP, BPNORMAL, nullptr, &bp) && bp.enabled))
+        return;
+    if(BpGet(CIP, BPHARDWARE, nullptr, &bp) && bp.enabled && TITANGETTYPE(bp.titantype) == UE_HARDWARE_EXECUTE)
+        return;
+
     if(!stepRepeat || !--stepRepeat)
     {
         DebugUpdateGuiSetStateAsync(CIP, true);
