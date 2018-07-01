@@ -1497,47 +1497,7 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTe
         QString bytes;
         QString bytesHtml;
         if(copyBytes)
-        {
-            RichTextPainter::List richText;
-            formatOpcodeString(inst, richText);
-            for(int i = 0; i < richText.size(); i++)
-            {
-                RichTextPainter::CustomRichText_t & curByte1 = richText.at(i);
-                DBGRELOCATIONINFO relocInfo;
-                curByte1.highlightColor = mDisassemblyRelocationUnderlineColor;
-                if(DbgFunctions()->ModRelocationAtAddr(cur_addr + i, &relocInfo))
-                {
-                    bool prevInSameReloc = relocInfo.rva < cur_addr + i - DbgFunctions()->ModBaseFromAddr(cur_addr + i);
-                    curByte1.highlight = true;
-                    curByte1.highlightConnectPrev = prevInSameReloc;
-                }
-                else
-                {
-                    curByte1.highlight = false;
-                }
-
-                DBGPATCHINFO patchInfo;
-                if(DbgFunctions()->PatchGetEx(cur_addr + i, &patchInfo))
-                {
-                    if(inst.dump.at(i) == patchInfo.newbyte)
-                    {
-                        curByte1.textColor = mModifiedBytesColor;
-                        curByte1.textBackground = mModifiedBytesBackgroundColor;
-                    }
-                    else
-                    {
-                        curByte1.textColor = mRestoredBytesColor;
-                        curByte1.textBackground = mRestoredBytesBackgroundColor;
-                    }
-                }
-                else
-                {
-                    curByte1.textColor = mBytesColor;
-                    curByte1.textBackground = mBytesBackgroundColor;
-                }
-            }
-            RichTextPainter::htmlRichText(richText, bytesHtml, bytes);
-        }
+            RichTextPainter::htmlRichText(getRichBytes(inst), bytesHtml, bytes);
         QString disassembly;
         QString htmlDisassembly;
         if(htmlStream)

@@ -329,7 +329,7 @@ void QBeaEngine::UpdateConfig()
     _tokenizer.UpdateConfig();
 }
 
-void formatOpcodeString(const Instruction_t & inst, RichTextPainter::List & list)
+void formatOpcodeString(const Instruction_t & inst, RichTextPainter::List & list, std::vector<std::pair<size_t, bool>> & realBytes)
 {
     RichTextPainter::CustomRichText_t curByte;
     size_t size = inst.dump.size();
@@ -337,31 +337,31 @@ void formatOpcodeString(const Instruction_t & inst, RichTextPainter::List & list
     curByte.highlightWidth = 1;
     curByte.flags = RichTextPainter::FlagAll;
     curByte.highlight = false;
-    for(int i = 0; i < size; i++)
+    list.reserve(size + 5);
+    realBytes.reserve(size + 5);
+    for(size_t i = 0; i < size; i++)
     {
         curByte.text = ToByteString(inst.dump.at(i));
         list.push_back(curByte);
+        realBytes.push_back({i, true});
+
+        auto addCh = [&](char ch)
+        {
+            curByte.text = QString(ch);
+            list.push_back(curByte);
+            realBytes.push_back({i, false});
+        };
+
+        if(inst.prefixSize && i + 1 == inst.prefixSize)
+            addCh(':');
+        else if(inst.opcodeSize && i + 1 == inst.prefixSize + inst.opcodeSize)
+            addCh(' ');
+        else if(inst.group1Size && i + 1 == inst.prefixSize + inst.opcodeSize + inst.group1Size)
+            addCh(' ');
+        else if(inst.group2Size && i + 1 == inst.prefixSize + inst.opcodeSize + inst.group1Size + inst.group2Size)
+            addCh(' ');
+        else if(inst.group3Size && i + 1 == inst.prefixSize + inst.opcodeSize + inst.group1Size + inst.group2Size + inst.group3Size)
+            addCh(' ');
+
     }
-    if(inst.prefixSize > 0)
-    {
-        list.at(inst.prefixSize - 1).text.append(':');
-    }
-    if(inst.opcodeSize + inst.prefixSize < size)
-        list.at(inst.opcodeSize + inst.prefixSize - 1).text.append(' ');
-    if(inst.group1Size > 0)
-    {
-        if(inst.opcodeSize + inst.prefixSize + inst.group1Size < size)
-            list.at(inst.opcodeSize + inst.prefixSize + inst.group1Size - 1).text.append(' ');
-    }
-    if(inst.group2Size > 0)
-    {
-        if(inst.opcodeSize + inst.prefixSize + inst.group1Size + inst.group2Size < size)
-            list.at(inst.opcodeSize + inst.prefixSize + inst.group1Size + inst.group2Size - 1).text.append(' ');
-    }
-    /*if(inst.group3Size > 0)
-    {
-        output.insert((inst.opcodeSize + inst.prefixSize + inst.group1Size + inst.group2Size) * 2 + offset, '?');
-    }
-    output += QString("|%1.%2.%3.%4").arg(inst.opcodeSize).arg(inst.group1Size).arg(inst.group2Size).arg(inst.group3Size);
-    */
 }
