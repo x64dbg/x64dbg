@@ -407,7 +407,7 @@ static int SymAutoComplete(const char* Search, char** Buffer, int MaxSymbols)
 
 static void _refreshmodulelist()
 {
-    SymRefreshModuleList(fdProcessInfo->hProcess);
+    SymUpdateModuleList();
 }
 
 void dbgfunctionsinit()
