@@ -62,6 +62,11 @@ public:
         bCipBase = cipBase;
     }
 
+    void setAddressLabel(bool addressLabel)
+    {
+        bAddressLabel = addressLabel;
+    }
+
 signals:
     void selectionChangedSignal(int index);
     void keyPressedSignal(QKeyEvent* event);
@@ -126,7 +131,8 @@ protected:
     QColor mAddressColor;
     QColor mTracedBackgroundColor;
     QColor mTracedSelectedAddressBackgroundColor;
-    bool bCipBase;
+    bool bCipBase = false;
     QString mHighlightText;
     int mAddressColumn = -1;
+    bool bAddressLabel = true;
 };

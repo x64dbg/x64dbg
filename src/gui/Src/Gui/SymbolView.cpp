@@ -20,7 +20,11 @@ public:
     SymbolSearchList()
     {
         mList = new ZehSymbolTable();
+        mList->setAddressColumn(0);
+        mList->setAddressLabel(false);
         mSearchList = new ZehSymbolTable();
+        mSearchList->setAddressColumn(0);
+        mSearchList->setAddressLabel(false);
     }
 
     void lock() override

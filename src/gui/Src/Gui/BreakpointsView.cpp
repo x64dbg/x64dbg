@@ -25,7 +25,6 @@ BreakpointsView::BreakpointsView(QWidget* parent)
     enableMultiSelection(true);
 
     setupContextMenu();
-    updateColors();
 
     connect(Bridge::getBridge(), SIGNAL(updateBreakpoints()), this, SLOT(updateBreakpointsSlot()));
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
@@ -34,6 +33,8 @@ BreakpointsView::BreakpointsView(QWidget* parent)
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
     connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(followBreakpointSlot()));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followBreakpointSlot()));
+
+    Initialize();
 }
 
 void BreakpointsView::setupContextMenu()

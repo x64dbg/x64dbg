@@ -36,11 +36,12 @@ ZehSymbolTable::ZehSymbolTable(QWidget* parent)
     addColumnAt(charwidth * 80, tr("Symbol"), true);
     addColumnAt(2000, tr("Symbol (undecorated)"), true);
     loadColumnFromConfig("Symbol");
-    updateColors();
 
     trImport = tr("Import");
     trExport = tr("Export");
     trSymbol = tr("Symbol");
+
+    Initialize();
 }
 
 QString ZehSymbolTable::getCellContent(int r, int c)

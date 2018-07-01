@@ -9,6 +9,8 @@ AbstractStdTable::AbstractStdTable(QWidget* parent) : AbstractTableView(parent)
     connect(Bridge::getBridge(), SIGNAL(repaintTableView()), this, SLOT(reloadData()));
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequestedSlot(QPoint)));
     connect(this, SIGNAL(headerButtonPressed(int)), this, SLOT(headerButtonPressedSlot(int)));
+
+    Initialize();
 }
 
 QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -46,7 +48,7 @@ QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int row
     if(col == mAddressColumn && isaddr)
     {
         char label[MAX_LABEL_SIZE] = "";
-        if(DbgGetLabelAt(wVA, SEG_DEFAULT, label)) //has label
+        if(bAddressLabel && DbgGetLabelAt(wVA, SEG_DEFAULT, label)) //has label
         {
             char module[MAX_MODULE_SIZE] = "";
             if(DbgGetModuleAt(wVA, module) && !QString(label).startsWith("JMP.&"))
@@ -65,7 +67,7 @@ QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int row
                 cip = base;
         }
 
-        if(DbgIsDebugging() && wVA == cip) //cip + not running
+        if(DbgIsDebugging() && wVA == cip) //debugging + cip
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(mCipBackgroundColor));
             if(!isbookmark) //no bookmark

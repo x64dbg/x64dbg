@@ -45,6 +45,7 @@ private:
 StdSearchListView::StdSearchListView(QWidget* parent, bool enableRegex, bool enableLock)
     : SearchListView(parent, mSearchListData = new StdTableSearchList(), enableRegex, enableLock)
 {
+    setAddressColumn(0);
 }
 
 StdSearchListView::~StdSearchListView()
