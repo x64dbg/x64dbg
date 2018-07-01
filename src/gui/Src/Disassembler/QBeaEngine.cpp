@@ -346,7 +346,8 @@ void formatOpcodeString(const Instruction_t & inst, RichTextPainter::List & list
     {
         list.at(inst.prefixSize - 1).text.append(':');
     }
-    list.at(inst.opcodeSize + inst.prefixSize - 1).text.append(' ');
+    if(inst.opcodeSize + inst.prefixSize < size)
+        list.at(inst.opcodeSize + inst.prefixSize - 1).text.append(' ');
     if(inst.group1Size > 0)
     {
         if(inst.opcodeSize + inst.prefixSize + inst.group1Size < size)
