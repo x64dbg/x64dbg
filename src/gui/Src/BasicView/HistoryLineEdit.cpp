@@ -40,7 +40,8 @@ void HistoryLineEdit::addLineToHistory(QString parLine)
     if(mCmdHistory.size() > mCmdHistoryMaxSize)
         mCmdHistory.removeLast();
 
-    mCmdHistory.prepend(parLine);
+    if(mCmdHistory.empty() || mCmdHistory.first() != parLine)
+        mCmdHistory.prepend(parLine);
 
     mCmdIndex = -1;
 }
