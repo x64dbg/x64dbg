@@ -17,22 +17,19 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
 
     historyClear();
 
-    SelectionData_t data;
-    memset(&data, 0, sizeof(SelectionData_t));
-    mSelection = data;
+    memset(&mSelection, 0, sizeof(SelectionData));
 
     mCipRva = 0;
 
     mHighlightToken.text = "";
     mHighlightingMode = false;
-    mPermanentHighlightingMode = false;
     mShowMnemonicBrief = false;
 
     int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
     Config()->writeUints();
 
     mDisasm = new QBeaEngine(maxModuleSize);
-    mDisasm->UpdateConfig();
+    tokenizerConfigUpdatedSlot();
 
     mCodeFoldingManager = nullptr;
     duint setting;
@@ -56,7 +53,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
 
     setShowHeader(false); //hide header
 
-    backgroundColor = ConfigColor("DisassemblyBackgroundColor");
+    mBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
 
     mXrefInfo.refcount = 0;
 
@@ -80,7 +77,7 @@ Disassembly::~Disassembly()
 void Disassembly::updateColors()
 {
     AbstractTableView::updateColors();
-    backgroundColor = ConfigColor("DisassemblyBackgroundColor");
+    mBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
 
     mInstructionHighlightColor = ConfigColor("InstructionHighlightColor");
     mDisassemblyRelocationUnderlineColor = ConfigColor("DisassemblyRelocationUnderlineColor");
@@ -149,6 +146,7 @@ void Disassembly::tokenizerConfigUpdatedSlot()
 {
     mDisasm->UpdateConfig();
     mPermanentHighlightingMode = ConfigBool("Disassembler", "PermanentHighlightingMode");
+    mNoCurrentModuleText = ConfigBool("Disassembler", "NoCurrentModuleText");
 }
 
 /************************************************************************************
@@ -970,7 +968,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, 
 
     bool showXref = false;
 
-    GraphicDump_t wPict = GD_Nothing;
+    GraphicDump wPict = GD_Nothing;
 
     if(branchType != Instruction_t::None && branchType != Instruction_t::Call)
     {
@@ -1049,7 +1047,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, 
         }
     }
 
-    GraphicJumpDirection_t curInstDir = GJD_Nothing;
+    GraphicJumpDirection curInstDir = GJD_Nothing;
 
     if(isjmp)
     {
@@ -1848,7 +1846,7 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
     dsint wRVA = parVA - wBase;
     dsint wCipRva = parCIP - wBase;
 
-    HistoryData_t newHistory;
+    HistoryData newHistory;
 
     //VA history
     if(history)
@@ -2109,7 +2107,7 @@ QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], boo
     if(getLabel && DbgGetLabelAt(cur_addr, SEG_DEFAULT, label_)) //has label
     {
         char module[MAX_MODULE_SIZE] = "";
-        if(DbgGetModuleAt(cur_addr, module) && !QString(label_).startsWith("JMP.&"))
+        if(DbgGetModuleAt(cur_addr, module) && !QString(label_).startsWith("JMP.&") && !mNoCurrentModuleText)
             addrText += " <" + QString(module) + "." + QString(label_) + ">";
         else
             addrText += " <" + QString(label_) + ">";

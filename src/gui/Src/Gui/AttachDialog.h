@@ -3,7 +3,7 @@
 
 #include <QDialog>
 
-class SearchListView;
+class StdSearchListView;
 class QMenu;
 class QAction;
 
@@ -28,9 +28,7 @@ private slots:
 
 private:
     Ui::AttachDialog* ui;
-
-    SearchListView* mSearchListView;
-
+    StdSearchListView* mSearchListView;
     QAction* mAttachAction;
     QAction* mRefreshAction;
 };

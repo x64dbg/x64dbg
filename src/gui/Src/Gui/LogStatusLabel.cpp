@@ -1,5 +1,6 @@
 #include "LogStatusLabel.h"
 #include <QTextDocument>
+#include <QApplication>
 
 LogStatusLabel::LogStatusLabel(QStatusBar* parent) : QLabel(parent)
 {

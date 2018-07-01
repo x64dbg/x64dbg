@@ -82,7 +82,7 @@ SafeSymGetOptions(
     STRONG_ACQUIRE();
     return SymGetOptions();
 }
-BOOL
+/*BOOL
 SafeSymInitializeW(
     __in HANDLE hProcess,
     __in_opt PCWSTR UserSearchPath,
@@ -91,8 +91,8 @@ SafeSymInitializeW(
 {
     STRONG_ACQUIRE();
     return SymInitializeW(hProcess, UserSearchPath, fInvadeProcess);
-}
-BOOL
+}*/
+/*BOOL
 SafeSymRegisterCallbackW64(
     __in HANDLE hProcess,
     __in PSYMBOL_REGISTERED_CALLBACK64 CallbackFunction,
@@ -101,7 +101,7 @@ SafeSymRegisterCallbackW64(
 {
     STRONG_ACQUIRE();
     return SymRegisterCallbackW64(hProcess, CallbackFunction, UserContext);
-}
+}*/
 DWORD64
 SafeSymLoadModuleExW(
     __in HANDLE hProcess,
@@ -137,7 +137,7 @@ SafeSymGetSearchPathW(
     STRONG_ACQUIRE();
     return SymGetSearchPathW(hProcess, SearchPath, SearchPathLength);
 }
-BOOL
+/*BOOL
 SafeSymEnumSymbols(
     __in HANDLE hProcess,
     __in ULONG64 BaseOfDll,
@@ -148,8 +148,8 @@ SafeSymEnumSymbols(
 {
     STRONG_ACQUIRE();
     return SymEnumSymbols(hProcess, BaseOfDll, Mask, EnumSymbolsCallback, UserContext);
-}
-BOOL
+}*/
+/*BOOL
 SafeSymGetLineFromAddrW64(
     __in HANDLE hProcess,
     __in DWORD64 qwAddr,
@@ -159,8 +159,8 @@ SafeSymGetLineFromAddrW64(
 {
     STRONG_ACQUIRE();
     return SymGetLineFromAddrW64(hProcess, qwAddr, pdwDisplacement, Line64);
-}
-BOOL
+}*/
+/*BOOL
 SafeSymFromName(
     __in HANDLE hProcess,
     __in PCSTR Name,
@@ -169,8 +169,8 @@ SafeSymFromName(
 {
     STRONG_ACQUIRE();
     return SymFromName(hProcess, Name, Symbol);
-}
-BOOL
+}*/
+/*BOOL
 SafeSymFromAddr(
     __in HANDLE hProcess,
     __in DWORD64 Address,
@@ -180,15 +180,15 @@ SafeSymFromAddr(
 {
     STRONG_ACQUIRE();
     return SymFromAddr(hProcess, Address, Displacement, Symbol);
-}
-BOOL
+}*/
+/*BOOL
 SafeSymCleanup(
     __in HANDLE hProcess
 )
 {
     STRONG_ACQUIRE();
     return SymCleanup(hProcess);
-}
+}*/
 BOOL
 SafeStackWalk64(
     __in DWORD MachineType,

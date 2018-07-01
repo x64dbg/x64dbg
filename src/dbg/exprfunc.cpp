@@ -51,6 +51,16 @@ namespace Exprfunc
         return base ? addr - base : 0;
     }
 
+    duint modheaderva(duint addr)
+    {
+        SHARED_ACQUIRE(LockModules);
+        auto info = ModInfoFromAddr(addr);
+        if(info)
+            return (addr - info->base) + info->headerImageBase;
+        else
+            return 0;
+    }
+
     static duint selstart(int hWindow)
     {
         SELECTIONDATA selection;

@@ -13,8 +13,8 @@ CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
     setWindowTitle("Stack");
     setShowHeader(false);
     int charwidth = getCharWidth();
-    ColumnDescriptor_t wColDesc;
-    DataDescriptor_t dDesc;
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
     bStackFrozen = false;
     mMultiDump = multiDump;
 
@@ -61,9 +61,9 @@ void CPUStack::updateColors()
 {
     HexDump::updateColors();
 
-    backgroundColor = ConfigColor("StackBackgroundColor");
-    textColor = ConfigColor("StackTextColor");
-    selectionColor = ConfigColor("StackSelectionColor");
+    mBackgroundColor = ConfigColor("StackBackgroundColor");
+    mTextColor = ConfigColor("StackTextColor");
+    mSelectionColor = ConfigColor("StackSelectionColor");
     mStackReturnToColor = ConfigColor("StackReturnToColor");
     mStackSEHChainColor = ConfigColor("StackSEHChainColor");
     mUserStackFrameColor = ConfigColor("StackFrameColor");
@@ -341,7 +341,7 @@ void CPUStack::getColumnRichText(int col, dsint rva, RichTextPainter::List & ric
     RichTextPainter::CustomRichText_t curData;
     curData.highlight = false;
     curData.flags = RichTextPainter::FlagColor;
-    curData.textColor = textColor;
+    curData.textColor = mTextColor;
 
     if(col && mDescriptor.at(col - 1).isData == true) //paint stack data
     {
@@ -369,13 +369,13 @@ void CPUStack::getColumnRichText(int col, dsint rva, RichTextPainter::List & ric
                     else if(strcmp(comment.color, "!rtnclr") == 0)
                         curData.textColor = mStackReturnToColor;
                     else
-                        curData.textColor = textColor;
+                        curData.textColor = mTextColor;
                 }
                 else
                     curData.textColor = QColor(QString(comment.color));
             }
             else
-                curData.textColor = textColor;
+                curData.textColor = mTextColor;
         }
         else
             curData.textColor = ConfigColor("StackInactiveTextColor");
@@ -395,7 +395,7 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
 
     bool wIsSelected = isSelected(wRva);
     if(wIsSelected) //highlight if selected
-        painter->fillRect(QRect(x, y, w, h), QBrush(selectionColor));
+        painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
 
     if(col == 0) // paint stack address
     {

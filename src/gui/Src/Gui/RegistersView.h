@@ -8,6 +8,7 @@
 
 class CPUWidget;
 class CPUMultiDump;
+class QPushButton;
 
 typedef struct
 {

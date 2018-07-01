@@ -1,12 +1,18 @@
 #include "LogView.h"
 #include "Configuration.h"
 #include "Bridge.h"
-#include "BrowseDialog.h"
+
 #include <QRegularExpression>
 #include <QDesktopServices>
 #include <QClipboard>
 #include <QMimeData>
 #include <QTimer>
+#include <QApplication>
+#include <QContextMenuEvent>
+
+#include "BrowseDialog.h"
+#include "MiscUtil.h"
+#include "StringUtil.h"
 
 /**
  * @brief LogView::LogView The constructor constructs a rich text browser

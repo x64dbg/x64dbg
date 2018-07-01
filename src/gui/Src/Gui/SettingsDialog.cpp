@@ -4,6 +4,7 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "ExceptionRangeDialog.h"
+#include "MiscUtil.h"
 
 SettingsDialog::SettingsDialog(QWidget* parent) :
     QDialog(parent),
@@ -60,7 +61,7 @@ void SettingsDialog::LoadSettings()
     settings.engineCalcType = calc_unsigned;
     settings.engineBreakpointType = break_int3short;
     settings.engineUndecorateSymbolNames = true;
-    settings.engineEnableSourceDebugging = true;
+    settings.engineEnableSourceDebugging = false;
     settings.engineEnableTraceRecordDuringTrace = true;
     settings.engineNoScriptTimeout = false;
     settings.engineIgnoreInconsistentBreakpoints = false;

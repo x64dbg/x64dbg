@@ -276,6 +276,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("&Address"), SLOT(copyAddressSlot()), "ActionCopyAddress"));
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("&RVA"), SLOT(copyRvaSlot()), "ActionCopyRva"));
     copyMenu->addAction(makeShortcutAction(DIcon("fileoffset.png"), tr("&File Offset"), SLOT(copyFileOffsetSlot()), "ActionCopyFileOffset"));
+    copyMenu->addAction(makeAction(tr("&Header VA"), SLOT(copyHeaderVaSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_disassembly.png"), tr("Disassembly"), SLOT(copyDisassemblySlot())));
 
     copyMenu->addMenu(makeMenu(DIcon("copy_selection.png"), tr("Symbolic Name")), [this](QMenu * menu)
@@ -1638,6 +1639,30 @@ void CPUDisassembly::copyFileOffsetSlot()
     Bridge::CopyToClipboard(clipboard);
 }
 
+void CPUDisassembly::copyHeaderVaSlot()
+{
+    QString clipboard = "";
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
+    {
+        if(i)
+            clipboard += "\r\n";
+        duint addr = rvaToVa(inst.rva);
+        duint base = DbgFunctions()->ModBaseFromAddr(addr);
+        if(base)
+        {
+            auto expr = QString("mod.headerva(0x%1)").arg(ToPtrString(addr));
+            clipboard += ToPtrString(DbgValFromString(expr.toUtf8().constData()));
+        }
+        else
+        {
+            SimpleWarningBox(this, tr("Error!"), tr("Selection not in a module..."));
+            return false;
+        }
+        return true;
+    });
+    Bridge::CopyToClipboard(clipboard);
+}
+
 void CPUDisassembly::copyDisassemblySlot()
 {
     QString clipboardHtml = QString("<div style=\"font-family: %1; font-size: %2px\">").arg(font().family()).arg(getRowHeight());
@@ -1723,9 +1748,10 @@ void CPUDisassembly::openSourceSlot()
 {
     char szSourceFile[MAX_STRING_SIZE] = "";
     int line = 0;
-    if(!DbgFunctions()->GetSourceFromAddr(rvaToVa(getInitialSelection()), szSourceFile, &line))
+    auto sel = rvaToVa(getInitialSelection());
+    if(!DbgFunctions()->GetSourceFromAddr(sel, szSourceFile, &line))
         return;
-    emit Bridge::getBridge()->loadSourceFile(szSourceFile, 0, line);
+    emit Bridge::getBridge()->loadSourceFile(szSourceFile, sel);
     emit displaySourceManagerWidget();
 }
 

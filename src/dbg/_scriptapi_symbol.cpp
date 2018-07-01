@@ -10,17 +10,34 @@ struct cbSymbolEnumCtx
     std::vector<SymbolInfo>* symbols;
 };
 
-static void cbSymbolEnum(SYMBOLINFO* info, void* user)
+static bool cbSymbolEnum(const SYMBOLPTR* ptr, void* user)
 {
     auto ctx = (cbSymbolEnumCtx*)user;
+    SYMBOLINFO info;
+    DbgGetSymbolInfo(ptr, &info);
 
     SymbolInfo symbol = {};
     strncpy_s(symbol.mod, sizeof(symbol.mod), ctx->module->name, sizeof(symbol.mod) - 1);
-    symbol.rva = info->addr - ctx->module->base;
-    strncpy_s(symbol.name, sizeof(symbol.name), info->undecoratedSymbol ? info->undecoratedSymbol : info->decoratedSymbol, sizeof(symbol.name) - 1);
+    symbol.rva = info.addr - ctx->module->base;
+    strncpy_s(symbol.name, sizeof(symbol.name), info.undecoratedSymbol ? info.undecoratedSymbol : info.decoratedSymbol, sizeof(symbol.name) - 1);
     symbol.manual = false;
-    symbol.type = info->isImported ? Import : Export;
+    switch(info.type)
+    {
+    case sym_import:
+        symbol.type = Import;
+        break;
+    case sym_export:
+        symbol.type = Export;
+        break;
+    case sym_symbol:
+        symbol.type = Function;
+        break;
+    default:
+        __debugbreak();
+    }
+
     ctx->symbols->push_back(symbol);
+    return true;
 }
 
 SCRIPT_EXPORT bool Script::Symbol::GetList(ListOf(SymbolInfo) list)
@@ -52,7 +69,6 @@ SCRIPT_EXPORT bool Script::Symbol::GetList(ListOf(SymbolInfo) list)
         ctx.module = &mod;
         DbgSymbolEnumFromCache(mod.base, cbSymbolEnum, &ctx);
     }
-
 
     //TODO: enumerate actual symbols + virtual symbols (sub_XXXXXX) + imports + exports in addition to user-defined labels.
     return BridgeList<SymbolInfo>::CopyData(list, symbols);

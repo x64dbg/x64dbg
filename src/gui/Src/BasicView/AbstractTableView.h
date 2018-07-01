@@ -21,9 +21,9 @@ class AbstractTableScrollBar : public QScrollBar
 {
     Q_OBJECT
 public:
-    AbstractTableScrollBar(QScrollBar* scrollbar);
-    void enterEvent(QEvent* event);
-    void leaveEvent(QEvent* event);
+    explicit AbstractTableScrollBar(QScrollBar* scrollbar);
+    void enterEvent(QEvent* event) override;
+    void leaveEvent(QEvent* event) override;
 };
 
 class AbstractTableView;
@@ -32,11 +32,18 @@ class AbstractTableView : public QAbstractScrollArea, public ActionHelper<Abstra
     Q_OBJECT
 
 public:
-    enum GuiState_t {NoState, ReadyToResize, ResizeColumnState, HeaderButtonPressed, HeaderButtonReordering};
+    enum GuiState
+    {
+        NoState,
+        ReadyToResize,
+        ResizeColumnState,
+        HeaderButtonPressed,
+        HeaderButtonReordering
+    };
 
     // Constructor
     explicit AbstractTableView(QWidget* parent = 0);
-    ~AbstractTableView();
+    virtual ~AbstractTableView();
 
     // Configuration
     virtual void Initialize();
@@ -47,16 +54,16 @@ public:
     virtual QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) = 0;
 
     // Painting Stuff
-    void paintEvent(QPaintEvent* event);
+    void paintEvent(QPaintEvent* event) override;
 
     // Mouse Management
-    void mouseMoveEvent(QMouseEvent* event);
-    void mousePressEvent(QMouseEvent* event);
-    void mouseReleaseEvent(QMouseEvent* event);
-    void mouseDoubleClickEvent(QMouseEvent* event);
-    void wheelEvent(QWheelEvent* event);
-    void resizeEvent(QResizeEvent* event);
-    void keyPressEvent(QKeyEvent* event);
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
+    void wheelEvent(QWheelEvent* event) override;
+    void resizeEvent(QResizeEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
 
     // ScrollBar Management
     virtual dsint sliderMovedHook(int type, dsint value, dsint delta);
@@ -64,60 +71,50 @@ public:
     dsint scaleFromScrollBarRangeToUint64(int value);
     void updateScrollBarRange(dsint range);
 
-
     // Coordinates Utils
-    int getIndexOffsetFromY(int y);
-    int getColumnIndexFromX(int x);
-    int getColumnPosition(int index);
-    int transY(int y);
-    int getViewableRowsCount();
-    virtual int getLineToPrintcount();
-
-    struct SortBy
-    {
-        typedef std::function<bool(const QString &, const QString &)> t;
-        static bool AsText(const QString & a, const QString & b);
-        static bool AsInt(const QString & a, const QString & b);
-        static bool AsHex(const QString & a, const QString & b);
-    };
+    int getIndexOffsetFromY(int y) const;
+    int getColumnIndexFromX(int x) const;
+    int getColumnPosition(int index) const;
+    int transY(int y) const;
+    int getViewableRowsCount() const;
+    virtual int getLineToPrintcount() const;
 
     // New Columns/New Size
-    virtual void addColumnAt(int width, const QString & title, bool isClickable, SortBy::t sortFn = SortBy::AsText);
+    virtual void addColumnAt(int width, const QString & title, bool isClickable);
     virtual void setRowCount(dsint count);
     virtual void deleteAllColumns();
     void setColTitle(int index, const QString & title);
-    QString getColTitle(int index);
+    QString getColTitle(int index) const;
 
     // Getter & Setter
     dsint getRowCount() const;
     int getColumnCount() const;
-    int getRowHeight();
-    int getColumnWidth(int index);
+    int getRowHeight() const;
+    int getColumnWidth(int index) const;
     void setColumnWidth(int index, int width);
     void setColumnOrder(int pos, int index);
-    int getColumnOrder(int index);
-    int getHeaderHeight();
-    int getTableHeight();
-    int getGuiState();
-    int getNbrOfLineToPrint();
+    int getColumnOrder(int index) const;
+    int getHeaderHeight() const;
+    int getTableHeight() const;
+    int getGuiState() const;
+    int getNbrOfLineToPrint() const;
     void setNbrOfLineToPrint(int parNbrOfLineToPrint);
     void setShowHeader(bool show);
-    int getCharWidth();
-    bool getColumnHidden(int col);
+    int getCharWidth() const;
+    bool getColumnHidden(int col) const;
     void setColumnHidden(int col, bool hidden);
-    SortBy::t getColumnSortBy(int idx) const;
+    bool getDrawDebugOnly() const;
+    void setDrawDebugOnly(bool value);
+    bool getAllowPainting() const;
+    void setAllowPainting(bool allow);
 
     // UI customization
     void loadColumnFromConfig(const QString & viewName);
     void saveColumnToConfig();
     static void setupColumnConfigDefaultValue(QMap<QString, duint> & map, const QString & viewName, int columnCount);
 
-    // Content drawing control
-    bool getDrawDebugOnly();
-    void setDrawDebugOnly(bool value);
-
     // Table offset management
-    dsint getTableOffset();
+    dsint getTableOffset() const;
     void setTableOffset(dsint val);
 
     // Update/Reload/Refresh/Repaint
@@ -128,16 +125,10 @@ signals:
     void headerButtonPressed(int col);
     void headerButtonReleased(int col);
     void tableOffsetChanged(dsint i);
-    void viewableRows(int rows);
+    void viewableRowsChanged(int rows);
     void repainted();
 
 public slots:
-    // Configuration
-    void slot_updateColors();
-    void slot_updateFonts();
-    void slot_updateShortcuts();
-    void slot_close();
-
     // Update/Reload/Refresh/Repaint
     virtual void reloadData();
     void updateViewport();
@@ -145,82 +136,83 @@ public slots:
     // ScrollBar Management
     void vertSliderActionSlot(int action);
 
+private slots:
+    // Configuration
+    void updateColorsSlot();
+    void updateFontsSlot();
+    void updateShortcutsSlot();
+    void closeSlot();
+
 private:
-    typedef struct _ColumnResizingData_t
+    struct ColumnResizingData
     {
         bool splitHandle;
         int index;
         int lastPosX;
-    } ColumnResizingData_t;
+    };
 
-    typedef struct _HeaderButton_t
+    struct HeaderButton
     {
         bool isClickable;
         bool isPressed;
         bool isMouseOver;
-    } HeaderButton_t;
+    };
 
-    typedef struct _Column_t
+    struct Column
     {
         int width;
         bool hidden;
-        HeaderButton_t header;
+        HeaderButton header;
         QString title;
-        SortBy::t sortFunction;
-    } Column_t;
+    };
 
-    typedef struct _Header_t
+    struct Header
     {
         bool isVisible;
         int height;
         int activeButtonIndex;
-    } Header_t;
+    };
 
-    typedef struct _ScrollBar64_t
+    struct ScrollBar64
     {
         bool is64;
         int rightShiftCount;
-    } ScrollBar64_t;
+    };
 
-    GuiState_t mGuiState;
+    GuiState mGuiState;
 
-    ColumnResizingData_t mColResizeData;
-
+    Header mHeader;
     QPushButton mHeaderButtonSytle;
 
-    QList<Column_t> mColumnList;
+    QList<Column> mColumnList;
+    ColumnResizingData mColResizeData;
 
     QList<int> mColumnOrder;
     int mReorderStartX;
     int mHoveredColumnDisplayIndex;
 
     dsint mRowCount;
-
-    static int mMouseWheelScrollDelta;
-
     dsint mTableOffset;
-    Header_t mHeader;
-
+    dsint mPrevTableOffset;
     int mNbrOfLineToPrint;
 
-    dsint mPrevTableOffset;
-
     bool mShouldReload;
+    bool mDrawDebugOnly;
+    bool mAllowPainting;
 
-    ScrollBar64_t mScrollBarAttributes;
+    static int mMouseWheelScrollDelta;
+    ScrollBar64 mScrollBarAttributes;
 
     int getColumnDisplayIndexFromX(int x);
     friend class ColumnReorderDialog;
-protected:
-    bool mAllowPainting;
-    bool mDrawDebugOnly;
 
+protected:
     // Configuration
-    QColor backgroundColor;
-    QColor textColor;
-    QColor separatorColor;
-    QColor headerTextColor;
-    QColor selectionColor;
+    QColor mBackgroundColor;
+    QColor mTextColor;
+    QColor mSeparatorColor;
+    QColor mHeaderTextColor;
+    QColor mSelectionColor;
     QString mViewName;
 
     // Font metrics

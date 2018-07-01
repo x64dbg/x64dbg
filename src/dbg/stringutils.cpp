@@ -53,7 +53,7 @@ StringList StringUtils::Split(const String & s, char delim)
 }
 
 //https://github.com/lefticus/presentations/blob/master/PracticalPerformancePractices.md#smaller-code-is-faster-code-11
-String StringUtils::Escape(unsigned char ch)
+String StringUtils::Escape(unsigned char ch, bool escapeSafe)
 {
     char buf[8] = "";
     switch(ch)
@@ -61,19 +61,19 @@ String StringUtils::Escape(unsigned char ch)
     case '\0':
         return "\\0";
     case '\t':
-        return "\\t";
+        return escapeSafe ? "\\t" : "\t";
     case '\f':
         return "\\f";
     case '\v':
         return "\\v";
     case '\n':
-        return "\\n";
+        return escapeSafe ? "\\n" : "\n";
     case '\r':
-        return "\\r";
+        return escapeSafe ? "\\r" : "\r";
     case '\\':
-        return "\\\\";
+        return escapeSafe ? "\\\\" : "\\";
     case '\"':
-        return "\\\"";
+        return escapeSafe ? "\\\"" : "\"";
     case '\a':
         return "\\a";
     case '\b':
@@ -127,7 +127,7 @@ static int IsValidUTF8Char(const char* data, int size)
         return 1;
 }
 
-String StringUtils::Escape(const String & s)
+String StringUtils::Escape(const String & s, bool escapeSafe)
 {
     std::string escaped;
     escaped.reserve(s.length() + s.length() / 2);
@@ -142,7 +142,10 @@ String StringUtils::Escape(const String & s)
             memcpy(buf, "\\0", 2);
             break;
         case '\t':
-            memcpy(buf, "\\t", 2);
+            if(escapeSafe)
+                memcpy(buf, "\\t", 2);
+            else
+                memcpy(buf, &ch, 1);
             break;
         case '\f':
             memcpy(buf, "\\f", 2);
@@ -151,16 +154,28 @@ String StringUtils::Escape(const String & s)
             memcpy(buf, "\\v", 2);
             break;
         case '\n':
-            memcpy(buf, "\\n", 2);
+            if(escapeSafe)
+                memcpy(buf, "\\n", 2);
+            else
+                memcpy(buf, &ch, 1);
             break;
         case '\r':
-            memcpy(buf, "\\r", 2);
+            if(escapeSafe)
+                memcpy(buf, "\\r", 2);
+            else
+                memcpy(buf, &ch, 1);
             break;
         case '\\':
-            memcpy(buf, "\\\\", 2);
+            if(escapeSafe)
+                memcpy(buf, "\\\\", 2);
+            else
+                memcpy(buf, &ch, 1);
             break;
         case '\"':
-            memcpy(buf, "\\\"", 2);
+            if(escapeSafe)
+                memcpy(buf, "\\\"", 2);
+            else
+                memcpy(buf, &ch, 1);
             break;
         default:
             int UTF8CharSize;

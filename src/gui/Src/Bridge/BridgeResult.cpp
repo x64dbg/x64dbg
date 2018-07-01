@@ -1,5 +1,6 @@
 #include "BridgeResult.h"
 #include "Bridge.h"
+#include <QCoreApplication>
 
 BridgeResult::BridgeResult()
 {

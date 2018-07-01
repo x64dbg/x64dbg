@@ -17,9 +17,9 @@ WatchView::WatchView(CPUMultiDump* parent) : StdTable(parent)
     connect(Bridge::getBridge(), SIGNAL(updateWatch()), this, SLOT(updateWatch()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
-    updateColors();
     setupContextMenu();
     setDrawDebugOnly(true);
+    Initialize();
 }
 
 void WatchView::updateWatch()

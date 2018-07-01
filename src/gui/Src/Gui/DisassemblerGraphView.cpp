@@ -15,6 +15,8 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include "BreakpointMenu.h"
+#include "StringUtil.h"
+#include "MiscUtil.h"
 
 DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     : QAbstractScrollArea(parent),

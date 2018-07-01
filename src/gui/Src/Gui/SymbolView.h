@@ -5,7 +5,9 @@
 #include "Bridge.h"
 
 class QMenu;
+class StdSearchListView;
 class SearchListView;
+class SymbolSearchList;
 class QVBoxLayout;
 
 namespace Ui
@@ -19,10 +21,12 @@ class SymbolView : public QWidget
 
 public:
     explicit SymbolView(QWidget* parent = 0);
-    ~SymbolView();
+    ~SymbolView() override;
     void setupContextMenu();
     void saveWindowSettings();
     void loadWindowSettings();
+
+    void invalidateSymbolSource(duint base);
 
 private slots:
     void updateStyle();
@@ -67,8 +71,9 @@ private:
     QVBoxLayout* mMainLayout;
     QVBoxLayout* mSymbolLayout;
     QWidget* mSymbolPlaceHolder;
-    SearchListView* mSearchListView;
-    SearchListView* mModuleList;
+    SearchListView* mSymbolList;
+    StdSearchListView* mModuleList;
+    SymbolSearchList* mSymbolSearchList;
     QMap<QString, duint> mModuleBaseList;
     QAction* mFollowSymbolAction;
     QAction* mFollowSymbolDumpAction;

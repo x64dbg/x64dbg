@@ -308,7 +308,8 @@ typedef enum
     DBG_GET_PEB_ADDRESS,            // param1=DWORD ProcessId,           param2=unused
     DBG_GET_TEB_ADDRESS,            // param1=DWORD ThreadId,            param2=unused
     DBG_ANALYZE_FUNCTION,           // param1=BridgeCFGraphList* graph,  param2=duint entry
-    DBG_MENU_PREPARE               // param1=int hMenu,                 param2=unused
+    DBG_MENU_PREPARE,               // param1=int hMenu,                 param2=unused
+    DBG_GET_SYMBOL_INFO,            // param1=void* symbol,              param2=SYMBOLINFO* info
 } DBGMSG;
 
 typedef enum
@@ -494,12 +495,19 @@ typedef enum
     hw_qword
 } BPHWSIZE;
 
+typedef enum
+{
+    sym_import,
+    sym_export,
+    sym_symbol
+} SYMBOLTYPE;
+
 //Debugger typedefs
 typedef MEMORY_SIZE VALUE_SIZE;
-typedef struct SYMBOLINFO_ SYMBOLINFO;
+
 typedef struct DBGFUNCTIONS_ DBGFUNCTIONS;
 
-typedef void (*CBSYMBOLENUM)(SYMBOLINFO* symbol, void* user);
+typedef bool (*CBSYMBOLENUM)(const struct SYMBOLPTR_* symbol, void* user);
 
 //Debugger structs
 typedef struct
@@ -582,13 +590,15 @@ typedef struct
     FUNCTION args;
 } BRIDGE_ADDRINFO;
 
-struct SYMBOLINFO_
+typedef struct SYMBOLINFO_
 {
     duint addr;
     char* decoratedSymbol;
     char* undecoratedSymbol;
-    bool isImported;
-};
+    SYMBOLTYPE type;
+    bool freeDecorated;
+    bool freeUndecorated;
+} SYMBOLINFO;
 
 typedef struct
 {
@@ -888,6 +898,12 @@ typedef struct
     XREF_RECORD* references;
 } XREF_INFO;
 
+typedef struct SYMBOLPTR_
+{
+    duint modbase;
+    const void* symbol;
+} SYMBOLPTR;
+
 //Debugger functions
 BRIDGE_IMPEXP const char* DbgInit();
 BRIDGE_IMPEXP void DbgExit();
@@ -1012,6 +1028,7 @@ BRIDGE_IMPEXP duint DbgGetTebAddress(DWORD ThreadId);
 BRIDGE_IMPEXP bool DbgAnalyzeFunction(duint entry, BridgeCFGraphList* graph);
 BRIDGE_IMPEXP duint DbgEval(const char* expression, bool* success = 0);
 BRIDGE_IMPEXP void DbgMenuPrepare(int hMenu);
+BRIDGE_IMPEXP void DbgGetSymbolInfo(const SYMBOLPTR* symbolptr, SYMBOLINFO* info);
 
 //Gui defines
 #define GUI_PLUGIN_MENU 0
@@ -1091,7 +1108,7 @@ typedef enum
     GUI_SYMBOL_REFRESH_CURRENT,     // param1=unused,               param2=unused
     GUI_UPDATE_MEMORY_VIEW,         // param1=unused,               param2=unused
     GUI_REF_INITIALIZE,             // param1=const char* name,     param2=unused
-    GUI_LOAD_SOURCE_FILE,           // param1=const char* path,     param2=line
+    GUI_LOAD_SOURCE_FILE,           // param1=const char* path,     param2=duint addr
     GUI_MENU_SET_ICON,              // param1=int hMenu,            param2=ICONINFO*
     GUI_MENU_SET_ENTRY_ICON,        // param1=int hEntry,           param2=ICONINFO*
     GUI_SHOW_CPU,                   // param1=unused,               param2=unused
@@ -1139,7 +1156,8 @@ typedef enum
     GUI_MENU_REMOVE,                // param1=int hEntryMenu,       param2=unused
     GUI_REF_ADDCOMMAND,             // param1=const char* title,    param2=const char* command
     GUI_OPEN_TRACE_FILE,            // param1=const char* file name,param2=unused
-    GUI_UPDATE_TRACE_BROWSER        // param1=unused,               param2=unused
+    GUI_UPDATE_TRACE_BROWSER,       // param1=unused,               param2=unused
+    GUI_INVALIDATE_SYMBOL_SOURCE,   // param1=duint base,           param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1267,7 +1285,7 @@ BRIDGE_IMPEXP void GuiRepaintTableView();
 BRIDGE_IMPEXP void GuiUpdatePatches();
 BRIDGE_IMPEXP void GuiUpdateCallStack();
 BRIDGE_IMPEXP void GuiUpdateSEHChain();
-BRIDGE_IMPEXP void GuiLoadSourceFile(const char* path, int line);
+BRIDGE_IMPEXP void GuiLoadSourceFileEx(const char* path, duint addr);
 BRIDGE_IMPEXP void GuiMenuSetIcon(int hMenu, const ICONDATA* icon);
 BRIDGE_IMPEXP void GuiMenuSetEntryIcon(int hEntry, const ICONDATA* icon);
 BRIDGE_IMPEXP void GuiMenuSetEntryChecked(int hEntry, bool checked);
@@ -1316,6 +1334,7 @@ BRIDGE_IMPEXP void GuiFlushLog();
 BRIDGE_IMPEXP void GuiReferenceAddCommand(const char* title, const char* command);
 BRIDGE_IMPEXP void GuiUpdateTraceBrowser();
 BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName);
+BRIDGE_IMPEXP void GuiInvalidateSymbolSource(duint base);
 
 #ifdef __cplusplus
 }

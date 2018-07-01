@@ -11,10 +11,10 @@ class SourceView : public ReferenceView
 {
     Q_OBJECT
 public:
-    explicit SourceView(QString path, int line = 0, QWidget* parent = 0);
+    explicit SourceView(QString path, duint addr, QWidget* parent = 0);
     QString getSourcePath();
     void setupContextMenu();
-    void setSelection(int line);
+    void setSelection(duint addr);
 
 private slots:
     void sourceContextMenu(QMenu* menu);
@@ -25,6 +25,7 @@ private:
     QString mSourcePath;
     int mIpLine;
     MenuBuilder* mMenuBuilder;
+    duint mModBase;
 
     void loadFile();
 };

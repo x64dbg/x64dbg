@@ -176,46 +176,11 @@ bool cbDebugDownloadSymbol(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid module \"%s\"!\n"), argv[1]);
         return false;
     }
-    wchar_t wszModulePath[MAX_PATH] = L"";
-    if(!GetModuleFileNameExW(fdProcessInfo->hProcess, (HMODULE)modbase, wszModulePath, MAX_PATH))
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "GetModuleFileNameExW failed!"));
-        return false;
-    }
-    wchar_t szOldSearchPath[MAX_PATH] = L"";
-    if(!SafeSymGetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath, MAX_PATH)) //backup current search path
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymGetSearchPath failed!"));
-        return false;
-    }
-    char szServerSearchPath[MAX_PATH * 2] = "";
     if(argc > 2)
         szSymbolStore = argv[2];
-    sprintf_s(szServerSearchPath, "SRV*%s*%s", szSymbolCachePath, szSymbolStore);
-    if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, StringUtils::Utf8ToUtf16(szServerSearchPath).c_str())) //set new search path
+    if(!SymDownloadSymbol(modbase, szSymbolStore))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymSetSearchPath (1) failed!"));
-        return false;
-    }
-    if(!SafeSymUnloadModule64(fdProcessInfo->hProcess, (DWORD64)modbase)) //unload module
-    {
-        SafeSymSetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath);
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymUnloadModule64 failed!"));
-        return false;
-    }
-    auto symOptions = SafeSymGetOptions();
-    SafeSymSetOptions(symOptions & ~SYMOPT_IGNORE_CVREC);
-    if(!SymLoadModuleExW(fdProcessInfo->hProcess, 0, wszModulePath, 0, (DWORD64)modbase, 0, 0, 0)) //load module
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymLoadModuleEx failed!"));
-        SafeSymSetOptions(symOptions);
-        SafeSymSetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath);
-        return false;
-    }
-    SafeSymSetOptions(symOptions);
-    if(!SafeSymSetSearchPathW(fdProcessInfo->hProcess, szOldSearchPath))
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymSetSearchPathW (2) failed!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Symbol download failed... See symbol log for more information"));
         return false;
     }
     GuiSymbolRefreshCurrent();

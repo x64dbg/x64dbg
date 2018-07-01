@@ -3,6 +3,7 @@
 #include "HexLineEdit.h"
 #include "ui_HexLineEdit.h"
 #include "Bridge.h"
+#include <QKeyEvent>
 
 HexLineEdit::HexLineEdit(QWidget* parent) :
     QLineEdit(parent),

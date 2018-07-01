@@ -7,6 +7,7 @@
 #include <QTranslator>
 #include <QTextStream>
 #include <QLibraryInfo>
+#include "MiscUtil.h"
 
 MyApplication::MyApplication(int & argc, char** argv)
     : QApplication(argc, argv)
