@@ -1488,7 +1488,7 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTe
     const int bytesLen = getColumnWidth(1) / getCharWidth() - 1;
     const int disassemblyLen = getColumnWidth(2) / getCharWidth() - 1;
     if(htmlStream)
-        *htmlStream << QString("<table style=\"border-width:0px;border-color:#000000;font-family:%1;font-size:%2px;\">").arg(font().family()).arg(getRowHeight());
+        *htmlStream << QString("<table style=\"border-width:0px;border-color:#000000;font-family:%1;font-size:%2px;\">").arg(font().family().toHtmlEscaped()).arg(getRowHeight());
     prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
     {
         if(i)
@@ -1526,7 +1526,7 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTe
         stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
         if(htmlStream)
         {
-            *htmlStream << QString("<tr><td>%1</td><td>%2</td><td>").arg(address.toHtmlEscaped(), htmlDisassembly);
+            *htmlStream << QString("<tr><td>%1</td><td>%2</td><td>%3</td><td>").arg(address.toHtmlEscaped(), bytesHtml, htmlDisassembly);
             if(!comment.isEmpty())
             {
                 if(autocomment)
