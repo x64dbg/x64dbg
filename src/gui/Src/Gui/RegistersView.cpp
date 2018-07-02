@@ -2638,7 +2638,9 @@ void RegistersView::displayEditDialog()
                         fpuvalue = mLineEdit.editText.toUInt(&ok, 16);
                     else if(mFPUx87_80BITSDISPLAY.contains(mSelected))
                     {
-                        if(sizeRegister == 10 && mLineEdit.editText.contains(QChar('.')))
+                        QString editTextLower = mLineEdit.editText.toLower();
+                        if(sizeRegister == 10 && (mLineEdit.editText.contains(QChar('.')) || editTextLower == "nan" || editTextLower == "inf"
+                                                  || editTextLower == "+inf" || editTextLower == "-inf"))
                         {
                             char number[10];
                             str2ld(mLineEdit.editText.toUtf8().constData(), number);
