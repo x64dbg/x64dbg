@@ -57,6 +57,7 @@ struct MODEXPORT : SymbolInfoGui
     bool forwarded = false;
     String forwardName;
     String name;
+    String undecoratedName;
 
     virtual void convertToGuiSymbol(duint base, SYMBOLINFO* info) const override;
 };
@@ -67,6 +68,7 @@ struct MODIMPORT : SymbolInfoGui
     DWORD iatRva;
     duint ordinal; //equal to -1 if imported by name
     String name;
+    String undecoratedName;
 
     virtual void convertToGuiSymbol(duint base, SYMBOLINFO* info) const override;
 };

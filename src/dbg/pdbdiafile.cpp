@@ -13,6 +13,7 @@
 #include "pdbdiafile.h"
 #include "stringutils.h"
 #include "console.h"
+#include "symbolundecorator.h"
 
 //Taken from: https://msdn.microsoft.com/en-us/library/ms752876(v=vs.85).aspx
 class FileStream : public IStream
@@ -973,50 +974,6 @@ bool PDBDiaFile::resolveSymbolSize(IDiaSymbol* symbol, uint64_t & size, uint32_t
     return res;
 }
 
-typedef char* pchar_t;
-typedef const char* pcchar_t;
-typedef char* (*GetParameter_t)(long n);
-using Alloc_t = decltype(malloc);
-using Free_t = decltype(free);
-
-enum
-{
-    UNDNAME_COMPLETE = 0x0, //Enables full undecoration.
-    UNDNAME_NO_LEADING_UNDERSCORES = 0x1, //Removes leading underscores from Microsoft extended keywords.
-    UNDNAME_NO_MS_KEYWORDS = 0x2, //Disables expansion of Microsoft extended keywords.
-    UNDNAME_NO_FUNCTION_RETURNS = 0x4, //Disables expansion of return type for primary declaration.
-    UNDNAME_NO_ALLOCATION_MODEL = 0x8, //Disables expansion of the declaration model.
-    UNDNAME_NO_ALLOCATION_LANGUAGE = 0x10, //Disables expansion of the declaration language specifier.
-    UNDNAME_NO_MS_THISTYPE = 0x20, //NYI Disable expansion of MS keywords on the 'this' type for primary declaration.
-    UNDNAME_NO_CV_THISTYPE = 0x40, //NYI Disable expansion of CV modifiers on the 'this' type for primary declaration/
-    UNDNAME_NO_THISTYPE = 0x60, //Disables all modifiers on the this type.
-    UNDNAME_NO_ACCESS_SPECIFIERS = 0x80, //Disables expansion of access specifiers for members.
-    UNDNAME_NO_THROW_SIGNATURES = 0x100, //Disables expansion of "throw-signatures" for functions and pointers to functions.
-    UNDNAME_NO_MEMBER_TYPE = 0x200, //Disables expansion of static or virtual members.
-    UNDNAME_NO_RETURN_UDT_MODEL = 0x400, //Disables expansion of the Microsoft model for UDT returns.
-    UNDNAME_32_BIT_DECODE = 0x800, //Undecorates 32-bit decorated names.
-    UNDNAME_NAME_ONLY = 0x1000, //Gets only the name for primary declaration; returns just [scope::]name. Expands template params.
-    UNDNAME_TYPE_ONLY = 0x2000, //Input is just a type encoding; composes an abstract declarator.
-    UNDNAME_HAVE_PARAMETERS = 0x4000, //The real template parameters are available.
-    UNDNAME_NO_ECSU = 0x8000, //Suppresses enum/class/struct/union.
-    UNDNAME_NO_IDENT_CHAR_CHECK = 0x10000, //Suppresses check for valid identifier characters.
-    UNDNAME_NO_PTR64 = 0x20000, //Does not include ptr64 in output.
-};
-
-#if _MSC_VER != 1800
-#error unDNameEx is undocumented and possibly unsupported on your runtime! Uncomment this line if you understand the risks and want continue regardless...
-#endif //_MSC_VER
-
-//undname.cxx
-extern "C" pchar_t __cdecl __unDNameEx(_Out_opt_z_cap_(maxStringLength) pchar_t outputString,
-                                       pcchar_t name,
-                                       int maxStringLength,    // Note, COMMA is leading following optional arguments
-                                       Alloc_t pAlloc,
-                                       Free_t pFree,
-                                       GetParameter_t pGetParameter,
-                                       unsigned long disableFlags
-                                      );
-
 bool PDBDiaFile::convertSymbolInfo(IDiaSymbol* symbol, DiaSymbol_t & symbolInfo, InternalQueryContext_t & context)
 {
     HRESULT hr;
@@ -1042,36 +999,7 @@ bool PDBDiaFile::convertSymbolInfo(IDiaSymbol* symbol, DiaSymbol_t & symbolInfo,
 
     if(context.collectUndecoratedNames && !symbolInfo.name.empty() && symbolInfo.name.at(0) == '?')
     {
-        //TODO: undocumented hack to have some kind of performance while undecorating names
-        auto mymalloc = [](size_t size) { return emalloc(size, "convertSymbolInfo::undecoratedName"); };
-        auto myfree = [](void* ptr) { return efree(ptr, "convertSymbolInfo::undecoratedName"); };
-        symbolInfo.undecoratedName.resize(max(512, symbolInfo.name.length() * 2));
-        if(!__unDNameEx((char*)symbolInfo.undecoratedName.data(),
-                        symbolInfo.name.c_str(),
-                        symbolInfo.undecoratedName.size(),
-                        mymalloc,
-                        myfree,
-                        nullptr,
-                        UNDNAME_COMPLETE))
-        {
-            symbolInfo.undecoratedName.clear();
-        }
-        else
-        {
-            symbolInfo.undecoratedName.resize(strlen(symbolInfo.undecoratedName.c_str()));
-            if(symbolInfo.name == symbolInfo.undecoratedName)
-                symbolInfo.undecoratedName = ""; //https://stackoverflow.com/a/18299315
-            /*auto test = getSymbolUndecoratedNameString(symbol); //TODO: this does not appear to work very well
-            if(!symbolInfo.undecoratedName.empty())
-            {
-                if(test != symbolInfo.undecoratedName)
-                {
-                    GuiSymbolLogAdd(StringUtils::sprintf("undecoration mismatch, msvcrt: \"%s\", DIA: \"%s\"\n",
-                        symbolInfo.undecoratedName.c_str(),
-                        test.c_str()).c_str());
-                }
-            }*/
-        }
+        undecorateName(symbolInfo.name, symbolInfo.undecoratedName);
     }
     else
     {

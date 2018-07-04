@@ -238,6 +238,7 @@
     <ClInclude Include="sortedlru.h" />
     <ClInclude Include="symbolsourcebase.h" />
     <ClInclude Include="symbolsourcedia.h" />
+    <ClInclude Include="symbolundecorator.h" />
     <ClInclude Include="symcache.h" />
     <ClInclude Include="taskthread.h" />
     <ClInclude Include="tcpconnections.h" />

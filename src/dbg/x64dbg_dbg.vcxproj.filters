@@ -997,5 +997,8 @@
     <ClInclude Include="WinInet-Downloader\downslib.h">
       <Filter>Header Files\Third Party\WinInet-Downloader</Filter>
     </ClInclude>
+    <ClInclude Include="symbolundecorator.h">
+      <Filter>Header Files\Symbols</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

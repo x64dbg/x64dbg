@@ -12,6 +12,7 @@
 #include "console.h"
 #include "debugger.h"
 #include <memory>
+#include "symbolundecorator.h"
 
 std::map<Range, std::unique_ptr<MODINFO>, RangeCompare> modinfo;
 std::unordered_map<duint, std::string> hashNameMap;
@@ -156,6 +157,13 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     {
         return Info.exports.at(a).rva < Info.exports.at(b).rva;
     });
+
+    // undecorate names
+    for(auto & x : Info.exports)
+    {
+        if(!x.name.empty())
+            undecorateName(x.name, x.undecoratedName);
+    }
 }
 
 static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
@@ -237,6 +245,10 @@ static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     {
         return Info.imports[a].iatRva < Info.imports[b].iatRva;
     });
+
+    // undecorate names
+    for(auto & i : Info.imports)
+        undecorateName(i.name, i.undecoratedName);
 }
 
 static void ReadTlsCallbacks(MODINFO & Info, ULONG_PTR FileMapVA)
@@ -617,7 +629,6 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
 
     ReadExportDirectory(Info, FileMapVA);
     ReadImportDirectory(Info, FileMapVA);
-    dprintf("[%s%s] read %d imports and %d exports\n", Info.name, Info.extension, Info.imports.size(), Info.exports.size());
     ReadTlsCallbacks(Info, FileMapVA);
     ReadBaseRelocationTable(Info, FileMapVA);
     ReadDebugDirectory(Info, FileMapVA);
@@ -1166,7 +1177,7 @@ void MODIMPORT::convertToGuiSymbol(duint base, SYMBOLINFO* info) const
     info->addr = base + iatRva;
     info->type = sym_import;
     info->decoratedSymbol = (char*)name.c_str();
-    info->undecoratedSymbol = "";
+    info->undecoratedSymbol = (char*)undecoratedName.c_str();
     info->freeDecorated = info->freeUndecorated = false;
 }
 
@@ -1175,6 +1186,6 @@ void MODEXPORT::convertToGuiSymbol(duint base, SYMBOLINFO* info) const
     info->addr = base + rva;
     info->type = sym_export;
     info->decoratedSymbol = (char*)name.c_str();
-    info->undecoratedSymbol = "";
+    info->undecoratedSymbol = (char*)undecoratedName.c_str();
     info->freeDecorated = info->freeUndecorated = false;
 }
