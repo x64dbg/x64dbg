@@ -150,8 +150,8 @@ void PatchDelRange(duint Start, duint End, bool Restore)
 
 bool PatchEnum(PATCHINFO* List, size_t* Size)
 {
-    if(!DbgIsDebugging())
-        return false;
+    /*if(!DbgIsDebugging())
+        return false;*/
     ASSERT_FALSE(!List && !Size);
     SHARED_ACQUIRE(LockPatches);
 
