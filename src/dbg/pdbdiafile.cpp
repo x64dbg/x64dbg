@@ -214,19 +214,14 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
 
     HRESULT hr = REGDB_E_CLASSNOTREG;
     hr = CoCreateInstance(__uuidof(DiaSource), NULL, CLSCTX_INPROC_SERVER, __uuidof(IDiaDataSource), (LPVOID*)&m_dataSource);
+    if(hr == REGDB_E_CLASSNOTREG)
+    {
+        hr = NoRegCoCreate(L"msdia140.dll", __uuidof(DiaSource), __uuidof(IDiaDataSource), (LPVOID*)&m_dataSource);
+    }
     if(testError(hr) || m_dataSource == nullptr)
     {
-        if(hr == REGDB_E_CLASSNOTREG)
-        {
-            hr = NoRegCoCreate(L"msdia140.dll", __uuidof(DiaSource), __uuidof(IDiaDataSource), (LPVOID*)&m_dataSource);
-            if(testError(hr))
-                return false;
-        }
-        else
-        {
-            GuiSymbolLogAdd("Unable to initialize PDBDia Library.\n");
-            return false;
-        }
+        GuiSymbolLogAdd("Unable to initialize PDBDia Library.\n");
+        return false;
     }
 
     _wsplitpath_s(file, NULL, 0, fileDir, MAX_PATH, NULL, 0, fileExt, MAX_PATH);
@@ -265,6 +260,10 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
         if(hr != E_PDB_NOT_FOUND)
         {
             GuiSymbolLogAdd(StringUtils::sprintf("Unable to open PDB file - %08X\n", hr).c_str());
+        }
+        else
+        {
+            GuiSymbolLogAdd(StringUtils::sprintf("Unknown error - %08X\n", hr).c_str());
         }
         return false;
     }
