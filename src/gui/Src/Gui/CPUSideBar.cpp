@@ -121,6 +121,9 @@ void CPUSideBar::setSelection(dsint selVA)
 
 bool CPUSideBar::isJump(int i) const
 {
+    if(i < 0 || i >= mInstrBuffer->size())
+        return false;
+
     const Instruction_t & instr = mInstrBuffer->at(i);
     Instruction_t::BranchType branchType = instr.branchType;
     if(branchType == Instruction_t::Unconditional || branchType == Instruction_t::Conditional)
@@ -217,6 +220,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     {
         if(line >= mInstrBuffer->size()) //at the end of the page it will crash otherwise
             break;
+
         const Instruction_t & instr = mInstrBuffer->at(line);
         duint instrVA = instr.rva + mDisas->getBase();
         duint instrVAEnd = instrVA + instr.length;
@@ -441,6 +445,7 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
     if(!DbgIsDebugging() || !mInstrBuffer->size())
     {
         QAbstractScrollArea::mouseMoveEvent(event);
+        QToolTip::hideText();
         setCursor(QCursor(Qt::ArrowCursor));
         return;
     }
@@ -450,13 +455,19 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
     const int width = viewport()->width();
 
     const int mLine = mousePos.y() / fontHeight;
+
+    const bool lineInBounds = mLine > 0 && mLine < mInstrBuffer->size();
+
     const int mBulletX = width - mBulletXOffset;
     const int mBulletY = mLine * fontHeight + mBulletYOffset;
 
     const int mouseBulletXOffset = abs(mBulletX - mousePos.x());
     const int mouseBulletYOffset = abs(mBulletY - mousePos.y());
+
     // calculate virtual address of clicked line
-    duint wVA = mInstrBuffer->at(mLine).rva + mDisas->getBase();
+    duint wVA = 0;
+    if(lineInBounds)
+        wVA = mInstrBuffer->at(mLine).rva + mDisas->getBase();
 
     // check if mouse is on a code folding box
     if(mousePos.x() > width - fontHeight - mBulletXOffset - mBulletRadius && mousePos.x() < width - mBulletXOffset - mBulletRadius)
@@ -465,21 +476,19 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
         {
             if(mCodeFoldingManager.isFolded(wVA))
             {
-                QToolTip::showText(globalMousePos, tr("Click to unfold.") + tr("Right click to delete."));
+                QToolTip::showText(globalMousePos, tr("Click to unfold, right click to delete."));
             }
             else
             {
                 if(mCodeFoldingManager.isFoldStart(wVA))
-                    QToolTip::showText(globalMousePos, tr("Click to fold.") + tr("Right click to delete."));
+                    QToolTip::showText(globalMousePos, tr("Click to fold, right click to delete."));
                 else
                     QToolTip::showText(globalMousePos, tr("Click to fold."));
             }
         }
     }
-
     // if (mouseCursor not on a bullet) or (mLine not in bounds)
-    else if((mouseBulletXOffset > mBulletRadius ||  mouseBulletYOffset > mBulletRadius) ||
-            (mLine < 0 || mLine >= mInstrBuffer->size()))
+    else if((mouseBulletXOffset > mBulletRadius ||  mouseBulletYOffset > mBulletRadius) || !lineInBounds)
     {
         QToolTip::hideText();
         setCursor(QCursor(Qt::ArrowCursor));
