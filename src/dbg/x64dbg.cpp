@@ -751,7 +751,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\", \"%s\"", escape(argv[1]).c_str(), escape(argv[2]).c_str())).c_str());
     else if(argc == 4) //3 arguments (init filename, cmdline, currentdir)
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"init \"%s\", \"%s\", \"%s\"", escape(argv[1]).c_str(), escape(argv[2]).c_str(), escape(argv[3]).c_str())).c_str());
-    else if(argc == 5 && !_wcsicmp(argv[1], L"-a") && !_wcsicmp(argv[3], L"-e")) //4 arguments (JIT)
+    else if(argc == 5 && (!_wcsicmp(argv[1], L"-a") || !_wcsicmp(argv[1], L"-p")) && !_wcsicmp(argv[3], L"-e")) //4 arguments (JIT)
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"attach .%s, .%s", argv[2], argv[4])).c_str()); //attach pid, event
     else if(argc == 5 && !_wcsicmp(argv[1], L"-p") && !_wcsicmp(argv[3], L"-tid")) //4 arguments (PLMDebug)
         DbgCmdExec(StringUtils::Utf16ToUtf8(StringUtils::sprintf(L"attach .%s, 0, .%s", argv[2], argv[4])).c_str()); //attach pid, 0, tid
