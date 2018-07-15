@@ -576,11 +576,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
                 escaped.clear();
                 auto len = wcslen(argv[i]);
-                for(size_t i = 0; i < len; i++)
+                for(size_t j = 0; j < len; j++)
                 {
-                    if(escaped[i] == L'\"')
-                        escaped.push_back(escaped[i]);
-                    escaped.push_back(escaped[i]);
+                    if(argv[i][j] == L'\"')
+                        escaped.push_back(L'\"');
+                    escaped.push_back(argv[i][j]);
                 }
 
                 cmdLine += escaped;
