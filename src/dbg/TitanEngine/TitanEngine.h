@@ -56,6 +56,7 @@
 #define UE_ENGINE_RESET_CUSTOM_HANDLER 7
 #define UE_ENGINE_CALL_PLUGIN_DEBUG_CALLBACK 8
 #define UE_ENGINE_SET_DEBUG_PRIVILEGE 9
+#define UE_ENGINE_SAFE_ATTACH 10
 
 #define UE_OPTION_REMOVEALL 1
 #define UE_OPTION_DISABLEALL 2
@@ -823,6 +824,8 @@ __declspec(dllexport) long TITCALL LengthDisassembleEx(HANDLE hProcess, LPVOID D
 __declspec(dllexport) long TITCALL LengthDisassemble(LPVOID DisassmAddress);
 __declspec(dllexport) void* TITCALL InitDebug(char* szFileName, char* szCommandLine, char* szCurrentFolder);
 __declspec(dllexport) void* TITCALL InitDebugW(const wchar_t* szFileName, const wchar_t* szCommandLine, const wchar_t* szCurrentFolder);
+__declspec(dllexport) void* TITCALL InitNativeDebug(char* szFileName, char* szCommandLine, char* szCurrentFolder);
+__declspec(dllexport) void* TITCALL InitNativeDebugW(const wchar_t* szFileName, const wchar_t* szCommandLine, const wchar_t* szCurrentFolder);
 __declspec(dllexport) void* TITCALL InitDebugEx(const char* szFileName, const char* szCommandLine, const char* szCurrentFolder, LPVOID EntryCallBack);
 __declspec(dllexport) void* TITCALL InitDebugExW(const wchar_t* szFileName, const wchar_t* szCommandLine, const wchar_t* szCurrentFolder, LPVOID EntryCallBack);
 __declspec(dllexport) void* TITCALL InitDLLDebug(const char* szFileName, bool ReserveModuleBase, const char* szCommandLine, const char* szCurrentFolder, LPVOID EntryCallBack);
