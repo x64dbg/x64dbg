@@ -319,6 +319,7 @@ PLUG_IMPEXP bool _plugin_load(const char* pluginName);
 PLUG_IMPEXP duint _plugin_hash(const void* data, duint size);
 PLUG_IMPEXP bool _plugin_registerformatfunction(int pluginHandle, const char* type, CBPLUGINFORMATFUNCTION cbFunction, void* userdata);
 PLUG_IMPEXP bool _plugin_unregisterformatfunction(int pluginHandle, const char* type);
+PLUG_IMPEXP const char* _plugin_getbuilddate();
 
 #ifdef __cplusplus
 }
