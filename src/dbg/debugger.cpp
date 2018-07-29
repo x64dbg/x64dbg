@@ -1389,7 +1389,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
                 dprintf(QT_TRANSLATE_NOOP("DBG", "%d invalid TLS callback addresses...\n"), invalidCount);
         }
 
-        if(settingboolget("Events", "EntryBreakpoint"))
+        if(settingboolget("Events", "EntryBreakpoint") && (duint)CreateProcessInfo->lpStartAddress - (duint)CreateProcessInfo->lpBaseOfImage != 0)
         {
             sprintf_s(command, "bp %p,\"%s\",ss", (duint)CreateProcessInfo->lpStartAddress, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "entry breakpoint")));
             cmddirectexec(command);
@@ -1649,7 +1649,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         bIsDebuggingThis = true;
         pDebuggedBase = (duint)base;
         DbCheckHash(ModContentHashFromAddr(pDebuggedBase)); //Check hash mismatch
-        if(settingboolget("Events", "EntryBreakpoint"))
+        if(settingboolget("Events", "EntryBreakpoint") && pDebuggedEntry != 0)
         {
             bAlreadySetEntry = true;
             sprintf_s(command, "bp %p,\"%s\",ss", pDebuggedBase + pDebuggedEntry, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "entry breakpoint")));
