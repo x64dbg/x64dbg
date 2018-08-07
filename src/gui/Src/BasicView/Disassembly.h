@@ -61,15 +61,15 @@ public:
     // Selection Management
     void expandSelectionUpTo(dsint to);
     void setSingleSelection(dsint index);
-    dsint getInitialSelection();
-    dsint getSelectionSize();
-    dsint getSelectionStart();
-    dsint getSelectionEnd();
+    dsint getInitialSelection() const;
+    dsint getSelectionSize() const;
+    dsint getSelectionStart() const;
+    dsint getSelectionEnd() const;
     void selectNext(bool expand);
     void selectPrevious(bool expand);
     bool isSelected(dsint base, dsint offset);
-    bool isSelected(QList<Instruction_t>* buffer, int index);
-    duint getSelectedVa();
+    bool isSelected(QList<Instruction_t>* buffer, int index) const;
+    duint getSelectedVa() const;
 
     // Update/Reload/Refresh/Repaint
     void prepareData() override;
@@ -79,15 +79,15 @@ public:
     duint rvaToVa(dsint rva) const;
     void disassembleClear();
     const duint getBase() const;
-    duint getSize();
-    duint getTableOffsetRva();
+    duint getSize() const;
+    duint getTableOffsetRva() const;
 
     // history management
     void historyClear();
     void historyPrevious();
     void historyNext();
-    bool historyHasPrevious();
-    bool historyHasNext();
+    bool historyHasPrevious() const;
+    bool historyHasNext() const;
 
     //disassemble
     void disassembleAt(dsint parVA, dsint parCIP, bool history, dsint newTableOffset);
@@ -106,7 +106,7 @@ public:
     void unfold(dsint rva);
     void ShowDisassemblyPopup(duint addr, int x, int y);
     bool hightlightToken(const CapstoneTokenizer::SingleToken & token);
-    bool isHighlightMode();
+    bool isHighlightMode() const;
 
 signals:
     void selectionChanged(dsint parVA);
