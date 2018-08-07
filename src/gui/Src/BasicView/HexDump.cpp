@@ -489,7 +489,7 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
             wAccept = false;
         }
     }
-    if((event->button() & Qt::BackButton) != 0)
+    if((event->button() & Qt::BackButton) != 0) //Go to previous/next history
     {
         wAccept = true;
         printDumpAt(mHistory.historyPrev());
@@ -507,21 +507,81 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
 void HexDump::keyPressEvent(QKeyEvent* event)
 {
     auto key = event->key();
-    auto control = event->modifiers() == Qt::ControlModifier;
-    if(key == Qt::Key_Left || (key == Qt::Key_Up && control)) //TODO: see if Ctrl+Up is redundant
+    dsint selStart = getInitialSelection();
+    char granularity = 1; //Size of a data word.
+    char action = 0; //Where to scroll the scrollbar
+    for(int i = 0; i < mDescriptor.size(); i++) //Find the first data column
     {
-        duint offsetVa = rvaToVa(getTableOffsetRva()) - 1;
-        if(mMemPage->inRange(offsetVa))
-            printDumpAt(offsetVa, false);
+        if(mDescriptor.at(i).isData)
+        {
+            granularity = getSizeOf(mDescriptor.at(i).data.itemSize);
+            break;
+        }
     }
-    else if(key == Qt::Key_Right || (key == Qt::Key_Down && control)) //TODO: see if Ctrl+Down is redundant
+    selStart -= selStart % granularity; //Align the selection to word boundary.
+    switch(key)
     {
-        duint offsetVa = rvaToVa(getTableOffsetRva()) + 1;
-        if(mMemPage->inRange(offsetVa))
-            printDumpAt(offsetVa, false);
+    case Qt::Key_Left:
+    {
+        selStart -= granularity;
+        if(0 <= selStart)
+            action = -1;
     }
-    else
+    break;
+    case Qt::Key_Right:
+    {
+        selStart += granularity;
+        if(mMemPage->getSize() > selStart)
+            action = 1;
+    }
+    break;
+    case Qt::Key_Up:
+    {
+        selStart -= getBytePerRowCount();
+        if(0 <= selStart)
+            action = -1;
+    }
+    break;
+    case Qt::Key_Down:
+    {
+        selStart += getBytePerRowCount();
+        if(mMemPage->getSize() > selStart)
+            action = 1;
+    }
+    break;
+    default:
         AbstractTableView::keyPressEvent(event);
+    }
+
+    if(action != 0)
+    {
+        //Check if selection is out of viewport. Step the scrollbar if necessary. (TODO)
+        if(action == 1 && selStart >= getViewableRowsCount() * getBytePerRowCount() + getTableOffsetRva())
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+        else if(action == -1 && selStart < getTableOffsetRva())
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+        setSingleSelection(selStart);
+        if(granularity > 1)
+            expandSelectionUpTo(selStart + granularity - 1);
+        reloadData();
+    }
+    /*
+        Let's keep the old code for a while until nobody remembers previous behaviour.
+        if(key == Qt::Key_Left || (key == Qt::Key_Up && control)) //TODO: see if Ctrl+Up is redundant
+        {
+            duint offsetVa = rvaToVa(getTableOffsetRva()) - 1;
+            if(mMemPage->inRange(offsetVa))
+                printDumpAt(offsetVa, false);
+        }
+        else if(key == Qt::Key_Right || (key == Qt::Key_Down && control)) //TODO: see if Ctrl+Down is redundant
+        {
+            duint offsetVa = rvaToVa(getTableOffsetRva()) + 1;
+            if(mMemPage->inRange(offsetVa))
+                printDumpAt(offsetVa, false);
+        }
+        else
+            AbstractTableView::keyPressEvent(event);
+    */
 }
 
 QString HexDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -624,10 +684,7 @@ dsint HexDump::getSelectionEnd()
 
 bool HexDump::isSelected(dsint rva)
 {
-    if(rva >= mSelection.fromIndex && rva <= mSelection.toIndex)
-        return true;
-    else
-        return false;
+    return rva >= mSelection.fromIndex && rva <= mSelection.toIndex;
 }
 
 void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)
