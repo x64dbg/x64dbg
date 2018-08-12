@@ -590,12 +590,12 @@ void AbstractStdTable::setSingleSelection(int index)
     emit selectionChangedSignal(index);
 }
 
-int AbstractStdTable::getInitialSelection()
+int AbstractStdTable::getInitialSelection() const
 {
     return mSelection.firstSelectedIndex;
 }
 
-QList<int> AbstractStdTable::getSelection()
+QList<int> AbstractStdTable::getSelection() const
 {
     QList<int> selection;
     selection.reserve(mSelection.toIndex - mSelection.fromIndex);
@@ -657,7 +657,7 @@ void AbstractStdTable::selectAll()
     emit selectionChangedSignal(index);
 }
 
-bool AbstractStdTable::isSelected(int base, int offset)
+bool AbstractStdTable::isSelected(int base, int offset) const
 {
     int wIndex = base + offset;
 

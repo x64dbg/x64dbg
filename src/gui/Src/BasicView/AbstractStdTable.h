@@ -27,14 +27,14 @@ public:
     void expandTop();
     void expandBottom();
     void setSingleSelection(int index);
-    int getInitialSelection();
-    QList<int> getSelection();
+    int getInitialSelection() const;
+    QList<int> getSelection() const;
     void selectStart();
     void selectEnd();
     void selectNext();
     void selectPrevious();
     void selectAll();
-    bool isSelected(int base, int offset);
+    bool isSelected(int base, int offset) const;
     bool scrollSelect(int offset);
 
     // Data Management

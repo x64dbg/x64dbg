@@ -1792,10 +1792,13 @@ void RegistersView::paintEvent(QPaintEvent* event)
 
 void RegistersView::keyPressEvent(QKeyEvent* event)
 {
-    if(!DbgIsDebugging())
-        return;
-    if(event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return)
-        wCM_Modify->trigger();
+    if(DbgIsDebugging())
+    {
+        int key = event->key();
+        if(key == Qt::Key_Enter || key == Qt::Key_Return)
+            wCM_Modify->trigger();
+    }
+    QScrollArea::keyPressEvent(event);
 }
 
 QSize RegistersView::sizeHint() const

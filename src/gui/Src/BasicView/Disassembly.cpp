@@ -1567,22 +1567,22 @@ void Disassembly::setSingleSelection(dsint index)
     emit selectionChanged(rvaToVa(index));
 }
 
-dsint Disassembly::getInitialSelection()
+dsint Disassembly::getInitialSelection() const
 {
     return mSelection.firstSelectedIndex;
 }
 
-dsint Disassembly::getSelectionSize()
+dsint Disassembly::getSelectionSize() const
 {
     return mSelection.toIndex - mSelection.fromIndex + 1;
 }
 
-dsint Disassembly::getSelectionStart()
+dsint Disassembly::getSelectionStart() const
 {
     return mSelection.fromIndex;
 }
 
-dsint Disassembly::getSelectionEnd()
+dsint Disassembly::getSelectionEnd() const
 {
     return mSelection.toIndex;
 }
@@ -1670,7 +1670,7 @@ bool Disassembly::isSelected(dsint base, dsint offset)
         return false;
 }
 
-bool Disassembly::isSelected(QList<Instruction_t>* buffer, int index)
+bool Disassembly::isSelected(QList<Instruction_t>* buffer, int index) const
 {
     if(buffer->size() > 0 && index >= 0 && index < buffer->size())
     {
@@ -1685,7 +1685,7 @@ bool Disassembly::isSelected(QList<Instruction_t>* buffer, int index)
     }
 }
 
-duint Disassembly::getSelectedVa()
+duint Disassembly::getSelectedVa() const
 {
     // Wrapper around commonly used code:
     // Converts the selected index to a valid virtual address
@@ -2010,12 +2010,12 @@ const duint Disassembly::getBase() const
     return mMemPage->getBase();
 }
 
-duint Disassembly::getSize()
+duint Disassembly::getSize() const
 {
     return mMemPage->getSize();
 }
 
-duint Disassembly::getTableOffsetRva()
+duint Disassembly::getTableOffsetRva() const
 {
     return mInstBuffer.size() ? mInstBuffer.at(0).rva : 0;
 }
@@ -2056,14 +2056,14 @@ void Disassembly::historyNext()
     GuiUpdateAllViews();
 }
 
-bool Disassembly::historyHasPrevious()
+bool Disassembly::historyHasPrevious() const
 {
     if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
         return false;
     return true;
 }
 
-bool Disassembly::historyHasNext()
+bool Disassembly::historyHasNext() const
 {
     int size = mVaHistory.size();
     if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
@@ -2164,7 +2164,7 @@ bool Disassembly::hightlightToken(const CapstoneTokenizer::SingleToken & token)
     return true;
 }
 
-bool Disassembly::isHighlightMode()
+bool Disassembly::isHighlightMode() const
 {
     return mHighlightingMode;
 }

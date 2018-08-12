@@ -101,35 +101,28 @@ public:
     // Selection Management
     void expandSelectionUpTo(dsint rva);
     void setSingleSelection(dsint rva);
-    dsint getInitialSelection();
-    dsint getSelectionStart();
-    dsint getSelectionEnd();
-    bool isSelected(dsint rva);
+    dsint getInitialSelection() const;
+    dsint getSelectionStart() const;
+    dsint getSelectionEnd() const;
+    bool isSelected(dsint rva) const;
 
     virtual void getColumnRichText(int col, dsint rva, RichTextPainter::List & richText);
-    int getSizeOf(DataSize size);
+
+    static int getSizeOf(DataSize size);
 
     void toString(DataDescriptor desc, duint rva, byte_t* data, RichTextPainter::CustomRichText_t & richText);
 
     void byteToString(duint rva, byte_t byte, ByteViewMode mode, RichTextPainter::CustomRichText_t & richText);
     void wordToString(duint rva, uint16 word, WordViewMode mode, RichTextPainter::CustomRichText_t & richText);
-    void dwordToString(duint rva, uint32 dword, DwordViewMode mode, RichTextPainter::CustomRichText_t & richText);
-    void qwordToString(duint rva, uint64 qword, QwordViewMode mode, RichTextPainter::CustomRichText_t & richText);
-    void twordToString(duint rva, void* tword, TwordViewMode mode, RichTextPainter::CustomRichText_t & richText);
+    static void dwordToString(duint rva, uint32 dword, DwordViewMode mode, RichTextPainter::CustomRichText_t & richText);
+    static void qwordToString(duint rva, uint64 qword, QwordViewMode mode, RichTextPainter::CustomRichText_t & richText);
+    static void twordToString(duint rva, void* tword, TwordViewMode mode, RichTextPainter::CustomRichText_t & richText);
 
-    int getStringMaxLength(DataDescriptor desc);
-
-    int byteStringMaxLength(ByteViewMode mode);
-    int wordStringMaxLength(WordViewMode mode);
-    int dwordStringMaxLength(DwordViewMode mode);
-    int qwordStringMaxLength(QwordViewMode mode);
-    int twordStringMaxLength(TwordViewMode mode);
-
-    int getItemIndexFromX(int x);
+    int getItemIndexFromX(int x) const;
     dsint getItemStartingAddress(int x, int y);
 
-    int getBytePerRowCount();
-    int getItemPixelWidth(ColumnDescriptor desc);
+    int getBytePerRowCount() const;
+    int getItemPixelWidth(ColumnDescriptor desc) const;
 
     //descriptor management
     void appendDescriptor(int width, QString title, bool clickable, ColumnDescriptor descriptor);
@@ -137,9 +130,10 @@ public:
     void clearDescriptors();
 
     void printDumpAt(dsint parVA, bool select, bool repaint = true, bool updateTableOffset = true);
-    duint rvaToVa(dsint rva);
-    duint getTableOffsetRva();
-    QString makeAddrText(duint va);
+    duint rvaToVa(dsint rva) const;
+
+    duint getTableOffsetRva() const;
+    QString makeAddrText(duint va) const;
     QString makeCopyText();
 
     void setupCopyMenu();
