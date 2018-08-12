@@ -513,10 +513,11 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
 
 void HexDump::keyPressEvent(QKeyEvent* event)
 {
-    auto key = event->key();
+    int key = event->key();
     dsint selStart = getInitialSelection();
     char granularity = 1; //Size of a data word.
     char action = 0; //Where to scroll the scrollbar
+    Qt::KeyboardModifiers modifiers = event->modifiers();
     for(int i = 0; i < mDescriptor.size(); i++) //Find the first data column
     {
         if(mDescriptor.at(i).isData)
@@ -525,52 +526,86 @@ void HexDump::keyPressEvent(QKeyEvent* event)
             break;
         }
     }
-    selStart -= selStart % granularity; //Align the selection to word boundary.
-    switch(key)
+    if(modifiers == 0) //No modifier
     {
-    case Qt::Key_Left:
-    {
-        selStart -= granularity;
-        if(0 <= selStart)
-            action = -1;
-    }
-    break;
-    case Qt::Key_Right:
-    {
-        selStart += granularity;
-        if(mMemPage->getSize() > selStart)
-            action = 1;
-    }
-    break;
-    case Qt::Key_Up:
-    {
-        selStart -= getBytePerRowCount();
-        if(0 <= selStart)
-            action = -1;
-    }
-    break;
-    case Qt::Key_Down:
-    {
-        selStart += getBytePerRowCount();
-        if(mMemPage->getSize() > selStart)
-            action = 1;
-    }
-    break;
-    default:
-        AbstractTableView::keyPressEvent(event);
-    }
+        //selStart -= selStart % granularity; //Align the selection to word boundary. TODO: Unaligned data?
+        switch(key)
+        {
+        case Qt::Key_Left:
+        {
+            selStart -= granularity;
+            if(0 <= selStart)
+                action = -1;
+        }
+        break;
+        case Qt::Key_Right:
+        {
+            selStart += granularity;
+            if(mMemPage->getSize() > selStart)
+                action = 1;
+        }
+        break;
+        case Qt::Key_Up:
+        {
+            selStart -= getBytePerRowCount();
+            if(0 <= selStart)
+                action = -1;
+        }
+        break;
+        case Qt::Key_Down:
+        {
+            selStart += getBytePerRowCount();
+            if(mMemPage->getSize() > selStart)
+                action = 1;
+        }
+        break;
+        default:
+            AbstractTableView::keyPressEvent(event);
+        }
 
-    if(action != 0)
+        if(action != 0)
+        {
+            //Check if selection is out of viewport. Step the scrollbar if necessary. (TODO)
+            if(action == 1 && selStart >= getViewableRowsCount() * getBytePerRowCount() + getTableOffsetRva())
+                verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+            else if(action == -1 && selStart < getTableOffsetRva())
+                verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+            setSingleSelection(selStart);
+            if(granularity > 1)
+                expandSelectionUpTo(selStart + granularity - 1);
+            reloadData();
+        }
+    }
+    else if(modifiers == Qt::ControlModifier || modifiers == (Qt::ControlModifier | Qt::AltModifier))
     {
-        //Check if selection is out of viewport. Step the scrollbar if necessary. (TODO)
-        if(action == 1 && selStart >= getViewableRowsCount() * getBytePerRowCount() + getTableOffsetRva())
-            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
-        else if(action == -1 && selStart < getTableOffsetRva())
+        duint offsetVa = rvaToVa(getTableOffsetRva());
+        switch(key)
+        {
+        case Qt::Key_Left:
+            action = (modifiers & Qt::AltModifier) ? -1 : -granularity;
+            break;
+        case Qt::Key_Right:
+            action = (modifiers & Qt::AltModifier) ? 1 : granularity;
+            break;
+        case Qt::Key_Up:
+            action = 0;
             verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
-        setSingleSelection(selStart);
-        if(granularity > 1)
-            expandSelectionUpTo(selStart + granularity - 1);
-        reloadData();
+            break;
+        case Qt::Key_Down:
+            action = 0;
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+            break;
+        }
+        if(action != 0)
+        {
+            offsetVa += action;
+            if(mMemPage->inRange(offsetVa))
+                printDumpAt(offsetVa, false);
+        }
+    }
+    else if(modifiers == Qt::ShiftModifier)
+    {
+        //TODO
     }
     /*
         Let's keep the old code for a while until nobody remembers previous behaviour.
