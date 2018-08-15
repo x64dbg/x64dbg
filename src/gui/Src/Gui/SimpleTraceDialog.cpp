@@ -3,6 +3,7 @@
 #include "Bridge.h"
 #include <QMessageBox>
 #include "BrowseDialog.h"
+#include "MiscUtil.h"
 
 SimpleTraceDialog::SimpleTraceDialog(QWidget* parent) :
     QDialog(parent),

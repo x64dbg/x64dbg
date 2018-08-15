@@ -312,8 +312,6 @@ bool pluginload(const char* pluginName, bool loadall)
 */
 bool pluginunload(const char* pluginName, bool unloadall)
 {
-    bool foundPlugin = false;
-    PLUG_DATA currentPlugin;
     char name[MAX_PATH] = "";
     strncpy_s(name, pluginName, _TRUNCATE);
 
@@ -324,21 +322,18 @@ bool pluginunload(const char* pluginName, bool unloadall)
         strncat_s(name, ".dp32", _TRUNCATE);
 #endif
 
+    auto found = pluginList.end();
     {
         EXCLUSIVE_ACQUIRE(LockPluginList);
-        for(auto it = pluginList.begin(); it != pluginList.end(); ++it)
+        found = std::find_if(pluginList.begin(), pluginList.end(), [&name](const PLUG_DATA & a)
         {
-            if(_stricmp(it->plugname, name) == 0)
-            {
-                currentPlugin = *it;
-                foundPlugin = true;
-                break;
-            }
-        }
+            return _stricmp(a.plugname, name) == 0;
+        });
     }
 
-    if(foundPlugin)
+    if(found != pluginList.end())
     {
+        auto currentPlugin = *found;
         if(currentPlugin.plugstop)
             currentPlugin.plugstop();
         plugincmdunregisterall(currentPlugin.initStruct.pluginHandle);
@@ -362,16 +357,11 @@ bool pluginunload(const char* pluginName, bool unloadall)
             EXCLUSIVE_ACQUIRE(LockPluginList);
             pluginmenuclear(currentPlugin.hMenu, true);
 
-            //remove from main pluginlist. We do this so unloadall doesn't try to unload an already released plugin
-            auto pbegin = pluginList.begin();
-            auto pend = pluginList.end();
-            auto new_pend = std::remove_if(pbegin, pend, [&](PLUG_DATA & pData)
+            if(!unloadall)
             {
-                if(_stricmp(pData.plugname, currentPlugin.plugname) == 0)
-                    return true;
-                return false;
-            });
-            pluginList.erase(new_pend, pluginList.end());
+                //remove from main pluginlist. We do this so unloadall doesn't try to unload an already released plugin
+                pluginList.erase(found);
+            }
         }
 
         FreeLibrary(currentPlugin.hPlugin);
@@ -426,6 +416,7 @@ void pluginunloadall()
     EXCLUSIVE_ACQUIRE(LockPluginList);
     for(const auto & plugin : pluginList)
         pluginunload(plugin.plugname, true);
+    pluginList.clear();
 }
 
 /**

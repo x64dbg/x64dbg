@@ -5,9 +5,12 @@
 #include <QObject>
 #include <QWidget>
 #include <QMutex>
+#include <QMenu>
 #include "Imports.h"
-#include "ReferenceManager.h"
 #include "BridgeResult.h"
+
+class ReferenceManager;
+class SymbolView;
 
 class Bridge : public QObject
 {
@@ -42,6 +45,7 @@ public:
     QWidget* snowmanView = nullptr;
     bool mIsRunning = false;
     duint mLastCip = 0;
+    SymbolView* symbolView = nullptr;
 
 signals:
     void disassembleAt(dsint va, dsint eip);
@@ -110,7 +114,7 @@ signals:
     void updateSEHChain();
     void updateArgumentView();
     void symbolRefreshCurrent();
-    void loadSourceFile(const QString path, int line, int selection);
+    void loadSourceFile(const QString path, duint addr);
     void setIconMenuEntry(int hEntry, QIcon icon);
     void setIconMenu(int hMenu, QIcon icon);
     void setCheckedMenuEntry(int hEntry, bool checked);

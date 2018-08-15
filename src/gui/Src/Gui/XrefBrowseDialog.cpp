@@ -1,6 +1,8 @@
 #include "XrefBrowseDialog.h"
 #include "ui_XrefBrowseDialog.h"
 #include "StringUtil.h"
+#include "MiscUtil.h"
+#include "MenuBuilder.h"
 
 XrefBrowseDialog::XrefBrowseDialog(QWidget* parent) :
     QDialog(parent),

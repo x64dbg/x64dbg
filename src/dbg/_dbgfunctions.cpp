@@ -197,15 +197,17 @@ static void _memupdatemap()
 
 static duint _getaddrfromline(const char* szSourceFile, int line, duint* disp)
 {
-    LONG displacement = 0;
-    IMAGEHLP_LINE64 lineData;
-    memset(&lineData, 0, sizeof(lineData));
-    lineData.SizeOfStruct = sizeof(lineData);
-    if(!SymGetLineFromName64(fdProcessInfo->hProcess, NULL, szSourceFile, line, &displacement, &lineData))
-        return 0;
     if(disp)
-        *disp = displacement;
-    return (duint)lineData.Address;
+        *disp = 0;
+    return 0;
+}
+
+static duint _getaddrfromlineex(duint mod, const char* szSourceFile, int line)
+{
+    duint addr = 0;
+    if(SymGetSourceAddr(mod, szSourceFile, line, &addr))
+        return addr;
+    return 0;
 }
 
 static bool _getsourcefromaddr(duint addr, char* szSourceFile, int* line)
@@ -290,8 +292,8 @@ static bool _gethandlename(duint handle, char* name, size_t nameSize, char* type
     String typeNameS;
     if(!HandlesGetName(fdProcessInfo->hProcess, HANDLE(handle), nameS, typeNameS))
         return false;
-    strcpy_s(name, nameSize, nameS.c_str());
-    strcpy_s(typeName, typeNameSize, typeNameS.c_str());
+    strncpy_s(name, nameSize, nameS.c_str(), _TRUNCATE);
+    strncpy_s(typeName, typeNameSize, typeNameS.c_str(), _TRUNCATE);
     return true;
 }
 
@@ -372,39 +374,40 @@ static bool _modrelocationsinrange(duint addr, duint size, ListOf(DBGRELOCATIONI
     return true;
 }
 
-typedef struct _SYMAUTOCOMPLETECALLBACKPARAM
-{
-    char** Buffer;
-    int* count;
-    int MaxSymbols;
-} SYMAUTOCOMPLETECALLBACKPARAM;
-
-static BOOL CALLBACK SymAutoCompleteCallback(PSYMBOL_INFO pSymInfo, ULONG SymbolSize, PVOID UserContext)
-{
-    SYMAUTOCOMPLETECALLBACKPARAM* param = reinterpret_cast<SYMAUTOCOMPLETECALLBACKPARAM*>(UserContext);
-    if(param->Buffer)
-    {
-        param->Buffer[*param->count] = (char*)BridgeAlloc(pSymInfo->NameLen + 1);
-        memcpy(param->Buffer[*param->count], pSymInfo->Name, pSymInfo->NameLen + 1);
-        param->Buffer[*param->count][pSymInfo->NameLen] = 0;
-    }
-    if(++*param->count >= param->MaxSymbols)
-        return FALSE;
-    else
-        return TRUE;
-}
-
 static int SymAutoComplete(const char* Search, char** Buffer, int MaxSymbols)
 {
-    //debug
+    //TODO: refactor this in a function because this pattern will become common
+    std::vector<duint> mods;
+    ModEnum([&mods](const MODINFO & info)
+    {
+        mods.push_back(info.base);
+    });
+
     int count = 0;
-    SYMAUTOCOMPLETECALLBACKPARAM param;
-    param.Buffer = Buffer;
-    param.count = &count;
-    param.MaxSymbols = MaxSymbols;
-    if(!SafeSymEnumSymbols(fdProcessInfo->hProcess, 0, Search, SymAutoCompleteCallback, &param))
-        dputs(QT_TRANSLATE_NOOP("DBG", "SymEnumSymbols failed!"));
+    std::string prefix(Search);
+    for(duint base : mods)
+    {
+        if(count == MaxSymbols)
+            break;
+
+        SHARED_ACQUIRE(LockModules);
+        auto modInfo = ModInfoFromAddr(base);
+        if(modInfo && modInfo->symbols->isOpen())
+        {
+            modInfo->symbols->findSymbolsByPrefix(prefix, [Buffer, MaxSymbols, &count](const SymbolInfo & symInfo)
+            {
+                Buffer[count] = (char*)BridgeAlloc(symInfo.decoratedName.size() + 1);
+                memcpy(Buffer[count], symInfo.decoratedName.c_str(), symInfo.decoratedName.size() + 1);
+                return ++count < MaxSymbols;
+            }, true); //TODO: support case insensitive in the GUI
+        }
+    }
     return count;
+}
+
+static void _refreshmodulelist()
+{
+    SymUpdateModuleList();
 }
 
 void dbgfunctionsinit()
@@ -479,4 +482,6 @@ void dbgfunctionsinit()
     _dbgfunctions.ModRelocationsInRange = _modrelocationsinrange;
     _dbgfunctions.DbGetHash = DbGetHash;
     _dbgfunctions.SymAutoComplete = SymAutoComplete;
+    _dbgfunctions.RefreshModuleList = _refreshmodulelist;
+    _dbgfunctions.GetAddrFromLineEx = _getaddrfromlineex;
 }

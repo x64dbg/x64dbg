@@ -8,6 +8,7 @@
 
 class CPUWidget;
 class CPUMultiDump;
+class QPushButton;
 
 typedef struct
 {
@@ -31,7 +32,9 @@ public:
     enum REGISTER_NAME : int
     {
         CAX, CCX, CDX, CBX, CDI, CBP, CSI, CSP,
+#ifdef _WIN64
         R8, R9, R10, R11, R12, R13, R14, R15,
+#endif //_WIN64
         CIP,
         EFLAGS, CF, PF, AF, ZF, SF, TF, IF, DF, OF,
         GS, FS, ES, DS, CS, SS,
@@ -58,11 +61,14 @@ public:
         // MMX and XMM
         MM0, MM1, MM2, MM3, MM4, MM5, MM6, MM7,
         XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7,
+#ifdef _WIN64
         XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15,
+#endif //_WIN64
         // YMM
-        YMM0, YMM1, YMM2, YMM3, YMM4, YMM5, YMM6, YMM7, YMM8,
-        YMM9, YMM10, YMM11, YMM12, YMM13, YMM14, YMM15,
-
+        YMM0, YMM1, YMM2, YMM3, YMM4, YMM5, YMM6, YMM7,
+#ifdef _WIN64
+        YMM8, YMM9, YMM10, YMM11, YMM12, YMM13, YMM14, YMM15,
+#endif //_WIN64
         UNKNOWN
     };
 

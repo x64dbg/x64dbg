@@ -17,7 +17,7 @@ public:
 protected:
     void setupContextMenu();
     void updateColors() override;
-    void reloadData() override;
+    void sortRows(int column, bool ascending) override;
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) override;
 
 private slots:

@@ -2,6 +2,7 @@
 #include "ui_CodepageSelectionDialog.h"
 #include "Bridge.h"
 #include <QTextCodec>
+#include "MiscUtil.h"
 
 CodepageSelectionDialog::CodepageSelectionDialog(QWidget* parent) :
     QDialog(parent),

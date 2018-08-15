@@ -342,7 +342,7 @@ BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text) //(
         BRIDGE_ADDRINFO ptrinfo = info;
         if(!_dbg_addrinfoget(addr_, SEG_DEFAULT, &ptrinfo))
             return false;
-        sprintf_s(info.label, "&%s", ptrinfo.label);
+        _snprintf_s(info.label, _TRUNCATE, "&%s", ptrinfo.label);
     }
     strcpy_s(text, MAX_LABEL_SIZE, info.label);
     return true;
@@ -1075,6 +1075,11 @@ BRIDGE_IMPEXP void DbgMenuPrepare(int hMenu)
     _dbg_sendmessage(DBG_MENU_PREPARE, (void*)hMenu, nullptr);
 }
 
+BRIDGE_IMPEXP void DbgGetSymbolInfo(const SYMBOLPTR* symbolptr, SYMBOLINFO* info)
+{
+    _dbg_sendmessage(DBG_GET_SYMBOL_INFO, (void*)symbolptr, info);
+}
+
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
     EnterCriticalSection(&csTranslate);
@@ -1456,9 +1461,14 @@ BRIDGE_IMPEXP void GuiUpdateSEHChain()
     _gui_sendmessage(GUI_UPDATE_SEHCHAIN, 0, 0);
 }
 
-BRIDGE_IMPEXP void GuiLoadSourceFile(const char* path, int line)
+extern "C" __declspec(dllexport) void GuiLoadSourceFile(const char* path, int line)
 {
-    _gui_sendmessage(GUI_LOAD_SOURCE_FILE, (void*)path, (void*)line);
+    return;
+}
+
+BRIDGE_IMPEXP void GuiLoadSourceFileEx(const char* path, duint addr)
+{
+    _gui_sendmessage(GUI_LOAD_SOURCE_FILE, (void*)path, (void*)addr);
 }
 
 BRIDGE_IMPEXP void GuiMenuSetIcon(int hMenu, const ICONDATA* icon)
@@ -1688,6 +1698,11 @@ BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName)
 {
     CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_OPEN_TRACE_FILE, (void*)fileName, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiInvalidateSymbolSource(duint base)
+{
+    _gui_sendmessage(GUI_INVALIDATE_SYMBOL_SOURCE, (void*)base, nullptr);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

@@ -17,22 +17,19 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
 
     historyClear();
 
-    SelectionData_t data;
-    memset(&data, 0, sizeof(SelectionData_t));
-    mSelection = data;
+    memset(&mSelection, 0, sizeof(SelectionData));
 
     mCipRva = 0;
 
     mHighlightToken.text = "";
     mHighlightingMode = false;
-    mPermanentHighlightingMode = false;
     mShowMnemonicBrief = false;
 
     int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
     Config()->writeUints();
 
     mDisasm = new QBeaEngine(maxModuleSize);
-    mDisasm->UpdateConfig();
+    tokenizerConfigUpdatedSlot();
 
     mCodeFoldingManager = nullptr;
     duint setting;
@@ -56,7 +53,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
 
     setShowHeader(false); //hide header
 
-    backgroundColor = ConfigColor("DisassemblyBackgroundColor");
+    mBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
 
     mXrefInfo.refcount = 0;
 
@@ -80,9 +77,10 @@ Disassembly::~Disassembly()
 void Disassembly::updateColors()
 {
     AbstractTableView::updateColors();
-    backgroundColor = ConfigColor("DisassemblyBackgroundColor");
+    mBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
 
     mInstructionHighlightColor = ConfigColor("InstructionHighlightColor");
+    mDisassemblyRelocationUnderlineColor = ConfigColor("DisassemblyRelocationUnderlineColor");
     mSelectionColor = ConfigColor("DisassemblySelectionColor");
     mCipBackgroundColor = ConfigColor("DisassemblyCipBackgroundColor");
     mCipColor = ConfigColor("DisassemblyCipColor");
@@ -148,6 +146,7 @@ void Disassembly::tokenizerConfigUpdatedSlot()
 {
     mDisasm->UpdateConfig();
     mPermanentHighlightingMode = ConfigBool("Disassembler", "PermanentHighlightingMode");
+    mNoCurrentModuleText = ConfigBool("Disassembler", "NoCurrentModuleText");
 }
 
 /************************************************************************************
@@ -393,12 +392,13 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
     }
     break;
 
-    case 1: //draw bytes (TODO: some spaces between bytes)
+    case 1: //draw bytes
     {
+        const Instruction_t & instr = mInstBuffer.at(rowOffset);
         //draw functions
         Function_t funcType;
         FUNCTYPE funcFirst = DbgGetFunctionTypeAt(cur_addr);
-        FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + mInstBuffer.at(rowOffset).length - 1);
+        FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + instr.length - 1);
         if(funcLast == FUNC_END && funcFirst != FUNC_SINGLE)
             funcFirst = funcLast;
         switch(funcFirst)
@@ -451,94 +451,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         int jumpsize = paintJumpsGraphic(painter, x + funcsize, y - 1, wRVA, branchType != Instruction_t::None && branchType != Instruction_t::Call); //jump line
 
         //draw bytes
-        RichTextPainter::List richBytes;
-        RichTextPainter::CustomRichText_t space;
-        space.highlightColor = ConfigColor("DisassemblyRelocationUnderlineColor");
-        space.highlightWidth = 1;
-        space.highlightConnectPrev = true;
-        space.flags = RichTextPainter::FlagNone;
-        space.text = " ";
-        RichTextPainter::CustomRichText_t curByte;
-        curByte.highlightColor = ConfigColor("DisassemblyRelocationUnderlineColor");
-        curByte.highlightWidth = 1;
-        curByte.flags = RichTextPainter::FlagAll;
-        auto dump = mInstBuffer.at(rowOffset).dump;
-        for(int i = 0; i < dump.size(); i++)
-        {
-            DBGRELOCATIONINFO relocInfo;
-            if(DbgFunctions()->ModRelocationAtAddr(cur_addr + i, &relocInfo))
-            {
-                bool prevInSameReloc = relocInfo.rva < cur_addr + i - DbgFunctions()->ModBaseFromAddr(cur_addr + i);
-                space.highlight = prevInSameReloc;
-                curByte.highlight = true;
-                curByte.highlightConnectPrev = prevInSameReloc;
-            }
-            else
-            {
-                space.highlight = false;
-                curByte.highlight = false;
-            }
-
-            if(i)
-                richBytes.push_back(space);
-
-            auto byte = (unsigned char)dump.at(i);
-            curByte.text = ToByteString(byte);
-
-            DBGPATCHINFO patchInfo;
-            if(DbgFunctions()->PatchGetEx(cur_addr + i, &patchInfo))
-            {
-                if(byte == patchInfo.newbyte)
-                {
-                    curByte.textColor = mModifiedBytesColor;
-                    curByte.textBackground = mModifiedBytesBackgroundColor;
-                }
-                else
-                {
-                    curByte.textColor = mRestoredBytesColor;
-                    curByte.textBackground = mRestoredBytesBackgroundColor;
-                }
-            }
-            else
-            {
-                switch(byte)
-                {
-                case 0x00:
-                    curByte.textColor = mByte00Color;
-                    curByte.textBackground = mByte00BackgroundColor;
-                    break;
-                case 0x7F:
-                    curByte.textColor = mByte7FColor;
-                    curByte.textBackground = mByte7FBackgroundColor;
-                    break;
-                case 0xFF:
-                    curByte.textColor = mByteFFColor;
-                    curByte.textBackground = mByteFFBackgroundColor;
-                    break;
-                default:
-                    if(isprint(byte) || isspace(byte))
-                    {
-                        curByte.textColor = mByteIsPrintColor;
-                        curByte.textBackground = mByteIsPrintBackgroundColor;
-                    }
-                    else
-                    {
-                        curByte.textColor = mBytesColor;
-                        curByte.textBackground = mBytesBackgroundColor;
-                    }
-                    break;
-                }
-            }
-
-            richBytes.push_back(curByte);
-        }
-        if(mCodeFoldingManager && mCodeFoldingManager->isFolded(cur_addr))
-        {
-            curByte.textColor = mBytesColor;
-            curByte.textBackground = mBytesBackgroundColor;
-            curByte.text = "...";
-            richBytes.push_back(curByte);
-        }
+        auto richBytes = getRichBytes(instr);
         RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, richBytes, mFontMetrics);
     }
     break;
@@ -1055,7 +968,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, 
 
     bool showXref = false;
 
-    GraphicDump_t wPict = GD_Nothing;
+    GraphicDump wPict = GD_Nothing;
 
     if(branchType != Instruction_t::None && branchType != Instruction_t::Call)
     {
@@ -1134,7 +1047,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, 
         }
     }
 
-    GraphicJumpDirection_t curInstDir = GJD_Nothing;
+    GraphicJumpDirection curInstDir = GJD_Nothing;
 
     if(isjmp)
     {
@@ -1654,22 +1567,22 @@ void Disassembly::setSingleSelection(dsint index)
     emit selectionChanged(rvaToVa(index));
 }
 
-dsint Disassembly::getInitialSelection()
+dsint Disassembly::getInitialSelection() const
 {
     return mSelection.firstSelectedIndex;
 }
 
-dsint Disassembly::getSelectionSize()
+dsint Disassembly::getSelectionSize() const
 {
     return mSelection.toIndex - mSelection.fromIndex + 1;
 }
 
-dsint Disassembly::getSelectionStart()
+dsint Disassembly::getSelectionStart() const
 {
     return mSelection.fromIndex;
 }
 
-dsint Disassembly::getSelectionEnd()
+dsint Disassembly::getSelectionEnd() const
 {
     return mSelection.toIndex;
 }
@@ -1757,7 +1670,7 @@ bool Disassembly::isSelected(dsint base, dsint offset)
         return false;
 }
 
-bool Disassembly::isSelected(QList<Instruction_t>* buffer, int index)
+bool Disassembly::isSelected(QList<Instruction_t>* buffer, int index) const
 {
     if(buffer->size() > 0 && index >= 0 && index < buffer->size())
     {
@@ -1772,7 +1685,7 @@ bool Disassembly::isSelected(QList<Instruction_t>* buffer, int index)
     }
 }
 
-duint Disassembly::getSelectedVa()
+duint Disassembly::getSelectedVa() const
 {
     // Wrapper around commonly used code:
     // Converts the selected index to a valid virtual address
@@ -1814,6 +1727,73 @@ void Disassembly::prepareDataRange(dsint startRva, dsint endRva, const std::func
     }
 }
 
+RichTextPainter::List Disassembly::getRichBytes(const Instruction_t & instr) const
+{
+    RichTextPainter::List richBytes;
+    std::vector<std::pair<size_t, bool>> realBytes;
+    formatOpcodeString(instr, richBytes, realBytes);
+    dsint cur_addr = rvaToVa(instr.rva);
+
+    if(!richBytes.empty() && richBytes.back().text.endsWith(' '))
+        richBytes.back().text.chop(1); //remove trailing space if exists
+
+    for(size_t i = 0; i < richBytes.size(); i++)
+    {
+        auto byteIdx = realBytes[i].first;
+        auto isReal = realBytes[i].second;
+        RichTextPainter::CustomRichText_t & curByte = richBytes.at(i);
+        DBGRELOCATIONINFO relocInfo;
+        curByte.highlightColor = mDisassemblyRelocationUnderlineColor;
+        if(DbgFunctions()->ModRelocationAtAddr(cur_addr + byteIdx, &relocInfo))
+        {
+            bool prevInSameReloc = relocInfo.rva < cur_addr + byteIdx - DbgFunctions()->ModBaseFromAddr(cur_addr + byteIdx);
+            curByte.highlight = isReal;
+            curByte.highlightConnectPrev = i > 0 && prevInSameReloc;
+        }
+        else
+        {
+            curByte.highlight = false;
+            curByte.highlightConnectPrev = false;
+        }
+
+        DBGPATCHINFO patchInfo;
+        if(isReal && DbgFunctions()->PatchGetEx(cur_addr + byteIdx, &patchInfo))
+        {
+            if((unsigned char)(instr.dump.at(byteIdx)) == patchInfo.newbyte)
+            {
+                curByte.textColor = mModifiedBytesColor;
+                curByte.textBackground = mModifiedBytesBackgroundColor;
+            }
+            else
+            {
+                curByte.textColor = mRestoredBytesColor;
+                curByte.textBackground = mRestoredBytesBackgroundColor;
+            }
+        }
+        else
+        {
+            curByte.textColor = mBytesColor;
+            curByte.textBackground = mBytesBackgroundColor;
+        }
+    }
+
+    if(mCodeFoldingManager && mCodeFoldingManager->isFolded(cur_addr))
+    {
+        RichTextPainter::CustomRichText_t curByte;
+        curByte.textColor = mBytesColor;
+        curByte.textBackground = mBytesBackgroundColor;
+        curByte.highlightColor = mDisassemblyRelocationUnderlineColor;
+        curByte.highlightWidth = 1;
+        curByte.flags = RichTextPainter::FlagAll;
+        curByte.highlight = false;
+        curByte.textColor = mBytesColor;
+        curByte.textBackground = mBytesBackgroundColor;
+        curByte.text = "...";
+        richBytes.push_back(curByte);
+    }
+    return richBytes;
+}
+
 void Disassembly::prepareData()
 {
     dsint wViewableRowsCount = getViewableRowsCount();
@@ -1850,7 +1830,7 @@ void Disassembly::reloadData()
 /************************************************************************************
                         Public Methods
 ************************************************************************************/
-duint Disassembly::rvaToVa(dsint rva)
+duint Disassembly::rvaToVa(dsint rva) const
 {
     return mMemPage->va(rva);
 }
@@ -1866,7 +1846,7 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
     dsint wRVA = parVA - wBase;
     dsint wCipRva = parCIP - wBase;
 
-    HistoryData_t newHistory;
+    HistoryData newHistory;
 
     //VA history
     if(history)
@@ -2030,12 +2010,12 @@ const duint Disassembly::getBase() const
     return mMemPage->getBase();
 }
 
-duint Disassembly::getSize()
+duint Disassembly::getSize() const
 {
     return mMemPage->getSize();
 }
 
-duint Disassembly::getTableOffsetRva()
+duint Disassembly::getTableOffsetRva() const
 {
     return mInstBuffer.size() ? mInstBuffer.at(0).rva : 0;
 }
@@ -2076,14 +2056,14 @@ void Disassembly::historyNext()
     GuiUpdateAllViews();
 }
 
-bool Disassembly::historyHasPrevious()
+bool Disassembly::historyHasPrevious() const
 {
     if(!mCurrentVa || !mVaHistory.size()) //we are at the earliest history entry
         return false;
     return true;
 }
 
-bool Disassembly::historyHasNext()
+bool Disassembly::historyHasNext() const
 {
     int size = mVaHistory.size();
     if(!size || mCurrentVa >= mVaHistory.size() - 1) //we are at the newest history entry
@@ -2127,7 +2107,7 @@ QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], boo
     if(getLabel && DbgGetLabelAt(cur_addr, SEG_DEFAULT, label_)) //has label
     {
         char module[MAX_MODULE_SIZE] = "";
-        if(DbgGetModuleAt(cur_addr, module) && !QString(label_).startsWith("JMP.&"))
+        if(DbgGetModuleAt(cur_addr, module) && !QString(label_).startsWith("JMP.&") && !mNoCurrentModuleText)
             addrText += " <" + QString(module) + "." + QString(label_) + ">";
         else
             addrText += " <" + QString(label_) + ">";
@@ -2184,7 +2164,7 @@ bool Disassembly::hightlightToken(const CapstoneTokenizer::SingleToken & token)
     return true;
 }
 
-bool Disassembly::isHighlightMode()
+bool Disassembly::isHighlightMode() const
 {
     return mHighlightingMode;
 }

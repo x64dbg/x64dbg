@@ -7,7 +7,7 @@
 #include "Bridge.h"
 #include "MiscUtil.h"
 
-ReferenceView::ReferenceView(bool sourceView, QWidget* parent) : SearchListView(true, parent), mParent(dynamic_cast<QTabWidget*>(parent))
+ReferenceView::ReferenceView(bool sourceView, QWidget* parent) : StdSearchListView(parent, true, false), mParent(dynamic_cast<QTabWidget*>(parent))
 {
     // Setup SearchListView settings
     mSearchStartCol = 1;
@@ -69,15 +69,13 @@ void ReferenceView::setupContextMenu()
     mToggleBreakpoint = new QAction(DIcon("breakpoint_toggle.png"), tr("Toggle Breakpoint"), this);
     mToggleBreakpoint->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     addAction(mToggleBreakpoint);
-    mList->addAction(mToggleBreakpoint);
-    mSearchList->addAction(mToggleBreakpoint);
+    StdSearchListView::addAction(mToggleBreakpoint);
     connect(mToggleBreakpoint, SIGNAL(triggered()), this, SLOT(toggleBreakpoint()));
 
     mToggleBookmark = new QAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), this);
     mToggleBookmark->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     addAction(mToggleBookmark);
-    mList->addAction(mToggleBookmark);
-    mSearchList->addAction(mToggleBookmark);
+    StdSearchListView::addAction(mToggleBookmark);
     connect(mToggleBookmark, SIGNAL(triggered()), this, SLOT(toggleBookmark()));
 
     mSetBreakpointOnAllCommands = new QAction(DIcon("breakpoint_seton_all_commands.png"), tr("Set breakpoint on all commands"), this);
@@ -98,7 +96,7 @@ void ReferenceView::setupContextMenu()
 
 void ReferenceView::connectBridge()
 {
-    connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));
+    connect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAtRef(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetRowCount(dsint)), this, SLOT(setRowCount(dsint)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int, int, QString)), this, SLOT(setCellContent(int, int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
@@ -107,13 +105,13 @@ void ReferenceView::connectBridge()
     connect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
     connect(Bridge::getBridge(), SIGNAL(referenceAddCommand(QString, QString)), this, SLOT(addCommand(QString, QString)));
-    connect(this->mSearchList, SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
-    connect(this->mList, SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
+    connect(stdSearchList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
+    connect(stdList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
 }
 
 void ReferenceView::disconnectBridge()
 {
-    disconnect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAt(int, QString)));
+    disconnect(Bridge::getBridge(), SIGNAL(referenceAddColumnAt(int, QString)), this, SLOT(addColumnAtRef(int, QString)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetRowCount(dsint)), this, SLOT(setRowCount(dsint)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetCellContent(int, int, QString)), this, SLOT(setCellContent(int, int, QString)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceReloadData()), this, SLOT(reloadData()));
@@ -122,8 +120,8 @@ void ReferenceView::disconnectBridge()
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetSearchStartCol(int)), this, SLOT(setSearchStartCol(int)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceAddCommand(QString, QString)), this, SLOT(addCommand(QString, QString)));
-    disconnect(this->mSearchList, SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
-    disconnect(this->mList, SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
+    disconnect(stdSearchList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
+    disconnect(stdList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
 }
 
 void ReferenceView::refreshShortcutsSlot()
@@ -152,9 +150,9 @@ void ReferenceView::searchSelectionChanged(int index)
     DbgValToString("$__dump_refindex", index);
 }
 
-void ReferenceView::addColumnAt(int width, QString title)
+void ReferenceView::addColumnAtRef(int width, QString title)
 {
-    int charwidth = mList->getCharWidth();
+    int charwidth = getCharWidth();
     if(width)
         width = charwidth * width + 8;
     else
@@ -162,50 +160,29 @@ void ReferenceView::addColumnAt(int width, QString title)
     mSearchBox->setText("");
     if(title.toLower() == "&data&")
         title = "Data";
-    mList->addColumnAt(width, title, true);
-    mSearchList->addColumnAt(width, title, true);
+    StdSearchListView::addColumnAt(width, title, true);
 }
 
 void ReferenceView::setRowCount(dsint count)
 {
-    if(!mList->getRowCount() && count) //from zero to N rows
+    if(!stdList()->getRowCount() && count) //from zero to N rows
         searchSelectionChanged(0);
     emit mCountTotalLabel->setText(QString("%1").arg(count));
-    mSearchBox->setText("");
-    mList->setRowCount(count);
-}
-
-void ReferenceView::setCellContent(int r, int c, QString s)
-{
-    mSearchBox->setText("");
-    mList->setCellContent(r, c, s);
-}
-
-void ReferenceView::addCommand(QString title, QString command)
-{
-    mCommnadTitles.append(title);
-    mCommands.append(command);
-}
-
-void ReferenceView::reloadData()
-{
-    mSearchBox->setText("");
-    mList->reloadData();
-    mList->setFocus();
+    StdSearchListView::setRowCount(count);
 }
 
 void ReferenceView::setSingleSelection(int index, bool scroll)
 {
     mSearchBox->setText("");
-    mList->setSingleSelection(index);
+    stdList()->setSingleSelection(index);
     if(scroll) //TODO: better scrolling
-        mList->setTableOffset(index);
+        stdList()->setTableOffset(index);
 }
 
-void ReferenceView::setSearchStartCol(int col)
+void ReferenceView::addCommand(QString title, QString command)
 {
-    if(col < mList->getColumnCount())
-        mSearchStartCol = col;
+    mCommandTitles.append(title);
+    mCommands.append(command);
 }
 
 void ReferenceView::referenceContextMenu(QMenu* wMenu)
@@ -245,9 +222,9 @@ void ReferenceView::referenceContextMenu(QMenu* wMenu)
     if(this->mCommands.size() > 0)
     {
         wMenu->addSeparator();
-        for(auto i = 0; i < this->mCommnadTitles.size(); i++)
+        for(auto i = 0; i < this->mCommandTitles.size(); i++)
         {
-            QAction* newCommandAction = new QAction(this->mCommnadTitles.at(i), wMenu);
+            QAction* newCommandAction = new QAction(this->mCommandTitles.at(i), wMenu);
             newCommandAction->setData(QVariant(mCommands.at(i)));
             connect(newCommandAction, SIGNAL(triggered()), this, SLOT(referenceExecCommand()));
             wMenu->addAction(newCommandAction);

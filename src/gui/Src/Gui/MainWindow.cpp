@@ -121,6 +121,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Symbol view
     mSymbolView = new SymbolView();
+    Bridge::getBridge()->symbolView = mSymbolView;
     mSymbolView->setWindowTitle(tr("Symbols"));
     mSymbolView->setWindowIcon(DIcon("pdb.png"));
     mSymbolView->hide();
@@ -946,7 +947,7 @@ void MainWindow::updateWindowTitleSlot(QString filename)
 {
     if(filename.length())
     {
-        setWindowTitle(mWindowMainTitle + QString(" - ") + filename);
+        setWindowTitle(filename + QString(" - ") + mWindowMainTitle);
         windowTitle = filename;
     }
     else

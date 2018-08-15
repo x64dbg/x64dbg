@@ -6,9 +6,78 @@
 #include "YaraRuleSelectionDialog.h"
 #include "EntropyDialog.h"
 #include "BrowseDialog.h"
+#include "StdSearchListView.h"
+#include "ZehSymbolTable.h"
 #include <QVBoxLayout>
 #include <QProcess>
 #include <QFileDialog>
+
+class SymbolSearchList : public AbstractSearchList
+{
+public:
+    friend class SymbolView;
+
+    SymbolSearchList()
+    {
+        mList = new ZehSymbolTable();
+        mList->setAddressColumn(0);
+        mList->setAddressLabel(false);
+        mSearchList = new ZehSymbolTable();
+        mSearchList->setAddressColumn(0);
+        mSearchList->setAddressLabel(false);
+    }
+
+    void lock() override
+    {
+        mList->mMutex.lock();
+        mSearchList->mMutex.lock();
+    }
+
+    void unlock() override
+    {
+        mSearchList->mMutex.unlock();
+        mList->mMutex.unlock();
+    }
+
+    AbstractStdTable* list() const override
+    {
+        return mList;
+    }
+
+    AbstractStdTable* searchList() const override
+    {
+        return mSearchList;
+    }
+
+    void filter(const QString & filter, FilterType type, int startColumn) override
+    {
+        mSearchList->setRowCount(0);
+        int newRowCount = 0;
+        mSearchList->mData.clear();
+        mSearchList->mData.reserve(mList->mData.size());
+        mSearchList->mModules = mList->mModules;
+        int rows = mList->getRowCount();
+        for(int i = 0; i < rows; i++)
+        {
+            if(rowMatchesFilter(filter, type, i, startColumn))
+            {
+                newRowCount++;
+                mSearchList->mData.push_back(mList->mData.at(i));
+            }
+        }
+        mSearchList->setRowCount(newRowCount);
+    }
+
+    void addAction(QAction* action)
+    {
+        mList->addAction(action);
+        mSearchList->addAction(action);
+    }
+
+private:
+    ZehSymbolTable* mList;
+    ZehSymbolTable* mSearchList;
+};
 
 SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView)
 {
@@ -22,46 +91,25 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     setLayout(mMainLayout);
 
     // Create reference view
-    mSearchListView = new SearchListView(true, this, true);
-    mSearchListView->mSearchStartCol = 1;
+    mSymbolSearchList = new SymbolSearchList();
+    mSymbolList = new SearchListView(this, mSymbolSearchList, true, true);
+    mSymbolList->mSearchStartCol = 1;
 
     // Create module list
-    mModuleList = new SearchListView(true, this);
-    mModuleList->mSearchStartCol = 0;
-    int charwidth = mModuleList->mList->getCharWidth();
-    mModuleList->mList->enableMultiSelection(true);
-    mModuleList->mList->setCipBase(true);
-    mModuleList->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), true);
-    mModuleList->mList->addColumnAt(300, tr("Module"), true);
-    mModuleList->mList->addColumnAt(charwidth * 8, tr("Party"), true);
-    mModuleList->mList->addColumnAt(charwidth * 60, tr("Path"), true);
-    mModuleList->mList->loadColumnFromConfig("Module");
-    mModuleList->mSearchList->setCipBase(true);
-    mModuleList->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), true);
-    mModuleList->mSearchList->addColumnAt(300, "Module", true);
-    mModuleList->mSearchList->addColumnAt(charwidth * 8, tr("Party"), true);
-    mModuleList->mSearchList->addColumnAt(charwidth * 60, tr("Path"), true);
-    mModuleList->mSearchList->loadColumnFromConfig("Module");
-
-    // Setup symbol list
-    mSearchListView->mList->enableMultiSelection(true);
-    mSearchListView->mList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Address"), true);
-    mSearchListView->mList->addColumnAt(charwidth * 6 + 8, tr("Type"), true);
-    mSearchListView->mList->addColumnAt(charwidth * 80, tr("Symbol"), true);
-    mSearchListView->mList->addColumnAt(2000, tr("Symbol (undecorated)"), true);
-    mSearchListView->mList->loadColumnFromConfig("Symbol");
-
-    // Setup search list
-    mSearchListView->mSearchList->enableMultiSelection(true);
-    mSearchListView->mSearchList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Address"), true);
-    mSearchListView->mSearchList->addColumnAt(charwidth * 6 + 8, tr("Type"), true);
-    mSearchListView->mSearchList->addColumnAt(charwidth * 80, tr("Symbol"), true);
-    mSearchListView->mSearchList->addColumnAt(2000, tr("Symbol (undecorated)"), true);
-    mSearchListView->mSearchList->loadColumnFromConfig("Symbol");
+    mModuleList = new StdSearchListView(this, true, false);
+    mModuleList->setSearchStartCol(0);
+    mModuleList->enableMultiSelection(true);
+    mModuleList->setAddressColumn(0, true);
+    int charwidth = mModuleList->getCharWidth();
+    mModuleList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), true);
+    mModuleList->addColumnAt(300, tr("Module"), true);
+    mModuleList->addColumnAt(charwidth * 8, tr("Party"), true);
+    mModuleList->addColumnAt(charwidth * 60, tr("Path"), true);
+    mModuleList->loadColumnFromConfig("Module");
 
     // Setup list splitter
     ui->listSplitter->addWidget(mModuleList);
-    ui->listSplitter->addWidget(mSearchListView);
+    ui->listSplitter->addWidget(mSymbolList);
 #ifdef _WIN64
     // mModuleList : mSymbolList = 40 : 100
     ui->listSplitter->setStretchFactor(0, 40);
@@ -91,8 +139,8 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearSymbolLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(clearSymbolLog()), this, SLOT(clearSymbolLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(selectionSymmodGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
-    connect(mModuleList->mList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
-    connect(mModuleList->mSearchList, SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
+    connect(mModuleList->stdList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
+    connect(mModuleList->stdSearchList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
     connect(mModuleList, SIGNAL(emptySearchResult()), this, SLOT(emptySearchResultSlot()));
     connect(mModuleList, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(moduleContextMenu(QMenu*)));
     connect(mModuleList, SIGNAL(enterPressedSignal()), this, SLOT(moduleFollow()));
@@ -100,8 +148,8 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     connect(Bridge::getBridge(), SIGNAL(setSymbolProgress(int)), ui->symbolProgress, SLOT(setValue(int)));
     connect(Bridge::getBridge(), SIGNAL(symbolRefreshCurrent()), this, SLOT(symbolRefreshCurrent()));
     connect(Bridge::getBridge(), SIGNAL(symbolSelectModule(duint)), this, SLOT(symbolSelectModule(duint)));
-    connect(mSearchListView, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(symbolContextMenu(QMenu*)));
-    connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(enterPressedSlot()));
+    connect(mSymbolList, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(symbolContextMenu(QMenu*)));
+    connect(mSymbolList, SIGNAL(enterPressedSignal()), this, SLOT(enterPressedSlot()));
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateStyle()));
 }
@@ -109,6 +157,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
 SymbolView::~SymbolView()
 {
     delete ui;
+    delete mSymbolSearchList;
 }
 
 inline void saveSymbolsSplitter(QSplitter* splitter, QString name)
@@ -139,6 +188,28 @@ void SymbolView::loadWindowSettings()
     loadSymbolsSplitter(ui->mainSplitter, "mHSymbolsLogSplitter");
 }
 
+void SymbolView::invalidateSymbolSource(duint base)
+{
+    mSymbolSearchList->lock();
+    for(auto mod : mSymbolSearchList->mList->mModules)
+    {
+        if(mod == base)
+        {
+            mSymbolSearchList->mList->mData.clear();
+            mSymbolSearchList->mList->mData.shrink_to_fit();
+            mSymbolSearchList->mList->setRowCount(0);
+            mSymbolSearchList->mSearchList->mData.clear();
+            mSymbolSearchList->mSearchList->mData.shrink_to_fit();
+            mSymbolSearchList->mSearchList->setRowCount(0);
+            mSymbolSearchList->mSearchList->setHighlightText(QString());
+            GuiSymbolLogAdd(QString("[SymbolView] reload symbols for base %1\n").arg(ToPtrString(base)).toUtf8().constData());
+            // TODO: properly reload symbol list
+            break;
+        }
+    }
+    mSymbolSearchList->unlock();
+}
+
 void SymbolView::setupContextMenu()
 {
     QIcon disassembler = DIcon(ArchValue("processor32.png", "processor64.png"));
@@ -155,15 +226,13 @@ void SymbolView::setupContextMenu()
     mToggleBreakpoint = new QAction(DIcon("breakpoint.png"), tr("Toggle Breakpoint"), this);
     mToggleBreakpoint->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mToggleBreakpoint);
-    mSearchListView->mList->addAction(mToggleBreakpoint);
-    mSearchListView->mSearchList->addAction(mToggleBreakpoint);
+    mSymbolSearchList->addAction(mToggleBreakpoint);
     connect(mToggleBreakpoint, SIGNAL(triggered()), this, SLOT(toggleBreakpoint()));
 
     mToggleBookmark = new QAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), this);
     mToggleBookmark->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mToggleBookmark);
-    mSearchListView->mList->addAction(mToggleBookmark);
-    mSearchListView->mSearchList->addAction(mToggleBookmark);
+    mSymbolSearchList->addAction(mToggleBookmark);
     connect(mToggleBookmark, SIGNAL(triggered()), this, SLOT(toggleBookmark()));
 
     //Modules
@@ -178,50 +247,43 @@ void SymbolView::setupContextMenu()
     mFollowInMemMap = new QAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), this);
     mFollowInMemMap->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mFollowInMemMap);
-    mModuleList->mList->addAction(mFollowInMemMap);
-    mModuleList->mSearchList->addAction(mFollowInMemMap);
+    mModuleList->addAction(mFollowInMemMap);
     connect(mFollowInMemMap, SIGNAL(triggered()), this, SLOT(moduleFollowMemMap()));
 
     mDownloadSymbolsAction = new QAction(DIcon("pdb.png"), tr("&Download Symbols for This Module"), this);
     mDownloadSymbolsAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mDownloadSymbolsAction);
-    mModuleList->mList->addAction(mDownloadSymbolsAction);
-    mModuleList->mSearchList->addAction(mDownloadSymbolsAction);
+    mModuleList->addAction(mDownloadSymbolsAction);
     connect(mDownloadSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadSymbols()));
 
     mDownloadAllSymbolsAction = new QAction(DIcon("pdb.png"), tr("Download Symbols for &All Modules"), this);
     mDownloadAllSymbolsAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mDownloadAllSymbolsAction);
-    mModuleList->mList->addAction(mDownloadAllSymbolsAction);
-    mModuleList->mSearchList->addAction(mDownloadAllSymbolsAction);
+    mModuleList->addAction(mDownloadAllSymbolsAction);
     connect(mDownloadAllSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadAllSymbols()));
 
     mCopyPathAction = new QAction(DIcon("copyfilepath.png"), tr("Copy File &Path"), this);
     mCopyPathAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mCopyPathAction);
-    mModuleList->mList->addAction(mCopyPathAction);
-    mModuleList->mSearchList->addAction(mCopyPathAction);
+    mModuleList->addAction(mCopyPathAction);
     connect(mCopyPathAction, SIGNAL(triggered()), this, SLOT(moduleCopyPath()));
 
     mBrowseInExplorer = new QAction(DIcon("browseinexplorer.png"), tr("Browse in Explorer"), this);
     mBrowseInExplorer->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mBrowseInExplorer);
-    mModuleList->mList->addAction(mBrowseInExplorer);
-    mModuleList->mSearchList->addAction(mBrowseInExplorer);
+    mModuleList->addAction(mBrowseInExplorer);
     connect(mBrowseInExplorer, SIGNAL(triggered()), this, SLOT(moduleBrowse()));
 
     mLoadLib = new QAction(DIcon("lib_load.png"), tr("Load library..."), this);
     mLoadLib->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mLoadLib);
-    mModuleList->mList->addAction(mLoadLib);
-    mModuleList->mSearchList->addAction(mLoadLib);
+    mModuleList->addAction(mLoadLib);
     connect(mLoadLib, SIGNAL(triggered()), this, SLOT(moduleLoad()));
 
     mFreeLib = new QAction(DIcon("lib_free.png"), tr("Free library"), this);
     mFreeLib->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mFreeLib);
-    mModuleList->mList->addAction(mFreeLib);
-    mModuleList->mSearchList->addAction(mFreeLib);
+    mModuleList->addAction(mFreeLib);
     connect(mFreeLib, SIGNAL(triggered()), this, SLOT(moduleFree()));
 
     mYaraAction = new QAction(DIcon("yara.png"), tr("&Yara Memory..."), this);
@@ -233,29 +295,25 @@ void SymbolView::setupContextMenu()
     mEntropyAction = new QAction(DIcon("entropy.png"), tr("Entropy..."), this);
     mEntropyAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mEntropyAction);
-    mModuleList->mList->addAction(mEntropyAction);
-    mModuleList->mSearchList->addAction(mEntropyAction);
+    mModuleList->addAction(mEntropyAction);
     connect(mEntropyAction, SIGNAL(triggered()), this, SLOT(moduleEntropy()));
 
     mModSetUserAction = new QAction(DIcon("markasuser.png"), tr("Mark as &user module"), this);
     mModSetUserAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mModSetUserAction);
-    mModuleList->mList->addAction(mModSetUserAction);
-    mModuleList->mSearchList->addAction(mModSetUserAction);
+    mModuleList->addAction(mModSetUserAction);
     connect(mModSetUserAction, SIGNAL(triggered()), this, SLOT(moduleSetUser()));
 
     mModSetSystemAction = new QAction(DIcon("markassystem.png"), tr("Mark as &system module"), this);
     mModSetSystemAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mModSetSystemAction);
-    mModuleList->mList->addAction(mModSetSystemAction);
-    mModuleList->mSearchList->addAction(mModSetSystemAction);
+    mModuleList->addAction(mModSetSystemAction);
     connect(mModSetSystemAction, SIGNAL(triggered()), this, SLOT(moduleSetSystem()));
 
     mModSetPartyAction = new QAction(DIcon("markasparty.png"), tr("Mark as &party..."), this);
     mModSetPartyAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mModSetPartyAction);
-    mModuleList->mList->addAction(mModSetPartyAction);
-    mModuleList->mSearchList->addAction(mModSetPartyAction);
+    mModuleList->addAction(mModSetPartyAction);
     connect(mModSetPartyAction, SIGNAL(triggered()), this, SLOT(moduleSetParty()));
 
     //Shortcuts
@@ -295,63 +353,55 @@ void SymbolView::clearSymbolLogSlot()
     ui->symbolLogEdit->clear();
 }
 
-void SymbolView::cbSymbolEnum(SYMBOLINFO* symbol, void* user)
-{
-    StdTable* symbolList = (StdTable*)user;
-    dsint index = symbolList->getRowCount();
-    symbolList->setRowCount(index + 1);
-    symbolList->setCellContent(index, 0, ToPtrString(symbol->addr));
-    if(symbol->decoratedSymbol)
-    {
-        symbolList->setCellContent(index, 2, symbol->decoratedSymbol);
-    }
-    if(symbol->undecoratedSymbol)
-    {
-        symbolList->setCellContent(index, 3, symbol->undecoratedSymbol);
-    }
-
-    if(symbol->isImported)
-    {
-        symbolList->setCellContent(index, 1, tr("Import"));
-    }
-    else
-    {
-        symbolList->setCellContent(index, 1, tr("Export"));
-    }
-}
-
 void SymbolView::moduleSelectionChanged(int index)
 {
     Q_UNUSED(index);
     setUpdatesEnabled(false);
 
-    mSearchListView->mList->setRowCount(0);
+    std::vector<duint> selectedModules;
     for(auto index : mModuleList->mCurList->getSelection())
     {
-        QString mod = mModuleList->mCurList->getCellContent(index, 1);
-        if(!mModuleBaseList.count(mod))
-            continue;
-        DbgSymbolEnumFromCache(mModuleBaseList[mod], cbSymbolEnum, mSearchListView->mList);
+        QString modBase = mModuleList->mCurList->getCellContent(index, 0);
+        duint wVA;
+        if(DbgFunctions()->ValFromString(modBase.toUtf8().constData(), &wVA))
+            selectedModules.push_back(wVA);
     }
-    mSearchListView->mList->reloadData();
-    mSearchListView->mList->setSingleSelection(0);
-    mSearchListView->mList->setTableOffset(0);
-    if(!mSearchListView->isSearchBoxLocked())
-        mSearchListView->mSearchBox->setText("");
+
+    std::vector<SYMBOLPTR> data;
+    for(auto base : selectedModules)
+    {
+        DbgSymbolEnum(base, [](const SYMBOLPTR * info, void* userdata)
+        {
+            ((std::vector<SYMBOLPTR>*)userdata)->push_back(*info);
+            return true; // TODO: allow aborting (enumeration in a separate thread)
+        }, &data);
+    }
+
+    mSymbolSearchList->lock();
+    mSymbolSearchList->mList->mModules = std::move(selectedModules);
+    mSymbolSearchList->mList->mData = std::move(data);
+    mSymbolSearchList->mList->setRowCount(mSymbolSearchList->mList->mData.size());
+    mSymbolSearchList->unlock();
+    mSymbolSearchList->mList->setSingleSelection(0);
+    mSymbolSearchList->mList->setTableOffset(0);
+    mSymbolSearchList->mList->reloadData();
+    if(!mSymbolList->isSearchBoxLocked())
+        mSymbolList->mSearchBox->setText("");
     else
-        mSearchListView->refreshSearchList();
+        mSymbolList->refreshSearchList();
 
     setUpdatesEnabled(true);
 }
 
 void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
 {
-    mModuleList->mList->setRowCount(module_count);
+    mModuleList->stdList()->setRowCount(module_count);
     if(!module_count)
     {
-        mSearchListView->mList->setRowCount(0);
-        mSearchListView->mList->setSingleSelection(0);
-        mModuleList->mList->setSingleSelection(0);
+        // TODO
+        //mSymbolList->mList->setRowCount(0);
+        //mSymbolList->mList->setSingleSelection(0);
+        mModuleList->stdList()->setSingleSelection(0);
     }
 
     mModuleBaseList.clear();
@@ -360,27 +410,27 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
         QString modName(modules[i].name);
         mModuleBaseList.insert(modName, modules[i].base);
         int party = DbgFunctions()->ModGetParty(modules[i].base);
-        mModuleList->mList->setCellContent(i, 0, ToPtrString(modules[i].base));
-        mModuleList->mList->setCellUserdata(i, 0, modules[i].base);
-        mModuleList->mList->setCellContent(i, 1, modName);
+        mModuleList->stdList()->setCellContent(i, 0, ToPtrString(modules[i].base));
+        mModuleList->stdList()->setCellUserdata(i, 0, modules[i].base);
+        mModuleList->stdList()->setCellContent(i, 1, modName);
         switch(party)
         {
         case 0:
-            mModuleList->mList->setCellContent(i, 2, tr("User"));
+            mModuleList->stdList()->setCellContent(i, 2, tr("User"));
             break;
         case 1:
-            mModuleList->mList->setCellContent(i, 2, tr("System"));
+            mModuleList->stdList()->setCellContent(i, 2, tr("System"));
             break;
         default:
-            mModuleList->mList->setCellContent(i, 2, tr("Party: %1").arg(party));
+            mModuleList->stdList()->setCellContent(i, 2, tr("Party: %1").arg(party));
             break;
         }
         char szModPath[MAX_PATH] = "";
         if(!DbgFunctions()->ModPathFromAddr(modules[i].base, szModPath, _countof(szModPath)))
             *szModPath = '\0';
-        mModuleList->mList->setCellContent(i, 3, szModPath);
+        mModuleList->stdList()->setCellContent(i, 3, szModPath);
     }
-    mModuleList->mList->reloadData();
+    mModuleList->stdList()->reloadData();
     //NOTE: DO NOT CALL mModuleList->refreshSearchList() IT WILL DEGRADE PERFORMANCE!
     if(modules)
         BridgeFree(modules);
@@ -388,11 +438,11 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
 
 void SymbolView::symbolContextMenu(QMenu* wMenu)
 {
-    if(!mSearchListView->mCurList->getRowCount())
+    if(!mSymbolList->mCurList->getRowCount())
         return;
     wMenu->addAction(mFollowSymbolAction);
     wMenu->addAction(mFollowSymbolDumpAction);
-    if(mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 1) == tr("Import"))
+    if(mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 1) == tr("Import"))
         wMenu->addAction(mFollowSymbolImportAction);
     wMenu->addSeparator();
     wMenu->addAction(mToggleBreakpoint);
@@ -401,22 +451,22 @@ void SymbolView::symbolContextMenu(QMenu* wMenu)
 
 void SymbolView::symbolRefreshCurrent()
 {
-    mModuleList->mList->setSingleSelection(mModuleList->mList->getInitialSelection());
+    mModuleList->stdList()->setSingleSelection(mModuleList->stdList()->getInitialSelection());
 }
 
 void SymbolView::symbolFollow()
 {
-    DbgCmdExec(QString("disasm " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
+    DbgCmdExec(QString("disasm " + mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 0)).toUtf8().constData());
 }
 
 void SymbolView::symbolFollowDump()
 {
-    DbgCmdExecDirect(QString("dump " + mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0)).toUtf8().constData());
+    DbgCmdExecDirect(QString("dump " + mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 0)).toUtf8().constData());
 }
 
 void SymbolView::symbolFollowImport()
 {
-    auto addrText = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0);
+    auto addrText = mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 0);
     auto addr = DbgValFromString(QString("[%1]").arg(addrText).toUtf8().constData());
     if(!DbgMemIsValidReadPtr(addr))
         return;
@@ -433,12 +483,12 @@ void SymbolView::symbolFollowImport()
 
 void SymbolView::symbolSelectModule(duint base)
 {
-    for(dsint i = 0; i < mModuleList->mList->getRowCount(); i++)
+    for(dsint i = 0; i < mModuleList->stdList()->getRowCount(); i++)
     {
-        if(mModuleList->mList->getCellUserdata(i, 0) == base)
+        if(mModuleList->stdList()->getCellUserdata(i, 0) == base)
         {
-            mModuleList->mList->setSingleSelection(i);
-            mModuleList->mSearchList->hide(); //This could be described as a hack, but you could also say it's like wiping sandpaper over your new white Tesla.
+            mModuleList->stdList()->setSingleSelection(i);
+            mModuleList->stdSearchList()->hide(); //This could be described as a hack, but you could also say it's like wiping sandpaper over your new white Tesla.
             mModuleList->mSearchBox->clear();
             break;
         }
@@ -447,10 +497,10 @@ void SymbolView::symbolSelectModule(duint base)
 
 void SymbolView::enterPressedSlot()
 {
-    auto addr = DbgValFromString(mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0).toUtf8().constData());
+    auto addr = DbgValFromString(mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 0).toUtf8().constData());
     if(!DbgMemIsValidReadPtr(addr))
         return;
-    if(mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 1) == tr("Import"))
+    if(mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 1) == tr("Import"))
         symbolFollowImport();
     else if(DbgFunctions()->MemIsCodePage(addr, false))
         symbolFollow();
@@ -597,20 +647,20 @@ void SymbolView::toggleBreakpoint()
     if(!DbgIsDebugging())
         return;
 
-    if(!mSearchListView->mCurList->getRowCount())
+    if(!mSymbolList->mCurList->getRowCount())
         return;
 
-    auto selection = mSearchListView->mCurList->getSelection();
+    auto selection = mSymbolList->mCurList->getSelection();
 
     for(auto selectedIdx : selection)
     {
-        QString addrText = mSearchListView->mCurList->getCellContent(selectedIdx, 0);
+        QString addrText = mSymbolList->mCurList->getCellContent(selectedIdx, 0);
         duint wVA;
         if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
             return;
 
         //Import means that the address is an IAT entry so we read the actual function address
-        if(mSearchListView->mCurList->getCellContent(selectedIdx, 1) == tr("Import"))
+        if(mSymbolList->mCurList->getCellContent(selectedIdx, 1) == tr("Import"))
             DbgMemRead(wVA, &wVA, sizeof(wVA));
 
         if(!DbgMemIsValidReadPtr(wVA))
@@ -637,9 +687,9 @@ void SymbolView::toggleBookmark()
     if(!DbgIsDebugging())
         return;
 
-    if(!mSearchListView->mCurList->getRowCount())
+    if(!mSymbolList->mCurList->getRowCount())
         return;
-    QString addrText = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0);
+    QString addrText = mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 0);
     duint wVA;
     if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
         return;
@@ -681,8 +731,7 @@ void SymbolView::moduleSetSystem()
     int i = mModuleList->mCurList->getInitialSelection();
     duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(i, 0).toUtf8().constData());
     DbgFunctions()->ModSetParty(modbase, 1);
-    mModuleList->mCurList->setCellContent(i, 2, tr("System"));
-    mModuleList->mCurList->reloadData();
+    DbgFunctions()->RefreshModuleList();
 }
 
 void SymbolView::moduleSetUser()
@@ -690,8 +739,7 @@ void SymbolView::moduleSetUser()
     int i = mModuleList->mCurList->getInitialSelection();
     duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(i, 0).toUtf8().constData());
     DbgFunctions()->ModSetParty(modbase, 0);
-    mModuleList->mCurList->setCellContent(i, 2, tr("User"));
-    mModuleList->mCurList->reloadData();
+    DbgFunctions()->RefreshModuleList();
 }
 
 void SymbolView::moduleSetParty()
@@ -708,6 +756,7 @@ void SymbolView::moduleSetParty()
         if(ok)
         {
             DbgFunctions()->ModSetParty(modbase, party);
+            /* TODO: refresh module list
             switch(party)
             {
             case 0:
@@ -720,7 +769,7 @@ void SymbolView::moduleSetParty()
                 mModuleList->mCurList->setCellContent(i, 2, tr("Party: %1").arg(party));
                 break;
             }
-            mModuleList->mCurList->reloadData();
+            mModuleList->mCurList->reloadData();*/
         }
         else
             SimpleErrorBox(this, tr("Error"), tr("The party number can only be an integer"));
@@ -736,7 +785,7 @@ void SymbolView::moduleFollowMemMap()
 void SymbolView::emptySearchResultSlot()
 {
     // No result after search
-    mSearchListView->mCurList->setRowCount(0);
+    mSymbolList->mCurList->setRowCount(0);
 }
 
 void SymbolView::selectionGetSlot(SELECTIONDATA* selection)

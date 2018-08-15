@@ -7,6 +7,7 @@
 #include <QDateTime>
 #include "Bridge.h"
 #include "StringUtil.h"
+#include "MiscUtil.h"
 
 UpdateChecker::UpdateChecker(QWidget* parent)
     : QNetworkAccessManager(parent),

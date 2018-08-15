@@ -80,3 +80,7 @@ To help translate x64dbg, just head over to http://translate.x64dbg.com, click a
 ### Improve the documentation
 
 If you see any room for improvement in the [documentation](http://help.x64dbg.com), just send a pull request or contact us to discuss your changes.
+
+### Triage Issues [![Open Source Helpers](https://www.codetriage.com/x64dbg/x64dbg/badges/users.svg)](https://www.codetriage.com/x64dbg/x64dbg)
+
+You can triage issues which may include reproducing bug reports or asking for vital information, such as version numbers or reproduction instructions. If you would like to start triaging issues, one easy way to get started is to [subscribe to x64dbg on CodeTriage](https://www.codetriage.com/x64dbg/x64dbg).

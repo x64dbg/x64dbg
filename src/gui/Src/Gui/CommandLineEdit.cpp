@@ -1,5 +1,6 @@
 #include "CommandLineEdit.h"
 #include "Bridge.h"
+#include "Configuration.h"
 
 CommandLineEdit::CommandLineEdit(QWidget* parent)
     : HistoryLineEdit(parent),

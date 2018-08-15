@@ -4,12 +4,17 @@
 #include "StringUtil.h"
 #include <QMessageBox>
 
+static int getStringMaxLength(HexDump::DataDescriptor desc);
+static int byteStringMaxLength(HexDump::ByteViewMode mode);
+static int wordStringMaxLength(HexDump::WordViewMode mode);
+static int dwordStringMaxLength(HexDump::DwordViewMode mode);
+static int qwordStringMaxLength(HexDump::QwordViewMode mode);
+static int twordStringMaxLength(HexDump::TwordViewMode mode);
+
 HexDump::HexDump(QWidget* parent)
     : AbstractTableView(parent)
 {
-    SelectionData_t data;
-    memset(&data, 0, sizeof(SelectionData_t));
-    mSelection = data;
+    memset(&mSelection, 0, sizeof(SelectionData));
 
     setDrawDebugOnly(true);
 
@@ -22,9 +27,9 @@ HexDump::HexDump(QWidget* parent)
 
     clearDescriptors();
 
-    backgroundColor = ConfigColor("HexDumpBackgroundColor");
-    textColor = ConfigColor("HexDumpTextColor");
-    selectionColor = ConfigColor("HexDumpSelectionColor");
+    mBackgroundColor = ConfigColor("HexDumpBackgroundColor");
+    mTextColor = ConfigColor("HexDumpTextColor");
+    mSelectionColor = ConfigColor("HexDumpSelectionColor");
 
     mRvaDisplayEnabled = false;
     mSyncAddrExpression = "";
@@ -48,9 +53,9 @@ void HexDump::updateColors()
 {
     AbstractTableView::updateColors();
 
-    backgroundColor = ConfigColor("HexDumpBackgroundColor");
-    textColor = ConfigColor("HexDumpTextColor");
-    selectionColor = ConfigColor("HexDumpSelectionColor");
+    mBackgroundColor = ConfigColor("HexDumpBackgroundColor");
+    mTextColor = ConfigColor("HexDumpTextColor");
+    mSelectionColor = ConfigColor("HexDumpSelectionColor");
 
     mModifiedBytesColor = ConfigColor("HexDumpModifiedBytesColor");
     mModifiedBytesBackgroundColor = ConfigColor("HexDumpModifiedBytesBackgroundColor");
@@ -170,17 +175,17 @@ void HexDump::gotoNextSlot()
     printDumpAt(mHistory.historyNext());
 }
 
-duint HexDump::rvaToVa(dsint rva)
+duint HexDump::rvaToVa(dsint rva) const
 {
     return mMemPage->va(rva);
 }
 
-duint HexDump::getTableOffsetRva()
+duint HexDump::getTableOffsetRva() const
 {
     return getTableOffset() * getBytePerRowCount() - mByteOffset;
 }
 
-QString HexDump::makeAddrText(duint va)
+QString HexDump::makeAddrText(duint va) const
 {
     char label[MAX_LABEL_SIZE] = "";
     QString addrText = "";
@@ -491,7 +496,7 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
             wAccept = false;
         }
     }
-    if((event->button() & Qt::BackButton) != 0)
+    if((event->button() & Qt::BackButton) != 0) //Go to previous/next history
     {
         wAccept = true;
         printDumpAt(mHistory.historyPrev());
@@ -508,22 +513,117 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
 
 void HexDump::keyPressEvent(QKeyEvent* event)
 {
-    auto key = event->key();
-    auto control = event->modifiers() == Qt::ControlModifier;
-    if(key == Qt::Key_Left || (key == Qt::Key_Up && control)) //TODO: see if Ctrl+Up is redundant
+    int key = event->key();
+    dsint selStart = getInitialSelection();
+    char granularity = 1; //Size of a data word.
+    char action = 0; //Where to scroll the scrollbar
+    Qt::KeyboardModifiers modifiers = event->modifiers();
+    for(int i = 0; i < mDescriptor.size(); i++) //Find the first data column
     {
-        duint offsetVa = rvaToVa(getTableOffsetRva()) - 1;
-        if(mMemPage->inRange(offsetVa))
-            printDumpAt(offsetVa, false);
+        if(mDescriptor.at(i).isData)
+        {
+            granularity = getSizeOf(mDescriptor.at(i).data.itemSize);
+            break;
+        }
     }
-    else if(key == Qt::Key_Right || (key == Qt::Key_Down && control)) //TODO: see if Ctrl+Down is redundant
+    if(modifiers == 0) //No modifier
     {
-        duint offsetVa = rvaToVa(getTableOffsetRva()) + 1;
-        if(mMemPage->inRange(offsetVa))
-            printDumpAt(offsetVa, false);
+        //selStart -= selStart % granularity; //Align the selection to word boundary. TODO: Unaligned data?
+        switch(key)
+        {
+        case Qt::Key_Left:
+        {
+            selStart -= granularity;
+            if(0 <= selStart)
+                action = -1;
+        }
+        break;
+        case Qt::Key_Right:
+        {
+            selStart += granularity;
+            if(mMemPage->getSize() > selStart)
+                action = 1;
+        }
+        break;
+        case Qt::Key_Up:
+        {
+            selStart -= getBytePerRowCount();
+            if(0 <= selStart)
+                action = -1;
+        }
+        break;
+        case Qt::Key_Down:
+        {
+            selStart += getBytePerRowCount();
+            if(mMemPage->getSize() > selStart)
+                action = 1;
+        }
+        break;
+        default:
+            AbstractTableView::keyPressEvent(event);
+        }
+
+        if(action != 0)
+        {
+            //Check if selection is out of viewport. Step the scrollbar if necessary. (TODO)
+            if(action == 1 && selStart >= getViewableRowsCount() * getBytePerRowCount() + getTableOffsetRva())
+                verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+            else if(action == -1 && selStart < getTableOffsetRva())
+                verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+            setSingleSelection(selStart);
+            if(granularity > 1)
+                expandSelectionUpTo(selStart + granularity - 1);
+            reloadData();
+        }
     }
-    else
-        AbstractTableView::keyPressEvent(event);
+    else if(modifiers == Qt::ControlModifier || modifiers == (Qt::ControlModifier | Qt::AltModifier))
+    {
+        duint offsetVa = rvaToVa(getTableOffsetRva());
+        switch(key)
+        {
+        case Qt::Key_Left:
+            action = (modifiers & Qt::AltModifier) ? -1 : -granularity;
+            break;
+        case Qt::Key_Right:
+            action = (modifiers & Qt::AltModifier) ? 1 : granularity;
+            break;
+        case Qt::Key_Up:
+            action = 0;
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+            break;
+        case Qt::Key_Down:
+            action = 0;
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+            break;
+        }
+        if(action != 0)
+        {
+            offsetVa += action;
+            if(mMemPage->inRange(offsetVa))
+                printDumpAt(offsetVa, false);
+        }
+    }
+    else if(modifiers == Qt::ShiftModifier)
+    {
+        //TODO
+    }
+    /*
+        Let's keep the old code for a while until nobody remembers previous behaviour.
+        if(key == Qt::Key_Left || (key == Qt::Key_Up && control)) //TODO: see if Ctrl+Up is redundant
+        {
+            duint offsetVa = rvaToVa(getTableOffsetRva()) - 1;
+            if(mMemPage->inRange(offsetVa))
+                printDumpAt(offsetVa, false);
+        }
+        else if(key == Qt::Key_Right || (key == Qt::Key_Down && control)) //TODO: see if Ctrl+Down is redundant
+        {
+            duint offsetVa = rvaToVa(getTableOffsetRva()) + 1;
+            if(mMemPage->inRange(offsetVa))
+                printDumpAt(offsetVa, false);
+        }
+        else
+            AbstractTableView::keyPressEvent(event);
+    */
 }
 
 QString HexDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -550,7 +650,7 @@ void HexDump::printSelected(QPainter* painter, dsint rowBase, int rowOffset, int
 {
     if((col > 0) && ((col - 1) < mDescriptor.size()))
     {
-        ColumnDescriptor_t curDescriptor = mDescriptor.at(col - 1);
+        ColumnDescriptor curDescriptor = mDescriptor.at(col - 1);
         int wBytePerRowCount = getBytePerRowCount();
         dsint wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
         int wItemPixWidth = getItemPixelWidth(curDescriptor);
@@ -565,13 +665,13 @@ void HexDump::printSelected(QPainter* painter, dsint rowBase, int rowOffset, int
             {
                 int wSelectionWidth = wItemPixWidth > w - (wSelectionX - x) ? w - (wSelectionX - x) : wItemPixWidth;
                 wSelectionWidth = wSelectionWidth < 0 ? 0 : wSelectionWidth;
-                painter->setPen(textColor);
-                painter->fillRect(QRect(wSelectionX, y, wSelectionWidth, h), QBrush(selectionColor));
+                painter->setPen(mTextColor);
+                painter->fillRect(QRect(wSelectionX, y, wSelectionWidth, h), QBrush(mSelectionColor));
             }
             int separator = curDescriptor.separator;
             if(i && separator && !(i % separator))
             {
-                painter->setPen(separatorColor);
+                painter->setPen(mSeparatorColor);
                 painter->drawLine(wSelectionX, y, wSelectionX, y + h);
             }
         }
@@ -609,27 +709,24 @@ void HexDump::setSingleSelection(dsint rva)
     emit selectionUpdated();
 }
 
-dsint HexDump::getInitialSelection()
+dsint HexDump::getInitialSelection() const
 {
     return mSelection.firstSelectedIndex;
 }
 
-dsint HexDump::getSelectionStart()
+dsint HexDump::getSelectionStart() const
 {
     return mSelection.fromIndex;
 }
 
-dsint HexDump::getSelectionEnd()
+dsint HexDump::getSelectionEnd() const
 {
     return mSelection.toIndex;
 }
 
-bool HexDump::isSelected(dsint rva)
+bool HexDump::isSelected(dsint rva) const
 {
-    if(rva >= mSelection.fromIndex && rva <= mSelection.toIndex)
-        return true;
-    else
-        return false;
+    return rva >= mSelection.fromIndex && rva <= mSelection.toIndex;
 }
 
 void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)
@@ -637,7 +734,7 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
     RichTextPainter::CustomRichText_t curData;
     curData.highlight = false;
     curData.flags = RichTextPainter::FlagAll;
-    curData.textColor = textColor;
+    curData.textColor = mTextColor;
     curData.textBackground = Qt::transparent;
     curData.highlightColor = Qt::transparent;
 
@@ -653,7 +750,7 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
     }
     else if(mDescriptor.at(col - 1).isData == true)
     {
-        const ColumnDescriptor_t & desc = mDescriptor.at(col - 1);
+        const ColumnDescriptor & desc = mDescriptor.at(col - 1);
         int wI;
 
         int wByteCount = getSizeOf(desc.data.itemSize);
@@ -680,7 +777,7 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
             for(wI = 0; wI < desc.itemCount && (rva + wI) < (dsint)mMemPage->getSize(); wI++)
             {
                 curData.text.clear();
-                curData.textColor = textColor;
+                curData.textColor = mTextColor;
                 curData.textBackground = Qt::transparent;
                 curData.flags = RichTextPainter::FlagAll;
 
@@ -734,7 +831,7 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
     }
 }
 
-void HexDump::toString(DataDescriptor_t desc, duint rva, byte_t* data, RichTextPainter::CustomRichText_t & richText) //convert data to string
+void HexDump::toString(DataDescriptor desc, duint rva, byte_t* data, RichTextPainter::CustomRichText_t & richText) //convert data to string
 {
     switch(desc.itemSize)
     {
@@ -784,7 +881,7 @@ void HexDump::toString(DataDescriptor_t desc, duint rva, byte_t* data, RichTextP
         richText.textColor = ConfigColor("HexDumpModifiedBytesColor");
 }
 
-void HexDump::byteToString(duint rva, byte_t byte, ByteViewMode_e mode, RichTextPainter::CustomRichText_t & richText)
+void HexDump::byteToString(duint rva, byte_t byte, ByteViewMode mode, RichTextPainter::CustomRichText_t & richText)
 {
     QString wStr = "";
 
@@ -871,7 +968,7 @@ void HexDump::byteToString(duint rva, byte_t byte, ByteViewMode_e mode, RichText
     }
 }
 
-void HexDump::wordToString(duint rva, uint16 word, WordViewMode_e mode, RichTextPainter::CustomRichText_t & richText)
+void HexDump::wordToString(duint rva, uint16 word, WordViewMode mode, RichTextPainter::CustomRichText_t & richText)
 {
     Q_UNUSED(rva);
     QString wStr;
@@ -918,7 +1015,7 @@ void HexDump::wordToString(duint rva, uint16 word, WordViewMode_e mode, RichText
     richText.text = wStr;
 }
 
-void HexDump::dwordToString(duint rva, uint32 dword, DwordViewMode_e mode, RichTextPainter::CustomRichText_t & richText)
+void HexDump::dwordToString(duint rva, uint32 dword, DwordViewMode mode, RichTextPainter::CustomRichText_t & richText)
 {
     Q_UNUSED(rva);
     QString wStr;
@@ -959,7 +1056,7 @@ void HexDump::dwordToString(duint rva, uint32 dword, DwordViewMode_e mode, RichT
     richText.text = wStr;
 }
 
-void HexDump::qwordToString(duint rva, uint64 qword, QwordViewMode_e mode, RichTextPainter::CustomRichText_t & richText)
+void HexDump::qwordToString(duint rva, uint64 qword, QwordViewMode mode, RichTextPainter::CustomRichText_t & richText)
 {
     Q_UNUSED(rva);
     QString wStr;
@@ -1000,7 +1097,7 @@ void HexDump::qwordToString(duint rva, uint64 qword, QwordViewMode_e mode, RichT
     richText.text = wStr;
 }
 
-void HexDump::twordToString(duint rva, void* tword, TwordViewMode_e mode, RichTextPainter::CustomRichText_t & richText)
+void HexDump::twordToString(duint rva, void* tword, TwordViewMode mode, RichTextPainter::CustomRichText_t & richText)
 {
     Q_UNUSED(rva);
     QString wStr;
@@ -1023,42 +1120,42 @@ void HexDump::twordToString(duint rva, void* tword, TwordViewMode_e mode, RichTe
     richText.text = wStr;
 }
 
-int HexDump::getSizeOf(DataSize_e size)
+int HexDump::getSizeOf(DataSize size)
 {
     return int(size);
 }
 
-int HexDump::getStringMaxLength(DataDescriptor_t desc)
+static int getStringMaxLength(HexDump::DataDescriptor desc)
 {
     int wLength = 0;
 
     switch(desc.itemSize)
     {
-    case Byte:
+    case HexDump::Byte:
     {
         wLength = byteStringMaxLength(desc.byteMode);
     }
     break;
 
-    case Word:
+    case HexDump::Word:
     {
         wLength = wordStringMaxLength(desc.wordMode);
     }
     break;
 
-    case Dword:
+    case HexDump::Dword:
     {
         wLength = dwordStringMaxLength(desc.dwordMode);
     }
     break;
 
-    case Qword:
+    case HexDump::Qword:
     {
         wLength = qwordStringMaxLength(desc.qwordMode);
     }
     break;
 
-    case Tword:
+    case HexDump::Tword:
     {
         wLength = twordStringMaxLength(desc.twordMode);
     }
@@ -1074,31 +1171,31 @@ int HexDump::getStringMaxLength(DataDescriptor_t desc)
     return wLength;
 }
 
-int HexDump::byteStringMaxLength(ByteViewMode_e mode)
+static int byteStringMaxLength(HexDump::ByteViewMode mode)
 {
     int wLength = 0;
 
     switch(mode)
     {
-    case HexByte:
+    case HexDump::HexByte:
     {
         wLength = 2;
     }
     break;
 
-    case AsciiByte:
+    case HexDump::AsciiByte:
     {
         wLength = 0;
     }
     break;
 
-    case SignedDecByte:
+    case HexDump::SignedDecByte:
     {
         wLength = 4;
     }
     break;
 
-    case UnsignedDecByte:
+    case HexDump::UnsignedDecByte:
     {
         wLength = 3;
     }
@@ -1114,31 +1211,31 @@ int HexDump::byteStringMaxLength(ByteViewMode_e mode)
     return wLength;
 }
 
-int HexDump::wordStringMaxLength(WordViewMode_e mode)
+static int wordStringMaxLength(HexDump::WordViewMode mode)
 {
     int wLength = 0;
 
     switch(mode)
     {
-    case HexWord:
+    case HexDump::HexWord:
     {
         wLength = 4;
     }
     break;
 
-    case UnicodeWord:
+    case HexDump::UnicodeWord:
     {
         wLength = 0;
     }
     break;
 
-    case SignedDecWord:
+    case HexDump::SignedDecWord:
     {
         wLength = 6;
     }
     break;
 
-    case UnsignedDecWord:
+    case HexDump::UnsignedDecWord:
     {
         wLength = 5;
     }
@@ -1154,31 +1251,31 @@ int HexDump::wordStringMaxLength(WordViewMode_e mode)
     return wLength;
 }
 
-int HexDump::dwordStringMaxLength(DwordViewMode_e mode)
+static int dwordStringMaxLength(HexDump::DwordViewMode mode)
 {
     int wLength = 0;
 
     switch(mode)
     {
-    case HexDword:
+    case HexDump::HexDword:
     {
         wLength = 8;
     }
     break;
 
-    case SignedDecDword:
+    case HexDump::SignedDecDword:
     {
         wLength = 11;
     }
     break;
 
-    case UnsignedDecDword:
+    case HexDump::UnsignedDecDword:
     {
         wLength = 10;
     }
     break;
 
-    case FloatDword:
+    case HexDump::FloatDword:
     {
         wLength = 13;
     }
@@ -1194,31 +1291,31 @@ int HexDump::dwordStringMaxLength(DwordViewMode_e mode)
     return wLength;
 }
 
-int HexDump::qwordStringMaxLength(QwordViewMode_e mode)
+static int qwordStringMaxLength(HexDump::QwordViewMode mode)
 {
     int wLength = 0;
 
     switch(mode)
     {
-    case HexQword:
+    case HexDump::HexQword:
     {
         wLength = 16;
     }
     break;
 
-    case SignedDecQword:
+    case HexDump::SignedDecQword:
     {
         wLength = 20;
     }
     break;
 
-    case UnsignedDecQword:
+    case HexDump::UnsignedDecQword:
     {
         wLength = 20;
     }
     break;
 
-    case DoubleQword:
+    case HexDump::DoubleQword:
     {
         wLength = 23;
     }
@@ -1234,13 +1331,13 @@ int HexDump::qwordStringMaxLength(QwordViewMode_e mode)
     return wLength;
 }
 
-int HexDump::twordStringMaxLength(TwordViewMode_e mode)
+static int twordStringMaxLength(HexDump::TwordViewMode mode)
 {
     int wLength = 0;
 
     switch(mode)
     {
-    case FloatTword:
+    case HexDump::FloatTword:
     {
         wLength = 29;
     }
@@ -1256,7 +1353,7 @@ int HexDump::twordStringMaxLength(TwordViewMode_e mode)
     return wLength;
 }
 
-int HexDump::getItemIndexFromX(int x)
+int HexDump::getItemIndexFromX(int x) const
 {
     int wColIndex = getColumnIndexFromX(x);
 
@@ -1299,12 +1396,12 @@ dsint HexDump::getItemStartingAddress(int x, int y)
     return wStartingAddress;
 }
 
-int HexDump::getBytePerRowCount()
+int HexDump::getBytePerRowCount() const
 {
     return mDescriptor.at(0).itemCount * getSizeOf(mDescriptor.at(0).data.itemSize);
 }
 
-int HexDump::getItemPixelWidth(ColumnDescriptor_t desc)
+int HexDump::getItemPixelWidth(ColumnDescriptor desc) const
 {
     int wCharWidth = getCharWidth();
     int wItemPixWidth = getStringMaxLength(desc.data) * wCharWidth + wCharWidth;
@@ -1312,16 +1409,16 @@ int HexDump::getItemPixelWidth(ColumnDescriptor_t desc)
     return wItemPixWidth;
 }
 
-void HexDump::appendDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor)
+void HexDump::appendDescriptor(int width, QString title, bool clickable, ColumnDescriptor descriptor)
 {
     addColumnAt(width, title, clickable);
     mDescriptor.append(descriptor);
 }
 
 //Clears the descriptors, append a new descriptor and fix the tableOffset (use this instead of clearDescriptors()
-void HexDump::appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor)
+void HexDump::appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor descriptor)
 {
-    mAllowPainting = false;
+    setAllowPainting(false);
     if(mDescriptor.size())
     {
         dsint wRVA = getTableOffset() * getBytePerRowCount() - mByteOffset;
@@ -1331,7 +1428,7 @@ void HexDump::appendResetDescriptor(int width, QString title, bool clickable, Co
     }
     else
         appendDescriptor(width, title, clickable, descriptor);
-    mAllowPainting = true;
+    setAllowPainting(true);
 }
 
 void HexDump::clearDescriptors()

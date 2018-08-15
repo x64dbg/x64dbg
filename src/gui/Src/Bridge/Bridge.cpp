@@ -4,6 +4,9 @@
 #include "main.h"
 #include "Exports.h"
 
+#include "ReferenceManager.h"
+#include "SymbolView.h"
+
 /************************************************************************************
                             Global Variables
 ************************************************************************************/
@@ -205,7 +208,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 
     case GUI_REF_ADDCOLUMN:
         if(referenceManager->currentReferenceView())
-            referenceManager->currentReferenceView()->addColumnAt((int)param1, QString((const char*)param2));
+            referenceManager->currentReferenceView()->addColumnAtRef((int)param1, QString((const char*)param2));
         break;
 
     case GUI_REF_SETROWCOUNT:
@@ -214,7 +217,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 
     case GUI_REF_GETROWCOUNT:
         if(referenceManager->currentReferenceView())
-            return (void*)referenceManager->currentReferenceView()->mList->getRowCount();
+            return (void*)referenceManager->currentReferenceView()->stdList()->getRowCount();
         return 0;
 
     case GUI_REF_SEARCH_GETROWCOUNT:
@@ -237,7 +240,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     {
         QString content;
         if(referenceManager->currentReferenceView())
-            content = referenceManager->currentReferenceView()->mList->getCellContent((int)param1, (int)param2);
+            content = referenceManager->currentReferenceView()->stdList()->getCellContent((int)param1, (int)param2);
         auto bytes = content.toUtf8();
         auto data = BridgeAlloc(bytes.size() + 1);
         memcpy(data, bytes.constData(), bytes.size());
@@ -487,7 +490,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_LOAD_SOURCE_FILE:
-        emit loadSourceFile(QString((const char*)param1), (int)param2, 0);
+        emit loadSourceFile(QString((const char*)param1), (duint)param2);
         break;
 
     case GUI_MENU_SET_ICON:
@@ -837,6 +840,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         emit updateTraceBrowser();
         break;
 
+    case GUI_INVALIDATE_SYMBOL_SOURCE:
+        symbolView->invalidateSymbolSource(duint(param1));
+        break;
     }
 
     return nullptr;

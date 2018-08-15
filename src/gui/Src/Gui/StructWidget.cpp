@@ -5,6 +5,8 @@
 #include "LineEditDialog.h"
 #include "GotoDialog.h"
 #include <QFileDialog>
+#include "StringUtil.h"
+#include "MiscUtil.h"
 
 struct TypeDescriptor
 {

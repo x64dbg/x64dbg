@@ -25,7 +25,6 @@ BreakpointsView::BreakpointsView(QWidget* parent)
     enableMultiSelection(true);
 
     setupContextMenu();
-    updateColors();
 
     connect(Bridge::getBridge(), SIGNAL(updateBreakpoints()), this, SLOT(updateBreakpointsSlot()));
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
@@ -34,6 +33,8 @@ BreakpointsView::BreakpointsView(QWidget* parent)
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
     connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(followBreakpointSlot()));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followBreakpointSlot()));
+
+    Initialize();
 }
 
 void BreakpointsView::setupContextMenu()
@@ -124,38 +125,32 @@ void BreakpointsView::updateColors()
     updateBreakpointsSlot();
 }
 
-void BreakpointsView::reloadData()
+void BreakpointsView::sortRows(int column, bool ascending)
 {
-    if(mSort.first != -1) //re-sort if the user wants to sort
+    std::stable_sort(mData.begin(), mData.end(), [this, column, ascending](const std::vector<CellData> & a, const std::vector<CellData> & b)
     {
-        auto col = mSort.first;
-        auto greater = mSort.second;
-        std::stable_sort(mData.begin(), mData.end(), [this, col, greater](const std::vector<CellData> & a, const std::vector<CellData> & b)
+        //this function sorts on header type first and then on column content
+        auto aBp = &mBps.at(a.at(ColAddr).userdata), bBp = &mBps.at(b.at(ColAddr).userdata);
+        auto aType = aBp->type, bType = bBp->type;
+        auto aHeader = aBp->addr || aBp->active, bHeader = bBp->addr || bBp->active;
+        struct Hax
         {
-            //this function sorts on header type first and then on column content
-            auto aBp = &mBps.at(a.at(ColAddr).userdata), bBp = &mBps.at(b.at(ColAddr).userdata);
-            auto aType = aBp->type, bType = bBp->type;
-            auto aHeader = aBp->addr || aBp->active, bHeader = bBp->addr || bBp->active;
-            struct Hax
+            const bool & greater;
+            const QString & s;
+            Hax(const bool & greater, const QString & s) : greater(greater), s(s) { }
+            bool operator<(const Hax & b)
             {
-                const bool & greater;
-                const QString & s;
-                Hax(const bool & greater, const QString & s) : greater(greater), s(s) { }
-                bool operator<(const Hax & b)
-                {
-                    return greater ? s > b.s : s < b.s;
-                }
-            } aHax(greater, a.at(col).text), bHax(greater, b.at(col).text);
-            return std::tie(aType, aHeader, aHax) < std::tie(bType, bHeader, bHax);
-        });
-    }
-    AbstractTableView::reloadData();
+                return greater ? s > b.s : s < b.s;
+            }
+        } aHax(!ascending, a.at(column).text), bHax(!ascending, b.at(column).text);
+        return std::tie(aType, aHeader, aHax) < std::tie(bType, bHeader, bHax);
+    });
 }
 
 QString BreakpointsView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     if(isSelected(rowBase, rowOffset))
-        painter->fillRect(QRect(x, y, w, h), QBrush(col == ColDisasm ? mDisasmSelectionColor : selectionColor));
+        painter->fillRect(QRect(x, y, w, h), QBrush(col == ColDisasm ? mDisasmSelectionColor : mSelectionColor));
     else if(col == ColDisasm)
         painter->fillRect(QRect(x, y, w, h), QBrush(mDisasmBackgroundColor));
     auto index = bpIndex(rowBase + rowOffset);
@@ -310,7 +305,7 @@ void BreakpointsView::updateBreakpointsSlot()
                 RichTextPainter::CustomRichText_t token;
                 token.highlight = false;
                 token.flags = RichTextPainter::FlagColor;
-                token.textColor = this->textColor;
+                token.textColor = this->mTextColor;
                 token.text = text;
                 richSummary.push_back(token);
             };

@@ -16,21 +16,19 @@ SourceViewerManager::SourceViewerManager(QWidget* parent) : QTabWidget(parent)
     setCornerWidget(mCloseAllTabs, Qt::TopLeftCorner);
 
     connect(this, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
-    connect(Bridge::getBridge(), SIGNAL(loadSourceFile(QString, int, int)), this, SLOT(loadSourceFile(QString, int, int)));
+    connect(Bridge::getBridge(), SIGNAL(loadSourceFile(QString, duint)), this, SLOT(loadSourceFile(QString, duint)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChanged(DBGSTATE)));
 }
 
-void SourceViewerManager::loadSourceFile(QString path, int line, int selection)
+void SourceViewerManager::loadSourceFile(QString path, duint addr)
 {
-    if(!line)
-        line = selection;
     for(int i = 0; i < count(); i++)
     {
         SourceView* curView = (SourceView*)this->widget(i);
         if(curView->getSourcePath().compare(path, Qt::CaseInsensitive) == 0) //file already loaded
         {
             QWidget* now = QApplication::focusWidget();
-            curView->setSelection(line);
+            curView->setSelection(addr);
             setCurrentIndex(i); //show that loaded tab
             if(now)
                 now->setFocus();
@@ -47,7 +45,7 @@ void SourceViewerManager::loadSourceFile(QString path, int line, int selection)
     int idx = path.lastIndexOf(QDir::separator());
     if(idx != -1)
         title = path.mid(idx + 1);
-    SourceView* newView = new SourceView(path, line, this);
+    SourceView* newView = new SourceView(path, addr, this);
     connect(newView, SIGNAL(showCpu()), this, SIGNAL(showCpu()));
     addTab(newView, title);
     setCurrentIndex(count() - 1);

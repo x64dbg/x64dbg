@@ -1,6 +1,8 @@
 #include "TraceFileReader.h"
 #include "TraceFileSearch.h"
 #include "zydis_wrapper.h"
+#include "StringUtil.h"
+#include <QCoreApplication>
 
 static bool inRange(duint value, duint start, duint end)
 {

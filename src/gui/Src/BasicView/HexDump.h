@@ -11,7 +11,7 @@ class HexDump : public AbstractTableView
 {
     Q_OBJECT
 public:
-    enum DataSize_e
+    enum DataSize
     {
         Byte = 1,
         Word = 2,
@@ -20,7 +20,7 @@ public:
         Tword = 10
     };
 
-    enum ByteViewMode_e
+    enum ByteViewMode
     {
         HexByte,
         AsciiByte,
@@ -28,7 +28,7 @@ public:
         UnsignedDecByte
     };
 
-    enum WordViewMode_e
+    enum WordViewMode
     {
         HexWord,
         UnicodeWord,
@@ -36,7 +36,7 @@ public:
         UnsignedDecWord
     };
 
-    enum DwordViewMode_e
+    enum DwordViewMode
     {
         HexDword,
         SignedDecDword,
@@ -44,7 +44,7 @@ public:
         FloatDword //sizeof(float)=4
     };
 
-    enum QwordViewMode_e
+    enum QwordViewMode
     {
         HexQword,
         SignedDecQword,
@@ -52,100 +52,88 @@ public:
         DoubleQword //sizeof(double)=8
     };
 
-    enum TwordViewMode_e
+    enum TwordViewMode
     {
         FloatTword
     };
 
-    typedef struct _DataDescriptor_t
+    struct DataDescriptor
     {
-        DataSize_e itemSize; // Items size
+        DataSize itemSize; // Items size
         union // View mode
         {
-            ByteViewMode_e byteMode;
-            WordViewMode_e wordMode;
-            DwordViewMode_e dwordMode;
-            QwordViewMode_e qwordMode;
-            TwordViewMode_e twordMode;
+            ByteViewMode byteMode;
+            WordViewMode wordMode;
+            DwordViewMode dwordMode;
+            QwordViewMode qwordMode;
+            TwordViewMode twordMode;
         };
-    } DataDescriptor_t;
+    };
 
-    struct ColumnDescriptor_t
+    struct ColumnDescriptor
     {
         bool isData = true;
         int itemCount = 16;
         int separator = 0;
-        QTextCodec* textCodec; //name of the text codec (leave empty if you want to keep your sanity)
-        DataDescriptor_t data;
+        QTextCodec* textCodec = nullptr; //name of the text codec (leave empty if you want to keep your sanity)
+        DataDescriptor data;
         std::function<void()> columnSwitch;
-
-        explicit ColumnDescriptor_t()
-            : textCodec(nullptr)
-        {
-        }
     };
 
     explicit HexDump(QWidget* parent = 0);
-    virtual ~HexDump();
+    ~HexDump() override;
 
     // Configuration
-    virtual void updateColors();
-    virtual void updateFonts();
-    virtual void updateShortcuts();
+    void updateColors() override;
+    void updateFonts() override;
+    void updateShortcuts() override;
 
     //QString getStringToPrint(int rowBase, int rowOffset, int col);
-    void mouseMoveEvent(QMouseEvent* event);
-    void mousePressEvent(QMouseEvent* event);
-    void mouseReleaseEvent(QMouseEvent* event);
-    void keyPressEvent(QKeyEvent* event);
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
 
-    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) override;
     void paintGraphicDump(QPainter* painter, int x, int y, int addr);
-
     void printSelected(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
 
     // Selection Management
     void expandSelectionUpTo(dsint rva);
     void setSingleSelection(dsint rva);
-    dsint getInitialSelection();
-    dsint getSelectionStart();
-    dsint getSelectionEnd();
-    bool isSelected(dsint rva);
+    dsint getInitialSelection() const;
+    dsint getSelectionStart() const;
+    dsint getSelectionEnd() const;
+    bool isSelected(dsint rva) const;
 
     virtual void getColumnRichText(int col, dsint rva, RichTextPainter::List & richText);
-    int getSizeOf(DataSize_e size);
 
-    void toString(DataDescriptor_t desc, duint rva, byte_t* data, RichTextPainter::CustomRichText_t & richText);
+    static int getSizeOf(DataSize size);
 
-    void byteToString(duint rva, byte_t byte, ByteViewMode_e mode, RichTextPainter::CustomRichText_t & richText);
-    void wordToString(duint rva, uint16 word, WordViewMode_e mode, RichTextPainter::CustomRichText_t & richText);
-    void dwordToString(duint rva, uint32 dword, DwordViewMode_e mode, RichTextPainter::CustomRichText_t & richText);
-    void qwordToString(duint rva, uint64 qword, QwordViewMode_e mode, RichTextPainter::CustomRichText_t & richText);
-    void twordToString(duint rva, void* tword, TwordViewMode_e mode, RichTextPainter::CustomRichText_t & richText);
+    void toString(DataDescriptor desc, duint rva, byte_t* data, RichTextPainter::CustomRichText_t & richText);
 
-    int getStringMaxLength(DataDescriptor_t desc);
+    void byteToString(duint rva, byte_t byte, ByteViewMode mode, RichTextPainter::CustomRichText_t & richText);
+    void wordToString(duint rva, uint16 word, WordViewMode mode, RichTextPainter::CustomRichText_t & richText);
+    static void dwordToString(duint rva, uint32 dword, DwordViewMode mode, RichTextPainter::CustomRichText_t & richText);
+    static void qwordToString(duint rva, uint64 qword, QwordViewMode mode, RichTextPainter::CustomRichText_t & richText);
+    static void twordToString(duint rva, void* tword, TwordViewMode mode, RichTextPainter::CustomRichText_t & richText);
 
-    int byteStringMaxLength(ByteViewMode_e mode);
-    int wordStringMaxLength(WordViewMode_e mode);
-    int dwordStringMaxLength(DwordViewMode_e mode);
-    int qwordStringMaxLength(QwordViewMode_e mode);
-    int twordStringMaxLength(TwordViewMode_e mode);
-
-    int getItemIndexFromX(int x);
+    int getItemIndexFromX(int x) const;
     dsint getItemStartingAddress(int x, int y);
 
-    int getBytePerRowCount();
-    int getItemPixelWidth(ColumnDescriptor_t desc);
+    int getBytePerRowCount() const;
+    int getItemPixelWidth(ColumnDescriptor desc) const;
 
     //descriptor management
-    void appendDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor);
-    void appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor_t descriptor);
+    void appendDescriptor(int width, QString title, bool clickable, ColumnDescriptor descriptor);
+    void appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor descriptor);
     void clearDescriptors();
 
     void printDumpAt(dsint parVA, bool select, bool repaint = true, bool updateTableOffset = true);
-    duint rvaToVa(dsint rva);
-    duint getTableOffsetRva();
-    QString makeAddrText(duint va);
+    duint rvaToVa(dsint rva) const;
+
+    duint getTableOffsetRva() const;
+    QString makeAddrText(duint va) const;
     QString makeCopyText();
 
     void setupCopyMenu();
@@ -166,18 +154,22 @@ public slots:
     void gotoNextSlot();
 
 private:
-    enum GuiState_t {NoState, MultiRowsSelectionState};
+    enum GuiState
+    {
+        NoState,
+        MultiRowsSelectionState
+    };
 
-    typedef struct _RowDescriptor_t
+    struct SelectionData
     {
         dsint firstSelectedIndex;
         dsint fromIndex;
         dsint toIndex;
-    } SelectionData_t;
+    };
 
-    SelectionData_t mSelection;
+    SelectionData mSelection;
 
-    GuiState_t mGuiState;
+    GuiState mGuiState;
     QChar mNonprintReplace;
     QChar mNullReplace;
 
@@ -204,7 +196,7 @@ private:
 protected:
     MemoryPage* mMemPage;
     int mByteOffset;
-    QList<ColumnDescriptor_t> mDescriptor;
+    QList<ColumnDescriptor> mDescriptor;
     int mForceColumn;
     bool mRvaDisplayEnabled;
     duint mRvaDisplayBase;

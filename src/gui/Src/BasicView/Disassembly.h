@@ -13,26 +13,26 @@ class Disassembly : public AbstractTableView
     Q_OBJECT
 public:
     explicit Disassembly(QWidget* parent = 0);
-    virtual ~Disassembly();
+    ~Disassembly() override;
 
     // Configuration
-    virtual void updateColors();
-    virtual void updateFonts();
+    void updateColors() override;
+    void updateFonts() override;
 
     // Reimplemented Functions
-    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) override;
 
     // Mouse Management
-    void mouseMoveEvent(QMouseEvent* event);
-    void mousePressEvent(QMouseEvent* event);
-    void mouseReleaseEvent(QMouseEvent* event);
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
     void leaveEvent(QEvent* event) override;
 
     // Keyboard Management
-    void keyPressEvent(QKeyEvent* event);
+    void keyPressEvent(QKeyEvent* event) override;
 
     // ScrollBar Management
-    dsint sliderMovedHook(int type, dsint value, dsint delta);
+    dsint sliderMovedHook(int type, dsint value, dsint delta) override;
 
     // Jumps Graphic
     int paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, bool isjmp);
@@ -61,33 +61,33 @@ public:
     // Selection Management
     void expandSelectionUpTo(dsint to);
     void setSingleSelection(dsint index);
-    dsint getInitialSelection();
-    dsint getSelectionSize();
-    dsint getSelectionStart();
-    dsint getSelectionEnd();
+    dsint getInitialSelection() const;
+    dsint getSelectionSize() const;
+    dsint getSelectionStart() const;
+    dsint getSelectionEnd() const;
     void selectNext(bool expand);
     void selectPrevious(bool expand);
     bool isSelected(dsint base, dsint offset);
-    bool isSelected(QList<Instruction_t>* buffer, int index);
-    duint getSelectedVa();
+    bool isSelected(QList<Instruction_t>* buffer, int index) const;
+    duint getSelectedVa() const;
 
     // Update/Reload/Refresh/Repaint
-    void prepareData();
-    void reloadData();
+    void prepareData() override;
+    void reloadData() override;
 
     // Public Methods
-    duint rvaToVa(dsint rva);
+    duint rvaToVa(dsint rva) const;
     void disassembleClear();
     const duint getBase() const;
-    duint getSize();
-    duint getTableOffsetRva();
+    duint getSize() const;
+    duint getTableOffsetRva() const;
 
     // history management
     void historyClear();
     void historyPrevious();
     void historyNext();
-    bool historyHasPrevious();
-    bool historyHasNext();
+    bool historyHasPrevious() const;
+    bool historyHasNext() const;
 
     //disassemble
     void disassembleAt(dsint parVA, dsint parCIP, bool history, dsint newTableOffset);
@@ -99,13 +99,14 @@ public:
     QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel = true);
     void prepareDataCount(const QList<dsint> & wRVAs, QList<Instruction_t>* instBuffer);
     void prepareDataRange(dsint startRva, dsint endRva, const std::function<bool(int, const Instruction_t &)> & disassembled);
+    RichTextPainter::List getRichBytes(const Instruction_t & instr) const;
 
     //misc
     void setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager);
     void unfold(dsint rva);
     void ShowDisassemblyPopup(duint addr, int x, int y);
     bool hightlightToken(const CapstoneTokenizer::SingleToken & token);
-    bool isHighlightMode();
+    bool isHighlightMode() const;
 
 signals:
     void selectionChanged(dsint parVA);
@@ -120,41 +121,63 @@ public slots:
     void tokenizerConfigUpdatedSlot();
 
 private:
-    enum GuiState_t {NoState, MultiRowsSelectionState};
-    enum GraphicDump_t {GD_Nothing, GD_FootToTop, GD_FootToBottom, GD_HeadFromTop, GD_HeadFromBottom, GD_HeadFromBoth, GD_Vert, GD_VertHori}; // GD_FootToTop = '- , GD_FootToBottom = ,- , GD_HeadFromTop = '-> , GD_HeadFromBottom = ,-> , GD_HeadFromBoth = |-> , GD_Vert = | , GD_VertHori = |-
-    enum GraphicJumpDirection_t {GJD_Nothing, GJD_Up, GJD_Down };
+    enum GuiState
+    {
+        NoState,
+        MultiRowsSelectionState
+    };
 
-    typedef struct _SelectionData_t
+    enum GraphicDump
+    {
+        GD_Nothing,
+        GD_FootToTop, //GD_FootToTop = '-
+        GD_FootToBottom, //GD_FootToBottom = ,-
+        GD_HeadFromTop, //GD_HeadFromTop = '->
+        GD_HeadFromBottom, //GD_HeadFromBottom = ,->
+        GD_HeadFromBoth, //GD_HeadFromBoth = |->
+        GD_Vert, //GD_Vert = |
+        GD_VertHori //GD_VertHori = |-
+    };
+
+    enum GraphicJumpDirection
+    {
+        GJD_Nothing,
+        GJD_Up,
+        GJD_Down
+    };
+
+    struct SelectionData
     {
         dsint firstSelectedIndex;
         dsint fromIndex;
         dsint toIndex;
-    } SelectionData_t;
+    };
 
-    SelectionData_t mSelection;
+    SelectionData mSelection;
 
     bool mIsLastInstDisplayed;
 
-    GuiState_t mGuiState;
+    GuiState mGuiState;
 
     dsint mCipRva;
 
     QList<Instruction_t> mInstBuffer;
 
-    typedef struct _HistoryData_t
+    struct HistoryData
     {
         dsint va;
         dsint tableOffset;
         QString windowTitle;
-    } HistoryData_t;
+    };
 
-    QList<HistoryData_t> mVaHistory;
+    QList<HistoryData> mVaHistory;
     int mCurrentVa;
 
 protected:
     // Configuration
     QColor mInstructionHighlightColor;
     QColor mSelectionColor;
+    QColor mDisassemblyRelocationUnderlineColor;
 
     QColor mCipBackgroundColor;
     QColor mCipColor;
@@ -229,6 +252,7 @@ protected:
     DisassemblyPopup mDisassemblyPopup;
     CapstoneTokenizer::SingleToken mHighlightToken;
     bool mPermanentHighlightingMode;
+    bool mNoCurrentModuleText;
 };
 
 #endif // DISASSEMBLY_H

@@ -2,6 +2,7 @@
 #include "ui_EditBreakpointDialog.h"
 #include "StringUtil.h"
 #include "MiscUtil.h"
+#include "Configuration.h"
 
 EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
     : QDialog(parent),

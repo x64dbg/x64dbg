@@ -4,7 +4,9 @@
 #include <QpaintEvent>
 #include <QMenu>
 #include <QDesktopWidget>
-#include "bridge.h"
+#include <QApplication>
+#include "Bridge.h"
+#include "Configuration.h"
 
 //LabeledSplitterHandle class
 LabeledSplitterHandle::LabeledSplitterHandle(Qt::Orientation o, LabeledSplitter* parent) : QSplitterHandle(o, parent)

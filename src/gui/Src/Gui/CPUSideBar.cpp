@@ -121,6 +121,9 @@ void CPUSideBar::setSelection(dsint selVA)
 
 bool CPUSideBar::isJump(int i) const
 {
+    if(i < 0 || i >= mInstrBuffer->size())
+        return false;
+
     const Instruction_t & instr = mInstrBuffer->at(i);
     Instruction_t::BranchType branchType = instr.branchType;
     if(branchType == Instruction_t::Unconditional || branchType == Instruction_t::Conditional)
@@ -217,6 +220,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     {
         if(line >= mInstrBuffer->size()) //at the end of the page it will crash otherwise
             break;
+
         const Instruction_t & instr = mInstrBuffer->at(line);
         duint instrVA = instr.rva + mDisas->getBase();
         duint instrVAEnd = instrVA + instr.length;
@@ -241,11 +245,6 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
             */
 
             jumpoffset++;
-
-
-            // Do not try to draw EBFE (Jump to the same line)
-            //if(destVA == instrVA)
-            //    continue;
 
             // Do not draw jumps that leave the memory range
             if(destVA >= mDisas->getBase() + mDisas->getSize() || destVA < mDisas->getBase())
@@ -292,7 +291,6 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
             labelArrows.push_back(drawLabel(&painter, line, regLabelText));
         }
 
-        //debug
         if(isFoldingGraphicsPresent(line) == 1)
         {
             if(mCodeFoldingManager.isFoldStart(instrVA))
@@ -302,7 +300,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
         }
         else if(mCodeFoldingManager.isFoldBody(instrVA))
         {
-            painter.setPen(QColor("#000000"));
+            painter.setPen(QColor(Qt::black));
             painter.drawLine(QPointF(viewport()->width() - fontHeight / 2 - mBulletXOffset - mBulletRadius, line * fontHeight), QPointF(viewport()->width() - fontHeight / 2 - mBulletXOffset - mBulletRadius, (line + 1) * fontHeight));
             if(mCodeFoldingManager.isFoldEnd(instrVA + instr.length - 1))
                 painter.drawLine(QPointF(viewport()->width() - fontHeight / 2 - mBulletXOffset - mBulletRadius, (line + 1) * fontHeight), QPointF(viewport()->width(), (line + 1) * fontHeight));
@@ -353,11 +351,14 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
             if(e->button() == Qt::LeftButton)
             {
                 duint start, end;
+                const Instruction_t* instr = &mInstrBuffer->at(line);
+                const dsint SelectionStart = mDisas->getSelectionStart();
+                const dsint SelectionEnd = mDisas->getSelectionEnd();
                 if(mCodeFoldingManager.isFoldStart(wVA))
                 {
                     mCodeFoldingManager.setFolded(wVA, !mCodeFoldingManager.isFolded(wVA));
                 }
-                else if(mInstrBuffer->at(line).rva == mDisas->getSelectionStart())
+                else if(instr->rva == SelectionStart && (SelectionEnd - SelectionStart + 1) != instr->length)
                 {
                     bool success = mCodeFoldingManager.addFoldSegment(wVA, mDisas->getSelectionEnd() - mDisas->getSelectionStart());
                     if(!success)
@@ -369,6 +370,8 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
                     if(!success)
                         GuiAddLogMessage(tr("Cannot fold selection.\n").toUtf8().constData());
                 }
+                else
+                    GuiAddLogMessage(tr("Cannot fold selection.\n").toUtf8().constData());
             }
             else if(e->button() == Qt::RightButton)
             {
@@ -442,45 +445,70 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
     if(!DbgIsDebugging() || !mInstrBuffer->size())
     {
         QAbstractScrollArea::mouseMoveEvent(event);
+        QToolTip::hideText();
         setCursor(QCursor(Qt::ArrowCursor));
         return;
     }
 
     const QPoint & mousePos = event->pos();
     const QPoint & globalMousePos = event->globalPos();
+    const int width = viewport()->width();
 
     const int mLine = mousePos.y() / fontHeight;
-    const int mBulletX = viewport()->width() - mBulletXOffset;
+
+    const bool lineInBounds = mLine > 0 && mLine < mInstrBuffer->size();
+
+    const int mBulletX = width - mBulletXOffset;
     const int mBulletY = mLine * fontHeight + mBulletYOffset;
 
     const int mouseBulletXOffset = abs(mBulletX - mousePos.x());
     const int mouseBulletYOffset = abs(mBulletY - mousePos.y());
 
+    // calculate virtual address of clicked line
+    duint wVA = 0;
+    if(lineInBounds)
+        wVA = mInstrBuffer->at(mLine).rva + mDisas->getBase();
+
+    // check if mouse is on a code folding box
+    if(mousePos.x() > width - fontHeight - mBulletXOffset - mBulletRadius && mousePos.x() < width - mBulletXOffset - mBulletRadius)
+    {
+        if(isFoldingGraphicsPresent(mLine))
+        {
+            if(mCodeFoldingManager.isFolded(wVA))
+            {
+                QToolTip::showText(globalMousePos, tr("Click to unfold, right click to delete."));
+            }
+            else
+            {
+                if(mCodeFoldingManager.isFoldStart(wVA))
+                    QToolTip::showText(globalMousePos, tr("Click to fold, right click to delete."));
+                else
+                    QToolTip::showText(globalMousePos, tr("Click to fold."));
+            }
+        }
+    }
     // if (mouseCursor not on a bullet) or (mLine not in bounds)
-    if((mouseBulletXOffset > mBulletRadius ||  mouseBulletYOffset > mBulletRadius) ||
-            (mLine < 0 || mLine >= mInstrBuffer->size()))
+    else if((mouseBulletXOffset > mBulletRadius ||  mouseBulletYOffset > mBulletRadius) || !lineInBounds)
     {
         QToolTip::hideText();
         setCursor(QCursor(Qt::ArrowCursor));
-        return;
     }
-
-    // calculate virtual address of clicked line
-    duint wVA = mInstrBuffer->at(mLine).rva + mDisas->getBase();
-
-    switch(Breakpoints::BPState(bp_normal, wVA))
+    else
     {
-    case bp_enabled:
-        QToolTip::showText(globalMousePos, tr("Breakpoint Enabled"));
-        break;
-    case bp_disabled:
-        QToolTip::showText(globalMousePos, tr("Breakpoint Disabled"));
-        break;
-    case bp_non_existent:
-        QToolTip::showText(globalMousePos, tr("Breakpoint Not Set"));
-        break;
+        switch(Breakpoints::BPState(bp_normal, wVA))
+        {
+        case bp_enabled:
+            QToolTip::showText(globalMousePos, tr("Breakpoint Enabled"));
+            break;
+        case bp_disabled:
+            QToolTip::showText(globalMousePos, tr("Breakpoint Disabled"));
+            break;
+        case bp_non_existent:
+            QToolTip::showText(globalMousePos, tr("Breakpoint Not Set"));
+            break;
+        }
+        setCursor(QCursor(Qt::PointingHandCursor));
     }
-    setCursor(QCursor(Qt::PointingHandCursor));
 }
 
 void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jumpoffset, bool conditional, bool isexecute, bool isactive)
@@ -812,25 +840,25 @@ void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines, std::vec
 
 int CPUSideBar::isFoldingGraphicsPresent(int line)
 {
-    if(line < 0 || line >= mInstrBuffer->size())
+    if(line < 0 || line >= mInstrBuffer->size()) //There couldn't be a folding box out of viewport
         return 0;
     const Instruction_t* instr = &mInstrBuffer->at(line);
-    const dsint SelectionStart = mDisas->getSelectionStart();
-    const dsint SelectionEnd = mDisas->getSelectionEnd();
-    if(instr == nullptr)
+    if(instr == nullptr) //Selection out of a memory page
         return 0;
     auto wVA = instr->rva + mDisas->getBase();
-    if(mCodeFoldingManager.isFoldStart(wVA))
+    if(mCodeFoldingManager.isFoldStart(wVA)) //Code is already folded
         return 1;
+    const dsint SelectionStart = mDisas->getSelectionStart();
+    const dsint SelectionEnd = mDisas->getSelectionEnd();
     duint start, end;
-    if(instr->rva >= duint(SelectionStart) && instr->rva < duint(SelectionEnd))
+    if((DbgArgumentGet(wVA, &start, &end) || DbgFunctionGet(wVA, &start, &end)) && wVA == start)
+    {
+        return end - start + 1 != instr->length ? 1 : 0;
+    }
+    else if(instr->rva >= duint(SelectionStart) && instr->rva < duint(SelectionEnd))
     {
         if(instr->rva == SelectionStart)
             return (SelectionEnd - SelectionStart + 1) != instr->length ? 1 : 0;
-    }
-    else if((DbgArgumentGet(wVA, &start, &end) || DbgFunctionGet(wVA, &start, &end)) && wVA == start)
-    {
-        return end - start + 1 != instr->length ? 1 : 0;
     }
     return 0;
 }

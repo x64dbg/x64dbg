@@ -39,6 +39,7 @@ public:
     static bool IsBranchGoingToExecute(ZydisMnemonic id, size_t cflags, size_t ccx);
     bool IsConditionalGoingToExecute(size_t cflags, size_t ccx) const;
     static bool IsConditionalGoingToExecute(ZydisMnemonic id, size_t cflags, size_t ccx);
+    void BytesGroup(uint8_t* prefixSize, uint8_t* opcodeSize, uint8_t* group1Size, uint8_t* group2Size, uint8_t* group3Size) const;
 
     enum RegAccessInfo : uint8_t
     {
