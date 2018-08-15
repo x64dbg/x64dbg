@@ -2258,9 +2258,11 @@ static void setfpuvalue(const char* string, duint value)
             found = false;
             break;
         }
-        registerindex += UE_x87_r0;
         if(found)
+        {
+            registerindex += UE_x87_r0;
             SetContextDataEx(hActiveThread, registerindex, value);
+        }
     }
     else if(startsWith(MMX_PRE_FIELD_STRING, string))
     {
@@ -2346,7 +2348,7 @@ static void setfpuvalue(const char* string, duint value)
         case 7:
             registerindex = UE_XMM7;
             break;
-
+#ifdef _WIN64
         case 8:
             registerindex = UE_XMM8;
             break;
@@ -2378,7 +2380,7 @@ static void setfpuvalue(const char* string, duint value)
         case 15:
             registerindex = UE_XMM15;
             break;
-
+#endif
         default:
             found = false;
             break;
@@ -2424,7 +2426,7 @@ static void setfpuvalue(const char* string, duint value)
         case 7:
             registerindex = UE_YMM7;
             break;
-
+#ifdef _WIN64
         case 8:
             registerindex = UE_YMM8;
             break;
@@ -2456,7 +2458,7 @@ static void setfpuvalue(const char* string, duint value)
         case 15:
             registerindex = UE_YMM15;
             break;
-
+#endif
         default:
             registerindex = 0;
             found = false;

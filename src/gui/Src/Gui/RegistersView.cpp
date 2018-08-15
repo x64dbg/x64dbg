@@ -543,7 +543,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     wCM_Highlight = setupAction(DIcon("highlight.png"), tr("Highlight"), this);
     mSwitchSIMDDispMode = new QMenu(tr("Change SIMD Register Display Mode"), this);
     mSwitchSIMDDispMode->setIcon(DIcon("simdmode.png"));
-    mSwitchFPUDispMode = new QAction(tr("Change FPU Register ordering"), this);
+    mSwitchFPUDispMode = new QAction(tr("Display ST(x)"), this);
     mSwitchFPUDispMode->setCheckable(true);
     SIMDHex = new QAction(tr("Hexadecimal"), mSwitchSIMDDispMode);
     SIMDFloat = new QAction(tr("Float"), mSwitchSIMDDispMode);
@@ -2283,20 +2283,21 @@ void RegistersView::ModifyFields(const QString & title, STRING_VALUE_TABLE_t* ta
     if(mQListWidget->selectedItems().count() != 1)
         return;
 
-    QListWidgetItem* item = mQListWidget->takeItem(mQListWidget->currentRow());
+    //QListWidgetItem* item = mQListWidget->takeItem(mQListWidget->currentRow());
+    QString itemText = mQListWidget->item(mQListWidget->currentRow())->text();
 
     duint value;
 
     for(i = 0; i < size; i++)
     {
-        if(QApplication::translate("RegistersView_ConstantsOfRegisters", table[i].string) + QString(" (%1)").arg(table[i].value, 0, 16) == item->text())
+        if(QApplication::translate("RegistersView_ConstantsOfRegisters", table[i].string) + QString(" (%1)").arg(table[i].value, 0, 16) == itemText)
             break;
     }
 
     value = table[i].value;
 
     setRegister(mSelected, (duint)value);
-    delete item;
+    //delete item;
 }
 
 #define MODIFY_FIELDS_DISPLAY(prefix, title, table) ModifyFields(prefix + QChar(' ') + QString(title), (STRING_VALUE_TABLE_t *) & table, SIZE_TABLE(table) )
@@ -2321,8 +2322,8 @@ void RegistersView::displayEditDialog()
         else if(mSelected == x87SW_TOP)
         {
             MODIFY_FIELDS_DISPLAY(tr("Edit"), "x87SW_TOP", StatusWordTOPValueStringTable);
-            if(mFpuMode == false)
-                updateRegistersSlot();
+            // if(mFpuMode == false)
+            updateRegistersSlot();
         }
         else if(mFPUYMM.contains(mSelected))
         {
@@ -2929,6 +2930,10 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
     SIMDSQWord->setChecked(SIMDSQWord == selectedAction);
     SIMDUQWord->setChecked(SIMDUQWord == selectedAction);
     SIMDHQWord->setChecked(SIMDHQWord == selectedAction);
+    if(mFpuMode)
+        mSwitchFPUDispMode->setText(tr("Display ST(x)"));
+    else
+        mSwitchFPUDispMode->setText(tr("Display x87rX"));
     mSwitchFPUDispMode->setChecked(mFpuMode);
 
     if(mSelected != UNKNOWN)
