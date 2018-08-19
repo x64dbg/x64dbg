@@ -106,6 +106,7 @@ public slots:
     void openSlot(const QString & fileName);
     void toggleRunTraceSlot();
     void closeFileSlot();
+    void closeDeleteSlot();
     void parseFinishedSlot();
     void tokenizerConfigUpdatedSlot();
 
