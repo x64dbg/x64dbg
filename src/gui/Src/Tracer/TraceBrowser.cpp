@@ -446,6 +446,10 @@ void TraceBrowser::setupRightClickContextMenu()
     {
         return mTraceFile != nullptr;
     });
+    mMenuBuilder->addAction(makeAction(DIcon("fatal-error.png"), tr("Close and delete"), SLOT(closeDeleteSlot())), [this](QMenu*)
+    {
+        return mTraceFile != nullptr;
+    });
     mMenuBuilder->addSeparator();
     auto isValid = [this](QMenu*)
     {
@@ -919,6 +923,19 @@ void TraceBrowser::closeFileSlot()
     delete mTraceFile;
     mTraceFile = nullptr;
     reloadData();
+}
+
+void TraceBrowser::closeDeleteSlot()
+{
+    QMessageBox msgbox(QMessageBox::Critical, tr("Close and delete"), tr("Are you really going to delete this file?"), QMessageBox::Yes | QMessageBox::Cancel, this);
+    if(msgbox.exec() == QMessageBox::Yes)
+    {
+        if(mTraceFile->Delete() == false)
+            SimpleErrorBox(this, tr("Error"), "del error");
+        delete mTraceFile;
+        mTraceFile = nullptr;
+        reloadData();
+    }
 }
 
 void TraceBrowser::parseFinishedSlot()
