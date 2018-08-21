@@ -934,8 +934,7 @@ void TraceBrowser::closeDeleteSlot()
     {
         if(DbgValFromString("tr.runtraceenabled()") == 1)
             DbgCmdExecDirect("StopRunTrace");
-        if(mTraceFile->Delete() == false)
-            SimpleErrorBox(this, tr("Error"), "del error");
+        mTraceFile->Delete();
         delete mTraceFile;
         mTraceFile = nullptr;
         reloadData();
