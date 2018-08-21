@@ -182,6 +182,11 @@ static void HandleCapstoneOperand(Zydis & cp, int opindex, DISASM_ARG* arg, bool
     }
     break;
 
+    case ZYDIS_OPERAND_TYPE_POINTER:
+        arg->type = arg_normal;
+        arg->value = op.ptr.offset;
+        break;
+
     default:
         break;
     }
