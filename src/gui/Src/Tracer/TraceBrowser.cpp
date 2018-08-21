@@ -919,6 +919,8 @@ void TraceBrowser::toggleRunTraceSlot()
 
 void TraceBrowser::closeFileSlot()
 {
+    if(DbgValFromString("tr.runtraceenabled()") == 1)
+        DbgCmdExec("StopRunTrace");
     mTraceFile->Close();
     delete mTraceFile;
     mTraceFile = nullptr;
@@ -930,6 +932,8 @@ void TraceBrowser::closeDeleteSlot()
     QMessageBox msgbox(QMessageBox::Critical, tr("Close and delete"), tr("Are you really going to delete this file?"), QMessageBox::Yes | QMessageBox::Cancel, this);
     if(msgbox.exec() == QMessageBox::Yes)
     {
+        if(DbgValFromString("tr.runtraceenabled()") == 1)
+            DbgCmdExecDirect("StopRunTrace");
         if(mTraceFile->Delete() == false)
             SimpleErrorBox(this, tr("Error"), "del error");
         delete mTraceFile;
