@@ -195,6 +195,8 @@ static void stackgetsuspectedcallstack(duint csp, std::vector<CALLSTACKENTRY> & 
 {
     duint size;
     duint base = MemFindBaseAddr(csp, &size);
+    if(!base)
+        return;
     duint end = base + size;
     size = end - csp;
     Memory<duint*> stackdata(size);
