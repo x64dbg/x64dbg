@@ -468,6 +468,14 @@ static bool isSafe64NopRegOp(const ZydisDecodedOperand & op)
     case ZYDIS_REGISTER_ESP:
     case ZYDIS_REGISTER_ESI:
     case ZYDIS_REGISTER_EDI:
+    case ZYDIS_REGISTER_R8D:
+    case ZYDIS_REGISTER_R9D:
+    case ZYDIS_REGISTER_R10D:
+    case ZYDIS_REGISTER_R11D:
+    case ZYDIS_REGISTER_R12D:
+    case ZYDIS_REGISTER_R13D:
+    case ZYDIS_REGISTER_R14D:
+    case ZYDIS_REGISTER_R15D:
         return false; //32 bit register modifications clear the high part of the 64 bit register
     default:
         return true; //all other registers are safe
