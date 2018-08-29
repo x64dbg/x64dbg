@@ -31,7 +31,18 @@ downslib_error downslib_download(const char* url,
     {
         DWORD dwLastError = GetLastError();
         if(hFile != INVALID_HANDLE_VALUE)
+        {
+            bool doDelete = false;
+            LARGE_INTEGER fileSize;
+            if(dwLastError != ERROR_SUCCESS || (GetFileSizeEx(hFile, &fileSize) && fileSize.QuadPart == 0))
+            {
+                // an error occurred and now there is an empty or incomplete file that didn't exist before we came in
+                doDelete = true;
+            }
             CloseHandle(hFile);
+            if(doDelete)
+                DeleteFileW(filename);
+        }
         if(hUrl != NULL)
             InternetCloseHandle(hUrl);
         if(hInternet != NULL)
@@ -39,7 +50,7 @@ downslib_error downslib_download(const char* url,
         SetLastError(dwLastError);
     });
 
-    hFile = CreateFileW(filename, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL);
+    hFile = CreateFileW(filename, GENERIC_WRITE | FILE_READ_ATTRIBUTES, 0, NULL, CREATE_ALWAYS, 0, NULL);
     if(hFile == INVALID_HANDLE_VALUE)
         return downslib_error::createfile;
 
@@ -102,7 +113,10 @@ downslib_error downslib_download(const char* url,
 
         // Call the callback to report progress and cancellation
         if(cb && !cb(read_bytes, total_bytes))
+        {
+            SetLastError(ERROR_OPERATION_ABORTED);
             return downslib_error::cancel;
+        }
 
         // Exit if nothing more to read
         if(dwRead == 0)
@@ -112,7 +126,11 @@ downslib_error downslib_download(const char* url,
     }
 
     if(total_bytes > 0 && read_bytes != total_bytes)
+    {
+        SetLastError(ERROR_IO_INCOMPLETE);
         return downslib_error::incomplete;
+    }
 
+    SetLastError(ERROR_SUCCESS);
     return downslib_error::ok;
 }
