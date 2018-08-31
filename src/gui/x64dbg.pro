@@ -302,7 +302,8 @@ HEADERS += \
     Src/BasicView/AbstractStdTable.h \
     Src/Gui/ZehSymbolTable.h \
     Src/BasicView/AbstractSearchList.h \
-    Src/BasicView/StdSearchListView.h
+    Src/BasicView/StdSearchListView.h \
+    Src/Gui/FileLines.h
     
 
 FORMS += \

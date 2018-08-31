@@ -1,34 +1,86 @@
 #include "SourceView.h"
-#include <QFile>
-#include <QTextStream>
+#include <QFileDialog>
 #include <QMessageBox>
-#include <QProcess>
-#include <QDir>
 #include <QDesktopServices>
-#include "Configuration.h"
+#include <QProcess>
+#include <memory>
+#include "FileLines.h"
 
 SourceView::SourceView(QString path, duint addr, QWidget* parent)
-    : ReferenceView(true, parent),
+    : AbstractStdTable(parent),
       mSourcePath(path),
-      mIpLine(0),
       mModBase(DbgFunctions()->ModBaseFromAddr(addr))
 {
-    stdList()->enableColumnSorting(false);
-    stdSearchList()->enableColumnSorting(false);
+    enableMultiSelection(true);
+    enableColumnSorting(false);
+    setDrawDebugOnly(false);
+    setAddressColumn(0);
 
-    addColumnAtRef(sizeof(duint) * 2, tr("Address"));
-    addColumnAtRef(6, tr("Line"));
-    addColumnAtRef(0, tr("Code"));
+    int charwidth = getCharWidth();
 
-    connect(this, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(sourceContextMenu(QMenu*)));
+    addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("Address"), false);
+    addColumnAt(8 + charwidth * 8, tr("Line"), false);
+    addColumnAt(0, tr("Code"), false);
+    loadColumnFromConfig("SourceView");
+    setupContextMenu();
+
+    connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
+
+    Initialize();
 
     loadFile();
-    setSelection(addr);
+}
 
-    mMenuBuilder = new MenuBuilder(this);
-    mMenuBuilder->addAction(makeAction(DIcon("source.png"), tr("Open source file"), SLOT(openSourceFileSlot())));
-    mMenuBuilder->addAction(makeAction(DIcon("source_show_in_folder.png"), tr("Show source file in directory"), SLOT(showInDirectorySlot())));
-    mMenuBuilder->loadFromConfig();
+SourceView::~SourceView()
+{
+    clear();
+}
+
+QString SourceView::getCellContent(int r, int c)
+{
+    if(!isValidIndex(r, c))
+        return QString();
+    LineData & line = mLines.at(r - mPrepareTableOffset);
+    switch(c)
+    {
+    case ColAddr:
+        return line.addr ? ToPtrString(line.addr) : QString();
+    case ColLine:
+        return QString("%1").arg(line.index + 1);
+    case ColCode:
+        return line.code.code;
+    }
+    __debugbreak();
+    return "INVALID";
+}
+
+bool SourceView::isValidIndex(int r, int c)
+{
+    if(!mFileLines)
+        return false;
+    if(c < ColAddr || c > ColCode)
+        return false;
+    return r >= 0 && size_t(r) < mFileLines->size();
+}
+
+void SourceView::sortRows(int column, bool ascending)
+{
+    Q_UNUSED(column);
+    Q_UNUSED(ascending);
+}
+
+void SourceView::prepareData()
+{
+    AbstractTableView::prepareData();
+    if(mFileLines)
+    {
+        auto lines = getNbrOfLineToPrint();
+        mPrepareTableOffset = getTableOffset();
+        mLines.clear();
+        mLines.resize(lines);
+        for(auto i = 0; i < lines; i++)
+            parseLine(mPrepareTableOffset + i, mLines[i]);
+    }
 }
 
 void SourceView::setSelection(duint addr)
@@ -36,8 +88,16 @@ void SourceView::setSelection(duint addr)
     int line = 0;
     if(!DbgFunctions()->GetSourceFromAddr(addr, nullptr, &line))
         return;
-    mCurList->scrollSelect(line - 1);
+    scrollSelect(line - 1);
     reloadData(); //repaint
+}
+
+void SourceView::clear()
+{
+    delete mFileLines;
+    mFileLines = nullptr;
+    mSourcePath.clear();
+    mModBase = 0;
 }
 
 QString SourceView::getSourcePath()
@@ -45,34 +105,11 @@ QString SourceView::getSourcePath()
     return mSourcePath;
 }
 
-void SourceView::loadFile()
+void SourceView::contextMenuSlot(const QPoint & pos)
 {
-    QFile file(mSourcePath);
-    if(!file.open(QIODevice::ReadOnly))
-    {
-        return; //error?
-    }
-    QTextStream in(&file);
-    int lineNum = 0;
-    while(!in.atEnd())
-    {
-        QString line = in.readLine().replace('\t', "    "); //replace tabs with four spaces
-        setRowCount(lineNum + 1);
-        duint addr = DbgFunctions()->GetAddrFromLineEx(mModBase, mSourcePath.toUtf8().constData(), lineNum + 1);
-        if(addr)
-            setCellContent(lineNum, 0, ToPtrString(addr));
-        setCellContent(lineNum, 1, QString("%1").arg(lineNum + 1));
-        setCellContent(lineNum, 2, line);
-        lineNum++;
-    }
-    reloadData();
-    file.close();
-}
-
-void SourceView::sourceContextMenu(QMenu* menu)
-{
-    menu->addSeparator();
-    mMenuBuilder->build(menu);
+    QMenu wMenu(this);
+    mMenuBuilder->build(&wMenu);
+    wMenu.exec(mapToGlobal(pos));
 }
 
 void SourceView::openSourceFileSlot()
@@ -86,4 +123,50 @@ void SourceView::showInDirectorySlot()
     args << "/select," << QDir::toNativeSeparators(mSourcePath);
     auto process = new QProcess(this);
     process->start("explorer.exe", args);
+}
+
+void SourceView::setupContextMenu()
+{
+    mMenuBuilder = new MenuBuilder(this);
+    mMenuBuilder->addAction(makeAction(DIcon("source.png"), tr("Open source file"), SLOT(openSourceFileSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("source_show_in_folder.png"), tr("Show source file in directory"), SLOT(showInDirectorySlot())));
+    mMenuBuilder->loadFromConfig();
+}
+
+void SourceView::parseLine(size_t index, LineData & line)
+{
+    QString lineText = QString::fromStdString((*mFileLines)[index]);
+    line.addr = DbgFunctions()->GetAddrFromLineEx(mModBase, mSourcePath.toUtf8().constData(), int(index + 1));
+    line.index = index;
+    line.code.code = lineText.replace('\t', "    "); //TODO: add syntax highlighting
+}
+
+void SourceView::loadFile()
+{
+    if(!mSourcePath.length())
+        return;
+    if(mFileLines)
+    {
+        delete mFileLines;
+        mFileLines = nullptr;
+    }
+    mFileLines = new FileLines();
+    mFileLines->open(mSourcePath.toStdWString().c_str());
+    if(!mFileLines->isopen())
+    {
+        QMessageBox::warning(this, "Error", "Failed to open file!");
+        delete mFileLines;
+        mFileLines = nullptr;
+        return;
+    }
+    if(!mFileLines->parse())
+    {
+        QMessageBox::warning(this, "Error", "Failed to parse file!");
+        delete mFileLines;
+        mFileLines = nullptr;
+        return;
+    }
+    setRowCount(mFileLines->size());
+    setTableOffset(0);
+    reloadData();
 }
