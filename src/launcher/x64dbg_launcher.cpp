@@ -595,8 +595,24 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                 auto len = wcslen(argv[i]);
                 for(size_t j = 0; j < len; j++)
                 {
-                    if(argv[i][j] == L'\"')
+                    // https://ss64.com/nt/syntax-esc.html
+                    switch(argv[i][j])
+                    {
+                    case L'\"':
                         escaped.push_back(L'\"');
+                        break;
+                    case L'%':
+                    case L'&':
+                    case L'<':
+                    case L'>':
+                    case L'^':
+                    case L'|':
+                        escaped.push_back(L'^');
+                        break;
+                    default:
+                        break;
+                    }
+
                     escaped.push_back(argv[i][j]);
                 }
 
