@@ -5,11 +5,11 @@
 #include "jansson/jansson_x64dbg.h"
 
 #define TITANSETDRX(titantype, drx) titantype &= 0x0FF; titantype |= (drx<<8)
-#define TITANGETDRX(titantype) ((titantype >> 8) & 0xF)
+#define TITANGETDRX(titantype) (titantype >> 8) & 0xF
 #define TITANSETTYPE(titantype, type) titantype &= 0xF0F; titantype |= (type<<4)
-#define TITANGETTYPE(titantype) ((titantype >> 4) & 0xF)
+#define TITANGETTYPE(titantype) (titantype >> 4) & 0xF
 #define TITANSETSIZE(titantype, size) titantype &= 0xFF0; titantype |= size;
-#define TITANGETSIZE(titantype) (titantype & 0xF)
+#define TITANGETSIZE(titantype) titantype & 0xF
 
 enum BP_TYPE
 {
