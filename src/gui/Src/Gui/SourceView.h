@@ -24,6 +24,8 @@ public:
 
 private slots:
     void contextMenuSlot(const QPoint & pos);
+    void followDisassemblerSlot();
+    void gotoLineSlot();
     void openSourceFileSlot();
     void showInDirectorySlot();
 
@@ -59,6 +61,7 @@ private:
     void setupContextMenu();
     void loadFile();
     void parseLine(size_t index, LineData & line);
+    duint addrFromIndex(size_t index);
 };
 
 #endif // SOURCEVIEW_H

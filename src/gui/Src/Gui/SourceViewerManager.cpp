@@ -55,6 +55,7 @@ void SourceViewerManager::loadSourceFile(QString path, duint addr)
     QTimer::singleShot(50, [newView, addr]()
     {
         newView->setSelection(addr);
+        newView->setFocus();
     });
 }
 

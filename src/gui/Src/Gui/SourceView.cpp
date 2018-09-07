@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QProcess>
+#include <QInputDialog>
 #include <memory>
 #include "FileLines.h"
 
@@ -112,6 +113,23 @@ void SourceView::contextMenuSlot(const QPoint & pos)
     wMenu.exec(mapToGlobal(pos));
 }
 
+void SourceView::followDisassemblerSlot()
+{
+    duint addr = addrFromIndex(getInitialSelection());
+    DbgCmdExec(QString("disasm %1").arg(ToPtrString(addr)).toUtf8().constData());
+}
+
+void SourceView::gotoLineSlot()
+{
+    bool ok = false;
+    int line = QInputDialog::getInt(this, tr("Go to line"), tr("Line (decimal):"), getInitialSelection() + 1, 1, getRowCount() - 1, 1, &ok, Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+    if(ok)
+    {
+        scrollSelect(line - 1);
+        reloadData(); //repaint
+    }
+}
+
 void SourceView::openSourceFileSlot()
 {
     QDesktopServices::openUrl(QUrl::fromLocalFile(mSourcePath));
@@ -128,6 +146,11 @@ void SourceView::showInDirectorySlot()
 void SourceView::setupContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this);
+    mMenuBuilder->addAction(makeAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("&Follow in Disassembler"), SLOT(followDisassemblerSlot())), [this](QMenu*)
+    {
+        return DbgMemIsValidReadPtr(addrFromIndex(getInitialSelection()));
+    });
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Go to line"), SLOT(gotoLineSlot()), "ActionGotoExpression"));
     mMenuBuilder->addAction(makeAction(DIcon("source.png"), tr("Open source file"), SLOT(openSourceFileSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("source_show_in_folder.png"), tr("Show source file in directory"), SLOT(showInDirectorySlot())));
     mMenuBuilder->loadFromConfig();
@@ -136,9 +159,14 @@ void SourceView::setupContextMenu()
 void SourceView::parseLine(size_t index, LineData & line)
 {
     QString lineText = QString::fromStdString((*mFileLines)[index]);
-    line.addr = DbgFunctions()->GetAddrFromLineEx(mModBase, mSourcePath.toUtf8().constData(), int(index + 1));
+    line.addr = addrFromIndex(index);
     line.index = index;
     line.code.code = lineText.replace('\t', "    "); //TODO: add syntax highlighting
+}
+
+duint SourceView::addrFromIndex(size_t index)
+{
+    return DbgFunctions()->GetAddrFromLineEx(mModBase, mSourcePath.toUtf8().constData(), int(index + 1));
 }
 
 void SourceView::loadFile()
