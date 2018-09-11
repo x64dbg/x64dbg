@@ -571,8 +571,6 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
             strncat_s(pdbPath, ".pdb", _TRUNCATE);
             Info.pdbPaths.push_back(pdbPath);
         }
-
-
     }
 }
 
@@ -1119,7 +1117,7 @@ bool MODINFO::loadSymbols()
             {
                 GuiSymbolLogAdd(StringUtils::sprintf("[DIA] Skipping non-existent PDB: %s\n", pdbPath.c_str()).c_str());
             }
-            else if(symSource->loadPDB(pdbPath, base, size, &validationData))
+            else if(symSource->loadPDB(pdbPath, base, size, bForceLoadSymbols ? nullptr : &validationData))
             {
                 symSource->resizeSymbolBitmap(size);
 

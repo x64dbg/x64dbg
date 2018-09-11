@@ -320,6 +320,10 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
             }
         }
     }
+    else
+    {
+        GuiSymbolLogAdd("Skipping PDB validation, expect invalid results!\n");
+    }
 
     if(loadAddress != 0)
     {
