@@ -1493,17 +1493,17 @@ BRIDGE_IMPEXP void GuiMenuSetVisible(int hMenu, bool visible)
 
 BRIDGE_IMPEXP void GuiMenuSetEntryVisible(int hEntry, bool visible)
 {
-    _gui_sendmessage(GUI_MENU_SET_VISIBLE, (void*)hEntry, (void*)visible);
+    _gui_sendmessage(GUI_MENU_SET_ENTRY_VISIBLE, (void*)hEntry, (void*)visible);
 }
 
 BRIDGE_IMPEXP void GuiMenuSetName(int hMenu, const char* name)
 {
-    _gui_sendmessage(GUI_MENU_SET_VISIBLE, (void*)hMenu, (void*)name);
+    _gui_sendmessage(GUI_MENU_SET_NAME, (void*)hMenu, (void*)name);
 }
 
 BRIDGE_IMPEXP void GuiMenuSetEntryName(int hEntry, const char* name)
 {
-    _gui_sendmessage(GUI_MENU_SET_VISIBLE, (void*)hEntry, (void*)name);
+    _gui_sendmessage(GUI_MENU_SET_ENTRY_NAME, (void*)hEntry, (void*)name);
 }
 
 BRIDGE_IMPEXP void GuiMenuSetEntryHotkey(int hEntry, const char* hack)
