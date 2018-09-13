@@ -207,7 +207,7 @@ void disasmget(Zydis & cp, unsigned char* buffer, duint addr, DISASM_INSTR* inst
         return;
     }
     auto cpInstr = cp.GetInstr();
-    strcpy_s(instr->instruction, cp.InstructionText().c_str());
+    strncpy_s(instr->instruction, cp.InstructionText().c_str(), _TRUNCATE);
     instr->instr_size = cpInstr->length;
     if(cp.IsBranchType(Zydis::BTJmp | Zydis::BTLoop | Zydis::BTRet | Zydis::BTCall))
         instr->type = instr_branch;
