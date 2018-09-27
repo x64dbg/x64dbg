@@ -50,7 +50,7 @@ public:
 
     bool close();
 
-    bool getFunctionLineNumbers(DWORD rva, ULONGLONG size, uint64_t imageBase, std::map<uint64_t, DiaLineInfo_t> & lines);
+    bool enumerateLineNumbers(uint32_t rva, uint32_t size, std::vector<DiaLineInfo_t> & lines, std::map<DWORD, std::string> & files);
 
     bool enumerateLexicalHierarchy(const Query_t & query);
 

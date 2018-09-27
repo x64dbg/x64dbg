@@ -94,7 +94,8 @@ private: //line info
     //TODO: make this source file stuff smarter
     std::vector<CachedLineInfo> _linesData;
     std::map<duint, size_t> _lines; //addr -> line
-    std::vector<String> _sourceFiles;
+    std::vector<String> _sourceFiles; // uniqueId + name
+    std::map<DWORD, uint32_t> _sourceIdMap; //uniqueId -> index in _sourceFiles
     std::vector<std::map<int, size_t>> _sourceLines; //uses index in _sourceFiles
 
 private: //general
