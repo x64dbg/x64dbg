@@ -1,6 +1,7 @@
 #ifndef WORDEDITDIALOG_H
 #define WORDEDITDIALOG_H
 
+#include <QValidator>
 #include <QDialog>
 #include <QPushButton>
 #include "Imports.h"
