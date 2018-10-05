@@ -1396,7 +1396,7 @@ void TraceBrowser::updateSlot()
     }
 }
 
-void TraceBrowser::toggleAutoDisassemblyFollowSelection()
+void TraceBrowser::toggleAutoDisassemblyFollowSelectionSlot()
 {
     mAutoDisassemblyFollowSelection = !mAutoDisassemblyFollowSelection;
 }
