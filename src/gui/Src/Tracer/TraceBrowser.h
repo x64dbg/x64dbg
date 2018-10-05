@@ -133,7 +133,7 @@ public slots:
 
     void updateSlot(); //debug
 
-    void toggleAutoDisassemblyFollowSelection();
+    void toggleAutoDisassemblyFollowSelectionSlot();
 };
 
 #endif //TRACEBROWSER_H
