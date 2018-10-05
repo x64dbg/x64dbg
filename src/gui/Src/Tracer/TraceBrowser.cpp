@@ -31,6 +31,8 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
     mRvaDisplayBase = 0;
     mRvaDisplayEnabled = false;
 
+    mAutoDisassemblyFollowSelection = false;
+
     int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
     mDisasm = new QBeaEngine(maxModuleSize);
     mHighlightingMode = false;
@@ -564,6 +566,19 @@ void TraceBrowser::setupRightClickContextMenu()
         return true;
     });
     mMenuBuilder->addMenu(makeMenu(tr("Information")), infoMenu);
+
+
+    QAction* toggleAutoDisassemblyFollowSelection = makeAction(tr("Toggle Auto Disassembly Scroll (off)"), SLOT(toggleAutoDisassemblyFollowSelection()));
+    mMenuBuilder->addAction(toggleAutoDisassemblyFollowSelection, [this, toggleAutoDisassemblyFollowSelection](QMenu*)
+    {
+        if(!DbgIsDebugging())
+            return false;
+        if(mAutoDisassemblyFollowSelection)
+            toggleAutoDisassemblyFollowSelection->setText(tr("Toggle Auto Disassembly Scroll (on)"));
+        else
+            toggleAutoDisassemblyFollowSelection->setText(tr("Toggle Auto Disassembly Scroll (off)"));
+        return true;
+    });
 }
 
 void TraceBrowser::contextMenuEvent(QContextMenuEvent* event)
@@ -628,6 +643,10 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
                     setSingleSelection(index);
                 mHistory.addVaToHistory(index);
                 updateViewport();
+
+                if(mAutoDisassemblyFollowSelection)
+                    followDisassemblySlot();
+
                 return;
             }
             break;
@@ -756,6 +775,9 @@ void TraceBrowser::keyPressEvent(QKeyEvent* event)
         makeVisible(visibleindex);
         mHistory.addVaToHistory(visibleindex);
         updateViewport();
+
+        if(mAutoDisassemblyFollowSelection)
+            followDisassemblySlot();
     }
     else
         AbstractTableView::keyPressEvent(event);
@@ -1372,4 +1394,9 @@ void TraceBrowser::updateSlot()
         setRowCount(mTraceFile->Length());
         reloadData();
     }
+}
+
+void TraceBrowser::toggleAutoDisassemblyFollowSelection()
+{
+    mAutoDisassemblyFollowSelection = !mAutoDisassemblyFollowSelection;
 }
