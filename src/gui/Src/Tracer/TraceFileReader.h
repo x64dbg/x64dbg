@@ -17,18 +17,19 @@ public:
     TraceFileReader(QObject* parent = NULL);
     bool Open(const QString & fileName);
     void Close();
-    bool isError();
-    int Progress();
+    bool Delete();
+    bool isError() const;
+    int Progress() const;
 
-    unsigned long long Length();
+    unsigned long long Length() const;
 
     REGDUMP Registers(unsigned long long index);
     void OpCode(unsigned long long index, unsigned char* buffer, int* opcodeSize);
     DWORD ThreadId(unsigned long long index);
     int MemoryAccessCount(unsigned long long index);
     void MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid);
-    duint HashValue();
-    QString ExePath();
+    duint HashValue() const;
+    QString ExePath() const;
 
     void purgeLastPage();
 

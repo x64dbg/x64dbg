@@ -312,7 +312,7 @@ uint32_t SymbolSourceDIA::findSourceFile(const std::string & fileName) const
     for(uint32_t n = 0; n < _sourceFiles.size(); n++)
     {
         const String & str = _sourceFiles[n];
-        if(_stricmp(str.c_str(), fileName.c_str()) == 0)
+        if(stricmp(str.c_str(), fileName.c_str()) == 0)
         {
             idx = n;
             break;

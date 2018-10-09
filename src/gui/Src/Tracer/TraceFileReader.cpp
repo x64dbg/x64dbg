@@ -42,6 +42,7 @@ bool TraceFileReader::Open(const QString & fileName)
         emit parseFinished();
         return false;
     }
+
 }
 
 void TraceFileReader::Close()
@@ -60,6 +61,23 @@ void TraceFileReader::Close()
     error = false;
 }
 
+bool TraceFileReader::Delete()
+{
+    if(parser != NULL)
+    {
+        parser->requestInterruption();
+        parser->wait();
+    }
+    bool value = traceFile.remove();
+    progress.store(0);
+    length = 0;
+    fileIndex.clear();
+    hashValue = 0;
+    EXEPath.clear();
+    error = false;
+    return value;
+}
+
 void TraceFileReader::parseFinishedSlot()
 {
     if(!error)
@@ -74,27 +92,27 @@ void TraceFileReader::parseFinishedSlot()
     //GuiAddLogMessage(QString("%1;%2;%3\r\n").arg(i.first).arg(i.second.first).arg(i.second.second).toUtf8().constData());
 }
 
-bool TraceFileReader::isError()
+bool TraceFileReader::isError() const
 {
     return error;
 }
 
-int TraceFileReader::Progress()
+int TraceFileReader::Progress() const
 {
     return progress.load();
 }
 
-unsigned long long TraceFileReader::Length()
+unsigned long long TraceFileReader::Length() const
 {
     return length;
 }
 
-duint TraceFileReader::HashValue()
+duint TraceFileReader::HashValue() const
 {
     return hashValue;
 }
 
-QString TraceFileReader::ExePath()
+QString TraceFileReader::ExePath() const
 {
     return EXEPath;
 }

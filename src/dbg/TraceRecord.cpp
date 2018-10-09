@@ -218,6 +218,10 @@ static void HandleCapstoneOperand(const Zydis & cp, int opindex, DISASM_ARGTYPE*
         *argType = arg_normal;
         break;
 
+    case ZYDIS_OPERAND_TYPE_POINTER:
+        *argType = arg_normal;
+        break;
+
     case ZYDIS_OPERAND_TYPE_MEMORY:
     {
         *argType = arg_memory;
