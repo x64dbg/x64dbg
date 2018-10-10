@@ -760,6 +760,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
         mFPUx87.insert(i);
         mFPUx87_80BITSDISPLAY.insert(i);
         mFPU.insert(i);
+        mSETONEZEROTOGGLE.insert(i);
     }
 
     for(REGISTER_NAME i = x87st0; i <= x87st7; i = (REGISTER_NAME)(i + 1))
@@ -769,6 +770,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
         mFPUx87.insert(i);
         mFPUx87_80BITSDISPLAY.insert(i);
         mFPU.insert(i);
+        mSETONEZEROTOGGLE.insert(i);
     }
 
     mSETONEZEROTOGGLE.insert(x87TagWord);
@@ -2556,13 +2558,23 @@ void RegistersView::onPopAction()
 void RegistersView::onZeroAction()
 {
     if(mSETONEZEROTOGGLE.contains(mSelected))
-        setRegister(mSelected, 0);
+    {
+        if(mSelected >= x87r0 && mSelected <= x87r7 || mSelected >= x87st0 && mSelected <= x87st7)
+            setRegister(mSelected, reinterpret_cast<duint>("\0\0\0\0\0\0\0\0\0")); //9 zeros and 1 terminating zero
+        else
+            setRegister(mSelected, 0);
+    }
 }
 
 void RegistersView::onSetToOneAction()
 {
     if(mSETONEZEROTOGGLE.contains(mSelected))
-        setRegister(mSelected, 1);
+    {
+        if(mSelected >= x87r0 && mSelected <= x87r7 || mSelected >= x87st0 && mSelected <= x87st7)
+            setRegister(mSelected, reinterpret_cast<duint>("\0\0\0\0\0\0\0\x80\xFF\x3F"));
+        else
+            setRegister(mSelected, 1);
+    }
 }
 
 void RegistersView::onModifyAction()
@@ -2973,10 +2985,20 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
 
         if(mSETONEZEROTOGGLE.contains(mSelected))
         {
-            if((* ((duint*) registerValue(&wRegDumpStruct, mSelected))) >= 1)
-                wMenu.addAction(wCM_Zero);
-            if((* ((duint*) registerValue(&wRegDumpStruct, mSelected))) == 0)
-                wMenu.addAction(wCM_SetToOne);
+            if(mSelected >= x87r0 && mSelected <= x87r7 || mSelected >= x87st0 && mSelected <= x87st7)
+            {
+                if(memcmp(registerValue(&wRegDumpStruct, mSelected), "\0\0\0\0\0\0\0\0\0", 10) != 0)
+                    wMenu.addAction(wCM_Zero);
+                if(memcmp(registerValue(&wRegDumpStruct, mSelected), "\0\0\0\0\0\0\0\x80\xFF\x3F", 10) != 0)
+                    wMenu.addAction(wCM_SetToOne);
+            }
+            else
+            {
+                if((* ((duint*) registerValue(&wRegDumpStruct, mSelected))) != 0)
+                    wMenu.addAction(wCM_Zero);
+                if((* ((duint*) registerValue(&wRegDumpStruct, mSelected))) == 0)
+                    wMenu.addAction(wCM_SetToOne);
+            }
         }
 
         if(mBOOLDISPLAY.contains(mSelected))
