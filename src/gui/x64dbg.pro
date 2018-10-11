@@ -183,7 +183,8 @@ SOURCES += \
     Src/BasicView/AbstractStdTable.cpp \
     Src/Gui/ZehSymbolTable.cpp \
     Src/BasicView/StdSearchListView.cpp \
-    Src/BasicView/StdTableSearchList.cpp
+    Src/BasicView/StdTableSearchList.cpp \
+    Src/Gui/SimpleFilterDialog.cpp
 
 
 HEADERS += \
@@ -305,6 +306,7 @@ HEADERS += \
     Src/BasicView/StdSearchListView.h \
     Src/Gui/FileLines.h \
     Src/BasicView/StdTableSearchList.h \
+    Src/Gui/SimpleFilterDialog.h \
     Src/Utils/MethodInvoker.h
     
 
@@ -343,7 +345,8 @@ FORMS += \
     Src/Gui/SimpleTraceDialog.ui \
     Src/Gui/MessagesBreakpoints.ui \
     Src/Gui/AboutDialog.ui \
-    Src/Gui/ComboBoxDialog.ui
+    Src/Gui/ComboBoxDialog.ui \
+    Src/Gui/SimpleFilterDialog.ui
 
 ##
 ## Libraries

@@ -39,6 +39,17 @@ private:
         Memory,
         Comments
     };
+
+    struct DisplayDataEntry
+    {
+        duint va;
+        Instruction_t instruction;
+        unsigned char opcodes[16];
+        int opcodeSize = 0;
+        int traceFileIndex = 0;
+    };
+
+
     void setupRightClickContextMenu();
     void makeVisible(duint index);
     QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel);
@@ -113,6 +124,14 @@ private:
     QColor mCommentBackgroundColor;
     QColor mDisassemblyRelocationUnderlineColor;
 
+    unsigned long long mDisplayLastTraceSize = -1;
+    QVector<DisplayDataEntry> mDisplayDataEntries;
+
+    QString mInstructionFilterText;
+
+    duint mMinVAFilter;
+    duint mMaxVAFilter;
+
 signals:
     void displayReferencesWidget();
 
@@ -148,6 +167,8 @@ public slots:
     void updateSlot(); //debug
 
     void toggleAutoDisassemblyFollowSelectionSlot();
+    void simpleInstructionFilterSlot();
+    void clearSimpleInstructionFilterSlot();
 };
 
 #endif //TRACEBROWSER_H

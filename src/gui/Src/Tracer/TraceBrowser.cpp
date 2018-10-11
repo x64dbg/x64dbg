@@ -12,6 +12,7 @@
 #include "BreakpointMenu.h"
 #include "MRUList.h"
 #include <QFileDialog>
+#include "SimpleFilterDialog.h"
 
 TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
 {
@@ -50,6 +51,10 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
 
     connect(Bridge::getBridge(), SIGNAL(updateTraceBrowser()), this, SLOT(updateSlot()));
     connect(Bridge::getBridge(), SIGNAL(openTraceFile(const QString &)), this, SLOT(openSlot(const QString &)));
+
+    mInstructionFilterText = "";
+    mMinVAFilter = 0;
+    mMaxVAFilter = std::numeric_limits<duint>::max();
 }
 
 TraceBrowser::~TraceBrowser()
@@ -154,6 +159,7 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
         mTraceFile->Close();
         delete mTraceFile;
         mTraceFile = nullptr;
+        mDisplayLastTraceSize = -1;
         setRowCount(0);
         return "";
     }
@@ -168,8 +174,14 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
     }
 
     int index = rowBase + rowOffset;
+
+    if(index >= mDisplayDataEntries.size())
+    {
+        return "";
+    }
+
     duint cur_addr;
-    cur_addr = mTraceFile->Registers(index).regcontext.cip;
+    cur_addr = mDisplayDataEntries[index].va;
     bool wIsSelected = (index >= mSelection.fromIndex && index <= mSelection.toIndex);
     if(wIsSelected)
     {
@@ -181,7 +193,7 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
     {
     case Index:
     {
-        return getIndexText(index);
+        return getIndexText(mDisplayDataEntries[index].traceFileIndex);
     }
 
     case Address:
@@ -338,10 +350,7 @@ NotDebuggingLabel:
 
     case Opcode:
     {
-        unsigned char opcodes[16];
-        int opcodeSize = 0;
-        mTraceFile->OpCode(index, opcodes, &opcodeSize);
-        Instruction_t inst = mDisasm->DisassembleAt(opcodes, opcodeSize, 0, mTraceFile->Registers(index).regcontext.cip, false);
+        Instruction_t & inst = mDisplayDataEntries[index].instruction;
         RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), 4, getRichBytes(inst), mFontMetrics);
         return "";
     }
@@ -349,11 +358,8 @@ NotDebuggingLabel:
     case Disassembly:
     {
         RichTextPainter::List richText;
-        unsigned char opcodes[16];
-        int opcodeSize = 0;
-        mTraceFile->OpCode(index, opcodes, &opcodeSize);
 
-        Instruction_t inst = mDisasm->DisassembleAt(opcodes, opcodeSize, 0, mTraceFile->Registers(index).regcontext.cip, false);
+        Instruction_t & inst = mDisplayDataEntries[index].instruction;
 
         if(mHighlightToken.text.length())
             ZydisTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
@@ -501,19 +507,62 @@ ZydisTokenizer::InstructionToken TraceBrowser::registersTokens(int atIndex)
 
 void TraceBrowser::prepareData()
 {
-    auto viewables = getViewableRowsCount();
-    int lines = 0;
-    if(mTraceFile != nullptr)
+    int viewables = getViewableRowsCount();
+    int displayableLinesCount = getNbrOfLineToPrint();
+    if(mTraceFile != nullptr && mTraceFile->Progress() == 100)
     {
-        if(mTraceFile->Progress() == 100)
+        int actualLineCount = 0;
+
+        if(mDisplayLastTraceSize != mTraceFile->Length())
         {
-            if(mTraceFile->Length() < getTableOffset() + viewables)
-                lines = mTraceFile->Length() - getTableOffset();
-            else
-                lines = viewables;
+            mDisplayDataEntries.clear();
+            mDisplayLastTraceSize = mTraceFile->Length();
+        }
+
+        if(mDisplayDataEntries.size() <= 0)
+        {
+            for(int lineIdx = getTableOffset(); lineIdx < mTraceFile->Length(); ++lineIdx)
+            {
+                unsigned char opcodes[16];
+                int opcodeSize = 0;
+                mTraceFile->OpCode(lineIdx, opcodes, &opcodeSize);
+
+                duint cur_addr = mTraceFile->Registers(lineIdx).regcontext.cip;
+                Instruction_t inst = mDisasm->DisassembleAt(opcodes, opcodeSize, 0, mTraceFile->Registers(lineIdx).regcontext.cip, false);
+
+                // extract just the actual instruction from the string (first substring before space)
+                QString instClean = inst.instStr;
+                int idx = instClean.indexOf(' ');
+                if(idx > -1)
+                {
+                    instClean = instClean.mid(0, idx);
+                }
+
+                if((mInstructionFilterText.size() == 0
+                        || instClean == mInstructionFilterText)
+                        && cur_addr >= mMinVAFilter
+                        && cur_addr <= mMaxVAFilter)
+                {
+                    ++actualLineCount;
+
+                    DisplayDataEntry displayDataEntry;
+
+                    displayDataEntry.va = cur_addr;
+                    displayDataEntry.instruction = inst;
+                    displayDataEntry.opcodeSize = opcodeSize;
+                    std::memcpy(&displayDataEntry.opcodes, opcodes, 16);
+                    displayDataEntry.traceFileIndex = lineIdx;
+
+                    mDisplayDataEntries.push_back(displayDataEntry);
+                }
+            }
+
+            displayableLinesCount = std::min(actualLineCount, viewables);
+            setRowCount(mDisplayDataEntries.size());
         }
     }
-    setNbrOfLineToPrint(lines);
+
+    setNbrOfLineToPrint(displayableLinesCount);
 }
 
 void TraceBrowser::setupRightClickContextMenu()
@@ -557,7 +606,8 @@ void TraceBrowser::setupRightClickContextMenu()
     mMenuBuilder->addSeparator();
     auto isValid = [this](QMenu*)
     {
-        return mTraceFile != nullptr && mTraceFile->Progress() == 100 && mTraceFile->Length() > 0;
+        return mTraceFile != nullptr && mTraceFile->Progress() == 100
+               && mDisplayDataEntries.length() > 0;
     };
     auto isDebugging = [this](QMenu*)
     {
@@ -581,7 +631,7 @@ void TraceBrowser::setupRightClickContextMenu()
     mBreakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this, isValid]()
     {
         if(isValid(nullptr))
-            return mTraceFile->Registers(getInitialSelection()).regcontext.cip;
+            return mDisplayDataEntries[getInitialSelection()].va;
         else
             return (duint)0;
     });
@@ -681,6 +731,15 @@ void TraceBrowser::setupRightClickContextMenu()
             toggleAutoDisassemblyFollowSelection->setText(tr("Toggle Auto Disassembly Scroll (off)"));
         return true;
     });
+
+    mMenuBuilder->addAction(makeAction(tr("Change Filter"), SLOT(simpleInstructionFilterSlot())), [this](QMenu*)
+    {
+        return mTraceFile != nullptr;
+    });
+    mMenuBuilder->addAction(makeAction(tr("Clear Filter"), SLOT(clearSimpleInstructionFilterSlot())), [this](QMenu*)
+    {
+        return mTraceFile != nullptr;
+    });
 }
 
 void TraceBrowser::contextMenuEvent(QContextMenuEvent* event)
@@ -709,11 +768,7 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
                 int columnPosition = 0;
                 if(getColumnIndexFromX(event->x()) == Disassembly)
                 {
-                    Instruction_t inst;
-                    unsigned char opcode[16];
-                    int opcodeSize;
-                    mTraceFile->OpCode(index, opcode, &opcodeSize);
-                    tokens = mDisasm->DisassembleAt(opcode, opcodeSize, mTraceFile->Registers(index).regcontext.cip, 0).tokens;
+                    tokens = mDisplayDataEntries[index].instruction.tokens;
                     columnPosition = getColumnPosition(Disassembly);
                 }
                 else if(getColumnIndexFromX(event->x()) == TableColumnIndex::Registers)
@@ -879,7 +934,7 @@ void TraceBrowser::keyPressEvent(QKeyEvent* event)
         }
         else
         {
-            if(getSelectionEnd() + 1 < mTraceFile->Length())
+            if(getSelectionEnd() + 1 < mDisplayDataEntries.size())
             {
                 if(event->modifiers() == Qt::ShiftModifier)
                 {
@@ -1025,6 +1080,7 @@ void TraceBrowser::openSlot(const QString & fileName)
     {
         mTraceFile->Close();
         delete mTraceFile;
+        mDisplayLastTraceSize = -1;
     }
     mTraceFile = new TraceFileReader(this);
     connect(mTraceFile, SIGNAL(parseFinished()), this, SLOT(parseFinishedSlot()));
@@ -1068,6 +1124,7 @@ void TraceBrowser::closeFileSlot()
     mTraceFile->Close();
     delete mTraceFile;
     mTraceFile = nullptr;
+    mDisplayLastTraceSize = -1;
     reloadData();
 }
 
@@ -1081,6 +1138,7 @@ void TraceBrowser::closeDeleteSlot()
         mTraceFile->Delete();
         delete mTraceFile;
         mTraceFile = nullptr;
+        mDisplayLastTraceSize = -1;
         reloadData();
     }
 }
@@ -1092,6 +1150,7 @@ void TraceBrowser::parseFinishedSlot()
         SimpleErrorBox(this, tr("Error"), "Error when opening run trace file");
         delete mTraceFile;
         mTraceFile = nullptr;
+        mDisplayLastTraceSize = -1;
         setRowCount(0);
     }
     else
@@ -1156,7 +1215,7 @@ void TraceBrowser::copyCipSlot()
     {
         if(i != getSelectionStart())
             clipboard += "\r\n";
-        clipboard += ToPtrString(mTraceFile->Registers(i).regcontext.cip);
+        clipboard += ToPtrString(mDisplayDataEntries[getInitialSelection()].va);
     }
     Bridge::CopyToClipboard(clipboard);
 }
@@ -1186,12 +1245,10 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
     {
         if(i != getSelectionStart())
             stream << "\r\n";
-        duint cur_addr = mTraceFile->Registers(i).regcontext.cip;
-        unsigned char opcode[16];
-        int opcodeSize;
-        mTraceFile->OpCode(i, opcode, &opcodeSize);
-        Instruction_t inst;
-        inst = mDisasm->DisassembleAt(opcode, opcodeSize, cur_addr, 0);
+        duint cur_addr = mDisplayDataEntries[i].va;
+
+        Instruction_t & inst = mDisplayDataEntries[i].instruction;
+
         QString address = getAddrText(cur_addr, 0, addressLen > sizeof(duint) * 2 + 1);
         QString bytes;
         QString bytesHTML;
@@ -1374,10 +1431,7 @@ void TraceBrowser::copyDisassemblySlot()
             clipboardHtml += "<br/>";
         }
         RichTextPainter::List richText;
-        unsigned char opcode[16];
-        int opcodeSize;
-        mTraceFile->OpCode(i, opcode, &opcodeSize);
-        Instruction_t inst = mDisasm->DisassembleAt(opcode, opcodeSize, mTraceFile->Registers(i).regcontext.cip, 0);
+        Instruction_t & inst = mDisplayDataEntries[i].instruction;
         ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
         RichTextPainter::htmlRichText(richText, clipboardHtml, clipboard);
     }
@@ -1393,7 +1447,7 @@ void TraceBrowser::copyRvaSlot()
 
     for(unsigned long long i = getSelectionStart(); i <= getSelectionEnd(); i++)
     {
-        duint cip = mTraceFile->Registers(i).regcontext.cip;
+        duint cip = mDisplayDataEntries[getInitialSelection()].va;
         duint base = DbgFunctions()->ModBaseFromAddr(cip);
         if(base)
         {
@@ -1418,7 +1472,7 @@ void TraceBrowser::copyFileOffsetSlot()
 
     for(unsigned long long i = getSelectionStart(); i <= getSelectionEnd(); i++)
     {
-        duint cip = mTraceFile->Registers(i).regcontext.cip;
+        duint cip = mDisplayDataEntries[getInitialSelection()].va;
         cip = DbgFunctions()->VaToFileOffset(cip);
         if(cip)
         {
@@ -1439,7 +1493,7 @@ void TraceBrowser::setCommentSlot()
 {
     if(!DbgIsDebugging() || mTraceFile == nullptr || mTraceFile->Progress() < 100)
         return;
-    duint wVA = mTraceFile->Registers(getInitialSelection()).regcontext.cip;
+    duint wVA = mDisplayDataEntries[getInitialSelection()].va;
     LineEditDialog mLineEdit(this);
     mLineEdit.setTextMaxLength(MAX_COMMENT_SIZE - 2);
     QString addr_text = ToPtrString(wVA);
@@ -1476,7 +1530,7 @@ void TraceBrowser::setLabelSlot()
 {
     if(!DbgIsDebugging() || mTraceFile == nullptr || mTraceFile->Progress() < 100)
         return;
-    duint wVA = mTraceFile->Registers(getInitialSelection()).regcontext.cip;
+    duint wVA = mDisplayDataEntries[getInitialSelection()].va;
     LineEditDialog mLineEdit(this);
     mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
     QString addr_text = ToPtrString(wVA);
@@ -1519,11 +1573,17 @@ void TraceBrowser::followDisassemblySlot()
     if(mTraceFile == nullptr || mTraceFile->Progress() < 100)
         return;
 
-    duint cip = mTraceFile->Registers(getInitialSelection()).regcontext.cip;
-    if(DbgMemIsValidReadPtr(cip))
-        DbgCmdExec(QString("dis ").append(ToPtrString(cip)).toUtf8().constData());
-    else
-        GuiAddStatusBarMessage(tr("Cannot follow %1. Address is invalid.\n").arg(ToPtrString(cip)).toUtf8().constData());
+    // need to make sure that selection is not outside displayed area
+    duint initialSelection = getInitialSelection();
+    int displaySize = mDisplayDataEntries.size();
+    if(initialSelection >= 0 && initialSelection < mDisplayDataEntries.size())
+    {
+        duint cip = mDisplayDataEntries[initialSelection].va; // mTraceFile->Registers(getInitialSelection()).regcontext.cip;
+        if(DbgMemIsValidReadPtr(cip))
+            DbgCmdExec(QString("dis ").append(ToPtrString(cip)).toUtf8().constData());
+        else
+            GuiAddStatusBarMessage(tr("Cannot follow %1. Address is invalid.\n").arg(ToPtrString(cip)).toUtf8().constData());
+    }
 }
 
 void TraceBrowser::searchConstantSlot()
@@ -1561,4 +1621,67 @@ void TraceBrowser::updateSlot()
 void TraceBrowser::toggleAutoDisassemblyFollowSelectionSlot()
 {
     mAutoDisassemblyFollowSelection = !mAutoDisassemblyFollowSelection;
+}
+
+void TraceBrowser::simpleInstructionFilterSlot()
+{
+    SimpleFilterDialog simpleInstructionDialog(this);
+
+    simpleInstructionDialog.mMnemonicFilterText = mInstructionFilterText;
+    simpleInstructionDialog.maxVA = mMaxVAFilter;
+    simpleInstructionDialog.minVA = mMinVAFilter;
+
+    simpleInstructionDialog.initInputWidgets();
+
+    auto exec = simpleInstructionDialog.exec();
+
+    if(exec != QDialog::Accepted)
+        return;
+
+    QString newFilterText = simpleInstructionDialog.mMnemonicFilterText;
+    duint newMinVA = simpleInstructionDialog.minVA;
+    duint newMaxVA = simpleInstructionDialog.maxVA;
+
+    bool reloadNeeded = false;
+
+    if(newFilterText != mInstructionFilterText)
+    {
+        mInstructionFilterText = newFilterText;
+        reloadNeeded = true;
+    }
+
+    if(newMinVA != mMinVAFilter)
+    {
+        mMinVAFilter = newMinVA;
+        reloadNeeded = true;
+    }
+
+    if(newMaxVA != mMaxVAFilter)
+    {
+        mMaxVAFilter = newMaxVA;
+        reloadNeeded = true;
+    }
+
+    if(reloadNeeded)
+    {
+        mDisplayDataEntries.clear();
+        setSingleSelection(0); // to prevent vector index out of range when creating a context menu on filtered display data
+        reloadData();
+    }
+}
+
+void TraceBrowser::clearSimpleInstructionFilterSlot()
+{
+    if(mInstructionFilterText.size() > 0
+            || mMinVAFilter > 0
+            || mMaxVAFilter < std::numeric_limits<duint>::max())
+    {
+        mMinVAFilter = 0;
+        mMaxVAFilter = std::numeric_limits<duint>::max();
+
+        mInstructionFilterText.clear();
+        mDisplayDataEntries.clear();
+        setSingleSelection(0); // to prevent vector index out of range when creating a context menu on filtered display data
+        reloadData();
+    }
 }
