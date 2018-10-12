@@ -3,6 +3,7 @@
 
 #include "SearchListView.h"
 #include "StdTable.h"
+class DisassemblyPopup;
 
 class StdTableSearchList;
 
@@ -26,15 +27,32 @@ public slots:
     void setCellContent(int r, int c, QString s);
     void reloadData();
     void setSearchStartCol(int col);
+    void mouseMoveSlot(QMouseEvent* event);
 
 private:
     StdTableSearchList* mSearchListData;
+    DisassemblyPopup* mDisassemblyPopup;
+
+    void leaveEvent(QEvent* event);
 
 protected:
     friend class SymbolView;
     friend class Bridge;
     StdTable* stdList();
     StdTable* stdSearchList();
+    void ShowDisassemblyPopup(duint addr, int x, int y);
 };
 
+//Hacked class to recieve mouse move event. This class must be placed in a header file, otherwise Qt won't create its internal functions.
+class StdTableMouseMove : public StdTable
+{
+    Q_OBJECT
+public:
+    explicit StdTableMouseMove(QWidget* parent = 0) : StdTable(parent) { }
+    void mouseMoveEvent(QMouseEvent* event);
+    //int fontHeight() const {return mFontMetrics->height();}
+
+signals:
+    void mouseMoveSignal(QMouseEvent* event);
+};
 #endif // STDSEARCHLISTVIEW_H

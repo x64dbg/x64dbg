@@ -91,7 +91,7 @@ void CallStackView::updateCallStack()
             setCellContent(i, 5, tr("System"));
             break;
         default:
-            setCellContent(i, 5, QString("%1").arg(party));
+            setCellContent(i, 5, QString::number(party));
             break;
         }
     }
