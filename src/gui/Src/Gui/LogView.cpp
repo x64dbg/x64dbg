@@ -112,6 +112,7 @@ void LogView::setupContextMenu()
 
 void LogView::refreshShortcutsSlot()
 {
+    actionClear->setShortcut(ConfigShortcut("ActionClear"));
     actionCopy->setShortcut(ConfigShortcut("ActionCopy"));
     actionToggleLogging->setShortcut(ConfigShortcut("ActionToggleLogging"));
     actionRedirectLog->setShortcut(ConfigShortcut("ActionRedirectLog"));
