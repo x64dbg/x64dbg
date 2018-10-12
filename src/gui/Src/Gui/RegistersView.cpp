@@ -1447,10 +1447,11 @@ void RegistersView::fontsUpdatedSlot()
     wRowsHeight = (wRowsHeight % 2) == 0 ? wRowsHeight : wRowsHeight + 1;
     mRowHeight = wRowsHeight;
     mCharWidth = QFontMetrics(this->font()).averageCharWidth();
-    //adjust the height of the area.
-    setFixedHeight(getEstimateHeight());
+
     //reload layout because the layout is dependent on the font.
     InitMappings();
+    //adjust the height of the area.
+    setFixedHeight(getEstimateHeight());
     reload();
 }
 
