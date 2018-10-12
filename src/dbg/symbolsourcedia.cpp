@@ -121,7 +121,7 @@ bool SymbolSourceDIA::loadSymbolsAsync()
     PDBDiaFile::Query_t query;
     query.collectSize = true;
     query.collectUndecoratedNames = true;
-    query.callback = [&](DiaSymbol_t & sym)->bool
+    query.callback = [&](DiaSymbol_t & sym) -> bool
     {
         if(_requiresShutdown)
             return false;
@@ -243,37 +243,41 @@ bool SymbolSourceDIA::loadSourceLinesAsync()
 
     DWORD lineLoadStart = GetTickCount();
 
-    const size_t rangeSize = 1024 * 1024;
+    const uint32_t rangeSize = 1024 * 1024 * 10;
+
+    std::map<DWORD, String> files;
 
     for(duint rva = 0; rva < _imageSize; rva += rangeSize)
     {
         if(_requiresShutdown)
             return false;
 
-        std::map<uint64_t, DiaLineInfo_t> lines;
+        std::vector<DiaLineInfo_t> lines;
 
-        bool res = pdb.getFunctionLineNumbers(rva, rangeSize, _imageBase, lines);
+        bool res = pdb.enumerateLineNumbers(uint32_t(rva), rangeSize, lines, files);
         for(const auto & line : lines)
         {
             if(_requiresShutdown)
                 return false;
 
-            const auto & info = line.second;
-            auto it = _lines.find(info.virtualAddress);
+            const auto & info = line;
+            auto it = _lines.find(info.rva);
             if(it != _lines.end())
                 continue;
 
             CachedLineInfo lineInfo;
-            lineInfo.rva = info.virtualAddress;
+            lineInfo.rva = info.rva;
             lineInfo.lineNumber = info.lineNumber;
 
-            auto idx = findSourceFile(info.fileName);
-            if(idx == -1)
+            auto sourceFileId = info.sourceFileId;
+            auto found = _sourceIdMap.find(sourceFileId);
+            if(found == _sourceIdMap.end())
             {
-                idx = _sourceFiles.size();
-                _sourceFiles.push_back(info.fileName);
+                auto idx = _sourceFiles.size();
+                _sourceFiles.push_back(files[sourceFileId]);
+                found = _sourceIdMap.insert({ sourceFileId, uint32_t(idx) }).first;
             }
-            lineInfo.sourceFileIdx = idx;
+            lineInfo.sourceFileIdx = found->second;
 
             _lockLines.lock();
 
@@ -312,7 +316,7 @@ uint32_t SymbolSourceDIA::findSourceFile(const std::string & fileName) const
     for(uint32_t n = 0; n < _sourceFiles.size(); n++)
     {
         const String & str = _sourceFiles[n];
-        if(stricmp(str.c_str(), fileName.c_str()) == 0)
+        if(_stricmp(str.c_str(), fileName.c_str()) == 0)
         {
             idx = n;
             break;

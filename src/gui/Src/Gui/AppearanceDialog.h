@@ -1,6 +1,7 @@
 #ifndef APPEARANCEDIALOG_H
 #define APPEARANCEDIALOG_H
 
+#include <QAction>
 #include <QDialog>
 #include <QMap>
 

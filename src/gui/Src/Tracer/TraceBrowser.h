@@ -59,6 +59,7 @@ private:
     CapstoneTokenizer::SingleToken mHighlightToken;
     bool mHighlightingMode;
     bool mPermanentHighlightingMode;
+    bool mAutoDisassemblyFollowSelection;
 
     TraceFileReader* mTraceFile;
     QBeaEngine* mDisasm;
@@ -131,6 +132,8 @@ public slots:
     void searchMemRefSlot();
 
     void updateSlot(); //debug
+
+    void toggleAutoDisassemblyFollowSelectionSlot();
 };
 
 #endif //TRACEBROWSER_H

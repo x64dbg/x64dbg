@@ -502,6 +502,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     wCM_ToggleValue = setupAction(DIcon("register_toggle.png"), tr("Toggle"), this);
     wCM_Undo = setupAction(DIcon("undo.png"), tr("Undo"), this);
     wCM_CopyToClipboard = setupAction(DIcon("copy.png"), tr("Copy value to clipboard"), this);
+    wCM_CopyFloatingPointValueToClipboard = setupAction(DIcon("copy.png"), tr("Copy floating point value to clipboard"), this);
     wCM_CopySymbolToClipboard = setupAction(DIcon("pdb.png"), tr("Copy Symbol Value to Clipboard"), this);
     wCM_CopyAll = setupAction(DIcon("copy-alt.png"), tr("Copy all registers"), this);
     wCM_FollowInDisassembly = new QAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in Disassembler"), this);
@@ -1346,6 +1347,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     connect(wCM_ToggleValue, SIGNAL(triggered()), this, SLOT(onToggleValueAction()));
     connect(wCM_Undo, SIGNAL(triggered()), this, SLOT(onUndoAction()));
     connect(wCM_CopyToClipboard, SIGNAL(triggered()), this, SLOT(onCopyToClipboardAction()));
+    connect(wCM_CopyFloatingPointValueToClipboard, SIGNAL(triggered()), this, SLOT(onCopyFloatingPointToClipboardAction()));
     connect(wCM_CopySymbolToClipboard, SIGNAL(triggered()), this, SLOT(onCopySymbolToClipboardAction()));
     connect(wCM_CopyAll, SIGNAL(triggered()), this, SLOT(onCopyAllAction()));
     connect(wCM_FollowInDisassembly, SIGNAL(triggered()), this, SLOT(onFollowInDisassembly()));
@@ -2855,6 +2857,12 @@ void RegistersView::onCopyToClipboardAction()
     clipboard->setText(GetRegStringValueFromValue(mSelected, registerValue(&wRegDumpStruct, mSelected)));
 }
 
+void RegistersView::onCopyFloatingPointToClipboardAction()
+{
+    QClipboard* clipboard = QApplication::clipboard();
+    clipboard->setText(ToLongDoubleString(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, mSelected))->data));
+}
+
 void RegistersView::onCopySymbolToClipboardAction()
 {
     if(mLABELDISPLAY.contains(mSelected))
@@ -3205,6 +3213,10 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
         }
 
         wMenu.addAction(wCM_CopyToClipboard);
+        if(mFPUx87_80BITSDISPLAY.contains(mSelected))
+        {
+            wMenu.addAction(wCM_CopyFloatingPointValueToClipboard);
+        }
         wMenu.addAction(wCM_CopyAll);
         if(mLABELDISPLAY.contains(mSelected))
         {

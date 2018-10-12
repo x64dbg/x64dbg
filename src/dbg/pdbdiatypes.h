@@ -75,11 +75,9 @@ struct DiaSymbol_t
 
 struct DiaLineInfo_t
 {
-    std::string fileName;
+    DWORD sourceFileId;
     DWORD lineNumber;
-    uint32_t offset;
-    uint32_t segment;
-    uint64_t virtualAddress;
+    DWORD rva;
 };
 
 #endif // PDBDIATYPES_H_

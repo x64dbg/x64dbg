@@ -114,13 +114,18 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     // Note that we're loading this file because the debuggee did; that makes it at least somewhat plausible that we will also survive
     for(DWORD i = 0; i < exportDir->NumberOfFunctions; i++)
     {
+        // It is possible the AddressOfFunctions contain zero RVAs. GetProcAddress for these ordinals returns zero.
+        // "The reason for it is to assign a particular ordinal to a function." - NTCore
+        if(!addressOfFunctions[i])
+            continue;
+
         Info.exports.emplace_back();
         auto & entry = Info.exports.back();
         entry.ordinal = i + exportDir->Base;
         entry.rva = addressOfFunctions[i];
         const auto entryVa = RvaToVa(FileMapVA, Info.headers, entry.rva);
-        entry.forwarded = entryVa >= (ULONG64)exportDir;
-        if(entry.forwarded && entryVa < (ULONG64)exportDir + exportDirSize)
+        entry.forwarded = entryVa >= (ULONG64)exportDir && entryVa < (ULONG64)exportDir + exportDirSize;
+        if(entry.forwarded)
         {
             auto forwardNameOffset = rva2offset(entry.rva);
             if(forwardNameOffset) // Silent ignore (1) by ntdll loader: invalid forward names or addresses of forward names
@@ -137,6 +142,13 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
             if(nameOffset) // Silent ignore (3) by ntdll loader: invalid names or addresses of names
                 Info.exports[index].name = String((const char*)(nameOffset + FileMapVA));
         }
+    }
+
+    // give some kind of name to ordinal functions
+    for(size_t i = 0; i < Info.exports.size(); i++)
+    {
+        if(Info.exports[i].name.empty())
+            Info.exports[i].name = "Ordinal#" + std::to_string(Info.exports[i].ordinal);
     }
 
     // prepare sorted vectors
@@ -571,8 +583,6 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
             strncat_s(pdbPath, ".pdb", _TRUNCATE);
             Info.pdbPaths.push_back(pdbPath);
         }
-
-
     }
 }
 
@@ -1119,7 +1129,7 @@ bool MODINFO::loadSymbols()
             {
                 GuiSymbolLogAdd(StringUtils::sprintf("[DIA] Skipping non-existent PDB: %s\n", pdbPath.c_str()).c_str());
             }
-            else if(symSource->loadPDB(pdbPath, base, size, &validationData))
+            else if(symSource->loadPDB(pdbPath, base, size, bForceLoadSymbols ? nullptr : &validationData))
             {
                 symSource->resizeSymbolBitmap(size);
 

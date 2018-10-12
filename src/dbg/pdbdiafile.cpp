@@ -146,26 +146,16 @@ private:
 public:
     ScopedDiaType() : _sym(nullptr) {}
     ScopedDiaType(T* sym) : _sym(sym) {}
-    ~ScopedDiaType()
-    {
-        if(_sym != nullptr)
-        {
-            _sym->Release();
-        }
-    }
+    ~ScopedDiaType() { if(_sym != nullptr) _sym->Release(); }
     T** ref() { return &_sym; }
-    T* operator->()
-    {
-        return _sym;
-    }
-    operator T* ()
-    {
-        return _sym;
-    }
+    T** operator&() { return ref(); }
+    T* operator->() { return _sym; }
+    operator T* () { return _sym; }
+    void Attach(T* sym) { _sym = sym; }
 };
 
-typedef ScopedDiaType<IDiaSymbol> ScopedDiaSymbol;
-typedef ScopedDiaType<IDiaEnumSymbols> ScopedDiaEnumSymbols;
+template<typename T>
+using CComPtr = ScopedDiaType<T>;
 
 PDBDiaFile::PDBDiaFile() :
     m_stream(nullptr),
@@ -234,6 +224,13 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
             GuiSymbolLogAdd("Unable to open PDB file.\n");
             return false;
         }
+        /*std::vector<unsigned char> pdbData;
+        if (!FileHelper::ReadAllData(StringUtils::Utf16ToUtf8(file), pdbData))
+        {
+            GuiSymbolLogAdd("Unable to open PDB file.\n");
+            return false;
+        }
+        m_stream = SHCreateMemStream(pdbData.data(), pdbData.size());*/
 
         if(validationData != nullptr)
         {
@@ -277,8 +274,8 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
 
     if(validationData != nullptr)
     {
-        ScopedDiaType<IDiaSymbol> globalSym;
-        hr = m_session->get_globalScope(globalSym.ref());
+        CComPtr<IDiaSymbol> globalSym;
+        hr = m_session->get_globalScope(&globalSym);
         if(testError(hr))
         {
             //??
@@ -320,6 +317,10 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
             }
         }
     }
+    else
+    {
+        GuiSymbolLogAdd("Skipping PDB validation, expect invalid results!\n");
+    }
 
     if(loadAddress != 0)
     {
@@ -338,19 +339,25 @@ bool PDBDiaFile::close()
 {
     if(m_session)
     {
-        m_session->Release();
+        auto refcount = m_session->Release();
+        if(refcount != 0)
+            dprintf("Memory leaks in IDiaSession (refcount: %u)\n", refcount);
         m_session = nullptr;
     }
 
     if(m_dataSource)
     {
-        m_dataSource->Release();
+        auto refcount = m_dataSource->Release();
+        if(refcount != 0)
+            dprintf("Memory leaks in IDiaDataSource (refcount: %u)\n", refcount);
         m_dataSource = nullptr;
     }
 
     if(m_stream)
     {
-        m_stream->Release();
+        auto refcount = m_stream->Release();
+        if(refcount != 0)
+            dprintf("Memory leaks in IStream (refcount: %u)\n", refcount);
         m_stream = nullptr;
     }
 
@@ -419,15 +426,15 @@ std::string PDBDiaFile::getSymbolUndecoratedNameString(IDiaSymbol* sym)
     return result;
 }
 
-bool PDBDiaFile::getFunctionLineNumbers(DWORD rva, ULONGLONG size, uint64_t imageBase, std::map<uint64_t, DiaLineInfo_t> & lines)
+bool PDBDiaFile::enumerateLineNumbers(uint32_t rva, uint32_t size, std::vector<DiaLineInfo_t> & lines, std::map<DWORD, std::string> & files)
 {
     HRESULT hr;
     DWORD lineNumber = 0;
     DWORD relativeVirtualAddress = 0;
     DWORD lineNumberEnd = 0;
 
-    ScopedDiaType<IDiaEnumLineNumbers> lineNumbersEnum;
-    hr = m_session->findLinesByRVA(rva, static_cast<DWORD>(size), lineNumbersEnum.ref());
+    CComPtr<IDiaEnumLineNumbers> lineNumbersEnum;
+    hr = m_session->findLinesByRVA(rva, size, &lineNumbersEnum);
     if(!SUCCEEDED(hr))
         return false;
 
@@ -439,57 +446,50 @@ bool PDBDiaFile::getFunctionLineNumbers(DWORD rva, ULONGLONG size, uint64_t imag
     if(lineCount == 0)
         return true;
 
+    lines.reserve(lines.size() + lineCount);
     std::vector<IDiaLineNumber*> lineNumbers;
     lineNumbers.resize(lineCount);
 
     ULONG fetched = 0;
     hr = lineNumbersEnum->Next(lineCount, lineNumbers.data(), &fetched);
-    for(LONG n = 0; n < fetched; n++)
+    for(ULONG n = 0; n < fetched; n++)
     {
-        ScopedDiaType<IDiaLineNumber> lineNumberInfo(lineNumbers[n]);
+        CComPtr<IDiaLineNumber> lineNumberInfo;
+        lineNumberInfo.Attach(lineNumbers[n]);
 
-        ScopedDiaType<IDiaSourceFile> sourceFile;
-        hr = lineNumberInfo->get_sourceFile(sourceFile.ref());
+        DWORD sourceFileId = 0;
+        hr = lineNumberInfo->get_sourceFileId(&sourceFileId);
         if(!SUCCEEDED(hr))
             continue;
 
-        hr = lineNumberInfo->get_lineNumber(&lineNumber);
-        if(!SUCCEEDED(hr))
-            continue;
+        if(!files.count(sourceFileId))
+        {
+            CComPtr<IDiaSourceFile> sourceFile;
+            hr = lineNumberInfo->get_sourceFile(&sourceFile);
+            if(!SUCCEEDED(hr))
+                continue;
 
-        hr = lineNumberInfo->get_relativeVirtualAddress(&relativeVirtualAddress);
-        if(!SUCCEEDED(hr))
-            continue;
+            BSTR fileName = nullptr;
+            hr = sourceFile->get_fileName(&fileName);
+            if(!SUCCEEDED(hr))
+                continue;
 
-        hr = lineNumberInfo->get_lineNumberEnd(&lineNumberEnd);
-        if(!SUCCEEDED(hr))
-            continue;
-
-        DWORD segment = -1;
-        hr = lineNumberInfo->get_addressSection(&segment);
-        if(!SUCCEEDED(hr))
-            continue;
-
-        DWORD offset = -1;
-        hr = lineNumberInfo->get_addressOffset(&offset);
-        if(!SUCCEEDED(hr))
-            continue;
-
-        BSTR fileName = nullptr;
-        hr = sourceFile->get_fileName(&fileName);
-        if(!SUCCEEDED(hr))
-            continue;
+            files.insert({ sourceFileId, StringUtils::Utf16ToUtf8(fileName) });
+            SysFreeString(fileName);
+        }
 
         DiaLineInfo_t lineInfo;
-        lineInfo.fileName = StringUtils::Utf16ToUtf8(fileName);
-        lineInfo.lineNumber = lineNumber;
-        lineInfo.offset = offset;
-        lineInfo.segment = segment;
-        lineInfo.virtualAddress = relativeVirtualAddress;
+        lineInfo.sourceFileId = sourceFileId;
 
-        lines.emplace(lineInfo.virtualAddress, lineInfo);
+        hr = lineNumberInfo->get_lineNumber(&lineInfo.lineNumber);
+        if(!SUCCEEDED(hr))
+            continue;
 
-        SysFreeString(fileName);
+        hr = lineNumberInfo->get_relativeVirtualAddress(&lineInfo.rva);
+        if(!SUCCEEDED(hr))
+            continue;
+
+        lines.push_back(lineInfo);
     }
 
     return true;
@@ -504,14 +504,14 @@ uint32_t getSymbolId(IDiaSymbol* sym)
 
 bool PDBDiaFile::enumerateLexicalHierarchy(const Query_t & query)
 {
-    ScopedDiaSymbol globalScope;
+    CComPtr<IDiaSymbol> globalScope;
     IDiaSymbol* symbol = nullptr;
     ULONG celt = 0;
     HRESULT hr;
     DiaSymbol_t symbolInfo;
     bool res = true;
 
-    hr = m_session->get_globalScope(globalScope.ref());
+    hr = m_session->get_globalScope(&globalScope);
     if(hr != S_OK)
         return false;
 
@@ -525,14 +525,14 @@ bool PDBDiaFile::enumerateLexicalHierarchy(const Query_t & query)
 
     // Enumerate compilands.
     {
-        ScopedDiaEnumSymbols enumSymbols;
+        CComPtr<IDiaEnumSymbols> enumSymbols;
 
-        hr = globalScope->findChildren(SymTagCompiland, nullptr, nsNone, enumSymbols.ref());
+        hr = globalScope->findChildren(SymTagCompiland, nullptr, nsNone, &enumSymbols);
         if(hr == S_OK)
         {
             while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                ScopedDiaSymbol sym(symbol);
+                CComPtr<IDiaSymbol> sym(symbol);
                 if(!enumerateCompilandScope(sym, context))
                 {
                     return false;
@@ -543,14 +543,14 @@ bool PDBDiaFile::enumerateLexicalHierarchy(const Query_t & query)
 
     // Enumerate publics.
     {
-        ScopedDiaEnumSymbols enumSymbols;
+        CComPtr<IDiaEnumSymbols> enumSymbols;
 
-        hr = globalScope->findChildren(SymTagPublicSymbol, nullptr, nsNone, enumSymbols.ref());
+        hr = globalScope->findChildren(SymTagPublicSymbol, nullptr, nsNone, &enumSymbols);
         if(hr == S_OK)
         {
             while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                ScopedDiaSymbol sym(symbol);
+                CComPtr<IDiaSymbol> sym(symbol);
                 if(convertSymbolInfo(symbol, symbolInfo, context))
                 {
                     if(!context.callback(symbolInfo))
@@ -564,14 +564,14 @@ bool PDBDiaFile::enumerateLexicalHierarchy(const Query_t & query)
 
     // Enumerate global functions.
     {
-        ScopedDiaEnumSymbols enumSymbols;
+        CComPtr<IDiaEnumSymbols> enumSymbols;
 
-        hr = globalScope->findChildren(SymTagFunction, nullptr, nsNone, enumSymbols.ref());
+        hr = globalScope->findChildren(SymTagFunction, nullptr, nsNone, &enumSymbols);
         if(hr == S_OK)
         {
             while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                ScopedDiaSymbol sym(symbol);
+                CComPtr<IDiaSymbol> sym(symbol);
                 if(convertSymbolInfo(sym, symbolInfo, context))
                 {
                     if(!context.callback(symbolInfo))
@@ -585,14 +585,14 @@ bool PDBDiaFile::enumerateLexicalHierarchy(const Query_t & query)
 
     // Enumerate global data.
     {
-        ScopedDiaEnumSymbols enumSymbols;
+        CComPtr<IDiaEnumSymbols> enumSymbols;
 
-        hr = globalScope->findChildren(SymTagData, nullptr, nsNone, enumSymbols.ref());
+        hr = globalScope->findChildren(SymTagData, nullptr, nsNone, &enumSymbols);
         if(hr == S_OK)
         {
             while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                ScopedDiaSymbol sym(symbol);
+                CComPtr<IDiaSymbol> sym(symbol);
                 if(convertSymbolInfo(sym, symbolInfo, context))
                 {
                     if(!context.callback(symbolInfo))
@@ -635,11 +635,11 @@ bool PDBDiaFile::findSymbolRVA(uint64_t address, DiaSymbol_t & sym, DiaSymbolTyp
     }
 
     long disp = 0;
-    hr = m_session->findSymbolByRVAEx(address, tag, &symbol, &disp);
+    hr = m_session->findSymbolByRVAEx((DWORD)address, tag, &symbol, &disp);
     if(hr != S_OK)
         return false;
 
-    ScopedDiaSymbol scopedSym(symbol);
+    CComPtr<IDiaSymbol> scopedSym(symbol);
 
     sym.disp = disp;
 
@@ -665,14 +665,14 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, InternalQueryCon
     uint32_t symId = getSymbolId(compiland);
 
     {
-        ScopedDiaEnumSymbols enumSymbols;
+        CComPtr<IDiaEnumSymbols> enumSymbols;
 
-        hr = compiland->findChildren(SymTagFunction, nullptr, nsNone, enumSymbols.ref());
+        hr = compiland->findChildren(SymTagFunction, nullptr, nsNone, &enumSymbols);
         if(hr == S_OK)
         {
             while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                ScopedDiaSymbol sym(symbol);
+                CComPtr<IDiaSymbol> sym(symbol);
 
                 hr = sym->get_symTag(&symTagType);
 
@@ -689,14 +689,14 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, InternalQueryCon
     }
 
     {
-        ScopedDiaEnumSymbols enumSymbols;
+        CComPtr<IDiaEnumSymbols> enumSymbols;
 
-        hr = compiland->findChildren(SymTagData, nullptr, nsNone, enumSymbols.ref());
+        hr = compiland->findChildren(SymTagData, nullptr, nsNone, &enumSymbols);
         if(hr == S_OK)
         {
             while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                ScopedDiaSymbol sym(symbol);
+                CComPtr<IDiaSymbol> sym(symbol);
 
                 hr = sym->get_symTag(&symTagType);
 
@@ -715,14 +715,14 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, InternalQueryCon
     }
 
     {
-        ScopedDiaEnumSymbols enumSymbols;
+        CComPtr<IDiaEnumSymbols> enumSymbols;
 
-        hr = compiland->findChildren(SymTagBlock, nullptr, nsNone, enumSymbols.ref());
+        hr = compiland->findChildren(SymTagBlock, nullptr, nsNone, &enumSymbols);
         if(hr == S_OK)
         {
             while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                ScopedDiaSymbol sym(symbol);
+                CComPtr<IDiaSymbol> sym(symbol);
 
                 hr = sym->get_symTag(&symTagType);
 
@@ -741,14 +741,14 @@ bool PDBDiaFile::enumerateCompilandScope(IDiaSymbol* compiland, InternalQueryCon
     }
 
     {
-        ScopedDiaEnumSymbols enumSymbols;
+        CComPtr<IDiaEnumSymbols> enumSymbols;
 
-        hr = compiland->findChildren(SymTagLabel, nullptr, nsNone, enumSymbols.ref());
+        hr = compiland->findChildren(SymTagLabel, nullptr, nsNone, &enumSymbols);
         if(hr == S_OK)
         {
             while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                ScopedDiaSymbol sym(symbol);
+                CComPtr<IDiaSymbol> sym(symbol);
 
                 hr = sym->get_symTag(&symTagType);
 
@@ -793,13 +793,13 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, InternalQueryCon
     }
 
     {
-        ScopedDiaEnumSymbols enumSymbols;
-        hr = functionSym->findChildren(SymTagData, nullptr, nsNone, enumSymbols.ref());
+        CComPtr<IDiaEnumSymbols> enumSymbols;
+        hr = functionSym->findChildren(SymTagData, nullptr, nsNone, &enumSymbols);
         if(hr == S_OK)
         {
             while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                ScopedDiaSymbol sym(symbol);
+                CComPtr<IDiaSymbol> sym(symbol);
 
                 hr = sym->get_symTag(&symTagType);
 
@@ -821,13 +821,13 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, InternalQueryCon
     }
 
     {
-        ScopedDiaEnumSymbols enumSymbols;
-        hr = functionSym->findChildren(SymTagBlock, nullptr, nsNone, enumSymbols.ref());
+        CComPtr<IDiaEnumSymbols> enumSymbols;
+        hr = functionSym->findChildren(SymTagBlock, nullptr, nsNone, &enumSymbols);
         if(hr == S_OK)
         {
             while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                ScopedDiaSymbol sym(symbol);
+                CComPtr<IDiaSymbol> sym(symbol);
 
                 hr = sym->get_symTag(&symTagType);
 
@@ -846,13 +846,13 @@ bool PDBDiaFile::processFunctionSymbol(IDiaSymbol* functionSym, InternalQueryCon
     }
 
     {
-        ScopedDiaEnumSymbols enumSymbols;
-        hr = functionSym->findChildren(SymTagLabel, nullptr, nsNone, enumSymbols.ref());
+        CComPtr<IDiaEnumSymbols> enumSymbols;
+        hr = functionSym->findChildren(SymTagLabel, nullptr, nsNone, &enumSymbols);
         if(hr == S_OK)
         {
             while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
             {
-                ScopedDiaSymbol sym(symbol);
+                CComPtr<IDiaSymbol> sym(symbol);
 
                 hr = sym->get_symTag(&symTagType);
 
@@ -882,8 +882,8 @@ bool PDBDiaFile::resolveSymbolSize(IDiaSymbol* symbol, uint64_t & size, uint32_t
 
     if(symTag == SymTagData)
     {
-        ScopedDiaSymbol symType;
-        hr = symbol->get_type(symType.ref());
+        CComPtr<IDiaSymbol> symType;
+        hr = symbol->get_type(&symType);
 
         if(hr == S_OK && symType != nullptr)
         {

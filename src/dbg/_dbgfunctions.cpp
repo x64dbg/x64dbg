@@ -392,7 +392,10 @@ static int SymAutoComplete(const char* Search, char** Buffer, int MaxSymbols)
 
         SHARED_ACQUIRE(LockModules);
         auto modInfo = ModInfoFromAddr(base);
-        if(modInfo && modInfo->symbols->isOpen())
+        if(!modInfo)
+            continue;
+
+        if(modInfo->symbols->isOpen())
         {
             modInfo->symbols->findSymbolsByPrefix(prefix, [Buffer, MaxSymbols, &count](const SymbolInfo & symInfo)
             {
