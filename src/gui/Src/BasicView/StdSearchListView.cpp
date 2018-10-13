@@ -1,19 +1,12 @@
 #include "StdSearchListView.h"
 #include "StdTable.h"
-//#include "CachedFontMetrics.h"
-#include "DisassemblyPopup.h"
-
-void StdTableMouseMove::mouseMoveEvent(QMouseEvent* event)
-{
-    emit mouseMoveSignal(event);
-}
 
 class StdTableSearchList : public AbstractSearchList
 {
 public:
     friend class StdSearchListView;
 
-    StdTableSearchList() : mList(new StdTableMouseMove()), mSearchList(new StdTableMouseMove()) { }
+    StdTableSearchList() : mList(new StdTable()), mSearchList(new StdTable()) { }
     ~StdTableSearchList() {delete mList; delete mSearchList; }
 
     void lock() override { }
@@ -42,17 +35,14 @@ public:
     }
 
 private:
-    StdTableMouseMove* mList;
-    StdTableMouseMove* mSearchList;
+    StdTable* mList;
+    StdTable* mSearchList;
 };
 
 StdSearchListView::StdSearchListView(QWidget* parent, bool enableRegex, bool enableLock)
     : SearchListView(parent, mSearchListData = new StdTableSearchList(), enableRegex, enableLock)
 {
     setAddressColumn(0);
-    mDisassemblyPopup = nullptr;
-    connect(mSearchListData->mList, SIGNAL(mouseMoveSignal(QMouseEvent*)), this, SLOT(mouseMoveSlot(QMouseEvent*)));
-    connect(mSearchListData->mSearchList, SIGNAL(mouseMoveSignal(QMouseEvent*)), this, SLOT(mouseMoveSlot(QMouseEvent*)));
 }
 
 StdSearchListView::~StdSearchListView()
@@ -133,61 +123,4 @@ StdTable* StdSearchListView::stdList()
 StdTable* StdSearchListView::stdSearchList()
 {
     return mSearchListData->mSearchList;
-}
-
-void StdSearchListView::mouseMoveSlot(QMouseEvent* event)
-{
-    StdTable* that;
-    that = qobject_cast<StdTable*>(sender());
-    if(that)
-    {
-        int column = that->getColumnIndexFromX(event->x());
-        int row = that->getIndexOffsetFromY(that->transY(event->y()));
-        duint addr = 0;
-        if(row < that->getRowCount())
-        {
-            bool ok = false;
-            QString addrStr = that->getCellContent(row, column);
-            GuiAddStatusBarMessage((addrStr + "\n").toUtf8().constData());
-#ifdef _WIN64
-            addr = addrStr.toULongLong(&ok, 16);
-#else //x86
-            addr = addrStr.toULong(&ok, 16);
-#endif //_WIN64
-            if(ok && DbgFunctions()->MemIsCodePage(addr, false))
-                ShowDisassemblyPopup(addr, event->x(), event->y());
-            else //not a code section, clear addr to reset default behaviour
-                addr = 0;
-        }
-        ShowDisassemblyPopup(addr, event->x(), event->y());
-    }
-    else
-        ShowDisassemblyPopup(0, 0, 0);
-}
-
-void StdSearchListView::leaveEvent(QEvent* event)
-{
-    ShowDisassemblyPopup(0, 0, 0);
-}
-
-void StdSearchListView::ShowDisassemblyPopup(duint addr, int x, int y)
-{
-    if(!addr)
-    {
-        if(mDisassemblyPopup)
-            mDisassemblyPopup->hide();
-        return;
-    }
-    if(!mDisassemblyPopup)
-        mDisassemblyPopup = new DisassemblyPopup(this);
-    if(mDisassemblyPopup->getAddress() == addr)
-        return;
-    if(DbgFunctions()->MemIsCodePage(addr, false))
-    {
-        mDisassemblyPopup->move(mapToGlobal(QPoint(x + 20, y + stdList()->fontMetrics().height() * 2)));
-        mDisassemblyPopup->setAddress(addr);
-        mDisassemblyPopup->show();
-    }
-    else
-        mDisassemblyPopup->hide();
 }

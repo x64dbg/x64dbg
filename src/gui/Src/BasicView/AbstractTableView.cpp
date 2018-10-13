@@ -4,6 +4,7 @@
 #include "ColumnReorderDialog.h"
 #include "CachedFontMetrics.h"
 #include "Bridge.h"
+#include "DisassemblyPopup.h"
 #include <windows.h>
 
 int AbstractTableView::mMouseWheelScrollDelta = 0;
@@ -28,7 +29,8 @@ void AbstractTableScrollBar::leaveEvent(QEvent* event)
 
 AbstractTableView::AbstractTableView(QWidget* parent)
     : QAbstractScrollArea(parent),
-      mFontMetrics(nullptr)
+      mFontMetrics(nullptr),
+      mDisassemblyPopup(nullptr)
 {
     // Class variable initialization
     mTableOffset = 0;
@@ -369,16 +371,21 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
                 mColResizeData.splitHandle = true;
                 mGuiState = AbstractTableView::ReadyToResize;
             }
-            if((wHandle == false) && (wHasCursor == true))
+            else if((wHandle == false) && (wHasCursor == true))
             {
                 unsetCursor();
                 mColResizeData.splitHandle = false;
                 mGuiState = AbstractTableView::NoState;
             }
+            else if(wHandle == false && wHasCursor == false)
+            {
+                if(event->y() > getHeaderHeight())
+                    ShowDisassemblyPopup(getDisassemblyPopupAddress(event->x(), event->y()), event->x(), event->y());
+            }
         }
         else
         {
-            QWidget::mouseMoveEvent(event);
+            QAbstractScrollArea::mouseMoveEvent(event);
         }
     }
     break;
@@ -596,6 +603,7 @@ void AbstractTableView::wheelEvent(QWheelEvent* event)
         else // -1 : one screen at a time
             verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepAdd);
     }
+    QAbstractScrollArea::wheelEvent(event);
 }
 
 
@@ -614,7 +622,13 @@ void AbstractTableView::resizeEvent(QResizeEvent* event)
         emit viewableRowsChanged(getViewableRowsCount());
         mShouldReload = true;
     }
-    QWidget::resizeEvent(event);
+    QAbstractScrollArea::resizeEvent(event);
+}
+
+void AbstractTableView::leaveEvent(QEvent* event)
+{
+    ShowDisassemblyPopup(0, 0, 0);
+    QAbstractScrollArea::leaveEvent(event);
 }
 
 /************************************************************************************
@@ -1255,4 +1269,40 @@ void AbstractTableView::prepareData()
     int wViewableRowsCount = getViewableRowsCount();
     dsint wRemainingRowsCount = getRowCount() - mTableOffset;
     mNbrOfLineToPrint = (dsint)wRemainingRowsCount > (dsint)wViewableRowsCount ? (int)wViewableRowsCount : (int)wRemainingRowsCount;
+}
+
+/************************************************************************************
+                         DisassemblyPopup
+************************************************************************************/
+duint AbstractTableView::getDisassemblyPopupAddress(int mousex, int mousey)
+{
+    return 0; //Default is no disassembly popup
+}
+
+void AbstractTableView::ShowDisassemblyPopup(duint addr, int x, int y)
+{
+    if(!addr)
+    {
+        if(mDisassemblyPopup)
+            mDisassemblyPopup->hide();
+        return;
+    }
+    if(!mDisassemblyPopup)
+        mDisassemblyPopup = new DisassemblyPopup(this);
+    if(mDisassemblyPopup->getAddress() == addr)
+        return;
+    if(DbgFunctions()->MemIsCodePage(addr, false))
+    {
+        mDisassemblyPopup->move(mapToGlobal(QPoint(x + 20, y + fontMetrics().height() * 2)));
+        mDisassemblyPopup->setAddress(addr);
+        mDisassemblyPopup->show();
+    }
+    else
+        mDisassemblyPopup->hide();
+}
+
+void AbstractTableView::hideEvent(QHideEvent* event)
+{
+    ShowDisassemblyPopup(0, 0, 0);
+    QAbstractScrollArea::hideEvent(event);
 }
