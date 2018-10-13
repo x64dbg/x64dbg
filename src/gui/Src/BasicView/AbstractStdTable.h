@@ -68,6 +68,11 @@ public:
         bAddressLabel = addressLabel;
     }
 
+    bool noDisassemblyPopup(bool noPopups = true)
+    {
+        return bNoDisassemblyPopup = noPopups;
+    }
+
 signals:
     void selectionChangedSignal(int index);
     void keyPressedSignal(QKeyEvent* event);
@@ -136,4 +141,5 @@ protected:
     QString mHighlightText;
     int mAddressColumn = -1;
     bool bAddressLabel = true;
+    bool bNoDisassemblyPopup = false;
 };

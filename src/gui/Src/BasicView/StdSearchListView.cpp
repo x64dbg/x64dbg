@@ -115,6 +115,12 @@ void StdSearchListView::setSearchStartCol(int col)
         mSearchStartCol = col;
 }
 
+bool StdSearchListView::noDisassemblyPopup(bool noPopups)
+{
+    stdList()->noDisassemblyPopup(noPopups);
+    return stdSearchList()->noDisassemblyPopup(noPopups);
+}
+
 StdTable* StdSearchListView::stdList()
 {
     return mSearchListData->mList;

@@ -100,6 +100,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mModuleList->setSearchStartCol(0);
     mModuleList->enableMultiSelection(true);
     mModuleList->setAddressColumn(0, true);
+    mModuleList->noDisassemblyPopup();
     int charwidth = mModuleList->getCharWidth();
     mModuleList->addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Base"), true);
     mModuleList->addColumnAt(300, tr("Module"), true);
