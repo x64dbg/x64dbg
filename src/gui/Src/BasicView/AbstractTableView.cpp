@@ -582,6 +582,7 @@ void AbstractTableView::mouseDoubleClickEvent(QMouseEvent* event)
  *
  * @return      Nothing.
  */
+
 void AbstractTableView::wheelEvent(QWheelEvent* event)
 {
     int numDegrees = event->delta() / 8;
@@ -603,7 +604,6 @@ void AbstractTableView::wheelEvent(QWheelEvent* event)
         else // -1 : one screen at a time
             verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepAdd);
     }
-    QAbstractScrollArea::wheelEvent(event);
 }
 
 
