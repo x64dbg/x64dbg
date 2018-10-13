@@ -11,6 +11,7 @@
 #include "value.h"
 #include "TraceRecord.h"
 #include "exhandlerinfo.h"
+#include <regex>
 
 namespace Exprfunc
 {
@@ -411,4 +412,59 @@ namespace Exprfunc
         SetContextDataEx(hActiveThread, UE_CIP, cip);
         return cip;
     }
+
+    duint MatchStrA(duint src, duint patstr)
+    {
+        const int MAX_SIZE = 300;
+        char dbgMemstr[MAX_SIZE] = {0};
+        duint step = sizeof(char);
+        for(int i = 0; i < MAX_SIZE; i++)
+        {
+            if(!DbgMemIsValidReadPtr(src + (i * step)))
+            {
+                dprintf("matchstrA Error reading [0x%x+0x%.2x*1]\n", src, i);
+                return 0;
+            }
+
+            DbgMemRead(src + (i * step), dbgMemstr + i, step);
+            if(*(dbgMemstr + i) == '\x00')
+                break;
+        }
+
+        std::regex reg1((char*)patstr, std::regex::icase);
+        if(std::regex_search(dbgMemstr, reg1))
+        {
+            dputs("matchstrA successful");
+            return 1;
+        }
+        return 0;
+    }
+
+    duint MatchStrW(duint src, duint patstr)
+    {
+        const int MAX_SIZE = 300;
+        wchar_t dbgMemstr[MAX_SIZE] = { 0 };
+        duint step = sizeof(wchar_t);
+        for(int i = 0; i < MAX_SIZE; i++)
+        {
+            if(!DbgMemIsValidReadPtr(src + (i * step)))
+            {
+                dprintf("matchstrW Error reading [0x%x+0x%.2x*2]\n", src, i);
+                return 1;
+            }
+
+            DbgMemRead(src + (i * step), dbgMemstr + i, step);
+            if(*(dbgMemstr + i) == '\x00')
+                break;
+        }
+        String strSrc = StringUtils::Utf16ToLocalCp(dbgMemstr);
+        std::regex reg1((char*)patstr, std::regex::icase);
+        if(std::regex_search(strSrc, reg1))
+        {
+            dputs("matchstrW successful");
+            return 1;
+        }
+        return 0;
+    }
+
 }

@@ -21,6 +21,8 @@
 
 static bool dosignedcalc = false;
 
+#define  MAX_TMP_PARAM  5
+static std::string tmpFuncParams[MAX_TMP_PARAM + 1];
 /**
 \brief Returns whether we do signed or unsigned calculations.
 \return true if we do signed calculations, false for unsigned calculationss.
@@ -1709,6 +1711,7 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         return false;
 
     if(string[0] == '['
+            || (string[0] == '#' && isdigit(string[1]) && string[2] == ':')
             || (isdigitduint(string[0]) && string[1] == ':' && string[2] == '[')
             || (string[1] == 's' && (string[0] == 'c' || string[0] == 'd' || string[0] == 'e' || string[0] == 'f' || string[0] == 'g' || string[0] == 's') && string[2] == ':' && string[3] == '[') //memory location
             || strstr(string, "byte:[")
@@ -1737,6 +1740,18 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
             int new_size = string[0] - '0';
             if(new_size < read_size)
                 read_size = new_size;
+        }
+        else if(string[0] == '#' && string[2] == ':')
+        {
+            int ipos = string[1] - '0';
+            if(ipos > MAX_TMP_PARAM) ipos = MAX_TMP_PARAM;
+            tmpFuncParams[ipos] = string + 3;
+            if(value_size)
+                *value_size = read_size;
+            if(isvar)
+                *isvar = true;
+            *value = (duint)(tmpFuncParams[ipos].c_str());
+            return true;
         }
         else if(string[1] == 's' && string[2] == ':')
         {

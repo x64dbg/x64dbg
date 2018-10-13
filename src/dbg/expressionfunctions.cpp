@@ -133,6 +133,8 @@ void ExpressionFunctions::Init()
 
     //Undocumented
     RegisterEasy("bpgoto", bpgoto);
+    RegisterEasy("matchstrA,matchstr", MatchStrA); //match string with regex
+    RegisterEasy("matchstrW", MatchStrW); //match string with regex
 }
 
 bool ExpressionFunctions::Register(const String & name, int argc, const CBEXPRESSIONFUNCTION & cbFunction, void* userdata)

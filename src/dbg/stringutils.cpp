@@ -377,6 +377,26 @@ WString StringUtils::LocalCpToUtf16(const char* str)
     return convertedString;
 }
 
+String StringUtils::Utf16ToLocalCp(const WString & str)
+{
+    return Utf16ToLocalCp(str.c_str());
+}
+
+String StringUtils::Utf16ToLocalCp(const wchar_t* str)
+{
+    String convertedString;
+    if(!str || !*str)
+        return convertedString;
+    int requiredSize = WideCharToMultiByte(CP_ACP, 0, str, -1, nullptr, 0, NULL, NULL);
+    if(requiredSize > 0)
+    {
+        convertedString.resize(requiredSize - 1);
+        if(!WideCharToMultiByte(CP_ACP, 0, str, -1, (char*)convertedString.c_str(), requiredSize, NULL, NULL))
+            convertedString.clear();
+    }
+    return convertedString;
+}
+
 //Taken from: https://stackoverflow.com/a/24315631
 void StringUtils::ReplaceAll(String & s, const String & from, const String & to)
 {
@@ -464,6 +484,14 @@ String StringUtils::ToLower(const String & s)
     for(size_t i = 0; i < result.size(); i++)
         result[i] = tolower(result[i]);
     return result;
+}
+
+int StringUtils::iFind(const String & s, const String & strfind)
+{
+    auto pos = ToLower(s).find(ToLower(strfind));
+    if(pos == String::npos)
+        return -1;
+    return pos;
 }
 
 bool StringUtils::StartsWith(const String & str, const String & prefix)

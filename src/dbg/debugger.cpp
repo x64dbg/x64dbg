@@ -791,6 +791,8 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     if(bptype == BPNORMAL && cookie.HandleBreakpoint(CIP))
         return;
 
+    MemUpdateMap();
+
     BREAKPOINT* bpPtr = nullptr;
     //NOTE: this locking is very tricky, make sure you understand it before modifying anything
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
