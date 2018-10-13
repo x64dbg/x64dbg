@@ -379,7 +379,7 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
             }
             else if(wHandle == false && wHasCursor == false)
             {
-                if(event->y() > getHeaderHeight())
+                if(event->y() > getHeaderHeight() && DbgIsDebugging())
                     ShowDisassemblyPopup(getDisassemblyPopupAddress(event->x(), event->y()), event->x(), event->y());
             }
         }
@@ -1276,6 +1276,8 @@ void AbstractTableView::prepareData()
 ************************************************************************************/
 duint AbstractTableView::getDisassemblyPopupAddress(int mousex, int mousey)
 {
+    Q_UNUSED(mousex)
+    Q_UNUSED(mousey)
     return 0; //Default is no disassembly popup
 }
 
