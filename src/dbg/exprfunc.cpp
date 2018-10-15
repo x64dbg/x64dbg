@@ -417,13 +417,18 @@ namespace Exprfunc
     {
         const int MAX_SIZE = 300;
         char dbgMemstr[MAX_SIZE] = {0};
+        if (getMatchPatternString(patstr) == 0)
+        {
+			dprintf("matchstrA pattern string format error\n");
+			return 1;
+        }
         duint step = sizeof(char);
         for(int i = 0; i < MAX_SIZE; i++)
         {
             if(!DbgMemIsValidReadPtr(src + (i * step)))
             {
                 dprintf("matchstrA Error reading [0x%x+0x%.2x*1]\n", src, i);
-                return 0;
+                return 1;
             }
 
             DbgMemRead(src + (i * step), dbgMemstr + i, step);
@@ -431,7 +436,7 @@ namespace Exprfunc
                 break;
         }
 
-        std::regex reg1((char*)patstr, std::regex::icase);
+        std::regex reg1(reinterpret_cast<char*>(patstr), std::regex::icase);
         if(std::regex_search(dbgMemstr, reg1))
         {
             dputs("matchstrA successful");
@@ -444,6 +449,12 @@ namespace Exprfunc
     {
         const int MAX_SIZE = 300;
         wchar_t dbgMemstr[MAX_SIZE] = { 0 };
+		if (getMatchPatternString(patstr) == 0)
+		{
+			dprintf("matchstrW pattern string format error.\n");
+			return 1;
+		}
+
         duint step = sizeof(wchar_t);
         for(int i = 0; i < MAX_SIZE; i++)
         {
@@ -458,7 +469,7 @@ namespace Exprfunc
                 break;
         }
         String strSrc = StringUtils::Utf16ToLocalCp(dbgMemstr);
-        std::regex reg1((char*)patstr, std::regex::icase);
+        std::regex reg1(reinterpret_cast<char*>(patstr), std::regex::icase);
         if(std::regex_search(strSrc, reg1))
         {
             dputs("matchstrW successful");

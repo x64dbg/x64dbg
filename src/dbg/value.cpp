@@ -2673,3 +2673,13 @@ duint valvatofileoffset(duint va)
     }
     return 0;
 }
+
+duint getMatchPatternString(duint strptr)
+{
+    for (int i=0; i<=MAX_TMP_PARAM; i++)
+    {
+		if (reinterpret_cast<duint>(tmpFuncParams[i].c_str()) == strptr)
+			return strptr;
+    }
+	return 0;
+}
