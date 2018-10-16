@@ -525,9 +525,9 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     wCM_Modify->setShortcut(QKeySequence(Qt::Key_Enter));
     wCM_ToggleValue = setupAction(DIcon("register_toggle.png"), tr("Toggle"), this);
     wCM_Undo = setupAction(DIcon("undo.png"), tr("Undo"), this);
-    wCM_CopyToClipboard = setupAction(DIcon("copy.png"), tr("Copy value to clipboard"), this);
-    wCM_CopyFloatingPointValueToClipboard = setupAction(DIcon("copy.png"), tr("Copy floating point value to clipboard"), this);
-    wCM_CopySymbolToClipboard = setupAction(DIcon("pdb.png"), tr("Copy Symbol Value to Clipboard"), this);
+    wCM_CopyToClipboard = setupAction(DIcon("copy.png"), tr("Copy value"), this);
+    wCM_CopyFloatingPointValueToClipboard = setupAction(DIcon("copy.png"), tr("Copy floating point value"), this);
+    wCM_CopySymbolToClipboard = setupAction(DIcon("pdb.png"), tr("Copy Symbol Value"), this);
     wCM_CopyAll = setupAction(DIcon("copy-alt.png"), tr("Copy all registers"), this);
     wCM_FollowInDisassembly = new QAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in Disassembler"), this);
     wCM_FollowInDump = new QAction(DIcon("dump.png"), tr("Follow in Dump"), this);
