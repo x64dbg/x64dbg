@@ -348,6 +348,7 @@ NotDebuggingLabel:
 
     case 4: //comments
     {
+        int xinc = 3;
         if(DbgIsDebugging())
         {
             //TODO: draw arguments
@@ -372,8 +373,8 @@ NotDebuggingLabel:
                 if(width > w)
                     width = w;
                 if(width)
-                    painter->fillRect(QRect(x, y, width, h), QBrush(backgroundColor)); //fill comment color
-                painter->drawText(QRect(x, y, width, h), Qt::AlignVCenter | Qt::AlignLeft, comment);
+                    painter->fillRect(QRect(x + xinc, y, width, h), QBrush(backgroundColor)); //fill comment color
+                painter->drawText(QRect(x + xinc, y, width, h), Qt::AlignVCenter | Qt::AlignLeft, comment);
             }
             else if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) // label but no comment
             {
@@ -386,8 +387,8 @@ NotDebuggingLabel:
                 if(width > w)
                     width = w;
                 if(width)
-                    painter->fillRect(QRect(x, y, width, h), QBrush(backgroundColor)); //fill comment color
-                painter->drawText(QRect(x, y, width, h), Qt::AlignVCenter | Qt::AlignLeft, labelText);
+                    painter->fillRect(QRect(x + xinc, y, width, h), QBrush(backgroundColor)); //fill comment color
+                painter->drawText(QRect(x + xinc, y, width, h), Qt::AlignVCenter | Qt::AlignLeft, labelText);
             }
         }
         return "";
