@@ -1,4 +1,3 @@
-#include <QClipboard>
 #include <QMessageBox>
 #include <QListWidget>
 #include <QToolTip>
@@ -2608,24 +2607,21 @@ void RegistersView::onUndoAction()
 
 void RegistersView::onCopyToClipboardAction()
 {
-    QClipboard* clipboard = QApplication::clipboard();
-    clipboard->setText(GetRegStringValueFromValue(mSelected, registerValue(&wRegDumpStruct, mSelected)));
+    Bridge::CopyToClipboard(GetRegStringValueFromValue(mSelected, registerValue(&wRegDumpStruct, mSelected)));
 }
 
 void RegistersView::onCopyFloatingPointToClipboardAction()
 {
-    QClipboard* clipboard = QApplication::clipboard();
-    clipboard->setText(ToLongDoubleString(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, mSelected))->data));
+    Bridge::CopyToClipboard(ToLongDoubleString(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, mSelected))->data));
 }
 
 void RegistersView::onCopySymbolToClipboardAction()
 {
     if(mLABELDISPLAY.contains(mSelected))
     {
-        QClipboard* clipboard = QApplication::clipboard();
         QString symbol = getRegisterLabel(mSelected);
         if(symbol != "")
-            clipboard->setText(symbol);
+            Bridge::CopyToClipboard(symbol);
     }
 }
 
@@ -2818,8 +2814,7 @@ void RegistersView::onCopyAllAction()
     appendRegister(text, REGISTER_NAME::DR6, "DR6 : ", "DR6 : ");
     appendRegister(text, REGISTER_NAME::DR7, "DR7 : ", "DR7 : ");
 
-    auto clipboard = QApplication::clipboard();
-    clipboard->setText(text);
+    Bridge::CopyToClipboard(text);
 }
 
 void RegistersView::onFollowInDisassembly()
