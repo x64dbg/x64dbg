@@ -294,6 +294,11 @@ Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint origBase,
     wInst.branchType = Instruction_t::None;
     wInst.branchDestination = 0;
     wInst.tokens = cap;
+    wInst.prefixSize = 0;
+    wInst.opcodeSize = len;
+    wInst.group1Size = 0;
+    wInst.group2Size = 0;
+    wInst.group3Size = 0;
 
     return wInst;
 }
