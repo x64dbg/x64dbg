@@ -91,6 +91,8 @@ struct MODINFO
     std::vector<MODRELOCATIONINFO> relocations;
     std::vector<duint> tlsCallbacks;
 
+    MODEXPORT entrySymbol;
+
     std::vector<MODEXPORT> exports;
     DWORD exportOrdinalBase = 0; //ordinal - 'exportOrdinalBase' = index in 'exports'
     std::vector<size_t> exportsByName; //index in 'exports', sorted by export name

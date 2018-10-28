@@ -66,6 +66,15 @@ void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
                 symbolptr.symbol = &modInfo->exports.at(i);
                 cbData.cbSymbolEnum(&symbolptr, cbData.user);
             }
+
+            // Emit pseudo entry point symbol
+            {
+                SYMBOLPTR symbolptr;
+                symbolptr.modbase = Base;
+                symbolptr.symbol = &modInfo->entrySymbol;
+                cbData.cbSymbolEnum(&symbolptr, cbData.user);
+            }
+
             for(size_t i = 0; i < modInfo->imports.size(); i++)
             {
                 SYMBOLPTR symbolptr;
@@ -85,16 +94,6 @@ void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
             }
         }
     }
-
-    // Emit pseudo entry point symbol
-    /*SYMBOLINFO symbol;
-    memset(&symbol, 0, sizeof(SYMBOLINFO));
-    symbol.decoratedSymbol = "OptionalHeader.AddressOfEntryPoint";
-    symbol.addr = ModEntryFromAddr(Base);
-    if(symbol.addr)
-        EnumCallback(&symbol, UserData);
-
-    SymEnumImports(Base, EnumCallback, cbData);*/
 }
 
 void SymEnumFromCache(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
