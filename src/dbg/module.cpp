@@ -611,6 +611,12 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
             Info.entry = 0;
     }
 
+    // Setup the pseudo entry point symbol
+    Info.entrySymbol.name = "OptionalHeader.AddressOfEntryPoint";
+    Info.entrySymbol.forwarded = false;
+    Info.entrySymbol.ordinal = 0;
+    Info.entrySymbol.rva = moduleOEP;
+
     // Enumerate all PE sections
     WORD sectionCount = Info.headers->FileHeader.NumberOfSections;
     Info.sections.clear();
