@@ -6,7 +6,7 @@
 QBeaEngine::QBeaEngine(int maxModuleSize)
     : _tokenizer(maxModuleSize), mCodeFoldingManager(nullptr), _bLongDataInst(false)
 {
-    CapstoneTokenizer::UpdateColors();
+    ZydisTokenizer::UpdateColors();
     UpdateDataInstructionMap();
     this->mEncodeMap = new EncodeMap();
 }
@@ -190,11 +190,11 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
             return DecodeDataAt(data, size, origBase, origInstRVA, type);
     }
     //tokenize
-    CapstoneTokenizer::InstructionToken cap;
+    ZydisTokenizer::InstructionToken cap;
     _tokenizer.Tokenize(origBase + origInstRVA, data, size, cap);
     int len = _tokenizer.Size();
 
-    const auto & cp = _tokenizer.GetCapstone();
+    const auto & cp = _tokenizer.GetZydis();
     bool success = cp.Success();
 
 
@@ -270,7 +270,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
 Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint origBase, duint origInstRVA, ENCODETYPE type)
 {
     //tokenize
-    CapstoneTokenizer::InstructionToken cap;
+    ZydisTokenizer::InstructionToken cap;
 
     auto infoIter = dataInstMap.find(type);
     if(infoIter == dataInstMap.end())

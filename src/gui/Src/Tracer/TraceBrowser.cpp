@@ -339,9 +339,9 @@ NotDebuggingLabel:
         Instruction_t inst = mDisasm->DisassembleAt(opcodes, opcodeSize, 0, mTraceFile->Registers(index).regcontext.cip, false);
 
         if(mHighlightToken.text.length())
-            CapstoneTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
+            ZydisTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
         else
-            CapstoneTokenizer::TokenToRichText(inst.tokens, richText, 0);
+            ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
         RichTextPainter::paintRichText(painter, x + 0, y, getColumnWidth(col) - 0, getRowHeight(), 4, richText, mFontMetrics);
         return "";
     }
@@ -608,29 +608,29 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
                         int opcodeSize;
                         mTraceFile->OpCode(index, opcode, &opcodeSize);
                         inst = mDisasm->DisassembleAt(opcode, opcodeSize, mTraceFile->Registers(index).regcontext.cip, 0);
-                        CapstoneTokenizer::SingleToken token;
-                        if(CapstoneTokenizer::TokenFromX(inst.tokens, token, event->x() - getColumnPosition(3), mFontMetrics))
+                        ZydisTokenizer::SingleToken token;
+                        if(ZydisTokenizer::TokenFromX(inst.tokens, token, event->x() - getColumnPosition(3), mFontMetrics))
                         {
-                            if(CapstoneTokenizer::IsHighlightableToken(token))
+                            if(ZydisTokenizer::IsHighlightableToken(token))
                             {
-                                if(!CapstoneTokenizer::TokenEquals(&token, &mHighlightToken) || event->button() == Qt::RightButton)
+                                if(!ZydisTokenizer::TokenEquals(&token, &mHighlightToken) || event->button() == Qt::RightButton)
                                     mHighlightToken = token;
                                 else
-                                    mHighlightToken = CapstoneTokenizer::SingleToken();
+                                    mHighlightToken = ZydisTokenizer::SingleToken();
                             }
                             else if(!mPermanentHighlightingMode)
                             {
-                                mHighlightToken = CapstoneTokenizer::SingleToken();
+                                mHighlightToken = ZydisTokenizer::SingleToken();
                             }
                         }
                         else if(!mPermanentHighlightingMode)
                         {
-                            mHighlightToken = CapstoneTokenizer::SingleToken();
+                            mHighlightToken = ZydisTokenizer::SingleToken();
                         }
                     }
                     else if(!mPermanentHighlightingMode)
                     {
-                        mHighlightToken = CapstoneTokenizer::SingleToken();
+                        mHighlightToken = ZydisTokenizer::SingleToken();
                     }
                     if(mHighlightingMode) //disable highlighting mode after clicked
                     {
@@ -861,7 +861,7 @@ QString TraceBrowser::getIndexText(duint index)
 void TraceBrowser::updateColors()
 {
     AbstractTableView::updateColors();
-    //CapstoneTokenizer::UpdateColors(); //Already called in disassembly
+    //ZydisTokenizer::UpdateColors(); //Already called in disassembly
     mDisasm->UpdateConfig();
     mBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
 
@@ -1086,9 +1086,9 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
         {
             RichTextPainter::List richText;
             if(mHighlightToken.text.length())
-                CapstoneTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
+                ZydisTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
             else
-                CapstoneTokenizer::TokenToRichText(inst.tokens, richText, 0);
+                ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
             RichTextPainter::htmlRichText(richText, htmlDisassembly, disassembly);
         }
         else
@@ -1217,7 +1217,7 @@ void TraceBrowser::copyDisassemblySlot()
         int opcodeSize;
         mTraceFile->OpCode(i, opcode, &opcodeSize);
         Instruction_t inst = mDisasm->DisassembleAt(opcode, opcodeSize, mTraceFile->Registers(i).regcontext.cip, 0);
-        CapstoneTokenizer::TokenToRichText(inst.tokens, richText, 0);
+        ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
         RichTextPainter::htmlRichText(richText, clipboardHtml, clipboard);
     }
     clipboardHtml += QString("</div>");

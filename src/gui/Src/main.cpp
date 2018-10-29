@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
 
     TLS_TranslatedStringMap = new std::map<DWORD, TranslatedStringStorage>();
 
-    // initialize capstone
+    // initialize Zydis
     Zydis::GlobalInitialize();
 
     // load config file + set config font
@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
         delete temp;
     }
 
-    //TODO free capstone/config/bridge and prevent use after free.
+    //TODO free Zydis/config/bridge and prevent use after free.
 
     return result;
 }
