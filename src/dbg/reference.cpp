@@ -14,7 +14,7 @@
 @brief RefFind Find reference to the buffer by a given criterion.
 @param Address The base address of the buffer
 @param Size The size of the buffer
-@param Callback The callback that is invoked to identify whether an instruction satisfies the criterion. prototype: bool callback(Capstone* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+@param Callback The callback that is invoked to identify whether an instruction satisfies the criterion. prototype: bool callback(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 @param UserData The data that will be passed to Callback
 @param Silent If true, no log will be outputed.
 @param Name The name of the reference criterion. Not null.
