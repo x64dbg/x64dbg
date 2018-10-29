@@ -33,6 +33,7 @@ ZehSymbolTable::ZehSymbolTable(QWidget* parent)
     setAddressColumn(0);
     addColumnAt(charwidth * 2 * sizeof(dsint) + 8, tr("Address"), true);
     addColumnAt(charwidth * 6 + 8, tr("Type"), true);
+    addColumnAt(charwidth * 7 + 8, tr("Ordinal"), true);
     addColumnAt(charwidth * 80, tr("Symbol"), true);
     addColumnAt(2000, tr("Symbol (undecorated)"), true);
     loadColumnFromConfig("Symbol");
@@ -67,6 +68,11 @@ QString ZehSymbolTable::getCellContent(int r, int c)
         default:
             __debugbreak();
         }
+    case ColOrdinal:
+        if(info->type == sym_export)
+            return QString::number(info->ordinal);
+        else
+            return QString();
     case ColDecorated:
         return info->decoratedSymbol;
     case ColUndecorated:
@@ -85,28 +91,35 @@ bool ZehSymbolTable::isValidIndex(int r, int c)
 void ZehSymbolTable::sortRows(int column, bool ascending)
 {
     QMutexLocker lock(&mMutex);
-    //TODO: invalid compare when !ascending
     std::stable_sort(mData.begin(), mData.end(), [column, ascending](const SYMBOLPTR & a, const SYMBOLPTR & b)
     {
         SymbolInfoWrapper ainfo, binfo;
         DbgGetSymbolInfo(&a, &ainfo);
         DbgGetSymbolInfo(&b, &binfo);
-        bool less;
         switch(column)
         {
         case ColAddr:
-            less = ainfo->addr < binfo->addr;
-            break;
+            return ascending ? ainfo->addr < binfo->addr : ainfo->addr > binfo->addr;
         case ColType:
-            less = ainfo->type < binfo->type;
-            break;
+            return ascending ? ainfo->type < binfo->type : ainfo->type > binfo->type;
+        case ColOrdinal:
+            // If we are sorting by ordinal make the exports the first entries
+            if(ainfo->type == sym_export && binfo->type != sym_export)
+                return ascending;
+            else if(ainfo->type != sym_export && binfo->type == sym_export)
+                return !ascending;
+            else
+                return ascending ? ainfo->ordinal < binfo->ordinal : ainfo->ordinal > binfo->ordinal;
         case ColDecorated:
-            less = strcmp(ainfo->decoratedSymbol, binfo->decoratedSymbol) < 0;
-            break;
+            {
+                int result = strcmp(ainfo->decoratedSymbol, binfo->decoratedSymbol);
+                return ascending ? result < 0 : result > 0;
+            }
         case ColUndecorated:
-            less = strcmp(ainfo->undecoratedSymbol, binfo->undecoratedSymbol) < 0;
-            break;
+            {
+                int result = strcmp(ainfo->undecoratedSymbol, binfo->undecoratedSymbol);
+                return ascending ? result < 0 : result > 0;
+            }
         }
-        return ascending ? less : !less;
     });
 }

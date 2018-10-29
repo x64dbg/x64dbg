@@ -28,6 +28,7 @@ struct SymbolInfo : SymbolInfoGui
         info->undecoratedSymbol = (char*)this->undecoratedName.c_str();
         info->type = sym_symbol;
         info->freeDecorated = info->freeUndecorated = false;
+        info->ordinal = 0;
     }
 };
 

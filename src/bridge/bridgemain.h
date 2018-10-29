@@ -598,6 +598,7 @@ typedef struct SYMBOLINFO_
     SYMBOLTYPE type;
     bool freeDecorated;
     bool freeUndecorated;
+    DWORD ordinal;
 } SYMBOLINFO;
 
 typedef struct
