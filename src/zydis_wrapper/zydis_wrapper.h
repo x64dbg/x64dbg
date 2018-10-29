@@ -12,7 +12,7 @@ public:
     static void GlobalInitialize();
     static void GlobalFinalize();
     Zydis();
-    Zydis(const Zydis & capstone) = delete;
+    Zydis(const Zydis & zydis) = delete;
     ~Zydis();
     bool Disassemble(size_t addr, const unsigned char data[MAX_DISASM_BUFFER]);
     bool Disassemble(size_t addr, const unsigned char* data, int size);
