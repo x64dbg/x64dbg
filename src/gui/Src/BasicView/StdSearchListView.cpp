@@ -115,10 +115,10 @@ void StdSearchListView::setSearchStartCol(int col)
         mSearchStartCol = col;
 }
 
-bool StdSearchListView::noDisassemblyPopup(bool noPopups)
+bool StdSearchListView::setDisassemblyPopupEnabled(bool enabled)
 {
-    stdList()->noDisassemblyPopup(noPopups);
-    return stdSearchList()->noDisassemblyPopup(noPopups);
+    stdList()->setDisassemblyPopupEnabled(enabled);
+    return stdSearchList()->setDisassemblyPopupEnabled(enabled);
 }
 
 StdTable* StdSearchListView::stdList()

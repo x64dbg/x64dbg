@@ -68,9 +68,9 @@ public:
         bAddressLabel = addressLabel;
     }
 
-    bool noDisassemblyPopup(bool noPopups = true)
+    bool setDisassemblyPopupEnabled(bool enabled)
     {
-        return bNoDisassemblyPopup = noPopups;
+        return bDisassemblyPopupEnabled = enabled;
     }
 
 signals:
@@ -141,5 +141,5 @@ protected:
     QString mHighlightText;
     int mAddressColumn = -1;
     bool bAddressLabel = true;
-    bool bNoDisassemblyPopup = false;
+    bool bDisassemblyPopupEnabled = true;
 };

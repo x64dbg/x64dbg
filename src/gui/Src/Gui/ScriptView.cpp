@@ -16,7 +16,7 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
     enableMultiSelection(false);
     enableColumnSorting(false);
     setDrawDebugOnly(false);
-    noDisassemblyPopup();
+    setDisassemblyPopupEnabled(false);
 
     int charwidth = getCharWidth();
 

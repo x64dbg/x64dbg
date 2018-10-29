@@ -20,7 +20,7 @@ public:
     void enableMultiSelection(bool enabled);
     void setAddressColumn(int col, bool cipBase = false);
     void loadColumnFromConfig(const QString & viewName);
-    bool noDisassemblyPopup(bool noPopups = true);
+    bool setDisassemblyPopupEnabled(bool enabled);
 
 public slots:
     virtual void setRowCount(dsint count);

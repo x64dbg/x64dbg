@@ -1002,7 +1002,7 @@ void AbstractStdTable::reloadData()
 
 duint AbstractStdTable::getDisassemblyPopupAddress(int mousex, int mousey)
 {
-    if(bNoDisassemblyPopup) //No disassembly popup is meaningful for this table
+    if(!bDisassemblyPopupEnabled) //No disassembly popup is meaningful for this table
         return 0;
     int c = getColumnIndexFromX(mousex);
     int r = getTableOffset() + getIndexOffsetFromY(transY(mousey));

@@ -20,7 +20,7 @@ MemoryMapView::MemoryMapView(StdTable* parent)
 {
     setDrawDebugOnly(true);
     enableMultiSelection(true);
-    noDisassemblyPopup();
+    setDisassemblyPopupEnabled(false);
 
     int charwidth = getCharWidth();
 
