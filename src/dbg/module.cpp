@@ -1189,6 +1189,7 @@ void MODIMPORT::convertToGuiSymbol(duint base, SYMBOLINFO* info) const
     info->decoratedSymbol = (char*)name.c_str();
     info->undecoratedSymbol = (char*)undecoratedName.c_str();
     info->freeDecorated = info->freeUndecorated = false;
+    info->ordinal = 0;
 }
 
 void MODEXPORT::convertToGuiSymbol(duint base, SYMBOLINFO* info) const
@@ -1198,4 +1199,5 @@ void MODEXPORT::convertToGuiSymbol(duint base, SYMBOLINFO* info) const
     info->decoratedSymbol = (char*)name.c_str();
     info->undecoratedSymbol = (char*)undecoratedName.c_str();
     info->freeDecorated = info->freeUndecorated = false;
+    info->ordinal = ordinal;
 }
