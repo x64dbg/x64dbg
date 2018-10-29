@@ -6,11 +6,8 @@ class StdTableSearchList : public AbstractSearchList
 public:
     friend class StdSearchListView;
 
-    StdTableSearchList()
-    {
-        mList = new StdTable();
-        mSearchList = new StdTable();
-    }
+    StdTableSearchList() : mList(new StdTable()), mSearchList(new StdTable()) { }
+    ~StdTableSearchList() {delete mList; delete mSearchList; }
 
     void lock() override { }
     void unlock() override { }
@@ -116,6 +113,12 @@ void StdSearchListView::setSearchStartCol(int col)
 {
     if(col < stdList()->getColumnCount())
         mSearchStartCol = col;
+}
+
+bool StdSearchListView::setDisassemblyPopupEnabled(bool enabled)
+{
+    stdList()->setDisassemblyPopupEnabled(enabled);
+    return stdSearchList()->setDisassemblyPopupEnabled(enabled);
 }
 
 StdTable* StdSearchListView::stdList()

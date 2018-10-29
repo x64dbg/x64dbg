@@ -1,7 +1,7 @@
 #ifndef SNOWMANVIEW_H
 #define SNOWMANVIEW_H
 
-#include <QWidget>
+class QWidget;
 
 struct SnowmanRange
 {

@@ -15,6 +15,7 @@
 #include "ActionHelpers.h"
 
 class CachedFontMetrics;
+class DisassemblyPopup;
 
 //Hacky class that fixes a really annoying cursor problem
 class AbstractTableScrollBar : public QScrollBar
@@ -64,6 +65,8 @@ public:
     void wheelEvent(QWheelEvent* event) override;
     void resizeEvent(QResizeEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
+    void leaveEvent(QEvent* event) override;
+    void hideEvent(QHideEvent* event) override;
 
     // ScrollBar Management
     virtual dsint sliderMovedHook(int type, dsint value, dsint delta);
@@ -119,6 +122,8 @@ public:
 
     // Update/Reload/Refresh/Repaint
     virtual void prepareData();
+
+    virtual duint getDisassemblyPopupAddress(int mousex, int mousey);
 
 signals:
     void enterPressedSignal();
@@ -218,6 +223,10 @@ protected:
     // Font metrics
     CachedFontMetrics* mFontMetrics;
     void invalidateCachedFont();
+
+    // Disassembly Popup
+    DisassemblyPopup* mDisassemblyPopup;
+    void ShowDisassemblyPopup(duint addr, int x, int y);
 };
 
 #endif // ABSTRACTTABLEVIEW_H

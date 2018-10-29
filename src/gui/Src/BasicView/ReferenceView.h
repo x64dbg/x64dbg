@@ -4,6 +4,7 @@
 #include <QProgressBar>
 #include <QLabel>
 #include "StdSearchListView.h"
+class DisassemblyPopup;
 
 class QTabWidget;
 

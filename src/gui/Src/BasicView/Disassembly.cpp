@@ -8,7 +8,7 @@
 #include "QBeaEngine.h"
 #include "MemoryPage.h"
 
-Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassemblyPopup(this)
+Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
 {
     mMemPage = new MemoryPage(0, 0);
 
@@ -32,11 +32,13 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent), mDisassem
     tokenizerConfigUpdatedSlot();
 
     mCodeFoldingManager = nullptr;
-    duint setting;
-    if(BridgeSettingGetUint("Gui", "DisableBranchDestinationPreview", &setting))
-        mPopupEnabled = !setting;
-    else
-        mPopupEnabled = true;
+    /*
+        duint setting;
+        if(BridgeSettingGetUint("Gui", "DisableBranchDestinationPreview", &setting))
+            mPopupEnabled = !setting;
+        else
+            mPopupEnabled = true;
+    */
     mIsLastInstDisplayed = false;
 
     mGuiState = Disassembly::NoState;
@@ -674,42 +676,38 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
             verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
         }
     }
-    else if(mGuiState == Disassembly::NoState)
-    {
-        if(!mHighlightingMode && mPopupEnabled)
-        {
-            bool popupShown = false;
-            if(y > getHeaderHeight() && getColumnIndexFromX(event->x()) == 2)
-            {
-                int rowOffset = getIndexOffsetFromY(transY(y));
-                if(rowOffset < mInstBuffer.size())
-                {
-                    CapstoneTokenizer::SingleToken token;
-                    auto & instruction = mInstBuffer.at(rowOffset);
-                    if(CapstoneTokenizer::TokenFromX(instruction.tokens, token, event->x(), mFontMetrics))
-                    {
-                        duint addr = token.value.value;
-                        bool isCodePage = DbgFunctions()->MemIsCodePage(addr, false);
-                        if(!isCodePage && instruction.branchDestination)
-                        {
-                            addr = instruction.branchDestination;
-                            isCodePage = DbgFunctions()->MemIsCodePage(addr, false);
-                        }
-                        if(isCodePage && (addr - mMemPage->getBase() < mInstBuffer.front().rva || addr - mMemPage->getBase() > mInstBuffer.back().rva))
-                        {
-                            ShowDisassemblyPopup(addr, event->x(), y);
-                            popupShown = true;
-                        }
-                    }
-                }
-            }
-            if(popupShown == false)
-                ShowDisassemblyPopup(0, 0, 0); // hide popup
-        }
-    }
 
     if(wAccept == true)
         AbstractTableView::mouseMoveEvent(event);
+}
+
+duint Disassembly::getDisassemblyPopupAddress(int mousex, int mousey)
+{
+    if(mHighlightingMode)
+        return 0; //Don't show this in highlight mode
+    if(getColumnIndexFromX(mousex) != 2)
+        return 0; //Disassembly popup for other column is undefined
+    int rowOffset = getIndexOffsetFromY(transY(mousey));
+    if(rowOffset < mInstBuffer.size())
+    {
+        CapstoneTokenizer::SingleToken token;
+        auto & instruction = mInstBuffer.at(rowOffset);
+        if(CapstoneTokenizer::TokenFromX(instruction.tokens, token, mousex, mFontMetrics))
+        {
+            duint addr = token.value.value;
+            bool isCodePage = DbgFunctions()->MemIsCodePage(addr, false);
+            if(!isCodePage && instruction.branchDestination)
+            {
+                addr = instruction.branchDestination;
+                isCodePage = DbgFunctions()->MemIsCodePage(addr, false);
+            }
+            if(isCodePage && (addr - mMemPage->getBase() < mInstBuffer.front().rva || addr - mMemPage->getBase() > mInstBuffer.back().rva))
+            {
+                return addr;
+            }
+        }
+    }
+    return 0;
 }
 
 /**
@@ -836,12 +834,6 @@ void Disassembly::mouseReleaseEvent(QMouseEvent* event)
 
     if(wAccept == true)
         AbstractTableView::mouseReleaseEvent(event);
-}
-
-void Disassembly::leaveEvent(QEvent* event)
-{
-    ShowDisassemblyPopup(0, 0, 0);
-    AbstractTableView::leaveEvent(event);
 }
 
 /************************************************************************************
@@ -2140,21 +2132,6 @@ void Disassembly::unfold(dsint rva)
         mCodeFoldingManager->expandFoldSegment(rvaToVa(rva));
         viewport()->update();
     }
-}
-
-
-void Disassembly::ShowDisassemblyPopup(duint addr, int x, int y)
-{
-    if(mDisassemblyPopup.getAddress() == addr)
-        return;
-    if(DbgMemIsValidReadPtr(addr))
-    {
-        mDisassemblyPopup.move(mapToGlobal(QPoint(x + 20, y + mFontMetrics->height() * 2)));
-        mDisassemblyPopup.setAddress(addr);
-        mDisassemblyPopup.show();
-    }
-    else
-        mDisassemblyPopup.hide();
 }
 
 bool Disassembly::hightlightToken(const CapstoneTokenizer::SingleToken & token)

@@ -20,6 +20,7 @@ public:
     void enableMultiSelection(bool enabled);
     void setAddressColumn(int col, bool cipBase = false);
     void loadColumnFromConfig(const QString & viewName);
+    bool setDisassemblyPopupEnabled(bool enabled);
 
 public slots:
     virtual void setRowCount(dsint count);
@@ -36,5 +37,4 @@ protected:
     StdTable* stdList();
     StdTable* stdSearchList();
 };
-
 #endif // STDSEARCHLISTVIEW_H

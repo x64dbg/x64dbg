@@ -999,3 +999,28 @@ void AbstractStdTable::reloadData()
     }
     AbstractTableView::reloadData();
 }
+
+duint AbstractStdTable::getDisassemblyPopupAddress(int mousex, int mousey)
+{
+    if(!bDisassemblyPopupEnabled) //No disassembly popup is meaningful for this table
+        return 0;
+    int c = getColumnIndexFromX(mousex);
+    int r = getTableOffset() + getIndexOffsetFromY(transY(mousey));
+    if(r < getRowCount())
+    {
+        QString cell = getCellContent(r, c);
+        duint addr;
+        bool ok = false;
+#ifdef _WIN64
+        addr = cell.toULongLong(&ok, 16);
+#else //x86
+        addr = cell.toULong(&ok, 16);
+#endif //_WIN64
+        if(!ok)
+            return 0;
+        else
+            return addr;
+    }
+    else
+        return 0;
+}

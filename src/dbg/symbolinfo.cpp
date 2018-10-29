@@ -290,8 +290,23 @@ bool SymAddrFromName(const char* Name, duint* Address)
         return false;
 
     // Skip 'OrdinalXXX'
-    if(!_strnicmp(Name, "Ordinal", 7))
-        return false;
+    if(_strnicmp(Name, "Ordinal#", 8) == 0 && strlen(Name) > 8)
+    {
+        const char* Name1 = Name + 8;
+        bool notNonNumbersFound = true;
+        do
+        {
+            if(!(Name1[0] >= '0' && Name1[0] <= '9'))
+            {
+                notNonNumbersFound = false;
+                break;
+            }
+            Name1++;
+        }
+        while(Name1[0] != 0);
+        if(notNonNumbersFound)
+            return false;
+    }
 
     //TODO: refactor this in a function because this pattern will become common
     std::vector<duint> mods;
