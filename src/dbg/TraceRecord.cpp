@@ -202,7 +202,7 @@ void TraceRecordManager::TraceExecute(duint address, duint size)
 //See https://www.felixcloutier.com/x86/FXSAVE.html, max 512 bytes
 #define memoryContentSize 512
 
-static void HandleCapstoneOperand(const Zydis & cp, int opindex, DISASM_ARGTYPE* argType, duint* value, unsigned char memoryContent[memoryContentSize], unsigned char* memorySize)
+static void HandleZydisOperand(const Zydis & cp, int opindex, DISASM_ARGTYPE* argType, duint* value, unsigned char memoryContent[memoryContentSize], unsigned char* memorySize)
 {
     *value = cp.ResolveOpValue(opindex, [&cp](ZydisRegister reg)
     {
@@ -272,7 +272,7 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
         for(int i = 0; i < newInstruction.OpCount(); i++)
         {
             memset(memoryContent, 0, sizeof(memoryContent));
-            HandleCapstoneOperand(newInstruction, i, &argType, &value, memoryContent, &memorySize);
+            HandleZydisOperand(newInstruction, i, &argType, &value, memoryContent, &memorySize);
             // check for overflow of the memory buffer
             if(newMemoryArrayCount * sizeof(duint) + memorySize > memoryArrayCount * sizeof(duint))
                 continue;

@@ -6,8 +6,6 @@
 #include "jansson/jansson_x64dbg.h"
 #include <zydis_wrapper.h>
 
-class Capstone;
-
 class TraceRecordManager
 {
 public:
