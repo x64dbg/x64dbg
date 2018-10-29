@@ -103,7 +103,7 @@ public:
     void setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager);
     duint getDisassemblyPopupAddress(int mousex, int mousey) override;
     void unfold(dsint rva);
-    bool hightlightToken(const CapstoneTokenizer::SingleToken & token);
+    bool hightlightToken(const ZydisTokenizer::SingleToken & token);
     bool isHighlightMode() const;
 
 signals:
@@ -247,7 +247,7 @@ protected:
     bool mShowMnemonicBrief;
     XREF_INFO mXrefInfo;
     CodeFoldingHelper* mCodeFoldingManager;
-    CapstoneTokenizer::SingleToken mHighlightToken;
+    ZydisTokenizer::SingleToken mHighlightToken;
     bool mPermanentHighlightingMode;
     bool mNoCurrentModuleText;
 };

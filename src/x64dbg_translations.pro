@@ -67,7 +67,7 @@ SOURCES += \
     gui/Src/Gui/XrefBrowseDialog.cpp \
     gui/Src/Gui/YaraRuleSelectionDialog.cpp \
     gui/Src/main.cpp \
-    gui/Src/Disassembler/capstone_gui.cpp \
+    gui/Src/Disassembler/ZydisTokenizer.cpp \
     gui/Src/Disassembler/QBeaEngine.cpp \
     dbg/_dbgfunctions.cpp \
     dbg/_exports.cpp \
@@ -293,7 +293,7 @@ HEADERS += \
     gui/Src/Gui/WordEditDialog.h \
     gui/Src/Gui/XrefBrowseDialog.h \
     gui/Src/Gui/YaraRuleSelectionDialog.h \
-    gui/Src/Disassembler/capstone_gui.h \
+    gui/Src/Disassembler/ZydisTokenizer.h \
     gui/Src/Disassembler/QBeaEngine.h \
     gui/Src/Gui/StructWidget.h \
     dbg/_dbgfunctions.h \

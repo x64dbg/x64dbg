@@ -1507,9 +1507,9 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTe
         {
             RichTextPainter::List richText;
             if(mHighlightToken.text.length())
-                CapstoneTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
+                ZydisTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
             else
-                CapstoneTokenizer::TokenToRichText(inst.tokens, richText, 0);
+                ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
             RichTextPainter::htmlRichText(richText, htmlDisassembly, disassembly);
         }
         else
@@ -1678,9 +1678,9 @@ void CPUDisassembly::copyDisassemblySlot()
         }
         RichTextPainter::List richText;
         if(mHighlightToken.text.length())
-            CapstoneTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
+            ZydisTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
         else
-            CapstoneTokenizer::TokenToRichText(inst.tokens, richText, 0);
+            ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
         RichTextPainter::htmlRichText(richText, clipboardHtml, clipboard);
         return true;
     });
@@ -2031,7 +2031,7 @@ void CPUDisassembly::copyTokenValueSlot()
 
 bool CPUDisassembly::getTokenValueText(QString & text)
 {
-    if(mHighlightToken.type <= CapstoneTokenizer::TokenType::MnemonicUnusual)
+    if(mHighlightToken.type <= ZydisTokenizer::TokenType::MnemonicUnusual)
         return false;
     duint value = mHighlightToken.value.value;
     if(!mHighlightToken.value.size && !DbgFunctions()->ValFromString(mHighlightToken.text.toUtf8().constData(), &value))

@@ -1,9 +1,9 @@
-#include "capstone_gui.h"
+#include "ZydisTokenizer.h"
 #include "Configuration.h"
 #include "StringUtil.h"
 #include "CachedFontMetrics.h"
 
-CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
+ZydisTokenizer::ZydisTokenizer(int maxModuleLength)
     : _maxModuleLength(maxModuleLength),
       _success(false),
       isNop(false),
@@ -12,16 +12,16 @@ CapstoneTokenizer::CapstoneTokenizer(int maxModuleLength)
     SetConfig(false, false, false, false, false, false, false, false, false);
 }
 
-static CapstoneTokenizer::TokenColor colorNamesMap[CapstoneTokenizer::TokenType::Last];
-QHash<QString, int> CapstoneTokenizer::stringPoolMap;
-int CapstoneTokenizer::poolId = 0;
+static ZydisTokenizer::TokenColor colorNamesMap[ZydisTokenizer::TokenType::Last];
+QHash<QString, int> ZydisTokenizer::stringPoolMap;
+int ZydisTokenizer::poolId = 0;
 
-void CapstoneTokenizer::addColorName(TokenType type, QString color, QString backgroundColor)
+void ZydisTokenizer::addColorName(TokenType type, QString color, QString backgroundColor)
 {
     colorNamesMap[int(type)] = TokenColor(color, backgroundColor);
 }
 
-void CapstoneTokenizer::addStringsToPool(const QString & strings)
+void ZydisTokenizer::addStringsToPool(const QString & strings)
 {
     QStringList stringList = strings.split(' ', QString::SkipEmptyParts);
     for(const QString & string : stringList)
@@ -29,7 +29,7 @@ void CapstoneTokenizer::addStringsToPool(const QString & strings)
     poolId++;
 }
 
-void CapstoneTokenizer::UpdateColors()
+void ZydisTokenizer::UpdateColors()
 {
     //filling
     addColorName(TokenType::Comma, "InstructionCommaColor", "InstructionCommaBackgroundColor");
@@ -70,7 +70,7 @@ void CapstoneTokenizer::UpdateColors()
     addColorName(TokenType::ZmmRegister, "InstructionZmmRegisterColor", "InstructionZmmRegisterBackgroundColor");
 }
 
-void CapstoneTokenizer::UpdateStringPool()
+void ZydisTokenizer::UpdateStringPool()
 {
     poolId = 0;
     stringPoolMap.clear();
@@ -109,7 +109,7 @@ void CapstoneTokenizer::UpdateStringPool()
     addStringsToPool("xmm15 ymm15");
 }
 
-bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int datasize, InstructionToken & instruction)
+bool ZydisTokenizer::Tokenize(duint addr, const unsigned char* data, int datasize, InstructionToken & instruction)
 {
     _inst = InstructionToken();
 
@@ -154,7 +154,7 @@ bool CapstoneTokenizer::Tokenize(duint addr, const unsigned char* data, int data
     return true;
 }
 
-bool CapstoneTokenizer::TokenizeData(const QString & datatype, const QString & data, InstructionToken & instruction)
+bool ZydisTokenizer::TokenizeData(const QString & datatype, const QString & data, InstructionToken & instruction)
 {
     _inst = InstructionToken();
     isNop = false;
@@ -169,7 +169,7 @@ bool CapstoneTokenizer::TokenizeData(const QString & datatype, const QString & d
     return true;
 }
 
-void CapstoneTokenizer::UpdateConfig()
+void ZydisTokenizer::UpdateConfig()
 {
     SetConfig(ConfigBool("Disassembler", "Uppercase"),
               ConfigBool("Disassembler", "TabbedMnemonic"),
@@ -184,7 +184,7 @@ void CapstoneTokenizer::UpdateConfig()
     UpdateStringPool();
 }
 
-void CapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bHidePointerSizes, bool bHideNormalSegments, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, bool b0xPrefixValues)
+void ZydisTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bHidePointerSizes, bool bHideNormalSegments, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, bool b0xPrefixValues)
 {
     _bUppercase = bUppercase;
     _bTabbedMnemonic = bTabbedMnemonic;
@@ -197,17 +197,17 @@ void CapstoneTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bA
     _b0xPrefixValues = b0xPrefixValues;
 }
 
-int CapstoneTokenizer::Size() const
+int ZydisTokenizer::Size() const
 {
     return _success ? _cp.Size() : 1;
 }
 
-const Zydis & CapstoneTokenizer::GetCapstone() const
+const Zydis & ZydisTokenizer::GetZydis() const
 {
     return _cp;
 }
 
-void CapstoneTokenizer::TokenToRichText(const InstructionToken & instr, RichTextPainter::List & richTextList, const SingleToken* highlightToken)
+void ZydisTokenizer::TokenToRichText(const InstructionToken & instr, RichTextPainter::List & richTextList, const SingleToken* highlightToken)
 {
     QColor highlightColor = ConfigColor("InstructionHighlightColor");
     for(const auto & token : instr.tokens)
@@ -228,7 +228,7 @@ void CapstoneTokenizer::TokenToRichText(const InstructionToken & instr, RichText
     }
 }
 
-bool CapstoneTokenizer::TokenFromX(const InstructionToken & instr, SingleToken & token, int x, CachedFontMetrics* fontMetrics)
+bool ZydisTokenizer::TokenFromX(const InstructionToken & instr, SingleToken & token, int x, CachedFontMetrics* fontMetrics)
 {
     if(x < instr.x) //before the first token
         return false;
@@ -248,7 +248,7 @@ bool CapstoneTokenizer::TokenFromX(const InstructionToken & instr, SingleToken &
     return false; //not found
 }
 
-bool CapstoneTokenizer::IsHighlightableToken(const SingleToken & token)
+bool ZydisTokenizer::IsHighlightableToken(const SingleToken & token)
 {
     switch(token.type)
     {
@@ -266,7 +266,7 @@ bool CapstoneTokenizer::IsHighlightableToken(const SingleToken & token)
     return true;
 }
 
-bool CapstoneTokenizer::tokenTextPoolEquals(const QString & a, const QString & b)
+bool ZydisTokenizer::tokenTextPoolEquals(const QString & a, const QString & b)
 {
     if(a.compare(b, Qt::CaseInsensitive) == 0)
         return true;
@@ -277,7 +277,7 @@ bool CapstoneTokenizer::tokenTextPoolEquals(const QString & a, const QString & b
     return found1.value() == found2.value();
 }
 
-bool CapstoneTokenizer::TokenEquals(const SingleToken* a, const SingleToken* b, bool ignoreSize)
+bool ZydisTokenizer::TokenEquals(const SingleToken* a, const SingleToken* b, bool ignoreSize)
 {
     if(!a || !b)
         return false;
@@ -291,7 +291,7 @@ bool CapstoneTokenizer::TokenEquals(const SingleToken* a, const SingleToken* b, 
     return tokenTextPoolEquals(a->text, b->text);
 }
 
-void CapstoneTokenizer::addToken(TokenType type, QString text, const TokenValue & value)
+void ZydisTokenizer::addToken(TokenType type, QString text, const TokenValue & value)
 {
     switch(type)
     {
@@ -308,12 +308,12 @@ void CapstoneTokenizer::addToken(TokenType type, QString text, const TokenValue 
     _inst.tokens.push_back(SingleToken(isNop ? TokenType::MnemonicNop : type, text, value));
 }
 
-void CapstoneTokenizer::addToken(TokenType type, const QString & text)
+void ZydisTokenizer::addToken(TokenType type, const QString & text)
 {
     addToken(type, text, TokenValue());
 }
 
-void CapstoneTokenizer::addMemoryOperator(char operatorText)
+void ZydisTokenizer::addMemoryOperator(char operatorText)
 {
     if(_bMemorySpaces)
         addToken(TokenType::MemoryOperatorSpace, " ");
@@ -324,7 +324,7 @@ void CapstoneTokenizer::addMemoryOperator(char operatorText)
         addToken(TokenType::MemoryOperatorSpace, " ");
 }
 
-QString CapstoneTokenizer::printValue(const TokenValue & value, bool expandModule, int maxModuleLength) const
+QString ZydisTokenizer::printValue(const TokenValue & value, bool expandModule, int maxModuleLength) const
 {
     QString labelText;
     char label_[MAX_LABEL_SIZE] = "";
@@ -337,7 +337,7 @@ QString CapstoneTokenizer::printValue(const TokenValue & value, bool expandModul
     if(_bNoCurrentModuleText)
     {
         duint size, base;
-        base = DbgMemFindBaseAddr(this->GetCapstone().Address(), &size);
+        base = DbgMemFindBaseAddr(this->GetZydis().Address(), &size);
         if(addr >= base && addr < base + size)
             bHasModule = false;
         else
@@ -365,7 +365,7 @@ QString CapstoneTokenizer::printValue(const TokenValue & value, bool expandModul
     return finalText;
 }
 
-bool CapstoneTokenizer::tokenizePrefix()
+bool ZydisTokenizer::tokenizePrefix()
 {
     //TODO: what happens with multiple prefixes?
     bool hasPrefix = true;
@@ -399,7 +399,7 @@ bool CapstoneTokenizer::tokenizePrefix()
     return true;
 }
 
-bool CapstoneTokenizer::tokenizeMnemonic()
+bool ZydisTokenizer::tokenizeMnemonic()
 {
     QString mnemonic = QString(_cp.Mnemonic().c_str());
     _mnemonicType = TokenType::MnemonicNormal;
@@ -427,7 +427,7 @@ bool CapstoneTokenizer::tokenizeMnemonic()
     return tokenizeMnemonic(_mnemonicType, mnemonic);
 }
 
-bool CapstoneTokenizer::tokenizeMnemonic(TokenType type, const QString & mnemonic)
+bool ZydisTokenizer::tokenizeMnemonic(TokenType type, const QString & mnemonic)
 {
     addToken(type, mnemonic);
     if(_bTabbedMnemonic)
@@ -443,7 +443,7 @@ bool CapstoneTokenizer::tokenizeMnemonic(TokenType type, const QString & mnemoni
     return true;
 }
 
-bool CapstoneTokenizer::tokenizeOperand(const ZydisDecodedOperand & op)
+bool ZydisTokenizer::tokenizeOperand(const ZydisDecodedOperand & op)
 {
     switch(op.type)
     {
@@ -460,7 +460,7 @@ bool CapstoneTokenizer::tokenizeOperand(const ZydisDecodedOperand & op)
     }
 }
 
-bool CapstoneTokenizer::tokenizeRegOperand(const ZydisDecodedOperand & op)
+bool ZydisTokenizer::tokenizeRegOperand(const ZydisDecodedOperand & op)
 {
     auto registerType = TokenType::GeneralRegister;
     auto reg = op.reg;
@@ -492,7 +492,7 @@ bool CapstoneTokenizer::tokenizeRegOperand(const ZydisDecodedOperand & op)
     return true;
 }
 
-bool CapstoneTokenizer::tokenizeImmOperand(const ZydisDecodedOperand & op)
+bool ZydisTokenizer::tokenizeImmOperand(const ZydisDecodedOperand & op)
 {
     duint value;
     TokenType valueType;
@@ -513,7 +513,7 @@ bool CapstoneTokenizer::tokenizeImmOperand(const ZydisDecodedOperand & op)
     return true;
 }
 
-bool CapstoneTokenizer::tokenizeMemOperand(const ZydisDecodedOperand & op)
+bool ZydisTokenizer::tokenizeMemOperand(const ZydisDecodedOperand & op)
 {
     auto opsize = op.size / 8;
 
@@ -608,7 +608,7 @@ bool CapstoneTokenizer::tokenizeMemOperand(const ZydisDecodedOperand & op)
     return true;
 }
 
-bool CapstoneTokenizer::tokenizePtrOperand(const ZydisDecodedOperand & op)
+bool ZydisTokenizer::tokenizePtrOperand(const ZydisDecodedOperand & op)
 {
     auto segValue = TokenValue(2, op.ptr.segment);
     addToken(TokenType::MemorySegment, printValue(segValue, true, _maxModuleLength), segValue);
@@ -621,7 +621,7 @@ bool CapstoneTokenizer::tokenizePtrOperand(const ZydisDecodedOperand & op)
     return true;
 }
 
-bool CapstoneTokenizer::tokenizeInvalidOperand(const ZydisDecodedOperand & op)
+bool ZydisTokenizer::tokenizeInvalidOperand(const ZydisDecodedOperand & op)
 {
     addToken(TokenType::MnemonicUnusual, "???");
     return true;

@@ -143,7 +143,7 @@ void DisassemblyPopup::setAddress(duint Address)
         for(auto & instruction : instBuffer)
         {
             RichTextPainter::List richText;
-            CapstoneTokenizer::TokenToRichText(instruction.tokens, richText, nullptr);
+            ZydisTokenizer::TokenToRichText(instruction.tokens, richText, nullptr);
             // Calculate width
             int currentInstructionWidth = 0;
             for(auto & token : richText)

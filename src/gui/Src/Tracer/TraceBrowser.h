@@ -56,7 +56,7 @@ private:
     };
 
     SelectionData mSelection;
-    CapstoneTokenizer::SingleToken mHighlightToken;
+    ZydisTokenizer::SingleToken mHighlightToken;
     bool mHighlightingMode;
     bool mPermanentHighlightingMode;
     bool mAutoDisassemblyFollowSelection;

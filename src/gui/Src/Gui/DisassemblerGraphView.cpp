@@ -1529,7 +1529,7 @@ void DisassemblerGraphView::loadCurrentGraph()
                         currentBlockMap[addr] = block.entry;
                         Instruction_t instrTok = disasm.DisassembleAt((byte_t*)nodeInstr.data, sizeof(nodeInstr.data), 0, addr, false);
                         RichTextPainter::List richText;
-                        CapstoneTokenizer::TokenToRichText(instrTok.tokens, richText, 0);
+                        ZydisTokenizer::TokenToRichText(instrTok.tokens, richText, 0);
 
                         // add rva to node instruction text
                         if(showGraphRva)

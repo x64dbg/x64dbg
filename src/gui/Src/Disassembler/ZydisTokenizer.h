@@ -1,5 +1,5 @@
-#ifndef _CAPSTONE_GUI_H
-#define _CAPSTONE_GUI_H
+#ifndef ZYDISTOKENIZER_H
+#define ZYDISTOKENIZER_H
 
 #include <zydis_wrapper.h>
 #include "RichTextPainter.h"
@@ -8,7 +8,7 @@
 #include <QHash>
 #include <QtCore>
 
-class CapstoneTokenizer
+class ZydisTokenizer
 {
 public:
     enum class TokenType
@@ -153,13 +153,13 @@ public:
         }
     };
 
-    CapstoneTokenizer(int maxModuleLength);
+    ZydisTokenizer(int maxModuleLength);
     bool Tokenize(duint addr, const unsigned char* data, int datasize, InstructionToken & instruction);
     bool TokenizeData(const QString & datatype, const QString & data, InstructionToken & instruction);
     void UpdateConfig();
     void SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bHidePointerSizes, bool bHideNormalSegments, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, bool b0xPrefixValues);
     int Size() const;
-    const Zydis & GetCapstone() const;
+    const Zydis & GetZydis() const;
 
     static void UpdateColors();
     static void UpdateStringPool();
@@ -207,4 +207,4 @@ private:
     bool tokenizeInvalidOperand(const ZydisDecodedOperand & op);
 };
 
-#endif //_CAPSTONE_GUI_H
+#endif // ZYDISTOKENIZER_H

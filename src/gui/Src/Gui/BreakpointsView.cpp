@@ -282,7 +282,7 @@ void BreakpointsView::updateBreakpointsSlot()
             if(DbgMemRead(bp.addr, data, sizeof(data)))
             {
                 auto instr = mDisasm->DisassembleAt(data, sizeof(data), 0, bp.addr);
-                CapstoneTokenizer::TokenToRichText(instr.tokens, richDisasm, 0);
+                ZydisTokenizer::TokenToRichText(instr.tokens, richDisasm, 0);
                 for(auto & token : richDisasm)
                     result += token.text;
             }

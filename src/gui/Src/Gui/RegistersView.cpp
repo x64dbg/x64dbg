@@ -1455,15 +1455,15 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
             if(CPUDisassemblyView->isHighlightMode())
             {
                 if(mGPR.contains(r) && r != REGISTER_NAME::EFLAGS)
-                    CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::GeneralRegister, mRegisterMapping.constFind(r).value()));
+                    CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::GeneralRegister, mRegisterMapping.constFind(r).value()));
                 else if(mFPUMMX.contains(r))
-                    CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::MmxRegister, mRegisterMapping.constFind(r).value()));
+                    CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::MmxRegister, mRegisterMapping.constFind(r).value()));
                 else if(mFPUXMM.contains(r))
-                    CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(r).value()));
+                    CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(r).value()));
                 else if(mFPUYMM.contains(r))
-                    CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(r).value()));
+                    CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(r).value()));
                 else if(mSEGMENTREGISTER.contains(r))
-                    CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::MemorySegment, mRegisterMapping.constFind(r).value()));
+                    CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::MemorySegment, mRegisterMapping.constFind(r).value()));
                 else
                     mSelected = r;
             }
@@ -2133,7 +2133,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         uint8_t highlight = 0;
         for(const auto & reg : mHighlightRegs)
         {
-            if(!CapstoneTokenizer::tokenTextPoolEquals(regName, reg.first))
+            if(!ZydisTokenizer::tokenTextPoolEquals(regName, reg.first))
                 continue;
             highlight = reg.second;
             break;
@@ -2629,15 +2629,15 @@ void RegistersView::onHighlightSlot()
 {
     Disassembly* CPUDisassemblyView = mParent->getDisasmWidget();
     if(mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS)
-        CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::GeneralRegister, mRegisterMapping.constFind(mSelected).value()));
+        CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::GeneralRegister, mRegisterMapping.constFind(mSelected).value()));
     else if(mSEGMENTREGISTER.contains(mSelected))
-        CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::MemorySegment, mRegisterMapping.constFind(mSelected).value()));
+        CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::MemorySegment, mRegisterMapping.constFind(mSelected).value()));
     else if(mFPUMMX.contains(mSelected))
-        CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::MmxRegister, mRegisterMapping.constFind(mSelected).value()));
+        CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::MmxRegister, mRegisterMapping.constFind(mSelected).value()));
     else if(mFPUXMM.contains(mSelected))
-        CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(mSelected).value()));
+        CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(mSelected).value()));
     else if(mFPUYMM.contains(mSelected))
-        CPUDisassemblyView->hightlightToken(CapstoneTokenizer::SingleToken(CapstoneTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(mSelected).value()));
+        CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(mSelected).value()));
     CPUDisassemblyView->reloadData();
 }
 
