@@ -245,15 +245,23 @@ bool cbInstrZydis(int argc, char* argv[])
     dprintf_untranslated("imm[0].offset: %d, imm[0].size: %d\n", instr->raw.imm[0].offset, instr->raw.imm[0].size);
     dprintf_untranslated("imm[1].offset: %d, imm[1].size: %d\n", instr->raw.imm[1].offset, instr->raw.imm[1].size);
     dprintf_untranslated("size: %d, id: %d, opcount: %d\n", cp.Size(), cp.GetId(), instr->operandCount);
-    auto rwstr = [](uint8_t access)
+    auto rwstr = [](uint8_t action)
     {
-        if(access & ZYDIS_OPERAND_ACTION_READ && access & ZYDIS_OPERAND_ACTION_WRITE)
-            return "read+write";
-        if(access & ZYDIS_OPERAND_ACTION_READ)
+        switch(action)
+        {
+        case ZYDIS_OPERAND_ACTION_READ:
+        case ZYDIS_OPERAND_ACTION_CONDREAD:
             return "read";
-        if(access & ZYDIS_OPERAND_ACTION_WRITE)
+        case ZYDIS_OPERAND_ACTION_WRITE:
+        case ZYDIS_OPERAND_ACTION_CONDWRITE:
             return "write";
-        return "???";
+        case ZYDIS_OPERAND_ACTION_READWRITE:
+        case ZYDIS_OPERAND_ACTION_READ_CONDWRITE:
+        case ZYDIS_OPERAND_ACTION_CONDREAD_WRITE:
+            return "read+write";
+        default:
+            return "???";
+        }
     };
     auto vis = [](uint8_t visibility)
     {
