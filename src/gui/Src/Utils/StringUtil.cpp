@@ -4,7 +4,7 @@
 #include "MiscUtil.h"
 #include "ldconvert.h"
 
-QString ToLongDoubleString(void* buffer)
+QString ToLongDoubleString(const void* buffer)
 {
     char str[32];
     ld2str(buffer, str);
@@ -40,7 +40,7 @@ QString EscapeCh(QChar ch)
     }
 }
 
-QString GetDataTypeString(void* buffer, duint size, ENCODETYPE type)
+QString GetDataTypeString(const void* buffer, duint size, ENCODETYPE type)
 {
     switch(type)
     {
