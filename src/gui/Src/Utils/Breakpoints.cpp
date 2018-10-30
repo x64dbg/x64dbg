@@ -6,6 +6,13 @@ Breakpoints::Breakpoints(QObject* parent) : QObject(parent)
 {
 }
 
+QString Breakpoints::getAddrText(const BRIDGEBP & bp)
+{
+    if(bp.active || !*bp.mod)
+        return ToPtrString(bp.addr);
+    return QString("\"%1\":$%2").arg(bp.mod).arg(ToHexString(bp.addr));
+}
+
 /**
  * @brief       Set a new breakpoint according to the given type at the given address.
  *
@@ -61,15 +68,15 @@ void Breakpoints::enableBP(const BRIDGEBP & bp)
 
     if(bp.type == bp_hardware)
     {
-        wCmd = QString("bphwe \"%1\"").arg(ToPtrString(bp.addr));
+        wCmd = QString("bphwe %1").arg(getAddrText(bp));
     }
     else if(bp.type == bp_normal)
     {
-        wCmd = QString("be \"%1\"").arg(ToPtrString(bp.addr));
+        wCmd = QString("be %1").arg(getAddrText(bp));
     }
     else if(bp.type == bp_memory)
     {
-        wCmd = QString("bpme \"%1\"").arg(ToPtrString(bp.addr));
+        wCmd = QString("bpme %1").arg(getAddrText(bp));
     }
     else if(bp.type == bp_dll)
     {
@@ -126,15 +133,15 @@ void Breakpoints::disableBP(const BRIDGEBP & bp)
 
     if(bp.type == bp_hardware)
     {
-        wCmd = QString("bphwd \"%1\"").arg(ToPtrString(bp.addr));
+        wCmd = QString("bphwd %1").arg(getAddrText(bp));
     }
     else if(bp.type == bp_normal)
     {
-        wCmd = QString("bd \"%1\"").arg(ToPtrString(bp.addr));
+        wCmd = QString("bd %1").arg(getAddrText(bp));
     }
     else if(bp.type == bp_memory)
     {
-        wCmd = QString("bpmd \"%1\"").arg(ToPtrString(bp.addr));
+        wCmd = QString("bpmd %1").arg(getAddrText(bp));
     }
     else if(bp.type == bp_dll)
     {
@@ -192,15 +199,15 @@ void Breakpoints::removeBP(const BRIDGEBP & bp)
     switch(bp.type)
     {
     case bp_normal:
-        wCmd = QString("bc \"%1\"").arg(ToPtrString(bp.addr));
+        wCmd = QString("bc %1").arg(getAddrText(bp));
         break;
 
     case bp_hardware:
-        wCmd = QString("bphc \"%1\"").arg(ToPtrString(bp.addr));
+        wCmd = QString("bphc %1").arg(getAddrText(bp));
         break;
 
     case bp_memory:
-        wCmd = QString("bpmc \"%1\"").arg(ToPtrString(bp.addr));
+        wCmd = QString("bpmc %1").arg(getAddrText(bp));
         break;
 
     case bp_dll:

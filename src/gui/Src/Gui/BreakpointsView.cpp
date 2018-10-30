@@ -573,16 +573,8 @@ void BreakpointsView::followBreakpointSlot()
 void BreakpointsView::removeBreakpointSlot()
 {
     for(int i : getSelection())
-    {
         if(isValidBp(i))
-        {
-            const BRIDGEBP & bp = selectedBp(i);
-            if(bp.active)
-                Breakpoints::removeBP(bp);
-            else
-                DbgCmdExec(QString().sprintf("bc \"%s\":$%X", bp.mod, bp.addr));
-        }
-    }
+            Breakpoints::removeBP(selectedBp(i));
 }
 
 void BreakpointsView::toggleBreakpointSlot()
