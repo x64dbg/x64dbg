@@ -24,7 +24,9 @@ WatchExpr::WatchExpr(const char* name, const char* expression, WATCHVARTYPE type
 duint WatchExpr::getIntValue()
 {
     duint origVal = currValue;
-    if(varType == WATCHVARTYPE::TYPE_UINT || varType == WATCHVARTYPE::TYPE_INT || varType == WATCHVARTYPE::TYPE_ASCII || varType == WATCHVARTYPE::TYPE_UNICODE)
+    if(varType == WATCHVARTYPE::TYPE_UINT || varType == WATCHVARTYPE::TYPE_INT ||
+       varType == WATCHVARTYPE::TYPE_FLOAT ||
+       varType == WATCHVARTYPE::TYPE_ASCII || varType == WATCHVARTYPE::TYPE_UNICODE)
     {
         duint val;
         bool ok = expr.Calculate(val, varType == WATCHVARTYPE::TYPE_INT, false);
