@@ -1111,7 +1111,7 @@ bool cbInstrYara(int argc, char* argv[])
 
     duint base = 0;
     duint size = 0;
-    duint mod = ModBaseFromName(argv[2]);
+    duint mod = argc > 2 ? ModBaseFromName(argv[2]) : 0;
     bool rawFile = false;
     if(mod)
     {
@@ -1121,14 +1121,14 @@ bool cbInstrYara(int argc, char* argv[])
     }
     else
     {
-        if(!valfromstring(argv[2], &addr))
+        if(argc > 2 && !valfromstring(argv[2], &addr))
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid value \"%s\"!\n"), argv[2]);
             return false;
         }
 
         size = 0;
-        if(argc >= 4)
+        if(argc > 3)
             if(!valfromstring(argv[3], &size))
                 size = 0;
         if(!size)
@@ -1196,7 +1196,7 @@ bool cbInstrYara(int argc, char* argv[])
                 GuiReferenceAddColumn(10, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Data")));
                 GuiReferenceSetRowCount(0);
                 GuiReferenceReloadData();
-                YaraScanInfo scanInfo(base, rawFile, argv[2], settingboolget("Engine", "YaraDebug"));
+                YaraScanInfo scanInfo(base, rawFile, argc > 2 ? argv[2] : modname, settingboolget("Engine", "YaraDebug"));
                 duint ticks = GetTickCount();
                 dputs(QT_TRANSLATE_NOOP("DBG", "[YARA] Scan started..."));
                 int err = yr_rules_scan_mem(yrRules, data(), size, 0, yaraScanCallback, &scanInfo, 0);
