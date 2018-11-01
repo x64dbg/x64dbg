@@ -257,7 +257,10 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
 
         std::sort(data.begin(), data.end(), [](const XREF_RECORD * A, const XREF_RECORD * B)
         {
-            return ((A->type < B->type) || (A->addr < B->addr));
+            if (A->type != B->type)
+                return (A->type < B->type);
+
+            return (A->addr < B->addr);
         });
 
         int t = XREF_NONE;
