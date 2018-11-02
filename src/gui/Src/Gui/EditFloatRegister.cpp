@@ -363,7 +363,7 @@ void EditFloatRegister::reloadFloatData(QLineEdit & txtbox, char* Data)
 {
     if(mutex != &txtbox)
     {
-        txtbox.setText(QString().number(*(float*)Data));
+        txtbox.setText(ToFloatString(Data));
     }
 }
 
@@ -371,7 +371,7 @@ void EditFloatRegister::reloadDoubleData(QLineEdit & txtbox, char* Data)
 {
     if(mutex != &txtbox)
     {
-        txtbox.setText(QString().number(*(double*)Data));
+        txtbox.setText(ToDoubleString(Data));
     }
 }
 

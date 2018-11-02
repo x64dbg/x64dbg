@@ -71,36 +71,36 @@ inline QString ToWordString(unsigned short Value)
 }
 
 template<typename T>
-inline QString ToFloatingString(void* buffer)
+inline QString ToFloatingString(const void* buffer, int precision)
 {
-    auto value = *(T*)buffer;
+    auto value = *(const T*)buffer;
     std::stringstream wFloatingStr;
-    wFloatingStr << std::setprecision(std::numeric_limits<T>::digits10) << value;
+    wFloatingStr << std::setprecision(precision) << value;
     return QString::fromStdString(wFloatingStr.str());
 }
 
 template<typename T>
-inline QString ToIntegralString(void* buffer)
+inline QString ToIntegralString(const void* buffer)
 {
-    auto value = *(T*)buffer;
+    auto value = *(const T*)buffer;
     return ToLongLongHexString(value);
 }
 
-inline QString ToFloatString(void* buffer)
+inline QString ToFloatString(const void* buffer, int precision = std::numeric_limits<float>::digits10)
 {
-    return ToFloatingString<float>(buffer);
+    return ToFloatingString<float>(buffer, precision);
 }
 
-inline QString ToDoubleString(void* buffer)
+inline QString ToDoubleString(const void* buffer, int precision = std::numeric_limits<double>::digits10)
 {
-    return ToFloatingString<double>(buffer);
+    return ToFloatingString<double>(buffer, precision);
 }
 
-QString ToLongDoubleString(void* buffer);
+QString ToLongDoubleString(const void* buffer);
 
 QString ToDateString(const QDate & date);
 
-QString GetDataTypeString(void* buffer, duint size, ENCODETYPE type);
+QString GetDataTypeString(const void* buffer, duint size, ENCODETYPE type);
 
 inline QDate GetCompileDate()
 {
