@@ -692,7 +692,7 @@ duint Disassembly::getDisassemblyPopupAddress(int mousex, int mousey)
     {
         ZydisTokenizer::SingleToken token;
         auto & instruction = mInstBuffer.at(rowOffset);
-        if(ZydisTokenizer::TokenFromX(instruction.tokens, token, event->x(), mFontMetrics))
+        if(ZydisTokenizer::TokenFromX(instruction.tokens, token, mousex, mFontMetrics))
         {
             duint addr = token.value.value;
             bool isCodePage = DbgFunctions()->MemIsCodePage(addr, false);
