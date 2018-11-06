@@ -30,7 +30,6 @@ void BreakpointMenu::build(MenuBuilder* builder)
         auto selection = mGetSelection();
         if(selection == 0)
             return false;
-
         BPXTYPE bpType = DbgGetBpxTypeAt(selection);
         if((bpType & bp_normal) == bp_normal || (bpType & bp_hardware) == bp_hardware)
             editSoftwareBreakpointAction->setText(tr("Edit"));
@@ -94,11 +93,7 @@ void BreakpointMenu::toggleInt3BPActionSlot()
 {
     if(!DbgIsDebugging())
         return;
-
     duint wVA = mGetSelection();
-    if(wVA == 0)
-        return;
-
     BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
     QString wCmd;
 
@@ -130,7 +125,6 @@ void BreakpointMenu::editSoftBpActionSlot()
     auto selection = mGetSelection();
     if(selection == 0)
         return;
-
     BPXTYPE bpType = DbgGetBpxTypeAt(selection);
     if((bpType & bp_hardware) == bp_hardware)
         Breakpoints::editBP(bp_hardware, ToHexString(selection), dynamic_cast<QWidget*>(parent()));
@@ -147,9 +141,6 @@ void BreakpointMenu::editSoftBpActionSlot()
 void BreakpointMenu::toggleHwBpActionSlot()
 {
     duint wVA = mGetSelection();
-    if(wVA == 0)
-        return;
-
     BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
     QString wCmd;
 
@@ -188,9 +179,6 @@ void BreakpointMenu::setHwBpOnSlot3ActionSlot()
 
 void BreakpointMenu::setHwBpAt(duint va, int slot)
 {
-    if(va == 0)
-        return;
-
     int wI = 0;
     int wSlotIndex = -1;
     BPMAP wBPList;

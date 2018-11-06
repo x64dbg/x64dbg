@@ -53,8 +53,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     this->zoomLevel = 1;
     this->zoomLevelOld = 1;
     this->zoomStep = 0.1;
-    this->zoomOverviewValue = 0.5; //text hidden
-    this->zoomMinimum = 0.01;
+    this->zoomOverviewValue = 0.5; //text is hidden
     this->zoomMaximum = 1;
 
     //zoomScrollThreshold (relative to viewport size) adds fixed free space around the graph in order to make it free to move/scale
@@ -135,8 +134,8 @@ void DisassemblerGraphView::adjustSize(int viewportWidth, int viewportHeight, QP
         renderYOfs = viewportHeight;
 
         //Adjust scroll bar range
-        hScrollRange = qRound(qreal(renderWidth + viewportWidth));
-        vScrollRange = qRound(qreal(renderHeight + viewportHeight));
+        hScrollRange = renderWidth + viewportWidth;
+        vScrollRange = renderHeight + viewportHeight;
 
         QPointF deltaMouseReal;
         QPointF deltaMouseDiff;
@@ -154,6 +153,7 @@ void DisassemblerGraphView::adjustSize(int viewportWidth, int viewportHeight, QP
         }
         qreal deltaXOfs = renderXOfs *  zoomStepReal * zoomDirection;
         qreal deltaYOfs = renderYOfs * zoomStepReal * zoomDirection;
+
 
         QPoint scrollPositionOld = QPoint(horizontalScrollBar()->value(), verticalScrollBar()->value());
 
@@ -202,7 +202,7 @@ void DisassemblerGraphView::adjustSize(int viewportWidth, int viewportHeight, QP
 
 void DisassemblerGraphView::showEvent(QShowEvent* event)
 {
-    //before being shown for the first time viewport allways has uninitialized width and height
+    //before graph tab is shown for the first time the viewport has uninitialized width and height
     if(!this->viewportReady)
         this->viewportReady = true;
 
@@ -845,6 +845,9 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
 
 void DisassemblerGraphView::wheelEvent(QWheelEvent* event)
 {
+    if(!DbgIsDebugging())
+        return;
+
     if (event->modifiers() & Qt::ControlModifier && graphZoomMode) {
         QPoint numDegrees = event->angleDelta() / 8;
         QPoint numSteps = numDegrees / 15;
@@ -1014,7 +1017,7 @@ bool DisassemblerGraphView::find_instr(duint addr, Instr & instrOut)
 
 void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
 {
-    if(!DbgIsDebugging() && !this->ready)
+    if(!DbgIsDebugging() || !this->ready)
         return;
 
     bool inBlock = this->isMouseEventInBlock(event);
@@ -1788,9 +1791,13 @@ void DisassemblerGraphView::renderFunction(Function & func)
     }
     else
     {
-        //before being shown for the first time viewport is kind of 98x28 so setting the parent size almost fixes this problem
+        //before graph tab is shown for the first time the viewport is kind of 98x28 so setting the parent size almost fixes this problem
         areaSize = this->parentWidget()->size() - QSize(20, 20);
     }
+
+    qreal sx = qreal(areaSize.width()) / qreal(this->width);
+    qreal sy = qreal(areaSize.height()) / qreal(this->height);
+    zoomMinimum = qMin(qMin(sx, sy) * (1 - zoomStep), 0.05); //if graph is very lagre
 
     this->adjustSize(areaSize.width(), areaSize.height());
     puts("Adjust scroll bars for new size");
@@ -1935,15 +1942,16 @@ void DisassemblerGraphView::loadCurrentGraph()
 {
     if(ConfigBool("Gui", "GraphZoomMode"))
     {
-        this->graphZoomMode = true;
-        this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-        this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        graphZoomMode = true;
+        setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     }
     else
     {
-        this->graphZoomMode = false;
-        this->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-        this->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        graphZoomMode = false;
+        zoomLevel = 1;
+        setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     }
 
     bool showGraphRva = ConfigBool("Gui", "ShowGraphRva");
@@ -2104,9 +2112,9 @@ duint DisassemblerGraphView::zoomActionHelper()
 
 void DisassemblerGraphView::setupContextMenu()
 {
-    /* Unlike old style menu, the new one now dpends on zoom level and cursor position.
+    /* Unlike old style menu, the new one now depends on zoom level and cursor position.
      * There are several options for how menu will look like. This makes interaction more clear and predictable.
-     * E.g clicking outside of block (especially with large zoom level) will set breakpoint menu hidden
+     * E.g clicking outside of block (especially at large zoom level) will set breakpoint menu hidden
      * as well as any action that needs text to be visible will also be hidden.
      * Notice: keyboard shortcuts still work - this implies that user understands what he is doing. */
 
@@ -2139,6 +2147,7 @@ void DisassemblerGraphView::setupContextMenu()
     {
         return zoomActionHelper();
     });
+
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
     gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
@@ -2191,8 +2200,7 @@ void DisassemblerGraphView::setupContextMenu()
     gotoMenu->addSeparator();
     gotoMenu->addBuilder(childrenAndParentMenu);
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
-    //if(graphZoomMode)
-        //mMenuBuilder->addSeparator();
+
     mMenuBuilder->addAction(mZoomToCursor = makeShortcutAction(DIcon("zoom.png"), tr("&Zoom 100%"), SLOT(zoomToCursorSlot()), "ActionGraphZoomToCursor"), [this](QMenu*)
     {
         if(!graphZoomMode)
@@ -2207,6 +2215,7 @@ void DisassemblerGraphView::setupContextMenu()
         else
             return true;
     });
+
     mMenuBuilder->addSeparator();
     mMenuBuilder->addAction(makeShortcutAction(DIcon("snowman.png"), tr("Decompile"), SLOT(decompileSlot()), "ActionGraphDecompile"));
     mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"), [this](QMenu*)
