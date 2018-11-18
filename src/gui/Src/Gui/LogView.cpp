@@ -347,11 +347,11 @@ void LogView::setLoggingEnabled(bool enabled)
     if(enabled)
     {
         loggingEnabled = true;
-        GuiAddLogMessage(tr("Logging will be enabled.\n").toUtf8().constData());
+        GuiAddStatusBarMessage(tr("Logging will be enabled.\n").toUtf8().constData());
     }
     else
     {
-        GuiAddLogMessage(tr("Logging will be disabled.\n").toUtf8().constData());
+        GuiAddStatusBarMessage(tr("Logging will be disabled.\n").toUtf8().constData());
         loggingEnabled = false;
     }
 }
