@@ -559,7 +559,7 @@ void DisassemblerGraphView::paintZoom(QPainter & p, QRect & viewportRect, int xo
     auto dbgfunctions = DbgFunctions();
 
     QPoint translation(this->renderXOfs - xofs, this->renderYOfs - yofs);
-    p.translate(translation);\
+    p.translate(translation);
     p.scale(zoomLevel, zoomLevel);
 
     //Adjust imaginary viewport rect at new zoom level
@@ -848,22 +848,23 @@ void DisassemblerGraphView::wheelEvent(QWheelEvent* event)
     if(!DbgIsDebugging())
         return;
 
-    if (event->modifiers() & Qt::ControlModifier && graphZoomMode) {
+    if(event->modifiers() & Qt::ControlModifier && graphZoomMode)
+    {
         QPoint numDegrees = event->angleDelta() / 8;
         QPoint numSteps = numDegrees / 15;
         QPoint mousePosition = event->pos();
 
         zoomBoost = 1;
         //Speed up zooming on large graphs by Ctrl+Shift
-        if (event->modifiers() & Qt::ShiftModifier)
+        if(event->modifiers() & Qt::ShiftModifier)
             zoomBoost = 2;
 
-        if (numSteps.y() > 0)
+        if(numSteps.y() > 0)
         {
             zoomDirection = 1;
             zoomIn(mousePosition);
         }
-        else if (numSteps.y() < 0)
+        else if(numSteps.y() < 0)
         {
             zoomDirection = -1;
             zoomOut(mousePosition);
