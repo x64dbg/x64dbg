@@ -36,6 +36,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     //Start disassembly view at the entry point of the binary
     this->function = 0;
     this->ready = false;
+    this->viewportReady = false;
     this->desired_pos = nullptr;
     this->highlight_token = nullptr;
     this->cur_instr = 0;
@@ -47,6 +48,21 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     this->blocks.clear();
     this->saveGraph = false;
 
+    //Initialize zoom values
+    this->graphZoomMode = ConfigBool("Gui", "GraphZoomMode");
+    this->zoomLevel = 1;
+    this->zoomLevelOld = 1;
+    this->zoomStep = 0.1;
+    this->zoomOverviewValue = 0.5; //text is hidden
+    this->zoomMaximum = 1;
+
+    //zoomScrollThreshold (relative to viewport size) adds fixed free space around the graph in order to make it free to move/scale
+    //0.9 makes at least 10% of the graph allways visible regardless of scroll value
+    //0.5 - at least half of the graph
+    //0 - no margins ()
+    //this->zoomScrollThreshold = 1; // default now
+    //TODO: implement ^^^
+
     this->initFont();
 
     //Initialize scroll bars
@@ -56,8 +72,9 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     this->horizontalScrollBar()->setSingleStep(this->charWidth);
     this->verticalScrollBar()->setSingleStep(this->charHeight);
-    QSize areaSize = this->viewport()->size();
-    this->adjustSize(areaSize.width(), areaSize.height());
+
+    //QSize areaSize = this->viewport()->size();             <-\
+    //this->adjustSize(areaSize.width(), areaSize.height()); <-- useless at this point (?)
 
     //Setup context menu
     setupContextMenu();
@@ -76,7 +93,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(shortcutsUpdatedSlot()));
     connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerConfigUpdatedSlot()));
 
-    colorsUpdatedSlot();
+    //colorsUpdatedSlot(); <-- already called somewhere
 }
 
 DisassemblerGraphView::~DisassemblerGraphView()
@@ -97,28 +114,99 @@ void DisassemblerGraphView::initFont()
     mFontMetrics = new CachedFontMetrics(this, font());
 }
 
-void DisassemblerGraphView::adjustSize(int width, int height)
+void DisassemblerGraphView::adjustSize(int viewportWidth, int viewportHeight, QPoint mousePosition, bool fitToWindow)
 {
-    //Recompute size information
-    this->renderWidth = this->width;
-    this->renderHeight = this->height;
-    this->renderXOfs = 0;
-    this->renderYOfs = 0;
-    if(this->renderWidth < width)
+    //bugfix - resize event (during several initial calls) may reset correct adjustment already made
+    if(viewportHeight < 30)
+        return;
+
+    //When zoom mode is enabled, graph turns to a free scallable object with ability to zoom in/out on any point (like IDA)
+    if(graphZoomMode)
     {
-        this->renderXOfs = (width - this->renderWidth) / 2;
-        this->renderWidth = width;
+        qreal graphWidth = this->width;
+        qreal graphHeight = this->height;
+        int hScrollRange;
+        int vScrollRange;
+
+        renderWidth = graphWidth * zoomLevel;
+        renderHeight = graphHeight * zoomLevel;
+        renderXOfs = viewportWidth;
+        renderYOfs = viewportHeight;
+
+        //Adjust scroll bar range
+        hScrollRange = renderWidth + viewportWidth;
+        vScrollRange = renderHeight + viewportHeight;
+
+        QPointF deltaMouseReal;
+        QPointF deltaMouseDiff;
+
+        //Addition to scrool position depending on viewport offset
+        qreal zoomStepReal; //real step which may differ from default step
+        if(zoomDirection > 0)
+        {
+            zoomStepReal = (zoomLevel - zoomLevelOld) / zoomLevel;
+            zoomStepReal /= (1 - zoomStepReal);
+        }
+        else
+        {
+            zoomStepReal = (zoomLevelOld - zoomLevel) / zoomLevelOld;
+        }
+        qreal deltaXOfs = renderXOfs *  zoomStepReal * zoomDirection;
+        qreal deltaYOfs = renderYOfs * zoomStepReal * zoomDirection;
+
+
+        QPoint scrollPositionOld = QPoint(horizontalScrollBar()->value(), verticalScrollBar()->value());
+
+        horizontalScrollBar()->setPageStep(viewportWidth);
+        horizontalScrollBar()->setRange(0, hScrollRange);
+        verticalScrollBar()->setPageStep(viewportHeight);
+        verticalScrollBar()->setRange(0, vScrollRange);
+
+        if(!mousePosition.isNull()) //Adjust to cursor position
+        {
+            deltaMouseReal = mousePosition / zoomLevelOld + scrollPositionOld / zoomLevelOld;
+            deltaMouseDiff = deltaMouseReal * zoomLevel - deltaMouseReal * zoomLevelOld;
+
+            horizontalScrollBar()->setValue(qRound(scrollPositionOld.x() + deltaMouseDiff.x() - deltaXOfs));
+            verticalScrollBar()->setValue(qRound(scrollPositionOld.y() + deltaMouseDiff.y() - deltaYOfs));
+        }
+        else if(fitToWindow) //Fit to window or 50/50
+        {
+            horizontalScrollBar()->setValue(hScrollRange / 2);
+            verticalScrollBar()->setValue(vScrollRange / 2);
+        }
     }
-    if(this->renderHeight < height)
+    else //zoom mode is disabled
     {
-        this->renderYOfs = (height - this->renderHeight) / 2;
-        this->renderHeight = height;
+        this->renderWidth = this->width;
+        this->renderHeight = this->height;
+        this->renderXOfs = 0;
+        this->renderYOfs = 0;
+        if(this->renderWidth < viewportWidth)
+        {
+            this->renderXOfs = (viewportWidth - this->renderWidth) / 2;
+            this->renderWidth = viewportWidth;
+        }
+        if(this->renderHeight < viewportHeight)
+        {
+            this->renderYOfs = (viewportHeight - this->renderHeight) / 2;
+            this->renderHeight = viewportHeight;
+        }
+        //Update scroll bar information
+        this->horizontalScrollBar()->setPageStep(viewportWidth);
+        this->horizontalScrollBar()->setRange(0, this->renderWidth - viewportWidth);
+        this->verticalScrollBar()->setPageStep(viewportHeight);
+        this->verticalScrollBar()->setRange(0, this->renderHeight - viewportHeight);
     }
-    //Update scroll bar information
-    this->horizontalScrollBar()->setPageStep(width);
-    this->horizontalScrollBar()->setRange(0, this->renderWidth - width);
-    this->verticalScrollBar()->setPageStep(height);
-    this->verticalScrollBar()->setRange(0, this->renderHeight - height);
+}
+
+void DisassemblerGraphView::showEvent(QShowEvent* event)
+{
+    //before graph tab is shown for the first time the viewport has uninitialized width and height
+    if(!this->viewportReady)
+        this->viewportReady = true;
+
+    event->ignore();
 }
 
 void DisassemblerGraphView::resizeEvent(QResizeEvent* event)
@@ -158,6 +246,47 @@ void DisassemblerGraphView::copy_address()
     QMimeData mime;
     mime.setText(QString().sprintf("0x%p", this->get_cursor_pos()));
     clipboard->setMimeData(&mime);
+}
+
+void DisassemblerGraphView::zoomIn(QPoint mousePosition)
+{
+    zoomLevelOld = zoomLevel;
+
+    if(zoomLevel == zoomMaximum)
+    {
+        return;
+    }
+    //unlike addition, multiplication (by 1/x, x<1) makes zooming more smooth
+    zoomLevel /= (1 - zoomStep * zoomBoost);
+
+    if(zoomLevel > zoomMaximum)
+    {
+        zoomLevel = zoomMaximum;
+    }
+    auto areaSize = viewport()->size();
+    adjustSize(areaSize.width(), areaSize.height(), mousePosition);
+    this->viewport()->update();
+}
+
+void DisassemblerGraphView::zoomOut(QPoint mousePosition)
+{
+    zoomLevelOld = zoomLevel;
+
+    if(zoomLevel == zoomMinimum)
+    {
+        return;
+    }
+    //unlike subtraction, multiplication makes zooming more smooth
+    zoomLevel *= (1 - zoomStep * zoomBoost);
+
+    if(zoomLevel < zoomMinimum)
+    {
+        zoomLevel = zoomMinimum;
+    }
+
+    auto areaSize = viewport()->size();
+    adjustSize(areaSize.width(), areaSize.height(), mousePosition);
+    this->viewport()->update();
 }
 
 void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int xofs, int yofs)
@@ -423,6 +552,224 @@ void DisassemblerGraphView::paintOverview(QPainter & p, QRect & viewportRect, in
     }
 }
 
+void DisassemblerGraphView::paintZoom(QPainter & p, QRect & viewportRect, int xofs, int yofs)
+{
+    //Based on paintNormal and paintOverview (depending on zoom level)
+
+    auto dbgfunctions = DbgFunctions();
+
+    QPoint translation(this->renderXOfs - xofs, this->renderYOfs - yofs);
+    p.translate(translation);\
+    p.scale(zoomLevel, zoomLevel);
+
+    //Adjust imaginary viewport rect at new zoom level
+    viewportRect.setWidth(viewportRect.width() / zoomLevel);
+    viewportRect.setHeight(viewportRect.height() / zoomLevel);
+    viewportRect.translate(-translation.x() / zoomLevel, -translation.y() / zoomLevel);
+
+    //Current block
+    duint cipBlock = 0;
+    auto found = currentBlockMap.find(mCip);
+    if(found != currentBlockMap.end())
+        cipBlock = found->second;
+
+    //Scaled pen
+    QPen pen;
+    qreal penWidth = 1 / zoomLevel;
+    pen.setColor(graphNodeColor);
+    pen.setWidthF(penWidth);
+
+    //Render each node
+    for(auto & blockIt : this->blocks)
+    {
+        DisassemblerBlock & block = blockIt.second;
+
+        bool blockSelected = false;
+        for(const Instr & instr : block.block.instrs)
+        {
+            if(instr.addr == this->cur_instr)
+            {
+                blockSelected = true;
+            }
+        }
+
+        //Ignore blocks that are not in view
+        if(viewportRect.intersects(QRect(block.x + this->charWidth, block.y + this->charWidth,
+                                         block.width - (2 * this->charWidth), block.height - (2 * this->charWidth))))
+        {
+            //Get block metadata
+            auto isCip = block.block.entry == cipBlock;
+            auto traceCount = dbgfunctions->GetTraceRecordHitCount(block.block.entry);
+
+            if(zoomLevel > zoomOverviewValue) //Normal mode
+            {
+                //Render shadow
+                p.setPen(QColor(0, 0, 0, 0));
+                if(isCip)
+                    p.setBrush(graphCurrentShadowColor);
+                else if(block.block.terminal)
+                    p.setBrush(retShadowColor);
+                else if(block.block.indirectcall)
+                    p.setBrush(indirectcallShadowColor);
+                else
+                    p.setBrush(QColor(0, 0, 0, 100));
+                p.drawRect(block.x + this->charWidth + 4, block.y + this->charWidth + 4,
+                           block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
+
+                //Node background
+                pen.setColor(graphNodeColor);
+                p.setPen(pen);
+                p.setBrush(graphNodeBackgroundColor);
+                p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
+                           block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
+
+                //Print current instruction background
+                if(this->cur_instr != 0)
+                {
+                    int y = block.y + (2 * this->charWidth) + (int(block.block.header_text.lines.size()) * this->charHeight);
+                    for(Instr & instr : block.block.instrs)
+                    {
+                        if(y > viewportRect.y() - int(instr.text.lines.size()) * this->charHeight && y < viewportRect.bottom())
+                        {
+                            auto selected = instr.addr == this->cur_instr;
+                            auto traceCount = dbgfunctions->GetTraceRecordHitCount(instr.addr);
+
+                            if(selected && traceCount)
+                            {
+                                p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
+                                                 int(instr.text.lines.size()) * this->charHeight), disassemblyTracedSelectionColor);
+                            }
+                            else if(selected)
+                            {
+                                p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth),
+                                                 int(instr.text.lines.size()) * this->charHeight), disassemblySelectionColor);
+                            }
+                            else if(traceCount)
+                            {
+                                // Color depending on how often a sequence of code is executed
+                                int exponent = 1;
+                                while(traceCount >>= 1) //log2(traceCount)
+                                    exponent++;
+                                int colorDiff = (exponent * exponent) / 2;
+
+                                // If the user has a light trace background color, substract
+                                if(disassemblyTracedColor.blue() > 160)
+                                    colorDiff *= -1;
+
+                                p.fillRect(QRect(block.x + this->charWidth + 3, y, block.width - (10 + 2 * this->charWidth), int(instr.text.lines.size()) * this->charHeight),
+                                           QColor(disassemblyTracedColor.red(),
+                                                  disassemblyTracedColor.green(),
+                                                  std::max(0, std::min(256, disassemblyTracedColor.blue() + colorDiff))));
+                            }
+                        }
+                        y += int(instr.text.lines.size()) * this->charHeight;
+                    }
+                }
+
+                //Render node text
+                auto x = block.x + (2 * this->charWidth);
+                auto y = block.y + (2 * this->charWidth);
+                for(auto & line : block.block.header_text.lines)
+                {
+                    if(y > viewportRect.y() - this->charHeight && y < viewportRect.bottom())
+                    {
+                        RichTextPainter::paintRichText(&p, x, y, block.width, this->charHeight, 0, line, mFontMetrics);
+                    }
+                    y += this->charHeight;
+                }
+
+                for(Instr & instr : block.block.instrs)
+                {
+                    for(auto & line : instr.text.lines)
+                    {
+                        if(y > viewportRect.y() - this->charHeight && y < viewportRect.bottom())
+                        {
+                            int rectSize = qRound(this->charWidth);
+                            if(rectSize % 2)
+                                rectSize++;
+
+                            // Assume charWidth <= charHeight
+                            QRectF bpRect(x - rectSize / 3.0, y + (this->charHeight - rectSize) / 2.0, rectSize, rectSize);
+
+                            bool isbp = DbgGetBpxTypeAt(instr.addr) != bp_none;
+                            bool isbpdisabled = DbgIsBpDisabled(instr.addr);
+                            bool iscip = instr.addr == mCip;
+
+                            if(isbp || isbpdisabled)
+                            {
+                                if(iscip)
+                                {
+                                    // Left half is cip
+                                    bpRect.setWidth(bpRect.width() / 2);
+                                    p.fillRect(bpRect, mCipColor);
+
+                                    // Right half is breakpoint
+                                    bpRect.translate(bpRect.width(), 0);
+                                }
+
+                                p.fillRect(bpRect, isbp ? mBreakpointColor : mDisabledBreakpointColor);
+                            }
+                            else if(iscip)
+                                p.fillRect(bpRect, mCipColor);
+
+                            RichTextPainter::paintRichText(&p, x + this->charWidth, y, block.width - this->charWidth, this->charHeight, 0, line, mFontMetrics);
+                        }
+                        y += this->charHeight;
+                    }
+                }
+
+            }
+            else //Overview mode
+            {
+                pen.setColor(graphNodeColor);
+                p.setPen(pen);
+                if(isCip)
+                    p.setBrush(graphCurrentShadowColor);
+                else if(traceCount)
+                {
+                    // Color depending on how often a sequence of code is executed
+                    int exponent = 1;
+                    while(traceCount >>= 1) //log2(traceCount)
+                        exponent++;
+                    int colorDiff = (exponent * exponent) / 2;
+
+                    // If the user has a light trace background color, substract
+                    if(disassemblyTracedColor.blue() > 160)
+                        colorDiff *= -1;
+
+                    p.setBrush(QColor(disassemblyTracedColor.red(),
+                                      disassemblyTracedColor.green(),
+                                      std::max(0, std::min(256, disassemblyTracedColor.blue() + colorDiff))));
+                }
+                else if(block.block.terminal)
+                    p.setBrush(retShadowColor);
+                else if(block.block.indirectcall)
+                    p.setBrush(indirectcallShadowColor);
+                else
+                    p.setBrush(graphNodeBackgroundColor);
+                p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
+                           block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
+            }
+        }
+        // Render edges
+        for(DisassemblerEdge & edge : block.edges)
+        {
+            pen.setWidthF(penWidth);
+            pen.setColor(edge.color);
+            p.setPen(pen);
+
+            if(blockSelected)
+                pen.setStyle(Qt::DashLine);
+            p.setPen(pen);
+            p.setBrush(edge.color);
+            p.drawPolyline(edge.polyline);
+            pen.setStyle(Qt::SolidLine);
+            p.setPen(pen);
+            p.drawConvexPolygon(edge.arrow);
+        }
+    }
+}
+
 void DisassemblerGraphView::paintEvent(QPaintEvent* event)
 {
     Q_UNUSED(event);
@@ -445,20 +792,38 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
         return;
     }
 
-    if(drawOverview)
-        paintOverview(p, viewportRect, xofs, yofs);
+    if(!graphZoomMode)
+    {
+        if(drawOverview)
+            paintOverview(p, viewportRect, xofs, yofs);
+        else
+            paintNormal(p, viewportRect, xofs, yofs);
+    }
     else
-        paintNormal(p, viewportRect, xofs, yofs);
+    {
+        paintZoom(p, viewportRect, xofs, yofs);
+    }
 
     if(saveGraph)
     {
+        //TODO: speed up large graph saving or show gif loader so it won't look like it has crashed
+
+        //Image corresponds to the current zoom level
         saveGraph = false;
         QString path = QFileDialog::getSaveFileName(this, tr("Save as image"), "", tr("PNG file (*.png);;BMP file (*.bmp)"));
         if(path.isEmpty())
             return;
 
+        QSize size = this->viewport()->size();
+        QPoint scrollbarPos = QPoint(this->horizontalScrollBar()->value(), this->verticalScrollBar()->value());
+
         // expand to full render Rectangle
-        this->viewport()->resize(this->renderWidth, this->renderHeight);//OK
+        this->viewport()->resize(this->renderWidth, this->renderHeight);
+
+        if(graphZoomMode)
+        {
+            adjustSize(this->renderWidth, this->renderHeight, QPoint(), true); //set scrollbars to 50%
+        }
 
         //save viewport to image
         QRect completeRenderRect = QRect(0, 0, this->renderWidth, this->renderHeight);
@@ -468,7 +833,47 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
         img.save(path);
 
         //restore changes made to viewport for full render saving
-        this->viewport()->resize(this->viewport()->width(), this->viewport()->height());
+        this->viewport()->resize(size);
+
+        if(graphZoomMode)
+        {
+            this->horizontalScrollBar()->setValue(scrollbarPos.x());
+            this->verticalScrollBar()->setValue(scrollbarPos.y());
+        }
+    }
+}
+
+void DisassemblerGraphView::wheelEvent(QWheelEvent* event)
+{
+    if(!DbgIsDebugging())
+        return;
+
+    if (event->modifiers() & Qt::ControlModifier && graphZoomMode) {
+        QPoint numDegrees = event->angleDelta() / 8;
+        QPoint numSteps = numDegrees / 15;
+        QPoint mousePosition = event->pos();
+
+        zoomBoost = 1;
+        //Speed up zooming on large graphs by Ctrl+Shift
+        if (event->modifiers() & Qt::ShiftModifier)
+            zoomBoost = 2;
+
+        if (numSteps.y() > 0)
+        {
+            zoomDirection = 1;
+            zoomIn(mousePosition);
+        }
+        else if (numSteps.y() < 0)
+        {
+            zoomDirection = -1;
+            zoomOut(mousePosition);
+        }
+
+        event->accept();
+    }
+    else
+    {
+        QAbstractScrollArea::wheelEvent(event);
     }
 }
 
@@ -477,8 +882,8 @@ bool DisassemblerGraphView::isMouseEventInBlock(QMouseEvent* event)
     //Convert coordinates to system used in blocks
     int xofs = this->horizontalScrollBar()->value();
     int yofs = this->verticalScrollBar()->value();
-    int x = event->x() + xofs - this->renderXOfs;
-    int y = event->y() + yofs - this->renderYOfs;
+    int x = (event->x() + xofs - this->renderXOfs) / zoomLevel;
+    int y = (event->y() + yofs - this->renderYOfs) / zoomLevel;
 
     // Check each block for hits
     for(auto & blockIt : this->blocks)
@@ -502,8 +907,8 @@ duint DisassemblerGraphView::getInstrForMouseEvent(QMouseEvent* event)
     //Convert coordinates to system used in blocks
     int xofs = this->horizontalScrollBar()->value();
     int yofs = this->verticalScrollBar()->value();
-    int x = event->x() + xofs - this->renderXOfs;
-    int y = event->y() + yofs - this->renderYOfs;
+    int x = (event->x() + xofs - this->renderXOfs) / zoomLevel;
+    int y = (event->y() + yofs - this->renderYOfs) / zoomLevel;
 
     //Check each block for hits
     for(auto & blockIt : this->blocks)
@@ -612,8 +1017,19 @@ bool DisassemblerGraphView::find_instr(duint addr, Instr & instrOut)
 
 void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
 {
-    if(!DbgIsDebugging())
+    if(!DbgIsDebugging() || !this->ready)
         return;
+
+    bool inBlock = this->isMouseEventInBlock(event);
+
+    //Save click state for actions that need to maintain cursor position and can be triggered whether via menu or by key
+    //TODO: transfer this to setupContextMenu() somehow
+    if(event->button() == Qt::RightButton)
+    {
+        this->lastRightClickPosition.pos = event->pos();
+        this->lastRightClickPosition.inBlock = inBlock;
+    }
+
     if(drawOverview)
     {
         if(event->button() == Qt::LeftButton)
@@ -636,7 +1052,7 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
             wMenu.exec(event->globalPos()); //execute context menu
         }
     }
-    else if((event->button() == Qt::LeftButton || event->button() == Qt::RightButton) && this->isMouseEventInBlock(event))
+    else if((event->button() == Qt::LeftButton || event->button() == Qt::RightButton) && inBlock)
     {
         //Check for click on a token and highlight it
         Token token;
@@ -655,9 +1071,7 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
 
         if(event->button() == Qt::RightButton)
         {
-            QMenu wMenu(this);
-            mMenuBuilder->build(&wMenu);
-            wMenu.exec(event->globalPos()); //execute context menu
+            showContextMenu(event);
         }
     }
     else if(event->button() == Qt::LeftButton)
@@ -671,10 +1085,7 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
     }
     else if(event->button() == Qt::RightButton)
     {
-        //Right click outside of block
-        QMenu wMenu(this);
-        mMenuBuilder->build(&wMenu);
-        wMenu.exec(event->globalPos()); //execute context menu
+        showContextMenu(event);
     }
 }
 
@@ -698,6 +1109,8 @@ void DisassemblerGraphView::mouseMoveEvent(QMouseEvent* event)
 
 void DisassemblerGraphView::mouseReleaseEvent(QMouseEvent* event)
 {
+    this->viewport()->update();
+
     if(event->button() == Qt::ForwardButton)
         gotoNextSlot();
     else if(event->button() == Qt::BackButton)
@@ -720,7 +1133,7 @@ void DisassemblerGraphView::mouseDoubleClickEvent(QMouseEvent* event)
     {
         toggleOverviewSlot();
     }
-    else
+    else if(!graphZoomMode || (zoomLevel > zoomOverviewValue))
     {
         duint instr = this->getInstrForMouseEvent(event);
 
@@ -1371,7 +1784,21 @@ void DisassemblerGraphView::renderFunction(Function & func)
     //puts("Precompute coordinates for edges");
 
     //Adjust scroll bars for new size
-    auto areaSize = this->viewport()->size();
+    QSize areaSize;
+    if(this->viewportReady)
+    {
+        areaSize = this->viewport()->size();
+    }
+    else
+    {
+        //before graph tab is shown for the first time the viewport is kind of 98x28 so setting the parent size almost fixes this problem
+        areaSize = this->parentWidget()->size() - QSize(20, 20);
+    }
+
+    qreal sx = qreal(areaSize.width()) / qreal(this->width);
+    qreal sy = qreal(areaSize.height()) / qreal(this->height);
+    zoomMinimum = qMin(qMin(sx, sy) * (1 - zoomStep), 0.05); //if graph is very lagre
+
     this->adjustSize(areaSize.width(), areaSize.height());
     puts("Adjust scroll bars for new size");
 
@@ -1413,13 +1840,25 @@ void DisassemblerGraphView::show_cur_instr(bool force)
                 int xofs = this->horizontalScrollBar()->value();
                 int yofs = this->verticalScrollBar()->value();
                 QRect viewportRect = this->viewport()->rect();
+
+                if(!viewportReady)
+                {
+                    //before being shown for the first time viewport is kind of 98x28 so setting the parent size almost fixes this problem
+                    viewportRect.setSize(this->parentWidget()->size() - QSize(20, 20));
+                }
+
                 QPoint translation(this->renderXOfs - xofs, this->renderYOfs - yofs);
-                viewportRect.translate(-translation.x(), -translation.y());
+
+                //Adjust scaled viewport
+                viewportRect.setWidth(viewportRect.width() / zoomLevel);
+                viewportRect.setHeight(viewportRect.height() / zoomLevel);
+                viewportRect.translate(-translation.x() / zoomLevel, -translation.y() / zoomLevel);
+
                 if(force || !viewportRect.contains(QRect(block.x + this->charWidth, block.y + this->charWidth,
                                                    block.width - (2 * this->charWidth), block.height - (2 * this->charWidth))))
                 {
-                    auto x = block.x + int(block.width / 2);
-                    auto y = block.y + (2 * this->charWidth) + int((row + 0.5) * this->charHeight);
+                    auto x = (block.x + int(block.width / 2)) * zoomLevel;
+                    auto y = (block.y + (2 * this->charWidth) + int((row + 0.5) * this->charHeight)) * zoomLevel;
                     this->horizontalScrollBar()->setValue(x + this->renderXOfs -
                                                           int(this->horizontalScrollBar()->pageStep() / 2));
                     this->verticalScrollBar()->setValue(y + this->renderYOfs -
@@ -1501,6 +1940,20 @@ void DisassemblerGraphView::tokenizerConfigUpdatedSlot()
 
 void DisassemblerGraphView::loadCurrentGraph()
 {
+    if(ConfigBool("Gui", "GraphZoomMode"))
+    {
+        graphZoomMode = true;
+        setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    }
+    else
+    {
+        graphZoomMode = false;
+        zoomLevel = 1;
+        setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+        setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    }
+
     bool showGraphRva = ConfigBool("Gui", "ShowGraphRva");
     Analysis anal;
     anal.entry = currentGraph.entryPoint;
@@ -1647,11 +2100,27 @@ void DisassemblerGraphView::addReferenceAction(QMenu* menu, duint addr)
     menu->addAction(action);
 }
 
+duint DisassemblerGraphView::zoomActionHelper()
+{
+    if(!graphZoomMode || graphZoomMode && lastRightClickPosition.pos.isNull()) //old mode or zoom mode + shurtcut
+        return cur_instr;
+    else if(graphZoomMode && !(lastRightClickPosition.inBlock && zoomLevel > zoomOverviewValue)) //out of block or too small zoom value
+        return 0;
+    else
+        return cur_instr;
+}
+
 void DisassemblerGraphView::setupContextMenu()
 {
-    mMenuBuilder = new MenuBuilder(this, [](QMenu*)
+    /* Unlike old style menu, the new one now depends on zoom level and cursor position.
+     * There are several options for how menu will look like. This makes interaction more clear and predictable.
+     * E.g clicking outside of block (especially at large zoom level) will set breakpoint menu hidden
+     * as well as any action that needs text to be visible will also be hidden.
+     * Notice: keyboard shortcuts still work - this implies that user understands what he is doing. */
+
+    mMenuBuilder = new MenuBuilder(this, [this](QMenu*)
     {
-        return DbgIsDebugging();
+        return DbgIsDebugging() && this->ready;
     });
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in &Disassembler"), SLOT(followDisassemblerSlot()), "ActionGraphFollowDisassembler"), [this](QMenu*)
@@ -1662,11 +2131,23 @@ void DisassemblerGraphView::setupContextMenu()
 
     auto breakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this]()
     {
-        return cur_instr;
+        return zoomActionHelper();
     });
     breakpointMenu->build(mMenuBuilder);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("&Label"), SLOT(setLabelSlot()), "ActionSetLabel"));
+
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"), [this](QMenu*)
+    {
+        return zoomActionHelper();
+    });
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("&Label"), SLOT(setLabelSlot()), "ActionSetLabel"), [this](QMenu*)
+    {
+        return zoomActionHelper();
+    });
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs.png"), tr("Xrefs..."), SLOT(xrefSlot()), "ActionXrefs"), [this](QMenu*)
+    {
+        return zoomActionHelper();
+    });
+
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
     gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
@@ -1680,6 +2161,8 @@ void DisassemblerGraphView::setupContextMenu()
     });
     MenuBuilder* childrenAndParentMenu = new MenuBuilder(this, [this](QMenu * menu)
     {
+        if(!zoomActionHelper())
+            return false;
         duint cursorpos = get_cursor_pos();
         const DisassemblerBlock* currentBlock = nullptr;
         const Instr* currentInstruction = nullptr;
@@ -1717,10 +2200,31 @@ void DisassemblerGraphView::setupContextMenu()
     gotoMenu->addSeparator();
     gotoMenu->addBuilder(childrenAndParentMenu);
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs.png"), tr("Xrefs..."), SLOT(xrefSlot()), "ActionXrefs"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("snowman.png"), tr("Decompile"), SLOT(decompileSlot()), "ActionGraphDecompile"));
+
+    mMenuBuilder->addAction(mZoomToCursor = makeShortcutAction(DIcon("zoom.png"), tr("&Zoom 100%"), SLOT(zoomToCursorSlot()), "ActionGraphZoomToCursor"), [this](QMenu*)
+    {
+        if(!graphZoomMode)
+            return false;
+        else
+            return true;
+    });
+    mMenuBuilder->addAction(mFitToWindow = makeShortcutAction(DIcon("fit.png"), tr("&Fit to window"), SLOT(fitToWindowSlot()), "ActionGraphFitToWindow"), [this](QMenu*)
+    {
+        if(!graphZoomMode)
+            return false;
+        else
+            return true;
+    });
+
     mMenuBuilder->addSeparator();
-    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("snowman.png"), tr("Decompile"), SLOT(decompileSlot()), "ActionGraphDecompile"));
+    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"), [this](QMenu*)
+    {
+        if(graphZoomMode)
+            return false;
+        else
+            return true;
+    });
     mToggleOverview->setCheckable(true);
     mMenuBuilder->addAction(mToggleSummary = makeShortcutAction(DIcon("summary.png"), tr("S&ummary"), SLOT(toggleSummarySlot()), "ActionGraphToggleSummary"));
     mToggleSummary->setCheckable(true);
@@ -1743,6 +2247,15 @@ void DisassemblerGraphView::setupContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("layout.png"), tr("Layout")), layoutMenu);
 
     mMenuBuilder->loadFromConfig();
+}
+
+void DisassemblerGraphView::showContextMenu(QMouseEvent* event)
+{
+    QMenu wMenu(this);
+    mMenuBuilder->build(&wMenu);
+    wMenu.exec(event->globalPos());
+
+    lastRightClickPosition.pos = {};
 }
 
 void DisassemblerGraphView::keyPressEvent(QKeyEvent* event)
@@ -1774,10 +2287,12 @@ void DisassemblerGraphView::followDisassemblerSlot()
 
 void DisassemblerGraphView::colorsUpdatedSlot()
 {
-    disassemblyBackgroundColor = ConfigColor("GraphNodeBackgroundColor");
-    if(!disassemblyBackgroundColor.alpha())
-        disassemblyBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
+    disassemblyBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
     graphNodeColor = ConfigColor("GraphNodeColor");
+    graphNodeBackgroundColor = ConfigColor("GraphNodeBackgroundColor");
+    if(!graphNodeBackgroundColor.alpha())
+        graphNodeBackgroundColor = disassemblyBackgroundColor;
+    graphCurrentShadowColor = ConfigColor("GraphCurrentShadowColor");
     disassemblySelectionColor = ConfigColor("DisassemblySelectionColor");
     disassemblyTracedColor = ConfigColor("DisassemblyTracedBackgroundColor");
     auto a = disassemblySelectionColor, b = disassemblyTracedColor;
@@ -2037,4 +2552,36 @@ void DisassemblerGraphView::followActionSlot()
         QString data = action->data().toString();
         DbgCmdExecDirect(QString("graph %1, silent").arg(data).toUtf8().constData());
     }
+}
+
+void DisassemblerGraphView::fitToWindowSlot()
+{
+    auto areaSize = viewport()->size();
+    qreal sx = qreal(areaSize.width()) / qreal(this->width);
+    qreal sy = qreal(areaSize.height()) / qreal(this->height);
+    zoomLevelOld = zoomLevel;
+    zoomLevel = qMin(qMin(sx, sy), qreal(1));
+    zoomDirection = -1;
+    this->adjustSize(areaSize.width(), areaSize.height(), QPoint(), true);
+    this->viewport()->update();
+}
+
+void DisassemblerGraphView::zoomToCursorSlot()
+{
+    QPoint pos;
+
+    if(!lastRightClickPosition.pos.isNull())
+    {
+        pos = lastRightClickPosition.pos;
+    }
+    else
+    {
+        pos = this->mapFromGlobal(QCursor::pos());
+    }
+    zoomLevelOld = zoomLevel;
+    zoomLevel = 1;
+    zoomDirection = 1;
+    auto areaSize = viewport()->size();
+    this->adjustSize(areaSize.width(), areaSize.height(), pos);
+    this->viewport()->update();
 }
