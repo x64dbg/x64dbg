@@ -873,7 +873,7 @@ void Zydis::RegInfo(uint8_t regs[ZYDIS_REGISTER_MAX_VALUE + 1]) const
         {
         case ZYDIS_OPERAND_TYPE_REGISTER:
         {
-            switch (op.action)
+            switch(op.action)
             {
             case ZYDIS_OPERAND_ACTION_READ:
             case ZYDIS_OPERAND_ACTION_CONDREAD:

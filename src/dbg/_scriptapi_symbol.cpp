@@ -16,10 +16,13 @@ static bool cbSymbolEnum(const SYMBOLPTR* ptr, void* user)
     SYMBOLINFO info;
     DbgGetSymbolInfo(ptr, &info);
 
+    const bool hasUndecoratedName = (0 != info.undecoratedSymbol) && (0 != info.undecoratedSymbol[0]);
+    const char* symbolName = hasUndecoratedName ? info.undecoratedSymbol : info.decoratedSymbol;
+
     SymbolInfo symbol = {};
     strncpy_s(symbol.mod, sizeof(symbol.mod), ctx->module->name, sizeof(symbol.mod) - 1);
     symbol.rva = info.addr - ctx->module->base;
-    strncpy_s(symbol.name, sizeof(symbol.name), info.undecoratedSymbol ? info.undecoratedSymbol : info.decoratedSymbol, sizeof(symbol.name) - 1);
+    strncpy_s(symbol.name, sizeof(symbol.name), symbolName, sizeof(symbol.name) - 1);
     symbol.manual = false;
     switch(info.type)
     {

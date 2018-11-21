@@ -111,15 +111,15 @@ void ZehSymbolTable::sortRows(int column, bool ascending)
             else
                 return ascending ? ainfo->ordinal < binfo->ordinal : ainfo->ordinal > binfo->ordinal;
         case ColDecorated:
-            {
-                int result = strcmp(ainfo->decoratedSymbol, binfo->decoratedSymbol);
-                return ascending ? result < 0 : result > 0;
-            }
+        {
+            int result = strcmp(ainfo->decoratedSymbol, binfo->decoratedSymbol);
+            return ascending ? result < 0 : result > 0;
+        }
         case ColUndecorated:
-            {
-                int result = strcmp(ainfo->undecoratedSymbol, binfo->undecoratedSymbol);
-                return ascending ? result < 0 : result > 0;
-            }
+        {
+            int result = strcmp(ainfo->undecoratedSymbol, binfo->undecoratedSymbol);
+            return ascending ? result < 0 : result > 0;
+        }
         }
     });
 }

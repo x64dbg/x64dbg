@@ -58,7 +58,7 @@ void XrefBrowseDialog::setup(duint address, QString command)
 
         std::sort(data.begin(), data.end(), [](const XREF_RECORD A, const XREF_RECORD B)
         {
-            if (A.type != B.type)
+            if(A.type != B.type)
                 return (A.type < B.type);
 
             return (A.addr < B.addr);

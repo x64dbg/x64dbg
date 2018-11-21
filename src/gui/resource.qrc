@@ -314,5 +314,7 @@
         <file>images/breakpoint_memory_read.png</file>
         <file>images/lib.png</file>
         <file>images/names.png</file>
+        <file>images/fit.png</file>
+        <file>images/zoom.png</file>
     </qresource>
 </RCC>

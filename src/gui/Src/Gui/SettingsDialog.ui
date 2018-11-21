@@ -693,6 +693,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkGraphZoomMode">
+         <property name="text">
+          <string>Graph zoom mode (beta)</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="chkShowExitConfirmation">
          <property name="text">
           <string>Show exit confirmation dialog</string>
