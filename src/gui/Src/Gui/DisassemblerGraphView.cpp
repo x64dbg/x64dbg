@@ -2089,6 +2089,14 @@ void DisassemblerGraphView::graphAtSlot(duint addr)
 
 void DisassemblerGraphView::updateGraphSlot()
 {
+    if(!DbgIsDebugging())
+    {
+        //happens mostly when debugging process has been terminated
+        this->ready = false;
+        zoomLevel = 1;
+        zoomLevelOld = 1;
+    }
+
     this->viewport()->update();
 }
 
