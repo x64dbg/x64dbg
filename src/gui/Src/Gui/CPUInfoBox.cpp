@@ -146,9 +146,11 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
             case size_dword:
                 sizeName = "dword ptr ";
                 break;
+#ifdef _WIN64
             case size_qword:
                 sizeName = "qword ptr ";
                 break;
+#endif //_WIN64
             default:
                 knownsize = false;
                 break;
