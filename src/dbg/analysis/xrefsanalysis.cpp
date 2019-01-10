@@ -1,6 +1,14 @@
 #include "xrefsanalysis.h"
 #include "xrefs.h"
 #include "console.h"
+#include <module.h>
+
+XrefsAnalysis::XrefsAnalysis(duint base, duint size)
+    : Analysis(base, size)
+{
+    modbase = ModBaseFromAddr(base);
+    modsize = ModSizeFromAddr(modbase);
+}
 
 void XrefsAnalysis::Analyse()
 {
@@ -25,7 +33,7 @@ void XrefsAnalysis::Analyse()
             {
                 return 0;
             });
-            if(inRange(dest))
+            if(inModRange(dest))
             {
                 xref.addr = dest;
                 break;
