@@ -251,6 +251,21 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion()
     return DBG_VERSION;
 }
 
+BRIDGE_IMPEXP bool BridgeIsProcessElevated()
+{
+    SID_IDENTIFIER_AUTHORITY NtAuthority = SECURITY_NT_AUTHORITY;
+    PSID SecurityIdentifier;
+    if(!AllocateAndInitializeSid(&NtAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &SecurityIdentifier))
+        return 0;
+
+    BOOL IsAdminMember;
+    if(!CheckTokenMembership(NULL, SecurityIdentifier, &IsAdminMember))
+        IsAdminMember = FALSE;
+
+    FreeSid(SecurityIdentifier);
+    return !!IsAdminMember;
+}
+
 BRIDGE_IMPEXP bool DbgMemRead(duint va, void* dest, duint size)
 {
 #ifdef _DEBUG

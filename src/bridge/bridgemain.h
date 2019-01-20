@@ -121,6 +121,12 @@ BRIDGE_IMPEXP bool BridgeSettingRead(int* errorLine);
 /// <returns>25</returns>
 BRIDGE_IMPEXP int BridgeGetDbgVersion();
 
+/// <summary>
+/// Checks if the current process is elevated.
+/// </summary>
+/// <returns>true if the process is elevated, false otherwise.</returns>
+BRIDGE_IMPEXP bool BridgeIsProcessElevated();
+
 #ifdef __cplusplus
 }
 #endif

@@ -98,7 +98,13 @@ MainWindow::MainWindow(QWidget* parent)
     addMenuToList(this, ui->menuPlugins, GUI_PLUGIN_MENU);
 
     // Set window title
-    mWindowMainTitle = QCoreApplication::applicationName();
+    if(BridgeIsProcessElevated())
+    {
+        mWindowMainTitle = tr("%1 [Elevated]").arg(QCoreApplication::applicationName());
+        ui->actionRestartAdmin->setEnabled(false);
+    }
+    else
+        mWindowMainTitle = QCoreApplication::applicationName();
     setWindowTitle(QString(mWindowMainTitle));
 
     // Load application icon
