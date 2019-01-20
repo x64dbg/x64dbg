@@ -189,7 +189,7 @@ void MemUpdateMap()
         // Read TEB::Tib to get stack information
         NT_TIB tib;
         if(!ThreadGetTib(threadList.list[i].BasicInfo.ThreadLocalBase, &tib))
-            continue;
+            tib.StackLimit = nullptr;
 
         // The stack will be a specific range only, not always the base address
         stackAddrs.push_back((duint)tib.StackLimit);
