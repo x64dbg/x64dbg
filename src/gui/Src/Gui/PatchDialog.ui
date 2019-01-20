@@ -27,7 +27,7 @@
     </rect>
    </property>
    <property name="title">
-    <string>&amp;Patches</string>
+    <string>P&amp;atches</string>
    </property>
    <widget class="QListWidget" name="listPatches">
     <property name="geometry">
