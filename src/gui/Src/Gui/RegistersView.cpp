@@ -13,6 +13,7 @@
 #include "SelectFields.h"
 #include "MiscUtil.h"
 #include "ldconvert.h"
+#include "ClickableMenuFilter.h"
 
 int RegistersView::getEstimateHeight()
 {
@@ -2886,6 +2887,7 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
     if(!DbgIsDebugging())
         return;
     QMenu wMenu(this);
+    wMenu.installEventFilter(new ClickableMenuFilter(&wMenu));
     QMenu* followInDumpNMenu = nullptr;
     const QAction* selectedAction = nullptr;
     switch(wSIMDRegDispMode)
@@ -2957,8 +2959,13 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
             duint addr = (* ((duint*) registerValue(&wRegDumpStruct, mSelected)));
             if(DbgMemIsValidReadPtr(addr))
             {
-                wMenu.addAction(wCM_FollowInDump);
                 followInDumpNMenu = new QMenu(tr("Follow in &Dump"), &wMenu);
+                followInDumpNMenu->setProperty("clickable", QVariant(true));
+                connect(followInDumpNMenu->menuAction(), &QAction::triggered, [&](bool)
+                {
+                    onFollowInDump();
+                    //wMenu.close();
+                });
                 CreateDumpNMenu(followInDumpNMenu);
                 wMenu.addMenu(followInDumpNMenu);
                 wMenu.addAction(wCM_FollowInDisassembly);

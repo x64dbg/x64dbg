@@ -65,6 +65,7 @@ QString MenuBuilder::getText(size_t id) const
  */
 bool MenuBuilder::build(QMenu* menu) const
 {
+    menu->installEventFilter(_clickableMenuFilter);
     if(_callback && !_callback(menu))
         return false;
     QMenu* submenu;

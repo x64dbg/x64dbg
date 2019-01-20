@@ -4,6 +4,7 @@
 #include <QAction>
 #include <QMenu>
 #include <functional>
+#include "ClickableMenuFilter.h"
 
 /**
  * @brief The MenuBuilder class implements the dynamic context menu system for many views.
@@ -16,7 +17,8 @@ public:
 
     inline MenuBuilder(QObject* parent, BuildCallback callback = nullptr)
         : QObject(parent),
-          _callback(callback)
+          _callback(callback),
+          _clickableMenuFilter(new ClickableMenuFilter(this))
     {
     }
 
@@ -116,6 +118,7 @@ private:
     BuildCallback _callback;
     QString id;
     std::vector<Container> _containers;
+    ClickableMenuFilter* _clickableMenuFilter;
 };
 
 #endif // MENUBUILDER

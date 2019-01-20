@@ -61,17 +61,18 @@ public:
     }
 
 private:
-    inline QAction* connectAction(QAction* action, const char* slot)
+    template<class T> // lambda or base member pointer
+    inline QAction* connectAction(QAction* action, T slot)
     {
-        QObject::connect(action, SIGNAL(triggered(bool)), getBase(), slot);
+        //in case of a lambda getBase() is used as the 'context' object and not the 'receiver'
+        QObject::connect(action, &QAction::triggered, getBase(), slot);
         return action;
     }
 
-    template<class T> // lambda or base member pointer
-    inline QAction* connectAction(QAction* action, T callback)
+    template<>
+    inline QAction* connectAction(QAction* action, const char* slot)
     {
-        //in case of a lambda getBase() is used as the 'context' object and not the 'receiver'
-        QObject::connect(action, &QAction::triggered, getBase(), callback);
+        QObject::connect(action, SIGNAL(triggered(bool)), getBase(), slot);
         return action;
     }
 
@@ -88,6 +89,21 @@ private:
     {
         menu->addAction(action);
         return action;
+    }
+
+    template<class T> // lambda or base member pointer
+    inline QMenu* connectClickableMenu(QMenu* menu, T slot)
+    {
+        //in case of a lambda getBase() is used as the 'context' object and not the 'receiver'
+        QObject::connect(menu->menuAction(), &QAction::triggered, getBase(), slot);
+        return menu;
+    }
+
+    template<>
+    inline QMenu* connectClickableMenu(QMenu* menu, const char* slot)
+    {
+        QObject::connect(menu->menuAction(), SIGNAL(triggered(bool)), getBase(), slot);
+        return menu;
     }
 
 protected:
@@ -147,6 +163,20 @@ protected:
         QMenu* menu = new QMenu(title, getBase());
         menu->setIcon(icon);
         return menu;
+    }
+
+    template<typename T>
+    inline QMenu* makeClickableMenu(const QString & title, T slot)
+    {
+        return connectClickableMenu(new QMenu(title, getBase()), slot);
+    }
+
+    template<typename T>
+    inline QMenu* makeClickableMenu(const QIcon & icon, const QString & title, T slot)
+    {
+        QMenu* menu = new QMenu(title, getBase());
+        menu->setIcon(icon);
+        return connectClickableMenu(menu, slot);
     }
 
     template<typename T>

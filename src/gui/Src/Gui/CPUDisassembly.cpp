@@ -385,7 +385,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 
         return DbgMemIsValidReadPtr(addr);
     });
-    mMenuBuilder->addMenu(makeMenu(DIcon("label.png"), tr("Label")), labelMenu);
+    mMenuBuilder->addMenu(makeClickableMenu(DIcon("label.png"), tr("Label"), SLOT(setLabelSlot())), labelMenu);
 
     QAction* traceRecordDisable = makeAction(DIcon("close-all-tabs.png"), tr("Disable"), SLOT(ActionTraceRecordDisableSlot()));
     QAction* traceRecordEnableBit = makeAction(DIcon("bit.png"), tr("Bit"), SLOT(ActionTraceRecordBitSlot()));

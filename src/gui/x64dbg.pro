@@ -170,6 +170,7 @@ SOURCES += \
     Src/Gui/LogStatusLabel.cpp \
     Src/Gui/DebugStatusLabel.cpp \
     Src/Utils/MenuBuilder.cpp \
+    Src/Utils/ClickableMenuFilter.cpp \
     Src/Gui/StructWidget.cpp \
     Src/Gui/CustomizeMenuDialog.cpp \
     Src/Gui/SimpleTraceDialog.cpp \
@@ -263,6 +264,7 @@ HEADERS += \
     Src/Gui/NotesManager.h \
     Src/Gui/NotepadView.h \
     Src/Utils/MenuBuilder.h \
+    Src/Utils/ClickableMenuFilter.h \
     Src/Gui/CPUMultiDump.h \
     Src/Gui/AssembleDialog.h \
     Src/Gui/SEHChainView.h \
