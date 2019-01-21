@@ -84,7 +84,10 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
                      FALSE,
                      IMAGE_DIRECTORY_ENTRY_EXPORT,
                      &exportDirSize);
-    if(exportDirSize == 0 || exportDir == nullptr || exportDir->NumberOfFunctions == 0)
+    if(exportDirSize == 0 || exportDir == nullptr ||
+            (ULONG_PTR)exportDir + exportDirSize > FileMapVA + Info.loadedSize || // Check if exportDir fits into the mapped area
+            (ULONG_PTR)exportDir + exportDirSize < (ULONG_PTR)exportDir // Check for ULONG_PTR wraparound (e.g. when exportDirSize == 0xfffff000)
+            || exportDir->NumberOfFunctions == 0)
         return;
 
     auto rva2offset = [&Info](ULONG64 rva)
@@ -186,7 +189,9 @@ static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
                             FALSE,
                             IMAGE_DIRECTORY_ENTRY_IMPORT,
                             &importDirSize);
-    if(importDirSize == 0 || importDescriptor == nullptr)
+    if(importDirSize == 0 || importDescriptor == nullptr ||
+            (ULONG_PTR)importDescriptor + importDirSize > FileMapVA + Info.loadedSize || // Check if importDescriptor fits into the mapped area
+            (ULONG_PTR)importDescriptor + importDirSize < (ULONG_PTR)importDescriptor) // Check for ULONG_PTR wraparound (e.g. when importDirSize == 0xfffff000)
         return;
 
     const ULONG64 ordinalFlag = IMAGE64(Info.headers) ? IMAGE_ORDINAL_FLAG64 : IMAGE_ORDINAL_FLAG32;
@@ -274,7 +279,9 @@ static void ReadTlsCallbacks(MODINFO & Info, ULONG_PTR FileMapVA)
                   FALSE,
                   IMAGE_DIRECTORY_ENTRY_TLS,
                   &tlsDirSize);
-    if(tlsDir == nullptr /*|| tlsDirSize == 0*/) // The loader completely ignores the directory size. Setting it to 0 is an anti-debug trick
+    if(tlsDir == nullptr /*|| tlsDirSize == 0*/ || // The loader completely ignores the directory size. Setting it to 0 is an anti-debug trick
+            (ULONG_PTR)tlsDir + tlsDirSize > FileMapVA + Info.loadedSize || // Check if tlsDir fits into the mapped area
+            (ULONG_PTR)tlsDir + tlsDirSize < (ULONG_PTR)tlsDir) // Check for ULONG_PTR wraparound (e.g. when tlsDirSize == 0xfffff000)
         return;
 
     ULONG64 addressOfCallbacks = IMAGE64(Info.headers)
@@ -317,7 +324,9 @@ static void ReadBaseRelocationTable(MODINFO & Info, ULONG_PTR FileMapVA)
                           FALSE,
                           IMAGE_DIRECTORY_ENTRY_BASERELOC,
                           &totalBytes);
-    if(baseRelocBlock == nullptr || totalBytes == 0 || (ULONG_PTR)baseRelocBlock + totalBytes > FileMapVA + Info.loadedSize)
+    if(baseRelocBlock == nullptr || totalBytes == 0 ||
+            (ULONG_PTR)baseRelocBlock + totalBytes > FileMapVA + Info.loadedSize || // Check if baseRelocBlock fits into the mapped area
+            (ULONG_PTR)baseRelocBlock + totalBytes < (ULONG_PTR)baseRelocBlock) // Check for ULONG_PTR wraparound (e.g. when totalBytes == 0xfffff000)
         return;
 
     // Until we reach the end of the relocation table
