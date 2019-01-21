@@ -104,7 +104,8 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     auto addressOfNameOrdinalsOffset = rva2offset(exportDir->AddressOfNameOrdinals);
     auto addressOfNameOrdinals = PWORD(addressOfNameOrdinalsOffset ? addressOfNameOrdinalsOffset + FileMapVA : 0);
 
-    Info.exports.reserve(exportDir->NumberOfFunctions);
+    // Do not reserve memory based on untrusted input
+    //Info.exports.reserve(exportDir->NumberOfFunctions);
     Info.exportOrdinalBase = exportDir->Base;
 
     // TODO: 'invalid address' below means an RVA that is obviously invalid, like being greater than SizeOfImage.
@@ -590,7 +591,7 @@ static void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     }
 }
 
-static void GetUnsafeModuleInfoImpl(MODINFO & Info, ULONG_PTR FileMapVA, void(*func)(MODINFO &, ULONG_PTR), const char* name)
+static bool GetUnsafeModuleInfoImpl(MODINFO & Info, ULONG_PTR FileMapVA, void(*func)(MODINFO &, ULONG_PTR), const char* name)
 {
     __try
     {
@@ -599,7 +600,9 @@ static void GetUnsafeModuleInfoImpl(MODINFO & Info, ULONG_PTR FileMapVA, void(*f
     __except(EXCEPTION_EXECUTE_HANDLER)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Exception while getting module info (%s), please report...\n"), name);
+        return false;
     }
+    return true;
 }
 
 void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
@@ -660,8 +663,19 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
     }
 
 #define GetUnsafeModuleInfo(func) GetUnsafeModuleInfoImpl(Info, FileMapVA, func, #func)
-    GetUnsafeModuleInfo(ReadExportDirectory);
-    GetUnsafeModuleInfo(ReadImportDirectory);
+    if(!GetUnsafeModuleInfo(ReadExportDirectory))
+    {
+        Info.exports.clear();
+        Info.exportOrdinalBase = 0;
+        Info.exportsByName.clear();
+        Info.exportsByRva.clear();
+    }
+    if(!GetUnsafeModuleInfo(ReadImportDirectory))
+    {
+        Info.importModules.clear();
+        Info.imports.clear();
+        Info.importsByRva.clear();
+    }
     GetUnsafeModuleInfo(ReadTlsCallbacks);
     GetUnsafeModuleInfo(ReadBaseRelocationTable);
     GetUnsafeModuleInfo(ReadDebugDirectory);
