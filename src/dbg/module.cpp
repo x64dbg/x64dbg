@@ -117,6 +117,13 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     // Note that we're loading this file because the debuggee did; that makes it at least somewhat plausible that we will also survive
     for(DWORD i = 0; i < exportDir->NumberOfFunctions; i++)
     {
+        // Check if addressOfFunctions[i] is valid
+        ULONG_PTR target = (ULONG_PTR)addressOfFunctions + i * sizeof(DWORD);
+        if(target > FileMapVA + Info.loadedSize || target < (ULONG_PTR)addressOfFunctions)
+        {
+            continue;
+        }
+
         // It is possible the AddressOfFunctions contain zero RVAs. GetProcAddress for these ordinals returns zero.
         // "The reason for it is to assign a particular ordinal to a function." - NTCore
         if(!addressOfFunctions[i])
@@ -138,9 +145,23 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 
     for(DWORD i = 0; i < exportDir->NumberOfNames; i++)
     {
+        // Check if addressOfNameOrdinals[i] is valid
+        ULONG_PTR target = (ULONG_PTR)addressOfNameOrdinals + i * sizeof(DWORD);
+        if(target > FileMapVA + Info.loadedSize || target < (ULONG_PTR)addressOfNameOrdinals)
+        {
+            continue;
+        }
+
         DWORD index = addressOfNameOrdinals[i];
         if(index < Info.exports.size()) // Silent ignore (2) by ntdll loader: bogus AddressOfNameOrdinals indices
         {
+            // Check if addressOfNames[i] is valid
+            target = (ULONG_PTR)addressOfNames + i * sizeof(DWORD);
+            if(target > FileMapVA + Info.loadedSize || target < (ULONG_PTR)addressOfNames)
+            {
+                continue;
+            }
+
             auto nameOffset = rva2offset(addressOfNames[i]);
             if(nameOffset) // Silent ignore (3) by ntdll loader: invalid names or addresses of names
                 Info.exports[index].name = String((const char*)(nameOffset + FileMapVA));
