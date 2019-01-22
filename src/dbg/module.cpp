@@ -146,7 +146,7 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     for(DWORD i = 0; i < exportDir->NumberOfNames; i++)
     {
         // Check if addressOfNameOrdinals[i] is valid
-        ULONG_PTR target = (ULONG_PTR)addressOfNameOrdinals + i * sizeof(DWORD);
+        ULONG_PTR target = (ULONG_PTR)addressOfNameOrdinals + i * sizeof(WORD);
         if(target > FileMapVA + Info.loadedSize || target < (ULONG_PTR)addressOfNameOrdinals)
         {
             continue;
