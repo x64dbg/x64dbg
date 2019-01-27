@@ -4,6 +4,7 @@
 #include "_global.h"
 #include "command.h"
 #include "jansson/jansson_x64dbg.h"
+#include <rapidjson/document.h>
 
 typedef enum
 {
@@ -49,8 +50,8 @@ typedef struct
 void showcommandlineerror(cmdline_error_t* cmdline_error);
 bool isCmdLineEmpty();
 char* getCommandLineArgs();
-void CmdLineCacheSave(JSON Root, const String & cacheFile);
-void CmdLineCacheLoad(JSON Root);
+void CmdLineCacheSave(rapidjson::Document & Root, const String & cacheFile);
+void CmdLineCacheLoad(rapidjson::Document & Root);
 void copyCommandLine(const char* cmdLine);
 bool setCommandLine();
 

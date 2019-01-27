@@ -1,4 +1,5 @@
 #include "comment.h"
+#include "serializablemap.h"
 
 struct CommentSerializer : AddrInfoSerializer<COMMENTSINFO>
 {
@@ -67,12 +68,12 @@ void CommentDelRange(duint Start, duint End, bool Manual)
     comments.DeleteRange(Start, End, Manual);
 }
 
-void CommentCacheSave(JSON Root)
+void CommentCacheSave(rapidjson::Document & Root)
 {
     comments.CacheSave(Root);
 }
 
-void CommentCacheLoad(JSON Root)
+void CommentCacheLoad(rapidjson::Document & Root)
 {
     comments.CacheLoad(Root);
     comments.CacheLoad(Root, "auto"); //legacy support

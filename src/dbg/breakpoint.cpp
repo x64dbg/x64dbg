@@ -727,7 +727,7 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
     }
 }
 
-void BpCacheSave(JSON Root)
+void BpCacheSave(rapidjson::Document & Root)
 {
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
@@ -782,7 +782,7 @@ static void loadStringValue(JSON value, T & dest, const char* key)
         strncpy_s(dest, text, _TRUNCATE);
 }
 
-void BpCacheLoad(JSON Root)
+void BpCacheLoad(rapidjson::Document & Root)
 {
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 

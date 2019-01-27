@@ -12,6 +12,7 @@
 #include "dbghelp_safe.h"
 #include "exception.h"
 #include "WinInet-Downloader/downslib.h"
+#include "threading.h"
 
 struct SYMBOLCBDATA
 {

@@ -2,6 +2,7 @@
 #include "module.h"
 #include "memory.h"
 #include "threading.h"
+#include "serializablemap.h"
 
 struct FunctionSerializer : JSONWrapper<FUNCTIONSINFO>
 {
@@ -137,12 +138,12 @@ void FunctionDelRange(duint Start, duint End, bool DeleteManual)
     }
 }
 
-void FunctionCacheSave(JSON Root)
+void FunctionCacheSave(rapidjson::Document & Root)
 {
     functions.CacheSave(Root);
 }
 
-void FunctionCacheLoad(JSON Root)
+void FunctionCacheLoad(rapidjson::Document & Root)
 {
     functions.CacheLoad(Root);
     functions.CacheLoad(Root, "auto"); //legacy support

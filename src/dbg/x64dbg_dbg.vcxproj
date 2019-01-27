@@ -233,6 +233,42 @@
     <ClInclude Include="pdbdiafile.h" />
     <ClInclude Include="pdbdiatypes.h" />
     <ClInclude Include="plugin_loader.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\allocators.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\cursorstreamwrapper.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\document.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\encodedstream.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\encodings.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\error\en.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\error\error.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\filereadstream.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\filewritestream.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\fwd.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\internal\biginteger.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\internal\diyfp.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\internal\dtoa.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\internal\ieee754.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\internal\itoa.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\internal\meta.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\internal\pow10.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\internal\regex.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\internal\stack.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\internal\strfunc.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\internal\strtod.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\internal\swap.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\istreamwrapper.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\memorybuffer.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\memorystream.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\msinttypes\inttypes.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\msinttypes\stdint.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\ostreamwrapper.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\pointer.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\prettywriter.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\rapidjson.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\reader.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\schema.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\stream.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\stringbuffer.h" />
+    <ClInclude Include="rapidjson\include\rapidjson\writer.h" />
     <ClInclude Include="reference.h" />
     <ClInclude Include="serializablemap.h" />
     <ClInclude Include="sortedlru.h" />
@@ -373,26 +409,26 @@
     <OutDir>$(ProjectDir)..\..\bin\x32\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>x32dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\zydis_wrapper;$(ProjectDir)..\zydis_wrapper\zydis\include;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)rapidjson\include;$(ProjectDir)..\zydis_wrapper;$(ProjectDir)..\zydis_wrapper\zydis\include;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\x32d\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <TargetName>x32dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\zydis_wrapper;$(ProjectDir)..\zydis_wrapper\zydis\include;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)rapidjson\include;$(ProjectDir)..\zydis_wrapper;$(ProjectDir)..\zydis_wrapper\zydis\include;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\x64\</OutDir>
     <TargetName>x64dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\zydis_wrapper;$(ProjectDir)..\zydis_wrapper\zydis\include;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)rapidjson\include;$(ProjectDir)..\zydis_wrapper;$(ProjectDir)..\zydis_wrapper\zydis\include;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(ProjectDir)..\..\bin\x64d\</OutDir>
     <TargetName>x64dbg</TargetName>
-    <IncludePath>$(ProjectDir)..\zydis_wrapper;$(ProjectDir)..\zydis_wrapper\zydis\include;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)rapidjson\include;$(ProjectDir)..\zydis_wrapper;$(ProjectDir)..\zydis_wrapper\zydis\include;$(ProjectDir);$(ProjectDir)analysis;$(ProjectDir)commands;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

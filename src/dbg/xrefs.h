@@ -10,8 +10,8 @@ duint XrefGetCount(duint Address);
 XREFTYPE XrefGetType(duint Address);
 bool XrefDeleteAll(duint Address);
 void XrefDelRange(duint Start, duint End);
-void XrefCacheSave(JSON Root);
-void XrefCacheLoad(JSON Root);
+void XrefCacheSave(rapidjson::Document & Root);
+void XrefCacheLoad(rapidjson::Document & Root);
 void XrefClear();
 
 #endif // _FUNCTION_H

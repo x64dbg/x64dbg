@@ -16,6 +16,7 @@
 #include "exception.h"
 #include "TraceRecord.h"
 #include "dbghelp_safe.h"
+#include <threading.h>
 
 bool cbInstrAnalyse(int argc, char* argv[])
 {

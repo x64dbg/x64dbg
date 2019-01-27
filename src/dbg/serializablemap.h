@@ -6,6 +6,9 @@
 #include "module.h"
 #include "memory.h"
 #include "jansson/jansson_x64dbg.h"
+#define RAPIDJSON_HAS_STDSTRING 1
+#include <rapidjson/document.h>
+#undef RAPIDJSON_HAS_STDSTRING
 
 template<class TValue>
 class JSONWrapper
@@ -15,9 +18,10 @@ public:
     {
     }
 
-    void SetJson(JSON json)
+    void SetJson(const rapidjson::Value* value, rapidjson::Document::AllocatorType* allocator)
     {
-        mJson = json;
+        mValue = value;
+        mAllocator = allocator;
     }
 
     virtual bool Save(const TValue & value) = 0;
@@ -26,7 +30,7 @@ public:
 protected:
     void setString(const char* key, const std::string & value)
     {
-        set(key, json_string(value.c_str()));
+        mJson->AddMember(rapidjson::Value(key, *mAllocator), rapidjson::Value(value, *mAllocator), *mAllocator);
     }
 
     bool getString(const char* key, std::string & dest) const
@@ -34,30 +38,34 @@ protected:
         auto jsonValue = get(key);
         if(!jsonValue)
             return false;
-        auto str = json_string_value(jsonValue);
-        if(!str)
+        if(!jsonValue->IsString())
             return false;
-        dest = str;
+        dest = jsonValue->GetString();
         return true;
     }
 
     void setHex(const char* key, duint value)
     {
-        set(key, json_hex(value));
+        char hexvalue[20];
+        sprintf_s(hexvalue, "0x%llX", value);
+        setString(key, hexvalue);
     }
 
     bool getHex(const char* key, duint & value) const
     {
-        auto jsonValue = get(key);
-        if(!jsonValue)
+        std::string hex;
+        if(!getString(key, hex))
             return false;
-        value = duint(json_hex_value(jsonValue));
+        unsigned json_int_t ret = 0;
+        if(sscanf_s(hex.c_str(), "0x%llX", &ret) != 1)
+            return false;
+        value = duint(ret);
         return true;
     }
 
     void setBool(const char* key, bool value)
     {
-        set(key, json_boolean(value));
+        set(key, rapidjson::Value(value, *mAllocator));
     }
 
     bool getBool(const char* key, bool & value) const
@@ -65,14 +73,16 @@ protected:
         auto jsonValue = get(key);
         if(!jsonValue)
             return false;
-        value = json_boolean_value(jsonValue);
+        if(!jsonValue->IsBool())
+            return false;
+        value = jsonValue->GetBool();
         return true;
     }
 
     template<typename T>
     void setInt(const char* key, T value)
     {
-        set(key, json_integer(value));
+        set(key, rapidjson::Value(value, *mAllocator));
     }
 
     template<typename T>
@@ -81,22 +91,26 @@ protected:
         auto jsonValue = get(key);
         if(!jsonValue)
             return false;
-        value = T(json_integer_value(jsonValue));
+        if(!jsonValue->Is<T>())
+            return false;
+        value = jsonValue->Get<T>();
         return true;
     }
 
     // ReSharper disable once CppMemberFunctionMayBeConst
-    void set(const char* key, JSON value)
+    void set(const char* key, const rapidjson::Value & value)
     {
-        json_object_set_new(mJson, key, value);
+        mJson->AddMember(rapidjson::Value(key, *mAllocator), value);
     }
 
-    JSON get(const char* key) const
+    const rapidjson::Value* get(const char* key) const
     {
-        return json_object_get(mJson, key);
+        auto itr = mJson->FindMember(key);
+        return itr == mJson->MemberEnd() ? nullptr : &itr->value;
     }
 
-    JSON mJson = nullptr;
+    rapidjson::Value* mJson = nullptr;
+    rapidjson::Document::AllocatorType* mAllocator = nullptr;
 };
 
 template<SectionLock TLock, class TKey, class TValue, class TMap, class TSerializer>
@@ -167,36 +181,36 @@ public:
         std::swap(mMap, empty);
     }
 
-    void CacheSave(JSON root) const
+    void CacheSave(const rapidjson::Document & root) const
     {
         SHARED_ACQUIRE(TLock);
-        auto jsonValues = json_array();
+        auto jsonValues = rapidjson::Value(rapidjson::kArrayType, root.GetAllocator());
         TSerializer serializer;
         for(const auto & itr : mMap)
         {
-            auto jsonValue = json_object();
-            serializer.SetJson(jsonValue);
+            rapidjson::Value jsonValue(rapidjson::kObjectType, root.GetAllocator());
+            serializer.SetJson(jsonValue, root.GetAllocator());
             if(serializer.Save(itr.second))
-                json_array_append(jsonValues, jsonValue);
-            json_decref(jsonValue);
+                jsonValues.PushBack(jsonValue);
         }
-        if(json_array_size(jsonValues))
-            json_object_set(root, jsonKey(), jsonValues);
-        json_decref(jsonValues);
+        if(jsonValues.Size())
+            root.AddMember(rapidjson::Value(jsonKey(), root.GetAllocator()), jsonValues, root.GetAllocator());
     }
 
-    void CacheLoad(JSON root, const char* keyprefix = nullptr)
+    void CacheLoad(const rapidjson::Document & root, const char* keyprefix = nullptr)
     {
         EXCLUSIVE_ACQUIRE(TLock);
-        auto jsonValues = json_object_get(root, keyprefix ? (keyprefix + String(jsonKey())).c_str() : jsonKey());
-        if(!jsonValues)
+        String key = keyprefix ? (keyprefix + String(jsonKey())) : jsonKey();
+        auto itr = root.FindMember(key);
+        if(itr == root.MemberEnd())
             return;
-        size_t i;
-        JSON jsonValue;
+        const rapidjson::Value & jsonValues = itr->value;
+        if(!itr->value.IsArray())
+            return;
         TSerializer deserializer;
-        json_array_foreach(jsonValues, i, jsonValue)
+        for(size_t i = 0; i < jsonValues.Size(); i++)
         {
-            deserializer.SetJson(jsonValue);
+            deserializer.SetJson(jsonValues[i]);
             TValue value;
             if(deserializer.Load(value))
                 addNoLock(value);
@@ -326,18 +340,6 @@ struct SerializableModuleHashMap : SerializableUnorderedMap<TLock, duint, TValue
                 return inRange(start, end, value);
             });
         }
-    }
-};
-
-struct AddrInfo
-{
-    duint modhash;
-    duint addr;
-    bool manual;
-
-    std::string mod() const
-    {
-        return ModNameFromHash(modhash);
     }
 };
 

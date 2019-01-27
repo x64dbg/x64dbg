@@ -12,6 +12,7 @@
 #include "value.h"
 #include "symbolinfo.h"
 #include "argument.h"
+#include <memory.h>
 
 bool cbBadCmd(int argc, char* argv[])
 {

@@ -22,8 +22,8 @@ bool FunctionGet(duint Address, duint* Start = nullptr, duint* End = nullptr, du
 bool FunctionOverlaps(duint Start, duint End);
 bool FunctionDelete(duint Address);
 void FunctionDelRange(duint Start, duint End, bool DeleteManual = false);
-void FunctionCacheSave(JSON Root);
-void FunctionCacheLoad(JSON Root);
+void FunctionCacheSave(rapidjson::Document & Root);
+void FunctionCacheLoad(rapidjson::Document & Root);
 bool FunctionEnum(FUNCTIONSINFO* List, size_t* Size);
 void FunctionClear();
 void FunctionGetList(std::vector<FUNCTIONSINFO> & list);

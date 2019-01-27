@@ -1,4 +1,5 @@
 #include "bookmark.h"
+#include "serializablemap.h"
 
 struct BookmarkSerializer : AddrInfoSerializer<BOOKMARKSINFO>
 {
@@ -40,12 +41,12 @@ void BookmarkDelRange(duint Start, duint End, bool Manual)
     bookmarks.DeleteRange(Start, End, Manual);
 }
 
-void BookmarkCacheSave(JSON Root)
+void BookmarkCacheSave(rapidjson::Document & Root)
 {
     bookmarks.CacheSave(Root);
 }
 
-void BookmarkCacheLoad(JSON Root)
+void BookmarkCacheLoad(rapidjson::Document & Root)
 {
     bookmarks.CacheLoad(Root);
     bookmarks.CacheLoad(Root, "auto"); //legacy support

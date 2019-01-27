@@ -81,7 +81,7 @@ char* getCommandLineArgs()
     return args ? args + 1 : nullptr;
 }
 
-void CmdLineCacheSave(JSON Root, const String & cacheFile)
+void CmdLineCacheSave(rapidjson::Document & Root, const String & cacheFile)
 {
     EXCLUSIVE_ACQUIRE(LockCmdLine);
 
@@ -98,7 +98,7 @@ void CmdLineCacheSave(JSON Root, const String & cacheFile)
     json_object_set_new(Root, "commandLine", jsonCmdLine);
 }
 
-void CmdLineCacheLoad(JSON Root)
+void CmdLineCacheLoad(rapidjson::Document & Root)
 {
     EXCLUSIVE_ACQUIRE(LockCmdLine);
 

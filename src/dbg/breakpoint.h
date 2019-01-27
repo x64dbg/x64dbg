@@ -2,7 +2,7 @@
 #define _BREAKPOINT_H
 
 #include "_global.h"
-#include "jansson/jansson_x64dbg.h"
+#include <rapidjson/document.h>
 
 #define TITANSETDRX(titantype, drx) titantype &= 0x0FF; titantype |= (drx<<8)
 #define TITANGETDRX(titantype) (titantype >> 8) & 0xF
@@ -70,8 +70,8 @@ int BpGetCount(BP_TYPE Type, bool EnabledOnly = false);
 uint32 BpGetHitCount(duint Address, BP_TYPE Type);
 bool BpResetHitCount(duint Address, BP_TYPE Type, uint32 newHitCount);
 void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp);
-void BpCacheSave(JSON Root);
-void BpCacheLoad(JSON Root);
+void BpCacheSave(rapidjson::Document & Root);
+void BpCacheLoad(rapidjson::Document & Root);
 void BpClear();
 bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo);
 

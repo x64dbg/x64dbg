@@ -1,6 +1,7 @@
 #include "encodemap.h"
 #include <unordered_map>
 #include "addrinfo.h"
+#include "serializablemap.h"
 #include <zydis_wrapper.h>
 
 struct ENCODEMAP : AddrInfo
@@ -60,7 +61,7 @@ struct EncodeMapSerializer : AddrInfoSerializer<ENCODEMAP>
         if(!dataJson)
             return false;
         std::vector<unsigned char> data;
-        if(!StringUtils::FromCompressedHex(json_string_value(dataJson), data))
+        if(!StringUtils::FromCompressedHex(dataJson->GetString(), data))
             return false;
         value.size = data.size();
         value.data = (byte*)VirtualAlloc(NULL, value.size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
@@ -302,12 +303,12 @@ void EncodeMapDelRange(duint Start, duint End)
     EncodeMapSetType(Start, End - Start + 1, enc_unknown);
 }
 
-void EncodeMapCacheSave(JSON Root)
+void EncodeMapCacheSave(rapidjson::Document & Root)
 {
     encmaps.CacheSave(Root);
 }
 
-void EncodeMapCacheLoad(JSON Root)
+void EncodeMapCacheLoad(rapidjson::Document & Root)
 {
     encmaps.CacheLoad(Root);
 }

@@ -5,6 +5,7 @@
 #include "function.h"
 #include "xrefs.h"
 #include "plugin_loader.h"
+#include <memory.h>
 
 RecursiveAnalysis::RecursiveAnalysis(duint base, duint size, duint entryPoint, bool usePlugins, bool dump)
     : Analysis(base, size),

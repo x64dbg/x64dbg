@@ -223,13 +223,16 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
     }
 
     // Load only command line
-    if(loadType == DbLoadSaveType::CommandLine || loadType == DbLoadSaveType::All)
+    if(loadType == DbLoadSaveType::CommandLine)
     {
         CmdLineCacheLoad(root);
     }
 
     if(loadType == DbLoadSaveType::DebugData || loadType == DbLoadSaveType::All)
     {
+        if(loadType == DbLoadSaveType::All)
+            CmdLineCacheLoad(root);
+
         auto hashalgo = json_string_value(json_object_get(root, "hashAlgorithm"));
         if(hashalgo && strcmp(hashalgo, "murmurhash") == 0) //Checking checksum of the debuggee.
             dbhash = duint(json_hex_value(json_object_get(root, "hash")));

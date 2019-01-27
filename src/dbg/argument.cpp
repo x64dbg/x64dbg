@@ -2,6 +2,7 @@
 #include "module.h"
 #include "memory.h"
 #include "threading.h"
+#include "serializablemap.h"
 
 struct ArgumentSerializer : JSONWrapper<ARGUMENTSINFO>
 {
@@ -135,12 +136,12 @@ void ArgumentDelRange(duint Start, duint End, bool DeleteManual)
     }
 }
 
-void ArgumentCacheSave(JSON Root)
+void ArgumentCacheSave(rapidjson::Document & Root)
 {
     arguments.CacheSave(Root);
 }
 
-void ArgumentCacheLoad(JSON Root)
+void ArgumentCacheLoad(rapidjson::Document & Root)
 {
     arguments.CacheLoad(Root);
 }

@@ -71,5 +71,5 @@ duint WatchGetUnsignedValue(unsigned int id);
 WATCHVARTYPE WatchGetType(unsigned int id);
 std::vector<WATCHINFO> WatchGetList();
 
-void WatchCacheSave(JSON root); // Save watch data to database
-void WatchCacheLoad(JSON root); // Load watch data from database
+void WatchCacheSave(rapidjson::Document & root); // Save watch data to database
+void WatchCacheLoad(rapidjson::Document & root); // Load watch data from database

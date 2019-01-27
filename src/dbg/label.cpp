@@ -1,4 +1,5 @@
 #include "label.h"
+#include "serializablemap.h"
 
 struct LabelSerializer : AddrInfoSerializer<LABELSINFO>
 {
@@ -107,12 +108,12 @@ void LabelDelRange(duint Start, duint End, bool Manual)
                 it = tempLabels.erase(it);
 }
 
-void LabelCacheSave(JSON Root)
+void LabelCacheSave(rapidjson::Document & Root)
 {
     labels.CacheSave(Root);
 }
 
-void LabelCacheLoad(JSON Root)
+void LabelCacheLoad(rapidjson::Document & Root)
 {
     labels.CacheLoad(Root);
     labels.CacheLoad(Root, "auto"); //legacy support

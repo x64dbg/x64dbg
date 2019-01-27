@@ -11,6 +11,7 @@
 #include "stringformat.h"
 #include "disasm_helper.h"
 #include "symbolinfo.h"
+#include <threading.h>
 
 static int maxFindResults = 5000;
 

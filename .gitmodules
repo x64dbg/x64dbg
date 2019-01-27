@@ -11,3 +11,6 @@
 [submodule "src/zydis_wrapper/zydis"]
 	path = src/zydis_wrapper/zydis
 	url = https://github.com/zyantific/zydis.git
+[submodule "src/dbg/rapidjson"]
+	path = src/dbg/rapidjson
+	url = https://github.com/Tencent/rapidjson

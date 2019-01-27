@@ -23,8 +23,8 @@ bool LoopAdd(duint Start, duint End, bool Manual, duint InstructionCount = 0);
 bool LoopGet(int Depth, duint Address, duint* Start = nullptr, duint* End = nullptr, duint* InstructionCount = nullptr);
 bool LoopOverlaps(int Depth, duint Start, duint End, int* FinalDepth);
 bool LoopDelete(int Depth, duint Address);
-void LoopCacheSave(JSON Root);
-void LoopCacheLoad(JSON Root);
+void LoopCacheSave(rapidjson::Document & Root);
+void LoopCacheLoad(rapidjson::Document & Root);
 bool LoopEnum(LOOPSINFO* List, size_t* Size);
 void LoopClear();
 

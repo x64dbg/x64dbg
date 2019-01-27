@@ -9,6 +9,7 @@
 #include "memory.h"
 #include "module.h"
 #include "value.h"
+#include "threading.h"
 
 ///api functions
 bool apienumexports(duint base, const EXPORTENUMCALLBACK & cbEnum)

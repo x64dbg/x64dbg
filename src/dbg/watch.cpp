@@ -359,7 +359,7 @@ void WatchCacheSave(JSON root)
     json_decref(watchroot);
 }
 
-void WatchCacheLoad(JSON root)
+void WatchCacheLoad(rapidjson::Document & root)
 {
     EXCLUSIVE_ACQUIRE(LockWatch);
     JSON watchroot = json_object_get(root, "watch");

@@ -185,7 +185,7 @@ void LoopCacheSave(JSON Root)
     json_decref(jsonAutoLoops);
 }
 
-void LoopCacheLoad(JSON Root)
+void LoopCacheLoad(rapidjson::Document & Root)
 {
     EXCLUSIVE_ACQUIRE(LockLoops);
 

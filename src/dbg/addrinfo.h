@@ -49,7 +49,20 @@ struct DepthModuleRangeCompare
     }
 };
 
-#include "serializablemap.h"
+#include "module.h"
+#include <rapidjson/document.h>
+
+struct AddrInfo
+{
+    duint modhash;
+    duint addr;
+    bool manual;
+
+    std::string mod() const
+    {
+        return ModNameFromHash(modhash);
+    }
+};
 
 //typedefs
 typedef std::function<void (duint base, const char* mod, const char* name, duint addr)> EXPORTENUMCALLBACK;

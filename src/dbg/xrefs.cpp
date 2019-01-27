@@ -1,5 +1,6 @@
 #include "xrefs.h"
 #include "addrinfo.h"
+#include "serializablemap.h"
 
 struct XREFSINFO : AddrInfo
 {
@@ -143,12 +144,12 @@ void XrefDelRange(duint Start, duint End)
     xrefs.DeleteRange(Start, End, false);
 }
 
-void XrefCacheSave(JSON Root)
+void XrefCacheSave(rapidjson::Document & Root)
 {
     xrefs.CacheSave(Root);
 }
 
-void XrefCacheLoad(JSON Root)
+void XrefCacheLoad(rapidjson::Document & Root)
 {
     xrefs.CacheLoad(Root);
 }

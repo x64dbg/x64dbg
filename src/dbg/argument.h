@@ -22,8 +22,8 @@ bool ArgumentGet(duint Address, duint* Start = nullptr, duint* End = nullptr, du
 bool ArgumentOverlaps(duint Start, duint End);
 bool ArgumentDelete(duint Address);
 void ArgumentDelRange(duint Start, duint End, bool DeleteManual = false);
-void ArgumentCacheSave(JSON Root);
-void ArgumentCacheLoad(JSON Root);
+void ArgumentCacheSave(rapidjson::Document & Root);
+void ArgumentCacheLoad(rapidjson::Document & Root);
 void ArgumentClear();
 void ArgumentGetList(std::vector<ARGUMENTSINFO> & list);
 bool ArgumentGetInfo(duint Address, ARGUMENTSINFO & info);
