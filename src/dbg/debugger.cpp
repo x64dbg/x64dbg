@@ -1337,6 +1337,22 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         strcpy_s(DebugFileName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "??? (GetFileNameFromHandle failed)")));
     dprintf(QT_TRANSLATE_NOOP("DBG", "Process Started: %p %s\n"), base, DebugFileName);
 
+    char* cmdline = nullptr;
+    if(dbggetcmdline(&cmdline, nullptr, fdProcessInfo->hProcess))
+    {
+        // Parse the command line from the debuggee
+        int argc = 0;
+        wchar_t** argv = CommandLineToArgvW(StringUtils::Utf8ToUtf16(cmdline).c_str(), &argc);
+        LocalFree(argv);
+
+        // Print the command line to the log
+        dprintf_untranslated("  %s\n", cmdline);
+        for(int i = 0; i < argc; i++)
+            dprintf_untranslated("  argv[%i]: %s\n", i, StringUtils::Utf16ToUtf8(argv[i]).c_str());
+
+        efree(cmdline);
+    }
+
     //update memory map
     MemUpdateMap();
     GuiUpdateMemoryView();
