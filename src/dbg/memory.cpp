@@ -181,6 +181,19 @@ void MemUpdateMap()
     THREADLIST threadList;
     ThreadGetList(&threadList);
     auto pebBase = (duint)GetPEBLocation(fdProcessInfo->hProcess);
+    std::vector<duint> stackAddrs;
+    for(int i = 0; i < threadList.count; i++)
+    {
+        DWORD threadId = threadList.list[i].BasicInfo.ThreadId;
+
+        // Read TEB::Tib to get stack information
+        NT_TIB tib;
+        if(!ThreadGetTib(threadList.list[i].BasicInfo.ThreadLocalBase, &tib))
+            tib.StackLimit = nullptr;
+
+        // The stack will be a specific range only, not always the base address
+        stackAddrs.push_back((duint)tib.StackLimit);
+    }
 
     for(auto & page : pageVector)
     {
@@ -229,15 +242,8 @@ void MemUpdateMap()
 #endif //_WIN64
             }
 
-            // Mark stack
-            //
-            // Read TEB::Tib to get stack information
-            NT_TIB tib;
-            if(!ThreadGetTib(tebBase, &tib))
-                continue;
-
             // The stack will be a specific range only, not always the base address
-            duint stackAddr = (duint)tib.StackLimit;
+            duint stackAddr = stackAddrs[i];
 
             if(stackAddr >= pageBase && stackAddr < (pageBase + pageSize))
                 sprintf_s(page.info, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Thread %X Stack")), threadId);

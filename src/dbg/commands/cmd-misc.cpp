@@ -306,7 +306,7 @@ bool cbDebugSetJIT(int argc, char* argv[])
     char* jit_debugger_cmd = "";
     Memory<char*> oldjit(MAX_SETTING_SIZE + 1);
     char path[JIT_ENTRY_DEF_SIZE];
-    if(!IsProcessElevated())
+    if(!BridgeIsProcessElevated())
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error run the debugger as Admin to setjit\n"));
         return false;
@@ -539,7 +539,7 @@ bool cbDebugSetJITAuto(int argc, char* argv[])
 {
     arch actual_arch;
     bool set_jit_auto;
-    if(!IsProcessElevated())
+    if(!BridgeIsProcessElevated())
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error run the debugger as Admin to setjitauto\n"));
         return false;

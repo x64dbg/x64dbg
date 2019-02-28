@@ -291,7 +291,7 @@ static void ReadTlsCallbacks(MODINFO & Info, ULONG_PTR FileMapVA)
     // TODO: proper bounds checking
     auto tlsArray = PULONG_PTR(tlsArrayOffset + FileMapVA);
     while(*tlsArray)
-        Info.tlsCallbacks.push_back(*tlsArray++ - imageBase + Info.base);
+        Info.tlsCallbacks.push_back(duint(*tlsArray++ - imageBase + Info.base));
 }
 
 #ifndef IMAGE_REL_BASED_RESERVED
@@ -379,7 +379,7 @@ static void ReadBaseRelocationTable(MODINFO & Info, ULONG_PTR FileMapVA)
 }
 
 //Useful information: http://www.debuginfo.com/articles/debuginfomatch.html
-void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
+static void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 {
     // Get the debug directory and its size
     ULONG debugDirSize;
@@ -590,6 +590,18 @@ void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     }
 }
 
+static void GetUnsafeModuleInfoImpl(MODINFO & Info, ULONG_PTR FileMapVA, void(*func)(MODINFO &, ULONG_PTR), const char* name)
+{
+    __try
+    {
+        func(Info, FileMapVA);
+    }
+    __except(EXCEPTION_EXECUTE_HANDLER)
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Exception while getting module info (%s), please report...\n"), name);
+    }
+}
+
 void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
 {
     // Get the PE headers
@@ -606,7 +618,7 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
     // OEP can't start at the PE header/offset 0 -- except if module is an EXE.
     Info.entry = moduleOEP + Info.base;
 
-    Info.headerImageBase = HEADER_FIELD(Info.headers, ImageBase);
+    Info.headerImageBase = (duint)HEADER_FIELD(Info.headers, ImageBase);
 
     if(!moduleOEP)
     {
@@ -647,11 +659,13 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
         ntSection++;
     }
 
-    ReadExportDirectory(Info, FileMapVA);
-    ReadImportDirectory(Info, FileMapVA);
-    ReadTlsCallbacks(Info, FileMapVA);
-    ReadBaseRelocationTable(Info, FileMapVA);
-    ReadDebugDirectory(Info, FileMapVA);
+#define GetUnsafeModuleInfo(func) GetUnsafeModuleInfoImpl(Info, FileMapVA, func, #func)
+    GetUnsafeModuleInfo(ReadExportDirectory);
+    GetUnsafeModuleInfo(ReadImportDirectory);
+    GetUnsafeModuleInfo(ReadTlsCallbacks);
+    GetUnsafeModuleInfo(ReadBaseRelocationTable);
+    GetUnsafeModuleInfo(ReadDebugDirectory);
+#undef GetUnsafeModuleInfo
 }
 
 bool ModLoad(duint Base, duint Size, const char* FullPath)

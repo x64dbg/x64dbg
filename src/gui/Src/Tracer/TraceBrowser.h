@@ -32,7 +32,8 @@ private:
     void setupRightClickContextMenu();
     void makeVisible(duint index);
     QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel);
-    QString getIndexText(duint index);
+    QString getIndexText(duint index) const;
+    RichTextPainter::List getRichBytes(const Instruction_t & instr) const;
     void pushSelectionInto(bool copyBytes, QTextStream & stream, QTextStream* htmlStream = nullptr);
     void copySelectionSlot(bool copyBytes);
     void copySelectionToFileSlot(bool copyBytes);
@@ -98,6 +99,7 @@ private:
     QColor mAutoCommentBackgroundColor;
     QColor mCommentColor;
     QColor mCommentBackgroundColor;
+    QColor mDisassemblyRelocationUnderlineColor;
 
 signals:
     void displayReferencesWidget();

@@ -103,6 +103,46 @@ QString TraceBrowser::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bo
     return addrText;
 }
 
+//The following function is modified from "RichTextPainter::List Disassembly::getRichBytes(const Instruction_t & instr) const"
+//with patch and code folding features removed.
+RichTextPainter::List TraceBrowser::getRichBytes(const Instruction_t & instr) const
+{
+    RichTextPainter::List richBytes;
+    std::vector<std::pair<size_t, bool>> realBytes;
+    formatOpcodeString(instr, richBytes, realBytes);
+    const duint cur_addr = instr.rva;
+
+    if(!richBytes.empty() && richBytes.back().text.endsWith(' '))
+        richBytes.back().text.chop(1); //remove trailing space if exists
+
+    if(DbgIsDebugging())
+    {
+        for(size_t i = 0; i < richBytes.size(); i++)
+        {
+            auto byteIdx = realBytes[i].first;
+            auto isReal = realBytes[i].second;
+            RichTextPainter::CustomRichText_t & curByte = richBytes.at(i);
+            DBGRELOCATIONINFO relocInfo;
+            curByte.highlightColor = mDisassemblyRelocationUnderlineColor;
+            if(DbgFunctions()->ModRelocationAtAddr(cur_addr + byteIdx, &relocInfo))
+            {
+                bool prevInSameReloc = relocInfo.rva < cur_addr + byteIdx - DbgFunctions()->ModBaseFromAddr(cur_addr + byteIdx);
+                curByte.highlight = isReal;
+                curByte.highlightConnectPrev = i > 0 && prevInSameReloc;
+            }
+            else
+            {
+                curByte.highlight = false;
+                curByte.highlightConnectPrev = false;
+            }
+
+            curByte.textColor = mBytesColor;
+            curByte.textBackground = mBytesBackgroundColor;
+        }
+    }
+    return richBytes;
+}
+
 QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     if(!mTraceFile || mTraceFile->Progress() != 100)
@@ -299,33 +339,11 @@ NotDebuggingLabel:
 
     case 2: //opcode
     {
-        RichTextPainter::List richBytes;
-        RichTextPainter::CustomRichText_t curByte;
-        RichTextPainter::CustomRichText_t space;
         unsigned char opcodes[16];
         int opcodeSize = 0;
         mTraceFile->OpCode(index, opcodes, &opcodeSize);
-        space.text = " ";
-        space.flags = RichTextPainter::FlagNone;
-        space.highlightWidth = 1;
-        space.highlightConnectPrev = true;
-        curByte.flags = RichTextPainter::FlagAll;
-        curByte.highlightWidth = 1;
-        space.highlight = false;
-        curByte.highlight = false;
-
-        for(int i = 0; i < opcodeSize; i++)
-        {
-            if(i)
-                richBytes.push_back(space);
-
-            curByte.text = ToByteString(opcodes[i]);
-            curByte.textColor = mBytesColor;
-            curByte.textBackground = mBytesBackgroundColor;
-            richBytes.push_back(curByte);
-        }
-
-        RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), 4, richBytes, mFontMetrics);
+        Instruction_t inst = mDisasm->DisassembleAt(opcodes, opcodeSize, 0, mTraceFile->Registers(index).regcontext.cip, false);
+        RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), 4, getRichBytes(inst), mFontMetrics);
         return "";
     }
 
@@ -841,7 +859,7 @@ void TraceBrowser::makeVisible(duint index)
         setTableOffset(index - getViewableRowsCount() + 2);
 }
 
-QString TraceBrowser::getIndexText(duint index)
+QString TraceBrowser::getIndexText(duint index) const
 {
     QString indexString;
     indexString = QString::number(index, 16).toUpper();
@@ -888,6 +906,7 @@ void TraceBrowser::updateColors()
     mAutoCommentBackgroundColor = ConfigColor("DisassemblyAutoCommentBackgroundColor");
     mCommentColor = ConfigColor("DisassemblyCommentColor");
     mCommentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
+    mDisassemblyRelocationUnderlineColor = ConfigColor("DisassemblyRelocationUnderlineColor");
 }
 
 void TraceBrowser::openFileSlot()
@@ -1071,15 +1090,9 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
         inst = mDisasm->DisassembleAt(opcode, opcodeSize, cur_addr, 0);
         QString address = getAddrText(cur_addr, 0, addressLen > sizeof(duint) * 2 + 1);
         QString bytes;
+        QString bytesHTML;
         if(copyBytes)
-        {
-            for(int j = 0; j < opcodeSize; j++)
-            {
-                if(j)
-                    bytes += " ";
-                bytes += ToByteString((unsigned char)(opcode[j]));
-            }
-        }
+            RichTextPainter::htmlRichText(getRichBytes(inst), bytesHTML, bytes);
         QString disassembly;
         QString htmlDisassembly;
         if(htmlStream)
@@ -1101,13 +1114,16 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
         bool autocomment;
         if(GetCommentFormat(cur_addr, comment, &autocomment))
             fullComment = " " + comment;
-        stream << address.leftJustified(addressLen, QChar(' '), true);
+        stream << getIndexText(i) + " | " + address.leftJustified(addressLen, QChar(' '), true);
         if(copyBytes)
             stream << " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
         stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
         if(htmlStream)
         {
-            *htmlStream << QString("<tr><td>%1</td><td>%2</td><td>").arg(address.toHtmlEscaped(), htmlDisassembly);
+            *htmlStream << QString("<tr><td>%1</td><td>%2</td><td>").arg(getIndexText(i), address.toHtmlEscaped());
+            if(copyBytes)
+                *htmlStream << QString("%1</td><td>").arg(bytesHTML);
+            *htmlStream << QString("%1</td><td>").arg(htmlDisassembly);
             if(!comment.isEmpty())
             {
                 if(autocomment)

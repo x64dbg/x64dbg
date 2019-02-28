@@ -1,20 +1,5 @@
 #include "jit.h"
 
-bool IsProcessElevated()
-{
-    SID_IDENTIFIER_AUTHORITY NtAuthority = SECURITY_NT_AUTHORITY;
-    PSID SecurityIdentifier;
-    if(!AllocateAndInitializeSid(&NtAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0, &SecurityIdentifier))
-        return 0;
-
-    BOOL IsAdminMember;
-    if(!CheckTokenMembership(NULL, SecurityIdentifier, &IsAdminMember))
-        IsAdminMember = FALSE;
-
-    FreeSid(SecurityIdentifier);
-    return !!IsAdminMember;
-}
-
 static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, char* key, arch arch_in, arch* arch_out, readwritejitkey_error_t* error, bool write)
 {
     DWORD key_flags;
@@ -27,7 +12,7 @@ static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, ch
 
     if(write)
     {
-        if(!IsProcessElevated())
+        if(!BridgeIsProcessElevated())
         {
             if(error != NULL)
                 *error = ERROR_RW_NOTADMIN;
