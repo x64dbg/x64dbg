@@ -674,7 +674,8 @@ void PatchDialog::saveAs1337(const QString & filename)
     QFile file(filename);
     file.open(QFile::WriteOnly | QFile::Text);
     QString text = lines.join("\n");
-    file.write(text.toUtf8().constData(), text.length());
+    QByteArray textUtf8 = text.toUtf8();
+    file.write(textUtf8.constData(), textUtf8.length());
     file.close();
 
     SimpleInfoBox(this, tr("Information"), tr("%1 patch(es) exported!").arg(patches));
