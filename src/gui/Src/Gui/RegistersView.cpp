@@ -85,20 +85,28 @@ void RegistersView::InitMappings()
 #else //x32
     mRegisterMapping.insert(CAX, "EAX");
     mRegisterPlaces.insert(CAX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CAX, Register_Relative_Position(UNKNOWN, CBX));
     mRegisterMapping.insert(CBX, "EBX");
     mRegisterPlaces.insert(CBX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CBX, Register_Relative_Position(CAX, CCX));
     mRegisterMapping.insert(CCX, "ECX");
     mRegisterPlaces.insert(CCX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CCX, Register_Relative_Position(CBX, CDX));
     mRegisterMapping.insert(CDX, "EDX");
     mRegisterPlaces.insert(CDX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CDX, Register_Relative_Position(CCX, CBP));
     mRegisterMapping.insert(CBP, "EBP");
     mRegisterPlaces.insert(CBP, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CBP, Register_Relative_Position(CDX, CSP));
     mRegisterMapping.insert(CSP, "ESP");
     mRegisterPlaces.insert(CSP, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CSP, Register_Relative_Position(CBP, CSI));
     mRegisterMapping.insert(CSI, "ESI");
     mRegisterPlaces.insert(CSI, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CSI, Register_Relative_Position(CSP, CDI));
     mRegisterMapping.insert(CDI, "EDI");
     mRegisterPlaces.insert(CDI, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CDI, Register_Relative_Position(CSI, UNKNOWN));
 
     offset++;
 
@@ -1561,6 +1569,25 @@ void RegistersView::keyPressEvent(QKeyEvent* event)
         int key = event->key();
         if(key == Qt::Key_Enter || key == Qt::Key_Return)
             wCM_Modify->trigger();
+        else if(key == Qt::Key_Left)
+        {
+            REGISTER_NAME newRegister = mRegisterRelativePlaces[mSelected].left;
+            if(newRegister != UNKNOWN)
+            {
+                mSelected = newRegister;
+                emit refresh();
+            }
+        }
+        else if(key == Qt::Key_Right)
+        {
+            REGISTER_NAME newRegister = mRegisterRelativePlaces[mSelected].right;
+            if(newRegister != UNKNOWN)
+            {
+                mSelected = newRegister;
+                emit refresh();
+            }
+        }
+
     }
     QScrollArea::keyPressEvent(event);
 }
