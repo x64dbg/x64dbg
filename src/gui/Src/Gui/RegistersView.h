@@ -117,16 +117,29 @@ public:
     {
         REGISTER_NAME left;
         REGISTER_NAME right;
+        REGISTER_NAME up;
+        REGISTER_NAME down;
 
         Register_Relative_Position(REGISTER_NAME l, REGISTER_NAME r)
         {
             left = l;
             right = r;
+            up = left;
+            down = right;
+        }
+        Register_Relative_Position(REGISTER_NAME l, REGISTER_NAME r, REGISTER_NAME u, REGISTER_NAME d)
+        {
+            left = l;
+            right = r;
+            up = u;
+            down = d;
         }
         Register_Relative_Position()
         {
             left = UNKNOWN;
             right = UNKNOWN;
+            up = UNKNOWN;
+            down = UNKNOWN;
         }
     };
 
