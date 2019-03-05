@@ -1567,27 +1567,33 @@ void RegistersView::keyPressEvent(QKeyEvent* event)
     if(DbgIsDebugging())
     {
         int key = event->key();
-        if(key == Qt::Key_Enter || key == Qt::Key_Return)
+        REGISTER_NAME newRegister = UNKNOWN;
+
+        switch(key)
+        {
+        case Qt::Key_Enter:
+        case Qt::Key_Return:
             wCM_Modify->trigger();
-        else if(key == Qt::Key_Left)
-        {
-            REGISTER_NAME newRegister = mRegisterRelativePlaces[mSelected].left;
-            if(newRegister != UNKNOWN)
-            {
-                mSelected = newRegister;
-                emit refresh();
-            }
-        }
-        else if(key == Qt::Key_Right)
-        {
-            REGISTER_NAME newRegister = mRegisterRelativePlaces[mSelected].right;
-            if(newRegister != UNKNOWN)
-            {
-                mSelected = newRegister;
-                emit refresh();
-            }
+            break;
+        case Qt::Key_Left:
+            newRegister = mRegisterRelativePlaces[mSelected].left;
+            break;
+        case Qt::Key_Right:
+            newRegister = mRegisterRelativePlaces[mSelected].right;
+            break;
+        case Qt::Key_Up:
+            newRegister = mRegisterRelativePlaces[mSelected].up;
+            break;
+        case Qt::Key_Down:
+            newRegister = mRegisterRelativePlaces[mSelected].down;
+            break;
         }
 
+        if(newRegister != UNKNOWN)
+        {
+            mSelected = newRegister;
+            emit refresh();
+        }
     }
     QScrollArea::keyPressEvent(event);
 }
