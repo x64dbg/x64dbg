@@ -695,7 +695,7 @@
        <item>
         <widget class="QCheckBox" name="chkGraphZoomMode">
          <property name="text">
-          <string>Graph zoom mode (beta)</string>
+          <string>Graph zoom mode</string>
          </property>
         </widget>
        </item>
