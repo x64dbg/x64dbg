@@ -2143,7 +2143,7 @@ void DisassemblerGraphView::setupContextMenu()
 
     auto breakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this]()
     {
-        return zoomActionHelper() != 0;
+        return zoomActionHelper();
     });
     breakpointMenu->build(mMenuBuilder);
 
