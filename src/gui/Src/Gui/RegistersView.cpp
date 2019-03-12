@@ -292,127 +292,178 @@ void RegistersView::InitMappings()
         NextColumnPosition = std::max(NextColumnPosition, temp);
         mRegisterMapping.insert(x87TW_0, "x87TW_0");
         mRegisterPlaces.insert(x87TW_0, Register_Position(offset, 0, 8, 10));
+        mRegisterRelativePlaces.insert(x87TW_0, Register_Relative_Position(x87TagWord, x87TW_1, x87TagWord, x87TW_2));
         mRegisterMapping.insert(x87TW_1, "x87TW_1");
         mRegisterPlaces.insert(x87TW_1, Register_Position(offset++, NextColumnPosition, 8, 10));
+        mRegisterRelativePlaces.insert(x87TW_1, Register_Relative_Position(x87TW_0, x87TW_2, x87TagWord, x87TW_3));
 
         mRegisterMapping.insert(x87TW_2, "x87TW_2");
         mRegisterPlaces.insert(x87TW_2, Register_Position(offset, 0, 8, 10));
+        mRegisterRelativePlaces.insert(x87TW_2, Register_Relative_Position(x87TW_1, x87TW_3, x87TW_0, x87TW_4));
         mRegisterMapping.insert(x87TW_3, "x87TW_3");
         mRegisterPlaces.insert(x87TW_3, Register_Position(offset++, NextColumnPosition, 8, 10));
+        mRegisterRelativePlaces.insert(x87TW_3, Register_Relative_Position(x87TW_2, x87TW_4, x87TW_1, x87TW_5));
 
         mRegisterMapping.insert(x87TW_4, "x87TW_4");
         mRegisterPlaces.insert(x87TW_4, Register_Position(offset, 0, 8, 10));
+        mRegisterRelativePlaces.insert(x87TW_4, Register_Relative_Position(x87TW_3, x87TW_5, x87TW_2, x87TW_6));
         mRegisterMapping.insert(x87TW_5, "x87TW_5");
         mRegisterPlaces.insert(x87TW_5, Register_Position(offset++, NextColumnPosition, 8, 10));
+        mRegisterRelativePlaces.insert(x87TW_5, Register_Relative_Position(x87TW_4, x87TW_6, x87TW_3, x87TW_7));
 
         mRegisterMapping.insert(x87TW_6, "x87TW_6");
         mRegisterPlaces.insert(x87TW_6, Register_Position(offset, 0, 8, 10));
+        mRegisterRelativePlaces.insert(x87TW_6, Register_Relative_Position(x87TW_5, x87TW_7, x87TW_4, x87StatusWord));
         mRegisterMapping.insert(x87TW_7, "x87TW_7");
         mRegisterPlaces.insert(x87TW_7, Register_Position(offset++, NextColumnPosition, 8, 10));
+        mRegisterRelativePlaces.insert(x87TW_7, Register_Relative_Position(x87TW_6, x87StatusWord, x87TW_5, x87StatusWord));
+
 
         offset++;
 
         mRegisterMapping.insert(x87StatusWord, "x87StatusWord");
         mRegisterPlaces.insert(x87StatusWord, Register_Position(offset++, 0, 14, sizeof(WORD) * 2));
+        mRegisterRelativePlaces.insert(x87StatusWord, Register_Relative_Position(x87TW_7, x87SW_B));
 
         mRegisterMapping.insert(x87SW_B, "x87SW_B");
         mRegisterPlaces.insert(x87SW_B, Register_Position(offset, 0, 9, 1));
+        mRegisterRelativePlaces.insert(x87SW_B, Register_Relative_Position(x87StatusWord, x87SW_C3, x87StatusWord, x87SW_C1));
         mRegisterMapping.insert(x87SW_C3, "x87SW_C3");
         mRegisterPlaces.insert(x87SW_C3, Register_Position(offset, 12, 10, 1));
+        mRegisterRelativePlaces.insert(x87SW_C3, Register_Relative_Position(x87SW_B, x87SW_C2, x87StatusWord, x87SW_C0));
         mRegisterMapping.insert(x87SW_C2, "x87SW_C2");
         mRegisterPlaces.insert(x87SW_C2, Register_Position(offset++, 25, 10, 1));
+        mRegisterRelativePlaces.insert(x87SW_C2, Register_Relative_Position(x87SW_C3, x87SW_C1, x87StatusWord, x87SW_ES));
 
         mRegisterMapping.insert(x87SW_C1, "x87SW_C1");
         mRegisterPlaces.insert(x87SW_C1, Register_Position(offset, 0, 9, 1));
+        mRegisterRelativePlaces.insert(x87SW_C1, Register_Relative_Position(x87SW_C2, x87SW_C0, x87SW_B, x87SW_SF));
         mRegisterMapping.insert(x87SW_C0, "x87SW_C0");
         mRegisterPlaces.insert(x87SW_C0, Register_Position(offset, 12, 10, 1));
+        mRegisterRelativePlaces.insert(x87SW_C0, Register_Relative_Position(x87SW_C1, x87SW_ES, x87SW_C3, x87SW_P));
         mRegisterMapping.insert(x87SW_ES, "x87SW_ES");
         mRegisterPlaces.insert(x87SW_ES, Register_Position(offset++, 25, 10, 1));
+        mRegisterRelativePlaces.insert(x87SW_ES, Register_Relative_Position(x87SW_C0, x87SW_SF, x87SW_C2, x87SW_U));
 
         mRegisterMapping.insert(x87SW_SF, "x87SW_SF");
         mRegisterPlaces.insert(x87SW_SF, Register_Position(offset, 0, 9, 1));
+        mRegisterRelativePlaces.insert(x87SW_SF, Register_Relative_Position(x87SW_ES, x87SW_P, x87SW_C1, x87SW_O));
         mRegisterMapping.insert(x87SW_P, "x87SW_P");
         mRegisterPlaces.insert(x87SW_P, Register_Position(offset, 12, 10, 1));
+        mRegisterRelativePlaces.insert(x87SW_P, Register_Relative_Position(x87SW_SF, x87SW_U, x87SW_C0, x87SW_Z));
         mRegisterMapping.insert(x87SW_U, "x87SW_U");
         mRegisterPlaces.insert(x87SW_U, Register_Position(offset++, 25, 10, 1));
+        mRegisterRelativePlaces.insert(x87SW_U, Register_Relative_Position(x87SW_P, x87SW_O, x87SW_ES, x87SW_D));
 
         mRegisterMapping.insert(x87SW_O, "x87SW_O");
         mRegisterPlaces.insert(x87SW_O, Register_Position(offset, 0, 9, 1));
+        mRegisterRelativePlaces.insert(x87SW_O, Register_Relative_Position(x87SW_U, x87SW_Z, x87SW_SF, x87SW_I));
         mRegisterMapping.insert(x87SW_Z, "x87SW_Z");
         mRegisterPlaces.insert(x87SW_Z, Register_Position(offset, 12, 10, 1));
+        mRegisterRelativePlaces.insert(x87SW_Z, Register_Relative_Position(x87SW_O, x87SW_D, x87SW_P, x87SW_TOP));
         mRegisterMapping.insert(x87SW_D, "x87SW_D");
         mRegisterPlaces.insert(x87SW_D, Register_Position(offset++, 25, 10, 1));
+        mRegisterRelativePlaces.insert(x87SW_D, Register_Relative_Position(x87SW_Z, x87SW_I, x87SW_U, x87SW_TOP));
 
         mRegisterMapping.insert(x87SW_I, "x87SW_I");
         mRegisterPlaces.insert(x87SW_I, Register_Position(offset, 0, 9, 1));
+        mRegisterRelativePlaces.insert(x87SW_I, Register_Relative_Position(x87SW_D, x87SW_TOP, x87SW_O, x87ControlWord));
         mRegisterMapping.insert(x87SW_TOP, "x87SW_TOP");
         mRegisterPlaces.insert(x87SW_TOP, Register_Position(offset++, 12, 10, 13));
+        mRegisterRelativePlaces.insert(x87SW_TOP, Register_Relative_Position(x87SW_I, x87ControlWord, x87SW_Z, x87ControlWord));
 
         offset++;
 
         mRegisterMapping.insert(x87ControlWord, "x87ControlWord");
         mRegisterPlaces.insert(x87ControlWord, Register_Position(offset++, 0, 15, sizeof(WORD) * 2));
+        mRegisterRelativePlaces.insert(x87ControlWord, Register_Relative_Position(x87SW_TOP, x87CW_IC));
 
         mRegisterMapping.insert(x87CW_IC, "x87CW_IC");
         mRegisterPlaces.insert(x87CW_IC, Register_Position(offset, 0, 9, 1));
+        mRegisterRelativePlaces.insert(x87CW_IC, Register_Relative_Position(x87ControlWord, x87CW_ZM, x87ControlWord, x87CW_UM));
         mRegisterMapping.insert(x87CW_ZM, "x87CW_ZM");
         mRegisterPlaces.insert(x87CW_ZM, Register_Position(offset, 12, 10, 1));
+        mRegisterRelativePlaces.insert(x87CW_ZM, Register_Relative_Position(x87CW_IC, x87CW_PM, x87ControlWord, x87CW_OM));
         mRegisterMapping.insert(x87CW_PM, "x87CW_PM");
         mRegisterPlaces.insert(x87CW_PM, Register_Position(offset++, 25, 10, 1));
+        mRegisterRelativePlaces.insert(x87CW_PM, Register_Relative_Position(x87CW_ZM, x87CW_UM, x87ControlWord, x87CW_PC));
 
         mRegisterMapping.insert(x87CW_UM, "x87CW_UM");
         mRegisterPlaces.insert(x87CW_UM, Register_Position(offset, 0, 9, 1));
+        mRegisterRelativePlaces.insert(x87CW_UM, Register_Relative_Position(x87CW_PM, x87CW_OM, x87CW_IC, x87CW_DM));
         mRegisterMapping.insert(x87CW_OM, "x87CW_OM");
         mRegisterPlaces.insert(x87CW_OM, Register_Position(offset, 12, 10, 1));
+        mRegisterRelativePlaces.insert(x87CW_OM, Register_Relative_Position(x87CW_UM, x87CW_PC, x87CW_ZM, x87CW_IM));
         mRegisterMapping.insert(x87CW_PC, "x87CW_PC");
         mRegisterPlaces.insert(x87CW_PC, Register_Position(offset++, 25, 10, 14));
+        mRegisterRelativePlaces.insert(x87CW_PC, Register_Relative_Position(x87CW_OM, x87CW_DM, x87CW_PM, x87CW_RC));
 
         mRegisterMapping.insert(x87CW_DM, "x87CW_DM");
         mRegisterPlaces.insert(x87CW_DM, Register_Position(offset, 0, 9, 1));
+        mRegisterRelativePlaces.insert(x87CW_DM, Register_Relative_Position(x87CW_PC, x87CW_IM, x87CW_UM, MxCsr));
         mRegisterMapping.insert(x87CW_IM, "x87CW_IM");
         mRegisterPlaces.insert(x87CW_IM, Register_Position(offset, 12, 10, 1));
+        mRegisterRelativePlaces.insert(x87CW_IM, Register_Relative_Position(x87CW_DM, x87CW_RC, x87CW_OM, MxCsr));
         mRegisterMapping.insert(x87CW_RC, "x87CW_RC");
         mRegisterPlaces.insert(x87CW_RC, Register_Position(offset++, 25, 10, 14));
+        mRegisterRelativePlaces.insert(x87CW_RC, Register_Relative_Position(x87CW_IM, MxCsr, x87CW_PC, MxCsr));
 
         offset++;
 
         mRegisterMapping.insert(MxCsr, "MxCsr");
         mRegisterPlaces.insert(MxCsr, Register_Position(offset++, 0, 6, sizeof(DWORD) * 2));
+        mRegisterRelativePlaces.insert(MxCsr, Register_Relative_Position(x87CW_RC, MxCsr_FZ));
 
         mRegisterMapping.insert(MxCsr_FZ, "MxCsr_FZ");
         mRegisterPlaces.insert(MxCsr_FZ, Register_Position(offset, 0, 9, 1));
+        mRegisterRelativePlaces.insert(MxCsr_FZ, Register_Relative_Position(MxCsr, MxCsr_PM, MxCsr, MxCsr_OM));
         mRegisterMapping.insert(MxCsr_PM, "MxCsr_PM");
         mRegisterPlaces.insert(MxCsr_PM, Register_Position(offset, 12, 10, 1));
+        mRegisterRelativePlaces.insert(MxCsr_PM, Register_Relative_Position(MxCsr_FZ, MxCsr_UM, MxCsr, MxCsr_ZM));
         mRegisterMapping.insert(MxCsr_UM, "MxCsr_UM");
         mRegisterPlaces.insert(MxCsr_UM, Register_Position(offset++, 25, 10, 1));
+        mRegisterRelativePlaces.insert(MxCsr_UM, Register_Relative_Position(MxCsr_PM, MxCsr_OM, MxCsr, MxCsr_IM));
 
         mRegisterMapping.insert(MxCsr_OM, "MxCsr_OM");
         mRegisterPlaces.insert(MxCsr_OM, Register_Position(offset, 0, 9, 1));
+        mRegisterRelativePlaces.insert(MxCsr_OM, Register_Relative_Position(MxCsr_UM, MxCsr_ZM, MxCsr_FZ, MxCsr_UE));
         mRegisterMapping.insert(MxCsr_ZM, "MxCsr_ZM");
         mRegisterPlaces.insert(MxCsr_ZM, Register_Position(offset, 12, 10, 1));
+        mRegisterRelativePlaces.insert(MxCsr_ZM, Register_Relative_Position(MxCsr_OM, MxCsr_IM, MxCsr_PM, MxCsr_PE));
         mRegisterMapping.insert(MxCsr_IM, "MxCsr_IM");
         mRegisterPlaces.insert(MxCsr_IM, Register_Position(offset++, 25, 10, 1));
+        mRegisterRelativePlaces.insert(MxCsr_IM, Register_Relative_Position(MxCsr_ZM, MxCsr_UE, MxCsr_UM, MxCsr_DAZ));
 
         mRegisterMapping.insert(MxCsr_UE, "MxCsr_UE");
         mRegisterPlaces.insert(MxCsr_UE, Register_Position(offset, 0, 9, 1));
+        mRegisterRelativePlaces.insert(MxCsr_UE, Register_Relative_Position(MxCsr_IM, MxCsr_PE, MxCsr_OM, MxCsr_OE));
         mRegisterMapping.insert(MxCsr_PE, "MxCsr_PE");
         mRegisterPlaces.insert(MxCsr_PE, Register_Position(offset, 12, 10, 1));
+        mRegisterRelativePlaces.insert(MxCsr_PE, Register_Relative_Position(MxCsr_UE, MxCsr_DAZ, MxCsr_ZM, MxCsr_ZE));
         mRegisterMapping.insert(MxCsr_DAZ, "MxCsr_DAZ");
         mRegisterPlaces.insert(MxCsr_DAZ, Register_Position(offset++, 25, 10, 1));
+        mRegisterRelativePlaces.insert(MxCsr_DAZ, Register_Relative_Position(MxCsr_PE, MxCsr_OE, MxCsr_IM, MxCsr_DE));
 
         mRegisterMapping.insert(MxCsr_OE, "MxCsr_OE");
         mRegisterPlaces.insert(MxCsr_OE, Register_Position(offset, 0, 9, 1));
+        mRegisterRelativePlaces.insert(MxCsr_OE, Register_Relative_Position(MxCsr_DAZ, MxCsr_ZE, MxCsr_UE, MxCsr_IE));
         mRegisterMapping.insert(MxCsr_ZE, "MxCsr_ZE");
         mRegisterPlaces.insert(MxCsr_ZE, Register_Position(offset, 12, 10, 1));
+        mRegisterRelativePlaces.insert(MxCsr_ZE, Register_Relative_Position(MxCsr_OE, MxCsr_DE, MxCsr_PE, MxCsr_DM));
         mRegisterMapping.insert(MxCsr_DE, "MxCsr_DE");
         mRegisterPlaces.insert(MxCsr_DE, Register_Position(offset++, 25, 10, 1));
+        mRegisterRelativePlaces.insert(MxCsr_DE, Register_Relative_Position(MxCsr_ZE, MxCsr_IE, MxCsr_DAZ, MxCsr_RC));
 
         mRegisterMapping.insert(MxCsr_IE, "MxCsr_IE");
         mRegisterPlaces.insert(MxCsr_IE, Register_Position(offset, 0, 9, 1));
+        mRegisterRelativePlaces.insert(MxCsr_IE, Register_Relative_Position(MxCsr_DE, MxCsr_DM, MxCsr_OE, MM0));
         mRegisterMapping.insert(MxCsr_DM, "MxCsr_DM");
         mRegisterPlaces.insert(MxCsr_DM, Register_Position(offset, 12, 10, 1));
+        mRegisterRelativePlaces.insert(MxCsr_DM, Register_Relative_Position(MxCsr_IE, MxCsr_RC, MxCsr_ZE, MM0));
         mRegisterMapping.insert(MxCsr_RC, "MxCsr_RC");
         mRegisterPlaces.insert(MxCsr_RC, Register_Position(offset++, 25, 10, 19));
+        mRegisterRelativePlaces.insert(MxCsr_RC, Register_Relative_Position(MxCsr_DM, MM0, MxCsr_DE, MM0));
+
 
         offset++;
 
