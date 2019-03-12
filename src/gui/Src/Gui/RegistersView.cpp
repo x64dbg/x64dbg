@@ -40,49 +40,67 @@ void RegistersView::InitMappings()
 #ifdef _WIN64
     mRegisterMapping.insert(CAX, "RAX");
     mRegisterPlaces.insert(CAX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CAX, Register_Relative_Position(UNKNOWN, CBX));
     mRegisterMapping.insert(CBX, "RBX");
     mRegisterPlaces.insert(CBX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CBX, Register_Relative_Position(CAX, CCX));
     mRegisterMapping.insert(CCX, "RCX");
     mRegisterPlaces.insert(CCX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CCX, Register_Relative_Position(CBX, CDX));
     mRegisterMapping.insert(CDX, "RDX");
     mRegisterPlaces.insert(CDX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CDX, Register_Relative_Position(CCX, CBP));
     mRegisterMapping.insert(CBP, "RBP");
     mRegisterPlaces.insert(CBP, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CBP, Register_Relative_Position(CDX, CSP));
     mRegisterMapping.insert(CSP, "RSP");
     mRegisterPlaces.insert(CSP, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CSP, Register_Relative_Position(CBP, CSI));
     mRegisterMapping.insert(CSI, "RSI");
     mRegisterPlaces.insert(CSI, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CSI, Register_Relative_Position(CSP, CDI));
     mRegisterMapping.insert(CDI, "RDI");
     mRegisterPlaces.insert(CDI, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CDI, Register_Relative_Position(CSI, R8));
 
     offset++;
 
     mRegisterMapping.insert(R8, "R8");
     mRegisterPlaces.insert(R8, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(R8, Register_Relative_Position(CDI, R9));
     mRegisterMapping.insert(R9, "R9");
     mRegisterPlaces.insert(R9, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(R9, Register_Relative_Position(R8, R10));
     mRegisterMapping.insert(R10, "R10");
     mRegisterPlaces.insert(R10, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(R10, Register_Relative_Position(R9, R11));
     mRegisterMapping.insert(R11, "R11");
     mRegisterPlaces.insert(R11, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(R11, Register_Relative_Position(R10, R12));
     mRegisterMapping.insert(R12, "R12");
     mRegisterPlaces.insert(R12, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(R12, Register_Relative_Position(R11, R13));
     mRegisterMapping.insert(R13, "R13");
     mRegisterPlaces.insert(R13, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(R13, Register_Relative_Position(R12, R14));
     mRegisterMapping.insert(R14, "R14");
     mRegisterPlaces.insert(R14, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(R14, Register_Relative_Position(R13, R15));
     mRegisterMapping.insert(R15, "R15");
     mRegisterPlaces.insert(R15, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(R15, Register_Relative_Position(R14, CIP));
 
     offset++;
 
     mRegisterMapping.insert(CIP, "RIP");
     mRegisterPlaces.insert(CIP, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(CIP, Register_Relative_Position(R15, EFLAGS));
 
     offset++;
 
     mRegisterMapping.insert(EFLAGS, "RFLAGS");
     mRegisterPlaces.insert(EFLAGS, Register_Position(offset++, 0, 9, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(EFLAGS, Register_Relative_Position(CIP, ZF));
 #else //x32
     mRegisterMapping.insert(CAX, "EAX");
     mRegisterPlaces.insert(CAX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
@@ -614,7 +632,7 @@ void RegistersView::InitMappings()
         mRegisterRelativePlaces.insert(YMM14, Register_Relative_Position(YMM13, YMM15));
         mRegisterMapping.insert(YMM15, "YMM15");
         mRegisterPlaces.insert(YMM15, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM15, Register_Relative_Position(YMM14, UNKNOWN));
+        mRegisterRelativePlaces.insert(YMM15, Register_Relative_Position(YMM14, DR0));
 #endif
     }
 
