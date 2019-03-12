@@ -30,6 +30,7 @@ void RegistersView::InitMappings()
     // create mapping from internal id to name
     mRegisterMapping.clear();
     mRegisterPlaces.clear();
+    mRegisterRelativePlaces.clear();
     int offset = 0;
 
     /* Register_Position is a struct definition the position
@@ -155,25 +156,50 @@ void RegistersView::InitMappings()
 
     mRegisterMapping.insert(LastError, "LastError");
     mRegisterPlaces.insert(LastError, Register_Position(offset++, 0, 11, 20));
+    mRegisterRelativePlaces.insert(LastError, Register_Relative_Position(IF, LastStatus));
     mMODIFYDISPLAY.insert(LastError);
     mRegisterMapping.insert(LastStatus, "LastStatus");
     mRegisterPlaces.insert(LastStatus, Register_Position(offset++, 0, 11, 20));
+    mRegisterRelativePlaces.insert(LastStatus, Register_Relative_Position(LastError, GS));
     mMODIFYDISPLAY.insert(LastStatus);
 
     offset++;
 
     mRegisterMapping.insert(GS, "GS");
     mRegisterPlaces.insert(GS, Register_Position(offset, 0, 3, 4));
+    mRegisterRelativePlaces.insert(GS, Register_Relative_Position(LastStatus, FS, LastStatus, ES));
     mRegisterMapping.insert(FS, "FS");
     mRegisterPlaces.insert(FS, Register_Position(offset++, 9, 3, 4));
+    mRegisterRelativePlaces.insert(FS, Register_Relative_Position(GS, ES, LastStatus, DS));
     mRegisterMapping.insert(ES, "ES");
     mRegisterPlaces.insert(ES, Register_Position(offset, 0, 3, 4));
+    mRegisterRelativePlaces.insert(ES, Register_Relative_Position(FS, DS, GS, CS));
     mRegisterMapping.insert(DS, "DS");
     mRegisterPlaces.insert(DS, Register_Position(offset++, 9, 3, 4));
+    mRegisterRelativePlaces.insert(DS, Register_Relative_Position(ES, CS, FS, SS));
     mRegisterMapping.insert(CS, "CS");
     mRegisterPlaces.insert(CS, Register_Position(offset, 0, 3, 4));
     mRegisterMapping.insert(SS, "SS");
     mRegisterPlaces.insert(SS, Register_Position(offset++, 9, 3, 4));
+
+    if(mShowFpu)
+    {
+        if(mFpuMode)
+        {
+            mRegisterRelativePlaces.insert(CS, Register_Relative_Position(DS, SS, ES, x87r0));
+            mRegisterRelativePlaces.insert(SS, Register_Relative_Position(CS, x87r0, DS, x87r0));
+        }
+        else
+        {
+            mRegisterRelativePlaces.insert(CS, Register_Relative_Position(DS, SS, ES, x87st0));
+            mRegisterRelativePlaces.insert(SS, Register_Relative_Position(CS, x87st0, DS, x87st0));
+        }
+    }
+    else
+    {
+        mRegisterRelativePlaces.insert(CS, Register_Relative_Position(DS, SS, ES, DR0));
+        mRegisterRelativePlaces.insert(SS, Register_Relative_Position(CS, DR0, DS, DR0));
+    }
 
     if(mShowFpu)
     {
@@ -455,18 +481,36 @@ void RegistersView::InitMappings()
 
     offset++;
 
+    if(mShowFpu)
+    {
+#ifdef _WIN64
+        mRegisterRelativePlaces.insert(DR0, Register_Relative_Position(YMM15, DR1));
+#else
+        mRegisterRelativePlaces.insert(DR0, Register_Relative_Position(YMM7, DR1));
+#endif
+    }
+    else
+    {
+        mRegisterRelativePlaces.insert(DR0, Register_Relative_Position(SS, DR1));
+    }
+
     mRegisterMapping.insert(DR0, "DR0");
     mRegisterPlaces.insert(DR0, Register_Position(offset++, 0, 4, sizeof(duint) * 2));
     mRegisterMapping.insert(DR1, "DR1");
     mRegisterPlaces.insert(DR1, Register_Position(offset++, 0, 4, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(DR1, Register_Relative_Position(DR0, DR2));
     mRegisterMapping.insert(DR2, "DR2");
     mRegisterPlaces.insert(DR2, Register_Position(offset++, 0, 4, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(DR2, Register_Relative_Position(DR1, DR3));
     mRegisterMapping.insert(DR3, "DR3");
     mRegisterPlaces.insert(DR3, Register_Position(offset++, 0, 4, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(DR3, Register_Relative_Position(DR2, DR6));
     mRegisterMapping.insert(DR6, "DR6");
     mRegisterPlaces.insert(DR6, Register_Position(offset++, 0, 4, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(DR6, Register_Relative_Position(DR3, DR7));
     mRegisterMapping.insert(DR7, "DR7");
     mRegisterPlaces.insert(DR7, Register_Position(offset++, 0, 4, sizeof(duint) * 2));
+    mRegisterRelativePlaces.insert(DR7, Register_Relative_Position(DR6, UNKNOWN));
 
     mRowsNeeded = offset + 1;
 }
