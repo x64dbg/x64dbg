@@ -89,6 +89,10 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
             (ULONG_PTR)exportDir + exportDirSize < (ULONG_PTR)exportDir // Check for ULONG_PTR wraparound (e.g. when exportDirSize == 0xfffff000)
             || exportDir->NumberOfFunctions == 0)
         return;
+    DWORD64 totalFunctionSize = exportDir->NumberOfFunctions * sizeof(ULONG_PTR);
+    if(totalFunctionSize / exportDir->NumberOfFunctions != sizeof(ULONG_PTR) || // Check for overflow
+            totalFunctionSize > Info.loadedSize) // Check for impossible number of exports
+        return;
 
     auto rva2offset = [&Info](ULONG64 rva)
     {
