@@ -1794,6 +1794,7 @@ void RegistersView::keyPressEvent(QKeyEvent* event)
         if(newRegister != UNKNOWN)
         {
             mSelected = newRegister;
+            ensureRegisterVisible(newRegister);
             emit refresh();
         }
     }
@@ -3758,4 +3759,16 @@ void RegistersView::disasmSelectionChangedSlot(dsint va)
 {
     mHighlightRegs = mParent->getDisasmWidget()->DisassembleAt(va - mParent->getDisasmWidget()->getBase()).regsReferenced;
     emit refresh();
+}
+
+void RegistersView::ensureRegisterVisible(REGISTER_NAME reg)
+{
+    QScrollArea* upperScrollArea = (QScrollArea*)this->parentWidget()->parentWidget();
+
+    int ySpace = yTopSpacing;
+    if(mVScrollOffset != 0)
+        ySpace = 0;
+    int y = mRowHeight * (mRegisterPlaces[reg].line + mVScrollOffset) + ySpace;
+
+    upperScrollArea->ensureVisible(0, y);
 }
