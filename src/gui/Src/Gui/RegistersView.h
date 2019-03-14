@@ -183,6 +183,7 @@ protected:
     void CreateDumpNMenu(QMenu* dumpMenu);
 
     void displayEditDialog();
+    void ensureRegisterVisible(REGISTER_NAME reg);
 
 protected slots:
     void fontsUpdatedSlot();
