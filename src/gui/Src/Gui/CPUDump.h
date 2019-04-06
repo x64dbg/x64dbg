@@ -105,7 +105,6 @@ public slots:
     void watchSlot();
 
     void selectionUpdatedSlot();
-    void yaraSlot();
     void syncWithExpressionSlot();
     void followInDumpNSlot();
     void allocMemorySlot();

@@ -48,8 +48,6 @@ private slots:
     void moduleDownloadAllSymbols();
     void moduleCopyPath();
     void moduleBrowse();
-    void moduleYara();
-    void moduleYaraFile();
     void moduleSetUser();
     void moduleSetSystem();
     void moduleSetParty();
@@ -84,8 +82,6 @@ private:
     QAction* mDownloadSymbolsAction;
     QAction* mDownloadAllSymbolsAction;
     QAction* mCopyPathAction;
-    QAction* mYaraAction;
-    QAction* mYaraFileAction;
     QAction* mModSetUserAction;
     QAction* mModSetSystemAction;
     QAction* mModSetPartyAction;

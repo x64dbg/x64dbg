@@ -5,7 +5,6 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "PageMemoryRights.h"
-#include "YaraRuleSelectionDialog.h"
 #include "HexEditDialog.h"
 #include "MiscUtil.h"
 #include "GotoDialog.h"
@@ -54,12 +53,6 @@ void MemoryMapView::setupContextMenu()
     connect(mFollowDisassembly, SIGNAL(triggered()), this, SLOT(followDisassemblerSlot()));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(doubleClickedSlot()));
     connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
-
-    //Yara
-    mYara = new QAction(DIcon("yara.png"), "&Yara...", this);
-    mYara->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mYara);
-    connect(mYara, SIGNAL(triggered()), this, SLOT(yaraSlot()));
 
     //Set PageMemory Rights
     mPageMemoryRights = new QAction(DIcon("memmap_set_page_memory_rights.png"), tr("Set Page Memory Rights"), this);
@@ -193,7 +186,6 @@ void MemoryMapView::refreshShortcutsSlot()
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
     mMemoryFree->setShortcut(ConfigShortcut("ActionFreeMemory"));
     mMemoryAllocate->setShortcut(ConfigShortcut("ActionAllocateMemory"));
-    mYara->setShortcut(ConfigShortcut("ActionYara"));
     mComment->setShortcut(ConfigShortcut("ActionSetComment"));
 }
 
@@ -206,7 +198,6 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu.addAction(mFollowDump);
     wMenu.addAction(mDumpMemory);
     wMenu.addAction(mComment);
-    wMenu.addAction(mYara);
     wMenu.addAction(mFindPattern);
     wMenu.addAction(mSwitchView);
     wMenu.addSeparator();
@@ -472,18 +463,6 @@ void MemoryMapView::doubleClickedSlot()
     {
         followDumpSlot();
         emit Bridge::getBridge()->getDumpAttention();
-    }
-}
-
-void MemoryMapView::yaraSlot()
-{
-    YaraRuleSelectionDialog yaraDialog(this);
-    if(yaraDialog.exec() == QDialog::Accepted)
-    {
-        QString addr_text = getCellContent(getInitialSelection(), 0);
-        QString size_text = getCellContent(getInitialSelection(), 1);
-        DbgCmdExec(QString("yara \"%0\",%1,%2").arg(yaraDialog.getSelectedFile()).arg(addr_text).arg(size_text).toUtf8().constData());
-        emit showReferences();
     }
 }
 

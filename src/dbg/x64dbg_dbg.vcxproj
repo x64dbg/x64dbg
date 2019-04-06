@@ -247,9 +247,6 @@
     <ClInclude Include="watch.h" />
     <ClInclude Include="WinInet-Downloader\downslib.h" />
     <ClInclude Include="xrefs.h" />
-    <ClInclude Include="yara\yara\integers.h" />
-    <ClInclude Include="yara\yara\stream.h" />
-    <ClInclude Include="yara\yara\threading.h" />
     <ClInclude Include="_scriptapi.h" />
     <ClInclude Include="simplescript.h" />
     <ClInclude Include="stackinfo.h" />
@@ -264,36 +261,6 @@
     <ClInclude Include="variable.h" />
     <ClInclude Include="x64dbg.h" />
     <ClInclude Include="XEDParse\XEDParse.h" />
-    <ClInclude Include="yara\yara.h" />
-    <ClInclude Include="yara\yara\ahocorasick.h" />
-    <ClInclude Include="yara\yara\arena.h" />
-    <ClInclude Include="yara\yara\atoms.h" />
-    <ClInclude Include="yara\yara\compiler.h" />
-    <ClInclude Include="yara\yara\elf.h" />
-    <ClInclude Include="yara\yara\error.h" />
-    <ClInclude Include="yara\yara\exec.h" />
-    <ClInclude Include="yara\yara\exefiles.h" />
-    <ClInclude Include="yara\yara\filemap.h" />
-    <ClInclude Include="yara\yara\globals.h" />
-    <ClInclude Include="yara\yara\hash.h" />
-    <ClInclude Include="yara\yara\hex_lexer.h" />
-    <ClInclude Include="yara\yara\lexer.h" />
-    <ClInclude Include="yara\yara\libyara.h" />
-    <ClInclude Include="yara\yara\limits.h" />
-    <ClInclude Include="yara\yara\mem.h" />
-    <ClInclude Include="yara\yara\modules.h" />
-    <ClInclude Include="yara\yara\object.h" />
-    <ClInclude Include="yara\yara\parser.h" />
-    <ClInclude Include="yara\yara\pe.h" />
-    <ClInclude Include="yara\yara\proc.h" />
-    <ClInclude Include="yara\yara\re.h" />
-    <ClInclude Include="yara\yara\re_lexer.h" />
-    <ClInclude Include="yara\yara\rules.h" />
-    <ClInclude Include="yara\yara\scan.h" />
-    <ClInclude Include="yara\yara\sizedstr.h" />
-    <ClInclude Include="yara\yara\strutils.h" />
-    <ClInclude Include="yara\yara\types.h" />
-    <ClInclude Include="yara\yara\utils.h" />
     <ClInclude Include="_exports.h" />
     <ClInclude Include="_dbgfunctions.h" />
     <ClInclude Include="_global.h" />
@@ -416,7 +383,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>ntdll\ntdll_x86.lib;$(ProjectDir)..\zydis_wrapper\bin\x32\zydis_wrapper.lib;yara\yara_x86.lib;lz4\lz4_x86.lib;jansson\jansson_x86.lib;DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32\x32bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ntdll\ntdll_x86.lib;$(ProjectDir)..\zydis_wrapper\bin\x32\zydis_wrapper.lib;lz4\lz4_x86.lib;jansson\jansson_x86.lib;DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32\x32bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -437,7 +404,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
-      <AdditionalDependencies>ntdll\ntdll_x86.lib;$(ProjectDir)..\zydis_wrapper\bin\x32d\zydis_wrapper.lib;yara\yara_x86.lib;lz4\lz4_x86.lib;jansson\jansson_x86.lib;DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32d\x32bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ntdll\ntdll_x86.lib;$(ProjectDir)..\zydis_wrapper\bin\x32d\zydis_wrapper.lib;lz4\lz4_x86.lib;jansson\jansson_x86.lib;DeviceNameResolver\DeviceNameResolver_x86.lib;XEDParse\XEDParse_x86.lib;$(SolutionDir)bin\x32d\x32bridge.lib;dbghelp\dbghelp_x86.lib;TitanEngine\TitanEngine_x86.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -464,7 +431,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>$(ProjectDir)..\zydis_wrapper\bin\x64\zydis_wrapper.lib;ntdll\ntdll_x64.lib;yara\yara_x64.lib;lz4\lz4_x64.lib;jansson\jansson_x64.lib;DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64\x64bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(ProjectDir)..\zydis_wrapper\bin\x64\zydis_wrapper.lib;ntdll\ntdll_x64.lib;lz4\lz4_x64.lib;jansson\jansson_x64.lib;DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64\x64bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -488,7 +455,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <OptimizeReferences>false</OptimizeReferences>
-      <AdditionalDependencies>$(ProjectDir)..\zydis_wrapper\bin\x64d\zydis_wrapper.lib;ntdll\ntdll_x64.lib;yara\yara_x64.lib;lz4\lz4_x64.lib;jansson\jansson_x64.lib;DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64d\x64bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(ProjectDir)..\zydis_wrapper\bin\x64d\zydis_wrapper.lib;ntdll\ntdll_x64.lib;lz4\lz4_x64.lib;jansson\jansson_x64.lib;DeviceNameResolver\DeviceNameResolver_x64.lib;XEDParse\XEDParse_x64.lib;$(SolutionDir)bin\x64d\x64bridge.lib;dbghelp\dbghelp_x64.lib;TitanEngine\TitanEngine_x64.lib;ws2_32.lib;psapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

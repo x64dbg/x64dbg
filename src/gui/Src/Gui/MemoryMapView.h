@@ -22,7 +22,6 @@ public slots:
     void followDumpSlot();
     void followDisassemblerSlot();
     void doubleClickedSlot();
-    void yaraSlot();
     void memoryExecuteSingleshootToggleSlot();
     void memoryAllocateSlot();
     void ExecCommand();
@@ -48,7 +47,6 @@ private:
 
     QAction* mFollowDump;
     QAction* mFollowDisassembly;
-    QAction* mYara;
     QAction* mSwitchView;
     QAction* mPageMemoryRights;
     QAction* mDumpMemory;

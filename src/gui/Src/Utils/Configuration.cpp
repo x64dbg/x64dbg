@@ -481,7 +481,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionToggleFunction", Shortcut({tr("Actions"), tr("Toggle Function")}, "Shift+F"));
     defaultShortcuts.insert("ActionToggleArgument", Shortcut({tr("Actions"), tr("Toggle Argument")}, "Shift+A"));
     defaultShortcuts.insert("ActionAssemble", Shortcut({tr("Actions"), tr("Assemble")}, "Space"));
-    defaultShortcuts.insert("ActionYara", Shortcut({tr("Actions"), tr("Yara")}, "Ctrl+Y"));
     defaultShortcuts.insert("ActionSetNewOriginHere", Shortcut({tr("Actions"), tr("Set New Origin Here")}, "Ctrl+*"));
     defaultShortcuts.insert("ActionGotoOrigin", Shortcut({tr("Actions"), tr("Goto Origin")}, "*"));
     defaultShortcuts.insert("ActionGotoPrevious", Shortcut({tr("Actions"), tr("Goto Previous")}, "-"));

@@ -3,7 +3,6 @@
 #include <QMessageBox>
 #include "Configuration.h"
 #include "Bridge.h"
-#include "YaraRuleSelectionDialog.h"
 #include "BrowseDialog.h"
 #include "StdSearchListView.h"
 #include "ZehSymbolTable.h"
@@ -286,12 +285,6 @@ void SymbolView::setupContextMenu()
     mModuleList->addAction(mFreeLib);
     connect(mFreeLib, SIGNAL(triggered()), this, SLOT(moduleFree()));
 
-    mYaraAction = new QAction(DIcon("yara.png"), tr("&Yara Memory..."), this);
-    connect(mYaraAction, SIGNAL(triggered()), this, SLOT(moduleYara()));
-
-    mYaraFileAction = new QAction(DIcon("yara.png"), tr("&Yara File..."), this);
-    connect(mYaraFileAction, SIGNAL(triggered()), this, SLOT(moduleYaraFile()));
-
     mModSetUserAction = new QAction(DIcon("markasuser.png"), tr("Mark as &user module"), this);
     mModSetUserAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mModSetUserAction);
@@ -523,8 +516,6 @@ void SymbolView::moduleContextMenu(QMenu* wMenu)
     }
     wMenu->addAction(mLoadLib);
     wMenu->addAction(mFreeLib);
-    wMenu->addAction(mYaraAction);
-    wMenu->addAction(mYaraFileAction);
     wMenu->addSeparator();
     int party = DbgFunctions()->ModGetParty(modbase);
     if(party != 0)
@@ -568,28 +559,6 @@ void SymbolView::moduleBrowse()
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
     {
         QProcess::startDetached(QString("%1/explorer.exe").arg(QProcessEnvironment::systemEnvironment().value("windir")), QStringList({QString("/select,"), QString(szModPath)}));
-    }
-}
-
-void SymbolView::moduleYara()
-{
-    QString modname = mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 1);
-    YaraRuleSelectionDialog yaraDialog(this, QString("Yara (%1)").arg(modname));
-    if(yaraDialog.exec() == QDialog::Accepted)
-    {
-        DbgCmdExec(QString("yaramod \"%0\",\"%1\"").arg(yaraDialog.getSelectedFile()).arg(modname).toUtf8().constData());
-        emit showReferences();
-    }
-}
-
-void SymbolView::moduleYaraFile()
-{
-    QString modname = mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 1);
-    YaraRuleSelectionDialog yaraDialog(this, QString("Yara (%1)").arg(modname));
-    if(yaraDialog.exec() == QDialog::Accepted)
-    {
-        DbgCmdExec(QString("yaramod \"%0\",\"%1\",1").arg(yaraDialog.getSelectedFile()).arg(modname).toUtf8().constData());
-        emit showReferences();
     }
 }
 

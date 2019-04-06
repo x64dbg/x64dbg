@@ -7,7 +7,6 @@
 #include "Bridge.h"
 #include "LineEditDialog.h"
 #include "HexEditDialog.h"
-#include "YaraRuleSelectionDialog.h"
 #include "CPUMultiDump.h"
 #include "GotoDialog.h"
 #include "CPUDisassembly.h"
@@ -186,7 +185,6 @@ void CPUDump::setupContextMenu()
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("search-for.png"), tr("&Find Pattern..."), SLOT(findPattern()), "ActionFindPattern"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("find.png"), tr("Find &References"), SLOT(findReferencesSlot()), "ActionFindReferences"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("yara.png"), tr("&Yara..."), SLOT(yaraSlot()), "ActionYara"));
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Sync with expression"), SLOT(syncWithExpressionSlot()), "ActionSyncWithExpression"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("animal-dog.png"), ArchValue(tr("Watch DWORD"), tr("Watch QWORD")), SLOT(watchSlot()), "ActionWatchDwordQword"));
@@ -1681,17 +1679,6 @@ void CPUDump::selectionUpdatedSlot()
     if(DbgFunctions()->ModNameFromAddr(rvaToVa(getSelectionStart()), mod, true))
         info = QString(mod) + "";
     GuiAddStatusBarMessage(QString(info + ": " + selStart + " -> " + selEnd + QString().sprintf(" (0x%.8X bytes)\n", getSelectionEnd() - getSelectionStart() + 1)).toUtf8().constData());
-}
-
-void CPUDump::yaraSlot()
-{
-    YaraRuleSelectionDialog yaraDialog(this);
-    if(yaraDialog.exec() == QDialog::Accepted)
-    {
-        QString addrText = ToPtrString(rvaToVa(getSelectionStart()));
-        DbgCmdExec(QString("yara \"%0\",%1").arg(yaraDialog.getSelectedFile()).arg(addrText).toUtf8().constData());
-        emit displayReferencesWidget();
-    }
 }
 
 void CPUDump::syncWithExpressionSlot()
