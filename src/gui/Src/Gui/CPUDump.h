@@ -106,7 +106,6 @@ public slots:
 
     void selectionUpdatedSlot();
     void yaraSlot();
-    void entropySlot();
     void syncWithExpressionSlot();
     void followInDumpNSlot();
     void allocMemorySlot();

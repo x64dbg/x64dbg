@@ -323,7 +323,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     addWindowPosConfig(guiUint, "EditBreakpointDialog");
     addWindowPosConfig(guiUint, "BrowseDialog");
     addWindowPosConfig(guiUint, "FavouriteTools");
-    addWindowPosConfig(guiUint, "EntropyDialog");
     addWindowPosConfig(guiUint, "HexEditDialog");
     addWindowPosConfig(guiUint, "WordEditDialog");
     defaultUints.insert("Gui", guiUint);
@@ -514,7 +513,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionAllocateMemory", Shortcut({tr("Actions"), tr("Allocate Memory")}, ""));
     defaultShortcuts.insert("ActionFreeMemory", Shortcut({tr("Actions"), tr("Free Memory")}, ""));
     defaultShortcuts.insert("ActionSyncWithExpression", Shortcut({tr("Actions"), tr("Sync With Expression")}, ""));
-    defaultShortcuts.insert("ActionEntropy", Shortcut({tr("Actions"), tr("Entropy")}, ""));
     defaultShortcuts.insert("ActionCopyAllRegisters", Shortcut({tr("Actions"), tr("Copy All Registers")}, ""));
     defaultShortcuts.insert("ActionMarkAsUser", Shortcut({tr("Actions"), tr("Mark As User Module")}, ""));
     defaultShortcuts.insert("ActionMarkAsSystem", Shortcut({tr("Actions"), tr("Mark As System Module")}, ""));

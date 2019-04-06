@@ -8,7 +8,6 @@
 #include "LineEditDialog.h"
 #include "HexEditDialog.h"
 #include "YaraRuleSelectionDialog.h"
-#include "EntropyDialog.h"
 #include "CPUMultiDump.h"
 #include "GotoDialog.h"
 #include "CPUDisassembly.h"
@@ -191,7 +190,6 @@ void CPUDump::setupContextMenu()
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Sync with expression"), SLOT(syncWithExpressionSlot()), "ActionSyncWithExpression"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("animal-dog.png"), ArchValue(tr("Watch DWORD"), tr("Watch QWORD")), SLOT(watchSlot()), "ActionWatchDwordQword"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("entropy.png"), tr("Entrop&y..."), SLOT(entropySlot()), "ActionEntropy"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_alloc_memory.png"), tr("Allocate Memory"), SLOT(allocMemorySlot()), "ActionAllocateMemory"));
 
     MenuBuilder* wGotoMenu = new MenuBuilder(this);
@@ -1694,21 +1692,6 @@ void CPUDump::yaraSlot()
         DbgCmdExec(QString("yara \"%0\",%1").arg(yaraDialog.getSelectedFile()).arg(addrText).toUtf8().constData());
         emit displayReferencesWidget();
     }
-}
-
-void CPUDump::entropySlot()
-{
-    dsint selStart = getSelectionStart();
-    dsint selSize = getSelectionEnd() - selStart + 1;
-    QVector<byte_t> data;
-    data.resize(selSize);
-    mMemPage->read(data.data(), selStart, selSize);
-
-    EntropyDialog entropyDialog(this);
-    entropyDialog.setWindowTitle(tr("Entropy (Address: %1, Size: %2)").arg(ToPtrString(rvaToVa(selStart))).arg(ToHexString(selSize)));
-    entropyDialog.show();
-    entropyDialog.GraphMemory(data.constData(), data.size());
-    entropyDialog.exec();
 }
 
 void CPUDump::syncWithExpressionSlot()

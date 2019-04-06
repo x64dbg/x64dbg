@@ -139,8 +139,6 @@ SOURCES += \
     Src/Utils/MainWindowCloseThread.cpp \
     Src/Gui/TimeWastedCounter.cpp \
     Src/Utils/FlickerThread.cpp \
-    Src/QEntropyView/QEntropyView.cpp \
-    Src/Gui/EntropyDialog.cpp \
     Src/Gui/NotesManager.cpp \
     Src/Gui/NotepadView.cpp \
     Src/Gui/CPUMultiDump.cpp \
@@ -257,9 +255,6 @@ HEADERS += \
     Src/Utils/MainWindowCloseThread.h \
     Src/Gui/TimeWastedCounter.h \
     Src/Utils/FlickerThread.h \
-    Src/QEntropyView/Entropy.h \
-    Src/QEntropyView/QEntropyView.h \
-    Src/Gui/EntropyDialog.h \
     Src/Gui/NotesManager.h \
     Src/Gui/NotepadView.h \
     Src/Utils/MenuBuilder.h \
@@ -333,7 +328,6 @@ FORMS += \
     Src/Gui/PageMemoryRights.ui \
     Src/Gui/SelectFields.ui \
     Src/Gui/YaraRuleSelectionDialog.ui \
-    Src/Gui/EntropyDialog.ui \
     Src/Gui/AssembleDialog.ui \
     Src/Gui/EditBreakpointDialog.ui \
     Src/Gui/CPUArgumentWidget.ui \

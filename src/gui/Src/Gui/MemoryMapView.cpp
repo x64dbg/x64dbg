@@ -6,7 +6,6 @@
 #include "Bridge.h"
 #include "PageMemoryRights.h"
 #include "YaraRuleSelectionDialog.h"
-#include "EntropyDialog.h"
 #include "HexEditDialog.h"
 #include "MiscUtil.h"
 #include "GotoDialog.h"
@@ -160,12 +159,6 @@ void MemoryMapView::setupContextMenu()
     this->addAction(mGotoExpression);
     mGotoMenu->addAction(mGotoExpression);
 
-    //Entropy
-    mEntropy = new QAction(DIcon("entropy.png"), tr("Entropy..."), this);
-    mEntropy->setShortcutContext(Qt::WidgetShortcut);
-    this->addAction(mEntropy);
-    connect(mEntropy, SIGNAL(triggered()), this, SLOT(entropy()));
-
     //Find
     mFindPattern = new QAction(DIcon("search-for.png"), tr("&Find Pattern..."), this);
     this->addAction(mFindPattern);
@@ -198,7 +191,6 @@ void MemoryMapView::refreshShortcutsSlot()
     mFindPattern->setShortcut(ConfigShortcut("ActionFindPattern"));
     mGotoOrigin->setShortcut(ConfigShortcut("ActionGotoOrigin"));
     mGotoExpression->setShortcut(ConfigShortcut("ActionGotoExpression"));
-    mEntropy->setShortcut(ConfigShortcut("ActionEntropy"));
     mMemoryFree->setShortcut(ConfigShortcut("ActionFreeMemory"));
     mMemoryAllocate->setShortcut(ConfigShortcut("ActionAllocateMemory"));
     mYara->setShortcut(ConfigShortcut("ActionYara"));
@@ -215,7 +207,6 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu.addAction(mDumpMemory);
     wMenu.addAction(mComment);
     wMenu.addAction(mYara);
-    wMenu.addAction(mEntropy);
     wMenu.addAction(mFindPattern);
     wMenu.addAction(mSwitchView);
     wMenu.addSeparator();
@@ -531,22 +522,6 @@ void MemoryMapView::switchView()
     setSingleSelection(0);
     setTableOffset(0);
     stateChangedSlot(paused);
-}
-
-void MemoryMapView::entropy()
-{
-    duint addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
-    duint size = getCellContent(getInitialSelection(), 1).toULongLong(0, 16);
-    unsigned char* data = new unsigned char[size];
-    DbgMemRead(addr, data, size);
-
-    EntropyDialog entropyDialog(this);
-    entropyDialog.setWindowTitle(tr("Entropy (Address: %1, Size: %2)").arg(ToPtrString(addr).arg(ToPtrString(size))));
-    entropyDialog.show();
-    entropyDialog.GraphMemory(data, size);
-    entropyDialog.exec();
-
-    delete[] data;
 }
 
 void MemoryMapView::memoryAllocateSlot()

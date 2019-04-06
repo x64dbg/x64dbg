@@ -57,7 +57,6 @@ private slots:
     void toggleBreakpoint();
     void toggleBookmark();
     void refreshShortcutsSlot();
-    void moduleEntropy();
     void emptySearchResultSlot();
     void selectionGetSlot(SELECTIONDATA* selection);
     void moduleLoad();
@@ -87,7 +86,6 @@ private:
     QAction* mCopyPathAction;
     QAction* mYaraAction;
     QAction* mYaraFileAction;
-    QAction* mEntropyAction;
     QAction* mModSetUserAction;
     QAction* mModSetSystemAction;
     QAction* mModSetPartyAction;

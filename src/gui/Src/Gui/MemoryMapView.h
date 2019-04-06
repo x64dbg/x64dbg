@@ -30,7 +30,6 @@ public slots:
     void switchView();
     void pageMemoryRights();
     void refreshMap();
-    void entropy();
     void findPatternSlot();
     void dumpMemory();
     void commentSlot();
@@ -69,7 +68,6 @@ private:
     QAction* mMemoryExecuteRestore;
     QAction* mMemoryRemove;
     QAction* mMemoryExecuteSingleshootToggle;
-    QAction* mEntropy;
     QAction* mFindPattern;
     QMenu* mGotoMenu;
     QAction* mGotoOrigin;
