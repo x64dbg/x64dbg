@@ -2580,8 +2580,17 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     bFileIsDll = IsFileDLLW(StringUtils::Utf8ToUtf16(szFileName).c_str(), 0);
     DbSetPath(nullptr, szFileName);
 
+    String recentFile;
+
     if(!attach)
     {
+        // Build recent file string
+        recentFile = szFileName;
+        recentFile += ":";
+        recentFile += init->currentfolder ? init->currentfolder : "";
+        recentFile += ":";
+        recentFile += init->commandline ? init->commandline : "";
+
         // Load command line if it exists in DB
         DbLoad(DbLoadSaveType::CommandLine);
         if(!isCmdLineEmpty())
@@ -2657,6 +2666,8 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     }
     else //attach
     {
+        recentFile = szFileName;
+        recentFile += "::";
         gInitCmd.clear();
         gInitDir.clear();
     }
@@ -2676,7 +2687,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     //inform GUI we started without problems
     GuiSetDebugState(initialized);
     GuiFocusView(GUI_DISASSEMBLY);
-    GuiAddRecentFile(szFileName);
+    GuiAddRecentFile(recentFile.c_str());
 
     //set GUI title
     strcpy_s(szBaseFileName, szFileName);
