@@ -153,6 +153,9 @@ void SourceView::setupContextMenu()
     mMenuBuilder->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Go to line"), SLOT(gotoLineSlot()), "ActionGotoExpression"));
     mMenuBuilder->addAction(makeAction(DIcon("source.png"), tr("Open source file"), SLOT(openSourceFileSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("source_show_in_folder.png"), tr("Show source file in directory"), SLOT(showInDirectorySlot())));
+    MenuBuilder* copyMenu = new MenuBuilder(this);
+    setupCopyColumnMenu(copyMenu);
+    mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
     mMenuBuilder->loadFromConfig();
 }
 
