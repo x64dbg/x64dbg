@@ -33,6 +33,7 @@ private:
     MenuBuilder* mMenuBuilder = nullptr;
     QString mSourcePath;
     duint mModBase;
+    int mTabSize = 4; //TODO: make customizable?
 
     FileLines* mFileLines = nullptr;
 

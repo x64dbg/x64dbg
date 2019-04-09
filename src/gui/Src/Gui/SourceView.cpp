@@ -161,7 +161,23 @@ void SourceView::parseLine(size_t index, LineData & line)
     QString lineText = QString::fromStdString((*mFileLines)[index]);
     line.addr = addrFromIndex(index);
     line.index = index;
-    line.code.code = lineText.replace('\t', "    "); //TODO: add syntax highlighting
+
+    line.code.code.clear();
+    for(int i = 0; i < lineText.length(); i++)
+    {
+        QChar ch = lineText[i];
+        if(ch == '\t')
+        {
+            int col = line.code.code.length();
+            int spaces = mTabSize - col % mTabSize;
+            line.code.code.append(QString(spaces, ' '));
+        }
+        else
+        {
+            line.code.code.append(ch);
+        }
+    }
+    //TODO: add syntax highlighting?
 }
 
 duint SourceView::addrFromIndex(size_t index)
