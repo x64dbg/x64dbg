@@ -3,6 +3,7 @@
 
 #include "Zydis/Zydis.h"
 #include <functional>
+#include <string>
 
 #define MAX_DISASM_BUFFER 16
 
