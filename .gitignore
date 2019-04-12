@@ -34,6 +34,7 @@ CppDependOut/
 *.dll
 *.exe
 *.pro.user.*
+*.vcxproj.user
 *.orig
 cov-int*
 *.pdb
