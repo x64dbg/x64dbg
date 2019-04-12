@@ -228,6 +228,13 @@ typedef struct
     int hMenu;
 } PLUG_CB_MENUPREPARE;
 
+typedef struct
+{
+    bool resume;
+    int argc;
+    char** argv;
+} PLUG_CB_PRERESUMEDEBUG;
+
 //enums
 typedef enum
 {
@@ -262,6 +269,7 @@ typedef enum
     CB_VALFROMSTRING, //PLUG_CB_VALFROMSTRING
     CB_VALTOSTRING, //PLUG_CB_VALTOSTRING
     CB_MENUPREPARE, //PLUG_CB_MENUPREPARE
+    CB_PRERESUMEDEBUG, //PLUG_CB_PRERESUMEDEBUG
     CB_LAST
 } CBTYPE;
 
@@ -272,6 +280,11 @@ typedef enum
     FORMAT_ERROR_MESSAGE, //formatting failed but an error was put in the buffer (there are always at least 511 characters available).
     FORMAT_BUFFER_TOO_SMALL //buffer too small (x64dbg will retry until the buffer is big enough)
 } FORMATRESULT;
+
+typedef enum
+{
+    RESUME_STEP
+} RESUMEREASON;
 
 //typedefs
 typedef void (*CBPLUGIN)(CBTYPE cbType, void* callbackInfo);
