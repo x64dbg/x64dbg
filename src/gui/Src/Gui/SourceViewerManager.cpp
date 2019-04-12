@@ -28,11 +28,12 @@ void SourceViewerManager::loadSourceFile(QString path, duint addr)
         SourceView* curView = (SourceView*)this->widget(i);
         if(curView->getSourcePath().compare(path, Qt::CaseInsensitive) == 0) //file already loaded
         {
-            QWidget* now = QApplication::focusWidget();
             curView->setSelection(addr);
             setCurrentIndex(i); //show that loaded tab
-            if(now)
-                now->setFocus();
+            QTimer::singleShot(50, [curView]()
+            {
+                curView->setFocus();
+            });
             return;
         }
     }

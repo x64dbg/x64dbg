@@ -26,6 +26,8 @@ SourceView::SourceView(QString path, duint addr, QWidget* parent)
     setupContextMenu();
 
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
+    connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(followDisassemblerSlot()));
+    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisassemblerSlot()));
 
     Initialize();
 
@@ -116,7 +118,33 @@ void SourceView::contextMenuSlot(const QPoint & pos)
 void SourceView::followDisassemblerSlot()
 {
     duint addr = addrFromIndex(getInitialSelection());
+    if(!DbgMemIsValidReadPtr(addr))
+        return;
     DbgCmdExec(QString("disasm %1").arg(ToPtrString(addr)).toUtf8().constData());
+}
+
+void SourceView::followDumpSlot()
+{
+    duint addr = addrFromIndex(getInitialSelection());
+    if(!DbgMemIsValidReadPtr(addr))
+        return;
+    DbgCmdExec(QString("dump %1").arg(ToPtrString(addr)).toUtf8().constData());
+}
+
+void SourceView::toggleBookmarkSlot()
+{
+    duint addr = addrFromIndex(getInitialSelection());
+    if(!DbgMemIsValidReadPtr(addr))
+        return;
+
+    bool result;
+    if(DbgGetBookmarkAt(addr))
+        result = DbgSetBookmarkAt(addr, false);
+    else
+        result = DbgSetBookmarkAt(addr, true);
+    if(!result)
+        SimpleErrorBox(this, tr("Error!"), tr("DbgSetBookmarkAt failed!"));
+    GuiUpdateAllViews();
 }
 
 void SourceView::gotoLineSlot()
@@ -150,9 +178,22 @@ void SourceView::setupContextMenu()
     {
         return DbgMemIsValidReadPtr(addrFromIndex(getInitialSelection()));
     });
+    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), tr("Follow in &Dump"), SLOT(followDumpSlot())), [this](QMenu*)
+    {
+        return DbgMemIsValidReadPtr(addrFromIndex(getInitialSelection()));
+    });
+    mMenuBuilder->addSeparator();
+    mBreakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this]()
+    {
+        return addrFromIndex(getInitialSelection());
+    });
+    mBreakpointMenu->build(mMenuBuilder);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), SLOT(toggleBookmarkSlot()), "ActionToggleBookmark"));
+    mMenuBuilder->addSeparator();
     mMenuBuilder->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Go to line"), SLOT(gotoLineSlot()), "ActionGotoExpression"));
     mMenuBuilder->addAction(makeAction(DIcon("source.png"), tr("Open source file"), SLOT(openSourceFileSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("source_show_in_folder.png"), tr("Show source file in directory"), SLOT(showInDirectorySlot())));
+    mMenuBuilder->addSeparator();
     MenuBuilder* copyMenu = new MenuBuilder(this);
     setupCopyColumnMenu(copyMenu);
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
