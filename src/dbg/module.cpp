@@ -1190,6 +1190,8 @@ bool MODINFO::loadSymbols()
     if(symbols == &EmptySymbolSource && SymbolSourceDIA::isLibraryAvailable())
     {
         // TODO: do something with searchPaths
+        std::string modname = name;
+        modname += extension;
         DiaValidationData_t validationData;
         memcpy(&validationData.guid, &pdbValidation.guid, sizeof(GUID));
         validationData.signature = pdbValidation.signature;
@@ -1201,7 +1203,7 @@ bool MODINFO::loadSymbols()
             {
                 GuiSymbolLogAdd(StringUtils::sprintf("[DIA] Skipping non-existent PDB: %s\n", pdbPath.c_str()).c_str());
             }
-            else if(symSource->loadPDB(pdbPath, base, size, bForceLoadSymbols ? nullptr : &validationData))
+            else if(symSource->loadPDB(pdbPath, modname, base, size, bForceLoadSymbols ? nullptr : &validationData))
             {
                 symSource->resizeSymbolBitmap(size);
 
