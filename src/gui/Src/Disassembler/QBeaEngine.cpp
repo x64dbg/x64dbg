@@ -200,7 +200,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
 
     auto branchType = Instruction_t::None;
     Instruction_t wInst;
-    if(success && cp.IsBranchType(Zydis::BTJmp | Zydis::BTCall | Zydis::BTRet | Zydis::BTLoop))
+    if(success && cp.IsBranchType(Zydis::BTJmp | Zydis::BTCall | Zydis::BTRet | Zydis::BTLoop | Zydis::BTXbegin))
     {
         wInst.branchDestination = DbgGetBranchDestination(origBase + origInstRVA);
         if(cp.IsBranchType(Zydis::BTUncondJmp))

@@ -764,7 +764,7 @@ extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
     Zydis cp;
     if(!cp.Disassemble(addr, data))
         return 0;
-    if(cp.IsBranchType(Zydis::BTJmp | Zydis::BTCall | Zydis::BTLoop))
+    if(cp.IsBranchType(Zydis::BTJmp | Zydis::BTCall | Zydis::BTLoop | Zydis::BTXbegin))
     {
         auto opValue = cp.ResolveOpValue(0, [](ZydisRegister reg) -> size_t
         {

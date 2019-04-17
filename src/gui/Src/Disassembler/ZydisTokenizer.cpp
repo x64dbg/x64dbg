@@ -496,7 +496,7 @@ bool ZydisTokenizer::tokenizeImmOperand(const ZydisDecodedOperand & op)
 {
     duint value;
     TokenType valueType;
-    if(_cp.IsBranchType(Zydis::BTJmp | Zydis::BTCall | Zydis::BTLoop))
+    if(_cp.IsBranchType(Zydis::BTJmp | Zydis::BTCall | Zydis::BTLoop | Zydis::BTXbegin))
     {
         valueType = TokenType::Address;
         value = op.imm.value.u;
