@@ -100,6 +100,7 @@
     <ClCompile Include="stringformat.cpp" />
     <ClCompile Include="stringutils.cpp" />
     <ClCompile Include="symbolinfo.cpp" />
+    <ClCompile Include="symbolsourcebase.cpp" />
     <ClCompile Include="symbolsourcedia.cpp" />
     <ClCompile Include="symcache.cpp" />
     <ClCompile Include="tcpconnections.cpp" />

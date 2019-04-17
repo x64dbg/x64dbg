@@ -12,6 +12,7 @@
 #include "dbghelp_safe.h"
 #include "exception.h"
 #include "WinInet-Downloader/downslib.h"
+#include <shlwapi.h>
 
 struct SYMBOLCBDATA
 {
@@ -377,7 +378,38 @@ bool SymGetSourceLine(duint Cip, char* FileName, int* Line, DWORD* disp)
         *Line = lineInfo.lineNumber;
 
     if(FileName)
+    {
         strncpy_s(FileName, MAX_STRING_SIZE, lineInfo.sourceFile.c_str(), _TRUNCATE);
+
+        // Check if it was a full path
+        if(!PathIsRelativeW(StringUtils::Utf8ToUtf16(lineInfo.sourceFile).c_str()))
+            return true;
+
+        // Construct full path from pdb path
+        {
+            SHARED_ACQUIRE(LockModules);
+            MODINFO* info = ModInfoFromAddr(Cip);
+            if(!info)
+                return true;
+
+            String sourceFilePath = info->symbols->loadedSymbolPath();
+
+            // Strip the name, leaving only the file directory
+            size_t bslash = sourceFilePath.rfind('\\');
+            if(bslash != String::npos)
+                sourceFilePath.resize(bslash + 1);
+            sourceFilePath += lineInfo.sourceFile;
+
+            // Attempt to remap the source file if it exists (more heuristics could be added in the future)
+            if(FileExists(sourceFilePath.c_str()))
+            {
+                if(info->symbols->mapSourceFilePdbToDisk(lineInfo.sourceFile, sourceFilePath))
+                {
+                    strncpy_s(FileName, MAX_STRING_SIZE, sourceFilePath.c_str(), _TRUNCATE);
+                }
+            }
+        }
+    }
 
     return true;
 }

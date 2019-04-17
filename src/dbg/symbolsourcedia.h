@@ -158,6 +158,8 @@ public:
 
     virtual bool findSymbolsByPrefix(const std::string & prefix, const std::function<bool(const SymbolInfo &)> & cbSymbol, bool caseSensitive) override;
 
+    virtual std::string loadedSymbolPath() const override;
+
 public:
     bool loadPDB(const std::string & path, const std::string & modname, duint imageBase, duint imageSize, DiaValidationData_t* validationData);
 

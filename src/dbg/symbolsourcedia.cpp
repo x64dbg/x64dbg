@@ -51,6 +51,7 @@ bool SymbolSourceDIA::loadPDB(const std::string & path, const std::string & modn
     {
         _path = path;
         _imageSize = imageSize;
+        _modname = modname;
         _imageBase = imageBase;
         _requiresShutdown = false;
         _symbolsLoaded = false;
@@ -339,12 +340,17 @@ bool SymbolSourceDIA::loadSourceLinesAsync()
 
 uint32_t SymbolSourceDIA::findSourceFile(const std::string & fileName) const
 {
+    // Map the disk file name back to PDB file name
+    std::string mappedFileName;
+    if(!getSourceFileDiskToPdb(fileName, mappedFileName))
+        mappedFileName = fileName;
+
     //TODO: make this fast
     uint32_t idx = -1;
     for(uint32_t n = 0; n < _sourceFiles.size(); n++)
     {
         const String & str = _sourceFiles[n];
-        if(_stricmp(str.c_str(), fileName.c_str()) == 0)
+        if(_stricmp(str.c_str(), mappedFileName.c_str()) == 0)
         {
             idx = n;
             break;
@@ -436,6 +442,7 @@ bool SymbolSourceDIA::findSourceLineInfo(duint rva, LineInfo & lineInfo)
     lineInfo.disp = 0;
     lineInfo.size = 0;
     lineInfo.sourceFile = _sourceFiles[cached.sourceFileIdx];
+    getSourceFilePdbToDisk(lineInfo.sourceFile, lineInfo.sourceFile);
     return true;
 }
 
@@ -458,6 +465,7 @@ bool SymbolSourceDIA::findSourceLineInfo(const std::string & file, int line, Lin
     lineInfo.disp = 0;
     lineInfo.size = 0;
     lineInfo.sourceFile = _sourceFiles[cached.sourceFileIdx];
+    getSourceFilePdbToDisk(lineInfo.sourceFile, lineInfo.sourceFile);
     return true;
 }
 
@@ -540,4 +548,9 @@ bool SymbolSourceDIA::findSymbolsByPrefix(const std::string & prefix, const std:
     }
 
     return result;
+}
+
+std::string SymbolSourceDIA::loadedSymbolPath() const
+{
+    return _path;
 }

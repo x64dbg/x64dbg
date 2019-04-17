@@ -455,6 +455,9 @@
     <ClCompile Include="WinInet-Downloader\downslib.cpp">
       <Filter>Source Files\Third Party\WinInet-Downloader</Filter>
     </ClCompile>
+    <ClCompile Include="symbolsourcebase.cpp">
+      <Filter>Source Files\Symbols</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dbghelp\dbghelp.h">

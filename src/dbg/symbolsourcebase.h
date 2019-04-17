@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <vector>
 #include <functional>
+#include <map>
 
 struct SymbolInfoGui
 {
@@ -47,6 +48,8 @@ class SymbolSourceBase
 {
 private:
     std::vector<uint8_t> _symbolBitmap; // TODO: what is the maximum size for this?
+    std::map<std::string, std::string> _sourceFileMapPdbToDisk; // pdb source path -> disk source path
+    std::map<std::string, std::string> _sourceFileMapDiskToPdb; // disk source path -> pdb source path
 
 public:
     virtual ~SymbolSourceBase() = default;
@@ -129,6 +132,15 @@ public:
     {
         return false; // Stub
     }
+
+    virtual std::string loadedSymbolPath() const
+    {
+        return ""; // Stub
+    }
+
+    bool mapSourceFilePdbToDisk(const std::string & pdb, const std::string & disk);
+    bool getSourceFilePdbToDisk(const std::string & pdb, std::string & disk) const;
+    bool getSourceFileDiskToPdb(const std::string & disk, std::string & pdb) const;
 };
 
 static SymbolSourceBase EmptySymbolSource;
