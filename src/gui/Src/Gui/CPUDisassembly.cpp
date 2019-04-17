@@ -16,7 +16,6 @@
 #include "WordEditDialog.h"
 #include "GotoDialog.h"
 #include "HexEditDialog.h"
-#include "YaraRuleSelectionDialog.h"
 #include "AssembleDialog.h"
 #include "StringUtil.h"
 #include "Breakpoints.h"
@@ -512,7 +511,6 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("compile.png"), tr("Assemble"), SLOT(assembleSlot()), "ActionAssemble"));
     removeAction(mMenuBuilder->addAction(makeShortcutAction(DIcon("patch.png"), tr("Patches"), SLOT(showPatchesSlot()), "ViewPatches"))); //prevent conflicting shortcut with the MainWindow
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("yara.png"), tr("&Yara..."), SLOT(yaraSlot()), "ActionYara"));
     mMenuBuilder->addSeparator();
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("neworigin.png"), tr("Set New Origin Here"), SLOT(setNewOriginHereActionSlot()), "ActionSetNewOriginHere"));
@@ -1443,17 +1441,6 @@ void CPUDisassembly::binaryPasteIgnoreSizeSlot()
 void CPUDisassembly::showPatchesSlot()
 {
     emit showPatches();
-}
-
-void CPUDisassembly::yaraSlot()
-{
-    YaraRuleSelectionDialog yaraDialog(this);
-    if(yaraDialog.exec() == QDialog::Accepted)
-    {
-        QString addrText = ToPtrString(rvaToVa(getInitialSelection()));
-        DbgCmdExec(QString("yara \"%0\",%1").arg(yaraDialog.getSelectedFile()).arg(addrText).toUtf8().constData());
-        emit displayReferencesWidget();
-    }
 }
 
 void CPUDisassembly::copySelectionSlot(bool copyBytes)

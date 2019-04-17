@@ -84,7 +84,14 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
                      FALSE,
                      IMAGE_DIRECTORY_ENTRY_EXPORT,
                      &exportDirSize);
-    if(exportDirSize == 0 || exportDir == nullptr || exportDir->NumberOfFunctions == 0)
+    if(exportDirSize == 0 || exportDir == nullptr ||
+            (ULONG_PTR)exportDir + exportDirSize > FileMapVA + Info.loadedSize || // Check if exportDir fits into the mapped area
+            (ULONG_PTR)exportDir + exportDirSize < (ULONG_PTR)exportDir // Check for ULONG_PTR wraparound (e.g. when exportDirSize == 0xfffff000)
+            || exportDir->NumberOfFunctions == 0)
+        return;
+    DWORD64 totalFunctionSize = exportDir->NumberOfFunctions * sizeof(ULONG_PTR);
+    if(totalFunctionSize / exportDir->NumberOfFunctions != sizeof(ULONG_PTR) || // Check for overflow
+            totalFunctionSize > Info.loadedSize) // Check for impossible number of exports
         return;
 
     auto rva2offset = [&Info](ULONG64 rva)
@@ -104,7 +111,8 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     auto addressOfNameOrdinalsOffset = rva2offset(exportDir->AddressOfNameOrdinals);
     auto addressOfNameOrdinals = PWORD(addressOfNameOrdinalsOffset ? addressOfNameOrdinalsOffset + FileMapVA : 0);
 
-    Info.exports.reserve(exportDir->NumberOfFunctions);
+    // Do not reserve memory based on untrusted input
+    //Info.exports.reserve(exportDir->NumberOfFunctions);
     Info.exportOrdinalBase = exportDir->Base;
 
     // TODO: 'invalid address' below means an RVA that is obviously invalid, like being greater than SizeOfImage.
@@ -114,6 +122,13 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     // Note that we're loading this file because the debuggee did; that makes it at least somewhat plausible that we will also survive
     for(DWORD i = 0; i < exportDir->NumberOfFunctions; i++)
     {
+        // Check if addressOfFunctions[i] is valid
+        ULONG_PTR target = (ULONG_PTR)addressOfFunctions + i * sizeof(DWORD);
+        if(target > FileMapVA + Info.loadedSize || target < (ULONG_PTR)addressOfFunctions)
+        {
+            continue;
+        }
+
         // It is possible the AddressOfFunctions contain zero RVAs. GetProcAddress for these ordinals returns zero.
         // "The reason for it is to assign a particular ordinal to a function." - NTCore
         if(!addressOfFunctions[i])
@@ -135,9 +150,23 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 
     for(DWORD i = 0; i < exportDir->NumberOfNames; i++)
     {
+        // Check if addressOfNameOrdinals[i] is valid
+        ULONG_PTR target = (ULONG_PTR)addressOfNameOrdinals + i * sizeof(WORD);
+        if(target > FileMapVA + Info.loadedSize || target < (ULONG_PTR)addressOfNameOrdinals)
+        {
+            continue;
+        }
+
         DWORD index = addressOfNameOrdinals[i];
         if(index < Info.exports.size()) // Silent ignore (2) by ntdll loader: bogus AddressOfNameOrdinals indices
         {
+            // Check if addressOfNames[i] is valid
+            target = (ULONG_PTR)addressOfNames + i * sizeof(DWORD);
+            if(target > FileMapVA + Info.loadedSize || target < (ULONG_PTR)addressOfNames)
+            {
+                continue;
+            }
+
             auto nameOffset = rva2offset(addressOfNames[i]);
             if(nameOffset) // Silent ignore (3) by ntdll loader: invalid names or addresses of names
                 Info.exports[index].name = String((const char*)(nameOffset + FileMapVA));
@@ -186,7 +215,9 @@ static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
                             FALSE,
                             IMAGE_DIRECTORY_ENTRY_IMPORT,
                             &importDirSize);
-    if(importDirSize == 0 || importDescriptor == nullptr)
+    if(importDirSize == 0 || importDescriptor == nullptr ||
+            (ULONG_PTR)importDescriptor + importDirSize > FileMapVA + Info.loadedSize || // Check if importDescriptor fits into the mapped area
+            (ULONG_PTR)importDescriptor + importDirSize < (ULONG_PTR)importDescriptor) // Check for ULONG_PTR wraparound (e.g. when importDirSize == 0xfffff000)
         return;
 
     const ULONG64 ordinalFlag = IMAGE64(Info.headers) ? IMAGE_ORDINAL_FLAG64 : IMAGE_ORDINAL_FLAG32;
@@ -274,7 +305,9 @@ static void ReadTlsCallbacks(MODINFO & Info, ULONG_PTR FileMapVA)
                   FALSE,
                   IMAGE_DIRECTORY_ENTRY_TLS,
                   &tlsDirSize);
-    if(tlsDir == nullptr /*|| tlsDirSize == 0*/) // The loader completely ignores the directory size. Setting it to 0 is an anti-debug trick
+    if(tlsDir == nullptr /*|| tlsDirSize == 0*/ || // The loader completely ignores the directory size. Setting it to 0 is an anti-debug trick
+            (ULONG_PTR)tlsDir + tlsDirSize > FileMapVA + Info.loadedSize || // Check if tlsDir fits into the mapped area
+            (ULONG_PTR)tlsDir + tlsDirSize < (ULONG_PTR)tlsDir) // Check for ULONG_PTR wraparound (e.g. when tlsDirSize == 0xfffff000)
         return;
 
     ULONG64 addressOfCallbacks = IMAGE64(Info.headers)
@@ -317,7 +350,9 @@ static void ReadBaseRelocationTable(MODINFO & Info, ULONG_PTR FileMapVA)
                           FALSE,
                           IMAGE_DIRECTORY_ENTRY_BASERELOC,
                           &totalBytes);
-    if(baseRelocBlock == nullptr || totalBytes == 0 || (ULONG_PTR)baseRelocBlock + totalBytes > FileMapVA + Info.loadedSize)
+    if(baseRelocBlock == nullptr || totalBytes == 0 ||
+            (ULONG_PTR)baseRelocBlock + totalBytes > FileMapVA + Info.loadedSize || // Check if baseRelocBlock fits into the mapped area
+            (ULONG_PTR)baseRelocBlock + totalBytes < (ULONG_PTR)baseRelocBlock) // Check for ULONG_PTR wraparound (e.g. when totalBytes == 0xfffff000)
         return;
 
     // Until we reach the end of the relocation table
@@ -590,7 +625,7 @@ static void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     }
 }
 
-static void GetUnsafeModuleInfoImpl(MODINFO & Info, ULONG_PTR FileMapVA, void(*func)(MODINFO &, ULONG_PTR), const char* name)
+static bool GetUnsafeModuleInfoImpl(MODINFO & Info, ULONG_PTR FileMapVA, void(*func)(MODINFO &, ULONG_PTR), const char* name)
 {
     __try
     {
@@ -599,7 +634,9 @@ static void GetUnsafeModuleInfoImpl(MODINFO & Info, ULONG_PTR FileMapVA, void(*f
     __except(EXCEPTION_EXECUTE_HANDLER)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Exception while getting module info (%s), please report...\n"), name);
+        return false;
     }
+    return true;
 }
 
 void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
@@ -660,8 +697,19 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
     }
 
 #define GetUnsafeModuleInfo(func) GetUnsafeModuleInfoImpl(Info, FileMapVA, func, #func)
-    GetUnsafeModuleInfo(ReadExportDirectory);
-    GetUnsafeModuleInfo(ReadImportDirectory);
+    if(!GetUnsafeModuleInfo(ReadExportDirectory))
+    {
+        Info.exports.clear();
+        Info.exportOrdinalBase = 0;
+        Info.exportsByName.clear();
+        Info.exportsByRva.clear();
+    }
+    if(!GetUnsafeModuleInfo(ReadImportDirectory))
+    {
+        Info.importModules.clear();
+        Info.imports.clear();
+        Info.importsByRva.clear();
+    }
     GetUnsafeModuleInfo(ReadTlsCallbacks);
     GetUnsafeModuleInfo(ReadBaseRelocationTable);
     GetUnsafeModuleInfo(ReadDebugDirectory);
@@ -1142,6 +1190,8 @@ bool MODINFO::loadSymbols()
     if(symbols == &EmptySymbolSource && SymbolSourceDIA::isLibraryAvailable())
     {
         // TODO: do something with searchPaths
+        std::string modname = name;
+        modname += extension;
         DiaValidationData_t validationData;
         memcpy(&validationData.guid, &pdbValidation.guid, sizeof(GUID));
         validationData.signature = pdbValidation.signature;
@@ -1153,7 +1203,7 @@ bool MODINFO::loadSymbols()
             {
                 GuiSymbolLogAdd(StringUtils::sprintf("[DIA] Skipping non-existent PDB: %s\n", pdbPath.c_str()).c_str());
             }
-            else if(symSource->loadPDB(pdbPath, base, size, bForceLoadSymbols ? nullptr : &validationData))
+            else if(symSource->loadPDB(pdbPath, modname, base, size, bForceLoadSymbols ? nullptr : &validationData))
             {
                 symSource->resizeSymbolBitmap(size);
 

@@ -3,8 +3,6 @@
 #include <QMessageBox>
 #include "Configuration.h"
 #include "Bridge.h"
-#include "YaraRuleSelectionDialog.h"
-#include "EntropyDialog.h"
 #include "BrowseDialog.h"
 #include "StdSearchListView.h"
 #include "ZehSymbolTable.h"
@@ -287,18 +285,6 @@ void SymbolView::setupContextMenu()
     mModuleList->addAction(mFreeLib);
     connect(mFreeLib, SIGNAL(triggered()), this, SLOT(moduleFree()));
 
-    mYaraAction = new QAction(DIcon("yara.png"), tr("&Yara Memory..."), this);
-    connect(mYaraAction, SIGNAL(triggered()), this, SLOT(moduleYara()));
-
-    mYaraFileAction = new QAction(DIcon("yara.png"), tr("&Yara File..."), this);
-    connect(mYaraFileAction, SIGNAL(triggered()), this, SLOT(moduleYaraFile()));
-
-    mEntropyAction = new QAction(DIcon("entropy.png"), tr("Entropy..."), this);
-    mEntropyAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-    this->addAction(mEntropyAction);
-    mModuleList->addAction(mEntropyAction);
-    connect(mEntropyAction, SIGNAL(triggered()), this, SLOT(moduleEntropy()));
-
     mModSetUserAction = new QAction(DIcon("markasuser.png"), tr("Mark as &user module"), this);
     mModSetUserAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mModSetUserAction);
@@ -329,7 +315,6 @@ void SymbolView::refreshShortcutsSlot()
     mModSetUserAction->setShortcut(ConfigShortcut("ActionMarkAsUser"));
     mModSetSystemAction->setShortcut(ConfigShortcut("ActionMarkAsSystem"));
     mModSetPartyAction->setShortcut(ConfigShortcut("ActionMarkAsParty"));
-    mEntropyAction->setShortcut(ConfigShortcut("ActionEntropy"));
     mBrowseInExplorer->setShortcut(ConfigShortcut("ActionBrowseInExplorer"));
     mDownloadSymbolsAction->setShortcut(ConfigShortcut("ActionDownloadSymbol"));
     mDownloadAllSymbolsAction->setShortcut(ConfigShortcut("ActionDownloadAllSymbol"));
@@ -531,9 +516,6 @@ void SymbolView::moduleContextMenu(QMenu* wMenu)
     }
     wMenu->addAction(mLoadLib);
     wMenu->addAction(mFreeLib);
-    wMenu->addAction(mYaraAction);
-    wMenu->addAction(mYaraFileAction);
-    wMenu->addAction(mEntropyAction);
     wMenu->addSeparator();
     int party = DbgFunctions()->ModGetParty(modbase);
     if(party != 0)
@@ -577,28 +559,6 @@ void SymbolView::moduleBrowse()
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
     {
         QProcess::startDetached(QString("%1/explorer.exe").arg(QProcessEnvironment::systemEnvironment().value("windir")), QStringList({QString("/select,"), QString(szModPath)}));
-    }
-}
-
-void SymbolView::moduleYara()
-{
-    QString modname = mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 1);
-    YaraRuleSelectionDialog yaraDialog(this, QString("Yara (%1)").arg(modname));
-    if(yaraDialog.exec() == QDialog::Accepted)
-    {
-        DbgCmdExec(QString("yaramod \"%0\",\"%1\"").arg(yaraDialog.getSelectedFile()).arg(modname).toUtf8().constData());
-        emit showReferences();
-    }
-}
-
-void SymbolView::moduleYaraFile()
-{
-    QString modname = mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 1);
-    YaraRuleSelectionDialog yaraDialog(this, QString("Yara (%1)").arg(modname));
-    if(yaraDialog.exec() == QDialog::Accepted)
-    {
-        DbgCmdExec(QString("yaramod \"%0\",\"%1\",1").arg(yaraDialog.getSelectedFile()).arg(modname).toUtf8().constData());
-        emit showReferences();
     }
 }
 
@@ -711,20 +671,6 @@ void SymbolView::toggleBookmark()
         msg.exec();
     }
     GuiUpdateAllViews();
-}
-
-void SymbolView::moduleEntropy()
-{
-    duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 0).toUtf8().constData());
-    char szModPath[MAX_PATH] = "";
-    if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
-    {
-        EntropyDialog entropyDialog(this);
-        entropyDialog.setWindowTitle(tr("Entropy (%1)").arg(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), 1)));
-        entropyDialog.show();
-        entropyDialog.GraphFile(QString(szModPath));
-        entropyDialog.exec();
-    }
 }
 
 void SymbolView::moduleSetSystem()

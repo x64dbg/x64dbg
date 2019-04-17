@@ -41,20 +41,33 @@ int TraceFileSearchConstantRange(TraceFileReader* file, duint start, duint end)
     GuiReferenceAddColumn(100, QCoreApplication::translate("TraceFileSearch", "Disassembly").toUtf8().constData());
     GuiReferenceSetRowCount(0);
 
+    REGISTERCONTEXT regcontext;
     for(unsigned long long index = 0; index < file->Length(); index++)
     {
+        regcontext = file->Registers(index).regcontext;
         bool found = false;
         //Registers
-#define FINDREG(fieldName) found |= inRange(file->Registers(index).regcontext.##fieldName, start, end)
+#define FINDREG(fieldName) found |= inRange(regcontext.##fieldName, start, end)
         FINDREG(cax);
-        FINDREG(cbx);
         FINDREG(ccx);
         FINDREG(cdx);
+        FINDREG(cbx);
         FINDREG(csp);
         FINDREG(cbp);
         FINDREG(csi);
         FINDREG(cdi);
         FINDREG(cip);
+#ifdef _WIN64
+        FINDREG(r8);
+        FINDREG(r9);
+        FINDREG(r10);
+        FINDREG(r11);
+        FINDREG(r12);
+        FINDREG(r13);
+        FINDREG(r14);
+        FINDREG(r15);
+#endif //_WIN64
+#undef FINDREG
         //Memory
         duint memAddr[MAX_MEMORY_OPERANDS];
         duint memOldContent[MAX_MEMORY_OPERANDS];

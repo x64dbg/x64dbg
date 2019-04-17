@@ -12,8 +12,6 @@ mkdir %RELEASEDIR%\pluginsdk\jansson
 mkdir %RELEASEDIR%\pluginsdk\lz4
 mkdir %RELEASEDIR%\pluginsdk\TitanEngine
 mkdir %RELEASEDIR%\pluginsdk\XEDParse
-mkdir %RELEASEDIR%\pluginsdk\yara
-mkdir %RELEASEDIR%\pluginsdk\yara\yara
 
 xcopy src\dbg\dbghelp %RELEASEDIR%\pluginsdk\dbghelp /S /Y
 xcopy src\dbg\DeviceNameResolver %RELEASEDIR%\pluginsdk\DeviceNameResolver /S /Y
@@ -22,7 +20,6 @@ xcopy src\dbg\lz4 %RELEASEDIR%\pluginsdk\lz4 /S /Y
 xcopy src\dbg\TitanEngine %RELEASEDIR%\pluginsdk\TitanEngine /S /Y
 del %RELEASEDIR%\pluginsdk\TitanEngine\TitanEngine.txt /F /Q
 xcopy src\dbg\XEDParse %RELEASEDIR%\pluginsdk\XEDParse /S /Y
-xcopy src\dbg\yara %RELEASEDIR%\pluginsdk\yara /S /Y
 copy src\dbg\_plugin_types.h %RELEASEDIR%\pluginsdk\_plugin_types.h
 copy src\dbg\_plugins.h %RELEASEDIR%\pluginsdk\_plugins.h
 copy src\dbg\_scriptapi*.h %RELEASEDIR%\pluginsdk\_scriptapi*.h

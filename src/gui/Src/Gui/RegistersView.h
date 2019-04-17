@@ -112,6 +112,36 @@ public:
         }
     };
 
+    // tracks position of a register relative to other registers
+    struct Register_Relative_Position
+    {
+        REGISTER_NAME left;
+        REGISTER_NAME right;
+        REGISTER_NAME up;
+        REGISTER_NAME down;
+
+        Register_Relative_Position(REGISTER_NAME l, REGISTER_NAME r)
+        {
+            left = l;
+            right = r;
+            up = left;
+            down = right;
+        }
+        Register_Relative_Position(REGISTER_NAME l, REGISTER_NAME r, REGISTER_NAME u, REGISTER_NAME d)
+        {
+            left = l;
+            right = r;
+            up = u;
+            down = d;
+        }
+        Register_Relative_Position()
+        {
+            left = UNKNOWN;
+            right = UNKNOWN;
+            up = UNKNOWN;
+            down = UNKNOWN;
+        }
+    };
 
     explicit RegistersView(CPUWidget* parent);
     ~RegistersView();
@@ -153,6 +183,7 @@ protected:
     void CreateDumpNMenu(QMenu* dumpMenu);
 
     void displayEditDialog();
+    void ensureRegisterVisible(REGISTER_NAME reg);
 
 protected slots:
     void fontsUpdatedSlot();
@@ -244,6 +275,8 @@ private:
     QMap<REGISTER_NAME, QString> mRegisterMapping;
     // contains viewport positions
     QMap<REGISTER_NAME, Register_Position> mRegisterPlaces;
+    // contains names of closest registers in view
+    QMap<REGISTER_NAME, Register_Relative_Position> mRegisterRelativePlaces;
     // contains a dump of the current register values
     REGDUMP wRegDumpStruct;
     REGDUMP wCipRegDumpStruct;

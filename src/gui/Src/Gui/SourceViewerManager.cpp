@@ -2,6 +2,7 @@
 #include "Bridge.h"
 #include <QFileInfo>
 #include <QDir>
+#include <QTimer>
 
 SourceViewerManager::SourceViewerManager(QWidget* parent) : QTabWidget(parent)
 {
@@ -27,11 +28,12 @@ void SourceViewerManager::loadSourceFile(QString path, duint addr)
         SourceView* curView = (SourceView*)this->widget(i);
         if(curView->getSourcePath().compare(path, Qt::CaseInsensitive) == 0) //file already loaded
         {
-            QWidget* now = QApplication::focusWidget();
             curView->setSelection(addr);
             setCurrentIndex(i); //show that loaded tab
-            if(now)
-                now->setFocus();
+            QTimer::singleShot(50, [curView]()
+            {
+                curView->setFocus();
+            });
             return;
         }
     }
@@ -49,16 +51,32 @@ void SourceViewerManager::loadSourceFile(QString path, duint addr)
     connect(newView, SIGNAL(showCpu()), this, SIGNAL(showCpu()));
     addTab(newView, title);
     setCurrentIndex(count() - 1);
+    // https://forum.qt.io/post/132664
+    // For some reason the viewport() in the AbstractTableView does not have the right size which means setSelection completely fails
+    QTimer::singleShot(50, [newView, addr]()
+    {
+        newView->setSelection(addr);
+        newView->setFocus();
+    });
 }
 
 void SourceViewerManager::closeTab(int index)
 {
+    auto sourceView = qobject_cast<SourceView*>(widget(index));
     removeTab(index);
+    if(sourceView)
+        sourceView->clear();
 }
 
 void SourceViewerManager::closeAllTabs()
 {
-    clear();
+    while(count())
+    {
+        auto sourceView = qobject_cast<SourceView*>(widget(0));
+        removeTab(0);
+        if(sourceView)
+            sourceView->clear();
+    }
 }
 
 void SourceViewerManager::dbgStateChanged(DBGSTATE state)

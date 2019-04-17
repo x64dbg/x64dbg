@@ -22,7 +22,6 @@ public slots:
     void followDumpSlot();
     void followDisassemblerSlot();
     void doubleClickedSlot();
-    void yaraSlot();
     void memoryExecuteSingleshootToggleSlot();
     void memoryAllocateSlot();
     void ExecCommand();
@@ -30,7 +29,6 @@ public slots:
     void switchView();
     void pageMemoryRights();
     void refreshMap();
-    void entropy();
     void findPatternSlot();
     void dumpMemory();
     void commentSlot();
@@ -49,7 +47,6 @@ private:
 
     QAction* mFollowDump;
     QAction* mFollowDisassembly;
-    QAction* mYara;
     QAction* mSwitchView;
     QAction* mPageMemoryRights;
     QAction* mDumpMemory;
@@ -69,7 +66,6 @@ private:
     QAction* mMemoryExecuteRestore;
     QAction* mMemoryRemove;
     QAction* mMemoryExecuteSingleshootToggle;
-    QAction* mEntropy;
     QAction* mFindPattern;
     QMenu* mGotoMenu;
     QAction* mGotoOrigin;
