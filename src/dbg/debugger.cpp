@@ -1343,13 +1343,13 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         // Parse the command line from the debuggee
         int argc = 0;
         wchar_t** argv = CommandLineToArgvW(StringUtils::Utf8ToUtf16(cmdline).c_str(), &argc);
-        LocalFree(argv);
 
         // Print the command line to the log
         dprintf_untranslated("  %s\n", cmdline);
         for(int i = 0; i < argc; i++)
             dprintf_untranslated("  argv[%i]: %s\n", i, StringUtils::Utf16ToUtf8(argv[i]).c_str());
 
+        LocalFree(argv);
         efree(cmdline);
     }
 
