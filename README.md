@@ -42,7 +42,7 @@ This is a community effort and we accept pull requests! See the [CONTRIBUTING](h
 
 ## Developers
 
-- [mrexodia](http://mrexodia.cf)
+- [mrexodia](https://github.com/mrexodia)
 - Sigma
 - [tr4ceflow](http://blog.tr4ceflow.com)
 - [Dreg](http://www.fr33project.org)
