@@ -169,7 +169,18 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 
             auto nameOffset = rva2offset(addressOfNames[i]);
             if(nameOffset) // Silent ignore (3) by ntdll loader: invalid names or addresses of names
-                Info.exports[index].name = String((const char*)(nameOffset + FileMapVA));
+            {
+                // Info.exports has excluded some invalid exports, so addressOfNameOrdinals[i] is not equal to
+                // the index of Info.exports. We need to iterate over Info.exports.
+                for(size_t j = 0; j < Info.exports.size(); j++)
+                {
+                    if(index + exportDir->Base == Info.exports[j].ordinal)
+                    {
+                        Info.exports[j].name = String((const char*)(nameOffset + FileMapVA));
+                        break;
+                    }
+                }
+            }
         }
     }
 
