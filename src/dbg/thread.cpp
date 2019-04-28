@@ -187,17 +187,28 @@ bool ThreadGetTeb(duint TEBAddress, TEB* Teb)
 
 int ThreadGetSuspendCount(HANDLE Thread)
 {
+    // Query the suspend count. This only works on Windows 8.1 and later
+    DWORD suspendCount;
+    if(NT_SUCCESS(NtQueryInformationThread(Thread, ThreadSuspendCount, &suspendCount, sizeof(suspendCount), nullptr)))
+    {
+        return suspendCount;
+    }
+
     //
     // Suspend a thread in order to get the previous suspension count
     // WARNING: This function is very bad (threads should not be randomly interrupted)
     //
-    int suspendCount = (int)SuspendThread(Thread);
 
-    if(suspendCount == -1)
-        return 0;
+    // Use NtSuspendThread, because there is no Win32 error for STATUS_SUSPEND_COUNT_EXCEEDED
+    NTSTATUS status = NtSuspendThread(Thread, &suspendCount);
+    if(status == STATUS_SUSPEND_COUNT_EXCEEDED)
+        suspendCount = MAXCHAR; // If the thread is already at the max suspend count, KeSuspendThread raises an exception and never returns the count
+    else if(!NT_SUCCESS(status))
+        suspendCount = 0;
 
     // Resume the thread's normal execution
-    ResumeThread(Thread);
+    if(NT_SUCCESS(status))
+        ResumeThread(Thread);
 
     return suspendCount;
 }
