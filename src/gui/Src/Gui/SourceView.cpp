@@ -6,6 +6,7 @@
 #include <QInputDialog>
 #include <memory>
 #include "FileLines.h"
+#include "Bridge.h"
 
 SourceView::SourceView(QString path, duint addr, QWidget* parent)
     : AbstractStdTable(parent),
@@ -28,6 +29,7 @@ SourceView::SourceView(QString path, duint addr, QWidget* parent)
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
     connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(followDisassemblerSlot()));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisassemblerSlot()));
+    connect(Bridge::getBridge(), SIGNAL(updateDisassembly()), this, SLOT(reloadData()));
 
     Initialize();
 
