@@ -120,7 +120,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_UPDATE_DISASSEMBLY_VIEW:
-        emit repaintGui();
+        emit updateDisassembly();
         break;
 
     case GUI_UPDATE_BREAKPOINTS_VIEW:

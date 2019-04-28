@@ -45,7 +45,6 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     connect(ui->chkCRLF, SIGNAL(clicked()), this, SLOT(on_stringEditor_textChanged()));
 
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
-    connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(updateStyle()));
 
     updateStyle();
     updateCodepage();

@@ -49,7 +49,7 @@ public:
 
 signals:
     void disassembleAt(dsint va, dsint eip);
-    void repaintGui();
+    void updateDisassembly();
     void dbgStateChanged(DBGSTATE state);
     void addMsgToLog(QByteArray msg);
     void clearLog();

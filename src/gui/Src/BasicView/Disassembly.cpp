@@ -60,7 +60,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
     mXrefInfo.refcount = 0;
 
     // Slots
-    connect(Bridge::getBridge(), SIGNAL(repaintGui()), this, SLOT(reloadData()));
+    connect(Bridge::getBridge(), SIGNAL(updateDisassembly()), this, SLOT(reloadData()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(this, SIGNAL(selectionChanged(dsint)), this, SLOT(selectionChangedSlot(dsint)));
     connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerConfigUpdatedSlot()));
