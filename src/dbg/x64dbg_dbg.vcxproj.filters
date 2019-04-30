@@ -886,9 +886,6 @@
     <ClInclude Include="pdbdiafile.h">
       <Filter>Header Files\Symbols</Filter>
     </ClInclude>
-    <ClInclude Include="sortedlru.h">
-      <Filter>Header Files\Symbols</Filter>
-    </ClInclude>
     <ClInclude Include="symbolsourcedia.h">
       <Filter>Header Files\Symbols</Filter>
     </ClInclude>

@@ -236,7 +236,6 @@
     <ClInclude Include="plugin_loader.h" />
     <ClInclude Include="reference.h" />
     <ClInclude Include="serializablemap.h" />
-    <ClInclude Include="sortedlru.h" />
     <ClInclude Include="symbolsourcebase.h" />
     <ClInclude Include="symbolsourcedia.h" />
     <ClInclude Include="symbolundecorator.h" />

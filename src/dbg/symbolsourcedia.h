@@ -5,7 +5,6 @@
 
 #include "pdbdiafile.h"
 #include "symbolsourcebase.h"
-#include "sortedlru.h"
 
 #include <thread>
 #include <atomic>
