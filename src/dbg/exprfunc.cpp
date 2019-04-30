@@ -284,6 +284,12 @@ namespace Exprfunc
         return readStart + disasmback(disasmData, 0, sizeof(disasmData), addr - readStart, 1);
     }
 
+    duint disiscallsystem(duint addr)
+    {
+        duint dest = disbranchdest(addr);
+        return dest && (modsystem(dest) || modsystem(disbranchdest(dest)));
+    }
+
     duint trenabled(duint addr)
     {
         return TraceRecord.getTraceRecordType(addr) != TraceRecordManager::TraceRecordNone;

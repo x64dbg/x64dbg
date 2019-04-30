@@ -47,6 +47,7 @@ namespace Exprfunc
     duint disbrfalse(duint addr);
     duint disnext(duint addr);
     duint disprev(duint addr);
+    duint disiscallsystem(duint addr);
 
     duint trenabled(duint addr);
     duint trhitcount(duint addr);
