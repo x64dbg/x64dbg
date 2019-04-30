@@ -67,6 +67,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("mod.rva", modrva);
     RegisterEasy("mod.offset,mod.fileoffset", valvatofileoffset);
     RegisterEasy("mod.headerva", modheaderva);
+    RegisterEasy("mod.isexport", modisexport);
 
     //Process information
     RegisterEasy("peb,PEB", peb);

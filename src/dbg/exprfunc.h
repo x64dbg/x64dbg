@@ -12,6 +12,7 @@ namespace Exprfunc
     duint moduser(duint addr);
     duint modrva(duint addr);
     duint modheaderva(duint addr);
+    duint modisexport(duint addr);
 
     duint disasmsel();
     duint dumpsel();

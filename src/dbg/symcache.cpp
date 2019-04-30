@@ -29,20 +29,14 @@ bool SymbolFromAddressExact(duint address, SymbolInfo & symInfo)
         }
 
         // search in module exports
-        if(modInfo->exports.size())
         {
-            auto found = std::lower_bound(modInfo->exportsByRva.begin(), modInfo->exportsByRva.end(), rva, [&modInfo](size_t index, duint rva)
+            auto modExport = modInfo->findExport(rva);
+            if(modExport)
             {
-                return modInfo->exports.at(index).rva < rva;
-            });
-            found = found != modInfo->exportsByRva.end() && rva >= modInfo->exports.at(*found).rva ? found : modInfo->exportsByRva.end();
-            if(found != modInfo->exportsByRva.end())
-            {
-                auto & modExport = modInfo->exports.at(*found);
-                symInfo.rva = modExport.rva;
+                symInfo.rva = modExport->rva;
                 symInfo.size = 0;
                 symInfo.disp = 0;
-                symInfo.decoratedName = modExport.name;
+                symInfo.decoratedName = modExport->name;
                 symInfo.publicSymbol = true;
                 return true;
             }

@@ -132,6 +132,7 @@ struct MODINFO
     bool loadSymbols();
     void unloadSymbols();
     void unmapFile();
+    const MODEXPORT* findExport(duint rva) const;
 };
 
 bool ModLoad(duint Base, duint Size, const char* FullPath);

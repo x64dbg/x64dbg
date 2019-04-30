@@ -679,7 +679,7 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
     Info.entrySymbol.name = "OptionalHeader.AddressOfEntryPoint";
     Info.entrySymbol.forwarded = false;
     Info.entrySymbol.ordinal = 0;
-    Info.entrySymbol.rva = moduleOEP;
+    Info.entrySymbol.rva = (DWORD)moduleOEP;
 
     // Enumerate all PE sections
     WORD sectionCount = Info.headers->FileHeader.NumberOfSections;
@@ -1265,6 +1265,21 @@ void MODINFO::unmapFile()
     // Unload the mapped file from memory
     if(fileMapVA)
         StaticFileUnloadW(StringUtils::Utf8ToUtf16(path).c_str(), false, fileHandle, loadedSize, fileMap, fileMapVA);
+}
+
+const MODEXPORT* MODINFO::findExport(duint rva) const
+{
+    if(exports.size())
+    {
+        auto found = std::lower_bound(exportsByRva.begin(), exportsByRva.end(), rva, [this](size_t index, duint rva)
+        {
+            return exports.at(index).rva < rva;
+        });
+        found = found != exportsByRva.end() && rva >= exports.at(*found).rva ? found : exportsByRva.end();
+        if(found != exportsByRva.end())
+            return &exports[*found];
+    }
+    return nullptr;
 }
 
 void MODIMPORT::convertToGuiSymbol(duint base, SYMBOLINFO* info) const

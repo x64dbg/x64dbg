@@ -61,6 +61,18 @@ namespace Exprfunc
             return 0;
     }
 
+    duint modisexport(duint addr)
+    {
+        SHARED_ACQUIRE(LockModules);
+        auto info = ModInfoFromAddr(addr);
+        if(info)
+        {
+            duint rva = addr - info->base;
+            return info->findExport(rva) ? 1 : 0;
+        }
+        return 0;
+    }
+
     static duint selstart(int hWindow)
     {
         SELECTIONDATA selection;
