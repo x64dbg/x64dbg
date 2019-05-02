@@ -30,6 +30,7 @@ public slots:
     void registerScriptType(SCRIPTTYPEINFO* info);
     void unregisterScriptType(int id);
     void scriptTypeChanged(int index);
+    void scriptTypeActivated(int index);
     void fontsUpdated();
 
 private:
