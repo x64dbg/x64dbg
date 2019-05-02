@@ -24,6 +24,26 @@ namespace Script
             char name[MAX_SECTION_SIZE * 5];
         };
 
+        struct ModuleExport
+        {
+            duint ordinal;
+            duint rva;
+            duint va;
+            bool forwarded;
+            char forwardName[MAX_STRING_SIZE];
+            char name[MAX_STRING_SIZE];
+            char undecoratedName[MAX_STRING_SIZE];
+        };
+
+        struct ModuleImport
+        {
+            duint iatRva;
+            duint iatVa;
+            duint ordinal; //equal to -1 if imported by name
+            char name[MAX_STRING_SIZE];
+            char undecoratedName[MAX_STRING_SIZE];
+        };
+
         SCRIPT_EXPORT bool InfoFromAddr(duint addr, ModuleInfo* info);
         SCRIPT_EXPORT bool InfoFromName(const char* name, ModuleInfo* info);
         SCRIPT_EXPORT duint BaseFromAddr(duint addr);
@@ -50,6 +70,8 @@ namespace Script
         SCRIPT_EXPORT bool GetMainModulePath(char* path); //path[MAX_PATH]
         SCRIPT_EXPORT bool GetMainModuleSectionList(ListOf(ModuleSectionInfo) list); //caller has the responsibility to free the list
         SCRIPT_EXPORT bool GetList(ListOf(ModuleInfo) list); //caller has the responsibility to free the list
+        SCRIPT_EXPORT bool GetExports(const ModuleInfo* mod, ListOf(ModuleExport) list); //caller has the responsibility to free the list
+        SCRIPT_EXPORT bool GetImports(const ModuleInfo* mod, ListOf(ModuleImport) list); //caller has the responsibility to free the list
     }; //Module
 }; //Script
 
