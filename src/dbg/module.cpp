@@ -158,7 +158,7 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         }
 
         DWORD index = addressOfNameOrdinals[i];
-        if(index < Info.exports.size()) // Silent ignore (2) by ntdll loader: bogus AddressOfNameOrdinals indices
+        if(index < exportDir->NumberOfFunctions) // Silent ignore (2) by ntdll loader: bogus AddressOfNameOrdinals indices
         {
             // Check if addressOfNames[i] is valid
             target = (ULONG_PTR)addressOfNames + i * sizeof(DWORD);
