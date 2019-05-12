@@ -22,6 +22,25 @@
     <widget class="QTableWidget" name="tblShortcuts"/>
    </item>
    <item>
+    <widget class="QGroupBox" name="filterBox">
+     <property name="title">
+      <string>Filter</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QLineEdit" name="filterEdit"/>
+      </item>
+      <item>
+       <widget class="QPushButton" name="bntClearFilter">
+        <property name="text">
+         <string>Clear</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>Shortcut</string>
