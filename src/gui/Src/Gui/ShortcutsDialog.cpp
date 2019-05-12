@@ -34,7 +34,6 @@ ShortcutsDialog::ShortcutsDialog(QWidget* parent) : QDialog(parent), ui(new Ui::
     connect(ui->tblShortcuts, SIGNAL(itemSelectionChanged()), this, SLOT(syncTextfield()));
     connect(ui->shortcutEdit, SIGNAL(askForSave()), this, SLOT(updateShortcut()));
     connect(this, SIGNAL(rejected()), this, SLOT(rejectedSlot()));
-    connect(ui->bntClearFilter, SIGNAL(released()), this, SLOT(on_btnClearFilter()));
     connect(ui->filterEdit, SIGNAL(textChanged(const QString &)), this, SLOT(on_FilterTextChanged(const QString &)));
 }
 
@@ -42,38 +41,30 @@ void ShortcutsDialog::showShortcutsFiltered(const QString & actionName)
 {
     QMap<QString, Configuration::Shortcut> shorcutsToShow;
     filterShortcutsByName(actionName, shorcutsToShow);
-    renderShortcuts(shorcutsToShow);
-}
-
-void ShortcutsDialog::filterShortcutsByName(const QString & nameFilter, QMap<QString, Configuration::Shortcut> & mapToFill)
-{
-    for(QMap<QString, Configuration::Shortcut>::iterator i = Config()->Shortcuts.begin();
-            i != Config()->Shortcuts.end();
-            ++i)
-    {
-        if(i.value().Name.contains(nameFilter, Qt::CaseInsensitive) || nameFilter == QString())
-        {
-            mapToFill.insert(i.value().Name, i.value());
-        }
-    }
-}
-
-void ShortcutsDialog::renderShortcuts(QMap<QString, Configuration::Shortcut> & shortcuts)
-{
     ui->tblShortcuts->clearContents();
-    ui->tblShortcuts->setRowCount(shortcuts.count());
+    ui->tblShortcuts->setRowCount(shorcutsToShow.count());
     currentRow = 0;
 
     int row = 0;
-    for(QMap<QString, Configuration::Shortcut>::const_iterator it = shortcuts.begin(); it != shortcuts.end();
-            ++it, row++)
+    for(auto shortcut : shorcutsToShow)
     {
-        QTableWidgetItem* shortcutName = new QTableWidgetItem(it.value().Name);
-        QTableWidgetItem* shortcutKey = new QTableWidgetItem(it.value().Hotkey.toString(QKeySequence::NativeText));
+        QTableWidgetItem* shortcutName = new QTableWidgetItem(shortcut.Name);
+        QTableWidgetItem* shortcutKey = new QTableWidgetItem(shortcut.Hotkey.toString(QKeySequence::NativeText));
         ui->tblShortcuts->setItem(row, 0, shortcutName);
         ui->tblShortcuts->setItem(row, 1, shortcutKey);
+        row++;
     }
-    ui->tblShortcuts->setSortingEnabled(true);
+    ui->tblShortcuts->setSortingEnabled(true);}
+
+void ShortcutsDialog::filterShortcutsByName(const QString & nameFilter, QMap<QString, Configuration::Shortcut> & mapToFill)
+{
+    for(auto shortcut : Config()->Shortcuts)
+    {
+        if(shortcut.Name.contains(nameFilter, Qt::CaseInsensitive) || nameFilter == QString())
+        {
+            mapToFill.insert(shortcut.Name, shortcut);
+        }
+    }
 }
 
 void ShortcutsDialog::updateShortcut()
@@ -163,11 +154,11 @@ void ShortcutsDialog::syncTextfield()
     if(indexes.count() < 1)
         return;
     currentRow = indexes.at(0).row();
-    for(QMap<QString, Configuration::Shortcut>::iterator i = Config()->Shortcuts.begin(); i != Config()->Shortcuts.end(); ++i)
+    for(auto shortcut : Config()->Shortcuts)
     {
-        if(i.value().Name == ui->tblShortcuts->item(currentRow, 0)->text())
+        if(shortcut.Name == ui->tblShortcuts->item(currentRow, 0)->text())
         {
-            currentShortcut = i.value();
+            currentShortcut = shortcut;
             break;
         }
     }
@@ -190,12 +181,6 @@ void ShortcutsDialog::on_btnSave_clicked()
 void ShortcutsDialog::rejectedSlot()
 {
     Config()->readShortcuts();
-}
-
-void ShortcutsDialog::on_btnClearFilter()
-{
-    ui->filterEdit->clear();
-    showShortcutsFiltered(QString());
 }
 
 void ShortcutsDialog::on_FilterTextChanged(const QString & actionName)
