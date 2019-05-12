@@ -41,12 +41,13 @@ private:
     QString getInfoLine(int line);
     void clear();
     void setupContextMenu();
-
+    void setupShortcuts();
     XrefBrowseDialog* mXrefDlg = nullptr;
 
     QAction* mCopyAddressAction;
     QAction* mCopyRvaAction;
     QAction* mCopyOffsetAction;
+    QAction* mCopyLineAction;
 };
 
 #endif // INFOBOX_H

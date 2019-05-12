@@ -39,6 +39,8 @@ void CPUInfoBox::setupContextMenu()
     mCopyAddressAction = makeAction(tr("Address"), SLOT(copyAddress()));
     mCopyRvaAction = makeAction(tr("RVA"), SLOT(copyRva()));
     mCopyOffsetAction = makeAction(tr("File Offset"), SLOT(copyOffset()));
+    mCopyLineAction = makeAction(tr("Copy Line"), SLOT(copyLineSlot()));
+    setupShortcuts();
 }
 
 int CPUInfoBox::getHeight()
@@ -689,4 +691,10 @@ void CPUInfoBox::copyOffset()
 void CPUInfoBox::doubleClickedSlot()
 {
     followInDump(curAddr);
+}
+
+void CPUInfoBox::setupShortcuts()
+{
+    mCopyLineAction->setShortcut(ConfigShortcut("ActionCopyLine"));
+    addAction(mCopyLineAction);
 }
