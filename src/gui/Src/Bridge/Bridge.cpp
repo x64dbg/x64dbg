@@ -18,6 +18,7 @@ static Bridge* mBridge;
 Bridge::Bridge(QObject* parent) : QObject(parent)
 {
     InitializeCriticalSection(&csBridge);
+    InitializeCriticalSection(&csSelection);
     hResultEvent = CreateEventW(nullptr, true, true, nullptr);;
     dwMainThreadId = GetCurrentThreadId();
 }
@@ -25,6 +26,8 @@ Bridge::Bridge(QObject* parent) : QObject(parent)
 Bridge::~Bridge()
 {
     CloseHandle(hResultEvent);
+    EnterCriticalSection(&csSelection);
+    DeleteCriticalSection(&csSelection);
     EnterCriticalSection(&csBridge);
     DeleteCriticalSection(&csBridge);
 }
@@ -81,6 +84,26 @@ void Bridge::emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hPar
 void Bridge::setDbgStopped()
 {
     dbgStopped = true;
+}
+
+void Bridge::selectionSet(int window, const SELECTIONDATA & data)
+{
+    if(window >= 0 && window < _countof(mSelections))
+    {
+        EnterCriticalSection(&csSelection);
+        memcpy(&mSelections[window], &data, sizeof(SELECTIONDATA));
+        LeaveCriticalSection(&csSelection);
+    }
+}
+
+void Bridge::selectionGet(int window, SELECTIONDATA & data)
+{
+    if(window >= 0 && window < _countof(mSelections))
+    {
+        EnterCriticalSection(&csSelection);
+        memcpy(&data, &mSelections[window], sizeof(SELECTIONDATA));
+        LeaveCriticalSection(&csSelection);
+    }
 }
 
 /************************************************************************************
@@ -375,31 +398,38 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         SELECTIONDATA* selection = (SELECTIONDATA*)param2;
         if(!DbgIsDebugging())
             return (void*)false;
-        BridgeResult result;
-        switch(hWindow)
+        if(hWindow == GUI_DISASSEMBLY)
         {
-        case GUI_DISASSEMBLY:
-            emit selectionDisasmGet(selection);
-            break;
-        case GUI_DUMP:
-            emit selectionDumpGet(selection);
-            break;
-        case GUI_STACK:
-            emit selectionStackGet(selection);
-            break;
-        case GUI_GRAPH:
-            emit selectionGraphGet(selection);
-            break;
-        case GUI_MEMMAP:
-            emit selectionMemmapGet(selection);
-            break;
-        case GUI_SYMMOD:
-            emit selectionSymmodGet(selection);
-            break;
-        default:
-            return (void*)false;
+            selectionGet(hWindow, *selection);
         }
-        result.Wait();
+        else
+        {
+            BridgeResult result;
+            switch(hWindow)
+            {
+            case GUI_DISASSEMBLY:
+                emit selectionDisasmGet(selection);
+                break;
+            case GUI_DUMP:
+                emit selectionDumpGet(selection);
+                break;
+            case GUI_STACK:
+                emit selectionStackGet(selection);
+                break;
+            case GUI_GRAPH:
+                emit selectionGraphGet(selection);
+                break;
+            case GUI_MEMMAP:
+                emit selectionMemmapGet(selection);
+                break;
+            case GUI_SYMMOD:
+                emit selectionSymmodGet(selection);
+                break;
+            default:
+                return (void*)false;
+            }
+            result.Wait();
+        }
         if(selection->start > selection->end) //swap start and end
         {
             dsint temp = selection->end;

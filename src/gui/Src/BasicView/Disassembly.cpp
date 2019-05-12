@@ -1436,10 +1436,12 @@ void Disassembly::expandSelectionUpTo(dsint to)
     if(to < mSelection.firstSelectedIndex)
     {
         mSelection.fromIndex = to;
+        emit selectionChanged(mSelection.fromIndex);
     }
     else if(to > mSelection.firstSelectedIndex)
     {
         mSelection.toIndex = to;
+        emit selectionChanged(mSelection.fromIndex);
     }
     else if(to == mSelection.firstSelectedIndex)
     {
@@ -1484,6 +1486,11 @@ void Disassembly::selectionChangedSlot(dsint Va)
     }
     if(DbgIsDebugging())
         DbgXrefGet(Va, &mXrefInfo);
+
+    SELECTIONDATA sel;
+    sel.start = rvaToVa(mSelection.fromIndex);
+    sel.end = rvaToVa(mSelection.toIndex);
+    Bridge::getBridge()->selectionSet(GUI_DISASSEMBLY, sel);
 }
 
 void Disassembly::selectNext(bool expand)

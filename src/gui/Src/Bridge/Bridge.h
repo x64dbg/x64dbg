@@ -47,6 +47,10 @@ public:
     duint mLastCip = 0;
     SymbolView* symbolView = nullptr;
 
+    //Selection helpers
+    void selectionSet(int window, const SELECTIONDATA & data);
+    void selectionGet(int window, SELECTIONDATA & data);
+
 signals:
     void disassembleAt(dsint va, dsint eip);
     void updateDisassembly();
@@ -169,6 +173,8 @@ private:
     DWORD dwMainThreadId = 0;
     dsint bridgeResult = 0;
     volatile bool dbgStopped = false;
+    CRITICAL_SECTION csSelection;
+    SELECTIONDATA mSelections[GUI_SYMMOD + 1];
 };
 
 void DbgCmdExec(const QString & cmd);

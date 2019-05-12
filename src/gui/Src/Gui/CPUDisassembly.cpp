@@ -41,7 +41,7 @@ CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAt(dsint, dsint)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
-    connect(this, SIGNAL(selectionExpanded()), this, SLOT(selectionUpdatedSlot()));
+    connect(this, SIGNAL(selectionExpanded()), this, SLOT(selectionExpandedSlot()));
     connect(Bridge::getBridge(), SIGNAL(displayWarning(QString, QString)), this, SLOT(displayWarningSlot(QString, QString)));
     connect(Bridge::getBridge(), SIGNAL(focusDisasm()), this, SLOT(setFocus()));
 
@@ -1297,7 +1297,7 @@ void CPUDisassembly::selectionSetSlot(const SELECTIONDATA* selection)
     Bridge::getBridge()->setResult(1);
 }
 
-void CPUDisassembly::selectionUpdatedSlot()
+void CPUDisassembly::selectionExpandedSlot()
 {
     QString selStart = ToPtrString(rvaToVa(getSelectionStart()));
     QString selEnd = ToPtrString(rvaToVa(getSelectionEnd()));
