@@ -4,7 +4,10 @@
 #include <string>
 #include <shlwapi.h>
 #include <objbase.h>
+#pragma warning(push)
+#pragma warning(disable:4091)
 #include <shlobj.h>
+#pragma warning(pop)
 #include <atlcomcli.h>
 
 #include "../exe/resource.h"
