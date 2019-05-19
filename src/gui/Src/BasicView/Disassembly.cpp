@@ -454,7 +454,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 
         //draw bytes
         auto richBytes = getRichBytes(instr);
-        RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, richBytes, mFontMetrics);
+        RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, richBytes, mFontMetrics, mHasFocus);
     }
     break;
 
@@ -500,7 +500,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         else
             ZydisTokenizer::TokenToRichText(token, richText, 0);
         int xinc = 4;
-        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), xinc, richText, mFontMetrics);
+        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), xinc, richText, mFontMetrics, mHasFocus);
         token.x = x + loopsize + xinc;
     }
     break;

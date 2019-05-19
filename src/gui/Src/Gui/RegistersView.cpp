@@ -1762,6 +1762,9 @@ void RegistersView::paintEvent(QPaintEvent* event)
         // Paint register at given position
         drawRegister(&wPainter, itr.key(), registerValue(&wRegDumpStruct, itr.key()));
     }
+
+    if(!mHasFocus)
+        wPainter.fillRect(QRect(0, 0, viewport()->width(), viewport()->height()), QBrush(QColor(255, 255, 255, 80)));
 }
 
 void RegistersView::keyPressEvent(QKeyEvent* event)
@@ -1799,6 +1802,18 @@ void RegistersView::keyPressEvent(QKeyEvent* event)
         }
     }
     QScrollArea::keyPressEvent(event);
+}
+
+void RegistersView::focusInEvent(QFocusEvent* event)
+{
+    mHasFocus = true;
+    reload();
+}
+
+void RegistersView::focusOutEvent(QFocusEvent* event)
+{
+    mHasFocus = false;
+    reload();
 }
 
 QSize RegistersView::sizeHint() const

@@ -168,11 +168,13 @@ signals:
 
 protected:
     // events
-    virtual void mousePressEvent(QMouseEvent* event);
-    virtual void mouseDoubleClickEvent(QMouseEvent* event);
-    virtual void mouseMoveEvent(QMouseEvent* event);
-    virtual void paintEvent(QPaintEvent* event);
-    virtual void keyPressEvent(QKeyEvent* event);
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void paintEvent(QPaintEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
+    void focusInEvent(QFocusEvent* event) override;
+    void focusOutEvent(QFocusEvent* event) override;
 
     // use-in-class-only methods
     void drawRegister(QPainter* p, REGISTER_NAME reg, char* value);
@@ -236,6 +238,7 @@ private:
     QPushButton* mChangeViewButton;
     CPUWidget* mParent;
     bool mShowFpu;
+    bool mHasFocus = false;
     int mVScrollOffset;
     int mRowsNeeded;
     int yTopSpacing;

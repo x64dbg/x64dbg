@@ -641,7 +641,7 @@ QString HexDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, i
 
     RichTextPainter::List richText;
     getColumnRichText(col, wRva, richText);
-    RichTextPainter::paintRichText(painter, x, y, w, h, 4, richText, mFontMetrics);
+    RichTextPainter::paintRichText(painter, x, y, w, h, 4, richText, mFontMetrics, mHasFocus);
 
     return QString();
 }

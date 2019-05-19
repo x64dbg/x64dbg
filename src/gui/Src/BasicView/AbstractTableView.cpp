@@ -330,6 +330,9 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
         y = getHeaderHeight();
         x += getColumnWidth(j);
     }
+
+    if(!mHasFocus)
+        wPainter.fillRect(QRect(0, 0, viewport()->width(), viewport()->height()), QBrush(QColor(255, 255, 255, 80)));
     //emit repainted();
 }
 
@@ -1307,4 +1310,16 @@ void AbstractTableView::hideEvent(QHideEvent* event)
 {
     ShowDisassemblyPopup(0, 0, 0);
     QAbstractScrollArea::hideEvent(event);
+}
+
+void AbstractTableView::focusInEvent(QFocusEvent* event)
+{
+    mHasFocus = true;
+    updateViewport();
+}
+
+void AbstractTableView::focusOutEvent(QFocusEvent* event)
+{
+    mHasFocus = false;
+    updateViewport();
 }

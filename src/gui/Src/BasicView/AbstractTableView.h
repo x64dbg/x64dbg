@@ -67,6 +67,8 @@ public:
     void keyPressEvent(QKeyEvent* event) override;
     void leaveEvent(QEvent* event) override;
     void hideEvent(QHideEvent* event) override;
+    void focusInEvent(QFocusEvent* event) override;
+    void focusOutEvent(QFocusEvent* event) override;
 
     // ScrollBar Management
     virtual dsint sliderMovedHook(int type, dsint value, dsint delta);
@@ -219,6 +221,7 @@ protected:
     QColor mHeaderTextColor;
     QColor mSelectionColor;
     QString mViewName;
+    bool mHasFocus = false;
 
     // Font metrics
     CachedFontMetrics* mFontMetrics;
