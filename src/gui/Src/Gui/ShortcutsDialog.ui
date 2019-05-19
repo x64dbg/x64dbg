@@ -21,7 +21,7 @@
    <item>
     <widget class="QLineEdit" name="filterEdit">
      <property name="placeholderText">
-      <string>Instruction name filter</string>
+      <string>Action filter</string>
      </property>
     </widget>
    </item>

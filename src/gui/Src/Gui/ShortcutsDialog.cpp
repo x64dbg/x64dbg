@@ -12,7 +12,7 @@ ShortcutsDialog::ShortcutsDialog(QWidget* parent) : QDialog(parent), ui(new Ui::
 
     // x64 has no model-view-controler pattern
     QStringList tblHeader;
-    tblHeader << tr("Instruction") << tr("Shortcut");
+    tblHeader << tr("Action") << tr("Shortcut");
 
     currentRow = 0;
 
@@ -54,7 +54,8 @@ void ShortcutsDialog::showShortcutsFiltered(const QString & actionName)
         ui->tblShortcuts->setItem(row, 1, shortcutKey);
         row++;
     }
-    ui->tblShortcuts->setSortingEnabled(true);}
+    ui->tblShortcuts->setSortingEnabled(true);
+}
 
 void ShortcutsDialog::filterShortcutsByName(const QString & nameFilter, QMap<QString, Configuration::Shortcut> & mapToFill)
 {
