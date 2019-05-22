@@ -44,7 +44,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
 
         // Assume the entire range is used
         scanStart = regionBase;
-        scanSize = regionSize;
+        scanSize  = regionSize;
 
         // Otherwise use custom boundaries if size was supplied
         if(Size)
@@ -53,7 +53,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
 
             // Make sure the size fits in one page
             scanStart = Address;
-            scanSize = min(Size, maxsize);
+            scanSize  = min(Size, maxsize);
         }
 
         // Determine the full module name
@@ -95,7 +95,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         SHARED_RELEASE();
 
         scanStart = modBase;
-        scanSize = modSize;
+        scanSize  = modSize;
 
         // Determine the full module name
         if(ModNameFromAddr(scanStart, moduleName, true))
@@ -160,7 +160,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         for(duint i = 0; i < modList.size(); i++)
         {
             scanStart = modList[i].base;
-            scanSize = modList[i].size;
+            scanSize  = modList[i].size;
 
             if(i != 0)
                 initCallBack = false;
@@ -219,7 +219,7 @@ int RefFindRegExp(duint Address, duint Size, CBREF Callback, void* UserData, boo
 
         // Assume the entire range is used
         scanStart = regionBase;
-        scanSize = regionSize;
+        scanSize  = regionSize;
 
         // Otherwise use custom boundaries if size was supplied
         if(Size)
@@ -228,7 +228,7 @@ int RefFindRegExp(duint Address, duint Size, CBREF Callback, void* UserData, boo
 
             // Make sure the size fits in one page
             scanStart = Address;
-            scanSize = min(Size, maxsize);
+            scanSize  = min(Size, maxsize);
         }
 
         // Determine the full module name
@@ -270,7 +270,7 @@ int RefFindRegExp(duint Address, duint Size, CBREF Callback, void* UserData, boo
         SHARED_RELEASE();
 
         scanStart = modBase;
-        scanSize = modSize;
+        scanSize  = modSize;
 
         // Determine the full module name
         if(ModNameFromAddr(scanStart, moduleName, true))
@@ -335,7 +335,7 @@ int RefFindRegExp(duint Address, duint Size, CBREF Callback, void* UserData, boo
         for(duint i = 0; i < modList.size(); i++)
         {
             scanStart = modList[i].base;
-            scanSize = modList[i].size;
+            scanSize  = modList[i].size;
 
             if(i != 0)
                 initCallBack = false;
