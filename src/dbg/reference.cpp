@@ -28,7 +28,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
     duint scanStart, scanSize;
     REFINFO refInfo;
 
-    if(type == CURRENT_REGION)  // Search in current Region
+    if(type == CURRENT_REGION) // Search in current Region
     {
         duint regionSize = 0;
         duint regionBase = MemFindBaseAddr(Address, &regionSize, true);
@@ -76,7 +76,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             GuiReferenceSetProgress(percent);
         }, disasmText);
     }
-    else if(type == CURRENT_MODULE)  // Search in current Module
+    else if(type == CURRENT_MODULE) // Search in current Module
     {
         SHARED_ACQUIRE(LockModules);
         auto modInfo = ModInfoFromAddr(Address);
@@ -117,7 +117,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             GuiReferenceSetProgress(percent);
         }, disasmText);
     }
-    else if(type == ALL_MODULES)  // Search in all Modules
+    else if(type == ALL_MODULES) // Search in all Modules
     {
         bool initCallBack = true;
 
@@ -203,7 +203,7 @@ int RefFindRegExp(duint Address, duint Size, CBREF Callback, void* UserData, boo
     duint scanStart, scanSize;
     REFINFO refInfo;
 
-    if(type == CURRENT_REGION)  // Search in current Region
+    if(type == CURRENT_REGION) // Search in current Region
     {
         duint regionSize = 0;
         duint regionBase = MemFindBaseAddr(Address, &regionSize, true);
@@ -251,7 +251,7 @@ int RefFindRegExp(duint Address, duint Size, CBREF Callback, void* UserData, boo
             GuiReferenceSetProgress(percent);
         }, disasmText);
     }
-    else if(type == CURRENT_MODULE)  // Search in current Module
+    else if(type == CURRENT_MODULE) // Search in current Module
     {
         SHARED_ACQUIRE(LockModules);
         auto modInfo = ModInfoFromAddr(Address);
@@ -292,7 +292,7 @@ int RefFindRegExp(duint Address, duint Size, CBREF Callback, void* UserData, boo
             GuiReferenceSetProgress(percent);
         }, disasmText);
     }
-    else if(type == ALL_MODULES)  // Search in all Modules
+    else if(type == ALL_MODULES) // Search in all Modules
     {
         bool initCallBack = true;
 
