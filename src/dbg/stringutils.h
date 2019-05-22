@@ -5,6 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <iomanip>
+#include <regex>
 
 typedef std::string String;
 typedef std::wstring WString;
