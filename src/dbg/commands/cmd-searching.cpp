@@ -285,7 +285,7 @@ bool cbInstrFindAllMem(int argc, char* argv[])
 
 static bool cbFindAsm(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
 {
-    if(!disasm || !basicinfo) //initialize
+    if(!disasm || !basicinfo)  //initialize
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
@@ -295,7 +295,42 @@ static bool cbFindAsm(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO*
         return true;
     }
     const char* instruction = (const char*)refinfo->userinfo;
+    const char* search_pattern = basicinfo->instruction;
     bool found = !_stricmp(instruction, basicinfo->instruction);
+    if(found)
+    {
+        char addrText[20] = "";
+        sprintf_s(addrText, "%p", disasm->Address());
+        GuiReferenceSetRowCount(refinfo->refcount + 1);
+        GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
+        char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
+        if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
+        else
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
+    }
+    return found;
+}
+
+static bool cbFindAsmRegExp(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+{
+    if(!disasm || !basicinfo)  //initialize
+    {
+        GuiReferenceInitialize(refinfo->name);
+        GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+        GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceSetRowCount(0);
+        GuiReferenceReloadData();
+        return true;
+    }
+    std::regex* asmrex = (std::regex*)refinfo->userinfo;
+    std::string needle = std::string(basicinfo->instruction);
+    // MAKE REGEXP CAREFULLY: ASM code on GUI is different from basicinfo->instruction.
+    //dprintf(QT_TRANSLATE_NOOP("DBG", "%s"), needle.c_str());
+    std::smatch matches;
+
+    bool found = std::regex_search(needle, matches, *asmrex);
+    //bool found = !_stricmp(instruction, basicinfo->instruction);
     if(found)
     {
         char addrText[20] = "";
@@ -346,6 +381,39 @@ bool cbInstrFindAsm(int argc, char* argv[])
     char title[256] = "";
     sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Command: \"%s\"")), basicinfo.instruction);
     int found = RefFind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false, title, (REFFINDTYPE)refFindType, true);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u result(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
+    varset("$result", found, false);
+    return true;
+}
+
+bool cbInstrFindAsmRegExp(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+
+    duint addr = 0;
+    if(argc < 3 || !valfromstring(argv[2], &addr))
+        addr = GetContextDataEx(hActiveThread, UE_CIP);
+    duint size = 0;
+    if(argc >= 4)
+        if(!valfromstring(argv[3], &size))
+            size = 0;
+
+    duint refFindType = CURRENT_REGION;
+    if(argc >= 5 && valfromstring(argv[4], &refFindType, true))
+        if(refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
+            refFindType = CURRENT_REGION;
+
+    duint ticks = GetTickCount();
+    char title[256] = "";
+    sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Command: \"%s\"")), argv[1]);
+    std::string asmrexstr(argv[1]);
+    //std::string cmdline(argv[0]);
+    //asmrexstr = cmdline.substr(cmdline.find(" ") - 1, cmdline.length() - cmdline.find(" ") - 1);
+    //dprintf(QT_TRANSLATE_NOOP("DBG", "%s"), asmrexstr.c_str());
+    //asmrexstr = std::regex_replace(asmrexstr, std::regex("\\\\\\\\"), "\\");
+    std::regex asmrex(asmrexstr);
+    int found = RefFindRegExp(addr, size, cbFindAsmRegExp, (void*)&asmrex, false, title, (REFFINDTYPE)refFindType, true);
     dprintf(QT_TRANSLATE_NOOP("DBG", "%u result(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
     varset("$result", found, false);
     return true;
