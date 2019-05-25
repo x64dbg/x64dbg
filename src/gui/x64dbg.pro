@@ -183,7 +183,8 @@ SOURCES += \
     Src/Gui/MultiItemsSelectWindow.cpp \
     Src/BasicView/AbstractStdTable.cpp \
     Src/Gui/ZehSymbolTable.cpp \
-    Src/BasicView/StdSearchListView.cpp
+    Src/BasicView/StdSearchListView.cpp \
+    Src/Gui/EditBreakpointsDialog.cpp
 
 
 HEADERS += \
@@ -303,7 +304,8 @@ HEADERS += \
     Src/Gui/ZehSymbolTable.h \
     Src/BasicView/AbstractSearchList.h \
     Src/BasicView/StdSearchListView.h \
-    Src/Gui/FileLines.h
+    Src/Gui/FileLines.h \
+    Src/Gui/EditBreakpointsDialog.h
     
 
 FORMS += \
@@ -341,7 +343,8 @@ FORMS += \
     Src/Gui/SimpleTraceDialog.ui \
     Src/Gui/MessagesBreakpoints.ui \
     Src/Gui/AboutDialog.ui \
-    Src/Gui/ComboBoxDialog.ui
+    Src/Gui/ComboBoxDialog.ui \
+    Src/Gui/EditBreakpointsDialog.ui
 
 ##
 ## Libraries

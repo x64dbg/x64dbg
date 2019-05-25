@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EditBreakpointsDialog</class>
+ <widget class="QDialog" name="EditBreakpointsDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>506</width>
+    <height>223</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Edit breakpoint</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>6</number>
+   </property>
+   <property name="leftMargin">
+    <number>6</number>
+   </property>
+   <property name="topMargin">
+    <number>6</number>
+   </property>
+   <property name="rightMargin">
+    <number>6</number>
+   </property>
+   <property name="bottomMargin">
+    <number>6</number>
+   </property>
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <property name="horizontalSpacing">
+      <number>6</number>
+     </property>
+     <item row="1" column="0">
+      <widget class="QLabel" name="labelLogText">
+       <property name="text">
+        <string>&amp;Log Text:</string>
+       </property>
+       <property name="buddy">
+        <cstring>editLogText</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="labelBreakCondition">
+       <property name="text">
+        <string>&amp;Break Condition:</string>
+       </property>
+       <property name="buddy">
+        <cstring>editBreakCondition</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="editBreakCondition">
+       <property name="maxLength">
+        <number>255</number>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="editLogText">
+       <property name="maxLength">
+        <number>255</number>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QLineEdit" name="editName">
+       <property name="maxLength">
+        <number>255</number>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="editLogCondition">
+       <property name="maxLength">
+        <number>255</number>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="labelLogCondition">
+       <property name="text">
+        <string>Lo&amp;g Condition:</string>
+       </property>
+       <property name="buddy">
+        <cstring>editLogCondition</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="labelName">
+       <property name="text">
+        <string>&amp;Name:</string>
+       </property>
+       <property name="buddy">
+        <cstring>editName</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="labelCommandText">
+       <property name="text">
+        <string>&amp;Command Text:</string>
+       </property>
+       <property name="buddy">
+        <cstring>editCommandText</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="editCommandText">
+       <property name="maxLength">
+        <number>255</number>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QSpinBox" name="spinHitCount">
+       <property name="minimum">
+        <number>0</number>
+       </property>
+       <property name="maximum">
+        <number>2000000000</number>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="labelHitCount">
+       <property name="text">
+        <string>&amp;Hit Count:</string>
+       </property>
+       <property name="buddy">
+        <cstring>spinHitCount</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="labelCommandCondition">
+       <property name="text">
+        <string>C&amp;ommand Condition:</string>
+       </property>
+       <property name="buddy">
+        <cstring>editCommandCondition</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QLineEdit" name="editCommandCondition">
+       <property name="maxLength">
+        <number>255</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="layoutSaveCancel">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="checkBoxSingleshoot">
+       <property name="text">
+        <string>Singlesho&amp;ot</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="checkBoxSilent">
+       <property name="text">
+        <string>&amp;Silent</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="checkBoxFastResume">
+       <property name="text">
+        <string>&amp;Fast Resume</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonSave">
+       <property name="text">
+        <string>&amp;Save</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="buttonCancel">
+       <property name="text">
+        <string>C&amp;ancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>editBreakCondition</tabstop>
+  <tabstop>editLogText</tabstop>
+  <tabstop>editLogCondition</tabstop>
+  <tabstop>editCommandText</tabstop>
+  <tabstop>editCommandCondition</tabstop>
+  <tabstop>editName</tabstop>
+  <tabstop>spinHitCount</tabstop>
+  <tabstop>checkBoxSingleshoot</tabstop>
+  <tabstop>checkBoxSilent</tabstop>
+  <tabstop>checkBoxFastResume</tabstop>
+  <tabstop>buttonSave</tabstop>
+  <tabstop>buttonCancel</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonCancel</sender>
+   <signal>clicked()</signal>
+   <receiver>EditBreakpointsDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>397</x>
+     <y>442</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>462</x>
+     <y>441</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonSave</sender>
+   <signal>clicked()</signal>
+   <receiver>EditBreakpointsDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>279</x>
+     <y>435</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>321</x>
+     <y>442</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

@@ -29,6 +29,7 @@ private slots:
     void removeBreakpointSlot();
     void toggleBreakpointSlot();
     void editBreakpointSlot();
+    void editBreakpointsSlots();
     void resetHitCountBreakpointSlot();
     void enableAllBreakpointsSlot();
     void disableAllBreakpointsSlot();
