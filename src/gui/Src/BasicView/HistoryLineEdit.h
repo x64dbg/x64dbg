@@ -11,6 +11,7 @@ public:
     explicit HistoryLineEdit(QWidget* parent = 0);
     void keyPressEvent(QKeyEvent* event);
     void addLineToHistory(QString parLine);
+    QString getLineFromHistory();
     QString addHistoryClear();
     void setFocus();
     void loadSettings(QString sectionPrefix);
