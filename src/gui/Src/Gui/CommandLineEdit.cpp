@@ -113,10 +113,13 @@ void CommandLineEdit::execute()
     if(mCurrentScriptIndex == -1)
         return;
     GUISCRIPTEXECUTE exec = mScriptInfo[mCurrentScriptIndex].execute;
-    const QString & cmd = text();
+    QString & cmd = text();
 
     if(exec)
     {
+        if(cmd.trimmed().isEmpty())
+            cmd = getLineFromHistory();
+
         // Send this string directly to the user
         exec(cmd.toUtf8().constData());
     }
