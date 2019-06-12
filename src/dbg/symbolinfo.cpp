@@ -243,20 +243,8 @@ bool SymDownloadSymbol(duint Base, const char* SymbolStore)
             return false;
         }
 
-        // insert the downloaded symbol path in the beginning of the PDB load order
-        auto destPathUtf8 = StringUtils::Utf16ToUtf8(destinationPath);
-        for(auto it = info->pdbPaths.begin(); it != info->pdbPaths.end(); ++it)
-        {
-            if(*it == destPathUtf8)
-            {
-                info->pdbPaths.erase(it);
-                break;
-            }
-        }
-        info->pdbPaths.insert(info->pdbPaths.begin(), destPathUtf8);
-
         // trigger a symbol load
-        info->loadSymbols();
+        info->loadSymbols(StringUtils::Utf16ToUtf8(destinationPath), bForceLoadSymbols);
     }
 
     return true;

@@ -129,7 +129,7 @@ struct MODINFO
         GuiInvalidateSymbolSource(base);
     }
 
-    bool loadSymbols();
+    bool loadSymbols(const String & pdbPath, bool forceLoad);
     void unloadSymbols();
     void unmapFile();
     const MODEXPORT* findExport(duint rva) const;

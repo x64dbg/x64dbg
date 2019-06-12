@@ -513,7 +513,7 @@ String StringUtils::ToHex(unsigned long long value)
 
 #define HEXLOOKUP "0123456789ABCDEF"
 
-String StringUtils::ToHex(unsigned char* buffer, size_t size, bool reverse)
+String StringUtils::ToHex(const unsigned char* buffer, size_t size, bool reverse)
 {
     String result;
     result.resize(size * 2);
@@ -526,7 +526,7 @@ String StringUtils::ToHex(unsigned char* buffer, size_t size, bool reverse)
     return result;
 }
 
-String StringUtils::ToCompressedHex(unsigned char* buffer, size_t size)
+String StringUtils::ToCompressedHex(const unsigned char* buffer, size_t size)
 {
     if(!size)
         return "";
