@@ -133,6 +133,14 @@ void ExpressionFunctions::Init()
     RegisterEasy("arg.get,arg", argget);
     RegisterEasy("arg.set", argset);
 
+    //Exceptions
+    RegisterEasy("ex.firstchance", exfirstchance);
+    RegisterEasy("ex.addr", exaddr);
+    RegisterEasy("ex.code", excode);
+    RegisterEasy("ex.flags", exflags);
+    RegisterEasy("ex.infocount", exinfocount);
+    RegisterEasy("ex.info", exinfo);
+
     //Undocumented
     RegisterEasy("bpgoto", bpgoto);
 }
