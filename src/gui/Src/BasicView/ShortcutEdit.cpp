@@ -63,10 +63,6 @@ void ShortcutEdit::keyPressEvent(QKeyEvent* event)
         }
     }
 
-    // replace Backtab with Shift+Tab
-    if((keyInt & Qt::Key_Backtab) == Qt::Key_Backtab)
-        keyInt = (keyInt & ~Qt::Key_Backtab) | Qt::SHIFT | Qt::Key_Tab;
-
     // display key combination
     setText(QKeySequence(keyInt).toString(QKeySequence::NativeText));
     // do not forward keypress-event
