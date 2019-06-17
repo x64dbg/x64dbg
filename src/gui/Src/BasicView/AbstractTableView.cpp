@@ -140,6 +140,13 @@ void AbstractTableView::updateFonts()
     mHeader.height = mFontMetrics->height() + 4;
 }
 
+QColor AbstractTableView::getCellColor(int r, int c)
+{
+    Q_UNUSED(r);
+    Q_UNUSED(c);
+    return mTextColor;
+}
+
 void AbstractTableView::invalidateCachedFont()
 {
     delete mFontMetrics;
@@ -310,7 +317,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
 
                     if(wStr.length())
                     {
-                        wPainter.setPen(mTextColor);
+                        wPainter.setPen(getCellColor(mTableOffset + i, j));
                         wPainter.drawText(QRect(x + 4, y, getColumnWidth(j) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
                     }
                 }
