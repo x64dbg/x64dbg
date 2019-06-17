@@ -114,14 +114,12 @@ duint decodesimpledata(const unsigned char* buffer, ENCODETYPE type)
 
 struct DataInstruction
 {
-    ENCODETYPE type;
+    ENCODETYPE type = enc_unknown;
     String operand;
 };
 
 bool parsedatainstruction(const char* instruction, DataInstruction & di)
 {
-    di.type = enc_unknown;
-    di.operand.clear();
     String instStr = StringUtils::Trim(String(instruction));
     size_t pos = instStr.find_first_of(" \t");
     String opcode = instStr.substr(0, pos);

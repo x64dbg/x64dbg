@@ -457,7 +457,7 @@ namespace Exprfunc
 
     duint exinfo(duint index)
     {
-        if(index >= 16)
+        if(index >= EXCEPTION_MAXIMUM_PARAMETERS)
             return 0;
         return getLastExceptionInfo().ExceptionRecord.ExceptionInformation[index];
     }

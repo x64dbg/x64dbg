@@ -19,8 +19,8 @@ public:
     struct Query_t
     {
         std::function<bool(DiaSymbol_t &)> callback;
-        bool collectUndecoratedNames;
-        bool collectSize;
+        bool collectUndecoratedNames = false;
+        bool collectSize = false;
     };
 
 private:

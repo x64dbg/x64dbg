@@ -78,6 +78,7 @@ downslib_error downslib_download(const char* url,
 
     // Get HTTP content length
     char buffer[2048];
+    memset(buffer, 0, sizeof(buffer));
     DWORD dwLen = sizeof(buffer);
     unsigned long long total_bytes = 0;
     if(HttpQueryInfoA(hUrl, HTTP_QUERY_CONTENT_LENGTH, buffer, &dwLen, 0))

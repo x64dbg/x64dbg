@@ -40,16 +40,16 @@ typedef struct
 
 struct BridgeCFNode
 {
-    duint parentGraph; //function of which this node is a part
-    duint start; //start of the block
-    duint end; //end of the block (inclusive)
-    duint brtrue; //destination if condition is true
-    duint brfalse; //destination if condition is false
-    duint icount; //number of instructions in node
-    bool terminal; //node is a RET
-    bool split; //node is a split (brtrue points to the next node)
-    bool indirectcall; //node contains indirect calls (call reg, call [reg+X])
-    void* userdata; //user data
+    duint parentGraph = 0; //function of which this node is a part
+    duint start = 0; //start of the block
+    duint end = 0; //end of the block (inclusive)
+    duint brtrue = 0; //destination if condition is true
+    duint brfalse = 0; //destination if condition is false
+    duint icount = 0; //number of instructions in node
+    bool terminal = false; //node is a RET
+    bool split = false; //node is a split (brtrue points to the next node)
+    bool indirectcall = false; //node contains indirect calls (call reg, call [reg+X])
+    void* userdata = nullptr; //user data
     std::vector<duint> exits; //exits (including brtrue and brfalse)
     std::vector<BridgeCFInstruction> instrs; //block instructions
 
@@ -61,7 +61,9 @@ struct BridgeCFNode
             __debugbreak();
     }
 
-    explicit BridgeCFNode(const BridgeCFNodeList* nodeList, bool freedata)
+    BridgeCFNode() = default;
+
+    BridgeCFNode(const BridgeCFNodeList* nodeList, bool freedata)
     {
         if(!nodeList)
             __debugbreak();
@@ -81,30 +83,10 @@ struct BridgeCFNode
             __debugbreak();
     }
 
-    explicit BridgeCFNode(duint parentGraph, duint start, duint end)
+    BridgeCFNode(duint parentGraph, duint start, duint end)
         : parentGraph(parentGraph),
           start(start),
-          end(end),
-          brtrue(0),
-          brfalse(0),
-          icount(0),
-          terminal(false),
-          indirectcall(false),
-          split(false),
-          userdata(nullptr)
-    {
-    }
-
-    explicit BridgeCFNode()
-        : parentGraph(0),
-          start(0),
-          end(0),
-          brtrue(0),
-          brfalse(0),
-          icount(0),
-          terminal(false),
-          split(false),
-          userdata(nullptr)
+          end(end)
     {
     }
 

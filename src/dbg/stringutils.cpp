@@ -398,7 +398,7 @@ void StringUtils::ReplaceAll(WString & s, const WString & from, const WString & 
     }
 }
 
-String StringUtils::vsprintf(const char* format, va_list args)
+String StringUtils::vsprintf(_In_z_ _Printf_format_string_ const char* format, va_list args)
 {
     char sbuffer[64] = "";
     if(_vsnprintf_s(sbuffer, _TRUNCATE, format, args) != -1)
@@ -419,7 +419,7 @@ String StringUtils::vsprintf(const char* format, va_list args)
     return String(buffer.data());
 }
 
-String StringUtils::sprintf(_Printf_format_string_ const char* format, ...)
+String StringUtils::sprintf(_In_z_ _Printf_format_string_ const char* format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -428,7 +428,7 @@ String StringUtils::sprintf(_Printf_format_string_ const char* format, ...)
     return result;
 }
 
-WString StringUtils::vsprintf(const wchar_t* format, va_list args)
+WString StringUtils::vsprintf(_In_z_ _Printf_format_string_ const wchar_t* format, va_list args)
 {
     wchar_t sbuffer[64] = L"";
     if(_vsnwprintf_s(sbuffer, _TRUNCATE, format, args) != -1)
@@ -449,7 +449,7 @@ WString StringUtils::vsprintf(const wchar_t* format, va_list args)
     return WString(buffer.data());
 }
 
-WString StringUtils::sprintf(_Printf_format_string_ const wchar_t* format, ...)
+WString StringUtils::sprintf(_In_z_ _Printf_format_string_ const wchar_t* format, ...)
 {
     va_list args;
     va_start(args, format);

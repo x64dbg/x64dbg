@@ -15,12 +15,12 @@ struct SymbolInfoGui
 
 struct SymbolInfo : SymbolInfoGui
 {
-    duint rva;
-    duint size;
-    int32 disp;
+    duint rva = 0;
+    duint size = 0;
+    int32 disp = 0;
     String decoratedName;
     String undecoratedName;
-    bool publicSymbol;
+    bool publicSymbol = false;
 
     void convertToGuiSymbol(duint modbase, SYMBOLINFO* info) const override
     {
@@ -35,10 +35,10 @@ struct SymbolInfo : SymbolInfoGui
 
 struct LineInfo
 {
-    duint rva;
-    duint size;
-    duint disp;
-    int lineNumber;
+    duint rva = 0;
+    duint size = 0;
+    duint disp = 0;
+    int lineNumber = 0;
     String sourceFile;
 };
 

@@ -94,11 +94,11 @@ private:
     std::unordered_map<duint, TraceRecordPage> TraceRecord;
     std::vector<std::string> ModuleNames;
     unsigned int getModuleIndex(const String & moduleName);
-    unsigned int instructionCounter;
+    unsigned int instructionCounter = 0;
 
-    bool rtEnabled;
-    bool rtPrevInstAvailable;
-    HANDLE rtFile;
+    bool rtEnabled = false;
+    bool rtPrevInstAvailable = false;
+    HANDLE rtFile = nullptr;
 
     REGDUMPWORD rtOldContext;
     bool rtOldContextChanged[(FIELD_OFFSET(REGDUMP, lastError) + sizeof(DWORD)) / sizeof(duint)];

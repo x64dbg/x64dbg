@@ -17,7 +17,7 @@
 struct SYMBOLCBDATA
 {
     CBSYMBOLENUM cbSymbolEnum;
-    void* user;
+    void* user = nullptr;
     std::vector<char> decoratedSymbol;
     std::vector<char> undecoratedSymbol;
 };

@@ -23,18 +23,18 @@ struct VAR_VALUE
 {
     union
     {
-        duint value;
+        duint value = 0;
         std::vector<unsigned char>* data;
     } u;
-    VAR_VALUE_TYPE type;
-    int size;
+    VAR_VALUE_TYPE type = VAR_UINT;
+    int size = 0;
 };
 
 struct VAR
 {
     String name;
     String alias;
-    VAR_TYPE type;
+    VAR_TYPE type = VAR_SYSTEM;
     VAR_VALUE value;
 };
 

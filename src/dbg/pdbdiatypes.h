@@ -58,17 +58,17 @@ struct DiaValidationData_t
 
 struct DiaSymbol_t
 {
-    DiaSymbolType type;
-    uint64_t virtualAddress;
-    uint64_t size;
-    uint32_t offset;
-    uint32_t disp;
-    uint32_t segment;
-    DiaReachableType reachable;
-    DiaReturnableType returnable;
-    DiaCallingConvention convention;
-    bool perfectSize;
-    bool publicSymbol;
+    DiaSymbolType type = DiaSymbolType::ANY;
+    uint64_t virtualAddress = 0;
+    uint64_t size = 0;
+    uint32_t offset = 0;
+    uint32_t disp = 0;
+    uint32_t segment = 0;
+    DiaReachableType reachable = DiaReachableType::UNKNOWN;
+    DiaReturnableType returnable = DiaReturnableType::UNKNOWN;
+    DiaCallingConvention convention = DiaCallingConvention::UNKNOWN;
+    bool perfectSize = false;
+    bool publicSymbol = false;
     std::string name;
     std::string undecoratedName;
 };
