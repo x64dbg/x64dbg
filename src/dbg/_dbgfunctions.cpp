@@ -408,6 +408,24 @@ static int SymAutoComplete(const char* Search, char** Buffer, int MaxSymbols)
     return count;
 }
 
+MODULESYMBOLSTATUS _modsymbolstatus(duint base)
+{
+    SHARED_ACQUIRE(LockModules);
+    auto modInfo = ModInfoFromAddr(base);
+    if(!modInfo)
+        return MODSYMUNLOADED;
+    bool isOpen = modInfo->symbols->isOpen();
+    bool isLoading = modInfo->symbols->isLoading();
+    if(isOpen && !isLoading)
+        return MODSYMLOADED;
+    else if(isOpen && isLoading)
+        return MODSYMLOADING;
+    else if(!isOpen && symbolDownloadingBase == base)
+        return MODSYMLOADING;
+    else
+        return MODSYMUNLOADED;
+}
+
 static void _refreshmodulelist()
 {
     SymUpdateModuleList();
@@ -487,4 +505,5 @@ void dbgfunctionsinit()
     _dbgfunctions.SymAutoComplete = SymAutoComplete;
     _dbgfunctions.RefreshModuleList = _refreshmodulelist;
     _dbgfunctions.GetAddrFromLineEx = _getaddrfromlineex;
+    _dbgfunctions.ModSymbolStatus = _modsymbolstatus;
 }
