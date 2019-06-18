@@ -325,6 +325,7 @@ static void registercommands()
     dbgcmdnew("virtualmod", cbInstrVirtualmod, true); //virtual module
     dbgcmdnew("symdownload,downloadsym", cbDebugDownloadSymbol, true); //download symbols
     dbgcmdnew("symload,loadsym", cbDebugLoadSymbol, true); //load symbols
+    dbgcmdnew("symunload,unloadsym", cbDebugUnloadSymbol, true); //unload symbols
     dbgcmdnew("imageinfo,modimageinfo", cbInstrImageinfo, true); //print module image information
     dbgcmdnew("GetRelocSize,grs", cbInstrGetRelocSize, true); //get relocation table size
     dbgcmdnew("exhandlers", cbInstrExhandlers, true); //enumerate exception handlers

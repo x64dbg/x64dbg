@@ -226,6 +226,31 @@ bool cbDebugLoadSymbol(int argc, char* argv[])
     return true;
 }
 
+bool cbDebugUnloadSymbol(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    //get some module information
+    duint modbase = ModBaseFromName(argv[1]);
+    if(!modbase)
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid module \"%s\"!\n"), argv[1]);
+        return false;
+    }
+    EXCLUSIVE_ACQUIRE(LockModules);
+    auto info = ModInfoFromAddr(modbase);
+    if(!info)
+    {
+        // TODO: this really isn't supposed to happen, but could if the module is suddenly unloaded
+        dputs("module not found...");
+        return false;
+    }
+    info->unloadSymbols();
+    GuiRepaintTableView();
+    dputs(QT_TRANSLATE_NOOP("DBG", "Done!"));
+    return true;
+}
+
 bool cbInstrImageinfo(int argc, char* argv[])
 {
     duint address;
