@@ -240,8 +240,10 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("BreakpointSummaryParenColor", Qt::red);
     defaultColors.insert("BreakpointSummaryKeywordColor", QColor("#8B671F"));
     defaultColors.insert("BreakpointSummaryStringColor", QColor("#008000"));
-
     defaultColors.insert("PatchRelocatedByteHighlightColor", QColor("#0000DD"));
+    defaultColors.insert("SymbolUnloadedTextColor", QColor("#000000"));
+    defaultColors.insert("SymbolLoadingTextColor", QColor("#8B671F"));
+    defaultColors.insert("SymbolLoadedTextColor", QColor("#008000"));
 
     //bool settings
     QMap<QString, bool> disassemblyBool;
@@ -314,7 +316,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "TcpConnection", 3);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Privilege", 2);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "LocalVarsView", 3);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Module", 4);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Module", 5);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Symbol", 5);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SourceView", 4);
     guiUint.insert("SIMDRegistersDisplayMode", 0);
