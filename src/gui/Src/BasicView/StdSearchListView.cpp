@@ -1,46 +1,12 @@
 #include "StdSearchListView.h"
-#include "StdTable.h"
-
-class StdTableSearchList : public AbstractSearchList
-{
-public:
-    friend class StdSearchListView;
-
-    StdTableSearchList() : mList(new StdTable()), mSearchList(new StdTable()) { }
-    ~StdTableSearchList() {delete mList; delete mSearchList; }
-
-    void lock() override { }
-    void unlock() override { }
-    AbstractStdTable* list() const override { return mList; }
-    AbstractStdTable* searchList() const override { return mSearchList; }
-
-    void filter(const QString & filter, FilterType type, int startColumn) override
-    {
-        mSearchList->setRowCount(0);
-        int rows = mList->getRowCount();
-        int columns = mList->getColumnCount();
-        for(int i = 0, j = 0; i < rows; i++)
-        {
-            if(rowMatchesFilter(filter, type, i, startColumn))
-            {
-                mSearchList->setRowCount(j + 1);
-                for(int k = 0; k < columns; k++)
-                {
-                    mSearchList->setCellContent(j, k, mList->getCellContent(i, k));
-                    mSearchList->setCellUserdata(j, k, mList->getCellUserdata(i, k));
-                }
-                j++;
-            }
-        }
-    }
-
-private:
-    StdTable* mList;
-    StdTable* mSearchList;
-};
 
 StdSearchListView::StdSearchListView(QWidget* parent, bool enableRegex, bool enableLock)
-    : SearchListView(parent, mSearchListData = new StdTableSearchList(), enableRegex, enableLock)
+    : StdSearchListView(parent, enableRegex, enableLock, new StdTableSearchList())
+{
+}
+
+StdSearchListView::StdSearchListView(QWidget* parent, bool enableRegex, bool enableLock, StdTableSearchList* tableSearchList)
+    : SearchListView(parent, mSearchListData = tableSearchList, enableRegex, enableLock)
 {
     setAddressColumn(0);
 }

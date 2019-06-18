@@ -183,7 +183,8 @@ SOURCES += \
     Src/Gui/MultiItemsSelectWindow.cpp \
     Src/BasicView/AbstractStdTable.cpp \
     Src/Gui/ZehSymbolTable.cpp \
-    Src/BasicView/StdSearchListView.cpp
+    Src/BasicView/StdSearchListView.cpp \
+    Src/BasicView/StdTableSearchList.cpp
 
 
 HEADERS += \
@@ -303,7 +304,8 @@ HEADERS += \
     Src/Gui/ZehSymbolTable.h \
     Src/BasicView/AbstractSearchList.h \
     Src/BasicView/StdSearchListView.h \
-    Src/Gui/FileLines.h
+    Src/Gui/FileLines.h \
+    Src/BasicView/StdTableSearchList.h
     
 
 FORMS += \
