@@ -896,7 +896,7 @@ void pluginmenuentrysetvisible(int pluginHandle, int hEntry, bool visible)
     {
         if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
         {
-            GuiMenuSetEntryChecked(currentMenu.hEntryMenu, visible);
+            GuiMenuSetEntryVisible(currentMenu.hEntryMenu, visible);
             break;
         }
     }
