@@ -34,7 +34,6 @@
 #include "DebugStatusLabel.h"
 #include "LogStatusLabel.h"
 #include "SourceViewerManager.h"
-#include "SnowmanView.h"
 #include "HandlesView.h"
 #include "MainWindowCloseThread.h"
 #include "TimeWastedCounter.h"
@@ -189,14 +188,6 @@ MainWindow::MainWindow(QWidget* parent)
     mThreadView->setWindowTitle(tr("Threads"));
     mThreadView->setWindowIcon(DIcon("arrow-threads.png"));
 
-    // Snowman view (decompiler)
-    mSnowmanView = CreateSnowman(this);
-    if(!mSnowmanView)
-        mSnowmanView = new QLabel("<center>Snowman is disabled...</center>", this);
-    mSnowmanView->setWindowTitle(tr("Snowman"));
-    mSnowmanView->setWindowIcon(DIcon("snowman.png"));
-    Bridge::getBridge()->snowmanView = mSnowmanView;
-
     // Notes manager
     mNotesManager = new NotesManager(this);
     mNotesManager->setWindowTitle(tr("Notes"));
@@ -234,7 +225,6 @@ MainWindow::MainWindow(QWidget* parent)
     mWidgetList.push_back(WidgetInfo(mSourceViewManager, "SourceTab"));
     mWidgetList.push_back(WidgetInfo(mReferenceManager, "ReferencesTab"));
     mWidgetList.push_back(WidgetInfo(mThreadView, "ThreadsTab"));
-    mWidgetList.push_back(WidgetInfo(mSnowmanView, "SnowmanTab"));
     mWidgetList.push_back(WidgetInfo(mHandlesView, "HandlesTab"));
     mWidgetList.push_back(WidgetInfo(mTraceBrowser, "TraceTab"));
 
@@ -322,7 +312,6 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionChangeCommandLine, SIGNAL(triggered()), this, SLOT(changeCommandLine()));
     connect(ui->actionManual, SIGNAL(triggered()), this, SLOT(displayManual()));
     connect(ui->actionNotes, SIGNAL(triggered()), this, SLOT(displayNotesWidget()));
-    connect(ui->actionSnowman, SIGNAL(triggered()), this, SLOT(displaySnowmanWidget()));
     connect(ui->actionHandles, SIGNAL(triggered()), this, SLOT(displayHandlesWidget()));
     connect(ui->actionGraph, SIGNAL(triggered()), this, SLOT(displayGraphWidget()));
     connect(ui->actionPreviousTab, SIGNAL(triggered()), this, SLOT(displayPreviousTab()));
@@ -345,13 +334,11 @@ MainWindow::MainWindow(QWidget* parent)
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
-    connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySnowmanWidget()), this, SLOT(displaySnowmanWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayGraphWidget()), this, SLOT(displayGraphWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySymbolsWidget()), this, SLOT(displaySymbolWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(showPatches()), this, SLOT(patchWindow()));
 
-    connect(mGraphView, SIGNAL(displaySnowmanWidget()), this, SLOT(displaySnowmanWidget()));
 
     connect(mCpuWidget->getDumpWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
 
@@ -520,7 +507,6 @@ void MainWindow::closeEvent(QCloseEvent* event)
     if(bExecuteThread)
     {
         bExecuteThread = false;
-        CloseSnowman(mSnowmanView);
         Sleep(100);
         mCloseThread->start();
         emit Bridge::getBridge()->close();
@@ -717,7 +703,6 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionBookmarks, ConfigShortcut("ViewBookmarks"));
     setGlobalShortcut(ui->actionFunctions, ConfigShortcut("ViewFunctions"));
     setGlobalShortcut(ui->actionVariables, ConfigShortcut("ViewVariables"));
-    setGlobalShortcut(ui->actionSnowman, ConfigShortcut("ViewSnowman"));
     setGlobalShortcut(ui->actionHandles, ConfigShortcut("ViewHandles"));
     setGlobalShortcut(ui->actionGraph, ConfigShortcut("ViewGraph"));
     setGlobalShortcut(ui->actionPreviousTab, ConfigShortcut("ViewPreviousTab"));
@@ -986,11 +971,6 @@ void MainWindow::displayReferencesWidget()
 void MainWindow::displayThreadsWidget()
 {
     showQWidgetTab(mThreadView);
-}
-
-void MainWindow::displaySnowmanWidget()
-{
-    showQWidgetTab(mSnowmanView);
 }
 
 void MainWindow::displayGraphWidget()

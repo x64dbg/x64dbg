@@ -69,7 +69,6 @@
     <addaction name="actionSource"/>
     <addaction name="actionReferences"/>
     <addaction name="actionThreads"/>
-    <addaction name="actionSnowman"/>
     <addaction name="actionHandles"/>
     <addaction name="actionGraph"/>
     <addaction name="actionTrace"/>
@@ -815,15 +814,6 @@
    </property>
    <property name="text">
     <string>Notes</string>
-   </property>
-  </action>
-  <action name="actionSnowman">
-   <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/snowman.png</normaloff>:/icons/images/snowman.png</iconset>
-   </property>
-   <property name="text">
-    <string>Snowman</string>
    </property>
   </action>
   <action name="actionHandles">

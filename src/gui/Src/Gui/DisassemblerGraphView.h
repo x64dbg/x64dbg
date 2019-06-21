@@ -257,9 +257,6 @@ public:
 
     VaHistory mHistory;
 
-signals:
-    void displaySnowmanWidget();
-
 public slots:
     void loadGraphSlot(BridgeCFGraphList* graph, duint addr);
     void graphAtSlot(duint addr);
@@ -285,7 +282,6 @@ public slots:
     void setCommentSlot();
     void setLabelSlot();
     void xrefSlot();
-    void decompileSlot();
     void fitToWindowSlot();
     void zoomToCursorSlot();
 

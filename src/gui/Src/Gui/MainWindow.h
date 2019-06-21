@@ -86,7 +86,6 @@ public slots:
     void displaySourceViewWidget();
     void displayReferencesWidget();
     void displayThreadsWidget();
-    void displaySnowmanWidget();
     void displayVariables();
     void displayGraphWidget();
     void displayRunTrace();
@@ -176,7 +175,6 @@ private:
     ThreadView* mThreadView;
     PatchDialog* mPatchDialog;
     CalculatorDialog* mCalculatorDialog;
-    QWidget* mSnowmanView;
     HandlesView* mHandlesView;
     NotesManager* mNotesManager;
     DisassemblerGraphView* mGraphView;

@@ -354,7 +354,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     tabOrderUint.insert("SourceTab", curTab++);
     tabOrderUint.insert("ReferencesTab", curTab++);
     tabOrderUint.insert("ThreadsTab", curTab++);
-    tabOrderUint.insert("SnowmanTab", curTab++);
+    curTab++; // removed SnowmanTab
     tabOrderUint.insert("HandlesTab", curTab++);
     tabOrderUint.insert("TraceTab", curTab++);
     defaultUints.insert("TabOrder", tabOrderUint);
@@ -398,7 +398,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ViewBookmarks", Shortcut({tr("View"), tr("Bookmarks")}, "Ctrl+Alt+B", true));
     defaultShortcuts.insert("ViewFunctions", Shortcut({tr("View"), tr("Functions")}, "Ctrl+Alt+F", true));
     defaultShortcuts.insert("ViewVariables", Shortcut({tr("View"), tr("Variables")}, "", true));
-    defaultShortcuts.insert("ViewSnowman", Shortcut({tr("View"), tr("Snowman")}, "", true));
     defaultShortcuts.insert("ViewHandles", Shortcut({tr("View"), tr("Handles")}, "", true));
     defaultShortcuts.insert("ViewGraph", Shortcut({tr("View"), tr("Graph")}, "Alt+G", true));
     defaultShortcuts.insert("ViewPreviousTab", Shortcut({tr("View"), tr("Previous Tab")}, "Alt+Left"));
@@ -508,8 +507,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionToggleDestinationPreview", Shortcut({tr("Actions"), tr("Enable/Disable Branch Destination Preview")}, "P"));
     defaultShortcuts.insert("ActionFind", Shortcut({tr("Actions"), tr("Find")}, "Ctrl+F"));
     defaultShortcuts.insert("ActionFindInModule", Shortcut({tr("Actions"), tr("Find in Current Module")}, "Ctrl+Shift+F"));
-    defaultShortcuts.insert("ActionDecompileFunction", Shortcut({tr("Actions"), tr("Decompile Function")}, "F5"));
-    defaultShortcuts.insert("ActionDecompileSelection", Shortcut({tr("Actions"), tr("Decompile Selection")}, "Shift+F5"));
     defaultShortcuts.insert("ActionEditBreakpoint", Shortcut({tr("Actions"), tr("Edit breakpoint")}, ""));
     defaultShortcuts.insert("ActionToggleLogging", Shortcut({tr("Actions"), tr("Enable/Disable Logging")}, ""));
     defaultShortcuts.insert("ActionAllocateMemory", Shortcut({tr("Actions"), tr("Allocate Memory")}, ""));
@@ -587,7 +584,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionGraphToggleOverview", Shortcut({tr("Actions"), tr("Graph"), tr("Toggle overview")}, "O"));
     defaultShortcuts.insert("ActionGraphToggleSummary", Shortcut({tr("Actions"), tr("Graph"), tr("Toggle summary")}, "U"));
     defaultShortcuts.insert("ActionGraphSyncOrigin", Shortcut({tr("Actions"), tr("Graph"), tr("Toggle sync with origin")}, "S"));
-    defaultShortcuts.insert("ActionGraphDecompile", Shortcut({tr("Actions"), tr("Graph"), tr("Decompile")}, "Tab"));
     defaultShortcuts.insert("ActionIncrementx87Stack", Shortcut({tr("Actions"), tr("Increment x87 Stack")}));
     defaultShortcuts.insert("ActionDecrementx87Stack", Shortcut({tr("Actions"), tr("Decrement x87 Stack")}));
     defaultShortcuts.insert("ActionPush", Shortcut({tr("Actions"), tr("Push")}));

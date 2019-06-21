@@ -5,7 +5,6 @@
 #include "GotoDialog.h"
 #include "XrefBrowseDialog.h"
 #include "LineEditDialog.h"
-#include "SnowmanView.h"
 #include <vector>
 #include <QPainter>
 #include <QScrollBar>
@@ -2229,7 +2228,6 @@ void DisassemblerGraphView::setupContextMenu()
     });
 
     mMenuBuilder->addSeparator();
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("snowman.png"), tr("Decompile"), SLOT(decompileSlot()), "ActionGraphDecompile"));
     mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"), [this](QMenu*)
     {
         if(graphZoomMode)
@@ -2528,34 +2526,6 @@ void DisassemblerGraphView::xrefSlot()
         mXrefDlg = new XrefBrowseDialog(this);
     mXrefDlg->setup(wVA, "graph");
     mXrefDlg->showNormal();
-}
-
-void DisassemblerGraphView::decompileSlot()
-{
-    std::vector<SnowmanRange> ranges;
-    ranges.reserve(currentGraph.nodes.size());
-
-    if(!DbgIsDebugging())
-        return;
-    if(currentGraph.nodes.empty())
-        return;
-    SnowmanRange r;
-    for(const auto & nodeIt : currentGraph.nodes)
-    {
-        const BridgeCFNode & node = nodeIt.second;
-        r.start = node.instrs.empty() ? node.start : node.instrs[0].addr;
-        r.end = node.instrs.empty() ? node.end : node.instrs[node.instrs.size() - 1].addr;
-        BASIC_INSTRUCTION_INFO info;
-        DbgDisasmFastAt(r.end, &info);
-        r.end += info.size - 1;
-        ranges.push_back(r);
-    }
-    std::sort(ranges.begin(), ranges.end(), [](const SnowmanRange & a, const SnowmanRange & b)
-    {
-        return a.start > b.start;
-    });
-    emit displaySnowmanWidget();
-    DecompileRanges(Bridge::getBridge()->snowmanView, ranges.data(), ranges.size());
 }
 
 void DisassemblerGraphView::followActionSlot()

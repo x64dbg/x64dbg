@@ -60,7 +60,6 @@
         <file>images/search-for.png</file>
         <file>images/highlight.png</file>
         <file>images/label.png</file>
-        <file>images/snowman.png</file>
         <file>images/notes.png</file>
         <file>images/win-help.png</file>
         <file>images/faq.png</file>
@@ -181,8 +180,6 @@
         <file>images/copy_selection_no_bytes.png</file>
         <file>images/copy_table_line.png</file>
         <file>images/copyfilepath.png</file>
-        <file>images/decompile_function.png</file>
-        <file>images/decompile_selection.png</file>
         <file>images/download_symbols.png</file>
         <file>images/entrypoint.png</file>
         <file>images/follow_entrypoint.png</file>
