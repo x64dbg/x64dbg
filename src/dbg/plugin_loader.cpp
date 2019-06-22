@@ -333,9 +333,10 @@ bool pluginunload(const char* pluginName, bool unloadall)
 
     if(found != pluginList.end())
     {
+        bool canFreeLibrary = true;
         auto currentPlugin = *found;
         if(currentPlugin.plugstop)
-            currentPlugin.plugstop();
+            canFreeLibrary = currentPlugin.plugstop();
         plugincmdunregisterall(currentPlugin.initStruct.pluginHandle);
         pluginexprfuncunregisterall(currentPlugin.initStruct.pluginHandle);
 
@@ -364,7 +365,8 @@ bool pluginunload(const char* pluginName, bool unloadall)
             }
         }
 
-        FreeLibrary(currentPlugin.hPlugin);
+        if(canFreeLibrary)
+            FreeLibrary(currentPlugin.hPlugin);
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s unloaded\n"), name);
         return true;
     }
