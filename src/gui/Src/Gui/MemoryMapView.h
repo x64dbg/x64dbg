@@ -74,6 +74,7 @@ private:
     QAction* mMemoryFree;
     QAction* mAddVirtualMod;
     QAction* mComment;
+    QMenu* mPluginMenu;
 
     duint mCipBase;
 };

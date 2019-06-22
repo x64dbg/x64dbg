@@ -372,6 +372,9 @@ void SymbolView::setupContextMenu()
     mModuleList->addAction(mModSetPartyAction);
     connect(mModSetPartyAction, SIGNAL(triggered()), this, SLOT(moduleSetParty()));
 
+    mPluginMenu = new QMenu(this);
+    Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_SYMMOD_MENU);
+
     //Shortcuts
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -603,6 +606,9 @@ void SymbolView::moduleContextMenu(QMenu* wMenu)
         wMenu->addSeparator();
         wMenu->addMenu(&wCopyMenu);
     }
+    wMenu->addSeparator();
+    DbgMenuPrepare(GUI_SYMMOD_MENU);
+    wMenu->addActions(mPluginMenu->actions());
 }
 
 void SymbolView::moduleFollow()

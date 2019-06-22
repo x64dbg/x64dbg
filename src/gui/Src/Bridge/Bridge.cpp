@@ -76,7 +76,7 @@ void Bridge::initBridge()
                             Helper Functions
 ************************************************************************************/
 
-void Bridge::emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu)
+void Bridge::emitMenuAddToList(QWidget* parent, QMenu* menu, GUIMENUTYPE hMenu, int hParentMenu)
 {
     BridgeResult result(BridgeResult::MenuAddToList);
     emit menuAddMenuToList(parent, menu, hMenu, hParentMenu);
@@ -376,7 +376,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 
     case GUI_SELECTION_GET:
     {
-        int hWindow = (int)param1;
+        GUISELECTIONTYPE hWindow = GUISELECTIONTYPE(duint(param1));
         SELECTIONDATA* selection = (SELECTIONDATA*)param2;
         if(!DbgIsDebugging())
             return (void*)false;
@@ -417,7 +417,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 
     case GUI_SELECTION_SET:
     {
-        int hWindow = (int)param1;
+        GUISELECTIONTYPE hWindow = GUISELECTIONTYPE(duint(param1));
         const SELECTIONDATA* selection = (const SELECTIONDATA*)param2;
         if(!DbgIsDebugging())
             return (void*)false;
@@ -852,6 +852,14 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_INVALIDATE_SYMBOL_SOURCE:
         symbolView->invalidateSymbolSource(duint(param1));
         break;
+
+    case GUI_GET_CURRENT_GRAPH:
+    {
+        BridgeResult result(BridgeResult::GraphCurrent);
+        emit getCurrentGraph((BridgeCFGraphList*)param1);
+        result.Wait();
+    }
+    break;
     }
 
     return nullptr;

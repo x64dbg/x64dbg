@@ -47,6 +47,9 @@ typedef struct
     int hMenuDisasm; //plugin disasm menu handle
     int hMenuDump; //plugin dump menu handle
     int hMenuStack; //plugin stack menu handle
+    int hMenuGraph; //plugin graph menu handle
+    int hMenuMemmap; //plugin memory map menu handle
+    int hMenuSymmod; //plugin symbol module menu handle
 } PLUG_SETUPSTRUCT;
 
 typedef struct
@@ -225,7 +228,7 @@ typedef struct
 
 typedef struct
 {
-    int hMenu;
+    GUIMENUTYPE hMenu;
 } PLUG_CB_MENUPREPARE;
 
 //enums

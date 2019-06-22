@@ -1473,7 +1473,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     case DBG_MENU_PREPARE:
     {
         PLUG_CB_MENUPREPARE info;
-        info.hMenu = int(param1);
+        info.hMenu = GUIMENUTYPE(duint(param1));
         plugincbcall(CB_MENUPREPARE, &info);
     }
     break;

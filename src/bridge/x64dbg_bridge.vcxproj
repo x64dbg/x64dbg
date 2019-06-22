@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="bridgemain.cpp" />
+    <ClCompile Include="bridgemain_checker.c" />
     <ClCompile Include="_global.cpp" />
   </ItemGroup>
   <ItemGroup>

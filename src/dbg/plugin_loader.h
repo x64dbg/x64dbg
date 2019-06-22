@@ -35,6 +35,9 @@ struct PLUG_DATA
     int hMenuDisasm;
     int hMenuDump;
     int hMenuStack;
+    int hMenuGraph;
+    int hMenuMemmap;
+    int hMenuSymmod;
     PLUG_INITSTRUCT initStruct;
 };
 
@@ -70,6 +73,7 @@ void pluginloadall(const char* pluginDir);
 void pluginunloadall();
 void plugincmdunregisterall(int pluginHandle);
 void pluginexprfuncunregisterall(int pluginHandle);
+void pluginformatfuncunregisterall(int pluginHandle);
 void pluginregistercallback(int pluginHandle, CBTYPE cbType, CBPLUGIN cbPlugin);
 bool pluginunregistercallback(int pluginHandle, CBTYPE cbType);
 void plugincbcall(CBTYPE cbType, void* callbackInfo);

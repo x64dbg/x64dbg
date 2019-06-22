@@ -17,6 +17,9 @@
     <ClCompile Include="bridgemain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bridgemain_checker.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="_global.h">

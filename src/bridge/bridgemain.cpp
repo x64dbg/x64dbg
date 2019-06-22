@@ -1085,7 +1085,7 @@ BRIDGE_IMPEXP duint DbgEval(const char* expression, bool* success)
     return value;
 }
 
-BRIDGE_IMPEXP void DbgMenuPrepare(int hMenu)
+BRIDGE_IMPEXP void DbgMenuPrepare(GUIMENUTYPE hMenu)
 {
     _dbg_sendmessage(DBG_MENU_PREPARE, (void*)hMenu, nullptr);
 }
@@ -1411,12 +1411,12 @@ BRIDGE_IMPEXP void GuiMenuRemove(int hEntryMenu)
     _gui_sendmessage(GUI_MENU_REMOVE, (void*)(duint)hEntryMenu, 0);
 }
 
-BRIDGE_IMPEXP bool GuiSelectionGet(int hWindow, SELECTIONDATA* selection)
+BRIDGE_IMPEXP bool GuiSelectionGet(GUISELECTIONTYPE hWindow, SELECTIONDATA* selection)
 {
     return !!_gui_sendmessage(GUI_SELECTION_GET, (void*)(duint)hWindow, selection);
 }
 
-BRIDGE_IMPEXP bool GuiSelectionSet(int hWindow, const SELECTIONDATA* selection)
+BRIDGE_IMPEXP bool GuiSelectionSet(GUISELECTIONTYPE hWindow, const SELECTIONDATA* selection)
 {
     return !!_gui_sendmessage(GUI_SELECTION_SET, (void*)(duint)hWindow, (void*)selection);
 }
@@ -1726,6 +1726,11 @@ BRIDGE_IMPEXP void GuiInvalidateSymbolSource(duint base)
 BRIDGE_IMPEXP void GuiExecuteOnGuiThreadEx(GUICALLBACKEX cbGuiThread, void* userdata)
 {
     _gui_sendmessage(GUI_EXECUTE_ON_GUI_THREAD, (void*)cbGuiThread, userdata);
+}
+
+BRIDGE_IMPEXP void GuiGetCurrentGraph(BridgeCFGraphList* graphList)
+{
+    _gui_sendmessage(GUI_GET_CURRENT_GRAPH, graphList, nullptr);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

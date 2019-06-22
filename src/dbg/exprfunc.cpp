@@ -73,7 +73,7 @@ namespace Exprfunc
         return 0;
     }
 
-    static duint selstart(int hWindow)
+    static duint selstart(GUISELECTIONTYPE hWindow)
     {
         SELECTIONDATA selection;
         GuiSelectionGet(hWindow, &selection);

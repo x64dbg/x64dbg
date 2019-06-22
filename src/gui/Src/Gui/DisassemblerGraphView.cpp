@@ -85,6 +85,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(selectionGraphGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
     connect(Bridge::getBridge(), SIGNAL(focusGraph()), this, SLOT(setFocus()));
+    connect(Bridge::getBridge(), SIGNAL(getCurrentGraph(BridgeCFGraphList*)), this, SLOT(getCurrentGraphSlot(BridgeCFGraphList*)));
 
     //Connect to config
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(colorsUpdatedSlot()));
@@ -2256,6 +2257,16 @@ void DisassemblerGraphView::setupContextMenu()
     mediumLayout->setChecked(true);
     mMenuBuilder->addMenu(makeMenu(DIcon("layout.png"), tr("Layout")), layoutMenu);
 
+    mPluginMenu = new QMenu(this);
+    Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_GRAPH_MENU);
+    mMenuBuilder->addSeparator();
+    mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
+    {
+        DbgMenuPrepare(GUI_GRAPH_MENU);
+        menu->addActions(mPluginMenu->actions());
+        return true;
+    }));
+
     mMenuBuilder->loadFromConfig();
 }
 
@@ -2568,4 +2579,10 @@ void DisassemblerGraphView::zoomToCursorSlot()
     auto areaSize = viewport()->size();
     this->adjustSize(areaSize.width(), areaSize.height(), pos);
     this->viewport()->update();
+}
+
+void DisassemblerGraphView::getCurrentGraphSlot(BridgeCFGraphList* graphList)
+{
+    *graphList = currentGraph.ToGraphList();
+    Bridge::getBridge()->setResult(BridgeResult::GraphCurrent);
 }

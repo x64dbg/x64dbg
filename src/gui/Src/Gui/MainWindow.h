@@ -101,7 +101,7 @@ public slots:
     void setLastException(unsigned int exceptionCode);
     void findStrings();
     void findModularCalls();
-    void addMenuToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu = -1);
+    void addMenuToList(QWidget* parent, QMenu* menu, GUIMENUTYPE hMenu, int hParentMenu = -1);
     void addMenu(int hMenu, QString title);
     void addMenuEntry(int hMenu, QString title);
     void addSeparator(int hMenu);

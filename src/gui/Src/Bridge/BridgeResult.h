@@ -36,6 +36,7 @@ public:
         TypeAddNode,
         TypeClear,
         MenuSetEntryHotkey,
+        GraphCurrent,
         Last,
     };
     explicit BridgeResult(Type type);

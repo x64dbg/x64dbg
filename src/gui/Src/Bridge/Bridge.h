@@ -36,7 +36,7 @@ public:
     void setResult(BridgeResult::Type type, dsint result = 0);
 
     //helper functions
-    void emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu = -1);
+    void emitMenuAddToList(QWidget* parent, QMenu* menu, GUIMENUTYPE hMenu, int hParentMenu = -1);
     void setDbgStopped();
 
     //Public variables
@@ -86,7 +86,7 @@ signals:
     void updateMemory();
     void addRecentFile(QString file);
     void setLastException(unsigned int exceptionCode);
-    void menuAddMenuToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu);
+    void menuAddMenuToList(QWidget* parent, QMenu* menu, GUIMENUTYPE hMenu, int hParentMenu);
     void menuAddMenu(int hMenu, QString title);
     void menuAddMenuEntry(int hMenu, QString title);
     void menuAddSeparator(int hMenu);
@@ -161,6 +161,7 @@ signals:
     void openTraceFile(const QString & fileName);
     void updateTraceBrowser();
     void symbolSelectModule(duint base);
+    void getCurrentGraph(BridgeCFGraphList* graphList);
 
 private:
     CRITICAL_SECTION csBridge;

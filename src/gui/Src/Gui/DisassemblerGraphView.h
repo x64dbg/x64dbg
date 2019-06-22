@@ -284,6 +284,7 @@ public slots:
     void xrefSlot();
     void fitToWindowSlot();
     void zoomToCursorSlot();
+    void getCurrentGraphSlot(BridgeCFGraphList* graphList);
 
 private:
     bool graphZoomMode;
@@ -324,6 +325,7 @@ private:
     std::vector<int> row_edge_y;
     CachedFontMetrics* mFontMetrics;
     MenuBuilder* mMenuBuilder;
+    QMenu* mPluginMenu;
     bool drawOverview;
     bool onlySummary;
     bool syncOrigin;
