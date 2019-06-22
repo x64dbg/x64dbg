@@ -126,7 +126,7 @@ signals:
     void addQWidgetTab(QWidget* qWidget);
     void showQWidgetTab(QWidget* qWidget);
     void closeQWidgetTab(QWidget* qWidget);
-    void executeOnGuiThread(void* cbGuiThread);
+    void executeOnGuiThread(void* cbGuiThread, void* userdata);
     void updateTimeWastedCounter();
     void setGlobalNotes(const QString text);
     void getGlobalNotes(void* text);

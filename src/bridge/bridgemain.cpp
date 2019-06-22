@@ -1548,7 +1548,10 @@ BRIDGE_IMPEXP void GuiCloseQWidgetTab(void* qWidget)
 
 BRIDGE_IMPEXP void GuiExecuteOnGuiThread(GUICALLBACK cbGuiThread)
 {
-    _gui_sendmessage(GUI_EXECUTE_ON_GUI_THREAD, (void*)cbGuiThread, nullptr);
+    GuiExecuteOnGuiThreadEx([](void* cb)
+    {
+        ((GUICALLBACK)cb)();
+    }, cbGuiThread);
 }
 
 BRIDGE_IMPEXP void GuiUpdateTimeWastedCounter()
@@ -1718,6 +1721,11 @@ BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName)
 BRIDGE_IMPEXP void GuiInvalidateSymbolSource(duint base)
 {
     _gui_sendmessage(GUI_INVALIDATE_SYMBOL_SOURCE, (void*)base, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiExecuteOnGuiThreadEx(GUICALLBACKEX cbGuiThread, void* userdata)
+{
+    _gui_sendmessage(GUI_EXECUTE_ON_GUI_THREAD, (void*)cbGuiThread, userdata);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

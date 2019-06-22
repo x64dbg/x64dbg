@@ -1122,7 +1122,7 @@ typedef enum
     GUI_ADD_QWIDGET_TAB,            // param1=QWidget*,             param2=unused
     GUI_SHOW_QWIDGET_TAB,           // param1=QWidget*,             param2=unused
     GUI_CLOSE_QWIDGET_TAB,          // param1=QWidget*,             param2=unused
-    GUI_EXECUTE_ON_GUI_THREAD,      // param1=GUICALLBACK,          param2=unused
+    GUI_EXECUTE_ON_GUI_THREAD,      // param1=GUICALLBACKEX cb,     param2=void* userdata
     GUI_UPDATE_TIME_WASTED_COUNTER, // param1=unused,               param2=unused
     GUI_SET_GLOBAL_NOTES,           // param1=const char* text,     param2=unused
     GUI_GET_GLOBAL_NOTES,           // param1=char** text,          param2=unused
@@ -1171,6 +1171,7 @@ typedef enum
 struct _TYPEDESCRIPTOR;
 
 typedef void (*GUICALLBACK)();
+typedef void (*GUICALLBACKEX)(void*);
 typedef bool (*GUISCRIPTEXECUTE)(const char* text);
 typedef void (*GUISCRIPTCOMPLETER)(const char* text, char** entries, int* entryCount);
 typedef bool (*TYPETOSTRING)(const struct _TYPEDESCRIPTOR* type, char* dest, size_t* destCount); //don't change destCount for final failure
@@ -1342,6 +1343,7 @@ BRIDGE_IMPEXP void GuiReferenceAddCommand(const char* title, const char* command
 BRIDGE_IMPEXP void GuiUpdateTraceBrowser();
 BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName);
 BRIDGE_IMPEXP void GuiInvalidateSymbolSource(duint base);
+BRIDGE_IMPEXP void GuiExecuteOnGuiThreadEx(GUICALLBACKEX cbGuiThread, void* userdata);
 
 #ifdef __cplusplus
 }

@@ -89,7 +89,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(addQWidgetTab(QWidget*)), this, SLOT(addQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(showQWidgetTab(QWidget*)), this, SLOT(showQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(closeQWidgetTab(QWidget*)), this, SLOT(closeQWidgetTab(QWidget*)));
-    connect(Bridge::getBridge(), SIGNAL(executeOnGuiThread(void*)), this, SLOT(executeOnGuiThread(void*)));
+    connect(Bridge::getBridge(), SIGNAL(executeOnGuiThread(void*, void*)), this, SLOT(executeOnGuiThread(void*, void*)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(addFavouriteItem(int, QString, QString)), this, SLOT(addFavouriteItem(int, QString, QString)));
     connect(Bridge::getBridge(), SIGNAL(setFavouriteItemShortcut(int, QString, QString)), this, SLOT(setFavouriteItemShortcut(int, QString, QString)));
@@ -1655,9 +1655,9 @@ void MainWindow::closeQWidgetTab(QWidget* qWidget)
     }
 }
 
-void MainWindow::executeOnGuiThread(void* cbGuiThread)
+void MainWindow::executeOnGuiThread(void* cbGuiThread, void* userdata)
 {
-    ((GUICALLBACK)cbGuiThread)();
+    ((GUICALLBACKEX)cbGuiThread)(userdata);
 }
 
 void MainWindow::tabMovedSlot(int from, int to)

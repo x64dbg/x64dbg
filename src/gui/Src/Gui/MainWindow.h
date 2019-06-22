@@ -142,7 +142,7 @@ public slots:
     void addQWidgetTab(QWidget* qWidget);
     void showQWidgetTab(QWidget* qWidget);
     void closeQWidgetTab(QWidget* qWidget);
-    void executeOnGuiThread(void* cbGuiThread);
+    void executeOnGuiThread(void* cbGuiThread, void* userdata);
     void tabMovedSlot(int from, int to);
     void chkSaveloadTabSavedOrderStateChangedSlot(bool state);
     void dbgStateChangedSlot(DBGSTATE state);
