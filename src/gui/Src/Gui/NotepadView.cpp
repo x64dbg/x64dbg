@@ -3,7 +3,7 @@
 #include "Bridge.h"
 #include <QMessageBox>
 
-NotepadView::NotepadView(QWidget* parent) : QPlainTextEdit(parent)
+NotepadView::NotepadView(QWidget* parent, BridgeResult::Type type) : QPlainTextEdit(parent), mType(type)
 {
     updateStyle();
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
@@ -31,5 +31,5 @@ void NotepadView::getNotes(void* ptr)
         strcpy_s(result, text.length() + 1, text.constData());
     }
     *(char**)ptr = result;
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(mType);
 }

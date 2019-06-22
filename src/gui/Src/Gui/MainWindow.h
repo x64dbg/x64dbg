@@ -243,6 +243,7 @@ private:
     QString nestedMenuDescription(const MenuInfo* menu);
     QString nestedMenuEntryDescription(const MenuEntryInfo & entry);
     void clearMenuHelper(int hMenu);
+    void clearMenuImpl(int hMenu, bool erase);
 
     bool bCanClose;
     MainWindowCloseThread* mCloseThread;

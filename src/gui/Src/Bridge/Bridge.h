@@ -33,7 +33,7 @@ public:
     static void CopyToClipboard(const QString & text, const QString & htmlText);
 
     //result function
-    void setResult(dsint result = 0);
+    void setResult(BridgeResult::Type type, dsint result = 0);
 
     //helper functions
     void emitMenuAddToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu = -1);
@@ -164,9 +164,9 @@ signals:
 
 private:
     CRITICAL_SECTION csBridge;
-    HANDLE hResultEvent;
+    HANDLE resultEvents[BridgeResult::Last];
+    duint bridgeResults[BridgeResult::Last];
     DWORD dwMainThreadId = 0;
-    dsint bridgeResult = 0;
     volatile bool dbgStopped = false;
 };
 

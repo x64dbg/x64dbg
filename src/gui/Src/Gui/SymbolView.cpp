@@ -810,5 +810,5 @@ void SymbolView::emptySearchResultSlot()
 void SymbolView::selectionGetSlot(SELECTIONDATA* selection)
 {
     selection->start = selection->end = duint(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColBase).toULongLong(nullptr, 16));
-    Bridge::getBridge()->setResult(1);
+    Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
 }

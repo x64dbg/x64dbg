@@ -2071,7 +2071,7 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList, duint ad
         auto message = tr("The graph you are trying to render has a large number of nodes (%1). This can cause x64dbg to hang or crash. It is recommended to save your data before you continue.\n\nDo you want to continue rendering this graph?").arg(nodeCount);
         if(QMessageBox::question(this, title, message, QMessageBox::Yes, QMessageBox::No | QMessageBox::Default) == QMessageBox::No)
         {
-            Bridge::getBridge()->setResult(0);
+            Bridge::getBridge()->setResult(BridgeResult::LoadGraph, 0);
             return;
         }
     }
@@ -2081,12 +2081,12 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList, duint ad
     this->cur_instr = addr ? addr : this->function;
     this->forceCenter = true;
     loadCurrentGraph();
-    Bridge::getBridge()->setResult(1);
+    Bridge::getBridge()->setResult(BridgeResult::LoadGraph, 1);
 }
 
 void DisassemblerGraphView::graphAtSlot(duint addr)
 {
-    Bridge::getBridge()->setResult(this->navigate(addr) ? this->currentGraph.entryPoint : 0);
+    Bridge::getBridge()->setResult(BridgeResult::GraphAt, this->navigate(addr) ? this->currentGraph.entryPoint : 0);
 }
 
 void DisassemblerGraphView::updateGraphSlot()
@@ -2367,7 +2367,7 @@ void DisassemblerGraphView::toggleSummarySlot()
 void DisassemblerGraphView::selectionGetSlot(SELECTIONDATA* selection)
 {
     selection->start = selection->end = cur_instr;
-    Bridge::getBridge()->setResult(1);
+    Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
 }
 
 void DisassemblerGraphView::disassembleAtSlot(dsint va, dsint cip)

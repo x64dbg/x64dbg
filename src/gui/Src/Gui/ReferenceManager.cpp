@@ -33,7 +33,7 @@ void ReferenceManager::newReferenceView(QString name)
     connect(mCurrentReferenceView, SIGNAL(showCpu()), this, SIGNAL(showCpu()));
     insertTab(0, mCurrentReferenceView, name);
     setCurrentIndex(0);
-    Bridge::getBridge()->setResult(1);
+    Bridge::getBridge()->setResult(BridgeResult::RefInitialize, 1);
 }
 
 void ReferenceManager::closeTab(int index)

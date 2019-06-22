@@ -615,7 +615,7 @@ void MemoryMapView::addVirtualModSlot()
 void MemoryMapView::selectionGetSlot(SELECTIONDATA* selection)
 {
     selection->start = selection->end = duint(getCellContent(getInitialSelection(), 0).toULongLong(nullptr, 16));
-    Bridge::getBridge()->setResult(1);
+    Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
 }
 
 void MemoryMapView::disassembleAtSlot(dsint va, dsint cip)

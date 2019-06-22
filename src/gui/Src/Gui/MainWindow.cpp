@@ -81,6 +81,10 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(setIconMenuEntry(int, QIcon)), this, SLOT(setIconMenuEntry(int, QIcon)));
     connect(Bridge::getBridge(), SIGNAL(setCheckedMenuEntry(int, bool)), this, SLOT(setCheckedMenuEntry(int, bool)));
     connect(Bridge::getBridge(), SIGNAL(setHotkeyMenuEntry(int, QString, QString)), this, SLOT(setHotkeyMenuEntry(int, QString, QString)));
+    connect(Bridge::getBridge(), SIGNAL(setVisibleMenuEntry(int, bool)), this, SLOT(setVisibleMenuEntry(int, bool)));
+    connect(Bridge::getBridge(), SIGNAL(setVisibleMenu(int, bool)), this, SLOT(setVisibleMenu(int, bool)));
+    connect(Bridge::getBridge(), SIGNAL(setNameMenuEntry(int, QString)), this, SLOT(setNameMenuEntry(int, QString)));
+    connect(Bridge::getBridge(), SIGNAL(setNameMenu(int, QString)), this, SLOT(setNameMenu(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(Bridge::getBridge(), SIGNAL(addQWidgetTab(QWidget*)), this, SLOT(addQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(showQWidgetTab(QWidget*)), this, SLOT(showQWidgetTab(QWidget*)));
@@ -94,7 +98,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Setup menu API
     initMenuApi();
-    addMenuToList(this, ui->menuPlugins, GUI_PLUGIN_MENU);
+    Bridge::getBridge()->emitMenuAddToList(this, ui->menuPlugins, GUI_PLUGIN_MENU);
 
     // Set window title
     if(BridgeIsProcessElevated())
@@ -1082,7 +1086,7 @@ void MainWindow::addMenuToList(QWidget* parent, QMenu* menu, int hMenu, int hPar
 {
     if(!findMenu(hMenu))
         mMenuList.push_back(MenuInfo(parent, menu, hMenu, hParentMenu, hMenu == GUI_PLUGIN_MENU));
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuAddToList);
 }
 
 void MainWindow::addMenu(int hMenu, QString title)
@@ -1090,7 +1094,7 @@ void MainWindow::addMenu(int hMenu, QString title)
     const MenuInfo* menu = findMenu(hMenu);
     if(!menu && hMenu != -1)
     {
-        Bridge::getBridge()->setResult(-1);
+        Bridge::getBridge()->setResult(BridgeResult::MenuAdd, -1);
         return;
     }
     int hMenuNew = hEntryMenuPool++;
@@ -1105,7 +1109,7 @@ void MainWindow::addMenu(int hMenu, QString title)
         menu->mMenu->addMenu(wMenu);
         menu->mMenu->menuAction()->setVisible(true);
     }
-    Bridge::getBridge()->setResult(hMenuNew);
+    Bridge::getBridge()->setResult(BridgeResult::MenuAdd, hMenuNew);
 }
 
 void MainWindow::addMenuEntry(int hMenu, QString title)
@@ -1113,7 +1117,7 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
     const MenuInfo* menu = findMenu(hMenu);
     if(!menu && hMenu != -1)
     {
-        Bridge::getBridge()->setResult(-1);
+        Bridge::getBridge()->setResult(BridgeResult::MenuAddEntry, -1);
         return;
     }
     MenuEntryInfo newInfo;
@@ -1135,7 +1139,7 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
         menu->mMenu->addAction(wAction);
         menu->mMenu->menuAction()->setVisible(true);
     }
-    Bridge::getBridge()->setResult(hEntryNew);
+    Bridge::getBridge()->setResult(BridgeResult::MenuAddEntry, hEntryNew);
 }
 
 void MainWindow::addSeparator(int hMenu)
@@ -1149,7 +1153,7 @@ void MainWindow::addSeparator(int hMenu)
         newInfo.mAction = menu->mMenu->addSeparator();
         mEntryList.push_back(newInfo);
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuAddSeparator);
 }
 
 void MainWindow::clearMenuHelper(int hMenu)
@@ -1173,7 +1177,7 @@ void MainWindow::clearMenuHelper(int hMenu)
         clearMenuHelper(hMenu);
 }
 
-void MainWindow::clearMenu(int hMenu, bool erase)
+void MainWindow::clearMenuImpl(int hMenu, bool erase)
 {
     //this recursively removes the entries from mEntryList and mMenuList
     clearMenuHelper(hMenu);
@@ -1201,7 +1205,12 @@ void MainWindow::clearMenu(int hMenu, bool erase)
             break;
         }
     }
-    Bridge::getBridge()->setResult();
+}
+
+void MainWindow::clearMenu(int hMenu, bool erase)
+{
+    clearMenuImpl(hMenu, erase);
+    Bridge::getBridge()->setResult(BridgeResult::MenuClear);
 }
 
 void MainWindow::initMenuApi()
@@ -1239,12 +1248,13 @@ void MainWindow::removeMenuEntry(int hEntryMenu)
                     parentMenu->mMenu->menuAction()->setVisible(false);
                 mEntryList.erase(mEntryList.begin() + i);
             }
-            Bridge::getBridge()->setResult();
+            Bridge::getBridge()->setResult(BridgeResult::MenuRemove);
             return;
         }
     }
     //if hEntryMenu is not in mEntryList, clear+erase it from mMenuList
-    clearMenu(hEntryMenu, true);
+    clearMenuImpl(hEntryMenu, true);
+    Bridge::getBridge()->setResult(BridgeResult::MenuRemove);
 }
 
 void MainWindow::setIconMenuEntry(int hEntry, QIcon icon)
@@ -1258,7 +1268,7 @@ void MainWindow::setIconMenuEntry(int hEntry, QIcon icon)
             break;
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryIcon);
 }
 
 void MainWindow::setIconMenu(int hMenu, QIcon icon)
@@ -1271,7 +1281,7 @@ void MainWindow::setIconMenu(int hMenu, QIcon icon)
             menu.mMenu->setIcon(icon);
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetIcon);
 }
 
 void MainWindow::setCheckedMenuEntry(int hEntry, bool checked)
@@ -1286,7 +1296,7 @@ void MainWindow::setCheckedMenuEntry(int hEntry, bool checked)
             break;
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryChecked);
 }
 
 QString MainWindow::nestedMenuDescription(const MenuInfo* menu)
@@ -1335,7 +1345,7 @@ void MainWindow::setHotkeyMenuEntry(int hEntry, QString hotkey, QString id)
             break;
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryHotkey);
 }
 
 void MainWindow::setVisibleMenuEntry(int hEntry, bool visible)
@@ -1349,7 +1359,7 @@ void MainWindow::setVisibleMenuEntry(int hEntry, bool visible)
             break;
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryVisible);
 }
 
 void MainWindow::setVisibleMenu(int hMenu, bool visible)
@@ -1362,7 +1372,7 @@ void MainWindow::setVisibleMenu(int hMenu, bool visible)
             menu.mMenu->setVisible(visible);
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetVisible);
 }
 
 void MainWindow::setNameMenuEntry(int hEntry, QString name)
@@ -1377,7 +1387,7 @@ void MainWindow::setNameMenuEntry(int hEntry, QString name)
             break;
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryName);
 }
 
 void MainWindow::setNameMenu(int hMenu, QString name)
@@ -1390,7 +1400,7 @@ void MainWindow::setNameMenu(int hMenu, QString name)
             menu.mMenu->setTitle(name);
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetName);
 }
 
 void MainWindow::runSelection()
@@ -1421,7 +1431,7 @@ void MainWindow::getStrWindow(const QString title, QString* text)
     if(mLineEdit.exec() != QDialog::Accepted)
         bResult = false;
     *text = mLineEdit.editText;
-    Bridge::getBridge()->setResult(bResult);
+    Bridge::getBridge()->setResult(BridgeResult::GetlineWindow, bResult);
 }
 
 void MainWindow::patchWindow()
