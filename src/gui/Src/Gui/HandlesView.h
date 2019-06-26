@@ -12,7 +12,7 @@ class LabeledSplitter;
 class StdSearchListView;
 class QMenu;
 
-class HandlesView : public QWidget
+class HandlesView : public QWidget, public StdTable
 {
     Q_OBJECT
 public:
