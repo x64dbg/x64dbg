@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "Imports.h"
+#include "StdTable.h"
 
 class StdTable;
 class ReferenceView;
