@@ -14,7 +14,7 @@ public:
 
     void setInternalTitle(const QString & title);
     int getCharWidth();
-    void addColumnAt(int width, QString title, bool isClickable);
+    void addColumnAt(int width, QString title, bool isClickable, QString copyTitle = "", StdTable::SortBy::t sortFn = StdTable::SortBy::AsText);
     void setDrawDebugOnly(bool value);
     void enableMultiSelection(bool enabled);
     void setAddressColumn(int col, bool cipBase = false);

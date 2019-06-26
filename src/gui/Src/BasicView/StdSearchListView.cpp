@@ -26,10 +26,10 @@ int StdSearchListView::getCharWidth()
     return stdList()->getCharWidth();
 }
 
-void StdSearchListView::addColumnAt(int width, QString title, bool isClickable)
+void StdSearchListView::addColumnAt(int width, QString title, bool isClickable, QString copyTitle, StdTable::SortBy::t sortFn)
 {
-    stdList()->addColumnAt(width, title, isClickable);
-    stdSearchList()->addColumnAt(width, title, isClickable);
+    stdList()->addColumnAt(width, title, isClickable, copyTitle, sortFn);
+    stdSearchList()->addColumnAt(width, title, isClickable, copyTitle, sortFn);
 }
 
 void StdSearchListView::setDrawDebugOnly(bool value)
