@@ -157,7 +157,7 @@ void ReferenceView::addColumnAtRef(int width, QString title)
         width = charwidth * width + 8;
     else
         width = 0;
-    mSearchBox->setText("");
+    clearFilter();
     if(title.toLower() == "&data&")
         title = "Data";
     StdSearchListView::addColumnAt(width, title, true);
@@ -173,7 +173,7 @@ void ReferenceView::setRowCount(dsint count)
 
 void ReferenceView::setSingleSelection(int index, bool scroll)
 {
-    mSearchBox->setText("");
+    clearFilter();
     stdList()->setSingleSelection(index);
     if(scroll) //TODO: better scrolling
         stdList()->setTableOffset(index);

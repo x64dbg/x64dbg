@@ -243,6 +243,11 @@ void SearchListView::refreshSearchList()
     searchTextChanged(mSearchBox->text());
 }
 
+void SearchListView::clearFilter()
+{
+    mSearchBox->clear();
+}
+
 void SearchListView::listContextMenu(const QPoint & pos)
 {
     QMenu wMenu(this);

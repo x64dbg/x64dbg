@@ -446,7 +446,7 @@ void SymbolView::moduleSelectionChanged(int index)
     mSymbolSearchList->mList->setTableOffset(0);
     mSymbolSearchList->mList->reloadData();
     if(!mSymbolList->isSearchBoxLocked())
-        mSymbolList->mSearchBox->setText("");
+        mSymbolList->clearFilter();
     else
         mSymbolList->refreshSearchList();
 
@@ -550,7 +550,7 @@ void SymbolView::symbolSelectModule(duint base)
         {
             mModuleList->stdList()->setSingleSelection(i);
             mModuleList->stdSearchList()->hide(); //This could be described as a hack, but you could also say it's like wiping sandpaper over your new white Tesla.
-            mModuleList->mSearchBox->clear();
+            mModuleList->clearFilter();
             break;
         }
     }
