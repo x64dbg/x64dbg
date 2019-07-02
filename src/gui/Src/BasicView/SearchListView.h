@@ -24,7 +24,8 @@ public:
     bool isSearchBoxLocked();
 
 private slots:
-    void searchTextChanged(const QString & text);
+    void filterEntries();
+    void searchTextEdited(const QString & text);
     void listContextMenu(const QPoint & pos);
     void doubleClickedSlot();
     void searchSlot();
@@ -43,6 +44,8 @@ private:
     QCheckBox* mRegexCheckbox;
     QCheckBox* mLockCheckbox;
     QAction* mSearchAction;
+    QTimer* mTypingTimer;
+    QString mFilterText;
 
     AbstractSearchList* mAbstractSearchList;
 };
