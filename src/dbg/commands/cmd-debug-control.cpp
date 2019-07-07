@@ -161,6 +161,7 @@ bool cbDebugStop(int argc, char* argv[])
     //history
     HistoryClear();
     DWORD BeginTick = GetTickCount();
+    bool shownWarning = false;
 
     while(true)
     {
@@ -174,15 +175,24 @@ bool cbDebugStop(int argc, char* argv[])
         {
             unlock(WAITID_RUN);
             DWORD CurrentTick = GetTickCount();
-            if(CurrentTick - BeginTick > 10000)
+            DWORD TimeElapsed = CurrentTick - BeginTick;
+            if(TimeElapsed >= 10000)
             {
-                dputs(QT_TRANSLATE_NOOP("DBG", "The debuggee does not stop after 10 seconds. The debugger state may be corrupted."));
-                DbSave(DbLoadSaveType::All);
-                TerminateThread(hDebugLoopThreadCopy, 1); // TODO: this will lose state and cause possible corruption if a critical section is still owned
-                CloseHandle(hDebugLoopThreadCopy);
-                return false;
+                if(!shownWarning)
+                {
+                    shownWarning = true;
+                    dputs(QT_TRANSLATE_NOOP("DBG", "Finalizing the debugger thread took more than 10 seconds. This can happen if you are loading large symbol files or saving a large database."));
+                }
+                if(IsFileBeingDebugged() || TimeElapsed >= 100000)
+                {
+                    dputs(QT_TRANSLATE_NOOP("DBG", "The debuggee did not stop after 10 seconds of requesting termination. The debugger state may be corrupted. It is recommended to restart x64dbg."));
+                    DbSave(DbLoadSaveType::All);
+                    TerminateThread(hDebugLoopThreadCopy, 1); // TODO: this will lose state and cause possible corruption if a critical section is still owned
+                    CloseHandle(hDebugLoopThreadCopy);
+                    return false;
+                }
             }
-            if(CurrentTick - BeginTick >= 300)
+            if(TimeElapsed >= 300)
                 TerminateProcess(fdProcessInfo->hProcess, -1);
         }
         break;

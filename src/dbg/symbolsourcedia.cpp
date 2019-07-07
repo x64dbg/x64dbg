@@ -99,10 +99,6 @@ bool SymbolSourceDIA::cancelLoading()
     return true;
 }
 
-void SymbolSourceDIA::loadPDBAsync()
-{
-}
-
 template<size_t Count>
 static bool startsWith(const char* str, const char(&prefix)[Count])
 {
@@ -257,12 +253,12 @@ bool SymbolSourceDIA::loadSourceLinesAsync()
     std::vector<DiaLineInfo_t> lines;
     std::map<DWORD, String> files;
 
-    if(!pdb.enumerateLineNumbers(0, uint32_t(_imageSize), lines, files))
+    if(!pdb.enumerateLineNumbers(0, uint32_t(_imageSize), lines, files, _requiresShutdown))
         return false;
 
     if(files.size() == 1)
     {
-        GuiSymbolLogAdd(StringUtils::sprintf("[%p, %s] Since there is only one file, attempting line overflow detection..\n", _imageBase, _modname.c_str()).c_str());
+        GuiSymbolLogAdd(StringUtils::sprintf("[%p, %s] Since there is only one file, attempting line overflow detection (%ums)..\n", _imageBase, _modname.c_str(), GetTickCount() - lineLoadStart).c_str());
 
         // This is a super hack to adjust for the (undocumented) limit of 16777215 lines (unsigned 24 bits maximum).
         // It is unclear at this point if yasm/coff/link/pdb is causing this issue.
@@ -271,6 +267,9 @@ bool SymbolSourceDIA::loadSourceLinesAsync()
         uint32_t maxLine = 0, maxRva = 0, lineOverflows = 0;
         for(auto & line : lines)
         {
+            if(_requiresShutdown)
+                return false;
+
             uint32_t overflowValue = 0x1000000 * (lineOverflows + 1) - 1; //0xffffff, 0x1ffffff, 0x2ffffff, etc
             if((line.lineNumber & 0xfffff0) == 0 && (maxLine & 0xfffffff0) == (overflowValue & 0xfffffff0))  // allow 16 lines of play, perhaps there is a label/comment on line 0xffffff+1
             {
@@ -294,6 +293,7 @@ bool SymbolSourceDIA::loadSourceLinesAsync()
 
     _linesData.reserve(lines.size());
     _sourceFiles.reserve(files.size());
+
     for(const auto & line : lines)
     {
         if(_requiresShutdown)

@@ -147,7 +147,6 @@ public:
     bool loadPDB(const std::string & path, const std::string & modname, duint imageBase, duint imageSize, DiaValidationData_t* validationData);
 
 private:
-    void loadPDBAsync();
     bool loadSymbolsAsync();
     bool loadSourceLinesAsync();
     uint32_t findSourceFile(const std::string & fileName) const;

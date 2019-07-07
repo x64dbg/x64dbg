@@ -8,6 +8,7 @@
 #include <set>
 #include <unordered_set>
 #include <unordered_map>
+#include <atomic>
 
 struct IDiaDataSource;
 struct IDiaSession;
@@ -50,7 +51,7 @@ public:
 
     bool close();
 
-    bool enumerateLineNumbers(uint32_t rva, uint32_t size, std::vector<DiaLineInfo_t> & lines, std::map<DWORD, std::string> & files);
+    bool enumerateLineNumbers(uint32_t rva, uint32_t size, std::vector<DiaLineInfo_t> & lines, std::map<DWORD, std::string> & files, const std::atomic<bool> & cancelled);
 
     bool enumerateLexicalHierarchy(const Query_t & query);
 

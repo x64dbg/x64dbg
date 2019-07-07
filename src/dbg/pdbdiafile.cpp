@@ -444,7 +444,7 @@ std::string PDBDiaFile::getSymbolUndecoratedNameString(IDiaSymbol* sym)
     return result;
 }
 
-bool PDBDiaFile::enumerateLineNumbers(uint32_t rva, uint32_t size, std::vector<DiaLineInfo_t> & lines, std::map<DWORD, std::string> & files)
+bool PDBDiaFile::enumerateLineNumbers(uint32_t rva, uint32_t size, std::vector<DiaLineInfo_t> & lines, std::map<DWORD, std::string> & files, const std::atomic<bool> & cancelled)
 {
     HRESULT hr;
     DWORD lineNumber = 0;
@@ -465,49 +465,69 @@ bool PDBDiaFile::enumerateLineNumbers(uint32_t rva, uint32_t size, std::vector<D
         return true;
 
     lines.reserve(lines.size() + lineCount);
-    std::vector<IDiaLineNumber*> lineNumbers;
-    lineNumbers.resize(lineCount);
 
-    ULONG fetched = 0;
-    hr = lineNumbersEnum->Next(lineCount, lineNumbers.data(), &fetched);
-    for(ULONG n = 0; n < fetched; n++)
+    const ULONG bucket = 10000;
+    ULONG steps = lineCount / bucket + (lineCount % bucket != 0);
+    for(ULONG step = 0; step < steps; step++)
     {
-        CComPtr<IDiaLineNumber> lineNumberInfo;
-        lineNumberInfo.Attach(lineNumbers[n]);
+        ULONG begin = step * bucket;
+        ULONG end = min(lineCount, (step + 1) * bucket);
 
-        DWORD sourceFileId = 0;
-        hr = lineNumberInfo->get_sourceFileId(&sourceFileId);
-        if(!SUCCEEDED(hr))
-            continue;
+        if(cancelled)
+            return false;
 
-        if(!files.count(sourceFileId))
+        std::vector<IDiaLineNumber*> lineNumbers;
+        ULONG lineCountStep = end - begin;
+        lineNumbers.resize(lineCountStep);
+
+        ULONG fetched = 0;
+        hr = lineNumbersEnum->Next((ULONG)lineNumbers.size(), lineNumbers.data(), &fetched);
+        for(ULONG n = 0; n < fetched; n++)
         {
-            CComPtr<IDiaSourceFile> sourceFile;
-            hr = lineNumberInfo->get_sourceFile(&sourceFile);
+            if(cancelled)
+            {
+                for(ULONG m = n; m < fetched; m++)
+                    lineNumbers[m]->Release();
+                return false;
+            }
+
+            CComPtr<IDiaLineNumber> lineNumberInfo;
+            lineNumberInfo.Attach(lineNumbers[n]);
+
+            DWORD sourceFileId = 0;
+            hr = lineNumberInfo->get_sourceFileId(&sourceFileId);
             if(!SUCCEEDED(hr))
                 continue;
 
-            BSTR fileName = nullptr;
-            hr = sourceFile->get_fileName(&fileName);
+            if(!files.count(sourceFileId))
+            {
+                CComPtr<IDiaSourceFile> sourceFile;
+                hr = lineNumberInfo->get_sourceFile(&sourceFile);
+                if(!SUCCEEDED(hr))
+                    continue;
+
+                BSTR fileName = nullptr;
+                hr = sourceFile->get_fileName(&fileName);
+                if(!SUCCEEDED(hr))
+                    continue;
+
+                files.insert({ sourceFileId, StringUtils::Utf16ToUtf8(fileName) });
+                SysFreeString(fileName);
+            }
+
+            DiaLineInfo_t lineInfo;
+            lineInfo.sourceFileId = sourceFileId;
+
+            hr = lineNumberInfo->get_lineNumber(&lineInfo.lineNumber);
             if(!SUCCEEDED(hr))
                 continue;
 
-            files.insert({ sourceFileId, StringUtils::Utf16ToUtf8(fileName) });
-            SysFreeString(fileName);
+            hr = lineNumberInfo->get_relativeVirtualAddress(&lineInfo.rva);
+            if(!SUCCEEDED(hr))
+                continue;
+
+            lines.push_back(lineInfo);
         }
-
-        DiaLineInfo_t lineInfo;
-        lineInfo.sourceFileId = sourceFileId;
-
-        hr = lineNumberInfo->get_lineNumber(&lineInfo.lineNumber);
-        if(!SUCCEEDED(hr))
-            continue;
-
-        hr = lineNumberInfo->get_relativeVirtualAddress(&lineInfo.rva);
-        if(!SUCCEEDED(hr))
-            continue;
-
-        lines.push_back(lineInfo);
     }
 
     return true;
