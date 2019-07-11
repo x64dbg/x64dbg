@@ -21,6 +21,8 @@ private slots:
     void on_btnOk_clicked();
     void on_btnLogFile_clicked();
 
+    void on_checkBox_clicked();
+
 private:
     Ui::SimpleTraceDialog* ui;
     QString mTraceCommand;

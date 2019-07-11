@@ -95,3 +95,16 @@ void SimpleTraceDialog::on_btnLogFile_clicked()
     else
         mLogFile.clear();
 }
+
+void SimpleTraceDialog::on_checkBox_clicked()
+
+{
+    ui->editSwitchCondition->clear();
+    QCheckBox b;
+    b.setChecked(false);  // Uncheck it
+    if(ui->checkBox-> isChecked())
+    {
+        ui->editSwitchCondition->setText(ui->editSwitchCondition->text() + "mod.party(dis.branchdest(cip)) == 1");
+    }
+}
+
