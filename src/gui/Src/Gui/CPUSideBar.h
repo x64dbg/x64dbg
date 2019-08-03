@@ -98,6 +98,10 @@ private:
     QColor mUnconditionalJumpLineFalseColor;
     QColor mConditionalJumpLineTrueColor;
     QColor mUnconditionalJumpLineTrueColor;
+    QColor mConditionalJumpLineFalseBackwardsColor;
+    QColor mUnconditionalJumpLineFalseBackwardsColor;
+    QColor mConditionalJumpLineTrueBackwardsColor;
+    QColor mUnconditionalJumpLineTrueBackwardsColor;
 
     QColor mBulletBreakpointColor;
     QColor mBulletBookmarkColor;
@@ -112,6 +116,8 @@ private:
 
     QPen mUnconditionalPen;
     QPen mConditionalPen;
+    QPen mUnconditionalBackwardsPen;
+    QPen mConditionalBackwardsPen;
 };
 
 #endif // CPUSIDEBAR_H

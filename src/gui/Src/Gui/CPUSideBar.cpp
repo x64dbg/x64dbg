@@ -49,6 +49,10 @@ void CPUSideBar::updateColors()
     mUnconditionalJumpLineFalseColor = ConfigColor("SideBarUnconditionalJumpLineFalseColor");
     mConditionalJumpLineTrueColor = ConfigColor("SideBarConditionalJumpLineTrueColor");
     mUnconditionalJumpLineTrueColor = ConfigColor("SideBarUnconditionalJumpLineTrueColor");
+    mConditionalJumpLineFalseBackwardsColor = ConfigColor("SideBarConditionalJumpLineFalseBackwardsColor");
+    mUnconditionalJumpLineFalseBackwardsColor = ConfigColor("SideBarUnconditionalJumpLineFalseBackwardsColor");
+    mConditionalJumpLineTrueBackwardsColor = ConfigColor("SideBarConditionalJumpLineTrueBackwardsColor");
+    mUnconditionalJumpLineTrueBackwardsColor = ConfigColor("SideBarUnconditionalJumpLineTrueBackwardsColor");
 
     mBulletBreakpointColor = ConfigColor("SideBarBulletBreakpointColor");
     mBulletBookmarkColor = ConfigColor("SideBarBulletBookmarkColor");
@@ -63,6 +67,8 @@ void CPUSideBar::updateColors()
 
     mUnconditionalPen = QPen(mUnconditionalJumpLineFalseColor, 1, Qt::SolidLine);
     mConditionalPen = QPen(mConditionalJumpLineFalseColor, 1, Qt::DashLine);
+    mUnconditionalBackwardsPen = QPen(mUnconditionalJumpLineFalseBackwardsColor, 1, Qt::SolidLine);
+    mConditionalBackwardsPen = QPen(mConditionalJumpLineFalseBackwardsColor, 1, Qt::DashLine);
 }
 
 void CPUSideBar::updateFonts()
@@ -514,13 +520,28 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
 void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jumpoffset, bool conditional, bool isexecute, bool isactive)
 {
     painter->save();
-    if(conditional)
-        painter->setPen(mConditionalPen);
-    else
-        painter->setPen(mUnconditionalPen); //JMP
 
     // Pixel adjustment to make drawing lines even
     int pixel_y_offs = 0;
+
+    int y_start =  fontHeight * (1 + startLine) - 0.5 * fontHeight - pixel_y_offs;
+    int y_end =  fontHeight * (1 + endLine) - 0.5 * fontHeight;
+    int y_diff = y_end >= y_start ? 1 : -1;
+
+    if(conditional)
+    {
+        if(y_diff > 0)
+            painter->setPen(mConditionalPen);
+        else
+            painter->setPen(mConditionalBackwardsPen);
+    }
+    else //JMP
+    {
+        if(y_diff > 0)
+            painter->setPen(mUnconditionalPen);
+        else
+            painter->setPen(mUnconditionalBackwardsPen);
+    }
 
     if(isactive) //selected
     {
@@ -536,9 +557,19 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
         if(isexecute)
         {
             if(conditional)
-                activePen.setColor(mConditionalJumpLineTrueColor);
+            {
+                if(y_diff > 0)
+                    activePen.setColor(mConditionalJumpLineTrueColor);
+                else
+                    activePen.setColor(mConditionalJumpLineTrueBackwardsColor);
+            }
             else
-                activePen.setColor(mUnconditionalJumpLineTrueColor);
+            {
+                if(y_diff > 0)
+                    activePen.setColor(mUnconditionalJumpLineTrueColor);
+                else
+                    activePen.setColor(mUnconditionalJumpLineTrueBackwardsColor);
+            }
         }
 
         // Update the painter itself with the new pen style
@@ -552,8 +583,6 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
     const int JumpPadding = 11;
     int x = viewportWidth - jumpoffset * JumpPadding - 15 - fontHeight;
     int x_right = viewportWidth - 12;
-    int y_start =  fontHeight * (1 + startLine) - 0.5 * fontHeight - pixel_y_offs;
-    int y_end =  fontHeight * (1 + endLine) - 0.5 * fontHeight;
 
     // special handling of self-jumping
     if(startLine == endLine)
