@@ -452,6 +452,10 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Conditional Jump Lines (no jump)"), "SideBarConditionalJumpLineFalseColor", "");
     colorInfoListAppend(tr("Unconditional Jump Lines (jump)"), "SideBarUnconditionalJumpLineTrueColor", "");
     colorInfoListAppend(tr("Unconditional Jump Lines (no jump)"), "SideBarUnconditionalJumpLineFalseColor", "");
+    colorInfoListAppend(tr("Conditional Jump Backwards Lines (jump)"), "SideBarConditionalJumpLineTrueBackwardsColor", "");
+    colorInfoListAppend(tr("Conditional Jump Backwards Lines (no jump)"), "SideBarConditionalJumpLineFalseBackwardsColor", "");
+    colorInfoListAppend(tr("Unconditional Jump Backwards Lines (jump)"), "SideBarUnconditionalJumpLineTrueBackwardsColor", "");
+    colorInfoListAppend(tr("Unconditional Jump Backwards Lines (no jump)"), "SideBarUnconditionalJumpLineFalseBackwardsColor", "");
     colorInfoListAppend(tr("Jump Lines (executing)"), "SideBarJumpLineExecuteColor", "");
     colorInfoListAppend(tr("Code Folding Checkbox Color"), "SideBarCheckBoxForeColor", "SideBarCheckBoxBackColor");
     colorInfoListAppend(tr("Background"), "SideBarBackgroundColor", "");
