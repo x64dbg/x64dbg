@@ -109,6 +109,8 @@ bool SymbolSourceDIA::loadSymbolsAsync()
 {
     ScopedDecrement ref(_loadCounter);
 
+    GuiRepaintTableView();
+
     PDBDiaFile pdb;
 
     if(!pdb.open(_path.c_str()))
@@ -234,6 +236,8 @@ bool SymbolSourceDIA::loadSymbolsAsync()
 bool SymbolSourceDIA::loadSourceLinesAsync()
 {
     ScopedDecrement ref(_loadCounter);
+
+    GuiRepaintTableView();
 
     PDBDiaFile pdb;
 

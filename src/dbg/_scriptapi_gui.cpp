@@ -76,7 +76,7 @@ SCRIPT_EXPORT duint Script::Gui::SymMod::SelectionGetStart()
     return SelectionGetStart(SymModWindow);
 }
 
-static inline int windowToBridge(Script::Gui::Window window)
+static inline GUISELECTIONTYPE windowToBridge(Script::Gui::Window window)
 {
     switch(window)
     {

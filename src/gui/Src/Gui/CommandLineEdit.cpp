@@ -214,7 +214,7 @@ void CommandLineEdit::registerScriptType(SCRIPTTYPEINFO* info)
     // Must be valid pointer
     if(!info)
     {
-        Bridge::getBridge()->setResult(0);
+        Bridge::getBridge()->setResult(BridgeResult::RegisterScriptLang, 0);
         return;
     }
 
@@ -232,7 +232,7 @@ void CommandLineEdit::registerScriptType(SCRIPTTYPEINFO* info)
     if(BridgeSettingGet("Gui", "ScriptType", savedType) && strcmp(info->name, savedType) == 0)
         mCmdScriptType->setCurrentIndex(info->id);
 
-    Bridge::getBridge()->setResult(1);
+    Bridge::getBridge()->setResult(BridgeResult::RegisterScriptLang, 1);
 }
 
 void CommandLineEdit::unregisterScriptType(int id)

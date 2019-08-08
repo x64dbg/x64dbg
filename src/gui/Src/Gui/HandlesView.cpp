@@ -20,9 +20,9 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mHandlesTable->setDisassemblyPopupEnabled(false);
     int wCharWidth = mHandlesTable->getCharWidth();
     mHandlesTable->addColumnAt(8 + 16 * wCharWidth, tr("Type"), true);
-    mHandlesTable->addColumnAt(8 + 8 * wCharWidth, tr("Type number"), true);
-    mHandlesTable->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Handle"), true);
-    mHandlesTable->addColumnAt(8 + 16 * wCharWidth, tr("Access"), true);
+    mHandlesTable->addColumnAt(8 + 8 * wCharWidth, tr("Type number"), true, "", StdTable::SortBy::AsHex);
+    mHandlesTable->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Handle"), true, "", StdTable::SortBy::AsHex);
+    mHandlesTable->addColumnAt(8 + 16 * wCharWidth, tr("Access"), true, "", StdTable::SortBy::AsHex);
     mHandlesTable->addColumnAt(8 + wCharWidth * 20, tr("Name"), true);
     mHandlesTable->loadColumnFromConfig("Handle");
 
@@ -32,13 +32,13 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mWindowsTable->setSearchStartCol(0);
     mWindowsTable->setDrawDebugOnly(true);
     wCharWidth = mWindowsTable->getCharWidth();
-    mWindowsTable->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Proc"), true);
-    mWindowsTable->addColumnAt(8 + 8 * wCharWidth, tr("Handle"), true);
+    mWindowsTable->addColumnAt(8 + sizeof(duint) * 2 * wCharWidth, tr("Proc"), true, "", StdTable::SortBy::AsHex);
+    mWindowsTable->addColumnAt(8 + 8 * wCharWidth, tr("Handle"), true, "", StdTable::SortBy::AsHex);
     mWindowsTable->addColumnAt(8 + 120 * wCharWidth, tr("Title"), true);
     mWindowsTable->addColumnAt(8 + 40 * wCharWidth, tr("Class"), true);
-    mWindowsTable->addColumnAt(8 + 8 * wCharWidth, tr("Thread"), true);
-    mWindowsTable->addColumnAt(8 + 16 * wCharWidth, tr("Style"), true);
-    mWindowsTable->addColumnAt(8 + 16 * wCharWidth, tr("StyleEx"), true);
+    mWindowsTable->addColumnAt(8 + 8 * wCharWidth, tr("Thread"), true, "", StdTable::SortBy::AsHex);
+    mWindowsTable->addColumnAt(8 + 16 * wCharWidth, tr("Style"), true, "", StdTable::SortBy::AsHex);
+    mWindowsTable->addColumnAt(8 + 16 * wCharWidth, tr("StyleEx"), true, "", StdTable::SortBy::AsHex);
     mWindowsTable->addColumnAt(8 + 8 * wCharWidth, tr("Parent"), true);
     mWindowsTable->addColumnAt(8 + 20 * wCharWidth, tr("Size"), true);
     mWindowsTable->addColumnAt(8 + 6 * wCharWidth, tr("Enable"), true);

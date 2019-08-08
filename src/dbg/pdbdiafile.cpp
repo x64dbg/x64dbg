@@ -274,7 +274,7 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
 
     if(validationData != nullptr)
     {
-        CComPtr<IDiaSymbol> globalSym;
+        IDiaSymbol* globalSym = nullptr;
         hr = m_session->get_globalScope(&globalSym);
         if(testError(hr))
         {
@@ -286,9 +286,10 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
             hr = globalSym->get_age(&age);
             if(!testError(hr) && validationData->age != age)
             {
+                globalSym->Release();
                 close();
 
-                GuiSymbolLogAdd("PDB age is not matching.\n");
+                GuiSymbolLogAdd(StringUtils::sprintf("Validation error: PDB age is not matching (expected: %u, actual: %u).\n", validationData->age, age).c_str());
                 return false;
             }
 
@@ -310,12 +311,28 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
             hr = globalSym->get_guid(&guid);
             if(!testError(hr) && memcmp(&guid, &validationData->guid, sizeof(GUID)) != 0)
             {
+                globalSym->Release();
                 close();
 
-                GuiSymbolLogAdd("PDB guid is not matching.\n");
+                auto guidStr = [](const GUID & guid) -> String
+                {
+                    // https://stackoverflow.com/a/22848342/1806760
+                    char guid_string[37]; // 32 hex chars + 4 hyphens + null terminator
+                    sprintf_s(guid_string,
+                    "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+                    guid.Data1, guid.Data2, guid.Data3,
+                    guid.Data4[0], guid.Data4[1], guid.Data4[2],
+                    guid.Data4[3], guid.Data4[4], guid.Data4[5],
+                    guid.Data4[6], guid.Data4[7]);
+                    return guid_string;
+                };
+
+                GuiSymbolLogAdd(StringUtils::sprintf("Validation error: PDB guid is not matching (expected: %s, actual: %s).\n",
+                                                     guidStr(validationData->guid).c_str(), guidStr(guid).c_str()).c_str());
                 return false;
             }
         }
+        globalSym->Release();
     }
     else
     {

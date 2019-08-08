@@ -20,7 +20,7 @@ private:
     {
         String type;
         CBFORMATFUNCTION cbFunction;
-        void* userdata;
+        void* userdata = nullptr;
         std::vector<String> aliases;
     };
 

@@ -43,7 +43,7 @@ public:
 
         String ToString() const
         {
-            return StringUtils::sprintf("start: p\nend: p\nfunction: %p", start, end, parentGraph);
+            return StringUtils::sprintf("start: %p\nend: %p\nfunction: %p", start, end, parentGraph);
         }
     };
 

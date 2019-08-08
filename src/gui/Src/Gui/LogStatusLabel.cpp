@@ -80,5 +80,5 @@ void LogStatusLabel::getActiveView(ACTIVEVIEW* active)
     QWidget* now = QApplication::focusWidget();
     strncpy_s(active->title, findTitle(now, active->titleHwnd).toUtf8().constData(), _TRUNCATE);
     strncpy_s(active->className, className(now, active->classHwnd).toUtf8().constData(), _TRUNCATE);
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::GetActiveView);
 }

@@ -952,6 +952,9 @@ bool cbDebugBpDll(int argc, char* argv[])
     {
         switch(*argv[2])
         {
+        case 'a':
+            type = UE_ON_LIB_ALL;
+            break;
         case 'l':
             type = UE_ON_LIB_LOAD;
             break;
@@ -960,10 +963,10 @@ bool cbDebugBpDll(int argc, char* argv[])
             break;
         }
     }
-    bool singleshoot = true;
+    bool singleshoot = false;
     if(argc > 3)
-        singleshoot = false;
-    if(!BpNewDll(argv[1], true, false, type, ""))
+        singleshoot = true;
+    if(!BpNewDll(argv[1], true, singleshoot, type, ""))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error creating Dll breakpoint! (BpNewDll)"));
         return false;
@@ -997,19 +1000,22 @@ bool cbDebugBcDll(int argc, char* argv[])
     _strlwr_s(argv[1], strlen(argv[1]) + 1); //NOTE: does not really work on unicode strings
     BREAKPOINT bp;
     if(!BpGetAny(BPDLL, argv[1], &bp))
-        return false;
-    if(!BpDelete(bp.addr, BPDLL))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to remove DLL breakpoint..."));
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to find DLL breakpoint '%s'...\n"), argv[1]);
         return false;
     }
+    if(!BpDelete(bp.addr, BPDLL))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to remove DLL breakpoint (BpDelete)..."));
+        return false;
+    }
+    DebugUpdateBreakpointsViewAsync();
     if(!dbgdeletedllbreakpoint(bp.mod, bp.titantype))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to remove DLL breakpoint..."));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to remove DLL breakpoint (dbgdeletedllbreakpoint)..."));
         return false;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "DLL breakpoint removed!"));
-    DebugUpdateBreakpointsViewAsync();
     return true;
 }
 

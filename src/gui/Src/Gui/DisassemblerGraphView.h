@@ -257,9 +257,6 @@ public:
 
     VaHistory mHistory;
 
-signals:
-    void displaySnowmanWidget();
-
 public slots:
     void loadGraphSlot(BridgeCFGraphList* graph, duint addr);
     void graphAtSlot(duint addr);
@@ -285,9 +282,9 @@ public slots:
     void setCommentSlot();
     void setLabelSlot();
     void xrefSlot();
-    void decompileSlot();
     void fitToWindowSlot();
     void zoomToCursorSlot();
+    void getCurrentGraphSlot(BridgeCFGraphList* graphList);
 
 private:
     bool graphZoomMode;
@@ -328,6 +325,7 @@ private:
     std::vector<int> row_edge_y;
     CachedFontMetrics* mFontMetrics;
     MenuBuilder* mMenuBuilder;
+    QMenu* mPluginMenu;
     bool drawOverview;
     bool onlySummary;
     bool syncOrigin;

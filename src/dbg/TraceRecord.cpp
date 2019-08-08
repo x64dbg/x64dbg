@@ -13,7 +13,7 @@
 
 TraceRecordManager TraceRecord;
 
-TraceRecordManager::TraceRecordManager() : instructionCounter(0)
+TraceRecordManager::TraceRecordManager()
 {
     ModuleNames.emplace_back("");
 }

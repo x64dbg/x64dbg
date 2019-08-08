@@ -64,9 +64,9 @@ struct MODEXPORT : SymbolInfoGui
 
 struct MODIMPORT : SymbolInfoGui
 {
-    size_t moduleIndex; //index in MODINFO.importModules
-    DWORD iatRva;
-    duint ordinal; //equal to -1 if imported by name
+    size_t moduleIndex = 0; //index in MODINFO.importModules
+    DWORD iatRva = 0;
+    duint ordinal = -1; //equal to -1 if imported by name
     String name;
     String undecoratedName;
 
@@ -129,7 +129,7 @@ struct MODINFO
         GuiInvalidateSymbolSource(base);
     }
 
-    bool loadSymbols();
+    bool loadSymbols(const String & pdbPath, bool forceLoad);
     void unloadSymbols();
     void unmapFile();
     const MODEXPORT* findExport(duint rva) const;

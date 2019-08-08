@@ -240,7 +240,7 @@ QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int row
             }
         }
         painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, text);
-        text = "";
+        text.clear();
     }
     else if(mHighlightText.length() && text.contains(mHighlightText, Qt::CaseInsensitive)) // TODO: case sensitive + regex highlighting
     {
@@ -261,7 +261,7 @@ QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int row
         //create rich text list
         RichTextPainter::CustomRichText_t curRichText;
         curRichText.flags = RichTextPainter::FlagColor;
-        curRichText.textColor = mTextColor;
+        curRichText.textColor = getCellColor(rowBase + rowOffset, col);
         curRichText.highlightColor = ConfigColor("SearchListViewHighlightColor");
         RichTextPainter::List richText;
         foreach(QString str, split)
@@ -273,7 +273,7 @@ QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int row
 
         //paint the rich text
         RichTextPainter::paintRichText(painter, x + 1, y, w, h, 4, richText, mFontMetrics);
-        text = "";
+        text.clear();
     }
     return text;
 }

@@ -12,6 +12,8 @@ bool cbInstrAnalyseadv(int argc, char* argv[]);
 
 bool cbInstrVirtualmod(int argc, char* argv[]);
 bool cbDebugDownloadSymbol(int argc, char* argv[]);
+bool cbDebugLoadSymbol(int argc, char* argv[]);
+bool cbDebugUnloadSymbol(int argc, char* argv[]);
 bool cbInstrImageinfo(int argc, char* argv[]);
 bool cbInstrGetRelocSize(int argc, char* argv[]);
 bool cbInstrExhandlers(int argc, char* argv[]);

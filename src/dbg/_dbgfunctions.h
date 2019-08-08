@@ -129,6 +129,13 @@ typedef struct
     duint value;
 } CONSTANTINFO;
 
+typedef enum
+{
+    MODSYMUNLOADED = 0,
+    MODSYMLOADING,
+    MODSYMLOADED
+} MODULESYMBOLSTATUS;
+
 typedef bool (*ASSEMBLEATEX)(duint addr, const char* instruction, char* error, bool fillnop);
 typedef bool (*SECTIONFROMADDR)(duint addr, char* section);
 typedef bool (*MODNAMEFROMADDR)(duint addr, char* modname, bool extension);
@@ -199,6 +206,7 @@ typedef duint(*DBGETHASH)();
 typedef int(*SYMAUTOCOMPLETE)(const char* Search, char** Buffer, int MaxSymbols);
 typedef void(*REFRESHMODULELIST)();
 typedef duint(*GETADDRFROMLINEEX)(duint mod, const char* szSourceFile, int line);
+typedef MODULESYMBOLSTATUS(*MODSYMBOLSTATUS)(duint mod);
 
 //The list of all the DbgFunctions() return value.
 //WARNING: This list is append only. Do not insert things in the middle or plugins would break.
@@ -276,6 +284,7 @@ typedef struct DBGFUNCTIONS_
     SYMAUTOCOMPLETE SymAutoComplete;
     REFRESHMODULELIST RefreshModuleList;
     GETADDRFROMLINEEX GetAddrFromLineEx;
+    MODSYMBOLSTATUS ModSymbolStatus;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

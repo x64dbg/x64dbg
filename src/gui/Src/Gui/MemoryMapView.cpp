@@ -172,6 +172,9 @@ void MemoryMapView::setupContextMenu()
     connect(mComment, SIGNAL(triggered()), this, SLOT(commentSlot()));
     mComment->setShortcutContext(Qt::WidgetShortcut);
 
+    mPluginMenu = new QMenu(this);
+    Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_MEMMAP_MENU);
+
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
@@ -209,6 +212,9 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu.addAction(mPageMemoryRights);
     wMenu.addSeparator();
     wMenu.addMenu(mBreakpointMenu);
+    wMenu.addSeparator();
+    DbgMenuPrepare(GUI_MEMMAP_MENU);
+    wMenu.addActions(mPluginMenu->actions());
     QMenu wCopyMenu(tr("&Copy"), this);
     wCopyMenu.setIcon(DIcon("copy.png"));
     setupCopyMenu(&wCopyMenu);
@@ -615,7 +621,7 @@ void MemoryMapView::addVirtualModSlot()
 void MemoryMapView::selectionGetSlot(SELECTIONDATA* selection)
 {
     selection->start = selection->end = duint(getCellContent(getInitialSelection(), 0).toULongLong(nullptr, 16));
-    Bridge::getBridge()->setResult(1);
+    Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
 }
 
 void MemoryMapView::disassembleAtSlot(dsint va, dsint cip)

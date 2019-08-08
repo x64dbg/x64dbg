@@ -209,81 +209,43 @@ bool pluginload(const char* pluginName, bool loadall)
     regExport("CBVALTOSTRING", CB_VALTOSTRING);
     regExport("CBMENUPREPARE", CB_MENUPREPARE);
 
-    SectionLocker<LockPluginMenuList, false> menuLock; //exclusive lock
+    //add plugin menus
+    {
+        SectionLocker<LockPluginMenuList, false> menuLock; //exclusive lock
 
-    //add plugin menu
-    int hNewMenu = GuiMenuAdd(GUI_PLUGIN_MENU, pluginData.initStruct.pluginName);
-    if(hNewMenu == -1)
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] GuiMenuAdd(GUI_PLUGIN_MENU) failed for plugin: %s\n"), pluginData.initStruct.pluginName);
-        pluginData.hMenu = -1;
-    }
-    else
-    {
-        PLUG_MENU newMenu;
-        newMenu.hEntryMenu = hNewMenu;
-        newMenu.hParentMenu = GUI_PLUGIN_MENU;
-        newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
-        pluginMenuList.push_back(newMenu);
-        pluginData.hMenu = newMenu.hEntryMenu;
-    }
+        auto addPluginMenu = [](GUIMENUTYPE type)
+        {
+            int hNewMenu = GuiMenuAdd(type, pluginData.initStruct.pluginName);
+            if(hNewMenu == -1)
+            {
+                dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] GuiMenuAdd(%d) failed for plugin: %s\n"), type, pluginData.initStruct.pluginName);
+                return -1;
+            }
+            else
+            {
+                PLUG_MENU newMenu;
+                newMenu.hEntryMenu = hNewMenu;
+                newMenu.hParentMenu = type;
+                newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
+                pluginMenuList.push_back(newMenu);
+                return newMenu.hEntryMenu;
+            }
+        };
 
-    //add disasm plugin menu
-    hNewMenu = GuiMenuAdd(GUI_DISASM_MENU, pluginData.initStruct.pluginName);
-    if(hNewMenu == -1)
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] GuiMenuAdd(GUI_DISASM_MENU) failed for plugin: %s\n"), pluginData.initStruct.pluginName);
-        pluginData.hMenu = -1;
+        pluginData.hMenu = addPluginMenu(GUI_PLUGIN_MENU);
+        pluginData.hMenuDisasm = addPluginMenu(GUI_DISASM_MENU);
+        pluginData.hMenuDump = addPluginMenu(GUI_DUMP_MENU);
+        pluginData.hMenuStack = addPluginMenu(GUI_STACK_MENU);
+        pluginData.hMenuGraph = addPluginMenu(GUI_GRAPH_MENU);
+        pluginData.hMenuMemmap = addPluginMenu(GUI_MEMMAP_MENU);
+        pluginData.hMenuSymmod = addPluginMenu(GUI_SYMMOD_MENU);
     }
-    else
-    {
-        PLUG_MENU newMenu;
-        newMenu.hEntryMenu = hNewMenu;
-        newMenu.hParentMenu = GUI_DISASM_MENU;
-        newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
-        pluginMenuList.push_back(newMenu);
-        pluginData.hMenuDisasm = newMenu.hEntryMenu;
-    }
-
-    //add dump plugin menu
-    hNewMenu = GuiMenuAdd(GUI_DUMP_MENU, pluginData.initStruct.pluginName);
-    if(hNewMenu == -1)
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] GuiMenuAdd(GUI_DUMP_MENU) failed for plugin: %s\n"), pluginData.initStruct.pluginName);
-        pluginData.hMenu = -1;
-    }
-    else
-    {
-        PLUG_MENU newMenu;
-        newMenu.hEntryMenu = hNewMenu;
-        newMenu.hParentMenu = GUI_DUMP_MENU;
-        newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
-        pluginMenuList.push_back(newMenu);
-        pluginData.hMenuDump = newMenu.hEntryMenu;
-    }
-
-    //add stack plugin menu
-    hNewMenu = GuiMenuAdd(GUI_STACK_MENU, pluginData.initStruct.pluginName);
-    if(hNewMenu == -1)
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] GuiMenuAdd(GUI_STACK_MENU) failed for plugin: %s\n"), pluginData.initStruct.pluginName);
-        pluginData.hMenu = -1;
-    }
-    else
-    {
-        PLUG_MENU newMenu;
-        newMenu.hEntryMenu = hNewMenu;
-        newMenu.hParentMenu = GUI_STACK_MENU;
-        newMenu.pluginHandle = pluginData.initStruct.pluginHandle;
-        pluginMenuList.push_back(newMenu);
-        pluginData.hMenuStack = newMenu.hEntryMenu;
-    }
-    menuLock.Unlock();
 
     //add the plugin to the list
-    SectionLocker<LockPluginList, false> pluginLock; //exclusive lock
-    pluginList.push_back(pluginData);
-    pluginLock.Unlock();
+    {
+        SectionLocker<LockPluginList, false> pluginLock; //exclusive lock
+        pluginList.push_back(pluginData);
+    }
 
     //setup plugin
     if(pluginData.plugsetup)
@@ -294,6 +256,9 @@ bool pluginload(const char* pluginName, bool loadall)
         setupStruct.hMenuDisasm = pluginData.hMenuDisasm;
         setupStruct.hMenuDump = pluginData.hMenuDump;
         setupStruct.hMenuStack = pluginData.hMenuStack;
+        setupStruct.hMenuGraph = pluginData.hMenuGraph;
+        setupStruct.hMenuMemmap = pluginData.hMenuMemmap;
+        setupStruct.hMenuSymmod = pluginData.hMenuSymmod;
         pluginData.plugsetup(&setupStruct);
     }
     pluginData.isLoaded = true;
@@ -333,11 +298,14 @@ bool pluginunload(const char* pluginName, bool unloadall)
 
     if(found != pluginList.end())
     {
+        bool canFreeLibrary = true;
         auto currentPlugin = *found;
         if(currentPlugin.plugstop)
-            currentPlugin.plugstop();
-        plugincmdunregisterall(currentPlugin.initStruct.pluginHandle);
-        pluginexprfuncunregisterall(currentPlugin.initStruct.pluginHandle);
+            canFreeLibrary = currentPlugin.plugstop();
+        int pluginHandle = currentPlugin.initStruct.pluginHandle;
+        plugincmdunregisterall(pluginHandle);
+        pluginexprfuncunregisterall(pluginHandle);
+        pluginformatfuncunregisterall(pluginHandle);
 
         //remove the callbacks
         {
@@ -346,7 +314,7 @@ bool pluginunload(const char* pluginName, bool unloadall)
             {
                 for(auto it = cbList.begin(); it != cbList.end();)
                 {
-                    if(it->pluginHandle == currentPlugin.initStruct.pluginHandle)
+                    if(it->pluginHandle == pluginHandle)
                         it = cbList.erase(it);
                     else
                         ++it;
@@ -356,6 +324,12 @@ bool pluginunload(const char* pluginName, bool unloadall)
         {
             EXCLUSIVE_ACQUIRE(LockPluginList);
             pluginmenuclear(currentPlugin.hMenu, true);
+            pluginmenuclear(currentPlugin.hMenuDisasm, true);
+            pluginmenuclear(currentPlugin.hMenuDump, true);
+            pluginmenuclear(currentPlugin.hMenuStack, true);
+            pluginmenuclear(currentPlugin.hMenuGraph, true);
+            pluginmenuclear(currentPlugin.hMenuMemmap, true);
+            pluginmenuclear(currentPlugin.hMenuSymmod, true);
 
             if(!unloadall)
             {
@@ -364,7 +338,8 @@ bool pluginunload(const char* pluginName, bool unloadall)
             }
         }
 
-        FreeLibrary(currentPlugin.hPlugin);
+        if(canFreeLibrary)
+            FreeLibrary(currentPlugin.hPlugin);
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s unloaded\n"), name);
         return true;
     }
@@ -444,21 +419,44 @@ void plugincmdunregisterall(int pluginHandle)
 
 /**
 \brief Unregister all plugin expression functions.
-\param pluginHandle Handle of the plugin to remove the commands from.
+\param pluginHandle Handle of the plugin to remove the expression functions from.
 */
 void pluginexprfuncunregisterall(int pluginHandle)
 {
     SHARED_ACQUIRE(LockPluginExprfunctionList);
-    auto commandList = pluginExprfunctionList; //copy for thread-safety reasons
+    auto exprFuncList = pluginExprfunctionList; //copy for thread-safety reasons
     SHARED_RELEASE();
-    auto i = commandList.begin();
-    while(i != commandList.end())
+    auto i = exprFuncList.begin();
+    while(i != exprFuncList.end())
     {
-        auto currentExprfunction = *i;
-        if(currentExprfunction.pluginHandle == pluginHandle)
+        auto currentExprFunc = *i;
+        if(currentExprFunc.pluginHandle == pluginHandle)
         {
-            i = commandList.erase(i);
-            ExpressionFunctions::Unregister(currentExprfunction.name);
+            i = exprFuncList.erase(i);
+            ExpressionFunctions::Unregister(currentExprFunc.name);
+        }
+        else
+            ++i;
+    }
+}
+
+/**
+\brief Unregister all plugin format functions.
+\param pluginHandle Handle of the plugin to remove the format functions from.
+*/
+void pluginformatfuncunregisterall(int pluginHandle)
+{
+    SHARED_ACQUIRE(LockPluginFormatfunctionList);
+    auto formatFuncList = pluginExprfunctionList; //copy for thread-safety reasons
+    SHARED_RELEASE();
+    auto i = formatFuncList.begin();
+    while(i != formatFuncList.end())
+    {
+        auto currentFormatFunc = *i;
+        if(currentFormatFunc.pluginHandle == pluginHandle)
+        {
+            i = formatFuncList.erase(i);
+            FormatFunctions::Unregister(currentFormatFunc.name);
         }
         else
             ++i;
@@ -896,7 +894,7 @@ void pluginmenuentrysetvisible(int pluginHandle, int hEntry, bool visible)
     {
         if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
         {
-            GuiMenuSetEntryChecked(currentMenu.hEntryMenu, visible);
+            GuiMenuSetEntryVisible(currentMenu.hEntryMenu, visible);
             break;
         }
     }

@@ -65,8 +65,8 @@ namespace Types
         std::string owner; //Function owner
         std::string name; //Function identifier
         std::string rettype; //Function return type
-        CallingConvention callconv; //Function calling convention
-        bool noreturn; //Function does not return (ExitProcess, _exit)
+        CallingConvention callconv = Cdecl; //Function calling convention
+        bool noreturn = false; //Function does not return (ExitProcess, _exit)
         std::vector<Member> args; //Function arguments
     };
 
@@ -87,7 +87,7 @@ namespace Types
             std::string kind;
             std::string name;
             std::string owner;
-            int size;
+            int size = 0;
         };
 
         explicit TypeManager();

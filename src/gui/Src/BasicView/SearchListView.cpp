@@ -2,6 +2,7 @@
 #include <QHBoxLayout>
 #include <QSplitter>
 #include <QLabel>
+#include <QTimer>
 #include "SearchListView.h"
 #include "FlickerThread.h"
 
@@ -100,12 +101,17 @@ SearchListView::SearchListView(QWidget* parent, AbstractSearchList* abstractSear
     mSearchAction = new QAction(DIcon("find.png"), tr("Search..."), this);
     connect(mSearchAction, SIGNAL(triggered()), this, SLOT(searchSlot()));
 
+    // https://wiki.qt.io/Delay_action_to_wait_for_user_interaction
+    mTypingTimer = new QTimer(this);
+    mTypingTimer->setSingleShot(true);
+    connect(mTypingTimer, SIGNAL(timeout()), this, SLOT(filterEntries()));
+
     // Slots
     connect(abstractSearchList->list(), SIGNAL(contextMenuSignal(QPoint)), this, SLOT(listContextMenu(QPoint)));
     connect(abstractSearchList->list(), SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
     connect(abstractSearchList->searchList(), SIGNAL(contextMenuSignal(QPoint)), this, SLOT(listContextMenu(QPoint)));
     connect(abstractSearchList->searchList(), SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
-    connect(mSearchBox, SIGNAL(textChanged(QString)), this, SLOT(searchTextChanged(QString)));
+    connect(mSearchBox, SIGNAL(textEdited(QString)), this, SLOT(searchTextEdited(QString)));
     connect(mRegexCheckbox, SIGNAL(stateChanged(int)), this, SLOT(on_checkBoxRegex_stateChanged(int)));
     connect(mLockCheckbox, SIGNAL(toggled(bool)), mSearchBox, SLOT(setDisabled(bool)));
 
@@ -145,7 +151,7 @@ bool SearchListView::findTextInList(AbstractStdTable* list, QString text, int ro
     return false;
 }
 
-void SearchListView::searchTextChanged(const QString & text)
+void SearchListView::filterEntries()
 {
     mAbstractSearchList->lock();
 
@@ -158,7 +164,7 @@ void SearchListView::searchTextChanged(const QString & text)
     // get the correct previous list instance
     auto mPrevList = mAbstractSearchList->list()->isVisible() ? mAbstractSearchList->list() : mAbstractSearchList->searchList();
 
-    if(text.length())
+    if(mFilterText.length())
     {
         mAbstractSearchList->list()->hide();
         mAbstractSearchList->searchList()->show();
@@ -175,7 +181,7 @@ void SearchListView::searchTextChanged(const QString & text)
             filterType = AbstractSearchList::FilterRegexCaseSensitive;
             break;
         }
-        mAbstractSearchList->filter(text, filterType, mSearchStartCol);
+        mAbstractSearchList->filter(mFilterText, filterType, mSearchStartCol);
     }
     else
     {
@@ -216,7 +222,7 @@ void SearchListView::searchTextChanged(const QString & text)
     // Do not highlight with regex
     // TODO: fully respect highlighting mode
     if(mRegexCheckbox->checkState() == Qt::Unchecked)
-        mAbstractSearchList->searchList()->setHighlightText(text);
+        mAbstractSearchList->searchList()->setHighlightText(mFilterText);
     else
         mAbstractSearchList->searchList()->setHighlightText(QString());
 
@@ -238,9 +244,37 @@ void SearchListView::searchTextChanged(const QString & text)
     mAbstractSearchList->unlock();
 }
 
+void SearchListView::searchTextEdited(const QString & text)
+{
+    mFilterText = text;
+    mAbstractSearchList->lock();
+    mTypingTimer->setInterval([](dsint rowCount)
+    {
+        // These numbers are kind of arbitrarily chosen, but seem to work
+        if(rowCount <= 10000)
+            return 0;
+        else if(rowCount <= 600000)
+            return 100;
+        else
+            return 350;
+    }(mAbstractSearchList->list()->getRowCount()));
+    mAbstractSearchList->unlock();
+    mTypingTimer->start(); // This will fire filterEntries after interval ms.
+    // If the user types something before it fires, the timer restarts counting
+}
+
 void SearchListView::refreshSearchList()
 {
-    searchTextChanged(mSearchBox->text());
+    filterEntries();
+}
+
+void SearchListView::clearFilter()
+{
+    mSearchBox->clear();
+    bool isFilterAlreadyEmpty = mFilterText.isEmpty();
+    mFilterText.clear();
+    if(!isFilterAlreadyEmpty)
+        filterEntries();
 }
 
 void SearchListView::listContextMenu(const QPoint & pos)

@@ -22,7 +22,6 @@
 #include "XrefBrowseDialog.h"
 #include "SourceViewerManager.h"
 #include "MiscUtil.h"
-#include "SnowmanView.h"
 #include "MemoryPage.h"
 #include "BreakpointMenu.h"
 #include "BrowseDialog.h"
@@ -321,14 +320,6 @@ void CPUDisassembly::setupRightClickContextMenu()
         return DbgFunctions()->GetSourceFromAddr(rvaToVa(getInitialSelection()), 0, 0);
     });
 
-    MenuBuilder* decompileMenu = new MenuBuilder(this);
-    decompileMenu->addAction(makeShortcutAction(DIcon("decompile_selection.png"), tr("Selection"), SLOT(decompileSelectionSlot()), "ActionDecompileSelection"));
-    decompileMenu->addAction(makeShortcutAction(DIcon("decompile_function.png"), tr("Function"), SLOT(decompileFunctionSlot()), "ActionDecompileFunction"), [this](QMenu*)
-    {
-        return DbgFunctionGet(rvaToVa(getInitialSelection()), 0, 0);
-    });
-
-    mMenuBuilder->addMenu(makeMenu(DIcon("snowman.png"), tr("Decompile")), decompileMenu);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("graph.png"), tr("Graph"), SLOT(graphSlot()), "ActionGraph"));
 
     mMenuBuilder->addMenu(makeMenu(DIcon("help.png"), tr("Help on Symbolic Name")), [this](QMenu * menu)
@@ -1277,7 +1268,7 @@ void CPUDisassembly::selectionGetSlot(SELECTIONDATA* selection)
 {
     selection->start = rvaToVa(getSelectionStart());
     selection->end = rvaToVa(getSelectionEnd());
-    Bridge::getBridge()->setResult(1);
+    Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
 }
 
 void CPUDisassembly::selectionSetSlot(const SELECTIONDATA* selection)
@@ -1288,13 +1279,13 @@ void CPUDisassembly::selectionSetSlot(const SELECTIONDATA* selection)
     dsint end = selection->end;
     if(start < selMin || start >= selMax || end < selMin || end >= selMax) //selection out of range
     {
-        Bridge::getBridge()->setResult(0);
+        Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 0);
         return;
     }
     setSingleSelection(start - selMin);
     expandSelectionUpTo(end - selMin);
     reloadData();
-    Bridge::getBridge()->setResult(1);
+    Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 1);
 }
 
 void CPUDisassembly::selectionUpdatedSlot()
@@ -1742,29 +1733,6 @@ void CPUDisassembly::openSourceSlot()
         return;
     emit Bridge::getBridge()->loadSourceFile(szSourceFile, sel);
     emit displaySourceManagerWidget();
-}
-
-void CPUDisassembly::decompileSelectionSlot()
-{
-    dsint addr = rvaToVa(getSelectionStart());
-    dsint size = getSelectionSize();
-    emit displaySnowmanWidget();
-    DecompileAt(Bridge::getBridge()->snowmanView, addr, addr + size);
-}
-
-void CPUDisassembly::decompileFunctionSlot()
-{
-    dsint addr = rvaToVa(getInitialSelection());
-    duint start;
-    duint end;
-    if(DbgFunctionGet(addr, &start, &end))
-    {
-        BASIC_INSTRUCTION_INFO info;
-        DbgDisasmFastAt(end, &info);
-        end += info.size - 1;
-        emit displaySnowmanWidget();
-        DecompileAt(Bridge::getBridge()->snowmanView, start, end);
-    }
 }
 
 void CPUDisassembly::displayWarningSlot(QString title, QString text)

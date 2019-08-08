@@ -832,8 +832,13 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
         GetModuleInfo(info, (ULONG_PTR)data());
     }
 
+    info.symbols = &EmptySymbolSource; // empty symbol source per default
     // TODO: setting to auto load symbols
-    info.loadSymbols();
+    for(const auto & pdbPath : info.pdbPaths)
+    {
+        if(info.loadSymbols(pdbPath, bForceLoadSymbols))
+            break;
+    }
 
     // Add module to list
     EXCLUSIVE_ACQUIRE(LockModules);
@@ -1192,10 +1197,9 @@ bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONI
     return !Relocations.empty();
 }
 
-bool MODINFO::loadSymbols()
+bool MODINFO::loadSymbols(const String & pdbPath, bool forceLoad)
 {
     unloadSymbols();
-    symbols = &EmptySymbolSource; // empty symbol source per default
 
     // Try DIA
     if(symbols == &EmptySymbolSource && SymbolSourceDIA::isLibraryAvailable())
@@ -1208,32 +1212,29 @@ bool MODINFO::loadSymbols()
         validationData.signature = pdbValidation.signature;
         validationData.age = pdbValidation.age;
         SymbolSourceDIA* symSource = new SymbolSourceDIA();
-        for(const auto & pdbPath : pdbPaths)
+        if(!FileExists(pdbPath.c_str()))
         {
-            if(!FileExists(pdbPath.c_str()))
-            {
-                GuiSymbolLogAdd(StringUtils::sprintf("[DIA] Skipping non-existent PDB: %s\n", pdbPath.c_str()).c_str());
-            }
-            else if(symSource->loadPDB(pdbPath, modname, base, size, bForceLoadSymbols ? nullptr : &validationData))
-            {
-                symSource->resizeSymbolBitmap(size);
+            GuiSymbolLogAdd(StringUtils::sprintf("[DIA] Skipping non-existent PDB: %s\n", pdbPath.c_str()).c_str());
+        }
+        else if(symSource->loadPDB(pdbPath, modname, base, size, forceLoad ? nullptr : &validationData))
+        {
+            symSource->resizeSymbolBitmap(size);
 
-                symbols = symSource;
+            symbols = symSource;
 
-                std::string msg;
-                if(symSource->isLoading())
-                    msg = StringUtils::sprintf("[DIA] Loading PDB (async): %s\n", pdbPath.c_str());
-                else
-                    msg = StringUtils::sprintf("[DIA] Loaded PDB: %s\n", pdbPath.c_str());
-                GuiSymbolLogAdd(msg.c_str());
-
-                return true;
-            }
+            std::string msg;
+            if(symSource->isLoading())
+                msg = StringUtils::sprintf("[DIA] Loading PDB (async): %s\n", pdbPath.c_str());
             else
-            {
-                // TODO: more detailled error codes?
-                GuiSymbolLogAdd(StringUtils::sprintf("[DIA] Failed to load PDB: %s\n", pdbPath.c_str()).c_str());
-            }
+                msg = StringUtils::sprintf("[DIA] Loaded PDB: %s\n", pdbPath.c_str());
+            GuiSymbolLogAdd(msg.c_str());
+
+            return true;
+        }
+        else
+        {
+            // TODO: more detailled error codes?
+            GuiSymbolLogAdd(StringUtils::sprintf("[DIA] Failed to load PDB: %s\n", pdbPath.c_str()).c_str());
         }
         delete symSource;
     }

@@ -14,38 +14,15 @@
 #include "WinInet-Downloader/downslib.h"
 #include <shlwapi.h>
 
+duint symbolDownloadingBase = 0;
+
 struct SYMBOLCBDATA
 {
     CBSYMBOLENUM cbSymbolEnum;
-    void* user;
+    void* user = nullptr;
     std::vector<char> decoratedSymbol;
     std::vector<char> undecoratedSymbol;
 };
-
-/*static void SymEnumImports(duint Base, CBSYMBOLENUM EnumCallback, SYMBOLCBDATA & cbData)
-{
-    SYMBOLINFO symbol;
-    memset(&symbol, 0, sizeof(SYMBOLINFO));
-    symbol.isImported = true;
-    apienumimports(Base, [&](duint base, duint addr, const char* name, const char* moduleName)
-    {
-        cbData.decoratedSymbol[0] = '\0';
-        cbData.undecoratedSymbol[0] = '\0';
-
-        symbol.addr = addr;
-        symbol.decoratedSymbol = cbData.decoratedSymbol.data();
-        symbol.undecoratedSymbol = cbData.undecoratedSymbol.data();
-        strncpy_s(symbol.decoratedSymbol, MAX_SYM_NAME, name, _TRUNCATE);
-
-        // Convert a mangled/decorated C++ name to a readable format
-        if(!SafeUnDecorateSymbolName(name, symbol.undecoratedSymbol, MAX_SYM_NAME, UNDNAME_COMPLETE))
-            symbol.undecoratedSymbol = nullptr;
-        else if(!strcmp(symbol.decoratedSymbol, symbol.undecoratedSymbol))
-            symbol.undecoratedSymbol = nullptr;
-
-        EnumCallback(&symbol, cbData.user);
-    });
-}*/
 
 void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
 {
@@ -139,6 +116,11 @@ void SymUpdateModuleList()
 
 bool SymDownloadSymbol(duint Base, const char* SymbolStore)
 {
+    struct DownloadBaseGuard
+    {
+        DownloadBaseGuard(duint downloadBase) { symbolDownloadingBase = downloadBase; GuiRepaintTableView(); }
+        ~DownloadBaseGuard() { symbolDownloadingBase = 0; GuiRepaintTableView(); }
+    } g(Base);
 #define symprintf(format, ...) GuiSymbolLogAdd(StringUtils::sprintf(GuiTranslateText(format), __VA_ARGS__).c_str())
 
     // Default to Microsoft's symbol server
@@ -243,20 +225,8 @@ bool SymDownloadSymbol(duint Base, const char* SymbolStore)
             return false;
         }
 
-        // insert the downloaded symbol path in the beginning of the PDB load order
-        auto destPathUtf8 = StringUtils::Utf16ToUtf8(destinationPath);
-        for(auto it = info->pdbPaths.begin(); it != info->pdbPaths.end(); ++it)
-        {
-            if(*it == destPathUtf8)
-            {
-                info->pdbPaths.erase(it);
-                break;
-            }
-        }
-        info->pdbPaths.insert(info->pdbPaths.begin(), destPathUtf8);
-
         // trigger a symbol load
-        info->loadSymbols();
+        info->loadSymbols(StringUtils::Utf16ToUtf8(destinationPath), bForceLoadSymbols);
     }
 
     return true;

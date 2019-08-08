@@ -3,7 +3,7 @@
 
 struct XREFSINFO : AddrInfo
 {
-    XREFTYPE type;
+    XREFTYPE type = XREF_NONE;
     std::unordered_map<duint, XREF_RECORD> references;
 };
 

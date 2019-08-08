@@ -53,6 +53,7 @@ public:
 
     // Pure Virtual Methods
     virtual QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) = 0;
+    virtual QColor getCellColor(int r, int c);
 
     // Painting Stuff
     void paintEvent(QPaintEvent* event) override;

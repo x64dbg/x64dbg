@@ -65,7 +65,6 @@ INCLUDEPATH += \
     Src/Bridge \
     Src/Global \
     Src/Utils \
-    Src/ThirdPartyLibs/snowman \
     Src/ThirdPartyLibs/ldconvert \
     ../zydis_wrapper \
     ../zydis_wrapper/zydis/include
@@ -184,7 +183,7 @@ SOURCES += \
     Src/BasicView/AbstractStdTable.cpp \
     Src/Gui/ZehSymbolTable.cpp \
     Src/BasicView/StdSearchListView.cpp \
-    Src/Gui/EditBreakpointsDialog.cpp
+    Src/BasicView/StdTableSearchList.cpp
 
 
 HEADERS += \
@@ -305,7 +304,8 @@ HEADERS += \
     Src/BasicView/AbstractSearchList.h \
     Src/BasicView/StdSearchListView.h \
     Src/Gui/FileLines.h \
-    Src/Gui/EditBreakpointsDialog.h
+    Src/BasicView/StdTableSearchList.h
+
     
 
 FORMS += \
@@ -354,13 +354,11 @@ LIBS += -luser32 -ladvapi32 -lwinmm -lshell32
 !contains(QMAKE_HOST.arch, x86_64) {
     # Windows x86 (32bit) specific build
     LIBS += -L"$$PWD/../zydis_wrapper/bin/x32$${DIR_SUFFIX}" -lzydis_wrapper
-    LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman" -lsnowman_x86
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/ldconvert" -lldconvert_x86
     LIBS += -L"$${X64_BIN_DIR}" -lx32bridge
 } else {
     # Windows x64 (64bit) specific build
     LIBS += -L"$$PWD/../zydis_wrapper/bin/x64$${DIR_SUFFIX}" -lzydis_wrapper
-    LIBS += -L"$$PWD/Src/ThirdPartyLibs/snowman" -lsnowman_x64
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/ldconvert" -lldconvert_x64
     LIBS += -L"$${X64_BIN_DIR}" -lx64bridge
 }

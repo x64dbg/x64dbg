@@ -34,7 +34,6 @@
 #include "DebugStatusLabel.h"
 #include "LogStatusLabel.h"
 #include "SourceViewerManager.h"
-#include "SnowmanView.h"
 #include "HandlesView.h"
 #include "MainWindowCloseThread.h"
 #include "TimeWastedCounter.h"
@@ -71,7 +70,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
     connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
-    connect(Bridge::getBridge(), SIGNAL(menuAddMenuToList(QWidget*, QMenu*, int, int)), this, SLOT(addMenuToList(QWidget*, QMenu*, int, int)));
+    connect(Bridge::getBridge(), SIGNAL(menuAddMenuToList(QWidget*, QMenu*, GUIMENUTYPE, int)), this, SLOT(addMenuToList(QWidget*, QMenu*, GUIMENUTYPE, int)));
     connect(Bridge::getBridge(), SIGNAL(menuAddMenu(int, QString)), this, SLOT(addMenu(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(menuAddMenuEntry(int, QString)), this, SLOT(addMenuEntry(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(menuAddSeparator(int)), this, SLOT(addSeparator(int)));
@@ -82,11 +81,15 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(setIconMenuEntry(int, QIcon)), this, SLOT(setIconMenuEntry(int, QIcon)));
     connect(Bridge::getBridge(), SIGNAL(setCheckedMenuEntry(int, bool)), this, SLOT(setCheckedMenuEntry(int, bool)));
     connect(Bridge::getBridge(), SIGNAL(setHotkeyMenuEntry(int, QString, QString)), this, SLOT(setHotkeyMenuEntry(int, QString, QString)));
+    connect(Bridge::getBridge(), SIGNAL(setVisibleMenuEntry(int, bool)), this, SLOT(setVisibleMenuEntry(int, bool)));
+    connect(Bridge::getBridge(), SIGNAL(setVisibleMenu(int, bool)), this, SLOT(setVisibleMenu(int, bool)));
+    connect(Bridge::getBridge(), SIGNAL(setNameMenuEntry(int, QString)), this, SLOT(setNameMenuEntry(int, QString)));
+    connect(Bridge::getBridge(), SIGNAL(setNameMenu(int, QString)), this, SLOT(setNameMenu(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(Bridge::getBridge(), SIGNAL(addQWidgetTab(QWidget*)), this, SLOT(addQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(showQWidgetTab(QWidget*)), this, SLOT(showQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(closeQWidgetTab(QWidget*)), this, SLOT(closeQWidgetTab(QWidget*)));
-    connect(Bridge::getBridge(), SIGNAL(executeOnGuiThread(void*)), this, SLOT(executeOnGuiThread(void*)));
+    connect(Bridge::getBridge(), SIGNAL(executeOnGuiThread(void*, void*)), this, SLOT(executeOnGuiThread(void*, void*)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(addFavouriteItem(int, QString, QString)), this, SLOT(addFavouriteItem(int, QString, QString)));
     connect(Bridge::getBridge(), SIGNAL(setFavouriteItemShortcut(int, QString, QString)), this, SLOT(setFavouriteItemShortcut(int, QString, QString)));
@@ -95,7 +98,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Setup menu API
     initMenuApi();
-    addMenuToList(this, ui->menuPlugins, GUI_PLUGIN_MENU);
+    Bridge::getBridge()->emitMenuAddToList(this, ui->menuPlugins, GUI_PLUGIN_MENU);
 
     // Set window title
     if(BridgeIsProcessElevated())
@@ -189,14 +192,6 @@ MainWindow::MainWindow(QWidget* parent)
     mThreadView->setWindowTitle(tr("Threads"));
     mThreadView->setWindowIcon(DIcon("arrow-threads.png"));
 
-    // Snowman view (decompiler)
-    mSnowmanView = CreateSnowman(this);
-    if(!mSnowmanView)
-        mSnowmanView = new QLabel("<center>Snowman is disabled...</center>", this);
-    mSnowmanView->setWindowTitle(tr("Snowman"));
-    mSnowmanView->setWindowIcon(DIcon("snowman.png"));
-    Bridge::getBridge()->snowmanView = mSnowmanView;
-
     // Notes manager
     mNotesManager = new NotesManager(this);
     mNotesManager->setWindowTitle(tr("Notes"));
@@ -234,7 +229,6 @@ MainWindow::MainWindow(QWidget* parent)
     mWidgetList.push_back(WidgetInfo(mSourceViewManager, "SourceTab"));
     mWidgetList.push_back(WidgetInfo(mReferenceManager, "ReferencesTab"));
     mWidgetList.push_back(WidgetInfo(mThreadView, "ThreadsTab"));
-    mWidgetList.push_back(WidgetInfo(mSnowmanView, "SnowmanTab"));
     mWidgetList.push_back(WidgetInfo(mHandlesView, "HandlesTab"));
     mWidgetList.push_back(WidgetInfo(mTraceBrowser, "TraceTab"));
 
@@ -322,7 +316,6 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionChangeCommandLine, SIGNAL(triggered()), this, SLOT(changeCommandLine()));
     connect(ui->actionManual, SIGNAL(triggered()), this, SLOT(displayManual()));
     connect(ui->actionNotes, SIGNAL(triggered()), this, SLOT(displayNotesWidget()));
-    connect(ui->actionSnowman, SIGNAL(triggered()), this, SLOT(displaySnowmanWidget()));
     connect(ui->actionHandles, SIGNAL(triggered()), this, SLOT(displayHandlesWidget()));
     connect(ui->actionGraph, SIGNAL(triggered()), this, SLOT(displayGraphWidget()));
     connect(ui->actionPreviousTab, SIGNAL(triggered()), this, SLOT(displayPreviousTab()));
@@ -345,13 +338,11 @@ MainWindow::MainWindow(QWidget* parent)
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
-    connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySnowmanWidget()), this, SLOT(displaySnowmanWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayGraphWidget()), this, SLOT(displayGraphWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySymbolsWidget()), this, SLOT(displaySymbolWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(showPatches()), this, SLOT(patchWindow()));
 
-    connect(mGraphView, SIGNAL(displaySnowmanWidget()), this, SLOT(displaySnowmanWidget()));
 
     connect(mCpuWidget->getDumpWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
 
@@ -520,7 +511,6 @@ void MainWindow::closeEvent(QCloseEvent* event)
     if(bExecuteThread)
     {
         bExecuteThread = false;
-        CloseSnowman(mSnowmanView);
         Sleep(100);
         mCloseThread->start();
         emit Bridge::getBridge()->close();
@@ -717,7 +707,6 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionBookmarks, ConfigShortcut("ViewBookmarks"));
     setGlobalShortcut(ui->actionFunctions, ConfigShortcut("ViewFunctions"));
     setGlobalShortcut(ui->actionVariables, ConfigShortcut("ViewVariables"));
-    setGlobalShortcut(ui->actionSnowman, ConfigShortcut("ViewSnowman"));
     setGlobalShortcut(ui->actionHandles, ConfigShortcut("ViewHandles"));
     setGlobalShortcut(ui->actionGraph, ConfigShortcut("ViewGraph"));
     setGlobalShortcut(ui->actionPreviousTab, ConfigShortcut("ViewPreviousTab"));
@@ -988,11 +977,6 @@ void MainWindow::displayThreadsWidget()
     showQWidgetTab(mThreadView);
 }
 
-void MainWindow::displaySnowmanWidget()
-{
-    showQWidgetTab(mSnowmanView);
-}
-
 void MainWindow::displayGraphWidget()
 {
     showQWidgetTab(mGraphView);
@@ -1098,11 +1082,11 @@ const MainWindow::MenuInfo* MainWindow::findMenu(int hMenu)
     return nFound == -1 ? 0 : &mMenuList.at(nFound);
 }
 
-void MainWindow::addMenuToList(QWidget* parent, QMenu* menu, int hMenu, int hParentMenu)
+void MainWindow::addMenuToList(QWidget* parent, QMenu* menu, GUIMENUTYPE hMenu, int hParentMenu)
 {
     if(!findMenu(hMenu))
         mMenuList.push_back(MenuInfo(parent, menu, hMenu, hParentMenu, hMenu == GUI_PLUGIN_MENU));
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuAddToList);
 }
 
 void MainWindow::addMenu(int hMenu, QString title)
@@ -1110,7 +1094,7 @@ void MainWindow::addMenu(int hMenu, QString title)
     const MenuInfo* menu = findMenu(hMenu);
     if(!menu && hMenu != -1)
     {
-        Bridge::getBridge()->setResult(-1);
+        Bridge::getBridge()->setResult(BridgeResult::MenuAdd, -1);
         return;
     }
     int hMenuNew = hEntryMenuPool++;
@@ -1125,7 +1109,7 @@ void MainWindow::addMenu(int hMenu, QString title)
         menu->mMenu->addMenu(wMenu);
         menu->mMenu->menuAction()->setVisible(true);
     }
-    Bridge::getBridge()->setResult(hMenuNew);
+    Bridge::getBridge()->setResult(BridgeResult::MenuAdd, hMenuNew);
 }
 
 void MainWindow::addMenuEntry(int hMenu, QString title)
@@ -1133,7 +1117,7 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
     const MenuInfo* menu = findMenu(hMenu);
     if(!menu && hMenu != -1)
     {
-        Bridge::getBridge()->setResult(-1);
+        Bridge::getBridge()->setResult(BridgeResult::MenuAddEntry, -1);
         return;
     }
     MenuEntryInfo newInfo;
@@ -1155,7 +1139,7 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
         menu->mMenu->addAction(wAction);
         menu->mMenu->menuAction()->setVisible(true);
     }
-    Bridge::getBridge()->setResult(hEntryNew);
+    Bridge::getBridge()->setResult(BridgeResult::MenuAddEntry, hEntryNew);
 }
 
 void MainWindow::addSeparator(int hMenu)
@@ -1169,7 +1153,7 @@ void MainWindow::addSeparator(int hMenu)
         newInfo.mAction = menu->mMenu->addSeparator();
         mEntryList.push_back(newInfo);
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuAddSeparator);
 }
 
 void MainWindow::clearMenuHelper(int hMenu)
@@ -1193,7 +1177,7 @@ void MainWindow::clearMenuHelper(int hMenu)
         clearMenuHelper(hMenu);
 }
 
-void MainWindow::clearMenu(int hMenu, bool erase)
+void MainWindow::clearMenuImpl(int hMenu, bool erase)
 {
     //this recursively removes the entries from mEntryList and mMenuList
     clearMenuHelper(hMenu);
@@ -1221,7 +1205,12 @@ void MainWindow::clearMenu(int hMenu, bool erase)
             break;
         }
     }
-    Bridge::getBridge()->setResult();
+}
+
+void MainWindow::clearMenu(int hMenu, bool erase)
+{
+    clearMenuImpl(hMenu, erase);
+    Bridge::getBridge()->setResult(BridgeResult::MenuClear);
 }
 
 void MainWindow::initMenuApi()
@@ -1259,12 +1248,13 @@ void MainWindow::removeMenuEntry(int hEntryMenu)
                     parentMenu->mMenu->menuAction()->setVisible(false);
                 mEntryList.erase(mEntryList.begin() + i);
             }
-            Bridge::getBridge()->setResult();
+            Bridge::getBridge()->setResult(BridgeResult::MenuRemove);
             return;
         }
     }
     //if hEntryMenu is not in mEntryList, clear+erase it from mMenuList
-    clearMenu(hEntryMenu, true);
+    clearMenuImpl(hEntryMenu, true);
+    Bridge::getBridge()->setResult(BridgeResult::MenuRemove);
 }
 
 void MainWindow::setIconMenuEntry(int hEntry, QIcon icon)
@@ -1278,7 +1268,7 @@ void MainWindow::setIconMenuEntry(int hEntry, QIcon icon)
             break;
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryIcon);
 }
 
 void MainWindow::setIconMenu(int hMenu, QIcon icon)
@@ -1291,7 +1281,7 @@ void MainWindow::setIconMenu(int hMenu, QIcon icon)
             menu.mMenu->setIcon(icon);
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetIcon);
 }
 
 void MainWindow::setCheckedMenuEntry(int hEntry, bool checked)
@@ -1306,7 +1296,7 @@ void MainWindow::setCheckedMenuEntry(int hEntry, bool checked)
             break;
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryChecked);
 }
 
 QString MainWindow::nestedMenuDescription(const MenuInfo* menu)
@@ -1355,7 +1345,7 @@ void MainWindow::setHotkeyMenuEntry(int hEntry, QString hotkey, QString id)
             break;
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryHotkey);
 }
 
 void MainWindow::setVisibleMenuEntry(int hEntry, bool visible)
@@ -1369,7 +1359,7 @@ void MainWindow::setVisibleMenuEntry(int hEntry, bool visible)
             break;
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryVisible);
 }
 
 void MainWindow::setVisibleMenu(int hMenu, bool visible)
@@ -1382,7 +1372,7 @@ void MainWindow::setVisibleMenu(int hMenu, bool visible)
             menu.mMenu->setVisible(visible);
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetVisible);
 }
 
 void MainWindow::setNameMenuEntry(int hEntry, QString name)
@@ -1397,7 +1387,7 @@ void MainWindow::setNameMenuEntry(int hEntry, QString name)
             break;
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryName);
 }
 
 void MainWindow::setNameMenu(int hMenu, QString name)
@@ -1410,7 +1400,7 @@ void MainWindow::setNameMenu(int hMenu, QString name)
             menu.mMenu->setTitle(name);
         }
     }
-    Bridge::getBridge()->setResult();
+    Bridge::getBridge()->setResult(BridgeResult::MenuSetName);
 }
 
 void MainWindow::runSelection()
@@ -1441,7 +1431,7 @@ void MainWindow::getStrWindow(const QString title, QString* text)
     if(mLineEdit.exec() != QDialog::Accepted)
         bResult = false;
     *text = mLineEdit.editText;
-    Bridge::getBridge()->setResult(bResult);
+    Bridge::getBridge()->setResult(BridgeResult::GetlineWindow, bResult);
 }
 
 void MainWindow::patchWindow()
@@ -1665,9 +1655,9 @@ void MainWindow::closeQWidgetTab(QWidget* qWidget)
     }
 }
 
-void MainWindow::executeOnGuiThread(void* cbGuiThread)
+void MainWindow::executeOnGuiThread(void* cbGuiThread, void* userdata)
 {
-    ((GUICALLBACK)cbGuiThread)();
+    ((GUICALLBACKEX)cbGuiThread)(userdata);
 }
 
 void MainWindow::tabMovedSlot(int from, int to)

@@ -73,7 +73,7 @@ namespace Exprfunc
         return 0;
     }
 
-    static duint selstart(int hWindow)
+    static duint selstart(GUISELECTIONTYPE hWindow)
     {
         SELECTIONDATA selection;
         GuiSelectionGet(hWindow, &selection);
@@ -428,5 +428,37 @@ namespace Exprfunc
         //This is a function to sets CIP without calling DebugUpdateGui. This is a workaround for "bpgoto".
         SetContextDataEx(hActiveThread, UE_CIP, cip);
         return cip;
+    }
+
+    duint exfirstchance()
+    {
+        return getLastExceptionInfo().dwFirstChance;
+    }
+
+    duint exaddr()
+    {
+        return (duint)getLastExceptionInfo().ExceptionRecord.ExceptionAddress;
+    }
+
+    duint excode()
+    {
+        return getLastExceptionInfo().ExceptionRecord.ExceptionCode;
+    }
+
+    duint exflags()
+    {
+        return getLastExceptionInfo().ExceptionRecord.ExceptionFlags;
+    }
+
+    duint exinfocount()
+    {
+        return getLastExceptionInfo().ExceptionRecord.NumberParameters;
+    }
+
+    duint exinfo(duint index)
+    {
+        if(index >= EXCEPTION_MAXIMUM_PARAMETERS)
+            return 0;
+        return getLastExceptionInfo().ExceptionRecord.ExceptionInformation[index];
     }
 }
