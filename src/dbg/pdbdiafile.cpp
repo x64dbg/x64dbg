@@ -293,50 +293,51 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
                 return false;
             }
 
-            // NOTE: For some reason this never matches, commented for now.
-            // ^ 99% sure this should only be used for PDB v2.0 ('NB10' ones). v7.0 PDBs should be checked using (age+guid) only
-            /*
-            DWORD signature = 0;
-            hr = globalSym->get_signature(&signature);
-            if (!testError(hr) && validationData->signature != signature)
+            if(validationData->signature != 0)
             {
-                close();
-
-                GuiSymbolLogAdd("PDB is not matching.\n");
-                return false;
-            }
-            */
-
-            GUID guid = {0};
-            hr = globalSym->get_guid(&guid);
-            if(!testError(hr) && memcmp(&guid, &validationData->guid, sizeof(GUID)) != 0)
-            {
-                globalSym->Release();
-                close();
-
-                auto guidStr = [](const GUID & guid) -> String
+                // PDB v2.0 ('NB10' ones) do not have a GUID and they use a signature and age
+                DWORD signature = 0;
+                hr = globalSym->get_signature(&signature);
+                if(!testError(hr) && validationData->signature != signature)
                 {
-                    // https://stackoverflow.com/a/22848342/1806760
-                    char guid_string[37]; // 32 hex chars + 4 hyphens + null terminator
-                    sprintf_s(guid_string,
-                    "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-                    guid.Data1, guid.Data2, guid.Data3,
-                    guid.Data4[0], guid.Data4[1], guid.Data4[2],
-                    guid.Data4[3], guid.Data4[4], guid.Data4[5],
-                    guid.Data4[6], guid.Data4[7]);
-                    return guid_string;
-                };
+                    globalSym->Release();
+                    close();
 
-                GuiSymbolLogAdd(StringUtils::sprintf("Validation error: PDB guid is not matching (expected: %s, actual: %s).\n",
-                                                     guidStr(validationData->guid).c_str(), guidStr(guid).c_str()).c_str());
-                return false;
+                    GuiSymbolLogAdd(StringUtils::sprintf("Validation error: PDB signature is not matching (expected: %08X, actual: %08X).\n",
+                                                         signature, validationData->signature).c_str());
+                    return false;
+                }
+            }
+            else
+            {
+                // v7.0 PDBs should be checked using (age+guid) only
+                GUID guid = { 0 };
+                hr = globalSym->get_guid(&guid);
+                if(!testError(hr) && memcmp(&guid, &validationData->guid, sizeof(GUID)) != 0)
+                {
+                    globalSym->Release();
+                    close();
+
+                    auto guidStr = [](const GUID & guid) -> String
+                    {
+                        // https://stackoverflow.com/a/22848342/1806760
+                        char guid_string[37]; // 32 hex chars + 4 hyphens + null terminator
+                        sprintf_s(guid_string,
+                        "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+                        guid.Data1, guid.Data2, guid.Data3,
+                        guid.Data4[0], guid.Data4[1], guid.Data4[2],
+                        guid.Data4[3], guid.Data4[4], guid.Data4[5],
+                        guid.Data4[6], guid.Data4[7]);
+                        return guid_string;
+                    };
+
+                    GuiSymbolLogAdd(StringUtils::sprintf("Validation error: PDB guid is not matching (expected: %s, actual: %s).\n",
+                                                         guidStr(validationData->guid).c_str(), guidStr(guid).c_str()).c_str());
+                    return false;
+                }
             }
         }
         globalSym->Release();
-    }
-    else
-    {
-        GuiSymbolLogAdd("Skipping PDB validation, expect invalid results!\n");
     }
 
     if(loadAddress != 0)

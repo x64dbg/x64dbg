@@ -44,6 +44,10 @@ DWORD WINAPI SymbolSourceDIA::SourceLinesThread(void* parameter)
 
 bool SymbolSourceDIA::loadPDB(const std::string & path, const std::string & modname, duint imageBase, duint imageSize, DiaValidationData_t* validationData)
 {
+    if(!validationData)
+    {
+        GuiSymbolLogAdd(StringUtils::sprintf("[%p, %s] Skipping PDB validation, expect invalid results!\n", imageBase, modname.c_str()).c_str());
+    }
     PDBDiaFile pdb; // Instance used for validation only.
     _isOpen = pdb.open(path.c_str(), 0, validationData);
 #if 1 // Async loading.
@@ -148,9 +152,9 @@ bool SymbolSourceDIA::loadSymbolsAsync()
             SymbolInfo symInfo;
             symInfo.decoratedName = sym.name;
             symInfo.undecoratedName = sym.undecoratedName;
-            symInfo.size = sym.size;
+            symInfo.size = (duint)sym.size;
             symInfo.disp = sym.disp;
-            symInfo.rva = sym.virtualAddress;
+            symInfo.rva = (duint)sym.virtualAddress;
             symInfo.publicSymbol = sym.publicSymbol;
 
             // Check if we already have it inside, private symbols have priority over public symbols.
@@ -158,7 +162,7 @@ bool SymbolSourceDIA::loadSymbolsAsync()
             {
                 ScopedSpinLock lock(_lockSymbols);
 
-                auto it = _symAddrs.find(sym.virtualAddress);
+                auto it = _symAddrs.find((duint)sym.virtualAddress);
                 if(it != _symAddrs.end())
                 {
                     if(_symData[it->second].publicSymbol == true && symInfo.publicSymbol == false)
@@ -170,7 +174,7 @@ bool SymbolSourceDIA::loadSymbolsAsync()
                 else
                 {
                     _symData.push_back(symInfo);
-                    _symAddrs.insert({ sym.virtualAddress, _symData.size() - 1 });
+                    _symAddrs.insert({ (duint)sym.virtualAddress, _symData.size() - 1 });
                 }
             }
 

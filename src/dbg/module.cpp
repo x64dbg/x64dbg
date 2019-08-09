@@ -577,6 +577,7 @@ static void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
                             cv->Age);
         Info.pdbFile = String((const char*)cv->PdbFileName, entry->SizeOfData - FIELD_OFFSET(CV_INFO_PDB70, PdbFileName));
         memcpy(&Info.pdbValidation.guid, &cv->Signature, sizeof(GUID));
+        Info.pdbValidation.signature = 0;
         Info.pdbValidation.age = cv->Age;
     }
 
