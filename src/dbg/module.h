@@ -95,7 +95,7 @@ struct MODINFO
 
     std::vector<MODEXPORT> exports;
     DWORD exportOrdinalBase = 0; //ordinal - 'exportOrdinalBase' = index in 'exports'
-    std::vector<size_t> exportsByName; //index in 'exports', sorted by export name
+    std::vector<NameIndex> exportsByName; //index in 'exports', sorted by export name
     std::vector<size_t> exportsByRva; //index in 'exports', sorted by rva
 
     std::vector<String> importModules;

@@ -7,6 +7,7 @@
 #include <vector>
 #include <functional>
 #include <map>
+#include <algorithm>
 
 struct SymbolInfoGui
 {
@@ -40,6 +41,25 @@ struct LineInfo
     duint disp = 0;
     int lineNumber = 0;
     String sourceFile;
+};
+
+struct NameIndex
+{
+    const char* name;
+    size_t index;
+
+    bool operator<(const NameIndex & b) const
+    {
+        return cmp(*this, b, false) < 0;
+    }
+
+    static int cmp(const NameIndex & a, const NameIndex & b, bool caseSensitive)
+    {
+        return (caseSensitive ? strcmp : StringUtils::hackicmp)(a.name, b.name);
+    }
+
+    static bool findByPrefix(const std::vector<NameIndex> & byName, const std::string & prefix, const std::function<bool(const NameIndex &)> & cbFound, bool caseSensitive);
+    static bool findByName(const std::vector<NameIndex> & byName, const std::string & name, NameIndex & foundIndex, bool caseSensitive);
 };
 
 using CbEnumSymbol = std::function<bool(const SymbolInfo &)>;

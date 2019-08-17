@@ -383,6 +383,10 @@ static int SymAutoComplete(const char* Search, char** Buffer, int MaxSymbols)
         mods.push_back(info.base);
     });
 
+    std::unordered_set<std::string> visited;
+
+    static const bool caseSensitiveAutoComplete = settingboolget("Gui", "CaseSensitiveAutoComplete");
+
     int count = 0;
     std::string prefix(Search);
     for(duint base : mods)
@@ -395,16 +399,38 @@ static int SymAutoComplete(const char* Search, char** Buffer, int MaxSymbols)
         if(!modInfo)
             continue;
 
+        auto addName = [Buffer, MaxSymbols, &visited, &count](const std::string & name)
+        {
+            if(visited.count(name))
+                return true;
+            visited.insert(name);
+            Buffer[count] = (char*)BridgeAlloc(name.size() + 1);
+            memcpy(Buffer[count], name.c_str(), name.size() + 1);
+            return ++count < MaxSymbols;
+        };
+
+        NameIndex::findByPrefix(modInfo->exportsByName, prefix, [modInfo, &addName](const NameIndex & index)
+        {
+            return addName(modInfo->exports[index.index].name);
+        }, caseSensitiveAutoComplete);
+
+        if(count == MaxSymbols)
+            break;
+
         if(modInfo->symbols->isOpen())
         {
-            modInfo->symbols->findSymbolsByPrefix(prefix, [Buffer, MaxSymbols, &count](const SymbolInfo & symInfo)
+            modInfo->symbols->findSymbolsByPrefix(prefix, [&addName](const SymbolInfo & symInfo)
             {
-                Buffer[count] = (char*)BridgeAlloc(symInfo.decoratedName.size() + 1);
-                memcpy(Buffer[count], symInfo.decoratedName.c_str(), symInfo.decoratedName.size() + 1);
-                return ++count < MaxSymbols;
-            }, true); //TODO: support case insensitive in the GUI
+                return addName(symInfo.decoratedName);
+            }, caseSensitiveAutoComplete);
         }
     }
+
+    std::stable_sort(Buffer, Buffer + count, [](const char* a, const char* b)
+    {
+        return (caseSensitiveAutoComplete ? strcmp : StringUtils::hackicmp)(a, b) < 0;
+    });
+
     return count;
 }
 

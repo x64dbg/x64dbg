@@ -1,6 +1,82 @@
 #include "symbolsourcebase.h"
 #include <algorithm>
 
+//http://en.cppreference.com/w/cpp/algorithm/lower_bound
+template<class ForwardIt, class T, class Compare = std::less<>>
+static ForwardIt binary_find(ForwardIt first, ForwardIt last, const T & value, Compare comp = {})
+{
+    // Note: BOTH type T and the type after ForwardIt is dereferenced
+    // must be implicitly convertible to BOTH Type1 and Type2, used in Compare.
+    // This is stricter than lower_bound requirement (see above)
+
+    first = std::lower_bound(first, last, value, comp);
+    return first != last && !comp(value, *first) ? first : last;
+}
+
+bool NameIndex::findByPrefix(const std::vector<NameIndex> & byName, const std::string & prefix, const std::function<bool(const NameIndex &)> & cbFound, bool caseSensitive)
+{
+    struct PrefixCmp
+    {
+        PrefixCmp(size_t n) : n(n) { }
+
+        bool operator()(const NameIndex & a, const NameIndex & b)
+        {
+            return cmp(a, b, false) < 0;
+        }
+
+        int cmp(const NameIndex & a, const NameIndex & b, bool caseSensitive)
+        {
+            return (caseSensitive ? strncmp : _strnicmp)(a.name, b.name, n);
+        }
+
+    private:
+        size_t n;
+    } prefixCmp(prefix.size());
+
+    if(byName.empty())
+        return false;
+
+    NameIndex find;
+    find.name = prefix.c_str();
+    auto found = binary_find(byName.begin(), byName.end(), find, prefixCmp);
+    if(found == byName.end())
+        return false;
+
+    bool result = false;
+    for(; found != byName.end() && prefixCmp.cmp(find, *found, false) == 0; ++found)
+    {
+        if(!caseSensitive || prefixCmp.cmp(find, *found, true) == 0)
+        {
+            result = true;
+            if(!cbFound(*found))
+                break;
+        }
+    }
+
+    return result;
+}
+
+bool NameIndex::findByName(const std::vector<NameIndex> & byName, const std::string & name, NameIndex & foundIndex, bool caseSensitive)
+{
+    NameIndex find;
+    find.name = name.c_str();
+    auto found = binary_find(byName.begin(), byName.end(), find);
+    if(found != byName.end())
+    {
+        do
+        {
+            if(find.cmp(*found, find, caseSensitive) == 0)
+            {
+                foundIndex = *found;
+                return true;
+            }
+            ++found;
+        }
+        while(found != byName.end() && find.cmp(find, *found, false) == 0);
+    }
+    return false;
+}
+
 bool SymbolSourceBase::mapSourceFilePdbToDisk(const std::string & pdb, const std::string & disk)
 {
     std::string pdblower = pdb, disklower = disk;

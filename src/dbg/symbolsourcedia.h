@@ -68,22 +68,6 @@ private: //symbols
         }
     };
     std::vector<AddrIndex> _symAddrMap; //rva -> data index (sorted on rva)
-
-    struct NameIndex
-    {
-        const char* name;
-        size_t index;
-
-        bool operator<(const NameIndex & b) const
-        {
-            return cmp(*this, b, false) < 0;
-        }
-
-        static int cmp(const NameIndex & a, const NameIndex & b, bool caseSensitive)
-        {
-            return (caseSensitive ? strcmp : hackicmp)(a.name, b.name);
-        }
-    };
     std::vector<NameIndex> _symNameMap; //name -> data index (sorted on name)
     //Symbol addresses to index in _symNames (TODO: refactor to std::vector)
     std::map<duint, size_t> _symAddrs;

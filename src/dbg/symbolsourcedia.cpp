@@ -477,85 +477,29 @@ bool SymbolSourceDIA::findSourceLineInfo(const std::string & file, int line, Lin
     return true;
 }
 
-//http://en.cppreference.com/w/cpp/algorithm/lower_bound
-template<class ForwardIt, class T, class Compare = std::less<>>
-ForwardIt binary_find(ForwardIt first, ForwardIt last, const T & value, Compare comp = {})
-{
-    // Note: BOTH type T and the type after ForwardIt is dereferenced
-    // must be implicitly convertible to BOTH Type1 and Type2, used in Compare.
-    // This is stricter than lower_bound requirement (see above)
-
-    first = std::lower_bound(first, last, value, comp);
-    return first != last && !comp(value, *first) ? first : last;
-}
-
 bool SymbolSourceDIA::findSymbolByName(const std::string & name, SymbolInfo & symInfo, bool caseSensitive)
 {
     ScopedSpinLock lock(_lockSymbols);
     if(!_symbolsLoaded)
         return false;
 
-    NameIndex find;
-    find.name = name.c_str();
-    auto found = binary_find(_symNameMap.begin(), _symNameMap.end(), find);
-    if(found != _symNameMap.end())
-    {
-        do
-        {
-            if(find.cmp(*found, find, caseSensitive) == 0)
-            {
-                symInfo = _symData.at(found->index);
-                return true;
-            }
-            ++found;
-        }
-        while(found != _symNameMap.end() && find.cmp(find, *found, false) == 0);
-    }
-    return false;
+    NameIndex found;
+    if(!NameIndex::findByName(_symNameMap, name, found, caseSensitive))
+        return false;
+    symInfo = _symData[found.index];
+    return true;
 }
 
 bool SymbolSourceDIA::findSymbolsByPrefix(const std::string & prefix, const std::function<bool(const SymbolInfo &)> & cbSymbol, bool caseSensitive)
 {
-    struct PrefixCmp
-    {
-        PrefixCmp(size_t n) : n(n) { }
-
-        bool operator()(const NameIndex & a, const NameIndex & b)
-        {
-            return cmp(a, b, false) < 0;
-        }
-
-        int cmp(const NameIndex & a, const NameIndex & b, bool caseSensitive)
-        {
-            return (caseSensitive ? strncmp : _strnicmp)(a.name, b.name, n);
-        }
-
-    private:
-        size_t n;
-    } prefixCmp(prefix.size());
-
     ScopedSpinLock lock(_lockSymbols);
     if(!_symbolsLoaded)
         return false;
 
-    NameIndex find;
-    find.name = prefix.c_str();
-    auto found = binary_find(_symNameMap.begin(), _symNameMap.end(), find, prefixCmp);
-    if(found == _symNameMap.end())
-        return false;
-
-    bool result = false;
-    for(; found != _symNameMap.end() && prefixCmp.cmp(find, *found, false) == 0; ++found)
+    return NameIndex::findByPrefix(_symNameMap, prefix, [this, &cbSymbol](const NameIndex & index)
     {
-        if(!caseSensitive || prefixCmp.cmp(find, *found, true) == 0)
-        {
-            result = true;
-            if(!cbSymbol(_symData.at(found->index)))
-                break;
-        }
-    }
-
-    return result;
+        return cbSymbol(_symData[index.index]);
+    }, caseSensitive);
 }
 
 std::string SymbolSourceDIA::loadedSymbolPath() const

@@ -196,14 +196,12 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     Info.exportsByRva.resize(Info.exports.size());
     for(size_t i = 0; i < Info.exports.size(); i++)
     {
-        Info.exportsByName[i] = i;
+        Info.exportsByName[i].index = i;
+        Info.exportsByName[i].name = Info.exports[i].name.c_str(); //NOTE: DO NOT MODIFY name is any way!
         Info.exportsByRva[i] = i;
     }
 
-    std::sort(Info.exportsByName.begin(), Info.exportsByName.end(), [&Info](size_t a, size_t b)
-    {
-        return Info.exports.at(a).name < Info.exports.at(b).name;
-    });
+    std::sort(Info.exportsByName.begin(), Info.exportsByName.end());
 
     std::sort(Info.exportsByRva.begin(), Info.exportsByRva.end(), [&Info](size_t a, size_t b)
     {
