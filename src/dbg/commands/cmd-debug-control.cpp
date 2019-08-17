@@ -391,7 +391,7 @@ bool cbDebugStepOver(int argc, char* argv[])
         return true;
     if(skipInt3Stepping(1, argv) && !--steprepeat)
         return true;
-    StepOver((void*)cbStep);
+    StepOverWrapper((void*)cbStep);
     // History
     HistoryClear();
     dbgsetsteprepeat(false, steprepeat);
@@ -419,7 +419,7 @@ bool cbDebugStepOut(int argc, char* argv[])
         return true;
     HistoryClear();
     mRtrPreviousCSP = GetContextDataEx(hActiveThread, UE_CSP);
-    StepOver((void*)cbRtrStep);
+    StepOverWrapper((void*)cbRtrStep);
     dbgsetsteprepeat(false, steprepeat);
     return cbDebugRunInternal(1, argv);
 }

@@ -856,6 +856,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkTransparentExceptionStepping">
+         <property name="text">
+          <string>Transparent exception stepping*</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_3">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
