@@ -7,42 +7,20 @@
 #include "WordEditDialog.h"
 #include "CPUMultiDump.h"
 #include "GotoDialog.h"
+#include <algorithm>
 
 CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
     setWindowTitle("Stack");
     setShowHeader(false);
-    int charwidth = getCharWidth();
-    ColumnDescriptor wColDesc;
-    DataDescriptor dDesc;
+
     bStackFrozen = false;
     mMultiDump = multiDump;
-
     mForceColumn = 1;
+    mGoto = nullptr;
 
-    wColDesc.isData = true; //void*
-    wColDesc.itemCount = 1;
-    wColDesc.separator = 0;
-#ifdef _WIN64
-    wColDesc.data.itemSize = Qword;
-    wColDesc.data.qwordMode = HexQword;
-#else
-    wColDesc.data.itemSize = Dword;
-    wColDesc.data.dwordMode = HexDword;
-#endif
-    appendDescriptor(10 + charwidth * 2 * sizeof(duint), "void*", false, wColDesc);
-
-    wColDesc.isData = false; //comments
-    wColDesc.itemCount = 0;
-    wColDesc.separator = 0;
-    dDesc.itemSize = Byte;
-    dDesc.byteMode = AsciiByte;
-    wColDesc.data = dDesc;
-    appendDescriptor(2000, tr("Comments"), false, wColDesc);
-
+    setupColumns();
     setupContextMenu();
-
-    mGoto = 0;
 
     // Slots
     connect(Bridge::getBridge(), SIGNAL(stackDumpAt(duint, duint)), this, SLOT(stackDumpAt(duint, duint)));
@@ -55,6 +33,111 @@ CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
     Initialize();
+}
+
+bool CPUStack::showAsciiColumn()
+{
+    if(!mTriggerAsciiCol)
+        return false;
+
+    return mTriggerAsciiCol->isChecked();
+}
+
+bool CPUStack::showUnicodeColumn()
+{
+    if(!mTriggerUnicodeCol)
+        return false;
+
+    return mTriggerUnicodeCol->isChecked();
+}
+
+void CPUStack::setupAddressColumn(int charWidth)
+{
+    ColumnDescriptor wColDesc;
+
+    wColDesc.isData = true; //void*
+    wColDesc.itemCount = 1;
+    wColDesc.separator = 0;
+#ifdef _WIN64
+    wColDesc.data.itemSize = Qword;
+    wColDesc.data.qwordMode = HexQword;
+#else
+    wColDesc.data.itemSize = Dword;
+    wColDesc.data.dwordMode = HexDword;
+#endif
+
+    appendDescriptor(10 + charWidth * 2 * sizeof(duint), "void*", false, wColDesc);
+}
+
+void CPUStack::setupAsciiColumn(int charWidth)
+{
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
+
+    // ASCII Column
+    wColDesc.isData = true;
+    wColDesc.invertData = true;
+#ifdef _WIN64
+    wColDesc.itemCount = 8;
+#else
+    wColDesc.itemCount = 4;
+#endif
+    wColDesc.separator = 0;
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = AsciiByte;
+    wColDesc.data = dDesc;
+
+    appendDescriptor(8 + charWidth * wColDesc.itemCount, tr("ASCII"), false, wColDesc);
+}
+
+void CPUStack::setupUnicodeColumn(int charWidth)
+{
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
+
+    // ASCII Column
+    wColDesc.isData = true;
+    wColDesc.invertData = true;
+#ifdef _WIN64
+    wColDesc.itemCount = 4;
+#else
+    wColDesc.itemCount = 2;
+#endif
+    wColDesc.separator = 0;
+    dDesc.itemSize = Word;
+    dDesc.wordMode = UnicodeWord;
+    wColDesc.data = dDesc;
+
+    appendDescriptor(8 + charWidth * wColDesc.itemCount, tr("Unicode"), false, wColDesc);
+}
+
+void CPUStack::setupCommentColumn()
+{
+    ColumnDescriptor wColDesc;
+    DataDescriptor dDesc;
+
+    wColDesc.isData = false;
+    wColDesc.itemCount = 0;
+    wColDesc.separator = 0;
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = AsciiByte;
+    wColDesc.data = dDesc;
+    appendDescriptor(2000, tr("Comments"), false, wColDesc);
+}
+
+void CPUStack::setupColumns()
+{
+    int charWidth = getCharWidth();
+
+    clearDescriptors();
+    setupAddressColumn(charWidth);
+
+    if(showAsciiColumn())
+        setupAsciiColumn(charWidth);
+    else if(showUnicodeColumn())
+        setupUnicodeColumn(charWidth);
+
+    setupCommentColumn();
 }
 
 void CPUStack::updateColors()
@@ -83,43 +166,25 @@ void CPUStack::setupContextMenu()
         return DbgIsDebugging();
     });
 
-    //Push
     mMenuBuilder->addAction(makeShortcutAction(DIcon("arrow-small-down.png"), ArchValue(tr("P&ush DWORD..."), tr("P&ush QWORD...")), SLOT(pushSlot()), "ActionPush"));
-
-    //Pop
     mMenuBuilder->addAction(makeShortcutAction(DIcon("arrow-small-up.png"), ArchValue(tr("P&op DWORD"), tr("P&op QWORD")), SLOT(popSlot()), "ActionPop"));
-
-    //Realign
     mMenuBuilder->addAction(makeAction(DIcon("align-stack-pointer.png"), tr("Align Stack Pointer"), SLOT(realignSlot())), [this](QMenu*)
     {
         return (mCsp & (sizeof(duint) - 1)) != 0;
     });
-
-    // Modify
     mMenuBuilder->addAction(makeAction(DIcon("modify.png"), tr("Modify"), SLOT(modifySlot())));
 
+    // Binary
     auto binaryMenu = new MenuBuilder(this);
-
-    //Binary->Edit
     binaryMenu->addAction(makeShortcutAction(DIcon("binary_edit.png"), tr("&Edit"), SLOT(binaryEditSlot()), "ActionBinaryEdit"));
-
-    //Binary->Fill
     binaryMenu->addAction(makeShortcutAction(DIcon("binary_fill.png"), tr("&Fill..."), SLOT(binaryFillSlot()), "ActionBinaryFill"));
-
-    //Binary->Separator
     binaryMenu->addSeparator();
-
-    //Binary->Copy
     binaryMenu->addAction(makeShortcutAction(DIcon("binary_copy.png"), tr("&Copy"), SLOT(binaryCopySlot()), "ActionBinaryCopy"));
-
-    //Binary->Paste
     binaryMenu->addAction(makeShortcutAction(DIcon("binary_paste.png"), tr("&Paste"), SLOT(binaryPasteSlot()), "ActionBinaryPaste"));
-
-    //Binary->Paste (Ignore Size)
     binaryMenu->addAction(makeShortcutAction(DIcon("binary_paste_ignoresize.png"), tr("Paste (&Ignore Size)"), SLOT(binaryPasteIgnoreSizeSlot()), "ActionBinaryPasteIgnoreSize"));
-
     mMenuBuilder->addMenu(makeMenu(DIcon("binary.png"), tr("B&inary")), binaryMenu);
 
+    // Copy
     auto copyMenu = new MenuBuilder(this);
     copyMenu->addAction(mCopySelection);
     copyMenu->addAction(mCopyAddress);
@@ -306,6 +371,19 @@ void CPUStack::setupContextMenu()
     //Watch data
     auto watchDataName = ArchValue(tr("&Watch DWORD"), tr("&Watch QWORD"));
     mMenuBuilder->addAction(makeAction(DIcon("animal-dog.png"), watchDataName,  SLOT(watchDataSlot())));
+    mMenuBuilder->addSeparator();
+
+    // Columns
+    auto columnsMenu = new MenuBuilder(this);
+    mTriggerAsciiCol = columnsMenu->addAction(makeShortcutAction(tr("Address with ASCII dump"), SLOT(triggerAsciiColumnSlot()), "ActionTriggerAsciiColumn"));
+    mTriggerAsciiCol->setCheckable(true);
+    mTriggerAsciiCol->setChecked(false);
+
+    mTriggerUnicodeCol = columnsMenu->addAction(makeShortcutAction(tr("Address with Unicode dump"), SLOT(triggerUnicodeColumnSlot()), "ActionTriggerUnicodeColumn"));
+    mTriggerUnicodeCol->setCheckable(true);
+    mTriggerUnicodeCol->setChecked(false);
+
+    mMenuBuilder->addMenu(makeMenu(DIcon("ascii-extended.png"), tr("Columns")), columnsMenu);
 
     mPluginMenu = new QMenu(this);
     Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_STACK_MENU);
@@ -334,8 +412,8 @@ void CPUStack::getColumnRichText(int col, dsint rva, RichTextPainter::List & ric
 {
     // Compute VA
     duint wVa = rvaToVa(rva);
-
     bool wActiveStack = (wVa >= mCsp); //inactive stack
+    const auto & currentColumn = mDescriptor.at(col - 1);
 
     STACK_COMMENT comment;
     RichTextPainter::CustomRichText_t curData;
@@ -343,9 +421,13 @@ void CPUStack::getColumnRichText(int col, dsint rva, RichTextPainter::List & ric
     curData.flags = RichTextPainter::FlagColor;
     curData.textColor = mTextColor;
 
-    if(col && mDescriptor.at(col - 1).isData == true) //paint stack data
+    if(col && currentColumn.isData == true) //paint stack data
     {
         HexDump::getColumnRichText(col, rva, richText);
+
+        if(currentColumn.invertData)
+            std::reverse(richText.begin(), richText.end());
+
         if(!wActiveStack)
         {
             QColor inactiveColor = ConfigColor("StackInactiveTextColor");
@@ -761,6 +843,23 @@ void CPUStack::followStackSlot()
 void CPUStack::watchDataSlot()
 {
     DbgCmdExec(QString("AddWatch \"[%1]\", \"uint\"").arg(ToPtrString(rvaToVa(getSelectionStart()))).toUtf8().constData());
+}
+
+
+void CPUStack::triggerAsciiColumnSlot()
+{
+    mTriggerUnicodeCol->setChecked(false);
+
+    setupColumns();
+    reloadData();
+}
+
+void CPUStack::triggerUnicodeColumnSlot()
+{
+    mTriggerAsciiCol->setChecked(false);
+
+    setupColumns();
+    reloadData();
 }
 
 void CPUStack::binaryEditSlot()

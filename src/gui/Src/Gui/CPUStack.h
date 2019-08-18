@@ -73,6 +73,8 @@ public slots:
     void followInMemoryMapSlot();
     void followInDumpSlot();
     void updateSlot();
+    void triggerAsciiColumnSlot();
+    void triggerUnicodeColumnSlot();
 
 private:
     duint mCsp;
@@ -81,6 +83,8 @@ private:
     QAction* mFreezeStack;
     QAction* mFollowStack;
     QAction* mFollowDisasm;
+    QAction* mTriggerAsciiCol = nullptr;
+    QAction* mTriggerUnicodeCol = nullptr;
     QList<QAction*> mFollowInDumpActions;
     QMenu* mPluginMenu;
 
@@ -100,6 +104,14 @@ private:
 
     std::vector<CPUCallStack> mCallstack;
     static int CPUStack::getCurrentFrame(const std::vector<CPUStack::CPUCallStack> & mCallstack, duint wVA);
+
+    void setupColumns();
+    void setupAddressColumn(int);
+    void setupAsciiColumn(int);
+    void setupUnicodeColumn(int);
+    void setupCommentColumn();
+    bool showAsciiColumn();
+    bool showUnicodeColumn();
 };
 
 #endif // CPUSTACK_H

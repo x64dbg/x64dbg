@@ -306,7 +306,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 
     QMap<QString, duint> guiUint;
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CPUDisassembly", 4);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CPUStack", 3);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CPUStack", 4);
     for(int i = 1; i <= 5; i++)
         AbstractTableView::setupColumnConfigDefaultValue(guiUint, QString("CPUDump%1").arg(i), 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Watch1", 6);
@@ -614,6 +614,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionWatchDwordQword", Shortcut({tr("Actions"), tr("Watch DWORD/QWORD")}));
     defaultShortcuts.insert("ActionCopyFileOffset", Shortcut({tr("Actions"), tr("Copy File Offset")}));
     defaultShortcuts.insert("ActionToggleRunTrace", Shortcut({tr("Actions"), tr("Start or Stop Run Trace")}));
+    defaultShortcuts.insert("ActionTriggerAsciiColumn", Shortcut({tr("Actions"), tr("Show/Hide ASCII dump column on CPU stack window")}));
+    defaultShortcuts.insert("ActionTriggerUnicodeColumn", Shortcut({tr("Actions"), tr("Show/Hide Unicode dump column on CPU stack window")}));
 
     Shortcuts = defaultShortcuts;
 

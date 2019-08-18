@@ -73,6 +73,7 @@ public:
     struct ColumnDescriptor
     {
         bool isData = true;
+        bool invertData = false;
         int itemCount = 16;
         int separator = 0;
         QTextCodec* textCodec = nullptr; //name of the text codec (leave empty if you want to keep your sanity)
