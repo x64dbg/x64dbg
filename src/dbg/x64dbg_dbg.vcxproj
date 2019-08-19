@@ -97,6 +97,9 @@
     <ClCompile Include="reference.cpp" />
     <ClCompile Include="simplescript.cpp" />
     <ClCompile Include="stackinfo.cpp" />
+    <ClCompile Include="stl_allocator\Allocator.cpp" />
+    <ClCompile Include="stl_allocator\Fault.cpp" />
+    <ClCompile Include="stl_allocator\xallocator.cpp" />
     <ClCompile Include="stringformat.cpp" />
     <ClCompile Include="stringutils.cpp" />
     <ClCompile Include="symbolinfo.cpp" />

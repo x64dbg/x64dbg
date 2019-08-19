@@ -458,6 +458,15 @@
     <ClCompile Include="symbolsourcebase.cpp">
       <Filter>Source Files\Symbols</Filter>
     </ClCompile>
+    <ClCompile Include="stl_allocator\Allocator.cpp">
+      <Filter>Source Files\Symbols</Filter>
+    </ClCompile>
+    <ClCompile Include="stl_allocator\Fault.cpp">
+      <Filter>Source Files\Symbols</Filter>
+    </ClCompile>
+    <ClCompile Include="stl_allocator\xallocator.cpp">
+      <Filter>Source Files\Symbols</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dbghelp\dbghelp.h">
