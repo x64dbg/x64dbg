@@ -1711,6 +1711,37 @@ border-width: 1px 2px 2px 1px;</string>
       <string>Log:</string>
      </property>
     </widget>
+    <widget class="QWidget" name="layoutWidget9">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>250</y>
+       <width>500</width>
+       <height>34</height>
+      </rect>
+     </property>
+     <layout class="QVBoxLayout" name="fontRestartRequiredLayout">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetMinimumSize</enum>
+      </property>
+      <item>
+       <widget class="QLabel" name="labelFontRestartRequired">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>*Setting requires restarting the application to take effect.</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
     <zorder>layoutWidget1</zorder>
     <zorder>layoutWidget2</zorder>
     <zorder>layoutWidget3</zorder>
@@ -1726,6 +1757,7 @@ border-width: 1px 2px 2px 1px;</string>
     <zorder>labelFontHexEdit</zorder>
     <zorder>layoutWidget8</zorder>
     <zorder>labelFontLog</zorder>
+    <zorder>layoutWidget9</zorder>
    </widget>
   </widget>
   <widget class="QPushButton" name="buttonCancel">
