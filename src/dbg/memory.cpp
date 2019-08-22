@@ -147,6 +147,7 @@ void MemUpdateMap()
             memset(&newPage, 0, sizeof(MEMPAGE));
             VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)base, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
             strcpy_s(newPage.info, curMod);
+            newPage.mbi.RegionSize = sections.front().addr - base;
             pageVector.insert(pageVector.begin() + i, newPage);
         }
         else //list all pages
@@ -161,13 +162,7 @@ void MemUpdateMap()
                 if(SectionSize % PAGE_SIZE) //unaligned page size
                     SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
                 duint secEnd = secStart + SectionSize;
-                if(secStart >= start && secEnd <= end) //section is inside the memory page
-                {
-                    if(k)
-                        k += sprintf_s(currentPage.info + k, MAX_MODULE_SIZE - k, ",");
-                    k += sprintf_s(currentPage.info + k, MAX_MODULE_SIZE - k, " \"%s\"", currentSection.name);
-                }
-                else if(start >= secStart && end <= secEnd) //memory page is inside the section
+                if(start < secEnd && end > secStart) //the section and memory overlap
                 {
                     if(k)
                         k += sprintf_s(currentPage.info + k, MAX_MODULE_SIZE - k, ",");
