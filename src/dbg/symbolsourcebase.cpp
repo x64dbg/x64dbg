@@ -1,18 +1,6 @@
 #include "symbolsourcebase.h"
 #include <algorithm>
 
-//http://en.cppreference.com/w/cpp/algorithm/lower_bound
-template<class ForwardIt, class T, class Compare = std::less<>>
-static ForwardIt binary_find(ForwardIt first, ForwardIt last, const T & value, Compare comp = {})
-{
-    // Note: BOTH type T and the type after ForwardIt is dereferenced
-    // must be implicitly convertible to BOTH Type1 and Type2, used in Compare.
-    // This is stricter than lower_bound requirement (see above)
-
-    first = std::lower_bound(first, last, value, comp);
-    return first != last && !comp(value, *first) ? first : last;
-}
-
 bool NameIndex::findByPrefix(const std::vector<NameIndex> & byName, const std::string & prefix, const std::function<bool(const NameIndex &)> & cbFound, bool caseSensitive)
 {
     struct PrefixCmp
@@ -38,6 +26,7 @@ bool NameIndex::findByPrefix(const std::vector<NameIndex> & byName, const std::s
 
     NameIndex find;
     find.name = prefix.c_str();
+    find.index = -1;
     auto found = binary_find(byName.begin(), byName.end(), find, prefixCmp);
     if(found == byName.end())
         return false;

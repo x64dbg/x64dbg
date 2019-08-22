@@ -397,7 +397,6 @@ std::string PDBDiaFile::getSymbolNameString(IDiaSymbol* sym)
     BSTR str = nullptr;
 
     std::string name;
-    std::string res;
 
     hr = sym->get_name(&str);
     if(hr != S_OK)
@@ -408,16 +407,9 @@ std::string PDBDiaFile::getSymbolNameString(IDiaSymbol* sym)
         name = StringUtils::Utf16ToUtf8(str);
     }
 
-    res = name;
     SysFreeString(str);
 
-    size_t pos = res.find('(');
-    if(pos != std::string::npos)
-    {
-        res = res.substr(0, pos);
-    }
-
-    return res;
+    return name;
 }
 
 std::string PDBDiaFile::getSymbolUndecoratedNameString(IDiaSymbol* sym)

@@ -50,7 +50,6 @@ bool SymbolSourceDIA::loadPDB(const std::string & path, const std::string & modn
     }
     PDBDiaFile pdb; // Instance used for validation only.
     _isOpen = pdb.open(path.c_str(), 0, validationData);
-#if 1 // Async loading.
     if(_isOpen)
     {
         _path = path;
@@ -67,7 +66,6 @@ bool SymbolSourceDIA::loadPDB(const std::string & path, const std::string & modn
         ResumeThread(_symbolsThread);
         ResumeThread(_sourceLinesThread);
     }
-#endif
     return _isOpen;
 }
 
@@ -145,42 +143,14 @@ bool SymbolSourceDIA::loadSymbolsAsync()
         sym.type == DiaSymbolType::LABEL ||
         sym.type == DiaSymbolType::DATA) //TODO: properly handle import thunks + empty names + line symbols
         {
-            SymbolInfo symInfo;
-            symInfo.decoratedName = sym.name;
-            symInfo.undecoratedName = sym.undecoratedName;
+            _symData.emplace_back();
+            SymbolInfo & symInfo = _symData.back();
+            symInfo.decoratedName = std::move(sym.name);
+            symInfo.undecoratedName = std::move(sym.undecoratedName);
             symInfo.size = (duint)sym.size;
             symInfo.disp = sym.disp;
             symInfo.rva = (duint)sym.virtualAddress;
             symInfo.publicSymbol = sym.publicSymbol;
-
-            // Check if we already have it inside, private symbols have priority over public symbols.
-            // TODO: only use this map during initialization phase
-            {
-                ScopedSpinLock lock(_lockSymbols);
-
-                auto it = _symAddrs.find((duint)sym.virtualAddress);
-                if(it != _symAddrs.end())
-                {
-                    if(_symData[it->second].publicSymbol == true && symInfo.publicSymbol == false)
-                    {
-                        // Replace.
-                        _symData[it->second] = symInfo;
-                    }
-                }
-                else
-                {
-                    _symData.push_back(symInfo);
-                    _symAddrs.insert({ (duint)sym.virtualAddress, _symData.size() - 1 });
-                }
-            }
-
-            //TODO: perhaps this shouldn't be done...
-            DWORD curTick = GetTickCount();
-            if(curTick - lastUpdate > 500)
-            {
-                GuiUpdateAllViews();
-                lastUpdate = curTick;
-            }
         }
 
         return true;
@@ -193,38 +163,82 @@ bool SymbolSourceDIA::loadSymbolsAsync()
         return false;
     }
 
-    //TODO: gracefully handle temporary storage (the spin lock will now starve the GUI while sorting)
+    //handle symbol address sorting
     {
-        ScopedSpinLock lock(_lockSymbols);
-
-        //TODO: actually do something with this map
-        _symAddrMap.reserve(_symAddrs.size());
-        for(auto & it : _symAddrs)
-        {
-            AddrIndex addrIndex;
-            addrIndex.addr = it.first;
-            addrIndex.index = it.second;
-            _symAddrMap.push_back(addrIndex);
-        }
-        std::sort(_symAddrMap.begin(), _symAddrMap.end());
-
-        //handle symbol name sorting
-        _symNameMap.resize(_symData.size());
+        _symAddrMap.resize(_symData.size());
         for(size_t i = 0; i < _symData.size(); i++)
         {
+            AddrIndex addrIndex;
+            addrIndex.addr = _symData[i].rva;
+            addrIndex.index = i;
+            _symAddrMap[i] = addrIndex;
+        }
+        std::sort(_symAddrMap.begin(), _symAddrMap.end(), [this](const AddrIndex & a, const AddrIndex & b)
+        {
+            // smaller
+            if(a.addr < b.addr)
+            {
+                return true;
+            }
+            // bigger
+            else if(a.addr > b.addr)
+            {
+                return false;
+            }
+            // equal
+            else
+            {
+                // Check if we already have it inside, public symbols have priority over private symbols.
+                return !_symData[a.index].publicSymbol < !_symData[b.index].publicSymbol;
+            }
+        });
+    }
+
+    //remove duplicate symbols from view
+    if(!_symAddrMap.empty())
+    {
+        SymbolInfo* prev = nullptr;
+        size_t insertPos = 0;
+        for(size_t i = 0; i < _symAddrMap.size(); i++)
+        {
+            AddrIndex addrIndex = _symAddrMap[i];
+            SymbolInfo & sym = _symData[addrIndex.index];
+            if(prev && sym.rva == prev->rva && sym.decoratedName == prev->decoratedName && sym.undecoratedName == prev->undecoratedName)
+            {
+                sym.decoratedName.swap(String());
+                sym.undecoratedName.swap(String());
+                continue;
+            }
+            prev = &sym;
+
+            _symAddrMap[insertPos++] = addrIndex;
+        }
+        _symAddrMap.resize(insertPos);
+    }
+
+    //handle symbol name sorting
+    {
+        _symNameMap.resize(_symAddrMap.size());
+        for(size_t i = 0; i < _symAddrMap.size(); i++)
+        {
+            size_t symIndex = _symAddrMap[i].index;
             NameIndex nameIndex;
-            nameIndex.index = i;
-            nameIndex.name = _symData.at(i).decoratedName.c_str(); //NOTE: DO NOT MODIFY decoratedName is any way!
+            nameIndex.name = _symData[symIndex].decoratedName.c_str(); //NOTE: DO NOT MODIFY decoratedName is any way!
+            nameIndex.index = symIndex;
             _symNameMap[i] = nameIndex;
         }
         std::sort(_symNameMap.begin(), _symNameMap.end());
-        _symbolsLoaded = true;
     }
+
+    if(_requiresShutdown)
+        return false;
+
+    _symbolsLoaded = true;
 
     DWORD ms = GetTickCount() - loadStart;
     double secs = (double)ms / 1000.0;
 
-    GuiSymbolLogAdd(StringUtils::sprintf("[%p, %s] Loaded %d symbols in %.03fs\n", _imageBase, _modname.c_str(), _symAddrs.size(), secs).c_str());
+    GuiSymbolLogAdd(StringUtils::sprintf("[%p, %s] Loaded %u symbols in %.03fs\n", _imageBase, _modname.c_str(), _symAddrMap.size(), secs).c_str());
 
     GuiInvalidateSymbolSource(_imageBase);
 
@@ -293,53 +307,77 @@ bool SymbolSourceDIA::loadSourceLinesAsync()
 
     _linesData.reserve(lines.size());
     _sourceFiles.reserve(files.size());
+    _lineAddrMap.reserve(lines.size());
 
+    struct SourceFileInfo
+    {
+        uint32_t sourceFileIndex;
+        uint32_t lineCount;
+    };
+    std::map<DWORD, SourceFileInfo> sourceIdMap; //DIA sourceId -> sourceFileInfo
     for(const auto & line : lines)
     {
         if(_requiresShutdown)
             return false;
 
-        const auto & info = line;
-        auto it = _lines.find(info.rva);
-        if(it != _lines.end())
-            continue;
+        _linesData.emplace_back();
+        CachedLineInfo & lineInfo = _linesData.back();
+        lineInfo.rva = line.rva;
+        lineInfo.lineNumber = line.lineNumber;
 
-        CachedLineInfo lineInfo;
-        lineInfo.rva = info.rva;
-        lineInfo.lineNumber = info.lineNumber;
-
-        auto sourceFileId = info.sourceFileId;
-        auto found = _sourceIdMap.find(sourceFileId);
-        if(found == _sourceIdMap.end())
+        auto sourceFileId = line.sourceFileId;
+        auto found = sourceIdMap.find(sourceFileId);
+        if(found == sourceIdMap.end())
         {
-            auto idx = _sourceFiles.size();
+            SourceFileInfo info;
+            info.sourceFileIndex = uint32_t(_sourceFiles.size());
+            info.lineCount = 0;
             _sourceFiles.push_back(files[sourceFileId]);
-            found = _sourceIdMap.insert({ sourceFileId, uint32_t(idx) }).first;
+            found = sourceIdMap.insert({ sourceFileId, info }).first;
         }
-        lineInfo.sourceFileIdx = found->second;
+        found->second.lineCount++;
+        lineInfo.sourceFileIndex = found->second.sourceFileIndex;
 
-        _lockLines.lock();
-
-        _linesData.push_back(lineInfo);
-        _lines.insert({ lineInfo.rva, _linesData.size() - 1 });
-
-        _lockLines.unlock();
+        AddrIndex lineIndex;
+        lineIndex.addr = lineInfo.rva;
+        lineIndex.index = _linesData.size() - 1;
+        _lineAddrMap.push_back(lineIndex);
     }
 
+    // stable because first line encountered has to be found
+    std::stable_sort(_lineAddrMap.begin(), _lineAddrMap.end());
+
+    // perfectly allocate memory for line info vectors
     _sourceLines.resize(_sourceFiles.size());
+    for(const auto & it : sourceIdMap)
+        _sourceLines[it.second.sourceFileIndex].reserve(it.second.lineCount);
+
+    // insert source line information
     for(size_t i = 0; i < _linesData.size(); i++)
     {
         auto & line = _linesData[i];
-        _sourceLines[line.sourceFileIdx].insert({ line.lineNumber, i });
+        LineIndex lineIndex;
+        lineIndex.line = line.lineNumber;
+        lineIndex.index = uint32_t(i);
+        _sourceLines[line.sourceFileIndex].push_back(lineIndex);
+    }
+
+    // sort source line information
+    for(size_t i = 0; i < _sourceLines.size(); i++)
+    {
+        auto & lineMap = _sourceLines[i];
+        std::stable_sort(lineMap.begin(), lineMap.end());
     }
 
     if(_requiresShutdown)
         return false;
 
+    _linesLoaded = true;
+
     DWORD ms = GetTickCount() - lineLoadStart;
     double secs = (double)ms / 1000.0;
 
-    GuiSymbolLogAdd(StringUtils::sprintf("[%p, %s] Loaded %d line infos in %.03fs\n", _imageBase, _modname.c_str(), _lines.size(), secs).c_str());
+    GuiSymbolLogAdd(StringUtils::sprintf("[%p, %s] Loaded %d line infos in %.03fs\n", _imageBase, _modname.c_str(), _linesData.size(), secs).c_str());
 
     GuiUpdateAllViews();
 
@@ -369,50 +407,56 @@ uint32_t SymbolSourceDIA::findSourceFile(const std::string & fileName) const
 
 bool SymbolSourceDIA::findSymbolExact(duint rva, SymbolInfo & symInfo)
 {
-    ScopedSpinLock lock(_lockSymbols);
+    if(!_symbolsLoaded)
+        return false;
 
     if(SymbolSourceBase::isAddressInvalid(rva))
         return false;
 
-    auto it = _symAddrs.find(rva);
-    if(it != _symAddrs.end())
+    AddrIndex find;
+    find.addr = rva;
+    find.index = -1;
+    auto it = binary_find(_symAddrMap.begin(), _symAddrMap.end(), find);
+
+    if(it != _symAddrMap.end())
     {
-        symInfo = _symData[it->second];
+        symInfo = _symData[it->index];
         return true;
     }
 
-#if 1
     if(isLoading() == false)
         markAdressInvalid(rva);
-#endif
 
     return false;
 }
 
-template <typename A, typename B>
-typename A::iterator findExactOrLower(A & ctr, const B key)
-{
-    if(ctr.empty())
-        return ctr.end();
-
-    auto itr = ctr.lower_bound(key);
-
-    if(itr == ctr.begin() && (*itr).first != key)
-        return ctr.end();
-    else if(itr == ctr.end() || (*itr).first != key)
-        return --itr;
-
-    return itr;
-}
-
 bool SymbolSourceDIA::findSymbolExactOrLower(duint rva, SymbolInfo & symInfo)
 {
-    ScopedSpinLock lock(_lockSymbols);
+    if(!_symbolsLoaded)
+        return false;
 
-    auto it = findExactOrLower(_symAddrs, rva);
-    if(it != _symAddrs.end())
+    if(_symAddrMap.empty())
+        return false;
+
+    AddrIndex find;
+    find.addr = rva;
+    find.index = -1;
+    auto it = [&]()
     {
-        symInfo = _symData[it->second];
+        auto it = std::lower_bound(_symAddrMap.begin(), _symAddrMap.end(), find);
+        // not found
+        if(it == _symAddrMap.end())
+            return --it;
+        // exact match
+        if(it->addr == rva)
+            return it;
+        // right now 'it' points to the first element bigger than rva
+        return it == _symAddrMap.begin() ? _symAddrMap.end() : --it;
+    }();
+
+    if(it != _symAddrMap.end())
+    {
+        symInfo = _symData[it->index];
         symInfo.disp = (int32_t)(rva - symInfo.rva);
         return true;
     }
@@ -422,13 +466,12 @@ bool SymbolSourceDIA::findSymbolExactOrLower(duint rva, SymbolInfo & symInfo)
 
 void SymbolSourceDIA::enumSymbols(const CbEnumSymbol & cbEnum)
 {
-    ScopedSpinLock lock(_lockSymbols);
     if(!_symbolsLoaded)
         return;
 
-    for(auto & it : _symAddrs)
+    for(auto & it : _symAddrMap)
     {
-        const SymbolInfo & sym = _symData[it.second];
+        const SymbolInfo & sym = _symData[it.index];
         if(!cbEnum(sym))
         {
             break;
@@ -438,48 +481,55 @@ void SymbolSourceDIA::enumSymbols(const CbEnumSymbol & cbEnum)
 
 bool SymbolSourceDIA::findSourceLineInfo(duint rva, LineInfo & lineInfo)
 {
-    ScopedSpinLock lock(_lockLines);
-
-    auto found = _lines.find(rva);
-    if(found == _lines.end())
+    if(!_linesLoaded)
         return false;
 
-    auto & cached = _linesData.at(found->second);
+    AddrIndex find;
+    find.addr = rva;
+    find.index = -1;
+    auto it = binary_find(_lineAddrMap.begin(), _lineAddrMap.end(), find);
+    if(it == _lineAddrMap.end())
+        return false;
+
+    auto & cached = _linesData.at(it->index);
     lineInfo.rva = cached.rva;
     lineInfo.lineNumber = cached.lineNumber;
     lineInfo.disp = 0;
     lineInfo.size = 0;
-    lineInfo.sourceFile = _sourceFiles[cached.sourceFileIdx];
+    lineInfo.sourceFile = _sourceFiles[cached.sourceFileIndex];
     getSourceFilePdbToDisk(lineInfo.sourceFile, lineInfo.sourceFile);
     return true;
 }
 
 bool SymbolSourceDIA::findSourceLineInfo(const std::string & file, int line, LineInfo & lineInfo)
 {
-    ScopedSpinLock lock(_lockLines);
+    if(!_linesLoaded)
+        return false;
 
     auto sourceIdx = findSourceFile(file);
     if(sourceIdx == -1)
         return false;
 
     auto & lineMap = _sourceLines[sourceIdx];
-    auto found = lineMap.find(line);
+    LineIndex find;
+    find.line = line;
+    find.index = -1;
+    auto found = binary_find(lineMap.begin(), lineMap.end(), find);
     if(found == lineMap.end())
         return false;
 
-    auto & cached = _linesData.at(found->second);
+    auto & cached = _linesData[found->index];
     lineInfo.rva = cached.rva;
     lineInfo.lineNumber = cached.lineNumber;
     lineInfo.disp = 0;
     lineInfo.size = 0;
-    lineInfo.sourceFile = _sourceFiles[cached.sourceFileIdx];
+    lineInfo.sourceFile = _sourceFiles[cached.sourceFileIndex];
     getSourceFilePdbToDisk(lineInfo.sourceFile, lineInfo.sourceFile);
     return true;
 }
 
 bool SymbolSourceDIA::findSymbolByName(const std::string & name, SymbolInfo & symInfo, bool caseSensitive)
 {
-    ScopedSpinLock lock(_lockSymbols);
     if(!_symbolsLoaded)
         return false;
 
@@ -492,7 +542,6 @@ bool SymbolSourceDIA::findSymbolByName(const std::string & name, SymbolInfo & sy
 
 bool SymbolSourceDIA::findSymbolsByPrefix(const std::string & prefix, const std::function<bool(const SymbolInfo &)> & cbSymbol, bool caseSensitive)
 {
-    ScopedSpinLock lock(_lockSymbols);
     if(!_symbolsLoaded)
         return false;
 
