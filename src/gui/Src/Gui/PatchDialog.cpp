@@ -193,8 +193,6 @@ void PatchDialog::groupToggle()
     QString addrText = ToPtrString(groupStart);
     QString title = "<font color='" + color + "'><b>" + QString().sprintf("%d:", group) + addrText + "</b></font>";
     mGroupSelector->setGroupTitle(title);
-    DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
-    DbgCmdExecDirect(QString("dump " + addrText).toUtf8().constData());
 }
 
 void PatchDialog::groupPrevious()
