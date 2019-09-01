@@ -13,6 +13,62 @@
 
 static int maxFindResults = 5000;
 
+static bool handlePatternArgument(const char* pattern, std::vector<PatternByte> & searchpattern, String* patternshort = nullptr)
+{
+    searchpattern.clear();
+    auto handlePrefix = [&](const char* prefix, size_t size) -> bool
+    {
+        auto prefixLen = strlen(prefix);
+        if(_strnicmp(pattern, prefix, prefixLen) == 0)
+        {
+            duint value = 0;
+            if(!valfromstring(pattern + prefixLen, &value, false))
+                return true;
+            auto data = (unsigned char*)&value;
+            for(size_t i = 0; i < size; i++)
+            {
+                auto ch = data[i];
+                PatternByte b;
+                b.nibble[0].data = (ch >> 4) & 0xF;
+                b.nibble[0].wildcard = false;
+                b.nibble[1].data = ch & 0xF;
+                b.nibble[1].wildcard = false;
+                searchpattern.push_back(b);
+            }
+            return true;
+        }
+        return false;
+    };
+    auto result = (handlePrefix("byte:", 1)
+                   || handlePrefix("word:", 2)
+                   || handlePrefix("dword:", 4)
+#ifdef _WIN64
+                   || handlePrefix("qword:", 8)
+#endif //_WIN64
+                   || handlePrefix("ptr:", ArchValue(4, 8))
+                   //remove # from the start and end of the pattern (ODBGScript support)
+                   || patterntransform(StringUtils::Trim(stringformatinline(pattern), "#"), searchpattern)) && !searchpattern.empty();
+    if(result && patternshort)
+    {
+        const auto maxShortSize = 16;
+        for(size_t i = 0; i < min(searchpattern.size(), maxShortSize); i++)
+        {
+            auto doNibble = [&patternshort](const PatternByte::PatternNibble & n)
+            {
+                if(n.wildcard)
+                    *patternshort += "?";
+                else
+                    *patternshort += "0123456789ABCDEF"[n.data & 0xf];
+            };
+            doNibble(searchpattern[i].nibble[0]);
+            doNibble(searchpattern[i].nibble[1]);
+        }
+        if(searchpattern.size() > maxShortSize)
+            *patternshort += "...";
+    }
+    return result;
+}
+
 bool cbInstrFind(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
@@ -22,17 +78,8 @@ bool cbInstrFind(int argc, char* argv[])
     if(!valfromstring(argv[1], &addr, false))
         return false;
 
-    char pattern[deflen] = "";
-    //remove # from the start and end of the pattern (ODBGScript support)
-    if(argv[2][0] == '#')
-        strcpy_s(pattern, argv[2] + 1);
-    else
-        strcpy_s(pattern, argv[2]);
-    size_t len = strlen(pattern);
-    if(pattern[len - 1] == '#')
-        pattern[len - 1] = '\0';
     std::vector<PatternByte> searchpattern;
-    if(!patterntransform(pattern, searchpattern))
+    if(!handlePatternArgument(argv[2], searchpattern))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to transform pattern!"));
         return false;
@@ -80,15 +127,13 @@ bool cbInstrFindAll(int argc, char* argv[])
     if(!valfromstring(argv[1], &addr, false))
         return false;
 
-    char pattern[deflen] = "";
-    //remove # from the start and end of the pattern (ODBGScript support)
-    if(argv[2][0] == '#')
-        strcpy_s(pattern, argv[2] + 1);
-    else
-        strcpy_s(pattern, argv[2]);
-    size_t len = strlen(pattern);
-    if(pattern[len - 1] == '#')
-        pattern[len - 1] = '\0';
+    std::vector<PatternByte> searchpattern;
+    String patternshort;
+    if(!handlePatternArgument(argv[2], searchpattern, &patternshort))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to transform pattern!"));
+        return false;
+    }
 
     duint size = 0;
     duint base = MemFindBaseAddr(addr, &size, true);
@@ -123,13 +168,8 @@ bool cbInstrFindAll(int argc, char* argv[])
         find_size = size - start;
 
     //setup reference view
-    char patternshort[256] = "";
-    strncpy_s(patternshort, pattern, min(16, len));
-    if(len > 16)
-        strcat_s(patternshort, "...");
-    char patterntitle[256] = "";
-    sprintf_s(patterntitle, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Pattern: %s")), patternshort);
-    GuiReferenceInitialize(patterntitle);
+    String patterntitle = StringUtils::sprintf(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Pattern: %s")), patternshort.c_str());
+    GuiReferenceInitialize(patterntitle.c_str());
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
     if(findData)
         GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Data")));
@@ -141,12 +181,6 @@ bool cbInstrFindAll(int argc, char* argv[])
     int refCount = 0;
     duint i = 0;
     duint result = 0;
-    std::vector<PatternByte> searchpattern;
-    if(!patterntransform(pattern, searchpattern))
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to transform pattern!"));
-        return false;
-    }
     while(refCount < maxFindResults)
     {
         duint foundoffset = patternfind(data() + start + i, find_size - i, searchpattern);
@@ -188,21 +222,14 @@ bool cbInstrFindAllMem(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
         return false;
+
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return false;
 
-    char pattern[deflen] = "";
-    //remove # from the start and end of the pattern (ODBGScript support)
-    if(argv[2][0] == '#')
-        strcpy_s(pattern, argv[2] + 1);
-    else
-        strcpy_s(pattern, argv[2]);
-    size_t len = strlen(pattern);
-    if(pattern[len - 1] == '#')
-        pattern[len - 1] = '\0';
     std::vector<PatternByte> searchpattern;
-    if(!patterntransform(pattern, searchpattern))
+    String patternshort;
+    if(!handlePatternArgument(argv[2], searchpattern, &patternshort))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to transform pattern!"));
         return false;
@@ -240,13 +267,8 @@ bool cbInstrFindAllMem(int argc, char* argv[])
     }
 
     //setup reference view
-    char patternshort[256] = "";
-    strncpy_s(patternshort, pattern, min(16, len));
-    if(len > 16)
-        strcat_s(patternshort, "...");
-    char patterntitle[256] = "";
-    sprintf_s(patterntitle, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Pattern: %s")), patternshort);
-    GuiReferenceInitialize(patterntitle);
+    String patterntitle = StringUtils::sprintf(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Pattern: %s")), patternshort.c_str());
+    GuiReferenceInitialize(patterntitle.c_str());
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
     if(findData)
         GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Data")));
