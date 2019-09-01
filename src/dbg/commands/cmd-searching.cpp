@@ -31,6 +31,12 @@ bool cbInstrFind(int argc, char* argv[])
     size_t len = strlen(pattern);
     if(pattern[len - 1] == '#')
         pattern[len - 1] = '\0';
+    std::vector<PatternByte> searchpattern;
+    if(!patterntransform(pattern, searchpattern))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to transform pattern!"));
+        return false;
+    }
 
     duint size = 0;
     duint base = MemFindBaseAddr(addr, &size, true);
@@ -57,7 +63,7 @@ bool cbInstrFind(int argc, char* argv[])
     else
         find_size = size - start;
 
-    duint foundoffset = patternfind(data() + start, find_size, pattern);
+    duint foundoffset = patternfind(data() + start, find_size, searchpattern);
     duint result = 0;
     if(foundoffset != -1)
         result = addr + foundoffset;
