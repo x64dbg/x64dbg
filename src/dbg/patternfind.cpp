@@ -32,6 +32,12 @@ static inline int hexchtoint(char ch)
 bool patterntransform(const string & patterntext, vector<PatternByte> & pattern)
 {
     pattern.clear();
+
+    //reject patterns with unsupported charcters
+    for(char ch : patterntext)
+        if(ch != '?' && ch != ' ' && !isHex(ch))
+            return false;
+
     string formattext = formathexpattern(patterntext);
     int len = (int)formattext.length();
     if(!len)
