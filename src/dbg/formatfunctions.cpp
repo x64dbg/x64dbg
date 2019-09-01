@@ -206,6 +206,26 @@ void FormatFunctions::Init()
             return FORMAT_ERROR;
         return formatcpy_s(dest, destCount, mod);
     });
+
+    Register("bswap", [](char* dest, size_t destCount, int argc, char* argv[], duint addr, void* userdata)
+    {
+        duint size = sizeof(duint);
+        if(argc > 1 && !valfromstring(argv[1], &size))
+        {
+            strcpy_s(dest, destCount, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid argument...")));
+            return FORMAT_ERROR_MESSAGE;
+        }
+        if(size > sizeof(duint) || size == 0)
+        {
+            strcpy_s(dest, destCount, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid size...")));
+            return FORMAT_ERROR_MESSAGE;
+        }
+        auto data = (unsigned char*)&addr;
+        String result;
+        for(duint i = 0; i < size; i++)
+            result += StringUtils::sprintf("%02X", data[i]);
+        return formatcpy_s(dest, destCount, result.c_str());
+    });
 }
 
 bool FormatFunctions::Register(const String & type, const CBFORMATFUNCTION & cbFunction, void* userdata)
