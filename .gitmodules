@@ -10,4 +10,4 @@
 	shallow = true
 [submodule "src/zydis_wrapper/zydis"]
 	path = src/zydis_wrapper/zydis
-	url = https://github.com/zyantific/zydis.git
+	url = https://github.com/x64dbg/zydis.git
