@@ -779,7 +779,7 @@ void Configuration::readShortcuts()
 
     while(it != Shortcuts.end())
     {
-        const QString id = it.key();
+        const QString & id = it.key();
         QString key = shortcutFromConfig(id);
         if(key != "")
         {
@@ -808,7 +808,7 @@ void Configuration::writeShortcuts()
     emit shortcutsUpdated();
 }
 
-const QColor Configuration::getColor(const QString id) const
+const QColor Configuration::getColor(const QString & id) const
 {
     if(Colors.contains(id))
         return Colors.constFind(id).value();
@@ -822,7 +822,7 @@ const QColor Configuration::getColor(const QString id) const
     return Qt::black;
 }
 
-const bool Configuration::getBool(const QString category, const QString id) const
+const bool Configuration::getBool(const QString & category, const QString & id) const
 {
     if(Bools.contains(category))
     {
@@ -847,7 +847,7 @@ const bool Configuration::getBool(const QString category, const QString id) cons
     return false;
 }
 
-void Configuration::setBool(const QString category, const QString id, const bool b)
+void Configuration::setBool(const QString & category, const QString & id, const bool b)
 {
     if(Bools.contains(category))
     {
@@ -874,7 +874,7 @@ void Configuration::setBool(const QString category, const QString id, const bool
         noMoreMsgbox = true;
 }
 
-const duint Configuration::getUint(const QString category, const QString id) const
+const duint Configuration::getUint(const QString & category, const QString & id) const
 {
     if(Uints.contains(category))
     {
@@ -899,7 +899,7 @@ const duint Configuration::getUint(const QString category, const QString id) con
     return 0;
 }
 
-void Configuration::setUint(const QString category, const QString id, const duint i)
+void Configuration::setUint(const QString & category, const QString & id, const duint i)
 {
     if(Uints.contains(category))
     {
@@ -926,7 +926,7 @@ void Configuration::setUint(const QString category, const QString id, const duin
         noMoreMsgbox = true;
 }
 
-const QFont Configuration::getFont(const QString id) const
+const QFont Configuration::getFont(const QString & id) const
 {
     if(Fonts.contains(id))
         return Fonts.constFind(id).value();
@@ -943,7 +943,7 @@ const QFont Configuration::getFont(const QString id) const
     return ret;
 }
 
-const Configuration::Shortcut Configuration::getShortcut(const QString key_id) const
+const Configuration::Shortcut Configuration::getShortcut(const QString & key_id) const
 {
     if(Shortcuts.contains(key_id))
         return Shortcuts.constFind(key_id).value();
@@ -958,7 +958,7 @@ const Configuration::Shortcut Configuration::getShortcut(const QString key_id) c
     return Shortcut();
 }
 
-void Configuration::setShortcut(const QString key_id, const QKeySequence key_sequence)
+void Configuration::setShortcut(const QString & key_id, const QKeySequence key_sequence)
 {
     if(Shortcuts.contains(key_id))
     {
@@ -974,13 +974,13 @@ void Configuration::setShortcut(const QString key_id, const QKeySequence key_seq
         noMoreMsgbox = true;
 }
 
-void Configuration::setPluginShortcut(const QString key_id, QString description, QString defaultShortcut, bool global)
+void Configuration::setPluginShortcut(const QString & key_id, QString description, QString defaultShortcut, bool global)
 {
     defaultShortcuts[key_id] = Shortcut(description, defaultShortcut, global);
     readShortcuts();
 }
 
-QColor Configuration::colorFromConfig(const QString id)
+QColor Configuration::colorFromConfig(const QString & id)
 {
     char setting[MAX_SETTING_SIZE] = "";
     if(!BridgeSettingGet("Colors", id.toUtf8().constData(), setting))
@@ -1009,7 +1009,7 @@ QColor Configuration::colorFromConfig(const QString id)
     return color;
 }
 
-bool Configuration::colorToConfig(const QString id, const QColor color)
+bool Configuration::colorToConfig(const QString & id, const QColor color)
 {
     QString colorName = color.name().toUpper();
     if(!color.alpha())
@@ -1017,7 +1017,7 @@ bool Configuration::colorToConfig(const QString id, const QColor color)
     return BridgeSettingSet("Colors", id.toUtf8().constData(), colorName.toUtf8().constData());
 }
 
-bool Configuration::boolFromConfig(const QString category, const QString id)
+bool Configuration::boolFromConfig(const QString & category, const QString & id)
 {
     duint setting;
     if(!BridgeSettingGetUint(category.toUtf8().constData(), id.toUtf8().constData(), &setting))
@@ -1033,12 +1033,12 @@ bool Configuration::boolFromConfig(const QString category, const QString id)
     return (setting != 0);
 }
 
-bool Configuration::boolToConfig(const QString category, const QString id, const bool bBool)
+bool Configuration::boolToConfig(const QString & category, const QString & id, const bool bBool)
 {
     return BridgeSettingSetUint(category.toUtf8().constData(), id.toUtf8().constData(), bBool);
 }
 
-duint Configuration::uintFromConfig(const QString category, const QString id)
+duint Configuration::uintFromConfig(const QString & category, const QString & id)
 {
     duint setting;
     if(!BridgeSettingGetUint(category.toUtf8().constData(), id.toUtf8().constData(), &setting))
@@ -1054,12 +1054,12 @@ duint Configuration::uintFromConfig(const QString category, const QString id)
     return setting;
 }
 
-bool Configuration::uintToConfig(const QString category, const QString id, duint i)
+bool Configuration::uintToConfig(const QString & category, const QString & id, duint i)
 {
     return BridgeSettingSetUint(category.toUtf8().constData(), id.toUtf8().constData(), i);
 }
 
-QFont Configuration::fontFromConfig(const QString id)
+QFont Configuration::fontFromConfig(const QString & id)
 {
     char setting[MAX_SETTING_SIZE] = "";
     if(!BridgeSettingGet("Fonts", id.toUtf8().constData(), setting))
@@ -1096,12 +1096,12 @@ QFont Configuration::fontFromConfig(const QString id)
     return font;
 }
 
-bool Configuration::fontToConfig(const QString id, const QFont font)
+bool Configuration::fontToConfig(const QString & id, const QFont font)
 {
     return BridgeSettingSet("Fonts", id.toUtf8().constData(), font.toString().toUtf8().constData());
 }
 
-QString Configuration::shortcutFromConfig(const QString id)
+QString Configuration::shortcutFromConfig(const QString & id)
 {
     QString _id = QString("%1").arg(id);
     char setting[MAX_SETTING_SIZE] = "";
@@ -1112,7 +1112,7 @@ QString Configuration::shortcutFromConfig(const QString id)
     return QString();
 }
 
-bool Configuration::shortcutToConfig(const QString id, const QKeySequence shortcut)
+bool Configuration::shortcutToConfig(const QString & id, const QKeySequence shortcut)
 {
     QString _id = QString("%1").arg(id);
     QString _key = "";
