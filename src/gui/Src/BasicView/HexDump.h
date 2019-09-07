@@ -7,6 +7,8 @@
 #include "VaHistory.h"
 #include <QTextCodec>
 
+class RichTextCache;
+
 class HexDump : public AbstractTableView
 {
     Q_OBJECT
@@ -93,6 +95,7 @@ public:
     void mousePressEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
+    void paintEvent(QPaintEvent* event) override;
 
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) override;
     void paintGraphicDump(QPainter* painter, int x, int y, int addr);
@@ -139,6 +142,7 @@ public:
     void setupCopyMenu();
 
     VaHistory mHistory;
+    RichTextCache* mRichTextCache = nullptr;
 
 signals:
     void selectionUpdated();

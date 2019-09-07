@@ -30,6 +30,18 @@ public:
         QColor highlightColor;
         int highlightWidth = 2;
         bool highlightConnectPrev = false;
+
+        bool operator==(const CustomRichText_t & o) const
+        {
+            return text == o.text
+                   && textColor == o.textColor
+                   && textBackground == o.textBackground
+                   && flags == o.flags
+                   && highlight == o.highlight
+                   && highlightColor == o.highlightColor
+                   && highlightWidth == o.highlightWidth
+                   && highlightConnectPrev == o.highlightConnectPrev;
+        }
     };
 
     typedef std::vector<CustomRichText_t> List;

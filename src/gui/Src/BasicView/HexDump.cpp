@@ -11,6 +11,84 @@ static int dwordStringMaxLength(HexDump::DwordViewMode mode);
 static int qwordStringMaxLength(HexDump::QwordViewMode mode);
 static int twordStringMaxLength(HexDump::TwordViewMode mode);
 
+class RichTextCache
+{
+    void dbg(const QString & s) const
+    {
+        OutputDebugStringA(s.toUtf8().constData());
+    }
+public:
+    struct CacheKey
+    {
+        int rowOffset;
+        int col;
+        // can be removed as long w and h are the same?
+        int x;
+        int y;
+        int w;
+        int h;
+
+        bool operator<(const CacheKey & o) const
+        {
+            return std::tie(rowOffset, col, x, y, w, h) < std::tie(o.rowOffset, o.col, o.x, o.y, o.w, o.h);
+        }
+    };
+
+    struct CacheValue
+    {
+        RichTextPainter::List richText;
+        QPixmap pixmap;
+    };
+
+    void paintRichText(QPainter* painter, int rowOffset, int col, int x, int y, int w, int h, int xinc, const RichTextPainter::List & richText, CachedFontMetrics* fontMetrics)
+    {
+        CacheKey key;
+        key.rowOffset = rowOffset;
+        key.col = col;
+        key.x = x;
+        key.y = y;
+        key.w = w;
+        key.h = h;
+        auto itr = mCache.find(key);
+        if(itr == mCache.end() || itr->second.richText != richText)
+        {
+            dbg(QString("[x64dbg] rowOffset: %2, col: %3, x: %4, y: %5, w: %6, h: %7").arg(rowOffset).arg(col).arg(x).arg(y).arg(w).arg(h));
+            itr = mCache.emplace(key, CacheValue()).first;
+            CacheValue & value = itr->second;
+            value.richText = richText;
+            value.pixmap = QPixmap(w, h);
+            value.pixmap.fill(Qt::transparent);
+            QPainter cachePainter(&value.pixmap);
+            cachePainter.setFont(QFont("Consolas", 8));
+            //cachePainter.setBackground(painter->background());
+            //cachePainter.setBackgroundMode(painter->backgroundMode());
+            //cachePainter.setBrush(painter->brush());
+            //cachePainter.setBrushOrigin(painter->brushOrigin());
+            //cachePainter.setFont(painter->font());
+            //cachePainter.setPen(painter->pen());
+            RichTextPainter::paintRichText(&cachePainter, 0, 0, w, h, xinc, richText, fontMetrics);
+        }
+        painter->drawPixmap(x, y, w, h, itr->second.pixmap);
+    }
+
+    void invalidate(duint tableOffsetRva, duint memBase, duint memSize)
+    {
+        if(tableOffsetRva == mTableOffsetRva && memBase == mMemBase && memSize == mMemSize)
+            return;
+        dbg("[x64dbg] RichTextCache::invalidate");
+        mTableOffsetRva = tableOffsetRva;
+        mMemBase = memBase;
+        mMemSize = memSize;
+        mCache.clear();
+    }
+
+private:
+    duint mTableOffsetRva = 0;
+    duint mMemBase = 0;
+    duint mMemSize = 0;
+    std::map<CacheKey, CacheValue> mCache;
+};
+
 HexDump::HexDump(QWidget* parent)
     : AbstractTableView(parent)
 {
@@ -35,6 +113,7 @@ HexDump::HexDump(QWidget* parent)
     mSyncAddrExpression = "";
     mNonprintReplace = QChar('.'); //QChar(0x25CA);
     mNullReplace = QChar('.'); //QChar(0x2022);
+    mRichTextCache = new RichTextCache();
 
     // Slots
     connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(updateDumpSlot()));
@@ -626,11 +705,20 @@ void HexDump::keyPressEvent(QKeyEvent* event)
     */
 }
 
+void HexDump::paintEvent(QPaintEvent* event)
+{
+    mRichTextCache->invalidate(getTableOffsetRva(), mMemPage->getBase(), mMemPage->getSize());
+    AbstractTableView::paintEvent(event);
+}
+
 QString HexDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     // Reset byte offset when base address is reached
     if(rowBase == 0 && mByteOffset != 0)
+    {
         printDumpAt(mMemPage->getBase(), false, false);
+        mRichTextCache->invalidate(getTableOffsetRva(), mMemPage->getBase(), mMemPage->getSize());
+    }
 
     // Compute RVA
     int wBytePerRowCount = getBytePerRowCount();
@@ -641,7 +729,7 @@ QString HexDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, i
 
     RichTextPainter::List richText;
     getColumnRichText(col, wRva, richText);
-    RichTextPainter::paintRichText(painter, x, y, w, h, 4, richText, mFontMetrics);
+    mRichTextCache->paintRichText(painter, rowOffset, col, x, y, w, h, 4, richText, mFontMetrics);
 
     return QString();
 }
