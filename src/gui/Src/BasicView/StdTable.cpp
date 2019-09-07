@@ -85,7 +85,7 @@ void StdTable::setRowCount(dsint count)
 void StdTable::setCellContent(int r, int c, QString s)
 {
     if(isValidIndex(r, c))
-        mData[r][c].text = s;
+        mData[r][c].text = std::move(s);
 }
 
 QString StdTable::getCellContent(int r, int c)

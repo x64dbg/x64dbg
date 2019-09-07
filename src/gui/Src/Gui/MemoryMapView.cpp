@@ -409,7 +409,7 @@ void MemoryMapView::refreshMap()
             wS = tr("Exception information");
         else
             wS = QString("");
-        setCellContent(wI, 3, wS);
+        setCellContent(wI, 3, std::move(wS));
 
         // Type
         const char* type = "";
