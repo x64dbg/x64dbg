@@ -11,21 +11,11 @@ bool MemoryPage::read(void* parDest, dsint parRVA, duint parSize) const
     return DbgMemRead(mBase + parRVA, reinterpret_cast<unsigned char*>(parDest), parSize);
 }
 
-bool MemoryPage::read(byte_t* parDest, dsint parRVA, duint parSize) const
-{
-    return read(reinterpret_cast<void*>(parDest), parRVA, parSize);
-}
-
 bool MemoryPage::write(const void* parDest, dsint parRVA, duint parSize)
 {
     bool ret = DbgFunctions()->MemPatch(mBase + parRVA, reinterpret_cast<const unsigned char*>(parDest), parSize);
     GuiUpdatePatches();
     return ret;
-}
-
-bool MemoryPage::write(const byte_t* parDest, dsint parRVA, duint parSize)
-{
-    return write(reinterpret_cast<const void*>(parDest), parRVA, parSize);
 }
 
 duint MemoryPage::getSize() const
