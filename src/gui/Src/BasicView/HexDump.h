@@ -193,6 +193,21 @@ private:
     QColor mUnknownCodePointerHighlightColor;
     QColor mUnknownDataPointerHighlightColor;
 
+    struct UpdateCache
+    {
+        duint memBase = 0;
+        duint memSize = 0;
+        duint rva = 0;
+        duint size = 0;
+
+        bool operator==(const UpdateCache & o) const
+        {
+            return std::tie(memBase, memSize, rva, size) == std::tie(o.memBase, o.memSize, o.rva, o.size);
+        }
+    } mUpdateCache;
+    std::vector<uint8_t> mUpdateCacheData;
+    std::vector<uint8_t> mUpdateCacheTemp;
+
 protected:
     MemoryPage* mMemPage;
     int mByteOffset;

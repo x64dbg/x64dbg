@@ -36,6 +36,10 @@ HexDump::HexDump(QWidget* parent)
     mNonprintReplace = QChar('.'); //QChar(0x25CA);
     mNullReplace = QChar('.'); //QChar(0x2022);
 
+    const auto updateCacheDataSize = 0x1000;
+    mUpdateCacheData.resize(updateCacheDataSize);
+    mUpdateCacheTemp.resize(updateCacheDataSize);
+
     // Slots
     connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(updateDumpSlot()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
@@ -108,6 +112,31 @@ void HexDump::updateDumpSlot()
                 && DbgMemIsValidReadPtr(syncAddr))
         {
             printDumpAt(syncAddr, false, false, true);
+        }
+    }
+    UpdateCache cur;
+    cur.memBase = mMemPage->getBase();
+    cur.memSize = mMemPage->getSize();
+    if(cur.memBase)
+    {
+        cur.rva = getTableOffsetRva();
+        cur.size = getBytePerRowCount() * getViewableRowsCount();
+        if(cur.size < mUpdateCacheData.size())
+        {
+            if(mMemPage->read(mUpdateCacheTemp.data(), cur.rva, cur.size))
+            {
+                if(mUpdateCache == cur && memcmp(mUpdateCacheData.data(), mUpdateCacheTemp.data(), cur.size) == 0)
+                {
+                    // same view and same data, do not reload
+                    return;
+                }
+                else
+                {
+                    mUpdateCache = cur;
+                    mUpdateCacheData.swap(mUpdateCacheTemp);
+                    OutputDebugStringA(QString("[x64dbg] %1[%2] %3[%4]").arg(ToPtrString(mUpdateCache.memBase)).arg(ToHexString(mUpdateCache.memSize)).arg(ToPtrString(mUpdateCache.rva)).arg(ToHexString(mUpdateCache.size)).toUtf8().constData());
+                }
+            }
         }
     }
     reloadData();
