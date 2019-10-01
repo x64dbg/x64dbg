@@ -50,7 +50,7 @@ This is a community effort and we accept pull requests! See the [CONTRIBUTING](h
 
 ## Code contributions
 
-You can find an exhaustive list of GitHub contributers [here](https://github.com/x64dbg/x64dbg/graphs/contributors).
+You can find an exhaustive list of GitHub contributors [here](https://github.com/x64dbg/x64dbg/graphs/contributors).
 
 ## Special Thanks
 
@@ -79,4 +79,4 @@ You can find an exhaustive list of GitHub contributers [here](https://github.com
 - [athre0z](https://github.com/athre0z)
 - [ZehMatt](https://github.com/ZehMatt)
 
-Without the help of many people and other open source projects it would not have been possible to make x64dbg what is it today, thank you!
+Without the help of many people and other open-source projects, it would not have been possible to make x64dbg what is it today, thank you!
