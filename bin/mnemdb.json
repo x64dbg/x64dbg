@@ -1,7 +1,7 @@
 {
   "__github_x86-64": "https://github.com/nologic/idaref/blob/master/x86-64.sql", 
   "__license_x86-64": "GPLv2", 
-  "_github_x86-64-brief": "https://github.com/radare/radare2/blob/master/libr/asm/d/x86", 
+  "_github_x86-64-brief": "https://github.com/radareorg/radare2/blob/c4d416c7b96d2735c24a2f9e2787df3fdb764c71/libr/asm/d/x86.sdb.txt", 
   "_license_x86-64-brief": "GPLv3", 
   "x86-64": [
     {
@@ -2643,6 +2643,10 @@
       "mnem": "adc"
     }, 
     {
+      "description": "unsigned integer addition of two operands with carry flag", 
+      "mnem": "adcx"
+    }, 
+    {
       "description": "adds src and dst, stores result on dst", 
       "mnem": "add"
     }, 
@@ -2669,6 +2673,10 @@
     {
       "description": "packed single-fp add/subtract", 
       "mnem": "addsubps"
+    }, 
+    {
+      "description": "unsigned integer addition of two operands with overflow flag", 
+      "mnem": "adox"
     }, 
     {
       "description": "perform one round of an AES decryption flow", 
@@ -2699,6 +2707,10 @@
       "mnem": "and"
     }, 
     {
+      "description": "logical and not", 
+      "mnem": "andn"
+    }, 
+    {
       "description": "bitwise logical and not of packed double-fp values", 
       "mnem": "andnpd"
     }, 
@@ -2719,6 +2731,10 @@
       "mnem": "arpl"
     }, 
     {
+      "description": "bit field extract", 
+      "mnem": "bextr"
+    }, 
+    {
       "description": "blend packed double-fp values", 
       "mnem": "blendpd"
     }, 
@@ -2733,6 +2749,46 @@
     {
       "description": "variable blend packed single-fp values", 
       "mnem": "blendvps"
+    }, 
+    {
+      "description": "extract lowest set isolated bit", 
+      "mnem": "blsi"
+    }, 
+    {
+      "description": "get mask up to lowest set bit", 
+      "mnem": "blsmsk"
+    }, 
+    {
+      "description": "reset lowest set bit", 
+      "mnem": "blsr"
+    }, 
+    {
+      "description": "check lower bound", 
+      "mnem": "bndcl"
+    }, 
+    {
+      "description": "check upper bound", 
+      "mnem": "bndcn"
+    }, 
+    {
+      "description": "check upper bound", 
+      "mnem": "bndcu"
+    }, 
+    {
+      "description": "load extended bounds using address translation", 
+      "mnem": "bndldx"
+    }, 
+    {
+      "description": "make bounds", 
+      "mnem": "bndmk"
+    }, 
+    {
+      "description": "move bounds", 
+      "mnem": "bndmov"
+    }, 
+    {
+      "description": "store extended bounds using address translation", 
+      "mnem": "bndstx"
     }, 
     {
       "description": "check array index against bounds", 
@@ -2767,6 +2823,10 @@
       "mnem": "bts"
     }, 
     {
+      "description": "zero high bits starting with specified bit position", 
+      "mnem": "bzhi"
+    }, 
+    {
       "description": "calls a subroutine, push eip into the stack (esp)", 
       "mnem": "call"
     }, 
@@ -2787,6 +2847,10 @@
       "mnem": "cdqe"
     }, 
     {
+      "description": "clear ac flag in eflags register", 
+      "mnem": "clac"
+    }, 
+    {
       "description": "clear carry flag", 
       "mnem": "clc"
     }, 
@@ -2797,6 +2861,10 @@
     {
       "description": "flush cache line", 
       "mnem": "clflush"
+    }, 
+    {
+      "description": "flush cache line optimized", 
+      "mnem": "clflushopt"
     }, 
     {
       "description": "clear interrupt flag", 
@@ -3639,12 +3707,20 @@
       "mnem": "insd"
     }, 
     {
+      "description": "insert scalar single-precision floating-point value", 
+      "mnem": "insertps"
+    }, 
+    {
       "description": "input from port to string", 
       "mnem": "insw"
     }, 
     {
       "description": "call to interrupt procedure", 
       "mnem": "int"
+    }, 
+    {
+      "description": "call to interrupt procedure", 
+      "mnem": "int 3"
     }, 
     {
       "description": "call to interrupt procedure", 
@@ -3669,6 +3745,10 @@
     {
       "description": "invalidate tlb entry", 
       "mnem": "invlpg"
+    }, 
+    {
+      "description": "invalidate process-context identifier", 
+      "mnem": "invpcid"
     }, 
     {
       "description": "invalidate translations based on vpid", 
@@ -3699,7 +3779,7 @@
       "mnem": "jb"
     }, 
     {
-      "description": "jump short if below or equal/not above (cf=1 and zf=1)", 
+      "description": "jump short if below or equal/not above (cf=1 or zf=1)", 
       "mnem": "jbe"
     }, 
     {
@@ -3747,7 +3827,7 @@
       "mnem": "jmpf"
     }, 
     {
-      "description": "jump short if not above/equal (cf=1 and zf=1)", 
+      "description": "jump short if not above/equal (cf=1 or zf=1)", 
       "mnem": "jna"
     }, 
     {
@@ -3829,6 +3909,210 @@
     {
       "description": "jump short if zero/equal (zf=1)", 
       "mnem": "jz"
+    }, 
+    {
+      "description": "add two masks", 
+      "mnem": "kaddb"
+    }, 
+    {
+      "description": "add two masks", 
+      "mnem": "kaddd"
+    }, 
+    {
+      "description": "add two masks", 
+      "mnem": "kaddq"
+    }, 
+    {
+      "description": "add two masks", 
+      "mnem": "kaddw"
+    }, 
+    {
+      "description": "bitwise logical and masks", 
+      "mnem": "kandb"
+    }, 
+    {
+      "description": "bitwise logical and masks", 
+      "mnem": "kandd"
+    }, 
+    {
+      "description": "bitwise logical and not masks", 
+      "mnem": "kandnb"
+    }, 
+    {
+      "description": "bitwise logical and not masks", 
+      "mnem": "kandnd"
+    }, 
+    {
+      "description": "bitwise logical and not masks", 
+      "mnem": "kandnq"
+    }, 
+    {
+      "description": "bitwise logical and not masks", 
+      "mnem": "kandnw"
+    }, 
+    {
+      "description": "bitwise logical and masks", 
+      "mnem": "kandq"
+    }, 
+    {
+      "description": "bitwise logical and masks", 
+      "mnem": "kandw"
+    }, 
+    {
+      "description": "move from and to mask registers", 
+      "mnem": "kmovb"
+    }, 
+    {
+      "description": "move from and to mask registers", 
+      "mnem": "kmovd"
+    }, 
+    {
+      "description": "move from and to mask registers", 
+      "mnem": "kmovq"
+    }, 
+    {
+      "description": "move from and to mask registers", 
+      "mnem": "kmovw"
+    }, 
+    {
+      "description": "not mask register", 
+      "mnem": "knotb"
+    }, 
+    {
+      "description": "not mask register", 
+      "mnem": "knotd"
+    }, 
+    {
+      "description": "not mask register", 
+      "mnem": "knotq"
+    }, 
+    {
+      "description": "not mask register", 
+      "mnem": "knotw"
+    }, 
+    {
+      "description": "bitwise logical or masks", 
+      "mnem": "korb"
+    }, 
+    {
+      "description": "bitwise logical or masks", 
+      "mnem": "kord"
+    }, 
+    {
+      "description": "bitwise logical or masks", 
+      "mnem": "korq"
+    }, 
+    {
+      "description": "or masks and set flags", 
+      "mnem": "kortestb"
+    }, 
+    {
+      "description": "or masks and set flags", 
+      "mnem": "kortestd"
+    }, 
+    {
+      "description": "or masks and set flags", 
+      "mnem": "kortestq"
+    }, 
+    {
+      "description": "or masks and set flags", 
+      "mnem": "kortestw"
+    }, 
+    {
+      "description": "bitwise logical or masks", 
+      "mnem": "korw"
+    }, 
+    {
+      "description": "shift left mask registers", 
+      "mnem": "kshiftlb"
+    }, 
+    {
+      "description": "shift left mask registers", 
+      "mnem": "kshiftld"
+    }, 
+    {
+      "description": "shift left mask registers", 
+      "mnem": "kshiftlq"
+    }, 
+    {
+      "description": "shift left mask registers", 
+      "mnem": "kshiftlw"
+    }, 
+    {
+      "description": "shift right mask registers", 
+      "mnem": "kshiftrb"
+    }, 
+    {
+      "description": "shift right mask registers", 
+      "mnem": "kshiftrd"
+    }, 
+    {
+      "description": "shift right mask registers", 
+      "mnem": "kshiftrq"
+    }, 
+    {
+      "description": "shift right mask registers", 
+      "mnem": "kshiftrw"
+    }, 
+    {
+      "description": "packed bit test masks and set flags", 
+      "mnem": "ktestb"
+    }, 
+    {
+      "description": "packed bit test masks and set flags", 
+      "mnem": "ktestd"
+    }, 
+    {
+      "description": "packed bit test masks and set flags", 
+      "mnem": "ktestq"
+    }, 
+    {
+      "description": "packed bit test masks and set flags", 
+      "mnem": "ktestw"
+    }, 
+    {
+      "description": "unpack for mask registers", 
+      "mnem": "kunpckbw"
+    }, 
+    {
+      "description": "unpack for mask registers", 
+      "mnem": "kunpckdq"
+    }, 
+    {
+      "description": "unpack for mask registers", 
+      "mnem": "kunpckwd"
+    }, 
+    {
+      "description": "bitwise logical xnor masks", 
+      "mnem": "kxnorb"
+    }, 
+    {
+      "description": "bitwise logical xnor masks", 
+      "mnem": "kxnord"
+    }, 
+    {
+      "description": "bitwise logical xnor masks", 
+      "mnem": "kxnorq"
+    }, 
+    {
+      "description": "bitwise logical xnor masks", 
+      "mnem": "kxnorw"
+    }, 
+    {
+      "description": "bitwise logical xor masks", 
+      "mnem": "kxorb"
+    }, 
+    {
+      "description": "bitwise logical xor masks", 
+      "mnem": "kxord"
+    }, 
+    {
+      "description": "bitwise logical xor masks", 
+      "mnem": "kxorq"
+    }, 
+    {
+      "description": "bitwise logical xor masks", 
+      "mnem": "kxorw"
     }, 
     {
       "description": "load status flags into ah register", 
@@ -3953,6 +4237,10 @@
     {
       "description": "load task register", 
       "mnem": "ltr"
+    }, 
+    {
+      "description": "count the number of leading zero bits", 
+      "mnem": "lzcnt"
     }, 
     {
       "description": "store selected bytes of double quadword", 
@@ -4183,6 +4471,10 @@
       "mnem": "mulss"
     }, 
     {
+      "description": "unsigned multiply without affecting flags", 
+      "mnem": "mulx"
+    }, 
+    {
       "description": "monitor wait", 
       "mnem": "mwait"
     }, 
@@ -4237,6 +4529,10 @@
     {
       "description": "packed absolute value", 
       "mnem": "pabsd"
+    }, 
+    {
+      "description": "packed absolute value", 
+      "mnem": "pabsq"
     }, 
     {
       "description": "packed absolute value", 
@@ -4359,6 +4655,10 @@
       "mnem": "pcmpgtd"
     }, 
     {
+      "description": "compare packed data for greater than", 
+      "mnem": "pcmpgtq"
+    }, 
+    {
       "description": "compare packed signed integers for greater than", 
       "mnem": "pcmpgtw"
     }, 
@@ -4369,6 +4669,14 @@
     {
       "description": "packed compare implicit length strings, return mask", 
       "mnem": "pcmpistrm"
+    }, 
+    {
+      "description": "parallel bits deposit", 
+      "mnem": "pdep"
+    }, 
+    {
+      "description": "parallel bits extract", 
+      "mnem": "pext"
     }, 
     {
       "description": "extract a byte from an XMM register and insert the value into a general-purpose register or memory", 
@@ -4447,6 +4755,10 @@
       "mnem": "pmaxsd"
     }, 
     {
+      "description": "maximum of packed signed integers", 
+      "mnem": "pmaxsq"
+    }, 
+    {
       "description": "maximum of packed signed word integers", 
       "mnem": "pmaxsw"
     }, 
@@ -4457,6 +4769,10 @@
     {
       "description": "maximum of packed unsigned dword integers", 
       "mnem": "pmaxud"
+    }, 
+    {
+      "description": "maximum of packed unsigned integers", 
+      "mnem": "pmaxuq"
     }, 
     {
       "description": "maximum of packed unsigned word integers", 
@@ -4471,6 +4787,10 @@
       "mnem": "pminsd"
     }, 
     {
+      "description": "minimum of packed signed integers", 
+      "mnem": "pminsq"
+    }, 
+    {
       "description": "minimum of packed signed word integers", 
       "mnem": "pminsw"
     }, 
@@ -4481,6 +4801,10 @@
     {
       "description": "minimum of packed unsigned dword integers", 
       "mnem": "pminud"
+    }, 
+    {
+      "description": "minimum of packed unsigned integers", 
+      "mnem": "pminuq"
     }, 
     {
       "description": "minimum of packed unsigned word integers", 
@@ -4539,6 +4863,10 @@
       "mnem": "pmovzxwq"
     }, 
     {
+      "description": "multiply packed doubleword integers", 
+      "mnem": "pmuldq"
+    }, 
+    {
       "description": "packed multiply high with round and scale", 
       "mnem": "pmulhrsw"
     }, 
@@ -4553,6 +4881,10 @@
     {
       "description": "multiply packed signed dword integers and store low result", 
       "mnem": "pmulld"
+    }, 
+    {
+      "description": "multiply packed integers and store low result", 
+      "mnem": "pmullq"
     }, 
     {
       "description": "multiply packed signed integers and store low result", 
@@ -4575,7 +4907,7 @@
       "mnem": "popad"
     }, 
     {
-      "description": "pop all general-purpose registers ", 
+      "description": "pop all general-purpose registers", 
       "mnem": "popal"
     }, 
     {
@@ -4619,6 +4951,42 @@
       "mnem": "prefetchw"
     }, 
     {
+      "description": "prefetch vector data into caches with intent to write and t1 hint", 
+      "mnem": "prefetchwt1"
+    }, 
+    {
+      "description": "bit rotate left", 
+      "mnem": "prold"
+    }, 
+    {
+      "description": "bit rotate left", 
+      "mnem": "prolq"
+    }, 
+    {
+      "description": "bit rotate left", 
+      "mnem": "prolvd"
+    }, 
+    {
+      "description": "bit rotate left", 
+      "mnem": "prolvq"
+    }, 
+    {
+      "description": "bit rotate right", 
+      "mnem": "prord"
+    }, 
+    {
+      "description": "bit rotate right", 
+      "mnem": "prorq"
+    }, 
+    {
+      "description": "bit rotate right", 
+      "mnem": "prorvd"
+    }, 
+    {
+      "description": "bit rotate right", 
+      "mnem": "prorvq"
+    }, 
+    {
       "description": "compute sum of absolute differences", 
       "mnem": "psadbw"
     }, 
@@ -4648,6 +5016,10 @@
     }, 
     {
       "description": "packed sign", 
+      "mnem": "psignd"
+    }, 
+    {
+      "description": "packed sign", 
       "mnem": "psignw"
     }, 
     {
@@ -4669,6 +5041,10 @@
     {
       "description": "shift packed data right arithmetic", 
       "mnem": "psrad"
+    }, 
+    {
+      "description": "shift packed data right arithmetic", 
+      "mnem": "psraq"
     }, 
     {
       "description": "shift packed data right arithmetic", 
@@ -4727,6 +5103,10 @@
       "mnem": "ptest"
     }, 
     {
+      "description": "ptwrite - write data to a processor trace packet", 
+      "mnem": "ptwrite"
+    }, 
+    {
       "description": "unpack high data", 
       "mnem": "punpckhbw"
     }, 
@@ -4771,7 +5151,7 @@
       "mnem": "pushad"
     }, 
     {
-      "description": "push all general-purpose registers ", 
+      "description": "push all general-purpose registers", 
       "mnem": "pushal"
     }, 
     {
@@ -4807,8 +5187,24 @@
       "mnem": "rcr"
     }, 
     {
+      "description": "read fs/gs segment base", 
+      "mnem": "rdfsbase"
+    }, 
+    {
+      "description": "read fs/gs segment base", 
+      "mnem": "rdgsbase"
+    }, 
+    {
       "description": "read from model specific register", 
       "mnem": "rdmsr"
+    }, 
+    {
+      "description": "read processor id", 
+      "mnem": "rdpid"
+    }, 
+    {
+      "description": "read protection key rights for user pages", 
+      "mnem": "rdpkru"
     }, 
     {
       "description": "read performance-monitoring counters", 
@@ -4817,6 +5213,10 @@
     {
       "description": "read random number", 
       "mnem": "rdrand"
+    }, 
+    {
+      "description": "read random seed", 
+      "mnem": "rdseed"
     }, 
     {
       "description": "read time-stamp counter", 
@@ -4831,12 +5231,48 @@
       "mnem": "rep"
     }, 
     {
+      "description": "repeat string operation prefix", 
+      "mnem": "rep ins"
+    }, 
+    {
+      "description": "repeat string operation prefix", 
+      "mnem": "rep lods"
+    }, 
+    {
+      "description": "repeat string operation prefix", 
+      "mnem": "rep movs"
+    }, 
+    {
+      "description": "repeat string operation prefix", 
+      "mnem": "rep outs"
+    }, 
+    {
+      "description": "repeat string operation prefix", 
+      "mnem": "rep stos"
+    }, 
+    {
       "description": "repeat string", 
       "mnem": "repe"
     }, 
     {
       "description": "repeat string operation prefix", 
+      "mnem": "repe cmps"
+    }, 
+    {
+      "description": "repeat string operation prefix", 
+      "mnem": "repe scas"
+    }, 
+    {
+      "description": "repeat string operation prefix", 
       "mnem": "repne"
+    }, 
+    {
+      "description": "repeat string operation prefix", 
+      "mnem": "repne cmps"
+    }, 
+    {
+      "description": "repeat string operation prefix", 
+      "mnem": "repne scas"
     }, 
     {
       "description": "repeat string operation prefix", 
@@ -4931,6 +5367,10 @@
       "mnem": "ror"
     }, 
     {
+      "description": "rotate right logical without affecting flags", 
+      "mnem": "rorx"
+    }, 
+    {
       "description": "round packed double-fp values", 
       "mnem": "roundpd"
     }, 
@@ -4977,6 +5417,10 @@
     {
       "description": "arithmetic right shift", 
       "mnem": "sar"
+    }, 
+    {
+      "description": "shift without affecting flags", 
+      "mnem": "sarx"
     }, 
     {
       "description": "integer subtraction with borrow", 
@@ -5131,6 +5575,34 @@
       "mnem": "sgdt"
     }, 
     {
+      "description": "perform an intermediate calculation for the next four sha1 message dwords", 
+      "mnem": "sha1msg1"
+    }, 
+    {
+      "description": "perform a final calculation for the next four sha1 message dwords", 
+      "mnem": "sha1msg2"
+    }, 
+    {
+      "description": "calculate sha1 state variable e after four rounds", 
+      "mnem": "sha1nexte"
+    }, 
+    {
+      "description": "perform four rounds of sha1 operation", 
+      "mnem": "sha1rnds4"
+    }, 
+    {
+      "description": "perform an intermediate calculation for the next four sha256 message dwords", 
+      "mnem": "sha256msg1"
+    }, 
+    {
+      "description": "perform a final calculation for the next four sha256 message dwords", 
+      "mnem": "sha256msg2"
+    }, 
+    {
+      "description": "perform two rounds of sha256 operation", 
+      "mnem": "sha256rnds2"
+    }, 
+    {
       "description": "logic left shift (0 padding)", 
       "mnem": "shl"
     }, 
@@ -5139,12 +5611,20 @@
       "mnem": "shld"
     }, 
     {
+      "description": "shift without affecting flags", 
+      "mnem": "shlx"
+    }, 
+    {
       "description": "logic right shift (0 padding)", 
       "mnem": "shr"
     }, 
     {
       "description": "double precision shift right", 
       "mnem": "shrd"
+    }, 
+    {
+      "description": "shift without affecting flags", 
+      "mnem": "shrx"
     }, 
     {
       "description": "shuffle packed double-fp values", 
@@ -5185,6 +5665,10 @@
     {
       "description": "ss segment override prefix", 
       "mnem": "ss"
+    }, 
+    {
+      "description": "set ac flag in eflags register", 
+      "mnem": "stac"
     }, 
     {
       "description": "set carry flag", 
@@ -5271,6 +5755,10 @@
       "mnem": "test"
     }, 
     {
+      "description": "count the number of trailing zero bits", 
+      "mnem": "tzcnt"
+    }, 
+    {
       "description": "unordered compare scalar double-fp values and set eflags", 
       "mnem": "ucomisd"
     }, 
@@ -5303,12 +5791,888 @@
       "mnem": "unpcklps"
     }, 
     {
+      "description": "add packed double-precision floating-point values", 
+      "mnem": "vaddpd"
+    }, 
+    {
+      "description": "add packed single-precision floating-point values", 
+      "mnem": "vaddps"
+    }, 
+    {
+      "description": "add scalar double-precision floating-point values", 
+      "mnem": "vaddsd"
+    }, 
+    {
+      "description": "add scalar single-precision floating-point values", 
+      "mnem": "vaddss"
+    }, 
+    {
+      "description": "packed double-fp add/subtract", 
+      "mnem": "vaddsubpd"
+    }, 
+    {
+      "description": "packed single-fp add/subtract", 
+      "mnem": "vaddsubps"
+    }, 
+    {
+      "description": "perform one round of an aes decryption flow", 
+      "mnem": "vaesdec"
+    }, 
+    {
+      "description": "perform last round of an aes decryption flow", 
+      "mnem": "vaesdeclast"
+    }, 
+    {
+      "description": "perform one round of an aes encryption flow", 
+      "mnem": "vaesenc"
+    }, 
+    {
+      "description": "perform last round of an aes encryption flow", 
+      "mnem": "vaesenclast"
+    }, 
+    {
+      "description": "perform the aes invmixcolumn transformation", 
+      "mnem": "vaesimc"
+    }, 
+    {
+      "description": "aes round key generation assist", 
+      "mnem": "vaeskeygenassist"
+    }, 
+    {
+      "description": "align doubleword/quadword vectors", 
+      "mnem": "valignd"
+    }, 
+    {
+      "description": "align doubleword/quadword vectors", 
+      "mnem": "valignq"
+    }, 
+    {
+      "description": "bitwise logical and not of packed double precision floating-point values", 
+      "mnem": "vandnpd"
+    }, 
+    {
+      "description": "bitwise logical and not of packed single precision floating-point values", 
+      "mnem": "vandnps"
+    }, 
+    {
+      "description": "bitwise logical and of packed double precision floating-point values", 
+      "mnem": "vandpd"
+    }, 
+    {
+      "description": "bitwise logical and of packed single precision floating-point values", 
+      "mnem": "vandps"
+    }, 
+    {
+      "description": "blend float64/float32 vectors using an opmask control", 
+      "mnem": "vblendmpd"
+    }, 
+    {
+      "description": "blend float64/float32 vectors using an opmask control", 
+      "mnem": "vblendmps"
+    }, 
+    {
+      "description": "blend packed double precision floating-point values", 
+      "mnem": "vblendpd"
+    }, 
+    {
+      "description": "blend packed single precision floating-point values", 
+      "mnem": "vblendps"
+    }, 
+    {
+      "description": "variable blend packed double precision floating-point values", 
+      "mnem": "vblendvpd"
+    }, 
+    {
+      "description": "variable blend packed single precision floating-point values", 
+      "mnem": "vblendvps"
+    }, 
+    {
+      "description": "load with broadcast floating-point data", 
+      "mnem": "vbroadcastf128"
+    }, 
+    {
+      "description": "load with broadcast floating-point data", 
+      "mnem": "vbroadcastf32x2"
+    }, 
+    {
+      "description": "load with broadcast floating-point data", 
+      "mnem": "vbroadcastf32x4"
+    }, 
+    {
+      "description": "load with broadcast floating-point data", 
+      "mnem": "vbroadcastf32x8"
+    }, 
+    {
+      "description": "load with broadcast floating-point data", 
+      "mnem": "vbroadcastf64x2"
+    }, 
+    {
+      "description": "load with broadcast floating-point data", 
+      "mnem": "vbroadcastf64x4"
+    }, 
+    {
+      "description": "load integer and broadcast", 
+      "mnem": "vbroadcasti32x2"
+    }, 
+    {
+      "description": "load integer and broadcast", 
+      "mnem": "vbroadcasti32x8"
+    }, 
+    {
+      "description": "load integer and broadcast", 
+      "mnem": "vbroadcasti64x4"
+    }, 
+    {
+      "description": "load with broadcast floating-point data", 
+      "mnem": "vbroadcastsd"
+    }, 
+    {
+      "description": "load with broadcast floating-point data", 
+      "mnem": "vbroadcastss"
+    }, 
+    {
+      "description": "compare packed double-precision floating-point values", 
+      "mnem": "vcmppd"
+    }, 
+    {
+      "description": "compare packed single-precision floating-point values", 
+      "mnem": "vcmpps"
+    }, 
+    {
+      "description": "compare scalar double-precision floating-point value", 
+      "mnem": "vcmpsd"
+    }, 
+    {
+      "description": "compare scalar single-precision floating-point value", 
+      "mnem": "vcmpss"
+    }, 
+    {
+      "description": "compare scalar ordered double-precision floating-point values and set eflags", 
+      "mnem": "vcomisd"
+    }, 
+    {
+      "description": "compare scalar ordered single-precision floating-point values and set eflags", 
+      "mnem": "vcomiss"
+    }, 
+    {
+      "description": "store sparse packed double-precision floating-point values into dense memory", 
+      "mnem": "vcompresspd"
+    }, 
+    {
+      "description": "store sparse packed single-precision floating-point values into dense memory", 
+      "mnem": "vcompressps"
+    }, 
+    {
+      "description": "convert packed doubleword integers to packed double-precision floating-point values", 
+      "mnem": "vcvtdq2pd"
+    }, 
+    {
+      "description": "convert packed doubleword integers to packed single-precision floating-point values", 
+      "mnem": "vcvtdq2ps"
+    }, 
+    {
+      "description": "convert packed double-precision floating-point values to packed doubleword integers", 
+      "mnem": "vcvtpd2dq"
+    }, 
+    {
+      "description": "convert packed double-precision floating-point values to packed single-precision floating-point values", 
+      "mnem": "vcvtpd2ps"
+    }, 
+    {
+      "description": "convert packed double-precision floating-point values to packed quadword integers", 
+      "mnem": "vcvtpd2qq"
+    }, 
+    {
+      "description": "convert packed double-precision floating-point values to packed unsigned doubleword integers", 
+      "mnem": "vcvtpd2udq"
+    }, 
+    {
+      "description": "convert packed double-precision floating-point values to packed unsigned quadword integers", 
+      "mnem": "vcvtpd2uqq"
+    }, 
+    {
+      "description": "convert 16-bit fp values to single-precision fp values", 
+      "mnem": "vcvtph2ps"
+    }, 
+    {
+      "description": "convert packed single-precision floating-point values to packed signed doubleword integer values", 
+      "mnem": "vcvtps2dq"
+    }, 
+    {
+      "description": "convert packed single-precision floating-point values to packed double-precision floating-point values", 
+      "mnem": "vcvtps2pd"
+    }, 
+    {
+      "description": "convert single-precision fp value to 16-bit fp value", 
+      "mnem": "vcvtps2ph"
+    }, 
+    {
+      "description": "convert packed single precision floating-point values to packed singed quadword integer values", 
+      "mnem": "vcvtps2qq"
+    }, 
+    {
+      "description": "convert packed single-precision floating-point values to packed unsigned doubleword integer values", 
+      "mnem": "vcvtps2udq"
+    }, 
+    {
+      "description": "convert packed single precision floating-point values to packed unsigned quadword integer values", 
+      "mnem": "vcvtps2uqq"
+    }, 
+    {
+      "description": "convert packed quadword integers to packed double-precision floating-point values", 
+      "mnem": "vcvtqq2pd"
+    }, 
+    {
+      "description": "convert packed quadword integers to packed single-precision floating-point values", 
+      "mnem": "vcvtqq2ps"
+    }, 
+    {
+      "description": "convert scalar double-precision floating-point value to doubleword integer", 
+      "mnem": "vcvtsd2si"
+    }, 
+    {
+      "description": "convert scalar double-precision floating-point value to scalar single-precision floating-point value", 
+      "mnem": "vcvtsd2ss"
+    }, 
+    {
+      "description": "convert scalar double-precision floating-point value to unsigned doubleword integer", 
+      "mnem": "vcvtsd2usi"
+    }, 
+    {
+      "description": "convert doubleword integer to scalar double-precision floating-point value", 
+      "mnem": "vcvtsi2sd"
+    }, 
+    {
+      "description": "convert doubleword integer to scalar single-precision floating-point value", 
+      "mnem": "vcvtsi2ss"
+    }, 
+    {
+      "description": "convert scalar single-precision floating-point value to scalar double-precision floating-point value", 
+      "mnem": "vcvtss2sd"
+    }, 
+    {
+      "description": "convert scalar single-precision floating-point value to doubleword integer", 
+      "mnem": "vcvtss2si"
+    }, 
+    {
+      "description": "convert scalar single-precision floating-point value to unsigned doubleword integer", 
+      "mnem": "vcvtss2usi"
+    }, 
+    {
+      "description": "convert with truncation packed double-precision floating-point values to packed doubleword integers", 
+      "mnem": "vcvttpd2dq"
+    }, 
+    {
+      "description": "convert with truncation packed double-precision floating-point values to packed quadword integers", 
+      "mnem": "vcvttpd2qq"
+    }, 
+    {
+      "description": "convert with truncation packed double-precision floating-point values to packed unsigned doubleword integers", 
+      "mnem": "vcvttpd2udq"
+    }, 
+    {
+      "description": "convert with truncation packed double-precision floating-point values to packed unsigned quadword integers", 
+      "mnem": "vcvttpd2uqq"
+    }, 
+    {
+      "description": "convert with truncation packed single-precision floating-point values to packed signed doubleword integer values", 
+      "mnem": "vcvttps2dq"
+    }, 
+    {
+      "description": "convert with truncation packed single precision floating-point values to packed singed quadword integer values", 
+      "mnem": "vcvttps2qq"
+    }, 
+    {
+      "description": "convert with truncation packed single-precision floating-point values to packed unsigned doubleword integer values", 
+      "mnem": "vcvttps2udq"
+    }, 
+    {
+      "description": "convert with truncation packed single precision floating-point values to packed unsigned quadword integer values", 
+      "mnem": "vcvttps2uqq"
+    }, 
+    {
+      "description": "convert with truncation scalar double-precision floating-point value to signed integer", 
+      "mnem": "vcvttsd2si"
+    }, 
+    {
+      "description": "convert with truncation scalar double-precision floating-point value to unsigned integer", 
+      "mnem": "vcvttsd2usi"
+    }, 
+    {
+      "description": "convert with truncation scalar single-precision floating-point value to integer", 
+      "mnem": "vcvttss2si"
+    }, 
+    {
+      "description": "convert with truncation scalar single-precision floating-point value to unsigned integer", 
+      "mnem": "vcvttss2usi"
+    }, 
+    {
+      "description": "convert packed unsigned doubleword integers to packed double-precision floating-point values", 
+      "mnem": "vcvtudq2pd"
+    }, 
+    {
+      "description": "convert packed unsigned doubleword integers to packed single-precision floating-point values", 
+      "mnem": "vcvtudq2ps"
+    }, 
+    {
+      "description": "convert packed unsigned quadword integers to packed double-precision floating-point values", 
+      "mnem": "vcvtuqq2pd"
+    }, 
+    {
+      "description": "convert packed unsigned quadword integers to packed single-precision floating-point values", 
+      "mnem": "vcvtuqq2ps"
+    }, 
+    {
+      "description": "convert unsigned integer to scalar double-precision floating-point value", 
+      "mnem": "vcvtusi2sd"
+    }, 
+    {
+      "description": "convert unsigned integer to scalar single-precision floating-point value", 
+      "mnem": "vcvtusi2ss"
+    }, 
+    {
+      "description": "double block packed sum-absolute-differences (sad) on unsigned bytes", 
+      "mnem": "vdbpsadbw"
+    }, 
+    {
+      "description": "divide packed double-precision floating-point values", 
+      "mnem": "vdivpd"
+    }, 
+    {
+      "description": "divide packed single-precision floating-point values", 
+      "mnem": "vdivps"
+    }, 
+    {
+      "description": "divide scalar double-precision floating-point value", 
+      "mnem": "vdivsd"
+    }, 
+    {
+      "description": "divide scalar single-precision floating-point values", 
+      "mnem": "vdivss"
+    }, 
+    {
+      "description": "dot product of packed double precision floating-point values", 
+      "mnem": "vdppd"
+    }, 
+    {
+      "description": "dot product of packed single precision floating-point values", 
+      "mnem": "vdpps"
+    }, 
+    {
       "description": "verify a segment for reading", 
       "mnem": "verr"
     }, 
     {
       "description": "verify a segment for writing", 
       "mnem": "verw"
+    }, 
+    {
+      "description": "approximation to the exponential 2^x of packed double-precision floating-point values with less than 2^-23 relative error", 
+      "mnem": "vexp2pd"
+    }, 
+    {
+      "description": "approximation to the exponential 2^x of packed single-precision floating-point values with less than 2^-23 relative error", 
+      "mnem": "vexp2ps"
+    }, 
+    {
+      "description": "load sparse packed double-precision floating-point values from dense memory", 
+      "mnem": "vexpandpd"
+    }, 
+    {
+      "description": "load sparse packed single-precision floating-point values from dense memory", 
+      "mnem": "vexpandps"
+    }, 
+    {
+      "description": "extra ct packed floating-point values", 
+      "mnem": "vextractf128"
+    }, 
+    {
+      "description": "extra ct packed floating-point values", 
+      "mnem": "vextractf32x4"
+    }, 
+    {
+      "description": "extra ct packed floating-point values", 
+      "mnem": "vextractf32x8"
+    }, 
+    {
+      "description": "extra ct packed floating-point values", 
+      "mnem": "vextractf64x2"
+    }, 
+    {
+      "description": "extra ct packed floating-point values", 
+      "mnem": "vextractf64x4"
+    }, 
+    {
+      "description": "extract packed integer values", 
+      "mnem": "vextracti128"
+    }, 
+    {
+      "description": "extract packed integer values", 
+      "mnem": "vextracti32x4"
+    }, 
+    {
+      "description": "extract packed integer values", 
+      "mnem": "vextracti32x8"
+    }, 
+    {
+      "description": "extract packed integer values", 
+      "mnem": "vextracti64x2"
+    }, 
+    {
+      "description": "extract packed integer values", 
+      "mnem": "vextracti64x4"
+    }, 
+    {
+      "description": "extract packed floating-point values", 
+      "mnem": "vextractps"
+    }, 
+    {
+      "description": "fix up special packed float64 values", 
+      "mnem": "vfixupimmpd"
+    }, 
+    {
+      "description": "fix up special packed float32 values", 
+      "mnem": "vfixupimmps"
+    }, 
+    {
+      "description": "fix up special scalar float64 value", 
+      "mnem": "vfixupimmsd"
+    }, 
+    {
+      "description": "fix up special scalar float32 value", 
+      "mnem": "vfixupimmss"
+    }, 
+    {
+      "description": "fused multiply-add of packed double-precision floating-point values", 
+      "mnem": "vfmadd132pd"
+    }, 
+    {
+      "description": "fused multiply-add of packed single-precision floating-point values", 
+      "mnem": "vfmadd132ps"
+    }, 
+    {
+      "description": "fused multiply-add of scalar double-precision floating-point values", 
+      "mnem": "vfmadd132sd"
+    }, 
+    {
+      "description": "fused multiply-add of scalar single-precision floating-point values", 
+      "mnem": "vfmadd132ss"
+    }, 
+    {
+      "description": "fused multiply-add of packed double-precision floating-point values", 
+      "mnem": "vfmadd213pd"
+    }, 
+    {
+      "description": "fused multiply-add of packed single-precision floating-point values", 
+      "mnem": "vfmadd213ps"
+    }, 
+    {
+      "description": "fused multiply-add of scalar double-precision floating-point values", 
+      "mnem": "vfmadd213sd"
+    }, 
+    {
+      "description": "fused multiply-add of scalar single-precision floating-point values", 
+      "mnem": "vfmadd213ss"
+    }, 
+    {
+      "description": "fused multiply-add of packed double-precision floating-point values", 
+      "mnem": "vfmadd231pd"
+    }, 
+    {
+      "description": "fused multiply-add of packed single-precision floating-point values", 
+      "mnem": "vfmadd231ps"
+    }, 
+    {
+      "description": "fused multiply-add of scalar double-precision floating-point values", 
+      "mnem": "vfmadd231sd"
+    }, 
+    {
+      "description": "fused multiply-add of scalar single-precision floating-point values", 
+      "mnem": "vfmadd231ss"
+    }, 
+    {
+      "description": "fused multiply-alternating add/subtract of packed double-precision floating-point values", 
+      "mnem": "vfmaddsub132pd"
+    }, 
+    {
+      "description": "fused multiply-alternating add/subtract of packed single-precision floating-point values", 
+      "mnem": "vfmaddsub132ps"
+    }, 
+    {
+      "description": "fused multiply-alternating add/subtract of packed double-precision floating-point values", 
+      "mnem": "vfmaddsub213pd"
+    }, 
+    {
+      "description": "fused multiply-alternating add/subtract of packed single-precision floating-point values", 
+      "mnem": "vfmaddsub213ps"
+    }, 
+    {
+      "description": "fused multiply-alternating add/subtract of packed double-precision floating-point values", 
+      "mnem": "vfmaddsub231pd"
+    }, 
+    {
+      "description": "fused multiply-alternating add/subtract of packed single-precision floating-point values", 
+      "mnem": "vfmaddsub231ps"
+    }, 
+    {
+      "description": "fused multiply-subtract of packed double-precision floating-point values", 
+      "mnem": "vfmsub132pd"
+    }, 
+    {
+      "description": "fused multiply-subtract of packed single-precision floating-point values", 
+      "mnem": "vfmsub132ps"
+    }, 
+    {
+      "description": "fused multiply-subtract of scalar double-precision floating-point values", 
+      "mnem": "vfmsub132sd"
+    }, 
+    {
+      "description": "fused multiply-subtract of scalar single-precision floating-point values", 
+      "mnem": "vfmsub132ss"
+    }, 
+    {
+      "description": "fused multiply-subtract of packed double-precision floating-point values", 
+      "mnem": "vfmsub213pd"
+    }, 
+    {
+      "description": "fused multiply-subtract of packed single-precision floating-point values", 
+      "mnem": "vfmsub213ps"
+    }, 
+    {
+      "description": "fused multiply-subtract of scalar double-precision floating-point values", 
+      "mnem": "vfmsub213sd"
+    }, 
+    {
+      "description": "fused multiply-subtract of scalar single-precision floating-point values", 
+      "mnem": "vfmsub213ss"
+    }, 
+    {
+      "description": "fused multiply-subtract of packed double-precision floating-point values", 
+      "mnem": "vfmsub231pd"
+    }, 
+    {
+      "description": "fused multiply-subtract of packed single-precision floating-point values", 
+      "mnem": "vfmsub231ps"
+    }, 
+    {
+      "description": "fused multiply-subtract of scalar double-precision floating-point values", 
+      "mnem": "vfmsub231sd"
+    }, 
+    {
+      "description": "fused multiply-subtract of scalar single-precision floating-point values", 
+      "mnem": "vfmsub231ss"
+    }, 
+    {
+      "description": "fused multiply-alternating subtract/add of packed double-precision floating-point values", 
+      "mnem": "vfmsubadd132pd"
+    }, 
+    {
+      "description": "fused multiply-alternating subtract/add of packed single-precision floating-point values", 
+      "mnem": "vfmsubadd132ps"
+    }, 
+    {
+      "description": "fused multiply-alternating subtract/add of packed double-precision floating-point values", 
+      "mnem": "vfmsubadd213pd"
+    }, 
+    {
+      "description": "fused multiply-alternating subtract/add of packed single-precision floating-point values", 
+      "mnem": "vfmsubadd213ps"
+    }, 
+    {
+      "description": "fused multiply-alternating subtract/add of packed double-precision floating-point values", 
+      "mnem": "vfmsubadd231pd"
+    }, 
+    {
+      "description": "fused multiply-alternating subtract/add of packed single-precision floating-point values", 
+      "mnem": "vfmsubadd231ps"
+    }, 
+    {
+      "description": "fused negative multiply-add of packed double-precision floating-point values", 
+      "mnem": "vfnmadd132pd"
+    }, 
+    {
+      "description": "fused negative multiply-add of packed single-precision floating-point values", 
+      "mnem": "vfnmadd132ps"
+    }, 
+    {
+      "description": "fused negative multiply-add of scalar double-precision floating-point values", 
+      "mnem": "vfnmadd132sd"
+    }, 
+    {
+      "description": "fused negative multiply-add of scalar single-precision floating-point values", 
+      "mnem": "vfnmadd132ss"
+    }, 
+    {
+      "description": "fused negative multiply-add of packed double-precision floating-point values", 
+      "mnem": "vfnmadd213pd"
+    }, 
+    {
+      "description": "fused negative multiply-add of packed single-precision floating-point values", 
+      "mnem": "vfnmadd213ps"
+    }, 
+    {
+      "description": "fused negative multiply-add of scalar double-precision floating-point values", 
+      "mnem": "vfnmadd213sd"
+    }, 
+    {
+      "description": "fused negative multiply-add of scalar single-precision floating-point values", 
+      "mnem": "vfnmadd213ss"
+    }, 
+    {
+      "description": "fused negative multiply-add of packed double-precision floating-point values", 
+      "mnem": "vfnmadd231pd"
+    }, 
+    {
+      "description": "fused negative multiply-add of packed single-precision floating-point values", 
+      "mnem": "vfnmadd231ps"
+    }, 
+    {
+      "description": "fused negative multiply-add of scalar double-precision floating-point values", 
+      "mnem": "vfnmadd231sd"
+    }, 
+    {
+      "description": "fused negative multiply-add of scalar single-precision floating-point values", 
+      "mnem": "vfnmadd231ss"
+    }, 
+    {
+      "description": "fused negative multiply-subtract of packed double-precision floating-point values", 
+      "mnem": "vfnmsub132pd"
+    }, 
+    {
+      "description": "fused negative multiply-subtract of packed single-precision floating-point values", 
+      "mnem": "vfnmsub132ps"
+    }, 
+    {
+      "description": "fused negative multiply-subtract of scalar double-precision floating-point values", 
+      "mnem": "vfnmsub132sd"
+    }, 
+    {
+      "description": "fused negative multiply-subtract of scalar single-precision floating-point values", 
+      "mnem": "vfnmsub132ss"
+    }, 
+    {
+      "description": "fused negative multiply-subtract of packed double-precision floating-point values", 
+      "mnem": "vfnmsub213pd"
+    }, 
+    {
+      "description": "fused negative multiply-subtract of packed single-precision floating-point values", 
+      "mnem": "vfnmsub213ps"
+    }, 
+    {
+      "description": "fused negative multiply-subtract of scalar double-precision floating-point values", 
+      "mnem": "vfnmsub213sd"
+    }, 
+    {
+      "description": "fused negative multiply-subtract of scalar single-precision floating-point values", 
+      "mnem": "vfnmsub213ss"
+    }, 
+    {
+      "description": "fused negative multiply-subtract of packed double-precision floating-point values", 
+      "mnem": "vfnmsub231pd"
+    }, 
+    {
+      "description": "fused negative multiply-subtract of packed single-precision floating-point values", 
+      "mnem": "vfnmsub231ps"
+    }, 
+    {
+      "description": "fused negative multiply-subtract of scalar double-precision floating-point values", 
+      "mnem": "vfnmsub231sd"
+    }, 
+    {
+      "description": "fused negative multiply-subtract of scalar single-precision floating-point values", 
+      "mnem": "vfnmsub231ss"
+    }, 
+    {
+      "description": "tests types of a packed float64 values", 
+      "mnem": "vfpclasspd"
+    }, 
+    {
+      "description": "tests types of a packed float32 values", 
+      "mnem": "vfpclassps"
+    }, 
+    {
+      "description": "tests types of a scalar float64 values", 
+      "mnem": "vfpclasssd"
+    }, 
+    {
+      "description": "tests types of a scalar float32 values", 
+      "mnem": "vfpclassss"
+    }, 
+    {
+      "description": "gather packed single, packed double with signed dword", 
+      "mnem": "vgatherdpd"
+    }, 
+    {
+      "description": "gather packed sp fp values using signed dword/qword indices", 
+      "mnem": "vgatherdps"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t0 hint", 
+      "mnem": "vgatherpf0dpd"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t0 hint", 
+      "mnem": "vgatherpf0dps"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t0 hint", 
+      "mnem": "vgatherpf0qpd"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t0 hint", 
+      "mnem": "vgatherpf0qps"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t1 hint", 
+      "mnem": "vgatherpf1dpd"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t1 hint", 
+      "mnem": "vgatherpf1dps"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t1 hint", 
+      "mnem": "vgatherpf1qpd"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t1 hint", 
+      "mnem": "vgatherpf1qps"
+    }, 
+    {
+      "description": "gather packed single, packed double with signed qword indices", 
+      "mnem": "vgatherqpd"
+    }, 
+    {
+      "description": "gather packed single, packed double with signed qword indices", 
+      "mnem": "vgatherqps"
+    }, 
+    {
+      "description": "convert exponents of packed dp fp values to dp fp values", 
+      "mnem": "vgetexppd"
+    }, 
+    {
+      "description": "convert exponents of packed sp fp values to sp fp values", 
+      "mnem": "vgetexpps"
+    }, 
+    {
+      "description": "convert exponents of scalar dp fp values to dp fp value", 
+      "mnem": "vgetexpsd"
+    }, 
+    {
+      "description": "convert exponents of scalar sp fp values to sp fp value", 
+      "mnem": "vgetexpss"
+    }, 
+    {
+      "description": "extract float64 vector of normalized mantissas from float64 vector", 
+      "mnem": "vgetmantpd"
+    }, 
+    {
+      "description": "extract float32 vector of normalized mantissas from float32 vector", 
+      "mnem": "vgetmantps"
+    }, 
+    {
+      "description": "extract float64 of normalized mantissas from float64 scalar", 
+      "mnem": "vgetmantsd"
+    }, 
+    {
+      "description": "extract float32 vector of normalized mantissa from float32 vector", 
+      "mnem": "vgetmantss"
+    }, 
+    {
+      "description": "packed double-fp horizontal add", 
+      "mnem": "vhaddpd"
+    }, 
+    {
+      "description": "packed single-fp horizontal add", 
+      "mnem": "vhaddps"
+    }, 
+    {
+      "description": "packed double-fp horizontal subtract", 
+      "mnem": "vhsubpd"
+    }, 
+    {
+      "description": "packed single-fp horizontal subtract", 
+      "mnem": "vhsubps"
+    }, 
+    {
+      "description": "insert packed floating-point values", 
+      "mnem": "vinsertf128"
+    }, 
+    {
+      "description": "insert packed floating-point values", 
+      "mnem": "vinsertf32x4"
+    }, 
+    {
+      "description": "insert packed floating-point values", 
+      "mnem": "vinsertf32x8"
+    }, 
+    {
+      "description": "insert packed floating-point values", 
+      "mnem": "vinsertf64x2"
+    }, 
+    {
+      "description": "insert packed floating-point values", 
+      "mnem": "vinsertf64x4"
+    }, 
+    {
+      "description": "insert packed integer values", 
+      "mnem": "vinserti128"
+    }, 
+    {
+      "description": "insert packed integer values", 
+      "mnem": "vinserti32x4"
+    }, 
+    {
+      "description": "insert packed integer values", 
+      "mnem": "vinserti32x8"
+    }, 
+    {
+      "description": "insert packed integer values", 
+      "mnem": "vinserti64x2"
+    }, 
+    {
+      "description": "insert packed integer values", 
+      "mnem": "vinserti64x4"
+    }, 
+    {
+      "description": "insert scalar single-precision floating-point value", 
+      "mnem": "vinsertps"
+    }, 
+    {
+      "description": "load unaligned integer 128 bits", 
+      "mnem": "vlddqu"
+    }, 
+    {
+      "description": "load mxcsr register", 
+      "mnem": "vldmxcsr"
+    }, 
+    {
+      "description": "store selected bytes of double quadword", 
+      "mnem": "vmaskmovdqu"
+    }, 
+    {
+      "description": "conditional simd packed loads and stores", 
+      "mnem": "vmaskmovpd"
+    }, 
+    {
+      "description": "conditional simd packed loads and stores", 
+      "mnem": "vmaskmovps"
+    }, 
+    {
+      "description": "maximum of packed double-precision floating-point values", 
+      "mnem": "vmaxpd"
+    }, 
+    {
+      "description": "maximum of packed single-precision floating-point values", 
+      "mnem": "vmaxps"
+    }, 
+    {
+      "description": "return maximum scalar double-precision floating-point value", 
+      "mnem": "vmaxsd"
+    }, 
+    {
+      "description": "return maximum scalar single-precision floating-point value", 
+      "mnem": "vmaxss"
     }, 
     {
       "description": "call to vm monitor", 
@@ -5319,8 +6683,152 @@
       "mnem": "vmclear"
     }, 
     {
+      "description": "minimum of packed double-precision floating-point values", 
+      "mnem": "vminpd"
+    }, 
+    {
+      "description": "minimum of packed single-precision floating-point values", 
+      "mnem": "vminps"
+    }, 
+    {
+      "description": "return minimum scalar double-precision floating-point value", 
+      "mnem": "vminsd"
+    }, 
+    {
+      "description": "return minimum scalar single-precision floating-point value", 
+      "mnem": "vminss"
+    }, 
+    {
       "description": "launch virtual machine", 
       "mnem": "vmlaunch"
+    }, 
+    {
+      "description": "move aligned packed double-precision floating-point values", 
+      "mnem": "vmovapd"
+    }, 
+    {
+      "description": "move aligned packed single-precision floating-point values", 
+      "mnem": "vmovaps"
+    }, 
+    {
+      "description": "move doubleword/move quadword", 
+      "mnem": "vmovd"
+    }, 
+    {
+      "description": "replicate double fp values", 
+      "mnem": "vmovddup"
+    }, 
+    {
+      "description": "move aligned packed integer values", 
+      "mnem": "vmovdqa"
+    }, 
+    {
+      "description": "move aligned packed integer values", 
+      "mnem": "vmovdqa32"
+    }, 
+    {
+      "description": "move aligned packed integer values", 
+      "mnem": "vmovdqa64"
+    }, 
+    {
+      "description": "move unaligned packed integer values", 
+      "mnem": "vmovdqu"
+    }, 
+    {
+      "description": "move unaligned packed integer values", 
+      "mnem": "vmovdqu16"
+    }, 
+    {
+      "description": "move unaligned packed integer values", 
+      "mnem": "vmovdqu32"
+    }, 
+    {
+      "description": "move unaligned packed integer values", 
+      "mnem": "vmovdqu64"
+    }, 
+    {
+      "description": "move unaligned packed integer values", 
+      "mnem": "vmovdqu8"
+    }, 
+    {
+      "description": "move packed single-precision floating-point values high to low", 
+      "mnem": "vmovhlps"
+    }, 
+    {
+      "description": "move high packed double-precision floating-point value", 
+      "mnem": "vmovhpd"
+    }, 
+    {
+      "description": "move high packed single-precision floating-point values", 
+      "mnem": "vmovhps"
+    }, 
+    {
+      "description": "move packed single-precision floating-point values low to high", 
+      "mnem": "vmovlhps"
+    }, 
+    {
+      "description": "move low packed double-precision floating-point value", 
+      "mnem": "vmovlpd"
+    }, 
+    {
+      "description": "move low packed single-precision floating-point values", 
+      "mnem": "vmovlps"
+    }, 
+    {
+      "description": "extract packed double-precision floating-point sign mask", 
+      "mnem": "vmovmskpd"
+    }, 
+    {
+      "description": "extract packed single-precision floating-point sign mask", 
+      "mnem": "vmovmskps"
+    }, 
+    {
+      "description": "store packed integers using non-temporal hint", 
+      "mnem": "vmovntdq"
+    }, 
+    {
+      "description": "load double quadword non-temporal aligned hint", 
+      "mnem": "vmovntdqa"
+    }, 
+    {
+      "description": "store packed double-precision floating-point values using non-temporal hint", 
+      "mnem": "vmovntpd"
+    }, 
+    {
+      "description": "store packed single-precision floating-point values using non-temporal hint", 
+      "mnem": "vmovntps"
+    }, 
+    {
+      "description": "move quadword", 
+      "mnem": "vmovq"
+    }, 
+    {
+      "description": "move or merge scalar double-precision floating-point value", 
+      "mnem": "vmovsd"
+    }, 
+    {
+      "description": "replicate single fp values", 
+      "mnem": "vmovshdup"
+    }, 
+    {
+      "description": "replicate single fp values", 
+      "mnem": "vmovsldup"
+    }, 
+    {
+      "description": "move or merge scalar single-precision floating-point value", 
+      "mnem": "vmovss"
+    }, 
+    {
+      "description": "move unaligned packed double-precision floating-point values", 
+      "mnem": "vmovupd"
+    }, 
+    {
+      "description": "move unaligned packed single-precision floating-point values", 
+      "mnem": "vmovups"
+    }, 
+    {
+      "description": "compute multiple packed sums of absolute difference", 
+      "mnem": "vmpsadbw"
     }, 
     {
       "description": "load pointer to virtual-machine control structure", 
@@ -5339,6 +6847,22 @@
       "mnem": "vmresume"
     }, 
     {
+      "description": "multiply packed double-precision floating-point values", 
+      "mnem": "vmulpd"
+    }, 
+    {
+      "description": "multiply packed single-precision floating-point values", 
+      "mnem": "vmulps"
+    }, 
+    {
+      "description": "multiply scalar double-precision floating-point value", 
+      "mnem": "vmulsd"
+    }, 
+    {
+      "description": "multiply scalar single-precision floating-point values", 
+      "mnem": "vmulss"
+    }, 
+    {
       "description": "write field to virtual-machine control structure", 
       "mnem": "vmwrite"
     }, 
@@ -5351,6 +6875,1290 @@
       "mnem": "vmxon"
     }, 
     {
+      "description": "bitwise logical or of packed double precision floating-point values", 
+      "mnem": "vorpd"
+    }, 
+    {
+      "description": "bitwise logical or of packed single precision floating-point values", 
+      "mnem": "vorps"
+    }, 
+    {
+      "description": "packed absolute value", 
+      "mnem": "vpabsb"
+    }, 
+    {
+      "description": "packed absolute value", 
+      "mnem": "vpabsd"
+    }, 
+    {
+      "description": "packed absolute value", 
+      "mnem": "vpabsq"
+    }, 
+    {
+      "description": "packed absolute value", 
+      "mnem": "vpabsw"
+    }, 
+    {
+      "description": "pack with signed saturation", 
+      "mnem": "vpackssdw"
+    }, 
+    {
+      "description": "pack with signed saturation", 
+      "mnem": "vpacksswb"
+    }, 
+    {
+      "description": "pack with unsigned saturation", 
+      "mnem": "vpackusdw"
+    }, 
+    {
+      "description": "pack with unsigned saturation", 
+      "mnem": "vpackuswb"
+    }, 
+    {
+      "description": "add packed integers", 
+      "mnem": "vpaddb"
+    }, 
+    {
+      "description": "add packed integers", 
+      "mnem": "vpaddd"
+    }, 
+    {
+      "description": "add packed integers", 
+      "mnem": "vpaddq"
+    }, 
+    {
+      "description": "add packed signed integers with signed saturation", 
+      "mnem": "vpaddsb"
+    }, 
+    {
+      "description": "add packed signed integers with signed saturation", 
+      "mnem": "vpaddsw"
+    }, 
+    {
+      "description": "add packed unsigned integers with unsigned saturation", 
+      "mnem": "vpaddusb"
+    }, 
+    {
+      "description": "add packed unsigned integers with unsigned saturation", 
+      "mnem": "vpaddusw"
+    }, 
+    {
+      "description": "add packed integers", 
+      "mnem": "vpaddw"
+    }, 
+    {
+      "description": "packed align right", 
+      "mnem": "vpalignr"
+    }, 
+    {
+      "description": "logical and", 
+      "mnem": "vpand"
+    }, 
+    {
+      "description": "logical and", 
+      "mnem": "vpandd"
+    }, 
+    {
+      "description": "logical and not", 
+      "mnem": "vpandn"
+    }, 
+    {
+      "description": "logical and not", 
+      "mnem": "vpandnd"
+    }, 
+    {
+      "description": "logical and not", 
+      "mnem": "vpandnq"
+    }, 
+    {
+      "description": "logical and", 
+      "mnem": "vpandq"
+    }, 
+    {
+      "description": "average packed integers", 
+      "mnem": "vpavgb"
+    }, 
+    {
+      "description": "average packed integers", 
+      "mnem": "vpavgw"
+    }, 
+    {
+      "description": "blend packed dwords", 
+      "mnem": "vpblendd"
+    }, 
+    {
+      "description": "blend byte/word vectors using an opmask control", 
+      "mnem": "vpblendmb"
+    }, 
+    {
+      "description": "blend int32/int64 vectors using an opmask control", 
+      "mnem": "vpblendmd"
+    }, 
+    {
+      "description": "blend int32/int64 vectors using an opmask control", 
+      "mnem": "vpblendmq"
+    }, 
+    {
+      "description": "blend byte/word vectors using an opmask control", 
+      "mnem": "vpblendmw"
+    }, 
+    {
+      "description": "variable blend packed bytes", 
+      "mnem": "vpblendvb"
+    }, 
+    {
+      "description": "blend packed words", 
+      "mnem": "vpblendw"
+    }, 
+    {
+      "description": "load with broadcast integer data from general purpose register", 
+      "mnem": "vpbroadcastb"
+    }, 
+    {
+      "description": "load with broadcast integer data from general purpose register", 
+      "mnem": "vpbroadcastd"
+    }, 
+    {
+      "description": "broadcast mask to vector register", 
+      "mnem": "vpbroadcastmb2q"
+    }, 
+    {
+      "description": "broadcast mask to vector register", 
+      "mnem": "vpbroadcastmw2d"
+    }, 
+    {
+      "description": "load with broadcast integer data from general purpose register", 
+      "mnem": "vpbroadcastq"
+    }, 
+    {
+      "description": "load with broadcast integer data from general purpose register", 
+      "mnem": "vpbroadcastw"
+    }, 
+    {
+      "description": "pclmulqdq - carry-less multiplication quadword", 
+      "mnem": "vpclmulqdq"
+    }, 
+    {
+      "description": "compare packed byte values into mask", 
+      "mnem": "vpcmpb"
+    }, 
+    {
+      "description": "compare packed integer values into mask", 
+      "mnem": "vpcmpd"
+    }, 
+    {
+      "description": "compare packed data for equal", 
+      "mnem": "vpcmpeqb"
+    }, 
+    {
+      "description": "compare packed data for equal", 
+      "mnem": "vpcmpeqd"
+    }, 
+    {
+      "description": "compare packed qword data for equal", 
+      "mnem": "vpcmpeqq"
+    }, 
+    {
+      "description": "compare packed data for equal", 
+      "mnem": "vpcmpeqw"
+    }, 
+    {
+      "description": "packed compare explicit length strings, return index", 
+      "mnem": "vpcmpestri"
+    }, 
+    {
+      "description": "packed compare explicit length strings, return mask", 
+      "mnem": "vpcmpestrm"
+    }, 
+    {
+      "description": "compare packed signed integers for greater than", 
+      "mnem": "vpcmpgtb"
+    }, 
+    {
+      "description": "compare packed signed integers for greater than", 
+      "mnem": "vpcmpgtd"
+    }, 
+    {
+      "description": "compare packed data for greater than", 
+      "mnem": "vpcmpgtq"
+    }, 
+    {
+      "description": "compare packed signed integers for greater than", 
+      "mnem": "vpcmpgtw"
+    }, 
+    {
+      "description": "packed compare implicit length strings, return index", 
+      "mnem": "vpcmpistri"
+    }, 
+    {
+      "description": "packed compare implicit length strings, return mask", 
+      "mnem": "vpcmpistrm"
+    }, 
+    {
+      "description": "compare packed integer values into mask", 
+      "mnem": "vpcmpq"
+    }, 
+    {
+      "description": "compare packed byte values into mask", 
+      "mnem": "vpcmpub"
+    }, 
+    {
+      "description": "compare packed integer values into mask", 
+      "mnem": "vpcmpud"
+    }, 
+    {
+      "description": "compare packed integer values into mask", 
+      "mnem": "vpcmpuq"
+    }, 
+    {
+      "description": "compare packed word values into mask", 
+      "mnem": "vpcmpuw"
+    }, 
+    {
+      "description": "compare packed word values into mask", 
+      "mnem": "vpcmpw"
+    }, 
+    {
+      "description": "store sparse packed doubleword integer values into dense memory/register", 
+      "mnem": "vpcompressd"
+    }, 
+    {
+      "description": "store sparse packed quadword integer values into dense memory/register", 
+      "mnem": "vpcompressq"
+    }, 
+    {
+      "description": "detect conflicts within a vector of packed dword/qword values into dense memory/ register", 
+      "mnem": "vpconflictd"
+    }, 
+    {
+      "description": "detect conflicts within a vector of packed dword/qword values into dense memory/ register", 
+      "mnem": "vpconflictq"
+    }, 
+    {
+      "description": "permute floating-point values", 
+      "mnem": "vperm2f128"
+    }, 
+    {
+      "description": "permute integer values", 
+      "mnem": "vperm2i128"
+    }, 
+    {
+      "description": "permute packed doublewords/words elements", 
+      "mnem": "vpermd"
+    }, 
+    {
+      "description": "full permute from two tables overwriting the index", 
+      "mnem": "vpermi2d"
+    }, 
+    {
+      "description": "full permute from two tables overwriting the index", 
+      "mnem": "vpermi2pd"
+    }, 
+    {
+      "description": "full permute from two tables overwriting the index", 
+      "mnem": "vpermi2ps"
+    }, 
+    {
+      "description": "full permute from two tables overwriting the index", 
+      "mnem": "vpermi2q"
+    }, 
+    {
+      "description": "full permute from two tables overwriting the index", 
+      "mnem": "vpermi2w"
+    }, 
+    {
+      "description": "permute in-lane of pairs of double-precision floating-point values", 
+      "mnem": "vpermilpd"
+    }, 
+    {
+      "description": "permute in-lane of quadruples of single-precision floating-point values", 
+      "mnem": "vpermilps"
+    }, 
+    {
+      "description": "permute double-precision floating-point elements", 
+      "mnem": "vpermpd"
+    }, 
+    {
+      "description": "permute single-precision floating-point elements", 
+      "mnem": "vpermps"
+    }, 
+    {
+      "description": "qwords element permutation", 
+      "mnem": "vpermq"
+    }, 
+    {
+      "description": "permute packed doublewords/words elements", 
+      "mnem": "vpermw"
+    }, 
+    {
+      "description": "load sparse packed doubleword integer values from dense memory / register", 
+      "mnem": "vpexpandd"
+    }, 
+    {
+      "description": "load sparse packed quadword integer values from dense memory / register", 
+      "mnem": "vpexpandq"
+    }, 
+    {
+      "description": "extract byte/dword/qword", 
+      "mnem": "vpextrb"
+    }, 
+    {
+      "description": "extract byte/dword/qword", 
+      "mnem": "vpextrd"
+    }, 
+    {
+      "description": "extract byte/dword/qword", 
+      "mnem": "vpextrq"
+    }, 
+    {
+      "description": "extract word", 
+      "mnem": "vpextrw"
+    }, 
+    {
+      "description": "gather packed dword values using signed dword/qword indices", 
+      "mnem": "vpgatherdd"
+    }, 
+    {
+      "description": "gather packed qword values using signed dword/qword indices", 
+      "mnem": "vpgatherdq"
+    }, 
+    {
+      "description": "gather packed dword, packed qword with signed qword indices", 
+      "mnem": "vpgatherqd"
+    }, 
+    {
+      "description": "gather packed dword, packed qword with signed qword indices", 
+      "mnem": "vpgatherqq"
+    }, 
+    {
+      "description": "packed horizontal add", 
+      "mnem": "vphaddd"
+    }, 
+    {
+      "description": "packed horizontal add and saturate", 
+      "mnem": "vphaddsw"
+    }, 
+    {
+      "description": "packed horizontal add", 
+      "mnem": "vphaddw"
+    }, 
+    {
+      "description": "packed horizontal word minimum", 
+      "mnem": "vphminposuw"
+    }, 
+    {
+      "description": "packed horizontal subtract", 
+      "mnem": "vphsubd"
+    }, 
+    {
+      "description": "packed horizontal subtract and saturate", 
+      "mnem": "vphsubsw"
+    }, 
+    {
+      "description": "packed horizontal subtract", 
+      "mnem": "vphsubw"
+    }, 
+    {
+      "description": "insert byte/dword/qword", 
+      "mnem": "vpinsrb"
+    }, 
+    {
+      "description": "insert byte/dword/qword", 
+      "mnem": "vpinsrd"
+    }, 
+    {
+      "description": "insert byte/dword/qword", 
+      "mnem": "vpinsrq"
+    }, 
+    {
+      "description": "insert word", 
+      "mnem": "vpinsrw"
+    }, 
+    {
+      "description": "count the number of leading zero bits for packed dword, packed qword values", 
+      "mnem": "vplzcntd"
+    }, 
+    {
+      "description": "count the number of leading zero bits for packed dword, packed qword values", 
+      "mnem": "vplzcntq"
+    }, 
+    {
+      "description": "multiply and add packed signed and unsigned bytes", 
+      "mnem": "vpmaddubsw"
+    }, 
+    {
+      "description": "multiply and add packed integers", 
+      "mnem": "vpmaddwd"
+    }, 
+    {
+      "description": "conditional simd integer packed loads and stores", 
+      "mnem": "vpmaskmovd"
+    }, 
+    {
+      "description": "conditional simd integer packed loads and stores", 
+      "mnem": "vpmaskmovq"
+    }, 
+    {
+      "description": "maximum of packed signed integers", 
+      "mnem": "vpmaxsb"
+    }, 
+    {
+      "description": "maximum of packed signed integers", 
+      "mnem": "vpmaxsd"
+    }, 
+    {
+      "description": "maximum of packed signed integers", 
+      "mnem": "vpmaxsq"
+    }, 
+    {
+      "description": "maximum of packed signed integers", 
+      "mnem": "vpmaxsw"
+    }, 
+    {
+      "description": "maximum of packed unsigned integers", 
+      "mnem": "vpmaxub"
+    }, 
+    {
+      "description": "maximum of packed unsigned integers", 
+      "mnem": "vpmaxud"
+    }, 
+    {
+      "description": "maximum of packed unsigned integers", 
+      "mnem": "vpmaxuq"
+    }, 
+    {
+      "description": "maximum of packed unsigned integers", 
+      "mnem": "vpmaxuw"
+    }, 
+    {
+      "description": "minimum of packed signed integers", 
+      "mnem": "vpminsb"
+    }, 
+    {
+      "description": "minimum of packed signed integers", 
+      "mnem": "vpminsd"
+    }, 
+    {
+      "description": "minimum of packed signed integers", 
+      "mnem": "vpminsq"
+    }, 
+    {
+      "description": "minimum of packed signed integers", 
+      "mnem": "vpminsw"
+    }, 
+    {
+      "description": "minimum of packed unsigned integers", 
+      "mnem": "vpminub"
+    }, 
+    {
+      "description": "minimum of packed unsigned integers", 
+      "mnem": "vpminud"
+    }, 
+    {
+      "description": "minimum of packed unsigned integers", 
+      "mnem": "vpminuq"
+    }, 
+    {
+      "description": "minimum of packed unsigned integers", 
+      "mnem": "vpminuw"
+    }, 
+    {
+      "description": "convert a vector register to a mask", 
+      "mnem": "vpmovb2m"
+    }, 
+    {
+      "description": "convert a vector register to a mask", 
+      "mnem": "vpmovd2m"
+    }, 
+    {
+      "description": "down convert dword to byte", 
+      "mnem": "vpmovdb"
+    }, 
+    {
+      "description": "down convert dword to word", 
+      "mnem": "vpmovdw"
+    }, 
+    {
+      "description": "convert a mask register to a vector register", 
+      "mnem": "vpmovm2b"
+    }, 
+    {
+      "description": "convert a mask register to a vector register", 
+      "mnem": "vpmovm2d"
+    }, 
+    {
+      "description": "convert a mask register to a vector register", 
+      "mnem": "vpmovm2q"
+    }, 
+    {
+      "description": "convert a mask register to a vector register", 
+      "mnem": "vpmovm2w"
+    }, 
+    {
+      "description": "move byte mask", 
+      "mnem": "vpmovmskb"
+    }, 
+    {
+      "description": "convert a vector register to a mask", 
+      "mnem": "vpmovq2m"
+    }, 
+    {
+      "description": "down convert qword to byte", 
+      "mnem": "vpmovqb"
+    }, 
+    {
+      "description": "down convert qword to dword", 
+      "mnem": "vpmovqd"
+    }, 
+    {
+      "description": "down convert qword to word", 
+      "mnem": "vpmovqw"
+    }, 
+    {
+      "description": "down convert dword to byte", 
+      "mnem": "vpmovsdb"
+    }, 
+    {
+      "description": "down convert dword to word", 
+      "mnem": "vpmovsdw"
+    }, 
+    {
+      "description": "down convert qword to byte", 
+      "mnem": "vpmovsqb"
+    }, 
+    {
+      "description": "down convert qword to dword", 
+      "mnem": "vpmovsqd"
+    }, 
+    {
+      "description": "down convert qword to word", 
+      "mnem": "vpmovsqw"
+    }, 
+    {
+      "description": "down convert word to byte", 
+      "mnem": "vpmovswb"
+    }, 
+    {
+      "description": "packed move with sign extend", 
+      "mnem": "vpmovsxbd"
+    }, 
+    {
+      "description": "packed move with sign extend", 
+      "mnem": "vpmovsxbq"
+    }, 
+    {
+      "description": "packed move with sign extend", 
+      "mnem": "vpmovsxbw"
+    }, 
+    {
+      "description": "packed move with sign extend", 
+      "mnem": "vpmovsxdq"
+    }, 
+    {
+      "description": "packed move with sign extend", 
+      "mnem": "vpmovsxwd"
+    }, 
+    {
+      "description": "packed move with sign extend", 
+      "mnem": "vpmovsxwq"
+    }, 
+    {
+      "description": "down convert dword to byte", 
+      "mnem": "vpmovusdb"
+    }, 
+    {
+      "description": "down convert dword to word", 
+      "mnem": "vpmovusdw"
+    }, 
+    {
+      "description": "down convert qword to byte", 
+      "mnem": "vpmovusqb"
+    }, 
+    {
+      "description": "down convert qword to dword", 
+      "mnem": "vpmovusqd"
+    }, 
+    {
+      "description": "down convert qword to word", 
+      "mnem": "vpmovusqw"
+    }, 
+    {
+      "description": "down convert word to byte", 
+      "mnem": "vpmovuswb"
+    }, 
+    {
+      "description": "convert a vector register to a mask", 
+      "mnem": "vpmovw2m"
+    }, 
+    {
+      "description": "down convert word to byte", 
+      "mnem": "vpmovwb"
+    }, 
+    {
+      "description": "packed move with zero extend", 
+      "mnem": "vpmovzxbd"
+    }, 
+    {
+      "description": "packed move with zero extend", 
+      "mnem": "vpmovzxbq"
+    }, 
+    {
+      "description": "packed move with zero extend", 
+      "mnem": "vpmovzxbw"
+    }, 
+    {
+      "description": "packed move with zero extend", 
+      "mnem": "vpmovzxdq"
+    }, 
+    {
+      "description": "packed move with zero extend", 
+      "mnem": "vpmovzxwd"
+    }, 
+    {
+      "description": "packed move with zero extend", 
+      "mnem": "vpmovzxwq"
+    }, 
+    {
+      "description": "multiply packed doubleword integers", 
+      "mnem": "vpmuldq"
+    }, 
+    {
+      "description": "packed multiply high with round and scale", 
+      "mnem": "vpmulhrsw"
+    }, 
+    {
+      "description": "multiply packed unsigned integers and store high result", 
+      "mnem": "vpmulhuw"
+    }, 
+    {
+      "description": "multiply packed signed integers and store high result", 
+      "mnem": "vpmulhw"
+    }, 
+    {
+      "description": "multiply packed integers and store low result", 
+      "mnem": "vpmulld"
+    }, 
+    {
+      "description": "multiply packed integers and store low result", 
+      "mnem": "vpmullq"
+    }, 
+    {
+      "description": "multiply packed signed integers and store low result", 
+      "mnem": "vpmullw"
+    }, 
+    {
+      "description": "multiply packed unsigned doubleword integers", 
+      "mnem": "vpmuludq"
+    }, 
+    {
+      "description": "bitwise logical or", 
+      "mnem": "vpor"
+    }, 
+    {
+      "description": "bitwise logical or", 
+      "mnem": "vpord"
+    }, 
+    {
+      "description": "bitwise logical or", 
+      "mnem": "vporq"
+    }, 
+    {
+      "description": "bit rotate left", 
+      "mnem": "vprold"
+    }, 
+    {
+      "description": "bit rotate left", 
+      "mnem": "vprolq"
+    }, 
+    {
+      "description": "bit rotate left", 
+      "mnem": "vprolvd"
+    }, 
+    {
+      "description": "bit rotate left", 
+      "mnem": "vprolvq"
+    }, 
+    {
+      "description": "bit rotate right", 
+      "mnem": "vprord"
+    }, 
+    {
+      "description": "bit rotate right", 
+      "mnem": "vprorq"
+    }, 
+    {
+      "description": "bit rotate right", 
+      "mnem": "vprorvd"
+    }, 
+    {
+      "description": "bit rotate right", 
+      "mnem": "vprorvq"
+    }, 
+    {
+      "description": "compute sum of absolute differences", 
+      "mnem": "vpsadbw"
+    }, 
+    {
+      "description": "scatter packed dword, packed qword with signed dword, signed qword indices", 
+      "mnem": "vpscatterdd"
+    }, 
+    {
+      "description": "scatter packed dword, packed qword with signed dword, signed qword indices", 
+      "mnem": "vpscatterdq"
+    }, 
+    {
+      "description": "scatter packed dword, packed qword with signed dword, signed qword indices", 
+      "mnem": "vpscatterqd"
+    }, 
+    {
+      "description": "scatter packed dword, packed qword with signed dword, signed qword indices", 
+      "mnem": "vpscatterqq"
+    }, 
+    {
+      "description": "packed shuffle bytes", 
+      "mnem": "vpshufb"
+    }, 
+    {
+      "description": "shuffle packed doublewords", 
+      "mnem": "vpshufd"
+    }, 
+    {
+      "description": "shuffle packed high words", 
+      "mnem": "vpshufhw"
+    }, 
+    {
+      "description": "shuffle packed low words", 
+      "mnem": "vpshuflw"
+    }, 
+    {
+      "description": "packed sign", 
+      "mnem": "vpsignb"
+    }, 
+    {
+      "description": "packed sign", 
+      "mnem": "vpsignd"
+    }, 
+    {
+      "description": "packed sign", 
+      "mnem": "vpsignw"
+    }, 
+    {
+      "description": "shift packed data left logical", 
+      "mnem": "vpslld"
+    }, 
+    {
+      "description": "shift double quadword left logical", 
+      "mnem": "vpslldq"
+    }, 
+    {
+      "description": "shift packed data left logical", 
+      "mnem": "vpsllq"
+    }, 
+    {
+      "description": "variable bit shift left logical", 
+      "mnem": "vpsllvd"
+    }, 
+    {
+      "description": "variable bit shift left logical", 
+      "mnem": "vpsllvq"
+    }, 
+    {
+      "description": "variable bit shift left logical", 
+      "mnem": "vpsllvw"
+    }, 
+    {
+      "description": "shift packed data left logical", 
+      "mnem": "vpsllw"
+    }, 
+    {
+      "description": "shift packed data right arithmetic", 
+      "mnem": "vpsrad"
+    }, 
+    {
+      "description": "shift packed data right arithmetic", 
+      "mnem": "vpsraq"
+    }, 
+    {
+      "description": "variable bit shift right arithmetic", 
+      "mnem": "vpsravd"
+    }, 
+    {
+      "description": "variable bit shift right arithmetic", 
+      "mnem": "vpsravq"
+    }, 
+    {
+      "description": "variable bit shift right arithmetic", 
+      "mnem": "vpsravw"
+    }, 
+    {
+      "description": "shift packed data right arithmetic", 
+      "mnem": "vpsraw"
+    }, 
+    {
+      "description": "shift packed data right logical", 
+      "mnem": "vpsrld"
+    }, 
+    {
+      "description": "shift double quadword right logical", 
+      "mnem": "vpsrldq"
+    }, 
+    {
+      "description": "shift packed data right logical", 
+      "mnem": "vpsrlq"
+    }, 
+    {
+      "description": "variable bit shift right logical", 
+      "mnem": "vpsrlvd"
+    }, 
+    {
+      "description": "variable bit shift right logical", 
+      "mnem": "vpsrlvq"
+    }, 
+    {
+      "description": "variable bit shift right logical", 
+      "mnem": "vpsrlvw"
+    }, 
+    {
+      "description": "shift packed data right logical", 
+      "mnem": "vpsrlw"
+    }, 
+    {
+      "description": "subtract packed integers", 
+      "mnem": "vpsubb"
+    }, 
+    {
+      "description": "subtract packed integers", 
+      "mnem": "vpsubd"
+    }, 
+    {
+      "description": "subtract packed quadword integers", 
+      "mnem": "vpsubq"
+    }, 
+    {
+      "description": "subtract packed signed integers with signed saturation", 
+      "mnem": "vpsubsb"
+    }, 
+    {
+      "description": "subtract packed signed integers with signed saturation", 
+      "mnem": "vpsubsw"
+    }, 
+    {
+      "description": "subtract packed unsigned integers with unsigned saturation", 
+      "mnem": "vpsubusb"
+    }, 
+    {
+      "description": "subtract packed unsigned integers with unsigned saturation", 
+      "mnem": "vpsubusw"
+    }, 
+    {
+      "description": "subtract packed integers", 
+      "mnem": "vpsubw"
+    }, 
+    {
+      "description": "bitwise ternary logic", 
+      "mnem": "vpternlogd"
+    }, 
+    {
+      "description": "bitwise ternary logic", 
+      "mnem": "vpternlogq"
+    }, 
+    {
+      "description": "ptest- logical compare", 
+      "mnem": "vptest"
+    }, 
+    {
+      "description": "logical and and set mask", 
+      "mnem": "vptestmb"
+    }, 
+    {
+      "description": "logical and and set mask", 
+      "mnem": "vptestmd"
+    }, 
+    {
+      "description": "logical and and set mask", 
+      "mnem": "vptestmq"
+    }, 
+    {
+      "description": "logical and and set mask", 
+      "mnem": "vptestmw"
+    }, 
+    {
+      "description": "logical nand and set", 
+      "mnem": "vptestnmb"
+    }, 
+    {
+      "description": "logical nand and set", 
+      "mnem": "vptestnmd"
+    }, 
+    {
+      "description": "logical nand and set", 
+      "mnem": "vptestnmq"
+    }, 
+    {
+      "description": "logical nand and set", 
+      "mnem": "vptestnmw"
+    }, 
+    {
+      "description": "unpack high data", 
+      "mnem": "vpunpckhbw"
+    }, 
+    {
+      "description": "unpack high data", 
+      "mnem": "vpunpckhdq"
+    }, 
+    {
+      "description": "unpack high data", 
+      "mnem": "vpunpckhqdq"
+    }, 
+    {
+      "description": "unpack high data", 
+      "mnem": "vpunpckhwd"
+    }, 
+    {
+      "description": "unpack low data", 
+      "mnem": "vpunpcklbw"
+    }, 
+    {
+      "description": "unpack low data", 
+      "mnem": "vpunpckldq"
+    }, 
+    {
+      "description": "unpack low data", 
+      "mnem": "vpunpcklqdq"
+    }, 
+    {
+      "description": "unpack low data", 
+      "mnem": "vpunpcklwd"
+    }, 
+    {
+      "description": "logical exclusive or", 
+      "mnem": "vpxor"
+    }, 
+    {
+      "description": "logical exclusive or", 
+      "mnem": "vpxord"
+    }, 
+    {
+      "description": "logical exclusive or", 
+      "mnem": "vpxorq"
+    }, 
+    {
+      "description": "range restriction calculation for packed pairs of float64 values", 
+      "mnem": "vrangepd"
+    }, 
+    {
+      "description": "range restriction calculation for packed pairs of float32 values", 
+      "mnem": "vrangeps"
+    }, 
+    {
+      "description": "range restriction calculation from a pair of scalar float64 values", 
+      "mnem": "vrangesd"
+    }, 
+    {
+      "description": "range restriction calculation from a pair of scalar float32 values", 
+      "mnem": "vrangess"
+    }, 
+    {
+      "description": "compute approximate reciprocals of packed float64 values", 
+      "mnem": "vrcp14pd"
+    }, 
+    {
+      "description": "compute approximate reciprocals of packed float32 values", 
+      "mnem": "vrcp14ps"
+    }, 
+    {
+      "description": "compute approximate reciprocal of scalar float64 value", 
+      "mnem": "vrcp14sd"
+    }, 
+    {
+      "description": "compute approximate reciprocal of scalar float32 value", 
+      "mnem": "vrcp14ss"
+    }, 
+    {
+      "description": "approximation to the reciprocal of packed double-precision floating-point values with less than 2^-28 relative error", 
+      "mnem": "vrcp28pd"
+    }, 
+    {
+      "description": "approximation to the reciprocal of packed single-precision floating-point values with less than 2^-28 relative error", 
+      "mnem": "vrcp28ps"
+    }, 
+    {
+      "description": "approximation to the reciprocal of scalar double-precision floating-point value with less than 2^-28 relative error", 
+      "mnem": "vrcp28sd"
+    }, 
+    {
+      "description": "approximation to the reciprocal of scalar single-precision floating-point value with less than 2^-28 relative error", 
+      "mnem": "vrcp28ss"
+    }, 
+    {
+      "description": "compute reciprocals of packed single-precision floating-point values", 
+      "mnem": "vrcpps"
+    }, 
+    {
+      "description": "compute reciprocal of scalar single-precision floating-point values", 
+      "mnem": "vrcpss"
+    }, 
+    {
+      "description": "perform reduction transformation on packed float64 values", 
+      "mnem": "vreducepd"
+    }, 
+    {
+      "description": "perform reduction transformation on packed float32 values", 
+      "mnem": "vreduceps"
+    }, 
+    {
+      "description": "perform a reduction transformation on a scalar float64 value", 
+      "mnem": "vreducesd"
+    }, 
+    {
+      "description": "perform a reduction transformation on a scalar float32 value", 
+      "mnem": "vreducess"
+    }, 
+    {
+      "description": "round packed float64 values to include a given number of fraction bits", 
+      "mnem": "vrndscalepd"
+    }, 
+    {
+      "description": "round packed float32 values to include a given number of fraction bits", 
+      "mnem": "vrndscaleps"
+    }, 
+    {
+      "description": "round scalar float64 value to include a given number of fraction bits", 
+      "mnem": "vrndscalesd"
+    }, 
+    {
+      "description": "round scalar float32 value to include a given number of fraction bits", 
+      "mnem": "vrndscaless"
+    }, 
+    {
+      "description": "round packed double precision floating-point values", 
+      "mnem": "vroundpd"
+    }, 
+    {
+      "description": "round packed single precision floating-point values", 
+      "mnem": "vroundps"
+    }, 
+    {
+      "description": "round scalar double precision floating-point values", 
+      "mnem": "vroundsd"
+    }, 
+    {
+      "description": "round scalar single precision floating-point values", 
+      "mnem": "vroundss"
+    }, 
+    {
+      "description": "compute approximate reciprocals of square roots of packed float64 values", 
+      "mnem": "vrsqrt14pd"
+    }, 
+    {
+      "description": "compute approximate reciprocals of square roots of packed float32 values", 
+      "mnem": "vrsqrt14ps"
+    }, 
+    {
+      "description": "compute approximate reciprocal of square root of scalar float64 value", 
+      "mnem": "vrsqrt14sd"
+    }, 
+    {
+      "description": "compute approximate reciprocal of square root of scalar float32 value", 
+      "mnem": "vrsqrt14ss"
+    }, 
+    {
+      "description": "approximation to the reciprocal square root of packed double-precision floating-point values with less than 2^-28 relative error", 
+      "mnem": "vrsqrt28pd"
+    }, 
+    {
+      "description": "approximation to the reciprocal square root of packed single-precision floating-point values with less than 2^-28 relative error", 
+      "mnem": "vrsqrt28ps"
+    }, 
+    {
+      "description": "approximation to the reciprocal square root of scalar double-precision floating-point value with less than 2^-28 relative error", 
+      "mnem": "vrsqrt28sd"
+    }, 
+    {
+      "description": "approximation to the reciprocal square root of scalar single-precision floating-point value with less than 2^-28 relative error", 
+      "mnem": "vrsqrt28ss"
+    }, 
+    {
+      "description": "compute reciprocals of square roots of packed single-precision floating-point values", 
+      "mnem": "vrsqrtps"
+    }, 
+    {
+      "description": "compute reciprocal of square root of scalar single-precision floating-point value", 
+      "mnem": "vrsqrtss"
+    }, 
+    {
+      "description": "scale packed float64 values with float64 values", 
+      "mnem": "vscalefpd"
+    }, 
+    {
+      "description": "scale packed float32 values with float32 values", 
+      "mnem": "vscalefps"
+    }, 
+    {
+      "description": "scale scalar float64 values with float64 values", 
+      "mnem": "vscalefsd"
+    }, 
+    {
+      "description": "scale scalar float32 value with float32 value", 
+      "mnem": "vscalefss"
+    }, 
+    {
+      "description": "scatter packed single, packed double with signed dword and qword indices", 
+      "mnem": "vscatterdpd"
+    }, 
+    {
+      "description": "scatter packed single, packed double with signed dword and qword indices", 
+      "mnem": "vscatterdps"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t0 hint with intent to write", 
+      "mnem": "vscatterpf0dpd"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t0 hint with intent to write", 
+      "mnem": "vscatterpf0dps"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t0 hint with intent to write", 
+      "mnem": "vscatterpf0qpd"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t0 hint with intent to write", 
+      "mnem": "vscatterpf0qps"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t1 hint with intent to write", 
+      "mnem": "vscatterpf1dpd"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t1 hint with intent to write", 
+      "mnem": "vscatterpf1dps"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t1 hint with intent to write", 
+      "mnem": "vscatterpf1qpd"
+    }, 
+    {
+      "description": "sparse prefetch packed sp/dp data values with signed dword, signed qword indices using t1 hint with intent to write", 
+      "mnem": "vscatterpf1qps"
+    }, 
+    {
+      "description": "scatter packed single, packed double with signed dword and qword indices", 
+      "mnem": "vscatterqpd"
+    }, 
+    {
+      "description": "scatter packed single, packed double with signed dword and qword indices", 
+      "mnem": "vscatterqps"
+    }, 
+    {
+      "description": "shuffle packed values at 128-bit granularity", 
+      "mnem": "vshuff32x4"
+    }, 
+    {
+      "description": "shuffle packed values at 128-bit granularity", 
+      "mnem": "vshuff64x2"
+    }, 
+    {
+      "description": "shuffle packed values at 128-bit granularity", 
+      "mnem": "vshufi32x4"
+    }, 
+    {
+      "description": "shuffle packed values at 128-bit granularity", 
+      "mnem": "vshufi64x2"
+    }, 
+    {
+      "description": "packed interleave shuffle of pairs of double-precision floating-point values", 
+      "mnem": "vshufpd"
+    }, 
+    {
+      "description": "packed interleave shuffle of quadruplets of single-precision floating-point values", 
+      "mnem": "vshufps"
+    }, 
+    {
+      "description": "square root of double-precision floating-point values", 
+      "mnem": "vsqrtpd"
+    }, 
+    {
+      "description": "square root of single-precision floating-point values", 
+      "mnem": "vsqrtps"
+    }, 
+    {
+      "description": "compute square root of scalar double-precision floating-point value", 
+      "mnem": "vsqrtsd"
+    }, 
+    {
+      "description": "compute square root of scalar single-precision value", 
+      "mnem": "vsqrtss"
+    }, 
+    {
+      "description": "store mxcsr register state", 
+      "mnem": "vstmxcsr"
+    }, 
+    {
+      "description": "subtract packed double-precision floating-point values", 
+      "mnem": "vsubpd"
+    }, 
+    {
+      "description": "subtract packed single-precision floating-point values", 
+      "mnem": "vsubps"
+    }, 
+    {
+      "description": "subtract scalar double-precision floating-point value", 
+      "mnem": "vsubsd"
+    }, 
+    {
+      "description": "subtract scalar single-precision floating-point value", 
+      "mnem": "vsubss"
+    }, 
+    {
+      "description": "packed bit test", 
+      "mnem": "vtestpd"
+    }, 
+    {
+      "description": "packed bit test", 
+      "mnem": "vtestps"
+    }, 
+    {
+      "description": "unordered compare scalar double-precision floating-point values and set eflags", 
+      "mnem": "vucomisd"
+    }, 
+    {
+      "description": "unordered compare scalar single-precision floating-point values and set eflags", 
+      "mnem": "vucomiss"
+    }, 
+    {
+      "description": "unpack and interleave high packed double-precision floating-point values", 
+      "mnem": "vunpckhpd"
+    }, 
+    {
+      "description": "unpack and interleave high packed single-precision floating-point values", 
+      "mnem": "vunpckhps"
+    }, 
+    {
+      "description": "unpack and interleave low packed double-precision floating-point values", 
+      "mnem": "vunpcklpd"
+    }, 
+    {
+      "description": "unpack and interleave low packed single-precision floating-point values", 
+      "mnem": "vunpcklps"
+    }, 
+    {
+      "description": "bitwise logical xor of packed double precision floating-point values", 
+      "mnem": "vxorpd"
+    }, 
+    {
+      "description": "bitwise logical xor of packed single precision floating-point values", 
+      "mnem": "vxorps"
+    }, 
+    {
+      "description": "zero all ymm registers", 
+      "mnem": "vzeroall"
+    }, 
+    {
+      "description": "zero upper bits of ymm registers", 
+      "mnem": "vzeroupper"
+    }, 
+    {
       "description": "stop process execution until TEST pin activated", 
       "mnem": "wait"
     }, 
@@ -5359,16 +8167,44 @@
       "mnem": "wbinvd"
     }, 
     {
+      "description": "write fs/gs segment base", 
+      "mnem": "wrfsbase"
+    }, 
+    {
+      "description": "write fs/gs segment base", 
+      "mnem": "wrgsbase"
+    }, 
+    {
       "description": "write to model specific register", 
       "mnem": "wrmsr"
+    }, 
+    {
+      "description": "write data to user page key register", 
+      "mnem": "wrpkru"
+    }, 
+    {
+      "description": "transactional abort", 
+      "mnem": "xabort"
+    }, 
+    {
+      "description": "hardware lock elision prefix hints", 
+      "mnem": "xacquire"
     }, 
     {
       "description": "exchange and add", 
       "mnem": "xadd"
     }, 
     {
+      "description": "transactional begin", 
+      "mnem": "xbegin"
+    }, 
+    {
       "description": "exchange register/memory with register", 
       "mnem": "xchg"
+    }, 
+    {
+      "description": "transactional end", 
+      "mnem": "xend"
     }, 
     {
       "description": "get value of extended control register", 
@@ -5395,16 +8231,40 @@
       "mnem": "xorps"
     }, 
     {
+      "description": "hardware lock elision prefix hints", 
+      "mnem": "xrelease"
+    }, 
+    {
       "description": "restore processor extended states", 
       "mnem": "xrstor"
+    }, 
+    {
+      "description": "restore processor extended states supervisor", 
+      "mnem": "xrstors"
     }, 
     {
       "description": "save processor extended states", 
       "mnem": "xsave"
     }, 
     {
+      "description": "save processor extended states with compaction", 
+      "mnem": "xsavec"
+    }, 
+    {
+      "description": "save processor extended states optimized", 
+      "mnem": "xsaveopt"
+    }, 
+    {
+      "description": "save processor extended states supervisor", 
+      "mnem": "xsaves"
+    }, 
+    {
       "description": "set extended control register", 
       "mnem": "xsetbv"
+    }, 
+    {
+      "description": "test if in transactional execution", 
+      "mnem": "xtest"
     }
   ]
 }
