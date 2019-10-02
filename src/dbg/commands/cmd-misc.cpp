@@ -672,7 +672,12 @@ bool cbInstrMnemonichelp(int argc, char* argv[])
     else
     {
         auto padding = "================================================================";
-        auto logText = StringUtils::sprintf("%s%s%s\n", padding, description.c_str(), padding);
+        String logText = padding;
+        logText += '\n';
+        logText += description;
+        logText += '\n';
+        logText += padding;
+        logText += '\n';
         GuiAddLogMessage(logText.c_str());
     }
     return true;

@@ -48,7 +48,7 @@ static bool loadFromText()
                 auto mnem = json_string_value(json_object_get(value, "mnem"));
                 auto description = json_string_value(json_object_get(value, "description"));
                 if(mnem && description)
-                    MnemonicMap[StringUtils::ToLower(mnem)] = description;
+                    MnemonicMap.emplace(StringUtils::ToLower(mnem), StringUtils::Trim(description));
             }
         }
 
@@ -65,7 +65,7 @@ static bool loadFromText()
                 auto mnem = json_string_value(json_object_get(value, "mnem"));
                 auto description = json_string_value(json_object_get(value, "description"));
                 if(mnem && description)
-                    MnemonicBriefMap[mnem] = description;
+                    MnemonicBriefMap.emplace(mnem, StringUtils::Trim(description));
             }
         }
 
