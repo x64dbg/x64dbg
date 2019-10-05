@@ -90,6 +90,9 @@ struct MODINFO
     std::vector<MODSECTIONINFO> sections;
     std::vector<MODRELOCATIONINFO> relocations;
     std::vector<duint> tlsCallbacks;
+#if _WIN64
+    std::vector<RUNTIME_FUNCTION> runtimeFunctions; //sorted by (begin, end)
+#endif // _WIN64
 
     MODEXPORT entrySymbol;
 
