@@ -635,6 +635,34 @@ static void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     }
 }
 
+#ifdef _WIN64
+static void ReadExceptionDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
+{
+    // Clear runtime functions
+    Info.runtimeFunctions.clear();
+
+    // Get address and size of exception directory
+    ULONG totalBytes;
+    auto baseRuntimeFunctions = (PRUNTIME_FUNCTION)RtlImageDirectoryEntryToData((PVOID)FileMapVA,
+                                FALSE,
+                                IMAGE_DIRECTORY_ENTRY_EXCEPTION,
+                                &totalBytes);
+    if(baseRuntimeFunctions == nullptr || totalBytes == 0 ||
+            (ULONG_PTR)baseRuntimeFunctions + totalBytes > FileMapVA + Info.loadedSize || // Check if baseRuntimeFunctions fits into the mapped area
+            (ULONG_PTR)baseRuntimeFunctions + totalBytes < (ULONG_PTR)baseRuntimeFunctions) // Check for ULONG_PTR wraparound (e.g. when totalBytes == 0xfffff000)
+        return;
+
+    Info.runtimeFunctions.resize(totalBytes / sizeof(RUNTIME_FUNCTION));
+    for(size_t i = 0; i < Info.runtimeFunctions.size(); i++)
+        Info.runtimeFunctions[i] = baseRuntimeFunctions[i];
+
+    std::stable_sort(Info.runtimeFunctions.begin(), Info.runtimeFunctions.end(), [](const RUNTIME_FUNCTION & a, const RUNTIME_FUNCTION & b)
+    {
+        return std::tie(a.BeginAddress, a.EndAddress) < std::tie(b.BeginAddress, b.EndAddress);
+    });
+}
+#endif // _WIN64
+
 static bool GetUnsafeModuleInfoImpl(MODINFO & Info, ULONG_PTR FileMapVA, void(*func)(MODINFO &, ULONG_PTR), const char* name)
 {
     __try
@@ -723,6 +751,9 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
     GetUnsafeModuleInfo(ReadTlsCallbacks);
     GetUnsafeModuleInfo(ReadBaseRelocationTable);
     GetUnsafeModuleInfo(ReadDebugDirectory);
+#ifdef _WIN64
+    GetUnsafeModuleInfo(ReadExceptionDirectory);
+#endif // _WIN64
 #undef GetUnsafeModuleInfo
 }
 
