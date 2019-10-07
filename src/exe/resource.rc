@@ -1,5 +1,7 @@
 // Microsoft Visual C++ generated resource script.
 //
+#pragma code_page(65001)
+
 #include "resource.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
@@ -7,17 +9,16 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "afxres.h"
+#include "winres.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// 非特定语言 resources
+// Neutral resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEU)
 LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
-#pragma code_page(936)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -32,7 +33,7 @@ END
 
 2 TEXTINCLUDE 
 BEGIN
-    "#include ""afxres.h""\r\n"
+    "#include ""winres.h""\r\n"
     "\0"
 END
 
@@ -51,6 +52,7 @@ END
 //
 
 1                       RT_MANIFEST             ".\\manifest.xml"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -128,12 +130,12 @@ END
 // AFX_DIALOG_LAYOUT
 //
 
-IDD_DIALOGLAUNCHER AFX_DIALOG_LAYOUT 
+IDD_DIALOGLAUNCHER AFX_DIALOG_LAYOUT
 BEGIN
-    0x0000
+    0
 END
 
-#endif    // 非特定语言 resources
+#endif    // Neutral resources
 /////////////////////////////////////////////////////////////////////////////
 
 

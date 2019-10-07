@@ -57,7 +57,7 @@ enum
     X_UNDNAME_NO_PTR64 = 0x20000, //Does not include ptr64 in output.
 };
 
-#if _MSC_VER == 1800 || _MSC_VER == 1900 || (_MSC_VER >= 1910 && _MSC_VER <= 1921)
+#if _MSC_VER == 1800 || _MSC_VER == 1900 || (_MSC_VER >= 1910 && _MSC_VER <= 1923)
 // Tested compiler version
 #else
 #error unDNameEx is undocumented and possibly unsupported on your runtime! Uncomment this line if you understand the risks and want continue regardless...
