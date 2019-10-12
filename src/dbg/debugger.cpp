@@ -1247,7 +1247,7 @@ void cbRtrStep()
         StepOverWrapper((void*)cbRtrStep);
 }
 
-static bool isTargetSystemImage(duint cip)
+static bool isTargetSystemImage(duint cip, int depth = 0)
 {
     Zydis cp;
 
@@ -1255,7 +1255,7 @@ static bool isTargetSystemImage(duint cip)
     if(!MemRead(cip, data, MAX_DISASM_BUFFER))
         return false;
 
-    if(cp.Disassemble(cip, data) && cp.IsCall())
+    if(cp.Disassemble(cip, data) && (cp.IsCall() || cp.IsJump()))
     {
         size_t branchTargetVA = cp.ResolveOpValue(0, [&cp](ZydisRegister reg)
         {
@@ -1276,6 +1276,10 @@ static bool isTargetSystemImage(duint cip)
         {
             return true;
         }
+
+        // Check if forwarded.
+        if(depth < 2 && isTargetSystemImage(branchTargetVA, depth + 1))
+            return true;
     }
 
     return false;
