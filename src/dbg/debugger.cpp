@@ -1247,6 +1247,11 @@ void cbRtrStep()
         StepOverWrapper((void*)cbRtrStep);
 }
 
+static bool isInsideSystemImage(duint address)
+{
+    return ModGetParty(address) == 1;
+}
+
 static bool isTargetSystemImage(duint cip, int depth = 0)
 {
     Zydis cp;
@@ -1271,8 +1276,7 @@ static bool isTargetSystemImage(duint cip, int depth = 0)
             }
         }
 
-        const MODINFO* modInfo = ModInfoFromAddr(branchTargetVA);
-        if(modInfo != nullptr && modInfo->party == 1)
+        if(isInsideSystemImage(branchTargetVA))
         {
             return true;
         }
@@ -1282,16 +1286,6 @@ static bool isTargetSystemImage(duint cip, int depth = 0)
             return true;
     }
 
-    return false;
-}
-
-static bool isInsideSystemImage(duint cip)
-{
-    const MODINFO* modInfo = ModInfoFromAddr(cip);
-    if(modInfo != nullptr && modInfo->party == 1)
-    {
-        return true;
-    }
     return false;
 }
 
