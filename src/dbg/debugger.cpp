@@ -38,7 +38,7 @@
 #include "debugger_tracing.h"
 
 // Debugging variables
-static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
+static PROCESS_INFORMATION g_pi = { 0, 0, 0, 0 };
 static char szBaseFileName[MAX_PATH] = "";
 static TraceState traceState;
 static bool bFileIsDll = false;
@@ -1061,8 +1061,10 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
             {
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Breakpoint %p has been disabled because the bytes don't match! Expected: %02X %02X, Found: %02X %02X\n"),
                         bp->addr,
-                        ((unsigned char*)&bp->oldbytes)[0], ((unsigned char*)&bp->oldbytes)[1],
-                        ((unsigned char*)&oldbytes)[0], ((unsigned char*)&oldbytes)[1]);
+                        ((unsigned char*)&bp->oldbytes)[0],
+                        ((unsigned char*)&bp->oldbytes)[1],
+                        ((unsigned char*)&oldbytes)[0],
+                        ((unsigned char*)&oldbytes)[1]);
                 BpEnable(bp->addr, BPNORMAL, false);
             }
             else if(!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
@@ -1245,7 +1247,51 @@ void cbRtrStep()
         StepOverWrapper((void*)cbRtrStep);
 }
 
-static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*callback)(), bool forceBreakTrace)
+static bool isTargetSystemImage(duint cip)
+{
+    Zydis cp;
+
+    unsigned char data[MAX_DISASM_BUFFER] {};
+    if(!MemRead(cip, data, MAX_DISASM_BUFFER))
+        return false;
+
+    if(cp.Disassemble(cip, data) && cp.IsCall())
+    {
+        size_t branchTargetVA = cp.ResolveOpValue(0, [&cp](ZydisRegister reg)
+        {
+            auto regName = cp.RegName(reg);
+            return regName ? getregister(nullptr, regName) : 0; //TODO: temporary needs enums + caching
+        });
+
+        if(cp[0].type == ZYDIS_OPERAND_TYPE_MEMORY)
+        {
+            if(!MemRead(branchTargetVA, &branchTargetVA, sizeof(branchTargetVA)))
+            {
+                branchTargetVA = static_cast<size_t>(-1);
+            }
+        }
+
+        const MODINFO* modInfo = ModInfoFromAddr(branchTargetVA);
+        if(modInfo != nullptr && modInfo->party == 1)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static bool isInsideSystemImage(duint cip)
+{
+    const MODINFO* modInfo = ModInfoFromAddr(cip);
+    if(modInfo != nullptr && modInfo->party == 1)
+    {
+        return true;
+    }
+    return false;
+}
+
+static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void (*callback)(), bool forceBreakTrace)
 {
     PLUG_CB_TRACEEXECUTE info;
     info.cip = cip;
@@ -1291,6 +1337,15 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
             _dbg_dbgtraceexecute(cip);
         if(switchCondition) //switch (invert) the step type once
             bStepInto = !bStepInto;
+        if(bTraceRecordEnabledDuringTrace && bStepInto)
+        {
+            // TODO: Make this an option to step over system dlls.
+            if(isTargetSystemImage(cip))
+                bStepInto = false;
+
+            if(bStepInto && isInsideSystemImage(cip))
+                bStepInto = false;
+        }
         (bStepInto ? StepIntoWow64 : StepOverWrapper)((void*)callback);
     }
 }
@@ -1301,7 +1356,7 @@ static void cbTraceXConditionalStep(bool bStepInto, void (*callback)())
     cbTraceUniversalConditionalStep(GetContextDataEx(hActiveThread, UE_CIP), bStepInto, callback, false);
 }
 
-static void cbTraceXXTraceRecordStep(bool bStepInto, bool bInto, void(*callback)())
+static void cbTraceXXTraceRecordStep(bool bStepInto, bool bInto, void (*callback)())
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     auto cip = GetContextDataEx(hActiveThread, UE_CIP);
@@ -1771,7 +1826,6 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Loaded: %p %s\n"), base, DLLDebugFileName);
 
-
     //plugin callback
     PLUG_CB_LOADDLL callbackInfo;
     callbackInfo.LoadDll = LoadDll;
@@ -2096,7 +2150,7 @@ BOOL CALLBACK chkWindowPidCallback(HWND hWnd, LPARAM lParam)
     GetWindowThreadProcessId(hWnd, &hwndPid);
     if(hwndPid == procId)
     {
-        if(!mForegroundHandle)  // get the foreground if no owner visible
+        if(!mForegroundHandle) // get the foreground if no owner visible
             mForegroundHandle = hWnd;
 
         if(ismainwindow(hWnd))
@@ -2121,21 +2175,20 @@ bool dbggetwintext(std::vector<std::string>* winTextList, const DWORD dwProcessI
     wchar_t limitedbuffer[256];
     limitedbuffer[255] = 0;
 
-    if(mProcHandle)  // get info from the "main window" (GW_OWNER + visible)
+    if(mProcHandle) // get info from the "main window" (GW_OWNER + visible)
     {
         if(!GetWindowTextW((HWND)mProcHandle, limitedbuffer, 256))
             GetClassNameW((HWND)mProcHandle, limitedbuffer, 256); // go for the class name if none of the above
     }
-    else if(mForegroundHandle)  // get info from the foreground window
+    else if(mForegroundHandle) // get info from the foreground window
     {
         if(!GetWindowTextW((HWND)mForegroundHandle, limitedbuffer, 256))
             GetClassNameW((HWND)mForegroundHandle, limitedbuffer, 256); // go for the class name if none of the above
     }
 
-
-    if(limitedbuffer[255] != 0)  //Window title too long. Add "..." to the end of buffer.
+    if(limitedbuffer[255] != 0) //Window title too long. Add "..." to the end of buffer.
     {
-        if(limitedbuffer[252] < 0xDC00 || limitedbuffer[252] > 0xDFFF)  //protect the last surrogate of UTF-16 surrogate pair
+        if(limitedbuffer[252] < 0xDC00 || limitedbuffer[252] > 0xDFFF) //protect the last surrogate of UTF-16 surrogate pair
             limitedbuffer[252] = L'.';
         limitedbuffer[253] = L'.';
         limitedbuffer[254] = L'.';
@@ -2190,8 +2243,7 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
 
             if(!cmdLineExe)
             {
-                char* exeName = strrchr(pe32.szExeFile, '\\') ? strrchr(pe32.szExeFile, '\\') + 1 :
-                                strrchr(pe32.szExeFile, '/') ? strrchr(pe32.szExeFile, '/') + 1 : pe32.szExeFile;
+                char* exeName = strrchr(pe32.szExeFile, '\\') ? strrchr(pe32.szExeFile, '\\') + 1 : strrchr(pe32.szExeFile, '/') ? strrchr(pe32.szExeFile, '/') + 1 : pe32.szExeFile;
                 size_t exeNameLen = strlen(exeName);
 
                 char* peNameInCmd = strstr(cmdline, exeName);
@@ -2202,8 +2254,7 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
                     if(!exeNameInCmdTmp)
                         break;
 
-                    char* nextSlash = strchr(exeNameInCmdTmp, '\\') ? strchr(exeNameInCmdTmp, '\\') :
-                                      strchr(exeNameInCmdTmp, '/') ? strchr(exeNameInCmdTmp, '/') : NULL;
+                    char* nextSlash = strchr(exeNameInCmdTmp, '\\') ? strchr(exeNameInCmdTmp, '\\') : strchr(exeNameInCmdTmp, '/') ? strchr(exeNameInCmdTmp, '/') : NULL;
                     if(nextSlash && posEnum.posEnum == NO_QOUTES) //if there NO_QOUTES, then the path to PE in cmdline can't contain spaces
                     {
                         if(strchr(exeNameInCmdTmp, ' ') < nextSlash) //slash is in arguments
@@ -2249,8 +2300,7 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
                         if(!basicNameInCmdTmp)
                             break;
 
-                        char* nextSlash = strchr(basicNameInCmdTmp, '\\') ? strchr(basicNameInCmdTmp, '\\') :
-                                          strchr(basicNameInCmdTmp, '/') ? strchr(basicNameInCmdTmp, '/') : NULL;
+                        char* nextSlash = strchr(basicNameInCmdTmp, '\\') ? strchr(basicNameInCmdTmp, '\\') : strchr(basicNameInCmdTmp, '/') ? strchr(basicNameInCmdTmp, '/') : NULL;
                         if(nextSlash && posEnum.posEnum == NO_QOUTES) //if there NO_QOUTES, then the path to PE in cmdline can't contain spaces
                         {
                             if(strchr(basicNameInCmdTmp, ' ') < nextSlash) //slash is in arguments
@@ -2328,8 +2378,7 @@ static bool getcommandlineaddr(duint* addr, cmdline_error_t* cmd_line_error, HAN
     if(hProcess)
     {
         duint NumberOfBytesRead;
-        if(!MemoryReadSafe(hProcess, (LPVOID)((cmd_line_error->addr) + offsetof(PEB, ProcessParameters)),
-                           &pprocess_parameters, sizeof(duint), &NumberOfBytesRead))
+        if(!MemoryReadSafe(hProcess, (LPVOID)((cmd_line_error->addr) + offsetof(PEB, ProcessParameters)), &pprocess_parameters, sizeof(duint), &NumberOfBytesRead))
         {
             cmd_line_error->type = CMDL_ERR_READ_PROCPARM_PTR;
             return false;
@@ -2358,7 +2407,7 @@ static bool patchcmdline(duint getcommandline, duint new_command_line, cmdline_e
     unsigned char data[100];
 
     cmd_line_error->addr = getcommandline;
-    if(!MemRead(cmd_line_error->addr, & data, sizeof(data)))
+    if(!MemRead(cmd_line_error->addr, &data, sizeof(data)))
     {
         cmd_line_error->type = CMDL_ERR_READ_GETCOMMANDLINEBASE;
         return false;
@@ -2371,24 +2420,24 @@ static bool patchcmdline(duint getcommandline, duint new_command_line, cmdline_e
     This is a relative offset then to get the symbol: next instruction of getmodulehandle (+7 bytes) + offset to symbol
     (the last 4 bytes of the instruction)
     */
-    if(data[0] != 0x48 ||  data[1] != 0x8B || data[2] != 0x05 || data[7] != 0xC3)
+    if(data[0] != 0x48 || data[1] != 0x8B || data[2] != 0x05 || data[7] != 0xC3)
     {
         cmd_line_error->type = CMDL_ERR_CHECK_GETCOMMANDLINESTORED;
         return false;
     }
-    DWORD offset = * ((DWORD*) & data[3]);
+    DWORD offset = *((DWORD*)&data[3]);
     command_line_stored = getcommandline + 7 + offset;
 #else //x86
     /*
     750FE9CA | A1 CC DB 1A 75           | mov eax,dword ptr ds:[751ADBCC]         |
     750FE9CF | C3                       | ret                                     |
     */
-    if(data[0] != 0xA1 ||  data[5] != 0xC3)
+    if(data[0] != 0xA1 || data[5] != 0xC3)
     {
         cmd_line_error->type = CMDL_ERR_CHECK_GETCOMMANDLINESTORED;
         return false;
     }
-    command_line_stored = * ((duint*) & data[1]);
+    command_line_stored = *((duint*)&data[1]);
 #endif
 
     //update the pointer in the debuggee
@@ -2957,9 +3006,9 @@ bool dbgisdepenabled()
     auto depEnabled = false;
 #ifndef _WIN64
     typedef BOOL(WINAPI * GETPROCESSDEPPOLICY)(
-        _In_  HANDLE  /*hProcess*/,
+        _In_ HANDLE /*hProcess*/,
         _Out_ LPDWORD /*lpFlags*/,
-        _Out_ PBOOL   /*lpPermanent*/
+        _Out_ PBOOL /*lpPermanent*/
     );
     static auto GPDP = GETPROCESSDEPPOLICY(GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetProcessDEPPolicy"));
     if(GPDP)
