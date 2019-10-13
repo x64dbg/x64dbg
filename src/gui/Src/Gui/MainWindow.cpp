@@ -1126,6 +1126,7 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
     newInfo.hParentMenu = hMenu;
     QWidget* parent = hMenu == -1 ? this : menu->parent;
     QAction* wAction = new QAction(title, parent);
+    parent->addAction(wAction);
     wAction->setObjectName(QString().sprintf("ENTRY|%d", hEntryNew));
     wAction->setShortcutContext((!menu || menu->globalMenu) ? Qt::ApplicationShortcut : Qt::WidgetShortcut);
     parent->addAction(wAction);
@@ -1667,7 +1668,12 @@ void MainWindow::tabMovedSlot(int from, int to)
         // Remove space in widget name and append Tab to get config settings (CPUTab, MemoryMapTab, etc...)
         //QString tabName = mTabWidget->tabText(i).replace(" ", "") + "Tab";
         QString tabName = mTabWidget->getNativeName(i);
-        Config()->setUint("TabOrder", tabName, i);
+        auto found = std::find_if(mWidgetList.begin(), mWidgetList.end(), [&tabName](const WidgetInfo & info)
+        {
+            return info.nativeName == tabName;
+        });
+        if(found != mWidgetList.end())
+            Config()->setUint("TabOrder", tabName, i);
     }
 }
 
