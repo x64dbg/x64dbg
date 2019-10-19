@@ -559,6 +559,10 @@ void MainWindow::loadTabDefaultOrder()
     //TODO
     for(int i = 0; i < mWidgetList.size(); i++)
         addQWidgetTab(mWidgetList[i].widget, mWidgetList[i].nativeName);
+
+    // Add plugin tabs to the end
+    for(const auto & widget : mPluginWidgetList)
+        addQWidgetTab(widget.widget, widget.nativeName);
 }
 
 void MainWindow::loadTabSavedOrder()
@@ -592,6 +596,19 @@ void MainWindow::loadTabSavedOrder()
     // Setup tabs
     for(auto & widget : tabIndexToWidget)
         addQWidgetTab(widget.first, widget.second);
+
+    // 'Restore' deleted tabs
+    for(int i = 0; i < mWidgetList.size(); i++)
+    {
+        duint isDeleted = 0;
+        BridgeSettingGetUint("Deleted Tabs", mWidgetList[i].nativeName.toUtf8().constData(), &isDeleted);
+        if(isDeleted)
+            mTabWidget->DeleteTab(mTabWidget->indexOf(mWidgetList[i].widget));
+    }
+
+    // Add plugin tabs to the end
+    for(const auto & widget : mPluginWidgetList)
+        addQWidgetTab(widget.widget, widget.nativeName);
 }
 
 void MainWindow::clearTabWidget()
@@ -1009,10 +1026,10 @@ void MainWindow::hideTab()
 
 void MainWindow::openSettings()
 {
-    SettingsDialog* settings = new SettingsDialog(this);
-    connect(settings, SIGNAL(chkSaveLoadTabOrderStateChanged(bool)), this, SLOT(chkSaveloadTabSavedOrderStateChangedSlot(bool)));
-    settings->lastException = lastException;
-    settings->exec();
+    SettingsDialog settings(this);
+    connect(&settings, SIGNAL(chkSaveLoadTabOrderStateChanged(bool)), this, SLOT(chkSaveloadTabSavedOrderStateChangedSlot(bool)));
+    settings.lastException = lastException;
+    settings.exec();
 }
 
 void MainWindow::openAppearance()
@@ -1634,7 +1651,9 @@ void MainWindow::addQWidgetTab(QWidget* qWidget, QString nativeName)
 
 void MainWindow::addQWidgetTab(QWidget* qWidget)
 {
-    addQWidgetTab(qWidget, qWidget->windowTitle());
+    WidgetInfo info(qWidget, qWidget->metaObject()->className());
+    addQWidgetTab(info.widget, info.nativeName);
+    mPluginWidgetList.append(info);
 }
 
 void MainWindow::showQWidgetTab(QWidget* qWidget)

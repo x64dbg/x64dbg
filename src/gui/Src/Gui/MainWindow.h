@@ -262,6 +262,7 @@ private:
     };
 
     QList<WidgetInfo> mWidgetList;
+    QList<WidgetInfo> mPluginWidgetList;
 
 protected:
     void dragEnterEvent(QDragEnterEvent* pEvent);

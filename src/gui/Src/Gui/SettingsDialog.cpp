@@ -82,6 +82,7 @@ void SettingsDialog::LoadSettings()
     settings.disasmNoSourceLineAutoComments = false;
     settings.disasmMaxModuleSize = -1;
     settings.guiNoForegroundWindow = true;
+    settings.guiLoadSaveTabOrder = true;
     settings.guiDisableAutoComplete = false;
     settings.guiAsciiAddressDumpMode = false;
 
