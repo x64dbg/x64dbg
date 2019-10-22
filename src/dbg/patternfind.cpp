@@ -1,5 +1,6 @@
 #include "patternfind.h"
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -69,6 +70,15 @@ bool patterntransform(const string & patterntext, vector<PatternByte> & pattern)
             pattern.push_back(newByte);
         }
     }
+
+    //reject wildcard only patterns
+    bool allWildcard = std::all_of(pattern.begin(), pattern.end(), [](const PatternByte & patternByte)
+    {
+        return patternByte.nibble[0].wildcard & patternByte.nibble[1].wildcard;
+    });
+    if(allWildcard)
+        return false;
+
     return true;
 }
 
