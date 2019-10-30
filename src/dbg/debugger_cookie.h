@@ -12,14 +12,19 @@ struct CookieQuery
     void HandleNtdllLoad(bool isAttached)
     {
         *this = CookieQuery();
-        if(!isAttached && valfromstring("ntdll.dll:NtQueryInformationProcess", &addr))
+        ULONG returnSize = 0;
+        NTSTATUS status = NtQueryInformationProcess(fdProcessInfo->hProcess, ProcessCookie, &cookie, sizeof(cookie), &returnSize);
+        if(!NT_SUCCESS(status))
         {
-            if(!BpGet(addr, BPNORMAL, nullptr, nullptr))
+            if(!isAttached && valfromstring("ntdll.dll:NtQueryInformationProcess", &addr))
             {
-                if(SetBPX(addr, UE_BREAKPOINT, (void*)cbUserBreakpoint))
-                    removeAddrBp = true;
-                else
-                    addr = 0;
+                if(!BpGet(addr, BPNORMAL, nullptr, nullptr))
+                {
+                    if(SetBPX(addr, UE_BREAKPOINT, (void*)cbUserBreakpoint))
+                        removeAddrBp = true;
+                    else
+                        addr = 0;
+                }
             }
         }
     }
