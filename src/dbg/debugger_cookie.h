@@ -9,10 +9,10 @@ struct CookieQuery
     bool removeAddrBp = false;
     bool removeRetBp = false;
 
-    void HandleNtdllLoad()
+    void HandleNtdllLoad(bool isAttached)
     {
         *this = CookieQuery();
-        if(valfromstring("ntdll.dll:NtQueryInformationProcess", &addr))
+        if(!isAttached && valfromstring("ntdll.dll:NtQueryInformationProcess", &addr))
         {
             if(!BpGet(addr, BPNORMAL, nullptr, nullptr))
             {
