@@ -2760,7 +2760,10 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     varset("$hp", (duint)0, true);
     varset("$pid", (duint)0, true);
     if(hProcessToken)
+    {
         CloseHandle(hProcessToken);
+        hProcessToken = 0;
+    }
 
     pDebuggedEntry = 0;
     pDebuggedBase = 0;
