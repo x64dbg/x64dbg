@@ -835,22 +835,25 @@ void MemInitRemoteProcessCookie(ULONG cookie)
 }
 
 //Workaround for modules that have holes between sections, it keeps parts it couldn't read the same as the input
-void MemReadDumb(duint BaseAddress, void* Buffer, duint Size)
+bool MemReadDumb(duint BaseAddress, void* Buffer, duint Size)
 {
     if(!MemIsCanonicalAddress(BaseAddress) || !Buffer || !Size)
-        return;
+        return false;
 
     duint offset = 0;
     duint requestedSize = Size;
     duint sizeLeftInFirstPage = PAGE_SIZE - (BaseAddress & (PAGE_SIZE - 1));
     duint readSize = min(sizeLeftInFirstPage, requestedSize);
 
+    bool success = true;
     while(readSize)
     {
         SIZE_T bytesRead = 0;
-        MemoryReadSafePage(fdProcessInfo->hProcess, (PVOID)(BaseAddress + offset), (PBYTE)Buffer + offset, readSize, &bytesRead);
+        if(!MemoryReadSafePage(fdProcessInfo->hProcess, (PVOID)(BaseAddress + offset), (PBYTE)Buffer + offset, readSize, &bytesRead))
+            success = false;
         offset += readSize;
         requestedSize -= readSize;
         readSize = min(PAGE_SIZE, requestedSize);
     }
+    return success;
 }

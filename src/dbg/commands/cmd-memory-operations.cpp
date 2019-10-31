@@ -158,11 +158,12 @@ bool cbInstrSavedata(int argc, char* argv[])
     if(!valfromstring(argv[2], &addr, false) || !valfromstring(argv[3], &size, false))
         return false;
 
+    bool success = true;
     Memory<unsigned char*> data(size);
-    if(!MemRead(addr, data(), data.size()))
+    if(!MemReadDumb(addr, data(), data.size()))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read memory..."));
-        return false;
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read (all) memory..."));
+        success = false;
     }
 
     String name = stringformatinline(argv[1]);
@@ -180,5 +181,5 @@ bool cbInstrSavedata(int argc, char* argv[])
     dprintf(QT_TRANSLATE_NOOP("DBG", "%p[%X] written to \"%s\" !\n"), addr, size, name.c_str());
 #endif
 
-    return true;
+    return success;
 }
