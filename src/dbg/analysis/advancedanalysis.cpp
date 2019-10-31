@@ -284,8 +284,7 @@ void AdvancedAnalysis::writeDataXrefs()
                     //Todo: Analyze op type and set correct type
                     if(op.type == ZYDIS_OPERAND_TYPE_MEMORY)
                     {
-                        duint datasize = op.size / 8;
-                        duint size = datasize;
+                        duint size = op.size / 8;
                         duint offset = xref.addr - mBase;
                         switch(op.size)
                         {
@@ -317,20 +316,17 @@ void AdvancedAnalysis::writeDataXrefs()
                         default:
                             __debugbreak();
                         }
-                        if(datasize == 1)
+                        if(size == 1)
                         {
-                            memset(mEncMap + offset, (byte)type, size);
+                            mEncMap[offset] = (byte)type;
                         }
                         else
                         {
                             // Check if the entire referenced data fits into the memory range
                             if((offset + size) <= mSize)
                             {
-                                memset(mEncMap + offset, (byte)enc_middle, size);
-                                for(duint j = offset; j < offset + size; j += datasize)
-                                {
-                                    mEncMap[j] = (byte)type;
-                                }
+                                mEncMap[offset] = (byte)type;
+                                memset(mEncMap + offset + 1, (byte)enc_middle, size - 1);
                             }
                             else
                             {
