@@ -266,6 +266,9 @@ void LogView::addMsgToLogSlot(QByteArray msg)
     if(redirectError)
         msgUtf16.append(tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError()));
 
+    if(logBuffer.length() >= 1024 * 1024 * 100) // 100mb buffer limit
+        logBuffer.clear();
+
     logBuffer.append(msgUtf16);
     if(flushLog)
     {
