@@ -453,5 +453,6 @@ void LogView::flushTimerSlot()
 void LogView::flushLogSlot()
 {
     flushLog = true;
-    flushTimerSlot();
+    if(flushTimer->isActive())
+        flushTimerSlot();
 }
