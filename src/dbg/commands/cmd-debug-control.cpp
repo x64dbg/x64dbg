@@ -43,7 +43,6 @@ bool cbDebugRunInternal(int argc, char* argv[])
     // Don't "run" twice if the program is already running
     if(dbgisrunning())
         return false;
-    dbgsetispausedbyuser(false);
     GuiSetDebugStateAsync(running);
     unlock(WAITID_RUN);
     PLUG_CB_RESUMEDEBUG callbackInfo;

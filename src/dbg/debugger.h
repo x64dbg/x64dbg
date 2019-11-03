@@ -53,7 +53,6 @@ void DebugSetBreakpoints();
 void GuiSetDebugStateAsync(DBGSTATE state);
 void dbgsetskipexceptions(bool skip);
 void dbgsetsteprepeat(bool steppingIn, duint repeat);
-void dbgsetispausedbyuser(bool b);
 void dbgsetisdetachedbyuser(bool b);
 void dbgsetfreezestack(bool freeze);
 void dbgclearignoredexceptions();
