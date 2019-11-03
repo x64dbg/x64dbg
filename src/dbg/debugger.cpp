@@ -740,6 +740,7 @@ void cbPauseBreakpoint()
     PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
     dbgsetforeground();
+    dbgsetskipexceptions(false);
     wait(WAITID_RUN);
 }
 
@@ -1501,6 +1502,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
         PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         dbgsetforeground();
+        dbgsetskipexceptions(false);
         wait(WAITID_RUN);
     }
     else
@@ -1559,6 +1561,7 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
         PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         dbgsetforeground();
+        dbgsetskipexceptions(false);
         wait(WAITID_RUN);
     }
 }
@@ -1762,6 +1765,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         dbgsetforeground();
+        dbgsetskipexceptions(false);
         wait(WAITID_RUN);
     }
 }
@@ -1794,6 +1798,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
         PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         dbgsetforeground();
+        dbgsetskipexceptions(false);
         wait(WAITID_RUN);
     }
 
@@ -1841,6 +1846,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
         PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         dbgsetforeground();
+        dbgsetskipexceptions(false);
         wait(WAITID_RUN);
     }
 }
