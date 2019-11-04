@@ -116,9 +116,14 @@ void MemUpdateMap()
         if(!currentPage.info[0] || (scmp(curMod, currentPage.info) && !bListAllPages)) //there is a module
             continue; //skip non-modules
         strcpy_s(curMod, pageVector.at(i).info);
-        if(!ModBaseFromName(currentPage.info))
+        auto modBase = ModBaseFromName(currentPage.info);
+        if(!modBase)
             continue;
+        // sanity check, rest of code assumes whole module resides in one region
+        // in other cases module information cannot be trusted
         auto base = duint(currentPage.mbi.AllocationBase);
+        if(base != modBase || currentPage.mbi.RegionSize != ModSizeFromAddr(modBase))
+            continue;
         std::vector<MODSECTIONINFO> sections;
         if(!ModSectionsFromAddr(base, &sections))
             continue;
