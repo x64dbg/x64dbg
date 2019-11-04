@@ -442,6 +442,8 @@ void LogView::flushTimerSlot()
     cursor.movePosition(QTextCursor::End);
     cursor.beginEditBlock();
     cursor.insertBlock();
+    // hack to not insert too many newlines: https://lists.qt-project.org/pipermail/qt-interest-old/2011-July/034725.html
+    cursor.deletePreviousChar();
     cursor.insertHtml(logBuffer);
     cursor.endEditBlock();
     if(autoScroll)
