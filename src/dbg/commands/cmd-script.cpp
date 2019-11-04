@@ -30,6 +30,16 @@ bool cbScriptMsgyn(int argc, char* argv[])
     return true;
 }
 
+bool cbScriptCmd(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    auto scriptcmd = strchr(argv[0], ' ');
+    while(isspace(*scriptcmd))
+        scriptcmd++;
+    return scriptcmdexec(scriptcmd);
+}
+
 bool cbInstrLog(int argc, char* argv[])
 {
     auto logputs = [](const char* msg)
