@@ -11,19 +11,12 @@
 #include "filehelper.h"
 
 static std::vector<LINEMAPENTRY> linemap;
-
 static std::vector<SCRIPTBP> scriptbplist;
-
 static std::vector<int> scriptstack;
-
 static int scriptIp = 0;
-
 static int scriptIpOld = 0;
-
 static bool volatile bAbort = false;
-
 static bool volatile bIsRunning = false;
-
 static bool scriptLogEnabled = false;
 
 enum CMDRESULT
@@ -97,7 +90,7 @@ static bool scriptcreatelinemap(const char* filename)
     char temp[256] = "";
     LINEMAPENTRY entry;
     memset(&entry, 0, sizeof(entry));
-    std::vector<LINEMAPENTRY>().swap(linemap);
+    linemap.clear();
     for(size_t i = 0, j = 0; i < len; i++) //make raw line map
     {
         if(filedata[i] == '\r' && filedata[i + 1] == '\n') //windows file
@@ -220,7 +213,7 @@ static bool scriptcreatelinemap(const char* filename)
                 char message[256] = "";
                 sprintf_s(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Empty label detected on line %d!")), i + 1);
                 GuiScriptError(0, message);
-                std::vector<LINEMAPENTRY>().swap(linemap);
+                linemap.clear();
                 return false;
             }
             int foundlabel = scriptlabelfind(cur.u.label);
@@ -229,7 +222,7 @@ static bool scriptcreatelinemap(const char* filename)
                 char message[256] = "";
                 sprintf_s(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Duplicate label \"%s\" detected on lines %d and %d!")), cur.u.label, foundlabel, i + 1);
                 GuiScriptError(0, message);
-                std::vector<LINEMAPENTRY>().swap(linemap);
+                linemap.clear();
                 return false;
             }
         }
@@ -270,7 +263,7 @@ static bool scriptcreatelinemap(const char* filename)
                 char message[256] = "";
                 sprintf_s(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid branch label \"%s\" detected on line %d!")), currentLine.u.branch.branchlabel, i + 1);
                 GuiScriptError(0, message);
-                std::vector<LINEMAPENTRY>().swap(linemap);
+                linemap.clear();
                 return false;
             }
             else //set the branch destination line
@@ -419,7 +412,7 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
                 char message[256] = "";
                 sprintf_s(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid branch label \"%s\" detected on line %d!")), branchlabel.c_str(), 0);
                 GuiScriptError(0, message);
-                return STATUS_EXIT;
+                return STATUS_ERROR;
             }
             if(scriptinternalbranch(branchtype))
             {
@@ -532,8 +525,9 @@ DWORD WINAPI scriptLoadSync(void* filename)
     GuiScriptClear();
     GuiScriptEnableHighlighting(true); //enable default script syntax highlighting
     scriptIp = 0;
-    std::vector<SCRIPTBP>().swap(scriptbplist); //clear breakpoints
-    std::vector<int>().swap(scriptstack); //clear script stack
+    scriptIpOld = 0;
+    scriptbplist.clear();
+    scriptstack.clear();
     bAbort = false;
     if(!scriptcreatelinemap(reinterpret_cast<const char*>(filename)))
         return 1; // Script load failed
@@ -560,8 +554,11 @@ void scriptload(const char* filename)
 void scriptunload()
 {
     GuiScriptClear();
+    linemap.clear();
+    scriptbplist.clear();
+    scriptstack.clear();
     scriptIp = 0;
-    std::vector<SCRIPTBP>().swap(scriptbplist); //clear breakpoints
+    scriptIpOld = 0;
     bAbort = false;
 }
 
