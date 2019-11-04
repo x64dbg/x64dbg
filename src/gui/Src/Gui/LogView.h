@@ -35,6 +35,8 @@ public slots:
     void flushLogSlot();
 
 private:
+    static const int MAX_LOG_BUFFER_SIZE = 1024 * 1024;
+
     bool loggingEnabled;
     bool autoScroll;
     bool utf16Redirect = false;
