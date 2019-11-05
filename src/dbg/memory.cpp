@@ -119,11 +119,7 @@ void MemUpdateMap()
         auto modBase = ModBaseFromName(currentPage.info);
         if(!modBase)
             continue;
-        // sanity check, rest of code assumes whole module resides in one region
-        // in other cases module information cannot be trusted
         auto base = duint(currentPage.mbi.AllocationBase);
-        if(base != modBase || currentPage.mbi.RegionSize != ModSizeFromAddr(modBase))
-            continue;
         std::vector<MODSECTIONINFO> sections;
         if(!ModSectionsFromAddr(base, &sections))
             continue;
@@ -132,6 +128,11 @@ void MemUpdateMap()
             continue;
         if(!bListAllPages) //normal view
         {
+            // sanity check, rest of code assumes whole module resides in one region
+            // in other cases module information cannot be trusted
+            if(base != modBase || currentPage.mbi.RegionSize != ModSizeFromAddr(modBase))
+                continue;
+
             MEMPAGE newPage;
             //remove the current module page (page = size of module at this point) and insert the module sections
             pageVector.erase(pageVector.begin() + i); //remove the SizeOfImage page
@@ -159,7 +160,11 @@ void MemUpdateMap()
         {
             duint start = (duint)currentPage.mbi.BaseAddress;
             duint end = start + currentPage.mbi.RegionSize;
-            for(duint j = 0, k = 0; (j < (duint)SectionNumber) && (k + IMAGE_SIZEOF_SHORT_NAME < MAX_MODULE_SIZE); j++)
+            duint infoOffset = 0;
+            // display module name in first region (useful if PE header and first section have same protection)
+            if(start == modBase)
+                infoOffset = strlen(currentPage.info);
+            for(duint j = 0; (j < (duint)SectionNumber) && (infoOffset + IMAGE_SIZEOF_SHORT_NAME < sizeof(currentPage.info)); j++)
             {
                 const auto & currentSection = sections.at(j);
                 duint secStart = currentSection.addr;
@@ -169,9 +174,9 @@ void MemUpdateMap()
                 duint secEnd = secStart + SectionSize;
                 if(start < secEnd && end > secStart) //the section and memory overlap
                 {
-                    if(k)
-                        k += sprintf_s(currentPage.info + k, MAX_MODULE_SIZE - k, ",");
-                    k += sprintf_s(currentPage.info + k, MAX_MODULE_SIZE - k, " \"%s\"", currentSection.name);
+                    if(infoOffset)
+                        infoOffset += sprintf_s(currentPage.info + infoOffset, sizeof(currentPage.info) - infoOffset, ",");
+                    infoOffset += sprintf_s(currentPage.info + infoOffset, sizeof(currentPage.info) - infoOffset, " \"%s\"", currentSection.name);
                 }
             }
         }
