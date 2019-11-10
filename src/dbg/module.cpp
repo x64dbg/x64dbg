@@ -263,7 +263,7 @@ static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
             addressOfDataValue &= ~ordinalFlag;
 
             auto addressOfDataOffset = rva2offset(addressOfDataValue);
-            if(!addressOfDataOffset) // Invalid entries are ignored. Of course the app will crash if it ever calls the function, but whose fault is that?
+            if(!addressOfDataOffset && !ordinalFlagSet) // Invalid entries are ignored. Of course the app will crash if it ever calls the function, but whose fault is that?
                 continue;
 
             Info.imports.emplace_back();
