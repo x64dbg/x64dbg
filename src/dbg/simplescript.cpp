@@ -97,7 +97,7 @@ static bool scriptcreatelinemap(const char* filename)
         {
             memset(&entry, 0, sizeof(entry));
             int add = 0;
-            while(temp[add] == ' ')
+            while(isspace(temp[add]))
                 add++;
             strcpy_s(entry.raw, temp + add);
             *temp = 0;
@@ -109,7 +109,7 @@ static bool scriptcreatelinemap(const char* filename)
         {
             memset(&entry, 0, sizeof(entry));
             int add = 0;
-            while(temp[add] == ' ')
+            while(isspace(temp[add]))
                 add++;
             strcpy_s(entry.raw, temp + add);
             *temp = 0;
@@ -120,7 +120,7 @@ static bool scriptcreatelinemap(const char* filename)
         {
             memset(&entry, 0, sizeof(entry));
             int add = 0;
-            while(temp[add] == ' ')
+            while(isspace(temp[add]))
                 add++;
             strcpy_s(entry.raw, temp + add);
             *temp = 0;
