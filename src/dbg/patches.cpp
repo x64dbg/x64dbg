@@ -10,7 +10,8 @@
 #include "threading.h"
 #include "module.h"
 
-std::unordered_map<duint, PATCHINFO> patches;
+static std::unordered_map<duint, PATCHINFO> patches;
+static std::unordered_map<DWORD, size_t> lastEnumSize;
 
 bool PatchSet(duint Address, unsigned char OldByte, unsigned char NewByte)
 {
@@ -159,17 +160,26 @@ bool PatchEnum(PATCHINFO* List, size_t* Size)
     if(Size)
     {
         *Size = patches.size() * sizeof(PATCHINFO);
+        lastEnumSize[GetCurrentThreadId()] = patches.size();
 
         if(!List)
             return true;
     }
 
     // Copy each vector entry to a C-style array
-    for(auto & itr : patches)
+    auto limit = patches.size();
     {
-        *List = itr.second;
-        List->addr += ModBaseFromName(itr.second.mod);;
-        List++;
+        auto lastSizeItr = lastEnumSize.find(GetCurrentThreadId());
+        if(lastSizeItr != lastEnumSize.end())
+        {
+            limit = lastSizeItr->second;
+            lastEnumSize.erase(lastSizeItr);
+        }
+    }
+    for(auto itr = patches.cbegin(); itr != patches.cend() && limit != 0; ++itr, --limit, ++List)
+    {
+        *List = itr->second;
+        List->addr += ModBaseFromName(itr->second.mod);
     }
 
     return true;
