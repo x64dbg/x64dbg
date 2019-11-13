@@ -413,7 +413,7 @@ bool cbInstrMeminfo(int argc, char* argv[])
 {
     if(argc < 3)
     {
-        dputs_untranslated("Usage: meminfo a/r, addr");
+        dputs_untranslated("Usage: meminfo a/r, addr[, size]");
         return false;
     }
     duint addr;
@@ -424,11 +424,17 @@ bool cbInstrMeminfo(int argc, char* argv[])
     }
     if(argv[1][0] == 'a')
     {
-        unsigned char buf = 0;
-        if(!ReadProcessMemory(fdProcessInfo->hProcess, (void*)addr, &buf, sizeof(buf), nullptr))
-            dputs_untranslated("ReadProcessMemory failed!");
-        else
-            dprintf_untranslated("Data: %02X\n", buf);
+        duint size = 1;
+        if(argc > 3 && !valfromstring(argv[3], &size))
+        {
+            dputs_untranslated("Invalid argument");
+            return false;
+        }
+        std::vector<uint8_t> buf;
+        buf.resize(size);
+        SIZE_T NumberOfBytesRead = 0;
+        ReadProcessMemory(fdProcessInfo->hProcess, (const void*)addr, buf.data(), buf.size(), &NumberOfBytesRead);
+        dprintf_untranslated("Data: %s\n", StringUtils::ToHex(buf.data(), NumberOfBytesRead).c_str());
     }
     else if(argv[1][0] == 'r')
     {

@@ -239,6 +239,7 @@ static void registercommands()
     dbgcmdnew("alloc", cbDebugAlloc, true); //allocate memory
     dbgcmdnew("free", cbDebugFree, true); //free memory
     dbgcmdnew("Fill,memset", cbDebugMemset, true); //memset
+    dbgcmdnew("memcpy", cbDebugMemcpy, true); //memcpy
     dbgcmdnew("getpagerights,getrightspage", cbDebugGetPageRights, true);
     dbgcmdnew("setpagerights,setrightspage", cbDebugSetPageRights, true);
     dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk

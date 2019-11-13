@@ -96,6 +96,33 @@ bool cbDebugMemset(int argc, char* argv[])
     return true;
 }
 
+bool cbDebugMemcpy(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 4))
+        return false;
+
+    duint dst = 0, src = 0, size = 0;
+    if(!valfromstring(argv[1], &dst, false) || !valfromstring(argv[2], &src, false) || !valfromstring(argv[3], &size, false))
+        return false;
+
+    duint totalNumberOfBytesWritten = 0;
+    std::vector<uint8_t> buffer;
+    buffer.resize(PAGE_SIZE); //copy a page at a time
+    for(size_t i = 0; i < size; i += buffer.size())
+    {
+        duint NumberOfBytesRead = 0;
+        auto readOk = MemRead(src + i, buffer.data(), min(buffer.size(), size - i), &NumberOfBytesRead);
+        duint NumberOfBytesWritten = 0;
+        auto writeOk = MemWrite(dst + i, buffer.data(), NumberOfBytesRead, &NumberOfBytesWritten);
+        totalNumberOfBytesWritten += NumberOfBytesWritten;
+        if(!readOk || !writeOk)
+            break;
+    }
+    GuiUpdateAllViews();
+    varset("$result", totalNumberOfBytesWritten, false);
+    return true;
+}
+
 bool cbDebugGetPageRights(int argc, char* argv[])
 {
     duint addr = 0;
