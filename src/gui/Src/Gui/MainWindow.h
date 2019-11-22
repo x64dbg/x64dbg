@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <kddockwidgets/MainWindow.h>
 #include "Imports.h"
 
 class QDragEnterEvent;
@@ -40,7 +41,7 @@ namespace Ui
     class MainWindow;
 }
 
-class MainWindow : public QMainWindow
+class MainWindow : public KDDockWidgets::MainWindow
 {
     Q_OBJECT
 

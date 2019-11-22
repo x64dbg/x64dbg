@@ -6,6 +6,7 @@
 #include <QFileDialog>
 #include <QMimeData>
 #include <QDesktopServices>
+#include <kddockwidgets/DockWidget.h>
 #include "Configuration.h"
 #include "SettingsDialog.h"
 #include "AppearanceDialog.h"
@@ -56,7 +57,7 @@
 QString MainWindow::windowTitle = "";
 
 MainWindow::MainWindow(QWidget* parent)
-    : QMainWindow(parent),
+    : KDDockWidgets::MainWindow("x64dbg_MainWindow", KDDockWidgets::MainWindowOption_None, parent),
       ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -217,7 +218,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Add all widgets to the list
     mWidgetList.push_back(WidgetInfo(mCpuWidget, "CPUTab"));
-    mWidgetList.push_back(WidgetInfo(mGraphView, "GraphTab"));
+    /*mWidgetList.push_back(WidgetInfo(mGraphView, "GraphTab"));
     mWidgetList.push_back(WidgetInfo(mLogView, "LogTab"));
     mWidgetList.push_back(WidgetInfo(mNotesManager, "NotesTab"));
     mWidgetList.push_back(WidgetInfo(mBreakpointsView, "BreakpointsTab"));
@@ -230,15 +231,32 @@ MainWindow::MainWindow(QWidget* parent)
     mWidgetList.push_back(WidgetInfo(mReferenceManager, "ReferencesTab"));
     mWidgetList.push_back(WidgetInfo(mThreadView, "ThreadsTab"));
     mWidgetList.push_back(WidgetInfo(mHandlesView, "HandlesTab"));
-    mWidgetList.push_back(WidgetInfo(mTraceBrowser, "TraceTab"));
+    mWidgetList.push_back(WidgetInfo(mTraceBrowser, "TraceTab"));*/
 
+    {
+        KDDockWidgets::DockWidget::List dockwidgets;
+        for(WidgetInfo & info : mWidgetList)
+        {
+            auto dock = new KDDockWidgets::DockWidget(info.nativeName);
+            dock->setWidget(info.widget);
+            dock->setTitle(info.widget->windowTitle());
+            dock->show();
+            dockwidgets << dock;
+            info.widget->show();
+        }
+        addDockWidget(dockwidgets[0], KDDockWidgets::Location_None);
+        /*for(int i = 1; i < dockwidgets.size(); i++)
+            dockwidgets[i - 1]->addDockWidgetAsTab(dockwidgets[i]);*/
+    }
+
+    /*
     // If LoadSaveTabOrder disabled, load tabs in default order
     if(!ConfigBool("Gui", "LoadSaveTabOrder"))
         loadTabDefaultOrder();
     else
         loadTabSavedOrder();
 
-    setCentralWidget(mTabWidget);
+    setCentralWidget(mTabWidget);*/
 
     // Setup the command and status bars
     setupCommandBar();
@@ -348,7 +366,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     connect(mCpuWidget->getStackWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
 
-    connect(mTabWidget, SIGNAL(tabMovedTabWidget(int, int)), this, SLOT(tabMovedSlot(int, int)));
+    //connect(mTabWidget, SIGNAL(tabMovedTabWidget(int, int)), this, SLOT(tabMovedSlot(int, int)));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
 
     // Setup favourite tools menu
@@ -378,7 +396,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     mCpuWidget->setDisasmFocus();
 
-    QTimer::singleShot(0, this, SLOT(loadWindowSettings()));
+    //QTimer::singleShot(0, this, SLOT(loadWindowSettings()));
 }
 
 MainWindow::~MainWindow()
@@ -498,7 +516,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
     duint noClose = 0;
     if(bCanClose)
     {
-        saveWindowSettings();
+        //saveWindowSettings();
     }
     if(BridgeSettingGetUint("Gui", "NoCloseDialog", &noClose) && noClose)
         mCloseDialog->hide();
@@ -527,6 +545,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 void MainWindow::setTab(QWidget* widget)
 {
+    return; //TODO
     // shown tabs
     for(int i = 0; i < mTabWidget->count(); i++)
     {
@@ -947,7 +966,7 @@ void MainWindow::dropEvent(QDropEvent* pEvent)
 bool MainWindow::event(QEvent* event)
 {
     // just make sure mTabWidget take current view as the latest
-    if(event->type() == QEvent::WindowActivate && this->isActiveWindow())
+    if(false && event->type() == QEvent::WindowActivate && this->isActiveWindow())
     {
         mTabWidget->setCurrentIndex(mTabWidget->currentIndex());
     }
@@ -1665,6 +1684,7 @@ void MainWindow::showQWidgetTab(QWidget* qWidget)
 
 void MainWindow::closeQWidgetTab(QWidget* qWidget)
 {
+    return;
     for(int i = 0; i < mTabWidget->count(); i++)
     {
         if(mTabWidget->widget(i) == qWidget)
@@ -1682,6 +1702,7 @@ void MainWindow::executeOnGuiThread(void* cbGuiThread, void* userdata)
 
 void MainWindow::tabMovedSlot(int from, int to)
 {
+    return;
     for(int i = 0; i < mTabWidget->count(); i++)
     {
         // Remove space in widget name and append Tab to get config settings (CPUTab, MemoryMapTab, etc...)
