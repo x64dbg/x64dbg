@@ -162,15 +162,12 @@ static PVOID CALLBACK StackSymFunctionTableAccess64(HANDLE hProcess, DWORD64 Add
         return nullptr;
 
     DWORD rva = DWORD(AddrBase - info->base);
-    RUNTIME_FUNCTION needle;
-    needle.BeginAddress = rva;
-    needle.EndAddress = rva;
-    needle.UnwindData = 0;
-    auto found = binary_find(info->runtimeFunctions.begin(), info->runtimeFunctions.end(), needle, [](const RUNTIME_FUNCTION & a, const RUNTIME_FUNCTION & b)
+    auto found = std::lower_bound(info->runtimeFunctions.begin(), info->runtimeFunctions.end(), rva, [](const RUNTIME_FUNCTION & a, const DWORD & rva)
     {
-        return a.EndAddress < b.BeginAddress;
+        return a.EndAddress <= rva;
     });
-    if(found != info->runtimeFunctions.end())
+
+    if(found != info->runtimeFunctions.end() && rva >= found->BeginAddress)
         return &found->BeginAddress;
 #endif // _WIN64
 
