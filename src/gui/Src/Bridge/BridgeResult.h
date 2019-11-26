@@ -11,6 +11,7 @@ public:
         ScriptAdd,
         ScriptMessage,
         RefInitialize,
+        RefSetRowCount,
         MenuAddToList,
         MenuAdd,
         MenuAddEntry,

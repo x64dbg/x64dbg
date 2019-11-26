@@ -169,6 +169,7 @@ void ReferenceView::setRowCount(dsint count)
         searchSelectionChanged(0);
     emit mCountTotalLabel->setText(QString("%1").arg(count));
     StdSearchListView::setRowCount(count);
+    Bridge::getBridge()->setResult(BridgeResult::RefSetRowCount, 1);
 }
 
 void ReferenceView::setSingleSelection(int index, bool scroll)

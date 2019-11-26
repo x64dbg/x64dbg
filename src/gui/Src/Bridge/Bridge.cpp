@@ -217,8 +217,15 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_REF_SETROWCOUNT:
-        emit referenceSetRowCount((dsint)param1);
-        break;
+    {
+        if(referenceManager->currentReferenceView())
+        {
+            BridgeResult result(BridgeResult::RefSetRowCount);
+            emit referenceSetRowCount((dsint)param1);
+            result.Wait();
+        }
+    }
+    break;
 
     case GUI_REF_GETROWCOUNT:
         if(referenceManager->currentReferenceView())
