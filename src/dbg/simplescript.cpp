@@ -77,6 +77,19 @@ static int scriptinternalstep(int fromIp) //internal step routine
     return fromIp;
 }
 
+static bool scriptisinternalcommand(const char* text, const char* cmd)
+{
+    int len = (int)strlen(text);
+    int cmdlen = (int)strlen(cmd);
+    if(cmdlen > len)
+        return false;
+    else if(cmdlen == len)
+        return scmp(text, cmd);
+    else if(text[cmdlen] == ' ')
+        return (!_strnicmp(text, cmd, cmdlen));
+    return false;
+}
+
 static bool scriptcreatelinemap(const char* filename)
 {
     String filedata;
@@ -270,13 +283,37 @@ static bool scriptcreatelinemap(const char* filename)
                 currentLine.u.branch.dest = scriptinternalstep(labelline);
         }
     }
-    if(linemapsize && (linemap.at(linemapsize - 1).type == linecomment || linemap.at(linemapsize - 1).type == linelabel)) //label/comment on the end
+    if(!linemap.empty())
     {
         memset(&entry, 0, sizeof(entry));
         entry.type = linecommand;
         strcpy_s(entry.raw, "ret");
         strcpy_s(entry.u.command, "ret");
-        linemap.push_back(entry);
+
+        const auto & lastline = linemap.back();
+        switch(lastline.type)
+        {
+        case linecommand:
+            if(scriptisinternalcommand(lastline.u.command, "ret")
+                    || scriptisinternalcommand(lastline.u.command, "invalid")
+                    || scriptisinternalcommand(lastline.u.command, "error"))
+            {
+                // there is already a terminating command at the end of the script
+            }
+            else
+            {
+                linemap.push_back(entry);
+            }
+            break;
+        case linebranch:
+            // a branch at the end of the script can only go back
+            break;
+        case linelabel:
+        case linecomment:
+        case lineempty:
+            linemap.push_back(entry);
+            break;
+        }
     }
     return true;
 }
@@ -313,19 +350,6 @@ static bool scriptinternalbptoggle(int line) //internal breakpoint
         scriptbplist.push_back(newbp);
     }
     return true;
-}
-
-static bool scriptisinternalcommand(const char* text, const char* cmd)
-{
-    int len = (int)strlen(text);
-    int cmdlen = (int)strlen(cmd);
-    if(cmdlen > len)
-        return false;
-    else if(cmdlen == len)
-        return scmp(text, cmd);
-    else if(text[cmdlen] == ' ')
-        return (!_strnicmp(text, cmd, cmdlen));
-    return false;
 }
 
 static bool scriptinternalbranch(SCRIPTBRANCHTYPE type) //determine if we should jump
@@ -447,6 +471,11 @@ static bool scriptinternalcmd()
         switch(scriptinternalcmdexec(cur.u.command))
         {
         case STATUS_CONTINUE:
+            if(scriptIp == scriptIpOld)
+            {
+                bContinue = false;
+                scriptIp = scriptinternalstep(0);
+            }
             break;
         case STATUS_ERROR:
             bContinue = false;
