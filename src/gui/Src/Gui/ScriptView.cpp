@@ -398,9 +398,13 @@ void ScriptView::setupContextMenu()
     {
         return getRowCount() != 0;
     };
-    mMenu->addAction(makeShortcutAction(DIcon("arrow-restart.png"), tr("Re&load Script"), SLOT(reload()), "ActionReloadScript"), isempty);
+    auto isemptyclipboard = [this](QMenu*)
+    {
+        return getRowCount() != 0 && !filename.isEmpty();
+    };
+    mMenu->addAction(makeShortcutAction(DIcon("arrow-restart.png"), tr("Re&load Script"), SLOT(reload()), "ActionReloadScript"), isemptyclipboard);
     mMenu->addAction(makeShortcutAction(DIcon("control-exit.png"), tr("&Unload Script"), SLOT(unload()), "ActionUnloadScript"), isempty);
-    mMenu->addAction(makeShortcutAction(DIcon("edit-script.png"), tr("&Edit Script"), SLOT(edit()), "ActionEditScript"), isempty);
+    mMenu->addAction(makeShortcutAction(DIcon("edit-script.png"), tr("&Edit Script"), SLOT(edit()), "ActionEditScript"), isemptyclipboard);
     mMenu->addSeparator();
     mMenu->addAction(makeShortcutAction(DIcon("breakpoint_toggle.png"), tr("Toggle &BP"), SLOT(bpToggle()), "ActionToggleBreakpointScript"), isempty);
     mMenu->addAction(makeShortcutAction(DIcon("arrow-run-cursor.png"), tr("Ru&n until selection"), SLOT(runCursor()), "ActionRunToCursorScript"), isempty);
@@ -512,7 +516,8 @@ void ScriptView::paste()
 
 void ScriptView::reload()
 {
-    openRecentFile(filename);
+    if(!filename.isEmpty())
+        openRecentFile(filename);
 }
 
 void ScriptView::unload()
