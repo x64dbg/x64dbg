@@ -33,19 +33,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     this->status = "Loading...";
 
     //Start disassembly view at the entry point of the binary
-    this->function = 0;
-    this->ready = false;
-    this->viewportReady = false;
-    this->desired_pos = nullptr;
-    this->highlight_token = nullptr;
-    this->cur_instr = 0;
-    this->scroll_base_x = 0;
-    this->scroll_base_y = 0;
-    this->scroll_mode = false;
-    this->drawOverview = false;
-    this->onlySummary = false;
-    this->blocks.clear();
-    this->saveGraph = false;
+    resetGraph();
 
     //Initialize zoom values
     this->graphZoomMode = ConfigBool("Gui", "GraphZoomMode");
@@ -86,6 +74,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
     connect(Bridge::getBridge(), SIGNAL(focusGraph()), this, SLOT(setFocus()));
     connect(Bridge::getBridge(), SIGNAL(getCurrentGraph(BridgeCFGraphList*)), this, SLOT(getCurrentGraphSlot(BridgeCFGraphList*)));
+    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
 
     //Connect to config
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(colorsUpdatedSlot()));
@@ -99,6 +88,29 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
 DisassemblerGraphView::~DisassemblerGraphView()
 {
     delete this->highlight_token;
+}
+
+void DisassemblerGraphView::resetGraph()
+{
+    this->function = 0;
+    this->ready = false;
+    this->viewportReady = false;
+    this->desired_pos = nullptr;
+    this->highlight_token = nullptr;
+    this->cur_instr = 0;
+    this->scroll_base_x = 0;
+    this->scroll_base_y = 0;
+    this->scroll_mode = false;
+    this->drawOverview = false;
+    this->onlySummary = false;
+    this->blocks.clear();
+    this->saveGraph = false;
+
+    this->analysis = Analysis();
+    this->currentGraph = BridgeCFGraph(0);
+    this->currentBlockMap.clear();
+
+    this->syncOrigin = false;
 }
 
 void DisassemblerGraphView::initFont()
@@ -2522,7 +2534,6 @@ restart:
 
 void DisassemblerGraphView::xrefSlot()
 {
-
     if(!DbgIsDebugging())
         return;
     duint wVA = this->get_cursor_pos();
@@ -2585,4 +2596,13 @@ void DisassemblerGraphView::getCurrentGraphSlot(BridgeCFGraphList* graphList)
 {
     *graphList = currentGraph.ToGraphList();
     Bridge::getBridge()->setResult(BridgeResult::GraphCurrent);
+}
+
+void DisassemblerGraphView::dbgStateChangedSlot(DBGSTATE state)
+{
+    if(state == stopped)
+    {
+        resetGraph();
+        this->viewport()->update();
+    }
 }
