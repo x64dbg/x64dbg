@@ -687,7 +687,8 @@ void TraceBrowser::mouseDoubleClickEvent(QMouseEvent* event)
     {
         switch(getColumnIndexFromX(event->x()))
         {
-        case 0://Index: ???
+        case 0://Index: follow
+            followDisassemblySlot();
             break;
         case 1://Address: set RVA
             if(mRvaDisplayEnabled && mTraceFile->Registers(getInitialSelection()).regcontext.cip == mRvaDisplayBase)
@@ -702,7 +703,8 @@ void TraceBrowser::mouseDoubleClickEvent(QMouseEvent* event)
         case 2: //Opcode: Breakpoint
             mBreakpointMenu->toggleInt3BPActionSlot();
             break;
-        case 3: //Instructions: ???
+        case 3: //Instructions: follow
+            followDisassemblySlot();
             break;
         case 4: //Comment
             setCommentSlot();
