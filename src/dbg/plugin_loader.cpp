@@ -203,6 +203,7 @@ bool pluginload(const char* pluginName, bool loadall)
     regExport("CBSAVEDB", CB_SAVEDB);
     regExport("CBFILTERSYMBOL", CB_FILTERSYMBOL);
     regExport("CBTRACEEXECUTE", CB_TRACEEXECUTE);
+    regExport("CBSELCHANGED", CB_SELCHANGED);
     regExport("CBANALYZE", CB_ANALYZE);
     regExport("CBADDRINFO", CB_ADDRINFO);
     regExport("CBVALFROMSTRING", CB_VALFROMSTRING);
