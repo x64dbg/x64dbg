@@ -1026,7 +1026,7 @@ bool PDBDiaFile::convertSymbolInfo(IDiaSymbol* symbol, DiaSymbol_t & symbolInfo,
 
     symbolInfo.name = getSymbolNameString(symbol);
 
-    if(context.collectUndecoratedNames && !symbolInfo.name.empty() && symbolInfo.name.at(0) == '?')
+    if(context.collectUndecoratedNames && !symbolInfo.name.empty() && (symbolInfo.name.at(0) == '?' || symbolInfo.name.at(0) == '_' || symbolInfo.name.at(0) == '@'))
     {
         undecorateName(symbolInfo.name, symbolInfo.undecoratedName);
     }
