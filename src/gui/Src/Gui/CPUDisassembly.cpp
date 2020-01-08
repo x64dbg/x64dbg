@@ -121,7 +121,7 @@ void CPUDisassembly::addFollowReferenceMenuItem(QString name, dsint value, QMenu
         if(action->text() == name)
             return;
     QAction* newAction = new QAction(name, this);
-    newAction->setFont(QFont("Courier New", 8));
+    newAction->setFont(font());
     menu->addAction(newAction);
     if(isFollowInCPU)
         newAction->setObjectName(QString("CPU|") + ToPtrString(value));
@@ -171,9 +171,8 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
                     if(DbgMemIsValidReadPtr(arg.value))
                         addFollowReferenceMenuItem(tr("&Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed(), arg.value, menu, isReferences, isFollowInCPU);
                 }
-                QString constant = ToHexString(arg.constant);
                 if(DbgMemIsValidReadPtr(arg.constant))
-                    addFollowReferenceMenuItem(tr("&Constant: ") + constant, arg.constant, menu, isReferences, isFollowInCPU);
+                    addFollowReferenceMenuItem(tr("&Constant: ") + getSymbolicName(arg.constant), arg.constant, menu, isReferences, isFollowInCPU);
                 if(DbgMemIsValidReadPtr(arg.memvalue))
                 {
                     addFollowReferenceMenuItem(tr("&Value: ") + segment + "[" + QString(arg.mnemonic) + "]", arg.memvalue, menu, isReferences, isFollowInCPU);
@@ -200,7 +199,15 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
             else //arg_normal
             {
                 if(DbgMemIsValidReadPtr(arg.value))
-                    addFollowReferenceMenuItem(QString(arg.mnemonic).trimmed(), arg.value, menu, isReferences, isFollowInCPU);
+                {
+                    QString symbolicName = getSymbolicName(arg.value);
+                    QString mnemonic = QString(arg.mnemonic).trimmed();
+                    if(mnemonic != ToHexString(arg.value))
+                        mnemonic = mnemonic + ": " + symbolicName;
+                    else
+                        mnemonic = symbolicName;
+                    addFollowReferenceMenuItem(mnemonic, arg.value, menu, isReferences, isFollowInCPU);
+                }
             }
         }
     }
