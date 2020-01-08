@@ -377,7 +377,7 @@ private:
     GotoDialog* mGoto;
     XrefBrowseDialog* mXrefDlg;
 
-    void addReferenceAction(QMenu* menu, duint addr);
+    void addReferenceAction(QMenu* menu, duint addr, const QString & description);
 };
 
 #endif // DISASSEMBLERGRAPHVIEW_H

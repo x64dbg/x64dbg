@@ -2115,11 +2115,21 @@ void DisassemblerGraphView::updateGraphSlot()
     this->viewport()->update();
 }
 
-void DisassemblerGraphView::addReferenceAction(QMenu* menu, duint addr)
+void DisassemblerGraphView::addReferenceAction(QMenu* menu, duint addr, const QString & description)
 {
+    if(!DbgMemIsValidReadPtr(addr))
+        return;
+    auto addrText = ToPtrString(addr);
+    for(QAction* action : menu->actions())
+        if(action->data() == addrText)
+            return;
     QAction* action = new QAction(menu);
-    action->setData(ToPtrString(addr));
-    action->setText(getSymbolicName(addr));
+    action->setFont(font());
+    action->setData(addrText);
+    if(description.isEmpty())
+        action->setText(getSymbolicName(addr));
+    else
+        action->setText(description);
     connect(action, SIGNAL(triggered()), this, SLOT(followActionSlot()));
     menu->addAction(action);
 }
@@ -2208,15 +2218,46 @@ void DisassemblerGraphView::setupContextMenu()
         }
         if(currentInstruction)
         {
+            DISASM_INSTR instr = { 0 };
+            DbgDisasmAt(currentInstruction->addr, &instr);
+            for(int i = 0; i < instr.argcount; i++)
+            {
+                const DISASM_ARG & arg = instr.arg[i];
+                if(arg.type == arg_memory)
+                {
+                    QString segment = "";
+#ifdef _WIN64
+                    if(arg.segment == SEG_GS)
+                        segment = "gs:";
+#else //x32
+                    if(arg.segment == SEG_FS)
+                        segment = "fs:";
+#endif //_WIN64
+                    if(arg.value != arg.constant)
+                        addReferenceAction(menu, arg.value, tr("&Address: ") + segment + QString(arg.mnemonic).toUpper().trimmed());
+                    addReferenceAction(menu, arg.constant, tr("&Constant: ") + getSymbolicName(arg.constant));
+                    addReferenceAction(menu, arg.memvalue, tr("&Value: ") + segment + "[" + QString(arg.mnemonic) + "]");
+                }
+                else
+                {
+                    QString symbolicName = getSymbolicName(arg.value);
+                    QString mnemonic = QString(arg.mnemonic).trimmed();
+                    if(mnemonic != ToHexString(arg.value))
+                        mnemonic = mnemonic + ": " + symbolicName;
+                    else
+                        mnemonic = symbolicName;
+                    addReferenceAction(menu, arg.value, mnemonic);
+                }
+            }
+            menu->addSeparator();
             for(const duint & i : currentBlock->incoming) // This list is incomplete
-                addReferenceAction(menu, i);
+                addReferenceAction(menu, i, tr("Block incoming: %1").arg(getSymbolicName(i)));
             if(!currentBlock->block.terminal)
             {
                 menu->addSeparator();
                 for(const duint & i : currentBlock->block.exits)
-                    addReferenceAction(menu, i);
+                    addReferenceAction(menu, i, tr("Block exit %1").arg(getSymbolicName(i)));
             }
-            //to do: follow a constant
             return true;
         }
         return false;
