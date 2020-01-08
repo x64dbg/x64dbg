@@ -850,7 +850,22 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
 {
     int key = event->key();
 
-    if(key == Qt::Key_Up || key == Qt::Key_Down)
+    if(event->modifiers() == (Qt::ControlModifier | Qt::AltModifier))
+    {
+        ShowDisassemblyPopup(0, 0, 0);
+
+        if(key == Qt::Key_Left)
+        {
+            setTableOffset(getTableOffset() - 1);
+        }
+        else if(key == Qt::Key_Right)
+        {
+            setTableOffset(getTableOffset() + 1);
+        }
+
+        updateViewport();
+    }
+    else if(key == Qt::Key_Up || key == Qt::Key_Down)
     {
         ShowDisassemblyPopup(0, 0, 0);
 
@@ -864,7 +879,7 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         dsint initialStart = getSelectionStart();
 
         if(key == Qt::Key_Up)
-            selectPrevious(expand);
+            selectPrevious(expand); //TODO: fix this shit to actually go to whatever the previous instruction shows
         else
             selectNext(expand);
 
