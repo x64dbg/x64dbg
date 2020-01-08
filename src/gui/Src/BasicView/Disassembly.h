@@ -97,7 +97,7 @@ public:
     QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel = true);
     void prepareDataCount(const QList<dsint> & wRVAs, QList<Instruction_t>* instBuffer);
     void prepareDataRange(dsint startRva, dsint endRva, const std::function<bool(int, const Instruction_t &)> & disassembled);
-    RichTextPainter::List getRichBytes(const Instruction_t & instr) const;
+    RichTextPainter::List getRichBytes(const Instruction_t & instr, bool isSelected) const;
 
     //misc
     void setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager);

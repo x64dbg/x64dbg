@@ -1478,7 +1478,7 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTe
         QString bytes;
         QString bytesHtml;
         if(copyBytes)
-            RichTextPainter::htmlRichText(getRichBytes(inst), bytesHtml, bytes);
+            RichTextPainter::htmlRichText(getRichBytes(inst, false), bytesHtml, bytes);
         QString disassembly;
         QString htmlDisassembly;
         if(htmlStream)
