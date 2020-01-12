@@ -2540,6 +2540,35 @@ void dbgstartscriptthread(CBPLUGINSCRIPT cbScript)
     CloseHandle(CreateThread(0, 0, scriptThread, (LPVOID)cbScript, 0, 0));
 }
 
+void openDLLExportChooser()
+{
+    REGDUMP registers;
+    MODINFO* modinfo;
+    unsigned int number_of_exports;
+
+    DbgGetRegDumpEx(&registers, sizeof(registers)); // To obtain the list of exports, get EIP at the moment we hit our breakpoint.
+    modinfo = ModInfoFromAddr(registers.regcontext.cip);
+    if(modinfo->exports.size() == 0)
+    {
+        return; // No exports, nothing to do.
+    }
+    // Sanity check to ensure a malformed DLL will not blow up the memory.
+    number_of_exports = modinfo->exports.size() <= 1000 ? modinfo->exports.size() : 1000;
+    // Convert all exports to SYMBOLINFO structures that the knows about.
+    SYMBOLINFO* export_list = static_cast<SYMBOLINFO*>(BridgeAlloc(sizeof(SYMBOLINFO) * number_of_exports));
+    for(auto i = 0 ; i < number_of_exports ; ++i)
+    {
+        export_list[i].addr = modinfo->base + modinfo->exports[i].rva;
+        export_list[i].decoratedSymbol = const_cast<char*>(modinfo->exports[i].name.c_str());
+        export_list[i].freeUndecorated = false;
+        export_list[i].type = sym_export;
+        export_list[i].ordinal = modinfo->exports[i].ordinal;
+    }
+
+    GUIShowDLLExportChooser(export_list, number_of_exports);
+    printf("Wait here mofo");
+}
+
 static void debugLoopFunction(void* lpParameter, bool attach)
 {
     //initialize variables
@@ -2590,7 +2619,17 @@ static void debugLoopFunction(void* lpParameter, bool attach)
 
         //start the process
         if(bFileIsDll)
-            fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebugW(gInitExe.c_str(), false, gInitCmd.c_str(), gInitDir.c_str(), 0);
+        {
+            if(settingboolget("Misc", "EnableDLLExportChooser"))
+            {
+                // If the EnableDLLExportChooser setting is present, add a callback at EP breakpoint to jump to the requested function.
+                fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebugW(gInitExe.c_str(), false, gInitCmd.c_str(), gInitDir.c_str(), openDLLExportChooser);
+            }
+            else
+            {
+                fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebugW(gInitExe.c_str(), false, gInitCmd.c_str(), gInitDir.c_str(), 0);
+            }
+        }
         else
             fdProcessInfo = (PROCESS_INFORMATION*)InitDebugW(gInitExe.c_str(), gInitCmd.c_str(), gInitDir.c_str());
         if(!fdProcessInfo)

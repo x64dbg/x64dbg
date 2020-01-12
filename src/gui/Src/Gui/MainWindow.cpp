@@ -12,6 +12,7 @@
 #include "ShortcutsDialog.h"
 #include "AttachDialog.h"
 #include "LineEditDialog.h"
+#include "DLLExportChooser.h"
 #include "StringUtil.h"
 #include "MiscUtil.h"
 #include "FavouriteTools.h"
@@ -95,6 +96,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(setFavouriteItemShortcut(int, QString, QString)), this, SLOT(setFavouriteItemShortcut(int, QString, QString)));
     connect(Bridge::getBridge(), SIGNAL(selectInMemoryMap(duint)), this, SLOT(displayMemMapWidget()));
     connect(Bridge::getBridge(), SIGNAL(closeApplication()), this, SLOT(close()));
+    connect(Bridge::getBridge(), SIGNAL(showDLLExportChooser(SYMBOLINFO*, unsigned int)), this, SLOT(showDLLExportChooser(SYMBOLINFO*, unsigned int)));
 
     // Setup menu API
     initMenuApi();
@@ -2203,4 +2205,10 @@ void MainWindow::on_actionPlugins_triggered()
 void MainWindow::on_actionCheckUpdates_triggered()
 {
     mUpdateChecker->checkForUpdates();
+}
+
+void MainWindow::showDLLExportChooser(SYMBOLINFO* exportList, unsigned int numberOfExports)
+{
+    DLLExportChooser dialog(this, exportList, numberOfExports);
+    dialog.exec();
 }

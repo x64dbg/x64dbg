@@ -1179,6 +1179,7 @@ typedef enum
     GUI_UPDATE_TRACE_BROWSER,       // param1=unused,               param2=unused
     GUI_INVALIDATE_SYMBOL_SOURCE,   // param1=duint base,           param2=unused
     GUI_GET_CURRENT_GRAPH,          // param1=BridgeCFGraphList*,   param2=unused
+    GUI_OPEN_DLL_EXPORT_CHOOSER,    // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1359,6 +1360,7 @@ BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName);
 BRIDGE_IMPEXP void GuiInvalidateSymbolSource(duint base);
 BRIDGE_IMPEXP void GuiExecuteOnGuiThreadEx(GUICALLBACKEX cbGuiThread, void* userdata);
 BRIDGE_IMPEXP void GuiGetCurrentGraph(BridgeCFGraphList* graphList);
+BRIDGE_IMPEXP void GUIShowDLLExportChooser(SYMBOLINFO* exportList, unsigned int numberOfExports);
 
 #ifdef __cplusplus
 }

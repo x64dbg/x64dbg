@@ -156,6 +156,7 @@ public slots:
     void customizeMenu();
     void addFavouriteItem(int type, const QString & name, const QString & description);
     void setFavouriteItemShortcut(int type, const QString & name, const QString & shortcut);
+    void showDLLExportChooser(SYMBOLINFO* exportList, unsigned int numberOfExports);
 
 private:
     Ui::MainWindow* ui;

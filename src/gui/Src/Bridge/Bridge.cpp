@@ -865,6 +865,13 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         BridgeResult result(BridgeResult::GraphCurrent);
         emit getCurrentGraph((BridgeCFGraphList*)param1);
         result.Wait();
+        break;
+    }
+
+    case GUI_OPEN_DLL_EXPORT_CHOOSER:
+    {
+        emit showDLLExportChooser((SYMBOLINFO*)param1, (unsigned int)param2);
+        break;
     }
     break;
     }

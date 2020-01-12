@@ -162,6 +162,7 @@ signals:
     void updateTraceBrowser();
     void symbolSelectModule(duint base);
     void getCurrentGraph(BridgeCFGraphList* graphList);
+    void showDLLExportChooser(SYMBOLINFO* export_list, unsigned int number_of_imports);
 
 private:
     CRITICAL_SECTION csBridge;

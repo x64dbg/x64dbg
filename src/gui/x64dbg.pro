@@ -183,7 +183,8 @@ SOURCES += \
     Src/BasicView/AbstractStdTable.cpp \
     Src/Gui/ZehSymbolTable.cpp \
     Src/BasicView/StdSearchListView.cpp \
-    Src/BasicView/StdTableSearchList.cpp
+    Src/BasicView/StdTableSearchList.cpp \
+    Src/Gui/DLLExportChooser.cpp
 
 
 HEADERS += \
@@ -304,8 +305,8 @@ HEADERS += \
     Src/BasicView/AbstractSearchList.h \
     Src/BasicView/StdSearchListView.h \
     Src/Gui/FileLines.h \
-    Src/BasicView/StdTableSearchList.h
-    
+    Src/BasicView/StdTableSearchList.h \
+    Src/Gui/DLLExportChooser.h \
 
 FORMS += \
     Src/Gui/MainWindow.ui \
@@ -342,7 +343,8 @@ FORMS += \
     Src/Gui/SimpleTraceDialog.ui \
     Src/Gui/MessagesBreakpoints.ui \
     Src/Gui/AboutDialog.ui \
-    Src/Gui/ComboBoxDialog.ui
+    Src/Gui/ComboBoxDialog.ui \
+    Src/Gui/DLLExportChooser.ui \
 
 ##
 ## Libraries

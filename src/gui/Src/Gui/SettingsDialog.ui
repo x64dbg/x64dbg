@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>381</width>
-    <height>514</height>
+    <height>528</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -33,7 +33,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>5</number>
      </property>
      <widget class="QWidget" name="tabEvents">
       <attribute name="title">
@@ -859,6 +859,13 @@
         <widget class="QCheckBox" name="chkTransparentExceptionStepping">
          <property name="text">
           <string>Transparent exception stepping*</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkEnableDLLExportChooser">
+         <property name="text">
+          <string>Ask which export to run when debugging a DLL.</string>
          </property>
         </widget>
        </item>
