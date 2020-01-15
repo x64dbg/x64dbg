@@ -43,6 +43,7 @@ void LineEditDialog::setFpuMode()
 
 void LineEditDialog::setText(const QString & text)
 {
+    editText = text;
     ui->textEdit->setText(text);
     ui->textEdit->selectAll();
 }
