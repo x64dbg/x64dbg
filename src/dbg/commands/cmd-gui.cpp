@@ -281,3 +281,19 @@ bool cbInstrFoldDisassembly(int argc, char* argv[])
     GuiFoldDisassembly(start, length);
     return true;
 }
+
+bool cbDebugUpdateTitle(int argc, char* argv[])
+{
+    duint addr = 0;
+    if(argc > 1)
+    {
+        if(!valfromstring(argv[1], &addr))
+            addr = GetContextDataEx(hActiveThread, UE_CIP);
+    }
+    else
+    {
+        addr = GetContextDataEx(hActiveThread, UE_CIP);
+    }
+    DebugUpdateTitleAsync(addr, false);
+    return true;
+}

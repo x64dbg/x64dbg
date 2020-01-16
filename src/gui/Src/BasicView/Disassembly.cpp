@@ -3,7 +3,6 @@
 #include "CodeFolding.h"
 #include "EncodeMap.h"
 #include "Bridge.h"
-#include "MainWindow.h"
 #include "CachedFontMetrics.h"
 #include "QBeaEngine.h"
 #include "MemoryPage.h"
@@ -901,7 +900,7 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
     {
         ShowDisassemblyPopup(0, 0, 0);
         duint dest = DbgGetBranchDestination(rvaToVa(getInitialSelection()));
-        if(!dest)
+        if(!DbgMemIsValidReadPtr(dest))
             return;
         QString cmd = "disasm " + ToPtrString(dest);
         DbgCmdExec(cmd.toUtf8().constData());
@@ -1780,7 +1779,6 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
             mCurrentVa++;
             newHistory.va = selectionVA;
             newHistory.tableOffset = selectionTableOffset;
-            newHistory.windowTitle = MainWindow::windowTitle;
             mVaHistory.push_back(newHistory);
         }
     }
@@ -1842,7 +1840,6 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
             //new disassembled address
             newHistory.va = parVA;
             newHistory.tableOffset = getTableOffset();
-            newHistory.windowTitle = MainWindow::windowTitle;
             if(mVaHistory.size())
             {
                 if(mVaHistory.last().va != parVA) //not 2x the same va in history
@@ -1952,7 +1949,7 @@ void Disassembly::historyPrevious()
     disassembleAt(va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
 
     // Update window title
-    emit updateWindowTitle(mVaHistory.at(mCurrentVa).windowTitle);
+    DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));
     GuiUpdateAllViews();
 }
 
@@ -1967,7 +1964,7 @@ void Disassembly::historyNext()
     disassembleAt(va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
 
     // Update window title
-    emit updateWindowTitle(mVaHistory.at(mCurrentVa).windowTitle);
+    DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));
     GuiUpdateAllViews();
 }
 

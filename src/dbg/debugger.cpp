@@ -444,6 +444,49 @@ void updateSEHChainAsync()
     updateSEHChainTask.WakeUp();
 }
 
+static void DebugUpdateTitle(duint disasm_addr, bool analyzeThreadSwitch)
+{
+    char modname[MAX_MODULE_SIZE] = "";
+    char modtext[MAX_MODULE_SIZE * 2] = "";
+    if(!ModNameFromAddr(disasm_addr, modname, true))
+        *modname = 0;
+    else
+        sprintf_s(modtext, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Module: %s - ")), modname);
+    char threadswitch[256] = "";
+    DWORD currentThreadId = ThreadGetId(hActiveThread);
+    if(analyzeThreadSwitch)
+    {
+        static DWORD PrevThreadId = 0;
+        if(PrevThreadId == 0)
+            PrevThreadId = fdProcessInfo->dwThreadId; // Initialize to Main Thread
+        if(currentThreadId != PrevThreadId && PrevThreadId != 0)
+        {
+            char threadName2[MAX_THREAD_NAME_SIZE] = "";
+            if(!ThreadGetName(PrevThreadId, threadName2) || threadName2[0] == 0)
+                sprintf_s(threadName2, "%X", PrevThreadId);
+            sprintf_s(threadswitch, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (switched from %s)")), threadName2);
+            PrevThreadId = currentThreadId;
+        }
+    }
+    char title[deflen] = "";
+    char threadName[MAX_THREAD_NAME_SIZE + 1] = "";
+    if(ThreadGetName(currentThreadId, threadName) && *threadName)
+        strcat_s(threadName, " ");
+    char PIDnumber[64], TIDnumber[64];
+    if(settingboolget("Gui", "PidInHex"))
+    {
+        sprintf_s(PIDnumber, "%X", fdProcessInfo->dwProcessId);
+        sprintf_s(TIDnumber, "%X", currentThreadId);
+    }
+    else
+    {
+        sprintf_s(PIDnumber, "%u", fdProcessInfo->dwProcessId);
+        sprintf_s(TIDnumber, "%u", currentThreadId);
+    }
+    sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "%s - PID: %s - %sThread: %s%s%s")), szBaseFileName, PIDnumber, modtext, threadName, TIDnumber, threadswitch);
+    GuiUpdateWindowTitle(title);
+}
+
 void DebugUpdateGui(duint disasm_addr, bool stack)
 {
     if(GuiIsUpdateDisabled())
@@ -479,45 +522,7 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
         updateCallStackAsync(csp);
         updateSEHChainAsync();
     }
-    char modname[MAX_MODULE_SIZE] = "";
-    char modtext[MAX_MODULE_SIZE * 2] = "";
-    if(!ModNameFromAddr(disasm_addr, modname, true))
-        *modname = 0;
-    else
-        sprintf_s(modtext, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Module: %s - ")), modname);
-    char threadswitch[256] = "";
-    DWORD currentThreadId = ThreadGetId(hActiveThread);
-    {
-        static DWORD PrevThreadId = 0;
-        if(PrevThreadId == 0)
-            PrevThreadId = fdProcessInfo->dwThreadId; // Initialize to Main Thread
-        if(currentThreadId != PrevThreadId && PrevThreadId != 0)
-        {
-            char threadName2[MAX_THREAD_NAME_SIZE] = "";
-            if(!ThreadGetName(PrevThreadId, threadName2) || threadName2[0] == 0)
-                sprintf_s(threadName2, "%X", PrevThreadId);
-            sprintf_s(threadswitch, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (switched from %s)")), threadName2);
-            PrevThreadId = currentThreadId;
-        }
-    }
-    char title[deflen] = "";
-    char threadName[MAX_THREAD_NAME_SIZE + 1] = "";
-    if(ThreadGetName(currentThreadId, threadName) && *threadName)
-        strcat_s(threadName, " ");
-    //sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "File: %s - PID: %X - %sThread: %s%X%s")), szBaseFileName, fdProcessInfo->dwProcessId, modtext, threadName, currentThreadId, threadswitch);
-    char PIDnumber[64], TIDnumber[64];
-    if(settingboolget("Gui", "PidInHex"))
-    {
-        sprintf_s(PIDnumber, "%X", fdProcessInfo->dwProcessId);
-        sprintf_s(TIDnumber, "%X", currentThreadId);
-    }
-    else
-    {
-        sprintf_s(PIDnumber, "%u", fdProcessInfo->dwProcessId);
-        sprintf_s(TIDnumber, "%u", currentThreadId);
-    }
-    sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "%s - PID: %s - %sThread: %s%s%s")), szBaseFileName, PIDnumber, modtext, threadName, TIDnumber, threadswitch);
-    GuiUpdateWindowTitle(title);
+    DebugUpdateTitle(disasm_addr, true);
     GuiUpdateRegisterView();
     GuiUpdateDisassemblyView();
     GuiUpdateThreadView();
@@ -535,6 +540,12 @@ void DebugUpdateGuiAsync(duint disasm_addr, bool stack)
 {
     static TaskThread_<decltype(&DebugUpdateGui), duint, bool> DebugUpdateGuiTask(&DebugUpdateGui);
     DebugUpdateGuiTask.WakeUp(disasm_addr, stack);
+}
+
+void DebugUpdateTitleAsync(duint disasm_addr, bool analyzeThreadSwitch)
+{
+    static TaskThread_<decltype(&DebugUpdateTitle), duint, bool> DebugUpdateTitleTask(&DebugUpdateTitle);
+    DebugUpdateTitleTask.WakeUp(disasm_addr, analyzeThreadSwitch);
 }
 
 void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state)

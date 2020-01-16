@@ -45,6 +45,7 @@ void dbgsetattachevent(HANDLE handle);
 void dbgsetresumetid(duint tid);
 void DebugUpdateGui(duint disasm_addr, bool stack);
 void DebugUpdateGuiAsync(duint disasm_addr, bool stack);
+void DebugUpdateTitleAsync(duint disasm_addr, bool analyzeThreadSwitch);
 void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state = paused);
 void DebugUpdateBreakpointsViewAsync();
 void DebugUpdateStack(duint dumpAddr, duint csp, bool forceDump = false);

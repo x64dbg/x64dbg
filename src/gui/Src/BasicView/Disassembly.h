@@ -165,7 +165,6 @@ private:
     {
         dsint va;
         dsint tableOffset;
-        QString windowTitle;
     };
 
     QList<HistoryData> mVaHistory;
