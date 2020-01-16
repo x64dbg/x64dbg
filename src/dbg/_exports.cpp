@@ -39,7 +39,7 @@
 
 static bool bOnlyCipAutoComments = false;
 static bool bNoSourceLineAutoComments = false;
-static TITAN_ENGINE_CONTEXT_t titcontext;
+static TITAN_ENGINE_CONTEXT_t lastContext;
 
 extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 {
@@ -352,7 +352,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRID
             char string_text[MAX_STRING_SIZE] = "";
 
             Zydis cp;
-            auto getregs = !bOnlyCipAutoComments || addr == titcontext.cip;
+            auto getregs = !bOnlyCipAutoComments || addr == lastContext.cip;
             disasmget(cp, addr, &instr, getregs);
             if(!cp.IsNop())
             {
@@ -652,8 +652,13 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
         return true;
     }
 
+    TITAN_ENGINE_CONTEXT_t titcontext;
     if(!GetFullContextDataEx(hActiveThread, &titcontext))
         return false;
+
+    // NOTE: this is not thread-safe, but that's fine because lastContext is only used for GUI-related operations
+    memcpy(&lastContext, &titcontext, sizeof(titcontext));
+
     TranslateTitanContextToRegContext(&titcontext, &regdump->regcontext);
 
     duint cflags = regdump->regcontext.eflags;
@@ -772,58 +777,58 @@ extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
             {
 #ifndef _WIN64 //x32
             case ZYDIS_REGISTER_EAX:
-                return titcontext.cax;
+                return lastContext.cax;
             case ZYDIS_REGISTER_EBX:
-                return titcontext.cbx;
+                return lastContext.cbx;
             case ZYDIS_REGISTER_ECX:
-                return titcontext.ccx;
+                return lastContext.ccx;
             case ZYDIS_REGISTER_EDX:
-                return titcontext.cdx;
+                return lastContext.cdx;
             case ZYDIS_REGISTER_EBP:
-                return titcontext.cbp;
+                return lastContext.cbp;
             case ZYDIS_REGISTER_ESP:
-                return titcontext.csp;
+                return lastContext.csp;
             case ZYDIS_REGISTER_ESI:
-                return titcontext.csi;
+                return lastContext.csi;
             case ZYDIS_REGISTER_EDI:
-                return titcontext.cdi;
+                return lastContext.cdi;
             case ZYDIS_REGISTER_EIP:
-                return titcontext.cip;
+                return lastContext.cip;
 #else //x64
             case ZYDIS_REGISTER_RAX:
-                return titcontext.cax;
+                return lastContext.cax;
             case ZYDIS_REGISTER_RBX:
-                return titcontext.cbx;
+                return lastContext.cbx;
             case ZYDIS_REGISTER_RCX:
-                return titcontext.ccx;
+                return lastContext.ccx;
             case ZYDIS_REGISTER_RDX:
-                return titcontext.cdx;
+                return lastContext.cdx;
             case ZYDIS_REGISTER_RBP:
-                return titcontext.cbp;
+                return lastContext.cbp;
             case ZYDIS_REGISTER_RSP:
-                return titcontext.csp;
+                return lastContext.csp;
             case ZYDIS_REGISTER_RSI:
-                return titcontext.csi;
+                return lastContext.csi;
             case ZYDIS_REGISTER_RDI:
-                return titcontext.cdi;
+                return lastContext.cdi;
             case ZYDIS_REGISTER_RIP:
-                return titcontext.cip;
+                return lastContext.cip;
             case ZYDIS_REGISTER_R8:
-                return titcontext.r8;
+                return lastContext.r8;
             case ZYDIS_REGISTER_R9:
-                return titcontext.r9;
+                return lastContext.r9;
             case ZYDIS_REGISTER_R10:
-                return titcontext.r10;
+                return lastContext.r10;
             case ZYDIS_REGISTER_R11:
-                return titcontext.r11;
+                return lastContext.r11;
             case ZYDIS_REGISTER_R12:
-                return titcontext.r12;
+                return lastContext.r12;
             case ZYDIS_REGISTER_R13:
-                return titcontext.r13;
+                return lastContext.r13;
             case ZYDIS_REGISTER_R14:
-                return titcontext.r14;
+                return lastContext.r14;
             case ZYDIS_REGISTER_R15:
-                return titcontext.r15;
+                return lastContext.r15;
 #endif //_WIN64
             default:
                 return 0;
@@ -846,7 +851,7 @@ extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
     }
     if(cp.IsRet())
     {
-        auto csp = titcontext.csp;
+        auto csp = lastContext.csp;
         duint dest = 0;
         if(MemRead(csp, &dest, sizeof(dest)))
             return dest;
