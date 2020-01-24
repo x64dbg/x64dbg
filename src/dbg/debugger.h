@@ -119,7 +119,6 @@ extern char szSymbolCachePath[MAX_PATH];
 extern bool bUndecorateSymbolNames;
 extern bool bEnableSourceDebugging;
 extern bool bTraceRecordEnabledDuringTrace;
-extern bool bSkipInt3Stepping;
 extern bool bIgnoreInconsistentBreakpoints;
 extern bool bNoForegroundWindow;
 extern bool bVerboseExceptionLogging;

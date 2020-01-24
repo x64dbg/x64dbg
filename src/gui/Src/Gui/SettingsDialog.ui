@@ -33,7 +33,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabEvents">
       <attribute name="title">
@@ -286,13 +286,6 @@
         <widget class="QCheckBox" name="chkTraceRecordEnabledDuringTrace">
          <property name="text">
           <string>Enable Trace Record Recording during a Trace</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="chkSkipInt3Stepping">
-         <property name="text">
-          <string>Skip INT3 stepping</string>
          </property>
         </widget>
        </item>

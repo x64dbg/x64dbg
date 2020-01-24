@@ -17,10 +17,17 @@
 #include "exception.h"
 #include "stringformat.h"
 
+// optionally allow int3 skipping, disabled unless specified to avoid anti-debug
+duint bSkipInt3 = (duint)false;
+
 static bool skipInt3Stepping(int argc, char* argv[])
 {
-    if(!bSkipInt3Stepping || dbgisrunning() || getLastExceptionInfo().ExceptionRecord.ExceptionCode != EXCEPTION_BREAKPOINT)
+    bool Skip = bSkipInt3;
+    bSkipInt3 = false;
+
+    if(!Skip || dbgisrunning() || getLastExceptionInfo().ExceptionRecord.ExceptionCode != EXCEPTION_BREAKPOINT)
         return false;
+
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     unsigned char data[MAX_DISASM_BUFFER];
     MemRead(cip, data, sizeof(data));
@@ -281,6 +288,7 @@ bool cbDebugRun(int argc, char* argv[])
 
 bool cbDebugErun(int argc, char* argv[])
 {
+    bSkipInt3 = true;
     HistoryClear();
     if(!dbgisrunning())
         dbgsetskipexceptions(true);
@@ -294,6 +302,7 @@ bool cbDebugErun(int argc, char* argv[])
 
 bool cbDebugSerun(int argc, char* argv[])
 {
+    bSkipInt3 = true;
     cbDebugContinue(argc, argv);
     return cbDebugRunInternal(argc, argv);
 }
@@ -381,12 +390,14 @@ bool cbDebugStepInto(int argc, char* argv[])
 
 bool cbDebugeStepInto(int argc, char* argv[])
 {
+    bSkipInt3 = true;
     dbgsetskipexceptions(true);
     return cbDebugStepInto(argc, argv);
 }
 
 bool cbDebugseStepInto(int argc, char* argv[])
 {
+    bSkipInt3 = true;
     cbDebugContinue(argc, argv);
     return cbDebugStepInto(argc, argv);
 }
@@ -409,12 +420,14 @@ bool cbDebugStepOver(int argc, char* argv[])
 
 bool cbDebugeStepOver(int argc, char* argv[])
 {
+    bSkipInt3 = true;
     dbgsetskipexceptions(true);
     return cbDebugStepOver(1, argv);
 }
 
 bool cbDebugseStepOver(int argc, char* argv[])
 {
+    bSkipInt3 = true;
     cbDebugContinue(argc, argv);
     return cbDebugStepOver(argc, argv);
 }
@@ -435,6 +448,7 @@ bool cbDebugStepOut(int argc, char* argv[])
 
 bool cbDebugeStepOut(int argc, char* argv[])
 {
+    bSkipInt3 = true;
     dbgsetskipexceptions(true);
     return cbDebugStepOut(argc, argv);
 }

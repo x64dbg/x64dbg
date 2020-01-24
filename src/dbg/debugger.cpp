@@ -82,7 +82,6 @@ HANDLE hProcessToken;
 bool bUndecorateSymbolNames = true;
 bool bEnableSourceDebugging = false;
 bool bTraceRecordEnabledDuringTrace = true;
-bool bSkipInt3Stepping = false;
 bool bIgnoreInconsistentBreakpoints = false;
 bool bNoForegroundWindow = false;
 bool bVerboseExceptionLogging = true;
