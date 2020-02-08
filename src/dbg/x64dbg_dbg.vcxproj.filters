@@ -896,4 +896,7 @@
       <Filter>Header Files\Symbols</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
+  </ItemGroup>
 </Project>

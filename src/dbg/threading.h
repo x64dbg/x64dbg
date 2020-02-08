@@ -73,6 +73,7 @@ enum SectionLock
     LockModuleHashes,
     LockFormatFunctions,
     LockDllBreakpoints,
+    LockScriptDebugContext,
 
     // Number of elements in this enumeration. Must always be the last index.
     LockLast

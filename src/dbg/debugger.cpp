@@ -36,6 +36,7 @@
 #include "exprfunc.h"
 #include "debugger_cookie.h"
 #include "debugger_tracing.h"
+#include <_scriptapi_debug.h>
 
 // Debugging variables
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
@@ -71,6 +72,7 @@ static CookieQuery cookie;
 static bool bDatabaseLoaded = false;
 static duint exceptionDispatchAddr = 0;
 static bool bPausedOnException = false;
+static DWORD dwDebugLoopThreadId = 0;
 char szProgramDir[MAX_PATH] = "";
 char szFileName[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
@@ -415,6 +417,11 @@ bool dbghandledllbreakpoint(const char* mod, bool loadDll)
             dllBreakpoints.erase(found);
     }
     return shouldBreak;
+}
+
+DWORD dbggetdebugloopthreadid()
+{
+    return dwDebugLoopThreadId;
 }
 
 static DWORD WINAPI updateCallStackThread(duint ptr)
@@ -892,6 +899,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     bpInfo.breakpoint = &bridgebp;
     BpToBridge(&bp, &bridgebp);
     plugincbcall(CB_BREAKPOINT, &bpInfo);
+    Script::Debug::Internal::BreakpointHandler(bridgebp);
 
     // Trace record
     _dbg_dbgtraceexecute(CIP);
@@ -2558,6 +2566,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     dbgsetskipexceptions(false);
     bFreezeStack = false;
     bDatabaseLoaded = false;
+    dwDebugLoopThreadId = GetCurrentThreadId();
 
     //prepare attach/createprocess
     DWORD pid;
@@ -2766,6 +2775,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         DeleteFileW(gDllLoader.c_str());
         gDllLoader.clear();
     }
+    dwDebugLoopThreadId = 0;
 }
 
 void dbgsetdebuggeeinitscript(const char* fileName)

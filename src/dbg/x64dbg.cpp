@@ -442,6 +442,7 @@ static void registercommands()
     dbgcmdnew("printstack,logstack", cbInstrPrintStack, true); //print the call stack
     dbgcmdnew("flushlog", cbInstrFlushlog, false); //flush the log
     dbgcmdnew("AnimateWait", cbInstrAnimateWait, true); //Wait for the debuggee to pause.
+    dbgcmdnew("coroutine", cbInstrCoroutine, true);
 };
 
 bool cbCommandProvider(char* cmd, int maxlen)

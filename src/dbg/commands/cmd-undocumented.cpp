@@ -502,3 +502,49 @@ bool cbInstrAnimateWait(int argc, char* argv[])
     }
     return true;
 }
+
+#include <_scriptapi_debug.h>
+
+static DWORD WINAPI CoroutineThread(LPVOID)
+{
+    using namespace Script::Debug;
+
+    Context::Create();
+
+#define Do(action) do { MessageBoxA(0, "pre-" #action, "Do", MB_ICONINFORMATION); action(); } while(0)
+
+    auto adjustMeTopLevel = DbgValFromString("adjustMeTopLevel");
+    SetBreakpoint(adjustMeTopLevel, []
+    {
+        Do(StepOver);
+        Do(StepOver);
+        Do(StepOver);
+        Do(Run);
+    });
+
+    auto adjustMeLayer = DbgValFromString("adjustMeLayer");
+    SetBreakpoint(adjustMeLayer, []
+    {
+        Do(StepOver);
+        DbgCmdExecDirect("_zf=1");
+        Do(Run);
+    });
+
+    auto main = DbgValFromString("main");
+    SetBreakpoint(main, []
+    {
+        Do(StepOut);
+        DbgCmdExecDirect("cax=1");
+    });
+
+    Run();
+
+    Context::Destroy();
+    return 0;
+}
+
+bool cbInstrCoroutine(int argc, char* argv[])
+{
+    CloseHandle(CreateThread(nullptr, 0, CoroutineThread, nullptr, 0, nullptr));
+    return true;
+}

@@ -293,6 +293,9 @@
       <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E6548308-401E-3A8A-5819-905DB90522A6}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
