@@ -1982,6 +1982,7 @@ static void cbAttachDebugger()
     if(hEvent) //Signal the AeDebug event
     {
         SetEvent(hEvent);
+        CloseHandle(hEvent);
         hEvent = 0;
     }
     if(tidToResume) //Resume a thread
