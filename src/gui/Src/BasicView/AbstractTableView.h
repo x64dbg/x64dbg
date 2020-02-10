@@ -44,7 +44,7 @@ public:
 
     // Constructor
     explicit AbstractTableView(QWidget* parent = 0);
-    virtual ~AbstractTableView();
+    virtual ~AbstractTableView() = default;
 
     // Configuration
     virtual void Initialize();

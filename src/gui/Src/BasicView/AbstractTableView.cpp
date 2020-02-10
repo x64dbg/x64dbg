@@ -94,13 +94,10 @@ AbstractTableView::AbstractTableView(QWidget* parent)
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateColorsSlot()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateFontsSlot()));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(updateShortcutsSlot()));
+    connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(closeSlot()));
 
     // todo: try Qt::QueuedConnection to init
     Initialize();
-}
-
-AbstractTableView::~AbstractTableView()
-{
 }
 
 void AbstractTableView::closeSlot()
@@ -184,7 +181,6 @@ void AbstractTableView::loadColumnFromConfig(const QString & viewName)
             mColumnOrder[i] = order - 1;
     }
     mViewName = viewName;
-    connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(closeSlot()));
 }
 
 void AbstractTableView::saveColumnToConfig()
