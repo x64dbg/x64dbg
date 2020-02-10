@@ -304,7 +304,8 @@ HEADERS += \
     Src/BasicView/AbstractSearchList.h \
     Src/BasicView/StdSearchListView.h \
     Src/Gui/FileLines.h \
-    Src/BasicView/StdTableSearchList.h
+    Src/BasicView/StdTableSearchList.h \
+    Src/Utils/MethodInvoker.h
     
 
 FORMS += \
