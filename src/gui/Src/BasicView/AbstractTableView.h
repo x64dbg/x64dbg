@@ -70,25 +70,26 @@ public:
     void hideEvent(QHideEvent* event) override;
 
     // ScrollBar Management
-    virtual dsint sliderMovedHook(int type, dsint value, dsint delta);
-    int scaleFromUint64ToScrollBarRange(dsint value);
-    dsint scaleFromScrollBarRangeToUint64(int value);
-    void updateScrollBarRange(dsint range);
+    virtual dsint sliderMovedHook(int type, dsint value, dsint delta); // can be made protected
+    int scaleFromUint64ToScrollBarRange(dsint value); // can be made private
+    dsint scaleFromScrollBarRangeToUint64(int value); // can be made private
+
+    void updateScrollBarRange(dsint range); // setRowCount+resizeEvent needs this, can be made private
 
     // Coordinates Utils
-    int getIndexOffsetFromY(int y) const;
-    int getColumnIndexFromX(int x) const;
-    int getColumnPosition(int index) const;
-    int transY(int y) const;
-    int getViewableRowsCount() const;
+    int getIndexOffsetFromY(int y) const; // can be made protected
+    int getColumnIndexFromX(int x) const; // can be made protected
+    int getColumnPosition(int index) const; // can be made protected
+    int transY(int y) const; // can be made protected
+    int getViewableRowsCount() const; // can be made protected
     virtual int getLineToPrintcount() const;
 
     // New Columns/New Size
     virtual void addColumnAt(int width, const QString & title, bool isClickable);
     virtual void setRowCount(dsint count);
-    virtual void deleteAllColumns();
-    void setColTitle(int index, const QString & title);
-    QString getColTitle(int index) const;
+    virtual void deleteAllColumns(); // can be made protected, although it makes sense as a public API
+    void setColTitle(int index, const QString & title); // can be deleted, although it makes sense as a public API
+    QString getColTitle(int index) const; // can be deleted, although it makes sense as a public API
 
     // Getter & Setter
     dsint getRowCount() const;
@@ -98,9 +99,9 @@ public:
     void setColumnWidth(int index, int width);
     void setColumnOrder(int pos, int index);
     int getColumnOrder(int index) const;
-    int getHeaderHeight() const;
-    int getTableHeight() const;
-    int getGuiState() const;
+    int getHeaderHeight() const; // can be made protected
+    int getTableHeight() const; // can be made protected
+    int getGuiState() const; // can be made protected
     int getNbrOfLineToPrint() const;
     void setNbrOfLineToPrint(int parNbrOfLineToPrint);
     void setShowHeader(bool show);
@@ -141,6 +142,9 @@ public slots:
 
     // ScrollBar Management
     void vertSliderActionSlot(int action);
+
+protected slots:
+    void ShowDisassemblyPopup(duint addr, int x, int y); // this should probably be a slot, but doesn't need emit fixes (it's already used correctly)
 
 private slots:
     // Configuration
@@ -227,7 +231,6 @@ protected:
 
     // Disassembly Popup
     DisassemblyPopup* mDisassemblyPopup;
-    void ShowDisassemblyPopup(duint addr, int x, int y);
 };
 
 #endif // ABSTRACTTABLEVIEW_H
