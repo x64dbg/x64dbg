@@ -6,6 +6,7 @@
 #include "Bridge.h"
 #include "DisassemblyPopup.h"
 #include <windows.h>
+#include "MethodInvoker.h"
 
 int AbstractTableView::mMouseWheelScrollDelta = 0;
 
@@ -828,8 +829,8 @@ dsint AbstractTableView::scaleFromScrollBarRangeToUint64(int value)
  */
 void AbstractTableView::updateScrollBarRange(dsint range)
 {
-    int viewableRowsCount = getViewableRowsCount();
-    dsint wMax = range - viewableRowsCount + 1;
+    dsint wMax = range - getViewableRowsCount() + 1;
+    int rangeMin = 0, rangeMax = wMax;
 
     if(wMax > 0)
     {
@@ -838,7 +839,8 @@ void AbstractTableView::updateScrollBarRange(dsint range)
         {
             mScrollBarAttributes.is64 = false;
             mScrollBarAttributes.rightShiftCount = 0;
-            verticalScrollBar()->setRange(0, wMax);
+            rangeMin = 0;
+            rangeMax = wMax;
         }
         else
         {
@@ -860,16 +862,25 @@ void AbstractTableView::updateScrollBarRange(dsint range)
 
             mScrollBarAttributes.is64 = true;
             mScrollBarAttributes.rightShiftCount = 32 - wLeadingZeroCount;
-            verticalScrollBar()->setRange(0, 0x7FFFFFFF);
+            rangeMin = 0;
+            rangeMax = 0x7FFFFFFF;
         }
 #else
-        verticalScrollBar()->setRange(0, wMax);
+        rangeMin = 0;
+        rangeMax = wMax;
 #endif
     }
     else
-        verticalScrollBar()->setRange(0, 0);
-    verticalScrollBar()->setSingleStep(getRowHeight());
-    verticalScrollBar()->setPageStep(viewableRowsCount * getRowHeight());
+    {
+        rangeMin = 0;
+        rangeMax = 0;
+    }
+    MethodInvoker::invokeMethod([this, rangeMin, rangeMax]
+    {
+        verticalScrollBar()->setRange(rangeMin, rangeMax);
+        verticalScrollBar()->setSingleStep(getRowHeight());
+        verticalScrollBar()->setPageStep(getViewableRowsCount() * getRowHeight());
+    });
 }
 
 /************************************************************************************
@@ -1128,16 +1139,20 @@ void AbstractTableView::setColumnHidden(int col, bool hidden)
 
 void AbstractTableView::setColumnWidth(int index, int width)
 {
-    int totalWidth = 0;
-    for(int i = 0; i < getColumnCount(); i++)
-        if(!getColumnHidden(i))
-            totalWidth += getColumnWidth(i);
-    if(totalWidth > this->viewport()->width())
-        horizontalScrollBar()->setRange(0, totalWidth - this->viewport()->width());
-    else
-        horizontalScrollBar()->setRange(0, 0);
-
     mColumnList[index].width = width;
+
+    MethodInvoker::invokeMethod([this]()
+    {
+        int totalWidth = 0;
+        for(int i = 0; i < getColumnCount(); i++)
+            if(!getColumnHidden(i))
+                totalWidth += getColumnWidth(i);
+
+        if(totalWidth > viewport()->width())
+            horizontalScrollBar()->setRange(0, totalWidth - viewport()->width());
+        else
+            horizontalScrollBar()->setRange(0, 0);
+    });
 }
 
 void AbstractTableView::setColumnOrder(int pos, int index)
@@ -1236,14 +1251,18 @@ void AbstractTableView::setTableOffset(dsint val)
 
     emit tableOffsetChanged(val);
 
+    MethodInvoker::invokeMethod([this]()
+    {
+
 #ifdef _WIN64
-    int wNewValue = scaleFromUint64ToScrollBarRange(mTableOffset);
-    verticalScrollBar()->setValue(wNewValue);
-    verticalScrollBar()->setSliderPosition(wNewValue);
+        int wNewValue = scaleFromUint64ToScrollBarRange(mTableOffset);
+        verticalScrollBar()->setValue(wNewValue);
+        verticalScrollBar()->setSliderPosition(wNewValue);
 #else
-    verticalScrollBar()->setValue(val);
-    verticalScrollBar()->setSliderPosition(val);
+        verticalScrollBar()->setValue(mTableOffset);
+        verticalScrollBar()->setSliderPosition(mTableOffset);
 #endif
+    });
 }
 
 
@@ -1254,12 +1273,15 @@ void AbstractTableView::reloadData()
 {
     mShouldReload = true;
     emit tableOffsetChanged(mTableOffset);
-    this->viewport()->update();
+    updateViewport();
 }
 
 void AbstractTableView::updateViewport()
 {
-    this->viewport()->update();
+    MethodInvoker::invokeMethod([this]()
+    {
+        viewport()->update();
+    });
 }
 
 /**
