@@ -40,6 +40,7 @@ public slots:
     void referenceSetProgressSlot(int progress);
     void referenceSetCurrentTaskProgressSlot(int progress, QString taskTitle);
     void searchSelectionChanged(int index);
+    void reloadDataSlot();
 
 signals:
     void showCpu();
@@ -59,6 +60,7 @@ private:
     QAction* mRemoveBreakpointOnAllCommands;
     QAction* mSetBreakpointOnAllApiCalls;
     QAction* mRemoveBreakpointOnAllApiCalls;
+    bool mUpdateCountLabel = false;
     QLabel* mCountTotalLabel;
     QVector<QString> mCommandTitles;
     QVector<QString> mCommands;

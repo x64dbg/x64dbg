@@ -219,11 +219,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_REF_SETROWCOUNT:
     {
         if(referenceManager->currentReferenceView())
-        {
-            BridgeResult result(BridgeResult::RefSetRowCount);
-            emit referenceSetRowCount((dsint)param1);
-            result.Wait();
-        }
+            referenceManager->currentReferenceView()->setRowCount((dsint)param1);
     }
     break;
 
@@ -244,7 +240,8 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_REF_SETCELLCONTENT:
     {
         CELLINFO* info = (CELLINFO*)param1;
-        emit referenceSetCellContent(info->row, info->col, QString(info->str));
+        if(referenceManager->currentReferenceView())
+            referenceManager->currentReferenceView()->setCellContent(info->row, info->col, QString(info->str));
     }
     break;
 
@@ -287,7 +284,8 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_REF_SETSEARCHSTARTCOL:
-        emit referenceSetSearchStartCol((int)param1);
+        if(referenceManager->currentReferenceView())
+            referenceManager->currentReferenceView()->setSearchStartCol((int)param1);
         break;
 
     case GUI_REF_INITIALIZE:
