@@ -116,6 +116,16 @@ void ReferenceView::disconnectBridge()
     disconnect(stdList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
 }
 
+int ReferenceView::progress() const
+{
+    return mSearchTotalProgress->value();
+}
+
+int ReferenceView::currentTaskProgress() const
+{
+    return mSearchCurrentTaskProgress->value();
+}
+
 void ReferenceView::refreshShortcutsSlot()
 {
     mToggleBreakpoint->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
@@ -124,23 +134,17 @@ void ReferenceView::refreshShortcutsSlot()
 
 void ReferenceView::referenceSetProgressSlot(int progress)
 {
-    if(mSearchTotalProgress->value() != progress)
-    {
-        mSearchTotalProgress->setValue(progress);
-        mSearchTotalProgress->setAlignment(Qt::AlignCenter);
-        mSearchTotalProgress->setFormat(tr("Total Progress %1%").arg(QString::number(progress)));
-        mCountTotalLabel->setText(QString("%1").arg(stdList()->getRowCount()));
-    }
+    mSearchTotalProgress->setValue(progress);
+    mSearchTotalProgress->setAlignment(Qt::AlignCenter);
+    mSearchTotalProgress->setFormat(tr("Total Progress %1%").arg(QString::number(progress)));
+    mCountTotalLabel->setText(QString("%1").arg(stdList()->getRowCount()));
 }
 
 void ReferenceView::referenceSetCurrentTaskProgressSlot(int progress, QString taskTitle)
 {
-    if(mSearchCurrentTaskProgress->value() != progress)
-    {
-        mSearchCurrentTaskProgress->setValue(progress);
-        mSearchCurrentTaskProgress->setAlignment(Qt::AlignCenter);
-        mSearchCurrentTaskProgress->setFormat(taskTitle + " " + QString::number(progress) + "%");
-    }
+    mSearchCurrentTaskProgress->setValue(progress);
+    mSearchCurrentTaskProgress->setAlignment(Qt::AlignCenter);
+    mSearchCurrentTaskProgress->setFormat(taskTitle + " " + QString::number(progress) + "%");
 }
 
 void ReferenceView::searchSelectionChanged(int index)

@@ -17,6 +17,8 @@ public:
     void setupContextMenu();
     void connectBridge();
     void disconnectBridge();
+    int progress() const;
+    int currentTaskProgress() const;
 
 public slots:
     void addColumnAtRef(int width, QString title);

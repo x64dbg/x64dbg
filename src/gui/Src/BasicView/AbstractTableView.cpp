@@ -257,6 +257,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
     // Reload data if needed
     if(mPrevTableOffset != mTableOffset || mShouldReload == true)
     {
+        updateScrollBarRange(getRowCount());
         prepareData();
         mPrevTableOffset = mTableOffset;
         mShouldReload = false;
@@ -875,12 +876,9 @@ void AbstractTableView::updateScrollBarRange(dsint range)
         rangeMin = 0;
         rangeMax = 0;
     }
-    MethodInvoker::invokeMethod([this, rangeMin, rangeMax]
-    {
-        verticalScrollBar()->setRange(rangeMin, rangeMax);
-        verticalScrollBar()->setSingleStep(getRowHeight());
-        verticalScrollBar()->setPageStep(getViewableRowsCount() * getRowHeight());
-    });
+    verticalScrollBar()->setRange(rangeMin, rangeMax);
+    verticalScrollBar()->setSingleStep(getRowHeight());
+    verticalScrollBar()->setPageStep(getViewableRowsCount() * getRowHeight());
 }
 
 /************************************************************************************
@@ -1065,7 +1063,6 @@ void AbstractTableView::addColumnAt(int width, const QString & title, bool isCli
 
 void AbstractTableView::setRowCount(dsint count)
 {
-    updateScrollBarRange(count);
     if(mRowCount != count)
         mShouldReload = true;
     mRowCount = count;
@@ -1253,7 +1250,6 @@ void AbstractTableView::setTableOffset(dsint val)
 
     MethodInvoker::invokeMethod([this]()
     {
-
 #ifdef _WIN64
         int wNewValue = scaleFromUint64ToScrollBarRange(mTableOffset);
         verticalScrollBar()->setValue(wNewValue);

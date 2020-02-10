@@ -276,11 +276,21 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_REF_SETPROGRESS:
-        emit referenceSetProgress((int)param1);
+        if(referenceManager->currentReferenceView())
+        {
+            auto newProgress = (int)param1;
+            if(referenceManager->currentReferenceView()->progress() != newProgress)
+                emit referenceSetProgress(newProgress);
+        }
         break;
 
     case GUI_REF_SETCURRENTTASKPROGRESS:
-        emit referenceSetCurrentTaskProgress((int)param1, QString((const char*)param2));
+        if(referenceManager->currentReferenceView())
+        {
+            auto newProgress = (int)param1;
+            if(referenceManager->currentReferenceView()->currentTaskProgress() != newProgress)
+                emit referenceSetCurrentTaskProgress((int)param1, QString((const char*)param2));
+        }
         break;
 
     case GUI_REF_SETSEARCHSTARTCOL:
