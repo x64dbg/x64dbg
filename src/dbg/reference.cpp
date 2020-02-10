@@ -196,11 +196,13 @@ int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserDa
     if(initCallBack)
         Callback(0, 0, &refInfo);
 
+    auto percentCount = scanSize / 500;
+
     //concurrency::parallel_for(duint (0), scanSize, [&](duint i)
     for(duint i = 0; i < scanSize;)
     {
-        // Print the progress every 4096 bytes
-        if((i % 0x1000) == 0)
+        // Print the progress every percent
+        if((i % percentCount) == 0)
         {
             // Percent = (current / total) * 100
             // Integer = floor(percent)
