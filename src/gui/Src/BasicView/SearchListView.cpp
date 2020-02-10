@@ -5,6 +5,7 @@
 #include <QTimer>
 #include "SearchListView.h"
 #include "FlickerThread.h"
+#include "MethodInvoker.h"
 
 SearchListView::SearchListView(QWidget* parent, AbstractSearchList* abstractSearchList, bool enableRegex, bool enableLock)
     : QWidget(parent), mAbstractSearchList(abstractSearchList)
@@ -166,8 +167,12 @@ void SearchListView::filterEntries()
 
     if(mFilterText.length())
     {
-        mAbstractSearchList->list()->hide();
-        mAbstractSearchList->searchList()->show();
+        MethodInvoker::invokeMethod([this]()
+        {
+            mAbstractSearchList->list()->hide();
+            mAbstractSearchList->searchList()->show();
+        });
+
         mCurList = mAbstractSearchList->searchList();
 
         // filter the list
@@ -185,8 +190,12 @@ void SearchListView::filterEntries()
     }
     else
     {
-        mAbstractSearchList->searchList()->hide();
-        mAbstractSearchList->list()->show();
+        MethodInvoker::invokeMethod([this]()
+        {
+            mAbstractSearchList->searchList()->hide();
+            mAbstractSearchList->list()->show();
+        });
+
         mCurList = mAbstractSearchList->list();
     }
 
@@ -270,11 +279,18 @@ void SearchListView::refreshSearchList()
 
 void SearchListView::clearFilter()
 {
-    mSearchBox->clear();
     bool isFilterAlreadyEmpty = mFilterText.isEmpty();
     mFilterText.clear();
+
     if(!isFilterAlreadyEmpty)
+    {
+        MethodInvoker::invokeMethod([this]()
+        {
+            mSearchBox->clear();
+        });
+
         filterEntries();
+    }
 }
 
 void SearchListView::listContextMenu(const QPoint & pos)

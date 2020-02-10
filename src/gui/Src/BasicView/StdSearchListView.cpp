@@ -1,4 +1,5 @@
 #include "StdSearchListView.h"
+#include "MethodInvoker.h"
 
 StdSearchListView::StdSearchListView(QWidget* parent, bool enableRegex, bool enableLock)
     : StdSearchListView(parent, enableRegex, enableLock, new StdTableSearchList())
@@ -72,7 +73,10 @@ void StdSearchListView::reloadData()
 {
     clearFilter();
     stdList()->reloadData();
-    stdList()->setFocus();
+    MethodInvoker::invokeMethod([this]()
+    {
+        stdList()->setFocus();
+    });
 }
 
 void StdSearchListView::setSearchStartCol(int col)
