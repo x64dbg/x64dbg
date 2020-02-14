@@ -49,7 +49,7 @@ QMAKE_CXXFLAGS_RELEASE += -Zi   # Compiler
 QMAKE_LFLAGS_RELEASE += /DEBUG  # Linker
 
 # Build as a library
-DEFINES += BUILD_LIB NOMINMAX
+DEFINES += BUILD_LIB NOMINMAX _GLFW_WIN32
 TEMPLATE = lib
 
 ##
@@ -67,7 +67,12 @@ INCLUDEPATH += \
     Src/Utils \
     Src/ThirdPartyLibs/ldconvert \
     ../zydis_wrapper \
-    ../zydis_wrapper/zydis/include
+    ../zydis_wrapper/zydis/include \
+    Src/SignalVisualizer/glfw/include \
+    Src/SignalVisualizer/imgui \
+    Src/SignalVisualizer/imgui_club \
+    Src/SignalVisualizer/imgui/examples \
+    Src/SignalVisualizer/imgui/examples/libs/gl3w
 
 # Resources, sources, headers, and forms
 RESOURCES += \
@@ -183,7 +188,30 @@ SOURCES += \
     Src/BasicView/AbstractStdTable.cpp \
     Src/Gui/ZehSymbolTable.cpp \
     Src/BasicView/StdSearchListView.cpp \
-    Src/BasicView/StdTableSearchList.cpp
+    Src/BasicView/StdTableSearchList.cpp \
+    Src/SignalVisualizer/GleeDbg.cpp \
+    Src/SignalVisualizer/glfw/src/context.c \
+    Src/SignalVisualizer/glfw/src/osmesa_context.c \
+    Src/SignalVisualizer/glfw/src/egl_context.c \
+    Src/SignalVisualizer/glfw/src/init.c \
+    Src/SignalVisualizer/glfw/src/input.c \
+    Src/SignalVisualizer/glfw/src/monitor.c \
+    Src/SignalVisualizer/glfw/src/vulkan.c \
+    Src/SignalVisualizer/glfw/src/wgl_context.c \
+    Src/SignalVisualizer/glfw/src/win32_init.c \
+    Src/SignalVisualizer/glfw/src/win32_joystick.c \
+    Src/SignalVisualizer/glfw/src/win32_monitor.c \
+    Src/SignalVisualizer/glfw/src/win32_time.c \
+    Src/SignalVisualizer/glfw/src/win32_thread.c \
+    Src/SignalVisualizer/glfw/src/win32_window.c \
+    Src/SignalVisualizer/glfw/src/window.c \
+    Src/SignalVisualizer/imgui/examples/imgui_impl_glfw.cpp \
+    Src/SignalVisualizer/imgui/examples/imgui_impl_opengl3.cpp \
+    Src/SignalVisualizer/imgui/examples/libs/gl3w/GL/gl3w.c \
+    Src/SignalVisualizer/imgui/imgui.cpp \
+    Src/SignalVisualizer/imgui/imgui_demo.cpp \
+    Src/SignalVisualizer/imgui/imgui_draw.cpp \
+    Src/SignalVisualizer/imgui/imgui_widgets.cpp
 
 
 HEADERS += \
@@ -348,7 +376,7 @@ FORMS += \
 ##
 ## Libraries
 ##
-LIBS += -luser32 -ladvapi32 -lwinmm -lshell32
+LIBS += -luser32 -ladvapi32 -lwinmm -lshell32 -lgdi32 -lopengl32
 
 !contains(QMAKE_HOST.arch, x86_64) {
     # Windows x86 (32bit) specific build

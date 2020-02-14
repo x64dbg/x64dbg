@@ -26,11 +26,20 @@ bool MyApplication::globalEventFilter(void* message)
 }
 #endif
 
+#include <QtCore/5.6.2/QtCore/private/qobject_p.h>
+
+static DWORD metaCallEvents = 0;
+
 bool MyApplication::notify(QObject* receiver, QEvent* event)
 {
     bool done = true;
     try
     {
+        if(event->type() == QEvent::MetaCall)
+        {
+            metaCallEvents++;
+            //QMetaCallEvent* metaCall = static_cast<QMetaCallEvent*>(event);
+        }
         done = QApplication::notify(receiver, event);
     }
     catch(const std::exception & ex)
@@ -65,8 +74,25 @@ static bool isValidLocale(const QString & locale)
     return false;
 }
 
+#include <atomic>
+#include <fstream>
+
+std::atomic<bool> mStopPolling;
+
+static DWORD WINAPI PollThread(LPVOID)
+{
+    std::ofstream ofs("eventCounter.txt");
+    while(!mStopPolling)
+    {
+        ofs << metaCallEvents << '\n';
+        Sleep(1000);
+    }
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
+    auto hPollThread = CreateThread(nullptr, 0, PollThread, nullptr, 0, nullptr);
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
     QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     MyApplication application(argc, argv);
@@ -166,6 +192,10 @@ int main(int argc, char* argv[])
     }
 
     //TODO free Zydis/config/bridge and prevent use after free.
+
+    mStopPolling = true;
+    WaitForSingleObject(hPollThread, INFINITE);
+    CloseHandle(hPollThread);
 
     return result;
 }

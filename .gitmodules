@@ -11,3 +11,12 @@
 [submodule "src/zydis_wrapper/zydis"]
 	path = src/zydis_wrapper/zydis
 	url = https://github.com/x64dbg/zydis.git
+[submodule "src/gui/Src/SignalVisualizer/glfw"]
+	path = src/gui/Src/SignalVisualizer/glfw
+	url = https://github.com/glfw/glfw
+[submodule "src/gui/Src/SignalVisualizer/imgui"]
+	path = src/gui/Src/SignalVisualizer/imgui
+	url = https://github.com/ocornut/imgui
+[submodule "src/gui/Src/SignalVisualizer/imgui_club"]
+	path = src/gui/Src/SignalVisualizer/imgui_club
+	url = https://github.com/ocornut/imgui_club
