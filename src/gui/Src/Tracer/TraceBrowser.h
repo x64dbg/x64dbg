@@ -29,6 +29,16 @@ public:
     duint getSelectionEnd();
 
 private:
+    enum TableColumnIndex
+    {
+        Index,
+        Address,
+        Opcode,
+        Disassembly,
+        Registers,
+        Memory,
+        Comments
+    };
     void setupRightClickContextMenu();
     void makeVisible(duint index);
     QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel);
@@ -44,6 +54,8 @@ private:
     void mouseDoubleClickEvent(QMouseEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
 
+    ZydisTokenizer::InstructionToken memoryTokens(int atIndex);
+    ZydisTokenizer::InstructionToken registersTokens(int atIndex);
     VaHistory mHistory;
     MenuBuilder* mMenuBuilder;
     bool mRvaDisplayEnabled;
