@@ -169,6 +169,32 @@ bool ZydisTokenizer::TokenizeData(const QString & datatype, const QString & data
     return true;
 }
 
+void ZydisTokenizer::TokenizeTraceRegister(const char* reg, duint oldValue, duint newValue, std::vector<SingleToken> & tokens)
+{
+    if(tokens.size() > 0)
+    {
+        tokens.push_back(SingleToken(TokenType::ArgumentSpace, " ", TokenValue()));
+    }
+    tokens.push_back(SingleToken(TokenType::GeneralRegister, QString(reg), TokenValue()));
+    tokens.push_back(SingleToken(TokenType::ArgumentSpace, ": ", TokenValue()));
+    tokens.push_back(SingleToken(TokenType::Value, ToHexString(oldValue), TokenValue(8, oldValue)));
+    tokens.push_back(SingleToken(TokenType::ArgumentSpace, "-> ", TokenValue()));
+    tokens.push_back(SingleToken(TokenType::Value, ToHexString(newValue), TokenValue(8, newValue)));
+}
+
+void ZydisTokenizer::TokenizeTraceMemory(duint address, duint oldValue, duint newValue, std::vector<SingleToken> & tokens)
+{
+    if(tokens.size() > 0)
+    {
+        tokens.push_back(SingleToken(TokenType::ArgumentSpace, " ", TokenValue()));
+    }
+    tokens.push_back(SingleToken(TokenType::Address, ToPtrString(address), TokenValue(8, address)));
+    tokens.push_back(SingleToken(TokenType::ArgumentSpace, ": ", TokenValue()));
+    tokens.push_back(SingleToken(TokenType::Value, ToHexString(oldValue), TokenValue(8, oldValue)));
+    tokens.push_back(SingleToken(TokenType::ArgumentSpace, "-> ", TokenValue()));
+    tokens.push_back(SingleToken(TokenType::Value, ToHexString(newValue), TokenValue(8, newValue)));
+}
+
 void ZydisTokenizer::UpdateConfig()
 {
     SetConfig(ConfigBool("Disassembler", "Uppercase"),

@@ -20,6 +20,8 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
     addColumnAt(getCharWidth() * 2 * sizeof(dsint) + 8, "", false); //address
     addColumnAt(getCharWidth() * 2 * 12 + 8, "", false); //bytes
     addColumnAt(getCharWidth() * 40, "", false); //disassembly
+    addColumnAt(getCharWidth() * 50, "", false); //registers
+    addColumnAt(getCharWidth() * 50, "", false); //memory
     addColumnAt(1000, "", false); //comments
 
     setShowHeader(false); //hide header
@@ -175,14 +177,14 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
     }
     if(index >= mTraceFile->Length())
         return "";
-    switch(col)
+    switch(static_cast<TableColumnIndex>(col))
     {
-    case 0: //index
+    case Index:
     {
         return getIndexText(index);
     }
 
-    case 1: //address
+    case Address:
     {
         QString addrText;
         char label[MAX_LABEL_SIZE] = "";
@@ -334,7 +336,7 @@ NotDebuggingLabel:
     }
     return "";
 
-    case 2: //opcode
+    case Opcode:
     {
         unsigned char opcodes[16];
         int opcodeSize = 0;
@@ -344,7 +346,7 @@ NotDebuggingLabel:
         return "";
     }
 
-    case 3: //disassembly
+    case Disassembly:
     {
         RichTextPainter::List richText;
         unsigned char opcodes[16];
@@ -361,7 +363,31 @@ NotDebuggingLabel:
         return "";
     }
 
-    case 4: //comments
+    case Registers:
+    {
+        RichTextPainter::List richText;
+        auto fakeInstruction = registersTokens(index);
+        if(mHighlightToken.text.length())
+            ZydisTokenizer::TokenToRichText(fakeInstruction, richText, &mHighlightToken);
+        else
+            ZydisTokenizer::TokenToRichText(fakeInstruction, richText, 0);
+        RichTextPainter::paintRichText(painter, x + 0, y, getColumnWidth(col) - 0, getRowHeight(), 4, richText, mFontMetrics);
+
+        return "";
+    }
+    case Memory:
+    {
+        auto fakeInstruction = memoryTokens(index);
+        RichTextPainter::List richText;
+        if(mHighlightToken.text.length())
+            ZydisTokenizer::TokenToRichText(fakeInstruction, richText, &mHighlightToken);
+        else
+            ZydisTokenizer::TokenToRichText(fakeInstruction, richText, 0);
+        RichTextPainter::paintRichText(painter, x + 0, y, getColumnWidth(col) - 0, getRowHeight(), 4, richText, mFontMetrics);
+
+        return "";
+    }
+    case Comments:
     {
         int xinc = 3;
         if(DbgIsDebugging())
@@ -408,9 +434,69 @@ NotDebuggingLabel:
         }
         return "";
     }
+
     default:
         return "";
     }
+}
+
+ZydisTokenizer::InstructionToken TraceBrowser::memoryTokens(int atIndex)
+{
+    duint MemoryAddress[MAX_MEMORY_OPERANDS];
+    duint MemoryOldContent[MAX_MEMORY_OPERANDS];
+    duint MemoryNewContent[MAX_MEMORY_OPERANDS];
+    bool MemoryIsValid[MAX_MEMORY_OPERANDS];
+    int MemoryOperandsCount;
+    ZydisTokenizer::InstructionToken fakeInstruction = ZydisTokenizer::InstructionToken();
+
+    MemoryOperandsCount = mTraceFile->MemoryAccessCount(atIndex);
+    if(MemoryOperandsCount > 0)
+    {
+        mTraceFile->MemoryAccessInfo(atIndex, MemoryAddress, MemoryOldContent, MemoryNewContent, MemoryIsValid);
+        std::vector<ZydisTokenizer::SingleToken> tokens;
+
+        for(int i = 0; i < MemoryOperandsCount; i++)
+        {
+            ZydisTokenizer::TokenizeTraceMemory(MemoryAddress[i], MemoryOldContent[i], MemoryNewContent[i], tokens);
+        }
+
+
+        fakeInstruction.tokens.insert(fakeInstruction.tokens.begin(), tokens.begin(), tokens.end());
+    }
+    return  fakeInstruction;
+}
+
+ZydisTokenizer::InstructionToken TraceBrowser::registersTokens(int atIndex)
+{
+    ZydisTokenizer::InstructionToken fakeInstruction = ZydisTokenizer::InstructionToken();
+    REGDUMP now = mTraceFile->Registers(atIndex);
+    REGDUMP next = (atIndex + 1 < mTraceFile->Length()) ? mTraceFile->Registers(atIndex + 1) : now;
+    std::vector<ZydisTokenizer::SingleToken> tokens;
+
+#define addRegValues(str, reg) if (atIndex ==0 || now.regcontext.##reg != next.regcontext.##reg) { \
+    ZydisTokenizer::TokenizeTraceRegister(str, now.regcontext.##reg, next.regcontext.##reg, tokens);};
+
+    addRegValues(ArchValue("eax", "rax"), cax)
+    addRegValues(ArchValue("ebx", "rbx"), cbx)
+    addRegValues(ArchValue("ecx", "rcx"), ccx)
+    addRegValues(ArchValue("edx", "rdx"), cdx)
+    addRegValues(ArchValue("esp", "rsp"), csp)
+    addRegValues(ArchValue("ebp", "rbp"), cbp)
+    addRegValues(ArchValue("esi", "rsi"), csi)
+    addRegValues(ArchValue("edi", "rdi"), cdi)
+#ifdef _WIN64
+    addRegValues("r8", r8)
+    addRegValues("r9", r9)
+    addRegValues("r10", r10)
+    addRegValues("r11", r11)
+    addRegValues("r12", r12)
+    addRegValues("r13", r13)
+    addRegValues("r14", r14)
+    addRegValues("r15", r15)
+#endif //_WIN64
+
+    fakeInstruction.tokens.insert(fakeInstruction.tokens.begin(), tokens.begin(), tokens.end());
+    return fakeInstruction;
 }
 
 void TraceBrowser::prepareData()
@@ -607,77 +693,94 @@ void TraceBrowser::contextMenuEvent(QContextMenuEvent* event)
 void TraceBrowser::mousePressEvent(QMouseEvent* event)
 {
     duint index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
-    if(getGuiState() == AbstractTableView::NoState && mTraceFile != nullptr && mTraceFile->Progress() == 100)
+    if(getGuiState() != AbstractTableView::NoState || !mTraceFile || mTraceFile->Progress() < 100)
     {
-        switch(event->button())
+        AbstractTableView::mousePressEvent(event);
+        return;
+    }
+    switch(event->button())
+    {
+    case Qt::LeftButton:
+        if(index < getRowCount())
         {
-        case Qt::LeftButton:
-            if(index < getRowCount())
+            if(mHighlightingMode || mPermanentHighlightingMode)
             {
-                if(mHighlightingMode || mPermanentHighlightingMode)
+                ZydisTokenizer::InstructionToken tokens;
+                int columnPosition = 0;
+                if(getColumnIndexFromX(event->x()) == Disassembly)
                 {
-                    if(getColumnIndexFromX(event->x()) == 3) //click in instruction column
+                    Instruction_t inst;
+                    unsigned char opcode[16];
+                    int opcodeSize;
+                    mTraceFile->OpCode(index, opcode, &opcodeSize);
+                    tokens = mDisasm->DisassembleAt(opcode, opcodeSize, mTraceFile->Registers(index).regcontext.cip, 0).tokens;
+                    columnPosition = getColumnPosition(Disassembly);
+                }
+                else if(getColumnIndexFromX(event->x()) == TableColumnIndex::Registers)
+                {
+                    tokens = registersTokens(index);
+                    columnPosition = getColumnPosition(Registers);
+                }
+                else if(getColumnIndexFromX(event->x()) == Memory)
+                {
+                    tokens = memoryTokens(index);
+                    columnPosition = getColumnPosition(Memory);
+                }
+                ZydisTokenizer::SingleToken token;
+                if(ZydisTokenizer::TokenFromX(tokens, token, event->x() - columnPosition, mFontMetrics))
+                {
+                    if(ZydisTokenizer::IsHighlightableToken(token))
                     {
-                        Instruction_t inst;
-                        unsigned char opcode[16];
-                        int opcodeSize;
-                        mTraceFile->OpCode(index, opcode, &opcodeSize);
-                        inst = mDisasm->DisassembleAt(opcode, opcodeSize, mTraceFile->Registers(index).regcontext.cip, 0);
-                        ZydisTokenizer::SingleToken token;
-                        if(ZydisTokenizer::TokenFromX(inst.tokens, token, event->x() - getColumnPosition(3), mFontMetrics))
-                        {
-                            if(ZydisTokenizer::IsHighlightableToken(token))
-                            {
-                                if(!ZydisTokenizer::TokenEquals(&token, &mHighlightToken) || event->button() == Qt::RightButton)
-                                    mHighlightToken = token;
-                                else
-                                    mHighlightToken = ZydisTokenizer::SingleToken();
-                            }
-                            else if(!mPermanentHighlightingMode)
-                            {
-                                mHighlightToken = ZydisTokenizer::SingleToken();
-                            }
-                        }
-                        else if(!mPermanentHighlightingMode)
-                        {
+                        if(!ZydisTokenizer::TokenEquals(&token, &mHighlightToken) || event->button() == Qt::RightButton)
+                            mHighlightToken = token;
+                        else
                             mHighlightToken = ZydisTokenizer::SingleToken();
-                        }
                     }
                     else if(!mPermanentHighlightingMode)
                     {
                         mHighlightToken = ZydisTokenizer::SingleToken();
                     }
-                    if(mHighlightingMode) //disable highlighting mode after clicked
-                    {
-                        mHighlightingMode = false;
-                        reloadData();
-                    }
                 }
-                if(event->modifiers() & Qt::ShiftModifier)
-                    expandSelectionUpTo(index);
-                else
-                    setSingleSelection(index);
-                mHistory.addVaToHistory(index);
-                updateViewport();
-
-                if(mAutoDisassemblyFollowSelection)
-                    followDisassemblySlot();
-
-                return;
+                else if(!mPermanentHighlightingMode)
+                {
+                    mHighlightToken = ZydisTokenizer::SingleToken();
+                }
             }
-            break;
-        case Qt::MiddleButton:
-            copyCipSlot();
-            MessageBeep(MB_OK);
-            break;
-        case Qt::BackButton:
-            gotoPreviousSlot();
-            break;
-        case Qt::ForwardButton:
-            gotoNextSlot();
-            break;
+            else if(!mPermanentHighlightingMode)
+            {
+                mHighlightToken = ZydisTokenizer::SingleToken();
+            }
+            if(mHighlightingMode) //disable highlighting mode after clicked
+            {
+                mHighlightingMode = false;
+                reloadData();
+            }
         }
+        if(event->modifiers() & Qt::ShiftModifier)
+            expandSelectionUpTo(index);
+        else
+            setSingleSelection(index);
+        mHistory.addVaToHistory(index);
+        updateViewport();
+
+        if(mAutoDisassemblyFollowSelection)
+            followDisassemblySlot();
+
+        return;
+
+        break;
+    case Qt::MiddleButton:
+        copyCipSlot();
+        MessageBeep(MB_OK);
+        break;
+    case Qt::BackButton:
+        gotoPreviousSlot();
+        break;
+    case Qt::ForwardButton:
+        gotoNextSlot();
+        break;
     }
+
     AbstractTableView::mousePressEvent(event);
 }
 
@@ -687,10 +790,10 @@ void TraceBrowser::mouseDoubleClickEvent(QMouseEvent* event)
     {
         switch(getColumnIndexFromX(event->x()))
         {
-        case 0://Index: follow
+        case Index://Index: follow
             followDisassemblySlot();
             break;
-        case 1://Address: set RVA
+        case Address://Address: set RVA
             if(mRvaDisplayEnabled && mTraceFile->Registers(getInitialSelection()).regcontext.cip == mRvaDisplayBase)
                 mRvaDisplayEnabled = false;
             else
@@ -700,13 +803,13 @@ void TraceBrowser::mouseDoubleClickEvent(QMouseEvent* event)
             }
             reloadData();
             break;
-        case 2: //Opcode: Breakpoint
+        case Opcode: //Opcode: Breakpoint
             mBreakpointMenu->toggleInt3BPActionSlot();
             break;
-        case 3: //Instructions: follow
+        case Disassembly: //Instructions: follow
             followDisassemblySlot();
             break;
-        case 4: //Comment
+        case Comments: //Comment
             setCommentSlot();
             break;
         }
@@ -1072,9 +1175,11 @@ void TraceBrowser::copyIndexSlot()
 
 void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QTextStream* htmlStream)
 {
-    const int addressLen = getColumnWidth(1) / getCharWidth() - 1;
-    const int bytesLen = getColumnWidth(2) / getCharWidth() - 1;
-    const int disassemblyLen = getColumnWidth(3) / getCharWidth() - 1;
+    const int addressLen = getColumnWidth(Address) / getCharWidth() - 1;
+    const int bytesLen = getColumnWidth(Opcode) / getCharWidth() - 1;
+    const int disassemblyLen = getColumnWidth(Disassembly) / getCharWidth() - 1;
+    const int registersLen = getColumnWidth(Registers) / getCharWidth() - 1;
+    const int memoryLen = getColumnWidth(Memory) / getCharWidth() - 1;
     if(htmlStream)
         *htmlStream << QString("<table style=\"border-width:0px;border-color:#000000;font-family:%1;font-size:%2px;\">").arg(font().family()).arg(getRowHeight());
     for(unsigned long long i = getSelectionStart(); i <= getSelectionEnd(); i++)
@@ -1113,16 +1218,57 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
         bool autocomment;
         if(GetCommentFormat(cur_addr, comment, &autocomment))
             fullComment = " " + comment;
+
+        QString registersText;
+        QString registersHtml;
+        ZydisTokenizer::InstructionToken regTokens = registersTokens(i);
+        if(htmlStream)
+        {
+            RichTextPainter::List richText;
+            if(mHighlightToken.text.length())
+                ZydisTokenizer::TokenToRichText(regTokens, richText, &mHighlightToken);
+            else
+                ZydisTokenizer::TokenToRichText(regTokens, richText, 0);
+            RichTextPainter::htmlRichText(richText, registersHtml, registersText);
+        }
+        else
+        {
+            for(const auto & token : regTokens.tokens)
+                registersText += token.text;
+        }
+
+        QString memoryText;
+        QString memoryHtml;
+        ZydisTokenizer::InstructionToken memTokens = memoryTokens(i);
+        if(htmlStream)
+        {
+            RichTextPainter::List richText;
+            if(mHighlightToken.text.length())
+                ZydisTokenizer::TokenToRichText(memTokens, richText, &mHighlightToken);
+            else
+                ZydisTokenizer::TokenToRichText(memTokens, richText, 0);
+            RichTextPainter::htmlRichText(richText, memoryHtml, memoryText);
+        }
+        else
+        {
+            for(const auto & token : memTokens.tokens)
+                memoryText += token.text;
+        }
+
         stream << getIndexText(i) + " | " + address.leftJustified(addressLen, QChar(' '), true);
         if(copyBytes)
             stream << " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
-        stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;
+        stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true);
+        stream << " | " + registersText.leftJustified(registersLen, QChar(' '), true);
+        stream << " | " + memoryText.leftJustified(memoryLen, QChar(' '), true) + " |" + fullComment;
         if(htmlStream)
         {
             *htmlStream << QString("<tr><td>%1</td><td>%2</td><td>").arg(getIndexText(i), address.toHtmlEscaped());
             if(copyBytes)
                 *htmlStream << QString("%1</td><td>").arg(bytesHTML);
             *htmlStream << QString("%1</td><td>").arg(htmlDisassembly);
+            *htmlStream << QString("%1</td><td>").arg(registersText);
+            *htmlStream << QString("%1</td><td>").arg(memoryText);
             if(!comment.isEmpty())
             {
                 if(autocomment)
