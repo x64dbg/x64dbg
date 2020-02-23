@@ -9,6 +9,15 @@
 #include "variable.h"
 #include "debugger.h"
 #include "filehelper.h"
+#include <thread>
+
+enum CMDRESULT
+{
+    STATUS_ERROR = false,
+    STATUS_CONTINUE = true,
+    STATUS_EXIT = 2,
+    STATUS_PAUSE = 3
+};
 
 static std::vector<LINEMAPENTRY> linemap;
 static std::vector<SCRIPTBP> scriptbplist;
@@ -18,14 +27,7 @@ static int scriptIpOld = 0;
 static bool volatile bAbort = false;
 static bool volatile bIsRunning = false;
 static bool scriptLogEnabled = false;
-
-enum CMDRESULT
-{
-    STATUS_ERROR = false,
-    STATUS_CONTINUE = true,
-    STATUS_EXIT = 2,
-    STATUS_PAUSE = 3
-};
+static CMDRESULT scriptLastError = STATUS_ERROR;
 
 static SCRIPTBRANCHTYPE scriptgetbranchtype(const char* text)
 {
@@ -396,14 +398,17 @@ static bool scriptinternalbranch(SCRIPTBRANCHTYPE type) //determine if we should
     return bJump;
 }
 
-static CMDRESULT scriptinternalcmdexec(const char* cmd)
+static CMDRESULT scriptinternalcmdexec(const char* cmd, bool silentRet)
 {
     if(scriptisinternalcommand(cmd, "ret")) //script finished
     {
         if(!scriptstack.size()) //nothing on the stack
         {
-            String TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Script finished!"));
-            GuiScriptMessage(TranslatedString.c_str());
+            if(!silentRet)
+            {
+                String TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Script finished!"));
+                GuiScriptMessage(TranslatedString.c_str());
+            }
             return STATUS_EXIT;
         }
         scriptIp = scriptstack.back();
@@ -440,7 +445,7 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
             }
             if(scriptinternalbranch(branchtype))
             {
-                if(branchtype == scriptcall)  //calls have a special meaning
+                if(branchtype == scriptcall) //calls have a special meaning
                     scriptstack.push_back(scriptIp);
                 scriptIp = scriptinternalstep(labelIp); //go to the first command after the label
                 GuiScriptSetIp(scriptIp);
@@ -458,17 +463,18 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd)
     return res ? STATUS_CONTINUE : STATUS_ERROR;
 }
 
-static bool scriptinternalcmd()
+static bool scriptinternalcmd(bool silentRet)
 {
     bool bContinue = true;
     if(size_t(scriptIp - 1) >= linemap.size())
         return false;
-    LINEMAPENTRY cur = linemap.at(scriptIp - 1);
+    const LINEMAPENTRY & cur = linemap.at(scriptIp - 1);
     scriptIpOld = scriptIp;
     scriptIp = scriptinternalstep(scriptIp);
     if(cur.type == linecommand)
     {
-        switch(scriptinternalcmdexec(cur.u.command))
+        scriptLastError = scriptinternalcmdexec(cur.u.command, silentRet);
+        switch(scriptLastError)
         {
         case STATUS_CONTINUE:
             if(scriptIp == scriptIpOld)
@@ -506,9 +512,14 @@ static bool scriptinternalcmd()
     return bContinue;
 }
 
-DWORD WINAPI scriptRunSync(void* arg)
+static DWORD WINAPI scriptLoadSyncThread(LPVOID filename)
 {
-    int destline = (int)(duint)arg;
+    scriptLoadSync(reinterpret_cast<const char*>(filename));
+    return 0;
+}
+
+bool scriptRunSync(int destline, bool silentRet)
+{
     if(!destline || destline > (int)linemap.size()) //invalid line
         destline = 0;
     if(destline)
@@ -527,7 +538,7 @@ DWORD WINAPI scriptRunSync(void* arg)
     FILETIME creationTime, exitTime; // unused
     while(bContinue && !bAbort) //run loop
     {
-        bContinue = scriptinternalcmd();
+        bContinue = scriptinternalcmd(silentRet);
         if(scriptinternalbpget(scriptIp)) //breakpoint=stop run loop
             bContinue = false;
         if(bContinue && !bIgnoreTimeout && GetThreadTimes(GetCurrentThread(), &creationTime, &exitTime, reinterpret_cast<LPFILETIME>(&kernelTime), reinterpret_cast<LPFILETIME>(&userTime)) != 0)
@@ -546,10 +557,11 @@ DWORD WINAPI scriptRunSync(void* arg)
     }
     bIsRunning = false; //not running anymore
     GuiScriptSetIp(scriptIp);
-    return 0;
+    // the script fully executed (which means scriptIp is reset to the first line), without any errors
+    return scriptIp == scriptinternalstep(0) && (scriptLastError == STATUS_EXIT || scriptLastError == STATUS_CONTINUE);
 }
 
-DWORD WINAPI scriptLoadSync(void* filename)
+bool scriptLoadSync(const char* filename)
 {
     GuiScriptClear();
     GuiScriptEnableHighlighting(true); //enable default script syntax highlighting
@@ -559,7 +571,7 @@ DWORD WINAPI scriptLoadSync(void* filename)
     scriptstack.clear();
     bAbort = false;
     if(!scriptcreatelinemap(reinterpret_cast<const char*>(filename)))
-        return 1; // Script load failed
+        return false; // Script load failed
     int lines = (int)linemap.size();
     const char** script = reinterpret_cast<const char**>(BridgeAlloc(lines * sizeof(const char*)));
     for(int i = 0; i < lines; i++) //add script lines
@@ -567,14 +579,14 @@ DWORD WINAPI scriptLoadSync(void* filename)
     GuiScriptAdd(lines, script);
     scriptIp = scriptinternalstep(0);
     GuiScriptSetIp(scriptIp);
-    return 0;
+    return true;
 }
 
 void scriptload(const char* filename)
 {
     static char filename_[MAX_PATH] = "";
     strcpy_s(filename_, filename);
-    auto hThread = CreateThread(nullptr, 0, scriptLoadSync, filename_, 0, nullptr);
+    auto hThread = CreateThread(nullptr, 0, scriptLoadSyncThread, filename_, 0, nullptr);
     while(WaitForSingleObject(hThread, 100) == WAIT_TIMEOUT)
         GuiProcessEvents();
     CloseHandle(hThread);
@@ -601,21 +613,24 @@ void scriptrun(int destline)
     if(bIsRunning) //already running
         return;
     bIsRunning = true;
-    CloseHandle(CreateThread(0, 0, scriptRunSync, (void*)(duint)destline, 0, 0));
-}
-
-DWORD WINAPI scriptStepThread(void* param)
-{
-    if(bIsRunning) //already running
-        return 0;
-    scriptinternalcmd();
-    GuiScriptSetIp(scriptIp);
-    return 0;
+    std::thread t([destline]
+    {
+        scriptRunSync(destline, false);
+    });
+    t.detach();
 }
 
 void scriptstep()
 {
-    CloseHandle(CreateThread(0, 0, scriptStepThread, 0, 0, 0));
+    std::thread t([]
+    {
+        if(!bIsRunning) //only step when not running
+        {
+            scriptinternalcmd(false);
+            GuiScriptSetIp(scriptIp);
+        }
+    });
+    t.detach();
 }
 
 bool scriptbptoggle(int line)
@@ -655,7 +670,8 @@ bool scriptbpget(int line)
 bool scriptcmdexec(const char* command)
 {
     scriptIpOld = scriptIp;
-    switch(scriptinternalcmdexec(command))
+    scriptLastError = scriptinternalcmdexec(command, false);
+    switch(scriptLastError)
     {
     case STATUS_ERROR:
         return false;
