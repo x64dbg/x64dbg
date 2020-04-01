@@ -177,6 +177,7 @@ bool cbDebugDeleteBPX(int argc, char* argv[])
             dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (DeleteBPX): %p\n"), found.addr);
             return false;
         }
+        GuiUpdateAllViews();
         return true;
     }
     duint addr = 0;
@@ -507,6 +508,7 @@ bool cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
             dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n"), found.addr);
             return false;
         }
+        GuiUpdateAllViews();
         return true;
     }
     duint addr = 0;
@@ -780,6 +782,7 @@ bool cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
             dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed: %p (RemoveMemoryBPX)\n"), found.addr);
             return false;
         }
+        GuiUpdateAllViews();
         return true;
     }
     duint addr = 0;
@@ -1234,6 +1237,7 @@ bool cbDebugDeleteExceptionBPX(int argc, char* argv[])
             dprintf(QT_TRANSLATE_NOOP("DBG", "Delete exception breakpoint failed (bpdel): %p\n"), found.addr);
             return false;
         }
+        DebugUpdateBreakpointsViewAsync();
         return true;
     }
     duint addr = 0;
