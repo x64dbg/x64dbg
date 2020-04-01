@@ -18,12 +18,27 @@ std::map<BreakpointKey, BREAKPOINT> breakpoints;
 
 static void setBpActive(BREAKPOINT & bp)
 {
-    if(bp.type == BPHARDWARE) //TODO: properly implement this (check debug registers)
+    // DLL/Exception breakpoints are always enabled
+    if(bp.type == BPDLL || bp.type == BPEXCEPTION)
+    {
         bp.active = true;
-    else if(bp.type == BPDLL || bp.type == BPEXCEPTION)
-        bp.active = true;
-    else
+        return;
+    }
+
+    // Breakpoints without modules need a valid address
+    if(!*bp.mod)
+    {
         bp.active = MemIsValidReadPtr(bp.addr);
+        return;
+    }
+    else
+    {
+        auto modLoaded = ModBaseFromName(bp.mod) != 0;
+        if(bp.type == BPHARDWARE)
+            bp.active = modLoaded;
+        else
+            bp.active = modLoaded && MemIsValidReadPtr(bp.addr);
+    }
 }
 
 BREAKPOINT* BpInfoFromAddr(BP_TYPE Type, duint Address)
