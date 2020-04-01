@@ -178,6 +178,17 @@ void Breakpoints::disableBP(BPXTYPE type, duint va)
         BridgeFree(wBPList.bp);
 }
 
+static QString getBpIdentifier(const BRIDGEBP & bp)
+{
+    if(*bp.mod)
+    {
+        auto modbase = DbgModBaseFromName(bp.mod);
+        if(!modbase)
+            return QString("\"%1\":$%2").arg(bp.mod).arg(ToHexString(bp.addr));
+    }
+    return ToPtrString(bp.addr);
+}
+
 /**
  * @brief       Remove breakpoint according to the given breakpoint descriptor.
  *
@@ -192,15 +203,15 @@ void Breakpoints::removeBP(const BRIDGEBP & bp)
     switch(bp.type)
     {
     case bp_normal:
-        wCmd = QString("bc \"%1\"").arg(ToPtrString(bp.addr));
+        wCmd = QString("bc \"%1\"").arg(getBpIdentifier(bp));
         break;
 
     case bp_hardware:
-        wCmd = QString("bphc \"%1\"").arg(ToPtrString(bp.addr));
+        wCmd = QString("bphc \"%1\"").arg(getBpIdentifier(bp));
         break;
 
     case bp_memory:
-        wCmd = QString("bpmc \"%1\"").arg(ToPtrString(bp.addr));
+        wCmd = QString("bpmc \"%1\"").arg(getBpIdentifier(bp));
         break;
 
     case bp_dll:

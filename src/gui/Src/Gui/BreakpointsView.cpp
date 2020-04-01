@@ -577,10 +577,7 @@ void BreakpointsView::removeBreakpointSlot()
         if(isValidBp(i))
         {
             const BRIDGEBP & bp = selectedBp(i);
-            if(bp.active)
-                Breakpoints::removeBP(bp);
-            else
-                DbgCmdExec(QString().sprintf("bc \"%s\":$%X", bp.mod, bp.addr));
+            Breakpoints::removeBP(bp);
         }
     }
 }
