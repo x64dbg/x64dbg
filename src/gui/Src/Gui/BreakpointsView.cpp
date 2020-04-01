@@ -53,7 +53,7 @@ void BreakpointsView::setupContextMenu()
     QAction* enableDisableBreakpoint = makeShortcutAction(DIcon("breakpoint_disable.png"), tr("Disable"), SLOT(toggleBreakpointSlot()), "ActionEnableDisableBreakpoint");
     mMenuBuilder->addAction(enableDisableBreakpoint, [this, enableDisableBreakpoint](QMenu*)
     {
-        if(!isValidBp())
+        if(!isValidBp() || !selectedBp().active)
             return false;
         if(selectedBp().enabled)
         {
@@ -585,7 +585,7 @@ void BreakpointsView::removeBreakpointSlot()
 void BreakpointsView::toggleBreakpointSlot()
 {
     for(int i : getSelection())
-        if(isValidBp(i))
+        if(isValidBp(i) && selectedBp(i).active)
             Breakpoints::toggleBPByDisabling(selectedBp(i));
 }
 
