@@ -173,26 +173,6 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         return true;
     }
 
-    // Do a lookup by breakpoint name
-    for(auto & i : breakpoints)
-    {
-        // Do the names match?
-        if(_stricmp(Name, i.second.name) != 0)
-            continue;
-
-        // Fill out the optional user buffer
-        if(Bp)
-        {
-            *Bp = i.second;
-            if(i.second.type != BPDLL && i.second.type != BPEXCEPTION)
-                Bp->addr += ModBaseFromAddr(Address);
-            setBpActive(*Bp);
-        }
-
-        // Return true if the name was found at all
-        return true;
-    }
-
     // If name in a special format "libwinpthread-1.dll":$7792, find the breakpoint even if the DLL might not be loaded yet.
     const char* separatorPos;
     separatorPos = strstr(Name, ":$"); //DLL file names cannot contain ":" char anyway, so ignoring the quotes is fine. The following part of RVA expression might contain ":$"?
@@ -240,6 +220,27 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         }
         free(DLLName);
     }
+
+    // Do a lookup by breakpoint name
+    for(auto & i : breakpoints)
+    {
+        // Do the names match?
+        if(_stricmp(Name, i.second.name) != 0)
+            continue;
+
+        // Fill out the optional user buffer
+        if(Bp)
+        {
+            *Bp = i.second;
+            if(i.second.type != BPDLL && i.second.type != BPEXCEPTION)
+                Bp->addr += ModBaseFromAddr(Address);
+            setBpActive(*Bp);
+        }
+
+        // Return true if the name was found at all
+        return true;
+    }
+
     return false;
 }
 
