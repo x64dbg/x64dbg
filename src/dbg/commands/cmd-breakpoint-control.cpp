@@ -333,7 +333,7 @@ static bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp)
         dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed (BpDelete): %p\n"), bp->addr);
         return false;
     }
-    if(bp->enabled && !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
+    if(bp->enabled && TITANDRXVALID(bp->titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed (DeleteHardwareBreakPoint): %p\n"), bp->addr);
         return false;
@@ -376,11 +376,14 @@ static bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable hardware breakpoint %p (BpEnable)\n"), bp->addr);
         return false;
     }
-    if(bp->enabled && !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
+    if(bp->enabled && TITANDRXVALID(bp->titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable hardware breakpoint %p (DeleteHardwareBreakPoint)\n"), bp->addr);
         return false;
     }
+    auto titantype = bp->titantype;
+    TITANSETDRX(titantype, UE_DR7);
+    BpSetTitanType(bp->addr, BPHARDWARE, titantype);
     return true;
 }
 
@@ -499,7 +502,7 @@ bool cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
             dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (BpDelete)\n"), found.addr);
             return false;
         }
-        if(!DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
+        if(TITANDRXVALID(found.titantype) && !DeleteHardwareBreakPoint(found.titantype))
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n"), found.addr);
             return false;
@@ -517,7 +520,7 @@ bool cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (BpDelete)\n"), found.addr);
         return false;
     }
-    if(!DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
+    if(TITANDRXVALID(found.titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n"), found.addr);
         return false;
@@ -610,11 +613,13 @@ bool cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable hardware breakpoint %p (BpEnable)\n"), found.addr);
         return false;
     }
-    if(!DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
+    if(TITANDRXVALID(found.titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable hardware breakpoint %p (DeleteHardwareBreakpoint)\n"), found.addr);
         return false;
     }
+    TITANSETDRX(found.titantype, UE_DR7);
+    BpSetTitanType(found.addr, BPHARDWARE, found.titantype);
     dputs(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint disabled!"));
     GuiUpdateAllViews();
     return true;
