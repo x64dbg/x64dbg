@@ -166,6 +166,10 @@ void MemoryMapView::setupContextMenu()
     mAddVirtualMod = new QAction(DIcon("virtual.png"), tr("Add virtual module"), this);
     connect(mAddVirtualMod, SIGNAL(triggered()), this, SLOT(addVirtualModSlot()));
 
+    //References
+    mReferences = new QAction(DIcon("find.png"), tr("Find references to region"), this);
+    connect(mReferences, SIGNAL(triggered()), this, SLOT(findReferencesSlot()));
+
     //Comment
     mComment = new QAction(DIcon("comment.png"), tr("&Comment"), this);
     this->addAction(mComment);
@@ -203,6 +207,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu.addAction(mComment);
     wMenu.addAction(mFindPattern);
     wMenu.addAction(mSwitchView);
+    wMenu.addAction(mReferences);
     wMenu.addSeparator();
     wMenu.addAction(mMemoryAllocate);
     wMenu.addAction(mMemoryFree);
@@ -616,6 +621,14 @@ void MemoryMapView::addVirtualModSlot()
     if(!mDialog.getData(modname, base, size))
         return;
     DbgCmdExec(QString("virtualmod \"%1\", %2, %3").arg(modname).arg(ToHexString(base)).arg(ToHexString(size)).toUtf8().constData());
+}
+
+void MemoryMapView::findReferencesSlot()
+{
+    auto base = duint(getCellContent(getInitialSelection(), 0).toULongLong(nullptr, 16));
+    auto size = duint(getCellContent(getInitialSelection(), 1).toULongLong(nullptr, 16));
+    DbgCmdExec(QString("reffindrange %1, %2, dis.sel()").arg(ToPtrString(base)).arg(ToPtrString(base + size)).toUtf8().constData());
+    emit showReferences();
 }
 
 void MemoryMapView::selectionGetSlot(SELECTIONDATA* selection)

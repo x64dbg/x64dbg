@@ -36,6 +36,7 @@ public slots:
     void gotoOriginSlot();
     void gotoExpressionSlot();
     void addVirtualModSlot();
+    void findReferencesSlot();
     void selectionGetSlot(SELECTIONDATA* selection);
     void disassembleAtSlot(dsint va, dsint cip);
 
@@ -74,6 +75,7 @@ private:
     QAction* mMemoryFree;
     QAction* mAddVirtualMod;
     QAction* mComment;
+    QAction* mReferences;
     QMenu* mPluginMenu;
 
     duint mCipBase;
