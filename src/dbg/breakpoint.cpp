@@ -734,7 +734,7 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
             BridgeBp->typeEx = ex_all;
             break;
         default:
-            __debugbreak();
+            dprintf_untranslated("Invalid titantype for exception breakpoint %u\n", Bp->titantype);
         }
         break;
     default:
@@ -824,7 +824,8 @@ void BpCacheLoad(JSON Root)
         breakpoint.addr = (duint)json_hex_value(json_object_get(value, "address"));
         breakpoint.enabled = json_boolean_value(json_object_get(value, "enabled"));
         breakpoint.titantype = (DWORD)json_hex_value(json_object_get(value, "titantype"));
-        TITANSETDRX(breakpoint.titantype, UE_DR7); // DR7 is used as a sentinel value to prevent wrongful deletion
+        if(breakpoint.type == BPHARDWARE)
+            TITANSETDRX(breakpoint.titantype, UE_DR7); // DR7 is used as a sentinel value to prevent wrongful deletion
 
         // String values
         loadStringValue(value, breakpoint.name, "name");
