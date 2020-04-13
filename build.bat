@@ -5,7 +5,7 @@ if "%OLDPATH%"=="" set OLDPATH=%PATH%
 
 cd %~dp0
 
-if /i "%1"=="x32"	call setenv.bat x32&set type=Configuration=Release;Platform=Win32&goto build
+if /i "%1"=="x86"	call setenv.bat x86&set type=Configuration=Release;Platform=Win32&goto build
 if /i "%1"=="x64"	call setenv.bat x64&set type=Configuration=Release;Platform=x64&goto build
 if /i "%1"=="coverity"	goto coverity
 if /i "%1"=="sonarqube"	goto sonarqube
@@ -40,7 +40,7 @@ goto :restorepath
 
 :coverity
 if "%2"=="" (
-    echo "Usage: build.bat coverity x32/x64"
+    echo "Usage: build.bat coverity x86/x64"
     goto usage
 )
 
@@ -53,7 +53,7 @@ goto :restorepath
 
 :sonarqube
 if "%2"=="" (
-    echo "Usage: build.bat sonarqube x32/x64"
+    echo "Usage: build.bat sonarqube x86/x64"
     goto usage
 )
 
@@ -68,12 +68,12 @@ goto :restorepath
 
 
 :usage
-echo "Usage: build.bat x32/x64/coverity"
+echo "Usage: build.bat x86/x64/coverity"
 echo.
 echo Examples:
-echo   build.bat x32               : builds 32-bit release build
+echo   build.bat x86               : builds 32-bit release build
 echo   build.bat x64               : builds 64-bit release build
-echo   build.bat coverity x32      : builds 32-bit coverity build
+echo   build.bat coverity x86      : builds 32-bit coverity build
 echo   build.bat coverity x64      : builds 64-bit coverity build
 goto :restorepath
 

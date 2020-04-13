@@ -24,8 +24,8 @@ static bool bDisableGUIUpdate;
 #define dbg_lib L"x64dbg.dll"
 #define gui_lib L"x64gui.dll"
 #else
-#define dbg_lib L"x32dbg.dll"
-#define gui_lib L"x32gui.dll"
+#define dbg_lib L"x86dbg.dll"
+#define gui_lib L"x86gui.dll"
 #endif // _WIN64
 
 #define LOADLIBRARY(name) \

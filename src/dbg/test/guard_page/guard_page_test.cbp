@@ -6,9 +6,9 @@
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="x32">
-				<Option output="bin/x32/guardpage" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/x32" />
+			<Target title="x86">
+				<Option output="bin/x86/guardpage" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/x86" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>

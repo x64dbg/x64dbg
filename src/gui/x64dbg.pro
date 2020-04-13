@@ -15,9 +15,9 @@ CONFIG(debug, debug|release) {
 }
 
 !contains(QMAKE_HOST.arch, x86_64) {
-    X64_BIN_DIR = ../../bin/x32$${DIR_SUFFIX}      # Relative BIN path, 32-bit
+    X64_BIN_DIR = ../../bin/x86$${DIR_SUFFIX}      # Relative BIN path, 32-bit
     X64_GEN_DIR = ../gui_build/out32$${DIR_SUFFIX} # QMake temporary generated files, placed inside the build folder. (OBJ, UI, MOC)
-    TARGET = x32gui                  # Build x32gui
+    TARGET = x86gui                  # Build x86gui
 } else {
     X64_BIN_DIR = ../../bin/x64$${DIR_SUFFIX}      # Relative BIN path, 64-bit
     X64_GEN_DIR = ../gui_build/out64$${DIR_SUFFIX} # QMake temporary generated files, placed inside the build folder. (OBJ, UI, MOC)
@@ -352,9 +352,9 @@ LIBS += -luser32 -ladvapi32 -lwinmm -lshell32
 
 !contains(QMAKE_HOST.arch, x86_64) {
     # Windows x86 (32bit) specific build
-    LIBS += -L"$$PWD/../zydis_wrapper/bin/x32$${DIR_SUFFIX}" -lzydis_wrapper
+    LIBS += -L"$$PWD/../zydis_wrapper/bin/x86$${DIR_SUFFIX}" -lzydis_wrapper
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/ldconvert" -lldconvert_x86
-    LIBS += -L"$${X64_BIN_DIR}" -lx32bridge
+    LIBS += -L"$${X64_BIN_DIR}" -lx86bridge
 } else {
     # Windows x64 (64bit) specific build
     LIBS += -L"$$PWD/../zydis_wrapper/bin/x64$${DIR_SUFFIX}" -lzydis_wrapper

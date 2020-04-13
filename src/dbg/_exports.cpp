@@ -775,7 +775,7 @@ extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
         {
             switch(reg)
             {
-#ifndef _WIN64 //x32
+#ifndef _WIN64 //x86
             case ZYDIS_REGISTER_EAX:
                 return lastContext.cax;
             case ZYDIS_REGISTER_EBX:

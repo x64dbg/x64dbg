@@ -207,11 +207,11 @@ void CPUArgumentWidget::loadConfig()
     x64.addArgument(Argument("", "", "r9"));
     mCallingConventions.push_back(x64);
 #else
-    CallingConvention x32(tr("Default (stdcall)"), 5);
-    mCallingConventions.push_back(x32);
+    CallingConvention x86(tr("Default (stdcall)"), 5);
+    mCallingConventions.push_back(x86);
 
-    CallingConvention x32ebp(tr("Default (stdcall, EBP stack)"), 5, "ebp", 8, 0);
-    mCallingConventions.push_back(x32ebp);
+    CallingConvention x86ebp(tr("Default (stdcall, EBP stack)"), 5, "ebp", 8, 0);
+    mCallingConventions.push_back(x86ebp);
 
     CallingConvention thiscall(tr("thiscall"), 4);
     thiscall.addArgument(Argument("this", "ecx", ""));

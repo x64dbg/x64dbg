@@ -8,18 +8,18 @@ if "%QTCREATORPATH%"=="" set QTCREATORPATH=c:\Qt\qtcreator-4.3.1\bin
 if "%VSVARSALLPATH%"=="" set VSVARSALLPATH=c:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat
 if "%COVERITYPATH%"=="" set COVERITYPATH=c:\coverity\bin
 
-if "%1"=="x32" (
-    goto x32
+if "%1"=="x86" (
+    goto x86
 ) else if "%1"=="x64" (
     goto x64
 ) else if "%1"=="coverity" (
     goto coverity
 ) else (
-    echo "Usage: setenv x32/x64/coverity"
+    echo "Usage: setenv x86/x64/coverity"
     goto :eof
 )
 
-:x32
+:x86
 echo Setting Qt in PATH
 set PATH=%PATH%;%QT32PATH%
 set PATH=%PATH%;%QTCREATORPATH%

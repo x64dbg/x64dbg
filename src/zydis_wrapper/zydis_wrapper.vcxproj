@@ -67,7 +67,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetExt>.lib</TargetExt>
-    <OutDir>$(ProjectDir)bin\x32\</OutDir>
+    <OutDir>$(ProjectDir)bin\x86\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <IncludePath>$(ProjectDir);$(ProjectDir)\zydis\include;$(ProjectDir)\zydis\src;$(IncludePath)</IncludePath>
   </PropertyGroup>
@@ -78,7 +78,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetExt>.lib</TargetExt>
-    <OutDir>$(ProjectDir)bin\x32d\</OutDir>
+    <OutDir>$(ProjectDir)bin\x86d\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <IncludePath>$(ProjectDir);$(ProjectDir)\zydis\include;$(ProjectDir)\zydis\src;$(IncludePath)</IncludePath>
   </PropertyGroup>

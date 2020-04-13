@@ -20,7 +20,7 @@ typedef enum
 enum arch
 {
     notfound,
-    x32,
+    x86,
     x64,
 };
 

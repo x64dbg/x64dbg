@@ -67,9 +67,9 @@ void WaitForThreadTermination(HANDLE hThread, DWORD timeout = INFINITE);
 void WaitForMultipleThreadsTermination(const HANDLE* hThread, int count, DWORD timeout = INFINITE);
 
 #ifdef _WIN64
-#define ArchValue(x32value, x64value) x64value
+#define ArchValue(x86value, x64value) x64value
 #else
-#define ArchValue(x32value, x64value) x32value
+#define ArchValue(x86value, x64value) x86value
 #endif //_WIN64
 
 #include "dynamicmem.h"

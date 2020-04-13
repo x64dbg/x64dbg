@@ -318,7 +318,7 @@ bool cbDebugSetJIT(int argc, char* argv[])
         jit_debugger_cmd = path;
         if(!dbgsetjit(jit_debugger_cmd, notfound, &actual_arch, NULL))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x32");
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x86");
             return false;
         }
     }
@@ -335,7 +335,7 @@ bool cbDebugSetJIT(int argc, char* argv[])
 
             if(!dbgsetjit(jit_debugger_cmd, notfound, &actual_arch, NULL))
             {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x32");
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x86");
                 return false;
             }
         }
@@ -355,7 +355,7 @@ bool cbDebugSetJIT(int argc, char* argv[])
             jit_debugger_cmd = path;
             if(!dbgsetjit(jit_debugger_cmd, notfound, &actual_arch, NULL))
             {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x32");
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x86");
                 return false;
             }
             if(get_last_jit)
@@ -376,7 +376,7 @@ bool cbDebugSetJIT(int argc, char* argv[])
 
             if(!dbgsetjit(jit_debugger_cmd, notfound, &actual_arch, NULL))
             {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x32");
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x86");
                 return false;
             }
             BridgeSettingSet("JIT", 0, 0);
@@ -386,7 +386,7 @@ bool cbDebugSetJIT(int argc, char* argv[])
             jit_debugger_cmd = argv[1];
             if(!dbgsetjit(jit_debugger_cmd, notfound, &actual_arch, NULL))
             {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x32");
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x86");
                 return false;
             }
         }
@@ -406,11 +406,11 @@ bool cbDebugSetJIT(int argc, char* argv[])
 
         else if(_strcmpi(argv[1], "x64") == 0)
             actual_arch = x64;
-        else if(_strcmpi(argv[1], "x32") == 0)
-            actual_arch = x32;
+        else if(_strcmpi(argv[1], "x86") == 0)
+            actual_arch = x86;
         else
         {
-            dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT entry type. Use OLD, x64 or x32 as parameter."));
+            dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT entry type. Use OLD, x64 or x86 as parameter."));
             return false;
         }
 
@@ -420,7 +420,7 @@ bool cbDebugSetJIT(int argc, char* argv[])
             if(rw_error == ERROR_RW_NOTWOW64)
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error using x64 arg. The debugger is not a WOW64 process\n"));
             else
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x32");
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting JIT %s\n"), (actual_arch == x64) ? "x64" : "x86");
             return false;
         }
     }
@@ -430,7 +430,7 @@ bool cbDebugSetJIT(int argc, char* argv[])
         return false;
     }
 
-    dprintf(QT_TRANSLATE_NOOP("DBG", "New JIT %s: %s\n"), (actual_arch == x64) ? "x64" : "x32", jit_debugger_cmd);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "New JIT %s: %s\n"), (actual_arch == x64) ? "x64" : "x86", jit_debugger_cmd);
 
     return true;
 }
@@ -444,7 +444,7 @@ bool cbDebugGetJIT(int argc, char* argv[])
     {
         if(!dbggetjit(get_entry, notfound, &actual_arch, NULL))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Error getting JIT %s\n"), (actual_arch == x64) ? "x64" : "x32");
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Error getting JIT %s\n"), (actual_arch == x64) ? "x64" : "x86");
             return false;
         }
     }
@@ -467,11 +467,11 @@ bool cbDebugGetJIT(int argc, char* argv[])
         }
         else if(_strcmpi(argv[1], "x64") == 0)
             actual_arch = x64;
-        else if(_strcmpi(argv[1], "x32") == 0)
-            actual_arch = x32;
+        else if(_strcmpi(argv[1], "x86") == 0)
+            actual_arch = x86;
         else
         {
-            dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT entry type. Use OLD, x64 or x32 as parameter."));
+            dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT entry type. Use OLD, x64 or x86 as parameter."));
             return false;
         }
 
@@ -485,7 +485,7 @@ bool cbDebugGetJIT(int argc, char* argv[])
         }
     }
 
-    dprintf(QT_TRANSLATE_NOOP("DBG", "JIT %s: %s\n"), (actual_arch == x64) ? "x64" : "x32", get_entry);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "JIT %s: %s\n"), (actual_arch == x64) ? "x64" : "x86", get_entry);
 
     return true;
 }
@@ -499,7 +499,7 @@ bool cbDebugGetJITAuto(int argc, char* argv[])
     {
         if(!dbggetjitauto(&jit_auto, notfound, &actual_arch, NULL))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto %s\n"), (actual_arch == x64) ? "x64" : "x32");
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto %s\n"), (actual_arch == x64) ? "x64" : "x86");
             return false;
         }
     }
@@ -508,11 +508,11 @@ bool cbDebugGetJITAuto(int argc, char* argv[])
         readwritejitkey_error_t rw_error;
         if(_strcmpi(argv[1], "x64") == 0)
             actual_arch = x64;
-        else if(_strcmpi(argv[1], "x32") == 0)
-            actual_arch = x32;
+        else if(_strcmpi(argv[1], "x86") == 0)
+            actual_arch = x86;
         else
         {
-            dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT auto entry type. Use x64 or x32 as parameter."));
+            dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT auto entry type. Use x64 or x86 as parameter."));
             return false;
         }
 
@@ -527,10 +527,10 @@ bool cbDebugGetJITAuto(int argc, char* argv[])
     }
     else
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT auto entry type. Use x64 or x32 as parameter."));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT auto entry type. Use x64 or x86 as parameter."));
     }
 
-    dprintf(QT_TRANSLATE_NOOP("DBG", "JIT auto %s: %s\n"), (actual_arch == x64) ? "x64" : "x32", jit_auto ? "ON" : "OFF");
+    dprintf(QT_TRANSLATE_NOOP("DBG", "JIT auto %s: %s\n"), (actual_arch == x64) ? "x64" : "x86", jit_auto ? "ON" : "OFF");
 
     return true;
 }
@@ -546,7 +546,7 @@ bool cbDebugSetJITAuto(int argc, char* argv[])
     }
     if(argc < 2)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Error setting JIT Auto. Use ON:1 or OFF:0 arg or x64/x32, ON:1 or OFF:0.\n"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error setting JIT Auto. Use ON:1 or OFF:0 arg or x64/x86, ON:1 or OFF:0.\n"));
         return false;
     }
     else if(argc == 2)
@@ -566,7 +566,7 @@ bool cbDebugSetJITAuto(int argc, char* argv[])
             if(actual_arch == x64)
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error setting JIT auto x64"));
             else
-                dputs(QT_TRANSLATE_NOOP("DBG", "Error setting JIT auto x32"));
+                dputs(QT_TRANSLATE_NOOP("DBG", "Error setting JIT auto x86"));
             return false;
         }
     }
@@ -577,11 +577,11 @@ bool cbDebugSetJITAuto(int argc, char* argv[])
 
         if(_strcmpi(argv[1], "x64") == 0)
             actual_arch = x64;
-        else if(_strcmpi(argv[1], "x32") == 0)
-            actual_arch = x32;
+        else if(_strcmpi(argv[1], "x86") == 0)
+            actual_arch = x86;
         else
         {
-            dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT auto entry type. Use x64 or x32 as parameter."));
+            dputs(QT_TRANSLATE_NOOP("DBG", "Unknown JIT auto entry type. Use x64 or x86 as parameter."));
             return false;
         }
 
@@ -604,7 +604,7 @@ bool cbDebugSetJITAuto(int argc, char* argv[])
                 if(actual_arch == x64)
                     dputs(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto x64"));
                 else
-                    dputs(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto x32"));
+                    dputs(QT_TRANSLATE_NOOP("DBG", "Error getting JIT auto x86"));
             }
             return false;
         }
@@ -615,7 +615,7 @@ bool cbDebugSetJITAuto(int argc, char* argv[])
         return false;
     }
 
-    dprintf(QT_TRANSLATE_NOOP("DBG", "New JIT auto %s: %s\n"), (actual_arch == x64) ? "x64" : "x32", set_jit_auto ? "ON" : "OFF");
+    dprintf(QT_TRANSLATE_NOOP("DBG", "New JIT auto %s: %s\n"), (actual_arch == x64) ? "x64" : "x86", set_jit_auto ? "ON" : "OFF");
     return true;
 }
 

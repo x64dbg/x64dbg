@@ -11,12 +11,12 @@
 //
 /***************************************************************/
 #undef COMPILE_X64
-#undef COMPILE_X32
+#undef COMPILE_x86
 
 #ifdef _WIN64
 #define COMPILE_X64 1    // Program is being compiled as 64-bit
 #else
-#define COMPILE_X32 1    // Program is being compiled as 32-bit
+#define COMPILE_x86 1    // Program is being compiled as 32-bit
 #endif // _WIN64
 
 //

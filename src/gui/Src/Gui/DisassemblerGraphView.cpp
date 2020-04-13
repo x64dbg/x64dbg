@@ -2229,7 +2229,7 @@ void DisassemblerGraphView::setupContextMenu()
 #ifdef _WIN64
                     if(arg.segment == SEG_GS)
                         segment = "gs:";
-#else //x32
+#else //x86
                     if(arg.segment == SEG_FS)
                         segment = "fs:";
 #endif //_WIN64

@@ -108,9 +108,9 @@ inline QDate GetCompileDate()
 }
 
 #ifdef _WIN64
-#define ArchValue(x32value, x64value) x64value
+#define ArchValue(x86value, x64value) x64value
 #else
-#define ArchValue(x32value, x64value) x32value
+#define ArchValue(x86value, x64value) x86value
 #endif //_WIN64
 
 // Format : d:hh:mm:ss.1234567

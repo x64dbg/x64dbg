@@ -43,17 +43,17 @@ del /Q bin\*.lib
 del /Q bin\*.def
 del /Q bin\x96dbg.exe
 
-echo Cleaning bin\x32...
-rmdir /S /Q bin\x32\db
-del /Q bin\x32\*.pdb
-del /Q bin\x32\*.exp
-del /Q bin\x32\*.a
-del /Q bin\x32\*.lib
-del /Q bin\x32\*.def
-del /Q bin\x32\x32dbg.exe
-del /Q bin\x32\x32dbg.dll
-del /Q bin\x32\x32gui.dll
-del /Q bin\x32\x32bridge.dll
+echo Cleaning bin\x86...
+rmdir /S /Q bin\x86\db
+del /Q bin\x86\*.pdb
+del /Q bin\x86\*.exp
+del /Q bin\x86\*.a
+del /Q bin\x86\*.lib
+del /Q bin\x86\*.def
+del /Q bin\x86\x86dbg.exe
+del /Q bin\x86\x86dbg.dll
+del /Q bin\x86\x86gui.dll
+del /Q bin\x86\x86bridge.dll
 
 echo Cleaning bin\x64...
 rmdir /S /Q bin\x64\db

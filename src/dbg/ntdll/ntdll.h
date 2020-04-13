@@ -3073,8 +3073,8 @@ static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, NumberOfPhysicalPages) == 0x2e8, "
 static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, SafeBootMode) == 0x2ec, "Offset check");
 static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, TestRetInstruction) == 0x2f8, "Offset check");
 static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, SystemCallPad) == 0x310, "Offset check");
-static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, TickCount) == 0x320, "Offset check");
-static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, TickCountQuad) == 0x320, "Offset check");
+static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, TickCount) == 0x860, "Offset check");
+static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, TickCountQuad) == 0x860, "Offset check");
 static_assert(FIELD_OFFSET(KUSER_SHARED_DATA, XState) == 0x3d8, "Offset check");
 #endif
 

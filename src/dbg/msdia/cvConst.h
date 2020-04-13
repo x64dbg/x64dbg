@@ -348,7 +348,7 @@ typedef enum CV_CPU_TYPE_e
     CV_CFL_ALPHA            = 0x30,
     CV_CFL_ALPHA_21064      = 0x30,
     CV_CFL_ALPHA_21164      = 0x31,
-    CV_CFL_ALPHA_21164A     = 0x32,
+    CV_CFL_ALPHA_21164A     = 0x86,
     CV_CFL_ALPHA_21264      = 0x33,
     CV_CFL_ALPHA_21364      = 0x34,
     CV_CFL_PPC601           = 0x40,
@@ -3085,7 +3085,7 @@ typedef enum CV_HREG_e
     //          subtract 896 to find first base single register
     CV_SHMEDIA_MTRX0   =   1024,
     CV_SHMEDIA_MTRX16  =   1040,
-    CV_SHMEDIA_MTRX32  =   1056,
+    CV_SHMEDIA_MTRx86  =   1056,
     CV_SHMEDIA_MTRX48  =   1072,
 
     // Control - Implementation defined 64bit control registers

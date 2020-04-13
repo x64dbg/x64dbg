@@ -101,7 +101,7 @@ void RegistersView::InitMappings()
     mRegisterMapping.insert(EFLAGS, "RFLAGS");
     mRegisterPlaces.insert(EFLAGS, Register_Position(offset++, 0, 9, sizeof(duint) * 2));
     mRegisterRelativePlaces.insert(EFLAGS, Register_Relative_Position(CIP, ZF));
-#else //x32
+#else //x86
     mRegisterMapping.insert(CAX, "EAX");
     mRegisterPlaces.insert(CAX, Register_Position(offset++, 0, 6, sizeof(duint) * 2));
     mRegisterRelativePlaces.insert(CAX, Register_Relative_Position(UNKNOWN, CBX));

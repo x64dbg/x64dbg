@@ -99,7 +99,7 @@ bool cbDebugInit(int argc, char* argv[])
     case PeArch::Native86:
     case PeArch::Dotnet86:
     case PeArch::DotnetAnyCpuPrefer32:
-        dputs(QT_TRANSLATE_NOOP("DBG", "Use x32dbg to debug this file!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Use x86dbg to debug this file!"));
 #else //x86
     case PeArch::Native64:
     case PeArch::Dotnet64:
@@ -231,7 +231,7 @@ bool cbDebugAttach(int argc, char* argv[])
     if((mewow64 && !wow64) || (!mewow64 && wow64))
     {
 #ifdef _WIN64
-        dputs(QT_TRANSLATE_NOOP("DBG", "Use x32dbg to debug this process!"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Use x86dbg to debug this process!"));
 #else
         dputs(QT_TRANSLATE_NOOP("DBG", "Use x64dbg to debug this process!"));
 #endif // _WIN64

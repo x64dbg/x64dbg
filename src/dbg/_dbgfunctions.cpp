@@ -154,7 +154,7 @@ static bool _getjit(char* jit, bool jit64)
     char jit_tmp[JIT_ENTRY_MAX_SIZE] = "";
     if(jit != NULL)
     {
-        if(!dbggetjit(jit_tmp, jit64 ? x64 : x32, &dummy, NULL))
+        if(!dbggetjit(jit_tmp, jit64 ? x64 : x86, &dummy, NULL))
             return false;
         strcpy_s(jit, MAX_SETTING_SIZE, jit_tmp);
     }

@@ -444,7 +444,7 @@ void CPUInfoBox::setupModifyValueMenu(QMenu* menu, duint wVA)
 #ifdef _WIN64
             if(arg.segment == SEG_GS)
                 segment = "gs:";
-#else //x32
+#else //x86
             if(arg.segment == SEG_FS)
                 segment = "fs:";
 #endif //_WIN64
@@ -508,7 +508,7 @@ void CPUInfoBox::setupFollowMenu(QMenu* menu, duint wVA)
 #ifdef _WIN64
             if(arg.segment == SEG_GS)
                 segment = "gs:";
-#else //x32
+#else //x86
             if(arg.segment == SEG_FS)
                 segment = "fs:";
 #endif //_WIN64
@@ -572,7 +572,7 @@ void CPUInfoBox::setupWatchMenu(QMenu* menu, duint wVA)
 #ifdef _WIN64
             if(arg.segment == SEG_GS)
                 segment = "gs:";
-#else //x32
+#else //x86
             if(arg.segment == SEG_FS)
                 segment = "fs:";
 #endif //_WIN64

@@ -225,16 +225,16 @@ static bool ResolveShortcut(HWND hwnd, const TCHAR* szShortcutPath, TCHAR* szRes
 
 static void AddDBFileTypeIcon(TCHAR* sz32Path, TCHAR* sz64Path)
 {
-    HKEY hKeyCreatedx32;
+    HKEY hKeyCreatedx86;
     HKEY hKeyCreatedx64;
-    HKEY hKeyCreatedIconx32;
+    HKEY hKeyCreatedIconx86;
     HKEY hKeyCreatedIconx64;
-    LPCWSTR dbx32key = L".dd32";
+    LPCWSTR dbx86key = L".dd32";
     LPCWSTR dbx64key = L".dd64";
     LPCWSTR db_desc = L"x64dbg_db";
 
     // file type key created
-    if(RegCreateKey(HKEY_CLASSES_ROOT, dbx32key, &hKeyCreatedx32) != ERROR_SUCCESS)
+    if(RegCreateKey(HKEY_CLASSES_ROOT, dbx86key, &hKeyCreatedx86) != ERROR_SUCCESS)
     {
         MessageBox(nullptr, LoadResString(IDS_REGCREATEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
         return;
@@ -246,7 +246,7 @@ static void AddDBFileTypeIcon(TCHAR* sz32Path, TCHAR* sz64Path)
     }
 
     // file type desc
-    if(RegSetValueEx(hKeyCreatedx32, nullptr, 0, REG_SZ, LPBYTE(db_desc), (_tcslen(db_desc) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
+    if(RegSetValueEx(hKeyCreatedx86, nullptr, 0, REG_SZ, LPBYTE(db_desc), (_tcslen(db_desc) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
     {
         MessageBox(nullptr, LoadResString(IDS_REGSETVALUEEXFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
         return;
@@ -258,7 +258,7 @@ static void AddDBFileTypeIcon(TCHAR* sz32Path, TCHAR* sz64Path)
     }
 
     // file type key icon created
-    if(RegCreateKey(hKeyCreatedx32, L"DefaultIcon", &hKeyCreatedIconx32) != ERROR_SUCCESS)
+    if(RegCreateKey(hKeyCreatedx86, L"DefaultIcon", &hKeyCreatedIconx86) != ERROR_SUCCESS)
     {
         MessageBox(nullptr, LoadResString(IDS_REGCREATEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
         return;
@@ -270,7 +270,7 @@ static void AddDBFileTypeIcon(TCHAR* sz32Path, TCHAR* sz64Path)
     }
 
     // file type key icon path
-    if(RegSetValueEx(hKeyCreatedIconx32, nullptr, 0, REG_SZ, LPBYTE(sz32Path), (_tcslen(sz32Path) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
+    if(RegSetValueEx(hKeyCreatedIconx86, nullptr, 0, REG_SZ, LPBYTE(sz32Path), (_tcslen(sz32Path) + 1) * sizeof(TCHAR)) != ERROR_SUCCESS)
     {
         MessageBox(nullptr, LoadResString(IDS_REGSETVALUEEXFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
         return;
@@ -281,9 +281,9 @@ static void AddDBFileTypeIcon(TCHAR* sz32Path, TCHAR* sz64Path)
         return;
     }
 
-    RegCloseKey(hKeyCreatedx32);
+    RegCloseKey(hKeyCreatedx86);
     RegCloseKey(hKeyCreatedx64);
-    RegCloseKey(hKeyCreatedIconx32);
+    RegCloseKey(hKeyCreatedIconx86);
     RegCloseKey(hKeyCreatedIconx64);
 
     // refresh icons cache
@@ -414,13 +414,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     //Load settings
     auto bDoneSomething = false;
-    if(!GetPrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), TEXT(""), sz32Path, MAX_PATH, szIniPath))
+    if(!GetPrivateProfileString(TEXT("Launcher"), TEXT("x86dbg"), TEXT(""), sz32Path, MAX_PATH, szIniPath))
     {
         _tcscpy_s(sz32Path, szCurrentDir);
-        PathAppend(sz32Path, TEXT("x32\\x32dbg.exe"));
+        PathAppend(sz32Path, TEXT("x86\\x86dbg.exe"));
         if(FileExists(sz32Path))
         {
-            WritePrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), sz32Path, szIniPath);
+            WritePrivateProfileString(TEXT("Launcher"), TEXT("x86dbg"), sz32Path, szIniPath);
             bDoneSomething = true;
         }
     }
@@ -489,9 +489,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     if(argc <= 1) //no arguments -> launcher dialog
     {
-        if(!FileExists(sz32Path) && BrowseFileOpen(nullptr, TEXT("x32dbg.exe\0x32dbg.exe\0\0"), nullptr, sz32Path, MAX_PATH, szCurrentDir))
+        if(!FileExists(sz32Path) && BrowseFileOpen(nullptr, TEXT("x86dbg.exe\0x86dbg.exe\0\0"), nullptr, sz32Path, MAX_PATH, szCurrentDir))
         {
-            WritePrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), sz32Path, szIniPath);
+            WritePrivateProfileString(TEXT("Launcher"), TEXT("x86dbg"), sz32Path, szIniPath);
             bDoneSomething = true;
         }
         if(isWoW64() && !FileExists(sz64Path) && BrowseFileOpen(nullptr, TEXT("x64dbg.exe\0x64dbg.exe\0\0"), nullptr, sz64Path, MAX_PATH, szCurrentDir))
@@ -503,9 +503,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     }
     else if(argc == 2 && !wcscmp(argv[1], L"::install")) //set configuration
     {
-        if(!FileExists(sz32Path) && BrowseFileOpen(nullptr, TEXT("x32dbg.exe\0x32dbg.exe\0\0"), nullptr, sz32Path, MAX_PATH, szCurrentDir))
+        if(!FileExists(sz32Path) && BrowseFileOpen(nullptr, TEXT("x86dbg.exe\0x86dbg.exe\0\0"), nullptr, sz32Path, MAX_PATH, szCurrentDir))
         {
-            WritePrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), sz32Path, szIniPath);
+            WritePrivateProfileString(TEXT("Launcher"), TEXT("x86dbg"), sz32Path, szIniPath);
             bDoneSomething = true;
         }
         if(isWoW64() && !FileExists(sz64Path) && BrowseFileOpen(nullptr, TEXT("x64dbg.exe\0x64dbg.exe\0\0"), nullptr, sz64Path, MAX_PATH, szCurrentDir))
@@ -527,7 +527,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         }
         if(MessageBox(nullptr, LoadResString(IDS_ASKDESKTOPSHORTCUT), LoadResString(IDS_QUESTION), MB_YESNO | MB_ICONQUESTION) == IDYES)
         {
-            AddDesktopShortcut(sz32Path, TEXT("x32dbg"));
+            AddDesktopShortcut(sz32Path, TEXT("x86dbg"));
             if(isWoW64())
                 AddDesktopShortcut(sz64Path, TEXT("x64dbg"));
             bDoneSomething = true;

@@ -25,12 +25,12 @@ static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, ch
 
     if(arch_out != NULL)
     {
-        if(arch_in != x64 && arch_in != x32)
+        if(arch_in != x64 && arch_in != x86)
         {
 #ifdef _WIN64
             *arch_out = x64;
 #else //x86
-            *arch_out = x32;
+            *arch_out = x86;
 #endif //_WIN64
         }
         else
@@ -49,7 +49,7 @@ static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, ch
         key_flags |= KEY_WOW64_64KEY;
 #endif //_WIN64
     }
-    else if(arch_in == x32)
+    else if(arch_in == x86)
     {
 #ifdef _WIN64
         key_flags |= KEY_WOW64_32KEY;

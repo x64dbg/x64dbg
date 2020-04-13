@@ -299,7 +299,7 @@
         <set>Qt::ImhUrlCharactersOnly</set>
        </property>
        <property name="text">
-        <string>An open-source x64/x32 debugger for windows.</string>
+        <string>An open-source x64/x86 debugger for windows.</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignCenter</set>
