@@ -543,14 +543,19 @@ void MemoryMapView::memoryAllocateSlot()
 void MemoryMapView::findPatternSlot()
 {
     HexEditDialog hexEdit(this);
-    hexEdit.showEntireBlock(true);
+    duint entireBlockEnabled = 0;
+    BridgeSettingGetUint("Gui", "MemoryMapEntireBlock", &entireBlockEnabled);
+    hexEdit.showEntireBlock(true, entireBlockEnabled);
+    hexEdit.showKeepSize(false);
     hexEdit.isDataCopiable(false);
     hexEdit.mHexEdit->setOverwriteMode(false);
     hexEdit.setWindowTitle(tr("Find Pattern..."));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
     duint addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
-    if(hexEdit.entireBlock())
+    entireBlockEnabled = hexEdit.entireBlock();
+    BridgeSettingSetUint("Gui", "MemoryMapEntireBlock", entireBlockEnabled);
+    if(entireBlockEnabled)
         addr = 0;
     QString addrText = ToPtrString(addr);
     DbgCmdExec(QString("findmemall " + addrText + ", \"" + hexEdit.mHexEdit->pattern() + "\", &data&").toUtf8().constData());

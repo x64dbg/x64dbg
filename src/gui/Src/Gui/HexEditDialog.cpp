@@ -97,9 +97,10 @@ HexEditDialog::~HexEditDialog()
     delete ui;
 }
 
-void HexEditDialog::showEntireBlock(bool show)
+void HexEditDialog::showEntireBlock(bool show, bool checked)
 {
     ui->chkEntireBlock->setVisible(show);
+    ui->chkEntireBlock->setChecked(checked);
 }
 
 void HexEditDialog::showKeepSize(bool show)
