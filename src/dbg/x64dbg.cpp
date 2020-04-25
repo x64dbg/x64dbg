@@ -630,6 +630,10 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     while(szProgramDir[len] != '\\')
         len--;
     szProgramDir[len] = 0;
+
+    strcpy_s(szDllLoaderPath, szProgramDir);
+    strcat_s(szDllLoaderPath, "\\loaddll.exe");
+
 #ifdef ENABLE_MEM_TRACE
     strcpy_s(alloctrace, szProgramDir);
     strcat_s(alloctrace, "\\alloctrace.txt");

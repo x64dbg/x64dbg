@@ -237,7 +237,7 @@ bool cbDebugAttach(int argc, char* argv[])
 #endif // _WIN64
         return false;
     }
-    if(!GetFileNameFromProcessHandle(hProcess, szFileName))
+    if(!GetFileNameFromProcessHandle(hProcess, szDebuggeePath))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not get module filename %X!\n"), DWORD(pid));
         return false;

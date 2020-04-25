@@ -70,10 +70,11 @@ static WString gInitExe, gInitCmd, gInitDir, gDllLoader;
 static CookieQuery cookie;
 static duint exceptionDispatchAddr = 0;
 static bool bPausedOnException = false;
+static HANDLE DebugDLLFileMapping = 0;
 char szProgramDir[MAX_PATH] = "";
-char szFileName[MAX_PATH] = "";
+char szDebuggeePath[MAX_PATH] = "";
+char szDllLoaderPath[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
-char sqlitedb[deflen] = "";
 std::vector<std::pair<duint, duint>> RunToUserCodeBreakpoints;
 PROCESS_INFORMATION* fdProcessInfo = &g_pi;
 HANDLE hActiveThread;
@@ -1672,8 +1673,10 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
     char command[MAX_PATH * 2] = "";
     bool bIsDebuggingThis = false;
-    if(bFileIsDll && !_stricmp(DLLDebugFileName, szFileName) && !bIsAttached) //Set entry breakpoint
+    if(bFileIsDll && !_stricmp(DLLDebugFileName, szDebuggeePath) && !bIsAttached) //Set entry breakpoint
     {
+        CloseHandle(DebugDLLFileMapping);
+        DebugDLLFileMapping = 0;
         bIsDebuggingThis = true;
         pDebuggedBase = (duint)base;
         DbCheckHash(ModContentHashFromAddr(pDebuggedBase)); //Check hash mismatch
@@ -2553,6 +2556,45 @@ void dbgstartscriptthread(CBPLUGINSCRIPT cbScript)
     CloseHandle(CreateThread(0, 0, scriptThread, (LPVOID)cbScript, 0, 0));
 }
 
+static void* InitDLLDebugW(const wchar_t* szFileName, const wchar_t* szCommandLine, const wchar_t* szCurrentFolder)
+{
+    WString loaderFilename = StringUtils::sprintf(L"\\DLLLoader" ArchValue(L"32", L"64") L"_%04X.exe", GetTickCount() & 0xFFFF);
+    WString debuggeeLoaderPath = szFileName;
+    {
+        auto backslashIdx = debuggeeLoaderPath.rfind('\\');
+        if(backslashIdx != WString::npos)
+            debuggeeLoaderPath.resize(backslashIdx);
+    }
+    debuggeeLoaderPath += loaderFilename;
+    WString loaderPath = StringUtils::Utf8ToUtf16(szDllLoaderPath);
+    if(!CopyFileW(loaderPath.c_str(), debuggeeLoaderPath.c_str(), FALSE))
+    {
+        debuggeeLoaderPath = StringUtils::Utf8ToUtf16(szProgramDir);
+        debuggeeLoaderPath += loaderFilename;
+        if(!CopyFileW(loaderPath.c_str(), debuggeeLoaderPath.c_str(), FALSE))
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Error debugging DLL (failed to copy loader)\n"));
+            return nullptr;
+        }
+    }
+
+    PPROCESS_INFORMATION ReturnValue = (PPROCESS_INFORMATION)InitDebugW(debuggeeLoaderPath.c_str(), szCommandLine, szCurrentFolder);
+    WString mappingName = StringUtils::sprintf(L"Local\\szLibraryName%X", ReturnValue->dwProcessId);
+    const auto mappingSize = 512;
+    DebugDLLFileMapping = CreateFileMappingW(INVALID_HANDLE_VALUE, 0, PAGE_READWRITE, 0, mappingSize * sizeof(wchar_t), mappingName.c_str());
+    if(DebugDLLFileMapping)
+    {
+        wchar_t* szLibraryPathMapping = (wchar_t*)MapViewOfFile(DebugDLLFileMapping, FILE_MAP_ALL_ACCESS, 0, 0, mappingSize * sizeof(wchar_t));
+        if(szLibraryPathMapping)
+        {
+            wcscpy_s(szLibraryPathMapping, mappingSize, szFileName);
+            UnmapViewOfFile(szLibraryPathMapping);
+        }
+    }
+
+    return ReturnValue;
+}
+
 static void debugLoopFunction(void* lpParameter, bool attach)
 {
     //initialize variables
@@ -2565,7 +2607,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     INIT_STRUCT* init;
     if(attach)
     {
-        gInitExe = StringUtils::Utf8ToUtf16(szFileName);
+        gInitExe = StringUtils::Utf8ToUtf16(szDebuggeePath);
         pid = DWORD(lpParameter);
         static PROCESS_INFORMATION pi_attached;
         memset(&pi_attached, 0, sizeof(pi_attached));
@@ -2575,14 +2617,19 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     {
         init = (INIT_STRUCT*)lpParameter;
         gInitExe = StringUtils::Utf8ToUtf16(init->exe);
-        strcpy_s(szFileName, init->exe);
+        strcpy_s(szDebuggeePath, init->exe);
     }
 
     pDebuggedEntry = GetPE32DataW(gInitExe.c_str(), 0, UE_OEP);
     bEntryIsInMzHeader = pDebuggedEntry == 0 || pDebuggedEntry == 1;
 
-    bFileIsDll = IsFileDLLW(StringUtils::Utf8ToUtf16(szFileName).c_str(), 0);
-    DbSetPath(nullptr, szFileName);
+    bFileIsDll = IsFileDLLW(StringUtils::Utf8ToUtf16(szDebuggeePath).c_str(), 0);
+    if(bFileIsDll && !FileExists(szDllLoaderPath))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Error debugging DLL (loaddll.exe not found)\n"));
+        return;
+    }
+    DbSetPath(nullptr, szDebuggeePath);
 
     if(!attach)
     {
@@ -2602,7 +2649,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
 
         //start the process
         if(bFileIsDll)
-            fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebugW(gInitExe.c_str(), false, gInitCmd.c_str(), gInitDir.c_str(), 0);
+            fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebugW(gInitExe.c_str(), gInitCmd.c_str(), gInitDir.c_str());
         else
             fdProcessInfo = (PROCESS_INFORMATION*)InitDebugW(gInitExe.c_str(), gInitCmd.c_str(), gInitDir.c_str());
         if(!fdProcessInfo)
@@ -2680,10 +2727,10 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     //inform GUI we started without problems
     GuiSetDebugState(initialized);
     GuiFocusView(GUI_DISASSEMBLY);
-    GuiAddRecentFile(szFileName);
+    GuiAddRecentFile(szDebuggeePath);
 
     //set GUI title
-    strcpy_s(szBaseFileName, szFileName);
+    strcpy_s(szBaseFileName, szDebuggeePath);
     int len = (int)strlen(szBaseFileName);
     while(szBaseFileName[len] != '\\' && len)
         len--;
@@ -2693,7 +2740,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
 
     //call plugin callback
     PLUG_CB_INITDEBUG initInfo;
-    initInfo.szFileName = szFileName;
+    initInfo.szFileName = szDebuggeePath;
     plugincbcall(CB_INITDEBUG, &initInfo);
 
     //call plugin callback (attach)
@@ -2758,6 +2805,12 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     {
         CloseHandle(hProcessToken);
         hProcessToken = 0;
+    }
+
+    if(DebugDLLFileMapping)
+    {
+        CloseHandle(DebugDLLFileMapping);
+        DebugDLLFileMapping = 0;
     }
 
     pDebuggedEntry = 0;

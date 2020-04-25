@@ -20,6 +20,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "x64dbg_launcher", "src\laun
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zydis_wrapper", "src\zydis_wrapper\zydis_wrapper.vcxproj", "{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "loaddll", "src\loaddll\loaddll.vcxproj", "{21AD9735-967B-41F7-8329-DB88D03743ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -68,8 +70,19 @@ Global
 		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Release|Win32.Build.0 = Release|Win32
 		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Release|x64.ActiveCfg = Release|x64
 		{3B2C1EE1-FDEC-4D85-BE46-3C6A5EA69883}.Release|x64.Build.0 = Release|x64
+		{21AD9735-967B-41F7-8329-DB88D03743ED}.Debug|Win32.ActiveCfg = Debug|Win32
+		{21AD9735-967B-41F7-8329-DB88D03743ED}.Debug|Win32.Build.0 = Debug|Win32
+		{21AD9735-967B-41F7-8329-DB88D03743ED}.Debug|x64.ActiveCfg = Debug|x64
+		{21AD9735-967B-41F7-8329-DB88D03743ED}.Debug|x64.Build.0 = Debug|x64
+		{21AD9735-967B-41F7-8329-DB88D03743ED}.Release|Win32.ActiveCfg = Release|Win32
+		{21AD9735-967B-41F7-8329-DB88D03743ED}.Release|Win32.Build.0 = Release|Win32
+		{21AD9735-967B-41F7-8329-DB88D03743ED}.Release|x64.ActiveCfg = Release|x64
+		{21AD9735-967B-41F7-8329-DB88D03743ED}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CC6FA67F-9244-45AD-AC13-69C29283D226}
 	EndGlobalSection
 EndGlobal
