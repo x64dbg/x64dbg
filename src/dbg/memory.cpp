@@ -337,10 +337,12 @@ static bool IgnoreThisRead(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffe
 
 bool MemoryReadSafePage(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead)
 {
+#if 0
     //TODO: remove when proven stable, this function checks if reads are always within page boundaries
     auto base = duint(lpBaseAddress);
     if(nSize > PAGE_SIZE - (base & (PAGE_SIZE - 1)))
         __debugbreak();
+#endif
     if(IgnoreThisRead(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead))
         return true;
     return MemoryReadSafe(hProcess, lpBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead);
