@@ -1916,7 +1916,6 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             _dbg_animatestop(); // Stop animating
             return;
         }
-        SetContextDataEx(hActiveThread, UE_CIP, (duint)ExceptionData->ExceptionRecord.ExceptionAddress);
     }
     else if(ExceptionData->ExceptionRecord.ExceptionCode == MS_VC_EXCEPTION) //SetThreadName exception
     {

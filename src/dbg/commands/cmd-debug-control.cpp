@@ -21,16 +21,16 @@ static bool skipInt3Stepping(int argc, char* argv[])
 {
     if(!bSkipInt3Stepping || dbgisrunning() || getLastExceptionInfo().ExceptionRecord.ExceptionCode != EXCEPTION_BREAKPOINT)
         return false;
-    duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+    auto exceptionAddress = (duint)getLastExceptionInfo().ExceptionRecord.ExceptionAddress;
     unsigned char data[MAX_DISASM_BUFFER];
-    MemRead(cip, data, sizeof(data));
+    MemRead(exceptionAddress, data, sizeof(data));
     Zydis zydis;
-    if(zydis.Disassemble(cip, data) && zydis.IsInt3())
+    if(zydis.Disassemble(exceptionAddress, data) && zydis.IsInt3())
     {
         //Don't allow skipping of multiple consecutive INT3 instructions
         getLastExceptionInfo().ExceptionRecord.ExceptionCode = 0;
         dputs(QT_TRANSLATE_NOOP("DBG", "Skipped INT3!"));
-        cbDebugSkip(1, argv);
+        cbDebugContinue(1, argv);
         return true;
     }
     return false;
