@@ -504,6 +504,7 @@ struct PrintVisitor : TypeManager::Visitor
         mPath.push_back((member.name == "visit" ? type.name : member.name) + ".");
         mParents.push_back(Parent(type.isunion ? Parent::Union : Parent::Struct));
         parent().node = node;
+        parent().size = td.size;
         return true;
     }
 
@@ -526,6 +527,7 @@ struct PrintVisitor : TypeManager::Visitor
         mPath.push_back(member.name + ".");
         mParents.push_back(Parent(Parent::Array));
         parent().node = node;
+        parent().size = td.size;
         return true;
     }
 
@@ -545,6 +547,7 @@ struct PrintVisitor : TypeManager::Visitor
         parent().offset = mOffset;
         parent().addr = mAddr;
         parent().node = mNode;
+        parent().size = type.size;
         mOffset = 0;
         mAddr = value;
         mPtrDepth++;
@@ -558,6 +561,10 @@ struct PrintVisitor : TypeManager::Visitor
             mOffset = parent().offset;
             mAddr = parent().addr;
             mPtrDepth--;
+        }
+        else if(parent().type == Parent::Union)
+        {
+            mOffset += parent().size;
         }
         mParents.pop_back();
         mPath.pop_back();
@@ -580,6 +587,7 @@ private:
         duint addr = 0;
         duint offset = 0;
         void* node = nullptr;
+        int size = 0;
 
         explicit Parent(Type type)
             : type(type) { }
