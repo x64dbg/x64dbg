@@ -450,6 +450,9 @@ struct PrintVisitor : TypeManager::Visitor
 
     bool visitType(const Member & member, const Type & type) override
     {
+        if(!mParents.empty() && parent().type == Parent::Union)
+            mOffset = parent().offset;
+
         String tname;
         auto ptype = mParents.empty() ? Parent::Struct : parent().type;
         if(ptype == Parent::Array)
@@ -479,14 +482,16 @@ struct PrintVisitor : TypeManager::Visitor
         td.callback = cbPrintPrimitive;
         td.userdata = nullptr;
         mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
+        mOffset += type.size;
 
-        if(ptype != Parent::Union)
-            mOffset += type.size;
         return true;
     }
 
     bool visitStructUnion(const Member & member, const StructUnion & type) override
     {
+        if(!mParents.empty() && parent().type == Parent::Type::Union)
+            mOffset = parent().offset;
+
         String tname = StringUtils::sprintf("%s %s %s", type.isunion ? "union" : "struct", type.name.c_str(), member.name.c_str());
 
         TYPEDESCRIPTOR td;
@@ -505,6 +510,7 @@ struct PrintVisitor : TypeManager::Visitor
         mParents.push_back(Parent(type.isunion ? Parent::Union : Parent::Struct));
         parent().node = node;
         parent().size = td.size;
+        parent().offset = mOffset;
         return true;
     }
 
@@ -564,7 +570,7 @@ struct PrintVisitor : TypeManager::Visitor
         }
         else if(parent().type == Parent::Union)
         {
-            mOffset += parent().size;
+            mOffset = parent().offset + parent().size;
         }
         mParents.pop_back();
         mPath.pop_back();
