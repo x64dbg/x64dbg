@@ -486,12 +486,12 @@ void TraceRecordManager::increaseInstructionCounter()
 
 bool TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
 {
-    if(!DbgIsDebugging())
-        return false;
     if(enabled)
     {
         if(rtEnabled)
             enableRunTrace(false, NULL); //re-enable run trace
+        if(!DbgIsDebugging())
+            return false;
         rtFile = CreateFileW(StringUtils::Utf8ToUtf16(fileName).c_str(), FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
         if(rtFile != INVALID_HANDLE_VALUE)
         {
