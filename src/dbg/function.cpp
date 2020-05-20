@@ -83,8 +83,32 @@ bool FunctionAdd(duint Start, duint End, bool Manual, duint InstructionCount)
 bool FunctionGet(duint Address, duint* Start, duint* End, duint* InstrCount)
 {
     FUNCTIONSINFO function;
-    if(!functions.Get(Functions::VaKey(Address, Address), function))
+    if (!functions.Get(Functions::VaKey(Address, Address), function))
+    {
+#ifdef _WIN64
+        auto info = ModInfoFromAddr(Address);
+        if (nullptr == info)
+            return false;
+
+        DWORD rva = DWORD(Address - info->base);
+        auto found = std::lower_bound(info->runtimeFunctions.begin(), info->runtimeFunctions.end(), rva, [](const RUNTIME_FUNCTION & a, const DWORD & rva)
+        {
+            return a.EndAddress < rva;
+        });
+
+        if (found != info->runtimeFunctions.end() && rva >= found->BeginAddress)
+        {
+            if (Start)
+                *Start = info->base + found->BeginAddress;
+            if (End)
+                *End = info->base + found->EndAddress;
+            if (InstrCount)
+                *InstrCount = 0;    //TODO: count instructions
+            return true;
+        }
+#endif
         return false;
+    }
     functions.AdjustValue(function);
     if(Start)
         *Start = function.start;
