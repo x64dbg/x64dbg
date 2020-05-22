@@ -3,6 +3,7 @@
 #include "WordEditDialog.h"
 #include "XrefBrowseDialog.h"
 #include "Bridge.h"
+#include "zydis_wrapper.h"
 
 CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
 {
@@ -200,12 +201,41 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
                 if(DbgMemRead(arg.value, data.data(), data.size()))
                 {
                     QString hex;
-                    hex.reserve(data.size() * 3);
-                    for(int k = 0; k < data.size(); k++)
+
+                    Zydis myinstruction;
+                    bool isXMMdecoded = false;
+                    unsigned char instructiondata[MAX_DISASM_BUFFER];
+                    if(basicinfo.memory.size == 16 && DbgMemRead(parVA, &instructiondata, MAX_DISASM_BUFFER))
                     {
-                        if(k)
-                            hex.append(' ');
-                        hex.append(ToByteString(data[k]));
+                        myinstruction.Disassemble(parVA, instructiondata);
+                        if(myinstruction.Success())
+                        {
+                            switch(myinstruction.getVectorElementType(i))
+                            {
+                            case Zydis::VETFloat32:
+                                hex = "%1 %2 %3 %4";
+                                hex = hex.arg(((const float*)data.data())[0]).arg(((const float*)data.data())[1]).arg(((const float*)data.data())[2]).arg(((const float*)data.data())[3]);
+                                isXMMdecoded = true;
+                                break;
+                            case Zydis::VETFloat64:
+                                hex = "%1 %2";
+                                hex = hex.arg(((const double*)data.data())[0]).arg(((const double*)data.data())[1]);
+                                isXMMdecoded = true;
+                                break;
+                            default:
+                                isXMMdecoded = false;
+                            }
+                        }
+                    }
+                    if(!isXMMdecoded)
+                    {
+                        hex.reserve(data.size() * 3);
+                        for(int k = 0; k < data.size(); k++)
+                        {
+                            if(k)
+                                hex.append(' ');
+                            hex.append(ToByteString(data[k]));
+                        }
                     }
                     setInfoLine(j, sizeName + "[" + argMnemonic + "]=" + hex);
                 }

@@ -91,6 +91,16 @@ public:
 
     bool IsBranchType(std::underlying_type_t<BranchType> bt) const;
 
+    enum VectorElementType
+    {
+        VETDefault,
+        VETFloat32,
+        VETFloat64,
+        VETInt32,
+        VETInt64
+    };
+    VectorElementType getVectorElementType(int opindex) const;
+
     // Shortcuts.
     bool IsRet() const { return IsBranchType(BTRet); }
     bool IsCall() const { return IsBranchType(BTCall); }
