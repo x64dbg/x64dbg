@@ -223,6 +223,8 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
     wInst.branchType = branchType;
     wInst.tokens = cap;
     cp.BytesGroup(&wInst.prefixSize, &wInst.opcodeSize, &wInst.group1Size, &wInst.group2Size, &wInst.group3Size);
+    for(uint8_t i = 0; i < _countof(wInst.vectorElementType); ++i)
+        wInst.vectorElementType[i] = cp.getVectorElementType(i);
 
     if(!success)
         return wInst;
@@ -299,6 +301,10 @@ Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint origBase,
     wInst.group1Size = 0;
     wInst.group2Size = 0;
     wInst.group3Size = 0;
+    wInst.vectorElementType[0] = Zydis::VETDefault;
+    wInst.vectorElementType[1] = Zydis::VETDefault;
+    wInst.vectorElementType[2] = Zydis::VETDefault;
+    wInst.vectorElementType[3] = Zydis::VETDefault;
 
     return wInst;
 }

@@ -421,7 +421,9 @@ typedef enum
     size_byte = 1,
     size_word = 2,
     size_dword = 4,
-    size_qword = 8
+    size_qword = 8,
+    size_xmmword = 16,
+    size_ymmword = 32
 } MEMORY_SIZE;
 
 typedef enum

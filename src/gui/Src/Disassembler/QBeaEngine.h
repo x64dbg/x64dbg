@@ -35,6 +35,7 @@ struct Instruction_t
     BranchType branchType;
     ZydisTokenizer::InstructionToken tokens;
     std::vector<std::pair<const char*, uint8_t>> regsReferenced;
+    uint8_t vectorElementType[4];
 };
 
 class QBeaEngine

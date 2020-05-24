@@ -695,6 +695,8 @@ Zydis::VectorElementType Zydis::getVectorElementType(int opindex) const
 {
     if(!Success())
         return Zydis::VETDefault;
+    if(opindex >= mInstr.operandCount)
+        return Zydis::VETDefault;
     const auto & op = mInstr.operands[opindex];
     switch(op.elementType)
     {
