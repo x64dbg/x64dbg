@@ -167,7 +167,7 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
         painter->drawRect(rect);
     }
 
-    int index = rowBase + rowOffset;
+    duint index = rowBase + rowOffset;
     duint cur_addr;
     cur_addr = mTraceFile->Registers(index).regcontext.cip;
     bool wIsSelected = (index >= mSelection.fromIndex && index <= mSelection.toIndex);
@@ -382,7 +382,7 @@ NotDebuggingLabel:
         if(mHighlightToken.text.length())
             ZydisTokenizer::TokenToRichText(fakeInstruction, richText, &mHighlightToken);
         else
-            ZydisTokenizer::TokenToRichText(fakeInstruction, richText, 0);
+            ZydisTokenizer::TokenToRichText(fakeInstruction, richText, nullptr);
         RichTextPainter::paintRichText(painter, x + 0, y, getColumnWidth(col) - 0, getRowHeight(), 4, richText, mFontMetrics);
 
         return "";
@@ -440,7 +440,7 @@ NotDebuggingLabel:
     }
 }
 
-ZydisTokenizer::InstructionToken TraceBrowser::memoryTokens(int atIndex)
+ZydisTokenizer::InstructionToken TraceBrowser::memoryTokens(unsigned long long atIndex)
 {
     duint MemoryAddress[MAX_MEMORY_OPERANDS];
     duint MemoryOldContent[MAX_MEMORY_OPERANDS];
@@ -466,7 +466,7 @@ ZydisTokenizer::InstructionToken TraceBrowser::memoryTokens(int atIndex)
     return  fakeInstruction;
 }
 
-ZydisTokenizer::InstructionToken TraceBrowser::registersTokens(int atIndex)
+ZydisTokenizer::InstructionToken TraceBrowser::registersTokens(unsigned long long atIndex)
 {
     ZydisTokenizer::InstructionToken fakeInstruction = ZydisTokenizer::InstructionToken();
     REGDUMP now = mTraceFile->Registers(atIndex);
@@ -843,8 +843,8 @@ void TraceBrowser::mouseMoveEvent(QMouseEvent* event)
 void TraceBrowser::keyPressEvent(QKeyEvent* event)
 {
     int key = event->key();
-    int curindex = getInitialSelection();
-    int visibleindex = curindex;
+    auto curindex = getInitialSelection();
+    auto visibleindex = curindex;
     if((key == Qt::Key_Up || key == Qt::Key_Down) && mTraceFile && mTraceFile->Progress() == 100)
     {
         if(key == Qt::Key_Up)
