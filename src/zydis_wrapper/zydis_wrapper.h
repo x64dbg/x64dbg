@@ -91,7 +91,7 @@ public:
 
     bool IsBranchType(std::underlying_type_t<BranchType> bt) const;
 
-    enum VectorElementType
+    enum VectorElementType : uint8_t
     {
         VETDefault,
         VETFloat32,
