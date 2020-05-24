@@ -54,8 +54,8 @@ private:
     void mouseDoubleClickEvent(QMouseEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
 
-    ZydisTokenizer::InstructionToken memoryTokens(int atIndex);
-    ZydisTokenizer::InstructionToken registersTokens(int atIndex);
+    ZydisTokenizer::InstructionToken memoryTokens(unsigned long long atIndex);
+    ZydisTokenizer::InstructionToken registersTokens(unsigned long long atIndex);
     VaHistory mHistory;
     MenuBuilder* mMenuBuilder;
     bool mRvaDisplayEnabled;
