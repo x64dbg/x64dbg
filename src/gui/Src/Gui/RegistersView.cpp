@@ -203,13 +203,12 @@ void RegistersView::InitMappings()
 
     if(mShowFpu)
     {
-
+        REGISTER_NAME tempRegisterName;
         offset++;
 
-        if(mFpuMode)
+        if(mFpuMode == 1)
         {
-            mRegisterRelativePlaces.insert(CS, Register_Relative_Position(DS, SS, ES, x87r0));
-            mRegisterRelativePlaces.insert(SS, Register_Relative_Position(CS, x87r0, DS, x87r0));
+            tempRegisterName = x87r0;
 
             mRegisterMapping.insert(x87r0, "x87r0");
             mRegisterPlaces.insert(x87r0, Register_Position(offset++, 0, 6, 10 * 2));
@@ -237,10 +236,9 @@ void RegistersView::InitMappings()
             mRegisterRelativePlaces.insert(x87r7, Register_Relative_Position(x87r6, x87TagWord));
 
         }
-        else
+        else if(mFpuMode == 0)
         {
-            mRegisterRelativePlaces.insert(CS, Register_Relative_Position(DS, SS, ES, x87st0));
-            mRegisterRelativePlaces.insert(SS, Register_Relative_Position(CS, x87st0, DS, x87st0));
+            tempRegisterName = x87st0;
 
             mRegisterMapping.insert(x87st0, "ST(0)");
             mRegisterPlaces.insert(x87st0, Register_Position(offset++, 0, 6, 10 * 2));
@@ -268,21 +266,56 @@ void RegistersView::InitMappings()
             mRegisterRelativePlaces.insert(x87st7, Register_Relative_Position(x87st6, x87TagWord));
 
         }
+        else if(mFpuMode == 2)
+        {
+            tempRegisterName = MM0;
+
+            mRegisterMapping.insert(MM0, "MM0");
+            mRegisterPlaces.insert(MM0, Register_Position(offset++, 0, 4, 8 * 2));
+            mRegisterRelativePlaces.insert(MM0, Register_Relative_Position(SS, MM1));
+            mRegisterMapping.insert(MM1, "MM1");
+            mRegisterPlaces.insert(MM1, Register_Position(offset++, 0, 4, 8 * 2));
+            mRegisterRelativePlaces.insert(MM1, Register_Relative_Position(MM0, MM2));
+            mRegisterMapping.insert(MM2, "MM2");
+            mRegisterPlaces.insert(MM2, Register_Position(offset++, 0, 4, 8 * 2));
+            mRegisterRelativePlaces.insert(MM2, Register_Relative_Position(MM1, MM3));
+            mRegisterMapping.insert(MM3, "MM3");
+            mRegisterPlaces.insert(MM3, Register_Position(offset++, 0, 4, 8 * 2));
+            mRegisterRelativePlaces.insert(MM3, Register_Relative_Position(MM2, MM4));
+            mRegisterMapping.insert(MM4, "MM4");
+            mRegisterPlaces.insert(MM4, Register_Position(offset++, 0, 4, 8 * 2));
+            mRegisterRelativePlaces.insert(MM4, Register_Relative_Position(MM3, MM5));
+            mRegisterMapping.insert(MM5, "MM5");
+            mRegisterPlaces.insert(MM5, Register_Position(offset++, 0, 4, 8 * 2));
+            mRegisterRelativePlaces.insert(MM5, Register_Relative_Position(MM4, MM6));
+            mRegisterMapping.insert(MM6, "MM6");
+            mRegisterPlaces.insert(MM6, Register_Position(offset++, 0, 4, 8 * 2));
+            mRegisterRelativePlaces.insert(MM6, Register_Relative_Position(MM5, MM7));
+            mRegisterMapping.insert(MM7, "MM7");
+            mRegisterPlaces.insert(MM7, Register_Position(offset++, 0, 4, 8 * 2));
+            mRegisterRelativePlaces.insert(MM7, Register_Relative_Position(MM6, x87TagWord));
+        }
+        mRegisterRelativePlaces.insert(CS, Register_Relative_Position(DS, SS, ES, tempRegisterName));
+        mRegisterRelativePlaces.insert(SS, Register_Relative_Position(CS, tempRegisterName, DS, tempRegisterName));
 
         offset++;
 
         mRegisterMapping.insert(x87TagWord, "x87TagWord");
         mRegisterPlaces.insert(x87TagWord, Register_Position(offset++, 0, 11, sizeof(WORD) * 2));
 
-        if(mFpuMode)
+        switch(mFpuMode)
         {
-            mRegisterRelativePlaces.insert(x87TagWord, Register_Relative_Position(x87r7, x87TW_0));
+        case 0:
+            tempRegisterName = x87st7;
+            break;
+        case 1:
+            tempRegisterName = x87r7;
+            break;
+        case 2:
+            tempRegisterName = MM7;
+            break;
         }
-        else
-        {
-            mRegisterRelativePlaces.insert(x87TagWord, Register_Relative_Position(x87st7, x87TW_0));
-        }
-
+        mRegisterRelativePlaces.insert(x87TagWord, Register_Relative_Position(tempRegisterName, x87TW_0));
 
         //Special treatment of long internationalized string
         int NextColumnPosition = 20;
@@ -463,48 +496,19 @@ void RegistersView::InitMappings()
 
         mRegisterMapping.insert(MxCsr_IE, "MxCsr_IE");
         mRegisterPlaces.insert(MxCsr_IE, Register_Position(offset, 0, 9, 1));
-        mRegisterRelativePlaces.insert(MxCsr_IE, Register_Relative_Position(MxCsr_DE, MxCsr_DM, MxCsr_OE, MM0));
+        mRegisterRelativePlaces.insert(MxCsr_IE, Register_Relative_Position(MxCsr_DE, MxCsr_DM, MxCsr_OE, XMM0));
         mRegisterMapping.insert(MxCsr_DM, "MxCsr_DM");
         mRegisterPlaces.insert(MxCsr_DM, Register_Position(offset, 12, 10, 1));
-        mRegisterRelativePlaces.insert(MxCsr_DM, Register_Relative_Position(MxCsr_IE, MxCsr_RC, MxCsr_ZE, MM0));
+        mRegisterRelativePlaces.insert(MxCsr_DM, Register_Relative_Position(MxCsr_IE, MxCsr_RC, MxCsr_ZE, XMM0));
         mRegisterMapping.insert(MxCsr_RC, "MxCsr_RC");
         mRegisterPlaces.insert(MxCsr_RC, Register_Position(offset++, 25, 10, 19));
-        mRegisterRelativePlaces.insert(MxCsr_RC, Register_Relative_Position(MxCsr_DM, MM0, MxCsr_DE, MM0));
-
-
-        offset++;
-
-        mRegisterMapping.insert(MM0, "MM0");
-        mRegisterPlaces.insert(MM0, Register_Position(offset++, 0, 4, 8 * 2));
-        mRegisterRelativePlaces.insert(MM0, Register_Relative_Position(MxCsr_RC, MM1));
-        mRegisterMapping.insert(MM1, "MM1");
-        mRegisterPlaces.insert(MM1, Register_Position(offset++, 0, 4, 8 * 2));
-        mRegisterRelativePlaces.insert(MM1, Register_Relative_Position(MM0, MM2));
-        mRegisterMapping.insert(MM2, "MM2");
-        mRegisterPlaces.insert(MM2, Register_Position(offset++, 0, 4, 8 * 2));
-        mRegisterRelativePlaces.insert(MM2, Register_Relative_Position(MM1, MM3));
-        mRegisterMapping.insert(MM3, "MM3");
-        mRegisterPlaces.insert(MM3, Register_Position(offset++, 0, 4, 8 * 2));
-        mRegisterRelativePlaces.insert(MM3, Register_Relative_Position(MM2, MM4));
-        mRegisterMapping.insert(MM4, "MM4");
-        mRegisterPlaces.insert(MM4, Register_Position(offset++, 0, 4, 8 * 2));
-        mRegisterRelativePlaces.insert(MM4, Register_Relative_Position(MM3, MM5));
-        mRegisterMapping.insert(MM5, "MM5");
-        mRegisterPlaces.insert(MM5, Register_Position(offset++, 0, 4, 8 * 2));
-        mRegisterRelativePlaces.insert(MM5, Register_Relative_Position(MM4, MM6));
-        mRegisterMapping.insert(MM6, "MM6");
-        mRegisterPlaces.insert(MM6, Register_Position(offset++, 0, 4, 8 * 2));
-        mRegisterRelativePlaces.insert(MM6, Register_Relative_Position(MM5, MM7));
-        mRegisterMapping.insert(MM7, "MM7");
-        mRegisterPlaces.insert(MM7, Register_Position(offset++, 0, 4, 8 * 2));
-        mRegisterRelativePlaces.insert(MM7, Register_Relative_Position(MM6, XMM0));
-
+        mRegisterRelativePlaces.insert(MxCsr_RC, Register_Relative_Position(MxCsr_DM, XMM0, MxCsr_DE, XMM0));
 
         offset++;
 
         mRegisterMapping.insert(XMM0, "XMM0");
         mRegisterPlaces.insert(XMM0, Register_Position(offset++, 0, 6, 16 * 2));
-        mRegisterRelativePlaces.insert(XMM0, Register_Relative_Position(MM7, XMM1));
+        mRegisterRelativePlaces.insert(XMM0, Register_Relative_Position(MxCsr_RC, XMM1));
         mRegisterMapping.insert(XMM1, "XMM1");
         mRegisterPlaces.insert(XMM1, Register_Position(offset++, 0, 6, 16 * 2));
         mRegisterRelativePlaces.insert(XMM1, Register_Relative_Position(XMM0, XMM2));
@@ -723,7 +727,7 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
         wSIMDRegDispMode = SIMD_REG_DISP_QWORD_HEX;
         break;
     }
-    mFpuMode = false;
+    mFpuMode = 0;
 
     // precreate ContextMenu Actions
     wCM_Increment = setupAction(DIcon("register_inc.png"), tr("Increment"), this);
@@ -752,8 +756,9 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     wCM_Highlight = setupAction(DIcon("highlight.png"), tr("Highlight"), this);
     mSwitchSIMDDispMode = new QMenu(tr("Change SIMD Register Display Mode"), this);
     mSwitchSIMDDispMode->setIcon(DIcon("simdmode.png"));
-    mSwitchFPUDispMode = new QAction(tr("Display ST(x)"), this);
-    mSwitchFPUDispMode->setCheckable(true);
+    mDisplaySTX = new QAction(tr("Display ST(x)"), this);
+    mDisplayx87rX = new QAction(tr("Display x87rX"), this);
+    mDisplayMMX = new QAction(tr("Display MMX"), this);
     SIMDHex = new QAction(tr("Hexadecimal"), mSwitchSIMDDispMode);
     SIMDFloat = new QAction(tr("Float"), mSwitchSIMDDispMode);
     SIMDDouble = new QAction(tr("Double"), mSwitchSIMDDispMode);
@@ -778,6 +783,9 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     SIMDSQWord->setData(QVariant(SIMD_REG_DISP_QWORD_SIGNED));
     SIMDUQWord->setData(QVariant(SIMD_REG_DISP_QWORD_UNSIGNED));
     SIMDHQWord->setData(QVariant(SIMD_REG_DISP_QWORD_HEX));
+    mDisplaySTX->setData(QVariant(0));
+    mDisplayx87rX->setData(QVariant(1));
+    mDisplayMMX->setData(QVariant(2));
     connect(SIMDHex, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
     connect(SIMDFloat, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
     connect(SIMDDouble, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
@@ -790,7 +798,9 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     connect(SIMDSQWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
     connect(SIMDUQWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
     connect(SIMDHQWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
-    connect(mSwitchFPUDispMode, SIGNAL(triggered()), this, SLOT(onFpuMode()));
+    connect(mDisplaySTX, SIGNAL(triggered()), this, SLOT(onFpuMode()));
+    connect(mDisplayx87rX, SIGNAL(triggered()), this, SLOT(onFpuMode()));
+    connect(mDisplayMMX, SIGNAL(triggered()), this, SLOT(onFpuMode()));
     SIMDHex->setCheckable(true);
     SIMDFloat->setCheckable(true);
     SIMDDouble->setCheckable(true);
@@ -2941,15 +2951,39 @@ void RegistersView::onCopyAllAction()
     appendRegister(text, REGISTER_NAME::SS, "SS : ", "SS : ");
     if(mShowFpu)
     {
-
-        appendRegister(text, REGISTER_NAME::x87r0, "x87r0 : ", "x87r0 : ");
-        appendRegister(text, REGISTER_NAME::x87r1, "x87r1 : ", "x87r1 : ");
-        appendRegister(text, REGISTER_NAME::x87r2, "x87r2 : ", "x87r2 : ");
-        appendRegister(text, REGISTER_NAME::x87r3, "x87r3 : ", "x87r3 : ");
-        appendRegister(text, REGISTER_NAME::x87r4, "x87r4 : ", "x87r4 : ");
-        appendRegister(text, REGISTER_NAME::x87r5, "x87r5 : ", "x87r5 : ");
-        appendRegister(text, REGISTER_NAME::x87r6, "x87r6 : ", "x87r6 : ");
-        appendRegister(text, REGISTER_NAME::x87r7, "x87r7 : ", "x87r7 : ");
+        switch(mFpuMode)
+        {
+        case 0:
+            appendRegister(text, REGISTER_NAME::x87st0, "ST(0) : ", "ST(0) : ");
+            appendRegister(text, REGISTER_NAME::x87st1, "ST(1) : ", "ST(1) : ");
+            appendRegister(text, REGISTER_NAME::x87st2, "ST(2) : ", "ST(2) : ");
+            appendRegister(text, REGISTER_NAME::x87st3, "ST(3) : ", "ST(3) : ");
+            appendRegister(text, REGISTER_NAME::x87st4, "ST(4) : ", "ST(4) : ");
+            appendRegister(text, REGISTER_NAME::x87st5, "ST(5) : ", "ST(5) : ");
+            appendRegister(text, REGISTER_NAME::x87st6, "ST(6) : ", "ST(6) : ");
+            appendRegister(text, REGISTER_NAME::x87st7, "ST(7) : ", "ST(7) : ");
+            break;
+        case 1:
+            appendRegister(text, REGISTER_NAME::x87r0, "x87r0 : ", "x87r0 : ");
+            appendRegister(text, REGISTER_NAME::x87r1, "x87r1 : ", "x87r1 : ");
+            appendRegister(text, REGISTER_NAME::x87r2, "x87r2 : ", "x87r2 : ");
+            appendRegister(text, REGISTER_NAME::x87r3, "x87r3 : ", "x87r3 : ");
+            appendRegister(text, REGISTER_NAME::x87r4, "x87r4 : ", "x87r4 : ");
+            appendRegister(text, REGISTER_NAME::x87r5, "x87r5 : ", "x87r5 : ");
+            appendRegister(text, REGISTER_NAME::x87r6, "x87r6 : ", "x87r6 : ");
+            appendRegister(text, REGISTER_NAME::x87r7, "x87r7 : ", "x87r7 : ");
+            break;
+        case 2:
+            appendRegister(text, REGISTER_NAME::MM0, "MM0 : ", "MM0 : ");
+            appendRegister(text, REGISTER_NAME::MM1, "MM1 : ", "MM1 : ");
+            appendRegister(text, REGISTER_NAME::MM2, "MM2 : ", "MM2 : ");
+            appendRegister(text, REGISTER_NAME::MM3, "MM3 : ", "MM3 : ");
+            appendRegister(text, REGISTER_NAME::MM4, "MM4 : ", "MM4 : ");
+            appendRegister(text, REGISTER_NAME::MM5, "MM5 : ", "MM5 : ");
+            appendRegister(text, REGISTER_NAME::MM6, "MM6 : ", "MM6 : ");
+            appendRegister(text, REGISTER_NAME::MM7, "MM7 : ", "MM7 : ");
+            break;
+        }
         appendRegister(text, REGISTER_NAME::x87TagWord, "x87TagWord : ", "x87TagWord : ");
         appendRegister(text, REGISTER_NAME::x87ControlWord, "x87ControlWord : ", "x87ControlWord : ");
         appendRegister(text, REGISTER_NAME::x87StatusWord, "x87StatusWord : ", "x87StatusWord : ");
@@ -3000,14 +3034,6 @@ void RegistersView::onCopyAllAction()
         appendRegister(text, REGISTER_NAME::MxCsr_DE, "MxCsr_DE : ", "MxCsr_DE : ");
         appendRegister(text, REGISTER_NAME::MxCsr_IE, "MxCsr_IE : ", "MxCsr_IE : ");
         appendRegister(text, REGISTER_NAME::MxCsr_RC, "MxCsr_RC : ", "MxCsr_RC : ");
-        appendRegister(text, REGISTER_NAME::MM0, "MM0 : ", "MM0 : ");
-        appendRegister(text, REGISTER_NAME::MM1, "MM1 : ", "MM1 : ");
-        appendRegister(text, REGISTER_NAME::MM2, "MM2 : ", "MM2 : ");
-        appendRegister(text, REGISTER_NAME::MM3, "MM3 : ", "MM3 : ");
-        appendRegister(text, REGISTER_NAME::MM4, "MM4 : ", "MM4 : ");
-        appendRegister(text, REGISTER_NAME::MM5, "MM5 : ", "MM5 : ");
-        appendRegister(text, REGISTER_NAME::MM6, "MM6 : ", "MM6 : ");
-        appendRegister(text, REGISTER_NAME::MM7, "MM7 : ", "MM7 : ");
         appendRegister(text, REGISTER_NAME::XMM0, "XMM0  : ", "XMM0  : ");
         appendRegister(text, REGISTER_NAME::XMM1, "XMM1  : ", "XMM1  : ");
         appendRegister(text, REGISTER_NAME::XMM2, "XMM2  : ", "XMM2  : ");
@@ -3175,11 +3201,6 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
     SIMDSQWord->setChecked(SIMDSQWord == selectedAction);
     SIMDUQWord->setChecked(SIMDUQWord == selectedAction);
     SIMDHQWord->setChecked(SIMDHQWord == selectedAction);
-    if(mFpuMode)
-        mSwitchFPUDispMode->setText(tr("Display ST(x)"));
-    else
-        mSwitchFPUDispMode->setText(tr("Display x87rX"));
-    mSwitchFPUDispMode->setChecked(mFpuMode);
 
     if(mSelected != UNKNOWN)
     {
@@ -3276,7 +3297,16 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
         {
             wMenu.addMenu(mSwitchSIMDDispMode);
         }
-        wMenu.addAction(mSwitchFPUDispMode);
+
+        if(mFPUMMX.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
+        {
+            if(mFpuMode != 0)
+                wMenu.addAction(mDisplaySTX);
+            if(mFpuMode != 1)
+                wMenu.addAction(mDisplayx87rX);
+            if(mFpuMode != 2)
+                wMenu.addAction(mDisplayMMX);
+        }
 
         wMenu.exec(this->mapToGlobal(pos));
     }
@@ -3286,7 +3316,12 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
         wMenu.addAction(wCM_ChangeFPUView);
         wMenu.addAction(wCM_CopyAll);
         wMenu.addMenu(mSwitchSIMDDispMode);
-        wMenu.addAction(mSwitchFPUDispMode);
+        if(mFpuMode != 0)
+            wMenu.addAction(mDisplaySTX);
+        if(mFpuMode != 1)
+            wMenu.addAction(mDisplayx87rX);
+        if(mFpuMode != 2)
+            wMenu.addAction(mDisplayMMX);
         wMenu.addSeparator();
         QAction* wHwbpCsp = wMenu.addAction(DIcon("breakpoint.png"), tr("Set Hardware Breakpoint on %1").arg(ArchValue("ESP", "RSP")));
         QAction* wAction = wMenu.exec(this->mapToGlobal(pos));
@@ -3750,7 +3785,7 @@ void RegistersView::onSIMDMode()
 
 void RegistersView::onFpuMode()
 {
-    mFpuMode = !mFpuMode;
+    mFpuMode = (char)(dynamic_cast<QAction*>(sender())->data().toInt());
     InitMappings();
     emit refresh();
 }
