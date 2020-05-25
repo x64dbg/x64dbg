@@ -92,35 +92,42 @@ void CPUInfoBox::clear()
     setInfoLine(3, "");
 }
 
-static QString formatSSEOperand(QVector<unsigned char> data, uint8_t vectorType)
+static QString formatSSEOperand(const QVector<char> & data, uint8_t vectorType)
 {
     QString hex;
     bool isXMMdecoded = false;
     switch(vectorType)
     {
     case Zydis::VETFloat32:
-        if(data.size() == 16)
+        if(data.size() == 32)
         {
-            hex = "%1 %2 %3 %4";
-            hex = hex.arg(((const float*)data.data())[0]).arg(((const float*)data.data())[1]).arg(((const float*)data.data())[2]).arg(((const float*)data.data())[3]);
+            hex = composeRegTextYMM(data.constData(), 1);
+        }
+        else if(data.size() == 16)
+        {
+            hex = composeRegTextXMM(data.constData(), 1);
             isXMMdecoded = true;
         }
         else if(data.size() == 4)
         {
-            hex = QString::number(((const float*)data.data())[0]);
+            hex = QString::number(((const float*)data.constData())[0]);
             isXMMdecoded = true;
         }
         break;
     case Zydis::VETFloat64:
-        if(data.size() == 16)
+        if(data.size() == 32)
         {
-            hex = "%1 %2";
-            hex = hex.arg(((const double*)data.data())[0]).arg(((const double*)data.data())[1]);
+            hex = composeRegTextYMM(data.constData(), 2);
+            isXMMdecoded = true;
+        }
+        else if(data.size() == 16)
+        {
+            hex = composeRegTextXMM(data.constData(), 2);
             isXMMdecoded = true;
         }
         else if(data.size() == 8)
         {
-            hex = QString::number(((const double*)data.data())[0]);
+            hex = QString::number(((const double*)data.constData())[0]);
             isXMMdecoded = true;
         }
         break;
@@ -263,7 +270,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
             else
             {
                 //TODO: properly support XMM constants
-                QVector<unsigned char> data;
+                QVector<char> data;
                 data.resize(basicinfo.memory.size);
                 memset(data.data(), 0, data.size());
                 if(DbgMemRead(arg.value, data.data(), data.size()))

@@ -686,47 +686,6 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
 {
     setWindowTitle("Registers");
     mChangeViewButton = NULL;
-    connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(onClose()));
-    switch(ConfigUint("Gui", "SIMDRegistersDisplayMode"))
-    {
-    default:
-    case 0:
-        wSIMDRegDispMode = SIMD_REG_DISP_HEX;
-        break;
-    case 1:
-        wSIMDRegDispMode = SIMD_REG_DISP_FLOAT;
-        break;
-    case 2:
-        wSIMDRegDispMode = SIMD_REG_DISP_DOUBLE;
-        break;
-    case 3:
-        wSIMDRegDispMode = SIMD_REG_DISP_WORD_SIGNED;
-        break;
-    case 4:
-        wSIMDRegDispMode = SIMD_REG_DISP_DWORD_SIGNED;
-        break;
-    case 5:
-        wSIMDRegDispMode = SIMD_REG_DISP_QWORD_SIGNED;
-        break;
-    case 6:
-        wSIMDRegDispMode = SIMD_REG_DISP_WORD_UNSIGNED;
-        break;
-    case 7:
-        wSIMDRegDispMode = SIMD_REG_DISP_DWORD_UNSIGNED;
-        break;
-    case 8:
-        wSIMDRegDispMode = SIMD_REG_DISP_QWORD_UNSIGNED;
-        break;
-    case 9:
-        wSIMDRegDispMode = SIMD_REG_DISP_WORD_HEX;
-        break;
-    case 10:
-        wSIMDRegDispMode = SIMD_REG_DISP_DWORD_HEX;
-        break;
-    case 11:
-        wSIMDRegDispMode = SIMD_REG_DISP_QWORD_HEX;
-        break;
-    }
     mFpuMode = 0;
 
     // precreate ContextMenu Actions
@@ -771,18 +730,18 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     SIMDHWord = new QAction(tr("Hexadecimal Word"), mSwitchSIMDDispMode);
     SIMDHDWord = new QAction(tr("Hexadecimal DWord"), mSwitchSIMDDispMode);
     SIMDHQWord = new QAction(tr("Hexadecimal QWord"), mSwitchSIMDDispMode);
-    SIMDHex->setData(QVariant(SIMD_REG_DISP_HEX));
-    SIMDFloat->setData(QVariant(SIMD_REG_DISP_FLOAT));
-    SIMDDouble->setData(QVariant(SIMD_REG_DISP_DOUBLE));
-    SIMDSWord->setData(QVariant(SIMD_REG_DISP_WORD_SIGNED));
-    SIMDUWord->setData(QVariant(SIMD_REG_DISP_WORD_UNSIGNED));
-    SIMDHWord->setData(QVariant(SIMD_REG_DISP_WORD_HEX));
-    SIMDSDWord->setData(QVariant(SIMD_REG_DISP_DWORD_SIGNED));
-    SIMDUDWord->setData(QVariant(SIMD_REG_DISP_DWORD_UNSIGNED));
-    SIMDHDWord->setData(QVariant(SIMD_REG_DISP_DWORD_HEX));
-    SIMDSQWord->setData(QVariant(SIMD_REG_DISP_QWORD_SIGNED));
-    SIMDUQWord->setData(QVariant(SIMD_REG_DISP_QWORD_UNSIGNED));
-    SIMDHQWord->setData(QVariant(SIMD_REG_DISP_QWORD_HEX));
+    SIMDHex->setData(QVariant(0));
+    SIMDFloat->setData(QVariant(1));
+    SIMDDouble->setData(QVariant(2));
+    SIMDSWord->setData(QVariant(3));
+    SIMDUWord->setData(QVariant(6));
+    SIMDHWord->setData(QVariant(9));
+    SIMDSDWord->setData(QVariant(4));
+    SIMDUDWord->setData(QVariant(7));
+    SIMDHDWord->setData(QVariant(10));
+    SIMDSQWord->setData(QVariant(5));
+    SIMDUQWord->setData(QVariant(8));
+    SIMDHQWord->setData(QVariant(11));
     mDisplaySTX->setData(QVariant(0));
     mDisplayx87rX->setData(QVariant(1));
     mDisplayMMX->setData(QVariant(2));
@@ -1371,51 +1330,6 @@ RegistersView::~RegistersView()
 {
 }
 
-void RegistersView::onClose()
-{
-    duint cfg = 0;
-    switch(wSIMDRegDispMode)
-    {
-    case SIMD_REG_DISP_HEX:
-        cfg = 0;
-        break;
-    case SIMD_REG_DISP_FLOAT:
-        cfg = 1;
-        break;
-    case SIMD_REG_DISP_DOUBLE:
-        cfg = 2;
-        break;
-    case SIMD_REG_DISP_WORD_SIGNED:
-        cfg = 3;
-        break;
-    case SIMD_REG_DISP_DWORD_SIGNED:
-        cfg = 4;
-        break;
-    case SIMD_REG_DISP_QWORD_SIGNED:
-        cfg = 5;
-        break;
-    case SIMD_REG_DISP_WORD_UNSIGNED:
-        cfg = 6;
-        break;
-    case SIMD_REG_DISP_DWORD_UNSIGNED:
-        cfg = 7;
-        break;
-    case SIMD_REG_DISP_QWORD_UNSIGNED:
-        cfg = 8;
-        break;
-    case SIMD_REG_DISP_WORD_HEX:
-        cfg = 9;
-        break;
-    case SIMD_REG_DISP_DWORD_HEX:
-        cfg = 10;
-        break;
-    case SIMD_REG_DISP_QWORD_HEX:
-        cfg = 11;
-        break;
-    }
-    Config()->setUint("Gui", "SIMDRegistersDisplayMode", cfg);
-}
-
 void RegistersView::fontsUpdatedSlot()
 {
     auto font = ConfigFont("Registers");
@@ -1885,133 +1799,6 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
     return std::move(newText);
 }
 
-static QString fillValue(const char* value, int valsize = 2, bool bFpuRegistersLittleEndian = false)
-{
-    if(bFpuRegistersLittleEndian)
-        return QString(QByteArray(value, valsize).toHex()).toUpper();
-    else // Big Endian
-        return QString(ByteReverse(QByteArray(value, valsize)).toHex()).toUpper();
-}
-
-static QString composeRegTextXMM(const char* value, RegistersView::SIMD_REG_DISP_MODE wSIMDRegDispMode, bool bFpuRegistersLittleEndian)
-{
-    QString valueText;
-    switch(wSIMDRegDispMode)
-    {
-    default:
-    case RegistersView::SIMD_REG_DISP_HEX:
-    {
-        valueText = fillValue(value, 16, bFpuRegistersLittleEndian);
-    }
-    break;
-    case RegistersView::SIMD_REG_DISP_DOUBLE:
-    {
-        const double* dbl_values = reinterpret_cast<const double*>(value);
-        if(bFpuRegistersLittleEndian)
-            valueText = ToDoubleString(&dbl_values[0]) + ' ' + ToDoubleString(&dbl_values[1]);
-        else // Big Endian
-            valueText = ToDoubleString(&dbl_values[1]) + ' ' + ToDoubleString(&dbl_values[0]);
-    }
-    break;
-    case RegistersView::SIMD_REG_DISP_FLOAT:
-    {
-        const float* flt_values = reinterpret_cast<const float*>(value);
-        if(bFpuRegistersLittleEndian)
-            valueText = ToFloatString(&flt_values[0]) + ' ' + ToFloatString(&flt_values[1]) + ' '
-                        + ToFloatString(&flt_values[2]) + ' ' + ToFloatString(&flt_values[3]);
-        else // Big Endian
-            valueText = ToFloatString(&flt_values[3]) + ' ' + ToFloatString(&flt_values[2]) + ' '
-                        + ToFloatString(&flt_values[1]) + ' ' + ToFloatString(&flt_values[0]);
-    }
-    break;
-    case RegistersView::SIMD_REG_DISP_WORD_HEX:
-    {
-        if(bFpuRegistersLittleEndian)
-            valueText = fillValue(value) + ' ' + fillValue(value + 1 * 2) + ' ' + fillValue(value + 2 * 2) + ' ' + fillValue(value + 3 * 2)
-                        + ' ' + fillValue(value + 4 * 2) + ' ' + fillValue(value + 5 * 2) + ' ' + fillValue(value + 6 * 2) + ' ' + fillValue(value + 7 * 2);
-        else // Big Endian
-            valueText = fillValue(value + 7 * 2) + ' ' + fillValue(value + 6 * 2) + ' ' + fillValue(value + 5 * 2) + ' ' + fillValue(value + 4 * 2)
-                        + ' ' + fillValue(value + 3 * 2) + ' ' + fillValue(value + 2 * 2) + ' ' + fillValue(value + 1 * 2) + ' ' + fillValue(value);
-    }
-    break;
-    case RegistersView::SIMD_REG_DISP_WORD_SIGNED:
-    {
-        const short* sword_values = reinterpret_cast<const short*>(value);
-        if(bFpuRegistersLittleEndian)
-            valueText = QString::number(sword_values[0]) + ' ' + QString::number(sword_values[1]) + ' ' + QString::number(sword_values[2]) + ' ' + QString::number(sword_values[3])
-                        + ' ' + QString::number(sword_values[4]) + ' ' + QString::number(sword_values[5]) + ' ' + QString::number(sword_values[6]) + ' ' + QString::number(sword_values[7]);
-        else // Big Endian
-            valueText = QString::number(sword_values[7]) + ' ' + QString::number(sword_values[6]) + ' ' + QString::number(sword_values[5]) + ' ' + QString::number(sword_values[4])
-                        + ' ' + QString::number(sword_values[3]) + ' ' + QString::number(sword_values[2]) + ' ' + QString::number(sword_values[1]) + ' ' + QString::number(sword_values[0]);
-    }
-    break;
-    case RegistersView::SIMD_REG_DISP_WORD_UNSIGNED:
-    {
-        const unsigned short* uword_values = reinterpret_cast<const unsigned short*>(value);
-        if(bFpuRegistersLittleEndian)
-            valueText = QString::number(uword_values[0]) + ' ' + QString::number(uword_values[1]) + ' ' + QString::number(uword_values[2]) + ' ' + QString::number(uword_values[3])
-                        + ' ' + QString::number(uword_values[4]) + ' ' + QString::number(uword_values[5]) + ' ' + QString::number(uword_values[6]) + ' ' + QString::number(uword_values[7]);
-        else // Big Endian
-            valueText = QString::number(uword_values[7]) + ' ' + QString::number(uword_values[6]) + ' ' + QString::number(uword_values[5]) + ' ' + QString::number(uword_values[4])
-                        + ' ' + QString::number(uword_values[3]) + ' ' + QString::number(uword_values[2]) + ' ' + QString::number(uword_values[1]) + ' ' + QString::number(uword_values[0]);
-    }
-    break;
-    case RegistersView::SIMD_REG_DISP_DWORD_HEX:
-    {
-        if(bFpuRegistersLittleEndian)
-            valueText = fillValue(value, 4) + ' ' +  fillValue(value + 1 * 4, 4) + ' ' +  fillValue(value + 2 * 4, 4) + ' ' +  fillValue(value + 3 * 4, 4);
-        else // Big Endian
-            valueText = fillValue(value + 3 * 4, 4) + ' ' +  fillValue(value + 2 * 4, 4) + ' ' +  fillValue(value + 1 * 4, 4) + ' ' +  fillValue(value, 4);
-    }
-    break;
-    case RegistersView::SIMD_REG_DISP_DWORD_SIGNED:
-    {
-        const int* sdword_values = reinterpret_cast<const int*>(value);
-        if(bFpuRegistersLittleEndian)
-            valueText = QString::number(sdword_values[0]) + ' ' + QString::number(sdword_values[1]) + ' ' + QString::number(sdword_values[2]) + ' ' + QString::number(sdword_values[3]);
-        else // Big Endian
-            valueText = QString::number(sdword_values[3]) + ' ' + QString::number(sdword_values[2]) + ' ' + QString::number(sdword_values[1]) + ' ' + QString::number(sdword_values[0]);
-    }
-    break;
-    case RegistersView::SIMD_REG_DISP_DWORD_UNSIGNED:
-    {
-        const unsigned int* udword_values = reinterpret_cast<const unsigned int*>(value);
-        if(bFpuRegistersLittleEndian)
-            valueText = QString::number(udword_values[0]) + ' ' + QString::number(udword_values[1]) + ' ' + QString::number(udword_values[2]) + ' ' + QString::number(udword_values[3]);
-        else // Big Endian
-            valueText = QString::number(udword_values[3]) + ' ' + QString::number(udword_values[2]) + ' ' + QString::number(udword_values[1]) + ' ' + QString::number(udword_values[0]);
-    }
-    break;
-    case RegistersView::SIMD_REG_DISP_QWORD_HEX:
-    {
-        if(bFpuRegistersLittleEndian)
-            valueText = fillValue(value, 8) + ' ' + fillValue(value + 8, 8);
-        else // Big Endian
-            valueText = fillValue(value + 8, 8) + ' ' + fillValue(value, 8);
-    }
-    break;
-    case RegistersView::SIMD_REG_DISP_QWORD_SIGNED:
-    {
-        const long long* sqword_values = reinterpret_cast<const long long*>(value);
-        if(bFpuRegistersLittleEndian)
-            valueText = QString::number(sqword_values[0]) + ' ' + QString::number(sqword_values[1]);
-        else // Big Endian
-            valueText = QString::number(sqword_values[1]) + ' ' + QString::number(sqword_values[0]);
-    }
-    break;
-    case RegistersView::SIMD_REG_DISP_QWORD_UNSIGNED:
-    {
-        const unsigned long long* uqword_values = reinterpret_cast<const unsigned long long*>(value);
-        if(bFpuRegistersLittleEndian)
-            valueText = QString::number(uqword_values[0]) + ' ' + QString::number(uqword_values[1]);
-        else // Big Endian
-            valueText = QString::number(uqword_values[1]) + ' ' + QString::number(uqword_values[0]);
-    }
-    break;
-    }
-    return std::move(valueText);
-}
-
 /**
  * @brief RegistersView::GetRegStringValueFromValue Get the textual representation of the register value.
  * @param reg The name of the register
@@ -2095,16 +1882,9 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, const char*
         if(size != 0)
         {
             if(mFPUXMM.contains(reg))
-                valueText = composeRegTextXMM(value, wSIMDRegDispMode, bFpuRegistersLittleEndian);
+                valueText = GetDataTypeString(value, size, enc_xmmword);
             else if(mFPUYMM.contains(reg))
-            {
-                if(wSIMDRegDispMode == SIMD_REG_DISP_HEX)
-                    valueText = fillValue(value, size, bFpuRegistersLittleEndian);
-                else if(bFpuRegistersLittleEndian)
-                    valueText = composeRegTextXMM(value, wSIMDRegDispMode, bFpuRegistersLittleEndian) + ' ' + composeRegTextXMM(value + 16, wSIMDRegDispMode, bFpuRegistersLittleEndian);
-                else
-                    valueText = composeRegTextXMM(value + 16, wSIMDRegDispMode, bFpuRegistersLittleEndian) + ' ' + composeRegTextXMM(value, wSIMDRegDispMode, bFpuRegistersLittleEndian);
-            }
+                valueText = GetDataTypeString(value, size, enc_ymmword);
             else
                 valueText = fillValue(value, size, bFpuRegistersLittleEndian);
         }
@@ -3150,42 +2930,42 @@ void RegistersView::displayCustomContextMenuSlot(QPoint pos)
     QMenu wMenu(this);
     QMenu* followInDumpNMenu = nullptr;
     const QAction* selectedAction = nullptr;
-    switch(wSIMDRegDispMode)
+    switch(ConfigUint("Gui", "SIMDRegistersDisplayMode"))
     {
-    case SIMD_REG_DISP_HEX:
+    case 0:
         selectedAction = SIMDHex;
         break;
-    case SIMD_REG_DISP_FLOAT:
+    case 1:
         selectedAction = SIMDFloat;
         break;
-    case SIMD_REG_DISP_DOUBLE:
+    case 2:
         selectedAction = SIMDDouble;
         break;
-    case SIMD_REG_DISP_WORD_SIGNED:
+    case 3:
         selectedAction = SIMDSWord;
         break;
-    case SIMD_REG_DISP_WORD_UNSIGNED:
+    case 6:
         selectedAction = SIMDUWord;
         break;
-    case SIMD_REG_DISP_WORD_HEX:
+    case 9:
         selectedAction = SIMDHWord;
         break;
-    case SIMD_REG_DISP_DWORD_SIGNED:
+    case 4:
         selectedAction = SIMDSDWord;
         break;
-    case SIMD_REG_DISP_DWORD_UNSIGNED:
+    case 7:
         selectedAction = SIMDUDWord;
         break;
-    case SIMD_REG_DISP_DWORD_HEX:
+    case 10:
         selectedAction = SIMDHDWord;
         break;
-    case SIMD_REG_DISP_QWORD_SIGNED:
+    case 5:
         selectedAction = SIMDSQWord;
         break;
-    case SIMD_REG_DISP_QWORD_UNSIGNED:
+    case 8:
         selectedAction = SIMDUQWord;
         break;
-    case SIMD_REG_DISP_QWORD_HEX:
+    case 11:
         selectedAction = SIMDHQWord;
         break;
     }
@@ -3779,7 +3559,7 @@ void RegistersView::setRegisters(REGDUMP* reg)
 
 void RegistersView::onSIMDMode()
 {
-    wSIMDRegDispMode = (SIMD_REG_DISP_MODE)(dynamic_cast<QAction*>(sender())->data().toInt());
+    Config()->setUint("Gui", "SIMDRegistersDisplayMode", dynamic_cast<QAction*>(sender())->data().toInt());
     emit refresh();
 }
 

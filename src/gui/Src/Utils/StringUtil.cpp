@@ -3,6 +3,7 @@
 #include "StringUtil.h"
 #include "MiscUtil.h"
 #include "ldconvert.h"
+#include "Configuration.h"
 
 QString ToLongDoubleString(const void* buffer)
 {
@@ -40,6 +41,145 @@ QString EscapeCh(QChar ch)
     }
 }
 
+QString fillValue(const char* value, int valsize, bool bFpuRegistersLittleEndian)
+{
+    if(bFpuRegistersLittleEndian)
+        return QString(QByteArray(value, valsize).toHex()).toUpper();
+    else // Big Endian
+        return QString(ByteReverse(QByteArray(value, valsize)).toHex()).toUpper();
+}
+
+QString composeRegTextXMM(const char* value, int mode)
+{
+    bool bFpuRegistersLittleEndian = ConfigBool("Gui", "FpuRegistersLittleEndian");
+    QString valueText;
+    switch(mode)
+    {
+    default:
+    case 0:
+    {
+        valueText = fillValue(value, 16, bFpuRegistersLittleEndian);
+    }
+    break;
+    case 2:
+    {
+        const double* dbl_values = reinterpret_cast<const double*>(value);
+        if(bFpuRegistersLittleEndian)
+            valueText = ToDoubleString(&dbl_values[0]) + ' ' + ToDoubleString(&dbl_values[1]);
+        else // Big Endian
+            valueText = ToDoubleString(&dbl_values[1]) + ' ' + ToDoubleString(&dbl_values[0]);
+    }
+    break;
+    case 1:
+    {
+        const float* flt_values = reinterpret_cast<const float*>(value);
+        if(bFpuRegistersLittleEndian)
+            valueText = ToFloatString(&flt_values[0]) + ' ' + ToFloatString(&flt_values[1]) + ' '
+                        + ToFloatString(&flt_values[2]) + ' ' + ToFloatString(&flt_values[3]);
+        else // Big Endian
+            valueText = ToFloatString(&flt_values[3]) + ' ' + ToFloatString(&flt_values[2]) + ' '
+                        + ToFloatString(&flt_values[1]) + ' ' + ToFloatString(&flt_values[0]);
+    }
+    break;
+    case 9:
+    {
+        if(bFpuRegistersLittleEndian)
+            valueText = fillValue(value) + ' ' + fillValue(value + 1 * 2) + ' ' + fillValue(value + 2 * 2) + ' ' + fillValue(value + 3 * 2)
+                        + ' ' + fillValue(value + 4 * 2) + ' ' + fillValue(value + 5 * 2) + ' ' + fillValue(value + 6 * 2) + ' ' + fillValue(value + 7 * 2);
+        else // Big Endian
+            valueText = fillValue(value + 7 * 2) + ' ' + fillValue(value + 6 * 2) + ' ' + fillValue(value + 5 * 2) + ' ' + fillValue(value + 4 * 2)
+                        + ' ' + fillValue(value + 3 * 2) + ' ' + fillValue(value + 2 * 2) + ' ' + fillValue(value + 1 * 2) + ' ' + fillValue(value);
+    }
+    break;
+    case 3:
+    {
+        const short* sword_values = reinterpret_cast<const short*>(value);
+        if(bFpuRegistersLittleEndian)
+            valueText = QString::number(sword_values[0]) + ' ' + QString::number(sword_values[1]) + ' ' + QString::number(sword_values[2]) + ' ' + QString::number(sword_values[3])
+                        + ' ' + QString::number(sword_values[4]) + ' ' + QString::number(sword_values[5]) + ' ' + QString::number(sword_values[6]) + ' ' + QString::number(sword_values[7]);
+        else // Big Endian
+            valueText = QString::number(sword_values[7]) + ' ' + QString::number(sword_values[6]) + ' ' + QString::number(sword_values[5]) + ' ' + QString::number(sword_values[4])
+                        + ' ' + QString::number(sword_values[3]) + ' ' + QString::number(sword_values[2]) + ' ' + QString::number(sword_values[1]) + ' ' + QString::number(sword_values[0]);
+    }
+    break;
+    case 6:
+    {
+        const unsigned short* uword_values = reinterpret_cast<const unsigned short*>(value);
+        if(bFpuRegistersLittleEndian)
+            valueText = QString::number(uword_values[0]) + ' ' + QString::number(uword_values[1]) + ' ' + QString::number(uword_values[2]) + ' ' + QString::number(uword_values[3])
+                        + ' ' + QString::number(uword_values[4]) + ' ' + QString::number(uword_values[5]) + ' ' + QString::number(uword_values[6]) + ' ' + QString::number(uword_values[7]);
+        else // Big Endian
+            valueText = QString::number(uword_values[7]) + ' ' + QString::number(uword_values[6]) + ' ' + QString::number(uword_values[5]) + ' ' + QString::number(uword_values[4])
+                        + ' ' + QString::number(uword_values[3]) + ' ' + QString::number(uword_values[2]) + ' ' + QString::number(uword_values[1]) + ' ' + QString::number(uword_values[0]);
+    }
+    break;
+    case 10:
+    {
+        if(bFpuRegistersLittleEndian)
+            valueText = fillValue(value, 4) + ' ' +  fillValue(value + 1 * 4, 4) + ' ' +  fillValue(value + 2 * 4, 4) + ' ' +  fillValue(value + 3 * 4, 4);
+        else // Big Endian
+            valueText = fillValue(value + 3 * 4, 4) + ' ' +  fillValue(value + 2 * 4, 4) + ' ' +  fillValue(value + 1 * 4, 4) + ' ' +  fillValue(value, 4);
+    }
+    break;
+    case 4:
+    {
+        const int* sdword_values = reinterpret_cast<const int*>(value);
+        if(bFpuRegistersLittleEndian)
+            valueText = QString::number(sdword_values[0]) + ' ' + QString::number(sdword_values[1]) + ' ' + QString::number(sdword_values[2]) + ' ' + QString::number(sdword_values[3]);
+        else // Big Endian
+            valueText = QString::number(sdword_values[3]) + ' ' + QString::number(sdword_values[2]) + ' ' + QString::number(sdword_values[1]) + ' ' + QString::number(sdword_values[0]);
+    }
+    break;
+    case 7:
+    {
+        const unsigned int* udword_values = reinterpret_cast<const unsigned int*>(value);
+        if(bFpuRegistersLittleEndian)
+            valueText = QString::number(udword_values[0]) + ' ' + QString::number(udword_values[1]) + ' ' + QString::number(udword_values[2]) + ' ' + QString::number(udword_values[3]);
+        else // Big Endian
+            valueText = QString::number(udword_values[3]) + ' ' + QString::number(udword_values[2]) + ' ' + QString::number(udword_values[1]) + ' ' + QString::number(udword_values[0]);
+    }
+    break;
+    case 11:
+    {
+        if(bFpuRegistersLittleEndian)
+            valueText = fillValue(value, 8) + ' ' + fillValue(value + 8, 8);
+        else // Big Endian
+            valueText = fillValue(value + 8, 8) + ' ' + fillValue(value, 8);
+    }
+    break;
+    case 5:
+    {
+        const long long* sqword_values = reinterpret_cast<const long long*>(value);
+        if(bFpuRegistersLittleEndian)
+            valueText = QString::number(sqword_values[0]) + ' ' + QString::number(sqword_values[1]);
+        else // Big Endian
+            valueText = QString::number(sqword_values[1]) + ' ' + QString::number(sqword_values[0]);
+    }
+    break;
+    case 8:
+    {
+        const unsigned long long* uqword_values = reinterpret_cast<const unsigned long long*>(value);
+        if(bFpuRegistersLittleEndian)
+            valueText = QString::number(uqword_values[0]) + ' ' + QString::number(uqword_values[1]);
+        else // Big Endian
+            valueText = QString::number(uqword_values[1]) + ' ' + QString::number(uqword_values[0]);
+    }
+    break;
+    }
+    return valueText;
+}
+
+QString composeRegTextYMM(const char* value, int mode)
+{
+    bool bFpuRegistersLittleEndian = ConfigBool("Gui", "FpuRegistersLittleEndian");
+    if(ConfigUint("Gui", "SIMDRegistersDisplayMode") == 0)
+        return fillValue(value, 32, bFpuRegistersLittleEndian);
+    else if(bFpuRegistersLittleEndian)
+        return composeRegTextXMM(value, mode) + ' ' + composeRegTextXMM(value + 16, mode);
+    else
+        return composeRegTextXMM(value + 16, mode) + ' ' + composeRegTextXMM(value, mode);
+}
+
 QString GetDataTypeString(const void* buffer, duint size, ENCODETYPE type)
 {
     switch(type)
@@ -59,9 +199,11 @@ QString GetDataTypeString(const void* buffer, duint size, ENCODETYPE type)
     case enc_oword:
         return QString(ByteReverse(QByteArray((const char*)buffer, 16)).toHex());
     case enc_mmword:
-    case enc_xmmword:
-    case enc_ymmword:
         return QString(QByteArray((const char*)buffer, size).toHex());
+    case enc_xmmword:
+        return composeRegTextXMM((const char*)buffer, ConfigUint("Gui", "SIMDRegistersDisplayMode"));
+    case enc_ymmword:
+        return composeRegTextYMM((const char*)buffer, ConfigUint("Gui", "SIMDRegistersDisplayMode"));
     case enc_real4:
         return ToFloatString(buffer);
     case enc_real8:
