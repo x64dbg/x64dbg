@@ -284,10 +284,12 @@ private:
     unsigned int mRowHeight, mCharWidth;
     // SIMD registers display mode
     SIMD_REG_DISP_MODE wSIMDRegDispMode;
-    bool mFpuMode; //false = order by ST(X), true = order by x87rX
+    char mFpuMode; //0 = order by ST(X), 1 = order by x87rX, 2 = MMX registers
     // context menu actions
     QMenu* mSwitchSIMDDispMode;
-    QAction* mSwitchFPUDispMode;
+    QAction* mDisplaySTX;
+    QAction* mDisplayx87rX;
+    QAction* mDisplayMMX;
     QAction* mFollowInDump;
     QAction* wCM_Increment;
     QAction* wCM_Decrement;
