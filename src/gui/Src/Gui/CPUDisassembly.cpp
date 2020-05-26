@@ -934,18 +934,21 @@ void CPUDisassembly::assembleSlot()
             if(exec != QDialog::Accepted)
                 return;
 
+            //sanitize the expression (just simplifying it by removing excess whitespaces)
+            auto expression = assembleDialog.editText.simplified();
+
             //if the instruction its unknown or is the old instruction or empty (easy way to skip from GUI) skipping
-            if(assembleDialog.editText == QString("???") || assembleDialog.editText.toLower() == instr.instStr.toLower() || assembleDialog.editText == QString(""))
+            if(expression == QString("???") || expression.toLower() == instr.instStr.toLower() || expression == QString(""))
                 break;
 
-            if(!DbgFunctions()->AssembleAtEx(wVA, assembleDialog.editText.toUtf8().constData(), error, assembleDialog.bFillWithNopsChecked))
+            if(!DbgFunctions()->AssembleAtEx(wVA, expression.toUtf8().constData(), error, assembleDialog.bFillWithNopsChecked))
             {
-                QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("Failed to assemble instruction \" %1 \" (%2)").arg(assembleDialog.editText).arg(error));
+                QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("Failed to assemble instruction \" %1 \" (%2)").arg(expression).arg(error));
                 msg.setWindowIcon(DIcon("compile-error.png"));
                 msg.setParent(this, Qt::Dialog);
                 msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
                 msg.exec();
-                actual_inst = assembleDialog.editText;
+                actual_inst = expression;
                 assembly_error = true;
             }
         }
