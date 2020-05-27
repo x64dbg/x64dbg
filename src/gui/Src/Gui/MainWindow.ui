@@ -951,7 +951,7 @@
   <action name="actionCrashDump">
    <property name="icon">
     <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/fatal-error.png</normaloff>:/icons/images/fatal-error.png</iconset>
+     <normaloff>:/icons/images/crash_dump.png</normaloff>:/icons/images/crash_dump.png</iconset>
    </property>
    <property name="text">
     <string>Generate crash dump</string>

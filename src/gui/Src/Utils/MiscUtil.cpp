@@ -77,7 +77,7 @@ bool SimpleChoiceBox(QWidget* parent, const QString & title, QString defaultValu
 void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text)
 {
     QMessageBox msg(QMessageBox::Critical, title, text, QMessageBox::NoButton, parent);
-    msg.setWindowIcon(DIcon("compile-error.png"));
+    msg.setWindowIcon(DIcon("fatal-error.png"));
     msg.setParent(parent, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
@@ -86,7 +86,7 @@ void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text
 void SimpleWarningBox(QWidget* parent, const QString & title, const QString & text)
 {
     QMessageBox msg(QMessageBox::Warning, title, text, QMessageBox::NoButton, parent);
-    msg.setWindowIcon(DIcon("compile-warning.png"));
+    msg.setWindowIcon(DIcon("exclamation.png"));
     msg.setParent(parent, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
