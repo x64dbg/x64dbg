@@ -175,8 +175,8 @@ void MemUpdateMap()
                 if(start < secEnd && end > secStart) //the section and memory overlap
                 {
                     if(infoOffset)
-                        infoOffset += sprintf_s(currentPage.info + infoOffset, sizeof(currentPage.info) - infoOffset, ",");
-                    infoOffset += sprintf_s(currentPage.info + infoOffset, sizeof(currentPage.info) - infoOffset, " \"%s\"", currentSection.name);
+                        infoOffset += _snprintf_s(currentPage.info + infoOffset, sizeof(currentPage.info) - infoOffset, _TRUNCATE, ",");
+                    infoOffset += _snprintf_s(currentPage.info + infoOffset, sizeof(currentPage.info) - infoOffset, _TRUNCATE, " \"%s\"", currentSection.name);
                 }
             }
         }
