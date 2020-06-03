@@ -127,7 +127,8 @@ bool cbInstrLabelSet(int argc, char* argv[])
     duint addr = 0;
     if(!valfromstring(argv[1], &addr, false))
         return false;
-    if(!LabelSet(addr, stringformatinline(argv[2]).c_str(), true))
+    auto temporaryLabel = argc > 3;
+    if(!LabelSet(addr, stringformatinline(argv[2]).c_str(), true, temporaryLabel))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting label"));
         return false;
