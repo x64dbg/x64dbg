@@ -4,7 +4,7 @@
 #include "module.h"
 #include "debugger.h"
 
-std::map<DepthModuleRange, LOOPSINFO, DepthModuleRangeCompare> loops;
+static std::map<DepthModuleRange, LOOPSINFO, DepthModuleRangeCompare> loops;
 
 bool LoopAdd(duint Start, duint End, bool Manual, duint instructionCount)
 {
@@ -27,8 +27,20 @@ bool LoopAdd(duint Start, duint End, bool Manual, duint instructionCount)
     // Loops cannot overlap other loops
     int finalDepth = 0;
 
-    if(LoopOverlaps(0, Start, End, &finalDepth))
-        return false;
+    bool surround = false;
+    duint finalStart = 0, finalEnd = 0;
+    if(LoopOverlaps(0, Start, End, &finalDepth, &finalStart, &finalEnd))
+    {
+        if(Start <= finalStart && End >= finalEnd)
+        {
+            surround = true;
+            finalDepth = 0;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
     // Fill out loop information structure
     LOOPSINFO loopInfo;
@@ -38,6 +50,7 @@ bool LoopAdd(duint Start, duint End, bool Manual, duint instructionCount)
     loopInfo.manual = Manual;
     loopInfo.instructioncount = instructionCount;
     loopInfo.modhash = ModHashFromAddr(moduleBase);
+    loopInfo.parent = 0;
 
     // Link this to a parent loop if one does exist
     if(finalDepth)
@@ -49,8 +62,34 @@ bool LoopAdd(duint Start, duint End, bool Manual, duint instructionCount)
 
     EXCLUSIVE_ACQUIRE(LockLoops);
 
+    if(surround)
+    {
+        // TODO: make this algorithm smarter, now it's O(n), but can be O(logn) with lower_bound
+        // However, this is probably an edge case, so we can not care for now
+        std::vector<std::pair<DepthModuleRange, LOOPSINFO>> reinsert;
+        for(auto loopItr = loops.begin(); loopItr != loops.end();)
+        {
+            auto & loop = loopItr->second;
+            if(loopInfo.modhash == loop.modhash && loopInfo.start <= loop.start && loopInfo.end >= loop.end)
+            {
+                reinsert.emplace_back(loopItr->first, loopItr->second);
+                loopItr = loops.erase(loopItr);
+            }
+            else
+            {
+                ++loopItr;
+            }
+        }
+        for(auto & loop : reinsert)
+        {
+            loop.first.first++;
+            loop.second.depth++;
+            loops.insert(loop);
+        }
+    }
+
     // Insert into list
-    loops.insert(std::make_pair(DepthModuleRange(finalDepth, ModuleRange(loopInfo.modhash, Range(loopInfo.start, loopInfo.end))), loopInfo));
+    loops.emplace(DepthModuleRange(finalDepth, ModuleRange(loopInfo.modhash, Range(loopInfo.start, loopInfo.end))), loopInfo);
     return true;
 }
 
@@ -87,7 +126,7 @@ bool LoopGet(int Depth, duint Address, duint* Start, duint* End, duint* Instruct
 }
 
 // Check if a loop overlaps a range, inside is not overlapping
-bool LoopOverlaps(int Depth, duint Start, duint End, int* FinalDepth)
+bool LoopOverlaps(int Depth, duint Start, duint End, int* FinalDepth, duint* FinalStart, duint* FinalEnd)
 {
     ASSERT_DEBUGGING("Export call");
 
@@ -109,17 +148,36 @@ bool LoopOverlaps(int Depth, duint Start, duint End, int* FinalDepth)
         return false;
 
     if(found->second.start <= Start && found->second.end >= End)
-        return LoopOverlaps(Depth + 1, Start + moduleBase, End + moduleBase, FinalDepth);
+        return LoopOverlaps(Depth + 1, Start + moduleBase, End + moduleBase, FinalDepth, FinalStart, FinalEnd);
+
+    if(FinalStart)
+        *FinalStart = found->second.start + moduleBase;
+
+    if(FinalEnd)
+        *FinalEnd = found->second.end + moduleBase;
 
     return true;
 }
 
-static bool LoopDeleteAllRange(DepthModuleRange range)
+static bool LoopDeleteAllRange(const DepthModuleRange & range)
 {
     auto erased = 0;
     for(auto found = loops.find(range); found != loops.end(); found = loops.find(range), erased++)
         loops.erase(found);
     return erased > 0;
+}
+
+void LoopDeleteRange(duint Start, duint End)
+{
+    EXCLUSIVE_ACQUIRE(LockLoops);
+
+    auto modBase = ModBaseFromAddr(Start);
+    auto modHash = ModHashFromAddr(modBase);
+
+    // Delete all loops in the given range increasing the depth until nothing is left to delete
+    auto range = DepthModuleRange(0, ModuleRange(modHash, Range(Start - modBase, End - modBase)));
+    while(LoopDeleteAllRange(range))
+        range.first++;
 }
 
 // This should delete a loop and all sub-loops that matches a certain addr
@@ -131,7 +189,7 @@ bool LoopDelete(int Depth, duint Address)
     // Virtual address to relative address
     Address -= moduleBase;
 
-    SHARED_ACQUIRE(LockLoops);
+    EXCLUSIVE_ACQUIRE(LockLoops);
 
     // Search with this address range
     auto found = loops.find(DepthModuleRange(Depth, ModuleRange(ModHashFromAddr(moduleBase), Range(Address, Address))));
