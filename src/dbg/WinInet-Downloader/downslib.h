@@ -16,10 +16,11 @@ enum class downslib_error
     incomplete
 };
 
-typedef bool (*downslib_cb)(unsigned long long read_bytes, unsigned long long total_bytes);
+typedef bool (*downslib_cb)(void* userdata, unsigned long long read_bytes, unsigned long long total_bytes);
 
 downslib_error downslib_download(const char* url,
                                  const wchar_t* filename,
                                  const char* useragent = "downslib",
                                  unsigned int timeout = 3000,
-                                 downslib_cb cb = nullptr);
+                                 downslib_cb cb = nullptr,
+                                 void* userdata = nullptr);
