@@ -486,6 +486,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionSetLabelOperand", Shortcut({tr("Actions"), tr("Set Label for the Operand")}, "Alt+;"));
     defaultShortcuts.insert("ActionSetComment", Shortcut({tr("Actions"), tr("Set Comment")}, ";"));
     defaultShortcuts.insert("ActionToggleFunction", Shortcut({tr("Actions"), tr("Toggle Function")}, "Shift+F"));
+    defaultShortcuts.insert("ActionAddLoop", Shortcut({tr("Actions"), tr("Add Loop")}, "Shift+L"));
+    defaultShortcuts.insert("ActionDeleteLoop", Shortcut({tr("Actions"), tr("Delete Loop")}, "Ctrl+Shift+L"));
     defaultShortcuts.insert("ActionToggleArgument", Shortcut({tr("Actions"), tr("Toggle Argument")}, "Shift+A"));
     defaultShortcuts.insert("ActionAssemble", Shortcut({tr("Actions"), tr("Assemble")}, "Space"));
     defaultShortcuts.insert("ActionSetNewOriginHere", Shortcut({tr("Actions"), tr("Set New Origin Here")}, "Ctrl+*"));
