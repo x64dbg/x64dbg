@@ -872,23 +872,45 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
         {
             const auto & name = token.data();
             int argc;
-            if(!ExpressionFunctions::GetArgc(name, argc))
+            bool strFunction;
+            if(!ExpressionFunctions::GetArgc(name, argc, strFunction))
                 return false;
             if(int(stack.size()) < argc)
                 return false;
-            std::vector<duint> argv;
-            argv.resize(argc);
-            for(auto i = 0; i < argc; i++)
-            {
-                duint arg;
-                if(!stack[stack.size() - 1].DoEvaluate(arg, silent, baseonly))
-                    return false;
-                stack.pop_back();
-                argv[argc - i - 1] = arg;
-            }
+
             duint result;
-            if(!ExpressionFunctions::Call(name, argv, result))
-                return false;
+            if(strFunction)
+            {
+                std::vector<const char*> argv;
+                argv.resize(argc);
+                for(auto i = 0; i < argc; i++)
+                {
+                    auto & value = stack[stack.size() - i - 1];
+                    if(value.evaluated)
+                        value.data = StringUtils::sprintf("0x%p", value.value);
+                    argv[argc - i - 1] = value.data.c_str();
+                }
+                auto success = ExpressionFunctions::CallStr(name, argv, result);
+                for(auto i = 0; i < argc; i++)
+                    stack.pop_back();
+                if(!success)
+                    return false;
+            }
+            else
+            {
+                std::vector<duint> argv;
+                argv.resize(argc);
+                for(auto i = 0; i < argc; i++)
+                {
+                    duint arg;
+                    if(!stack[stack.size() - 1].DoEvaluate(arg, silent, baseonly))
+                        return false;
+                    stack.pop_back();
+                    argv[argc - i - 1] = arg;
+                }
+                if(!ExpressionFunctions::CallInt(name, argv, result))
+                    return false;
+            }
             stack.push_back(EvalValue(result));
         }
         else

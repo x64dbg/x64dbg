@@ -280,7 +280,7 @@ typedef enum
 typedef void (*CBPLUGIN)(CBTYPE cbType, void* callbackInfo);
 typedef bool (*CBPLUGINCOMMAND)(int argc, char** argv);
 typedef void (*CBPLUGINSCRIPT)();
-typedef duint(*CBPLUGINEXPRFUNCTION)(int argc, duint* argv, void* userdata);
+typedef duint(*CBPLUGINEXPRFUNCTION)(int argc, const duint* argv, void* userdata);
 typedef FORMATRESULT(*CBPLUGINFORMATFUNCTION)(char* dest, size_t destCount, int argc, char* argv[], duint value, void* userdata);
 typedef bool (*CBPLUGINPREDICATE)(void* userdata);
 

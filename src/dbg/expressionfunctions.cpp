@@ -20,8 +20,50 @@ struct gens<0, S...>
     typedef seq<S...> type;
 };
 
+template<typename... Ts>
+struct front;
+
+template<typename T>
+struct front<T>
+{
+    using type = typename T;
+};
+
+template<typename T, typename... Ts>
+struct front<T, Ts...>
+{
+    using type = typename T;
+};
+
+template<>
+struct front<>
+{
+    using type = duint;
+};
+
+template<typename T>
+struct registerHelper;
+
+template<>
+struct registerHelper<duint>
+{
+    bool operator()(const String & name, int argc, const ExpressionFunctions::CBEXPRESSIONFUNCTIONINT & cbFunction)
+    {
+        return ExpressionFunctions::RegisterInt(name, argc, cbFunction);
+    }
+};
+
+template<>
+struct registerHelper<const char*>
+{
+    bool operator()(const String & name, int argc, const ExpressionFunctions::CBEXPRESSIONFUNCTIONSTR & cbFunction)
+    {
+        return ExpressionFunctions::RegisterStr(name, argc, cbFunction);
+    }
+};
+
 template<typename T, int ...S, typename... Ts>
-static T callFunc(const T* argv, T(*cbFunction)(Ts...), seq<S...>)
+static duint callFunc(const T* argv, duint(*cbFunction)(Ts...), seq<S...>)
 {
     return cbFunction(argv[S]...);
 }
@@ -30,11 +72,11 @@ template<typename... Ts>
 static bool RegisterEasy(const String & name, duint(*cbFunction)(Ts...))
 {
     auto aliases = StringUtils::Split(name, ',');
-    auto tempFunc = [cbFunction](int argc, duint * argv, void* userdata)
+    auto tempFunc = [cbFunction](int argc, const typename front<Ts...>::type * argv, void* userdata) -> duint
     {
         return callFunc(argv, cbFunction, typename gens<sizeof...(Ts)>::type());
     };
-    if(!ExpressionFunctions::Register(aliases[0], sizeof...(Ts), tempFunc))
+    if(!registerHelper<typename front<Ts...>::type>()(aliases[0], sizeof...(Ts), tempFunc))
         return false;
     for(size_t i = 1; i < aliases.size(); i++)
         ExpressionFunctions::RegisterAlias(aliases[0], aliases[i]);
@@ -68,6 +110,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("mod.offset,mod.fileoffset", valvatofileoffset);
     RegisterEasy("mod.headerva", modheaderva);
     RegisterEasy("mod.isexport", modisexport);
+    RegisterEasy("mod.fromname", ModBaseFromName);
 
     //Process information
     RegisterEasy("peb,PEB", peb);
@@ -143,9 +186,12 @@ void ExpressionFunctions::Init()
 
     //Undocumented
     RegisterEasy("bpgoto", bpgoto);
+
+    //String
+    RegisterEasy("strcmp", strcmp);
 }
 
-bool ExpressionFunctions::Register(const String & name, int argc, const CBEXPRESSIONFUNCTION & cbFunction, void* userdata)
+bool ExpressionFunctions::RegisterInt(const String & name, int argc, const CBEXPRESSIONFUNCTIONINT & cbFunction, void* userdata)
 {
     if(!isValidName(name))
         return false;
@@ -155,8 +201,28 @@ bool ExpressionFunctions::Register(const String & name, int argc, const CBEXPRES
     Function f;
     f.name = name;
     f.argc = argc;
-    f.cbFunction = cbFunction;
+    f.cbFunctionInt = cbFunction;
+    f.cbFunctionStr = nullptr;
     f.userdata = userdata;
+    f.strFunction = false;
+    mFunctions[name] = f;
+    return true;
+}
+
+bool ExpressionFunctions::RegisterStr(const String & name, int argc, const CBEXPRESSIONFUNCTIONSTR & cbFunction, void* userdata)
+{
+    if(!isValidName(name))
+        return false;
+    EXCLUSIVE_ACQUIRE(LockExpressionFunctions);
+    if(mFunctions.count(name))
+        return false;
+    Function f;
+    f.name = name;
+    f.argc = argc;
+    f.cbFunctionInt = nullptr;
+    f.cbFunctionStr = cbFunction;
+    f.userdata = userdata;
+    f.strFunction = true;
     mFunctions[name] = f;
     return true;
 }
@@ -167,8 +233,16 @@ bool ExpressionFunctions::RegisterAlias(const String & name, const String & alia
     auto found = mFunctions.find(name);
     if(found == mFunctions.end())
         return false;
-    if(!Register(alias, found->second.argc, found->second.cbFunction, found->second.userdata))
-        return false;
+    if(found->second.strFunction)
+    {
+        if(!RegisterStr(alias, found->second.argc, found->second.cbFunctionStr, found->second.userdata))
+            return false;
+    }
+    else
+    {
+        if(!RegisterInt(alias, found->second.argc, found->second.cbFunctionInt, found->second.userdata))
+            return false;
+    }
     found->second.aliases.push_back(alias);
     return true;
 }
@@ -186,26 +260,40 @@ bool ExpressionFunctions::Unregister(const String & name)
     return true;
 }
 
-bool ExpressionFunctions::Call(const String & name, std::vector<duint> & argv, duint & result)
+bool ExpressionFunctions::CallInt(const String & name, std::vector<duint> & argv, duint & result)
 {
     SHARED_ACQUIRE(LockExpressionFunctions);
     auto found = mFunctions.find(name);
     if(found == mFunctions.end())
         return false;
     const auto & f = found->second;
-    if(f.argc != int(argv.size()))
+    if(f.argc != int(argv.size()) || f.strFunction)
         return false;
-    result = f.cbFunction(f.argc, argv.data(), f.userdata);
+    result = f.cbFunctionInt(f.argc, argv.data(), f.userdata);
     return true;
 }
 
-bool ExpressionFunctions::GetArgc(const String & name, int & argc)
+bool ExpressionFunctions::CallStr(const String & name, std::vector<const char*> & argv, duint & result)
+{
+    SHARED_ACQUIRE(LockExpressionFunctions);
+    auto found = mFunctions.find(name);
+    if(found == mFunctions.end())
+        return false;
+    const auto & f = found->second;
+    if(f.argc != int(argv.size()) || !f.strFunction)
+        return false;
+    result = f.cbFunctionStr(f.argc, argv.data(), f.userdata);
+    return true;
+}
+
+bool ExpressionFunctions::GetArgc(const String & name, int & argc, bool & strFunction)
 {
     SHARED_ACQUIRE(LockExpressionFunctions);
     auto found = mFunctions.find(name);
     if(found == mFunctions.end())
         return false;
     argc = found->second.argc;
+    strFunction = found->second.strFunction;
     return true;
 }
 

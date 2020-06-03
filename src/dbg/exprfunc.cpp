@@ -11,6 +11,7 @@
 #include "value.h"
 #include "TraceRecord.h"
 #include "exhandlerinfo.h"
+#include <vector>
 
 namespace Exprfunc
 {
@@ -460,5 +461,15 @@ namespace Exprfunc
         if(index >= EXCEPTION_MAXIMUM_PARAMETERS)
             return 0;
         return getLastExceptionInfo().ExceptionRecord.ExceptionInformation[index];
+    }
+
+    duint strcmp(const char* addrStr, const char* str)
+    {
+        duint addr = 0;
+        if(!convertNumber(addrStr, addr, 16))
+            return 0;
+        std::vector<char> cmp(strlen(str) + 1);
+        DbgMemRead(addr, cmp.data(), cmp.size());
+        return ::strcmp(cmp.data(), str);
     }
 }

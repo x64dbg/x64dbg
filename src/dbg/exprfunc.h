@@ -79,4 +79,6 @@ namespace Exprfunc
     duint exflags();
     duint exinfocount();
     duint exinfo(duint index);
+
+    duint strcmp(const char* addr, const char* str);
 }

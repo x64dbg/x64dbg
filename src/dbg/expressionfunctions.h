@@ -6,23 +6,28 @@
 class ExpressionFunctions
 {
 public:
-    using CBEXPRESSIONFUNCTION = std::function<duint(int argc, duint* argv, void* userdata)>;
+    using CBEXPRESSIONFUNCTIONINT = std::function<duint(int argc, const duint* argv, void* userdata)>;
+    using CBEXPRESSIONFUNCTIONSTR = std::function<duint(int argc, const char** argv, void* userdata)>;
 
     static void Init();
-    static bool Register(const String & name, int argc, const CBEXPRESSIONFUNCTION & cbFunction, void* userdata = nullptr);
+    static bool RegisterInt(const String & name, int argc, const CBEXPRESSIONFUNCTIONINT & cbFunction, void* userdata = nullptr);
+    static bool RegisterStr(const String & name, int argc, const CBEXPRESSIONFUNCTIONSTR & cbFunction, void* userdata = nullptr);
     static bool RegisterAlias(const String & name, const String & alias);
     static bool Unregister(const String & name);
-    static bool Call(const String & name, std::vector<duint> & argv, duint & result);
-    static bool GetArgc(const String & name, int & argc);
+    static bool CallInt(const String & name, std::vector<duint> & argv, duint & result);
+    static bool CallStr(const String & name, std::vector<const char*> & argv, duint & result);
+    static bool GetArgc(const String & name, int & argc, bool & strFunction);
 
 private:
     struct Function
     {
         String name;
         int argc = 0;
-        CBEXPRESSIONFUNCTION cbFunction;
+        CBEXPRESSIONFUNCTIONINT cbFunctionInt;
+        CBEXPRESSIONFUNCTIONSTR cbFunctionStr;
         void* userdata = nullptr;
         std::vector<String> aliases;
+        bool strFunction = false;
     };
 
     static bool isValidName(const String & name);
