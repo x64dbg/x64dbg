@@ -100,11 +100,19 @@ void LabelDelRange(duint Start, duint End, bool Manual)
 {
     labels.DeleteRange(Start, End, Manual);
     if(Start == 0 && End == ~0)
+    {
         tempLabels.clear();
+    }
     else
-        for(auto it = tempLabels.begin(); it != tempLabels.end(); ++it)
+    {
+        for(auto it = tempLabels.begin(); it != tempLabels.end();)
+        {
             if(it->first >= Start && it->first < End)
                 it = tempLabels.erase(it);
+            else
+                ++it;
+        }
+    }
 }
 
 void LabelCacheSave(JSON Root)

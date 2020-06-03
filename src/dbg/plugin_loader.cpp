@@ -404,17 +404,18 @@ void plugincmdunregisterall(int pluginHandle)
     SHARED_ACQUIRE(LockPluginCommandList);
     auto commandList = pluginCommandList; //copy for thread-safety reasons
     SHARED_RELEASE();
-    auto i = commandList.begin();
-    while(i != commandList.end())
+    for(auto itr = commandList.begin(); itr != commandList.end();)
     {
-        auto currentCommand = *i;
+        auto currentCommand = *itr;
         if(currentCommand.pluginHandle == pluginHandle)
         {
-            i = commandList.erase(i);
+            itr = commandList.erase(itr);
             dbgcmddel(currentCommand.command);
         }
         else
-            ++i;
+        {
+            ++itr;
+        }
     }
 }
 
