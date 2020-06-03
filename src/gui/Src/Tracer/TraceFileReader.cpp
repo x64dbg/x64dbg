@@ -145,6 +145,7 @@ void TraceFileReader::OpCode(unsigned long long index, unsigned char* buffer, in
     if(page == nullptr)
     {
         memset(buffer, 0, 16);
+        *opcodeSize = 0;
         return;
     }
     else

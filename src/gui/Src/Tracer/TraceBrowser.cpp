@@ -341,7 +341,7 @@ NotDebuggingLabel:
         unsigned char opcodes[16];
         int opcodeSize = 0;
         mTraceFile->OpCode(index, opcodes, &opcodeSize);
-        Instruction_t inst = mDisasm->DisassembleAt(opcodes, opcodeSize, 0, mTraceFile->Registers(index).regcontext.cip, false);
+        Instruction_t inst = mDisasm->DisassembleAt(opcodes, opcodeSize, 0, cur_addr, false);
         RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), 4, getRichBytes(inst), mFontMetrics);
         return "";
     }
@@ -353,7 +353,7 @@ NotDebuggingLabel:
         int opcodeSize = 0;
         mTraceFile->OpCode(index, opcodes, &opcodeSize);
 
-        Instruction_t inst = mDisasm->DisassembleAt(opcodes, opcodeSize, 0, mTraceFile->Registers(index).regcontext.cip, false);
+        Instruction_t inst = mDisasm->DisassembleAt(opcodes, opcodeSize, 0, cur_addr, false);
 
         if(mHighlightToken.text.length())
             ZydisTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
@@ -1117,7 +1117,7 @@ void TraceBrowser::gotoSlot()
     if(gotoDlg.exec() == QDialog::Accepted)
     {
         auto val = DbgValFromString(gotoDlg.expressionText.toUtf8().constData());
-        if(val > 0 && val < mTraceFile->Length())
+        if(val >= 0 && val < mTraceFile->Length())
         {
             setSingleSelection(val);
             makeVisible(val);

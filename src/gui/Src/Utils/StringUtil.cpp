@@ -172,7 +172,7 @@ QString composeRegTextXMM(const char* value, int mode)
 QString composeRegTextYMM(const char* value, int mode)
 {
     bool bFpuRegistersLittleEndian = ConfigBool("Gui", "FpuRegistersLittleEndian");
-    if(ConfigUint("Gui", "SIMDRegistersDisplayMode") == 0)
+    if(mode == 0)
         return fillValue(value, 32, bFpuRegistersLittleEndian);
     else if(bFpuRegistersLittleEndian)
         return composeRegTextXMM(value, mode) + ' ' + composeRegTextXMM(value + 16, mode);

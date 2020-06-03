@@ -102,6 +102,7 @@ static QString formatSSEOperand(const QByteArray & data, uint8_t vectorType)
         if(data.size() == 32)
         {
             hex = composeRegTextYMM(data.constData(), 1);
+            isXMMdecoded = true;
         }
         else if(data.size() == 16)
         {
