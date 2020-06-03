@@ -803,8 +803,10 @@ BRIDGE_IMPEXP bool DbgLoopGet(int depth, duint addr, duint* start, duint* end)
     info.depth = depth;
     if(!_dbg_sendmessage(DBG_LOOP_GET, &info, 0))
         return false;
-    *start = info.start;
-    *end = info.end;
+    if(start)
+        *start = info.start;
+    if(end)
+        *end = info.end;
     return true;
 }
 
