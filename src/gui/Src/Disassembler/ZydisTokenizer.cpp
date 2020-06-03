@@ -12,7 +12,7 @@ ZydisTokenizer::ZydisTokenizer(int maxModuleLength)
     SetConfig(false, false, false, false, false, false, false, false, false);
 }
 
-static ZydisTokenizer::TokenColor colorNamesMap[ZydisTokenizer::TokenType::Last];
+static ZydisTokenizer::TokenColor colorNamesMap[size_t(ZydisTokenizer::TokenType::Last)];
 QHash<QString, int> ZydisTokenizer::stringPoolMap;
 int ZydisTokenizer::poolId = 0;
 
@@ -437,6 +437,8 @@ bool ZydisTokenizer::tokenizeMnemonic()
         _mnemonicType = TokenType::MnemonicNop;
     else if(_cp.IsInt3())
         _mnemonicType = TokenType::MnemonicInt3;
+    else if(_cp.IsUnusual())
+        _mnemonicType = TokenType::MnemonicUnusual;
     else if(_cp.IsBranchType(Zydis::BTCallSem))
         _mnemonicType = TokenType::MnemonicCall;
     else if(_cp.IsBranchType(Zydis::BTCondJmpSem))
@@ -447,8 +449,6 @@ bool ZydisTokenizer::tokenizeMnemonic()
         _mnemonicType = TokenType::MnemonicRet;
     else if(_cp.IsPushPop())
         _mnemonicType = TokenType::MnemonicPushPop;
-    else if(_cp.IsUnusual())
-        _mnemonicType = TokenType::MnemonicUnusual;
 
     return tokenizeMnemonic(_mnemonicType, mnemonic);
 }
