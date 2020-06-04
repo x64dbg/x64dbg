@@ -5,8 +5,6 @@
 TimeWastedCounter::TimeWastedCounter(QObject* parent, QLabel* label)
     : QObject(parent), mLabel(label)
 {
-    mLabel->setFrameStyle(QFrame::Sunken | QFrame::Panel); //sunken style
-    mLabel->setStyleSheet("QLabel { background-color : #c0c0c0; }");
     connect(Bridge::getBridge(), SIGNAL(updateTimeWastedCounter()), this, SLOT(updateTimeWastedCounter()));
 }
 
