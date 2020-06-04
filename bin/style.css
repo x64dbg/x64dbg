@@ -1,0 +1,66 @@
+/* QStatusBar == DebugStatusLabel, LogStatusLabel, TimeWastedCounter */
+QStatusBar QLabel {
+    background-color: #c0c0c0;
+}
+
+QStatusBar QFrame {
+    qproperty-frameShape: Panel;
+    qproperty-frameShadow: Sunken;
+}
+
+QStatusBar::item {
+    border: none;
+}
+
+QStatusBar {
+    background-color: #c0c0c0;
+}
+
+DebugStatusLabel[state="initialized"] {
+    color: #00dd00;
+    background-color: #c0c0c0;
+}
+
+DebugStatusLabel[state="paused"] {
+    color: #ff0000;
+    background-color: #ffff00;
+}
+
+DebugStatusLabel[state="running"] {
+    color: #000000;
+    background-color: #c0c0c0;
+}
+
+DebugStatusLabel[state="stopped"] {
+    color: #ff0000;
+    background-color: #c0c0c0;
+}
+
+QPushButton#AbstractTableViewHeader {
+    background-color: rgb(192, 192, 192);
+    border-style: outset;
+    border-width: 2px;
+    border-color: rgb(128, 128, 128);
+}
+
+QPushButton#AbstractTableViewHeader QPushButton:pressed {
+    background-color: rgb(192, 192, 192);
+    border-style: inset;
+}
+
+ShortcutEdit {
+    color: #222222;
+}
+
+ShortcutEdit[error="true"] {
+    color: #dd0000;
+}
+
+QTabWidget::pane {
+    border: 0px;
+}
+
+QTabBar::tear { 
+    width: 0px;
+    border: none;
+}
