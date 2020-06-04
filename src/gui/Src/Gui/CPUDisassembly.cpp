@@ -283,16 +283,16 @@ void CPUDisassembly::setupRightClickContextMenu()
     copyMenu->addAction(makeShortcutAction(DIcon("fileoffset.png"), tr("&File Offset"), SLOT(copyFileOffsetSlot()), "ActionCopyFileOffset"));
     copyMenu->addAction(makeAction(tr("&Header VA"), SLOT(copyHeaderVaSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_disassembly.png"), tr("Disassembly"), SLOT(copyDisassemblySlot())));
-
-    copyMenu->addMenu(makeMenu(DIcon("copy_selection.png"), tr("Symbolic Name")), [this](QMenu * menu)
+    copyMenu->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
         QSet<QString> labels;
         if(!getLabelsFromInstruction(rvaToVa(getInitialSelection()), labels))
             return false;
-        for(auto label : labels)
+        menu->addSeparator();
+        for(const auto & label : labels)
             menu->addAction(makeAction(label, SLOT(labelCopySlot())));
         return true;
-    });
+    }));
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("eraser.png"), tr("&Restore selection"), SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
@@ -1803,7 +1803,7 @@ bool CPUDisassembly::getLabelsFromInstruction(duint addr, QSet<QString> & labels
 {
     BASIC_INSTRUCTION_INFO basicinfo;
     DbgDisasmFastAt(addr, &basicinfo);
-    std::vector<duint> values = { addr, basicinfo.addr, basicinfo.value.value, basicinfo.memory.value};
+    std::vector<duint> values = { addr, basicinfo.addr, basicinfo.value.value, basicinfo.memory.value };
     for(auto value : values)
     {
         char label_[MAX_LABEL_SIZE] = "";
