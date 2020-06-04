@@ -24,7 +24,6 @@ MHTabBar::MHTabBar(QWidget* parent, bool allowDetach, bool allowDelete) : QTabBa
     setSelectionBehaviorOnRemove(QTabBar::SelectLeftTab);
     setMovable(true);
     setDrawBase(false);
-    setStyleSheet("QTabBar::tear { width: 0px; border: none; }");
 }
 
 //////////////////////////////////////////////////////////////
