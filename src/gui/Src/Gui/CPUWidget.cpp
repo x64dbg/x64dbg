@@ -56,11 +56,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     upperScrollArea->setFrameShape(QFrame::NoFrame);
     upperScrollArea->setWidget(mGeneralRegs);
 
-    upperScrollArea->horizontalScrollBar()->setStyleSheet(ConfigHScrollBarStyle());
-    upperScrollArea->verticalScrollBar()->setStyleSheet(ConfigVScrollBarStyle());
-
     QPushButton* button_changeview = new QPushButton("", this);
-    button_changeview->setStyleSheet("Text-align:left;padding: 4px;padding-left: 10px;");
     connect(button_changeview, SIGNAL(clicked()), mGeneralRegs, SLOT(onChangeFPUViewAction()));
     mGeneralRegs->SetChangeButton(button_changeview);
 
