@@ -312,5 +312,7 @@
         <file>images/names.png</file>
         <file>images/fit.png</file>
         <file>images/zoom.png</file>
+        <file>images/crash_dump.png</file>
+        <file>images/exclamation.png</file>
     </qresource>
 </RCC>

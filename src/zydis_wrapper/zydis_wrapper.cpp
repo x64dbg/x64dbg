@@ -691,6 +691,24 @@ size_t Zydis::ResolveOpValue(int opindex, const std::function<size_t(ZydisRegist
     return dest;
 }
 
+Zydis::VectorElementType Zydis::getVectorElementType(int opindex) const
+{
+    if(!Success())
+        return Zydis::VETDefault;
+    if(opindex >= mInstr.operandCount)
+        return Zydis::VETDefault;
+    const auto & op = mInstr.operands[opindex];
+    switch(op.elementType)
+    {
+    case ZYDIS_ELEMENT_TYPE_FLOAT32:
+        return Zydis::VETFloat32;
+    case ZYDIS_ELEMENT_TYPE_FLOAT64:
+        return Zydis::VETFloat64;
+    default:
+        return Zydis::VETDefault;
+    }
+}
+
 bool Zydis::IsBranchGoingToExecute(size_t cflags, size_t ccx) const
 {
     if(!Success())

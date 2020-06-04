@@ -150,6 +150,12 @@ void Disassembly::tokenizerConfigUpdatedSlot()
     mNoCurrentModuleText = ConfigBool("Disassembler", "NoCurrentModuleText");
 }
 
+#define HANDLE_RANGE_TYPE(prefix, first, last) \
+    if(first == prefix ## _BEGIN && last == prefix ## _END) \
+        first = prefix ## _SINGLE; \
+    if(last == prefix ## _END && first != prefix ## _SINGLE) \
+        first = last
+
 /************************************************************************************
                             Reimplemented Functions
 ************************************************************************************/
@@ -400,8 +406,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         Function_t funcType;
         FUNCTYPE funcFirst = DbgGetFunctionTypeAt(cur_addr);
         FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + instr.length - 1);
-        if(funcLast == FUNC_END && funcFirst != FUNC_SINGLE)
-            funcFirst = funcLast;
+        HANDLE_RANGE_TYPE(FUNC, funcFirst, funcLast);
         switch(funcFirst)
         {
         case FUNC_SINGLE:
@@ -464,11 +469,13 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 
         while(1) //paint all loop depths
         {
-            LOOPTYPE loopType = DbgGetLoopTypeAt(cur_addr, depth);
-            if(loopType == LOOP_NONE)
+            LOOPTYPE loopFirst = DbgGetLoopTypeAt(cur_addr, depth);
+            LOOPTYPE loopLast = DbgGetLoopTypeAt(cur_addr + mInstBuffer.at(rowOffset).length - 1, depth);
+            HANDLE_RANGE_TYPE(LOOP, loopFirst, loopLast);
+            if(loopFirst == LOOP_NONE)
                 break;
             Function_t funcType;
-            switch(loopType)
+            switch(loopFirst)
             {
             case LOOP_SINGLE:
                 funcType = Function_single;
@@ -488,7 +495,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             default:
                 break;
             }
-            loopsize += paintFunctionGraphic(painter, x + loopsize, y, funcType, loopType != LOOP_SINGLE);
+            loopsize += paintFunctionGraphic(painter, x + loopsize, y, funcType, loopFirst != LOOP_SINGLE);
             depth++;
         }
 
@@ -510,8 +517,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         Function_t funcType;
         ARGTYPE argFirst = DbgGetArgTypeAt(cur_addr);
         ARGTYPE argLast = DbgGetArgTypeAt(cur_addr + mInstBuffer.at(rowOffset).length - 1);
-        if(argLast == ARG_END && argFirst != ARG_SINGLE)
-            argFirst = argLast;
+        HANDLE_RANGE_TYPE(ARG, argFirst, argLast);
         switch(argFirst)
         {
         case ARG_SINGLE:
@@ -1007,6 +1013,7 @@ int Disassembly::paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, 
     }
     else if(mXrefInfo.refcount > 0)
     {
+        // TODO: bad performance for sure, this code is also doing things in a super weird order...
         duint max = selVa, min = selVa;
         showXref = true;
         int jmpcount = 0;

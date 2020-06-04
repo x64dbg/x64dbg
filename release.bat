@@ -82,4 +82,13 @@ copy bin\x64\loaddll.exe %RELEASEDIR%\release\x64\
 echo "creating commithash.txt"
 git rev-parse HEAD > %RELEASEDIR%\commithash.txt
 
+echo "copying PDB files"
+mkdir %RELEASEDIR%\pdb
+mkdir %RELEASEDIR%\pdb\x32
+mkdir %RELEASEDIR%\pdb\x64
+
+copy bin\*.pdb %RELEASEDIR%\pdb\
+copy bin\x32\*.pdb %RELEASEDIR%\pdb\x32\
+copy bin\x64\*.pdb %RELEASEDIR%\pdb\x64\
+
 exit 0

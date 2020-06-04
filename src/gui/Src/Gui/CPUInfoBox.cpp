@@ -3,6 +3,7 @@
 #include "WordEditDialog.h"
 #include "XrefBrowseDialog.h"
 #include "Bridge.h"
+#include "QBeaEngine.h"
 
 CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
 {
@@ -30,7 +31,15 @@ CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
     // Deselect any row (visual reasons only)
     setSingleSelection(-1);
 
+    int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
+    mDisasm = new QBeaEngine(maxModuleSize);
+
     setupContextMenu();
+}
+
+CPUInfoBox::~CPUInfoBox()
+{
+    delete mDisasm;
 }
 
 void CPUInfoBox::setupContextMenu()
@@ -82,6 +91,63 @@ void CPUInfoBox::clear()
     setInfoLine(3, "");
 }
 
+static QString formatSSEOperand(const QByteArray & data, uint8_t vectorType)
+{
+    QString hex;
+    bool isXMMdecoded = false;
+    switch(vectorType)
+    {
+    case Zydis::VETFloat32:
+        if(data.size() == 32)
+        {
+            hex = composeRegTextYMM(data.constData(), 1);
+            isXMMdecoded = true;
+        }
+        else if(data.size() == 16)
+        {
+            hex = composeRegTextXMM(data.constData(), 1);
+            isXMMdecoded = true;
+        }
+        else if(data.size() == 4)
+        {
+            hex = QString::number(((const float*)data.constData())[0]);
+            isXMMdecoded = true;
+        }
+        break;
+    case Zydis::VETFloat64:
+        if(data.size() == 32)
+        {
+            hex = composeRegTextYMM(data.constData(), 2);
+            isXMMdecoded = true;
+        }
+        else if(data.size() == 16)
+        {
+            hex = composeRegTextXMM(data.constData(), 2);
+            isXMMdecoded = true;
+        }
+        else if(data.size() == 8)
+        {
+            hex = QString::number(((const double*)data.constData())[0]);
+            isXMMdecoded = true;
+        }
+        break;
+    default:
+        isXMMdecoded = false;
+        break;
+    }
+    if(!isXMMdecoded)
+    {
+        hex.reserve(data.size() * 3);
+        for(int k = 0; k < data.size(); k++)
+        {
+            if(k)
+                hex.append(' ');
+            hex.append(ToByteString(data[k]));
+        }
+    }
+    return hex;
+}
+
 void CPUInfoBox::disasmSelectionChanged(dsint parVA)
 {
     curAddr = parVA;
@@ -97,15 +163,18 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
     setCellContent(1, 0, "");
     setCellContent(2, 0, "");
 
-    DISASM_INSTR instr;
-    memset(&instr, 0, sizeof(instr));
+    Instruction_t wInst;
+    unsigned char instructiondata[MAX_DISASM_BUFFER];
+    DbgMemRead(parVA, &instructiondata, MAX_DISASM_BUFFER);
+    wInst = mDisasm->DisassembleAt(instructiondata, MAX_DISASM_BUFFER, 0, parVA);
+    DISASM_INSTR instr; //Fix me: these disasm methods are so messy
     DbgDisasmAt(parVA, &instr);
     BASIC_INSTRUCTION_INFO basicinfo;
-    memset(&basicinfo, 0, sizeof(basicinfo));
     DbgDisasmFastAt(parVA, &basicinfo);
 
     int start = 0;
-    if(basicinfo.branch && !basicinfo.call && (!ConfigBool("Disassembler", "OnlyCipAutoComments") || parVA == DbgValFromString("cip"))) //jump
+    bool commentThis = !ConfigBool("Disassembler", "OnlyCipAutoComments") || parVA == DbgValFromString("cip");
+    if(wInst.branchType == Instruction_t::Conditional && commentThis) //jump
     {
         bool taken = DbgIsJumpGoingToExecute(parVA);
         if(taken)
@@ -152,6 +221,14 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
                 sizeName = "qword ptr ";
                 break;
 #endif //_WIN64
+            case size_xmmword:
+                knownsize = false;
+                sizeName = "xmmword ptr ";
+                break;
+            case size_ymmword:
+                knownsize = false;
+                sizeName = "ymmword ptr ";
+                break;
             default:
                 knownsize = false;
                 break;
@@ -185,28 +262,19 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
             {
                 setInfoLine(j, sizeName + "[" + argMnemonic + "]=???");
             }
-            else if(knownsize)
+            else if(knownsize && wInst.vectorElementType[i] == Zydis::VETDefault) // MOVSD/MOVSS instruction
             {
                 QString addrText = getSymbolicNameStr(arg.memvalue);
                 setInfoLine(j, sizeName + "[" + argMnemonic + "]=" + addrText);
             }
             else
             {
-                //TODO: properly support XMM constants
-                QVector<unsigned char> data;
+                QByteArray data;
                 data.resize(basicinfo.memory.size);
                 memset(data.data(), 0, data.size());
                 if(DbgMemRead(arg.value, data.data(), data.size()))
                 {
-                    QString hex;
-                    hex.reserve(data.size() * 3);
-                    for(int k = 0; k < data.size(); k++)
-                    {
-                        if(k)
-                            hex.append(' ');
-                        hex.append(ToByteString(data[k]));
-                    }
-                    setInfoLine(j, sizeName + "[" + argMnemonic + "]=" + hex);
+                    setInfoLine(j, sizeName + "[" + argMnemonic + "]=" + formatSSEOperand(data, wInst.vectorElementType[i]));
                 }
                 else
                 {
@@ -218,7 +286,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         }
         else
         {
-            QString valText = DbgMemIsValidReadPtr(arg.value) ? ToPtrString(arg.value) : ToHexString(arg.value);
+            QString valText;
             auto symbolicName = getSymbolicNameStr(arg.value);
             if(!symbolicName.contains(valText))
                 valText = QString("%1 (%2)").arg(symbolicName, valText);
@@ -233,10 +301,103 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
                     continue;
                 setInfoLine(j, symbolicName);
             }
-            else if(!mnemonic.startsWith("xmm") && //TODO: properly handle display of these registers
+            else if(!mnemonic.startsWith("xmm") &&
                     !mnemonic.startsWith("ymm") &&
+                    !mnemonic.startsWith("zmm") && //TODO: properly handle display of AVX-512 registers
+                    !mnemonic.startsWith("k") && //TODO: properly handle display of AVX-512 registers
                     !mnemonic.startsWith("st"))
             {
+                setInfoLine(j, mnemonic + "=" + valText);
+                j++;
+            }
+            else if(mnemonic.startsWith("xmm") || mnemonic.startsWith("ymm") || mnemonic.startsWith("st"))
+            {
+                REGDUMP registers;
+                DbgGetRegDumpEx(&registers, sizeof(registers));
+                if(mnemonic == "xmm0")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[0], 16), wInst.vectorElementType[i]);
+                else if(mnemonic == "xmm1")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[1], 16), wInst.vectorElementType[i]);
+                else if(mnemonic == "xmm2")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[2], 16), wInst.vectorElementType[i]);
+                else if(mnemonic == "xmm3")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[3], 16), wInst.vectorElementType[i]);
+                else if(mnemonic == "xmm4")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[4], 16), wInst.vectorElementType[i]);
+                else if(mnemonic == "xmm5")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[5], 16), wInst.vectorElementType[i]);
+                else if(mnemonic == "xmm6")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[6], 16), wInst.vectorElementType[i]);
+                else if(mnemonic == "xmm7")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[7], 16), wInst.vectorElementType[i]);
+#ifdef _WIN64
+                else if(mnemonic == "xmm8")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[8], 16), wInst.vectorElementType[i]);
+                else if(mnemonic == "xmm9")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[9], 16), wInst.vectorElementType[i]);
+                else if(mnemonic == "xmm10")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[10], 16), wInst.vectorElementType[i]);
+                else if(mnemonic == "xmm11")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[11], 16), wInst.vectorElementType[i]);
+                else if(mnemonic == "xmm12")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[12], 16), wInst.vectorElementType[i]);
+                else if(mnemonic == "xmm13")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[13], 16), wInst.vectorElementType[i]);
+                else if(mnemonic == "xmm14")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[14], 16), wInst.vectorElementType[i]);
+                else if(mnemonic == "xmm15")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[15], 16), wInst.vectorElementType[i]);
+#endif //_WIN64
+                else if(mnemonic == "ymm0")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[0], 32), wInst.vectorElementType[i]);
+                else if(mnemonic == "ymm1")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[1], 32), wInst.vectorElementType[i]);
+                else if(mnemonic == "ymm2")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[2], 32), wInst.vectorElementType[i]);
+                else if(mnemonic == "ymm3")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[3], 32), wInst.vectorElementType[i]);
+                else if(mnemonic == "ymm4")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[4], 32), wInst.vectorElementType[i]);
+                else if(mnemonic == "ymm5")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[5], 32), wInst.vectorElementType[i]);
+                else if(mnemonic == "ymm6")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[6], 32), wInst.vectorElementType[i]);
+                else if(mnemonic == "ymm7")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[7], 32), wInst.vectorElementType[i]);
+#ifdef _WIN64
+                else if(mnemonic == "ymm8")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[8], 32), wInst.vectorElementType[i]);
+                else if(mnemonic == "ymm9")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[9], 32), wInst.vectorElementType[i]);
+                else if(mnemonic == "ymm10")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[10], 32), wInst.vectorElementType[i]);
+                else if(mnemonic == "ymm11")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[11], 32), wInst.vectorElementType[i]);
+                else if(mnemonic == "ymm12")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[12], 32), wInst.vectorElementType[i]);
+                else if(mnemonic == "ymm13")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[13], 32), wInst.vectorElementType[i]);
+                else if(mnemonic == "ymm14")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[14], 32), wInst.vectorElementType[i]);
+                else if(mnemonic == "ymm15")
+                    valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[15], 32), wInst.vectorElementType[i]);
+#endif //_WIN64
+                else if(mnemonic == "st0")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[registers.x87StatusWordFields.TOP & 7]);
+                else if(mnemonic == "st1")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[(registers.x87StatusWordFields.TOP + 1) & 7]);
+                else if(mnemonic == "st2")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[(registers.x87StatusWordFields.TOP + 2) & 7]);
+                else if(mnemonic == "st3")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[(registers.x87StatusWordFields.TOP + 3) & 7]);
+                else if(mnemonic == "st4")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[(registers.x87StatusWordFields.TOP + 4) & 7]);
+                else if(mnemonic == "st5")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[(registers.x87StatusWordFields.TOP + 5) & 7]);
+                else if(mnemonic == "st6")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[(registers.x87StatusWordFields.TOP + 6) & 7]);
+                else if(mnemonic == "st7")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[(registers.x87StatusWordFields.TOP + 7) & 7]);
                 setInfoLine(j, mnemonic + "=" + valText);
                 j++;
             }

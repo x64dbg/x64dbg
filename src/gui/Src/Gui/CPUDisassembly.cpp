@@ -283,16 +283,16 @@ void CPUDisassembly::setupRightClickContextMenu()
     copyMenu->addAction(makeShortcutAction(DIcon("fileoffset.png"), tr("&File Offset"), SLOT(copyFileOffsetSlot()), "ActionCopyFileOffset"));
     copyMenu->addAction(makeAction(tr("&Header VA"), SLOT(copyHeaderVaSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_disassembly.png"), tr("Disassembly"), SLOT(copyDisassemblySlot())));
-
-    copyMenu->addMenu(makeMenu(DIcon("copy_selection.png"), tr("Symbolic Name")), [this](QMenu * menu)
+    copyMenu->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
         QSet<QString> labels;
         if(!getLabelsFromInstruction(rvaToVa(getInitialSelection()), labels))
             return false;
-        for(auto label : labels)
+        menu->addSeparator();
+        for(const auto & label : labels)
             menu->addAction(makeAction(label, SLOT(labelCopySlot())));
         return true;
-    });
+    }));
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("eraser.png"), tr("&Restore selection"), SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
@@ -431,6 +431,11 @@ void CPUDisassembly::setupRightClickContextMenu()
         else
             toggleArgumentAction->setText(tr("Delete argument"));
         return true;
+    });
+    analysisMenu->addAction(makeShortcutAction(tr("Add loop"), SLOT(addLoopSlot()), "ActionAddLoop"));
+    analysisMenu->addAction(makeShortcutAction(tr("Delete loop"), SLOT(deleteLoopSlot()), "ActionDeleteLoop"), [this](QMenu*)
+    {
+        return findDeepestLoopDepth(rvaToVa(getSelectionStart())) >= 0;
     });
     analysisMenu->addAction(makeShortcutAction(DIcon("analysis_single_function.png"), tr("Analyze single function"), SLOT(analyzeSingleFunctionSlot()), "ActionAnalyzeSingleFunction"));
     analysisMenu->addSeparator();
@@ -893,6 +898,29 @@ void CPUDisassembly::toggleArgumentSlot()
     }
 }
 
+void CPUDisassembly::addLoopSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    duint start = rvaToVa(getSelectionStart());
+    duint end = rvaToVa(getSelectionEnd());
+    if(start == end)
+        return;
+    auto depth = findDeepestLoopDepth(start);
+    DbgCmdExec(QString("loopadd %1, %2").arg(ToPtrString(start)).arg(ToPtrString(end)).arg(depth));
+}
+
+void CPUDisassembly::deleteLoopSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    duint start = rvaToVa(getSelectionStart());
+    auto depth = findDeepestLoopDepth(start);
+    if(depth < 0)
+        return;
+    DbgCmdExec(QString("loopdel %1, .%2").arg(ToPtrString(start)).arg(depth));
+}
+
 void CPUDisassembly::assembleSlot()
 {
     if(!DbgIsDebugging())
@@ -934,18 +962,21 @@ void CPUDisassembly::assembleSlot()
             if(exec != QDialog::Accepted)
                 return;
 
+            //sanitize the expression (just simplifying it by removing excess whitespaces)
+            auto expression = assembleDialog.editText.simplified();
+
             //if the instruction its unknown or is the old instruction or empty (easy way to skip from GUI) skipping
-            if(assembleDialog.editText == QString("???") || assembleDialog.editText.toLower() == instr.instStr.toLower() || assembleDialog.editText == QString(""))
+            if(expression == QString("???") || expression.toLower() == instr.instStr.toLower() || expression == QString(""))
                 break;
 
-            if(!DbgFunctions()->AssembleAtEx(wVA, assembleDialog.editText.toUtf8().constData(), error, assembleDialog.bFillWithNopsChecked))
+            if(!DbgFunctions()->AssembleAtEx(wVA, expression.toUtf8().constData(), error, assembleDialog.bFillWithNopsChecked))
             {
-                QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("Failed to assemble instruction \" %1 \" (%2)").arg(assembleDialog.editText).arg(error));
+                QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("Failed to assemble instruction \" %1 \" (%2)").arg(expression).arg(error));
                 msg.setWindowIcon(DIcon("compile-error.png"));
                 msg.setParent(this, Qt::Dialog);
                 msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
                 msg.exec();
-                actual_inst = assembleDialog.editText;
+                actual_inst = expression;
                 assembly_error = true;
             }
         }
@@ -1760,11 +1791,19 @@ void CPUDisassembly::paintEvent(QPaintEvent* event)
     Disassembly::paintEvent(event);
 }
 
+int CPUDisassembly::findDeepestLoopDepth(duint addr)
+{
+    for(int depth = 0; ; depth++)
+        if(!DbgLoopGet(depth, addr, nullptr, nullptr))
+            return depth - 1;
+    return -1; // unreachable
+}
+
 bool CPUDisassembly::getLabelsFromInstruction(duint addr, QSet<QString> & labels)
 {
     BASIC_INSTRUCTION_INFO basicinfo;
     DbgDisasmFastAt(addr, &basicinfo);
-    std::vector<duint> values = { addr, basicinfo.addr, basicinfo.value.value, basicinfo.memory.value};
+    std::vector<duint> values = { addr, basicinfo.addr, basicinfo.value.value, basicinfo.memory.value };
     for(auto value : values)
     {
         char label_[MAX_LABEL_SIZE] = "";

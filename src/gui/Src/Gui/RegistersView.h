@@ -72,22 +72,6 @@ public:
         UNKNOWN
     };
 
-    enum SIMD_REG_DISP_MODE : int
-    {
-        SIMD_REG_DISP_HEX,
-        SIMD_REG_DISP_FLOAT,
-        SIMD_REG_DISP_DOUBLE,
-        SIMD_REG_DISP_WORD_SIGNED,
-        SIMD_REG_DISP_DWORD_SIGNED,
-        SIMD_REG_DISP_QWORD_SIGNED,
-        SIMD_REG_DISP_WORD_UNSIGNED,
-        SIMD_REG_DISP_DWORD_UNSIGNED,
-        SIMD_REG_DISP_QWORD_UNSIGNED,
-        SIMD_REG_DISP_WORD_HEX,
-        SIMD_REG_DISP_DWORD_HEX,
-        SIMD_REG_DISP_QWORD_HEX
-    };
-
     // contains viewport position of register
     struct Register_Position
     {
@@ -214,7 +198,6 @@ protected slots:
     // switch SIMD display modes
     void onSIMDMode();
     void onFpuMode();
-    void onClose();
     QString getRegisterLabel(REGISTER_NAME);
     int CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2);
     SIZE_T GetSizeRegister(const REGISTER_NAME reg_name);
@@ -283,11 +266,12 @@ private:
     // font measures (TODO: create a class that calculates all thos values)
     unsigned int mRowHeight, mCharWidth;
     // SIMD registers display mode
-    SIMD_REG_DISP_MODE wSIMDRegDispMode;
-    bool mFpuMode; //false = order by ST(X), true = order by x87rX
+    char mFpuMode; //0 = order by ST(X), 1 = order by x87rX, 2 = MMX registers
     // context menu actions
     QMenu* mSwitchSIMDDispMode;
-    QAction* mSwitchFPUDispMode;
+    QAction* mDisplaySTX;
+    QAction* mDisplayx87rX;
+    QAction* mDisplayMMX;
     QAction* mFollowInDump;
     QAction* wCM_Increment;
     QAction* wCM_Decrement;

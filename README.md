@@ -28,7 +28,7 @@ This is a community effort and we accept pull requests! See the [CONTRIBUTING](h
 
 ## Credits
 
-- Debugger core by [TitanEngine Community Edition](https://bitbucket.org/titanengineupdate/titanengine-update)
+- Debugger core by [TitanEngine Community Edition](https://github.com/x64dbg/TitanEngine)
 - Disassembly powered by [Zydis](https://zydis.re)
 - Assembly powered by [XEDParse](https://github.com/x64dbg/XEDParse) and [asmjit](https://github.com/asmjit)
 - Import reconstruction powered by [Scylla](https://github.com/NtQuery/Scylla)

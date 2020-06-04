@@ -175,8 +175,8 @@ void MemUpdateMap()
                 if(start < secEnd && end > secStart) //the section and memory overlap
                 {
                     if(infoOffset)
-                        infoOffset += sprintf_s(currentPage.info + infoOffset, sizeof(currentPage.info) - infoOffset, ",");
-                    infoOffset += sprintf_s(currentPage.info + infoOffset, sizeof(currentPage.info) - infoOffset, " \"%s\"", currentSection.name);
+                        infoOffset += _snprintf_s(currentPage.info + infoOffset, sizeof(currentPage.info) - infoOffset, _TRUNCATE, ",");
+                    infoOffset += _snprintf_s(currentPage.info + infoOffset, sizeof(currentPage.info) - infoOffset, _TRUNCATE, " \"%s\"", currentSection.name);
                 }
             }
         }
@@ -324,7 +324,7 @@ static bool IgnoreThisRead(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffe
     if(fnQueryWorkingSetEx(hProcess, &wsi, sizeof(wsi)) && !wsi.VirtualAttributes.Valid)
     {
         MEMORY_BASIC_INFORMATION mbi;
-        if(VirtualQueryEx(hProcess, wsi.VirtualAddress, &mbi, sizeof(mbi)) && mbi.State == MEM_COMMIT && mbi.Type == MEM_PRIVATE)
+        if(VirtualQueryEx(hProcess, wsi.VirtualAddress, &mbi, sizeof(mbi)) && mbi.State == MEM_COMMIT/* && mbi.Type == MEM_PRIVATE*/)
         {
             memset(lpBuffer, 0, nSize);
             if(lpNumberOfBytesRead)

@@ -320,9 +320,14 @@ bool cbDebugPause(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Program is not running"));
         return false;
     }
-    if(SuspendThread(hActiveThread) == -1)
+    // Interesting behavior found by JustMagic, if the active thread is suspended pause would fail
+    auto previousSuspendCount = SuspendThread(hActiveThread);
+    if(previousSuspendCount != 0)
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Error suspending thread"));
+        if(previousSuspendCount != -1)
+            ResumeThread(hActiveThread);
+        dputs(QT_TRANSLATE_NOOP("DBG", "The active thread is suspended, switch to a running thread to pause the process"));
+        // TODO: perhaps inject an INT3 in the process as an alternative to failing?
         return false;
     }
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);

@@ -114,6 +114,15 @@ void SymUpdateModuleList()
     GuiSymbolUpdateModuleList((int)moduleCount, data);
 }
 
+static void SymSetProgress(int percentage, const char* pdbBaseFile)
+{
+    if(percentage == 0)
+        GuiAddStatusBarMessage(StringUtils::sprintf("%s\n", pdbBaseFile).c_str());
+    else
+        GuiAddStatusBarMessage(StringUtils::sprintf("%s %d%%\n", pdbBaseFile, percentage).c_str());
+    GuiSymbolSetProgress(percentage);
+}
+
 bool SymDownloadSymbol(duint Base, const char* SymbolStore)
 {
     struct DownloadBaseGuard
@@ -177,16 +186,16 @@ bool SymDownloadSymbol(duint Base, const char* SymbolStore)
 
     symprintf(QT_TRANSLATE_NOOP("DBG", "Downloading symbol %s\n  Signature: %s\n  Destination: %s\n  URL: %s\n"), pdbBaseFile, pdbSignature.c_str(), StringUtils::Utf16ToUtf8(destinationPath).c_str(), symbolUrl.c_str());
 
-    auto result = downslib_download(symbolUrl.c_str(), destinationPath.c_str(), "x64dbg", 1000, [](unsigned long long read_bytes, unsigned long long total_bytes)
+    auto result = downslib_download(symbolUrl.c_str(), destinationPath.c_str(), "x64dbg", 1000, [](void* userdata, unsigned long long read_bytes, unsigned long long total_bytes)
     {
         if(total_bytes)
         {
             auto progress = (double)read_bytes / (double)total_bytes;
-            GuiSymbolSetProgress((int)(progress * 100.0));
+            SymSetProgress((int)(progress * 100.0), (const char*)userdata);
         }
         return true;
-    });
-    GuiSymbolSetProgress(0);
+    }, (void*)pdbBaseFile);
+    SymSetProgress(0, pdbBaseFile);
 
     switch(result)
     {

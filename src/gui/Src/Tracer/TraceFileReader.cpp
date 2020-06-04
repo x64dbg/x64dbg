@@ -92,31 +92,37 @@ void TraceFileReader::parseFinishedSlot()
     //GuiAddLogMessage(QString("%1;%2;%3\r\n").arg(i.first).arg(i.second.first).arg(i.second.second).toUtf8().constData());
 }
 
+// Return if the file read was error
 bool TraceFileReader::isError() const
 {
     return error;
 }
 
+// Return 100 when loading is completed
 int TraceFileReader::Progress() const
 {
     return progress.load();
 }
 
+// Return the count of instructions
 unsigned long long TraceFileReader::Length() const
 {
     return length;
 }
 
+// Return the hash value of executable to be matched against current executable
 duint TraceFileReader::HashValue() const
 {
     return hashValue;
 }
 
+// Return the executable name of executable
 QString TraceFileReader::ExePath() const
 {
     return EXEPath;
 }
 
+// Return the registers context at a given index
 REGDUMP TraceFileReader::Registers(unsigned long long index)
 {
     unsigned long long base;
@@ -131,6 +137,7 @@ REGDUMP TraceFileReader::Registers(unsigned long long index)
         return page->Registers(index - base);
 }
 
+// Return the opcode at a given index. buffer must be 16 bytes long.
 void TraceFileReader::OpCode(unsigned long long index, unsigned char* buffer, int* opcodeSize)
 {
     unsigned long long base;
@@ -138,12 +145,14 @@ void TraceFileReader::OpCode(unsigned long long index, unsigned char* buffer, in
     if(page == nullptr)
     {
         memset(buffer, 0, 16);
+        *opcodeSize = 0;
         return;
     }
     else
         page->OpCode(index - base, buffer, opcodeSize);
 }
 
+// Return the thread id at a given index
 DWORD TraceFileReader::ThreadId(unsigned long long index)
 {
     unsigned long long base;
@@ -154,6 +163,7 @@ DWORD TraceFileReader::ThreadId(unsigned long long index)
         return page->ThreadId(index - base);
 }
 
+// Return the number of recorded memory accesses at a given index
 int TraceFileReader::MemoryAccessCount(unsigned long long index)
 {
     unsigned long long base;
@@ -164,6 +174,7 @@ int TraceFileReader::MemoryAccessCount(unsigned long long index)
         return page->MemoryAccessCount(index - base);
 }
 
+// Return the memory access info at a given index
 void TraceFileReader::MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid)
 {
     unsigned long long base;
@@ -174,8 +185,10 @@ void TraceFileReader::MemoryAccessInfo(unsigned long long index, duint* address,
         return page->MemoryAccessInfo(index - base, address, oldMemory, newMemory, isValid);
 }
 
+// Used internally to get the page for the given index and read from disk if necessary
 TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long long* base)
 {
+    // Try to access the most recent used page
     if(lastAccessedPage)
     {
         if(index >= lastAccessedIndexOffset && index < lastAccessedIndexOffset + lastAccessedPage->Length())
@@ -184,6 +197,7 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long 
             return lastAccessedPage;
         }
     }
+    // Try to access pages in memory
     const auto cache = pages.find(Range(index, index));
     if(cache != pages.cend())
     {
@@ -200,7 +214,7 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long 
     }
     else if(index >= Length()) //Out of bound
         return nullptr;
-    //page in
+    // Remove an oldest page from system memory to make room for a new one.
     if(pages.size() >= 2048) //TODO: trim resident pages based on system memory usage, instead of a hard limit.
     {
         FILETIME pageOutTime = pages.begin()->second.lastAccessed;
@@ -241,7 +255,7 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long 
             start = middle;
         middle = (start + end) / 2;
     }
-
+    // Read the requested page from disk and return
     if(fileOffset->second.second + fileOffset->first >= index && fileOffset->first <= index)
     {
         pages.insert(std::make_pair(Range(fileOffset->first, fileOffset->first + fileOffset->second.second - 1), TraceFilePage(this, fileOffset->second.first, fileOffset->second.second)));
@@ -428,6 +442,7 @@ void TraceFileParser::run()
     that->traceFile.moveToThread(that->thread());
 }
 
+// Remove last page from memory and read from disk again to show updates
 void TraceFileReader::purgeLastPage()
 {
     unsigned long long index = 0;
