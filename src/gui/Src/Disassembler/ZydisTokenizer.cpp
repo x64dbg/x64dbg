@@ -175,7 +175,8 @@ void ZydisTokenizer::TokenizeTraceRegister(const char* reg, duint oldValue, duin
     {
         tokens.push_back(SingleToken(TokenType::ArgumentSpace, " ", TokenValue()));
     }
-    tokens.push_back(SingleToken(TokenType::GeneralRegister, QString(reg), TokenValue()));
+    QString regName(reg);
+    tokens.push_back(SingleToken(TokenType::GeneralRegister, ConfigBool("Disassembler", "Uppercase") ? regName.toUpper() : regName, TokenValue()));
     tokens.push_back(SingleToken(TokenType::ArgumentSpace, ": ", TokenValue()));
     tokens.push_back(SingleToken(TokenType::Value, ToHexString(oldValue), TokenValue(8, oldValue)));
     tokens.push_back(SingleToken(TokenType::ArgumentSpace, "-> ", TokenValue()));
