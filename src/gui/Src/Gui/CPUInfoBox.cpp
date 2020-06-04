@@ -174,8 +174,8 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
     DbgDisasmFastAt(parVA, &basicinfo);
 
     int start = 0;
-    duint cip = DbgValFromString("cip");
-    if(wInst.branchType == Instruction_t::Conditional && (!ConfigBool("Disassembler", "OnlyCipAutoComments") || parVA == cip)) //jump
+    bool commentThis = !ConfigBool("Disassembler", "OnlyCipAutoComments") || parVA == DbgValFromString("cip");
+    if(wInst.branchType == Instruction_t::Conditional && commentThis) //jump
     {
         bool taken = DbgIsJumpGoingToExecute(parVA);
         if(taken)

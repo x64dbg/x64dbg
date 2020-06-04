@@ -722,14 +722,14 @@ RegistersView::RegistersView(CPUWidget* parent) : QScrollArea(parent), mVScrollO
     SIMDFloat = new QAction(tr("Float"), mSwitchSIMDDispMode);
     SIMDDouble = new QAction(tr("Double"), mSwitchSIMDDispMode);
     SIMDSWord = new QAction(tr("Signed Word"), mSwitchSIMDDispMode);
-    SIMDSDWord = new QAction(tr("Signed DWord"), mSwitchSIMDDispMode);
-    SIMDSQWord = new QAction(tr("Signed QWord"), mSwitchSIMDDispMode);
+    SIMDSDWord = new QAction(tr("Signed Dword"), mSwitchSIMDDispMode);
+    SIMDSQWord = new QAction(tr("Signed Qword"), mSwitchSIMDDispMode);
     SIMDUWord = new QAction(tr("Unsigned Word"), mSwitchSIMDDispMode);
-    SIMDUDWord = new QAction(tr("Unsigned DWord"), mSwitchSIMDDispMode);
-    SIMDUQWord = new QAction(tr("Unsigned QWord"), mSwitchSIMDDispMode);
+    SIMDUDWord = new QAction(tr("Unsigned Dword"), mSwitchSIMDDispMode);
+    SIMDUQWord = new QAction(tr("Unsigned Qword"), mSwitchSIMDDispMode);
     SIMDHWord = new QAction(tr("Hexadecimal Word"), mSwitchSIMDDispMode);
-    SIMDHDWord = new QAction(tr("Hexadecimal DWord"), mSwitchSIMDDispMode);
-    SIMDHQWord = new QAction(tr("Hexadecimal QWord"), mSwitchSIMDDispMode);
+    SIMDHDWord = new QAction(tr("Hexadecimal Dword"), mSwitchSIMDDispMode);
+    SIMDHQWord = new QAction(tr("Hexadecimal Qword"), mSwitchSIMDDispMode);
     SIMDHex->setData(QVariant(0));
     SIMDFloat->setData(QVariant(1));
     SIMDDouble->setData(QVariant(2));
@@ -3561,6 +3561,7 @@ void RegistersView::onSIMDMode()
 {
     Config()->setUint("Gui", "SIMDRegistersDisplayMode", dynamic_cast<QAction*>(sender())->data().toInt());
     emit refresh();
+    GuiUpdateDisassemblyView(); // refresh display mode for data in disassembly
 }
 
 void RegistersView::onFpuMode()

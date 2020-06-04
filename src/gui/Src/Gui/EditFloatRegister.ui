@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>696</width>
-    <height>426</height>
+    <height>428</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -63,7 +63,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Short:</string>
+        <string>Word:</string>
        </property>
       </widget>
      </item>
@@ -102,7 +102,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Int64:</string>
+        <string>Qword:</string>
        </property>
       </widget>
      </item>
@@ -115,7 +115,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Long:</string>
+        <string>Dword:</string>
        </property>
       </widget>
      </item>
@@ -421,7 +421,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Long:</string>
+        <string>Dword:</string>
        </property>
       </widget>
      </item>
@@ -447,7 +447,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Short:</string>
+        <string>Word:</string>
        </property>
       </widget>
      </item>
@@ -460,7 +460,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Int64:</string>
+        <string>Qword:</string>
        </property>
       </widget>
      </item>
