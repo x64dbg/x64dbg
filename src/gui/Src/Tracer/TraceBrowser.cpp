@@ -746,10 +746,6 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
                     mHighlightToken = ZydisTokenizer::SingleToken();
                 }
             }
-            else if(!mPermanentHighlightingMode)
-            {
-                mHighlightToken = ZydisTokenizer::SingleToken();
-            }
             if(mHighlightingMode) //disable highlighting mode after clicked
             {
                 mHighlightingMode = false;
