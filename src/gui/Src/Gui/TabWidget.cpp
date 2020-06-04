@@ -21,7 +21,6 @@ MHTabWidget::MHTabWidget(QWidget* parent, bool allowDetach, bool allowDelete) : 
 
     setTabBar(mTabBar);
     setMovable(true);
-    setStyleSheet("QTabWidget::pane { border: 0px; }");
 
     mWindows.clear();
 }
