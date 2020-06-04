@@ -4,9 +4,6 @@
 
 LogStatusLabel::LogStatusLabel(QStatusBar* parent) : QLabel(parent)
 {
-    this->setFrameStyle(QFrame::Sunken | QFrame::Panel); //sunken style
-    this->setStyleSheet("QLabel { background-color : #C0C0C0; }");
-
     this->setTextFormat(Qt::PlainText);
     setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QByteArray)), this, SLOT(logUpdateUtf8(QByteArray)));
