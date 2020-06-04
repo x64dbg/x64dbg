@@ -72,21 +72,26 @@ void RecursiveAnalysis::SetMarkers()
                 rangeEnd = node.end;
                 rangeInstructionCount = node.icount;
             }
-#define ALIGN_UP(Address, Align) (((ULONG_PTR)(Address) + (Align) - 1) & ~((Align) - 1))
-            else if(ALIGN_UP(rangeEnd + disasmLen(rangeEnd), 16) >= node.start)
-            {
-                // Merge the consecutive range
-                rangeEnd = node.end;
-                rangeInstructionCount += node.icount;
-            }
             else
             {
-                if(mDump)
-                    dprintf_untranslated("Flush partial range %p-%p\n", rangeStart, rangeEnd);
-                addFunction(rangeStart, rangeEnd, rangeInstructionCount);
-                rangeStart = node.start;
-                rangeEnd = node.end;
-                rangeInstructionCount = node.icount;
+#define ALIGN_UP(Address, Align) (((ULONG_PTR)(Address) + (Align) - 1) & ~((Align) - 1))
+                auto nextInstr = rangeEnd + disasmLen(rangeEnd);
+                // The next instruction(s) might be padding to align IP, also allow this case to count as consecutive
+                if(nextInstr == node.start || ((node.start & 0xF) == 0 && ALIGN_UP(nextInstr, 16) == node.start))
+                {
+                    // Merge the consecutive range
+                    rangeEnd = node.end;
+                    rangeInstructionCount += node.icount;
+                }
+                else
+                {
+                    if(mDump)
+                        dprintf_untranslated("Flush partial range %p-%p\n", rangeStart, rangeEnd);
+                    addFunction(rangeStart, rangeEnd, rangeInstructionCount);
+                    rangeStart = node.start;
+                    rangeEnd = node.end;
+                    rangeInstructionCount = node.icount;
+                }
             }
         }
         if(mDump)
@@ -117,12 +122,16 @@ void RecursiveAnalysis::SetMarkers()
             if(mDump)
                 dprintf_untranslated("Loop %p-%p\n", loopRange.first, loopRange.second);
             duint loopInstructionCount = 0;
-            auto blockItr = blockRanges.find(loopRange);
-            do
+            for(auto blockItr = blockRanges.find(Range(loopRange.first, loopRange.first)); blockItr != blockRanges.end(); ++blockItr)
             {
+                if(mDump)
+                    dprintf_untranslated("icount block %p-%p\n", blockItr->second->start, blockItr->second->end);
                 loopInstructionCount += blockItr->second->icount;
+                if(blockItr->second->end >= loopRange.second)
+                    break;
             }
-            while(loopRange.second < blockItr->second->end);
+            // TODO: RtlpEnterCriticalSectionContended has some weirdly nested loops that overlap each other
+            // this might cause LoopAdd to fail
             LoopAdd(loopRange.first, loopRange.second, false, loopInstructionCount);
         }
     }
