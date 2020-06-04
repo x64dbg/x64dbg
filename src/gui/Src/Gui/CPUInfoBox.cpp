@@ -270,7 +270,6 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
             }
             else
             {
-                //TODO: properly support XMM constants
                 QByteArray data;
                 data.resize(basicinfo.memory.size);
                 memset(data.data(), 0, data.size());
@@ -288,7 +287,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
         }
         else
         {
-            QString valText = DbgMemIsValidReadPtr(arg.value) ? ToPtrString(arg.value) : ToHexString(arg.value);
+            QString valText;
             auto symbolicName = getSymbolicNameStr(arg.value);
             if(!symbolicName.contains(valText))
                 valText = QString("%1 (%2)").arg(symbolicName, valText);
@@ -303,14 +302,16 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
                     continue;
                 setInfoLine(j, symbolicName);
             }
-            else if(!mnemonic.startsWith("xmm") && //TODO: properly handle display of these registers
+            else if(!mnemonic.startsWith("xmm") &&
                     !mnemonic.startsWith("ymm") &&
+                    !mnemonic.startsWith("zmm") && //TODO: properly handle display of AVX-512 registers
+                    !mnemonic.startsWith("k") && //TODO: properly handle display of AVX-512 registers
                     !mnemonic.startsWith("st"))
             {
                 setInfoLine(j, mnemonic + "=" + valText);
                 j++;
             }
-            else if(mnemonic.startsWith("xmm") || mnemonic.startsWith("ymm"))
+            else if(mnemonic.startsWith("xmm") || mnemonic.startsWith("ymm") || mnemonic.startsWith("st"))
             {
                 REGDUMP registers;
                 DbgGetRegDumpEx(&registers, sizeof(registers));
@@ -382,6 +383,22 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
                 else if(mnemonic == "ymm15")
                     valText = formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[15], 32), wInst.vectorElementType[i]);
 #endif //_WIN64
+                else if(mnemonic == "st0")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[registers.x87StatusWordFields.TOP & 7]);
+                else if(mnemonic == "st1")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[(registers.x87StatusWordFields.TOP + 1) & 7]);
+                else if(mnemonic == "st2")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[(registers.x87StatusWordFields.TOP + 2) & 7]);
+                else if(mnemonic == "st3")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[(registers.x87StatusWordFields.TOP + 3) & 7]);
+                else if(mnemonic == "st4")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[(registers.x87StatusWordFields.TOP + 4) & 7]);
+                else if(mnemonic == "st5")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[(registers.x87StatusWordFields.TOP + 5) & 7]);
+                else if(mnemonic == "st6")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[(registers.x87StatusWordFields.TOP + 6) & 7]);
+                else if(mnemonic == "st7")
+                    valText = ToLongDoubleString(&registers.x87FPURegisters[(registers.x87StatusWordFields.TOP + 7) & 7]);
                 setInfoLine(j, mnemonic + "=" + valText);
                 j++;
             }
