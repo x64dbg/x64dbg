@@ -41,8 +41,8 @@ typedef struct
 struct BridgeCFNode
 {
     duint parentGraph = 0; //function of which this node is a part
-    duint start = 0; //start of the block
-    duint end = 0; //end of the block (inclusive)
+    duint start = 0; //va of the first instruction in the block
+    duint end = 0; //va of the last instruction in the block (inclusive)
     duint brtrue = 0; //destination if condition is true
     duint brfalse = 0; //destination if condition is false
     duint icount = 0; //number of instructions in node
