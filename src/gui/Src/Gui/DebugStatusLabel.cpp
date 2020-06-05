@@ -32,7 +32,7 @@ QString DebugStatusLabel::state() const
 
 void DebugStatusLabel::debugStateChangedSlot(DBGSTATE state)
 {
-    constexpr const char* states[4] = { "initialized", "paused", "running", "stopped" };
+    const char* states[4] = { "initialized", "paused", "running", "stopped" };
 
     this->setText(mStatusTexts[state]);
     this->mState = states[state];
