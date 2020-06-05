@@ -237,19 +237,27 @@ const Zydis & ZydisTokenizer::GetZydis() const
 void ZydisTokenizer::TokenToRichText(const InstructionToken & instr, RichTextPainter::List & richTextList, const SingleToken* highlightToken)
 {
     QColor highlightColor = ConfigColor("InstructionHighlightColor");
+    QColor highlightBackgroundColor = ConfigColor("InstructionHighlightBackgroundColor");
     for(const auto & token : instr.tokens)
     {
         RichTextPainter::CustomRichText_t richText;
-        richText.highlight = TokenEquals(&token, highlightToken);
-        richText.highlightColor = highlightColor;
         richText.flags = RichTextPainter::FlagNone;
         richText.text = token.text;
+        richText.underline = false;
         if(token.type < TokenType::Last)
         {
             const auto & tokenColor = colorNamesMap[int(token.type)];
             richText.flags = tokenColor.flags;
-            richText.textColor = tokenColor.color;
-            richText.textBackground = tokenColor.backgroundColor;
+            if(TokenEquals(&token, highlightToken))
+            {
+                richText.textColor = highlightColor;
+                richText.textBackground = highlightBackgroundColor;
+            }
+            else
+            {
+                richText.textColor = tokenColor.color;
+                richText.textBackground = tokenColor.backgroundColor;
+            }
         }
         richTextList.push_back(richText);
     }

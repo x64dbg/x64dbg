@@ -124,17 +124,17 @@ RichTextPainter::List TraceBrowser::getRichBytes(const Instruction_t & instr) co
         auto isReal = realBytes[i].second;
         RichTextPainter::CustomRichText_t & curByte = richBytes.at(i);
         DBGRELOCATIONINFO relocInfo;
-        curByte.highlightColor = mDisassemblyRelocationUnderlineColor;
+        curByte.underlineColor = mDisassemblyRelocationUnderlineColor;
         if(DbgIsDebugging() && DbgFunctions()->ModRelocationAtAddr(cur_addr + byteIdx, &relocInfo))
         {
             bool prevInSameReloc = relocInfo.rva < cur_addr + byteIdx - DbgFunctions()->ModBaseFromAddr(cur_addr + byteIdx);
-            curByte.highlight = isReal;
-            curByte.highlightConnectPrev = i > 0 && prevInSameReloc;
+            curByte.underline = isReal;
+            curByte.underlineConnectPrev = i > 0 && prevInSameReloc;
         }
         else
         {
-            curByte.highlight = false;
-            curByte.highlightConnectPrev = false;
+            curByte.underline = false;
+            curByte.underlineConnectPrev = false;
         }
 
         curByte.textColor = mBytesColor;
