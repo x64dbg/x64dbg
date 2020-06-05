@@ -355,6 +355,7 @@ LIBS += -luser32 -ladvapi32 -lwinmm -lshell32
 !contains(QMAKE_HOST.arch, x86_64) {
     # Windows x86 (32bit) specific build
     LIBS += -L"$$PWD/../zydis_wrapper/bin/x32$${DIR_SUFFIX}" -lzydis_wrapper
+    LIBS += -L"$$PWD/../zydis_wrapper/zydis/msvc/bin/ReleaseX86$${DIR_SUFFIX}" -lzydis
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/ldconvert" -lldconvert_x86
     LIBS += -L"$${X64_BIN_DIR}" -lx32bridge
 } else {

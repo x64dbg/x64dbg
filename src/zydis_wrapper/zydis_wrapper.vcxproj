@@ -69,7 +69,7 @@
     <TargetExt>.lib</TargetExt>
     <OutDir>$(ProjectDir)bin\x32\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>$(ProjectDir);$(ProjectDir)\zydis\include;$(ProjectDir)\zydis\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir);$(IncludePath);$(ProjectDir)\zydis\include;$(ProjectDir)\zydis\src;$(ProjectDir)\zydis\dependencies\zycore\include;$(ProjectDir)\zydis\msvc</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt>.lib</TargetExt>
