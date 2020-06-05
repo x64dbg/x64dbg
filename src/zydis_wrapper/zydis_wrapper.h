@@ -7,6 +7,8 @@
 
 #define MAX_DISASM_BUFFER 16
 
+#define ZYAN_MODULE_ZYDISWRAPPER    0x400
+
 class Zydis
 {
 public:
@@ -114,6 +116,7 @@ private:
     static bool mInitialized;
     ZydisDecodedInstruction mInstr;
     char mInstrText[200];
+    size_t addr;
     bool mSuccess;
     uint8_t mVisibleOpCount;
 };

@@ -33,7 +33,7 @@ bool CodeFollowPass::Analyse()
 
 duint CodeFollowPass::GetReferenceOperand(const ZydisDecodedInstruction & Context)
 {
-    for(int i = 0; i < Context.operandCount; i++)
+    for(int i = 0; i < Context.operand_count; i++)
     {
         auto operand = Context.operands[i];
 
@@ -52,7 +52,7 @@ duint CodeFollowPass::GetReferenceOperand(const ZydisDecodedInstruction & Contex
 
 duint CodeFollowPass::GetMemoryOperand(Zydis & Disasm, const ZydisDecodedInstruction & Context, bool* Indirect)
 {
-    if(Context.operandCount <= 0)
+    if(Context.operand_count <= 0)
         return 0;
 
     // Only the first operand matters

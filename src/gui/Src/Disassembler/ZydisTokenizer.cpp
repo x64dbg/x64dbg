@@ -408,7 +408,7 @@ bool ZydisTokenizer::tokenizePrefix()
         prefixText += "repe";
     else if(attr & ZYDIS_ATTRIB_HAS_REPNE)
         prefixText += "repne";
-    else if(attr & ZYDIS_ATTRIB_HAS_BOUND)
+    else if(attr & ZYDIS_ATTRIB_HAS_BND)
         prefixText += "bnd";
     else if(attr & ZYDIS_ATTRIB_HAS_XACQUIRE)
         prefixText += "xacquire";
@@ -530,7 +530,7 @@ bool ZydisTokenizer::tokenizeImmOperand(const ZydisDecodedOperand & op)
     }
     else
     {
-        auto opsize = _cp.GetInstr()->operandWidth;
+        auto opsize = _cp.GetInstr()->operand_width;
         valueType = TokenType::Value;
         value = duint(op.imm.value.u) & (duint(-1) >> (sizeof(duint) * 8 - opsize));
 
@@ -642,7 +642,7 @@ bool ZydisTokenizer::tokenizePtrOperand(const ZydisDecodedOperand & op)
 
     addToken(TokenType::Uncategorized, ":");
 
-    auto offsetValue = TokenValue(_cp.GetInstr()->operandWidth / 8, op.ptr.offset);
+    auto offsetValue = TokenValue(_cp.GetInstr()->operand_width / 8, op.ptr.offset);
     addToken(TokenType::Address, printValue(offsetValue, true, _maxModuleLength), offsetValue);
 
     return true;

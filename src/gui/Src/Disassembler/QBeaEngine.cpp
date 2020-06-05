@@ -232,9 +232,9 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
     auto instr = cp.GetInstr();
     cp.RegInfo(reginfo);
 
-    for(size_t i = 0; i < _countof(instr->accessedFlags); ++i)
+    for(size_t i = 0; i < _countof(instr->accessed_flags); ++i)
     {
-        auto flagAction = instr->accessedFlags[i].action;
+        auto flagAction = instr->accessed_flags[i].action;
         if(flagAction == ZYDIS_CPUFLAG_ACTION_NONE)
             continue;
 

@@ -67,7 +67,9 @@ INCLUDEPATH += \
     Src/Utils \
     Src/ThirdPartyLibs/ldconvert \
     ../zydis_wrapper \
-    ../zydis_wrapper/zydis/include
+    ../zydis_wrapper/zydis/include \
+    ../zydis_wrapper/zydis/dependencies/zycore/include \
+    ../zydis_wrapper/zydis/msvc
 
 # Resources, sources, headers, and forms
 RESOURCES += \
@@ -358,6 +360,7 @@ LIBS += -luser32 -ladvapi32 -lwinmm -lshell32
 } else {
     # Windows x64 (64bit) specific build
     LIBS += -L"$$PWD/../zydis_wrapper/bin/x64$${DIR_SUFFIX}" -lzydis_wrapper
+    LIBS += -L"$$PWD/../zydis_wrapper/zydis/msvc/bin/ReleaseX64$${DIR_SUFFIX}" -lzydis
     LIBS += -L"$$PWD/Src/ThirdPartyLibs/ldconvert" -lldconvert_x64
     LIBS += -L"$${X64_BIN_DIR}" -lx64bridge
 }

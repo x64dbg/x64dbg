@@ -238,15 +238,15 @@ bool cbInstrZydis(int argc, char* argv[])
     }
 
     auto instr = cp.GetInstr();
-    int argcount = instr->operandCount;
+    int argcount = instr->operand_count;
     dputs_untranslated(cp.InstructionText(true).c_str());
-    dprintf_untranslated("prefix size: %d\n", instr->raw.prefixes.count);
-    if(instr->raw.rex.isDecoded)
-        dprintf_untranslated("rex.W: %d, rex.R: %d, rex.X: %d, rex.B: %d, rex.data: %02x\n", instr->raw.rex.W, instr->raw.rex.R, instr->raw.rex.X, instr->raw.rex.B, instr->raw.rex.data[0]);
+    dprintf_untranslated("prefix size: %d\n", instr->raw.prefix_count);
+    if(instr->attributes & ZYDIS_ATTRIB_HAS_REX)
+        dprintf_untranslated("rex.W: %d, rex.R: %d, rex.X: %d, rex.B: %d, rex.data: %02x\n", instr->raw.rex.W, instr->raw.rex.R, instr->raw.rex.X, instr->raw.rex.B, data[instr->raw.rex.offset]);
     dprintf_untranslated("disp.offset: %d, disp.size: %d\n", instr->raw.disp.offset, instr->raw.disp.size);
     dprintf_untranslated("imm[0].offset: %d, imm[0].size: %d\n", instr->raw.imm[0].offset, instr->raw.imm[0].size);
     dprintf_untranslated("imm[1].offset: %d, imm[1].size: %d\n", instr->raw.imm[1].offset, instr->raw.imm[1].size);
-    dprintf_untranslated("size: %d, id: %d, opcount: %d\n", cp.Size(), cp.GetId(), instr->operandCount);
+    dprintf_untranslated("size: %d, id: %d, opcount: %d\n", cp.Size(), cp.GetId(), instr->operand_count);
     auto rwstr = [](uint8_t action)
     {
         switch(action)
@@ -284,7 +284,7 @@ bool cbInstrZydis(int argc, char* argv[])
     for(int i = 0; i < argcount; i++)
     {
         const auto & op = instr->operands[i];
-        dprintf("operand %d (size: %d, access: %s, visibility: %s) \"%s\", ", i + 1, op.size, rwstr(op.action), vis(op.visibility), cp.OperandText(i).c_str());
+        dprintf("operand %d (size: %d, access: %s, visibility: %s) \"%s\", ", i + 1, op.size, rwstr(op.actions), vis(op.visibility), cp.OperandText(i).c_str());
         switch(op.type)
         {
         case ZYDIS_OPERAND_TYPE_REGISTER:

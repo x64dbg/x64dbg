@@ -9,90 +9,15 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Header Files\Zydis">
-      <UniqueIdentifier>{0f43347f-70ba-4bf2-b8bc-ae1df066b27a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Zydis">
-      <UniqueIdentifier>{9b6d6e4c-4e1e-48b2-b8ba-1b926c7c7302}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="zydis_wrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="zydis\src\Decoder.c">
-      <Filter>Source Files\Zydis</Filter>
-    </ClCompile>
-    <ClCompile Include="zydis\src\DecoderData.c">
-      <Filter>Source Files\Zydis</Filter>
-    </ClCompile>
-    <ClCompile Include="zydis\src\Formatter.c">
-      <Filter>Source Files\Zydis</Filter>
-    </ClCompile>
-    <ClCompile Include="zydis\src\MetaInfo.c">
-      <Filter>Source Files\Zydis</Filter>
-    </ClCompile>
-    <ClCompile Include="zydis\src\Mnemonic.c">
-      <Filter>Source Files\Zydis</Filter>
-    </ClCompile>
-    <ClCompile Include="zydis\src\Register.c">
-      <Filter>Source Files\Zydis</Filter>
-    </ClCompile>
-    <ClCompile Include="zydis\src\SharedData.c">
-      <Filter>Source Files\Zydis</Filter>
-    </ClCompile>
-    <ClCompile Include="zydis\src\Utils.c">
-      <Filter>Source Files\Zydis</Filter>
-    </ClCompile>
-    <ClCompile Include="zydis\src\Zydis.c">
-      <Filter>Source Files\Zydis</Filter>
-    </ClCompile>
-    <ClCompile Include="zydis\src\String.c">
-      <Filter>Source Files\Zydis</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="zydis_wrapper.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="zydis\include\Zydis\CommonTypes.h">
-      <Filter>Header Files\Zydis</Filter>
-    </ClInclude>
-    <ClInclude Include="zydis\include\Zydis\Decoder.h">
-      <Filter>Header Files\Zydis</Filter>
-    </ClInclude>
-    <ClInclude Include="zydis\include\Zydis\DecoderTypes.h">
-      <Filter>Header Files\Zydis</Filter>
-    </ClInclude>
-    <ClInclude Include="zydis\include\Zydis\Defines.h">
-      <Filter>Header Files\Zydis</Filter>
-    </ClInclude>
-    <ClInclude Include="zydis\include\Zydis\Formatter.h">
-      <Filter>Header Files\Zydis</Filter>
-    </ClInclude>
-    <ClInclude Include="zydis\include\Zydis\MetaInfo.h">
-      <Filter>Header Files\Zydis</Filter>
-    </ClInclude>
-    <ClInclude Include="zydis\include\Zydis\Mnemonic.h">
-      <Filter>Header Files\Zydis</Filter>
-    </ClInclude>
-    <ClInclude Include="zydis\include\Zydis\Register.h">
-      <Filter>Header Files\Zydis</Filter>
-    </ClInclude>
-    <ClInclude Include="zydis\include\Zydis\SharedTypes.h">
-      <Filter>Header Files\Zydis</Filter>
-    </ClInclude>
-    <ClInclude Include="zydis\include\Zydis\Status.h">
-      <Filter>Header Files\Zydis</Filter>
-    </ClInclude>
-    <ClInclude Include="zydis\include\Zydis\Utils.h">
-      <Filter>Header Files\Zydis</Filter>
-    </ClInclude>
-    <ClInclude Include="zydis\include\Zydis\Zydis.h">
-      <Filter>Header Files\Zydis</Filter>
-    </ClInclude>
-    <ClInclude Include="zydis\include\Zydis\String.h">
-      <Filter>Header Files\Zydis</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
