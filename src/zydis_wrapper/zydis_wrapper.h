@@ -7,8 +7,6 @@
 
 #define MAX_DISASM_BUFFER 16
 
-#define ZYAN_MODULE_ZYDISWRAPPER    0x400
-
 class Zydis
 {
 public:
