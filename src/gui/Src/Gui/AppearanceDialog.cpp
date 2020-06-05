@@ -3,6 +3,7 @@
 #include <QColorDialog>
 #include <QFontDialog>
 #include <QMessageBox>
+#include <memory>
 #include "Configuration.h"
 #include "StringUtil.h"
 #include "MiscUtil.h"
@@ -243,26 +244,12 @@ void AppearanceDialog::on_editColor_textChanged(const QString & arg1)
 
 void AppearanceDialog::on_buttonColor_clicked()
 {
-    QColorDialog colorDialog(QColor(ui->editColor->text()), this);
-    if(colorDialog.exec() == QDialog::Accepted)
-        ui->editColor->setText(colorDialog.selectedColor().name().toUpper());
+    selectColor(ui->editColor);
 }
 
 void AppearanceDialog::on_buttonBackgroundColor_clicked()
 {
-    QColor initialColor;
-    if(ui->editBackgroundColor->text().toUpper() == "#XXXXXX")
-        initialColor = Qt::black; //transparent will set the alpha channel, which users will forget
-    else
-        initialColor = QColor(ui->editBackgroundColor->text());
-    QColor selectedColor = QColorDialog::getColor(initialColor, this, tr("Select Color"), QColorDialog::ShowAlphaChannel);
-    if(selectedColor.isValid())
-    {
-        if(!selectedColor.alpha())
-            ui->editBackgroundColor->setText("#XXXXXX");
-        else
-            ui->editBackgroundColor->setText(selectedColor.name().toUpper());
-    }
+    selectColor(ui->editBackgroundColor);
 }
 
 void AppearanceDialog::on_listColorNames_itemSelectionChanged()
@@ -445,9 +432,9 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("SideBar:"), "", "");
     colorInfoListAppend(tr("Register Labels"), "SideBarCipLabelColor", "SideBarCipLabelBackgroundColor");
     colorInfoListAppend(tr("Bullets"), "SideBarBulletColor", "");
-    colorInfoListAppend(tr("Breakpoints"), "SideBarBulletBreakpointColor", "");
-    colorInfoListAppend(tr("Disabled Breakpoints"), "SideBarBulletDisabledBreakpointColor", "");
-    colorInfoListAppend(tr("Bookmarks"), "SideBarBulletBookmarkColor", "");
+    colorInfoListAppend(tr("Breakpoint bullets"), "SideBarBulletBreakpointColor", "");
+    colorInfoListAppend(tr("Disabled Breakpoint bullets"), "SideBarBulletDisabledBreakpointColor", "");
+    colorInfoListAppend(tr("Bookmark bullets"), "SideBarBulletBookmarkColor", "");
     colorInfoListAppend(tr("Conditional Jump Lines (jump)"), "SideBarConditionalJumpLineTrueColor", "");
     colorInfoListAppend(tr("Conditional Jump Lines (no jump)"), "SideBarConditionalJumpLineFalseColor", "");
     colorInfoListAppend(tr("Unconditional Jump Lines (jump)"), "SideBarUnconditionalJumpLineTrueColor", "");
@@ -711,6 +698,65 @@ void AppearanceDialog::fontInit()
     //Application
     ui->labelApplicationFont->setText(fontMap->find("Application").value().family());
     isInit = false;
+}
+
+void AppearanceDialog::selectColor(QLineEdit* lineEdit, QColorDialog::ColorDialogOptions options)
+{
+    colorLineEdit = lineEdit;
+    auto oldText = lineEdit->text();
+    QColor initialColor;
+    if(oldText.toUpper() == "#XXXXXX")
+        initialColor = Qt::black; //transparent will set the alpha channel, which users will forget
+    else
+        initialColor = QColor(oldText);
+    QColorDialog dialog(initialColor, this);
+    dialog.setWindowTitle(tr("Select Color"));
+    dialog.setOptions(options);
+    connect(&dialog, &QColorDialog::currentColorChanged, this, &AppearanceDialog::colorSelectionChangedSlot);
+    duint customColorCount = 0;
+    BridgeSettingGetUint("Colors", "CustomColorCount", &customColorCount);
+    if(customColorCount > 0)
+    {
+        for(duint i = 0; i < customColorCount; i++)
+        {
+            char customColorText[MAX_SETTING_SIZE] = "";
+            if(BridgeSettingGet("Colors", QString("CustomColor%1").arg(i).toUtf8().constData(), customColorText))
+            {
+                QColor customColor;
+                if(strcmp(customColorText, "#XXXXXX") == 0)
+                    customColor = Qt::transparent;
+                else
+                    customColor = QColor(customColorText);
+                dialog.setCustomColor(i, customColor);
+            }
+        }
+    }
+    auto result = dialog.exec();
+    for(duint i = 0; i < dialog.customCount(); i++)
+    {
+        QColor customColor = dialog.customColor(i);
+        QString colorName = customColor.name().toUpper();
+        if(!customColor.alpha())
+            colorName = "#XXXXXX";
+        BridgeSettingSet("Colors", QString("CustomColor%1").arg(i).toUtf8().constData(), colorName.toUtf8().constData());
+    }
+    BridgeSettingSetUint("Colors", "CustomColorCount", dialog.customCount());
+    colorLineEdit = nullptr;
+    if(result == QDialog::Accepted)
+    {
+        lineEdit->setText(colorToString(dialog.selectedColor()));
+    }
+    else
+    {
+        lineEdit->setText(oldText);
+    }
+}
+
+QString AppearanceDialog::colorToString(const QColor & color)
+{
+    if(!color.alpha())
+        return "#XXXXXX";
+    return color.name();
 }
 
 void AppearanceDialog::on_fontAbstractTables_currentFontChanged(const QFont & f)
@@ -1052,4 +1098,10 @@ void AppearanceDialog::rejectedSlot()
     Config()->Fonts = fontBackupMap;
     emit Config()->fontsUpdated();
     GuiUpdateAllViews();
+}
+
+void AppearanceDialog::colorSelectionChangedSlot(QColor color)
+{
+    if(colorLineEdit)
+        colorLineEdit->setText(colorToString(color));
 }
