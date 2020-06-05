@@ -179,7 +179,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 
     if(mHighlightingMode)
     {
-        QPen pen(mInstructionHighlightColor);
+        QPen pen(Qt::red);
         pen.setWidth(2);
         painter->setPen(pen);
         QRect rect = viewport()->rect();
@@ -1653,17 +1653,17 @@ RichTextPainter::List Disassembly::getRichBytes(const Instruction_t & instr, boo
         auto isReal = realBytes[i].second;
         RichTextPainter::CustomRichText_t & curByte = richBytes.at(i);
         DBGRELOCATIONINFO relocInfo;
-        curByte.highlightColor = mDisassemblyRelocationUnderlineColor;
+        curByte.underlineColor = mDisassemblyRelocationUnderlineColor;
         if(DbgFunctions()->ModRelocationAtAddr(byteAddr, &relocInfo))
         {
             bool prevInSameReloc = relocInfo.rva < byteAddr - DbgFunctions()->ModBaseFromAddr(byteAddr);
-            curByte.highlight = isReal;
-            curByte.highlightConnectPrev = i > 0 && prevInSameReloc;
+            curByte.underline = isReal;
+            curByte.underlineConnectPrev = i > 0 && prevInSameReloc;
         }
         else
         {
-            curByte.highlight = false;
-            curByte.highlightConnectPrev = false;
+            curByte.underline = false;
+            curByte.underlineConnectPrev = false;
         }
 
         DBGPATCHINFO patchInfo;
@@ -1701,10 +1701,10 @@ RichTextPainter::List Disassembly::getRichBytes(const Instruction_t & instr, boo
         RichTextPainter::CustomRichText_t curByte;
         curByte.textColor = mBytesColor;
         curByte.textBackground = mBytesBackgroundColor;
-        curByte.highlightColor = mDisassemblyRelocationUnderlineColor;
-        curByte.highlightWidth = 1;
+        curByte.underlineColor = mDisassemblyRelocationUnderlineColor;
+        curByte.underlineWidth = 1;
         curByte.flags = RichTextPainter::FlagAll;
-        curByte.highlight = false;
+        curByte.underline = false;
         curByte.textColor = mBytesColor;
         curByte.textBackground = mBytesBackgroundColor;
         curByte.text = "...";

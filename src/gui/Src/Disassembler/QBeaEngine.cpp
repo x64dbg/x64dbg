@@ -387,9 +387,9 @@ void formatOpcodeString(const Instruction_t & inst, RichTextPainter::List & list
     RichTextPainter::CustomRichText_t curByte;
     size_t size = inst.dump.size();
     assert(list.empty()); //List must be empty before use
-    curByte.highlightWidth = 1;
+    curByte.underlineWidth = 1;
     curByte.flags = RichTextPainter::FlagAll;
-    curByte.highlight = false;
+    curByte.underline = false;
     list.reserve(size + 5);
     realBytes.reserve(size + 5);
     for(size_t i = 0; i < size; i++)

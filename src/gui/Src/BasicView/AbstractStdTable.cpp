@@ -261,13 +261,26 @@ QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int row
         //create rich text list
         RichTextPainter::CustomRichText_t curRichText;
         curRichText.flags = RichTextPainter::FlagColor;
-        curRichText.textColor = getCellColor(rowBase + rowOffset, col);
-        curRichText.highlightColor = ConfigColor("SearchListViewHighlightColor");
+        QColor textColor = getCellColor(rowBase + rowOffset, col);
+        QColor textBackgroundColor = Qt::transparent;
+        QColor highlightColor = ConfigColor("SearchListViewHighlightColor");
+        QColor highlightBackgroundColor = ConfigColor("SearchListViewHighlightBackgroundColor");
+        curRichText.textColor = textColor;
+        curRichText.underline = false;
         RichTextPainter::List richText;
         foreach(QString str, split)
         {
             curRichText.text = str;
-            curRichText.highlight = !str.compare(mHighlightText, Qt::CaseInsensitive);
+            if(!str.compare(mHighlightText, Qt::CaseInsensitive))
+            {
+                curRichText.textColor = highlightColor;
+                curRichText.textBackground = highlightBackgroundColor;
+            }
+            else
+            {
+                curRichText.textColor = textColor;
+                curRichText.textBackground = textBackgroundColor;
+            }
             richText.push_back(curRichText);
         }
 
