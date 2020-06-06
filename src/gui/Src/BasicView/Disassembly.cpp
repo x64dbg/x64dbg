@@ -98,14 +98,6 @@ void Disassembly::updateColors()
     mModifiedBytesBackgroundColor = ConfigColor("DisassemblyModifiedBytesBackgroundColor");
     mRestoredBytesColor = ConfigColor("DisassemblyRestoredBytesColor");
     mRestoredBytesBackgroundColor = ConfigColor("DisassemblyRestoredBytesBackgroundColor");
-    mByte00Color = ConfigColor("DisassemblyByte00Color");
-    mByte00BackgroundColor = ConfigColor("DisassemblyByte00BackgroundColor");
-    mByte7FColor = ConfigColor("DisassemblyByte7FColor");
-    mByte7FBackgroundColor = ConfigColor("DisassemblyByte7FBackgroundColor");
-    mByteFFColor = ConfigColor("DisassemblyByteFFColor");
-    mByteFFBackgroundColor = ConfigColor("DisassemblyByteFFBackgroundColor");
-    mByteIsPrintColor = ConfigColor("DisassemblyByteIsPrintColor");
-    mByteIsPrintBackgroundColor = ConfigColor("DisassemblyByteIsPrintBackgroundColor");
     mAutoCommentColor = ConfigColor("DisassemblyAutoCommentColor");
     mAutoCommentBackgroundColor = ConfigColor("DisassemblyAutoCommentBackgroundColor");
     mMnemonicBriefColor = ConfigColor("DisassemblyMnemonicBriefColor");

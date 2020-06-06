@@ -407,10 +407,6 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Bytes"), "DisassemblyBytesColor", "DisassemblyBytesBackgroundColor");
     colorInfoListAppend(tr("Modified Bytes"), "DisassemblyModifiedBytesColor", "DisassemblyModifiedBytesBackgroundColor");
     colorInfoListAppend(tr("Restored Bytes"), "DisassemblyRestoredBytesColor", "DisassemblyRestoredBytesBackgroundColor");
-    colorInfoListAppend(tr("0x00 Bytes"), "DisassemblyByte00Color", "DisassemblyByte00BackgroundColor");
-    colorInfoListAppend(tr("0x7F Bytes"), "DisassemblyByte7FColor", "DisassemblyByte7FBackgroundColor");
-    colorInfoListAppend(tr("0xFF Bytes"), "DisassemblyByteFFColor", "DisassemblyByteFFBackgroundColor");
-    colorInfoListAppend(tr("IsPrint Bytes"), "DisassemblyByteIsPrintColor", "DisassemblyByteIsPrintBackgroundColor");
     colorInfoListAppend(tr("Relocation underline"), "DisassemblyRelocationUnderlineColor", "");
     colorInfoListAppend(ArchValue(tr("EIP"), tr("RIP")), "DisassemblyCipColor", "DisassemblyCipBackgroundColor");
     colorInfoListAppend(tr("Breakpoints"), "DisassemblyBreakpointColor", "DisassemblyBreakpointBackgroundColor");
