@@ -2,6 +2,7 @@
 #define ZYDIS_WRAPPER_H
 
 #include "Zydis/Zydis.h"
+#include <stdint.h>
 #include <functional>
 #include <string>
 
