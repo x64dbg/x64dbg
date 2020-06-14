@@ -704,6 +704,21 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
         break;
     case BPMEMORY:
         BridgeBp->type = bp_memory;
+        switch (Bp->titantype)
+        {
+        case UE_MEMORY_READ:
+            BridgeBp->typeEx = mem_read;
+            break;
+        case UE_MEMORY_WRITE:
+            BridgeBp->typeEx = mem_write;
+            break;
+        case UE_MEMORY_EXECUTE:
+            BridgeBp->typeEx = mem_execute;
+            break;
+        case UE_MEMORY:
+            BridgeBp->typeEx = mem_access;
+            break;
+        }
         break;
     case BPDLL:
         BridgeBp->type = bp_dll;
