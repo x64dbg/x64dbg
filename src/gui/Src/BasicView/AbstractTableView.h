@@ -112,6 +112,7 @@ public:
     void setDrawDebugOnly(bool value);
     bool getAllowPainting() const;
     void setAllowPainting(bool allow);
+    void setDisassemblyPopupEnabled(bool enable);
 
     // UI customization
     void loadColumnFromConfig(const QString & viewName);
@@ -208,6 +209,7 @@ private:
 
     bool mShouldReload;
     bool mDrawDebugOnly;
+    bool mPopupEnabled;
     bool mAllowPainting;
 
     static int mMouseWheelScrollDelta;

@@ -350,15 +350,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("highlight.png"), tr("&Highlighting mode"), SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"));
-    //The following code to manage branch preview has been disabled and will be implemented in a setting instead.
-    /*
-        QAction* togglePreview = makeShortcutAction(DIcon("branchpreview.png"), tr("Disable Branch Destination Preview"), SLOT(togglePreviewSlot()), "ActionToggleDestinationPreview");
-        mMenuBuilder->addAction(togglePreview, [this, togglePreview](QMenu*)
-        {
-            togglePreview->setText(mPopupEnabled ? tr("Disable Branch Destination Preview") : tr("Enable Branch Destination Preview"));
-            return false; //hide this menu from the user, but keep the shortcut working
-        });
-    */
+
     MenuBuilder* labelMenu = new MenuBuilder(this);
     labelMenu->addAction(makeShortcutAction(tr("Label Current Address"), SLOT(setLabelSlot()), "ActionSetLabel"));
     QAction* labelAddress = makeShortcutAction(tr("Label"), SLOT(setLabelAddressSlot()), "ActionSetLabelOperand");
@@ -1983,15 +1975,7 @@ void CPUDisassembly::graphSlot()
     if(DbgCmdExecDirect(QString("graph %1").arg(ToPtrString(rvaToVa(getSelectionStart()))).toUtf8().constData()))
         emit displayGraphWidget();
 }
-/*
-void CPUDisassembly::togglePreviewSlot()
-{
-    if(mPopupEnabled == true)
-        ShowDisassemblyPopup(0, 0, 0);
-    mPopupEnabled = !mPopupEnabled;
-    BridgeSettingSetUint("Gui", "DisableBranchDestinationPreview", !mPopupEnabled);
-}
-*/
+
 void CPUDisassembly::analyzeModuleSlot()
 {
     DbgCmdExec("cfanal");

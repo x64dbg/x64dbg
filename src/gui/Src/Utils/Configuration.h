@@ -107,6 +107,7 @@ public:
 signals:
     void colorsUpdated();
     void fontsUpdated();
+    void guiOptionsUpdated();
     void shortcutsUpdated();
     void tokenizerConfigUpdated();
     void disableAutoCompleteUpdated();

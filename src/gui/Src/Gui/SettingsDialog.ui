@@ -546,6 +546,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkNoBranchDisasmPreview">
+         <property name="text">
+          <string>Disable branch disassembly preview</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QCheckBox" name="chk0xPrefixValues">
          <property name="text">
           <string>0x prefix for values</string>

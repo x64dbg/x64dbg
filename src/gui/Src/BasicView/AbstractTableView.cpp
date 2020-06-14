@@ -58,6 +58,7 @@ AbstractTableView::AbstractTableView(QWidget* parent)
     mShouldReload = true;
     mAllowPainting = true;
     mDrawDebugOnly = false;
+    mPopupEnabled = true;
 
     // ScrollBar Init
     setVerticalScrollBar(new AbstractTableScrollBar(verticalScrollBar()));
@@ -1295,6 +1296,12 @@ void AbstractTableView::prepareData()
 /************************************************************************************
                          DisassemblyPopup
 ************************************************************************************/
+
+void AbstractTableView::setDisassemblyPopupEnabled(bool enable)
+{
+    mPopupEnabled = enable;
+}
+
 duint AbstractTableView::getDisassemblyPopupAddress(int mousex, int mousey)
 {
     Q_UNUSED(mousex)
@@ -1304,7 +1311,7 @@ duint AbstractTableView::getDisassemblyPopupAddress(int mousex, int mousey)
 
 void AbstractTableView::ShowDisassemblyPopup(duint addr, int x, int y)
 {
-    if(!addr)
+    if(!mPopupEnabled || !addr)
     {
         if(mDisassemblyPopup)
             mDisassemblyPopup->hide();

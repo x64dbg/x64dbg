@@ -107,7 +107,6 @@ public slots:
     void setEncodeTypeRangeSlot();
     void graphSlot();
     void analyzeModuleSlot();
-    //void togglePreviewSlot();
     void createThreadSlot();
     void copyTokenTextSlot();
     void copyTokenValueSlot();
