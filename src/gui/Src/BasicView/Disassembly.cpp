@@ -29,17 +29,10 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
 
     mDisasm = new QBeaEngine(maxModuleSize);
     tokenizerConfigUpdatedSlot();
+    updateConfigSlot();
 
     mCodeFoldingManager = nullptr;
-    /*
-        duint setting;
-        if(BridgeSettingGetUint("Gui", "DisableBranchDestinationPreview", &setting))
-            mPopupEnabled = !setting;
-        else
-            mPopupEnabled = true;
-    */
     mIsLastInstDisplayed = false;
-
     mGuiState = Disassembly::NoState;
 
     // Update fonts immediately because they are used in calculations
@@ -63,6 +56,7 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(this, SIGNAL(selectionChanged(dsint)), this, SLOT(selectionChangedSlot(dsint)));
     connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerConfigUpdatedSlot()));
+    connect(Config(), SIGNAL(guiOptionsUpdated()), this, SLOT(updateConfigSlot()));
 
     Initialize();
 }
@@ -141,6 +135,11 @@ void Disassembly::updateFonts()
 {
     setFont(ConfigFont("Disassembly"));
     invalidateCachedFont();
+}
+
+void Disassembly::updateConfigSlot()
+{
+    setDisassemblyPopupEnabled(!Config()->getBool("Disassembler", "NoBranchDisasmPreview"));
 }
 
 void Disassembly::tokenizerConfigUpdatedSlot()

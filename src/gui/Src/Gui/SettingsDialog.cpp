@@ -79,6 +79,7 @@ void SettingsDialog::LoadSettings()
     settings.disasmTabBetweenMnemonicAndArguments = false;
     settings.disasmNoCurrentModuleText = false;
     settings.disasm0xPrefixValues = false;
+    settings.disasmNoBranchDisasmPreview = false;
     settings.disasmNoSourceLineAutoComments = false;
     settings.disasmMaxModuleSize = -1;
     settings.guiNoForegroundWindow = true;
@@ -213,6 +214,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Disassembler", "PermanentHighlightingMode", &settings.disasmPermanentHighlightingMode);
     GetSettingBool("Disassembler", "NoCurrentModuleText", &settings.disasmNoCurrentModuleText);
     GetSettingBool("Disassembler", "0xPrefixValues", &settings.disasm0xPrefixValues);
+    GetSettingBool("Disassembler", "NoBranchDisasmPreview", &settings.disasmNoBranchDisasmPreview);
     GetSettingBool("Disassembler", "NoSourceLineAutoComments", &settings.disasmNoSourceLineAutoComments);
     if(BridgeSettingGetUint("Disassembler", "MaxModuleSize", &cur))
         settings.disasmMaxModuleSize = int(cur);
@@ -227,6 +229,7 @@ void SettingsDialog::LoadSettings()
     ui->chkPermanentHighlightingMode->setChecked(settings.disasmPermanentHighlightingMode);
     ui->chkNoCurrentModuleText->setChecked(settings.disasmNoCurrentModuleText);
     ui->chk0xPrefixValues->setChecked(settings.disasm0xPrefixValues);
+    ui->chkNoBranchDisasmPreview->setChecked(settings.disasmNoBranchDisasmPreview);
     ui->chkNoSourceLinesAutoComments->setChecked(settings.disasmNoSourceLineAutoComments);
     ui->spinMaximumModuleNameSize->setValue(settings.disasmMaxModuleSize);
 
@@ -382,6 +385,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "PermanentHighlightingMode", settings.disasmPermanentHighlightingMode);
     BridgeSettingSetUint("Disassembler", "NoCurrentModuleText", settings.disasmNoCurrentModuleText);
     BridgeSettingSetUint("Disassembler", "0xPrefixValues", settings.disasm0xPrefixValues);
+    BridgeSettingSetUint("Disassembler", "NoBranchDisasmPreview", settings.disasmNoBranchDisasmPreview);
     BridgeSettingSetUint("Disassembler", "NoSourceLineAutoComments", settings.disasmNoSourceLineAutoComments);
     BridgeSettingSetUint("Disassembler", "MaxModuleSize", settings.disasmMaxModuleSize);
 
@@ -445,6 +449,11 @@ void SettingsDialog::SaveSettings()
     {
         emit Config()->asciiAddressDumpModeUpdated();
         bAsciiAddressDumpModeUpdated = false;
+    }
+    if(bGuiOptionsUpdated)
+    {
+        emit Config()->guiOptionsUpdated();
+        bGuiOptionsUpdated = false;
     }
     DbgSettingsUpdated();
     GuiUpdateAllViews();
@@ -859,6 +868,12 @@ void SettingsDialog::on_chk0xPrefixValues_toggled(bool checked)
 {
     bTokenizerConfigUpdated = true;
     settings.disasm0xPrefixValues = checked;
+}
+
+void SettingsDialog::on_chkNoBranchDisasmPreview_toggled(bool checked)
+{
+    bGuiOptionsUpdated = true;
+    settings.disasmNoBranchDisasmPreview = checked;
 }
 
 void SettingsDialog::on_chkNoSourceLinesAutoComments_toggled(bool checked)

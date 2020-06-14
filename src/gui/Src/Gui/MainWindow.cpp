@@ -2079,6 +2079,7 @@ void MainWindow::on_actionImportSettings_triggered()
             DbgSettingsUpdated();
             emit Config()->colorsUpdated();
             emit Config()->fontsUpdated();
+            emit Config()->guiOptionsUpdated();
             emit Config()->shortcutsUpdated();
             emit Config()->tokenizerConfigUpdated();
             GuiUpdateAllViews();

@@ -265,6 +265,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     disassemblyBool.insert("NoHighlightOperands", false);
     disassemblyBool.insert("PermanentHighlightingMode", false);
     disassemblyBool.insert("0xPrefixValues", false);
+    disassemblyBool.insert("NoBranchDisasmPreview", false);
     disassemblyBool.insert("NoCurrentModuleText", false);
     defaultBools.insert("Disassembler", disassemblyBool);
 

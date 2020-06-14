@@ -117,6 +117,7 @@ public slots:
     void debugStateChangedSlot(DBGSTATE state);
     void selectionChangedSlot(dsint parVA);
     void tokenizerConfigUpdatedSlot();
+    void updateConfigSlot();
 
 private:
     enum GuiState
@@ -240,7 +241,6 @@ protected:
     duint mRvaDisplayBase;
     dsint mRvaDisplayPageBase;
     bool mHighlightingMode;
-    //bool mPopupEnabled;
     MemoryPage* mMemPage;
     QBeaEngine* mDisasm;
     bool mShowMnemonicBrief;
