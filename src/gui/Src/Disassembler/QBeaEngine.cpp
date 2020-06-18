@@ -266,6 +266,48 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
         if(reginfo[i])
             wInst.regsReferenced.emplace_back(cp.RegName(ZydisRegister(i)), reginfo[i]);
 
+    // Info about volatile and nonvolatile registers
+    if(cp.IsBranchType(Zydis::BranchType::BTCall))
+    {
+        enum : uint8_t
+        {
+            Volatile = Zydis::RAIImplicit | Zydis::RAIWrite,
+            Parameter = Volatile | Zydis::RAIRead,
+        };
+#define info(reg, type) wInst.regsReferenced.emplace_back(#reg, type)
+
+#ifdef _WIN64
+        // https://docs.microsoft.com/en-us/cpp/build/x64-software-conventions
+        info(rax, Volatile);
+        info(rcx, Parameter);
+        info(rdx, Parameter);
+        info(r8, Parameter);
+        info(r9, Parameter);
+        info(r10, Volatile);
+        info(r11, Volatile);
+        info(xmm0, Parameter);
+        info(ymm0, Parameter);
+        info(xmm1, Parameter);
+        info(ymm1, Parameter);
+        info(xmm2, Parameter);
+        info(ymm2, Parameter);
+        info(xmm3, Parameter);
+        info(ymm3, Parameter);
+        info(xmm4, Parameter);
+        info(ymm4, Parameter);
+        info(xmm5, Parameter);
+        info(ymm5, Parameter);
+
+#else
+        // https://en.wikipedia.org/wiki/X86_calling_conventions#Caller-saved_(volatile)_registers
+        info(eax, Volatile);
+        info(edx, Volatile);
+        info(ecx, Volatile);
+#endif // _WIN64
+
+#undef info
+    }
+
     return wInst;
 }
 
