@@ -1737,6 +1737,11 @@ BRIDGE_IMPEXP void GuiGetCurrentGraph(BridgeCFGraphList* graphList)
     _gui_sendmessage(GUI_GET_CURRENT_GRAPH, graphList, nullptr);
 }
 
+BRIDGE_IMPEXP void GuiShowReferences()
+{
+    _gui_sendmessage(GUI_SHOW_REF, 0, 0);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;
