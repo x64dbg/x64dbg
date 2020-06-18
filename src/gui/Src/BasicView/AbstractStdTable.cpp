@@ -852,14 +852,33 @@ void AbstractStdTable::copyTableResizeToLogSlot()
     emit Bridge::getBridge()->addMsgToLog(copyTable(colWidths).toUtf8());
 }
 
+void AbstractStdTable::copyTableToReferencesSlot()
+{
+    GuiReferenceInitialize(tr("Copied table").toUtf8().constData());
+    auto colCount = getColumnCount();
+    for(int col = 0; col < colCount; col++)
+        GuiReferenceAddColumn(getColumnWidth(col) / getCharWidth(), getColTitle(col).toUtf8().constData());
+    auto rowCount = (int)getRowCount();
+    GuiReferenceSetRowCount(rowCount);
+    for(auto row = 0; row < rowCount; row++)
+        for(int col = 0; col < colCount; col++)
+            GuiReferenceSetCellContent(row, col, getCellContent(row, col).toUtf8().constData());
+    GuiReferenceReloadData();
+}
+
 void AbstractStdTable::copyEntrySlot()
 {
     QAction* action = qobject_cast<QAction*>(sender());
     if(!action)
         return;
     int col = action->objectName().toInt();
-    QString finalText = getCellContent(getInitialSelection(), col);
-    while(finalText.endsWith(" ")) finalText.chop(1);
+    QString finalText;
+    for(auto row : getSelection())
+    {
+        if(!finalText.isEmpty())
+            finalText += "\r\n";
+        finalText += getCellContent(row, col).trimmed();
+    }
     Bridge::CopyToClipboard(finalText);
 }
 
@@ -896,6 +915,15 @@ void AbstractStdTable::setupCopyMenu(QMenu* copyMenu)
     copyMenu->addAction(mCopyTableResizeToLog);
     //Copy->Separator
     copyMenu->addSeparator();
+    if(mAddressColumn != -1)
+    {
+        //Copy->Full Table, To References
+        QAction* mCopyFullTableToReferences = new QAction(DIcon("references.png"), tr("Full Table, To References"), copyMenu);
+        connect(mCopyFullTableToReferences, SIGNAL(triggered(bool)), this, SLOT(copyTableToReferencesSlot()));
+        copyMenu->addAction(mCopyFullTableToReferences);
+        //Copy->Separator
+        copyMenu->addSeparator();
+    }
     //Copy->ColName
     setupCopyColumnMenu(copyMenu);
 }
@@ -936,6 +964,13 @@ void AbstractStdTable::setupCopyMenu(MenuBuilder* copyMenu)
     copyMenu->addAction(makeAction(DIcon("copy_full_table.png"), tr("Full Table, To Log"), SLOT(copyTableResizeToLogSlot())));
     //Copy->Separator
     copyMenu->addSeparator();
+    if(mAddressColumn != -1)
+    {
+        //Copy->Full Table, To References
+        copyMenu->addAction(makeAction(DIcon("references.png"), tr("Full Table, To References"), SLOT(copyTableToReferencesSlot())));
+        //Copy->Separator
+        copyMenu->addSeparator();
+    }
     //Copy->ColName
     setupCopyColumnMenu(copyMenu);
 }
@@ -944,18 +979,7 @@ void AbstractStdTable::setupCopyColumnMenu(MenuBuilder* copyMenu)
 {
     copyMenu->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
-        for(int i = 0; i < getColumnCount(); i++)
-        {
-            if(!getCellContent(getInitialSelection(), i).length()) //skip empty cells
-                continue;
-            QString title = mCopyTitles.at(i);
-            if(!title.length()) //skip empty copy titles
-                continue;
-            QAction* action = new QAction(DIcon("copy_item.png"), title, menu);
-            action->setObjectName(QString::number(i));
-            connect(action, SIGNAL(triggered()), this, SLOT(copyEntrySlot()));
-            menu->addAction(action);
-        }
+        setupCopyColumnMenu(menu);
         return true;
     }));
 }
