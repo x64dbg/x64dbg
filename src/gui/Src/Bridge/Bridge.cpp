@@ -875,6 +875,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         result.Wait();
     }
     break;
+
+    case GUI_SHOW_REF:
+        emit showReferences();
+        break;
     }
 
     return nullptr;
