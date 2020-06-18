@@ -297,3 +297,9 @@ bool cbDebugUpdateTitle(int argc, char* argv[])
     DebugUpdateTitleAsync(addr, false);
     return true;
 }
+
+bool cbShowReferences(int argc, char* argv[])
+{
+    GuiShowReferences();
+    return true;
+}

@@ -403,6 +403,7 @@ static void registercommands()
     dbgcmdnew("AddFavouriteToolShortcut,SetFavouriteToolShortcut", cbInstrSetFavToolShortcut, false); //set favourite tool shortcut
     dbgcmdnew("FoldDisassembly", cbInstrFoldDisassembly, true); //fold disassembly segment
     dbgcmdnew("guiupdatetitle", cbDebugUpdateTitle, true); // set relevant disassembly title
+    dbgcmdnew("showref", cbShowReferences, false); // show references window
 
     //misc
     dbgcmdnew("chd", cbInstrChd, false); //Change directory
