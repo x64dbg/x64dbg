@@ -239,9 +239,11 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
     // Do a lookup by breakpoint name
     for(auto & i : breakpoints)
     {
-        // Do the names match?
+        // Breakpoint name match
         if(_stricmp(Name, i.second.name) != 0)
-            continue;
+            // Module name match in case of DLL Breakpoints
+            if(i.second.type != BPDLL || _stricmp(Name, i.second.mod) != 0)
+                continue;
 
         // Fill out the optional user buffer
         if(Bp)
@@ -299,6 +301,7 @@ bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo)
                 BREAKPOINT temp;
                 temp = bpRef;
                 strcpy_s(temp.mod, module1);
+                _strlwr_s(temp.mod, strlen(temp.mod) + 1);
                 temp.addr = ModHashFromName(module1);
                 breakpoints.erase(i.first);
                 auto newItem = breakpoints.insert(std::make_pair(BreakpointKey(BPDLL, temp.addr), temp));
@@ -315,6 +318,7 @@ bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo)
                 BREAKPOINT temp;
                 temp = bpRef;
                 strcpy_s(temp.mod, dashPos1 + 1);
+                _strlwr_s(temp.mod, strlen(temp.mod) + 1);
                 temp.addr = ModHashFromName(dashPos1 + 1);
                 breakpoints.erase(i.first);
                 auto newItem = breakpoints.insert(std::make_pair(BreakpointKey(BPDLL, temp.addr), temp));
