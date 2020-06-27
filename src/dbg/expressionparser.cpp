@@ -191,6 +191,8 @@ void ExpressionParser::tokenize()
         {
             if(stateMemory)
                 stateMemory--;
+            else
+                mIsValidExpression = false;
             mCurToken.push_back(ch);
         }
         break;

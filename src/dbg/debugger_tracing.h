@@ -45,7 +45,13 @@ struct TraceState
     {
         delete traceCondition;
         traceCondition = new TraceCondition(expression, maxSteps);
-        return traceCondition->condition.IsValidExpression();
+        bool temp = traceCondition->condition.IsValidExpression();
+        if(!temp)
+        {
+            delete traceCondition;
+            traceCondition = nullptr;
+        }
+        return temp;
     }
 
     bool InitLogFile()
