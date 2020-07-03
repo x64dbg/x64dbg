@@ -271,7 +271,7 @@ void LoopCacheLoad(JSON Root)
             loopInfo.instructioncount = (duint)json_hex_value(json_object_get(value, "icount"));
             loopInfo.manual = Manual;
 
-            // Sanity check: Make sure the loop starts before it ends
+            // Coherence check: Make sure the loop starts before it ends
             if(loopInfo.end < loopInfo.start)
                 continue;
 

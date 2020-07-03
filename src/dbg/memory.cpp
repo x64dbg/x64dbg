@@ -128,7 +128,7 @@ void MemUpdateMap()
             continue;
         if(!bListAllPages) //normal view
         {
-            // sanity check, rest of code assumes whole module resides in one region
+            // coherence check, rest of code assumes whole module resides in one region
             // in other cases module information cannot be trusted
             if(base != modBase || currentPage.mbi.RegionSize != ModSizeFromAddr(modBase))
                 continue;
