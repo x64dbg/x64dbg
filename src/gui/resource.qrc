@@ -315,4 +315,7 @@
         <file>images/crash_dump.png</file>
         <file>images/exclamation.png</file>
     </qresource>
+    <qresource prefix="/css">
+        <file>default.css</file>
+    </qresource>
 </RCC>
