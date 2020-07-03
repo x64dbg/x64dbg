@@ -23,7 +23,7 @@
      <x>0</x>
      <y>0</y>
      <width>868</width>
-     <height>23</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -157,6 +157,12 @@
     <property name="title">
      <string>&amp;Options</string>
     </property>
+    <widget class="QMenu" name="menuTheme">
+     <property name="title">
+      <string>&amp;Theme</string>
+     </property>
+     <addaction name="actionDefaultTheme"/>
+    </widget>
     <addaction name="actionSettings"/>
     <addaction name="actionAppearance"/>
     <addaction name="actionShortcuts"/>
@@ -165,6 +171,7 @@
     <addaction name="actionReloadStylesheet"/>
     <addaction name="actionSetInitializationScript"/>
     <addaction name="actionImportSettings"/>
+    <addaction name="menuTheme"/>
    </widget>
    <widget class="QMenu" name="menuFavourites">
     <property name="title">
@@ -1189,6 +1196,16 @@
    </property>
    <property name="text">
     <string>Modules</string>
+   </property>
+  </action>
+  <action name="action_Theme">
+   <property name="text">
+    <string>&amp;Theme</string>
+   </property>
+  </action>
+  <action name="actionDefaultTheme">
+   <property name="text">
+    <string>&amp;Default</string>
    </property>
   </action>
  </widget>

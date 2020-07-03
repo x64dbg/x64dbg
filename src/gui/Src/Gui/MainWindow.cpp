@@ -350,12 +350,10 @@ MainWindow::MainWindow(QWidget* parent)
     connect(mTabWidget, SIGNAL(tabMovedTabWidget(int, int)), this, SLOT(tabMovedSlot(int, int)));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
 
-    // Setup favourite tools menu
+    // Menu stuff
     updateFavouriteTools();
-
-    // Setup language menu
     setupLanguagesMenu();
-
+    setupThemesMenu();
     setupMenuCustomization();
 
     // Set default setttings (when not set)
@@ -427,6 +425,107 @@ void MainWindow::setupLanguagesMenu()
     languageMenu->addAction(action_enUS);
     connect(languageMenu, SIGNAL(aboutToShow()), this, SLOT(setupLanguagesMenu2())); //Load this menu later, since it requires directory scanning.
     ui->menuOptions->addMenu(languageMenu);
+}
+
+#include "../src/bridge/Utf8Ini.h"
+
+static void importSettings(const QString & filename)
+{
+    QFile f(QDir::toNativeSeparators(filename));
+    if(f.open(QFile::ReadOnly | QFile::Text))
+    {
+        QTextStream in(&f);
+        auto style = in.readAll();
+        f.close();
+        Utf8Ini ini;
+        int errorLine;
+        if(ini.Deserialize(style.toStdString(), errorLine))
+        {
+            auto sections = ini.Sections();
+            for(const auto & section : sections)
+            {
+                auto keys = ini.Keys(section);
+                for(const auto & key : keys)
+                    BridgeSettingSet(section.c_str(), key.c_str(), ini.GetValue(section, key).c_str());
+            }
+            Config()->load();
+            DbgSettingsUpdated();
+            emit Config()->colorsUpdated();
+            emit Config()->fontsUpdated();
+            emit Config()->guiOptionsUpdated();
+            emit Config()->shortcutsUpdated();
+            emit Config()->tokenizerConfigUpdated();
+            GuiUpdateAllViews();
+        }
+    }
+}
+
+void MainWindow::loadSelectedStyle(bool reloadStyleCss)
+{
+    char selectedTheme[MAX_SETTING_SIZE] = "";
+    QString stylePath(":/css/default.css");
+    QString styleSettings;
+    if(BridgeSettingGet("Theme", "Selected", selectedTheme) && *selectedTheme)
+    {
+        QString themePath = QString("%1/../themes/%2/style.css").arg(QCoreApplication::applicationDirPath()).arg(selectedTheme);
+        if(QFile(themePath).exists())
+            stylePath = themePath;
+        QString settingsPath = QString("%1/../themes/%2/style.ini").arg(QCoreApplication::applicationDirPath()).arg(selectedTheme);
+        if(QFile(themePath).exists())
+            styleSettings = settingsPath;
+    }
+    QFile f(stylePath);
+    if(f.open(QFile::ReadOnly | QFile::Text))
+    {
+        QTextStream in(&f);
+        auto style = in.readAll();
+        f.close();
+        auto nameIdx = stylePath.lastIndexOf('/');
+        auto dir = stylePath.mid(nameIdx - 1);
+        auto current = QDir::current().absolutePath();
+        QDir::setCurrent(dir);
+        qApp->setStyleSheet(style);
+        QDir::setCurrent(current);
+    }
+    if(!reloadStyleCss && !styleSettings.isEmpty())
+        importSettings(styleSettings);
+}
+
+void MainWindow::themeTriggeredSlot()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(action == nullptr)
+        return;
+    QString dir = action->data().toString();
+    int nameIdx = dir.lastIndexOf('/');
+    QString name = dir.mid(nameIdx + 1);
+    QString styleCss = QString("%1/style.css").arg(dir);
+    QString styleIni = QString("%1/style.ini").arg(dir);
+    GuiAddLogMessage(QString("%1:%2").arg(styleCss).arg(styleIni).toUtf8().constData());
+
+    BridgeSettingSet("Theme", "Selected", name.toUtf8().constData());
+    loadSelectedStyle();
+}
+
+void MainWindow::setupThemesMenu()
+{
+    auto exists = [](const QString & str)
+    {
+        return QFile(str).exists();
+    };
+    QDirIterator it(QString("%1/../themes").arg(QCoreApplication::applicationDirPath()), QDir::NoDotAndDotDot | QDir::Dirs);
+    while(it.hasNext())
+    {
+        auto dir = it.next();
+        auto nameIdx = dir.lastIndexOf('/');
+        auto name = dir.mid(nameIdx + 1);
+        auto action = ui->menuTheme->addAction(name);
+        connect(action, SIGNAL(triggered()), this, SLOT(themeTriggeredSlot()));
+        action->setText(name);
+        action->setData(dir);
+        GuiAddLogMessage(dir.toUtf8().constData());
+        GuiAddLogMessage("\n");
+    }
 }
 
 void MainWindow::setupLanguagesMenu2()
@@ -1716,16 +1815,7 @@ void MainWindow::on_actionFaq_triggered()
 
 void MainWindow::on_actionReloadStylesheet_triggered()
 {
-    QFile f(QString("%1/style.css").arg(QCoreApplication::applicationDirPath()));
-    if(f.open(QFile::ReadOnly | QFile::Text))
-    {
-        QTextStream in(&f);
-        auto style = in.readAll();
-        f.close();
-        qApp->setStyleSheet(style);
-    }
-    else
-        qApp->setStyleSheet("");
+    loadSelectedStyle(true);
     ensurePolished();
     update();
 }
@@ -2053,40 +2143,12 @@ void MainWindow::customizeMenu()
     onMenuCustomized();
 }
 
-#include "../src/bridge/Utf8Ini.h"
-
 void MainWindow::on_actionImportSettings_triggered()
 {
     auto filename = QFileDialog::getOpenFileName(this, tr("Open file"), QCoreApplication::applicationDirPath(), tr("Settings (*.ini);;All files (*.*)"));
     if(!filename.length())
         return;
-    QFile f(QDir::toNativeSeparators(filename));
-    if(f.open(QFile::ReadOnly | QFile::Text))
-    {
-        QTextStream in(&f);
-        auto style = in.readAll();
-        f.close();
-        Utf8Ini ini;
-        int errorLine;
-        if(ini.Deserialize(style.toStdString(), errorLine))
-        {
-            auto sections = ini.Sections();
-            for(const auto & section : sections)
-            {
-                auto keys = ini.Keys(section);
-                for(const auto & key : keys)
-                    BridgeSettingSet(section.c_str(), key.c_str(), ini.GetValue(section, key).c_str());
-            }
-            Config()->load();
-            DbgSettingsUpdated();
-            emit Config()->colorsUpdated();
-            emit Config()->fontsUpdated();
-            emit Config()->guiOptionsUpdated();
-            emit Config()->shortcutsUpdated();
-            emit Config()->tokenizerConfigUpdated();
-            GuiUpdateAllViews();
-        }
-    }
+    importSettings(filename);
 }
 
 void MainWindow::on_actionImportdatabase_triggered()
@@ -2203,4 +2265,20 @@ void MainWindow::on_actionPlugins_triggered()
 void MainWindow::on_actionCheckUpdates_triggered()
 {
     mUpdateChecker->checkForUpdates();
+}
+
+void MainWindow::on_actionDefaultTheme_triggered()
+{
+    // Delete [Theme] Selected
+    BridgeSettingSet("Theme", "Selected", nullptr);
+    // Load style
+    loadSelectedStyle();
+    // Reset [Colors] to default
+    Config()->Colors = Config()->defaultColors;
+    Config()->writeColors();
+    // Reset [Fonts] to default
+    Config()->Fonts = Config()->defaultFonts;
+    Config()->writeFonts();
+    // delete [Color] section
+    BridgeSettingSet("Color", nullptr, nullptr);
 }
