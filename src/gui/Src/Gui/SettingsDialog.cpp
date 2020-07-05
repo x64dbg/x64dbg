@@ -67,6 +67,7 @@ void SettingsDialog::LoadSettings()
     settings.engineIgnoreInconsistentBreakpoints = false;
     settings.engineNoWow64SingleStepWorkaround = false;
     settings.engineMaxTraceCount = 50000;
+    settings.engineAnimateInterval = 50;
     settings.engineHardcoreThreadSwitchWarning = false;
     settings.engineVerboseExceptionLogging = true;
     settings.exceptionRanges = &realExceptionRanges;
@@ -148,6 +149,8 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Engine", "NoWow64SingleStepWorkaround", &settings.engineNoWow64SingleStepWorkaround);
     if(BridgeSettingGetUint("Engine", "MaxTraceCount", &cur))
         settings.engineMaxTraceCount = int(cur);
+    if(BridgeSettingGetUint("Engine", "AnimateInterval", &cur))
+        settings.engineAnimateInterval = int(cur);
     switch(settings.engineCalcType)
     {
     case calc_signed:
@@ -182,6 +185,7 @@ void SettingsDialog::LoadSettings()
     ui->chkVerboseExceptionLogging->setChecked(settings.engineVerboseExceptionLogging);
     ui->chkNoWow64SingleStepWorkaround->setChecked(settings.engineNoWow64SingleStepWorkaround);
     ui->spinMaxTraceCount->setValue(settings.engineMaxTraceCount);
+    ui->spinAnimateInterval->setValue(settings.engineAnimateInterval);
 
     //Exceptions tab
     char exceptionRange[MAX_SETTING_SIZE] = "";
@@ -359,6 +363,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "NoScriptTimeout", settings.engineNoScriptTimeout);
     BridgeSettingSetUint("Engine", "IgnoreInconsistentBreakpoints", settings.engineIgnoreInconsistentBreakpoints);
     BridgeSettingSetUint("Engine", "MaxTraceCount", settings.engineMaxTraceCount);
+    BridgeSettingSetUint("Engine", "AnimateInterval", settings.engineAnimateInterval);
     BridgeSettingSetUint("Engine", "VerboseExceptionLogging", settings.engineVerboseExceptionLogging);
     BridgeSettingSetUint("Engine", "HardcoreThreadSwitchWarning", settings.engineHardcoreThreadSwitchWarning);
     BridgeSettingSetUint("Engine", "NoWow64SingleStepWorkaround", settings.engineNoWow64SingleStepWorkaround);
@@ -834,6 +839,11 @@ void SettingsDialog::on_chkNoForegroundWindow_toggled(bool checked)
 void SettingsDialog::on_spinMaxTraceCount_valueChanged(int arg1)
 {
     settings.engineMaxTraceCount = arg1;
+}
+
+void SettingsDialog::on_spinAnimateInterval_valueChanged(int arg1)
+{
+    settings.engineAnimateInterval = arg1;
 }
 
 void SettingsDialog::on_chkNoHighlightOperands_toggled(bool checked)

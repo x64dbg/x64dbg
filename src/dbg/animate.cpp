@@ -47,10 +47,7 @@ bool _dbg_animatecommand(const char* command)
 
 void _dbg_setanimateinterval(unsigned int milliseconds)
 {
-    if(milliseconds <= 20)
-        animate_interval = 20;
-    else
-        animate_interval = milliseconds;
+    animate_interval = milliseconds;
 }
 
 bool _dbg_isanimating()
