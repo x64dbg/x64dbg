@@ -1718,7 +1718,6 @@ BRIDGE_IMPEXP void GuiUpdateTraceBrowser()
 
 BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName)
 {
-    CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_OPEN_TRACE_FILE, (void*)fileName, nullptr);
 }
 

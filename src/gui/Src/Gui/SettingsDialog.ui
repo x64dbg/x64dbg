@@ -166,7 +166,7 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
-        <widget class="QGroupBox" name="groupBox_2">
+        <widget class="QGroupBox" name="groupBoxCalculationType">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
            <horstretch>0</horstretch>
@@ -205,7 +205,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox">
+        <widget class="QGroupBox" name="groupBoxDefaultBreakpointType">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
            <horstretch>0</horstretch>
@@ -332,7 +332,7 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <layout class="QHBoxLayout" name="horizontalLayoutMaxTraceCount">
          <item>
           <widget class="QLabel" name="lblMaxTraceCount">
            <property name="text">
@@ -374,6 +374,24 @@
         </layout>
        </item>
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayoutAnimateInterval">
+         <item>
+          <widget class="QLabel" name="lblAnimateInterval">
+           <property name="text">
+            <string>Animation per-step interval (ms)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spinAnimateInterval">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The debugger sleeps for a certain time in order to keep the interval between animation steps constant as specified in this setting.&lt;/p&gt;&lt;p&gt;If you want to animate as fast as possible set this to 0.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -401,7 +419,7 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <layout class="QHBoxLayout" name="horizontalLayoutExceptions">
          <item>
           <widget class="QListWidget" name="listExceptions">
            <property name="font">
@@ -418,7 +436,7 @@
          <item>
           <layout class="QVBoxLayout" name="layoutExceptionButtons">
            <item>
-            <spacer name="verticalSpacer_6">
+            <spacer name="verticalSpacerExceptionsTop">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -452,7 +470,7 @@
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacer_5">
+            <spacer name="verticalSpacerExceptionsBottom">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -567,7 +585,7 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <layout class="QHBoxLayout" name="layoutMaximumModuleNameSize">
          <item>
           <widget class="QLabel" name="lblMaximumModuleNameSize">
            <property name="enabled">
@@ -618,7 +636,7 @@
         </layout>
        </item>
        <item>
-        <spacer name="verticalSpacer_2">
+        <spacer name="verticalSpacerDisasm">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -728,7 +746,7 @@
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer_7">
+        <spacer name="verticalSpacerGUI">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -748,20 +766,20 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_10">
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_9">
+        <layout class="QVBoxLayout" name="verticalLayoutSymbolJIT">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <layout class="QHBoxLayout" name="horizontalLayoutSymbol">
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout_3">
+            <layout class="QVBoxLayout" name="verticalLayoutSymbolLabels">
              <item>
-              <widget class="QLabel" name="label_2">
+              <widget class="QLabel" name="lblSymbolStore">
                <property name="text">
                 <string>Symbol Store:</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_3">
+              <widget class="QLabel" name="lblSymbolPath">
                <property name="text">
                 <string>Symbol Path:</string>
                </property>
@@ -770,7 +788,7 @@
             </layout>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout_8">
+            <layout class="QVBoxLayout" name="verticalLayoutSymbolEdits">
              <item>
               <widget class="QLineEdit" name="editSymbolStore"/>
              </item>
@@ -789,7 +807,7 @@
           </widget>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout">
+          <layout class="QHBoxLayout" name="horizontalLayoutJIT">
            <item>
             <widget class="QLabel" name="label">
              <property name="text">
@@ -821,7 +839,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox_3">
+          <widget class="QGroupBox" name="groupBoxSearchEngineURL">
            <property name="title">
             <string>Search Engine URL</string>
            </property>
@@ -870,7 +888,7 @@
         </widget>
        </item>
        <item>
-        <spacer name="verticalSpacer_3">
+        <spacer name="verticalSpacerMisc">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -887,9 +905,9 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <layout class="QHBoxLayout" name="horizontalLayoutSaveCancel">
      <item>
-      <spacer name="horizontalSpacer">
+      <spacer name="horizontalSpacerSaveCancel">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
