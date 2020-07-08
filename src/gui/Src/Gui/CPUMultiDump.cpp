@@ -7,7 +7,6 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QTabBar>
-#include "FlickerThread.h"
 
 CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* parent)
     : MHTabWidget(parent, true)
@@ -226,8 +225,5 @@ void CPUMultiDump::focusCurrentDumpSlot()
 
 void CPUMultiDump::getDumpAttention()
 {
-    FlickerThread* thread = new FlickerThread(mCurrentCPUDump, this);
-    thread->setProperties(3, 1);
-    connect(thread, SIGNAL(setStyleSheet(QString)), mCurrentCPUDump, SLOT(setStyleSheet(QString)));
-    thread->start();
+    mCurrentCPUDump->getAttention();
 }
