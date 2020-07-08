@@ -13,6 +13,7 @@
 #include "WordEditDialog.h"
 #include "CodepageSelectionDialog.h"
 #include "MiscUtil.h"
+#include "BackgroundFlickerThread.h"
 
 CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
@@ -282,6 +283,12 @@ void CPUDump::setupContextMenu()
 
     mMenuBuilder->loadFromConfig();
     updateShortcuts();
+}
+
+void CPUDump::getAttention()
+{
+    BackgroundFlickerThread* thread = new BackgroundFlickerThread(this, mBackgroundColor, this);
+    thread->start();
 }
 
 void CPUDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)
