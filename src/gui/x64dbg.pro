@@ -74,6 +74,8 @@ RESOURCES += \
     resource.qrc
 
 SOURCES += \
+    Src/Gui/CPURegistersView.cpp \
+    Src/Tracer/TraceWidget.cpp \
     Src/main.cpp \
     Src/Gui/MainWindow.cpp \
     Src/Gui/CPUWidget.cpp \
@@ -188,6 +190,8 @@ SOURCES += \
 
 
 HEADERS += \
+    Src/Gui/CPURegistersView.h \
+    Src/Tracer/TraceWidget.h \
     Src/main.h \
     Src/Gui/MainWindow.h \
     Src/Gui/CPUWidget.h \
@@ -345,7 +349,8 @@ FORMS += \
     Src/Gui/SimpleTraceDialog.ui \
     Src/Gui/MessagesBreakpoints.ui \
     Src/Gui/AboutDialog.ui \
-    Src/Gui/ComboBoxDialog.ui
+    Src/Gui/ComboBoxDialog.ui \
+    Src/Tracer/TraceWidget.ui
 
 ##
 ## Libraries

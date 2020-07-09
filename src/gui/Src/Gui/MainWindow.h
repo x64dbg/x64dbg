@@ -33,7 +33,7 @@ class DisassemblerGraphView;
 class SimpleTraceDialog;
 class MRUList;
 class UpdateChecker;
-class TraceBrowser;
+class TraceWidget;
 
 namespace Ui
 {
@@ -181,7 +181,7 @@ private:
     HandlesView* mHandlesView;
     NotesManager* mNotesManager;
     DisassemblerGraphView* mGraphView;
-    TraceBrowser* mTraceBrowser;
+    TraceWidget* mTraceWidget;
     SimpleTraceDialog* mSimpleTraceDialog;
     UpdateChecker* mUpdateChecker;
     DebugStatusLabel* mStatusLabel;

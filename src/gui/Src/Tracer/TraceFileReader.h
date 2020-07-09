@@ -21,6 +21,8 @@ public:
     bool isError() const;
     int Progress() const;
 
+    QString getIndexText(unsigned long long index) const;
+
     unsigned long long Length() const;
 
     REGDUMP Registers(unsigned long long index);

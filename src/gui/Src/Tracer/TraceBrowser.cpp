@@ -182,7 +182,7 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
     {
     case Index:
     {
-        return getIndexText(index);
+        return mTraceFile->getIndexText(index);
     }
 
     case Address:
@@ -634,29 +634,6 @@ void TraceBrowser::setupRightClickContextMenu()
             mRvaDisplayEnabled = RvaDisplayEnabled;
             menu->addSeparator();
         }
-#define addReg(str, reg) if(index + 1 < mTraceFile->Length()){menu->addAction(QString(str ":%1 -> %2").arg(ToPtrString(mTraceFile->Registers(index).regcontext.##reg)) \
-    .arg(ToPtrString(mTraceFile->Registers(index + 1).regcontext.##reg))); }else{ menu->addAction(QString(str ":%1").arg(ToPtrString(mTraceFile->Registers(index).regcontext.##reg))); }
-        addReg(ArchValue("EAX", "RAX"), cax)
-        addReg(ArchValue("EBX", "RBX"), cbx)
-        addReg(ArchValue("ECX", "RCX"), ccx)
-        addReg(ArchValue("EDX", "RDX"), cdx)
-        addReg(ArchValue("ESP", "RSP"), csp)
-        addReg(ArchValue("EBP", "RBP"), cbp)
-        addReg(ArchValue("ESI", "RSI"), csi)
-        addReg(ArchValue("EDI", "RDI"), cdi)
-#ifdef _WIN64
-        addReg("R8", r8)
-        addReg("R9", r9)
-        addReg("R10", r10)
-        addReg("R11", r11)
-        addReg("R12", r12)
-        addReg("R13", r13)
-        addReg("R14", r14)
-        addReg("R15", r15)
-#endif //_WIN64
-        addReg(ArchValue("EIP", "RIP"), cip)
-        addReg(ArchValue("EFLAGS", "RFLAGS"), eflags)
-        menu->addSeparator();
         menu->addAction(QString("ThreadID: %1").arg(mTraceFile->ThreadId(index)));
         if(index + 1 < mTraceFile->Length())
         {
@@ -763,6 +740,9 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
         if(mAutoDisassemblyFollowSelection)
             followDisassemblySlot();
 
+        REGDUMP temp;
+        temp = mTraceFile->Registers(getInitialSelection());
+        emit updateTraceRegistersView(&temp);
         return;
 
         break;
@@ -958,23 +938,6 @@ void TraceBrowser::makeVisible(duint index)
         setTableOffset(index - getViewableRowsCount() + 2);
 }
 
-QString TraceBrowser::getIndexText(duint index) const
-{
-    QString indexString;
-    indexString = QString::number(index, 16).toUpper();
-    if(mTraceFile->Length() < 16)
-        return indexString;
-    int digits;
-    digits = floor(log2(mTraceFile->Length() - 1) / 4) + 1;
-    digits -= indexString.size();
-    while(digits > 0)
-    {
-        indexString = '0' + indexString;
-        digits = digits - 1;
-    }
-    return indexString;
-}
-
 void TraceBrowser::updateColors()
 {
     AbstractTableView::updateColors();
@@ -1165,7 +1128,7 @@ void TraceBrowser::copyIndexSlot()
     {
         if(i != getSelectionStart())
             clipboard += "\r\n";
-        clipboard += getIndexText(i);
+        clipboard += mTraceFile->getIndexText(i);
     }
     Bridge::CopyToClipboard(clipboard);
 }
@@ -1252,7 +1215,7 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
                 memoryText += token.text;
         }
 
-        stream << getIndexText(i) + " | " + address.leftJustified(addressLen, QChar(' '), true);
+        stream << mTraceFile->getIndexText(i) + " | " + address.leftJustified(addressLen, QChar(' '), true);
         if(copyBytes)
             stream << " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
         stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true);
@@ -1260,7 +1223,7 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
         stream << " | " + memoryText.leftJustified(memoryLen, QChar(' '), true) + " |" + fullComment;
         if(htmlStream)
         {
-            *htmlStream << QString("<tr><td>%1</td><td>%2</td><td>").arg(getIndexText(i), address.toHtmlEscaped());
+            *htmlStream << QString("<tr><td>%1</td><td>%2</td><td>").arg(mTraceFile->getIndexText(i), address.toHtmlEscaped());
             if(copyBytes)
                 *htmlStream << QString("%1</td><td>").arg(bytesHTML);
             *htmlStream << QString("%1</td><td>").arg(htmlDisassembly);

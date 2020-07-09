@@ -52,6 +52,7 @@
 #include "AboutDialog.h"
 #include "UpdateChecker.h"
 #include "Tracer/TraceBrowser.h"
+#include "Tracer/TraceWidget.h"
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
@@ -207,10 +208,10 @@ MainWindow::MainWindow(QWidget* parent)
     mGraphView->setWindowIcon(DIcon("graph.png"));
 
     // Trace view
-    mTraceBrowser = new TraceBrowser(this);
-    mTraceBrowser->setWindowTitle(tr("Trace"));
-    mTraceBrowser->setWindowIcon(DIcon("trace.png"));
-    connect(mTraceBrowser, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
+    mTraceWidget = new TraceWidget(this);
+    mTraceWidget->setWindowTitle(tr("Trace"));
+    mTraceWidget->setWindowIcon(DIcon("trace.png"));
+    connect(mTraceWidget->getTraceBrowser(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
 
     mTabWidget = new MHTabWidget(this, true, true);
 
@@ -229,7 +230,7 @@ MainWindow::MainWindow(QWidget* parent)
     mWidgetList.push_back(WidgetInfo(mReferenceManager, "ReferencesTab"));
     mWidgetList.push_back(WidgetInfo(mThreadView, "ThreadsTab"));
     mWidgetList.push_back(WidgetInfo(mHandlesView, "HandlesTab"));
-    mWidgetList.push_back(WidgetInfo(mTraceBrowser, "TraceTab"));
+    mWidgetList.push_back(WidgetInfo(mTraceWidget, "TraceTab"));
 
     // If LoadSaveTabOrder disabled, load tabs in default order
     if(!ConfigBool("Gui", "LoadSaveTabOrder"))
@@ -1601,7 +1602,7 @@ void MainWindow::displaySEHChain()
 
 void MainWindow::displayRunTrace()
 {
-    showQWidgetTab(mTraceBrowser);
+    showQWidgetTab(mTraceWidget);
 }
 
 void MainWindow::donate()

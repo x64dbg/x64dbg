@@ -6,7 +6,7 @@
 #include "CPUDisassembly.h"
 #include "CPUMultiDump.h"
 #include "CPUStack.h"
-#include "RegistersView.h"
+#include "CPURegistersView.h"
 #include "CPUInfoBox.h"
 #include "CPUArgumentWidget.h"
 #include "Configuration.h"
@@ -16,7 +16,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     ui->setupUi(this);
     setDefaultDisposition();
 
-    setStyleSheet("AbstractTableView:focus, RegistersView:focus, CPUSideBar:focus { border: 1px solid #000000; }");
+    setStyleSheet("AbstractTableView:focus, CPURegistersView:focus, CPUSideBar:focus { border: 1px solid #000000; }");
 
     mDisas = new CPUDisassembly(this, true);
     mSideBar = new CPUSideBar(mDisas);
@@ -49,7 +49,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     mDump = new CPUMultiDump(mDisas, 5, 0); //dump widget
     ui->mBotLeftFrameLayout->addWidget(mDump);
 
-    mGeneralRegs = new RegistersView(this);
+    mGeneralRegs = new CPURegistersView(this);
     mGeneralRegs->setFixedWidth(1000);
     mGeneralRegs->ShowFPU(true);
 

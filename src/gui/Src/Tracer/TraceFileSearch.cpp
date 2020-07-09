@@ -9,23 +9,6 @@ static bool inRange(duint value, duint start, duint end)
     return value >= start && value <= end;
 }
 
-static QString getIndexText(TraceFileReader* file, duint index)
-{
-    QString indexString;
-    indexString = QString::number(index, 16).toUpper();
-    if(file->Length() < 16)
-        return indexString;
-    int digits;
-    digits = floor(log2(file->Length() - 1) / 4) + 1;
-    digits -= indexString.size();
-    while(digits > 0)
-    {
-        indexString = '0' + indexString;
-        digits = digits - 1;
-    }
-    return indexString;
-}
-
 int TraceFileSearchConstantRange(TraceFileReader* file, duint start, duint end)
 {
     int count = 0;
@@ -90,7 +73,7 @@ int TraceFileSearchConstantRange(TraceFileReader* file, duint start, duint end)
         {
             GuiReferenceSetRowCount(count + 1);
             GuiReferenceSetCellContent(count, 0, ToPtrString(file->Registers(index).regcontext.cip).toUtf8().constData());
-            GuiReferenceSetCellContent(count, 1, getIndexText(file, index).toUtf8().constData());
+            GuiReferenceSetCellContent(count, 1, file->getIndexText(index).toUtf8().constData());
             unsigned char opcode[16];
             int opcodeSize = 0;
             file->OpCode(index, opcode, &opcodeSize);
@@ -135,7 +118,7 @@ int TraceFileSearchMemReference(TraceFileReader* file, duint address)
             {
                 GuiReferenceSetRowCount(count + 1);
                 GuiReferenceSetCellContent(count, 0, ToPtrString(file->Registers(index).regcontext.cip).toUtf8().constData());
-                GuiReferenceSetCellContent(count, 1, getIndexText(file, index).toUtf8().constData());
+                GuiReferenceSetCellContent(count, 1, file->getIndexText(index).toUtf8().constData());
                 unsigned char opcode[16];
                 int opcodeSize = 0;
                 file->OpCode(index, opcode, &opcodeSize);
