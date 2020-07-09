@@ -26,23 +26,22 @@
 #include "BreakpointMenu.h"
 #include "BrowseDialog.h"
 
-CPUDisassembly::CPUDisassembly(QWidget* parent) : Disassembly(parent)
+CPUDisassembly::CPUDisassembly(QWidget* parent, bool isMain) : Disassembly(parent, isMain)
 {
     setWindowTitle("Disassembly");
 
     // Create the action list for the right click context menu
     setupRightClickContextMenu();
 
-    // TODO: refactor these signals out of the class (move to CPUWidget + CPUMultiDump)
-    // TODO: refactor all DbgCmdExec("disasm ...") commands (customization point)
-    // TODO: refactor mPluginMenu to be a singleton (so plugin menus show up in all instances)
-
     // Connect bridge<->disasm calls
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
-    connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
-    connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
-    connect(Bridge::getBridge(), SIGNAL(displayWarning(QString, QString)), this, SLOT(displayWarningSlot(QString, QString)));
-    connect(Bridge::getBridge(), SIGNAL(focusDisasm()), this, SLOT(setFocus()));
+    if(mIsMain)
+    {
+        connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
+        connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
+        connect(Bridge::getBridge(), SIGNAL(displayWarning(QString, QString)), this, SLOT(displayWarningSlot(QString, QString)));
+        connect(Bridge::getBridge(), SIGNAL(focusDisasm()), this, SLOT(setFocus()));
+    }
 
     // Connect some internal signals
     connect(this, SIGNAL(selectionExpanded()), this, SLOT(selectionUpdatedSlot()));
@@ -644,14 +643,20 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     // Plugins
-    mPluginMenu = new QMenu(this);
-    Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DISASM_MENU);
+    if(mIsMain)
+    {
+        mPluginMenu = new QMenu(this);
+        Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_DISASM_MENU);
+    }
 
     mMenuBuilder->addSeparator();
     mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
         DbgMenuPrepare(GUI_DISASM_MENU);
-        menu->addActions(mPluginMenu->actions());
+        if(mIsMain)
+        {
+            menu->addActions(mPluginMenu->actions());
+        }
         return true;
     }));
 
@@ -674,7 +679,7 @@ void CPUDisassembly::gotoOriginSlot()
 {
     if(!DbgIsDebugging())
         return;
-    DbgCmdExec("disasm cip");
+    gotoAddress(DbgValFromString("cip"));
 }
 
 void CPUDisassembly::setNewOriginHereActionSlot()
@@ -1006,7 +1011,7 @@ void CPUDisassembly::gotoExpressionSlot()
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
-        DbgCmdExec(QString().sprintf("disasm %p", value).toUtf8().constData());
+        gotoAddress(value);
     }
 }
 
@@ -1040,19 +1045,19 @@ void CPUDisassembly::gotoFileOffsetSlot()
         return;
     duint value = DbgValFromString(mGotoOffset->expressionText.toUtf8().constData());
     value = DbgFunctions()->FileOffsetToVa(modname, value);
-    DbgCmdExec(QString().sprintf("disasm \"%p\"", value).toUtf8().constData());
+    gotoAddress(value);
 }
 
 void CPUDisassembly::gotoStartSlot()
 {
     duint dest = mMemPage->getBase();
-    DbgCmdExec(QString().sprintf("disasm \"%p\"", dest).toUtf8().constData());
+    gotoAddress(dest);
 }
 
 void CPUDisassembly::gotoEndSlot()
 {
     duint dest = mMemPage->getBase() + mMemPage->getSize() - (getViewableRowsCount() * 16);
-    DbgCmdExec(QString().sprintf("disasm \"%p\"", dest).toUtf8().constData());
+    gotoAddress(dest);
 }
 
 void CPUDisassembly::gotoFunctionStartSlot()
@@ -1060,7 +1065,7 @@ void CPUDisassembly::gotoFunctionStartSlot()
     duint start;
     if(!DbgFunctionGet(rvaToVa(getInitialSelection()), &start, nullptr))
         return;
-    DbgCmdExec(QString("disasm \"%1\"").arg(ToHexString(start)).toUtf8().constData());
+    gotoAddress(start);
 }
 
 void CPUDisassembly::gotoFunctionEndSlot()
@@ -1068,7 +1073,7 @@ void CPUDisassembly::gotoFunctionEndSlot()
     duint end;
     if(!DbgFunctionGet(rvaToVa(getInitialSelection()), nullptr, &end))
         return;
-    DbgCmdExec(QString("disasm \"%1\"").arg(ToHexString(end)).toUtf8().constData());
+    gotoAddress(end);
 }
 
 void CPUDisassembly::gotoPreviousReferenceSlot()
@@ -1078,7 +1083,7 @@ void CPUDisassembly::gotoPreviousReferenceSlot()
     {
         if(index > 0 && addr == rvaToVa(getInitialSelection()))
             DbgValToString("$__disasm_refindex", index - 1);
-        DbgCmdExec("disasm refsearch.addr($__disasm_refindex)");
+        gotoAddress(DbgValFromString("refsearch.addr($__disasm_refindex)"));
     }
 }
 
@@ -1089,7 +1094,7 @@ void CPUDisassembly::gotoNextReferenceSlot()
     {
         if(index + 1 < count && addr == rvaToVa(getInitialSelection()))
             DbgValToString("$__disasm_refindex", index + 1);
-        DbgCmdExec("disasm refsearch.addr($__disasm_refindex)");
+        gotoAddress(DbgValFromString("refsearch.addr($__disasm_refindex)"));
     }
 }
 
@@ -1099,7 +1104,10 @@ void CPUDisassembly::gotoXrefSlot()
         return;
     if(!mXrefDlg)
         mXrefDlg = new XrefBrowseDialog(this);
-    mXrefDlg->setup(getSelectedVa());
+    mXrefDlg->setup(getSelectedVa(), [this](duint addr)
+    {
+        gotoAddress(addr);
+    });
     mXrefDlg->showNormal();
 }
 
@@ -1120,7 +1128,7 @@ void CPUDisassembly::followActionSlot()
     else if(action->objectName().startsWith("CPU|"))
     {
         QString value = action->objectName().mid(4);
-        DbgCmdExec(QString("disasm " + value).toUtf8().constData());
+        gotoAddress(DbgValFromString(value.toUtf8().constData()));
     }
 }
 

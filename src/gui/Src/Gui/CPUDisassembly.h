@@ -14,7 +14,7 @@ class CPUDisassembly : public Disassembly
     Q_OBJECT
 
 public:
-    explicit CPUDisassembly(QWidget* parent);
+    CPUDisassembly(QWidget* parent, bool isMain);
 
     // Mouse management
     void contextMenuEvent(QContextMenuEvent* event);
@@ -126,7 +126,7 @@ private:
 
     // Menus
     QMenu* mHwSlotSelectMenu;
-    QMenu* mPluginMenu;
+    QMenu* mPluginMenu = nullptr;
 
     // Actions
     QAction* mReferenceSelectedAddressAction;

@@ -271,7 +271,7 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("float.png"), tr("&Float")), wFloatMenu);
 
     mMenuBuilder->addAction(makeAction(DIcon("address.png"), tr("&Address"), SLOT(addressSlot())));
-    mMenuBuilder->addAction(makeAction(DIcon("processor-cpu.png"), tr("&Disassembly"), SLOT(disassemblySlot())))->setEnabled(false);
+    mMenuBuilder->addAction(makeAction(DIcon("processor-cpu.png"), tr("&Disassembly"), SLOT(disassemblySlot())));
 
     mMenuBuilder->addSeparator();
     mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
@@ -1360,7 +1360,9 @@ void CPUDump::addressUnicodeSlot()
 
 void CPUDump::disassemblySlot()
 {
-    SimpleErrorBox(this, tr("Error!"), tr("Not yet supported!"));
+    SELECTIONDATA selection;
+    selectionGet(&selection);
+    emit showDisassemblyTab(selection.start, selection.end, rvaToVa(getTableOffsetRva()));
 }
 
 void CPUDump::selectionGet(SELECTIONDATA* selection)

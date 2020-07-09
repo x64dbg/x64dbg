@@ -1679,6 +1679,8 @@ void MainWindow::executeOnGuiThread(void* cbGuiThread, void* userdata)
 
 void MainWindow::tabMovedSlot(int from, int to)
 {
+    Q_UNUSED(from);
+    Q_UNUSED(to);
     for(int i = 0; i < mTabWidget->count(); i++)
     {
         // Remove space in widget name and append Tab to get config settings (CPUTab, MemoryMapTab, etc...)

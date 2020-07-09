@@ -18,7 +18,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     setStyleSheet("AbstractTableView:focus, RegistersView:focus, CPUSideBar:focus { border: 1px solid #000000; }");
 
-    mDisas = new CPUDisassembly(this);
+    mDisas = new CPUDisassembly(this, true);
     mSideBar = new CPUSideBar(mDisas);
     mDisas->setSideBar(mSideBar);
     mArgumentWidget = new CPUArgumentWidget(this);

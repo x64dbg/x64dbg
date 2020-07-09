@@ -11,7 +11,7 @@ class Disassembly : public AbstractTableView
 {
     Q_OBJECT
 public:
-    explicit Disassembly(QWidget* parent = 0);
+    Disassembly(QWidget* parent, bool isMain);
     ~Disassembly() override;
 
     // Configuration
@@ -88,6 +88,7 @@ public:
     bool historyHasNext() const;
 
     //disassemble
+    void gotoAddress(duint addr);
     void disassembleAt(dsint parVA, bool history, dsint newTableOffset);
 
     QList<Instruction_t>* instructionsBuffer(); // ugly
@@ -247,6 +248,7 @@ protected:
     ZydisTokenizer::SingleToken mHighlightToken;
     bool mPermanentHighlightingMode;
     bool mNoCurrentModuleText;
+    bool mIsMain = false;
 };
 
 #endif // DISASSEMBLY_H

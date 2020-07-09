@@ -7,7 +7,9 @@
 #include "QBeaEngine.h"
 #include "MemoryPage.h"
 
-Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
+Disassembly::Disassembly(QWidget* parent, bool isMain)
+    : AbstractTableView(parent),
+      mIsMain(isMain)
 {
     mMemPage = new MemoryPage(0, 0);
 
@@ -905,8 +907,7 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         duint dest = DbgGetBranchDestination(rvaToVa(getInitialSelection()));
         if(!DbgMemIsValidReadPtr(dest))
             return;
-        QString cmd = "disasm " + ToPtrString(dest);
-        DbgCmdExec(cmd.toUtf8().constData());
+        gotoAddress(dest);
     }
     else
         AbstractTableView::keyPressEvent(event);
@@ -1753,6 +1754,18 @@ duint Disassembly::rvaToVa(dsint rva) const
     return mMemPage->va(rva);
 }
 
+void Disassembly::gotoAddress(duint addr)
+{
+    disassembleAt(addr, true, -1);
+
+    if(mIsMain)
+    {
+        // Update window title
+        DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(addr)));
+    }
+    GuiUpdateAllViews();
+}
+
 void Disassembly::disassembleAt(dsint parVA, bool history, dsint newTableOffset)
 {
     duint wSize;
@@ -1884,8 +1897,9 @@ void Disassembly::disassembleAtSlot(dsint parVA, dsint parCIP)
         mCodeFoldingManager->expandFoldSegment(parVA);
         mCodeFoldingManager->expandFoldSegment(parCIP);
     }
-    mCipVa = parCIP; // TODO: emit a signal for this?
-    disassembleAt(parVA, true, -1);
+    mCipVa = parCIP;
+    if(mIsMain || !mMemPage->getBase())
+        disassembleAt(parVA, true, -1);
 }
 
 void Disassembly::disassembleClear()
@@ -1943,9 +1957,12 @@ void Disassembly::historyPrevious()
         mCodeFoldingManager->expandFoldSegment(va);
     disassembleAt(va, false, mVaHistory.at(mCurrentVa).tableOffset);
 
-    // Update window title
-    DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));
-    GuiUpdateAllViews();
+    if(mIsMain)
+    {
+        // Update window title
+        DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));
+        GuiUpdateAllViews();
+    }
 }
 
 void Disassembly::historyNext()
@@ -1958,9 +1975,12 @@ void Disassembly::historyNext()
         mCodeFoldingManager->expandFoldSegment(va);
     disassembleAt(va, false, mVaHistory.at(mCurrentVa).tableOffset);
 
-    // Update window title
-    DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));
-    GuiUpdateAllViews();
+    if(mIsMain)
+    {
+        // Update window title
+        DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));
+        GuiUpdateAllViews();
+    }
 }
 
 bool Disassembly::historyHasPrevious() const

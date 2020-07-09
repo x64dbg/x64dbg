@@ -23,6 +23,7 @@ public:
 
 signals:
     void displayReferencesWidget();
+    void showDisassemblyTab(duint selectionStart, duint selectionEnd, duint firstAddress);
 
 public slots:
     void memoryAccessSingleshootSlot();

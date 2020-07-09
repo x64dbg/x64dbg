@@ -573,7 +573,10 @@ void CPUInfoBox::findXReferencesSlot()
         return;
     if(!mXrefDlg)
         mXrefDlg = new XrefBrowseDialog(this);
-    mXrefDlg->setup(curAddr);
+    mXrefDlg->setup(curAddr, [](duint address)
+    {
+        DbgCmdExec(QString("disasm %1").arg(ToPtrString(address)).toUtf8().constData());
+    });
     mXrefDlg->showNormal();
 }
 

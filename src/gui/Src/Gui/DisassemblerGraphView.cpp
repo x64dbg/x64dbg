@@ -2587,7 +2587,10 @@ void DisassemblerGraphView::xrefSlot()
     BridgeFree(mXrefInfo.references);
     if(!mXrefDlg)
         mXrefDlg = new XrefBrowseDialog(this);
-    mXrefDlg->setup(wVA, "graph");
+    mXrefDlg->setup(wVA, [](duint addr)
+    {
+        DbgCmdExec(QString("graph %1").arg(ToPtrString(addr)).toUtf8().constData());
+    });
     mXrefDlg->showNormal();
 }
 
