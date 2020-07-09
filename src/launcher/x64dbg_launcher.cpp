@@ -390,7 +390,7 @@ const wchar_t* SHELLEXT_ICON_DLL_KEY = L"dllfile\\shell\\Debug with x64dbg";
 
 static void deleteZoneData(const std::wstring & rootDir)
 {
-    wchar_t szTempPath[MAX_PATH] = L"";
+    std::wstring tempPath;
     std::queue<std::wstring> queue;
     queue.push(rootDir);
     while(!queue.empty())
@@ -412,11 +412,8 @@ static void deleteZoneData(const std::wstring & rootDir)
             }
             else
             {
-                wcscpy_s(szTempPath, dir.c_str());
-                wcscat_s(szTempPath, L"\\");
-                wcscat_s(szTempPath, foundData.cFileName);
-                wcscat_s(szTempPath, L":Zone.Identifier");
-                DeleteFileW(szTempPath);
+                tempPath = dir + L"\\" + foundData.cFileName + L":Zone.Identifier";
+                DeleteFileW(tempPath.c_str());
             }
         }
         while(FindNextFileW(hSearch, &foundData));
