@@ -29,7 +29,6 @@ class MainWindowCloseThread;
 class TimeWastedCounter;
 class NotesManager;
 class SettingsDialog;
-class DisassemblerGraphView;
 class SimpleTraceDialog;
 class MRUList;
 class UpdateChecker;
@@ -180,7 +179,6 @@ private:
     CalculatorDialog* mCalculatorDialog;
     HandlesView* mHandlesView;
     NotesManager* mNotesManager;
-    DisassemblerGraphView* mGraphView;
     TraceWidget* mTraceWidget;
     SimpleTraceDialog* mSimpleTraceDialog;
     UpdateChecker* mUpdateChecker;

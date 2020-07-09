@@ -46,6 +46,7 @@ private:
     void pushSelectionInto(bool copyBytes, QTextStream & stream, QTextStream* htmlStream = nullptr);
     void copySelectionSlot(bool copyBytes);
     void copySelectionToFileSlot(bool copyBytes);
+    void selectionChanged();
 
     void contextMenuEvent(QContextMenuEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;

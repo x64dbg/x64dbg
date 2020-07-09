@@ -736,13 +736,7 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
             setSingleSelection(index);
         mHistory.addVaToHistory(index);
         updateViewport();
-
-        if(mAutoDisassemblyFollowSelection)
-            followDisassemblySlot();
-
-        REGDUMP temp;
-        temp = mTraceFile->Registers(getInitialSelection());
-        emit updateTraceRegistersView(&temp);
+        selectionChanged();
         return;
 
         break;
@@ -874,11 +868,20 @@ void TraceBrowser::keyPressEvent(QKeyEvent* event)
         mHistory.addVaToHistory(visibleindex);
         updateViewport();
 
-        if(mAutoDisassemblyFollowSelection)
-            followDisassemblySlot();
+        selectionChanged();
     }
     else
         AbstractTableView::keyPressEvent(event);
+}
+
+void TraceBrowser::selectionChanged()
+{
+    if(mAutoDisassemblyFollowSelection)
+        followDisassemblySlot();
+
+    REGDUMP temp;
+    temp = mTraceFile->Registers(getInitialSelection());
+    emit updateTraceRegistersView(&temp);
 }
 
 void TraceBrowser::tokenizerConfigUpdatedSlot()
@@ -1095,6 +1098,7 @@ void TraceBrowser::gotoNextSlot()
         setSingleSelection(index);
         makeVisible(index);
         updateViewport();
+        selectionChanged();
     }
 }
 
@@ -1106,6 +1110,7 @@ void TraceBrowser::gotoPreviousSlot()
         setSingleSelection(index);
         makeVisible(index);
         updateViewport();
+        selectionChanged();
     }
 }
 

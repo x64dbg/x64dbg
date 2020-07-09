@@ -2,6 +2,7 @@
 #define CPUWIDGET_H
 
 #include <QWidget>
+#include "Bridge.h"
 
 class QVBoxLayout;
 class CPUSideBar;
@@ -11,6 +12,7 @@ class CPUStack;
 class CPURegistersView;
 class CPUInfoBox;
 class CPUArgumentWidget;
+class DisassemblerGraphView;
 
 namespace Ui
 {
@@ -28,9 +30,12 @@ public:
     // Misc
     void setDefaultDisposition();
     void setDisasmFocus();
+    void setGraphFocus();
 
     void saveWindowSettings();
     void loadWindowSettings();
+
+    duint getSelectionVa();
 
     // Widget getters
     CPUSideBar* getSidebarWidget();
@@ -42,11 +47,14 @@ public:
 protected:
     CPUSideBar* mSideBar;
     CPUDisassembly* mDisas;
+    DisassemblerGraphView* mGraphView;
     CPUMultiDump* mDump;
     CPUStack* mStack;
     CPURegistersView* mGeneralRegs;
     CPUInfoBox* mInfo;
     CPUArgumentWidget* mArgumentWidget;
+
+    bool disasMode;
 
 private:
     Ui::CPUWidget* ui;
