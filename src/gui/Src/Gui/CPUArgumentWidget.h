@@ -41,7 +41,7 @@ public:
     }
 
 public slots:
-    void disassembledAtSlot(dsint addr, dsint cip, bool history, dsint newTableOffset);
+    void disassembleAtSlot(dsint addr, dsint cip);
     void refreshData();
 
 private slots:

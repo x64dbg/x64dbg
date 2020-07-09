@@ -88,11 +88,10 @@ public:
     bool historyHasNext() const;
 
     //disassemble
-    void disassembleAt(dsint parVA, dsint parCIP, bool history, dsint newTableOffset);
+    void disassembleAt(dsint parVA, bool history, dsint newTableOffset);
 
     QList<Instruction_t>* instructionsBuffer(); // ugly
     const dsint baseAddress() const;
-    const dsint currentEIP() const;
 
     QString getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel = true);
     void prepareDataCount(const QList<dsint> & wRVAs, QList<Instruction_t>* instBuffer);
@@ -109,11 +108,10 @@ public:
 signals:
     void selectionChanged(dsint parVA);
     void selectionExpanded();
-    void disassembledAt(dsint parVA, dsint parCIP, bool history, dsint newTableOffset);
     void updateWindowTitle(QString title);
 
 public slots:
-    void disassembleAt(dsint parVA, dsint parCIP);
+    void disassembleAtSlot(dsint parVA, dsint parCIP);
     void debugStateChangedSlot(DBGSTATE state);
     void selectionChangedSlot(dsint parVA);
     void tokenizerConfigUpdatedSlot();
@@ -158,7 +156,7 @@ private:
 
     GuiState mGuiState;
 
-    dsint mCipRva;
+    duint mCipVa = 0;
 
     QList<Instruction_t> mInstBuffer;
 

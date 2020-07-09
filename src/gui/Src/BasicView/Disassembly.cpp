@@ -18,8 +18,6 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
 
     memset(&mSelection, 0, sizeof(SelectionData));
 
-    mCipRva = 0;
-
     mHighlightToken.text = "";
     mHighlightingMode = false;
     mShowMnemonicBrief = false;
@@ -222,7 +220,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         QString addrText = getAddrText(cur_addr, label);
         BPXTYPE bpxtype = DbgGetBpxTypeAt(cur_addr);
         bool isbookmark = DbgGetBookmarkAt(cur_addr);
-        if(mInstBuffer.at(rowOffset).rva == mCipRva && !Bridge::getBridge()->mIsRunning && DbgMemFindBaseAddr(DbgValFromString("cip"), nullptr)) //cip + not running + valid cip
+        if(rvaToVa(mInstBuffer.at(rowOffset).rva) == mCipVa && !Bridge::getBridge()->mIsRunning && DbgMemFindBaseAddr(DbgValFromString("cip"), nullptr)) //cip + not running + valid cip
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(mCipBackgroundColor));
             if(!isbookmark) //no bookmark
@@ -1755,7 +1753,7 @@ duint Disassembly::rvaToVa(dsint rva) const
     return mMemPage->va(rva);
 }
 
-void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint newTableOffset)
+void Disassembly::disassembleAt(dsint parVA, bool history, dsint newTableOffset)
 {
     duint wSize;
     auto wBase = DbgMemFindBaseAddr(parVA, &wSize);
@@ -1764,7 +1762,6 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
     if(!wBase || !wSize || !DbgMemRead(parVA, &test, sizeof(test)))
         return;
     dsint wRVA = parVA - wBase;
-    dsint wCipRva = parCIP - wBase;
 
     HistoryData newHistory;
 
@@ -1801,9 +1798,6 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
     setSingleSelection(wRVA);               // Selects disassembled instruction
     dsint wInstrSize = getInstructionRVA(wRVA, 1) - wRVA - 1;
     expandSelectionUpTo(wRVA + wInstrSize);
-
-    //set CIP rva
-    mCipRva = wCipRva;
 
     if(newTableOffset == -1) //nothing specified
     {
@@ -1876,7 +1870,6 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
         MessageBoxA(GuiGetWindowHandle(), strList.toUtf8().constData(), QString().sprintf("mCurrentVa=%d", mCurrentVa).toUtf8().constData(), MB_ICONINFORMATION);
     }
     */
-    emit disassembledAt(parVA,  parCIP,  history,  newTableOffset);
 }
 
 QList<Instruction_t>* Disassembly::instructionsBuffer()
@@ -1884,19 +1877,15 @@ QList<Instruction_t>* Disassembly::instructionsBuffer()
     return &mInstBuffer;
 }
 
-const dsint Disassembly::currentEIP() const
-{
-    return mCipRva;
-}
-
-void Disassembly::disassembleAt(dsint parVA, dsint parCIP)
+void Disassembly::disassembleAtSlot(dsint parVA, dsint parCIP)
 {
     if(mCodeFoldingManager)
     {
         mCodeFoldingManager->expandFoldSegment(parVA);
         mCodeFoldingManager->expandFoldSegment(parCIP);
     }
-    disassembleAt(parVA, parCIP, true, -1);
+    mCipVa = parCIP; // TODO: emit a signal for this?
+    disassembleAt(parVA, true, -1);
 }
 
 void Disassembly::disassembleClear()
@@ -1952,7 +1941,7 @@ void Disassembly::historyPrevious()
     dsint va = mVaHistory.at(mCurrentVa).va;
     if(mCodeFoldingManager && mCodeFoldingManager->isFolded(va))
         mCodeFoldingManager->expandFoldSegment(va);
-    disassembleAt(va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
+    disassembleAt(va, false, mVaHistory.at(mCurrentVa).tableOffset);
 
     // Update window title
     DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));
@@ -1967,7 +1956,7 @@ void Disassembly::historyNext()
     dsint va = mVaHistory.at(mCurrentVa).va;
     if(mCodeFoldingManager && mCodeFoldingManager->isFolded(va))
         mCodeFoldingManager->expandFoldSegment(va);
-    disassembleAt(va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
+    disassembleAt(va, false, mVaHistory.at(mCurrentVa).tableOffset);
 
     // Update window title
     DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));

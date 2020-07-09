@@ -26,23 +26,26 @@
 #include "BreakpointMenu.h"
 #include "BrowseDialog.h"
 
-CPUDisassembly::CPUDisassembly(CPUWidget* parent) : Disassembly(parent)
+CPUDisassembly::CPUDisassembly(QWidget* parent) : Disassembly(parent)
 {
     setWindowTitle("Disassembly");
-
-    // Set specific widget handles
-    mParentCPUWindow = parent;
 
     // Create the action list for the right click context menu
     setupRightClickContextMenu();
 
+    // TODO: refactor these signals out of the class (move to CPUWidget + CPUMultiDump)
+    // TODO: refactor all DbgCmdExec("disasm ...") commands (customization point)
+    // TODO: refactor mPluginMenu to be a singleton (so plugin menus show up in all instances)
+
     // Connect bridge<->disasm calls
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAt(dsint, dsint)));
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
-    connect(this, SIGNAL(selectionExpanded()), this, SLOT(selectionUpdatedSlot()));
     connect(Bridge::getBridge(), SIGNAL(displayWarning(QString, QString)), this, SLOT(displayWarningSlot(QString, QString)));
     connect(Bridge::getBridge(), SIGNAL(focusDisasm()), this, SLOT(setFocus()));
+
+    // Connect some internal signals
+    connect(this, SIGNAL(selectionExpanded()), this, SLOT(selectionUpdatedSlot()));
 
     Initialize();
 }
@@ -673,9 +676,6 @@ void CPUDisassembly::gotoOriginSlot()
         return;
     DbgCmdExec("disasm cip");
 }
-
-
-
 
 void CPUDisassembly::setNewOriginHereActionSlot()
 {
@@ -1492,6 +1492,11 @@ void CPUDisassembly::copySelectionToFileSlot(bool copyBytes)
     }
 }
 
+void CPUDisassembly::setSideBar(CPUSideBar* sideBar)
+{
+    mSideBar = sideBar;
+}
+
 void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTextStream* htmlStream)
 {
     const int addressLen = getColumnWidth(0) / getCharWidth() - 1;
@@ -1774,10 +1779,8 @@ void CPUDisassembly::paintEvent(QPaintEvent* event)
 {
     // Hook/hack to update the sidebar at the same time as this widget.
     // Ensures the two widgets are synced and prevents "draw lag"
-    auto sidebar = mParentCPUWindow->getSidebarWidget();
-
-    if(sidebar)
-        sidebar->reload();
+    if(mSideBar)
+        mSideBar->reload();
 
     // Signal to render the original content
     Disassembly::paintEvent(event);
