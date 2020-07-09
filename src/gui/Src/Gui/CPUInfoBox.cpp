@@ -5,7 +5,7 @@
 #include "Bridge.h"
 #include "QBeaEngine.h"
 
-CPUInfoBox::CPUInfoBox(StdTable* parent) : StdTable(parent)
+CPUInfoBox::CPUInfoBox(QWidget* parent) : StdTable(parent)
 {
     setWindowTitle("InfoBox");
     enableMultiSelection(false);

@@ -11,7 +11,7 @@ class CPUInfoBox : public StdTable
 {
     Q_OBJECT
 public:
-    explicit CPUInfoBox(StdTable* parent = 0);
+    explicit CPUInfoBox(QWidget* parent = 0);
     ~CPUInfoBox();
     int getHeight();
     void addFollowMenuItem(QMenu* menu, QString name, duint value);

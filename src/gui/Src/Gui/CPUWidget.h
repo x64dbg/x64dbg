@@ -8,7 +8,7 @@ class CPUSideBar;
 class CPUDisassembly;
 class CPUMultiDump;
 class CPUStack;
-class RegistersView;
+class CPURegistersView;
 class CPUInfoBox;
 class CPUArgumentWidget;
 
@@ -44,7 +44,7 @@ protected:
     CPUDisassembly* mDisas;
     CPUMultiDump* mDump;
     CPUStack* mStack;
-    RegistersView* mGeneralRegs;
+    CPURegistersView* mGeneralRegs;
     CPUInfoBox* mInfo;
     CPUArgumentWidget* mArgumentWidget;
 

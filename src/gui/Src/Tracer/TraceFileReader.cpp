@@ -110,6 +110,23 @@ unsigned long long TraceFileReader::Length() const
     return length;
 }
 
+QString TraceFileReader::getIndexText(unsigned long long index) const
+{
+    QString indexString;
+    indexString = QString::number(index, 16).toUpper();
+    if(length < 16)
+        return indexString;
+    int digits;
+    digits = floor(log2(length - 1) / 4) + 1;
+    digits -= indexString.size();
+    while(digits > 0)
+    {
+        indexString = '0' + indexString;
+        digits = digits - 1;
+    }
+    return indexString;
+}
+
 // Return the hash value of executable to be matched against current executable
 duint TraceFileReader::HashValue() const
 {
