@@ -9,6 +9,7 @@
 #include "CPURegistersView.h"
 #include "CPUInfoBox.h"
 #include "CPUArgumentWidget.h"
+#include "DisassemblerGraphView.h"
 #include "Configuration.h"
 
 CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
@@ -21,6 +22,8 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     mDisas = new CPUDisassembly(this);
     mSideBar = new CPUSideBar(mDisas);
     mArgumentWidget = new CPUArgumentWidget(this);
+    mGraphView = new DisassemblerGraphView(this);
+
     connect(mDisas, SIGNAL(tableOffsetChanged(dsint)), mSideBar, SLOT(changeTopmostAddress(dsint)));
     connect(mDisas, SIGNAL(viewableRowsChanged(int)), mSideBar, SLOT(setViewableRows(int)));
     connect(mDisas, SIGNAL(selectionChanged(dsint)), mSideBar, SLOT(setSelection(dsint)));
@@ -34,6 +37,9 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     ui->mTopLeftUpperLeftFrameLayout->addWidget(mSideBar);
     ui->mTopLeftUpperRightFrameLayout->addWidget(mDisas);
+    ui->mTopLeftUpperRightFrameLayout->addWidget(mGraphView);
+    mGraphView->hide();
+    disasMode = true;
 
     ui->mTopLeftVSplitter->setCollapsible(1, true); //allow collapsing of the InfoBox
     connect(ui->mTopLeftVSplitter, SIGNAL(splitterMoved(int, int)), this, SLOT(splitterMoved(int, int)));
@@ -152,7 +158,31 @@ void CPUWidget::setDefaultDisposition()
 
 void CPUWidget::setDisasmFocus()
 {
+    if(!disasMode)
+    {
+        mGraphView->hide();
+        mDisas->show();
+        mSideBar->show();
+        disasMode = true;
+    }
     mDisas->setFocus();
+}
+
+void CPUWidget::setGraphFocus()
+{
+    if(disasMode)
+    {
+        mDisas->hide();
+        mSideBar->hide();
+        mGraphView->show();
+        disasMode = false;
+    }
+    mGraphView->setFocus();
+}
+
+duint CPUWidget::getSelectionVa()
+{
+    return disasMode ? mDisas->getSelectedVa() : mGraphView->get_cursor_pos();
 }
 
 CPUSideBar* CPUWidget::getSidebarWidget()
