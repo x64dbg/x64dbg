@@ -556,6 +556,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Symbol Unloaded Text"), "SymbolUnloadedTextColor", "");
     colorInfoListAppend(tr("Symbol Loading Text"), "SymbolLoadingTextColor", "");
     colorInfoListAppend(tr("Symbol Loaded Text"), "SymbolLoadedTextColor", "");
+    colorInfoListAppend(tr("Background Flicker Color"), "BackgroundFlickerColor", "");
 
     //dev helper
     const QMap<QString, QColor>* Colors = &Config()->defaultColors;
