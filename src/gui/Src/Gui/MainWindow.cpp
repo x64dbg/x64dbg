@@ -429,7 +429,7 @@ void MainWindow::setupLanguagesMenu()
 
 #include "../src/bridge/Utf8Ini.h"
 
-static void importSettings(const QString & filename)
+static void importSettings(const QString & filename, const QSet<QString> & sectionWhitelist = {})
 {
     QFile f(QDir::toNativeSeparators(filename));
     if(f.open(QFile::ReadOnly | QFile::Text))
@@ -444,6 +444,9 @@ static void importSettings(const QString & filename)
             auto sections = ini.Sections();
             for(const auto & section : sections)
             {
+                if(!sectionWhitelist.isEmpty() && !sectionWhitelist.contains(QString::fromStdString(section)))
+                    continue;
+
                 auto keys = ini.Keys(section);
                 for(const auto & key : keys)
                     BridgeSettingSet(section.c_str(), key.c_str(), ini.GetValue(section, key).c_str());
@@ -488,7 +491,7 @@ void MainWindow::loadSelectedStyle(bool reloadStyleCss)
         QDir::setCurrent(current);
     }
     if(!reloadStyleCss && !styleSettings.isEmpty())
-        importSettings(styleSettings);
+        importSettings(styleSettings, { "Colors", "Fonts" });
 }
 
 void MainWindow::themeTriggeredSlot()
