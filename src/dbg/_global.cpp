@@ -223,7 +223,7 @@ bool GetFileNameFromHandle(HANDLE hFile, char* szFileName)
     wchar_t wszFileName[MAX_PATH] = L"";
     if(!PathFromFileHandleW(hFile, wszFileName, _countof(wszFileName)))
         return false;
-    strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
+    strncpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str(), _TRUNCATE);
     return true;
 }
 
@@ -242,7 +242,7 @@ bool GetFileNameFromProcessHandle(HANDLE hProcess, char* szFileName)
     else
         result = !!GetModuleFileNameExW(hProcess, 0, wszFileName, _countof(wszFileName));
     if(result)
-        strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
+        strncpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str(), _TRUNCATE);
     return result;
 }
 
@@ -261,7 +261,7 @@ bool GetFileNameFromModuleHandle(HANDLE hProcess, HMODULE hModule, char* szFileN
     else
         result = !!GetModuleFileNameExW(hProcess, hModule, wszFileName, _countof(wszFileName));
     if(result)
-        strcpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str());
+        strncpy_s(szFileName, MAX_PATH, StringUtils::Utf16ToUtf8(wszFileName).c_str(), _TRUNCATE);
     return result;
 }
 
