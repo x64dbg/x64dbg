@@ -499,10 +499,6 @@ void MainWindow::themeTriggeredSlot()
     QString dir = action->data().toString();
     int nameIdx = dir.lastIndexOf('/');
     QString name = dir.mid(nameIdx + 1);
-    QString styleCss = QString("%1/style.css").arg(dir);
-    QString styleIni = QString("%1/style.ini").arg(dir);
-    GuiAddLogMessage(QString("%1:%2").arg(styleCss).arg(styleIni).toUtf8().constData());
-
     BridgeSettingSet("Theme", "Selected", name.toUtf8().constData());
     loadSelectedStyle();
 }
@@ -523,8 +519,6 @@ void MainWindow::setupThemesMenu()
         connect(action, SIGNAL(triggered()), this, SLOT(themeTriggeredSlot()));
         action->setText(name);
         action->setData(dir);
-        GuiAddLogMessage(dir.toUtf8().constData());
-        GuiAddLogMessage("\n");
     }
 }
 
@@ -2279,6 +2273,6 @@ void MainWindow::on_actionDefaultTheme_triggered()
     // Reset [Fonts] to default
     Config()->Fonts = Config()->defaultFonts;
     Config()->writeFonts();
-    // delete [Color] section
-    BridgeSettingSet("Color", nullptr, nullptr);
+    // Remove custom colors
+    BridgeSettingSet("Colors", "CustomColorCount", nullptr);
 }
