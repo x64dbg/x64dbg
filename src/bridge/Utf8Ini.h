@@ -23,7 +23,7 @@ public:
                 if(keyvalue.first.length())
                     appendLine(output, makeKeyValueText(keyvalue.first, keyvalue.second));
         }
-        return std::move(output);
+        return output;
     }
 
     /**
@@ -59,7 +59,7 @@ public:
             lines.push_back(trim(curLine));
 
         //parse lines
-        std::string section = "";
+        std::string section, key, value;
         for(const auto & line : lines)
         {
             errorLine++;
@@ -74,8 +74,6 @@ public:
 
             case LineType::KeyValue:
             {
-                std::string key;
-                std::string value;
                 if(!section.length() ||
                         !parseKeyValueLine(line, key, value) ||
                         !SetValue(section, key, value))
@@ -112,12 +110,12 @@ public:
             return false;
         auto found = mSections.find(trimmedSection);
         if(found != mSections.end())
-            found->second[trimmedKey] = value;
+            found->second.emplace(std::move(trimmedKey), value);
         else
         {
             KeyValueMap keyValueMap;
-            keyValueMap[trimmedKey] = value;
-            mSections[trimmedSection] = keyValueMap;
+            keyValueMap.emplace(std::move(trimmedKey), value);
+            mSections.emplace(std::move(trimmedSection), std::move(keyValueMap));
         }
         return true;
     }
@@ -179,7 +177,7 @@ public:
         sections.reserve(mSections.size());
         for(const auto & section : mSections)
             sections.push_back(section.first);
-        return std::move(sections);
+        return sections;
     }
 
     /**
