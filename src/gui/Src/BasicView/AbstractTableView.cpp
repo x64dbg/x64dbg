@@ -248,6 +248,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
 
     Q_UNUSED(event);
     QPainter wPainter(this->viewport());
+    wPainter.setFont(font());
     int wViewableRowsCount = getViewableRowsCount();
 
     int scrollValue = -horizontalScrollBar()->value();
