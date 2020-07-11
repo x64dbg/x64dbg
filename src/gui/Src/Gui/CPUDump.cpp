@@ -1842,7 +1842,6 @@ void CPUDump::asciiAddressDumpModeUpdatedSlot()
     duint setting = 0;
     mAsciiAddressDumpMode = BridgeSettingGetUint("Gui", "AsciiAddressDumpMode", &setting) && setting;
     auto defaultView = (ViewEnum_t)ConfigUint("HexDump", "DefaultView");
-    printf("defaultView: %d\n", defaultView);
     switch(defaultView)
     {
     case ViewAddress:
