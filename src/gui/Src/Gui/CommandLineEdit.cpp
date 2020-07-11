@@ -180,7 +180,14 @@ void CommandLineEdit::autoCompleteUpdate(const QString text)
         {
             // Native auto-completion
             if(mCurrentScriptIndex == 0)
+            {
+                if(mDefaultCompletionsUpdated)
+                {
+                    mDefaultCompletions.removeDuplicates();
+                    mDefaultCompletionsUpdated = false;
+                }
                 mCompleterModel->setStringList(mDefaultCompletions);
+            }
         }
 
         // Restore index
@@ -192,7 +199,7 @@ void CommandLineEdit::autoCompleteUpdate(const QString text)
 void CommandLineEdit::autoCompleteAddCmd(const QString cmd)
 {
     mDefaultCompletions << cmd.split(QChar(','), QString::SkipEmptyParts);
-    mDefaultCompletions.removeDuplicates();
+    mDefaultCompletionsUpdated = true;
 }
 
 void CommandLineEdit::autoCompleteDelCmd(const QString cmd)
@@ -201,12 +208,14 @@ void CommandLineEdit::autoCompleteDelCmd(const QString cmd)
 
     for(int i = 0; i < deleteList.size(); i++)
         mDefaultCompletions.removeAll(deleteList.at(i));
+    mDefaultCompletionsUpdated = true;
 }
 
 void CommandLineEdit::autoCompleteClearAll()
 {
     // Update internal list only
     mDefaultCompletions.clear();
+    mDefaultCompletionsUpdated = false;
 }
 
 void CommandLineEdit::registerScriptType(SCRIPTTYPEINFO* info)
