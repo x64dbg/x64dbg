@@ -1,3 +1,6 @@
+/* Based on: https://github.com/radareorg/cutter/blob/48b84bfa5c7fd7c7aa8595b8f742c9d8081d09fc/src/themes/qdarkstyle/style.qss */
+/* Modified for x64dbg by JustMagic: https://github.com/JustasMasiulis */
+
 ShortcutEdit[error="true"] {
     color: #EF5350;
 }
@@ -706,10 +709,14 @@ QTabBar::close-button:pressed {
 
 QTabBar::tab {
     color: #e0e0e0;
-    background-color: #212121;
+    background-color: #2c2c38;
     padding: 3px;
-    min-width: 50px;
+    /*min-width: 50px;*/
     padding: 4px 10px;
+
+    border: 1px solid #212121;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
 }
 
 QTabBar::tab:selected {
