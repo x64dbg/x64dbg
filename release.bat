@@ -59,6 +59,7 @@ mkdir %RELEASEDIR%\release\x64
 
 xcopy deps\x32 %RELEASEDIR%\release\x32 /S /Y
 xcopy deps\x64 %RELEASEDIR%\release\x64 /S /Y
+xcopy bin\themes %RELEASEDIR%\release\themes /S /Y /I
 
 copy help\x64dbg.chm %RELEASEDIR%\release\
 copy bin\x96dbg.exe %RELEASEDIR%\release\
