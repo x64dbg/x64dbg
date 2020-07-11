@@ -173,7 +173,7 @@ QMenuBar::item {
 }
 
 QMenuBar::item:selected {
-    background: transparent;
+    background: #414141;
     border: 1px solid #212121;
 }
 
@@ -183,6 +183,15 @@ QMenuBar::item:pressed {
     color: #e0e0e0;
     margin-bottom: -1px;
     padding-bottom: 1px;
+}
+
+QMenuBar::item:disabled {
+    color: grey;
+}
+
+QMenuBar::item:disabled:selected {
+    background: transparent;
+    color: grey;
 }
 
 QMenu {
@@ -709,7 +718,7 @@ QTabBar::close-button:pressed {
 
 QTabBar::tab {
     color: #e0e0e0;
-    background-color: #2c2c38;
+    background-color: #313131;
     padding: 3px;
     /*min-width: 50px;*/
     padding: 4px 10px;
@@ -727,6 +736,28 @@ QTabBar::tab:selected {
 
 QTabBar::tab:hover {
     background-color: #414141;
+}
+
+/* Attempt at fixing an ugly bug: https://stackoverflow.com/a/55097717/1806760 */
+QTabBar QToolButton {
+    border-width: 1px;
+    border-color: #515151;
+    border-style: solid;
+    border-radius: 2px;
+    background: #212121;
+    padding: 0px;
+    margin: 0px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+QTabBar QToolButton::hover {
+    background: #212121;
+    border: 1px solid #717171;
+}
+
+QTabBar::scroller {
+    width: 15px;
 }
 
 QTabBar QToolButton::right-arrow:enabled {

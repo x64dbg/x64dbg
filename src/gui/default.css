@@ -64,3 +64,25 @@ QTabBar::tear {
     width: 0px;
     border: none;
 }
+
+/* Attempt at fixing an ugly bug: https://stackoverflow.com/a/55097717/1806760 */
+QTabBar QToolButton {
+    border-width: 1px;
+    border-color: grey;
+    border-style: solid;
+    border-radius: 2px;
+    background: #f0f0f0;
+    padding: 0px;
+    margin: 0px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+QTabBar QToolButton::hover {
+    background: #f0f0f0;
+    border: 1px solid black;
+}
+
+QTabBar::scroller {
+    width: 15px;
+}
