@@ -836,11 +836,7 @@ extern "C" DLL_EXPORT duint _dbg_getbranchdestination(duint addr)
         });
         if(cp.OpCount() && cp[0].type == ZYDIS_OPERAND_TYPE_MEMORY)
         {
-#ifdef _WIN64
-            auto const tebseg = ZYDIS_REGISTER_GS;
-#else
-            auto const tebseg = ZYDIS_REGISTER_FS;
-#endif //_WIN64
+            auto const tebseg = ArchValue(ZYDIS_REGISTER_FS, ZYDIS_REGISTER_GS);
             if(cp[0].mem.segment == tebseg)
                 opValue += duint(GetTEBLocation(hActiveThread));
             if(MemRead(opValue, &opValue, sizeof(opValue)))

@@ -55,6 +55,11 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
 
 TraceBrowser::~TraceBrowser()
 {
+    if(mTraceFile)
+    {
+        mTraceFile->Close();
+        delete mTraceFile;
+    }
     delete mDisasm;
 }
 
@@ -741,7 +746,7 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
             setSingleSelection(index);
         mHistory.addVaToHistory(index);
         updateViewport();
-        selectionChanged();
+        emit selectionChanged(getInitialSelection());
         return;
 
         break;
@@ -873,20 +878,16 @@ void TraceBrowser::keyPressEvent(QKeyEvent* event)
         mHistory.addVaToHistory(visibleindex);
         updateViewport();
 
-        selectionChanged();
+        emit selectionChanged(getInitialSelection());
     }
     else
         AbstractTableView::keyPressEvent(event);
 }
 
-void TraceBrowser::selectionChanged()
+void TraceBrowser::onSelectionChanged(unsigned long long selection)
 {
     if(mAutoDisassemblyFollowSelection)
         followDisassemblySlot();
-
-    REGDUMP temp;
-    temp = mTraceFile->Registers(getInitialSelection());
-    emit updateTraceRegistersView(&temp);
 }
 
 void TraceBrowser::tokenizerConfigUpdatedSlot()
@@ -1103,7 +1104,7 @@ void TraceBrowser::gotoNextSlot()
         setSingleSelection(index);
         makeVisible(index);
         updateViewport();
-        selectionChanged();
+        emit selectionChanged(getInitialSelection());
     }
 }
 
@@ -1115,7 +1116,7 @@ void TraceBrowser::gotoPreviousSlot()
         setSingleSelection(index);
         makeVisible(index);
         updateViewport();
-        selectionChanged();
+        emit selectionChanged(getInitialSelection());
     }
 }
 
@@ -1527,9 +1528,6 @@ void TraceBrowser::updateSlot()
             mTraceFile->purgeLastPage();
             setRowCount(mTraceFile->Length());
         }
-        REGDUMP reg;
-        reg = mTraceFile->Registers(getInitialSelection());
-        emit updateTraceRegistersView(&reg);
     }
     else
         setRowCount(0);

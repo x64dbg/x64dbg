@@ -29,6 +29,7 @@ public:
     duint getSelectionEnd();
 
     bool isFileOpened() const;
+    TraceFileReader* getTraceFile() { return mTraceFile; }
 
 private:
     enum TableColumnIndex
@@ -48,7 +49,6 @@ private:
     void pushSelectionInto(bool copyBytes, QTextStream & stream, QTextStream* htmlStream = nullptr);
     void copySelectionSlot(bool copyBytes);
     void copySelectionToFileSlot(bool copyBytes);
-    void selectionChanged();
 
     void contextMenuEvent(QContextMenuEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
@@ -117,7 +117,7 @@ private:
 
 signals:
     void displayReferencesWidget();
-    void updateTraceRegistersView(void* registers);
+    void selectionChanged(unsigned long long selection);
 
 public slots:
     void openFileSlot();
@@ -127,6 +127,7 @@ public slots:
     void closeDeleteSlot();
     void parseFinishedSlot();
     void tokenizerConfigUpdatedSlot();
+    void onSelectionChanged(unsigned long long selection);
 
     void gotoSlot();
     void gotoPreviousSlot();

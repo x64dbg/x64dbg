@@ -560,7 +560,7 @@ bool Zydis::IsNop() const
     case ZYDIS_MNEMONIC_JRCXZ:
     case ZYDIS_MNEMONIC_JS:
     case ZYDIS_MNEMONIC_JZ:
-        // jmp 0
+        // jmp $0
         return ops[0].type == ZYDIS_OPERAND_TYPE_IMMEDIATE
                && ops[0].imm.value.u == this->Address() + this->Size();
     case ZYDIS_MNEMONIC_SHL:
@@ -615,7 +615,9 @@ bool Zydis::IsUnusual() const
            || id == ZYDIS_MNEMONIC_RDRAND
            || id == ZYDIS_MNEMONIC_RDSEED
            || id == ZYDIS_MNEMONIC_UD1
-           || id == ZYDIS_MNEMONIC_UD2;
+           || id == ZYDIS_MNEMONIC_UD2
+           || id == ZYDIS_MNEMONIC_VMCALL
+           || id == ZYDIS_MNEMONIC_VMFUNC;
 }
 
 std::string Zydis::Mnemonic() const

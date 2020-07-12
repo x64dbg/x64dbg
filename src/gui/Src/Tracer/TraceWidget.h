@@ -2,12 +2,13 @@
 #define TRACEWIDGET_H
 
 #include <QWidget>
+#include "Bridge.h"
 
 class QVBoxLayout;
 class CPUWidget;
 class TraceRegisters;
 class TraceBrowser;
-class CPUInfoBox;
+class TraceFileReader;
 class StdTable;
 
 namespace Ui
@@ -26,14 +27,16 @@ public:
     TraceBrowser* getTraceBrowser();
 
 protected slots:
-    void updateTraceRegistersView(void* registers);
+    void traceSelectionChanged(unsigned long long selection);
     void updateSlot();
 
 protected:
     TraceBrowser* mTraceWidget;
     TraceRegisters* mGeneralRegs;
-    CPUInfoBox* mInfo;
+    StdTable* mInfo;
     StdTable* mOverview;
+
+    void updateInfobox(unsigned long long selection, TraceFileReader* traceFile, const REGDUMP & registers);
 
 private:
     Ui::TraceWidget* ui;
