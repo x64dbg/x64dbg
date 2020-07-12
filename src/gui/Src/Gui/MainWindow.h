@@ -55,6 +55,8 @@ public:
     void loadTabSavedOrder();
     void clearTabWidget();
 
+    static void loadSelectedStyle(bool reloadStyleCss = false);
+
 public slots:
     void saveWindowSettings();
     void loadWindowSettings();
@@ -155,6 +157,7 @@ public slots:
     void customizeMenu();
     void addFavouriteItem(int type, const QString & name, const QString & description);
     void setFavouriteItemShortcut(int type, const QString & name, const QString & shortcut);
+    void themeTriggeredSlot();
 
 private:
     Ui::MainWindow* ui;
@@ -193,6 +196,7 @@ private:
 
     void updateMRUMenu();
     void setupLanguagesMenu();
+    void setupThemesMenu();
     void onMenuCustomized();
     void setupMenuCustomization();
     QAction* makeCommandAction(QAction* action, const QString & command);
@@ -278,6 +282,7 @@ private slots:
     void on_actionRestartAdmin_triggered();
     void on_actionPlugins_triggered();
     void on_actionCheckUpdates_triggered();
+    void on_actionDefaultTheme_triggered();
 };
 
 #endif // MAINWINDOW_H

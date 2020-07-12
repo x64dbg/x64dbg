@@ -339,7 +339,7 @@ void CPUStack::getColumnRichText(int col, dsint rva, RichTextPainter::List & ric
 
     STACK_COMMENT comment;
     RichTextPainter::CustomRichText_t curData;
-    curData.highlight = false;
+    curData.underline = false;
     curData.flags = RichTextPainter::FlagColor;
     curData.textColor = mTextColor;
 
@@ -400,7 +400,8 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
     if(col == 0) // paint stack address
     {
         QColor background;
-        if(DbgGetLabelAt(wVa, SEG_DEFAULT, nullptr)) //label
+        char labelText[MAX_LABEL_SIZE] = "";
+        if(DbgGetLabelAt(wVa, SEG_DEFAULT, labelText)) //label
         {
             if(wVa == mCsp) //CSP
             {

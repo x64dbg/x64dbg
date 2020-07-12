@@ -8,14 +8,21 @@
 class DebugStatusLabel : public QLabel
 {
     Q_OBJECT
+
 public:
+    Q_PROPERTY(QString state READ state NOTIFY stateChanged)
     explicit DebugStatusLabel(QStatusBar* parent = 0);
+    QString state() const;
 
 public slots:
     void debugStateChangedSlot(DBGSTATE state);
 
+signals:
+    void stateChanged();
+
 private:
-    QString statusTexts[4];
+    QString mStatusTexts[4];
+    QString mState;
 };
 
 #endif // LABELCLASS_H

@@ -16,12 +16,14 @@ public:
     void getColumnRichText(int col, dsint rva, RichTextPainter::List & richText) override;
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void setupContextMenu();
+    void getAttention();
     void contextMenuEvent(QContextMenuEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
 
 signals:
     void displayReferencesWidget();
+    void showDisassemblyTab(duint selectionStart, duint selectionEnd, duint firstAddress);
 
 public slots:
     void memoryAccessSingleshootSlot();

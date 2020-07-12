@@ -34,6 +34,7 @@ public slots:
     void openChangeTabTitleDialogSlot(int tabIndex);
     void displayReferencesWidgetSlot();
     void focusCurrentDumpSlot();
+    void showDisassemblyTabSlot(duint selectionStart, duint selectionEnd, duint firstAddress);
     void getDumpAttention();
 
 private:
@@ -44,6 +45,7 @@ private:
     WatchView* mWatch;
     LocalVarsView* mLocalVars;
     StructWidget* mStructWidget;
+    CPUDisassembly* mDisassembly = nullptr;
 
     int GetDumpWindowIndex(int dump);
     int GetWatchWindowIndex();

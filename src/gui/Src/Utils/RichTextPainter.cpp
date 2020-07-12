@@ -42,12 +42,12 @@ void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int 
             break;
         }
         painter->drawText(QRect(x + xinc, y, w - xinc, h), Qt::TextBypassShaping, curRichText.text);
-        if(curRichText.highlight && curRichText.highlightColor.alpha())
+        if(curRichText.underline && curRichText.underlineColor.alpha())
         {
-            highlightPen.setColor(curRichText.highlightColor);
-            highlightPen.setWidth(curRichText.highlightWidth);
+            highlightPen.setColor(curRichText.underlineColor);
+            highlightPen.setWidth(curRichText.underlineWidth);
             painter->setPen(highlightPen);
-            int highlightOffsetX = curRichText.highlightConnectPrev ? -1 : 1;
+            int highlightOffsetX = curRichText.underlineConnectPrev ? -1 : 1;
             painter->drawLine(x + xinc + highlightOffsetX, y + h - 1, x + xinc + backgroundWidth - 1, y + h - 1);
         }
         xinc += textWidth;
@@ -91,10 +91,10 @@ void RichTextPainter::htmlRichText(const List & richText, QString & textHtml, QS
                 textHtml += QString("<span style=\"color:%1\">").arg(curRichText.textColor.name());
             break;
         }
-        if(curRichText.highlight) //Underline highlighted token
+        if(curRichText.underline) //Underline highlighted token
             textHtml += "<u>";
         textHtml += curRichText.text.toHtmlEscaped();
-        if(curRichText.highlight)
+        if(curRichText.underline)
             textHtml += "</u>";
         textHtml += "</span>"; //Close the tag
         textPlain += curRichText.text;

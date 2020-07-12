@@ -70,14 +70,7 @@ int main(int argc, char* argv[])
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
     QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     MyApplication application(argc, argv);
-    QFile f(QString("%1/style.css").arg(QCoreApplication::applicationDirPath()));
-    if(f.open(QFile::ReadOnly | QFile::Text))
-    {
-        QTextStream in(&f);
-        auto style = in.readAll();
-        f.close();
-        application.setStyleSheet(style);
-    }
+    MainWindow::loadSelectedStyle(true);
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     QAbstractEventDispatcher::instance(application.thread())->setEventFilter(MyApplication::globalEventFilter);
 #else

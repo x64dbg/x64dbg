@@ -294,7 +294,7 @@ void BreakpointsView::updateBreakpointsSlot()
             auto colored = [&richSummary](QString text, QColor color)
             {
                 RichTextPainter::CustomRichText_t token;
-                token.highlight = false;
+                token.underline = false;
                 token.flags = RichTextPainter::FlagColor;
                 token.textColor = color;
                 token.text = text;
@@ -303,7 +303,7 @@ void BreakpointsView::updateBreakpointsSlot()
             auto text = [this, &richSummary](QString text)
             {
                 RichTextPainter::CustomRichText_t token;
-                token.highlight = false;
+                token.underline = false;
                 token.flags = RichTextPainter::FlagColor;
                 token.textColor = this->mTextColor;
                 token.text = text;

@@ -99,7 +99,7 @@ public:
         {
             RichTextPainter::List richText;
             RichTextPainter::CustomRichText_t rt;
-            rt.highlight = false;
+            rt.underline = false;
             rt.text = text;
             rt.textColor = color;
             rt.textBackground = background;

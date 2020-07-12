@@ -59,14 +59,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("DisassemblyModifiedBytesBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyRestoredBytesColor", QColor("#808080"));
     defaultColors.insert("DisassemblyRestoredBytesBackgroundColor", Qt::transparent);
-    defaultColors.insert("DisassemblyByte00Color", QColor("#008000"));
-    defaultColors.insert("DisassemblyByte00BackgroundColor", Qt::transparent);
-    defaultColors.insert("DisassemblyByte7FColor", QColor("#808000"));
-    defaultColors.insert("DisassemblyByte7FBackgroundColor", Qt::transparent);
-    defaultColors.insert("DisassemblyByteFFColor", QColor("#800000"));
-    defaultColors.insert("DisassemblyByteFFBackgroundColor", Qt::transparent);
-    defaultColors.insert("DisassemblyByteIsPrintColor", QColor("#800080"));
-    defaultColors.insert("DisassemblyByteIsPrintBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyRelocationUnderlineColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentColor", QColor("#000000"));
     defaultColors.insert("DisassemblyCommentBackgroundColor", Qt::transparent);
@@ -107,6 +99,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("RegistersHighlightReadWriteColor", QColor("#808000"));
 
     defaultColors.insert("InstructionHighlightColor", QColor("#FF0000"));
+    defaultColors.insert("InstructionHighlightBackgroundColor", Qt::transparent);
     defaultColors.insert("InstructionCommaColor", QColor("#000000"));
     defaultColors.insert("InstructionCommaBackgroundColor", Qt::transparent);
     defaultColors.insert("InstructionPrefixColor", QColor("#000000"));
@@ -237,6 +230,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("MemoryMapCipBackgroundColor", QColor("#000000"));
     defaultColors.insert("MemoryMapSectionTextColor", QColor("#8B671F"));
     defaultColors.insert("SearchListViewHighlightColor", QColor("#FF0000"));
+    defaultColors.insert("SearchListViewHighlightBackgroundColor", Qt::transparent);
     defaultColors.insert("StructBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("StructAlternateBackgroundColor", QColor("#DCD9CF"));
     defaultColors.insert("LogLinkColor", QColor("#00CC00"));
@@ -248,6 +242,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("SymbolUnloadedTextColor", QColor("#000000"));
     defaultColors.insert("SymbolLoadingTextColor", QColor("#8B671F"));
     defaultColors.insert("SymbolLoadedTextColor", QColor("#008000"));
+    defaultColors.insert("BackgroundFlickerColor", QColor("#ff6961"));
 
     //bool settings
     QMap<QString, bool> disassemblyBool;

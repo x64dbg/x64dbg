@@ -5,7 +5,7 @@
 #include "BreakpointMenu.h"
 
 // Needed forward declaration for parent container class
-class CPUWidget;
+class CPUSideBar;
 class GotoDialog;
 class XrefBrowseDialog;
 
@@ -14,7 +14,7 @@ class CPUDisassembly : public Disassembly
     Q_OBJECT
 
 public:
-    explicit CPUDisassembly(CPUWidget* parent);
+    CPUDisassembly(QWidget* parent, bool isMain);
 
     // Mouse management
     void contextMenuEvent(QContextMenuEvent* event);
@@ -27,6 +27,7 @@ public:
     void setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isReferences, bool isFollowInCPU);
     void copySelectionSlot(bool copyBytes);
     void copySelectionToFileSlot(bool copyBytes);
+    void setSideBar(CPUSideBar* sideBar);
 
 signals:
     void displayReferencesWidget();
@@ -125,7 +126,7 @@ private:
 
     // Menus
     QMenu* mHwSlotSelectMenu;
-    QMenu* mPluginMenu;
+    QMenu* mPluginMenu = nullptr;
 
     // Actions
     QAction* mReferenceSelectedAddressAction;
@@ -164,7 +165,7 @@ private:
     XrefBrowseDialog* mXrefDlg = nullptr;
 
     // Parent CPU window
-    CPUWidget* mParentCPUWindow;
+    CPUSideBar* mSideBar = nullptr;
 
     MenuBuilder* mMenuBuilder;
     MenuBuilder* mHighlightMenuBuilder;

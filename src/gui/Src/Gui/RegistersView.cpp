@@ -1469,6 +1469,7 @@ void RegistersView::paintEvent(QPaintEvent* event)
     }
 
     QPainter wPainter(this->viewport());
+    wPainter.setFont(font());
     wPainter.fillRect(wPainter.viewport(), QBrush(ConfigColor("RegistersBackgroundColor")));
 
     // Don't draw the registers if a program isn't actually running

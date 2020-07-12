@@ -1,25 +1,23 @@
 #include "DebugStatusLabel.h"
 #include <QTextDocument>
+#include <QStyle>
+#include <QMetaEnum>
 
 DebugStatusLabel::DebugStatusLabel(QStatusBar* parent) : QLabel(parent)
 {
-    this->setFrameStyle(QFrame::Sunken | QFrame::Panel); //sunken style
-    this->setStyleSheet("QLabel { background-color : #C0C0C0; }");
-
-    statusTexts[0] = tr("Initialized");
-    statusTexts[1] = tr("Paused");
-    statusTexts[2] = tr("Running");
-    statusTexts[3] = tr("Terminated");
+    mStatusTexts[0] = tr("Initialized");
+    mStatusTexts[1] = tr("Paused");
+    mStatusTexts[2] = tr("Running");
+    mStatusTexts[3] = tr("Terminated");
     QFontMetrics fm(this->font());
     int maxWidth = 0;
-    for(size_t i = 0; i < _countof(statusTexts); i++)
+    for(size_t i = 0; i < _countof(mStatusTexts); i++)
     {
-        int width = fm.width(statusTexts[i]);
+        int width = fm.width(mStatusTexts[i]);
         if(width > maxWidth)
             maxWidth = width;
     }
     this->setTextFormat(Qt::RichText); //rich text
-    parent->setStyleSheet("QStatusBar { background-color: #C0C0C0; } QStatusBar::item { border: none; }");
     this->setFixedHeight(fm.height() + 5);
     this->setAlignment(Qt::AlignCenter);
     this->setFixedWidth(maxWidth + 10);
@@ -27,28 +25,24 @@ DebugStatusLabel::DebugStatusLabel(QStatusBar* parent) : QLabel(parent)
 
 }
 
+QString DebugStatusLabel::state() const
+{
+    return this->mState;
+}
+
 void DebugStatusLabel::debugStateChangedSlot(DBGSTATE state)
 {
-    switch(state)
+    const char* states[4] = { "initialized", "paused", "running", "stopped" };
+
+    this->setText(mStatusTexts[state]);
+    this->mState = states[state];
+
+    if(state == stopped)
     {
-    case initialized:
-        this->setText(QString("<font color='#00DD00'>%1</font>").arg(statusTexts[state]));
-        this->setStyleSheet("QLabel { background-color : #C0C0C0; }");
-        break;
-    case paused:
-        this->setText(QString("<font color='#FF0000'>%1</font>").arg(statusTexts[state]));
-        this->setStyleSheet("QLabel { background-color : #FFFF00; }");
-        break;
-    case running:
-        this->setText(QString("<font color='#000000'>%1</font>").arg(statusTexts[state]));
-        this->setStyleSheet("QLabel { background-color : #C0C0C0; }");
-        break;
-    case stopped:
-        this->setText(QString("<font color='#FF0000'>%1</font>").arg(statusTexts[state]));
-        this->setStyleSheet("QLabel { background-color : #C0C0C0; }");
         GuiUpdateWindowTitle("");
-        break;
     }
 
+    this->style()->unpolish(this);
+    this->style()->polish(this);
     this->update();
 }

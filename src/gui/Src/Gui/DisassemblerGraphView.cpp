@@ -2004,7 +2004,7 @@ void DisassemblerGraphView::loadCurrentGraph()
                         if(showGraphRva)
                         {
                             RichTextPainter::CustomRichText_t rvaText;
-                            rvaText.highlight = false;
+                            rvaText.underline = false;
                             rvaText.textColor = mAddressColor;
                             rvaText.textBackground = mAddressBackgroundColor;
                             rvaText.text = QString().number(instrTok.rva, 16).toUpper().trimmed() + "  ";
@@ -2021,7 +2021,7 @@ void DisassemblerGraphView::loadCurrentGraph()
                         QString comment;
                         bool autoComment = false;
                         RichTextPainter::CustomRichText_t commentText;
-                        commentText.highlight = false;
+                        commentText.underline = false;
                         char label[MAX_LABEL_SIZE] = "";
                         if(GetCommentFormat(addr, comment, &autoComment))
                         {
@@ -2048,7 +2048,7 @@ void DisassemblerGraphView::loadCurrentGraph()
                         if(commentText.text.length())
                         {
                             RichTextPainter::CustomRichText_t spaceText;
-                            spaceText.highlight = false;
+                            spaceText.underline = false;
                             spaceText.flags = RichTextPainter::FlagNone;
                             spaceText.text = " ";
                             richText.push_back(spaceText);
@@ -2587,7 +2587,10 @@ void DisassemblerGraphView::xrefSlot()
     BridgeFree(mXrefInfo.references);
     if(!mXrefDlg)
         mXrefDlg = new XrefBrowseDialog(this);
-    mXrefDlg->setup(wVA, "graph");
+    mXrefDlg->setup(wVA, [](duint addr)
+    {
+        DbgCmdExec(QString("graph %1").arg(ToPtrString(addr)).toUtf8().constData());
+    });
     mXrefDlg->showNormal();
 }
 

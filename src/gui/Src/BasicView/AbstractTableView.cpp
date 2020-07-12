@@ -47,7 +47,7 @@ AbstractTableView::AbstractTableView(QWidget* parent)
 
     mRowCount = 0;
 
-    mHeaderButtonSytle.setStyleSheet(" QPushButton {\n     background-color: rgb(192, 192, 192);\n     border-style: outset;\n     border-width: 2px;\n     border-color: rgb(128, 128, 128);\n }\n QPushButton:pressed {\n     background-color: rgb(192, 192, 192);\n     border-style: inset;\n }");
+    mHeaderButtonSytle.setObjectName("AbstractTableViewHeader");
 
     mNbrOfLineToPrint = 0;
 
@@ -248,6 +248,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
 
     Q_UNUSED(event);
     QPainter wPainter(this->viewport());
+    wPainter.setFont(font());
     int wViewableRowsCount = getViewableRowsCount();
 
     int scrollValue = -horizontalScrollBar()->value();

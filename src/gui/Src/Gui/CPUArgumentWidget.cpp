@@ -32,6 +32,7 @@ CPUArgumentWidget::CPUArgumentWidget(QWidget* parent) :
     connect(mFollowAddrStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
 
     connect(Bridge::getBridge(), SIGNAL(repaintTableView()), this, SLOT(refreshData()));
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
 }
 
 CPUArgumentWidget::~CPUArgumentWidget()
@@ -45,8 +46,9 @@ void CPUArgumentWidget::updateStackOffset(bool iscall)
     mStackOffset = cur.getStackOffset() + (iscall ? 0 : cur.getCallOffset());
 }
 
-void CPUArgumentWidget::disassembledAtSlot(dsint, dsint cip, bool, dsint)
+void CPUArgumentWidget::disassembleAtSlot(dsint addr, dsint cip)
 {
+    Q_UNUSED(addr);
     if(mCurrentCallingConvention == -1) //no calling conventions
     {
         mTable->setRowCount(0);
@@ -236,8 +238,6 @@ void CPUArgumentWidget::loadConfig()
 void CPUArgumentWidget::setupTable()
 {
     connect(mTable, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
-    mTable->verticalScrollBar()->setStyleSheet(ConfigVScrollBarStyle());
-    mTable->horizontalScrollBar()->setStyleSheet(ConfigHScrollBarStyle());
     mTable->enableMultiSelection(false);
     mTable->setShowHeader(false);
     mTable->addColumnAt(0, "", false);

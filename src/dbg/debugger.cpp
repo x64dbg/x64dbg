@@ -90,7 +90,7 @@ bool bNoWow64SingleStepWorkaround = false;
 bool bTraceBrowserNeedsUpdate = false;
 bool bForceLoadSymbols = false;
 duint DbgEvents = 0;
-duint maxSkipExceptionCount = 10000;
+duint maxSkipExceptionCount = 0;
 HANDLE mProcHandle;
 HANDLE mForegroundHandle;
 duint mRtrPreviousCSP = 0;

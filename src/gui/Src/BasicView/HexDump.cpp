@@ -134,7 +134,9 @@ void HexDump::updateDumpSlot()
                 {
                     mUpdateCache = cur;
                     mUpdateCacheData.swap(mUpdateCacheTemp);
+#ifdef DEBUG
                     OutputDebugStringA(QString("[x64dbg] %1[%2] %3[%4]").arg(ToPtrString(mUpdateCache.memBase)).arg(ToHexString(mUpdateCache.memSize)).arg(ToPtrString(mUpdateCache.rva)).arg(ToHexString(mUpdateCache.size)).toUtf8().constData());
+#endif // DEBUG
                 }
             }
         }
@@ -761,16 +763,16 @@ bool HexDump::isSelected(dsint rva) const
 void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)
 {
     RichTextPainter::CustomRichText_t curData;
-    curData.highlight = false;
+    curData.underline = false;
     curData.flags = RichTextPainter::FlagAll;
     curData.textColor = mTextColor;
     curData.textBackground = Qt::transparent;
-    curData.highlightColor = Qt::transparent;
+    curData.underlineColor = Qt::transparent;
 
     RichTextPainter::CustomRichText_t spaceData;
-    spaceData.highlight = false;
+    spaceData.underline = false;
     spaceData.flags = RichTextPainter::FlagNone;
-    spaceData.highlightColor = Qt::transparent;
+    spaceData.underlineColor = Qt::transparent;
 
     if(!col) //address
     {
@@ -822,19 +824,19 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
                     if(wI % sizeof(duint) == 0 && wByteCount == 1 && desc.data.byteMode == HexByte) //pointer underlining
                     {
                         auto ptr = *(duint*)(wData + wI * wByteCount);
-                        if(spaceData.highlight = curData.highlight = DbgMemIsValidReadPtr(ptr))
+                        if(spaceData.underline = curData.underline = DbgMemIsValidReadPtr(ptr))
                         {
                             auto codePage = DbgFunctions()->MemIsCodePage(ptr, false);
                             auto modbase = DbgFunctions()->ModBaseFromAddr(ptr);
                             if(modbase)
                             {
                                 if(DbgFunctions()->ModGetParty(modbase) == 1) //system
-                                    spaceData.highlightColor = curData.highlightColor = codePage ? mSystemModuleCodePointerHighlightColor : mSystemModuleDataPointerHighlightColor;
+                                    spaceData.underlineColor = curData.underlineColor = codePage ? mSystemModuleCodePointerHighlightColor : mSystemModuleDataPointerHighlightColor;
                                 else //user
-                                    spaceData.highlightColor = curData.highlightColor = codePage ? mUserModuleCodePointerHighlightColor : mUserModuleDataPointerHighlightColor;
+                                    spaceData.underlineColor = curData.underlineColor = codePage ? mUserModuleCodePointerHighlightColor : mUserModuleDataPointerHighlightColor;
                             }
                             else
-                                spaceData.highlightColor = curData.highlightColor = codePage ? mUnknownCodePointerHighlightColor : mUnknownDataPointerHighlightColor;
+                                spaceData.underlineColor = curData.underlineColor = codePage ? mUnknownCodePointerHighlightColor : mUnknownDataPointerHighlightColor;
                         }
                     }
                     richText.push_back(curData);
@@ -842,7 +844,7 @@ void HexDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
                     {
                         spaceData.text = QString(' ');
                         if(wI % sizeof(duint) == sizeof(duint) - 1)
-                            spaceData.highlight = false;
+                            spaceData.underline = false;
                         richText.push_back(spaceData);
                     }
                 }

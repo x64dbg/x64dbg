@@ -8,6 +8,7 @@
 #include <QFont>
 #include "Imports.h"
 
+// TODO: declare AppearanceDialog and SettingsDialog entries here, so that you only have to do it in once place
 #define Config() (Configuration::instance())
 #define ConfigColor(x) (Config()->getColor(x))
 #define ConfigBool(x,y) (Config()->getBool(x,y))

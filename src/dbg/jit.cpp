@@ -155,9 +155,9 @@ bool dbggetdefjit(char* jit_entry)
     path[0] = '"';
     wchar_t wszPath[MAX_PATH] = L"";
     GetModuleFileNameW(GetModuleHandleW(NULL), wszPath, MAX_PATH);
-    strcpy_s(&path[1], JIT_ENTRY_DEF_SIZE - 1, StringUtils::Utf16ToUtf8(wszPath).c_str());
-    strcat_s(path, ATTACH_CMD_LINE);
-    strcpy_s(jit_entry, JIT_ENTRY_DEF_SIZE, path);
+    strncpy_s(&path[1], JIT_ENTRY_DEF_SIZE - 1, StringUtils::Utf16ToUtf8(wszPath).c_str(), _TRUNCATE);
+    strncat_s(path, ATTACH_CMD_LINE, _TRUNCATE);
+    strncpy_s(jit_entry, JIT_ENTRY_DEF_SIZE, path, _TRUNCATE);
     return true;
 }
 

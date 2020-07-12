@@ -112,12 +112,12 @@ public:
             return false;
         auto found = mSections.find(trimmedSection);
         if(found != mSections.end())
-            found->second[trimmedKey] = value;
+            found->second[std::move(trimmedKey)] = value;
         else
         {
             KeyValueMap keyValueMap;
-            keyValueMap[trimmedKey] = value;
-            mSections[trimmedSection] = keyValueMap;
+            keyValueMap.emplace(std::move(trimmedKey), value);
+            mSections.emplace(std::move(trimmedSection), std::move(keyValueMap));
         }
         return true;
     }

@@ -19,18 +19,19 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     setStyleSheet("AbstractTableView:focus, CPURegistersView:focus, CPUSideBar:focus { border: 1px solid #000000; }");
 
-    mDisas = new CPUDisassembly(this);
+    mDisas = new CPUDisassembly(this, true);
     mSideBar = new CPUSideBar(mDisas);
+    mDisas->setSideBar(mSideBar);
     mArgumentWidget = new CPUArgumentWidget(this);
     mGraphView = new DisassemblerGraphView(this);
 
     connect(mDisas, SIGNAL(tableOffsetChanged(dsint)), mSideBar, SLOT(changeTopmostAddress(dsint)));
     connect(mDisas, SIGNAL(viewableRowsChanged(int)), mSideBar, SLOT(setViewableRows(int)));
     connect(mDisas, SIGNAL(selectionChanged(dsint)), mSideBar, SLOT(setSelection(dsint)));
-    connect(mDisas, SIGNAL(disassembledAt(dsint, dsint, bool, dsint)), mArgumentWidget, SLOT(disassembledAtSlot(dsint, dsint, bool, dsint)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), mSideBar, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(updateSideBar()), mSideBar, SLOT(reload()));
     connect(Bridge::getBridge(), SIGNAL(updateArgumentView()), mArgumentWidget, SLOT(refreshData()));
+
     mDisas->setCodeFoldingManager(mSideBar->getCodeFoldingManager());
 
     ui->mTopLeftUpperHSplitter->setCollapsible(0, true); //allow collapsing of the side bar
@@ -62,11 +63,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     upperScrollArea->setFrameShape(QFrame::NoFrame);
     upperScrollArea->setWidget(mGeneralRegs);
 
-    upperScrollArea->horizontalScrollBar()->setStyleSheet(ConfigHScrollBarStyle());
-    upperScrollArea->verticalScrollBar()->setStyleSheet(ConfigVScrollBarStyle());
-
     QPushButton* button_changeview = new QPushButton("", this);
-    button_changeview->setStyleSheet("Text-align:left;padding: 4px;padding-left: 10px;");
     connect(button_changeview, SIGNAL(clicked()), mGeneralRegs, SLOT(onChangeFPUViewAction()));
     mGeneralRegs->SetChangeButton(button_changeview);
 

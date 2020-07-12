@@ -39,6 +39,7 @@ private:
     QStringListModel* mCompleterModel;
     QList<SCRIPTTYPEINFO> mScriptInfo;
     QStringList mDefaultCompletions;
+    bool mDefaultCompletionsUpdated = false;
     int mCurrentScriptIndex;
 };
 

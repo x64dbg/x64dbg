@@ -13,6 +13,7 @@
 #include "WordEditDialog.h"
 #include "CodepageSelectionDialog.h"
 #include "MiscUtil.h"
+#include "BackgroundFlickerThread.h"
 
 CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
 {
@@ -270,7 +271,7 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("float.png"), tr("&Float")), wFloatMenu);
 
     mMenuBuilder->addAction(makeAction(DIcon("address.png"), tr("&Address"), SLOT(addressSlot())));
-    mMenuBuilder->addAction(makeAction(DIcon("processor-cpu.png"), tr("&Disassembly"), SLOT(disassemblySlot())))->setEnabled(false);
+    mMenuBuilder->addAction(makeAction(DIcon("processor-cpu.png"), tr("&Disassembly"), SLOT(disassemblySlot())));
 
     mMenuBuilder->addSeparator();
     mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
@@ -282,6 +283,12 @@ void CPUDump::setupContextMenu()
 
     mMenuBuilder->loadFromConfig();
     updateShortcuts();
+}
+
+void CPUDump::getAttention()
+{
+    BackgroundFlickerThread* thread = new BackgroundFlickerThread(this, mBackgroundColor, this);
+    thread->start();
 }
 
 void CPUDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)
@@ -1353,7 +1360,9 @@ void CPUDump::addressUnicodeSlot()
 
 void CPUDump::disassemblySlot()
 {
-    SimpleErrorBox(this, tr("Error!"), tr("Not yet supported!"));
+    SELECTIONDATA selection;
+    selectionGet(&selection);
+    emit showDisassemblyTab(selection.start, selection.end, rvaToVa(getTableOffsetRva()));
 }
 
 void CPUDump::selectionGet(SELECTIONDATA* selection)
@@ -1833,7 +1842,6 @@ void CPUDump::asciiAddressDumpModeUpdatedSlot()
     duint setting = 0;
     mAsciiAddressDumpMode = BridgeSettingGetUint("Gui", "AsciiAddressDumpMode", &setting) && setting;
     auto defaultView = (ViewEnum_t)ConfigUint("HexDump", "DefaultView");
-    printf("defaultView: %d\n", defaultView);
     switch(defaultView)
     {
     case ViewAddress:

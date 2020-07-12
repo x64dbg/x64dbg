@@ -18,7 +18,6 @@ CPUInfoBox::CPUInfoBox(QWidget* parent) : StdTable(parent)
     setCellContent(3, 0, "");
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    horizontalScrollBar()->setStyleSheet(ConfigHScrollBarStyle());
 
     int height = getHeight();
     setMinimumHeight(height);
@@ -573,7 +572,10 @@ void CPUInfoBox::findXReferencesSlot()
         return;
     if(!mXrefDlg)
         mXrefDlg = new XrefBrowseDialog(this);
-    mXrefDlg->setup(curAddr);
+    mXrefDlg->setup(curAddr, [](duint address)
+    {
+        DbgCmdExec(QString("disasm %1").arg(ToPtrString(address)).toUtf8().constData());
+    });
     mXrefDlg->showNormal();
 }
 

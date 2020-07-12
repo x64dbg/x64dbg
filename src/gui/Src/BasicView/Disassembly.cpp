@@ -7,7 +7,9 @@
 #include "QBeaEngine.h"
 #include "MemoryPage.h"
 
-Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
+Disassembly::Disassembly(QWidget* parent, bool isMain)
+    : AbstractTableView(parent),
+      mIsMain(isMain)
 {
     mMemPage = new MemoryPage(0, 0);
 
@@ -17,8 +19,6 @@ Disassembly::Disassembly(QWidget* parent) : AbstractTableView(parent)
     historyClear();
 
     memset(&mSelection, 0, sizeof(SelectionData));
-
-    mCipRva = 0;
 
     mHighlightToken.text = "";
     mHighlightingMode = false;
@@ -98,14 +98,6 @@ void Disassembly::updateColors()
     mModifiedBytesBackgroundColor = ConfigColor("DisassemblyModifiedBytesBackgroundColor");
     mRestoredBytesColor = ConfigColor("DisassemblyRestoredBytesColor");
     mRestoredBytesBackgroundColor = ConfigColor("DisassemblyRestoredBytesBackgroundColor");
-    mByte00Color = ConfigColor("DisassemblyByte00Color");
-    mByte00BackgroundColor = ConfigColor("DisassemblyByte00BackgroundColor");
-    mByte7FColor = ConfigColor("DisassemblyByte7FColor");
-    mByte7FBackgroundColor = ConfigColor("DisassemblyByte7FBackgroundColor");
-    mByteFFColor = ConfigColor("DisassemblyByteFFColor");
-    mByteFFBackgroundColor = ConfigColor("DisassemblyByteFFBackgroundColor");
-    mByteIsPrintColor = ConfigColor("DisassemblyByteIsPrintColor");
-    mByteIsPrintBackgroundColor = ConfigColor("DisassemblyByteIsPrintBackgroundColor");
     mAutoCommentColor = ConfigColor("DisassemblyAutoCommentColor");
     mAutoCommentBackgroundColor = ConfigColor("DisassemblyAutoCommentBackgroundColor");
     mMnemonicBriefColor = ConfigColor("DisassemblyMnemonicBriefColor");
@@ -179,7 +171,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 
     if(mHighlightingMode)
     {
-        QPen pen(mInstructionHighlightColor);
+        QPen pen(Qt::red);
         pen.setWidth(2);
         painter->setPen(pen);
         QRect rect = viewport()->rect();
@@ -222,7 +214,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         QString addrText = getAddrText(cur_addr, label);
         BPXTYPE bpxtype = DbgGetBpxTypeAt(cur_addr);
         bool isbookmark = DbgGetBookmarkAt(cur_addr);
-        if(mInstBuffer.at(rowOffset).rva == mCipRva && !Bridge::getBridge()->mIsRunning && DbgMemFindBaseAddr(DbgValFromString("cip"), nullptr)) //cip + not running + valid cip
+        if(rvaToVa(mInstBuffer.at(rowOffset).rva) == mCipVa && !Bridge::getBridge()->mIsRunning && DbgMemFindBaseAddr(DbgValFromString("cip"), nullptr)) //cip + not running + valid cip
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(mCipBackgroundColor));
             if(!isbookmark) //no bookmark
@@ -907,8 +899,7 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         duint dest = DbgGetBranchDestination(rvaToVa(getInitialSelection()));
         if(!DbgMemIsValidReadPtr(dest))
             return;
-        QString cmd = "disasm " + ToPtrString(dest);
-        DbgCmdExec(cmd.toUtf8().constData());
+        gotoAddress(dest);
     }
     else
         AbstractTableView::keyPressEvent(event);
@@ -1654,17 +1645,17 @@ RichTextPainter::List Disassembly::getRichBytes(const Instruction_t & instr, boo
         auto isReal = realBytes[i].second;
         RichTextPainter::CustomRichText_t & curByte = richBytes.at(i);
         DBGRELOCATIONINFO relocInfo;
-        curByte.highlightColor = mDisassemblyRelocationUnderlineColor;
+        curByte.underlineColor = mDisassemblyRelocationUnderlineColor;
         if(DbgFunctions()->ModRelocationAtAddr(byteAddr, &relocInfo))
         {
             bool prevInSameReloc = relocInfo.rva < byteAddr - DbgFunctions()->ModBaseFromAddr(byteAddr);
-            curByte.highlight = isReal;
-            curByte.highlightConnectPrev = i > 0 && prevInSameReloc;
+            curByte.underline = isReal;
+            curByte.underlineConnectPrev = i > 0 && prevInSameReloc;
         }
         else
         {
-            curByte.highlight = false;
-            curByte.highlightConnectPrev = false;
+            curByte.underline = false;
+            curByte.underlineConnectPrev = false;
         }
 
         DBGPATCHINFO patchInfo;
@@ -1702,10 +1693,10 @@ RichTextPainter::List Disassembly::getRichBytes(const Instruction_t & instr, boo
         RichTextPainter::CustomRichText_t curByte;
         curByte.textColor = mBytesColor;
         curByte.textBackground = mBytesBackgroundColor;
-        curByte.highlightColor = mDisassemblyRelocationUnderlineColor;
-        curByte.highlightWidth = 1;
+        curByte.underlineColor = mDisassemblyRelocationUnderlineColor;
+        curByte.underlineWidth = 1;
         curByte.flags = RichTextPainter::FlagAll;
-        curByte.highlight = false;
+        curByte.underline = false;
         curByte.textColor = mBytesColor;
         curByte.textBackground = mBytesBackgroundColor;
         curByte.text = "...";
@@ -1755,7 +1746,19 @@ duint Disassembly::rvaToVa(dsint rva) const
     return mMemPage->va(rva);
 }
 
-void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint newTableOffset)
+void Disassembly::gotoAddress(duint addr)
+{
+    disassembleAt(addr, true, -1);
+
+    if(mIsMain)
+    {
+        // Update window title
+        DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(addr)));
+    }
+    GuiUpdateAllViews();
+}
+
+void Disassembly::disassembleAt(dsint parVA, bool history, dsint newTableOffset)
 {
     duint wSize;
     auto wBase = DbgMemFindBaseAddr(parVA, &wSize);
@@ -1764,7 +1767,6 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
     if(!wBase || !wSize || !DbgMemRead(parVA, &test, sizeof(test)))
         return;
     dsint wRVA = parVA - wBase;
-    dsint wCipRva = parCIP - wBase;
 
     HistoryData newHistory;
 
@@ -1801,9 +1803,6 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
     setSingleSelection(wRVA);               // Selects disassembled instruction
     dsint wInstrSize = getInstructionRVA(wRVA, 1) - wRVA - 1;
     expandSelectionUpTo(wRVA + wInstrSize);
-
-    //set CIP rva
-    mCipRva = wCipRva;
 
     if(newTableOffset == -1) //nothing specified
     {
@@ -1876,7 +1875,6 @@ void Disassembly::disassembleAt(dsint parVA, dsint parCIP, bool history, dsint n
         MessageBoxA(GuiGetWindowHandle(), strList.toUtf8().constData(), QString().sprintf("mCurrentVa=%d", mCurrentVa).toUtf8().constData(), MB_ICONINFORMATION);
     }
     */
-    emit disassembledAt(parVA,  parCIP,  history,  newTableOffset);
 }
 
 QList<Instruction_t>* Disassembly::instructionsBuffer()
@@ -1884,19 +1882,16 @@ QList<Instruction_t>* Disassembly::instructionsBuffer()
     return &mInstBuffer;
 }
 
-const dsint Disassembly::currentEIP() const
-{
-    return mCipRva;
-}
-
-void Disassembly::disassembleAt(dsint parVA, dsint parCIP)
+void Disassembly::disassembleAtSlot(dsint parVA, dsint parCIP)
 {
     if(mCodeFoldingManager)
     {
         mCodeFoldingManager->expandFoldSegment(parVA);
         mCodeFoldingManager->expandFoldSegment(parCIP);
     }
-    disassembleAt(parVA, parCIP, true, -1);
+    mCipVa = parCIP;
+    if(mIsMain || !mMemPage->getBase())
+        disassembleAt(parVA, true, -1);
 }
 
 void Disassembly::disassembleClear()
@@ -1952,11 +1947,14 @@ void Disassembly::historyPrevious()
     dsint va = mVaHistory.at(mCurrentVa).va;
     if(mCodeFoldingManager && mCodeFoldingManager->isFolded(va))
         mCodeFoldingManager->expandFoldSegment(va);
-    disassembleAt(va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
+    disassembleAt(va, false, mVaHistory.at(mCurrentVa).tableOffset);
 
-    // Update window title
-    DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));
-    GuiUpdateAllViews();
+    if(mIsMain)
+    {
+        // Update window title
+        DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));
+        GuiUpdateAllViews();
+    }
 }
 
 void Disassembly::historyNext()
@@ -1967,11 +1965,14 @@ void Disassembly::historyNext()
     dsint va = mVaHistory.at(mCurrentVa).va;
     if(mCodeFoldingManager && mCodeFoldingManager->isFolded(va))
         mCodeFoldingManager->expandFoldSegment(va);
-    disassembleAt(va, rvaToVa(mCipRva), false, mVaHistory.at(mCurrentVa).tableOffset);
+    disassembleAt(va, false, mVaHistory.at(mCurrentVa).tableOffset);
 
-    // Update window title
-    DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));
-    GuiUpdateAllViews();
+    if(mIsMain)
+    {
+        // Update window title
+        DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));
+        GuiUpdateAllViews();
+    }
 }
 
 bool Disassembly::historyHasPrevious() const
