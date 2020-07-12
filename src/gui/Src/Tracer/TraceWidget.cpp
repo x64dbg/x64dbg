@@ -42,6 +42,8 @@ TraceWidget::TraceWidget(QWidget* parent) :
     ui->mTopLeftLowerFrameLayout->addWidget(mInfo);
     int height = (mInfo->getRowHeight() + 1) * 4;
     ui->mTopLeftLowerFrame->setMinimumHeight(height + 2);
+    ui->mTopHSplitter->setSizes(QList<int>({1000, 1}));
+    ui->mTopLeftVSplitter->setSizes(QList<int>({1000, 1}));
 
     mInfo->addColumnAt(0, "", true);
     mInfo->setShowHeader(false);
@@ -61,6 +63,7 @@ TraceWidget::TraceWidget(QWidget* parent) :
     mOverview->setCellContent(1, 0, "world");
     mOverview->setCellContent(2, 0, "00000000");
     mOverview->setCellContent(3, 0, "here we will list all control flow transfers");
+    mOverview->hide();
 }
 
 TraceWidget::~TraceWidget()
