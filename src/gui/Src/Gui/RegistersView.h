@@ -136,8 +136,6 @@ public:
     static void operator delete(void* p);
     int getEstimateHeight();
 
-    void setRegisters(REGDUMP* reg); //This is really a protected member, but we need to put REGDUMP into it from TraceWidget
-
 public slots:
     virtual void refreshShortcutsSlot();
     virtual void displayCustomContextMenuSlot(QPoint pos);
@@ -183,10 +181,12 @@ protected slots:
     //unsigned int GetMxCsrRCValueFromString(const char* string);
     //unsigned int GetStatusWordTOPValueFromString(const char* string);
     QString GetStatusWordTOPStateString(unsigned short state);
+    void setRegisters(REGDUMP* reg);
     void appendRegister(QString & text, REGISTER_NAME reg, const char* name64, const char* name32);
 
     void onCopyAllAction();
 protected:
+    bool isActive;
     QPushButton* mChangeViewButton;
     bool mShowFpu;
     int mVScrollOffset;

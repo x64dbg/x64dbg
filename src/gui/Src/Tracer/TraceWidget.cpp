@@ -1,7 +1,7 @@
 #include "TraceWidget.h"
 #include "ui_TraceWidget.h"
 #include "TraceBrowser.h"
-#include "RegistersView.h"
+#include "TraceRegisters.h"
 #include "CPUInfoBox.h"
 
 TraceWidget::TraceWidget(QWidget* parent) :
@@ -13,7 +13,7 @@ TraceWidget::TraceWidget(QWidget* parent) :
     mTraceWidget = new TraceBrowser(this);
     mOverview = new StdTable(this);
     mInfo = new CPUInfoBox(this);
-    mGeneralRegs = new RegistersView(this);
+    mGeneralRegs = new TraceRegisters(this);
     //disasm
     ui->mTopLeftUpperRightFrameLayout->addWidget(mTraceWidget);
     //registers
@@ -31,6 +31,7 @@ TraceWidget::TraceWidget(QWidget* parent) :
     button_changeview->setStyleSheet("Text-align:left;padding: 4px;padding-left: 10px;");
     connect(button_changeview, SIGNAL(clicked()), mGeneralRegs, SLOT(onChangeFPUViewAction()));
     connect(mTraceWidget, SIGNAL(updateTraceRegistersView(void*)), this, SLOT(updateTraceRegistersView(void*)));
+    connect(Bridge::getBridge(), SIGNAL(updateTraceBrowser()), this, SLOT(updateSlot()));
 
     mGeneralRegs->SetChangeButton(button_changeview);
 
@@ -60,6 +61,11 @@ TraceWidget::~TraceWidget()
 void TraceWidget::updateTraceRegistersView(void* registers)
 {
     mGeneralRegs->setRegisters((REGDUMP*)registers);
+}
+
+void TraceWidget::updateSlot()
+{
+    mGeneralRegs->setActive(mTraceWidget->isFileOpened());
 }
 
 TraceBrowser* TraceWidget::getTraceBrowser()

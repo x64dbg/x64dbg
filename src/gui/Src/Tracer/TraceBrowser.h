@@ -28,6 +28,8 @@ public:
     duint getSelectionStart();
     duint getSelectionEnd();
 
+    bool isFileOpened() const;
+
 private:
     enum TableColumnIndex
     {
