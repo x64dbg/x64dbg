@@ -317,6 +317,7 @@ static bool checkKey(const QJsonObject & root, const QString & key, const QStrin
 void TraceFileParser::readFileHeader(TraceFileReader* that)
 {
     LARGE_INTEGER header;
+    bool ok;
     if(that->traceFile.read((char*)&header, 8) != 8)
         throw std::wstring(L"Unspecified");
     if(header.LowPart != MAKEFOURCC('T', 'R', 'A', 'C'))
@@ -325,15 +326,15 @@ void TraceFileParser::readFileHeader(TraceFileReader* that)
         throw std::wstring(L"Header info is too big");
     QByteArray jsonData = that->traceFile.read(header.HighPart);
     if(jsonData.size() != header.HighPart)
-        throw std::wstring(L"Unspecified");
+        throw std::wstring(L"JSON header is corrupted");
     QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonData);
     if(jsonDoc.isNull())
-        throw std::wstring(L"Unspecified");
+        throw std::wstring(L"JSON header is corrupted");
     const QJsonObject jsonRoot = jsonDoc.object();
 
     const auto ver = jsonRoot.find("ver");
     if(ver == jsonRoot.constEnd())
-        throw std::wstring(L"Unspecified");
+        throw std::wstring(L"Version not supported");
     QJsonValue verVal = ver.value();
     if(verVal.toInt(0) != 1)
         throw std::wstring(L"Version not supported");
@@ -354,10 +355,12 @@ void TraceFileParser::readFileHeader(TraceFileReader* that)
                 {
                     a = a.mid(2);
 #ifdef _WIN64
-                    that->hashValue = a.toLongLong(nullptr, 16);
+                    that->hashValue = a.toLongLong(&ok, 16);
 #else //x86
-                    that->hashValue = a.toLong(nullptr, 16);
+                    that->hashValue = a.toLong(&ok, 16);
 #endif //_WIN64
+                    if(!ok)
+                        that->hashValue = 0;
                 }
             }
         }
@@ -436,6 +439,8 @@ void TraceFileParser::run()
                 lastIndex = index + 1;
                 //Update progress
                 that->progress.store(that->traceFile.pos() * 100 / that->traceFile.size());
+                if(that->progress == 100)
+                    that->progress = 99;
                 if(this->isInterruptionRequested() && !that->traceFile.atEnd()) //Cancel loading
                     throw std::wstring(L"Canceled");
             }
@@ -445,6 +450,7 @@ void TraceFileParser::run()
             that->fileIndex.back().second.second = index - (lastIndex - 1);
         that->error = false;
         that->length = index;
+        that->progress = 100;
     }
     catch(const std::wstring & errReason)
     {
