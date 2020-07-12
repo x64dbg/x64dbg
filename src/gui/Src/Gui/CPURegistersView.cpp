@@ -194,7 +194,7 @@ void CPURegistersView::refreshShortcutsSlot()
 
 void CPURegistersView::mousePressEvent(QMouseEvent* event)
 {
-    if(!DbgIsDebugging())
+    if(!isActive)
         return;
 
     if(event->y() < yTopSpacing - mButtonHeight)
@@ -238,7 +238,7 @@ void CPURegistersView::mousePressEvent(QMouseEvent* event)
 
 void CPURegistersView::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    if(!DbgIsDebugging() || event->button() != Qt::LeftButton)
+    if(!isActive || event->button() != Qt::LeftButton)
         return;
     // get mouse position
     const int y = (event->y() - yTopSpacing) / (double)mRowHeight;
@@ -260,7 +260,7 @@ void CPURegistersView::mouseDoubleClickEvent(QMouseEvent* event)
 
 void CPURegistersView::keyPressEvent(QKeyEvent* event)
 {
-    if(DbgIsDebugging())
+    if(isActive)
     {
         int key = event->key();
         REGISTER_NAME newRegister = UNKNOWN;
@@ -300,6 +300,11 @@ void CPURegistersView::debugStateChangedSlot(DBGSTATE state)
     if(state == stopped)
     {
         updateRegistersSlot();
+        isActive = false;
+    }
+    else
+    {
+        isActive = true;
     }
 }
 
@@ -767,7 +772,7 @@ void CPURegistersView::onFollowInMemoryMap()
 
 void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
 {
-    if(!DbgIsDebugging())
+    if(!isActive)
         return;
     QMenu wMenu(this);
     QMenu* followInDumpNMenu = nullptr;

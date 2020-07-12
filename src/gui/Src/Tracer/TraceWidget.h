@@ -5,7 +5,7 @@
 
 class QVBoxLayout;
 class CPUWidget;
-class RegistersView;
+class TraceRegisters;
 class TraceBrowser;
 class CPUInfoBox;
 class StdTable;
@@ -27,10 +27,11 @@ public:
 
 protected slots:
     void updateTraceRegistersView(void* registers);
+    void updateSlot();
 
 protected:
     TraceBrowser* mTraceWidget;
-    RegistersView* mGeneralRegs;
+    TraceRegisters* mGeneralRegs;
     CPUInfoBox* mInfo;
     StdTable* mOverview;
 

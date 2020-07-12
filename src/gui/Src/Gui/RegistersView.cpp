@@ -686,6 +686,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     setWindowTitle("Registers");
     mChangeViewButton = NULL;
     mFpuMode = 0;
+    isActive = false;
 
     // general purposes register (we allow the user to modify the value)
     mGPR.insert(CAX);
@@ -1397,7 +1398,7 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
 
 void RegistersView::mousePressEvent(QMouseEvent* event)
 {
-    if(!DbgIsDebugging())
+    if(!isActive)
         return;
 
     if(event->y() < yTopSpacing - mButtonHeight)
@@ -1424,7 +1425,7 @@ void RegistersView::mousePressEvent(QMouseEvent* event)
 
 void RegistersView::mouseMoveEvent(QMouseEvent* event)
 {
-    if(!DbgIsDebugging())
+    if(!isActive)
     {
         QScrollArea::mouseMoveEvent(event);
         setCursor(QCursor(Qt::ArrowCursor));
@@ -1472,7 +1473,7 @@ void RegistersView::paintEvent(QPaintEvent* event)
     wPainter.fillRect(wPainter.viewport(), QBrush(ConfigColor("RegistersBackgroundColor")));
 
     // Don't draw the registers if a program isn't actually running
-    if(!DbgIsDebugging())
+    if(!isActive)
         return;
 
     // Iterate all registers
@@ -1958,7 +1959,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         //p->drawText(offset,mRowHeight*(mRegisterPlaces[reg].line+1),mRegisterMapping[reg]);
 
         //set highlighting
-        if(DbgIsDebugging() && mRegisterUpdates.contains(reg))
+        if(isActive && mRegisterUpdates.contains(reg))
             p->setPen(ConfigColor("RegistersModifiedColor"));
         else
             p->setPen(ConfigColor("RegistersColor"));
@@ -1980,7 +1981,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
 
         x += width;
 
-        if(mFPUx87_80BITSDISPLAY.contains(reg) && DbgIsDebugging())
+        if(mFPUx87_80BITSDISPLAY.contains(reg) && isActive)
         {
             p->setPen(ConfigColor("RegistersExtraInfoColor"));
             x += 1 * mCharWidth; //1 space
@@ -2019,7 +2020,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
 
             p->setPen(ConfigColor("RegistersExtraInfoColor"));
 
-            if(DbgIsDebugging() && mRegisterUpdates.contains(reg))
+            if(isActive && mRegisterUpdates.contains(reg))
                 p->setPen(ConfigColor("RegistersModifiedColor"));
 
             newText += ToLongDoubleString(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, reg))->data);

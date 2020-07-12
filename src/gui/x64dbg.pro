@@ -75,6 +75,7 @@ RESOURCES += \
 
 SOURCES += \
     Src/Gui/CPURegistersView.cpp \
+    Src/Tracer/TraceRegisters.cpp \
     Src/Tracer/TraceWidget.cpp \
     Src/main.cpp \
     Src/Gui/MainWindow.cpp \
@@ -191,6 +192,7 @@ SOURCES += \
 
 HEADERS += \
     Src/Gui/CPURegistersView.h \
+    Src/Tracer/TraceRegisters.h \
     Src/Tracer/TraceWidget.h \
     Src/main.h \
     Src/Gui/MainWindow.h \

@@ -58,6 +58,11 @@ TraceBrowser::~TraceBrowser()
     delete mDisasm;
 }
 
+bool TraceBrowser::isFileOpened() const
+{
+    return mTraceFile && mTraceFile->Progress() == 100 && mTraceFile->Length() > 0;
+}
+
 QString TraceBrowser::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel)
 {
     QString addrText = "";
@@ -145,7 +150,7 @@ RichTextPainter::List TraceBrowser::getRichBytes(const Instruction_t & instr) co
 
 QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
-    if(!mTraceFile || mTraceFile->Progress() != 100)
+    if(!isFileOpened())
     {
         return "";
     }
@@ -1031,7 +1036,7 @@ void TraceBrowser::closeFileSlot()
     mTraceFile->Close();
     delete mTraceFile;
     mTraceFile = nullptr;
-    reloadData();
+    emit Bridge::getBridge()->updateTraceBrowser();
 }
 
 void TraceBrowser::closeDeleteSlot()
@@ -1044,7 +1049,7 @@ void TraceBrowser::closeDeleteSlot()
         mTraceFile->Delete();
         delete mTraceFile;
         mTraceFile = nullptr;
-        reloadData();
+        emit Bridge::getBridge()->updateTraceBrowser();
     }
 }
 
@@ -1069,7 +1074,7 @@ void TraceBrowser::parseFinishedSlot()
         mMRUList->addEntry(mFileName);
         mMRUList->save();
     }
-    reloadData();
+    emit Bridge::getBridge()->updateTraceBrowser();
 }
 
 void TraceBrowser::gotoSlot()
