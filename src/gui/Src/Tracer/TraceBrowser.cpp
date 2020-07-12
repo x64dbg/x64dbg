@@ -1522,10 +1522,18 @@ void TraceBrowser::updateSlot()
 {
     if(mTraceFile && mTraceFile->Progress() == 100) // && this->isVisible()
     {
-        mTraceFile->purgeLastPage();
-        setRowCount(mTraceFile->Length());
-        reloadData();
+        if(DbgValFromString("tr.runtraceenabled()") == 1)
+        {
+            mTraceFile->purgeLastPage();
+            setRowCount(mTraceFile->Length());
+        }
+        REGDUMP reg;
+        reg = mTraceFile->Registers(getInitialSelection());
+        emit updateTraceRegistersView(&reg);
     }
+    else
+        setRowCount(0);
+    reloadData();
 }
 
 void TraceBrowser::toggleAutoDisassemblyFollowSelectionSlot()
