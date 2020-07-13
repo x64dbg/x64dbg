@@ -152,6 +152,30 @@ static void HandleZydisOperand(Zydis & cp, int opindex, DISASM_ARG* arg, bool ge
             arg->segment = ArchValue(SEG_FS, SEG_GS);
             value += ThreadGetLocalBase(ThreadGetId(hActiveThread));
         }
+        else
+        {
+            switch(mem.segment)
+            {
+            case ZYDIS_REGISTER_CS:
+                arg->segment = SEG_CS;
+                break;
+            case ZYDIS_REGISTER_DS:
+                arg->segment = SEG_DS;
+                break;
+            case ZYDIS_REGISTER_ES:
+                arg->segment = SEG_ES;
+                break;
+            case ZYDIS_REGISTER_FS:
+                arg->segment = SEG_FS;
+                break;
+            case ZYDIS_REGISTER_GS:
+                arg->segment = SEG_GS;
+                break;
+            case ZYDIS_REGISTER_SS:
+                arg->segment = SEG_SS;
+                break;
+            }
+        }
         arg->value = value;
         if(DbgMemIsValidReadPtr(value))
         {

@@ -896,10 +896,44 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
     else if(key == Qt::Key_Return || key == Qt::Key_Enter)
     {
         ShowDisassemblyPopup(0, 0, 0);
+        // Follow branch instruction
         duint dest = DbgGetBranchDestination(rvaToVa(getInitialSelection()));
-        if(!DbgMemIsValidReadPtr(dest))
+        if(DbgMemIsValidReadPtr(dest))
+        {
+            gotoAddress(dest);
             return;
-        gotoAddress(dest);
+        }
+        // Follow memory operand in dump
+        DISASM_INSTR instr;
+        DbgDisasmAt(rvaToVa(getInitialSelection()), &instr);
+        for(int op = 0; op < instr.argcount; op++)
+        {
+            if(instr.arg[op].type == arg_memory)
+            {
+                dest = instr.arg[op].value;
+                if(DbgMemIsValidReadPtr(dest))
+                {
+                    if(instr.arg[op].segment == SEG_SS)
+                        DbgCmdExec(QString("sdump %1").arg(ToPtrString(dest)).toUtf8().constData());
+                    else
+                        DbgCmdExec(QString("dump %1").arg(ToPtrString(dest)).toUtf8().constData());
+                    return;
+                }
+            }
+        }
+        // Follow constant in dump
+        for(int op = 0; op < instr.argcount; op++)
+        {
+            if(instr.arg[op].type == arg_normal)
+            {
+                dest = instr.arg[op].value;
+                if(DbgMemIsValidReadPtr(dest))
+                {
+                    DbgCmdExec(QString("dump %1").arg(ToPtrString(dest)).toUtf8().constData());
+                    return;
+                }
+            }
+        }
     }
     else
         AbstractTableView::keyPressEvent(event);
