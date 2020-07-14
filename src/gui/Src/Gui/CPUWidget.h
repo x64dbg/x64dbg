@@ -47,7 +47,7 @@ public:
 protected:
     CPUSideBar* mSideBar;
     CPUDisassembly* mDisas;
-    DisassemblerGraphView* mGraphView;
+    DisassemblerGraphView* mGraph;
     CPUMultiDump* mDump;
     CPUStack* mStack;
     CPURegistersView* mGeneralRegs;
