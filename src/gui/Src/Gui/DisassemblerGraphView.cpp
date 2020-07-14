@@ -1080,7 +1080,10 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
         //Update current instruction
         duint instr = this->getInstrForMouseEvent(event);
         if(instr != 0)
+        {
             this->cur_instr = instr;
+            emit selectionChanged(instr);
+        }
 
         this->viewport()->update();
 
@@ -1905,6 +1908,7 @@ bool DisassemblerGraphView::navigate(duint addr)
                 this->cur_instr = instr.addr;
                 this->show_cur_instr();
                 this->viewport()->update();
+                emit selectionChanged(addr);
                 return true;
             }
             row += int(instr.text.lines.size());
@@ -1921,6 +1925,7 @@ bool DisassemblerGraphView::navigate(duint addr)
         this->ready = false;
         this->desired_pos = nullptr;
         this->viewport()->update();
+        emit selectionChanged(addr);
         return true;
     }
 

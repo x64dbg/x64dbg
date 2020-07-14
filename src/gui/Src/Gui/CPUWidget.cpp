@@ -23,7 +23,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     mSideBar = new CPUSideBar(mDisas);
     mDisas->setSideBar(mSideBar);
     mArgumentWidget = new CPUArgumentWidget(this);
-    mGraphView = new DisassemblerGraphView(this);
+    mGraph = new DisassemblerGraphView(this);
 
     connect(mDisas, SIGNAL(tableOffsetChanged(dsint)), mSideBar, SLOT(changeTopmostAddress(dsint)));
     connect(mDisas, SIGNAL(viewableRowsChanged(int)), mSideBar, SLOT(setViewableRows(int)));
@@ -38,8 +38,8 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     ui->mTopLeftUpperLeftFrameLayout->addWidget(mSideBar);
     ui->mTopLeftUpperRightFrameLayout->addWidget(mDisas);
-    ui->mTopLeftUpperRightFrameLayout->addWidget(mGraphView);
-    mGraphView->hide();
+    ui->mTopLeftUpperRightFrameLayout->addWidget(mGraph);
+    mGraph->hide();
     disasMode = true;
 
     ui->mTopLeftVSplitter->setCollapsible(1, true); //allow collapsing of the InfoBox
@@ -157,10 +157,12 @@ void CPUWidget::setDisasmFocus()
 {
     if(!disasMode)
     {
-        mGraphView->hide();
+        mGraph->hide();
         mDisas->show();
         mSideBar->show();
         disasMode = true;
+        connect(mDisas, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
+        disconnect(mGraph, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
     }
     mDisas->setFocus();
 }
@@ -171,15 +173,17 @@ void CPUWidget::setGraphFocus()
     {
         mDisas->hide();
         mSideBar->hide();
-        mGraphView->show();
+        mGraph->show();
         disasMode = false;
+        disconnect(mDisas, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
+        connect(mGraph, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
     }
-    mGraphView->setFocus();
+    mGraph->setFocus();
 }
 
 duint CPUWidget::getSelectionVa()
 {
-    return disasMode ? mDisas->getSelectedVa() : mGraphView->get_cursor_pos();
+    return disasMode ? mDisas->getSelectedVa() : mGraph->get_cursor_pos();
 }
 
 CPUSideBar* CPUWidget::getSidebarWidget()
@@ -211,8 +215,9 @@ void CPUWidget::splitterMoved(int pos, int index)
 {
     Q_UNUSED(pos);
     Q_UNUSED(index);
-    auto splitter = (QSplitter*)sender();
-    if(splitter->sizes().at(1) == 0)
+    auto splitter = qobject_cast<QSplitter*>(sender());
+    if(splitter == nullptr) {} // ???
+    else if(splitter->sizes().at(1) == 0)
     {
         splitter->handle(1)->setCursor(Qt::UpArrowCursor);
         splitter->setStyleSheet("QSplitter::handle:vertical { border-top: 2px solid grey; }");

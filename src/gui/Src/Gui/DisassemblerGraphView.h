@@ -258,6 +258,9 @@ public:
 
     VaHistory mHistory;
 
+signals:
+    void selectionChanged(dsint parVA);
+
 public slots:
     void loadGraphSlot(BridgeCFGraphList* graph, duint addr);
     void graphAtSlot(duint addr);
