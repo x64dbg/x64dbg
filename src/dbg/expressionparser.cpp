@@ -878,20 +878,24 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
                 return false;
             if(int(stack.size()) < argc)
                 return false;
-            std::vector<duint> argv;
+            std::vector<ExpressionValue> argv;
             argv.resize(argc);
             for(auto i = 0; i < argc; i++)
             {
-                duint arg;
+                /*duint arg;
                 if(!stack[stack.size() - 1].DoEvaluate(arg, silent, baseonly))
-                    return false;
+                    return false;*/
+                // TODO: put in EvalValue -> ExpressionValue
                 stack.pop_back();
+                ExpressionValue arg = { ValueTypeNumber, 0 };
                 argv[argc - i - 1] = arg;
             }
-            duint result;
-            if(!ExpressionFunctions::Call(name, argv, result))
+            ExpressionValue result = { ValueTypeNumber, 0 };
+            if(!ExpressionFunctions::Call(name, result, argv))
                 return false;
-            stack.push_back(EvalValue(result));
+            // TODO: put back in EvalValue
+            EvalValue result2(0);
+            stack.push_back(result2);
         }
         else
             stack.push_back(EvalValue(token.data()));

@@ -34,8 +34,8 @@ static bool RegisterEasy(const String & name, duint(*cbFunction)(Ts...))
     {
         return callFunc(argv, cbFunction, typename gens<sizeof...(Ts)>::type());
     };
-    if(!ExpressionFunctions::Register(aliases[0], sizeof...(Ts), tempFunc))
-        return false;
+    /*if(!ExpressionFunctions::Register(aliases[0], sizeof...(Ts), tempFunc))
+        return false;*/
     for(size_t i = 1; i < aliases.size(); i++)
         ExpressionFunctions::RegisterAlias(aliases[0], aliases[i]);
     return true;
@@ -186,7 +186,7 @@ bool ExpressionFunctions::Unregister(const String & name)
     return true;
 }
 
-bool ExpressionFunctions::Call(const String & name, std::vector<duint> & argv, duint & result)
+bool ExpressionFunctions::Call(const String & name, ExpressionValue & result, std::vector<ExpressionValue> & argv)
 {
     SHARED_ACQUIRE(LockExpressionFunctions);
     auto found = mFunctions.find(name);
@@ -195,8 +195,8 @@ bool ExpressionFunctions::Call(const String & name, std::vector<duint> & argv, d
     const auto & f = found->second;
     if(f.argc != int(argv.size()))
         return false;
-    result = f.cbFunction(f.argc, argv.data(), f.userdata);
-    return true;
+    // TODO: check return value?
+    return f.cbFunction(&result, f.argc, argv.data(), f.userdata);
 }
 
 bool ExpressionFunctions::GetArgc(const String & name, int & argc)

@@ -3,16 +3,36 @@
 #include "_global.h"
 #include <functional>
 
+typedef enum
+{
+    ValueTypeNumber,
+    ValueTypeString,
+} ValueType;
+
+typedef struct
+{
+    const char* ptr;
+    bool isOwner;
+} StringValue;
+
+typedef struct
+{
+    ValueType type;
+    duint number;
+    StringValue string;
+} ExpressionValue;
+
 class ExpressionFunctions
 {
 public:
-    using CBEXPRESSIONFUNCTION = std::function<duint(int argc, duint* argv, void* userdata)>;
+    // TODO: also register the argument types
+    using CBEXPRESSIONFUNCTION = std::function<bool(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)>;
 
     static void Init();
     static bool Register(const String & name, int argc, const CBEXPRESSIONFUNCTION & cbFunction, void* userdata = nullptr);
     static bool RegisterAlias(const String & name, const String & alias);
     static bool Unregister(const String & name);
-    static bool Call(const String & name, std::vector<duint> & argv, duint & result);
+    static bool Call(const String & name, ExpressionValue & result, std::vector<ExpressionValue> & argv);
     static bool GetArgc(const String & name, int & argc);
 
 private:

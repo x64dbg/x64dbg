@@ -991,11 +991,12 @@ bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUG
     PLUG_EXPRFUNCTION plugExprfunction;
     plugExprfunction.pluginHandle = pluginHandle;
     strcpy_s(plugExprfunction.name, name);
-    if(!ExpressionFunctions::Register(name, argc, cbFunction, userdata))
+    // TODO: backport plugin interface
+    /*if(!ExpressionFunctions::Register(name, argc, cbFunction, userdata))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Expression function \"%s\" failed to register...\n"), plugName.c_str(), name);
         return false;
-    }
+    }*/
     EXCLUSIVE_ACQUIRE(LockPluginExprfunctionList);
     pluginExprfunctionList.push_back(plugExprfunction);
     EXCLUSIVE_RELEASE();
