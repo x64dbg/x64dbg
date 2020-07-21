@@ -116,6 +116,29 @@ private:
     QColor mCommentBackgroundColor;
     QColor mDisassemblyRelocationUnderlineColor;
 
+    QColor mConditionalJumpLineTrueColor;
+
+    QColor mLoopColor;
+    QColor mFunctionColor;
+
+    QPen mLoopPen;
+    QPen mFunctionPen;
+    QPen mConditionalTruePen;
+
+    // Function Graphic
+
+    enum Function_t
+    {
+        Function_none,
+        Function_single,
+        Function_start,
+        Function_middle,
+        Function_loop_entry,
+        Function_end
+    };
+
+    int paintFunctionGraphic(QPainter* painter, int x, int y, Function_t funcType, bool loop);
+
 signals:
     void displayReferencesWidget();
     void selectionChanged(unsigned long long selection);

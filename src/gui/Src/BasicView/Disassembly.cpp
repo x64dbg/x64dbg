@@ -421,26 +421,26 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         painter->setPen(mFunctionPen);
 
         XREFTYPE refType = DbgGetXrefTypeAt(cur_addr);
-        QString indicator;
+        char indicator;
         if(refType == XREF_JMP)
         {
-            indicator = ">";
+            indicator = '>';
         }
         else if(refType == XREF_CALL)
         {
-            indicator = "$";
+            indicator = '$';
         }
         else if(funcType != Function_none)
         {
-            indicator = ".";
+            indicator = '.';
         }
         else
         {
-            indicator = " ";
+            indicator = ' ';
         }
 
         int charwidth = getCharWidth();
-        painter->drawText(QRect(x + funcsize, y, charwidth, h), Qt::AlignVCenter | Qt::AlignLeft, indicator);
+        painter->drawText(QRect(x + funcsize, y, charwidth, h), Qt::AlignVCenter | Qt::AlignLeft, QString(indicator));
         funcsize += charwidth;
 
         //draw jump arrows

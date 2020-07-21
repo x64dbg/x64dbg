@@ -153,6 +153,100 @@ RichTextPainter::List TraceBrowser::getRichBytes(const Instruction_t & instr) co
     return richBytes;
 }
 
+#define HANDLE_RANGE_TYPE(prefix, first, last) \
+    if(first == prefix ## _BEGIN && last == prefix ## _END) \
+        first = prefix ## _SINGLE; \
+    if(last == prefix ## _END && first != prefix ## _SINGLE) \
+        first = last
+
+/**
+ * @brief       This method paints the graphic for functions/loops.
+ *
+ * @param[in]   painter     Pointer to the painter that allows painting by its own
+ * @param[in]   x           Rectangle x
+ * @param[in]   y           Rectangle y
+ * @param[in]   funcType    Type of drawing to make
+ *
+ * @return      Width of the painted data.
+ */
+
+int TraceBrowser::paintFunctionGraphic(QPainter* painter, int x, int y, Function_t funcType, bool loop)
+{
+    if(loop && funcType == Function_none)
+        return 0;
+    if(loop)
+        painter->setPen(mLoopPen); //thick black line
+    else
+        painter->setPen(mFunctionPen); //thick black line
+    int height = getRowHeight();
+    int x_add = 5;
+    int y_add = 4;
+    int end_add = 2;
+    int line_width = 3;
+    if(loop)
+    {
+        end_add = -1;
+        x_add = 4;
+    }
+    switch(funcType)
+    {
+    case Function_single:
+    {
+        if(loop)
+            y_add = height / 2 + 1;
+        painter->drawLine(x + x_add + line_width, y + y_add, x + x_add, y + y_add);
+        painter->drawLine(x + x_add, y + y_add, x + x_add, y + height - y_add - 1);
+        if(loop)
+            y_add = height / 2 - 1;
+        painter->drawLine(x + x_add, y + height - y_add, x + x_add + line_width, y + height - y_add);
+    }
+    break;
+
+    case Function_start:
+    {
+        if(loop)
+            y_add = height / 2 + 1;
+        painter->drawLine(x + x_add + line_width, y + y_add, x + x_add, y + y_add);
+        painter->drawLine(x + x_add, y + y_add, x + x_add, y + height);
+    }
+    break;
+
+    case Function_middle:
+    {
+        painter->drawLine(x + x_add, y, x + x_add, y + height);
+    }
+    break;
+
+    case Function_loop_entry:
+    {
+        int trisize = 2;
+        int y_start = (height - trisize * 2) / 2 + y;
+        painter->drawLine(x + x_add, y_start, x + trisize + x_add, y_start + trisize);
+        painter->drawLine(x + trisize + x_add, y_start + trisize, x + x_add, y_start + trisize * 2);
+
+        painter->drawLine(x + x_add, y, x + x_add, y_start - 1);
+        painter->drawLine(x + x_add, y_start + trisize * 2 + 2, x + x_add, y + height);
+    }
+    break;
+
+    case Function_end:
+    {
+        if(loop)
+            y_add = height / 2 - 1;
+        painter->drawLine(x + x_add, y, x + x_add, y + height - y_add);
+        painter->drawLine(x + x_add, y + height - y_add, x + x_add + line_width, y + height - y_add);
+    }
+    break;
+
+    case Function_none:
+    {
+
+    }
+    break;
+    }
+    return x_add + line_width + end_add;
+}
+
 QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     if(!isFileOpened())
@@ -373,8 +467,93 @@ NotDebuggingLabel:
         unsigned char opcodes[16];
         int opcodeSize = 0;
         mTraceFile->OpCode(index, opcodes, &opcodeSize);
+        REGDUMP reg;
+        reg = mTraceFile->Registers(index);
         Instruction_t inst = mDisasm->DisassembleAt(opcodes, opcodeSize, 0, cur_addr, false);
-        RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), 4, getRichBytes(inst), mFontMetrics);
+        //draw functions
+        Function_t funcType;
+        FUNCTYPE funcFirst = DbgGetFunctionTypeAt(cur_addr);
+        FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + opcodeSize - 1);
+        HANDLE_RANGE_TYPE(FUNC, funcFirst, funcLast);
+        switch(funcFirst)
+        {
+        case FUNC_SINGLE:
+            funcType = Function_single;
+            break;
+        case FUNC_NONE:
+            funcType = Function_none;
+            break;
+        case FUNC_BEGIN:
+            funcType = Function_start;
+            break;
+        case FUNC_MIDDLE:
+            funcType = Function_middle;
+            break;
+        case FUNC_END:
+            funcType = Function_end;
+            break;
+        }
+        int funcsize = paintFunctionGraphic(painter, x, y, funcType, false);
+
+        painter->setPen(mFunctionPen);
+
+        XREFTYPE refType = DbgGetXrefTypeAt(cur_addr);
+        char indicator;
+        if(refType == XREF_JMP)
+        {
+            indicator = '>';
+        }
+        else if(refType == XREF_CALL)
+        {
+            indicator = '$';
+        }
+        else if(funcType != Function_none)
+        {
+            indicator = '.';
+        }
+        else
+        {
+            indicator = ' ';
+        }
+
+        int charwidth = getCharWidth();
+        painter->drawText(QRect(x + funcsize, y, charwidth, h), Qt::AlignVCenter | Qt::AlignLeft, QString(indicator));
+        funcsize += charwidth;
+
+        //draw jump arrows
+        Instruction_t::BranchType branchType = inst.branchType;
+        painter->setPen(mConditionalTruePen);
+        int halfRow = getRowHeight() / 2 + 1;
+        int jumpsize = 0;
+        if((branchType == Instruction_t::Conditional || branchType == Instruction_t::Unconditional) && index < mTraceFile->Length())
+        {
+            duint next_addr;
+            next_addr = mTraceFile->Registers(index + 1).regcontext.cip;
+            if(next_addr < cur_addr)
+            {
+                QPoint wPoints[] =
+                {
+                    QPoint(x + funcsize, y + halfRow + 1),
+                    QPoint(x + funcsize + 2, y + halfRow - 1),
+                    QPoint(x + funcsize + 4, y + halfRow + 1),
+                };
+                jumpsize = 8;
+                painter->drawPolyline(wPoints, 3);
+            }
+            else if(next_addr > cur_addr)
+            {
+                QPoint wPoints[] =
+                {
+                    QPoint(x + funcsize, y + halfRow - 1),
+                    QPoint(x + funcsize + 2, y + halfRow + 1),
+                    QPoint(x + funcsize + 4, y + halfRow - 1),
+                };
+                jumpsize = 8;
+                painter->drawPolyline(wPoints, 3);
+            }
+        }
+
+        RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, getRichBytes(inst), mFontMetrics);
         return "";
     }
 
@@ -387,11 +566,46 @@ NotDebuggingLabel:
 
         Instruction_t inst = mDisasm->DisassembleAt(opcodes, opcodeSize, 0, cur_addr, false);
 
+        int loopsize = 0;
+        int depth = 0;
+
+        while(1) //paint all loop depths
+        {
+            LOOPTYPE loopFirst = DbgGetLoopTypeAt(cur_addr, depth);
+            LOOPTYPE loopLast = DbgGetLoopTypeAt(cur_addr + opcodeSize - 1, depth);
+            HANDLE_RANGE_TYPE(LOOP, loopFirst, loopLast);
+            if(loopFirst == LOOP_NONE)
+                break;
+            Function_t funcType;
+            switch(loopFirst)
+            {
+            case LOOP_SINGLE:
+                funcType = Function_single;
+                break;
+            case LOOP_BEGIN:
+                funcType = Function_start;
+                break;
+            case LOOP_ENTRY:
+                funcType = Function_loop_entry;
+                break;
+            case LOOP_MIDDLE:
+                funcType = Function_middle;
+                break;
+            case LOOP_END:
+                funcType = Function_end;
+                break;
+            default:
+                break;
+            }
+            loopsize += paintFunctionGraphic(painter, x + loopsize, y, funcType, loopFirst != LOOP_SINGLE);
+            depth++;
+        }
+
         if(mHighlightToken.text.length())
             ZydisTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
         else
             ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
-        RichTextPainter::paintRichText(painter, x + 0, y, getColumnWidth(col) - 0, getRowHeight(), 4, richText, mFontMetrics);
+        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - 0, getRowHeight(), 4, richText, mFontMetrics);
         return "";
     }
 
@@ -433,6 +647,7 @@ NotDebuggingLabel:
                 QColor backgroundColor;
                 if(autoComment)
                 {
+                    //TODO: autocomments from trace file will be much more helpful
                     painter->setPen(mAutoCommentColor);
                     backgroundColor = mAutoCommentBackgroundColor;
                 }
@@ -998,10 +1213,17 @@ void TraceBrowser::updateColors()
     mAutoCommentBackgroundColor = ConfigColor("DisassemblyAutoCommentBackgroundColor");
     mCommentColor = ConfigColor("DisassemblyCommentColor");
     mCommentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
+    mConditionalJumpLineTrueColor = ConfigColor("DisassemblyConditionalJumpLineTrueColor");
     mDisassemblyRelocationUnderlineColor = ConfigColor("DisassemblyRelocationUnderlineColor");
+    mLoopColor = ConfigColor("DisassemblyLoopColor");
+    mFunctionColor = ConfigColor("DisassemblyFunctionColor");
 
     auto a = mSelectionColor, b = mTracedAddressBackgroundColor;
     mTracedSelectedAddressBackgroundColor = QColor((a.red() + b.red()) / 2, (a.green() + b.green()) / 2, (a.blue() + b.blue()) / 2);
+
+    mLoopPen = QPen(mLoopColor, 2);
+    mFunctionPen = QPen(mFunctionColor, 2);
+    mConditionalTruePen = QPen(mConditionalJumpLineTrueColor);
 }
 
 void TraceBrowser::openFileSlot()
