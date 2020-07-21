@@ -181,11 +181,32 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
     duint index = rowBase + rowOffset;
     duint cur_addr;
     cur_addr = mTraceFile->Registers(index).regcontext.cip;
+    auto traceCount = DbgFunctions()->GetTraceRecordHitCount(cur_addr);
     bool wIsSelected = (index >= mSelection.fromIndex && index <= mSelection.toIndex);
-    if(wIsSelected)
-    {
+
+    // Highlight if selected
+    if(wIsSelected && traceCount)
+        painter->fillRect(QRect(x, y, w, h), QBrush(mTracedSelectedAddressBackgroundColor));
+    else if(wIsSelected)
         painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
+    else if(traceCount)
+    {
+        // Color depending on how often a sequence of code is executed
+        int exponent = 1;
+        while(traceCount >>= 1) //log2(traceCount)
+            exponent++;
+        int colorDiff = (exponent * exponent) / 2;
+
+        // If the user has a light trace background color, substract
+        if(mTracedAddressBackgroundColor.blue() > 160)
+            colorDiff *= -1;
+
+        painter->fillRect(QRect(x, y, w, h),
+                          QBrush(QColor(mTracedAddressBackgroundColor.red(),
+                                        mTracedAddressBackgroundColor.green(),
+                                        std::max(0, std::min(256, mTracedAddressBackgroundColor.blue() + colorDiff)))));
     }
+
     if(index >= mTraceFile->Length())
         return "";
     switch(static_cast<TableColumnIndex>(col))
@@ -978,6 +999,9 @@ void TraceBrowser::updateColors()
     mCommentColor = ConfigColor("DisassemblyCommentColor");
     mCommentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
     mDisassemblyRelocationUnderlineColor = ConfigColor("DisassemblyRelocationUnderlineColor");
+
+    auto a = mSelectionColor, b = mTracedAddressBackgroundColor;
+    mTracedSelectedAddressBackgroundColor = QColor((a.red() + b.red()) / 2, (a.green() + b.green()) / 2, (a.blue() + b.blue()) / 2);
 }
 
 void TraceBrowser::openFileSlot()

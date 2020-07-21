@@ -108,6 +108,7 @@ private:
     QColor mSelectedAddressColor;
     QColor mAddressBackgroundColor;
     QColor mAddressColor;
+    QColor mTracedSelectedAddressBackgroundColor;
 
     QColor mAutoCommentColor;
     QColor mAutoCommentBackgroundColor;
