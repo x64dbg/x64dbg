@@ -32,23 +32,6 @@ public:
     // ScrollBar Management
     dsint sliderMovedHook(int type, dsint value, dsint delta) override;
 
-    // Jumps Graphic
-    int paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, bool isjmp);
-
-    // Function Graphic
-
-    enum Function_t
-    {
-        Function_none,
-        Function_single,
-        Function_start,
-        Function_middle,
-        Function_loop_entry,
-        Function_end
-    };
-
-    int paintFunctionGraphic(QPainter* painter, int x, int y, Function_t funcType, bool loop);
-
     // Instructions Management
     dsint getPreviousInstructionRVA(dsint rva, duint count);
     dsint getNextInstructionRVA(dsint rva, duint count, bool isGlobal = false);
@@ -171,9 +154,24 @@ private:
     int mCurrentVa;
 
 protected:
+    // Jumps Graphic
+    int paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, bool isjmp);
+
+    // Function Graphic
+
+    enum Function_t
+    {
+        Function_none,
+        Function_single,
+        Function_start,
+        Function_middle,
+        Function_loop_entry,
+        Function_end
+    };
+
+    int paintFunctionGraphic(QPainter* painter, int x, int y, Function_t funcType, bool loop);
     // Configuration
     QColor mInstructionHighlightColor;
-    QColor mSelectionColor;
     QColor mDisassemblyRelocationUnderlineColor;
 
     QColor mCipBackgroundColor;
