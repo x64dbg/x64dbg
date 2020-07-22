@@ -928,6 +928,11 @@ void SettingsDialog::on_chkAsciiAddressDumpMode_toggled(bool checked)
     bAsciiAddressDumpModeUpdated = true;
 }
 
+void SettingsDialog::on_chkFollowJumpsAndCalls_toggled(bool checked)
+{
+    settings.guiFollowJumpsAndCalls = checked;
+}
+
 void SettingsDialog::on_chkUseLocalHelpFile_toggled(bool checked)
 {
     settings.miscUseLocalHelpFile = checked;
@@ -946,9 +951,4 @@ void SettingsDialog::on_chkQueryWorkingSet_toggled(bool checked)
 void SettingsDialog::on_chkTransparentExceptionStepping_toggled(bool checked)
 {
     settings.miscTransparentExceptionStepping = checked;
-}
-
-void SettingsDialog::on_chkFollowJumpsAndCalls_toggled(bool checked)
-{
-    settings.guiFollowJumpsAndCalls = checked;
 }
