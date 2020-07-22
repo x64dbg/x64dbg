@@ -67,7 +67,7 @@ void BreakpointsView::setupContextMenu()
         }
         return true;
     });
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("breakpoint_edit_alt.png"), tr("&Edit"), SLOT(editBreakpointSlot()), "ActionBinaryEdit"), validBp);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("breakpoint_edit_alt.png"), tr("&Edit"), SLOT(editBreakpointSlot()), "ActionEditBreakpoint"), validBp);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("breakpoint_reset_hitcount.png"), tr("Reset hit count"), SLOT(resetHitCountBreakpointSlot()), "ActionResetHitCountBreakpoint"), [this](QMenu*)
     {
         if(!isValidBp())
