@@ -241,7 +241,7 @@ void TraceWidget::updateInfobox(unsigned long long selection, TraceFileReader* t
         case ZYDIS_REGISTER_BH:
             return (registers.regcontext.cbx & 0xFF00) >> 8;
         default:
-            return static_cast<size_t>(0);
+            return static_cast<ULONG_PTR>(0);
         }
     };
     if(zydis.Disassemble(registers.regcontext.cip, opcode, opsize))
