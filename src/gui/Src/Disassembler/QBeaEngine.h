@@ -43,10 +43,10 @@ class QBeaEngine
 public:
     explicit QBeaEngine(int maxModuleSize);
     ~QBeaEngine();
-    ulong DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n);
-    ulong DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n);
-    Instruction_t DisassembleAt(byte_t* data, duint size, duint origBase, duint origInstRVA, bool datainstr = true);
-    Instruction_t DecodeDataAt(byte_t* data, duint size, duint origBase, duint origInstRVA, ENCODETYPE type);
+    ulong DisassembleBack(const byte_t* data, duint base, duint size, duint ip, int n);
+    ulong DisassembleNext(const byte_t* data, duint base, duint size, duint ip, int n);
+    Instruction_t DisassembleAt(const byte_t* data, duint size, duint origBase, duint origInstRVA, bool datainstr = true);
+    Instruction_t DecodeDataAt(const byte_t* data, duint size, duint origBase, duint origInstRVA, ENCODETYPE type);
     void setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager);
     void UpdateConfig();
 

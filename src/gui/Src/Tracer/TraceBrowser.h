@@ -77,7 +77,6 @@ private:
     bool mAutoDisassemblyFollowSelection;
 
     TraceFileReader* mTraceFile;
-    QBeaEngine* mDisasm;
     BreakpointMenu* mBreakpointMenu;
     MRUList* mMRUList;
     QString mFileName;

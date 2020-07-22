@@ -35,8 +35,6 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
 
     mAutoDisassemblyFollowSelection = false;
 
-    int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
-    mDisasm = new QBeaEngine(maxModuleSize);
     mHighlightingMode = false;
     mPermanentHighlightingMode = false;
 
@@ -60,7 +58,6 @@ TraceBrowser::~TraceBrowser()
         mTraceFile->Close();
         delete mTraceFile;
     }
-    delete mDisasm;
 }
 
 bool TraceBrowser::isFileOpened() const
@@ -274,7 +271,9 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
 
     duint index = rowBase + rowOffset;
     duint cur_addr;
-    cur_addr = mTraceFile->Registers(index).regcontext.cip;
+    REGDUMP reg;
+    reg = mTraceFile->Registers(index);
+    cur_addr = reg.regcontext.cip;
     auto traceCount = DbgFunctions()->GetTraceRecordHitCount(cur_addr);
     bool wIsSelected = (index >= mSelection.fromIndex && index <= mSelection.toIndex);
 
@@ -303,6 +302,9 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
 
     if(index >= mTraceFile->Length())
         return "";
+
+    const Instruction_t & inst = mTraceFile->Instruction(index);
+
     switch(static_cast<TableColumnIndex>(col))
     {
     case Index:
@@ -464,16 +466,10 @@ NotDebuggingLabel:
 
     case Opcode:
     {
-        unsigned char opcodes[16];
-        int opcodeSize = 0;
-        mTraceFile->OpCode(index, opcodes, &opcodeSize);
-        REGDUMP reg;
-        reg = mTraceFile->Registers(index);
-        Instruction_t inst = mDisasm->DisassembleAt(opcodes, opcodeSize, 0, cur_addr, false);
         //draw functions
         Function_t funcType;
         FUNCTYPE funcFirst = DbgGetFunctionTypeAt(cur_addr);
-        FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + opcodeSize - 1);
+        FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + inst.length - 1);
         HANDLE_RANGE_TYPE(FUNC, funcFirst, funcLast);
         switch(funcFirst)
         {
@@ -560,11 +556,6 @@ NotDebuggingLabel:
     case Disassembly:
     {
         RichTextPainter::List richText;
-        unsigned char opcodes[16];
-        int opcodeSize = 0;
-        mTraceFile->OpCode(index, opcodes, &opcodeSize);
-
-        Instruction_t inst = mDisasm->DisassembleAt(opcodes, opcodeSize, 0, cur_addr, false);
 
         int loopsize = 0;
         int depth = 0;
@@ -572,7 +563,7 @@ NotDebuggingLabel:
         while(1) //paint all loop depths
         {
             LOOPTYPE loopFirst = DbgGetLoopTypeAt(cur_addr, depth);
-            LOOPTYPE loopLast = DbgGetLoopTypeAt(cur_addr + opcodeSize - 1, depth);
+            LOOPTYPE loopLast = DbgGetLoopTypeAt(cur_addr + inst.length - 1, depth);
             HANDLE_RANGE_TYPE(LOOP, loopFirst, loopLast);
             if(loopFirst == LOOP_NONE)
                 break;
@@ -881,14 +872,6 @@ void TraceBrowser::setupRightClickContextMenu()
             menu->addSeparator();
         }
         menu->addAction(QString("ThreadID: %1").arg(mTraceFile->ThreadId(index)));
-        if(index + 1 < mTraceFile->Length())
-        {
-            menu->addAction(QString("LastError: %1 -> %2").arg(ToPtrString(mTraceFile->Registers(index).lastError.code)).arg(ToPtrString(mTraceFile->Registers(index + 1).lastError.code)));
-        }
-        else
-        {
-            menu->addAction(QString("LastError: %1").arg(ToPtrString(mTraceFile->Registers(index).lastError.code)));
-        }
         return true;
     });
     mMenuBuilder->addMenu(makeMenu(tr("Information")), infoMenu);
@@ -933,11 +916,7 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
                 int columnPosition = 0;
                 if(getColumnIndexFromX(event->x()) == Disassembly)
                 {
-                    Instruction_t inst;
-                    unsigned char opcode[16];
-                    int opcodeSize;
-                    mTraceFile->OpCode(index, opcode, &opcodeSize);
-                    tokens = mDisasm->DisassembleAt(opcode, opcodeSize, mTraceFile->Registers(index).regcontext.cip, 0).tokens;
+                    tokens = mTraceFile->Instruction(index).tokens;
                     columnPosition = getColumnPosition(Disassembly);
                 }
                 else if(getColumnIndexFromX(event->x()) == TableColumnIndex::Registers)
@@ -1128,7 +1107,6 @@ void TraceBrowser::onSelectionChanged(unsigned long long selection)
 
 void TraceBrowser::tokenizerConfigUpdatedSlot()
 {
-    mDisasm->UpdateConfig();
     mPermanentHighlightingMode = ConfigBool("Disassembler", "PermanentHighlightingMode");
 }
 
@@ -1187,7 +1165,6 @@ void TraceBrowser::updateColors()
 {
     AbstractTableView::updateColors();
     //ZydisTokenizer::UpdateColors(); //Already called in disassembly
-    mDisasm->UpdateConfig();
     mBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
 
     mInstructionHighlightColor = ConfigColor("InstructionHighlightColor");
@@ -1321,7 +1298,10 @@ void TraceBrowser::parseFinishedSlot()
         mMRUList->addEntry(mFileName);
         mMRUList->save();
     }
+    setSingleSelection(0);
+    makeVisible(0);
     emit Bridge::getBridge()->updateTraceBrowser();
+    emit selectionChanged(getInitialSelection());
 }
 
 void TraceBrowser::gotoSlot()
@@ -1403,12 +1383,8 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
     {
         if(i != getSelectionStart())
             stream << "\r\n";
-        duint cur_addr = mTraceFile->Registers(i).regcontext.cip;
-        unsigned char opcode[16];
-        int opcodeSize;
-        mTraceFile->OpCode(i, opcode, &opcodeSize);
-        Instruction_t inst;
-        inst = mDisasm->DisassembleAt(opcode, opcodeSize, cur_addr, 0);
+        const Instruction_t & inst = mTraceFile->Instruction(i);
+        duint cur_addr = inst.rva;
         QString address = getAddrText(cur_addr, 0, addressLen > sizeof(duint) * 2 + 1);
         QString bytes;
         QString bytesHTML;
@@ -1591,10 +1567,7 @@ void TraceBrowser::copyDisassemblySlot()
             clipboardHtml += "<br/>";
         }
         RichTextPainter::List richText;
-        unsigned char opcode[16];
-        int opcodeSize;
-        mTraceFile->OpCode(i, opcode, &opcodeSize);
-        Instruction_t inst = mDisasm->DisassembleAt(opcode, opcodeSize, mTraceFile->Registers(i).regcontext.cip, 0);
+        const Instruction_t & inst = mTraceFile->Instruction(i);
         ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
         RichTextPainter::htmlRichText(richText, clipboardHtml, clipboard);
     }
