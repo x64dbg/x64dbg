@@ -532,7 +532,14 @@ void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
 
     default:
     {
-        modifySlot();
+        duint followJumpsAndCalls = 0;
+        duint wVa = rvaToVa(getInitialSelection());
+        STACK_COMMENT comment;
+        if(BridgeSettingGetUint("Gui", "FollowJumpsAndCalls", &followJumpsAndCalls) && followJumpsAndCalls && DbgStackCommentGet(wVa, &comment) && strcmp(comment.color, "!rtnclr") == 0)
+            followDisasmSlot();
+
+        else
+            modifySlot();
     }
     break;
     }
