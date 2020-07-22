@@ -102,8 +102,17 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
 
     // (Disassembly) Assemble dialog
     case 2:
-        assembleSlot();
-        break;
+    {
+        duint followJumpsAndCalls = 0;
+        duint dest = DbgGetBranchDestination(rvaToVa(getInitialSelection()));
+
+        if(BridgeSettingGetUint("Gui", "FollowJumpsAndCalls", &followJumpsAndCalls) && followJumpsAndCalls && DbgMemIsValidReadPtr(dest))
+            gotoAddress(dest);
+
+        else
+            assembleSlot();
+    }
+    break;
 
     // (Comments) Set comment dialog
     case 3:
