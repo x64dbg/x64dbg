@@ -101,6 +101,8 @@ private slots:
     void on_chkQueryWorkingSet_toggled(bool checked);
     void on_chkTransparentExceptionStepping_toggled(bool checked);
 
+    void on_chkFollowJumpsAndCalls_toggled(bool checked);
+
 private:
     //enums
     enum CalcType
@@ -192,6 +194,7 @@ private:
         bool guiShowExitConfirmation;
         bool guiDisableAutoComplete;
         bool guiAsciiAddressDumpMode;
+        bool guiFollowJumpsAndCalls;
         //Misc Tab
         bool miscSetJIT;
         bool miscSetJITAuto;

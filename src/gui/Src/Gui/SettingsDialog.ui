@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>381</width>
-    <height>514</height>
+    <height>592</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -33,7 +33,7 @@
       <bool>true</bool>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tabEvents">
       <attribute name="title">
@@ -742,6 +742,13 @@
         <widget class="QCheckBox" name="chkAsciiAddressDumpMode">
          <property name="text">
           <string>Show ASCII/Unicode in address dump mode</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkFollowJumpsAndCalls">
+         <property name="text">
+          <string>Follow jumps and calls on double-click</string>
          </property>
         </widget>
        </item>
