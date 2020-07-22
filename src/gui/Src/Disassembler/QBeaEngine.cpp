@@ -28,11 +28,11 @@ QBeaEngine::~QBeaEngine()
  *
  * @return      Return the RVA (Relative to the data pointer) of the nth instruction before the instruction pointed by ip
  */
-ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip, int n)
+ulong QBeaEngine::DisassembleBack(const byte_t* data, duint base, duint size, duint ip, int n)
 {
     int i;
     uint abuf[128], addr, back, cmdsize;
-    unsigned char* pdata;
+    const unsigned char* pdata;
 
     // Reset Disasm Structure
     Zydis cp;
@@ -124,11 +124,11 @@ ulong QBeaEngine::DisassembleBack(byte_t* data, duint base, duint size, duint ip
  *
  * @return      Return the RVA (Relative to the data pointer) of the nth instruction after the instruction pointed by ip
  */
-ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip, int n)
+ulong QBeaEngine::DisassembleNext(const byte_t* data, duint base, duint size, duint ip, int n)
 {
     int i;
     uint cmdsize;
-    unsigned char* pdata;
+    const unsigned char* pdata;
 
     // Reset Disasm Structure
     Zydis cp;
@@ -181,7 +181,7 @@ ulong QBeaEngine::DisassembleNext(byte_t* data, duint base, duint size, duint ip
  *
  * @return      Return the disassembled instruction
  */
-Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase, duint origInstRVA, bool datainstr)
+Instruction_t QBeaEngine::DisassembleAt(const byte_t* data, duint size, duint origBase, duint origInstRVA, bool datainstr)
 {
     if(datainstr)
     {
@@ -311,7 +311,7 @@ Instruction_t QBeaEngine::DisassembleAt(byte_t* data, duint size, duint origBase
     return wInst;
 }
 
-Instruction_t QBeaEngine::DecodeDataAt(byte_t* data, duint size, duint origBase, duint origInstRVA, ENCODETYPE type)
+Instruction_t QBeaEngine::DecodeDataAt(const byte_t* data, duint size, duint origBase, duint origInstRVA, ENCODETYPE type)
 {
     //tokenize
     ZydisTokenizer::InstructionToken cap;

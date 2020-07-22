@@ -15,6 +15,16 @@ TraceFileReader::TraceFileReader(QObject* parent) : QObject(parent)
     lastAccessedIndexOffset = 0;
     hashValue = 0;
     EXEPath.clear();
+
+    int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
+    mDisasm = new QBeaEngine(maxModuleSize);
+    connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerUpdatedSlot()));
+    connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(tokenizerUpdatedSlot()));
+}
+
+TraceFileReader::~TraceFileReader()
+{
+    delete mDisasm;
 }
 
 bool TraceFileReader::Open(const QString & fileName)
@@ -134,7 +144,7 @@ duint TraceFileReader::HashValue() const
 }
 
 // Return the executable name of executable
-QString TraceFileReader::ExePath() const
+const QString & TraceFileReader::ExePath() const
 {
     return EXEPath;
 }
@@ -167,6 +177,15 @@ void TraceFileReader::OpCode(unsigned long long index, unsigned char* buffer, in
     }
     else
         page->OpCode(index - base, buffer, opcodeSize);
+}
+
+// Return the disassembled instruction at a given index.
+const Instruction_t & TraceFileReader::Instruction(unsigned long long index)
+{
+    unsigned long long base;
+    TraceFilePage* page = getPage(index, &base);
+    // The caller must guarantee page is not null, most likely they have already called some other getters.
+    return page->Instruction(index - base, *mDisasm);
 }
 
 // Return the thread id at a given index
@@ -205,7 +224,7 @@ void TraceFileReader::MemoryAccessInfo(unsigned long long index, duint* address,
 // Used internally to get the page for the given index and read from disk if necessary
 TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long long* base)
 {
-    // Try to access the most recent used page
+    // Try to access the most recently used page
     if(lastAccessedPage)
     {
         if(index >= lastAccessedIndexOffset && index < lastAccessedIndexOffset + lastAccessedPage->Length())
@@ -298,6 +317,14 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long 
         GuiAddLogMessage("PAGEFAULT1\r\n"); //debug
         return nullptr; //???
     }
+}
+
+
+void TraceFileReader::tokenizerUpdatedSlot()
+{
+    mDisasm->UpdateConfig();
+    for(auto & i : pages)
+        i.second.updateInstructions();
 }
 
 //Parser
@@ -639,7 +666,7 @@ unsigned long long TraceFilePage::Length() const
     return length;
 }
 
-REGDUMP TraceFilePage::Registers(unsigned long long index) const
+const REGDUMP & TraceFilePage::Registers(unsigned long long index) const
 {
     return mRegisters.at(index);
 }
@@ -648,6 +675,19 @@ void TraceFilePage::OpCode(unsigned long long index, unsigned char* buffer, int*
 {
     *opcodeSize = this->opcodeSize.at(index);
     memcpy(buffer, opcodes.constData() + opcodeOffset.at(index), *opcodeSize);
+}
+
+const Instruction_t & TraceFilePage::Instruction(unsigned long long index, QBeaEngine & mDisasm)
+{
+    if(instructions.size() == 0)
+    {
+        instructions.reserve(length);
+        for(unsigned long long i = 0; i < length; i++)
+        {
+            instructions.emplace_back(mDisasm.DisassembleAt((const byte_t*)opcodes.constData() + opcodeOffset.at(i), opcodeSize.at(i), 0, Registers(i).regcontext.cip, false));
+        }
+    }
+    return instructions.at(index);
 }
 
 DWORD TraceFilePage::ThreadId(unsigned long long index) const
@@ -675,4 +715,9 @@ void TraceFilePage::MemoryAccessInfo(unsigned long long index, duint* address, d
         newMemory[i] = this->newMemory.at(base + i);
         isValid[i] = true; // proposed flag
     }
+}
+
+void TraceFilePage::updateInstructions()
+{
+    instructions.clear();
 }
