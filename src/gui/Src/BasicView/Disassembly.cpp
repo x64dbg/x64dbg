@@ -906,7 +906,7 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         // Follow memory operand in dump
         DISASM_INSTR instr;
         DbgDisasmAt(rvaToVa(getInitialSelection()), &instr);
-        for(int op = 0; op < instr.argcount; op++)
+        for(int op = instr.argcount - 1; op >= 0; op--)
         {
             if(instr.arg[op].type == arg_memory)
             {
@@ -922,7 +922,7 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
             }
         }
         // Follow constant in dump
-        for(int op = 0; op < instr.argcount; op++)
+        for(int op = instr.argcount - 1; op >= 0; op--)
         {
             if(instr.arg[op].type == arg_normal)
             {
