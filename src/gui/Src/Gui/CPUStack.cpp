@@ -530,9 +530,18 @@ void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
     }
     break;
 
-    default:
+    case 1: // value
     {
         modifySlot();
+    }
+    break;
+
+    default:
+    {
+        duint wVa = rvaToVa(getInitialSelection());
+        STACK_COMMENT comment;
+        if(DbgStackCommentGet(wVa, &comment) && strcmp(comment.color, "!rtnclr") == 0)
+            followDisasmSlot();
     }
     break;
     }
