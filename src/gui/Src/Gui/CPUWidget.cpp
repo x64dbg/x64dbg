@@ -169,6 +169,10 @@ void CPUWidget::setDisasmFocus()
         connect(mDisas, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
         disconnect(mGraph, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
     }
+    else if(disasMode == 2)
+    {
+        activateWindow();
+    }
     mDisas->setFocus();
 }
 
@@ -182,6 +186,10 @@ void CPUWidget::setGraphFocus()
         disasMode = 1;
         disconnect(mDisas, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
         connect(mGraph, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
+    }
+    else if(disasMode == 2)
+    {
+        mGraph->activateWindow();
     }
     mGraph->setFocus();
 }
