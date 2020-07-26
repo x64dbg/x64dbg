@@ -13,6 +13,7 @@ class CPURegistersView;
 class CPUInfoBox;
 class CPUArgumentWidget;
 class DisassemblerGraphView;
+class MHDetachedWindow;
 
 namespace Ui
 {
@@ -48,19 +49,22 @@ protected:
     CPUSideBar* mSideBar;
     CPUDisassembly* mDisas;
     DisassemblerGraphView* mGraph;
+    MHDetachedWindow* mGraphWindow;
     CPUMultiDump* mDump;
     CPUStack* mStack;
     CPURegistersView* mGeneralRegs;
     CPUInfoBox* mInfo;
     CPUArgumentWidget* mArgumentWidget;
 
-    bool disasMode;
+    int disasMode;
 
 private:
     Ui::CPUWidget* ui;
 
 private slots:
     void splitterMoved(int pos, int index);
+    void attachGraph(QWidget* widget);
+    void detachGraph();
 };
 
 #endif // CPUWIDGET_H

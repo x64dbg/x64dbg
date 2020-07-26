@@ -77,7 +77,7 @@ class MHDetachedWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MHDetachedWindow(QWidget* parent = 0, MHTabWidget* tabwidget = 0);
+    MHDetachedWindow(QWidget* parent = 0);
     ~MHDetachedWindow();
 
     QString mNativeName;
@@ -89,8 +89,6 @@ signals:
 protected:
     void closeEvent(QCloseEvent* event);
     bool event(QEvent* event);
-
-    MHTabWidget* mTabWidget;
 };
 
 #endif // __MHTABWIDGET_H__
