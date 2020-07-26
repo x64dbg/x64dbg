@@ -377,6 +377,21 @@ WString StringUtils::LocalCpToUtf16(const char* str)
     return convertedString;
 }
 
+String StringUtils::Utf16ToLocalCp(const WString & str)
+{
+    String convertedString;
+    if(str.size() == 0)
+        return convertedString;
+    int requiredSize = WideCharToMultiByte(CP_ACP, 0, str.c_str(), -1, nullptr, 0, nullptr, nullptr);
+    if(requiredSize > 0)
+    {
+        convertedString.resize(requiredSize - 1);
+        if(!WideCharToMultiByte(CP_ACP, 0, str.c_str(), -1, (char*)convertedString.c_str(), requiredSize, nullptr, nullptr))
+            convertedString.clear();
+    }
+    return convertedString;
+}
+
 //Taken from: https://stackoverflow.com/a/24315631
 void StringUtils::ReplaceAll(String & s, const String & from, const String & to)
 {

@@ -25,6 +25,7 @@ public:
     static String PadLeft(const String & s, size_t minLength, char ch);
     static String Utf16ToUtf8(const WString & wstr);
     static String Utf16ToUtf8(const wchar_t* wstr);
+    static String Utf16ToLocalCp(const WString & wstr);
     static WString Utf8ToUtf16(const String & str);
     static WString Utf8ToUtf16(const char* str);
     static String LocalCpToUtf8(const String & str);
