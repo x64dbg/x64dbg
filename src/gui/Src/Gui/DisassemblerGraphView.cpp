@@ -341,7 +341,7 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
 
             //Render node background
             p.setPen(graphNodeColor);
-            p.setBrush(disassemblyBackgroundColor);
+            p.setBrush(graphNodeBackgroundColor);
             p.drawRect(block.x + this->charWidth, block.y + this->charWidth,
                        block.width - (4 + 2 * this->charWidth), block.height - (4 + 2 * this->charWidth));
 
