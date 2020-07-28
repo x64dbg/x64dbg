@@ -474,6 +474,7 @@ void ScriptView::error(int line, QString message)
     msg->setIcon(QMessageBox::Critical);
     msg->setWindowTitle(title);
     msg->setText(message);
+    msg->setStandardButtons(QMessageBox::Ok);
     msg->setWindowIcon(DIcon("script-error.png"));
     msg->show();
 }
