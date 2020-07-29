@@ -339,23 +339,23 @@ extern "C" __declspec(dllexport) bool isasciistring(const unsigned char* data, i
 extern "C" __declspec(dllexport) bool isunicodestring(const unsigned char* data, int maxlen)
 {
     int len = 0;
-    for(const wchar_t* p = (const wchar_t*)data; *p; len++, p++)
+    for(const wchar_t* p = (const wchar_t*)data; *p; len += sizeof(wchar_t), p++)
     {
         if(len >= maxlen)
             break;
     }
 
-    if(len < 2 || len + 1 >= maxlen)
+    if(len < 2 * sizeof(wchar_t) || len + 1 >= maxlen)
         return false;
 
     String data2;
     WString wdata2;
     // Convert to and from ANSI
     data2 = StringUtils::Utf16ToLocalCp((const wchar_t*)data);
-    if(data2.size() > maxlen || data2.size() < 2)
+    if(data2.size() < 2)
         return false;
     wdata2 = StringUtils::LocalCpToUtf16(data2);
-    if(wdata2.size() > maxlen || wdata2.size() < 2)
+    if(wdata2.size() / sizeof(wchar_t) > maxlen || wdata2.size() < 2)
         return false;
     // Is the data exactly representable in both ANSI and Unicode?
     if(memcmp(wdata2.c_str(), data, wdata2.size() * sizeof(wchar_t)) != 0)
