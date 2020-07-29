@@ -260,6 +260,7 @@ public:
 
 signals:
     void selectionChanged(dsint parVA);
+    void detachGraph();
 
 public slots:
     void loadGraphSlot(BridgeCFGraphList* graph, duint addr);

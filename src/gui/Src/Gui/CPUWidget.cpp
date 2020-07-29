@@ -1,5 +1,6 @@
 #include "CPUWidget.h"
 #include "ui_CPUWidget.h"
+#include <QDesktopWidget>
 #include <QTabWidget>
 #include <QVBoxLayout>
 #include "CPUSideBar.h"
@@ -11,6 +12,7 @@
 #include "CPUArgumentWidget.h"
 #include "DisassemblerGraphView.h"
 #include "Configuration.h"
+#include "TabWidget.h"
 
 CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 {
@@ -28,6 +30,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     connect(mDisas, SIGNAL(tableOffsetChanged(dsint)), mSideBar, SLOT(changeTopmostAddress(dsint)));
     connect(mDisas, SIGNAL(viewableRowsChanged(int)), mSideBar, SLOT(setViewableRows(int)));
     connect(mDisas, SIGNAL(selectionChanged(dsint)), mSideBar, SLOT(setSelection(dsint)));
+    connect(mGraph, SIGNAL(detachGraph()), this, SLOT(detachGraph()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), mSideBar, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(updateSideBar()), mSideBar, SLOT(reload()));
     connect(Bridge::getBridge(), SIGNAL(updateArgumentView()), mArgumentWidget, SLOT(refreshData()));
@@ -40,7 +43,8 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     ui->mTopLeftUpperRightFrameLayout->addWidget(mDisas);
     ui->mTopLeftUpperRightFrameLayout->addWidget(mGraph);
     mGraph->hide();
-    disasMode = true;
+    disasMode = 0;
+    mGraphWindow = nullptr;
 
     ui->mTopLeftVSplitter->setCollapsible(1, true); //allow collapsing of the InfoBox
     connect(ui->mTopLeftVSplitter, SIGNAL(splitterMoved(int, int)), this, SLOT(splitterMoved(int, int)));
@@ -121,6 +125,7 @@ void CPUWidget::loadWindowSettings()
 
 CPUWidget::~CPUWidget()
 {
+    delete mGraphWindow;
     delete ui;
 }
 
@@ -155,35 +160,101 @@ void CPUWidget::setDefaultDisposition()
 
 void CPUWidget::setDisasmFocus()
 {
-    if(!disasMode)
+    if(disasMode == 1)
     {
         mGraph->hide();
         mDisas->show();
         mSideBar->show();
-        disasMode = true;
+        disasMode = 0;
         connect(mDisas, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
         disconnect(mGraph, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
+    }
+    else if(disasMode == 2)
+    {
+        activateWindow();
     }
     mDisas->setFocus();
 }
 
 void CPUWidget::setGraphFocus()
 {
-    if(disasMode)
+    if(disasMode == 0)
     {
         mDisas->hide();
         mSideBar->hide();
         mGraph->show();
-        disasMode = false;
+        disasMode = 1;
         disconnect(mDisas, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
         connect(mGraph, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
+    }
+    else if(disasMode == 2)
+    {
+        mGraph->activateWindow();
     }
     mGraph->setFocus();
 }
 
+void CPUWidget::detachGraph()
+{
+    if(mGraphWindow == nullptr)
+    {
+        mGraphWindow = new MHDetachedWindow(this);
+
+        mGraphWindow->setWindowModality(Qt::NonModal);
+
+        // Find Widget and connect
+        connect(mGraphWindow, SIGNAL(OnClose(QWidget*)), this, SLOT(attachGraph(QWidget*)));
+
+        mGraphWindow->setWindowTitle(tr("Graph"));
+        mGraphWindow->setWindowIcon(mGraph->windowIcon());
+        mGraphWindow->mNativeName = "";
+
+        mGraph->setParent(mGraphWindow);
+        ui->mTopLeftUpperRightFrameLayout->removeWidget(mGraph);
+
+        // Create and show
+        mGraphWindow->show();
+        mGraphWindow->setCentralWidget(mGraph);
+
+        // Needs to be done explicitly
+        mGraph->showNormal();
+        QRect screenGeometry = QApplication::desktop()->screenGeometry();
+        int w = 640;
+        int h = 480;
+        int x = (screenGeometry.width() - w) / 2;
+        int y = (screenGeometry.height() - h) / 2;
+        mGraphWindow->showNormal();
+        mGraphWindow->setGeometry(x, y, w, h);
+        mGraphWindow->showNormal();
+
+        disasMode = 2;
+
+        mDisas->show();
+        mSideBar->show();
+        connect(mDisas, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
+        connect(mGraph, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
+    }
+}
+
+void CPUWidget::attachGraph(QWidget* widget)
+{
+    mGraph->setParent(this);
+    ui->mTopLeftUpperRightFrameLayout->addWidget(mGraph);
+    mGraph->hide();
+    mGraphWindow->close();
+    disconnect(mGraph, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
+    delete mGraphWindow;
+    mGraphWindow = nullptr;
+    disasMode = 0;
+}
+
+//This is used in run to selection
 duint CPUWidget::getSelectionVa()
 {
-    return disasMode ? mDisas->getSelectedVa() : mGraph->get_cursor_pos();
+    if(disasMode < 2)
+        return disasMode == 0 ? mDisas->getSelectedVa() : mGraph->get_cursor_pos();
+    else
+        return !mGraph->hasFocus() ? mDisas->getSelectedVa() : mGraph->get_cursor_pos();
 }
 
 CPUSideBar* CPUWidget::getSidebarWidget()
