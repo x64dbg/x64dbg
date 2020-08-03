@@ -58,6 +58,7 @@ AbstractTableView::AbstractTableView(QWidget* parent)
     mAllowPainting = true;
     mDrawDebugOnly = false;
     mPopupEnabled = true;
+    mPopupTimer = 0;
 
     // ScrollBar Init
     setVerticalScrollBar(new AbstractTableScrollBar(verticalScrollBar()));
@@ -1292,6 +1293,8 @@ void AbstractTableView::ShowDisassemblyPopup(duint addr, int x, int y)
 {
     if(!mPopupEnabled || !addr)
     {
+        killTimer(mPopupTimer);
+        mPopupTimer = 0;
         if(mDisassemblyPopup)
             mDisassemblyPopup->hide();
         return;
@@ -1304,10 +1307,26 @@ void AbstractTableView::ShowDisassemblyPopup(duint addr, int x, int y)
     {
         mDisassemblyPopup->move(mapToGlobal(QPoint(x + 20, y + fontMetrics().height() * 2)));
         mDisassemblyPopup->setAddress(addr);
-        mDisassemblyPopup->show();
+        //mDisassemblyPopup->show();
+        mPopupTimer = startTimer(QApplication::startDragTime());
     }
     else
+    {
         mDisassemblyPopup->hide();
+        killTimer(mPopupTimer);
+        mPopupTimer = 0;
+    }
+}
+
+void AbstractTableView::timerEvent(QTimerEvent* event)
+{
+    if(event->timerId() == mPopupTimer)
+    {
+        mDisassemblyPopup->show();
+        killTimer(mPopupTimer);
+        mPopupTimer = 0;
+    }
+    QAbstractScrollArea::timerEvent(event);
 }
 
 void AbstractTableView::hideEvent(QHideEvent* event)
