@@ -112,7 +112,7 @@ void TraceWidget::updateInfobox(unsigned long long selection, TraceFileReader* t
     mInfo->setCellContent(1, 0, QString());
     mInfo->setCellContent(2, 0, QString());
     mInfo->setCellContent(3, 0, QString());
-    auto resolveRegValue = [registers](ZydisRegister regname)
+    auto resolveRegValue = [&registers](ZydisRegister regname)
     {
         switch(regname)
         {
