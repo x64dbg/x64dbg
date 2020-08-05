@@ -1,5 +1,6 @@
 /* Based on: https://github.com/radareorg/cutter/blob/48b84bfa5c7fd7c7aa8595b8f742c9d8081d09fc/src/themes/qdarkstyle/style.qss */
 /* Modified for x64dbg by JustMagic: https://github.com/JustasMasiulis */
+/* Use 'url(./xxxx)' for resources, it will be replaced with the right path at runtime */
 
 ShortcutEdit[error="true"] {
     color: #EF5350;

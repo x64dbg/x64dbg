@@ -478,12 +478,8 @@ void MainWindow::loadSelectedStyle(bool reloadStyleCss)
         QTextStream in(&f);
         auto style = in.readAll();
         f.close();
-        auto nameIdx = stylePath.lastIndexOf('/');
-        auto dir = stylePath.mid(nameIdx - 1);
-        auto current = QDir::current().absolutePath();
-        QDir::setCurrent(dir);
+        style = style.replace("url(./", QString("url(../themes/%2/").arg(selectedTheme));
         qApp->setStyleSheet(style);
-        QDir::setCurrent(current);
     }
     if(!reloadStyleCss && !styleSettings.isEmpty())
         importSettings(styleSettings, { "Colors", "Fonts" });
