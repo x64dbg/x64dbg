@@ -34,6 +34,8 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), mSideBar, SLOT(debugStateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(updateSideBar()), mSideBar, SLOT(reload()));
     connect(Bridge::getBridge(), SIGNAL(updateArgumentView()), mArgumentWidget, SLOT(refreshData()));
+    connect(Bridge::getBridge(), SIGNAL(focusDisasm()), this, SLOT(setDisasmFocus()));
+    connect(Bridge::getBridge(), SIGNAL(focusGraph()), this, SLOT(setGraphFocus()));
 
     mDisas->setCodeFoldingManager(mSideBar->getCodeFoldingManager());
 
