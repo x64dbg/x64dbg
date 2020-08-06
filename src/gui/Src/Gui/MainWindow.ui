@@ -180,7 +180,7 @@
    </widget>
    <widget class="QMenu" name="menu_Trace">
     <property name="title">
-     <string>&amp;Trace</string>
+     <string>Traci&amp;ng</string>
     </property>
     <widget class="QMenu" name="menuTrace_record">
      <property name="title">
