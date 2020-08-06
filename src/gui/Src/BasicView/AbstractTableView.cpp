@@ -1308,7 +1308,8 @@ void AbstractTableView::ShowDisassemblyPopup(duint addr, int x, int y)
         mDisassemblyPopup->move(mapToGlobal(QPoint(x + 20, y + fontMetrics().height() * 2)));
         mDisassemblyPopup->setAddress(addr);
         //mDisassemblyPopup->show();
-        mPopupTimer = startTimer(QApplication::startDragTime());
+        if(mPopupTimer == 0)
+            mPopupTimer = startTimer(QApplication::startDragTime());
     }
     else
     {
