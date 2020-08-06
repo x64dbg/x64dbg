@@ -30,8 +30,6 @@ public:
 
     // Misc
     void setDefaultDisposition();
-    void setDisasmFocus();
-    void setGraphFocus();
 
     void saveWindowSettings();
     void loadWindowSettings();
@@ -45,6 +43,10 @@ public:
     CPUMultiDump* getDumpWidget();
     CPUStack* getStackWidget();
     CPUInfoBox* getInfoBoxWidget();
+
+public slots:
+    void setDisasmFocus();
+    void setGraphFocus();
 
 protected:
     CPUSideBar* mSideBar;

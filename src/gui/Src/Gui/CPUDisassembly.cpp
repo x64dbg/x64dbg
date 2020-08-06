@@ -40,7 +40,6 @@ CPUDisassembly::CPUDisassembly(QWidget* parent, bool isMain) : Disassembly(paren
         connect(Bridge::getBridge(), SIGNAL(selectionDisasmGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
         connect(Bridge::getBridge(), SIGNAL(selectionDisasmSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
         connect(Bridge::getBridge(), SIGNAL(displayWarning(QString, QString)), this, SLOT(displayWarningSlot(QString, QString)));
-        connect(Bridge::getBridge(), SIGNAL(focusDisasm()), this, SLOT(setFocus()));
     }
 
     // Connect some internal signals
@@ -1989,7 +1988,7 @@ void CPUDisassembly::setEncodeTypeSlot()
 void CPUDisassembly::graphSlot()
 {
     if(DbgCmdExecDirect(QString("graph %1").arg(ToPtrString(rvaToVa(getSelectionStart()))).toUtf8().constData()))
-        emit displayGraphWidget();
+        GuiFocusView(GUI_GRAPH);
 }
 
 void CPUDisassembly::analyzeModuleSlot()
