@@ -207,7 +207,7 @@ Instruction_t QBeaEngine::DisassembleAt(const byte_t* data, duint size, duint or
             branchType = Instruction_t::Unconditional;
         else if(cp.IsBranchType(Zydis::BTCall))
             branchType = Instruction_t::Call;
-        else if(cp.IsBranchType(Zydis::BTCondJmp))
+        else if(cp.IsBranchType(Zydis::BTCondJmp) || cp.IsBranchType(Zydis::BTLoop))
             branchType = Instruction_t::Conditional;
     }
     else
