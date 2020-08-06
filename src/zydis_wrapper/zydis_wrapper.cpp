@@ -768,11 +768,11 @@ bool Zydis::IsBranchGoingToExecute(ZydisMnemonic id, size_t cflags, size_t ccx)
     case ZYDIS_MNEMONIC_JS: //jump short if sign
         return bSF;
     case ZYDIS_MNEMONIC_LOOP: //decrement count; jump short if ecx!=0
-        return ccx != 0;
+        return ccx != 1;
     case ZYDIS_MNEMONIC_LOOPE: //decrement count; jump short if ecx!=0 and zf=1
-        return ccx != 0 && bZF;
+        return ccx != 1 && bZF;
     case ZYDIS_MNEMONIC_LOOPNE: //decrement count; jump short if ecx!=0 and zf=0
-        return ccx != 0 && !bZF;
+        return ccx != 1 && !bZF;
     default:
         return false;
     }
