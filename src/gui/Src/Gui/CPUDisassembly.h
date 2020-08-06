@@ -34,7 +34,6 @@ signals:
     void displaySourceManagerWidget();
     void showPatches();
     void displayLogWidget();
-    void displayGraphWidget();
     void displaySymbolsWidget();
 
 public slots:
