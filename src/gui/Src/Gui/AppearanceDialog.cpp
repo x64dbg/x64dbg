@@ -24,6 +24,7 @@ AppearanceDialog::AppearanceDialog(QWidget* parent) : QDialog(parent), ui(new Ui
     fontMap = &Config()->Fonts;
     fontBackupMap = *fontMap;
     fontInit();
+    ui->exampleText->setFont(ConfigFont("AbstractTableView"));
     connect(this, SIGNAL(rejected()), this, SLOT(rejectedSlot()));
 }
 
@@ -205,10 +206,21 @@ void AppearanceDialog::on_editBackgroundColor_textChanged(const QString & arg1)
             if(colorMap->contains(id))
                 ui->buttonSave->setEnabled(false); //we cannot save with an invalid color
         }
-        if(QColor(ui->editColor->text()).isValid())
-            ui->exampleText->setStyleSheet(QString("color: %1; background-color: %2").arg(ui->editColor->text()).arg(arg1));
+        if(ui->editBackgroundColor->isEnabled())
+        {
+            if(QColor(ui->editColor->text()).isValid())
+                ui->exampleText->setStyleSheet(QString("color: %1; background-color: %2").arg(ui->editColor->text()).arg(arg1));
+            else
+                ui->exampleText->setStyleSheet(QString("color: black; background-color: %1").arg(arg1));
+        }
         else
-            ui->exampleText->setStyleSheet(QString("color: black; background-color: %1").arg(arg1));
+        {
+            if(QColor(ui->editColor->text()).isValid())
+                ui->exampleText->setStyleSheet(QString("color: %1").arg(ui->editColor->text()));
+            else
+                ui->exampleText->setStyleSheet(QString("color: black"));
+        }
+        ui->exampleText->setFont(ConfigFont("AbstractTableView"));
     }
     ui->buttonBackgroundColor->setStyleSheet(styleSheet);
 }
@@ -240,10 +252,11 @@ void AppearanceDialog::on_editColor_textChanged(const QString & arg1)
             emit Config()->colorsUpdated();
             GuiUpdateAllViews();
         }
-        if(QColor(ui->editBackgroundColor->text()).isValid())
+        if(QColor(ui->editBackgroundColor->text()).isValid() && ui->editBackgroundColor->isEnabled())
             ui->exampleText->setStyleSheet(QString("color: %1; background-color: %2").arg(arg1).arg(ui->editBackgroundColor->text()));
         else
             ui->exampleText->setStyleSheet(QString("color: %1").arg(arg1));
+        ui->exampleText->setFont(ConfigFont("AbstractTableView"));
     }
     else
     {
@@ -451,7 +464,6 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Conditional Jump Backwards Lines (no jump)"), "SideBarConditionalJumpLineFalseBackwardsColor", "");
     colorInfoListAppend(tr("Unconditional Jump Backwards Lines (jump)"), "SideBarUnconditionalJumpLineTrueBackwardsColor", "");
     colorInfoListAppend(tr("Unconditional Jump Backwards Lines (no jump)"), "SideBarUnconditionalJumpLineFalseBackwardsColor", "");
-    colorInfoListAppend(tr("Jump Lines (executing)"), "SideBarJumpLineExecuteColor", "");
     colorInfoListAppend(tr("Code Folding Checkbox Color"), "SideBarCheckBoxForeColor", "SideBarCheckBoxBackColor");
     colorInfoListAppend(tr("Background"), "SideBarBackgroundColor", "");
 
