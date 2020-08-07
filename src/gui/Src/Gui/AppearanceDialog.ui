@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>522</width>
-    <height>401</height>
+    <height>429</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,7 @@
      <x>2</x>
      <y>2</y>
      <width>521</width>
-     <height>361</height>
+     <height>391</height>
     </rect>
    </property>
    <property name="currentIndex">
@@ -603,7 +603,7 @@ border-width: 1px 2px 2px 1px;</string>
        <x>10</x>
        <y>10</y>
        <width>341</width>
-       <height>311</height>
+       <height>351</height>
       </rect>
      </property>
      <property name="title">
@@ -618,7 +618,7 @@ border-width: 1px 2px 2px 1px;</string>
         <x>10</x>
         <y>20</y>
         <width>321</width>
-        <height>281</height>
+        <height>321</height>
        </rect>
       </property>
       <property name="verticalScrollBarPolicy">
@@ -629,9 +629,23 @@ border-width: 1px 2px 2px 1px;</string>
       </property>
      </widget>
     </widget>
+    <widget class="QLabel" name="exampleText">
+     <property name="geometry">
+      <rect>
+       <x>370</x>
+       <y>330</y>
+       <width>131</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Example Text</string>
+     </property>
+    </widget>
     <zorder>groupBackgroundColor</zorder>
     <zorder>groupColor</zorder>
     <zorder>groupProperties</zorder>
+    <zorder>exampleText</zorder>
    </widget>
    <widget class="QWidget" name="tabFont">
     <attribute name="title">
@@ -1717,7 +1731,7 @@ border-width: 1px 2px 2px 1px;</string>
        <x>10</x>
        <y>250</y>
        <width>500</width>
-       <height>34</height>
+       <height>56</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="fontRestartRequiredLayout">
@@ -1764,7 +1778,7 @@ border-width: 1px 2px 2px 1px;</string>
    <property name="geometry">
     <rect>
      <x>440</x>
-     <y>370</y>
+     <y>400</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -1777,7 +1791,7 @@ border-width: 1px 2px 2px 1px;</string>
    <property name="geometry">
     <rect>
      <x>360</x>
-     <y>370</y>
+     <y>400</y>
      <width>75</width>
      <height>23</height>
     </rect>
