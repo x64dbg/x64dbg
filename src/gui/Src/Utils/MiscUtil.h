@@ -21,6 +21,7 @@ QString getSymbolicNameStr(duint addr);
 bool ExportCSV(dsint rows, dsint columns, std::vector<QString> headers, std::function<QString(dsint, dsint)> getCellContent);
 bool isEaster();
 QString couldItBeSeasonal(QString icon);
+QIcon getFileIcon(QString file);
 
 #define DIcon(file) QIcon(QString(":/icons/images/").append(couldItBeSeasonal(file)))
 #endif // MISCUTIL_H

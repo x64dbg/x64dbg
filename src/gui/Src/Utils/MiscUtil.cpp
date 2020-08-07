@@ -1,5 +1,5 @@
 #include "MiscUtil.h"
-#include <windows.h>
+#include <QtWin>
 #include <QApplication>
 #include <QMessageBox>
 #include <QDir>
@@ -157,6 +157,19 @@ QString getSymbolicNameStr(duint addr)
         }
     }
     return finalText;
+}
+
+QIcon getFileIcon(QString file)
+{
+    SHFILEINFO info;
+    if(SHGetFileInfoW((const wchar_t*)file.utf16(), 0, &info, sizeof(info), SHGFI_ICON) == 0)
+    {
+        return QIcon(); //API error
+    }
+    QIcon result;
+    result = QIcon(QtWin::fromHICON(info.hIcon));
+    DestroyIcon(info.hIcon);
+    return result;
 }
 
 bool ExportCSV(dsint rows, dsint columns, std::vector<QString> headers, std::function<QString(dsint, dsint)> getCellContent)
