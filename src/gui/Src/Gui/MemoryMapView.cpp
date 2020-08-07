@@ -229,12 +229,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
         wMenu.addMenu(&wCopyMenu);
     }
 
-    QString wStr = getCellContent(getInitialSelection(), 0);
-#ifdef _WIN64
-    duint selectedAddr = wStr.toULongLong(0, 16);
-#else //x86
-    duint selectedAddr = wStr.toULong(0, 16);
-#endif //_WIN64
+    duint selectedAddr = getCellUserdata(getInitialSelection(), 0);
     if((DbgGetBpxTypeAt(selectedAddr) & bp_memory) == bp_memory) //memory breakpoint set
     {
         mMemoryAccessMenu->menuAction()->setVisible(false);
@@ -315,6 +310,12 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
             painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
             return QString();
         }
+        else if(DbgFunctions()->ModGetParty(getCellUserdata(rowBase + rowOffset, 0)) == 0)
+        {
+            painter->setPen(ConfigColor("SymbolUserTextColor"));
+            painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+            return QString();
+        }
     }
     else if(col == 4) //CPROT
     {
@@ -378,9 +379,11 @@ void MemoryMapView::refreshMap()
 
         // Base address
         setCellContent(wI, 0, ToPtrString((duint)wMbi.BaseAddress));
+        setCellUserdata(wI, 0, (duint)wMbi.BaseAddress);
 
         // Size
         setCellContent(wI, 1, ToPtrString((duint)wMbi.RegionSize));
+        setCellUserdata(wI, 1, (duint)wMbi.RegionSize);
 
         // Information
         wS = QString((wMemMapStruct.page)[wI].info);
@@ -498,8 +501,8 @@ void MemoryMapView::pageMemoryRights()
 {
     PageMemoryRights PageMemoryRightsDialog(this);
     connect(&PageMemoryRightsDialog, SIGNAL(refreshMemoryMap()), this, SLOT(refreshMap()));
-    duint addr = getCellContent(getInitialSelection(), 0).toULongLong(0, 16);
-    duint size = getCellContent(getInitialSelection(), 1).toULongLong(0, 16);
+    duint addr = getCellUserdata(getInitialSelection(), 0);
+    duint size = getCellUserdata(getInitialSelection(), 1);
     PageMemoryRightsDialog.RunAddrSize(addr, size, getCellContent(getInitialSelection(), 3));
 }
 
@@ -616,8 +619,8 @@ void MemoryMapView::gotoExpressionSlot()
 
 void MemoryMapView::addVirtualModSlot()
 {
-    auto base = duint(getCellContent(getInitialSelection(), 0).toULongLong(nullptr, 16));
-    auto size = duint(getCellContent(getInitialSelection(), 1).toULongLong(nullptr, 16));
+    auto base = getCellUserdata(getInitialSelection(), 0);
+    auto size = getCellUserdata(getInitialSelection(), 1);
     VirtualModDialog mDialog(this);
     mDialog.setData("", base, size);
     if(mDialog.exec() != QDialog::Accepted)
@@ -630,8 +633,8 @@ void MemoryMapView::addVirtualModSlot()
 
 void MemoryMapView::findReferencesSlot()
 {
-    auto base = duint(getCellContent(getInitialSelection(), 0).toULongLong(nullptr, 16));
-    auto size = duint(getCellContent(getInitialSelection(), 1).toULongLong(nullptr, 16));
+    auto base = getCellUserdata(getInitialSelection(), 0);
+    auto size = getCellUserdata(getInitialSelection(), 1);
     DbgCmdExec(QString("reffindrange %1, %2, dis.sel()").arg(ToPtrString(base)).arg(ToPtrString(base + size)).toUtf8().constData());
     emit showReferences();
 }
@@ -650,7 +653,7 @@ void MemoryMapView::disassembleAtSlot(dsint va, dsint cip)
 
 void MemoryMapView::commentSlot()
 {
-    duint wVA = duint(getCellContent(getInitialSelection(), 0).toULongLong(nullptr, 16));
+    duint wVA = getCellUserdata(getInitialSelection(), 0);
     LineEditDialog mLineEdit(this);
     QString addr_text = ToPtrString(wVA);
     char comment_text[MAX_COMMENT_SIZE] = "";

@@ -34,10 +34,19 @@ public:
         mSymbolUnloadedTextColor = ConfigColor("SymbolUnloadedTextColor");
         mSymbolLoadingTextColor = ConfigColor("SymbolLoadingTextColor");
         mSymbolLoadedTextColor = ConfigColor("SymbolLoadedTextColor");
+        mSymbolUserTextColor = ConfigColor("SymbolUserTextColor");
+        mSymbolSystemTextColor = ConfigColor("SymbolSystemTextColor");
     }
 
     QColor getCellColor(int r, int c) override
     {
+        if(c == ColParty || c == ColPath)
+        {
+            if(DbgFunctions()->ModGetParty(getCellUserdata(r, ColBase)) != 1)
+                return mSymbolUserTextColor;
+            else
+                return mSymbolSystemTextColor;
+        }
         if(c != ColModule && c != ColStatus)
             return mTextColor;
         switch(getStatus(r))
@@ -74,6 +83,8 @@ private:
         return DbgFunctions()->ModSymbolStatus(getCellUserdata(r, 0));
     }
 
+    QColor mSymbolSystemTextColor;
+    QColor mSymbolUserTextColor;
     QColor mSymbolUnloadedTextColor;
     QColor mSymbolLoadingTextColor;
     QColor mSymbolLoadedTextColor;
