@@ -1144,7 +1144,7 @@ void DisassemblerGraphView::mouseMoveEvent(QMouseEvent* event)
 void DisassemblerGraphView::mouseReleaseEvent(QMouseEvent* event)
 {
     // Bring the user back to disassembly if the user is stuck in an empty graph view (Alt+G)
-    if((!this->ready || !DbgIsDebugging()) && event->button() == Qt::LeftButton)
+    if((!this->ready || !DbgIsDebugging()) && (event->button() == Qt::LeftButton || event->button() == Qt::BackButton))
         GuiFocusView(GUI_DISASSEMBLY);
     this->viewport()->update();
 

@@ -42,7 +42,7 @@ public:
     {
         if(c == ColParty || c == ColPath)
         {
-            if(DbgFunctions()->ModGetParty(getCellUserdata(r, ColBase)) != 1)
+            if(DbgFunctions()->ModGetParty(getCellUserdata(r, ColBase)) != MODULEPARTY::mod_system)
                 return mSymbolUserTextColor;
             else
                 return mSymbolSystemTextColor;

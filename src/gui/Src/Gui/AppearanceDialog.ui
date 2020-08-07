@@ -641,6 +641,9 @@ border-width: 1px 2px 2px 1px;</string>
      <property name="text">
       <string>Example Text</string>
      </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
     </widget>
     <zorder>groupBackgroundColor</zorder>
     <zorder>groupColor</zorder>

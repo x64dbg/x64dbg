@@ -513,6 +513,12 @@ typedef enum
     sym_symbol
 } SYMBOLTYPE;
 
+typedef enum
+{
+    mod_user,
+    mod_system
+} MODULEPARTY;
+
 //Debugger typedefs
 typedef MEMORY_SIZE VALUE_SIZE;
 
