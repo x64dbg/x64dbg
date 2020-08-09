@@ -1,6 +1,6 @@
 #include "AttachDialog.h"
 #include "ui_AttachDialog.h"
-#include "StdSearchListView.h"
+#include "StdIconSearchListView.h"
 #include "StdTable.h"
 #include <QMenu>
 #include <QMessageBox>
@@ -27,7 +27,7 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     connect(ui->btnRefresh, SIGNAL(clicked()), this, SLOT(refresh()));
 
     // Create search view (regex disabled)
-    mSearchListView = new StdSearchListView(this, false, false);
+    mSearchListView = new StdIconSearchListView(this, false, false);
     mSearchListView->mSearchStartCol = 0;
     ui->verticalLayout->insertWidget(0, mSearchListView);
 
@@ -38,6 +38,7 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     mSearchListView->addColumnAt(300, tr("Title"), true);
     mSearchListView->addColumnAt(500, tr("Path"), true);
     mSearchListView->addColumnAt(800, tr("Command Line Arguments"), true);
+    mSearchListView->setIconColumn(1); // Name
     mSearchListView->setDrawDebugOnly(false);
 
     connect(mSearchListView, SIGNAL(enterPressedSignal()), this, SLOT(on_btnAttach_clicked()));
@@ -74,6 +75,7 @@ void AttachDialog::refresh()
         mSearchListView->setCellContent(i, ColTitle, QString(entries[i].szExeMainWindowTitle));
         mSearchListView->setCellContent(i, ColPath, QString(entries[i].szExeFile));
         mSearchListView->setCellContent(i, ColCommandLine, QString(entries[i].szExeArgs));
+        mSearchListView->setRowIcon(i, getFileIcon(QString(entries[i].szExeFile)));
     }
     mSearchListView->reloadData();
     mSearchListView->refreshSearchList();

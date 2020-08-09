@@ -74,6 +74,8 @@ RESOURCES += \
     resource.qrc
 
 SOURCES += \
+    Src/BasicView/StdIconSearchListView.cpp \
+    Src/BasicView/StdIconTable.cpp \
     Src/Gui/CPURegistersView.cpp \
     Src/Gui/SystemBreakpointScriptDialog.cpp \
     Src/Imports.cpp \
@@ -193,6 +195,8 @@ SOURCES += \
 
 
 HEADERS += \
+    Src/BasicView/StdIconSearchListView.h \
+    Src/BasicView/StdIconTable.h \
     Src/Gui/CPURegistersView.h \
     Src/Gui/SystemBreakpointScriptDialog.h \
     Src/Tracer/TraceRegisters.h \
