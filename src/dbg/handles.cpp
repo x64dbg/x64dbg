@@ -171,7 +171,29 @@ static WINDOW_INFO getWindowInfo(HWND hWnd)
     GetWindowRect(hWnd, &info.position); //Get Window Rect
     info.style = GetWindowLong(hWnd, GWL_STYLE); //Get Window Style
     info.styleEx = GetWindowLong(hWnd, GWL_EXSTYLE); //Get Window Stye ex
-    info.wndProc = (IsWindowUnicode(hWnd) ? GetClassLongPtrW : GetClassLongPtrA)(hWnd, GCLP_WNDPROC); //Get Window Proc (thanks to ThunderCls!)
+    duint proc1, proc2;
+    proc1 = GetClassLongPtrW(hWnd, GCLP_WNDPROC);
+    proc2 = GetClassLongPtrA(hWnd, GCLP_WNDPROC);
+    if(!DbgMemIsValidReadPtr(proc1))
+        info.wndProc = proc2;
+    else if(!DbgMemIsValidReadPtr(proc2))
+        info.wndProc = proc1;
+    else if(IsWindowUnicode(hWnd))
+        info.wndProc = proc1;
+    else
+        info.wndProc = proc2;
+    if(DbgFunctions()->ModGetParty(info.wndProc) != 0 || !DbgMemIsValidReadPtr(info.wndProc))
+    {
+        duint dlgproc1, dlgproc2;
+        dlgproc1 = GetClassLongPtrW(hWnd, DWLP_DLGPROC);
+        dlgproc2 = GetClassLongPtrA(hWnd, DWLP_DLGPROC);
+        if(!DbgMemIsValidReadPtr(dlgproc1))
+            dlgproc1 = dlgproc2;
+        if(DbgMemIsValidReadPtr(dlgproc1))
+        {
+            info.wndProc = dlgproc1;
+        }
+    }
     info.enabled = IsWindowEnabled(hWnd) == TRUE;
     info.parent = (duint)GetParent(hWnd); //Get Parent Window
     info.threadId = GetWindowThreadProcessId(hWnd, nullptr); //Get Window Thread Id
