@@ -2176,18 +2176,14 @@ void DisassemblerGraphView::setupContextMenu()
     });
     breakpointMenu->build(mMenuBuilder);
 
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"), [this](QMenu*)
+    auto zoomActionHelperNonZero = [this](QMenu*)
     {
         return zoomActionHelper() != 0;
-    });
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("&Label"), SLOT(setLabelSlot()), "ActionSetLabel"), [this](QMenu*)
-    {
-        return zoomActionHelper() != 0;
-    });
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs.png"), tr("Xrefs..."), SLOT(xrefSlot()), "ActionXrefs"), [this](QMenu*)
-    {
-        return zoomActionHelper() != 0;
-    });
+    };
+
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"), zoomActionHelperNonZero);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("&Label"), SLOT(setLabelSlot()), "ActionSetLabel"), zoomActionHelperNonZero);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs.png"), tr("Xrefs..."), SLOT(xrefSlot()), "ActionXrefs"), zoomActionHelperNonZero);
 
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
@@ -2273,29 +2269,16 @@ void DisassemblerGraphView::setupContextMenu()
     gotoMenu->addBuilder(childrenAndParentMenu);
     mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
 
-    mMenuBuilder->addAction(mZoomToCursor = makeShortcutAction(DIcon("zoom.png"), tr("&Zoom 100%"), SLOT(zoomToCursorSlot()), "ActionGraphZoomToCursor"), [this](QMenu*)
+    auto ifgraphZoomMode = [this](QMenu*)
     {
-        if(!graphZoomMode)
-            return false;
-        else
-            return true;
-    });
-    mMenuBuilder->addAction(mFitToWindow = makeShortcutAction(DIcon("fit.png"), tr("&Fit to window"), SLOT(fitToWindowSlot()), "ActionGraphFitToWindow"), [this](QMenu*)
-    {
-        if(!graphZoomMode)
-            return false;
-        else
-            return true;
-    });
+        return graphZoomMode;
+    };
+
+    mMenuBuilder->addAction(mZoomToCursor = makeShortcutAction(DIcon("zoom.png"), tr("&Zoom 100%"), SLOT(zoomToCursorSlot()), "ActionGraphZoomToCursor"), ifgraphZoomMode);
+    mMenuBuilder->addAction(mFitToWindow = makeShortcutAction(DIcon("fit.png"), tr("&Fit to window"), SLOT(fitToWindowSlot()), "ActionGraphFitToWindow"), ifgraphZoomMode);
 
     mMenuBuilder->addSeparator();
-    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"), [this](QMenu*)
-    {
-        if(graphZoomMode)
-            return false;
-        else
-            return true;
-    });
+    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"), ifgraphZoomMode);
     mToggleOverview->setCheckable(true);
     mMenuBuilder->addAction(mToggleSummary = makeShortcutAction(DIcon("summary.png"), tr("S&ummary"), SLOT(toggleSummarySlot()), "ActionGraphToggleSummary"));
     mToggleSummary->setCheckable(true);

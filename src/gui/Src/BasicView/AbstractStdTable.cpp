@@ -11,6 +11,14 @@ AbstractStdTable::AbstractStdTable(QWidget* parent) : AbstractTableView(parent)
     connect(this, SIGNAL(headerButtonPressed(int)), this, SLOT(headerButtonPressedSlot(int)));
 
     Initialize();
+
+    // Set up copy menu
+    mCopyLine = makeShortcutAction(DIcon("copy_table_line.png"), tr("&Line"), SLOT(copyLineSlot()), "ActionCopyLine");
+    mCopyTable = makeShortcutAction(DIcon("copy_cropped_table.png"), tr("Cropped &Table"), SLOT(copyTableSlot()), "ActionCopyCroppedTable");
+    mCopyTableResize = makeShortcutAction(DIcon("copy_full_table.png"), tr("&Full Table"), SLOT(copyTableResizeSlot()), "ActionCopyTable");
+    mCopyLineToLog = makeShortcutAction(DIcon("copy_table_line.png"), tr("Line, To Log"), SLOT(copyLineToLogSlot()), "ActionCopyLineToLog");
+    mCopyTableToLog = makeShortcutAction(DIcon("copy_cropped_table.png"), tr("Cropped Table, To Log"), SLOT(copyTableToLogSlot()), "ActionCopyCroppedTableToLog");
+    mCopyTableResizeToLog = makeShortcutAction(DIcon("copy_full_table.png"), tr("Full Table, To Log"), SLOT(copyTableResizeToLogSlot()), "ActionCopyTableToLog");
 }
 
 QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -882,30 +890,18 @@ void AbstractStdTable::setupCopyMenu(QMenu* copyMenu)
         return;
     copyMenu->setIcon(DIcon("copy.png"));
     //Copy->Whole Line
-    QAction* mCopyLine = new QAction(DIcon("copy_table_line.png"), tr("&Line"), copyMenu);
-    connect(mCopyLine, SIGNAL(triggered()), this, SLOT(copyLineSlot()));
     copyMenu->addAction(mCopyLine);
     //Copy->Cropped Table
-    QAction* mCopyTable = new QAction(DIcon("copy_cropped_table.png"), tr("Cropped &Table"), copyMenu);
-    connect(mCopyTable, SIGNAL(triggered()), this, SLOT(copyTableSlot()));
     copyMenu->addAction(mCopyTable);
     //Copy->Full Table
-    QAction* mCopyTableResize = new QAction(DIcon("copy_full_table.png"), tr("&Full Table"), copyMenu);
-    connect(mCopyTableResize, SIGNAL(triggered()), this, SLOT(copyTableResizeSlot()));
     copyMenu->addAction(mCopyTableResize);
     //Copy->Separator
     copyMenu->addSeparator();
     //Copy->Whole Line To Log
-    QAction* mCopyLineToLog = new QAction(DIcon("copy_table_line.png"), tr("Line, To Log"), copyMenu);
-    connect(mCopyLineToLog, SIGNAL(triggered()), this, SLOT(copyLineToLogSlot()));
     copyMenu->addAction(mCopyLineToLog);
     //Copy->Cropped Table To Log
-    QAction* mCopyTableToLog = new QAction(DIcon("copy_cropped_table.png"), tr("Cropped Table, To Log"), copyMenu);
-    connect(mCopyTableToLog, SIGNAL(triggered()), this, SLOT(copyTableToLogSlot()));
     copyMenu->addAction(mCopyTableToLog);
     //Copy->Full Table To Log
-    QAction* mCopyTableResizeToLog = new QAction(DIcon("copy_full_table.png"), tr("Full Table, To Log"), copyMenu);
-    connect(mCopyTableResizeToLog, SIGNAL(triggered()), this, SLOT(copyTableResizeToLogSlot()));
     copyMenu->addAction(mCopyTableResizeToLog);
     //Copy->Separator
     copyMenu->addSeparator();
@@ -934,19 +930,19 @@ void AbstractStdTable::setupCopyMenu(MenuBuilder* copyMenu)
     if(!getColumnCount())
         return;
     //Copy->Whole Line
-    copyMenu->addAction(makeAction(DIcon("copy_table_line.png"), tr("&Line"), SLOT(copyLineSlot())));
+    copyMenu->addAction(mCopyLine);
     //Copy->Cropped Table
-    copyMenu->addAction(makeAction(DIcon("copy_cropped_table.png"), tr("Cropped &Table"), SLOT(copyTableSlot())));
+    copyMenu->addAction(mCopyTable);
     //Copy->Full Table
-    copyMenu->addAction(makeAction(DIcon("copy_full_table.png"), tr("&Full Table"), SLOT(copyTableResizeSlot())));
+    copyMenu->addAction(mCopyTableResize);
     //Copy->Separator
     copyMenu->addSeparator();
     //Copy->Whole Line To Log
-    copyMenu->addAction(makeAction(DIcon("copy_table_line.png"), tr("Line, To Log"), SLOT(copyLineToLogSlot())));
+    copyMenu->addAction(mCopyLineToLog);
     //Copy->Cropped Table
-    copyMenu->addAction(makeAction(DIcon("copy_cropped_table.png"), tr("Cropped Table, To Log"), SLOT(copyTableToLogSlot())));
+    copyMenu->addAction(mCopyTableToLog);
     //Copy->Full Table
-    copyMenu->addAction(makeAction(DIcon("copy_full_table.png"), tr("Full Table, To Log"), SLOT(copyTableResizeToLogSlot())));
+    copyMenu->addAction(mCopyTableResizeToLog);
     //Copy->Separator
     copyMenu->addSeparator();
     //Copy->ColName

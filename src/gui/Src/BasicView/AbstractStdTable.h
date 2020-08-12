@@ -144,4 +144,11 @@ protected:
     int mAddressColumn = -1;
     bool bAddressLabel = true;
     bool bDisassemblyPopupEnabled = true;
+
+    QAction* mCopyLine;
+    QAction* mCopyTable;
+    QAction* mCopyTableResize;
+    QAction* mCopyLineToLog;
+    QAction* mCopyTableToLog;
+    QAction* mCopyTableResizeToLog;
 };
