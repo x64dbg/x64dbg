@@ -391,7 +391,6 @@ void SymbolView::refreshShortcutsSlot()
     mBrowseInExplorer->setShortcut(ConfigShortcut("ActionBrowseInExplorer"));
     mDownloadSymbolsAction->setShortcut(ConfigShortcut("ActionDownloadSymbol"));
     mDownloadAllSymbolsAction->setShortcut(ConfigShortcut("ActionDownloadAllSymbol"));
-    mCopyPathAction->setShortcut(ConfigShortcut("ActionCopy"));
     mFollowInMemMap->setShortcut(ConfigShortcut("ActionFollowMemMap"));
 }
 
