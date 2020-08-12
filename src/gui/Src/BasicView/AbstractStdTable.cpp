@@ -13,7 +13,7 @@ AbstractStdTable::AbstractStdTable(QWidget* parent) : AbstractTableView(parent)
     Initialize();
 
     // Set up copy menu
-    mCopyLine = makeShortcutAction(DIcon("copy_table_line.png"), tr("&Line"), SLOT(copyLineSlot()), "ActionCopyLine");
+    mCopyLine = makeShortcutAction(DIcon("copy_table_line.png"), tr("&Line"), SLOT(copyLineSlot()), "ActionCopy");
     mCopyTable = makeShortcutAction(DIcon("copy_cropped_table.png"), tr("Cropped &Table"), SLOT(copyTableSlot()), "ActionCopyCroppedTable");
     mCopyTableResize = makeShortcutAction(DIcon("copy_full_table.png"), tr("&Full Table"), SLOT(copyTableResizeSlot()), "ActionCopyTable");
     mCopyLineToLog = makeShortcutAction(DIcon("copy_table_line.png"), tr("Line, To Log"), SLOT(copyLineToLogSlot()), "ActionCopyLineToLog");
