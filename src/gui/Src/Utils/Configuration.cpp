@@ -281,6 +281,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("ShowExitConfirmation", true);
     guiBool.insert("DisableAutoComplete", false);
     guiBool.insert("CaseSensitiveAutoComplete", false);
+    guiBool.insert("AutoRepeatOnEnter", false);
     //Named menu settings
     insertMenuBuilderBools(&guiBool, "CPUDisassembly", 50); //CPUDisassembly
     insertMenuBuilderBools(&guiBool, "CPUDump", 50); //CPUDump
