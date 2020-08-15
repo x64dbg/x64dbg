@@ -2267,8 +2267,8 @@ void MainWindow::on_actionDefaultTheme_triggered()
     Config()->Colors = Config()->defaultColors;
     Config()->writeColors();
     // Reset [Fonts] to default
-    Config()->Fonts = Config()->defaultFonts;
-    Config()->writeFonts();
+    //Config()->Fonts = Config()->defaultFonts;
+    //Config()->writeFonts();
     // Remove custom colors
     BridgeSettingSet("Colors", "CustomColorCount", nullptr);
 }
