@@ -449,7 +449,7 @@ void pluginexprfuncunregisterall(int pluginHandle)
 void pluginformatfuncunregisterall(int pluginHandle)
 {
     SHARED_ACQUIRE(LockPluginFormatfunctionList);
-    auto formatFuncList = pluginExprfunctionList; //copy for thread-safety reasons
+    auto formatFuncList = pluginFormatfunctionList; //copy for thread-safety reasons
     SHARED_RELEASE();
     auto i = formatFuncList.begin();
     while(i != formatFuncList.end())
