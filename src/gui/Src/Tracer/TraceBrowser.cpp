@@ -16,13 +16,14 @@
 TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
 {
     mTraceFile = nullptr;
-    addColumnAt(getCharWidth() * 2 * 8 + 8, "", false); //index
+    addColumnAt(getCharWidth() * 2 * 2 + 8, "", false); //index
     addColumnAt(getCharWidth() * 2 * sizeof(dsint) + 8, "", false); //address
     addColumnAt(getCharWidth() * 2 * 12 + 8, "", false); //bytes
     addColumnAt(getCharWidth() * 40, "", false); //disassembly
     addColumnAt(getCharWidth() * 50, "", false); //registers
     addColumnAt(getCharWidth() * 50, "", false); //memory
     addColumnAt(1000, "", false); //comments
+    loadColumnFromConfig("Trace");
 
     setShowHeader(false); //hide header
 
@@ -826,6 +827,7 @@ void TraceBrowser::setupRightClickContextMenu()
     mBreakpointMenu->build(mMenuBuilder);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("Label Current Address"), SLOT(setLabelSlot()), "ActionSetLabel"), isDebugging);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"), isDebugging);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"), isDebugging);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("highlight.png"), tr("&Highlighting mode"), SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"), isValid);
     MenuBuilder* gotoMenu = new MenuBuilder(this, isValid);
     gotoMenu->addAction(makeShortcutAction(DIcon("goto.png"), tr("Expression"), SLOT(gotoSlot()), "ActionGotoExpression"), isValid);
@@ -1657,6 +1659,28 @@ void TraceBrowser::setCommentSlot()
             QByteArray egg = file.readAll();
             PlaySoundA(egg.data(), 0, SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
         }
+    }
+
+    GuiUpdateAllViews();
+}
+
+void TraceBrowser::setBookmarkSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    duint wVA = mTraceFile->Registers(getInitialSelection()).regcontext.cip;
+    bool result;
+    if(DbgGetBookmarkAt(wVA))
+        result = DbgSetBookmarkAt(wVA, false);
+    else
+        result = DbgSetBookmarkAt(wVA, true);
+    if(!result)
+    {
+        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetBookmarkAt failed!"));
+        msg.setWindowIcon(DIcon("compile-error.png"));
+        msg.setParent(this, Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        msg.exec();
     }
 
     GuiUpdateAllViews();

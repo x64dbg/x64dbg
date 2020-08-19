@@ -159,6 +159,7 @@ public slots:
     void enableHighlightingModeSlot();
     void setLabelSlot();
     void setCommentSlot();
+    void setBookmarkSlot();
     void copyDisassemblySlot();
     void copyCipSlot();
     void copyIndexSlot();

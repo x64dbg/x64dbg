@@ -320,6 +320,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Module", 5);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Symbol", 5);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SourceView", 4);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Trace", 7);
     guiUint.insert("SIMDRegistersDisplayMode", 0);
     addWindowPosConfig(guiUint, "AssembleDialog");
     addWindowPosConfig(guiUint, "AttachDialog");
