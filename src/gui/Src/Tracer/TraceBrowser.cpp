@@ -38,6 +38,7 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
 
     mHighlightingMode = false;
     mPermanentHighlightingMode = false;
+    mShowMnemonicBrief = false;
 
     mMRUList = new MRUList(this, "Recent Trace Files");
     connect(mMRUList, SIGNAL(openFile(QString)), this, SLOT(openSlot(QString)));
@@ -628,6 +629,7 @@ NotDebuggingLabel:
     case Comments:
     {
         int xinc = 3;
+        int width;
         if(DbgIsDebugging())
         {
             //TODO: draw arguments
@@ -649,7 +651,7 @@ NotDebuggingLabel:
                     backgroundColor = mCommentBackgroundColor;
                 }
 
-                int width = mFontMetrics->width(comment);
+                width = mFontMetrics->width(comment);
                 if(width > w)
                     width = w;
                 if(width)
@@ -663,12 +665,48 @@ NotDebuggingLabel:
                 painter->setPen(mLabelColor);
                 backgroundColor = mLabelBackgroundColor;
 
-                int width = mFontMetrics->width(labelText);
+                width = mFontMetrics->width(labelText);
                 if(width > w)
                     width = w;
                 if(width)
                     painter->fillRect(QRect(x + xinc, y, width, h), QBrush(backgroundColor)); //fill comment color
                 painter->drawText(QRect(x + xinc, y, width, h), Qt::AlignVCenter | Qt::AlignLeft, labelText);
+            }
+            else
+                width = 0;
+            x += width + 3;
+        }
+        if(mShowMnemonicBrief)
+        {
+            char brief[MAX_STRING_SIZE] = "";
+            QString mnem;
+            for(const ZydisTokenizer::SingleToken & token : inst.tokens.tokens)
+            {
+                if(token.type != ZydisTokenizer::TokenType::Space && token.type != ZydisTokenizer::TokenType::Prefix)
+                {
+                    mnem = token.text;
+                    break;
+                }
+            }
+            if(mnem.isEmpty())
+                mnem = inst.instStr;
+
+            int index = mnem.indexOf(' ');
+            if(index != -1)
+                mnem.truncate(index);
+            DbgFunctions()->GetMnemonicBrief(mnem.toUtf8().constData(), MAX_STRING_SIZE, brief);
+
+            painter->setPen(mMnemonicBriefColor);
+
+            QString mnemBrief = brief;
+            if(mnemBrief.length())
+            {
+                width = mFontMetrics->width(mnemBrief);
+                if(width > w)
+                    width = w;
+                if(width)
+                    painter->fillRect(QRect(x, y, width, h), QBrush(mMnemonicBriefBackgroundColor)); //mnemonic brief background color
+                painter->drawText(QRect(x, y, width, h), Qt::AlignVCenter | Qt::AlignLeft, mnemBrief);
             }
         }
         return "";
@@ -830,6 +868,16 @@ void TraceBrowser::setupRightClickContextMenu()
     mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"), isDebugging);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"), isDebugging);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("highlight.png"), tr("&Highlighting mode"), SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"), isValid);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("helpmnemonic.png"), tr("Help on mnemonic"), SLOT(mnemonicHelpSlot()), "ActionHelpOnMnemonic"), isValid);
+    QAction* mnemonicBrief = makeShortcutAction(DIcon("helpbrief.png"), tr("Show mnemonic brief"), SLOT(mnemonicBriefSlot()), "ActionToggleMnemonicBrief");
+    mMenuBuilder->addAction(mnemonicBrief, [this, mnemonicBrief](QMenu*)
+    {
+        if(mShowMnemonicBrief)
+            mnemonicBrief->setText(tr("Hide mnemonic brief"));
+        else
+            mnemonicBrief->setText(tr("Show mnemonic brief"));
+        return true;
+    });
     MenuBuilder* gotoMenu = new MenuBuilder(this, isValid);
     gotoMenu->addAction(makeShortcutAction(DIcon("goto.png"), tr("Expression"), SLOT(gotoSlot()), "ActionGotoExpression"), isValid);
     gotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
@@ -1191,6 +1239,8 @@ void TraceBrowser::updateColors()
     mBytesBackgroundColor = ConfigColor("DisassemblyBytesBackgroundColor");
     mAutoCommentColor = ConfigColor("DisassemblyAutoCommentColor");
     mAutoCommentBackgroundColor = ConfigColor("DisassemblyAutoCommentBackgroundColor");
+    mMnemonicBriefColor = ConfigColor("DisassemblyMnemonicBriefColor");
+    mMnemonicBriefBackgroundColor = ConfigColor("DisassemblyMnemonicBriefBackgroundColor");
     mCommentColor = ConfigColor("DisassemblyCommentColor");
     mCommentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
     mConditionalJumpLineTrueColor = ConfigColor("DisassemblyConditionalJumpLineTrueColor");
@@ -1305,6 +1355,23 @@ void TraceBrowser::parseFinishedSlot()
     makeVisible(0);
     emit Bridge::getBridge()->updateTraceBrowser();
     emit selectionChanged(getInitialSelection());
+}
+
+void TraceBrowser::mnemonicBriefSlot()
+{
+    mShowMnemonicBrief = !mShowMnemonicBrief;
+    reloadData();
+}
+
+void TraceBrowser::mnemonicHelpSlot()
+{
+    unsigned char data[16] = { 0xCC };
+    int size;
+    mTraceFile->OpCode(getInitialSelection(), data, &size);
+    Zydis zydis;
+    zydis.Disassemble(mTraceFile->Registers(getInitialSelection()).regcontext.cip, data);
+    DbgCmdExecDirect(QString("mnemonichelp %1").arg(zydis.Mnemonic().c_str()).toUtf8().constData());
+    emit displayLogWidget();
 }
 
 void TraceBrowser::gotoSlot()

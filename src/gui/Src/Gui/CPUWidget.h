@@ -41,6 +41,7 @@ public:
     // Widget getters
     CPUSideBar* getSidebarWidget();
     CPUDisassembly* getDisasmWidget();
+    DisassemblerGraphView* getGraphWidget();
     CPUMultiDump* getDumpWidget();
     CPUStack* getStackWidget();
     CPUInfoBox* getInfoBoxWidget();

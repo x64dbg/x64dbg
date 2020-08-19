@@ -207,6 +207,7 @@ MainWindow::MainWindow(QWidget* parent)
     mTraceWidget->setWindowTitle(tr("Trace"));
     mTraceWidget->setWindowIcon(DIcon("trace.png"));
     connect(mTraceWidget->getTraceBrowser(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
+    connect(mTraceWidget->getTraceBrowser(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
 
     mTabWidget = new MHTabWidget(this, true, true);
 
@@ -336,7 +337,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayGraphWidget()), this, SLOT(displayGraphWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySymbolsWidget()), this, SLOT(displaySymbolWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(showPatches()), this, SLOT(patchWindow()));
-
+    connect(mCpuWidget->getGraphWidget(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
 
     connect(mCpuWidget->getDumpWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
 

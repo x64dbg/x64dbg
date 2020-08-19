@@ -260,6 +260,7 @@ public:
 
 signals:
     void selectionChanged(dsint parVA);
+    void displayLogWidget();
     void detachGraph();
 
 public slots:
@@ -286,7 +287,9 @@ public slots:
     void saveImageSlot();
     void setCommentSlot();
     void setLabelSlot();
+    void setBookmarkSlot();
     void xrefSlot();
+    void mnemonicHelpSlot();
     void fitToWindowSlot();
     void zoomToCursorSlot();
     void getCurrentGraphSlot(BridgeCFGraphList* graphList);
@@ -371,6 +374,7 @@ private:
     QColor mCipColor;
     QColor mBreakpointColor;
     QColor mDisabledBreakpointColor;
+    QColor mBookmarkBackgroundColor;
     QColor graphNodeColor;
     QColor graphNodeBackgroundColor;
     QColor graphCurrentShadowColor;
