@@ -956,14 +956,14 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
                 mHighlightingMode = false;
                 reloadData();
             }
+            if(event->modifiers() & Qt::ShiftModifier)
+                expandSelectionUpTo(index);
+            else
+                setSingleSelection(index);
+            mHistory.addVaToHistory(index);
+            emit selectionChanged(getInitialSelection());
         }
-        if(event->modifiers() & Qt::ShiftModifier)
-            expandSelectionUpTo(index);
-        else
-            setSingleSelection(index);
-        mHistory.addVaToHistory(index);
         updateViewport();
-        emit selectionChanged(getInitialSelection());
         return;
 
         break;
