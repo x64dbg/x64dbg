@@ -75,6 +75,7 @@ private:
     bool mHighlightingMode;
     bool mPermanentHighlightingMode;
     bool mAutoDisassemblyFollowSelection;
+    bool mShowMnemonicBrief;
 
     TraceFileReader* mTraceFile;
     BreakpointMenu* mBreakpointMenu;
@@ -115,6 +116,9 @@ private:
     QColor mCommentBackgroundColor;
     QColor mDisassemblyRelocationUnderlineColor;
 
+    QColor mMnemonicBriefColor;
+    QColor mMnemonicBriefBackgroundColor;
+
     QColor mConditionalJumpLineTrueColor;
 
     QColor mLoopColor;
@@ -140,6 +144,7 @@ private:
 
 signals:
     void displayReferencesWidget();
+    void displayLogWidget();
     void selectionChanged(unsigned long long selection);
 
 public slots:
@@ -160,6 +165,8 @@ public slots:
     void setLabelSlot();
     void setCommentSlot();
     void setBookmarkSlot();
+    void mnemonicBriefSlot();
+    void mnemonicHelpSlot();
     void copyDisassemblySlot();
     void copyCipSlot();
     void copyIndexSlot();

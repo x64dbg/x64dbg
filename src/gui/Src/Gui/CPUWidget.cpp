@@ -267,6 +267,11 @@ CPUDisassembly* CPUWidget::getDisasmWidget()
     return mDisas;
 }
 
+DisassemblerGraphView* CPUWidget::getGraphWidget()
+{
+    return mGraph;
+}
+
 CPUMultiDump* CPUWidget::getDumpWidget()
 {
     return mDump;
