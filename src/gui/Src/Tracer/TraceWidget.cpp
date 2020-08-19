@@ -244,9 +244,18 @@ void TraceWidget::updateInfobox(unsigned long long selection, TraceFileReader* t
             return static_cast<ULONG_PTR>(0);
         }
     };
+    duint MemoryAddress[MAX_MEMORY_OPERANDS];
+    duint MemoryOldContent[MAX_MEMORY_OPERANDS];
+    duint MemoryNewContent[MAX_MEMORY_OPERANDS];
+    bool MemoryIsValid[MAX_MEMORY_OPERANDS];
+    int MemoryOperandsCount;
+    MemoryOperandsCount = traceFile->MemoryAccessCount(selection);
+    if(MemoryOperandsCount > 0)
+        traceFile->MemoryAccessInfo(selection, MemoryAddress, MemoryOldContent, MemoryNewContent, MemoryIsValid);
     if(zydis.Disassemble(registers.regcontext.cip, opcode, opsize))
     {
         int opindex;
+        int memaccessindex;
         //Jumps
         if(zydis.IsBranchType(Zydis::BTCondJmp))
         {
@@ -278,6 +287,25 @@ void TraceWidget::updateInfobox(unsigned long long selection, TraceFileReader* t
                 line += ":[";
                 line += ToPtrString(value);
                 line += "]";
+                if(zydis[opindex].size <= sizeof(void*) * 8)
+                {
+                    for(memaccessindex = 0; memaccessindex < MemoryOperandsCount; memaccessindex++)
+                    {
+                        if(MemoryAddress[memaccessindex] == value)
+                        {
+                            line += "=";
+                            duint mask;
+                            if(zydis[opindex].size < sizeof(void*) * 8)
+                                mask = (1 << zydis[opindex].size) - 1;
+                            else
+                                mask = ~(duint)0;
+                            line += ToHexString(MemoryOldContent[memaccessindex] & mask);
+                            line += " -> ";
+                            line += ToHexString(MemoryNewContent[memaccessindex] & mask);
+                            break;
+                        }
+                    }
+                }
                 mInfo->setCellContent(infoline, 0, line);
                 infoline++;
             }
