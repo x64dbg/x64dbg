@@ -19,6 +19,7 @@ AbstractStdTable::AbstractStdTable(QWidget* parent) : AbstractTableView(parent)
     mCopyLineToLog = makeShortcutAction(DIcon("copy_table_line.png"), tr("Line, To Log"), SLOT(copyLineToLogSlot()), "ActionCopyLineToLog");
     mCopyTableToLog = makeShortcutAction(DIcon("copy_cropped_table.png"), tr("Cropped Table, To Log"), SLOT(copyTableToLogSlot()), "ActionCopyCroppedTableToLog");
     mCopyTableResizeToLog = makeShortcutAction(DIcon("copy_full_table.png"), tr("Full Table, To Log"), SLOT(copyTableResizeToLogSlot()), "ActionCopyTableToLog");
+    mExportTableCSV = makeShortcutAction(DIcon("copy_full_table.png"), tr("Export Table"), SLOT(exportTableSlot()), "ActionExport");
 }
 
 QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -884,6 +885,18 @@ void AbstractStdTable::copyEntrySlot()
     Bridge::CopyToClipboard(finalText);
 }
 
+void AbstractStdTable::exportTableSlot()
+{
+    std::vector<QString> headers;
+    headers.reserve(getColumnCount());
+    for(int i = 0; i < getColumnCount(); i++)
+        headers.push_back(getColTitle(i));
+    ExportCSV(getRowCount(), getColumnCount(), headers, [this](duint row, duint column)
+    {
+        return getCellContent(row, column);
+    });
+}
+
 void AbstractStdTable::setupCopyMenu(QMenu* copyMenu)
 {
     if(!getColumnCount())
@@ -903,6 +916,8 @@ void AbstractStdTable::setupCopyMenu(QMenu* copyMenu)
     copyMenu->addAction(mCopyTableToLog);
     //Copy->Full Table To Log
     copyMenu->addAction(mCopyTableResizeToLog);
+    //Copy->Export Table
+    copyMenu->addAction(mExportTableCSV);
     //Copy->Separator
     copyMenu->addSeparator();
     //Copy->ColName
@@ -943,6 +958,8 @@ void AbstractStdTable::setupCopyMenu(MenuBuilder* copyMenu)
     copyMenu->addAction(mCopyTableToLog);
     //Copy->Full Table
     copyMenu->addAction(mCopyTableResizeToLog);
+    //Copy->Export Table
+    copyMenu->addAction(mExportTableCSV);
     //Copy->Separator
     copyMenu->addSeparator();
     //Copy->ColName

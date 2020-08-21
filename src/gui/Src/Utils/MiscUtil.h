@@ -2,6 +2,7 @@
 #define MISCUTIL_H
 
 #include <QIcon>
+#include <functional>
 #include "Imports.h"
 
 class QWidget;
@@ -17,6 +18,7 @@ void SimpleWarningBox(QWidget* parent, const QString & title, const QString & te
 void SimpleInfoBox(QWidget* parent, const QString & title, const QString & text);
 QString getSymbolicName(duint addr);
 QString getSymbolicNameStr(duint addr);
+bool ExportCSV(dsint rows, dsint columns, std::vector<QString> headers, std::function<QString(dsint, dsint)> getCellContent);
 bool isEaster();
 QString couldItBeSeasonal(QString icon);
 
