@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <QApplication>
 #include <QMessageBox>
+#include <QDir>
 #include "LineEditDialog.h"
 #include "ComboBoxDialog.h"
 #include "StringUtil.h"
@@ -160,7 +161,8 @@ QString getSymbolicNameStr(duint addr)
 
 bool ExportCSV(dsint rows, dsint columns, std::vector<QString> headers, std::function<QString(dsint, dsint)> getCellContent)
 {
-    BrowseDialog browse(nullptr, QApplication::translate("ExportCSV", "Export data in CSV format"), QApplication::translate("ExportCSV", "Enter the CSV file name to export"), QApplication::translate("ExportCSV", "CSV files (*.csv);;All files (*.*)"), QCoreApplication::applicationDirPath(), true);
+    BrowseDialog browse(nullptr, QApplication::translate("ExportCSV", "Export data in CSV format"), QApplication::translate("ExportCSV", "Enter the CSV file name to export"), QApplication::translate("ExportCSV", "CSV files (*.csv);;All files (*.*)"), QApplication::applicationDirPath() + QDir::separator() + "db", true);
+    browse.setWindowIcon(DIcon("database-export.png"));
     if(browse.exec() == QDialog::Accepted)
     {
         FILE* csv;
