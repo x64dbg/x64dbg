@@ -807,6 +807,7 @@ void TraceBrowser::setupRightClickContextMenu()
     copyMenu->addAction(makeAction(DIcon("copy_selection.png"), tr("Selection to &File"), SLOT(copySelectionToFileSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_selection_no_bytes.png"), tr("Selection (&No Bytes)"), SLOT(copySelectionNoBytesSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_selection_no_bytes.png"), tr("Selection to File (No Bytes)"), SLOT(copySelectionToFileNoBytesSlot())));
+    copyMenu->addAction(makeShortcutAction(DIcon("database-export.png"), tr("&Export Table"), SLOT(exportSlot()), "ActionExport"));
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("Address"), SLOT(copyCipSlot()), "ActionCopyAddress"));
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("&RVA"), SLOT(copyRvaSlot()), "ActionCopyRva"), isDebugging);
     copyMenu->addAction(makeShortcutAction(DIcon("fileoffset.png"), tr("&File Offset"), SLOT(copyFileOffsetSlot()), "ActionCopyFileOffset"), isDebugging);
@@ -1623,6 +1624,81 @@ void TraceBrowser::copyFileOffsetSlot()
         }
     }
     Bridge::CopyToClipboard(text);
+}
+
+void TraceBrowser::exportSlot()
+{
+    if(mTraceFile == nullptr || mTraceFile->Progress() < 100)
+        return;
+    std::vector<QString> headers;
+    headers.reserve(getColumnCount());
+    for(int i = 0; i < getColumnCount(); i++)
+        headers.push_back(getColTitle(i));
+    ExportCSV(getRowCount(), getColumnCount(), headers, [this](dsint row, dsint col)
+    {
+        QString temp;
+        switch(col)
+        {
+        case Index:
+            return mTraceFile->getIndexText(row);
+
+        case Address:
+        {
+            if(!DbgIsDebugging())
+                return ToPtrString(mTraceFile->Registers(row).regcontext.cip);
+            else
+                return getAddrText(mTraceFile->Registers(row).regcontext.cip, 0, true);
+        }
+
+        case Opcode:
+        {
+            for(auto i : getRichBytes(mTraceFile->Instruction(row)))
+                temp += i.text;
+            return temp;
+        }
+
+        case Disassembly:
+        {
+            for(auto i : mTraceFile->Instruction(row).tokens.tokens)
+                temp += i.text;
+            return temp;
+        }
+
+        case Registers:
+        {
+            for(auto i : registersTokens(row).tokens)
+                temp += i.text;
+            return temp;
+        }
+        case Memory:
+        {
+            for(auto i : memoryTokens(row).tokens)
+                temp += i.text;
+            return temp;
+        }
+        case Comments:
+        {
+            if(DbgIsDebugging())
+            {
+                //TODO: draw arguments
+                QString comment;
+                bool autoComment = false;
+                char label[MAX_LABEL_SIZE] = "";
+                if(GetCommentFormat(mTraceFile->Registers(row).regcontext.cip, comment, &autoComment))
+                {
+                    return QString(comment);
+                }
+                else if(DbgGetLabelAt(mTraceFile->Registers(row).regcontext.cip, SEG_DEFAULT, label)) // label but no comment
+                {
+                    return QString(label);
+                }
+            }
+            return QString();
+        }
+        default:
+            return QString();
+        }
+    });
 }
 
 void TraceBrowser::setCommentSlot()

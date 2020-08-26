@@ -168,11 +168,12 @@ public slots:
     void copySelectionToFileNoBytesSlot();
     void copyFileOffsetSlot();
     void copyRvaSlot();
+    void exportSlot();
 
     void searchConstantSlot();
     void searchMemRefSlot();
 
-    void updateSlot(); //debug
+    void updateSlot();
 
     void toggleAutoDisassemblyFollowSelectionSlot();
 };

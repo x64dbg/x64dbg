@@ -19,7 +19,7 @@ AbstractStdTable::AbstractStdTable(QWidget* parent) : AbstractTableView(parent)
     mCopyLineToLog = makeShortcutAction(DIcon("copy_table_line.png"), tr("Line, To Log"), SLOT(copyLineToLogSlot()), "ActionCopyLineToLog");
     mCopyTableToLog = makeShortcutAction(DIcon("copy_cropped_table.png"), tr("Cropped Table, To Log"), SLOT(copyTableToLogSlot()), "ActionCopyCroppedTableToLog");
     mCopyTableResizeToLog = makeShortcutAction(DIcon("copy_full_table.png"), tr("Full Table, To Log"), SLOT(copyTableResizeToLogSlot()), "ActionCopyTableToLog");
-    mExportTableCSV = makeShortcutAction(DIcon("copy_full_table.png"), tr("Export Table"), SLOT(exportTableSlot()), "ActionExport");
+    mExportTableCSV = makeShortcutAction(DIcon("database-export.png"), tr("&Export Table"), SLOT(exportTableSlot()), "ActionExport");
 }
 
 QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
