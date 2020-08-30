@@ -393,5 +393,6 @@ void SearchListView::searchSlot()
 {
     FlickerThread* thread = new FlickerThread(mSearchBox, this);
     connect(thread, SIGNAL(setStyleSheet(QString)), mSearchBox, SLOT(setStyleSheet(QString)));
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
     thread->start();
 }

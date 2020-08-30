@@ -288,6 +288,7 @@ void CPUDump::setupContextMenu()
 void CPUDump::getAttention()
 {
     BackgroundFlickerThread* thread = new BackgroundFlickerThread(this, mBackgroundColor, this);
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
     thread->start();
 }
 
