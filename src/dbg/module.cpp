@@ -821,11 +821,11 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
     Utf8Sysdir.append("\\");
     if(_memicmp(Utf8Sysdir.c_str(), FullPath, Utf8Sysdir.size()) == 0)
     {
-        info.party = 1;
+        info.party = mod_system;
     }
     else
     {
-        info.party = 0;
+        info.party = mod_user;
     }
 
     // Load module data
@@ -1129,7 +1129,7 @@ void ModEnum(const std::function<void(const MODINFO &)> & cbEnum)
         cbEnum(*mod.second);
 }
 
-int ModGetParty(duint Address)
+MODULEPARTY ModGetParty(duint Address)
 {
     SHARED_ACQUIRE(LockModules);
 
@@ -1137,12 +1137,12 @@ int ModGetParty(duint Address)
 
     // If the module is not found, it is an user module
     if(!module)
-        return 0;
+        return mod_user;
 
     return module->party;
 }
 
-void ModSetParty(duint Address, int Party)
+void ModSetParty(duint Address, MODULEPARTY Party)
 {
     EXCLUSIVE_ACQUIRE(LockModules);
 

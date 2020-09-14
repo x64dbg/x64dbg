@@ -116,7 +116,7 @@ struct MODINFO
     HANDLE fileMap = nullptr;
     ULONG_PTR fileMapVA = 0;
 
-    int party;  // Party. Currently used value: 0: User, 1: System
+    MODULEPARTY party;  // Party. Currently used value: 0: User, 1: System
 
     MODINFO()
     {
@@ -164,8 +164,8 @@ int ModPathFromName(const char* Module, char* Path, int Size);
 /// <param name="cbEnum">Enumeration function.</param>
 void ModEnum(const std::function<void(const MODINFO &)> & cbEnum);
 
-int ModGetParty(duint Address);
-void ModSetParty(duint Address, int Party);
+MODULEPARTY ModGetParty(duint Address);
+void ModSetParty(duint Address, MODULEPARTY Party);
 bool ModRelocationsFromAddr(duint Address, std::vector<MODRELOCATIONINFO> & Relocations);
 bool ModRelocationAtAddr(duint Address, MODRELOCATIONINFO* Relocation);
 bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONINFO> & Relocations);
