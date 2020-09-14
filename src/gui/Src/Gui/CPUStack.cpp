@@ -467,7 +467,7 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
                     int width = 5;
                     int offset = 2;
                     auto result = HexDump::paintContent(painter, rowBase, rowOffset, 1, x + (width - 2), y, w - (width - 2), h);
-                    if(party == MODULEPARTY::mod_user)
+                    if(party == mod_user)
                         painter->setPen(QPen(mUserStackFrameColor, 2));
                     else
                         painter->setPen(QPen(mSystemStackFrameColor, 2));

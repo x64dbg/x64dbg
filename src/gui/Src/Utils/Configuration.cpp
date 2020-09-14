@@ -239,7 +239,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("BreakpointSummaryKeywordColor", QColor("#8B671F"));
     defaultColors.insert("BreakpointSummaryStringColor", QColor("#008000"));
     defaultColors.insert("PatchRelocatedByteHighlightColor", QColor("#0000DD"));
-    defaultColors.insert("SymbolUserTextColor", QColor("#FF0000"));
+    defaultColors.insert("SymbolUserTextColor", QColor("#000000"));
     defaultColors.insert("SymbolSystemTextColor", QColor("#000000"));
     defaultColors.insert("SymbolUnloadedTextColor", QColor("#000000"));
     defaultColors.insert("SymbolLoadingTextColor", QColor("#8B671F"));

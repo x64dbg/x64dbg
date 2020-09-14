@@ -84,10 +84,10 @@ void CallStackView::updateCallStack()
         int party = DbgFunctions()->ModGetParty(callstack.entries[i].to);
         switch(party)
         {
-        case MODULEPARTY::mod_user:
+        case mod_user:
             setCellContent(i, 5, tr("User"));
             break;
-        case MODULEPARTY::mod_system:
+        case mod_system:
             setCellContent(i, 5, tr("System"));
             break;
         default:

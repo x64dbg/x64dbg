@@ -37,12 +37,22 @@ namespace Exprfunc
 
     duint modsystem(duint addr)
     {
-        return ModGetParty(addr) == 1;
+        SHARED_ACQUIRE(LockModules);
+        auto info = ModInfoFromAddr(addr);
+        if(info)
+            return info->party == mod_system;
+        else
+            return 0;
     }
 
     duint moduser(duint addr)
     {
-        return ModGetParty(addr) == 0;
+        SHARED_ACQUIRE(LockModules);
+        auto info = ModInfoFromAddr(addr);
+        if(info)
+            return info->party == mod_user;
+        else
+            return 0;
     }
 
     duint modrva(duint addr)

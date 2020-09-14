@@ -303,16 +303,18 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
     }
     else if(col == 2) //info
     {
-        QString wStr = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);;
+        QString wStr = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+        auto addr = getCellUserdata(rowBase + rowOffset, 0);
         if(wStr.startsWith(" \""))
         {
             painter->setPen(ConfigColor("MemoryMapSectionTextColor"));
             painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
             return QString();
         }
-        else if(DbgFunctions()->ModGetParty(getCellUserdata(rowBase + rowOffset, 0)) == MODULEPARTY::mod_user)
+        else if(DbgFunctions()->ModBaseFromAddr(addr) == addr) // module header page
         {
-            painter->setPen(ConfigColor("SymbolUserTextColor"));
+            auto party = DbgFunctions()->ModGetParty(addr);
+            painter->setPen(ConfigColor(party == mod_user ? "SymbolUserTextColor" : "SymbolSystemTextColor"));
             painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
             return QString();
         }
