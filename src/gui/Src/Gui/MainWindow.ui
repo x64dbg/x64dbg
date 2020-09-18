@@ -1069,7 +1069,7 @@
      <normaloff>:/icons/images/initscript.png</normaloff>:/icons/images/initscript.png</iconset>
    </property>
    <property name="text">
-    <string>Set Initialization Script</string>
+    <string>System breakpoint scripts</string>
    </property>
   </action>
   <action name="actionImportSettings">
