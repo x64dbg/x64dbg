@@ -16,6 +16,15 @@
 #include "exception.h"
 #include "TraceRecord.h"
 #include "dbghelp_safe.h"
+#include "taskthread.h"
+
+static void instrAnalyse(duint base, duint size)
+{
+    LinearAnalysis anal(base, size);
+    anal.Analyse();
+    anal.SetMarkers();
+    GuiUpdateAllViews();
+}
 
 bool cbInstrAnalyse(int argc, char* argv[])
 {
@@ -23,11 +32,19 @@ bool cbInstrAnalyse(int argc, char* argv[])
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
     duint size = 0;
     duint base = MemFindBaseAddr(sel.start, &size);
-    LinearAnalysis anal(base, size);
+
+    static TaskThread_<decltype(&instrAnalyse), duint, duint> analysisTask(&instrAnalyse);
+    analysisTask.WakeUp(base, size);
+
+    return true;
+}
+
+static void instrExAnalyse(duint base, duint size)
+{
+    ExceptionDirectoryAnalysis anal(base, size);
     anal.Analyse();
     anal.SetMarkers();
     GuiUpdateAllViews();
-    return true;
 }
 
 bool cbInstrExanalyse(int argc, char* argv[])
@@ -36,11 +53,19 @@ bool cbInstrExanalyse(int argc, char* argv[])
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
     duint size = 0;
     duint base = MemFindBaseAddr(sel.start, &size);
-    ExceptionDirectoryAnalysis anal(base, size);
+
+    static TaskThread_<decltype(&instrExAnalyse), duint, duint> analysisTask(&instrExAnalyse);
+    analysisTask.WakeUp(base, size);
+
+    return true;
+}
+
+static void instrCfAnalyse(duint base, duint size, bool exceptionDirectory)
+{
+    ControlFlowAnalysis anal(base, size, exceptionDirectory);
     anal.Analyse();
     anal.SetMarkers();
     GuiUpdateAllViews();
-    return true;
 }
 
 bool cbInstrCfanalyse(int argc, char* argv[])
@@ -52,11 +77,17 @@ bool cbInstrCfanalyse(int argc, char* argv[])
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
     duint size = 0;
     duint base = MemFindBaseAddr(sel.start, &size);
-    ControlFlowAnalysis anal(base, size, exceptionDirectory);
-    anal.Analyse();
-    anal.SetMarkers();
-    GuiUpdateAllViews();
+
+    static TaskThread_<decltype(&instrCfAnalyse), duint, duint, bool> analysisTask(&instrCfAnalyse);
+    analysisTask.WakeUp(base, size, exceptionDirectory);
+
     return true;
+}
+
+static void instrAnalyseNukem(duint base, duint size)
+{
+    Analyse_nukem(base, size);
+    GuiUpdateAllViews();
 }
 
 bool cbInstrAnalyseNukem(int argc, char* argv[])
@@ -65,9 +96,19 @@ bool cbInstrAnalyseNukem(int argc, char* argv[])
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
     duint size = 0;
     duint base = MemFindBaseAddr(sel.start, &size);
-    Analyse_nukem(base, size);
-    GuiUpdateAllViews();
+
+    static TaskThread_<decltype(&instrAnalyseNukem), duint, duint> analysisTask(&instrAnalyseNukem);
+    analysisTask.WakeUp(base, size);
+
     return true;
+}
+
+static void instrAnalyseXrefs(duint base, duint size)
+{
+    XrefsAnalysis anal(base, size);
+    anal.Analyse();
+    anal.SetMarkers();
+    GuiUpdateAllViews();
 }
 
 bool cbInstrAnalxrefs(int argc, char* argv[])
@@ -76,11 +117,19 @@ bool cbInstrAnalxrefs(int argc, char* argv[])
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
     duint size = 0;
     auto base = MemFindBaseAddr(sel.start, &size);
-    XrefsAnalysis anal(base, size);
-    anal.Analyse();
-    anal.SetMarkers();
-    GuiUpdateAllViews();
+
+    static TaskThread_<decltype(&instrAnalyseXrefs), duint, duint> analysisTask(&instrAnalyseXrefs);
+    analysisTask.WakeUp(base, size);
+
     return true;
+}
+
+static void instrAnalyseRecursive(duint base, duint size, duint entry)
+{
+    RecursiveAnalysis analysis(base, size, entry, true);
+    analysis.Analyse();
+    analysis.SetMarkers();
+    GuiUpdateAllViews();
 }
 
 bool cbInstrAnalrecur(int argc, char* argv[])
@@ -94,10 +143,19 @@ bool cbInstrAnalrecur(int argc, char* argv[])
     auto base = MemFindBaseAddr(entry, &size);
     if(!base)
         return false;
-    RecursiveAnalysis analysis(base, size, entry, true);
-    analysis.Analyse();
-    analysis.SetMarkers();
+
+    static TaskThread_<decltype(&instrAnalyseRecursive), duint, duint, duint> analysisTask(&instrAnalyseRecursive);
+    analysisTask.WakeUp(base, size, entry);
+
     return true;
+}
+
+static void instrAnalyseAdv(duint base, duint size)
+{
+    AdvancedAnalysis anal(base, size);
+    anal.Analyse();
+    anal.SetMarkers();
+    GuiUpdateAllViews();
 }
 
 bool cbInstrAnalyseadv(int argc, char* argv[])
@@ -106,10 +164,10 @@ bool cbInstrAnalyseadv(int argc, char* argv[])
     GuiSelectionGet(GUI_DISASSEMBLY, &sel);
     duint size = 0;
     auto base = MemFindBaseAddr(sel.start, &size);
-    AdvancedAnalysis anal(base, size);
-    anal.Analyse();
-    anal.SetMarkers();
-    GuiUpdateAllViews();
+
+    static TaskThread_<decltype(&instrAnalyseAdv), duint, duint> analysisTask(&instrAnalyseAdv);
+    analysisTask.WakeUp(base, size);
+
     return true;
 }
 
@@ -157,12 +215,12 @@ bool cbDebugDownloadSymbol(int argc, char* argv[])
     dputs(QT_TRANSLATE_NOOP("DBG", "This may take very long, depending on your network connection and data in the debug directory..."));
     Memory<char*> szDefaultStore(MAX_SETTING_SIZE + 1);
     const char* szSymbolStore = szDefaultStore();
-    if(!BridgeSettingGet("Symbols", "DefaultStore", szDefaultStore())) //get default symbol store from settings
+    if(!BridgeSettingGet("Symbols", "DefaultStore", szDefaultStore()))    //get default symbol store from settings
     {
         strcpy_s(szDefaultStore(), MAX_SETTING_SIZE, "https://msdl.microsoft.com/download/symbols");
         BridgeSettingSet("Symbols", "DefaultStore", szDefaultStore());
     }
-    if(argc < 2) //no arguments
+    if(argc < 2)    //no arguments
     {
         SymDownloadAllSymbols(szSymbolStore); //download symbols for all modules
         GuiSymbolRefreshCurrent();
@@ -433,11 +491,11 @@ bool cbInstrExinfo(int argc, char* argv[])
     dputs_untranslated("EXCEPTION_DEBUG_INFO:");
     dprintf_untranslated("           dwFirstChance: %X\n", info.dwFirstChance);
     auto exceptionName = ExceptionCodeToName(record.ExceptionCode);
-    if(!exceptionName.size()) //if no exception was found, try the error codes (RPC_S_*)
+    if(!exceptionName.size())    //if no exception was found, try the error codes (RPC_S_*)
         exceptionName = ErrorCodeToName(record.ExceptionCode);
     if(exceptionName.size())
         dprintf_untranslated("           ExceptionCode: %08X (%s)\n", record.ExceptionCode, exceptionName.c_str());
-    else if((record.ExceptionCode & MASK_FACILITY_VISUALCPP) == MASK_FACILITY_VISUALCPP)  //delayhlp.cpp
+    else if((record.ExceptionCode & MASK_FACILITY_VISUALCPP) == MASK_FACILITY_VISUALCPP)     //delayhlp.cpp
     {
         auto possibleError = record.ExceptionCode & 0xFFFF;
         exceptionName = ErrorCodeToName(possibleError);
