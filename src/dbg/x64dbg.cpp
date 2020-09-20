@@ -655,6 +655,11 @@ static FARPROC WINAPI delayHook(unsigned dliNotify, PDelayLoadInfo pdli)
     return 0;
 }
 
+// Visual Studio 2015 Update 3 made this const per default
+// https://dev.to/yumetodo/list-of-mscver-and-mscfullver-8nd
+#if _MSC_FULL_VER >= 190024210
+const
+#endif // _MSC_FULL_VER
 PfnDliHook __pfnDliNotifyHook2 = delayHook;
 
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
