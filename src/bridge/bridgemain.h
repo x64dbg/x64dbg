@@ -319,6 +319,7 @@ typedef enum
     DBG_ANALYZE_FUNCTION,           // param1=BridgeCFGraphList* graph,  param2=duint entry
     DBG_MENU_PREPARE,               // param1=int hMenu,                 param2=unused
     DBG_GET_SYMBOL_INFO,            // param1=void* symbol,              param2=SYMBOLINFO* info
+    DBG_GET_DEBUG_ENGINE,           // param1=unused,                    param2-unused
 } DBGMSG;
 
 typedef enum
@@ -518,6 +519,13 @@ typedef enum
     mod_user,
     mod_system
 } MODULEPARTY;
+
+typedef enum
+{
+    DebugEngineTitanEngine,
+    DebugEngineGleeBug,
+    DebugEngineStaticEngine,
+} DEBUG_ENGINE;
 
 //Debugger typedefs
 typedef MEMORY_SIZE VALUE_SIZE;
@@ -1046,6 +1054,7 @@ BRIDGE_IMPEXP duint DbgGetTebAddress(DWORD ThreadId);
 BRIDGE_IMPEXP bool DbgAnalyzeFunction(duint entry, BridgeCFGraphList* graph);
 BRIDGE_IMPEXP duint DbgEval(const char* expression, bool* DEFAULT_PARAM(success, nullptr));
 BRIDGE_IMPEXP void DbgGetSymbolInfo(const SYMBOLPTR* symbolptr, SYMBOLINFO* info);
+BRIDGE_IMPEXP DEBUG_ENGINE DbgGetDebugEngine();
 
 //Gui defines
 typedef enum

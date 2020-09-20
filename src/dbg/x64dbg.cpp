@@ -624,39 +624,18 @@ static FARPROC WINAPI delayHook(unsigned dliNotify, PDelayLoadInfo pdli)
 {
     if(dliNotify == dliNotePreLoadLibrary && _stricmp(pdli->szDll, "TitanEngine.dll") == 0)
     {
-        enum DebugEngine : duint
-        {
-            TitanEngine,
-            GleeBug,
-            StaticEngine,
-        };
-
-        static DebugEngine debugEngine = []
-        {
-            duint setting = TitanEngine;
-            if(!BridgeSettingGetUint("Engine", "DebugEngine", &setting))
-            {
-                auto msg = String(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "GleeBug is now available for beta testing, would you like to enable it? Some bugs can be expected, but generally things are looking stable!\n\nYou can change this setting in the Settings dialog.")));
-                auto title = String(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "New debug engine available!")));
-                if(MessageBoxW(GuiGetWindowHandle(), StringUtils::Utf8ToUtf16(msg).c_str(), StringUtils::Utf8ToUtf16(title).c_str(), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES)
-                    setting = GleeBug;
-                BridgeSettingSetUint("Engine", "DebugEngine", setting);
-            }
-            return (DebugEngine)setting;
-        }();
-
         String fullPath = szProgramDir;
         fullPath += '\\';
 
-        switch(debugEngine)
+        switch(DbgGetDebugEngine())
         {
-        case GleeBug:
+        case DebugEngineGleeBug:
             fullPath += "GleeBug\\TitanEngine.dll";
             break;
-        case StaticEngine:
+        case DebugEngineStaticEngine:
             fullPath += "StaticEngine\\TitanEngine.dll";
             break;
-        case TitanEngine:
+        case DebugEngineTitanEngine:
         default:
             return 0;
         }

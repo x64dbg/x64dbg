@@ -1097,6 +1097,11 @@ BRIDGE_IMPEXP void DbgGetSymbolInfo(const SYMBOLPTR* symbolptr, SYMBOLINFO* info
     _dbg_sendmessage(DBG_GET_SYMBOL_INFO, (void*)symbolptr, info);
 }
 
+BRIDGE_IMPEXP DEBUG_ENGINE DbgGetDebugEngine()
+{
+    return (DEBUG_ENGINE)_dbg_sendmessage(DBG_GET_DEBUG_ENGINE, nullptr, nullptr);
+}
+
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
     EnterCriticalSection(&csTranslate);
