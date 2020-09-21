@@ -14,7 +14,7 @@ BrowseDialog::BrowseDialog(QWidget* parent, const QString & title, const QString
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
     setWindowTitle(title);
     ui->label->setText(text);
-    ui->lineEdit->setText(QDir::toNativeSeparators(defaultPath));
+    ui->lineEdit->setText(defaultPath);
     QCompleter* completer = new QCompleter(ui->lineEdit);
     completer->setModel(new QDirModel(completer));
     ui->lineEdit->setCompleter(completer);
