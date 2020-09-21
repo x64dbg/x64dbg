@@ -793,7 +793,7 @@ void SymbolView::moduleSetParty()
         bool ok;
         party = mLineEditeditText.toInt(&ok);
         int i = mModuleList->mCurList->getInitialSelection();
-        if(ok && (party == mod_user || party == mod_system))
+        if(ok)
         {
             DbgFunctions()->ModSetParty(modbase, (MODULEPARTY)party);
             /* TODO: refresh module list
