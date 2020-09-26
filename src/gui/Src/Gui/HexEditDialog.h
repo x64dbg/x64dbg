@@ -76,6 +76,7 @@ private:
         DataPascalWord,
         DataPascalDword,
         DataPascalQword,
+        DataPython3Byte,
         DataString,
         DataUnicodeString,
         DataUTF8String,
