@@ -40,6 +40,7 @@ void CallStackView::setupContextMenu()
     QAction* wShowSuspectedCallStack = makeAction(tr("Show Suspected Call Stack Frame"), SLOT(showSuspectedCallStack()));
     wShowSuspectedCallStack->setShortcutContext(Qt::WidgetShortcut);
     wShowSuspectedCallStack->setShortcut(QKeySequence("space"));
+    connect(this, SIGNAL(triggered()), this, SLOT(showSuspectedCallStack()));
     mMenuBuilder->addAction(wShowSuspectedCallStack, [wShowSuspectedCallStack](QMenu*)
     {
         duint i;
