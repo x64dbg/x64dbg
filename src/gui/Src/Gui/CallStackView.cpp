@@ -37,7 +37,9 @@ void CallStackView::setupContextMenu()
     mFollowFrom->setShortcut(QKeySequence("enter"));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followFrom()));
     mMenuBuilder->addSeparator();
-    QAction* wShowSuspectedCallStack = makeShortcutAction(tr("Show Suspected Call Stack Frame"), SLOT(showSuspectedCallStack()), "space");
+    QAction* wShowSuspectedCallStack = makeAction(tr("Show Suspected Call Stack Frame"), SLOT(showSuspectedCallStack()));
+    wShowSuspectedCallStack->setShortcutContext(Qt::WidgetShortcut);
+    wShowSuspectedCallStack->setShortcut(QKeySequence("space"));
     mMenuBuilder->addAction(wShowSuspectedCallStack, [wShowSuspectedCallStack](QMenu*)
     {
         duint i;
