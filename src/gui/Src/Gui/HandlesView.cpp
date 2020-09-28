@@ -484,62 +484,42 @@ void HandlesView::enumWindows()
 //Enumerate privileges and update privileges table
 void HandlesView::enumPrivileges()
 {
-    mPrivilegesTable->setRowCount(35);
-    AppendPrivilege(0, "SeAssignPrimaryTokenPrivilege");
-    AppendPrivilege(1, "SeAuditPrivilege");
-    AppendPrivilege(2, "SeBackupPrivilege");
-    AppendPrivilege(3, "SeChangeNotifyPrivilege");
-    AppendPrivilege(4, "SeCreateGlobalPrivilege");
-    AppendPrivilege(5, "SeCreatePagefilePrivilege");
-    AppendPrivilege(6, "SeCreatePermanentPrivilege");
-    AppendPrivilege(7, "SeCreateSymbolicLinkPrivilege");
-    AppendPrivilege(8, "SeCreateTokenPrivilege");
-    AppendPrivilege(9, "SeDebugPrivilege");
-    AppendPrivilege(10, "SeEnableDelegationPrivilege");
-    AppendPrivilege(11, "SeImpersonatePrivilege");
-    AppendPrivilege(12, "SeIncreaseBasePriorityPrivilege");
-    AppendPrivilege(13, "SeIncreaseQuotaPrivilege");
-    AppendPrivilege(14, "SeIncreaseWorkingSetPrivilege");
-    AppendPrivilege(15, "SeLoadDriverPrivilege");
-    AppendPrivilege(16, "SeLockMemoryPrivilege");
-    AppendPrivilege(17, "SeMachineAccountPrivilege");
-    AppendPrivilege(18, "SeManageVolumePrivilege");
-    AppendPrivilege(19, "SeProfileSingleProcessPrivilege");
-    AppendPrivilege(20, "SeRelabelPrivilege");
-    AppendPrivilege(21, "SeRemoteShutdownPrivilege");
-    AppendPrivilege(22, "SeRestorePrivilege");
-    AppendPrivilege(23, "SeSecurityPrivilege");
-    AppendPrivilege(24, "SeShutdownPrivilege");
-    AppendPrivilege(25, "SeSyncAgentPrivilege");
-    AppendPrivilege(26, "SeSystemEnvironmentPrivilege");
-    AppendPrivilege(27, "SeSystemProfilePrivilege");
-    AppendPrivilege(28, "SeSystemtimePrivilege");
-    AppendPrivilege(29, "SeTakeOwnershipPrivilege");
-    AppendPrivilege(30, "SeTcbPrivilege");
-    AppendPrivilege(31, "SeTimeZonePrivilege");
-    AppendPrivilege(32, "SeTrustedCredManAccessPrivilege");
-    AppendPrivilege(33, "SeUndockPrivilege");
-    AppendPrivilege(34, "SeUnsolicitedInputPrivilege");
-    mPrivilegesTable->reloadData();
-}
-
-void HandlesView::AppendPrivilege(int row, const char* PrivilegeString)
-{
-    DbgCmdExecDirect(QString("GetPrivilegeState \"%1\"").arg(PrivilegeString));
-    mPrivilegesTable->setCellContent(row, 0, QString(PrivilegeString));
-    switch(DbgValFromString("$result"))
+    const char* PrivilegeString[] = {"SeAssignPrimaryTokenPrivilege", "SeAuditPrivilege", "SeBackupPrivilege",
+                                     "SeChangeNotifyPrivilege", "SeCreateGlobalPrivilege", "SeCreatePagefilePrivilege",
+                                     "SeCreatePermanentPrivilege", "SeCreateSymbolicLinkPrivilege", "SeCreateTokenPrivilege",
+                                     "SeDebugPrivilege", "SeEnableDelegationPrivilege", "SeImpersonatePrivilege",
+                                     "SeIncreaseBasePriorityPrivilege", "SeIncreaseQuotaPrivilege", "SeIncreaseWorkingSetPrivilege",
+                                     "SeLoadDriverPrivilege", "SeLockMemoryPrivilege", "SeMachineAccountPrivilege",
+                                     "SeManageVolumePrivilege", "SeProfileSingleProcessPrivilege", "SeRelabelPrivilege",
+                                     "SeRemoteShutdownPrivilege", "SeRestorePrivilege", "SeSecurityPrivilege",
+                                     "SeShutdownPrivilege", "SeSyncAgentPrivilege", "SeSystemEnvironmentPrivilege",
+                                     "SeSystemProfilePrivilege", "SeSystemtimePrivilege", "SeTakeOwnershipPrivilege",
+                                     "SeTcbPrivilege", "SeTimeZonePrivilege", "SeTrustedCredManAccessPrivilege",
+                                     "SeUndockPrivilege", "SeUnsolicitedInputPrivilege"
+                                    };
+    mPrivilegesTable->setRowCount(_countof(PrivilegeString));
+    for(size_t row = 0; row < _countof(PrivilegeString); row++)
     {
-    default:
-        mPrivilegesTable->setCellContent(row, 1, tr("Unknown"));
-        break;
-    case 1:
-        mPrivilegesTable->setCellContent(row, 1, tr("Disabled"));
-        break;
-    case 2:
-    case 3:
-        mPrivilegesTable->setCellContent(row, 1, tr("Enabled"));
-        break;
+        QString temp(PrivilegeString[row]);
+        DbgCmdExecDirect(QString("GetPrivilegeState \"%1\"").arg(temp).toUtf8().constData());
+        mPrivilegesTable->setCellContent(row, 0, temp);
+        switch(DbgValFromString("$result"))
+        {
+        default:
+            temp = tr("Unknown");
+            break;
+        case 1:
+            temp = tr("Disabled");
+            break;
+        case 2:
+        case 3:
+            temp = tr("Enabled");
+            break;
+        }
+        mPrivilegesTable->setCellContent(row, 1, temp);
     }
+
+    mPrivilegesTable->reloadData();
 }
 
 //Enumerate TCP connections and update TCP connections table

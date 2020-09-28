@@ -65,8 +65,6 @@ private:
     void enumTcpConnections();
     //void enumHeaps();
     void enumPrivileges();
-
-    void AppendPrivilege(int row, const char* PrivilegeString);
 };
 
 #endif // HANDLESVIEW_H
