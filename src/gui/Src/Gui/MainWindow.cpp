@@ -363,8 +363,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Menu stuff
     actionManageFavourites = nullptr;
-    mFavouriteToolbar = new QToolBar(tr("Favourite ToolBar"), this);
-    mFavouriteToolbar->hide();
+    mFavouriteToolbar = new QToolBar(tr("Favourite Toolbox"), this);
     updateFavouriteTools();
     setupLanguagesMenu();
     setupThemesMenu();
@@ -747,6 +746,11 @@ void MainWindow::saveWindowSettings()
                              mWidgetList[i].widget->parentWidget()->saveGeometry().toBase64().data());
     }
 
+    // Save favourite toolbar
+    BridgeSettingSetUint("Main Window Settings", "FavToolbarPositionX", mFavouriteToolbar->x());
+    BridgeSettingSetUint("Main Window Settings", "FavToolbarPositionY", mFavouriteToolbar->y());
+    BridgeSettingSetUint("Main Window Settings", "FavToolbarVisible", mFavouriteToolbar->isVisible() ? 1 : 0);
+
     mCpuWidget->saveWindowSettings();
     mSymbolView->saveWindowSettings();
 }
@@ -790,6 +794,14 @@ void MainWindow::loadWindowSettings()
         if(isDeleted)
             mTabWidget->DeleteTab(mTabWidget->indexOf(mWidgetList[i].widget));
     }
+
+    // Load favourite toolbar
+    duint posx = 0, posy = 0, isVisible = 0;
+    BridgeSettingGetUint("Main Window Settings", "FavToolbarPositionX", &posx);
+    BridgeSettingGetUint("Main Window Settings", "FavToolbarPositionY", &posy);
+    BridgeSettingGetUint("Main Window Settings", "FavToolbarVisible", &isVisible);
+    mFavouriteToolbar->move(posx, posy);
+    mFavouriteToolbar->setVisible(isVisible == 1);
 
     mCpuWidget->loadWindowSettings();
     mSymbolView->loadWindowSettings();
@@ -1885,7 +1897,7 @@ void MainWindow::updateFavouriteTools()
     for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Tool%1").arg(i).toUtf8().constData(), buffer); i++)
     {
         QString toolPath = QString(buffer);
-        QAction* newAction = new QAction(actionManageFavourites);
+        QAction* newAction = new QAction(actionManageFavourites); // Auto delete these actions on updateFavouriteTools()
         // Set up user data to be used in clickFavouriteTool()
         newAction->setData(QVariant(QString("Tool,%1").arg(toolPath)));
         if(BridgeSettingGet("Favourite", QString("ToolShortcut%1").arg(i).toUtf8().constData(), buffer))
