@@ -362,6 +362,9 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
 
     // Menu stuff
+    actionManageFavourites = nullptr;
+    mFavouriteToolbar = new QToolBar(tr("Favourite ToolBar"), this);
+    mFavouriteToolbar->hide();
     updateFavouriteTools();
     setupLanguagesMenu();
     setupThemesMenu();
@@ -1843,15 +1846,46 @@ void MainWindow::manageFavourites()
     updateFavouriteTools();
 }
 
+static void splitToolPath(const QString & toolPath, QString & file, QString & cmd)
+{
+    if(toolPath.startsWith('\"'))
+    {
+        auto endQuote = toolPath.indexOf('\"', 1);
+        if(endQuote == -1) //"failure with spaces
+            file = toolPath.mid(1);
+        else //"path with spaces" arguments
+        {
+            file = toolPath.mid(1, endQuote - 1);
+            cmd = toolPath.mid(endQuote + 1);
+        }
+    }
+    else
+    {
+        auto firstSpace = toolPath.indexOf(' ');
+        if(firstSpace == -1) //pathwithoutspaces
+            file = toolPath;
+        else //pathwithoutspaces argument
+        {
+            file = toolPath.left(firstSpace);
+            cmd = toolPath.mid(firstSpace + 1);
+        }
+    }
+    file = file.trimmed();
+    cmd = cmd.trimmed();
+}
+
 void MainWindow::updateFavouriteTools()
 {
     char buffer[MAX_SETTING_SIZE];
     bool isanythingexists = false;
     ui->menuFavourites->clear();
+    delete actionManageFavourites;
+    mFavouriteToolbar->clear();
+    actionManageFavourites = new QAction(DIcon("star.png"), tr("&Manage Favourite Tools..."), this);
     for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Tool%1").arg(i).toUtf8().constData(), buffer); i++)
     {
         QString toolPath = QString(buffer);
-        QAction* newAction = new QAction(this);
+        QAction* newAction = new QAction(actionManageFavourites);
         // Set up user data to be used in clickFavouriteTool()
         newAction->setData(QVariant(QString("Tool,%1").arg(toolPath)));
         if(BridgeSettingGet("Favourite", QString("ToolShortcut%1").arg(i).toUtf8().constData(), buffer))
@@ -1862,42 +1896,28 @@ void MainWindow::updateFavouriteTools()
         else
             newAction->setText(toolPath);
         // Get the icon of the executable
-        QString file;
-        if(toolPath.startsWith('\"'))
-        {
-            auto endQuote = toolPath.indexOf('\"', 1);
-            if(endQuote == -1) //"failure with spaces
-                file = toolPath.mid(1);
-            else //"path with spaces" arguments
-            {
-                file = toolPath.mid(1, endQuote - 1);
-            }
-        }
-        else
-        {
-            auto firstSpace = toolPath.indexOf(' ');
-            if(firstSpace == -1) //pathwithoutspaces
-                file = toolPath;
-            else //pathwithoutspaces argument
-            {
-                file = toolPath.left(firstSpace);
-            }
-        }
-        file = file.trimmed();
-        newAction->setIcon(getFileIcon(file));
+        QString file, cmd;
+        QIcon icon;
+        splitToolPath(toolPath, file, cmd);
+        icon = getFileIcon(file);
+        if(icon.isNull())
+            icon = DIcon("plugin.png");
+        newAction->setIcon(icon);
         connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
         ui->menuFavourites->addAction(newAction);
+        mFavouriteToolbar->addAction(newAction);
         isanythingexists = true;
     }
     if(isanythingexists)
     {
         isanythingexists = false;
         ui->menuFavourites->addSeparator();
+        mFavouriteToolbar->addSeparator();
     }
     for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Script%1").arg(i).toUtf8().constData(), buffer); i++)
     {
         QString scriptPath = QString(buffer);
-        QAction* newAction = new QAction(this);
+        QAction* newAction = new QAction(actionManageFavourites);
         // Set up user data to be used in clickFavouriteTool()
         newAction->setData(QVariant(QString("Script,%1").arg(scriptPath)));
         if(BridgeSettingGet("Favourite", QString("ScriptShortcut%1").arg(i).toUtf8().constData(), buffer))
@@ -1908,32 +1928,41 @@ void MainWindow::updateFavouriteTools()
         else
             newAction->setText(scriptPath);
         connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
+        newAction->setIcon(DIcon("script-code.png"));
         ui->menuFavourites->addAction(newAction);
+        mFavouriteToolbar->addAction(newAction);
         isanythingexists = true;
     }
     if(isanythingexists)
     {
         isanythingexists = false;
         ui->menuFavourites->addSeparator();
+        mFavouriteToolbar->addSeparator();
     }
     for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Command%1").arg(i).toUtf8().constData(), buffer); i++)
     {
-        QAction* newAction = new QAction(QString(buffer), this);
+        QAction* newAction = new QAction(QString(buffer), actionManageFavourites);
         // Set up user data to be used in clickFavouriteTool()
         newAction->setData(QVariant(QString("Command")));
         if(BridgeSettingGet("Favourite", QString("CommandShortcut%1").arg(i).toUtf8().constData(), buffer))
             if(*buffer && strcmp(buffer, "NOT_SET") != 0)
                 setGlobalShortcut(newAction, QKeySequence(QString(buffer)));
         connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
+        newAction->setIcon(DIcon("star.png"));
         ui->menuFavourites->addAction(newAction);
+        mFavouriteToolbar->addAction(newAction);
         isanythingexists = true;
     }
     if(isanythingexists)
+    {
         ui->menuFavourites->addSeparator();
-    actionManageFavourites = new QAction(DIcon("star.png"), tr("&Manage Favourite Tools..."), this);
+        mFavouriteToolbar->addSeparator();
+    }
     ui->menuFavourites->addAction(actionManageFavourites);
     setGlobalShortcut(actionManageFavourites, ConfigShortcut("FavouritesManage"));
     connect(ui->menuFavourites->actions().last(), SIGNAL(triggered()), this, SLOT(manageFavourites()));
+    mFavouriteToolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    ui->menuFavourites->addAction(mFavouriteToolbar->toggleViewAction());
 }
 
 static QString stringFormatInline(const QString & format)
@@ -1984,30 +2013,7 @@ void MainWindow::clickFavouriteTool()
         else if(GetLastError() == ERROR_ELEVATION_REQUIRED)
         {
             QString file, cmd;
-            if(toolPath.startsWith('\"'))
-            {
-                auto endQuote = toolPath.indexOf('\"', 1);
-                if(endQuote == -1) //"failure with spaces
-                    file = toolPath.mid(1);
-                else //"path with spaces" arguments
-                {
-                    file = toolPath.mid(1, endQuote - 1);
-                    cmd = toolPath.mid(endQuote + 1);
-                }
-            }
-            else
-            {
-                auto firstSpace = toolPath.indexOf(' ');
-                if(firstSpace == -1) //pathwithoutspaces
-                    file = toolPath;
-                else //pathwithoutspaces argument
-                {
-                    file = toolPath.left(firstSpace);
-                    cmd = toolPath.mid(firstSpace + 1);
-                }
-            }
-            file = file.trimmed();
-            cmd = cmd.trimmed();
+            splitToolPath(toolPath, file, cmd);
             ShellExecuteW(nullptr, L"runas", file.toStdWString().c_str(), cmd.toStdWString().c_str(), nullptr, SW_SHOWNORMAL);
         }
     }
