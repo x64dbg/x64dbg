@@ -184,6 +184,7 @@ private:
     UpdateChecker* mUpdateChecker;
     DebugStatusLabel* mStatusLabel;
     LogStatusLabel* mLastLogLabel;
+    QToolBar* mFavouriteToolbar;
 
     TimeWastedCounter* mTimeWastedCounter;
 
