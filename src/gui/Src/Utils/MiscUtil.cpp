@@ -163,11 +163,8 @@ QIcon getFileIcon(QString file)
 {
     SHFILEINFO info;
     if(SHGetFileInfoW((const wchar_t*)file.utf16(), 0, &info, sizeof(info), SHGFI_ICON) == 0)
-    {
         return QIcon(); //API error
-    }
-    QIcon result;
-    result = QIcon(QtWin::fromHICON(info.hIcon));
+    QIcon result = QIcon(QtWin::fromHICON(info.hIcon));
     DestroyIcon(info.hIcon);
     return result;
 }
