@@ -1850,16 +1850,41 @@ void MainWindow::updateFavouriteTools()
     ui->menuFavourites->clear();
     for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Tool%1").arg(i).toUtf8().constData(), buffer); i++)
     {
-        QString exePath = QString(buffer);
+        QString toolPath = QString(buffer);
         QAction* newAction = new QAction(this);
-        newAction->setData(QVariant(QString("Tool,%1").arg(exePath)));
+        // Set up user data to be used in clickFavouriteTool()
+        newAction->setData(QVariant(QString("Tool,%1").arg(toolPath)));
         if(BridgeSettingGet("Favourite", QString("ToolShortcut%1").arg(i).toUtf8().constData(), buffer))
             if(*buffer && strcmp(buffer, "NOT_SET") != 0)
                 setGlobalShortcut(newAction, QKeySequence(QString(buffer)));
         if(BridgeSettingGet("Favourite", QString("ToolDescription%1").arg(i).toUtf8().constData(), buffer))
             newAction->setText(QString(buffer));
         else
-            newAction->setText(exePath);
+            newAction->setText(toolPath);
+        // Get the icon of the executable
+        QString file;
+        if(toolPath.startsWith('\"'))
+        {
+            auto endQuote = toolPath.indexOf('\"', 1);
+            if(endQuote == -1) //"failure with spaces
+                file = toolPath.mid(1);
+            else //"path with spaces" arguments
+            {
+                file = toolPath.mid(1, endQuote - 1);
+            }
+        }
+        else
+        {
+            auto firstSpace = toolPath.indexOf(' ');
+            if(firstSpace == -1) //pathwithoutspaces
+                file = toolPath;
+            else //pathwithoutspaces argument
+            {
+                file = toolPath.left(firstSpace);
+            }
+        }
+        file = file.trimmed();
+        newAction->setIcon(getFileIcon(file));
         connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
         ui->menuFavourites->addAction(newAction);
         isanythingexists = true;
@@ -1873,6 +1898,7 @@ void MainWindow::updateFavouriteTools()
     {
         QString scriptPath = QString(buffer);
         QAction* newAction = new QAction(this);
+        // Set up user data to be used in clickFavouriteTool()
         newAction->setData(QVariant(QString("Script,%1").arg(scriptPath)));
         if(BridgeSettingGet("Favourite", QString("ScriptShortcut%1").arg(i).toUtf8().constData(), buffer))
             if(*buffer && strcmp(buffer, "NOT_SET") != 0)
@@ -1893,6 +1919,7 @@ void MainWindow::updateFavouriteTools()
     for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Command%1").arg(i).toUtf8().constData(), buffer); i++)
     {
         QAction* newAction = new QAction(QString(buffer), this);
+        // Set up user data to be used in clickFavouriteTool()
         newAction->setData(QVariant(QString("Command")));
         if(BridgeSettingGet("Favourite", QString("CommandShortcut%1").arg(i).toUtf8().constData(), buffer))
             if(*buffer && strcmp(buffer, "NOT_SET") != 0)
