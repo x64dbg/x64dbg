@@ -251,7 +251,7 @@ QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int row
         painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, text);
         text.clear();
     }
-    else if(mHighlightText.length() && text.contains(mHighlightText, Qt::CaseInsensitive)) // TODO: case sensitive + regex highlighting
+    else if(mHighlightText.length() && col >= mMinimumHighlightColumn && text.contains(mHighlightText, Qt::CaseInsensitive)) // TODO: case sensitive + regex highlighting
     {
         //super smart way of splitting while keeping the delimiters (thanks to cypher for guidance)
         int index = -2;

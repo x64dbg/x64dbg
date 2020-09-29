@@ -231,7 +231,7 @@ void SearchListView::filterEntries()
     // Do not highlight with regex
     // TODO: fully respect highlighting mode
     if(mRegexCheckbox->checkState() == Qt::Unchecked)
-        mAbstractSearchList->searchList()->setHighlightText(mFilterText);
+        mAbstractSearchList->searchList()->setHighlightText(mFilterText, mSearchStartCol);
     else
         mAbstractSearchList->searchList()->setHighlightText(QString());
 
