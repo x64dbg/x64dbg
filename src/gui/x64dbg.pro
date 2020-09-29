@@ -76,6 +76,7 @@ RESOURCES += \
 SOURCES += \
     Src/Gui/CPURegistersView.cpp \
     Src/Gui/SystemBreakpointScriptDialog.cpp \
+    Src/Imports.cpp \
     Src/Tracer/TraceRegisters.cpp \
     Src/Tracer/TraceWidget.cpp \
     Src/main.cpp \

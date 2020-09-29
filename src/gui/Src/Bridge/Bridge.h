@@ -172,7 +172,4 @@ private:
     volatile bool dbgStopped = false;
 };
 
-void DbgCmdExec(const QString & cmd);
-bool DbgCmdExecDirect(const QString & cmd);
-
 #endif // BRIDGE_H
