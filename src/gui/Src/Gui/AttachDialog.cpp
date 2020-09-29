@@ -28,12 +28,12 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
 
     // Create search view (regex disabled)
     mSearchListView = new StdSearchListView(this, false, false);
-    mSearchListView->mSearchStartCol = 1;
+    mSearchListView->mSearchStartCol = 0;
     ui->verticalLayout->insertWidget(0, mSearchListView);
 
     //setup process list
     int charwidth = mSearchListView->getCharWidth();
-    mSearchListView->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true);
+    mSearchListView->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true, QString(), ConfigBool("Gui", "PidInHex") ? StdTable::SortBy::AsHex : StdTable::SortBy::AsInt);
     mSearchListView->addColumnAt(150, tr("Name"), true);
     mSearchListView->addColumnAt(300, tr("Title"), true);
     mSearchListView->addColumnAt(500, tr("Path"), true);
@@ -69,11 +69,11 @@ void AttachDialog::refresh()
     for(int i = 0; i < count; i++)
     {
         QFileInfo fi(entries[i].szExeFile);
-        mSearchListView->setCellContent(i, 0, QString().sprintf(ConfigBool("Gui", "PidInHex") ? "%.8X" : "%u", entries[i].dwProcessId));
-        mSearchListView->setCellContent(i, 1, fi.baseName());
-        mSearchListView->setCellContent(i, 2, QString(entries[i].szExeMainWindowTitle));
-        mSearchListView->setCellContent(i, 3, QString(entries[i].szExeFile));
-        mSearchListView->setCellContent(i, 4, QString(entries[i].szExeArgs));
+        mSearchListView->setCellContent(i, ColPid, QString().sprintf(ConfigBool("Gui", "PidInHex") ? "%.8X" : "%u", entries[i].dwProcessId));
+        mSearchListView->setCellContent(i, ColName, fi.baseName());
+        mSearchListView->setCellContent(i, ColTitle, QString(entries[i].szExeMainWindowTitle));
+        mSearchListView->setCellContent(i, ColPath, QString(entries[i].szExeFile));
+        mSearchListView->setCellContent(i, ColCommandLine, QString(entries[i].szExeArgs));
     }
     mSearchListView->reloadData();
     mSearchListView->refreshSearchList();
@@ -81,10 +81,8 @@ void AttachDialog::refresh()
 
 void AttachDialog::on_btnAttach_clicked()
 {
-    QString pid = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), 0);
-    if(!ConfigBool("Gui", "PidInHex"))
-        pid.sprintf("%.8X", pid.toULong());
-    DbgCmdExec(QString("attach " + pid).toUtf8().constData());
+    QString pid = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), ColPid);
+    DbgCmdExec(QString("attach %1%2").arg(ConfigBool("Gui", "PidInHex") ? "" : ".").arg(pid));
     accept();
 }
 
@@ -114,7 +112,7 @@ retryFindWindow:
             bool found = false;
             for(int i = 0; i < mSearchListView->mCurList->getRowCount(); i++)
             {
-                if(mSearchListView->mCurList->getCellContent(i, 0) == pidText)
+                if(mSearchListView->mCurList->getCellContent(i, ColPid) == pidText)
                 {
                     mSearchListView->mCurList->setSingleSelection(i);
                     found = true;

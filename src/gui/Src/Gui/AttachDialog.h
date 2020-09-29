@@ -31,6 +31,15 @@ private:
     StdSearchListView* mSearchListView;
     QAction* mAttachAction;
     QAction* mRefreshAction;
+
+    enum
+    {
+        ColPid,
+        ColName,
+        ColTitle,
+        ColPath,
+        ColCommandLine,
+    };
 };
 
 #endif // ATTACHDIALOG_H
