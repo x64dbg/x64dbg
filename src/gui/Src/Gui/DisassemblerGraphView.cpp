@@ -1178,7 +1178,7 @@ void DisassemblerGraphView::mouseDoubleClickEvent(QMouseEvent* event)
         if(!mHistoryLock)
             mHistory.addVaToHistory(instr);
 
-        DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(instr)).toUtf8().constData());
+        DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(instr)));
     }
 }
 
@@ -2347,25 +2347,25 @@ void DisassemblerGraphView::keyPressEvent(QKeyEvent* event)
         return;
     int key = event->key();
     if(key == Qt::Key_Up)
-        DbgCmdExec(QString("graph dis.prev(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
+        DbgCmdExec(QString("graph dis.prev(%1), silent").arg(ToPtrString(cur_instr)));
     else if(key == Qt::Key_Down)
-        DbgCmdExec(QString("graph dis.next(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
+        DbgCmdExec(QString("graph dis.next(%1), silent").arg(ToPtrString(cur_instr)));
     else if(key == Qt::Key_Left)
-        DbgCmdExec(QString("graph dis.brtrue(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
+        DbgCmdExec(QString("graph dis.brtrue(%1), silent").arg(ToPtrString(cur_instr)));
     else if(key == Qt::Key_Right)
-        DbgCmdExec(QString("graph dis.brfalse(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
+        DbgCmdExec(QString("graph dis.brfalse(%1), silent").arg(ToPtrString(cur_instr)));
     else if(key == Qt::Key_Return || key == Qt::Key_Enter)
     {
         //Add address to history
         if(!mHistoryLock)
             mHistory.addVaToHistory(cur_instr);
-        DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(cur_instr)).toUtf8().constData());
+        DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(cur_instr)));
     }
 }
 
 void DisassemblerGraphView::followDisassemblerSlot()
 {
-    DbgCmdExec(QString("disasm %1").arg(ToPtrString(this->cur_instr)).toUtf8().constData());
+    DbgCmdExec(QString("disasm %1").arg(ToPtrString(this->cur_instr)));
 }
 
 void DisassemblerGraphView::colorsUpdatedSlot()
@@ -2465,7 +2465,7 @@ void DisassemblerGraphView::gotoExpressionSlot()
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
-        DbgCmdExec(QString().sprintf("graph %p, silent", value).toUtf8().constData());
+        DbgCmdExec(QString().sprintf("graph %p, silent", value));
     }
 }
 
@@ -2479,7 +2479,7 @@ void DisassemblerGraphView::gotoPreviousSlot()
     if(mHistory.historyHasPrev())
     {
         mHistoryLock = true;
-        DbgCmdExecDirect(QString("graph %1, silent").arg(ToPtrString(mHistory.historyPrev())).toUtf8().constData());
+        DbgCmdExecDirect(QString("graph %1, silent").arg(ToPtrString(mHistory.historyPrev())));
         mHistoryLock = false;
     }
 }
@@ -2489,7 +2489,7 @@ void DisassemblerGraphView::gotoNextSlot()
     if(mHistory.historyHasNext())
     {
         mHistoryLock = true;
-        DbgCmdExecDirect(QString("graph %1, silent").arg(ToPtrString(mHistory.historyNext())).toUtf8().constData());
+        DbgCmdExecDirect(QString("graph %1, silent").arg(ToPtrString(mHistory.historyNext())));
         mHistoryLock = false;
     }
 }
@@ -2505,7 +2505,7 @@ void DisassemblerGraphView::toggleSyncOriginSlot()
 
 void DisassemblerGraphView::refreshSlot()
 {
-    DbgCmdExec(QString("graph %1, force").arg(ToPtrString(this->cur_instr)).toUtf8().constData());
+    DbgCmdExec(QString("graph %1, force").arg(ToPtrString(this->cur_instr)));
 }
 
 void DisassemblerGraphView::saveImageSlot()
@@ -2621,7 +2621,7 @@ void DisassemblerGraphView::xrefSlot()
         mXrefDlg = new XrefBrowseDialog(this);
     mXrefDlg->setup(wVA, [](duint addr)
     {
-        DbgCmdExec(QString("graph %1").arg(ToPtrString(addr)).toUtf8().constData());
+        DbgCmdExec(QString("graph %1").arg(ToPtrString(addr)));
     });
     mXrefDlg->showNormal();
 }
@@ -2632,7 +2632,7 @@ void DisassemblerGraphView::followActionSlot()
     if(action)
     {
         QString data = action->data().toString();
-        DbgCmdExecDirect(QString("graph %1, silent").arg(data).toUtf8().constData());
+        DbgCmdExecDirect(QString("graph %1, silent").arg(data));
     }
 }
 
@@ -2643,7 +2643,7 @@ void DisassemblerGraphView::mnemonicHelpSlot()
     DbgMemRead(addr, data, sizeof(data));
     Zydis zydis;
     zydis.Disassemble(addr, data);
-    DbgCmdExecDirect(QString("mnemonichelp %1").arg(zydis.Mnemonic().c_str()).toUtf8().constData());
+    DbgCmdExecDirect(QString("mnemonichelp %1").arg(zydis.Mnemonic().c_str()));
     emit displayLogWidget();
 }
 

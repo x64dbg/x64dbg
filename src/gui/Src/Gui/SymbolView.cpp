@@ -528,12 +528,12 @@ void SymbolView::symbolRefreshCurrent()
 
 void SymbolView::symbolFollow()
 {
-    DbgCmdExec(QString("disasm " + mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 0)).toUtf8().constData());
+    DbgCmdExec(QString("disasm " + mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 0)));
 }
 
 void SymbolView::symbolFollowDump()
 {
-    DbgCmdExecDirect(QString("dump " + mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 0)).toUtf8().constData());
+    DbgCmdExecDirect(QString("dump " + mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 0)));
 }
 
 void SymbolView::symbolFollowImport()
@@ -544,11 +544,11 @@ void SymbolView::symbolFollowImport()
         return;
     if(DbgFunctions()->MemIsCodePage(addr, false))
     {
-        DbgCmdExec(QString("disasm %1").arg(ToPtrString(addr)).toUtf8().constData());
+        DbgCmdExec(QString("disasm %1").arg(ToPtrString(addr)));
     }
     else
     {
-        DbgCmdExecDirect(QString("dump %1").arg(ToPtrString(addr)).toUtf8().constData());
+        DbgCmdExecDirect(QString("dump %1").arg(ToPtrString(addr)));
         emit Bridge::getBridge()->getDumpAttention();
     }
 }
@@ -624,13 +624,13 @@ void SymbolView::moduleContextMenu(QMenu* wMenu)
 
 void SymbolView::moduleFollow()
 {
-    DbgCmdExec(QString("disasm " + mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColBase) + "+1000").toUtf8().constData());
+    DbgCmdExec(QString("disasm " + mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColBase) + "+1000"));
 }
 
 void SymbolView::moduleEntryFollow()
 {
     //Test case: libstdc++-6.dll
-    DbgCmdExec(QString("disasm \"" + mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColModule) + "\":entry").toUtf8().constData());
+    DbgCmdExec(QString("disasm \"" + mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColModule) + "\":entry"));
 }
 
 void SymbolView::moduleCopyPath()
@@ -656,7 +656,7 @@ void SymbolView::moduleBrowse()
 
 void SymbolView::moduleDownloadSymbols()
 {
-    DbgCmdExec(QString("symdownload \"%0\"").arg(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColModule)).toUtf8().constData());
+    DbgCmdExec(QString("symdownload \"%0\"").arg(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColModule)));
 }
 
 void SymbolView::moduleDownloadAllSymbols()
@@ -673,7 +673,7 @@ void SymbolView::moduleLoad()
     if(browse.exec() != QDialog::Accepted && browse.path.length())
         return;
     auto fileName = browse.path;
-    DbgCmdExec(QString("loadlib \"%1\"").arg(fileName.replace("\\", "\\\\")).toUtf8().constData());
+    DbgCmdExec(QString("loadlib \"%1\"").arg(fileName.replace("\\", "\\\\")));
 }
 
 void SymbolView::moduleFree()
@@ -691,7 +691,7 @@ void SymbolView::moduleFree()
                                       question.toUtf8().constData(),
                                       QMessageBox::Yes | QMessageBox::No);
         if(reply == QMessageBox::Yes)
-            DbgCmdExec(QString("freelib %1").arg(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColBase)).toUtf8().constData());
+            DbgCmdExec(QString("freelib %1").arg(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColBase)));
     }
 }
 
@@ -731,7 +731,7 @@ void SymbolView::toggleBreakpoint()
             wCmd = "bp " + ToPtrString(wVA);
         }
 
-        DbgCmdExec(wCmd.toUtf8().constData());
+        DbgCmdExec(wCmd);
     }
 }
 
@@ -819,7 +819,7 @@ void SymbolView::moduleSetParty()
 void SymbolView::moduleFollowMemMap()
 {
     QString base = mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColBase);
-    DbgCmdExec(("memmapdump " + base).toUtf8().constData());
+    DbgCmdExec(("memmapdump " + base));
 }
 
 void SymbolView::emptySearchResultSlot()

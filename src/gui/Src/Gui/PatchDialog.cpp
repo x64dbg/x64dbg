@@ -216,8 +216,8 @@ void PatchDialog::groupPrevious()
     mGroupSelector->setPreviousEnabled(hasPreviousGroup(curPatchList, group));
     mGroupSelector->setNextEnabled(hasNextGroup(curPatchList, group));
     mGroupSelector->showNormal();
-    DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
-    DbgCmdExecDirect(QString("dump " + addrText).toUtf8().constData());
+    DbgCmdExecDirect(QString("disasm " + addrText));
+    DbgCmdExecDirect(QString("dump " + addrText));
 }
 
 void PatchDialog::groupNext()
@@ -241,8 +241,8 @@ void PatchDialog::groupNext()
     mGroupSelector->setPreviousEnabled(hasPreviousGroup(curPatchList, group));
     mGroupSelector->setNextEnabled(hasNextGroup(curPatchList, group));
     mGroupSelector->showNormal();
-    DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
-    DbgCmdExecDirect(QString("dump " + addrText).toUtf8().constData());
+    DbgCmdExecDirect(QString("disasm " + addrText));
+    DbgCmdExecDirect(QString("dump " + addrText));
 }
 
 void PatchDialog::on_listModules_itemSelectionChanged()
@@ -401,8 +401,8 @@ void PatchDialog::on_listPatches_itemSelectionChanged()
     if(!groupStart)
         return;
     QString addrText = ToPtrString(groupStart);
-    DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
-    DbgCmdExecDirect(QString("dump " + addrText).toUtf8().constData());
+    DbgCmdExecDirect(QString("disasm " + addrText));
+    DbgCmdExecDirect(QString("dump " + addrText));
 }
 
 void PatchDialog::on_btnPickGroups_clicked()
@@ -426,8 +426,8 @@ void PatchDialog::on_btnPickGroups_clicked()
     mGroupSelector->setPreviousEnabled(hasPreviousGroup(curPatchList, group));
     mGroupSelector->setNextEnabled(hasNextGroup(curPatchList, group));
     mGroupSelector->show();
-    DbgCmdExecDirect(QString("disasm " + addrText).toUtf8().constData());
-    DbgCmdExecDirect(QString("dump " + addrText).toUtf8().constData());
+    DbgCmdExecDirect(QString("disasm " + addrText));
+    DbgCmdExecDirect(QString("dump " + addrText));
 }
 
 void PatchDialog::on_btnPatchFile_clicked()

@@ -415,7 +415,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
             break;
         }
         wCmd += ToPtrString(wVA);
-        DbgCmdExec(wCmd.toUtf8().constData());
+        DbgCmdExec(wCmd);
     }
 }
 

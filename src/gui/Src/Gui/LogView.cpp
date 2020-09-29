@@ -294,10 +294,10 @@ void LogView::onAnchorClicked(const QUrl & link)
                 if(ok && DbgMemIsValidReadPtr(address))
                 {
                     if(DbgFunctions()->MemIsCodePage(address, true))
-                        DbgCmdExec(QString("disasm %1").arg(link.fragment()).toUtf8().constData());
+                        DbgCmdExec(QString("disasm %1").arg(link.fragment()));
                     else
                     {
-                        DbgCmdExecDirect(QString("dump %1").arg(link.fragment()).toUtf8().constData());
+                        DbgCmdExecDirect(QString("dump %1").arg(link.fragment()));
                         emit Bridge::getBridge()->getDumpAttention();
                     }
                 }

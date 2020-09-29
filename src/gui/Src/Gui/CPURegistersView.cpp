@@ -722,7 +722,7 @@ void CPURegistersView::onFollowInDisassembly()
     {
         QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
         if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&wRegDumpStruct, mSelected)))))
-            DbgCmdExec(QString().sprintf("disasm \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
+            DbgCmdExec(QString().sprintf("disasm \"%s\"", addr.toUtf8().constData()));
     }
 }
 
@@ -732,7 +732,7 @@ void CPURegistersView::onFollowInDump()
     {
         QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
         if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&wRegDumpStruct, mSelected)))))
-            DbgCmdExec(QString().sprintf("dump \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
+            DbgCmdExec(QString().sprintf("dump \"%s\"", addr.toUtf8().constData()));
     }
 }
 
@@ -745,7 +745,7 @@ void CPURegistersView::onFollowInDumpN()
         {
             QAction* action = qobject_cast<QAction*>(sender());
             int numDump = action->data().toInt();
-            DbgCmdExec(QString("dump %1, .%2").arg(addr).arg(numDump).toUtf8().constData());
+            DbgCmdExec(QString("dump %1, .%2").arg(addr).arg(numDump));
         }
     }
 }
@@ -756,7 +756,7 @@ void CPURegistersView::onFollowInStack()
     {
         QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
         if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&wRegDumpStruct, mSelected)))))
-            DbgCmdExec(QString().sprintf("sdump \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
+            DbgCmdExec(QString().sprintf("sdump \"%s\"", addr.toUtf8().constData()));
     }
 }
 
@@ -766,7 +766,7 @@ void CPURegistersView::onFollowInMemoryMap()
     {
         QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
         if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&wRegDumpStruct, mSelected)))))
-            DbgCmdExec(QString().sprintf("memmapdump \"%s\"", addr.toUtf8().constData()).toUtf8().constData());
+            DbgCmdExec(QString().sprintf("memmapdump \"%s\"", addr.toUtf8().constData()));
     }
 }
 

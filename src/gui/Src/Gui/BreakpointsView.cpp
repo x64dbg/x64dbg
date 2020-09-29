@@ -610,7 +610,7 @@ void BreakpointsView::editBreakpointSlot()
             return;
         auto exec = [](const QString & command)
         {
-            DbgCmdExecDirect(command.toUtf8().constData());
+            DbgCmdExecDirect(command);
         };
         const BRIDGEBP & newBp = dialog.getBp();
         switch(bp.type)

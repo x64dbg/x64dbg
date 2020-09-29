@@ -116,7 +116,7 @@ void BreakpointMenu::toggleInt3BPActionSlot()
         wCmd = "bp " + ToPtrString(wVA);
     }
 
-    DbgCmdExec(wCmd.toUtf8().constData());
+    DbgCmdExec(wCmd);
     //emit Disassembly::repainted();
 }
 
@@ -132,7 +132,7 @@ void BreakpointMenu::editSoftBpActionSlot()
         Breakpoints::editBP(bp_normal, ToHexString(selection), dynamic_cast<QWidget*>(parent()));
     else
     {
-        DbgCmdExecDirect(QString("bp %1").arg(ToHexString(selection)).toUtf8().constData()); //Blocking call
+        DbgCmdExecDirect(QString("bp %1").arg(ToHexString(selection))); //Blocking call
         if(!Breakpoints::editBP(bp_normal, ToHexString(selection), dynamic_cast<QWidget*>(parent())))
             Breakpoints::removeBP(bp_normal, selection);
     }
@@ -153,7 +153,7 @@ void BreakpointMenu::toggleHwBpActionSlot()
         wCmd = "bphws " + ToPtrString(wVA);
     }
 
-    DbgCmdExec(wCmd.toUtf8().constData());
+    DbgCmdExec(wCmd);
 }
 
 
@@ -199,17 +199,17 @@ void BreakpointMenu::setHwBpAt(duint va, int slot)
     if(wSlotIndex < 0) // Slot not used
     {
         wCmd = "bphws " + ToPtrString(va);
-        DbgCmdExec(wCmd.toUtf8().constData());
+        DbgCmdExec(wCmd);
     }
     else // Slot used
     {
         wCmd = "bphwc " + ToPtrString((duint)(wBPList.bp[wSlotIndex].addr));
-        DbgCmdExec(wCmd.toUtf8().constData());
+        DbgCmdExec(wCmd);
 
         Sleep(200);
 
         wCmd = "bphws " + ToPtrString(va);
-        DbgCmdExec(wCmd.toUtf8().constData());
+        DbgCmdExec(wCmd);
     }
     if(wBPList.count)
         BridgeFree(wBPList.bp);

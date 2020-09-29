@@ -354,11 +354,11 @@ void MemoryMapView::ExecCommand()
             {
                 QString specializedCommand = command;
                 specializedCommand.replace(QChar('$'), getCellContent(i, 0)); // $ -> Base address
-                DbgCmdExec(specializedCommand.toUtf8().constData());
+                DbgCmdExec(specializedCommand);
             }
         }
         else
-            DbgCmdExec(command.toUtf8().constData());
+            DbgCmdExec(command);
     }
 }
 
@@ -460,12 +460,12 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
 
 void MemoryMapView::followDumpSlot()
 {
-    DbgCmdExecDirect(QString("dump %1").arg(getCellContent(getInitialSelection(), 0)).toUtf8().constData());
+    DbgCmdExecDirect(QString("dump %1").arg(getCellContent(getInitialSelection(), 0)));
 }
 
 void MemoryMapView::followDisassemblerSlot()
 {
-    DbgCmdExec(QString("disasm %1").arg(getCellContent(getInitialSelection(), 0)).toUtf8().constData());
+    DbgCmdExec(QString("disasm %1").arg(getCellContent(getInitialSelection(), 0)));
 }
 
 void MemoryMapView::doubleClickedSlot()
@@ -536,7 +536,7 @@ void MemoryMapView::memoryAllocateSlot()
             SimpleErrorBox(this, tr("Error"), tr("The size of buffer you're trying to allocate exceeds 1GB. Please check your expression to ensure nothing is wrong."));
             return;
         }
-        DbgCmdExecDirect(QString("alloc %1").arg(ToPtrString(memsize)).toUtf8().constData());
+        DbgCmdExecDirect(QString("alloc %1").arg(ToPtrString(memsize)));
         duint addr = DbgValFromString("$result");
         if(addr != 0)
             DbgCmdExec("dump $result");
@@ -563,7 +563,7 @@ void MemoryMapView::findPatternSlot()
     if(entireBlockEnabled)
         addr = 0;
     QString addrText = ToPtrString(addr);
-    DbgCmdExec(QString("findmemall " + addrText + ", \"" + hexEdit.mHexEdit->pattern() + "\", &data&").toUtf8().constData());
+    DbgCmdExec(QString("findmemall " + addrText + ", \"" + hexEdit.mHexEdit->pattern() + "\", &data&"));
     emit showReferences();
 }
 
@@ -580,7 +580,7 @@ void MemoryMapView::dumpMemory()
     {
         fileName = QDir::toNativeSeparators(fileName);
         QString cmd = QString("savedata \"%1\",%2,%3").arg(fileName, addr, getCellContent(getInitialSelection(), 1));
-        DbgCmdExec(cmd.toUtf8().constData());
+        DbgCmdExec(cmd);
     }
 }
 
@@ -630,14 +630,14 @@ void MemoryMapView::addVirtualModSlot()
     QString modname;
     if(!mDialog.getData(modname, base, size))
         return;
-    DbgCmdExec(QString("virtualmod \"%1\", %2, %3").arg(modname).arg(ToHexString(base)).arg(ToHexString(size)).toUtf8().constData());
+    DbgCmdExec(QString("virtualmod \"%1\", %2, %3").arg(modname).arg(ToHexString(base)).arg(ToHexString(size)));
 }
 
 void MemoryMapView::findReferencesSlot()
 {
     auto base = getCellUserdata(getInitialSelection(), 0);
     auto size = getCellUserdata(getInitialSelection(), 1);
-    DbgCmdExec(QString("reffindrange %1, %2, dis.sel()").arg(ToPtrString(base)).arg(ToPtrString(base + size)).toUtf8().constData());
+    DbgCmdExec(QString("reffindrange %1, %2, dis.sel()").arg(ToPtrString(base)).arg(ToPtrString(base + size)));
     emit showReferences();
 }
 

@@ -126,7 +126,7 @@ retryFindWindow:
                                                 QMessageBox::Yes | QMessageBox::No, this);
                 if(hiddenProcessDialog.exec() == QMessageBox::Yes)
                 {
-                    DbgCmdExec(QString("attach %1").arg(pid, 0, 16).toUtf8().constData());
+                    DbgCmdExec(QString("attach %1").arg(pid, 0, 16));
                     accept();
                 }
             }

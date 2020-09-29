@@ -232,93 +232,93 @@ void XrefBrowseDialog::breakpointSlot()
 {
     QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
     if(DbgGetBpxTypeAt(mXrefInfo.references[ui->listWidget->currentRow()].addr) & bp_normal)
-        DbgCmdExec(QString("bc " + addr_text).toUtf8().constData());
+        DbgCmdExec(QString("bc " + addr_text));
     else
-        DbgCmdExec(QString("bp " + addr_text).toUtf8().constData());
+        DbgCmdExec(QString("bp " + addr_text));
 }
 
 void XrefBrowseDialog::hardwareAccess1Slot()
 {
     QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", r, 1").toUtf8().constData());
+    DbgCmdExec(QString("bphws " + addr_text + ", r, 1"));
 }
 
 void XrefBrowseDialog::hardwareAccess2Slot()
 {
     QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", r, 2").toUtf8().constData());
+    DbgCmdExec(QString("bphws " + addr_text + ", r, 2"));
 }
 
 void XrefBrowseDialog::hardwareAccess4Slot()
 {
     QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", r, 4").toUtf8().constData());
+    DbgCmdExec(QString("bphws " + addr_text + ", r, 4"));
 }
 
 void XrefBrowseDialog::hardwareAccess8Slot()
 {
     QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", r, 8").toUtf8().constData());
+    DbgCmdExec(QString("bphws " + addr_text + ", r, 8"));
 }
 
 void XrefBrowseDialog::hardwareWrite1Slot()
 {
     QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", w, 1").toUtf8().constData());
+    DbgCmdExec(QString("bphws " + addr_text + ", w, 1"));
 }
 
 void XrefBrowseDialog::hardwareWrite2Slot()
 {
     QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", w, 2").toUtf8().constData());
+    DbgCmdExec(QString("bphws " + addr_text + ", w, 2"));
 }
 
 void XrefBrowseDialog::hardwareWrite4Slot()
 {
     QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", w, 4").toUtf8().constData());
+    DbgCmdExec(QString("bphws " + addr_text + ", w, 4"));
 }
 
 void XrefBrowseDialog::hardwareWrite8Slot()
 {
     QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", w, 8").toUtf8().constData());
+    DbgCmdExec(QString("bphws " + addr_text + ", w, 8"));
 }
 
 void XrefBrowseDialog::hardwareRemoveSlot()
 {
     QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphwc " + addr_text).toUtf8().constData());
+    DbgCmdExec(QString("bphwc " + addr_text));
 }
 
 void XrefBrowseDialog::memoryAccessSingleshootSlot()
 {
     QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bpm " + addr_text + ", 0, a").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, a"));
 }
 
 void XrefBrowseDialog::memoryAccessRestoreSlot()
 {
     QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bpm " + addr_text + ", 1, a").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, a"));
 }
 
 void XrefBrowseDialog::memoryWriteSingleshootSlot()
 {
     QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bpm " + addr_text + ", 0, w").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 0, w"));
 }
 
 void XrefBrowseDialog::memoryWriteRestoreSlot()
 {
     QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bpm " + addr_text + ", 1, w").toUtf8().constData());
+    DbgCmdExec(QString("bpm " + addr_text + ", 1, w"));
 }
 
 void XrefBrowseDialog::memoryRemoveSlot()
 {
     QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bpmc " + addr_text).toUtf8().constData());
+    DbgCmdExec(QString("bpmc " + addr_text));
 }
 
 void XrefBrowseDialog::copyThisSlot()
@@ -332,9 +332,9 @@ void XrefBrowseDialog::breakpointAllSlot()
     {
         QString addr_text = ToPtrString(mXrefInfo.references[i].addr);
         if(DbgGetBpxTypeAt(mXrefInfo.references[i].addr) & bp_normal)
-            DbgCmdExec(QString("bc " + addr_text).toUtf8().constData());
+            DbgCmdExec(QString("bc " + addr_text));
         else
-            DbgCmdExec(QString("bp " + addr_text).toUtf8().constData());
+            DbgCmdExec(QString("bp " + addr_text));
     }
 }
 

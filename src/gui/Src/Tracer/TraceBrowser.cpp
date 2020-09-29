@@ -1301,7 +1301,7 @@ void TraceBrowser::toggleRunTraceSlot()
             if(browse.path.contains(QChar('"')) || browse.path.contains(QChar('\'')))
                 SimpleErrorBox(this, tr("Error"), tr("File name contains invalid character."));
             else
-                DbgCmdExec(QString("StartRunTrace \"%1\"").arg(browse.path).toUtf8().constData());
+                DbgCmdExec(QString("StartRunTrace \"%1\"").arg(browse.path));
         }
     }
 }
@@ -1370,7 +1370,7 @@ void TraceBrowser::mnemonicHelpSlot()
     mTraceFile->OpCode(getInitialSelection(), data, &size);
     Zydis zydis;
     zydis.Disassemble(mTraceFile->Registers(getInitialSelection()).regcontext.cip, data);
-    DbgCmdExecDirect(QString("mnemonichelp %1").arg(zydis.Mnemonic().c_str()).toUtf8().constData());
+    DbgCmdExecDirect(QString("mnemonichelp %1").arg(zydis.Mnemonic().c_str()));
     emit displayLogWidget();
 }
 
@@ -1878,7 +1878,7 @@ void TraceBrowser::followDisassemblySlot()
 
     duint cip = mTraceFile->Registers(getInitialSelection()).regcontext.cip;
     if(DbgMemIsValidReadPtr(cip))
-        DbgCmdExec(QString("dis ").append(ToPtrString(cip)).toUtf8().constData());
+        DbgCmdExec(QString("dis ").append(ToPtrString(cip)));
     else
         GuiAddStatusBarMessage(tr("Cannot follow %1. Address is invalid.\n").arg(ToPtrString(cip)).toUtf8().constData());
 }

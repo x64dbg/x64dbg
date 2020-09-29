@@ -65,7 +65,7 @@ void MessagesBreakpoints::on_btnOk_clicked()
     {
         BPXTYPE wBpType = DbgGetBpxTypeAt(procVA);
         if(wBpType == bp_none)
-            DbgCmdExec(QString("bp 0x%1").arg(bpData.procVA).toUtf8().constData());
+            DbgCmdExec(QString("bp 0x%1").arg(bpData.procVA));
 
         bpCondCmd = QString("bpcnd 0x%1, \"arg.get(1) == 0x%2").arg(bpData.procVA).arg(messages.key(ui->cboxMessages->currentText()), 1, 16);
         bpCondCmd.append(ui->rbtnBreakCurrent->isChecked() ? QString(" && arg.get(0) == 0x%1\"").arg(bpData.wndHandle) : "\"");
@@ -85,5 +85,5 @@ void MessagesBreakpoints::on_btnOk_clicked()
 #endif //_WIN64
     }
 
-    DbgCmdExec(bpCondCmd.toUtf8().constData());
+    DbgCmdExec(bpCondCmd);
 }

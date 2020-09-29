@@ -914,9 +914,9 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
                 if(DbgMemIsValidReadPtr(dest))
                 {
                     if(instr.arg[op].segment == SEG_SS)
-                        DbgCmdExec(QString("sdump %1").arg(ToPtrString(dest)).toUtf8().constData());
+                        DbgCmdExec(QString("sdump %1").arg(ToPtrString(dest)));
                     else
-                        DbgCmdExec(QString("dump %1").arg(ToPtrString(dest)).toUtf8().constData());
+                        DbgCmdExec(QString("dump %1").arg(ToPtrString(dest)));
                     return;
                 }
             }
@@ -929,7 +929,7 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
                 dest = instr.arg[op].value;
                 if(DbgMemIsValidReadPtr(dest))
                 {
-                    DbgCmdExec(QString("dump %1").arg(ToPtrString(dest)).toUtf8().constData());
+                    DbgCmdExec(QString("dump %1").arg(ToPtrString(dest)));
                     return;
                 }
             }

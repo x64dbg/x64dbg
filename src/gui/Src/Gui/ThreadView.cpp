@@ -17,7 +17,7 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
 void ThreadView::GoToThreadEntry()
 {
     QString addr_text = getCellContent(getInitialSelection(), 2);
-    DbgCmdExecDirect(QString("disasm " + addr_text).toUtf8().constData());
+    DbgCmdExecDirect(QString("disasm " + addr_text));
 }
 
 void ThreadView::setupContextMenu()
@@ -144,11 +144,11 @@ void ThreadView::ExecCommand()
             {
                 QString specializedCommand = command;
                 specializedCommand.replace(QChar('$'), getCellContent(i, 1)); // $ -> Thread Id
-                DbgCmdExec(specializedCommand.toUtf8().constData());
+                DbgCmdExec(specializedCommand);
             }
         }
         else
-            DbgCmdExec(command.toUtf8().constData());
+            DbgCmdExec(command);
     }
 }
 
@@ -381,10 +381,10 @@ QString ThreadView::paintContent(QPainter* painter, dsint rowBase, int rowOffset
 void ThreadView::doubleClickedSlot()
 {
     QString threadId = getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("switchthread " + threadId).toUtf8().constData());
+    DbgCmdExecDirect(QString("switchthread " + threadId));
 
     QString addr_text = getCellContent(getInitialSelection(), 4);
-    DbgCmdExecDirect(QString("disasm " + addr_text).toUtf8().constData());
+    DbgCmdExecDirect(QString("disasm " + addr_text));
 }
 
 void ThreadView::SetNameSlot()
@@ -396,5 +396,5 @@ void ThreadView::SetNameSlot()
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     QString escapedName = mLineEdit.editText.replace("\"", "\\\"");
-    DbgCmdExec(QString("setthreadname %1, \"%2\"").arg(threadId).arg(escapedName).toUtf8().constData());
+    DbgCmdExec(QString("setthreadname %1, \"%2\"").arg(threadId).arg(escapedName));
 }

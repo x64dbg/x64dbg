@@ -122,7 +122,7 @@ void SourceView::followDisassemblerSlot()
     duint addr = addrFromIndex(getInitialSelection());
     if(!DbgMemIsValidReadPtr(addr))
         return;
-    DbgCmdExec(QString("disasm %1").arg(ToPtrString(addr)).toUtf8().constData());
+    DbgCmdExec(QString("disasm %1").arg(ToPtrString(addr)));
 }
 
 void SourceView::followDumpSlot()
@@ -130,7 +130,7 @@ void SourceView::followDumpSlot()
     duint addr = addrFromIndex(getInitialSelection());
     if(!DbgMemIsValidReadPtr(addr))
         return;
-    DbgCmdExec(QString("dump %1").arg(ToPtrString(addr)).toUtf8().constData());
+    DbgCmdExec(QString("dump %1").arg(ToPtrString(addr)));
 }
 
 void SourceView::toggleBookmarkSlot()

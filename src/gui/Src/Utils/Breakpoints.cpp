@@ -45,7 +45,7 @@ void Breakpoints::setBP(BPXTYPE type, duint va)
     break;
     }
 
-    DbgCmdExec(wCmd.toUtf8().constData());
+    DbgCmdExec(wCmd);
 }
 
 /**
@@ -80,7 +80,7 @@ void Breakpoints::enableBP(const BRIDGEBP & bp)
         wCmd = QString("EnableExceptionBPX \"%1\"").arg(ToPtrString(bp.addr));
     }
 
-    DbgCmdExec(wCmd.toUtf8().constData());
+    DbgCmdExec(wCmd);
 }
 
 /**
@@ -145,7 +145,7 @@ void Breakpoints::disableBP(const BRIDGEBP & bp)
         wCmd = QString("DisableExceptionBPX \"%1\"").arg(ToPtrString(bp.addr));
     }
 
-    DbgCmdExec(wCmd.toUtf8().constData());
+    DbgCmdExec(wCmd);
 }
 
 /**
@@ -226,7 +226,7 @@ void Breakpoints::removeBP(const BRIDGEBP & bp)
         break;
     }
 
-    DbgCmdExec(wCmd.toUtf8().constData());
+    DbgCmdExec(wCmd);
 }
 
 /**
@@ -514,7 +514,7 @@ bool Breakpoints::editBP(BPXTYPE type, const QString & addrText, QWidget* widget
     auto bp = dialog.getBp();
     auto exec = [](const QString & command)
     {
-        DbgCmdExecDirect(command.toUtf8().constData());
+        DbgCmdExecDirect(command);
     };
     switch(type)
     {

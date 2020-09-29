@@ -201,13 +201,13 @@ void WatchView::addWatchSlot()
 {
     QString name;
     if(SimpleInputBox(this, tr("Enter the expression to watch"), "", name, tr("Example: [EAX]")))
-        DbgCmdExecDirect(QString("AddWatch ").append(name).toUtf8().constData());
+        DbgCmdExecDirect(QString("AddWatch ").append(name));
     updateWatch();
 }
 
 void WatchView::delWatchSlot()
 {
-    DbgCmdExecDirect(QString("DelWatch ").append(getSelectedId()).toUtf8().constData());
+    DbgCmdExecDirect(QString("DelWatch ").append(getSelectedId()));
     updateWatch();
 }
 
@@ -216,7 +216,7 @@ void WatchView::renameWatchSlot()
     QString name;
     QString originalName = getCellContent(getInitialSelection(), 0);
     if(SimpleInputBox(this, tr("Enter the name of the watch variable"), originalName, name, originalName))
-        DbgCmdExecDirect(QString("SetWatchName ").append(getSelectedId() + "," + name).toUtf8().constData());
+        DbgCmdExecDirect(QString("SetWatchName ").append(getSelectedId() + "," + name));
     updateWatch();
 }
 
@@ -241,36 +241,36 @@ void WatchView::editWatchSlot()
 {
     QString expr;
     if(SimpleInputBox(this, tr("Enter the expression to watch"), "", expr, tr("Example: [EAX]")))
-        DbgCmdExecDirect(QString("SetWatchExpression ").append(getSelectedId()).append(",").append(expr).toUtf8().constData());
+        DbgCmdExecDirect(QString("SetWatchExpression ").append(getSelectedId()).append(",").append(expr));
     updateWatch();
 }
 
 void WatchView::watchdogDisableSlot()
 {
-    DbgCmdExecDirect(QString("SetWatchdog %1, \"disabled\"").arg(getSelectedId()).toUtf8().constData());
+    DbgCmdExecDirect(QString("SetWatchdog %1, \"disabled\"").arg(getSelectedId()));
     updateWatch();
 }
 
 void WatchView::watchdogChangedSlot()
 {
-    DbgCmdExecDirect(QString("SetWatchdog %1, \"changed\"").arg(getSelectedId()).toUtf8().constData());
+    DbgCmdExecDirect(QString("SetWatchdog %1, \"changed\"").arg(getSelectedId()));
     updateWatch();
 }
 
 void WatchView::watchdogUnchangedSlot()
 {
-    DbgCmdExecDirect(QString("SetWatchdog %1, \"unchanged\"").arg(getSelectedId()).toUtf8().constData());
+    DbgCmdExecDirect(QString("SetWatchdog %1, \"unchanged\"").arg(getSelectedId()));
     updateWatch();
 }
 
 void WatchView::watchdogIsTrueSlot()
 {
-    DbgCmdExecDirect(QString("SetWatchdog %1, \"istrue\"").arg(getSelectedId()).toUtf8().constData());
+    DbgCmdExecDirect(QString("SetWatchdog %1, \"istrue\"").arg(getSelectedId()));
     updateWatch();
 }
 
 void WatchView::watchdogIsFalseSlot()
 {
-    DbgCmdExecDirect(QString("SetWatchdog %1, \"isfalse\"").arg(getSelectedId()).toUtf8().constData());
+    DbgCmdExecDirect(QString("SetWatchdog %1, \"isfalse\"").arg(getSelectedId()));
     updateWatch();
 }
