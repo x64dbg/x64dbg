@@ -427,7 +427,7 @@ void HandlesView::enumWindows()
             mWindowsTable->setCellContent(i, 2, QString(windows[i].windowTitle));
             mWindowsTable->setCellContent(i, 3, QString(windows[i].windowClass));
             char threadname[MAX_THREAD_NAME_SIZE];
-            if(DbgFunctions()->ThreadGetName(windows[i].threadId, threadname))
+            if(DbgFunctions()->ThreadGetName(windows[i].threadId, threadname) && *threadname != '\0')
                 mWindowsTable->setCellContent(i, 4, QString::fromUtf8(threadname));
             else if(Config()->getBool("Gui", "PidTidInHex"))
                 mWindowsTable->setCellContent(i, 4, ToHexString(windows[i].threadId));
