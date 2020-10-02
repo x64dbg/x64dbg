@@ -33,7 +33,7 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
 
     //setup process list
     int charwidth = mSearchListView->getCharWidth();
-    mSearchListView->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true, QString(), ConfigBool("Gui", "PidInHex") ? StdTable::SortBy::AsHex : StdTable::SortBy::AsInt);
+    mSearchListView->addColumnAt(charwidth * sizeof(int) * 2 + 8, tr("PID"), true, QString(), ConfigBool("Gui", "PidTidInHex") ? StdTable::SortBy::AsHex : StdTable::SortBy::AsInt);
     mSearchListView->addColumnAt(150, tr("Name"), true);
     mSearchListView->addColumnAt(300, tr("Title"), true);
     mSearchListView->addColumnAt(500, tr("Path"), true);
@@ -69,7 +69,7 @@ void AttachDialog::refresh()
     for(int i = 0; i < count; i++)
     {
         QFileInfo fi(entries[i].szExeFile);
-        mSearchListView->setCellContent(i, ColPid, QString().sprintf(ConfigBool("Gui", "PidInHex") ? "%.8X" : "%u", entries[i].dwProcessId));
+        mSearchListView->setCellContent(i, ColPid, QString().sprintf(ConfigBool("Gui", "PidTidInHex") ? "%.8X" : "%u", entries[i].dwProcessId));
         mSearchListView->setCellContent(i, ColName, fi.baseName());
         mSearchListView->setCellContent(i, ColTitle, QString(entries[i].szExeMainWindowTitle));
         mSearchListView->setCellContent(i, ColPath, QString(entries[i].szExeFile));
@@ -82,7 +82,7 @@ void AttachDialog::refresh()
 void AttachDialog::on_btnAttach_clicked()
 {
     QString pid = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), ColPid);
-    DbgCmdExec(QString("attach %1%2").arg(ConfigBool("Gui", "PidInHex") ? "" : ".").arg(pid));
+    DbgCmdExec(QString("attach %1%2").arg(ConfigBool("Gui", "PidTidInHex") ? "" : ".").arg(pid));
     accept();
 }
 
@@ -108,7 +108,7 @@ retryFindWindow:
         if(tid = GetWindowThreadProcessId(hWndFound, &pid))
         {
             refresh();
-            QString pidText = QString().sprintf(ConfigBool("Gui", "PidInHex") ? "%.8X" : "%u", pid);
+            QString pidText = QString().sprintf(ConfigBool("Gui", "PidTidInHex") ? "%.8X" : "%u", pid);
             bool found = false;
             for(int i = 0; i < mSearchListView->mCurList->getRowCount(); i++)
             {

@@ -683,9 +683,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="chkPidInHex">
+        <widget class="QCheckBox" name="chkPidTidInHex">
          <property name="text">
-          <string>Show PID in HEX</string>
+          <string>Show PID/TID in HEX</string>
          </property>
         </widget>
        </item>
