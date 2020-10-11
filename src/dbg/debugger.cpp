@@ -48,7 +48,6 @@ static duint pCreateProcessBase = 0;
 static duint pDebuggedEntry = 0;
 static bool bRepeatIn = false;
 static duint stepRepeat = 0;
-static bool isDetachedByUser = false;
 static bool bIsAttached = false;
 static bool bSkipExceptions = false;
 static duint skipExceptionCount = 0;
@@ -95,6 +94,7 @@ HANDLE mProcHandle;
 HANDLE mForegroundHandle;
 duint mRtrPreviousCSP = 0;
 HANDLE hDebugLoopThread = nullptr;
+DWORD dwDebugFlags = 0;
 
 static duint dbgcleartracestate()
 {
@@ -326,11 +326,6 @@ void dbgsetsteprepeat(bool steppingIn, duint repeat)
     stepRepeat = repeat;
 }
 
-void dbgsetisdetachedbyuser(bool b)
-{
-    isDetachedByUser = b;
-}
-
 void dbgsetfreezestack(bool freeze)
 {
     bFreezeStack = freeze;
@@ -400,6 +395,11 @@ bool dbgdeletedllbreakpoint(const char* mod, DWORD type)
         return false;
     dllBreakpoints.erase(found);
     return true;
+}
+
+void dbgsetdebugflags(DWORD flags)
+{
+    dwDebugFlags = flags;
 }
 
 bool dbghandledllbreakpoint(const char* mod, bool loadDll)
@@ -1730,6 +1730,34 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
             cookie.HandleNtdllLoad(bIsAttached);
         if(settingboolget("Misc", "TransparentExceptionStepping"))
             exceptionDispatchAddr = DbgValFromString("ntdll:KiUserExceptionDispatcher");
+
+        //set debug flags
+        if(dwDebugFlags != 0)
+        {
+            SHARED_ACQUIRE(LockModules);
+            auto info = ModInfoFromAddr(duint(base));
+            if(info->symbols->isOpen())
+            {
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Waiting until ntdll.dll symbols are loaded...\n"));
+                info->symbols->waitUntilLoaded();
+                SymbolInfo LdrpDebugFlags;
+                if(info->symbols->findSymbolByName("LdrpDebugFlags", LdrpDebugFlags, true))
+                {
+                    if(MemWrite(info->base + LdrpDebugFlags.rva, &dwDebugFlags, sizeof(dwDebugFlags)))
+                        dprintf(QT_TRANSLATE_NOOP("DBG", "Set LdrpDebugFlags to 0x%08X successfully!\n"), dwDebugFlags);
+                    else
+                        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to write to LdrpDebugFlags\n"));
+                }
+                else
+                {
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "Symbol 'LdrpDebugFlags' not found!\n"));
+                }
+            }
+            else
+            {
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to find LdrpDebugFlags (you need to load symbols for ntdll.dll)\n"));
+            }
+        }
     }
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Loaded: %p %s\n"), base, DLLDebugFileName);
@@ -1866,20 +1894,6 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
     }
 }
 
-static bool dbgdetachDisableAllBreakpoints(const BREAKPOINT* bp)
-{
-    if(bp->enabled)
-    {
-        if(bp->type == BPNORMAL)
-            DeleteBPX(bp->addr);
-        else if(bp->type == BPMEMORY)
-            RemoveMemoryBPX(bp->addr, 0);
-        else if(bp->type == BPHARDWARE && TITANDRXVALID(bp->titantype))
-            DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype));
-    }
-    return true;
-}
-
 static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
@@ -1900,24 +1914,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             return;
         }
     }
-    if(ExceptionData->ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT)
-    {
-        if(isDetachedByUser)
-        {
-            PLUG_CB_DETACH detachInfo;
-            detachInfo.fdProcessInfo = fdProcessInfo;
-            plugincbcall(CB_DETACH, &detachInfo);
-            BpEnumAll(dbgdetachDisableAllBreakpoints); // Disable all software breakpoints before detaching.
-            if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
-                dputs(QT_TRANSLATE_NOOP("DBG", "DetachDebuggerEx failed..."));
-            else
-                dputs(QT_TRANSLATE_NOOP("DBG", "Detached!"));
-            isDetachedByUser = false;
-            _dbg_animatestop(); // Stop animating
-            return;
-        }
-    }
-    else if(ExceptionData->ExceptionRecord.ExceptionCode == MS_VC_EXCEPTION) //SetThreadName exception
+    if(ExceptionData->ExceptionRecord.ExceptionCode == MS_VC_EXCEPTION) //SetThreadName exception
     {
         THREADNAME_INFO nameInfo; //has no valid local pointers
         memcpy(&nameInfo, ExceptionData->ExceptionRecord.ExceptionInformation, sizeof(THREADNAME_INFO));
@@ -1994,21 +1991,6 @@ static void cbAttachDebugger()
         tidToResume = 0;
     }
     varset("$pid", fdProcessInfo->dwProcessId, true);
-}
-
-void cbDetach()
-{
-    if(!isDetachedByUser)
-        return;
-    PLUG_CB_DETACH detachInfo;
-    detachInfo.fdProcessInfo = fdProcessInfo;
-    plugincbcall(CB_DETACH, &detachInfo);
-    BpEnumAll(dbgdetachDisableAllBreakpoints); // Disable all software breakpoints before detaching.
-    if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
-        dputs(QT_TRANSLATE_NOOP("DBG", "DetachDebuggerEx failed..."));
-    else
-        dputs(QT_TRANSLATE_NOOP("DBG", "Detached!"));
-    return;
 }
 
 cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline)
@@ -2815,7 +2797,6 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     pDebuggedEntry = 0;
     pDebuggedBase = 0;
     pCreateProcessBase = 0;
-    isDetachedByUser = false;
     hActiveThread = nullptr;
     if(!gDllLoader.empty()) //Delete the DLL loader (#1496)
     {

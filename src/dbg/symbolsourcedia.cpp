@@ -97,6 +97,12 @@ bool SymbolSourceDIA::cancelLoading()
     return true;
 }
 
+void SymbolSourceDIA::waitUntilLoaded()
+{
+    while(isLoading())
+        Sleep(10);
+}
+
 template<size_t Count>
 static bool startsWith(const char* str, const char(&prefix)[Count])
 {

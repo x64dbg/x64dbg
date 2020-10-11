@@ -54,7 +54,6 @@ void DebugSetBreakpoints();
 void GuiSetDebugStateAsync(DBGSTATE state);
 void dbgsetskipexceptions(bool skip);
 void dbgsetsteprepeat(bool steppingIn, duint repeat);
-void dbgsetisdetachedbyuser(bool b);
 void dbgsetfreezestack(bool freeze);
 void dbgclearignoredexceptions();
 void dbgaddignoredexception(ExceptionRange range);
@@ -81,6 +80,7 @@ bool dbggetwintext(std::vector<std::string>* winTextList, const DWORD dwProcessI
 void dbgtracebrowserneedsupdate();
 bool dbgsetdllbreakpoint(const char* mod, DWORD type, bool singleshoot);
 bool dbgdeletedllbreakpoint(const char* mod, DWORD type);
+void dbgsetdebugflags(DWORD flags);
 
 void cbStep();
 void cbRtrStep();
@@ -99,7 +99,6 @@ void cbTraceIntoIntoTraceRecordStep();
 void cbTraceOverIntoTraceRecordStep();
 void cbRunToUserCodeBreakpoint(void* ExceptionAddress);
 DWORD WINAPI threadAttachLoop(void* lpParameter);
-void cbDetach();
 bool cbSetModuleBreakpoints(const BREAKPOINT* bp);
 EXCEPTION_DEBUG_INFO & getLastExceptionInfo();
 bool dbgrestartadmin();
