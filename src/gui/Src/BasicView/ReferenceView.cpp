@@ -439,12 +439,12 @@ void ReferenceView::mouseReleaseEvent(QMouseEvent* event)
 bool ReferenceView::eventFilter(QObject* obj, QEvent* event)
 {
     QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-    if (Qt::ControlModifier == keyEvent->modifiers() && Qt::Key_C == keyEvent->key())
+    if(Qt::ControlModifier == keyEvent->modifiers() && Qt::Key_C == keyEvent->key())
     {
-        if (mCurList->getRowCount())
+        if(mCurList->getRowCount())
         {
             mCurList->copyLineSlot();
         }
     }
-     return QWidget::eventFilter(obj, event);
+    return QWidget::eventFilter(obj, event);
 }
