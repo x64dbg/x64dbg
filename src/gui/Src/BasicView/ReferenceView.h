@@ -80,6 +80,14 @@ private:
     dsint apiAddressFromString(const QString & s);
 
     void mouseReleaseEvent(QMouseEvent* event);
+
+    /**
+    * @brief Widget event filter function
+    * @note To fix that ctrl-C shortcut cannot work in seach lists
+    * @param obj the event sender
+    * @param event the event
+    **/
+    bool eventFilter(QObject* obj, QEvent* event);
 };
 
 #endif // REFERENCEVIEW_H

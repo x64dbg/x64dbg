@@ -435,3 +435,16 @@ void ReferenceView::mouseReleaseEvent(QMouseEvent* event)
             mParent->setCurrentIndex(std::max(mParent->currentIndex() - 1, 0));
     }
 }
+
+bool ReferenceView::eventFilter(QObject* obj, QEvent* event)
+{
+    QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+    if (Qt::ControlModifier == keyEvent->modifiers() && Qt::Key_C == keyEvent->key())
+    {
+        if (mCurList->getRowCount())
+        {
+            mCurList->copyLineSlot();
+        }
+    }
+     return QWidget::eventFilter(obj, event);
+}
