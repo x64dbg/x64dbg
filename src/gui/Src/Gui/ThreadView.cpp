@@ -143,7 +143,7 @@ void ThreadView::ExecCommand()
             for(int i : getSelection())
             {
                 QString specializedCommand = command;
-                specializedCommand.replace(QChar('$'), getCellContent(i, 1)); // $ -> Thread Id
+                specializedCommand.replace(QChar('$'), ToHexString(getCellUserdata(i, 1))); // $ -> Thread Id
                 DbgCmdExec(specializedCommand);
             }
         }
@@ -195,6 +195,7 @@ void ThreadView::updateThreadList()
         else
             setCellContent(i, 0, ToDecString(threadList.list[i].BasicInfo.ThreadNumber));
         setCellContent(i, 1, QString().sprintf(tidFormat, threadList.list[i].BasicInfo.ThreadId));
+        setCellUserdata(i, 1, threadList.list[i].BasicInfo.ThreadId);
         setCellContent(i, 2, ToPtrString(threadList.list[i].BasicInfo.ThreadStartAddress));
         setCellContent(i, 3, ToPtrString(threadList.list[i].BasicInfo.ThreadLocalBase));
         setCellContent(i, 4, ToPtrString(threadList.list[i].ThreadCip));
