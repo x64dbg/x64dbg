@@ -1,4 +1,4 @@
-# x64dbg
+# x64dbg :-
 
 <img width="100" src="https://github.com/x64dbg/x64dbg/raw/development/src/bug_black.png"/>
 
@@ -8,13 +8,13 @@
 
 An open-source binary debugger for Windows, aimed at malware analysis and reverse engineering of executables you do not have the source code for. There are many features available and a comprehensive [plugin system](http://plugins.x64dbg.com) to add your own. You can find more information on the [blog](https://x64dbg.com/blog)!
 
-## Screenshots
+## Screenshots :-
 
 ![main interface](https://i.imgur.com/V2f5AP9.png)
 
 ![graph](https://i.imgur.com/gVjzntJ.png) ![memory map](https://i.imgur.com/cLJwTjY.png)
 
-## Installation & Usage
+## Installation & Usage :-
 
 1. Download a snapshot from [GitHub](https://github.com/x64dbg/x64dbg/releases), [SourceForge](https://sourceforge.net/projects/x64dbg/files/snapshots) or [OSDN](https://osdn.net/projects/x64dbg) and extract it in a location your user has write access to.
 2. _Optionally_ use `x96dbg.exe` to register a shell extension and add shortcuts to your desktop.
@@ -22,11 +22,11 @@ An open-source binary debugger for Windows, aimed at malware analysis and revers
 
 You can also [compile](https://github.com/x64dbg/x64dbg/wiki/Compiling-the-whole-project) x64dbg yourself with a few easy steps!
 
-## Contributing
+## Contributing :-
 
 This is a community effort and we accept pull requests! See the [CONTRIBUTING](https://github.com/x64dbg/x64dbg/blob/development/CONTRIBUTING.md) document for more information. If you have any questions you can always [contact us](https://x64dbg.com/#contact) or open an [issue](https://github.com/x64dbg/x64dbg/issues). You can take a look at the [easy issues](https://github.com/x64dbg/x64dbg/issues?q=is%3Aissue+is%3Aopen+label%3Aeasy) to get started.
 
-## Credits
+## Credits :-
 
 - Debugger core by [TitanEngine Community Edition](https://github.com/x64dbg/TitanEngine)
 - Disassembly powered by [Zydis](https://zydis.re)
@@ -38,7 +38,7 @@ This is a community effort and we accept pull requests! See the [CONTRIBUTING](h
 - Interface icons by [Fugue](http://p.yusukekamiyamane.com)
 - Website by [tr4ceflow](http://tr4ceflow.com)
 
-## Developers
+## Developers :-
 
 - [mrexodia](http://mrexodia.github.io)
 - Sigma
@@ -48,11 +48,11 @@ This is a community effort and we accept pull requests! See the [CONTRIBUTING](h
 - [Herz3h](https://github.com/Herz3h)
 - [torusrxxx](https://github.com/torusrxxx)
 
-## Code contributions
+## Code contributions :-
 
 You can find an exhaustive list of GitHub contributors [here](https://github.com/x64dbg/x64dbg/graphs/contributors).
 
-## Special Thanks
+## Special Thanks :-
 
 - Sigma for developing the initial GUI
 - All the [donators](https://www.bountysource.com/teams/x64dbg/backers)!
