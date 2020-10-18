@@ -1,0 +1,107 @@
+#include<iostream>
+#define ll long long int
+using namespace std;
+
+int main()
+{
+    int t;
+    cin>>t;
+    while(t--)
+    {
+        int c,x,w,z,y;
+        c=0;
+        ll n;
+        cin>>n;
+        char a[250][250];
+        for(int h=0; h<n; h++)
+        {
+            for(int j=0; j<n; j++)
+            {
+
+                cin>>a[h][j];
+
+            }
+        }
+        if(a[0][1]==a[1][0])
+        {
+            if(a[n-2][n-1]==a[0][1])
+            {
+                c++;
+                x=n-2;
+                y=n-1;
+
+
+            }
+            if(a[n-1][n-2]==a[0][1])
+            {
+                c++;
+                w=n-1;
+                z=n-2;
+
+
+            }
+
+        }
+        else
+        {
+            if(a[n-1][n-2]==a[n-2][n-1])
+            {
+                if(a[0][1]==a[n-1][n-2])
+                {
+                    c++;
+                    x=0;
+                    y=1;
+                }
+                else
+                {
+                    c++;
+                    x=1;
+                    y=0;
+
+                }
+            }
+            else
+            {
+                c=2;
+                w=0;
+                z=1;
+                if(a[1][0]==a[n-1][n-2])
+                {
+                    x=n-1;
+                    y=n-2;
+                }
+                else
+                {
+                    x=n-2;
+                    y=n-1;
+                }
+            }
+        }
+        w++;
+        z++;
+        x++;
+        y++;
+        
+        cout<<c<<"\n";
+        if(c==0) continue;
+        if(c==1)
+        {
+        cout<<x<<" "<<y<<"\n";
+        }
+        else
+        {
+        cout<<x<<" "<<y<<"\n";
+        cout<<w<<" "<<z<<"\n";
+        }
+        
+
+
+
+
+
+
+
+
+
+
+    }
