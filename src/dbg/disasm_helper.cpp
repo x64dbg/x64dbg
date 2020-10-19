@@ -309,23 +309,34 @@ bool isunicodestring(const WString & data)
 extern "C" __declspec(dllexport) bool isasciistring(const unsigned char* data, int maxlen)
 {
     int len = 0;
+    char* safebuffer = new char[maxlen];
+    if(!safebuffer)
+        return false;
     for(const char* p = (const char*)data; *p; len++, p++)
     {
         if(len >= maxlen)
             break;
+        safebuffer[p - (const char*)data] = *p;
     }
 
-    if(len < 2 || len + 1 >= maxlen)
+    if(len < 2)
+    {
+        delete[] safebuffer;
         return false;
+    }
+    safebuffer[len - 1] = 0; // Mark the end of string
+    if((maxlen % 2) == 0 && (safebuffer[maxlen - 2] & 0x80))
+        safebuffer[maxlen - 2] = 0; // Keep DBCS strings from being chopped in the middle
 
     String data2;
     WString wdata2;
     // Convert to and from Unicode
-    wdata2 = StringUtils::LocalCpToUtf16((const char*)data);
+    wdata2 = StringUtils::LocalCpToUtf16(safebuffer);
+    delete[] safebuffer;
     if(wdata2.size() < 2)
         return false;
     data2 = StringUtils::Utf16ToLocalCp(wdata2);
-    if(data2.size() > maxlen || data2.size() < 2)
+    if(data2.size() < 2)
         return false;
     // Is the data exactly representable in both ANSI and Unicode?
     if(memcmp(data2.c_str(), data, data2.size()) != 0)
@@ -339,23 +350,32 @@ extern "C" __declspec(dllexport) bool isasciistring(const unsigned char* data, i
 extern "C" __declspec(dllexport) bool isunicodestring(const unsigned char* data, int maxlen)
 {
     int len = 0;
+    wchar_t* safebuffer = new wchar_t[maxlen];
+    if(!safebuffer)
+        return false;
     for(const wchar_t* p = (const wchar_t*)data; *p; len += sizeof(wchar_t), p++)
     {
         if(len >= maxlen)
             break;
+        safebuffer[p - (const wchar_t*)data] = *p;
     }
 
-    if(len < 2 * sizeof(wchar_t) || len + 1 >= maxlen)
+    if(len < 2 * sizeof(wchar_t))
+    {
+        delete[] safebuffer;
         return false;
+    }
+    safebuffer[len / sizeof(wchar_t) - 1] = 0; // Mark the end of string
 
     String data2;
     WString wdata2;
     // Convert to and from ANSI
-    data2 = StringUtils::Utf16ToLocalCp((const wchar_t*)data);
+    data2 = StringUtils::Utf16ToLocalCp(safebuffer);
+    delete[] safebuffer;
     if(data2.size() < 2)
         return false;
     wdata2 = StringUtils::LocalCpToUtf16(data2);
-    if(wdata2.size() / sizeof(wchar_t) > maxlen || wdata2.size() < 2)
+    if(wdata2.size() < 2)
         return false;
     // Is the data exactly representable in both ANSI and Unicode?
     if(memcmp(wdata2.c_str(), data, wdata2.size() * sizeof(wchar_t)) != 0)
@@ -371,7 +391,7 @@ bool disasmispossiblestring(duint addr, STRING_TYPE* type)
     unsigned char data[60];
     memset(data, 0, sizeof(data));
     duint bytesRead = 0;
-    if(!MemReadUnsafe(addr, data, sizeof(data) - 3, &bytesRead) && bytesRead < 2)
+    if(!MemReadUnsafe(addr, data, sizeof(data), &bytesRead) && bytesRead < 2)
         return false;
     if(isasciistring(data, sizeof(data)))
     {
