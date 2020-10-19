@@ -23,6 +23,7 @@ class MenuBuilder;
 class CachedFontMetrics;
 class GotoDialog;
 class XrefBrowseDialog;
+class CommonActions;
 
 class DisassemblerGraphView : public QAbstractScrollArea, public ActionHelper<DisassemblerGraphView>
 {
@@ -267,7 +268,7 @@ public slots:
     void loadGraphSlot(BridgeCFGraphList* graph, duint addr);
     void graphAtSlot(duint addr);
     void updateGraphSlot();
-    void followDisassemblerSlot();
+    //void followDisassemblerSlot();
     void colorsUpdatedSlot();
     void fontsUpdatedSlot();
     void shortcutsUpdatedSlot();
@@ -285,9 +286,9 @@ public slots:
     void followActionSlot();
     void refreshSlot();
     void saveImageSlot();
-    void setCommentSlot();
+    //void setCommentSlot();
     void setLabelSlot();
-    void setBookmarkSlot();
+    //void setBookmarkSlot();
     void xrefSlot();
     void mnemonicHelpSlot();
     void fitToWindowSlot();
@@ -334,6 +335,7 @@ private:
     std::vector<int> row_edge_y;
     CachedFontMetrics* mFontMetrics;
     MenuBuilder* mMenuBuilder;
+    CommonActions* mCommonActions;
     QMenu* mPluginMenu;
     bool drawOverview;
     bool onlySummary;

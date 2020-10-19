@@ -7,6 +7,7 @@
 class CPUMultiDump;
 class CPUDisassembly;
 class GotoDialog;
+class CommonActions;
 
 class CPUDump : public HexDump
 {
@@ -97,11 +98,11 @@ public slots:
     void findPattern();
     void copyFileOffsetSlot();
     void undoSelectionSlot();
-    void followStackSlot();
+    //void followStackSlot();
     void findReferencesSlot();
-    void followInDisasmSlot();
-    void followDataSlot();
-    void followDataDumpSlot();
+    //void followInDisasmSlot();
+    //void followDataSlot();
+    //void followDataDumpSlot();
 
     void watchSlot();
 
@@ -110,11 +111,12 @@ public slots:
     void followInDumpNSlot();
     void allocMemorySlot();
 
-    void followInMemoryMapSlot();
+    //void followInMemoryMapSlot();
     void headerButtonReleasedSlot(int colIndex);
 
 private:
     MenuBuilder* mMenuBuilder;
+    CommonActions* mCommonActions;
 
     QMenu* mPluginMenu;
     QMenu* mFollowInDumpMenu;

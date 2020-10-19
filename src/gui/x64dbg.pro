@@ -81,6 +81,7 @@ SOURCES += \
     Src/Imports.cpp \
     Src/Tracer/TraceRegisters.cpp \
     Src/Tracer/TraceWidget.cpp \
+    Src/Utils/CommonActions.cpp \
     Src/main.cpp \
     Src/Gui/MainWindow.cpp \
     Src/Gui/CPUWidget.cpp \
@@ -180,7 +181,6 @@ SOURCES += \
     Src/Gui/LocalVarsView.cpp \
     Src/Gui/MessagesBreakpoints.cpp \
     Src/Gui/AboutDialog.cpp \
-    Src/Gui/BreakpointMenu.cpp \
     Src/Gui/ComboBoxDialog.cpp \
     Src/Utils/SymbolAutoCompleteModel.cpp \
     Src/Tracer/TraceBrowser.cpp \
@@ -201,6 +201,7 @@ HEADERS += \
     Src/Gui/SystemBreakpointScriptDialog.h \
     Src/Tracer/TraceRegisters.h \
     Src/Tracer/TraceWidget.h \
+    Src/Utils/CommonActions.h \
     Src/main.h \
     Src/Gui/MainWindow.h \
     Src/Gui/CPUWidget.h \
@@ -304,7 +305,6 @@ HEADERS += \
     Src/Gui/LocalVarsView.h \
     Src/Gui/MessagesBreakpoints.h \
     Src/Gui/AboutDialog.h \
-    Src/Gui/BreakpointMenu.h \
     Src/Gui/ComboBoxDialog.h \
     Src/Utils/VaHistory.h \
     Src/Utils/SymbolAutoCompleteModel.h \
