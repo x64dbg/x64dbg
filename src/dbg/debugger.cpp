@@ -48,6 +48,7 @@ static duint pCreateProcessBase = 0;
 static duint pDebuggedEntry = 0;
 static bool bRepeatIn = false;
 static duint stepRepeat = 0;
+static bool isDetachedByUser = false;
 static bool bIsAttached = false;
 static bool bSkipExceptions = false;
 static duint skipExceptionCount = 0;
@@ -324,6 +325,11 @@ void dbgsetsteprepeat(bool steppingIn, duint repeat)
 {
     bRepeatIn = steppingIn;
     stepRepeat = repeat;
+}
+
+void dbgsetisdetachedbyuser(bool b)
+{
+    isDetachedByUser = b;
 }
 
 void dbgsetfreezestack(bool freeze)
@@ -1894,6 +1900,20 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
     }
 }
 
+static bool dbgdetachDisableAllBreakpoints(const BREAKPOINT* bp)
+{
+    if(bp->enabled)
+    {
+        if(bp->type == BPNORMAL)
+            DeleteBPX(bp->addr);
+        else if(bp->type == BPMEMORY)
+            RemoveMemoryBPX(bp->addr, 0);
+        else if(bp->type == BPHARDWARE && TITANDRXVALID(bp->titantype))
+            DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype));
+    }
+    return true;
+}
+
 static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
@@ -1914,7 +1934,24 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             return;
         }
     }
-    if(ExceptionData->ExceptionRecord.ExceptionCode == MS_VC_EXCEPTION) //SetThreadName exception
+    if(ExceptionData->ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT)
+    {
+        if(isDetachedByUser)
+        {
+            PLUG_CB_DETACH detachInfo;
+            detachInfo.fdProcessInfo = fdProcessInfo;
+            plugincbcall(CB_DETACH, &detachInfo);
+            BpEnumAll(dbgdetachDisableAllBreakpoints); // Disable all software breakpoints before detaching.
+            if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
+                dputs(QT_TRANSLATE_NOOP("DBG", "DetachDebuggerEx failed..."));
+            else
+                dputs(QT_TRANSLATE_NOOP("DBG", "Detached!"));
+            isDetachedByUser = false;
+            _dbg_animatestop(); // Stop animating
+            return;
+        }
+    }
+    else if(ExceptionData->ExceptionRecord.ExceptionCode == MS_VC_EXCEPTION) //SetThreadName exception
     {
         THREADNAME_INFO nameInfo; //has no valid local pointers
         memcpy(&nameInfo, ExceptionData->ExceptionRecord.ExceptionInformation, sizeof(THREADNAME_INFO));
@@ -1991,6 +2028,21 @@ static void cbAttachDebugger()
         tidToResume = 0;
     }
     varset("$pid", fdProcessInfo->dwProcessId, true);
+}
+
+void cbDetach()
+{
+    if(!isDetachedByUser)
+        return;
+    PLUG_CB_DETACH detachInfo;
+    detachInfo.fdProcessInfo = fdProcessInfo;
+    plugincbcall(CB_DETACH, &detachInfo);
+    BpEnumAll(dbgdetachDisableAllBreakpoints); // Disable all software breakpoints before detaching.
+    if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
+        dputs(QT_TRANSLATE_NOOP("DBG", "DetachDebuggerEx failed..."));
+    else
+        dputs(QT_TRANSLATE_NOOP("DBG", "Detached!"));
+    return;
 }
 
 cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline)
@@ -2797,6 +2849,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     pDebuggedEntry = 0;
     pDebuggedBase = 0;
     pCreateProcessBase = 0;
+    isDetachedByUser = false;
     hActiveThread = nullptr;
     if(!gDllLoader.empty()) //Delete the DLL loader (#1496)
     {

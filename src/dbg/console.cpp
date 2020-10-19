@@ -21,7 +21,6 @@ static void GuiAddLogMessageAsync(_In_z_ const char* msg)
 */
 void dputs(_In_z_ const char* Text)
 {
-    dprintf_untranslated("[%llu] ", (unsigned long long)time(nullptr));
     // Only append the newline if the caller didn't
     const char* TranslatedText = GuiTranslateText(Text);
     size_t textlen = strlen(TranslatedText);
@@ -59,29 +58,6 @@ void dprintf_untranslated(_In_z_ _Printf_format_string_ const char* Format, ...)
     va_end(args);
 }
 
-static double getTimeInMilliseconds()
-{
-    static LARGE_INTEGER freq;
-    static bool isInitialized = false;
-
-    if(isInitialized == false)
-    {
-        // Expensive crap.
-        QueryPerformanceFrequency(&freq);
-        isInitialized = true;
-    }
-
-    LARGE_INTEGER ct;
-    QueryPerformanceCounter(&ct);
-
-    return ((double)ct.QuadPart * 1000.0) / (double)freq.QuadPart;
-}
-
-static double getTimeInSeconds()
-{
-    return getTimeInMilliseconds() / 1000.0;
-}
-
 /**
 \brief Print a formatted string to the console.
 \param format The printf format to use (see documentation of printf for more information).
@@ -89,15 +65,8 @@ static double getTimeInSeconds()
 */
 void dprintf_args(_In_z_ _Printf_format_string_ const char* Format, va_list Args)
 {
-    static double startupTime = getTimeInSeconds();
-    double dElapsed = getTimeInSeconds() - startupTime;
-    int64_t elapsed = (int64_t)dElapsed;
-    int64_t minutes = elapsed / 60;
-    int64_t ms = (int64_t)((dElapsed - elapsed) * 1000.0);
-
     char buffer[16384];
-    auto len = sprintf_s(buffer, "[%llu] ", (unsigned long long)time(nullptr));
-    vsnprintf_s(buffer + len, _countof(buffer) - len, _TRUNCATE, GuiTranslateText(Format), Args);
+    vsnprintf_s(buffer, _TRUNCATE, GuiTranslateText(Format), Args);
 
     GuiAddLogMessageAsync(buffer);
 }
