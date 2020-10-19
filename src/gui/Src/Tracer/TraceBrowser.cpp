@@ -6,10 +6,10 @@
 #include "BrowseDialog.h"
 #include "QBeaEngine.h"
 #include "GotoDialog.h"
+#include "CommonActions.h"
 #include "LineEditDialog.h"
 #include "WordEditDialog.h"
 #include "CachedFontMetrics.h"
-#include "BreakpointMenu.h"
 #include "MRUList.h"
 #include <QFileDialog>
 
@@ -796,6 +796,13 @@ void TraceBrowser::prepareData()
 void TraceBrowser::setupRightClickContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this);
+    mCommonActions = new CommonActions(this, getActionHelperFuncs(), [this]
+    {
+        if(mTraceFile == nullptr || mTraceFile->Progress() < 100 || mTraceFile->Length() == 0)
+            return (duint)0;
+        else
+            return mTraceFile->Registers(getInitialSelection()).regcontext.cip;
+    });
     QAction* toggleRunTrace = makeShortcutAction(DIcon("trace.png"), tr("Start Run Trace"), SLOT(toggleRunTraceSlot()), "ActionToggleRunTrace");
     mMenuBuilder->addAction(toggleRunTrace, [toggleRunTrace](QMenu*)
     {
@@ -854,19 +861,12 @@ void TraceBrowser::setupRightClickContextMenu()
     copyMenu->addAction(makeAction(DIcon("copy_address.png"), tr("Index"), SLOT(copyIndexSlot())));
 
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("&Follow in Disassembler"), SLOT(followDisassemblySlot()), "ActionFollowDisasm"), isValid);
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("&Follow in Disassembler"), SLOT(followDisassemblySlot()), "ActionFollowDisasm"), isValid);
 
-    mBreakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this, isValid]()
-    {
-        if(isValid(nullptr))
-            return mTraceFile->Registers(getInitialSelection()).regcontext.cip;
-        else
-            return (duint)0;
-    });
-    mBreakpointMenu->build(mMenuBuilder);
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionDisasm | CommonActions::ActionBreakpoint | CommonActions::ActionComment | CommonActions::ActionBookmark);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("Label Current Address"), SLOT(setLabelSlot()), "ActionSetLabel"), isDebugging);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"), isDebugging);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"), isDebugging);
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"), isDebugging);
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"), isDebugging);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("highlight.png"), tr("&Highlighting mode"), SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"), isValid);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("helpmnemonic.png"), tr("Help on mnemonic"), SLOT(mnemonicHelpSlot()), "ActionHelpOnMnemonic"), isValid);
     QAction* mnemonicBrief = makeShortcutAction(DIcon("helpbrief.png"), tr("Show mnemonic brief"), SLOT(mnemonicBriefSlot()), "ActionToggleMnemonicBrief");
@@ -1038,7 +1038,7 @@ void TraceBrowser::mouseDoubleClickEvent(QMouseEvent* event)
         switch(getColumnIndexFromX(event->x()))
         {
         case Index://Index: follow
-            followDisassemblySlot();
+            mCommonActions->followDisassemblySlot();
             break;
         case Address://Address: set RVA
             if(mRvaDisplayEnabled && mTraceFile->Registers(getInitialSelection()).regcontext.cip == mRvaDisplayBase)
@@ -1051,13 +1051,13 @@ void TraceBrowser::mouseDoubleClickEvent(QMouseEvent* event)
             reloadData();
             break;
         case Opcode: //Opcode: Breakpoint
-            mBreakpointMenu->toggleInt3BPActionSlot();
+            mCommonActions->toggleInt3BPActionSlot();
             break;
         case Disassembly: //Instructions: follow
-            followDisassemblySlot();
+            mCommonActions->followDisassemblySlot();
             break;
         case Comments: //Comment
-            setCommentSlot();
+            mCommonActions->setCommentSlot();
             break;
         }
     }
@@ -1153,7 +1153,7 @@ void TraceBrowser::keyPressEvent(QKeyEvent* event)
 void TraceBrowser::onSelectionChanged(unsigned long long selection)
 {
     if(mAutoDisassemblyFollowSelection)
-        followDisassemblySlot();
+        mCommonActions->followDisassemblySlot();
 }
 
 void TraceBrowser::tokenizerConfigUpdatedSlot()
@@ -1770,65 +1770,6 @@ void TraceBrowser::exportSlot()
     });
 }
 
-void TraceBrowser::setCommentSlot()
-{
-    if(!DbgIsDebugging() || mTraceFile == nullptr || mTraceFile->Progress() < 100)
-        return;
-    duint wVA = mTraceFile->Registers(getInitialSelection()).regcontext.cip;
-    LineEditDialog mLineEdit(this);
-    mLineEdit.setTextMaxLength(MAX_COMMENT_SIZE - 2);
-    QString addr_text = ToPtrString(wVA);
-    char comment_text[MAX_COMMENT_SIZE] = "";
-    if(DbgGetCommentAt((duint)wVA, comment_text))
-    {
-        if(comment_text[0] == '\1') //automatic comment
-            mLineEdit.setText(QString(comment_text + 1));
-        else
-            mLineEdit.setText(QString(comment_text));
-    }
-    mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
-    if(mLineEdit.exec() != QDialog::Accepted)
-        return;
-    QString comment = mLineEdit.editText.replace('\r', "").replace('\n', "");
-    if(!DbgSetCommentAt(wVA, comment.toUtf8().constData()))
-        SimpleErrorBox(this, tr("Error!"), tr("DbgSetCommentAt failed!"));
-
-    static bool easter = isEaster();
-    if(easter && comment.toLower() == "oep")
-    {
-        QFile file(":/icons/images/egg.wav");
-        if(file.open(QIODevice::ReadOnly))
-        {
-            QByteArray egg = file.readAll();
-            PlaySoundA(egg.data(), 0, SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
-        }
-    }
-
-    GuiUpdateAllViews();
-}
-
-void TraceBrowser::setBookmarkSlot()
-{
-    if(!DbgIsDebugging())
-        return;
-    duint wVA = mTraceFile->Registers(getInitialSelection()).regcontext.cip;
-    bool result;
-    if(DbgGetBookmarkAt(wVA))
-        result = DbgSetBookmarkAt(wVA, false);
-    else
-        result = DbgSetBookmarkAt(wVA, true);
-    if(!result)
-    {
-        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetBookmarkAt failed!"));
-        msg.setWindowIcon(DIcon("compile-error.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-    }
-
-    GuiUpdateAllViews();
-}
-
 void TraceBrowser::setLabelSlot()
 {
     if(!DbgIsDebugging() || mTraceFile == nullptr || mTraceFile->Progress() < 100)
@@ -1869,18 +1810,6 @@ void TraceBrowser::enableHighlightingModeSlot()
     else
         mHighlightingMode = true;
     reloadData();
-}
-
-void TraceBrowser::followDisassemblySlot()
-{
-    if(mTraceFile == nullptr || mTraceFile->Progress() < 100)
-        return;
-
-    duint cip = mTraceFile->Registers(getInitialSelection()).regcontext.cip;
-    if(DbgMemIsValidReadPtr(cip))
-        DbgCmdExec(QString("dis ").append(ToPtrString(cip)));
-    else
-        GuiAddStatusBarMessage(tr("Cannot follow %1. Address is invalid.\n").arg(ToPtrString(cip)).toUtf8().constData());
 }
 
 void TraceBrowser::searchConstantSlot()

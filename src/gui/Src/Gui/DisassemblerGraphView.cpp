@@ -13,7 +13,7 @@
 #include <QMimeData>
 #include <QFileDialog>
 #include <QMessageBox>
-#include "BreakpointMenu.h"
+#include "CommonActions.h"
 #include "StringUtil.h"
 #include "MiscUtil.h"
 #include <QMainWindow>
@@ -2181,26 +2181,26 @@ void DisassemblerGraphView::setupContextMenu()
         return DbgIsDebugging() && this->ready;
     });
 
-    mMenuBuilder->addAction(makeShortcutAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in &Disassembler"), SLOT(followDisassemblerSlot()), "ActionGraphFollowDisassembler"), [this](QMenu*)
-    {
-        return this->cur_instr != 0;
-    });
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in &Disassembler"), SLOT(followDisassemblerSlot()), "ActionGraphFollowDisassembler"), [this](QMenu*)
+    //{
+    //    return this->cur_instr != 0;
+    //});
     mMenuBuilder->addSeparator();
 
-    auto breakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this]()
+    mCommonActions = new CommonActions(this, getActionHelperFuncs(), [this]()
     {
         return zoomActionHelper();
     });
-    breakpointMenu->build(mMenuBuilder);
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionBookmark | CommonActions::ActionComment | CommonActions::ActionDisasm);
 
     auto zoomActionHelperNonZero = [this](QMenu*)
     {
         return zoomActionHelper() != 0;
     };
 
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"), zoomActionHelperNonZero);
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"), zoomActionHelperNonZero);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("&Label"), SLOT(setLabelSlot()), "ActionSetLabel"), zoomActionHelperNonZero);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"));
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs.png"), tr("Xrefs..."), SLOT(xrefSlot()), "ActionXrefs"), zoomActionHelperNonZero);
 
     MenuBuilder* gotoMenu = new MenuBuilder(this);
@@ -2363,10 +2363,10 @@ void DisassemblerGraphView::keyPressEvent(QKeyEvent* event)
     }
 }
 
-void DisassemblerGraphView::followDisassemblerSlot()
+/*void DisassemblerGraphView::followDisassemblerSlot()
 {
     DbgCmdExec(QString("disasm %1").arg(ToPtrString(this->cur_instr)));
-}
+}*/
 
 void DisassemblerGraphView::colorsUpdatedSlot()
 {
@@ -2514,7 +2514,7 @@ void DisassemblerGraphView::saveImageSlot()
     this->viewport()->update();
 }
 
-void DisassemblerGraphView::setCommentSlot()
+/*void DisassemblerGraphView::setCommentSlot()
 {
     duint wVA = this->get_cursor_pos();
     LineEditDialog mLineEdit(this);
@@ -2543,7 +2543,7 @@ void DisassemblerGraphView::setCommentSlot()
         SimpleErrorBox(this, tr("Error!"), tr("DbgSetCommentAt failed!"));
 
     this->refreshSlot();
-}
+}*/
 
 void DisassemblerGraphView::setLabelSlot()
 {
@@ -2583,7 +2583,7 @@ restart:
     this->refreshSlot();
 }
 
-void DisassemblerGraphView::setBookmarkSlot()
+/*void DisassemblerGraphView::setBookmarkSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -2603,7 +2603,7 @@ void DisassemblerGraphView::setBookmarkSlot()
     }
 
     GuiUpdateAllViews();
-}
+}*/
 
 void DisassemblerGraphView::xrefSlot()
 {

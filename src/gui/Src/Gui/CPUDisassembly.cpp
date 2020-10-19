@@ -18,12 +18,11 @@
 #include "HexEditDialog.h"
 #include "AssembleDialog.h"
 #include "StringUtil.h"
-#include "Breakpoints.h"
 #include "XrefBrowseDialog.h"
 #include "SourceViewerManager.h"
 #include "MiscUtil.h"
 #include "MemoryPage.h"
-#include "BreakpointMenu.h"
+#include "CommonActions.h"
 #include "BrowseDialog.h"
 
 CPUDisassembly::CPUDisassembly(QWidget* parent, bool isMain) : Disassembly(parent, isMain)
@@ -96,7 +95,7 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
 
     // (Opcodes) Set INT3 breakpoint
     case 1:
-        mBreakpointMenu->toggleInt3BPActionSlot();
+        mCommonActions->toggleInt3BPActionSlot();
         break;
 
     // (Disassembly) Assemble dialog
@@ -111,7 +110,7 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
 
     // (Comments) Set comment dialog
     case 3:
-        setCommentSlot();
+        mCommonActions->setCommentSlot();
         break;
 
     // Undefined area
@@ -308,11 +307,11 @@ void CPUDisassembly::setupRightClickContextMenu()
         return DbgFunctions()->PatchInRange(start, end); //something patched in selected range
     });
 
-    mBreakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this]()
+    mCommonActions = new CommonActions(this, getActionHelperFuncs(), [this]()
     {
         return rvaToVa(getInitialSelection());
     });
-    mBreakpointMenu->build(mMenuBuilder);
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionBreakpoint | CommonActions::ActionMemoryMap | CommonActions::ActionComment | CommonActions::ActionBookmark);
 
     mMenuBuilder->addMenu(makeMenu(DIcon("dump.png"), tr("&Follow in Dump")), [this](QMenu * menu)
     {
@@ -326,7 +325,7 @@ void CPUDisassembly::setupRightClickContextMenu()
         return menu->actions().length() != 0; //only add this menu if there is something to follow
     });
 
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot()), "ActionFollowMemMap"));
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot()), "ActionFollowMemMap"));
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("source.png"), tr("Open Source File"), SLOT(openSourceSlot()), "ActionOpenSourceFile"), [this](QMenu*)
     {
@@ -406,8 +405,8 @@ void CPUDisassembly::setupRightClickContextMenu()
         return true;
     });
 
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"));
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"));
     mMenuBuilder->addSeparator();
 
     MenuBuilder* analysisMenu = new MenuBuilder(this);
@@ -785,7 +784,7 @@ restart:
     GuiUpdateAllViews();
 }
 
-void CPUDisassembly::setCommentSlot()
+/*void CPUDisassembly::setCommentSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -843,7 +842,7 @@ void CPUDisassembly::setBookmarkSlot()
 
     GuiUpdateAllViews();
 }
-
+*/
 void CPUDisassembly::toggleFunctionSlot()
 {
     if(!DbgIsDebugging())
@@ -2040,10 +2039,10 @@ bool CPUDisassembly::getTokenValueText(QString & text)
     return true;
 }
 
-void CPUDisassembly::followInMemoryMapSlot()
-{
-    DbgCmdExec(QString("memmapdump %1").arg(ToHexString(rvaToVa(getInitialSelection()))));
-}
+//void CPUDisassembly::followInMemoryMapSlot()
+//{
+//    DbgCmdExec(QString("memmapdump %1").arg(ToHexString(rvaToVa(getInitialSelection()))));
+//}
 
 void CPUDisassembly::downloadCurrentSymbolsSlot()
 {

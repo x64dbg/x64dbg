@@ -10,6 +10,7 @@
 #include "CPUMultiDump.h"
 #include "GotoDialog.h"
 #include "CPUDisassembly.h"
+#include "CommonActions.h"
 #include "WordEditDialog.h"
 #include "CodepageSelectionDialog.h"
 #include "MiscUtil.h"
@@ -41,6 +42,11 @@ void CPUDump::setupContextMenu()
     mMenuBuilder = new MenuBuilder(this, [](QMenu*)
     {
         return DbgIsDebugging();
+    });
+
+    mCommonActions = new CommonActions(this, getActionHelperFuncs(), [this]()
+    {
+        return rvaToVa(getInitialSelection());
     });
 
     MenuBuilder* wBinaryMenu = new MenuBuilder(this);
@@ -77,13 +83,16 @@ void CPUDump::setupContextMenu()
     {
         return DbgFunctions()->PatchInRange(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd()));
     });
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("stack.png"), tr("Follow in Stack"), SLOT(followStackSlot()), "ActionFollowStack"), [this](QMenu*)
-    {
-        auto start = rvaToVa(getSelectionStart());
-        return (DbgMemIsValidReadPtr(start) && DbgMemFindBaseAddr(start, 0) == DbgMemFindBaseAddr(DbgValFromString("csp"), 0));
-    });
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot()), "ActionFollowMemMap"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in Disassembler"), SLOT(followInDisasmSlot()), "ActionFollowDisasm"));
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon("stack.png"), tr("Follow in Stack"), SLOT(followStackSlot()), "ActionFollowStack"), [this](QMenu*)
+    //{
+    //    auto start = rvaToVa(getSelectionStart());
+    //    return (DbgMemIsValidReadPtr(start) && DbgMemFindBaseAddr(start, 0) == DbgMemFindBaseAddr(DbgValFromString("csp"), 0));
+    //});
+
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionDisasm | CommonActions::ActionMemoryMap | CommonActions::ActionDumpData | CommonActions::ActionDisasmData
+                          | CommonActions::ActionStackDump);
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot()), "ActionFollowMemMap"));
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in Disassembler"), SLOT(followInDisasmSlot()), "ActionFollowDisasm"));
     auto wIsValidReadPtrCallback = [this](QMenu*)
     {
         duint ptr = 0;
@@ -91,8 +100,8 @@ void CPUDump::setupContextMenu()
         return DbgMemIsValidReadPtr(ptr);
     };
 
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("processor32.png"), ArchValue(tr("&Follow DWORD in Disassembler"), tr("&Follow QWORD in Disassembler")), SLOT(followDataSlot()), "ActionFollowDwordQwordDisasm"), wIsValidReadPtrCallback);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("dump.png"), ArchValue(tr("&Follow DWORD in Current Dump"), tr("&Follow QWORD in Current Dump")), SLOT(followDataDumpSlot()), "ActionFollowDwordQwordDump"), wIsValidReadPtrCallback);
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon("processor32.png"), ArchValue(tr("&Follow DWORD in Disassembler"), tr("&Follow QWORD in Disassembler")), SLOT(followDataSlot()), "ActionFollowDwordQwordDisasm"), wIsValidReadPtrCallback);
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon("dump.png"), ArchValue(tr("&Follow DWORD in Current Dump"), tr("&Follow QWORD in Current Dump")), SLOT(followDataDumpSlot()), "ActionFollowDwordQwordDump"), wIsValidReadPtrCallback);
 
     MenuBuilder* wFollowInDumpMenu = new MenuBuilder(this, [wIsValidReadPtrCallback, this](QMenu * menu)
     {
@@ -1660,25 +1669,25 @@ void CPUDump::undoSelectionSlot()
     reloadData();
 }
 
-void CPUDump::followStackSlot()
-{
-    DbgCmdExec(QString("sdump " + ToPtrString(rvaToVa(getSelectionStart()))));
-}
+//void CPUDump::followStackSlot()
+//{
+//    DbgCmdExec(QString("sdump " + ToPtrString(rvaToVa(getSelectionStart()))));
+//}
 
-void CPUDump::followInDisasmSlot()
-{
-    DbgCmdExec(QString("disasm " + ToPtrString(rvaToVa(getSelectionStart()))));
-}
+//void CPUDump::followInDisasmSlot()
+//{
+//    DbgCmdExec(QString("disasm " + ToPtrString(rvaToVa(getSelectionStart()))));
+//}
 
-void CPUDump::followDataSlot()
-{
-    DbgCmdExec(QString("disasm \"[%1]\"").arg(ToPtrString(rvaToVa(getSelectionStart()))));
-}
+//void CPUDump::followDataSlot()
+//{
+//    DbgCmdExec(QString("disasm \"[%1]\"").arg(ToPtrString(rvaToVa(getSelectionStart()))));
+//}
 
-void CPUDump::followDataDumpSlot()
-{
-    DbgCmdExec(QString("dump \"[%1]\"").arg(ToPtrString(rvaToVa(getSelectionStart()))));
-}
+//void CPUDump::followDataDumpSlot()
+//{
+//    DbgCmdExec(QString("dump \"[%1]\"").arg(ToPtrString(rvaToVa(getSelectionStart()))));
+//}
 
 void CPUDump::selectionUpdatedSlot()
 {
@@ -1826,10 +1835,10 @@ void CPUDump::setView(ViewEnum_t view)
     }
 }
 
-void CPUDump::followInMemoryMapSlot()
-{
-    DbgCmdExec(QString("memmapdump %1").arg(ToHexString(rvaToVa(getSelectionStart()))));
-}
+//void CPUDump::followInMemoryMapSlot()
+//{
+//    DbgCmdExec(QString("memmapdump %1").arg(ToHexString(rvaToVa(getSelectionStart()))));
+//}
 
 void CPUDump::headerButtonReleasedSlot(int colIndex)
 {

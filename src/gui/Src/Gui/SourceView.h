@@ -3,9 +3,9 @@
 
 #include <QWidget>
 #include <AbstractStdTable.h>
-#include "BreakpointMenu.h"
 
 class FileLines;
+class CommonActions;
 
 class SourceView : public AbstractStdTable
 {
@@ -25,16 +25,14 @@ public:
 
 private slots:
     void contextMenuSlot(const QPoint & pos);
-    void followDisassemblerSlot();
     void followDumpSlot();
-    void toggleBookmarkSlot();
     void gotoLineSlot();
     void openSourceFileSlot();
     void showInDirectorySlot();
 
 private:
     MenuBuilder* mMenuBuilder = nullptr;
-    BreakpointMenu* mBreakpointMenu = nullptr;
+    CommonActions* mCommonActions = nullptr;
     QString mSourcePath;
     duint mModBase;
     int mTabSize = 4; //TODO: make customizable?
