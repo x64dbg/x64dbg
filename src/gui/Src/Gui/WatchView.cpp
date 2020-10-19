@@ -240,7 +240,8 @@ void WatchView::modifyWatchSlot()
 void WatchView::editWatchSlot()
 {
     QString expr;
-    if(SimpleInputBox(this, tr("Enter the expression to watch"), "", expr, tr("Example: [EAX]")))
+    QString originalExpr = getCellContent(getInitialSelection(), 1);
+    if(SimpleInputBox(this, tr("Enter the expression to watch"), originalExpr, expr, tr("Example: [EAX]")))
         DbgCmdExecDirect(QString("SetWatchExpression ").append(getSelectedId()).append(",").append(expr));
     updateWatch();
 }
