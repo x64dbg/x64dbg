@@ -25,7 +25,6 @@ public:
 
 private slots:
     void contextMenuSlot(const QPoint & pos);
-    void followDumpSlot();
     void gotoLineSlot();
     void openSourceFileSlot();
     void showInDirectorySlot();

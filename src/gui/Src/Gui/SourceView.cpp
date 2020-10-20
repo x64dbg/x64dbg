@@ -1,6 +1,5 @@
 #include "SourceView.h"
 #include <QFileDialog>
-#include <QMessageBox>
 #include <QDesktopServices>
 #include <QProcess>
 #include <QInputDialog>
@@ -118,14 +117,6 @@ void SourceView::contextMenuSlot(const QPoint & pos)
     wMenu.exec(mapToGlobal(pos));
 }
 
-void SourceView::followDumpSlot()
-{
-    duint addr = addrFromIndex(getInitialSelection());
-    if(!DbgMemIsValidReadPtr(addr))
-        return;
-    DbgCmdExec(QString("dump %1").arg(ToPtrString(addr)));
-}
-
 void SourceView::gotoLineSlot()
 {
     bool ok = false;
@@ -153,16 +144,12 @@ void SourceView::showInDirectorySlot()
 void SourceView::setupContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this);
-    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), tr("Follow in &Dump"), SLOT(followDumpSlot())), [this](QMenu*)
-    {
-        return DbgMemIsValidReadPtr(addrFromIndex(getInitialSelection()));
-    });
-    mMenuBuilder->addSeparator();
     mCommonActions = new CommonActions(this, getActionHelperFuncs(), [this]()
     {
         return addrFromIndex(getInitialSelection());
     });
-    mCommonActions->build(mMenuBuilder, CommonActions::ActionDisasm | CommonActions::ActionBreakpoint | CommonActions::ActionBookmark);
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionDisasm | CommonActions::ActionDump | CommonActions::ActionBreakpoint | CommonActions::ActionLabel | CommonActions::ActionComment
+                          | CommonActions::ActionBookmark | CommonActions::ActionMemoryMap | CommonActions::ActionNewOrigin | CommonActions::ActionNewThread);
     mMenuBuilder->addSeparator();
     mMenuBuilder->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Go to line"), SLOT(gotoLineSlot()), "ActionGotoExpression"));
     mMenuBuilder->addAction(makeAction(DIcon("source.png"), tr("Open source file"), SLOT(openSourceFileSlot())));
@@ -216,14 +203,14 @@ void SourceView::loadFile()
     mFileLines->open(mSourcePath.toStdWString().c_str());
     if(!mFileLines->isopen())
     {
-        QMessageBox::warning(this, "Error", "Failed to open file!");
+        SimpleWarningBox(this, tr("Error"), tr("Failed to open file!"));
         delete mFileLines;
         mFileLines = nullptr;
         return;
     }
     if(!mFileLines->parse())
     {
-        QMessageBox::warning(this, "Error", "Failed to parse file!");
+        SimpleWarningBox(this, tr("Error"), tr("Failed to parse file!"));
         delete mFileLines;
         mFileLines = nullptr;
         return;

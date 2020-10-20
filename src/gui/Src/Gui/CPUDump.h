@@ -78,20 +78,13 @@ public slots:
     void findPattern();
     void copyFileOffsetSlot();
     void undoSelectionSlot();
-    //void followStackSlot();
     void findReferencesSlot();
-    //void followInDisasmSlot();
-    //void followDataSlot();
-    //void followDataDumpSlot();
-
-    void watchSlot();
 
     void selectionUpdatedSlot();
     void syncWithExpressionSlot();
     void followInDumpNSlot();
     void allocMemorySlot();
 
-    //void followInMemoryMapSlot();
     void headerButtonReleasedSlot(int colIndex);
     void asciiAddressDumpModeUpdatedSlot();
 

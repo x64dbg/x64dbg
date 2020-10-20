@@ -84,7 +84,7 @@ void CPUDump::setupContextMenu()
     });
 
     mCommonActions->build(mMenuBuilder, CommonActions::ActionDisasm | CommonActions::ActionMemoryMap | CommonActions::ActionDumpData | CommonActions::ActionDisasmData
-                          | CommonActions::ActionStackDump | CommonActions::ActionLabel);
+                          | CommonActions::ActionStackDump | CommonActions::ActionLabel | CommonActions::ActionWatch);
     auto wIsValidReadPtrCallback = [this](QMenu*)
     {
         duint ptr = 0;
@@ -185,7 +185,6 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addAction(makeShortcutAction(DIcon("find.png"), tr("Find &References"), SLOT(findReferencesSlot()), "ActionFindReferences"));
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Sync with expression"), SLOT(syncWithExpressionSlot()), "ActionSyncWithExpression"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("animal-dog.png"), ArchValue(tr("Watch DWORD"), tr("Watch QWORD")), SLOT(watchSlot()), "ActionWatchDwordQword"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_alloc_memory.png"), tr("Allocate Memory"), SLOT(allocMemorySlot()), "ActionAllocateMemory"));
 
     MenuBuilder* wGotoMenu = new MenuBuilder(this);
@@ -1539,11 +1538,6 @@ void CPUDump::followInDumpNSlot()
     for(int i = 0; i < mFollowInDumpActions.length(); i++)
         if(mFollowInDumpActions[i] == sender())
             DbgCmdExec(QString("dump \"[%1]\", \"%2\"").arg(ToPtrString(rvaToVa(getSelectionStart()))).arg(i + 1));
-}
-
-void CPUDump::watchSlot()
-{
-    DbgCmdExec(QString("AddWatch \"[%1]\", \"uint\"").arg(ToPtrString(rvaToVa(getSelectionStart()))));
 }
 
 void CPUDump::allocMemorySlot()
