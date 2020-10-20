@@ -81,6 +81,7 @@ bool dbggetwintext(std::vector<std::string>* winTextList, const DWORD dwProcessI
 void dbgtracebrowserneedsupdate();
 bool dbgsetdllbreakpoint(const char* mod, DWORD type, bool singleshoot);
 bool dbgdeletedllbreakpoint(const char* mod, DWORD type);
+void dbgsetdebugflags(DWORD flags);
 
 void cbStep();
 void cbRtrStep();

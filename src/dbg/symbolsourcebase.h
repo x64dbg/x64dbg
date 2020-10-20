@@ -124,7 +124,12 @@ public:
 
     virtual bool cancelLoading()
     {
-        return false;
+        return false; // Stub
+    }
+
+    virtual void waitUntilLoaded()
+    {
+        // Stub
     }
 
     // Get the symbol at the specified address, will return false if not found.

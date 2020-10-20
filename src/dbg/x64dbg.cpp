@@ -444,6 +444,7 @@ static void registercommands()
     dbgcmdnew("flushlog", cbInstrFlushlog, false); //flush the log
     dbgcmdnew("AnimateWait", cbInstrAnimateWait, true); //Wait for the debuggee to pause.
     dbgcmdnew("dbdecompress", cbInstrDbdecompress, false); //Decompress a database.
+    dbgcmdnew("DebugFlags", cbInstrDebugFlags, false); //Set ntdll LdrpDebugFlags
 };
 
 bool cbCommandProvider(char* cmd, int maxlen)

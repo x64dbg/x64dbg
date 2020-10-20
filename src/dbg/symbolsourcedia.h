@@ -110,6 +110,8 @@ public:
 
     virtual bool cancelLoading() override;
 
+    virtual void waitUntilLoaded() override;
+
     virtual bool findSymbolExact(duint rva, SymbolInfo & symInfo) override;
 
     virtual bool findSymbolExactOrLower(duint rva, SymbolInfo & symInfo) override;

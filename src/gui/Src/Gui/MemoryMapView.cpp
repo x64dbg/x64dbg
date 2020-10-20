@@ -353,7 +353,7 @@ void MemoryMapView::ExecCommand()
             for(int i : getSelection())
             {
                 QString specializedCommand = command;
-                specializedCommand.replace(QChar('$'), getCellContent(i, 0)); // $ -> Base address
+                specializedCommand.replace(QChar('$'), ToHexString(getCellUserdata(i, 0))); // $ -> Base address
                 DbgCmdExec(specializedCommand);
             }
         }

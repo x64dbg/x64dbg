@@ -95,6 +95,7 @@ HANDLE mProcHandle;
 HANDLE mForegroundHandle;
 duint mRtrPreviousCSP = 0;
 HANDLE hDebugLoopThread = nullptr;
+DWORD dwDebugFlags = 0;
 
 static duint dbgcleartracestate()
 {
@@ -400,6 +401,11 @@ bool dbgdeletedllbreakpoint(const char* mod, DWORD type)
         return false;
     dllBreakpoints.erase(found);
     return true;
+}
+
+void dbgsetdebugflags(DWORD flags)
+{
+    dwDebugFlags = flags;
 }
 
 bool dbghandledllbreakpoint(const char* mod, bool loadDll)
@@ -1730,6 +1736,34 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
             cookie.HandleNtdllLoad(bIsAttached);
         if(settingboolget("Misc", "TransparentExceptionStepping"))
             exceptionDispatchAddr = DbgValFromString("ntdll:KiUserExceptionDispatcher");
+
+        //set debug flags
+        if(dwDebugFlags != 0)
+        {
+            SHARED_ACQUIRE(LockModules);
+            auto info = ModInfoFromAddr(duint(base));
+            if(info->symbols->isOpen())
+            {
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Waiting until ntdll.dll symbols are loaded...\n"));
+                info->symbols->waitUntilLoaded();
+                SymbolInfo LdrpDebugFlags;
+                if(info->symbols->findSymbolByName("LdrpDebugFlags", LdrpDebugFlags, true))
+                {
+                    if(MemWrite(info->base + LdrpDebugFlags.rva, &dwDebugFlags, sizeof(dwDebugFlags)))
+                        dprintf(QT_TRANSLATE_NOOP("DBG", "Set LdrpDebugFlags to 0x%08X successfully!\n"), dwDebugFlags);
+                    else
+                        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to write to LdrpDebugFlags\n"));
+                }
+                else
+                {
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "Symbol 'LdrpDebugFlags' not found!\n"));
+                }
+            }
+            else
+            {
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to find LdrpDebugFlags (you need to load symbols for ntdll.dll)\n"));
+            }
+        }
     }
 
     dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Loaded: %p %s\n"), base, DLLDebugFileName);

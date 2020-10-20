@@ -521,3 +521,16 @@ bool cbInstrDbdecompress(int argc, char* argv[])
     dprintf_untranslated("Decompressed '%s'\n", argv[1]);
     return true;
 }
+
+bool cbInstrDebugFlags(int argc, char* argv[])
+{
+    if(argc < 2)
+    {
+        dprintf_untranslated("Usage: DebugFlags 0xFFFFFFFF\n");
+        return false;
+    }
+    auto debugFlags = DbgValFromString(argv[1]);
+    dbgsetdebugflags(debugFlags);
+    dprintf_untranslated("DebugFlags = 0x%08X\n", debugFlags);
+    return true;
+}
