@@ -4,7 +4,6 @@
 #include "QBeaEngine.h"
 #include "GotoDialog.h"
 #include "XrefBrowseDialog.h"
-#include "LineEditDialog.h"
 #include <vector>
 #include <QPainter>
 #include <QScrollBar>
@@ -2181,26 +2180,20 @@ void DisassemblerGraphView::setupContextMenu()
         return DbgIsDebugging() && this->ready;
     });
 
-    //mMenuBuilder->addAction(makeShortcutAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in &Disassembler"), SLOT(followDisassemblerSlot()), "ActionGraphFollowDisassembler"), [this](QMenu*)
-    //{
-    //    return this->cur_instr != 0;
-    //});
     mMenuBuilder->addSeparator();
 
     mCommonActions = new CommonActions(this, getActionHelperFuncs(), [this]()
     {
         return zoomActionHelper();
     });
-    mCommonActions->build(mMenuBuilder, CommonActions::ActionBookmark | CommonActions::ActionComment | CommonActions::ActionDisasm);
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionBreakpoint | CommonActions::ActionMemoryMap | CommonActions::ActionBookmark | CommonActions::ActionLabel |
+                          CommonActions::ActionComment | CommonActions::ActionDisasm | CommonActions::ActionNewOrigin | CommonActions::ActionNewThread);
 
     auto zoomActionHelperNonZero = [this](QMenu*)
     {
         return zoomActionHelper() != 0;
     };
 
-    //mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"), zoomActionHelperNonZero);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("&Label"), SLOT(setLabelSlot()), "ActionSetLabel"), zoomActionHelperNonZero);
-    //mMenuBuilder->addAction(makeShortcutAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs.png"), tr("Xrefs..."), SLOT(xrefSlot()), "ActionXrefs"), zoomActionHelperNonZero);
 
     MenuBuilder* gotoMenu = new MenuBuilder(this);
@@ -2513,97 +2506,6 @@ void DisassemblerGraphView::saveImageSlot()
     saveGraph = true;
     this->viewport()->update();
 }
-
-/*void DisassemblerGraphView::setCommentSlot()
-{
-    duint wVA = this->get_cursor_pos();
-    LineEditDialog mLineEdit(this);
-    mLineEdit.setTextMaxLength(MAX_COMMENT_SIZE - 2);
-    QString addr_text = ToPtrString(wVA);
-    char comment_text[MAX_COMMENT_SIZE] = "";
-    if(!DbgIsDebugging())
-        return;
-    if(!DbgMemIsValidReadPtr(wVA))
-        return;
-
-    if(DbgGetCommentAt((duint)wVA, comment_text))
-    {
-        if(comment_text[0] == '\1') //automatic comment
-            mLineEdit.setText(QString(comment_text + 1));
-        else
-            mLineEdit.setText(QString(comment_text));
-    }
-
-    mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
-
-    if(mLineEdit.exec() != QDialog::Accepted)
-        return;
-
-    if(!DbgSetCommentAt(wVA, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))
-        SimpleErrorBox(this, tr("Error!"), tr("DbgSetCommentAt failed!"));
-
-    this->refreshSlot();
-}*/
-
-void DisassemblerGraphView::setLabelSlot()
-{
-    duint wVA = this->get_cursor_pos();
-    LineEditDialog mLineEdit(this);
-    mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
-    QString addr_text = ToPtrString(wVA);
-    char label_text[MAX_LABEL_SIZE] = "";
-    if(!DbgIsDebugging())
-        return;
-    if(!DbgMemIsValidReadPtr(wVA))
-        return;
-
-    if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
-        mLineEdit.setText(QString(label_text));
-
-    mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
-restart:
-    if(mLineEdit.exec() != QDialog::Accepted)
-        return;
-
-    QByteArray utf8data = mLineEdit.editText.toUtf8();
-    if(!utf8data.isEmpty() && DbgIsValidExpression(utf8data.constData()) && DbgValFromString(utf8data.constData()) != wVA)
-    {
-        QMessageBox msg(QMessageBox::Warning, tr("The label may be in use"),
-                        tr("The label \"%1\" may be an existing label or a valid expression. Using such label might have undesired effects. Do you still want to continue?").arg(mLineEdit.editText),
-                        QMessageBox::Yes | QMessageBox::No, this);
-        msg.setWindowIcon(DIcon("compile-warning.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        if(msg.exec() == QMessageBox::No)
-            goto restart;
-    }
-    if(!DbgSetLabelAt(wVA, utf8data.constData()))
-        SimpleErrorBox(this, tr("Error!"), tr("DbgSetLabelAt failed!"));
-
-    this->refreshSlot();
-}
-
-/*void DisassemblerGraphView::setBookmarkSlot()
-{
-    if(!DbgIsDebugging())
-        return;
-    duint wVA = this->get_cursor_pos();
-    bool result;
-    if(DbgGetBookmarkAt(wVA))
-        result = DbgSetBookmarkAt(wVA, false);
-    else
-        result = DbgSetBookmarkAt(wVA, true);
-    if(!result)
-    {
-        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetBookmarkAt failed!"));
-        msg.setWindowIcon(DIcon("compile-error.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-    }
-
-    GuiUpdateAllViews();
-}*/
 
 void DisassemblerGraphView::xrefSlot()
 {

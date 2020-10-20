@@ -37,7 +37,7 @@ signals:
     void displaySymbolsWidget();
 
 public slots:
-    void setNewOriginHereActionSlot();
+    //void setNewOriginHereActionSlot();
     void gotoOriginSlot();
     void setLabelSlot();
     void setLabelAddressSlot();
@@ -107,7 +107,6 @@ public slots:
     void setEncodeTypeRangeSlot();
     void graphSlot();
     void analyzeModuleSlot();
-    void createThreadSlot();
     void copyTokenTextSlot();
     void copyTokenValueSlot();
     //void followInMemoryMapSlot();

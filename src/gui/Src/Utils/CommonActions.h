@@ -51,8 +51,10 @@ public:
     void build(MenuBuilder* builder, int actions, std::function<void(QList<std::pair<QString, duint>>&, CommonActionsList)> additionalAddress);
 
     QAction* makeCommandAction(const QIcon & icon, const QString & text, const char* cmd, const char* shortcut);
+    QAction* makeCommandAction(const QIcon & icon, const QString & text, const char* cmd);
 public slots:
     void followDisassemblySlot();
+    void setLabelSlot();
     void setCommentSlot();
     void setBookmarkSlot();
 
@@ -65,6 +67,8 @@ public slots:
     void setHwBpOnSlot3ActionSlot();
     void setHwBpAt(duint va, int slot);
 
+    void setNewOriginHereActionSlot();
+    void createThreadSlot();
 private:
     GetSelectionFunc mGetSelection;
     QWidget* widgetparent();

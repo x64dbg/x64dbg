@@ -7,6 +7,7 @@
 #include "MiscUtil.h"
 #include "Breakpoints.h"
 #include "LineEditDialog.h"
+#include "WordEditDialog.h"
 
 CommonActions::CommonActions(QWidget* parent, ActionHelperFuncs funcs, GetSelectionFunc getSelection)
     : QObject(parent), ActionHelperProxy(funcs), mGetSelection(getSelection)
@@ -21,9 +22,9 @@ void CommonActions::build(MenuBuilder* builder, int actions)
 void CommonActions::build(MenuBuilder* builder, int actions, std::function<void(QList<std::pair<QString, duint>>&, CommonActionsList)> additionalAddress)
 {
     // Condition Lambda
-    auto wIsValidCallback = [this](QMenu*)
+    auto wIsDebugging = [this](QMenu*)
     {
-        return mGetSelection() != 0;
+        return mGetSelection() != 0 && DbgIsDebugging();
     };
     auto wIsValidReadPtrCallback = [this](QMenu*)
     {
@@ -35,7 +36,7 @@ void CommonActions::build(MenuBuilder* builder, int actions, std::function<void(
     // Menu action
     if(actions & ActionDisasm)
     {
-        builder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in Disassembler"), std::bind(&CommonActions::followDisassemblySlot, this), "ActionFollowDisasm"), wIsValidCallback);
+        builder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in Disassembler"), std::bind(&CommonActions::followDisassemblySlot, this), "ActionFollowDisasm"), wIsDebugging);
     }
     if(actions & ActionDisasmData)
     {
@@ -55,7 +56,7 @@ void CommonActions::build(MenuBuilder* builder, int actions, std::function<void(
     }
     if(actions & ActionMemoryMap)
     {
-        builder->addAction(makeCommandAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), "memmapdump $", "ActionFollowMemMap"), wIsValidCallback);
+        builder->addAction(makeCommandAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), "memmapdump $", "ActionFollowMemMap"), wIsDebugging);
     }
     if(actions & ActionBreakpoint)
     {
@@ -137,25 +138,42 @@ void CommonActions::build(MenuBuilder* builder, int actions, std::function<void(
             return true;
         });
     }
+    if(actions & ActionLabel)
+    {
+        builder->addAction(makeShortcutAction(DIcon("label.png"), tr("Label Current Address"), std::bind(&CommonActions::setLabelSlot, this), "ActionSetLabel"), wIsDebugging);
+    }
     if(actions & ActionComment)
     {
-        builder->addAction(makeShortcutAction(DIcon("comment.png"), tr("Comment"), std::bind(&CommonActions::setCommentSlot, this), "ActionSetComment"), wIsValidCallback);
+        builder->addAction(makeShortcutAction(DIcon("comment.png"), tr("Comment"), std::bind(&CommonActions::setCommentSlot, this), "ActionSetComment"), wIsDebugging);
     }
     if(actions & ActionBookmark)
     {
-        builder->addAction(makeShortcutAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), std::bind(&CommonActions::setBookmarkSlot, this), "ActionToggleBookmark"), wIsValidCallback);
+        builder->addAction(makeShortcutAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), std::bind(&CommonActions::setBookmarkSlot, this), "ActionToggleBookmark"), wIsDebugging);
+    }
+    if(actions & ActionNewOrigin)
+    {
+        builder->addAction(makeShortcutAction(DIcon("neworigin.png"), tr("Set New Origin Here"), std::bind(&CommonActions::setNewOriginHereActionSlot, this), "ActionSetNewOriginHere"));
+    }
+    if(actions & ActionNewThread)
+    {
+        builder->addAction(makeShortcutAction(DIcon("createthread.png"), tr("Create New Thread Here"), std::bind(&CommonActions::createThreadSlot, this), "ActionCreateNewThreadHere"));
     }
 }
 
 QAction* CommonActions::makeCommandAction(const QIcon & icon, const QString & text, const char* cmd, const char* shortcut)
 {
-    QAction* action;
-    action = makeShortcutAction(icon, text, [cmd, this]()
+    return makeShortcutAction(icon, text, [cmd, this]()
     {
         DbgCmdExec(QString(cmd).replace("$", ToPtrString(mGetSelection())));
     }, shortcut);
-    action->setData(QVariant(cmd));
-    return action;
+}
+
+QAction* CommonActions::makeCommandAction(const QIcon & icon, const QString & text, const char* cmd)
+{
+    return makeAction(icon, text, [cmd, this]()
+    {
+        DbgCmdExec(QString(cmd).replace("$", ToPtrString(mGetSelection())));
+    });
 }
 
 QWidget* CommonActions::widgetparent()
@@ -171,6 +189,37 @@ void CommonActions::followDisassemblySlot()
         DbgCmdExec(QString("dis ").append(ToPtrString(cip)));
     else
         GuiAddStatusBarMessage(tr("Cannot follow %1. Address is invalid.\n").arg(ToPtrString(cip)).toUtf8().constData());
+}
+
+void CommonActions::setLabelSlot()
+{
+    duint wVA = mGetSelection();
+    LineEditDialog mLineEdit(widgetparent());
+    mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
+    QString addr_text = ToPtrString(wVA);
+    char label_text[MAX_COMMENT_SIZE] = "";
+    if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
+        mLineEdit.setText(QString(label_text));
+    mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
+restart:
+    if(mLineEdit.exec() != QDialog::Accepted)
+        return;
+    QByteArray utf8data = mLineEdit.editText.toUtf8();
+    if(!utf8data.isEmpty() && DbgIsValidExpression(utf8data.constData()) && DbgValFromString(utf8data.constData()) != wVA)
+    {
+        QMessageBox msg(QMessageBox::Warning, tr("The label may be in use"),
+                        tr("The label \"%1\" may be an existing label or a valid expression. Using such label might have undesired effects. Do you still want to continue?").arg(mLineEdit.editText),
+                        QMessageBox::Yes | QMessageBox::No, widgetparent());
+        msg.setWindowIcon(DIcon("compile-warning.png"));
+        msg.setParent(widgetparent(), Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msg.exec() == QMessageBox::No)
+            goto restart;
+    }
+    if(!DbgSetLabelAt(wVA, utf8data.constData()))
+        SimpleErrorBox(widgetparent(), tr("Error!"), tr("DbgSetLabelAt failed!"));
+
+    GuiUpdateAllViews();
 }
 
 void CommonActions::setCommentSlot()
@@ -349,4 +398,43 @@ void CommonActions::setHwBpAt(duint va, int slot)
     }
     if(wBPList.count)
         BridgeFree(wBPList.bp);
+}
+
+void CommonActions::setNewOriginHereActionSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    duint wVA = mGetSelection();
+    if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(wVA, false))
+    {
+        QMessageBox msg(QMessageBox::Warning, tr("Current address is not executable"),
+                        tr("Setting new origin here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, widgetparent());
+        msg.setWindowIcon(DIcon("compile-warning.png"));
+        msg.setParent(widgetparent(), Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msg.exec() == QMessageBox::No)
+            return;
+    }
+    QString wCmd = "cip=" + ToPtrString(wVA);
+    DbgCmdExec(wCmd);
+}
+
+void CommonActions::createThreadSlot()
+{
+    duint addr = mGetSelection();
+    if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(addr, false))
+    {
+        QMessageBox msg(QMessageBox::Warning, tr("Current address is not executable"),
+                        tr("Creating new thread here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, widgetparent());
+        msg.setWindowIcon(DIcon("compile-warning.png"));
+        msg.setParent(widgetparent(), Qt::Dialog);
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msg.exec() == QMessageBox::No)
+            return;
+    }
+    WordEditDialog argWindow(widgetparent());
+    argWindow.setup(tr("Argument for the new thread"), 0, sizeof(duint));
+    if(argWindow.exec() != QDialog::Accepted)
+        return;
+    DbgCmdExec(QString("createthread %1, %2").arg(ToPtrString(addr)).arg(ToPtrString(argWindow.getVal())));
 }

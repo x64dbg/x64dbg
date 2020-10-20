@@ -863,8 +863,8 @@ void TraceBrowser::setupRightClickContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
     //mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("&Follow in Disassembler"), SLOT(followDisassemblySlot()), "ActionFollowDisasm"), isValid);
 
-    mCommonActions->build(mMenuBuilder, CommonActions::ActionDisasm | CommonActions::ActionBreakpoint | CommonActions::ActionComment | CommonActions::ActionBookmark);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("Label Current Address"), SLOT(setLabelSlot()), "ActionSetLabel"), isDebugging);
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionDisasm | CommonActions::ActionBreakpoint | CommonActions::ActionLabel | CommonActions::ActionComment | CommonActions::ActionBookmark);
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon("label.png"), tr("Label Current Address"), SLOT(setLabelSlot()), "ActionSetLabel"), isDebugging);
     //mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("&Comment"), SLOT(setCommentSlot()), "ActionSetComment"), isDebugging);
     //mMenuBuilder->addAction(makeShortcutAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"), isDebugging);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("highlight.png"), tr("&Highlighting mode"), SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"), isValid);
@@ -1768,39 +1768,6 @@ void TraceBrowser::exportSlot()
             return QString();
         }
     });
-}
-
-void TraceBrowser::setLabelSlot()
-{
-    if(!DbgIsDebugging() || mTraceFile == nullptr || mTraceFile->Progress() < 100)
-        return;
-    duint wVA = mTraceFile->Registers(getInitialSelection()).regcontext.cip;
-    LineEditDialog mLineEdit(this);
-    mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
-    QString addr_text = ToPtrString(wVA);
-    char label_text[MAX_COMMENT_SIZE] = "";
-    if(DbgGetLabelAt((duint)wVA, SEG_DEFAULT, label_text))
-        mLineEdit.setText(QString(label_text));
-    mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
-restart:
-    if(mLineEdit.exec() != QDialog::Accepted)
-        return;
-    QByteArray utf8data = mLineEdit.editText.toUtf8();
-    if(!utf8data.isEmpty() && DbgIsValidExpression(utf8data.constData()) && DbgValFromString(utf8data.constData()) != wVA)
-    {
-        QMessageBox msg(QMessageBox::Warning, tr("The label may be in use"),
-                        tr("The label \"%1\" may be an existing label or a valid expression. Using such label might have undesired effects. Do you still want to continue?").arg(mLineEdit.editText),
-                        QMessageBox::Yes | QMessageBox::No, this);
-        msg.setWindowIcon(DIcon("compile-warning.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        if(msg.exec() == QMessageBox::No)
-            goto restart;
-    }
-    if(!DbgSetLabelAt(wVA, utf8data.constData()))
-        SimpleErrorBox(this, tr("Error!"), tr("DbgSetLabelAt failed!"));
-
-    GuiUpdateAllViews();
 }
 
 void TraceBrowser::enableHighlightingModeSlot()
