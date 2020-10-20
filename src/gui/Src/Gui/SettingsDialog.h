@@ -2,6 +2,7 @@
 #define SETTINGSDIALOG_H
 
 #include <QDialog>
+#include "Imports.h"
 
 namespace Ui
 {
@@ -28,19 +29,26 @@ private slots:
     void on_btnSave_clicked();
     //Event tab
     void on_chkSystemBreakpoint_stateChanged(int arg1);
+    void on_chkNtTerminateProcess_stateChanged(int arg1);
     void on_chkTlsCallbacks_stateChanged(int arg1);
+    void on_chkTlsCallbacksSystem_stateChanged(int arg1);
     void on_chkEntryBreakpoint_stateChanged(int arg1);
     void on_chkDllEntry_stateChanged(int arg1);
+    void on_chkDllEntrySystem_stateChanged(int arg1);
     void on_chkThreadEntry_stateChanged(int arg1);
     void on_chkAttachBreakpoint_stateChanged(int arg1);
     void on_chkDllLoad_stateChanged(int arg1);
     void on_chkDllUnload_stateChanged(int arg1);
+    void on_chkDllLoadSystem_stateChanged(int arg1);
+    void on_chkDllUnloadSystem_stateChanged(int arg1);
     void on_chkThreadStart_stateChanged(int arg1);
     void on_chkThreadEnd_stateChanged(int arg1);
     void on_chkDebugStrings_stateChanged(int arg1);
     //Engine tab
     void on_radioUnsigned_clicked();
     void on_radioSigned_clicked();
+    void on_radioTitanEngine_clicked();
+    void on_radioGleeBug_clicked();
     void on_radioInt3Short_clicked();
     void on_radioInt3Long_clicked();
     void on_radioUd2_clicked();
@@ -134,18 +142,24 @@ private:
     {
         //Event Tab
         bool eventSystemBreakpoint;
+        bool eventNtTerminateProcess;
         bool eventTlsCallbacks;
+        bool eventTlsCallbacksSystem;
         bool eventEntryBreakpoint;
         bool eventDllEntry;
+        bool eventDllEntrySystem;
         bool eventThreadEntry;
         bool eventAttachBreakpoint;
         bool eventDllLoad;
         bool eventDllUnload;
+        bool eventDllLoadSystem;
+        bool eventDllUnloadSystem;
         bool eventThreadStart;
         bool eventThreadEnd;
         bool eventDebugStrings;
         //Engine Tab
         CalcType engineCalcType;
+        DEBUG_ENGINE engineType;
         BreakpointType engineBreakpointType;
         bool engineUndecorateSymbolNames;
         bool engineEnableDebugPrivilege;
