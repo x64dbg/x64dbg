@@ -164,7 +164,7 @@ public slots:
     void gotoNextSlot();
     //void followDisassemblySlot();
     void enableHighlightingModeSlot();
-    void setLabelSlot();
+    //void setLabelSlot();
     //void setCommentSlot();
     //void setBookmarkSlot();
     void mnemonicBriefSlot();

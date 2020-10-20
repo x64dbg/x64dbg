@@ -27,27 +27,6 @@ signals:
     void showDisassemblyTab(duint selectionStart, duint selectionEnd, duint firstAddress);
 
 public slots:
-    void memoryAccessSingleshootSlot();
-    void memoryAccessRestoreSlot();
-    void memoryReadSingleshootSlot();
-    void memoryReadRestoreSlot();
-    void memoryWriteSingleshootSlot();
-    void memoryWriteRestoreSlot();
-    void memoryExecuteSingleshootSlot();
-    void memoryExecuteRestoreSlot();
-    void memoryRemoveSlot();
-    void hardwareAccess1Slot();
-    void hardwareAccess2Slot();
-    void hardwareAccess4Slot();
-    void hardwareAccess8Slot();
-    void hardwareWrite1Slot();
-    void hardwareWrite2Slot();
-    void hardwareWrite4Slot();
-    void hardwareWrite8Slot();
-    void hardwareExecuteSlot();
-    void hardwareRemoveSlot();
-
-    void setLabelSlot();
     void modifyValueSlot();
     void gotoExpressionSlot();
     void gotoFileOffsetSlot();

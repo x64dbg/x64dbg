@@ -286,9 +286,6 @@ public slots:
     void followActionSlot();
     void refreshSlot();
     void saveImageSlot();
-    //void setCommentSlot();
-    void setLabelSlot();
-    //void setBookmarkSlot();
     void xrefSlot();
     void mnemonicHelpSlot();
     void fitToWindowSlot();
