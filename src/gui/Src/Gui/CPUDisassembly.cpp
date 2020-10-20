@@ -761,65 +761,6 @@ restart:
     GuiUpdateAllViews();
 }
 
-/*void CPUDisassembly::setCommentSlot()
-{
-    if(!DbgIsDebugging())
-        return;
-    duint wVA = rvaToVa(getInitialSelection());
-    LineEditDialog mLineEdit(this);
-    mLineEdit.setTextMaxLength(MAX_COMMENT_SIZE - 2);
-    QString addr_text = ToPtrString(wVA);
-    char comment_text[MAX_COMMENT_SIZE] = "";
-    if(DbgGetCommentAt((duint)wVA, comment_text))
-    {
-        if(comment_text[0] == '\1') //automatic comment
-            mLineEdit.setText(QString(comment_text + 1));
-        else
-            mLineEdit.setText(QString(comment_text));
-    }
-    mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
-    if(mLineEdit.exec() != QDialog::Accepted)
-        return;
-    QString comment = mLineEdit.editText.replace('\r', "").replace('\n', "");
-    if(!DbgSetCommentAt(wVA, comment.toUtf8().constData()))
-        SimpleErrorBox(this, tr("Error!"), tr("DbgSetCommentAt failed!"));
-
-    static bool easter = isEaster();
-    if(easter && comment.toLower() == "oep")
-    {
-        QFile file(":/icons/images/egg.wav");
-        if(file.open(QIODevice::ReadOnly))
-        {
-            QByteArray egg = file.readAll();
-            PlaySoundA(egg.data(), 0, SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
-        }
-    }
-
-    GuiUpdateAllViews();
-}
-
-void CPUDisassembly::setBookmarkSlot()
-{
-    if(!DbgIsDebugging())
-        return;
-    duint wVA = rvaToVa(getInitialSelection());
-    bool result;
-    if(DbgGetBookmarkAt(wVA))
-        result = DbgSetBookmarkAt(wVA, false);
-    else
-        result = DbgSetBookmarkAt(wVA, true);
-    if(!result)
-    {
-        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetBookmarkAt failed!"));
-        msg.setWindowIcon(DIcon("compile-error.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-    }
-
-    GuiUpdateAllViews();
-}
-*/
 void CPUDisassembly::toggleFunctionSlot()
 {
     if(!DbgIsDebugging())

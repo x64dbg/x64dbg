@@ -42,6 +42,10 @@ void CommonActions::build(MenuBuilder* builder, int actions, std::function<void(
     {
         builder->addAction(makeCommandAction(DIcon("processor32.png"), ArchValue(tr("&Follow DWORD in Disassembler"), tr("&Follow QWORD in Disassembler")), "disasm [$]", "ActionFollowDwordQwordDisasm"), wIsValidReadPtrCallback);
     }
+    if(actions & ActionDump)
+    {
+        builder->addAction(makeCommandAction(DIcon("dump.png"), tr("Follow in Dump"), "dump $"));
+    }
     if(actions & ActionDumpData)
     {
         builder->addAction(makeCommandAction(DIcon("dump.png"), ArchValue(tr("&Follow DWORD in Current Dump"), tr("&Follow QWORD in Current Dump")), "dump [$]", "ActionFollowDwordQwordDump"), wIsValidReadPtrCallback);
@@ -157,6 +161,10 @@ void CommonActions::build(MenuBuilder* builder, int actions, std::function<void(
     if(actions & ActionNewThread)
     {
         builder->addAction(makeShortcutAction(DIcon("createthread.png"), tr("Create New Thread Here"), std::bind(&CommonActions::createThreadSlot, this), "ActionCreateNewThreadHere"));
+    }
+    if(actions & ActionWatch)
+    {
+        builder->addAction(makeCommandAction(DIcon("animal-dog.png"), ArchValue(tr("&Watch DWORD"), tr("&Watch QWORD")), "AddWatch \"[$]\", \"uint\"", "ActionWatchDwordQword"));
     }
 }
 

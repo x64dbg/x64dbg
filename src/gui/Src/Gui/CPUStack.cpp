@@ -3,6 +3,7 @@
 #include <QClipboard>
 #include "Configuration.h"
 #include "Bridge.h"
+#include "CommonActions.h"
 #include "HexEditDialog.h"
 #include "WordEditDialog.h"
 #include "CPUMultiDump.h"
@@ -82,6 +83,10 @@ void CPUStack::setupContextMenu()
     {
         return DbgIsDebugging();
     });
+    mCommonActions = new CommonActions(this, getActionHelperFuncs(), [this]()
+    {
+        return rvaToVa(getSelectionStart());
+    });
 
     //Push
     mMenuBuilder->addAction(makeShortcutAction(DIcon("arrow-small-down.png"), ArchValue(tr("P&ush DWORD..."), tr("P&ush QWORD...")), SLOT(pushSlot()), "ActionPush"));
@@ -131,37 +136,37 @@ void CPUStack::setupContextMenu()
 
     //Breakpoint (hardware access) menu
     auto hardwareAccessMenu = makeMenu(DIcon("breakpoint_access.png"), tr("Hardware, Access"));
-    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_byte.png"), tr("&Byte"), SLOT(hardwareAccess1Slot())));
-    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_word.png"), tr("&Word"), SLOT(hardwareAccess2Slot())));
-    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_dword.png"), tr("&Dword"), SLOT(hardwareAccess4Slot())));
+    hardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_byte.png"), tr("&Byte"), "bphws $, r, 1"));
+    hardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_word.png"), tr("&Word"), "bphws $, r, 2"));
+    hardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_dword.png"), tr("&Dword"), "bphws $, r, 4"));
 #ifdef _WIN64
-    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_qword.png"), tr("&Qword"), SLOT(hardwareAccess8Slot())));
+    hardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_qword.png"), tr("&Qword"), "bphws $, r, 8"));
 #endif //_WIN64
 
     //Breakpoint (hardware write) menu
     auto hardwareWriteMenu = makeMenu(DIcon("breakpoint_write.png"), tr("Hardware, Write"));
-    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_byte.png"), tr("&Byte"), SLOT(hardwareWrite1Slot())));
-    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_word.png"), tr("&Word"), SLOT(hardwareWrite2Slot())));
-    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_dword.png"), tr("&Dword"), SLOT(hardwareWrite4Slot())));
+    hardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_byte.png"), tr("&Byte"), "bphws $, w, 1"));
+    hardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_word.png"), tr("&Word"), "bphws $, w, 2"));
+    hardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_dword.png"), tr("&Dword"), "bphws $, w, 4"));
 #ifdef _WIN64
-    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_qword.png"), tr("&Qword"), SLOT(hardwareAccess8Slot())));
+    hardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_qword.png"), tr("&Qword"), "bphws $, r, 8"));
 #endif //_WIN64
 
     //Breakpoint (remove hardware)
-    auto hardwareRemove = makeAction(DIcon("breakpoint_remove.png"), tr("Remove &Hardware"), SLOT(hardwareRemoveSlot()));
+    auto hardwareRemove = mCommonActions->makeCommandAction(DIcon("breakpoint_remove.png"), tr("Remove &Hardware"), "bphwc $");
 
     //Breakpoint (memory access) menu
     auto memoryAccessMenu = makeMenu(DIcon("breakpoint_memory_access.png"), tr("Memory, Access"));
-    memoryAccessMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), SLOT(memoryAccessSingleshootSlot())));
-    memoryAccessMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), SLOT(memoryAccessRestoreSlot())));
+    memoryAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), "bpm $, 0, a"));
+    memoryAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), "bpm $, 1, a"));
 
     //Breakpoint (memory write) menu
     auto memoryWriteMenu = makeMenu(DIcon("breakpoint_memory_write.png"), tr("Memory, Write"));
-    memoryWriteMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), SLOT(memoryWriteSingleshootSlot())));
-    memoryWriteMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), SLOT(memoryWriteRestoreSlot())));
+    memoryWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), "bpm $, 0, w"));
+    memoryWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), "bpm $, 1, w"));
 
     //Breakpoint (remove memory) menu
-    auto memoryRemove = makeAction(DIcon("breakpoint_remove.png"), tr("Remove &Memory"), SLOT(memoryRemoveSlot()));
+    auto memoryRemove = mCommonActions->makeCommandAction(DIcon("breakpoint_remove.png"), tr("Remove &Memory"), "bpmc $");
 
     //Breakpoint menu
     auto breakpointMenu = new MenuBuilder(this);
@@ -208,7 +213,7 @@ void CPUStack::setupContextMenu()
 
     //Follow CSP
     mMenuBuilder->addAction(makeShortcutAction(DIcon("neworigin.png"), ArchValue(tr("Follow E&SP"), tr("Follow R&SP")), SLOT(gotoCspSlot()), "ActionGotoOrigin"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("cbp.png"), ArchValue(tr("Follow E&BP"), tr("Follow R&BP")), SLOT(gotoCbpSlot()), "ActionGotoCBP"), [this](QMenu*)
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("cbp.png"), ArchValue(tr("Follow E&BP"), tr("Follow R&BP")), SLOT(gotoCbpSlot()), "ActionGotoCBP"), [](QMenu*)
     {
         return DbgMemIsValidReadPtr(DbgValFromString("cbp"));
     });
@@ -246,12 +251,9 @@ void CPUStack::setupContextMenu()
     mFreezeStack->setCheckable(true);
 
     //Follow in Memory Map
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_find_address_page.png"), ArchValue(tr("Follow DWORD in Memory Map"), tr("Follow QWORD in Memory Map")), SLOT(followInMemoryMapSlot()), "ActionFollowMemMap"), [this](QMenu*)
-    {
-        duint ptr;
-        return DbgMemRead(rvaToVa(getInitialSelection()), (unsigned char*)&ptr, sizeof(ptr)) && DbgMemIsValidReadPtr(ptr);
-    });
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionMemoryMap | CommonActions::ActionDump | CommonActions::ActionDumpData);
 
+    //Follow in Stack
     auto followStackName = ArchValue(tr("Follow DWORD in &Stack"), tr("Follow QWORD in &Stack"));
     mFollowStack = makeAction(DIcon("stack.png"), followStackName, SLOT(followStackSlot()));
     mFollowStack->setShortcutContext(Qt::WidgetShortcut);
@@ -277,16 +279,8 @@ void CPUStack::setupContextMenu()
         return DbgMemRead(rvaToVa(getInitialSelection()), (unsigned char*)&ptr, sizeof(ptr)) && DbgMemIsValidReadPtr(ptr);
     });
 
-    //Follow in Dump
-    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), tr("Follow in Dump"), SLOT(followInDumpSlot())));
-
     //Follow PTR in Dump
     auto followDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWORD in &Dump"));
-    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), followDumpName, SLOT(followDumpPtrSlot())), [this](QMenu*)
-    {
-        duint ptr;
-        return DbgMemRead(rvaToVa(getInitialSelection()), (unsigned char*)&ptr, sizeof(ptr)) && DbgMemIsValidReadPtr(ptr);
-    });
 
     //Follow in Dump N menu
     auto followDumpNMenu = new MenuBuilder(this, [this](QMenu*)
@@ -303,9 +297,7 @@ void CPUStack::setupContextMenu()
     }
     mMenuBuilder->addMenu(makeMenu(DIcon("dump.png"), followDumpName.replace("&", "")), followDumpNMenu);
 
-    //Watch data
-    auto watchDataName = ArchValue(tr("&Watch DWORD"), tr("&Watch QWORD"));
-    mMenuBuilder->addAction(makeAction(DIcon("animal-dog.png"), watchDataName,  SLOT(watchDataSlot())));
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionWatch);
 
     mPluginMenu = new QMenu(this);
     Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_STACK_MENU);
@@ -729,17 +721,6 @@ void CPUStack::followDisasmSlot()
         }
 }
 
-void CPUStack::followDumpPtrSlot()
-{
-    duint selectedData;
-    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
-        if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
-        {
-            QString addrText = ToPtrString(selectedData);
-            DbgCmdExec(QString("dump " + addrText));
-        }
-}
-
 void CPUStack::followinDumpNSlot()
 {
     duint selectedData = rvaToVa(getInitialSelection());
@@ -766,11 +747,6 @@ void CPUStack::followStackSlot()
             QString addrText = ToPtrString(selectedData);
             DbgCmdExec(QString("sdump " + addrText));
         }
-}
-
-void CPUStack::watchDataSlot()
-{
-    DbgCmdExec(QString("AddWatch \"[%1]\", \"uint\"").arg(ToPtrString(rvaToVa(getSelectionStart()))));
 }
 
 void CPUStack::binaryEditSlot()
@@ -858,91 +834,6 @@ void CPUStack::binaryPasteIgnoreSizeSlot()
     delete [] data;
     mMemPage->write(patched.constData(), selStart, patched.size());
     GuiUpdateAllViews();
-}
-
-// Copied from "CPUDump.cpp".
-void CPUStack::hardwareAccess1Slot()
-{
-    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("bphws " + addr_text + ", r, 1"));
-}
-
-void CPUStack::hardwareAccess2Slot()
-{
-    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("bphws " + addr_text + ", r, 2"));
-}
-
-void CPUStack::hardwareAccess4Slot()
-{
-    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("bphws " + addr_text + ", r, 4"));
-}
-
-void CPUStack::hardwareAccess8Slot()
-{
-    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("bphws " + addr_text + ", r, 8"));
-}
-
-void CPUStack::hardwareWrite1Slot()
-{
-    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("bphws " + addr_text + ", w, 1"));
-}
-
-void CPUStack::hardwareWrite2Slot()
-{
-    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("bphws " + addr_text + ", w, 2"));
-}
-
-void CPUStack::hardwareWrite4Slot()
-{
-    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("bphws " + addr_text + ", w, 4"));
-}
-
-void CPUStack::hardwareWrite8Slot()
-{
-    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("bphws " + addr_text + ", w, 8"));
-}
-
-void CPUStack::hardwareRemoveSlot()
-{
-    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("bphwc " + addr_text));
-}
-
-void CPUStack::memoryAccessSingleshootSlot()
-{
-    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("bpm " + addr_text + ", 0, a"));
-}
-
-void CPUStack::memoryAccessRestoreSlot()
-{
-    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("bpm " + addr_text + ", 1, a"));
-}
-
-void CPUStack::memoryWriteSingleshootSlot()
-{
-    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("bpm " + addr_text + ", 0, w"));
-}
-
-void CPUStack::memoryWriteRestoreSlot()
-{
-    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("bpm " + addr_text + ", 1, w"));
-}
-
-void CPUStack::memoryRemoveSlot()
-{
-    QString addr_text = ToPtrString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("bpmc " + addr_text));
 }
 
 void CPUStack::findPattern()
@@ -1039,14 +930,4 @@ void CPUStack::dbgStateChangedSlot(DBGSTATE state)
         bStackFrozen = false;
         updateFreezeStackAction();
     }
-}
-
-void CPUStack::followInMemoryMapSlot()
-{
-    DbgCmdExec(QString("memmapdump [%1]").arg(ToHexString(rvaToVa(getInitialSelection()))));
-}
-
-void CPUStack::followInDumpSlot()
-{
-    DbgCmdExec(QString("dump %1").arg(ToHexString(rvaToVa(getInitialSelection()))));
 }

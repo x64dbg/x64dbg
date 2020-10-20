@@ -2356,11 +2356,6 @@ void DisassemblerGraphView::keyPressEvent(QKeyEvent* event)
     }
 }
 
-/*void DisassemblerGraphView::followDisassemblerSlot()
-{
-    DbgCmdExec(QString("disasm %1").arg(ToPtrString(this->cur_instr)));
-}*/
-
 void DisassemblerGraphView::colorsUpdatedSlot()
 {
     disassemblyBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
