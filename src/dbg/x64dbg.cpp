@@ -258,7 +258,9 @@ static void registercommands()
     dbgcmdnew("SetWatchdog", cbSetWatchdog, true); // Setup watchdog
     dbgcmdnew("SetWatchExpression", cbSetWatchExpression, true); // Set watch expression
     dbgcmdnew("SetWatchName", cbSetWatchName, true); // Set watch name
+    dbgcmdnew("SetWatchType", cbSetWatchType, true); // Set watch type
     dbgcmdnew("CheckWatchdog", cbCheckWatchdog, true); // Watchdog
+
 
     //variables
     dbgcmdnew("varnew,var", cbInstrVar, false); //make a variable arg1:name,[arg2:value]
