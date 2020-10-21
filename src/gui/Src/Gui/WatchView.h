@@ -26,6 +26,11 @@ public slots:
     void watchdogUnchangedSlot();
     void watchdogIsTrueSlot();
     void watchdogIsFalseSlot();
+    void setTypeUintSlot();
+    void setTypeIntSlot();
+    void setTypeFloatSlot();
+    void setTypeAsciiSlot();
+    void setTypeUnicodeSlot();
 
 protected:
     void setupContextMenu();
