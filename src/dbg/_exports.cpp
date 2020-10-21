@@ -363,6 +363,21 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRID
                         instr.arg[i].value = instr.arg[i].constant;
                 }
 
+                if(addr == lastContext.cip && (cp.GetId() == ZYDIS_MNEMONIC_SYSCALL || (cp.GetId() == ZYDIS_MNEMONIC_INT && cp[0].imm.value.u == 0x2e)))
+                {
+                    auto syscallName = SyscallToName(lastContext.cax);
+                    if(!syscallName.empty())
+                    {
+                        if(!comment.empty())
+                        {
+                            comment.push_back(',');
+                            comment.push_back(' ');
+                        }
+                        comment.append(syscallName);
+                        retval = true;
+                    }
+                }
+
                 for(int i = 0; i < instr.argcount; i++)
                 {
                     memset(&newinfo, 0, sizeof(BRIDGE_ADDRINFO));

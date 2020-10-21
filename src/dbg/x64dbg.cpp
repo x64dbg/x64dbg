@@ -606,6 +606,13 @@ static DWORD WINAPI loadDbThread(LPVOID)
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Reading notes failed..."));
 
+    // Load syscall indices
+    dputs(QT_TRANSLATE_NOOP("DBG", "Retrieving syscall indices..."));
+    if(SyscallInit())
+        dputs(QT_TRANSLATE_NOOP("DBG", "Syscall indices loaded!"));
+    else
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load syscall indices..."));
+
     dputs(QT_TRANSLATE_NOOP("DBG", "File read thread finished!"));
 
     return 0;
