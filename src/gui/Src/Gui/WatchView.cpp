@@ -161,6 +161,14 @@ void WatchView::setupContextMenu()
     watchdogBuilder->addAction(makeAction(DIcon("treat_selection_as_tbyte.png"), tr("Is true"), SLOT(watchdogIsTrueSlot()))); // TODO: better icon
     watchdogBuilder->addAction(makeAction(DIcon("treat_selection_as_fword.png"), tr("Is false"), SLOT(watchdogIsFalseSlot())));
     mMenu->addMenu(watchdogMenu, watchdogBuilder);
+    MenuBuilder* typeBuilder = new MenuBuilder(this, nonEmptyFunc);
+    QMenu* typeMenu = new QMenu(tr("Type"), this);
+    typeBuilder->addAction(makeAction(DIcon("integer.png"), tr("Uint"), SLOT(setTypeUintSlot())));
+    typeBuilder->addAction(makeAction(DIcon("integer.png"), tr("Int"), SLOT(setTypeIntSlot())));
+    typeBuilder->addAction(makeAction(DIcon("float.png"), tr("Float"), SLOT(setTypeFloatSlot())));
+    typeBuilder->addAction(makeAction(DIcon("ascii.png"), tr("Ascii"), SLOT(setTypeAsciiSlot())));
+    typeBuilder->addAction(makeAction(DIcon("ascii-extended.png"), tr("Unicode"), SLOT(setTypeUnicodeSlot())));
+    mMenu->addMenu(typeMenu, typeBuilder);
     mMenu->addSeparator();
     MenuBuilder* copyMenu = new MenuBuilder(this);
     setupCopyMenu(copyMenu);
