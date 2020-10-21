@@ -9,6 +9,7 @@ static std::unordered_map<unsigned int, String> ExceptionNames;
 static std::unordered_map<unsigned int, String> NtStatusNames;
 static std::unordered_map<unsigned int, String> ErrorNames;
 static std::unordered_map<String, unsigned int> Constants;
+static std::unordered_map<unsigned int, String> SyscallIndices;
 
 static bool UniversalCodeInit(const String & file, std::unordered_map<unsigned int, String> & names, unsigned char radix)
 {
@@ -180,4 +181,67 @@ std::vector<CONSTANTINFO> ErrorCodeList()
         return strcmp(a.name, b.name) < 0;
     });
     return result;
+}
+
+#include "threading.h"
+#include "module.h"
+
+bool SyscallInit()
+{
+    EXCLUSIVE_ACQUIRE(LockModules);
+    auto retrieveSyscalls = [](const char* modname)
+    {
+        auto ntdll = GetModuleHandleA(modname);
+        if(!ntdll)
+            return false;
+        char szModuleName[MAX_PATH];
+        if(!GetModuleFileNameA(ntdll, szModuleName, _countof(szModuleName)))
+            return false;
+        if(!ModLoad((duint)ntdll, 1, szModuleName))
+            return false;
+        auto info = ModInfoFromAddr((duint)ntdll);
+        if(info)
+        {
+            for(const MODEXPORT & export : info->exports)
+            {
+                if(strncmp(export.name.c_str(), "Nt", 2) != 0)
+                    continue;
+                auto exportData = (const unsigned char*)ModRvaToOffset(info->fileMapVA, info->headers, export.rva);
+                if(!exportData)
+                    continue;
+                // https://github.com/mrexodia/TitanHide/blob/1c6ba9796e320f399f998b23fba2729122597e87/TitanHide/ntdll.cpp#L75
+                DWORD index = -1;
+                for(int i = 0; i < 32; i++)
+                {
+                    if(exportData[i] == 0xC2 || exportData[i] == 0xC3)   //RET
+                    {
+                        break;
+                    }
+                    if(exportData[i] == 0xB8)   //mov eax,X
+                    {
+                        index = *(DWORD*)(exportData + i + 1);
+                        break;
+                    }
+                }
+                if(index != -1)
+                    SyscallIndices.emplace(index, export.name);
+            }
+        }
+        else
+        {
+            return false;
+        }
+        return true;
+    };
+    // TODO: support windows < 10 for user32
+    // See: https://github.com/x64dbg/ScyllaHide/blob/6817d32581b7a420322f34e36b1a1c8c3e4b434c/Scylla/Win32kSyscalls.h
+    auto result = retrieveSyscalls("ntdll.dll") && retrieveSyscalls("win32u.dll");
+    ModClear(false);
+    return result;
+}
+
+const String & SyscallToName(unsigned int index)
+{
+    auto found = SyscallIndices.find(index);
+    return found != SyscallIndices.end() ? found->second : emptyString;
 }

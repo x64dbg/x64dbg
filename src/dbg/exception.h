@@ -1,6 +1,8 @@
 #ifndef _EXCEPTION_H
 #define _EXCEPTION_H
 
+// TODO: rename this file
+
 #define MS_VC_EXCEPTION 0x406D1388
 
 #include "_global.h"
@@ -19,5 +21,7 @@ bool ExceptionNameToCode(const char* Name, unsigned int* ErrorCode);
 bool ConstantCodeInit(const String & constantFile);
 bool ConstantFromName(const String & name, duint & value);
 std::vector<CONSTANTINFO> ConstantList();
+bool SyscallInit();
+const String & SyscallToName(unsigned int index);
 
 #endif // _EXCEPTION_H
