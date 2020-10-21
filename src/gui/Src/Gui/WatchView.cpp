@@ -274,3 +274,33 @@ void WatchView::watchdogIsFalseSlot()
     DbgCmdExecDirect(QString("SetWatchdog %1, \"isfalse\"").arg(getSelectedId()));
     updateWatch();
 }
+
+void WatchView::setTypeUintSlot()
+{
+    DbgCmdExecDirect(QString("SetWatchType %1, \"uint\"").arg(getSelectedId()));
+    updateWatch();
+}
+
+void WatchView::setTypeIntSlot()
+{
+    DbgCmdExecDirect(QString("SetWatchType %1, \"int\"").arg(getSelectedId()));
+    updateWatch();
+}
+
+void WatchView::setTypeFloatSlot()
+{
+    DbgCmdExecDirect(QString("SetWatchType %1, \"float\"").arg(getSelectedId()));
+    updateWatch();
+}
+
+void WatchView::setTypeAsciiSlot()
+{
+    DbgCmdExecDirect(QString("SetWatchType %1, \"ascii\"").arg(getSelectedId()));
+    updateWatch();
+}
+
+void WatchView::setTypeUnicodeSlot()
+{
+    DbgCmdExecDirect(QString("SetWatchType %1, \"unicode\"").arg(getSelectedId()));
+    updateWatch();
+}
