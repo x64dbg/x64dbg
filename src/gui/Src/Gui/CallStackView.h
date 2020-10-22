@@ -19,6 +19,16 @@ protected slots:
     void showSuspectedCallStack();
 
 private:
+    enum
+    {
+        ColAddress = 0,
+        ColTo,
+        ColFrom,
+        ColSize,
+        ColComment,
+        ColParty
+    };
+
     MenuBuilder* mMenuBuilder;
 };
 

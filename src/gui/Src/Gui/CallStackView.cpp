@@ -31,7 +31,7 @@ void CallStackView::setupContextMenu()
     mMenuBuilder->addAction(makeAction(icon, tr("Follow &To"), SLOT(followTo())));
     QAction* mFollowFrom = mMenuBuilder->addAction(makeAction(icon, tr("Follow &From"), SLOT(followFrom())), [this](QMenu*)
     {
-        return !getCellContent(getInitialSelection(), 2).isEmpty();
+        return !getCellContent(getInitialSelection(), ColFrom).isEmpty();
     });
     mFollowFrom->setShortcutContext(Qt::WidgetShortcut);
     mFollowFrom->setShortcut(QKeySequence("enter"));
@@ -68,30 +68,30 @@ void CallStackView::updateCallStack()
     for(int i = 0; i < callstack.total; i++)
     {
         QString addrText = ToPtrString(callstack.entries[i].addr);
-        setCellContent(i, 0, addrText);
+        setCellContent(i, ColAddress, addrText);
         addrText = ToPtrString(callstack.entries[i].to);
-        setCellContent(i, 1, addrText);
+        setCellContent(i, ColTo, addrText);
         if(callstack.entries[i].from)
         {
             addrText = ToPtrString(callstack.entries[i].from);
-            setCellContent(i, 2, addrText);
+            setCellContent(i, ColFrom, addrText);
         }
         if(i != callstack.total - 1)
-            setCellContent(i, 3, ToHexString(callstack.entries[i + 1].addr - callstack.entries[i].addr));
+            setCellContent(i, ColSize, ToHexString(callstack.entries[i + 1].addr - callstack.entries[i].addr));
         else
-            setCellContent(i, 3, "");
-        setCellContent(i, 4, callstack.entries[i].comment);
+            setCellContent(i, ColSize, "");
+        setCellContent(i, ColComment, callstack.entries[i].comment);
         int party = DbgFunctions()->ModGetParty(callstack.entries[i].to);
         switch(party)
         {
         case mod_user:
-            setCellContent(i, 5, tr("User"));
+            setCellContent(i, ColParty, tr("User"));
             break;
         case mod_system:
-            setCellContent(i, 5, tr("System"));
+            setCellContent(i, ColParty, tr("System"));
             break;
         default:
-            setCellContent(i, 5, QString::number(party));
+            setCellContent(i, ColParty, QString::number(party));
             break;
         }
     }
@@ -110,19 +110,19 @@ void CallStackView::contextMenuSlot(const QPoint pos)
 
 void CallStackView::followAddress()
 {
-    QString addrText = getCellContent(getInitialSelection(), 0);
+    QString addrText = getCellContent(getInitialSelection(), ColAddress);
     DbgCmdExecDirect(QString("sdump " + addrText));
 }
 
 void CallStackView::followTo()
 {
-    QString addrText = getCellContent(getInitialSelection(), 1);
+    QString addrText = getCellContent(getInitialSelection(), ColTo);
     DbgCmdExecDirect(QString("disasm " + addrText));
 }
 
 void CallStackView::followFrom()
 {
-    QString addrText = getCellContent(getInitialSelection(), 2);
+    QString addrText = getCellContent(getInitialSelection(), ColFrom);
     DbgCmdExecDirect(QString("disasm " + addrText));
 }
 
