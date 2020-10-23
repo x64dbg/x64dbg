@@ -207,6 +207,7 @@ typedef int(*SYMAUTOCOMPLETE)(const char* Search, char** Buffer, int MaxSymbols)
 typedef void(*REFRESHMODULELIST)();
 typedef duint(*GETADDRFROMLINEEX)(duint mod, const char* szSourceFile, int line);
 typedef MODULESYMBOLSTATUS(*MODSYMBOLSTATUS)(duint mod);
+typedef void(*GETCALLSTACKBYTHREAD)(HANDLE thread, DBGCALLSTACK* callstack);
 
 //The list of all the DbgFunctions() return value.
 //WARNING: This list is append only. Do not insert things in the middle or plugins would break.
@@ -285,6 +286,7 @@ typedef struct DBGFUNCTIONS_
     REFRESHMODULELIST RefreshModuleList;
     GETADDRFROMLINEEX GetAddrFromLineEx;
     MODSYMBOLSTATUS ModSymbolStatus;
+    GETCALLSTACKBYTHREAD GetCallStackByThread;
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

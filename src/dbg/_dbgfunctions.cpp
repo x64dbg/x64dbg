@@ -107,6 +107,12 @@ static void _getcallstack(DBGCALLSTACK* callstack)
         stackgetcallstack(GetContextDataEx(hActiveThread, UE_CSP), (CALLSTACK*)callstack);
 }
 
+static void _getcallstackbythread(HANDLE thread, DBGCALLSTACK* callstack)
+{
+    if(thread)
+        stackgetcallstackbythread(thread, (CALLSTACK*)callstack);
+}
+
 static void _getsehchain(DBGSEHCHAIN* sehchain)
 {
     std::vector<duint> SEHList;
@@ -532,4 +538,5 @@ void dbgfunctionsinit()
     _dbgfunctions.RefreshModuleList = _refreshmodulelist;
     _dbgfunctions.GetAddrFromLineEx = _getaddrfromlineex;
     _dbgfunctions.ModSymbolStatus = _modsymbolstatus;
+    _dbgfunctions.GetCallStackByThread = _getcallstackbythread;
 }
