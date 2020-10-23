@@ -355,12 +355,12 @@ void ThreadView::updateThreadList()
         setCellContent(i, 12, ToLongLongHexString(threadList.list[i].Cycles));
         setCellContent(i, 13, threadList.list[i].BasicInfo.threadName);
     }
-    mCurrentThreadId = "NONE";
+    mCurrentThreadId = -1;
     if(threadList.count)
     {
         int currentThread = threadList.CurrentThread;
         if(currentThread >= 0 && currentThread < threadList.count)
-            mCurrentThreadId = ToHexString(threadList.list[currentThread].BasicInfo.ThreadId);
+            mCurrentThreadId = threadList.list[currentThread].BasicInfo.ThreadId;
         BridgeFree(threadList.list);
     }
     reloadData();
@@ -369,7 +369,7 @@ void ThreadView::updateThreadList()
 QString ThreadView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     QString ret = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
-    QString threadId = getCellContent(rowBase + rowOffset, 1);
+    duint threadId = getCellUserdata(rowBase + rowOffset, 1);
     if(threadId == mCurrentThreadId && !col)
     {
         painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("ThreadCurrentBackgroundColor")));
@@ -382,21 +382,21 @@ QString ThreadView::paintContent(QPainter* painter, dsint rowBase, int rowOffset
 
 void ThreadView::doubleClickedSlot()
 {
-    QString threadId = getCellContent(getInitialSelection(), 1);
-    DbgCmdExecDirect(QString("switchthread " + threadId));
+    duint threadId = getCellUserdata(getInitialSelection(), 1);
+    DbgCmdExecDirect("switchthread " + ToHexString(threadId));
 
     QString addr_text = getCellContent(getInitialSelection(), 4);
-    DbgCmdExecDirect(QString("disasm " + addr_text));
+    DbgCmdExec("disasm " + addr_text);
 }
 
 void ThreadView::SetNameSlot()
 {
-    QString threadId = getCellContent(getInitialSelection(), 1);
+    duint threadId = getCellUserdata(getInitialSelection(), 1);
     LineEditDialog mLineEdit(this);
     mLineEdit.setWindowTitle(tr("Name") + threadId);
     mLineEdit.setText(getCellContent(getInitialSelection(), 13));
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     QString escapedName = mLineEdit.editText.replace("\"", "\\\"");
-    DbgCmdExec(QString("setthreadname %1, \"%2\"").arg(threadId).arg(escapedName));
+    DbgCmdExec(QString("setthreadname %1, \"%2\"").arg(ToHexString(threadId)).arg(escapedName));
 }
