@@ -5,6 +5,7 @@ CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
 {
     int charwidth = getCharWidth();
 
+    addColumnAt(8 * charwidth, tr("Thread Number"), true);
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("Address"), true); //address in the stack
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("To"), false); //return to
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("From"), false); //return from
@@ -59,44 +60,66 @@ void CallStackView::setupContextMenu()
 
 void CallStackView::updateCallStack()
 {
-    DBGCALLSTACK callstack;
-    memset(&callstack, 0, sizeof(DBGCALLSTACK));
-    if(!DbgFunctions()->GetCallStack)
+    if(!DbgFunctions()->GetCallStackByThread)
         return;
-    DbgFunctions()->GetCallStack(&callstack);
-    setRowCount(callstack.total);
-    for(int i = 0; i < callstack.total; i++)
+
+    THREADLIST threadList;
+    memset(&threadList, 0, sizeof(THREADLIST));
+    DbgGetThreadList(&threadList);
+
+    int currentRow = 0;
+    setRowCount(0);
+    for(int j = 0; j < threadList.count; j++)
     {
-        QString addrText = ToPtrString(callstack.entries[i].addr);
-        setCellContent(i, ColAddress, addrText);
-        addrText = ToPtrString(callstack.entries[i].to);
-        setCellContent(i, ColTo, addrText);
-        if(callstack.entries[i].from)
-        {
-            addrText = ToPtrString(callstack.entries[i].from);
-            setCellContent(i, ColFrom, addrText);
-        }
-        if(i != callstack.total - 1)
-            setCellContent(i, ColSize, ToHexString(callstack.entries[i + 1].addr - callstack.entries[i].addr));
+        DBGCALLSTACK callstack;
+        memset(&callstack, 0, sizeof(DBGCALLSTACK));
+        DbgFunctions()->GetCallStackByThread(threadList.list[j].BasicInfo.Handle, &callstack);
+        setRowCount(currentRow + callstack.total + 1);
+        if(!threadList.list[j].BasicInfo.ThreadNumber)
+            setCellContent(currentRow, ColThread, tr("Main"));
         else
-            setCellContent(i, ColSize, "");
-        setCellContent(i, ColComment, callstack.entries[i].comment);
-        int party = DbgFunctions()->ModGetParty(callstack.entries[i].to);
-        switch(party)
+            setCellContent(currentRow, ColThread, ToDecString(threadList.list[j].BasicInfo.ThreadNumber));
+
+        currentRow++;
+
+        for(int i = 0; i < callstack.total; i++, currentRow++)
         {
-        case mod_user:
-            setCellContent(i, ColParty, tr("User"));
-            break;
-        case mod_system:
-            setCellContent(i, ColParty, tr("System"));
-            break;
-        default:
-            setCellContent(i, ColParty, QString::number(party));
-            break;
+            QString addrText = ToPtrString(callstack.entries[i].addr);
+            setCellContent(currentRow, ColAddress, addrText);
+            addrText = ToPtrString(callstack.entries[i].to);
+            setCellContent(currentRow, ColTo, addrText);
+            if(callstack.entries[i].from)
+            {
+                addrText = ToPtrString(callstack.entries[i].from);
+                setCellContent(currentRow, ColFrom, addrText);
+            }
+            if(i != callstack.total - 1)
+                setCellContent(currentRow, ColSize, ToHexString(callstack.entries[i + 1].addr - callstack.entries[i].addr));
+            else
+                setCellContent(currentRow, ColSize, "");
+            setCellContent(currentRow, ColComment, callstack.entries[i].comment);
+            int party = DbgFunctions()->ModGetParty(callstack.entries[i].to);
+            switch(party)
+            {
+            case mod_user:
+                setCellContent(currentRow, ColParty, tr("User"));
+                break;
+            case mod_system:
+                setCellContent(currentRow, ColParty, tr("System"));
+                break;
+            default:
+                setCellContent(currentRow, ColParty, QString::number(party));
+                break;
+            }
         }
+        if(callstack.total)
+            BridgeFree(callstack.entries);
+
     }
-    if(callstack.total)
-        BridgeFree(callstack.entries);
+
+    if(threadList.count)
+        BridgeFree(threadList.list);
+
     reloadData();
 }
 

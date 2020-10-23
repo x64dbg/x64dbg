@@ -21,7 +21,8 @@ protected slots:
 private:
     enum
     {
-        ColAddress = 0,
+        ColThread = 0,
+        ColAddress,
         ColTo,
         ColFrom,
         ColSize,
