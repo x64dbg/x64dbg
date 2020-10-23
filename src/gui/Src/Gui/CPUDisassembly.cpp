@@ -55,7 +55,7 @@ void CPUDisassembly::mousePressEvent(QMouseEvent* event)
         if(!DbgIsDebugging())
             return;
         MessageBeep(MB_OK);
-        if(event->modifiers() & Qt::ShiftModifier)
+        if(event->modifiers() & (Qt::ShiftModifier | Qt::ControlModifier))
             copyRvaSlot();
         else
             copyAddressSlot();
