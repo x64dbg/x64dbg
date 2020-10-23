@@ -10,6 +10,9 @@ public:
     explicit CallStackView(StdTable* parent = 0);
     void setupContextMenu();
 
+protected:
+    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) override;
+
 protected slots:
     void updateCallStack();
     void contextMenuSlot(const QPoint pos);
