@@ -34,6 +34,7 @@ private:
     };
 
     MenuBuilder* mMenuBuilder;
+    bool isSelectionValid();
 };
 
 #endif // CALLSTACKVIEW_H

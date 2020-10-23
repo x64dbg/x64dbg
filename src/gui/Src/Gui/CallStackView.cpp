@@ -28,11 +28,17 @@ void CallStackView::setupContextMenu()
         return DbgIsDebugging();
     });
     QIcon icon = DIcon(ArchValue("processor32.png", "processor64.png"));
-    mMenuBuilder->addAction(makeAction(icon, tr("Follow &Address"), SLOT(followAddress())));
-    mMenuBuilder->addAction(makeAction(icon, tr("Follow &To"), SLOT(followTo())));
+    mMenuBuilder->addAction(makeAction(icon, tr("Follow &Address"), SLOT(followAddress())), [this](QMenu*)
+    {
+        return isSelectionValid();
+    });
+    mMenuBuilder->addAction(makeAction(icon, tr("Follow &To"), SLOT(followTo())), [this](QMenu*)
+    {
+        return isSelectionValid();
+    });
     QAction* mFollowFrom = mMenuBuilder->addAction(makeAction(icon, tr("Follow &From"), SLOT(followFrom())), [this](QMenu*)
     {
-        return !getCellContent(getInitialSelection(), ColFrom).isEmpty();
+        return !getCellContent(getInitialSelection(), ColFrom).isEmpty() && isSelectionValid();
     });
     mFollowFrom->setShortcutContext(Qt::WidgetShortcut);
     mFollowFrom->setShortcut(QKeySequence("enter"));
@@ -175,4 +181,9 @@ void CallStackView::showSuspectedCallStack()
     DbgSettingsUpdated();
     updateCallStack();
     emit Bridge::getBridge()->updateDump();
+}
+
+bool CallStackView::isSelectionValid()
+{
+    return getCellContent(getInitialSelection(), ColThread).isEmpty();
 }
