@@ -309,7 +309,7 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
         DWORD machineType = IMAGE_FILE_MACHINE_AMD64;
         frame.AddrPC.Offset = context.Rip;
         frame.AddrPC.Mode = AddrModeFlat;
-        frame.AddrFrame.Offset = context.Rsp;
+        frame.AddrFrame.Offset = context.Rbp;
         frame.AddrFrame.Mode = AddrModeFlat;
         frame.AddrStack.Offset = csp;
         frame.AddrStack.Mode = AddrModeFlat;
