@@ -1,8 +1,6 @@
 #ifndef _EXCEPTION_H
 #define _EXCEPTION_H
 
-// TODO: rename this file
-
 #define MS_VC_EXCEPTION 0x406D1388
 
 #include "_global.h"

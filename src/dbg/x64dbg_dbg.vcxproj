@@ -240,6 +240,7 @@
     <ClInclude Include="symbolsourcedia.h" />
     <ClInclude Include="symbolundecorator.h" />
     <ClInclude Include="symcache.h" />
+    <ClInclude Include="syscalls.h" />
     <ClInclude Include="taskthread.h" />
     <ClInclude Include="tcpconnections.h" />
     <ClInclude Include="TraceRecord.h" />
