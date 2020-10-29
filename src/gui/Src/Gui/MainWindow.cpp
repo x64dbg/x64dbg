@@ -296,7 +296,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionRunSelection, SIGNAL(triggered()), this, SLOT(runSelection()));
     connect(ui->actionRunExpression, SIGNAL(triggered(bool)), this, SLOT(runExpression()));
     makeCommandAction(ui->actionHideDebugger, "hide");
-    connect(ui->actionCpu, SIGNAL(triggered()), this, SLOT(displayCpuWidget()));
+    connect(ui->actionCpu, SIGNAL(triggered()), this, SLOT(displayCpuWidgetShowCpu()));
     connect(ui->actionSymbolInfo, SIGNAL(triggered()), this, SLOT(displaySymbolWidget()));
     connect(ui->actionModules, SIGNAL(triggered()), this, SLOT(displaySymbolWidget()));
     connect(ui->actionSource, SIGNAL(triggered()), this, SLOT(displaySourceViewWidget()));
@@ -1084,10 +1084,17 @@ void MainWindow::updateWindowTitleSlot(QString filename)
     }
 }
 
-void MainWindow::displayCpuWidget()
+// Used by View->CPU
+void MainWindow::displayCpuWidgetShowCpu()
 {
     showQWidgetTab(mCpuWidget);
     mCpuWidget->setDisasmFocus();
+}
+
+// GuiShowCpu()
+void MainWindow::displayCpuWidget()
+{
+    showQWidgetTab(mCpuWidget);
 }
 
 void MainWindow::displaySymbolWidget()
