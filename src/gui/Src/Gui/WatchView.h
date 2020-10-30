@@ -40,6 +40,17 @@ protected:
     MenuBuilder* mMenu;
     QPen mWatchTriggeredColor;
     QBrush mWatchTriggeredBackgroundColor;
+
+private:
+    enum
+    {
+        ColName = 0,
+        ColExpr,
+        ColValue,
+        ColType,
+        ColWatchdog,
+        ColId
+    };
 };
 
 #endif // WATCHVIEW_H
