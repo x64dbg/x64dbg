@@ -69,23 +69,23 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("DisassemblyFunctionColor", QColor("#000000"));
     defaultColors.insert("DisassemblyLoopColor", QColor("#000000"));
 
+    defaultColors.insert("SideBarBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("SideBarCipLabelColor", QColor("#FFFFFF"));
     defaultColors.insert("SideBarCipLabelBackgroundColor", QColor("#4040FF"));
-    defaultColors.insert("SideBarBackgroundColor", QColor("#FFF8F0"));
-    defaultColors.insert("SideBarConditionalJumpLineTrueColor", QColor("#FF0000"));
-    defaultColors.insert("SideBarConditionalJumpLineFalseColor", QColor("#00BBFF"));
-    defaultColors.insert("SideBarUnconditionalJumpLineTrueColor", QColor("#FF0000"));
-    defaultColors.insert("SideBarUnconditionalJumpLineFalseColor", QColor("#00BBFF"));
-    defaultColors.insert("SideBarConditionalJumpLineTrueBackwardsColor", QColor("#FF0000"));
-    defaultColors.insert("SideBarConditionalJumpLineFalseBackwardsColor", QColor("#FFA500"));
-    defaultColors.insert("SideBarUnconditionalJumpLineTrueBackwardsColor", QColor("#FF0000"));
-    defaultColors.insert("SideBarUnconditionalJumpLineFalseBackwardsColor", QColor("#FFA500"));
     defaultColors.insert("SideBarBulletColor", QColor("#808080"));
     defaultColors.insert("SideBarBulletBreakpointColor", QColor("#FF0000"));
     defaultColors.insert("SideBarBulletDisabledBreakpointColor", QColor("#00AA00"));
     defaultColors.insert("SideBarBulletBookmarkColor", QColor("#FEE970"));
     defaultColors.insert("SideBarCheckBoxForeColor", QColor("#000000"));
     defaultColors.insert("SideBarCheckBoxBackColor", QColor("#FFFFFF"));
+    defaultColors.insert("SideBarConditionalJumpLineTrueColor", QColor("#FF0000"));
+    defaultColors.insert("SideBarConditionalJumpLineTrueBackwardsColor", QColor("#FF0000"));
+    defaultColors.insert("SideBarConditionalJumpLineFalseColor", QColor("#00BBFF"));
+    defaultColors.insert("SideBarConditionalJumpLineFalseBackwardsColor", QColor("#FFA500"));
+    defaultColors.insert("SideBarUnconditionalJumpLineTrueColor", QColor("#FF0000"));
+    defaultColors.insert("SideBarUnconditionalJumpLineTrueBackwardsColor", QColor("#FF0000"));
+    defaultColors.insert("SideBarUnconditionalJumpLineFalseColor", QColor("#00BBFF"));
+    defaultColors.insert("SideBarUnconditionalJumpLineFalseBackwardsColor", QColor("#FFA500"));
 
     defaultColors.insert("RegistersBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("RegistersColor", QColor("#000000"));
