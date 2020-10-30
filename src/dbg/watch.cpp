@@ -90,7 +90,7 @@ bool WatchExpr::modifyExpr(const char* expression, WATCHVARTYPE type)
     {
         expr = b;
         varType = type;
-        currValue = 0;
+        this->getIntValue();
         haveCurrValue = false;
         return true;
     }
