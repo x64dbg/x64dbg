@@ -354,7 +354,8 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRID
             Zydis cp;
             auto getregs = !bOnlyCipAutoComments || addr == lastContext.cip;
             disasmget(cp, addr, &instr, getregs);
-            if(!cp.IsNop())
+            // Some nop variants have 'operands' that should be ignored
+            if(cp.Success() && !cp.IsNop())
             {
                 //Ignore register values when not on CIP and OnlyCipAutoComments is enabled: https://github.com/x64dbg/x64dbg/issues/1383
                 if(!getregs)
