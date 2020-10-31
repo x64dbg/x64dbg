@@ -672,7 +672,7 @@ void Configuration::readColors()
     //read config
     for(int i = 0; i < Colors.size(); i++)
     {
-        const QString & id = Colors.keys().at(i);
+        QString id = Colors.keys().at(i);
         Colors[id] = colorFromConfig(id);
     }
 }
@@ -682,7 +682,7 @@ void Configuration::writeColors()
     //write config
     for(int i = 0; i < Colors.size(); i++)
     {
-        const QString & id = Colors.keys().at(i);
+        QString id = Colors.keys().at(i);
         colorToConfig(id, Colors[id]);
     }
     emit colorsUpdated();
@@ -694,11 +694,11 @@ void Configuration::readBools()
     //read config
     for(int i = 0; i < Bools.size(); i++)
     {
-        const QString & category = Bools.keys().at(i);
+        QString category = Bools.keys().at(i);
         QMap<QString, bool> & currentBool = Bools[category];
         for(int j = 0; j < currentBool.size(); j++)
         {
-            const QString & id = currentBool.keys().at(j);
+            QString id = currentBool.keys().at(j);
             currentBool[id] = boolFromConfig(category, id);
         }
     }
@@ -709,11 +709,11 @@ void Configuration::writeBools()
     //write config
     for(int i = 0; i < Bools.size(); i++)
     {
-        const QString & category = Bools.keys().at(i);
+        QString category = Bools.keys().at(i);
         QMap<QString, bool>* currentBool = &Bools[category];
         for(int j = 0; j < currentBool->size(); j++)
         {
-            const QString & id = (*currentBool).keys().at(j);
+            QString id = (*currentBool).keys().at(j);
             boolToConfig(category, id, (*currentBool)[id]);
         }
     }
@@ -725,11 +725,11 @@ void Configuration::readUints()
     //read config
     for(int i = 0; i < Uints.size(); i++)
     {
-        const QString & category = Uints.keys().at(i);
+        QString category = Uints.keys().at(i);
         QMap<QString, duint> & currentUint = Uints[category];
         for(int j = 0; j < currentUint.size(); j++)
         {
-            const QString & id = currentUint.keys().at(j);
+            QString id = currentUint.keys().at(j);
             currentUint[id] = uintFromConfig(category, id);
         }
     }
@@ -743,11 +743,11 @@ void Configuration::writeUints()
     //write config
     for(int i = 0; i < Uints.size(); i++)
     {
-        const QString & category = Uints.keys().at(i);
+        QString category = Uints.keys().at(i);
         QMap<QString, duint>* currentUint = &Uints[category];
         for(int j = 0; j < currentUint->size(); j++)
         {
-            const QString & id = (*currentUint).keys().at(j);
+            QString id = (*currentUint).keys().at(j);
 
             // Do not save settings to file if saveLoadTabOrder checkbox is Unchecked
             if(!bSaveLoadTabOrder && category == "TabOrder" && BridgeSettingGetUint(category.toUtf8().constData(), id.toUtf8().constData(), &setting))
@@ -764,7 +764,7 @@ void Configuration::readFonts()
     //read config
     for(int i = 0; i < Fonts.size(); i++)
     {
-        const QString & id = Fonts.keys().at(i);
+        QString id = Fonts.keys().at(i);
         QFont font = fontFromConfig(id);
         QFontInfo fontInfo(font);
         if(id == "Application" || fontInfo.fixedPitch())
@@ -777,7 +777,7 @@ void Configuration::writeFonts()
     //write config
     for(int i = 0; i < Fonts.size(); i++)
     {
-        const QString & id = Fonts.keys().at(i);
+        QString id = Fonts.keys().at(i);
         fontToConfig(id, Fonts[id]);
     }
     emit fontsUpdated();
@@ -1136,7 +1136,7 @@ bool Configuration::shortcutToConfig(const QString & id, const QKeySequence shor
 
 void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
 {
-    const QString & id = menu->getId();
+    QString id = menu->getId();
     for(const auto & i : NamedMenuBuilders)
         if(i.type == 0 && i.builder->getId() == id)
             return; //already exists
