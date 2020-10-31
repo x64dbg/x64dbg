@@ -57,7 +57,7 @@ void SettingsDialog::LoadSettings()
     settings.eventTlsCallbacks = true;
     settings.eventEntryBreakpoint = true;
     settings.eventAttachBreakpoint = true;
-    settings.eventNtTerminateProcess = true;
+    settings.eventNtTerminateProcess = false;
     settings.engineType = DebugEngineTitanEngine;
     settings.engineCalcType = calc_unsigned;
     settings.engineBreakpointType = break_int3short;
