@@ -33,7 +33,7 @@ public:
         bool GlobalShortcut;
 
         Shortcut(QString name = QString(), QString hotkey = QString(), bool global = false)
-            : Name(name), Hotkey(hotkey), GlobalShortcut(global) { }
+            : Name(name), Hotkey(hotkey, QKeySequence::PortableText), GlobalShortcut(global) { }
 
         Shortcut(std::initializer_list<QString> names, QString hotkey = QString(), bool global = false)
             : Shortcut(QStringList(names).join(" -> "), hotkey, global) { }

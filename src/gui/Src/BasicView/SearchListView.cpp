@@ -33,7 +33,7 @@ SearchListView::SearchListView(QWidget* parent, AbstractSearchList* abstractSear
             listLayout->addWidget(abstractSearchList->searchList());
 
             // Add list placeholder
-            QWidget* listPlaceholder = new QWidget();
+            QWidget* listPlaceholder = new QWidget(this);
             listPlaceholder->setLayout(listLayout);
 
             barSplitter->addWidget(listPlaceholder);
@@ -68,7 +68,7 @@ SearchListView::SearchListView(QWidget* parent, AbstractSearchList* abstractSear
             horzLayout->addWidget(mRegexCheckbox);
 
             // Add searchbar placeholder
-            QWidget* horzPlaceholder = new QWidget();
+            QWidget* horzPlaceholder = new QWidget(this);
             horzPlaceholder->setLayout(horzLayout);
 
             barSplitter->addWidget(horzPlaceholder);

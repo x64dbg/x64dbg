@@ -13,7 +13,7 @@ ReferenceView::ReferenceView(bool sourceView, QWidget* parent) : StdSearchListVi
     mSearchStartCol = 1;
 
     // Widget container for progress
-    QWidget* progressWidget = new QWidget();
+    QWidget* progressWidget = new QWidget(this);
 
     // Create the layout for the progress bars
     QHBoxLayout* layoutProgress = new QHBoxLayout();
