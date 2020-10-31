@@ -112,7 +112,6 @@ signals:
     void shortcutsUpdated();
     void tokenizerConfigUpdated();
     void disableAutoCompleteUpdated();
-    void asciiAddressDumpModeUpdated();
 
 private:
     QColor colorFromConfig(const QString & id);

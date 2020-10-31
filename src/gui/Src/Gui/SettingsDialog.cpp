@@ -17,7 +17,6 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     adjustSize();
     bTokenizerConfigUpdated = false;
     bDisableAutoCompleteUpdated = false;
-    bAsciiAddressDumpModeUpdated = false;
     LoadSettings(); //load settings from file
     connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
     lastException = 0;
@@ -86,7 +85,6 @@ void SettingsDialog::LoadSettings()
     settings.guiNoForegroundWindow = true;
     settings.guiLoadSaveTabOrder = true;
     settings.guiDisableAutoComplete = false;
-    settings.guiAsciiAddressDumpMode = false;
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);
@@ -249,7 +247,6 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Gui", "GraphZoomMode", &settings.guiGraphZoomMode);
     GetSettingBool("Gui", "ShowExitConfirmation", &settings.guiShowExitConfirmation);
     GetSettingBool("Gui", "DisableAutoComplete", &settings.guiDisableAutoComplete);
-    GetSettingBool("Gui", "AsciiAddressDumpMode", &settings.guiAsciiAddressDumpMode);
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
     ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
     ui->chkNoCloseDialog->setChecked(settings.guiNoCloseDialog);
@@ -261,7 +258,6 @@ void SettingsDialog::LoadSettings()
     ui->chkGraphZoomMode->setChecked(settings.guiGraphZoomMode);
     ui->chkShowExitConfirmation->setChecked(settings.guiShowExitConfirmation);
     ui->chkDisableAutoComplete->setChecked(settings.guiDisableAutoComplete);
-    ui->chkAsciiAddressDumpMode->setChecked(settings.guiAsciiAddressDumpMode);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -406,7 +402,6 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Gui", "GraphZoomMode", settings.guiGraphZoomMode);
     BridgeSettingSetUint("Gui", "ShowExitConfirmation", settings.guiShowExitConfirmation);
     BridgeSettingSetUint("Gui", "DisableAutoComplete", settings.guiDisableAutoComplete);
-    BridgeSettingSetUint("Gui", "AsciiAddressDumpMode", settings.guiAsciiAddressDumpMode);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -449,11 +444,6 @@ void SettingsDialog::SaveSettings()
     {
         emit Config()->disableAutoCompleteUpdated();
         bDisableAutoCompleteUpdated = false;
-    }
-    if(bAsciiAddressDumpModeUpdated)
-    {
-        emit Config()->asciiAddressDumpModeUpdated();
-        bAsciiAddressDumpModeUpdated = false;
     }
     if(bGuiOptionsUpdated)
     {
@@ -917,12 +907,6 @@ void SettingsDialog::on_chkDisableAutoComplete_toggled(bool checked)
 {
     settings.guiDisableAutoComplete = checked;
     bDisableAutoCompleteUpdated = true;
-}
-
-void SettingsDialog::on_chkAsciiAddressDumpMode_toggled(bool checked)
-{
-    settings.guiAsciiAddressDumpMode = checked;
-    bAsciiAddressDumpModeUpdated = true;
 }
 
 void SettingsDialog::on_chkUseLocalHelpFile_toggled(bool checked)

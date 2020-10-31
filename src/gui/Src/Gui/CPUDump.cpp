@@ -24,12 +24,10 @@ CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent
     if(BridgeSettingGetUint("Gui", "AsciiSeparator", &setting))
         mAsciiSeparator = setting & 0xF;
 
-    asciiAddressDumpModeUpdatedSlot();
     setView((ViewEnum_t)ConfigUint("HexDump", "DefaultView"));
 
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
     connect(this, SIGNAL(headerButtonReleased(int)), this, SLOT(headerButtonReleasedSlot(int)));
-    connect(Config(), SIGNAL(asciiAddressDumpModeUpdated()), this, SLOT(asciiAddressDumpModeUpdatedSlot()));
 
     mPluginMenu = multiDump->mDumpPluginMenu;
 
@@ -270,7 +268,7 @@ void CPUDump::setupContextMenu()
     wFloatMenu->addAction(makeAction(DIcon("80bit-float.png"), tr("&Long double (80-bit)"), SLOT(floatLongDoubleSlot())));
     mMenuBuilder->addMenu(makeMenu(DIcon("float.png"), tr("&Float")), wFloatMenu);
 
-    mMenuBuilder->addAction(makeAction(DIcon("address.png"), tr("&Address"), SLOT(addressSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("address.png"), tr("&Address"), SLOT(addressAsciiSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("processor-cpu.png"), tr("&Disassembly"), SLOT(disassemblySlot())));
 
     mMenuBuilder->addSeparator();
@@ -1221,50 +1219,8 @@ void CPUDump::floatLongDoubleSlot()
     reloadData();
 }
 
-void CPUDump::addressSlot()
-{
-    if(mAsciiAddressDumpMode)
-    {
-        addressAsciiSlot();
-        return;
-    }
-
-    Config()->setUint("HexDump", "DefaultView", (duint)ViewAddress);
-    int charwidth = getCharWidth();
-    ColumnDescriptor wColDesc;
-    DataDescriptor dDesc;
-
-    wColDesc.isData = true; //void*
-    wColDesc.itemCount = 1;
-    wColDesc.separator = 0;
-#ifdef _WIN64
-    wColDesc.data.itemSize = Qword;
-    wColDesc.data.qwordMode = HexQword;
-#else
-    wColDesc.data.itemSize = Dword;
-    wColDesc.data.dwordMode = HexDword;
-#endif
-    appendResetDescriptor(8 + charwidth * 2 * sizeof(duint), tr("Value"), false, wColDesc);
-
-    wColDesc.isData = false; //comments
-    wColDesc.itemCount = 1;
-    wColDesc.separator = 0;
-    dDesc.itemSize = Byte;
-    dDesc.byteMode = AsciiByte;
-    wColDesc.data = dDesc;
-    appendDescriptor(0, tr("Comments"), false, wColDesc);
-
-    reloadData();
-}
-
 void CPUDump::addressAsciiSlot()
 {
-    if(!mAsciiAddressDumpMode)
-    {
-        addressSlot();
-        return;
-    }
-
     Config()->setUint("HexDump", "DefaultView", (duint)ViewAddressAscii);
     int charwidth = getCharWidth();
     ColumnDescriptor wColDesc;
@@ -1310,12 +1266,6 @@ void CPUDump::addressAsciiSlot()
 
 void CPUDump::addressUnicodeSlot()
 {
-    if(!mAsciiAddressDumpMode)
-    {
-        addressSlot();
-        return;
-    }
-
     Config()->setUint("HexDump", "DefaultView", (duint)ViewAddressUnicode);
     int charwidth = getCharWidth();
     ColumnDescriptor wColDesc;
@@ -1806,8 +1756,6 @@ void CPUDump::setView(ViewEnum_t view)
         floatLongDoubleSlot();
         break;
     case ViewAddress:
-        addressSlot();
-        break;
     case ViewAddressAscii:
         addressAsciiSlot();
         break;
@@ -1836,19 +1784,4 @@ void CPUDump::headerButtonReleasedSlot(int colIndex)
     auto callback = mDescriptor[colIndex].columnSwitch;
     if(callback)
         callback();
-}
-
-void CPUDump::asciiAddressDumpModeUpdatedSlot()
-{
-    duint setting = 0;
-    mAsciiAddressDumpMode = BridgeSettingGetUint("Gui", "AsciiAddressDumpMode", &setting) && setting;
-    auto defaultView = (ViewEnum_t)ConfigUint("HexDump", "DefaultView");
-    switch(defaultView)
-    {
-    case ViewAddress:
-    case ViewAddressAscii:
-    case ViewAddressUnicode:
-        setView(defaultView);
-        break;
-    }
 }
