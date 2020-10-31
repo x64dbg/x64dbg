@@ -197,7 +197,7 @@ bool SyscallInit()
         char szModulePath[MAX_PATH];
         if(!GetModuleFileNameA(moduleHandle, szModulePath, _countof(szModulePath)))
             return false;
-        if(!ModLoad((duint)moduleHandle, 1, szModulePath))
+        if(!ModLoad((duint)moduleHandle, 1, szModulePath, false))
             return false;
         auto info = ModInfoFromAddr((duint)moduleHandle);
         if(info)
