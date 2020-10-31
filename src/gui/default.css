@@ -86,3 +86,8 @@ QTabBar QToolButton::hover {
 QTabBar::scroller {
     width: 15px;
 }
+
+/* JIT debugger in SettingsDialog */
+QLineEdit:read-only {
+    background-color: #f0f0f0;
+}
