@@ -82,18 +82,25 @@ void StdTable::setRowCount(dsint count)
     AbstractTableView::setRowCount(count);
 }
 
-void StdTable::setCellContent(int r, int c, QString s)
+bool StdTable::isValidIndex(int r, int c)
 {
-    if(isValidIndex(r, c))
-        mData[r][c].text = std::move(s);
+    if(r < 0 || c < 0 || r >= int(mData.size()))
+        return false;
+    return c < int(mData.at(r).size());
 }
 
-QString StdTable::getCellContent(int r, int c)
+QString StdTable::getCellContentUnsafe(int r, int c)
 {
     if(isValidIndex(r, c))
         return mData[r][c].text;
     else
         return QString("");
+}
+
+void StdTable::setCellContent(int r, int c, QString s)
+{
+    if(isValidIndex(r, c))
+        mData[r][c].text = std::move(s);
 }
 
 void StdTable::setCellUserdata(int r, int c, duint userdata)
@@ -105,13 +112,6 @@ void StdTable::setCellUserdata(int r, int c, duint userdata)
 duint StdTable::getCellUserdata(int r, int c)
 {
     return isValidIndex(r, c) ? mData[r][c].userdata : 0;
-}
-
-bool StdTable::isValidIndex(int r, int c)
-{
-    if(r < 0 || c < 0 || r >= int(mData.size()))
-        return false;
-    return c < int(mData.at(r).size());
 }
 
 void StdTable::sortRows(int column, bool ascending)

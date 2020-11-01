@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AbstractTableView.h"
+#include <type_traits>
 
 class AbstractStdTable : public AbstractTableView
 {
@@ -41,7 +42,31 @@ public:
     void addColumnAt(int width, QString title, bool isClickable, QString copyTitle = "");
     void deleteAllColumns() override;
 
-    virtual QString getCellContent(int r, int c) = 0;
+    struct Unsafe {};
+
+    template<typename T>
+    using SafetyOverride = typename std::enable_if<std::is_same<T, Unsafe>::value, bool>::type;
+
+    template<typename T>
+    using IsInt = typename std::enable_if<std::is_integral<T>::value, bool>::type;
+
+    template<typename T>
+    using IsEnum = typename std::enable_if<std::is_enum<T>::value, bool>::type;
+
+    template<typename T, IsInt<T> = true>
+    QString getCellContent(int row, T column)
+    {
+        static_assert(std::is_enum<T>::value, "This interface is deprecated, use a Column enum instead.");
+    }
+
+    template<typename T, IsEnum<T> = true>
+    QString getCellContent(int row, T column)
+    {
+        static_assert(T::TableColumnEnum == static_cast<T>(-1), "Invalid Column enum.");
+        return getCellContentUnsafe(row, (int)column);
+    }
+
+    virtual QString getCellContentUnsafe(int r, int c) = 0;
     virtual bool isValidIndex(int r, int c) = 0;
     virtual void sortRows(int column, bool ascending) = 0;
     duint getDisassemblyPopupAddress(int mousex, int mousey) override;

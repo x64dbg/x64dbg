@@ -34,21 +34,21 @@ public:
             cs = Qt::CaseSensitive;
         case FilterStartsWithTextCaseInsensitive:
             for(int i = startColumn; i < count; i++)
-                if(list()->getCellContent(row, i).startsWith(filter, cs))
+                if(list()->getCellContentUnsafe(row, i).startsWith(filter, cs))
                     return true;
             break;
         case FilterContainsTextCaseSensitive:
             cs = Qt::CaseSensitive;
         case FilterContainsTextCaseInsensitive:
             for(int i = startColumn; i < count; i++)
-                if(list()->getCellContent(row, i).contains(filter, cs))
+                if(list()->getCellContentUnsafe(row, i).contains(filter, cs))
                     return true;
             break;
         case FilterRegexCaseSensitive:
             cs = Qt::CaseSensitive;
         case FilterRegexCaseInsensitive:
             for(int i = startColumn; i < count; i++)
-                if(list()->getCellContent(row, i).contains(QRegExp(filter, cs)))
+                if(list()->getCellContentUnsafe(row, i).contains(QRegExp(filter, cs)))
                     return true;
             break;
         default:

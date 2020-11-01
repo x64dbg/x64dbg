@@ -22,11 +22,12 @@ public:
     void addColumnAt(int width, QString title, bool isClickable, QString copyTitle = "", SortBy::t sortFn = SortBy::AsText);
     void deleteAllColumns() override;
     void setRowCount(dsint count) override;
+    QString getCellContentUnsafe(int r, int c) override;
+    bool isValidIndex(int r, int c) override;
+    // TODO: type safe interfaces
     void setCellContent(int r, int c, QString s);
-    QString getCellContent(int r, int c) override;
     void setCellUserdata(int r, int c, duint userdata);
     duint getCellUserdata(int r, int c);
-    bool isValidIndex(int r, int c) override;
     void sortRows(int column, bool ascending) override;
 
 protected:

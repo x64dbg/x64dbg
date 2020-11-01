@@ -14,7 +14,7 @@ public:
     SourceView(QString path, duint addr, QWidget* parent = nullptr);
     ~SourceView();
 
-    QString getCellContent(int r, int c) override;
+    QString getCellContentUnsafe(int r, int c) override;
     bool isValidIndex(int r, int c) override;
     void sortRows(int column, bool ascending) override;
     void prepareData() override;

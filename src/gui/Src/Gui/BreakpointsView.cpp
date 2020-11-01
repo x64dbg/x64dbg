@@ -155,7 +155,7 @@ QString BreakpointsView::paintContent(QPainter* painter, dsint rowBase, int rowO
         painter->fillRect(QRect(x, y, w, h), QBrush(mDisasmBackgroundColor));
     auto index = bpIndex(rowBase + rowOffset);
     auto & bp = mBps.at(index);
-    auto cellContent = getCellContent(rowBase + rowOffset, col);
+    auto cellContent = getCellContentUnsafe(rowBase + rowOffset, col);
     if(col > ColType && !bp.addr && !bp.active)
     {
         auto mid = h / 2.0;

@@ -267,7 +267,7 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
 {
     if(col == 0) //address
     {
-        QString wStr = getCellContent(rowBase + rowOffset, col);
+        QString wStr = getCellContentUnsafe(rowBase + rowOffset, col);
 #ifdef _WIN64
         duint addr = wStr.toULongLong(0, 16);
 #else //x86

@@ -26,7 +26,7 @@ QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int row
 {
     bool isaddr = DbgIsDebugging() && getRowCount() > 0 && col == mAddressColumn;
     bool wIsSelected = isSelected(rowBase, rowOffset);
-    QString text = getCellContent(rowBase + rowOffset, col);
+    QString text = getCellContentUnsafe(rowBase + rowOffset, col);
 
     duint wVA = isaddr ? duint(text.toULongLong(&isaddr, 16)) : 0;
     auto wIsTraced = isaddr && DbgFunctions()->GetTraceRecordHitCount(wVA) != 0;

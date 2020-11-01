@@ -45,7 +45,7 @@ ZehSymbolTable::ZehSymbolTable(QWidget* parent)
     Initialize();
 }
 
-QString ZehSymbolTable::getCellContent(int r, int c)
+QString ZehSymbolTable::getCellContentUnsafe(int r, int c)
 {
     QMutexLocker lock(&mMutex);
     if(!isValidIndex(r, c))

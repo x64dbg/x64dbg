@@ -249,7 +249,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     {
         QString content;
         if(referenceManager->currentReferenceView())
-            content = referenceManager->currentReferenceView()->stdList()->getCellContent((int)param1, (int)param2);
+            content = referenceManager->currentReferenceView()->stdList()->getCellContentUnsafe((int)param1, (int)param2);
         auto bytes = content.toUtf8();
         auto data = BridgeAlloc(bytes.size() + 1);
         memcpy(data, bytes.constData(), bytes.size());
@@ -260,7 +260,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     {
         QString content;
         if(referenceManager->currentReferenceView())
-            content = referenceManager->currentReferenceView()->mCurList->getCellContent((int)param1, (int)param2);
+            content = referenceManager->currentReferenceView()->mCurList->getCellContentUnsafe((int)param1, (int)param2);
         auto bytes = content.toUtf8();
         auto data = BridgeAlloc(bytes.size() + 1);
         memcpy(data, bytes.constData(), bytes.size());

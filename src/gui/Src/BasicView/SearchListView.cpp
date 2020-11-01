@@ -129,7 +129,7 @@ bool SearchListView::findTextInList(AbstractStdTable* list, QString text, int ro
     if(startswith)
     {
         for(int i = startcol; i < count; i++)
-            if(list->getCellContent(row, i).startsWith(text, Qt::CaseInsensitive))
+            if(list->getCellContentUnsafe(row, i).startsWith(text, Qt::CaseInsensitive))
                 return true;
     }
     else
@@ -139,12 +139,12 @@ bool SearchListView::findTextInList(AbstractStdTable* list, QString text, int ro
             auto state = mRegexCheckbox->checkState();
             if(state != Qt::Unchecked)
             {
-                if(list->getCellContent(row, i).contains(QRegExp(text, state == Qt::PartiallyChecked ? Qt::CaseInsensitive : Qt::CaseSensitive)))
+                if(list->getCellContentUnsafe(row, i).contains(QRegExp(text, state == Qt::PartiallyChecked ? Qt::CaseInsensitive : Qt::CaseSensitive)))
                     return true;
             }
             else
             {
-                if(list->getCellContent(row, i).contains(text, Qt::CaseInsensitive))
+                if(list->getCellContentUnsafe(row, i).contains(text, Qt::CaseInsensitive))
                     return true;
             }
         }
@@ -160,7 +160,7 @@ void SearchListView::filterEntries()
     QString mLastFirstColValue;
     auto selList = mCurList->getSelection();
     if(!selList.empty() && mCurList->isValidIndex(selList[0], 0))
-        mLastFirstColValue = mCurList->getCellContent(selList[0], 0);
+        mLastFirstColValue = mCurList->getCellContentUnsafe(selList[0], 0);
 
     // get the correct previous list instance
     auto mPrevList = mAbstractSearchList->list()->isVisible() ? mAbstractSearchList->list() : mAbstractSearchList->searchList();
@@ -207,7 +207,7 @@ void SearchListView::filterEntries()
         mCurList->setTableOffset(0);
         for(int i = 0; i < rows; i++)
         {
-            if(mCurList->getCellContent(i, 0) == mLastFirstColValue)
+            if(mCurList->getCellContentUnsafe(i, 0) == mLastFirstColValue)
             {
                 if(rows > mCurList->getViewableRowsCount())
                 {

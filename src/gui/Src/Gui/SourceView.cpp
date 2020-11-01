@@ -41,7 +41,7 @@ SourceView::~SourceView()
     clear();
 }
 
-QString SourceView::getCellContent(int r, int c)
+QString SourceView::getCellContentUnsafe(int r, int c)
 {
     if(!isValidIndex(r, c))
         return QString();
