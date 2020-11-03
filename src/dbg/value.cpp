@@ -623,11 +623,11 @@ bool setflag(const char* string, bool set)
         flag = 0x100000;
     else if(scmp(string, "id"))
         flag = 0x200000;
-    if(eflags & flag && !set)
-        xorval = flag;
-    else if(!(eflags & flag) && set)
-        xorval = flag;
-    return SetContextDataEx(hActiveThread, UE_CFLAGS, eflags ^ xorval);
+    if(set)
+        eflags |= flag;
+    else
+        eflags &= ~flag;
+    return SetContextDataEx(hActiveThread, UE_CFLAGS, eflags);
 }
 
 /**
