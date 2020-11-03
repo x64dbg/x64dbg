@@ -1649,6 +1649,7 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
     char label_text[MAX_LABEL_SIZE] = "";
     char module_text[MAX_MODULE_SIZE] = "";
     char string_text[MAX_STRING_SIZE] = "";
+    char status_text[MAX_STRING_SIZE] = "";
 
     QString valueText = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, register_selected))), mRegisterPlaces[register_selected].valuesize, 16, QChar('0')).toUpper();
     duint register_value = (* ((duint*) registerValue(&wRegDumpStruct, register_selected)));
@@ -1657,10 +1658,19 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
     bool hasString = DbgGetStringAt(register_value, string_text);
     bool hasLabel = DbgGetLabelAt(register_value, SEG_DEFAULT, label_text);
     bool hasModule = DbgGetModuleAt(register_value, module_text);
+    bool hasStatusCode = register_selected == REGISTER_NAME::CAX && (register_value & ArchValue(0xF0000000, 0xFFFFFFFFF0000000)) == 0xC0000000;
+    hasStatusCode = hasStatusCode && DbgFunctions()->StringFormatInline(QString().sprintf("{ntstatus@%X}", register_value).toUtf8().constData(), sizeof(status_text), status_text);
 
     if(hasString && !mONLYMODULEANDLABELDISPLAY.contains(register_selected))
     {
         newText = string_text;
+    }
+    else if(hasStatusCode)
+    {
+        auto colon = strchr(status_text, ':');
+        if(colon)
+            *colon = '\0';
+        newText = status_text;
     }
     else if(hasLabel && hasModule)
     {
