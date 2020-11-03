@@ -625,7 +625,7 @@ bool setflag(const char* string, bool set)
         flag = 0x200000;
     if(eflags & flag && !set)
         xorval = flag;
-    else if(set)
+    else if(!(eflags & flag) && set)
         xorval = flag;
     return SetContextDataEx(hActiveThread, UE_CFLAGS, eflags ^ xorval);
 }
