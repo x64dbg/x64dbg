@@ -280,7 +280,7 @@ void CommandLineEdit::scriptTypeChanged(int index)
     BridgeSettingGetUint("Engine", "TimeWastedDebugging", &timeWastedDebugging);
     if(index == 0 && timeWastedDebugging < 60 * 60 * 10)
     {
-        setPlaceholderText(tr("Command are comma separated (like assembly instructions): mov eax, ebx"));
+        setPlaceholderText(tr("Commands are comma separated (like assembly instructions): mov eax, ebx"));
     }
     else
     {
