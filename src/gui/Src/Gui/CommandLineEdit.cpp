@@ -275,6 +275,18 @@ void CommandLineEdit::scriptTypeChanged(int index)
 {
     mCurrentScriptIndex = index;
 
+    // Custom placeholder for the default commands
+    duint timeWastedDebugging = 0;
+    BridgeSettingGetUint("Engine", "TimeWastedDebugging", &timeWastedDebugging);
+    if(index == 0 && timeWastedDebugging < 60 * 60 * 10)
+    {
+        setPlaceholderText(tr("Command are comma separated (like assembly instructions): mov eax, ebx"));
+    }
+    else
+    {
+        setPlaceholderText(QString());
+    }
+
     // Force reset autocompletion (blank string)
     emit textEdited("");
 }
