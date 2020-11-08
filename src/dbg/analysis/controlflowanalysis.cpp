@@ -325,10 +325,10 @@ void ControlFlowAnalysis::Functions()
     dprintf("%d/%u unreferenced blocks\n", unreferencedCount, DWORD(mBlocks.size()));
     dprintf("%u functions found!\n", DWORD(mFunctions.size()));
 
-    for (const auto& function: mFunctions)
+    for(const auto & function : mFunctions)
     {
-       dprintf("%p function\n",
-           reinterpret_cast<decltype(function.first)*>(function.first));
+        dprintf("%p function\n",
+                reinterpret_cast<decltype(function.first)*>(function.first));
     }
 }
 
