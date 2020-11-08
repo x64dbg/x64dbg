@@ -294,18 +294,19 @@ void ControlFlowAnalysis::Functions()
         if(!function)
         {
             continue;
-            /*dprintf("unresolved block %s\n", blockToString(block).c_str());
-            if(parents)
-            {
-                dprintf("parents:\n");
-                for(auto parent : *parents)
-                    dprintf("  %s\n", blockToString(findBlock(parent)).c_str());
-            }
-            else
-                dprintf("parents: null");
-            dprintf("left: %s\n", blockToString(findBlock(block->left)).c_str());
-            dprintf("right: %s\n", blockToString(findBlock(block->right)).c_str());
-            return;*/
+            // dprintf("unresolved block %s\n", blockToString(block).c_str());
+            // if(parents)
+            // {
+            //     dprintf("parents:\n");
+            //     for(auto parent : *parents)
+            //         dprintf("  %s\n", blockToString(findBlock(parent)).c_str());
+            // }
+            // else
+            //     dprintf("parents: null");
+            // dprintf("left: %s\n", blockToString(findBlock(block->left)).c_str());
+            // dprintf("right: %s\n", blockToString(findBlock(block->right)).c_str());
+            //return;
+            //continue;
         }
         block->function = function;
         resolved++;
@@ -324,6 +325,12 @@ void ControlFlowAnalysis::Functions()
     }
     dprintf("%d/%u unreferenced blocks\n", unreferencedCount, DWORD(mBlocks.size()));
     dprintf("%u functions found!\n", DWORD(mFunctions.size()));
+
+    for (const auto& function: mFunctions)
+    {
+       dprintf("%p function\n",
+           reinterpret_cast<decltype(function.first)*>(function.first));
+    }
 }
 
 void ControlFlowAnalysis::FunctionRanges()
