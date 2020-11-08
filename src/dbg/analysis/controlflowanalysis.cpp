@@ -295,16 +295,16 @@ void ControlFlowAnalysis::Functions()
         {
             continue;
             /*dprintf("unresolved block %s\n", blockToString(block).c_str());
-             if(parents)
-             {
-                 dprintf("parents:\n");
-                 for(auto parent : *parents)
-                     dprintf("  %s\n", blockToString(findBlock(parent)).c_str());
-             }
-             else
-                 dprintf("parents: null");
-             dprintf("left: %s\n", blockToString(findBlock(block->left)).c_str());
-             dprintf("right: %s\n", blockToString(findBlock(block->right)).c_str());
+            if(parents)
+            {
+                dprintf("parents:\n");
+                for(auto parent : *parents)
+                    dprintf("  %s\n", blockToString(findBlock(parent)).c_str());
+            }
+            else
+                dprintf("parents: null");
+            dprintf("left: %s\n", blockToString(findBlock(block->left)).c_str());
+            dprintf("right: %s\n", blockToString(findBlock(block->right)).c_str());
             return;*/
         }
         block->function = function;
