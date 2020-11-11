@@ -1231,6 +1231,19 @@ bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONI
     return !Relocations.empty();
 }
 
+const RUNTIME_FUNCTION* MODINFO::findRuntimeFunction(DWORD rva) const
+{
+    const auto found = std::lower_bound(runtimeFunctions.cbegin(), runtimeFunctions.cend(), rva, [](const RUNTIME_FUNCTION & a, const DWORD & rva)
+    {
+        return a.EndAddress <= rva;
+    });
+
+    if(found != runtimeFunctions.cend() && rva >= found->BeginAddress)
+        return &*found;
+
+    return nullptr;
+}
+
 bool MODINFO::loadSymbols(const String & pdbPath, bool forceLoad)
 {
     unloadSymbols();

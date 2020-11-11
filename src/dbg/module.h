@@ -92,6 +92,8 @@ struct MODINFO
     std::vector<duint> tlsCallbacks;
 #if _WIN64
     std::vector<RUNTIME_FUNCTION> runtimeFunctions; //sorted by (begin, end)
+
+    const RUNTIME_FUNCTION* findRuntimeFunction(DWORD rva) const;
 #endif // _WIN64
 
     MODEXPORT entrySymbol;

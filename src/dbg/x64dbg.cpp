@@ -447,6 +447,7 @@ static void registercommands()
     dbgcmdnew("AnimateWait", cbInstrAnimateWait, true); //Wait for the debuggee to pause.
     dbgcmdnew("dbdecompress", cbInstrDbdecompress, false); //Decompress a database.
     dbgcmdnew("DebugFlags", cbInstrDebugFlags, false); //Set ntdll LdrpDebugFlags
+    dbgcmdnew("LabelRuntimeFunctions", cbInstrLabelRuntimeFunctions, true); //Label exception directory entries
 };
 
 bool cbCommandProvider(char* cmd, int maxlen)

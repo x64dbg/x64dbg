@@ -534,3 +534,54 @@ bool cbInstrDebugFlags(int argc, char* argv[])
     dprintf_untranslated("DebugFlags = 0x%08X\n", debugFlags);
     return true;
 }
+
+bool cbInstrLabelRuntimeFunctions(int argc, char* argv[])
+{
+#ifdef _WIN64
+    if(argc < 2)
+    {
+        dputs_untranslated("Usage: LabelRuntimeFunctions modaddr");
+        return false;
+    }
+    auto modaddr = DbgValFromString(argv[1]);
+    SHARED_ACQUIRE(LockModules);
+    auto info = ModInfoFromAddr(modaddr);
+    if(info)
+    {
+        std::vector<COMMENTSINFO> comments;
+        CommentGetList(comments);
+        for(const auto & comment : comments)
+        {
+            if(comment.modhash == info->hash)
+            {
+                if(!comment.manual && comment.text.find("RUNTIME_FUNCTION") == 0)
+                {
+                    CommentDelete(comment.addr + info->base);
+                }
+            }
+        }
+        for(const auto & runtimeFunction : info->runtimeFunctions)
+        {
+            auto setComment = [info](duint addr, const char* prefix)
+            {
+                char comment[MAX_COMMENT_SIZE] = "";
+                if(!CommentGet(addr, comment))
+                    strncpy_s(comment, "RUNTIME_FUNCTION", _TRUNCATE);
+                strncat_s(comment, " ", _TRUNCATE);
+                strncat_s(comment, prefix, _TRUNCATE);
+                CommentSet(addr, comment, false);
+            };
+            setComment(info->base + runtimeFunction.BeginAddress, "BeginAddress");
+            setComment(info->base + runtimeFunction.EndAddress, "EndAddress");
+        }
+        GuiUpdateAllViews();
+    }
+    else
+    {
+        dprintf_untranslated("No module found at %p\n", modaddr);
+    }
+    return true;
+#else
+    return false;
+#endif // _WIN64
+}
