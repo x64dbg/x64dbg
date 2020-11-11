@@ -1510,10 +1510,6 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
             duint setting = DebugEngineTitanEngine;
             if(!BridgeSettingGetUint("Engine", "DebugEngine", &setting))
             {
-                auto msg = String(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "GleeBug is now available for beta testing, would you like to enable it? Some bugs can be expected, but generally things are looking stable!\n\nYou can change this setting in the Settings dialog.")));
-                auto title = String(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "New debug engine available!")));
-                if(MessageBoxW(GuiGetWindowHandle(), StringUtils::Utf8ToUtf16(msg).c_str(), StringUtils::Utf8ToUtf16(title).c_str(), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES)
-                    setting = DebugEngineGleeBug;
                 BridgeSettingSetUint("Engine", "DebugEngine", setting);
             }
             return (DEBUG_ENGINE)setting;
