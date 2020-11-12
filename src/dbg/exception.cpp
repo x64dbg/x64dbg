@@ -188,7 +188,6 @@ std::vector<CONSTANTINFO> ErrorCodeList()
 
 bool SyscallInit()
 {
-    EXCLUSIVE_ACQUIRE(LockModules);
     auto retrieveSyscalls = [](const char* moduleName)
     {
         auto moduleHandle = GetModuleHandleA(moduleName);

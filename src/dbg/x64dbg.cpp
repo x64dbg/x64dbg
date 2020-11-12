@@ -574,8 +574,23 @@ static bool DbgScriptDllExec(const char* dll)
     return true;
 }
 
-static DWORD WINAPI loadDbThread(LPVOID)
+static DWORD WINAPI loadDbThread(LPVOID hEvent)
 {
+    {
+        // Take exclusive ownership over the modules to prevent a race condition with cbCreateProcess
+        EXCLUSIVE_ACQUIRE(LockModules);
+
+        // Signal the startup thread that we have the lock
+        SetEvent(hEvent);
+
+        // Load syscall indices
+        dputs(QT_TRANSLATE_NOOP("DBG", "Retrieving syscall indices..."));
+        if(SyscallInit())
+            dputs(QT_TRANSLATE_NOOP("DBG", "Syscall indices loaded!"));
+        else
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load syscall indices..."));
+    }
+
     // Load error codes
     if(ErrorCodeInit(StringUtils::sprintf("%s\\..\\errordb.txt", szProgramDir)))
         dputs(QT_TRANSLATE_NOOP("DBG", "Error codes database loaded!"));
@@ -608,13 +623,6 @@ static DWORD WINAPI loadDbThread(LPVOID)
         GuiSetGlobalNotes(text.c_str());
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Reading notes failed..."));
-
-    // Load syscall indices
-    dputs(QT_TRANSLATE_NOOP("DBG", "Retrieving syscall indices..."));
-    if(SyscallInit())
-        dputs(QT_TRANSLATE_NOOP("DBG", "Syscall indices loaded!"));
-    else
-        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to load syscall indices..."));
 
     dputs(QT_TRANSLATE_NOOP("DBG", "File read thread finished!"));
 
@@ -713,7 +721,13 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     initDataInstMap();
 
     dputs(QT_TRANSLATE_NOOP("DBG", "Start file read thread..."));
-    CloseHandle(CreateThread(nullptr, 0, loadDbThread, nullptr, 0, nullptr));
+    {
+        auto hEvent = CreateEventW(nullptr, false, FALSE, nullptr);
+        CloseHandle(CreateThread(nullptr, 0, loadDbThread, hEvent, 0, nullptr));
+        // Wait until the loadDbThread signals it's finished
+        WaitForSingleObject(hEvent, INFINITE);
+        CloseHandle(hEvent);
+    }
 
     // Create database directory in the local debugger folder
     DbSetPath(StringUtils::sprintf("%s\\db", szProgramDir).c_str(), nullptr);
