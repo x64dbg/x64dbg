@@ -944,16 +944,19 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
 
 void cbUserBreakpoint()
 {
+    lastExceptionInfo = ((DEBUG_EVENT*)GetDebugData())->u.Exception;
     cbGenericBreakpoint(BPNORMAL);
 }
 
 void cbHardwareBreakpoint(void* ExceptionAddress)
 {
+    lastExceptionInfo = ((DEBUG_EVENT*)GetDebugData())->u.Exception;
     cbGenericBreakpoint(BPHARDWARE, ExceptionAddress);
 }
 
 void cbMemoryBreakpoint(void* ExceptionAddress)
 {
+    lastExceptionInfo = ((DEBUG_EVENT*)GetDebugData())->u.Exception;
     cbGenericBreakpoint(BPMEMORY, ExceptionAddress);
 }
 
