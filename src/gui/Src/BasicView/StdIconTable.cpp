@@ -65,6 +65,10 @@ QString StdIconTable::paintContent(QPainter* painter, dsint rowBase, int rowOffs
 {
     if(col == mIconColumn)
     {
+        // Draw the selection first, so that transparent icons are drawn properly
+        if(isSelected(rowBase, rowOffset))
+            painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
+
         mIcon.at(rowBase + rowOffset).paint(painter, x, y, h, h);
         QString wStr = StdTable::paintContent(painter, rowBase, rowOffset, col, x + h, y, w, h);
 
