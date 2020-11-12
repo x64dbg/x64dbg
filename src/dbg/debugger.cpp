@@ -1460,6 +1460,8 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     threadInfo.lpStartAddress = CreateProcessInfo->lpStartAddress;
     threadInfo.lpThreadLocalBase = CreateProcessInfo->lpThreadLocalBase;
     ThreadCreate(&threadInfo);
+
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
 }
 
 static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
@@ -1618,10 +1620,7 @@ static void cbSystemBreakpoint(void* ExceptionData) // TODO: System breakpoint e
     GuiUpdateAllViews();
 
     //log message
-    if(bIsAttached)
-        dputs(QT_TRANSLATE_NOOP("DBG", "Attach breakpoint reached!"));
-    else
-        dputs(QT_TRANSLATE_NOOP("DBG", "System breakpoint reached!"));
+    dputs(QT_TRANSLATE_NOOP("DBG", "System breakpoint reached!"));
     dbgsetskipexceptions(false); //we are not skipping first-chance exceptions
 
     //plugin callbacks
@@ -1636,7 +1635,7 @@ static void cbSystemBreakpoint(void* ExceptionData) // TODO: System breakpoint e
         dputs(QT_TRANSLATE_NOOP("DBG", "It has been detected that the debuggee entry point is in the MZ header of the executable. This will cause strange behavior, so the system breakpoint has been enabled regardless of your setting. Be careful!"));
         systemBreakpoint = true;
     }
-    if(bIsAttached ? settingboolget("Events", "AttachBreakpoint") : systemBreakpoint)
+    if(systemBreakpoint)
     {
         //lock
         GuiSetDebugStateAsync(paused);
@@ -2012,6 +2011,20 @@ static void cbAttachDebugger()
         tidToResume = 0;
     }
     varset("$pid", fdProcessInfo->dwProcessId, true);
+
+    //Get on top of things
+    SetForegroundWindow(GuiGetWindowHandle());
+
+    // Update GUI (this should be the first triggered event)
+    duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+    GuiDumpAt(MemFindBaseAddr(cip, 0, true)); //dump somewhere
+    DebugUpdateGuiSetStateAsync(cip, true, running);
+
+    MemInitRemoteProcessCookie(cookie.cookie);
+    GuiUpdateAllViews();
+
+    dputs(QT_TRANSLATE_NOOP("DBG", "Attached to process!"));
+    dbgsetskipexceptions(false); //we are not skipping first-chance exceptions
 }
 
 cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline)

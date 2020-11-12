@@ -51,7 +51,7 @@
    <item>
     <widget class="QGroupBox" name="groupBoxDebuggee">
      <property name="title">
-      <string>2. System breakpoint script for a specific process (attach to a process to specify)</string>
+      <string>2. System breakpoint script for a specific process (debug a process to specify)</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>

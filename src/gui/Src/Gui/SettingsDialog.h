@@ -36,7 +36,6 @@ private slots:
     void on_chkDllEntry_stateChanged(int arg1);
     void on_chkDllEntrySystem_stateChanged(int arg1);
     void on_chkThreadEntry_stateChanged(int arg1);
-    void on_chkAttachBreakpoint_stateChanged(int arg1);
     void on_chkDllLoad_stateChanged(int arg1);
     void on_chkDllUnload_stateChanged(int arg1);
     void on_chkDllLoadSystem_stateChanged(int arg1);
@@ -149,7 +148,6 @@ private:
         bool eventDllEntry;
         bool eventDllEntrySystem;
         bool eventThreadEntry;
-        bool eventAttachBreakpoint;
         bool eventDllLoad;
         bool eventDllUnload;
         bool eventDllLoadSystem;
