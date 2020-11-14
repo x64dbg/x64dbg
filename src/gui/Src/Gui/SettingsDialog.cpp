@@ -17,7 +17,6 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     adjustSize();
     bTokenizerConfigUpdated = false;
     bDisableAutoCompleteUpdated = false;
-    bAsciiAddressDumpModeUpdated = false;
     LoadSettings(); //load settings from file
     connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
     lastException = 0;
@@ -57,7 +56,8 @@ void SettingsDialog::LoadSettings()
     settings.eventSystemBreakpoint = true;
     settings.eventTlsCallbacks = true;
     settings.eventEntryBreakpoint = true;
-    settings.eventAttachBreakpoint = true;
+    settings.eventNtTerminateProcess = false;
+    settings.engineType = DebugEngineTitanEngine;
     settings.engineCalcType = calc_unsigned;
     settings.engineBreakpointType = break_int3short;
     settings.engineUndecorateSymbolNames = true;
@@ -86,28 +86,35 @@ void SettingsDialog::LoadSettings()
     settings.guiNoForegroundWindow = true;
     settings.guiLoadSaveTabOrder = true;
     settings.guiDisableAutoComplete = false;
-    settings.guiAsciiAddressDumpMode = false;
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);
+    GetSettingBool("Events", "NtTerminateProcess", &settings.eventNtTerminateProcess);
     GetSettingBool("Events", "TlsCallbacks", &settings.eventTlsCallbacks);
+    GetSettingBool("Events", "TlsCallbacksSystem", &settings.eventTlsCallbacksSystem);
     GetSettingBool("Events", "EntryBreakpoint", &settings.eventEntryBreakpoint);
     GetSettingBool("Events", "DllEntry", &settings.eventDllEntry);
+    GetSettingBool("Events", "DllEntrySystem", &settings.eventDllEntrySystem);
     GetSettingBool("Events", "ThreadEntry", &settings.eventThreadEntry);
-    GetSettingBool("Events", "AttachBreakpoint", &settings.eventAttachBreakpoint);
     GetSettingBool("Events", "DllLoad", &settings.eventDllLoad);
     GetSettingBool("Events", "DllUnload", &settings.eventDllUnload);
+    GetSettingBool("Events", "DllLoadSystem", &settings.eventDllLoadSystem);
+    GetSettingBool("Events", "DllUnloadSystem", &settings.eventDllUnloadSystem);
     GetSettingBool("Events", "ThreadStart", &settings.eventThreadStart);
     GetSettingBool("Events", "ThreadEnd", &settings.eventThreadEnd);
     GetSettingBool("Events", "DebugStrings", &settings.eventDebugStrings);
     ui->chkSystemBreakpoint->setCheckState(bool2check(settings.eventSystemBreakpoint));
+    ui->chkNtTerminateProcess->setCheckState(bool2check(settings.eventNtTerminateProcess));
     ui->chkTlsCallbacks->setCheckState(bool2check(settings.eventTlsCallbacks));
+    ui->chkTlsCallbacksSystem->setCheckState(bool2check(settings.eventTlsCallbacksSystem));
     ui->chkEntryBreakpoint->setCheckState(bool2check(settings.eventEntryBreakpoint));
     ui->chkDllEntry->setCheckState(bool2check(settings.eventDllEntry));
+    ui->chkDllEntrySystem->setCheckState(bool2check(settings.eventDllEntrySystem));
     ui->chkThreadEntry->setCheckState(bool2check(settings.eventThreadEntry));
-    ui->chkAttachBreakpoint->setCheckState(bool2check(settings.eventAttachBreakpoint));
     ui->chkDllLoad->setCheckState(bool2check(settings.eventDllLoad));
     ui->chkDllUnload->setCheckState(bool2check(settings.eventDllUnload));
+    ui->chkDllLoadSystem->setCheckState(bool2check(settings.eventDllLoadSystem));
+    ui->chkDllUnloadSystem->setCheckState(bool2check(settings.eventDllUnloadSystem));
     ui->chkThreadStart->setCheckState(bool2check(settings.eventThreadStart));
     ui->chkThreadEnd->setCheckState(bool2check(settings.eventThreadEnd));
     ui->chkDebugStrings->setCheckState(bool2check(settings.eventDebugStrings));
@@ -123,6 +130,10 @@ void SettingsDialog::LoadSettings()
             settings.engineCalcType = (CalcType)cur;
             break;
         }
+    }
+    if(BridgeSettingGetUint("Engine", "DebugEngine", &cur))
+    {
+        settings.engineType = (DEBUG_ENGINE)cur;
     }
     if(BridgeSettingGetUint("Engine", "BreakpointType", &cur))
     {
@@ -158,6 +169,15 @@ void SettingsDialog::LoadSettings()
         break;
     case calc_unsigned:
         ui->radioUnsigned->setChecked(true);
+        break;
+    }
+    switch(settings.engineType)
+    {
+    case DebugEngineTitanEngine:
+        ui->radioTitanEngine->setChecked(true);
+        break;
+    case DebugEngineGleeBug:
+        ui->radioGleeBug->setChecked(true);
         break;
     }
     switch(settings.engineBreakpointType)
@@ -249,7 +269,6 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Gui", "GraphZoomMode", &settings.guiGraphZoomMode);
     GetSettingBool("Gui", "ShowExitConfirmation", &settings.guiShowExitConfirmation);
     GetSettingBool("Gui", "DisableAutoComplete", &settings.guiDisableAutoComplete);
-    GetSettingBool("Gui", "AsciiAddressDumpMode", &settings.guiAsciiAddressDumpMode);
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
     ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
     ui->chkNoCloseDialog->setChecked(settings.guiNoCloseDialog);
@@ -261,7 +280,6 @@ void SettingsDialog::LoadSettings()
     ui->chkGraphZoomMode->setChecked(settings.guiGraphZoomMode);
     ui->chkShowExitConfirmation->setChecked(settings.guiShowExitConfirmation);
     ui->chkDisableAutoComplete->setChecked(settings.guiDisableAutoComplete);
-    ui->chkAsciiAddressDumpMode->setChecked(settings.guiAsciiAddressDumpMode);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -339,19 +357,24 @@ void SettingsDialog::SaveSettings()
 {
     //Events tab
     BridgeSettingSetUint("Events", "SystemBreakpoint", settings.eventSystemBreakpoint);
+    BridgeSettingSetUint("Events", "NtTerminateProcess", settings.eventNtTerminateProcess);
     BridgeSettingSetUint("Events", "TlsCallbacks", settings.eventTlsCallbacks);
+    BridgeSettingSetUint("Events", "TlsCallbacksSystem", settings.eventTlsCallbacksSystem);
     BridgeSettingSetUint("Events", "EntryBreakpoint", settings.eventEntryBreakpoint);
     BridgeSettingSetUint("Events", "DllEntry", settings.eventDllEntry);
+    BridgeSettingSetUint("Events", "DllEntrySystem", settings.eventDllEntrySystem);
     BridgeSettingSetUint("Events", "ThreadEntry", settings.eventThreadEntry);
-    BridgeSettingSetUint("Events", "AttachBreakpoint", settings.eventAttachBreakpoint);
     BridgeSettingSetUint("Events", "DllLoad", settings.eventDllLoad);
     BridgeSettingSetUint("Events", "DllUnload", settings.eventDllUnload);
+    BridgeSettingSetUint("Events", "DllLoadSystem", settings.eventDllLoadSystem);
+    BridgeSettingSetUint("Events", "DllUnloadSystem", settings.eventDllUnloadSystem);
     BridgeSettingSetUint("Events", "ThreadStart", settings.eventThreadStart);
     BridgeSettingSetUint("Events", "ThreadEnd", settings.eventThreadEnd);
     BridgeSettingSetUint("Events", "DebugStrings", settings.eventDebugStrings);
 
     //Engine tab
     BridgeSettingSetUint("Engine", "CalculationType", settings.engineCalcType);
+    BridgeSettingSetUint("Engine", "DebugEngine", settings.engineType);
     BridgeSettingSetUint("Engine", "BreakpointType", settings.engineBreakpointType);
     BridgeSettingSetUint("Engine", "UndecorateSymbolNames", settings.engineUndecorateSymbolNames);
     BridgeSettingSetUint("Engine", "EnableDebugPrivilege", settings.engineEnableDebugPrivilege);
@@ -406,7 +429,6 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Gui", "GraphZoomMode", settings.guiGraphZoomMode);
     BridgeSettingSetUint("Gui", "ShowExitConfirmation", settings.guiShowExitConfirmation);
     BridgeSettingSetUint("Gui", "DisableAutoComplete", settings.guiDisableAutoComplete);
-    BridgeSettingSetUint("Gui", "AsciiAddressDumpMode", settings.guiAsciiAddressDumpMode);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -449,11 +471,6 @@ void SettingsDialog::SaveSettings()
     {
         emit Config()->disableAutoCompleteUpdated();
         bDisableAutoCompleteUpdated = false;
-    }
-    if(bAsciiAddressDumpModeUpdated)
-    {
-        emit Config()->asciiAddressDumpModeUpdated();
-        bAsciiAddressDumpModeUpdated = false;
     }
     if(bGuiOptionsUpdated)
     {
@@ -505,58 +522,47 @@ void SettingsDialog::on_btnSave_clicked()
 
 void SettingsDialog::on_chkSystemBreakpoint_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
-        settings.eventSystemBreakpoint = false;
-    else
-        settings.eventSystemBreakpoint = true;
+    settings.eventSystemBreakpoint = arg1 != Qt::Unchecked;
+}
+
+void SettingsDialog::on_chkNtTerminateProcess_stateChanged(int arg1)
+{
+    settings.eventNtTerminateProcess = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkTlsCallbacks_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
-        settings.eventTlsCallbacks = false;
-    else
-        settings.eventTlsCallbacks = true;
+    settings.eventTlsCallbacks = arg1 != Qt::Unchecked;
+}
+
+void SettingsDialog::on_chkTlsCallbacksSystem_stateChanged(int arg1)
+{
+    settings.eventTlsCallbacksSystem = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkEntryBreakpoint_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
-        settings.eventEntryBreakpoint = false;
-    else
-        settings.eventEntryBreakpoint = true;
+    settings.eventEntryBreakpoint = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkDllEntry_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
-        settings.eventDllEntry = false;
-    else
-        settings.eventDllEntry = true;
+    settings.eventDllEntry = arg1 != Qt::Unchecked;
+}
+
+void SettingsDialog::on_chkDllEntrySystem_stateChanged(int arg1)
+{
+    settings.eventDllEntrySystem = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkThreadEntry_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
-        settings.eventThreadEntry = false;
-    else
-        settings.eventThreadEntry = true;
-}
-
-void SettingsDialog::on_chkAttachBreakpoint_stateChanged(int arg1)
-{
-    if(arg1 == Qt::Unchecked)
-        settings.eventAttachBreakpoint = false;
-    else
-        settings.eventAttachBreakpoint = true;
+    settings.eventThreadEntry = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkConfirmBeforeAtt_stateChanged(int arg1)
 {
-    if(arg1 == Qt::Unchecked)
-        settings.miscSetJITAuto = false;
-    else
-        settings.miscSetJITAuto = true;
+    settings.miscSetJITAuto = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkSetJIT_stateChanged(int arg1)
@@ -608,6 +614,16 @@ void SettingsDialog::on_chkDllUnload_stateChanged(int arg1)
     settings.eventDllUnload = arg1 != Qt::Unchecked;
 }
 
+void SettingsDialog::on_chkDllLoadSystem_stateChanged(int arg1)
+{
+    settings.eventDllLoadSystem = arg1 != Qt::Unchecked;
+}
+
+void SettingsDialog::on_chkDllUnloadSystem_stateChanged(int arg1)
+{
+    settings.eventDllUnloadSystem = arg1 != Qt::Unchecked;
+}
+
 void SettingsDialog::on_chkThreadStart_stateChanged(int arg1)
 {
     settings.eventThreadStart = arg1 != Qt::Unchecked;
@@ -631,6 +647,16 @@ void SettingsDialog::on_radioUnsigned_clicked()
 void SettingsDialog::on_radioSigned_clicked()
 {
     settings.engineCalcType = calc_signed;
+}
+
+void SettingsDialog::on_radioTitanEngine_clicked()
+{
+    settings.engineType = DebugEngineTitanEngine;
+}
+
+void SettingsDialog::on_radioGleeBug_clicked()
+{
+    settings.engineType = DebugEngineGleeBug;
 }
 
 void SettingsDialog::on_radioInt3Short_clicked()
@@ -917,12 +943,6 @@ void SettingsDialog::on_chkDisableAutoComplete_toggled(bool checked)
 {
     settings.guiDisableAutoComplete = checked;
     bDisableAutoCompleteUpdated = true;
-}
-
-void SettingsDialog::on_chkAsciiAddressDumpMode_toggled(bool checked)
-{
-    settings.guiAsciiAddressDumpMode = checked;
-    bAsciiAddressDumpModeUpdated = true;
 }
 
 void SettingsDialog::on_chkUseLocalHelpFile_toggled(bool checked)

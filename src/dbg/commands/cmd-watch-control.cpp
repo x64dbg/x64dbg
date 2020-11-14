@@ -87,6 +87,40 @@ bool cbSetWatchdog(int argc, char* argv[])
     return true;
 }
 
+bool cbSetWatchType(int argc, char* argv[])
+{
+    if(argc < 3)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "No enough arguments for SetWatchType\n"));
+        return false;
+    }
+    duint id;
+    bool ok = valfromstring(argv[1], &id);
+    if(!ok)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error expression in argument 1.\n"));
+        return false;
+    }
+    WATCHVARTYPE newtype;
+    if(_stricmp(argv[2], "uint") == 0)
+        newtype = WATCHVARTYPE::TYPE_UINT;
+    else if(_stricmp(argv[2], "int") == 0)
+        newtype = WATCHVARTYPE::TYPE_INT;
+    else if(_stricmp(argv[2], "float") == 0)
+        newtype = WATCHVARTYPE::TYPE_FLOAT;
+    else if(_stricmp(argv[2], "ascii") == 0)
+        newtype = WATCHVARTYPE::TYPE_ASCII;
+    else if(_stricmp(argv[2], "unicode") == 0)
+        newtype = WATCHVARTYPE::TYPE_UNICODE;
+    else
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Unknown watch type.\n"));
+        return false;
+    }
+    WatchSetType((unsigned int)id, newtype);
+    return true;
+}
+
 bool cbSetWatchExpression(int argc, char* argv[])
 {
     if(argc < 3)

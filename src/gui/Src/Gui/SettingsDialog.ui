@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>381</width>
-    <height>514</height>
+    <height>525</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -40,100 +40,14 @@
        <string>Events</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="1" column="0">
-        <widget class="QCheckBox" name="chkSystemBreakpoint">
+       <item row="11" column="1">
+        <widget class="QCheckBox" name="chkDllUnloadSystem">
          <property name="text">
-          <string>System Breakpoint*</string>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
+          <string>System DLL Unload</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="lblBreakOn">
-         <property name="text">
-          <string>Break on:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QCheckBox" name="chkDllLoad">
-         <property name="text">
-          <string>DLL Load</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="0">
-        <widget class="QCheckBox" name="chkAttachBreakpoint">
-         <property name="text">
-          <string>Attach Breakpoint</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="0">
-        <widget class="QCheckBox" name="chkDllEntry">
-         <property name="text">
-          <string>DLL Entry</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QCheckBox" name="chkEntryBreakpoint">
-         <property name="text">
-          <string>Entry Breakpoint*</string>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QCheckBox" name="chkDllUnload">
-         <property name="text">
-          <string>DLL Unload</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QCheckBox" name="chkTlsCallbacks">
-         <property name="text">
-          <string>TLS Callbacks*</string>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="1">
-        <widget class="QCheckBox" name="chkThreadEnd">
-         <property name="text">
-          <string>Thread End</string>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="0">
-        <widget class="QCheckBox" name="chkThreadEntry">
-         <property name="text">
-          <string>Thread Entry</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="1">
-        <widget class="QCheckBox" name="chkDebugStrings">
-         <property name="text">
-          <string>Debug Strings</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QCheckBox" name="chkThreadStart">
-         <property name="text">
-          <string>Thread Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="0">
+       <item row="12" column="0">
         <spacer name="verticalSpacer_4">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -145,6 +59,120 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="3" column="0">
+        <widget class="QCheckBox" name="chkEntryBreakpoint">
+         <property name="text">
+          <string>Entry Breakpoint*</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1">
+        <widget class="QCheckBox" name="chkDllEntrySystem">
+         <property name="text">
+          <string>System DLL Entry</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QCheckBox" name="chkSystemBreakpoint">
+         <property name="text">
+          <string>System Breakpoint*</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QCheckBox" name="chkNtTerminateProcess">
+         <property name="text">
+          <string>NtTerminateProcess*</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="1">
+        <widget class="QCheckBox" name="chkDllLoadSystem">
+         <property name="text">
+          <string>System DLL Load</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QCheckBox" name="chkThreadStart">
+         <property name="text">
+          <string>Thread Start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="lblBreakOn">
+         <property name="text">
+          <string>Break on:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QCheckBox" name="chkThreadEnd">
+         <property name="text">
+          <string>Thread End</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QCheckBox" name="chkDebugStrings">
+         <property name="text">
+          <string>Debug Strings</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QCheckBox" name="chkThreadEntry">
+         <property name="text">
+          <string>Thread Entry</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QCheckBox" name="chkTlsCallbacksSystem">
+         <property name="text">
+          <string>System TLS Callbacks*</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QCheckBox" name="chkTlsCallbacks">
+         <property name="text">
+          <string>TLS Callbacks*</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QCheckBox" name="chkDllEntry">
+         <property name="text">
+          <string>DLL Entry</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <widget class="QCheckBox" name="chkDllLoad">
+         <property name="text">
+          <string>DLL Load</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <widget class="QCheckBox" name="chkDllUnload">
+         <property name="text">
+          <string>DLL Unload</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -166,22 +194,19 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
-        <widget class="QGroupBox" name="groupBoxCalculationType">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="title">
-          <string>Calculation Type</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
-          <item>
-           <layout class="QHBoxLayout" name="layoutCalulationType">
-            <property name="sizeConstraint">
-             <enum>QLayout::SetNoConstraint</enum>
-            </property>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QGroupBox" name="groupBoxCalculationType">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Calculation Type</string>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
              <widget class="QRadioButton" name="radioSigned">
               <property name="text">
@@ -200,9 +225,35 @@
              </widget>
             </item>
            </layout>
-          </item>
-         </layout>
-        </widget>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="groupBoxDebugEngine">
+           <property name="title">
+            <string>Debug Engine*</string>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QRadioButton" name="radioTitanEngine">
+              <property name="text">
+               <string>TitanEngine</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioGleeBug">
+              <property name="text">
+               <string>GleeBug</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QGroupBox" name="groupBoxDefaultBreakpointType">
@@ -739,13 +790,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="chkAsciiAddressDumpMode">
-         <property name="text">
-          <string>Show ASCII/Unicode in address dump mode</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <spacer name="verticalSpacerGUI">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -943,18 +987,7 @@
  <tabstops>
   <tabstop>tabWidget</tabstop>
   <tabstop>chkSystemBreakpoint</tabstop>
-  <tabstop>chkDllLoad</tabstop>
-  <tabstop>chkTlsCallbacks</tabstop>
-  <tabstop>chkDllUnload</tabstop>
   <tabstop>chkEntryBreakpoint</tabstop>
-  <tabstop>chkThreadStart</tabstop>
-  <tabstop>chkDllEntry</tabstop>
-  <tabstop>chkThreadEnd</tabstop>
-  <tabstop>chkAttachBreakpoint</tabstop>
-  <tabstop>chkDebugStrings</tabstop>
-  <tabstop>chkThreadEntry</tabstop>
-  <tabstop>radioSigned</tabstop>
-  <tabstop>radioUnsigned</tabstop>
   <tabstop>radioInt3Short</tabstop>
   <tabstop>radioInt3Long</tabstop>
   <tabstop>radioUd2</tabstop>

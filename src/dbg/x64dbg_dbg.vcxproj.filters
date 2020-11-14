@@ -895,5 +895,8 @@
     <ClInclude Include="symbolundecorator.h">
       <Filter>Header Files\Symbols</Filter>
     </ClInclude>
+    <ClInclude Include="syscalls.h">
+      <Filter>Header Files\Information</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

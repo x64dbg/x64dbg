@@ -354,13 +354,29 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRID
             Zydis cp;
             auto getregs = !bOnlyCipAutoComments || addr == lastContext.cip;
             disasmget(cp, addr, &instr, getregs);
-            if(!cp.IsNop())
+            // Some nop variants have 'operands' that should be ignored
+            if(cp.Success() && !cp.IsNop())
             {
                 //Ignore register values when not on CIP and OnlyCipAutoComments is enabled: https://github.com/x64dbg/x64dbg/issues/1383
                 if(!getregs)
                 {
                     for(int i = 0; i < instr.argcount; i++)
                         instr.arg[i].value = instr.arg[i].constant;
+                }
+
+                if(addr == lastContext.cip && (cp.GetId() == ZYDIS_MNEMONIC_SYSCALL || (cp.GetId() == ZYDIS_MNEMONIC_INT && cp[0].imm.value.u == 0x2e)))
+                {
+                    auto syscallName = SyscallToName(lastContext.cax);
+                    if(!syscallName.empty())
+                    {
+                        if(!comment.empty())
+                        {
+                            comment.push_back(',');
+                            comment.push_back(' ');
+                        }
+                        comment.append(syscallName);
+                        retval = true;
+                    }
                 }
 
                 for(int i = 0; i < instr.argcount; i++)
@@ -1494,10 +1510,6 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
             duint setting = DebugEngineTitanEngine;
             if(!BridgeSettingGetUint("Engine", "DebugEngine", &setting))
             {
-                auto msg = String(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "GleeBug is now available for beta testing, would you like to enable it? Some bugs can be expected, but generally things are looking stable!\n\nYou can change this setting in the Settings dialog.")));
-                auto title = String(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "New debug engine available!")));
-                if(MessageBoxW(GuiGetWindowHandle(), StringUtils::Utf8ToUtf16(msg).c_str(), StringUtils::Utf8ToUtf16(title).c_str(), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES)
-                    setting = DebugEngineGleeBug;
                 BridgeSettingSetUint("Engine", "DebugEngine", setting);
             }
             return (DEBUG_ENGINE)setting;

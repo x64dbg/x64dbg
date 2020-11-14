@@ -92,6 +92,8 @@ struct MODINFO
     std::vector<duint> tlsCallbacks;
 #if _WIN64
     std::vector<RUNTIME_FUNCTION> runtimeFunctions; //sorted by (begin, end)
+
+    const RUNTIME_FUNCTION* findRuntimeFunction(DWORD rva) const;
 #endif // _WIN64
 
     MODEXPORT entrySymbol;
@@ -138,9 +140,10 @@ struct MODINFO
     const MODEXPORT* findExport(duint rva) const;
 };
 
-bool ModLoad(duint Base, duint Size, const char* FullPath);
+ULONG64 ModRvaToOffset(ULONG64 base, PIMAGE_NT_HEADERS ntHeaders, ULONG64 rva);
+bool ModLoad(duint Base, duint Size, const char* FullPath, bool loadSymbols = true);
 bool ModUnload(duint Base);
-void ModClear();
+void ModClear(bool updateGui = true);
 MODINFO* ModInfoFromAddr(duint Address);
 bool ModNameFromAddr(duint Address, char* Name, bool Extension);
 duint ModBaseFromAddr(duint Address);

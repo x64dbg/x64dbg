@@ -61,7 +61,6 @@ public slots:
     void floatDoubleSlot();
     void floatLongDoubleSlot();
 
-    void addressSlot();
     void addressUnicodeSlot();
     void addressAsciiSlot();
     void disassemblySlot();
@@ -86,7 +85,6 @@ public slots:
     void allocMemorySlot();
 
     void headerButtonReleasedSlot(int colIndex);
-    void asciiAddressDumpModeUpdatedSlot();
 
 private:
     MenuBuilder* mMenuBuilder;
@@ -101,7 +99,6 @@ private:
     CPUDisassembly* mDisas;
     CPUMultiDump* mMultiDump;
     int mAsciiSeparator = 0;
-    bool mAsciiAddressDumpMode;
 
     enum ViewEnum_t
     {

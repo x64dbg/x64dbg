@@ -418,31 +418,40 @@ void AppearanceDialog::colorInfoListInit()
     //clear list
     colorInfoIndex = 0;
     colorInfoList.clear();
+
     //list entries
+    //  Guide lines for entry order:
+    //       1. Most visual and common first
+    //           So mostly that'll be "Background" (most visual)
+    //           followed by "Selection" and "Text" (most common)
+    //       2. others are sorted by read direction (Top to down / left to right)
+    //           Example: "Header Text", "Addresses", "Text",...
+    //
     colorInfoListAppend(tr("General Tables:"), "", "");
-    colorInfoListAppend(tr("Text"), "AbstractTableViewTextColor", "");
-    colorInfoListAppend(tr("Header Text"), "AbstractTableViewHeaderTextColor", "");
     colorInfoListAppend(tr("Background"), "AbstractTableViewBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "AbstractTableViewSelectionColor", "");
+    colorInfoListAppend(tr("Header Text"), "AbstractTableViewHeaderTextColor", "");
+    colorInfoListAppend(tr("Text"), "AbstractTableViewTextColor", "");
     colorInfoListAppend(tr("Separators"), "AbstractTableViewSeparatorColor", "");
+
 
     colorInfoListAppend(tr("Disassembly:"), "", "");
     colorInfoListAppend(tr("Background"), "DisassemblyBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "DisassemblySelectionColor", "");
+    colorInfoListAppend(ArchValue(tr("EIP"), tr("RIP")), "DisassemblyCipColor", "DisassemblyCipBackgroundColor");
+    colorInfoListAppend(tr("Addresses"), "DisassemblyAddressColor", "DisassemblyAddressBackgroundColor");
+    colorInfoListAppend(tr("Selected Addresses"), "DisassemblySelectedAddressColor", "DisassemblySelectedAddressBackgroundColor");
+    colorInfoListAppend(tr("Breakpoints"), "DisassemblyBreakpointColor", "DisassemblyBreakpointBackgroundColor");
+    colorInfoListAppend(tr("Hardware Breakpoints"), "DisassemblyHardwareBreakpointColor", "DisassemblyHardwareBreakpointBackgroundColor");
+    colorInfoListAppend(tr("Labels"), "DisassemblyLabelColor", "DisassemblyLabelBackgroundColor");
     colorInfoListAppend(tr("Bytes"), "DisassemblyBytesColor", "DisassemblyBytesBackgroundColor");
     colorInfoListAppend(tr("Modified Bytes"), "DisassemblyModifiedBytesColor", "DisassemblyModifiedBytesBackgroundColor");
     colorInfoListAppend(tr("Restored Bytes"), "DisassemblyRestoredBytesColor", "DisassemblyRestoredBytesBackgroundColor");
-    colorInfoListAppend(tr("Relocation underline"), "DisassemblyRelocationUnderlineColor", "");
-    colorInfoListAppend(ArchValue(tr("EIP"), tr("RIP")), "DisassemblyCipColor", "DisassemblyCipBackgroundColor");
-    colorInfoListAppend(tr("Breakpoints"), "DisassemblyBreakpointColor", "DisassemblyBreakpointBackgroundColor");
-    colorInfoListAppend(tr("Hardware Breakpoints"), "DisassemblyHardwareBreakpointColor", "DisassemblyHardwareBreakpointBackgroundColor");
     colorInfoListAppend(tr("Bookmarks"), "DisassemblyBookmarkColor", "DisassemblyBookmarkBackgroundColor");
     colorInfoListAppend(tr("Comments"), "DisassemblyCommentColor", "DisassemblyCommentBackgroundColor");
     colorInfoListAppend(tr("Automatic Comments"), "DisassemblyAutoCommentColor", "DisassemblyAutoCommentBackgroundColor");
     colorInfoListAppend(tr("Mnemonic Brief Comments"), "DisassemblyMnemonicBriefColor", "DisassemblyMnemonicBriefBackgroundColor");
-    colorInfoListAppend(tr("Labels"), "DisassemblyLabelColor", "DisassemblyLabelBackgroundColor");
-    colorInfoListAppend(tr("Addresses"), "DisassemblyAddressColor", "DisassemblyAddressBackgroundColor");
-    colorInfoListAppend(tr("Selected Addresses"), "DisassemblySelectedAddressColor", "DisassemblySelectedAddressBackgroundColor");
+    colorInfoListAppend(tr("Relocation underline"), "DisassemblyRelocationUnderlineColor", "");
     colorInfoListAppend(tr("Conditional Jump Lines (jump)"), "DisassemblyConditionalJumpLineTrueColor", "");
     colorInfoListAppend(tr("Conditional Jump Lines (no jump)"), "DisassemblyConditionalJumpLineFalseColor", "");
     colorInfoListAppend(tr("Unconditional Jump Lines"), "DisassemblyUnconditionalJumpLineColor", "");
@@ -450,42 +459,39 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Function Lines"), "DisassemblyFunctionColor", "");
     colorInfoListAppend(tr("Loop Lines"), "DisassemblyLoopColor", "");
 
+
     colorInfoListAppend(tr("SideBar:"), "", "");
+    colorInfoListAppend(tr("Background"), "SideBarBackgroundColor", "");
     colorInfoListAppend(tr("Register Labels"), "SideBarCipLabelColor", "SideBarCipLabelBackgroundColor");
+    colorInfoListAppend(tr("Conditional Jump Lines (jump)"), "SideBarConditionalJumpLineTrueColor", "");
+    colorInfoListAppend(tr("Conditional Jump Backwards Lines (jump)"), "SideBarConditionalJumpLineTrueBackwardsColor", "");
+    colorInfoListAppend(tr("Conditional Jump Lines (no jump)"), "SideBarConditionalJumpLineFalseColor", "");
+    colorInfoListAppend(tr("Conditional Jump Backwards Lines (no jump)"), "SideBarConditionalJumpLineFalseBackwardsColor", "");
+    colorInfoListAppend(tr("Unconditional Jump Lines (jump)"), "SideBarUnconditionalJumpLineTrueColor", "");
+    colorInfoListAppend(tr("Unconditional Jump Backwards Lines (jump)"), "SideBarUnconditionalJumpLineTrueBackwardsColor", "");
+    colorInfoListAppend(tr("Unconditional Jump Lines (no jump)"), "SideBarUnconditionalJumpLineFalseColor", "");
+    colorInfoListAppend(tr("Unconditional Jump Backwards Lines (no jump)"), "SideBarUnconditionalJumpLineFalseBackwardsColor", "");
+    colorInfoListAppend(tr("Code Folding Checkbox Color"), "SideBarCheckBoxForeColor", "SideBarCheckBoxBackColor");
     colorInfoListAppend(tr("Bullets"), "SideBarBulletColor", "");
     colorInfoListAppend(tr("Breakpoint bullets"), "SideBarBulletBreakpointColor", "");
     colorInfoListAppend(tr("Disabled Breakpoint bullets"), "SideBarBulletDisabledBreakpointColor", "");
     colorInfoListAppend(tr("Bookmark bullets"), "SideBarBulletBookmarkColor", "");
-    colorInfoListAppend(tr("Conditional Jump Lines (jump)"), "SideBarConditionalJumpLineTrueColor", "");
-    colorInfoListAppend(tr("Conditional Jump Lines (no jump)"), "SideBarConditionalJumpLineFalseColor", "");
-    colorInfoListAppend(tr("Unconditional Jump Lines (jump)"), "SideBarUnconditionalJumpLineTrueColor", "");
-    colorInfoListAppend(tr("Unconditional Jump Lines (no jump)"), "SideBarUnconditionalJumpLineFalseColor", "");
-    colorInfoListAppend(tr("Conditional Jump Backwards Lines (jump)"), "SideBarConditionalJumpLineTrueBackwardsColor", "");
-    colorInfoListAppend(tr("Conditional Jump Backwards Lines (no jump)"), "SideBarConditionalJumpLineFalseBackwardsColor", "");
-    colorInfoListAppend(tr("Unconditional Jump Backwards Lines (jump)"), "SideBarUnconditionalJumpLineTrueBackwardsColor", "");
-    colorInfoListAppend(tr("Unconditional Jump Backwards Lines (no jump)"), "SideBarUnconditionalJumpLineFalseBackwardsColor", "");
-    colorInfoListAppend(tr("Code Folding Checkbox Color"), "SideBarCheckBoxForeColor", "SideBarCheckBoxBackColor");
-    colorInfoListAppend(tr("Background"), "SideBarBackgroundColor", "");
+
 
     colorInfoListAppend(tr("Registers:"), "", "");
-    colorInfoListAppend(tr("Text"), "RegistersColor", "");
     colorInfoListAppend(tr("Background"), "RegistersBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "RegistersSelectionColor", "");
-    colorInfoListAppend(tr("Modified Registers"), "RegistersModifiedColor", "");
     colorInfoListAppend(tr("Register Names"), "RegistersLabelColor", "");
     colorInfoListAppend(tr("Argument Register Names"), "RegistersArgumentLabelColor", "");
-    colorInfoListAppend(tr("Extra Information"), "RegistersExtraInfoColor", "");
+    colorInfoListAppend(tr("Text"), "RegistersColor", "");
+    colorInfoListAppend(tr("Modified Registers"), "RegistersModifiedColor", "");
     colorInfoListAppend(tr("Highlight Read"), "RegistersHighlightReadColor", "");
     colorInfoListAppend(tr("Highlight Write"), "RegistersHighlightWriteColor", "");
     colorInfoListAppend(tr("Highlight Read+Write"), "RegistersHighlightReadWriteColor", "");
+    colorInfoListAppend(tr("Extra Information"), "RegistersExtraInfoColor", "");
+
 
     colorInfoListAppend(tr("Instructions:"), "", "");
-    colorInfoListAppend(tr("Text"), "InstructionUncategorizedColor", "InstructionUncategorizedBackgroundColor");
-    colorInfoListAppend(tr("Highlighting"), "InstructionHighlightColor", "InstructionHighlightBackgroundColor");
-    colorInfoListAppend(tr("Commas"), "InstructionCommaColor", "InstructionCommaBackgroundColor");
-    colorInfoListAppend(tr("Prefixes"), "InstructionPrefixColor", "InstructionPrefixBackgroundColor");
-    colorInfoListAppend(tr("Addresses"), "InstructionAddressColor", "InstructionAddressBackgroundColor");
-    colorInfoListAppend(tr("Values"), "InstructionValueColor", "InstructionValueBackgroundColor");
     colorInfoListAppend(tr("Mnemonics"), "InstructionMnemonicColor", "InstructionMnemonicBackgroundColor");
     colorInfoListAppend(tr("Push/Pops"), "InstructionPushPopColor", "InstructionPushPopBackgroundColor");
     colorInfoListAppend(tr("Calls"), "InstructionCallColor", "InstructionCallBackgroundColor");
@@ -496,6 +502,12 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("FAR"), "InstructionFarColor", "InstructionFarBackgroundColor");
     colorInfoListAppend(tr("INT3s"), "InstructionInt3Color", "InstructionInt3BackgroundColor");
     colorInfoListAppend(tr("Unusual Instructions"), "InstructionUnusualColor", "InstructionUnusualBackgroundColor");
+
+    colorInfoListAppend(tr("Prefixes"), "InstructionPrefixColor", "InstructionPrefixBackgroundColor");
+    colorInfoListAppend(tr("Addresses"), "InstructionAddressColor", "InstructionAddressBackgroundColor");
+    colorInfoListAppend(tr("Values"), "InstructionValueColor", "InstructionValueBackgroundColor");
+    colorInfoListAppend(tr("Commas"), "InstructionCommaColor", "InstructionCommaBackgroundColor");
+
     colorInfoListAppend(tr("General Registers"), "InstructionGeneralRegisterColor", "InstructionGeneralRegisterBackgroundColor");
     colorInfoListAppend(tr("FPU Registers"), "InstructionFpuRegisterColor", "InstructionFpuRegisterBackgroundColor");
     colorInfoListAppend(tr("MMX Registers"), "InstructionMmxRegisterColor", "InstructionMmxRegisterBackgroundColor");
@@ -504,14 +516,21 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("ZMM Registers"), "InstructionZmmRegisterColor", "InstructionZmmRegisterBackgroundColor");
     colorInfoListAppend(tr("Memory Sizes"), "InstructionMemorySizeColor", "InstructionMemorySizeBackgroundColor");
     colorInfoListAppend(tr("Memory Segments"), "InstructionMemorySegmentColor", "InstructionMemorySegmentBackgroundColor");
+    colorInfoListAppend(tr("Text"), "InstructionUncategorizedColor", "InstructionUncategorizedBackgroundColor");
     colorInfoListAppend(tr("Memory Brackets"), "InstructionMemoryBracketsColor", "InstructionMemoryBracketsBackgroundColor");
     colorInfoListAppend(tr("Memory Stack Brackets"), "InstructionMemoryStackBracketsColor", "InstructionMemoryStackBracketsBackgroundColor");
     colorInfoListAppend(tr("Memory Base Registers"), "InstructionMemoryBaseRegisterColor", "InstructionMemoryBaseRegisterBackgroundColor");
     colorInfoListAppend(tr("Memory Index Registers"), "InstructionMemoryIndexRegisterColor", "InstructionMemoryIndexRegisterBackgroundColor");
     colorInfoListAppend(tr("Memory Scales"), "InstructionMemoryScaleColor", "InstructionMemoryScaleBackgroundColor");
     colorInfoListAppend(tr("Memory Operators (+/-/*)"), "InstructionMemoryOperatorColor", "InstructionMemoryOperatorBackgroundColor");
+    colorInfoListAppend(tr("Highlighting"), "InstructionHighlightColor", "InstructionHighlightBackgroundColor");
+
 
     colorInfoListAppend(tr("HexDump:"), "", "");
+    colorInfoListAppend(tr("Background"), "HexDumpBackgroundColor", "");
+    colorInfoListAppend(tr("Selection"), "HexDumpSelectionColor", "");
+    colorInfoListAppend(tr("Addresses"), "HexDumpAddressColor", "HexDumpAddressBackgroundColor");
+    colorInfoListAppend(tr("Labels"), "HexDumpLabelColor", "HexDumpLabelBackgroundColor");
     colorInfoListAppend(tr("Text"), "HexDumpTextColor", "");
     colorInfoListAppend(tr("Modified Bytes"), "HexDumpModifiedBytesColor", "HexDumpModifiedBytesBackgroundColor");
     colorInfoListAppend(tr("Restored Bytes"), "HexDumpRestoredBytesColor", "HexDumpRestoredBytesBackgroundColor");
@@ -519,10 +538,6 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("0x7F Bytes"), "HexDumpByte7FColor", "HexDumpByte7FBackgroundColor");
     colorInfoListAppend(tr("0xFF Bytes"), "HexDumpByteFFColor", "HexDumpByteFFBackgroundColor");
     colorInfoListAppend(tr("IsPrint Bytes"), "HexDumpByteIsPrintColor", "HexDumpByteIsPrintBackgroundColor");
-    colorInfoListAppend(tr("Background"), "HexDumpBackgroundColor", "");
-    colorInfoListAppend(tr("Selection"), "HexDumpSelectionColor", "");
-    colorInfoListAppend(tr("Addresses"), "HexDumpAddressColor", "HexDumpAddressBackgroundColor");
-    colorInfoListAppend(tr("Labels"), "HexDumpLabelColor", "HexDumpLabelBackgroundColor");
     colorInfoListAppend(tr("User Code Pointer Highlight Color"), "HexDumpUserModuleCodePointerHighlightColor", "");
     colorInfoListAppend(tr("User Data Pointer Highlight Color"), "HexDumpUserModuleDataPointerHighlightColor", "");
     colorInfoListAppend(tr("System Code Pointer Highlight Color"), "HexDumpSystemModuleCodePointerHighlightColor", "");
@@ -530,28 +545,34 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Unknown Code Pointer Highlight Color"), "HexDumpUnknownCodePointerHighlightColor", "");
     colorInfoListAppend(tr("Unknown Data Pointer Highlight Color"), "HexDumpUnknownDataPointerHighlightColor", "");
 
+
     colorInfoListAppend(tr("Stack:"), "", "");
-    colorInfoListAppend(tr("Text"), "StackTextColor", "");
-    colorInfoListAppend(tr("Inactive Text"), "StackInactiveTextColor", "");
     colorInfoListAppend(tr("Background"), "StackBackgroundColor", "");
-    colorInfoListAppend(tr("Selection"), "StackSelectionColor", "");
     colorInfoListAppend(ArchValue(tr("ESP"), tr("RSP")), "StackCspColor", "StackCspBackgroundColor");
     colorInfoListAppend(tr("Addresses"), "StackAddressColor", "StackAddressBackgroundColor");
     colorInfoListAppend(tr("Selected Addresses"), "StackSelectedAddressColor", "StackSelectedAddressBackgroundColor");
     colorInfoListAppend(tr("Labels"), "StackLabelColor", "StackLabelBackgroundColor");
-    colorInfoListAppend(tr("Return To Comment"), "StackReturnToColor", "");
-    colorInfoListAppend(tr("SEH Chain Comment"), "StackSEHChainColor", "");
     colorInfoListAppend(tr("User Stack Frame Line"), "StackFrameColor", "");
     colorInfoListAppend(tr("System Stack Frame Line"), "StackFrameSystemColor", "");
+    colorInfoListAppend(tr("Text"), "StackTextColor", "");
+    colorInfoListAppend(tr("Inactive Text"), "StackInactiveTextColor", "");
+    colorInfoListAppend(tr("Selection"), "StackSelectionColor", "");
+    colorInfoListAppend(tr("Return To Comment"), "StackReturnToColor", "");
+    colorInfoListAppend(tr("SEH Chain Comment"), "StackSEHChainColor", "");
+
 
     colorInfoListAppend(tr("HexEdit:"), "", "");
-    colorInfoListAppend(tr("Text"), "HexEditTextColor", "");
-    colorInfoListAppend(tr("Wildcards"), "HexEditWildcardColor", "");
     colorInfoListAppend(tr("Background"), "HexEditBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "HexEditSelectionColor", "");
+    colorInfoListAppend(tr("Text"), "HexEditTextColor", "");
+    colorInfoListAppend(tr("Wildcards"), "HexEditWildcardColor", "");
+
 
     colorInfoListAppend(tr("Graph:"), "", "");
     colorInfoListAppend(tr("Background"), "GraphBackgroundColor", "");
+    colorInfoListAppend(ArchValue(tr("EIP"), tr("RIP")), "GraphCipColor", "");
+    colorInfoListAppend(tr("Breakpoint"), "GraphBreakpointColor", "");
+    colorInfoListAppend(tr("Disabled Breakpoint"), "GraphDisabledBreakpointColor", "");
     colorInfoListAppend(tr("Node"), "GraphNodeColor", "GraphNodeBackgroundColor");
     colorInfoListAppend(tr("Current node shadow"), "GraphCurrentShadowColor", "");
     colorInfoListAppend(tr("Terminal node shadow"), "GraphRetShadowColor", "");
@@ -559,30 +580,29 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Unconditional branch line"), "GraphJmpColor", "");
     colorInfoListAppend(tr("True branch line"), "GraphBrtrueColor", "");
     colorInfoListAppend(tr("False branch line"), "GraphBrfalseColor", "");
-    colorInfoListAppend(ArchValue(tr("EIP"), tr("RIP")), "GraphCipColor", "");
-    colorInfoListAppend(tr("Breakpoint"), "GraphBreakpointColor", "");
-    colorInfoListAppend(tr("Disabled Breakpoint"), "GraphDisabledBreakpointColor", "");
+
 
     colorInfoListAppend(tr("Other:"), "", "");
+    colorInfoListAppend(tr("Background Flicker Color"), "BackgroundFlickerColor", "");
+    colorInfoListAppend(tr("Log Link Color") + "*", "LogLinkColor", "LogLinkBackgroundColor");
+    colorInfoListAppend(tr("Search Highlight Color"), "SearchListViewHighlightColor", "SearchListViewHighlightBackgroundColor");
+    colorInfoListAppend(tr("Patch located in relocation region"), "PatchRelocatedByteHighlightColor", "");
     colorInfoListAppend(tr("Current Thread"), "ThreadCurrentColor", "ThreadCurrentBackgroundColor");
     colorInfoListAppend(tr("Watch (When Watchdog is Triggered)"), "WatchTriggeredColor", "WatchTriggeredBackgroundColor");
     colorInfoListAppend(tr("Memory Map Breakpoint"), "MemoryMapBreakpointColor", "MemoryMapBreakpointBackgroundColor");
     colorInfoListAppend(tr("Memory Map %1").arg(ArchValue(tr("EIP"), tr("RIP"))), "MemoryMapCipColor", "MemoryMapCipBackgroundColor");
     colorInfoListAppend(tr("Memory Map Section Text"), "MemoryMapSectionTextColor", "");
-    colorInfoListAppend(tr("Search Highlight Color"), "SearchListViewHighlightColor", "SearchListViewHighlightBackgroundColor");
     colorInfoListAppend(tr("Struct primary background"), "StructBackgroundColor", "");
     colorInfoListAppend(tr("Struct secondary background"), "StructAlternateBackgroundColor", "");
-    colorInfoListAppend(tr("Log Link Color") + "*", "LogLinkColor", "LogLinkBackgroundColor");
     colorInfoListAppend(tr("Breakpoint Summary Parentheses"), "BreakpointSummaryParenColor", "");
     colorInfoListAppend(tr("Breakpoint Summary Keywords"), "BreakpointSummaryKeywordColor", "");
     colorInfoListAppend(tr("Breakpoint Summary Strings"), "BreakpointSummaryStringColor", "");
-    colorInfoListAppend(tr("Patch located in relocation region"), "PatchRelocatedByteHighlightColor", "");
     colorInfoListAppend(tr("Symbol User Module Text"), "SymbolUserTextColor", "");
     colorInfoListAppend(tr("Symbol System Module Text"), "SymbolSystemTextColor", "");
     colorInfoListAppend(tr("Symbol Unloaded Text"), "SymbolUnloadedTextColor", "");
     colorInfoListAppend(tr("Symbol Loading Text"), "SymbolLoadingTextColor", "");
     colorInfoListAppend(tr("Symbol Loaded Text"), "SymbolLoadedTextColor", "");
-    colorInfoListAppend(tr("Background Flicker Color"), "BackgroundFlickerColor", "");
+
 
     //dev helper
     const QMap<QString, QColor>* Colors = &Config()->defaultColors;

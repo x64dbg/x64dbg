@@ -26,8 +26,8 @@ QToolTip {
 QWidget {
     color: #e0e0e0;
     background-color: #212121;
-    selection-background-color: #414141;
-    selection-color: #e0e0e0;
+    selection-background-color: #89a2f6;
+    selection-color: #000000;
     background-clip: border;
     border-image: none;
     border: 0px transparent black;
@@ -573,7 +573,8 @@ QPushButton:pressed {
 }
 
 QComboBox {
-    selection-background-color: #414141;
+    selection-background-color: #89a2f6;
+    selection-color: #000000;
     border-style: solid;
     border: 1px solid #212121;
     border-radius: 2px;

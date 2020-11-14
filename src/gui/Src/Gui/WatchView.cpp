@@ -161,6 +161,14 @@ void WatchView::setupContextMenu()
     watchdogBuilder->addAction(makeAction(DIcon("treat_selection_as_tbyte.png"), tr("Is true"), SLOT(watchdogIsTrueSlot()))); // TODO: better icon
     watchdogBuilder->addAction(makeAction(DIcon("treat_selection_as_fword.png"), tr("Is false"), SLOT(watchdogIsFalseSlot())));
     mMenu->addMenu(watchdogMenu, watchdogBuilder);
+    MenuBuilder* typeBuilder = new MenuBuilder(this, nonEmptyFunc);
+    QMenu* typeMenu = new QMenu(tr("Type"), this);
+    typeBuilder->addAction(makeAction(DIcon("integer.png"), tr("Uint"), SLOT(setTypeUintSlot())));
+    typeBuilder->addAction(makeAction(DIcon("integer.png"), tr("Int"), SLOT(setTypeIntSlot())));
+    typeBuilder->addAction(makeAction(DIcon("float.png"), tr("Float"), SLOT(setTypeFloatSlot())));
+    typeBuilder->addAction(makeAction(DIcon("ascii.png"), tr("Ascii"), SLOT(setTypeAsciiSlot())));
+    typeBuilder->addAction(makeAction(DIcon("ascii-extended.png"), tr("Unicode"), SLOT(setTypeUnicodeSlot())));
+    mMenu->addMenu(typeMenu, typeBuilder);
     mMenu->addSeparator();
     MenuBuilder* copyMenu = new MenuBuilder(this);
     setupCopyMenu(copyMenu);
@@ -240,7 +248,8 @@ void WatchView::modifyWatchSlot()
 void WatchView::editWatchSlot()
 {
     QString expr;
-    if(SimpleInputBox(this, tr("Enter the expression to watch"), "", expr, tr("Example: [EAX]")))
+    QString originalExpr = getCellContent(getInitialSelection(), 1);
+    if(SimpleInputBox(this, tr("Enter the expression to watch"), originalExpr, expr, tr("Example: [EAX]")))
         DbgCmdExecDirect(QString("SetWatchExpression ").append(getSelectedId()).append(",").append(expr));
     updateWatch();
 }
@@ -272,5 +281,35 @@ void WatchView::watchdogIsTrueSlot()
 void WatchView::watchdogIsFalseSlot()
 {
     DbgCmdExecDirect(QString("SetWatchdog %1, \"isfalse\"").arg(getSelectedId()));
+    updateWatch();
+}
+
+void WatchView::setTypeUintSlot()
+{
+    DbgCmdExecDirect(QString("SetWatchType %1, \"uint\"").arg(getSelectedId()));
+    updateWatch();
+}
+
+void WatchView::setTypeIntSlot()
+{
+    DbgCmdExecDirect(QString("SetWatchType %1, \"int\"").arg(getSelectedId()));
+    updateWatch();
+}
+
+void WatchView::setTypeFloatSlot()
+{
+    DbgCmdExecDirect(QString("SetWatchType %1, \"float\"").arg(getSelectedId()));
+    updateWatch();
+}
+
+void WatchView::setTypeAsciiSlot()
+{
+    DbgCmdExecDirect(QString("SetWatchType %1, \"ascii\"").arg(getSelectedId()));
+    updateWatch();
+}
+
+void WatchView::setTypeUnicodeSlot()
+{
+    DbgCmdExecDirect(QString("SetWatchType %1, \"unicode\"").arg(getSelectedId()));
     updateWatch();
 }

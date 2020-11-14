@@ -83,6 +83,7 @@ public slots:
     void execTRWord();
     void execTRNone();
     void displayCpuWidget();
+    void displayCpuWidgetShowCpu();
     void displaySymbolWidget();
     void displaySourceViewWidget();
     void displayReferencesWidget();

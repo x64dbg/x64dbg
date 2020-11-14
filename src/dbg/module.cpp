@@ -60,7 +60,7 @@ static NTSTATUS ImageNtHeaders(duint base, duint size, PIMAGE_NT_HEADERS* outHea
 }
 
 // Use only with SEC_COMMIT mappings, not SEC_IMAGE! (in that case, just do VA = base + rva...)
-static ULONG64 RvaToVa(ULONG64 base, PIMAGE_NT_HEADERS ntHeaders, ULONG64 rva)
+ULONG64 ModRvaToOffset(ULONG64 base, PIMAGE_NT_HEADERS ntHeaders, ULONG64 rva)
 {
     PIMAGE_SECTION_HEADER section = IMAGE_FIRST_SECTION(ntHeaders);
     for(WORD i = 0; i < ntHeaders->FileHeader.NumberOfSections; ++i)
@@ -96,7 +96,7 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 
     auto rva2offset = [&Info](ULONG64 rva)
     {
-        return RvaToVa(0, Info.headers, rva);
+        return ModRvaToOffset(0, Info.headers, rva);
     };
 
     auto addressOfFunctionsOffset = rva2offset(exportDir->AddressOfFunctions);
@@ -138,7 +138,7 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         auto & entry = Info.exports.back();
         entry.ordinal = i + exportDir->Base;
         entry.rva = addressOfFunctions[i];
-        const auto entryVa = RvaToVa(FileMapVA, Info.headers, entry.rva);
+        const auto entryVa = ModRvaToOffset(FileMapVA, Info.headers, entry.rva);
         entry.forwarded = entryVa >= (ULONG64)exportDir && entryVa < (ULONG64)exportDir + exportDirSize;
         if(entry.forwarded)
         {
@@ -232,7 +232,7 @@ static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     const ULONG64 ordinalFlag = IMAGE64(Info.headers) ? IMAGE_ORDINAL_FLAG64 : IMAGE_ORDINAL_FLAG32;
     auto rva2offset = [&Info](ULONG64 rva)
     {
-        return RvaToVa(0, Info.headers, rva);
+        return ModRvaToOffset(0, Info.headers, rva);
     };
 
     for(size_t moduleIndex = 0; importDescriptor->Name != 0; ++importDescriptor, ++moduleIndex)
@@ -326,7 +326,7 @@ static void ReadTlsCallbacks(MODINFO & Info, ULONG_PTR FileMapVA)
         return;
 
     auto imageBase = HEADER_FIELD(Info.headers, ImageBase);
-    auto tlsArrayOffset = RvaToVa(0, Info.headers, tlsDir->AddressOfCallBacks - imageBase);
+    auto tlsArrayOffset = ModRvaToOffset(0, Info.headers, tlsDir->AddressOfCallBacks - imageBase);
     if(!tlsArrayOffset)
         return;
 
@@ -463,7 +463,7 @@ static void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     const auto supported = [&Info](PIMAGE_DEBUG_DIRECTORY entry)
     {
         // Check for valid RVA
-        const auto offset = RvaToVa(0, Info.headers, entry->AddressOfRawData);
+        const auto offset = ModRvaToOffset(0, Info.headers, entry->AddressOfRawData);
         if(!offset)
             return false;
 
@@ -556,7 +556,7 @@ static void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     }
 
     // At this point we know the entry is a valid CV one
-    auto cvData = (unsigned char*)(FileMapVA + RvaToVa(0, Info.headers, entry->AddressOfRawData));
+    auto cvData = (unsigned char*)(FileMapVA + ModRvaToOffset(0, Info.headers, entry->AddressOfRawData));
     auto signature = *(DWORD*)cvData;
     if(signature == '01BN')
     {
@@ -757,7 +757,7 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
 #undef GetUnsafeModuleInfo
 }
 
-bool ModLoad(duint Base, duint Size, const char* FullPath)
+bool ModLoad(duint Base, duint Size, const char* FullPath, bool loadSymbols)
 {
     // Handle a new module being loaded
     if(!Base || !Size || !FullPath)
@@ -863,11 +863,14 @@ bool ModLoad(duint Base, duint Size, const char* FullPath)
     }
 
     info.symbols = &EmptySymbolSource; // empty symbol source per default
-    // TODO: setting to auto load symbols
-    for(const auto & pdbPath : info.pdbPaths)
+
+    if(loadSymbols)
     {
-        if(info.loadSymbols(pdbPath, bForceLoadSymbols))
-            break;
+        for(const auto & pdbPath : info.pdbPaths)
+        {
+            if(info.loadSymbols(pdbPath, bForceLoadSymbols))
+                break;
+        }
     }
 
     // Add module to list
@@ -910,7 +913,7 @@ bool ModUnload(duint Base)
     return true;
 }
 
-void ModClear()
+void ModClear(bool updateGui)
 {
     {
         // Clean up all the modules
@@ -925,7 +928,8 @@ void ModClear()
     }
 
     // Tell the symbol updater
-    GuiSymbolUpdateModuleList(0, nullptr);
+    if(updateGui)
+        GuiSymbolUpdateModuleList(0, nullptr);
 }
 
 MODINFO* ModInfoFromAddr(duint Address)
@@ -1226,6 +1230,21 @@ bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONI
 
     return !Relocations.empty();
 }
+
+#if _WIN64
+const RUNTIME_FUNCTION* MODINFO::findRuntimeFunction(DWORD rva) const
+{
+    const auto found = std::lower_bound(runtimeFunctions.cbegin(), runtimeFunctions.cend(), rva, [](const RUNTIME_FUNCTION & a, const DWORD & rva)
+    {
+        return a.EndAddress <= rva;
+    });
+
+    if(found != runtimeFunctions.cend() && rva >= found->BeginAddress)
+        return &*found;
+
+    return nullptr;
+}
+#endif
 
 bool MODINFO::loadSymbols(const String & pdbPath, bool forceLoad)
 {

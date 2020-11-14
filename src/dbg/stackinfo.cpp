@@ -158,20 +158,17 @@ static PVOID CALLBACK StackSymFunctionTableAccess64(HANDLE hProcess, DWORD64 Add
 #ifdef _WIN64
     // https://github.com/dotnet/coreclr/blob/master/src/unwinder/amd64/dbs_stack_x64.cpp
     MODINFO* info = ModInfoFromAddr(AddrBase);
-    if(!info)
-        return nullptr;
-
-    DWORD rva = DWORD(AddrBase - info->base);
-    auto found = std::lower_bound(info->runtimeFunctions.begin(), info->runtimeFunctions.end(), rva, [](const RUNTIME_FUNCTION & a, const DWORD & rva)
+    if(info)
     {
-        return a.EndAddress <= rva;
-    });
-
-    if(found != info->runtimeFunctions.end() && rva >= found->BeginAddress)
-        return &found->BeginAddress;
-#endif // _WIN64
-
+        return (PVOID)info->findRuntimeFunction(DWORD(AddrBase - info->base));
+    }
+    else
+    {
+        return nullptr;
+    }
+#else
     return SymFunctionTableAccess64(hProcess, AddrBase);
+#endif // _WIN64
 }
 
 static DWORD64 CALLBACK StackGetModuleBaseProc64(HANDLE hProcess, DWORD64 Address)
@@ -309,7 +306,7 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
         DWORD machineType = IMAGE_FILE_MACHINE_AMD64;
         frame.AddrPC.Offset = context.Rip;
         frame.AddrPC.Mode = AddrModeFlat;
-        frame.AddrFrame.Offset = context.Rsp;
+        frame.AddrFrame.Offset = context.Rbp;
         frame.AddrFrame.Mode = AddrModeFlat;
         frame.AddrStack.Offset = csp;
         frame.AddrStack.Mode = AddrModeFlat;

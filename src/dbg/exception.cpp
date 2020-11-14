@@ -4,11 +4,15 @@
 #include "filehelper.h"
 #include "value.h"
 #include "console.h"
+#include "threading.h"
+#include "module.h"
+#include "syscalls.h"
 
 static std::unordered_map<unsigned int, String> ExceptionNames;
 static std::unordered_map<unsigned int, String> NtStatusNames;
 static std::unordered_map<unsigned int, String> ErrorNames;
 static std::unordered_map<String, unsigned int> Constants;
+static std::unordered_map<unsigned int, String> SyscallIndices;
 
 static bool UniversalCodeInit(const String & file, std::unordered_map<unsigned int, String> & names, unsigned char radix)
 {
@@ -180,4 +184,79 @@ std::vector<CONSTANTINFO> ErrorCodeList()
         return strcmp(a.name, b.name) < 0;
     });
     return result;
+}
+
+bool SyscallInit()
+{
+    auto retrieveSyscalls = [](const char* moduleName)
+    {
+        auto moduleHandle = GetModuleHandleA(moduleName);
+        if(!moduleHandle)
+            return false;
+        char szModulePath[MAX_PATH];
+        if(!GetModuleFileNameA(moduleHandle, szModulePath, _countof(szModulePath)))
+            return false;
+        if(!ModLoad((duint)moduleHandle, 1, szModulePath, false))
+            return false;
+        auto info = ModInfoFromAddr((duint)moduleHandle);
+        if(info)
+        {
+            for(const MODEXPORT & exportEntry : info->exports)
+            {
+                if(strncmp(exportEntry.name.c_str(), "Nt", 2) != 0)
+                    continue;
+                auto exportData = (const unsigned char*)ModRvaToOffset(info->fileMapVA, info->headers, exportEntry.rva);
+                if(!exportData)
+                    continue;
+                // https://github.com/mrexodia/TitanHide/blob/1c6ba9796e320f399f998b23fba2729122597e87/TitanHide/ntdll.cpp#L75
+                DWORD index = -1;
+                for(int i = 0; i < 32; i++)
+                {
+                    if(exportData[i] == 0xC2 || exportData[i] == 0xC3)   //RET
+                    {
+                        break;
+                    }
+                    if(exportData[i] == 0xB8)   //mov eax,X
+                    {
+                        index = *(DWORD*)(exportData + i + 1);
+                        break;
+                    }
+                }
+                if(index != -1)
+                    SyscallIndices.emplace(index, exportEntry.name);
+            }
+        }
+        else
+        {
+            return false;
+        }
+        return true;
+    };
+
+    // See: https://github.com/x64dbg/ScyllaHide/blob/6817d32581b7a420322f34e36b1a1c8c3e4b434c/Scylla/Win32kSyscalls.h
+    auto result = retrieveSyscalls("ntdll.dll");
+    OSVERSIONINFOW versionInfo = { sizeof(OSVERSIONINFOW) };
+    GetVersionExW(&versionInfo);
+
+    if(versionInfo.dwBuildNumber >= 14393)
+    {
+        result = result && retrieveSyscalls("win32u.dll");
+    }
+    else
+    {
+        for(auto & syscall : Win32kSyscalls)
+        {
+            auto index = syscall.GetSyscallIndex(versionInfo.dwBuildNumber, ArchValue(true, false));
+            if(index != -1)
+                SyscallIndices.insert({ index, syscall.Name });
+        }
+    }
+    ModClear(false);
+    return result;
+}
+
+const String & SyscallToName(unsigned int index)
+{
+    auto found = SyscallIndices.find(index);
+    return found != SyscallIndices.end() ? found->second : emptyString;
 }

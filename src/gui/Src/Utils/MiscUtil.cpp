@@ -7,12 +7,16 @@
 #include "ComboBoxDialog.h"
 #include "StringUtil.h"
 #include "BrowseDialog.h"
+#include <thread>
 
 void SetApplicationIcon(WId winId)
 {
-    HICON hIcon = LoadIcon(GetModuleHandleW(0), MAKEINTRESOURCE(100));
-    SendMessageW((HWND)winId, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-    DestroyIcon(hIcon);
+    std::thread([winId]
+    {
+        HICON hIcon = LoadIcon(GetModuleHandleW(0), MAKEINTRESOURCE(100));
+        SendMessageW((HWND)winId, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+        DestroyIcon(hIcon);
+    }).detach();
 }
 
 QByteArray & ByteReverse(QByteArray & array)
@@ -39,7 +43,7 @@ QByteArray ByteReverse(QByteArray && array)
     return array;
 }
 
-bool SimpleInputBox(QWidget* parent, const QString & title, QString defaultValue, QString & output, const QString & placeholderText, QIcon* icon)
+bool SimpleInputBox(QWidget* parent, const QString & title, QString defaultValue, QString & output, const QString & placeholderText, const QIcon* icon)
 {
     LineEditDialog mEdit(parent);
     mEdit.setWindowIcon(icon ? *icon : parent->windowIcon());
@@ -56,7 +60,7 @@ bool SimpleInputBox(QWidget* parent, const QString & title, QString defaultValue
         return false;
 }
 
-bool SimpleChoiceBox(QWidget* parent, const QString & title, QString defaultValue, const QStringList & choices, QString & output, bool editable, const QString & placeholderText, QIcon* icon, int minimumContentsLength)
+bool SimpleChoiceBox(QWidget* parent, const QString & title, QString defaultValue, const QStringList & choices, QString & output, bool editable, const QString & placeholderText, const QIcon* icon, int minimumContentsLength)
 {
     ComboBoxDialog mChoice(parent);
     mChoice.setWindowIcon(icon ? *icon : parent->windowIcon());

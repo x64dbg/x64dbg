@@ -90,6 +90,25 @@ bool cbInstrAnalrecur(int argc, char* argv[])
     duint entry;
     if(!valfromstring(argv[1], &entry, false))
         return false;
+#ifdef _WIN64
+    // find the closest function
+    {
+        SHARED_ACQUIRE(LockModules);
+        auto info = ModInfoFromAddr(entry);
+        if(info)
+        {
+            DWORD rva = DWORD(entry - info->base);
+            auto runtimeFunction = info->findRuntimeFunction(rva);
+            if(runtimeFunction)
+            {
+                if(runtimeFunction->BeginAddress < rva)
+                {
+                    entry = info->base + runtimeFunction->BeginAddress;
+                }
+            }
+        }
+    }
+#endif // _WIN64
     duint size;
     auto base = MemFindBaseAddr(entry, &size);
     if(!base)

@@ -22,7 +22,7 @@ public slots:
 
 private:
     QAction* makeCommandAction(QAction* action, const QString & command);
-    QString mCurrentThreadId;
+    duint mCurrentThreadId;
     MenuBuilder* mMenuBuilder;
 };
 

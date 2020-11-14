@@ -241,6 +241,21 @@ WATCHVARTYPE WatchGetType(unsigned int id)
         return WATCHVARTYPE::TYPE_INVALID;
 }
 
+void WatchSetTypeUnlocked(unsigned int id, WATCHVARTYPE type)
+{
+    auto obj = watchexpr.find(id);
+    if(obj != watchexpr.end())
+        obj->second->setType(type);
+}
+
+void WatchSetType(unsigned int id, WATCHVARTYPE type)
+{
+    EXCLUSIVE_ACQUIRE(LockWatch);
+    WatchSetTypeUnlocked(id, type);
+    EXCLUSIVE_RELEASE();
+    GuiUpdateWatchViewAsync();
+}
+
 unsigned int WatchGetWindow(unsigned int id)
 {
     SHARED_ACQUIRE(LockWatch);

@@ -399,7 +399,7 @@ bool Zydis::IsBranchType(std::underlying_type_t<BranchType> bt) const
 ZydisMnemonic Zydis::GetId() const
 {
     if(!Success())
-        DebugBreak();
+        return ZYDIS_MNEMONIC_INVALID;
     return mInstr.mnemonic;
 }
 
