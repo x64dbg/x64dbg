@@ -130,7 +130,7 @@ void MemUpdateMap()
         {
             // coherence check, rest of code assumes whole module resides in one region
             // in other cases module information cannot be trusted
-            if(base != modBase || currentPage.mbi.RegionSize != ModSizeFromAddr(modBase))
+            if(base != modBase || currentPage.mbi.RegionSize != ROUND_TO_PAGES(ModSizeFromAddr(modBase)))
                 continue;
 
             MEMPAGE newPage;
