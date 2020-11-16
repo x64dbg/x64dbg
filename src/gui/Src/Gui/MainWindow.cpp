@@ -360,6 +360,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     connect(mTabWidget, SIGNAL(tabMovedTabWidget(int, int)), this, SLOT(tabMovedSlot(int, int)));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
+    connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
 
     // Menu stuff
     actionManageFavourites = nullptr;
@@ -2321,4 +2322,12 @@ void MainWindow::on_actionDefaultTheme_triggered()
     //Config()->writeFonts();
     // Remove custom colors
     BridgeSettingSet("Colors", "CustomColorCount", nullptr);
+}
+
+void MainWindow::updateStyle()
+{
+    // Set configured link color
+    QPalette appPalette = QApplication::palette();
+    appPalette.setColor(QPalette::Link, ConfigColor("LinkColor"));
+    QApplication::setPalette(appPalette);
 }

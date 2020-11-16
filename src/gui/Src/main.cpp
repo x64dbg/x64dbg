@@ -107,6 +107,11 @@ int main(int argc, char* argv[])
     mConfiguration = new Configuration;
     application.setFont(ConfigFont("Application"));
 
+    // Set configured link color
+    QPalette appPalette = application.palette();
+    appPalette.setColor(QPalette::Link, ConfigColor("LinkColor"));
+    application.setPalette(appPalette);
+
     // Register custom data types
     qRegisterMetaType<dsint>("dsint");
     qRegisterMetaType<duint>("duint");
