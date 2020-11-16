@@ -602,6 +602,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Symbol Unloaded Text"), "SymbolUnloadedTextColor", "");
     colorInfoListAppend(tr("Symbol Loading Text"), "SymbolLoadingTextColor", "");
     colorInfoListAppend(tr("Symbol Loaded Text"), "SymbolLoadedTextColor", "");
+    colorInfoListAppend(tr("Link color"), "LinkColor", "");
 
 
     //dev helper

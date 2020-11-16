@@ -231,7 +231,7 @@
             <set>Qt::ImhUrlCharactersOnly</set>
            </property>
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://p.yusukekamiyamane.com&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Yusuke Kamiyamane&lt;/span&gt;&lt;/a&gt;&lt;br/&gt;&lt;a href=&quot;https://github.com/mrfearless&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;mrfearless&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;http://p.yusukekamiyamane.com&quot;&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;Yusuke Kamiyamane&lt;/span&gt;&lt;/a&gt;&lt;br/&gt;&lt;a href=&quot;https://github.com/mrfearless&quot;&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;mrfearless&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="textFormat">
             <enum>Qt::RichText</enum>
