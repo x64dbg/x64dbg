@@ -48,7 +48,8 @@ public:
 
     explicit CommonActions(QWidget* parent, ActionHelperFuncs funcs, GetSelectionFunc getSelection);
     void build(MenuBuilder* builder, int actions);
-    void build(MenuBuilder* builder, int actions, std::function<void(QList<std::pair<QString, duint>>&, CommonActionsList)> additionalAddress);
+    //Reserved for future use (submenu for Dump and Search with more addresses)
+    //void build(MenuBuilder* builder, int actions, std::function<void(QList<std::pair<QString, duint>>&, CommonActionsList)> additionalAddress);
 
     QAction* makeCommandAction(const QIcon & icon, const QString & text, const char* cmd, const char* shortcut);
     QAction* makeCommandAction(const QIcon & icon, const QString & text, const char* cmd);
@@ -71,6 +72,7 @@ public slots:
     void createThreadSlot();
 private:
     GetSelectionFunc mGetSelection;
+    bool WarningBoxNotExecutable(const QString & text, duint wVA);
     QWidget* widgetparent();
 };
 
