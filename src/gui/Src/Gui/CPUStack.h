@@ -42,7 +42,6 @@ public slots:
     void selectionSet(const SELECTIONDATA* selection);
     void selectionUpdatedSlot();
     void followDisasmSlot();
-    void followinDumpNSlot();
     void followStackSlot();
     void binaryEditSlot();
     void binaryFillSlot();
@@ -64,7 +63,6 @@ private:
     QAction* mFreezeStack;
     QAction* mFollowStack;
     QAction* mFollowDisasm;
-    QList<QAction*> mFollowInDumpActions;
     QMenu* mPluginMenu;
 
     GotoDialog* mGoto;

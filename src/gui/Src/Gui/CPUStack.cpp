@@ -282,22 +282,7 @@ void CPUStack::setupContextMenu()
     //Follow PTR in Dump
     auto followDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWORD in &Dump"));
 
-    //Follow in Dump N menu
-    auto followDumpNMenu = new MenuBuilder(this, [this](QMenu*)
-    {
-        duint ptr;
-        return DbgMemRead(rvaToVa(getInitialSelection()), (unsigned char*)&ptr, sizeof(ptr)) && DbgMemIsValidReadPtr(ptr);
-    });
-    int maxDumps = mMultiDump->getMaxCPUTabs();
-    for(int i = 0; i < maxDumps; i++)
-    {
-        auto action = makeAction(tr("Dump %1").arg(i + 1), SLOT(followinDumpNSlot()));
-        followDumpNMenu->addAction(action);
-        mFollowInDumpActions.push_back(action);
-    }
-    mMenuBuilder->addMenu(makeMenu(DIcon("dump.png"), followDumpName.replace("&", "")), followDumpNMenu);
-
-    mCommonActions->build(mMenuBuilder, CommonActions::ActionWatch);
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionDumpN | CommonActions::ActionWatch);
 
     mPluginMenu = new QMenu(this);
     Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_STACK_MENU);
@@ -719,23 +704,6 @@ void CPUStack::followDisasmSlot()
             QString addrText = ToPtrString(selectedData);
             DbgCmdExec(QString("disasm " + addrText));
         }
-}
-
-void CPUStack::followinDumpNSlot()
-{
-    duint selectedData = rvaToVa(getInitialSelection());
-
-    if(DbgMemIsValidReadPtr(selectedData))
-    {
-        for(int i = 0; i < mFollowInDumpActions.length(); i++)
-        {
-            if(mFollowInDumpActions[i] == sender())
-            {
-                QString addrText = QString("%1").arg(ToPtrString(selectedData));
-                DbgCmdExec(QString("dump [%1], %2").arg(addrText.toUtf8().constData()).arg(i + 1));
-            }
-        }
-    }
 }
 
 void CPUStack::followStackSlot()

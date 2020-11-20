@@ -45,6 +45,25 @@ void CommonActions::build(MenuBuilder* builder, int actions)
     {
         builder->addAction(makeCommandAction(DIcon("dump.png"), ArchValue(tr("&Follow DWORD in Current Dump"), tr("&Follow QWORD in Current Dump")), "dump [$]", "ActionFollowDwordQwordDump"), wIsValidReadPtrCallback);
     }
+    if(actions & ActionDumpN)
+    {
+        //Follow in Dump N menu
+        MenuBuilder* followDumpNMenu = new MenuBuilder(this, [this](QMenu*)
+        {
+            duint ptr;
+            return DbgMemRead(mGetSelection(), (unsigned char*)&ptr, sizeof(ptr)) && DbgMemIsValidReadPtr(ptr);
+        });
+        const int maxDumps = 5; // TODO: get this value from CPUMultiDump
+        for(int i = 0; i < maxDumps; i++)
+            // TODO: Get dump tab names
+            followDumpNMenu->addAction(makeAction(tr("Dump %1").arg(i + 1), [i, this]
+        {
+            duint selectedData = mGetSelection();
+            if(DbgMemIsValidReadPtr(selectedData))
+                DbgCmdExec(QString("dump [%1], %2").arg(ToPtrString(selectedData)).arg(i + 1));
+        }));
+        builder->addMenu(makeMenu(DIcon("dump.png"), ArchValue(tr("Follow DWORD in Dump"), tr("Follow QWORD in Dump"))), followDumpNMenu);
+    }
     if(actions & ActionStackDump)
     {
         builder->addAction(makeCommandAction(DIcon("stack.png"), tr("Follow in Stack"), "sdump $", "ActionFollowStack"), [this](QMenu*)
@@ -57,6 +76,10 @@ void CommonActions::build(MenuBuilder* builder, int actions)
     {
         builder->addAction(makeCommandAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), "memmapdump $", "ActionFollowMemMap"), wIsDebugging);
     }
+    if(actions & ActionGraph)
+    {
+        builder->addAction(makeShortcutAction(DIcon("graph.png"), tr("Graph"), std::bind(&CommonActions::graphSlot, this), "ActionGraph"));
+    }
     if(actions & ActionBreakpoint)
     {
         QAction* toggleBreakpointAction = makeShortcutAction(DIcon("breakpoint_toggle.png"), tr("Toggle"), std::bind(&CommonActions::toggleInt3BPActionSlot, this), "ActionToggleBreakpoint");
@@ -66,10 +89,11 @@ void CommonActions::build(MenuBuilder* builder, int actions)
 
         QMenu* replaceSlotMenu = makeMenu(DIcon("breakpoint_execute.png"), tr("Set Hardware on Execution"));
         // Replacement slot menu are only used when the breakpoints are full, so using "Unknown" as the placeholder. Might want to change this in case we display the menu when there are still free slots.
-        QAction* replaceSlot0Action = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot1.png"), tr("Replace Slot 0 (Unknown)"), std::bind(&CommonActions::setHwBpOnSlot0ActionSlot, this));
-        QAction* replaceSlot1Action = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot2.png"), tr("Replace Slot 1 (Unknown)"), std::bind(&CommonActions::setHwBpOnSlot1ActionSlot, this));
-        QAction* replaceSlot2Action = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot3.png"), tr("Replace Slot 2 (Unknown)"), std::bind(&CommonActions::setHwBpOnSlot2ActionSlot, this));
-        QAction* replaceSlot3Action = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot4.png"), tr("Replace Slot 3 (Unknown)"), std::bind(&CommonActions::setHwBpOnSlot3ActionSlot, this));
+        QAction* replaceSlotAction[4];
+        replaceSlotAction[0] = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot1.png"), tr("Replace Slot %1 (Unknown)").arg(1), std::bind(&CommonActions::setHwBpOnSlot0ActionSlot, this));
+        replaceSlotAction[1] = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot2.png"), tr("Replace Slot %1 (Unknown)").arg(2), std::bind(&CommonActions::setHwBpOnSlot1ActionSlot, this));
+        replaceSlotAction[2] = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot3.png"), tr("Replace Slot %1 (Unknown)").arg(3), std::bind(&CommonActions::setHwBpOnSlot2ActionSlot, this));
+        replaceSlotAction[3] = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot4.png"), tr("Replace Slot %1 (Unknown)").arg(4), std::bind(&CommonActions::setHwBpOnSlot3ActionSlot, this));
 
         builder->addMenu(makeMenu(DIcon("breakpoint.png"), tr("Breakpoint")), [ = ](QMenu * menu)
         {
@@ -108,25 +132,9 @@ void CommonActions::build(MenuBuilder* builder, int actions)
                 {
                     for(int i = 0; i < bpList.count; i++)
                     {
-                        if(bpList.bp[i].enabled)
+                        if(bpList.bp[i].enabled && bpList.bp[i].slot < 4)
                         {
-                            switch(bpList.bp[i].slot)
-                            {
-                            case 0:
-                                replaceSlot0Action->setText(tr("Replace Slot %1 (0x%2)").arg(1).arg(ToPtrString(bpList.bp[i].addr)));
-                                break;
-                            case 1:
-                                replaceSlot1Action->setText(tr("Replace Slot %1 (0x%2)").arg(2).arg(ToPtrString(bpList.bp[i].addr)));
-                                break;
-                            case 2:
-                                replaceSlot2Action->setText(tr("Replace Slot %1 (0x%2)").arg(3).arg(ToPtrString(bpList.bp[i].addr)));
-                                break;
-                            case 3:
-                                replaceSlot3Action->setText(tr("Replace Slot %1 (0x%2)").arg(4).arg(ToPtrString(bpList.bp[i].addr)));
-                                break;
-                            default:
-                                break;
-                            }
+                            replaceSlotAction[bpList.bp[i].slot]->setText(tr("Replace Slot %1 (0x%2)").arg(bpList.bp[i].slot + 1).arg(ToPtrString(bpList.bp[i].addr)));
                         }
                     }
                     menu->addMenu(replaceSlotMenu);
@@ -165,6 +173,7 @@ void CommonActions::build(MenuBuilder* builder, int actions)
 
 QAction* CommonActions::makeCommandAction(const QIcon & icon, const QString & text, const char* cmd, const char* shortcut)
 {
+    // sender() doesn't work in slots
     return makeShortcutAction(icon, text, [cmd, this]()
     {
         DbgCmdExec(QString(cmd).replace("$", ToPtrString(mGetSelection())));
@@ -268,10 +277,7 @@ void CommonActions::setBookmarkSlot()
         return;
     duint wVA = mGetSelection();
     bool result;
-    if(DbgGetBookmarkAt(wVA))
-        result = DbgSetBookmarkAt(wVA, false);
-    else
-        result = DbgSetBookmarkAt(wVA, true);
+    result = DbgSetBookmarkAt(wVA, !DbgGetBookmarkAt(wVA));
     if(!result)
         SimpleErrorBox(widgetparent(), tr("Error!"), tr("DbgSetBookmarkAt failed!"));
     GuiUpdateAllViews();
@@ -405,6 +411,12 @@ void CommonActions::setHwBpAt(duint va, int slot)
     }
     if(wBPList.count)
         BridgeFree(wBPList.bp);
+}
+
+void CommonActions::graphSlot()
+{
+    if(DbgCmdExecDirect(QString("graph %1").arg(ToPtrString(mGetSelection()))))
+        GuiFocusView(GUI_GRAPH);
 }
 
 void CommonActions::setNewOriginHereActionSlot()
