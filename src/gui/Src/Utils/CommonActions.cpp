@@ -194,6 +194,7 @@ QWidget* CommonActions::widgetparent()
 }
 
 // Actions slots
+// Follow in disassembly
 void CommonActions::followDisassemblySlot()
 {
     duint cip = mGetSelection();
@@ -283,6 +284,7 @@ void CommonActions::setBookmarkSlot()
     GuiUpdateAllViews();
 }
 
+// Give a warning about the selected address is not executable
 bool CommonActions::WarningBoxNotExecutable(const QString & text, duint wVA)
 {
     if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(wVA, false))
@@ -318,6 +320,7 @@ void CommonActions::toggleInt3BPActionSlot()
     //emit Disassembly::repainted();
 }
 
+// Display the edit breakpoint dialog
 void CommonActions::editSoftBpActionSlot()
 {
     auto selection = mGetSelection();

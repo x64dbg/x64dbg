@@ -311,7 +311,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     {
         return rvaToVa(getInitialSelection());
     });
-    mCommonActions->build(mMenuBuilder, CommonActions::ActionBreakpoint | CommonActions::ActionMemoryMap | CommonActions::ActionGraph | CommonActions::ActionComment | CommonActions::ActionBookmark);
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionBreakpoint);
 
     mMenuBuilder->addMenu(makeMenu(DIcon("dump.png"), tr("&Follow in Dump")), [this](QMenu * menu)
     {
@@ -325,7 +325,7 @@ void CPUDisassembly::setupRightClickContextMenu()
         return menu->actions().length() != 0; //only add this menu if there is something to follow
     });
 
-    //mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot()), "ActionFollowMemMap"));
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionMemoryMap | CommonActions::ActionGraph);
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("source.png"), tr("Open Source File"), SLOT(openSourceSlot()), "ActionOpenSourceFile"), [this](QMenu*)
     {
@@ -378,6 +378,7 @@ void CPUDisassembly::setupRightClickContextMenu()
         return DbgMemIsValidReadPtr(addr);
     });
     mMenuBuilder->addMenu(makeMenu(DIcon("label.png"), tr("Label")), labelMenu);
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionComment | CommonActions::ActionBookmark);
 
     QAction* traceRecordDisable = makeAction(DIcon("close-all-tabs.png"), tr("Disable"), SLOT(ActionTraceRecordDisableSlot()));
     QAction* traceRecordEnableBit = makeAction(DIcon("bit.png"), tr("Bit"), SLOT(ActionTraceRecordBitSlot()));

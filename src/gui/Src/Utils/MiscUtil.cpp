@@ -173,6 +173,7 @@ QIcon getFileIcon(QString file)
     return result;
 }
 
+//Export table in CSV. TODO: Display a dialog where the user choose what column to export and in which encoding
 bool ExportCSV(dsint rows, dsint columns, std::vector<QString> headers, std::function<QString(dsint, dsint)> getCellContent)
 {
     BrowseDialog browse(nullptr, QApplication::translate("ExportCSV", "Export data in CSV format"), QApplication::translate("ExportCSV", "Enter the CSV file name to export"), QApplication::translate("ExportCSV", "CSV files (*.csv);;All files (*.*)"), QApplication::applicationDirPath() + QDir::separator() + "db", true);
