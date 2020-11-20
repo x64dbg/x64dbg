@@ -16,11 +16,6 @@ CommonActions::CommonActions(QWidget* parent, ActionHelperFuncs funcs, GetSelect
 
 void CommonActions::build(MenuBuilder* builder, int actions)
 {
-    build(builder, actions, [](QList<std::pair<QString, duint>> &, CommonActionsList) {});
-}
-
-void CommonActions::build(MenuBuilder* builder, int actions, std::function<void(QList<std::pair<QString, duint>>&, CommonActionsList)> additionalAddress)
-{
     // Condition Lambda
     auto wIsDebugging = [this](QMenu*)
     {
@@ -282,6 +277,20 @@ void CommonActions::setBookmarkSlot()
     GuiUpdateAllViews();
 }
 
+bool CommonActions::WarningBoxNotExecutable(const QString & text, duint wVA)
+{
+    if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(wVA, false))
+    {
+        QMessageBox msgyn(QMessageBox::Warning, tr("Current address is not executable"), text, QMessageBox::Yes | QMessageBox::No, widgetparent());
+        msgyn.setWindowIcon(DIcon("compile-warning.png"));
+        msgyn.setParent(widgetparent(), Qt::Dialog);
+        msgyn.setWindowFlags(msgyn.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msgyn.exec() == QMessageBox::No)
+            return false;
+    }
+    return true;
+}
+
 void CommonActions::toggleInt3BPActionSlot()
 {
     if(!DbgIsDebugging())
@@ -291,21 +300,11 @@ void CommonActions::toggleInt3BPActionSlot()
     QString wCmd;
 
     if((wBpType & bp_normal) == bp_normal)
-    {
         wCmd = "bc " + ToPtrString(wVA);
-    }
     else
     {
-        if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(wVA, false))
-        {
-            QMessageBox msgyn(QMessageBox::Warning, tr("Current address is not executable"),
-                              tr("Setting software breakpoint here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, (QWidget*)parent());
-            msgyn.setWindowIcon(DIcon("compile-warning.png"));
-            msgyn.setParent((QWidget*)parent(), Qt::Dialog);
-            msgyn.setWindowFlags(msgyn.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-            if(msgyn.exec() == QMessageBox::No)
-                return;
-        }
+        if(!WarningBoxNotExecutable(tr("Setting software breakpoint here may result in crash. Do you really want to continue?"), wVA))
+            return;
         wCmd = "bp " + ToPtrString(wVA);
     }
 
@@ -320,13 +319,13 @@ void CommonActions::editSoftBpActionSlot()
         return;
     BPXTYPE bpType = DbgGetBpxTypeAt(selection);
     if((bpType & bp_hardware) == bp_hardware)
-        Breakpoints::editBP(bp_hardware, ToHexString(selection), dynamic_cast<QWidget*>(parent()));
+        Breakpoints::editBP(bp_hardware, ToHexString(selection), widgetparent());
     else if((bpType & bp_normal) == bp_normal)
-        Breakpoints::editBP(bp_normal, ToHexString(selection), dynamic_cast<QWidget*>(parent()));
+        Breakpoints::editBP(bp_normal, ToHexString(selection), widgetparent());
     else
     {
         DbgCmdExecDirect(QString("bp %1").arg(ToHexString(selection))); //Blocking call
-        if(!Breakpoints::editBP(bp_normal, ToHexString(selection), dynamic_cast<QWidget*>(parent())))
+        if(!Breakpoints::editBP(bp_normal, ToHexString(selection), widgetparent()))
             Breakpoints::removeBP(bp_normal, selection);
     }
 }
@@ -413,36 +412,20 @@ void CommonActions::setNewOriginHereActionSlot()
     if(!DbgIsDebugging())
         return;
     duint wVA = mGetSelection();
-    if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(wVA, false))
-    {
-        QMessageBox msg(QMessageBox::Warning, tr("Current address is not executable"),
-                        tr("Setting new origin here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, widgetparent());
-        msg.setWindowIcon(DIcon("compile-warning.png"));
-        msg.setParent(widgetparent(), Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        if(msg.exec() == QMessageBox::No)
-            return;
-    }
+    if(!WarningBoxNotExecutable(tr("Setting new origin here may result in crash. Do you really want to continue?"), wVA))
+        return;
     QString wCmd = "cip=" + ToPtrString(wVA);
     DbgCmdExec(wCmd);
 }
 
 void CommonActions::createThreadSlot()
 {
-    duint addr = mGetSelection();
-    if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(addr, false))
-    {
-        QMessageBox msg(QMessageBox::Warning, tr("Current address is not executable"),
-                        tr("Creating new thread here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, widgetparent());
-        msg.setWindowIcon(DIcon("compile-warning.png"));
-        msg.setParent(widgetparent(), Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        if(msg.exec() == QMessageBox::No)
-            return;
-    }
+    duint wVA = mGetSelection();
+    if(!WarningBoxNotExecutable(tr("Creating new thread here may result in crash. Do you really want to continue?"), wVA))
+        return;
     WordEditDialog argWindow(widgetparent());
     argWindow.setup(tr("Argument for the new thread"), 0, sizeof(duint));
     if(argWindow.exec() != QDialog::Accepted)
         return;
-    DbgCmdExec(QString("createthread %1, %2").arg(ToPtrString(addr)).arg(ToPtrString(argWindow.getVal())));
+    DbgCmdExec(QString("createthread %1, %2").arg(ToPtrString(wVA)).arg(ToPtrString(argWindow.getVal())));
 }
