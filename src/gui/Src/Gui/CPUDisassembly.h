@@ -105,7 +105,6 @@ public slots:
     void removeAnalysisModuleSlot();
     void setEncodeTypeSlot();
     void setEncodeTypeRangeSlot();
-    void graphSlot();
     void analyzeModuleSlot();
     void copyTokenTextSlot();
     void copyTokenValueSlot();

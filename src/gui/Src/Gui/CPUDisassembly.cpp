@@ -311,7 +311,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     {
         return rvaToVa(getInitialSelection());
     });
-    mCommonActions->build(mMenuBuilder, CommonActions::ActionBreakpoint | CommonActions::ActionMemoryMap | CommonActions::ActionComment | CommonActions::ActionBookmark);
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionBreakpoint | CommonActions::ActionMemoryMap | CommonActions::ActionGraph | CommonActions::ActionComment | CommonActions::ActionBookmark);
 
     mMenuBuilder->addMenu(makeMenu(DIcon("dump.png"), tr("&Follow in Dump")), [this](QMenu * menu)
     {
@@ -331,8 +331,6 @@ void CPUDisassembly::setupRightClickContextMenu()
     {
         return DbgFunctions()->GetSourceFromAddr(rvaToVa(getInitialSelection()), 0, 0);
     });
-
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("graph.png"), tr("Graph"), SLOT(graphSlot()), "ActionGraph"));
 
     mMenuBuilder->addMenu(makeMenu(DIcon("help.png"), tr("Help on Symbolic Name")), [this](QMenu * menu)
     {
@@ -1900,12 +1898,6 @@ void CPUDisassembly::setEncodeTypeSlot()
     mDisasm->getEncodeMap()->setDataType(rvaToVa(getSelectionStart()), (ENCODETYPE)pAction->data().toUInt());
     setSingleSelection(getSelectionStart());
     GuiUpdateDisassemblyView();
-}
-
-void CPUDisassembly::graphSlot()
-{
-    if(DbgCmdExecDirect(QString("graph %1").arg(ToPtrString(rvaToVa(getSelectionStart()))).toUtf8().constData()))
-        GuiFocusView(GUI_GRAPH);
 }
 
 void CPUDisassembly::analyzeModuleSlot()

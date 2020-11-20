@@ -81,8 +81,8 @@ void CPUDump::setupContextMenu()
         return DbgFunctions()->PatchInRange(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd()));
     });
 
-    mCommonActions->build(mMenuBuilder, CommonActions::ActionDisasm | CommonActions::ActionMemoryMap | CommonActions::ActionDumpData | CommonActions::ActionDisasmData
-                          | CommonActions::ActionStackDump | CommonActions::ActionLabel | CommonActions::ActionWatch);
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionDisasm | CommonActions::ActionMemoryMap | CommonActions::ActionDumpData | CommonActions::ActionDumpN
+                          | CommonActions::ActionDisasmData | CommonActions::ActionStackDump | CommonActions::ActionLabel | CommonActions::ActionWatch);
     auto wIsValidReadPtrCallback = [this](QMenu*)
     {
         duint ptr = 0;
@@ -90,24 +90,6 @@ void CPUDump::setupContextMenu()
         return DbgMemIsValidReadPtr(ptr);
     };
 
-    MenuBuilder* wFollowInDumpMenu = new MenuBuilder(this, [wIsValidReadPtrCallback, this](QMenu * menu)
-    {
-        if(!wIsValidReadPtrCallback(menu))
-            return false;
-        QList<QString> tabNames;
-        mMultiDump->getTabNames(tabNames);
-        for(int i = 0; i < tabNames.length(); i++)
-            mFollowInDumpActions[i]->setText(tabNames[i]);
-        return true;
-    });
-    int maxDumps = mMultiDump->getMaxCPUTabs();
-    for(int i = 0; i < maxDumps; i++)
-    {
-        QAction* action = makeAction(DIcon("dump.png"), QString(), SLOT(followInDumpNSlot()));
-        wFollowInDumpMenu->addAction(action);
-        mFollowInDumpActions.push_back(action);
-    }
-    mMenuBuilder->addMenu(makeMenu(DIcon("dump.png"), ArchValue(tr("&Follow DWORD in Dump"), tr("&Follow QWORD in Dump"))), wFollowInDumpMenu);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("modify.png"), tr("&Modify Value"), SLOT(modifyValueSlot()), "ActionModifyValue"), [this](QMenu*)
     {
         return getSizeOf(mDescriptor.at(0).data.itemSize) <= sizeof(duint);
@@ -1481,13 +1463,6 @@ void CPUDump::syncWithExpressionSlot()
         return;
     mSyncAddrExpression = gotoDialog.expressionText;
     updateDumpSlot();
-}
-
-void CPUDump::followInDumpNSlot()
-{
-    for(int i = 0; i < mFollowInDumpActions.length(); i++)
-        if(mFollowInDumpActions[i] == sender())
-            DbgCmdExec(QString("dump \"[%1]\", \"%2\"").arg(ToPtrString(rvaToVa(getSelectionStart()))).arg(i + 1));
 }
 
 void CPUDump::allocMemorySlot()

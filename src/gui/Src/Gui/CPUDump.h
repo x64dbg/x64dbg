@@ -81,7 +81,6 @@ public slots:
 
     void selectionUpdatedSlot();
     void syncWithExpressionSlot();
-    void followInDumpNSlot();
     void allocMemorySlot();
 
     void headerButtonReleasedSlot(int colIndex);

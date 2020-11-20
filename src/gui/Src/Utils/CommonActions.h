@@ -68,6 +68,7 @@ public slots:
     void setHwBpOnSlot3ActionSlot();
     void setHwBpAt(duint va, int slot);
 
+    void graphSlot();
     void setNewOriginHereActionSlot();
     void createThreadSlot();
 private:
