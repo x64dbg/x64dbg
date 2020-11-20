@@ -14,34 +14,34 @@ class CommonActions : public QObject, public ActionHelperProxy
 public:
     typedef enum
     {
-        ActionDisasm = 1,
-        ActionDisasmMore = 1 << 1,
-        ActionDisasmDump = 1 << 2,
-        ActionDisasmDumpMore = 1 << 3,
-        ActionDisasmData = 1 << 4,
-        ActionDump = 1 << 5,
-        ActionDumpMore = 1 << 6,
-        ActionDumpN = 1 << 7,
-        ActionDumpData = 1 << 8,
-        ActionStackDump = 1 << 9,
-        ActionMemoryMap = 1 << 10,
-        ActionGraph = 1 << 11,
-        ActionBreakpoint = 1 << 12,
-        ActionMemoryBreakpoint = 1 << 13,
-        ActionMnemonicHelp = 1 << 14,
-        ActionLabel = 1 << 15,
-        ActionLabelMore = 1 << 16,
-        ActionComment = 1 << 17,
-        ActionCommentMore = 1 << 18,
-        ActionBookmark = 1 << 19,
-        ActionBookmarkMore = 1 << 20,
-        ActionFindref = 1 << 21,
-        ActionFindrefMore = 1 << 22,
-        ActionXref = 1 << 23,
-        ActionXrefMore = 1 << 24,
-        ActionNewOrigin = 1 << 25,
-        ActionNewThread = 1 << 26,
-        ActionWatch = 1 << 27
+        ActionDisasm = 1, // Follow in Disassembly
+        ActionDisasmMore = 1 << 1, // Follow in Disassembly (submenu)
+        ActionDisasmDump = 1 << 2, // Follow in Dump in Disassembly Mode
+        ActionDisasmDumpMore = 1 << 3, // Follow in Dump in Disassembly Mode (submenu)
+        ActionDisasmData = 1 << 4, // Follow DWORD in Disassembly
+        ActionDump = 1 << 5, // Follow in Dump
+        ActionDumpMore = 1 << 6, // Follow in Dump (submenu)
+        ActionDumpN = 1 << 7, // Follow in Dump N (submenu)
+        ActionDumpData = 1 << 8, // Follow DWORD in Dump
+        ActionStackDump = 1 << 9, // Follow in Stack
+        ActionMemoryMap = 1 << 10, // Follow in Memory Map
+        ActionGraph = 1 << 11, // Graph
+        ActionBreakpoint = 1 << 12, // Breakpoint
+        ActionMemoryBreakpoint = 1 << 13, // Memory Breakpoint
+        ActionMnemonicHelp = 1 << 14, // Mnemonic Help
+        ActionLabel = 1 << 15, // Label
+        ActionLabelMore = 1 << 16, // Label (submenu)
+        ActionComment = 1 << 17, // Comment
+        ActionCommentMore = 1 << 18, // Comment (submenu)
+        ActionBookmark = 1 << 19, // Bookmark
+        ActionBookmarkMore = 1 << 20, // Bookmark (submenu)
+        ActionFindref = 1 << 21, // Find references
+        ActionFindrefMore = 1 << 22, // Find references (submenu)
+        ActionXref = 1 << 23, // Xref
+        ActionXrefMore = 1 << 24, // Xref (submenu)
+        ActionNewOrigin = 1 << 25, // Set New Origin Here
+        ActionNewThread = 1 << 26, // Create New Thread Here
+        ActionWatch = 1 << 27 // Watch DWORD
     } CommonActionsList;
 
     using GetSelectionFunc = std::function<duint()>;
