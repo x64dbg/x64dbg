@@ -554,8 +554,10 @@ void CPUStack::stackDumpAt(duint addr, duint csp)
         }
         BridgeFree(callstack.entries);
     }
+    bool isInvisible;
+    isInvisible = (addr < mMemPage->va(getTableOffsetRva())) || (addr >= mMemPage->va(getTableOffsetRva() + getViewableRowsCount() * getBytePerRowCount()));
 
-    printDumpAt(addr);
+    printDumpAt(addr, true, true, isInvisible || addr == csp);
 }
 
 void CPUStack::updateSlot()
@@ -585,6 +587,29 @@ void CPUStack::updateSlot()
             mCallstack[i].party = DbgFunctions()->ModGetParty(callstack.entries[i].to);
         }
         BridgeFree(callstack.entries);
+    }
+}
+
+void CPUStack::disasmSelectionChanged(dsint parVA)
+{
+    // When the selected instruction is changed, select the argument that is in the stack.
+    DISASM_INSTR instr;
+    if(!DbgIsDebugging() || !DbgMemIsValidReadPtr(parVA))
+        return;
+    DbgDisasmAt(parVA, &instr);
+
+    for(int i = 0; i < instr.argcount; i++)
+    {
+        const DISASM_ARG & arg = instr.arg[i];
+        if(arg.type == arg_memory)
+        {
+            if(arg.value >= mMemPage->getBase() && arg.value < mMemPage->getBase() + mMemPage->getSize())
+            {
+                //TODO: When the stack is unaligned?
+                stackDumpAt(arg.value & (~(sizeof(void*) - 1)), mCsp);
+                return;
+            }
+        }
     }
 }
 
