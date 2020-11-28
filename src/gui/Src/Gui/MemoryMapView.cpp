@@ -159,8 +159,13 @@ void MemoryMapView::setupContextMenu()
     connect(mFindPattern, SIGNAL(triggered()), this, SLOT(findPatternSlot()));
 
     //Dump
+    //TODO: These two actions should also appear in CPUDump
     mDumpMemory = new QAction(DIcon("binary_save.png"), tr("&Dump Memory to File"), this);
     connect(mDumpMemory, SIGNAL(triggered()), this, SLOT(dumpMemory()));
+
+    //Load
+    mLoadMemory = new QAction(DIcon(""), tr("&Overwrite with Data from File"), this);
+    connect(mLoadMemory, SIGNAL(triggered()), this, SLOT(loadMemory()));
 
     //Add virtual module
     mAddVirtualMod = new QAction(DIcon("virtual.png"), tr("Add virtual module"), this);
@@ -204,6 +209,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     wMenu.addAction(mFollowDisassembly);
     wMenu.addAction(mFollowDump);
     wMenu.addAction(mDumpMemory);
+    //wMenu.addAction(mLoadMemory); //TODO:loaddata command
     wMenu.addAction(mComment);
     wMenu.addAction(mFindPattern);
     wMenu.addAction(mSwitchView);
@@ -579,6 +585,24 @@ void MemoryMapView::dumpMemory()
     if(fileName.length())
     {
         fileName = QDir::toNativeSeparators(fileName);
+        QString cmd = QString("savedata \"%1\",%2,%3").arg(fileName, addr, getCellContent(getInitialSelection(), 1));
+        DbgCmdExec(cmd);
+    }
+}
+
+void MemoryMapView::loadMemory()
+{
+    char modname[MAX_MODULE_SIZE] = "";
+    if(!DbgFunctions()->ModNameFromAddr(DbgEval("mod.main()"), modname, false))
+        *modname = '\0';
+    auto addr = getCellContent(getInitialSelection(), 0);
+    QString defaultFile = QString("%1/%2%3.bin").arg(QDir::currentPath(), *modname ? modname +  QString("_") : "", addr);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Load Memory Region"), defaultFile, tr("Binary files (*.bin);;All files (*.*)"));
+
+    if(fileName.length())
+    {
+        fileName = QDir::toNativeSeparators(fileName);
+        //TODO: loaddata command (Does ODbgScript support that?)
         QString cmd = QString("savedata \"%1\",%2,%3").arg(fileName, addr, getCellContent(getInitialSelection(), 1));
         DbgCmdExec(cmd);
     }
