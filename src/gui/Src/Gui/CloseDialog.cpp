@@ -10,6 +10,10 @@ CloseDialog::CloseDialog(QWidget* parent) : QDialog(parent), ui(new Ui::CloseDia
     setWindowFlags(windowFlags() & ~(Qt::WindowContextHelpButtonHint | Qt::WindowCloseButtonHint) | Qt::MSWindowsFixedSizeDialogHint);
     SetApplicationIcon(QDialog::winId());
     bCanClose = false;
+    // Resize window
+    int requiredWidth = ui->label->fontMetrics().boundingRect(ui->label->text()).width();
+    if(width() < requiredWidth)
+        resize(requiredWidth, height());
 }
 
 CloseDialog::~CloseDialog()
