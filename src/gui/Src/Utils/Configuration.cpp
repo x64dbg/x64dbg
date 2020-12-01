@@ -729,7 +729,7 @@ void Configuration::writeUints()
     bool bSaveLoadTabOrder = ConfigBool("Gui", "LoadSaveTabOrder");
 
     //write config
-    for(auto itMap = Bools.cbegin(); itMap != Bools.cend(); ++itMap)
+    for(auto itMap = Uints.cbegin(); itMap != Uints.cend(); ++itMap)
     {
         const QString & category = itMap.key();
         for(auto it = itMap.value().cbegin(); it != itMap.value().cend(); it++)
