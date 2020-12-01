@@ -281,7 +281,7 @@ static void _getmnemonicbrief(const char* mnem, size_t resultSize, char* result)
 static bool _enumhandles(ListOf(HANDLEINFO) handles)
 {
     std::vector<HANDLEINFO> handleV;
-    if(!HandlesEnum(fdProcessInfo->dwProcessId, handleV))
+    if(!HandlesEnum(handleV))
         return false;
     return BridgeList<HANDLEINFO>::CopyData(handles, handleV);
 }
@@ -290,7 +290,7 @@ static bool _gethandlename(duint handle, char* name, size_t nameSize, char* type
 {
     String nameS;
     String typeNameS;
-    if(!HandlesGetName(fdProcessInfo->hProcess, HANDLE(handle), nameS, typeNameS))
+    if(!HandlesGetName(HANDLE(handle), nameS, typeNameS))
         return false;
     strncpy_s(name, nameSize, nameS.c_str(), _TRUNCATE);
     strncpy_s(typeName, typeNameSize, typeNameS.c_str(), _TRUNCATE);

@@ -1,8 +1,9 @@
+#include <functional>
 #include "handles.h"
 #include "ntdll/ntdll.h"
 #include "exception.h"
 #include "debugger.h"
-#include <functional>
+#include "thread.h"
 
 typedef NTSTATUS(NTAPI* ZWQUERYSYSTEMINFORMATION)(
     IN LONG SystemInformationClass,
@@ -19,10 +20,13 @@ typedef NTSTATUS(NTAPI* ZWQUERYOBJECT)(
     OUT PULONG ReturnLength OPTIONAL
 );
 
-bool HandlesEnum(duint pid, std::vector<HANDLEINFO> & handles)
+// Enumerate all handles in the debuggee
+bool HandlesEnum(std::vector<HANDLEINFO> & handles)
 {
+    duint pid;
     Memory<PSYSTEM_HANDLE_INFORMATION> HandleInformation(16 * 1024, "_dbg_enumhandles");
     NTSTATUS ErrorCode = ERROR_SUCCESS;
+    pid = fdProcessInfo->dwProcessId;
     for(;;)
     {
         ErrorCode = NtQuerySystemInformation(SystemHandleInformation, HandleInformation(), ULONG(HandleInformation.size()), nullptr);
@@ -55,8 +59,10 @@ static DWORD WINAPI getNameThread(LPVOID lpParam)
     return 0;
 }
 
-bool HandlesGetName(HANDLE hProcess, HANDLE remoteHandle, String & name, String & typeName)
+// Get the name of a handle of debuggee
+bool HandlesGetName(HANDLE remoteHandle, String & name, String & typeName)
 {
+    HANDLE hProcess = fdProcessInfo->hProcess;
     HANDLE hLocalHandle;
     if(DuplicateHandle(hProcess, remoteHandle, GetCurrentProcess(), &hLocalHandle, 0, FALSE, DUPLICATE_SAME_ACCESS)) //Needs privileges for PID/TID retrival
     {
@@ -134,7 +140,19 @@ bool HandlesGetName(HANDLE hProcess, HANDLE remoteHandle, String & name, String 
             }
 
             if(TID > 0 && PID > 0)
-                name = StringUtils::sprintf("TID: %X, PID: %X", TID, PID);
+            {
+                // Check if the thread is in the debuggee
+                if(PID == fdProcessInfo->dwProcessId)
+                {
+                    char ThreadName[MAX_THREAD_NAME_SIZE];
+                    if(ThreadGetName(TID, ThreadName) && ThreadName[0] != 0)
+                        name = StringUtils::sprintf("TID: %X (%s), PID: %X (Debuggee)", TID, ThreadName, PID);
+                    else
+                        name = StringUtils::sprintf("TID: %X, PID: %X (Debuggee)", TID, ThreadName, PID);
+                }
+                else //TODO: Display the process name
+                    name = StringUtils::sprintf("TID: %X, PID: %X", TID, PID);
+            }
         }
         if(name.empty())
         {

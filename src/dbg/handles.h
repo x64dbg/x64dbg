@@ -4,8 +4,8 @@
 #include "_global.h"
 #include "_dbgfunctions.h"
 
-bool HandlesEnum(duint pid, std::vector<HANDLEINFO> & handlesList);
-bool HandlesGetName(HANDLE hProcess, HANDLE remoteHandle, String & name, String & typeName);
+bool HandlesEnum(std::vector<HANDLEINFO> & handlesList);
+bool HandlesGetName(HANDLE remoteHandle, String & name, String & typeName);
 bool HandlesEnumWindows(std::vector<WINDOW_INFO> & windowsList);
 bool HandlesEnumHeaps(std::vector<HEAPINFO> & heapList);
 
