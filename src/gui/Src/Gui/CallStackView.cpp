@@ -5,7 +5,7 @@ CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
 {
     int charwidth = getCharWidth();
 
-    addColumnAt(8 * charwidth, tr("Thread Number"), true);
+    addColumnAt(8 * charwidth, tr("Thread ID"), true);
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("Address"), true); //address in the stack
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("To"), false); //return to
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("From"), false); //return from
@@ -97,10 +97,7 @@ void CallStackView::updateCallStack()
         memset(&callstack, 0, sizeof(DBGCALLSTACK));
         DbgFunctions()->GetCallStackByThread(threadList.list[j].BasicInfo.Handle, &callstack);
         setRowCount(currentRow + callstack.total + 1);
-        if(!threadList.list[j].BasicInfo.ThreadNumber)
-            setCellContent(currentRow, ColThread, tr("Main"));
-        else
-            setCellContent(currentRow, ColThread, ToDecString(threadList.list[j].BasicInfo.ThreadNumber));
+        setCellContent(currentRow, ColThread, ToDecString(threadList.list[j].BasicInfo.ThreadId));
 
         currentRow++;
 
