@@ -59,6 +59,23 @@ static DWORD WINAPI getNameThread(LPVOID lpParam)
     return 0;
 }
 
+static String getProcessName(DWORD PID)
+{
+    wchar_t processName[MAX_PATH];
+    std::string processNameUtf8;
+    HANDLE hPIDProcess;
+    hPIDProcess = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, PID);
+    if(hPIDProcess != NULL)
+    {
+        if(GetProcessImageFileNameW(hPIDProcess, processName, _countof(processName)) > 0)
+        {
+            processNameUtf8 = StringUtils::Utf16ToUtf8(processName);
+        }
+        CloseHandle(hPIDProcess);
+    }
+    return processNameUtf8;
+}
+
 // Get the name of a handle of debuggee
 bool HandlesGetName(HANDLE remoteHandle, String & name, String & typeName)
 {
@@ -90,6 +107,7 @@ bool HandlesGetName(HANDLE remoteHandle, String & name, String & typeName)
         if(strcmp(typeName.c_str(), "Process") == 0)
         {
             DWORD PID = GetProcessId(hLocalHandle); //Windows XP SP1
+            String PIDString;
             if(PID == 0) //The first time could fail because the process didn't specify query permissions.
             {
                 HANDLE hLocalQueryHandle;
@@ -101,7 +119,25 @@ bool HandlesGetName(HANDLE remoteHandle, String & name, String & typeName)
             }
 
             if(PID > 0)
-                name = StringUtils::sprintf("PID: %X", PID);
+            {
+                duint value;
+                if(BridgeSettingGetUint("Gui", "PidTidInHex", &value) && value)
+                    PIDString = StringUtils::sprintf("%X", PID);
+                else
+                    PIDString = StringUtils::sprintf("%u", PID);
+                if(PID == fdProcessInfo->dwProcessId)
+                {
+                    name = StringUtils::sprintf("PID: %s (%s)", PIDString.c_str(), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debuggee")));
+                }
+                else
+                {
+                    std::string processName = getProcessName(PID);
+                    if(processName.size() > 0)
+                        name = StringUtils::sprintf("PID: %s (%s)", PIDString.c_str(), processName.c_str());
+                    else
+                        name = StringUtils::sprintf("PID: %s", PIDString.c_str());
+                }
+            }
         }
         else if(strcmp(typeName.c_str(), "Thread") == 0)
         {
@@ -141,17 +177,35 @@ bool HandlesGetName(HANDLE remoteHandle, String & name, String & typeName)
 
             if(TID > 0 && PID > 0)
             {
+                String TIDString, PIDString;
+                duint value;
+                if(BridgeSettingGetUint("Gui", "PidTidInHex", &value) && value)
+                {
+                    TIDString = StringUtils::sprintf("%X", TID);
+                    PIDString = StringUtils::sprintf("%X", PID);
+                }
+                else
+                {
+                    TIDString = StringUtils::sprintf("%u", TID);
+                    PIDString = StringUtils::sprintf("%u", PID);
+                }
                 // Check if the thread is in the debuggee
                 if(PID == fdProcessInfo->dwProcessId)
                 {
                     char ThreadName[MAX_THREAD_NAME_SIZE];
                     if(ThreadGetName(TID, ThreadName) && ThreadName[0] != 0)
-                        name = StringUtils::sprintf("TID: %X (%s), PID: %X (Debuggee)", TID, ThreadName, PID);
+                        name = StringUtils::sprintf("TID: %s (%s), PID: %s (%s)", TIDString, ThreadName, PIDString, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debuggee")));
                     else
-                        name = StringUtils::sprintf("TID: %X, PID: %X (Debuggee)", TID, ThreadName, PID);
+                        name = StringUtils::sprintf("TID: %s, PID: %s (%s)", TIDString, PIDString, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debuggee")));
                 }
-                else //TODO: Display the process name
-                    name = StringUtils::sprintf("TID: %X, PID: %X", TID, PID);
+                else
+                {
+                    std::string processName = getProcessName(PID);
+                    if(processName.size() > 0)
+                        name = StringUtils::sprintf("TID: %s, PID: %s (%s)", TIDString, PIDString, processName.c_str());
+                    else
+                        name = StringUtils::sprintf("TID: %s, PID: %s", TIDString, PIDString);
+                }
             }
         }
         if(name.empty())
