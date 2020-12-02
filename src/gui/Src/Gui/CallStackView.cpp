@@ -90,14 +90,22 @@ void CallStackView::updateCallStack()
     DbgGetThreadList(&threadList);
 
     int currentRow = 0;
+    int currentIndexToDraw = 0;
     setRowCount(0);
     for(int j = 0; j < threadList.count; j++)
     {
+        if(!j)
+            currentIndexToDraw = threadList.CurrentThread; // Draw the current thread first
+        else if(j == threadList.CurrentThread)
+            currentIndexToDraw = 0; // Draw the previously skipped thread
+        else
+            currentIndexToDraw = j;
+
         DBGCALLSTACK callstack;
         memset(&callstack, 0, sizeof(DBGCALLSTACK));
-        DbgFunctions()->GetCallStackByThread(threadList.list[j].BasicInfo.Handle, &callstack);
+        DbgFunctions()->GetCallStackByThread(threadList.list[currentIndexToDraw].BasicInfo.Handle, &callstack);
         setRowCount(currentRow + callstack.total + 1);
-        setCellContent(currentRow, ColThread, ToDecString(threadList.list[j].BasicInfo.ThreadId));
+        setCellContent(currentRow, ColThread, ToDecString(threadList.list[currentIndexToDraw].BasicInfo.ThreadId));
 
         currentRow++;
 
