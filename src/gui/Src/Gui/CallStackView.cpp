@@ -66,18 +66,28 @@ void CallStackView::setupContextMenu()
 
 QString CallStackView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
+    QString ret = getCellContent(rowBase + rowOffset, col);
+
     if(isSelected(rowBase, rowOffset))
         painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
 
     bool isSpaceRow = !getCellContent(rowBase + rowOffset, ColThread).isEmpty();
 
-    if(col > ColThread && isSpaceRow)
+    if(!col && !(rowBase + rowOffset) && !ret.isEmpty())
+    {
+        painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("ThreadCurrentBackgroundColor")));
+        painter->setPen(QPen(ConfigColor("ThreadCurrentColor")));
+        painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, ret);
+        ret = "";
+    }
+
+    else if(col > ColThread && isSpaceRow)
     {
         auto mid = h / 2.0;
         painter->drawLine(QPointF(x, y + mid), QPointF(x + w, y + mid));
     }
 
-    return getCellContent(rowBase + rowOffset, col);
+    return ret;
 }
 
 void CallStackView::updateCallStack()
