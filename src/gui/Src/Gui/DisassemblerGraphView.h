@@ -218,8 +218,6 @@ public:
     std::tuple<duint, duint> get_selection_range();
     void set_selection_range(std::tuple<duint, duint> range);
     void copy_address();
-    //void analysis_thread_proc();
-    //void closeRequest();
     void paintNormal(QPainter & p, QRect & viewportRect, int xofs, int yofs);
     void paintOverview(QPainter & p, QRect & viewportRect, int xofs, int yofs);
     void paintEvent(QPaintEvent* event);
@@ -268,7 +266,6 @@ public slots:
     void loadGraphSlot(BridgeCFGraphList* graph, duint addr);
     void graphAtSlot(duint addr);
     void updateGraphSlot();
-    //void followDisassemblerSlot();
     void colorsUpdatedSlot();
     void fontsUpdatedSlot();
     void shortcutsUpdatedSlot();

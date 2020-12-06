@@ -1930,11 +1930,6 @@ bool CPUDisassembly::getTokenValueText(QString & text)
     return true;
 }
 
-//void CPUDisassembly::followInMemoryMapSlot()
-//{
-//    DbgCmdExec(QString("memmapdump %1").arg(ToHexString(rvaToVa(getInitialSelection()))));
-//}
-
 void CPUDisassembly::downloadCurrentSymbolsSlot()
 {
     char module[MAX_MODULE_SIZE] = "";

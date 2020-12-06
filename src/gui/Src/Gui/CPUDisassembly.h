@@ -37,12 +37,9 @@ signals:
     void displaySymbolsWidget();
 
 public slots:
-    //void setNewOriginHereActionSlot();
     void gotoOriginSlot();
     void setLabelSlot();
     void setLabelAddressSlot();
-    //void setCommentSlot();
-    //void setBookmarkSlot();
     void toggleFunctionSlot();
     void toggleArgumentSlot();
     void addLoopSlot();
@@ -108,7 +105,6 @@ public slots:
     void analyzeModuleSlot();
     void copyTokenTextSlot();
     void copyTokenValueSlot();
-    //void followInMemoryMapSlot();
     void downloadCurrentSymbolsSlot();
 
 protected:
