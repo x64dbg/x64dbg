@@ -82,36 +82,45 @@ void CommonActions::build(MenuBuilder* builder, int actions)
     }
     if(actions & ActionBreakpoint)
     {
-        QAction* toggleBreakpointAction = makeShortcutAction(DIcon("breakpoint_toggle.png"), tr("Toggle"), std::bind(&CommonActions::toggleInt3BPActionSlot, this), "ActionToggleBreakpoint");
-        QAction* editSoftwareBreakpointAction = makeShortcutAction(DIcon("breakpoint_edit_alt.png"), tr("Edit"), std::bind(&CommonActions::editSoftBpActionSlot, this), "ActionEditBreakpoint");
-        QAction* setHwBreakpointAction = makeShortcutAction(DIcon("breakpoint_execute.png"), tr("Set Hardware on Execution"), std::bind(&CommonActions::toggleHwBpActionSlot, this), "ActionSetHwBpE");
-        QAction* removeHwBreakpointAction = makeShortcutAction(DIcon("breakpoint_remove.png"), tr("Remove Hardware"), std::bind(&CommonActions::toggleHwBpActionSlot, this), "ActionRemoveHwBp");
+        struct ActionHolder
+        {
+            QAction* toggleBreakpointAction;
+            QAction* editSoftwareBreakpointAction;
+            QAction* setHwBreakpointAction;
+            QAction* removeHwBreakpointAction;
+            QMenu* replaceSlotMenu;
+            QAction* replaceSlotAction[4];
+        } hodl;
 
-        QMenu* replaceSlotMenu = makeMenu(DIcon("breakpoint_execute.png"), tr("Set Hardware on Execution"));
+        hodl.toggleBreakpointAction = makeShortcutAction(DIcon("breakpoint_toggle.png"), tr("Toggle"), std::bind(&CommonActions::toggleInt3BPActionSlot, this), "ActionToggleBreakpoint");
+        hodl.editSoftwareBreakpointAction = makeShortcutAction(DIcon("breakpoint_edit_alt.png"), tr("Edit"), std::bind(&CommonActions::editSoftBpActionSlot, this), "ActionEditBreakpoint");
+        hodl.setHwBreakpointAction = makeShortcutAction(DIcon("breakpoint_execute.png"), tr("Set Hardware on Execution"), std::bind(&CommonActions::toggleHwBpActionSlot, this), "ActionSetHwBpE");
+        hodl.removeHwBreakpointAction = makeShortcutAction(DIcon("breakpoint_remove.png"), tr("Remove Hardware"), std::bind(&CommonActions::toggleHwBpActionSlot, this), "ActionRemoveHwBp");
+
+        hodl.replaceSlotMenu = makeMenu(DIcon("breakpoint_execute.png"), tr("Set Hardware on Execution"));
         // Replacement slot menu are only used when the breakpoints are full, so using "Unknown" as the placeholder. Might want to change this in case we display the menu when there are still free slots.
-        QAction* replaceSlotAction[4];
-        replaceSlotAction[0] = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot1.png"), tr("Replace Slot %1 (Unknown)").arg(1), std::bind(&CommonActions::setHwBpOnSlot0ActionSlot, this));
-        replaceSlotAction[1] = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot2.png"), tr("Replace Slot %1 (Unknown)").arg(2), std::bind(&CommonActions::setHwBpOnSlot1ActionSlot, this));
-        replaceSlotAction[2] = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot3.png"), tr("Replace Slot %1 (Unknown)").arg(3), std::bind(&CommonActions::setHwBpOnSlot2ActionSlot, this));
-        replaceSlotAction[3] = makeMenuAction(replaceSlotMenu, DIcon("breakpoint_execute_slot4.png"), tr("Replace Slot %1 (Unknown)").arg(4), std::bind(&CommonActions::setHwBpOnSlot3ActionSlot, this));
+        hodl.replaceSlotAction[0] = makeMenuAction(hodl.replaceSlotMenu, DIcon("breakpoint_execute_slot1.png"), tr("Replace Slot %1 (Unknown)").arg(1), std::bind(&CommonActions::setHwBpOnSlot0ActionSlot, this));
+        hodl.replaceSlotAction[1] = makeMenuAction(hodl.replaceSlotMenu, DIcon("breakpoint_execute_slot2.png"), tr("Replace Slot %1 (Unknown)").arg(2), std::bind(&CommonActions::setHwBpOnSlot1ActionSlot, this));
+        hodl.replaceSlotAction[2] = makeMenuAction(hodl.replaceSlotMenu, DIcon("breakpoint_execute_slot3.png"), tr("Replace Slot %1 (Unknown)").arg(3), std::bind(&CommonActions::setHwBpOnSlot2ActionSlot, this));
+        hodl.replaceSlotAction[3] = makeMenuAction(hodl.replaceSlotMenu, DIcon("breakpoint_execute_slot4.png"), tr("Replace Slot %1 (Unknown)").arg(4), std::bind(&CommonActions::setHwBpOnSlot3ActionSlot, this));
 
-        builder->addMenu(makeMenu(DIcon("breakpoint.png"), tr("Breakpoint")), [ = ](QMenu * menu)
+        builder->addMenu(makeMenu(DIcon("breakpoint.png"), tr("Breakpoint")), [this, hodl](QMenu * menu)
         {
             auto selection = mGetSelection();
             if(selection == 0)
                 return false;
             BPXTYPE bpType = DbgGetBpxTypeAt(selection);
             if((bpType & bp_normal) == bp_normal || (bpType & bp_hardware) == bp_hardware)
-                editSoftwareBreakpointAction->setText(tr("Edit"));
+                hodl.editSoftwareBreakpointAction->setText(tr("Edit"));
             else
-                editSoftwareBreakpointAction->setText(tr("Set Conditional Breakpoint"));
-            menu->addAction(editSoftwareBreakpointAction);
+                hodl.editSoftwareBreakpointAction->setText(tr("Set Conditional Breakpoint"));
+            menu->addAction(hodl.editSoftwareBreakpointAction);
 
-            menu->addAction(toggleBreakpointAction);
+            menu->addAction(hodl.toggleBreakpointAction);
 
             if((bpType & bp_hardware) == bp_hardware)
             {
-                menu->addAction(removeHwBreakpointAction);
+                menu->addAction(hodl.removeHwBreakpointAction);
             }
             else
             {
@@ -126,7 +135,7 @@ void CommonActions::build(MenuBuilder* builder, int actions)
 
                 if(enabledCount < 4)
                 {
-                    menu->addAction(setHwBreakpointAction);
+                    menu->addAction(hodl.setHwBreakpointAction);
                 }
                 else
                 {
@@ -134,10 +143,10 @@ void CommonActions::build(MenuBuilder* builder, int actions)
                     {
                         if(bpList.bp[i].enabled && bpList.bp[i].slot < 4)
                         {
-                            replaceSlotAction[bpList.bp[i].slot]->setText(tr("Replace Slot %1 (0x%2)").arg(bpList.bp[i].slot + 1).arg(ToPtrString(bpList.bp[i].addr)));
+                            hodl.replaceSlotAction[bpList.bp[i].slot]->setText(tr("Replace Slot %1 (0x%2)").arg(bpList.bp[i].slot + 1).arg(ToPtrString(bpList.bp[i].addr)));
                         }
                     }
-                    menu->addMenu(replaceSlotMenu);
+                    menu->addMenu(hodl.replaceSlotMenu);
                 }
                 if(bpList.count)
                     BridgeFree(bpList.bp);
