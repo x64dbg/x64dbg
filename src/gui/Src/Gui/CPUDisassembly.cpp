@@ -18,12 +18,11 @@
 #include "HexEditDialog.h"
 #include "AssembleDialog.h"
 #include "StringUtil.h"
-#include "Breakpoints.h"
 #include "XrefBrowseDialog.h"
 #include "SourceViewerManager.h"
 #include "MiscUtil.h"
 #include "MemoryPage.h"
-#include "BreakpointMenu.h"
+#include "CommonActions.h"
 #include "BrowseDialog.h"
 
 CPUDisassembly::CPUDisassembly(QWidget* parent, bool isMain) : Disassembly(parent, isMain)
@@ -96,7 +95,7 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
 
     // (Opcodes) Set INT3 breakpoint
     case 1:
-        mBreakpointMenu->toggleInt3BPActionSlot();
+        mCommonActions->toggleInt3BPActionSlot();
         break;
 
     // (Disassembly) Assemble dialog
@@ -111,7 +110,7 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
 
     // (Comments) Set comment dialog
     case 3:
-        setCommentSlot();
+        mCommonActions->setCommentSlot();
         break;
 
     // Undefined area
@@ -308,11 +307,11 @@ void CPUDisassembly::setupRightClickContextMenu()
         return DbgFunctions()->PatchInRange(start, end); //something patched in selected range
     });
 
-    mBreakpointMenu = new BreakpointMenu(this, getActionHelperFuncs(), [this]()
+    mCommonActions = new CommonActions(this, getActionHelperFuncs(), [this]()
     {
         return rvaToVa(getInitialSelection());
     });
-    mBreakpointMenu->build(mMenuBuilder);
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionBreakpoint);
 
     mMenuBuilder->addMenu(makeMenu(DIcon("dump.png"), tr("&Follow in Dump")), [this](QMenu * menu)
     {
@@ -326,14 +325,12 @@ void CPUDisassembly::setupRightClickContextMenu()
         return menu->actions().length() != 0; //only add this menu if there is something to follow
     });
 
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), SLOT(followInMemoryMapSlot()), "ActionFollowMemMap"));
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionMemoryMap | CommonActions::ActionGraph);
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("source.png"), tr("Open Source File"), SLOT(openSourceSlot()), "ActionOpenSourceFile"), [this](QMenu*)
     {
         return DbgFunctions()->GetSourceFromAddr(rvaToVa(getInitialSelection()), 0, 0);
     });
-
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("graph.png"), tr("Graph"), SLOT(graphSlot()), "ActionGraph"));
 
     mMenuBuilder->addMenu(makeMenu(DIcon("help.png"), tr("Help on Symbolic Name")), [this](QMenu * menu)
     {
@@ -381,6 +378,7 @@ void CPUDisassembly::setupRightClickContextMenu()
         return DbgMemIsValidReadPtr(addr);
     });
     mMenuBuilder->addMenu(makeMenu(DIcon("label.png"), tr("Label")), labelMenu);
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionComment | CommonActions::ActionBookmark);
 
     QAction* traceRecordDisable = makeAction(DIcon("close-all-tabs.png"), tr("Disable"), SLOT(ActionTraceRecordDisableSlot()));
     QAction* traceRecordEnableBit = makeAction(DIcon("bit.png"), tr("Bit"), SLOT(ActionTraceRecordBitSlot()));
@@ -406,8 +404,6 @@ void CPUDisassembly::setupRightClickContextMenu()
         return true;
     });
 
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("comment.png"), tr("Comment"), SLOT(setCommentSlot()), "ActionSetComment"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), SLOT(setBookmarkSlot()), "ActionToggleBookmark"));
     mMenuBuilder->addSeparator();
 
     MenuBuilder* analysisMenu = new MenuBuilder(this);
@@ -514,9 +510,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     removeAction(mMenuBuilder->addAction(makeShortcutAction(DIcon("patch.png"), tr("Patches"), SLOT(showPatchesSlot()), "ViewPatches"))); //prevent conflicting shortcut with the MainWindow
     mMenuBuilder->addSeparator();
 
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("neworigin.png"), tr("Set New Origin Here"), SLOT(setNewOriginHereActionSlot()), "ActionSetNewOriginHere"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("createthread.png"), tr("Create New Thread Here"), SLOT(createThreadSlot()), "ActionCreateNewThreadHere"));
-
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionNewOrigin | CommonActions::ActionNewThread);
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
     gotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
@@ -686,25 +680,6 @@ void CPUDisassembly::gotoOriginSlot()
     gotoAddress(DbgValFromString("cip"));
 }
 
-void CPUDisassembly::setNewOriginHereActionSlot()
-{
-    if(!DbgIsDebugging())
-        return;
-    duint wVA = rvaToVa(getInitialSelection());
-    if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(wVA, false))
-    {
-        QMessageBox msg(QMessageBox::Warning, tr("Current address is not executable"),
-                        tr("Setting new origin here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, this);
-        msg.setWindowIcon(DIcon("compile-warning.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        if(msg.exec() == QMessageBox::No)
-            return;
-    }
-    QString wCmd = "cip=" + ToPtrString(wVA);
-    DbgCmdExec(wCmd);
-}
-
 void CPUDisassembly::setLabelSlot()
 {
     if(!DbgIsDebugging())
@@ -781,65 +756,6 @@ restart:
     if(!DbgSetLabelAt(addr, utf8data.constData()))
         SimpleErrorBox(this, tr("Error!"), tr("DbgSetLabelAt failed!"));
 
-
-    GuiUpdateAllViews();
-}
-
-void CPUDisassembly::setCommentSlot()
-{
-    if(!DbgIsDebugging())
-        return;
-    duint wVA = rvaToVa(getInitialSelection());
-    LineEditDialog mLineEdit(this);
-    mLineEdit.setTextMaxLength(MAX_COMMENT_SIZE - 2);
-    QString addr_text = ToPtrString(wVA);
-    char comment_text[MAX_COMMENT_SIZE] = "";
-    if(DbgGetCommentAt((duint)wVA, comment_text))
-    {
-        if(comment_text[0] == '\1') //automatic comment
-            mLineEdit.setText(QString(comment_text + 1));
-        else
-            mLineEdit.setText(QString(comment_text));
-    }
-    mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
-    if(mLineEdit.exec() != QDialog::Accepted)
-        return;
-    QString comment = mLineEdit.editText.replace('\r', "").replace('\n', "");
-    if(!DbgSetCommentAt(wVA, comment.toUtf8().constData()))
-        SimpleErrorBox(this, tr("Error!"), tr("DbgSetCommentAt failed!"));
-
-    static bool easter = isEaster();
-    if(easter && comment.toLower() == "oep")
-    {
-        QFile file(":/icons/images/egg.wav");
-        if(file.open(QIODevice::ReadOnly))
-        {
-            QByteArray egg = file.readAll();
-            PlaySoundA(egg.data(), 0, SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
-        }
-    }
-
-    GuiUpdateAllViews();
-}
-
-void CPUDisassembly::setBookmarkSlot()
-{
-    if(!DbgIsDebugging())
-        return;
-    duint wVA = rvaToVa(getInitialSelection());
-    bool result;
-    if(DbgGetBookmarkAt(wVA))
-        result = DbgSetBookmarkAt(wVA, false);
-    else
-        result = DbgSetBookmarkAt(wVA, true);
-    if(!result)
-    {
-        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetBookmarkAt failed!"));
-        msg.setWindowIcon(DIcon("compile-error.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
-    }
 
     GuiUpdateAllViews();
 }
@@ -1985,36 +1901,10 @@ void CPUDisassembly::setEncodeTypeSlot()
     GuiUpdateDisassemblyView();
 }
 
-void CPUDisassembly::graphSlot()
-{
-    if(DbgCmdExecDirect(QString("graph %1").arg(ToPtrString(rvaToVa(getSelectionStart()))).toUtf8().constData()))
-        GuiFocusView(GUI_GRAPH);
-}
-
 void CPUDisassembly::analyzeModuleSlot()
 {
     DbgCmdExec("cfanal");
     DbgCmdExec("analx");
-}
-
-void CPUDisassembly::createThreadSlot()
-{
-    duint addr = rvaToVa(getSelectionStart());
-    if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(addr, false))
-    {
-        QMessageBox msg(QMessageBox::Warning, tr("Current address is not executable"),
-                        tr("Creating new thread here may result in crash. Do you really want to continue?"), QMessageBox::Yes | QMessageBox::No, this);
-        msg.setWindowIcon(DIcon("compile-warning.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        if(msg.exec() == QMessageBox::No)
-            return;
-    }
-    WordEditDialog argWindow(this);
-    argWindow.setup(tr("Argument for the new thread"), 0, sizeof(duint));
-    if(argWindow.exec() != QDialog::Accepted)
-        return;
-    DbgCmdExec(QString("createthread %1, %2").arg(ToPtrString(addr)).arg(ToPtrString(argWindow.getVal())));
 }
 
 void CPUDisassembly::copyTokenTextSlot()
@@ -2038,11 +1928,6 @@ bool CPUDisassembly::getTokenValueText(QString & text)
         return false;
     text = ToHexString(value);
     return true;
-}
-
-void CPUDisassembly::followInMemoryMapSlot()
-{
-    DbgCmdExec(QString("memmapdump %1").arg(ToHexString(rvaToVa(getInitialSelection()))));
 }
 
 void CPUDisassembly::downloadCurrentSymbolsSlot()

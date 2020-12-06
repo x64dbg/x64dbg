@@ -2,12 +2,12 @@
 #define CPUDISASSEMBLY_H
 
 #include "Disassembly.h"
-#include "BreakpointMenu.h"
 
 // Needed forward declaration for parent container class
 class CPUSideBar;
 class GotoDialog;
 class XrefBrowseDialog;
+class CommonActions;
 
 class CPUDisassembly : public Disassembly
 {
@@ -37,12 +37,9 @@ signals:
     void displaySymbolsWidget();
 
 public slots:
-    void setNewOriginHereActionSlot();
     void gotoOriginSlot();
     void setLabelSlot();
     void setLabelAddressSlot();
-    void setCommentSlot();
-    void setBookmarkSlot();
     void toggleFunctionSlot();
     void toggleArgumentSlot();
     void addLoopSlot();
@@ -105,12 +102,9 @@ public slots:
     void removeAnalysisModuleSlot();
     void setEncodeTypeSlot();
     void setEncodeTypeRangeSlot();
-    void graphSlot();
     void analyzeModuleSlot();
-    void createThreadSlot();
     void copyTokenTextSlot();
     void copyTokenValueSlot();
-    void followInMemoryMapSlot();
     void downloadCurrentSymbolsSlot();
 
 protected:
@@ -169,7 +163,7 @@ private:
     MenuBuilder* mMenuBuilder;
     MenuBuilder* mHighlightMenuBuilder;
     bool mHighlightContextMenu = false;
-    BreakpointMenu* mBreakpointMenu;
+    CommonActions* mCommonActions;
 };
 
 #endif // CPUDISASSEMBLY_H
