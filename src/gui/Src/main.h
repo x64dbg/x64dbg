@@ -11,6 +11,7 @@
 
 class MyApplication : public QApplication
 {
+    Q_OBJECT
 public:
     MyApplication(int & argc, char** argv);
     bool notify(QObject* receiver, QEvent* event) Q_DECL_OVERRIDE;

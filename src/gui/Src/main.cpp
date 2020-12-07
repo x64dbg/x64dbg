@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
     application.installNativeEventFilter(eventFilter);
 #endif
 
-    // Get the hidden language setting (for testers)
+    // Get the language setting
     if(!BridgeSettingGet("Engine", "Language", currentLocale) || !isValidLocale(currentLocale))
     {
         QStringList uiLanguages = QLocale::system().uiLanguages();
