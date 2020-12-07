@@ -26,119 +26,123 @@
   <property name="modal">
    <bool>false</bool>
   </property>
-  <widget class="QLabel" name="lblMessages">
-   <property name="geometry">
-    <rect>
-     <x>16</x>
-     <y>16</y>
-     <width>51</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Messages:</string>
-   </property>
-  </widget>
-  <widget class="QGroupBox" name="gboxBreakpoints">
-   <property name="geometry">
-    <rect>
-     <x>14</x>
-     <y>50</y>
-     <width>261</width>
-     <height>121</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string/>
-   </property>
-   <widget class="QRadioButton" name="rbtnBreakAny">
-    <property name="geometry">
-     <rect>
-      <x>14</x>
-      <y>20</y>
-      <width>221</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Break on any window</string>
-    </property>
-    <property name="checked">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="rbtnBreakCurrent">
-    <property name="geometry">
-     <rect>
-      <x>14</x>
-      <y>40</y>
-      <width>221</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Break on current window only 
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="lblMessages">
+       <property name="text">
+        <string>Messages:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="cboxMessages">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="gboxBreakpoints">
+     <property name="title">
+      <string/>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QRadioButton" name="rbtnBreakAny">
+        <property name="text">
+         <string>Break on any window</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="rbtnBreakCurrent">
+        <property name="text">
+         <string>Break on current window only 
 (Invalid for next session)</string>
-    </property>
-   </widget>
-   <widget class="QCheckBox" name="chkTranslateMessage">
-    <property name="geometry">
-     <rect>
-      <x>14</x>
-      <y>90</y>
-      <width>221</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Use TranslateMessage</string>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QPushButton" name="btnOk">
-   <property name="geometry">
-    <rect>
-     <x>114</x>
-     <y>180</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>OK</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="cboxMessages">
-   <property name="geometry">
-    <rect>
-     <x>74</x>
-     <y>16</y>
-     <width>201</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="editable">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="btnCancel">
-   <property name="geometry">
-    <rect>
-     <x>200</x>
-     <y>180</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Cancel</string>
-   </property>
-  </widget>
-  <zorder>lblMessages</zorder>
-  <zorder>cboxMessages</zorder>
-  <zorder>gboxBreakpoints</zorder>
-  <zorder>btnOk</zorder>
-  <zorder>btnCancel</zorder>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="chkTranslateMessage">
+        <property name="text">
+         <string>Use TranslateMessage</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnOk">
+       <property name="text">
+        <string>OK</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnCancel">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
  </widget>
  <resources>
   <include location="../../resource.qrc"/>

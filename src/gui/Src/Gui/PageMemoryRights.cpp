@@ -7,7 +7,7 @@ PageMemoryRights::PageMemoryRights(QWidget* parent) : QDialog(parent), ui(new Ui
 {
     ui->setupUi(this);
     //set window flags
-    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     setModal(true);
     addr = 0;
     size = 0;
@@ -41,6 +41,7 @@ void PageMemoryRights::RunAddrSize(duint addrin, duint sizein, QString pagetypei
         if(DbgFunctions()->GetPageRights(actual_addr, rights))
             tableWidget->setItem(i, 1, new QTableWidgetItem(QString(rights)));
     }
+    tableWidget->resizeColumnsToContents();
 
     QModelIndex idx = (ui->pagetableWidget->model()->index(0, 0));
     ui->pagetableWidget->selectionModel()->select(idx, QItemSelectionModel::Select);
