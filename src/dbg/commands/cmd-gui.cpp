@@ -130,7 +130,8 @@ bool cbInstrGraph(int argc, char* argv[])
             return false;
     }
     GuiUpdateAllViews();
-    GuiFocusView(GUI_GRAPH);
+    if(!silent)
+        GuiFocusView(GUI_GRAPH);
     return true;
 }
 
