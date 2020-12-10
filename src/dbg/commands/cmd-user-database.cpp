@@ -233,8 +233,9 @@ bool cbInstrBookmarkList(int argc, char* argv[])
     //setup reference view
     GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Bookmarks")));
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-    GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
-    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment")));
+    GuiReferenceAddColumn(50, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+    GuiReferenceAddColumn(50, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label")));
+    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Comment")));
     GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
     size_t cbsize;
@@ -258,13 +259,10 @@ bool cbInstrBookmarkList(int argc, char* argv[])
             GuiReferenceSetCellContent(i, 1, disassembly);
         char comment[MAX_COMMENT_SIZE] = "";
         if(CommentGet(bookmarks()[i].addr, comment))
-            GuiReferenceSetCellContent(i, 2, comment);
-        else
-        {
-            char label[MAX_LABEL_SIZE] = "";
-            if(LabelGet(bookmarks()[i].addr, label))
-                GuiReferenceSetCellContent(i, 2, label);
-        }
+            GuiReferenceSetCellContent(i, 3, comment);
+        char label[MAX_LABEL_SIZE] = "";
+        if(LabelGet(bookmarks()[i].addr, label))
+            GuiReferenceSetCellContent(i, 2, label);
     }
     varset("$result", count, false);
     GuiReferenceAddCommand(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Delete")), "bookmarkdel $0");
@@ -322,8 +320,10 @@ bool cbInstrFunctionList(int argc, char* argv[])
     GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Functions")));
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Start")));
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "End")));
-    GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)")));
-    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment")));
+    GuiReferenceAddColumn(5, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Size")));
+    GuiReferenceAddColumn(50, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label")));
+    GuiReferenceAddColumn(50, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)")));
+    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Comment")));
     GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
     size_t cbsize;
@@ -344,18 +344,17 @@ bool cbInstrFunctionList(int argc, char* argv[])
         GuiReferenceSetCellContent(i, 0, addrText);
         sprintf_s(addrText, "%p", functions()[i].end);
         GuiReferenceSetCellContent(i, 1, addrText);
+        sprintf_s(addrText, ArchValue("%X", "%llX"), functions()[i].end - functions()[i].start);
+        GuiReferenceSetCellContent(i, 2, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly(functions()[i].start, disassembly))
-            GuiReferenceSetCellContent(i, 2, disassembly);
+            GuiReferenceSetCellContent(i, 4, disassembly);
         char label[MAX_LABEL_SIZE] = "";
         if(LabelGet(functions()[i].start, label))
             GuiReferenceSetCellContent(i, 3, label);
-        else
-        {
-            char comment[MAX_COMMENT_SIZE] = "";
-            if(CommentGet(functions()[i].start, comment))
-                GuiReferenceSetCellContent(i, 3, comment);
-        }
+        char comment[MAX_COMMENT_SIZE] = "";
+        if(CommentGet(functions()[i].start, comment))
+            GuiReferenceSetCellContent(i, 5, comment);
     }
     varset("$result", count, false);
     GuiReferenceAddCommand(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Delete")), "functiondel $0");
