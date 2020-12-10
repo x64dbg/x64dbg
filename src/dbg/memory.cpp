@@ -215,7 +215,7 @@ void MemUpdateMap()
         // Mark PEB
         if(pageBase == pebBase)
         {
-            strcpy_s(page.info, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "PEB")));
+            strcpy_s(page.info, "PEB");
             continue;
         }
 

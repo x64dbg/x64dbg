@@ -51,7 +51,7 @@ void RecursiveAnalysis::SetMarkers()
         {
             FunctionDelRange(start, end, false /* Do not override user-defined functions */);
             LoopDeleteRange(start, end); // clear loop range in function
-            XrefDelRange(start, end); // clear xrefs in function
+            //XrefDelRange(start, end); // clear xrefs in function
             FunctionAdd(start, end, false, icount, function.entryPoint);
             functionRanges.emplace(Range(start, end), nullptr);
         };
