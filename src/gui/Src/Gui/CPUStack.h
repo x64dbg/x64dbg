@@ -54,6 +54,7 @@ public slots:
     void realignSlot();
     void freezeStackSlot();
     void dbgStateChangedSlot(DBGSTATE state);
+    void disasmSelectionChanged(dsint parVA);
     void updateSlot();
 
 private:

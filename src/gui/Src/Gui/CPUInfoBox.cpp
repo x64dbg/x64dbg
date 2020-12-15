@@ -188,7 +188,7 @@ void CPUInfoBox::disasmSelectionChanged(dsint parVA)
 
     for(int i = 0, j = start; i < instr.argcount && j < 2; i++)
     {
-        DISASM_ARG arg = instr.arg[i];
+        const DISASM_ARG & arg = instr.arg[i];
         QString argMnemonic = QString(arg.mnemonic);
         if(bUpper)
             argMnemonic = argMnemonic.toUpper();

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>381</width>
+    <width>386</width>
     <height>525</height>
    </rect>
   </property>
@@ -40,6 +40,37 @@
        <string>Events</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
+       <item row="3" column="0">
+        <widget class="QCheckBox" name="chkEntryBreakpoint">
+         <property name="text">
+          <string>Entry Breakpoint*</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QCheckBox" name="chkThreadStart">
+         <property name="text">
+          <string>Thread Start</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="1">
+        <widget class="QCheckBox" name="chkDllLoadSystem">
+         <property name="text">
+          <string>System DLL Load</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QCheckBox" name="chkThreadEntry">
+         <property name="text">
+          <string>Thread Entry</string>
+         </property>
+        </widget>
+       </item>
        <item row="11" column="1">
         <widget class="QCheckBox" name="chkDllUnloadSystem">
          <property name="text">
@@ -47,7 +78,7 @@
          </property>
         </widget>
        </item>
-       <item row="12" column="0">
+       <item row="13" column="0">
         <spacer name="verticalSpacer_4">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -60,20 +91,48 @@
          </property>
         </spacer>
        </item>
-       <item row="3" column="0">
-        <widget class="QCheckBox" name="chkEntryBreakpoint">
+       <item row="2" column="0">
+        <widget class="QCheckBox" name="chkNtTerminateProcess">
          <property name="text">
-          <string>Entry Breakpoint*</string>
+          <string>NtTerminateProcess*</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QCheckBox" name="chkTlsCallbacks">
+         <property name="text">
+          <string>TLS Callbacks*</string>
          </property>
          <property name="checked">
           <bool>false</bool>
          </property>
         </widget>
        </item>
-       <item row="8" column="1">
-        <widget class="QCheckBox" name="chkDllEntrySystem">
+       <item row="3" column="1">
+        <widget class="QCheckBox" name="chkThreadEnd">
          <property name="text">
-          <string>System DLL Entry</string>
+          <string>Thread End</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <widget class="QCheckBox" name="chkDllEntry">
+         <property name="text">
+          <string>DLL Entry</string>
+         </property>
+        </widget>
+       </item>
+       <item row="9" column="0">
+        <widget class="QCheckBox" name="chkDllLoad">
+         <property name="text">
+          <string>DLL Load</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="lblBreakOn">
+         <property name="text">
+          <string>Break on:</string>
          </property>
         </widget>
        </item>
@@ -87,55 +146,6 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QCheckBox" name="chkNtTerminateProcess">
-         <property name="text">
-          <string>NtTerminateProcess*</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="1">
-        <widget class="QCheckBox" name="chkDllLoadSystem">
-         <property name="text">
-          <string>System DLL Load</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QCheckBox" name="chkThreadStart">
-         <property name="text">
-          <string>Thread Start</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="lblBreakOn">
-         <property name="text">
-          <string>Break on:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QCheckBox" name="chkThreadEnd">
-         <property name="text">
-          <string>Thread End</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QCheckBox" name="chkDebugStrings">
-         <property name="text">
-          <string>Debug Strings</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QCheckBox" name="chkThreadEntry">
-         <property name="text">
-          <string>Thread Entry</string>
-         </property>
-        </widget>
-       </item>
        <item row="5" column="1">
         <widget class="QCheckBox" name="chkTlsCallbacksSystem">
          <property name="text">
@@ -143,34 +153,24 @@
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
-        <widget class="QCheckBox" name="chkTlsCallbacks">
+       <item row="8" column="1">
+        <widget class="QCheckBox" name="chkDllEntrySystem">
          <property name="text">
-          <string>TLS Callbacks*</string>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
+          <string>System DLL Entry</string>
          </property>
         </widget>
        </item>
-       <item row="5" column="0">
-        <widget class="QCheckBox" name="chkDllEntry">
-         <property name="text">
-          <string>DLL Entry</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="0">
-        <widget class="QCheckBox" name="chkDllLoad">
-         <property name="text">
-          <string>DLL Load</string>
-         </property>
-        </widget>
-       </item>
-       <item row="9" column="0">
+       <item row="11" column="0">
         <widget class="QCheckBox" name="chkDllUnload">
          <property name="text">
           <string>DLL Unload</string>
+         </property>
+        </widget>
+       </item>
+       <item row="12" column="0">
+        <widget class="QCheckBox" name="chkDebugStrings">
+         <property name="text">
+          <string>Debug Strings</string>
          </property>
         </widget>
        </item>
@@ -775,6 +775,13 @@
         <widget class="QCheckBox" name="chkGraphZoomMode">
          <property name="text">
           <string>Graph zoom mode</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkAutoFollowInStack">
+         <property name="text">
+          <string>Auto follow operand in stack</string>
          </property>
         </widget>
        </item>

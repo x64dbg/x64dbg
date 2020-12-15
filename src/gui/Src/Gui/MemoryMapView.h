@@ -31,6 +31,7 @@ public slots:
     void refreshMap();
     void findPatternSlot();
     void dumpMemory();
+    void loadMemory();
     void commentSlot();
     void selectAddress(duint va);
     void gotoOriginSlot();
@@ -51,6 +52,7 @@ private:
     QAction* mSwitchView;
     QAction* mPageMemoryRights;
     QAction* mDumpMemory;
+    QAction* mLoadMemory;
 
     QMenu* mBreakpointMenu;
     QMenu* mMemoryAccessMenu;

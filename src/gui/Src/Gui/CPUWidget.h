@@ -66,6 +66,7 @@ private:
 
 private slots:
     void splitterMoved(int pos, int index);
+    void guiOptionsUpdated();
     void attachGraph(QWidget* widget);
     void detachGraph();
 };
