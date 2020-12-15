@@ -598,6 +598,9 @@ void CPUStack::disasmSelectionChanged(dsint parVA)
         return;
     DbgDisasmAt(parVA, &instr);
 
+    duint underlineStart = 0;
+    duint underlineEnd = 0;
+
     for(int i = 0; i < instr.argcount; i++)
     {
         const DISASM_ARG & arg = instr.arg[i];
@@ -605,11 +608,28 @@ void CPUStack::disasmSelectionChanged(dsint parVA)
         {
             if(arg.value >= mMemPage->getBase() && arg.value < mMemPage->getBase() + mMemPage->getSize())
             {
-                //TODO: When the stack is unaligned?
-                stackDumpAt(arg.value & (~(sizeof(void*) - 1)), mCsp);
-                return;
+                if(Config()->getBool("Gui", "AutoFollowInStack"))
+                {
+                    //TODO: When the stack is unaligned?
+                    stackDumpAt(arg.value & (~(sizeof(void*) - 1)), mCsp);
+                }
+                else
+                {
+                    BASIC_INSTRUCTION_INFO info;
+                    DbgDisasmFastAt(parVA, &info);
+                    underlineStart = arg.value;
+                    underlineEnd = mUnderlineRangeStartVa + info.memory.size - 1;
+                }
+                break;
             }
         }
+    }
+
+    if(mUnderlineRangeStartVa != underlineStart || mUnderlineRangeEndVa != underlineEnd)
+    {
+        mUnderlineRangeStartVa = underlineStart;
+        mUnderlineRangeEndVa = underlineEnd;
+        reloadData();
     }
 }
 

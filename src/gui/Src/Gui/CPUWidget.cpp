@@ -83,9 +83,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     mStack = new CPUStack(mDump, 0); //stack widget
     ui->mBotRightFrameLayout->addWidget(mStack);
-    if(Config()->getBool("Gui", "AutoFollowInStack"))
-        connect(mDisas, SIGNAL(selectionChanged(dsint)), mStack, SLOT(disasmSelectionChanged(dsint)));
-    connect(Config(), SIGNAL(guiOptionsUpdated()), this, SLOT(guiOptionsUpdated()));
+    connect(mDisas, SIGNAL(selectionChanged(dsint)), mStack, SLOT(disasmSelectionChanged(dsint)));
 
     // load column config
     mDisas->loadColumnFromConfig("CPUDisassembly");
@@ -161,14 +159,6 @@ void CPUWidget::setDefaultDisposition()
     // Top Left Upper Horizontal Splitter
     ui->mTopLeftUpperHSplitter->setStretchFactor(0, 36);
     ui->mTopLeftUpperHSplitter->setStretchFactor(1, 64);
-}
-
-void CPUWidget::guiOptionsUpdated()
-{
-    if(Config()->getBool("Gui", "AutoFollowInStack"))
-        connect(mDisas, SIGNAL(selectionChanged(dsint)), mStack, SLOT(disasmSelectionChanged(dsint)), Qt::UniqueConnection);
-    else
-        disconnect(mDisas, SIGNAL(selectionChanged(dsint)), mStack, SLOT(disasmSelectionChanged(dsint)));
 }
 
 void CPUWidget::setDisasmFocus()
