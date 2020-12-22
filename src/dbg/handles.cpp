@@ -194,17 +194,17 @@ bool HandlesGetName(HANDLE remoteHandle, String & name, String & typeName)
                 {
                     char ThreadName[MAX_THREAD_NAME_SIZE];
                     if(ThreadGetName(TID, ThreadName) && ThreadName[0] != 0)
-                        name = StringUtils::sprintf("TID: %s (%s), PID: %s (%s)", TIDString, ThreadName, PIDString, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debuggee")));
+                        name = StringUtils::sprintf("TID: %s (%s), PID: %s (%s)", TIDString.c_str(), ThreadName, PIDString.c_str(), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debuggee")));
                     else
-                        name = StringUtils::sprintf("TID: %s, PID: %s (%s)", TIDString, PIDString, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debuggee")));
+                        name = StringUtils::sprintf("TID: %s, PID: %s (%s)", TIDString.c_str(), PIDString.c_str(), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debuggee")));
                 }
                 else
                 {
                     std::string processName = getProcessName(PID);
                     if(processName.size() > 0)
-                        name = StringUtils::sprintf("TID: %s, PID: %s (%s)", TIDString, PIDString, processName.c_str());
+                        name = StringUtils::sprintf("TID: %s, PID: %s (%s)", TIDString.c_str(), PIDString.c_str(), processName.c_str());
                     else
-                        name = StringUtils::sprintf("TID: %s, PID: %s", TIDString, PIDString);
+                        name = StringUtils::sprintf("TID: %s, PID: %s", TIDString.c_str(), PIDString.c_str());
                 }
             }
         }
