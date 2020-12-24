@@ -728,6 +728,10 @@ void MainWindow::clearTabWidget()
 
 void MainWindow::saveWindowSettings()
 {
+    // Save favourite toolbar
+    BridgeSettingSetUint("Main Window Settings", "FavToolbarVisible", mFavouriteToolbar->isVisible() ? 1 : 0);
+    removeToolBar(mFavouriteToolbar); //Remove it before saving main window settings, otherwise it crashes
+
     // Main Window settings
     BridgeSettingSet("Main Window Settings", "Geometry", saveGeometry().toBase64().data());
     BridgeSettingSet("Main Window Settings", "State", saveState().toBase64().data());
@@ -746,11 +750,6 @@ void MainWindow::saveWindowSettings()
             BridgeSettingSet("Tab Window Settings", mWidgetList[i].nativeName.toUtf8().constData(),
                              mWidgetList[i].widget->parentWidget()->saveGeometry().toBase64().data());
     }
-
-    // Save favourite toolbar
-    BridgeSettingSetUint("Main Window Settings", "FavToolbarPositionX", mFavouriteToolbar->x());
-    BridgeSettingSetUint("Main Window Settings", "FavToolbarPositionY", mFavouriteToolbar->y());
-    BridgeSettingSetUint("Main Window Settings", "FavToolbarVisible", mFavouriteToolbar->isVisible() ? 1 : 0);
 
     mCpuWidget->saveWindowSettings();
     mSymbolView->saveWindowSettings();
@@ -797,11 +796,9 @@ void MainWindow::loadWindowSettings()
     }
 
     // Load favourite toolbar
-    duint posx = 0, posy = 0, isVisible = 0;
-    BridgeSettingGetUint("Main Window Settings", "FavToolbarPositionX", &posx);
-    BridgeSettingGetUint("Main Window Settings", "FavToolbarPositionY", &posy);
+    duint isVisible = 0;
     BridgeSettingGetUint("Main Window Settings", "FavToolbarVisible", &isVisible);
-    mFavouriteToolbar->move(posx, posy);
+    addToolBar(mFavouriteToolbar);
     mFavouriteToolbar->setVisible(isVisible == 1);
 
     mCpuWidget->loadWindowSettings();
