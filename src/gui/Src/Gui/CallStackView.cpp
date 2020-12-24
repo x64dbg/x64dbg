@@ -5,6 +5,7 @@ CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
 {
     int charwidth = getCharWidth();
 
+    addColumnAt(8 * charwidth, tr("Thread ID"), true);
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("Address"), true); //address in the stack
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("To"), false); //return to
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("From"), false); //return from
@@ -27,11 +28,17 @@ void CallStackView::setupContextMenu()
         return DbgIsDebugging();
     });
     QIcon icon = DIcon(ArchValue("processor32.png", "processor64.png"));
-    mMenuBuilder->addAction(makeAction(icon, tr("Follow &Address"), SLOT(followAddress())));
-    mMenuBuilder->addAction(makeAction(icon, tr("Follow &To"), SLOT(followTo())));
+    mMenuBuilder->addAction(makeAction(icon, tr("Follow &Address"), SLOT(followAddress())), [this](QMenu*)
+    {
+        return isSelectionValid();
+    });
+    mMenuBuilder->addAction(makeAction(icon, tr("Follow &To"), SLOT(followTo())), [this](QMenu*)
+    {
+        return isSelectionValid();
+    });
     QAction* mFollowFrom = mMenuBuilder->addAction(makeAction(icon, tr("Follow &From"), SLOT(followFrom())), [this](QMenu*)
     {
-        return !getCellContent(getInitialSelection(), 2).isEmpty();
+        return !getCellContent(getInitialSelection(), ColFrom).isEmpty() && isSelectionValid();
     });
     mFollowFrom->setShortcutContext(Qt::WidgetShortcut);
     mFollowFrom->setShortcut(QKeySequence("enter"));
@@ -57,46 +64,99 @@ void CallStackView::setupContextMenu()
     mMenuBuilder->loadFromConfig();
 }
 
+QString CallStackView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+{
+    QString ret = getCellContent(rowBase + rowOffset, col);
+
+    if(isSelected(rowBase, rowOffset))
+        painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
+
+    bool isSpaceRow = !getCellContent(rowBase + rowOffset, ColThread).isEmpty();
+
+    if(!col && !(rowBase + rowOffset) && !ret.isEmpty())
+    {
+        painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("ThreadCurrentBackgroundColor")));
+        painter->setPen(QPen(ConfigColor("ThreadCurrentColor")));
+        painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, ret);
+        ret = "";
+    }
+
+    else if(col > ColThread && isSpaceRow)
+    {
+        auto mid = h / 2.0;
+        painter->drawLine(QPointF(x, y + mid), QPointF(x + w, y + mid));
+    }
+
+    return ret;
+}
+
 void CallStackView::updateCallStack()
 {
-    DBGCALLSTACK callstack;
-    memset(&callstack, 0, sizeof(DBGCALLSTACK));
-    if(!DbgFunctions()->GetCallStack)
+    if(!DbgFunctions()->GetCallStackByThread)
         return;
-    DbgFunctions()->GetCallStack(&callstack);
-    setRowCount(callstack.total);
-    for(int i = 0; i < callstack.total; i++)
+
+    THREADLIST threadList;
+    memset(&threadList, 0, sizeof(THREADLIST));
+    DbgGetThreadList(&threadList);
+
+    int currentRow = 0;
+    int currentIndexToDraw = 0;
+    setRowCount(0);
+    for(int j = 0; j < threadList.count; j++)
     {
-        QString addrText = ToPtrString(callstack.entries[i].addr);
-        setCellContent(i, 0, addrText);
-        addrText = ToPtrString(callstack.entries[i].to);
-        setCellContent(i, 1, addrText);
-        if(callstack.entries[i].from)
-        {
-            addrText = ToPtrString(callstack.entries[i].from);
-            setCellContent(i, 2, addrText);
-        }
-        if(i != callstack.total - 1)
-            setCellContent(i, 3, ToHexString(callstack.entries[i + 1].addr - callstack.entries[i].addr));
+        if(!j)
+            currentIndexToDraw = threadList.CurrentThread; // Draw the current thread first
+        else if(j == threadList.CurrentThread)
+            currentIndexToDraw = 0; // Draw the previously skipped thread
         else
-            setCellContent(i, 3, "");
-        setCellContent(i, 4, callstack.entries[i].comment);
-        int party = DbgFunctions()->ModGetParty(callstack.entries[i].to);
-        switch(party)
+            currentIndexToDraw = j;
+
+        DBGCALLSTACK callstack;
+        memset(&callstack, 0, sizeof(DBGCALLSTACK));
+        DbgFunctions()->GetCallStackByThread(threadList.list[currentIndexToDraw].BasicInfo.Handle, &callstack);
+        setRowCount(currentRow + callstack.total + 1);
+        setCellContent(currentRow, ColThread, ToDecString(threadList.list[currentIndexToDraw].BasicInfo.ThreadId));
+
+        currentRow++;
+
+        for(int i = 0; i < callstack.total; i++, currentRow++)
         {
-        case mod_user:
-            setCellContent(i, 5, tr("User"));
-            break;
-        case mod_system:
-            setCellContent(i, 5, tr("System"));
-            break;
-        default:
-            setCellContent(i, 5, QString::number(party));
-            break;
+            QString addrText = ToPtrString(callstack.entries[i].addr);
+            setCellContent(currentRow, ColAddress, addrText);
+            addrText = ToPtrString(callstack.entries[i].to);
+            setCellContent(currentRow, ColTo, addrText);
+            if(callstack.entries[i].from)
+            {
+                addrText = ToPtrString(callstack.entries[i].from);
+                setCellContent(currentRow, ColFrom, addrText);
+            }
+            if(i != callstack.total - 1)
+                setCellContent(currentRow, ColSize, ToHexString(callstack.entries[i + 1].addr - callstack.entries[i].addr));
+            else
+                setCellContent(currentRow, ColSize, "");
+            setCellContent(currentRow, ColComment, callstack.entries[i].comment);
+            int party = DbgFunctions()->ModGetParty(callstack.entries[i].to);
+            switch(party)
+            {
+            case mod_user:
+                setCellContent(currentRow, ColParty, tr("User"));
+                break;
+            case mod_system:
+                setCellContent(currentRow, ColParty, tr("System"));
+                break;
+            default:
+                setCellContent(currentRow, ColParty, QString::number(party));
+                break;
+            }
         }
+        if(callstack.total)
+            BridgeFree(callstack.entries);
+
     }
-    if(callstack.total)
-        BridgeFree(callstack.entries);
+
+    if(threadList.count)
+        BridgeFree(threadList.list);
+
     reloadData();
 }
 
@@ -110,19 +170,19 @@ void CallStackView::contextMenuSlot(const QPoint pos)
 
 void CallStackView::followAddress()
 {
-    QString addrText = getCellContent(getInitialSelection(), 0);
+    QString addrText = getCellContent(getInitialSelection(), ColAddress);
     DbgCmdExecDirect(QString("sdump " + addrText));
 }
 
 void CallStackView::followTo()
 {
-    QString addrText = getCellContent(getInitialSelection(), 1);
+    QString addrText = getCellContent(getInitialSelection(), ColTo);
     DbgCmdExecDirect(QString("disasm " + addrText));
 }
 
 void CallStackView::followFrom()
 {
-    QString addrText = getCellContent(getInitialSelection(), 2);
+    QString addrText = getCellContent(getInitialSelection(), ColFrom);
     DbgCmdExecDirect(QString("disasm " + addrText));
 }
 
@@ -136,4 +196,9 @@ void CallStackView::showSuspectedCallStack()
     DbgSettingsUpdated();
     updateCallStack();
     emit Bridge::getBridge()->updateDump();
+}
+
+bool CallStackView::isSelectionValid()
+{
+    return getCellContent(getInitialSelection(), ColThread).isEmpty();
 }
