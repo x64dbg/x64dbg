@@ -40,10 +40,10 @@ Disassembly::Disassembly(QWidget* parent, bool isMain)
 
     setRowCount(mMemPage->getSize());
 
-    addColumnAt(getCharWidth() * 2 * sizeof(dsint) + 8, "", false); //address
-    addColumnAt(getCharWidth() * 2 * 12 + 8, "", false); //bytes
-    addColumnAt(getCharWidth() * 40, "", false); //disassembly
-    addColumnAt(1000, "", false); //comments
+    addColumnAt(getCharWidth() * 2 * sizeof(dsint) + 8, tr("Address"), false); //address
+    addColumnAt(getCharWidth() * 2 * 12 + 8, tr("Bytes"), false); //bytes
+    addColumnAt(getCharWidth() * 40, tr("Disassembly"), false); //disassembly
+    addColumnAt(1000, tr("Comments"), false); //comments
 
     setShowHeader(false); //hide header
 
