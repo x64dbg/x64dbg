@@ -2,6 +2,7 @@
 #define CALLSTACKVIEW_H
 
 #include "StdTable.h"
+class CommonActions;
 
 class CallStackView : public StdTable
 {
@@ -9,6 +10,7 @@ class CallStackView : public StdTable
 public:
     explicit CallStackView(StdTable* parent = 0);
     void setupContextMenu();
+    duint getSelectionVa();
 
 protected:
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) override;
@@ -34,6 +36,7 @@ private:
     };
 
     MenuBuilder* mMenuBuilder;
+    CommonActions* mCommonActions;
     bool isSelectionValid();
 };
 

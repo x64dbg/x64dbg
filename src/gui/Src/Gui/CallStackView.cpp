@@ -1,4 +1,5 @@
 #include "CallStackView.h"
+#include "CommonActions.h"
 #include "Bridge.h"
 
 CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
@@ -27,6 +28,10 @@ void CallStackView::setupContextMenu()
     {
         return DbgIsDebugging();
     });
+    mCommonActions = new CommonActions(this, getActionHelperFuncs(), [this]()
+    {
+        return getSelectionVa();
+    });
     QIcon icon = DIcon(ArchValue("processor32.png", "processor64.png"));
     mMenuBuilder->addAction(makeAction(icon, tr("Follow &Address"), SLOT(followAddress())), [this](QMenu*)
     {
@@ -43,6 +48,9 @@ void CallStackView::setupContextMenu()
     mFollowFrom->setShortcutContext(Qt::WidgetShortcut);
     mFollowFrom->setShortcut(QKeySequence("enter"));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followFrom()));
+    // Breakpoint menu
+    // TODO: Is Label/Comment/Bookmark useful?
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionBreakpoint);
     mMenuBuilder->addSeparator();
     QAction* wShowSuspectedCallStack = makeAction(tr("Show Suspected Call Stack Frame"), SLOT(showSuspectedCallStack()));
     mMenuBuilder->addAction(wShowSuspectedCallStack, [wShowSuspectedCallStack](QMenu*)
@@ -130,6 +138,7 @@ void CallStackView::updateCallStack()
                 addrText = ToPtrString(callstack.entries[i].from);
                 setCellContent(currentRow, ColFrom, addrText);
             }
+            setCellUserdata(currentRow, ColFrom, callstack.entries[i].from);
             if(i != callstack.total - 1)
                 setCellContent(currentRow, ColSize, ToHexString(callstack.entries[i + 1].addr - callstack.entries[i].addr));
             else
@@ -201,4 +210,13 @@ void CallStackView::showSuspectedCallStack()
 bool CallStackView::isSelectionValid()
 {
     return getCellContent(getInitialSelection(), ColThread).isEmpty();
+}
+
+// For breakpoint/run to selection
+duint CallStackView::getSelectionVa()
+{
+    if(isSelectionValid())
+        return getCellUserdata(getInitialSelection(), ColFrom);
+    else
+        return 0;
 }
