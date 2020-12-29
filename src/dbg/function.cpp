@@ -90,7 +90,24 @@ bool FunctionGet(duint Address, duint* Start, duint* End, duint* InstrCount, dui
 {
     FUNCTIONSINFO function;
     if(!functions.Get(Functions::VaKey(Address, Address), function))
+    {
+#if _WIN64
+        duint base = ModBaseFromAddr(Address);
+        MODINFO* info = ModInfoFromAddr(Address);
+        if(!info)
+            return false;
+        const RUNTIME_FUNCTION* runtimefunction = info->findRuntimeFunction(Address - base);
+        if(!runtimefunction)
+            return false;
+        function.start = runtimefunction->BeginAddress;
+        function.end = runtimefunction->EndAddress - 1;
+        function.instructioncount = 0;
+        function.parent = 0;
+        function.modhash = ModHashFromAddr(base);
+#else
         return false;
+#endif //_WIN64
+    }
     functions.AdjustValue(function);
     if(Start)
         *Start = function.start;
