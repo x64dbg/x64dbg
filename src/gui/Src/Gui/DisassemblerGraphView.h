@@ -281,6 +281,7 @@ public slots:
     void gotoNextSlot();
     void toggleSyncOriginSlot();
     void followActionSlot();
+    void followDisassemblySlot();
     void refreshSlot();
     void saveImageSlot();
     void xrefSlot();
