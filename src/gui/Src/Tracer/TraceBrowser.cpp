@@ -16,13 +16,13 @@
 TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
 {
     mTraceFile = nullptr;
-    addColumnAt(getCharWidth() * 2 * 2 + 8, "", false); //index
-    addColumnAt(getCharWidth() * 2 * sizeof(dsint) + 8, "", false); //address
-    addColumnAt(getCharWidth() * 2 * 12 + 8, "", false); //bytes
-    addColumnAt(getCharWidth() * 40, "", false); //disassembly
-    addColumnAt(getCharWidth() * 50, "", false); //registers
-    addColumnAt(getCharWidth() * 50, "", false); //memory
-    addColumnAt(1000, "", false); //comments
+    addColumnAt(getCharWidth() * 2 * 2 + 8, tr("Index"), false); //index
+    addColumnAt(getCharWidth() * 2 * sizeof(dsint) + 8, tr("Address"), false); //address
+    addColumnAt(getCharWidth() * 2 * 12 + 8, tr("Bytes"), false); //bytes
+    addColumnAt(getCharWidth() * 40, tr("Disassembly"), false); //disassembly
+    addColumnAt(getCharWidth() * 50, tr("Registers"), false); //registers
+    addColumnAt(getCharWidth() * 50, tr("Memory"), false); //memory
+    addColumnAt(1000, tr("Comments"), false); //comments
     loadColumnFromConfig("Trace");
 
     setShowHeader(false); //hide header
