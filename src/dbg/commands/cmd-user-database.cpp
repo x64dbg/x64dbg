@@ -35,6 +35,7 @@ bool cbInstrDbclear(int argc, char* argv[])
 {
     DebugRemoveBreakpoints();
     DbClear();
+    dputs(QT_TRANSLATE_NOOP("DBG", "Database cleared!"));
     GuiUpdateAllViews();
     return true;
 }

@@ -162,6 +162,14 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
     EXCLUSIVE_ACQUIRE(LockDatabase);
 
     auto file = dbfile ? dbfile : dbpath;
+    // If the file is "bak", load from database backup instead
+    if(stricmp(file, "bak") == 0)
+    {
+        String dbpath_backup(dbpath);
+        dbpath_backup.append(".bak");
+        DbLoad(loadType, dbpath_backup.c_str());
+        return;
+    }
     // If the file doesn't exist, there is no DB to load
     if(!FileExists(file))
         return;
