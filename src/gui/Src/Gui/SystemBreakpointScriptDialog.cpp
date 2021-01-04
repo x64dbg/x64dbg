@@ -99,7 +99,7 @@ void SystemBreakpointScriptDialog::on_openGlobal_clicked()
             if(!QFile::exists(defaultFileName))
             {
                 QFile newScript(defaultFileName);
-                newScript.open(QFile::NewOnly);
+                newScript.open(QIODevice::Append | QIODevice::WriteOnly);
                 newScript.close();
             }
             ui->lineEditGlobal->setText(defaultFileName);
@@ -134,7 +134,7 @@ void SystemBreakpointScriptDialog::on_openDebuggee_clicked()
             if(!QFile::exists(defaultFileName))
             {
                 QFile newScript(defaultFileName);
-                newScript.open(QFile::NewOnly);
+                newScript.open(QIODevice::Append | QIODevice::WriteOnly);
                 newScript.close();
             }
             ui->lineEditDebuggee->setText(defaultFileName);
