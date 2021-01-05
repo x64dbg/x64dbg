@@ -67,10 +67,10 @@ void ExceptionDirectoryAnalysis::Analyse()
     EnumerateFunctionRuntimeEntries64([&](PRUNTIME_FUNCTION Function)
     {
         auto funcAddr = mModuleBase + Function->BeginAddress;
-        auto funcEnd = mModuleBase + Function->EndAddress;
+        auto funcEnd = mModuleBase + Function->EndAddress - 1;
 
         // If within limits...
-        if(inRange(funcAddr) && inRange(funcEnd))
+        if(inRange(funcAddr) && inRange(funcEnd) && funcAddr <= funcEnd)
             mFunctions.push_back({ funcAddr, funcEnd });
 
         return true;

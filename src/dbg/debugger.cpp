@@ -760,7 +760,14 @@ static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAdd
     if(doBreak)
     {
         if(bp.singleshoot)
+        {
             BpDelete(bp.addr, bp.type);
+            if(bp.type == BPHARDWARE)  // Remove this singleshoot hardware breakpoint
+            {
+                if(TITANDRXVALID(bp.titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(bp.titantype)))
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n"), bp.addr);
+            }
+        }
         if(!bp.silent)
         {
             switch(bp.type)
