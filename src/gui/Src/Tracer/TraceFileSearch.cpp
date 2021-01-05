@@ -152,8 +152,7 @@ unsigned long long TraceFileSearchFuncReturn(TraceFileReader* file, unsigned lon
 #endif //_WIN64
                    )
             {
-                zy.Disassemble(file->Registers(index).regcontext.cip, data, opcodeSize);
-                if(zy.IsRet())
+                if(zy.Disassemble(file->Registers(index).regcontext.cip, data, opcodeSize) && zy.IsRet())
                     return index;
             }
         }
