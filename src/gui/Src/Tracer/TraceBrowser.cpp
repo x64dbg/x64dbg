@@ -876,6 +876,7 @@ void TraceBrowser::setupRightClickContextMenu()
     });
     MenuBuilder* gotoMenu = new MenuBuilder(this, isValid);
     gotoMenu->addAction(makeShortcutAction(DIcon("goto.png"), tr("Expression"), SLOT(gotoSlot()), "ActionGotoExpression"), isValid);
+    gotoMenu->addAction(makeAction(DIcon("arrow-step-rtr.png"), tr("Function return"), SLOT(rtrSlot())), isValid);
     gotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
         return mHistory.historyHasPrev();
@@ -1370,6 +1371,16 @@ void TraceBrowser::mnemonicHelpSlot()
     emit displayLogWidget();
 }
 
+void TraceBrowser::disasm(unsigned long long index, bool history)
+{
+    setSingleSelection(index);
+    makeVisible(index);
+    if(history)
+        mHistory.addVaToHistory(index);
+    updateViewport();
+    emit selectionChanged(getInitialSelection());
+}
+
 void TraceBrowser::gotoSlot()
 {
     if(mTraceFile == nullptr || mTraceFile->Progress() < 100)
@@ -1379,37 +1390,26 @@ void TraceBrowser::gotoSlot()
     {
         auto val = DbgValFromString(gotoDlg.expressionText.toUtf8().constData());
         if(val >= 0 && val < mTraceFile->Length())
-        {
-            setSingleSelection(val);
-            makeVisible(val);
-            mHistory.addVaToHistory(val);
-            updateViewport();
-        }
+            disasm(val);
     }
+}
+
+void TraceBrowser::rtrSlot()
+{
+    // Let's hope this search will be fast...
+    disasm(TraceFileSearchFuncReturn(mTraceFile, getInitialSelection()));
 }
 
 void TraceBrowser::gotoNextSlot()
 {
     if(mHistory.historyHasNext())
-    {
-        auto index = mHistory.historyNext();
-        setSingleSelection(index);
-        makeVisible(index);
-        updateViewport();
-        emit selectionChanged(getInitialSelection());
-    }
+        disasm(mHistory.historyNext(), false);
 }
 
 void TraceBrowser::gotoPreviousSlot()
 {
     if(mHistory.historyHasPrev())
-    {
-        auto index = mHistory.historyPrev();
-        setSingleSelection(index);
-        makeVisible(index);
-        updateViewport();
-        emit selectionChanged(getInitialSelection());
-    }
+        disasm(mHistory.historyPrev(), false);
 }
 
 void TraceBrowser::copyCipSlot()
