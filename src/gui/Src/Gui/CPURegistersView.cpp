@@ -46,6 +46,7 @@ CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), m
     wCM_FollowInDump = new QAction(DIcon("dump.png"), tr("Follow in Dump"), this);
     wCM_FollowInStack = new QAction(DIcon("stack.png"), tr("Follow in Stack"), this);
     wCM_FollowInMemoryMap = new QAction(DIcon("memmap_find_address_page"), tr("Follow in Memory Map"), this);
+    wCM_RemoveHardware = new QAction(DIcon("breakpoint_remove.png"), tr("&Remove hardware breakpoint"), this);
     wCM_Incrementx87Stack = setupAction(DIcon("arrow-small-down.png"), tr("Increment x87 Stack"), this);
     wCM_Decrementx87Stack = setupAction(DIcon("arrow-small-up.png"), tr("Decrement x87 Stack"), this);
     wCM_ChangeFPUView = new QAction(DIcon("change-view.png"), tr("Change view"), this);
@@ -163,6 +164,7 @@ CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), m
     connect(wCM_FollowInDump, SIGNAL(triggered()), this, SLOT(onFollowInDump()));
     connect(wCM_FollowInStack, SIGNAL(triggered()), this, SLOT(onFollowInStack()));
     connect(wCM_FollowInMemoryMap, SIGNAL(triggered()), this, SLOT(onFollowInMemoryMap()));
+    connect(wCM_RemoveHardware, SIGNAL(triggered()), this, SLOT(onRemoveHardware()));
     connect(wCM_IncrementPtrSize, SIGNAL(triggered()), this, SLOT(onIncrementPtrSize()));
     connect(wCM_DecrementPtrSize, SIGNAL(triggered()), this, SLOT(onDecrementPtrSize()));
     connect(wCM_Push, SIGNAL(triggered()), this, SLOT(onPushAction()));
@@ -770,6 +772,15 @@ void CPURegistersView::onFollowInMemoryMap()
     }
 }
 
+void CPURegistersView::onRemoveHardware()
+{
+    if(mSelected == DR0 || mSelected == DR1 || mSelected == DR2 || mSelected == DR3)
+    {
+        QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        DbgCmdExec(QString().sprintf("bphc \"%s\"", addr.toUtf8().constData()));
+    }
+}
+
 void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
 {
     if(!isActive)
@@ -852,6 +863,12 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
                 if(addr >= base && addr < base + size)
                     wMenu.addAction(wCM_FollowInStack);
             }
+        }
+
+        if(mSelected == DR0 || mSelected == DR1 || mSelected == DR2 || mSelected == DR3)
+        {
+            if(* ((duint*) registerValue(&wRegDumpStruct, mSelected)) != 0)
+                wMenu.addAction(wCM_RemoveHardware);
         }
 
         wMenu.addAction(wCM_CopyToClipboard);
