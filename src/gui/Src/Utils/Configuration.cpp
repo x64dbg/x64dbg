@@ -313,7 +313,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Watch1", 6);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "BreakpointsView", 7);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "MemoryMap", 8);
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CallStack", 6);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CallStack", 7);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SEH", 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Script", 3);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Thread", 14);
