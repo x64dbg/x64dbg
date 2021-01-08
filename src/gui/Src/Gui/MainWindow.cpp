@@ -1546,7 +1546,15 @@ void MainWindow::setNameMenu(int hMenu, QString name)
 void MainWindow::runSelection()
 {
     if(DbgIsDebugging())
-        DbgCmdExec(("run " + ToPtrString(mCpuWidget->getSelectionVa())));
+    {
+        duint addr = 0;
+        if(mTabWidget->currentWidget() == mCpuWidget || (mCpuWidget->window() != this && mCpuWidget->isActiveWindow()))
+            addr = mCpuWidget->getSelectionVa();
+        else if(mTabWidget->currentWidget() == mCallStackView || (mCallStackView->window() != this && mCallStackView->isActiveWindow()))
+            addr = mCallStackView->getSelectionVa();
+        if(addr)
+            DbgCmdExec("run " + ToPtrString(addr));
+    }
 }
 
 void MainWindow::runExpression()
