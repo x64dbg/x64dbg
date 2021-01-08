@@ -265,6 +265,8 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
     // Don't try to resolve memory values for invalid/lea/nop instructions
     if(newInstruction.Success() && !newInstruction.IsNop() && newInstruction.GetId() != ZYDIS_MNEMONIC_LEA)
     {
+        // This can happen when trace execute instruction is used, we need to fix that or something would go wrong with the GUI.
+        newContext.registers.regcontext.cip = newInstruction.Address();
         DISASM_ARGTYPE argType;
         duint value;
         unsigned char memoryContent[memoryContentSize];

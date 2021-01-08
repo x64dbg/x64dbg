@@ -1331,7 +1331,7 @@ void TraceBrowser::parseFinishedSlot()
 {
     if(mTraceFile->isError())
     {
-        SimpleErrorBox(this, tr("Error"), "Error when opening run trace file");
+        SimpleErrorBox(this, tr("Error"), tr("Error when opening run trace file"));
         delete mTraceFile;
         mTraceFile = nullptr;
         setRowCount(0);
