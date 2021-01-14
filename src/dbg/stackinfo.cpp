@@ -103,14 +103,6 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
         return true;
     }
 
-    //string
-    char string[MAX_STRING_SIZE] = "";
-    if(DbgGetStringAt(data, string))
-    {
-        strncpy_s(comment->comment, string, _TRUNCATE);
-        return true;
-    }
-
     //label
     char label[MAX_LABEL_SIZE] = "";
     BRIDGE_ADDRINFO addrinfo;
@@ -131,6 +123,14 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
     else if(*label) //label only
     {
         sprintf_s(comment->comment, "<%s>", label);
+        return true;
+    }
+
+    //string
+    char string[MAX_STRING_SIZE] = "";
+    if(DbgGetStringAt(data, string))
+    {
+        strncpy_s(comment->comment, string, _TRUNCATE);
         return true;
     }
 
