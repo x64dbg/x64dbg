@@ -160,6 +160,7 @@ public slots:
     void onSelectionChanged(unsigned long long selection);
 
     void gotoSlot();
+    void rtrSlot();
     void gotoPreviousSlot();
     void gotoNextSlot();
     void enableHighlightingModeSlot();
@@ -182,6 +183,9 @@ public slots:
     void updateSlot();
 
     void toggleAutoDisassemblyFollowSelectionSlot();
+
+protected:
+    void disasm(unsigned long long index, bool history = true);
 };
 
 #endif //TRACEBROWSER_H

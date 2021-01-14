@@ -12,7 +12,7 @@ static bool inRange(duint value, duint start, duint end)
 int TraceFileSearchConstantRange(TraceFileReader* file, duint start, duint end)
 {
     int count = 0;
-    Zydis cp;
+    Zydis zy;
     QString title;
     if(start == end)
         title = QCoreApplication::translate("TraceFileSearch", "Constant: %1").arg(ToPtrString(start));
@@ -77,8 +77,8 @@ int TraceFileSearchConstantRange(TraceFileReader* file, duint start, duint end)
             unsigned char opcode[16];
             int opcodeSize = 0;
             file->OpCode(index, opcode, &opcodeSize);
-            cp.Disassemble(file->Registers(index).regcontext.cip, opcode, opcodeSize);
-            GuiReferenceSetCellContent(count, 2, cp.InstructionText(true).c_str());
+            zy.Disassemble(file->Registers(index).regcontext.cip, opcode, opcodeSize);
+            GuiReferenceSetCellContent(count, 2, zy.InstructionText(true).c_str());
             //GuiReferenceSetCurrentTaskProgress; GuiReferenceSetProgress
             count++;
         }
@@ -89,7 +89,7 @@ int TraceFileSearchConstantRange(TraceFileReader* file, duint start, duint end)
 int TraceFileSearchMemReference(TraceFileReader* file, duint address)
 {
     int count = 0;
-    Zydis cp;
+    Zydis zy;
     GuiReferenceInitialize(QCoreApplication::translate("TraceFileSearch", "Reference").toUtf8().constData());
     GuiReferenceAddColumn(sizeof(duint) * 2, QCoreApplication::translate("TraceFileSearch", "Address").toUtf8().constData());
     GuiReferenceAddColumn(sizeof(duint) * 2, QCoreApplication::translate("TraceFileSearch", "Index").toUtf8().constData());
@@ -122,12 +122,40 @@ int TraceFileSearchMemReference(TraceFileReader* file, duint address)
                 unsigned char opcode[16];
                 int opcodeSize = 0;
                 file->OpCode(index, opcode, &opcodeSize);
-                cp.Disassemble(file->Registers(index).regcontext.cip, opcode, opcodeSize);
-                GuiReferenceSetCellContent(count, 2, cp.InstructionText(true).c_str());
+                zy.Disassemble(file->Registers(index).regcontext.cip, opcode, opcodeSize);
+                GuiReferenceSetCellContent(count, 2, zy.InstructionText(true).c_str());
                 //GuiReferenceSetCurrentTaskProgress; GuiReferenceSetProgress
                 count++;
             }
         }
     }
     return count;
+}
+
+unsigned long long TraceFileSearchFuncReturn(TraceFileReader* file, unsigned long long start)
+{
+    auto mCsp = file->Registers(start).regcontext.csp;
+    auto TID = file->ThreadId(start);
+    Zydis zy;
+    for(unsigned long long index = start; index < file->Length(); index++)
+    {
+        if(mCsp <= file->Registers(index).regcontext.csp && file->ThreadId(index) == TID) //"Run until return" should break only if RSP is bigger than or equal to current value
+        {
+            unsigned char data[16];
+            int opcodeSize = 0;
+            file->OpCode(index, data, &opcodeSize);
+            if(data[0] == 0xC3 || data[0] == 0xC2) //retn instruction
+                return index;
+            else if(data[0] == 0x26 || data[0] == 0x36 || data[0] == 0x2e || data[0] == 0x3e || (data[0] >= 0x64 && data[0] <= 0x67) || data[0] == 0xf2 || data[0] == 0xf3 //instruction prefixes
+#ifdef _WIN64
+                    || (data[0] >= 0x40 && data[0] <= 0x4f)
+#endif //_WIN64
+                   )
+            {
+                if(zy.Disassemble(file->Registers(index).regcontext.cip, data, opcodeSize) && zy.IsRet())
+                    return index;
+            }
+        }
+    }
+    return start; //Nothing found, so just stay here
 }

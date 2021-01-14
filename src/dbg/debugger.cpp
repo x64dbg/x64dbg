@@ -760,7 +760,14 @@ static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAdd
     if(doBreak)
     {
         if(bp.singleshoot)
+        {
             BpDelete(bp.addr, bp.type);
+            if(bp.type == BPHARDWARE)  // Remove this singleshoot hardware breakpoint
+            {
+                if(TITANDRXVALID(bp.titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(bp.titantype)))
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n"), bp.addr);
+            }
+        }
         if(!bp.silent)
         {
             switch(bp.type)
@@ -1208,26 +1215,24 @@ static void cbRtrFinalStep(bool checkRepeat = false)
 void cbRtrStep()
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    unsigned char ch = 0x90;
+    unsigned char data[MAX_DISASM_BUFFER];
+    memset(data, 0x90, sizeof(data));
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     duint csp = GetContextDataEx(hActiveThread, UE_CSP);
-    MemRead(cip, &ch, 1);
+    MemRead(cip, data, sizeof(data));
     if(bTraceRecordEnabledDuringTrace)
         _dbg_dbgtraceexecute(cip);
     if(mRtrPreviousCSP <= csp) //"Run until return" should break only if RSP is bigger than or equal to current value
     {
-        if(ch == 0xC3 || ch == 0xC2) //retn instruction
+        if(data[0] == 0xC3 || data[0] == 0xC2) //retn instruction
             cbRtrFinalStep(true);
-        else if(ch == 0x26 || ch == 0x36 || ch == 0x2e || ch == 0x3e || (ch >= 0x64 && ch <= 0x67) || ch == 0xf2 || ch == 0xf3 //instruction prefixes
+        else if(data[0] == 0x26 || data[0] == 0x36 || data[0] == 0x2e || data[0] == 0x3e || (data[0] >= 0x64 && data[0] <= 0x67) || data[0] == 0xf2 || data[0] == 0xf3 //instruction prefixes
 #ifdef _WIN64
-                || (ch >= 0x40 && ch <= 0x4f)
+                || (data[0] >= 0x40 && data[0] <= 0x4f)
 #endif //_WIN64
                )
         {
             Zydis cp;
-            unsigned char data[MAX_DISASM_BUFFER];
-            memset(data, 0, sizeof(data));
-            MemRead(cip, data, MAX_DISASM_BUFFER);
             if(cp.Disassemble(cip, data) && cp.IsRet())
                 cbRtrFinalStep(true);
             else

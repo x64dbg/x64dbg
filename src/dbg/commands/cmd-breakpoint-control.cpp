@@ -61,6 +61,7 @@ static bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
     return true;
 }
 
+// Software breakpoints
 bool cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
 {
     if(IsArgumentsLessThan(argc, 2))
@@ -325,6 +326,7 @@ bool cbDebugDisableBPX(int argc, char* argv[])
     return true;
 }
 
+// Hardware breakpoints
 static bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
     if(bp->type != BPHARDWARE)
@@ -627,6 +629,7 @@ bool cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
     return true;
 }
 
+// Memory breakpoints
 static bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp)
 {
     if(bp->type != BPMEMORY)
@@ -897,6 +900,7 @@ bool cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
     return true;
 }
 
+// DLL breakpoints
 static bool cbDeleteAllDllBreakpoints(const BREAKPOINT* bp)
 {
     if(bp->type != BPDLL || !bp->enabled)
@@ -1111,6 +1115,7 @@ bool cbDebugBpDllDisable(int argc, char* argv[])
     return true;
 }
 
+// Exception breakpoints
 static bool cbDeleteAllExceptionBreakpoints(const BREAKPOINT* bp)
 {
     if(bp->type != BPEXCEPTION)

@@ -507,13 +507,36 @@ bool BpSetSingleshoot(duint Address, BP_TYPE Type, bool singleshoot)
     ASSERT_DEBUGGING("Command function call");
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
-    // Set breakpoint fast resume
+    // Set breakpoint singleshoot
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
     if(!bpInfo)
         return false;
 
     bpInfo->singleshoot = singleshoot;
+    // Update singleshoot information in TitanEngine
+    switch(Type)
+    {
+    case BPNORMAL:
+        bpInfo->titantype = (bpInfo->titantype & ~UE_SINGLESHOOT) | (singleshoot ? UE_SINGLESHOOT : 0);
+        if(IsBPXEnabled(Address) && bpInfo->enabled)
+        {
+            if(!DeleteBPX(Address))
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (DeleteBPX): %p\n"), Address);
+            if(!SetBPX(Address, bpInfo->titantype, (void*)cbUserBreakpoint))
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting breakpoint at %p! (SetBPX)\n"), Address);
+        }
+        break;
+    case BPMEMORY:
+        if(bpInfo->enabled)
+        {
+            if(!RemoveMemoryBPX(Address, bpInfo->memsize))
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed (RemoveMemoryBPX): %p\n"), Address);
+            if(!SetMemoryBPXEx(Address, bpInfo->memsize, bpInfo->titantype, !singleshoot, (void*)cbMemoryBreakpoint))
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable memory breakpoint %p (SetMemoryBPXEx)\n"), Address);
+        }
+        break;
+    }
     return true;
 }
 
