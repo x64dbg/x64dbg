@@ -11,6 +11,7 @@
 #include "loop.h"
 #include "debugger.h"
 #include "stringformat.h"
+#include "_exports.h"
 
 bool cbInstrDbsave(int argc, char* argv[])
 {
@@ -350,8 +351,10 @@ bool cbInstrFunctionList(int argc, char* argv[])
         if(GuiGetDisassembly(functions()[i].start, disassembly))
             GuiReferenceSetCellContent(i, 4, disassembly);
         char label[MAX_LABEL_SIZE] = "";
-        if(LabelGet(functions()[i].start, label))
-            GuiReferenceSetCellContent(i, 3, label);
+        BRIDGE_ADDRINFO labelinfo;
+        labelinfo.flags = flaglabel;
+        if(_dbg_addrinfoget(functions()[i].start, SEG_DEFAULT, &labelinfo))
+            GuiReferenceSetCellContent(i, 3, labelinfo.label);
         char comment[MAX_COMMENT_SIZE] = "";
         if(CommentGet(functions()[i].start, comment))
             GuiReferenceSetCellContent(i, 5, comment);
