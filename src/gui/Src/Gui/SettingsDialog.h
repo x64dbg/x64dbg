@@ -250,6 +250,7 @@ private:
     Ui::SettingsDialog* ui;
     SettingsStruct settings;
     QList<ExceptionFilter> realExceptionFilters;
+    std::unordered_map<duint, const char*> exceptionNames;
     bool bJitOld;
     bool bJitAutoOld;
     bool bGuiOptionsUpdated;

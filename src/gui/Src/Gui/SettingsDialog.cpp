@@ -609,13 +609,38 @@ void SettingsDialog::UpdateExceptionListWidget()
 {
     qSort(settings.exceptionFilters->begin(), settings.exceptionFilters->end(), ExceptionFilterLess());
     ui->listExceptions->clear();
+
+    if(exceptionNames.empty() && DbgFunctions()->EnumExceptions)
+    {
+        BridgeList<CONSTANTINFO> exceptions;
+        DbgFunctions()->EnumExceptions(&exceptions);
+        for(int i = 0; i < exceptions.Count(); i++)
+        {
+            exceptionNames.insert({exceptions[i].value, exceptions[i].name});
+        }
+    }
+
     for(int i = 0; i < settings.exceptionFilters->size(); i++)
     {
         const ExceptionFilter & filter = settings.exceptionFilters->at(i);
         if(filter.range.start == 0 && filter.range.start == filter.range.end)
             ui->listExceptions->addItem(QString("Unknown exceptions"));
         else
-            ui->listExceptions->addItem(QString().asprintf("%.8X-%.8X", filter.range.start, filter.range.end));
+        {
+            const bool bSingleItemRange = filter.range.start == filter.range.end;
+            if(!bSingleItemRange)
+            {
+                ui->listExceptions->addItem(QString().asprintf("%.8X-%.8X", filter.range.start, filter.range.end));
+            }
+            else
+            {
+                auto found = exceptionNames.find(filter.range.start);
+                if(found == exceptionNames.end())
+                    ui->listExceptions->addItem(QString().asprintf("%.8X", filter.range.start));
+                else
+                    ui->listExceptions->addItem(QString().asprintf("%.8X\n  %s", filter.range.start, found->second));
+            }
+        }
     }
 }
 
