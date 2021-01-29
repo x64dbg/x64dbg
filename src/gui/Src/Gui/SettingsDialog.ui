@@ -466,9 +466,9 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <item>
-        <widget class="QLabel" name="lblIgnoredExceptions">
+        <widget class="QLabel" name="lblExceptionFilters">
          <property name="text">
-          <string>Ignored Exceptions:</string>
+          <string>Exception Filters:</string>
          </property>
         </widget>
        </item>
@@ -503,9 +503,9 @@
             </spacer>
            </item>
            <item>
-            <widget class="QPushButton" name="btnAddRange">
+            <widget class="QPushButton" name="btnIgnoreRange">
              <property name="text">
-              <string>Add &amp;Range</string>
+              <string>Ignore &amp;Range</string>
              </property>
             </widget>
            </item>
@@ -517,10 +517,85 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="btnAddLast">
+            <widget class="QPushButton" name="btnIgnoreLast">
              <property name="text">
-              <string>Add &amp;Last</string>
+              <string>Ignore &amp;Last</string>
              </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBoBreakOn">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="title">
+              <string>Break On</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+               <widget class="QRadioButton" name="radioFirstChance">
+                <property name="text">
+                 <string>First chance</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="radioSecondChance">
+                <property name="text">
+                 <string>Second chance</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="radioDoNotBreak">
+                <property name="text">
+                 <string>Do not break</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBoxLogging">
+             <property name="title">
+              <string>Logging</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_6">
+              <item>
+               <widget class="QCheckBox" name="chkLogException">
+                <property name="text">
+                 <string>Log exception</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBoxExceptionHandledBy">
+             <property name="title">
+              <string>Exception handled by</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_8">
+              <item>
+               <widget class="QRadioButton" name="radioHandledByDebugger">
+                <property name="text">
+                 <string>Debugger</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="radioHandledByDebuggee">
+                <property name="text">
+                 <string>Debuggee</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
            <item>
@@ -1007,9 +1082,9 @@
   <tabstop>chkDisableDatabaseCompression</tabstop>
   <tabstop>chkSaveDatabaseInProgramDirectory</tabstop>
   <tabstop>listExceptions</tabstop>
-  <tabstop>btnAddRange</tabstop>
+  <tabstop>btnIgnoreRange</tabstop>
   <tabstop>btnDeleteRange</tabstop>
-  <tabstop>btnAddLast</tabstop>
+  <tabstop>btnIgnoreLast</tabstop>
   <tabstop>chkArgumentSpaces</tabstop>
   <tabstop>chkTabBetweenMnemonicAndArguments</tabstop>
   <tabstop>chkMemorySpaces</tabstop>

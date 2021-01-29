@@ -2,6 +2,7 @@
 #define SETTINGSDIALOG_H
 
 #include <QDialog>
+#include <QListWidgetItem>
 #include "Imports.h"
 
 namespace Ui
@@ -66,9 +67,17 @@ private slots:
     void on_spinMaxTraceCount_valueChanged(int arg1);
     void on_spinAnimateInterval_valueChanged(int arg1);
     //Exception tab
-    void on_btnAddRange_clicked();
+    void on_btnIgnoreRange_clicked();
     void on_btnDeleteRange_clicked();
-    void on_btnAddLast_clicked();
+    void on_btnIgnoreLast_clicked();
+    void on_listExceptions_currentItemChanged(QListWidgetItem* current, QListWidgetItem* previous);
+    void on_listExceptions_itemClicked(QListWidgetItem* item);
+    void on_radioFirstChance_clicked();
+    void on_radioSecondChance_clicked();
+    void on_radioDoNotBreak_clicked();
+    void on_chkLogException_stateChanged(int arg1);
+    void on_radioHandledByDebugger_clicked();
+    void on_radioHandledByDebuggee_clicked();
     //Disasm tab
     void on_chkArgumentSpaces_stateChanged(int arg1);
     void on_chkHidePointerSizes_stateChanged(int arg1);
@@ -123,6 +132,19 @@ private:
         break_ud2 = 2
     };
 
+    enum class ExceptionBreakOn
+    {
+        FirstChance,
+        SecondChance,
+        DoNotBreak
+    };
+
+    enum class ExceptionHandledBy
+    {
+        Debugger,
+        Debuggee
+    };
+
     //structures
     struct RangeStruct
     {
@@ -130,11 +152,19 @@ private:
         unsigned long end;
     };
 
-    struct RangeStructLess
+    struct ExceptionFilter
     {
-        bool operator()(const RangeStruct a, const RangeStruct b) const
+        RangeStruct range;
+        ExceptionBreakOn breakOn;
+        bool logException;
+        ExceptionHandledBy handledBy;
+    };
+
+    struct ExceptionFilterLess
+    {
+        bool operator()(const ExceptionFilter a, const ExceptionFilter b) const
         {
-            return a.start < b.start;
+            return a.range.start < b.range.start;
         }
     };
 
@@ -175,7 +205,7 @@ private:
         int engineMaxTraceCount;
         int engineAnimateInterval;
         //Exception Tab
-        QList<RangeStruct>* exceptionRanges;
+        QList<ExceptionFilter>* exceptionFilters;
         //Disasm Tab
         bool disasmArgumentSpaces;
         bool disasmMemorySpaces;
@@ -219,7 +249,7 @@ private:
     //variables
     Ui::SettingsDialog* ui;
     SettingsStruct settings;
-    QList<RangeStruct> realExceptionRanges;
+    QList<ExceptionFilter> realExceptionFilters;
     bool bJitOld;
     bool bJitAutoOld;
     bool bGuiOptionsUpdated;
@@ -230,7 +260,10 @@ private:
     void GetSettingBool(const char* section, const char* name, bool* set);
     Qt::CheckState bool2check(bool checked);
     void LoadSettings();
-    void AddRangeToList(RangeStruct range);
+    void AddExceptionFilterToList(ExceptionFilter filter);
+    void OnExceptionFilterSelectionChanged(QListWidgetItem* selected);
+    void OnCurrentExceptionFilterSettingsChanged();
+    void UpdateExceptionListWidget();
 };
 
 #endif // SETTINGSDIALOG_H
