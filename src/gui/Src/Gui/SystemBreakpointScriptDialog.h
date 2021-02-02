@@ -18,6 +18,8 @@ public:
 private slots:
     void on_pushButtonGlobal_clicked();
     void on_pushButtonDebuggee_clicked();
+    void on_openGlobal_clicked();
+    void on_openDebuggee_clicked();
     void on_SystemBreakpointScriptDialog_accepted();
 
 private:
