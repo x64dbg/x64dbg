@@ -382,6 +382,10 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("FileOpen", Shortcut({tr("File"), tr("Open")}, "F3", true));
     defaultShortcuts.insert("FileAttach", Shortcut({tr("File"), tr("Attach")}, "Alt+A", true));
     defaultShortcuts.insert("FileDetach", Shortcut({tr("File"), tr("Detach")}, "Ctrl+Alt+F2", true));
+    defaultShortcuts.insert("FileDbsave", Shortcut({tr("File"), tr("Save database")}, "", true));
+    defaultShortcuts.insert("FileDbrecovery", Shortcut({tr("File"), tr("Restore backup database")}, "", true));
+    defaultShortcuts.insert("FileDbload", Shortcut({tr("File"), tr("Reload database")}, "", true));
+    defaultShortcuts.insert("FileDbclear", Shortcut({tr("File"), tr("Clear database")}, "", true));
     defaultShortcuts.insert("FileImportDatabase", Shortcut({tr("File"), tr("Import database")}, "", true));
     defaultShortcuts.insert("FileExportDatabase", Shortcut({tr("File"), tr("Export database")}, "", true));
     defaultShortcuts.insert("FileRestartAdmin", Shortcut({tr("File"), tr("Restart as Admin")}, "", true));

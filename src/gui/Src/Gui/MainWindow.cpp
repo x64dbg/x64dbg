@@ -345,6 +345,10 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionSetInitializationScript, SIGNAL(triggered()), this, SLOT(setInitializationScript()));
     connect(ui->actionCustomizeMenus, SIGNAL(triggered()), this, SLOT(customizeMenu()));
     connect(ui->actionVariables, SIGNAL(triggered()), this, SLOT(displayVariables()));
+    makeCommandAction(ui->actionDbsave, "dbsave");
+    makeCommandAction(ui->actionDbload, "dbload");
+    makeCommandAction(ui->actionDbrecovery, "dbload bak");
+    makeCommandAction(ui->actionDbclear, "dbclear");
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
@@ -816,6 +820,10 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionOpen, ConfigShortcut("FileOpen"));
     setGlobalShortcut(ui->actionAttach, ConfigShortcut("FileAttach"));
     setGlobalShortcut(ui->actionDetach, ConfigShortcut("FileDetach"));
+    setGlobalShortcut(ui->actionDbload, ConfigShortcut("FileDbload"));
+    setGlobalShortcut(ui->actionDbsave, ConfigShortcut("FileDbsave"));
+    setGlobalShortcut(ui->actionDbclear, ConfigShortcut("FileDbclear"));
+    setGlobalShortcut(ui->actionDbrecovery, ConfigShortcut("FileDbrecovery"));
     setGlobalShortcut(ui->actionImportdatabase, ConfigShortcut("FileImportDatabase"));
     setGlobalShortcut(ui->actionExportdatabase, ConfigShortcut("FileExportDatabase"));
     setGlobalShortcut(ui->actionRestartAdmin, ConfigShortcut("FileRestartAdmin"));
@@ -2201,7 +2209,7 @@ void MainWindow::on_actionImportdatabase_triggered()
 {
     if(!DbgIsDebugging())
         return;
-    auto filename = QFileDialog::getOpenFileName(this, tr("Import database"), QString(), tr("Databases (%1);;All files (*.*)").arg(ArchValue("*.dd32", "*.dd64")));
+    auto filename = QFileDialog::getOpenFileName(this, tr("Import database"), QString(), tr("Databases (%1);;Database backup (%1.bak);;All files (*.*)").arg(ArchValue("*.dd32", "*.dd64")));
     if(!filename.length())
         return;
     DbgCmdExec(QString("dbload \"%1\"").arg(QDir::toNativeSeparators(filename)));

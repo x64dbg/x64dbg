@@ -40,12 +40,27 @@
      </property>
      <addaction name="separator"/>
     </widget>
+    <widget class="QMenu" name="menuDatabase">
+     <property name="title">
+      <string>Database</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../../resource.qrc">
+       <normaloff>:/icons/images/data-copy.png</normaloff>:/icons/images/data-copy.png</iconset>
+     </property>
+     <addaction name="actionDbsave"/>
+     <addaction name="actionDbload"/>
+     <addaction name="actionDbrecovery"/>
+     <addaction name="actionDbclear"/>
+     <addaction name="separator"/>
+     <addaction name="actionImportdatabase"/>
+     <addaction name="actionExportdatabase"/>
+    </widget>
     <addaction name="actionOpen"/>
     <addaction name="menuRecentFiles"/>
     <addaction name="actionAttach"/>
     <addaction name="actionDetach"/>
-    <addaction name="actionImportdatabase"/>
-    <addaction name="actionExportdatabase"/>
+    <addaction name="menuDatabase"/>
     <addaction name="actionPatches"/>
     <addaction name="actionChangeCommandLine"/>
     <addaction name="actionRestartAdmin"/>
@@ -1206,6 +1221,42 @@
   <action name="actionDefaultTheme">
    <property name="text">
     <string>&amp;Default</string>
+   </property>
+  </action>
+  <action name="actionDbsave">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/binary_save.png</normaloff>:/icons/images/binary_save.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Save database</string>
+   </property>
+  </action>
+  <action name="actionDbload">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/arrow-restart.png</normaloff>:/icons/images/arrow-restart.png</iconset>
+   </property>
+   <property name="text">
+    <string>Re&amp;load database</string>
+   </property>
+  </action>
+  <action name="actionDbrecovery">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/help.png</normaloff>:/icons/images/help.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Restore backup database</string>
+   </property>
+  </action>
+  <action name="actionDbclear">
+   <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/crash_dump.png</normaloff>:/icons/images/crash_dump.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Clear database</string>
    </property>
   </action>
  </widget>
