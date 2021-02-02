@@ -10,6 +10,20 @@
 #include <tlhelp32.h>
 #include <psapi.h>
 
+//enums
+enum class ExceptionBreakOn
+{
+    FirstChance,
+    SecondChance,
+    DoNotBreak
+};
+
+enum class ExceptionHandledBy
+{
+    Debugger,
+    Debuggee
+};
+
 //structures
 struct INIT_STRUCT
 {
@@ -22,6 +36,14 @@ struct ExceptionRange
 {
     unsigned int start;
     unsigned int end;
+};
+
+struct ExceptionFilter
+{
+    ExceptionRange range;
+    ExceptionBreakOn breakOn;
+    bool logException;
+    ExceptionHandledBy handledBy;
 };
 
 #pragma pack(push,8)
@@ -55,9 +77,9 @@ void GuiSetDebugStateAsync(DBGSTATE state);
 void dbgsetskipexceptions(bool skip);
 void dbgsetsteprepeat(bool steppingIn, duint repeat);
 void dbgsetfreezestack(bool freeze);
-void dbgclearignoredexceptions();
-void dbgaddignoredexception(ExceptionRange range);
-bool dbgisignoredexception(unsigned int exception);
+void dbgclearexceptionfilters();
+void dbgaddexceptionfilter(ExceptionFilter filter);
+const ExceptionFilter & dbggetexceptionfilter(unsigned int exception);
 bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly);
 bool dbgcmddel(const char* name);
 bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::string>* commandList, std::vector<std::string>* winTextList);

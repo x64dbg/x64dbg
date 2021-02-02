@@ -52,7 +52,7 @@ static bool bIsAttached = false;
 static bool bSkipExceptions = false;
 static duint skipExceptionCount = 0;
 static bool bFreezeStack = false;
-static std::vector<ExceptionRange> ignoredExceptionRange;
+static std::vector<ExceptionFilter> exceptionFilters;
 static HANDLE hEvent = 0;
 static duint tidToResume = 0;
 static HANDLE hMemMapThread = 0;
@@ -331,26 +331,43 @@ void dbgsetfreezestack(bool freeze)
     bFreezeStack = freeze;
 }
 
-void dbgclearignoredexceptions()
+void dbgclearexceptionfilters()
 {
-    ignoredExceptionRange.clear();
+    exceptionFilters.clear();
 }
 
-void dbgaddignoredexception(ExceptionRange range)
+void dbgaddexceptionfilter(ExceptionFilter filter)
 {
-    ignoredExceptionRange.push_back(range);
+    exceptionFilters.push_back(filter);
 }
 
-bool dbgisignoredexception(unsigned int exception)
+const ExceptionFilter & dbggetexceptionfilter(unsigned int exception)
 {
-    for(unsigned int i = 0; i < ignoredExceptionRange.size(); i++)
+    for(unsigned int i = 0; i < exceptionFilters.size(); i++)
     {
-        unsigned int curStart = ignoredExceptionRange.at(i).start;
-        unsigned int curEnd = ignoredExceptionRange.at(i).end;
+        const ExceptionFilter & filter = exceptionFilters.at(i);
+        unsigned int curStart = filter.range.start;
+        unsigned int curEnd = filter.range.end;
         if(exception >= curStart && exception <= curEnd)
-            return true;
+            return filter;
     }
-    return false;
+
+    // no filter found, return the catch-all filter for unknown exceptions
+    for(unsigned int i = 0; i < exceptionFilters.size(); i++)
+    {
+        const ExceptionFilter & filter = exceptionFilters.at(i);
+        if(filter.range.start == 0 && filter.range.start == filter.range.end)
+            return filter;
+    }
+
+    // the unknown exceptions filter is not yet present in settings, add it now
+    ExceptionFilter unknownExceptionsFilter;
+    unknownExceptionsFilter.range.start = unknownExceptionsFilter.range.end = 0;
+    unknownExceptionsFilter.breakOn = ExceptionBreakOn::FirstChance;
+    unknownExceptionsFilter.logException = true;
+    unknownExceptionsFilter.handledBy = ExceptionHandledBy::Debuggee;
+    exceptionFilters.push_back(unknownExceptionsFilter);
+    return exceptionFilters.back();
 }
 
 bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly)
@@ -1956,29 +1973,39 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             }
         }
     }
-    if(bVerboseExceptionLogging)
+    const ExceptionFilter & filter = dbggetexceptionfilter(ExceptionCode);
+    if(bVerboseExceptionLogging && filter.logException)
         DbgCmdExecDirect("exinfo"); //show extended exception information
     auto exceptionName = ExceptionCodeToName(ExceptionCode);
     if(!exceptionName.size()) //if no exception was found, try the error codes (RPC_S_*)
         exceptionName = ErrorCodeToName(ExceptionCode);
     if(ExceptionData->dwFirstChance) //first chance exception
     {
-        if(exceptionName.size())
-            dprintf(QT_TRANSLATE_NOOP("DBG", "First chance exception on %p (%.8X, %s)!\n"), addr, ExceptionCode, exceptionName.c_str());
-        else
-            dprintf(QT_TRANSLATE_NOOP("DBG", "First chance exception on %p (%.8X)!\n"), addr, ExceptionCode);
-        SetNextDbgContinueStatus(DBG_EXCEPTION_NOT_HANDLED);
-        if((bSkipExceptions || dbgisignoredexception(ExceptionCode)) && (!maxSkipExceptionCount || ++skipExceptionCount < maxSkipExceptionCount))
+        if(filter.logException)
+        {
+            if(exceptionName.size())
+                dprintf(QT_TRANSLATE_NOOP("DBG", "First chance exception on %p (%.8X, %s)!\n"), addr, ExceptionCode, exceptionName.c_str());
+            else
+                dprintf(QT_TRANSLATE_NOOP("DBG", "First chance exception on %p (%.8X)!\n"), addr, ExceptionCode);
+        }
+        SetNextDbgContinueStatus(filter.handledBy == ExceptionHandledBy::Debuggee ? DBG_EXCEPTION_NOT_HANDLED : DBG_CONTINUE);
+        if((bSkipExceptions || filter.breakOn != ExceptionBreakOn::FirstChance) && (!maxSkipExceptionCount || ++skipExceptionCount < maxSkipExceptionCount))
             return;
     }
     else //lock the exception
     {
-        if(exceptionName.size())
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Last chance exception on %p (%.8X, %s)!\n"), addr, ExceptionCode, exceptionName.c_str());
-        else
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Last chance exception on %p (%.8X)!\n"), addr, ExceptionCode);
-        SetNextDbgContinueStatus(DBG_CONTINUE);
+        if(filter.logException)
+        {
+            if(exceptionName.size())
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Last chance exception on %p (%.8X, %s)!\n"), addr, ExceptionCode, exceptionName.c_str());
+            else
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Last chance exception on %p (%.8X)!\n"), addr, ExceptionCode);
+        }
+        // DBG_EXCEPTION_NOT_HANDLED kills the process on a last chance exception, so only pass this if the user really asked for it
+        SetNextDbgContinueStatus(filter.breakOn == ExceptionBreakOn::DoNotBreak && filter.handledBy == ExceptionHandledBy::Debuggee ? DBG_EXCEPTION_NOT_HANDLED : DBG_CONTINUE);
     }
+    if(filter.breakOn == ExceptionBreakOn::DoNotBreak)
+        return;
 
     DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
     //lock
