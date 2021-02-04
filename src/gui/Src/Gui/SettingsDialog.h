@@ -30,7 +30,7 @@ private slots:
     void on_btnSave_clicked();
     //Event tab
     void on_chkSystemBreakpoint_stateChanged(int arg1);
-    void on_chkNtTerminateProcess_stateChanged(int arg1);
+    void on_chkExitBreakpoint_stateChanged(int arg1);
     void on_chkTlsCallbacks_stateChanged(int arg1);
     void on_chkTlsCallbacksSystem_stateChanged(int arg1);
     void on_chkEntryBreakpoint_stateChanged(int arg1);
@@ -172,7 +172,7 @@ private:
     {
         //Event Tab
         bool eventSystemBreakpoint;
-        bool eventNtTerminateProcess;
+        bool eventExitBreakpoint;
         bool eventTlsCallbacks;
         bool eventTlsCallbacksSystem;
         bool eventEntryBreakpoint;

@@ -40,7 +40,7 @@
        <string>Events</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="3" column="0">
+       <item row="2" column="0">
         <widget class="QCheckBox" name="chkEntryBreakpoint">
          <property name="text">
           <string>Entry Breakpoint*</string>
@@ -91,10 +91,10 @@
          </property>
         </spacer>
        </item>
-       <item row="2" column="0">
-        <widget class="QCheckBox" name="chkNtTerminateProcess">
+       <item row="3" column="0">
+        <widget class="QCheckBox" name="chkExitBreakpoint">
          <property name="text">
-          <string>NtTerminateProcess*</string>
+          <string>Exit Breakpoint*</string>
          </property>
         </widget>
        </item>

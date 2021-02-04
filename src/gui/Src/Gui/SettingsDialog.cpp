@@ -56,7 +56,7 @@ void SettingsDialog::LoadSettings()
     settings.eventSystemBreakpoint = true;
     settings.eventTlsCallbacks = true;
     settings.eventEntryBreakpoint = true;
-    settings.eventNtTerminateProcess = false;
+    settings.eventExitBreakpoint = false;
     settings.engineType = DebugEngineTitanEngine;
     settings.engineCalcType = calc_unsigned;
     settings.engineBreakpointType = break_int3short;
@@ -90,7 +90,7 @@ void SettingsDialog::LoadSettings()
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);
-    GetSettingBool("Events", "NtTerminateProcess", &settings.eventNtTerminateProcess);
+    GetSettingBool("Events", "NtTerminateProcess", &settings.eventExitBreakpoint);
     GetSettingBool("Events", "TlsCallbacks", &settings.eventTlsCallbacks);
     GetSettingBool("Events", "TlsCallbacksSystem", &settings.eventTlsCallbacksSystem);
     GetSettingBool("Events", "EntryBreakpoint", &settings.eventEntryBreakpoint);
@@ -105,7 +105,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Events", "ThreadEnd", &settings.eventThreadEnd);
     GetSettingBool("Events", "DebugStrings", &settings.eventDebugStrings);
     ui->chkSystemBreakpoint->setCheckState(bool2check(settings.eventSystemBreakpoint));
-    ui->chkNtTerminateProcess->setCheckState(bool2check(settings.eventNtTerminateProcess));
+    ui->chkExitBreakpoint->setCheckState(bool2check(settings.eventExitBreakpoint));
     ui->chkTlsCallbacks->setCheckState(bool2check(settings.eventTlsCallbacks));
     ui->chkTlsCallbacksSystem->setCheckState(bool2check(settings.eventTlsCallbacksSystem));
     ui->chkEntryBreakpoint->setCheckState(bool2check(settings.eventEntryBreakpoint));
@@ -389,7 +389,7 @@ void SettingsDialog::SaveSettings()
 {
     //Events tab
     BridgeSettingSetUint("Events", "SystemBreakpoint", settings.eventSystemBreakpoint);
-    BridgeSettingSetUint("Events", "NtTerminateProcess", settings.eventNtTerminateProcess);
+    BridgeSettingSetUint("Events", "NtTerminateProcess", settings.eventExitBreakpoint);
     BridgeSettingSetUint("Events", "TlsCallbacks", settings.eventTlsCallbacks);
     BridgeSettingSetUint("Events", "TlsCallbacksSystem", settings.eventTlsCallbacksSystem);
     BridgeSettingSetUint("Events", "EntryBreakpoint", settings.eventEntryBreakpoint);
@@ -660,9 +660,9 @@ void SettingsDialog::on_chkSystemBreakpoint_stateChanged(int arg1)
     settings.eventSystemBreakpoint = arg1 != Qt::Unchecked;
 }
 
-void SettingsDialog::on_chkNtTerminateProcess_stateChanged(int arg1)
+void SettingsDialog::on_chkExitBreakpoint_stateChanged(int arg1)
 {
-    settings.eventNtTerminateProcess = arg1 != Qt::Unchecked;
+    settings.eventExitBreakpoint = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkTlsCallbacks_stateChanged(int arg1)
