@@ -1489,9 +1489,23 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
 {
     dprintf(QT_TRANSLATE_NOOP("DBG", "Process stopped with exit code 0x%X\n"), ExitProcess->dwExitCode);
+    const bool breakHere = settingboolget("Events", "NtTerminateProcess");
+    if(breakHere)
+    {
+        // lock
+        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        lock(WAITID_RUN);
+    }
+    // plugin callback
     PLUG_CB_EXITPROCESS callbackInfo;
     callbackInfo.ExitProcess = ExitProcess;
     plugincbcall(CB_EXITPROCESS, &callbackInfo);
+    if(breakHere)
+    {
+        dbgsetforeground();
+        dbgsetskipexceptions(false);
+        wait(WAITID_RUN);
+    }
     _dbg_animatestop(); // Stop animating
     //history
     dbgcleartracestate();
@@ -1756,8 +1770,6 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
             cookie.HandleNtdllLoad(bIsAttached);
         if(settingboolget("Misc", "TransparentExceptionStepping"))
             exceptionDispatchAddr = DbgValFromString("ntdll:KiUserExceptionDispatcher");
-        if(settingboolget("Events", "NtTerminateProcess")) // Break on NtTerminateProcess
-            cmddirectexec("bp ntdll.NtTerminateProcess, ss");
         //set debug flags
         if(dwDebugFlags != 0)
         {
