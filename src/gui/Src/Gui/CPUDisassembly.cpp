@@ -101,10 +101,16 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
     // (Disassembly) Assemble dialog
     case 2:
     {
-        duint dest = DbgGetBranchDestination(rvaToVa(getInitialSelection()));
+        if (settingboolget("Disassembler", "AssembleOnDoubleClick"))
+        {
+            assembleSlot();
+        }
+        else {
+            duint dest = DbgGetBranchDestination(rvaToVa(getInitialSelection()));
 
-        if(DbgMemIsValidReadPtr(dest))
-            gotoAddress(dest);
+            if(DbgMemIsValidReadPtr(dest))
+                gotoAddress(dest);
+        }
     }
     break;
 
