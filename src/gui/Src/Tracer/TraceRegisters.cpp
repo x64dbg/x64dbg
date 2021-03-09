@@ -22,31 +22,6 @@ void TraceRegisters::setActive(bool isActive)
     this->RegistersView::setRegisters(&this->wRegDumpStruct);
 }
 
-void TraceRegisters::mousePressEvent(QMouseEvent* event)
-{
-    if(!isActive)
-        return;
-
-    if(event->y() < yTopSpacing - mButtonHeight)
-    {
-        onChangeFPUViewAction();
-    }
-    else
-    {
-        // get mouse position
-        const int y = (event->y() - yTopSpacing) / (double)mRowHeight;
-        const int x = event->x() / (double)mCharWidth;
-
-        REGISTER_NAME r;
-        // do we find a corresponding register?
-        if(identifyRegister(y, x, &r))
-            mSelected = r;
-        else
-            mSelected = UNKNOWN;
-        emit refresh();
-    }
-}
-
 void TraceRegisters::displayCustomContextMenuSlot(QPoint pos)
 {
     if(!isActive)

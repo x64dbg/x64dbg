@@ -11,8 +11,6 @@ public:
     void setRegisters(REGDUMP* registers);
     void setActive(bool isActive);
 
-    void mousePressEvent(QMouseEvent* event);
-
 public slots:
     virtual void displayCustomContextMenuSlot(QPoint pos);
     void onCopySSERegister();
