@@ -221,6 +221,7 @@ private:
         bool disasm0xPrefixValues;
         bool disasmNoBranchDisasmPreview;
         bool disasmNoSourceLineAutoComments;
+        bool disasmAssembleOnDoubleClick;
         int disasmMaxModuleSize;
         //Gui Tab
         bool guiFpuRegistersLittleEndian;
