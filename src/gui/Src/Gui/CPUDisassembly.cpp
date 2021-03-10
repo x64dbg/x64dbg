@@ -104,7 +104,7 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
         if(settingboolget("Disassembler", "AssembleOnDoubleClick"))
             duint assembleOnDoubleClick = 0;
         BridgeSettingGetUint("Disassembler", "AssembleOnDoubleClick", &assembleOnDoubleClick);
-        if(assembleOnDoubleClick)
+        if(!assembleOnDoubleClick)
         {
             assembleSlot();
         }
