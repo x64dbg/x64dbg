@@ -92,6 +92,7 @@ private slots:
     void on_chk0xPrefixValues_toggled(bool checked);
     void on_chkNoBranchDisasmPreview_toggled(bool checked);
     void on_chkNoSourceLinesAutoComments_toggled(bool checked);
+    void on_chkDoubleClickAssemble_toggled(bool checked);
     void on_spinMaximumModuleNameSize_valueChanged(int arg1);
     //Gui Tab
     void on_chkFpuRegistersLittleEndian_stateChanged(int arg1);
@@ -220,6 +221,7 @@ private:
         bool disasm0xPrefixValues;
         bool disasmNoBranchDisasmPreview;
         bool disasmNoSourceLineAutoComments;
+        bool disasmAssembleOnDoubleClick;
         int disasmMaxModuleSize;
         //Gui Tab
         bool guiFpuRegistersLittleEndian;

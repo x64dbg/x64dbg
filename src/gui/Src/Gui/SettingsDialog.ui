@@ -714,6 +714,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkDoubleClickAssemble">
+         <property name="text">
+          <string>Assemble instruction on double-click</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <layout class="QHBoxLayout" name="layoutMaximumModuleNameSize">
          <item>
           <widget class="QLabel" name="lblMaximumModuleNameSize">
