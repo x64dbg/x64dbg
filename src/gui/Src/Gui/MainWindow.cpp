@@ -53,6 +53,7 @@
 #include "UpdateChecker.h"
 #include "Tracer/TraceBrowser.h"
 #include "Tracer/TraceWidget.h"
+#include <dwmapi.h>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
@@ -83,6 +84,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Setup bridge signals
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
+    connect(Bridge::getBridge(), SIGNAL(updateTitleBar()), this, SLOT(updateTitleBarSlot()));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
     connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
     connect(Bridge::getBridge(), SIGNAL(menuAddMenuToList(QWidget*, QMenu*, GUIMENUTYPE, int)), this, SLOT(addMenuToList(QWidget*, QMenu*, GUIMENUTYPE, int)));
@@ -351,6 +353,7 @@ MainWindow::MainWindow(QWidget* parent)
     makeCommandAction(ui->actionDbclear, "dbclear");
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
+    connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateTitleBar()), this, SLOT(updateTitleBarSlot()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
@@ -1088,6 +1091,13 @@ void MainWindow::updateWindowTitleSlot(QString filename)
     {
         setWindowTitle(mWindowMainTitle);
     }
+}
+
+void MainWindow::updateTitleBarSlot()
+{
+    //(HWND)this->winId();
+    DwmSetWindowAttribute((HWND)this->winId(), 19,
+                          &(BOOL) { TRUE }, sizeof(BOOL));
 }
 
 // Used by View->CPU

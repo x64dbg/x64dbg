@@ -93,6 +93,7 @@ signals:
     void selectionChanged(dsint parVA);
     void selectionExpanded();
     void updateWindowTitle(QString title);
+    void updateTitleBar();
 
 public slots:
     void disassembleAtSlot(dsint parVA, dsint parCIP);

@@ -864,6 +864,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         emit updateTraceBrowser();
         break;
 
+    case GUI_UPDATE_TITLEBAR:
+        emit updateTitleBar();
+        break;
+
     case GUI_INVALIDATE_SYMBOL_SOURCE:
         symbolView->invalidateSymbolSource(duint(param1));
         break;

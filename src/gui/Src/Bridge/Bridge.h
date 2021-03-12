@@ -56,6 +56,7 @@ signals:
     void updateRegisters();
     void updateBreakpoints();
     void updateWindowTitle(QString filename);
+    void updateTitleBar();
     void dumpAt(dsint va);
     void scriptAdd(int count, const char** lines);
     void scriptClear();
