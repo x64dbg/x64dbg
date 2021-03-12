@@ -1214,6 +1214,10 @@
    </property>
   </action>
   <action name="action_Theme">
+  <property name="icon">
+    <iconset resource="../../resource.qrc">
+     <normaloff>:/icons/images/themes.png</normaloff>:/icons/images/themes.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Theme</string>
    </property>
