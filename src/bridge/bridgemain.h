@@ -1374,7 +1374,7 @@ BRIDGE_IMPEXP void GuiCloseApplication();
 BRIDGE_IMPEXP void GuiFlushLog();
 BRIDGE_IMPEXP void GuiReferenceAddCommand(const char* title, const char* command);
 BRIDGE_IMPEXP void GuiUpdateTraceBrowser();
-BRIDGE_IMPEXP void GuiUpdateTitlebar();
+BRIDGE_IMPEXP void GuiUpdateTitleBar();
 BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName);
 BRIDGE_IMPEXP void GuiInvalidateSymbolSource(duint base);
 BRIDGE_IMPEXP void GuiExecuteOnGuiThreadEx(GUICALLBACKEX cbGuiThread, void* userdata);

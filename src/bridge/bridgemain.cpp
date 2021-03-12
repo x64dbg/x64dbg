@@ -1171,7 +1171,7 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiUpdateGraphView();
     GuiUpdateTypeWidget();
     GuiUpdateTraceBrowser();
-    GuiUpdateTitlebar();
+    GuiUpdateTitleBar();
 }
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()

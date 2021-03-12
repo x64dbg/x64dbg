@@ -1096,8 +1096,7 @@ void MainWindow::updateWindowTitleSlot(QString filename)
 void MainWindow::updateTitleBarSlot()
 {
     //(HWND)this->winId();
-    DwmSetWindowAttribute((HWND)this->winId(), 19,
-    &(BOOL) { TRUE }, sizeof(BOOL));
+    //DwmSetWindowAttribute((HWND)this->winId(), 19, &(BOOL) { TRUE }, sizeof(BOOL));
 }
 
 // Used by View->CPU
