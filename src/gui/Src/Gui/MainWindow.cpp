@@ -1095,8 +1095,8 @@ void MainWindow::updateWindowTitleSlot(QString filename)
 void MainWindow::updateTitleBarSlot()
 {
     //(HWND)this->winId();
-    const BOOL isDarkMode = true;
-    if(isDarkMode)
+    const int isDarkMode = 1;
+    if(isDarkMode == 1)
     {
         HMODULE hdwmapi = GetModuleHandleW(L"dwmapi.dll");
         if(hdwmapi)
@@ -1107,7 +1107,7 @@ void MainWindow::updateTitleBarSlot()
                                                  LPCVOID pvAttribute,
                                                  DWORD   cbAttribute))GetProcAddress(hdwmapi, "DwmSetWindowAttribute");
 
-            DwmSetWindowAttribute((HWND)this->winId(), 19, &isDarkMode, sizeof(BOOL));
+            DwmSetWindowAttribute((HWND)this->winId(), 19, &isDarkMode, 4);
         }
     }
 }
