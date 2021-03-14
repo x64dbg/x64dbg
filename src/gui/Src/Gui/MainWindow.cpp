@@ -1096,17 +1096,17 @@ void MainWindow::updateTitleBarSlot()
 {
     //(HWND)this->winId();
     const BOOL isDarkMode = true;
-    if (isDarkMode)
+    if(isDarkMode)
     {
         HMODULE hdwmapi = GetModuleHandleW(L"dwmapi.dll");
-        if (hdwmapi)
+        if(hdwmapi)
         {
             //m_InitializeSRWLock = (SRWLOCKFUNCTION)GetProcAddress(hdwmapi, "InitializeSRWLock");
             static auto DwmSetWindowAttribute = (int(*)(HWND    hwnd,
-  DWORD   dwAttribute,
-  LPCVOID pvAttribute,
-  DWORD   cbAttribute))GetProcAddress(hdwmapi, "DwmSetWindowAttribute");
-            
+                                                 DWORD   dwAttribute,
+                                                 LPCVOID pvAttribute,
+                                                 DWORD   cbAttribute))GetProcAddress(hdwmapi, "DwmSetWindowAttribute");
+
             DwmSetWindowAttribute((HWND)this->winId(), 19, &isDarkMode, sizeof(BOOL));
         }
     }
