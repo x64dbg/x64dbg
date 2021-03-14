@@ -1096,7 +1096,9 @@ void MainWindow::updateWindowTitleSlot(QString filename)
 void MainWindow::updateTitleBarSlot()
 {
     //(HWND)this->winId();
-    DwmSetWindowAttribute((HWND)this->winId(), 19, &(BOOL), TRUE);
+    const BOOL isDarkMode = true;
+
+    DwmSetWindowAttribute((HWND)this->winId(), 19, &isDarkMode, sizeof(BOOL));
 }
 
 // Used by View->CPU
