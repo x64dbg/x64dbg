@@ -53,7 +53,6 @@
 #include "UpdateChecker.h"
 #include "Tracer/TraceBrowser.h"
 #include "Tracer/TraceWidget.h"
-#include <dwmapi.h>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
@@ -1097,8 +1096,20 @@ void MainWindow::updateTitleBarSlot()
 {
     //(HWND)this->winId();
     const BOOL isDarkMode = true;
-
-    DwmSetWindowAttribute((HWND)this->winId(), 19, &isDarkMode, sizeof(BOOL));
+    if (isDarkMode)
+    {
+        HMODULE hdwmapi = GetModuleHandleW(L"dwmapi.dll");
+        if (hdwmapi)
+        {
+            //m_InitializeSRWLock = (SRWLOCKFUNCTION)GetProcAddress(hdwmapi, "InitializeSRWLock");
+            static auto DwmSetWindowAttribute = (int(*)(HWND    hwnd,
+  DWORD   dwAttribute,
+  LPCVOID pvAttribute,
+  DWORD   cbAttribute))GetProcAddress(hdwmapi, "DwmSetWindowAttribute");
+            
+            DwmSetWindowAttribute((HWND)this->winId(), 19, &isDarkMode, sizeof(BOOL));
+        }
+    }
 }
 
 // Used by View->CPU
