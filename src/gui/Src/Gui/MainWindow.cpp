@@ -1094,20 +1094,24 @@ void MainWindow::updateWindowTitleSlot(QString filename)
 
 void MainWindow::updateTitleBarSlot()
 {
-    //(HWND)this->winId();
+    OSVERSIONINFOEXW osvi = { 0 };
+    osvi.dwOSVersionInfoSize = sizeof(osvi);
+    static bool IsWindows10 = GetVersionExW((LPOSVERSIONINFOW)&osvi) && osvi.dwMajorVersion >= 10;
+    if(!IsWindows10) return;
+    if(osvi.dwBuildNumber < 17763) return;
+
     const int isDarkMode = 1;
     if(isDarkMode == 1)
     {
-        HMODULE hdwmapi = GetModuleHandleW(L"dwmapi.dll");
+        HMODULE static hdwmapi = LoadLibraryW(L"dwmapi.dll");
         if(hdwmapi)
         {
-            //m_InitializeSRWLock = (SRWLOCKFUNCTION)GetProcAddress(hdwmapi, "InitializeSRWLock");
-            static auto DwmSetWindowAttribute = (int(*)(HWND    hwnd,
+            static auto DwmSetWindowAttribute = (int(WINAPI*)(HWND    hwnd,
                                                  DWORD   dwAttribute,
                                                  LPCVOID pvAttribute,
                                                  DWORD   cbAttribute))GetProcAddress(hdwmapi, "DwmSetWindowAttribute");
 
-            DwmSetWindowAttribute((HWND)this->winId(), 19, &isDarkMode, 4);
+            DwmSetWindowAttribute((HWND)this->winId(), (osvi.dwBuildNumber >= 18985) ? 20 : 19, &isDarkMode, 4);
         }
     }
 }
