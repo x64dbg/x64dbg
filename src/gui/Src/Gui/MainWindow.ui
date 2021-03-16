@@ -176,6 +176,10 @@
      <property name="title">
       <string>&amp;Theme</string>
      </property>
+     <property name="icon">
+      <iconset resource="../../resource.qrc">
+       <normaloff>:/icons/images/themes.png</normaloff>:/icons/images/themes.png</iconset>
+     </property>
      <addaction name="actionDefaultTheme"/>
     </widget>
     <addaction name="actionSettings"/>
@@ -1214,10 +1218,6 @@
    </property>
   </action>
   <action name="action_Theme">
-   <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/themes.png</normaloff>:/icons/images/themes.png</iconset>
-   </property>
    <property name="text">
     <string>&amp;Theme</string>
    </property>
