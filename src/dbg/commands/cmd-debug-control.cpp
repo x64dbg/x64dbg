@@ -133,14 +133,11 @@ bool cbDebugInit(int argc, char* argv[])
         strcpy_s(currentfolder, arg3);
 
     static INIT_STRUCT init;
-    memset(&init, 0, sizeof(INIT_STRUCT));
     init.exe = arg1;
     init.commandline = commandline;
     if(*currentfolder)
         init.currentfolder = currentfolder;
-
-    hDebugLoopThread = CreateThread(nullptr, 0, threadDebugLoop, &init, CREATE_SUSPENDED, nullptr);
-    ResumeThread(hDebugLoopThread);
+    dbgcreatedebugthread(&init);
     return true;
 }
 
@@ -258,8 +255,10 @@ bool cbDebugAttach(int argc, char* argv[])
         if(tid)
             dbgsetresumetid(tid);
     }
-    hDebugLoopThread = CreateThread(nullptr, 0, threadAttachLoop, (void*)pid, CREATE_SUSPENDED, nullptr);
-    ResumeThread(hDebugLoopThread);
+    static INIT_STRUCT init;
+    init.attach = true;
+    init.pid = (DWORD)pid;
+    dbgcreatedebugthread(&init);
     return true;
 }
 

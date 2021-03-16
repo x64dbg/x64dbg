@@ -27,9 +27,12 @@ enum class ExceptionHandledBy
 //structures
 struct INIT_STRUCT
 {
-    char* exe;
-    char* commandline;
-    char* currentfolder;
+    HANDLE event = nullptr;
+    char* exe = nullptr;
+    char* commandline = nullptr;
+    char* currentfolder = nullptr;
+    DWORD pid = 0;
+    bool attach = false;
 };
 
 struct ExceptionRange
@@ -103,6 +106,7 @@ void dbgtracebrowserneedsupdate();
 bool dbgsetdllbreakpoint(const char* mod, DWORD type, bool singleshoot);
 bool dbgdeletedllbreakpoint(const char* mod, DWORD type);
 void dbgsetdebugflags(DWORD flags);
+void dbgcreatedebugthread(INIT_STRUCT* init);
 
 void cbStep();
 void cbRtrStep();
@@ -112,7 +116,6 @@ void cbMemoryBreakpoint(void* ExceptionAddress);
 void cbHardwareBreakpoint(void* ExceptionAddress);
 void cbUserBreakpoint();
 void cbDebugLoadLibBPX();
-DWORD WINAPI threadDebugLoop(void* lpParameter);
 void cbTraceOverConditionalStep();
 void cbTraceIntoConditionalStep();
 void cbTraceIntoBeyondTraceRecordStep();
@@ -120,7 +123,6 @@ void cbTraceOverBeyondTraceRecordStep();
 void cbTraceIntoIntoTraceRecordStep();
 void cbTraceOverIntoTraceRecordStep();
 void cbRunToUserCodeBreakpoint(void* ExceptionAddress);
-DWORD WINAPI threadAttachLoop(void* lpParameter);
 bool cbSetModuleBreakpoints(const BREAKPOINT* bp);
 EXCEPTION_DEBUG_INFO & getLastExceptionInfo();
 bool dbgrestartadmin();

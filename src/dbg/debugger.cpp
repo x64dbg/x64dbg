@@ -2654,27 +2654,23 @@ static void* InitDLLDebugW(const wchar_t* szFileName, const wchar_t* szCommandLi
     return ReturnValue;
 }
 
-static void debugLoopFunction(void* lpParameter, bool attach)
+static void debugLoopFunction(INIT_STRUCT* init)
 {
     //initialize variables
-    bIsAttached = attach;
+    bIsAttached = init->attach;
     dbgsetskipexceptions(false);
     bFreezeStack = false;
 
     //prepare attach/createprocess
-    DWORD pid;
-    INIT_STRUCT* init;
-    if(attach)
+    if(init->attach)
     {
         gInitExe = StringUtils::Utf8ToUtf16(szDebuggeePath);
-        pid = DWORD(lpParameter);
         static PROCESS_INFORMATION pi_attached;
         memset(&pi_attached, 0, sizeof(pi_attached));
         fdProcessInfo = &pi_attached;
     }
     else
     {
-        init = (INIT_STRUCT*)lpParameter;
         gInitExe = StringUtils::Utf8ToUtf16(init->exe);
         strcpy_s(szDebuggeePath, init->exe);
     }
@@ -2690,7 +2686,7 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     }
     DbSetPath(nullptr, szDebuggeePath);
 
-    if(!attach)
+    if(!init->attach)
     {
         // Load command line if it exists in DB
         DbLoad(DbLoadSaveType::CommandLine);
@@ -2771,6 +2767,10 @@ static void debugLoopFunction(void* lpParameter, bool attach)
         gInitDir.clear();
     }
 
+    // signal that fdProcessInfo has been set
+    SetEvent(init->event);
+    init->event = nullptr;
+
     //set custom handlers
     SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
     SetCustomHandler(UE_CH_EXITPROCESS, (void*)cbExitProcess);
@@ -2803,10 +2803,10 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     plugincbcall(CB_INITDEBUG, &initInfo);
 
     //call plugin callback (attach)
-    if(attach)
+    if(init->attach)
     {
         PLUG_CB_ATTACH attachInfo;
-        attachInfo.dwProcessId = (DWORD)pid;
+        attachInfo.dwProcessId = init->pid;
         plugincbcall(CB_ATTACH, &attachInfo);
     }
 
@@ -2814,9 +2814,9 @@ static void debugLoopFunction(void* lpParameter, bool attach)
     DbLoad(DbLoadSaveType::DebugData);
 
     //run debug loop (returns when process debugging is stopped)
-    if(attach)
+    if(init->attach)
     {
-        if(AttachDebugger(pid, true, fdProcessInfo, (void*)cbAttachDebugger) == false)
+        if(AttachDebugger(init->pid, true, fdProcessInfo, (void*)cbAttachDebugger) == false)
         {
             String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
             dprintf(QT_TRANSLATE_NOOP("DBG", "Attach to process failed! GetLastError() = %s\n"), error.c_str());
@@ -2902,16 +2902,24 @@ void dbgsetforeground()
         SetForegroundWindow(GuiGetWindowHandle());
 }
 
-DWORD WINAPI threadDebugLoop(void* lpParameter)
+void dbgcreatedebugthread(INIT_STRUCT* init)
 {
-    debugLoopFunction(lpParameter, false);
-    return 0;
-}
+    auto event = init->event = CreateEventW(nullptr, false, false, nullptr);
+    hDebugLoopThread = CreateThread(nullptr, 0, [](LPVOID lpParameter) -> DWORD
+    {
+        auto init = (INIT_STRUCT*)lpParameter;
+        debugLoopFunction(init);
 
-DWORD WINAPI threadAttachLoop(void* lpParameter)
-{
-    debugLoopFunction(lpParameter, true);
-    return 0;
+        // Set the event in case debugLoopFunction returned early to prevent a deadlock
+        if(init->event)
+        {
+            SetEvent(init->event);
+            init->event = nullptr;
+        }
+        return 0;
+    }, init, 0, nullptr);
+    WaitForSingleObject(event, INFINITE);
+    CloseHandle(event);
 }
 
 bool dbgrestartadmin()
