@@ -1620,7 +1620,7 @@ void MainWindow::patchWindow()
 {
     if(!DbgIsDebugging())
     {
-        SimpleErrorBox(this, tr("Error!"), tr("Patches cannot be shown when not debugging..."));
+        SimpleErrorBox(this, tr("Error!"), tr("Patches can only be shown while debugging..."));
         return;
     }
     GuiUpdatePatches();
