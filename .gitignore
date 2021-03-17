@@ -15,6 +15,7 @@ COV/
 minidump/
 CppDependOut/
 .vs/
+.vscode/
 
 # Global filetypes to ignore
 *.depend
