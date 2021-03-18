@@ -1095,7 +1095,7 @@ void MainWindow::updateWindowTitleSlot(QString filename)
 
 void MainWindow::updateDarkTitleBar()
 {
-    typedef void(* RTLGETNTVERSIONNUMBERS)(DWORD * MajorVersion, DWORD * MinorVersion, DWORD * BuildNumber);
+    typedef void(NTAPI * RTLGETNTVERSIONNUMBERS)(DWORD * MajorVersion, DWORD * MinorVersion, DWORD * BuildNumber);
     static auto RtlGetNtVersionNumbers = (RTLGETNTVERSIONNUMBERS)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetNtVersionNumbers");
     DWORD major, minor, build;
     RtlGetNtVersionNumbers(&major, &minor, &build);
