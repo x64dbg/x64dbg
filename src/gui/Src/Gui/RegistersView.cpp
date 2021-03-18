@@ -1156,7 +1156,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     wCM_CopyFloatingPointValueToClipboard = setupAction(DIcon("copy.png"), tr("Copy floating point value"));
     wCM_CopySymbolToClipboard = setupAction(DIcon("pdb.png"), tr("Copy Symbol Value"));
     wCM_CopyAll = setupAction(DIcon("copy-alt.png"), tr("Copy all registers"));
-    wCM_ChangeFPUView = new QAction(DIcon("change-view.png"), tr("Change view"));
+    wCM_ChangeFPUView = new QAction(DIcon("change-view.png"), tr("Change view"), this);
     mSwitchSIMDDispMode = new QMenu(tr("Change SIMD Register Display Mode"), this);
     mSwitchSIMDDispMode->setIcon(DIcon("simdmode.png"));
     mDisplaySTX = new QAction(tr("Display ST(x)"), this);
