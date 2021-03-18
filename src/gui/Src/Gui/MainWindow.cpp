@@ -1095,17 +1095,14 @@ void MainWindow::updateWindowTitleSlot(QString filename)
 
 void MainWindow::updateDarkTitleBar()
 {
-    typedef void(NTAPI * RTLGETNTVERSIONNUMBERS)(DWORD * MajorVersion, DWORD * MinorVersion, DWORD * BuildNumber);
-    static auto RtlGetNtVersionNumbers = (RTLGETNTVERSIONNUMBERS)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetNtVersionNumbers");
-    DWORD major, minor, build;
-    RtlGetNtVersionNumbers(&major, &minor, &build);
+    // https://www.vergiliusproject.com/kernels/x64/Windows%2010%20%7C%202016/2009%2020H2%20(October%202020%20Update)/_KUSER_SHARED_DATA
+    uint32_t NtBuildNumber = *(uint32_t*)(0x7FFE0000 + 0x260);
 
-    if(major < 10 || build < 17763)
+    if(NtBuildNumber == 0 /* pre Windows-10 */ || NtBuildNumber < 17763)
         return;
 
     duint darkTitleBar = 0;
     BridgeSettingGetUint("Colors", "DarkTitleBar", &darkTitleBar);
-    GuiAddLogMessage(QString("NEIN title! %1\n").arg(darkTitleBar).toUtf8().data());
 
     static auto hdwmapi = LoadLibraryW(L"dwmapi.dll");
     if(hdwmapi)
@@ -1113,7 +1110,7 @@ void MainWindow::updateDarkTitleBar()
         typedef int(WINAPI * DWMSETWINDOWATTRIBUTE)(HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
         static auto DwmSetWindowAttribute = (DWMSETWINDOWATTRIBUTE)GetProcAddress(hdwmapi, "DwmSetWindowAttribute");
         auto hwnd = (HWND)this->winId();
-        DwmSetWindowAttribute(hwnd, (build >= 18985) ? 20 : 19, &darkTitleBar, 4);
+        DwmSetWindowAttribute(hwnd, (NtBuildNumber >= 18985) ? 20 : 19, &darkTitleBar, sizeof(uint32_t));
         // TODO: somehow gracefully redraw the title bar
     }
 }
