@@ -1500,17 +1500,17 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     PLUG_CB_EXITPROCESS callbackInfo;
     callbackInfo.ExitProcess = ExitProcess;
     plugincbcall(CB_EXITPROCESS, &callbackInfo);
+    _dbg_animatestop(); // Stop animating
+    //history
+    dbgcleartracestate();
+    dbgClearRtuBreakpoints();
+    HistoryClear();
     if(breakHere)
     {
         dbgsetforeground();
         dbgsetskipexceptions(false);
         wait(WAITID_RUN);
     }
-    _dbg_animatestop(); // Stop animating
-    //history
-    dbgcleartracestate();
-    dbgClearRtuBreakpoints();
-    HistoryClear();
 }
 
 static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
