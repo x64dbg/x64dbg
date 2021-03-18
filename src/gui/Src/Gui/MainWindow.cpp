@@ -83,7 +83,6 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Setup bridge signals
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
-    connect(Bridge::getBridge(), SIGNAL(updateTitleBar()), this, SLOT(updateTitleBarSlot()));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
     connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
     connect(Bridge::getBridge(), SIGNAL(menuAddMenuToList(QWidget*, QMenu*, GUIMENUTYPE, int)), this, SLOT(addMenuToList(QWidget*, QMenu*, GUIMENUTYPE, int)));
@@ -352,7 +351,6 @@ MainWindow::MainWindow(QWidget* parent)
     makeCommandAction(ui->actionDbclear, "dbclear");
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
-    connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateTitleBar()), this, SLOT(updateTitleBarSlot()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
@@ -396,6 +394,8 @@ MainWindow::MainWindow(QWidget* parent)
     mCpuWidget->setDisasmFocus();
 
     QTimer::singleShot(0, this, SLOT(loadWindowSettings()));
+
+    updateDarkTitleBar();
 }
 
 MainWindow::~MainWindow()
@@ -520,6 +520,7 @@ void MainWindow::themeTriggeredSlot()
     QString name = dir.mid(nameIdx + 1);
     BridgeSettingSet("Theme", "Selected", name.toUtf8().constData());
     loadSelectedStyle();
+    updateDarkTitleBar();
 }
 
 void MainWindow::setupThemesMenu()
@@ -1092,27 +1093,28 @@ void MainWindow::updateWindowTitleSlot(QString filename)
     }
 }
 
-void MainWindow::updateTitleBarSlot()
+void MainWindow::updateDarkTitleBar()
 {
-    OSVERSIONINFOEXW osvi = { 0 };
-    osvi.dwOSVersionInfoSize = sizeof(osvi);
-    static bool IsWindows10 = GetVersionExW((LPOSVERSIONINFOW)&osvi) && osvi.dwMajorVersion >= 10;
-    if(!IsWindows10) return;
-    if(osvi.dwBuildNumber < 17763) return;
+    typedef void(* RTLGETNTVERSIONNUMBERS)(DWORD * MajorVersion, DWORD * MinorVersion, DWORD * BuildNumber);
+    static auto RtlGetNtVersionNumbers = (RTLGETNTVERSIONNUMBERS)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetNtVersionNumbers");
+    DWORD major, minor, build;
+    RtlGetNtVersionNumbers(&major, &minor, &build);
 
-    const int isDarkMode = 1;
-    if(isDarkMode == 1)
+    if(major < 10 || build < 17763)
+        return;
+
+    duint darkTitleBar = 0;
+    BridgeSettingGetUint("Colors", "DarkTitleBar", &darkTitleBar);
+    GuiAddLogMessage(QString("NEIN title! %1\n").arg(darkTitleBar).toUtf8().data());
+
+    static auto hdwmapi = LoadLibraryW(L"dwmapi.dll");
+    if(hdwmapi)
     {
-        HMODULE static hdwmapi = LoadLibraryW(L"dwmapi.dll");
-        if(hdwmapi)
-        {
-            static auto DwmSetWindowAttribute = (int(WINAPI*)(HWND    hwnd,
-                                                 DWORD   dwAttribute,
-                                                 LPCVOID pvAttribute,
-                                                 DWORD   cbAttribute))GetProcAddress(hdwmapi, "DwmSetWindowAttribute");
-
-            DwmSetWindowAttribute((HWND)this->winId(), (osvi.dwBuildNumber >= 18985) ? 20 : 19, &isDarkMode, 4);
-        }
+        typedef int(WINAPI * DWMSETWINDOWATTRIBUTE)(HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+        static auto DwmSetWindowAttribute = (DWMSETWINDOWATTRIBUTE)GetProcAddress(hdwmapi, "DwmSetWindowAttribute");
+        auto hwnd = (HWND)this->winId();
+        DwmSetWindowAttribute(hwnd, (build >= 18985) ? 20 : 19, &darkTitleBar, 4);
+        // TODO: somehow gracefully redraw the title bar
     }
 }
 
@@ -2356,11 +2358,13 @@ void MainWindow::on_actionDefaultTheme_triggered()
     // Reset [Colors] to default
     Config()->Colors = Config()->defaultColors;
     Config()->writeColors();
+    BridgeSettingSetUint("Colors", "DarkTitleBar", 0);
     // Reset [Fonts] to default
     //Config()->Fonts = Config()->defaultFonts;
     //Config()->writeFonts();
     // Remove custom colors
     BridgeSettingSet("Colors", "CustomColorCount", nullptr);
+    updateDarkTitleBar();
 }
 
 void MainWindow::updateStyle()

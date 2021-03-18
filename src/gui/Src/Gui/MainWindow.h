@@ -77,7 +77,6 @@ public slots:
     void restartDebugging();
     void displayBreakpointWidget();
     void updateWindowTitleSlot(QString filename);
-    void updateTitleBarSlot();
     void runSlot();
     void execTRBit();
     void execTRByte();
@@ -197,6 +196,7 @@ private:
 
     QAction* actionManageFavourites;
 
+    void updateDarkTitleBar();
     void updateMRUMenu();
     void setupLanguagesMenu();
     void setupThemesMenu();

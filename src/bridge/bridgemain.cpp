@@ -1171,7 +1171,6 @@ BRIDGE_IMPEXP void GuiUpdateAllViews()
     GuiUpdateGraphView();
     GuiUpdateTypeWidget();
     GuiUpdateTraceBrowser();
-    GuiUpdateTitleBar();
 }
 
 BRIDGE_IMPEXP void GuiUpdateRegisterView()
@@ -1720,12 +1719,6 @@ BRIDGE_IMPEXP void GuiUpdateTraceBrowser()
 {
     CHECK_GUI_UPDATE_DISABLED
     _gui_sendmessage(GUI_UPDATE_TRACE_BROWSER, nullptr, nullptr);
-}
-
-BRIDGE_IMPEXP void GuiUpdateTitleBar()
-{
-    CHECK_GUI_UPDATE_DISABLED
-    _gui_sendmessage(GUI_UPDATE_TITLEBAR, nullptr, nullptr);
 }
 
 BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName)

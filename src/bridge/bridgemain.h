@@ -1194,7 +1194,6 @@ typedef enum
     GUI_REF_ADDCOMMAND,             // param1=const char* title,    param2=const char* command
     GUI_OPEN_TRACE_FILE,            // param1=const char* file name,param2=unused
     GUI_UPDATE_TRACE_BROWSER,       // param1=unused,               param2=unused
-    GUI_UPDATE_TITLEBAR,            // param1=unused,               param2=unused
     GUI_INVALIDATE_SYMBOL_SOURCE,   // param1=duint base,           param2=unused
     GUI_GET_CURRENT_GRAPH,          // param1=BridgeCFGraphList*,   param2=unused
     GUI_SHOW_REF,                   // param1=unused,               param2=unused
@@ -1374,7 +1373,6 @@ BRIDGE_IMPEXP void GuiCloseApplication();
 BRIDGE_IMPEXP void GuiFlushLog();
 BRIDGE_IMPEXP void GuiReferenceAddCommand(const char* title, const char* command);
 BRIDGE_IMPEXP void GuiUpdateTraceBrowser();
-BRIDGE_IMPEXP void GuiUpdateTitleBar();
 BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName);
 BRIDGE_IMPEXP void GuiInvalidateSymbolSource(duint base);
 BRIDGE_IMPEXP void GuiExecuteOnGuiThreadEx(GUICALLBACKEX cbGuiThread, void* userdata);
