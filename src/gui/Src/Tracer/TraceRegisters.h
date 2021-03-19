@@ -10,6 +10,13 @@ public:
 
     void setRegisters(REGDUMP* registers);
     void setActive(bool isActive);
+
+public slots:
+    virtual void displayCustomContextMenuSlot(QPoint pos);
+    void onCopySSERegister();
+
+private:
+    QAction* wCM_CopySSERegister;
 };
 
 #endif // TRACEREGISTERS_H

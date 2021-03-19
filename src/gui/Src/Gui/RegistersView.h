@@ -149,6 +149,8 @@ signals:
     void refresh();
 
 protected:
+    QAction* setupAction(const QIcon & icon, const QString & text);
+    QAction* setupAction(const QString & text);
     // events
     virtual void mousePressEvent(QMouseEvent* event);
     virtual void mouseDoubleClickEvent(QMouseEvent* event);
@@ -184,6 +186,12 @@ protected slots:
     void setRegisters(REGDUMP* reg);
     void appendRegister(QString & text, REGISTER_NAME reg, const char* name64, const char* name32);
 
+    void onCopyToClipboardAction();
+    void onCopyFloatingPointToClipboardAction();
+    void onCopySymbolToClipboardAction();
+    // switch SIMD display modes
+    void onSIMDMode();
+    void onFpuMode();
     void onCopyAllAction();
 protected:
     bool isActive;
@@ -239,6 +247,29 @@ protected:
     char mFpuMode; //0 = order by ST(X), 1 = order by x87rX, 2 = MMX registers
     dsint mCip;
     std::vector<std::pair<const char*, uint8_t>> mHighlightRegs;
+    // menu actions
+    QAction* mDisplaySTX;
+    QAction* mDisplayx87rX;
+    QAction* mDisplayMMX;
+    QAction* wCM_CopyToClipboard;
+    QAction* wCM_CopyFloatingPointValueToClipboard;
+    QAction* wCM_CopySymbolToClipboard;
+    QAction* wCM_CopyAll;
+    QAction* wCM_ChangeFPUView;
+    QMenu* mSwitchSIMDDispMode;
+    void setupSIMDModeMenu();
+    QAction* SIMDHex;
+    QAction* SIMDFloat;
+    QAction* SIMDDouble;
+    QAction* SIMDSWord;
+    QAction* SIMDUWord;
+    QAction* SIMDHWord;
+    QAction* SIMDSDWord;
+    QAction* SIMDUDWord;
+    QAction* SIMDHDWord;
+    QAction* SIMDSQWord;
+    QAction* SIMDUQWord;
+    QAction* SIMDHQWord;
 };
 
 #endif // REGISTERSVIEW_H

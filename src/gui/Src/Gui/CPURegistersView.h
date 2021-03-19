@@ -29,9 +29,6 @@ protected slots:
     void onModifyAction();
     void onToggleValueAction();
     void onUndoAction();
-    void onCopyToClipboardAction();
-    void onCopyFloatingPointToClipboardAction();
-    void onCopySymbolToClipboardAction();
     void onFollowInDisassembly();
     void onFollowInDump();
     void onFollowInDumpN();
@@ -43,9 +40,6 @@ protected slots:
     void onPushAction();
     void onPopAction();
     void onHighlightSlot();
-    // switch SIMD display modes
-    void onSIMDMode();
-    void onFpuMode();
     void ModifyFields(const QString & title, STRING_VALUE_TABLE_t* table, SIZE_T size);
     void disasmSelectionChangedSlot(dsint va);
 
@@ -55,10 +49,6 @@ private:
 
     CPUWidget* mParent;
     // context menu actions
-    QMenu* mSwitchSIMDDispMode;
-    QAction* mDisplaySTX;
-    QAction* mDisplayx87rX;
-    QAction* mDisplayMMX;
     QAction* mFollowInDump;
     QAction* wCM_Increment;
     QAction* wCM_Decrement;
@@ -71,10 +61,6 @@ private:
     QAction* wCM_Modify;
     QAction* wCM_ToggleValue;
     QAction* wCM_Undo;
-    QAction* wCM_CopyToClipboard;
-    QAction* wCM_CopyFloatingPointValueToClipboard;
-    QAction* wCM_CopySymbolToClipboard;
-    QAction* wCM_CopyAll;
     QAction* wCM_FollowInDisassembly;
     QAction* wCM_FollowInDump;
     QAction* wCM_FollowInStack;
@@ -82,20 +68,7 @@ private:
     QAction* wCM_RemoveHardware;
     QAction* wCM_Incrementx87Stack;
     QAction* wCM_Decrementx87Stack;
-    QAction* wCM_ChangeFPUView;
     QAction* wCM_Highlight;
-    QAction* SIMDHex;
-    QAction* SIMDFloat;
-    QAction* SIMDDouble;
-    QAction* SIMDSWord;
-    QAction* SIMDUWord;
-    QAction* SIMDHWord;
-    QAction* SIMDSDWord;
-    QAction* SIMDUDWord;
-    QAction* SIMDHDWord;
-    QAction* SIMDSQWord;
-    QAction* SIMDUQWord;
-    QAction* SIMDHQWord;
 };
 
 #endif // CPUREGISTERSVIEW_H

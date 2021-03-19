@@ -11,135 +11,29 @@
 #include "CPURegistersView.h"
 #include "ldconvert.h"
 
-static QAction* setupAction(const QIcon & icon, const QString & text, RegistersView* this_object)
-{
-    QAction* action = new QAction(icon, text, this_object);
-    action->setShortcutContext(Qt::WidgetShortcut);
-    this_object->addAction(action);
-    return action;
-}
-
-static QAction* setupAction(const QString & text, RegistersView* this_object)
-{
-    QAction* action = new QAction(text, this_object);
-    action->setShortcutContext(Qt::WidgetShortcut);
-    this_object->addAction(action);
-    return action;
-}
-
 CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), mParent(parent)
 {
     // precreate ContextMenu Actions
-    wCM_Increment = setupAction(DIcon("register_inc.png"), tr("Increment"), this);
-    wCM_Decrement = setupAction(DIcon("register_dec.png"), tr("Decrement"), this);
-    wCM_Zero = setupAction(DIcon("register_zero.png"), tr("Zero"), this);
-    wCM_SetToOne = setupAction(DIcon("register_one.png"), tr("Set to 1"), this);
+    wCM_Increment = setupAction(DIcon("register_inc.png"), tr("Increment"));
+    wCM_Decrement = setupAction(DIcon("register_dec.png"), tr("Decrement"));
+    wCM_Zero = setupAction(DIcon("register_zero.png"), tr("Zero"));
+    wCM_SetToOne = setupAction(DIcon("register_one.png"), tr("Set to 1"));
     wCM_Modify = new QAction(DIcon("register_edit.png"), tr("Modify value"), this);
     wCM_Modify->setShortcut(QKeySequence(Qt::Key_Enter));
-    wCM_ToggleValue = setupAction(DIcon("register_toggle.png"), tr("Toggle"), this);
-    wCM_Undo = setupAction(DIcon("undo.png"), tr("Undo"), this);
-    wCM_CopyToClipboard = setupAction(DIcon("copy.png"), tr("Copy value"), this);
-    wCM_CopyFloatingPointValueToClipboard = setupAction(DIcon("copy.png"), tr("Copy floating point value"), this);
-    wCM_CopySymbolToClipboard = setupAction(DIcon("pdb.png"), tr("Copy Symbol Value"), this);
-    wCM_CopyAll = setupAction(DIcon("copy-alt.png"), tr("Copy all registers"), this);
+    wCM_ToggleValue = setupAction(DIcon("register_toggle.png"), tr("Toggle"));
+    wCM_Undo = setupAction(DIcon("undo.png"), tr("Undo"));
     wCM_FollowInDisassembly = new QAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in Disassembler"), this);
     wCM_FollowInDump = new QAction(DIcon("dump.png"), tr("Follow in Dump"), this);
     wCM_FollowInStack = new QAction(DIcon("stack.png"), tr("Follow in Stack"), this);
     wCM_FollowInMemoryMap = new QAction(DIcon("memmap_find_address_page"), tr("Follow in Memory Map"), this);
     wCM_RemoveHardware = new QAction(DIcon("breakpoint_remove.png"), tr("&Remove hardware breakpoint"), this);
-    wCM_Incrementx87Stack = setupAction(DIcon("arrow-small-down.png"), tr("Increment x87 Stack"), this);
-    wCM_Decrementx87Stack = setupAction(DIcon("arrow-small-up.png"), tr("Decrement x87 Stack"), this);
-    wCM_ChangeFPUView = new QAction(DIcon("change-view.png"), tr("Change view"), this);
-    wCM_IncrementPtrSize = setupAction(DIcon("register_inc.png"), ArchValue(tr("Increase 4"), tr("Increase 8")), this);
-    wCM_DecrementPtrSize = setupAction(DIcon("register_dec.png"), ArchValue(tr("Decrease 4"), tr("Decrease 8")), this);
-    wCM_Push = setupAction(DIcon("arrow-small-down.png"), tr("Push"), this);
-    wCM_Pop = setupAction(DIcon("arrow-small-up.png"), tr("Pop"), this);
-    wCM_Highlight = setupAction(DIcon("highlight.png"), tr("Highlight"), this);
-    mSwitchSIMDDispMode = new QMenu(tr("Change SIMD Register Display Mode"), this);
-    mSwitchSIMDDispMode->setIcon(DIcon("simdmode.png"));
-    mDisplaySTX = new QAction(tr("Display ST(x)"), this);
-    mDisplayx87rX = new QAction(tr("Display x87rX"), this);
-    mDisplayMMX = new QAction(tr("Display MMX"), this);
-    SIMDHex = new QAction(tr("Hexadecimal"), mSwitchSIMDDispMode);
-    SIMDFloat = new QAction(tr("Float"), mSwitchSIMDDispMode);
-    SIMDDouble = new QAction(tr("Double"), mSwitchSIMDDispMode);
-    SIMDSWord = new QAction(tr("Signed Word"), mSwitchSIMDDispMode);
-    SIMDSDWord = new QAction(tr("Signed Dword"), mSwitchSIMDDispMode);
-    SIMDSQWord = new QAction(tr("Signed Qword"), mSwitchSIMDDispMode);
-    SIMDUWord = new QAction(tr("Unsigned Word"), mSwitchSIMDDispMode);
-    SIMDUDWord = new QAction(tr("Unsigned Dword"), mSwitchSIMDDispMode);
-    SIMDUQWord = new QAction(tr("Unsigned Qword"), mSwitchSIMDDispMode);
-    SIMDHWord = new QAction(tr("Hexadecimal Word"), mSwitchSIMDDispMode);
-    SIMDHDWord = new QAction(tr("Hexadecimal Dword"), mSwitchSIMDDispMode);
-    SIMDHQWord = new QAction(tr("Hexadecimal Qword"), mSwitchSIMDDispMode);
-    SIMDHex->setData(QVariant(0));
-    SIMDFloat->setData(QVariant(1));
-    SIMDDouble->setData(QVariant(2));
-    SIMDSWord->setData(QVariant(3));
-    SIMDUWord->setData(QVariant(6));
-    SIMDHWord->setData(QVariant(9));
-    SIMDSDWord->setData(QVariant(4));
-    SIMDUDWord->setData(QVariant(7));
-    SIMDHDWord->setData(QVariant(10));
-    SIMDSQWord->setData(QVariant(5));
-    SIMDUQWord->setData(QVariant(8));
-    SIMDHQWord->setData(QVariant(11));
-    mDisplaySTX->setData(QVariant(0));
-    mDisplayx87rX->setData(QVariant(1));
-    mDisplayMMX->setData(QVariant(2));
-    connect(SIMDHex, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
-    connect(SIMDFloat, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
-    connect(SIMDDouble, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
-    connect(SIMDSWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
-    connect(SIMDUWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
-    connect(SIMDHWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
-    connect(SIMDSDWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
-    connect(SIMDUDWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
-    connect(SIMDHDWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
-    connect(SIMDSQWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
-    connect(SIMDUQWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
-    connect(SIMDHQWord, SIGNAL(triggered()), this, SLOT(onSIMDMode()));
-    connect(mDisplaySTX, SIGNAL(triggered()), this, SLOT(onFpuMode()));
-    connect(mDisplayx87rX, SIGNAL(triggered()), this, SLOT(onFpuMode()));
-    connect(mDisplayMMX, SIGNAL(triggered()), this, SLOT(onFpuMode()));
-    SIMDHex->setCheckable(true);
-    SIMDFloat->setCheckable(true);
-    SIMDDouble->setCheckable(true);
-    SIMDSWord->setCheckable(true);
-    SIMDUWord->setCheckable(true);
-    SIMDHWord->setCheckable(true);
-    SIMDSDWord->setCheckable(true);
-    SIMDUDWord->setCheckable(true);
-    SIMDHDWord->setCheckable(true);
-    SIMDSQWord->setCheckable(true);
-    SIMDUQWord->setCheckable(true);
-    SIMDHQWord->setCheckable(true);
-    SIMDHex->setChecked(true);
-    SIMDFloat->setChecked(false);
-    SIMDDouble->setChecked(false);
-    SIMDSWord->setChecked(false);
-    SIMDUWord->setChecked(false);
-    SIMDHWord->setChecked(false);
-    SIMDSDWord->setChecked(false);
-    SIMDUDWord->setChecked(false);
-    SIMDHDWord->setChecked(false);
-    SIMDSQWord->setChecked(false);
-    SIMDUQWord->setChecked(false);
-    SIMDHQWord->setChecked(false);
-    mSwitchSIMDDispMode->addAction(SIMDHex);
-    mSwitchSIMDDispMode->addAction(SIMDFloat);
-    mSwitchSIMDDispMode->addAction(SIMDDouble);
-    mSwitchSIMDDispMode->addAction(SIMDSWord);
-    mSwitchSIMDDispMode->addAction(SIMDSDWord);
-    mSwitchSIMDDispMode->addAction(SIMDSQWord);
-    mSwitchSIMDDispMode->addAction(SIMDUWord);
-    mSwitchSIMDDispMode->addAction(SIMDUDWord);
-    mSwitchSIMDDispMode->addAction(SIMDUQWord);
-    mSwitchSIMDDispMode->addAction(SIMDHWord);
-    mSwitchSIMDDispMode->addAction(SIMDHDWord);
-    mSwitchSIMDDispMode->addAction(SIMDHQWord);
-    // Context Menu
-    this->setContextMenuPolicy(Qt::CustomContextMenu);
+    wCM_Incrementx87Stack = setupAction(DIcon("arrow-small-down.png"), tr("Increment x87 Stack"));
+    wCM_Decrementx87Stack = setupAction(DIcon("arrow-small-up.png"), tr("Decrement x87 Stack"));
+    wCM_IncrementPtrSize = setupAction(DIcon("register_inc.png"), ArchValue(tr("Increase 4"), tr("Increase 8")));
+    wCM_DecrementPtrSize = setupAction(DIcon("register_dec.png"), ArchValue(tr("Decrease 4"), tr("Decrease 8")));
+    wCM_Push = setupAction(DIcon("arrow-small-down.png"), tr("Push"));
+    wCM_Pop = setupAction(DIcon("arrow-small-up.png"), tr("Pop"));
+    wCM_Highlight = setupAction(DIcon("highlight.png"), tr("Highlight"));
     // foreign messages
     connect(Bridge::getBridge(), SIGNAL(updateRegisters()), this, SLOT(updateRegistersSlot()));
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(displayCustomContextMenuSlot(QPoint)));
@@ -147,7 +41,6 @@ CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), m
     connect(parent->getDisasmWidget(), SIGNAL(selectionChanged(dsint)), this, SLOT(disasmSelectionChangedSlot(dsint)));
     // context menu actions
     connect(wCM_Increment, SIGNAL(triggered()), this, SLOT(onIncrementAction()));
-    connect(wCM_ChangeFPUView, SIGNAL(triggered()), this, SLOT(onChangeFPUViewAction()));
     connect(wCM_Decrement, SIGNAL(triggered()), this, SLOT(onDecrementAction()));
     connect(wCM_Incrementx87Stack, SIGNAL(triggered()), this, SLOT(onIncrementx87StackAction()));
     connect(wCM_Decrementx87Stack, SIGNAL(triggered()), this, SLOT(onDecrementx87StackAction()));
@@ -156,10 +49,6 @@ CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), m
     connect(wCM_Modify, SIGNAL(triggered()), this, SLOT(onModifyAction()));
     connect(wCM_ToggleValue, SIGNAL(triggered()), this, SLOT(onToggleValueAction()));
     connect(wCM_Undo, SIGNAL(triggered()), this, SLOT(onUndoAction()));
-    connect(wCM_CopyToClipboard, SIGNAL(triggered()), this, SLOT(onCopyToClipboardAction()));
-    connect(wCM_CopyFloatingPointValueToClipboard, SIGNAL(triggered()), this, SLOT(onCopyFloatingPointToClipboardAction()));
-    connect(wCM_CopySymbolToClipboard, SIGNAL(triggered()), this, SLOT(onCopySymbolToClipboardAction()));
-    connect(wCM_CopyAll, SIGNAL(triggered()), this, SLOT(onCopyAllAction()));
     connect(wCM_FollowInDisassembly, SIGNAL(triggered()), this, SLOT(onFollowInDisassembly()));
     connect(wCM_FollowInDump, SIGNAL(triggered()), this, SLOT(onFollowInDump()));
     connect(wCM_FollowInStack, SIGNAL(triggered()), this, SLOT(onFollowInStack()));
@@ -182,9 +71,6 @@ void CPURegistersView::refreshShortcutsSlot()
     wCM_Zero->setShortcut(ConfigShortcut("ActionZeroRegister"));
     wCM_SetToOne->setShortcut(ConfigShortcut("ActionSetOneRegister"));
     wCM_ToggleValue->setShortcut(ConfigShortcut("ActionToggleRegisterValue"));
-    wCM_CopyToClipboard->setShortcut(ConfigShortcut("ActionCopy"));
-    wCM_CopySymbolToClipboard->setShortcut(ConfigShortcut("ActionCopySymbol"));
-    wCM_CopyAll->setShortcut(ConfigShortcut("ActionCopyAllRegisters"));
     wCM_Highlight->setShortcut(ConfigShortcut("ActionHighlightingMode"));
     wCM_IncrementPtrSize->setShortcut(ConfigShortcut("ActionIncreaseRegisterPtrSize"));
     wCM_DecrementPtrSize->setShortcut(ConfigShortcut("ActionDecreaseRegisterPtrSize"));
@@ -192,6 +78,7 @@ void CPURegistersView::refreshShortcutsSlot()
     wCM_Decrementx87Stack->setShortcut(ConfigShortcut("ActionDecrementx87Stack"));
     wCM_Push->setShortcut(ConfigShortcut("ActionPush"));
     wCM_Pop->setShortcut(ConfigShortcut("ActionPop"));
+    RegistersView::refreshShortcutsSlot();
 }
 
 void CPURegistersView::mousePressEvent(QMouseEvent* event)
@@ -262,39 +149,10 @@ void CPURegistersView::mouseDoubleClickEvent(QMouseEvent* event)
 
 void CPURegistersView::keyPressEvent(QKeyEvent* event)
 {
-    if(isActive)
-    {
-        int key = event->key();
-        REGISTER_NAME newRegister = UNKNOWN;
-
-        switch(key)
-        {
-        case Qt::Key_Enter:
-        case Qt::Key_Return:
-            wCM_Modify->trigger();
-            break;
-        case Qt::Key_Left:
-            newRegister = mRegisterRelativePlaces[mSelected].left;
-            break;
-        case Qt::Key_Right:
-            newRegister = mRegisterRelativePlaces[mSelected].right;
-            break;
-        case Qt::Key_Up:
-            newRegister = mRegisterRelativePlaces[mSelected].up;
-            break;
-        case Qt::Key_Down:
-            newRegister = mRegisterRelativePlaces[mSelected].down;
-            break;
-        }
-
-        if(newRegister != UNKNOWN)
-        {
-            mSelected = newRegister;
-            ensureRegisterVisible(newRegister);
-            emit refresh();
-        }
-    }
-    RegistersView::keyPressEvent(event);
+    if(isActive && (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return))
+        wCM_Modify->trigger();
+    else
+        RegistersView::keyPressEvent(event);
 }
 
 void CPURegistersView::debugStateChangedSlot(DBGSTATE state)
@@ -682,26 +540,6 @@ void CPURegistersView::onUndoAction()
     }
 }
 
-void CPURegistersView::onCopyToClipboardAction()
-{
-    Bridge::CopyToClipboard(GetRegStringValueFromValue(mSelected, registerValue(&wRegDumpStruct, mSelected)));
-}
-
-void CPURegistersView::onCopyFloatingPointToClipboardAction()
-{
-    Bridge::CopyToClipboard(ToLongDoubleString(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, mSelected))->data));
-}
-
-void CPURegistersView::onCopySymbolToClipboardAction()
-{
-    if(mLABELDISPLAY.contains(mSelected))
-    {
-        QString symbol = getRegisterLabel(mSelected);
-        if(symbol != "")
-            Bridge::CopyToClipboard(symbol);
-    }
-}
-
 void CPURegistersView::onHighlightSlot()
 {
     Disassembly* CPUDisassemblyView = mParent->getDisasmWidget();
@@ -787,58 +625,7 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
         return;
     QMenu wMenu(this);
     QMenu* followInDumpNMenu = nullptr;
-    const QAction* selectedAction = nullptr;
-    switch(ConfigUint("Gui", "SIMDRegistersDisplayMode"))
-    {
-    case 0:
-        selectedAction = SIMDHex;
-        break;
-    case 1:
-        selectedAction = SIMDFloat;
-        break;
-    case 2:
-        selectedAction = SIMDDouble;
-        break;
-    case 3:
-        selectedAction = SIMDSWord;
-        break;
-    case 6:
-        selectedAction = SIMDUWord;
-        break;
-    case 9:
-        selectedAction = SIMDHWord;
-        break;
-    case 4:
-        selectedAction = SIMDSDWord;
-        break;
-    case 7:
-        selectedAction = SIMDUDWord;
-        break;
-    case 10:
-        selectedAction = SIMDHDWord;
-        break;
-    case 5:
-        selectedAction = SIMDSQWord;
-        break;
-    case 8:
-        selectedAction = SIMDUQWord;
-        break;
-    case 11:
-        selectedAction = SIMDHQWord;
-        break;
-    }
-    SIMDHex->setChecked(SIMDHex == selectedAction);
-    SIMDFloat->setChecked(SIMDFloat == selectedAction);
-    SIMDDouble->setChecked(SIMDDouble == selectedAction);
-    SIMDSWord->setChecked(SIMDSWord == selectedAction);
-    SIMDUWord->setChecked(SIMDUWord == selectedAction);
-    SIMDHWord->setChecked(SIMDHWord == selectedAction);
-    SIMDSDWord->setChecked(SIMDSDWord == selectedAction);
-    SIMDUDWord->setChecked(SIMDUDWord == selectedAction);
-    SIMDHDWord->setChecked(SIMDHDWord == selectedAction);
-    SIMDSQWord->setChecked(SIMDSQWord == selectedAction);
-    SIMDUQWord->setChecked(SIMDUQWord == selectedAction);
-    SIMDHQWord->setChecked(SIMDHQWord == selectedAction);
+    setupSIMDModeMenu();
 
     if(mSelected != UNKNOWN)
     {
@@ -876,13 +663,13 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
         {
             wMenu.addAction(wCM_CopyFloatingPointValueToClipboard);
         }
-        wMenu.addAction(wCM_CopyAll);
         if(mLABELDISPLAY.contains(mSelected))
         {
             QString symbol = getRegisterLabel(mSelected);
             if(symbol != "")
                 wMenu.addAction(wCM_CopySymbolToClipboard);
         }
+        wMenu.addAction(wCM_CopyAll);
 
         if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mSEGMENTREGISTER.contains(mSelected) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
         {
@@ -973,20 +760,6 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
         if(wAction == wHwbpCsp)
             DbgCmdExec("bphws csp,rw");
     }
-}
-
-void CPURegistersView::onSIMDMode()
-{
-    Config()->setUint("Gui", "SIMDRegistersDisplayMode", dynamic_cast<QAction*>(sender())->data().toInt());
-    emit refresh();
-    GuiUpdateDisassemblyView(); // refresh display mode for data in disassembly
-}
-
-void CPURegistersView::onFpuMode()
-{
-    mFpuMode = (char)(dynamic_cast<QAction*>(sender())->data().toInt());
-    InitMappings();
-    emit refresh();
 }
 
 void CPURegistersView::setRegister(REGISTER_NAME reg, duint value)
