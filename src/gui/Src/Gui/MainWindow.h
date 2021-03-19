@@ -196,6 +196,7 @@ private:
 
     QAction* actionManageFavourites;
 
+    void updateDarkTitleBar();
     void updateMRUMenu();
     void setupLanguagesMenu();
     void setupThemesMenu();

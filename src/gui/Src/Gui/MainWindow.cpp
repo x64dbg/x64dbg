@@ -394,6 +394,8 @@ MainWindow::MainWindow(QWidget* parent)
     mCpuWidget->setDisasmFocus();
 
     QTimer::singleShot(0, this, SLOT(loadWindowSettings()));
+
+    updateDarkTitleBar();
 }
 
 MainWindow::~MainWindow()
@@ -518,6 +520,7 @@ void MainWindow::themeTriggeredSlot()
     QString name = dir.mid(nameIdx + 1);
     BridgeSettingSet("Theme", "Selected", name.toUtf8().constData());
     loadSelectedStyle();
+    updateDarkTitleBar();
 }
 
 void MainWindow::setupThemesMenu()
@@ -1090,6 +1093,34 @@ void MainWindow::updateWindowTitleSlot(QString filename)
     }
 }
 
+void MainWindow::updateDarkTitleBar()
+{
+    // https://www.vergiliusproject.com/kernels/x64/Windows%2010%20%7C%202016/2009%2020H2%20(October%202020%20Update)/_KUSER_SHARED_DATA
+    uint32_t NtBuildNumber = *(uint32_t*)(0x7FFE0000 + 0x260);
+
+    if(NtBuildNumber == 0 /* pre Windows-10 */ || NtBuildNumber < 17763)
+        return;
+
+    duint darkTitleBar = 0;
+    BridgeSettingGetUint("Colors", "DarkTitleBar", &darkTitleBar);
+
+    static auto hdwmapi = LoadLibraryW(L"dwmapi.dll");
+    if(hdwmapi)
+    {
+        typedef int(WINAPI * DWMSETWINDOWATTRIBUTE)(HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+        static auto DwmSetWindowAttribute = (DWMSETWINDOWATTRIBUTE)GetProcAddress(hdwmapi, "DwmSetWindowAttribute");
+        auto hwnd = (HWND)this->winId();
+        DwmSetWindowAttribute(hwnd, (NtBuildNumber >= 18985) ? 20 : 19, &darkTitleBar, sizeof(uint32_t));
+
+        // HACK: Create a 1x1 pixel frameless window on top of the title bar to force Windows to redraw it
+        auto w = new QWidget(nullptr, Qt::FramelessWindowHint);
+        w->resize(1, 1);
+        w->move(this->pos());
+        w->show();
+        delete w;
+    }
+}
+
 // Used by View->CPU
 void MainWindow::displayCpuWidgetShowCpu()
 {
@@ -1594,7 +1625,7 @@ void MainWindow::patchWindow()
 {
     if(!DbgIsDebugging())
     {
-        SimpleErrorBox(this, tr("Error!"), tr("Patches cannot be shown when not debugging..."));
+        SimpleErrorBox(this, tr("Error!"), tr("Patches can only be shown while debugging..."));
         return;
     }
     GuiUpdatePatches();
@@ -2330,11 +2361,13 @@ void MainWindow::on_actionDefaultTheme_triggered()
     // Reset [Colors] to default
     Config()->Colors = Config()->defaultColors;
     Config()->writeColors();
+    BridgeSettingSetUint("Colors", "DarkTitleBar", 0);
     // Reset [Fonts] to default
     //Config()->Fonts = Config()->defaultFonts;
     //Config()->writeFonts();
     // Remove custom colors
     BridgeSettingSet("Colors", "CustomColorCount", nullptr);
+    updateDarkTitleBar();
 }
 
 void MainWindow::updateStyle()
