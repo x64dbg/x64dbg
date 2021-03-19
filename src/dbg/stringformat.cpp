@@ -6,7 +6,7 @@
 #include "disasm_helper.h"
 #include "formatfunctions.h"
 
-enum class ValueType
+enum class StringValueType
 {
     Unknown,
     SignedDecimal,
@@ -19,7 +19,7 @@ enum class ValueType
     Instruction
 };
 
-static String printValue(FormatValueType value, ValueType type)
+static String printValue(FormatValueType value, StringValueType type)
 {
     duint valuint = 0;
     char string[MAX_STRING_SIZE] = "";
@@ -28,37 +28,37 @@ static String printValue(FormatValueType value, ValueType type)
     {
         switch(type)
         {
-        case ValueType::Unknown:
+        case StringValueType::Unknown:
             break;
 #ifdef _WIN64
-        case ValueType::SignedDecimal:
+        case StringValueType::SignedDecimal:
             result = StringUtils::sprintf("%lld", valuint);
             break;
-        case ValueType::UnsignedDecimal:
+        case StringValueType::UnsignedDecimal:
             result = StringUtils::sprintf("%llu", valuint);
             break;
-        case ValueType::Hex:
+        case StringValueType::Hex:
             result = StringUtils::sprintf("%llX", valuint);
             break;
 #else //x86
-        case ValueType::SignedDecimal:
+        case StringValueType::SignedDecimal:
             result = StringUtils::sprintf("%d", valuint);
             break;
-        case ValueType::UnsignedDecimal:
+        case StringValueType::UnsignedDecimal:
             result = StringUtils::sprintf("%u", valuint);
             break;
-        case ValueType::Hex:
+        case StringValueType::Hex:
             result = StringUtils::sprintf("%X", valuint);
             break;
 #endif //_WIN64
-        case ValueType::Pointer:
+        case StringValueType::Pointer:
             result = StringUtils::sprintf("%p", valuint);
             break;
-        case ValueType::String:
+        case StringValueType::String:
             if(disasmgetstringatwrapper(valuint, string, false))
                 result = string;
             break;
-        case ValueType::AddrInfo:
+        case StringValueType::AddrInfo:
         {
             auto symbolic = SymGetSymbolicName(valuint);
             if(disasmgetstringatwrapper(valuint, string, false))
@@ -69,14 +69,14 @@ static String printValue(FormatValueType value, ValueType type)
                 result.clear();
         }
         break;
-        case ValueType::Module:
+        case StringValueType::Module:
         {
             char mod[MAX_MODULE_SIZE] = "";
             ModNameFromAddr(valuint, mod, true);
             result = mod;
         }
         break;
-        case ValueType::Instruction:
+        case StringValueType::Instruction:
         {
             BASIC_INSTRUCTION_INFO info;
             if(!disasmfast(valuint, &info, true))
@@ -92,33 +92,33 @@ static String printValue(FormatValueType value, ValueType type)
     return result;
 }
 
-static bool typeFromCh(char ch, ValueType & type)
+static bool typeFromCh(char ch, StringValueType & type)
 {
     switch(ch)
     {
     case 'd':
-        type = ValueType::SignedDecimal;
+        type = StringValueType::SignedDecimal;
         break;
     case 'u':
-        type = ValueType::UnsignedDecimal;
+        type = StringValueType::UnsignedDecimal;
         break;
     case 'p':
-        type = ValueType::Pointer;
+        type = StringValueType::Pointer;
         break;
     case 's':
-        type = ValueType::String;
+        type = StringValueType::String;
         break;
     case 'x':
-        type = ValueType::Hex;
+        type = StringValueType::Hex;
         break;
     case 'a':
-        type = ValueType::AddrInfo;
+        type = StringValueType::AddrInfo;
         break;
     case 'm':
-        type = ValueType::Module;
+        type = StringValueType::Module;
         break;
     case 'i':
-        type = ValueType::Instruction;
+        type = StringValueType::Instruction;
         break;
     default: //invalid format
         return false;
@@ -126,10 +126,10 @@ static bool typeFromCh(char ch, ValueType & type)
     return true;
 }
 
-static const char* getArgExpressionType(const String & formatString, ValueType & type, String & complexArgs)
+static const char* getArgExpressionType(const String & formatString, StringValueType & type, String & complexArgs)
 {
     size_t toSkip = 0;
-    type = ValueType::Hex;
+    type = StringValueType::Hex;
     complexArgs.clear();
     if(formatString.size() > 2 && !isdigit(formatString[0]) && formatString[1] == ':') //simple type
     {
@@ -152,21 +152,21 @@ static const char* getArgExpressionType(const String & formatString, ValueType &
     return formatString.c_str() + toSkip;
 }
 
-static unsigned int getArgNumType(const String & formatString, ValueType & type)
+static unsigned int getArgNumType(const String & formatString, StringValueType & type)
 {
     String complexArgs;
     auto expression = getArgExpressionType(formatString, type, complexArgs);
     unsigned int argnum = 0;
     if(!expression || sscanf_s(expression, "%u", &argnum) != 1)
-        type = ValueType::Unknown;
+        type = StringValueType::Unknown;
     return argnum;
 }
 
 static String handleFormatString(const String & formatString, const FormatValueVector & values)
 {
-    auto type = ValueType::Unknown;
+    auto type = StringValueType::Unknown;
     auto argnum = getArgNumType(formatString, type);
-    if(type != ValueType::Unknown && argnum < values.size())
+    if(type != StringValueType::Unknown && argnum < values.size())
         return printValue(values.at(argnum), type);
     return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "[Formatting Error]"));
 }
@@ -234,7 +234,7 @@ static String printComplexValue(FormatValueType value, const String & complexArg
 
 static String handleFormatStringInline(const String & formatString)
 {
-    auto type = ValueType::Unknown;
+    auto type = StringValueType::Unknown;
     String complexArgs;
     auto value = getArgExpressionType(formatString, type, complexArgs);
     if(!complexArgs.empty())

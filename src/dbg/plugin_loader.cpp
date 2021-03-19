@@ -983,6 +983,26 @@ bool pluginmenuentryremove(int pluginHandle, int hEntry)
     return false;
 }
 
+struct ExprFuncWrapper
+{
+    void* user;
+    int argc;
+    CBPLUGINEXPRFUNCTION cbFunc;
+    std::vector<duint> cbArgv;
+
+    static bool callback(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        auto cbUser = reinterpret_cast<ExprFuncWrapper*>(userdata);
+        for(auto i = 0; i < argc; i++)
+            cbUser->cbArgv.push_back(argv[i].number);
+
+        result->type = ValueTypeNumber;
+        result->number = cbUser->cbFunc(argc, cbUser->cbArgv.data(), cbUser->user);
+
+        return true;
+    }
+};
+
 bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata)
 {
     String plugName;
@@ -991,7 +1011,18 @@ bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUG
     PLUG_EXPRFUNCTION plugExprfunction;
     plugExprfunction.pluginHandle = pluginHandle;
     strcpy_s(plugExprfunction.name, name);
-    if(!ExpressionFunctions::Register(name, argc, cbFunction, userdata))
+
+    ExprFuncWrapper* wrapper = new ExprFuncWrapper;
+    wrapper->argc = argc;
+    wrapper->cbFunc = cbFunction;
+    wrapper->user = userdata;
+
+    std::vector<ValueType> args(argc);
+
+    for(auto & arg : args)
+        arg = ValueTypeNumber;
+
+    if(!ExpressionFunctions::Register(name, ValueTypeNumber, args, wrapper->callback, wrapper))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Expression function \"%s\" failed to register...\n"), plugName.c_str(), name);
         return false;
@@ -1002,6 +1033,33 @@ bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUG
     dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Expression function \"%s\" registered!\n"), plugName.c_str(), name);
     return true;
 }
+
+bool pluginexprfuncregisterex(int pluginHandle, const char* name, const ValueType & returnType, const ValueType* argTypes, size_t argCount, CBPLUGINEXPRFUNCTIONEX cbFunction, void* userdata)
+{
+    String plugName;
+    if(!findPluginName(pluginHandle, plugName))
+        return false;
+    PLUG_EXPRFUNCTION plugExprfunction;
+    plugExprfunction.pluginHandle = pluginHandle;
+    strcpy_s(plugExprfunction.name, name);
+
+    std::vector<ValueType> argTypesVec(argCount);
+
+    for(auto i = 0; i < argCount; i++)
+        argTypesVec[i] = argTypes[i];
+
+    if(!ExpressionFunctions::Register(name, returnType, argTypesVec, cbFunction, userdata))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Expression function \"%s\" failed to register...\n"), plugName.c_str(), name);
+        return false;
+    }
+    EXCLUSIVE_ACQUIRE(LockPluginExprfunctionList);
+    pluginExprfunctionList.push_back(plugExprfunction);
+    EXCLUSIVE_RELEASE();
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN, %s] Expression function \"%s\" registered!\n"), plugName.c_str(), name);
+    return true;
+}
+
 
 bool pluginexprfuncunregister(int pluginHandle, const char* name)
 {

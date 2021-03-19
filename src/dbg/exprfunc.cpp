@@ -11,6 +11,7 @@
 #include "value.h"
 #include "TraceRecord.h"
 #include "exhandlerinfo.h"
+#include <vector>
 
 namespace Exprfunc
 {
@@ -181,7 +182,7 @@ namespace Exprfunc
         BASIC_INSTRUCTION_INFO info;
         if(!disasmfast(addr, &info, true))
             return 0;
-        return info.branch && !info.call && !strstr(info.instruction, "jmp");
+        return info.branch && !info.call && !::strstr(info.instruction, "jmp");
     }
 
     duint disisbranch(duint addr)
@@ -197,7 +198,7 @@ namespace Exprfunc
         BASIC_INSTRUCTION_INFO info;
         if(!disasmfast(addr, &info, true))
             return 0;
-        return strstr(info.instruction, "ret") != nullptr;
+        return ::strstr(info.instruction, "ret") != nullptr;
     }
 
     duint disiscall(duint addr)
@@ -271,7 +272,7 @@ namespace Exprfunc
         BASIC_INSTRUCTION_INFO info;
         if(!disasmfast(addr, &info, true))
             return 0;
-        return info.branch && !strstr(info.instruction, "jmp") ? addr + info.size : 0;
+        return info.branch && !::strstr(info.instruction, "jmp") ? addr + info.size : 0;
     }
 
     duint disnext(duint addr)
@@ -470,5 +471,103 @@ namespace Exprfunc
         if(index >= EXCEPTION_MAXIMUM_PARAMETERS)
             return 0;
         return getLastExceptionInfo().ExceptionRecord.ExceptionInformation[index];
+    }
+
+    bool utf16(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        if(argc > 1 || !argc)
+            return false;
+
+        assert(argv[0].type == ValueTypeNumber);
+        duint addr = argv[0].number;
+
+        std::vector<wchar_t> tempStr(MAX_STRING_SIZE + 1);
+        if(!DbgMemRead(addr, tempStr.data(), sizeof(wchar_t) * (tempStr.size() - 1)))
+        {
+            // TODO: fail or just return ""?
+        }
+
+        auto utf8Str = StringUtils::Utf16ToUtf8(tempStr.data());
+
+        if(utf8Str.empty() && wcslen(tempStr.data()) > 0)
+        {
+            return false;
+        }
+
+        auto strBuf = BridgeAlloc(utf8Str.size() + 1);
+        memcpy(strBuf, utf8Str.c_str(), utf8Str.size());
+
+        result->type = ValueTypeString;
+        result->string.ptr = (const char*)strBuf;
+        result->string.isOwner = true;
+
+        return true;
+    }
+
+    bool utf8(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        if(argc > 1 || !argc)
+            return false;
+
+        assert(argv[0].type == ValueTypeNumber);
+        duint addr = argv[0].number;
+
+        std::vector<char> tempStr(MAX_STRING_SIZE + 1);
+        if(!DbgMemRead(addr, tempStr.data(), tempStr.size() - 1))
+        {
+            //Todo
+        }
+
+        auto strlen = ::strlen(tempStr.data());
+
+        auto strBuf = BridgeAlloc(strlen + 1);
+        memcpy(strBuf, tempStr.data(), strlen + 1);
+
+        result->type = ValueTypeString;
+        result->string.ptr = (const char*)strBuf;
+        result->string.isOwner = true;
+
+        return true;
+
+    }
+
+    bool modbasefromname(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        result->type = ValueTypeNumber;
+        result->number = ModBaseFromName(argv[0].string.ptr);
+
+        if(!result->number)
+            return false;
+
+        return true;
+    }
+
+    bool strcmp(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argv[0].type == ValueTypeString);
+        result->type = ValueTypeNumber;
+        result->number = 0;
+
+        if(argc > 2 || argc <= 1)
+            return false;
+
+        result->number = !::strcmp(argv[0].string.ptr, argv[1].string.ptr);
+        return true;
+    }
+
+    bool strstr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argv[0].type == ValueTypeString);
+        result->type = ValueTypeNumber;
+        result->number = 0;
+
+        //Todo: find a way to cancel this action if the user does not use the utf functions
+        //I.e. argv[0].string.ptr will point to the address from the debugger 0xABAB as a string: strstr(0xABAB, "A")
+
+        if(argc > 2 || argc <= 1)
+            return false;
+
+        result->number = ::strstr(argv[0].string.ptr, argv[1].string.ptr) != nullptr;
+        return true;
     }
 }
