@@ -1111,7 +1111,13 @@ void MainWindow::updateDarkTitleBar()
         static auto DwmSetWindowAttribute = (DWMSETWINDOWATTRIBUTE)GetProcAddress(hdwmapi, "DwmSetWindowAttribute");
         auto hwnd = (HWND)this->winId();
         DwmSetWindowAttribute(hwnd, (NtBuildNumber >= 18985) ? 20 : 19, &darkTitleBar, sizeof(uint32_t));
-        // TODO: somehow gracefully redraw the title bar
+
+        // HACK: Create a 1x1 pixel frameless window on top of the title bar to force Windows to redraw it
+        auto w = new QWidget(nullptr, Qt::FramelessWindowHint);
+        w->resize(1, 1);
+        w->move(this->pos());
+        w->show();
+        delete w;
     }
 }
 
