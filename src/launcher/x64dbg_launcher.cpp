@@ -90,7 +90,7 @@ struct RedirectWow
         if(oldValue != NULL)
         {
             if(!_Wow64RevertRedirection(oldValue))
-                //Error occured here. Ignore or reset? (does it matter at this point?)
+                //Error occurred here. Ignore or reset? (does it matter at this point?)
                 MessageBox(nullptr, TEXT("Error in Reverting Redirection"), TEXT("Error"), MB_OK | MB_ICONERROR);
         }
     }
