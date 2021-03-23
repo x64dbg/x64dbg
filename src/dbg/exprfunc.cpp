@@ -120,6 +120,11 @@ namespace Exprfunc
         return duint(ThreadGetId(hActiveThread));
     }
 
+    duint kusd()
+    {
+        return duint(SharedUserData);
+    }
+
     duint bswap(duint value)
     {
         duint result = 0;

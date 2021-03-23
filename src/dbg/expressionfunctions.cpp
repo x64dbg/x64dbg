@@ -73,6 +73,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("peb,PEB", peb);
     RegisterEasy("teb,TEB", teb);
     RegisterEasy("tid,TID,ThreadId", tid);
+    RegisterEasy("kusd,KUSD,KUSER_SHARED_DATA", kusd);
 
     //General purpose
     RegisterEasy("bswap", bswap);

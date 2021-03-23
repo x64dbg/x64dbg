@@ -21,6 +21,7 @@ namespace Exprfunc
     duint peb();
     duint teb();
     duint tid();
+    duint kusd();
 
     duint bswap(duint value);
     duint ternary(duint condition, duint value1, duint value2);
