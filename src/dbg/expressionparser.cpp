@@ -380,6 +380,7 @@ ExpressionParser::Token::Type ExpressionParser::resolveQuotedData() const
     {
         return b;
     });
+
     return allQuoted ? Token::Type::QuotedData : Token::Type::Data;
 }
 
@@ -774,6 +775,8 @@ static bool evalOperation(ExpressionParser::Token::Type type, const ExpressionPa
     default:
     {
         duint op1v, op2v;
+        if(op1.isString || op2.isString)
+            return false;
         if(!op1.DoEvaluate(op1v, silent, baseonly) || !op2.DoEvaluate(op2v, silent, baseonly))
             return false;
         T resultv;
