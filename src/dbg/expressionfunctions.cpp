@@ -29,7 +29,6 @@ static duint callFunc(const T* argv, duint(*cbFunction)(Ts...), seq<S...>)
 template<typename... Ts>
 static bool RegisterEasy(const String & name, duint(*cbFunction)(Ts...))
 {
-    auto aliases = StringUtils::Split(name, ',');
     auto tempFunc = [cbFunction](ExpressionValue * result, int argc, const ExpressionValue * argv, void* userdata) -> bool
     {
         result->type = ValueTypeNumber;
@@ -42,11 +41,7 @@ static bool RegisterEasy(const String & name, duint(*cbFunction)(Ts...))
     for(auto & arg : args)
         arg = ValueTypeNumber;
 
-    if(!ExpressionFunctions::Register(aliases[0], ValueTypeNumber, args, tempFunc))
-        return false;
-    for(size_t i = 1; i < aliases.size(); i++)
-        ExpressionFunctions::RegisterAlias(aliases[0], aliases[i]);
-    return true;
+    return ExpressionFunctions::Register(name, ValueTypeNumber, args, tempFunc);
 }
 
 void ExpressionFunctions::Init()
@@ -152,8 +147,9 @@ void ExpressionFunctions::Init()
     //Undocumented
     RegisterEasy("bpgoto", bpgoto);
 
-    ExpressionFunctions::Register("strcmp", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::strcmp, nullptr);
+    ExpressionFunctions::Register("streq", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::strcmp, nullptr);
     ExpressionFunctions::Register("strstr", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::strstr, nullptr);
+    ExpressionFunctions::Register("strlen", ValueTypeNumber, { ValueTypeString }, Exprfunc::strlen, nullptr);
     ExpressionFunctions::Register("utf16", ValueTypeString, { ValueTypeNumber }, Exprfunc::utf16, nullptr);
     ExpressionFunctions::Register("utf8", ValueTypeString, { ValueTypeNumber }, Exprfunc::utf8, nullptr);
     ExpressionFunctions::Register("mod.fromname", ValueTypeNumber, { ValueTypeString }, Exprfunc::modbasefromname, nullptr);
@@ -161,18 +157,24 @@ void ExpressionFunctions::Init()
 
 bool ExpressionFunctions::Register(const String & name, const ValueType & returnType, const std::vector<ValueType> & argTypes, const CBEXPRESSIONFUNCTION & cbFunction, void* userdata)
 {
-    if(!isValidName(name))
-        return false;
     EXCLUSIVE_ACQUIRE(LockExpressionFunctions);
-    if(mFunctions.count(name))
+    auto aliases = StringUtils::Split(name, ',');
+    if(!isValidName(aliases[0]))
         return false;
+    if(mFunctions.count(aliases[0]))
+        return false;
+
     Function f;
-    f.name = name;
+    f.name = aliases[0];
     f.argTypes = argTypes;
     f.returnType = returnType;
     f.cbFunction = cbFunction;
     f.userdata = userdata;
-    mFunctions[name] = f;
+    mFunctions[aliases[0]] = f;
+
+    for(size_t i = 1; i < aliases.size(); i++)
+        ExpressionFunctions::RegisterAlias(aliases[0], aliases[i]);
+
     return true;
 }
 
@@ -214,7 +216,7 @@ bool ExpressionFunctions::Call(const String & name, ExpressionValue & result, st
         return false;
     for(size_t i = 0; i < argv.size(); i++)
     {
-        if(argv[i].type != f.argTypes[i])
+        if(argv[i].type != f.argTypes[i] && f.argTypes[i] != ValueTypeAny)
             return false;
     }
     return f.cbFunction(&result, argv.size(), argv.data(), f.userdata);

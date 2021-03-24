@@ -8,7 +8,6 @@
 class ExpressionFunctions
 {
 public:
-    // TODO: also register the argument types
     using CBEXPRESSIONFUNCTION = std::function<bool(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)>;
 
     static void Init();

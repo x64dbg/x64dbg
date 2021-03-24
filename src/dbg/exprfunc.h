@@ -83,6 +83,7 @@ namespace Exprfunc
 
     bool strcmp(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool strstr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool strlen(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool utf16(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool utf8(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool modbasefromname(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);

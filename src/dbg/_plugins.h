@@ -235,6 +235,7 @@ typedef enum
 {
     ValueTypeNumber,
     ValueTypeString,
+    ValueTypeAny
 } ValueType;
 
 typedef struct

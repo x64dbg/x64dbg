@@ -484,7 +484,7 @@ namespace Exprfunc
         std::vector<wchar_t> tempStr(MAX_STRING_SIZE + 1);
         if(!DbgMemRead(addr, tempStr.data(), sizeof(wchar_t) * (tempStr.size() - 1)))
         {
-            // TODO: fail or just return ""?
+            return false;
         }
 
         auto utf8Str = StringUtils::Utf16ToUtf8(tempStr.data());
@@ -515,7 +515,7 @@ namespace Exprfunc
         std::vector<char> tempStr(MAX_STRING_SIZE + 1);
         if(!DbgMemRead(addr, tempStr.data(), tempStr.size() - 1))
         {
-            //Todo
+            return false;
         }
 
         auto strlen = ::strlen(tempStr.data());
@@ -561,13 +561,23 @@ namespace Exprfunc
         result->type = ValueTypeNumber;
         result->number = 0;
 
-        //Todo: find a way to cancel this action if the user does not use the utf functions
-        //I.e. argv[0].string.ptr will point to the address from the debugger 0xABAB as a string: strstr(0xABAB, "A")
-
         if(argc > 2 || argc <= 1)
             return false;
 
         result->number = ::strstr(argv[0].string.ptr, argv[1].string.ptr) != nullptr;
+        return true;
+    }
+
+    bool strlen(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argv[0].type == ValueTypeString);
+        result->type = ValueTypeNumber;
+        result->number = 0;
+
+        if(argc != 1)
+            return false;
+
+        result->number = ::strlen(argv[0].string.ptr);
         return true;
     }
 }

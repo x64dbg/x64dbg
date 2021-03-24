@@ -376,11 +376,7 @@ void ExpressionParser::addOperatorToken(const String & data, Token::Type type)
 
 ExpressionParser::Token::Type ExpressionParser::resolveQuotedData() const
 {
-    auto allQuoted = std::all_of(mCurTokenQuoted.begin(), mCurTokenQuoted.end(), [](bool b)
-    {
-        return b;
-    });
-
+    auto allQuoted = std::find(mCurTokenQuoted.begin(), mCurTokenQuoted.end(), false) == mCurTokenQuoted.end();
     return allQuoted ? Token::Type::QuotedData : Token::Type::Data;
 }
 
@@ -925,7 +921,7 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
                     arg = { ValueTypeNumber, result };
                 }
 
-                if(arg.type != argTypes[i])
+                if(arg.type != argTypes[i] && argTypes[i] != ValueTypeAny)
                 {
                     if(!silent)
                     {
@@ -955,6 +951,9 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
 
             ExpressionValue result = { ValueTypeNumber, 0 };
             if(!ExpressionFunctions::Call(name, result, argv))
+                return false;
+
+            if(result.type == ValueTypeAny)
                 return false;
 
             for(size_t i = 0; i < argv.size(); i++)
