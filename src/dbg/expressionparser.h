@@ -27,6 +27,7 @@ public:
         {
             Error,
             Data,
+            QuotedData,
             Function,
             Comma,
             OpenBracket,
@@ -112,15 +113,16 @@ public:
 
     struct EvalValue
     {
-        bool evaluated;
+        bool evaluated = false;
+        bool isString = false;
         duint value = 0;
         String data;
 
         explicit EvalValue(duint value)
             : evaluated(true), value(value) {}
 
-        explicit EvalValue(const String & data)
-            : evaluated(false), data(data) {}
+        explicit EvalValue(const String & data, bool isString)
+            : evaluated(false), data(data), isString(isString) {}
 
         bool DoEvaluate(duint & result, bool silent = true, bool baseonly = false, int* value_size = nullptr, bool* isvar = nullptr, bool* hexonly = nullptr) const
         {
@@ -141,6 +143,7 @@ public:
 
 private:
     static String fixClosingBrackets(const String & expression);
+    Token::Type resolveQuotedData() const;
     bool isUnaryOperator() const;
     void tokenize();
     void shuntingYard();
@@ -168,6 +171,7 @@ private:
     std::vector<Token> mTokens;
     std::vector<Token> mPrefixTokens;
     String mCurToken;
+    std::vector<bool> mCurTokenQuoted;
 };
 
 #endif //_EXPRESSION_PARSER_H

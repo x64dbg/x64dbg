@@ -3,6 +3,7 @@
 #include "console.h"
 #include "variable.h"
 #include "expressionfunctions.h"
+#include <algorithm>
 
 ExpressionParser::Token::Associativity ExpressionParser::Token::associativity() const
 {
@@ -169,6 +170,11 @@ void ExpressionParser::tokenize()
     size_t stateMemory = 0;
     auto stateQuote = false;
     auto len = mExpression.length();
+    auto push_token = [this, &stateQuote](char ch)
+    {
+        mCurToken.push_back(ch);
+        mCurTokenQuoted.push_back(stateQuote);
+    };
     for(size_t i = 0; i < len; i++)
     {
         auto ch = mExpression[i];
@@ -183,7 +189,7 @@ void ExpressionParser::tokenize()
         case '[':
         {
             stateMemory++;
-            mCurToken.push_back(ch);
+            push_token(ch);
         }
         break;
 
@@ -193,14 +199,14 @@ void ExpressionParser::tokenize()
                 stateMemory--;
             else
                 mIsValidExpression = false;
-            mCurToken.push_back(ch);
+            push_token(ch);
         }
         break;
 
         default:
         {
             if(stateMemory || stateQuote)
-                mCurToken.push_back(ch);
+                push_token(ch);
             else
             {
                 switch(ch)
@@ -341,7 +347,7 @@ void ExpressionParser::tokenize()
                 case '\t': //ignore tabs
                     break;
                 default:
-                    mCurToken.push_back(ch);
+                    push_token(ch);
                     break;
                 }
             }
@@ -350,17 +356,28 @@ void ExpressionParser::tokenize()
         }
     }
     if(mCurToken.length() != 0) //make sure the last token is added
-        mTokens.push_back(Token(mCurToken, Token::Type::Data));
+    {
+        mTokens.push_back(Token(mCurToken, resolveQuotedData()));
+        mCurToken.clear();
+        mCurTokenQuoted.clear();
+    }
 }
 
 void ExpressionParser::addOperatorToken(const String & data, Token::Type type)
 {
     if(mCurToken.length()) //add a new data token when there is data in the buffer
     {
-        mTokens.push_back(Token(mCurToken, type == Token::Type::OpenBracket ? Token::Type::Function : Token::Type::Data));
+        mTokens.push_back(Token(mCurToken, type == Token::Type::OpenBracket ? Token::Type::Function : resolveQuotedData()));
         mCurToken.clear();
+        mCurTokenQuoted.clear();
     }
     mTokens.push_back(Token(data, type)); //add the operator token
+}
+
+ExpressionParser::Token::Type ExpressionParser::resolveQuotedData() const
+{
+    auto allQuoted = std::find(mCurTokenQuoted.begin(), mCurTokenQuoted.end(), false) == mCurTokenQuoted.end();
+    return allQuoted ? Token::Type::QuotedData : Token::Type::Data;
 }
 
 bool ExpressionParser::isUnaryOperator() const
@@ -369,9 +386,9 @@ bool ExpressionParser::isUnaryOperator() const
         return false;
     if(!mTokens.size()) //no tokens before the operator means it is an unary operator
         return true;
-    auto lastType = mTokens[mTokens.size() - 1].type();
+    auto lastType = mTokens.back().type();
     //if the previous token is not data or a close bracket, this operator is a unary operator
-    return lastType != Token::Type::Data && lastType != Token::Type::CloseBracket;
+    return lastType != Token::Type::Data && lastType != Token::Type::QuotedData && lastType != Token::Type::CloseBracket;
 }
 
 void ExpressionParser::shuntingYard()
@@ -389,6 +406,7 @@ void ExpressionParser::shuntingYard()
         switch(token.type())
         {
         case Token::Type::Data: //If the token is a number, then push it to the output queue.
+        case Token::Type::QuotedData:
             queue.push_back(token);
             break;
         case Token::Type::Function: //If the token is a function token, then push it onto the stack.
@@ -402,7 +420,7 @@ void ExpressionParser::shuntingYard()
                     mIsValidExpression = false;
                     return;
                 }
-                const auto & curToken = stack[stack.size() - 1];
+                const auto & curToken = stack.back();
                 if(curToken.type() == Token::Type::OpenBracket)
                     break;
                 queue.push_back(curToken);
@@ -421,7 +439,7 @@ void ExpressionParser::shuntingYard()
                     mIsValidExpression = false;
                     return;
                 }
-                auto curToken = stack[stack.size() - 1];
+                auto curToken = stack.back();
                 stack.pop_back(); //Pop the left parenthesis from the stack, but not onto the output queue.
                 if(curToken.type() == Token::Type::OpenBracket) //the bracket is already popped here
                     break;
@@ -439,7 +457,7 @@ void ExpressionParser::shuntingYard()
             const auto & o1 = token;
             while(!stack.empty()) //while there is an operator token o2, at the top of the operator stack and either
             {
-                const auto & o2 = stack[stack.size() - 1];
+                const auto & o2 = stack.back();
                 if(o2.isOperator() &&
                         (o1.associativity() == Token::Associativity::LeftToRight && o1.precedence() >= o2.precedence()) || //o1 is left-associative and its precedence is less than or equal to that of o2, or
                         (o1.associativity() == Token::Associativity::RightToLeft && o1.precedence() > o2.precedence())) //o1 is right associative, and has precedence less than that of o2,
@@ -457,7 +475,7 @@ void ExpressionParser::shuntingYard()
     //When there are no more tokens to read:
     while(!stack.empty()) //While there are still operator tokens in the stack:
     {
-        const auto & curToken = stack[stack.size() - 1];
+        const auto & curToken = stack.back();
         if(curToken.type() == Token::Type::OpenBracket || curToken.type() == Token::Type::CloseBracket) //If the operator token on the top of the stack is a parenthesis, then there are mismatched parentheses.
         {
             mIsValidExpression = false;
@@ -753,6 +771,8 @@ static bool evalOperation(ExpressionParser::Token::Type type, const ExpressionPa
     default:
     {
         duint op1v, op2v;
+        if(op1.isString || op2.isString)
+            return false;
         if(!op1.DoEvaluate(op1v, silent, baseonly) || !op2.DoEvaluate(op2v, silent, baseonly))
             return false;
         T resultv;
@@ -802,9 +822,9 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
             case Token::Type::OperatorPrefixDec:
             case Token::Type::OperatorSuffixInc:
             case Token::Type::OperatorSuffixDec:
-                if(stack.size() < 1)
+                if(stack.empty())
                     return false;
-                op1 = stack[stack.size() - 1];
+                op1 = stack.back();
                 stack.pop_back();
                 if(signedcalc)
                     operationSuccess = signedOperation(type, op1, op2, result, silent, baseonly, allowassign);
@@ -852,9 +872,9 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
             case Token::Type::OperatorAssignOr:
                 if(stack.size() < 2)
                     return false;
-                op2 = stack[stack.size() - 1];
+                op2 = stack.back();
                 stack.pop_back();
-                op1 = stack[stack.size() - 1];
+                op1 = stack.back();
                 stack.pop_back();
                 if(signedcalc)
                     operationSuccess = signedOperation(type, op1, op2, result, silent, baseonly, allowassign);
@@ -873,30 +893,93 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
         else if(token.type() == Token::Type::Function)
         {
             const auto & name = token.data();
-            int argc;
-            if(!ExpressionFunctions::GetArgc(name, argc))
+            ValueType returnType;
+            std::vector<ValueType> argTypes;
+            if(!ExpressionFunctions::GetType(name, returnType, argTypes))
                 return false;
-            if(int(stack.size()) < argc)
+            if(int(stack.size()) < argTypes.size())
                 return false;
-            std::vector<duint> argv;
-            argv.resize(argc);
-            for(auto i = 0; i < argc; i++)
+            std::vector<ExpressionValue> argv;
+            argv.resize(argTypes.size());
+            for(auto i = 0; i < argTypes.size(); i++)
             {
-                duint arg;
-                if(!stack[stack.size() - 1].DoEvaluate(arg, silent, baseonly))
+                auto & top = stack[stack.size() - i - 1];
+                ExpressionValue arg;
+                if(top.isString)
+                {
+                    arg = { ValueTypeString, 0, StringValue{ top.data.c_str(), false } };
+                }
+                else if(top.evaluated)
+                {
+                    arg = { ValueTypeNumber, top.value };
+                }
+                else
+                {
+                    duint result;
+                    if(!top.DoEvaluate(result, silent, baseonly, value_size, isvar, hexonly))
+                        return false;
+                    arg = { ValueTypeNumber, result };
+                }
+
+                if(arg.type != argTypes[i] && argTypes[i] != ValueTypeAny)
+                {
+                    if(!silent)
+                    {
+                        auto typeName = [](ValueType t) -> String
+                        {
+                            switch(t)
+                            {
+                            case ValueTypeNumber:
+                                return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "number"));
+                            case ValueTypeString:
+                                return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "string"));
+                            }
+                            return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid"));
+                        };
+                        dprintf(QT_TRANSLATE_NOOP("DBG", "Expression function %s argument %d type mismatch (expected %s, got %s)!\n"),
+                                name.c_str(),
+                                argTypes.size() - i,
+                                typeName(argTypes[i]).c_str(),
+                                typeName(arg.type).c_str()
+                               );
+                    }
                     return false;
-                stack.pop_back();
-                argv[argc - i - 1] = arg;
+                }
+
+                argv[argTypes.size() - i - 1] = arg;
             }
-            duint result;
-            if(!ExpressionFunctions::Call(name, argv, result))
+
+            ExpressionValue result = { ValueTypeNumber, 0 };
+            if(!ExpressionFunctions::Call(name, result, argv))
                 return false;
-            stack.push_back(EvalValue(result));
+
+            if(result.type == ValueTypeAny)
+                return false;
+
+            for(size_t i = 0; i < argv.size(); i++)
+            {
+                stack.pop_back();
+            }
+            if(result.type == ValueTypeString)
+            {
+                stack.push_back(EvalValue(result.string.ptr, true));
+                if(result.string.isOwner)
+                    BridgeFree((void*)result.string.ptr);
+            }
+            else
+                stack.push_back(EvalValue(result.number));
         }
         else
-            stack.push_back(EvalValue(token.data()));
+            stack.push_back(EvalValue(token.data(), token.type() == Token::Type::QuotedData));
     }
     if(stack.size() != 1) //there should only be one value left on the stack
         return false;
-    return stack[stack.size() - 1].DoEvaluate(value, silent, baseonly, value_size, isvar, hexonly);
+    auto top = stack.back();
+    if(top.isString)
+    {
+        if(!silent)
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Expression evaluated to a string: \"%s\"\n"), StringUtils::Escape(top.data).c_str());
+        return false;
+    }
+    return top.DoEvaluate(value, silent, baseonly, value_size, isvar, hexonly);
 }

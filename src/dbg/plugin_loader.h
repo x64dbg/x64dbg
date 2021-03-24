@@ -98,6 +98,7 @@ void pluginmenuentrysethotkey(int pluginHandle, int hEntry, const char* hotkey);
 bool pluginmenuremove(int hMenu);
 bool pluginmenuentryremove(int pluginHandle, int hEntry);
 bool pluginexprfuncregister(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata);
+bool pluginexprfuncregisterex(int pluginHandle, const char* name, const ValueType & returnType, const ValueType* argTypes, size_t argCount, CBPLUGINEXPRFUNCTIONEX cbFunction, void* userdata);
 bool pluginexprfuncunregister(int pluginHandle, const char* name);
 bool pluginformatfuncregister(int pluginHandle, const char* type, CBPLUGINFORMATFUNCTION cbFunction, void* userdata);
 bool pluginformatfuncunregister(int pluginHandle, const char* type);

@@ -158,6 +158,11 @@ bool _plugin_registerexprfunction(int pluginHandle, const char* name, int argc, 
     return pluginexprfuncregister(pluginHandle, name, argc, cbFunction, userdata);
 }
 
+bool _plugin_registerexprfunctionex(int pluginHandle, const char* name, const ValueType & returnType, const ValueType* argTypes, size_t argCount, CBPLUGINEXPRFUNCTIONEX cbFunction, void* userdata)
+{
+    return pluginexprfuncregisterex(pluginHandle, name, returnType, argTypes, argCount, cbFunction, userdata);
+}
+
 bool _plugin_unregisterexprfunction(int pluginHandle, const char* name)
 {
     return pluginexprfuncunregister(pluginHandle, name);

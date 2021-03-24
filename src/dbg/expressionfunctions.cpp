@@ -21,24 +21,27 @@ struct gens<0, S...>
 };
 
 template<typename T, int ...S, typename... Ts>
-static T callFunc(const T* argv, T(*cbFunction)(Ts...), seq<S...>)
+static duint callFunc(const T* argv, duint(*cbFunction)(Ts...), seq<S...>)
 {
-    return cbFunction(argv[S]...);
+    return cbFunction(argv[S].number...);
 }
 
 template<typename... Ts>
 static bool RegisterEasy(const String & name, duint(*cbFunction)(Ts...))
 {
-    auto aliases = StringUtils::Split(name, ',');
-    auto tempFunc = [cbFunction](int argc, duint * argv, void* userdata)
+    auto tempFunc = [cbFunction](ExpressionValue * result, int argc, const ExpressionValue * argv, void* userdata) -> bool
     {
-        return callFunc(argv, cbFunction, typename gens<sizeof...(Ts)>::type());
+        result->type = ValueTypeNumber;
+        result->number = callFunc(argv, cbFunction, typename gens<sizeof...(Ts)>::type());
+
+        return true;
     };
-    if(!ExpressionFunctions::Register(aliases[0], sizeof...(Ts), tempFunc))
-        return false;
-    for(size_t i = 1; i < aliases.size(); i++)
-        ExpressionFunctions::RegisterAlias(aliases[0], aliases[i]);
-    return true;
+    std::vector<ValueType> args(sizeof...(Ts));
+
+    for(auto & arg : args)
+        arg = ValueTypeNumber;
+
+    return ExpressionFunctions::Register(name, ValueTypeNumber, args, tempFunc);
 }
 
 void ExpressionFunctions::Init()
@@ -144,21 +147,35 @@ void ExpressionFunctions::Init()
 
     //Undocumented
     RegisterEasy("bpgoto", bpgoto);
+
+    ExpressionFunctions::Register("streq", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::strcmp, nullptr);
+    ExpressionFunctions::Register("strstr", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::strstr, nullptr);
+    ExpressionFunctions::Register("strlen", ValueTypeNumber, { ValueTypeString }, Exprfunc::strlen, nullptr);
+    ExpressionFunctions::Register("utf16", ValueTypeString, { ValueTypeNumber }, Exprfunc::utf16, nullptr);
+    ExpressionFunctions::Register("utf8", ValueTypeString, { ValueTypeNumber }, Exprfunc::utf8, nullptr);
+    ExpressionFunctions::Register("mod.fromname", ValueTypeNumber, { ValueTypeString }, Exprfunc::modbasefromname, nullptr);
 }
 
-bool ExpressionFunctions::Register(const String & name, int argc, const CBEXPRESSIONFUNCTION & cbFunction, void* userdata)
+bool ExpressionFunctions::Register(const String & name, const ValueType & returnType, const std::vector<ValueType> & argTypes, const CBEXPRESSIONFUNCTION & cbFunction, void* userdata)
 {
-    if(!isValidName(name))
-        return false;
     EXCLUSIVE_ACQUIRE(LockExpressionFunctions);
-    if(mFunctions.count(name))
+    auto aliases = StringUtils::Split(name, ',');
+    if(!isValidName(aliases[0]))
         return false;
+    if(mFunctions.count(aliases[0]))
+        return false;
+
     Function f;
-    f.name = name;
-    f.argc = argc;
+    f.name = aliases[0];
+    f.argTypes = argTypes;
+    f.returnType = returnType;
     f.cbFunction = cbFunction;
     f.userdata = userdata;
-    mFunctions[name] = f;
+    mFunctions[aliases[0]] = f;
+
+    for(size_t i = 1; i < aliases.size(); i++)
+        ExpressionFunctions::RegisterAlias(aliases[0], aliases[i]);
+
     return true;
 }
 
@@ -168,8 +185,10 @@ bool ExpressionFunctions::RegisterAlias(const String & name, const String & alia
     auto found = mFunctions.find(name);
     if(found == mFunctions.end())
         return false;
-    if(!Register(alias, found->second.argc, found->second.cbFunction, found->second.userdata))
+
+    if(!Register(alias, found->second.returnType, found->second.argTypes, found->second.cbFunction, found->second.userdata))
         return false;
+
     found->second.aliases.push_back(alias);
     return true;
 }
@@ -187,28 +206,34 @@ bool ExpressionFunctions::Unregister(const String & name)
     return true;
 }
 
-bool ExpressionFunctions::Call(const String & name, std::vector<duint> & argv, duint & result)
+bool ExpressionFunctions::Call(const String & name, ExpressionValue & result, std::vector<ExpressionValue> & argv)
 {
     SHARED_ACQUIRE(LockExpressionFunctions);
     auto found = mFunctions.find(name);
     if(found == mFunctions.end())
         return false;
     const auto & f = found->second;
-    if(f.argc != int(argv.size()))
+    if(f.argTypes.size() != int(argv.size()))
         return false;
-    result = f.cbFunction(f.argc, argv.data(), f.userdata);
-    return true;
+    for(size_t i = 0; i < argv.size(); i++)
+    {
+        if(argv[i].type != f.argTypes[i] && f.argTypes[i] != ValueTypeAny)
+            return false;
+    }
+    return f.cbFunction(&result, argv.size(), argv.data(), f.userdata);
 }
 
-bool ExpressionFunctions::GetArgc(const String & name, int & argc)
+bool ExpressionFunctions::GetType(const String & name, ValueType & returnType, std::vector<ValueType> & argTypes)
 {
     SHARED_ACQUIRE(LockExpressionFunctions);
     auto found = mFunctions.find(name);
     if(found == mFunctions.end())
         return false;
-    argc = found->second.argc;
+    returnType = found->second.returnType;
+    argTypes = found->second.argTypes;
     return true;
 }
+
 
 bool ExpressionFunctions::isValidName(const String & name)
 {
