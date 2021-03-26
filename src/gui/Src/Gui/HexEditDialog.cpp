@@ -696,7 +696,10 @@ void HexEditDialog::printData(DataType type)
     case DataHexStream:
     {
         for(int i = 0; i < mData.size(); i++)
-            data += QString().sprintf("%02X", mData.constData()[i]);
+        {
+            byte_t ch = mData.at(i);
+            data += QString().sprintf("%02X", ch);
+        }
     }
     break;
 
