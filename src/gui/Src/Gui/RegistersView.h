@@ -130,7 +130,7 @@ public:
     explicit RegistersView(QWidget* parent);
     ~RegistersView();
 
-    QSize sizeHint() const;
+    //QSize sizeHint() const;
 
     static void* operator new(size_t size);
     static void operator delete(void* p);

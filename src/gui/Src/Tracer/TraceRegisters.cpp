@@ -1,4 +1,3 @@
-#include <QMouseEvent>
 #include "TraceRegisters.h"
 #include "Configuration.h"
 #include "EditFloatRegister.h"
@@ -6,8 +5,8 @@
 
 TraceRegisters::TraceRegisters(QWidget* parent) : RegistersView(parent)
 {
-    wCM_CopySSERegister = setupAction(DIcon("copy.png"), tr("Copy floating point value"));
-    connect(wCM_CopySSERegister, SIGNAL(triggered()), this, SLOT(onCopySSERegister()));
+    wCM_CopySIMDRegister = setupAction(DIcon("copy.png"), tr("Copy floating point value"));
+    connect(wCM_CopySIMDRegister, SIGNAL(triggered()), this, SLOT(onCopySIMDRegister()));
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(displayCustomContextMenuSlot(QPoint)));
 }
 
@@ -38,7 +37,7 @@ void TraceRegisters::displayCustomContextMenuSlot(QPoint pos)
         }
         if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
         {
-            wMenu.addAction(wCM_CopySSERegister);
+            wMenu.addAction(wCM_CopySIMDRegister);
         }
         if(mLABELDISPLAY.contains(mSelected))
         {
@@ -80,33 +79,22 @@ void TraceRegisters::displayCustomContextMenuSlot(QPoint pos)
     }
 }
 
-void TraceRegisters::onCopySSERegister()
+static void showCopyFloatRegister(int bits, QWidget* parent, const QString & title, char* registerData)
+{
+    EditFloatRegister mEditFloat(bits, parent);
+    mEditFloat.setWindowTitle(title);
+    mEditFloat.loadData(registerData);
+    mEditFloat.show();
+    mEditFloat.selectAllText();
+    mEditFloat.exec();
+}
+
+void TraceRegisters::onCopySIMDRegister()
 {
     if(mFPUYMM.contains(mSelected))
-    {
-        EditFloatRegister mEditFloat(256, this);
-        mEditFloat.setWindowTitle(tr("View YMM register"));
-        mEditFloat.loadData(registerValue(&wRegDumpStruct, mSelected));
-        mEditFloat.show();
-        mEditFloat.selectAllText();
-        mEditFloat.exec();
-    }
+        showCopyFloatRegister(256, this, tr("View YMM register"), registerValue(&wRegDumpStruct, mSelected));
     else if(mFPUXMM.contains(mSelected))
-    {
-        EditFloatRegister mEditFloat(128, this);
-        mEditFloat.setWindowTitle(tr("View XMM register"));
-        mEditFloat.loadData(registerValue(&wRegDumpStruct, mSelected));
-        mEditFloat.show();
-        mEditFloat.selectAllText();
-        mEditFloat.exec();
-    }
+        showCopyFloatRegister(128, this, tr("View XMM register"), registerValue(&wRegDumpStruct, mSelected));
     else if(mFPUMMX.contains(mSelected))
-    {
-        EditFloatRegister mEditFloat(64, this);
-        mEditFloat.setWindowTitle(tr("View MMX register"));
-        mEditFloat.loadData(registerValue(&wRegDumpStruct, mSelected));
-        mEditFloat.show();
-        mEditFloat.selectAllText();
-        mEditFloat.exec();
-    }
+        showCopyFloatRegister(64, this, tr("View MMX register"), registerValue(&wRegDumpStruct, mSelected));
 }
