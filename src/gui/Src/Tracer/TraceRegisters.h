@@ -13,10 +13,10 @@ public:
 
 public slots:
     virtual void displayCustomContextMenuSlot(QPoint pos);
-    void onCopySSERegister();
+    void onCopySIMDRegister();
 
 private:
-    QAction* wCM_CopySSERegister;
+    QAction* wCM_CopySIMDRegister;
 };
 
 #endif // TRACEREGISTERS_H

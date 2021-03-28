@@ -1163,6 +1163,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mDisplayx87rX = new QAction(tr("Display x87rX"), this);
     mDisplayMMX = new QAction(tr("Display MMX"), this);
 
+    // Create the SIMD display mode actions
     SIMDHex = new QAction(tr("Hexadecimal"), mSwitchSIMDDispMode);
     SIMDFloat = new QAction(tr("Float"), mSwitchSIMDDispMode);
     SIMDDouble = new QAction(tr("Double"), mSwitchSIMDDispMode);
@@ -1175,6 +1176,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     SIMDHWord = new QAction(tr("Hexadecimal Word"), mSwitchSIMDDispMode);
     SIMDHDWord = new QAction(tr("Hexadecimal Dword"), mSwitchSIMDDispMode);
     SIMDHQWord = new QAction(tr("Hexadecimal Qword"), mSwitchSIMDDispMode);
+    // Set the user data of these actions to the config value
     SIMDHex->setData(QVariant(0));
     SIMDFloat->setData(QVariant(1));
     SIMDDouble->setData(QVariant(2));
@@ -1205,6 +1207,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     connect(mDisplaySTX, SIGNAL(triggered()), this, SLOT(onFpuMode()));
     connect(mDisplayx87rX, SIGNAL(triggered()), this, SLOT(onFpuMode()));
     connect(mDisplayMMX, SIGNAL(triggered()), this, SLOT(onFpuMode()));
+    // Make SIMD display mode actions checkable and unchecked
     SIMDHex->setCheckable(true);
     SIMDFloat->setCheckable(true);
     SIMDDouble->setCheckable(true);
@@ -1620,11 +1623,11 @@ void RegistersView::keyPressEvent(QKeyEvent* event)
     QScrollArea::keyPressEvent(event);
 }
 
-QSize RegistersView::sizeHint() const
-{
-    // 32 character width
-    return QSize(32 * mCharWidth, this->viewport()->height());
-}
+//QSize RegistersView::sizeHint() const
+//{
+//    // 32 character width
+//    return QSize(32 * mCharWidth, this->viewport()->height());
+//}
 
 void* RegistersView::operator new(size_t size)
 {
@@ -2201,6 +2204,7 @@ void RegistersView::appendRegister(QString & text, REGISTER_NAME reg, const char
 void RegistersView::setupSIMDModeMenu()
 {
     const QAction* selectedAction = nullptr;
+    // Find out which mode is selected by the user
     switch(ConfigUint("Gui", "SIMDRegistersDisplayMode"))
     {
     case 0:
@@ -2240,6 +2244,7 @@ void RegistersView::setupSIMDModeMenu()
         selectedAction = SIMDHQWord;
         break;
     }
+    // Check that action if it is selected, uncheck otherwise
     SIMDHex->setChecked(SIMDHex == selectedAction);
     SIMDFloat->setChecked(SIMDFloat == selectedAction);
     SIMDDouble->setChecked(SIMDDouble == selectedAction);
@@ -2512,8 +2517,8 @@ int RegistersView::CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdu
 
     if(size != 0)
         return memcmp(reg1_data, reg2_data, size);
-
-    return -1;
+    else
+        return -1;
 }
 
 char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
@@ -2877,6 +2882,7 @@ void RegistersView::setRegisters(REGDUMP* reg)
     emit refresh();
 }
 
+// Scroll the viewport so that the register will be visible on the screen
 void RegistersView::ensureRegisterVisible(REGISTER_NAME reg)
 {
     QScrollArea* upperScrollArea = (QScrollArea*)this->parentWidget()->parentWidget();

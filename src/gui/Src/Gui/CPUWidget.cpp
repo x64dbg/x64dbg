@@ -68,6 +68,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     QScrollArea* upperScrollArea = new QScrollArea(this);
     upperScrollArea->setFrameShape(QFrame::NoFrame);
     upperScrollArea->setWidget(mGeneralRegs);
+    upperScrollArea->setWidgetResizable(true);
 
     QPushButton* button_changeview = new QPushButton("", this);
     connect(button_changeview, SIGNAL(clicked()), mGeneralRegs, SLOT(onChangeFPUViewAction()));

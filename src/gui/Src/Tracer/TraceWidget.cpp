@@ -24,9 +24,10 @@ TraceWidget::TraceWidget(QWidget* parent) :
     QScrollArea* upperScrollArea = new QScrollArea(this);
     upperScrollArea->setFrameShape(QFrame::NoFrame);
     upperScrollArea->setWidget(mGeneralRegs);
+    upperScrollArea->setWidgetResizable(true);
 
-    upperScrollArea->horizontalScrollBar()->setStyleSheet(ConfigHScrollBarStyle());
-    upperScrollArea->verticalScrollBar()->setStyleSheet(ConfigVScrollBarStyle());
+    //upperScrollArea->horizontalScrollBar()->setStyleSheet(ConfigHScrollBarStyle());
+    //upperScrollArea->verticalScrollBar()->setStyleSheet(ConfigVScrollBarStyle());
 
     QPushButton* button_changeview = new QPushButton("", this);
     button_changeview->setStyleSheet("Text-align:left;padding: 4px;padding-left: 10px;");
