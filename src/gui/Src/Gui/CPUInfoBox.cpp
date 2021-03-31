@@ -110,7 +110,7 @@ QString CPUInfoBox::formatSSEOperand(const QByteArray & data, uint8_t vectorType
         }
         else if(data.size() == 4)
         {
-            hex = QString::number(((const float*)data.constData())[0]);
+            hex = ToFloatString(data.constData());
             isXMMdecoded = true;
         }
         break;
@@ -127,7 +127,7 @@ QString CPUInfoBox::formatSSEOperand(const QByteArray & data, uint8_t vectorType
         }
         else if(data.size() == 8)
         {
-            hex = QString::number(((const double*)data.constData())[0]);
+            hex = ToDoubleString(data.constData());
             isXMMdecoded = true;
         }
         break;
