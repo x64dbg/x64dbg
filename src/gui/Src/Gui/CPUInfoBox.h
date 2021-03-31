@@ -1,6 +1,7 @@
 #ifndef INFOBOX_H
 #define INFOBOX_H
 
+#include "Imports.h"
 #include "StdTable.h"
 
 class WordEditDialog;
