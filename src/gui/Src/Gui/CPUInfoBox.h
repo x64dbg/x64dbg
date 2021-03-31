@@ -22,6 +22,8 @@ public:
     void setupWatchMenu(QMenu* menu, duint wVA);
     int followInDump(dsint wVA);
 
+    static QString formatSSEOperand(const QByteArray & data, uint8_t vectorType);
+
 public slots:
     void disasmSelectionChanged(dsint parVA);
     void dbgStateChanged(DBGSTATE state);

@@ -91,7 +91,7 @@ void CPUInfoBox::clear()
     setInfoLine(3, "");
 }
 
-static QString formatSSEOperand(const QByteArray & data, uint8_t vectorType)
+QString CPUInfoBox::formatSSEOperand(const QByteArray & data, uint8_t vectorType)
 {
     QString hex;
     bool isXMMdecoded = false;

@@ -1,6 +1,8 @@
+#include <QMouseEvent>
 #include "TraceRegisters.h"
 #include "Configuration.h"
 #include "EditFloatRegister.h"
+#include "StringUtil.h"
 #include "MiscUtil.h"
 
 TraceRegisters::TraceRegisters(QWidget* parent) : RegistersView(parent)
@@ -64,7 +66,7 @@ void TraceRegisters::displayCustomContextMenuSlot(QPoint pos)
 
         wMenu.exec(this->mapToGlobal(pos));
     }
-    else
+    else // Right-click on empty space
     {
         wMenu.addSeparator();
         wMenu.addAction(wCM_ChangeFPUView);
@@ -97,4 +99,23 @@ void TraceRegisters::onCopySIMDRegister()
         showCopyFloatRegister(128, this, tr("View XMM register"), registerValue(&wRegDumpStruct, mSelected));
     else if(mFPUMMX.contains(mSelected))
         showCopyFloatRegister(64, this, tr("View MMX register"), registerValue(&wRegDumpStruct, mSelected));
+}
+
+void TraceRegisters::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    if(!isActive || event->button() != Qt::LeftButton)
+        return;
+    // get mouse position
+    const int y = (event->y() - yTopSpacing) / (double)mRowHeight;
+    const int x = event->x() / (double)mCharWidth;
+
+    // do we find a corresponding register?
+    if(!identifyRegister(y, x, 0))
+        return;
+    if(mSelected == CIP) //double clicked on CIP register: follow in disassembly
+        DbgCmdExec(QString("disasm %1").arg(ToPtrString(wRegDumpStruct.regcontext.cip)));
+    // double clicked on XMM register: open view XMM register dialog
+    else if(mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected) || mFPUMMX.contains(mSelected))
+        onCopySIMDRegister();
+    // double clicked on GPR: nothing to do (copy?)
 }
