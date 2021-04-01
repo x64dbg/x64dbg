@@ -1,7 +1,6 @@
 #ifndef INFOBOX_H
 #define INFOBOX_H
 
-#include "Imports.h"
 #include "StdTable.h"
 
 class WordEditDialog;
@@ -23,7 +22,7 @@ public:
     void setupWatchMenu(QMenu* menu, duint wVA);
     int followInDump(dsint wVA);
 
-    static QString formatSSEOperand(const QByteArray & data, uint8_t vectorType);
+    static QString formatSSEOperand(const QByteArray & data, unsigned char vectorType);
 
 public slots:
     void disasmSelectionChanged(dsint parVA);
