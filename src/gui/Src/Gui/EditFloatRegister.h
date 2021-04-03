@@ -18,8 +18,8 @@ class EditFloatRegister : public QDialog
 
 public:
     explicit EditFloatRegister(int RegisterSize, QWidget* parent = 0);
-    void loadData(char* RegisterData);
-    const char* getData();
+    void loadData(const char* RegisterData);
+    const char* getData() const;
     void selectAllText();
 
     ~EditFloatRegister();

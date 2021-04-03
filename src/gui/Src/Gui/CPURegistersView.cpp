@@ -222,6 +222,17 @@ extern STRING_VALUE_TABLE_t TagWordValueStringTable[4];
 
 #define MODIFY_FIELDS_DISPLAY(prefix, title, table) ModifyFields(prefix + QChar(' ') + QString(title), (STRING_VALUE_TABLE_t *) & table, SIZE_TABLE(table) )
 
+static void editSIMDRegister(CPURegistersView* parent, int bits, const QString & title, char* data, RegistersView::REGISTER_NAME mSelected)
+{
+    EditFloatRegister mEditFloat(bits, parent);
+    mEditFloat.setWindowTitle(title);
+    mEditFloat.loadData(data);
+    mEditFloat.show();
+    mEditFloat.selectAllText();
+    if(mEditFloat.exec() == QDialog::Accepted)
+        parent->setRegister(mSelected, (duint)mEditFloat.getData());
+}
+
 /**
  * @brief   This function displays the appropriate edit dialog according to selected register
  * @return  Nothing.
@@ -246,35 +257,11 @@ void CPURegistersView::displayEditDialog()
             updateRegistersSlot();
         }
         else if(mFPUYMM.contains(mSelected))
-        {
-            EditFloatRegister mEditFloat(256, this);
-            mEditFloat.setWindowTitle(tr("Edit YMM register"));
-            mEditFloat.loadData(registerValue(&wRegDumpStruct, mSelected));
-            mEditFloat.show();
-            mEditFloat.selectAllText();
-            if(mEditFloat.exec() == QDialog::Accepted)
-                setRegister(mSelected, (duint)mEditFloat.getData());
-        }
+            editSIMDRegister(this, 256, tr("Edit YMM register"), registerValue(&wRegDumpStruct, mSelected), mSelected);
         else if(mFPUXMM.contains(mSelected))
-        {
-            EditFloatRegister mEditFloat(128, this);
-            mEditFloat.setWindowTitle(tr("Edit XMM register"));
-            mEditFloat.loadData(registerValue(&wRegDumpStruct, mSelected));
-            mEditFloat.show();
-            mEditFloat.selectAllText();
-            if(mEditFloat.exec() == QDialog::Accepted)
-                setRegister(mSelected, (duint)mEditFloat.getData());
-        }
+            editSIMDRegister(this, 128, tr("Edit XMM register"), registerValue(&wRegDumpStruct, mSelected), mSelected);
         else if(mFPUMMX.contains(mSelected))
-        {
-            EditFloatRegister mEditFloat(64, this);
-            mEditFloat.setWindowTitle(tr("Edit MMX register"));
-            mEditFloat.loadData(registerValue(&wRegDumpStruct, mSelected));
-            mEditFloat.show();
-            mEditFloat.selectAllText();
-            if(mEditFloat.exec() == QDialog::Accepted)
-                setRegister(mSelected, (duint)mEditFloat.getData());
-        }
+            editSIMDRegister(this, 64, tr("Edit MMX register"), registerValue(&wRegDumpStruct, mSelected), mSelected);
         else
         {
             bool errorinput = false;

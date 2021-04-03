@@ -4,6 +4,7 @@
 #include "TraceFileReader.h"
 #include "TraceRegisters.h"
 #include "StdTable.h"
+#include "CPUInfoBox.h"
 
 TraceWidget::TraceWidget(QWidget* parent) :
     QWidget(parent),
@@ -53,6 +54,8 @@ TraceWidget::TraceWidget(QWidget* parent) :
     mInfo->setCellContent(1, 0, QString());
     mInfo->setCellContent(2, 0, QString());
     mInfo->setCellContent(3, 0, QString());
+    mInfo->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    mInfo->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     //overview
     ui->mTopRightLowerFrameLayout->addWidget(mOverview);
 
@@ -272,53 +275,144 @@ void TraceWidget::updateInfobox(unsigned long long selection, TraceFileReader* t
             infoline++;
         }
         //Operands
+        QString registerLine, memoryLine;
         for(opindex = 0; opindex < zydis.OpCount(); opindex++)
         {
-            line.clear();
             size_t value = zydis.ResolveOpValue(opindex, resolveRegValue);
             if(zydis[opindex].type == ZYDIS_OPERAND_TYPE_MEMORY)
             {
+                if(!memoryLine.isEmpty())
+                    memoryLine += ", ";
                 const char* memsize = zydis.MemSizeName(zydis[opindex].size / 8);
                 if(memsize != nullptr)
                 {
-                    line += memsize;
+                    memoryLine += memsize;
                 }
-                line += " ptr ";
-                line += zydis.RegName(zydis[opindex].mem.segment);
-                line += ":[";
-                line += ToPtrString(value);
-                line += "]";
-                if(zydis[opindex].size <= sizeof(void*) * 8)
+                else
                 {
+                    memoryLine += QString("m%1").arg(zydis[opindex].size / 8);
+                }
+                memoryLine += " ptr ";
+                memoryLine += zydis.RegName(zydis[opindex].mem.segment);
+                memoryLine += ":[";
+                memoryLine += ToPtrString(value);
+                memoryLine += "]";
+                if(zydis[opindex].size == 64 && zydis.getVectorElementType(opindex) == Zydis::VETFloat64)
+                {
+                    // Double precision
+#ifdef _WIN64
+                    //TODO: Untested
                     for(memaccessindex = 0; memaccessindex < MemoryOperandsCount; memaccessindex++)
                     {
                         if(MemoryAddress[memaccessindex] == value)
                         {
-                            line += "=";
-                            duint mask;
-                            if(zydis[opindex].size < sizeof(void*) * 8)
-                                mask = (1 << zydis[opindex].size) - 1;
-                            else
-                                mask = ~(duint)0;
-                            line += ToHexString(MemoryOldContent[memaccessindex] & mask);
-                            line += " -> ";
-                            line += ToHexString(MemoryNewContent[memaccessindex] & mask);
+                            memoryLine += "= ";
+                            memoryLine += ToDoubleString(&MemoryOldContent[memaccessindex]);
+                            memoryLine += " -> ";
+                            memoryLine += ToDoubleString(&MemoryNewContent[memaccessindex]);
+                            break;
+                        }
+                    }
+#else
+                    // On 32-bit platform it is saved as 2 memory accesses.
+                    for(memaccessindex = 0; memaccessindex < MemoryOperandsCount - 1; memaccessindex++)
+                    {
+                        if(MemoryAddress[memaccessindex] == value && MemoryAddress[memaccessindex + 1] == value + 4)
+                        {
+                            double dblval;
+                            memoryLine += "= ";
+                            memcpy(&dblval, &MemoryOldContent[memaccessindex], 4);
+                            memcpy(((char*)&dblval) + 4, &MemoryOldContent[memaccessindex + 1], 4);
+                            memoryLine += ToDoubleString(&dblval);
+                            memoryLine += " -> ";
+                            memcpy(&dblval, &MemoryNewContent[memaccessindex], 4);
+                            memcpy(((char*)&dblval) + 4, &MemoryNewContent[memaccessindex + 1], 4);
+                            memoryLine += ToDoubleString(&dblval);
+                            break;
+                        }
+                    }
+#endif //_WIN64
+                }
+                else if(zydis[opindex].size == 32 && zydis.getVectorElementType(opindex) == Zydis::VETFloat32)
+                {
+                    // Single precision
+                    //TODO: Untested
+                    for(memaccessindex = 0; memaccessindex < MemoryOperandsCount; memaccessindex++)
+                    {
+                        if(MemoryAddress[memaccessindex] == value)
+                        {
+                            memoryLine += "= ";
+                            memoryLine += ToFloatString(&MemoryOldContent[memaccessindex]);
+                            memoryLine += " -> ";
+                            memoryLine += ToFloatString(&MemoryNewContent[memaccessindex]);
                             break;
                         }
                     }
                 }
-                mInfo->setCellContent(infoline, 0, line);
-                infoline++;
+                else if(zydis[opindex].size <= sizeof(void*) * 8)
+                {
+                    // Handle the most common case (ptr-sized)
+                    duint mask;
+                    if(zydis[opindex].size < sizeof(void*) * 8)
+                        mask = (1 << zydis[opindex].size) - 1;
+                    else
+                        mask = ~(duint)0;
+                    for(memaccessindex = 0; memaccessindex < MemoryOperandsCount; memaccessindex++)
+                    {
+                        if(MemoryAddress[memaccessindex] == value)
+                        {
+                            memoryLine += "=";
+                            memoryLine += ToHexString(MemoryOldContent[memaccessindex] & mask);
+                            memoryLine += " -> ";
+                            memoryLine += ToHexString(MemoryNewContent[memaccessindex] & mask);
+                            break;
+                        }
+                    }
+                }
             }
             else if(zydis[opindex].type == ZYDIS_OPERAND_TYPE_REGISTER)
             {
-                line += zydis.RegName(zydis[opindex].reg.value);
-                line += " = ";
-                line += ToPtrString(value);
-                mInfo->setCellContent(infoline, 0, line);
-                infoline++;
+                const auto registerName = zydis[opindex].reg.value;
+                if(!registerLine.isEmpty())
+                    registerLine += ", ";
+                registerLine += zydis.RegName(registerName);
+                registerLine += " = ";
+                // Special treatment for FPU registers
+                if(registerName >= ZYDIS_REGISTER_ST0 && registerName <= ZYDIS_REGISTER_ST7)
+                {
+                    // x87 FPU
+                    registerLine += ToLongDoubleString(&registers.x87FPURegisters[(registers.x87StatusWordFields.TOP + registerName - ZYDIS_REGISTER_ST0) & 7].data);
+                }
+                else if(registerName >= ZYDIS_REGISTER_XMM0 && registerName <= ArchValue(ZYDIS_REGISTER_XMM7, ZYDIS_REGISTER_XMM15))
+                {
+                    registerLine += CPUInfoBox::formatSSEOperand(QByteArray((const char*)&registers.regcontext.XmmRegisters[registerName - ZYDIS_REGISTER_XMM0], 16), zydis.getVectorElementType(opindex));
+                }
+                else if(registerName >= ZYDIS_REGISTER_YMM0 && registerName <= ArchValue(ZYDIS_REGISTER_YMM7, ZYDIS_REGISTER_YMM15))
+                {
+                    //TODO: Untested
+                    registerLine += CPUInfoBox::formatSSEOperand(QByteArray((const char*)&registers.regcontext.YmmRegisters[registerName - ZYDIS_REGISTER_XMM0], 32), zydis.getVectorElementType(opindex));
+                }
+                else
+                {
+                    // GPR
+                    registerLine += ToPtrString(value);
+                }
             }
         }
+        if(!registerLine.isEmpty())
+        {
+            mInfo->setCellContent(infoline, 0, registerLine);
+            infoline++;
+        }
+        if(!memoryLine.isEmpty())
+        {
+            mInfo->setCellContent(infoline, 0, memoryLine);
+            infoline++;
+        }
+        DWORD tid;
+        tid = traceFile->ThreadId(selection);
+        line = QString("ThreadID: %1").arg(ConfigBool("Gui", "PidTidInHex") ? ToHexString(tid) : QString::number(tid));
+        mInfo->setCellContent(3, 0, line);
     }
     mInfo->reloadData();
 }

@@ -223,7 +223,7 @@ void EditFloatRegister::hideNonMMXPart()
  * @param[in] RegisterData   the data to be loaded. It must be at lease the same size as the size specified in RegisterSize
  * @return    Nothing.
  */
-void EditFloatRegister::loadData(char* RegisterData)
+void EditFloatRegister::loadData(const char* RegisterData)
 {
     memcpy(Data, RegisterData, RegSize / 8);
     reloadDataLow();
@@ -234,7 +234,7 @@ void EditFloatRegister::loadData(char* RegisterData)
  * @brief    Get the register data from the dialog
  * @return   The output buffer.
  */
-const char* EditFloatRegister::getData()
+const char* EditFloatRegister::getData() const
 {
     return Data;
 }
