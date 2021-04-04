@@ -112,6 +112,8 @@ void CPUWidget::saveWindowSettings()
     saveSplitter(ui->mVSplitter, "mVSplitter");
     saveSplitter(ui->mTopHSplitter, "mTopHSplitter");
     saveSplitter(ui->mTopLeftVSplitter, "mTopLeftVSplitter");
+    if(disasMode == 1 && mDisasmSidebarSplitterStatus.size() > 0) // restore correct sidebar state
+        ui->mTopLeftUpperHSplitter->restoreState(mDisasmSidebarSplitterStatus);
     saveSplitter(ui->mTopLeftUpperHSplitter, "mTopLeftUpperHSplitter");
     saveSplitter(ui->mTopRightVSplitter, "mTopRightVSplitter");
     saveSplitter(ui->mBotHSplitter, "mBotHSplitter");
@@ -169,6 +171,7 @@ void CPUWidget::setDisasmFocus()
         mGraph->hide();
         mDisas->show();
         mSideBar->show();
+        ui->mTopLeftUpperHSplitter->restoreState(mDisasmSidebarSplitterStatus);
         disasMode = 0;
         connect(mDisas, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
         disconnect(mGraph, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
@@ -184,9 +187,12 @@ void CPUWidget::setGraphFocus()
 {
     if(disasMode == 0)
     {
+        mDisasmSidebarSplitterStatus = ui->mTopLeftUpperHSplitter->saveState();
         mDisas->hide();
         mSideBar->hide();
         mGraph->show();
+        // Hide the sidebar area
+        ui->mTopLeftUpperHSplitter->setSizes(QList<int>({0, 100}));
         disasMode = 1;
         disconnect(mDisas, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
         connect(mGraph, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
@@ -235,6 +241,8 @@ void CPUWidget::detachGraph()
 
         mDisas->show();
         mSideBar->show();
+        // restore the sidebar splitter so that the sidebar is visible
+        ui->mTopLeftUpperHSplitter->restoreState(mDisasmSidebarSplitterStatus);
         connect(mDisas, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
         connect(mGraph, SIGNAL(selectionChanged(dsint)), mInfo, SLOT(disasmSelectionChanged(dsint)));
     }

@@ -822,7 +822,6 @@ void SymbolView::moduleSetParty()
     {
         bool ok;
         party = mLineEditeditText.toInt(&ok);
-        int i = mModuleList->mCurList->getInitialSelection();
         if(ok)
         {
             auto selection = mModuleList->mCurList->getSelection();

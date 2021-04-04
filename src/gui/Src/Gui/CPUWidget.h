@@ -63,6 +63,7 @@ protected:
 
 private:
     Ui::CPUWidget* ui;
+    QByteArray mDisasmSidebarSplitterStatus;
 
 private slots:
     void splitterMoved(int pos, int index);
