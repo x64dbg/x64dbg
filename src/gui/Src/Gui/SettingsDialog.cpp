@@ -88,6 +88,7 @@ void SettingsDialog::LoadSettings()
     settings.guiLoadSaveTabOrder = true;
     settings.guiDisableAutoComplete = false;
     settings.guiAutoFollowInStack = false;
+    settings.guiHideSeasonalIcons = false;
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);
@@ -381,6 +382,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Misc", "QueryProcessCookie", &settings.miscQueryProcessCookie);
     GetSettingBool("Misc", "QueryWorkingSet", &settings.miscQueryWorkingSet);
     GetSettingBool("Misc", "TransparentExceptionStepping", &settings.miscTransparentExceptionStepping);
+    GetSettingBool("Misc", "NoSeasons", &settings.guiHideSeasonalIcons);
     ui->chkUtf16LogRedirect->setChecked(settings.miscUtf16LogRedirect);
     ui->chkUseLocalHelpFile->setChecked(settings.miscUseLocalHelpFile);
     ui->chkQueryProcessCookie->setChecked(settings.miscQueryProcessCookie);
