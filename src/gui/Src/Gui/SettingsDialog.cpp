@@ -316,6 +316,7 @@ void SettingsDialog::LoadSettings()
     ui->chkShowExitConfirmation->setChecked(settings.guiShowExitConfirmation);
     ui->chkDisableAutoComplete->setChecked(settings.guiDisableAutoComplete);
     ui->chkAutoFollowInStack->setChecked(settings.guiAutoFollowInStack);
+    ui->chkAutoFollowInStack->setChecked(settings.guiHideSeasonalIcons);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -505,6 +506,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Misc", "QueryProcessCookie", settings.miscQueryProcessCookie);
     BridgeSettingSetUint("Misc", "QueryWorkingSet", settings.miscQueryWorkingSet);
     BridgeSettingSetUint("Misc", "TransparentExceptionStepping", settings.miscTransparentExceptionStepping);
+    BridgeSettingSetUint("Misc", "NoSeasons", settings.guiHideSeasonalIcons);
 
     BridgeSettingFlush();
     Config()->load();
@@ -1142,6 +1144,11 @@ void SettingsDialog::on_chkDisableAutoComplete_toggled(bool checked)
 {
     settings.guiDisableAutoComplete = checked;
     bDisableAutoCompleteUpdated = true;
+}
+
+void SettingsDialog::on_chkHideSeasonalIcons_toggled(bool checked)
+{
+    settings.guiHideSeasonalIcons = checked;
 }
 
 void SettingsDialog::on_chkUseLocalHelpFile_toggled(bool checked)
