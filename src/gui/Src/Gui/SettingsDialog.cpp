@@ -316,7 +316,7 @@ void SettingsDialog::LoadSettings()
     ui->chkShowExitConfirmation->setChecked(settings.guiShowExitConfirmation);
     ui->chkDisableAutoComplete->setChecked(settings.guiDisableAutoComplete);
     ui->chkAutoFollowInStack->setChecked(settings.guiAutoFollowInStack);
-    ui->chkAutoFollowInStack->setChecked(settings.guiHideSeasonalIcons);
+    ui->chkHideSeasonalIcons->setChecked(settings.guiHideSeasonalIcons);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
