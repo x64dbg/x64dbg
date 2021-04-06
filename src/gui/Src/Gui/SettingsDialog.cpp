@@ -389,6 +389,7 @@ void SettingsDialog::LoadSettings()
     ui->chkQueryWorkingSet->setChecked(settings.miscQueryWorkingSet);
     ui->chkTransparentExceptionStepping->setChecked(settings.miscTransparentExceptionStepping);
     ui->chkHideSeasonalIcons->setChecked(settings.guiHideSeasonalIcons);
+    ui->chkHideSeasonalIcons->setVisible(isSeasonal());
 }
 
 void SettingsDialog::SaveSettings()
