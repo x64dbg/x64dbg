@@ -316,7 +316,6 @@ void SettingsDialog::LoadSettings()
     ui->chkShowExitConfirmation->setChecked(settings.guiShowExitConfirmation);
     ui->chkDisableAutoComplete->setChecked(settings.guiDisableAutoComplete);
     ui->chkAutoFollowInStack->setChecked(settings.guiAutoFollowInStack);
-    ui->chkHideSeasonalIcons->setChecked(settings.guiHideSeasonalIcons);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -389,6 +388,7 @@ void SettingsDialog::LoadSettings()
     ui->chkQueryProcessCookie->setChecked(settings.miscQueryProcessCookie);
     ui->chkQueryWorkingSet->setChecked(settings.miscQueryWorkingSet);
     ui->chkTransparentExceptionStepping->setChecked(settings.miscTransparentExceptionStepping);
+    ui->chkHideSeasonalIcons->setChecked(settings.guiHideSeasonalIcons);
 }
 
 void SettingsDialog::SaveSettings()
