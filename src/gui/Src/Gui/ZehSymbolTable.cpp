@@ -74,6 +74,15 @@ QString ZehSymbolTable::getCellContent(int r, int c)
         else
             return QString();
     case ColDecorated:
+        char modname[MAX_MODULE_SIZE];
+        // Get module name for import symbols
+        if(info->type == sym_import)
+        {
+            duint wVA;
+            if(DbgMemRead(info->addr, &wVA, sizeof(duint)))
+                if(DbgGetModuleAt(wVA, modname))
+                    return QString(modname).append('.').append(info->decoratedSymbol);
+        }
         return info->decoratedSymbol;
     case ColUndecorated:
         return info->undecoratedSymbol;
