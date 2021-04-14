@@ -5,6 +5,9 @@
 #include "Configuration.h"
 #include "QCompleter"
 #include "SymbolAutoCompleteModel.h"
+#include "public.h"
+
+
 
 GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowInvalidAddress)
     : QDialog(parent),
@@ -68,12 +71,53 @@ void GotoDialog::hideEvent(QHideEvent* event)
     mValidateThread->wait();
 }
 
+
 void GotoDialog::validateExpression(QString expression)
 {
-    duint value;
-    bool validExpression = DbgFunctions()->ValFromString(expression.toUtf8().constData(), &value);
+    duint value=0;
+    bool validExpression=false;
+    expression.remove(QRegExp("\\s"));
+    bool _validExpression= DbgFunctions()->ValFromString(expression.toUtf8().constData(), &value);
+    if(_validExpression)
+    {
+        validExpression=true;
+    }
+    else
+    {
+        int index=expression.indexOf("+");
+        int strlen=expression.length();
+        QString moduleName;
+        uint moduleAddr;
+        bool ok;
+        if(index!=-1)
+        {//
+            moduleName=expression.left(index);
+            moduleAddr=GetProcessModuleAddress(g_pid,moduleName);
+            //moduleAddr=::GetModuleHandle(moduleName.toStdWString().c_str());
+            if(moduleAddr!=0)
+            {
+                //QString moduleAddrStr=QString::number((int)moduleAddr,10);
+                QString addrStr=expression.right(strlen-index-1);
+                UINT addr=addrStr.toUInt(&ok,16);
+                value=(uint)moduleAddr+addr;
+                //expressionText=QString::number((uint)moduleAddr+addr,10);
+                validExpression=true;
+            }
+        }
+        else
+        {
+            moduleAddr=GetProcessModuleAddress(g_pid,expression);
+            //moduleAddr=GetModuleHandle(expression.toStdWString().c_str());
+            if(moduleAddr!=0)
+            {
+                value=(uint)moduleAddr;
+                validExpression=true;
+            }
+        }
+    }
     unsigned char ch;
     bool validPointer = validExpression && DbgMemIsValidReadPtr(value) && DbgMemRead(value, &ch, sizeof(ch));
+    expressionAddr=value;
     this->mValidateThread->emitExpressionChanged(validExpression, validPointer, value);
 }
 
@@ -174,7 +218,8 @@ void GotoDialog::setOkEnabled(bool enabled)
 
 void GotoDialog::on_buttonOk_clicked()
 {
-    QString expression = ui->editExpression->text();
+    //QString expression = ui->editExpression->text();
+    QString expression =QString::number(expressionAddr,16);
     ui->editExpression->addLineToHistory(expression);
     ui->editExpression->setText("");
     expressionChanged(false, false, 0);

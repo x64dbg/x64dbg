@@ -20,6 +20,7 @@ public:
     explicit GotoDialog(QWidget* parent = 0, bool allowInvalidExpression = false, bool allowInvalidAddress = false);
     ~GotoDialog();
     QString expressionText;
+    uint expressionAddr;
     duint validRangeStart;
     duint validRangeEnd;
     bool fileOffset;
