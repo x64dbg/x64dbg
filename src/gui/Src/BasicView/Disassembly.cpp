@@ -6,11 +6,13 @@
 #include "CachedFontMetrics.h"
 #include "QBeaEngine.h"
 #include "MemoryPage.h"
+#include "public.h"
 
 Disassembly::Disassembly(QWidget* parent, bool isMain)
     : AbstractTableView(parent),
       mIsMain(isMain)
 {
+    mDisplayType=Display_addr;
     mMemPage = new MemoryPage(0, 0);
 
     mInstBuffer.clear();
@@ -1829,9 +1831,25 @@ void Disassembly::disassembleAt(dsint parVA, bool history, dsint newTableOffset)
     mMemPage->setAttributes(wBase, wSize);
     mDisasm->getEncodeMap()->setMemoryRegion(wBase);
 
-    if(mRvaDisplayEnabled && mMemPage->getBase() != mRvaDisplayPageBase)
-        mRvaDisplayEnabled = false;
-
+//    if(mRvaDisplayEnabled && mMemPage->getBase() != mRvaDisplayPageBase)
+//        mRvaDisplayEnabled = false;
+    if(mMemPage->getBase() != mRvaDisplayPageBase)
+    {
+        switch (mDisplayType)
+        {
+        case Display_addr:
+            //mDisplayType=Display_rva;
+            //mRvaDisplayBase = mSelectedVa;
+            //mRvaDisplayPageBase = getBase();
+            break;
+        case Display_rva:
+            mDisplayType=Display_addr;
+            break;
+        case Display_module:
+            //mDisplayType=Display_addr;
+            break;
+        }
+    }
     setRowCount(wSize);
 
     setSingleSelection(wRVA);               // Selects disassembled instruction
@@ -2027,7 +2045,14 @@ bool Disassembly::historyHasNext() const
 QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], bool getLabel)
 {
     QString addrText = "";
-    if(mRvaDisplayEnabled) //RVA display
+     char module[MAX_MODULE_SIZE] = "";
+     MODULEENTRY32* pModuleInfo=nullptr;
+    switch (mDisplayType)
+    {
+    case Display_addr:
+        addrText = ToPtrString(cur_addr);
+        break;
+    case Display_rva:
     {
         dsint rva = cur_addr - mRvaDisplayBase;
         if(rva == 0)
@@ -2054,12 +2079,49 @@ QString Disassembly::getAddrText(dsint cur_addr, char label[MAX_LABEL_SIZE], boo
             addrText = "$-" + QString("%1").arg(-rva, -7, 16, QChar(' ')).toUpper();
 #endif //_WIN64
         }
+        addrText += ToPtrString(cur_addr);
     }
-    addrText += ToPtrString(cur_addr);
+        break;
+    case Display_module:
+        if(GetModuleInfoFromAddr(cur_addr,&pModuleInfo)&& !mNoCurrentModuleText)
+        {
+
+           addrText += QString(QString::fromWCharArray(pModuleInfo->szModule)) + "+" + QString::number((ULONG_PTR)cur_addr-(ULONG_PTR)pModuleInfo->modBaseAddr,16);
+        }
+        break;
+    }
+//    if(mRvaDisplayEnabled) //RVA display
+//    {
+//        dsint rva = cur_addr - mRvaDisplayBase;
+//        if(rva == 0)
+//        {
+//#ifdef _WIN64
+//            addrText = "$ ==>            ";
+//#else
+//            addrText = "$ ==>    ";
+//#endif //_WIN64
+//        }
+//        else if(rva > 0)
+//        {
+//#ifdef _WIN64
+//            addrText = "$+" + QString("%1").arg(rva, -15, 16, QChar(' ')).toUpper();
+//#else
+//            addrText = "$+" + QString("%1").arg(rva, -7, 16, QChar(' ')).toUpper();
+//#endif //_WIN64
+//        }
+//        else if(rva < 0)
+//        {
+//#ifdef _WIN64
+//            addrText = "$-" + QString("%1").arg(-rva, -15, 16, QChar(' ')).toUpper();
+//#else
+//            addrText = "$-" + QString("%1").arg(-rva, -7, 16, QChar(' ')).toUpper();
+//#endif //_WIN64
+//        }
+//    }
     char label_[MAX_LABEL_SIZE] = "";
     if(getLabel && DbgGetLabelAt(cur_addr, SEG_DEFAULT, label_)) //has label
     {
-        char module[MAX_MODULE_SIZE] = "";
+
         if(DbgGetModuleAt(cur_addr, module) && !QString(label_).startsWith("JMP.&") && !mNoCurrentModuleText)
             addrText += " <" + QString(module) + "." + QString(label_) + ">";
         else

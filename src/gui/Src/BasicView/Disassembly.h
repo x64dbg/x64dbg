@@ -7,6 +7,12 @@
 class CodeFoldingHelper;
 class MemoryPage;
 
+enum AddrDisplayType
+{
+    Display_addr,
+    Display_rva,
+    Display_module,
+};
 class Disassembly : public AbstractTableView
 {
     Q_OBJECT
@@ -226,7 +232,9 @@ protected:
     QPen mConditionalFalsePen;
 
     // Misc
-    bool mRvaDisplayEnabled;
+    //bool mRvaDisplayEnabled;
+    AddrDisplayType mDisplayType;
+
     duint mRvaDisplayBase;
     dsint mRvaDisplayPageBase;
     bool mHighlightingMode;

@@ -2,6 +2,7 @@
 #include "ui_AttachDialog.h"
 #include "StdIconSearchListView.h"
 #include "StdTable.h"
+#include "public.h"
 #include <QMenu>
 #include <QMessageBox>
 #include <QFileInfo>
@@ -84,6 +85,8 @@ void AttachDialog::refresh()
 void AttachDialog::on_btnAttach_clicked()
 {
     QString pid = mSearchListView->mCurList->getCellContent(mSearchListView->mCurList->getInitialSelection(), ColPid);
+    g_pid=pid.toUInt();
+    EnumProcessModule(g_pid,g_moduleArr);
     DbgCmdExec(QString("attach %1%2").arg(ConfigBool("Gui", "PidTidInHex") ? "" : ".").arg(pid));
     accept();
 }

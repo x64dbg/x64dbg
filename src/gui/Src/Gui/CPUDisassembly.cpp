@@ -24,6 +24,7 @@
 #include "MemoryPage.h"
 #include "CommonActions.h"
 #include "BrowseDialog.h"
+#include "public.h"
 
 CPUDisassembly::CPUDisassembly(QWidget* parent, bool isMain) : Disassembly(parent, isMain)
 {
@@ -81,14 +82,40 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
     case 0: //address
     {
         dsint mSelectedVa = rvaToVa(getInitialSelection());
-        if(mRvaDisplayEnabled && mSelectedVa == mRvaDisplayBase)
-            mRvaDisplayEnabled = false;
-        else
+        switch (mDisplayType)
         {
-            mRvaDisplayEnabled = true;
+        case Display_addr:
+            mDisplayType=Display_rva;
             mRvaDisplayBase = mSelectedVa;
             mRvaDisplayPageBase = getBase();
+            break;
+        case Display_rva:
+        {
+            if(mSelectedVa == mRvaDisplayBase)
+            {
+                mDisplayType=Display_module;
+            }else
+            {
+                mRvaDisplayBase = mSelectedVa;
+                mRvaDisplayPageBase = getBase();
+            }
         }
+            break;
+        case Display_module:
+            mDisplayType=Display_addr;
+            mRvaDisplayBase = mSelectedVa;
+            mRvaDisplayPageBase = getBase();
+            break;
+        }
+
+//        if(mRvaDisplayEnabled && mSelectedVa == mRvaDisplayBase)
+//            mRvaDisplayEnabled = false;
+//        else
+//        {
+//            mRvaDisplayEnabled = true;
+//            mRvaDisplayBase = mSelectedVa;
+//            mRvaDisplayPageBase = getBase();
+//        }
         reloadData();
     }
     break;
