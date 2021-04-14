@@ -191,7 +191,8 @@ SOURCES += \
     Src/Gui/ZehSymbolTable.cpp \
     Src/BasicView/StdSearchListView.cpp \
     Src/BasicView/StdTableSearchList.cpp \
-    Src/Utils/BackgroundFlickerThread.cpp
+    Src/Utils/BackgroundFlickerThread.cpp \
+    Src/public.cpp
 
 
 HEADERS += \
@@ -320,7 +321,8 @@ HEADERS += \
     Src/Gui/FileLines.h \
     Src/BasicView/StdTableSearchList.h \
     Src/Utils/MethodInvoker.h \
-    Src/Utils/BackgroundFlickerThread.h
+    Src/Utils/BackgroundFlickerThread.h \
+    Src/public.h
     
 
 FORMS += \
