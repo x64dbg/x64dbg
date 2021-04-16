@@ -321,6 +321,11 @@ bool isEaster()
     return date.month() == MM && date.day() >= DD - 2 && date.day() <= DD + 1;
 }
 
+bool isSeasonal()
+{
+    return (isChristmas() || isEaster());
+}
+
 QString couldItBeSeasonal(QString icon)
 {
     static bool seasons = allowSeasons();

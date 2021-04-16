@@ -20,6 +20,7 @@ QString getSymbolicName(duint addr);
 QString getSymbolicNameStr(duint addr);
 bool ExportCSV(dsint rows, dsint columns, std::vector<QString> headers, std::function<QString(dsint, dsint)> getCellContent);
 bool isEaster();
+bool isSeasonal();
 QString couldItBeSeasonal(QString icon);
 QIcon getFileIcon(QString file);
 
