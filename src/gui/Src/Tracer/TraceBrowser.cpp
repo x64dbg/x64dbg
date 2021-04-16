@@ -254,7 +254,7 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
     }
     if(mTraceFile->isError())
     {
-        GuiAddLogMessage(tr("An error occured when reading trace file.\r\n").toUtf8().constData());
+        GuiAddLogMessage(tr("An error occurred when reading trace file.\r\n").toUtf8().constData());
         mTraceFile->Close();
         delete mTraceFile;
         mTraceFile = nullptr;
