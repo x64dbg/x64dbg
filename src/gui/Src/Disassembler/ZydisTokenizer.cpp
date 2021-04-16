@@ -91,22 +91,22 @@ void ZydisTokenizer::UpdateStringPool()
     addStringsToPool("r13 r13d r13w r13b");
     addStringsToPool("r14 r14d r14w r14b");
     addStringsToPool("r15 r15d r15w r15b");
-    addStringsToPool("xmm0 ymm0");
-    addStringsToPool("xmm1 ymm1");
-    addStringsToPool("xmm2 ymm2");
-    addStringsToPool("xmm3 ymm3");
-    addStringsToPool("xmm4 ymm4");
-    addStringsToPool("xmm5 ymm5");
-    addStringsToPool("xmm6 ymm6");
-    addStringsToPool("xmm7 ymm7");
-    addStringsToPool("xmm8 ymm8");
-    addStringsToPool("xmm9 ymm9");
-    addStringsToPool("xmm10 ymm10");
-    addStringsToPool("xmm11 ymm11");
-    addStringsToPool("xmm12 ymm12");
-    addStringsToPool("xmm13 ymm13");
-    addStringsToPool("xmm14 ymm14");
-    addStringsToPool("xmm15 ymm15");
+    addStringsToPool("xmm0 ymm0 zmm0");
+    addStringsToPool("xmm1 ymm1 zmm1");
+    addStringsToPool("xmm2 ymm2 zmm2");
+    addStringsToPool("xmm3 ymm3 zmm3");
+    addStringsToPool("xmm4 ymm4 zmm4");
+    addStringsToPool("xmm5 ymm5 zmm5");
+    addStringsToPool("xmm6 ymm6 zmm6");
+    addStringsToPool("xmm7 ymm7 zmm7");
+    addStringsToPool("xmm8 ymm8 zmm8");
+    addStringsToPool("xmm9 ymm9 zmm9");
+    addStringsToPool("xmm10 ymm10 zmm10");
+    addStringsToPool("xmm11 ymm11 zmm11");
+    addStringsToPool("xmm12 ymm12 zmm12");
+    addStringsToPool("xmm13 ymm13 zmm13");
+    addStringsToPool("xmm14 ymm14 zmm14");
+    addStringsToPool("xmm15 ymm15 zmm15");
 }
 
 bool ZydisTokenizer::Tokenize(duint addr, const unsigned char* data, int datasize, InstructionToken & instruction)
@@ -125,14 +125,29 @@ bool ZydisTokenizer::Tokenize(duint addr, const unsigned char* data, int datasiz
 
         for(int i = 0; i < _cp.OpCount(); i++)
         {
-            if(i)
+            if(i == 1 && _cp[0].size >= 128 && _cp[1].type == ZYDIS_OPERAND_TYPE_REGISTER
+                    && ZydisRegisterGetClass(_cp[1].reg.value) == ZYDIS_REGCLASS_MASK)
+            {
+                if(_bArgumentSpaces)
+                    addToken(TokenType::ArgumentSpace, " ");
+                addToken(TokenType::Comma, "{");
+                if(!tokenizeOperand(_cp[i]))
+                    return false;
+                addToken(TokenType::Comma, "}");
+            }
+            else if(i)
             {
                 addToken(TokenType::Comma, ",");
                 if(_bArgumentSpaces)
                     addToken(TokenType::ArgumentSpace, " ");
+                if(!tokenizeOperand(_cp[i]))
+                    return false;
             }
-            if(!tokenizeOperand(_cp[i]))
-                return false;
+            else
+            {
+                if(!tokenizeOperand(_cp[i]))
+                    return false;
+            }
         }
     }
     else
@@ -516,6 +531,7 @@ bool ZydisTokenizer::tokenizeRegOperand(const ZydisDecodedOperand & op)
         registerType = TokenType::YmmRegister;
         break;
     case ZYDIS_REGCLASS_ZMM:
+    case ZYDIS_REGCLASS_MASK:
         registerType = TokenType::ZmmRegister;
         break;
     }
