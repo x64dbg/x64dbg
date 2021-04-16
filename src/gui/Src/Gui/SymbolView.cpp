@@ -635,28 +635,43 @@ void SymbolView::moduleEntryFollow()
 
 void SymbolView::moduleCopyPath()
 {
-    duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColBase).toUtf8().constData());
-    char szModPath[MAX_PATH] = "";
-    if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
-        Bridge::CopyToClipboard(szModPath);
+    QString modulePaths;
+    auto selection = mModuleList->mCurList->getSelection();
+    for(auto i : selection)
+    {
+        duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(i, ColBase).toUtf8().constData());
+        char szModPath[MAX_PATH] = "";
+        if(!DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
+            memcpy(szModPath, "???", 4);
+        if(!modulePaths.isEmpty())
+            modulePaths.append("\r\n");
+        modulePaths.append(szModPath);
+    }
+    Bridge::CopyToClipboard(modulePaths);
 }
 
 void SymbolView::moduleBrowse()
 {
-    duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColBase).toUtf8().constData());
-    char szModPath[MAX_PATH] = "";
-    if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
+    auto selection = mModuleList->mCurList->getSelection();
+    for(auto i : selection)
     {
-        QStringList arguments;
-        arguments << QString("/select,");
-        arguments << QString(szModPath);
-        QProcess::startDetached(QString("%1/explorer.exe").arg(QProcessEnvironment::systemEnvironment().value("windir")), arguments);
+        duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(i, ColBase).toUtf8().constData());
+        char szModPath[MAX_PATH] = "";
+        if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
+        {
+            QStringList arguments;
+            arguments << QString("/select,");
+            arguments << QString(szModPath);
+            QProcess::startDetached(QString("%1/explorer.exe").arg(QProcessEnvironment::systemEnvironment().value("windir")), arguments);
+        }
     }
 }
 
 void SymbolView::moduleDownloadSymbols()
 {
-    DbgCmdExec(QString("symdownload \"%0\"").arg(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColModule)));
+    auto selection = mModuleList->mCurList->getSelection();
+    for(auto i : selection)
+        DbgCmdExec(QString("symdownload \"%0\"").arg(mModuleList->mCurList->getCellContent(i, ColModule)));
 }
 
 void SymbolView::moduleDownloadAllSymbols()
@@ -691,7 +706,11 @@ void SymbolView::moduleFree()
                                       question.toUtf8().constData(),
                                       QMessageBox::Yes | QMessageBox::No);
         if(reply == QMessageBox::Yes)
-            DbgCmdExec(QString("freelib %1").arg(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColBase)));
+        {
+            auto selection = mModuleList->mCurList->getSelection();
+            for(auto module : selection)
+                DbgCmdExec(QString("freelib %1").arg(mModuleList->mCurList->getCellContent(module, ColBase)));
+        }
     }
 }
 
@@ -742,42 +761,53 @@ void SymbolView::toggleBookmark()
 
     if(!mSymbolList->mCurList->getRowCount())
         return;
-    QString addrText = mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 0);
-    duint wVA;
-    if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
-        return;
-    if(!DbgMemIsValidReadPtr(wVA))
-        return;
 
-    bool result;
-    if(DbgGetBookmarkAt(wVA))
-        result = DbgSetBookmarkAt(wVA, false);
-    else
-        result = DbgSetBookmarkAt(wVA, true);
-    if(!result)
+    auto selection = mSymbolList->mCurList->getSelection();
+    for(auto index : selection)
     {
-        QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetBookmarkAt failed!"));
-        msg.setWindowIcon(DIcon("compile-error.png"));
-        msg.setParent(this, Qt::Dialog);
-        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
-        msg.exec();
+        QString addrText = mSymbolList->mCurList->getCellContent(index, 0);
+        duint wVA;
+        if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
+            return;
+        if(!DbgMemIsValidReadPtr(wVA))
+            return;
+
+        bool result;
+        if(DbgGetBookmarkAt(wVA))
+            result = DbgSetBookmarkAt(wVA, false);
+        else
+            result = DbgSetBookmarkAt(wVA, true);
+        if(!result)
+        {
+            QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetBookmarkAt failed!"));
+            msg.setWindowIcon(DIcon("compile-error.png"));
+            msg.setParent(this, Qt::Dialog);
+            msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+            msg.exec();
+        }
     }
     GuiUpdateAllViews();
 }
 
 void SymbolView::moduleSetSystem()
 {
-    int i = mModuleList->mCurList->getInitialSelection();
-    duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(i, ColBase).toUtf8().constData());
-    DbgFunctions()->ModSetParty(modbase, mod_system);
+    auto selection = mModuleList->mCurList->getSelection();
+    for(auto i : selection)
+    {
+        duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(i, ColBase).toUtf8().constData());
+        DbgFunctions()->ModSetParty(modbase, mod_system);
+    }
     DbgFunctions()->RefreshModuleList();
 }
 
 void SymbolView::moduleSetUser()
 {
-    int i = mModuleList->mCurList->getInitialSelection();
-    duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(i, ColBase).toUtf8().constData());
-    DbgFunctions()->ModSetParty(modbase, mod_user);
+    auto selection = mModuleList->mCurList->getSelection();
+    for(auto i : selection)
+    {
+        duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(i, ColBase).toUtf8().constData());
+        DbgFunctions()->ModSetParty(modbase, mod_user);
+    }
     DbgFunctions()->RefreshModuleList();
 }
 
@@ -792,27 +822,18 @@ void SymbolView::moduleSetParty()
     {
         bool ok;
         party = mLineEditeditText.toInt(&ok);
-        int i = mModuleList->mCurList->getInitialSelection();
         if(ok)
         {
-            DbgFunctions()->ModSetParty(modbase, (MODULEPARTY)party);
-            /* TODO: refresh module list
-            switch(party)
+            auto selection = mModuleList->mCurList->getSelection();
+            for(auto index : selection)
             {
-            case 0:
-                mModuleList->mCurList->setCellContent(i, 2, tr("User"));
-                break;
-            case 1:
-                mModuleList->mCurList->setCellContent(i, 2, tr("System"));
-                break;
-            default:
-                mModuleList->mCurList->setCellContent(i, 2, tr("Party: %1").arg(party));
-                break;
+                modbase = DbgValFromString(mModuleList->mCurList->getCellContent(index, ColBase).toUtf8().constData());
+                DbgFunctions()->ModSetParty(modbase, (MODULEPARTY)party);
             }
-            mModuleList->mCurList->reloadData();*/
         }
         else
             SimpleErrorBox(this, tr("Error"), tr("The party number can only be 0 or 1"));
+        DbgFunctions()->RefreshModuleList();
     }
 }
 

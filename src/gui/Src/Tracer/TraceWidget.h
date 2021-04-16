@@ -9,6 +9,7 @@ class CPUWidget;
 class TraceRegisters;
 class TraceBrowser;
 class TraceFileReader;
+class TraceInfoBox;
 class StdTable;
 
 namespace Ui
@@ -32,11 +33,9 @@ protected slots:
 
 protected:
     TraceBrowser* mTraceWidget;
+    TraceInfoBox* mInfo;
     TraceRegisters* mGeneralRegs;
-    StdTable* mInfo;
     StdTable* mOverview;
-
-    void updateInfobox(unsigned long long selection, TraceFileReader* traceFile, const REGDUMP & registers);
 
 private:
     Ui::TraceWidget* ui;
