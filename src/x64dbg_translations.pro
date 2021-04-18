@@ -230,7 +230,7 @@ SOURCES += \
     gui/Src/Tracer/TraceRegisters.cpp \
     gui/Src/Tracer/TraceWidget.cpp \
     gui/Src/Gui/SystemBreakpointScriptDialog.cpp \
-	gui/Src/Tracer/TraceInfoBox.cpp
+    gui/Src/Tracer/TraceInfoBox.cpp
 
 HEADERS += \
     gui/Src/Exports.h \
@@ -472,7 +472,7 @@ HEADERS += \
     gui/Src/Tracer/TraceRegisters.h \
     gui/Src/Tracer/TraceWidget.h \
     gui/Src/Gui/SystemBreakpointScriptDialog.h \
-	gui/Src/Tracer/TraceInfoBox.h
+    gui/Src/Tracer/TraceInfoBox.h
 
 FORMS += \
     gui/Src/Gui/AppearanceDialog.ui \

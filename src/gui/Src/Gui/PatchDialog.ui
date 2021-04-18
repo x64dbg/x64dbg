@@ -69,7 +69,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="layoutWidget">
+     <widget class="QWidget" name="layoutWidget_1">
       <layout class="QVBoxLayout" name="layoutPatches">
        <item>
         <widget class="QGroupBox" name="groupPatches">
