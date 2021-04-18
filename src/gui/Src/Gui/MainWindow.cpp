@@ -503,19 +503,20 @@ void MainWindow::loadSelectedStyle(bool reloadStyleCss)
             DWORD dwBufferSize(sizeof(DWORD));
             DWORD nResult(1);
             ::RegQueryValueExW(hKey,
-                L"AppsUseLightTheme",
-                0,
-                NULL,
-                reinterpret_cast<LPBYTE>(&nResult),
-                &dwBufferSize);
-            if (nResult == 0)
+                               L"AppsUseLightTheme",
+                               0,
+                               NULL,
+                               reinterpret_cast<LPBYTE>(&nResult),
+                               &dwBufferSize);
+            if(nResult == 0)
             {
                 usingDefaultTheme = 0;
                 BridgeSettingSet("Theme", "Selected", QString("Dark").toUtf8().constData());
                 strcpy_s(selectedTheme, MAX_SETTING_SIZE, "Dark");
             }
         }
-        else {
+        else
+        {
             BridgeSettingSet("Theme", "Selected", QString("Default").toUtf8().constData());
         }
     }
