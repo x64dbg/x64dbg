@@ -241,16 +241,6 @@ void CalculatorDialog::on_txtUnicode_textEdited(const QString & arg1)
     ui->txtUnicode->selectAll();
 }
 
-void CalculatorDialog::on_txtAscii_clicked()
-{
-    ui->txtAscii->selectAll();
-}
-
-void CalculatorDialog::on_txtUnicode_clicked()
-{
-    ui->txtUnicode->selectAll();
-}
-
 void CalculatorDialog::on_btnGotoDump_clicked()
 {
     DbgCmdExecDirect(QString("dump " + ui->txtExpression->text()));
