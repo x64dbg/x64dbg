@@ -489,7 +489,7 @@ void MainWindow::loadSelectedStyle(bool reloadStyleCss)
     duint usingDefaultTheme = 1;
     QString stylePath(":/css/default.css");
     QString styleSettings;
-    if(!BridgeSettingGet("Theme", "Selected", selectedTheme) || !*selectedTheme)
+    if(!BridgeSettingGet("Theme", "Selected", selectedTheme))
     {
         // First Run
 
@@ -513,6 +513,10 @@ void MainWindow::loadSelectedStyle(bool reloadStyleCss)
                 usingDefaultTheme = 0;
                 BridgeSettingSet("Theme", "Selected", QString("Dark").toUtf8().constData());
                 strcpy_s(selectedTheme, MAX_SETTING_SIZE, "Dark");
+            }
+            else
+            {
+                BridgeSettingSet("Theme", "Selected", QString("Default").toUtf8().constData());
             }
         }
         else
