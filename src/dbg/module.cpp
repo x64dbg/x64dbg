@@ -283,7 +283,7 @@ static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
                 // Import by ordinal
                 entry.ordinal = THUNK_VAL(Info.headers, thunkData, u1.Ordinal) & 0xffff;
                 char buf[18];
-                sprintf_s(buf, "Ordinal%u", (ULONG)entry.ordinal);
+                sprintf_s(buf, "Ordinal#%u", (ULONG)entry.ordinal);
                 entry.name = String((const char*)buf);
             }
         }
