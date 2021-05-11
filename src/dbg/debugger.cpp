@@ -739,17 +739,19 @@ static void printExceptionBpInfo(const BREAKPOINT & bp, duint CIP)
         dprintf(QT_TRANSLATE_NOOP("DBG", "Exception Breakpoint %s (%p) at %p!\n"), ExceptionCodeToName((unsigned int)bp.addr).c_str(), bp.addr, CIP);
 }
 
-static bool getConditionValue(const char* expression)
+// Return value: 0:False, 1:True, -1:Error
+static char getConditionValue(const char* expression)
 {
     auto word = *(uint16*)expression;
     if(word == '0') // short circuit for condition "0\0"
-        return false;
+        return 0; //False
     if(word == '1') //short circuit for condition "1\0"
-        return true;
+        return 1; //True
     duint value;
     if(valfromstring(expression, &value))
-        return value != 0;
-    return true;
+        return value != 0 ? 1 : 0;
+    else
+        return -1; // Error
 }
 
 void cbPauseBreakpoint()
@@ -772,48 +774,45 @@ void cbPauseBreakpoint()
     wait(WAITID_RUN);
 }
 
-static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAddress, duint CIP, bool doBreak)
+static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAddress, duint CIP)
 {
-    if(doBreak)
+    if(bp.singleshoot)
     {
-        if(bp.singleshoot)
+        BpDelete(bp.addr, bp.type);
+        if(bp.type == BPHARDWARE)  // Remove this singleshoot hardware breakpoint
         {
-            BpDelete(bp.addr, bp.type);
-            if(bp.type == BPHARDWARE)  // Remove this singleshoot hardware breakpoint
-            {
-                if(TITANDRXVALID(bp.titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(bp.titantype)))
-                    dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n"), bp.addr);
-            }
+            if(TITANDRXVALID(bp.titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(bp.titantype)))
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n"), bp.addr);
         }
-        if(!bp.silent)
-        {
-            switch(bp.type)
-            {
-            case BPNORMAL:
-                printSoftBpInfo(bp);
-                break;
-            case BPHARDWARE:
-                printHwBpInfo(bp);
-                break;
-            case BPMEMORY:
-                printMemBpInfo(bp, ExceptionAddress);
-                break;
-            case BPDLL:
-                printDllBpInfo(bp);
-                break;
-            case BPEXCEPTION:
-                printExceptionBpInfo(bp, CIP);
-                break;
-            default:
-                break;
-            }
-        }
-        DebugUpdateGuiSetStateAsync(CIP, true);
-        // Plugin callback
-        PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
-        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-        _dbg_animatestop(); // Stop animating when a breakpoint is hit
     }
+    if(!bp.silent)
+    {
+        switch(bp.type)
+        {
+        case BPNORMAL:
+            printSoftBpInfo(bp);
+            break;
+        case BPHARDWARE:
+            printHwBpInfo(bp);
+            break;
+        case BPMEMORY:
+            printMemBpInfo(bp, ExceptionAddress);
+            break;
+        case BPDLL:
+            printDllBpInfo(bp);
+            break;
+        case BPEXCEPTION:
+            printExceptionBpInfo(bp, CIP);
+            break;
+        default:
+            break;
+        }
+    }
+    DebugUpdateGuiSetStateAsync(CIP, true);
+    // Plugin callback
+    PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+    plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+    _dbg_animatestop(); // Stop animating when a breakpoint is hit
 }
 
 static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr)
@@ -889,26 +888,51 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     varset("$breakpointcounter", bp.hitcount, true); //save the breakpoint counter as a variable
 
     //get condition values
-    bool breakCondition;
-    bool logCondition;
-    bool commandCondition;
+    char breakCondition;
+    char logCondition;
+    char commandCondition;
     if(*bp.breakCondition)
+    {
         breakCondition = getConditionValue(bp.breakCondition);
+        if(breakCondition == -1)
+            dputs(QT_TRANSLATE_NOOP("DBG", "Error when evaluating break condition."));
+    }
     else
-        breakCondition = true; //break if no condition is set
-    if(bp.fastResume && !breakCondition) // fast resume: ignore GUI/Script/Plugin/Other if the debugger would not break
+        breakCondition = 1; //break if no condition is set
+    if(bp.fastResume && breakCondition == 0) // fast resume: ignore GUI/Script/Plugin/Other if the debugger would not break
         return;
     if(*bp.logCondition)
+    {
         logCondition = getConditionValue(bp.logCondition);
+        if(logCondition == -1)
+        {
+            dprintf_untranslated("%s\n", stringformatinline(bp.logText).c_str()); // Always log when an error occurs, and log before the error message
+            dputs(QT_TRANSLATE_NOOP("DBG", "Error when evaluating log condition.")); // Then an error message is printed
+            breakCondition = -1; // Force breaking when an error occurs
+            logCondition = 0; // No need to log twice
+        }
+    }
     else
-        logCondition = true; //log if no condition is set
+        logCondition = 1; //log if no condition is set
     if(*bp.commandCondition)
+    {
         commandCondition = getConditionValue(bp.commandCondition);
+        if(commandCondition == -1)
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Error when evaluating command condition."));
+            breakCondition = -1; // Force breaking when an error occurs
+            commandCondition = 0; // Don't execute any command if an error occurs
+        }
+    }
     else
-        commandCondition = breakCondition; //if no condition is set, execute the command when the debugger would break
+    {
+        if(breakCondition != -1)
+            commandCondition = breakCondition; //if no condition is set, execute the command when the debugger would break
+        else
+            commandCondition = 0; // Don't execute any command if an error occurs
+    }
 
     lock(WAITID_RUN);
-    handleBreakCondition(bp, ExceptionAddress, CIP, breakCondition);
 
     PLUG_CB_BREAKPOINT bpInfo;
     BRIDGEBP bridgebp;
@@ -926,30 +950,31 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     // Update breakpoint view
     DebugUpdateBreakpointsViewAsync();
 
-    if(*bp.logText && logCondition) //log
+    if(*bp.logText && logCondition == 1) //log
     {
         dprintf_untranslated("%s\n", stringformatinline(bp.logText).c_str());
     }
     if(*bp.commandText && commandCondition) //command
     {
         //TODO: commands like run/step etc will fuck up your shit
-        varset("$breakpointcondition", breakCondition ? 1 : 0, false);
-        varset("$breakpointlogcondition", logCondition ? 1 : 0, true);
-        cmddirectexec(bp.commandText);
+        varset("$breakpointcondition", (breakCondition != 0) ? 1 : 0, false);
+        varset("$breakpointlogcondition", (logCondition != 0) ? 1 : 0, true);
         duint script_breakcondition;
-        if(varget("$breakpointcondition", &script_breakcondition, nullptr, nullptr))
+        if(!cmddirectexec(bp.commandText))
+        {
+            breakCondition = -1; // Error executing the command (The error message is probably already printed)
+        }
+        else if(varget("$breakpointcondition", &script_breakcondition, nullptr, nullptr))
         {
             if(script_breakcondition != 0)
-            {
-                handleBreakCondition(bp, ExceptionAddress, CIP, !breakCondition);
-                breakCondition = true;
-            }
+                breakCondition = 1;
             else
-                breakCondition = false;
+                breakCondition = 0; // It is safe to clear break condition here because when an error occurs, no command can be executed
         }
     }
-    if(breakCondition) //break the debugger
+    if(breakCondition != 0) //break the debugger
     {
+        handleBreakCondition(bp, ExceptionAddress, CIP);
         dbgsetforeground();
         dbgsetskipexceptions(false);
     }
@@ -1268,32 +1293,63 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
 {
     PLUG_CB_TRACEEXECUTE info;
     info.cip = cip;
-    auto breakCondition = (info.stop = traceState.BreakTrace() || forceBreakTrace);
+    auto breakCondition = traceState.BreakTrace();
+    if(forceBreakTrace && breakCondition == 0)
+        breakCondition = 1;
+    if(breakCondition == -1)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error when evaluating break condition."));
+    }
+    info.stop = (breakCondition != 0);
     if(traceState.IsExtended()) //only set when needed
         varset("$tracecounter", traceState.StepCount(), true);
     plugincbcall(CB_TRACEEXECUTE, &info);
     breakCondition = info.stop;
-    auto logCondition = traceState.EvaluateLog(true);
-    auto cmdCondition = traceState.EvaluateCmd(breakCondition);
-    auto switchCondition = traceState.EvaluateSwitch(false);
-    if(logCondition) //log
+    auto logCondition = traceState.EvaluateLog(); //true
+    auto cmdCondition = traceState.EvaluateCmd(breakCondition == 1 ? 1 : 0); //breakCondition
+    auto switchCondition = traceState.EvaluateSwitch(); //false
+    if(switchCondition == -1)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error when evaluating switch condition."));
+        switchCondition = 0;
+        breakCondition = -1;
+    }
+    if(logCondition != 0) //log
     {
         traceState.LogWrite(stringformatinline(traceState.LogText()));
     }
-    if(cmdCondition) //command
+    if(logCondition == -1)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error when evaluating log condition."));
+        logCondition = 1;
+        breakCondition = -1;
+    }
+    if(cmdCondition == -1)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error when evaluating command condition."));
+        cmdCondition = 0;
+        breakCondition = -1;
+    }
+    else if(cmdCondition  == 1 && breakCondition != -1) //command
     {
         //TODO: commands like run/step etc will fuck up your shit
         varset("$tracecondition", breakCondition ? 1 : 0, false);
         varset("$tracelogcondition", logCondition ? 1 : 0, true);
         varset("$traceswitchcondition", switchCondition ? 1 : 0, false);
-        cmddirectexec(traceState.CmdText().c_str());
         duint script_breakcondition;
-        if(varget("$tracecondition", &script_breakcondition, nullptr, nullptr))
-            breakCondition = script_breakcondition != 0;
-        if(varget("$traceswitchcondition", &script_breakcondition, nullptr, nullptr))
-            switchCondition = script_breakcondition != 0;
+        if(cmddirectexec(traceState.CmdText().c_str()))
+        {
+            if(varget("$tracecondition", &script_breakcondition, nullptr, nullptr))
+                breakCondition = script_breakcondition != 0;
+            if(varget("$traceswitchcondition", &script_breakcondition, nullptr, nullptr))
+                switchCondition = script_breakcondition != 0;
+        }
+        else
+        {
+            breakCondition = -1; //Error when executing the command
+        }
     }
-    if(breakCondition || traceState.ForceBreakTrace()) //break the debugger
+    if(breakCondition != 0 || traceState.ForceBreakTrace()) //break the debugger
     {
         auto steps = dbgcleartracestate();
         varset("$tracecounter", steps, true);

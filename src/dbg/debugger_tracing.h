@@ -12,13 +12,17 @@ struct TraceCondition
     explicit TraceCondition(const String & expression, duint maxCount)
         : condition(expression), steps(0), maxSteps(maxCount) {}
 
-    bool BreakTrace()
+    // Return value: 0:Continue, 1:Break, -1:Error (Break)
+    char BreakTrace()
     {
         steps++;
         if(steps >= maxSteps)
-            return true;
+            return 1;
         duint value;
-        return !condition.Calculate(value, valuesignedcalc(), true) || value;
+        if(condition.Calculate(value, valuesignedcalc(), true))
+            return value != 0;
+        else
+            return -1;
     }
 };
 
@@ -30,12 +34,12 @@ struct TextCondition
     explicit TextCondition(const String & expression, const String & text)
         : condition(expression), text(text) {}
 
-    bool Evaluate(bool defaultValue) const
+    char Evaluate() const
     {
         duint value;
         if(condition.Calculate(value, valuesignedcalc(), true))
             return !!value;
-        return defaultValue;
+        return -1;
     }
 };
 
@@ -98,9 +102,9 @@ struct TraceState
         return logCondition || cmdCondition;
     }
 
-    bool BreakTrace() const
+    char BreakTrace() const
     {
-        return !traceCondition || traceCondition->BreakTrace();
+        return traceCondition ? traceCondition->BreakTrace() : 1;
     }
 
     duint StepCount() const
@@ -118,9 +122,9 @@ struct TraceState
         return logCondition->condition.IsValidExpression();
     }
 
-    bool EvaluateLog(bool defaultValue) const
+    char EvaluateLog() const
     {
-        return logCondition && logCondition->Evaluate(defaultValue);
+        return logCondition ? logCondition->Evaluate() : 0;
     }
 
     const String & LogText() const
@@ -138,9 +142,9 @@ struct TraceState
         return cmdCondition->condition.IsValidExpression();
     }
 
-    bool EvaluateCmd(bool defaultValue) const
+    char EvaluateCmd(char defaultValue) const
     {
-        return cmdCondition && cmdCondition->Evaluate(defaultValue);
+        return cmdCondition ? cmdCondition->Evaluate() : defaultValue;
     }
 
     const String & CmdText() const
@@ -158,9 +162,9 @@ struct TraceState
         return switchCondition->condition.IsValidExpression();
     }
 
-    bool EvaluateSwitch(bool defaultValue) const
+    char EvaluateSwitch() const
     {
-        return switchCondition && switchCondition->Evaluate(defaultValue);
+        return switchCondition ? switchCondition->Evaluate() : 0;
     }
 
     void SetLogFile(const char* fileName)
