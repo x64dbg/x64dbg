@@ -2035,6 +2035,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 
 static void cbDebugEvent(DEBUG_EVENT* DebugEvent)
 {
+	hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     InterlockedIncrement((volatile long*)&DbgEvents);
     PLUG_CB_DEBUGEVENT debugEventInfo;
     debugEventInfo.DebugEvent = DebugEvent;
