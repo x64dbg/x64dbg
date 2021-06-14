@@ -44,7 +44,6 @@ static TraceState traceState;
 static bool bFileIsDll = false;
 static bool bEntryIsInMzHeader = false;
 static duint pDebuggedBase = 0;
-static duint pCreateProcessBase = 0;
 static duint pDebuggedEntry = 0;
 static bool bRepeatIn = false;
 static duint stepRepeat = 0;
@@ -1416,11 +1415,13 @@ void cbTraceOverIntoTraceRecordStep()
 
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 {
+    hActiveThread = CreateProcessInfo->hThread;
     fdProcessInfo->hProcess = CreateProcessInfo->hProcess;
     fdProcessInfo->hThread = CreateProcessInfo->hThread;
     varset("$hp", (duint)fdProcessInfo->hProcess, true);
 
-    void* base = CreateProcessInfo->lpBaseOfImage;
+    auto base = (duint)CreateProcessInfo->lpBaseOfImage;
+    pDebuggedBase = base; //debugged base = executable
 
     char DebugFileName[deflen] = "";
     if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName) && !GetFileNameFromProcessHandle(CreateProcessInfo->hProcess, DebugFileName))
@@ -1447,18 +1448,18 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     MemUpdateMap();
     GuiUpdateMemoryView();
 
-    GuiDumpAt(MemFindBaseAddr(GetContextDataEx(CreateProcessInfo->hThread, UE_CIP), 0) + PAGE_SIZE); //dump somewhere
+    //dump/disassemble somewhere
+    DebugUpdateGui(pDebuggedBase + pDebuggedEntry, true);
+    GuiDumpAt(pDebuggedBase);
 
-    ModLoad((duint)base, 1, DebugFileName);
+    ModLoad(base, 1, DebugFileName);
 
     char modname[256] = "";
-    if(ModNameFromAddr((duint)base, modname, true))
-        BpEnumAll(cbSetModuleBreakpoints, modname, duint(base));
+    if(ModNameFromAddr(base, modname, true))
+        BpEnumAll(cbSetModuleBreakpoints, modname, base);
     BpEnumAll(cbSetDLLBreakpoints);
     BpEnumAll(cbSetModuleBreakpoints, "");
-    DebugUpdateBreakpointsViewAsync();
-    pCreateProcessBase = (duint)CreateProcessInfo->lpBaseOfImage;
-    pDebuggedBase = pCreateProcessBase; //debugged base = executable
+
     DbCheckHash(ModContentHashFromAddr(pDebuggedBase)); //Check hash mismatch
     if(!bFileIsDll && !bIsAttached) //Set entry breakpoint
     {
@@ -1467,7 +1468,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
         if(settingboolget("Events", "TlsCallbacks"))
         {
             SHARED_ACQUIRE(LockModules);
-            auto modInfo = ModInfoFromAddr(duint(base));
+            auto modInfo = ModInfoFromAddr(base);
             int invalidCount = 0;
             for(size_t i = 0; i < modInfo->tlsCallbacks.size(); i++)
             {
@@ -1498,13 +1499,22 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
     DebugUpdateBreakpointsViewAsync();
 
+    //update thread list
+    CREATE_THREAD_DEBUG_INFO threadInfo;
+    threadInfo.hThread = CreateProcessInfo->hThread;
+    threadInfo.lpStartAddress = CreateProcessInfo->lpStartAddress;
+    threadInfo.lpThreadLocalBase = CreateProcessInfo->lpThreadLocalBase;
+    ThreadCreate(&threadInfo);
+
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+
     //call plugin callback
     PLUG_CB_CREATEPROCESS callbackInfo;
     callbackInfo.CreateProcessInfo = CreateProcessInfo;
     IMAGEHLP_MODULE64 modInfoUtf8;
     memset(&modInfoUtf8, 0, sizeof(modInfoUtf8));
     modInfoUtf8.SizeOfStruct = sizeof(modInfoUtf8);
-    modInfoUtf8.BaseOfImage = (DWORD64)base;
+    modInfoUtf8.BaseOfImage = base;
     modInfoUtf8.ImageSize = 0;
     modInfoUtf8.TimeDateStamp = 0;
     modInfoUtf8.CheckSum = 0;
@@ -1531,15 +1541,6 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     callbackInfo.DebugFileName = DebugFileName;
     callbackInfo.fdProcessInfo = fdProcessInfo;
     plugincbcall(CB_CREATEPROCESS, &callbackInfo);
-
-    //update thread list
-    CREATE_THREAD_DEBUG_INFO threadInfo;
-    threadInfo.hThread = CreateProcessInfo->hThread;
-    threadInfo.lpStartAddress = CreateProcessInfo->lpStartAddress;
-    threadInfo.lpThreadLocalBase = CreateProcessInfo->lpThreadLocalBase;
-    ThreadCreate(&threadInfo);
-
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
 }
 
 static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
@@ -2931,7 +2932,6 @@ static void debugLoopFunction(INIT_STRUCT* init)
 
     pDebuggedEntry = 0;
     pDebuggedBase = 0;
-    pCreateProcessBase = 0;
     hActiveThread = nullptr;
     if(!gDllLoader.empty()) //Delete the DLL loader (#1496)
     {
