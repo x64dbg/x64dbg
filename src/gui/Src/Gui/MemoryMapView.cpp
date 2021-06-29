@@ -667,7 +667,9 @@ void MemoryMapView::findReferencesSlot()
 
 void MemoryMapView::selectionGetSlot(SELECTIONDATA* selection)
 {
-    selection->start = selection->end = duint(getCellContent(getInitialSelection(), 0).toULongLong(nullptr, 16));
+    auto sel = getSelection();
+    selection->start = getCellUserdata(sel.front(), 0);
+    selection->end = getCellUserdata(sel.back(), 0);
     Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
 }
 
