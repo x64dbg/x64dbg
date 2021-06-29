@@ -389,10 +389,11 @@ void pluginloadall(const char* pluginDir)
 */
 void pluginunloadall()
 {
-    EXCLUSIVE_ACQUIRE(LockPluginList);
-    for(const auto & plugin : pluginList)
+    SHARED_ACQUIRE(LockPluginList);
+    auto pluginListCopy = pluginList;
+    SHARED_RELEASE();
+    for(const auto & plugin : pluginListCopy)
         pluginunload(plugin.plugname, true);
-    pluginList.clear();
 }
 
 /**
