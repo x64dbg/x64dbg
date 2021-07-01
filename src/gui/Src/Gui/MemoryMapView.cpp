@@ -669,7 +669,7 @@ void MemoryMapView::selectionGetSlot(SELECTIONDATA* selection)
 {
     auto sel = getSelection();
     selection->start = getCellUserdata(sel.front(), 0);
-    selection->end = getCellUserdata(sel.back(), 0);
+    selection->end = getCellUserdata(sel.back(), 0) + getCellUserdata(sel.back(), 1) - 1;
     Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
 }
 
