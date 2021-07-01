@@ -54,7 +54,7 @@ SCRIPT_EXPORT duint Script::Memory::GetSize(duint addr, bool reserved, bool cach
 
 SCRIPT_EXPORT unsigned char Script::Memory::ReadByte(duint addr)
 {
-    unsigned char data;
+    unsigned char data = 0;
     Read(addr, &data, sizeof(data), nullptr);
     return data;
 }
@@ -66,7 +66,7 @@ SCRIPT_EXPORT bool Script::Memory::WriteByte(duint addr, unsigned char data)
 
 SCRIPT_EXPORT unsigned short Script::Memory::ReadWord(duint addr)
 {
-    unsigned short data;
+    unsigned short data = 0;
     Read(addr, &data, sizeof(data), nullptr);
     return data;
 }
@@ -78,7 +78,7 @@ SCRIPT_EXPORT bool Script::Memory::WriteWord(duint addr, unsigned short data)
 
 SCRIPT_EXPORT unsigned int Script::Memory::ReadDword(duint addr)
 {
-    unsigned int data;
+    unsigned int data = 0;
     Read(addr, &data, sizeof(data), nullptr);
     return data;
 }
@@ -90,7 +90,7 @@ SCRIPT_EXPORT bool Script::Memory::WriteDword(duint addr, unsigned int data)
 
 SCRIPT_EXPORT unsigned long long Script::Memory::ReadQword(duint addr)
 {
-    unsigned long long data;
+    unsigned long long data = 0;
     Read(addr, &data, sizeof(data), nullptr);
     return data;
 }
@@ -102,7 +102,7 @@ SCRIPT_EXPORT bool Script::Memory::WriteQword(duint addr, unsigned long long dat
 
 SCRIPT_EXPORT duint Script::Memory::ReadPtr(duint addr)
 {
-    duint data;
+    duint data = 0;
     Read(addr, &data, sizeof(data), nullptr);
     return data;
 }
