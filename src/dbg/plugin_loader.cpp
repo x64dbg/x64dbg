@@ -994,6 +994,8 @@ struct ExprFuncWrapper
     static bool callback(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
     {
         auto cbUser = reinterpret_cast<ExprFuncWrapper*>(userdata);
+
+        cbUser->cbArgv.clear();
         for(auto i = 0; i < argc; i++)
             cbUser->cbArgv.push_back(argv[i].number);
 
