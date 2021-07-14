@@ -571,26 +571,36 @@ void AbstractTableView::mouseDoubleClickEvent(QMouseEvent* event)
 
 void AbstractTableView::wheelEvent(QWheelEvent* event)
 {
-    int numDegrees = event->delta() / 8;
-    int numSteps = numDegrees / 15;
+    QPoint numDegrees = event->angleDelta() / 8;
+    QPoint numSteps = numDegrees / 15;
 
     if(event->modifiers() == Qt::NoModifier)
     {
-        if(numSteps > 0)
+        if(numSteps.y() > 0)
         {
             if(mMouseWheelScrollDelta > 0)
-                for(int i = 0; i < mMouseWheelScrollDelta * numSteps; i++)
+                for(int i = 0; i < mMouseWheelScrollDelta * numSteps.y(); i++)
                     verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
             else // -1 : one screen at a time
                 verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepSub);
         }
-        else
+        else if(numSteps.y() < 0)
         {
             if(mMouseWheelScrollDelta > 0)
-                for(int i = 0; i < mMouseWheelScrollDelta * numSteps * -1; i++)
+                for(int i = 0; i < mMouseWheelScrollDelta * numSteps.y() * -1; i++)
                     verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
             else // -1 : one screen at a time
                 verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepAdd);
+        }
+        else if(numSteps.x() > 0)
+        {
+            for(int i = 0; i < 20 * numSteps.x(); i++)
+                horizontalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+        }
+        else if(numSteps.x() < 0)
+        {
+            for(int i = 0; i < 20 * numSteps.x() * -1; i++)
+                horizontalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
         }
     }
     else if(event->modifiers() == Qt::ControlModifier) // Zoom
