@@ -542,6 +542,14 @@ void HexDump::mouseReleaseEvent(QMouseEvent* event)
         AbstractTableView::mouseReleaseEvent(event);
 }
 
+void HexDump::wheelEvent(QWheelEvent* event)
+{
+    if(event->modifiers() == Qt::NoModifier)
+        AbstractTableView::wheelEvent(event);
+    else if(event->modifiers() == Qt::ControlModifier) // Zoom
+        Config()->zoomFont("HexDump", event);
+}
+
 void HexDump::keyPressEvent(QKeyEvent* event)
 {
     int key = event->key();

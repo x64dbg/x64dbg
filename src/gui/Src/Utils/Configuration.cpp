@@ -5,6 +5,7 @@
 #include <QIcon>
 #include <QScreen>
 #include <QGuiApplication>
+#include <QWheelEvent>
 #include "AbstractTableView.h"
 
 Configuration* Configuration::mPtr = nullptr;
@@ -1135,6 +1136,27 @@ void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
 void Configuration::registerMainMenuStringList(QList<QAction*>* menu)
 {
     NamedMenuBuilders.append(MenuMap(menu, menu->size() - 1));
+}
+
+void Configuration::zoomFont(const QString & fontName, QWheelEvent* event)
+{
+    QPoint numDegrees = event->angleDelta() / 8;
+    int ticks = numDegrees.y() / 15;
+    QFont myFont = Fonts[fontName];
+    char fontSizes[] = {6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 0}; // The list of font sizes in ApperanceDialog
+    char* currentFontSize = strchr(fontSizes, myFont.pointSize() & 127);
+    if(currentFontSize)
+    {
+        currentFontSize += ticks;
+        if(currentFontSize > fontSizes + 11)
+            currentFontSize = fontSizes + 11;
+        else if(currentFontSize < fontSizes)
+            currentFontSize = fontSizes;
+        myFont.setPointSize(*currentFontSize);
+        Fonts[fontName] = myFont;
+        writeFonts();
+        GuiUpdateAllViews();
+    }
 }
 
 static bool IsPointVisible(QPoint pos)

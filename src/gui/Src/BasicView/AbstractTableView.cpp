@@ -574,22 +574,27 @@ void AbstractTableView::wheelEvent(QWheelEvent* event)
     int numDegrees = event->delta() / 8;
     int numSteps = numDegrees / 15;
 
-    if(numSteps > 0)
+    if(event->modifiers() == Qt::NoModifier)
     {
-        if(mMouseWheelScrollDelta > 0)
-            for(int i = 0; i < mMouseWheelScrollDelta * numSteps; i++)
-                verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
-        else // -1 : one screen at a time
-            verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepSub);
+        if(numSteps > 0)
+        {
+            if(mMouseWheelScrollDelta > 0)
+                for(int i = 0; i < mMouseWheelScrollDelta * numSteps; i++)
+                    verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+            else // -1 : one screen at a time
+                verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepSub);
+        }
+        else
+        {
+            if(mMouseWheelScrollDelta > 0)
+                for(int i = 0; i < mMouseWheelScrollDelta * numSteps * -1; i++)
+                    verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+            else // -1 : one screen at a time
+                verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepAdd);
+        }
     }
-    else
-    {
-        if(mMouseWheelScrollDelta > 0)
-            for(int i = 0; i < mMouseWheelScrollDelta * numSteps * -1; i++)
-                verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
-        else // -1 : one screen at a time
-            verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepAdd);
-    }
+    else if(event->modifiers() == Qt::ControlModifier) // Zoom
+        Config()->zoomFont("AbstractTableView", event);
 }
 
 
