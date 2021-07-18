@@ -61,6 +61,7 @@ void WordEditDialog::hideEvent(QHideEvent* event)
 void WordEditDialog::setup(QString title, duint defVal, int byteCount)
 {
     this->setWindowTitle(title);
+    this->byteCount = byteCount;
     ui->hexLineEdit->setInputMask(QString("hh").repeated(byteCount));
     ui->expressionLineEdit->setText(QString("%1").arg(defVal, byteCount * 2, 16, QChar('0')).toUpper());
 
@@ -111,9 +112,23 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
         // Byte edit line
         ui->hexLineEdit->setText(ToPtrString(hexWord));
         // Signed edit
-        ui->signedLineEdit->setText(QString::number((dsint)mWord));
+        if(byteCount == sizeof(int8_t))
+            ui->signedLineEdit->setText(QString::number((int8_t)mWord));
+        else if(byteCount == sizeof(int16_t))
+            ui->signedLineEdit->setText(QString::number((int16_t)mWord));
+        else if(byteCount == sizeof(int32_t))
+            ui->signedLineEdit->setText(QString::number((int32_t)mWord));
+        else
+            ui->signedLineEdit->setText(QString::number((int64_t)mWord));
         // Unsigned edit
-        ui->unsignedLineEdit->setText(QString::number((duint)mWord));
+        if(byteCount == sizeof(uint8_t))
+            ui->unsignedLineEdit->setText(QString::number((uint8_t)mWord));
+        else if(byteCount == sizeof(uint16_t))
+            ui->unsignedLineEdit->setText(QString::number((uint16_t)mWord));
+        else if(byteCount == sizeof(uint32_t))
+            ui->unsignedLineEdit->setText(QString::number((uint32_t)mWord));
+        else
+            ui->unsignedLineEdit->setText(QString::number((uint64_t)mWord));
         // ASCII edit
         QString asciiExp;
         for(int i = 0; i < asciiWidth; i++)
@@ -143,7 +158,7 @@ void WordEditDialog::on_signedLineEdit_textEdited(const QString & arg1)
     {
         ui->signedLineEdit->setStyleSheet("");
         ui->btnOk->setEnabled(true);
-        ui->expressionLineEdit->setText(ToPtrString((duint)value));
+        ui->expressionLineEdit->setText(convertValueToHexString((duint)value));
     }
     else
     {
@@ -159,13 +174,27 @@ void WordEditDialog::on_unsignedLineEdit_textEdited(const QString & arg1)
     {
         ui->unsignedLineEdit->setStyleSheet("");
         ui->btnOk->setEnabled(true);
-        ui->expressionLineEdit->setText(ToPtrString((duint)value));
+        ui->expressionLineEdit->setText(convertValueToHexString((duint)value));
     }
     else
     {
         ui->unsignedLineEdit->setStyleSheet("border: 1px solid red");
         ui->btnOk->setEnabled(false);
     }
+}
+
+QString WordEditDialog::convertValueToHexString(duint value)
+{
+    if(byteCount == sizeof(unsigned char))
+        return ToByteString(value);
+
+    else if(byteCount == sizeof(unsigned short))
+        return ToWordString(value);
+
+    else if(byteCount == sizeof(unsigned int))
+        return ToDwordString(value);
+
+    return ToPtrString(value);
 }
 
 void WordEditDialog::saveCursorPositions()
