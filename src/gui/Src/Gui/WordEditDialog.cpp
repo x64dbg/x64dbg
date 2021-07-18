@@ -112,23 +112,23 @@ void WordEditDialog::expressionChanged(bool validExpression, bool validPointer, 
         // Byte edit line
         ui->hexLineEdit->setText(ToPtrString(hexWord));
         // Signed edit
-        if(byteCount == sizeof(int8_t))
-            ui->signedLineEdit->setText(QString::number((int8_t)mWord));
-        else if(byteCount == sizeof(int16_t))
-            ui->signedLineEdit->setText(QString::number((int16_t)mWord));
-        else if(byteCount == sizeof(int32_t))
-            ui->signedLineEdit->setText(QString::number((int32_t)mWord));
+        if(byteCount == sizeof(signed char))
+            ui->signedLineEdit->setText(QString::number((signed char)mWord));
+        else if(byteCount == sizeof(signed short))
+            ui->signedLineEdit->setText(QString::number((signed short)mWord));
+        else if(byteCount == sizeof(signed int))
+            ui->signedLineEdit->setText(QString::number((signed int)mWord));
         else
-            ui->signedLineEdit->setText(QString::number((int64_t)mWord));
+            ui->signedLineEdit->setText(QString::number((long long)mWord));
         // Unsigned edit
-        if(byteCount == sizeof(uint8_t))
-            ui->unsignedLineEdit->setText(QString::number((uint8_t)mWord));
-        else if(byteCount == sizeof(uint16_t))
-            ui->unsignedLineEdit->setText(QString::number((uint16_t)mWord));
-        else if(byteCount == sizeof(uint32_t))
-            ui->unsignedLineEdit->setText(QString::number((uint32_t)mWord));
+        if(byteCount == sizeof(unsigned char))
+            ui->unsignedLineEdit->setText(QString::number((unsigned char)mWord));
+        else if(byteCount == sizeof(unsigned short))
+            ui->unsignedLineEdit->setText(QString::number((unsigned short)mWord));
+        else if(byteCount == sizeof(unsigned int))
+            ui->unsignedLineEdit->setText(QString::number((unsigned int)mWord));
         else
-            ui->unsignedLineEdit->setText(QString::number((uint64_t)mWord));
+            ui->unsignedLineEdit->setText(QString::number((unsigned long long)mWord));
         // ASCII edit
         QString asciiExp;
         for(int i = 0; i < asciiWidth; i++)
