@@ -59,19 +59,19 @@ void StdSearchListView::loadColumnFromConfig(const QString & viewName)
 
 void StdSearchListView::setRowCount(dsint count)
 {
-    clearFilter();
+    //clearFilter();
     stdList()->setRowCount(count);
 }
 
 void StdSearchListView::setCellContent(int r, int c, QString s)
 {
-    clearFilter();
+    //clearFilter();
     stdList()->setCellContent(r, c, s);
 }
 
 void StdSearchListView::reloadData()
 {
-    clearFilter();
+    //clearFilter();
     stdList()->reloadData();
     MethodInvoker::invokeMethod([this]()
     {

@@ -70,7 +70,7 @@ QString StdIconTable::paintContent(QPainter* painter, dsint rowBase, int rowOffs
             painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
 
         mIcon.at(rowBase + rowOffset).paint(painter, x, y, h, h);
-        QString wStr = StdTable::paintContent(painter, rowBase, rowOffset, col, x + h, y, w, h);
+        QString wStr = StdTable::paintContent(painter, rowBase, rowOffset, col, x + h, y, w - h, h);
 
         if(wStr.length())
         {
