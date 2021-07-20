@@ -149,5 +149,8 @@ void LabelGetList(std::vector<LABELSINFO> & list)
 
 bool LabelGetInfo(duint Address, LABELSINFO* info)
 {
-    return labels.GetInfo(Address, info);
+    if(info == nullptr)
+        return false;
+
+    return labels.Get(Labels::VaKey(Address), *info);
 }
