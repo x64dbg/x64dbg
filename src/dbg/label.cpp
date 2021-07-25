@@ -91,6 +91,14 @@ bool LabelGet(duint Address, char* Text)
     return true;
 }
 
+bool LabelIsTemporary(duint Address)
+{
+    auto found = tempLabels.find(Address);
+    if(found == tempLabels.end())
+        return false;
+    return true;
+}
+
 bool LabelDelete(duint Address)
 {
     return labels.Delete(Labels::VaKey(Address)) || tempLabels.erase(Address) > 0;
