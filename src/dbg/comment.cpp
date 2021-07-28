@@ -51,9 +51,9 @@ bool CommentGet(duint Address, char* Text)
     if(!comments.Get(Comments::VaKey(Address), comment))
         return false;
     if(comment.manual)
-        strcpy_s(Text, MAX_COMMENT_SIZE, comment.text.c_str());
+        strncpy_s(Text, MAX_COMMENT_SIZE, comment.text.c_str(), _TRUNCATE);
     else
-        sprintf_s(Text, MAX_COMMENT_SIZE, "\1%s", comment.text.c_str());
+        _snprintf_s(Text, MAX_COMMENT_SIZE, _TRUNCATE, "\1%s", comment.text.c_str());
     return true;
 }
 
