@@ -1225,8 +1225,8 @@ void CPUDisassembly::findNamesSlot()
         auto base = DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection()));
         if(!base)
             return;
-        Bridge::getBridge()->symbolSelectModule(base);
-        emit displaySymbolsWidget();
+
+        DbgCmdExec(QString("symfollow %1").arg(base));
     }
 }
 
