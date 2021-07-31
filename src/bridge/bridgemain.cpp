@@ -1746,6 +1746,11 @@ BRIDGE_IMPEXP void GuiShowReferences()
     _gui_sendmessage(GUI_SHOW_REF, 0, 0);
 }
 
+BRIDGE_IMPEXP void GuiSelectInSymbolsTab(duint addr)
+{
+    _gui_sendmessage(GUI_SELECT_IN_SYMBOLS_TAB, (void*)addr, nullptr);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;
