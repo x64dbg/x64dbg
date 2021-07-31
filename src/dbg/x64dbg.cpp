@@ -406,7 +406,7 @@ static void registercommands()
     dbgcmdnew("FoldDisassembly", cbInstrFoldDisassembly, true); //fold disassembly segment
     dbgcmdnew("guiupdatetitle", cbDebugUpdateTitle, true); // set relevant disassembly title
     dbgcmdnew("showref", cbShowReferences, false); // show references window
-    dbgcmdnew("symfollow", cbSymbolsFollow, false); // show references window
+    dbgcmdnew("symfollow", cbSymbolsFollow, false); // follow address in symbols tab
 
     //misc
     dbgcmdnew("chd", cbInstrChd, false); //Change directory
