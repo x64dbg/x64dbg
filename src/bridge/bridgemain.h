@@ -1197,6 +1197,7 @@ typedef enum
     GUI_INVALIDATE_SYMBOL_SOURCE,   // param1=duint base,           param2=unused
     GUI_GET_CURRENT_GRAPH,          // param1=BridgeCFGraphList*,   param2=unused
     GUI_SHOW_REF,                   // param1=unused,               param2=unused
+    GUI_SELECT_IN_SYMBOLS_TAB,      // param1=duint addr,           param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1378,6 +1379,7 @@ BRIDGE_IMPEXP void GuiInvalidateSymbolSource(duint base);
 BRIDGE_IMPEXP void GuiExecuteOnGuiThreadEx(GUICALLBACKEX cbGuiThread, void* userdata);
 BRIDGE_IMPEXP void GuiGetCurrentGraph(BridgeCFGraphList* graphList);
 BRIDGE_IMPEXP void GuiShowReferences();
+BRIDGE_IMPEXP void GuiSelectInSymbolsTab(duint addr);
 
 #ifdef __cplusplus
 }
