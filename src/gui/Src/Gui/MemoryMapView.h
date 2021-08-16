@@ -21,6 +21,7 @@ public slots:
     void stateChangedSlot(DBGSTATE state);
     void followDumpSlot();
     void followDisassemblerSlot();
+    void followSymbolsSlot();
     void doubleClickedSlot();
     void memoryExecuteSingleshootToggleSlot();
     void memoryAllocateSlot();
@@ -49,6 +50,7 @@ private:
 
     QAction* mFollowDump;
     QAction* mFollowDisassembly;
+    QAction* mFollowSymbols;
     QAction* mSwitchView;
     QAction* mPageMemoryRights;
     QAction* mDumpMemory;

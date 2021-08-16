@@ -524,6 +524,14 @@ void CPUStack::mouseDoubleClickEvent(QMouseEvent* event)
     }
 }
 
+void CPUStack::wheelEvent(QWheelEvent* event)
+{
+    if(event->modifiers() == Qt::NoModifier)
+        AbstractTableView::wheelEvent(event);
+    else if(event->modifiers() == Qt::ControlModifier) // Zoom
+        Config()->zoomFont("Stack", event);
+}
+
 void CPUStack::stackDumpAt(duint addr, duint csp)
 {
     if(DbgMemIsValidReadPtr(addr))

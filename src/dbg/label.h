@@ -12,6 +12,7 @@ struct LABELSINFO : AddrInfo
 bool LabelSet(duint Address, const char* Text, bool Manual, bool Temp = false);
 bool LabelFromString(const char* Text, duint* Address);
 bool LabelGet(duint Address, char* Text);
+bool LabelIsTemporary(duint Address);
 bool LabelDelete(duint Address);
 void LabelDelRange(duint Start, duint End, bool Manual);
 void LabelCacheSave(JSON root);

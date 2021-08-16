@@ -70,6 +70,13 @@ inline QString ToWordString(unsigned short Value)
     return QString(temp);
 }
 
+inline QString ToDwordString(unsigned int Value)
+{
+    char temp[16];
+    sprintf_s(temp, "%08X", Value);
+    return QString(temp);
+}
+
 template<typename T>
 inline QString ToFloatingString(const void* buffer, int precision)
 {
