@@ -413,6 +413,9 @@ void ScriptView::setupContextMenu()
     mMenu->addAction(makeShortcutAction(DIcon("control-stop.png"), tr("&Abort"), SLOT(abort()), "ActionAbortScript"), isempty);
     mMenu->addAction(makeAction(DIcon("neworigin.png"), tr("&Continue here..."), SLOT(newIp())), isempty);
     mMenu->addSeparator();
+    MenuBuilder* copyMenu = new MenuBuilder(this);
+    setupCopyMenu(copyMenu);
+    mMenu->addMenu(makeMenu(DIcon("copy.png"), tr("Copy")), copyMenu);
     mMenu->addAction(makeShortcutAction(DIcon("terminal-command.png"), tr("E&xecute Command..."), SLOT(cmdExec()), "ActionExecuteCommandScript"));
 }
 

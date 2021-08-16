@@ -180,6 +180,7 @@ bool pluginload(const char* pluginName, bool loadall)
     };
     regExport("CBINITDEBUG", CB_INITDEBUG);
     regExport("CBSTOPDEBUG", CB_STOPDEBUG);
+    regExport("CB_STOPPINGDEBUG", CB_STOPPINGDEBUG);
     regExport("CBCREATEPROCESS", CB_CREATEPROCESS);
     regExport("CBEXITPROCESS", CB_EXITPROCESS);
     regExport("CBCREATETHREAD", CB_CREATETHREAD);
@@ -389,10 +390,11 @@ void pluginloadall(const char* pluginDir)
 */
 void pluginunloadall()
 {
-    EXCLUSIVE_ACQUIRE(LockPluginList);
-    for(const auto & plugin : pluginList)
+    SHARED_ACQUIRE(LockPluginList);
+    auto pluginListCopy = pluginList;
+    SHARED_RELEASE();
+    for(const auto & plugin : pluginListCopy)
         pluginunload(plugin.plugname, true);
-    pluginList.clear();
 }
 
 /**
@@ -993,6 +995,8 @@ struct ExprFuncWrapper
     static bool callback(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
     {
         auto cbUser = reinterpret_cast<ExprFuncWrapper*>(userdata);
+
+        cbUser->cbArgv.clear();
         for(auto i = 0; i < argc; i++)
             cbUser->cbArgv.push_back(argv[i].number);
 

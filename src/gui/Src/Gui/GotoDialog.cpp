@@ -41,6 +41,7 @@ GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowI
     connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, dsint)), this, SLOT(expressionChanged(bool, bool, dsint)));
     connect(ui->editExpression, SIGNAL(textChanged(QString)), mValidateThread, SLOT(textChanged(QString)));
     connect(ui->editExpression, SIGNAL(textEdited(QString)), this, SLOT(textEditedSlot(QString)));
+    connect(ui->labelError, SIGNAL(linkActivated(QString)), this, SLOT(linkActivated(QString)));
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedSlot(int)));
     connect(Config(), SIGNAL(disableAutoCompleteUpdated()), this, SLOT(disableAutoCompleteUpdated()));
 
@@ -88,7 +89,17 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
     QString expression = ui->editExpression->text();
     if(!expression.length())
     {
-        ui->labelError->setText(tr("<font color='red'><b>Empty expression...</b></font>"));
+        QString tips[] = {"RVA", tr("File offset"), "PEB", "TEB"};
+        const char* expressions[] = {":$%", ":#%", "peb()", "teb()"};
+        QString labelText(tr("Shortcuts: "));
+        for(size_t i = 0; i < 4; i++)
+        {
+            labelText += "<a href=\"";
+            labelText += QString(expressions[i]).replace('%', "%" + tips[i] + "%") + "\">" + QString(expressions[i]).replace('%', tips[i]) + "</a>";
+            if(i < 3)
+                labelText += '\t';
+        }
+        ui->labelError->setText(labelText);
         setOkEnabled(false);
         expressionText.clear();
     }
@@ -191,6 +202,19 @@ void GotoDialog::finishedSlot(int result)
 void GotoDialog::textEditedSlot(QString text)
 {
     mCompletionText = text;
+}
+
+void GotoDialog::linkActivated(const QString & link)
+{
+    if(link.contains('%'))
+    {
+        int x = link.indexOf('%');
+        int y = link.lastIndexOf('%');
+        ui->editExpression->setText(QString(link).replace('%', ""));
+        ui->editExpression->setSelection(x, y - 1);
+    }
+    else
+        ui->editExpression->setText(link);
 }
 
 void GotoDialog::disableAutoCompleteUpdated()

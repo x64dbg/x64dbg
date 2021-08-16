@@ -70,6 +70,11 @@ typedef struct
 
 typedef struct
 {
+    void* reserved;
+} PLUG_CB_STOPPINGDEBUG;
+
+typedef struct
+{
     CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo;
     IMAGEHLP_MODULE64* modInfo;
     const char* DebugFileName;
@@ -256,6 +261,7 @@ typedef enum
 {
     CB_INITDEBUG, //PLUG_CB_INITDEBUG
     CB_STOPDEBUG, //PLUG_CB_STOPDEBUG
+    CB_STOPPINGDEBUG, //PLUG_CB_STOPDEBUG
     CB_CREATEPROCESS, //PLUG_CB_CREATEPROCESS
     CB_EXITPROCESS, //PLUG_CB_EXITPROCESS
     CB_CREATETHREAD, //PLUG_CB_CREATETHREAD

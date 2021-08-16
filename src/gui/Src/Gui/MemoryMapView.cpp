@@ -54,6 +54,10 @@ void MemoryMapView::setupContextMenu()
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(doubleClickedSlot()));
     connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
 
+    //Follow in Symbols
+    mFollowSymbols = new QAction(DIcon("pdb.png"), tr("&Follow in Symbols"), this);
+    connect(mFollowSymbols, SIGNAL(triggered()), this, SLOT(followSymbolsSlot()));
+
     //Set PageMemory Rights
     mPageMemoryRights = new QAction(DIcon("memmap_set_page_memory_rights.png"), tr("Set Page Memory Rights"), this);
     connect(mPageMemoryRights, SIGNAL(triggered()), this, SLOT(pageMemoryRights()));
@@ -205,9 +209,16 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
 {
     if(!DbgIsDebugging())
         return;
+
+    duint selectedAddr = getCellUserdata(getInitialSelection(), 0);
+
     QMenu wMenu(this); //create context menu
     wMenu.addAction(mFollowDisassembly);
     wMenu.addAction(mFollowDump);
+
+    if(DbgFunctions()->ModBaseFromAddr(selectedAddr))
+        wMenu.addAction(mFollowSymbols);
+
     wMenu.addAction(mDumpMemory);
     //wMenu.addAction(mLoadMemory); //TODO:loaddata command
     wMenu.addAction(mComment);
@@ -235,7 +246,6 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
         wMenu.addMenu(&wCopyMenu);
     }
 
-    duint selectedAddr = getCellUserdata(getInitialSelection(), 0);
     if((DbgGetBpxTypeAt(selectedAddr) & bp_memory) == bp_memory) //memory breakpoint set
     {
         mMemoryAccessMenu->menuAction()->setVisible(false);
@@ -474,6 +484,11 @@ void MemoryMapView::followDisassemblerSlot()
     DbgCmdExec(QString("disasm %1").arg(getCellContent(getInitialSelection(), 0)));
 }
 
+void MemoryMapView::followSymbolsSlot()
+{
+    DbgCmdExec(QString("symfollow %1").arg(getCellContent(getInitialSelection(), 0)));
+}
+
 void MemoryMapView::doubleClickedSlot()
 {
     auto addr = DbgValFromString(getCellContent(getInitialSelection(), 0).toUtf8().constData());
@@ -667,7 +682,9 @@ void MemoryMapView::findReferencesSlot()
 
 void MemoryMapView::selectionGetSlot(SELECTIONDATA* selection)
 {
-    selection->start = selection->end = duint(getCellContent(getInitialSelection(), 0).toULongLong(nullptr, 16));
+    auto sel = getSelection();
+    selection->start = getCellUserdata(sel.front(), 0);
+    selection->end = getCellUserdata(sel.back(), 0) + getCellUserdata(sel.back(), 1) - 1;
     Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
 }
 

@@ -7,6 +7,11 @@ SCRIPT_EXPORT bool Script::Label::Set(duint addr, const char* text, bool manual)
     return LabelSet(addr, text, manual);
 }
 
+SCRIPT_EXPORT bool Script::Label::Set(duint addr, const char* text, bool manual, bool temporary)
+{
+    return LabelSet(addr, text, manual, temporary);
+}
+
 SCRIPT_EXPORT bool Script::Label::Set(const LabelInfo* info)
 {
     if(!info)
@@ -14,7 +19,7 @@ SCRIPT_EXPORT bool Script::Label::Set(const LabelInfo* info)
     auto base = Module::BaseFromName(info->mod);
     if(!base)
         return false;
-    return Set(base + info->rva, info->text, info->manual);
+    return Set(base + info->rva, info->text, info->manual, false);
 }
 
 SCRIPT_EXPORT bool Script::Label::FromString(const char* label, duint* addr)
@@ -25,6 +30,11 @@ SCRIPT_EXPORT bool Script::Label::FromString(const char* label, duint* addr)
 SCRIPT_EXPORT bool Script::Label::Get(duint addr, char* text)
 {
     return LabelGet(addr, text);
+}
+
+SCRIPT_EXPORT bool Script::Label::IsTemporary(duint addr)
+{
+    return LabelIsTemporary(addr);
 }
 
 SCRIPT_EXPORT bool Script::Label::GetInfo(duint addr, LabelInfo* info)

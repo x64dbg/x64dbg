@@ -36,6 +36,7 @@ private slots:
     void on_unsignedLineEdit_textEdited(const QString & arg1);
 
 private:
+    QString convertValueToHexString(duint value);
     Ui::WordEditDialog* ui;
     duint mWord;
     ValidateExpressionThread* mValidateThread;
@@ -44,6 +45,7 @@ private:
     int mSignedEditPos;
     int mUnsignedEditPos;
     int mAsciiLineEditPos;
+    int byteCount;
 };
 
 #endif // WORDEDITDIALOG_H

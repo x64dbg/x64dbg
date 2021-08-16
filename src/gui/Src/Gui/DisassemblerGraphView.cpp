@@ -899,6 +899,10 @@ void DisassemblerGraphView::wheelEvent(QWheelEvent* event)
 
         event->accept();
     }
+    else if(event->modifiers() == Qt::ControlModifier)
+    {
+        Config()->zoomFont("Disassembly", event);
+    }
     else
     {
         QAbstractScrollArea::wheelEvent(event);
