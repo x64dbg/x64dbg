@@ -2,10 +2,10 @@
 
 if "%OLDPATH%"=="" set OLDPATH=%PATH%
 
-if "%QT32PATH%"=="" set QT32PATH=Z:\Qt\Qt5.6.3-x86-msvc2013\5.6.3\msvc2013\bin
-if "%QT64PATH%"=="" set QT64PATH=Z:\Qt\Qt5.6.3-x64-msvc2013\5.6.3\msvc2013_64\bin
-if "%QTCREATORPATH%"=="" set QTCREATORPATH=Z:\Qt\qtcreator-4.3.1\bin
-if "%VSVARSALLPATH%"=="" set VSVARSALLPATH=Z:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat
+if "%QT32PATH%"=="" set QT32PATH=c:\Qt\qt-5.6.2-x86-msvc2013\5.6\msvc2013\bin
+if "%QT64PATH%"=="" set QT64PATH=c:\Qt\qt-5.6.2-x64-msvc2013\5.6\msvc2013_64\bin
+if "%QTCREATORPATH%"=="" set QTCREATORPATH=c:\Qt\qtcreator-4.3.1\bin
+if "%VSVARSALLPATH%"=="" set VSVARSALLPATH=c:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat
 if "%COVERITYPATH%"=="" set COVERITYPATH=c:\coverity\bin
 
 if "%1"=="x32" (
