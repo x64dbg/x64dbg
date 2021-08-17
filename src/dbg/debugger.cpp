@@ -685,6 +685,9 @@ static void printMemBpInfo(const BREAKPOINT & bp, const void* ExceptionAddress)
     case UE_MEMORY:
         bptype = _strdup(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (read/write/execute)")));
         break;
+    case UE_MEMORY_NOACCESS:
+        bptype = _strdup(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (noaccess)")));
+        break;
     default:
         bptype = _strdup("");
     }

@@ -745,6 +745,9 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
         case UE_MEMORY:
             BridgeBp->typeEx = mem_access;
             break;
+        case UE_MEMORY_NOACCESS:
+            BridgeBp->typeEx = mem_noaccess;
+            break;
         }
         break;
     case BPDLL:

@@ -722,6 +722,9 @@ bool cbDebugSetMemoryBpx(int argc, char* argv[])
         case 'x': //execute
             type = UE_MEMORY_EXECUTE;
             break;
+        case 'n': //noaccess
+            type = UE_MEMORY_NOACCESS;
+            break;
         default:
             dputs(QT_TRANSLATE_NOOP("DBG", "Invalid type (argument ignored)"));
             break;

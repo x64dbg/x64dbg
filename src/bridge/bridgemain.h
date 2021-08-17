@@ -482,7 +482,8 @@ typedef enum
     mem_access,
     mem_read,
     mem_write,
-    mem_execute
+    mem_execute,
+    mem_noaccess
 } BPMEMTYPE;
 
 typedef enum
