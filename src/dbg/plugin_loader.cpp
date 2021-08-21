@@ -180,6 +180,7 @@ bool pluginload(const char* pluginName, bool loadall)
     };
     regExport("CBINITDEBUG", CB_INITDEBUG);
     regExport("CBSTOPDEBUG", CB_STOPDEBUG);
+    regExport("CB_STOPPINGDEBUG", CB_STOPPINGDEBUG);
     regExport("CBCREATEPROCESS", CB_CREATEPROCESS);
     regExport("CBEXITPROCESS", CB_EXITPROCESS);
     regExport("CBCREATETHREAD", CB_CREATETHREAD);

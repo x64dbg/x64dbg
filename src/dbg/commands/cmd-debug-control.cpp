@@ -147,6 +147,11 @@ bool cbDebugStop(int argc, char* argv[])
     if(!hDebugLoopThread)
         return false;
 
+    // Give the plugins a chance to perform clean-up
+    PLUG_CB_STOPPINGDEBUG stoppingInfo;
+    stoppingInfo.reserved = 0;
+    plugincbcall(CB_STOPPINGDEBUG, &stoppingInfo);
+
     auto hDebugLoopThreadCopy = hDebugLoopThread;
     hDebugLoopThread = nullptr;
 
