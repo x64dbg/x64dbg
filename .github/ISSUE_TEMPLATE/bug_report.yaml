@@ -1,0 +1,52 @@
+name: Bug report
+description: Issues and bugs for x64dbg.
+labels: 
+- bug
+- pending reproduction
+
+body:
+- type: markdown
+  attributes:
+    value: Before filing this bug, [please check if it hasn't already been reported](https://github.com/x64dbg/x64dbg/issues?q=is%3Aissue+label%3Abug). If it has, please add useful information to the existing issue instead.
+
+- type: input
+  attributes:
+    label: Operating System
+    placeholder: Window 10 64bit, Build 18363
+  validations:
+    required: true
+
+- type: input
+  attributes:
+    label: x64dbg Version
+    placeholder: Jul 29 2021
+    description: To get the version information, press "Help" on the menu bar and press "About".
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Describe the issue
+    description: Please describe the issue you are experiencing here.
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Steps to reproduce
+    description: Please describe in small and detailed steps on how to reproduce the issue.
+    placeholder: Steps required to reproduce the issue.
+    value: |
+      1. 
+      2. 
+      3. 
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Attachments
+    description: If you can provide crashdumps or screenshots that help to investigate the issue please provide them.
+    placeholder: Drag and drop files here to add them
+  validations:
+    required: false
