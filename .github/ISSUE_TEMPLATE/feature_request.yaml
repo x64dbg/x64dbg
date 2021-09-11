@@ -1,0 +1,30 @@
+name: Feature request
+description: Request a new feature to be added to x64dbg.
+labels:
+- feature
+
+body:
+- type: markdown
+  attributes:
+    value: Before filing this request, [please check if it hasn't already been suggested before](https://github.com/x64dbg/x64dbg/issues?q=is%3Aissue+label%3Afeature). If it has, please add to the existing issue instead.
+
+- type: dropdown
+  attributes:
+    label: Feature type
+    description: Tell us what this feature would improve.
+    multiple: true
+    options:
+      - Quality of life
+      - Debugging
+      - Plug-ins
+      - Other
+  validations:
+    required: true
+
+- type: textarea
+  attributes:
+    label: Describe the feature
+    placeholder: Describe your feature idea here. You can paste or drag & drop attachments here to help on illustrating it.
+  validations:
+    required: true
+
