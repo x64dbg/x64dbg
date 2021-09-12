@@ -18,6 +18,6 @@ void StdIconSearchListView::setIconColumn(int c)
 
 void StdIconSearchListView::setRowIcon(int r, const QIcon & icon)
 {
-    clearFilter();
+    //clearFilter();
     qobject_cast<StdIconTable*>(stdList())->setRowIcon(r, icon);
 }
