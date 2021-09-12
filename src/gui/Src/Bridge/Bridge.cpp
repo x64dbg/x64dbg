@@ -879,6 +879,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_SHOW_REF:
         emit showReferences();
         break;
+
+    case GUI_SELECT_IN_SYMBOLS_TAB:
+        emit symbolSelectModule(duint(param1));
+        break;
     }
 
     return nullptr;

@@ -37,6 +37,7 @@ private slots:
     void on_buttonOk_clicked();
     void finishedSlot(int result);
     void textEditedSlot(QString text);
+    void linkActivated(const QString & link);
 
 private:
     Ui::GotoDialog* ui;

@@ -304,3 +304,26 @@ bool cbShowReferences(int argc, char* argv[])
     GuiShowReferences();
     return true;
 }
+
+bool cbSymbolsFollow(int argc, char* argv[])
+{
+    if(argc < 2)
+        return false;
+    duint addr;
+    if(!valfromstring(argv[1], &addr, false) || !MemIsValidReadPtr(addr, true))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid address \"%s\"!\n"), argv[1]);
+        return false;
+    }
+
+    duint base = ModBaseFromAddr(addr);
+    if(!base)
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Address \"%s\" doesn't belong to any module!\n"), argv[1]);
+        return false;
+    }
+
+    GuiSelectInSymbolsTab(base);
+    GuiFocusView(GUI_SYMMOD);
+    return true;
+}
