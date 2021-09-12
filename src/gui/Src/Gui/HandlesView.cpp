@@ -182,21 +182,10 @@ void HandlesView::handlesTableContextMenuSlot(QMenu* wMenu)
     if(!DbgIsDebugging())
         return;
     auto & table = *mHandlesTable->mCurList;
-    QMenu wCopyMenu(tr("&Copy"), this);
-    wCopyMenu.setIcon(DIcon("copy.png"));
 
     wMenu->addAction(mActionRefresh);
     if(table.getRowCount())
-    {
         wMenu->addAction(mActionCloseHandle);
-
-        table.setupCopyMenu(&wCopyMenu);
-        if(wCopyMenu.actions().length())
-        {
-            wMenu->addSeparator();
-            wMenu->addMenu(&wCopyMenu);
-        }
-    }
 }
 
 void HandlesView::windowsTableContextMenuSlot(QMenu* wMenu)
@@ -204,8 +193,6 @@ void HandlesView::windowsTableContextMenuSlot(QMenu* wMenu)
     if(!DbgIsDebugging())
         return;
     auto & table = *mWindowsTable->mCurList;
-    QMenu wCopyMenu(tr("Copy"), this);
-    wCopyMenu.setIcon(DIcon("copy.png"));
     wMenu->addAction(mActionRefresh);
 
     if(table.getRowCount())
@@ -224,13 +211,6 @@ void HandlesView::windowsTableContextMenuSlot(QMenu* wMenu)
         wMenu->addAction(mActionFollowProc);
         wMenu->addAction(mActionToggleProcBP);
         wMenu->addAction(mActionMessageProcBP);
-        wMenu->addSeparator();
-        table.setupCopyMenu(&wCopyMenu);
-        if(wCopyMenu.actions().length())
-        {
-            wMenu->addSeparator();
-            wMenu->addMenu(&wCopyMenu);
-        }
     }
 }
 
@@ -238,20 +218,7 @@ void HandlesView::tcpConnectionsTableContextMenuSlot(QMenu* wMenu)
 {
     if(!DbgIsDebugging())
         return;
-    auto & table = *mTcpConnectionsTable->mCurList;
-    QMenu wCopyMenu(tr("&Copy"), this);
-    wCopyMenu.setIcon(DIcon("copy.png"));
-
     wMenu->addAction(mActionRefresh);
-    if(table.getRowCount())
-    {
-        table.setupCopyMenu(&wCopyMenu);
-        if(wCopyMenu.actions().length())
-        {
-            wMenu->addSeparator();
-            wMenu->addMenu(&wCopyMenu);
-        }
-    }
 }
 
 void HandlesView::privilegesTableContextMenuSlot(const QPoint & pos)
