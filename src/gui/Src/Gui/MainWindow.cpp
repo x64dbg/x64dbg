@@ -6,6 +6,7 @@
 #include <QFileDialog>
 #include <QMimeData>
 #include <QDesktopServices>
+#include <QStatusTipEvent>
 #include "Configuration.h"
 #include "SettingsDialog.h"
 #include "AppearanceDialog.h"
@@ -1078,6 +1079,12 @@ bool MainWindow::event(QEvent* event)
     {
         mTabWidget->setCurrentIndex(mTabWidget->currentIndex());
     }
+    else if(event->type() == QEvent::StatusTip)
+    {
+        QStatusTipEvent* tip = dynamic_cast<QStatusTipEvent*>(event);
+        mLastLogLabel->showMessage(tip->tip());
+        return true;
+    }
 
     return QMainWindow::event(event);
 }
@@ -2064,7 +2071,7 @@ void MainWindow::clickFavouriteTool()
             auto format = toolPath.mid(sfStart + 2, sfEnd - sfStart - 2);
             toolPath.replace(sfStart, sfEnd - sfStart + 2, stringFormatInline(format));
         }
-        mLastLogLabel->setText(toolPath);
+        GuiAddLogMessage(tr("Starting tool %1\n").arg(toolPath).toUtf8().constData());
         PROCESS_INFORMATION procinfo;
         STARTUPINFO startupinfo;
         memset(&procinfo, 0, sizeof(PROCESS_INFORMATION));
@@ -2104,6 +2111,7 @@ void MainWindow::chooseLanguage()
     {
         QDir translationsDir(QString("%1/../translations/").arg(QCoreApplication::applicationDirPath()));
         QFile file(translationsDir.absoluteFilePath(QString("x64dbg_%1.qm").arg(localeName)));
+        // A translation file less than 0.5KB is probably not useful
         if(file.size() < 512)
         {
             QMessageBox msg(this);
@@ -2369,6 +2377,11 @@ void MainWindow::on_actionDefaultTheme_triggered()
     // Remove custom colors
     BridgeSettingSet("Colors", "CustomColorCount", nullptr);
     updateDarkTitleBar();
+}
+
+void MainWindow::on_actionAbout_Qt_triggered()
+{
+    QMessageBox::aboutQt(this);
 }
 
 void MainWindow::updateStyle()

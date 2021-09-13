@@ -1,6 +1,7 @@
 #include "LogStatusLabel.h"
 #include <QTextDocument>
 #include <QApplication>
+#include <QStatusBar>
 
 LogStatusLabel::LogStatusLabel(QStatusBar* parent) : QLabel(parent)
 {
@@ -20,7 +21,6 @@ void LogStatusLabel::logUpdate(QString message)
     labelText += message.replace("\r\n", "\n");
     QStringList lineList = labelText.split('\n');
     labelText = lineList.last(); //if the last character is a newline this will be an empty string
-    QString finalLabel;
     for(int i = 0; i < lineList.length(); i++)
     {
         const QString & line = lineList[lineList.size() - i - 1];
@@ -78,4 +78,15 @@ void LogStatusLabel::getActiveView(ACTIVEVIEW* active)
     strncpy_s(active->title, findTitle(now, active->titleHwnd).toUtf8().constData(), _TRUNCATE);
     strncpy_s(active->className, className(now, active->classHwnd).toUtf8().constData(), _TRUNCATE);
     Bridge::getBridge()->setResult(BridgeResult::GetActiveView);
+}
+
+void LogStatusLabel::showMessage(const QString & message)
+{
+    statusTip = message;
+    if(statusTip.isEmpty())
+        setText(finalLabel);
+    else
+    {
+        setText(statusTip);
+    }
 }

@@ -159,6 +159,7 @@
     <addaction name="actionManual"/>
     <addaction name="actionFaq"/>
     <addaction name="actionAbout"/>
+    <addaction name="actionAbout_Qt"/>
     <addaction name="separator"/>
     <addaction name="actionCrashDump"/>
    </widget>
@@ -316,6 +317,9 @@
    <property name="text">
     <string>&amp;Open</string>
    </property>
+   <property name="statusTip">
+    <string>Run the file and start debugging.</string>
+   </property>
   </action>
   <action name="actionExit">
    <property name="icon">
@@ -351,6 +355,9 @@
    </property>
    <property name="text">
     <string>Re&amp;start</string>
+   </property>
+   <property name="statusTip">
+    <string>Stop the debuggee and restart it, or restart the last debugged file.</string>
    </property>
   </action>
   <action name="actionClose">
@@ -1261,6 +1268,14 @@
    </property>
    <property name="text">
     <string>&amp;Clear database</string>
+   </property>
+  </action>
+  <action name="actionAbout_Qt">
+   <property name="text">
+    <string>About Qt</string>
+   </property>
+   <property name="statusTip">
+    <string>Display information about Qt</string>
    </property>
   </action>
  </widget>

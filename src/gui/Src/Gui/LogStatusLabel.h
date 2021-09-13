@@ -2,8 +2,9 @@
 #define LOGSTATUSLABEL_H
 
 #include <QLabel>
-#include <QStatusBar>
 #include "Bridge.h"
+
+class QStatusBar;
 
 class LogStatusLabel : public QLabel
 {
@@ -16,9 +17,13 @@ public slots:
     void logUpdateUtf8(QByteArray message);
     void focusChanged(QWidget* old, QWidget* now);
     void getActiveView(ACTIVEVIEW* active);
+    // show status tip
+    void showMessage(const QString & message);
 
 private:
+    QString finalLabel;
     QString labelText;
+    QString statusTip;
 };
 
 #endif // LOGSTATUSLABEL_H

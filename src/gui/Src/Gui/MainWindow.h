@@ -287,6 +287,7 @@ private slots:
     void on_actionPlugins_triggered();
     void on_actionCheckUpdates_triggered();
     void on_actionDefaultTheme_triggered();
+    void on_actionAbout_Qt_triggered();
 };
 
 #endif // MAINWINDOW_H
