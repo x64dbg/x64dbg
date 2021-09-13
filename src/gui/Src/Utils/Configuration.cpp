@@ -568,12 +568,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionTreatSelectionHeadAsMMWord", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("MMWord")}, ""));
     defaultShortcuts.insert("ActionTreatSelectionHeadAsXMMWord", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("XMMWord")}, ""));
     defaultShortcuts.insert("ActionTreatSelectionHeadAsYMMWord", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("YMMWord")}, ""));
-    defaultShortcuts.insert("ActionIncreaseRegister", Shortcut({tr("Actions"), tr("Increase Register")}, "+"));
-    defaultShortcuts.insert("ActionDecreaseRegister", Shortcut({tr("Actions"), tr("Decrease Register")}, "-"));
-    defaultShortcuts.insert("ActionIncreaseRegisterPtrSize", Shortcut({tr("Actions"), tr("Increase Register by") + ArchValue(QString(" 4"), QString(" 8"))}));
-    defaultShortcuts.insert("ActionDecreaseRegisterPtrSize", Shortcut({tr("Actions"), tr("Decrease Register by") + ArchValue(QString(" 4"), QString(" 8"))}));
-    defaultShortcuts.insert("ActionZeroRegister", Shortcut({tr("Actions"), tr("Zero Register")}, "0"));
-    defaultShortcuts.insert("ActionSetOneRegister", Shortcut({tr("Actions"), tr("Set Register to One")}, "1"));
     defaultShortcuts.insert("ActionToggleRegisterValue", Shortcut({tr("Actions"), tr("Toggle Register Value")}, "Space"));
     defaultShortcuts.insert("ActionClear", Shortcut({tr("Actions"), tr("Clear")}, "Ctrl+L"));
     defaultShortcuts.insert("ActionCopy", Shortcut({tr("Actions"), tr("Copy")}, "Ctrl+C"));
@@ -602,8 +596,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionGraphSyncOrigin", Shortcut({tr("Actions"), tr("Graph"), tr("Toggle sync with origin")}, "S"));
     defaultShortcuts.insert("ActionIncrementx87Stack", Shortcut({tr("Actions"), tr("Increment x87 Stack")}));
     defaultShortcuts.insert("ActionDecrementx87Stack", Shortcut({tr("Actions"), tr("Decrement x87 Stack")}));
-    defaultShortcuts.insert("ActionPush", Shortcut({tr("Actions"), tr("Push")}));
-    defaultShortcuts.insert("ActionPop", Shortcut({tr("Actions"), tr("Pop")}));
     defaultShortcuts.insert("ActionRedirectLog", Shortcut({tr("Actions"), tr("Redirect Log")}));
     defaultShortcuts.insert("ActionBrowseInExplorer", Shortcut({tr("Actions"), tr("Browse in Explorer")}));
     defaultShortcuts.insert("ActionDownloadSymbol", Shortcut({tr("Actions"), tr("Download Symbols for This Module")}));

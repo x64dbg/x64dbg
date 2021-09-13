@@ -88,12 +88,6 @@ void CPUStack::setupContextMenu()
         return rvaToVa(getSelectionStart());
     });
 
-    //Push
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("arrow-small-down.png"), ArchValue(tr("P&ush DWORD..."), tr("P&ush QWORD...")), SLOT(pushSlot()), "ActionPush"));
-
-    //Pop
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("arrow-small-up.png"), ArchValue(tr("P&op DWORD"), tr("P&op QWORD")), SLOT(popSlot()), "ActionPop"));
-
     //Realign
     mMenuBuilder->addAction(makeAction(DIcon("align-stack-pointer.png"), tr("Align Stack Pointer"), SLOT(realignSlot())), [this](QMenu*)
     {
@@ -895,27 +889,6 @@ void CPUStack::modifySlot()
         return;
     value = wEditDialog.getVal();
     mMemPage->write(&value, addr, sizeof(dsint));
-    GuiUpdateAllViews();
-}
-
-void CPUStack::pushSlot()
-{
-    WordEditDialog wEditDialog(this);
-    dsint value = 0;
-    wEditDialog.setup(ArchValue(tr("Push DWORD"), tr("Push QWORD")), value, sizeof(dsint));
-    if(wEditDialog.exec() != QDialog::Accepted)
-        return;
-    value = wEditDialog.getVal();
-    mCsp -= sizeof(dsint);
-    DbgValToString("csp", mCsp);
-    DbgMemWrite(mCsp, (const unsigned char*)&value, sizeof(dsint));
-    GuiUpdateAllViews();
-}
-
-void CPUStack::popSlot()
-{
-    mCsp += sizeof(dsint);
-    DbgValToString("csp", mCsp);
     GuiUpdateAllViews();
 }
 

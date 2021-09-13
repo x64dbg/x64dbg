@@ -30,8 +30,6 @@ signals:
     void displayReferencesWidget();
 
 public slots:
-    void pushSlot();
-    void popSlot();
     void stackDumpAt(duint addr, duint csp);
     void gotoCspSlot();
     void gotoCbpSlot();
