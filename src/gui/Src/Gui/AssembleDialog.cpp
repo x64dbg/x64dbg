@@ -114,7 +114,7 @@ void AssembleDialog::validateInstruction(QString expression)
     sizeDifference = typedInstructionSize - selectedInstructionSize;
 
     opcode.resize(typedInstructionSize);
-    emit mValidateThread->emitInstructionChanged(sizeDifference, opcode.toHex(' ').toUpper());
+    emit mValidateThread->emitInstructionChanged(sizeDifference, opcode.toHex().toUpper());
 }
 
 void AssembleDialog::textChangedSlot(QString text)
