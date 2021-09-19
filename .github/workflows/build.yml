@@ -1,0 +1,28 @@
+name: Build
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: true
+
+    - name: Build
+      run: |
+        ./build.bat x64
+        ./build.bat x32
+        ./release.bat
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: snapshot
+        path: release/*
+
+    # sign:
+
+# signtool sign /v /sm /fd sha256 /t http://timestamp.sectigo.com file.exe
