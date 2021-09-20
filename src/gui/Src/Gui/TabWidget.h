@@ -30,11 +30,6 @@ public:
 
     int addTabEx(QWidget* widget, const QIcon & icon, const QString & label, const QString & nativeName);
     QString getNativeName(int index);
-    void showPreviousTab();
-    void showNextTab();
-    void showPreviousView();
-    void showNextView();
-    void deleteCurrentTab();
 
 signals:
     void tabMovedTabWidget(int from, int to);
@@ -48,6 +43,11 @@ public slots:
     void OnDetachFocused(QWidget* parent);
     void currentChanged(int index);
     void setCurrentIndex(int index);
+    void showPreviousTab();
+    void showNextTab();
+    void showPreviousView();
+    void showNextView();
+    void deleteCurrentTab();
 
 protected:
     MHTabBar* tabBar() const;

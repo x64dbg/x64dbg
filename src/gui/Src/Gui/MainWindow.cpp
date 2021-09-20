@@ -263,6 +263,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Setup signals/slots
     connect(mCmdLineEdit, SIGNAL(returnPressed()), this, SLOT(executeCommand()));
+    makeCommandAction(ui->actionRestartAdmin, "restartadmin");
     makeCommandAction(ui->actionStepOver, "StepOver");
     makeCommandAction(ui->actionStepInto, "StepInto");
     connect(ui->actionCommand, SIGNAL(triggered()), this, SLOT(setFocusToCommandBar()));
@@ -331,11 +332,11 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionNotes, SIGNAL(triggered()), this, SLOT(displayNotesWidget()));
     connect(ui->actionHandles, SIGNAL(triggered()), this, SLOT(displayHandlesWidget()));
     connect(ui->actionGraph, SIGNAL(triggered()), this, SLOT(displayGraphWidget()));
-    connect(ui->actionPreviousTab, SIGNAL(triggered()), this, SLOT(displayPreviousTab()));
-    connect(ui->actionNextTab, SIGNAL(triggered()), this, SLOT(displayNextTab()));
-    connect(ui->actionPreviousView, SIGNAL(triggered()), this, SLOT(displayPreviousView()));
-    connect(ui->actionNextView, SIGNAL(triggered()), this, SLOT(displayNextView()));
-    connect(ui->actionHideTab, SIGNAL(triggered()), this, SLOT(hideTab()));
+    connect(ui->actionPreviousTab, SIGNAL(triggered()), mTabWidget, SLOT(showPreviousTab()));
+    connect(ui->actionNextTab, SIGNAL(triggered()), mTabWidget, SLOT(showNextTab()));
+    connect(ui->actionPreviousView, SIGNAL(triggered()), mTabWidget, SLOT(showPreviousView()));
+    connect(ui->actionNextView, SIGNAL(triggered()), mTabWidget, SLOT(showNextView()));
+    connect(ui->actionHideTab, SIGNAL(triggered()), mTabWidget, SLOT(deleteCurrentTab()));
     makeCommandAction(ui->actionStepIntoSource, "TraceIntoConditional src.line(cip) && !src.disp(cip)");
     makeCommandAction(ui->actionStepOverSource, "TraceOverConditional src.line(cip) && !src.disp(cip)");
     makeCommandAction(ui->actionseStepInto, "seStepInto");
@@ -1166,31 +1167,6 @@ void MainWindow::displayGraphWidget()
 {
     showQWidgetTab(mCpuWidget);
     mCpuWidget->setGraphFocus();
-}
-
-void MainWindow::displayPreviousTab()
-{
-    mTabWidget->showPreviousTab();
-}
-
-void MainWindow::displayNextTab()
-{
-    mTabWidget->showNextTab();
-}
-
-void MainWindow::displayPreviousView()
-{
-    mTabWidget->showPreviousView();
-}
-
-void MainWindow::displayNextView()
-{
-    mTabWidget->showNextView();
-}
-
-void MainWindow::hideTab()
-{
-    mTabWidget->deleteCurrentTab();
 }
 
 void MainWindow::openSettings()
@@ -2344,11 +2320,6 @@ void MainWindow::onMenuCustomized()
         else
             delete moreCommands;
     }
-}
-
-void MainWindow::on_actionRestartAdmin_triggered()
-{
-    DbgCmdExec("restartadmin");
 }
 
 void MainWindow::on_actionPlugins_triggered()

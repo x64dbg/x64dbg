@@ -329,6 +329,9 @@
    <property name="text">
     <string>E&amp;xit</string>
    </property>
+   <property name="statusTip">
+    <string>Exit x64dbg.</string>
+   </property>
   </action>
   <action name="actionRun">
    <property name="icon">
@@ -338,6 +341,9 @@
    <property name="text">
     <string>&amp;Run</string>
    </property>
+   <property name="statusTip">
+    <string>Run the debuggee.</string>
+   </property>
   </action>
   <action name="actionPause">
    <property name="icon">
@@ -346,6 +352,9 @@
    </property>
    <property name="text">
     <string>&amp;Pause</string>
+   </property>
+   <property name="statusTip">
+    <string>Pause the execution of debuggee to debug it, or stop animate into/animate over.</string>
    </property>
   </action>
   <action name="actionRestart">
@@ -367,6 +376,9 @@
    </property>
    <property name="text">
     <string>&amp;Close</string>
+   </property>
+   <property name="statusTip">
+    <string>Terminate the debuggee and stop debugging.</string>
    </property>
   </action>
   <action name="actionStepInto">
@@ -413,6 +425,9 @@
    <property name="text">
     <string>&amp;Memory Map</string>
    </property>
+   <property name="statusTip">
+    <string>Show the Memory Map tab.</string>
+   </property>
   </action>
   <action name="actionLog">
    <property name="icon">
@@ -421,6 +436,9 @@
    </property>
    <property name="text">
     <string>&amp;Log Window</string>
+   </property>
+   <property name="statusTip">
+    <string>Show the Log tab.</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -449,6 +467,9 @@
    <property name="text">
     <string>&amp;Breakpoints</string>
    </property>
+   <property name="statusTip">
+    <string>Show the Breakpoints tab.</string>
+   </property>
   </action>
   <action name="actioneStepInto">
    <property name="icon">
@@ -476,6 +497,9 @@
    <property name="text">
     <string>Run (pass exceptions)</string>
    </property>
+   <property name="statusTip">
+    <string>Run the debuggee and pass all exceptions to the debuggee without pausing.</string>
+   </property>
   </action>
   <action name="actioneRtr">
    <property name="icon">
@@ -497,6 +521,9 @@
    <property name="toolTip">
     <string>Script</string>
    </property>
+   <property name="statusTip">
+    <string>Show the Script tab.</string>
+   </property>
   </action>
   <action name="actionRunSelection">
    <property name="icon">
@@ -508,6 +535,9 @@
    </property>
    <property name="toolTip">
     <string>Run until selection</string>
+   </property>
+   <property name="statusTip">
+    <string>Put a breakpoint on selection and run the debuggee.</string>
    </property>
   </action>
   <action name="actionCpu">
@@ -521,6 +551,9 @@
    <property name="toolTip">
     <string>CPU</string>
    </property>
+   <property name="statusTip">
+    <string>Show the CPU tab to display the disassembly.</string>
+   </property>
   </action>
   <action name="actionSymbolInfo">
    <property name="icon">
@@ -532,6 +565,9 @@
    </property>
    <property name="toolTip">
     <string>Symbol Info</string>
+   </property>
+   <property name="statusTip">
+    <string>Show the Symbols tab.</string>
    </property>
   </action>
   <action name="actionReferences">
@@ -545,6 +581,9 @@
    <property name="toolTip">
     <string>References</string>
    </property>
+   <property name="statusTip">
+    <string>Show the References tab.</string>
+   </property>
   </action>
   <action name="actionThreads">
    <property name="icon">
@@ -557,6 +596,9 @@
    <property name="toolTip">
     <string>Threads</string>
    </property>
+   <property name="statusTip">
+    <string>Show the Threads tab.</string>
+   </property>
   </action>
   <action name="actionSettings">
    <property name="icon">
@@ -567,7 +609,10 @@
     <string>&amp;Preferences</string>
    </property>
    <property name="toolTip">
-    <string>Settings</string>
+    <string>Preferences</string>
+   </property>
+   <property name="statusTip">
+    <string>Opem the Preferences dialog.</string>
    </property>
   </action>
   <action name="actionStrings">
@@ -589,6 +634,9 @@
    </property>
    <property name="text">
     <string>&amp;Appearance</string>
+   </property>
+   <property name="statusTip">
+    <string>Open the Appearance dialog to adjust color and font settings.</string>
    </property>
   </action>
   <action name="actionCalls">
@@ -613,6 +661,9 @@
    </property>
    <property name="toolTip">
     <string>Patches</string>
+   </property>
+   <property name="statusTip">
+    <string>Open the patch dialog.</string>
    </property>
   </action>
   <action name="actionComments">
@@ -671,6 +722,9 @@
    <property name="toolTip">
     <string>Call Stack</string>
    </property>
+   <property name="statusTip">
+    <string>Show the Call Stack tab.</string>
+   </property>
   </action>
   <action name="actionShortcuts">
    <property name="icon">
@@ -701,6 +755,9 @@
    <property name="text">
     <string>Calculator</string>
    </property>
+   <property name="statusTip">
+    <string>Open the Calculator dialog.</string>
+   </property>
   </action>
   <action name="actionAttach">
    <property name="icon">
@@ -712,6 +769,9 @@
    </property>
    <property name="toolTip">
     <string>Attach</string>
+   </property>
+   <property name="statusTip">
+    <string>Attach the debugger to a process to debug it.</string>
    </property>
   </action>
   <action name="actionDetach">
@@ -725,6 +785,9 @@
    <property name="toolTip">
     <string>Detach</string>
    </property>
+   <property name="statusTip">
+    <string>Detach from the debuggee so that it continues running without being debugged.</string>
+   </property>
   </action>
   <action name="actionChangeCommandLine">
    <property name="icon">
@@ -733,6 +796,9 @@
    </property>
    <property name="text">
     <string>Change Command &amp;Line</string>
+   </property>
+   <property name="statusTip">
+    <string>Set the command line of the debuggee.</string>
    </property>
   </action>
   <action name="actionSkipNextInstruction">
@@ -785,6 +851,9 @@
    <property name="toolTip">
     <string>Source</string>
    </property>
+   <property name="statusTip">
+    <string>Show the Source tab.</string>
+   </property>
   </action>
   <action name="actionManual">
    <property name="icon">
@@ -827,6 +896,9 @@
    <property name="toolTip">
     <string>Hide debugger (PEB)</string>
    </property>
+   <property name="statusTip">
+    <string>Modifies the PEB to hide debugger.</string>
+   </property>
   </action>
   <action name="actionReloadStylesheet">
    <property name="icon">
@@ -839,6 +911,9 @@
    <property name="toolTip">
     <string>Reload style.css</string>
    </property>
+   <property name="statusTip">
+    <string>Read style.css from disk to apply theme changes.</string>
+   </property>
   </action>
   <action name="actionNotes">
    <property name="icon">
@@ -848,6 +923,9 @@
    <property name="text">
     <string>Notes</string>
    </property>
+   <property name="statusTip">
+    <string>Show the Notes tab.</string>
+   </property>
   </action>
   <action name="actionHandles">
    <property name="icon">
@@ -856,6 +934,9 @@
    </property>
    <property name="text">
     <string>Handles</string>
+   </property>
+   <property name="statusTip">
+    <string>Show the Handles tab.</string>
    </property>
   </action>
   <action name="actionTocnd">
@@ -1025,6 +1106,9 @@
    <property name="text">
     <string>&amp;Graph</string>
    </property>
+   <property name="statusTip">
+    <string>Show the CPU tab and switch to Graph mode.</string>
+   </property>
   </action>
   <action name="actionseStepInto">
    <property name="icon">
@@ -1051,6 +1135,9 @@
    </property>
    <property name="text">
     <string>Run (swallow exception)</string>
+   </property>
+   <property name="statusTip">
+    <string>Run the debuggee and ignore all exceptions so the debuggee will not process the exception.</string>
    </property>
   </action>
   <action name="actionBlog">
@@ -1097,6 +1184,9 @@
    <property name="text">
     <string>System breakpoint scripts</string>
    </property>
+   <property name="statusTip">
+    <string>Set the script file to run automatically when the system breakpoint is reached.</string>
+   </property>
   </action>
   <action name="actionImportSettings">
    <property name="icon">
@@ -1123,6 +1213,9 @@
    </property>
    <property name="text">
     <string>&amp;Import database</string>
+   </property>
+   <property name="statusTip">
+    <string>Open an external database file to import data.</string>
    </property>
   </action>
   <action name="actionExportdatabase">
@@ -1196,6 +1289,9 @@
    <property name="text">
     <string>Restart as Admin</string>
    </property>
+   <property name="statusTip">
+    <string>Restart x64dbg under Administrator priviledge.</string>
+   </property>
   </action>
   <action name="actionPlugins">
    <property name="icon">
@@ -1214,6 +1310,9 @@
    <property name="text">
     <string>Trace</string>
    </property>
+   <property name="statusTip">
+    <string>Show the Trace tab.</string>
+   </property>
   </action>
   <action name="actionModules">
    <property name="icon">
@@ -1222,6 +1321,9 @@
    </property>
    <property name="text">
     <string>Modules</string>
+   </property>
+   <property name="statusTip">
+    <string>Show the Symbols tab. Note that the Modules list is in the symbols tab.</string>
    </property>
   </action>
   <action name="action_Theme">
@@ -1242,6 +1344,9 @@
    <property name="text">
     <string>&amp;Save database</string>
    </property>
+   <property name="statusTip">
+    <string>Save all data. The database will be automatically saved when debugging is stopped.</string>
+   </property>
   </action>
   <action name="actionDbload">
    <property name="icon">
@@ -1250,6 +1355,9 @@
    </property>
    <property name="text">
     <string>Re&amp;load database</string>
+   </property>
+   <property name="statusTip">
+    <string>Discard all modifications and read all data from disk.</string>
    </property>
   </action>
   <action name="actionDbrecovery">
@@ -1260,6 +1368,9 @@
    <property name="text">
     <string>&amp;Restore backup database</string>
    </property>
+   <property name="statusTip">
+    <string>Read data from the backup database to recover from database corruption.</string>
+   </property>
   </action>
   <action name="actionDbclear">
    <property name="icon">
@@ -1268,6 +1379,9 @@
    </property>
    <property name="text">
     <string>&amp;Clear database</string>
+   </property>
+   <property name="statusTip">
+    <string>Clear all data.</string>
    </property>
   </action>
   <action name="actionAbout_Qt">
