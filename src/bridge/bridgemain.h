@@ -56,7 +56,7 @@ BRIDGE_IMPEXP bool BridgeSettingRead(int* errorLine);
 BRIDGE_IMPEXP int BridgeGetDbgVersion();
 
 //Debugger defines
-#define MAX_LABEL_SIZE 256
+#define MAX_LABEL_SIZE 2048
 #define MAX_COMMENT_SIZE 512
 #define MAX_MODULE_SIZE 256
 #define MAX_BREAKPOINT_SIZE 256
