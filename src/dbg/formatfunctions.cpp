@@ -226,6 +226,27 @@ void FormatFunctions::Init()
             result += StringUtils::sprintf("%02X", data[i]);
         return formatcpy_s(dest, destCount, result.c_str());
     });
+
+    Register("comment", [](char* dest, size_t destCount, int argc, char* argv[], duint addr, void* userdata)
+    {
+        char comment[MAX_COMMENT_SIZE] = "";
+        if(DbgGetCommentAt(addr, comment))
+        {
+            if(comment[0] == '\1') //automatic comment
+               return formatcpy_s(dest, destCount, comment+1);
+            else
+               return formatcpy_s(dest, destCount, comment);
+        }
+        return FORMAT_ERROR;
+    });
+
+    Register("label", [](char* dest, size_t destCount, int argc, char* argv[], duint addr, void* userdata)
+    {
+        char label[MAX_LABEL_SIZE] = "";
+        if(DbgGetLabelAt(addr, SEG_DEFAULT, label))
+           return formatcpy_s(dest, destCount, label);
+        return FORMAT_ERROR;
+    });
 }
 
 bool FormatFunctions::Register(const String & type, const CBFORMATFUNCTION & cbFunction, void* userdata)
