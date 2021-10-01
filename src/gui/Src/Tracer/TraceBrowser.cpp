@@ -1455,7 +1455,7 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
         QString bytes;
         QString bytesHTML;
         if(copyBytes)
-            RichTextPainter::htmlRichText(getRichBytes(inst), bytesHTML, bytes);
+            RichTextPainter::htmlRichText(getRichBytes(inst), &bytesHTML, bytes);
         QString disassembly;
         QString htmlDisassembly;
         if(htmlStream)
@@ -1465,7 +1465,7 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
                 ZydisTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
             else
                 ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
-            RichTextPainter::htmlRichText(richText, htmlDisassembly, disassembly);
+            RichTextPainter::htmlRichText(richText, &htmlDisassembly, disassembly);
         }
         else
         {
@@ -1488,7 +1488,7 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
                 ZydisTokenizer::TokenToRichText(regTokens, richText, &mHighlightToken);
             else
                 ZydisTokenizer::TokenToRichText(regTokens, richText, 0);
-            RichTextPainter::htmlRichText(richText, registersHtml, registersText);
+            RichTextPainter::htmlRichText(richText, &registersHtml, registersText);
         }
         else
         {
@@ -1506,7 +1506,7 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
                 ZydisTokenizer::TokenToRichText(memTokens, richText, &mHighlightToken);
             else
                 ZydisTokenizer::TokenToRichText(memTokens, richText, 0);
-            RichTextPainter::htmlRichText(richText, memoryHtml, memoryText);
+            RichTextPainter::htmlRichText(richText, &memoryHtml, memoryText);
         }
         else
         {
@@ -1572,9 +1572,17 @@ void TraceBrowser::copySelectionSlot(bool copyBytes)
     QString selectionString = "";
     QString selectionHtmlString = "";
     QTextStream stream(&selectionString);
-    QTextStream htmlStream(&selectionHtmlString);
-    pushSelectionInto(copyBytes, stream, &htmlStream);
-    Bridge::CopyToClipboard(selectionString, selectionHtmlString);
+    if(getSelectionEnd() - getSelectionStart() < 2048)
+    {
+        QTextStream htmlStream(&selectionHtmlString);
+        pushSelectionInto(copyBytes, stream, &htmlStream);
+        Bridge::CopyToClipboard(selectionString, selectionHtmlString);
+    }
+    else
+    {
+        pushSelectionInto(copyBytes, stream, nullptr);
+        Bridge::CopyToClipboard(selectionString);
+    }
 }
 
 void TraceBrowser::copySelectionToFileSlot(bool copyBytes)
@@ -1623,22 +1631,40 @@ void TraceBrowser::copyDisassemblySlot()
     if(mTraceFile == nullptr || mTraceFile->Progress() < 100)
         return;
 
-    QString clipboardHtml = QString("<div style=\"font-family: %1; font-size: %2px\">").arg(font().family()).arg(getRowHeight());
     QString clipboard = "";
-    for(auto i = getSelectionStart(); i <= getSelectionEnd(); i++)
+    if(getSelectionEnd() - getSelectionStart() < 2048)
     {
-        if(i != getSelectionStart())
+        QString clipboardHtml = QString("<div style=\"font-family: %1; font-size: %2px\">").arg(font().family()).arg(getRowHeight());
+        for(auto i = getSelectionStart(); i <= getSelectionEnd(); i++)
         {
-            clipboard += "\r\n";
-            clipboardHtml += "<br/>";
+            if(i != getSelectionStart())
+            {
+                clipboard += "\r\n";
+                clipboardHtml += "<br/>";
+            }
+            RichTextPainter::List richText;
+            const Instruction_t & inst = mTraceFile->Instruction(i);
+            ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
+            RichTextPainter::htmlRichText(richText, &clipboardHtml, clipboard);
         }
-        RichTextPainter::List richText;
-        const Instruction_t & inst = mTraceFile->Instruction(i);
-        ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
-        RichTextPainter::htmlRichText(richText, clipboardHtml, clipboard);
+        clipboardHtml += QString("</div>");
+        Bridge::CopyToClipboard(clipboard, clipboardHtml);
     }
-    clipboardHtml += QString("</div>");
-    Bridge::CopyToClipboard(clipboard, clipboardHtml);
+    else
+    {
+        for(auto i = getSelectionStart(); i <= getSelectionEnd(); i++)
+        {
+            if(i != getSelectionStart())
+            {
+                clipboard += "\r\n";
+            }
+            RichTextPainter::List richText;
+            const Instruction_t & inst = mTraceFile->Instruction(i);
+            ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
+            RichTextPainter::htmlRichText(richText, nullptr, clipboard);
+        }
+        Bridge::CopyToClipboard(clipboard);
+    }
 }
 
 void TraceBrowser::copyRvaSlot()

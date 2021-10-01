@@ -1405,9 +1405,17 @@ void CPUDisassembly::copySelectionSlot(bool copyBytes)
     QString selectionString = "";
     QString selectionHtmlString = "";
     QTextStream stream(&selectionString);
-    QTextStream htmlStream(&selectionHtmlString);
-    pushSelectionInto(copyBytes, stream, &htmlStream);
-    Bridge::CopyToClipboard(selectionString, selectionHtmlString);
+    if(getSelectionEnd() - getSelectionStart() < 2048)
+    {
+        QTextStream htmlStream(&selectionHtmlString);
+        pushSelectionInto(copyBytes, stream, &htmlStream);
+        Bridge::CopyToClipboard(selectionString, selectionHtmlString);
+    }
+    else
+    {
+        pushSelectionInto(copyBytes, stream, nullptr);
+        Bridge::CopyToClipboard(selectionString);
+    }
 }
 
 void CPUDisassembly::copySelectionToFileSlot(bool copyBytes)
@@ -1449,7 +1457,7 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTe
         QString bytes;
         QString bytesHtml;
         if(copyBytes)
-            RichTextPainter::htmlRichText(getRichBytes(inst, false), bytesHtml, bytes);
+            RichTextPainter::htmlRichText(getRichBytes(inst, false), &bytesHtml, bytes);
         QString disassembly;
         QString htmlDisassembly;
         if(htmlStream)
@@ -1459,7 +1467,7 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTe
                 ZydisTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
             else
                 ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
-            RichTextPainter::htmlRichText(richText, htmlDisassembly, disassembly);
+            RichTextPainter::htmlRichText(richText, &htmlDisassembly, disassembly);
         }
         else
         {
@@ -1616,25 +1624,46 @@ void CPUDisassembly::copyHeaderVaSlot()
 
 void CPUDisassembly::copyDisassemblySlot()
 {
-    QString clipboardHtml = QString("<div style=\"font-family: %1; font-size: %2px\">").arg(font().family()).arg(getRowHeight());
     QString clipboard = "";
-    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
+    if(getSelectionEnd() - getSelectionStart() < 2048)
     {
-        if(i)
+        QString clipboardHtml = QString("<div style=\"font-family: %1; font-size: %2px\">").arg(font().family()).arg(getRowHeight());
+        prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
         {
-            clipboard += "\r\n";
-            clipboardHtml += "<br/>";
-        }
-        RichTextPainter::List richText;
-        if(mHighlightToken.text.length())
-            ZydisTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
-        else
-            ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
-        RichTextPainter::htmlRichText(richText, clipboardHtml, clipboard);
-        return true;
-    });
-    clipboardHtml += QString("</div>");
-    Bridge::CopyToClipboard(clipboard, clipboardHtml);
+            if(i)
+            {
+                clipboard += "\r\n";
+                clipboardHtml += "<br/>";
+            }
+            RichTextPainter::List richText;
+            if(mHighlightToken.text.length())
+                ZydisTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
+            else
+                ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
+            RichTextPainter::htmlRichText(richText, &clipboardHtml, clipboard);
+            return true;
+        });
+        clipboardHtml += QString("</div>");
+        Bridge::CopyToClipboard(clipboard, clipboardHtml);
+    }
+    else
+    {
+        prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
+        {
+            if(i)
+            {
+                clipboard += "\r\n";
+            }
+            RichTextPainter::List richText;
+            if(mHighlightToken.text.length())
+                ZydisTokenizer::TokenToRichText(inst.tokens, richText, &mHighlightToken);
+            else
+                ZydisTokenizer::TokenToRichText(inst.tokens, richText, 0);
+            RichTextPainter::htmlRichText(richText, nullptr, clipboard);
+            return true;
+        });
+        Bridge::CopyToClipboard(clipboard);
+    }
 }
 
 void CPUDisassembly::labelCopySlot()
