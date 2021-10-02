@@ -233,9 +233,9 @@ void FormatFunctions::Init()
         if(DbgGetCommentAt(addr, comment))
         {
             if(comment[0] == '\1') //automatic comment
-               return formatcpy_s(dest, destCount, comment+1);
+                return formatcpy_s(dest, destCount, comment + 1);
             else
-               return formatcpy_s(dest, destCount, comment);
+                return formatcpy_s(dest, destCount, comment);
         }
         return FORMAT_ERROR;
     });
@@ -244,7 +244,7 @@ void FormatFunctions::Init()
     {
         char label[MAX_LABEL_SIZE] = "";
         if(DbgGetLabelAt(addr, SEG_DEFAULT, label))
-           return formatcpy_s(dest, destCount, label);
+            return formatcpy_s(dest, destCount, label);
         return FORMAT_ERROR;
     });
 }
