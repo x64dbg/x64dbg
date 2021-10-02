@@ -342,7 +342,7 @@
     <string>&amp;Run</string>
    </property>
    <property name="statusTip">
-    <string>Run the debuggee.</string>
+    <string>Run the debuggee or restart debugging.</string>
    </property>
   </action>
   <action name="actionPause">
@@ -389,6 +389,9 @@
    <property name="text">
     <string>Step &amp;into</string>
    </property>
+   <property name="statusTip">
+    <string>Execute a single instruction</string>
+   </property>
   </action>
   <action name="actionStepOver">
    <property name="icon">
@@ -397,6 +400,9 @@
    </property>
    <property name="text">
     <string>Step &amp;over</string>
+   </property>
+   <property name="statusTip">
+    <string>Execute a single instruction without entering the CALL instruction</string>
    </property>
   </action>
   <action name="actionCommand">
@@ -407,6 +413,9 @@
    <property name="text">
     <string>Co&amp;mmand</string>
    </property>
+   <property name="statusTip">
+    <string>Focus on the command bar</string>
+   </property>
   </action>
   <action name="actionRtr">
    <property name="icon">
@@ -415,6 +424,9 @@
    </property>
    <property name="text">
     <string>E&amp;xecute till return</string>
+   </property>
+   <property name="statusTip">
+    <string>Trace over until the RET instruction would be executed and stack pointer is less than or equal to current value.</string>
    </property>
   </action>
   <action name="actionMemoryMap">
@@ -449,6 +461,9 @@
    <property name="text">
     <string>&amp;About</string>
    </property>
+   <property name="statusTip">
+    <string>Display information about x64dbg</string>
+   </property>
   </action>
   <action name="actionScylla">
    <property name="icon">
@@ -478,6 +493,9 @@
    </property>
    <property name="text">
     <string>Step into (pass exceptions)</string>
+   </property>
+   <property name="statusTip">
+    <string>Execute a single instruction, pass exceptions to the debuggee.</string>
    </property>
   </action>
   <action name="actioneStepOver">
@@ -626,6 +644,9 @@
    <property name="toolTip">
     <string>Find Strings</string>
    </property>
+   <property name="statusTip">
+    <string>Find possible strings in the current module. Equivalent command &quot;strref&quot;</string>
+   </property>
   </action>
   <action name="actionAppearance">
    <property name="icon">
@@ -649,6 +670,9 @@
    </property>
    <property name="toolTip">
     <string>Find Intermodular Calls</string>
+   </property>
+   <property name="statusTip">
+    <string>Find intermodular calls in the current module. Equivalent command &quot;modcallfind&quot;</string>
    </property>
   </action>
   <action name="actionPatches">
@@ -674,6 +698,9 @@
    <property name="text">
     <string>Comments</string>
    </property>
+   <property name="statusTip">
+    <string>Show a list of comments. Equivalent command &quot;commentlist&quot;</string>
+   </property>
   </action>
   <action name="actionLabels">
    <property name="icon">
@@ -682,6 +709,9 @@
    </property>
    <property name="text">
     <string>Labels</string>
+   </property>
+   <property name="statusTip">
+    <string>Show a list of labels. Equivalent command &quot;labellist&quot;</string>
    </property>
   </action>
   <action name="actionBookmarks">
@@ -692,6 +722,9 @@
    <property name="text">
     <string>Bookmarks</string>
    </property>
+   <property name="statusTip">
+    <string>Show a list of bookmarks. Equivalent command &quot;bookmarklist&quot;</string>
+   </property>
   </action>
   <action name="actionFunctions">
    <property name="icon">
@@ -701,6 +734,9 @@
    <property name="text">
     <string>Functions</string>
    </property>
+   <property name="statusTip">
+    <string>Show a list of functions. Equivalent command &quot;functionlist&quot;</string>
+   </property>
   </action>
   <action name="actionCheckUpdates">
    <property name="icon">
@@ -709,6 +745,9 @@
    </property>
    <property name="text">
     <string>Check for &amp;Updates</string>
+   </property>
+   <property name="statusTip">
+    <string>Connect to Github to check for updates</string>
    </property>
   </action>
   <action name="actionCallStack">
@@ -734,6 +773,9 @@
    <property name="text">
     <string>Shortcuts</string>
    </property>
+   <property name="statusTip">
+    <string>Open the Shortcuts dialog to customize keyboard shortcuts.</string>
+   </property>
   </action>
   <action name="actionDonate">
    <property name="icon">
@@ -745,6 +787,9 @@
    </property>
    <property name="toolTip">
     <string>Donate</string>
+   </property>
+   <property name="statusTip">
+    <string>Open http://donate.x64dbg.com</string>
    </property>
   </action>
   <action name="actionCalculator">
@@ -827,6 +872,9 @@
    <property name="toolTip">
     <string>Topmost Window</string>
    </property>
+   <property name="statusTip">
+    <string>Make x64dbg topmost</string>
+   </property>
   </action>
   <action name="actionReportBug">
    <property name="icon">
@@ -838,6 +886,9 @@
    </property>
    <property name="toolTip">
     <string>Report Bug</string>
+   </property>
+   <property name="statusTip">
+    <string>Open http://report.x64dbg.com</string>
    </property>
   </action>
   <action name="actionSource">
@@ -863,6 +914,9 @@
    <property name="text">
     <string>&amp;Manual</string>
    </property>
+   <property name="statusTip">
+    <string>Open the CHM manual or online documentation at http://help.x64dbg.com</string>
+   </property>
   </action>
   <action name="actionFaq">
    <property name="icon">
@@ -874,6 +928,9 @@
    </property>
    <property name="toolTip">
     <string>FAQ</string>
+   </property>
+   <property name="statusTip">
+    <string>Open http://faq.x64dbg.com</string>
    </property>
   </action>
   <action name="actionSEHChain">
@@ -950,6 +1007,9 @@
    <property name="toolTip">
     <string>Trace over...</string>
    </property>
+   <property name="statusTip">
+    <string>Step over until a condition becomes true, and optionally log and execute commands when tracing. Equivalent command &quot;tocnd&quot;</string>
+   </property>
   </action>
   <action name="actionTicnd">
    <property name="icon">
@@ -962,6 +1022,9 @@
    <property name="toolTip">
     <string>Trace into...</string>
    </property>
+   <property name="statusTip">
+    <string>Step into until a condition becomes true, and optionally log and execute commands when tracing. Equivalent command &quot;ticnd&quot;</string>
+   </property>
   </action>
   <action name="actionTRBit">
    <property name="icon">
@@ -970,6 +1033,9 @@
    </property>
    <property name="text">
     <string>Bit</string>
+   </property>
+   <property name="statusTip">
+    <string>Enable trace record with 1 bit per byte to record whether the code has been executed.</string>
    </property>
   </action>
   <action name="actionTRByte">
@@ -980,6 +1046,9 @@
    <property name="text">
     <string>Byte</string>
    </property>
+   <property name="statusTip">
+    <string>Enable trace record with 1 byte per byte to record how many times the code has been executed.</string>
+   </property>
   </action>
   <action name="actionTRWord">
    <property name="icon">
@@ -988,6 +1057,9 @@
    </property>
    <property name="text">
     <string>Word</string>
+   </property>
+   <property name="statusTip">
+    <string>Enable trace record with 2 bytes per byte to record how many times the code has been executed.</string>
    </property>
   </action>
   <action name="actionTRTIBT">
@@ -998,6 +1070,9 @@
    <property name="text">
     <string>Trace into beyond trace record</string>
    </property>
+   <property name="statusTip">
+    <string>Trace into until the current instruction was not executed before. Equivalent command &quot;tibt&quot;</string>
+   </property>
   </action>
   <action name="actionTRTOBT">
    <property name="icon">
@@ -1006,6 +1081,9 @@
    </property>
    <property name="text">
     <string>Trace over beyond trace record</string>
+   </property>
+   <property name="statusTip">
+    <string>Trace over until the current instruction was not executed before. Equivalent command &quot;tobt&quot;</string>
    </property>
   </action>
   <action name="actionTRTIIT">
@@ -1016,6 +1094,9 @@
    <property name="text">
     <string>Trace into into trace record</string>
    </property>
+   <property name="statusTip">
+    <string>Trace into until the current instruction was executed before. Equivalent command &quot;tiit&quot;</string>
+   </property>
   </action>
   <action name="actionTRTOIT">
    <property name="icon">
@@ -1024,6 +1105,9 @@
    </property>
    <property name="text">
     <string>Trace over into trace record</string>
+   </property>
+   <property name="statusTip">
+    <string>Trace over until the current instruction was executed before. Equivalent command &quot;toit&quot;</string>
    </property>
   </action>
   <action name="actionTRNone">
@@ -1034,6 +1118,9 @@
    <property name="text">
     <string>None</string>
    </property>
+   <property name="statusTip">
+    <string>Disable trace record</string>
+   </property>
   </action>
   <action name="actionRtu">
    <property name="icon">
@@ -1042,6 +1129,9 @@
    </property>
    <property name="text">
     <string>Run to &amp;user code</string>
+   </property>
+   <property name="statusTip">
+    <string>Trace over until user code would be executed.</string>
    </property>
   </action>
   <action name="actionRunExpression">
@@ -1088,6 +1178,9 @@
    <property name="text">
     <string>Step over (source)</string>
    </property>
+   <property name="statusTip">
+    <string>Execute a single line of source code without entering the subroutine. Equivalent to &quot;TraceOverConditional src.line(cip) &amp;&amp; !src.disp(cip)&quot;</string>
+   </property>
   </action>
   <action name="actionStepIntoSource">
    <property name="icon">
@@ -1096,6 +1189,9 @@
    </property>
    <property name="text">
     <string>Step into (source)</string>
+   </property>
+   <property name="statusTip">
+    <string>Execute a single source code line. Equivalent to &quot;TraceIntoConditional src.line(cip) &amp;&amp; !src.disp(cip)&quot;</string>
    </property>
   </action>
   <action name="actionGraph">
@@ -1117,6 +1213,9 @@
    </property>
    <property name="text">
     <string>Step into (swallow exception)</string>
+   </property>
+   <property name="statusTip">
+    <string/>
    </property>
   </action>
   <action name="actionseStepOver">
@@ -1148,6 +1247,9 @@
    <property name="text">
     <string>Blog</string>
    </property>
+   <property name="statusTip">
+    <string>Open http://blog.x64dbg.com</string>
+   </property>
   </action>
   <action name="actionAnimateInto">
    <property name="icon">
@@ -1156,6 +1258,9 @@
    </property>
    <property name="text">
     <string>Animate into</string>
+   </property>
+   <property name="statusTip">
+    <string>Execute the step into command at a fixed pace</string>
    </property>
   </action>
   <action name="actionAnimateOver">
@@ -1166,6 +1271,9 @@
    <property name="text">
     <string>Animate over</string>
    </property>
+   <property name="statusTip">
+    <string>Execute the step over command at a fixed pace</string>
+   </property>
   </action>
   <action name="actionAnimateCommand">
    <property name="icon">
@@ -1174,6 +1282,9 @@
    </property>
    <property name="text">
     <string>Animate command...</string>
+   </property>
+   <property name="statusTip">
+    <string>Execute a command at a fixed pace</string>
    </property>
   </action>
   <action name="actionSetInitializationScript">
@@ -1196,6 +1307,9 @@
    <property name="text">
     <string>Import settings...</string>
    </property>
+   <property name="statusTip">
+    <string>Import settings from an external file</string>
+   </property>
   </action>
   <action name="actionCustomizeMenus">
    <property name="icon">
@@ -1204,6 +1318,9 @@
    </property>
    <property name="text">
     <string>Customize menus</string>
+   </property>
+   <property name="statusTip">
+    <string>Open the Custimuze menus dialog to hide infrequently used menu items into the &quot;more commands&quot; submenu.</string>
    </property>
   </action>
   <action name="actionImportdatabase">
@@ -1235,6 +1352,9 @@
    <property name="text">
     <string>Previous Tab</string>
    </property>
+   <property name="statusTip">
+    <string>Show the tab on the left.</string>
+   </property>
   </action>
   <action name="actionNextTab">
    <property name="icon">
@@ -1243,6 +1363,9 @@
    </property>
    <property name="text">
     <string>Next Tab</string>
+   </property>
+   <property name="statusTip">
+    <string>Show the tab on the right.</string>
    </property>
   </action>
   <action name="actionPreviousView">
@@ -1253,6 +1376,9 @@
    <property name="text">
     <string>Previous View</string>
    </property>
+   <property name="statusTip">
+    <string>Show the tab history popup window and select more recently used tab.</string>
+   </property>
   </action>
   <action name="actionNextView">
    <property name="icon">
@@ -1261,6 +1387,9 @@
    </property>
    <property name="text">
     <string>Next View</string>
+   </property>
+   <property name="statusTip">
+    <string>Show the tab history popup window and select previously viewed tab.</string>
    </property>
   </action>
   <action name="actionHideTab">
@@ -1271,6 +1400,9 @@
    <property name="text">
     <string>Hide Tab</string>
    </property>
+   <property name="statusTip">
+    <string>Hide the current tab. The hidden tab can be reopened from the View menu.</string>
+   </property>
   </action>
   <action name="actionVariables">
    <property name="icon">
@@ -1279,6 +1411,9 @@
    </property>
    <property name="text">
     <string>&amp;Variables</string>
+   </property>
+   <property name="statusTip">
+    <string>Show a list of x64dbg variables. Equivalent command &quot;varlist&quot;</string>
    </property>
   </action>
   <action name="actionRestartAdmin">
@@ -1300,6 +1435,9 @@
    </property>
    <property name="text">
     <string>Plugins</string>
+   </property>
+   <property name="statusTip">
+    <string>Open http://plugins.x64dbg.com</string>
    </property>
   </action>
   <action name="actionTrace">

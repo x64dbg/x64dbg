@@ -1930,6 +1930,7 @@ void MainWindow::updateFavouriteTools()
     delete actionManageFavourites;
     mFavouriteToolbar->clear();
     actionManageFavourites = new QAction(DIcon("star.png"), tr("&Manage Favourite Tools..."), this);
+    actionManageFavourites->setStatusTip(tr("Open the Favourites dialog to manage the favourites menu"));
     for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Tool%1").arg(i).toUtf8().constData(), buffer); i++)
     {
         QString toolPath = QString(buffer);
