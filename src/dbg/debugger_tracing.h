@@ -118,7 +118,10 @@ struct TraceState
         logCondition = nullptr;
         if(text.empty())
             return true;
-        logCondition = new TextCondition(expression, text);
+        if(expression.empty())
+            logCondition = new TextCondition("1", text);
+        else
+            logCondition = new TextCondition(expression, text);
         return logCondition->condition.IsValidExpression();
     }
 
@@ -138,7 +141,12 @@ struct TraceState
         cmdCondition = nullptr;
         if(text.empty())
             return true;
-        cmdCondition = new TextCondition(expression, text);
+        if(expression.empty())
+        {
+            cmdCondition = new TextCondition(traceCondition->condition.GetExpression(), text);
+        }
+        else
+            cmdCondition = new TextCondition(expression, text);
         return cmdCondition->condition.IsValidExpression();
     }
 
