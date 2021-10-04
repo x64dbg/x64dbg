@@ -60,43 +60,47 @@ void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int 
  * @param textHtml The HTML source. Any previous content will be preserved and new content will be appended at the end.
  * @param textPlain The plain text. Any previous content will be preserved and new content will be appended at the end.
  */
-void RichTextPainter::htmlRichText(const List & richText, QString & textHtml, QString & textPlain)
+void RichTextPainter::htmlRichText(const List & richText, QString* textHtml, QString & textPlain)
 {
     for(const CustomRichText_t & curRichText : richText)
     {
         if(curRichText.text == " ") //blank
         {
-            textHtml += " ";
+            if(textHtml)
+                *textHtml += " ";
             textPlain += " ";
             continue;
         }
-        switch(curRichText.flags)
+        if(textHtml)
         {
-        case FlagNone: //defaults
-            textHtml += "<span>";
-            break;
-        case FlagColor: //color only
-            textHtml += QString("<span style=\"color:%1\">").arg(curRichText.textColor.name());
-            break;
-        case FlagBackground: //background only
-            if(curRichText.textBackground != Qt::transparent) // QColor::name() returns "#000000" for transparent color. That's not desired. Leave it blank.
-                textHtml += QString("<span style=\"background-color:%1\">").arg(curRichText.textBackground.name());
-            else
-                textHtml += QString("<span>");
-            break;
-        case FlagAll: //color+background
-            if(curRichText.textBackground != Qt::transparent) // QColor::name() returns "#000000" for transparent color. That's not desired. Leave it blank.
-                textHtml += QString("<span style=\"color:%1; background-color:%2\">").arg(curRichText.textColor.name(), curRichText.textBackground.name());
-            else
-                textHtml += QString("<span style=\"color:%1\">").arg(curRichText.textColor.name());
-            break;
+            switch(curRichText.flags)
+            {
+            case FlagNone: //defaults
+                *textHtml += "<span>";
+                break;
+            case FlagColor: //color only
+                *textHtml += QString("<span style=\"color:%1\">").arg(curRichText.textColor.name());
+                break;
+            case FlagBackground: //background only
+                if(curRichText.textBackground != Qt::transparent) // QColor::name() returns "#000000" for transparent color. That's not desired. Leave it blank.
+                    *textHtml += QString("<span style=\"background-color:%1\">").arg(curRichText.textBackground.name());
+                else
+                    *textHtml += QString("<span>");
+                break;
+            case FlagAll: //color+background
+                if(curRichText.textBackground != Qt::transparent) // QColor::name() returns "#000000" for transparent color. That's not desired. Leave it blank.
+                    *textHtml += QString("<span style=\"color:%1; background-color:%2\">").arg(curRichText.textColor.name(), curRichText.textBackground.name());
+                else
+                    *textHtml += QString("<span style=\"color:%1\">").arg(curRichText.textColor.name());
+                break;
+            }
+            if(curRichText.underline) //Underline highlighted token
+                *textHtml += "<u>";
+            *textHtml += curRichText.text.toHtmlEscaped();
+            if(curRichText.underline)
+                *textHtml += "</u>";
+            *textHtml += "</span>"; //Close the tag
         }
-        if(curRichText.underline) //Underline highlighted token
-            textHtml += "<u>";
-        textHtml += curRichText.text.toHtmlEscaped();
-        if(curRichText.underline)
-            textHtml += "</u>";
-        textHtml += "</span>"; //Close the tag
         textPlain += curRichText.text;
     }
 }
