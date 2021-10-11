@@ -696,9 +696,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mMODIFYDISPLAY.insert(CAX);
     mUNDODISPLAY.insert(CAX);
     mINCREMENTDECREMET.insert(CAX);
-    mSETONEZEROTOGGLE.insert(CAX);
 
-    mSETONEZEROTOGGLE.insert(CBX);
     mINCREMENTDECREMET.insert(CBX);
     mGPR.insert(CBX);
     mUINTDISPLAY.insert(CBX);
@@ -707,7 +705,6 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mUNDODISPLAY.insert(CBX);
     mCANSTOREADDRESS.insert(CBX);
 
-    mSETONEZEROTOGGLE.insert(CCX);
     mINCREMENTDECREMET.insert(CCX);
     mGPR.insert(CCX);
     mUINTDISPLAY.insert(CCX);
@@ -716,7 +713,6 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mUNDODISPLAY.insert(CCX);
     mCANSTOREADDRESS.insert(CCX);
 
-    mSETONEZEROTOGGLE.insert(CDX);
     mINCREMENTDECREMET.insert(CDX);
     mGPR.insert(CDX);
     mUINTDISPLAY.insert(CDX);
@@ -725,7 +721,6 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mUNDODISPLAY.insert(CDX);
     mCANSTOREADDRESS.insert(CDX);
 
-    mSETONEZEROTOGGLE.insert(CBP);
     mINCREMENTDECREMET.insert(CBP);
     mCANSTOREADDRESS.insert(CBP);
     mGPR.insert(CBP);
@@ -734,7 +729,6 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mMODIFYDISPLAY.insert(CBP);
     mUNDODISPLAY.insert(CBP);
 
-    mSETONEZEROTOGGLE.insert(CSP);
     mINCREMENTDECREMET.insert(CSP);
     mCANSTOREADDRESS.insert(CSP);
     mGPR.insert(CSP);
@@ -743,7 +737,6 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mMODIFYDISPLAY.insert(CSP);
     mUNDODISPLAY.insert(CSP);
 
-    mSETONEZEROTOGGLE.insert(CSI);
     mINCREMENTDECREMET.insert(CSI);
     mCANSTOREADDRESS.insert(CSI);
     mGPR.insert(CSI);
@@ -752,7 +745,6 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mMODIFYDISPLAY.insert(CSI);
     mUNDODISPLAY.insert(CSI);
 
-    mSETONEZEROTOGGLE.insert(CDI);
     mINCREMENTDECREMET.insert(CDI);
     mCANSTOREADDRESS.insert(CDI);
     mGPR.insert(CDI);
@@ -763,7 +755,6 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
 #ifdef _WIN64
     for(REGISTER_NAME i = R8; i <= R15; i = (REGISTER_NAME)(i + 1))
     {
-        mSETONEZEROTOGGLE.insert(i);
         mINCREMENTDECREMET.insert(i);
         mCANSTOREADDRESS.insert(i);
         mGPR.insert(i);
@@ -774,7 +765,6 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     }
 #endif //_WIN64
 
-    mSETONEZEROTOGGLE.insert(EFLAGS);
     mGPR.insert(EFLAGS);
     mMODIFYDISPLAY.insert(EFLAGS);
     mUNDODISPLAY.insert(EFLAGS);
@@ -783,41 +773,32 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     // flags (we allow the user to toggle them)
     mFlags.insert(CF);
     mBOOLDISPLAY.insert(CF);
-    mSETONEZEROTOGGLE.insert(CF);
 
-    mSETONEZEROTOGGLE.insert(PF);
     mFlags.insert(PF);
     mBOOLDISPLAY.insert(PF);
 
-    mSETONEZEROTOGGLE.insert(AF);
     mFlags.insert(AF);
     mBOOLDISPLAY.insert(AF);
 
-    mSETONEZEROTOGGLE.insert(ZF);
     mFlags.insert(ZF);
     mBOOLDISPLAY.insert(ZF);
 
-    mSETONEZEROTOGGLE.insert(SF);
     mFlags.insert(SF);
     mBOOLDISPLAY.insert(SF);
 
-    mSETONEZEROTOGGLE.insert(TF);
     mFlags.insert(TF);
     mBOOLDISPLAY.insert(TF);
 
     mFlags.insert(IF);
     mBOOLDISPLAY.insert(IF);
 
-    mSETONEZEROTOGGLE.insert(DF);
     mFlags.insert(DF);
     mBOOLDISPLAY.insert(DF);
 
-    mSETONEZEROTOGGLE.insert(OF);
     mFlags.insert(OF);
     mBOOLDISPLAY.insert(OF);
 
     // FPU: XMM, x87 and MMX registers
-    mSETONEZEROTOGGLE.insert(MxCsr);
     mDWORDDISPLAY.insert(MxCsr);
     mMODIFYDISPLAY.insert(MxCsr);
     mUNDODISPLAY.insert(MxCsr);
@@ -830,7 +811,6 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
         mFPUx87.insert(i);
         mFPUx87_80BITSDISPLAY.insert(i);
         mFPU.insert(i);
-        mSETONEZEROTOGGLE.insert(i);
     }
 
     for(REGISTER_NAME i = x87st0; i <= x87st7; i = (REGISTER_NAME)(i + 1))
@@ -840,36 +820,30 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
         mFPUx87.insert(i);
         mFPUx87_80BITSDISPLAY.insert(i);
         mFPU.insert(i);
-        mSETONEZEROTOGGLE.insert(i);
     }
 
-    mSETONEZEROTOGGLE.insert(x87TagWord);
     mFPUx87.insert(x87TagWord);
     mMODIFYDISPLAY.insert(x87TagWord);
     mUNDODISPLAY.insert(x87TagWord);
     mUSHORTDISPLAY.insert(x87TagWord);
     mFPU.insert(x87TagWord);
 
-    mSETONEZEROTOGGLE.insert(x87StatusWord);
     mUSHORTDISPLAY.insert(x87StatusWord);
     mMODIFYDISPLAY.insert(x87StatusWord);
     mUNDODISPLAY.insert(x87StatusWord);
     mFPUx87.insert(x87StatusWord);
     mFPU.insert(x87StatusWord);
 
-    mSETONEZEROTOGGLE.insert(x87ControlWord);
     mFPUx87.insert(x87ControlWord);
     mMODIFYDISPLAY.insert(x87ControlWord);
     mUNDODISPLAY.insert(x87ControlWord);
     mUSHORTDISPLAY.insert(x87ControlWord);
     mFPU.insert(x87ControlWord);
 
-    mSETONEZEROTOGGLE.insert(x87SW_B);
     mFPUx87.insert(x87SW_B);
     mBOOLDISPLAY.insert(x87SW_B);
     mFPU.insert(x87SW_B);
 
-    mSETONEZEROTOGGLE.insert(x87SW_C3);
     mFPUx87.insert(x87SW_C3);
     mBOOLDISPLAY.insert(x87SW_C3);
     mFPU.insert(x87SW_C3);
@@ -882,60 +856,48 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
 
     mFPUx87.insert(x87SW_C2);
     mBOOLDISPLAY.insert(x87SW_C2);
-    mSETONEZEROTOGGLE.insert(x87SW_C2);
     mFPU.insert(x87SW_C2);
 
-    mSETONEZEROTOGGLE.insert(x87SW_C1);
     mFPUx87.insert(x87SW_C1);
     mBOOLDISPLAY.insert(x87SW_C1);
     mFPU.insert(x87SW_C1);
 
-    mSETONEZEROTOGGLE.insert(x87SW_C0);
     mFPUx87.insert(x87SW_C0);
     mBOOLDISPLAY.insert(x87SW_C0);
     mFPU.insert(x87SW_C0);
 
-    mSETONEZEROTOGGLE.insert(x87SW_ES);
     mFPUx87.insert(x87SW_ES);
     mBOOLDISPLAY.insert(x87SW_ES);
     mFPU.insert(x87SW_ES);
 
-    mSETONEZEROTOGGLE.insert(x87SW_SF);
     mFPUx87.insert(x87SW_SF);
     mBOOLDISPLAY.insert(x87SW_SF);
     mFPU.insert(x87SW_SF);
 
-    mSETONEZEROTOGGLE.insert(x87SW_P);
     mFPUx87.insert(x87SW_P);
     mBOOLDISPLAY.insert(x87SW_P);
     mFPU.insert(x87SW_P);
 
-    mSETONEZEROTOGGLE.insert(x87SW_U);
     mFPUx87.insert(x87SW_U);
     mBOOLDISPLAY.insert(x87SW_U);
     mFPU.insert(x87SW_U);
 
-    mSETONEZEROTOGGLE.insert(x87SW_O);
     mFPUx87.insert(x87SW_O);
     mBOOLDISPLAY.insert(x87SW_O);
     mFPU.insert(x87SW_O);
 
-    mSETONEZEROTOGGLE.insert(x87SW_Z);
     mFPUx87.insert(x87SW_Z);
     mBOOLDISPLAY.insert(x87SW_Z);
     mFPU.insert(x87SW_Z);
 
-    mSETONEZEROTOGGLE.insert(x87SW_D);
     mFPUx87.insert(x87SW_D);
     mBOOLDISPLAY.insert(x87SW_D);
     mFPU.insert(x87SW_D);
 
-    mSETONEZEROTOGGLE.insert(x87SW_I);
     mFPUx87.insert(x87SW_I);
     mBOOLDISPLAY.insert(x87SW_I);
     mFPU.insert(x87SW_I);
 
-    mSETONEZEROTOGGLE.insert(x87CW_IC);
     mFPUx87.insert(x87CW_IC);
     mBOOLDISPLAY.insert(x87CW_IC);
     mFPU.insert(x87CW_IC);
@@ -962,89 +924,69 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mMODIFYDISPLAY.insert(x87CW_PC);
     mUNDODISPLAY.insert(x87CW_PC);
 
-    mSETONEZEROTOGGLE.insert(x87CW_PM);
     mFPUx87.insert(x87CW_PM);
     mBOOLDISPLAY.insert(x87CW_PM);
     mFPU.insert(x87CW_PM);
 
-    mSETONEZEROTOGGLE.insert(x87CW_UM);
     mFPUx87.insert(x87CW_UM);
     mBOOLDISPLAY.insert(x87CW_UM);
     mFPU.insert(x87CW_UM);
 
-    mSETONEZEROTOGGLE.insert(x87CW_OM);
     mFPUx87.insert(x87CW_OM);
     mBOOLDISPLAY.insert(x87CW_OM);
     mFPU.insert(x87CW_OM);
 
-    mSETONEZEROTOGGLE.insert(x87CW_ZM);
     mFPUx87.insert(x87CW_ZM);
     mBOOLDISPLAY.insert(x87CW_ZM);
     mFPU.insert(x87CW_ZM);
 
-    mSETONEZEROTOGGLE.insert(x87CW_DM);
     mFPUx87.insert(x87CW_DM);
     mBOOLDISPLAY.insert(x87CW_DM);
     mFPU.insert(x87CW_DM);
 
-    mSETONEZEROTOGGLE.insert(x87CW_IM);
     mFPUx87.insert(x87CW_IM);
     mBOOLDISPLAY.insert(x87CW_IM);
     mFPU.insert(x87CW_IM);
 
-    mSETONEZEROTOGGLE.insert(MxCsr_FZ);
     mBOOLDISPLAY.insert(MxCsr_FZ);
     mFPU.insert(MxCsr_FZ);
 
-    mSETONEZEROTOGGLE.insert(MxCsr_PM);
     mBOOLDISPLAY.insert(MxCsr_PM);
     mFPU.insert(MxCsr_PM);
 
-    mSETONEZEROTOGGLE.insert(MxCsr_UM);
     mBOOLDISPLAY.insert(MxCsr_UM);
     mFPU.insert(MxCsr_UM);
 
-    mSETONEZEROTOGGLE.insert(MxCsr_OM);
     mBOOLDISPLAY.insert(MxCsr_OM);
     mFPU.insert(MxCsr_OM);
 
-    mSETONEZEROTOGGLE.insert(MxCsr_ZM);
     mBOOLDISPLAY.insert(MxCsr_ZM);
     mFPU.insert(MxCsr_ZM);
 
-    mSETONEZEROTOGGLE.insert(MxCsr_IM);
     mBOOLDISPLAY.insert(MxCsr_IM);
     mFPU.insert(MxCsr_IM);
 
-    mSETONEZEROTOGGLE.insert(MxCsr_DM);
     mBOOLDISPLAY.insert(MxCsr_DM);
     mFPU.insert(MxCsr_DM);
 
-    mSETONEZEROTOGGLE.insert(MxCsr_DAZ);
     mBOOLDISPLAY.insert(MxCsr_DAZ);
     mFPU.insert(MxCsr_DAZ);
 
-    mSETONEZEROTOGGLE.insert(MxCsr_PE);
     mBOOLDISPLAY.insert(MxCsr_PE);
     mFPU.insert(MxCsr_PE);
 
-    mSETONEZEROTOGGLE.insert(MxCsr_UE);
     mBOOLDISPLAY.insert(MxCsr_UE);
     mFPU.insert(MxCsr_UE);
 
-    mSETONEZEROTOGGLE.insert(MxCsr_OE);
     mBOOLDISPLAY.insert(MxCsr_OE);
     mFPU.insert(MxCsr_OE);
 
-    mSETONEZEROTOGGLE.insert(MxCsr_ZE);
     mBOOLDISPLAY.insert(MxCsr_ZE);
     mFPU.insert(MxCsr_ZE);
 
-    mSETONEZEROTOGGLE.insert(MxCsr_DE);
     mBOOLDISPLAY.insert(MxCsr_DE);
     mFPU.insert(MxCsr_DE);
 
-    mSETONEZEROTOGGLE.insert(MxCsr_IE);
     mBOOLDISPLAY.insert(MxCsr_IE);
     mFPU.insert(MxCsr_IE);
 
