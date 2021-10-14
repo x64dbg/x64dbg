@@ -312,10 +312,8 @@ extern "C" __declspec(dllexport) bool isasciistring(const unsigned char* data, i
     char* safebuffer = new char[maxlen];
     if(!safebuffer)
         return false;
-    for(const char* p = (const char*)data; *p; len++, p++)
+    for(const char* p = (const char*)data; *p && len < maxlen - 1; len++, p++)
     {
-        if(len >= maxlen)
-            break;
         safebuffer[p - (const char*)data] = *p;
     }
 
@@ -324,8 +322,8 @@ extern "C" __declspec(dllexport) bool isasciistring(const unsigned char* data, i
         delete[] safebuffer;
         return false;
     }
-    safebuffer[len - 1] = 0; // Mark the end of string
-    if((maxlen % 2) == 0 && (safebuffer[maxlen - 2] & 0x80))
+    safebuffer[len] = 0; // Mark the end of string
+    if(len >= maxlen - 1 && (maxlen % 2) == 0 && (safebuffer[maxlen - 2] & 0x80))
         safebuffer[maxlen - 2] = 0; // Keep DBCS strings from being chopped in the middle
 
     String data2;
@@ -353,10 +351,8 @@ extern "C" __declspec(dllexport) bool isunicodestring(const unsigned char* data,
     wchar_t* safebuffer = new wchar_t[maxlen];
     if(!safebuffer)
         return false;
-    for(const wchar_t* p = (const wchar_t*)data; *p; len += sizeof(wchar_t), p++)
+    for(const wchar_t* p = (const wchar_t*)data; *p && len < maxlen - 1; len += sizeof(wchar_t), p++)
     {
-        if(len >= maxlen)
-            break;
         safebuffer[p - (const wchar_t*)data] = *p;
     }
 
@@ -365,7 +361,7 @@ extern "C" __declspec(dllexport) bool isunicodestring(const unsigned char* data,
         delete[] safebuffer;
         return false;
     }
-    safebuffer[len / sizeof(wchar_t) - 1] = 0; // Mark the end of string
+    safebuffer[len / sizeof(wchar_t)] = 0; // Mark the end of string
 
     String data2;
     WString wdata2;
