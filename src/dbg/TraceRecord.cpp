@@ -414,7 +414,7 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
         if(WriteBufferPtr - WriteBuffer <= sizeof(WriteBuffer))
         {
             DWORD written;
-            WriteFile(rtFile, WriteBuffer, WriteBufferPtr - WriteBuffer, &written, NULL);
+            WriteFile(rtFile, WriteBuffer, (DWORD)(WriteBufferPtr - WriteBuffer), &written, NULL);
             if(written < DWORD(WriteBufferPtr - WriteBuffer)) //Disk full?
             {
                 CloseHandle(rtFile);
@@ -522,7 +522,7 @@ bool TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
                     LARGE_INTEGER header;
                     DWORD written;
                     header.LowPart = MAKEFOURCC('T', 'R', 'A', 'C');
-                    header.HighPart = headerinfosize;
+                    header.HighPart = (LONG)headerinfosize;
                     WriteFile(rtFile, &header, 8, &written, nullptr);
                     if(written < 8) //read-only?
                     {
@@ -532,7 +532,7 @@ bool TraceRecordManager::enableRunTrace(bool enabled, const char* fileName)
                         dputs(QT_TRANSLATE_NOOP("DBG", "Run trace failed to start because file header cannot be written."));
                         return false;
                     }
-                    WriteFile(rtFile, headerinfo, headerinfosize, &written, nullptr);
+                    WriteFile(rtFile, headerinfo, (DWORD)headerinfosize, &written, nullptr);
                     json_free(headerinfo);
                     json_decref(root);
                     if(written < headerinfosize) //disk-full?

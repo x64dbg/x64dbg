@@ -335,7 +335,7 @@ String SymGetSymbolicName(duint Address)
     return StringUtils::sprintf("<%s>", label);
 }
 
-bool SymGetSourceLine(duint Cip, char* FileName, int* Line, DWORD* disp)
+bool SymGetSourceLine(duint Cip, char* FileName, int* Line, duint* disp)
 {
     SHARED_ACQUIRE(LockModules);
     MODINFO* modInfo = ModInfoFromAddr(Cip);

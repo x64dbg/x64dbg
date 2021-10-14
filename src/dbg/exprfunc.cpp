@@ -25,7 +25,7 @@ namespace Exprfunc
 
     duint srcdisp(duint addr)
     {
-        DWORD disp;
+        duint disp;
         if(!SymGetSourceLine(addr, nullptr, nullptr, &disp))
             return 0;
         return disp;

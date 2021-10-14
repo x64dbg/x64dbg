@@ -2225,7 +2225,7 @@ static void setfpuvalue(const char* string, duint value)
         switch(*string)
         {
         case '0':
-            registerindex = flags;
+            registerindex = (DWORD)flags;
             break;
 
         case '1':
