@@ -331,10 +331,10 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRID
         else
         {
             String comment;
-            DWORD dwDisplacement;
+            duint disp;
             char fileName[MAX_STRING_SIZE] = {};
             int lineNumber = 0;
-            if(!bNoSourceLineAutoComments && SymGetSourceLine(addr, fileName, &lineNumber, &dwDisplacement) && !dwDisplacement)
+            if(!bNoSourceLineAutoComments && SymGetSourceLine(addr, fileName, &lineNumber, &disp) && !disp)
             {
 
                 char* actualName = fileName;
@@ -366,7 +366,7 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRID
 
                 if(addr == lastContext.cip && (cp.GetId() == ZYDIS_MNEMONIC_SYSCALL || (cp.GetId() == ZYDIS_MNEMONIC_INT && cp[0].imm.value.u == 0x2e)))
                 {
-                    auto syscallName = SyscallToName(lastContext.cax);
+                    auto syscallName = SyscallToName((unsigned int)lastContext.cax);
                     if(!syscallName.empty())
                     {
                         if(!comment.empty())

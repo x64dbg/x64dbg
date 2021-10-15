@@ -110,7 +110,7 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
 {
     if(pageVector.empty())
         return;
-    size_t pagecount = pageVector.size();
+    const auto pagecount = (int)pageVector.size();
     char curMod[MAX_MODULE_SIZE] = "";
     for(int i = pagecount - 1; i > -1; i--)
     {

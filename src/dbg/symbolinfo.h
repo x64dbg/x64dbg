@@ -21,7 +21,7 @@ String SymGetSymbolicName(duint Address);
 \param [out] nLine Line number. Can be null.
 \return true if it succeeds, false if it fails.
 */
-bool SymGetSourceLine(duint Cip, char* FileName, int* Line, DWORD* displacement = nullptr);
+bool SymGetSourceLine(duint Cip, char* FileName, int* Line, duint* displacement = nullptr);
 
 bool SymGetSourceAddr(duint Module, const char* FileName, int Line, duint* Address);
 

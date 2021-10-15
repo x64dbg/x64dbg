@@ -163,7 +163,7 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
 
     auto file = dbfile ? dbfile : dbpath;
     // If the file is "bak", load from database backup instead
-    if(stricmp(file, "bak") == 0)
+    if(_stricmp(file, "bak") == 0)
     {
         String dbpath_backup(dbpath);
         dbpath_backup.append(".bak");
