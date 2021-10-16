@@ -245,7 +245,8 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
     }
 
     // Paints background
-    wPainter.fillRect(wPainter.viewport(), QBrush(mBackgroundColor));
+    if(mBackgroundColor.alpha() == 255) // The secret code to allow the user to set a background image in style.css
+        wPainter.fillRect(wPainter.viewport(), QBrush(mBackgroundColor));
 
     // Paints header
     if(mHeader.isVisible == true)
