@@ -593,9 +593,12 @@ void MainWindow::closeEvent(QCloseEvent* event)
         msgbox.setText(tr("The debuggee is still running and will be terminated if you exit. Do you really want to exit?"));
         msgbox.setWindowTitle(tr("Debuggee is still running"));
         msgbox.setWindowIcon(DIcon("bug.png"));
-        msgbox.addButton(QMessageBox::Yes);
-        msgbox.addButton(QMessageBox::No);
-        msgbox.setDefaultButton(QMessageBox::No);
+        msgbox.addButton(QMessageBox::Yes)->setText(tr("&Exit"));
+        msgbox.addButton(QMessageBox::Cancel)->setText(tr("&Cancel"));
+        msgbox.addButton(QMessageBox::Abort)->setText(tr("&Stop debugging"));
+        msgbox.addButton(QMessageBox::Retry)->setText(tr("&Restart debugging"));
+        msgbox.setDefaultButton(QMessageBox::Cancel);
+        msgbox.setEscapeButton(QMessageBox::Cancel);
         msgbox.setCheckBox(cb);
 
         QObject::connect(cb, &QCheckBox::toggled, [](bool checked)
@@ -603,7 +606,12 @@ void MainWindow::closeEvent(QCloseEvent* event)
             Config()->setBool("Gui", "ShowExitConfirmation", !checked);
         });
 
-        if(msgbox.exec() != QMessageBox::Yes)
+        auto code = msgbox.exec();
+        if(code == QMessageBox::Retry)
+            restartDebugging();
+        if(code == QMessageBox::Abort)
+            DbgCmdExec("stop");
+        if(code != QMessageBox::Yes)
         {
             event->ignore();
             return;
