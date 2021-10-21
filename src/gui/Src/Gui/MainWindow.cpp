@@ -1786,6 +1786,11 @@ void MainWindow::changeCommandLine()
     }
 }
 
+static void onlineManual()
+{
+    QDesktopServices::openUrl(QUrl("http://help.x64dbg.com"));
+}
+
 void MainWindow::displayManual()
 {
     duint setting = 0;
@@ -1793,10 +1798,17 @@ void MainWindow::displayManual()
     {
         // Open the Windows CHM in the upper directory
         if(!QDesktopServices::openUrl(QUrl(QUrl::fromLocalFile(QString("%1/../x64dbg.chm").arg(QCoreApplication::applicationDirPath())))))
-            SimpleErrorBox(this, tr("Error"), tr("Manual cannot be opened. Please check if x64dbg.chm exists and ensure there is no other problems with your system."));
+        {
+            QMessageBox messagebox(QMessageBox::Critical, tr("Error"),
+                                   tr("Manual cannot be opened. Please check if x64dbg.chm exists and ensure there is no other problems with your system.") + '\n'
+                                   + tr("Do you want to open online manual at http://help.x64dbg.com ?"),
+                                   QMessageBox::Yes | QMessageBox::No);
+            if(messagebox.exec() == QMessageBox::Yes)
+                onlineManual();
+        }
     }
     else
-        QDesktopServices::openUrl(QUrl("http://help.x64dbg.com"));
+        onlineManual();
 }
 
 void MainWindow::canClose()
@@ -1948,10 +1960,13 @@ void MainWindow::updateFavouriteTools()
         if(BridgeSettingGet("Favourite", QString("ToolShortcut%1").arg(i).toUtf8().constData(), buffer))
             if(*buffer && strcmp(buffer, "NOT_SET") != 0)
                 setGlobalShortcut(newAction, QKeySequence(QString(buffer)));
+        QString description;
         if(BridgeSettingGet("Favourite", QString("ToolDescription%1").arg(i).toUtf8().constData(), buffer))
-            newAction->setText(QString(buffer));
+            description = QString(buffer);
         else
-            newAction->setText(toolPath);
+            description = toolPath;
+        newAction->setText(description);
+        newAction->setStatusTip(description);
         // Get the icon of the executable
         QString file, cmd;
         QIcon icon;
@@ -1980,10 +1995,13 @@ void MainWindow::updateFavouriteTools()
         if(BridgeSettingGet("Favourite", QString("ScriptShortcut%1").arg(i).toUtf8().constData(), buffer))
             if(*buffer && strcmp(buffer, "NOT_SET") != 0)
                 setGlobalShortcut(newAction, QKeySequence(QString(buffer)));
+        QString description;
         if(BridgeSettingGet("Favourite", QString("ScriptDescription%1").arg(i).toUtf8().constData(), buffer))
-            newAction->setText(QString(buffer));
+            description = QString(buffer);
         else
-            newAction->setText(scriptPath);
+            description = scriptPath;
+        newAction->setText(description);
+        newAction->setStatusTip(description);
         connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
         newAction->setIcon(DIcon("script-code.png"));
         ui->menuFavourites->addAction(newAction);
@@ -1999,6 +2017,7 @@ void MainWindow::updateFavouriteTools()
     for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Command%1").arg(i).toUtf8().constData(), buffer); i++)
     {
         QAction* newAction = new QAction(QString(buffer), actionManageFavourites);
+        newAction->setStatusTip(QString(buffer));
         // Set up user data to be used in clickFavouriteTool()
         newAction->setData(QVariant(QString("Command")));
         if(BridgeSettingGet("Favourite", QString("CommandShortcut%1").arg(i).toUtf8().constData(), buffer))

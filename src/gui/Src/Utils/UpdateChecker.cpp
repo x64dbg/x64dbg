@@ -18,6 +18,7 @@ UpdateChecker::UpdateChecker(QWidget* parent)
 
 void UpdateChecker::checkForUpdates()
 {
+    GuiAddStatusBarMessage(tr("Checking for updates...\n").toUtf8().constData());
     get(QNetworkRequest(QUrl("https://api.github.com/repos/x64dbg/x64dbg/releases/latest")));
 }
 
