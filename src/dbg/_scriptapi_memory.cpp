@@ -29,15 +29,15 @@ SCRIPT_EXPORT bool Script::Memory::RemoteFree(duint addr)
 
 SCRIPT_EXPORT unsigned int Script::Memory::GetProtect(duint addr, bool reserved, bool cache)
 {
-    if(!cache)
-        MemUpdateMap();
-    SHARED_ACQUIRE(LockMemoryPages);
-    auto found = memoryPages.find({ addr, addr });
-    if(found == memoryPages.end())
+    unsigned int prot = 0;
+    if(!MemGetProtect(addr, reserved, cache, &prot))
         return 0;
-    if(!reserved && found->second.mbi.State == MEM_RESERVE) //check if the current page is reserved.
-        return 0;
-    return found->second.mbi.Protect;
+    return prot;
+}
+
+SCRIPT_EXPORT bool Script::Memory::SetProtect(duint addr, unsigned int protect)
+{
+    return MemSetProtect(addr, protect);
 }
 
 SCRIPT_EXPORT duint Script::Memory::GetBase(duint addr, bool reserved, bool cache)
