@@ -225,7 +225,7 @@ public:
         }
         for(auto & itr : mMap)
         {
-            *list = itr.second;
+            *list = TValue(itr.second);
             AdjustValue(*list);
             ++list;
         }
