@@ -14,12 +14,12 @@ AttachDialog::AttachDialog(QWidget* parent) : QDialog(parent), ui(new Ui::Attach
     // Setup actions/shortcuts
     //
     // Enter key as shortcut for "Attach"
-    mAttachAction = new QAction(tr("Attach"), this);
+    mAttachAction = new QAction(DIcon("attach.png"), tr("Attach"), this);
     mAttachAction->setShortcut(QKeySequence("enter"));
     connect(mAttachAction, SIGNAL(triggered()), this, SLOT(on_btnAttach_clicked()));
 
     // F5 as shortcut to refresh view
-    mRefreshAction = new QAction(tr("Refresh"), this);
+    mRefreshAction = new QAction(DIcon("arrow-restart.png"), tr("Refresh"), this);
     mRefreshAction->setShortcut(ConfigShortcut("ActionRefresh"));
     ui->btnRefresh->setText(tr("Refresh") + QString(" (%1)").arg(mRefreshAction->shortcut().toString()));
     connect(mRefreshAction, SIGNAL(triggered()), this, SLOT(refresh()));
