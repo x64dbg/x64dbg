@@ -13,7 +13,7 @@ namespace Script
         SCRIPT_EXPORT duint RemoteAlloc(duint addr, duint size);
         SCRIPT_EXPORT bool RemoteFree(duint addr);
         SCRIPT_EXPORT unsigned int GetProtect(duint addr, bool reserved = false, bool cache = true);
-        SCRIPT_EXPORT bool SetProtect(duint addr, unsigned int protect);
+        SCRIPT_EXPORT bool SetProtect(duint addr, unsigned int protect, duint size);
         SCRIPT_EXPORT duint GetBase(duint addr, bool reserved = false, bool cache = true);
         SCRIPT_EXPORT duint GetSize(duint addr, bool reserved = false, bool cache = true);
 

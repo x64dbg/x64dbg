@@ -31,7 +31,7 @@ bool MemDecodePointer(duint* Pointer, bool vistaPlus);
 void MemInitRemoteProcessCookie(ULONG cookie);
 bool MemReadDumb(duint BaseAddress, void* Buffer, duint Size);
 bool MemGetProtect(duint Address, bool Reserved, bool Cache, unsigned int* Protect);
-bool MemSetProtect(duint Address, unsigned int Protection);
+bool MemSetProtect(duint Address, unsigned int Protection, duint Size);
 
 #include "addrinfo.h"
 

@@ -88,7 +88,7 @@ static std::vector<MEMPAGE> QueryMemPages()
             else
             {
                 // Otherwise append the page to the last created entry
-                if(pages.size())     //make sure to not dereference an invalid pointer
+                if(pages.size())       //make sure to not dereference an invalid pointer
                     pages.back().mbi.RegionSize += mbi.RegionSize;
             }
         }
@@ -118,7 +118,7 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
             return;
 
         auto & currentPage = pageVector.at(i);
-        if(!currentPage.info[0] || (scmp(curMod, currentPage.info) && !bListAllPages))     //there is a module
+        if(!currentPage.info[0] || (scmp(curMod, currentPage.info) && !bListAllPages))       //there is a module
             continue; //skip non-modules
         strcpy_s(curMod, pageVector.at(i).info);
         auto modBase = ModBaseFromName(currentPage.info);
@@ -129,9 +129,9 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
         if(!ModSectionsFromAddr(base, &sections))
             continue;
         int SectionNumber = (int)sections.size();
-        if(!SectionNumber)     //no sections = skip
+        if(!SectionNumber)       //no sections = skip
             continue;
-        if(!bListAllPages)     //normal view
+        if(!bListAllPages)       //normal view
         {
             // coherence check, rest of code assumes whole module resides in one region
             // in other cases module information cannot be trusted
@@ -147,7 +147,7 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
                 memset(&newPage, 0, sizeof(MEMPAGE));
                 VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)currentSection.addr, &newPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
                 duint SectionSize = currentSection.size;
-                if(SectionSize % PAGE_SIZE)     //unaligned page size
+                if(SectionSize % PAGE_SIZE)       //unaligned page size
                     SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
                 if(SectionSize)
                     newPage.mbi.RegionSize = SectionSize;
@@ -174,10 +174,10 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
                 const auto & currentSection = sections.at(j);
                 duint secStart = currentSection.addr;
                 duint SectionSize = currentSection.size;
-                if(SectionSize % PAGE_SIZE)     //unaligned page size
+                if(SectionSize % PAGE_SIZE)       //unaligned page size
                     SectionSize += PAGE_SIZE - (SectionSize % PAGE_SIZE); //fix this
                 duint secEnd = secStart + SectionSize;
-                if(start < secEnd && end > secStart)     //the section and memory overlap
+                if(start < secEnd && end > secStart)       //the section and memory overlap
                 {
                     if(infoOffset)
                         infoOffset += _snprintf_s(currentPage.info + infoOffset, sizeof(currentPage.info) - infoOffset, _TRUNCATE, ",");
@@ -320,7 +320,7 @@ duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh, bool FindReserve
     if(found == memoryPages.end())
         return 0;
 
-    if(!FindReserved && found->second.mbi.State == MEM_RESERVE)     //check if the current page is reserved.
+    if(!FindReserved && found->second.mbi.State == MEM_RESERVE)       //check if the current page is reserved.
         return 0;
 
     // Return the allocation region size when requested
@@ -612,7 +612,7 @@ bool MemSetPageRights(duint Address, const char* Rights)
     if(!MemPageRightsFromString(&protect, Rights))
         return false;
 
-    return MemSetProtect(Address, protect);
+    return MemSetProtect(Address, protect, PAGE_SIZE);
 }
 
 bool MemGetPageRights(duint Address, char* Rights)
@@ -626,7 +626,7 @@ bool MemGetPageRights(duint Address, char* Rights)
 
 bool MemPageRightsToString(DWORD Protect, char* Rights)
 {
-    if(!Protect)     //reserved pages don't have a protection (https://goo.gl/Izkk0c)
+    if(!Protect)       //reserved pages don't have a protection (https://goo.gl/Izkk0c)
     {
         *Rights = '\0';
         return true;
@@ -893,7 +893,7 @@ bool MemGetProtect(duint Address, bool Reserved, bool Cache, unsigned int* Prote
         auto found = memoryPages.find({ Address, Address });
         if(found == memoryPages.end())
             return false;
-        if(!Reserved && found->second.mbi.State == MEM_RESERVE)  //check if the current page is reserved.
+        if(!Reserved && found->second.mbi.State == MEM_RESERVE)    //check if the current page is reserved.
             return false;
 
         *Protect = found->second.mbi.Protect;
@@ -912,21 +912,55 @@ bool MemGetProtect(duint Address, bool Reserved, bool Cache, unsigned int* Prote
     return true;
 }
 
-bool MemSetProtect(duint Address, unsigned int Protect)
+static void MemSplitRange(duint Address, duint Size)
+{
+    Size = PAGE_ALIGN(Size);
+
+    auto found = memoryPages.find({ Address, Address });
+    if(found == memoryPages.end())
+        return;
+
+    auto & range = found->first;
+    if(range.second > (Address + Size))
+    {
+        // Requires split.
+        MEMPAGE firstPage = found->second;
+        firstPage.mbi.RegionSize = Size;
+        Range firstRange{ Address, Address + Size };
+
+        MEMPAGE secondPage = found->second;
+        secondPage.mbi.RegionSize = (range.second - (Address + Size));
+        Range secondRange{ Address + Size, range.second };
+
+        memoryPages.erase(found);
+        memoryPages.emplace(firstRange, firstPage);
+        memoryPages.emplace(secondRange, secondPage);
+    }
+}
+
+bool MemSetProtect(duint Address, unsigned int Protect, duint Size)
 {
     // Align address to page base
     Address = PAGE_ALIGN(Address);
 
     DWORD oldProtect;
-    if(VirtualProtectEx(fdProcessInfo->hProcess, (void*)Address, PAGE_SIZE, Protect, &oldProtect) == FALSE)
+    if(VirtualProtectEx(fdProcessInfo->hProcess, (void*)Address, Size, Protect, &oldProtect) == FALSE)
         return false;
 
     // Update cache.
     SHARED_ACQUIRE(LockMemoryPages);
+
+    // When the protection changes we can't treat this as a single page anymore.
+    MemSplitRange(Address, Size);
+
+    // Update protection info.
     auto found = memoryPages.find({ Address, Address });
-    if(found != memoryPages.end())
+    while(found != memoryPages.end())
     {
+        if(found->first.second > (Address + Size))
+            break;
         found->second.mbi.Protect = Protect;
+        found++;
     }
 
     return true;

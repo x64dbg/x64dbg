@@ -35,9 +35,9 @@ SCRIPT_EXPORT unsigned int Script::Memory::GetProtect(duint addr, bool reserved,
     return prot;
 }
 
-SCRIPT_EXPORT bool Script::Memory::SetProtect(duint addr, unsigned int protect)
+SCRIPT_EXPORT bool Script::Memory::SetProtect(duint addr, unsigned int protect, duint size)
 {
-    return MemSetProtect(addr, protect);
+    return MemSetProtect(addr, protect, size);
 }
 
 SCRIPT_EXPORT duint Script::Memory::GetBase(duint addr, bool reserved, bool cache)
