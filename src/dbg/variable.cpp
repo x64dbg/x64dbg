@@ -388,7 +388,7 @@ bool varenum(VAR* List, size_t* Size)
     // Fill out all list entries
     for(auto & itr : variables)
     {
-        *List = itr.second;
+        *List = VAR(itr.second);
         List++;
     }
 
