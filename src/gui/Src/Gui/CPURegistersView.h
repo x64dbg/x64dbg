@@ -1,5 +1,4 @@
-#ifndef CPUREGISTERSVIEW_H
-#define CPUREGISTERSVIEW_H
+#pragma once
 
 #include "RegistersView.h"
 
@@ -54,5 +53,3 @@ private:
     QAction* wCM_Decrementx87Stack;
     QAction* wCM_Highlight;
 };
-
-#endif // CPUREGISTERSVIEW_H

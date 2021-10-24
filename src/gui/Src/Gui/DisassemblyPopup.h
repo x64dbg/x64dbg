@@ -1,5 +1,4 @@
-#ifndef DISASSEMBLYPOPUP_H
-#define DISASSEMBLYPOPUP_H
+#pragma once
 
 #include <QFrame>
 #include "Imports.h"
@@ -45,5 +44,3 @@ protected:
 
     std::vector<std::pair<RichTextPainter::List, bool>> mDisassemblyToken;
 };
-
-#endif // DISASSEMBLYPOPUP_H

@@ -1,5 +1,4 @@
-#ifndef HEXLINEEDITT_H
-#define HEXLINEEDITT_H
+#pragma once
 
 #include <QLineEdit>
 
@@ -47,5 +46,3 @@ private:
 
     QByteArray toEncodedData(const QString & text);
 };
-
-#endif // HEXLINEEDITT_H

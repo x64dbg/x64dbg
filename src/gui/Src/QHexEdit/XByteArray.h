@@ -1,5 +1,4 @@
-#ifndef XBYTEARRAY_H
-#define XBYTEARRAY_H
+#pragma once
 
 #include <QByteArray>
 
@@ -24,5 +23,3 @@ public:
 private:
     QByteArray _data; //raw byte array
 };
-
-#endif // XBYTEARRAY_H

@@ -1,5 +1,4 @@
-#ifndef UPDATECHECKER_H
-#define UPDATECHECKER_H
+#pragma once
 
 #include <QNetworkAccessManager>
 
@@ -16,5 +15,3 @@ private slots:
 private:
     QWidget* mParent;
 };
-
-#endif // UPDATECHECKER_H

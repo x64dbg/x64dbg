@@ -1,5 +1,4 @@
-#ifndef LABELEDSPLITTER_H
-#define LABELEDSPLITTER_H
+#pragma once
 
 #include <QSplitter>
 
@@ -44,5 +43,3 @@ private:
     QList<QString> mNames;
     QList<QWidget*> mWindows;
 };
-
-#endif //LABELEDSPLITTER_H

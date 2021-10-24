@@ -1,5 +1,4 @@
-#ifndef BROWSEDIALOG_H
-#define BROWSEDIALOG_H
+#pragma once
 
 #include <QDialog>
 
@@ -26,5 +25,3 @@ private:
     QString mFilter;
     bool mSave;
 };
-
-#endif // BROWSEDIALOG_H

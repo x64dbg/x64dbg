@@ -1,5 +1,4 @@
-#ifndef HEXEDITDIALOG_H
-#define HEXEDITDIALOG_H
+#pragma once
 
 #include <QDialog>
 #include "QHexEdit/QHexEdit.h"
@@ -105,5 +104,3 @@ private:
 
     void printData(DataType type);
 };
-
-#endif // HEXEDITDIALOG_H

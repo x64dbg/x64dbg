@@ -1,5 +1,4 @@
-#ifndef DISASSEMBLY_H
-#define DISASSEMBLY_H
+#pragma once
 
 #include "AbstractTableView.h"
 #include "QBeaEngine.h"
@@ -241,5 +240,3 @@ protected:
     bool mNoCurrentModuleText;
     bool mIsMain = false;
 };
-
-#endif // DISASSEMBLY_H

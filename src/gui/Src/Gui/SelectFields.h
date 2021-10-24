@@ -1,5 +1,4 @@
-#ifndef SELECTFIELDS_H
-#define SELECTFIELDS_H
+#pragma once
 
 #include <QDialog>
 
@@ -22,5 +21,3 @@ public:
 private:
     Ui::SelectFields* ui;
 };
-
-#endif // SELECTFIELDS_H

@@ -1,5 +1,4 @@
-#ifndef SEHCHAINVIEW_H
-#define SEHCHAINVIEW_H
+#pragma once
 
 #include "StdTable.h"
 
@@ -21,5 +20,3 @@ private:
     QAction* mFollowAddress;
     QAction* mFollowHandler;
 };
-
-#endif // SEHCHAINVIEW_H

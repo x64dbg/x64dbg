@@ -1,5 +1,5 @@
-#ifndef TRACEINFOBOX_H
-#define TRACEINFOBOX_H
+#pragma once
+
 #include "StdTable.h"
 
 class TraceWidget;
@@ -24,5 +24,3 @@ private:
 
     QAction* mCopyLineAction;
 };
-
-#endif //TRACEINFOBOX_H

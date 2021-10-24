@@ -1,5 +1,4 @@
-#ifndef MEMORYPAGE_H
-#define MEMORYPAGE_H
+#pragma once
 
 #include <QObject>
 #include "Imports.h"
@@ -22,5 +21,3 @@ private:
     duint mBase;
     duint mSize;
 };
-
-#endif // MEMORYPAGE_H

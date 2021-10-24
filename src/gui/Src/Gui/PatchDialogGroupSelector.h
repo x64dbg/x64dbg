@@ -1,5 +1,4 @@
-#ifndef PATCHDIALOGGROUPSELECTOR_H
-#define PATCHDIALOGGROUPSELECTOR_H
+#pragma once
 
 #include <QDialog>
 #include <QKeyEvent>
@@ -39,5 +38,3 @@ private:
     Ui::PatchDialogGroupSelector* ui;
     int mGroup;
 };
-
-#endif // PATCHDIALOGGROUPSELECTOR_H

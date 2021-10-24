@@ -1,5 +1,4 @@
-#ifndef __MHTABWIDGET_H__
-#define __MHTABWIDGET_H__
+#pragma once
 
 // Qt includes
 #include <QWidget>
@@ -90,6 +89,3 @@ protected:
     void closeEvent(QCloseEvent* event);
     bool event(QEvent* event);
 };
-
-#endif // __MHTABWIDGET_H__
-

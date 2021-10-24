@@ -1,5 +1,4 @@
-#ifndef CODEPAGESELECTIONDIALOG_H
-#define CODEPAGESELECTIONDIALOG_H
+#pragma once
 
 #include <QDialog>
 
@@ -21,5 +20,3 @@ private:
     Ui::CodepageSelectionDialog* ui;
     QList<QByteArray> mCodepages;
 };
-
-#endif // CODEPAGESELECTIONDIALOG_H

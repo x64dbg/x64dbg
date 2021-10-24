@@ -1,5 +1,4 @@
-#ifndef WORDEDITDIALOG_H
-#define WORDEDITDIALOG_H
+#pragma once
 
 #include <QValidator>
 #include <QDialog>
@@ -47,5 +46,3 @@ private:
     int mAsciiLineEditPos;
     int byteCount;
 };
-
-#endif // WORDEDITDIALOG_H

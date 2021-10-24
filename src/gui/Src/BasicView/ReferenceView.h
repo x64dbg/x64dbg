@@ -1,5 +1,4 @@
-#ifndef REFERENCEVIEW_H
-#define REFERENCEVIEW_H
+#pragma once
 
 #include <QProgressBar>
 #include <QLabel>
@@ -81,5 +80,3 @@ private:
 
     void mouseReleaseEvent(QMouseEvent* event);
 };
-
-#endif // REFERENCEVIEW_H

@@ -1,5 +1,4 @@
-#ifndef ABOUTDIALOG_H
-#define ABOUTDIALOG_H
+#pragma once
 
 #include <QDialog>
 
@@ -28,5 +27,3 @@ private:
     Ui::AboutDialog* ui;
     UpdateChecker* mUpdateChecker;
 };
-
-#endif // ABOUTDIALOG_H

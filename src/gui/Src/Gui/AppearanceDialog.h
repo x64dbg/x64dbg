@@ -1,5 +1,4 @@
-#ifndef APPEARANCEDIALOG_H
-#define APPEARANCEDIALOG_H
+#pragma once
 
 #include <QAction>
 #include <QDialog>
@@ -109,5 +108,3 @@ private:
     void selectColor(QLineEdit* lineEdit, QColorDialog::ColorDialogOptions options = QColorDialog::ColorDialogOptions());
     static QString colorToString(const QColor & color);
 };
-
-#endif // APPEARANCEDIALOG_H

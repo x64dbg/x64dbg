@@ -1,5 +1,4 @@
-#ifndef LABELCLASS_H
-#define LABELCLASS_H
+#pragma once
 
 #include <QLabel>
 #include <QStatusBar>
@@ -24,5 +23,3 @@ private:
     QString mStatusTexts[4];
     QString mState;
 };
-
-#endif // LABELCLASS_H

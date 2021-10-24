@@ -1,5 +1,4 @@
-#ifndef SHORTCUTEDIT_H
-#define SHORTCUTEDIT_H
+#pragma once
 
 #include <QLineEdit>
 #include <QKeySequence>
@@ -26,5 +25,3 @@ signals:
 protected:
     void keyPressEvent(QKeyEvent* event);
 };
-
-#endif // SHORTCUTEDIT_H

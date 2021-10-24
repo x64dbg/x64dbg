@@ -1,5 +1,4 @@
-#ifndef ZYDISTOKENIZER_H
-#define ZYDISTOKENIZER_H
+#pragma once
 
 #include <zydis_wrapper.h>
 #include "RichTextPainter.h"
@@ -210,5 +209,3 @@ private:
     bool tokenizePtrOperand(const ZydisDecodedOperand & op);
     bool tokenizeInvalidOperand(const ZydisDecodedOperand & op);
 };
-
-#endif // ZYDISTOKENIZER_H

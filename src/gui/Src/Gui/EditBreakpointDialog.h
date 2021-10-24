@@ -1,5 +1,4 @@
-#ifndef EDITBREAKPOINTDIALOG_H
-#define EDITBREAKPOINTDIALOG_H
+#pragma once
 
 #include <QDialog>
 #include "Bridge.h"
@@ -39,5 +38,3 @@ private:
 
     void loadFromBp();
 };
-
-#endif // EDITBREAKPOINTDIALOG_H

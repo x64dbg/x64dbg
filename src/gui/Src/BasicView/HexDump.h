@@ -1,5 +1,4 @@
-#ifndef _HEXDUMP_H
-#define _HEXDUMP_H
+#pragma once
 
 #include "AbstractTableView.h"
 #include "RichTextPainter.h"
@@ -224,5 +223,3 @@ protected:
     duint mUnderlineRangeStartVa = 0;
     duint mUnderlineRangeEndVa = 0;
 };
-
-#endif // _HEXDUMP_H

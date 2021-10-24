@@ -1,5 +1,4 @@
-#ifndef XREFBROWSEDIALOG_H
-#define XREFBROWSEDIALOG_H
+#pragma once
 
 #include "Bridge.h"
 #include "ActionHelpers.h"
@@ -62,5 +61,3 @@ private:
     MenuBuilder* mMenu;
     GotoFunction mGotoFunction;
 };
-
-#endif // XREFBROWSEDIALOG_H

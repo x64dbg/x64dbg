@@ -1,5 +1,4 @@
-#ifndef CALCULATORDIALOG_H
-#define CALCULATORDIALOG_H
+#pragma once
 
 #include <QDialog>
 #include "Imports.h"
@@ -56,5 +55,3 @@ private:
     Ui::CalculatorDialog* ui;
     QString inFormat(const duint val, CalculatorDialog::NUMBERFORMAT NF) const;
 };
-
-#endif // CALCULATORDIALOG_H

@@ -1,5 +1,5 @@
-#ifndef TRACEREGISTERS_H
-#define TRACEREGISTERS_H
+#pragma once
+
 #include "RegistersView.h"
 
 class TraceRegisters : public RegistersView
@@ -21,5 +21,3 @@ protected:
 private:
     QAction* wCM_CopySIMDRegister;
 };
-
-#endif // TRACEREGISTERS_H

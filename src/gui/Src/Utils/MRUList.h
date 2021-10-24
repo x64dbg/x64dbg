@@ -1,5 +1,4 @@
-#ifndef MRULIST_H
-#define MRULIST_H
+#pragma once
 
 #include <QObject>
 #include <Qlist>
@@ -31,5 +30,3 @@ private:
     QList<QString> mMRUList;
     int mMaxMRU;
 };
-
-#endif // MRULIST_H

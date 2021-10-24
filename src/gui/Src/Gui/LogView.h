@@ -1,5 +1,4 @@
-#ifndef LOGVIEW_H
-#define LOGVIEW_H
+#pragma once
 
 #include <QTextBrowser>
 #include <cstdio>
@@ -58,5 +57,3 @@ private:
     QTimer* flushTimer;
     bool flushLog;
 };
-
-#endif // LOGVIEW_H

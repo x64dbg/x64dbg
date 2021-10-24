@@ -1,5 +1,4 @@
-#ifndef FLICKERTHREAD_H
-#define FLICKERTHREAD_H
+#pragma once
 
 #include <QThread>
 #include <QWidget>
@@ -21,5 +20,3 @@ private:
     int width;
     int delay;
 };
-
-#endif // FLICKERTHREAD_H

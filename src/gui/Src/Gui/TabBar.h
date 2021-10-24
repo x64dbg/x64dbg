@@ -1,5 +1,4 @@
-#ifndef __MHTABBAR_H__
-#define __MHTABBAR_H__
+#pragma once
 
 // Qt includes
 #include <QTabBar>
@@ -34,5 +33,3 @@ private:
     bool mAllowDetach;
     bool mAllowDelete;
 };
-
-#endif // __MHTABBAR_H__

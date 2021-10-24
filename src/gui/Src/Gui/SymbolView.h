@@ -1,5 +1,4 @@
-#ifndef SYMBOLVIEW_H
-#define SYMBOLVIEW_H
+#pragma once
 
 #include <QWidget>
 #include "Bridge.h"
@@ -93,5 +92,3 @@ private:
 
     static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);
 };
-
-#endif // SYMBOLVIEW_H

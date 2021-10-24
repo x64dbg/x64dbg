@@ -1,5 +1,4 @@
-#ifndef ENCODEMAP_H
-#define ENCODEMAP_H
+#pragma once
 
 #include <QObject>
 #include "Imports.h"
@@ -83,5 +82,3 @@ protected:
     byte* mBuffer;
     duint mBufferSize;
 };
-
-#endif // ENCODEMAP_H

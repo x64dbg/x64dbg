@@ -1,5 +1,4 @@
-#ifndef QHEXEDITPRIVATE_H
-#define QHEXEDITPRIVATE_H
+#pragma once
 
 #include <QWidget>
 #include <QScrollArea>
@@ -110,6 +109,3 @@ private:
     int _initSize;
     int _horizonalSpacing;
 };
-
-#endif //QHEXEDITPRIVATE_H
-

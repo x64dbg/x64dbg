@@ -1,5 +1,4 @@
-#ifndef STDSEARCHLISTVIEW_H
-#define STDSEARCHLISTVIEW_H
+#pragma once
 
 #include "SearchListView.h"
 #include "StdTableSearchList.h"
@@ -36,4 +35,3 @@ protected:
     StdTable* stdList();
     StdTable* stdSearchList();
 };
-#endif // STDSEARCHLISTVIEW_H

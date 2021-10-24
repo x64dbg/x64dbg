@@ -1,5 +1,4 @@
-#ifndef SCRIPTVIEW_H
-#define SCRIPTVIEW_H
+#pragma once
 
 #include "StdTable.h"
 
@@ -64,5 +63,3 @@ private:
     MRUList* mMRUList;
     LineEditDialog* mCmdLineEdit;
 };
-
-#endif // SCRIPTVIEW_H

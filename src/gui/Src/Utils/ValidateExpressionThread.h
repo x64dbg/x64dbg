@@ -1,5 +1,4 @@
-#ifndef VALIDATEEXPRESSIONTHREAD_H
-#define VALIDATEEXPRESSIONTHREAD_H
+#pragma once
 
 #include <QThread>
 #include <QMutex>
@@ -36,5 +35,3 @@ private:
 
     void run();
 };
-
-#endif // VALIDATEEXPRESSIONTHREAD_H

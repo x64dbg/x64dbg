@@ -1,5 +1,4 @@
-#ifndef BACKGROUNDFLICKERTHREAD_H
-#define BACKGROUNDFLICKERTHREAD_H
+#pragma once
 
 #include <QThread>
 #include <QWidget>
@@ -19,5 +18,3 @@ private:
     int count;
     int delay;
 };
-
-#endif // BACKGROUNDFLICKERTHREAD_H

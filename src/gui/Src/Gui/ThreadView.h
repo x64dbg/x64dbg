@@ -1,5 +1,4 @@
-#ifndef THREADVIEW_H
-#define THREADVIEW_H
+#pragma once
 
 #include "StdTable.h"
 #include <QMenu>
@@ -25,5 +24,3 @@ private:
     duint mCurrentThreadId;
     MenuBuilder* mMenuBuilder;
 };
-
-#endif // THREADVIEW_H

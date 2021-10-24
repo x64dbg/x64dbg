@@ -1,5 +1,4 @@
-#ifndef STDTABLE_H
-#define STDTABLE_H
+#pragma once
 
 #include "AbstractStdTable.h"
 
@@ -39,5 +38,3 @@ protected:
     std::vector<std::vector<CellData>> mData; //listof(row) where row = (listof(col) where col = CellData)
     std::vector<SortBy::t> mColumnSortFunctions;
 };
-
-#endif // STDTABLE_H

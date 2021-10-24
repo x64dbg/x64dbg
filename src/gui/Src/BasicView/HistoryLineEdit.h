@@ -1,5 +1,4 @@
-#ifndef HISTORYLINEEDIT_H
-#define HISTORYLINEEDIT_H
+#pragma once
 
 #include <QLineEdit>
 #include <QKeyEvent>
@@ -27,5 +26,3 @@ private:
     bool bSixPressed;
 
 };
-
-#endif // HISTORYLINEEDIT_H

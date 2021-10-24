@@ -1,5 +1,4 @@
-#ifndef BREAKPOINTSVIEW_H
-#define BREAKPOINTSVIEW_H
+#pragma once
 
 #include <QWidget>
 #include "Bridge.h"
@@ -106,5 +105,3 @@ private:
         }
     }
 };
-
-#endif // BREAKPOINTSVIEW_H

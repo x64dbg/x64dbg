@@ -1,5 +1,4 @@
-#ifndef REGISTERSVIEW_H
-#define REGISTERSVIEW_H
+#pragma once
 
 #include <QScrollArea>
 #include <QSet>
@@ -270,5 +269,3 @@ protected:
     QAction* SIMDUQWord;
     QAction* SIMDHQWord;
 };
-
-#endif // REGISTERSVIEW_H

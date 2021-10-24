@@ -1,5 +1,4 @@
-#ifndef MAIN_H
-#define MAIN_H
+#pragma once
 
 #include <QApplication>
 #include <QAbstractEventDispatcher>
@@ -44,5 +43,3 @@ public:
     }
 };
 #endif // QT_VERSION
-
-#endif // MAIN_H

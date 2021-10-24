@@ -1,5 +1,4 @@
-#ifndef STRUCTWIDGET_H
-#define STRUCTWIDGET_H
+#pragma once
 
 #include <QWidget>
 #include "Bridge.h"
@@ -51,5 +50,3 @@ private slots:
     void changeAddrSlot();
     void refreshSlot();
 };
-
-#endif // STRUCTWIDGET_H

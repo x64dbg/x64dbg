@@ -1,5 +1,4 @@
-#ifndef CLOSEDIALOG_H
-#define CLOSEDIALOG_H
+#pragma once
 
 #include <QDialog>
 
@@ -24,5 +23,3 @@ private:
     Ui::CloseDialog* ui;
     bool bCanClose;
 };
-
-#endif // CLOSEDIALOG_H

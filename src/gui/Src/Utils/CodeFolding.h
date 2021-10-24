@@ -1,5 +1,5 @@
-#ifndef CODEFOLDING_H
-#define CODEFOLDING_H
+#pragma once
+
 #include "Imports.h"
 #include <map>
 
@@ -46,5 +46,3 @@ protected:
     FoldTree* getFirstFoldedTree(duint va);
     duint getFoldedSize(const FoldTree* node) const;
 };
-
-#endif // CODEFOLDING_H

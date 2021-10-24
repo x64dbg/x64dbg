@@ -1,5 +1,4 @@
-#ifndef CPUDUMP_H
-#define CPUDUMP_H
+#pragma once
 
 #include "HexDump.h"
 
@@ -128,5 +127,3 @@ private:
 
     void setView(ViewEnum_t view);
 };
-
-#endif // CPUDUMP_H

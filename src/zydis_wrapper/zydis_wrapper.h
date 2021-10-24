@@ -1,5 +1,4 @@
-#ifndef ZYDIS_WRAPPER_H
-#define ZYDIS_WRAPPER_H
+#pragma once
 
 #include "Zydis/Zydis.h"
 #include <functional>
@@ -117,5 +116,3 @@ private:
     bool mSuccess;
     uint8_t mVisibleOpCount;
 };
-
-#endif //ZYDIS_WRAPPER_H

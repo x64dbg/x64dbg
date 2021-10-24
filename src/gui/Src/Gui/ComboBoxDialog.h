@@ -1,5 +1,4 @@
-#ifndef COMBOBOXDIALOG_H
-#define COMBOBOXDIALOG_H
+#pragma once
 
 #include <QDialog>
 
@@ -34,5 +33,3 @@ private slots:
 private:
     Ui::ComboBoxDialog* ui;
 };
-
-#endif // COMBOBOXDIALOG_H
