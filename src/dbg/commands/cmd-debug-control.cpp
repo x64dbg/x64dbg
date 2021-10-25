@@ -106,7 +106,7 @@ bool cbDebugInit(int argc, char* argv[])
     case PeArch::DotnetAnyCpu:
         dputs(QT_TRANSLATE_NOOP("DBG", "Use x64dbg to debug this file!"));
 #endif //_WIN64
-        return false;
+    //return false;
     default:
         break;
     }
@@ -232,7 +232,7 @@ bool cbDebugAttach(int argc, char* argv[])
 #else
         dputs(QT_TRANSLATE_NOOP("DBG", "Use x64dbg to debug this process!"));
 #endif // _WIN64
-        return false;
+        //return false;
     }
     if(!GetFileNameFromProcessHandle(hProcess, szDebuggeePath))
     {

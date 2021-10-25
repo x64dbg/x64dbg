@@ -2810,7 +2810,7 @@ static void debugLoopFunction(INIT_STRUCT* init)
 #else
             dputs(QT_TRANSLATE_NOOP("DBG", "Use x64dbg to debug this process!"));
 #endif // _WIN64
-            return;
+            //return;
         }
 
         //set script variables

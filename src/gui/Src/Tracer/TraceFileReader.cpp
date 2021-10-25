@@ -432,7 +432,7 @@ static bool readBlock(QFile & traceFile)
             return false;
     }
     else
-        throw std::wstring(L"Unsupported block type");
+        throw std::wstring(L"Unsupported block type " + std::to_wstring(traceFile.pos()));
     return false;
 }
 
@@ -481,7 +481,7 @@ void TraceFileParser::run()
     }
     catch(const std::wstring & errReason)
     {
-        //MessageBox(0, errReason.c_str(), L"debug", MB_ICONERROR);
+        GuiAddLogMessage((QString::fromStdWString(errReason) + "\n").toUtf8().constData());
         that->error = true;
     }
     catch(std::bad_alloc &)
