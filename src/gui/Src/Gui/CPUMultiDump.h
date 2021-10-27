@@ -1,5 +1,4 @@
-#ifndef CPUMULTIDUMP_H
-#define CPUMULTIDUMP_H
+#pragma once
 
 #include <QWidget>
 #include "TabWidget.h"
@@ -52,5 +51,3 @@ private:
     void SwitchToDumpWindow();
     void SwitchToWatchWindow();
 };
-
-#endif // CPUMULTIDUMP_H

@@ -1,5 +1,4 @@
-#ifndef COMMONACTIONS_H
-#define COMMONACTIONS_H
+#pragma once
 
 #include <QAction>
 #include <functional>
@@ -76,6 +75,3 @@ private:
     bool WarningBoxNotExecutable(const QString & text, duint wVA);
     QWidget* widgetparent();
 };
-
-
-#endif //COMMONACTIONS_H

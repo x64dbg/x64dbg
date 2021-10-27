@@ -1,5 +1,4 @@
-#ifndef LABELEDSPLITTERDETACHEDWINDOW_H
-#define LABELEDSPLITTERDETACHEDWINDOW_H
+#pragma once
 
 #include <QMainWindow>
 #include <QSplitterHandle>
@@ -46,6 +45,3 @@ protected:
 
     LabeledSplitter* mSplitterWidget;
 };
-
-
-#endif //LABELEDSPLITTERDETACHEDWINDOW_H

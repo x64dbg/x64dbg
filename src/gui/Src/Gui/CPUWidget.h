@@ -1,5 +1,4 @@
-#ifndef CPUWIDGET_H
-#define CPUWIDGET_H
+#pragma once
 
 #include <QWidget>
 #include "Bridge.h"
@@ -70,5 +69,3 @@ private slots:
     void attachGraph(QWidget* widget);
     void detachGraph();
 };
-
-#endif // CPUWIDGET_H

@@ -1,5 +1,5 @@
-#ifndef SYMBOLAUTOCOMPLETEMODEL
-#define SYMBOLAUTOCOMPLETEMODEL
+#pragma once
+
 #include <functional>
 #include <QAbstractItemModel>
 #include <QRegularExpression>
@@ -29,4 +29,3 @@ private:
     mutable int lastAutocompleteCount;
     void update() const;
 };
-#endif //SYMBOLAUTOCOMPLETEMODEL

@@ -1,5 +1,4 @@
-#ifndef INFOBOX_H
-#define INFOBOX_H
+#pragma once
 
 #include "StdTable.h"
 
@@ -54,5 +53,3 @@ private:
     QAction* mCopyOffsetAction;
     QAction* mCopyLineAction;
 };
-
-#endif // INFOBOX_H

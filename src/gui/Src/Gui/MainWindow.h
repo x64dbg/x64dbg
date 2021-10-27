@@ -1,5 +1,4 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include <QMainWindow>
 #include "Imports.h"
@@ -283,5 +282,3 @@ private slots:
     void on_actionDefaultTheme_triggered();
     void on_actionAbout_Qt_triggered();
 };
-
-#endif // MAINWINDOW_H

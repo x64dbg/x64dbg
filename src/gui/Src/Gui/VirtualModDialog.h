@@ -1,5 +1,4 @@
-#ifndef VIRTUALMODDIALOG_H
-#define VIRTUALMODDIALOG_H
+#pragma once
 
 #include <QDialog>
 #include "Imports.h"
@@ -22,5 +21,3 @@ public:
 private:
     Ui::VirtualModDialog* ui;
 };
-
-#endif // VIRTUALMODDIALOG_H

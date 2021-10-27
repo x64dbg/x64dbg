@@ -1,5 +1,4 @@
-#ifndef LONGLONGVALIDATOR_H
-#define LONGLONGVALIDATOR_H
+#pragma once
 
 #include <QValidator>
 
@@ -25,5 +24,3 @@ public:
 private:
     DataType dt;
 };
-
-#endif // LONGLONGVALIDATOR_H

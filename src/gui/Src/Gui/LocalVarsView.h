@@ -1,5 +1,5 @@
-#ifndef LOCALVARSVIEW_H
-#define LOCALVARSVIEW_H
+#pragma once
+
 #include "StdTable.h"
 
 class CPUMultiDump;
@@ -39,5 +39,3 @@ private:
     QAction* baseRegisters[8];
 #endif //_WIN64
 };
-
-#endif //LOCALVARSVIEW_H

@@ -1,5 +1,4 @@
-#ifndef SETTINGSDIALOG_H
-#define SETTINGSDIALOG_H
+#pragma once
 
 #include <QDialog>
 #include <QListWidgetItem>
@@ -270,5 +269,3 @@ private:
     void OnCurrentExceptionFilterSettingsChanged();
     void UpdateExceptionListWidget();
 };
-
-#endif // SETTINGSDIALOG_H

@@ -1,5 +1,4 @@
-#ifndef DISASSEMBLERGRAPHVIEW_H
-#define DISASSEMBLERGRAPHVIEW_H
+#pragma once
 
 #include <QObject>
 #include <QWidget>
@@ -384,5 +383,3 @@ private:
 
     void addReferenceAction(QMenu* menu, duint addr, const QString & description);
 };
-
-#endif // DISASSEMBLERGRAPHVIEW_H

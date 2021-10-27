@@ -1,5 +1,4 @@
-#ifndef ACTIONHELPERS_H
-#define ACTIONHELPERS_H
+#pragma once
 
 #include <QAction>
 #include <functional>
@@ -262,5 +261,3 @@ protected:
         return funcs.makeShortcutMenuAction2(menu, icon, text, slot, shortcut);
     }
 };
-
-#endif

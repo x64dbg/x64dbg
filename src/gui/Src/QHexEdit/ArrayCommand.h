@@ -1,5 +1,4 @@
-#ifndef ARRAYCOMMAND_H
-#define ARRAYCOMMAND_H
+#pragma once
 
 #include <QUndoCommand>
 #include <QByteArray>
@@ -48,5 +47,3 @@ private:
     QByteArray _newBa;
     QByteArray _oldBa;
 };
-
-#endif // ARRAYCOMMAND_H

@@ -1,5 +1,4 @@
-#ifndef MAINWINDOWCLOSETHREAD_H
-#define MAINWINDOWCLOSETHREAD_H
+#pragma once
 
 #include <QThread>
 
@@ -15,5 +14,3 @@ signals:
 private:
     void run();
 };
-
-#endif // MAINWINDOWCLOSETHREAD_H

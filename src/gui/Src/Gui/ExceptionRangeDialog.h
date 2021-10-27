@@ -1,5 +1,4 @@
-#ifndef EXCEPTIONRANGEDIALOG_H
-#define EXCEPTIONRANGEDIALOG_H
+#pragma once
 
 #include <QDialog>
 
@@ -27,5 +26,3 @@ private slots:
 private:
     Ui::ExceptionRangeDialog* ui;
 };
-
-#endif // EXCEPTIONRANGEDIALOG_H

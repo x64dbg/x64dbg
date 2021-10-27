@@ -1,5 +1,4 @@
-#ifndef CPUSTACK_H
-#define CPUSTACK_H
+#pragma once
 
 #include "HexDump.h"
 
@@ -83,5 +82,3 @@ private:
     std::vector<CPUCallStack> mCallstack;
     static int CPUStack::getCurrentFrame(const std::vector<CPUStack::CPUCallStack> & mCallstack, duint wVA);
 };
-
-#endif // CPUSTACK_H

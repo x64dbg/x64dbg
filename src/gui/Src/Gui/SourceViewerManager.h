@@ -1,5 +1,4 @@
-#ifndef SOURCEVIEWERMANAGER_H
-#define SOURCEVIEWERMANAGER_H
+#pragma once
 
 #include <QTabWidget>
 #include <QPushButton>
@@ -21,5 +20,3 @@ public slots:
 private:
     QPushButton* mCloseAllTabs;
 };
-
-#endif // SOURCEVIEWERMANAGER_H

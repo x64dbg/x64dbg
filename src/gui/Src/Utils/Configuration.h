@@ -1,5 +1,4 @@
-#ifndef CONFIGURATION_H
-#define CONFIGURATION_H
+#pragma once
 
 #include <QObject>
 #include <QKeySequence>
@@ -130,5 +129,3 @@ private:
 
     mutable bool noMoreMsgbox;
 };
-
-#endif // CONFIGURATION_H

@@ -1,5 +1,5 @@
-#ifndef WATCHVIEW_H
-#define WATCHVIEW_H
+#pragma once
+
 #include "StdTable.h"
 
 class CPUMultiDump;
@@ -52,5 +52,3 @@ private:
         ColId
     };
 };
-
-#endif // WATCHVIEW_H

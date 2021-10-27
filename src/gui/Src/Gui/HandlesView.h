@@ -1,5 +1,4 @@
-#ifndef HANDLESVIEW_H
-#define HANDLESVIEW_H
+#pragma once
 
 #include <QWidget>
 #include "Imports.h"
@@ -66,5 +65,3 @@ private:
     //void enumHeaps();
     void enumPrivileges();
 };
-
-#endif // HANDLESVIEW_H

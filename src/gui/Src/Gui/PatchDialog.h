@@ -1,5 +1,4 @@
-#ifndef PATCHDIALOG_H
-#define PATCHDIALOG_H
+#pragma once
 
 #include <QDialog>
 #include <QListWidgetItem>
@@ -82,5 +81,3 @@ private slots:
     void on_btnImport_clicked();
     void on_btnExport_clicked();
 };
-
-#endif // PATCHDIALOG_H

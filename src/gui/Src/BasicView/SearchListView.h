@@ -1,5 +1,4 @@
-#ifndef SEARCHLISTVIEW_H
-#define SEARCHLISTVIEW_H
+#pragma once
 
 #include <QWidget>
 #include <QLineEdit>
@@ -49,5 +48,3 @@ private:
 
     AbstractSearchList* mAbstractSearchList;
 };
-
-#endif // SEARCHLISTVIEW_H

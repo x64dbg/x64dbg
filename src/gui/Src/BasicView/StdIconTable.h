@@ -1,5 +1,4 @@
-#ifndef STDICONTABLE_H
-#define STDICONTABLE_H
+#pragma once
 
 #include "StdTable.h"
 
@@ -23,5 +22,3 @@ protected:
     std::vector<QIcon> mIcon; //listof(row) where row = (listof(col) where col = CellData)
     int mIconColumn;
 };
-
-#endif // STDICONTABLE_H

@@ -1,5 +1,4 @@
-#ifndef NOTESMANAGER_H
-#define NOTESMANAGER_H
+#pragma once
 
 #include <QWidget>
 #include <QTabWidget>
@@ -19,5 +18,3 @@ private:
     NotepadView* mGlobal;
     NotepadView* mDebuggee;
 };
-
-#endif // NOTESMANAGER_H

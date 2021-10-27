@@ -1,5 +1,5 @@
-#ifndef HEXVALIDATOR_H
-#define HEXVALIDATOR_H
+#pragma once
+
 #include <QValidator>
 
 class HexValidator : public QValidator
@@ -12,5 +12,3 @@ public:
     void fixup(QString & input) const;
     State validate(QString & input, int & pos) const;
 };
-
-#endif // HEXVALIDATOR_H

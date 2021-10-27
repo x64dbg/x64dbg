@@ -1,5 +1,5 @@
-#ifndef VAHISTORY_H
-#define VAHISTORY_H
+#pragma once
+
 #include "Bridge.h"
 
 class VaHistory
@@ -55,5 +55,3 @@ private:
     std::vector<duint> mVaHistory;
     size_t mCurrentVa = -1;
 };
-
-#endif //VAHISTORY_H

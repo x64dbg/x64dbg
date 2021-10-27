@@ -1,5 +1,4 @@
-#ifndef MEMORYMAPVIEW_H
-#define MEMORYMAPVIEW_H
+#pragma once
 
 #include "StdTable.h"
 
@@ -84,5 +83,3 @@ private:
 
     duint mCipBase;
 };
-
-#endif // MEMORYMAPVIEW_H

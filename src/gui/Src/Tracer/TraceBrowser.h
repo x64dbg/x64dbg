@@ -1,5 +1,4 @@
-#ifndef TRACEBROWSER_H
-#define TRACEBROWSER_H
+#pragma once
 
 #include "AbstractTableView.h"
 #include "VaHistory.h"
@@ -187,5 +186,3 @@ public slots:
 protected:
     void disasm(unsigned long long index, bool history = true);
 };
-
-#endif //TRACEBROWSER_H

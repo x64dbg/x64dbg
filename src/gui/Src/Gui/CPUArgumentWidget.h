@@ -1,5 +1,4 @@
-#ifndef CPUARGUMENTWIDGET_H
-#define CPUARGUMENTWIDGET_H
+#pragma once
 
 #include <QWidget>
 #include <vector>
@@ -153,5 +152,3 @@ private:
 
     void updateStackOffset(bool iscall);
 };
-
-#endif // CPUARGUMENTWIDGET_H

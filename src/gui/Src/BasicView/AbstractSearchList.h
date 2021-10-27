@@ -1,5 +1,4 @@
-#ifndef ABSTRACTSEARCHLIST_H
-#define ABSTRACTSEARCHLIST_H
+#pragma once
 
 #include "AbstractStdTable.h"
 
@@ -57,5 +56,3 @@ public:
         return false;
     }
 };
-
-#endif // ABSTRACTSEARCHLIST_H

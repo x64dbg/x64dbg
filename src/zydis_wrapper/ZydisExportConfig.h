@@ -1,6 +1,5 @@
 
-#ifndef ZYDIS_EXPORT_H
-#define ZYDIS_EXPORT_H
+#pragma once
 
 #ifdef ZYDIS_STATIC_DEFINE
 #  define ZYDIS_EXPORT
@@ -38,4 +37,3 @@
 # define ZYDIS_NO_DEPRECATED
 #endif
 
-#endif

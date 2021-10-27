@@ -1,5 +1,4 @@
-#ifndef ATTACHDIALOG_H
-#define ATTACHDIALOG_H
+#pragma once
 
 #include <QDialog>
 
@@ -41,5 +40,3 @@ private:
         ColCommandLine,
     };
 };
-
-#endif // ATTACHDIALOG_H

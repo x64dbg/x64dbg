@@ -1,5 +1,4 @@
-#ifndef REFERENCEMANAGER_H
-#define REFERENCEMANAGER_H
+#pragma once
 
 #include <QTabWidget>
 #include <QPushButton>
@@ -24,5 +23,3 @@ private:
     ReferenceView* mCurrentReferenceView;
     QPushButton* mCloseAllTabs;
 };
-
-#endif // REFERENCEMANAGER_H

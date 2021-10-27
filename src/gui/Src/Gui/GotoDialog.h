@@ -1,5 +1,4 @@
-#ifndef GOTODIALOG_H
-#define GOTODIALOG_H
+#pragma once
 
 #include <QDialog>
 #include "Imports.h"
@@ -47,5 +46,3 @@ private:
     void setOkEnabled(bool enabled);
     QString mCompletionText;
 };
-
-#endif // GOTODIALOG_H

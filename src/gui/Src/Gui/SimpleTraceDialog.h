@@ -1,5 +1,4 @@
-#ifndef SIMPLETRACEDIALOG_H
-#define SIMPLETRACEDIALOG_H
+#pragma once
 
 #include <QDialog>
 
@@ -26,5 +25,3 @@ private:
     QString mTraceCommand;
     QString mLogFile;
 };
-
-#endif // SIMPLETRACEDIALOG_H

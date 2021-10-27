@@ -1,5 +1,4 @@
-#ifndef CPUSIDEBAR_H
-#define CPUSIDEBAR_H
+#pragma once
 
 #include <QAbstractScrollArea>
 #include <QPen>
@@ -119,5 +118,3 @@ private:
     QPen mUnconditionalBackwardsPen;
     QPen mConditionalBackwardsPen;
 };
-
-#endif // CPUSIDEBAR_H

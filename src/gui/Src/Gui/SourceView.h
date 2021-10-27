@@ -1,5 +1,4 @@
-#ifndef SOURCEVIEW_H
-#define SOURCEVIEW_H
+#pragma once
 
 #include <QWidget>
 #include <AbstractStdTable.h>
@@ -65,5 +64,3 @@ private:
     void parseLine(size_t index, LineData & line);
     duint addrFromIndex(size_t index);
 };
-
-#endif // SOURCEVIEW_H

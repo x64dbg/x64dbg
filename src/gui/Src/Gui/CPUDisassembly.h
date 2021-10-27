@@ -1,5 +1,4 @@
-#ifndef CPUDISASSEMBLY_H
-#define CPUDISASSEMBLY_H
+#pragma once
 
 #include "Disassembly.h"
 
@@ -165,5 +164,3 @@ private:
     bool mHighlightContextMenu = false;
     CommonActions* mCommonActions;
 };
-
-#endif // CPUDISASSEMBLY_H

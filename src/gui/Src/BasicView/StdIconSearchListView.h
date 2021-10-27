@@ -1,5 +1,4 @@
-#ifndef STDICONSEARCHLISTVIEW_H
-#define STDICONSEARCHLISTVIEW_H
+#pragma once
 
 #include "StdSearchListView.h"
 #include "StdIconTable.h"
@@ -22,4 +21,3 @@ protected:
     friend class SymbolView;
     friend class Bridge;
 };
-#endif // STDICONSEARCHLISTVIEW_H

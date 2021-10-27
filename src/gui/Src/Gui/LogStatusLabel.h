@@ -1,5 +1,4 @@
-#ifndef LOGSTATUSLABEL_H
-#define LOGSTATUSLABEL_H
+#pragma once
 
 #include <QLabel>
 #include "Bridge.h"
@@ -25,5 +24,3 @@ private:
     QString labelText;
     QString statusTip;
 };
-
-#endif // LOGSTATUSLABEL_H

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <QThread>
 #include "TraceFileReader.h"
 #include "QBeaEngine.h"

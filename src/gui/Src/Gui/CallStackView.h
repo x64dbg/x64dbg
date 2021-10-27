@@ -1,5 +1,4 @@
-#ifndef CALLSTACKVIEW_H
-#define CALLSTACKVIEW_H
+#pragma once
 
 #include "StdTable.h"
 class CommonActions;
@@ -39,5 +38,3 @@ private:
     CommonActions* mCommonActions;
     bool isSelectionValid();
 };
-
-#endif // CALLSTACKVIEW_H

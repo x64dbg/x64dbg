@@ -1,5 +1,4 @@
-#ifndef MISCUTIL_H
-#define MISCUTIL_H
+#pragma once
 
 #include <QIcon>
 #include <functional>
@@ -32,4 +31,3 @@ static const QIcon & DIconHelper(const QString & file)
 }
 
 #define DIcon(file) DIconHelper<__LINE__>(file)
-#endif // MISCUTIL_H

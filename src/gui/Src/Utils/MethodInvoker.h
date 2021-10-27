@@ -1,5 +1,4 @@
-#ifndef METHODINVOKER_H
-#define METHODINVOKER_H
+#pragma once
 
 #include <functional>
 
@@ -20,5 +19,3 @@ struct MethodInvoker
         }, fnPtr);
     }
 };
-
-#endif // METHODINVOKER_H

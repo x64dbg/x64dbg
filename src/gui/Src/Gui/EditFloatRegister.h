@@ -1,5 +1,4 @@
-#ifndef EDITFLOATREGISTER_H
-#define EDITFLOATREGISTER_H
+#pragma once
 
 #include <QDialog>
 #include <QLineEdit>
@@ -103,5 +102,3 @@ private:
     char Data[64];
     int RegSize;
 };
-
-#endif // EDITFLOATREGISTER_H

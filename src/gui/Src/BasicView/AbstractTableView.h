@@ -1,5 +1,4 @@
-#ifndef ABSTRACTTABLEVIEW_H
-#define ABSTRACTTABLEVIEW_H
+#pragma once
 
 #include <QScrollBar>
 #include <QAbstractScrollArea>
@@ -236,5 +235,3 @@ protected:
     // Disassembly Popup
     DisassemblyPopup* mDisassemblyPopup;
 };
-
-#endif // ABSTRACTTABLEVIEW_H

@@ -1,5 +1,4 @@
-#ifndef QHEXEDIT_H
-#define QHEXEDIT_H
+#pragma once
 
 #include <QScrollArea>
 
@@ -60,6 +59,3 @@ signals:
 private:
     QHexEditPrivate* qHexEdit_p;
 };
-
-#endif
-

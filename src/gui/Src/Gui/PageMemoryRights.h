@@ -1,5 +1,4 @@
-#ifndef PAGEMEMORYRIGHTS_H
-#define PAGEMEMORYRIGHTS_H
+#pragma once
 
 #include <QDialog>
 #include "dbg_types.h"
@@ -32,5 +31,3 @@ private:
     duint size;
     QString pagetype;
 };
-
-#endif // PAGEMEMORYRIGHTS_H

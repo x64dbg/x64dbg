@@ -1,5 +1,4 @@
-#ifndef FAVOURITETOOLS_H
-#define FAVOURITETOOLS_H
+#pragma once
 
 #include <QDialog>
 
@@ -56,5 +55,3 @@ private:
     void updateScriptsBtnEnabled();
     void updateCommandsBtnEnabled();
 };
-
-#endif // FAVOURITETOOLS_H

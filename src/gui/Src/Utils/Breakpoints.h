@@ -1,5 +1,4 @@
-#ifndef BREAKPOINTS_H
-#define BREAKPOINTS_H
+#pragma once
 
 #include <QObject>
 #include "Bridge.h"
@@ -34,5 +33,3 @@ public:
     static bool BPTrival(BPXTYPE type, duint va);
     static bool editBP(BPXTYPE type, const QString & addrText, QWidget* widget);
 };
-
-#endif // BREAKPOINTS_H

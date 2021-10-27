@@ -1,5 +1,4 @@
-#ifndef ASSEMBLEDIALOG_H
-#define ASSEMBLEDIALOG_H
+#pragma once
 
 #include <QDialog>
 #include <functional>
@@ -49,5 +48,3 @@ private:
     duint mSelectedInstrVa;
     ValidateExpressionThread* mValidateThread;
 };
-
-#endif // ASSEMBLEDIALOG_H

@@ -1,5 +1,4 @@
-#ifndef TRACEFILEREADER_H
-#define TRACEFILEREADER_H
+#pragma once
 
 #include "Bridge.h"
 #include <QFile>
@@ -76,5 +75,3 @@ private:
 
     QBeaEngine* mDisasm;
 };
-
-#endif //TRACEFILEREADER_H

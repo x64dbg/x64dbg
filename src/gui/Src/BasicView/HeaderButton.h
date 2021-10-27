@@ -1,5 +1,4 @@
-#ifndef HEADERBUTTON_H
-#define HEADERBUTTON_H
+#pragma once
 
 #include <QWidget>
 
@@ -15,6 +14,3 @@ signals:
 public slots:
 
 };
-
-#endif // HEADERBUTTON_H
-

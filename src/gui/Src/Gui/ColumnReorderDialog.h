@@ -1,5 +1,4 @@
-#ifndef COLUMNREORDERDIALOG_H
-#define COLUMNREORDERDIALOG_H
+#pragma once
 
 #include <QDialog>
 
@@ -30,5 +29,3 @@ private:
     Ui::ColumnReorderDialog* ui;
     AbstractTableView* mParent;
 };
-
-#endif // COLUMNREORDERDIALOG_H

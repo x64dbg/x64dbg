@@ -1,5 +1,4 @@
-#ifndef BRIDGERESULT_H
-#define BRIDGERESULT_H
+#pragma once
 
 #include "Imports.h"
 
@@ -45,5 +44,3 @@ public:
 private:
     Type mType;
 };
-
-#endif // BRIDGERESULT_H

@@ -1,5 +1,4 @@
-#ifndef OPENVIEWSWINDOW_H
-#define OPENVIEWSWINDOW_H
+#pragma once
 
 // stolen from http://code.qt.io/cgit/qt-creator/qt-creator.git/tree/src/plugins/coreplugin/editormanager/openeditorswindow.h
 
@@ -67,5 +66,3 @@ private:
     MultiItemsDataProvider* mDataProvider = nullptr;
     bool mShowIcon;
 };
-
-#endif

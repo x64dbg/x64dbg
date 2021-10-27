@@ -1,5 +1,4 @@
-#ifndef TRACEWIDGET_H
-#define TRACEWIDGET_H
+#pragma once
 
 #include <QWidget>
 #include "Bridge.h"
@@ -40,5 +39,3 @@ protected:
 private:
     Ui::TraceWidget* ui;
 };
-
-#endif // TRACEWIDGET_H

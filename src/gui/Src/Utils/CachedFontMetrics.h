@@ -1,5 +1,4 @@
-#ifndef CACHEDFONTMETRICS_H
-#define CACHEDFONTMETRICS_H
+#pragma once
 
 #include <QObject>
 #include <QFont>
@@ -59,5 +58,3 @@ private:
     uchar mWidths[0x10000 - 0xE000 + 0xD800];
     int mHeight;
 };
-
-#endif // CACHEDFONTMETRICS_H

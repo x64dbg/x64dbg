@@ -1,5 +1,4 @@
-#ifndef NOTEPADVIEW_H
-#define NOTEPADVIEW_H
+#pragma once
 
 #include <QPlainTextEdit>
 #include "BridgeResult.h"
@@ -18,5 +17,3 @@ public slots:
 private:
     BridgeResult::Type mType;
 };
-
-#endif // NOTEPADVIEW_H

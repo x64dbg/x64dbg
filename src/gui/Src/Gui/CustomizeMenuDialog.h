@@ -1,5 +1,4 @@
-#ifndef CUSTOMIZEMENUDIALOG_H
-#define CUSTOMIZEMENUDIALOG_H
+#pragma once
 
 #include <QDialog>
 
@@ -23,5 +22,3 @@ public slots:
 private:
     Ui::CustomizeMenuDialog* ui;
 };
-
-#endif // CUSTOMIZEMENUDIALOG_H

@@ -1,5 +1,4 @@
-#ifndef LINEEDITDIALOG_H
-#define LINEEDITDIALOG_H
+#pragma once
 
 #include <QDialog>
 
@@ -39,5 +38,3 @@ private:
     unsigned int fixed_size;
     bool fpuMode;
 };
-
-#endif // LINEEDITDIALOG_H

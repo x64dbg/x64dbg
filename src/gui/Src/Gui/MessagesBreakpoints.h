@@ -1,5 +1,4 @@
-#ifndef MESSAGESBREAKPOINTS_H
-#define MESSAGESBREAKPOINTS_H
+#pragma once
 
 #include <QDialog>
 #include <QLayout>
@@ -34,5 +33,3 @@ private:
     QMap<duint, QString> messages;
     QVector<QString> filterMessages;
 };
-
-#endif // MESSAGESBREAKPOINTS_H
