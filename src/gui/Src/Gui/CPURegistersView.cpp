@@ -112,15 +112,17 @@ void CPURegistersView::mouseDoubleClickEvent(QMouseEvent* event)
     // do we find a corresponding register?
     if(!identifyRegister(y, x, 0))
         return;
-    if(mSelected == CIP) //double clicked on CIP register
+    if(mSelected == CIP) //double clicked on CIP register, disasm CIP
         DbgCmdExec("disasm cip");
     // is current register general purposes register or FPU register?
     else if(mMODIFYDISPLAY.contains(mSelected))
         wCM_Modify->trigger();
     else if(mBOOLDISPLAY.contains(mSelected)) // is flag ?
-        wCM_ToggleValue->trigger();
+        wCM_ToggleValue->trigger(); //toggle flag value
     else if(mCANSTOREADDRESS.contains(mSelected))
-        wCM_FollowInDisassembly->trigger();
+        wCM_FollowInDisassembly->trigger(); //follow in disassembly
+    else if(mSelected == ArchValue(FS, GS)) // double click on FS or GS, follow TEB in dump
+        DbgCmdExec("dump teb()");
 }
 
 void CPURegistersView::keyPressEvent(QKeyEvent* event)
