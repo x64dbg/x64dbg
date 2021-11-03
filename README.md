@@ -32,18 +32,18 @@ This is a community effort and we accept pull requests! See the [CONTRIBUTING](h
 - Disassembly powered by [Zydis](https://zydis.re)
 - Assembly powered by [XEDParse](https://github.com/x64dbg/XEDParse) and [asmjit](https://github.com/asmjit)
 - Import reconstruction powered by [Scylla](https://github.com/NtQuery/Scylla)
-- JSON powered by [Jansson](http://www.digip.org/jansson)
+- JSON powered by [Jansson](https://www.digip.org/jansson)
 - Database compression powered by [lz4](https://bitbucket.org/mrexodia/lz4)
-- Bug icon by [VisualPharm](http://www.visualpharm.com)
-- Interface icons by [Fugue](http://p.yusukekamiyamane.com)
-- Website by [tr4ceflow](http://tr4ceflow.com)
+- Bug icon by [VisualPharm](https://www.visualpharm.com)
+- Interface icons by [Fugue](https://p.yusukekamiyamane.com)
+- Website by [tr4ceflow](https://tr4ceflow.com)
 
 ## Developers
 
-- [mrexodia](http://mrexodia.github.io)
+- [mrexodia](https://mrexodia.github.io)
 - Sigma
-- [tr4ceflow](http://blog.tr4ceflow.com)
-- [Dreg](http://www.fr33project.org)
+- [tr4ceflow](https://blog.tr4ceflow.com)
+- [Dreg](https://www.fr33project.org)
 - [Nukem](https://github.com/Nukem9)
 - [Herz3h](https://github.com/Herz3h)
 - [torusrxxx](https://github.com/torusrxxx)
@@ -59,10 +59,10 @@ You can find an exhaustive list of GitHub contributors [here](https://github.com
 - Everybody adding issues!
 - People I forgot to add to this list
 - [Writers of the blog](https://x64dbg.com/blog/2016/07/09/Looking-for-writers.html)!
-- [EXETools community](http://forum.exetools.com)
-- [Tuts4You community](http://forum.tuts4you.com)
+- [EXETools community](https://forum.exetools.com)
+- [Tuts4You community](https://forum.tuts4you.com)
 - [ReSharper](https://www.jetbrains.com/resharper)
-- [Coverity](http://www.coverity.com)
+- [Coverity](https://www.coverity.com)
 - acidflash
 - cyberbob
 - cypher
@@ -73,7 +73,7 @@ You can find an exhaustive list of GitHub contributors [here](https://github.com
 - ahmadmansoor
 - \_pusher\_
 - firelegend
-- [kao](http://lifeinhex.com)
+- [kao](https://lifeinhex.com)
 - sstrato
 - [kobalicek](https://github.com/kobalicek)
 - [athre0z](https://github.com/athre0z)
