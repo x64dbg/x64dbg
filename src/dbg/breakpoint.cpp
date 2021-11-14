@@ -578,10 +578,16 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base)
         BREAKPOINT bpInfo = j->second;
         if(bpInfo.type != BPDLL && bpInfo.type != BPEXCEPTION)
         {
-            if(base) //workaround for some Windows bullshit with compatibility mode
+            if(base)  //workaround for some Windows bullshit with compatibility mode
                 bpInfo.addr += base;
             else
-                bpInfo.addr += ModBaseFromName(bpInfo.mod);
+            {
+                char arg[deflen];
+                sprintf_s(arg, "%s:$%X", bpInfo.mod, bpInfo.addr);
+                BREAKPOINT found;
+                if(BpGet(0, bpInfo.type, arg, &found))  //found a breakpoint with name
+                    bpInfo = found;
+            }
         }
         setBpActive(bpInfo);
 
