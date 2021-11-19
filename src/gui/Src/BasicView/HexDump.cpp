@@ -644,9 +644,9 @@ void HexDump::keyPressEvent(QKeyEvent* event)
                 printDumpAt(offsetVa, false);
         }
     }
-    else
+    else if(modifiers == Qt::ShiftModifier)
     {
-        AbstractTableView::keyPressEvent(event);
+        //TODO
     }
     /*
         Let's keep the old code for a while until nobody remembers previous behaviour.

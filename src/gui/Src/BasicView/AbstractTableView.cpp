@@ -647,7 +647,7 @@ void AbstractTableView::leaveEvent(QEvent* event)
 void AbstractTableView::keyPressEvent(QKeyEvent* event)
 {
     int wKey = event->key();
-    if(event->modifiers() && event->modifiers() != Qt::KeypadModifier)
+    if(event->modifiers() != Qt::NoModifier && event->modifiers() != Qt::KeypadModifier)
         return;
 
     if(wKey == Qt::Key_Up)
