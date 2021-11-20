@@ -1425,7 +1425,7 @@
     <string>Restart as Admin</string>
    </property>
    <property name="statusTip">
-    <string>Restart x64dbg under Administrator priviledge.</string>
+    <string>Restart x64dbg under Administrator privilege.</string>
    </property>
   </action>
   <action name="actionPlugins">
