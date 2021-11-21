@@ -648,6 +648,10 @@ void HexDump::keyPressEvent(QKeyEvent* event)
     {
         //TODO
     }
+    else
+    {
+        AbstractTableView::keyPressEvent(event);
+    }
     /*
         Let's keep the old code for a while until nobody remembers previous behaviour.
         if(key == Qt::Key_Left || (key == Qt::Key_Up && control)) //TODO: see if Ctrl+Up is redundant
