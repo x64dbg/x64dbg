@@ -138,7 +138,18 @@ void AbstractTableView::updateColorsSlot()
 
 void AbstractTableView::updateFontsSlot()
 {
+    auto oldCharWidth = getCharWidth();
     updateFonts();
+    auto newCharWidth = getCharWidth();
+
+    // Scale the column widths to the new font
+    for(int col = 0; col < getColumnCount(); col++)
+    {
+        auto width = getColumnWidth(col);
+        auto charCount = width / oldCharWidth;
+        auto padding = width % oldCharWidth;
+        setColumnWidth(col, charCount * newCharWidth + padding);
+    }
 }
 
 void AbstractTableView::updateShortcutsSlot()
