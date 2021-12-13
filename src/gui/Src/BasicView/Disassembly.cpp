@@ -1916,6 +1916,8 @@ void Disassembly::paintEvent(QPaintEvent* event)
         int w = getColumnWidth(column);
         int h = getViewableRowsCount() * getRowHeight();
 
+#if 1
+
         QString columnText;
         columnText.reserve(getColumnWidth(column) * getViewableRowsCount() / getCharWidth());
 
@@ -2052,14 +2054,18 @@ void Disassembly::paintEvent(QPaintEvent* event)
         //painter.drawPixmap(QRectF(x, 0, w, h), pixmap, QRectF(0, 0, w, h));
         painter.drawPixmap(x, 0, pixmap);
 
+#else
+
         //painter.drawLine(x, 5, x + 10, 5);
 
-        /*qDebug() << "column:" << column << ", x:" << x << ", y:" << y << ", w:" << w << ", h:" << h;
+        //qDebug() << "column:" << column << ", x:" << x << ", y:" << y << ", w:" << w << ", h:" << h;
         for(int rowOffset = 0; rowOffset < mRichText[column].size(); rowOffset++)
         {
-            const RichTextInfo& info = mRichText[column][rowOffset];
-            RichTextPainter::paintRichText(&painter, info.x, info.y, info.w, info.h, info.xinc, info.richText, mFontMetrics);
-        }*/
+            const RichTextInfo & info = mRichText[column][rowOffset];
+            if(info.alive)
+                RichTextPainter::paintRichText(&painter, info.x, info.y, info.w, info.h, info.xinc, info.richText, mFontMetrics);
+        }
+#endif
 
         x += w;
     }
