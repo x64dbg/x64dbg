@@ -1935,7 +1935,14 @@ void Disassembly::paintEvent(QPaintEvent* event)
                 if(curRichText.text.isEmpty())
                     continue;
 
-                QTextLayout::FormatRange range;
+                if(mFormatCache.empty())
+                {
+                    mFormatCache.emplace_back();
+                    //mFormatCache.resize(10);
+                }
+
+                QTextLayout::FormatRange range = std::move(mFormatCache.back());
+                mFormatCache.pop_back();
                 range.start = columnText.length();
                 range.length = curRichText.text.length();
 
@@ -1946,28 +1953,46 @@ void Disassembly::paintEvent(QPaintEvent* event)
                 switch(curRichText.flags)
                 {
                 case RichTextPainter::FlagNone: //defaults
-                    continue; // TODO: handle underline
-                    break;
+                {
+                    format.clearForeground();
+                    format.clearBackground();
+                }
+                break;
+
                 case RichTextPainter::FlagColor: //color only
                 {
                     format.setForeground(curRichText.textColor);
-                    //format.setBackground(mBackgroundColor);
+                    format.clearBackground();
                 }
                 break;
+
                 case RichTextPainter::FlagBackground: //background only
+                {
                     if(curRichText.textBackground.alpha())
                     {
                         format.setBackground(curRichText.textBackground);
                     }
-                    break;
+                    else
+                    {
+                        format.clearBackground();
+                    }
+                    format.clearForeground();
+                }
+                break;
+
                 case RichTextPainter::FlagAll: //color+background
+                {
                     if(curRichText.textBackground.alpha())
                     {
                         format.setBackground(curRichText.textBackground);
                     }
-                    QTextLine l;
+                    else
+                    {
+                        format.clearBackground();
+                    }
                     format.setForeground(curRichText.textColor);
-                    break;
+                }
+                break;
                 }
                 /* TODO: underline
                 painter->drawText(QRect(x + xinc, y, w - xinc, h), Qt::TextBypassShaping, curRichText.text);
@@ -1991,6 +2016,12 @@ void Disassembly::paintEvent(QPaintEvent* event)
         mTextLayout.setTextOption(textOption);
 
         mTextLayout.setFormats(selections);
+
+        while(!selections.empty())
+        {
+            mFormatCache.push_back(std::move(selections.back()));
+            selections.pop_back();
+        }
 
         mTextLayout.setText(columnText);
         mTextLayout.beginLayout();

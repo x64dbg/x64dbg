@@ -263,6 +263,7 @@ protected:
     };
 
     QTextLayout mTextLayout;
+    std::vector<QTextLayout::FormatRange> mFormatCache;
 
     std::vector<std::vector<RichTextInfo>> mRichText;
 
