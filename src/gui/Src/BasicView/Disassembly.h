@@ -2,6 +2,7 @@
 
 #include "AbstractTableView.h"
 #include "QBeaEngine.h"
+#include <QTextLayout>
 
 class CodeFoldingHelper;
 class MemoryPage;
@@ -55,6 +56,8 @@ public:
     // Update/Reload/Refresh/Repaint
     void prepareData() override;
     void reloadData() override;
+
+    void paintEvent(QPaintEvent* event) override;
 
     // Public Methods
     duint rvaToVa(dsint rva) const;
@@ -153,6 +156,14 @@ private:
     QList<HistoryData> mVaHistory;
     int mCurrentVa;
 
+    enum
+    {
+        ColAddress,
+        ColBytes,
+        ColDisassembly,
+        ColComment,
+    };
+
 protected:
     // Jumps Graphic
     int paintJumpsGraphic(QPainter* painter, int x, int y, dsint addr, bool isjmp);
@@ -239,4 +250,22 @@ protected:
     bool mPermanentHighlightingMode;
     bool mNoCurrentModuleText;
     bool mIsMain = false;
+
+    struct RichTextInfo
+    {
+        bool alive = true;
+        int x = 0;
+        int y = 0;
+        int w = 0;
+        int h = 0;
+        int xinc = 0;
+        RichTextPainter::List richText;
+    };
+
+    QTextLayout mTextLayout;
+
+    std::vector<std::vector<RichTextInfo>> mRichText;
+
+    void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const RichTextPainter::List & richText, int rowOffset, int column);
+    void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const RichTextPainter::List && richText, int rowOffset, int column);
 };
