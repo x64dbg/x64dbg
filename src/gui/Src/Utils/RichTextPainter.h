@@ -3,6 +3,7 @@
 #include <QString>
 #include <QColor>
 #include <vector>
+#include <QTextLayout>
 
 class CachedFontMetrics;
 class QPainter;
@@ -35,5 +36,6 @@ public:
 
     //functions
     static void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const List & richText, CachedFontMetrics* fontMetrics);
+    static void paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const List & richText, QTextLayout & textLayout);
     static void htmlRichText(const List & richText, QString* textHtml, QString & textPlain);
 };

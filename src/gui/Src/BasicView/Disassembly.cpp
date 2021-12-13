@@ -1898,9 +1898,13 @@ void Disassembly::reloadData()
     AbstractTableView::reloadData();
 }
 
+#include <vtune.h>
+
 void Disassembly::paintEvent(QPaintEvent* event)
 {
     AbstractTableView::paintEvent(event);
+
+    EnableVTune vtEnable;
 
     // Delay paint the rich text
     QPainter painter(this->viewport());
@@ -1915,6 +1919,8 @@ void Disassembly::paintEvent(QPaintEvent* event)
         QString columnText;
         columnText.reserve(getColumnWidth(column) * getViewableRowsCount() / getCharWidth());
 
+        QVector<QTextLayout::FormatRange> selections;
+
         for(int rowOffset = 0; rowOffset < mRichText[column].size(); rowOffset++)
         {
             if(rowOffset > 0)
@@ -1923,16 +1929,68 @@ void Disassembly::paintEvent(QPaintEvent* event)
             const RichTextInfo & info = mRichText[column][rowOffset];
             if(!info.alive)
                 continue;
-            for(const RichTextPainter::CustomRichText_t & token : info.richText)
+
+            for(const RichTextPainter::CustomRichText_t & curRichText : info.richText)
             {
-                columnText += token.text;
+                if(curRichText.text.isEmpty())
+                    continue;
+
+                QTextLayout::FormatRange range;
+                range.start = columnText.length();
+                range.length = curRichText.text.length();
+
+                columnText += curRichText.text;
+
+                // TODO: this shit is way too slow
+                QTextCharFormat & format = range.format;
+                switch(curRichText.flags)
+                {
+                case RichTextPainter::FlagNone: //defaults
+                    continue; // TODO: handle underline
+                    break;
+                case RichTextPainter::FlagColor: //color only
+                {
+                    format.setForeground(curRichText.textColor);
+                    //format.setBackground(mBackgroundColor);
+                }
+                break;
+                case RichTextPainter::FlagBackground: //background only
+                    if(curRichText.textBackground.alpha())
+                    {
+                        format.setBackground(curRichText.textBackground);
+                    }
+                    break;
+                case RichTextPainter::FlagAll: //color+background
+                    if(curRichText.textBackground.alpha())
+                    {
+                        format.setBackground(curRichText.textBackground);
+                    }
+                    QTextLine l;
+                    format.setForeground(curRichText.textColor);
+                    break;
+                }
+                /* TODO: underline
+                painter->drawText(QRect(x + xinc, y, w - xinc, h), Qt::TextBypassShaping, curRichText.text);
+                if(curRichText.underline && curRichText.underlineColor.alpha())
+                {
+                    highlightPen.setColor(curRichText.underlineColor);
+                    highlightPen.setWidth(curRichText.underlineWidth);
+                    painter->setPen(highlightPen);
+                    int highlightOffsetX = curRichText.underlineConnectPrev ? -1 : 1;
+                    painter->drawLine(x + xinc + highlightOffsetX, y + h - 1, x + xinc + backgroundWidth - 1, y + h - 1);
+                }
+                */
+                selections.push_back(std::move(range));
             }
-            //RichTextPainter::paintRichText(&painter, info.x, info.y, info.w, info.h, info.xinc, info.richText, mFontMetrics);
+
+            //RichTextPainter::paintRichText(&painter, info.x, info.y, info.w, info.h, info.xinc, info.richText, mTextLayout);
         }
 
         QTextOption textOption;
         textOption.setWrapMode(QTextOption::NoWrap);
         mTextLayout.setTextOption(textOption);
+
+        mTextLayout.setFormats(selections);
 
         mTextLayout.setText(columnText);
         mTextLayout.beginLayout();
@@ -1956,8 +2014,7 @@ void Disassembly::paintEvent(QPaintEvent* event)
         QPainter clippedPainter;
         clippedPainter.begin(&pixmap);
 
-        QVector<QTextLayout::FormatRange> selections;
-        mTextLayout.draw(&clippedPainter, QPointF(0, 0), selections);
+        mTextLayout.draw(&clippedPainter, QPointF(0, 0));
 
         clippedPainter.end();
 
