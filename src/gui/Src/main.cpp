@@ -70,12 +70,12 @@ static bool isValidLocale(const QString & locale)
 int main(int argc, char* argv[])
 {
     DisableVTune vtDisable;
-    CloseHandle(CreateThread(nullptr, 0, [](LPVOID)->DWORD
+    /*CloseHandle(CreateThread(nullptr, 0, [](LPVOID)->DWORD
     {
         Sleep(20000);
         ExitProcess(0);
         return 0;
-    }, nullptr, 0, nullptr));
+    }, nullptr, 0, nullptr));*/
     qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
     QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     MyApplication application(argc, argv);
