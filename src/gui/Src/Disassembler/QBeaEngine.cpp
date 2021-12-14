@@ -261,6 +261,7 @@ Instruction_t QBeaEngine::DisassembleAt(const byte_t* data, duint size, duint or
         wInst.regsReferenced.emplace_back(cp.FlagName(ZydisCPUFlag(i)), rai);
     }
 
+    wInst.regsReferenced.reserve(ZYDIS_REGISTER_MAX_VALUE);
     reginfo[ArchValue(ZYDIS_REGISTER_EIP, ZYDIS_REGISTER_RIP)] = Zydis::RAINone;
     for(int i = ZYDIS_REGISTER_NONE; i <= ZYDIS_REGISTER_MAX_VALUE; ++i)
         if(reginfo[i])

@@ -30,6 +30,7 @@ public:
         int underlineWidth = 2;
         bool underlineConnectPrev = false;
     };
+    static_assert(std::is_move_assignable<CustomRichText_t>::value, "not movable");
 
     typedef std::vector<CustomRichText_t> List;
 

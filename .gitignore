@@ -81,3 +81,4 @@ build-wrapper*
 My Amplifier Results - */
 My Inspector Results - */
 /bin/x96dbg.ini
+/src/gui/msvc_make.bat

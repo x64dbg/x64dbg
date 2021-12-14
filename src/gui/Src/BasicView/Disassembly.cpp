@@ -127,6 +127,8 @@ void Disassembly::updateFonts()
 {
     setFont(ConfigFont("Disassembly"));
     invalidateCachedFont();
+    mTextLayout.setFont(font());
+    mTextLayout.setCacheEnabled(true);
 }
 
 void Disassembly::updateConfigSlot()
@@ -208,15 +210,21 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 
     switch(col)
     {
-    case 0: // Draw address (+ label)
+    case ColAddress: // Draw address (+ label)
     {
+        RichTextPainter::CustomRichText_t richText;
+        richText.underline = false;
+        richText.textColor = mTextColor;
+        richText.flags = RichTextPainter::FlagColor;
+
         char label[MAX_LABEL_SIZE] = "";
         QString addrText = getAddrText(cur_addr, label);
+        richText.text = addrText;
         BPXTYPE bpxtype = DbgGetBpxTypeAt(cur_addr);
         bool isbookmark = DbgGetBookmarkAt(cur_addr);
         if(rvaToVa(mInstBuffer.at(rowOffset).rva) == mCipVa && !Bridge::getBridge()->mIsRunning && DbgMemFindBaseAddr(DbgValFromString("cip"), nullptr)) //cip + not running + valid cip
         {
-            painter->fillRect(QRect(x, y, w, h), QBrush(mCipBackgroundColor));
+            richText.textBackground = mCipBackgroundColor;
             if(!isbookmark) //no bookmark
             {
                 if(bpxtype & bp_normal) //normal breakpoint
@@ -226,7 +234,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                         bpColor = mBreakpointColor;
                     if(bpColor == mCipBackgroundColor)
                         bpColor = mCipColor;
-                    painter->setPen(bpColor);
+                    richText.textColor = bpColor;
                 }
                 else if(bpxtype & bp_hardware) //hardware breakpoint only
                 {
@@ -235,11 +243,11 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                         hwbpColor = mHardwareBreakpointColor;
                     if(hwbpColor == mCipBackgroundColor)
                         hwbpColor = mCipColor;
-                    painter->setPen(hwbpColor);
+                    richText.textColor = hwbpColor;
                 }
                 else //no breakpoint
                 {
-                    painter->setPen(mCipColor);
+                    richText.textColor = mCipColor;
                 }
             }
             else //bookmark
@@ -249,7 +257,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                     bookmarkColor = mBookmarkColor;
                 if(bookmarkColor == mCipBackgroundColor)
                     bookmarkColor = mCipColor;
-                painter->setPen(bookmarkColor);
+                richText.textColor = bookmarkColor;
             }
         }
         else //non-cip address
@@ -260,25 +268,25 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                 {
                     if(bpxtype == bp_none) //label only : fill label background
                     {
-                        painter->setPen(mLabelColor); //red -> address + label text
-                        painter->fillRect(QRect(x, y, w, h), QBrush(mLabelBackgroundColor)); //fill label background
+                        richText.textColor = mLabelColor;
+                        richText.textBackground = mLabelBackgroundColor;
                     }
                     else //label + breakpoint
                     {
                         if(bpxtype & bp_normal) //label + normal breakpoint
                         {
-                            painter->setPen(mBreakpointColor);
-                            painter->fillRect(QRect(x, y, w, h), QBrush(mBreakpointBackgroundColor)); //fill red
+                            richText.textColor = mBreakpointColor;
+                            richText.textBackground = mBreakpointBackgroundColor;
                         }
                         else if(bpxtype & bp_hardware) //label + hardware breakpoint only
                         {
-                            painter->setPen(mHardwareBreakpointColor);
-                            painter->fillRect(QRect(x, y, w, h), QBrush(mHardwareBreakpointBackgroundColor)); //fill ?
+                            richText.textColor = mHardwareBreakpointColor;
+                            richText.textBackground = mHardwareBreakpointBackgroundColor;
                         }
                         else //other cases -> do as normal
                         {
-                            painter->setPen(mLabelColor); //red -> address + label text
-                            painter->fillRect(QRect(x, y, w, h), QBrush(mLabelBackgroundColor)); //fill label background
+                            richText.textColor = mLabelColor;
+                            richText.textBackground = mLabelBackgroundColor;
                         }
                     }
                 }
@@ -286,47 +294,41 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                 {
                     if(bpxtype == bp_none) //no label, no breakpoint
                     {
-                        QColor background;
                         if(wIsSelected)
                         {
-                            background = mSelectedAddressBackgroundColor;
-                            painter->setPen(mSelectedAddressColor); //black address (DisassemblySelectedAddressColor)
+                            richText.textColor = mSelectedAddressColor;
+                            richText.textBackground = mSelectedAddressBackgroundColor;
                         }
                         else
                         {
-                            background = mAddressBackgroundColor;
-                            painter->setPen(mAddressColor); //DisassemblyAddressColor
+                            richText.textColor = mAddressColor;
+                            richText.textBackground = mAddressBackgroundColor;
                         }
-                        if(background.alpha())
-                            painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background
                     }
                     else //breakpoint only
                     {
                         if(bpxtype & bp_normal) //normal breakpoint
                         {
-                            painter->setPen(mBreakpointColor);
-                            painter->fillRect(QRect(x, y, w, h), QBrush(mBreakpointBackgroundColor)); //fill red
+                            richText.textColor = mBreakpointColor;
+                            richText.textBackground = mBreakpointBackgroundColor;
                         }
                         else if(bpxtype & bp_hardware) //hardware breakpoint only
                         {
-                            painter->setPen(mHardwareBreakpointColor);
-                            painter->fillRect(QRect(x, y, w, h), QBrush(mHardwareBreakpointBackgroundColor)); //fill red
+                            richText.textColor = mHardwareBreakpointColor;
+                            richText.textBackground = mHardwareBreakpointBackgroundColor;
                         }
                         else //other cases (memory breakpoint in disassembly) -> do as normal
                         {
-                            QColor background;
                             if(wIsSelected)
                             {
-                                background = mSelectedAddressBackgroundColor;
-                                painter->setPen(mSelectedAddressColor); //black address (DisassemblySelectedAddressColor)
+                                richText.textColor = mSelectedAddressColor;
+                                richText.textBackground = mSelectedAddressBackgroundColor;
                             }
                             else
                             {
-                                background = mAddressBackgroundColor;
-                                painter->setPen(mAddressColor);
+                                richText.textColor = mAddressColor;
+                                richText.textBackground = mAddressBackgroundColor;
                             }
-                            if(background.alpha())
-                                painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background
                         }
                     }
                 }
@@ -337,22 +339,22 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                 {
                     if(bpxtype == bp_none) //label + bookmark
                     {
-                        painter->setPen(mLabelColor); //red -> address + label text
-                        painter->fillRect(QRect(x, y, w, h), QBrush(mBookmarkBackgroundColor)); //fill label background
+                        richText.textColor = mLabelColor;
+                        richText.textBackground = mBookmarkBackgroundColor;
                     }
                     else //label + breakpoint + bookmark
                     {
                         QColor color = mBookmarkBackgroundColor;
                         if(!color.alpha()) //we don't want transparent text
                             color = mAddressColor;
-                        painter->setPen(color);
+                        richText.textColor = color;
                         if(bpxtype & bp_normal) //label + bookmark + normal breakpoint
                         {
-                            painter->fillRect(QRect(x, y, w, h), QBrush(mBreakpointBackgroundColor)); //fill red
+                            richText.textBackground = mBreakpointBackgroundColor;
                         }
                         else if(bpxtype & bp_hardware) //label + bookmark + hardware breakpoint only
                         {
-                            painter->fillRect(QRect(x, y, w, h), QBrush(mHardwareBreakpointBackgroundColor)); //fill ?
+                            richText.textBackground = mHardwareBreakpointBackgroundColor;
                         }
                     }
                 }
@@ -360,37 +362,45 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                 {
                     if(bpxtype == bp_none) //bookmark only
                     {
-                        painter->setPen(mBookmarkColor); //black address
-                        painter->fillRect(QRect(x, y, w, h), QBrush(mBookmarkBackgroundColor)); //fill bookmark color
+                        richText.textColor = mBookmarkColor;
+                        richText.textBackground = mBookmarkBackgroundColor;
                     }
                     else //bookmark + breakpoint
                     {
                         QColor color = mBookmarkBackgroundColor;
                         if(!color.alpha()) //we don't want transparent text
                             color = mAddressColor;
-                        painter->setPen(color);
+                        richText.textColor = color;
                         if(bpxtype & bp_normal) //bookmark + normal breakpoint
                         {
-                            painter->fillRect(QRect(x, y, w, h), QBrush(mBreakpointBackgroundColor)); //fill red
+                            richText.textBackground = mBreakpointBackgroundColor;
                         }
                         else if(bpxtype & bp_hardware) //bookmark + hardware breakpoint only
                         {
-                            painter->fillRect(QRect(x, y, w, h), QBrush(mHardwareBreakpointBackgroundColor)); //fill red
+                            richText.textBackground = mHardwareBreakpointBackgroundColor;
                         }
                         else //other cases (bookmark + memory breakpoint in disassembly) -> do as normal
                         {
-                            painter->setPen(mBookmarkColor); //black address
-                            painter->fillRect(QRect(x, y, w, h), QBrush(mBookmarkBackgroundColor)); //fill bookmark color
+                            richText.textColor = mBookmarkColor;
+                            richText.textBackground = mBookmarkBackgroundColor;
                         }
                     }
                 }
             }
         }
-        painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, addrText);
+
+        if(richText.textBackground.alpha())
+        {
+            painter->fillRect(QRect(x, y, w, h), richText.textBackground);
+        }
+
+        RichTextPainter::List list;
+        list.emplace_back(std::move(richText));
+        paintRichText(x, y, w, h, 2, std::move(list), rowOffset, col);
     }
     break;
 
-    case 1: //draw bytes
+    case ColBytes: //draw bytes
     {
         const Instruction_t & instr = mInstBuffer.at(rowOffset);
         //draw functions
@@ -449,11 +459,11 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
 
         //draw bytes
         auto richBytes = getRichBytes(instr, wIsSelected);
-        RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, richBytes, mFontMetrics);
+        paintRichText(x, y, getColumnWidth(col), getRowHeight(), jumpsize + funcsize, std::move(richBytes), rowOffset, col);
     }
     break;
 
-    case 2: //draw disassembly (with colours needed)
+    case ColDisassembly: //draw disassembly (with colours needed)
     {
         int loopsize = 0;
         int depth = 0;
@@ -496,13 +506,13 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             ZydisTokenizer::TokenToRichText(token, richText, &mHighlightToken);
         else
             ZydisTokenizer::TokenToRichText(token, richText, 0);
-        int xinc = 4;
-        RichTextPainter::paintRichText(painter, x + loopsize, y, getColumnWidth(col) - loopsize, getRowHeight(), xinc, richText, mFontMetrics);
+        int xinc = 4 + loopsize;
+        paintRichText(x, y, getColumnWidth(col), getRowHeight(), xinc, std::move(richText), rowOffset, col);
         token.x = x + loopsize + xinc;
     }
     break;
 
-    case 3: //draw comments
+    case ColComment: //draw comments
     {
         //draw arguments
         Function_t funcType;
@@ -529,49 +539,48 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
         }
         int argsize = funcType == Function_none ? 3 : paintFunctionGraphic(painter, x, y, funcType, false);
 
+        RichTextPainter::CustomRichText_t richComment;
+        richComment.underline = false;
+        richComment.textColor = mTextColor;
+        richComment.textBackground = mBackgroundColor;
+        richComment.flags = RichTextPainter::FlagAll;
+
         QString comment;
         bool autoComment = false;
         char label[MAX_LABEL_SIZE] = "";
         if(GetCommentFormat(cur_addr, comment, &autoComment))
         {
-            QColor backgroundColor;
             if(autoComment)
             {
-                painter->setPen(mAutoCommentColor);
-                backgroundColor = mAutoCommentBackgroundColor;
+                richComment.textColor = mAutoCommentColor;
+                richComment.textBackground = mAutoCommentBackgroundColor;
             }
             else //user comment
             {
-                painter->setPen(mCommentColor);
-                backgroundColor = mCommentBackgroundColor;
+                richComment.textColor = mCommentColor;
+                richComment.textBackground = mCommentBackgroundColor;
             }
 
-            int width = mFontMetrics->width(comment);
-            if(width > w)
-                width = w;
-            if(width)
-                painter->fillRect(QRect(x + argsize, y, width, h), QBrush(backgroundColor)); //fill comment color
-            painter->drawText(QRect(x + argsize, y, width, h), Qt::AlignVCenter | Qt::AlignLeft, comment);
-            argsize += width + 3;
+            richComment.text = std::move(comment);
         }
         else if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) // label but no comment
         {
-            QString labelText(label);
-            QColor backgroundColor;
-            painter->setPen(mLabelColor);
-            backgroundColor = mLabelBackgroundColor;
-
-            int width = mFontMetrics->width(labelText);
-            if(width > w)
-                width = w;
-            if(width)
-                painter->fillRect(QRect(x + argsize, y, width, h), QBrush(backgroundColor)); //fill comment color
-            painter->drawText(QRect(x + argsize, y, width, h), Qt::AlignVCenter | Qt::AlignLeft, labelText);
-            argsize += width + 3;
+            richComment.textColor = mLabelColor;
+            richComment.textBackground = mLabelBackgroundColor;
+            richComment.text = label;
         }
+
+        RichTextPainter::List richText;
+        richText.emplace_back(std::move(richComment));
 
         if(mShowMnemonicBrief)
         {
+            RichTextPainter::CustomRichText_t richBrief;
+            richBrief.underline = false;
+            richBrief.textColor = mMnemonicBriefColor;
+            richBrief.textBackground = mMnemonicBriefBackgroundColor;
+            richBrief.flags = RichTextPainter::FlagAll;
+
             char brief[MAX_STRING_SIZE] = "";
             QString mnem;
             for(const ZydisTokenizer::SingleToken & token : mInstBuffer.at(rowOffset).tokens.tokens)
@@ -590,20 +599,22 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                 mnem.truncate(index);
             DbgFunctions()->GetMnemonicBrief(mnem.toUtf8().constData(), MAX_STRING_SIZE, brief);
 
-            painter->setPen(mMnemonicBriefColor);
-
             QString mnemBrief = brief;
             if(mnemBrief.length())
             {
-                int width = mFontMetrics->width(mnemBrief);
-                if(width > w)
-                    width = w;
-                if(width)
-                    painter->fillRect(QRect(x + argsize, y, width, h), QBrush(mMnemonicBriefBackgroundColor)); //mnemonic brief background color
-                painter->drawText(QRect(x + argsize, y, width, h), Qt::AlignVCenter | Qt::AlignLeft, mnemBrief);
+                RichTextPainter::CustomRichText_t space;
+                space.underline = false;
+                space.flags = RichTextPainter::FlagNone;
+                space.text = " ";
+                richText.emplace_back(std::move(space));
+
+                richBrief.text = std::move(mnemBrief);
+
+                richText.emplace_back(std::move(richBrief));
             }
-            break;
         }
+
+        paintRichText(x, y, w, h, argsize, std::move(richText), rowOffset, col);
     }
     break;
     }
@@ -1316,6 +1327,30 @@ int Disassembly::paintFunctionGraphic(QPainter* painter, int x, int y, Function_
     return x_add + line_width + end_add;
 }
 
+void Disassembly::paintRichText(int x, int y, int w, int h, int xinc, const RichTextPainter::List & richText, int rowOffset, int column)
+{
+    RichTextInfo & info = mRichText[column][rowOffset];
+    info.x = x;
+    info.y = y;
+    info.w = w;
+    info.h = h;
+    info.xinc = xinc;
+    info.richText = richText;
+    info.alive = true;
+}
+
+void Disassembly::paintRichText(int x, int y, int w, int h, int xinc, RichTextPainter::List && richText, int rowOffset, int column)
+{
+    RichTextInfo & info = mRichText[column][rowOffset];
+    info.x = x;
+    info.y = y;
+    info.w = w;
+    info.h = h;
+    info.xinc = xinc;
+    info.richText = std::move(richText);
+    info.alive = true;
+}
+
 /************************************************************************************
                             Instructions Management
  ***********************************************************************************/
@@ -1703,7 +1738,7 @@ RichTextPainter::List Disassembly::getRichBytes(const Instruction_t & instr, boo
         DBGPATCHINFO patchInfo;
         if(isReal && DbgFunctions()->PatchGetEx(byteAddr, &patchInfo))
         {
-            if((unsigned char)(instr.dump.at(byteIdx)) == patchInfo.newbyte)
+            if((unsigned char)(instr.dump.at((int)byteIdx)) == patchInfo.newbyte)
             {
                 curByte.textColor = mModifiedBytesColor;
                 curByte.textBackground = mModifiedBytesBackgroundColor;
@@ -1771,12 +1806,183 @@ void Disassembly::prepareData()
     }
 
     setNbrOfLineToPrint(wCount);
+
+    mRichText.resize(getColumnCount());
+    for(size_t i = 0; i < mRichText.size(); i++)
+    {
+        mRichText[i].resize(wViewableRowsCount);
+        for(size_t j = 0; j < mRichText[i].size(); j++)
+        {
+            mRichText[i][j].alive = false;
+        }
+    }
 }
 
 void Disassembly::reloadData()
 {
     emit selectionChanged(rvaToVa(mSelection.firstSelectedIndex));
     AbstractTableView::reloadData();
+}
+
+void Disassembly::paintEvent(QPaintEvent* event)
+{
+    AbstractTableView::paintEvent(event);
+
+    // Delay paint the rich text
+    QPainter painter(this->viewport());
+    painter.setFont(font());
+    int x = -horizontalScrollBar()->value();
+
+    for(int column = 0; column < mRichText.size(); column++)
+    {
+        int w = getColumnWidth(column);
+        int h = getViewableRowsCount() * getRowHeight();
+
+        const bool optimizationEnabled = true;
+        if(optimizationEnabled)
+        {
+            QString columnText;
+            columnText.reserve(getColumnWidth(column) * getViewableRowsCount() / getCharWidth());
+
+            QVector<QTextLayout::FormatRange> selections;
+
+            for(int rowOffset = 0; rowOffset < mRichText[column].size(); rowOffset++)
+            {
+                if(rowOffset > 0)
+                    columnText += QChar::LineSeparator;
+
+                const RichTextInfo & info = mRichText[column][rowOffset];
+                if(!info.alive)
+                    continue;
+
+                for(const RichTextPainter::CustomRichText_t & curRichText : info.richText)
+                {
+                    if(curRichText.text.isEmpty())
+                        continue;
+
+                    if(mFormatCache.empty())
+                    {
+                        mFormatCache.emplace_back();
+                    }
+
+                    QTextLayout::FormatRange range = std::move(mFormatCache.back());
+                    mFormatCache.pop_back();
+                    range.start = columnText.length();
+                    range.length = curRichText.text.length();
+
+                    columnText += curRichText.text;
+
+                    QTextCharFormat & format = range.format;
+                    switch(curRichText.flags)
+                    {
+                    case RichTextPainter::FlagNone: //defaults
+                    {
+                        format.clearForeground();
+                        format.clearBackground();
+                    }
+                    break;
+
+                    case RichTextPainter::FlagColor: //color only
+                    {
+                        format.setForeground(curRichText.textColor);
+                        format.clearBackground();
+                    }
+                    break;
+
+                    case RichTextPainter::FlagBackground: //background only
+                    {
+                        if(curRichText.textBackground.alpha())
+                        {
+                            format.setBackground(curRichText.textBackground);
+                        }
+                        else
+                        {
+                            format.clearBackground();
+                        }
+                        format.clearForeground();
+                    }
+                    break;
+
+                    case RichTextPainter::FlagAll: //color+background
+                    {
+                        if(curRichText.textBackground.alpha())
+                        {
+                            format.setBackground(curRichText.textBackground);
+                        }
+                        else
+                        {
+                            format.clearBackground();
+                        }
+                        format.setForeground(curRichText.textColor);
+                    }
+                    break;
+                    }
+
+                    if(curRichText.underline)
+                    {
+                        range.format.setFontUnderline(true);
+                        range.format.setUnderlineColor(curRichText.underlineColor);
+                    }
+                    else
+                    {
+                        range.format.setFontUnderline(false);
+                    }
+
+                    selections.push_back(std::move(range));
+                }
+            }
+
+            QTextOption textOption;
+            textOption.setWrapMode(QTextOption::NoWrap);
+            mTextLayout.setTextOption(textOption);
+
+            mTextLayout.setFormats(selections);
+
+            while(!selections.empty())
+            {
+                mFormatCache.push_back(std::move(selections.back()));
+                selections.pop_back();
+            }
+
+            mTextLayout.setText(columnText);
+            mTextLayout.beginLayout();
+
+            int rowHeight = getRowHeight();
+            for(int i = 0, y = 0; ; i++, y += rowHeight)
+            {
+                QTextLine line = mTextLayout.createLine();
+                if(!line.isValid())
+                    break;
+                const RichTextInfo & info = mRichText[column][i];
+                line.setPosition(QPointF(info.xinc, y));
+            }
+
+            mTextLayout.endLayout();
+
+            QPixmap pixmap(w - 2, h);
+            pixmap.fill(Qt::transparent);
+
+            QPainter clippedPainter;
+            clippedPainter.begin(&pixmap);
+
+            mTextLayout.draw(&clippedPainter, QPointF(0, 0));
+
+            clippedPainter.end();
+
+            painter.drawPixmap(x, 0, pixmap);
+        }
+        else
+        {
+            for(int rowOffset = 0; rowOffset < mRichText[column].size(); rowOffset++)
+            {
+                const RichTextInfo & info = mRichText[column][rowOffset];
+                if(info.alive)
+                    RichTextPainter::paintRichText(&painter, info.x, info.y, info.w, info.h, info.xinc, info.richText, mFontMetrics);
+            }
+        }
+
+        x += w;
+    }
 }
 
 
