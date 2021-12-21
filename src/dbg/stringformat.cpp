@@ -16,7 +16,9 @@ enum class StringValueType
     String,
     AddrInfo,
     Module,
-    Instruction
+    Instruction,
+    FloatingPointSingle,
+    FloatingPointDouble
 };
 
 static String printValue(FormatValueType value, StringValueType type)
@@ -85,6 +87,50 @@ static String printValue(FormatValueType value, StringValueType type)
                 result = info.instruction;
         }
         break;
+        case StringValueType::FloatingPointSingle:
+        {
+            // 0~7 prints ST(0)-ST(7)
+            if(valuint < 8)
+            {
+                // TO DO
+                result = "???";
+            }
+            else
+            {
+                float data;
+                if(DbgMemRead(valuint, &data, sizeof(data)))
+                {
+                    std::stringstream wFloatingStr;
+                    wFloatingStr << std::setprecision(std::numeric_limits<float>::digits10) << data;
+                    result = wFloatingStr.str();
+                }
+                else
+                    result = "???";
+            }
+        }
+        break;
+        case StringValueType::FloatingPointDouble :
+        {
+            // 0~7 prints ST(0)-ST(7)
+            if(valuint < 8)
+            {
+                // TO DO
+                result = "???";
+            }
+            else
+            {
+                double data;
+                if(DbgMemRead(valuint, &data, sizeof(data)))
+                {
+                    std::stringstream wFloatingStr;
+                    wFloatingStr << std::setprecision(std::numeric_limits<double>::digits10) << data;
+                    result = wFloatingStr.str();
+                }
+                else
+                    result = "???";
+            }
+        }
+        break;
         default:
             break;
         }
@@ -119,6 +165,12 @@ static bool typeFromCh(char ch, StringValueType & type)
         break;
     case 'i':
         type = StringValueType::Instruction;
+        break;
+    case 'f':
+        type = StringValueType::FloatingPointSingle;
+        break;
+    case 'F':
+        type = StringValueType::FloatingPointDouble;
         break;
     default: //invalid format
         return false;
