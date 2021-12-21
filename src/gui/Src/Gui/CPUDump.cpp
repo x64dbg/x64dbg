@@ -92,7 +92,8 @@ void CPUDump::setupContextMenu()
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("modify.png"), tr("&Modify Value"), SLOT(modifyValueSlot()), "ActionModifyValue"), [this](QMenu*)
     {
-        return getSizeOf(mDescriptor.at(0).data.itemSize) <= sizeof(duint);
+        auto d = mDescriptor.at(0).data;
+        return getSizeOf(d.itemSize) <= sizeof(duint) || (d.itemSize == 4 && d.dwordMode == FloatDword || d.itemSize == 8 && d.qwordMode == DoubleQword);
     });
 
     MenuBuilder* wBreakpointMenu = new MenuBuilder(this);
@@ -376,7 +377,8 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
 
     default:
     {
-        if(getSizeOf(mDescriptor.at(0).data.itemSize) <= sizeof(duint))
+        auto d = mDescriptor.at(0).data;
+        if(getSizeOf(d.itemSize) <= sizeof(duint) || (d.itemSize == 4 && d.dwordMode == FloatDword || d.itemSize == 8 && d.qwordMode == DoubleQword))
             modifyValueSlot();
         else
             binaryEditSlot();
@@ -499,15 +501,55 @@ void CPUDump::mouseMoveEvent(QMouseEvent* event)
 void CPUDump::modifyValueSlot()
 {
     dsint addr = getSelectionStart();
-    WordEditDialog wEditDialog(this);
-    dsint value = 0;
-    auto size = std::min(getSizeOf(mDescriptor.at(0).data.itemSize), int(sizeof(dsint)));
-    mMemPage->read(&value, addr, size);
-    wEditDialog.setup(tr("Modify value"), value, size);
-    if(wEditDialog.exec() != QDialog::Accepted)
-        return;
-    value = wEditDialog.getVal();
-    mMemPage->write(&value, addr, size);
+    auto d = mDescriptor.at(0).data;
+    if(d.itemSize == 4 && d.dwordMode == FloatDword || d.itemSize == 8 && d.qwordMode == DoubleQword)
+    {
+        auto size = std::min(getSizeOf(mDescriptor.at(0).data.itemSize), int(sizeof(double)));
+        if(size == 4)
+        {
+            float value;
+            mMemPage->read(&value, addr, size);
+            QString current = QString::number(value);
+            QString newvalue;
+            if(SimpleInputBox(this, tr("Modify value"), current, newvalue, current))
+            {
+                bool ok;
+                value = newvalue.toFloat(&ok);
+                if(ok)
+                    mMemPage->write(&value, addr, size);
+                else
+                    SimpleErrorBox(this, tr("Error"), tr("The input text is not a number!"));
+            }
+        }
+        else if(size == 8)
+        {
+            double value;
+            mMemPage->read(&value, addr, size);
+            QString current = QString::number(value);
+            QString newvalue;
+            if(SimpleInputBox(this, tr("Modify value"), current, newvalue, current))
+            {
+                bool ok;
+                value = newvalue.toDouble(&ok);
+                if(ok)
+                    mMemPage->write(&value, addr, size);
+                else
+                    SimpleErrorBox(this, tr("Error"), tr("The input text is not a number!"));
+            }
+        }
+    }
+    else
+    {
+        auto size = std::min(getSizeOf(mDescriptor.at(0).data.itemSize), int(sizeof(dsint)));
+        WordEditDialog wEditDialog(this);
+        dsint value = 0;
+        mMemPage->read(&value, addr, size);
+        wEditDialog.setup(tr("Modify value"), value, size);
+        if(wEditDialog.exec() != QDialog::Accepted)
+            return;
+        value = wEditDialog.getVal();
+        mMemPage->write(&value, addr, size);
+    }
     GuiUpdateAllViews();
 }
 
