@@ -21,12 +21,103 @@ enum class StringValueType
     FloatingPointDouble
 };
 
+template<class T> String printFloatValue(FormatValueType value)
+{
+    assert(std::is_same<T, double>() || std::is_same<T, float>());
+    String result;
+    char buf[16];
+    memset(buf, 0, sizeof(buf));
+    strcpy_s(buf, value);
+    _strlwr_s(buf);
+    size_t offset = 0;
+    bool bad = false;
+    if(buf[1] == 'm' && buf[2] == 'm' && (buf[0] == 'x' || buf[0] == 'y'))
+    {
+        int index = 0;
+        int bufptr = 0;
+        if(buf[3] >= '0' && buf[3] <= '9' && buf[4] >= '0' && buf[4] <= '9')
+        {
+            char temp[3] = { buf[3], buf[4], '\0' };
+            index = atoi(temp);
+            if(index >= ArchValue(8, 16))
+                bad = true;
+            bufptr = 5;
+        }
+        else if(buf[3] >= '0' && buf[3] <= '9')
+        {
+            char temp[2] = { buf[3], '\0' };
+            index = atoi(temp);
+            if(index >= ArchValue(8, 16))
+                bad = true;
+            bufptr = 4;
+        }
+        else
+            bad = true;
+        if(!bad)
+        {
+            if(buf[bufptr] == '\0')  // [xy]mm\d{1,2}
+                offset = offsetof(REGDUMP, regcontext.XmmRegisters[index]);
+            else if(std::is_same<T, double>() && buf[0] == 'x' && buf[bufptr] == 'h' && buf[bufptr + 1] == '\0')  // xmm\d{1,2}h
+                offset = offsetof(REGDUMP, regcontext.XmmRegisters[index].High);
+            else if(buf[bufptr] == '[')
+            {
+                if(buf[bufptr + 1] >= '0' && buf[bufptr + 1] <= '9' && buf[bufptr + 2] == ']' && buf[bufptr + 3] == '\0')  // [xy]mm\d{1,2}\[\d\]
+                {
+                    int item = buf[bufptr + 1] - '0';
+                    if(buf[0] == 'x' && item >= 0 && item < 16 / sizeof(T))
+                        offset = offsetof(REGDUMP, regcontext.XmmRegisters[index]) + item * sizeof(T);
+                    else if(buf[0] == 'y' && item >= 0 && item < 32 / sizeof(T))
+                        offset = offsetof(REGDUMP, regcontext.YmmRegisters[index]) + item * sizeof(T);
+                    else
+                        bad = true;
+                }
+                else
+                    bad = true;
+            }
+            else
+                bad = true;
+        }
+    }
+    else
+        bad = true;
+    REGDUMP registers;
+    if(!bad && DbgGetRegDumpEx(&registers, sizeof(registers)))
+    {
+        T* ptr = (T*)((char*)&registers + offset);
+        std::stringstream wFloatingStr;
+        wFloatingStr << std::setprecision(std::numeric_limits<T>::digits10) << *ptr;
+        result = wFloatingStr.str();
+    }
+    else
+    {
+        T data;
+        duint valuint = 0;
+        if(valfromstring(value, &valuint) && DbgMemRead(valuint, &data, sizeof(data)))
+        {
+            std::stringstream wFloatingStr;
+            wFloatingStr << std::setprecision(std::numeric_limits<float>::digits10) << data;
+            result = wFloatingStr.str();
+        }
+        else
+            result = "???";
+    }
+    return result;
+}
+
 static String printValue(FormatValueType value, StringValueType type)
 {
     duint valuint = 0;
     char string[MAX_STRING_SIZE] = "";
     String result = "???";
-    if(valfromstring(value, &valuint))
+    if(type == StringValueType::FloatingPointDouble)
+    {
+        result = printFloatValue<double>(value);
+    }
+    else if(type == StringValueType::FloatingPointSingle)
+    {
+        result = printFloatValue<float>(value);
+    }
+    else if(valfromstring(value, &valuint))
     {
         switch(type)
         {
@@ -85,50 +176,6 @@ static String printValue(FormatValueType value, StringValueType type)
                 result = "???";
             else
                 result = info.instruction;
-        }
-        break;
-        case StringValueType::FloatingPointSingle:
-        {
-            // 0~7 prints ST(0)-ST(7)
-            if(valuint < 8)
-            {
-                // TO DO
-                result = "???";
-            }
-            else
-            {
-                float data;
-                if(DbgMemRead(valuint, &data, sizeof(data)))
-                {
-                    std::stringstream wFloatingStr;
-                    wFloatingStr << std::setprecision(std::numeric_limits<float>::digits10) << data;
-                    result = wFloatingStr.str();
-                }
-                else
-                    result = "???";
-            }
-        }
-        break;
-        case StringValueType::FloatingPointDouble :
-        {
-            // 0~7 prints ST(0)-ST(7)
-            if(valuint < 8)
-            {
-                // TO DO
-                result = "???";
-            }
-            else
-            {
-                double data;
-                if(DbgMemRead(valuint, &data, sizeof(data)))
-                {
-                    std::stringstream wFloatingStr;
-                    wFloatingStr << std::setprecision(std::numeric_limits<double>::digits10) << data;
-                    result = wFloatingStr.str();
-                }
-                else
-                    result = "???";
-            }
         }
         break;
         default:
