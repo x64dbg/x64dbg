@@ -23,31 +23,29 @@ enum class StringValueType
 
 template<class T> String printFloatValue(FormatValueType value)
 {
-    assert(std::is_same<T, double>() || std::is_same<T, float>());
+    static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value, "This function is used to print float and double values.");
     String result;
-    char buf[16];
+    char buf[16]; // a safe buffer with sufficient length to prevent buffer overflow while parsing
     memset(buf, 0, sizeof(buf));
-    strcpy_s(buf, value);
-    _strlwr_s(buf);
+    strcpy_s(buf, value); // copy value into buf
+    _strlwr_s(buf); // convert "XMM" to "xmm"
     size_t offset = 0;
     bool bad = false;
-    if(buf[1] == 'm' && buf[2] == 'm' && (buf[0] == 'x' || buf[0] == 'y'))
+    if(buf[1] == 'm' && buf[2] == 'm' && (buf[0] == 'x' || buf[0] == 'y')) // begins with /[xy]mm/
     {
-        int index = 0;
-        int bufptr = 0;
+        int index = 0; // the index of XMM/YMM register
+        int bufptr = 0; // where is the character after the XMM register string
         if(buf[3] >= '0' && buf[3] <= '9' && buf[4] >= '0' && buf[4] <= '9')
         {
-            char temp[3] = { buf[3], buf[4], '\0' };
-            index = atoi(temp);
-            if(index >= ArchValue(8, 16))
+            index = (buf[3] - '0') * 10 + (buf[4] - '0'); // convert "10" to 10
+            if(index >= ArchValue(8, 16)) // limit to available XMM registers (32bit: XMM0~XMM7, 64bit: XMM0~XMM15)
                 bad = true;
             bufptr = 5;
         }
         else if(buf[3] >= '0' && buf[3] <= '9')
         {
-            char temp[2] = { buf[3], '\0' };
-            index = atoi(temp);
-            if(index >= ArchValue(8, 16))
+            index = buf[3] - '0'; // convert "7" to 7
+            if(index >= ArchValue(8, 16)) // limit to available XMM registers (32bit: XMM0~XMM7, 64bit: XMM0~XMM15)
                 bad = true;
             bufptr = 4;
         }
@@ -64,9 +62,9 @@ template<class T> String printFloatValue(FormatValueType value)
                 if(buf[bufptr + 1] >= '0' && buf[bufptr + 1] <= '9' && buf[bufptr + 2] == ']' && buf[bufptr + 3] == '\0')  // [xy]mm\d{1,2}\[\d\]
                 {
                     int item = buf[bufptr + 1] - '0';
-                    if(buf[0] == 'x' && item >= 0 && item < 16 / sizeof(T))
+                    if(buf[0] == 'x' && item >= 0 && item < 16 / sizeof(T)) // xmm
                         offset = offsetof(REGDUMP, regcontext.XmmRegisters[index]) + item * sizeof(T);
-                    else if(buf[0] == 'y' && item >= 0 && item < 32 / sizeof(T))
+                    else if(buf[0] == 'y' && item >= 0 && item < 32 / sizeof(T)) // ymm
                         offset = offsetof(REGDUMP, regcontext.YmmRegisters[index]) + item * sizeof(T);
                     else
                         bad = true;
@@ -79,23 +77,28 @@ template<class T> String printFloatValue(FormatValueType value)
         }
     }
     else
-        bad = true;
+        bad = true; // TO DO: ST(...)
     REGDUMP registers;
-    if(!bad && DbgGetRegDumpEx(&registers, sizeof(registers)))
+    if(!bad) // prints an FPU register
     {
-        T* ptr = (T*)((char*)&registers + offset);
-        std::stringstream wFloatingStr;
-        wFloatingStr << std::setprecision(std::numeric_limits<T>::digits10) << *ptr;
-        result = wFloatingStr.str();
+        if(DbgGetRegDumpEx(&registers, sizeof(registers)))
+        {
+            T* ptr = (T*)((char*)&registers + offset);
+            std::stringstream wFloatingStr;
+            wFloatingStr << std::setprecision(std::numeric_limits<T>::digits10) << *ptr;
+            result = wFloatingStr.str();
+        }
+        else
+            result = "???";
     }
-    else
+    else // prints a memory pointer
     {
         T data;
         duint valuint = 0;
         if(valfromstring(value, &valuint) && DbgMemRead(valuint, &data, sizeof(data)))
         {
             std::stringstream wFloatingStr;
-            wFloatingStr << std::setprecision(std::numeric_limits<float>::digits10) << data;
+            wFloatingStr << std::setprecision(std::numeric_limits<T>::digits10) << data;
             result = wFloatingStr.str();
         }
         else
