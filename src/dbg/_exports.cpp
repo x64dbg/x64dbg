@@ -431,6 +431,7 @@ static bool getAutoComment(duint addr, String & comment)
     // Add autocomment for breakpoints with BreakpointsView format because there's usually something useful
     if(BpGet(addr, BPNORMAL, nullptr, &bp) || BpGet(addr, BPHARDWARE, nullptr, &bp))
     {
+        temp_string.clear();
         auto next = [&temp_string]()
         {
             if(!temp_string.empty())
