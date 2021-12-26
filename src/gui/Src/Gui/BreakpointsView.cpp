@@ -458,7 +458,7 @@ void BreakpointsView::updateBreakpointsSlot()
             if(*bp.breakCondition)
             {
                 next();
-                colored("breakif", mSummaryKeywordColor);
+                colored(tr("breakif"), mSummaryKeywordColor);
                 colored("(", mSummaryParenColor);
                 text(bp.breakCondition);
                 colored(")", mSummaryParenColor);
@@ -475,17 +475,19 @@ void BreakpointsView::updateBreakpointsSlot()
                 if(*bp.logText)
                 {
                     next();
-                    colored(tr("log"), mSummaryKeywordColor);
                     if(*bp.logCondition)
                     {
-                        colored("if", mSummaryKeywordColor);
+                        colored(tr("logif"), mSummaryKeywordColor);
                         colored("(", mSummaryParenColor);
                         text(bp.logCondition);
                         colored(",", mSummaryParenColor);
                         text(" ");
                     }
                     else
+                    {
+                        colored(tr("log"), mSummaryKeywordColor);
                         colored("(", mSummaryParenColor);
+                    }
                     colored(QString("\"%1\"").arg(bp.logText), mSummaryStringColor);
                     colored(")", mSummaryParenColor);
                 }
@@ -493,17 +495,19 @@ void BreakpointsView::updateBreakpointsSlot()
                 if(*bp.commandText)
                 {
                     next();
-                    colored(tr("cmd"), mSummaryKeywordColor);
                     if(*bp.commandCondition)
                     {
-                        colored("if", mSummaryKeywordColor);
+                        colored(tr("cmdif"), mSummaryKeywordColor);
                         colored("(", mSummaryParenColor);
                         text(bp.commandCondition);
                         colored(",", mSummaryParenColor);
                         text(" ");
                     }
                     else
+                    {
+                        colored(tr("cmd"), mSummaryKeywordColor);
                         colored("(", mSummaryParenColor);
+                    }
                     colored(QString("\"%1\"").arg(bp.commandText), mSummaryStringColor);
                     colored(")", mSummaryParenColor);
                 }
