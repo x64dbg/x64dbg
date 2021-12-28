@@ -34,6 +34,8 @@ private slots:
     void removeAllBreakpointsSlot();
     void addDllBreakpointSlot();
     void addExceptionBreakpointSlot();
+    void copyConditionalBreakpointSlot();
+    void pasteConditionalBreakpointSlot();
 
 private:
     enum
@@ -64,12 +66,12 @@ private:
     QAction* mEnableDisableAction;
     QBeaEngine* mDisasm;
 
-    const int bpIndex(int i)
+    const int bpIndex(int i) const
     {
         return mData.at(i).at(ColAddr).userdata;
     }
 
-    const BRIDGEBP & selectedBp(int index = -1)
+    const BRIDGEBP & selectedBp(int index = -1) const
     {
         if(index == -1)
             index = getInitialSelection();
@@ -86,7 +88,7 @@ private:
         return bp.addr != 0 || bp.active;
     }
 
-    QString bpTypeName(BPXTYPE type)
+    QString bpTypeName(BPXTYPE type) const
     {
         switch(type)
         {

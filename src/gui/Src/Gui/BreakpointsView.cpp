@@ -1,3 +1,5 @@
+#include <QClipboard>
+#include <QRegularExpression>
 #include "BreakpointsView.h"
 #include "EditBreakpointDialog.h"
 #include "Bridge.h"
@@ -113,6 +115,11 @@ void BreakpointsView::setupContextMenu()
     mMenuBuilder->addAction(makeAction(DIcon("breakpoint_exception_add.png"), tr("Add exception breakpoint"), SLOT(addExceptionBreakpointSlot())));
     mMenuBuilder->addSeparator();
 
+    mMenuBuilder->addAction(makeAction(tr("Copy breakpoint conditions"), SLOT(copyConditionalBreakpointSlot())));
+    mMenuBuilder->addAction(makeAction(tr("Paste breakpoint conditions"), SLOT(pasteConditionalBreakpointSlot())), [](QMenu*)
+    {
+        return QApplication::clipboard()->text().size() > 10;
+    });
     MenuBuilder* copyMenu = new MenuBuilder(this);
     setupCopyMenu(copyMenu);
     mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
@@ -785,4 +792,116 @@ void BreakpointsView::addExceptionBreakpointSlot()
     QString exception;
     if(SimpleChoiceBox(this, tr("Enter the exception code"), "", mExceptionList, exception, true, tr("Example: EXCEPTION_ACCESS_VIOLATION"), &DIcon("breakpoint.png"), mExceptionMaxLength) && !exception.isEmpty())
         DbgCmdExec((QString("SetExceptionBPX ") + exception));
+}
+
+static QString escape(QString data)
+{
+    //data = data.replace("\\", "\\\\");
+    data = data.replace("\"", "\\\"");
+    return data;
+}
+
+void BreakpointsView::copyConditionalBreakpointSlot()
+{
+    BRIDGEBP bp = selectedBp();
+    const char* bpcnd;
+    const char* bplog;
+    const char* bpcmd;
+    const char* bplogcnd;
+    const char* bpcmdcnd;
+    const char* bpfastresume;
+    const char* bpsilent;
+    const char* bpsingleshoot;
+    switch(bp.type)
+    {
+    case bp_normal:
+        bpcnd = "bpcnd %1, \"%2\"";
+        bplog = "bpl %1, \"%2\"";
+        bpcmd = "SetBreakpointCommand %1, \"%2\"";
+        bplogcnd = "bplogcondition %1, \"%2\"";
+        bpcmdcnd = "SetBreakpointCommandCondition %1, \"%2\"";
+        bpfastresume = "SetBreakpointFastResume ";
+        bpsilent = "SetBreakpointSilent ";
+        bpsingleshoot = "SetBreakpointSingleshoot ";
+        break;
+    case bp_hardware:
+        bpcnd = "bphwcond %1, \"%2\"";
+        bplog = "bphwlog %1, \"%2\"";
+        bpcmd = "SetHardwareBreakpointCommand %1, \"%2\"";
+        bplogcnd = "bphwlogcondition %1, \"%2\"";
+        bpcmdcnd = "SetHardwareBreakpointCommandCondition %1, \"%2\"";
+        bpfastresume = "SetHardwareBreakpointFastResume ";
+        bpsilent = "SetHardwareBreakpointSilent ";
+        bpsingleshoot = "SetHardwareBreakpointSingleshoot ";
+        break;
+    case bp_memory:
+        bpcnd = "bpmcond %1, \"%2\"";
+        bplog = "bpml %1, \"%2\"";
+        bpcmd = "SetMemoryBreakpointCommand %1, \"%2\"";
+        bplogcnd = "bpmlogcondition %1, \"%2\"";
+        bpcmdcnd = "SetMemoryBreakpointCommandCondition %1, \"%2\"";
+        bpfastresume = "SetMemoryBreakpointFastResume ";
+        bpsilent = "SetMemoryBreakpointSilent ";
+        bpsingleshoot = "SetMemoryBreakpointSingleshoot ";
+        break;
+    case bp_dll:
+        bpcnd = "SetLibrarianBreakpointCondition %1, \"%2\"";
+        bplog = "SetLibrarianBreakpointLog %1, \"%2\"";
+        bpcmd = "SetLibrarianBreakpointCommand %1, \"%2\"";
+        bplogcnd = "SetLibrarianBreakpointLogCondition %1, \"%2\"";
+        bpcmdcnd = "SetLibrarianBreakpointCommandCondition %1, \"%2\"";
+        bpfastresume = "SetLibrarianBreakpointFastResume ";
+        bpsilent = "SetLibrarianBreakpointSilent ";
+        bpsingleshoot = "SetLibrarianBreakpointSingleshoot ";
+        break;
+    case bp_exception:
+        bpcnd = "SetExceptionBreakpointCondition %1, \"%2\"";
+        bplog = "SetExceptionBreakpointLog %1, \"%2\"";
+        bpcmd = "SetExceptionBreakpointCommand %1, \"%2\"";
+        bplogcnd = "SetExceptionBreakpointLogCondition %1, \"%2\"";
+        bpcmdcnd = "SetExceptionBreakpointCommandCondition %1, \"%2\"";
+        bpfastresume = "SetExceptionBreakpointFastResume ";
+        bpsilent = "SetExceptionBreakpointSilent ";
+        bpsingleshoot = "SetExceptionBreakpointSingleshoot ";
+        break;
+    default:
+        return;
+    }
+    QString text;
+    QString addr;
+    if(bp.type != bp_dll)
+        addr = ToPtrString(bp.addr);
+    else
+        addr = '"' + escape(bp.mod) + '"';
+    QTextStream s(&text, QIODevice::WriteOnly);
+    s << QString(bpcnd).arg(addr).arg(escape(bp.breakCondition)) << "\r\n";
+    s << QString(bplog).arg(addr).arg(escape(bp.logText)) << "\r\n";
+    s << QString(bplogcnd).arg(addr).arg(escape(bp.logCondition)) << "\r\n";
+    s << QString(bpcmd).arg(addr).arg(escape(bp.commandText)) << "\r\n";
+    s << QString(bpcmdcnd).arg(addr).arg(escape(bp.commandCondition)) << "\r\n";
+    addr += ", ";
+    s << bpfastresume << addr << (bp.fastResume ? '1' : '0') << "\r\n";
+    s << bpsilent << addr << (bp.silent ? '1' : '0') << "\r\n";
+    s << bpsingleshoot << addr << (bp.singleshoot ? '1' : '0') << "\r\n";
+    Bridge::CopyToClipboard(text);
+}
+
+void BreakpointsView::pasteConditionalBreakpointSlot()
+{
+    //TO DO perform a validation
+    QClipboard* clipboard = QApplication::clipboard();
+    QString text = clipboard->text();
+    QRegExp regexp(ArchValue("(\\w+) ([\\dA-F]{8}),", "(\\w+) ([\\dA-F]{16}),"), Qt::CaseInsensitive);
+
+    for(int i : getSelection())
+    {
+        if(!isValidBp(i))
+            continue;
+        auto & bp = selectedBp(i);
+        QString text1 = text.replace(regexp, "\\1 " + ToPtrString(bp.addr) + ",");
+        QList<QString> cmds;
+        cmds = text1.split("\r\n");
+        for(const auto & j : cmds)
+            DbgCmdExec(j.toUtf8().constData());
+    }
 }
