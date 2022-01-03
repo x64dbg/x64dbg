@@ -15,14 +15,21 @@
 
 bool cbInstrChd(int argc, char* argv[])
 {
-    if(IsArgumentsLessThan(argc, 2))
-        return false;
+    String directory;
+    if(argc < 2)
+    {
+        directory = szProgramDir;
+    }
+    else
+    {
+        directory = argv[1];
+    }
     if(!DirExists(argv[1]))
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Directory doesn't exist"));
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Directory '%s' doesn't exist\n"), directory.c_str());
         return false;
     }
-    SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(argv[1]).c_str());
+    SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(directory).c_str());
     dputs(QT_TRANSLATE_NOOP("DBG", "Current directory changed!"));
     return true;
 }
