@@ -224,13 +224,13 @@ bool cbDebugAttach(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not open process %X!\n"), DWORD(pid));
         return false;
     }
-    BOOL wow64 = false, mewow64 = false;
-    if(!IsWow64Process(hProcess, &wow64) || !IsWow64Process(GetCurrentProcess(), &mewow64))
+    BOOL wow64 = false, meow64 = false;
+    if(!IsWow64Process(hProcess, &wow64) || !IsWow64Process(GetCurrentProcess(), &meow64))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "IsWow64Process failed!"));
         return false;
     }
-    if((mewow64 && !wow64) || (!mewow64 && wow64))
+    if(meow64 != wow64)
     {
 #ifdef _WIN64
         dputs(QT_TRANSLATE_NOOP("DBG", "Use x32dbg to debug this process!"));
