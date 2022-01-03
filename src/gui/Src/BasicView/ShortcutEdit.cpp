@@ -42,6 +42,10 @@ void ShortcutEdit::keyPressEvent(QKeyEvent* event)
         return;
     }
 
+    // Workaround for Shift+Tab
+    if(keyInt == Qt::Key_Backtab)
+        keyInt = Qt::Key_Tab;
+
     // any combination of "Ctrl, Alt, Shift" ?
     Qt::KeyboardModifiers modifiers = event->modifiers();
     QString text = event->text();
