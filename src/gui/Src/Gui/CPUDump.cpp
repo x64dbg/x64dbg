@@ -283,10 +283,10 @@ void CPUDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
         if(!DbgGetModuleAt(data, modname))
             modname[0] = '\0';
         char label_text[MAX_LABEL_SIZE] = "";
+        char string_text[MAX_STRING_SIZE] = "";
         if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
             curData.text = QString(modname) + "." + QString(label_text);
-        char string_text[MAX_STRING_SIZE] = "";
-        if(DbgGetStringAt(data, string_text))
+        else if(DbgGetStringAt(data, string_text))
             curData.text = string_text;
         if(!curData.text.length()) //stack comments
         {
