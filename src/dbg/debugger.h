@@ -149,6 +149,7 @@ extern bool bNoForegroundWindow;
 extern bool bVerboseExceptionLogging;
 extern bool bNoWow64SingleStepWorkaround;
 extern bool bForceLoadSymbols;
+extern bool bNewStringAlgorithm;
 extern duint maxSkipExceptionCount;
 extern HANDLE mProcHandle;
 extern HANDLE mForegroundHandle;

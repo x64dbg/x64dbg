@@ -87,6 +87,7 @@ bool bVerboseExceptionLogging = true;
 bool bNoWow64SingleStepWorkaround = false;
 bool bTraceBrowserNeedsUpdate = false;
 bool bForceLoadSymbols = false;
+bool bNewStringAlgorithm = false;
 duint DbgEvents = 0;
 duint maxSkipExceptionCount = 0;
 HANDLE mProcHandle;
