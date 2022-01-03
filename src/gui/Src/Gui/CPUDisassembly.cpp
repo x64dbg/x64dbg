@@ -1226,7 +1226,7 @@ void CPUDisassembly::findNamesSlot()
         if(!base)
             return;
 
-        DbgCmdExec(QString("symfollow %1").arg(base));
+        DbgCmdExec(QString("symfollow %1").arg(ToPtrString(base)));
     }
 }
 
