@@ -138,8 +138,9 @@ struct VEH_ENTRY_VISTA
 {
     duint Flink;
     duint Blink;
-    DWORD Count;
-    duint VectoredHandler;
+    duint PtrRefCount;
+    duint VectoredHandler; // unclear when this changed
+    duint VectoredHandler2;
 };
 
 bool ExHandlerGetVCH(std::vector<duint> & Entries, bool GetVEH)
@@ -174,6 +175,9 @@ bool ExHandlerGetVCH(std::vector<duint> & Entries, bool GetVEH)
         if(!MemRead(cur_entry, &entry, sizeof(entry)))
             return false;
         auto handler = entry.VectoredHandler;
+        // At some point Windows updated the structure
+        if(handler == ArchValue(0, 0xBAADF00D00000000))
+            handler = entry.VectoredHandler2;
         if(!MemDecodePointer(&handler, true))
             return false;
         Entries.push_back(handler);
