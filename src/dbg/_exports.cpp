@@ -289,13 +289,12 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
 
 static bool getAutoComment(duint addr, String & comment)
 {
-    bool retval;
+    bool retval = false;
     duint disp;
     char fileName[MAX_STRING_SIZE] = {};
     int lineNumber = 0;
     if(!bNoSourceLineAutoComments && SymGetSourceLine(addr, fileName, &lineNumber, &disp) && !disp)
     {
-
         char* actualName = fileName;
         char* l = strrchr(fileName, '\\');
         if(l)
