@@ -2,6 +2,7 @@
 
 #include <QTextBrowser>
 #include <cstdio>
+#include "LineEditDialog.h"
 
 class LogView : public QTextBrowser
 {
@@ -21,6 +22,7 @@ public slots:
     void redirectLogSlot();
     void setLoggingEnabled(bool enabled);
     void autoScrollSlot();
+    void searchInLogSlot();
     void copyToGlobalNotes();
     void copyToDebuggeeNotes();
     void pasteSlot();
@@ -51,6 +53,8 @@ private:
     QMenu* menuCopyToNotes;
     QAction* actionCopyToGlobalNotes;
     QAction* actionCopyToDebuggeeNotes;
+    QAction* actionSearchInLog;
+    LineEditDialog* dialogSearchInLog;
 
     FILE* logRedirection;
     QString logBuffer;

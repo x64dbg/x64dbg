@@ -40,6 +40,8 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
     connect(Bridge::getBridge(), SIGNAL(flushLog()), this, SLOT(flushLogSlot()));
     connect(this, SIGNAL(anchorClicked(QUrl)), this, SLOT(onAnchorClicked(QUrl)));
+    dialogSearchInLog = new LineEditDialog(this);
+    dialogSearchInLog->setWindowTitle(tr("Seach For"));
 
     duint setting;
     if(BridgeSettingGetUint("Misc", "Utf16LogRedirect", &setting))
@@ -105,6 +107,7 @@ void LogView::setupContextMenu()
     menuCopyToNotes->addAction(actionCopyToDebuggeeNotes);
     actionAutoScroll->setCheckable(true);
     actionAutoScroll->setChecked(autoScroll);
+    actionSearchInLog = setupAction(DIcon("search-for.png"), tr("Search Log"), this, SLOT(searchInLogSlot()));
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -116,6 +119,7 @@ void LogView::refreshShortcutsSlot()
     actionCopy->setShortcut(ConfigShortcut("ActionCopy"));
     actionToggleLogging->setShortcut(ConfigShortcut("ActionToggleLogging"));
     actionRedirectLog->setShortcut(ConfigShortcut("ActionRedirectLog"));
+    actionSearchInLog->setShortcut(ConfigShortcut("ActionFind"));
 }
 
 void LogView::contextMenuEvent(QContextMenuEvent* event)
@@ -136,6 +140,7 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
     wMenu.addAction(actionToggleLogging);
     actionAutoScroll->setChecked(autoScroll);
     wMenu.addAction(actionAutoScroll);
+    wMenu.addAction(actionSearchInLog);
     if(logRedirection == NULL)
         actionRedirectLog->setText(tr("&Redirect Log..."));
     else
@@ -413,6 +418,27 @@ void LogView::copyToDebuggeeNotes()
     BridgeFree(NotesBuffer);
     Notes.append(this->textCursor().selectedText());
     emit Bridge::getBridge()->setDebuggeeNotes(Notes);
+}
+
+void LogView::searchInLogSlot() {
+    dialogSearchInLog->show();
+
+    if (dialogSearchInLog->exec() == QDialog::Accepted) {
+        QList<QTextEdit::ExtraSelection> extraSelections;
+        QColor highlight = QColor(Qt::blue);
+
+        moveCursor(QTextCursor::Start);
+
+        // finding all occurances matching the regex given from start
+        while(find(QRegExp(dialogSearchInLog->editText))) {
+            QTextEdit::ExtraSelection extra;
+            extra.format.setBackground(highlight);
+            extra.cursor = textCursor();
+            extraSelections.append(extra);
+        }
+        // highlighting all those selections
+        setExtraSelections(extraSelections);
+    }
 }
 
 void LogView::pasteSlot()
