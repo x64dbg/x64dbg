@@ -1838,7 +1838,7 @@ void Disassembly::paintEvent(QPaintEvent* event)
         int w = getColumnWidth(column);
         int h = getViewableRowsCount() * getRowHeight();
 
-        const bool optimizationEnabled = true;
+        const bool optimizationEnabled = false;
         if(optimizationEnabled)
         {
             QString columnText;
