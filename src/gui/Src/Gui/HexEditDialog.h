@@ -66,6 +66,8 @@ private:
         DataCString,
         DataCUnicodeString,
         DataCShellcodeString,
+        DataCppString,
+        DataCppCharVector,
         DataASMByte,
         DataASMWord,
         DataASMDWord,

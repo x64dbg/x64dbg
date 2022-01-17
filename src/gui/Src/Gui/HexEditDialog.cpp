@@ -57,6 +57,8 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     mTypes[DataCString] = FormatType { tr("C-Style String"), 1 };
     mTypes[DataCUnicodeString] = FormatType { tr("C-Style Unicode String"), 1 };
     mTypes[DataCShellcodeString] = FormatType { tr("C-Style Shellcode String"), 1 };
+    mTypes[DataCppString] = FormatType { tr("C++-Style String"), 16 };
+    mTypes[DataCppCharVector] = FormatType { tr("C++-Style Char Vector (Hex)"), 16 };
     mTypes[DataASMByte] = FormatType { tr("ASM-Style BYTE (Hex)"), 16 };
     mTypes[DataASMWord] = FormatType { tr("ASM-Style WORD (Hex)"), 12 };
     mTypes[DataASMDWord] = FormatType { tr("ASM-Style DWORD (Hex)"), 8 };
@@ -511,6 +513,27 @@ void HexEditDialog::printData(DataType type)
             data += QString().sprintf("\\x%02X", ch);
         }
         data += "\"";
+    }
+    break;
+
+    case DataCppString:
+    {
+        data += "\"";
+        for(int i = 0; i < mData.size(); i++)
+        {
+            byte_t ch = mData.at(i);
+            data += QString().sprintf("\\\\x%02X", ch);
+        }
+        data += "\"";
+    }
+    break;
+
+    case DataCppCharVector:
+    {
+        data = "{\n" + formatLoop<unsigned char>(mData, mTypes[mIndex].itemsPerLine, [](unsigned char n)
+        {
+            return QString().sprintf("\'\\x%02X\'", n);
+        }) + "\n};";
     }
     break;
 
