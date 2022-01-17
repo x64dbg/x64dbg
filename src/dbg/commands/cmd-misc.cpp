@@ -310,7 +310,7 @@ bool cbInstrGpa(int argc, char* argv[])
 bool cbDebugSetJIT(int argc, char* argv[])
 {
     arch actual_arch = notfound;
-    char* jit_debugger_cmd = "";
+    const char* jit_debugger_cmd = "";
     Memory<char*> oldjit(MAX_SETTING_SIZE + 1);
     char path[JIT_ENTRY_DEF_SIZE];
     if(!BridgeIsProcessElevated())
@@ -334,7 +334,7 @@ bool cbDebugSetJIT(int argc, char* argv[])
         if(!_strcmpi(argv[1], "old"))
         {
             jit_debugger_cmd = oldjit();
-            if(!BridgeSettingGet("JIT", "Old", jit_debugger_cmd))
+            if(!BridgeSettingGet("JIT", "Old", oldjit()))
             {
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error there is no old JIT entry stored."));
                 return false;
@@ -375,7 +375,7 @@ bool cbDebugSetJIT(int argc, char* argv[])
         {
             jit_debugger_cmd = oldjit();
 
-            if(!BridgeSettingGet("JIT", "Old", jit_debugger_cmd))
+            if(!BridgeSettingGet("JIT", "Old", oldjit()))
             {
                 dputs(QT_TRANSLATE_NOOP("DBG", "Error there is no old JIT entry stored."));
                 return false;

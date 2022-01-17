@@ -1,6 +1,6 @@
 #include "jit.h"
 
-static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, char* key, arch arch_in, arch* arch_out, readwritejitkey_error_t* error, bool write)
+static bool readwritejitkey(const wchar_t* jit_key_value, DWORD* jit_key_vale_size, const char* key, arch arch_in, arch* arch_out, readwritejitkey_error_t* error, bool write)
 {
     DWORD key_flags;
     DWORD lRv;
@@ -62,7 +62,7 @@ static bool readwritejitkey(wchar_t* jit_key_value, DWORD* jit_key_vale_size, ch
         if(lRv != ERROR_SUCCESS)
             return false;
 
-        lRv = RegSetValueExW(hKey, StringUtils::Utf8ToUtf16(key).c_str(), 0, REG_SZ, (BYTE*)jit_key_value, (DWORD)(*jit_key_vale_size) + 1);
+        lRv = RegSetValueExW(hKey, StringUtils::Utf8ToUtf16(key).c_str(), 0, REG_SZ, (const BYTE*)jit_key_value, (DWORD)(*jit_key_vale_size) + 1);
     }
     else
     {
@@ -161,7 +161,7 @@ bool dbggetdefjit(char* jit_entry)
     return true;
 }
 
-bool dbgsetjit(char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
+bool dbgsetjit(const char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
     DWORD jit_cmd_size = (DWORD)strlen(jit_cmd) * sizeof(wchar_t);
     readwritejitkey_error_t rw_error;

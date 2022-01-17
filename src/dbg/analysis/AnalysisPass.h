@@ -19,14 +19,14 @@ protected:
     unsigned char* m_Data;
     BBlockArray & m_MainBlocks;
 
-    inline unsigned char* AnalysisPass::TranslateAddress(duint Address)
+    unsigned char* TranslateAddress(duint Address)
     {
         ASSERT_TRUE(ValidateAddress(Address));
 
         return &m_Data[Address - m_VirtualStart];
     }
 
-    inline bool AnalysisPass::ValidateAddress(duint Address)
+    bool ValidateAddress(duint Address)
     {
         return (Address >= m_VirtualStart && Address < m_VirtualEnd);
     }

@@ -322,7 +322,7 @@ static bool isregister(const char* string)
 
 typedef struct
 {
-    char* name;
+    const char* name;
     unsigned int flag;
 
 } FLAG_NAME_VALUE_TABLE_t;

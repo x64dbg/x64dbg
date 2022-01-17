@@ -211,8 +211,8 @@ bool SymbolSourceDIA::loadSymbolsAsync()
             SymbolInfo & sym = _symData[addrIndex.index];
             if(prev && sym.rva == prev->rva && sym.decoratedName == prev->decoratedName && sym.undecoratedName == prev->undecoratedName)
             {
-                sym.decoratedName.swap(String());
-                sym.undecoratedName.swap(String());
+                String().swap(sym.decoratedName);
+                String().swap(sym.undecoratedName);
                 continue;
             }
             prev = &sym;
@@ -467,7 +467,7 @@ bool SymbolSourceDIA::findSymbolExactOrLower(duint rva, SymbolInfo & symInfo)
         return true;
     }
 
-    return nullptr;
+    return false;
 }
 
 void SymbolSourceDIA::enumSymbols(const CbEnumSymbol & cbEnum)

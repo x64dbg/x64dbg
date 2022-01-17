@@ -11,7 +11,7 @@ static bool cbDebugSetBPXTextCommon(BP_TYPE Type, int argc, char* argv[], const 
     BREAKPOINT bp;
     if(IsArgumentsLessThan(argc, 2))
         return false;
-    char* value = "";
+    const char* value = "";
     if(argc > 2)
         value = argv[2];
 

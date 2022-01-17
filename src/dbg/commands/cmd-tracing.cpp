@@ -53,8 +53,8 @@ bool cbDebugTraceIntoBeyondTraceRecord(int argc, char* argv[])
 {
     if(argc == 1)
     {
-        char* new_argv[] = { "tibt", "0" };
-        return cbDebugConditionalTrace(cbTraceIntoBeyondTraceRecordStep, false, 2, new_argv);
+        const char* new_argv[] = { "tibt", "0" };
+        return cbDebugConditionalTrace(cbTraceIntoBeyondTraceRecordStep, false, 2, (char**)new_argv);
     }
     else
         return cbDebugConditionalTrace(cbTraceIntoBeyondTraceRecordStep, false, argc, argv);
@@ -64,8 +64,8 @@ bool cbDebugTraceOverBeyondTraceRecord(int argc, char* argv[])
 {
     if(argc == 1)
     {
-        char* new_argv[] = { "tobt", "0" };
-        return cbDebugConditionalTrace(cbTraceOverBeyondTraceRecordStep, true, 2, new_argv);
+        const char* new_argv[] = { "tobt", "0" };
+        return cbDebugConditionalTrace(cbTraceOverBeyondTraceRecordStep, true, 2, (char**)new_argv);
     }
     else
         return cbDebugConditionalTrace(cbTraceOverBeyondTraceRecordStep, true, argc, argv);
@@ -75,8 +75,8 @@ bool cbDebugTraceIntoIntoTraceRecord(int argc, char* argv[])
 {
     if(argc == 1)
     {
-        char* new_argv[] = { "tiit", "0" };
-        return cbDebugConditionalTrace(cbTraceIntoIntoTraceRecordStep, false, 2, new_argv);
+        const char* new_argv[] = { "tiit", "0" };
+        return cbDebugConditionalTrace(cbTraceIntoIntoTraceRecordStep, false, 2, (char**)new_argv);
     }
     else
         return cbDebugConditionalTrace(cbTraceIntoIntoTraceRecordStep, false, argc, argv);
@@ -86,8 +86,8 @@ bool cbDebugTraceOverIntoTraceRecord(int argc, char* argv[])
 {
     if(argc == 1)
     {
-        char* new_argv[] = { "toit", "0" };
-        return cbDebugConditionalTrace(cbTraceOverIntoTraceRecordStep, true, 2, new_argv);
+        const char* new_argv[] = { "toit", "0" };
+        return cbDebugConditionalTrace(cbTraceOverIntoTraceRecordStep, true, 2, (char**)new_argv);
     }
     else
         return cbDebugConditionalTrace(cbTraceOverIntoTraceRecordStep, true, argc, argv);
@@ -126,8 +126,8 @@ bool cbDebugRunToParty(int argc, char* argv[])
 
 bool cbDebugRunToUserCode(int argc, char* argv[])
 {
-    char* newargv[] = { "RunToParty", "0" };
-    return cbDebugRunToParty(2, newargv);
+    const char* newargv[] = { "RunToParty", "0" };
+    return cbDebugRunToParty(2, (char**)newargv);
 }
 
 bool cbDebugTraceSetLog(int argc, char* argv[])
