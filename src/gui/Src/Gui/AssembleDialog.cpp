@@ -137,7 +137,7 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString data)
         {
             QString message = tr("<font color='red'><b>Instruction bigger by %1 %2...</b></font>")
                               .arg(sizeDifference)
-                              .arg(sizeDifference == 1 ? tr("byte") : tr("bytes")).append(data);
+                              .arg(sizeDifference == 1 ? tr("byte") : tr("bytes")).append("<br>OpCode: " + data);
 
             setKeepSizeLabel(message);
             setOkButtonEnabled(false);
@@ -147,7 +147,7 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString data)
         {
             QString message = tr("<font color='#00cc00'><b>Instruction smaller by %1 %2...</b></font>")
                               .arg(-sizeDifference)
-                              .arg(sizeDifference == -1 ? tr("byte") : tr("bytes")).append(data);
+                              .arg(sizeDifference == -1 ? tr("byte") : tr("bytes")).append("<br>OpCode: " + data);
 
             setKeepSizeLabel(message);
             setOkButtonEnabled(true);
@@ -155,7 +155,7 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString data)
         // SizeDifference == 0 <=> Both instruction have same size
         else
         {
-            QString message = tr("<font color='#00cc00'><b>Instruction is same size!</b></font>").append(data);
+            QString message = tr("<font color='#00cc00'><b>Instruction is same size!</b></font>").append("<br>OpCode: " + data);
 
             setKeepSizeLabel(message);
             setOkButtonEnabled(true);
@@ -163,7 +163,7 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString data)
     }
     else
     {
-        QString message = tr("<font color='#00cc00'><b>Instruction encoded successfully!</b></font>").append(data);
+        QString message = tr("<font color='#00cc00'><b>Instruction encoded successfully!</b></font>").append("<br>OpCode: " + data);
 
         setKeepSizeLabel(message);
         setOkButtonEnabled(true);
