@@ -57,7 +57,7 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     mTypes[DataCString] = FormatType { tr("C-Style String"), 1 };
     mTypes[DataCUnicodeString] = FormatType { tr("C-Style Unicode String"), 1 };
     mTypes[DataCShellcodeString] = FormatType { tr("C-Style Shellcode String"), 1 };
-    mTypes[DataCppString] = FormatType { tr("C++-Style String"), 16 };
+    mTypes[DataCppString] = FormatType { tr("C++-Style String"), 1 };
     mTypes[DataCppCharVector] = FormatType { tr("C++-Style Char Vector (Hex)"), 16 };
     mTypes[DataASMByte] = FormatType { tr("ASM-Style BYTE (Hex)"), 16 };
     mTypes[DataASMWord] = FormatType { tr("ASM-Style WORD (Hex)"), 12 };
