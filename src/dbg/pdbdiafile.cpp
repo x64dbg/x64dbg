@@ -203,10 +203,10 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
     wchar_t fileDir[MAX_PATH] = { 0 };
 
     HRESULT hr = REGDB_E_CLASSNOTREG;
-    hr = NoRegCoCreate(L"msdia140.dll", __uuidof(DiaSource), __uuidof(IDiaDataSource), (LPVOID*)&m_dataSource);
+    hr = NoRegCoCreate(L"msdia140.dll", __uuidof(DiaSourceAlt), __uuidof(IDiaDataSource), (LPVOID*)&m_dataSource);
     if(testError(hr) || m_dataSource == nullptr)
     {
-        hr = CoCreateInstance(__uuidof(DiaSource), NULL, CLSCTX_INPROC_SERVER, __uuidof(IDiaDataSource), (LPVOID*)&m_dataSource);
+        hr = CoCreateInstance(__uuidof(DiaSourceAlt), NULL, CLSCTX_INPROC_SERVER, __uuidof(IDiaDataSource), (LPVOID*)&m_dataSource);
     }
     if(testError(hr) || m_dataSource == nullptr)
     {
@@ -407,7 +407,7 @@ std::string PDBDiaFile::getSymbolNameString(IDiaSymbol* sym)
         name = StringUtils::Utf16ToUtf8(str);
     }
 
-    SysFreeString(str);
+    LocalFree(str - 2);
 
     return name;
 }
@@ -431,7 +431,7 @@ std::string PDBDiaFile::getSymbolUndecoratedNameString(IDiaSymbol* sym)
     }
 
     result = name;
-    SysFreeString(str);
+    LocalFree(str - 2);
 
     return result;
 }
@@ -504,7 +504,7 @@ bool PDBDiaFile::enumerateLineNumbers(uint32_t rva, uint32_t size, std::vector<D
                     continue;
 
                 files.insert({ sourceFileId, StringUtils::Utf16ToUtf8(fileName) });
-                SysFreeString(fileName);
+                LocalFree(fileName - 2);
             }
 
             DiaLineInfo_t lineInfo;
