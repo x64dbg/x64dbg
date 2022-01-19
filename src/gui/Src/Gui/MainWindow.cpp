@@ -398,7 +398,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     QTimer::singleShot(0, this, SLOT(loadWindowSettings()));
 
-    updateDarkTitleBar();
+    updateDarkTitleBar(this);
 }
 
 MainWindow::~MainWindow()
@@ -523,7 +523,7 @@ void MainWindow::themeTriggeredSlot()
     QString name = dir.mid(nameIdx + 1);
     BridgeSettingSet("Theme", "Selected", name.toUtf8().constData());
     loadSelectedStyle();
-    updateDarkTitleBar();
+    updateDarkTitleBar(this);
 }
 
 void MainWindow::setupThemesMenu()
@@ -1110,7 +1110,7 @@ void MainWindow::updateWindowTitleSlot(QString filename)
     }
 }
 
-void MainWindow::updateDarkTitleBar()
+void MainWindow::updateDarkTitleBar(QWidget* widget)
 {
     // https://www.vergiliusproject.com/kernels/x64/Windows%2010%20%7C%202016/2009%2020H2%20(October%202020%20Update)/_KUSER_SHARED_DATA
     uint32_t NtBuildNumber = *(uint32_t*)(0x7FFE0000 + 0x260);
@@ -1121,18 +1121,26 @@ void MainWindow::updateDarkTitleBar()
     duint darkTitleBar = 0;
     BridgeSettingGetUint("Colors", "DarkTitleBar", &darkTitleBar);
 
+    // Do not make the title bar dark/light when already done
+    auto darkProp = widget->property("DarkTitleBar");
+    if(darkProp.isValid() && darkProp.toUInt() == darkTitleBar)
+    {
+        return;
+    }
+    widget->setProperty("DarkTitleBar", QVariant(darkTitleBar != 0));
+
     static auto hdwmapi = LoadLibraryW(L"dwmapi.dll");
     if(hdwmapi)
     {
         typedef int(WINAPI * DWMSETWINDOWATTRIBUTE)(HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
         static auto DwmSetWindowAttribute = (DWMSETWINDOWATTRIBUTE)GetProcAddress(hdwmapi, "DwmSetWindowAttribute");
-        auto hwnd = (HWND)this->winId();
+        auto hwnd = (HWND)widget->winId();
         DwmSetWindowAttribute(hwnd, (NtBuildNumber >= 18985) ? 20 : 19, &darkTitleBar, sizeof(uint32_t));
 
         // HACK: Create a 1x1 pixel frameless window on top of the title bar to force Windows to redraw it
         auto w = new QWidget(nullptr, Qt::FramelessWindowHint);
         w->resize(1, 1);
-        w->move(this->pos());
+        w->move(widget->pos());
         w->show();
         delete w;
     }
@@ -2375,7 +2383,7 @@ void MainWindow::on_actionDefaultTheme_triggered()
     //Config()->writeFonts();
     // Remove custom colors
     BridgeSettingSet("Colors", "CustomColorCount", nullptr);
-    updateDarkTitleBar();
+    updateDarkTitleBar(this);
 }
 
 void MainWindow::on_actionAbout_Qt_triggered()

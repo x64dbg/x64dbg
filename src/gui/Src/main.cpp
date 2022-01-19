@@ -31,6 +31,14 @@ bool MyApplication::notify(QObject* receiver, QEvent* event)
     bool done = true;
     try
     {
+        if(event->type() == QEvent::WindowActivate && receiver->isWidgetType())
+        {
+            auto widget = (QWidget*)receiver;
+            if((widget->windowFlags() & Qt::Window) == Qt::Window)
+            {
+                MainWindow::updateDarkTitleBar(widget);
+            }
+        }
         done = QApplication::notify(receiver, event);
     }
     catch(const std::exception & ex)
