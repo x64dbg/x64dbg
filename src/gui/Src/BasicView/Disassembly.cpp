@@ -537,6 +537,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             funcType = Function_end;
             break;
         }
+        RichTextPainter::List richText;
         int argsize = funcType == Function_none ? 3 : paintFunctionGraphic(painter, x, y, funcType, false);
 
         RichTextPainter::CustomRichText_t richComment;
@@ -562,16 +563,15 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             }
 
             richComment.text = std::move(comment);
+            richText.emplace_back(std::move(richComment));
         }
         else if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) // label but no comment
         {
             richComment.textColor = mLabelColor;
             richComment.textBackground = mLabelBackgroundColor;
             richComment.text = label;
+            richText.emplace_back(std::move(richComment));
         }
-
-        RichTextPainter::List richText;
-        richText.emplace_back(std::move(richComment));
 
         if(mShowMnemonicBrief)
         {
@@ -606,7 +606,8 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
                 space.underline = false;
                 space.flags = RichTextPainter::FlagNone;
                 space.text = " ";
-                richText.emplace_back(std::move(space));
+                if(richText.size())
+                    richText.emplace_back(std::move(space));
 
                 richBrief.text = std::move(mnemBrief);
 
