@@ -180,6 +180,18 @@ static void linkify(QString & msg)
 }
 
 /**
+* @brief Color message where applicable via HTML.
+* @param msg The message passed by reference.
+*/
+static QRegularExpression colourRegExp("\\[color@([#0-9A-Za-z]+)\\]");
+static QRegularExpression colourEndRegExp("\\[stopcolor\\]");
+static void colorize(QString & msg)
+{
+    msg.replace(colourRegExp, "<span style=\"color:\\1;\">");
+    msg.replace(colourEndRegExp, "</span>");
+}
+
+/**
  * @brief LogView::addMsgToLogSlot Adds a message to the log view. This function is a slot for Bridge::addMsgToLog.
  * @param msg The log message
  */
@@ -263,6 +275,8 @@ void LogView::addMsgToLogSlot(QByteArray msg)
         msgUtf16.replace(QString("\r\n"), QString("<br/>\n"));
     }
     linkify(msgUtf16);
+    colorize(msgUtf16);
+
     if(redirectError)
         msgUtf16.append(tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError()));
 
