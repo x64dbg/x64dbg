@@ -617,7 +617,10 @@ bool Zydis::IsUnusual() const
            || id == ZYDIS_MNEMONIC_UD1
            || id == ZYDIS_MNEMONIC_UD2
            || id == ZYDIS_MNEMONIC_VMCALL
-           || id == ZYDIS_MNEMONIC_VMFUNC;
+           || id == ZYDIS_MNEMONIC_VMFUNC
+           || id == ZYDIS_MNEMONIC_OUTSB
+           || id == ZYDIS_MNEMONIC_OUTSW
+           || id == ZYDIS_MNEMONIC_OUTSD;
 }
 
 std::string Zydis::Mnemonic() const
