@@ -590,18 +590,34 @@ void MemoryMapView::findPatternSlot()
 
 void MemoryMapView::dumpMemory()
 {
+    duint start = 0;
+    duint end = 0;
+    for(auto row : getSelection())
+    {
+        auto base = getCellUserdata(row, 0);
+        auto size = getCellUserdata(row, 1);
+        if(end == 0)
+        {
+            start = base;
+        }
+        else if(end != base)
+        {
+            QMessageBox::critical(this, tr("Error"), tr("Dumping non-consecutive memory ranges is not supported!"));
+            return;
+        }
+        end = base + size;
+    }
+
     char modname[MAX_MODULE_SIZE] = "";
     if(!DbgFunctions()->ModNameFromAddr(DbgEval("mod.main()"), modname, false))
         *modname = '\0';
-    auto addr = getCellContent(getInitialSelection(), 0);
-    QString defaultFile = QString("%1/%2%3.bin").arg(QDir::currentPath(), *modname ? modname +  QString("_") : "", addr);
+    QString defaultFile = QString("%1/%2%3.bin").arg(QDir::currentPath(), *modname ? modname +  QString("_") : "", getCellContent(getInitialSelection(), 0));
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save Memory Region"), defaultFile, tr("Binary files (*.bin);;All files (*.*)"));
 
     if(fileName.length())
     {
         fileName = QDir::toNativeSeparators(fileName);
-        QString cmd = QString("savedata \"%1\",%2,%3").arg(fileName, addr, getCellContent(getInitialSelection(), 1));
-        DbgCmdExec(cmd);
+        DbgCmdExec(QString("savedata \"%1\",%2,%3").arg(fileName, ToPtrString(start), ToHexString(end - start)));
     }
 }
 
@@ -618,8 +634,7 @@ void MemoryMapView::loadMemory()
     {
         fileName = QDir::toNativeSeparators(fileName);
         //TODO: loaddata command (Does ODbgScript support that?)
-        QString cmd = QString("savedata \"%1\",%2,%3").arg(fileName, addr, getCellContent(getInitialSelection(), 1));
-        DbgCmdExec(cmd);
+        DbgCmdExec(QString("savedata \"%1\",%2,%3").arg(fileName, addr, getCellContent(getInitialSelection(), 1)));
     }
 }
 
