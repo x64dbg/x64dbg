@@ -22,7 +22,9 @@ public slots:
     void redirectLogSlot();
     void setLoggingEnabled(bool enabled);
     void autoScrollSlot();
-    void searchInLogSlot();
+    void findInLogSlot();
+    void findNextInLogSlot();
+    void findPreviousInLogSlot();
     void copyToGlobalNotes();
     void copyToDebuggeeNotes();
     void pasteSlot();
@@ -53,11 +55,14 @@ private:
     QMenu* menuCopyToNotes;
     QAction* actionCopyToGlobalNotes;
     QAction* actionCopyToDebuggeeNotes;
-    QAction* actionSearchInLog;
-    LineEditDialog* dialogSearchInLog;
+    QAction* actionFindInLog;
+    QAction* actionFindNext;
+    QAction* actionFindPrevious;
+    LineEditDialog* dialogFindInLog;
 
     FILE* logRedirection;
     QString logBuffer;
     QTimer* flushTimer;
     bool flushLog;
+    QString lastFindText;
 };
