@@ -354,7 +354,7 @@ extern "C" __declspec(dllexport) bool isasciistring(const unsigned char* data, i
             if(len >= maxlen)
                 break;
         }
-        if(len < 2 || len + 1 >= maxlen)
+        if(len < 2)
             return false;
         for(int i = 0; i < len; i++)
             if(!isprint(data[i]) && !isspace(data[i]))
