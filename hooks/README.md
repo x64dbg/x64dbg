@@ -1,4 +1,4 @@
-# hooks
+# Hooks
 
 This contains two binaries `AStyleHelper.exe` and `AStyle.dll` to format any code before you commit.
 
