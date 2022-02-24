@@ -1690,7 +1690,7 @@ void MainWindow::donate()
     msg.setDefaultButton(QMessageBox::Ok);
     if(msg.exec() != QMessageBox::Ok)
         return;
-    QDesktopServices::openUrl(QUrl("http://donate.x64dbg.com"));
+    QDesktopServices::openUrl(QUrl("https://donate.x64dbg.com"));
 }
 
 void MainWindow::blog()

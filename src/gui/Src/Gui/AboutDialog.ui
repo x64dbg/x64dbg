@@ -429,7 +429,7 @@
           <set>Qt::ImhUrlCharactersOnly</set>
          </property>
          <property name="text">
-          <string>Please consider donating using the Bitcoin address on the right or by going to &lt;a href=&quot;http://donate.x64dbg.com&quot;&gt;donate.x64dbg.com&lt;/a&gt;.</string>
+          <string>Please consider donating using the Bitcoin address on the right or by going to &lt;a href=&quot;https://donate.x64dbg.com&quot;&gt;donate.x64dbg.com&lt;/a&gt;.</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>

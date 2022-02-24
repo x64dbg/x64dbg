@@ -11,7 +11,7 @@ This is a list of things you can do to help us out (in no particular order). Eac
 - Add feature requests to the [issue tracker](http://issues.x64dbg.com).
 - [Write a blogpost](https://x64dbg.com/blog/2016/07/09/Looking-for-writers.html) for the [official blog](http://blog.x64dbg.com).
 - [Contact us](https://x64dbg.com/#contact) and talk about x64dbg.
-- Send a [donation](http://donate.x64dbg.com) to support the project.
+- Send a [donation](https://donate.x64dbg.com) to support the project.
 - [Translate](http://translate.x64dbg.com) x64dbg (contact us if your language isn't listed).
 - Help us improve the [documentation](https://github.com/x64dbg/docs/issues).
 
