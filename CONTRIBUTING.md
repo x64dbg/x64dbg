@@ -9,8 +9,8 @@ This is a list of things you can do to help us out (in no particular order). Eac
 - [Compile x64dbg](https://github.com/x64dbg/x64dbg/wiki/Compiling-the-whole-project) and add new features ([easy issues](http://easy.x64dbg.com) are a good place to start).
 - [Report bugs](http://report.x64dbg.com) at the issue tracker.
 - Add feature requests to the [issue tracker](http://issues.x64dbg.com).
-- [Write a blogpost](http://x64dbg.com/blog/2016/07/09/Looking-for-writers.html) for the [official blog](http://blog.x64dbg.com).
-- [Contact us](http://x64dbg.com/#contact) and talk about x64dbg.
+- [Write a blogpost](https://x64dbg.com/blog/2016/07/09/Looking-for-writers.html) for the [official blog](http://blog.x64dbg.com).
+- [Contact us](https://x64dbg.com/#contact) and talk about x64dbg.
 - Send a [donation](http://donate.x64dbg.com) to support the project.
 - [Translate](http://translate.x64dbg.com) x64dbg (contact us if your language isn't listed).
 - Help us improve the [documentation](https://github.com/x64dbg/docs/issues).
@@ -35,7 +35,7 @@ This is by no means an exhaustive list and we are still working on lowering the 
 
 #### Sending a pull request
 
-Here is a little guide on how to do a clean pull request for people who don't yet know how to use git. We recommend using [Git Extensions](http://gitextensions.github.io), but any git interface is fine.
+Here is a little guide on how to do a clean pull request for people who don't yet know how to use git. We recommend using [Git Extensions](https://gitextensions.github.io), but any git interface is fine.
 
 1. First we need to [fork](https://help.github.com/articles/fork-a-repo/) the actual x64dbg repo on our github account.
 2. When the fork is finished, clone the repo (`git clone https://github.com/myname/x64dbg.git`).
@@ -71,7 +71,7 @@ The x64dbg blog is open to all contributors (foreign and domestic). We encourage
 
 ### Contact us
 
-There are several ways to reach out to the community of x64dbg developers, contributors and users. Chat channels consist of a [Telegram](https://telegram.me/x64dbg), [Gitter](http://gitter.x64dbg.com/) and [IRC](http://webchat.freenode.net/?channels=x64dbg) channel. Most questions regarding contributing, developing and using x64dbg can be answered here. To ensure channel cohesion a bot will sync messages across all three channels. (when it is not down ;))
+There are several ways to reach out to the community of x64dbg developers, contributors and users. Chat channels consist of a [Telegram](https://telegram.me/x64dbg), [Gitter](http://gitter.x64dbg.com/) and [IRC](https://webchat.freenode.net/?channels=x64dbg) channel. Most questions regarding contributing, developing and using x64dbg can be answered here. To ensure channel cohesion a bot will sync messages across all three channels. (when it is not down ;))
 
 ### Translate
 
