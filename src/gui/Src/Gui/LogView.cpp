@@ -40,6 +40,8 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
     connect(Bridge::getBridge(), SIGNAL(flushLog()), this, SLOT(flushLogSlot()));
     connect(this, SIGNAL(anchorClicked(QUrl)), this, SLOT(onAnchorClicked(QUrl)));
+    dialogFindInLog = new LineEditDialog(this);
+    dialogFindInLog->setWindowTitle(tr("Find For"));
 
     duint setting;
     if(BridgeSettingGetUint("Misc", "Utf16LogRedirect", &setting))
@@ -105,6 +107,9 @@ void LogView::setupContextMenu()
     menuCopyToNotes->addAction(actionCopyToDebuggeeNotes);
     actionAutoScroll->setCheckable(true);
     actionAutoScroll->setChecked(autoScroll);
+    actionFindInLog = setupAction(tr("Find"), this, SLOT(findInLogSlot()));
+    actionFindNext = setupAction(tr("Find Next Occurance"), this, SLOT(findNextInLogSlot()));;
+    actionFindPrevious = setupAction(tr("Find Previous Occurance"), this, SLOT(findPreviousInLogSlot()));
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
@@ -116,6 +121,9 @@ void LogView::refreshShortcutsSlot()
     actionCopy->setShortcut(ConfigShortcut("ActionCopy"));
     actionToggleLogging->setShortcut(ConfigShortcut("ActionToggleLogging"));
     actionRedirectLog->setShortcut(ConfigShortcut("ActionRedirectLog"));
+    actionFindInLog->setShortcut(ConfigShortcut("ActionFind"));
+    actionFindNext->setShortcut(ConfigShortcut("ActionGotoNext"));
+    actionFindPrevious->setShortcut(ConfigShortcut("ActionGotoPrevious"));
 }
 
 void LogView::contextMenuEvent(QContextMenuEvent* event)
@@ -136,6 +144,9 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
     wMenu.addAction(actionToggleLogging);
     actionAutoScroll->setChecked(autoScroll);
     wMenu.addAction(actionAutoScroll);
+    wMenu.addAction(actionFindInLog);
+    wMenu.addAction(actionFindNext);
+    wMenu.addAction(actionFindPrevious);
     if(logRedirection == NULL)
         actionRedirectLog->setText(tr("&Redirect Log..."));
     else
@@ -413,6 +424,48 @@ void LogView::copyToDebuggeeNotes()
     BridgeFree(NotesBuffer);
     Notes.append(this->textCursor().selectedText());
     emit Bridge::getBridge()->setDebuggeeNotes(Notes);
+}
+
+void LogView::findNextInLogSlot()
+{
+    find(QRegExp(lastFindText));
+}
+
+void LogView::findPreviousInLogSlot()
+{
+    find(QRegExp(lastFindText), QTextDocument::FindBackward);
+}
+
+void LogView::findInLogSlot()
+{
+    dialogFindInLog->show();
+
+    if(dialogFindInLog->exec() == QDialog::Accepted)
+    {
+        QList<QTextEdit::ExtraSelection> extraSelections;
+        QColor highlight = ConfigColor("SearchListViewHighlightColor");
+        QColor background = ConfigColor("SearchListViewHighlightBackgroundColor");
+        // capturing the current location, so that we can reset it once capturing all the
+        // extra selections
+        QTextCursor resetCursorLoc = textCursor();
+
+        moveCursor(QTextCursor::Start);
+
+        // finding all occurances matching the regex given from start
+        while(find(QRegExp(dialogFindInLog->editText)))
+        {
+            QTextEdit::ExtraSelection extra;
+            extra.format.setForeground(highlight);
+            extra.format.setBackground(background);
+            extra.cursor = textCursor();
+            extraSelections.append(extra);
+        }
+        // highlighting all those selections
+        setExtraSelections(extraSelections);
+        setTextCursor(resetCursorLoc); // resetting the cursor location
+        find(QRegExp(dialogFindInLog->editText));
+        lastFindText = dialogFindInLog->editText;
+    }
 }
 
 void LogView::pasteSlot()
