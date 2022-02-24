@@ -419,6 +419,26 @@ static bool cbRefFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO*
         duint value = basicinfo->value.value;
         if(value >= start && value <= end)
             found = true;
+        // Workaround for sign-extended values, see: https://github.com/x64dbg/x64dbg/issues/2824
+        if((value & ArchValue(0x80000000, 0x800000000000)) != 0)
+        {
+            switch(basicinfo->value.size)
+            {
+            case size_byte:
+                value &= 0xFF;
+                break;
+            case size_word:
+                value &= 0xFFFF;
+                break;
+            case size_dword:
+                value &= 0xFFFFFFFF;
+                break;
+            default:
+                break;
+            }
+            if(value >= start && value <= end)
+                found = true;
+        }
     }
     if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
     {
