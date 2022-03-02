@@ -12,19 +12,19 @@
 
 ![主界面](https://i.imgur.com/V2f5AP9.png)
 
-![函数图像](https://i.imgur.com/gVjzntJ.png) ![memory map](https://i.imgur.com/cLJwTjY.png)
+![函数图像](https://i.imgur.com/gVjzntJ.png) ![内存布局](https://i.imgur.com/cLJwTjY.png)
 
 ## 安装与使用
 
 1. 从[GitHub](https://github.com/x64dbg/x64dbg/releases)、[SourceForge](https://sourceforge.net/projects/x64dbg/files/snapshots) 或 [OSDN](https://osdn.net/projects/x64dbg) 下载快照，并将其解压缩到您的用户具有写权限的位置。
-2. _可选择使用 `x96dbg.exe` 来注册一个shell扩展，并在桌面上添加快捷方式。
+2. _可选择_ 使用 `x96dbg.exe` 来注册一个shell扩展，并在桌面上添加快捷方式。
 3. 如果你想调试一个32位的可执行文件，你现在可以运行 `x32\x32dbg.exe` 或者 `x64\x64dbg.exe`来调试一个64位的可执行文件。如果你不确定，你可以随时运行 `x96dbg.exe` 并在那里选择你的架构。
 
-你也可以通过几个简单的步骤 [编译](https://github.com/x64dbg/x64dbg/wiki/Compiling-the-whole-project) 自己的x64dbg!
+你也可以通过几个简单的步骤 [自己编译](https://github.com/x64dbg/x64dbg/wiki/Compiling-the-whole-project) x64dbg!
 
 ## 贡献
 
-这是一个社区的努力，我们接受拉取请求! 更多信息请参见  [CONTRIBUTING](https://github.com/x64dbg/x64dbg/blob/development/CONTRIBUTING.md) 文档。如果你有任何问题，你可以随时[联系我们](https://x64dbg.com/#contact) 或提交一个[问题](https://github.com/x64dbg/x64dbg/issues). 你可以看一下 [容易解决的问题](https://github.com/x64dbg/x64dbg/issues?q=is%3Aissue+is%3Aopen+label%3Aeasy) 以开始使用。
+这是一个社区的努力，我们接受拉取请求! 更多信息请参见  [CONTRIBUTING](https://github.com/x64dbg/x64dbg/blob/development/CONTRIBUTING.md) 文档。如果你有任何问题，你可以随时[联系我们](https://x64dbg.com/#contact) 或提交一个[问题](https://github.com/x64dbg/x64dbg/issues). 你可以看一下 [容易解决的问题](https://github.com/x64dbg/x64dbg/issues?q=is%3Aissue+is%3Aopen+label%3Aeasy) 以开始贡献。
 
 ## 制作人员
 
@@ -54,13 +54,13 @@
 
 ## 特别感谢
 
-- 用于开发初始图形用户界面的Sigma
+- Sigma开发了初始图形用户界面
 - 所有的[捐赠者](https://www.bountysource.com/teams/x64dbg/backers)!
 - 每一个提交问题的人!
 - 我忘记添加到这个名单的人
-- [Writers of the blog](https://x64dbg.com/blog/2016/07/09/Looking-for-writers.html)!
-- [EXETools community](https://forum.exetools.com)
-- [Tuts4You community](https://forum.tuts4you.com)
+- [博客文章作者](https://x64dbg.com/blog/2016/07/09/Looking-for-writers.html)!
+- [EXETools 社区](https://forum.exetools.com)
+- [Tuts4You 社区](https://forum.tuts4you.com)
 - [ReSharper](https://www.jetbrains.com/resharper)
 - [Coverity](https://www.coverity.com)
 - acidflash
