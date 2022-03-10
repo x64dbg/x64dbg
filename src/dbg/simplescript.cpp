@@ -25,7 +25,7 @@ static std::vector<int> scriptstack;
 static int scriptIp = 0;
 static int scriptIpOld = 0;
 static bool volatile bAbort = false;
-
+static bool volatile bIsRunning = false;
 static bool scriptLogEnabled = false;
 static CMDRESULT scriptLastError = STATUS_ERROR;
 
@@ -555,9 +555,8 @@ bool scriptRunSync(int destline, bool silentRet)
             }
         }
     }
-    SCRIPT_SYSTEM::bIsRunning = false; //not running anymore
+    bIsRunning = false; //not running anymore
     GuiScriptSetIp(scriptIp);
-    GuiUpdatePatches();
     // the script fully executed (which means scriptIp is reset to the first line), without any errors
     return scriptIp == scriptinternalstep(0) && (scriptLastError == STATUS_EXIT || scriptLastError == STATUS_CONTINUE);
 }
@@ -611,9 +610,9 @@ void scriptrun(int destline)
         GuiScriptError(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debugger must be paused to run a script!")));
         return;
     }
-    if(SCRIPT_SYSTEM::bIsRunning) //already running
+    if(bIsRunning) //already running
         return;
-    SCRIPT_SYSTEM::bIsRunning = true;
+    bIsRunning = true;
     std::thread t([destline]
     {
         scriptRunSync(destline, false);
@@ -625,7 +624,7 @@ void scriptstep()
 {
     std::thread t([]
     {
-        if(!SCRIPT_SYSTEM::bIsRunning) //only step when not running
+        if(!bIsRunning) //only step when not running
         {
             scriptinternalcmd(false);
             GuiScriptSetIp(scriptIp);
@@ -689,10 +688,10 @@ bool scriptcmdexec(const char* command)
 
 void scriptabort()
 {
-    if(SCRIPT_SYSTEM::bIsRunning)
+    if(bIsRunning)
     {
         bAbort = true;
-        while(SCRIPT_SYSTEM::bIsRunning)
+        while(bIsRunning)
             Sleep(1);
     }
     else //reset the script
@@ -716,7 +715,7 @@ void scriptsetip(int line)
 
 void scriptreset()
 {
-    while(SCRIPT_SYSTEM::bIsRunning)
+    while(bIsRunning)
     {
         bAbort = true;
         Sleep(1);
