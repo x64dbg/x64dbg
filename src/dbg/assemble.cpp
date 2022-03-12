@@ -12,6 +12,7 @@
 #include "disasm_helper.h"
 #include "datainst_helper.h"
 #include "debugger.h"
+#include "simplescript.h"
 
 AssemblerEngine assemblerEngine = AssemblerEngine::XEDParse;
 
@@ -150,7 +151,8 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
         }
 
         // Update GUI if any patching succeeded
-        GuiUpdatePatches();
+        if (SCRIPT_SYSTEM::bIsRunning)
+            GuiUpdatePatches();
     }
     else
     {

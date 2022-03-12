@@ -3,6 +3,11 @@
 
 #include "command.h"
 
+namespace SCRIPT_SYSTEM
+{
+    static bool bIsRunning = false;
+}
+
 //structures
 struct SCRIPTBP
 {
