@@ -6,7 +6,7 @@
 
 [![Telegram](https://img.shields.io/badge/chat-%20on%20Telegram-blue.svg)](https://telegram.me/x64dbg) [![Discord](https://img.shields.io/badge/chat-on%20Discord-green.svg)](https://invite.gg/x64dbg) [![Slack](https://img.shields.io/badge/chat-on%20Slack-red.svg)](https://x64dbg-slack.herokuapp.com) [![Gitter](https://img.shields.io/badge/chat-on%20Gitter-lightseagreen.svg)](https://gitter.im/x64dbg/x64dbg) [![Freenode](https://img.shields.io/badge/chat-%20on%20freenode-brightgreen.svg)](https://webchat.freenode.net/?channels=x64dbg) [![Matrix](https://img.shields.io/badge/chat-on%20Matrix-yellowgreen.svg)](https://riot.im/app/#/room/#x64dbg:matrix.org) [![XMPP](https://img.shields.io/badge/chat-%20on%20XMPP-orange.svg)](https://inverse.chat/#converse/room?jid=x64dbg@conference.jwchat.org)
 
-一个开源的Windows二进制调试器，旨在进行恶意软件分析和你没有源代码的可执行文件的逆向工程。有许多可用的功能和一个全面的[插件系统](http://plugins.x64dbg.com) 来添加你自己的功能。你可以在[博客](https://x64dbg.com/blog)!上找到更多信息!
+一个开源的Windows二进制调试器，旨在进行恶意软件分析和你没有源代码的可执行文件的逆向工程。有许多可用的功能和一个全面的[插件系统](http://plugins.x64dbg.com) 来添加你自己的功能。你可以在[博客](https://x64dbg.com/blog)上找到更多信息!
 
 ## 屏幕截图
 
@@ -30,7 +30,7 @@
 
 - 调试器核心由[TitanEngine社区版](https://github.com/x64dbg/TitanEngine)提供技术支持
 - 反汇编引擎由 [Zydis](https://zydis.re)提供技术支持
-- 组件由 [XEDParse](https://github.com/x64dbg/XEDParse) 和 [asmjit](https://github.com/asmjit)提供技术支持
+- 汇编由 [XEDParse](https://github.com/x64dbg/XEDParse) 和 [asmjit](https://github.com/asmjit)提供技术支持
 - 导入重建由 [Scylla](https://github.com/NtQuery/Scylla)提供技术支持
 - JSON由 [Jansson](https://www.digip.org/jansson)提供技术支持
 - 数据库优化由 [lz4](https://bitbucket.org/mrexodia/lz4)提供技术支持

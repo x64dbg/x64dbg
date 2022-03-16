@@ -24,6 +24,7 @@ protected slots:
     void onModifyAction();
     void onToggleValueAction();
     void onUndoAction();
+    void onCopyPreviousAction();
     void onFollowInDisassembly();
     void onFollowInDump();
     void onFollowInDumpN();
@@ -43,6 +44,7 @@ private:
     QAction* mFollowInDump;
     QAction* wCM_Modify;
     QAction* wCM_ToggleValue;
+    QAction* wCM_CopyPrevious;
     QAction* wCM_Undo;
     QAction* wCM_FollowInDisassembly;
     QAction* wCM_FollowInDump;

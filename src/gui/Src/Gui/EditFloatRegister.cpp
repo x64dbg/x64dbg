@@ -58,6 +58,21 @@ EditFloatRegister::EditFloatRegister(int RegisterSize, QWidget* parent) :
     ui->hexEdit->setValidator(&hexValidate);
     connect(ui->hexEdit_2, SIGNAL(textEdited(QString)), this, SLOT(editingHex2FinishedSlot(QString)));
     ui->hexEdit_2->setValidator(&hexValidate);
+    QRadioButton* checkedRadio;
+    switch(ConfigUint("Gui", "EditFloatRegisterDefaultMode"))
+    {
+    case 0:
+    default:
+        checkedRadio = ui->radioHex;
+        break;
+    case 1:
+        checkedRadio = ui->radioSigned;
+        break;
+    case 2:
+        checkedRadio = ui->radioUnsigned;
+        break;
+    }
+    checkedRadio->setChecked(true);
     editingModeChangedSlot(false);
     connect(ui->radioHex, SIGNAL(toggled(bool)), this, SLOT(editingModeChangedSlot(bool)));
     connect(ui->radioSigned, SIGNAL(toggled(bool)), this, SLOT(editingModeChangedSlot(bool)));
@@ -473,6 +488,7 @@ void EditFloatRegister::editingModeChangedSlot(bool arg)
             ui->longLongEdit0_2->setValidator(&hexValidate);
             ui->longLongEdit1_2->setValidator(&hexValidate);
         }
+        Config()->setUint("Gui", "EditFloatRegisterDefaultMode", 0);
     }
     else if(ui->radioSigned->isChecked())
     {
@@ -532,6 +548,7 @@ void EditFloatRegister::editingModeChangedSlot(bool arg)
         ui->longLongEdit1->setValidator(&signedLongLongValidator);
         ui->longLongEdit0_2->setValidator(&signedLongLongValidator);
         ui->longLongEdit1_2->setValidator(&signedLongLongValidator);
+        Config()->setUint("Gui", "EditFloatRegisterDefaultMode", 1);
     }
     else
     {
@@ -587,6 +604,7 @@ void EditFloatRegister::editingModeChangedSlot(bool arg)
         ui->longLongEdit1->setValidator(&unsignedLongLongValidator);
         ui->longLongEdit0_2->setValidator(&unsignedLongLongValidator);
         ui->longLongEdit1_2->setValidator(&unsignedLongLongValidator);
+        Config()->setUint("Gui", "EditFloatRegisterDefaultMode", 2);
     }
     reloadDataLow();
     if(RegSize > 128)

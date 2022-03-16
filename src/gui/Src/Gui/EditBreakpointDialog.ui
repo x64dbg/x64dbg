@@ -42,6 +42,9 @@
      </property>
      <item row="1" column="0">
       <widget class="QLabel" name="labelLogText">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This text will be logged whenever the log condition is true.&lt;/p&gt;&lt;p&gt;String formatting can be used to print variables.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
         <string>&amp;Log Text:</string>
        </property>
@@ -52,6 +55,9 @@
      </item>
      <item row="0" column="0">
       <widget class="QLabel" name="labelBreakCondition">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this expression is evaluated to 1 the breakpoint will break.&lt;/p&gt;&lt;p&gt;Set to &lt;span style=&quot; text-decoration: underline;&quot;&gt;0&lt;/span&gt; for a breakpoint that never breaks, but can still do logging and execute command.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
         <string>&amp;Break Condition:</string>
        </property>
@@ -90,6 +96,9 @@
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="labelLogCondition">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;String logging is enabled whenever this expression is evaluated to 1.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
         <string>Lo&amp;g Condition:</string>
        </property>
@@ -110,6 +119,9 @@
      </item>
      <item row="3" column="0">
       <widget class="QLabel" name="labelCommandText">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This command will be executed whenever command condition is true.&lt;/p&gt;&lt;p&gt;Currently certain commands, for example, stepping from breakpoint command are not supported.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
         <string>&amp;Command Text:</string>
        </property>
@@ -137,6 +149,9 @@
      </item>
      <item row="6" column="0">
       <widget class="QLabel" name="labelHitCount">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of times the breakpoint is hit.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
         <string>&amp;Hit Count:</string>
        </property>
@@ -147,6 +162,9 @@
      </item>
      <item row="4" column="0">
       <widget class="QLabel" name="labelCommandCondition">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If this expression is evaluated to 1 the command specified above is executed when the breakpoint is hit.&lt;/p&gt;&lt;p&gt;Set the expression to &lt;span style=&quot; text-decoration: underline;&quot;&gt;1&lt;/span&gt; to always execute the command.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
         <string>C&amp;ommand Condition:</string>
        </property>
@@ -181,6 +199,9 @@
      </item>
      <item>
       <widget class="QCheckBox" name="checkBoxSingleshoot">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Remove the breakpoint once it pauses the debuggee.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
         <string>Singlesho&amp;ot</string>
        </property>
@@ -188,6 +209,9 @@
      </item>
      <item>
       <widget class="QCheckBox" name="checkBoxSilent">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Don't print the default breakpoint log.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
         <string>&amp;Silent</string>
        </property>
@@ -195,6 +219,9 @@
      </item>
      <item>
       <widget class="QCheckBox" name="checkBoxFastResume">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Don't enable extended conditional breakpoint features and plugins.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
         <string>&amp;Fast Resume</string>
        </property>
