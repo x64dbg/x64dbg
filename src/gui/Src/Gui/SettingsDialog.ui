@@ -524,6 +524,16 @@
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="btnIgnoreFirst">
+             <property name="toolTip">
+              <string>Ignore all first-chance exceptions, don't print log, pass them to the debuggee and only break on second-chance exceptions.</string>
+             </property>
+             <property name="text">
+              <string>Ignore First-Chance</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QGroupBox" name="groupBoBreakOn">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
