@@ -910,6 +910,22 @@ void SettingsDialog::on_btnIgnoreLast_clicked()
     AddExceptionFilterToList(filter);
 }
 
+// Shortcut to ignore all first chance exceptions and don't log
+void SettingsDialog::on_btnIgnoreFirst_clicked()
+{
+    for(int i = 0; i < settings.exceptionFilters->size(); i++)
+    {
+        ExceptionFilter & filter = (*settings.exceptionFilters)[i];
+        if(filter.range.start == 0 && filter.range.end == 0)
+        {
+            filter.breakOn = ExceptionBreakOn::SecondChance;
+            filter.handledBy = ExceptionHandledBy::Debuggee;
+            filter.logException = false;
+        }
+    }
+    UpdateExceptionListWidget();
+}
+
 void SettingsDialog::on_listExceptions_currentItemChanged(QListWidgetItem* current, QListWidgetItem*)
 {
     OnExceptionFilterSelectionChanged(current);

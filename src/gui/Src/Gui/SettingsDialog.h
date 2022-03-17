@@ -69,6 +69,7 @@ private slots:
     void on_btnIgnoreRange_clicked();
     void on_btnDeleteRange_clicked();
     void on_btnIgnoreLast_clicked();
+    void on_btnIgnoreFirst_clicked();
     void on_listExceptions_currentItemChanged(QListWidgetItem* current, QListWidgetItem* previous);
     void on_listExceptions_itemClicked(QListWidgetItem* item);
     void on_radioFirstChance_clicked();
