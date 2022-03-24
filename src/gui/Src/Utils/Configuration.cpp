@@ -328,6 +328,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "SourceView", 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Trace", 7);
     guiUint.insert("SIMDRegistersDisplayMode", 0);
+    guiUint.insert("EditFloatRegisterDefaultMode", 0);
     addWindowPosConfig(guiUint, "AssembleDialog");
     addWindowPosConfig(guiUint, "AttachDialog");
     addWindowPosConfig(guiUint, "GotoDialog");
@@ -342,7 +343,11 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     //uint settings
     QMap<QString, duint> hexdumpUint;
     hexdumpUint.insert("DefaultView", 0);
+    hexdumpUint.insert("CopyDataType", 0);
     defaultUints.insert("HexDump", hexdumpUint);
+    QMap<QString, bool> hexdumpBool;
+    hexdumpBool.insert("KeepSize", false);
+    defaultBools.insert("HexDump", hexdumpBool);
 
     QMap<QString, duint> disasmUint;
     disasmUint.insert("MaxModuleSize", -1);

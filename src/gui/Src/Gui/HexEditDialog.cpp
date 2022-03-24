@@ -25,7 +25,7 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     //setup text fields
     ui->lineEditAscii->setEncoding(QTextCodec::codecForName("System"));
     ui->lineEditUnicode->setEncoding(QTextCodec::codecForName("UTF-16"));
-
+    ui->chkKeepSize->setChecked(ConfigBool("HexDump", "KeepSize"));
     ui->chkEntireBlock->hide();
 
     mDataInitialized = false;
@@ -86,7 +86,9 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     for(int i = 0; i < DataLast; i++)
         ui->listType->addItem(mTypes[i].name);
 
-    QModelIndex index = ui->listType->model()->index(DataCByte, 0);
+    duint lastDataType = ConfigUint("HexDump", "CopyDataType");
+    lastDataType = std::min(lastDataType, static_cast<duint>(ui->listType->count() - 1));
+    QModelIndex index = ui->listType->model()->index(lastDataType, 0);
     ui->listType->setCurrentIndex(index);
 
     Config()->setupWindowPos(this);
@@ -162,10 +164,13 @@ void HexEditDialog::updateStyle()
 
 void HexEditDialog::on_chkKeepSize_toggled(bool checked)
 {
+    if(!this->isVisible())
+        return;
     mHexEdit->setKeepSize(checked);
     ui->lineEditAscii->setKeepSize(checked);
     ui->lineEditUnicode->setKeepSize(checked);
     ui->lineEditCodepage->setKeepSize(checked);
+    Config()->setBool("HexDump", "KeepSize", checked);
 }
 
 void HexEditDialog::dataChangedSlot()
@@ -818,6 +823,7 @@ void HexEditDialog::on_listType_currentRowChanged(int currentRow)
     mIndex = currentRow;
     ui->spinBox->setValue(mTypes[mIndex].itemsPerLine);
     printData(DataType(mIndex));
+    Config()->setUint("HexDump", "CopyDataType", currentRow);
 }
 
 void HexEditDialog::on_buttonCopy_clicked()

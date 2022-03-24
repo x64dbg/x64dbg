@@ -18,6 +18,7 @@ CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), m
     wCM_Modify->setShortcut(QKeySequence(Qt::Key_Enter));
     wCM_ToggleValue = setupAction(DIcon("register_toggle.png"), tr("Toggle"));
     wCM_Undo = setupAction(DIcon("undo.png"), tr("Undo"));
+    wCM_CopyPrevious = setupAction(DIcon("undo.png"), "");
     wCM_FollowInDisassembly = new QAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in Disassembler"), this);
     wCM_FollowInDump = new QAction(DIcon("dump.png"), tr("Follow in Dump"), this);
     wCM_FollowInStack = new QAction(DIcon("stack.png"), tr("Follow in Stack"), this);
@@ -37,6 +38,7 @@ CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), m
     connect(wCM_Modify, SIGNAL(triggered()), this, SLOT(onModifyAction()));
     connect(wCM_ToggleValue, SIGNAL(triggered()), this, SLOT(onToggleValueAction()));
     connect(wCM_Undo, SIGNAL(triggered()), this, SLOT(onUndoAction()));
+    connect(wCM_CopyPrevious, SIGNAL(triggered()), this, SLOT(onCopyPreviousAction()));
     connect(wCM_FollowInDisassembly, SIGNAL(triggered()), this, SLOT(onFollowInDisassembly()));
     connect(wCM_FollowInDump, SIGNAL(triggered()), this, SLOT(onFollowInDump()));
     connect(wCM_FollowInStack, SIGNAL(triggered()), this, SLOT(onFollowInStack()));
@@ -441,6 +443,11 @@ void CPURegistersView::onUndoAction()
     }
 }
 
+void CPURegistersView::onCopyPreviousAction()
+{
+    Bridge::CopyToClipboard(wCM_CopyPrevious->data().toString());
+}
+
 void CPURegistersView::onHighlightSlot()
 {
     Disassembly* CPUDisassemblyView = mParent->getDisasmWidget();
@@ -580,6 +587,9 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
         if(mUNDODISPLAY.contains(mSelected) && CompareRegisters(mSelected, &wRegDumpStruct, &wCipRegDumpStruct) != 0)
         {
             wMenu.addAction(wCM_Undo);
+            wCM_CopyPrevious->setData(GetRegStringValueFromValue(mSelected, registerValue(&wCipRegDumpStruct, mSelected)));
+            wCM_CopyPrevious->setText(tr("Copy old value: %1").arg(wCM_CopyPrevious->data().toString()));
+            wMenu.addAction(wCM_CopyPrevious);
         }
 
         if(mBOOLDISPLAY.contains(mSelected))

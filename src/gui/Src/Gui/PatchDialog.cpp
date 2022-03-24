@@ -505,6 +505,9 @@ void PatchDialog::on_btnImport_clicked()
     QList<QPair<DBGPATCHINFO, IMPORTSTATUS>> patchList;
     DBGPATCHINFO curPatch;
 
+    if(!filenamelist.size())
+        return; // No files are selected, don't show the "No patches to apply in the current process." dialog.
+
     for(const auto & filename1 : filenamelist)
     {
         if(!filename1.length())
