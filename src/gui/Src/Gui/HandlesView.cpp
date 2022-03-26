@@ -119,6 +119,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mWindowsTable->addAction(mActionFollowProc);
     mActionToggleProcBP = new QAction(DIcon("breakpoint_toggle.png"), tr("Toggle Breakpoint in Proc"), this);
     connect(mActionToggleProcBP, SIGNAL(triggered()), this, SLOT(toggleBPSlot()));
+    mWindowsTable->addAction(mActionToggleProcBP);
     mActionMessageProcBP = new QAction(DIcon("breakpoint_execute.png"), tr("Message Breakpoint"), this);
     connect(mActionMessageProcBP, SIGNAL(triggered()), this, SLOT(messagesBPSlot()));
 
@@ -169,6 +170,7 @@ void HandlesView::reloadData()
 void HandlesView::refreshShortcuts()
 {
     mActionRefresh->setShortcut(ConfigShortcut("ActionRefresh"));
+    mActionToggleProcBP->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));
 }
 
 void HandlesView::dbgStateChanged(DBGSTATE state)
