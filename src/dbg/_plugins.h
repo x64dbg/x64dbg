@@ -240,13 +240,13 @@ typedef enum
 {
     ValueTypeNumber,
     ValueTypeString,
-    ValueTypeAny
+    ValueTypeAny, // Cannot be used for values, only for argTypes (to accept any type)
 } ValueType;
 
 typedef struct
 {
-    const char* ptr;
-    bool isOwner;
+    const char* ptr; // Should be allocated with BridgeAlloc
+    bool isOwner; // When set to true BridgeFree will be called on ptr
 } StringValue;
 
 typedef struct

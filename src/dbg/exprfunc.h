@@ -14,6 +14,7 @@ namespace Exprfunc
     duint modrva(duint addr);
     duint modheaderva(duint addr);
     duint modisexport(duint addr);
+    bool modbasefromname(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
 
     duint disasmsel();
     duint dumpsel();
@@ -50,6 +51,9 @@ namespace Exprfunc
     duint disnext(duint addr);
     duint disprev(duint addr);
     duint disiscallsystem(duint addr);
+    bool dismnemonic(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool distext(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool dismatch(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
 
     duint trenabled(duint addr);
     duint trhitcount(duint addr);
@@ -82,10 +86,9 @@ namespace Exprfunc
     duint exinfocount();
     duint exinfo(duint index);
 
-    bool strcmp(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool streq(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool strstr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool strlen(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool utf16(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool utf8(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
-    bool modbasefromname(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
 }

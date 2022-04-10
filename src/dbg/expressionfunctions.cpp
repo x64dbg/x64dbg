@@ -71,6 +71,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("mod.offset,mod.fileoffset", valvatofileoffset);
     RegisterEasy("mod.headerva", modheaderva);
     RegisterEasy("mod.isexport", modisexport);
+    ExpressionFunctions::Register("mod.fromname", ValueTypeNumber, { ValueTypeString }, Exprfunc::modbasefromname, nullptr);
 
     //Process information
     RegisterEasy("peb,PEB", peb);
@@ -108,6 +109,9 @@ void ExpressionFunctions::Init()
     RegisterEasy("dis.next", disnext);
     RegisterEasy("dis.prev", disprev);
     RegisterEasy("dis.iscallsystem", disiscallsystem);
+    ExpressionFunctions::Register("dis.mnemonic", ValueTypeString, { ValueTypeNumber }, Exprfunc::dismnemonic, nullptr);
+    ExpressionFunctions::Register("dis.text", ValueTypeString, { ValueTypeNumber }, Exprfunc::distext, nullptr);
+    ExpressionFunctions::Register("dis.match", ValueTypeNumber, { ValueTypeNumber, ValueTypeString }, Exprfunc::dismatch, nullptr);
 
     //Trace record
     RegisterEasy("tr.enabled", trenabled);
@@ -148,12 +152,12 @@ void ExpressionFunctions::Init()
     //Undocumented
     RegisterEasy("bpgoto", bpgoto);
 
-    ExpressionFunctions::Register("streq", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::strcmp, nullptr);
-    ExpressionFunctions::Register("strstr", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::strstr, nullptr);
-    ExpressionFunctions::Register("strlen", ValueTypeNumber, { ValueTypeString }, Exprfunc::strlen, nullptr);
-    ExpressionFunctions::Register("utf16", ValueTypeString, { ValueTypeNumber }, Exprfunc::utf16, nullptr);
+    // Strings
     ExpressionFunctions::Register("utf8", ValueTypeString, { ValueTypeNumber }, Exprfunc::utf8, nullptr);
-    ExpressionFunctions::Register("mod.fromname", ValueTypeNumber, { ValueTypeString }, Exprfunc::modbasefromname, nullptr);
+    ExpressionFunctions::Register("utf16", ValueTypeString, { ValueTypeNumber }, Exprfunc::utf16, nullptr);
+    ExpressionFunctions::Register("strstr", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::strstr, nullptr);
+    ExpressionFunctions::Register("streq", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::streq, nullptr);
+    ExpressionFunctions::Register("strlen", ValueTypeNumber, { ValueTypeString }, Exprfunc::strlen, nullptr);
 }
 
 bool ExpressionFunctions::Register(const String & name, const ValueType & returnType, const std::vector<ValueType> & argTypes, const CBEXPRESSIONFUNCTION & cbFunction, void* userdata)

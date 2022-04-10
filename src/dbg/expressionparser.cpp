@@ -903,6 +903,7 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
             argv.resize(argTypes.size());
             for(auto i = 0; i < argTypes.size(); i++)
             {
+                const auto & argType = argTypes[argTypes.size() - i - 1];
                 auto & top = stack[stack.size() - i - 1];
                 ExpressionValue arg;
                 if(top.isString)
@@ -921,7 +922,7 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
                     arg = { ValueTypeNumber, result };
                 }
 
-                if(arg.type != argTypes[i] && argTypes[i] != ValueTypeAny)
+                if(arg.type != argType && argType != ValueTypeAny)
                 {
                     if(!silent)
                     {
@@ -936,10 +937,36 @@ bool ExpressionParser::Calculate(duint & value, bool signedcalc, bool allowassig
                             }
                             return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid"));
                         };
-                        dprintf(QT_TRANSLATE_NOOP("DBG", "Expression function %s argument %d type mismatch (expected %s, got %s)!\n"),
-                                name.c_str(),
+                        String argValueStr;
+                        if(arg.type == ValueTypeNumber)
+                        {
+                            argValueStr = StringUtils::sprintf("0x%p", arg.number);
+                        }
+                        else if(arg.type == ValueTypeString)
+                        {
+                            argValueStr = "\"" + StringUtils::Escape(arg.string.ptr) + "\"";
+                        }
+                        else
+                        {
+                            argValueStr = "???";
+                        }
+                        String signature = name;
+                        signature += "(";
+                        for(size_t j = 0; j < argTypes.size(); j++)
+                        {
+                            if(j > 0)
+                            {
+                                signature += ", ";
+                            }
+                            signature += typeName(argTypes[j]);
+                        }
+                        signature += ")";
+                        dprintf(QT_TRANSLATE_NOOP("DBG", "Expression function %s argument %d/%d (%s) type mismatch (expected %s, got %s)!\n"),
+                                signature.c_str(),
                                 argTypes.size() - i,
-                                typeName(argTypes[i]).c_str(),
+                                argTypes.size(),
+                                argValueStr.c_str(),
+                                typeName(argType).c_str(),
                                 typeName(arg.type).c_str()
                                );
                     }
