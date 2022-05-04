@@ -65,6 +65,7 @@ void CPUDump::setupContextMenu()
     MenuBuilder* wCopyMenu = new MenuBuilder(this);
     wCopyMenu->addAction(mCopySelection);
     wCopyMenu->addAction(mCopyAddress);
+    wCopyMenu->addAction(mCopyRawAddress);
     wCopyMenu->addAction(mCopyRva, [this](QMenu*)
     {
         return DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection())) != 0;
