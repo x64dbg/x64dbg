@@ -122,6 +122,7 @@ void CPUStack::setupContextMenu()
     auto copyMenu = new MenuBuilder(this);
     copyMenu->addAction(mCopySelection);
     copyMenu->addAction(mCopyAddress);
+    copyMenu->addAction(mCopyRawAddress);
     copyMenu->addAction(mCopyRva, [this](QMenu*)
     {
         return DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection())) != 0;
