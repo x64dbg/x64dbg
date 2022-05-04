@@ -293,6 +293,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     copyMenu->addAction(makeAction(DIcon("copy_selection_no_bytes.png"), tr("Selection (&No Bytes)"), SLOT(copySelectionNoBytesSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_selection_no_bytes.png"), tr("Selection to File (No Bytes)"), SLOT(copySelectionToFileNoBytesSlot())));
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("&Address"), SLOT(copyAddressSlot()), "ActionCopyAddress"));
+    copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("&Address to pattern"), SLOT(copyRawAddressSlot()), "ActionCopyRva"));
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address.png"), tr("&RVA"), SLOT(copyRvaSlot()), "ActionCopyRva"));
     copyMenu->addAction(makeShortcutAction(DIcon("fileoffset.png"), tr("&File Offset"), SLOT(copyFileOffsetSlot()), "ActionCopyFileOffset"));
     copyMenu->addAction(makeAction(tr("&Header VA"), SLOT(copyHeaderVaSlot())));
@@ -1551,6 +1552,25 @@ void CPUDisassembly::copyAddressSlot()
         if(i)
             clipboard += "\r\n";
         clipboard += ToPtrString(rvaToVa(inst.rva));
+        return true;
+    });
+    Bridge::CopyToClipboard(clipboard);
+}
+
+void CPUDisassembly::copyRawAddressSlot()
+{
+    QString clipboard = "";
+    auto format_raw = [&] ( duint data )-> QString
+    {
+        HexEditDialog hexEdit(this);
+        hexEdit.mHexEdit->setData(QByteArray((const char*)&data, sizeof(duint) ));
+        return hexEdit.mHexEdit->pattern(true);
+    };
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
+    {
+        if(i)
+            clipboard += "\r\n";
+        clipboard += format_raw(rvaToVa(inst.rva));
         return true;
     });
     Bridge::CopyToClipboard(clipboard);
