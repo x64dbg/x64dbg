@@ -2,6 +2,7 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "StringUtil.h"
+#include "HexEditDialog.h"
 #include <QMessageBox>
 
 static int getStringMaxLength(HexDump::DataDescriptor desc);
@@ -306,6 +307,12 @@ void HexDump::setupCopyMenu()
     mCopyAddress->setShortcutContext(Qt::WidgetShortcut);
     addAction(mCopyAddress);
 
+    // Copy -> Address to pattern
+    mCopyRawAddress = new QAction(DIcon("copy_address.png"), "&Address to pattern", this);
+    connect(mCopyRawAddress, SIGNAL(triggered()), this, SLOT(copyRawAddressSlot()));
+    mCopyRawAddress->setShortcutContext(Qt::WidgetShortcut);
+    addAction(mCopyRawAddress);
+
     // Copy -> RVA
     mCopyRva = new QAction(DIcon("copy_address.png"), "&RVA", this);
     connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
@@ -317,6 +324,14 @@ void HexDump::copyAddressSlot()
 {
     QString addrText = ToPtrString(rvaToVa(getInitialSelection()));
     Bridge::CopyToClipboard(addrText);
+}
+
+void HexDump::copyRawAddressSlot()
+{
+    HexEditDialog hexEdit(this);
+    duint address = rvaToVa(getInitialSelection());
+    hexEdit.mHexEdit->setData(QByteArray((const char*)&address, sizeof(duint) ));
+    Bridge::CopyToClipboard(hexEdit.mHexEdit->pattern(true));
 }
 
 void HexDump::copyRvaSlot()

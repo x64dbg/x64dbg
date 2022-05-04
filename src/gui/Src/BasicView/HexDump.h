@@ -149,6 +149,7 @@ public slots:
     void updateDumpSlot();
     void copySelectionSlot();
     void copyAddressSlot();
+    void copyRawAddressSlot();
     void copyRvaSlot();
     void gotoPreviousSlot();
     void gotoNextSlot();
@@ -218,6 +219,7 @@ protected:
     dsint mRvaDisplayPageBase;
     QString mSyncAddrExpression;
     QAction* mCopyAddress;
+    QAction* mCopyRawAddress;
     QAction* mCopyRva;
     QAction* mCopySelection;
     duint mUnderlineRangeStartVa = 0;
