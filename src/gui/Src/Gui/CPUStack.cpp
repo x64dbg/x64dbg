@@ -120,8 +120,10 @@ void CPUStack::setupContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("binary.png"), tr("B&inary")), binaryMenu);
 
     auto copyMenu = new MenuBuilder(this);
+    auto rawAddrAction = makeAction(DIcon("copy_address.png"), tr("Address to pattern"), SLOT(copyRawAddressSlot()));
     copyMenu->addAction(mCopySelection);
     copyMenu->addAction(mCopyAddress);
+    copyMenu->addAction(rawAddrAction);
     copyMenu->addAction(mCopyRva, [this](QMenu*)
     {
         return DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection())) != 0;
@@ -815,6 +817,14 @@ void CPUStack::binaryCopySlot()
     mMemPage->read(data, selStart, selSize);
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
     delete [] data;
+    Bridge::CopyToClipboard(hexEdit.mHexEdit->pattern(true));
+}
+
+void CPUStack::copyRawAddressSlot()
+{
+    HexEditDialog hexEdit(this);
+    const duint addr = rvaToVa(getInitialSelection());
+    hexEdit.mHexEdit->setData(QByteArray((const char*)&addr, sizeof(duint)));
     Bridge::CopyToClipboard(hexEdit.mHexEdit->pattern(true));
 }
 
