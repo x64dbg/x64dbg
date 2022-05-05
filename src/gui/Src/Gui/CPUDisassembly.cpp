@@ -288,7 +288,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("binary.png"), tr("&Binary")), binaryMenu);
 
     MenuBuilder* copyMenu = new MenuBuilder(this);
-    auto rawAddrAction = makeAction(DIcon("copy_address.png"), tr("Address to pattern"), SLOT(copyRawAddressSlot()));
+    QAction* rawAddrAction = makeAction(DIcon("copy_address.png"), tr("Address to pattern"), SLOT(copyRawAddressSlot()));
     copyMenu->addAction(makeShortcutAction(DIcon("copy_selection.png"), tr("&Selection"), SLOT(copySelectionSlot()), "ActionCopy"));
     copyMenu->addAction(makeAction(DIcon("copy_selection.png"), tr("Selection to &File"), SLOT(copySelectionToFileSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_selection_no_bytes.png"), tr("Selection (&No Bytes)"), SLOT(copySelectionNoBytesSlot())));
@@ -1561,10 +1561,10 @@ void CPUDisassembly::copyAddressSlot()
 void CPUDisassembly::copyRawAddressSlot()
 {
     QString clipboard = "";
-    auto format_raw = [&] ( duint data )-> QString
+    auto format_raw = [&](const duint data) -> QString
     {
         HexEditDialog hexEdit(this);
-        hexEdit.mHexEdit->setData(QByteArray((const char*)&data, sizeof(duint) ));
+        hexEdit.mHexEdit->setData(QByteArray((const char*)&data, sizeof(duint)));
         return hexEdit.mHexEdit->pattern(true);
     };
     prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
