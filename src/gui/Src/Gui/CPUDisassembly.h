@@ -80,6 +80,7 @@ public slots:
     void copySelectionNoBytesSlot();
     void copySelectionToFileNoBytesSlot();
     void copyAddressSlot();
+    void copyRawAddressSlot();
     void copyRvaSlot();
     void copyFileOffsetSlot();
     void copyHeaderVaSlot();
