@@ -44,6 +44,7 @@ public slots:
     void binaryEditSlot();
     void binaryFillSlot();
     void binaryCopySlot();
+    void copyRawAddressSlot();
     void binaryPasteSlot();
     void findPattern();
     void binaryPasteIgnoreSizeSlot();
