@@ -63,10 +63,9 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("binary.png"), tr("B&inary")), wBinaryMenu);
 
     MenuBuilder* wCopyMenu = new MenuBuilder(this);
-    auto rawAddrAction = makeAction(DIcon("copy_address.png"), tr("Address to pattern"), SLOT(copyRawAddressSlot()));
     wCopyMenu->addAction(mCopySelection);
     wCopyMenu->addAction(mCopyAddress);
-    wCopyMenu->addAction(rawAddrAction);
+    wCopyMenu->addAction(makeAction(DIcon("copy_address.png"), tr("Address to pattern"), SLOT(copyRawAddressSlot())));
     wCopyMenu->addAction(mCopyRva, [this](QMenu*)
     {
         return DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection())) != 0;
