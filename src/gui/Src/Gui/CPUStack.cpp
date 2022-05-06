@@ -120,10 +120,9 @@ void CPUStack::setupContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("binary.png"), tr("B&inary")), binaryMenu);
 
     auto copyMenu = new MenuBuilder(this);
-    auto rawAddrAction = makeAction(DIcon("copy_address.png"), tr("Address to pattern"), SLOT(copyRawAddressSlot()));
     copyMenu->addAction(mCopySelection);
     copyMenu->addAction(mCopyAddress);
-    copyMenu->addAction(rawAddrAction);
+    copyMenu->addAction(makeAction(DIcon("copy_address.png"), tr("Address to pattern"), SLOT(copyRawAddressSlot())));
     copyMenu->addAction(mCopyRva, [this](QMenu*)
     {
         return DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection())) != 0;
