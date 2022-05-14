@@ -553,24 +553,6 @@ bool PDBDiaFile::enumerateLexicalHierarchy(const Query_t & query)
     uint32_t scopeId = getSymbolId(globalScope);
     context.visited.insert(scopeId);
 
-    // Enumerate compilands.
-    {
-        CComPtr<IDiaEnumSymbols> enumSymbols;
-
-        hr = globalScope->findChildren(SymTagCompiland, nullptr, nsNone, &enumSymbols);
-        if(hr == S_OK)
-        {
-            while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
-            {
-                CComPtr<IDiaSymbol> sym(symbol);
-                if(!enumerateCompilandScope(sym, context))
-                {
-                    return false;
-                }
-            }
-        }
-    }
-
     // Enumerate publics.
     {
         CComPtr<IDiaEnumSymbols> enumSymbols;
@@ -629,6 +611,24 @@ bool PDBDiaFile::enumerateLexicalHierarchy(const Query_t & query)
                     {
                         return false;
                     }
+                }
+            }
+        }
+    }
+
+    // Enumerate compilands.
+    {
+        CComPtr<IDiaEnumSymbols> enumSymbols;
+
+        hr = globalScope->findChildren(SymTagCompiland, nullptr, nsNone, &enumSymbols);
+        if(hr == S_OK)
+        {
+            while((hr = enumSymbols->Next(1, &symbol, &celt)) == S_OK && celt == 1)
+            {
+                CComPtr<IDiaSymbol> sym(symbol);
+                if(!enumerateCompilandScope(sym, context))
+                {
+                    return false;
                 }
             }
         }
