@@ -13,7 +13,7 @@
 #include "pdbdiafile.h"
 #include "stringutils.h"
 #include "console.h"
-#include "symbolundecorator.h"
+#include "LLVMDemangle/LLVMDemangle.h"
 
 //Taken from: https://msdn.microsoft.com/en-us/library/ms752876(v=vs.85).aspx
 class FileStream : public IStream
@@ -1028,7 +1028,10 @@ bool PDBDiaFile::convertSymbolInfo(IDiaSymbol* symbol, DiaSymbol_t & symbolInfo,
 
     if(context.collectUndecoratedNames && !symbolInfo.name.empty() && (symbolInfo.name.at(0) == '?' || symbolInfo.name.at(0) == '_' || symbolInfo.name.at(0) == '@'))
     {
-        undecorateName(symbolInfo.name, symbolInfo.undecoratedName);
+        auto demangled = LLVMDemangle(symbolInfo.name.c_str());
+        if(demangled && symbolInfo.name.compare(demangled) != 0)
+            symbolInfo.undecoratedName = demangled;
+        LLVMDemangleFree(demangled);
     }
     else
     {

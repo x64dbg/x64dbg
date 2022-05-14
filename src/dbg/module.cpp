@@ -12,7 +12,7 @@
 #include "console.h"
 #include "debugger.h"
 #include <memory>
-#include "symbolundecorator.h"
+#include "LLVMDemangle/LLVMDemangle.h"
 
 std::map<Range, std::unique_ptr<MODINFO>, RangeCompare> modinfo;
 std::unordered_map<duint, std::string> hashNameMap;
@@ -212,7 +212,12 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     for(auto & x : Info.exports)
     {
         if(!x.name.empty())
-            undecorateName(x.name, x.undecoratedName);
+        {
+            auto demangled = LLVMDemangle(x.name.c_str());
+            if(demangled && x.name.compare(demangled) != 0)
+                x.undecoratedName = demangled;
+            LLVMDemangleFree(demangled);
+        }
     }
 }
 
@@ -300,7 +305,15 @@ static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 
     // undecorate names
     for(auto & i : Info.imports)
-        undecorateName(i.name, i.undecoratedName);
+    {
+        if(!i.name.empty())
+        {
+            auto demangled = LLVMDemangle(i.name.c_str());
+            if(demangled && i.name.compare(demangled) != 0)
+                i.undecoratedName = demangled;
+            LLVMDemangleFree(demangled);
+        }
+    }
 }
 
 static void ReadTlsCallbacks(MODINFO & Info, ULONG_PTR FileMapVA)
