@@ -168,7 +168,7 @@ void CommonActions::build(MenuBuilder* builder, int actions)
     }
     if(actions & ActionNewOrigin)
     {
-        builder->addAction(makeShortcutAction(DIcon("neworigin.png"), tr("Set New Origin Here"), std::bind(&CommonActions::setNewOriginHereActionSlot, this), "ActionSetNewOriginHere"));
+        builder->addAction(makeShortcutAction(DIcon("neworigin.png"), tr("Set %1 Here").arg(ArchValue("EIP", "RIP")), std::bind(&CommonActions::setNewOriginHereActionSlot, this), "ActionSetNewOriginHere"));
     }
     if(actions & ActionNewThread)
     {

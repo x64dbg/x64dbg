@@ -492,7 +492,7 @@
      <normaloff>:/icons/images/arrow-step-into.png</normaloff>:/icons/images/arrow-step-into.png</iconset>
    </property>
    <property name="text">
-    <string>Step into (pass exceptions)</string>
+    <string>Step into (pass all exceptions)</string>
    </property>
    <property name="statusTip">
     <string>Execute a single instruction, pass exceptions to the debuggee.</string>
@@ -504,7 +504,7 @@
      <normaloff>:/icons/images/arrow-step-over.png</normaloff>:/icons/images/arrow-step-over.png</iconset>
    </property>
    <property name="text">
-    <string>Step over (pass exceptions)</string>
+    <string>Step over (pass all exceptions)</string>
    </property>
   </action>
   <action name="actioneRun">
@@ -513,7 +513,7 @@
      <normaloff>:/icons/images/arrow-run.png</normaloff>:/icons/images/arrow-run.png</iconset>
    </property>
    <property name="text">
-    <string>Run (pass exceptions)</string>
+    <string>Run (pass all exceptions)</string>
    </property>
    <property name="statusTip">
     <string>Run the debuggee and pass all exceptions to the debuggee without pausing.</string>
@@ -525,7 +525,7 @@
      <normaloff>:/icons/images/arrow-step-rtr.png</normaloff>:/icons/images/arrow-step-rtr.png</iconset>
    </property>
    <property name="text">
-    <string>Execute till return (pass exceptions)</string>
+    <string>Execute till return (pass all exceptions)</string>
    </property>
   </action>
   <action name="actionScript">

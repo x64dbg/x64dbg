@@ -504,7 +504,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionDeleteLoop", Shortcut({tr("Actions"), tr("Delete Loop")}, "Ctrl+Shift+L"));
     defaultShortcuts.insert("ActionToggleArgument", Shortcut({tr("Actions"), tr("Toggle Argument")}, "Shift+A"));
     defaultShortcuts.insert("ActionAssemble", Shortcut({tr("Actions"), tr("Assemble")}, "Space"));
-    defaultShortcuts.insert("ActionSetNewOriginHere", Shortcut({tr("Actions"), tr("Set New Origin Here")}, "Ctrl+*"));
+    defaultShortcuts.insert("ActionSetNewOriginHere", Shortcut({tr("Actions"), tr("Set %1 Here").arg(ArchValue("EIP", "RIP"))}, "Ctrl+*"));
     defaultShortcuts.insert("ActionGotoOrigin", Shortcut({tr("Actions"), tr("Goto Origin")}, "*"));
     defaultShortcuts.insert("ActionGotoCBP", Shortcut({tr("Actions"), tr("Goto EBP/RBP")}));
     defaultShortcuts.insert("ActionGotoPrevious", Shortcut({tr("Actions"), tr("Goto Previous")}, "-"));

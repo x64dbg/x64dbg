@@ -75,8 +75,6 @@ static bool isValidLocale(const QString & locale)
 
 int main(int argc, char* argv[])
 {
-    qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     MyApplication application(argc, argv);
     MainWindow::loadSelectedStyle(true);
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
