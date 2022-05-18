@@ -1546,7 +1546,18 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
 static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
 {
-    dprintf(QT_TRANSLATE_NOOP("DBG", "Process stopped with exit code 0x%X\n"), ExitProcess->dwExitCode);
+    {
+        auto exitCode = ExitProcess->dwExitCode;
+        auto exitDescription = StringUtils::sprintf("0x%X (%d)", exitCode, exitCode);
+        if((exitCode & 0x80000000) != 0)
+        {
+            auto statusName = NtStatusCodeToName(exitCode);
+            if(!statusName.empty())
+                exitDescription = StringUtils::sprintf("0x%X (%s)", exitCode, statusName.c_str());
+        }
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Process stopped with exit code %s\n"), exitDescription.c_str());
+    }
+
     const bool breakHere = settingboolget("Events", "NtTerminateProcess");
     if(breakHere)
     {
