@@ -15,6 +15,15 @@ static void GuiAddLogMessageAsync(_In_z_ const char* msg)
     task.WakeUp(msg);
 }
 
+static void GuiAddLogMessageHtmlAsync(_In_z_ const char* msg)
+{
+    static StringConcatTaskThread_<void(*)(const std::string &)> task([](const std::string & msg)
+    {
+        GuiAddLogMessageHtml(msg.c_str());
+    });
+    task.WakeUp(msg);
+}
+
 /**
 \brief Print a line with text, terminated with a newline to the console.
 \param text The text to print.
@@ -101,4 +110,16 @@ void dprintf_args_untranslated(_In_z_ _Printf_format_string_ const char* Format,
     vsnprintf_s(buffer, _TRUNCATE, Format, Args);
 
     GuiAddLogMessageAsync(buffer);
+}
+/**
+\brief Print a html formatted string to the console.
+\param format The printf format to use (see documentation of printf for more information).
+\param Args The argument buffer passed to the string parser.
+*/
+void dprintf_args_untranslated_html(_In_z_ _Printf_format_string_ const char* Format, va_list Args)
+{
+    char buffer[16384];
+    vsnprintf_s(buffer, _TRUNCATE, Format, Args);
+
+    GuiAddLogMessageHtmlAsync(buffer);
 }

@@ -50,6 +50,7 @@ signals:
     void updateDisassembly();
     void dbgStateChanged(DBGSTATE state);
     void addMsgToLog(QByteArray msg);
+    void addMsgToLogHtml(QByteArray msg);
     void clearLog();
     void close();
     void updateRegisters();

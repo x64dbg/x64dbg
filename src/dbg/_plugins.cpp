@@ -41,6 +41,15 @@ PLUG_IMPEXP void _plugin_logprintf(const char* format, ...)
     va_end(args);
 }
 
+PLUG_IMPEXP void _plugin_logprintf_html(const char* format, ...)
+{
+    va_list args;
+
+    va_start(args, format);
+    dprintf_args_untranslated_html(format, args);
+    va_end(args);
+}
+
 PLUG_IMPEXP void _plugin_logputs(const char* text)
 {
     dputs_untranslated(text);

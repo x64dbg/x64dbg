@@ -1089,6 +1089,7 @@ typedef enum
     GUI_DISASSEMBLE_AT,             // param1=(duint)va,            param2=(duint)cip
     GUI_SET_DEBUG_STATE,            // param1=(DBGSTATE)state,      param2=unused
     GUI_ADD_MSG_TO_LOG,             // param1=(const char*)msg,     param2=unused
+    GUI_ADD_MSG_TO_LOG_HTML,        // param1=(const char*)msg,     param2=unused
     GUI_CLEAR_LOG,                  // param1=unused,               param2=unused
     GUI_UPDATE_REGISTER_VIEW,       // param1=unused,               param2=unused
     GUI_UPDATE_DISASSEMBLY_VIEW,    // param1=unused,               param2=unused
@@ -1265,6 +1266,7 @@ BRIDGE_IMPEXP void GuiDisasmAt(duint addr, duint cip);
 BRIDGE_IMPEXP void GuiSetDebugState(DBGSTATE state);
 BRIDGE_IMPEXP void GuiSetDebugStateFast(DBGSTATE state);
 BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg);
+BRIDGE_IMPEXP void GuiAddLogMessageHtml(const char* msg);
 BRIDGE_IMPEXP void GuiLogClear();
 BRIDGE_IMPEXP void GuiUpdateAllViews();
 BRIDGE_IMPEXP void GuiUpdateRegisterView();
