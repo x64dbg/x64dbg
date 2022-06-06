@@ -218,6 +218,200 @@ bool cbInstrFindAll(int argc, char* argv[])
     return true;
 }
 
+bool cbInstrFindAllUserMem(int argc, char* argv[])
+{
+	if (IsArgumentsLessThan(argc, 3))
+		return false;
+
+	duint addr = 0;
+	if (!valfromstring(argv[1], &addr, false))
+		return false;
+
+	std::vector<PatternByte> searchpattern;
+	String patternshort;
+	if (!handlePatternArgument(argv[2], searchpattern, &patternshort))
+	{
+		dputs(QT_TRANSLATE_NOOP("DBG", "Failed to transform pattern!"));
+		return false;
+	}
+
+	duint find_size = -1;
+	bool findData = false;
+	if (argc >= 4)
+	{
+		if (!_stricmp(argv[3], "&data&"))
+			findData = true;
+		else if (!valfromstring(argv[3], &find_size))
+			findData = false;
+	}
+
+	SHARED_ACQUIRE(LockMemoryPages);
+	std::vector<SimplePage> searchPages;
+	for (auto & itr : memoryPages)
+	{
+		if (itr.second.mbi.State != MEM_COMMIT)
+			continue;
+		int party = ModGetParty(duint(itr.second.mbi.BaseAddress));
+		if (party != mod_user)
+			continue;
+		SimplePage page(duint(itr.second.mbi.BaseAddress), itr.second.mbi.RegionSize);
+		if (page.address >= addr && (find_size == -1 || page.address + page.size <= addr + find_size))
+			searchPages.push_back(page);
+	}
+	SHARED_RELEASE();
+
+	DWORD ticks = GetTickCount();
+
+	std::vector<duint> results;
+	if (!MemFindInMap(searchPages, searchpattern, results, maxFindResults))
+	{
+		dputs(QT_TRANSLATE_NOOP("DBG", "MemFindInMap failed!"));
+		return false;
+	}
+
+	//setup reference view
+	String patterntitle = StringUtils::sprintf(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Pattern: %s")), patternshort.c_str());
+	GuiReferenceInitialize(patterntitle.c_str());
+	GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+	if (findData)
+		GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Data")));
+	else
+		GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+	GuiReferenceSetRowCount(0);
+	GuiReferenceReloadData();
+
+	int refCount = 0;
+	for (duint result : results)
+	{
+		char msg[deflen] = "";
+		sprintf_s(msg, "%p", result);
+		GuiReferenceSetRowCount(refCount + 1);
+		GuiReferenceSetCellContent(refCount, 0, msg);
+		if (findData)
+		{
+			Memory<unsigned char*> printData(searchpattern.size(), "cbInstrFindAll:printData");
+			MemRead(result, printData(), printData.size());
+			for (size_t j = 0, k = 0; j < printData.size(); j++)
+			{
+				if (j)
+					k += sprintf_s(msg + k, sizeof(msg) - k, " ");
+				k += sprintf_s(msg + k, sizeof(msg) - k, "%.2X", printData()[j]);
+			}
+		}
+		else
+		{
+			if (!GuiGetDisassembly(result, msg))
+				strcpy_s(msg, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "[Error disassembling]")));
+		}
+		GuiReferenceSetCellContent(refCount, 1, msg);
+		refCount++;
+	}
+
+	GuiReferenceReloadData();
+	dprintf(QT_TRANSLATE_NOOP("DBG", "%d occurrences found in %ums\n"), refCount, GetTickCount() - ticks);
+	varset("$result", refCount, false);
+
+	return true;
+}
+
+bool cbInstrFindAllSystemMem(int argc, char* argv[])
+{
+	if (IsArgumentsLessThan(argc, 3))
+		return false;
+
+	duint addr = 0;
+	if (!valfromstring(argv[1], &addr, false))
+		return false;
+
+	std::vector<PatternByte> searchpattern;
+	String patternshort;
+	if (!handlePatternArgument(argv[2], searchpattern, &patternshort))
+	{
+		dputs(QT_TRANSLATE_NOOP("DBG", "Failed to transform pattern!"));
+		return false;
+	}
+
+	duint find_size = -1;
+	bool findData = false;
+	if (argc >= 4)
+	{
+		if (!_stricmp(argv[3], "&data&"))
+			findData = true;
+		else if (!valfromstring(argv[3], &find_size))
+			findData = false;
+	}
+
+	SHARED_ACQUIRE(LockMemoryPages);
+	std::vector<SimplePage> searchPages;
+	for (auto & itr : memoryPages)
+	{
+		if (itr.second.mbi.State != MEM_COMMIT)
+			continue;
+		int party = ModGetParty(duint(itr.second.mbi.BaseAddress));
+		if (party != mod_system)
+			continue;
+		SimplePage page(duint(itr.second.mbi.BaseAddress), itr.second.mbi.RegionSize);
+		if (page.address >= addr && (find_size == -1 || page.address + page.size <= addr + find_size))
+			searchPages.push_back(page);
+	}
+	SHARED_RELEASE();
+
+	DWORD ticks = GetTickCount();
+
+	std::vector<duint> results;
+	if (!MemFindInMap(searchPages, searchpattern, results, maxFindResults))
+	{
+		dputs(QT_TRANSLATE_NOOP("DBG", "MemFindInMap failed!"));
+		return false;
+	}
+
+	//setup reference view
+	String patterntitle = StringUtils::sprintf(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Pattern: %s")), patternshort.c_str());
+	GuiReferenceInitialize(patterntitle.c_str());
+	GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+	if (findData)
+		GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Data")));
+	else
+		GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+	GuiReferenceSetRowCount(0);
+	GuiReferenceReloadData();
+
+	int refCount = 0;
+	for (duint result : results)
+	{
+		char msg[deflen] = "";
+		sprintf_s(msg, "%p", result);
+		GuiReferenceSetRowCount(refCount + 1);
+		GuiReferenceSetCellContent(refCount, 0, msg);
+		if (findData)
+		{
+			Memory<unsigned char*> printData(searchpattern.size(), "cbInstrFindAll:printData");
+			MemRead(result, printData(), printData.size());
+			for (size_t j = 0, k = 0; j < printData.size(); j++)
+			{
+				if (j)
+					k += sprintf_s(msg + k, sizeof(msg) - k, " ");
+				k += sprintf_s(msg + k, sizeof(msg) - k, "%.2X", printData()[j]);
+			}
+		}
+		else
+		{
+			if (!GuiGetDisassembly(result, msg))
+				strcpy_s(msg, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "[Error disassembling]")));
+		}
+		GuiReferenceSetCellContent(refCount, 1, msg);
+		refCount++;
+	}
+
+	GuiReferenceReloadData();
+	dprintf(QT_TRANSLATE_NOOP("DBG", "%d occurrences found in %ums\n"), refCount, GetTickCount() - ticks);
+	varset("$result", refCount, false);
+
+	return true;
+}
+
+
+
 bool cbInstrFindAllMem(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
@@ -354,7 +548,7 @@ bool cbInstrFindAsm(int argc, char* argv[])
 
     duint refFindType = CURRENT_REGION;
     if(argc >= 5 && valfromstring(argv[4], &refFindType, true))
-        if(refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
+		if (refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != User_MODULES  && refFindType != System_MODULES  && refFindType != ALL_MODULES)
             refFindType = CURRENT_REGION;
 
     unsigned char dest[16];
@@ -492,7 +686,7 @@ bool cbInstrRefFindRange(int argc, char* argv[])
 
     duint refFindType = CURRENT_REGION;
     if(argc >= 6 && valfromstring(argv[5], &refFindType, true))
-        if(refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
+		if (refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE &&  refFindType != User_MODULES &&  refFindType != System_MODULES &&  refFindType != ALL_MODULES)
             refFindType = CURRENT_REGION;
 
     int found = RefFind(addr, size, cbRefFind, &range, false, title, (REFFINDTYPE)refFindType, false);
@@ -610,7 +804,7 @@ bool cbInstrRefStr(int argc, char* argv[])
 
     duint refFindType = CURRENT_REGION;
     if(argc >= 4 && valfromstring(argv[3], &refFindType, true))
-        if(refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
+		if (refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != User_MODULES && refFindType != System_MODULES && refFindType != ALL_MODULES)
             refFindType = CURRENT_REGION;
 
     TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Strings"));
@@ -741,7 +935,7 @@ bool cbInstrModCallFind(int argc, char* argv[])
 
     duint refFindType = CURRENT_REGION;
     if(argc >= 4 && valfromstring(argv[3], &refFindType, true))
-        if(refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != ALL_MODULES)
+		if (refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != User_MODULES && refFindType != System_MODULES && refFindType != ALL_MODULES)
             refFindType = CURRENT_REGION;
 
     duint ticks = GetTickCount();

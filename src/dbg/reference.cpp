@@ -117,6 +117,130 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             GuiReferenceSetProgress(percent);
         }, disasmText);
     }
+    else if (type == User_MODULES) // Search in All User Modules
+    {
+        bool initCallBack = true;
+
+        struct RefModInfo
+        {
+            duint base;
+            duint size;
+            char name[MAX_MODULE_SIZE];
+        };
+        std::vector<RefModInfo> modList;
+        ModEnum([&modList](const MODINFO& mod)
+            {
+                RefModInfo info;
+                info.base = mod.base;
+                info.size = mod.size;
+                strncpy_s(info.name, mod.name, _TRUNCATE);
+                strncat_s(info.name, mod.extension, _TRUNCATE);
+                modList.push_back(info);
+            });
+
+        if (!modList.size())
+        {
+            if (!Silent)
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Couldn't get module list"));
+
+            return 0;
+        }
+
+        // Initialize disassembler
+        Zydis cp;
+
+        // Determine the full module
+        sprintf_s(fullName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "User Modules (%s)")), Name);
+
+        // Allow an "initialization" notice
+        refInfo.refcount = 0;
+        refInfo.userinfo = UserData;
+        refInfo.name = fullName;
+
+        for (duint i = 0; i < modList.size(); i++)
+        {
+			int party = ModGetParty(duint(modList[i].base));
+			if (party != mod_user)
+                continue;
+            scanStart = modList[i].base;
+            scanSize = modList[i].size;
+
+            RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, initCallBack, [&i, &modList](int percent)
+                {
+                    float fPercent = (float)percent / 100.f;
+                    float fTotalPercent = ((float)i + fPercent) / (float)modList.size();
+
+                    int totalPercent = (int)floor(fTotalPercent * 100.f);
+
+                    GuiReferenceSetCurrentTaskProgress(percent, modList[i].name);
+                    GuiReferenceSetProgress(totalPercent);
+                }, disasmText);
+
+			initCallBack = false;
+        }
+    }
+    else if (type == System_MODULES) // Search in All System Modules
+    {
+		bool initCallBack = true;
+
+		struct RefModInfo
+		{
+			duint base;
+			duint size;
+			char name[MAX_MODULE_SIZE];
+		};
+		std::vector<RefModInfo> modList;
+		ModEnum([&modList](const MODINFO& mod)
+		{
+			RefModInfo info;
+			info.base = mod.base;
+			info.size = mod.size;
+			strncpy_s(info.name, mod.name, _TRUNCATE);
+			strncat_s(info.name, mod.extension, _TRUNCATE);
+			modList.push_back(info);
+		});
+
+		if (!modList.size())
+		{
+			if (!Silent)
+				dprintf(QT_TRANSLATE_NOOP("DBG", "Couldn't get module list"));
+
+			return 0;
+		}
+
+		// Initialize disassembler
+		Zydis cp;
+
+		// Determine the full module
+		sprintf_s(fullName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "System Modules (%s)")), Name);
+
+		// Allow an "initialization" notice
+		refInfo.refcount = 0;
+		refInfo.userinfo = UserData;
+		refInfo.name = fullName;
+
+		for (duint i = 0; i < modList.size(); i++)
+		{
+			int party = ModGetParty(duint(modList[i].base));
+			if (party != mod_system)
+				continue;
+			scanStart = modList[i].base;
+			scanSize = modList[i].size;
+
+
+			RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, initCallBack, [&i, &modList](int percent)
+			{
+				float fPercent = (float)percent / 100.f;
+				float fTotalPercent = ((float)i + fPercent) / (float)modList.size();
+
+				int totalPercent = (int)floor(fTotalPercent * 100.f);
+
+				GuiReferenceSetCurrentTaskProgress(percent, modList[i].name);
+				GuiReferenceSetProgress(totalPercent);
+			}, disasmText);
+			initCallBack = false;
+		}
+    }
     else if(type == ALL_MODULES) // Search in all Modules
     {
         bool initCallBack = true;
