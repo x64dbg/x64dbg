@@ -80,7 +80,7 @@ enableHighDpiScaling()
     static HMODULE user32 = LoadLibraryW(L"user32.dll");
     if(user32)
     {
-        typedef unsigned int(WINAPI * pfnSetProcessDpiAwarenessContext)(unsigned int value);
+        typedef unsigned int(WINAPI * pfnSetProcessDpiAwarenessContext)(size_t value);
         static pfnSetProcessDpiAwarenessContext pSetProcessDpiAwarenessContext =
             (pfnSetProcessDpiAwarenessContext)GetProcAddress(user32, "SetProcessDpiAwarenessContext");
         if(pSetProcessDpiAwarenessContext)
