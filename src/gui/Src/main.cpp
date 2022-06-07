@@ -73,27 +73,24 @@ static bool isValidLocale(const QString & locale)
     return false;
 }
 
-static void enableHighDpiScaling()
+static void
+enableHighDpiScaling()
 {
-    // https://www.vergiliusproject.com/kernels/x64/Windows%2010%20%7C%202016/2009%2020H2%20(October%202020%20Update)/_KUSER_SHARED_DATA
-    unsigned int NtBuildNumber = *(unsigned int*)(0x7FFE0000 + 0x260);
-    if(NtBuildNumber == 0 /* pre Windows-10 */ || NtBuildNumber < 15063)
+    // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setprocessdpiawarenesscontext
+    static HMODULE user32 = LoadLibraryW(L"user32.dll");
+    if(user32)
     {
-        // old windows version
-        QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    }
-    else
-    {
-        // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setprocessdpiawarenesscontext
-        static HMODULE user32 = LoadLibraryW(L"user32.dll");
-        if(user32)
+        typedef unsigned int(WINAPI * pfnSetProcessDpiAwarenessContext)(unsigned int value);
+        static pfnSetProcessDpiAwarenessContext pSetProcessDpiAwarenessContext =
+            (pfnSetProcessDpiAwarenessContext)GetProcAddress(user32, "SetProcessDpiAwarenessContext");
+        if(pSetProcessDpiAwarenessContext)
         {
-            typedef unsigned int(*pfnSetProcessDpiAwarenessContext)(int value);
-            static pfnSetProcessDpiAwarenessContext pSetProcessDpiAwarenessContext = (pfnSetProcessDpiAwarenessContext)GetProcAddress(user32, "SetProcessDpiAwarenessContext");
-            if(pSetProcessDpiAwarenessContext)
-            {
-                pSetProcessDpiAwarenessContext(/*DPI_AWARENESS_CONTEXT_SYSTEM_AWARE*/ -2);
-            }
+            pSetProcessDpiAwarenessContext(/*DPI_AWARENESS_CONTEXT_SYSTEM_AWARE*/ -2);
+        }
+        else
+        {
+            // Old windows version
+            QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
         }
     }
 }
