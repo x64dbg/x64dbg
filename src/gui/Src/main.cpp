@@ -76,7 +76,7 @@ static bool isValidLocale(const QString & locale)
 static void enableHighDpiScaling()
 {
     // https://www.vergiliusproject.com/kernels/x64/Windows%2010%20%7C%202016/2009%2020H2%20(October%202020%20Update)/_KUSER_SHARED_DATA
-    unsigned int NtBuildNumber = *(unsigned int*)(0x7FFE0000 + 0x260); 
+    unsigned int NtBuildNumber = *(unsigned int*)(0x7FFE0000 + 0x260);
     if(NtBuildNumber == 0 /* pre Windows-10 */ || NtBuildNumber < 15063)
     {
         // old windows version
@@ -92,7 +92,7 @@ static void enableHighDpiScaling()
             static pfnSetProcessDpiAwarenessContext pSetProcessDpiAwarenessContext = (pfnSetProcessDpiAwarenessContext)GetProcAddress(user32, "SetProcessDpiAwarenessContext");
             if(pSetProcessDpiAwarenessContext)
             {
-                pSetProcessDpiAwarenessContext(/*DPI_AWARENESS_CONTEXT_SYSTEM_AWARE*/-2);
+                pSetProcessDpiAwarenessContext(/*DPI_AWARENESS_CONTEXT_SYSTEM_AWARE*/ -2);
             }
         }
     }
