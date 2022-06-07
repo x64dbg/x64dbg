@@ -85,11 +85,11 @@ static void enableHighDpiScaling()
     else
     {
         // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setprocessdpiawarenesscontext
-        static auto user32 = LoadLibraryW(L"user32.dll");
+        static HMODULE user32 = LoadLibraryW(L"user32.dll");
         if(user32)
         {
             typedef unsigned int(*pfnSetProcessDpiAwarenessContext)(int value);
-            static auto pSetProcessDpiAwarenessContext = (pfnSetProcessDpiAwarenessContext)GetProcAddress(user32, "SetProcessDpiAwarenessContext");
+            static pfnSetProcessDpiAwarenessContext pSetProcessDpiAwarenessContext = (pfnSetProcessDpiAwarenessContext)GetProcAddress(user32, "SetProcessDpiAwarenessContext");
             if(pSetProcessDpiAwarenessContext)
             {
                 pSetProcessDpiAwarenessContext(/*DPI_AWARENESS_CONTEXT_SYSTEM_AWARE*/-2);
