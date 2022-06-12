@@ -73,8 +73,31 @@ static bool isValidLocale(const QString & locale)
     return false;
 }
 
+static void
+enableHighDpiScaling()
+{
+    // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setprocessdpiawarenesscontext
+    static HMODULE user32 = LoadLibraryW(L"user32.dll");
+    if(user32)
+    {
+        typedef unsigned int(WINAPI * pfnSetProcessDpiAwarenessContext)(size_t value);
+        static pfnSetProcessDpiAwarenessContext pSetProcessDpiAwarenessContext =
+            (pfnSetProcessDpiAwarenessContext)GetProcAddress(user32, "SetProcessDpiAwarenessContext");
+        if(pSetProcessDpiAwarenessContext)
+        {
+            pSetProcessDpiAwarenessContext(/*DPI_AWARENESS_CONTEXT_SYSTEM_AWARE*/ -2);
+        }
+        else
+        {
+            // Old windows version
+            QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+        }
+    }
+}
+
 int main(int argc, char* argv[])
 {
+    enableHighDpiScaling();
     MyApplication application(argc, argv);
     MainWindow::loadSelectedStyle(true);
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
