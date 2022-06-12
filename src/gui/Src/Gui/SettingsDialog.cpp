@@ -90,6 +90,7 @@ void SettingsDialog::LoadSettings()
     settings.guiDisableAutoComplete = false;
     settings.guiAutoFollowInStack = false;
     settings.guiHideSeasonalIcons = false;
+    settings.guiEnableQtHighDpiScaling = true;
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);
@@ -305,6 +306,8 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Gui", "ShowExitConfirmation", &settings.guiShowExitConfirmation);
     GetSettingBool("Gui", "DisableAutoComplete", &settings.guiDisableAutoComplete);
     GetSettingBool("Gui", "AutoFollowInStack", &settings.guiAutoFollowInStack);
+    GetSettingBool("Gui", "NoSeasons", &settings.guiHideSeasonalIcons);
+    GetSettingBool("Gui", "EnableQtHighDpiScaling", &settings.guiEnableQtHighDpiScaling);
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
     ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
     ui->chkNoCloseDialog->setChecked(settings.guiNoCloseDialog);
@@ -317,6 +320,9 @@ void SettingsDialog::LoadSettings()
     ui->chkShowExitConfirmation->setChecked(settings.guiShowExitConfirmation);
     ui->chkDisableAutoComplete->setChecked(settings.guiDisableAutoComplete);
     ui->chkAutoFollowInStack->setChecked(settings.guiAutoFollowInStack);
+    ui->chkHideSeasonalIcons->setChecked(settings.guiHideSeasonalIcons);
+    ui->chkHideSeasonalIcons->setVisible(isSeasonal());
+    ui->chkQtHighDpiScaling->setChecked(settings.guiEnableQtHighDpiScaling);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -383,14 +389,11 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Misc", "QueryProcessCookie", &settings.miscQueryProcessCookie);
     GetSettingBool("Misc", "QueryWorkingSet", &settings.miscQueryWorkingSet);
     GetSettingBool("Misc", "TransparentExceptionStepping", &settings.miscTransparentExceptionStepping);
-    GetSettingBool("Misc", "NoSeasons", &settings.guiHideSeasonalIcons);
     ui->chkUtf16LogRedirect->setChecked(settings.miscUtf16LogRedirect);
     ui->chkUseLocalHelpFile->setChecked(settings.miscUseLocalHelpFile);
     ui->chkQueryProcessCookie->setChecked(settings.miscQueryProcessCookie);
     ui->chkQueryWorkingSet->setChecked(settings.miscQueryWorkingSet);
     ui->chkTransparentExceptionStepping->setChecked(settings.miscTransparentExceptionStepping);
-    ui->chkHideSeasonalIcons->setChecked(settings.guiHideSeasonalIcons);
-    ui->chkHideSeasonalIcons->setVisible(isSeasonal());
 }
 
 void SettingsDialog::SaveSettings()
@@ -478,6 +481,8 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Gui", "ShowExitConfirmation", settings.guiShowExitConfirmation);
     BridgeSettingSetUint("Gui", "DisableAutoComplete", settings.guiDisableAutoComplete);
     BridgeSettingSetUint("Gui", "AutoFollowInStack", settings.guiAutoFollowInStack);
+    BridgeSettingSetUint("Gui", "NoSeasons", settings.guiHideSeasonalIcons);
+    BridgeSettingSetUint("Gui", "EnableQtHighDpiScaling", settings.guiEnableQtHighDpiScaling);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -508,7 +513,6 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Misc", "QueryProcessCookie", settings.miscQueryProcessCookie);
     BridgeSettingSetUint("Misc", "QueryWorkingSet", settings.miscQueryWorkingSet);
     BridgeSettingSetUint("Misc", "TransparentExceptionStepping", settings.miscTransparentExceptionStepping);
-    BridgeSettingSetUint("Misc", "NoSeasons", settings.guiHideSeasonalIcons);
 
     BridgeSettingFlush();
     Config()->load();
@@ -1188,3 +1192,9 @@ void SettingsDialog::on_chkTransparentExceptionStepping_toggled(bool checked)
 {
     settings.miscTransparentExceptionStepping = checked;
 }
+
+void SettingsDialog::on_chkQtHighDpiScaling_toggled(bool checked)
+{
+    settings.guiEnableQtHighDpiScaling = checked;
+}
+

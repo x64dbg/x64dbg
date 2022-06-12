@@ -293,7 +293,7 @@ static bool allowSeasons()
 {
     srand(GetTickCount());
     duint setting = 0;
-    return !BridgeSettingGetUint("Misc", "NoSeasons", &setting) || !setting;
+    return !BridgeSettingGetUint("Gui", "NoSeasons", &setting) || !setting;
 }
 
 static bool isChristmas()

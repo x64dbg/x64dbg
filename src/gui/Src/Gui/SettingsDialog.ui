@@ -899,6 +899,16 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkQtHighDpiScaling">
+         <property name="toolTip">
+          <string>Disabling this option will tell Windows that x64dbg is DPI unaware. This might result in blurry results in some configurations.</string>
+         </property>
+         <property name="text">
+          <string>Qt High DPI Scaling</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacerGUI">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
