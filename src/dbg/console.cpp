@@ -112,14 +112,10 @@ void dprintf_args_untranslated(_In_z_ _Printf_format_string_ const char* Format,
     GuiAddLogMessageAsync(buffer);
 }
 /**
-\brief Print a html formatted string to the console.
-\param format The printf format to use (see documentation of printf for more information).
-\param Args The argument buffer passed to the string parser.
+\brief Print a html string to the console.
+\param Text The message to use.
 */
-void dprintf_args_untranslated_html(_In_z_ _Printf_format_string_ const char* Format, va_list Args)
+void dputs_untranslated_html(_In_z_ _Printf_format_string_ const char* Text)
 {
-    char buffer[16384];
-    vsnprintf_s(buffer, _TRUNCATE, Format, Args);
-
-    GuiAddLogMessageHtmlAsync(buffer);
+    GuiAddLogMessageHtmlAsync(Text);
 }
