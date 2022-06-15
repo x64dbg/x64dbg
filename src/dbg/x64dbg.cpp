@@ -271,8 +271,6 @@ static void registercommands()
     dbgcmdnew("find", cbInstrFind, true); //find a pattern
     dbgcmdnew("findall", cbInstrFindAll, true); //find all patterns
     dbgcmdnew("findallmem,findmemall", cbInstrFindAllMem, true); //memory map pattern find
-    dbgcmdnew("findallusermem,findmemalluser", cbInstrFindAllUserMem, true); //memory map pattern find(All User memory)
-    dbgcmdnew("findallsysmem,findmemallsystem", cbInstrFindAllSystemMem, true); //memory map pattern find(All System memory)
     dbgcmdnew("findasm,asmfind", cbInstrFindAsm, true); //find instruction
     dbgcmdnew("reffind,findref,ref", cbInstrRefFind, true); //find references to a value
     dbgcmdnew("reffindrange,findrefrange,refrange", cbInstrRefFindRange, true);

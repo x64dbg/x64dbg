@@ -583,8 +583,7 @@ void MemoryMapView::findPatternSlot()
     BridgeSettingSetUint("Gui", "MemoryMapEntireBlock", entireBlockEnabled);
     if(entireBlockEnabled)
         addr = 0;
-    QString addrText = ToPtrString(addr);
-    DbgCmdExec(QString("findmemall " + addrText + ", \"" + hexEdit.mHexEdit->pattern() + "\", &data&"));
+    DbgCmdExec(QString("findallmem %1, %2, &data&").arg(ToPtrString(addr)).arg(hexEdit.mHexEdit->pattern()));
     emit showReferences();
 }
 

@@ -5,8 +5,6 @@
 bool cbInstrFind(int argc, char* argv[]);
 bool cbInstrFindAll(int argc, char* argv[]);
 bool cbInstrFindAllMem(int argc, char* argv[]);
-bool cbInstrFindAllUserMem(int argc, char* argv[]);
-bool cbInstrFindAllSystemMem(int argc, char* argv[]);
 bool cbInstrFindAsm(int argc, char* argv[]);
 bool cbInstrRefFind(int argc, char* argv[]);
 bool cbInstrRefFindRange(int argc, char* argv[]);

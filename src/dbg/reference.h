@@ -17,8 +17,8 @@ typedef enum
     CURRENT_REGION,
     CURRENT_MODULE,
     ALL_MODULES,
-    User_MODULES,
-    System_MODULES
+    USER_MODULES,
+    SYSTEM_MODULES
 } REFFINDTYPE;
 
 // Reference callback typedef

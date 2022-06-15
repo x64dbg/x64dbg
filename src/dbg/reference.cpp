@@ -117,7 +117,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             GuiReferenceSetProgress(percent);
         }, disasmText);
     }
-    else if(type == User_MODULES)  // Search in All User Modules
+    else if(type == USER_MODULES)  // Search in All User Modules
     {
         bool initCallBack = true;
 
@@ -179,7 +179,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             initCallBack = false;
         }
     }
-    else if(type == System_MODULES)  // Search in All System Modules
+    else if(type == SYSTEM_MODULES)  // Search in All System Modules
     {
         bool initCallBack = true;
 

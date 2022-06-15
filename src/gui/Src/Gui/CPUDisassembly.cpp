@@ -1215,28 +1215,41 @@ void CPUDisassembly::findPatternSlot()
         addr = DbgMemFindBaseAddr(addr, 0);
 
     QString command;
-    if(sender() == mFindPatternModule)
+    if(sender() == mFindPatternRegion)
+    {
+        command = QString("findall %1, %2").arg(ToHexString(addr), hexEdit.mHexEdit->pattern());
+    }
+    else if(sender() == mFindPatternModule)
     {
         auto base = DbgFunctions()->ModBaseFromAddr(addr);
         if(base)
             command = QString("findallmem %1, %2, %3").arg(ToHexString(base), hexEdit.mHexEdit->pattern(), ToHexString(DbgFunctions()->ModSizeFromAddr(base)));
-    }
-    if(sender() == mFindPatternFunction)
-    {
-        duint start, end;
-        if(DbgFunctionGet(addr, &start, &end))
-            command = QString("findall %1, %2, %3").arg(ToPtrString(start)).arg(hexEdit.mHexEdit->pattern()).arg(ToPtrString(end - start));
         else
             return;
     }
-    if(sender() == mFindPatternAll)
-        command = QString("findallmem  %1, %2, %3").arg(ToPtrString(addr)).arg(hexEdit.mHexEdit->pattern()).arg("&data&");
-    if(sender() == mFindPatternAllUser)
-        command = QString("findmemalluser  %1, %2, %3").arg(ToPtrString(addr)).arg(hexEdit.mHexEdit->pattern()).arg("&data&");
-    if(sender() == mFindPatternAllSystem)
-        command = QString("findmemallsystem  %1, %2, %3").arg(ToPtrString(addr)).arg(hexEdit.mHexEdit->pattern()).arg("&data&");
+    else if(sender() == mFindPatternFunction)
+    {
+        duint start, end;
+        if(DbgFunctionGet(addr, &start, &end))
+            command = QString("findall %1, %2, %3").arg(ToPtrString(start), hexEdit.mHexEdit->pattern(), ToPtrString(end - start));
+        else
+            return;
+    }
+    else if(sender() == mFindPatternAll)
+    {
+        command = QString("findallmem 0, %1, &data&, module").arg(hexEdit.mHexEdit->pattern());
+    }
+    else if(sender() == mFindPatternAllUser)
+    {
+        command = QString("findallmem 0, %1, &data&, user").arg(hexEdit.mHexEdit->pattern());
+    }
+    else if(sender() == mFindPatternAllSystem)
+    {
+        command = QString("findallmem 0, %1, &data&, system").arg(hexEdit.mHexEdit->pattern());
+    }
+
     if(!command.length())
-        command = QString("findall %1, %2").arg(ToHexString(addr), hexEdit.mHexEdit->pattern());
+        throw std::runtime_error("Implementation error in findPatternSlot()");
 
     DbgCmdExec(command);
     emit displayReferencesWidget();
@@ -1260,12 +1273,14 @@ void CPUDisassembly::findGUIDSlot()
 
     auto addrText = ToHexString(rvaToVa(getInitialSelection()));
     if(refFindType == -1)
-        DbgCmdExec(QString("findguid %1, 0, %2").arg(addrText).arg(refFindType));
+    {
+        DbgCmdExec(QString("findguid %1, 0, %2").arg(addrText, refFindType));
+    }
     else
     {
         duint start, end;
         if(DbgFunctionGet(rvaToVa(getInitialSelection()), &start, &end))
-            DbgCmdExec(QString("findguid %1, %2, 0").arg(ToPtrString(start)).arg(ToPtrString(end - start)));
+            DbgCmdExec(QString("findguid %1, %2, 0").arg(ToPtrString(start), ToPtrString(end - start)));
     }
     emit displayReferencesWidget();
 }
