@@ -116,6 +116,13 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     }
     break;
 
+    case GUI_ADD_MSG_TO_LOG_HTML:
+    {
+        auto msg = (const char*)param1;
+        emit addMsgToLogHtml(QByteArray(msg, int(strlen(msg)) + 1)); //Speed up performance: don't convert to UCS-2 QString
+    }
+    break;
+
     case GUI_CLEAR_LOG:
         emit clearLog();
         break;

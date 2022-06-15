@@ -18,7 +18,8 @@ public:
 public slots:
     void refreshShortcutsSlot();
     void updateStyle();
-    void addMsgToLogSlot(QByteArray msg);
+    void addMsgToLogSlot(QByteArray msg); /* Non-HTML Log Function*/
+    void addMsgToLogSlotHtml(QByteArray msg); /* HTML accepting Log Function */
     void redirectLogSlot();
     void setLoggingEnabled(bool enabled);
     void autoScrollSlot();
@@ -39,6 +40,8 @@ public slots:
 
 private:
     static const int MAX_LOG_BUFFER_SIZE = 1024 * 1024;
+
+    void addMsgToLogSlotRaw(QByteArray msg, bool htmlEscape); /* Non-HTML Log Function*/
 
     bool loggingEnabled;
     bool autoScroll;

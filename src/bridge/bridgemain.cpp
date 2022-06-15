@@ -1130,6 +1130,11 @@ BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg)
     _gui_sendmessage(GUI_ADD_MSG_TO_LOG, (void*)msg, 0);
 }
 
+BRIDGE_IMPEXP void GuiAddLogMessageHtml(const char* msg)
+{
+    _gui_sendmessage(GUI_ADD_MSG_TO_LOG_HTML, (void*)msg, 0);
+}
+
 BRIDGE_IMPEXP void GuiLogClear()
 {
     _gui_sendmessage(GUI_CLEAR_LOG, 0, 0);

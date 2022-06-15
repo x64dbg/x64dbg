@@ -36,6 +36,7 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateStyle()));
     connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QByteArray)), this, SLOT(addMsgToLogSlot(QByteArray)));
+    connect(Bridge::getBridge(), SIGNAL(addMsgToLogHtml(QByteArray)), this, SLOT(addMsgToLogSlotHtml(QByteArray)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
     connect(Bridge::getBridge(), SIGNAL(flushLog()), this, SLOT(flushLogSlot()));
@@ -191,17 +192,36 @@ static void linkify(QString & msg)
 }
 
 /**
- * @brief LogView::addMsgToLogSlot Adds a message to the log view. This function is a slot for Bridge::addMsgToLog.
- * @param msg The log message
- */
+* @brief LogView::addMsgToLogSlotHtml Adds a HTML message to the log view. This function is a slot for Bridge::addMsgToLogHtml.
+* @param msg The log message (Which is assumed to contain HTML)
+*/
+void LogView::addMsgToLogSlotHtml(QByteArray msg)
+{
+    LogView::addMsgToLogSlotRaw(msg, false);
+}
+
+/**
+* @brief LogView::addMsgToLogSlot Adds a message to the log view. This function is a slot for Bridge::addMsgToLog.
+* @param msg The log message
+*/
 void LogView::addMsgToLogSlot(QByteArray msg)
 {
+    LogView::addMsgToLogSlotRaw(msg, true);
+}
+
+/**
+ * @brief LogView::addMsgToLogSlotRaw Adds a message to the log view.
+ * @param msg The log message
+ * @param encodeHTML HTML-encode the log message or not
+ */
+void LogView::addMsgToLogSlotRaw(QByteArray msg, bool encodeHTML)
+{
     /*
-     * This supports the 'UTF-8 Everywhere' manifesto.
-     * - UTF-8 (http://utf8everywhere.org);
-     * - No BOM (http://utf8everywhere.org/#faq.boms);
-     * - No carriage return (http://utf8everywhere.org/#faq.crlf).
-     */
+    * This supports the 'UTF-8 Everywhere' manifesto.
+    * - UTF-8 (http://utf8everywhere.org);
+    * - No BOM (http://utf8everywhere.org/#faq.boms);
+    * - No carriage return (http://utf8everywhere.org/#faq.crlf).
+    */
 
     // fix Unix-style line endings.
     // redirect the log
@@ -226,7 +246,7 @@ void LogView::addMsgToLogSlot(QByteArray msg)
             std::string temp;
             size_t offset = 0;
             size_t buffersize = 0;
-            if(strstr(msg.constData(), "\r\n") != nullptr) // Don't replace "\r\n" to "\n" if there is none
+            if(strstr(msg.constData(), "\r\n") != nullptr)  // Don't replace "\r\n" to "\n" if there is none
             {
                 temp = msg.constData();
                 while(true)
@@ -255,12 +275,20 @@ void LogView::addMsgToLogSlot(QByteArray msg)
                 msgUtf16 = QString::fromUtf8(data, int(buffersize));
         }
     }
-    else
-        msgUtf16 = QString::fromUtf8(msg);
+    else msgUtf16 = QString::fromUtf8(msg);
+
     if(!loggingEnabled)
         return;
-    msgUtf16 = msgUtf16.toHtmlEscaped();
-    msgUtf16.replace(QChar(' '), QString("&nbsp;"));
+
+    if(encodeHTML)
+    {
+        msgUtf16 = msgUtf16.toHtmlEscaped();
+        /* Below line will break HTML tags with spaces separating the HTML tag name and attributes.
+            ie <a href="aaaa"> -> <a&nbsp;href="aaaa">
+            so we don't escape spaces where we deliberately passed in HTML.
+        */
+        msgUtf16.replace(QChar(' '), QString("&nbsp;"));
+    }
     if(logRedirection)
     {
         if(utf16Redirect)
@@ -273,7 +301,14 @@ void LogView::addMsgToLogSlot(QByteArray msg)
         msgUtf16.replace(QChar('\n'), QString("<br/>\n"));
         msgUtf16.replace(QString("\r\n"), QString("<br/>\n"));
     }
-    linkify(msgUtf16);
+    if(encodeHTML)
+    {
+        /* If we passed in non-html log string, we look for address links.
+        * otherwise, if our HTML contains any address-looking word, ie in our CSS, it would be mangled
+        * linking to addresses when passing in HTML log message is an exercise left to the plugin developer */
+        linkify(msgUtf16);
+    }
+
     if(redirectError)
         msgUtf16.append(tr("fwrite() failed (GetLastError()= %1 ). Log redirection stopped.\n").arg(GetLastError()));
 
