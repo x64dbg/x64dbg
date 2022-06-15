@@ -574,6 +574,8 @@ void CPUDisassembly::setupRightClickContextMenu()
         return DbgFunctionGet(rvaToVa(getInitialSelection()), &start, &end);
     });
     MenuBuilder* mSearchAllMenu = new MenuBuilder(this);
+    MenuBuilder* mSearchAllUserMenu = new MenuBuilder(this);
+    MenuBuilder* mSearchAllSystemMenu = new MenuBuilder(this);
 
     // Search in Current Region menu
     mFindCommandRegion = makeShortcutAction(DIcon("search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()), "ActionFind");
@@ -619,6 +621,34 @@ void CPUDisassembly::setupRightClickContextMenu()
     mSearchFunctionMenu->addAction(mFindPatternFunction);
     mSearchFunctionMenu->addAction(mFindGUIDFunction);
 
+    // Search in All User Modules menu
+    mFindCommandAllUser = makeAction(DIcon("search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()));
+    mFindConstantAllUser = makeAction(DIcon("search_for_constant.png"), tr("&Constant"), SLOT(findConstantSlot()));
+    mFindStringsAllUser = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
+    mFindCallsAllUser = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
+    mFindPatternAllUser = makeAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()));
+    mFindGUIDAllUser = makeAction(DIcon("guid.png"), tr("&GUID"), SLOT(findGUIDSlot()));
+    mSearchAllUserMenu->addAction(mFindCommandAllUser);
+    mSearchAllUserMenu->addAction(mFindConstantAllUser);
+    mSearchAllUserMenu->addAction(mFindStringsAllUser);
+    mSearchAllUserMenu->addAction(mFindCallsAllUser);
+    mSearchAllUserMenu->addAction(mFindPatternAllUser);
+    mSearchAllUserMenu->addAction(mFindGUIDAllUser);
+
+    // Search in All System Modules menu
+    mFindCommandAllSystem = makeAction(DIcon("search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()));
+    mFindConstantAllSystem = makeAction(DIcon("search_for_constant.png"), tr("&Constant"), SLOT(findConstantSlot()));
+    mFindStringsAllSystem = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
+    mFindCallsAllSystem = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
+    mFindPatternAllSystem = makeAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()));
+    mFindGUIDAllSystem = makeAction(DIcon("guid.png"), tr("&GUID"), SLOT(findGUIDSlot()));
+    mSearchAllSystemMenu->addAction(mFindCommandAllSystem);
+    mSearchAllSystemMenu->addAction(mFindConstantAllSystem);
+    mSearchAllSystemMenu->addAction(mFindStringsAllSystem);
+    mSearchAllSystemMenu->addAction(mFindCallsAllSystem);
+    mSearchAllSystemMenu->addAction(mFindPatternAllSystem);
+    mSearchAllSystemMenu->addAction(mFindGUIDAllSystem);
+
     // Search in All Modules menu
     mFindCommandAll = makeAction(DIcon("search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()));
     mFindConstantAll = makeAction(DIcon("search_for_constant.png"), tr("&Constant"), SLOT(findConstantSlot()));
@@ -637,6 +667,8 @@ void CPUDisassembly::setupRightClickContextMenu()
     searchMenu->addMenu(makeMenu(DIcon("search_current_module.png"), tr("Current Module")), mSearchModuleMenu);
     QMenu* searchFunctionMenu = makeMenu(tr("Current Function"));
     searchMenu->addMenu(searchFunctionMenu, mSearchFunctionMenu);
+    searchMenu->addMenu(makeMenu(DIcon("search_all_modules.png"), tr("All User Modules")), mSearchAllUserMenu);
+    searchMenu->addMenu(makeMenu(DIcon("search_all_modules.png"), tr("All System Modules")), mSearchAllSystemMenu);
     searchMenu->addMenu(makeMenu(DIcon("search_all_modules.png"), tr("All Modules")), mSearchAllMenu);
     mMenuBuilder->addMenu(makeMenu(DIcon("search-for.png"), tr("&Search for")), searchMenu);
 
@@ -1088,6 +1120,10 @@ void CPUDisassembly::findConstantSlot()
         refFindType = 1;
     else if(sender() == mFindConstantAll)
         refFindType = 2;
+    else if(sender() == mFindConstantAllUser)
+        refFindType = 3;
+    else if(sender() == mFindConstantAllSystem)
+        refFindType = 4;
     else if(sender() == mFindConstantFunction)
         refFindType = -1;
 
@@ -1118,6 +1154,10 @@ void CPUDisassembly::findStringsSlot()
         refFindType = 1;
     else if(sender() == mFindStringsAll)
         refFindType = 2;
+    else if(sender() == mFindStringsAllUser)
+        refFindType = 3;
+    else if(sender() == mFindStringsAllSystem)
+        refFindType = 4;
     else if(sender() == mFindStringsFunction)
     {
         duint start, end;
@@ -1141,6 +1181,10 @@ void CPUDisassembly::findCallsSlot()
         refFindType = 1;
     else if(sender() == mFindCallsAll)
         refFindType = 2;
+    else if(sender() == mFindCallsAllUser)
+        refFindType = 3;
+    else if(sender() == mFindCallsAllSystem)
+        refFindType = 4;
     else if(sender() == mFindCallsFunction)
         refFindType = -1;
 
@@ -1187,6 +1231,10 @@ void CPUDisassembly::findPatternSlot()
     }
     if(sender() == mFindPatternAll)
         command = QString("findallmem  %1, %2, %3").arg(ToPtrString(addr)).arg(hexEdit.mHexEdit->pattern()).arg("&data&");
+    if(sender() == mFindPatternAllUser)
+        command = QString("findmemalluser  %1, %2, %3").arg(ToPtrString(addr)).arg(hexEdit.mHexEdit->pattern()).arg("&data&");
+    if(sender() == mFindPatternAllSystem)
+        command = QString("findmemallsystem  %1, %2, %3").arg(ToPtrString(addr)).arg(hexEdit.mHexEdit->pattern()).arg("&data&");
     if(!command.length())
         command = QString("findall %1, %2").arg(ToHexString(addr), hexEdit.mHexEdit->pattern());
 
@@ -1203,6 +1251,10 @@ void CPUDisassembly::findGUIDSlot()
         refFindType = 1;
     else if(sender() == mFindGUIDAll)
         refFindType = 2;
+    else if(sender() == mFindGUIDAllUser)
+        refFindType = 3;
+    else if(sender() == mFindGUIDAllSystem)
+        refFindType = 4;
     else if(sender() == mFindGUIDFunction)
         refFindType = -1;
 
@@ -1682,10 +1734,14 @@ void CPUDisassembly::findCommandSlot()
         refFindType = 0;
     else if(sender() == mFindCommandModule)
         refFindType = 1;
-    else if(sender() == mFindCommandFunction)
-        refFindType = -1;
     else if(sender() == mFindCommandAll)
         refFindType = 2;
+    else if(sender() == mFindCommandAllUser)
+        refFindType = 3;
+    else if(sender() == mFindCommandAllSystem)
+        refFindType = 4;
+    else if(sender() == mFindCommandFunction)
+        refFindType = -1;
 
     LineEditDialog mLineEdit(this);
     mLineEdit.enableCheckBox(refFindType == 0);

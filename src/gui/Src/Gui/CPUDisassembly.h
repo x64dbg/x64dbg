@@ -144,12 +144,27 @@ private:
     QAction* mFindPatternFunction;
     QAction* mFindGUIDFunction;
 
+    QAction* mFindCommandAllUser;
+    QAction* mFindConstantAllUser;
+    QAction* mFindStringsAllUser;
+    QAction* mFindCallsAllUser;
+    QAction* mFindPatternAllUser;
+    QAction* mFindGUIDAllUser;
+
+    QAction* mFindCommandAllSystem;
+    QAction* mFindConstantAllSystem;
+    QAction* mFindStringsAllSystem;
+    QAction* mFindCallsAllSystem;
+    QAction* mFindPatternAllSystem;
+    QAction* mFindGUIDAllSystem;
+
     QAction* mFindCommandAll;
     QAction* mFindConstantAll;
     QAction* mFindStringsAll;
     QAction* mFindCallsAll;
     QAction* mFindPatternAll;
     QAction* mFindGUIDAll;
+
 
     // Goto dialog specific
     GotoDialog* mGoto = nullptr;
