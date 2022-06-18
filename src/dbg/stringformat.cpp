@@ -5,10 +5,12 @@
 #include "disasm_fast.h"
 #include "disasm_helper.h"
 #include "formatfunctions.h"
+#include "expressionparser.h"
 
 enum class StringValueType
 {
     Unknown,
+    Default, // hex or string
     SignedDecimal,
     UnsignedDecimal,
     Hex,
@@ -109,83 +111,80 @@ template<class T> String printFloatValue(FormatValueType value)
 
 static String printValue(FormatValueType value, StringValueType type)
 {
-    duint valuint = 0;
     char string[MAX_STRING_SIZE] = "";
-    String result = "???";
     if(type == StringValueType::FloatingPointDouble)
     {
-        result = printFloatValue<double>(value);
+        return printFloatValue<double>(value);
     }
     else if(type == StringValueType::FloatingPointSingle)
     {
-        result = printFloatValue<float>(value);
+        return printFloatValue<float>(value);
     }
-    else if(valfromstring(value, &valuint))
+    else
     {
+        ExpressionParser parser(value);
+        ExpressionParser::EvalValue evalue(0);
+        if(!parser.Calculate(evalue, valuesignedcalc(), false))
+            return "???";
+
+        if(type == StringValueType::Default && evalue.isString)
+            return evalue.data;
+
+        duint valuint = 0;
+        if(evalue.isString || !evalue.DoEvaluate(valuint))
+            return "???";
+
         switch(type)
         {
-        case StringValueType::Unknown:
-            break;
 #ifdef _WIN64
         case StringValueType::SignedDecimal:
-            result = StringUtils::sprintf("%lld", valuint);
-            break;
+            return StringUtils::sprintf("%lld", valuint);
         case StringValueType::UnsignedDecimal:
-            result = StringUtils::sprintf("%llu", valuint);
-            break;
+            return StringUtils::sprintf("%llu", valuint);
+        case StringValueType::Default:
         case StringValueType::Hex:
-            result = StringUtils::sprintf("%llX", valuint);
-            break;
+            return StringUtils::sprintf("%llX", valuint);
 #else //x86
         case StringValueType::SignedDecimal:
-            result = StringUtils::sprintf("%d", valuint);
-            break;
+            return StringUtils::sprintf("%d", valuint);
         case StringValueType::UnsignedDecimal:
-            result = StringUtils::sprintf("%u", valuint);
-            break;
+            return StringUtils::sprintf("%u", valuint);
+        case StringValueType::Default:
         case StringValueType::Hex:
-            result = StringUtils::sprintf("%X", valuint);
-            break;
+            return StringUtils::sprintf("%X", valuint);
 #endif //_WIN64
         case StringValueType::Pointer:
-            result = StringUtils::sprintf("%p", valuint);
-            break;
+            return StringUtils::sprintf("%p", valuint);
         case StringValueType::String:
             if(disasmgetstringatwrapper(valuint, string, false))
-                result = string;
+                return string;
             break;
         case StringValueType::AddrInfo:
         {
             auto symbolic = SymGetSymbolicName(valuint);
             if(disasmgetstringatwrapper(valuint, string, false))
-                result = string;
+                return string;
             else if(symbolic.length())
-                result = symbolic;
+                return symbolic;
             else
-                result.clear();
+                return "";
         }
         break;
         case StringValueType::Module:
-        {
-            char mod[MAX_MODULE_SIZE] = "";
-            ModNameFromAddr(valuint, mod, true);
-            result = mod;
-        }
-        break;
+            ModNameFromAddr(valuint, string, true);
+            return string;
         case StringValueType::Instruction:
         {
             BASIC_INSTRUCTION_INFO info;
-            if(!disasmfast(valuint, &info, true))
-                result = "???";
-            else
-                result = info.instruction;
+            if(disasmfast(valuint, &info, true))
+                return info.instruction;
         }
         break;
         default:
             break;
         }
     }
-    return result;
+    return "???";
 }
 
 static bool typeFromCh(char ch, StringValueType & type)
@@ -231,7 +230,7 @@ static bool typeFromCh(char ch, StringValueType & type)
 static const char* getArgExpressionType(const String & formatString, StringValueType & type, String & complexArgs)
 {
     size_t toSkip = 0;
-    type = StringValueType::Hex;
+    type = StringValueType::Default;
     complexArgs.clear();
     if(formatString.size() > 2 && !isdigit(formatString[0]) && formatString[1] == ':') //simple type
     {

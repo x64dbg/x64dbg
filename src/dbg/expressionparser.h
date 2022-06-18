@@ -7,8 +7,39 @@
 class ExpressionParser
 {
 public:
+    struct EvalValue
+    {
+        bool evaluated = false;
+        bool isString = false;
+        duint value = 0;
+        String data;
+
+        explicit EvalValue(duint value)
+            : evaluated(true), value(value) {}
+
+        explicit EvalValue(const String & data, bool isString)
+            : evaluated(false), data(data), isString(isString) {}
+
+        bool DoEvaluate(duint & result, bool silent = true, bool baseonly = false, int* value_size = nullptr, bool* isvar = nullptr, bool* hexonly = nullptr) const
+        {
+            if(evaluated)
+            {
+                if(value_size)
+                    *value_size = sizeof(duint);
+                if(isvar)
+                    *isvar = false;
+                if(hexonly)
+                    *hexonly = false;
+                result = value;
+                return true;
+            }
+            return valfromstring_noexpr(data.c_str(), &result, silent, baseonly, value_size, isvar, hexonly);
+        }
+    };
+
     explicit ExpressionParser(const String & expression);
     bool Calculate(duint & value, bool signedcalc, bool allowassign, bool silent = true, bool baseonly = false, int* value_size = nullptr, bool* isvar = nullptr, bool* hexonly = nullptr) const;
+    bool Calculate(EvalValue & value, bool signedcalc, bool allowassign, bool silent = true, bool baseonly = false, int* value_size = nullptr, bool* isvar = nullptr, bool* hexonly = nullptr) const;
 
     const String & GetExpression() const
     {
@@ -109,36 +140,6 @@ public:
     private:
         String mData;
         Type mType;
-    };
-
-    struct EvalValue
-    {
-        bool evaluated = false;
-        bool isString = false;
-        duint value = 0;
-        String data;
-
-        explicit EvalValue(duint value)
-            : evaluated(true), value(value) {}
-
-        explicit EvalValue(const String & data, bool isString)
-            : evaluated(false), data(data), isString(isString) {}
-
-        bool DoEvaluate(duint & result, bool silent = true, bool baseonly = false, int* value_size = nullptr, bool* isvar = nullptr, bool* hexonly = nullptr) const
-        {
-            if(evaluated)
-            {
-                if(value_size)
-                    *value_size = sizeof(duint);
-                if(isvar)
-                    *isvar = false;
-                if(hexonly)
-                    *hexonly = false;
-                result = value;
-                return true;
-            }
-            return valfromstring_noexpr(data.c_str(), &result, silent, baseonly, value_size, isvar, hexonly);
-        }
     };
 
 private:
