@@ -88,6 +88,7 @@ bool bNoWow64SingleStepWorkaround = false;
 bool bTraceBrowserNeedsUpdate = false;
 bool bForceLoadSymbols = false;
 bool bNewStringAlgorithm = false;
+bool bPidTidInHex = false;
 duint DbgEvents = 0;
 duint maxSkipExceptionCount = 0;
 HANDLE mProcHandle;
@@ -2989,6 +2990,14 @@ void dbgcreatedebugthread(INIT_STRUCT* init)
     }, init, 0, nullptr);
     WaitForSingleObject(event, INFINITE);
     CloseHandle(event);
+}
+
+String formatpidtid(DWORD pidtid)
+{
+    if(bPidTidInHex)
+        return StringUtils::sprintf("%X", pidtid);
+    else
+        return StringUtils::sprintf("%u", pidtid);
 }
 
 bool dbgrestartadmin()

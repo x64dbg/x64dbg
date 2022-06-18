@@ -45,7 +45,7 @@ void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
     // Modify global thread list
     EXCLUSIVE_ACQUIRE(LockThreads);
-    threadList.insert(std::make_pair(curInfo.ThreadId, curInfo));
+    threadList.emplace(curInfo.ThreadId, curInfo);
     EXCLUSIVE_RELEASE();
 
     // Notify GUI

@@ -107,6 +107,7 @@ bool dbgsetdllbreakpoint(const char* mod, DWORD type, bool singleshoot);
 bool dbgdeletedllbreakpoint(const char* mod, DWORD type);
 void dbgsetdebugflags(DWORD flags);
 void dbgcreatedebugthread(INIT_STRUCT* init);
+String formatpidtid(DWORD pidtid);
 
 void cbStep();
 void cbRtrStep();
@@ -150,6 +151,7 @@ extern bool bVerboseExceptionLogging;
 extern bool bNoWow64SingleStepWorkaround;
 extern bool bForceLoadSymbols;
 extern bool bNewStringAlgorithm;
+extern bool bPidTidInHex;
 extern duint maxSkipExceptionCount;
 extern HANDLE mProcHandle;
 extern HANDLE mForegroundHandle;

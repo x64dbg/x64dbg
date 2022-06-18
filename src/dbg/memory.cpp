@@ -212,24 +212,39 @@ static void ProcessSystemPages(std::vector<MEMPAGE> & pageVector)
         const duint pageBase = (duint)page.mbi.BaseAddress;
         const duint pageSize = (duint)page.mbi.RegionSize;
 
-        // Check for windows specific data
-        if(pageBase == 0x7FFE0000)
+        auto inRange = [pageBase, pageSize](duint addr)
         {
-            strcpy_s(page.info, "KUSER_SHARED_DATA");
+            return addr >= pageBase && addr < pageBase + pageSize;
+        };
+
+        auto appendInfo = [&page](const char* str)
+        {
+            if(*page.info)
+            {
+                strncat_s(page.info, ", ", _TRUNCATE);
+            }
+            strncat_s(page.info, str, _TRUNCATE);
+        };
+
+        // Check for windows specific data
+        if(inRange(0x7FFE0000))
+        {
+            appendInfo("KUSER_SHARED_DATA");
             continue;
         }
 
         // Mark PEB
-        if(pageBase == pebBase)
+        if(inRange(pebBase))
         {
-            strcpy_s(page.info, "PEB");
-            continue;
+            appendInfo("PEB");
         }
 
         // Check in threads
+        char temp[256] = "";
         for(int i = 0; i < threadList.count; i++)
         {
             DWORD threadId = threadList.list[i].BasicInfo.ThreadId;
+            auto tidStr = formatpidtid(threadId);
 
             // Mark TEB
             //
@@ -238,27 +253,27 @@ static void ProcessSystemPages(std::vector<MEMPAGE> & pageVector)
             duint tebBase = threadList.list[i].BasicInfo.ThreadLocalBase;
             duint tebBaseWow64 = tebBase - (2 * PAGE_SIZE);
 
-            if(pageBase == tebBase)
+            if(inRange(tebBase))
             {
-                sprintf_s(page.info, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Thread %X TEB")), threadId);
-                break;
+                sprintf_s(temp, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "TEB (%s)")), tidStr.c_str());
+                appendInfo(temp);
             }
-            else if(pageBase == tebBaseWow64)
+
+            if(inRange(tebBaseWow64))
             {
 #ifndef _WIN64
-                if(pageSize == (3 * PAGE_SIZE))
-                {
-                    sprintf_s(page.info, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Thread %X WoW64 TEB")), threadId);
-                    break;
-                }
+                sprintf_s(temp, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "WoW64 TEB (%s)")), tidStr.c_str());
+                appendInfo(temp);
 #endif //_WIN64
             }
 
             // The stack will be a specific range only, not always the base address
             duint stackAddr = stackAddrs[i];
-
-            if(stackAddr >= pageBase && stackAddr < (pageBase + pageSize))
-                sprintf_s(page.info, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Thread %X Stack")), threadId);
+            if(inRange(stackAddr))
+            {
+                sprintf_s(temp, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Stack (%s)")), tidStr.c_str());
+                appendInfo(temp);
+            }
         }
     }
 

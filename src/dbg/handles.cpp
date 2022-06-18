@@ -107,7 +107,6 @@ bool HandlesGetName(HANDLE remoteHandle, String & name, String & typeName)
         if(strcmp(typeName.c_str(), "Process") == 0)
         {
             DWORD PID = GetProcessId(hLocalHandle); //Windows XP SP1
-            String PIDString;
             if(PID == 0) //The first time could fail because the process didn't specify query permissions.
             {
                 HANDLE hLocalQueryHandle;
@@ -120,22 +119,17 @@ bool HandlesGetName(HANDLE remoteHandle, String & name, String & typeName)
 
             if(PID > 0)
             {
-                duint value;
-                if(BridgeSettingGetUint("Gui", "PidTidInHex", &value) && value)
-                    PIDString = StringUtils::sprintf("%X", PID);
-                else
-                    PIDString = StringUtils::sprintf("%u", PID);
                 if(PID == fdProcessInfo->dwProcessId)
                 {
-                    name = StringUtils::sprintf("PID: %s (%s)", PIDString.c_str(), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debuggee")));
+                    name = StringUtils::sprintf("PID: %s (%s)", formatpidtid(PID).c_str(), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debuggee")));
                 }
                 else
                 {
                     std::string processName = getProcessName(PID);
                     if(processName.size() > 0)
-                        name = StringUtils::sprintf("PID: %s (%s)", PIDString.c_str(), processName.c_str());
+                        name = StringUtils::sprintf("PID: %s (%s)", formatpidtid(PID).c_str(), processName.c_str());
                     else
-                        name = StringUtils::sprintf("PID: %s", PIDString.c_str());
+                        name = StringUtils::sprintf("PID: %s", formatpidtid(PID).c_str());
                 }
             }
         }
@@ -177,34 +171,22 @@ bool HandlesGetName(HANDLE remoteHandle, String & name, String & typeName)
 
             if(TID > 0 && PID > 0)
             {
-                String TIDString, PIDString;
-                duint value;
-                if(BridgeSettingGetUint("Gui", "PidTidInHex", &value) && value)
-                {
-                    TIDString = StringUtils::sprintf("%X", TID);
-                    PIDString = StringUtils::sprintf("%X", PID);
-                }
-                else
-                {
-                    TIDString = StringUtils::sprintf("%u", TID);
-                    PIDString = StringUtils::sprintf("%u", PID);
-                }
                 // Check if the thread is in the debuggee
                 if(PID == fdProcessInfo->dwProcessId)
                 {
                     char ThreadName[MAX_THREAD_NAME_SIZE];
                     if(ThreadGetName(TID, ThreadName) && ThreadName[0] != 0)
-                        name = StringUtils::sprintf("TID: %s (%s), PID: %s (%s)", TIDString.c_str(), ThreadName, PIDString.c_str(), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debuggee")));
+                        name = StringUtils::sprintf("TID: %s (%s), PID: %s (%s)", formatpidtid(TID).c_str(), ThreadName, formatpidtid(PID).c_str(), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debuggee")));
                     else
-                        name = StringUtils::sprintf("TID: %s, PID: %s (%s)", TIDString.c_str(), PIDString.c_str(), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debuggee")));
+                        name = StringUtils::sprintf("TID: %s, PID: %s (%s)", formatpidtid(TID).c_str(), ThreadName, formatpidtid(PID).c_str(), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debuggee")));
                 }
                 else
                 {
                     std::string processName = getProcessName(PID);
                     if(processName.size() > 0)
-                        name = StringUtils::sprintf("TID: %s, PID: %s (%s)", TIDString.c_str(), PIDString.c_str(), processName.c_str());
+                        name = StringUtils::sprintf("TID: %s, PID: %s (%s)", formatpidtid(TID).c_str(), formatpidtid(PID).c_str(), processName.c_str());
                     else
-                        name = StringUtils::sprintf("TID: %s, PID: %s", TIDString.c_str(), PIDString.c_str());
+                        name = StringUtils::sprintf("TID: %s, PID: %s", formatpidtid(TID).c_str(), formatpidtid(PID).c_str());
                 }
             }
         }
