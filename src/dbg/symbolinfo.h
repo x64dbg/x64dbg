@@ -12,7 +12,7 @@ void SymUpdateModuleList();
 bool SymDownloadSymbol(duint Base, const char* SymbolStore);
 void SymDownloadAllSymbols(const char* SymbolStore);
 bool SymAddrFromName(const char* Name, duint* Address);
-String SymGetSymbolicName(duint Address);
+String SymGetSymbolicName(duint Address, bool IncludeAddress = true);
 
 /**
 \brief Gets the source code file name and line from an address.

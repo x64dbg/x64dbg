@@ -311,7 +311,7 @@ bool SymAddrFromName(const char* Name, duint* Address)
     return false;
 }
 
-String SymGetSymbolicName(duint Address)
+String SymGetSymbolicName(duint Address, bool IncludeAddress)
 {
     //
     // This resolves an address to a module and symbol:
@@ -327,12 +327,26 @@ String SymGetSymbolicName(duint Address)
     {
         if(hasModule)
             return StringUtils::sprintf("%s.%p", modname, Address);
-        return "";
+        else if(IncludeAddress)
+            return StringUtils::sprintf("%p", Address);
+        else
+            return "";
     }
 
     if(hasModule)
-        return StringUtils::sprintf("<%s.%s>", modname, label);
-    return StringUtils::sprintf("<%s>", label);
+    {
+        if(IncludeAddress)
+            return StringUtils::sprintf("<%s.%s> (%p)", modname, label, Address);
+        else
+            return StringUtils::sprintf("<%s.%s>", modname, label);
+    }
+    else
+    {
+        if(IncludeAddress)
+            return StringUtils::sprintf("<%s> (%p)", label, Address);
+        else
+            return StringUtils::sprintf("<%s>", label);
+    }
 }
 
 bool SymGetSourceLine(duint Cip, char* FileName, int* Line, duint* disp)

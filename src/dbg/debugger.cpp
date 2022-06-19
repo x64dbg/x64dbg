@@ -600,20 +600,10 @@ static void printSoftBpInfo(const BREAKPOINT & bp)
     else if((titantype & UE_BREAKPOINT_TYPE_LONG_INT3) == UE_BREAKPOINT_TYPE_LONG_INT3)
         bptype = "LONG INT3";
     auto symbolicname = SymGetSymbolicName(bp.addr);
-    if(symbolicname.length())
-    {
-        if(*bp.name)
-            dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint \"%s\" at %s (%p)!\n"), bptype, bp.name, symbolicname.c_str(), bp.addr);
-        else
-            dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint at %s (%p)!\n"), bptype, symbolicname.c_str(), bp.addr);
-    }
+    if(*bp.name)
+        dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint \"%s\" at %s!\n"), bptype, bp.name, symbolicname.c_str());
     else
-    {
-        if(*bp.name)
-            dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint \"%s\" at %p!\n"), bptype, bp.name, bp.addr);
-        else
-            dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint at %p!\n"), bptype, bp.addr);
-    }
+        dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint at %s!\n"), bptype, symbolicname.c_str());
 }
 
 static void printHwBpInfo(const BREAKPOINT & bp)
@@ -653,20 +643,10 @@ static void printHwBpInfo(const BREAKPOINT & bp)
         bptype = _strdup(" ");
     }
     auto symbolicname = SymGetSymbolicName(bp.addr);
-    if(symbolicname.length())
-    {
-        if(*bp.name)
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint (%s%s) \"%s\" at %s (%p)!\n"), bpsize, bptype, bp.name, symbolicname.c_str(), bp.addr);
-        else
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint (%s%s) at %s (%p)!\n"), bpsize, bptype, symbolicname.c_str(), bp.addr);
-    }
+    if(*bp.name)
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint%s \"%s\" at %s!\n"), bptype, bp.name, symbolicname.c_str());
     else
-    {
-        if(*bp.name)
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint (%s%s) \"%s\" at %p!\n"), bpsize, bptype, bp.name, bp.addr);
-        else
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint (%s%s) at %p!\n"), bpsize, bptype, bp.addr);
-    }
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint%s at %s!\n"), bptype, symbolicname.c_str());
     free(bptype);
 }
 
@@ -691,19 +671,22 @@ static void printMemBpInfo(const BREAKPOINT & bp, const void* ExceptionAddress)
         bptype = _strdup("");
     }
     auto symbolicname = SymGetSymbolicName(bp.addr);
-    if(symbolicname.length())
+    if(*bp.name)
     {
-        if(*bp.name)
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint%s \"%s\" at %s (%p, %p)!\n"), bptype, bp.name, symbolicname.c_str(), bp.addr, ExceptionAddress);
-        else
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint%s at %s (%p, %p)!\n"), bptype, symbolicname.c_str(), bp.addr, ExceptionAddress);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint%s \"%s\" at %s, exception address: %s!\n"),
+                bptype,
+                bp.name,
+                symbolicname.c_str(),
+                SymGetSymbolicName(duint(ExceptionAddress)).c_str()
+               );
     }
     else
     {
-        if(*bp.name)
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint%s \"%s\" at %p (%p)!\n"), bptype, bp.name, bp.addr, ExceptionAddress);
-        else
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint%s at %p (%p)!\n"), bptype, bp.addr, ExceptionAddress);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint%s at %s, exception address: %s!\n"),
+                bptype,
+                symbolicname.c_str(),
+                SymGetSymbolicName(duint(ExceptionAddress)).c_str()
+               );
     }
     free(bptype);
 }
@@ -1008,8 +991,7 @@ void cbRunToUserCodeBreakpoint(void* ExceptionAddress)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    auto symbolicname = SymGetSymbolicName(CIP);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "User code reached at %s (%p)!"), symbolicname.c_str(), CIP);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "User code reached at %s"), SymGetSymbolicName(CIP).c_str());
     // lock
     lock(WAITID_RUN);
     // Trace record
@@ -1595,10 +1577,12 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
     plugincbcall(CB_CREATETHREAD, &callbackInfo);
 
     auto entry = duint(CreateThread->lpStartAddress);
-    auto symbolic = SymGetSymbolicName(entry);
-    if(!symbolic.length())
-        symbolic = StringUtils::sprintf("%p", entry);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "Thread %X created, Entry: %s\n"), dwThreadId, symbolic.c_str());
+    auto parameter = GetContextDataEx(hActiveThread, ArchValue(UE_EBX, UE_RDX));
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Thread %X created, Entry: %s, Parameter: %s\n"),
+            dwThreadId,
+            SymGetSymbolicName(entry).c_str(),
+            SymGetSymbolicName(parameter).c_str()
+           );
 
     if(settingboolget("Events", "ThreadEntry"))
     {

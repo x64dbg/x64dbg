@@ -163,11 +163,9 @@ static String printValue(FormatValueType value, StringValueType type)
         {
             auto symbolic = SymGetSymbolicName(valuint);
             if(disasmgetstringatwrapper(valuint, string, false))
-                return string;
-            else if(symbolic.length())
-                return symbolic;
+                return symbolic + " " + string;
             else
-                return "";
+                return symbolic;
         }
         break;
         case StringValueType::Module:

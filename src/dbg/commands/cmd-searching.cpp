@@ -750,9 +750,6 @@ static bool cbModCallFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFI
     }
     if(foundaddr)
     {
-        auto symbolic = SymGetSymbolicName(foundaddr);
-        if(!symbolic.length())
-            symbolic = StringUtils::sprintf("%p", foundaddr);
         char addrText[20] = "";
         sprintf_s(addrText, "%p", disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
@@ -761,13 +758,12 @@ static bool cbModCallFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFI
         if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
         {
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
-            GuiReferenceSetCellContent(refinfo->refcount, 2, symbolic.c_str());
         }
         else
         {
             GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
-            GuiReferenceSetCellContent(refinfo->refcount, 2, symbolic.c_str());
         }
+        GuiReferenceSetCellContent(refinfo->refcount, 2, SymGetSymbolicName(foundaddr).c_str());
     }
     return foundaddr != 0;
 }

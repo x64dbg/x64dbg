@@ -39,7 +39,7 @@ bool cbBadCmd(int argc, char* argv[])
             else
                 valsize = 1;
             char format_str[deflen] = "";
-            auto symbolic = SymGetSymbolicName(value);
+            auto symbolic = SymGetSymbolicName(value, false);
             if(symbolic.length())
                 symbolic = " " + symbolic;
             if(isvar)  // and *cmd!='.' and *cmd!='x') //prevent stupid 0=0 stuff

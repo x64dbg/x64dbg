@@ -1587,14 +1587,12 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
         if(!printall || silent)
             return true;
         for(int i = 0; i < found; i++)
+        {
             if(i != kernel32)
             {
-                auto symbolic = SymGetSymbolicName(addrfound()[i]);
-                if(symbolic.length())
-                    dprintf_untranslated("%p %s\n", addrfound()[i], symbolic.c_str());
-                else
-                    dprintf_untranslated("%p\n", addrfound()[i]);
+                dputs_untranslated(SymGetSymbolicName(addrfound()[i]).c_str());
             }
+        }
     }
     else
     {
@@ -1603,11 +1601,7 @@ bool valapifromstring(const char* name, duint* value, int* value_size, bool prin
             return true;
         for(int i = 1; i < found; i++)
         {
-            auto symbolic = SymGetSymbolicName(addrfound()[i]);
-            if(symbolic.length())
-                dprintf_untranslated("%p %s\n", addrfound()[i], symbolic.c_str());
-            else
-                dprintf_untranslated("%p\n", addrfound()[i]);
+            dputs_untranslated(SymGetSymbolicName(addrfound()[i]).c_str());
         }
     }
     return true;
