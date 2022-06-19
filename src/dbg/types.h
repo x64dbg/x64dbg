@@ -104,6 +104,7 @@ namespace Types
         void Clear(const std::string & owner = "");
         bool RemoveType(const std::string & type);
         void Enum(std::vector<Summary> & typeList) const;
+        std::string StructUnionPtrType(const std::string & pointto) const;
 
     private:
         std::unordered_map<Primitive, int> primitivesizes;
@@ -145,3 +146,4 @@ void EnumTypes(std::vector<Types::TypeManager::Summary> & typeList);
 bool LoadTypesJson(const std::string & json, const std::string & owner);
 bool LoadTypesFile(const std::string & path, const std::string & owner);
 bool ParseTypes(const std::string & parse, const std::string & owner);
+std::string StructUnionPtrType(const std::string & pointto);

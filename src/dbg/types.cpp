@@ -295,6 +295,14 @@ void TypeManager::Enum(std::vector<Summary> & typeList) const
     });
 }
 
+std::string Types::TypeManager::StructUnionPtrType(const std::string & pointto) const
+{
+    auto itr = structs.find(pointto);
+    if(itr == structs.end())
+        return "";
+    return getKind(itr->second);
+}
+
 template<typename K, typename V>
 static bool mapContains(const std::unordered_map<K, V> & map, const K & k)
 {
@@ -689,4 +697,9 @@ bool LoadTypesFile(const std::string & path, const std::string & owner)
     if(!FileHelper::ReadAllText(path, json))
         return false;
     return LoadTypesJson(json, owner);
+}
+
+std::string StructUnionPtrType(const std::string & pointto)
+{
+    return typeManager.StructUnionPtrType(pointto);
 }

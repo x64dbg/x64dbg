@@ -456,9 +456,21 @@ struct PrintVisitor : TypeManager::Visitor
         String tname;
         auto ptype = mParents.empty() ? Parent::Struct : parent().type;
         if(ptype == Parent::Array)
+        {
             tname = StringUtils::sprintf("%s[%u]", member.name.c_str(), parent().index++);
+        }
         else
+        {
             tname = StringUtils::sprintf("%s %s", type.name.c_str(), member.name.c_str());
+
+            // Prepend struct/union to pointer types
+            if(!type.pointto.empty())
+            {
+                auto ptrname = StructUnionPtrType(type.pointto);
+                if(!ptrname.empty())
+                    tname = ptrname + " " + tname;
+            }
+        }
 
         std::string path;
         for(size_t i = 0; i < mPath.size(); i++)
@@ -468,8 +480,13 @@ struct PrintVisitor : TypeManager::Visitor
             path.append(mPath[i]);
         }
         path.append(member.name);
-        if(!LabelGet(mAddr + mOffset, nullptr) && (parent().index == 1 || ptype != Parent::Array))
-            LabelSet(mAddr + mOffset, path.c_str(), false, true);
+
+        auto ptr = mAddr + mOffset;
+        if(MemIsValidReadPtr(ptr))
+        {
+            if(!LabelGet(ptr, nullptr) && (parent().index == 1 || ptype != Parent::Array))
+                LabelSet(ptr, path.c_str(), false, true);
+        }
 
         TYPEDESCRIPTOR td;
         td.expanded = false;
