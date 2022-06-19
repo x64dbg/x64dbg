@@ -19,6 +19,8 @@ public:
     void getTabNames(QList<QString> & names);
     int getMaxCPUTabs();
     QMenu* mDumpPluginMenu;
+    void saveWindowSettings();
+    void loadWindowSettings();
 
 signals:
     void displayReferencesWidget();

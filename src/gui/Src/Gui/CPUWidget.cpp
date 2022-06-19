@@ -117,6 +117,7 @@ void CPUWidget::saveWindowSettings()
     saveSplitter(ui->mTopLeftUpperHSplitter, "mTopLeftUpperHSplitter");
     saveSplitter(ui->mTopRightVSplitter, "mTopRightVSplitter");
     saveSplitter(ui->mBotHSplitter, "mBotHSplitter");
+    mDump->saveWindowSettings();
 }
 
 void CPUWidget::loadWindowSettings()
@@ -127,6 +128,7 @@ void CPUWidget::loadWindowSettings()
     loadSplitter(ui->mTopLeftUpperHSplitter, "mTopLeftUpperHSplitter");
     loadSplitter(ui->mTopRightVSplitter, "mTopRightVSplitter");
     loadSplitter(ui->mBotHSplitter, "mBotHSplitter");
+    mDump->loadWindowSettings();
 }
 
 CPUWidget::~CPUWidget()

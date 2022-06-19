@@ -727,6 +727,6 @@ bool cbInstrParseTypes(int argc, char* argv[])
     }
     if(!ParseTypes(data, owner))
         return false;
-    dputs("Types parsed");
+    dprintf("Parsed header: %s\n", argv[1]);
     return true;
 }

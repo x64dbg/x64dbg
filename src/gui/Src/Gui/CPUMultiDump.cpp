@@ -102,6 +102,16 @@ int CPUMultiDump::getMaxCPUTabs()
     return mMaxCPUDumpTabs;
 }
 
+void CPUMultiDump::saveWindowSettings()
+{
+    mStructWidget->saveWindowSettings();
+}
+
+void CPUMultiDump::loadWindowSettings()
+{
+    mStructWidget->loadWindowSettings();
+}
+
 int CPUMultiDump::GetDumpWindowIndex(int dump)
 {
     QString dumpNativeName = QString("Dump ") + QString::number(dump);

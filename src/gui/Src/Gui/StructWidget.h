@@ -19,6 +19,8 @@ class StructWidget : public QWidget, public ActionHelper<StructWidget>
 public:
     explicit StructWidget(QWidget* parent = 0);
     ~StructWidget();
+    void saveWindowSettings();
+    void loadWindowSettings();
 
 public slots:
     void colorsUpdatedSlot();

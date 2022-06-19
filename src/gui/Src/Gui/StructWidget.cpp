@@ -41,6 +41,32 @@ StructWidget::~StructWidget()
     delete ui;
 }
 
+void StructWidget::saveWindowSettings()
+{
+    auto saveColumn = [this](int column)
+    {
+        auto settingName = QString("StructWidgetColumn%1").arg(column);
+        BridgeSettingSetUint("Gui", settingName.toUtf8().constData(), ui->treeWidget->columnWidth(column));
+    };
+    saveColumn(0);
+    saveColumn(1);
+    saveColumn(2);
+}
+
+void StructWidget::loadWindowSettings()
+{
+    auto loadColumn = [this](int column)
+    {
+        auto settingName = QString("StructWidgetColumn%1").arg(column);
+        duint width = 0;
+        if(BridgeSettingGetUint("Gui", settingName.toUtf8().constData(), &width))
+            ui->treeWidget->setColumnWidth(column, width);
+    };
+    loadColumn(0);
+    loadColumn(1);
+    loadColumn(2);
+}
+
 void StructWidget::colorsUpdatedSlot()
 {
     auto color = ConfigColor("AbstractTableViewTextColor");
@@ -65,6 +91,9 @@ void StructWidget::shortcutsUpdatedSlot()
 
 void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
 {
+    // Disable updates until the next typeUpdateWidget()
+    ui->treeWidget->setUpdatesEnabled(false);
+
     TypeDescriptor dtype;
     dtype.type = *type;
     dtype.name = highlightTypeName(dtype.type.name);
@@ -86,6 +115,7 @@ void StructWidget::typeClear()
 
 void StructWidget::typeUpdateWidget()
 {
+    ui->treeWidget->setUpdatesEnabled(false);
     for(QTreeWidgetItemIterator it(ui->treeWidget); *it; ++it)
     {
         QTreeWidgetItem* item = *it;
@@ -125,6 +155,7 @@ void StructWidget::typeUpdateWidget()
         }
         item->setText(3, valueStr);
     }
+    ui->treeWidget->setUpdatesEnabled(true);
 }
 
 void StructWidget::dbgStateChangedSlot(DBGSTATE state)
@@ -135,9 +166,10 @@ void StructWidget::dbgStateChangedSlot(DBGSTATE state)
 
 void StructWidget::setupColumns()
 {
-    ui->treeWidget->setColumnWidth(0, 300); //Name
-    ui->treeWidget->setColumnWidth(1, 80); //Address
-    ui->treeWidget->setColumnWidth(2, 80); //Size
+    auto charWidth = ui->treeWidget->fontMetrics().width(' ');
+    ui->treeWidget->setColumnWidth(0, 4 + charWidth * 60); //Name
+    ui->treeWidget->setColumnWidth(1, 6 + charWidth * sizeof(duint) * 2); //Address
+    ui->treeWidget->setColumnWidth(2, 4 + charWidth * 6); //Size
     //ui->treeWidget->setColumnWidth(3, 80); //Value
 }
 

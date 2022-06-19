@@ -47,6 +47,9 @@
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
      </property>
+     <property name="indentation">
+      <number>10</number>
+     </property>
      <attribute name="headerCascadingSectionResizes">
       <bool>false</bool>
      </attribute>
