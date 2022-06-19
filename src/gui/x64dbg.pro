@@ -77,6 +77,7 @@ SOURCES += \
     Src/BasicView/StdIconSearchListView.cpp \
     Src/BasicView/StdIconTable.cpp \
     Src/Gui/CPURegistersView.cpp \
+    Src/Gui/RichTextItemDelegate.cpp \
     Src/Gui/SystemBreakpointScriptDialog.cpp \
     Src/Imports.cpp \
     Src/Tracer/TraceInfoBox.cpp \
@@ -199,6 +200,7 @@ HEADERS += \
     Src/BasicView/StdIconSearchListView.h \
     Src/BasicView/StdIconTable.h \
     Src/Gui/CPURegistersView.h \
+    Src/Gui/RichTextItemDelegate.h \
     Src/Gui/SystemBreakpointScriptDialog.h \
     Src/Tracer/TraceInfoBox.h \
     Src/Tracer/TraceRegisters.h \

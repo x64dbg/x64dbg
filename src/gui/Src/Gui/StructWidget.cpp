@@ -7,6 +7,7 @@
 #include <QFileDialog>
 #include "StringUtil.h"
 #include "MiscUtil.h"
+#include "RichTextItemDelegate.h"
 
 struct TypeDescriptor
 {
@@ -21,6 +22,7 @@ StructWidget::StructWidget(QWidget* parent) :
 {
     ui->setupUi(this);
     ui->treeWidget->setStyleSheet("QTreeWidget { color: #000000; background-color: #FFF8F0; alternate-background-color: #DCD9CF; }");
+    ui->treeWidget->setItemDelegate(new RichTextItemDelegate(ui->treeWidget));
     connect(Bridge::getBridge(), SIGNAL(typeAddNode(void*, const TYPEDESCRIPTOR*)), this, SLOT(typeAddNode(void*, const TYPEDESCRIPTOR*)));
     connect(Bridge::getBridge(), SIGNAL(typeClear()), this, SLOT(typeClear()));
     connect(Bridge::getBridge(), SIGNAL(typeUpdateWidget()), this, SLOT(typeUpdateWidget()));
@@ -65,7 +67,7 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
 {
     TypeDescriptor dtype;
     dtype.type = *type;
-    dtype.name = QString(dtype.type.name);
+    dtype.name = highlightTypeName(dtype.type.name);
     dtype.type.name = nullptr;
     auto text = QStringList() << dtype.name << ToPtrString(dtype.type.addr + dtype.type.offset) << "0x" + ToHexString(dtype.type.size);
     QTreeWidgetItem* item = parent ? new QTreeWidgetItem((QTreeWidgetItem*)parent, text) : new QTreeWidgetItem(ui->treeWidget, text);
@@ -164,6 +166,69 @@ void StructWidget::setupContextMenu()
     mMenuBuilder->addAction(makeAction(DIcon("eraser.png"), tr("Clear"), SLOT(clearSlot())));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
     mMenuBuilder->loadFromConfig();
+}
+
+QString StructWidget::highlightTypeName(QString name) const
+{
+    // TODO: this can be improved with colors
+    static auto re = []
+    {
+        const char* keywords[] =
+        {
+            "uint64_t",
+            "uint32_t",
+            "uint16_t",
+            "char16_t",
+            "unsigned",
+            "int64_t",
+            "int32_t",
+            "wchar_t",
+            "int16_t",
+            "uint8_t",
+            "struct",
+            "double",
+            "size_t",
+            "uint64",
+            "uint32",
+            "ushort",
+            "uint16",
+            "signed",
+            "int8_t",
+            "union",
+            "const",
+            "float",
+            "duint",
+            "dsint",
+            "int64",
+            "int32",
+            "short",
+            "int16",
+            "ubyte",
+            "uchar",
+            "uint8",
+            "void",
+            "long",
+            "bool",
+            "byte",
+            "char",
+            "int8",
+            "ptr",
+            "int",
+        };
+        QString keywordRegex;
+        keywordRegex += "\\b(";
+        for(size_t i = 0; i < _countof(keywords); i++)
+        {
+            if(i > 0)
+                keywordRegex += '|';
+            keywordRegex += QRegExp::escape(keywords[i]);
+        }
+        keywordRegex += ")\\b";
+        return QRegExp(keywordRegex, Qt::CaseSensitive);
+    }();
+
+    name.replace(re, "<b>\\1</b>");
+    return std::move(name);
 }
 
 void StructWidget::on_treeWidget_customContextMenuRequested(const QPoint & pos)

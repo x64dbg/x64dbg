@@ -37,6 +37,7 @@ private:
 
     void setupColumns();
     void setupContextMenu();
+    QString highlightTypeName(QString name) const;
 
 private slots:
     void on_treeWidget_customContextMenuRequested(const QPoint & pos);
