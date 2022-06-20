@@ -13,6 +13,8 @@
 #include "exhandlerinfo.h"
 #include <vector>
 #include <regex>
+#include <string>
+#include <cctype>
 
 /// <summary>
 /// Creates an owning ExpressionValue string
@@ -600,19 +602,49 @@ namespace Exprfunc
 
     bool streq(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
     {
-        assert(argc == 1);
+        assert(argc == 2);
         assert(argv[0].type == ValueTypeString);
+        assert(argv[1].type == ValueTypeString);
 
         *result = ValueNumber(::strcmp(argv[0].string.ptr, argv[1].string.ptr) == 0);
         return true;
     }
 
+    bool strieq(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argc == 2);
+        assert(argv[0].type == ValueTypeString);
+        assert(argv[1].type == ValueTypeString);
+
+        *result = ValueNumber(::stricmp(argv[0].string.ptr, argv[1].string.ptr) == 0);
+        return true;
+    }
+
     bool strstr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
     {
-        assert(argc == 1);
+        assert(argc == 2);
         assert(argv[0].type == ValueTypeString);
+        assert(argv[1].type == ValueTypeString);
 
         *result = ValueNumber(::strstr(argv[0].string.ptr, argv[1].string.ptr) != nullptr);
+        return true;
+    }
+
+    bool stristr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argc == 2);
+        assert(argv[0].type == ValueTypeString);
+        assert(argv[1].type == ValueTypeString);
+
+        size_t len1 = ::strlen(argv[0].string.ptr);
+        size_t len2 = ::strlen(argv[1].string.ptr);
+        auto it = std::search(
+                      argv[0].string.ptr, argv[0].string.ptr + len1,
+                      argv[1].string.ptr, argv[1].string.ptr + len2,
+        [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
+                  );
+
+        *result = ValueNumber(it != argv[0].string.ptr + len1);
         return true;
     }
 
