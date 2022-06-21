@@ -658,7 +658,7 @@ bool cbInstrVisitType(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "VisitType failed"));
         return false;
     }
-    GuiUpdateTypeWidget();
+    GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "Done!"));
     return true;
 }
