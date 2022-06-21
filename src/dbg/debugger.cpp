@@ -1818,7 +1818,8 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
         }
     }
 
-    if(ModNameFromAddr(duint(base), modname, true) && scmp(modname, "ntdll.dll"))
+    auto isNtdll = ModNameFromAddr(duint(base), modname, true) && scmp(modname, "ntdll.dll");
+    if(isNtdll)
     {
         if(settingboolget("Misc", "QueryProcessCookie"))
             cookie.HandleNtdllLoad(bIsAttached);
@@ -1891,7 +1892,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     {
         cbGenericBreakpoint(BPDLL, DLLDebugFileName);
     }
-    else if(settingboolget("Events", "DllLoad") && party != mod_system || settingboolget("Events", "DllLoadSystem") && party == mod_system)
+    else if(!isNtdll && (settingboolget("Events", "DllLoad") && party != mod_system || settingboolget("Events", "DllLoadSystem") && party == mod_system))
     {
         //update GUI
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
