@@ -297,8 +297,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     insertMenuBuilderBools(&guiBool, "CPUStack", 50); //Stack
     insertMenuBuilderBools(&guiBool, "SourceView", 50); //Source
     insertMenuBuilderBools(&guiBool, "DisassemblerGraphView", 50); //Graph
-    insertMenuBuilderBools(&guiBool, "XrefBrowseDialog", 10); //XrefBrowseDialog
-    insertMenuBuilderBools(&guiBool, "StructWidget", 8); //StructWidget
+    insertMenuBuilderBools(&guiBool, "XrefBrowseDialog", 50); //XrefBrowseDialog
+    insertMenuBuilderBools(&guiBool, "StructWidget", 50); //StructWidget
     insertMenuBuilderBools(&guiBool, "File", 50); //Main Menu : File
     insertMenuBuilderBools(&guiBool, "Debug", 50); //Main Menu : Debug
     insertMenuBuilderBools(&guiBool, "Option", 50); //Main Menu : Option
@@ -829,7 +829,7 @@ const bool Configuration::getBool(const QString & category, const QString & id) 
             return Bools[category][id];
         if(noMoreMsgbox)
             return false;
-        QMessageBox msg(QMessageBox::Warning, tr("NOT FOUND IN CONFIG!"), category + ":" + id, QMessageBox::Retry | QMessageBox::Cancel);
+        QMessageBox msg(QMessageBox::Warning, tr("NOT FOUND IN CONFIG!"), category + ":" + id, QMessageBox::Retry | QMessageBox::Cancel); /* insertMenuBuilderBools */
         msg.setWindowIcon(DIcon("compile-warning.png"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         if(msg.exec() == QMessageBox::Cancel)

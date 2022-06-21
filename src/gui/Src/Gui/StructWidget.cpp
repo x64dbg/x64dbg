@@ -51,6 +51,7 @@ void StructWidget::saveWindowSettings()
     saveColumn(0);
     saveColumn(1);
     saveColumn(2);
+    saveColumn(3);
 }
 
 void StructWidget::loadWindowSettings()
@@ -65,6 +66,7 @@ void StructWidget::loadWindowSettings()
     loadColumn(0);
     loadColumn(1);
     loadColumn(2);
+    loadColumn(3);
 }
 
 void StructWidget::colorsUpdatedSlot()
@@ -170,7 +172,6 @@ void StructWidget::setupColumns()
     ui->treeWidget->setColumnWidth(0, 4 + charWidth * 60); //Name
     ui->treeWidget->setColumnWidth(1, 6 + charWidth * sizeof(duint) * 2); //Address
     ui->treeWidget->setColumnWidth(2, 4 + charWidth * 6); //Size
-    //ui->treeWidget->setColumnWidth(3, 80); //Value
 }
 
 #define hasSelection !!ui->treeWidget->selectedItems().count()
@@ -180,7 +181,15 @@ void StructWidget::setupColumns()
 void StructWidget::setupContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this);
-    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), tr("&Follow in Dump"), SLOT(followDumpSlot())), [this](QMenu*)
+    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), tr("Follow value in Dump"), SLOT(followValueDumpSlot())), [this](QMenu*)
+    {
+        return DbgMemIsValidReadPtr(selectedValue());
+    });
+    mMenuBuilder->addAction(makeAction(DIcon("processor-cpu.png"), tr("Follow value in Disassembler"), SLOT(followValueDisasmSlot())), [this](QMenu*)
+    {
+        return DbgMemIsValidReadPtr(selectedValue());
+    });
+    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), tr("&Follow address in Dump"), SLOT(followDumpSlot())), [this](QMenu*)
     {
         return hasSelection && DbgMemIsValidReadPtr(selectedType.addr + selectedType.offset);
     });
@@ -263,6 +272,16 @@ QString StructWidget::highlightTypeName(QString name) const
     return std::move(name);
 }
 
+duint StructWidget::selectedValue() const
+{
+    if(!hasSelection)
+        return 0;
+    QStringList split = selectedItem->text(3).split(',');
+    if(split.length() < 1)
+        return 0;
+    return split[0].toULongLong(nullptr, 0);
+}
+
 void StructWidget::on_treeWidget_customContextMenuRequested(const QPoint & pos)
 {
     QMenu wMenu;
@@ -276,6 +295,20 @@ void StructWidget::followDumpSlot()
     if(!hasSelection)
         return;
     DbgCmdExec(QString("dump %1").arg(ToPtrString(selectedType.addr + selectedType.offset)));
+}
+
+void StructWidget::followValueDumpSlot()
+{
+    if(!hasSelection)
+        return;
+    DbgCmdExec(QString("dump %1").arg(ToPtrString(selectedValue())));
+}
+
+void StructWidget::followValueDisasmSlot()
+{
+    if(!hasSelection)
+        return;
+    DbgCmdExec(QString("disasm %1").arg(ToPtrString(selectedValue())));
 }
 
 void StructWidget::clearSlot()
@@ -303,7 +336,7 @@ void StructWidget::visitSlot()
     mGotoDialog->setWindowTitle(tr("Address to visit"));
     if(DbgIsDebugging() && mGotoDialog->exec() == QDialog::Accepted)
         addr = DbgValFromString(mGotoDialog->expressionText.toUtf8().constData());
-    DbgCmdExec(QString("VisitType %1, %2").arg(mLineEdit.editText, ToPtrString(addr)));
+    DbgCmdExec(QString("VisitType %1, %2, 2").arg(mLineEdit.editText, ToPtrString(addr)));
 }
 
 void StructWidget::loadJsonSlot()

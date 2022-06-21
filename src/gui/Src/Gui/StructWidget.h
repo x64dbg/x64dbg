@@ -40,11 +40,14 @@ private:
     void setupColumns();
     void setupContextMenu();
     QString highlightTypeName(QString name) const;
+    duint selectedValue() const;
 
 private slots:
     void on_treeWidget_customContextMenuRequested(const QPoint & pos);
 
     void followDumpSlot();
+    void followValueDumpSlot();
+    void followValueDisasmSlot();
     void clearSlot();
     void removeSlot();
     void visitSlot();
