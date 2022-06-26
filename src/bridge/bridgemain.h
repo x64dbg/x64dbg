@@ -1171,9 +1171,8 @@ typedef enum
     GUI_UPDATE_GRAPH_VIEW,          // param1=unused,               param2=unused
     GUI_SET_LOG_ENABLED,            // param1=bool isEnabled        param2=unused
     GUI_ADD_FAVOURITE_TOOL,         // param1=const char* name      param2=const char* description
-    GUI_SET_FAVOURITE_TOOL_SHORTCUT,// param1=const char* name      param2=const char* shortcut
     GUI_ADD_FAVOURITE_COMMAND,      // param1=const char* command   param2=const char* shortcut
-    GUI_SET_FAVOURITE_COMMAND_SHORTCUT,      // param1=const char* command   param2=const char* shortcut
+    GUI_SET_FAVOURITE_TOOL_SHORTCUT,// param1=const char* name      param2=const char* shortcut
     GUI_FOLD_DISASSEMBLY,           // param1=duint startAddress    param2=duint length
     GUI_SELECT_IN_MEMORY_MAP,       // param1=duint addr,           param2=unused
     GUI_GET_ACTIVE_VIEW,            // param1=ACTIVEVIEW*,          param2=unused
@@ -1200,6 +1199,7 @@ typedef enum
     GUI_GET_CURRENT_GRAPH,          // param1=BridgeCFGraphList*,   param2=unused
     GUI_SHOW_REF,                   // param1=unused,               param2=unused
     GUI_SELECT_IN_SYMBOLS_TAB,      // param1=duint addr,           param2=unused
+    GUI_SET_FAVOURITE_COMMAND_SHORTCUT,  // param1=const char* command   param2=const char* shortcut
 } GUIMSG;
 
 //GUI Typedefs
