@@ -2199,16 +2199,18 @@ void MainWindow::addFavouriteItem(int type, const QString & name, const QString 
                 break;
             }
         }
-        if (check)
+        
+        if(check)
         {
-        BridgeSettingSet("Favourite", (QString("Command") + QString::number(i)).toUtf8().constData(), name.toUtf8().constData());
-        BridgeSettingSet("Favourite", (QString("CommandShortcut") + QString::number(i)).toUtf8().constData(), description.toUtf8().constData());
-        if(BridgeSettingGet("Favourite", (QString("Command") + QString::number(i + 1)).toUtf8().constData(), buffer))
-        {
-            buffer[0] = 0;
-            BridgeSettingSet("Favourite", (QString("Command") + QString::number(i + 1)).toUtf8().constData(), buffer);
+            BridgeSettingSet("Favourite", (QString("Command") + QString::number(i)).toUtf8().constData(), name.toUtf8().constData());
+            BridgeSettingSet("Favourite", (QString("CommandShortcut") + QString::number(i)).toUtf8().constData(), description.toUtf8().constData());
+            if(BridgeSettingGet("Favourite", (QString("Command") + QString::number(i + 1)).toUtf8().constData(), buffer))
+            {
+                buffer[0] = 0;
+                BridgeSettingSet("Favourite", (QString("Command") + QString::number(i + 1)).toUtf8().constData(), buffer);
+            }
         }
-        }
+        
         updateFavouriteTools();
     }
 }
