@@ -2226,7 +2226,7 @@ void MainWindow::setFavouriteItemShortcut(int type, const QString & name, const 
         {
             if(QString(buffer) == name)
             {
-                BridgeSettingSet("Favourite", (QString("CommandShortcut") + QString::number(i)).toUtf8().constData(), shortcut.toUtf8().constData());
+                BridgeSettingSet("Favourite", (QString("CommandShortcut") + QString::number(i)).toUtf8().constData(), description.toUtf8().constData());
                 updateFavouriteTools();
                 break;
             }
