@@ -1364,6 +1364,7 @@ BRIDGE_IMPEXP void GuiDisableLog();
 BRIDGE_IMPEXP void GuiEnableLog();
 BRIDGE_IMPEXP void GuiAddFavouriteTool(const char* name, const char* description);
 BRIDGE_IMPEXP void GuiAddFavouriteCommand(const char* name, const char* shortcut);
+BRIDGE_IMPEXP void GuiSetFavouriteCommand(const char* name, const char* shortcut);
 BRIDGE_IMPEXP void GuiSetFavouriteToolShortcut(const char* name, const char* shortcut);
 BRIDGE_IMPEXP void GuiFoldDisassembly(duint startAddress, duint length);
 BRIDGE_IMPEXP void GuiSelectInMemoryMap(duint addr);
