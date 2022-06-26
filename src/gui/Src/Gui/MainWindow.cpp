@@ -2190,16 +2190,16 @@ void MainWindow::addFavouriteItem(int type, const QString & name, const QString 
     {
         char buffer[MAX_SETTING_SIZE];
         unsigned int i;
-        bool check = true;
-        for(i = 1; BridgeSettingGet("Favourite", (QString("Command") + QString::number(i)).toUtf8().constData(), buffer); i++)
+        bool check;
+        for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Command%1").arg(i).toUtf8().constData(), buffer); i++)
         {
             if(QString(buffer) == name)
             {
-                check = false;
+                check = true;
                 break;
             }
         }
-        if(check)
+        if (!check)
         {
            BridgeSettingSet("Favourite", (QString("Command") + QString::number(i)).toUtf8().constData(), name.toUtf8().constData());
            BridgeSettingSet("Favourite", (QString("CommandShortcut") + QString::number(i)).toUtf8().constData(), description.toUtf8().constData());
