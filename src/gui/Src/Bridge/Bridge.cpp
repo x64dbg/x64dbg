@@ -763,7 +763,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     }
     break;
 
-    case GUI_SET_FAVOURITE_COMMAND:
+    case GUI_SET_FAVOURITE_COMMAND_SHORTCUT:
     {
         QString name;
         QString shortcut;
