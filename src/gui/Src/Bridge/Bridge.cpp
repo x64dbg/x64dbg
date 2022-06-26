@@ -763,6 +763,19 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     }
     break;
 
+    case GUI_SET_FAVOURITE_COMMAND:
+    {
+        QString name;
+        QString shortcut;
+        if(param1 == nullptr)
+            return nullptr;
+        name = QString((const char*)param1);
+        if(param2 != nullptr)
+            shortcut = QString((const char*)param2);
+        emit setFavouriteItemShortcut(2, name, shortcut);
+    }
+    break;
+        
     case GUI_SET_FAVOURITE_TOOL_SHORTCUT:
     {
         QString name;
