@@ -2219,6 +2219,19 @@ void MainWindow::setFavouriteItemShortcut(int type, const QString & name, const 
             }
         }
     }
+    else if(type == 2) // Commands
+    {
+        char buffer[MAX_SETTING_SIZE];
+        for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Command%1").arg(i).toUtf8().constData(), buffer); i++)
+        {
+            if(QString(buffer) == name)
+            {
+                BridgeSettingSet("Favourite", (QString("CommandShortcut") + QString::number(i)).toUtf8().constData(), shortcut.toUtf8().constData());
+                updateFavouriteTools();
+                break;
+            }
+        }  
+    }
 }
 
 void MainWindow::animateIntoSlot()
