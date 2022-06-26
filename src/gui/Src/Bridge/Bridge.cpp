@@ -775,7 +775,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         emit setFavouriteItemShortcut(2, name, shortcut);
     }
     break;
-        
+
     case GUI_SET_FAVOURITE_TOOL_SHORTCUT:
     {
         QString name;
