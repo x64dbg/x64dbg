@@ -1,0 +1,25 @@
+version: 1.0.{build}
+image: Visual Studio 2013
+install:
+- cmd: >-
+    git submodule update --init --recursive --no-recommend-shallow
+
+    set QT32PATH=C:\Qt\5.6\msvc2013\bin
+
+    set QT64PATH=C:\Qt\5.6\msvc2013_64\bin
+
+    set QTCREATORPATH=C:\Qt\Tools\QtCreator\bin
+build_script:
+- cmd: >-
+    build.bat x32
+
+    if not %ERRORLEVEL%==0 exit
+
+    build.bat x64
+
+    if not %ERRORLEVEL%==0 exit
+
+    call release.bat
+test: off
+artifacts:
+- path: release
