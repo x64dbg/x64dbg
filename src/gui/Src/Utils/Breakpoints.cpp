@@ -86,7 +86,7 @@ void Breakpoints::enableBP(const BRIDGEBP & bp)
 /**
  * @brief       Enable breakpoint that has been previously disabled according to its type and virtual address.
  *              If breakpoint was removed, this method has no effect.@n
- *              Breakpoint type is usefull when there are several types of breakpoints on the same address.
+ *              Breakpoint type is useful when there are several types of breakpoints on the same address.
  *              bp_none enables all breakpoints at the given address.
  *
  * @param[in]   type    Type of the breakpoint.
@@ -151,7 +151,7 @@ void Breakpoints::disableBP(const BRIDGEBP & bp)
 /**
  * @brief       Disable breakpoint that has been previously enabled according to its type and virtual address.
  *              If breakpoint was removed, this method has no effect.@n
- *              Breakpoint type is usefull when there are several types of breakpoints on the same address.
+ *              Breakpoint type is useful when there are several types of breakpoints on the same address.
  *              bp_none disbales all breakpoints at the given address.
  *
  * @param[in]   type    Type of the breakpoint.
@@ -232,7 +232,7 @@ void Breakpoints::removeBP(const BRIDGEBP & bp)
 /**
  * @brief       Remove breakpoint at the given given address and type
  *              If breakpoint doesn't exists, this method has no effect.@n
- *              Breakpoint type is usefull when there are several types of breakpoints on the same address.
+ *              Breakpoint type is useful when there are several types of breakpoints on the same address.
  *              bp_none disbales all breakpoints at the given address.
  *
  * @param[in]   type    Type of the breakpoint.
