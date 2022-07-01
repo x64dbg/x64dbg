@@ -18,6 +18,7 @@ struct EX_HANDLER_INFO
 };
 
 bool IsVistaOrLater();
+bool Is19042OrLater();
 bool ExHandlerGetInfo(EX_HANDLER_TYPE Type, std::vector<duint> & Entries);
 bool ExHandlerGetInfo(EX_HANDLER_TYPE Type, EX_HANDLER_INFO* Info);
 bool ExHandlerGetSEH(std::vector<duint> & Entries);
