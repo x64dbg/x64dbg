@@ -11,6 +11,7 @@ ReferenceView::ReferenceView(bool sourceView, QWidget* parent) : StdSearchListVi
 {
     // Setup SearchListView settings
     mSearchStartCol = 1;
+    enableMultiSelection(true);
 
     // Widget container for progress
     QWidget* progressWidget = new QWidget(this);
@@ -317,7 +318,8 @@ void ReferenceView::toggleBreakpoint()
     if(!mCurList->getRowCount())
         return;
 
-    setBreakpointAt(mCurList->getInitialSelection(), Toggle);
+    foreach(int i, mCurList->getSelection())
+        setBreakpointAt(i, Toggle);
 }
 
 void ReferenceView::setBreakpointOnAllCommands()
