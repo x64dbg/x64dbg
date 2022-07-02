@@ -377,9 +377,8 @@ bool SearchListView::eventFilter(QObject* obj, QEvent* event)
         }
 
         // Printable characters go to the search box
-        QChar key = keyEvent->text().toUtf8().at(0);
-
-        if(key.isPrint())
+        QString keyText = keyEvent->text();
+        if(!keyText.isEmpty() && QChar(keyText.toUtf8().at(0)).isPrint())
             return QWidget::eventFilter(obj, event);
 
         // By default, all other keys are forwarded to the search view
