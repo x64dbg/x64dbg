@@ -21,6 +21,16 @@ bool IsVistaOrLater()
     return vistaOrLater;
 }
 
+bool Is19042OrLater()
+{
+    static bool is19042OrLater = []()
+    {
+        auto userSharedData = SharedUserData;
+        return userSharedData->NtBuildNumber >= 19042;
+    }();
+    return is19042OrLater;
+}
+
 bool ExHandlerGetInfo(EX_HANDLER_TYPE Type, std::vector<duint> & Entries)
 {
     Entries.clear();
@@ -176,7 +186,7 @@ bool ExHandlerGetVCH(std::vector<duint> & Entries, bool GetVEH)
             return false;
         auto handler = entry.VectoredHandler;
         // At some point Windows updated the structure
-        if(handler == ArchValue(0, 0xBAADF00D00000000))
+        if(Is19042OrLater())
             handler = entry.VectoredHandler2;
         if(!MemDecodePointer(&handler, true))
             return false;
