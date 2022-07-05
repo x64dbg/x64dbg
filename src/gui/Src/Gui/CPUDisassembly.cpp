@@ -594,7 +594,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     // Search in Current Module menu
     mFindCommandModule = makeShortcutAction(DIcon("search_for_command.png"), tr("C&ommand"), SLOT(findCommandSlot()), "ActionFindInModule");
     mFindConstantModule = makeAction(DIcon("search_for_constant.png"), tr("&Constant"), SLOT(findConstantSlot()));
-    mFindStringsModule = makeAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()));
+    mFindStringsModule = makeShortcutAction(DIcon("search_for_string.png"), tr("&String references"), SLOT(findStringsSlot()), "ActionFindStringsModule");
     mFindCallsModule = makeAction(DIcon("call.png"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mFindPatternModule = makeShortcutAction(DIcon("search_for_pattern.png"), tr("&Pattern"), SLOT(findPatternSlot()), "ActionFindPatternInModule");
     mFindGUIDModule = makeAction(DIcon("guid.png"), tr("&GUID"), SLOT(findGUIDSlot()));
