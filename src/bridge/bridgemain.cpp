@@ -1665,6 +1665,11 @@ BRIDGE_IMPEXP void GuiSetFavouriteToolShortcut(const char* name, const char* sho
     _gui_sendmessage(GUI_SET_FAVOURITE_TOOL_SHORTCUT, (void*)name, (void*)shortcut);
 }
 
+BRIDGE_IMPEXP void GuiSetFavouriteCommandShortcut(const char* name, const char* shortcut)
+{
+	_gui_sendmessage(GUI_SET_FAVOURITE_COMMAND_SHORTCUT, (void*)name, (void*)shortcut);
+}
+
 BRIDGE_IMPEXP void GuiFoldDisassembly(duint startAddress, duint length)
 {
     _gui_sendmessage(GUI_FOLD_DISASSEMBLY, (void*)startAddress, (void*)length);
