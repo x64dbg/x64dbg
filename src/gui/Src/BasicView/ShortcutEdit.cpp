@@ -52,10 +52,13 @@ void ShortcutEdit::keyPressEvent(QKeyEvent* event)
     // The shift modifier only counts when it is not used to type a symbol
     // that is only reachable using the shift key anyway
     // Fix from: https://bbs.pediy.com/thread-270394.htm
-    if(modifiers.testFlag(Qt::ShiftModifier) && (
-                ((keyInt >= Qt::Key_Exclam) && (keyInt <= Qt::Key_Slash)) ||
-                ((keyInt >= Qt::Key_Colon) && (keyInt <= Qt::Key_At)) ||
-                ((keyInt >= Qt::Key_BracketLeft) && (keyInt <= Qt::Key_QuoteLeft))))
+    if(modifiers.testFlag(Qt::ShiftModifier) && (text.isEmpty() ||
+            !text.at(0).isPrint() ||
+            text.at(0).isLetterOrNumber() ||
+            text.at(0).isSpace()) &&
+             (!((keyInt >= Qt::Key_Exclam) && (keyInt <= Qt::Key_Slash)) ||
+             ((keyInt >= Qt::Key_Colon) && (keyInt <= Qt::Key_At)) ||
+             ((keyInt >= Qt::Key_BracketLeft) && (keyInt <= Qt::Key_QuoteLeft))))
         keyInt += Qt::SHIFT;
     if(modifiers.testFlag(Qt::ControlModifier))
         keyInt += Qt::CTRL;
