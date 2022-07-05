@@ -1199,6 +1199,7 @@ typedef enum
     GUI_GET_CURRENT_GRAPH,          // param1=BridgeCFGraphList*,   param2=unused
     GUI_SHOW_REF,                   // param1=unused,               param2=unused
     GUI_SELECT_IN_SYMBOLS_TAB,      // param1=duint addr,           param2=unused
+    GUI_SET_FAVOURITE_COMMAND_SHORTCUT,// param1=const char* name      param2=const char* shortcut
 } GUIMSG;
 
 //GUI Typedefs
@@ -1363,6 +1364,7 @@ BRIDGE_IMPEXP void GuiDisableLog();
 BRIDGE_IMPEXP void GuiEnableLog();
 BRIDGE_IMPEXP void GuiAddFavouriteTool(const char* name, const char* description);
 BRIDGE_IMPEXP void GuiAddFavouriteCommand(const char* name, const char* shortcut);
+BRIDGE_IMPEXP void GuiSetFavouriteCommandShortcut(const char* name, const char* shortcut);
 BRIDGE_IMPEXP void GuiSetFavouriteToolShortcut(const char* name, const char* shortcut);
 BRIDGE_IMPEXP void GuiFoldDisassembly(duint startAddress, duint length);
 BRIDGE_IMPEXP void GuiSelectInMemoryMap(duint addr);
