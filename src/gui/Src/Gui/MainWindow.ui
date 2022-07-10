@@ -1470,6 +1470,12 @@
    </property>
   </action>
   <action name="actionDefaultTheme">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Default</string>
    </property>

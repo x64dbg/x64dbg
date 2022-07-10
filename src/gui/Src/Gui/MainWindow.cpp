@@ -611,18 +611,27 @@ void MainWindow::setupThemesMenu()
     {
         return QFile(str).exists();
     };
+    char selectedTheme[MAX_SETTING_SIZE];
+    BridgeSettingGet("Theme", "Selected", selectedTheme);
     QDirIterator it(QString("%1/../themes").arg(QCoreApplication::applicationDirPath()), QDir::NoDotAndDotDot | QDir::Dirs);
+    auto actionGroup = new QActionGroup(ui->menuTheme);
+    actionGroup->addAction(ui->actionDefaultTheme);
     while(it.hasNext())
     {
         auto dir = it.next();
         auto nameIdx = dir.lastIndexOf('/');
         auto name = dir.mid(nameIdx + 1);
+        // The Default theme folder is a hidden theme to override the default theme
         if(name == "Default")
             continue;
         auto action = ui->menuTheme->addAction(name);
         connect(action, SIGNAL(triggered()), this, SLOT(themeTriggeredSlot()));
         action->setText(name);
         action->setData(dir);
+        action->setCheckable(true);
+        actionGroup->addAction(action);
+        if(name == selectedTheme)
+            action->setChecked(true);
     }
 }
 
