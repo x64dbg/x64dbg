@@ -182,9 +182,6 @@ int main(int argc, char* argv[])
     application.setPalette(appPalette);
 
     // Load the selected style
-    // For unclear reasons it looks like the search path order is inverted.
-    // This might be specific to Qt 5.6 and only matters when you override the "Default" theme
-    QIcon::setThemeSearchPaths({ ":/", QCoreApplication::applicationDirPath() + "/../themes" });
     MainWindow::loadSelectedTheme();
 
     // Register custom data types

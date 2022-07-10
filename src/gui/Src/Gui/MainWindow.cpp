@@ -537,7 +537,52 @@ void MainWindow::loadSelectedTheme(bool reloadOnlyStyleCss)
     QString settingsPath;
     if(*selectedTheme)
     {
-        QIcon::setThemeName(selectedTheme);
+        // Handle the icon theme
+        QStringList searchPaths = { ":/" };
+        if(strcmp(selectedTheme, "Default") == 0)
+        {
+            // The Default theme needs some special handling to allow overriding
+            auto overrideDir = QCoreApplication::applicationDirPath() + "/../themes/Default";
+            if(QDir(overrideDir).exists("index.theme"))
+            {
+                /*
+                HACK: for some reason this allows you to override icons from the themes/Default folder.
+                You need themes/Default/index.theme and then you can put images in themes/Default/icons:
+
+                [Icon Theme]
+                Name=DefaultOverride
+                Comment=Default icon theme override
+                Directories=icons
+                Inherits=Default
+
+                [icons]
+                Size=16
+                Type=Scalable
+                */
+                searchPaths << overrideDir;
+                QIcon::setThemeName("DefaultOverride");
+            }
+            else
+            {
+                QIcon::setThemeName("Default");
+            }
+            QIcon::setThemeSearchPaths(searchPaths);
+        }
+        else
+        {
+            auto themesDir = QCoreApplication::applicationDirPath() + "/../themes";
+            if(QDir(themesDir).exists(QString("%1/index.theme").arg(selectedTheme)))
+            {
+                searchPaths << themesDir;
+                QIcon::setThemeName(selectedTheme);
+            }
+            else
+            {
+                // If there is no icon theme, use the default icons
+                QIcon::setThemeName("Default");
+            }
+            QIcon::setThemeSearchPaths(searchPaths);
+        }
 
         QString themePath = QString("%1/../themes/%2/style.css").arg(QCoreApplication::applicationDirPath()).arg(selectedTheme);
         if(QFile(themePath).exists())
