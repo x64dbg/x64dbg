@@ -130,6 +130,12 @@ BRIDGE_IMPEXP int BridgeGetDbgVersion();
 /// <returns>true if the process is elevated, false otherwise.</returns>
 BRIDGE_IMPEXP bool BridgeIsProcessElevated();
 
+/// <summary>
+/// Gets the NT build number from the operating system.
+/// </summary>
+/// <returns>NtBuildNumber</returns>
+BRIDGE_IMPEXP unsigned int BridgeGetNtBuildNumber();
+
 #ifdef __cplusplus
 }
 #endif

@@ -266,6 +266,23 @@ BRIDGE_IMPEXP bool BridgeIsProcessElevated()
     return !!IsAdminMember;
 }
 
+BRIDGE_IMPEXP unsigned int BridgeGetNtBuildNumber()
+{
+    // https://www.vergiliusproject.com/kernels/x64/Windows%2010%20%7C%202016/1507%20Threshold%201/_KUSER_SHARED_DATA
+    auto NtBuildNumber = *(unsigned int*)(0x7FFE0000 + 0x260);
+    if(NtBuildNumber == 0)
+    {
+        // Older versions of Windows
+        static auto p_RtlGetVersion = (NTSTATUS(*)(PRTL_OSVERSIONINFOW))GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetVersion");
+        RTL_OSVERSIONINFOW info = { sizeof(info) };
+        if(p_RtlGetVersion && p_RtlGetVersion(&info) == 0)
+        {
+            NtBuildNumber = info.dwBuildNumber;
+        }
+    }
+    return NtBuildNumber;
+}
+
 BRIDGE_IMPEXP bool DbgMemRead(duint va, void* dest, duint size)
 {
 #ifdef _DEBUG
