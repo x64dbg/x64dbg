@@ -493,7 +493,41 @@ void MainWindow::loadSelectedStyle(bool reloadStyleCss)
     char selectedTheme[MAX_SETTING_SIZE] = "";
     QString stylePath(":/css/default.css");
     QString styleSettings;
-    if(BridgeSettingGet("Theme", "Selected", selectedTheme) && *selectedTheme)
+    if(!BridgeSettingGet("Theme", "Selected", selectedTheme))
+    {
+        // First Run
+
+        // https://www.vergiliusproject.com/kernels/x64/Windows%2010%20%7C%202016/2009%2020H2%20(October%202020%20Update)/_KUSER_SHARED_DATA
+        uint32_t NtBuildNumber = *(uint32_t*)(0x7FFE0000 + 0x260);
+
+        if(NtBuildNumber != 0 && NtBuildNumber >= 14393 /* darkmode registry release */)
+        {
+            HKEY hKey;
+            RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_READ, &hKey);
+            DWORD dwBufferSize(sizeof(DWORD));
+            DWORD nResult(1);
+            RegQueryValueExW(hKey,
+                             L"AppsUseLightTheme",
+                             0,
+                             NULL,
+                             reinterpret_cast<LPBYTE>(&nResult),
+                             &dwBufferSize);
+            if(nResult == 0)
+            {
+                BridgeSettingSet("Theme", "Selected", QString("Dark").toUtf8().constData());
+                strcpy_s(selectedTheme, MAX_SETTING_SIZE, "Dark");
+            }
+            else
+            {
+                BridgeSettingSet("Theme", "Selected", QString("Default").toUtf8().constData());
+            }
+        }
+        else
+        {
+            BridgeSettingSet("Theme", "Selected", QString("Default").toUtf8().constData());
+        }
+    }
+    if(*selectedTheme)
     {
         QString themePath = QString("%1/../themes/%2/style.css").arg(QCoreApplication::applicationDirPath()).arg(selectedTheme);
         if(QFile(themePath).exists())
@@ -2385,7 +2419,7 @@ void MainWindow::on_actionCheckUpdates_triggered()
 void MainWindow::on_actionDefaultTheme_triggered()
 {
     // Delete [Theme] Selected
-    BridgeSettingSet("Theme", "Selected", nullptr);
+    BridgeSettingSet("Theme", "Selected", QString("Default").toUtf8().constData());
     // Load style
     loadSelectedStyle();
     // Reset [Colors] to default
