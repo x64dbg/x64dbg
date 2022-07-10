@@ -469,7 +469,7 @@ static void DebugUpdateTitle(duint disasm_addr, bool analyzeThreadSwitch)
     if(!ModNameFromAddr(disasm_addr, modname, true))
         *modname = 0;
     else
-        sprintf_s(modtext, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Module: %s - ")), modname);
+        _snprintf_s(modtext, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Module: %s - ")), modname);
     char threadswitch[256] = "";
     DWORD currentThreadId = ThreadGetId(hActiveThread);
     if(analyzeThreadSwitch)
@@ -482,7 +482,7 @@ static void DebugUpdateTitle(duint disasm_addr, bool analyzeThreadSwitch)
             char threadName2[MAX_THREAD_NAME_SIZE] = "";
             if(!ThreadGetName(PrevThreadId, threadName2) || threadName2[0] == 0)
                 sprintf_s(threadName2, "%X", PrevThreadId);
-            sprintf_s(threadswitch, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (switched from %s)")), threadName2);
+            _snprintf_s(threadswitch, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (switched from %s)")), threadName2);
             PrevThreadId = currentThreadId;
         }
     }
@@ -501,7 +501,7 @@ static void DebugUpdateTitle(duint disasm_addr, bool analyzeThreadSwitch)
         sprintf_s(PIDnumber, "%u", fdProcessInfo->dwProcessId);
         sprintf_s(TIDnumber, "%u", currentThreadId);
     }
-    sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "%s - PID: %s - %sThread: %s%s%s")), szBaseFileName, PIDnumber, modtext, threadName, TIDnumber, threadswitch);
+    _snprintf_s(title, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "%s - PID: %s - %sThread: %s%s%s")), szBaseFileName, PIDnumber, modtext, threadName, TIDnumber, threadswitch);
     GuiUpdateWindowTitle(title);
 }
 
