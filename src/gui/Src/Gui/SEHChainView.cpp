@@ -18,7 +18,7 @@ SEHChainView::SEHChainView(StdTable* parent) : StdTable(parent)
 
 void SEHChainView::setupContextMenu()
 {
-    QIcon icon = DIcon(ArchValue("processor32.png", "processor64.png"));
+    QIcon icon = DIcon(ArchValue("processor32", "processor64"));
     mFollowAddress = new QAction(icon, tr("Follow &Address"), this);
     connect(mFollowAddress, SIGNAL(triggered()), this, SLOT(followAddress()));
     mFollowHandler = new QAction(icon, tr("Follow Handler"), this);
@@ -69,7 +69,7 @@ void SEHChainView::contextMenuSlot(const QPoint pos)
     wMenu.addAction(mFollowAddress);
     wMenu.addAction(mFollowHandler);
     QMenu wCopyMenu(tr("&Copy"), this);
-    wCopyMenu.setIcon(DIcon("copy.png"));
+    wCopyMenu.setIcon(DIcon("copy"));
     setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {

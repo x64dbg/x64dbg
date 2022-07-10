@@ -20,8 +20,8 @@
    <string>Dialog</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/ui-combo-box-edit.png</normaloff>:/icons/images/ui-combo-box-edit.png</iconset>
+   <iconset theme="ui-combo-box-edit" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/ui-combo-box-edit.png</normaloff>:/Default/icons/ui-combo-box-edit.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>

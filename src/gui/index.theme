@@ -1,0 +1,8 @@
+[Icon Theme]
+Name=Default
+Comment=Default icon theme
+Directories=icons
+
+[icons]
+Size=16
+Type=Scalable

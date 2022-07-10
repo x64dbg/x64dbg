@@ -17,8 +17,8 @@
    <string>Dialog</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/log.png</normaloff>:/icons/images/log.png</iconset>
+   <iconset theme="log" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/log.png</normaloff>:/Default/icons/log.png</iconset>
   </property>
   <property name="modal">
    <bool>true</bool>

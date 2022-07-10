@@ -11,7 +11,7 @@ SourceViewerManager::SourceViewerManager(QWidget* parent) : QTabWidget(parent)
 
     //Close All Tabs
     mCloseAllTabs = new QPushButton(this);
-    mCloseAllTabs->setIcon(DIcon("close-all-tabs.png"));
+    mCloseAllTabs->setIcon(DIcon("close-all-tabs"));
     mCloseAllTabs->setToolTip(tr("Close All Tabs"));
     connect(mCloseAllTabs, SIGNAL(clicked()), this, SLOT(closeAllTabs()));
     setCornerWidget(mCloseAllTabs, Qt::TopLeftCorner);

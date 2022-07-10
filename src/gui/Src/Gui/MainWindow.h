@@ -265,9 +265,9 @@ private:
     QList<WidgetInfo> mPluginWidgetList;
 
 protected:
-    void dragEnterEvent(QDragEnterEvent* pEvent);
-    void dropEvent(QDropEvent* pEvent);
-    bool event(QEvent* event);
+    void dragEnterEvent(QDragEnterEvent* pEvent) override;
+    void dropEvent(QDropEvent* pEvent) override;
+    bool event(QEvent* event) override;
 
 private slots:
     void setupLanguagesMenu2();

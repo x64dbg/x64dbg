@@ -32,7 +32,7 @@ void CallStackView::setupContextMenu()
     {
         return getSelectionVa();
     });
-    QIcon icon = DIcon(ArchValue("processor32.png", "processor64.png"));
+    QIcon icon = DIcon(ArchValue("processor32", "processor64"));
     mMenuBuilder->addAction(makeAction(icon, tr("Follow &Address"), SLOT(followAddress())), [this](QMenu*)
     {
         return isSelectionValid();
@@ -68,7 +68,7 @@ void CallStackView::setupContextMenu()
     setupCopyMenu(mCopyMenu);
     // Column count cannot be zero
     mMenuBuilder->addSeparator();
-    mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), mCopyMenu);
+    mMenuBuilder->addMenu(makeMenu(DIcon("copy"), tr("&Copy")), mCopyMenu);
     mMenuBuilder->loadFromConfig();
 }
 

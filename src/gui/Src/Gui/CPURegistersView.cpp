@@ -14,19 +14,19 @@
 CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), mParent(parent)
 {
     // precreate ContextMenu Actions
-    wCM_Modify = new QAction(DIcon("register_edit.png"), tr("Modify value"), this);
+    wCM_Modify = new QAction(DIcon("register_edit"), tr("Modify value"), this);
     wCM_Modify->setShortcut(QKeySequence(Qt::Key_Enter));
-    wCM_ToggleValue = setupAction(DIcon("register_toggle.png"), tr("Toggle"));
-    wCM_Undo = setupAction(DIcon("undo.png"), tr("Undo"));
-    wCM_CopyPrevious = setupAction(DIcon("undo.png"), "");
-    wCM_FollowInDisassembly = new QAction(DIcon(QString("processor%1.png").arg(ArchValue("32", "64"))), tr("Follow in Disassembler"), this);
-    wCM_FollowInDump = new QAction(DIcon("dump.png"), tr("Follow in Dump"), this);
-    wCM_FollowInStack = new QAction(DIcon("stack.png"), tr("Follow in Stack"), this);
+    wCM_ToggleValue = setupAction(DIcon("register_toggle"), tr("Toggle"));
+    wCM_Undo = setupAction(DIcon("undo"), tr("Undo"));
+    wCM_CopyPrevious = setupAction(DIcon("undo"), "");
+    wCM_FollowInDisassembly = new QAction(DIcon(QString("processor%1").arg(ArchValue("32", "64"))), tr("Follow in Disassembler"), this);
+    wCM_FollowInDump = new QAction(DIcon("dump"), tr("Follow in Dump"), this);
+    wCM_FollowInStack = new QAction(DIcon("stack"), tr("Follow in Stack"), this);
     wCM_FollowInMemoryMap = new QAction(DIcon("memmap_find_address_page"), tr("Follow in Memory Map"), this);
-    wCM_RemoveHardware = new QAction(DIcon("breakpoint_remove.png"), tr("&Remove hardware breakpoint"), this);
-    wCM_Incrementx87Stack = setupAction(DIcon("arrow-small-down.png"), tr("Increment x87 Stack"));
-    wCM_Decrementx87Stack = setupAction(DIcon("arrow-small-up.png"), tr("Decrement x87 Stack"));
-    wCM_Highlight = setupAction(DIcon("highlight.png"), tr("Highlight"));
+    wCM_RemoveHardware = new QAction(DIcon("breakpoint_remove"), tr("&Remove hardware breakpoint"), this);
+    wCM_Incrementx87Stack = setupAction(DIcon("arrow-small-down"), tr("Increment x87 Stack"));
+    wCM_Decrementx87Stack = setupAction(DIcon("arrow-small-up"), tr("Decrement x87 Stack"));
+    wCM_Highlight = setupAction(DIcon("highlight"), tr("Highlight"));
     // foreign messages
     connect(Bridge::getBridge(), SIGNAL(updateRegisters()), this, SLOT(updateRegistersSlot()));
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(displayCustomContextMenuSlot(QPoint)));
@@ -249,7 +249,7 @@ void CPURegistersView::displayEditDialog()
 
             mLineEdit.setText(GetRegStringValueFromValue(mSelected,  registerValue(&wRegDumpStruct, mSelected)));
             mLineEdit.setWindowTitle(tr("Edit FPU register"));
-            mLineEdit.setWindowIcon(DIcon("log.png"));
+            mLineEdit.setWindowIcon(DIcon("log"));
             mLineEdit.setCursorPosition(0);
             auto sizeRegister = int(GetSizeRegister(mSelected));
             if(sizeRegister == 10)
@@ -393,7 +393,7 @@ void CPURegistersView::CreateDumpNMenu(QMenu* dumpMenu)
 {
     QList<QString> names;
     CPUMultiDump* multiDump = mParent->getDumpWidget();
-    dumpMenu->setIcon(DIcon("dump.png"));
+    dumpMenu->setIcon(DIcon("dump"));
     int maxDumps = multiDump->getMaxCPUTabs();
     multiDump->getTabNames(names);
     for(int i = 0; i < maxDumps; i++)
@@ -633,7 +633,7 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
         if(mFpuMode != 2)
             wMenu.addAction(mDisplayMMX);
         wMenu.addSeparator();
-        QAction* wHwbpCsp = wMenu.addAction(DIcon("breakpoint.png"), tr("Set Hardware Breakpoint on %1").arg(ArchValue("ESP", "RSP")));
+        QAction* wHwbpCsp = wMenu.addAction(DIcon("breakpoint"), tr("Set Hardware Breakpoint on %1").arg(ArchValue("ESP", "RSP")));
         QAction* wAction = wMenu.exec(this->mapToGlobal(pos));
 
         if(wAction == wHwbpCsp)

@@ -14,8 +14,8 @@
    <string>Appearance</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/color-swatches.png</normaloff>:/icons/images/color-swatches.png</iconset>
+   <iconset theme="color-swatches" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/color-swatches.png</normaloff>:/Default/icons/color-swatches.png</iconset>
   </property>
   <property name="styleSheet">
    <string notr="true"/>

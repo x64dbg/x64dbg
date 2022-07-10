@@ -17,8 +17,8 @@
    <string>Enter expression to follow...</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/geolocation-goto.png</normaloff>:/icons/images/geolocation-goto.png</iconset>
+   <iconset theme="geolocation-goto" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/geolocation-goto.png</normaloff>:/Default/icons/geolocation-goto.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>

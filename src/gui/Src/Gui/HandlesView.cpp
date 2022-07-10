@@ -96,31 +96,31 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mSplitter->loadFromConfig("HandlesViewSplitter");
 
     // Create the action list for the right click context menu
-    mActionRefresh = new QAction(DIcon("arrow-restart.png"), tr("&Refresh"), this);
+    mActionRefresh = new QAction(DIcon("arrow-restart"), tr("&Refresh"), this);
     connect(mActionRefresh, SIGNAL(triggered()), this, SLOT(reloadData()));
     addAction(mActionRefresh);
-    mActionCloseHandle = new QAction(DIcon("disable.png"), tr("Close handle"), this);
+    mActionCloseHandle = new QAction(DIcon("disable"), tr("Close handle"), this);
     connect(mActionCloseHandle, SIGNAL(triggered()), this, SLOT(closeHandleSlot()));
-    mActionDisablePrivilege = new QAction(DIcon("disable.png"), tr("Disable Privilege: "), this);
+    mActionDisablePrivilege = new QAction(DIcon("disable"), tr("Disable Privilege: "), this);
     connect(mActionDisablePrivilege, SIGNAL(triggered()), this, SLOT(disablePrivilegeSlot()));
-    mActionEnablePrivilege = new QAction(DIcon("enable.png"), tr("Enable Privilege: "), this);
+    mActionEnablePrivilege = new QAction(DIcon("enable"), tr("Enable Privilege: "), this);
     connect(mActionEnablePrivilege, SIGNAL(triggered()), this, SLOT(enablePrivilegeSlot()));
-    mActionDisableAllPrivileges = new QAction(DIcon("disable.png"), tr("Disable all privileges"), this);
+    mActionDisableAllPrivileges = new QAction(DIcon("disable"), tr("Disable all privileges"), this);
     connect(mActionDisableAllPrivileges, SIGNAL(triggered()), this, SLOT(disableAllPrivilegesSlot()));
-    mActionEnableAllPrivileges = new QAction(DIcon("enable.png"), tr("Enable all privileges"), this);
+    mActionEnableAllPrivileges = new QAction(DIcon("enable"), tr("Enable all privileges"), this);
     connect(mActionEnableAllPrivileges, SIGNAL(triggered()), this, SLOT(enableAllPrivilegesSlot()));
-    mActionEnableWindow = new QAction(DIcon("enable.png"), tr("Enable window"), this);
+    mActionEnableWindow = new QAction(DIcon("enable"), tr("Enable window"), this);
     connect(mActionEnableWindow, SIGNAL(triggered()), this, SLOT(enableWindowSlot()));
-    mActionDisableWindow = new QAction(DIcon("disable.png"), tr("Disable window"), this);
+    mActionDisableWindow = new QAction(DIcon("disable"), tr("Disable window"), this);
     connect(mActionDisableWindow, SIGNAL(triggered()), this, SLOT(disableWindowSlot()));
-    mActionFollowProc = new QAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow Proc in Disassembler"), this);
+    mActionFollowProc = new QAction(DIcon(ArchValue("processor32", "processor64")), tr("Follow Proc in Disassembler"), this);
     connect(mActionFollowProc, SIGNAL(triggered()), this, SLOT(followInDisasmSlot()));
     mActionFollowProc->setShortcut(Qt::Key_Return);
     mWindowsTable->addAction(mActionFollowProc);
-    mActionToggleProcBP = new QAction(DIcon("breakpoint_toggle.png"), tr("Toggle Breakpoint in Proc"), this);
+    mActionToggleProcBP = new QAction(DIcon("breakpoint_toggle"), tr("Toggle Breakpoint in Proc"), this);
     connect(mActionToggleProcBP, SIGNAL(triggered()), this, SLOT(toggleBPSlot()));
     mWindowsTable->addAction(mActionToggleProcBP);
-    mActionMessageProcBP = new QAction(DIcon("breakpoint_execute.png"), tr("Message Breakpoint"), this);
+    mActionMessageProcBP = new QAction(DIcon("breakpoint_execute"), tr("Message Breakpoint"), this);
     connect(mActionMessageProcBP, SIGNAL(triggered()), this, SLOT(messagesBPSlot()));
 
     connect(mHandlesTable, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(handlesTableContextMenuSlot(QMenu*)));
@@ -248,7 +248,7 @@ void HandlesView::privilegesTableContextMenuSlot(const QPoint & pos)
     wMenu.addAction(mActionEnableAllPrivileges);
 
     QMenu wCopyMenu(tr("&Copy"), this);
-    wCopyMenu.setIcon(DIcon("copy.png"));
+    wCopyMenu.setIcon(DIcon("copy"));
     table.setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {

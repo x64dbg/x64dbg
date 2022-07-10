@@ -50,7 +50,7 @@ void BreakpointsView::setupContextMenu()
     {
         return isValidBp();
     };
-    mMenuBuilder->addAction(makeAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow breakpoint"), SLOT(followBreakpointSlot())), [this](QMenu*)
+    mMenuBuilder->addAction(makeAction(DIcon(ArchValue("processor32", "processor64")), tr("Follow breakpoint"), SLOT(followBreakpointSlot())), [this](QMenu*)
     {
         if(!isValidBp())
             return false;
@@ -58,26 +58,26 @@ void BreakpointsView::setupContextMenu()
             return false;
         return true;
     });
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("breakpoint_remove.png"), tr("&Remove"), SLOT(removeBreakpointSlot()), "ActionDeleteBreakpoint"), validBp);
-    QAction* enableDisableBreakpoint = makeShortcutAction(DIcon("breakpoint_disable.png"), tr("Disable"), SLOT(toggleBreakpointSlot()), "ActionEnableDisableBreakpoint");
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("breakpoint_remove"), tr("&Remove"), SLOT(removeBreakpointSlot()), "ActionDeleteBreakpoint"), validBp);
+    QAction* enableDisableBreakpoint = makeShortcutAction(DIcon("breakpoint_disable"), tr("Disable"), SLOT(toggleBreakpointSlot()), "ActionEnableDisableBreakpoint");
     mMenuBuilder->addAction(enableDisableBreakpoint, [this, enableDisableBreakpoint](QMenu*)
     {
         if(!isValidBp() || !selectedBp().active)
             return false;
         if(selectedBp().enabled)
         {
-            enableDisableBreakpoint->setIcon(DIcon("breakpoint_disable.png"));
+            enableDisableBreakpoint->setIcon(DIcon("breakpoint_disable"));
             enableDisableBreakpoint->setText(tr("Disable"));
         }
         else
         {
-            enableDisableBreakpoint->setIcon(DIcon("breakpoint_enable.png"));
+            enableDisableBreakpoint->setIcon(DIcon("breakpoint_enable"));
             enableDisableBreakpoint->setText(tr("Enable"));
         }
         return true;
     });
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("breakpoint_edit_alt.png"), tr("&Edit"), SLOT(editBreakpointSlot()), "ActionEditBreakpoint"), validBp);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("breakpoint_reset_hitcount.png"), tr("Reset hit count"), SLOT(resetHitCountBreakpointSlot()), "ActionResetHitCountBreakpoint"), [this](QMenu*)
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("breakpoint_edit_alt"), tr("&Edit"), SLOT(editBreakpointSlot()), "ActionEditBreakpoint"), validBp);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("breakpoint_reset_hitcount"), tr("Reset hit count"), SLOT(resetHitCountBreakpointSlot()), "ActionResetHitCountBreakpoint"), [this](QMenu*)
     {
         if(!isValidBp())
             return false;
@@ -85,7 +85,7 @@ void BreakpointsView::setupContextMenu()
     });
     mMenuBuilder->addSeparator();
 
-    QAction* enableAll = makeShortcutAction(DIcon("breakpoint_enable_all.png"), QString(), SLOT(enableAllBreakpointsSlot()), "ActionEnableAllBreakpoints");
+    QAction* enableAll = makeShortcutAction(DIcon("breakpoint_enable_all"), QString(), SLOT(enableAllBreakpointsSlot()), "ActionEnableAllBreakpoints");
     mMenuBuilder->addAction(enableAll, [this, enableAll](QMenu*)
     {
         if(!isValidBp())
@@ -93,7 +93,7 @@ void BreakpointsView::setupContextMenu()
         enableAll->setText(tr("Enable all (%1)").arg(bpTypeName(selectedBp().type)));
         return true;
     });
-    QAction* disableAll = makeShortcutAction(DIcon("breakpoint_disable_all.png"), QString(), SLOT(disableAllBreakpointsSlot()), "ActionDisableAllBreakpoints");
+    QAction* disableAll = makeShortcutAction(DIcon("breakpoint_disable_all"), QString(), SLOT(disableAllBreakpointsSlot()), "ActionDisableAllBreakpoints");
     mMenuBuilder->addAction(disableAll, [this, disableAll](QMenu*)
     {
         if(!isValidBp())
@@ -101,7 +101,7 @@ void BreakpointsView::setupContextMenu()
         disableAll->setText(tr("Disable all (%1)").arg(bpTypeName(selectedBp().type)));
         return true;
     });
-    QAction* removeAll = makeShortcutAction(DIcon("breakpoint_remove_all.png"), QString(), SLOT(removeAllBreakpointsSlot()), "ActionRemoveAllBreakpoints");
+    QAction* removeAll = makeShortcutAction(DIcon("breakpoint_remove_all"), QString(), SLOT(removeAllBreakpointsSlot()), "ActionRemoveAllBreakpoints");
     mMenuBuilder->addAction(removeAll, [this, removeAll](QMenu*)
     {
         if(!isValidBp())
@@ -111,8 +111,8 @@ void BreakpointsView::setupContextMenu()
     });
     mMenuBuilder->addSeparator();
 
-    mMenuBuilder->addAction(makeAction(DIcon("breakpoint_module_add.png"), tr("Add DLL breakpoint"), SLOT(addDllBreakpointSlot())));
-    mMenuBuilder->addAction(makeAction(DIcon("breakpoint_exception_add.png"), tr("Add exception breakpoint"), SLOT(addExceptionBreakpointSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("breakpoint_module_add"), tr("Add DLL breakpoint"), SLOT(addDllBreakpointSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("breakpoint_exception_add"), tr("Add exception breakpoint"), SLOT(addExceptionBreakpointSlot())));
     mMenuBuilder->addSeparator();
 
     mMenuBuilder->addAction(makeAction(tr("Copy breakpoint conditions"), SLOT(copyConditionalBreakpointSlot())));
@@ -122,7 +122,7 @@ void BreakpointsView::setupContextMenu()
     });
     MenuBuilder* copyMenu = new MenuBuilder(this);
     setupCopyMenu(copyMenu);
-    mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
+    mMenuBuilder->addMenu(makeMenu(DIcon("copy"), tr("&Copy")), copyMenu);
 }
 
 void BreakpointsView::updateColors()
@@ -787,14 +787,14 @@ void BreakpointsView::removeAllBreakpointsSlot()
 void BreakpointsView::addDllBreakpointSlot()
 {
     QString fileName;
-    if(SimpleInputBox(this, tr("Enter the module name"), "", fileName, tr("Example: mydll.dll"), &DIcon("breakpoint.png")) && !fileName.isEmpty())
+    if(SimpleInputBox(this, tr("Enter the module name"), "", fileName, tr("Example: mydll.dll"), &DIcon("breakpoint")) && !fileName.isEmpty())
         DbgCmdExec(QString("bpdll \"%1\"").arg(fileName));
 }
 
 void BreakpointsView::addExceptionBreakpointSlot()
 {
     QString exception;
-    if(SimpleChoiceBox(this, tr("Enter the exception code"), "", mExceptionList, exception, true, tr("Example: EXCEPTION_ACCESS_VIOLATION"), &DIcon("breakpoint.png"), mExceptionMaxLength) && !exception.isEmpty())
+    if(SimpleChoiceBox(this, tr("Enter the exception code"), "", mExceptionList, exception, true, tr("Example: EXCEPTION_ACCESS_VIOLATION"), &DIcon("breakpoint"), mExceptionMaxLength) && !exception.isEmpty())
         DbgCmdExec((QString("SetExceptionBPX ") + exception));
 }
 

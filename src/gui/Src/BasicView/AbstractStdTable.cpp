@@ -13,13 +13,13 @@ AbstractStdTable::AbstractStdTable(QWidget* parent) : AbstractTableView(parent)
     Initialize();
 
     // Set up copy menu
-    mCopyLine = makeShortcutAction(DIcon("copy_table_line.png"), tr("&Line"), SLOT(copyLineSlot()), "ActionCopy");
-    mCopyTable = makeShortcutAction(DIcon("copy_cropped_table.png"), tr("Cropped &Table"), SLOT(copyTableSlot()), "ActionCopyCroppedTable");
-    mCopyTableResize = makeShortcutAction(DIcon("copy_full_table.png"), tr("&Full Table"), SLOT(copyTableResizeSlot()), "ActionCopyTable");
-    mCopyLineToLog = makeShortcutAction(DIcon("copy_table_line.png"), tr("Line, To Log"), SLOT(copyLineToLogSlot()), "ActionCopyLineToLog");
-    mCopyTableToLog = makeShortcutAction(DIcon("copy_cropped_table.png"), tr("Cropped Table, To Log"), SLOT(copyTableToLogSlot()), "ActionCopyCroppedTableToLog");
-    mCopyTableResizeToLog = makeShortcutAction(DIcon("copy_full_table.png"), tr("Full Table, To Log"), SLOT(copyTableResizeToLogSlot()), "ActionCopyTableToLog");
-    mExportTableCSV = makeShortcutAction(DIcon("database-export.png"), tr("&Export Table"), SLOT(exportTableSlot()), "ActionExport");
+    mCopyLine = makeShortcutAction(DIcon("copy_table_line"), tr("&Line"), SLOT(copyLineSlot()), "ActionCopy");
+    mCopyTable = makeShortcutAction(DIcon("copy_cropped_table"), tr("Cropped &Table"), SLOT(copyTableSlot()), "ActionCopyCroppedTable");
+    mCopyTableResize = makeShortcutAction(DIcon("copy_full_table"), tr("&Full Table"), SLOT(copyTableResizeSlot()), "ActionCopyTable");
+    mCopyLineToLog = makeShortcutAction(DIcon("copy_table_line"), tr("Line, To Log"), SLOT(copyLineToLogSlot()), "ActionCopyLineToLog");
+    mCopyTableToLog = makeShortcutAction(DIcon("copy_cropped_table"), tr("Cropped Table, To Log"), SLOT(copyTableToLogSlot()), "ActionCopyCroppedTableToLog");
+    mCopyTableResizeToLog = makeShortcutAction(DIcon("copy_full_table"), tr("Full Table, To Log"), SLOT(copyTableResizeToLogSlot()), "ActionCopyTableToLog");
+    mExportTableCSV = makeShortcutAction(DIcon("database-export"), tr("&Export Table"), SLOT(exportTableSlot()), "ActionExport");
 }
 
 QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
@@ -901,7 +901,7 @@ void AbstractStdTable::setupCopyMenu(QMenu* copyMenu)
 {
     if(!getColumnCount())
         return;
-    copyMenu->setIcon(DIcon("copy.png"));
+    copyMenu->setIcon(DIcon("copy"));
     //Copy->Whole Line
     copyMenu->addAction(mCopyLine);
     //Copy->Cropped Table
@@ -933,7 +933,7 @@ void AbstractStdTable::setupCopyColumnMenu(QMenu* copyMenu)
         QString title = mCopyTitles.at(i);
         if(!title.length()) //skip empty copy titles
             continue;
-        QAction* mCopyAction = new QAction(DIcon("copy_item.png"), title, copyMenu);
+        QAction* mCopyAction = new QAction(DIcon("copy_item"), title, copyMenu);
         mCopyAction->setObjectName(QString::number(i));
         connect(mCopyAction, SIGNAL(triggered()), this, SLOT(copyEntrySlot()));
         copyMenu->addAction(mCopyAction);
@@ -977,7 +977,7 @@ void AbstractStdTable::setupCopyColumnMenu(MenuBuilder* copyMenu)
             QString title = mCopyTitles.at(i);
             if(!title.length()) //skip empty copy titles
                 continue;
-            QAction* action = new QAction(DIcon("copy_item.png"), title, menu);
+            QAction* action = new QAction(DIcon("copy_item"), title, menu);
             action->setObjectName(QString::number(i));
             connect(action, SIGNAL(triggered()), this, SLOT(copyEntrySlot()));
             menu->addAction(action);

@@ -17,8 +17,8 @@
    <string>Struct</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/struct.png</normaloff>:/icons/images/struct.png</iconset>
+   <iconset theme="struct" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/struct.png</normaloff>:/Default/icons/struct.png</iconset>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <property name="spacing">

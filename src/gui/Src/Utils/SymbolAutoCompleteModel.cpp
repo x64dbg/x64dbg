@@ -62,7 +62,7 @@ QVariant SymbolAutoCompleteModel::data(const QModelIndex & index, int role) cons
             }
             else if(role == Qt::DecorationRole)
             {
-                return QVariant(DIcon("functions.png"));
+                return QVariant(DIcon("functions"));
             }
         }
     }

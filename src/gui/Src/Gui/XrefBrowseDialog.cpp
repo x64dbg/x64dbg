@@ -10,7 +10,7 @@ XrefBrowseDialog::XrefBrowseDialog(QWidget* parent) :
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    setWindowIcon(DIcon("xrefs.png"));
+    setWindowIcon(DIcon("xrefs"));
     setModal(false);
     mXrefInfo.refcount = 0;
     ui->listWidget->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -85,40 +85,40 @@ void XrefBrowseDialog::setup(duint address, GotoFunction gotoFunction)
 void XrefBrowseDialog::setupContextMenu()
 {
     mMenu = new MenuBuilder(this);
-    mMenu->addAction(makeAction(DIcon("breakpoint_toggle.png"), tr("Toggle &Breakpoint"), SLOT(breakpointSlot())));
+    mMenu->addAction(makeAction(DIcon("breakpoint_toggle"), tr("Toggle &Breakpoint"), SLOT(breakpointSlot())));
     //Breakpoint (hardware access) menu
-    auto hardwareAccessMenu = makeMenu(DIcon("breakpoint_access.png"), tr("Hardware, Access"));
-    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_byte.png"), tr("&Byte"), SLOT(hardwareAccess1Slot())));
-    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_word.png"), tr("&Word"), SLOT(hardwareAccess2Slot())));
-    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_dword.png"), tr("&Dword"), SLOT(hardwareAccess4Slot())));
+    auto hardwareAccessMenu = makeMenu(DIcon("breakpoint_access"), tr("Hardware, Access"));
+    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_byte"), tr("&Byte"), SLOT(hardwareAccess1Slot())));
+    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_word"), tr("&Word"), SLOT(hardwareAccess2Slot())));
+    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_dword"), tr("&Dword"), SLOT(hardwareAccess4Slot())));
 #ifdef _WIN64
-    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_qword.png"), tr("&Qword"), SLOT(hardwareAccess8Slot())));
+    hardwareAccessMenu->addAction(makeAction(DIcon("breakpoint_qword"), tr("&Qword"), SLOT(hardwareAccess8Slot())));
 #endif //_WIN64
 
     //Breakpoint (hardware write) menu
-    auto hardwareWriteMenu = makeMenu(DIcon("breakpoint_write.png"), tr("Hardware, Write"));
-    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_byte.png"), tr("&Byte"), SLOT(hardwareWrite1Slot())));
-    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_word.png"), tr("&Word"), SLOT(hardwareWrite2Slot())));
-    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_dword.png"), tr("&Dword"), SLOT(hardwareWrite4Slot())));
+    auto hardwareWriteMenu = makeMenu(DIcon("breakpoint_write"), tr("Hardware, Write"));
+    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_byte"), tr("&Byte"), SLOT(hardwareWrite1Slot())));
+    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_word"), tr("&Word"), SLOT(hardwareWrite2Slot())));
+    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_dword"), tr("&Dword"), SLOT(hardwareWrite4Slot())));
 #ifdef _WIN64
-    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_qword.png"), tr("&Qword"), SLOT(hardwareAccess8Slot())));
+    hardwareWriteMenu->addAction(makeAction(DIcon("breakpoint_qword"), tr("&Qword"), SLOT(hardwareAccess8Slot())));
 #endif //_WIN64
 
     //Breakpoint (remove hardware)
-    auto hardwareRemove = makeAction(DIcon("breakpoint_remove.png"), tr("Remove &Hardware"), SLOT(hardwareRemoveSlot()));
+    auto hardwareRemove = makeAction(DIcon("breakpoint_remove"), tr("Remove &Hardware"), SLOT(hardwareRemoveSlot()));
 
     //Breakpoint (memory access) menu
-    auto memoryAccessMenu = makeMenu(DIcon("breakpoint_memory_access.png"), tr("Memory, Access"));
-    memoryAccessMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), SLOT(memoryAccessSingleshootSlot())));
-    memoryAccessMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), SLOT(memoryAccessRestoreSlot())));
+    auto memoryAccessMenu = makeMenu(DIcon("breakpoint_memory_access"), tr("Memory, Access"));
+    memoryAccessMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), SLOT(memoryAccessSingleshootSlot())));
+    memoryAccessMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), SLOT(memoryAccessRestoreSlot())));
 
     //Breakpoint (memory write) menu
-    auto memoryWriteMenu = makeMenu(DIcon("breakpoint_memory_write.png"), tr("Memory, Write"));
-    memoryWriteMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot.png"), tr("&Singleshoot"), SLOT(memoryWriteSingleshootSlot())));
-    memoryWriteMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit.png"), tr("&Restore on hit"), SLOT(memoryWriteRestoreSlot())));
+    auto memoryWriteMenu = makeMenu(DIcon("breakpoint_memory_write"), tr("Memory, Write"));
+    memoryWriteMenu->addAction(makeAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), SLOT(memoryWriteSingleshootSlot())));
+    memoryWriteMenu->addAction(makeAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), SLOT(memoryWriteRestoreSlot())));
 
     //Breakpoint (remove memory) menu
-    auto memoryRemove = makeAction(DIcon("breakpoint_remove.png"), tr("Remove &Memory"), SLOT(memoryRemoveSlot()));
+    auto memoryRemove = makeAction(DIcon("breakpoint_remove"), tr("Remove &Memory"), SLOT(memoryRemoveSlot()));
 
     //Breakpoint menu
     auto breakpointMenu = new MenuBuilder(this);
@@ -150,12 +150,12 @@ void XrefBrowseDialog::setupContextMenu()
         }
         return true;
     }));
-    mMenu->addMenu(makeMenu(DIcon("breakpoint.png"), tr("Brea&kpoint")), breakpointMenu);
-    mMenu->addAction(makeAction(DIcon("breakpoint_toggle.png"), tr("Toggle breakpoints on all xrefs"), SLOT(breakpointAllSlot())));
+    mMenu->addMenu(makeMenu(DIcon("breakpoint"), tr("Brea&kpoint")), breakpointMenu);
+    mMenu->addAction(makeAction(DIcon("breakpoint_toggle"), tr("Toggle breakpoints on all xrefs"), SLOT(breakpointAllSlot())));
     auto mCopyMenu = new MenuBuilder(mMenu);
     mCopyMenu->addAction(makeAction(tr("Selected xref"), SLOT(copyThisSlot())));
     mCopyMenu->addAction(makeAction(tr("All xrefs"), SLOT(copyAllSlot())));
-    mMenu->addMenu(makeMenu(DIcon("copy.png"), tr("Copy")), mCopyMenu);
+    mMenu->addMenu(makeMenu(DIcon("copy"), tr("Copy")), mCopyMenu);
     mMenu->loadFromConfig();
 }
 

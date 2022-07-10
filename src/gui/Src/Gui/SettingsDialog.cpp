@@ -897,7 +897,7 @@ void SettingsDialog::on_btnDeleteRange_clicked()
 void SettingsDialog::on_btnIgnoreLast_clicked()
 {
     QMessageBox msg(QMessageBox::Question, tr("Question"), QString().sprintf(tr("Are you sure you want to add %.8X?").toUtf8().constData(), lastException));
-    msg.setWindowIcon(DIcon("question.png"));
+    msg.setWindowIcon(DIcon("question"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.setStandardButtons(QMessageBox::No | QMessageBox::Yes);

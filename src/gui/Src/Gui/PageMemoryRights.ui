@@ -20,8 +20,8 @@
    <string>Set Page Memory Rights</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/memory-map.png</normaloff>:/icons/images/memory-map.png</iconset>
+   <iconset theme="memory-map" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/memory-map.png</normaloff>:/Default/icons/memory-map.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>

@@ -59,7 +59,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     this->horizontalScrollBar()->setSingleStep(this->charWidth);
     this->verticalScrollBar()->setSingleStep(this->charHeight);
-    this->setWindowIcon(DIcon("graph.png"));
+    this->setWindowIcon(DIcon("graph"));
 
     //QSize areaSize = this->viewport()->size();             <-\
     //this->adjustSize(areaSize.width(), areaSize.height()); <-- useless at this point (?)
@@ -2191,22 +2191,22 @@ void DisassemblerGraphView::setupContextMenu()
     {
         return zoomActionHelper() != 0;
     };
-    mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32.png", "processor64.png")), tr("Follow in &Disassembler"), SLOT(followDisassemblySlot()), "ActionGraph"), zoomActionHelperNonZero);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon(ArchValue("processor32", "processor64")), tr("Follow in &Disassembler"), SLOT(followDisassemblySlot()), "ActionGraph"), zoomActionHelperNonZero);
     mMenuBuilder->addSeparator();
 
     mCommonActions->build(mMenuBuilder, CommonActions::ActionBreakpoint | CommonActions::ActionMemoryMap | CommonActions::ActionBookmark | CommonActions::ActionLabel |
                           CommonActions::ActionComment | CommonActions::ActionNewOrigin | CommonActions::ActionNewThread);
 
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs.png"), tr("Xrefs..."), SLOT(xrefSlot()), "ActionXrefs"), zoomActionHelperNonZero);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs"), tr("Xrefs..."), SLOT(xrefSlot()), "ActionXrefs"), zoomActionHelperNonZero);
 
     MenuBuilder* gotoMenu = new MenuBuilder(this);
-    gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
-    gotoMenu->addAction(makeShortcutAction(DIcon("cbp.png"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
-    gotoMenu->addAction(makeShortcutAction(DIcon("previous.png"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
+    gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
+    gotoMenu->addAction(makeShortcutAction(DIcon("cbp"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
+    gotoMenu->addAction(makeShortcutAction(DIcon("previous"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
         return mHistory.historyHasPrev();
     });
-    gotoMenu->addAction(makeShortcutAction(DIcon("next.png"), tr("Next"), SLOT(gotoNextSlot()), "ActionGotoNext"), [this](QMenu*)
+    gotoMenu->addAction(makeShortcutAction(DIcon("next"), tr("Next"), SLOT(gotoNextSlot()), "ActionGotoNext"), [this](QMenu*)
     {
         return mHistory.historyHasNext();
     });
@@ -2281,37 +2281,37 @@ void DisassemblerGraphView::setupContextMenu()
     });
     gotoMenu->addSeparator();
     gotoMenu->addBuilder(childrenAndParentMenu);
-    mMenuBuilder->addMenu(makeMenu(DIcon("goto.png"), tr("Go to")), gotoMenu);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("helpmnemonic.png"), tr("Help on mnemonic"), SLOT(mnemonicHelpSlot()), "ActionHelpOnMnemonic"));
+    mMenuBuilder->addMenu(makeMenu(DIcon("goto"), tr("Go to")), gotoMenu);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("helpmnemonic"), tr("Help on mnemonic"), SLOT(mnemonicHelpSlot()), "ActionHelpOnMnemonic"));
     mMenuBuilder->addSeparator();
     auto ifgraphZoomMode = [this](QMenu*)
     {
         return graphZoomMode;
     };
 
-    mMenuBuilder->addAction(mZoomToCursor = makeShortcutAction(DIcon("zoom.png"), tr("&Zoom 100%"), SLOT(zoomToCursorSlot()), "ActionGraphZoomToCursor"), ifgraphZoomMode);
-    mMenuBuilder->addAction(mFitToWindow = makeShortcutAction(DIcon("fit.png"), tr("&Fit to window"), SLOT(fitToWindowSlot()), "ActionGraphFitToWindow"), ifgraphZoomMode);
-    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph.png"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"), ifgraphZoomMode);
+    mMenuBuilder->addAction(mZoomToCursor = makeShortcutAction(DIcon("zoom"), tr("&Zoom 100%"), SLOT(zoomToCursorSlot()), "ActionGraphZoomToCursor"), ifgraphZoomMode);
+    mMenuBuilder->addAction(mFitToWindow = makeShortcutAction(DIcon("fit"), tr("&Fit to window"), SLOT(fitToWindowSlot()), "ActionGraphFitToWindow"), ifgraphZoomMode);
+    mMenuBuilder->addAction(mToggleOverview = makeShortcutAction(DIcon("graph"), tr("&Overview"), SLOT(toggleOverviewSlot()), "ActionGraphToggleOverview"), ifgraphZoomMode);
     mToggleOverview->setCheckable(true);
-    mMenuBuilder->addAction(mToggleSummary = makeShortcutAction(DIcon("summary.png"), tr("S&ummary"), SLOT(toggleSummarySlot()), "ActionGraphToggleSummary"));
+    mMenuBuilder->addAction(mToggleSummary = makeShortcutAction(DIcon("summary"), tr("S&ummary"), SLOT(toggleSummarySlot()), "ActionGraphToggleSummary"));
     mToggleSummary->setCheckable(true);
-    mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock.png"), tr("&Sync with origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("image.png"), tr("&Save as image"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
+    mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock"), tr("&Sync with origin"), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("image"), tr("&Save as image"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
 
     MenuBuilder* layoutMenu = new MenuBuilder(this);
     QActionGroup* layoutGroup = new QActionGroup(this);
-    layoutGroup->addAction(makeAction(DIcon("narrow.png"), tr("Narrow"), [this]() { setGraphLayout(LayoutType::Narrow); }));
+    layoutGroup->addAction(makeAction(DIcon("narrow"), tr("Narrow"), [this]() { setGraphLayout(LayoutType::Narrow); }));
     QAction* mediumLayout =
-    layoutGroup->addAction(makeAction(DIcon("medium.png"), tr("Medium"), [this]() { setGraphLayout(LayoutType::Medium); }));
-    layoutGroup->addAction(makeAction(DIcon("wide.png"), tr("Wide"), [this]() { setGraphLayout(LayoutType::Wide); }));
+    layoutGroup->addAction(makeAction(DIcon("medium"), tr("Medium"), [this]() { setGraphLayout(LayoutType::Medium); }));
+    layoutGroup->addAction(makeAction(DIcon("wide"), tr("Wide"), [this]() { setGraphLayout(LayoutType::Wide); }));
     for(QAction* layoutAction : layoutGroup->actions())
     {
         layoutAction->setCheckable(true);
         layoutMenu->addAction(layoutAction);
     }
     mediumLayout->setChecked(true);
-    mMenuBuilder->addMenu(makeMenu(DIcon("layout.png"), tr("Layout")), layoutMenu);
+    mMenuBuilder->addMenu(makeMenu(DIcon("layout"), tr("Layout")), layoutMenu);
 
     mPluginMenu = new QMenu(this);
     Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_GRAPH_MENU);

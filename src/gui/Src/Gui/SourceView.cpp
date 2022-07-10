@@ -151,13 +151,13 @@ void SourceView::setupContextMenu()
     mCommonActions->build(mMenuBuilder, CommonActions::ActionDisasm | CommonActions::ActionDump | CommonActions::ActionBreakpoint | CommonActions::ActionLabel | CommonActions::ActionComment
                           | CommonActions::ActionBookmark | CommonActions::ActionMemoryMap | CommonActions::ActionNewOrigin | CommonActions::ActionNewThread);
     mMenuBuilder->addSeparator();
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("geolocation-goto.png"), tr("Go to line"), SLOT(gotoLineSlot()), "ActionGotoExpression"));
-    mMenuBuilder->addAction(makeAction(DIcon("source.png"), tr("Open source file"), SLOT(openSourceFileSlot())));
-    mMenuBuilder->addAction(makeAction(DIcon("source_show_in_folder.png"), tr("Show source file in directory"), SLOT(showInDirectorySlot())));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("geolocation-goto"), tr("Go to line"), SLOT(gotoLineSlot()), "ActionGotoExpression"));
+    mMenuBuilder->addAction(makeAction(DIcon("source"), tr("Open source file"), SLOT(openSourceFileSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("source_show_in_folder"), tr("Show source file in directory"), SLOT(showInDirectorySlot())));
     mMenuBuilder->addSeparator();
     MenuBuilder* copyMenu = new MenuBuilder(this);
     setupCopyColumnMenu(copyMenu);
-    mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
+    mMenuBuilder->addMenu(makeMenu(DIcon("copy"), tr("&Copy")), copyMenu);
     mMenuBuilder->loadFromConfig();
 }
 

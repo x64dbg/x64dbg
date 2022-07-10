@@ -592,7 +592,7 @@ void CPUInfoBox::addModifyValueMenuItem(QMenu* menu, QString name, duint value)
 
 void CPUInfoBox::setupModifyValueMenu(QMenu* menu, duint wVA)
 {
-    menu->setIcon(DIcon("modify.png"));
+    menu->setIcon(DIcon("modify"));
 
     //add follow actions
     DISASM_INSTR instr;
@@ -654,7 +654,7 @@ void CPUInfoBox::addFollowMenuItem(QMenu* menu, QString name, duint value)
  */
 void CPUInfoBox::setupFollowMenu(QMenu* menu, duint wVA)
 {
-    menu->setIcon(DIcon("dump.png"));
+    menu->setIcon(DIcon("dump"));
     //most basic follow action
     addFollowMenuItem(menu, tr("&Selected Address"), wVA);
 
@@ -718,7 +718,7 @@ void CPUInfoBox::addWatchMenuItem(QMenu* menu, QString name, duint value)
  */
 void CPUInfoBox::setupWatchMenu(QMenu* menu, duint wVA)
 {
-    menu->setIcon(DIcon("animal-dog.png"));
+    menu->setIcon(DIcon("animal-dog"));
     //most basic follow action
     addWatchMenuItem(menu, tr("&Selected Address"), wVA);
 
@@ -817,7 +817,7 @@ void CPUInfoBox::contextMenuSlot(QPoint pos)
     setupWatchMenu(&wWatchMenu, curAddr);
     wMenu.addMenu(&wWatchMenu);
     if(!getInfoLine(2).isEmpty())
-        wMenu.addAction(makeAction(DIcon("xrefs.png"), tr("&Show References"), SLOT(findXReferencesSlot())));
+        wMenu.addAction(makeAction(DIcon("xrefs"), tr("&Show References"), SLOT(findXReferencesSlot())));
     QMenu wCopyMenu(tr("&Copy"), this);
     setupCopyMenu(&wCopyMenu);
     if(DbgIsDebugging())

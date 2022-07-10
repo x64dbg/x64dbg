@@ -14,8 +14,8 @@
    <string>Patches</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/patch.png</normaloff>:/icons/images/patch.png</iconset>
+   <iconset theme="patch" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/patch.png</normaloff>:/Default/icons/patch.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

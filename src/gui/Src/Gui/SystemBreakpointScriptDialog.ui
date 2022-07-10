@@ -14,8 +14,8 @@
    <string>System breakpoint scripts</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/initscript.png</normaloff>:/icons/images/initscript.png</iconset>
+   <iconset theme="initscript" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/initscript.png</normaloff>:/Default/icons/initscript.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

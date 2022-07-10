@@ -32,7 +32,7 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
         setWindowTitle(tr("Edit Breakpoint %1").arg(getSymbolicName(bp.addr)));
         break;
     }
-    setWindowIcon(DIcon("breakpoint.png"));
+    setWindowIcon(DIcon("breakpoint"));
     loadFromBp();
 
     Config()->setupWindowPos(this);

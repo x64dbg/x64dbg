@@ -17,8 +17,8 @@
    <string>Message Breakpoint</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/breakpoint_execute.png</normaloff>:/icons/images/breakpoint_execute.png</iconset>
+   <iconset theme="breakpoint_execute" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/breakpoint_execute.png</normaloff>:/Default/icons/breakpoint_execute.png</iconset>
   </property>
   <property name="locale">
    <locale language="English" country="UnitedStates"/>

@@ -7,7 +7,7 @@
 
 TraceRegisters::TraceRegisters(QWidget* parent) : RegistersView(parent)
 {
-    wCM_CopySIMDRegister = setupAction(DIcon("copy.png"), tr("Copy floating point value"));
+    wCM_CopySIMDRegister = setupAction(DIcon("copy"), tr("Copy floating point value"));
     connect(wCM_CopySIMDRegister, SIGNAL(triggered()), this, SLOT(onCopySIMDRegister()));
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(displayCustomContextMenuSlot(QPoint)));
 }

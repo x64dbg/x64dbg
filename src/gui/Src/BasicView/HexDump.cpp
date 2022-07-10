@@ -295,19 +295,19 @@ QString HexDump::makeCopyText()
 void HexDump::setupCopyMenu()
 {
     // Copy -> Data
-    mCopySelection = new QAction(DIcon("copy_selection.png"), tr("&Selected lines"), this);
+    mCopySelection = new QAction(DIcon("copy_selection"), tr("&Selected lines"), this);
     connect(mCopySelection, SIGNAL(triggered(bool)), this, SLOT(copySelectionSlot()));
     mCopySelection->setShortcutContext(Qt::WidgetShortcut);
     addAction(mCopySelection);
 
     // Copy -> Address
-    mCopyAddress = new QAction(DIcon("copy_address.png"), tr("&Address"), this);
+    mCopyAddress = new QAction(DIcon("copy_address"), tr("&Address"), this);
     connect(mCopyAddress, SIGNAL(triggered()), this, SLOT(copyAddressSlot()));
     mCopyAddress->setShortcutContext(Qt::WidgetShortcut);
     addAction(mCopyAddress);
 
     // Copy -> RVA
-    mCopyRva = new QAction(DIcon("copy_address.png"), "&RVA", this);
+    mCopyRva = new QAction(DIcon("copy_address"), "&RVA", this);
     connect(mCopyRva, SIGNAL(triggered()), this, SLOT(copyRvaSlot()));
     mCopyRva->setShortcutContext(Qt::WidgetShortcut);
     addAction(mCopyRva);

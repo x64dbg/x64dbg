@@ -99,7 +99,7 @@ SearchListView::SearchListView(QWidget* parent, AbstractSearchList* abstractSear
         mSearchBox->setWindowTitle(parent->metaObject()->className());
 
     // Setup search menu action
-    mSearchAction = new QAction(DIcon("find.png"), tr("Search..."), this);
+    mSearchAction = new QAction(DIcon("find"), tr("Search..."), this);
     connect(mSearchAction, SIGNAL(triggered()), this, SLOT(searchSlot()));
 
     // https://wiki.qt.io/Delay_action_to_wait_for_user_interaction
@@ -300,7 +300,7 @@ void SearchListView::listContextMenu(const QPoint & pos)
     wMenu.addSeparator();
     wMenu.addAction(mSearchAction);
     QMenu wCopyMenu(tr("&Copy"), this);
-    wCopyMenu.setIcon(DIcon("copy.png"));
+    wCopyMenu.setIcon(DIcon("copy"));
     mCurList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
         wMenu.addMenu(&wCopyMenu);

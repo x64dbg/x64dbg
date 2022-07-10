@@ -14,8 +14,8 @@
    <string>Shortcuts</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/shortcut.png</normaloff>:/icons/images/shortcut.png</iconset>
+   <iconset theme="shortcut" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/shortcut.png</normaloff>:/Default/icons/shortcut.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

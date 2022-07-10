@@ -23,8 +23,8 @@
    <string>Dialog</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/modify.png</normaloff>:/icons/images/modify.png</iconset>
+   <iconset theme="modify" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/modify.png</normaloff>:/Default/icons/modify.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="leftMargin">

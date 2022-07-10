@@ -14,8 +14,8 @@
    <string>HexEdit</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/document-binary.png</normaloff>:/icons/images/document-binary.png</iconset>
+   <iconset theme="document-binary" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/document-binary.png</normaloff>:/Default/icons/document-binary.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_4">
    <item>
@@ -53,7 +53,7 @@
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="../../resource.qrc">:/icons/images/fatal-error.png</pixmap>
+              <pixmap resource="../../resource.qrc">:/Default/icons/fatal-error.png</pixmap>
              </property>
             </widget>
            </item>
@@ -109,7 +109,7 @@
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="../../resource.qrc">:/icons/images/fatal-error.png</pixmap>
+              <pixmap resource="../../resource.qrc">:/Default/icons/fatal-error.png</pixmap>
              </property>
             </widget>
            </item>
@@ -165,7 +165,7 @@
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="../../resource.qrc">:/icons/images/fatal-error.png</pixmap>
+              <pixmap resource="../../resource.qrc">:/Default/icons/fatal-error.png</pixmap>
              </property>
             </widget>
            </item>
@@ -281,7 +281,7 @@
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="../../resource.qrc">:/icons/images/fatal-error.png</pixmap>
+              <pixmap resource="../../resource.qrc">:/Default/icons/fatal-error.png</pixmap>
              </property>
             </widget>
            </item>

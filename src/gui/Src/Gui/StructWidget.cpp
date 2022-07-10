@@ -181,31 +181,31 @@ void StructWidget::setupColumns()
 void StructWidget::setupContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this);
-    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), tr("Follow value in Dump"), SLOT(followValueDumpSlot())), [this](QMenu*)
+    mMenuBuilder->addAction(makeAction(DIcon("dump"), tr("Follow value in Dump"), SLOT(followValueDumpSlot())), [this](QMenu*)
     {
         return DbgMemIsValidReadPtr(selectedValue());
     });
-    mMenuBuilder->addAction(makeAction(DIcon("processor-cpu.png"), tr("Follow value in Disassembler"), SLOT(followValueDisasmSlot())), [this](QMenu*)
+    mMenuBuilder->addAction(makeAction(DIcon("processor-cpu"), tr("Follow value in Disassembler"), SLOT(followValueDisasmSlot())), [this](QMenu*)
     {
         return DbgMemIsValidReadPtr(selectedValue());
     });
-    mMenuBuilder->addAction(makeAction(DIcon("dump.png"), tr("&Follow address in Dump"), SLOT(followDumpSlot())), [this](QMenu*)
+    mMenuBuilder->addAction(makeAction(DIcon("dump"), tr("&Follow address in Dump"), SLOT(followDumpSlot())), [this](QMenu*)
     {
         return hasSelection && DbgMemIsValidReadPtr(selectedType.addr + selectedType.offset);
     });
-    mMenuBuilder->addAction(makeAction(DIcon("structaddr.png"), tr("Change address"), SLOT(changeAddrSlot())), [this](QMenu*)
+    mMenuBuilder->addAction(makeAction(DIcon("structaddr"), tr("Change address"), SLOT(changeAddrSlot())), [this](QMenu*)
     {
         return hasSelection && !selectedItem->parent() && DbgIsDebugging();
     });
-    mMenuBuilder->addAction(makeAction(DIcon("visitstruct.png"), tr("Visit type"), SLOT(visitSlot())));
-    mMenuBuilder->addAction(makeAction(DIcon("database-import.png"), tr("Load JSON"), SLOT(loadJsonSlot())));
-    mMenuBuilder->addAction(makeAction(DIcon("source.png"), tr("Parse header"), SLOT(parseFileSlot())));
-    mMenuBuilder->addAction(makeAction(DIcon("removestruct.png"), tr("Remove"), SLOT(removeSlot())), [this](QMenu*)
+    mMenuBuilder->addAction(makeAction(DIcon("visitstruct"), tr("Visit type"), SLOT(visitSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("database-import"), tr("Load JSON"), SLOT(loadJsonSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("source"), tr("Parse header"), SLOT(parseFileSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("removestruct"), tr("Remove"), SLOT(removeSlot())), [this](QMenu*)
     {
         return hasSelection && !selectedItem->parent();
     });
-    mMenuBuilder->addAction(makeAction(DIcon("eraser.png"), tr("Clear"), SLOT(clearSlot())));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync.png"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
+    mMenuBuilder->addAction(makeAction(DIcon("eraser"), tr("Clear"), SLOT(clearSlot())));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
     mMenuBuilder->loadFromConfig();
 }
 

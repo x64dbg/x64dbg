@@ -24,31 +24,31 @@ void ThreadView::setupContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this);
     //Switch thread menu
-    mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-switch.png"), tr("Switch Thread"), this), "switchthread $"));
+    mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-switch"), tr("Switch Thread"), this), "switchthread $"));
 
     //Suspend thread menu
-    mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-pause.png"), tr("Suspend Thread"), this), "suspendthread $"));
+    mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-pause"), tr("Suspend Thread"), this), "suspendthread $"));
 
     //Resume thread menu
-    mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-resume.png"), tr("Resume Thread"), this), "resumethread $"));
+    mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-resume"), tr("Resume Thread"), this), "resumethread $"));
 
-    mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-pause.png"), tr("Suspend All Threads"), this), "suspendallthreads"));
+    mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-pause"), tr("Suspend All Threads"), this), "suspendallthreads"));
 
-    mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-resume.png"), tr("Resume All Threads"), this), "resumeallthreads"));
+    mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-resume"), tr("Resume All Threads"), this), "resumeallthreads"));
 
     //Kill thread menu
-    mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-kill.png"), tr("Kill Thread"), this), "killthread $"));
+    mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-kill"), tr("Kill Thread"), this), "killthread $"));
     mMenuBuilder->addSeparator();
     // Set name
-    mMenuBuilder->addAction(makeAction(DIcon("thread-setname.png"), tr("Set Name"), SLOT(SetNameSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("thread-setname"), tr("Set Name"), SLOT(SetNameSlot())));
     // Set priority
-    QAction* mSetPriorityIdle = makeCommandAction(new QAction(DIcon("thread-priority-idle.png"), tr("Idle"), this), "setprioritythread $, Idle");
-    QAction* mSetPriorityAboveNormal = makeCommandAction(new QAction(DIcon("thread-priority-above-normal.png"), tr("Above Normal"), this), "setprioritythread $, AboveNormal");
-    QAction* mSetPriorityBelowNormal = makeCommandAction(new QAction(DIcon("thread-priority-below-normal.png"), tr("Below Normal"), this), "setprioritythread $, BelowNormal");
-    QAction* mSetPriorityHighest = makeCommandAction(new QAction(DIcon("thread-priority-highest.png"), tr("Highest"), this), "setprioritythread $, Highest");
-    QAction* mSetPriorityLowest = makeCommandAction(new QAction(DIcon("thread-priority-lowest.png"), tr("Lowest"), this), "setprioritythread $, Lowest");
-    QAction* mSetPriorityNormal = makeCommandAction(new QAction(DIcon("thread-priority-normal.png"), tr("Normal"), this), "setprioritythread $, Normal");
-    QAction* mSetPriorityTimeCritical = makeCommandAction(new QAction(DIcon("thread-priority-timecritical.png"), tr("Time Critical"), this), "setprioritythread $, TimeCritical");
+    QAction* mSetPriorityIdle = makeCommandAction(new QAction(DIcon("thread-priority-idle"), tr("Idle"), this), "setprioritythread $, Idle");
+    QAction* mSetPriorityAboveNormal = makeCommandAction(new QAction(DIcon("thread-priority-above-normal"), tr("Above Normal"), this), "setprioritythread $, AboveNormal");
+    QAction* mSetPriorityBelowNormal = makeCommandAction(new QAction(DIcon("thread-priority-below-normal"), tr("Below Normal"), this), "setprioritythread $, BelowNormal");
+    QAction* mSetPriorityHighest = makeCommandAction(new QAction(DIcon("thread-priority-highest"), tr("Highest"), this), "setprioritythread $, Highest");
+    QAction* mSetPriorityLowest = makeCommandAction(new QAction(DIcon("thread-priority-lowest"), tr("Lowest"), this), "setprioritythread $, Lowest");
+    QAction* mSetPriorityNormal = makeCommandAction(new QAction(DIcon("thread-priority-normal"), tr("Normal"), this), "setprioritythread $, Normal");
+    QAction* mSetPriorityTimeCritical = makeCommandAction(new QAction(DIcon("thread-priority-timecritical"), tr("Time Critical"), this), "setprioritythread $, TimeCritical");
     MenuBuilder* mSetPriority = new MenuBuilder(this, [this, mSetPriorityIdle, mSetPriorityAboveNormal, mSetPriorityBelowNormal,
                   mSetPriorityHighest, mSetPriorityLowest, mSetPriorityNormal, mSetPriorityTimeCritical](QMenu*)
     {
@@ -92,10 +92,10 @@ void ThreadView::setupContextMenu()
     mSetPriority->addAction(mSetPriorityBelowNormal);
     mSetPriority->addAction(mSetPriorityLowest);
     mSetPriority->addAction(mSetPriorityIdle);
-    mMenuBuilder->addMenu(makeMenu(DIcon("thread-setpriority_alt.png"), tr("Set Priority")), mSetPriority);
+    mMenuBuilder->addMenu(makeMenu(DIcon("thread-setpriority_alt"), tr("Set Priority")), mSetPriority);
 
     // GoToThreadEntry
-    mMenuBuilder->addAction(makeAction(DIcon("thread-entry.png"), tr("Go to Thread Entry"), SLOT(GoToThreadEntry())), [this](QMenu * menu)
+    mMenuBuilder->addAction(makeAction(DIcon("thread-entry"), tr("Go to Thread Entry"), SLOT(GoToThreadEntry())), [this](QMenu * menu)
     {
         bool ok;
         ULONGLONG entry = getCellContent(getInitialSelection(), 2).toULongLong(&ok, 16);
@@ -112,7 +112,7 @@ void ThreadView::setupContextMenu()
     setupCopyMenu(mCopyMenu);
     // Column count cannot be zero
     mMenuBuilder->addSeparator();
-    mMenuBuilder->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), mCopyMenu);
+    mMenuBuilder->addMenu(makeMenu(DIcon("copy"), tr("&Copy")), mCopyMenu);
     mMenuBuilder->loadFromConfig();
 }
 

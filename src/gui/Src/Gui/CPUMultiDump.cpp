@@ -17,7 +17,7 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
     mInitAllDumpTabs = false;
 
     mDumpPluginMenu = new QMenu(this);
-    mDumpPluginMenu->setIcon(DIcon("plugin.png"));
+    mDumpPluginMenu->setIcon(DIcon("plugin"));
     Bridge::getBridge()->emitMenuAddToList(this, mDumpPluginMenu, GUI_DUMP_MENU);
 
     for(uint i = 0; i < mMaxCPUDumpTabs; i++)
@@ -27,7 +27,7 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
         connect(cpuDump, SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidgetSlot()));
         connect(cpuDump, SIGNAL(showDisassemblyTab(duint, duint, duint)), this, SLOT(showDisassemblyTabSlot(duint, duint, duint)));
         auto nativeTitle = QString("Dump ") + QString::number(i + 1);
-        this->addTabEx(cpuDump, DIcon("dump.png"), tr("Dump ") + QString::number(i + 1), nativeTitle);
+        this->addTabEx(cpuDump, DIcon("dump"), tr("Dump ") + QString::number(i + 1), nativeTitle);
         cpuDump->setWindowTitle(nativeTitle);
     }
 
@@ -37,12 +37,12 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs, QWidget* pa
 
     //mMaxCPUDumpTabs++;
     auto nativeTitle = QString("Watch 1");
-    this->addTabEx(mWatch, DIcon("animal-dog.png"), tr("Watch ") + QString::number(1), nativeTitle);
+    this->addTabEx(mWatch, DIcon("animal-dog"), tr("Watch ") + QString::number(1), nativeTitle);
     mWatch->setWindowTitle(nativeTitle);
     mWatch->loadColumnFromConfig("Watch1");
 
     mLocalVars = new LocalVarsView(this);
-    this->addTabEx(mLocalVars, DIcon("localvars.png"), tr("Locals"), "Locals");
+    this->addTabEx(mLocalVars, DIcon("localvars"), tr("Locals"), "Locals");
 
     mStructWidget = new StructWidget(this);
     this->addTabEx(mStructWidget, mStructWidget->windowIcon(), mStructWidget->windowTitle(), "Struct");
@@ -241,7 +241,7 @@ void CPUMultiDump::showDisassemblyTabSlot(duint selectionStart, duint selectionE
     if(!mDisassembly)
     {
         mDisassembly = new CPUDisassembly(this, false);
-        this->addTabEx(mDisassembly, DIcon(ArchValue("processor32.png", "processor64.png")), tr("Disassembly"), "DumpDisassembly");
+        this->addTabEx(mDisassembly, DIcon(ArchValue("processor32", "processor64")), tr("Disassembly"), "DumpDisassembly");
     }
     // Set CIP
     auto clearHistory = mDisassembly->getBase() == 0;

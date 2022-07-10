@@ -139,6 +139,9 @@ int main(int argc, char* argv[])
 {
     handleHighDpiScaling();
     MyApplication application(argc, argv);
+    // For unclear reasons it looks like the search path order is inverted.
+    // This might be specific to Qt 5.6 and only matters when you override the "Default" theme
+    QIcon::setThemeSearchPaths({ ":/", QCoreApplication::applicationDirPath() + "/../themes" });
     MainWindow::loadSelectedStyle(true);
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     QAbstractEventDispatcher::instance(application.thread())->setEventFilter(MyApplication::globalEventFilter);
@@ -210,7 +213,7 @@ int main(int argc, char* argv[])
     if(errormsg)
     {
         QMessageBox msg(QMessageBox::Critical, QObject::tr("DbgInit Error!"), QString(errormsg));
-        msg.setWindowIcon(DIcon("compile-error.png"));
+        msg.setWindowIcon(DIcon("compile-error"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         msg.exec();
         exit(1);

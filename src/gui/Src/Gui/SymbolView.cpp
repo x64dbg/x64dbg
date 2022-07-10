@@ -292,24 +292,24 @@ void SymbolView::invalidateSymbolSource(duint base)
 
 void SymbolView::setupContextMenu()
 {
-    QIcon disassembler = DIcon(ArchValue("processor32.png", "processor64.png"));
+    QIcon disassembler = DIcon(ArchValue("processor32", "processor64"));
     //Symbols
     mFollowSymbolAction = new QAction(disassembler, tr("&Follow in Disassembler"), this);
     connect(mFollowSymbolAction, SIGNAL(triggered()), this, SLOT(symbolFollow()));
 
-    mFollowSymbolDumpAction = new QAction(DIcon("dump.png"), tr("Follow in &Dump"), this);
+    mFollowSymbolDumpAction = new QAction(DIcon("dump"), tr("Follow in &Dump"), this);
     connect(mFollowSymbolDumpAction, SIGNAL(triggered()), this, SLOT(symbolFollowDump()));
 
-    mFollowSymbolImportAction = new QAction(DIcon("import.png"), tr("Follow &imported address"), this);
+    mFollowSymbolImportAction = new QAction(DIcon("import"), tr("Follow &imported address"), this);
     connect(mFollowSymbolImportAction, SIGNAL(triggered(bool)), this, SLOT(symbolFollowImport()));
 
-    mToggleBreakpoint = new QAction(DIcon("breakpoint.png"), tr("Toggle Breakpoint"), this);
+    mToggleBreakpoint = new QAction(DIcon("breakpoint"), tr("Toggle Breakpoint"), this);
     mToggleBreakpoint->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mToggleBreakpoint);
     mSymbolSearchList->addAction(mToggleBreakpoint);
     connect(mToggleBreakpoint, SIGNAL(triggered()), this, SLOT(toggleBreakpoint()));
 
-    mToggleBookmark = new QAction(DIcon("bookmark_toggle.png"), tr("Toggle Bookmark"), this);
+    mToggleBookmark = new QAction(DIcon("bookmark_toggle"), tr("Toggle Bookmark"), this);
     mToggleBookmark->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mToggleBookmark);
     mSymbolSearchList->addAction(mToggleBookmark);
@@ -324,61 +324,61 @@ void SymbolView::setupContextMenu()
     mFollowModuleEntryAction = new QAction(disassembler, tr("Follow &Entry Point in Disassembler"), this);
     connect(mFollowModuleEntryAction, SIGNAL(triggered()), this, SLOT(moduleEntryFollow()));
 
-    mFollowInMemMap = new QAction(DIcon("memmap_find_address_page.png"), tr("Follow in Memory Map"), this);
+    mFollowInMemMap = new QAction(DIcon("memmap_find_address_page"), tr("Follow in Memory Map"), this);
     mFollowInMemMap->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mFollowInMemMap);
     mModuleList->addAction(mFollowInMemMap);
     connect(mFollowInMemMap, SIGNAL(triggered()), this, SLOT(moduleFollowMemMap()));
 
-    mDownloadSymbolsAction = new QAction(DIcon("pdb.png"), tr("&Download Symbols for This Module"), this);
+    mDownloadSymbolsAction = new QAction(DIcon("pdb"), tr("&Download Symbols for This Module"), this);
     mDownloadSymbolsAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mDownloadSymbolsAction);
     mModuleList->addAction(mDownloadSymbolsAction);
     connect(mDownloadSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadSymbols()));
 
-    mDownloadAllSymbolsAction = new QAction(DIcon("pdb.png"), tr("Download Symbols for &All Modules"), this);
+    mDownloadAllSymbolsAction = new QAction(DIcon("pdb"), tr("Download Symbols for &All Modules"), this);
     mDownloadAllSymbolsAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mDownloadAllSymbolsAction);
     mModuleList->addAction(mDownloadAllSymbolsAction);
     connect(mDownloadAllSymbolsAction, SIGNAL(triggered()), this, SLOT(moduleDownloadAllSymbols()));
 
-    mCopyPathAction = new QAction(DIcon("copyfilepath.png"), tr("Copy File &Path"), this);
+    mCopyPathAction = new QAction(DIcon("copyfilepath"), tr("Copy File &Path"), this);
     mCopyPathAction->setShortcutContext(Qt::WidgetShortcut);
     this->addAction(mCopyPathAction);
     mModuleList->addAction(mCopyPathAction);
     connect(mCopyPathAction, SIGNAL(triggered()), this, SLOT(moduleCopyPath()));
 
-    mBrowseInExplorer = new QAction(DIcon("browseinexplorer.png"), tr("Browse in Explorer"), this);
+    mBrowseInExplorer = new QAction(DIcon("browseinexplorer"), tr("Browse in Explorer"), this);
     mBrowseInExplorer->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mBrowseInExplorer);
     mModuleList->addAction(mBrowseInExplorer);
     connect(mBrowseInExplorer, SIGNAL(triggered()), this, SLOT(moduleBrowse()));
 
-    mLoadLib = new QAction(DIcon("lib_load.png"), tr("Load library..."), this);
+    mLoadLib = new QAction(DIcon("lib_load"), tr("Load library..."), this);
     mLoadLib->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mLoadLib);
     mModuleList->addAction(mLoadLib);
     connect(mLoadLib, SIGNAL(triggered()), this, SLOT(moduleLoad()));
 
-    mFreeLib = new QAction(DIcon("lib_free.png"), tr("Free library"), this);
+    mFreeLib = new QAction(DIcon("lib_free"), tr("Free library"), this);
     mFreeLib->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mFreeLib);
     mModuleList->addAction(mFreeLib);
     connect(mFreeLib, SIGNAL(triggered()), this, SLOT(moduleFree()));
 
-    mModSetUserAction = new QAction(DIcon("markasuser.png"), tr("Mark as &user module"), this);
+    mModSetUserAction = new QAction(DIcon("markasuser"), tr("Mark as &user module"), this);
     mModSetUserAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mModSetUserAction);
     mModuleList->addAction(mModSetUserAction);
     connect(mModSetUserAction, SIGNAL(triggered()), this, SLOT(moduleSetUser()));
 
-    mModSetSystemAction = new QAction(DIcon("markassystem.png"), tr("Mark as &system module"), this);
+    mModSetSystemAction = new QAction(DIcon("markassystem"), tr("Mark as &system module"), this);
     mModSetSystemAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mModSetSystemAction);
     mModuleList->addAction(mModSetSystemAction);
     connect(mModSetSystemAction, SIGNAL(triggered()), this, SLOT(moduleSetSystem()));
 
-    mModSetPartyAction = new QAction(DIcon("markasparty.png"), tr("Mark as &party..."), this);
+    mModSetPartyAction = new QAction(DIcon("markasparty"), tr("Mark as &party..."), this);
     mModSetPartyAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     this->addAction(mModSetPartyAction);
     mModuleList->addAction(mModSetPartyAction);
@@ -610,7 +610,7 @@ void SymbolView::moduleContextMenu(QMenu* wMenu)
         wMenu->addAction(mModSetSystemAction);
     wMenu->addAction(mModSetPartyAction);
     QMenu wCopyMenu(tr("&Copy"), this);
-    wCopyMenu.setIcon(DIcon("copy.png"));
+    wCopyMenu.setIcon(DIcon("copy"));
     mModuleList->mCurList->setupCopyMenu(&wCopyMenu);
     if(wCopyMenu.actions().length())
     {
@@ -780,7 +780,7 @@ void SymbolView::toggleBookmark()
         if(!result)
         {
             QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetBookmarkAt failed!"));
-            msg.setWindowIcon(DIcon("compile-error.png"));
+            msg.setWindowIcon(DIcon("compile-error"));
             msg.setParent(this, Qt::Dialog);
             msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
             msg.exec();
@@ -817,7 +817,7 @@ void SymbolView::moduleSetParty()
     duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColBase).toUtf8().constData());
     party = DbgFunctions()->ModGetParty(modbase);
     QString mLineEditeditText;
-    QIcon bookmark = DIcon("bookmark.png");
+    QIcon bookmark = DIcon("bookmark");
     if(SimpleInputBox(this, tr("Mark the party of the module as"), QString::number(party), mLineEditeditText, tr("0 is user module, 1 is system module."), &bookmark))
     {
         bool ok;

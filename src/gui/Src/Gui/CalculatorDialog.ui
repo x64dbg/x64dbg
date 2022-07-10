@@ -20,8 +20,8 @@
    <string>Calculator</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/calculator.png</normaloff>:/icons/images/calculator.png</iconset>
+   <iconset theme="calculator" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/calculator.png</normaloff>:/Default/icons/calculator.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

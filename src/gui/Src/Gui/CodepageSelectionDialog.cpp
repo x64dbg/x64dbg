@@ -11,7 +11,7 @@ CodepageSelectionDialog::CodepageSelectionDialog(QWidget* parent) :
     ui->setupUi(this);
     setModal(true);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    setWindowIcon(DIcon("codepage.png"));
+    setWindowIcon(DIcon("codepage"));
     for(auto & name : QTextCodec::availableCodecs())
     {
         auto codec = QTextCodec::codecForName(name);

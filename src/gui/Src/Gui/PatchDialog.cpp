@@ -580,7 +580,7 @@ void PatchDialog::on_btnImport_clicked()
     if(bAlreadyDone)
     {
         QMessageBox msg(QMessageBox::Question, tr("Question"), tr("Some patches are already applied.\n\nDo you want to remove these patches?"), QMessageBox::Yes | QMessageBox::No);
-        msg.setWindowIcon(DIcon("question.png"));
+        msg.setWindowIcon(DIcon("question"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         if(msg.exec() == QMessageBox::Yes)
@@ -591,7 +591,7 @@ void PatchDialog::on_btnImport_clicked()
     if(bBadOriginal)
     {
         QMessageBox msg(QMessageBox::Question, tr("Question"), tr("Some bytes do not match the original in the patch file.\n\nDo you want to apply these patches anyway?"), QMessageBox::Yes | QMessageBox::No);
-        msg.setWindowIcon(DIcon("question.png"));
+        msg.setWindowIcon(DIcon("question"));
         msg.setParent(this, Qt::Dialog);
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         if(msg.exec() == QMessageBox::Yes)

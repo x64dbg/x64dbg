@@ -143,26 +143,26 @@ MainWindow::MainWindow(QWidget* parent)
     // Log view
     mLogView = new LogView();
     mLogView->setWindowTitle(tr("Log"));
-    mLogView->setWindowIcon(DIcon("log.png"));
+    mLogView->setWindowIcon(DIcon("log"));
     mLogView->hide();
 
     // Symbol view
     mSymbolView = new SymbolView();
     Bridge::getBridge()->symbolView = mSymbolView;
     mSymbolView->setWindowTitle(tr("Symbols"));
-    mSymbolView->setWindowIcon(DIcon("pdb.png"));
+    mSymbolView->setWindowIcon(DIcon("pdb"));
     mSymbolView->hide();
 
     // Source view
     mSourceViewManager = new SourceViewerManager();
     mSourceViewManager->setWindowTitle(tr("Source"));
-    mSourceViewManager->setWindowIcon(DIcon("source.png"));
+    mSourceViewManager->setWindowIcon(DIcon("source"));
     mSourceViewManager->hide();
 
     // Breakpoints
     mBreakpointsView = new BreakpointsView();
     mBreakpointsView->setWindowTitle(tr("Breakpoints"));
-    mBreakpointsView->setWindowIcon(DIcon("breakpoint.png"));
+    mBreakpointsView->setWindowIcon(DIcon("breakpoint"));
     mBreakpointsView->hide();
 
     // Memory map view
@@ -170,60 +170,60 @@ MainWindow::MainWindow(QWidget* parent)
 
     connect(mMemMapView, SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
     mMemMapView->setWindowTitle(tr("Memory Map"));
-    mMemMapView->setWindowIcon(DIcon("memory-map.png"));
+    mMemMapView->setWindowIcon(DIcon("memory-map"));
     mMemMapView->hide();
 
     // Callstack view
     mCallStackView = new CallStackView();
     mCallStackView->setWindowTitle(tr("Call Stack"));
-    mCallStackView->setWindowIcon(DIcon("callstack.png"));
+    mCallStackView->setWindowIcon(DIcon("callstack"));
 
     // SEH Chain view
     mSEHChainView = new SEHChainView();
     mSEHChainView->setWindowTitle(tr("SEH"));
-    mSEHChainView->setWindowIcon(DIcon("seh-chain.png"));
+    mSEHChainView->setWindowIcon(DIcon("seh-chain"));
 
     // Script view
     mScriptView = new ScriptView();
     mScriptView->setWindowTitle(tr("Script"));
-    mScriptView->setWindowIcon(DIcon("script-code.png"));
+    mScriptView->setWindowIcon(DIcon("script-code"));
     mScriptView->hide();
 
     // CPU view
     mCpuWidget = new CPUWidget();
     mCpuWidget->setWindowTitle(tr("CPU"));
 #ifdef _WIN64
-    mCpuWidget->setWindowIcon(DIcon("processor64.png"));
+    mCpuWidget->setWindowIcon(DIcon("processor64"));
 #else
-    mCpuWidget->setWindowIcon(DIcon("processor32.png"));
-    ui->actionCpu->setIcon(DIcon("processor32.png"));
+    mCpuWidget->setWindowIcon(DIcon("processor32"));
+    ui->actionCpu->setIcon(DIcon("processor32"));
 #endif //_WIN64
 
     // Reference manager
     mReferenceManager = new ReferenceManager(this);
     Bridge::getBridge()->referenceManager = mReferenceManager;
     mReferenceManager->setWindowTitle(tr("References"));
-    mReferenceManager->setWindowIcon(DIcon("search.png"));
+    mReferenceManager->setWindowIcon(DIcon("search"));
 
     // Thread view
     mThreadView = new ThreadView();
     mThreadView->setWindowTitle(tr("Threads"));
-    mThreadView->setWindowIcon(DIcon("arrow-threads.png"));
+    mThreadView->setWindowIcon(DIcon("arrow-threads"));
 
     // Notes manager
     mNotesManager = new NotesManager(this);
     mNotesManager->setWindowTitle(tr("Notes"));
-    mNotesManager->setWindowIcon(DIcon("notes.png"));
+    mNotesManager->setWindowIcon(DIcon("notes"));
 
     // Handles view
     mHandlesView = new HandlesView(this);
     mHandlesView->setWindowTitle(tr("Handles"));
-    mHandlesView->setWindowIcon(DIcon("handles.png"));
+    mHandlesView->setWindowIcon(DIcon("handles"));
 
     // Trace view
     mTraceWidget = new TraceWidget(this);
     mTraceWidget->setWindowTitle(tr("Trace"));
-    mTraceWidget->setWindowIcon(DIcon("trace.png"));
+    mTraceWidget->setWindowIcon(DIcon("trace"));
     connect(mTraceWidget->getTraceBrowser(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
     connect(mTraceWidget->getTraceBrowser(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
 
@@ -376,6 +376,7 @@ MainWindow::MainWindow(QWidget* parent)
     setupLanguagesMenu();
     setupThemesMenu();
     setupMenuCustomization();
+    ui->actionAbout_Qt->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarMenuButton));
 
     // Set default setttings (when not set)
     SettingsDialog defaultSettings;
@@ -439,7 +440,7 @@ void MainWindow::setupLanguagesMenu()
         languageMenu = new QMenu(QString("Languages"));
     else
         languageMenu = new QMenu(tr("Languages") + QString(" Languages"), this);
-    languageMenu->setIcon(DIcon("codepage.png"));
+    languageMenu->setIcon(DIcon("codepage"));
 
     QLocale enUS(QLocale::English, QLocale::UnitedStates);
     QAction* action_enUS = new QAction(QString("[%1] %2 - %3").arg(enUS.name()).arg(enUS.nativeLanguageName()).arg(enUS.nativeCountryName()), languageMenu);
@@ -500,6 +501,11 @@ void MainWindow::loadSelectedStyle(bool reloadStyleCss)
         QString settingsPath = QString("%1/../themes/%2/style.ini").arg(QCoreApplication::applicationDirPath()).arg(selectedTheme);
         if(QFile(themePath).exists())
             styleSettings = settingsPath;
+        QIcon::setThemeName(selectedTheme);
+    }
+    else
+    {
+        QIcon::setThemeName("Default");
     }
     QFile f(stylePath);
     if(f.open(QFile::ReadOnly | QFile::Text))
@@ -539,6 +545,8 @@ void MainWindow::setupThemesMenu()
         auto dir = it.next();
         auto nameIdx = dir.lastIndexOf('/');
         auto name = dir.mid(nameIdx + 1);
+        if(name == "Default")
+            continue;
         auto action = ui->menuTheme->addAction(name);
         connect(action, SIGNAL(triggered()), this, SLOT(themeTriggeredSlot()));
         action->setText(name);
@@ -593,7 +601,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
         QMessageBox msgbox(this);
         msgbox.setText(tr("The debuggee is still running and will be terminated if you exit. Do you really want to exit?"));
         msgbox.setWindowTitle(tr("Debuggee is still running"));
-        msgbox.setWindowIcon(DIcon("bug.png"));
+        msgbox.setWindowIcon(DIcon("bug"));
         msgbox.addButton(QMessageBox::Yes)->setText(tr("&Exit"));
         msgbox.addButton(QMessageBox::Cancel)->setText(tr("&Cancel"));
         msgbox.addButton(QMessageBox::Abort)->setText(tr("&Detach and exit"));
@@ -992,7 +1000,7 @@ void MainWindow::execTicnd()
         return;
     mSimpleTraceDialog->setTraceCommand("TraceIntoConditional");
     mSimpleTraceDialog->setWindowTitle(tr("Trace into..."));
-    mSimpleTraceDialog->setWindowIcon(DIcon("traceinto.png"));
+    mSimpleTraceDialog->setWindowIcon(DIcon("traceinto"));
     mSimpleTraceDialog->exec();
 }
 
@@ -1002,7 +1010,7 @@ void MainWindow::execTocnd()
         return;
     mSimpleTraceDialog->setTraceCommand("TraceOverConditional");
     mSimpleTraceDialog->setWindowTitle(tr("Trace over..."));
-    mSimpleTraceDialog->setWindowIcon(DIcon("traceover.png"));
+    mSimpleTraceDialog->setWindowIcon(DIcon("traceover"));
     mSimpleTraceDialog->exec();
 }
 
@@ -1687,7 +1695,7 @@ void MainWindow::displayRunTrace()
 void MainWindow::donate()
 {
     QMessageBox msg(QMessageBox::Information, tr("Donate"), tr("All the money will go to x64dbg development."));
-    msg.setWindowIcon(DIcon("donate.png"));
+    msg.setWindowIcon(DIcon("donate"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
@@ -1700,7 +1708,7 @@ void MainWindow::donate()
 void MainWindow::blog()
 {
     QMessageBox msg(QMessageBox::Information, tr("Blog"), tr("You will visit x64dbg's official blog."));
-    msg.setWindowIcon(DIcon("hex.png"));
+    msg.setWindowIcon(DIcon("hex"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
@@ -1713,7 +1721,7 @@ void MainWindow::blog()
 void MainWindow::reportBug()
 {
     QMessageBox msg(QMessageBox::Information, tr("Report Bug"), tr("You will be taken to a website where you can report a bug.\nMake sure to fill in as much information as possible."));
-    msg.setWindowIcon(DIcon("bug-report.png"));
+    msg.setWindowIcon(DIcon("bug-report"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
@@ -1726,7 +1734,7 @@ void MainWindow::reportBug()
 void MainWindow::crashDump()
 {
     QMessageBox msg(QMessageBox::Critical, tr("Generate crash dump"), tr("This action will crash the debugger and generate a crash dump. You will LOSE ALL YOUR UNSAVED DATA. Do you really want to continue?"));
-    msg.setWindowIcon(DIcon("fatal-error.png"));
+    msg.setWindowIcon(DIcon("fatal-error"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
@@ -1774,7 +1782,7 @@ void MainWindow::changeCommandLine()
     LineEditDialog mLineEdit(this);
     mLineEdit.setText("");
     mLineEdit.setWindowTitle(tr("Change Command Line"));
-    mLineEdit.setWindowIcon(DIcon("changeargs.png"));
+    mLineEdit.setWindowIcon(DIcon("changeargs"));
 
     QString cmdLine;
     if(!getCmdLine(cmdLine))
@@ -1963,7 +1971,7 @@ void MainWindow::updateFavouriteTools()
     ui->menuFavourites->clear();
     delete actionManageFavourites;
     mFavouriteToolbar->clear();
-    actionManageFavourites = new QAction(DIcon("star.png"), tr("&Manage Favourite Tools..."), this);
+    actionManageFavourites = new QAction(DIcon("star"), tr("&Manage Favourite Tools..."), this);
     actionManageFavourites->setStatusTip(tr("Open the Favourites dialog to manage the favourites menu"));
     for(unsigned int i = 1; BridgeSettingGet("Favourite", QString("Tool%1").arg(i).toUtf8().constData(), buffer); i++)
     {
@@ -1987,7 +1995,7 @@ void MainWindow::updateFavouriteTools()
         splitToolPath(toolPath, file, cmd);
         icon = getFileIcon(file);
         if(icon.isNull())
-            icon = DIcon("plugin.png");
+            icon = DIcon("plugin");
         newAction->setIcon(icon);
         connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
         ui->menuFavourites->addAction(newAction);
@@ -2017,7 +2025,7 @@ void MainWindow::updateFavouriteTools()
         newAction->setText(description);
         newAction->setStatusTip(description);
         connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
-        newAction->setIcon(DIcon("script-code.png"));
+        newAction->setIcon(DIcon("script-code"));
         ui->menuFavourites->addAction(newAction);
         mFavouriteToolbar->addAction(newAction);
         isanythingexists = true;
@@ -2038,7 +2046,7 @@ void MainWindow::updateFavouriteTools()
             if(*buffer && strcmp(buffer, "NOT_SET") != 0)
                 setGlobalShortcut(newAction, QKeySequence(QString(buffer)));
         connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
-        newAction->setIcon(DIcon("star.png"));
+        newAction->setIcon(DIcon("star"));
         ui->menuFavourites->addAction(newAction);
         mFavouriteToolbar->addAction(newAction);
         isanythingexists = true;
@@ -2133,7 +2141,7 @@ void MainWindow::chooseLanguage()
         if(file.size() < 512)
         {
             QMessageBox msg(this);
-            msg.setWindowIcon(DIcon("codepage.png"));
+            msg.setWindowIcon(DIcon("codepage"));
             msg.setIcon(QMessageBox::Information);
             if(tr("Languages") == QString("Languages"))
             {
@@ -2154,7 +2162,7 @@ void MainWindow::chooseLanguage()
     BridgeSettingSet("Engine", "Language", localeName.toUtf8().constData());
     QMessageBox msg(this);
     msg.setIcon(QMessageBox::Information);
-    msg.setWindowIcon(DIcon("codepage.png"));
+    msg.setWindowIcon(DIcon("codepage"));
     if(tr("Languages") == QString("Languages"))
     {
         msg.setWindowTitle(QString("Languages"));
@@ -2250,7 +2258,7 @@ void MainWindow::customizeMenu()
 {
     CustomizeMenuDialog customMenuDialog(this);
     customMenuDialog.setWindowTitle(tr("Customize Menus"));
-    customMenuDialog.setWindowIcon(DIcon("analysis.png"));
+    customMenuDialog.setWindowIcon(DIcon("analysis"));
     customMenuDialog.exec();
     onMenuCustomized();
 }
@@ -2394,7 +2402,10 @@ void MainWindow::on_actionDefaultTheme_triggered()
 
 void MainWindow::on_actionAbout_Qt_triggered()
 {
-    QMessageBox::aboutQt(this);
+    auto w = new QWidget(this);
+    w->setWindowIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarMenuButton));
+    QMessageBox::aboutQt(w);
+    delete w;
 }
 
 void MainWindow::updateStyle()

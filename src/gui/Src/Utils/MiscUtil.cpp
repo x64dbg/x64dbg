@@ -84,7 +84,7 @@ bool SimpleChoiceBox(QWidget* parent, const QString & title, QString defaultValu
 void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text)
 {
     QMessageBox msg(QMessageBox::Critical, title, text, QMessageBox::NoButton, parent);
-    msg.setWindowIcon(DIcon("fatal-error.png"));
+    msg.setWindowIcon(DIcon("fatal-error"));
     msg.setParent(parent, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
@@ -93,7 +93,7 @@ void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text
 void SimpleWarningBox(QWidget* parent, const QString & title, const QString & text)
 {
     QMessageBox msg(QMessageBox::Warning, title, text, QMessageBox::NoButton, parent);
-    msg.setWindowIcon(DIcon("exclamation.png"));
+    msg.setWindowIcon(DIcon("exclamation"));
     msg.setParent(parent, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
@@ -102,7 +102,7 @@ void SimpleWarningBox(QWidget* parent, const QString & title, const QString & te
 void SimpleInfoBox(QWidget* parent, const QString & title, const QString & text)
 {
     QMessageBox msg(QMessageBox::Information, title, text, QMessageBox::NoButton, parent);
-    msg.setWindowIcon(DIcon("information.png"));
+    msg.setWindowIcon(DIcon("information"));
     msg.setParent(parent, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
     msg.exec();
@@ -177,7 +177,7 @@ QIcon getFileIcon(QString file)
 bool ExportCSV(dsint rows, dsint columns, std::vector<QString> headers, std::function<QString(dsint, dsint)> getCellContent)
 {
     BrowseDialog browse(nullptr, QApplication::translate("ExportCSV", "Export data in CSV format"), QApplication::translate("ExportCSV", "Enter the CSV file name to export"), QApplication::translate("ExportCSV", "CSV files (*.csv);;All files (*.*)"), QApplication::applicationDirPath() + QDir::separator() + "db", true);
-    browse.setWindowIcon(DIcon("database-export.png"));
+    browse.setWindowIcon(DIcon("database-export"));
     if(browse.exec() == QDialog::Accepted)
     {
         FILE* csv;
@@ -326,16 +326,19 @@ bool isSeasonal()
     return (isChristmas() || isEaster());
 }
 
-QString couldItBeSeasonal(QString icon)
+QIcon DIconHelper(QString name)
 {
+    if(name.endsWith(".png"))
+        name = name.left(name.length() - 4);
     static bool seasons = allowSeasons();
     static bool christmas = isChristmas();
     static bool easter = isEaster();
-    if(!seasons)
-        return icon;
-    if(christmas)
-        return QString("christmas%1.png").arg(rand() % 8 + 1);
-    else if(easter)
-        return QString("easter%1.png").arg(rand() % 8 + 1);
-    return icon;
+    if(seasons)
+    {
+        if(christmas)
+            name = QString("christmas%1").arg(rand() % 8 + 1);
+        else if(easter)
+            name = QString("easter%1").arg(rand() % 8 + 1);
+    }
+    return QIcon::fromTheme(name);
 }

@@ -14,8 +14,8 @@
    <string>Favourites</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/star.png</normaloff>:/icons/images/star.png</iconset>
+   <iconset theme="star" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/star.png</normaloff>:/Default/icons/star.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

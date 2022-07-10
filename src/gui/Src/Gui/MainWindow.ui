@@ -35,8 +35,8 @@
       <string>&amp;Recent Files</string>
      </property>
      <property name="icon">
-      <iconset resource="../../resource.qrc">
-       <normaloff>:/icons/images/recentfiles.png</normaloff>:/icons/images/recentfiles.png</iconset>
+      <iconset theme="recentfiles" resource="../../resource.qrc">
+       <normaloff>:/Default/icons/recentfiles.png</normaloff>:/Default/icons/recentfiles.png</iconset>
      </property>
      <addaction name="separator"/>
     </widget>
@@ -45,8 +45,8 @@
       <string>Database</string>
      </property>
      <property name="icon">
-      <iconset resource="../../resource.qrc">
-       <normaloff>:/icons/images/data-copy.png</normaloff>:/icons/images/data-copy.png</iconset>
+      <iconset theme="data-copy" resource="../../resource.qrc">
+       <normaloff>:/Default/icons/data-copy.png</normaloff>:/Default/icons/data-copy.png</iconset>
      </property>
      <addaction name="actionDbsave"/>
      <addaction name="actionDbload"/>
@@ -110,8 +110,8 @@
       <string>Advanced</string>
      </property>
      <property name="icon">
-      <iconset resource="../../resource.qrc">
-       <normaloff>:/icons/images/branchpreview.png</normaloff>:/icons/images/branchpreview.png</iconset>
+      <iconset theme="branchpreview" resource="../../resource.qrc">
+       <normaloff>:/Default/icons/branchpreview.png</normaloff>:/Default/icons/branchpreview.png</iconset>
      </property>
      <addaction name="actioneRun"/>
      <addaction name="actionseRun"/>
@@ -178,8 +178,8 @@
       <string>&amp;Theme</string>
      </property>
      <property name="icon">
-      <iconset resource="../../resource.qrc">
-       <normaloff>:/icons/images/themes.png</normaloff>:/icons/images/themes.png</iconset>
+      <iconset theme="themes" resource="../../resource.qrc">
+       <normaloff>:/Default/icons/themes.png</normaloff>:/Default/icons/themes.png</iconset>
      </property>
      <addaction name="actionDefaultTheme"/>
     </widget>
@@ -207,8 +207,8 @@
       <string>Trace record</string>
      </property>
      <property name="icon">
-      <iconset resource="../../resource.qrc">
-       <normaloff>:/icons/images/trace.png</normaloff>:/icons/images/trace.png</iconset>
+      <iconset theme="trace" resource="../../resource.qrc">
+       <normaloff>:/Default/icons/trace.png</normaloff>:/Default/icons/trace.png</iconset>
      </property>
      <addaction name="actionTRBit"/>
      <addaction name="actionTRByte"/>
@@ -311,8 +311,8 @@
   </widget>
   <action name="actionOpen">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/folder-horizontal-open.png</normaloff>:/icons/images/folder-horizontal-open.png</iconset>
+    <iconset theme="folder-horizontal-open" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/folder-horizontal-open.png</normaloff>:/Default/icons/folder-horizontal-open.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Open</string>
@@ -323,8 +323,8 @@
   </action>
   <action name="actionExit">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/control-exit.png</normaloff>:/icons/images/control-exit.png</iconset>
+    <iconset theme="control-exit" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/control-exit.png</normaloff>:/Default/icons/control-exit.png</iconset>
    </property>
    <property name="text">
     <string>E&amp;xit</string>
@@ -335,8 +335,8 @@
   </action>
   <action name="actionRun">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-run.png</normaloff>:/icons/images/arrow-run.png</iconset>
+    <iconset theme="arrow-run" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-run.png</normaloff>:/Default/icons/arrow-run.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Run</string>
@@ -347,8 +347,8 @@
   </action>
   <action name="actionPause">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/control-pause.png</normaloff>:/icons/images/control-pause.png</iconset>
+    <iconset theme="control-pause" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/control-pause.png</normaloff>:/Default/icons/control-pause.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Pause</string>
@@ -359,8 +359,8 @@
   </action>
   <action name="actionRestart">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-restart.png</normaloff>:/icons/images/arrow-restart.png</iconset>
+    <iconset theme="arrow-restart" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-restart.png</normaloff>:/Default/icons/arrow-restart.png</iconset>
    </property>
    <property name="text">
     <string>Re&amp;start</string>
@@ -371,8 +371,8 @@
   </action>
   <action name="actionClose">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/control-stop.png</normaloff>:/icons/images/control-stop.png</iconset>
+    <iconset theme="control-stop" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/control-stop.png</normaloff>:/Default/icons/control-stop.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Close</string>
@@ -383,8 +383,8 @@
   </action>
   <action name="actionStepInto">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-step-into.png</normaloff>:/icons/images/arrow-step-into.png</iconset>
+    <iconset theme="arrow-step-into" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-step-into.png</normaloff>:/Default/icons/arrow-step-into.png</iconset>
    </property>
    <property name="text">
     <string>Step &amp;into</string>
@@ -395,8 +395,8 @@
   </action>
   <action name="actionStepOver">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-step-over.png</normaloff>:/icons/images/arrow-step-over.png</iconset>
+    <iconset theme="arrow-step-over" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-step-over.png</normaloff>:/Default/icons/arrow-step-over.png</iconset>
    </property>
    <property name="text">
     <string>Step &amp;over</string>
@@ -407,8 +407,8 @@
   </action>
   <action name="actionCommand">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/terminal-command.png</normaloff>:/icons/images/terminal-command.png</iconset>
+    <iconset theme="terminal-command" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/terminal-command.png</normaloff>:/Default/icons/terminal-command.png</iconset>
    </property>
    <property name="text">
     <string>Co&amp;mmand</string>
@@ -419,8 +419,8 @@
   </action>
   <action name="actionRtr">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-step-rtr.png</normaloff>:/icons/images/arrow-step-rtr.png</iconset>
+    <iconset theme="arrow-step-rtr" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-step-rtr.png</normaloff>:/Default/icons/arrow-step-rtr.png</iconset>
    </property>
    <property name="text">
     <string>E&amp;xecute till return</string>
@@ -431,8 +431,8 @@
   </action>
   <action name="actionMemoryMap">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/memory-map.png</normaloff>:/icons/images/memory-map.png</iconset>
+    <iconset theme="memory-map" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/memory-map.png</normaloff>:/Default/icons/memory-map.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Memory Map</string>
@@ -443,8 +443,8 @@
   </action>
   <action name="actionLog">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/log.png</normaloff>:/icons/images/log.png</iconset>
+    <iconset theme="log" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/log.png</normaloff>:/Default/icons/log.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Log Window</string>
@@ -455,8 +455,8 @@
   </action>
   <action name="actionAbout">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/information.png</normaloff>:/icons/images/information.png</iconset>
+    <iconset theme="information" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/information.png</normaloff>:/Default/icons/information.png</iconset>
    </property>
    <property name="text">
     <string>&amp;About</string>
@@ -467,8 +467,8 @@
   </action>
   <action name="actionScylla">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/scylla.png</normaloff>:/icons/images/scylla.png</iconset>
+    <iconset theme="scylla" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/scylla.png</normaloff>:/Default/icons/scylla.png</iconset>
    </property>
    <property name="text">
     <string>Scylla</string>
@@ -476,8 +476,8 @@
   </action>
   <action name="actionBreakpoints">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/breakpoint.png</normaloff>:/icons/images/breakpoint.png</iconset>
+    <iconset theme="breakpoint" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/breakpoint.png</normaloff>:/Default/icons/breakpoint.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Breakpoints</string>
@@ -488,8 +488,8 @@
   </action>
   <action name="actioneStepInto">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-step-into.png</normaloff>:/icons/images/arrow-step-into.png</iconset>
+    <iconset theme="arrow-step-into" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-step-into.png</normaloff>:/Default/icons/arrow-step-into.png</iconset>
    </property>
    <property name="text">
     <string>Step into (pass all exceptions)</string>
@@ -500,8 +500,8 @@
   </action>
   <action name="actioneStepOver">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-step-over.png</normaloff>:/icons/images/arrow-step-over.png</iconset>
+    <iconset theme="arrow-step-over" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-step-over.png</normaloff>:/Default/icons/arrow-step-over.png</iconset>
    </property>
    <property name="text">
     <string>Step over (pass all exceptions)</string>
@@ -509,8 +509,8 @@
   </action>
   <action name="actioneRun">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-run.png</normaloff>:/icons/images/arrow-run.png</iconset>
+    <iconset theme="arrow-run" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-run.png</normaloff>:/Default/icons/arrow-run.png</iconset>
    </property>
    <property name="text">
     <string>Run (pass all exceptions)</string>
@@ -521,8 +521,8 @@
   </action>
   <action name="actioneRtr">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-step-rtr.png</normaloff>:/icons/images/arrow-step-rtr.png</iconset>
+    <iconset theme="arrow-step-rtr" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-step-rtr.png</normaloff>:/Default/icons/arrow-step-rtr.png</iconset>
    </property>
    <property name="text">
     <string>Execute till return (pass all exceptions)</string>
@@ -530,8 +530,8 @@
   </action>
   <action name="actionScript">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/script-code.png</normaloff>:/icons/images/script-code.png</iconset>
+    <iconset theme="script-code" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/script-code.png</normaloff>:/Default/icons/script-code.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Script</string>
@@ -545,8 +545,8 @@
   </action>
   <action name="actionRunSelection">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-run-cursor.png</normaloff>:/icons/images/arrow-run-cursor.png</iconset>
+    <iconset theme="arrow-run-cursor" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-run-cursor.png</normaloff>:/Default/icons/arrow-run-cursor.png</iconset>
    </property>
    <property name="text">
     <string>Run &amp;until selection</string>
@@ -560,8 +560,8 @@
   </action>
   <action name="actionCpu">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/processor64.png</normaloff>:/icons/images/processor64.png</iconset>
+    <iconset theme="processor64" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/processor64.png</normaloff>:/Default/icons/processor64.png</iconset>
    </property>
    <property name="text">
     <string>&amp;CPU</string>
@@ -575,8 +575,8 @@
   </action>
   <action name="actionSymbolInfo">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/pdb.png</normaloff>:/icons/images/pdb.png</iconset>
+    <iconset theme="pdb" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/pdb.png</normaloff>:/Default/icons/pdb.png</iconset>
    </property>
    <property name="text">
     <string>Symbol &amp;Info</string>
@@ -590,8 +590,8 @@
   </action>
   <action name="actionReferences">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/search.png</normaloff>:/icons/images/search.png</iconset>
+    <iconset theme="search" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/search.png</normaloff>:/Default/icons/search.png</iconset>
    </property>
    <property name="text">
     <string>&amp;References</string>
@@ -605,8 +605,8 @@
   </action>
   <action name="actionThreads">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-threads.png</normaloff>:/icons/images/arrow-threads.png</iconset>
+    <iconset theme="arrow-threads" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-threads.png</normaloff>:/Default/icons/arrow-threads.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Threads</string>
@@ -620,8 +620,8 @@
   </action>
   <action name="actionSettings">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/settings.png</normaloff>:/icons/images/settings.png</iconset>
+    <iconset theme="settings" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/settings.png</normaloff>:/Default/icons/settings.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Preferences</string>
@@ -635,8 +635,8 @@
   </action>
   <action name="actionStrings">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/strings.png</normaloff>:/icons/images/strings.png</iconset>
+    <iconset theme="strings" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/strings.png</normaloff>:/Default/icons/strings.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Find Strings</string>
@@ -650,8 +650,8 @@
   </action>
   <action name="actionAppearance">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/color-swatches.png</normaloff>:/icons/images/color-swatches.png</iconset>
+    <iconset theme="color-swatches" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/color-swatches.png</normaloff>:/Default/icons/color-swatches.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Appearance</string>
@@ -662,8 +662,8 @@
   </action>
   <action name="actionCalls">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/call.png</normaloff>:/icons/images/call.png</iconset>
+    <iconset theme="call" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/call.png</normaloff>:/Default/icons/call.png</iconset>
    </property>
    <property name="text">
     <string>Find Intermodular Calls</string>
@@ -677,8 +677,8 @@
   </action>
   <action name="actionPatches">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/patch.png</normaloff>:/icons/images/patch.png</iconset>
+    <iconset theme="patch" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/patch.png</normaloff>:/Default/icons/patch.png</iconset>
    </property>
    <property name="text">
     <string>Patch file...</string>
@@ -692,8 +692,8 @@
   </action>
   <action name="actionComments">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/comments.png</normaloff>:/icons/images/comments.png</iconset>
+    <iconset theme="comments" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/comments.png</normaloff>:/Default/icons/comments.png</iconset>
    </property>
    <property name="text">
     <string>Comments</string>
@@ -704,8 +704,8 @@
   </action>
   <action name="actionLabels">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/labels.png</normaloff>:/icons/images/labels.png</iconset>
+    <iconset theme="labels" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/labels.png</normaloff>:/Default/icons/labels.png</iconset>
    </property>
    <property name="text">
     <string>Labels</string>
@@ -716,8 +716,8 @@
   </action>
   <action name="actionBookmarks">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/bookmarks.png</normaloff>:/icons/images/bookmarks.png</iconset>
+    <iconset theme="bookmarks" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/bookmarks.png</normaloff>:/Default/icons/bookmarks.png</iconset>
    </property>
    <property name="text">
     <string>Bookmarks</string>
@@ -728,8 +728,8 @@
   </action>
   <action name="actionFunctions">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/functions.png</normaloff>:/icons/images/functions.png</iconset>
+    <iconset theme="functions" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/functions.png</normaloff>:/Default/icons/functions.png</iconset>
    </property>
    <property name="text">
     <string>Functions</string>
@@ -740,8 +740,8 @@
   </action>
   <action name="actionCheckUpdates">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/update.png</normaloff>:/icons/images/update.png</iconset>
+    <iconset theme="update" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/update.png</normaloff>:/Default/icons/update.png</iconset>
    </property>
    <property name="text">
     <string>Check for &amp;Updates</string>
@@ -752,8 +752,8 @@
   </action>
   <action name="actionCallStack">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/callstack.png</normaloff>:/icons/images/callstack.png</iconset>
+    <iconset theme="callstack" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/callstack.png</normaloff>:/Default/icons/callstack.png</iconset>
    </property>
    <property name="text">
     <string>Call Stack</string>
@@ -767,8 +767,8 @@
   </action>
   <action name="actionShortcuts">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/shortcut.png</normaloff>:/icons/images/shortcut.png</iconset>
+    <iconset theme="shortcut" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/shortcut.png</normaloff>:/Default/icons/shortcut.png</iconset>
    </property>
    <property name="text">
     <string>Shortcuts</string>
@@ -779,8 +779,8 @@
   </action>
   <action name="actionDonate">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/donate.png</normaloff>:/icons/images/donate.png</iconset>
+    <iconset theme="donate" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/donate.png</normaloff>:/Default/icons/donate.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Donate</string>
@@ -794,8 +794,8 @@
   </action>
   <action name="actionCalculator">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/calculator.png</normaloff>:/icons/images/calculator.png</iconset>
+    <iconset theme="calculator" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/calculator.png</normaloff>:/Default/icons/calculator.png</iconset>
    </property>
    <property name="text">
     <string>Calculator</string>
@@ -806,8 +806,8 @@
   </action>
   <action name="actionAttach">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/attach.png</normaloff>:/icons/images/attach.png</iconset>
+    <iconset theme="attach" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/attach.png</normaloff>:/Default/icons/attach.png</iconset>
    </property>
    <property name="text">
     <string>Attach</string>
@@ -821,8 +821,8 @@
   </action>
   <action name="actionDetach">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/detach.png</normaloff>:/icons/images/detach.png</iconset>
+    <iconset theme="detach" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/detach.png</normaloff>:/Default/icons/detach.png</iconset>
    </property>
    <property name="text">
     <string>Detach</string>
@@ -836,8 +836,8 @@
   </action>
   <action name="actionChangeCommandLine">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/changeargs.png</normaloff>:/icons/images/changeargs.png</iconset>
+    <iconset theme="changeargs" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/changeargs.png</normaloff>:/Default/icons/changeargs.png</iconset>
    </property>
    <property name="text">
     <string>Change Command &amp;Line</string>
@@ -848,8 +848,8 @@
   </action>
   <action name="actionSkipNextInstruction">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-skip.png</normaloff>:/icons/images/arrow-skip.png</iconset>
+    <iconset theme="arrow-skip" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-skip.png</normaloff>:/Default/icons/arrow-skip.png</iconset>
    </property>
    <property name="text">
     <string>Skip next instruction</string>
@@ -863,8 +863,8 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/topmost.png</normaloff>:/icons/images/topmost.png</iconset>
+    <iconset theme="topmost" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/topmost.png</normaloff>:/Default/icons/topmost.png</iconset>
    </property>
    <property name="text">
     <string>Topmost</string>
@@ -878,8 +878,8 @@
   </action>
   <action name="actionReportBug">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/bug-report.png</normaloff>:/icons/images/bug-report.png</iconset>
+    <iconset theme="bug-report" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/bug-report.png</normaloff>:/Default/icons/bug-report.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Report Bug</string>
@@ -893,8 +893,8 @@
   </action>
   <action name="actionSource">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/source.png</normaloff>:/icons/images/source.png</iconset>
+    <iconset theme="source" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/source.png</normaloff>:/Default/icons/source.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Source</string>
@@ -908,8 +908,8 @@
   </action>
   <action name="actionManual">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/win-help.png</normaloff>:/icons/images/win-help.png</iconset>
+    <iconset theme="win-help" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/win-help.png</normaloff>:/Default/icons/win-help.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Manual</string>
@@ -920,8 +920,8 @@
   </action>
   <action name="actionFaq">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/faq.png</normaloff>:/icons/images/faq.png</iconset>
+    <iconset theme="faq" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/faq.png</normaloff>:/Default/icons/faq.png</iconset>
    </property>
    <property name="text">
     <string>&amp;FAQ</string>
@@ -935,8 +935,8 @@
   </action>
   <action name="actionSEHChain">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/seh-chain.png</normaloff>:/icons/images/seh-chain.png</iconset>
+    <iconset theme="seh-chain" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/seh-chain.png</normaloff>:/Default/icons/seh-chain.png</iconset>
    </property>
    <property name="text">
     <string>SEH Chain</string>
@@ -944,8 +944,8 @@
   </action>
   <action name="actionHideDebugger">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/hide-debugger.png</normaloff>:/icons/images/hide-debugger.png</iconset>
+    <iconset theme="hide-debugger" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/hide-debugger.png</normaloff>:/Default/icons/hide-debugger.png</iconset>
    </property>
    <property name="text">
     <string>Hide debugger (PEB)</string>
@@ -959,8 +959,8 @@
   </action>
   <action name="actionReloadStylesheet">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/css.png</normaloff>:/icons/images/css.png</iconset>
+    <iconset theme="css" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/css.png</normaloff>:/Default/icons/css.png</iconset>
    </property>
    <property name="text">
     <string>Reload style.css</string>
@@ -974,8 +974,8 @@
   </action>
   <action name="actionNotes">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/notes.png</normaloff>:/icons/images/notes.png</iconset>
+    <iconset theme="notes" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/notes.png</normaloff>:/Default/icons/notes.png</iconset>
    </property>
    <property name="text">
     <string>Notes</string>
@@ -986,8 +986,8 @@
   </action>
   <action name="actionHandles">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/handles.png</normaloff>:/icons/images/handles.png</iconset>
+    <iconset theme="handles" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/handles.png</normaloff>:/Default/icons/handles.png</iconset>
    </property>
    <property name="text">
     <string>Handles</string>
@@ -998,8 +998,8 @@
   </action>
   <action name="actionTocnd">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/traceover.png</normaloff>:/icons/images/traceover.png</iconset>
+    <iconset theme="traceover" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/traceover.png</normaloff>:/Default/icons/traceover.png</iconset>
    </property>
    <property name="text">
     <string>Trace over...</string>
@@ -1013,8 +1013,8 @@
   </action>
   <action name="actionTicnd">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/traceinto.png</normaloff>:/icons/images/traceinto.png</iconset>
+    <iconset theme="traceinto" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/traceinto.png</normaloff>:/Default/icons/traceinto.png</iconset>
    </property>
    <property name="text">
     <string>Trace into...</string>
@@ -1028,8 +1028,8 @@
   </action>
   <action name="actionTRBit">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/bit.png</normaloff>:/icons/images/bit.png</iconset>
+    <iconset theme="bit" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/bit.png</normaloff>:/Default/icons/bit.png</iconset>
    </property>
    <property name="text">
     <string>Bit</string>
@@ -1040,8 +1040,8 @@
   </action>
   <action name="actionTRByte">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/byte.png</normaloff>:/icons/images/byte.png</iconset>
+    <iconset theme="byte" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/byte.png</normaloff>:/Default/icons/byte.png</iconset>
    </property>
    <property name="text">
     <string>Byte</string>
@@ -1052,8 +1052,8 @@
   </action>
   <action name="actionTRWord">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/word.png</normaloff>:/icons/images/word.png</iconset>
+    <iconset theme="word" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/word.png</normaloff>:/Default/icons/word.png</iconset>
    </property>
    <property name="text">
     <string>Word</string>
@@ -1064,8 +1064,8 @@
   </action>
   <action name="actionTRTIBT">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/traceinto.png</normaloff>:/icons/images/traceinto.png</iconset>
+    <iconset theme="traceinto" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/traceinto.png</normaloff>:/Default/icons/traceinto.png</iconset>
    </property>
    <property name="text">
     <string>Trace into beyond trace record</string>
@@ -1076,8 +1076,8 @@
   </action>
   <action name="actionTRTOBT">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/traceover.png</normaloff>:/icons/images/traceover.png</iconset>
+    <iconset theme="traceover" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/traceover.png</normaloff>:/Default/icons/traceover.png</iconset>
    </property>
    <property name="text">
     <string>Trace over beyond trace record</string>
@@ -1088,8 +1088,8 @@
   </action>
   <action name="actionTRTIIT">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-step-into.png</normaloff>:/icons/images/arrow-step-into.png</iconset>
+    <iconset theme="arrow-step-into" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-step-into.png</normaloff>:/Default/icons/arrow-step-into.png</iconset>
    </property>
    <property name="text">
     <string>Trace into into trace record</string>
@@ -1100,8 +1100,8 @@
   </action>
   <action name="actionTRTOIT">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-step-over.png</normaloff>:/icons/images/arrow-step-over.png</iconset>
+    <iconset theme="arrow-step-over" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-step-over.png</normaloff>:/Default/icons/arrow-step-over.png</iconset>
    </property>
    <property name="text">
     <string>Trace over into trace record</string>
@@ -1112,8 +1112,8 @@
   </action>
   <action name="actionTRNone">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/close-all-tabs.png</normaloff>:/icons/images/close-all-tabs.png</iconset>
+    <iconset theme="close-all-tabs" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/close-all-tabs.png</normaloff>:/Default/icons/close-all-tabs.png</iconset>
    </property>
    <property name="text">
     <string>None</string>
@@ -1124,8 +1124,8 @@
   </action>
   <action name="actionRtu">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/runtouser.png</normaloff>:/icons/images/runtouser.png</iconset>
+    <iconset theme="runtouser" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/runtouser.png</normaloff>:/Default/icons/runtouser.png</iconset>
    </property>
    <property name="text">
     <string>Run to &amp;user code</string>
@@ -1136,8 +1136,8 @@
   </action>
   <action name="actionRunExpression">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-run-cursor.png</normaloff>:/icons/images/arrow-run-cursor.png</iconset>
+    <iconset theme="arrow-run-cursor" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-run-cursor.png</normaloff>:/Default/icons/arrow-run-cursor.png</iconset>
    </property>
    <property name="text">
     <string>Run until e&amp;xpression</string>
@@ -1145,8 +1145,8 @@
   </action>
   <action name="actionInstrUndo">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/undo.png</normaloff>:/icons/images/undo.png</iconset>
+    <iconset theme="undo" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/undo.png</normaloff>:/Default/icons/undo.png</iconset>
    </property>
    <property name="text">
     <string>Undo last instruction</string>
@@ -1154,8 +1154,8 @@
   </action>
   <action name="actionCrashDump">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/crash_dump.png</normaloff>:/icons/images/crash_dump.png</iconset>
+    <iconset theme="crash_dump" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/crash_dump.png</normaloff>:/Default/icons/crash_dump.png</iconset>
    </property>
    <property name="text">
     <string>Generate crash dump</string>
@@ -1163,8 +1163,8 @@
   </action>
   <action name="actionManageFavourite">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/star.png</normaloff>:/icons/images/star.png</iconset>
+    <iconset theme="star" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/star.png</normaloff>:/Default/icons/star.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Manage Favourite Tools...</string>
@@ -1172,8 +1172,8 @@
   </action>
   <action name="actionStepOverSource">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-step-over.png</normaloff>:/icons/images/arrow-step-over.png</iconset>
+    <iconset theme="arrow-step-over" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-step-over.png</normaloff>:/Default/icons/arrow-step-over.png</iconset>
    </property>
    <property name="text">
     <string>Step over (source)</string>
@@ -1184,8 +1184,8 @@
   </action>
   <action name="actionStepIntoSource">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-step-into.png</normaloff>:/icons/images/arrow-step-into.png</iconset>
+    <iconset theme="arrow-step-into" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-step-into.png</normaloff>:/Default/icons/arrow-step-into.png</iconset>
    </property>
    <property name="text">
     <string>Step into (source)</string>
@@ -1196,8 +1196,8 @@
   </action>
   <action name="actionGraph">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/graph.png</normaloff>:/icons/images/graph.png</iconset>
+    <iconset theme="graph" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/graph.png</normaloff>:/Default/icons/graph.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Graph</string>
@@ -1208,8 +1208,8 @@
   </action>
   <action name="actionseStepInto">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-step-into.png</normaloff>:/icons/images/arrow-step-into.png</iconset>
+    <iconset theme="arrow-step-into" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-step-into.png</normaloff>:/Default/icons/arrow-step-into.png</iconset>
    </property>
    <property name="text">
     <string>Step into (swallow exception)</string>
@@ -1220,8 +1220,8 @@
   </action>
   <action name="actionseStepOver">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-step-over.png</normaloff>:/icons/images/arrow-step-over.png</iconset>
+    <iconset theme="arrow-step-over" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-step-over.png</normaloff>:/Default/icons/arrow-step-over.png</iconset>
    </property>
    <property name="text">
     <string>Step over (swallow exception)</string>
@@ -1229,8 +1229,8 @@
   </action>
   <action name="actionseRun">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-run.png</normaloff>:/icons/images/arrow-run.png</iconset>
+    <iconset theme="arrow-run" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-run.png</normaloff>:/Default/icons/arrow-run.png</iconset>
    </property>
    <property name="text">
     <string>Run (swallow exception)</string>
@@ -1241,8 +1241,8 @@
   </action>
   <action name="actionBlog">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/hex.png</normaloff>:/icons/images/hex.png</iconset>
+    <iconset theme="hex" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/hex.png</normaloff>:/Default/icons/hex.png</iconset>
    </property>
    <property name="text">
     <string>Blog</string>
@@ -1253,8 +1253,8 @@
   </action>
   <action name="actionAnimateInto">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/animateinto.png</normaloff>:/icons/images/animateinto.png</iconset>
+    <iconset theme="animateinto" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/animateinto.png</normaloff>:/Default/icons/animateinto.png</iconset>
    </property>
    <property name="text">
     <string>Animate into</string>
@@ -1265,8 +1265,8 @@
   </action>
   <action name="actionAnimateOver">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/animateover.png</normaloff>:/icons/images/animateover.png</iconset>
+    <iconset theme="animateover" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/animateover.png</normaloff>:/Default/icons/animateover.png</iconset>
    </property>
    <property name="text">
     <string>Animate over</string>
@@ -1277,8 +1277,8 @@
   </action>
   <action name="actionAnimateCommand">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/animatecommand.png</normaloff>:/icons/images/animatecommand.png</iconset>
+    <iconset theme="animatecommand" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/animatecommand.png</normaloff>:/Default/icons/animatecommand.png</iconset>
    </property>
    <property name="text">
     <string>Animate command...</string>
@@ -1289,8 +1289,8 @@
   </action>
   <action name="actionSetInitializationScript">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/initscript.png</normaloff>:/icons/images/initscript.png</iconset>
+    <iconset theme="initscript" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/initscript.png</normaloff>:/Default/icons/initscript.png</iconset>
    </property>
    <property name="text">
     <string>System breakpoint scripts</string>
@@ -1301,8 +1301,8 @@
   </action>
   <action name="actionImportSettings">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/importsettings.png</normaloff>:/icons/images/importsettings.png</iconset>
+    <iconset theme="importsettings" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/importsettings.png</normaloff>:/Default/icons/importsettings.png</iconset>
    </property>
    <property name="text">
     <string>Import settings...</string>
@@ -1313,8 +1313,8 @@
   </action>
   <action name="actionCustomizeMenus">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/analysis.png</normaloff>:/icons/images/analysis.png</iconset>
+    <iconset theme="analysis" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/analysis.png</normaloff>:/Default/icons/analysis.png</iconset>
    </property>
    <property name="text">
     <string>Customize menus</string>
@@ -1325,8 +1325,8 @@
   </action>
   <action name="actionImportdatabase">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/database-import.png</normaloff>:/icons/images/database-import.png</iconset>
+    <iconset theme="database-import" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/database-import.png</normaloff>:/Default/icons/database-import.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Import database</string>
@@ -1337,8 +1337,8 @@
   </action>
   <action name="actionExportdatabase">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/database-export.png</normaloff>:/icons/images/database-export.png</iconset>
+    <iconset theme="database-export" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/database-export.png</normaloff>:/Default/icons/database-export.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Export database</string>
@@ -1346,8 +1346,8 @@
   </action>
   <action name="actionPreviousTab">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/previous.png</normaloff>:/icons/images/previous.png</iconset>
+    <iconset theme="previous" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/previous.png</normaloff>:/Default/icons/previous.png</iconset>
    </property>
    <property name="text">
     <string>Previous Tab</string>
@@ -1358,8 +1358,8 @@
   </action>
   <action name="actionNextTab">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/next.png</normaloff>:/icons/images/next.png</iconset>
+    <iconset theme="next" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/next.png</normaloff>:/Default/icons/next.png</iconset>
    </property>
    <property name="text">
     <string>Next Tab</string>
@@ -1370,8 +1370,8 @@
   </action>
   <action name="actionPreviousView">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/previous.png</normaloff>:/icons/images/previous.png</iconset>
+    <iconset theme="previous" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/previous.png</normaloff>:/Default/icons/previous.png</iconset>
    </property>
    <property name="text">
     <string>Previous View</string>
@@ -1382,8 +1382,8 @@
   </action>
   <action name="actionNextView">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/next.png</normaloff>:/icons/images/next.png</iconset>
+    <iconset theme="next" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/next.png</normaloff>:/Default/icons/next.png</iconset>
    </property>
    <property name="text">
     <string>Next View</string>
@@ -1394,8 +1394,8 @@
   </action>
   <action name="actionHideTab">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/hidetab.png</normaloff>:/icons/images/hidetab.png</iconset>
+    <iconset theme="hidetab" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/hidetab.png</normaloff>:/Default/icons/hidetab.png</iconset>
    </property>
    <property name="text">
     <string>Hide Tab</string>
@@ -1406,8 +1406,8 @@
   </action>
   <action name="actionVariables">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/variables.png</normaloff>:/icons/images/variables.png</iconset>
+    <iconset theme="variables" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/variables.png</normaloff>:/Default/icons/variables.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Variables</string>
@@ -1418,8 +1418,8 @@
   </action>
   <action name="actionRestartAdmin">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/uac.png</normaloff>:/icons/images/uac.png</iconset>
+    <iconset theme="uac" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/uac.png</normaloff>:/Default/icons/uac.png</iconset>
    </property>
    <property name="text">
     <string>Restart as Admin</string>
@@ -1430,8 +1430,8 @@
   </action>
   <action name="actionPlugins">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/plugin.png</normaloff>:/icons/images/plugin.png</iconset>
+    <iconset theme="plugin" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/plugin.png</normaloff>:/Default/icons/plugin.png</iconset>
    </property>
    <property name="text">
     <string>Plugins</string>
@@ -1442,8 +1442,8 @@
   </action>
   <action name="actionTrace">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/trace.png</normaloff>:/icons/images/trace.png</iconset>
+    <iconset theme="trace" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/trace.png</normaloff>:/Default/icons/trace.png</iconset>
    </property>
    <property name="text">
     <string>Trace</string>
@@ -1454,8 +1454,8 @@
   </action>
   <action name="actionModules">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/lib.png</normaloff>:/icons/images/lib.png</iconset>
+    <iconset theme="lib" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/lib.png</normaloff>:/Default/icons/lib.png</iconset>
    </property>
    <property name="text">
     <string>Modules</string>
@@ -1476,8 +1476,8 @@
   </action>
   <action name="actionDbsave">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/binary_save.png</normaloff>:/icons/images/binary_save.png</iconset>
+    <iconset theme="binary_save" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/binary_save.png</normaloff>:/Default/icons/binary_save.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Save database</string>
@@ -1488,8 +1488,8 @@
   </action>
   <action name="actionDbload">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/arrow-restart.png</normaloff>:/icons/images/arrow-restart.png</iconset>
+    <iconset theme="arrow-restart" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/arrow-restart.png</normaloff>:/Default/icons/arrow-restart.png</iconset>
    </property>
    <property name="text">
     <string>Re&amp;load database</string>
@@ -1500,8 +1500,8 @@
   </action>
   <action name="actionDbrecovery">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/help.png</normaloff>:/icons/images/help.png</iconset>
+    <iconset theme="help" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/help.png</normaloff>:/Default/icons/help.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Restore backup database</string>
@@ -1512,8 +1512,8 @@
   </action>
   <action name="actionDbclear">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
-     <normaloff>:/icons/images/crash_dump.png</normaloff>:/icons/images/crash_dump.png</iconset>
+    <iconset theme="crash_dump" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/crash_dump.png</normaloff>:/Default/icons/crash_dump.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Clear database</string>

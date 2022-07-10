@@ -148,31 +148,31 @@ void WatchView::setupContextMenu()
     };
     mMenu->addAction(makeAction(tr("&Add..."), SLOT(addWatchSlot())));
     mMenu->addAction(makeShortcutAction(tr("&Delete"), SLOT(delWatchSlot()), "ActionDeleteBreakpoint"), nonEmptyFunc);
-    mMenu->addAction(makeAction(DIcon("labels.png"), tr("Rename"), SLOT(renameWatchSlot())), nonEmptyFunc);
-    mMenu->addAction(makeAction(DIcon("modify.png"), tr("&Edit..."), SLOT(editWatchSlot())), nonEmptyFunc);
-    mMenu->addAction(makeAction(DIcon("modify.png"), tr("&Modify..."), SLOT(modifyWatchSlot())), nonEmptyFunc);
+    mMenu->addAction(makeAction(DIcon("labels"), tr("Rename"), SLOT(renameWatchSlot())), nonEmptyFunc);
+    mMenu->addAction(makeAction(DIcon("modify"), tr("&Edit..."), SLOT(editWatchSlot())), nonEmptyFunc);
+    mMenu->addAction(makeAction(DIcon("modify"), tr("&Modify..."), SLOT(modifyWatchSlot())), nonEmptyFunc);
     MenuBuilder* watchdogBuilder = new MenuBuilder(this, nonEmptyFunc);
     QMenu* watchdogMenu = new QMenu(tr("Watchdog"), this);
-    watchdogMenu->setIcon(DIcon("animal-dog.png"));
-    watchdogBuilder->addAction(makeAction(DIcon("disable.png"), tr("Disabled"), SLOT(watchdogDisableSlot())));
+    watchdogMenu->setIcon(DIcon("animal-dog"));
+    watchdogBuilder->addAction(makeAction(DIcon("disable"), tr("Disabled"), SLOT(watchdogDisableSlot())));
     watchdogBuilder->addSeparator();
-    watchdogBuilder->addAction(makeAction(DIcon("arrow-restart.png"), tr("Changed"), SLOT(watchdogChangedSlot())));
-    watchdogBuilder->addAction(makeAction(DIcon("control-pause.png"), tr("Not changed"), SLOT(watchdogUnchangedSlot())));
-    watchdogBuilder->addAction(makeAction(DIcon("treat_selection_as_tbyte.png"), tr("Is true"), SLOT(watchdogIsTrueSlot()))); // TODO: better icon
-    watchdogBuilder->addAction(makeAction(DIcon("treat_selection_as_fword.png"), tr("Is false"), SLOT(watchdogIsFalseSlot())));
+    watchdogBuilder->addAction(makeAction(DIcon("arrow-restart"), tr("Changed"), SLOT(watchdogChangedSlot())));
+    watchdogBuilder->addAction(makeAction(DIcon("control-pause"), tr("Not changed"), SLOT(watchdogUnchangedSlot())));
+    watchdogBuilder->addAction(makeAction(DIcon("treat_selection_as_tbyte"), tr("Is true"), SLOT(watchdogIsTrueSlot()))); // TODO: better icon
+    watchdogBuilder->addAction(makeAction(DIcon("treat_selection_as_fword"), tr("Is false"), SLOT(watchdogIsFalseSlot())));
     mMenu->addMenu(watchdogMenu, watchdogBuilder);
     MenuBuilder* typeBuilder = new MenuBuilder(this, nonEmptyFunc);
     QMenu* typeMenu = new QMenu(tr("Type"), this);
-    typeBuilder->addAction(makeAction(DIcon("integer.png"), tr("Uint"), SLOT(setTypeUintSlot())));
-    typeBuilder->addAction(makeAction(DIcon("integer.png"), tr("Int"), SLOT(setTypeIntSlot())));
-    typeBuilder->addAction(makeAction(DIcon("float.png"), tr("Float"), SLOT(setTypeFloatSlot())));
-    typeBuilder->addAction(makeAction(DIcon("ascii.png"), tr("Ascii"), SLOT(setTypeAsciiSlot())));
-    typeBuilder->addAction(makeAction(DIcon("ascii-extended.png"), tr("Unicode"), SLOT(setTypeUnicodeSlot())));
+    typeBuilder->addAction(makeAction(DIcon("integer"), tr("Uint"), SLOT(setTypeUintSlot())));
+    typeBuilder->addAction(makeAction(DIcon("integer"), tr("Int"), SLOT(setTypeIntSlot())));
+    typeBuilder->addAction(makeAction(DIcon("float"), tr("Float"), SLOT(setTypeFloatSlot())));
+    typeBuilder->addAction(makeAction(DIcon("ascii"), tr("Ascii"), SLOT(setTypeAsciiSlot())));
+    typeBuilder->addAction(makeAction(DIcon("ascii-extended"), tr("Unicode"), SLOT(setTypeUnicodeSlot())));
     mMenu->addMenu(typeMenu, typeBuilder);
     mMenu->addSeparator();
     MenuBuilder* copyMenu = new MenuBuilder(this);
     setupCopyMenu(copyMenu);
-    mMenu->addMenu(makeMenu(DIcon("copy.png"), tr("&Copy")), copyMenu);
+    mMenu->addMenu(makeMenu(DIcon("copy"), tr("&Copy")), copyMenu);
     mMenu->loadFromConfig();
 }
 

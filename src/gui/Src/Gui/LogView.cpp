@@ -90,16 +90,16 @@ template<class T> static QAction* setupAction(const QString & text, LogView* thi
 
 void LogView::setupContextMenu()
 {
-    actionClear = setupAction(DIcon("eraser.png"), tr("Clea&r"), this, SLOT(clearLogSlot()));
-    actionCopy = setupAction(DIcon("copy.png"), tr("&Copy"), this, SLOT(copy()));
-    actionPaste = setupAction(DIcon("binary_paste.png"), tr("&Paste"), this, SLOT(pasteSlot()));
-    actionSelectAll = setupAction(DIcon("copy_full_table.png"), tr("Select &All"), this, SLOT(selectAll()));
-    actionSave = setupAction(DIcon("binary_save.png"), tr("&Save"), this, SLOT(saveSlot()));
-    actionToggleLogging = setupAction(DIcon("lock.png"), tr("Disable &Logging"), this, SLOT(toggleLoggingSlot()));
-    actionRedirectLog = setupAction(DIcon("database-export.png"), tr("&Redirect Log..."), this, SLOT(redirectLogSlot()));
+    actionClear = setupAction(DIcon("eraser"), tr("Clea&r"), this, SLOT(clearLogSlot()));
+    actionCopy = setupAction(DIcon("copy"), tr("&Copy"), this, SLOT(copy()));
+    actionPaste = setupAction(DIcon("binary_paste"), tr("&Paste"), this, SLOT(pasteSlot()));
+    actionSelectAll = setupAction(DIcon("copy_full_table"), tr("Select &All"), this, SLOT(selectAll()));
+    actionSave = setupAction(DIcon("binary_save"), tr("&Save"), this, SLOT(saveSlot()));
+    actionToggleLogging = setupAction(DIcon("lock"), tr("Disable &Logging"), this, SLOT(toggleLoggingSlot()));
+    actionRedirectLog = setupAction(DIcon("database-export"), tr("&Redirect Log..."), this, SLOT(redirectLogSlot()));
     actionAutoScroll = setupAction(tr("Auto Scrolling"), this, SLOT(autoScrollSlot()));
     menuCopyToNotes = new QMenu(tr("Copy To Notes"), this);
-    menuCopyToNotes->setIcon(DIcon("notes.png"));
+    menuCopyToNotes->setIcon(DIcon("notes"));
     actionCopyToGlobalNotes = new QAction(tr("&Global"), menuCopyToNotes);
     actionCopyToDebuggeeNotes = new QAction(tr("&Debuggee"), menuCopyToNotes);
     connect(actionCopyToGlobalNotes, SIGNAL(triggered()), this, SLOT(copyToGlobalNotes()));

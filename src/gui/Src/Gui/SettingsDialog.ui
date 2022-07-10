@@ -20,8 +20,8 @@
    <string>Preferences</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/settings.png</normaloff>:/icons/images/settings.png</iconset>
+   <iconset theme="settings" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/settings.png</normaloff>:/Default/icons/settings.png</iconset>
   </property>
   <property name="autoFillBackground">
    <bool>true</bool>

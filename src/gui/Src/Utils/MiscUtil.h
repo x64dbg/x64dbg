@@ -20,14 +20,7 @@ QString getSymbolicNameStr(duint addr);
 bool ExportCSV(dsint rows, dsint columns, std::vector<QString> headers, std::function<QString(dsint, dsint)> getCellContent);
 bool isEaster();
 bool isSeasonal();
-QString couldItBeSeasonal(QString icon);
 QIcon getFileIcon(QString file);
+QIcon DIconHelper(QString name);
 
-template<int>
-static const QIcon & DIconHelper(const QString & file)
-{
-    static QIcon icon(QString(":/icons/images/").append(couldItBeSeasonal(file)));
-    return icon;
-}
-
-#define DIcon(file) DIconHelper<__LINE__>(file)
+#define DIcon(name) [](QString arg) { static QIcon icon(DIconHelper(std::move(arg))); return icon; }(name)

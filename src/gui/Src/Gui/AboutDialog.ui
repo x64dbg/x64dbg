@@ -14,8 +14,8 @@
    <string>About x64dbg</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/information.png</normaloff>:/icons/images/information.png</iconset>
+   <iconset theme="information" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/information.png</normaloff>:/Default/icons/information.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_7">
    <item>
@@ -51,7 +51,7 @@
         <string/>
        </property>
        <property name="pixmap">
-        <pixmap resource="../../resource.qrc">:/icons/images/bug.png</pixmap>
+        <pixmap resource="../../resource.qrc">:/Default/icons/bug.png</pixmap>
        </property>
        <property name="scaledContents">
         <bool>true</bool>
@@ -477,7 +477,7 @@
         <enum>Qt::RichText</enum>
        </property>
        <property name="pixmap">
-        <pixmap resource="../../resource.qrc">:/icons/images/donation_qr.png</pixmap>
+        <pixmap resource="../../resource.qrc">:/Default/icons/donation_qr.png</pixmap>
        </property>
        <property name="scaledContents">
         <bool>true</bool>

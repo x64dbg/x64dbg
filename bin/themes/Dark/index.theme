@@ -1,0 +1,9 @@
+[Icon Theme]
+Name=Dark
+Comment=Dark icon theme
+Directories=icons
+Inherits=Default
+
+[icons]
+Size=16
+Type=Scalable

@@ -14,8 +14,8 @@
    <string>Attach</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../resource.qrc">
-    <normaloff>:/icons/images/attach.png</normaloff>:/icons/images/attach.png</iconset>
+   <iconset theme="attach" resource="../../resource.qrc">
+    <normaloff>:/Default/icons/attach.png</normaloff>:/Default/icons/attach.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">
