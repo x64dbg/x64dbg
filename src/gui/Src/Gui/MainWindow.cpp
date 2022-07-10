@@ -483,75 +483,113 @@ static void importSettings(const QString & filename, const QSet<QString> & secti
             emit Config()->guiOptionsUpdated();
             emit Config()->shortcutsUpdated();
             emit Config()->tokenizerConfigUpdated();
-            GuiUpdateAllViews();
+            // Before startup we don't need to update all views
+            if(Bridge::getBridge())
+                GuiUpdateAllViews();
         }
     }
 }
 
-void MainWindow::loadSelectedStyle(bool reloadStyleCss)
+void MainWindow::loadSelectedTheme(bool reloadOnlyStyleCss)
 {
-    char selectedTheme[MAX_SETTING_SIZE] = "";
-    QString stylePath(":/css/default.css");
-    QString styleSettings;
-    if(!BridgeSettingGet("Theme", "Selected", selectedTheme))
+    if(BridgeGetNtBuildNumber() >= 14393 /* darkmode registry release */)
     {
-        // First Run
+        duint lastAppsUseLightTheme = -1;
+        BridgeSettingGetUint("Theme", "AppsUseLightTheme", &lastAppsUseLightTheme);
 
-        // https://www.vergiliusproject.com/kernels/x64/Windows%2010%20%7C%202016/2009%2020H2%20(October%202020%20Update)/_KUSER_SHARED_DATA
-        uint32_t NtBuildNumber = *(uint32_t*)(0x7FFE0000 + 0x260);
+        auto readRegistryDword = [](HKEY hRootKey, const wchar_t* lpSubKey, const wchar_t* lpValueName, DWORD & result)
+        {
+            auto success = false;
+            HKEY hKey = 0;
+            if(RegOpenKeyExW(hRootKey, lpSubKey, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+            {
+                DWORD dwBufferSize = sizeof(DWORD);
+                DWORD dwData = 0;
+                if(RegQueryValueExW(hKey, lpValueName, 0, NULL, reinterpret_cast<LPBYTE>(&dwData), &dwBufferSize) == ERROR_SUCCESS)
+                {
+                    result = dwData;
+                    success = true;
+                }
+                RegCloseKey(hKey);
+            }
+            return success;
+        };
 
-        if(NtBuildNumber != 0 && NtBuildNumber >= 14393 /* darkmode registry release */)
+        DWORD appsUseLightTheme = 1;
+        auto subKey = L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
+        auto valueName = L"AppsUseLightTheme";
+        if(!readRegistryDword(HKEY_CURRENT_USER, subKey, valueName, appsUseLightTheme))
+            readRegistryDword(HKEY_LOCAL_MACHINE, subKey, valueName, appsUseLightTheme);
+
+        // If the user changed the setting since last startup, adjust the default theme
+        if(appsUseLightTheme != lastAppsUseLightTheme)
         {
-            HKEY hKey;
-            RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_READ, &hKey);
-            DWORD dwBufferSize(sizeof(DWORD));
-            DWORD nResult(1);
-            RegQueryValueExW(hKey,
-                             L"AppsUseLightTheme",
-                             0,
-                             NULL,
-                             reinterpret_cast<LPBYTE>(&nResult),
-                             &dwBufferSize);
-            if(nResult == 0)
-            {
-                BridgeSettingSet("Theme", "Selected", QString("Dark").toUtf8().constData());
-                strcpy_s(selectedTheme, MAX_SETTING_SIZE, "Dark");
-            }
-            else
-            {
-                BridgeSettingSet("Theme", "Selected", QString("Default").toUtf8().constData());
-            }
-        }
-        else
-        {
-            BridgeSettingSet("Theme", "Selected", QString("Default").toUtf8().constData());
+            BridgeSettingSet("Theme", "Selected", appsUseLightTheme ? "Default" : "Dark");
+            BridgeSettingSetUint("Theme", "AppsUseLightTheme", appsUseLightTheme);
         }
     }
+
+    char selectedTheme[MAX_SETTING_SIZE] = "Default";
+    if(!BridgeSettingGet("Theme", "Selected", selectedTheme))
+        BridgeSettingSet("Theme", "Selected", selectedTheme);
+
+    QString stylePath(":/css/default.css");
+    QString settingsPath;
     if(*selectedTheme)
     {
+        QIcon::setThemeName(selectedTheme);
+
         QString themePath = QString("%1/../themes/%2/style.css").arg(QCoreApplication::applicationDirPath()).arg(selectedTheme);
         if(QFile(themePath).exists())
             stylePath = themePath;
-        QString settingsPath = QString("%1/../themes/%2/style.ini").arg(QCoreApplication::applicationDirPath()).arg(selectedTheme);
-        if(QFile(themePath).exists())
-            styleSettings = settingsPath;
-        QIcon::setThemeName(selectedTheme);
+
+        auto tryIni = [&settingsPath, &selectedTheme](const char* name)
+        {
+            if(!settingsPath.isEmpty())
+                return;
+            QString iniPath = QString("%1/../themes/%2/%3").arg(QCoreApplication::applicationDirPath(), selectedTheme, name);
+            if(QFile(iniPath).exists())
+                settingsPath = iniPath;
+        };
+        tryIni("style.ini");
+        tryIni("colors.ini");
     }
     else
     {
+        // This code path should never be executed
         QIcon::setThemeName("Default");
     }
-    QFile f(stylePath);
-    if(f.open(QFile::ReadOnly | QFile::Text))
+
+    QFile cssFile(stylePath);
+    if(cssFile.open(QFile::ReadOnly | QFile::Text))
     {
-        QTextStream in(&f);
-        auto style = in.readAll();
-        f.close();
+        auto style = QTextStream(&cssFile).readAll();
+        cssFile.close();
         style = style.replace("url(./", QString("url(../themes/%2/").arg(selectedTheme));
         qApp->setStyleSheet(style);
     }
-    if(!reloadStyleCss && !styleSettings.isEmpty())
-        importSettings(styleSettings, { "Colors", "Fonts" });
+
+    // Skip changing the settings when only reloading the CSS
+    if(reloadOnlyStyleCss)
+        return;
+
+    if(!settingsPath.isEmpty())
+    {
+        // TODO: add an 'inherit' option to style.ini to inherit from another theme
+        importSettings(settingsPath, { "Colors", "Fonts" });
+    }
+    else
+    {
+        // Reset [Colors] to default
+        Config()->Colors = Config()->defaultColors;
+        Config()->writeColors();
+        BridgeSettingSetUint("Colors", "DarkTitleBar", 0);
+        // Reset [Fonts] to default (TODO: https://github.com/x64dbg/x64dbg/issues/2422)
+        //Config()->Fonts = Config()->defaultFonts;
+        //Config()->writeFonts();
+        // Remove custom colors
+        BridgeSettingSet("Colors", "CustomColorCount", nullptr);
+    }
 }
 
 void MainWindow::themeTriggeredSlot()
@@ -563,7 +601,7 @@ void MainWindow::themeTriggeredSlot()
     int nameIdx = dir.lastIndexOf('/');
     QString name = dir.mid(nameIdx + 1);
     BridgeSettingSet("Theme", "Selected", name.toUtf8().constData());
-    loadSelectedStyle();
+    loadSelectedTheme();
     updateDarkTitleBar(this);
 }
 
@@ -1158,10 +1196,8 @@ void MainWindow::updateWindowTitleSlot(QString filename)
 
 void MainWindow::updateDarkTitleBar(QWidget* widget)
 {
-    // https://www.vergiliusproject.com/kernels/x64/Windows%2010%20%7C%202016/2009%2020H2%20(October%202020%20Update)/_KUSER_SHARED_DATA
-    uint32_t NtBuildNumber = *(uint32_t*)(0x7FFE0000 + 0x260);
-
-    if(NtBuildNumber == 0 /* pre Windows-10 */ || NtBuildNumber < 17763)
+    auto NtBuildNumber = BridgeGetNtBuildNumber();
+    if(NtBuildNumber < 17763)
         return;
 
     duint darkTitleBar = 0;
@@ -1948,7 +1984,7 @@ void MainWindow::on_actionFaq_triggered()
 
 void MainWindow::on_actionReloadStylesheet_triggered()
 {
-    loadSelectedStyle(true);
+    loadSelectedTheme(true);
     ensurePolished();
     update();
 }
@@ -2418,19 +2454,10 @@ void MainWindow::on_actionCheckUpdates_triggered()
 
 void MainWindow::on_actionDefaultTheme_triggered()
 {
-    // Delete [Theme] Selected
-    BridgeSettingSet("Theme", "Selected", QString("Default").toUtf8().constData());
+    // Revert to the Default theme
+    BridgeSettingSet("Theme", "Selected", "Default");
     // Load style
-    loadSelectedStyle();
-    // Reset [Colors] to default
-    Config()->Colors = Config()->defaultColors;
-    Config()->writeColors();
-    BridgeSettingSetUint("Colors", "DarkTitleBar", 0);
-    // Reset [Fonts] to default
-    //Config()->Fonts = Config()->defaultFonts;
-    //Config()->writeFonts();
-    // Remove custom colors
-    BridgeSettingSet("Colors", "CustomColorCount", nullptr);
+    loadSelectedTheme();
     updateDarkTitleBar(this);
 }
 

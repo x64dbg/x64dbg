@@ -54,7 +54,7 @@ public:
     void loadTabSavedOrder();
     void clearTabWidget();
 
-    static void loadSelectedStyle(bool reloadStyleCss = false);
+    static void loadSelectedTheme(bool reloadOnlyStyleCss = false);
     static void updateDarkTitleBar(QWidget* widget);
 
 public slots:

@@ -139,10 +139,7 @@ int main(int argc, char* argv[])
 {
     handleHighDpiScaling();
     MyApplication application(argc, argv);
-    // For unclear reasons it looks like the search path order is inverted.
-    // This might be specific to Qt 5.6 and only matters when you override the "Default" theme
-    QIcon::setThemeSearchPaths({ ":/", QCoreApplication::applicationDirPath() + "/../themes" });
-    MainWindow::loadSelectedStyle(true);
+
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
     QAbstractEventDispatcher::instance(application.thread())->setEventFilter(MyApplication::globalEventFilter);
 #else
@@ -183,6 +180,12 @@ int main(int argc, char* argv[])
     QPalette appPalette = application.palette();
     appPalette.setColor(QPalette::Link, ConfigColor("LinkColor"));
     application.setPalette(appPalette);
+
+    // Load the selected style
+    // For unclear reasons it looks like the search path order is inverted.
+    // This might be specific to Qt 5.6 and only matters when you override the "Default" theme
+    QIcon::setThemeSearchPaths({ ":/", QCoreApplication::applicationDirPath() + "/../themes" });
+    MainWindow::loadSelectedTheme();
 
     // Register custom data types
     qRegisterMetaType<dsint>("dsint");
