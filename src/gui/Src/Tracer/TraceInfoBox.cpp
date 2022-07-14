@@ -8,7 +8,7 @@ TraceInfoBox::TraceInfoBox(TraceWidget* parent) : StdTable(parent)
 {
     addColumnAt(0, "", true);
     setShowHeader(false);
-    clean();
+    clear();
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setMinimumHeight((getRowHeight() + 1) * 4);
@@ -24,13 +24,6 @@ TraceInfoBox::~TraceInfoBox()
 
 }
 
-void TraceInfoBox::clean()
-{
-    setRowCount(4);
-    for(int i = 0; i < 4; i++)
-        setCellContent(i, 0, QString());
-}
-
 void TraceInfoBox::update(unsigned long long selection, TraceFileReader* traceFile, const REGDUMP & registers)
 {
     int infoline = 0;
@@ -39,7 +32,7 @@ void TraceInfoBox::update(unsigned long long selection, TraceFileReader* traceFi
     QString line;
     int opsize;
     traceFile->OpCode(selection, opcode, &opsize);
-    clean();
+    clear();
     auto resolveRegValue = [&registers](ZydisRegister regname)
     {
         switch(regname)
@@ -338,6 +331,14 @@ void TraceInfoBox::update(unsigned long long selection, TraceFileReader* traceFi
         line = QString("ThreadID: %1").arg(ConfigBool("Gui", "PidTidInHex") ? ToHexString(tid) : QString::number(tid));
         setCellContent(3, 0, line);
     }
+    reloadData();
+}
+
+void TraceInfoBox::clear()
+{
+    setRowCount(4);
+    for(int i = 0; i < 4; i++)
+        setCellContent(i, 0, QString());
     reloadData();
 }
 
