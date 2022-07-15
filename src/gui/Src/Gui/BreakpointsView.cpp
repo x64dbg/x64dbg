@@ -14,11 +14,11 @@ BreakpointsView::BreakpointsView(QWidget* parent)
         return getCharWidth() * count + 8;
     };
     addColumnAt(charWidth(9), tr("Type"), false);
-    addColumnAt(charWidth(sizeof(duint) * 2), tr("Address"), true);
+    addColumnAt(charWidth(sizeof(duint) * 2), tr("Address"), true, "", StdTable::SortBy::AsHex);
     addColumnAt(charWidth(35), tr("Module/Label/Exception"), true);
     addColumnAt(charWidth(8), tr("State"), true);
     addColumnAt(charWidth(50), tr("Disassembly"), true);
-    addColumnAt(charWidth(4), tr("Hits"), true);
+    addColumnAt(charWidth(4), tr("Hits"), true, "", StdTable::SortBy::AsInt);
     addColumnAt(0, tr("Summary"), true);
     loadColumnFromConfig("BreakpointsView");
 
