@@ -5,6 +5,11 @@ StdTable::StdTable(QWidget* parent) : AbstractStdTable(parent)
 {
 }
 
+void StdTable::enableColumnsAutoResize(bool enabled)
+{
+    mIsColumnsAutoResizeAllowed = enabled;
+}
+
 /************************************************************************************
                                    Sorting
 ************************************************************************************/
@@ -85,7 +90,20 @@ void StdTable::setRowCount(dsint count)
 void StdTable::setCellContent(int r, int c, QString s)
 {
     if(isValidIndex(r, c))
+    {
         mData[r][c].text = std::move(s);
+        if(mIsColumnsAutoResizeAllowed)
+        {
+            int maxColumnTextLength = 0;
+            for(size_t i = 0; i < mData.size(); i++)
+            {
+                int cellTextLength = mData[i][c].text.length();
+                if(cellTextLength > maxColumnTextLength)
+                    maxColumnTextLength = cellTextLength;
+            }
+            setColumnWidth(c, getCharWidth() * (maxColumnTextLength + 1));
+        }
+    }
 }
 
 QString StdTable::getCellContent(int r, int c)

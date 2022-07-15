@@ -17,6 +17,8 @@ public:
         static bool AsHex(const QString & a, const QString & b);
     };
 
+    void enableColumnsAutoResize(bool enabled);
+
     // Data Management
     void addColumnAt(int width, QString title, bool isClickable, QString copyTitle = "", SortBy::t sortFn = SortBy::AsText);
     void deleteAllColumns() override;
@@ -37,4 +39,6 @@ protected:
 
     std::vector<std::vector<CellData>> mData; //listof(row) where row = (listof(col) where col = CellData)
     std::vector<SortBy::t> mColumnSortFunctions;
+
+    bool mIsColumnsAutoResizeAllowed = false;
 };
