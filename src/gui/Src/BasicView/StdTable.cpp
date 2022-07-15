@@ -94,7 +94,7 @@ void StdTable::setCellContent(int r, int c, QString s)
         mData[r][c].text = std::move(s);
         if(mIsColumnsAutoResizeAllowed)
         {
-            int maxColumnTextLength = 0;
+            int maxColumnTextLength = getColTitle(c).length();
             for(size_t i = 0; i < mData.size(); i++)
             {
                 int cellTextLength = mData[i][c].text.length();
