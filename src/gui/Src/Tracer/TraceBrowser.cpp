@@ -947,7 +947,7 @@ void TraceBrowser::contextMenuEvent(QContextMenuEvent* event)
 
 void TraceBrowser::mousePressEvent(QMouseEvent* event)
 {
-    duint index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
+    auto index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
     if(getGuiState() != AbstractTableView::NoState || !mTraceFile || mTraceFile->Progress() < 100)
     {
         AbstractTableView::mousePressEvent(event);
@@ -1149,6 +1149,7 @@ void TraceBrowser::keyPressEvent(QKeyEvent* event)
 
 void TraceBrowser::onSelectionChanged(unsigned long long selection)
 {
+    Q_UNUSED(selection);
     if(mAutoDisassemblyFollowSelection)
         mCommonActions->followDisassemblySlot();
 }
@@ -1203,9 +1204,10 @@ duint TraceBrowser::getSelectionEnd()
 
 void TraceBrowser::makeVisible(duint index)
 {
-    if(index < getTableOffset())
+    duint tableOffset = getTableOffset();
+    if(index < tableOffset)
         setTableOffset(index);
-    else if(index + 2 > getTableOffset() + getViewableRowsCount())
+    else if(index + 2 > tableOffset + getViewableRowsCount())
         setTableOffset(index - getViewableRowsCount() + 2);
 }
 

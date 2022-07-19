@@ -14,16 +14,19 @@ SymbolAutoCompleteModel::SymbolAutoCompleteModel(std::function<QString()> getTex
 
 QModelIndex SymbolAutoCompleteModel::parent(const QModelIndex & child) const
 {
+    Q_UNUSED(child);
     return QModelIndex();
 }
 
 QModelIndex SymbolAutoCompleteModel::index(int row, int column, const QModelIndex & parent) const
 {
+    Q_UNUSED(parent);
     return createIndex(row, column);
 }
 
 int SymbolAutoCompleteModel::rowCount(const QModelIndex & parent) const
 {
+    Q_UNUSED(parent);
     if(DbgIsDebugging())
     {
         QString text = mGetTextProc();
@@ -42,6 +45,7 @@ int SymbolAutoCompleteModel::rowCount(const QModelIndex & parent) const
 
 int SymbolAutoCompleteModel::columnCount(const QModelIndex & parent) const
 {
+    Q_UNUSED(parent);
     return 1;
 }
 

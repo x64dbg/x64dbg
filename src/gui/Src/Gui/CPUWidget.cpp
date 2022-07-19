@@ -252,6 +252,7 @@ void CPUWidget::detachGraph()
 
 void CPUWidget::attachGraph(QWidget* widget)
 {
+    Q_UNUSED(widget);
     mGraph->setParent(this);
     ui->mTopLeftUpperRightFrameLayout->addWidget(mGraph);
     mGraph->hide();

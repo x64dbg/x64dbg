@@ -467,7 +467,7 @@ void HandlesView::enumPrivileges()
                                      "SeUndockPrivilege", "SeUnsolicitedInputPrivilege"
                                     };
     mPrivilegesTable->setRowCount(_countof(PrivilegeString));
-    for(size_t row = 0; row < _countof(PrivilegeString); row++)
+    for(int row = 0; row < _countof(PrivilegeString); row++)
     {
         QString temp(PrivilegeString[row]);
         DbgCmdExecDirect(QString("GetPrivilegeState \"%1\"").arg(temp).toUtf8().constData());

@@ -553,7 +553,7 @@ void HexDump::wheelEvent(QWheelEvent* event)
 void HexDump::keyPressEvent(QKeyEvent* event)
 {
     int key = event->key();
-    dsint selStart = getInitialSelection();
+    duint selStart = getInitialSelection();
     char granularity = 1; //Size of a data word.
     char action = 0; //Where to scroll the scrollbar
     Qt::KeyboardModifiers modifiers = event->modifiers();

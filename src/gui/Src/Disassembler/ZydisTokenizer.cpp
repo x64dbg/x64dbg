@@ -674,6 +674,7 @@ bool ZydisTokenizer::tokenizePtrOperand(const ZydisDecodedOperand & op)
 
 bool ZydisTokenizer::tokenizeInvalidOperand(const ZydisDecodedOperand & op)
 {
+    Q_UNUSED(op);
     addToken(TokenType::MnemonicUnusual, "???");
     return true;
 }

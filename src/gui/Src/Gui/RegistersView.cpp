@@ -1240,7 +1240,7 @@ void RegistersView::fontsUpdatedSlot()
 
 void RegistersView::displayCustomContextMenuSlot(QPoint pos)
 {
-
+    Q_UNUSED(pos);
 }
 
 void RegistersView::ShowFPU(bool set_showfpu)
@@ -1502,6 +1502,7 @@ void RegistersView::mouseMoveEvent(QMouseEvent* event)
 
 void RegistersView::mouseDoubleClickEvent(QMouseEvent* event)
 {
+    Q_UNUSED(event);
 }
 
 void RegistersView::paintEvent(QPaintEvent* event)
@@ -2424,6 +2425,7 @@ void RegistersView::onCopyAllAction()
 
 void RegistersView::debugStateChangedSlot(DBGSTATE state)
 {
+    Q_UNUSED(state);
 }
 
 void RegistersView::reload()

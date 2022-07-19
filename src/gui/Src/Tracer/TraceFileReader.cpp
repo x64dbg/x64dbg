@@ -481,6 +481,7 @@ void TraceFileParser::run()
     }
     catch(const std::wstring & errReason)
     {
+        Q_UNUSED(errReason);
         //MessageBox(0, errReason.c_str(), L"debug", MB_ICONERROR);
         that->error = true;
     }
@@ -538,6 +539,7 @@ void TraceFileReader::purgeLastPage()
     }
     catch(std::wstring & errReason)
     {
+        Q_UNUSED(errReason);
         error = true;
     }
 }
@@ -699,9 +701,9 @@ int TraceFilePage::MemoryAccessCount(unsigned long long index) const
 {
     size_t a = memoryOperandOffset.at(index);
     if(index == length - 1)
-        return memoryAddress.size() - a;
+        return (int)(memoryAddress.size() - a);
     else
-        return memoryOperandOffset.at(index + 1) - a;
+        return (int)(memoryOperandOffset.at(index + 1) - a);
 }
 
 void TraceFilePage::MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid) const

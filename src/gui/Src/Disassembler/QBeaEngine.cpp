@@ -386,14 +386,14 @@ void QBeaEngine::UpdateConfig()
 void formatOpcodeString(const Instruction_t & inst, RichTextPainter::List & list, std::vector<std::pair<size_t, bool>> & realBytes)
 {
     RichTextPainter::CustomRichText_t curByte;
-    size_t size = inst.dump.size();
+    auto size = inst.dump.size();
     assert(list.empty()); //List must be empty before use
     curByte.underlineWidth = 1;
     curByte.flags = RichTextPainter::FlagAll;
     curByte.underline = false;
     list.reserve(size + 5);
     realBytes.reserve(size + 5);
-    for(size_t i = 0; i < size; i++)
+    for(int i = 0; i < size; i++)
     {
         curByte.text = ToByteString(inst.dump.at(i));
         list.push_back(curByte);
