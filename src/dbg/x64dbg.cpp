@@ -211,18 +211,18 @@ static void registercommands()
     //tracing
     dbgcmdnew("TraceIntoConditional,ticnd", cbDebugTraceIntoConditional, true); //Trace into conditional
     dbgcmdnew("TraceOverConditional,tocnd", cbDebugTraceOverConditional, true); //Trace over conditional
-    dbgcmdnew("TraceIntoBeyondTraceRecord,tibt", cbDebugTraceIntoBeyondTraceRecord, true); //Trace into beyond trace record
-    dbgcmdnew("TraceOverBeyondTraceRecord,tobt", cbDebugTraceOverBeyondTraceRecord, true); //Trace over beyond trace record
-    dbgcmdnew("TraceIntoIntoTraceRecord,tiit", cbDebugTraceIntoIntoTraceRecord, true); //Trace into into trace record
-    dbgcmdnew("TraceOverIntoTraceRecord,toit", cbDebugTraceOverIntoTraceRecord, true); //Trace over into trace record
+    dbgcmdnew("TraceIntoBeyondTraceCoverage,TraceIntoBeyondTraceRecord,tibt", cbDebugTraceIntoBeyondTraceRecord, true); //Trace into beyond trace record
+    dbgcmdnew("TraceOverBeyondTraceCoverage,TraceOverBeyondTraceRecord,tobt", cbDebugTraceOverBeyondTraceRecord, true); //Trace over beyond trace record
+    dbgcmdnew("TraceIntoIntoTraceCoverage,TraceIntoIntoTraceRecord,tiit", cbDebugTraceIntoIntoTraceRecord, true); //Trace into into trace record
+    dbgcmdnew("TraceOverIntoTraceCoverage,TraceOverIntoTraceRecord,toit", cbDebugTraceOverIntoTraceRecord, true); //Trace over into trace record
     dbgcmdnew("RunToParty", cbDebugRunToParty, true); //Run to code in a party
     dbgcmdnew("RunToUserCode,rtu", cbDebugRunToUserCode, true); //Run to user code
     dbgcmdnew("TraceSetLog,SetTraceLog", cbDebugTraceSetLog, true); //Set trace log text + condition
     dbgcmdnew("TraceSetCommand,SetTraceCommand", cbDebugTraceSetCommand, true); //Set trace command text + condition
     dbgcmdnew("TraceSetSwitchCondition,SetTraceSwitchCondition", cbDebugTraceSetSwitchCondition, true); //Set trace switch condition
     dbgcmdnew("TraceSetLogFile,SetTraceLogFile", cbDebugTraceSetLogFile, true); //Set trace log file
-    dbgcmdnew("StartRunTrace,opentrace", cbDebugStartRunTrace, true); //start run trace (Ollyscript command "opentrace" "opens run trace window")
-    dbgcmdnew("StopRunTrace,tc", cbDebugStopRunTrace, true); //stop run trace (and Ollyscript command)
+    dbgcmdnew("StartTraceRecording,StartRunTrace,opentrace", cbDebugStartTraceRecording, true); //start run trace (Ollyscript command "opentrace" "opens run trace window")
+    dbgcmdnew("StopTraceRecording,StopRunTrace,tc", cbDebugStopTraceRecording, true); //stop run trace (and Ollyscript command)
 
     //thread control
     dbgcmdnew("createthread,threadcreate,newthread,threadnew", cbDebugCreatethread, true); //create thread

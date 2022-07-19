@@ -66,6 +66,13 @@
       </spacer>
      </item>
      <item>
+      <widget class="QCheckBox" name="chkRecordTrace">
+       <property name="text">
+        <string>&amp;Record trace</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="btnLogFile">
        <property name="text">
         <string>Log &amp;File...</string>
@@ -195,6 +202,7 @@
   <tabstop>editCommandCondition</tabstop>
   <tabstop>spinMaxTraceCount</tabstop>
   <tabstop>editSwitchCondition</tabstop>
+  <tabstop>chkRecordTrace</tabstop>
   <tabstop>btnLogFile</tabstop>
   <tabstop>btnOk</tabstop>
   <tabstop>btnCancel</tabstop>

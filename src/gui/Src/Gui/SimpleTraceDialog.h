@@ -20,6 +20,9 @@ private slots:
     void on_btnOk_clicked();
     void on_btnLogFile_clicked();
 
+public slots:
+    int exec() override;
+
 private:
     Ui::SimpleTraceDialog* ui;
     QString mTraceCommand;

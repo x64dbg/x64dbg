@@ -320,7 +320,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionFunctions, SIGNAL(triggered()), this, SLOT(displayFunctions()));
     connect(ui->actionCallStack, SIGNAL(triggered()), this, SLOT(displayCallstack()));
     connect(ui->actionSEHChain, SIGNAL(triggered()), this, SLOT(displaySEHChain()));
-    connect(ui->actionTrace, SIGNAL(triggered()), this, SLOT(displayRunTrace()));
+    connect(ui->actionTrace, SIGNAL(triggered()), this, SLOT(displayTraceWidget()));
     connect(ui->actionDonate, SIGNAL(triggered()), this, SLOT(donate()));
     connect(ui->actionReportBug, SIGNAL(triggered()), this, SLOT(reportBug()));
     connect(ui->actionBlog, SIGNAL(triggered()), this, SLOT(blog()));
@@ -1104,22 +1104,22 @@ void MainWindow::setFocusToCommandBar()
 
 void MainWindow::execTRBit()
 {
-    mCpuWidget->getDisasmWidget()->ActionTraceRecordBitSlot();
+    mCpuWidget->getDisasmWidget()->traceCoverageBitSlot();
 }
 
 void MainWindow::execTRByte()
 {
-    mCpuWidget->getDisasmWidget()->ActionTraceRecordByteSlot();
+    mCpuWidget->getDisasmWidget()->traceCoverageByteSlot();
 }
 
 void MainWindow::execTRWord()
 {
-    mCpuWidget->getDisasmWidget()->ActionTraceRecordWordSlot();
+    mCpuWidget->getDisasmWidget()->traceCoverageWordSlot();
 }
 
 void MainWindow::execTRNone()
 {
-    mCpuWidget->getDisasmWidget()->ActionTraceRecordDisableSlot();
+    mCpuWidget->getDisasmWidget()->traceCoverageDisableSlot();
 }
 
 void MainWindow::execTicnd()
@@ -1813,7 +1813,7 @@ void MainWindow::displaySEHChain()
     showQWidgetTab(mSEHChainView);
 }
 
-void MainWindow::displayRunTrace()
+void MainWindow::displayTraceWidget()
 {
     showQWidgetTab(mTraceWidget);
 }

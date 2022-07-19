@@ -448,16 +448,16 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("DebugCommand", Shortcut({tr("Debug"), tr("Command")}, "Ctrl+Return", true));
     defaultShortcuts.insert("DebugTraceIntoConditional", Shortcut({tr("Debug"), tr("Trace into...")}, "Ctrl+Alt+F7", true));
     defaultShortcuts.insert("DebugTraceOverConditional", Shortcut({tr("Debug"), tr("Trace over...")}, "Ctrl+Alt+F8", true));
-    defaultShortcuts.insert("DebugEnableTraceRecordBit", Shortcut({tr("Debug"), tr("Trace Record"), tr("Bit")}, "", true));
-    defaultShortcuts.insert("DebugTraceRecordNone", Shortcut({tr("Debug"), tr("Trace Record"), tr("None")}, "", true));
+    defaultShortcuts.insert("DebugEnableTraceRecordBit", Shortcut({tr("Debug"), tr("Trace coverage"), tr("Bit")}, "", true));
+    defaultShortcuts.insert("DebugTraceRecordNone", Shortcut({tr("Debug"), tr("Trace coverage"), tr("None")}, "", true));
     defaultShortcuts.insert("DebugInstrUndo", Shortcut({tr("Debug"), tr("Undo instruction")}, "Alt+U", true));
     defaultShortcuts.insert("DebugAnimateInto", Shortcut({tr("Debug"), tr("Animate into")}, "Ctrl+F7", true));
     defaultShortcuts.insert("DebugAnimateOver", Shortcut({tr("Debug"), tr("Animate over")}, "Ctrl+F8", true));
     defaultShortcuts.insert("DebugAnimateCommand", Shortcut({tr("Debug"), tr("Animate command")}, "", true));
-    defaultShortcuts.insert("DebugTraceIntoIntoTracerecord", Shortcut({tr("Debug"), tr("Trace into into trace record")}, "", true));
-    defaultShortcuts.insert("DebugTraceOverIntoTracerecord", Shortcut({tr("Debug"), tr("Trace over into trace record")}, "", true));
-    defaultShortcuts.insert("DebugTraceIntoBeyondTracerecord", Shortcut({tr("Debug"), tr("Trace into beyond trace record")}, "", true));
-    defaultShortcuts.insert("DebugTraceOverBeyondTracerecord", Shortcut({tr("Debug"), tr("Trace over beyond trace record")}, "", true));
+    defaultShortcuts.insert("DebugTraceIntoIntoTracerecord", Shortcut({tr("Debug"), tr("Step into until reaching uncovered code")}, "", true));
+    defaultShortcuts.insert("DebugTraceOverIntoTracerecord", Shortcut({tr("Debug"), tr("Step over until reaching uncovered code")}, "", true));
+    defaultShortcuts.insert("DebugTraceIntoBeyondTracerecord", Shortcut({tr("Debug"), tr("Step into until reaching covered code")}, "", true));
+    defaultShortcuts.insert("DebugTraceOverBeyondTracerecord", Shortcut({tr("Debug"), tr("Step over until reaching covered code")}, "", true));
 
     defaultShortcuts.insert("PluginsScylla", Shortcut({tr("Plugins"), tr("Scylla")}, "Ctrl+I", true));
 
@@ -623,7 +623,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionModifyValue", Shortcut({tr("Actions"), tr("Modify value")}, "Space"));
     defaultShortcuts.insert("ActionWatchDwordQword", Shortcut({tr("Actions"), tr("Watch DWORD/QWORD")}));
     defaultShortcuts.insert("ActionCopyFileOffset", Shortcut({tr("Actions"), tr("Copy File Offset")}));
-    defaultShortcuts.insert("ActionToggleRunTrace", Shortcut({tr("Actions"), tr("Start or Stop Run Trace")}));
+    defaultShortcuts.insert("ActionToggleRunTrace", Shortcut({tr("Actions"), tr("Start/Stop trace recording")}));
 
     defaultShortcuts.insert("ActionCopyCroppedTable", Shortcut({tr("Actions"), tr("Copy -> Cropped Table")}));
     defaultShortcuts.insert("ActionCopyTable", Shortcut({tr("Actions"), tr("Copy -> Table")}));

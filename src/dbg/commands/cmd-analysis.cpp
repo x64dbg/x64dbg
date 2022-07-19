@@ -500,6 +500,6 @@ bool cbInstrTraceexecute(int argc, char* argv[])
     duint addr;
     if(!valfromstring(argv[1], &addr, false))
         return false;
-    _dbg_dbgtraceexecute(addr);
+    dbgtraceexecute(addr);
     return true;
 }

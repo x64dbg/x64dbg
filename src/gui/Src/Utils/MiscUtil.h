@@ -22,5 +22,7 @@ bool isEaster();
 bool isSeasonal();
 QIcon getFileIcon(QString file);
 QIcon DIconHelper(QString name);
+QString getDbPath(const QString & filename = QString(), bool addDateTimeSuffix = false);
+QString mainModuleName(bool extension = false);
 
 #define DIcon(name) [](QString arg) { static QIcon icon(DIconHelper(std::move(arg))); return icon; }(name)

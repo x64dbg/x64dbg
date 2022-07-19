@@ -171,14 +171,14 @@ bool cbDebugTraceSetLogFile(int argc, char* argv[])
     return dbgsettracelogfile(fileName);
 }
 
-bool cbDebugStartRunTrace(int argc, char* argv[])
+bool cbDebugStartTraceRecording(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return false;
-    return _dbg_dbgenableRunTrace(true, argv[1]);
+    return TraceRecord.enableTraceRecording(true, argv[1]);
 }
 
-bool cbDebugStopRunTrace(int argc, char* argv[])
+bool cbDebugStopTraceRecording(int argc, char* argv[])
 {
-    return _dbg_dbgenableRunTrace(false, nullptr);
+    return TraceRecord.enableTraceRecording(false, nullptr);
 }

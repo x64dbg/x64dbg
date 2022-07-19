@@ -24,6 +24,7 @@
 #include "MemoryPage.h"
 #include "CommonActions.h"
 #include "BrowseDialog.h"
+#include "Tracer/TraceBrowser.h"
 
 CPUDisassembly::CPUDisassembly(QWidget* parent, bool isMain) : Disassembly(parent, isMain)
 {
@@ -389,27 +390,33 @@ void CPUDisassembly::setupRightClickContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("label"), tr("Label")), labelMenu);
     mCommonActions->build(mMenuBuilder, CommonActions::ActionComment | CommonActions::ActionBookmark);
 
-    QAction* traceRecordDisable = makeAction(DIcon("close-all-tabs"), tr("Disable"), SLOT(ActionTraceRecordDisableSlot()));
-    QAction* traceRecordEnableBit = makeAction(DIcon("bit"), tr("Bit"), SLOT(ActionTraceRecordBitSlot()));
-    QAction* traceRecordEnableByte = makeAction(DIcon("byte"), tr("Byte"), SLOT(ActionTraceRecordByteSlot()));
-    QAction* traceRecordEnableWord = makeAction(DIcon("word"), tr("Word"), SLOT(ActionTraceRecordWordSlot()));
-    QAction* traceRecordToggleRunTrace = makeShortcutAction(tr("Start Run Trace"), SLOT(ActionTraceRecordToggleRunTraceSlot()), "ActionToggleRunTrace");
-    mMenuBuilder->addMenu(makeMenu(DIcon("trace"), tr("Trace record")), [ = ](QMenu * menu)
+    QAction* traceCoverageDisable = makeAction(DIcon("close-all-tabs"), tr("Disable"), SLOT(traceCoverageDisableSlot()));
+    QAction* traceCoverageEnableBit = makeAction(DIcon("bit"), tr("Bit"), SLOT(traceCoverageBitSlot()));
+    QAction* traceCoverageEnableByte = makeAction(DIcon("byte"), tr("Byte"), SLOT(traceCoverageByteSlot()));
+    QAction* traceCoverageEnableWord = makeAction(DIcon("word"), tr("Word"), SLOT(traceCoverageWordSlot()));
+    QAction* traceCoverageToggleTraceRecording = makeShortcutAction(DIcon("control-record"), tr("Start trace recording"), SLOT(traceCoverageToggleTraceRecordingSlot()), "ActionToggleRunTrace");
+    mMenuBuilder->addMenu(makeMenu(DIcon("trace"), tr("Trace coverage")), [ = ](QMenu * menu)
     {
         if(DbgFunctions()->GetTraceRecordType(rvaToVa(getInitialSelection())) == TRACERECORDTYPE::TraceRecordNone)
         {
-            menu->addAction(traceRecordEnableBit);
-            menu->addAction(traceRecordEnableByte);
-            menu->addAction(traceRecordEnableWord);
+            menu->addAction(traceCoverageEnableBit);
+            menu->addAction(traceCoverageEnableByte);
+            menu->addAction(traceCoverageEnableWord);
         }
         else
-            menu->addAction(traceRecordDisable);
+            menu->addAction(traceCoverageDisable);
         menu->addSeparator();
-        if(DbgValFromString("tr.runtraceenabled()") == 1)
-            traceRecordToggleRunTrace->setText(tr("Stop Run Trace"));
+        if(TraceBrowser::isRecording())
+        {
+            traceCoverageToggleTraceRecording->setText(tr("Stop trace recording"));
+            traceCoverageToggleTraceRecording->setIcon(DIcon("control-stop"));
+        }
         else
-            traceRecordToggleRunTrace->setText(tr("Start Run Trace"));
-        menu->addAction(traceRecordToggleRunTrace);
+        {
+            traceCoverageToggleTraceRecording->setText(tr("Start trace recording"));
+            traceCoverageToggleTraceRecording->setIcon(DIcon("control-record"));
+        }
+        menu->addAction(traceCoverageToggleTraceRecording);
         return true;
     });
 
@@ -1876,7 +1883,7 @@ void CPUDisassembly::labelHelpSlot()
     }
 }
 
-void CPUDisassembly::ActionTraceRecordBitSlot()
+void CPUDisassembly::traceCoverageBitSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -1886,14 +1893,14 @@ void CPUDisassembly::ActionTraceRecordBitSlot()
     {
         if(!(DbgFunctions()->SetTraceRecordType(i, TRACERECORDTYPE::TraceRecordBitExec)))
         {
-            GuiAddLogMessage(tr("Failed to set trace record.\n").toUtf8().constData());
+            GuiAddLogMessage(tr("Failed to enable trace coverage for page %1.\n").arg(ToPtrString(i)).toUtf8().constData());
             break;
         }
     }
     DbgCmdExec("traceexecute cip");
 }
 
-void CPUDisassembly::ActionTraceRecordByteSlot()
+void CPUDisassembly::traceCoverageByteSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -1903,14 +1910,14 @@ void CPUDisassembly::ActionTraceRecordByteSlot()
     {
         if(!(DbgFunctions()->SetTraceRecordType(i, TRACERECORDTYPE::TraceRecordByteWithExecTypeAndCounter)))
         {
-            GuiAddLogMessage(tr("Failed to set trace record.\n").toUtf8().constData());
+            GuiAddLogMessage(tr("Failed to enable trace coverage for page %1.\n").arg(ToPtrString(i)).toUtf8().constData());
             break;
         }
     }
     DbgCmdExec("traceexecute cip");
 }
 
-void CPUDisassembly::ActionTraceRecordWordSlot()
+void CPUDisassembly::traceCoverageWordSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -1920,14 +1927,14 @@ void CPUDisassembly::ActionTraceRecordWordSlot()
     {
         if(!(DbgFunctions()->SetTraceRecordType(i, TRACERECORDTYPE::TraceRecordWordWithExecTypeAndCounter)))
         {
-            GuiAddLogMessage(tr("Failed to set trace record.\n").toUtf8().constData());
+            GuiAddLogMessage(tr("Failed to enable trace coverage for page %1.\n").arg(ToPtrString(i)).toUtf8().constData());
             break;
         }
     }
     DbgCmdExec("traceexecute cip");
 }
 
-void CPUDisassembly::ActionTraceRecordDisableSlot()
+void CPUDisassembly::traceCoverageDisableSlot()
 {
     if(!DbgIsDebugging())
         return;
@@ -1937,7 +1944,7 @@ void CPUDisassembly::ActionTraceRecordDisableSlot()
     {
         if(!(DbgFunctions()->SetTraceRecordType(i, TRACERECORDTYPE::TraceRecordNone)))
         {
-            GuiAddLogMessage(tr("Failed to set trace record.\n").toUtf8().constData());
+            GuiAddLogMessage(tr("Failed to disable trace coverage for page %1.\n").arg(ToPtrString(i)).toUtf8().constData());
             break;
         }
     }
@@ -2045,31 +2052,7 @@ void CPUDisassembly::downloadCurrentSymbolsSlot()
         DbgCmdExec(QString("symdownload \"%0\"").arg(module));
 }
 
-void CPUDisassembly::ActionTraceRecordToggleRunTraceSlot()
+void CPUDisassembly::traceCoverageToggleTraceRecordingSlot()
 {
-    if(!DbgIsDebugging())
-        return;
-    if(DbgValFromString("tr.runtraceenabled()") == 1)
-        DbgCmdExec("StopRunTrace");
-    else
-    {
-        QString defaultFileName;
-        char moduleName[MAX_MODULE_SIZE];
-        QDateTime currentTime = QDateTime::currentDateTime();
-        duint defaultModule = DbgValFromString("mod.main()");
-        if(DbgFunctions()->ModNameFromAddr(defaultModule, moduleName, false))
-        {
-            defaultFileName = QString::fromUtf8(moduleName);
-        }
-        defaultFileName += "-" + QLocale(QString(currentLocale)).toString(currentTime.date()) + " " + currentTime.time().toString("hh-mm-ss") + ArchValue(".trace32", ".trace64");
-        BrowseDialog browse(this, tr("Select stored file"), tr("Store run trace to the following file"),
-                            tr("Run trace files (*.%1);;All files (*.*)").arg(ArchValue("trace32", "trace64")), QCoreApplication::applicationDirPath() + QDir::separator() + "db" + QDir::separator() + defaultFileName, true);
-        if(browse.exec() == QDialog::Accepted)
-        {
-            if(browse.path.contains(QChar('"')) || browse.path.contains(QChar('\'')))
-                SimpleErrorBox(this, tr("Error"), tr("File name contains invalid character."));
-            else
-                DbgCmdExec(QString("StartRunTrace \"%1\"").arg(browse.path));
-        }
-    }
+    TraceBrowser::toggleTraceRecording(this);
 }

@@ -436,9 +436,9 @@ namespace Exprfunc
         return trenabled(addr) ? TraceRecord.getHitCount(addr) : 0;
     }
 
-    duint trisruntraceenabled()
+    duint trisrecording()
     {
-        return _dbg_dbgisRunTraceEnabled() ? 1 : 0;
+        return TraceRecord.isTraceRecordingEnabled() ? 1 : 0;
     }
 
     duint gettickcount()

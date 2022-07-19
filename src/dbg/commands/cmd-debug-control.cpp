@@ -480,7 +480,7 @@ bool cbDebugSkip(int argc, char* argv[])
     {
         disasmfast(cip, &basicinfo);
         cip += basicinfo.size;
-        _dbg_dbgtraceexecute(cip);
+        dbgtraceexecute(cip);
     }
     SetContextDataEx(hActiveThread, UE_CIP, cip);
     DebugUpdateGuiAsync(cip, false); //update GUI

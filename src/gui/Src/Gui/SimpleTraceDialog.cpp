@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include "BrowseDialog.h"
 #include "MiscUtil.h"
+#include "Tracer/TraceBrowser.h"
 
 SimpleTraceDialog::SimpleTraceDialog(QWidget* parent) :
     QDialog(parent),
@@ -52,6 +53,16 @@ void SimpleTraceDialog::on_btnOk_clicked()
         if(msgyn.exec() == QMessageBox::No)
             return;
     }
+    if(ui->chkRecordTrace->isChecked())
+    {
+        if(!TraceBrowser::toggleTraceRecording(this))
+        {
+            ui->chkRecordTrace->setChecked(false);
+            SimpleWarningBox(this, tr("Error"), tr("Trace recording was requested, but not enabled."));
+            return;
+        }
+        ui->chkRecordTrace->setChecked(false);
+    }
     auto logText = ui->editLogText->addHistoryClear();
     auto logCondition = ui->editLogCondition->addHistoryClear();
     if(!DbgCmdExecDirect(QString("TraceSetLog \"%1\", \"%2\"").arg(escapeText(logText), escapeText(logCondition)).toUtf8().constData()))
@@ -89,9 +100,33 @@ void SimpleTraceDialog::on_btnOk_clicked()
 
 void SimpleTraceDialog::on_btnLogFile_clicked()
 {
-    BrowseDialog browse(this, tr("Trace log file"), tr("Enter the path to the log file."), tr("Log Files (*.txt *.log);;All Files (*.*)"), QCoreApplication::applicationDirPath(), true);
+    BrowseDialog browse(
+        this,
+        tr("Trace log file"),
+        tr("Enter the path to the log file."),
+        tr("Log Files (*.txt *.log);;All Files (*.*)"),
+        getDbPath(mainModuleName() + ".log", true),
+        true
+    );
     if(browse.exec() == QDialog::Accepted)
         mLogFile = browse.path;
     else
         mLogFile.clear();
+}
+
+int SimpleTraceDialog::exec()
+{
+    if(TraceBrowser::isRecording())
+    {
+        ui->chkRecordTrace->setEnabled(false);
+        ui->chkRecordTrace->setChecked(true);
+        ui->chkRecordTrace->setToolTip(tr("Trace recording already started"));
+    }
+    else
+    {
+        ui->chkRecordTrace->setEnabled(true);
+        ui->chkRecordTrace->setChecked(false);
+        ui->chkRecordTrace->setToolTip("");
+    }
+    return QDialog::exec();
 }

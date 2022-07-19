@@ -746,7 +746,7 @@ void cbPauseBreakpoint()
     DebugUpdateGuiSetStateAsync(CIP, true);
     _dbg_animatestop(); // Stop animating when paused
     // Trace record
-    _dbg_dbgtraceexecute(CIP);
+    dbgtraceexecute(CIP);
     //lock
     lock(WAITID_RUN);
     // Plugin callback
@@ -925,7 +925,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr
     plugincbcall(CB_BREAKPOINT, &bpInfo);
 
     // Trace record
-    _dbg_dbgtraceexecute(CIP);
+    dbgtraceexecute(CIP);
 
     // Watchdog
     cbCheckWatchdog(0, nullptr);
@@ -994,7 +994,7 @@ void cbRunToUserCodeBreakpoint(void* ExceptionAddress)
     // lock
     lock(WAITID_RUN);
     // Trace record
-    _dbg_dbgtraceexecute(CIP);
+    dbgtraceexecute(CIP);
     // Update GUI
     DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
     // Plugin callback
@@ -1191,7 +1191,7 @@ void cbStep()
     {
         DebugUpdateGuiSetStateAsync(CIP, true);
         // Trace record
-        _dbg_dbgtraceexecute(CIP);
+        dbgtraceexecute(CIP);
         // Plugin interaction
         PLUG_CB_STEPPED stepInfo;
         stepInfo.reserved = 0;
@@ -1207,7 +1207,7 @@ void cbStep()
     }
     else
     {
-        _dbg_dbgtraceexecute(CIP);
+        dbgtraceexecute(CIP);
         (bRepeatIn ? StepIntoWow64 : StepOverWrapper)((void*)cbStep);
     }
 }
@@ -1220,7 +1220,7 @@ static void cbRtrFinalStep(bool checkRepeat = false)
         hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
         duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
         // Trace record
-        _dbg_dbgtraceexecute(CIP);
+        dbgtraceexecute(CIP);
         DebugUpdateGuiSetStateAsync(CIP, true);
         //lock
         lock(WAITID_RUN);
@@ -1243,7 +1243,7 @@ void cbRtrStep()
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     duint csp = GetContextDataEx(hActiveThread, UE_CSP);
     MemRead(cip, data, sizeof(data));
-    _dbg_dbgtraceexecute(cip);
+    dbgtraceexecute(cip);
     if(mRtrPreviousCSP <= csp) //"Run until return" should break only if RSP is bigger than or equal to current value
     {
         if(data[0] == 0xC3 || data[0] == 0xC2) //retn instruction
@@ -1342,7 +1342,7 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
     }
     else //continue tracing
     {
-        _dbg_dbgtraceexecute(cip);
+        dbgtraceexecute(cip);
         if(switchCondition) //switch (invert) the step type once
             bStepInto = !bStepInto;
         (bStepInto ? StepIntoWow64 : StepOverWrapper)((void*)callback);
@@ -2903,7 +2903,7 @@ static void debugLoopFunction(INIT_STRUCT* init)
     ThreadClear();
     WatchClear();
     TraceRecord.clear();
-    _dbg_dbgenableRunTrace(false, nullptr); //Stop run trace
+    TraceRecord.enableTraceRecording(false, nullptr); // Stop trace recording
     GuiSetDebugState(stopped);
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "Debugging stopped!"));

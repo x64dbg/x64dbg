@@ -89,11 +89,11 @@ public slots:
     void openSourceSlot();
     void mnemonicHelpSlot();
     void mnemonicBriefSlot();
-    void ActionTraceRecordBitSlot();
-    void ActionTraceRecordByteSlot();
-    void ActionTraceRecordWordSlot();
-    void ActionTraceRecordDisableSlot();
-    void ActionTraceRecordToggleRunTraceSlot();
+    void traceCoverageBitSlot();
+    void traceCoverageByteSlot();
+    void traceCoverageWordSlot();
+    void traceCoverageDisableSlot();
+    void traceCoverageToggleTraceRecordingSlot();
     void displayWarningSlot(QString title, QString text);
     void labelHelpSlot();
     void analyzeSingleFunctionSlot();

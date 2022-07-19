@@ -174,7 +174,7 @@ static bool _getjit(char* jit, bool jit64)
     return true;
 }
 
-bool _getprocesslist(DBGPROCESSINFO** entries, int* count)
+static bool _getprocesslist(DBGPROCESSINFO** entries, int* count)
 {
     std::vector<PROCESSENTRY32> infoList;
     std::vector<std::string> commandList;
@@ -440,7 +440,7 @@ static int SymAutoComplete(const char* Search, char** Buffer, int MaxSymbols)
     return count;
 }
 
-MODULESYMBOLSTATUS _modsymbolstatus(duint base)
+static MODULESYMBOLSTATUS _modsymbolstatus(duint base)
 {
     SHARED_ACQUIRE(LockModules);
     auto modInfo = ModInfoFromAddr(base);
@@ -461,6 +461,36 @@ MODULESYMBOLSTATUS _modsymbolstatus(duint base)
 static void _refreshmodulelist()
 {
     SymUpdateModuleList();
+}
+
+static unsigned int _getTraceRecordHitCount(duint address)
+{
+    return TraceRecord.getHitCount(address);
+}
+
+static TRACERECORDBYTETYPE _getTraceRecordByteType(duint address)
+{
+    return (TRACERECORDBYTETYPE)TraceRecord.getByteType(address);
+}
+
+static bool _setTraceRecordType(duint pageAddress, TRACERECORDTYPE type)
+{
+    return TraceRecord.setTraceRecordType(pageAddress, (TraceRecordManager::TraceRecordType)type);
+}
+
+static TRACERECORDTYPE _getTraceRecordType(duint pageAddress)
+{
+    return (TRACERECORDTYPE)TraceRecord.getTraceRecordType(pageAddress);
+}
+
+static bool _enableTraceRecording(bool enabled, const char* fileName)
+{
+    return TraceRecord.enableTraceRecording(enabled, fileName);
+}
+
+static bool _isTraceRecordingEnabled()
+{
+    return TraceRecord.isTraceRecordingEnabled();
 }
 
 void dbgfunctionsinit()
@@ -508,10 +538,10 @@ void dbgfunctionsinit()
     _dbgfunctions.GetBridgeBp = _getbridgebp;
     _dbgfunctions.StringFormatInline = _stringformatinline;
     _dbgfunctions.GetMnemonicBrief = _getmnemonicbrief;
-    _dbgfunctions.GetTraceRecordHitCount = _dbg_dbggetTraceRecordHitCount;
-    _dbgfunctions.GetTraceRecordByteType = _dbg_dbggetTraceRecordByteType;
-    _dbgfunctions.SetTraceRecordType = _dbg_dbgsetTraceRecordType;
-    _dbgfunctions.GetTraceRecordType = _dbg_dbggetTraceRecordType;
+    _dbgfunctions.GetTraceRecordHitCount = _getTraceRecordHitCount;
+    _dbgfunctions.GetTraceRecordByteType = _getTraceRecordByteType;
+    _dbgfunctions.SetTraceRecordType = _setTraceRecordType;
+    _dbgfunctions.GetTraceRecordType = _getTraceRecordType;
     _dbgfunctions.EnumHandles = _enumhandles;
     _dbgfunctions.GetHandleName = _gethandlename;
     _dbgfunctions.EnumTcpConnections = _enumtcpconnections;

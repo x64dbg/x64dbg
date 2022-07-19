@@ -607,10 +607,10 @@ void MemoryMapView::dumpMemory()
         end = base + size;
     }
 
-    char modname[MAX_MODULE_SIZE] = "";
-    if(!DbgFunctions()->ModNameFromAddr(DbgEval("mod.main()"), modname, false))
-        *modname = '\0';
-    QString defaultFile = QString("%1/%2%3.bin").arg(QDir::currentPath(), *modname ? modname +  QString("_") : "", getCellContent(getInitialSelection(), 0));
+    auto modname = mainModuleName();
+    if(!modname.isEmpty())
+        modname += '_';
+    QString defaultFile = QString("%1/%2%3.bin").arg(QDir::currentPath(), modname, getCellContent(getInitialSelection(), 0));
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save Memory Region"), defaultFile, tr("Binary files (*.bin);;All files (*.*)"));
 
     if(fileName.length())
@@ -622,11 +622,11 @@ void MemoryMapView::dumpMemory()
 
 void MemoryMapView::loadMemory()
 {
-    char modname[MAX_MODULE_SIZE] = "";
-    if(!DbgFunctions()->ModNameFromAddr(DbgEval("mod.main()"), modname, false))
-        *modname = '\0';
+    auto modname = mainModuleName();
+    if(!modname.isEmpty())
+        modname += '_';
     auto addr = getCellContent(getInitialSelection(), 0);
-    QString defaultFile = QString("%1/%2%3.bin").arg(QDir::currentPath(), *modname ? modname +  QString("_") : "", addr);
+    QString defaultFile = QString("%1/%2%3.bin").arg(QDir::currentPath(), modname, addr);
     QString fileName = QFileDialog::getOpenFileName(this, tr("Load Memory Region"), defaultFile, tr("Binary files (*.bin);;All files (*.*)"));
 
     if(fileName.length())

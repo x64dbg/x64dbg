@@ -204,7 +204,7 @@
     </property>
     <widget class="QMenu" name="menuTrace_record">
      <property name="title">
-      <string>Trace record</string>
+      <string>Trace &amp;coverage</string>
      </property>
      <property name="icon">
       <iconset theme="trace" resource="../../resource.qrc">
@@ -1035,7 +1035,7 @@
     <string>Bit</string>
    </property>
    <property name="statusTip">
-    <string>Enable trace record with 1 bit per byte to record whether the code has been executed.</string>
+    <string>Enable trace coverage with 1 bit (whether an instruction was executed or not)</string>
    </property>
   </action>
   <action name="actionTRByte">
@@ -1047,7 +1047,7 @@
     <string>Byte</string>
    </property>
    <property name="statusTip">
-    <string>Enable trace record with 1 byte per byte to record how many times the code has been executed.</string>
+    <string>Enable trace coverage with 1 byte to record how many times an instruction has been executed.</string>
    </property>
   </action>
   <action name="actionTRWord">
@@ -1059,7 +1059,7 @@
     <string>Word</string>
    </property>
    <property name="statusTip">
-    <string>Enable trace record with 2 bytes per byte to record how many times the code has been executed.</string>
+    <string>Enable trace coverage with 1 word to record how many times an instruction has been executed.</string>
    </property>
   </action>
   <action name="actionTRTIBT">
@@ -1068,10 +1068,10 @@
      <normaloff>:/Default/icons/traceinto.png</normaloff>:/Default/icons/traceinto.png</iconset>
    </property>
    <property name="text">
-    <string>Trace into beyond trace record</string>
+    <string>Step into until reaching uncovered code</string>
    </property>
    <property name="statusTip">
-    <string>Trace into until the current instruction was not executed before. Equivalent command &quot;tibt&quot;</string>
+    <string>Step into until reaching an instruction that was not covered before. Equivalent command &quot;tibt&quot;</string>
    </property>
   </action>
   <action name="actionTRTOBT">
@@ -1080,10 +1080,10 @@
      <normaloff>:/Default/icons/traceover.png</normaloff>:/Default/icons/traceover.png</iconset>
    </property>
    <property name="text">
-    <string>Trace over beyond trace record</string>
+    <string>Step over until reaching uncovered code</string>
    </property>
    <property name="statusTip">
-    <string>Trace over until the current instruction was not executed before. Equivalent command &quot;tobt&quot;</string>
+    <string>Step over until reaching an instruction that was not covered before. Equivalent command &quot;tobt&quot;</string>
    </property>
   </action>
   <action name="actionTRTIIT">
@@ -1092,10 +1092,10 @@
      <normaloff>:/Default/icons/arrow-step-into.png</normaloff>:/Default/icons/arrow-step-into.png</iconset>
    </property>
    <property name="text">
-    <string>Trace into into trace record</string>
+    <string>Step into until reaching covered code</string>
    </property>
    <property name="statusTip">
-    <string>Trace into until the current instruction was executed before. Equivalent command &quot;tiit&quot;</string>
+    <string>Step into until reaching an instruction that has been covered before. Equivalent command &quot;tiit&quot;</string>
    </property>
   </action>
   <action name="actionTRTOIT">
@@ -1104,10 +1104,10 @@
      <normaloff>:/Default/icons/arrow-step-over.png</normaloff>:/Default/icons/arrow-step-over.png</iconset>
    </property>
    <property name="text">
-    <string>Trace over into trace record</string>
+    <string>Step over until reaching covered code</string>
    </property>
    <property name="statusTip">
-    <string>Trace over until the current instruction was executed before. Equivalent command &quot;toit&quot;</string>
+    <string>Step over until reaching an instruction that has been covered before. Equivalent command &quot;toit&quot;</string>
    </property>
   </action>
   <action name="actionTRNone">
@@ -1116,10 +1116,10 @@
      <normaloff>:/Default/icons/close-all-tabs.png</normaloff>:/Default/icons/close-all-tabs.png</iconset>
    </property>
    <property name="text">
-    <string>None</string>
+    <string>Disable</string>
    </property>
    <property name="statusTip">
-    <string>Disable trace record</string>
+    <string>Disable trace coverage</string>
    </property>
   </action>
   <action name="actionRtu">

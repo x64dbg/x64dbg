@@ -90,7 +90,7 @@ public slots:
     void displayThreadsWidget();
     void displayVariables();
     void displayGraphWidget();
-    void displayRunTrace();
+    void displayTraceWidget();
     void openSettings();
     void openAppearance();
     void openCalculator();

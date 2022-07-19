@@ -110,7 +110,7 @@ SCRIPT_EXPORT bool Script::Register::Set(Script::Register::RegisterEnum reg, dui
     if(reg == ArchValue(EIP, RIP) || reg == CIP)
     {
         auto cip = GetContextDataEx(hActiveThread, UE_CIP);
-        _dbg_dbgtraceexecute(cip);
+        dbgtraceexecute(cip);
         DebugUpdateGuiAsync(cip, false); //update disassembly + register view
     }
     else if(reg == ArchValue(ESP, RSP) || reg == SP || reg == CSP) //update stack

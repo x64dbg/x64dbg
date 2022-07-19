@@ -2,6 +2,7 @@
 #include "ui_SystemBreakpointScriptDialog.h"
 #include "Bridge.h"
 #include "Configuration.h"
+#include "MiscUtil.h"
 #include <QDirModel>
 #include <QFile>
 #include <QFileDialog>
@@ -33,12 +34,7 @@ SystemBreakpointScriptDialog::SystemBreakpointScriptDialog(QWidget* parent) :
 
     if(DbgIsDebugging())
     {
-        char moduleName[MAX_MODULE_SIZE];
-        if(DbgFunctions()->ModNameFromAddr(DbgValFromString("mod.main()"), moduleName, true))
-        {
-            ui->groupBoxDebuggee->setTitle(tr("2. System breakpoint script for %1").arg(moduleName));
-        }
-
+        ui->groupBoxDebuggee->setTitle(tr("2. System breakpoint script for %1").arg(mainModuleName(true)));
         ui->lineEditDebuggee->setText(DbgFunctions()->DbgGetDebuggeeInitScript());
     }
     else
@@ -122,14 +118,7 @@ void SystemBreakpointScriptDialog::on_openDebuggee_clicked()
         if(msgyn.exec() == QMessageBox::Yes)
         {
             // The new script is at db dir
-            QString defaultFileName;
-            char moduleName[MAX_MODULE_SIZE];
-            if(DbgFunctions()->ModNameFromAddr(DbgValFromString("mod.main()"), moduleName, false))
-            {
-                defaultFileName = QString::fromUtf8(moduleName);
-            }
-            defaultFileName = defaultFileName + ".autorun.txt";
-            defaultFileName = QDir::toNativeSeparators(QCoreApplication::applicationDirPath() + QDir::separator() + "db" + QDir::separator() + defaultFileName);
+            auto defaultFileName = getDbPath(mainModuleName() + ".autorun.txt");
             // Create it
             if(!QFile::exists(defaultFileName))
             {

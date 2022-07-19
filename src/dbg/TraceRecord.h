@@ -60,8 +60,8 @@ public:
     TraceRecordByteType getByteType(duint address);
     void increaseInstructionCounter();
 
-    bool isRunTraceEnabled();
-    bool enableRunTrace(bool enabled, const char* fileName);
+    bool isTraceRecordingEnabled();
+    bool enableTraceRecording(bool enabled, const char* fileName);
 
     void saveToDb(JSON root);
     void loadFromDb(JSON root);
@@ -113,14 +113,6 @@ private:
 };
 
 extern TraceRecordManager TraceRecord;
-void _dbg_dbgtraceexecute(duint CIP);
-
-//exported to bridge
-unsigned int _dbg_dbggetTraceRecordHitCount(duint address);
-TRACERECORDBYTETYPE _dbg_dbggetTraceRecordByteType(duint address);
-bool _dbg_dbgsetTraceRecordType(duint pageAddress, TRACERECORDTYPE type);
-TRACERECORDTYPE _dbg_dbggetTraceRecordType(duint pageAddress);
-bool _dbg_dbgenableRunTrace(bool enabled, const char* fileName);
-bool _dbg_dbgisRunTraceEnabled();
+void dbgtraceexecute(duint CIP);
 
 #endif // TRACERECORD_H

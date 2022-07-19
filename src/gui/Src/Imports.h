@@ -13,5 +13,5 @@
 // Convenience overloads
 class QString;
 
-void DbgCmdExec(const QString & cmd);
+bool DbgCmdExec(const QString & cmd);
 bool DbgCmdExecDirect(const QString & cmd);

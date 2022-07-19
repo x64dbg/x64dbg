@@ -1,9 +1,9 @@
 #include "Imports.h"
 #include <QString>
 
-void DbgCmdExec(const QString & cmd)
+bool DbgCmdExec(const QString & cmd)
 {
-    DbgCmdExec(cmd.toUtf8().constData());
+    return DbgCmdExec(cmd.toUtf8().constData());
 }
 
 bool DbgCmdExecDirect(const QString & cmd)
