@@ -526,6 +526,7 @@ void MainWindow::loadSelectedTheme(bool reloadOnlyStyleCss)
         {
             BridgeSettingSet("Theme", "Selected", appsUseLightTheme ? "Default" : "Dark");
             BridgeSettingSetUint("Theme", "AppsUseLightTheme", appsUseLightTheme);
+            reloadOnlyStyleCss = false;
         }
     }
 
@@ -615,6 +616,7 @@ void MainWindow::loadSelectedTheme(bool reloadOnlyStyleCss)
     }
 
     // Skip changing the settings when only reloading the CSS
+    // On startup we want to preserve the user's appearance
     if(reloadOnlyStyleCss)
         return;
 

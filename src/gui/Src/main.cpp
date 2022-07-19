@@ -181,8 +181,8 @@ int main(int argc, char* argv[])
     appPalette.setColor(QPalette::Link, ConfigColor("LinkColor"));
     application.setPalette(appPalette);
 
-    // Load the selected style
-    MainWindow::loadSelectedTheme();
+    // Load the selected theme
+    MainWindow::loadSelectedTheme(true);
 
     // Register custom data types
     qRegisterMetaType<dsint>("dsint");
