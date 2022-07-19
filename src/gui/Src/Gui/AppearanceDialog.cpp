@@ -776,7 +776,7 @@ void AppearanceDialog::selectColor(QLineEdit* lineEdit, QColorDialog::ColorDialo
         }
     }
     auto result = dialog.exec();
-    for(duint i = 0; i < dialog.customCount(); i++)
+    for(int i = 0; i < dialog.customCount(); i++)
     {
         QColor customColor = dialog.customColor(i);
         QString colorName = customColor.name().toUpper();

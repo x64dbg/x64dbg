@@ -710,7 +710,7 @@ void TraceFilePage::MemoryAccessInfo(unsigned long long index, duint* address, d
 {
     auto count = MemoryAccessCount(index);
     auto base = memoryOperandOffset.at(index);
-    for(size_t i = 0; i < count; i++)
+    for(int i = 0; i < count; i++)
     {
         address[i] = memoryAddress.at(base + i);
         oldMemory[i] = this->oldMemory.at(base + i);

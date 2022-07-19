@@ -60,7 +60,7 @@ int TraceFileSearchConstantRange(TraceFileReader* file, duint start, duint end)
         if(memAccessCount > 0)
         {
             file->MemoryAccessInfo(index, memAddr, memOldContent, memNewContent, isValid);
-            for(size_t i = 0; i < memAccessCount; i++)
+            for(int i = 0; i < memAccessCount; i++)
             {
                 found |= inRange(memAddr[i], start, end);
                 found |= inRange(memOldContent[i], start, end);
@@ -108,7 +108,7 @@ int TraceFileSearchMemReference(TraceFileReader* file, duint address)
         if(memAccessCount > 0)
         {
             file->MemoryAccessInfo(index, memAddr, memOldContent, memNewContent, isValid);
-            for(size_t i = 0; i < memAccessCount; i++)
+            for(int i = 0; i < memAccessCount; i++)
             {
                 found |= inRange(memAddr[i], address, address + sizeof(duint) - 1);
             }

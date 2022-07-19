@@ -1834,7 +1834,7 @@ void Disassembly::paintEvent(QPaintEvent* event)
     painter.setFont(font());
     int x = -horizontalScrollBar()->value();
 
-    for(int column = 0; column < mRichText.size(); column++)
+    for(int column = 0; column < (int)mRichText.size(); column++)
     {
         int w = getColumnWidth(column);
         int h = getViewableRowsCount() * getRowHeight();
@@ -1847,7 +1847,7 @@ void Disassembly::paintEvent(QPaintEvent* event)
 
             QVector<QTextLayout::FormatRange> selections;
 
-            for(int rowOffset = 0; rowOffset < mRichText[column].size(); rowOffset++)
+            for(int rowOffset = 0; rowOffset < (int)mRichText[column].size(); rowOffset++)
             {
                 if(rowOffset > 0)
                     columnText += QChar::LineSeparator;
@@ -1974,7 +1974,7 @@ void Disassembly::paintEvent(QPaintEvent* event)
         }
         else
         {
-            for(int rowOffset = 0; rowOffset < mRichText[column].size(); rowOffset++)
+            for(int rowOffset = 0; rowOffset < (int)mRichText[column].size(); rowOffset++)
             {
                 const RichTextInfo & info = mRichText[column][rowOffset];
                 if(info.alive)
