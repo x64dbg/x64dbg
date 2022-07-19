@@ -79,7 +79,6 @@ HANDLE hActiveThread;
 HANDLE hProcessToken;
 bool bUndecorateSymbolNames = true;
 bool bEnableSourceDebugging = false;
-bool bTraceRecordEnabledDuringTrace = true;
 bool bSkipInt3Stepping = false;
 bool bIgnoreInconsistentBreakpoints = false;
 bool bNoForegroundWindow = false;
@@ -1208,8 +1207,7 @@ void cbStep()
     }
     else
     {
-        if(bTraceRecordEnabledDuringTrace)
-            _dbg_dbgtraceexecute(CIP);
+        _dbg_dbgtraceexecute(CIP);
         (bRepeatIn ? StepIntoWow64 : StepOverWrapper)((void*)cbStep);
     }
 }
@@ -1245,8 +1243,7 @@ void cbRtrStep()
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     duint csp = GetContextDataEx(hActiveThread, UE_CSP);
     MemRead(cip, data, sizeof(data));
-    if(bTraceRecordEnabledDuringTrace)
-        _dbg_dbgtraceexecute(cip);
+    _dbg_dbgtraceexecute(cip);
     if(mRtrPreviousCSP <= csp) //"Run until return" should break only if RSP is bigger than or equal to current value
     {
         if(data[0] == 0xC3 || data[0] == 0xC2) //retn instruction
@@ -1345,8 +1342,7 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
     }
     else //continue tracing
     {
-        if(bTraceRecordEnabledDuringTrace)
-            _dbg_dbgtraceexecute(cip);
+        _dbg_dbgtraceexecute(cip);
         if(switchCondition) //switch (invert) the step type once
             bStepInto = !bStepInto;
         (bStepInto ? StepIntoWow64 : StepOverWrapper)((void*)callback);
@@ -1475,8 +1471,6 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
             sprintf_s(command, "bp %p,\"%s\",ss", pDebuggedBase + pDebuggedEntry, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "entry breakpoint")));
             cmddirectexec(command);
         }
-
-        bTraceRecordEnabledDuringTrace = settingboolget("Engine", "TraceRecordEnabledDuringTrace");
     }
     else if(bFileIsDll && strstr(DebugFileName, "DLLLoader" ArchValue("32", "64"))) //DLL Loader
         gDllLoader = StringUtils::Utf8ToUtf16(DebugFileName);

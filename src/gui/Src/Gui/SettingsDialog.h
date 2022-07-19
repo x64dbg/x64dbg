@@ -56,7 +56,6 @@ private slots:
     void on_chkEnableSourceDebugging_stateChanged(int arg1);
     void on_chkDisableDatabaseCompression_stateChanged(int arg1);
     void on_chkSaveDatabaseInProgramDirectory_stateChanged(int arg1);
-    void on_chkTraceRecordEnabledDuringTrace_stateChanged(int arg1);
     void on_chkSkipInt3Stepping_toggled(bool checked);
     void on_chkNoScriptTimeout_stateChanged(int arg1);
     void on_chkIgnoreInconsistentBreakpoints_toggled(bool checked);
@@ -199,7 +198,6 @@ private:
         bool engineEnableSourceDebugging;
         bool engineSaveDatabaseInProgramDirectory;
         bool engineDisableDatabaseCompression;
-        bool engineEnableTraceRecordDuringTrace;
         bool engineSkipInt3Stepping;
         bool engineNoScriptTimeout;
         bool engineIgnoreInconsistentBreakpoints;

@@ -63,7 +63,6 @@ void SettingsDialog::LoadSettings()
     settings.engineUndecorateSymbolNames = true;
     settings.engineEnableDebugPrivilege = true;
     settings.engineEnableSourceDebugging = false;
-    settings.engineEnableTraceRecordDuringTrace = true;
     settings.engineNoScriptTimeout = false;
     settings.engineIgnoreInconsistentBreakpoints = false;
     settings.engineNoWow64SingleStepWorkaround = false;
@@ -156,7 +155,6 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Engine", "EnableSourceDebugging", &settings.engineEnableSourceDebugging);
     GetSettingBool("Engine", "SaveDatabaseInProgramDirectory", &settings.engineSaveDatabaseInProgramDirectory);
     GetSettingBool("Engine", "DisableDatabaseCompression", &settings.engineDisableDatabaseCompression);
-    GetSettingBool("Engine", "TraceRecordEnabledDuringTrace", &settings.engineEnableTraceRecordDuringTrace);
     GetSettingBool("Engine", "SkipInt3Stepping", &settings.engineSkipInt3Stepping);
     GetSettingBool("Engine", "NoScriptTimeout", &settings.engineNoScriptTimeout);
     GetSettingBool("Engine", "IgnoreInconsistentBreakpoints", &settings.engineIgnoreInconsistentBreakpoints);
@@ -202,7 +200,6 @@ void SettingsDialog::LoadSettings()
     ui->chkEnableSourceDebugging->setChecked(settings.engineEnableSourceDebugging);
     ui->chkSaveDatabaseInProgramDirectory->setChecked(settings.engineSaveDatabaseInProgramDirectory);
     ui->chkDisableDatabaseCompression->setChecked(settings.engineDisableDatabaseCompression);
-    ui->chkTraceRecordEnabledDuringTrace->setChecked(settings.engineEnableTraceRecordDuringTrace);
     ui->chkSkipInt3Stepping->setChecked(settings.engineSkipInt3Stepping);
     ui->chkNoScriptTimeout->setChecked(settings.engineNoScriptTimeout);
     ui->chkIgnoreInconsistentBreakpoints->setChecked(settings.engineIgnoreInconsistentBreakpoints);
@@ -424,7 +421,6 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "EnableSourceDebugging", settings.engineEnableSourceDebugging);
     BridgeSettingSetUint("Engine", "SaveDatabaseInProgramDirectory", settings.engineSaveDatabaseInProgramDirectory);
     BridgeSettingSetUint("Engine", "DisableDatabaseCompression", settings.engineDisableDatabaseCompression);
-    BridgeSettingSetUint("Engine", "TraceRecordEnabledDuringTrace", settings.engineEnableTraceRecordDuringTrace);
     BridgeSettingSetUint("Engine", "SkipInt3Stepping", settings.engineSkipInt3Stepping);
     BridgeSettingSetUint("Engine", "NoScriptTimeout", settings.engineNoScriptTimeout);
     BridgeSettingSetUint("Engine", "IgnoreInconsistentBreakpoints", settings.engineIgnoreInconsistentBreakpoints);
@@ -863,12 +859,6 @@ void SettingsDialog::on_chkSaveDatabaseInProgramDirectory_stateChanged(int arg1)
 {
     settings.engineSaveDatabaseInProgramDirectory = arg1 == Qt::Checked;
 }
-
-void SettingsDialog::on_chkTraceRecordEnabledDuringTrace_stateChanged(int arg1)
-{
-    settings.engineEnableTraceRecordDuringTrace = arg1 == Qt::Checked;
-}
-
 void SettingsDialog::on_btnIgnoreRange_clicked()
 {
     ExceptionRangeDialog exceptionRange(this);
@@ -957,6 +947,7 @@ void SettingsDialog::on_radioDoNotBreak_clicked()
 
 void SettingsDialog::on_chkLogException_stateChanged(int arg1)
 {
+    Q_UNUSED(arg1);
     OnCurrentExceptionFilterSettingsChanged();
 }
 
