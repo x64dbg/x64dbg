@@ -551,7 +551,9 @@ static bool cbRefStr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* 
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
         GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "String Addr")));
         GuiReferenceAddColumn(500, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "String")));
+        GuiReferenceAddCommand(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Follow string in Dump")), "dump $2");
         GuiReferenceSetSearchStartCol(2); //only search the strings
         GuiReferenceSetRowCount(0);
         GuiReferenceReloadData();
@@ -561,10 +563,12 @@ static bool cbRefStr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* 
     char string[MAX_STRING_SIZE] = "";
     if(basicinfo->branch) //branches have no strings (jmp dword [401000])
         return false;
-    auto addRef = [&]()
+    auto addRef = [&](duint strAddr)
     {
         char addrText[20] = "";
         sprintf_s(addrText, "%p", disasm->Address());
+        char strAddrText[20] = "";
+        sprintf_s(strAddrText, "%p", strAddr);
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[4096] = "";
@@ -572,18 +576,19 @@ static bool cbRefStr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* 
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
             GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
-        GuiReferenceSetCellContent(refinfo->refcount, 2, string);
+        GuiReferenceSetCellContent(refinfo->refcount, 2, strAddrText);
+        GuiReferenceSetCellContent(refinfo->refcount, 3, string);
         refinfo->refcount++;
     };
     if((basicinfo->type & TYPE_VALUE) == TYPE_VALUE)
     {
         if(DbgGetStringAt(basicinfo->value.value, string))
-            addRef();
+            addRef(basicinfo->value.value);
     }
     if((basicinfo->type & TYPE_MEMORY) == TYPE_MEMORY)
     {
         if(DbgGetStringAt(basicinfo->memory.value, string))
-            addRef();
+            addRef(basicinfo->memory.value);
     }
     return false;
 }
