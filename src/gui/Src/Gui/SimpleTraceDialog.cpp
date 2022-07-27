@@ -53,7 +53,7 @@ void SimpleTraceDialog::on_btnOk_clicked()
         if(msgyn.exec() == QMessageBox::No)
             return;
     }
-    if(ui->chkRecordTrace->isChecked())
+    if(ui->chkRecordTrace->isChecked() && !TraceBrowser::isRecording())
     {
         if(!TraceBrowser::toggleTraceRecording(this))
         {

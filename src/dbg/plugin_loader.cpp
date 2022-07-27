@@ -1049,7 +1049,7 @@ bool pluginexprfuncregisterex(int pluginHandle, const char* name, const ValueTyp
 
     std::vector<ValueType> argTypesVec(argCount);
 
-    for(auto i = 0; i < argCount; i++)
+    for(size_t i = 0; i < argCount; i++)
         argTypesVec[i] = argTypes[i];
 
     if(!ExpressionFunctions::Register(name, returnType, argTypesVec, cbFunction, userdata))

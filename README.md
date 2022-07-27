@@ -78,5 +78,6 @@ You can find an exhaustive list of GitHub contributors [here](https://github.com
 - [kobalicek](https://github.com/kobalicek)
 - [athre0z](https://github.com/athre0z)
 - [ZehMatt](https://github.com/ZehMatt)
+- [mrfearless](https://twitter.com/fearless0)
 
 Without the help of many people and other open-source projects, it would not have been possible to make x64dbg what is it today, thank you!
