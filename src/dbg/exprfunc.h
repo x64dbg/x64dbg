@@ -87,7 +87,9 @@ namespace Exprfunc
     duint exinfo(duint index);
 
     bool streq(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool strieq(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool strstr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool stristr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool strlen(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool utf16(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool utf8(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
