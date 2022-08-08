@@ -322,6 +322,16 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
             }
         }
 
+        duint pathTaken = 0;
+        if(blockSelected)
+        {
+            auto lastInstrAddr = block.block.instrs.back().addr;
+            pathTaken = DbgIsJumpGoingToExecute(lastInstrAddr) ? block.block.true_path : block.block.false_path;
+            // When there is only one destination true_path and false_path are not set
+            if(pathTaken == 0 && !block.block.exits.empty())
+                pathTaken = block.block.exits.front();
+        }
+
         //Ignore blocks that are not in view
         if(viewportRect.intersects(QRect(block.x + this->charWidth, block.y + this->charWidth,
                                          block.width - (2 * this->charWidth), block.height - (2 * this->charWidth))))
@@ -459,11 +469,21 @@ void DisassemblerGraphView::paintNormal(QPainter & p, QRect & viewportRect, int 
         {
             QPen pen(edge.color);
             if(blockSelected)
-                pen.setStyle(Qt::DashLine);
+            {
+                if(edge.dest != nullptr && edge.dest->block.entry == pathTaken)
+                {
+                    pen.setWidth(3);
+                }
+                else
+                {
+                    pen.setStyle(Qt::DashLine);
+                }
+            }
             p.setPen(pen);
             p.setBrush(edge.color);
             p.drawPolyline(edge.polyline);
             pen.setStyle(Qt::SolidLine);
+            pen.setWidth(1);
             p.setPen(pen);
             p.drawConvexPolygon(edge.arrow);
         }
@@ -1811,7 +1831,7 @@ void DisassemblerGraphView::renderFunction(Function & func)
             }
 
             auto new_pt = QPoint(last_pt.x(), edge.dest->y + this->charWidth - 1);
-            pts.push_back(new_pt);
+            pts.push_back(QPoint(new_pt.x(), new_pt.y() - 6));
             edge.polyline = pts;
 
             pts.clear();
