@@ -163,6 +163,8 @@ signals:
     void symbolSelectModule(duint base);
     void getCurrentGraph(BridgeCFGraphList* graphList);
     void showReferences();
+    void gotoTraceIndex(duint index);
+    void showTraceBrowser();
 
 private:
     CRITICAL_SECTION csBridge;

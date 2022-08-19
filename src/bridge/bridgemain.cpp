@@ -1773,6 +1773,16 @@ BRIDGE_IMPEXP void GuiSelectInSymbolsTab(duint addr)
     _gui_sendmessage(GUI_SELECT_IN_SYMBOLS_TAB, (void*)addr, nullptr);
 }
 
+BRIDGE_IMPEXP void GuiGotoTrace(duint index)
+{
+    _gui_sendmessage(GUI_GOTO_TRACE, (void*)index, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiShowTrace()
+{
+    _gui_sendmessage(GUI_SHOW_TRACE, nullptr, nullptr);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;

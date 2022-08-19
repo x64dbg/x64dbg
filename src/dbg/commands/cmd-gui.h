@@ -22,3 +22,4 @@ bool cbInstrFoldDisassembly(int argc, char* argv[]);
 bool cbDebugUpdateTitle(int argc, char* argv[]);
 bool cbShowReferences(int argc, char* argv[]);
 bool cbSymbolsFollow(int argc, char* argv[]);
+bool cbGotoTrace(int argc, char* argv[]);

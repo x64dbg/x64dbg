@@ -1205,6 +1205,8 @@ typedef enum
     GUI_GET_CURRENT_GRAPH,          // param1=BridgeCFGraphList*,   param2=unused
     GUI_SHOW_REF,                   // param1=unused,               param2=unused
     GUI_SELECT_IN_SYMBOLS_TAB,      // param1=duint addr,           param2=unused
+    GUI_GOTO_TRACE,                 // param1=duint index,          param2=unused
+    GUI_SHOW_TRACE,                 // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1388,6 +1390,8 @@ BRIDGE_IMPEXP void GuiExecuteOnGuiThreadEx(GUICALLBACKEX cbGuiThread, void* user
 BRIDGE_IMPEXP void GuiGetCurrentGraph(BridgeCFGraphList* graphList);
 BRIDGE_IMPEXP void GuiShowReferences();
 BRIDGE_IMPEXP void GuiSelectInSymbolsTab(duint addr);
+BRIDGE_IMPEXP void GuiGotoTrace(duint index);
+BRIDGE_IMPEXP void GuiShowTrace();
 
 #ifdef __cplusplus
 }

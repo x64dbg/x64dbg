@@ -890,6 +890,14 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_SELECT_IN_SYMBOLS_TAB:
         emit symbolSelectModule(duint(param1));
         break;
+
+    case GUI_GOTO_TRACE:
+        emit gotoTraceIndex(duint(param1));
+        break;
+
+    case GUI_SHOW_TRACE:
+        emit showTraceBrowser();
+        break;
     }
 
     return nullptr;

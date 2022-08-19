@@ -185,6 +185,7 @@ public slots:
     void updateSlot();
 
     void toggleAutoDisassemblyFollowSelectionSlot();
+    void gotoIndexSlot(duint index);
 
 protected:
     void disasm(unsigned long long index, bool history = true);

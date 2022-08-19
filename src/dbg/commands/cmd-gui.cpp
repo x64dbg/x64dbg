@@ -327,3 +327,13 @@ bool cbSymbolsFollow(int argc, char* argv[])
     GuiFocusView(GUI_SYMMOD);
     return true;
 }
+
+bool cbGotoTrace(int argc, char* argv[])
+{
+    duint index = 0;
+    if(IsArgumentsLessThan(argc, 2) || !valfromstring(argv[1], &index, false))
+        return false;
+
+    GuiGotoTrace(index);
+    GuiShowTrace();
+}

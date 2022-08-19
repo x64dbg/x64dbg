@@ -50,6 +50,7 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
 
     connect(Bridge::getBridge(), SIGNAL(updateTraceBrowser()), this, SLOT(updateSlot()));
     connect(Bridge::getBridge(), SIGNAL(openTraceFile(const QString &)), this, SLOT(openSlot(const QString &)));
+    connect(Bridge::getBridge(), SIGNAL(gotoTraceIndex(duint)), this, SLOT(gotoIndexSlot(duint)));
     connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerConfigUpdatedSlot()));
 }
 
@@ -917,7 +918,7 @@ void TraceBrowser::setupRightClickContextMenu()
         return true;
     });
     MenuBuilder* gotoMenu = new MenuBuilder(this, isValid);
-    gotoMenu->addAction(makeShortcutAction(DIcon("goto"), tr("Expression"), SLOT(gotoSlot()), "ActionGotoExpression"), isValid);
+    gotoMenu->addAction(makeShortcutAction(DIcon("goto"), tr("Index"), SLOT(gotoSlot()), "ActionGotoExpression"), isValid);
     gotoMenu->addAction(makeAction(DIcon("arrow-step-rtr"), tr("Function return"), SLOT(rtrSlot())), isValid);
     gotoMenu->addAction(makeShortcutAction(DIcon("previous"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
@@ -930,7 +931,7 @@ void TraceBrowser::setupRightClickContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("goto"), tr("Go to")), gotoMenu);
 
     MenuBuilder* searchMenu = new MenuBuilder(this, isValid);
-    searchMenu->addAction(makeAction(DIcon("search_for_constant"), tr("Constant"), SLOT(searchConstantSlot())));
+    searchMenu->addAction(makeAction(DIcon("search_for_constant"), tr("Address/Constant"), SLOT(searchConstantSlot())));
     searchMenu->addAction(makeAction(DIcon("memory-map"), tr("Memory Reference"), SLOT(searchMemRefSlot())));
     mMenuBuilder->addMenu(makeMenu(DIcon("search"), tr("&Search")), searchMenu);
 
@@ -1831,7 +1832,10 @@ void TraceBrowser::enableHighlightingModeSlot()
 void TraceBrowser::searchConstantSlot()
 {
     WordEditDialog constantDlg(this);
-    constantDlg.setup(tr("Constant"), 0, sizeof(duint));
+    duint initialConstant = 0;
+    if(mTraceFile && mTraceFile->Progress() == 100)
+        initialConstant =  mTraceFile->Registers(getInitialSelection()).regcontext.cip;
+    constantDlg.setup(tr("Constant"), initialConstant, sizeof(duint));
     if(constantDlg.exec() == QDialog::Accepted)
     {
         TraceFileSearchConstantRange(mTraceFile, constantDlg.getVal(), constantDlg.getVal());
@@ -1868,4 +1872,9 @@ void TraceBrowser::updateSlot()
 void TraceBrowser::toggleAutoDisassemblyFollowSelectionSlot()
 {
     mAutoDisassemblyFollowSelection = !mAutoDisassemblyFollowSelection;
+}
+
+void TraceBrowser::gotoIndexSlot(duint index)
+{
+    disasm(index, false);
 }

@@ -407,6 +407,7 @@ static void registercommands()
     dbgcmdnew("guiupdatetitle", cbDebugUpdateTitle, true); // set relevant disassembly title
     dbgcmdnew("showref", cbShowReferences, false); // show references window
     dbgcmdnew("symfollow", cbSymbolsFollow, false); // follow address in symbols tab
+    dbgcmdnew("gototrace,tracegoto", cbGotoTrace, false); // goto index in trace tab
 
     //misc
     dbgcmdnew("chd", cbInstrChd, false); //Change directory

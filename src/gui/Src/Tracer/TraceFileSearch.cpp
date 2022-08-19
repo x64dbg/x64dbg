@@ -20,8 +20,9 @@ int TraceFileSearchConstantRange(TraceFileReader* file, duint start, duint end)
         title = QCoreApplication::translate("TraceFileSearch", "Range: %1-%2").arg(ToPtrString(start)).arg(ToPtrString(end));
     GuiReferenceInitialize(title.toUtf8().constData());
     GuiReferenceAddColumn(sizeof(duint) * 2, QCoreApplication::translate("TraceFileSearch", "Address").toUtf8().constData());
-    GuiReferenceAddColumn(sizeof(duint) * 2, QCoreApplication::translate("TraceFileSearch", "Index").toUtf8().constData());
+    GuiReferenceAddColumn(5, QCoreApplication::translate("TraceFileSearch", "Index").toUtf8().constData());
     GuiReferenceAddColumn(100, QCoreApplication::translate("TraceFileSearch", "Disassembly").toUtf8().constData());
+    GuiReferenceAddCommand(QCoreApplication::translate("TraceFileSearch", "Follow index in trace").toUtf8().constData(), "gototrace 0x$1");
     GuiReferenceSetRowCount(0);
 
     REGISTERCONTEXT regcontext;
@@ -92,8 +93,9 @@ int TraceFileSearchMemReference(TraceFileReader* file, duint address)
     Zydis zy;
     GuiReferenceInitialize(QCoreApplication::translate("TraceFileSearch", "Reference").toUtf8().constData());
     GuiReferenceAddColumn(sizeof(duint) * 2, QCoreApplication::translate("TraceFileSearch", "Address").toUtf8().constData());
-    GuiReferenceAddColumn(sizeof(duint) * 2, QCoreApplication::translate("TraceFileSearch", "Index").toUtf8().constData());
+    GuiReferenceAddColumn(5, QCoreApplication::translate("TraceFileSearch", "Index").toUtf8().constData());
     GuiReferenceAddColumn(100, QCoreApplication::translate("TraceFileSearch", "Disassembly").toUtf8().constData());
+    GuiReferenceAddCommand(QCoreApplication::translate("TraceFileSearch", "Follow index in trace").toUtf8().constData(), "gototrace 0x$1");
     GuiReferenceSetRowCount(0);
 
     for(unsigned long long index = 0; index < file->Length(); index++)
