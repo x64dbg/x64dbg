@@ -72,11 +72,13 @@ static FORMATRESULT memoryFormatter(char* dest, size_t destCount, int argc, char
         return FORMAT_ERROR_MESSAGE;
     }
     std::vector<Char> data(size);
-    if(!MemRead(addr, data.data(), size * sizeof(Char)))
+    duint read = 0;
+    if(!MemRead(addr, data.data(), size * sizeof(Char), &read) && read == 0)
     {
         strcpy_s(dest, destCount, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Failed to read memory...")));
         return FORMAT_ERROR_MESSAGE;
     }
+    data.resize(read);
     auto result = format(data);
     if(result.size() > destCount)
         return FORMAT_BUFFER_TOO_SMALL;
