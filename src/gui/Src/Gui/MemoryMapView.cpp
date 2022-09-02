@@ -11,6 +11,7 @@
 #include "WordEditDialog.h"
 #include "VirtualModDialog.h"
 #include "LineEditDialog.h"
+#include "RichTextPainter.h"
 
 MemoryMapView::MemoryMapView(StdTable* parent)
     : StdTable(parent),
@@ -321,10 +322,24 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
     {
         QString wStr = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
         auto addr = getCellUserdata(rowBase + rowOffset, 0);
-        if(wStr.startsWith(" \""))
+        if(wStr.contains(" \""))
         {
-            painter->setPen(ConfigColor("MemoryMapSectionTextColor"));
-            painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+            auto idx = wStr.indexOf(" \"");
+            auto pre = wStr.mid(0, idx);
+            auto post = wStr.mid(idx);
+            RichTextPainter::List richText;
+            RichTextPainter::CustomRichText_t entry;
+            entry.flags = RichTextPainter::FlagColor;
+            if(!pre.isEmpty())
+            {
+                entry.text = pre;
+                entry.textColor = mTextColor;
+                richText.push_back(entry);
+            }
+            entry.text = post;
+            entry.textColor = ConfigColor("MemoryMapSectionTextColor");
+            richText.push_back(entry);
+            RichTextPainter::paintRichText(painter, x, y, getColumnWidth(col), getRowHeight(), 4, richText, mFontMetrics);
             return QString();
         }
         else if(DbgFunctions()->ModBaseFromAddr(addr) == addr) // module header page

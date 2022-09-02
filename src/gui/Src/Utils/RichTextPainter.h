@@ -25,7 +25,7 @@ public:
         QColor textColor;
         QColor textBackground;
         CustomRichTextFlags flags;
-        bool underline;
+        bool underline = false;
         QColor underlineColor;
         int underlineWidth = 2;
         bool underlineConnectPrev = false;
