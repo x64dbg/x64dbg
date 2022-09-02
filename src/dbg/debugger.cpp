@@ -36,6 +36,7 @@
 #include "exprfunc.h"
 #include "debugger_cookie.h"
 #include "debugger_tracing.h"
+#include "handles.h"
 
 // Debugging variables
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};
@@ -2953,6 +2954,19 @@ void dbgsetforeground()
 
 void dbgcreatedebugthread(INIT_STRUCT* init)
 {
+    if(settingboolget("Misc", "CheckForAntiCheatDrivers"))
+    {
+        auto loadedDrivers = LoadedAntiCheatDrivers();
+        if(!loadedDrivers.empty())
+        {
+            auto translatedFormat = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Drivers known to interfere with x64dbg's operation have been detected.\n\nList of drivers:\n%s\n\nDo you want to continue debugging?"));
+            auto message = StringUtils::sprintf(translatedFormat, loadedDrivers.c_str());
+            auto continueDebugging = GuiScriptMsgyn(message.c_str());
+            if(!continueDebugging)
+                return;
+        }
+    }
+
     auto event = init->event = CreateEventW(nullptr, false, false, nullptr);
     hDebugLoopThread = CreateThread(nullptr, 0, [](LPVOID lpParameter) -> DWORD
     {

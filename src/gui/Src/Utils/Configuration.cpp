@@ -275,6 +275,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 
     QMap<QString, bool> miscBool;
     miscBool.insert("TransparentExceptionStepping", true);
+    miscBool.insert("CheckForAntiCheatDrivers", true);
     defaultBools.insert("Misc", miscBool);
 
     QMap<QString, bool> guiBool;

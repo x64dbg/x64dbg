@@ -5,21 +5,6 @@
 #include "debugger.h"
 #include "thread.h"
 
-typedef NTSTATUS(NTAPI* ZWQUERYSYSTEMINFORMATION)(
-    IN LONG SystemInformationClass,
-    OUT PVOID SystemInformation,
-    IN ULONG SystemInformationLength,
-    OUT PULONG ReturnLength OPTIONAL
-);
-
-typedef NTSTATUS(NTAPI* ZWQUERYOBJECT)(
-    IN HANDLE Handle OPTIONAL,
-    IN LONG ObjectInformationClass,
-    OUT PVOID ObjectInformation OPTIONAL,
-    IN ULONG ObjectInformationLength,
-    OUT PULONG ReturnLength OPTIONAL
-);
-
 // Enumerate all handles in the debuggee
 bool HandlesEnum(std::vector<HANDLEINFO> & handles)
 {
@@ -361,4 +346,42 @@ bool HandlesEnumHeaps(std::vector<HEAPINFO> & heapList)
     return true;
     */
     return false;
+}
+
+String LoadedAntiCheatDrivers()
+{
+    Memory<RTL_PROCESS_MODULES*> HandleInformation(0x1000, __FUNCTION__);
+    NTSTATUS ErrorCode = ERROR_SUCCESS;
+    for(;;)
+    {
+        ErrorCode = NtQuerySystemInformation(SystemModuleInformation, HandleInformation(), ULONG(HandleInformation.size()), nullptr);
+        if(ErrorCode != STATUS_INFO_LENGTH_MISMATCH)
+            break;
+        HandleInformation.realloc(HandleInformation.size() * 2, __FUNCTION__);
+    }
+    if(ErrorCode != STATUS_SUCCESS)
+        return {};
+    const char* AntiCheatDrivers[] =
+    {
+        "EasyAntiCheat.sys",
+        "EasyAntiCheat_EOS.sys",
+    };
+    std::unordered_set<String> DriverSet;
+    for(auto & Driver : AntiCheatDrivers)
+        DriverSet.insert(StringUtils::ToLower(Driver));
+    String Result;
+    auto Modules = HandleInformation();
+    for(ULONG i = 0; i < Modules->NumberOfModules; i++)
+    {
+        const auto & Module = Modules->Modules[i];
+        String DriverName = (char*)Module.FullPathName + Module.OffsetToFileName;
+        dputs_untranslated(DriverName.c_str());
+        if(DriverSet.count(StringUtils::ToLower(DriverName)))
+        {
+            if(!Result.empty())
+                Result += '\n';
+            Result += DriverName;
+        }
+    }
+    return Result;
 }
