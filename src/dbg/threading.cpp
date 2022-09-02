@@ -57,9 +57,12 @@ SectionLockerGlobal::owner_info SectionLockerGlobal::m_owner[SectionLock::LockLa
 CRITICAL_SECTION SectionLockerGlobal::m_crLocks[SectionLock::LockLast];
 SectionLockerGlobal::SRWLOCKFUNCTION SectionLockerGlobal::m_InitializeSRWLock;
 SectionLockerGlobal::SRWLOCKFUNCTION SectionLockerGlobal::m_AcquireSRWLockShared;
+SectionLockerGlobal::TRYSRWLOCKFUNCTION SectionLockerGlobal::m_TryAcquireSRWLockShared;
 SectionLockerGlobal::SRWLOCKFUNCTION SectionLockerGlobal::m_AcquireSRWLockExclusive;
+SectionLockerGlobal::TRYSRWLOCKFUNCTION SectionLockerGlobal::m_TryAcquireSRWLockExclusive;
 SectionLockerGlobal::SRWLOCKFUNCTION SectionLockerGlobal::m_ReleaseSRWLockShared;
 SectionLockerGlobal::SRWLOCKFUNCTION SectionLockerGlobal::m_ReleaseSRWLockExclusive;
+DWORD SectionLockerGlobal::m_guiMainThreadId;
 
 void SectionLockerGlobal::Initialize()
 {
@@ -68,17 +71,24 @@ void SectionLockerGlobal::Initialize()
     if(m_Initialized)
         return;
 
+    // This gets called on the same thread as the GUI
+    m_guiMainThreadId = GetCurrentThreadId();
+
     // Attempt to read the SRWLock API
     HMODULE hKernel32 = GetModuleHandleW(L"kernel32.dll");
     m_InitializeSRWLock = (SRWLOCKFUNCTION)GetProcAddress(hKernel32, "InitializeSRWLock");
     m_AcquireSRWLockShared = (SRWLOCKFUNCTION)GetProcAddress(hKernel32, "AcquireSRWLockShared");
+    m_TryAcquireSRWLockShared = (TRYSRWLOCKFUNCTION)GetProcAddress(hKernel32, "TryAcquireSRWLockShared");
     m_AcquireSRWLockExclusive = (SRWLOCKFUNCTION)GetProcAddress(hKernel32, "AcquireSRWLockExclusive");
+    m_TryAcquireSRWLockExclusive = (TRYSRWLOCKFUNCTION)GetProcAddress(hKernel32, "TryAcquireSRWLockExclusive");
     m_ReleaseSRWLockShared = (SRWLOCKFUNCTION)GetProcAddress(hKernel32, "ReleaseSRWLockShared");
     m_ReleaseSRWLockExclusive = (SRWLOCKFUNCTION)GetProcAddress(hKernel32, "ReleaseSRWLockExclusive");
 
     m_SRWLocks = m_InitializeSRWLock &&
                  m_AcquireSRWLockShared &&
+                 m_TryAcquireSRWLockShared &&
                  m_AcquireSRWLockExclusive &&
+                 m_TryAcquireSRWLockExclusive &&
                  m_ReleaseSRWLockShared &&
                  m_ReleaseSRWLockExclusive;
 

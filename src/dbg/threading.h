@@ -90,33 +90,63 @@ public:
 private:
     static inline void AcquireLock(SectionLock LockIndex, bool Shared)
     {
+        auto threadId = GetCurrentThreadId();
         if(m_SRWLocks)
         {
+            auto srwLock = &m_srwLocks[LockIndex];
+
             if(Shared)
             {
-                if(m_owner[LockIndex].thread == GetCurrentThreadId())
+                if(m_owner[LockIndex].thread == threadId)
                     return;
 
-                m_AcquireSRWLockShared(&m_srwLocks[LockIndex]);
+                if(threadId == m_guiMainThreadId)
+                {
+                    while(!m_TryAcquireSRWLockShared(srwLock))
+                        GuiProcessEvents();
+                }
+                else
+                {
+                    m_AcquireSRWLockShared(srwLock);
+                }
                 return;
             }
 
-            if(m_owner[LockIndex].thread == GetCurrentThreadId())
+            if(m_owner[LockIndex].thread == threadId)
             {
                 assert(m_owner[LockIndex].count > 0);
                 m_owner[LockIndex].count++;
                 return;
             }
 
-            m_AcquireSRWLockExclusive(&m_srwLocks[LockIndex]);
+            if(threadId == m_guiMainThreadId)
+            {
+                while(!m_TryAcquireSRWLockExclusive(srwLock))
+                    GuiProcessEvents();
+            }
+            else
+            {
+                m_AcquireSRWLockExclusive(srwLock);
+            }
 
             assert(m_owner[LockIndex].thread == 0);
             assert(m_owner[LockIndex].count == 0);
-            m_owner[LockIndex].thread = GetCurrentThreadId();
+            m_owner[LockIndex].thread = threadId;
             m_owner[LockIndex].count = 1;
         }
         else
-            EnterCriticalSection(&m_crLocks[LockIndex]);
+        {
+            auto cr = &m_crLocks[LockIndex];
+            if(threadId == m_guiMainThreadId)
+            {
+                while(!TryEnterCriticalSection(cr))
+                    GuiProcessEvents();
+            }
+            else
+            {
+                EnterCriticalSection(cr);
+            }
+        }
     }
 
     static inline void ReleaseLock(SectionLock LockIndex, bool Shared)
@@ -146,6 +176,7 @@ private:
     }
 
     typedef void (WINAPI* SRWLOCKFUNCTION)(PSRWLOCK SWRLock);
+    typedef BOOLEAN(WINAPI* TRYSRWLOCKFUNCTION)(PSRWLOCK SWRLock);
 
     static bool m_Initialized;
     static bool m_SRWLocks;
@@ -155,9 +186,12 @@ private:
     static CRITICAL_SECTION m_crLocks[SectionLock::LockLast];
     static SRWLOCKFUNCTION m_InitializeSRWLock;
     static SRWLOCKFUNCTION m_AcquireSRWLockShared;
+    static TRYSRWLOCKFUNCTION m_TryAcquireSRWLockShared;
     static SRWLOCKFUNCTION m_AcquireSRWLockExclusive;
+    static TRYSRWLOCKFUNCTION m_TryAcquireSRWLockExclusive;
     static SRWLOCKFUNCTION m_ReleaseSRWLockShared;
     static SRWLOCKFUNCTION m_ReleaseSRWLockExclusive;
+    static DWORD m_guiMainThreadId;
 };
 
 template<SectionLock LockIndex, bool Shared>
