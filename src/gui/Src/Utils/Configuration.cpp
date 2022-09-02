@@ -273,6 +273,10 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     engineBool.insert("ShowSuspectedCallStack", false);
     defaultBools.insert("Engine", engineBool);
 
+    QMap<QString, bool> miscBool;
+    miscBool.insert("TransparentExceptionStepping", true);
+    defaultBools.insert("Misc", miscBool);
+
     QMap<QString, bool> guiBool;
     guiBool.insert("FpuRegistersLittleEndian", false);
     guiBool.insert("SaveColumnOrder", true);
@@ -281,8 +285,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("SidebarWatchLabels", true);
     guiBool.insert("LoadSaveTabOrder", true);
     guiBool.insert("ShowGraphRva", false);
-    guiBool.insert("GraphZoomMode", false);
-    guiBool.insert("ShowExitConfirmation", true);
+    guiBool.insert("GraphZoomMode", true);
+    guiBool.insert("ShowExitConfirmation", false);
     guiBool.insert("DisableAutoComplete", false);
     guiBool.insert("CaseSensitiveAutoComplete", false);
     guiBool.insert("AutoRepeatOnEnter", false);
