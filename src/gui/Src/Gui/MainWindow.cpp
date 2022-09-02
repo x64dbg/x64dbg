@@ -726,22 +726,33 @@ void MainWindow::closeEvent(QCloseEvent* event)
 {
     if(DbgIsDebugging() && ConfigBool("Gui", "ShowExitConfirmation"))
     {
-        auto cb = new QCheckBox(tr("Don't ask this question again"));
+        auto cb = new QCheckBox(tr("Always stop the debuggee and exit"));
         QMessageBox msgbox(this);
-        msgbox.setText(tr("The debuggee is still running and will be terminated if you exit. Do you really want to exit?"));
+        msgbox.setText(tr("The debuggee is still running and will be terminated if you exit. What do you want to do?"));
         msgbox.setWindowTitle(tr("Debuggee is still running"));
         msgbox.setWindowIcon(DIcon("bug"));
-        msgbox.addButton(QMessageBox::Yes)->setText(tr("&Exit"));
-        msgbox.addButton(QMessageBox::Cancel)->setText(tr("&Cancel"));
-        msgbox.addButton(QMessageBox::Abort)->setText(tr("&Detach and exit"));
-        msgbox.addButton(QMessageBox::Retry)->setText(tr("&Restart debugging"));
+        auto exitButton = msgbox.addButton(QMessageBox::Yes);
+        exitButton->setText(tr("&Exit"));
+        exitButton->setToolTip(tr("Stop the debuggee and exit x64dbg."));
+        auto detachButton = msgbox.addButton(QMessageBox::Abort);
+        detachButton->setText(tr("&Detach and exit"));
+        detachButton->setToolTip(tr("Detach from the debuggee (leaving it running) and exit x64dbg."));
+        auto restartButton = msgbox.addButton(QMessageBox::Retry);
+        restartButton->setText(tr("&Restart debugging"));
+        restartButton->setToolTip(tr("Restart the debuggee and keep x64dbg open."));
+        auto continueButton = msgbox.addButton(QMessageBox::Cancel);
+        continueButton->setText(tr("&Continue debugging"));
+        continueButton->setToolTip(tr("Close this dialog and continue where you left off."));
         msgbox.setDefaultButton(QMessageBox::Cancel);
         msgbox.setEscapeButton(QMessageBox::Cancel);
         msgbox.setCheckBox(cb);
 
-        QObject::connect(cb, &QCheckBox::toggled, [](bool checked)
+        QObject::connect(cb, &QCheckBox::toggled, [detachButton, restartButton](bool checked)
         {
-            Config()->setBool("Gui", "ShowExitConfirmation", !checked);
+            auto showConfirmation = !checked;
+            detachButton->setEnabled(showConfirmation);
+            restartButton->setEnabled(showConfirmation);
+            Config()->setBool("Gui", "ShowExitConfirmation", showConfirmation);
         });
 
         auto code = msgbox.exec();
