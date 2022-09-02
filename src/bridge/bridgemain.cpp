@@ -1783,6 +1783,11 @@ BRIDGE_IMPEXP void GuiShowTrace()
     _gui_sendmessage(GUI_SHOW_TRACE, nullptr, nullptr);
 }
 
+BRIDGE_IMPEXP DWORD GuiGetMainThreadId()
+{
+    return (DWORD)(duint)_gui_sendmessage(GUI_GET_MAIN_THREAD_ID, nullptr, nullptr);
+}
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;

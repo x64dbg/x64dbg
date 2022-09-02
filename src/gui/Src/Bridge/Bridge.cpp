@@ -898,6 +898,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_SHOW_TRACE:
         emit showTraceBrowser();
         break;
+
+    case GUI_GET_MAIN_THREAD_ID:
+        return (void*)dwMainThreadId;
     }
 
     return nullptr;

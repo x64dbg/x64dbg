@@ -1207,6 +1207,7 @@ typedef enum
     GUI_SELECT_IN_SYMBOLS_TAB,      // param1=duint addr,           param2=unused
     GUI_GOTO_TRACE,                 // param1=duint index,          param2=unused
     GUI_SHOW_TRACE,                 // param1=unused,               param2=unused
+    GUI_GET_MAIN_THREAD_ID,         // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1392,6 +1393,7 @@ BRIDGE_IMPEXP void GuiShowReferences();
 BRIDGE_IMPEXP void GuiSelectInSymbolsTab(duint addr);
 BRIDGE_IMPEXP void GuiGotoTrace(duint index);
 BRIDGE_IMPEXP void GuiShowTrace();
+BRIDGE_IMPEXP DWORD GuiGetMainThreadId();
 
 #ifdef __cplusplus
 }
