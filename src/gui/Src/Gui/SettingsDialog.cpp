@@ -330,7 +330,6 @@ void SettingsDialog::LoadSettings()
 #ifndef _WIN64
         isx64 = false;
 #endif
-        bool jit_auto_on;
         bool get_jit_works;
         get_jit_works = DbgFunctions()->GetJit(jit_entry, isx64);
         DbgFunctions()->GetDefJit(jit_def_entry);
@@ -347,18 +346,9 @@ void SettingsDialog::LoadSettings()
 
         ui->chkSetJIT->setCheckState(bool2check(settings.miscSetJIT));
 
-        bool get_jit_auto_works = DbgFunctions()->GetJitAuto(&jit_auto_on);
-        if(!get_jit_auto_works || !jit_auto_on)
-            settings.miscSetJITAuto = true;
-        else
-            settings.miscSetJITAuto = false;
-
-        ui->chkConfirmBeforeAtt->setCheckState(bool2check(settings.miscSetJITAuto));
-
         if(!BridgeIsProcessElevated())
         {
             ui->chkSetJIT->setDisabled(true);
-            ui->chkConfirmBeforeAtt->setDisabled(true);
             ui->lblAdminWarning->setText(QString(tr("<font color=\"red\"><b>Warning</b></font>: Run the debugger as Admin to enable JIT.")));
         }
         else
@@ -379,7 +369,6 @@ void SettingsDialog::LoadSettings()
         ui->editHelpOnSymbolicNameUrl->setText(QString(setting));
 
     bJitOld = settings.miscSetJIT;
-    bJitAutoOld = settings.miscSetJITAuto;
 
     GetSettingBool("Misc", "Utf16LogRedirect", &settings.miscUtf16LogRedirect);
     GetSettingBool("Misc", "UseLocalHelpFile", &settings.miscUseLocalHelpFile);
@@ -486,17 +475,13 @@ void SettingsDialog::SaveSettings()
         if(bJitOld != settings.miscSetJIT)
         {
             if(settings.miscSetJIT)
+            {
+                // Since Windows 10 WER will not trigger the JIT debugger at all without this
+                DbgCmdExec("setjitauto on");
                 DbgCmdExec("setjit oldsave");
+            }
             else
                 DbgCmdExec("setjit restore");
-        }
-
-        if(bJitAutoOld != settings.miscSetJITAuto)
-        {
-            if(!settings.miscSetJITAuto)
-                DbgCmdExec("setjitauto on");
-            else
-                DbgCmdExec("setjitauto off");
         }
     }
     if(settings.miscSymbolStore)
@@ -703,11 +688,6 @@ void SettingsDialog::on_chkDllEntrySystem_stateChanged(int arg1)
 void SettingsDialog::on_chkThreadEntry_stateChanged(int arg1)
 {
     settings.eventThreadEntry = arg1 != Qt::Unchecked;
-}
-
-void SettingsDialog::on_chkConfirmBeforeAtt_stateChanged(int arg1)
-{
-    settings.miscSetJITAuto = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkSetJIT_stateChanged(int arg1)

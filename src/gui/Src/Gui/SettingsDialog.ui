@@ -981,13 +981,6 @@
           </layout>
          </item>
          <item>
-          <widget class="QCheckBox" name="chkConfirmBeforeAtt">
-           <property name="text">
-            <string>Confirm before attaching</string>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QLabel" name="lblAdminWarning">
            <property name="text">
             <string>&lt;font color=&quot;red&quot;&gt;DIE SCUM!&lt;/font&gt;</string>
@@ -1121,7 +1114,6 @@
   <tabstop>editSymbolCache</tabstop>
   <tabstop>chkSetJIT</tabstop>
   <tabstop>editJIT</tabstop>
-  <tabstop>chkConfirmBeforeAtt</tabstop>
   <tabstop>btnSave</tabstop>
   <tabstop>btnCancel</tabstop>
  </tabstops>

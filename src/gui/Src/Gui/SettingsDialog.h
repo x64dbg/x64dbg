@@ -107,7 +107,6 @@ private slots:
     void on_chkHideSeasonalIcons_toggled(bool checked);
     //Misc tab
     void on_chkSetJIT_stateChanged(int arg1);
-    void on_chkConfirmBeforeAtt_stateChanged(int arg1);
     void on_editSymbolStore_textEdited(const QString & arg1);
     void on_editSymbolCache_textEdited(const QString & arg1);
     void on_chkUtf16LogRedirect_toggled(bool checked);
@@ -241,7 +240,6 @@ private:
         bool guiEnableQtHighDpiScaling;
         //Misc Tab
         bool miscSetJIT;
-        bool miscSetJITAuto;
         bool miscSymbolStore;
         bool miscSymbolCache;
         bool miscUtf16LogRedirect;
@@ -257,7 +255,6 @@ private:
     QList<ExceptionFilter> realExceptionFilters;
     std::unordered_map<duint, const char*> exceptionNames;
     bool bJitOld;
-    bool bJitAutoOld;
     bool bGuiOptionsUpdated;
     bool bTokenizerConfigUpdated;
     bool bDisableAutoCompleteUpdated;
