@@ -375,7 +375,6 @@ String LoadedAntiCheatDrivers()
     {
         const auto & Module = Modules->Modules[i];
         String DriverName = (char*)Module.FullPathName + Module.OffsetToFileName;
-        dputs_untranslated(DriverName.c_str());
         if(DriverSet.count(StringUtils::ToLower(DriverName)))
         {
             if(!Result.empty())
