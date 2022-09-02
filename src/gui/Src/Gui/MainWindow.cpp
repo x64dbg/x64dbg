@@ -587,6 +587,8 @@ void MainWindow::loadSelectedTheme(bool reloadOnlyStyleCss)
         }
 
         QString themePath = QString("%1/../themes/%2/style.css").arg(QCoreApplication::applicationDirPath()).arg(selectedTheme);
+        if(!QFile(themePath).exists())
+            themePath = QString("%1/../themes/%2/theme.css").arg(QCoreApplication::applicationDirPath()).arg(selectedTheme);
         if(QFile(themePath).exists())
             stylePath = themePath;
 
@@ -600,6 +602,7 @@ void MainWindow::loadSelectedTheme(bool reloadOnlyStyleCss)
         };
         tryIni("style.ini");
         tryIni("colors.ini");
+        tryIni("theme.ini");
     }
     else
     {
@@ -613,6 +616,9 @@ void MainWindow::loadSelectedTheme(bool reloadOnlyStyleCss)
         auto style = QTextStream(&cssFile).readAll();
         cssFile.close();
         style = style.replace("url(./", QString("url(../themes/%2/").arg(selectedTheme));
+        style = style.replace("url(\"./", QString("url(\"../themes/%2/").arg(selectedTheme));
+        style = style.replace("url('./", QString("url('../themes/%2/").arg(selectedTheme));
+        style = style.replace("$RELPATH", QString("../themes/%2/").arg(selectedTheme));
         qApp->setStyleSheet(style);
     }
 
