@@ -14,6 +14,8 @@ public:
     void contextMenuEvent(QContextMenuEvent* event) override;
     void showEvent(QShowEvent* event) override;
     void hideEvent(QHideEvent* event) override;
+    static void handleLink(QWidget* parent, const QUrl & link);
+    static void linkify(QString & msg);
 
 public slots:
     void refreshShortcutsSlot();

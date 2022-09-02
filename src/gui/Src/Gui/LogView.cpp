@@ -170,6 +170,44 @@ void LogView::hideEvent(QHideEvent* event)
     QTextBrowser::hideEvent(event);
 }
 
+void LogView::handleLink(QWidget* parent, const QUrl & link)
+{
+    if(link.scheme() == "x64dbg")
+    {
+        // x64dbg:path#fragment
+        auto path = link.path();
+        auto fragment = link.fragment(QUrl::FullyDecoded);
+        if(path == "address" || path == "/address32" || path == "/address64")
+        {
+            if(DbgIsDebugging())
+            {
+                bool ok = false;
+                auto address = duint(fragment.toULongLong(&ok, 16));
+                if(ok && DbgMemIsValidReadPtr(address))
+                {
+                    if(DbgFunctions()->MemIsCodePage(address, true))
+                        DbgCmdExec(QString("disasm %1").arg(link.fragment()));
+                    else
+                    {
+                        DbgCmdExecDirect(QString("dump %1").arg(link.fragment()));
+                        emit Bridge::getBridge()->getDumpAttention();
+                    }
+                }
+                else
+                    SimpleErrorBox(parent, tr("Invalid address!"), tr("The address %1 is not a valid memory location...").arg(ToPtrString(address)));
+            }
+        }
+        else if(path == "command")
+        {
+            DbgCmdExec(fragment.toUtf8().constData());
+        }
+        else
+            SimpleErrorBox(parent, tr("Url is not valid!"), tr("The Url %1 is not supported").arg(link.toString()));
+    }
+    else
+        QDesktopServices::openUrl(link); // external Url
+}
+
 /**
  * @brief linkify Add hyperlink HTML to the message where applicable.
  * @param msg The message passed by reference.
@@ -182,7 +220,7 @@ static QRegularExpression addressRegExp("([0-9A-Fa-f]{16})");
 #else //x86
 static QRegularExpression addressRegExp("([0-9A-Fa-f]{8})");
 #endif //_WIN64
-static void linkify(QString & msg)
+void LogView::linkify(QString & msg)
 {
 #ifdef _WIN64
     msg.replace(addressRegExp, "<a href=\"x64dbg://localhost/address64#\\1\">\\1</a>");
@@ -329,40 +367,7 @@ void LogView::addMsgToLogSlotRaw(QByteArray msg, bool encodeHTML)
  */
 void LogView::onAnchorClicked(const QUrl & link)
 {
-    if(link.scheme() == "x64dbg")
-    {
-        // x64dbg:path#fragment
-        auto path = link.path();
-        auto fragment = link.fragment(QUrl::FullyDecoded);
-        if(path == "address" || path == "/address32" || path == "/address64")
-        {
-            if(DbgIsDebugging())
-            {
-                bool ok = false;
-                auto address = duint(fragment.toULongLong(&ok, 16));
-                if(ok && DbgMemIsValidReadPtr(address))
-                {
-                    if(DbgFunctions()->MemIsCodePage(address, true))
-                        DbgCmdExec(QString("disasm %1").arg(link.fragment()));
-                    else
-                    {
-                        DbgCmdExecDirect(QString("dump %1").arg(link.fragment()));
-                        emit Bridge::getBridge()->getDumpAttention();
-                    }
-                }
-                else
-                    SimpleErrorBox(this, tr("Invalid address!"), tr("The address %1 is not a valid memory location...").arg(ToPtrString(address)));
-            }
-        }
-        else if(path == "command")
-        {
-            DbgCmdExec(fragment.toUtf8().constData());
-        }
-        else
-            SimpleErrorBox(this, tr("Url is not valid!"), tr("The Url %1 is not supported").arg(link.toString()));
-    }
-    else
-        QDesktopServices::openUrl(link); // external Url
+    handleLink(this, link);
 }
 
 void LogView::clearLogSlot()
