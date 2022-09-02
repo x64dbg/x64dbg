@@ -336,4 +336,5 @@ bool cbGotoTrace(int argc, char* argv[])
 
     GuiGotoTrace(index);
     GuiShowTrace();
+    return true;
 }

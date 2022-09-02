@@ -616,7 +616,7 @@ namespace Exprfunc
         assert(argv[0].type == ValueTypeString);
         assert(argv[1].type == ValueTypeString);
 
-        *result = ValueNumber(::stricmp(argv[0].string.ptr, argv[1].string.ptr) == 0);
+        *result = ValueNumber(::_stricmp(argv[0].string.ptr, argv[1].string.ptr) == 0);
         return true;
     }
 

@@ -331,12 +331,15 @@ void LogView::onAnchorClicked(const QUrl & link)
 {
     if(link.scheme() == "x64dbg")
     {
-        if(link.path() == "/address32" || link.path() == "/address64")
+        // x64dbg:path#fragment
+        auto path = link.path();
+        auto fragment = link.fragment(QUrl::FullyDecoded);
+        if(path == "address" || path == "/address32" || path == "/address64")
         {
             if(DbgIsDebugging())
             {
                 bool ok = false;
-                auto address = duint(link.fragment(QUrl::DecodeReserved).toULongLong(&ok, 16));
+                auto address = duint(fragment.toULongLong(&ok, 16));
                 if(ok && DbgMemIsValidReadPtr(address))
                 {
                     if(DbgFunctions()->MemIsCodePage(address, true))
@@ -350,6 +353,10 @@ void LogView::onAnchorClicked(const QUrl & link)
                 else
                     SimpleErrorBox(this, tr("Invalid address!"), tr("The address %1 is not a valid memory location...").arg(ToPtrString(address)));
             }
+        }
+        else if(path == "command")
+        {
+            DbgCmdExec(fragment.toUtf8().constData());
         }
         else
             SimpleErrorBox(this, tr("Url is not valid!"), tr("The Url %1 is not supported").arg(link.toString()));

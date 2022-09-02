@@ -9,6 +9,6 @@ void dprintf_args(_In_z_ _Printf_format_string_ const char* Format, va_list Args
 void dputs_untranslated(_In_z_ const char* Text);
 void dprintf_untranslated(_In_z_ _Printf_format_string_ const char* Format, ...);
 void dprintf_args_untranslated(_In_z_ _Printf_format_string_ const char* Format, va_list Args);
-void dputs_untranslated_html(_In_z_ _Printf_format_string_ const char* Text);
+void dprint_untranslated_html(_In_z_ _Printf_format_string_ const char* Text);
 
 #endif // _CONSOLE_H

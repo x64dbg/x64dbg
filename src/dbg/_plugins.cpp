@@ -43,7 +43,7 @@ PLUG_IMPEXP void _plugin_logprintf(const char* format, ...)
 
 PLUG_IMPEXP void _plugin_lograw_html(const char* text)
 {
-    dputs_untranslated_html(text);
+    dprint_untranslated_html(text);
 }
 
 PLUG_IMPEXP void _plugin_logputs(const char* text)

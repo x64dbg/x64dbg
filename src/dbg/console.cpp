@@ -115,7 +115,7 @@ void dprintf_args_untranslated(_In_z_ _Printf_format_string_ const char* Format,
 \brief Print a html string to the console.
 \param Text The message to use.
 */
-void dputs_untranslated_html(_In_z_ _Printf_format_string_ const char* Text)
+void dprint_untranslated_html(_In_z_ _Printf_format_string_ const char* Text)
 {
     GuiAddLogMessageHtmlAsync(Text);
 }
