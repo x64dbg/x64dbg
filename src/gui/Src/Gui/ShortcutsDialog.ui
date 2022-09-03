@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Shortcuts</string>
+   <string>Hotkeys</string>
   </property>
   <property name="windowIcon">
    <iconset theme="shortcut" resource="../../resource.qrc">
@@ -33,7 +33,7 @@
      <item>
       <widget class="QGroupBox" name="groupBox">
        <property name="title">
-        <string>Shortcut</string>
+        <string>Hotkey</string>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>

@@ -470,7 +470,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 
     defaultShortcuts.insert("OptionsPreferences", Shortcut({tr("Options"), tr("Preferences")}, "", true));
     defaultShortcuts.insert("OptionsAppearance", Shortcut({tr("Options"), tr("Appearance")}, "", true));
-    defaultShortcuts.insert("OptionsShortcuts", Shortcut({tr("Options"), tr("Shortcuts")}, "", true));
+    defaultShortcuts.insert("OptionsShortcuts", Shortcut({tr("Options"), tr("Hotkeys")}, "", true));
     defaultShortcuts.insert("OptionsTopmost", Shortcut({tr("Options"), tr("Topmost")}, "Ctrl+F5", true));
     defaultShortcuts.insert("OptionsReloadStylesheet", Shortcut({tr("Options"), tr("Reload style.css")}, "", true));
 
