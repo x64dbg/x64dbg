@@ -12,7 +12,7 @@ ShortcutsDialog::ShortcutsDialog(QWidget* parent) : QDialog(parent), ui(new Ui::
 
     // x64 has no model-view-controler pattern
     QStringList tblHeader;
-    tblHeader << tr("Action") << tr("Shortcut");
+    tblHeader << tr("Action") << tr("Hotkey");
 
     currentRow = 0;
 
@@ -96,7 +96,7 @@ void ShortcutsDialog::updateShortcut()
                     // Ask user if they want to override the shortcut.
                     QMessageBox mbox;
                     mbox.setIcon(QMessageBox::Question);
-                    mbox.setText("This shortcut is already used by action \"" + i.value().Name + "\".\n"
+                    mbox.setText("This hotkey is already used by the action \"" + i.value().Name + "\".\n"
                                  "Do you want to override it?");
                     mbox.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
                     mbox.setDefaultButton(QMessageBox::Yes);

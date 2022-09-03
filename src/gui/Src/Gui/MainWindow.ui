@@ -771,10 +771,10 @@
      <normaloff>:/icons/images/shortcut.png</normaloff>:/icons/images/shortcut.png</iconset>
    </property>
    <property name="text">
-    <string>Shortcuts</string>
+    <string>Hotkeys</string>
    </property>
    <property name="statusTip">
-    <string>Open the Shortcuts dialog to customize keyboard shortcuts.</string>
+    <string>Open the Hotkeys dialog to customize keyboard hotkeys.</string>
    </property>
   </action>
   <action name="actionDonate">
