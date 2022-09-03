@@ -90,7 +90,7 @@ bool cbDebugInit(int argc, char* argv[])
         arch = IsWow64() ? PeArch::Dotnet64 : PeArch::Dotnet86;
 
     //do some basic checks
-    switch(GetPeArch(arg1w.c_str()))
+    switch(arch)
     {
     case PeArch::Invalid:
         dputs(QT_TRANSLATE_NOOP("DBG", "Invalid PE file!"));
