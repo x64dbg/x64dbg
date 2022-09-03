@@ -56,7 +56,7 @@ void ShortcutEdit::keyPressEvent(QKeyEvent* event)
             !text.at(0).isPrint() ||
             text.at(0).isLetterOrNumber() ||
             text.at(0).isSpace()) &&
-             (!((keyInt >= Qt::Key_Exclam) && (keyInt <= Qt::Key_Slash)) ||
+            (!((keyInt >= Qt::Key_Exclam) && (keyInt <= Qt::Key_Slash)) ||
              ((keyInt >= Qt::Key_Colon) && (keyInt <= Qt::Key_At)) ||
              ((keyInt >= Qt::Key_BracketLeft) && (keyInt <= Qt::Key_QuoteLeft))))
         keyInt += Qt::SHIFT;
