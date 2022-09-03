@@ -213,7 +213,7 @@ bool pluginload(const char* pluginName, bool loadall)
 
     //add plugin menus
     {
-        SectionLocker<LockPluginMenuList, false> menuLock; //exclusive lock
+        SectionLocker<LockPluginMenuList, false, true> menuLock; //exclusive lock
 
         auto addPluginMenu = [](GUIMENUTYPE type)
         {
@@ -624,7 +624,7 @@ int pluginmenuadd(int hMenu, const char* title)
 {
     if(!title || !strlen(title))
         return -1;
-    EXCLUSIVE_ACQUIRE(LockPluginMenuList);
+    EXCLUSIVE_ACQUIRE_GUI(LockPluginMenuList);
     int nFound = -1;
     for(unsigned int i = 0; i < pluginMenuList.size(); i++)
     {
@@ -656,7 +656,7 @@ bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
 {
     if(!title || !strlen(title) || hEntry == -1)
         return false;
-    EXCLUSIVE_ACQUIRE(LockPluginMenuList);
+    EXCLUSIVE_ACQUIRE_GUI(LockPluginMenuList);
     int pluginHandle = -1;
     //find plugin handle
     for(const auto & currentMenu : pluginMenuList)
@@ -692,7 +692,7 @@ bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
 */
 bool pluginmenuaddseparator(int hMenu)
 {
-    SHARED_ACQUIRE(LockPluginMenuList);
+    SHARED_ACQUIRE_GUI(LockPluginMenuList);
     for(const auto & currentMenu : pluginMenuList)
     {
         if(currentMenu.hEntryMenu == hMenu)
@@ -736,7 +736,7 @@ static void pluginmenuclear_helper(int hMenu)
 */
 bool pluginmenuclear(int hMenu, bool erase)
 {
-    EXCLUSIVE_ACQUIRE(LockPluginMenuList);
+    EXCLUSIVE_ACQUIRE_GUI(LockPluginMenuList);
     pluginmenuclear_helper(hMenu);
     for(auto it = pluginMenuList.begin(); it != pluginMenuList.end(); ++it)
     {
@@ -765,7 +765,7 @@ void pluginmenucall(int hEntry)
     if(hEntry == -1)
         return;
 
-    SectionLocker<LockPluginMenuList, true> menuLock; //shared lock
+    SectionLocker<LockPluginMenuList, true, true> menuLock; //shared lock
     auto i = pluginMenuEntryList.begin();
     while(i != pluginMenuEntryList.end())
     {
@@ -829,7 +829,7 @@ bool pluginwineventglobal(MSG* message)
 */
 void pluginmenuseticon(int hMenu, const ICONDATA* icon)
 {
-    SHARED_ACQUIRE(LockPluginMenuList);
+    SHARED_ACQUIRE_GUI(LockPluginMenuList);
     for(const auto & currentMenu : pluginMenuList)
     {
         if(currentMenu.hEntryMenu == hMenu)
@@ -850,7 +850,7 @@ void pluginmenuentryseticon(int pluginHandle, int hEntry, const ICONDATA* icon)
 {
     if(hEntry == -1)
         return;
-    SHARED_ACQUIRE(LockPluginMenuList);
+    SHARED_ACQUIRE_GUI(LockPluginMenuList);
     for(const auto & currentMenu : pluginMenuEntryList)
     {
         if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
@@ -865,7 +865,7 @@ void pluginmenuentrysetchecked(int pluginHandle, int hEntry, bool checked)
 {
     if(hEntry == -1)
         return;
-    SHARED_ACQUIRE(LockPluginMenuList);
+    SHARED_ACQUIRE_GUI(LockPluginMenuList);
     for(const auto & currentMenu : pluginMenuEntryList)
     {
         if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
@@ -878,7 +878,7 @@ void pluginmenuentrysetchecked(int pluginHandle, int hEntry, bool checked)
 
 void pluginmenusetvisible(int pluginHandle, int hMenu, bool visible)
 {
-    SHARED_ACQUIRE(LockPluginMenuList);
+    SHARED_ACQUIRE_GUI(LockPluginMenuList);
     for(const auto & currentMenu : pluginMenuList)
     {
         if(currentMenu.hEntryMenu == hMenu)
@@ -893,7 +893,7 @@ void pluginmenuentrysetvisible(int pluginHandle, int hEntry, bool visible)
 {
     if(hEntry == -1)
         return;
-    SHARED_ACQUIRE(LockPluginMenuList);
+    SHARED_ACQUIRE_GUI(LockPluginMenuList);
     for(const auto & currentMenu : pluginMenuEntryList)
     {
         if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
@@ -908,7 +908,7 @@ void pluginmenusetname(int pluginHandle, int hMenu, const char* name)
 {
     if(!name)
         return;
-    SHARED_ACQUIRE(LockPluginMenuList);
+    SHARED_ACQUIRE_GUI(LockPluginMenuList);
     for(const auto & currentMenu : pluginMenuList)
     {
         if(currentMenu.hEntryMenu == hMenu)
@@ -923,7 +923,7 @@ void pluginmenuentrysetname(int pluginHandle, int hEntry, const char* name)
 {
     if(hEntry == -1 || !name)
         return;
-    SHARED_ACQUIRE(LockPluginMenuList);
+    SHARED_ACQUIRE_GUI(LockPluginMenuList);
     for(const auto & currentMenu : pluginMenuEntryList)
     {
         if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
@@ -938,7 +938,7 @@ void pluginmenuentrysethotkey(int pluginHandle, int hEntry, const char* hotkey)
 {
     if(hEntry == -1 || !hotkey)
         return;
-    SHARED_ACQUIRE(LockPluginMenuList);
+    SHARED_ACQUIRE_GUI(LockPluginMenuList);
     for(const auto & currentMenu : pluginMenuEntryList)
     {
         if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
@@ -962,7 +962,7 @@ void pluginmenuentrysethotkey(int pluginHandle, int hEntry, const char* hotkey)
 
 bool pluginmenuremove(int hMenu)
 {
-    EXCLUSIVE_ACQUIRE(LockPluginMenuList);
+    EXCLUSIVE_ACQUIRE_GUI(LockPluginMenuList);
     for(const auto & currentMenu : pluginMenuList)
         if(currentMenu.hEntryMenu == hMenu && currentMenu.hParentMenu < 256)
             return false;
@@ -971,7 +971,7 @@ bool pluginmenuremove(int hMenu)
 
 bool pluginmenuentryremove(int pluginHandle, int hEntry)
 {
-    EXCLUSIVE_ACQUIRE(LockPluginMenuList);
+    EXCLUSIVE_ACQUIRE_GUI(LockPluginMenuList);
     for(auto it = pluginMenuEntryList.begin(); it != pluginMenuEntryList.end(); ++it)
     {
         const auto & currentEntry = *it;

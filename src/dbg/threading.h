@@ -25,13 +25,15 @@ void waitdeinitialize();
 // Win Vista and newer: (Faster) SRW locks used
 // Win 2003 and older:  (Slower) Critical sections used
 //
-#define EXCLUSIVE_ACQUIRE(Index)    SectionLocker<Index, false> __ThreadLock
-#define EXCLUSIVE_REACQUIRE()       __ThreadLock.Lock()
-#define EXCLUSIVE_RELEASE()         __ThreadLock.Unlock()
+#define EXCLUSIVE_ACQUIRE(Index)     SectionLocker<Index, false> __ThreadLock
+#define EXCLUSIVE_ACQUIRE_GUI(Index) SectionLocker<Index, false, true> __ThreadLock
+#define EXCLUSIVE_REACQUIRE()        __ThreadLock.Lock()
+#define EXCLUSIVE_RELEASE()          __ThreadLock.Unlock()
 
-#define SHARED_ACQUIRE(Index)       SectionLocker<Index, true> __SThreadLock
-#define SHARED_REACQUIRE()          __SThreadLock.Lock()
-#define SHARED_RELEASE()            __SThreadLock.Unlock()
+#define SHARED_ACQUIRE(Index)        SectionLocker<Index, true> __SThreadLock
+#define SHARED_ACQUIRE_GUI(Index)    SectionLocker<Index, true, true> __SThreadLock
+#define SHARED_REACQUIRE()           __SThreadLock.Lock()
+#define SHARED_RELEASE()             __SThreadLock.Unlock()
 
 enum SectionLock
 {
@@ -80,7 +82,7 @@ enum SectionLock
 
 class SectionLockerGlobal
 {
-    template<SectionLock LockIndex, bool Shared>
+    template<SectionLock LockIndex, bool Shared, bool ProcessGuiEvents>
     friend class SectionLocker;
 
 public:
@@ -88,7 +90,8 @@ public:
     static void Deinitialize();
 
 private:
-    static inline void AcquireLock(SectionLock LockIndex, bool Shared)
+    template<SectionLock LockIndex, bool Shared, bool ProcessGuiEvents>
+    static void AcquireLock()
     {
         auto threadId = GetCurrentThreadId();
         if(m_SRWLocks)
@@ -100,7 +103,7 @@ private:
                 if(m_owner[LockIndex].thread == threadId)
                     return;
 
-                if(threadId == m_guiMainThreadId)
+                if(ProcessGuiEvents && threadId == m_guiMainThreadId)
                 {
                     while(!m_TryAcquireSRWLockShared(srwLock))
                         GuiProcessEvents();
@@ -149,7 +152,8 @@ private:
         }
     }
 
-    static inline void ReleaseLock(SectionLock LockIndex, bool Shared)
+    template<SectionLock LockIndex, bool Shared>
+    static void ReleaseLock()
     {
         if(m_SRWLocks)
         {
@@ -172,7 +176,9 @@ private:
             }
         }
         else
+        {
             LeaveCriticalSection(&m_crLocks[LockIndex]);
+        }
     }
 
     typedef void (WINAPI* SRWLOCKFUNCTION)(PSRWLOCK SWRLock);
@@ -194,7 +200,7 @@ private:
     static DWORD m_guiMainThreadId;
 };
 
-template<SectionLock LockIndex, bool Shared>
+template<SectionLock LockIndex, bool Shared, bool ProcessGuiEvents = false>
 class SectionLocker
 {
 public:
@@ -215,7 +221,7 @@ public:
 
     inline void Lock()
     {
-        Internal::AcquireLock(LockIndex, Shared);
+        Internal::AcquireLock<LockIndex, Shared, ProcessGuiEvents>();
 
         // We cannot recursively lock more than 255 times.
         assert(m_LockCount < 255);
@@ -230,7 +236,7 @@ public:
 
         m_LockCount--;
 
-        Internal::ReleaseLock(LockIndex, Shared);
+        Internal::ReleaseLock<LockIndex, Shared>();
     }
 
 protected:
