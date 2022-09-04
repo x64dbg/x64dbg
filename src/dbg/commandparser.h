@@ -20,7 +20,8 @@ private:
         Default,
         Escaped,
         Text,
-        TextEscaped
+        TextEscaped,
+        StringFormat,
     };
 
     void dataFinish();

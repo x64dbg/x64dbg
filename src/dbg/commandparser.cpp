@@ -60,6 +60,10 @@ Command::Command(const String & command)
             case '\"':
                 state = Default;
                 break;
+            case '{':
+                state = StringFormat;
+                dataAppend(ch);
+                break;
             default:
                 dataAppend(ch);
                 break;
@@ -71,6 +75,9 @@ Command::Command(const String & command)
             case '\"':
                 dataAppend(ch);
                 break;
+            case '{':
+                dataAppend(ch);
+                break;
             default:
                 dataAppend('\\');
                 dataAppend(ch);
@@ -78,6 +85,33 @@ Command::Command(const String & command)
             }
             state = Text;
             break;
+        case StringFormat:
+        {
+            dataAppend(ch);
+            auto nextch = i + 1 < len ? command[i + 1] : '\0';
+            switch(ch)
+            {
+            case '{':
+                if(nextch == '{')
+                {
+                    dataAppend(nextch);
+                    i++;
+                }
+                break;
+            case '}':
+                if(nextch == '}')
+                {
+                    dataAppend(nextch);
+                    i++;
+                }
+                else
+                {
+                    state = Text;
+                }
+                break;
+            }
+        }
+        break;
         }
     }
     if(state == Escaped || state == TextEscaped)
