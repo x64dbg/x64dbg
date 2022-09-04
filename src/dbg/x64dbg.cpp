@@ -451,6 +451,7 @@ static void registercommands()
     dbgcmdnew("dbdecompress", cbInstrDbdecompress, false); //Decompress a database.
     dbgcmdnew("DebugFlags", cbInstrDebugFlags, false); //Set ntdll LdrpDebugFlags
     dbgcmdnew("LabelRuntimeFunctions", cbInstrLabelRuntimeFunctions, true); //Label exception directory entries
+    dbgcmdnew("cmdtest", cbInstrCmdTest, false); //log argv verbatim
 };
 
 bool cbCommandProvider(char* cmd, int maxlen)

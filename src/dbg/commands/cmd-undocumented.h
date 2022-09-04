@@ -17,3 +17,4 @@ bool cbInstrAnimateWait(int argc, char* argv[]);
 bool cbInstrDbdecompress(int argc, char* argv[]);
 bool cbInstrDebugFlags(int argc, char* argv[]);
 bool cbInstrLabelRuntimeFunctions(int argc, char* argv[]);
+bool cbInstrCmdTest(int argc, char* argv[]);

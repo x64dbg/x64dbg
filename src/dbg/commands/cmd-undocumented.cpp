@@ -598,3 +598,10 @@ bool cbInstrLabelRuntimeFunctions(int argc, char* argv[])
     return false;
 #endif // _WIN64
 }
+
+bool cbInstrCmdTest(int argc, char* argv[])
+{
+    for(int i = 0; i < argc; i++)
+        dprintf_untranslated("argv[%d]:%s\n", i, argv[i]);
+    return true;
+}
