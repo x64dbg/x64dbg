@@ -86,10 +86,12 @@ bool cbDebugInit(int argc, char* argv[])
     hFile.Close();
 
     auto arch = GetPeArch(arg1w.c_str());
-    if(arch == PeArch::DotnetAnyCpu)
-        arch = IsWow64() ? PeArch::Dotnet64 : PeArch::Dotnet86;
 
-    //do some basic checks
+    // Translate Any CPU to the actual architecture
+    if(arch == PeArch::DotnetAnyCpu)
+        arch = ArchValue(IsWow64() ? PeArch::Dotnet64 : PeArch::Dotnet86, PeArch::Dotnet64);
+
+    // Make sure the architecture is right
     switch(arch)
     {
     case PeArch::Invalid:
@@ -100,12 +102,11 @@ bool cbDebugInit(int argc, char* argv[])
     case PeArch::Dotnet86:
     case PeArch::DotnetAnyCpuPrefer32:
         dputs(QT_TRANSLATE_NOOP("DBG", "Use x32dbg to debug this file!"));
-#else //x86
+#else // x86
     case PeArch::Native64:
     case PeArch::Dotnet64:
-    case PeArch::DotnetAnyCpu:
         dputs(QT_TRANSLATE_NOOP("DBG", "Use x64dbg to debug this file!"));
-#endif //_WIN64
+#endif // _WIN64
         return false;
     default:
         break;
