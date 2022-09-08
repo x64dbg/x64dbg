@@ -1095,7 +1095,6 @@ typedef enum
     GUI_DISASSEMBLE_AT,             // param1=(duint)va,            param2=(duint)cip
     GUI_SET_DEBUG_STATE,            // param1=(DBGSTATE)state,      param2=unused
     GUI_ADD_MSG_TO_LOG,             // param1=(const char*)msg,     param2=unused
-    GUI_ADD_MSG_TO_LOG_HTML,        // param1=(const char*)msg,     param2=unused
     GUI_CLEAR_LOG,                  // param1=unused,               param2=unused
     GUI_UPDATE_REGISTER_VIEW,       // param1=unused,               param2=unused
     GUI_UPDATE_DISASSEMBLY_VIEW,    // param1=unused,               param2=unused
@@ -1208,6 +1207,7 @@ typedef enum
     GUI_GOTO_TRACE,                 // param1=duint index,          param2=unused
     GUI_SHOW_TRACE,                 // param1=unused,               param2=unused
     GUI_GET_MAIN_THREAD_ID,         // param1=unused,               param2=unused
+    GUI_ADD_MSG_TO_LOG_HTML,        // param1=(const char*)msg,     param2=unused
 } GUIMSG;
 
 //GUI Typedefs
