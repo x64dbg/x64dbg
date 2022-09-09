@@ -199,6 +199,13 @@ void AbstractTableView::setupColumnConfigDefaultValue(QMap<QString, duint> & map
     }
 }
 
+void AbstractTableView::editColumnDialog()
+{
+    ColumnReorderDialog reorderDialog(this);
+    reorderDialog.setWindowTitle(tr("Edit columns"));
+    reorderDialog.exec();
+}
+
 /************************************************************************************
                             Painting Stuff
 ************************************************************************************/
@@ -500,9 +507,7 @@ void AbstractTableView::mousePressEvent(QMouseEvent* event)
     {
         if(event->y() < getHeaderHeight())
         {
-            ColumnReorderDialog reorderDialog(this);
-            reorderDialog.setWindowTitle(tr("Edit columns"));
-            reorderDialog.exec();
+            editColumnDialog();
             event->accept();
         }
     }
@@ -565,9 +570,7 @@ void AbstractTableView::mouseDoubleClickEvent(QMouseEvent* event)
 {
     if(event->y() < getHeaderHeight())
     {
-        ColumnReorderDialog reorderDialog(this);
-        reorderDialog.setWindowTitle(tr("Edit columns"));
-        reorderDialog.exec();
+        editColumnDialog();
         event->accept();
     }
 }

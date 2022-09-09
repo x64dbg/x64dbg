@@ -143,6 +143,8 @@ public slots:
     // ScrollBar Management
     void vertSliderActionSlot(int action);
 
+    void editColumnDialog();
+
 protected slots:
     void ShowDisassemblyPopup(duint addr, int x, int y); // this should probably be a slot, but doesn't need emit fixes (it's already used correctly)
     void timerEvent(QTimerEvent* event);
