@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>386</width>
-    <height>525</height>
+    <height>542</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -372,6 +372,13 @@
         <widget class="QCheckBox" name="chkNoWow64SingleStepWorkaround">
          <property name="text">
           <string>Disable WOW64 Single Step Workaround</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="chkDisableAslr">
+         <property name="text">
+          <string>Disable ASLR</string>
          </property>
         </widget>
        </item>

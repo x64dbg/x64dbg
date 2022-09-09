@@ -66,6 +66,7 @@ void SettingsDialog::LoadSettings()
     settings.engineNoScriptTimeout = false;
     settings.engineIgnoreInconsistentBreakpoints = false;
     settings.engineNoWow64SingleStepWorkaround = false;
+    settings.engineDisableAslr = false;
     settings.engineMaxTraceCount = 50000;
     settings.engineAnimateInterval = 50;
     settings.engineHardcoreThreadSwitchWarning = false;
@@ -161,6 +162,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Engine", "HardcoreThreadSwitchWarning", &settings.engineHardcoreThreadSwitchWarning);
     GetSettingBool("Engine", "VerboseExceptionLogging", &settings.engineVerboseExceptionLogging);
     GetSettingBool("Engine", "NoWow64SingleStepWorkaround", &settings.engineNoWow64SingleStepWorkaround);
+    GetSettingBool("Engine", "DisableAslr", &settings.engineDisableAslr);
     if(BridgeSettingGetUint("Engine", "MaxTraceCount", &cur))
         settings.engineMaxTraceCount = int(cur);
     if(BridgeSettingGetUint("Engine", "AnimateInterval", &cur))
@@ -206,6 +208,7 @@ void SettingsDialog::LoadSettings()
     ui->chkHardcoreThreadSwitchWarning->setChecked(settings.engineHardcoreThreadSwitchWarning);
     ui->chkVerboseExceptionLogging->setChecked(settings.engineVerboseExceptionLogging);
     ui->chkNoWow64SingleStepWorkaround->setChecked(settings.engineNoWow64SingleStepWorkaround);
+    ui->chkDisableAslr->setChecked(settings.engineDisableAslr);
     ui->spinMaxTraceCount->setValue(settings.engineMaxTraceCount);
     ui->spinAnimateInterval->setValue(settings.engineAnimateInterval);
 
@@ -418,6 +421,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Engine", "VerboseExceptionLogging", settings.engineVerboseExceptionLogging);
     BridgeSettingSetUint("Engine", "HardcoreThreadSwitchWarning", settings.engineHardcoreThreadSwitchWarning);
     BridgeSettingSetUint("Engine", "NoWow64SingleStepWorkaround", settings.engineNoWow64SingleStepWorkaround);
+    BridgeSettingSetUint("Engine", "DisableAslr", settings.engineDisableAslr);
 
     //Exceptions tab
     QString exceptionRange = "";
@@ -1081,6 +1085,11 @@ void SettingsDialog::on_chkPermanentHighlightingMode_toggled(bool checked)
 void SettingsDialog::on_chkNoWow64SingleStepWorkaround_toggled(bool checked)
 {
     settings.engineNoWow64SingleStepWorkaround = checked;
+}
+
+void SettingsDialog::on_chkDisableAslr_toggled(bool checked)
+{
+    settings.engineDisableAslr = checked;
 }
 
 void SettingsDialog::on_chkNoCurrentModuleText_toggled(bool checked)
