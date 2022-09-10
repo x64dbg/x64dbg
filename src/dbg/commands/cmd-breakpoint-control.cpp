@@ -10,14 +10,14 @@ static bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
 {
     if(bp->type != BPNORMAL)
         return true;
+    if(bp->active && !DeleteBPX(bp->addr))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (DeleteBPX): %p\n"), bp->addr);
+        return false;
+    }
     if(!BpDelete(*bp))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (BpDelete): %p\n"), bp->addr);
-        return false;
-    }
-    if(bp->enabled && bp->active && !DeleteBPX(bp->addr))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (DeleteBPX): %p\n"), bp->addr);
         return false;
     }
     return true;
@@ -46,14 +46,14 @@ static bool cbDisableAllBreakpoints(const BREAKPOINT* bp)
     if(bp->type != BPNORMAL || !bp->enabled)
         return true;
 
-    if(!BpEnable(*bp, false))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable breakpoint %p (BpEnable)\n"), bp->addr);
-        return false;
-    }
     if(bp->active && !DeleteBPX(bp->addr))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable breakpoint %p (DeleteBPX)\n"), bp->addr);
+        return false;
+    }
+    if(!BpEnable(*bp, false))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable breakpoint %p (BpEnable)\n"), bp->addr);
         return false;
     }
     return true;
@@ -163,17 +163,14 @@ bool cbDebugDeleteBPX(int argc, char* argv[])
     BREAKPOINT found;
     if(BpGet(0, BPNORMAL, argv[1], &found)) //found a breakpoint with name
     {
+        if(found.active && !DeleteBPX(found.addr))
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (DeleteBPX): %p\n"), found.addr);
+            return false;
+        }
         if(!BpDelete(found.addr, BPNORMAL))
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (bpdel): %p\n"), found.addr);
-            return false;
-        }
-        if(found.enabled && !DeleteBPX(found.addr))
-        {
-            GuiUpdateAllViews();
-            if(!MemIsValidReadPtr(found.addr))
-                return true;
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (DeleteBPX): %p\n"), found.addr);
             return false;
         }
         GuiUpdateAllViews();
@@ -185,17 +182,14 @@ bool cbDebugDeleteBPX(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "No such breakpoint \"%s\"\n"), argv[1]);
         return false;
     }
+    if(found.active && !DeleteBPX(found.addr))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (DeleteBPX): %p\n"), found.addr);
+        return false;
+    }
     if(!BpDelete(found.addr, BPNORMAL))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (bpdel): %p\n"), found.addr);
-        return false;
-    }
-    if(found.enabled && !DeleteBPX(found.addr))
-    {
-        GuiUpdateAllViews();
-        if(!MemIsValidReadPtr(found.addr))
-            return true;
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete breakpoint failed (DeleteBPX): %p\n"), found.addr);
         return false;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Breakpoint deleted!"));
@@ -279,17 +273,14 @@ bool cbDebugDisableBPX(int argc, char* argv[])
     BREAKPOINT found;
     if(BpGet(0, BPNORMAL, argv[1], &found)) //found a breakpoint with name
     {
+        if(found.active && !DeleteBPX(found.addr))
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable breakpoint %p (DeleteBPX)\n"), found.addr);
+            return false;
+        }
         if(!BpEnable(found.addr, BPNORMAL, false))
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable breakpoint %p (BpEnable)\n"), found.addr);
-            return false;
-        }
-        if(!DeleteBPX(found.addr))
-        {
-            GuiUpdateAllViews();
-            if(!MemIsValidReadPtr(found.addr))
-                return true;
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable breakpoint %p (DeleteBPX)\n"), found.addr);
             return false;
         }
         GuiUpdateAllViews();
@@ -306,17 +297,14 @@ bool cbDebugDisableBPX(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Breakpoint already disabled!"));
         return true;
     }
+    if(found.active && !DeleteBPX(found.addr))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable breakpoint %p (DeleteBPX)\n"), found.addr);
+        return false;
+    }
     if(!BpEnable(found.addr, BPNORMAL, false))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable breakpoint %p (BpEnable)\n"), found.addr);
-        return false;
-    }
-    if(!DeleteBPX(found.addr))
-    {
-        GuiUpdateAllViews();
-        if(!MemIsValidReadPtr(found.addr))
-            return true;
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable breakpoint %p (DeleteBPX)\n"), found.addr);
         return false;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Breakpoint disabled!"));
@@ -329,14 +317,14 @@ static bool cbDeleteAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
     if(bp->type != BPHARDWARE)
         return true;
+    if(bp->active && TITANDRXVALID(bp->titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed (DeleteHardwareBreakPoint): %p\n"), bp->addr);
+        return false;
+    }
     if(!BpDelete(*bp))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed (BpDelete): %p\n"), bp->addr);
-        return false;
-    }
-    if(bp->enabled && bp->active && TITANDRXVALID(bp->titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed (DeleteHardwareBreakPoint): %p\n"), bp->addr);
         return false;
     }
     return true;
@@ -355,14 +343,14 @@ static bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
     int titantype = bp->titantype;
     TITANSETDRX(titantype, drx);
     BpSetTitanType(bp->addr, BPHARDWARE, titantype);
-    if(!BpEnable(bp->addr, BPHARDWARE, true))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable hardware breakpoint %p (BpEnable)\n"), bp->addr);
-        return false;
-    }
     if(!SetHardwareBreakPoint(bp->addr, drx, TITANGETTYPE(bp->titantype), TITANGETSIZE(bp->titantype), cbHardwareBreakpoint))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable hardware breakpoint %p (SetHardwareBreakPoint)\n"), bp->addr);
+        return false;
+    }
+    if(!BpEnable(bp->addr, BPHARDWARE, true))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable hardware breakpoint %p (BpEnable)\n"), bp->addr);
         return false;
     }
     return true;
@@ -372,14 +360,14 @@ static bool cbDisableAllHardwareBreakpoints(const BREAKPOINT* bp)
 {
     if(bp->type != BPHARDWARE)
         return true;
+    if(bp->active && TITANDRXVALID(bp->titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable hardware breakpoint %p (DeleteHardwareBreakPoint)\n"), bp->addr);
+        return false;
+    }
     if(!BpEnable(bp->addr, BPHARDWARE, false))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable hardware breakpoint %p (BpEnable)\n"), bp->addr);
-        return false;
-    }
-    if(bp->enabled && TITANDRXVALID(bp->titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable hardware breakpoint %p (DeleteHardwareBreakPoint)\n"), bp->addr);
         return false;
     }
     auto titantype = bp->titantype;
@@ -473,6 +461,7 @@ bool cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     if(!SetHardwareBreakPoint(addr, drx, type, titsize, cbHardwareBreakpoint))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting hardware breakpoint (TitanEngine)!"));
+        BpDelete(addr, BPHARDWARE);
         return false;
     }
     dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint at %p set!\n"), addr);
@@ -498,14 +487,14 @@ bool cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
     BREAKPOINT found;
     if(BpGet(0, BPHARDWARE, argv[1], &found)) //found a breakpoint with name
     {
+        if(found.active && TITANDRXVALID(found.titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n"), found.addr);
+            return false;
+        }
         if(!BpDelete(found.addr, BPHARDWARE))
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (BpDelete)\n"), found.addr);
-            return false;
-        }
-        if(TITANDRXVALID(found.titantype) && !DeleteHardwareBreakPoint(found.titantype))
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n"), found.addr);
             return false;
         }
         GuiUpdateAllViews();
@@ -517,14 +506,14 @@ bool cbDebugDeleteHardwareBreakpoint(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "No such hardware breakpoint \"%s\"\n"), argv[1]);
         return false;
     }
+    if(found.active && TITANDRXVALID(found.titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n"), found.addr);
+        return false;
+    }
     if(!BpDelete(found.addr, BPHARDWARE))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (BpDelete)\n"), found.addr);
-        return false;
-    }
-    if(TITANDRXVALID(found.titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n"), found.addr);
         return false;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint deleted!"));
@@ -610,14 +599,14 @@ bool cbDebugDisableHardwareBreakpoint(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint already disabled!"));
         return true;
     }
+    if(found.active && TITANDRXVALID(found.titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable hardware breakpoint %p (DeleteHardwareBreakpoint)\n"), found.addr);
+        return false;
+    }
     if(!BpEnable(found.addr, BPHARDWARE, false))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable hardware breakpoint %p (BpEnable)\n"), found.addr);
-        return false;
-    }
-    if(TITANDRXVALID(found.titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(found.titantype)))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable hardware breakpoint %p (DeleteHardwareBreakpoint)\n"), found.addr);
         return false;
     }
     TITANSETDRX(found.titantype, UE_DR7);
@@ -635,14 +624,14 @@ static bool cbDeleteAllMemoryBreakpoints(const BREAKPOINT* bp)
     auto size = bp->memsize;
     if(size == 0)
         MemFindBaseAddr(bp->addr, &size);
+    if(bp->active && !RemoveMemoryBPX(bp->addr, size))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed (RemoveMemoryBPX): %p\n"), bp->addr);
+        return false;
+    }
     if(!BpDelete(*bp))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed (BpDelete): %p\n"), bp->addr);
-        return false;
-    }
-    if(bp->enabled && bp->active && !RemoveMemoryBPX(bp->addr, size))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed (RemoveMemoryBPX): %p\n"), bp->addr);
         return false;
     }
     return true;
@@ -655,14 +644,14 @@ static bool cbEnableAllMemoryBreakpoints(const BREAKPOINT* bp)
     auto size = bp->memsize;
     if(size == 0)
         MemFindBaseAddr(bp->addr, &size);
-    if(!BpEnable(bp->addr, BPMEMORY, true))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable memory breakpoint %p (BpEnable)\n"), bp->addr);
-        return false;
-    }
     if(!SetMemoryBPXEx(bp->addr, size, (TitanMemoryBreakpointType)bp->titantype, !bp->singleshoot, cbMemoryBreakpoint))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable memory breakpoint %p (SetMemoryBPXEx)\n"), bp->addr);
+        return false;
+    }
+    if(!BpEnable(bp->addr, BPMEMORY, true))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable memory breakpoint %p (BpEnable)\n"), bp->addr);
         return false;
     }
     return true;
@@ -672,14 +661,14 @@ static bool cbDisableAllMemoryBreakpoints(const BREAKPOINT* bp)
 {
     if(bp->type != BPMEMORY || !bp->enabled)
         return true;
+    if(bp->active && !RemoveMemoryBPX(bp->addr, 0))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable memory breakpoint %p (RemoveMemoryBPX)\n"), bp->addr);
+        return false;
+    }
     if(!BpEnable(bp->addr, BPMEMORY, false))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable memory breakpoint %p (BpEnable)\n"), bp->addr);
-        return false;
-    }
-    if(!RemoveMemoryBPX(bp->addr, 0))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable memory breakpoint %p (RemoveMemoryBPX)\n"), bp->addr);
         return false;
     }
     return true;
@@ -749,6 +738,7 @@ bool cbDebugSetMemoryBpx(int argc, char* argv[])
     if(!SetMemoryBPXEx(base, size, type, restore, cbMemoryBreakpoint))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting memory breakpoint! (SetMemoryBPXEx)"));
+        BpDelete(base, BPMEMORY);
         return false;
     }
     dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint at %p[%p] set!\n"), base, size);
@@ -810,6 +800,7 @@ bool cbDebugSetMemoryRangeBpx(int argc, char* argv[])
     if(!SetMemoryBPXEx(start, size, type, !singleshot, cbMemoryBreakpoint))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting memory breakpoint! (SetMemoryBPXEx)"));
+        BpDelete(start, BPMEMORY);
         return false;
     }
     dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint at %p[%p] set!\n"), start, size);
@@ -838,14 +829,14 @@ bool cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
         auto size = found.memsize;
         if(size == 0)
             MemFindBaseAddr(found.addr, &size);
+        if(found.active && !RemoveMemoryBPX(found.addr, size))
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed: %p (RemoveMemoryBPX)\n"), found.addr);
+            return false;
+        }
         if(!BpDelete(found.addr, BPMEMORY))
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed: %p (BpDelete)\n"), found.addr);
-            return false;
-        }
-        if(!RemoveMemoryBPX(found.addr, size))
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed: %p (RemoveMemoryBPX)\n"), found.addr);
             return false;
         }
         GuiUpdateAllViews();
@@ -860,14 +851,14 @@ bool cbDebugDeleteMemoryBreakpoint(int argc, char* argv[])
     auto size = found.memsize;
     if(size == 0)
         MemFindBaseAddr(found.addr, &size);
+    if(found.active && !RemoveMemoryBPX(found.addr, size))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed: %p (RemoveMemoryBPX)\n"), found.addr);
+        return false;
+    }
     if(!BpDelete(found.addr, BPMEMORY))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed: %p (BpDelete)\n"), found.addr);
-        return false;
-    }
-    if(!RemoveMemoryBPX(found.addr, size))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed: %p (RemoveMemoryBPX)\n"), found.addr);
         return false;
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint deleted!"));
@@ -951,7 +942,7 @@ bool cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
     auto size = found.memsize;
     if(size == 0)
         MemFindBaseAddr(found.addr, &size);
-    if(!RemoveMemoryBPX(found.addr, size))
+    if(found.active && !RemoveMemoryBPX(found.addr, size))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable memory breakpoint %p (RemoveMemoryBPX)\n"), found.addr);
         return false;
@@ -969,16 +960,16 @@ bool cbDebugDisableMemoryBreakpoint(int argc, char* argv[])
 // DLL breakpoints
 static bool cbDeleteAllDllBreakpoints(const BREAKPOINT* bp)
 {
-    if(bp->type != BPDLL || !bp->enabled)
+    if(bp->type != BPDLL)
         return true;
+    if(bp->active && !dbgdeletedllbreakpoint(bp->module.c_str(), bp->titantype))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete DLL breakpoint %s (LibrarianRemoveBreakPoint)\n"), bp->module.c_str());
+        return false;
+    }
     if(!BpDelete(*bp))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete DLL breakpoint %s (BpDelete)\n"), bp->module.c_str());
-        return false;
-    }
-    if(!dbgdeletedllbreakpoint(bp->module.c_str(), bp->titantype))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete DLL breakpoint %s (LibrarianRemoveBreakPoint)\n"), bp->module.c_str());
         return false;
     }
     return true;
@@ -989,14 +980,14 @@ static bool cbEnableAllDllBreakpoints(const BREAKPOINT* bp)
     if(bp->type != BPDLL || bp->enabled)
         return true;
 
-    if(!BpEnable(bp->addr, BPDLL, true))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (BpEnable)\n"), bp->module.c_str());
-        return false;
-    }
     if(!dbgsetdllbreakpoint(bp->module.c_str(), bp->titantype, bp->singleshoot))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (LibrarianSetBreakPoint)\n"), bp->module.c_str());
+        return false;
+    }
+    if(!BpEnable(bp->addr, BPDLL, true))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (BpEnable)\n"), bp->module.c_str());
         return false;
     }
     return true;
@@ -1007,14 +998,14 @@ static bool cbDisableAllDllBreakpoints(const BREAKPOINT* bp)
     if(bp->type != BPDLL || !bp->enabled)
         return true;
 
+    if(bp->active && !dbgdeletedllbreakpoint(bp->module.c_str(), bp->titantype))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (LibrarianRemoveBreakPoint)\n"), bp->module.c_str());
+        return false;
+    }
     if(!BpEnable(bp->addr, BPDLL, false))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (BpEnable)\n"), bp->module.c_str());
-        return false;
-    }
-    if(!dbgdeletedllbreakpoint(bp->module.c_str(), bp->titantype))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (LibrarianRemoveBreakPoint)\n"), bp->module.c_str());
         return false;
     }
     return true;
@@ -1089,17 +1080,17 @@ bool cbDebugBcDll(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to find DLL breakpoint '%s'...\n"), argv[1]);
         return false;
     }
+    if(bp.active && !dbgdeletedllbreakpoint(bp.module.c_str(), bp.titantype))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to remove DLL breakpoint (dbgdeletedllbreakpoint)..."));
+        return false;
+    }
     if(!BpDelete(bp.addr, BPDLL))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to remove DLL breakpoint (BpDelete)..."));
         return false;
     }
     DebugUpdateBreakpointsViewAsync();
-    if(!dbgdeletedllbreakpoint(bp.module.c_str(), bp.titantype))
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to remove DLL breakpoint (dbgdeletedllbreakpoint)..."));
-        return false;
-    }
     dputs(QT_TRANSLATE_NOOP("DBG", "DLL breakpoint removed!"));
     return true;
 }
@@ -1132,14 +1123,15 @@ bool cbDebugBpDllEnable(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "DLL breakpoint already enabled!"));
         return true;
     }
+    if(!dbgsetdllbreakpoint(found.module.c_str(), found.titantype, found.singleshoot))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (LibrarianSetBreakPoint)\n"), found.module.c_str());
+        return false;
+    }
     if(!BpEnable(found.addr, BPDLL, true))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (BpEnable)\n"), found.module.c_str());
         return false;
-    }
-    if(!dbgsetdllbreakpoint(found.module.c_str(), found.titantype, found.singleshoot))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (LibrarianSetBreakPoint)\n"), found.module.c_str());
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "DLL breakpoint enable!"));
     GuiUpdateAllViews();
@@ -1174,14 +1166,15 @@ bool cbDebugBpDllDisable(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "DLL breakpoint already disabled!"));
         return true;
     }
+    if(found.active && !dbgdeletedllbreakpoint(found.module.c_str(), found.titantype))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (LibrarianRemoveBreakPoint)\n"), found.module.c_str());
+        return false;
+    }
     if(!BpEnable(found.addr, BPDLL, false))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (BpEnable)\n"), found.module.c_str());
         return false;
-    }
-    if(!dbgdeletedllbreakpoint(found.module.c_str(), found.titantype))
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (LibrarianRemoveBreakPoint)\n"), found.module.c_str());
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "DLL breakpoint disabled!"));
     GuiUpdateAllViews();
