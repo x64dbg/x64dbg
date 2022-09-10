@@ -26,7 +26,7 @@ struct BREAKPOINT
     duint addr;                                       // address of the breakpoint (rva relative to base of mod)
     bool enabled;                                     // whether the breakpoint is enabled
     bool singleshoot;                                 // whether the breakpoint should be deleted on first hit
-    bool active;                                      // whether the breakpoint is active or not
+    bool active;                                      // whether the breakpoint is active (enabled + actually set) or not
     bool silent;                                      // whether the breakpoint diplays a default message when hit
     unsigned short oldbytes;                          // original bytes (for software breakpoitns)
     BP_TYPE type;                                     // breakpoint type
@@ -56,6 +56,7 @@ bool BpDelete(duint Address, BP_TYPE Type);
 bool BpEnable(duint Address, BP_TYPE Type, bool Enable);
 bool BpSetName(duint Address, BP_TYPE Type, const char* Name);
 bool BpSetTitanType(duint Address, BP_TYPE Type, int TitanType);
+bool BpSetActive(duint Address, BP_TYPE Type, bool Active);
 bool BpSetBreakCondition(duint Address, BP_TYPE Type, const char* Condition);
 bool BpSetLogText(duint Address, BP_TYPE Type, const char* Log);
 bool BpSetLogCondition(duint Address, BP_TYPE Type, const char* Condition);

@@ -1098,10 +1098,12 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
                         bp->addr,
                         ((unsigned char*)&bp->oldbytes)[0], ((unsigned char*)&bp->oldbytes)[1],
                         ((unsigned char*)&oldbytes)[0], ((unsigned char*)&oldbytes)[1]);
-                BpEnable(bp->addr, BPNORMAL, false);
+                BpEnable(bp->addr, bp->type, false);
             }
             else if(!SetBPX(bp->addr, bp->titantype, cbUserBreakpoint))
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Could not set breakpoint %p! (SetBPX)\n"), bp->addr);
+            else
+                BpSetActive(bp->addr, bp->type, true);
         }
         else
             dprintf(QT_TRANSLATE_NOOP("DBG", "MemRead failed on breakpoint address %p!\n"), bp->addr);
@@ -1114,6 +1116,8 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
         MemFindBaseAddr(bp->addr, &size);
         if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, cbMemoryBreakpoint))
             dprintf(QT_TRANSLATE_NOOP("DBG", "Could not set memory breakpoint %p! (SetMemoryBPXEx)\n"), bp->addr);
+        else
+            BpSetActive(bp->addr, bp->type, true);
     }
     break;
 
@@ -1127,11 +1131,14 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
         }
         int titantype = bp->titantype;
         TITANSETDRX(titantype, drx);
-        BpSetTitanType(bp->addr, BPHARDWARE, titantype);
+        BpSetTitanType(bp->addr, bp->type, titantype);
         if(!SetHardwareBreakPoint(bp->addr, drx, TITANGETTYPE(bp->titantype), TITANGETSIZE(bp->titantype), cbHardwareBreakpoint))
             dprintf(QT_TRANSLATE_NOOP("DBG", "Could not set hardware breakpoint %p! (SetHardwareBreakPoint)\n"), bp->addr);
         else
+        {
+            BpSetActive(bp->addr, bp->type, true);
             dprintf(QT_TRANSLATE_NOOP("DBG", "Set hardware breakpoint on %p!\n"), bp->addr);
+        }
     }
     break;
 
@@ -1177,6 +1184,7 @@ static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
     default:
         break;
     }
+    BpSetActive(bp->addr, bp->type, false);
     return true;
 }
 

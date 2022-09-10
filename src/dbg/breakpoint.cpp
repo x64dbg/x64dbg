@@ -25,19 +25,20 @@ static void setBpActive(BREAKPOINT & bp)
         return;
     }
 
-    // Breakpoints without modules need a valid address
-    if(!*bp.mod)
+    // If the breakpoint wasn't set by the engine it won't be active
+    if(!bp.active)
+        return;
+
+    if(bp.mod[0] == '\0')
     {
+        // Breakpoints without modules need a valid address
         bp.active = MemIsValidReadPtr(bp.addr);
         return;
     }
     else
     {
-        auto modLoaded = ModBaseFromName(bp.mod) != 0;
-        if(bp.type == BPHARDWARE)
-            bp.active = modLoaded;
-        else
-            bp.active = modLoaded && MemIsValidReadPtr(bp.addr);
+        // If the module unloaded the breakpoint is no longer active
+        bp.active = ModBaseFromName(bp.mod) != 0;
     }
 }
 
@@ -73,7 +74,6 @@ int BpGetList(std::vector<BREAKPOINT>* List)
             BREAKPOINT currentBp = i.second;
             if(currentBp.type != BPDLL && currentBp.type != BPEXCEPTION)
                 currentBp.addr += ModBaseFromName(currentBp.mod);
-            setBpActive(currentBp);
 
             List->push_back(currentBp);
         }
@@ -114,12 +114,20 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
     }
     strncpy_s(bp.name, Name, _TRUNCATE);
 
-    bp.active = true;
-    if(Type != BPDLL && Type != BPEXCEPTION)
-        bp.addr = Address - ModBaseFromAddr(Address);
-    else
+    if(Type == BPDLL || Type == BPEXCEPTION)
+    {
+        // These types of breakpoints are always active
+        bp.active = true;
         bp.addr = Address;
+    }
+    else
+    {
+        bp.addr = Address - ModBaseFromAddr(Address);
+    }
     bp.enabled = Enable;
+    // TODO: a little hacky
+    if(Enable)
+        bp.active = true;
     bp.oldbytes = OldBytes;
     bp.singleshoot = Singleshot;
     bp.titantype = TitanType;
@@ -184,7 +192,6 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         *Bp = *bpInfo;
         if(bpInfo->type != BPDLL && bpInfo->type != BPEXCEPTION)
             Bp->addr += ModBaseFromAddr(Address);
-        setBpActive(*Bp);
         return true;
     }
 
@@ -230,7 +237,6 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
 
             *Bp = *bpInfo;
             Bp->addr = Address;
-            setBpActive(*Bp);
             return true;
         }
         free(DLLName);
@@ -251,7 +257,6 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
             *Bp = i.second;
             if(i.second.type != BPDLL && i.second.type != BPEXCEPTION)
                 Bp->addr += ModBaseFromAddr(Address);
-            setBpActive(*Bp);
         }
 
         // Return true if the name was found at all
@@ -365,6 +370,7 @@ bool BpEnable(duint Address, BP_TYPE Type, bool Enable)
         return false;
 
     bpInfo->enabled = Enable;
+    bpInfo->active = Enable;
 
     //Re-read oldbytes
     if(Enable && Type == BPNORMAL)
@@ -406,6 +412,20 @@ bool BpSetTitanType(duint Address, BP_TYPE Type, int TitanType)
         return false;
 
     bpInfo->titantype = TitanType;
+    return true;
+}
+
+bool BpSetActive(duint Address, BP_TYPE Type, bool Active)
+{
+    ASSERT_DEBUGGING("Command function call");
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+    if(!bpInfo)
+        return false;
+
+    bpInfo->active = Active;
     return true;
 }
 
@@ -578,12 +598,17 @@ bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base)
         BREAKPOINT bpInfo = j->second;
         if(bpInfo.type != BPDLL && bpInfo.type != BPEXCEPTION)
         {
-            if(base) //workaround for some Windows bullshit with compatibility mode
+            if(base)  //workaround for some Windows bullshit with compatibility mode
                 bpInfo.addr += base;
             else
-                bpInfo.addr += ModBaseFromName(bpInfo.mod);
+            {
+                char arg[deflen];
+                sprintf_s(arg, "%s:$%X", bpInfo.mod, bpInfo.addr);
+                BREAKPOINT found;
+                if(BpGet(0, bpInfo.type, arg, &found))  //found a breakpoint with name
+                    bpInfo = found;
+            }
         }
-        setBpActive(bpInfo);
 
         // Lock must be released due to callback sub-locks
         SHARED_RELEASE();
