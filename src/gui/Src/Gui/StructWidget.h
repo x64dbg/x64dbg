@@ -36,6 +36,7 @@ private:
     Ui::StructWidget* ui;
     MenuBuilder* mMenuBuilder;
     GotoDialog* mGotoDialog = nullptr;
+    QColor mTextColor;
 
     void setupColumns();
     void setupContextMenu();
