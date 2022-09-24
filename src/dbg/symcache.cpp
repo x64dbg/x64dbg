@@ -37,6 +37,7 @@ bool SymbolFromAddressExact(duint address, SymbolInfo & symInfo)
                 symInfo.size = 0;
                 symInfo.disp = 0;
                 symInfo.decoratedName = modExport->name;
+                symInfo.undecoratedName = modExport->undecoratedName;
                 symInfo.publicSymbol = true;
                 return true;
             }
