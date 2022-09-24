@@ -133,7 +133,7 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
             if(modInfo)
             {
                 sections = modInfo->sections;
-                sectionAlignment = modInfo->headers ? modInfo->headers->OptionalHeader.SectionAlignment : 0;
+                sectionAlignment = modInfo->headers ? modInfo->headers->OptionalHeader.SectionAlignment : PAGE_SIZE;
                 modSize = modInfo->size;
                 sizeOfImage = modInfo->headers ? ROUND_TO_PAGES(modInfo->headers->OptionalHeader.SizeOfImage) : 0;
             }
