@@ -90,7 +90,7 @@ void SystemBreakpointScriptDialog::on_openGlobal_clicked()
         {
             // The new script is at app dir
             QString defaultFileName("autorun.txt");
-            defaultFileName = QDir::toNativeSeparators(QCoreApplication::applicationDirPath() + QDir::separator() + defaultFileName);
+            defaultFileName = QDir::toNativeSeparators(QString::fromWCharArray(BridgeUserDirectory()) + QDir::separator() + defaultFileName);
             // Create it
             if(!QFile::exists(defaultFileName))
             {

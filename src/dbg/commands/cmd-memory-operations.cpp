@@ -195,7 +195,7 @@ bool cbInstrSavedata(int argc, char* argv[])
 
     String name = stringformatinline(argv[1]);
     if(name == ":memdump:")
-        name = StringUtils::sprintf("%s\\memdumps\\memdump_%X_%p_%x.bin", szProgramDir, fdProcessInfo->dwProcessId, addr, size);
+        name = StringUtils::sprintf("%s\\memdumps\\memdump_%X_%p_%x.bin", szUserDir, fdProcessInfo->dwProcessId, addr, size);
 
     if(!FileHelper::WriteAllData(name, data(), data.size()))
     {

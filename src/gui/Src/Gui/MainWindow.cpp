@@ -2409,7 +2409,7 @@ void MainWindow::customizeMenu()
 
 void MainWindow::on_actionImportSettings_triggered()
 {
-    auto filename = QFileDialog::getOpenFileName(this, tr("Open file"), QCoreApplication::applicationDirPath(), tr("Settings (*.ini);;All files (*.*)"));
+    auto filename = QFileDialog::getOpenFileName(this, tr("Open file"), QString::fromWCharArray(BridgeUserDirectory()), tr("Settings (*.ini);;All files (*.*)"));
     if(!filename.length())
         return;
     importSettings(filename);

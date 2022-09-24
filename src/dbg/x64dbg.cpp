@@ -621,7 +621,7 @@ static DWORD WINAPI loadDbThread(LPVOID hEvent)
 
     // Load global notes
     dputs(QT_TRANSLATE_NOOP("DBG", "Reading notes file..."));
-    notesFile = String(szProgramDir) + "\\notes.txt";
+    notesFile = String(szUserDir) + "\\notes.txt";
     String text;
     if(!FileExists(notesFile.c_str()) || FileHelper::ReadAllText(notesFile, text))
         GuiSetGlobalNotes(text.c_str());
@@ -687,9 +687,6 @@ PfnDliHook __pfnDliNotifyHook2 = delayHook;
 
 extern "C" DLL_EXPORT const char* _dbg_dbginit()
 {
-    if(!*szProgramDir)
-        return "GetModuleFileNameW failed!";
-
     if(!EngineCheckStructAlignment(UE_STRUCT_TITAN_ENGINE_CONTEXT, sizeof(TITAN_ENGINE_CONTEXT_t)))
         return "Invalid TITAN_ENGINE_CONTEXT_t alignment!";
 
@@ -699,7 +696,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcat_s(szDllLoaderPath, "\\loaddll.exe");
 
 #ifdef ENABLE_MEM_TRACE
-    strcpy_s(alloctrace, szProgramDir);
+    strcpy_s(alloctrace, szUserDir);
     strcat_s(alloctrace, "\\alloctrace.txt");
     DeleteFileW(StringUtils::Utf8ToUtf16(alloctrace).c_str());
     setalloctrace(alloctrace);
@@ -720,7 +717,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     Zydis::GlobalInitialize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Getting directory information..."));
 
-    strcpy_s(scriptDllDir, szProgramDir);
+    strcpy_s(scriptDllDir, szUserDir);
     strcat_s(scriptDllDir, "\\scripts\\");
     initDataInstMap();
 
@@ -734,10 +731,10 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     }
 
     // Create database directory in the local debugger folder
-    DbSetPath(StringUtils::sprintf("%s\\db", szProgramDir).c_str(), nullptr);
+    DbSetPath(StringUtils::sprintf("%s\\db", szUserDir).c_str(), nullptr);
 
     char szLocalSymbolPath[MAX_PATH] = "";
-    strcpy_s(szLocalSymbolPath, szProgramDir);
+    strcpy_s(szLocalSymbolPath, szUserDir);
     strcat_s(szLocalSymbolPath, "\\symbols");
 
     Memory<char*> cachePath(MAX_SETTING_SIZE + 1);
@@ -750,7 +747,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     {
         if(_strnicmp(cachePath(), ".\\", 2) == 0)
         {
-            strncpy_s(szSymbolCachePath, szProgramDir, _TRUNCATE);
+            strncpy_s(szSymbolCachePath, szUserDir, _TRUNCATE);
             strncat_s(szSymbolCachePath, cachePath() + 1, _TRUNCATE);
         }
         else
@@ -805,7 +802,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     strcpy_s(plugindir, szProgramDir);
     strcat_s(plugindir, "\\plugins");
     CreateDirectoryW(StringUtils::Utf8ToUtf16(plugindir).c_str(), nullptr);
-    CreateDirectoryW(StringUtils::Utf8ToUtf16(StringUtils::sprintf("%s\\memdumps", szProgramDir)).c_str(), nullptr);
+    CreateDirectoryW(StringUtils::Utf8ToUtf16(StringUtils::sprintf("%s\\memdumps", szUserDir)).c_str(), nullptr);
     dputs(QT_TRANSLATE_NOOP("DBG", "Initialization successful!"));
     bIsStopped = false;
     dputs(QT_TRANSLATE_NOOP("DBG", "Loading plugins..."));

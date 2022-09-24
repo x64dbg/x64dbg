@@ -384,7 +384,7 @@ void LogView::redirectLogSlot()
     }
     else
     {
-        BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files (*.txt);;All files (*.*)"), QCoreApplication::applicationDirPath(), true);
+        BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files (*.txt);;All files (*.*)"), QString::fromWCharArray(BridgeUserDirectory()), true);
         if(browse.exec() == QDialog::Accepted)
         {
             logRedirection = _wfopen(browse.path.toStdWString().c_str(), L"ab");

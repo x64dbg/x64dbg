@@ -71,6 +71,7 @@ static duint exceptionDispatchAddr = 0;
 static bool bPausedOnException = false;
 static HANDLE DebugDLLFileMapping = 0;
 char szProgramDir[MAX_PATH] = "";
+char szUserDir[MAX_PATH] = "";
 char szDebuggeePath[MAX_PATH] = "";
 char szDllLoaderPath[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
@@ -2679,7 +2680,7 @@ static void* InitDLLDebugW(const wchar_t* szFileName, const wchar_t* szCommandLi
     WString loaderPath = StringUtils::Utf8ToUtf16(szDllLoaderPath);
     if(!CopyFileW(loaderPath.c_str(), debuggeeLoaderPath.c_str(), FALSE))
     {
-        debuggeeLoaderPath = StringUtils::Utf8ToUtf16(szProgramDir);
+        debuggeeLoaderPath = StringUtils::Utf8ToUtf16(szUserDir);
         debuggeeLoaderPath += loaderFilename;
         if(!CopyFileW(loaderPath.c_str(), debuggeeLoaderPath.c_str(), FALSE))
         {

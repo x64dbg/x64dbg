@@ -352,7 +352,7 @@ QIcon DIconHelper(QString name)
 
 QString getDbPath(const QString & filename, bool addDateTimeSuffix)
 {
-    auto path = QString("%1/db").arg(QCoreApplication::applicationDirPath());
+    auto path = QString("%1/db").arg(QString::fromWCharArray(BridgeUserDirectory()));
     if(!filename.isEmpty())
     {
         path += '/';

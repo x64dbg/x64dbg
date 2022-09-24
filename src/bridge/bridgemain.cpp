@@ -7,10 +7,12 @@
 #include "_global.h"
 #include "bridgemain.h"
 #include <stdio.h>
+#include <ShlObj.h>
 #include "Utf8Ini.h"
 
 static HINSTANCE hInst;
 static Utf8Ini settings;
+static wchar_t szUserDirectory[MAX_PATH] = L"";
 static wchar_t szIniFile[MAX_PATH] = L"";
 static CRITICAL_SECTION csIni;
 static CRITICAL_SECTION csTranslate;
@@ -42,6 +44,27 @@ static bool bDisableGUIUpdate;
         return szError; \
     }
 
+static std::wstring Utf8ToUtf16(const char* str)
+{
+    std::wstring convertedString;
+    if(!str || !*str)
+        return convertedString;
+    int requiredSize = MultiByteToWideChar(CP_UTF8, 0, str, -1, nullptr, 0);
+    if(requiredSize > 0)
+    {
+        convertedString.resize(requiredSize - 1);
+        if(!MultiByteToWideChar(CP_UTF8, 0, str, -1, (wchar_t*)convertedString.c_str(), requiredSize))
+            convertedString.clear();
+    }
+    return convertedString;
+}
+
+static bool DirExists(const wchar_t* dir)
+{
+    DWORD attrib = GetFileAttributesW(dir);
+    return (attrib != INVALID_FILE_ATTRIBUTES && (attrib & FILE_ATTRIBUTE_DIRECTORY) != 0);
+}
+
 BRIDGE_IMPEXP const wchar_t* BridgeInit()
 {
     //Initialize critial section
@@ -49,15 +72,75 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit()
     InitializeCriticalSection(&csTranslate);
 
     //Settings load
-    if(!GetModuleFileNameW(0, szIniFile, MAX_PATH))
+    if(!GetModuleFileNameW(0, szUserDirectory, _countof(szUserDirectory)))
         return L"Error getting module path!";
-    int len = (int)wcslen(szIniFile);
-    while(szIniFile[len] != L'.' && szIniFile[len] != L'\\' && len)
-        len--;
-    if(szIniFile[len] == L'\\')
-        wcscat_s(szIniFile, L".ini");
+
+    auto backslash = wcsrchr(szUserDirectory, L'\\');
+    if(backslash == nullptr)
+        return L"Error getting module directory!";
+
+    *backslash = L'\0';
+
+    // Extract the file name of the x64dbg executable (without extension)
+    auto fileNameWithoutExtension = backslash + 1;
+    auto period = wcschr(fileNameWithoutExtension, L'.');
+    if(period != nullptr)
+    {
+        *period = L'\0';
+    }
+
+    wchar_t szFolderRedirect[MAX_PATH];
+    wcscpy_s(szFolderRedirect, szUserDirectory);
+    wcscat_s(szFolderRedirect, L"\\userdir");
+
+    std::wstring userDirUtf16;
+    {
+        std::vector<char> userDirUtf8;
+        auto hFile = CreateFileW(szFolderRedirect, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
+        if(hFile != INVALID_HANDLE_VALUE)
+        {
+            auto size = GetFileSize(hFile, nullptr);
+            userDirUtf8.resize(size + 1);
+            DWORD read = 0;
+            if(!ReadFile(hFile, userDirUtf8.data(), size, &read, nullptr))
+                userDirUtf8.clear();
+            CloseHandle(hFile);
+            userDirUtf16 = Utf8ToUtf16(userDirUtf8.data());
+        }
+        else
+        {
+            userDirUtf16 = szUserDirectory;
+        }
+    }
+
+    if(userDirUtf16.empty())
+    {
+        wchar_t szAppData[MAX_PATH] = L"";
+        if(!SUCCEEDED(SHGetFolderPathW(nullptr, CSIDL_APPDATA, nullptr, 0, szAppData)))
+            return L"Error getting AppData path";
+        userDirUtf16 = szAppData;
+        if(userDirUtf16.back() != L'\\')
+            userDirUtf16 += L'\\';
+        userDirUtf16 += fileNameWithoutExtension;
+        CreateDirectoryW(userDirUtf16.c_str(), nullptr);
+    }
     else
-        wcscpy_s(&szIniFile[len], _countof(szIniFile) - len, L".ini");
+    {
+        if(userDirUtf16.back() == L'\\')
+            userDirUtf16.pop_back();
+    }
+
+    if(!DirExists(userDirUtf16.c_str()))
+        return L"Specified user directory doesn't exist";
+
+    wcscpy_s(szIniFile, userDirUtf16.c_str());
+    wcscat_s(szIniFile, L"\\");
+    wcscat_s(szIniFile, fileNameWithoutExtension);
+    wcscat_s(szIniFile, L".ini");
+
+    MessageBoxW(0, szIniFile, L"szIniFile", MB_SYSTEMMODAL);
+
+    wcscpy_s(szUserDirectory, userDirUtf16.c_str());
 
     HINSTANCE hInst;
     const wchar_t* szLib;
@@ -281,6 +364,11 @@ BRIDGE_IMPEXP unsigned int BridgeGetNtBuildNumber()
         }
     }
     return NtBuildNumber;
+}
+
+BRIDGE_IMPEXP const wchar_t* BridgeUserDirectory()
+{
+    return szUserDirectory;
 }
 
 BRIDGE_IMPEXP bool DbgMemRead(duint va, void* dest, duint size)

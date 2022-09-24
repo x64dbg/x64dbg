@@ -138,6 +138,7 @@ extern PROCESS_INFORMATION* fdProcessInfo;
 extern HANDLE hActiveThread;
 extern HANDLE hProcessToken;
 extern char szProgramDir[MAX_PATH];
+extern char szUserDir[MAX_PATH];
 extern char szDebuggeePath[MAX_PATH];
 extern char szDllLoaderPath[MAX_PATH];
 extern char szSymbolCachePath[MAX_PATH];

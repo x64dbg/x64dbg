@@ -136,6 +136,11 @@ BRIDGE_IMPEXP bool BridgeIsProcessElevated();
 /// <returns>NtBuildNumber</returns>
 BRIDGE_IMPEXP unsigned int BridgeGetNtBuildNumber();
 
+/// <summary>
+/// Returns the user directory (without trailing backslash).
+/// </summary>
+BRIDGE_IMPEXP const wchar_t* BridgeUserDirectory();
+
 #ifdef __cplusplus
 }
 #endif
