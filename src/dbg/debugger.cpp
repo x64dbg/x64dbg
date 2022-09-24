@@ -644,9 +644,9 @@ static void printHwBpInfo(const BREAKPOINT & bp)
     }
     auto symbolicname = SymGetSymbolicName(bp.addr);
     if(*bp.name)
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint%s \"%s\" at %s!\n"), bptype, bp.name, symbolicname.c_str());
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint (%s%s) \"%s\" at %s!\n"), bpsize, bptype, bp.name, symbolicname.c_str());
     else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint%s at %s!\n"), bptype, symbolicname.c_str());
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint (%s%s) at %s!\n"), bpsize, bptype, symbolicname.c_str());
     free(bptype);
 }
 
