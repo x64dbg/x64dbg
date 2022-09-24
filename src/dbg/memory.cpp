@@ -118,8 +118,15 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
             return;
 
         auto & currentPage = pageVector.at(i);
-        auto modBase = ModBaseFromName(currentPage.info);
-        if(!modBase)
+
+        // Nothing to do for reserved or free pages
+        if(currentPage.mbi.State == MEM_RESERVE || currentPage.mbi.State == MEM_FREE)
+            continue;
+
+        auto pageBase = duint(currentPage.mbi.BaseAddress);
+        auto pageSize = currentPage.mbi.RegionSize;
+        auto modBase = ModBaseFromAddr(pageBase);
+        if(modBase == 0)
             continue;
 
         // Retrieve module info
@@ -173,9 +180,6 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
             }
         }
 
-        auto pageBase = duint(currentPage.mbi.BaseAddress);
-        auto pageSize = currentPage.mbi.RegionSize;
-
         // Section view
         if(!bListAllPages)
         {
@@ -222,14 +226,14 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
             else
             {
                 // Report an error to make it easier to debug
-                auto summary = StringUtils::sprintf("Error replacing page: %p[%p]\n", pageBase, pageSize);
+                auto summary = StringUtils::sprintf("Error replacing page: %p[%p] (%s)\n", pageBase, pageSize, currentPage.info);
                 summary += "Sections:\n";
                 for(const auto & section : sections)
                     summary += StringUtils::sprintf("  \"%s\": %p[%p]\n", section.name, section.addr, section.size);
                 summary += "New pages:\n";
                 for(const auto & page : newPages)
                     summary += StringUtils::sprintf(" \"%s\": %p[%p]\n", page.info, page.mbi.BaseAddress, page.mbi.RegionSize);
-                summary += "Please report an issue!";
+                summary += "Please report an issue!\n";
                 GuiAddLogMessage(summary.c_str());
                 strncat_s(currentPage.info, " (error, see log)", _TRUNCATE);
             }

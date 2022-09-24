@@ -21,8 +21,8 @@ StructWidget::StructWidget(QWidget* parent) :
     ui(new Ui::StructWidget)
 {
     ui->setupUi(this);
-    ui->treeWidget->setStyleSheet("QTreeWidget { color: #000000; background-color: #FFF8F0; alternate-background-color: #DCD9CF; }");
-    ui->treeWidget->setItemDelegate(new RichTextItemDelegate(ui->treeWidget));
+    ui->treeWidget->setStyleSheet("QTreeWidget { background-color: #FFF8F0; alternate-background-color: #DCD9CF; }");
+    ui->treeWidget->setItemDelegate(new RichTextItemDelegate(&mTextColor, ui->treeWidget));
     connect(Bridge::getBridge(), SIGNAL(typeAddNode(void*, const TYPEDESCRIPTOR*)), this, SLOT(typeAddNode(void*, const TYPEDESCRIPTOR*)));
     connect(Bridge::getBridge(), SIGNAL(typeClear()), this, SLOT(typeClear()));
     connect(Bridge::getBridge(), SIGNAL(typeUpdateWidget()), this, SLOT(typeUpdateWidget()));
@@ -71,10 +71,10 @@ void StructWidget::loadWindowSettings()
 
 void StructWidget::colorsUpdatedSlot()
 {
-    auto color = ConfigColor("AbstractTableViewTextColor");
+    mTextColor = ConfigColor("StructTextColor");
     auto background = ConfigColor("StructBackgroundColor");
     auto altBackground = ConfigColor("StructAlternateBackgroundColor");
-    auto style = QString("QTreeWidget { color: %1; background-color: %2; alternate-background-color: %3; }").arg(color.name(), background.name(), altBackground.name());
+    auto style = QString("QTreeWidget { background-color: %1; alternate-background-color: %2; }").arg(background.name(), altBackground.name());
     ui->treeWidget->setStyleSheet(style);
 }
 

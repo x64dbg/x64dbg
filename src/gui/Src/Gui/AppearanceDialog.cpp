@@ -592,6 +592,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Memory Map Breakpoint"), "MemoryMapBreakpointColor", "MemoryMapBreakpointBackgroundColor");
     colorInfoListAppend(tr("Memory Map %1").arg(ArchValue(tr("EIP"), tr("RIP"))), "MemoryMapCipColor", "MemoryMapCipBackgroundColor");
     colorInfoListAppend(tr("Memory Map Section Text"), "MemoryMapSectionTextColor", "");
+    colorInfoListAppend(tr("Struct text"), "StructTextColor", "");
     colorInfoListAppend(tr("Struct primary background"), "StructBackgroundColor", "");
     colorInfoListAppend(tr("Struct secondary background"), "StructAlternateBackgroundColor", "");
     colorInfoListAppend(tr("Breakpoint Summary Parentheses"), "BreakpointSummaryParenColor", "");
