@@ -124,20 +124,27 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
 
         // Retrieve module info
         std::vector<MODSECTIONINFO> sections;
-        duint sectionAlignment = 0;
+        duint sectionAlignment = PAGE_SIZE;
         duint modSize = 0;
         duint sizeOfImage = 0;
         {
             SHARED_ACQUIRE(LockModules);
             auto modInfo = ModInfoFromAddr(modBase);
-            sections = modInfo->sections;
-            sectionAlignment = modInfo->headers->OptionalHeader.SectionAlignment;
-            modSize = modInfo->size;
-            sizeOfImage = ROUND_TO_PAGES(modInfo->headers->OptionalHeader.SizeOfImage);
+            if(modInfo)
+            {
+                sections = modInfo->sections;
+                sectionAlignment = modInfo->headers ? modInfo->headers->OptionalHeader.SectionAlignment : 0;
+                modSize = modInfo->size;
+                sizeOfImage = modInfo->headers ? ROUND_TO_PAGES(modInfo->headers->OptionalHeader.SizeOfImage) : 0;
+            }
         }
 
         // Nothing to do if the module doesn't have sections
         if(sections.empty())
+            continue;
+
+        // Nothing to do if sizeOfImage = 0
+        if(sizeOfImage == 0)
             continue;
 
         // It looks like a section alignment of 0x10000 becomes PAGE_SIZE in reality
