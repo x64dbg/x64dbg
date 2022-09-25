@@ -220,13 +220,13 @@
      <addaction name="actionTRTIIT"/>
      <addaction name="actionTRTOIT"/>
     </widget>
-    <addaction name="actionAnimateInto"/>
-    <addaction name="actionAnimateOver"/>
-    <addaction name="actionAnimateCommand"/>
-    <addaction name="separator"/>
     <addaction name="actionTicnd"/>
     <addaction name="actionTocnd"/>
     <addaction name="menuTrace_record"/>
+    <addaction name="separator"/>
+    <addaction name="actionAnimateInto"/>
+    <addaction name="actionAnimateOver"/>
+    <addaction name="actionAnimateCommand"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
