@@ -138,8 +138,6 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit()
     wcscat_s(szIniFile, fileNameWithoutExtension);
     wcscat_s(szIniFile, L".ini");
 
-    MessageBoxW(0, szIniFile, L"szIniFile", MB_SYSTEMMODAL);
-
     wcscpy_s(szUserDirectory, userDirUtf16.c_str());
 
     HINSTANCE hInst;
