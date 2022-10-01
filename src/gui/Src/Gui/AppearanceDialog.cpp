@@ -279,7 +279,7 @@ void AppearanceDialog::on_buttonBackgroundColor_clicked()
 
 void AppearanceDialog::on_listColorNames_itemSelectionChanged()
 {
-    colorInfoIndex = ui->listColorNames->row(ui->listColorNames->selectedItems().at(0));
+    colorInfoIndex = ui->listColorNames->currentItem()->data(0, Qt::UserRole).toInt();
     ColorInfo info = colorInfoList.at(colorInfoIndex);
     defaultValueAction->setEnabled(false);
     currentSettingAction->setEnabled(false);
@@ -399,25 +399,34 @@ void AppearanceDialog::currentSettingSlot()
     }
 }
 
+void AppearanceDialog::colorInfoListCategory(QString categoryName)
+{
+    // Remove the (now) redundant colon
+    while(categoryName[categoryName.length() - 1] == ':')
+        categoryName.resize(categoryName.length() - 1);
+    currentCategory = new QTreeWidgetItem(QList<QString>({ categoryName }));
+    ui->listColorNames->addTopLevelItem(currentCategory);
+}
+
 void AppearanceDialog::colorInfoListAppend(QString propertyName, QString colorName, QString backgroundColorName)
 {
     ColorInfo info;
-    if(colorName.length() || backgroundColorName.length())
-        propertyName = "     " + propertyName;
-    else
-        propertyName = QString(QChar(0x2022)) + " " + propertyName; //bullet + space
     info.propertyName = propertyName;
     info.colorName = colorName;
     info.backgroundColorName = backgroundColorName;
     colorInfoList.append(info);
-    ui->listColorNames->addItem(colorInfoList.last().propertyName);
+    auto item = new QTreeWidgetItem(currentCategory, QList<QString>({ propertyName }));
+    item->setData(0, Qt::UserRole, QVariant(colorInfoIndex));
+    currentCategory->addChild(item);
+    colorInfoIndex++;
 }
 
 void AppearanceDialog::colorInfoListInit()
 {
     //clear list
-    colorInfoIndex = 0;
+    colorInfoIndex = 1;
     colorInfoList.clear();
+    colorInfoList.append(ColorInfo({"", "", ""})); // default, not editable
 
     //list entries
     //  Guide lines for entry order:
@@ -427,7 +436,7 @@ void AppearanceDialog::colorInfoListInit()
     //       2. others are sorted by read direction (Top to down / left to right)
     //           Example: "Header Text", "Addresses", "Text",...
     //
-    colorInfoListAppend(tr("General Tables:"), "", "");
+    colorInfoListCategory(tr("General Tables:"));
     colorInfoListAppend(tr("Background"), "AbstractTableViewBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "AbstractTableViewSelectionColor", "");
     colorInfoListAppend(tr("Header Text"), "AbstractTableViewHeaderTextColor", "");
@@ -435,7 +444,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Separators"), "AbstractTableViewSeparatorColor", "");
 
 
-    colorInfoListAppend(tr("Disassembly:"), "", "");
+    colorInfoListCategory(tr("Disassembly:"));
     colorInfoListAppend(tr("Background"), "DisassemblyBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "DisassemblySelectionColor", "");
     colorInfoListAppend(ArchValue(tr("EIP"), tr("RIP")), "DisassemblyCipColor", "DisassemblyCipBackgroundColor");
@@ -460,7 +469,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Loop Lines"), "DisassemblyLoopColor", "");
 
 
-    colorInfoListAppend(tr("SideBar:"), "", "");
+    colorInfoListCategory(tr("SideBar:"));
     colorInfoListAppend(tr("Background"), "SideBarBackgroundColor", "");
     colorInfoListAppend(tr("Register Labels"), "SideBarCipLabelColor", "SideBarCipLabelBackgroundColor");
     colorInfoListAppend(tr("Conditional Jump Lines (jump)"), "SideBarConditionalJumpLineTrueColor", "");
@@ -478,7 +487,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Bookmark bullets"), "SideBarBulletBookmarkColor", "");
 
 
-    colorInfoListAppend(tr("Registers:"), "", "");
+    colorInfoListCategory(tr("Registers:"));
     colorInfoListAppend(tr("Background"), "RegistersBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "RegistersSelectionColor", "");
     colorInfoListAppend(tr("Register Names"), "RegistersLabelColor", "");
@@ -491,7 +500,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Extra Information"), "RegistersExtraInfoColor", "");
 
 
-    colorInfoListAppend(tr("Instructions:"), "", "");
+    colorInfoListCategory(tr("Instructions:"));
     colorInfoListAppend(tr("Mnemonics"), "InstructionMnemonicColor", "InstructionMnemonicBackgroundColor");
     colorInfoListAppend(tr("Push/Pops"), "InstructionPushPopColor", "InstructionPushPopBackgroundColor");
     colorInfoListAppend(tr("Calls"), "InstructionCallColor", "InstructionCallBackgroundColor");
@@ -526,7 +535,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Highlighting"), "InstructionHighlightColor", "InstructionHighlightBackgroundColor");
 
 
-    colorInfoListAppend(tr("HexDump:"), "", "");
+    colorInfoListCategory(tr("HexDump:"));
     colorInfoListAppend(tr("Background"), "HexDumpBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "HexDumpSelectionColor", "");
     colorInfoListAppend(tr("Addresses"), "HexDumpAddressColor", "HexDumpAddressBackgroundColor");
@@ -546,7 +555,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Unknown Data Pointer Highlight Color"), "HexDumpUnknownDataPointerHighlightColor", "");
 
 
-    colorInfoListAppend(tr("Stack:"), "", "");
+    colorInfoListCategory(tr("Stack:"));
     colorInfoListAppend(tr("Background"), "StackBackgroundColor", "");
     colorInfoListAppend(ArchValue(tr("ESP"), tr("RSP")), "StackCspColor", "StackCspBackgroundColor");
     colorInfoListAppend(tr("Addresses"), "StackAddressColor", "StackAddressBackgroundColor");
@@ -561,14 +570,14 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("SEH Chain Comment"), "StackSEHChainColor", "");
 
 
-    colorInfoListAppend(tr("HexEdit:"), "", "");
+    colorInfoListCategory(tr("HexEdit:"));
     colorInfoListAppend(tr("Background"), "HexEditBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "HexEditSelectionColor", "");
     colorInfoListAppend(tr("Text"), "HexEditTextColor", "");
     colorInfoListAppend(tr("Wildcards"), "HexEditWildcardColor", "");
 
 
-    colorInfoListAppend(tr("Graph:"), "", "");
+    colorInfoListCategory(tr("Graph:"));
     colorInfoListAppend(tr("Background"), "GraphBackgroundColor", "");
     colorInfoListAppend(ArchValue(tr("EIP"), tr("RIP")), "GraphCipColor", "");
     colorInfoListAppend(tr("Breakpoint"), "GraphBreakpointColor", "");
@@ -582,7 +591,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("False branch line"), "GraphBrfalseColor", "");
 
 
-    colorInfoListAppend(tr("Other:"), "", "");
+    colorInfoListCategory(tr("Other:"));
     colorInfoListAppend(tr("Background Flicker Color"), "BackgroundFlickerColor", "");
     colorInfoListAppend(tr("Log Link Color") + "*", "LogLinkColor", "LogLinkBackgroundColor");
     colorInfoListAppend(tr("Search Highlight Color"), "SearchListViewHighlightColor", "SearchListViewHighlightBackgroundColor");
@@ -605,6 +614,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Symbol Loaded Text"), "SymbolLoadedTextColor", "");
     colorInfoListAppend(tr("Link color"), "LinkColor", "");
 
+    colorInfoIndex = 0;
 
     //dev helper
     const QMap<QString, QColor>* Colors = &Config()->defaultColors;
