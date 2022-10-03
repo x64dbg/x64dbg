@@ -125,22 +125,42 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
 
         auto pageBase = duint(currentPage.mbi.BaseAddress);
         auto pageSize = currentPage.mbi.RegionSize;
-        auto modBase = ModBaseFromAddr(pageBase);
-        if(modBase == 0)
-            continue;
 
         // Retrieve module info
+        duint modBase = 0;
         std::vector<MODSECTIONINFO> sections;
         duint sectionAlignment = 0;
         duint modSize = 0;
         duint sizeOfImage = 0;
         {
             SHARED_ACQUIRE(LockModules);
-            auto modInfo = ModInfoFromAddr(modBase);
-            sections = modInfo->sections;
-            sectionAlignment = modInfo->headers->OptionalHeader.SectionAlignment;
+            auto modInfo = ModInfoFromAddr(pageBase);
+
+            // Nothing to do for non-modules
+            if(!modInfo)
+                continue;
+
+            modBase = modInfo->base;
             modSize = modInfo->size;
-            sizeOfImage = ROUND_TO_PAGES(modInfo->headers->OptionalHeader.SizeOfImage);
+            sections = modInfo->sections;
+            if(modInfo->headers)
+            {
+                sectionAlignment = modInfo->headers->OptionalHeader.SectionAlignment;
+                sizeOfImage = ROUND_TO_PAGES(modInfo->headers->OptionalHeader.SizeOfImage);
+            }
+            else
+            {
+                // This appears to happen under unknown circumstances
+                // https://github.com/x64dbg/x64dbg/issues/2945
+                // https://github.com/x64dbg/x64dbg/issues/2931
+                sectionAlignment = 0x1000;
+                sizeOfImage = modSize;
+
+                // Spam the user with errors to hopefully get more information
+                std::string summary;
+                summary = StringUtils::sprintf("The module at %p (%s%s) triggers a weird bug, please report an issue\n",  modBase, modInfo->name, modInfo->extension);
+                GuiAddLogMessage(summary.c_str());
+            }
         }
 
         // Nothing to do if the module doesn't have sections

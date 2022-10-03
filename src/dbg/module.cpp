@@ -904,11 +904,11 @@ bool ModLoad(duint Base, duint Size, const char* FullPath, bool loadSymbols)
     if(virtualModule)
     {
         if(info.entry >= Base && info.entry < Base + Size)
-            LabelSet(info.entry, "EntryPoint", false);
+            LabelSet(info.entry, "EntryPoint", false, true);
 
         apienumexports(Base, [](duint base, const char* mod, const char* name, duint addr)
         {
-            LabelSet(addr, name, false);
+            LabelSet(addr, name, false, true);
         });
     }
 
