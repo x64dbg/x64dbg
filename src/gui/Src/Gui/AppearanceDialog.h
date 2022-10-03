@@ -11,6 +11,8 @@ namespace Ui
     class AppearanceDialog;
 }
 
+class QTreeWidgetItem;
+
 class AppearanceDialog : public QDialog
 {
     Q_OBJECT
@@ -98,9 +100,11 @@ private:
 
     QAction* defaultValueAction;
     QAction* currentSettingAction;
+    QTreeWidgetItem* currentCategory;
 
     bool isInit;
 
+    void colorInfoListCategory(QString categoryName);
     void colorInfoListAppend(QString propertyName, QString colorName, QString backgroundColorName);
     void colorInfoListInit();
     void fontInit();
