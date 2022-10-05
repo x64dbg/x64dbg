@@ -2842,11 +2842,26 @@ static void debugLoopFunction(INIT_STRUCT* init)
 
     //set GUI title
     strcpy_s(szBaseFileName, szDebuggeePath);
+    
     int len = (int)strlen(szBaseFileName);
     while(szBaseFileName[len] != '\\' && len)
         len--;
     if(len)
         strcpy_s(szBaseFileName, szBaseFileName + len + 1);
+
+    len = (int)strlen(szDebuggeePath);
+
+    if (len > 100)
+    {
+        strcat_s(szBaseFileName, " ...");
+        strcat_s(szBaseFileName, szDebuggeePath + len - 100 + 1);
+    }
+    else
+    {
+        strcat_s(szBaseFileName, " ");
+        strcat_s(szBaseFileName, szDebuggeePath);
+    }
+
     GuiUpdateWindowTitle(szBaseFileName);
 
     //call plugin callback
