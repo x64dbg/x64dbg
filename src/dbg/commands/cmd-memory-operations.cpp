@@ -210,3 +210,80 @@ bool cbInstrSavedata(int argc, char* argv[])
 
     return success;
 }
+
+bool cbInstrMinidump(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+
+    if(DbgIsRunning())
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Cannot dump while running..."));
+        return false;
+    }
+
+    HANDLE hFile = CreateFileA(argv[1], GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if(hFile == INVALID_HANDLE_VALUE)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Could not open file!"));
+        return false;
+    }
+
+    // Disable all software breakpoints
+    std::vector<BREAKPOINT> disabledBreakpoints;
+    {
+        std::vector<BREAKPOINT> bplist;
+        BpGetList(&bplist);
+        for(const auto & bp : bplist)
+        {
+            if(bp.type == BPNORMAL && bp.active && DeleteBPX(bp.addr))
+                disabledBreakpoints.push_back(bp);
+        }
+    }
+
+    CONTEXT context = {};
+    context.ContextFlags = CONTEXT_ALL;
+    GetThreadContext(DbgGetThreadHandle(), &context);
+    context.EFlags &= ~0x100; // remove trap flag
+
+    EXCEPTION_POINTERS exceptionPointers = {};
+    exceptionPointers.ContextRecord = &context;
+    exceptionPointers.ExceptionRecord = &getLastExceptionInfo().ExceptionRecord;
+    if(exceptionPointers.ExceptionRecord->ExceptionCode == 0)
+    {
+        auto & exceptionRecord = *exceptionPointers.ExceptionRecord;
+        exceptionRecord.ExceptionCode = 0xFFFFFFFF;
+#ifdef _WIN64
+        exceptionRecord.ExceptionAddress = PVOID(context.Rip);
+#else
+        exceptionRecord.ExceptionAddress = PVOID(context.Eip);
+#endif // _WIN64
+    }
+
+    MINIDUMP_EXCEPTION_INFORMATION exceptionInfo = {};
+    exceptionInfo.ThreadId = DbgGetThreadId();
+    exceptionInfo.ExceptionPointers = &exceptionPointers;
+    exceptionInfo.ClientPointers = FALSE;
+    auto dumpType = MINIDUMP_TYPE(MiniDumpWithFullMemory | MiniDumpWithFullMemoryInfo | MiniDumpIgnoreInaccessibleMemory | MiniDumpWithHandleData);
+    auto dumpSaved = !!MiniDumpWriteDump(DbgGetProcessHandle(), DbgGetProcessId(), hFile, dumpType, &exceptionInfo, nullptr, nullptr);
+    auto lastError = GetLastError() & 0xFFFF; // HRESULT_FROM_WIN32
+
+    // Re-enable all breakpoints that were previously disabled
+    for(const auto & bp : disabledBreakpoints)
+    {
+        SetBPX(bp.addr, bp.titantype, cbUserBreakpoint);
+    }
+
+    if(dumpSaved)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Dump saved!"));
+    }
+    else
+    {
+        String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", lastError));
+        dprintf(QT_TRANSLATE_NOOP("DBG", "MiniDumpWriteDump failed. GetLastError() = %s.\n"), error.c_str());
+    }
+
+    CloseHandle(hFile);
+    return true;
+}

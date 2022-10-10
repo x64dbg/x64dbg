@@ -243,6 +243,7 @@ static void registercommands()
     dbgcmdnew("getpagerights,getrightspage", cbDebugGetPageRights, true);
     dbgcmdnew("setpagerights,setrightspage", cbDebugSetPageRights, true);
     dbgcmdnew("savedata", cbInstrSavedata, true); //save data to disk
+    dbgcmdnew("minidump", cbInstrMinidump, true); //create a minidump
 
     //operating system control
     dbgcmdnew("GetPrivilegeState", cbGetPrivilegeState, true); //get priv state

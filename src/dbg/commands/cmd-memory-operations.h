@@ -9,3 +9,4 @@ bool cbDebugMemcpy(int argc, char* argv[]);
 bool cbDebugGetPageRights(int argc, char* argv[]);
 bool cbDebugSetPageRights(int argc, char* argv[]);
 bool cbInstrSavedata(int argc, char* argv[]);
+bool cbInstrMinidump(int argc, char* argv[]);
