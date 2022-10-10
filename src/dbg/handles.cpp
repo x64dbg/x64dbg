@@ -4,10 +4,46 @@
 #include "exception.h"
 #include "debugger.h"
 #include "thread.h"
+#include "threading.h"
+
+static std::unordered_map<UCHAR, String> HandleTypeNames;
+static std::unordered_map<HANDLE, String> HandleTypeCache;
+
+static void HandleTypesEnum()
+{
+    Memory<POBJECT_TYPES_INFORMATION> TypesInformation(16 * 1024, "types");
+    NTSTATUS status = STATUS_SUCCESS;
+    for(;;)
+    {
+        status = NtQueryObject(nullptr, ObjectTypesInformation, TypesInformation(), ULONG(TypesInformation.size()), nullptr);
+        if(status != STATUS_INFO_LENGTH_MISMATCH)
+            break;
+        TypesInformation.realloc(TypesInformation.size() * 2, "types");
+    }
+    if(status != STATUS_SUCCESS)
+        return;
+
+    auto TypeInfo = TypesInformation()->TypeInformation;
+    for(ULONG i = 0; i < TypesInformation()->NumberOfTypes; i++)
+    {
+        auto wtypeName = WString(TypeInfo->TypeName.Buffer, TypeInfo->TypeName.Buffer + TypeInfo->TypeName.Length / 2);
+        auto typeName = StringUtils::Utf16ToUtf8(wtypeName);
+        auto typeIndex = i + 1;
+        if(BridgeGetNtBuildNumber() >= 9600 /* Windows 8.1 */)
+        {
+            typeIndex = TypeInfo->TypeIndex;
+        }
+        HandleTypeNames.emplace((UCHAR)typeIndex, typeName);
+        TypeInfo = (POBJECT_TYPE_INFORMATION)((char*)(TypeInfo + 1) + ALIGN_UP(TypeInfo->TypeName.MaximumLength, ULONG_PTR));
+    }
+}
 
 // Enumerate all handles in the debuggee
 bool HandlesEnum(std::vector<HANDLEINFO> & handles)
 {
+    if(HandleTypeNames.empty())
+        HandleTypesEnum();
+
     duint pid;
     Memory<PSYSTEM_HANDLE_INFORMATION> HandleInformation(16 * 1024, "_dbg_enumhandles");
     NTSTATUS ErrorCode = ERROR_SUCCESS;
@@ -24,6 +60,8 @@ bool HandlesEnum(std::vector<HANDLEINFO> & handles)
 
     handles.reserve(HandleInformation()->NumberOfHandles);
 
+    EXCLUSIVE_ACQUIRE(LockHandleCache);
+    HandleTypeCache.clear();
     HANDLEINFO info;
     for(ULONG i = 0; i < HandleInformation()->NumberOfHandles; i++)
     {
@@ -33,6 +71,9 @@ bool HandlesEnum(std::vector<HANDLEINFO> & handles)
         info.Handle = handle.HandleValue;
         info.TypeNumber = handle.ObjectTypeIndex;
         info.GrantedAccess = handle.GrantedAccess;
+        auto typeNameItr = HandleTypeNames.find(handle.ObjectTypeIndex);
+        if(typeNameItr != HandleTypeNames.end())
+            HandleTypeCache.emplace((HANDLE)handle.HandleValue, typeNameItr->second);
         handles.push_back(info);
     }
     return true;
@@ -192,6 +233,14 @@ bool HandlesGetName(HANDLE remoteHandle, String & name, String & typeName)
     }
     else
         name = String(ErrorCodeToName(GetLastError()));
+
+    if(typeName.empty())
+    {
+        SHARED_ACQUIRE(LockHandleCache);
+        auto itr = HandleTypeCache.find(remoteHandle);
+        if(itr != HandleTypeCache.end())
+            typeName = itr->second;
+    }
     return true;
 }
 
