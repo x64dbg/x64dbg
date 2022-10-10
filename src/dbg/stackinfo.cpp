@@ -452,6 +452,10 @@ void stackgetcallstackbythread(HANDLE thread, CALLSTACK* callstack)
         // Copy data directly from the vector
         memcpy(callstack->entries, callstackVector.data(), callstack->total * sizeof(CALLSTACKENTRY));
     }
+    else
+    {
+        callstack->entries = nullptr;
+    }
 }
 
 void stackgetcallstack(duint csp, CALLSTACK* callstack)
@@ -468,6 +472,10 @@ void stackgetcallstack(duint csp, CALLSTACK* callstack)
 
         // Copy data directly from the vector
         memcpy(callstack->entries, callstackVector.data(), callstack->total * sizeof(CALLSTACKENTRY));
+    }
+    else
+    {
+        callstack->entries = nullptr;
     }
 }
 

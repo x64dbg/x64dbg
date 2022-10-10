@@ -101,10 +101,12 @@ void ThreadGetList(THREADLIST* List)
     // Also assume BridgeAlloc zeros the returned buffer.
     //
     List->count = (int)threadList.size();
-    List->list = nullptr;
 
-    if(List->count <= 0)
+    if(List->count == 0)
+    {
+        List->list = nullptr;
         return;
+    }
 
     // Allocate C-style array
     List->list = (THREADALLINFO*)BridgeAlloc(List->count * sizeof(THREADALLINFO));

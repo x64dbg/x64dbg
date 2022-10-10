@@ -127,6 +127,10 @@ static void _getsehchain(DBGSEHCHAIN* sehchain)
             MemRead(SEHList[i] + 4, &sehchain->records[i].handler, sizeof(duint));
         }
     }
+    else
+    {
+        sehchain->records = nullptr;
+    }
 }
 
 static bool _getjitauto(bool* jit_auto)
@@ -183,7 +187,10 @@ static bool _getprocesslist(DBGPROCESSINFO** entries, int* count)
         return false;
     *count = (int)infoList.size();
     if(!*count)
+    {
+        *entries = nullptr;
         return false;
+    }
     *entries = (DBGPROCESSINFO*)BridgeAlloc(*count * sizeof(DBGPROCESSINFO));
     for(int i = 0; i < *count; i++)
     {
