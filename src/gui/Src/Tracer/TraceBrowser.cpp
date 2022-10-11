@@ -22,6 +22,7 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
     addColumnAt(getCharWidth() * 40, tr("Disassembly"), false); //disassembly
     addColumnAt(getCharWidth() * 50, tr("Registers"), false); //registers
     addColumnAt(getCharWidth() * 50, tr("Memory"), false); //memory
+    addColumnAt(getCharWidth() * 50, tr("Flags"), false); //flags
     addColumnAt(1000, tr("Comments"), false); //comments
     loadColumnFromConfig("Trace");
 
@@ -650,6 +651,7 @@ NotDebuggingLabel:
 
         return "";
     }
+
     case Memory:
     {
         auto fakeInstruction = memoryTokens(index);
@@ -662,6 +664,20 @@ NotDebuggingLabel:
 
         return "";
     }
+
+    case Flags:
+    {
+        auto fakeInstruction = flagsTokens(index);
+        RichTextPainter::List richText;
+        if(mHighlightToken.text.length())
+            ZydisTokenizer::TokenToRichText(fakeInstruction, richText, &mHighlightToken);
+        else
+            ZydisTokenizer::TokenToRichText(fakeInstruction, richText, nullptr);
+        RichTextPainter::paintRichText(painter, x + 0, y, getColumnWidth(col) - 0, getRowHeight(), 4, richText, mFontMetrics);
+
+        return "";
+    }
+
     case Comments:
     {
         int xinc = 3;
@@ -777,6 +793,13 @@ ZydisTokenizer::InstructionToken TraceBrowser::memoryTokens(unsigned long long a
         fakeInstruction.tokens.insert(fakeInstruction.tokens.begin(), tokens.begin(), tokens.end());
     }
     return  fakeInstruction;
+}
+
+ZydisTokenizer::InstructionToken TraceBrowser::flagsTokens(unsigned long long atIndex)
+{
+    ZydisTokenizer::InstructionToken fakeInstruction = ZydisTokenizer::InstructionToken();
+    // TODO
+    return fakeInstruction;
 }
 
 ZydisTokenizer::InstructionToken TraceBrowser::registersTokens(unsigned long long atIndex)
@@ -1019,6 +1042,11 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
                 {
                     tokens = memoryTokens(index);
                     columnPosition = getColumnPosition(Memory);
+                }
+                else if(getColumnIndexFromX(event->x()) == Flags)
+                {
+                    tokens = flagsTokens(index);
+                    columnPosition = getColumnPosition(Flags);
                 }
                 ZydisTokenizer::SingleToken token;
                 if(ZydisTokenizer::TokenFromX(tokens, token, event->x() - columnPosition, mFontMetrics))
@@ -1471,6 +1499,7 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
     const int disassemblyLen = getColumnWidth(Disassembly) / getCharWidth() - 1;
     const int registersLen = getColumnWidth(Registers) / getCharWidth() - 1;
     const int memoryLen = getColumnWidth(Memory) / getCharWidth() - 1;
+    const int flagsLen = getColumnWidth(Flags) / getCharWidth() - 1;
     if(htmlStream)
         *htmlStream << QString("<table style=\"border-width:0px;border-color:#000000;font-family:%1;font-size:%2px;\">").arg(font().family()).arg(getRowHeight());
     for(unsigned long long i = getSelectionStart(); i <= getSelectionEnd(); i++)
@@ -1542,12 +1571,32 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
                 memoryText += token.text;
         }
 
+        QString flagsText;
+        QString flagsHtml;
+        ZydisTokenizer::InstructionToken flgsTokens = flagsTokens(i);
+        if(htmlStream)
+        {
+            RichTextPainter::List richText;
+            if(mHighlightToken.text.length())
+                ZydisTokenizer::TokenToRichText(flgsTokens, richText, &mHighlightToken);
+            else
+                ZydisTokenizer::TokenToRichText(flgsTokens, richText, 0);
+            RichTextPainter::htmlRichText(richText, &flagsHtml, flagsText);
+        }
+        else
+        {
+            for(const auto & token : flgsTokens.tokens)
+                flagsText += token.text;
+        }
+
         stream << mTraceFile->getIndexText(i) + " | " + address.leftJustified(addressLen, QChar(' '), true);
         if(copyBytes)
             stream << " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
         stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true);
         stream << " | " + registersText.leftJustified(registersLen, QChar(' '), true);
-        stream << " | " + memoryText.leftJustified(memoryLen, QChar(' '), true) + " |" + fullComment;
+        stream << " | " + memoryText.leftJustified(memoryLen, QChar(' '), true);
+        stream << " | " + flagsText.leftJustified(flagsLen, QChar(' '), true);
+        stream << " |" + fullComment;
         if(htmlStream)
         {
             *htmlStream << QString("<tr><td>%1</td><td>%2</td><td>").arg(mTraceFile->getIndexText(i), address.toHtmlEscaped());
@@ -1556,6 +1605,7 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
             *htmlStream << QString("%1</td><td>").arg(htmlDisassembly);
             *htmlStream << QString("%1</td><td>").arg(registersText);
             *htmlStream << QString("%1</td><td>").arg(memoryText);
+            *htmlStream << QString("%1</td><td>").arg(flagsText);
             if(!comment.isEmpty())
             {
                 if(autocomment)
@@ -1792,6 +1842,12 @@ void TraceBrowser::exportSlot()
         case Memory:
         {
             for(auto i : memoryTokens(row).tokens)
+                temp += i.text;
+            return temp;
+        }
+        case Flags:
+        {
+            for(auto i : flagsTokens(row).tokens)
                 temp += i.text;
             return temp;
         }

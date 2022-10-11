@@ -43,6 +43,7 @@ private:
         Disassembly,
         Registers,
         Memory,
+        Flags,
         Comments
     };
     void setupRightClickContextMenu();
