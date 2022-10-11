@@ -62,6 +62,7 @@ private:
 
     ZydisTokenizer::InstructionToken memoryTokens(unsigned long long atIndex);
     ZydisTokenizer::InstructionToken registersTokens(unsigned long long atIndex);
+    ZydisTokenizer::InstructionToken flagsTokens(unsigned long long atIndex);
     VaHistory mHistory;
     MenuBuilder* mMenuBuilder;
     CommonActions* mCommonActions;
