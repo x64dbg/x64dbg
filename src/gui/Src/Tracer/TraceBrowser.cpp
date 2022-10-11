@@ -801,8 +801,10 @@ ZydisTokenizer::InstructionToken TraceBrowser::flagsTokens(unsigned long long at
     REGDUMP now = mTraceFile->Registers(atIndex);
     REGDUMP next = (atIndex + 1 < mTraceFile->Length()) ? mTraceFile->Registers(atIndex + 1) : now;
     std::vector<ZydisTokenizer::SingleToken> tokens;
-    ZydisTokenizer::TokenizeTraceRegister(ArchValue("eflags", "rflags"), now.regcontext.eflags, next.regcontext.eflags, tokens);
-    fakeInstruction.tokens.insert(fakeInstruction.tokens.begin(), tokens.begin(), tokens.end());
+    if (now.regcontext.eflags != next.regcontext.eflags) {
+        ZydisTokenizer::TokenizeTraceRegister(ArchValue("EFLAGS", "RFLAGS"), now.regcontext.eflags, next.regcontext.eflags, tokens);
+        fakeInstruction.tokens.insert(fakeInstruction.tokens.begin(), tokens.begin(), tokens.end());
+    }
     return fakeInstruction;
 }
 
