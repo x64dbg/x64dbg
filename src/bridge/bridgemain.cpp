@@ -347,19 +347,25 @@ BRIDGE_IMPEXP bool BridgeIsProcessElevated()
     return !!IsAdminMember;
 }
 
+static DWORD BridgeGetNtBuildNumberWindows7()
+{
+    auto p_RtlGetVersion = (NTSTATUS(WINAPI*)(PRTL_OSVERSIONINFOW))GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetVersion");
+    RTL_OSVERSIONINFOW info = { sizeof(info) };
+    if(p_RtlGetVersion && p_RtlGetVersion(&info) == 0)
+        return info.dwBuildNumber;
+    else
+        return 0;
+}
+
 BRIDGE_IMPEXP unsigned int BridgeGetNtBuildNumber()
 {
     // https://www.vergiliusproject.com/kernels/x64/Windows%2010%20%7C%202016/1507%20Threshold%201/_KUSER_SHARED_DATA
-    auto NtBuildNumber = *(unsigned int*)(0x7FFE0000 + 0x260);
+    auto NtBuildNumber = *(DWORD*)(0x7FFE0000 + 0x260);
     if(NtBuildNumber == 0)
     {
         // Older versions of Windows
-        static auto p_RtlGetVersion = (NTSTATUS(*)(PRTL_OSVERSIONINFOW))GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "RtlGetVersion");
-        RTL_OSVERSIONINFOW info = { sizeof(info) };
-        if(p_RtlGetVersion && p_RtlGetVersion(&info) == 0)
-        {
-            NtBuildNumber = info.dwBuildNumber;
-        }
+        static DWORD NtBuildNumber7 = BridgeGetNtBuildNumberWindows7();
+        NtBuildNumber = NtBuildNumber7;
     }
     return NtBuildNumber;
 }
