@@ -807,6 +807,7 @@ ZydisTokenizer::InstructionToken TraceBrowser::registersTokens(unsigned long lon
     addRegValues("r14", r14)
     addRegValues("r15", r15)
 #endif //_WIN64
+    addRegValues(ArchValue("eflags", "rflags"), eflags)
 
     fakeInstruction.tokens.insert(fakeInstruction.tokens.begin(), tokens.begin(), tokens.end());
     return fakeInstruction;
