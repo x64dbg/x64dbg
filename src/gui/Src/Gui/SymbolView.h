@@ -5,6 +5,7 @@
 
 class QMenu;
 class StdSearchListView;
+class StdIconSearchListView;
 class SearchListView;
 class SymbolSearchList;
 class QVBoxLayout;
@@ -68,7 +69,7 @@ private:
     QVBoxLayout* mSymbolLayout;
     QWidget* mSymbolPlaceHolder;
     SearchListView* mSymbolList;
-    StdSearchListView* mModuleList;
+    StdIconSearchListView* mModuleList;
     SymbolSearchList* mSymbolSearchList;
     QMap<QString, duint> mModuleBaseList;
     QAction* mFollowSymbolAction;
