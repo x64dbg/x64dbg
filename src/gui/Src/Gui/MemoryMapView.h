@@ -53,14 +53,17 @@ private:
         ColCurProtect,
         ColAllocProtect
     };
-    inline duint getSelAddr()
+
+    inline duint getSelectionAddr()
     {
         return getCellUserdata(getInitialSelection(), ColAddress);
     }
-    inline QString getSelText()
+
+    inline QString getSelectionText()
     {
         return getCellContent(getInitialSelection(), ColAddress);
     }
+
     QAction* makeCommandAction(QAction* action, const QString & command);
 
     GotoDialog* mGoto = nullptr;

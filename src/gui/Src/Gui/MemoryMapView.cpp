@@ -213,7 +213,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     if(!DbgIsDebugging())
         return;
 
-    duint selectedAddr = getSelAddr();
+    duint selectedAddr = getSelectionAddr();
 
     QMenu wMenu(this); //create context menu
     wMenu.addAction(mFollowDisassembly);
@@ -287,7 +287,7 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
     if(col == 0) //address
     {
         QString wStr = getCellContent(rowBase + rowOffset, col);
-        duint addr = getSelAddr();
+        duint addr = getSelectionAddr();
         QColor color = mTextColor;
         QColor backgroundColor = Qt::transparent;
         bool isBp = (DbgGetBpxTypeAt(addr) & bp_memory) == bp_memory;
@@ -507,22 +507,22 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
 
 void MemoryMapView::followDumpSlot()
 {
-    DbgCmdExecDirect(QString("dump %1").arg(getSelText()));
+    DbgCmdExecDirect(QString("dump %1").arg(getSelectionText()));
 }
 
 void MemoryMapView::followDisassemblerSlot()
 {
-    DbgCmdExec(QString("disasm %1").arg(getSelText()));
+    DbgCmdExec(QString("disasm %1").arg(getSelectionText()));
 }
 
 void MemoryMapView::followSymbolsSlot()
 {
-    DbgCmdExec(QString("symfollow %1").arg(getSelText()));
+    DbgCmdExec(QString("symfollow %1").arg(getSelectionText()));
 }
 
 void MemoryMapView::doubleClickedSlot()
 {
-    auto addr = DbgValFromString(getSelText().toUtf8().constData());
+    auto addr = DbgValFromString(getSelectionText().toUtf8().constData());
     if(!addr)
         return;
     if(DbgFunctions()->MemIsCodePage(addr, false))
@@ -539,7 +539,7 @@ void MemoryMapView::memoryExecuteSingleshootToggleSlot()
     for(int i : getSelection())
     {
         QString addr_text = getCellContent(i, ColAddress);
-        duint selectedAddr = getSelAddr();
+        duint selectedAddr = getSelectionAddr();
         if((DbgGetBpxTypeAt(selectedAddr) & bp_memory) == bp_memory) //memory breakpoint set
             DbgCmdExec(QString("bpmc ") + addr_text);
         else
@@ -551,7 +551,7 @@ void MemoryMapView::pageMemoryRights()
 {
     PageMemoryRights PageMemoryRightsDialog(this);
     connect(&PageMemoryRightsDialog, SIGNAL(refreshMemoryMap()), this, SLOT(refreshMap()));
-    duint addr = getSelAddr();
+    duint addr = getSelectionAddr();
     duint size = getCellUserdata(getInitialSelection(), ColSize);
     PageMemoryRightsDialog.RunAddrSize(addr, size, getCellContent(getInitialSelection(), ColCurProtect));
 }
@@ -605,7 +605,7 @@ void MemoryMapView::findPatternSlot()
     hexEdit.setWindowTitle(tr("Find Pattern..."));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
-    duint addr = getSelAddr();
+    duint addr = getSelectionAddr();
     entireBlockEnabled = hexEdit.entireBlock();
     BridgeSettingSetUint("Gui", "MemoryMapEntireBlock", entireBlockEnabled);
     if(entireBlockEnabled)
@@ -637,7 +637,7 @@ void MemoryMapView::dumpMemory()
     auto modname = mainModuleName();
     if(!modname.isEmpty())
         modname += '_';
-    QString defaultFile = QString("%1/%2%3.bin").arg(QDir::currentPath(), modname, getSelText());
+    QString defaultFile = QString("%1/%2%3.bin").arg(QDir::currentPath(), modname, getSelectionText());
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save Memory Region"), defaultFile, tr("Binary files (*.bin);;All files (*.*)"));
 
     if(fileName.length())
@@ -652,7 +652,7 @@ void MemoryMapView::loadMemory()
     auto modname = mainModuleName();
     if(!modname.isEmpty())
         modname += '_';
-    auto addr = getSelText();
+    auto addr = getSelectionText();
     QString defaultFile = QString("%1/%2%3.bin").arg(QDir::currentPath(), modname, addr);
     QString fileName = QFileDialog::getOpenFileName(this, tr("Load Memory Region"), defaultFile, tr("Binary files (*.bin);;All files (*.*)"));
 
@@ -691,7 +691,7 @@ void MemoryMapView::gotoExpressionSlot()
     if(!mGoto)
         mGoto = new GotoDialog(this);
     mGoto->setWindowTitle(tr("Enter the address to find..."));
-    mGoto->setInitialExpression(ToPtrString(getSelAddr()));
+    mGoto->setInitialExpression(ToPtrString(getSelectionAddr()));
     if(mGoto->exec() == QDialog::Accepted)
     {
         selectAddress(DbgValFromString(mGoto->expressionText.toUtf8().constData()));
@@ -700,7 +700,7 @@ void MemoryMapView::gotoExpressionSlot()
 
 void MemoryMapView::addVirtualModSlot()
 {
-    auto base = getSelAddr();
+    auto base = getSelectionAddr();
     auto size = getCellUserdata(getInitialSelection(), ColSize);
     VirtualModDialog mDialog(this);
     mDialog.setData("", base, size);
@@ -714,7 +714,7 @@ void MemoryMapView::addVirtualModSlot()
 
 void MemoryMapView::findReferencesSlot()
 {
-    auto base = getSelAddr();
+    auto base = getSelectionAddr();
     auto size = getCellUserdata(getInitialSelection(), ColSize);
     DbgCmdExec(QString("reffindrange %1, %2, dis.sel()").arg(ToPtrString(base)).arg(ToPtrString(base + size)));
     emit showReferences();
@@ -736,7 +736,7 @@ void MemoryMapView::disassembleAtSlot(dsint va, dsint cip)
 
 void MemoryMapView::commentSlot()
 {
-    duint wVA = getSelAddr();
+    duint wVA = getSelectionAddr();
     LineEditDialog mLineEdit(this);
     QString addr_text = ToPtrString(wVA);
     char comment_text[MAX_COMMENT_SIZE] = "";
