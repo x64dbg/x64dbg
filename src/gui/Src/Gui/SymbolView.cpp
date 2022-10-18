@@ -4,7 +4,7 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "BrowseDialog.h"
-#include "StdSearchListView.h"
+#include "StdIconSearchListView.h"
 #include "ZehSymbolTable.h"
 #include <QVBoxLayout>
 #include <QProcess>
@@ -20,17 +20,18 @@ enum
     ColStatus,
 };
 
-class ModuleStdTable final : public StdTable
+class ModuleStdTable final : public StdIconTable
 {
 public:
     ModuleStdTable()
     {
         Initialize();
+        setIconColumn(ColParty);
     }
 
     void updateColors() override
     {
-        StdTable::updateColors();
+        StdIconTable::updateColors();
         mSymbolUnloadedTextColor = ConfigColor("SymbolUnloadedTextColor");
         mSymbolLoadingTextColor = ConfigColor("SymbolLoadingTextColor");
         mSymbolLoadedTextColor = ConfigColor("SymbolLoadedTextColor");
@@ -174,7 +175,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mSymbolList->mSearchStartCol = 1;
 
     // Create module list
-    mModuleList = new StdSearchListView(this, true, false, new StdTableSearchList(new ModuleStdTable(), new ModuleStdTable()));
+    mModuleList = new StdIconSearchListView(this, true, false, new StdTableSearchList(new ModuleStdTable(), new ModuleStdTable()));
     mModuleList->setSearchStartCol(ColBase);
     mModuleList->enableMultiSelection(true);
     mModuleList->setAddressColumn(ColBase, true);
@@ -182,7 +183,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     int charwidth = mModuleList->getCharWidth();
     mModuleList->addColumnAt(8 + charwidth * 2 * sizeof(dsint), tr("Base"), true);
     mModuleList->addColumnAt(300, tr("Module"), true);
-    mModuleList->addColumnAt(8 + charwidth * 8, tr("Party"), true);
+    mModuleList->addColumnAt(charwidth * 2, tr("Party"), true); // with icon
     mModuleList->addColumnAt(8 + charwidth * 60, tr("Path"), true);
     mModuleList->addColumnAt(8 + charwidth * 8, tr("Status"), true);
     mModuleList->loadColumnFromConfig("Module");
@@ -489,12 +490,15 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
         {
         case 0:
             mModuleList->stdList()->setCellContent(i, ColParty, tr("User"));
+            mModuleList->setRowIcon(i, DIcon("markasuser"));
             break;
         case 1:
             mModuleList->stdList()->setCellContent(i, ColParty, tr("System"));
+            mModuleList->setRowIcon(i, DIcon("markassystem"));
             break;
         default:
             mModuleList->stdList()->setCellContent(i, ColParty, tr("Party: %1").arg(party));
+            mModuleList->setRowIcon(i, DIcon("markasparty"));
             break;
         }
         char szModPath[MAX_PATH] = "";

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "StdTable.h"
+#include "StdIconTable.h"
 class CommonActions;
 
-class CallStackView : public StdTable
+class CallStackView : public StdIconTable
 {
     Q_OBJECT
 public:
@@ -30,8 +30,8 @@ private:
         ColTo,
         ColFrom,
         ColSize,
-        ColComment,
-        ColParty
+        ColParty,
+        ColComment
     };
 
     MenuBuilder* mMenuBuilder;

@@ -2,7 +2,7 @@
 #include "CommonActions.h"
 #include "Bridge.h"
 
-CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
+CallStackView::CallStackView(StdTable* parent) : StdIconTable(parent)
 {
     int charwidth = getCharWidth();
 
@@ -11,8 +11,9 @@ CallStackView::CallStackView(StdTable* parent) : StdTable(parent)
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("To"), false); //return to
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("From"), false); //return from
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("Size"), false); //size
+    addColumnAt(2 * charwidth, tr("Party"), false); //party
     addColumnAt(50 * charwidth, tr("Comment"), false);
-    addColumnAt(8 * charwidth, tr("Party"), false); //party
+    setIconColumn(ColParty);
     loadColumnFromConfig("CallStack");
 
     connect(Bridge::getBridge(), SIGNAL(updateCallStack()), this, SLOT(updateCallStack()));
@@ -74,28 +75,28 @@ void CallStackView::setupContextMenu()
 
 QString CallStackView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
-    QString ret = getCellContent(rowBase + rowOffset, col);
-
     if(isSelected(rowBase, rowOffset))
         painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
 
     bool isSpaceRow = !getCellContent(rowBase + rowOffset, ColThread).isEmpty();
 
-    if(!col && !(rowBase + rowOffset) && !ret.isEmpty())
+    if(col == ColThread && !(rowBase + rowOffset))
     {
-        painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("ThreadCurrentBackgroundColor")));
-        painter->setPen(QPen(ConfigColor("ThreadCurrentColor")));
-        painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, ret);
-        ret = "";
+        QString ret = getCellContent(rowBase + rowOffset, col);
+        if(!ret.isEmpty())
+        {
+            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("ThreadCurrentBackgroundColor")));
+            painter->setPen(QPen(ConfigColor("ThreadCurrentColor")));
+            painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, ret);
+        }
+        return "";
     }
-
     else if(col > ColThread && isSpaceRow)
     {
         auto mid = h / 2.0;
         painter->drawLine(QPointF(x, y + mid), QPointF(x + w, y + mid));
     }
-
-    return ret;
+    return StdIconTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
 }
 
 void CallStackView::updateCallStack()
@@ -149,12 +150,15 @@ void CallStackView::updateCallStack()
             {
             case mod_user:
                 setCellContent(currentRow, ColParty, tr("User"));
+                setRowIcon(currentRow, DIcon("markasuser"));
                 break;
             case mod_system:
                 setCellContent(currentRow, ColParty, tr("System"));
+                setRowIcon(currentRow, DIcon("markassystem"));
                 break;
             default:
                 setCellContent(currentRow, ColParty, QString::number(party));
+                setRowIcon(currentRow, DIcon("markasparty"));
                 break;
             }
         }

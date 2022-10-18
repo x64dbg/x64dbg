@@ -1,10 +1,10 @@
 #pragma once
 
-#include "StdTable.h"
+#include "StdIconTable.h"
 
 class GotoDialog;
 
-class MemoryMapView : public StdTable
+class MemoryMapView : public StdIconTable
 {
     Q_OBJECT
 public:
@@ -42,7 +42,28 @@ public slots:
     void disassembleAtSlot(dsint va, dsint cip);
 
 private:
-    QString getProtectionString(DWORD Protect);
+    enum
+    {
+        ColAddress = 0,
+        ColSize,
+        ColParty,
+        ColPageInfo,
+        ColContent,
+        ColAllocation,
+        ColCurProtect,
+        ColAllocProtect
+    };
+
+    inline duint getSelectionAddr()
+    {
+        return getCellUserdata(getInitialSelection(), ColAddress);
+    }
+
+    inline QString getSelectionText()
+    {
+        return getCellContent(getInitialSelection(), ColAddress);
+    }
+
     QAction* makeCommandAction(QAction* action, const QString & command);
 
     GotoDialog* mGoto = nullptr;
