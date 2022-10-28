@@ -138,9 +138,6 @@ MainWindow::MainWindow(QWidget* parent)
     mMRUList->load();
     updateMRUMenu();
 
-    // Accept drops
-    setAcceptDrops(true);
-
     // Log view
     mLogView = new LogView();
     mLogView->setWindowTitle(tr("Log"));
@@ -253,6 +250,9 @@ MainWindow::MainWindow(QWidget* parent)
         loadTabSavedOrder();
 
     setCentralWidget(mTabWidget);
+
+    // Accept drops
+    setAcceptDrops(true);
 
     // Setup the command and status bars
     setupCommandBar();
@@ -399,6 +399,11 @@ MainWindow::MainWindow(QWidget* parent)
 
     mCpuWidget->setDisasmFocus();
 
+    char setting[MAX_SETTING_SIZE] = "";
+
+    // To avoid the window from flashing briefly at the initial position before being moved to saved position and size, initialize the main window position and size here
+    if(BridgeSettingGet("Main Window Settings", "Geometry", setting))
+        restoreGeometry(QByteArray::fromBase64(QByteArray(setting)));
     QTimer::singleShot(0, this, SLOT(loadWindowSettings()));
 
     updateDarkTitleBar(this);
@@ -935,9 +940,6 @@ void MainWindow::loadWindowSettings()
 {
     // Main Window settings
     char setting[MAX_SETTING_SIZE] = "";
-    if(BridgeSettingGet("Main Window Settings", "Geometry", setting))
-        restoreGeometry(QByteArray::fromBase64(QByteArray(setting)));
-
     if(BridgeSettingGet("Main Window Settings", "State", setting))
         restoreState(QByteArray::fromBase64(QByteArray(setting)));
 
@@ -979,6 +981,10 @@ void MainWindow::loadWindowSettings()
 
     mCpuWidget->loadWindowSettings();
     mSymbolView->loadWindowSettings();
+
+    // Make x64dbg topmost
+    if(ConfigBool("Gui", "Topmost"))
+        ui->actionTopmost->setChecked(true);
 }
 
 void MainWindow::setGlobalShortcut(QAction* action, const QKeySequence & key)
@@ -1371,9 +1377,16 @@ void MainWindow::openShortcuts()
 void MainWindow::changeTopmost(bool checked)
 {
     if(checked)
-        SetWindowPos((HWND)this->winId(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    {
+        if(SetWindowPos((HWND)this->winId(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE))
+        {
+            Config()->setBool("Gui", "Topmost", true);
+            return;
+        }
+    }
     else
         SetWindowPos((HWND)this->winId(), HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    Config()->setBool("Gui", "Topmost", false);
 }
 
 void MainWindow::addRecentFile(QString file)
