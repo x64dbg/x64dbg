@@ -453,29 +453,38 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     //Load settings
     auto bDoneSomething = false;
-    if(!GetPrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), TEXT(""), sz32Path, MAX_PATH, szIniPath))
+    TCHAR szTempPath[MAX_PATH] = TEXT("");
+    if(!GetPrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), TEXT(""), szTempPath, MAX_PATH, szIniPath))
     {
         _tcscpy_s(sz32Path, szCurrentDir);
         PathAppend(sz32Path, TEXT("x32\\x32dbg.exe"));
         if(FileExists(sz32Path))
         {
-            WritePrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), sz32Path, szIniPath);
+            WritePrivateProfileString(TEXT("Launcher"), TEXT("x32dbg"), TEXT("x32\\x32dbg.exe"), szIniPath);
             bDoneSomething = true;
         }
+    }
+    else
+    {
+        GetFullPathName(szTempPath, _countof(sz32Path), sz32Path, nullptr);
     }
 
     _tcscpy_s(sz32Dir, sz32Path);
     PathRemoveFileSpec(sz32Dir);
 
-    if(!GetPrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), TEXT(""), sz64Path, MAX_PATH, szIniPath))
+    if(!GetPrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), TEXT(""), szTempPath, MAX_PATH, szIniPath))
     {
         _tcscpy_s(sz64Path, szCurrentDir);
         PathAppend(sz64Path, TEXT("x64\\x64dbg.exe"));
         if(FileExists(sz64Path))
         {
-            WritePrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), sz64Path, szIniPath);
+            WritePrivateProfileString(TEXT("Launcher"), TEXT("x64dbg"), TEXT("x64\\x64dbg.exe"), szIniPath);
             bDoneSomething = true;
         }
+    }
+    else
+    {
+        GetFullPathName(szTempPath, _countof(sz64Path), sz64Path, nullptr);
     }
 
     _tcscpy_s(sz64Dir, sz64Path);
