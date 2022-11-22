@@ -467,7 +467,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     else
     {
         if(PathIsRelative(szTempPath))
-        {    
+        {
             _tcscpy_s(sz32Path, szCurrentDir);
             PathAppend(sz32Path, szTempPath);
         }
@@ -491,7 +491,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     else
     {
         if(PathIsRelative(szTempPath))
-        {    
+        {
             _tcscpy_s(sz64Path, szCurrentDir);
             PathAppend(sz64Path, szTempPath);
         }
