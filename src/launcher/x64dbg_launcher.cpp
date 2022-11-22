@@ -466,7 +466,15 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     }
     else
     {
-        GetFullPathName(szTempPath, _countof(sz32Path), sz32Path, nullptr);
+        if(PathIsRelative(szTempPath))
+        {    
+            _tcscpy_s(sz32Path, szCurrentDir);
+            PathAppend(sz32Path, szTempPath);
+        }
+        else
+        {
+            _tcscpy_s(sz32Path, szTempPath);
+        }
     }
 
     _tcscpy_s(sz32Dir, sz32Path);
@@ -484,7 +492,15 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     }
     else
     {
-        GetFullPathName(szTempPath, _countof(sz64Path), sz64Path, nullptr);
+        if(PathIsRelative(szTempPath))
+        {    
+            _tcscpy_s(sz64Path, szCurrentDir);
+            PathAppend(sz64Path, szTempPath);
+        }
+        else
+        {
+            _tcscpy_s(sz64Path, szTempPath);
+        }
     }
 
     _tcscpy_s(sz64Dir, sz64Path);
