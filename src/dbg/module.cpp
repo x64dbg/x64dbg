@@ -743,6 +743,8 @@ void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
 
         curSection.addr = ntSection->VirtualAddress + Info.base;
         curSection.size = ntSection->Misc.VirtualSize;
+        if(!curSection.size)
+            curSection.size = ntSection->SizeOfRawData;
 
         // Null-terminate section name
         char sectionName[IMAGE_SIZEOF_SHORT_NAME + 1];
