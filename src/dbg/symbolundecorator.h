@@ -81,7 +81,7 @@ inline bool undecorateName(const std::string & decoratedName, std::string & unde
                     mymalloc,
                     myfree,
                     nullptr,
-                    X_UNDNAME_COMPLETE))
+                    X_UNDNAME_COMPLETE | X_UNDNAME_32_BIT_DECODE | X_UNDNAME_NO_PTR64))
     {
         undecoratedName.clear();
         return false;
