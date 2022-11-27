@@ -10,9 +10,14 @@ An open-source binary debugger for Windows, aimed at malware analysis and revers
 
 ## Screenshots
 
-![main interface](https://i.imgur.com/V2f5AP9.png)
+![main interface light](https://i.imgur.com/QvSG3ZC.png)
+![main interface dark](https://i.imgur.com/3L0i09W.png)
+![graph](https://i.imgur.com/8RmL0o8.png)
 
-![graph](https://i.imgur.com/gVjzntJ.png) ![memory map](https://i.imgur.com/cLJwTjY.png)
+
+| ![memory map](https://i.imgur.com/pNGJQWJ.png) | ![stack view](https://i.imgur.com/BjHKWcT.png) |
+| :--------------------------------------------: | :--------------------------------------------: |
+
 
 ## Installation & Usage
 
