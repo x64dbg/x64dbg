@@ -98,6 +98,7 @@ private:
     {
         QString name;
         int itemsPerLine;
+        QString linePrefix;
     };
 
     FormatType mTypes[DataLast];
