@@ -25,6 +25,13 @@ public:
 
     QHexEdit* mHexEdit;
 
+    struct FormatType
+    {
+        QString name;
+        int itemsPerLine;
+        QString linePrefix;
+    };
+
 private slots:
     void updateStyle();
     void on_chkKeepSize_toggled(bool checked);
@@ -92,12 +99,6 @@ private:
         DataSHA256_3,
         DataSHA512_3,
         DataLast
-    };
-
-    struct FormatType
-    {
-        QString name;
-        int itemsPerLine;
     };
 
     FormatType mTypes[DataLast];
