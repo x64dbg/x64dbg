@@ -401,7 +401,7 @@ static QString printEscapedString(bool & bPrevWasHex, int ch, const char* hexFor
 }
 
 template<typename T>
-static QString formatLoop(const QByteArray & bytes, int itemsPerLine, QString linePrefix, QString(*format)(T))
+static QString formatLoop(const QByteArray & bytes, const HexEditDialog::FormatType & type, QString(*format)(T))
 {
     QString data;
     int count = bytes.size() / sizeof(T);
@@ -410,10 +410,16 @@ static QString formatLoop(const QByteArray & bytes, int itemsPerLine, QString li
         if(i)
         {
             data += ',';
-            if(itemsPerLine > 0 && i % itemsPerLine == 0)
-                data += (QString('\n') + linePrefix + " ");
-            else
+            if(type.itemsPerLine > 0 && i % type.itemsPerLine == 0)
+            {
+                data += '\n';
+                data += type.linePrefix;
                 data += ' ';
+            }
+            else
+            {
+                data += ' ';
+            }
         }
 
         data += format(((const T*)bytes.constData())[i]);
@@ -438,7 +444,7 @@ void HexEditDialog::printData(DataType type)
     {
     case DataCByte:
     {
-        data = "{\n" + formatLoop<unsigned char>(mData, mTypes[mIndex].itemsPerLine, mTypes[mIndex].linePrefix, [](unsigned char n)
+        data = "{\n" + formatLoop<unsigned char>(mData, mTypes[mIndex], [](unsigned char n)
         {
             return QString().sprintf("0x%02X", n);
         }) + "\n};";
@@ -447,7 +453,7 @@ void HexEditDialog::printData(DataType type)
 
     case DataCWord:
     {
-        data = "{\n" + formatLoop<unsigned short>(mData, mTypes[mIndex].itemsPerLine, mTypes[mIndex].linePrefix, [](unsigned short n)
+        data = "{\n" + formatLoop<unsigned short>(mData, mTypes[mIndex], [](unsigned short n)
         {
             return QString().sprintf("0x%04X", n);
         }) + "\n};";
@@ -456,7 +462,7 @@ void HexEditDialog::printData(DataType type)
 
     case DataCDword:
     {
-        data = "{\n" + formatLoop<unsigned int>(mData, mTypes[mIndex].itemsPerLine, mTypes[mIndex].linePrefix, [](unsigned int n)
+        data = "{\n" + formatLoop<unsigned int>(mData, mTypes[mIndex], [](unsigned int n)
         {
             return QString().sprintf("0x%08X", n);
         }) + "\n};";
@@ -465,7 +471,7 @@ void HexEditDialog::printData(DataType type)
 
     case DataCQword:
     {
-        data = "{\n" + formatLoop<unsigned long long>(mData, mTypes[mIndex].itemsPerLine, mTypes[mIndex].linePrefix, [](unsigned long long n)
+        data = "{\n" + formatLoop<unsigned long long>(mData, mTypes[mIndex], [](unsigned long long n)
         {
             return QString().sprintf("0x%016llX", n);
         }) + "\n};";
@@ -545,7 +551,7 @@ void HexEditDialog::printData(DataType type)
 
     case DataASMByte:
     {
-        data = "array DB " + formatLoop<unsigned char>(mData, mTypes[mIndex].itemsPerLine, mTypes[mIndex].linePrefix, [](unsigned char n)
+        data = "array DB " + formatLoop<unsigned char>(mData, mTypes[mIndex], [](unsigned char n)
         {
             QString value = QString().sprintf("%02Xh", n);
             if(value.at(0).isLetter())
@@ -558,7 +564,7 @@ void HexEditDialog::printData(DataType type)
 
     case DataASMWord:
     {
-        data = "array DW " + formatLoop<unsigned short>(mData, mTypes[mIndex].itemsPerLine, mTypes[mIndex].linePrefix, [](unsigned short n)
+        data = "array DW " + formatLoop<unsigned short>(mData, mTypes[mIndex], [](unsigned short n)
         {
             QString value = QString().sprintf("%04Xh", n);
             if(value.at(0).isLetter())
@@ -571,7 +577,7 @@ void HexEditDialog::printData(DataType type)
 
     case DataASMDWord:
     {
-        data = "array DD " + formatLoop<unsigned int>(mData, mTypes[mIndex].itemsPerLine, mTypes[mIndex].linePrefix, [](unsigned int n)
+        data = "array DD " + formatLoop<unsigned int>(mData, mTypes[mIndex], [](unsigned int n)
         {
             QString value = QString().sprintf("%08Xh", n);
             if(value.at(0).isLetter())
@@ -584,7 +590,7 @@ void HexEditDialog::printData(DataType type)
 
     case DataASMQWord:
     {
-        data = "array DQ " + formatLoop<unsigned long long>(mData, mTypes[mIndex].itemsPerLine, mTypes[mIndex].linePrefix, [](unsigned long long n)
+        data = "array DQ " + formatLoop<unsigned long long>(mData, mTypes[mIndex], [](unsigned long long n)
         {
             QString value = QString().sprintf("%016llXh", n);
             if(value.at(0).isLetter())
@@ -618,7 +624,7 @@ void HexEditDialog::printData(DataType type)
             }
             else
             {
-                QString asmhex = QString().sprintf("%02Xh", mData.at(index));
+                QString asmhex = QString().sprintf("%02Xh", (unsigned char)mData.at(index));
                 if(asmhex.at(0).isLetter())
                     asmhex.insert(0, "0");
 
@@ -645,7 +651,7 @@ void HexEditDialog::printData(DataType type)
     case DataPascalByte:
     {
         data += QString().sprintf("Array [1..%u] of Byte = (\n", mData.size());
-        data += formatLoop<unsigned char>(mData, mTypes[mIndex].itemsPerLine, mTypes[mIndex].linePrefix, [](unsigned char n)
+        data += formatLoop<unsigned char>(mData, mTypes[mIndex], [](unsigned char n)
         {
             return QString().sprintf("$%02X", n);
         });
@@ -656,7 +662,7 @@ void HexEditDialog::printData(DataType type)
     case DataPascalWord:
     {
         data += QString().sprintf("Array [1..%u] of Word = (\n", mData.size() / 2);
-        data += formatLoop<unsigned short>(mData, mTypes[mIndex].itemsPerLine, mTypes[mIndex].linePrefix, [](unsigned short n)
+        data += formatLoop<unsigned short>(mData, mTypes[mIndex], [](unsigned short n)
         {
             return QString().sprintf("$%04X", n);
         });
@@ -667,7 +673,7 @@ void HexEditDialog::printData(DataType type)
     case DataPascalDword:
     {
         data += QString().sprintf("Array [1..%u] of Dword = (\n", mData.size() / 4);
-        data += formatLoop<unsigned int>(mData, mTypes[mIndex].itemsPerLine, mTypes[mIndex].linePrefix, [](unsigned int n)
+        data += formatLoop<unsigned int>(mData, mTypes[mIndex], [](unsigned int n)
         {
             return QString().sprintf("$%08X", n);
         });
@@ -678,7 +684,7 @@ void HexEditDialog::printData(DataType type)
     case DataPascalQword:
     {
         data += QString().sprintf("Array [1..%u] of Int64 = (\n", mData.size() / 8);
-        data += formatLoop<unsigned long long>(mData, mTypes[mIndex].itemsPerLine, mTypes[mIndex].linePrefix, [](unsigned long long n)
+        data += formatLoop<unsigned long long>(mData, mTypes[mIndex], [](unsigned long long n)
         {
             return QString().sprintf("$%016llX", n);
         });
@@ -710,7 +716,7 @@ void HexEditDialog::printData(DataType type)
 
     case DataGUID:
     {
-        data = formatLoop<GUID>(mData, mTypes[mIndex].itemsPerLine, mTypes[mIndex].linePrefix, [](GUID guid)
+        data = formatLoop<GUID>(mData, mTypes[mIndex], [](GUID guid)
         {
             return QString().sprintf("{%08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}", guid.Data1, guid.Data2, guid.Data3, guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
         });
