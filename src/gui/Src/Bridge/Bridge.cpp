@@ -396,6 +396,94 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     }
     break;
 
+    case GUI_MENU_SET_ICON:
+    {
+        int hMenu = (int)param1;
+        const ICONDATA* icon = (const ICONDATA*)param2;
+        BridgeResult result(BridgeResult::MenuSetIcon);
+        if(!icon)
+            emit setIconMenu(hMenu, QIcon());
+        else
+        {
+            QImage img;
+            img.loadFromData((uchar*)icon->data, icon->size);
+            QIcon qIcon(QPixmap::fromImage(img));
+            emit setIconMenu(hMenu, qIcon);
+        }
+        result.Wait();
+    }
+    break;
+
+    case GUI_MENU_SET_ENTRY_ICON:
+    {
+        int hEntry = (int)param1;
+        const ICONDATA* icon = (const ICONDATA*)param2;
+        BridgeResult result(BridgeResult::MenuSetEntryIcon);
+        if(!icon)
+            emit setIconMenuEntry(hEntry, QIcon());
+        else
+        {
+            QImage img;
+            img.loadFromData((uchar*)icon->data, icon->size);
+            QIcon qIcon(QPixmap::fromImage(img));
+            emit setIconMenuEntry(hEntry, qIcon);
+        }
+        result.Wait();
+    }
+    break;
+
+    case GUI_MENU_SET_ENTRY_CHECKED:
+    {
+        BridgeResult result(BridgeResult::MenuSetEntryChecked);
+        emit setCheckedMenuEntry(int(param1), bool(param2));
+        result.Wait();
+    }
+    break;
+
+    case GUI_MENU_SET_VISIBLE:
+    {
+        BridgeResult result(BridgeResult::MenuSetVisible);
+        emit setVisibleMenu(int(param1), bool(param2));
+        result.Wait();
+    }
+    break;
+
+    case GUI_MENU_SET_ENTRY_VISIBLE:
+    {
+        BridgeResult result(BridgeResult::MenuSetEntryVisible);
+        emit setVisibleMenuEntry(int(param1), bool(param2));
+        result.Wait();
+    }
+    break;
+
+    case GUI_MENU_SET_NAME:
+    {
+        BridgeResult result(BridgeResult::MenuSetName);
+        emit setNameMenu(int(param1), QString((const char*)param2));
+        result.Wait();
+    }
+    break;
+
+    case GUI_MENU_SET_ENTRY_NAME:
+    {
+        BridgeResult result(BridgeResult::MenuSetEntryName);
+        emit setNameMenuEntry(int(param1), QString((const char*)param2));
+        result.Wait();
+    }
+    break;
+
+    case GUI_MENU_SET_ENTRY_HOTKEY:
+    {
+        BridgeResult result(BridgeResult::MenuSetEntryHotkey);
+        auto params = QString((const char*)param2).split('\1');
+        if(params.length() == 2)
+        {
+            emit setHotkeyMenuEntry(int(param1), params[0], params[1]);
+            result.Wait();
+        }
+    }
+    break;
+
     case GUI_SELECTION_GET:
     {
         GUISELECTIONTYPE hWindow = GUISELECTIONTYPE(duint(param1));
@@ -519,82 +607,6 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_LOAD_SOURCE_FILE:
         emit loadSourceFile(QString((const char*)param1), (duint)param2);
         break;
-
-    case GUI_MENU_SET_ICON:
-    {
-        int hMenu = (int)param1;
-        const ICONDATA* icon = (const ICONDATA*)param2;
-        BridgeResult result(BridgeResult::MenuSetIcon);
-        if(!icon)
-            emit setIconMenu(hMenu, QIcon());
-        else
-        {
-            QImage img;
-            img.loadFromData((uchar*)icon->data, icon->size);
-            QIcon qIcon(QPixmap::fromImage(img));
-            emit setIconMenu(hMenu, qIcon);
-        }
-        result.Wait();
-    }
-    break;
-
-    case GUI_MENU_SET_ENTRY_ICON:
-    {
-        int hEntry = (int)param1;
-        const ICONDATA* icon = (const ICONDATA*)param2;
-        BridgeResult result(BridgeResult::MenuSetEntryIcon);
-        if(!icon)
-            emit setIconMenuEntry(hEntry, QIcon());
-        else
-        {
-            QImage img;
-            img.loadFromData((uchar*)icon->data, icon->size);
-            QIcon qIcon(QPixmap::fromImage(img));
-            emit setIconMenuEntry(hEntry, qIcon);
-        }
-        result.Wait();
-    }
-    break;
-
-    case GUI_MENU_SET_ENTRY_CHECKED:
-    {
-        BridgeResult result(BridgeResult::MenuSetEntryChecked);
-        emit setCheckedMenuEntry(int(param1), bool(param2));
-        result.Wait();
-    }
-    break;
-
-    case GUI_MENU_SET_VISIBLE:
-    {
-        BridgeResult result(BridgeResult::MenuSetVisible);
-        emit setVisibleMenu(int(param1), bool(param2));
-        result.Wait();
-    }
-    break;
-
-    case GUI_MENU_SET_ENTRY_VISIBLE:
-    {
-        BridgeResult result(BridgeResult::MenuSetEntryVisible);
-        emit setVisibleMenuEntry(int(param1), bool(param2));
-        result.Wait();
-    }
-    break;
-
-    case GUI_MENU_SET_NAME:
-    {
-        BridgeResult result(BridgeResult::MenuSetName);
-        emit setNameMenu(int(param1), QString((const char*)param2));
-        result.Wait();
-    }
-    break;
-
-    case GUI_MENU_SET_ENTRY_NAME:
-    {
-        BridgeResult result(BridgeResult::MenuSetEntryName);
-        emit setNameMenuEntry(int(param1), QString((const char*)param2));
-        result.Wait();
-    }
-    break;
 
     case GUI_SHOW_CPU:
         emit showCpu();
@@ -835,18 +847,6 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_FLUSH_LOG:
         emit flushLog();
         break;
-
-    case GUI_MENU_SET_ENTRY_HOTKEY:
-    {
-        BridgeResult result(BridgeResult::MenuSetEntryHotkey);
-        auto params = QString((const char*)param2).split('\1');
-        if(params.length() == 2)
-        {
-            emit setHotkeyMenuEntry(int(param1), params[0], params[1]);
-            result.Wait();
-        }
-    }
-    break;
 
     case GUI_REF_ADDCOMMAND:
     {

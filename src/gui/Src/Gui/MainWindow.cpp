@@ -54,6 +54,7 @@
 #include "UpdateChecker.h"
 #include "Tracer/TraceBrowser.h"
 #include "Tracer/TraceWidget.h"
+#include "Utils/MethodInvoker.h"
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
@@ -86,21 +87,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(addRecentFile(QString)), this, SLOT(addRecentFile(QString)));
     connect(Bridge::getBridge(), SIGNAL(setLastException(uint)), this, SLOT(setLastException(uint)));
-    connect(Bridge::getBridge(), SIGNAL(menuAddMenuToList(QWidget*, QMenu*, GUIMENUTYPE, int)), this, SLOT(addMenuToList(QWidget*, QMenu*, GUIMENUTYPE, int)));
-    connect(Bridge::getBridge(), SIGNAL(menuAddMenu(int, QString)), this, SLOT(addMenu(int, QString)));
-    connect(Bridge::getBridge(), SIGNAL(menuAddMenuEntry(int, QString)), this, SLOT(addMenuEntry(int, QString)));
-    connect(Bridge::getBridge(), SIGNAL(menuAddSeparator(int)), this, SLOT(addSeparator(int)));
-    connect(Bridge::getBridge(), SIGNAL(menuClearMenu(int, bool)), this, SLOT(clearMenu(int, bool)));
-    connect(Bridge::getBridge(), SIGNAL(menuRemoveMenuEntry(int)), this, SLOT(removeMenuEntry(int)));
     connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString, QString*)), this, SLOT(getStrWindow(QString, QString*)));
-    connect(Bridge::getBridge(), SIGNAL(setIconMenu(int, QIcon)), this, SLOT(setIconMenu(int, QIcon)));
-    connect(Bridge::getBridge(), SIGNAL(setIconMenuEntry(int, QIcon)), this, SLOT(setIconMenuEntry(int, QIcon)));
-    connect(Bridge::getBridge(), SIGNAL(setCheckedMenuEntry(int, bool)), this, SLOT(setCheckedMenuEntry(int, bool)));
-    connect(Bridge::getBridge(), SIGNAL(setHotkeyMenuEntry(int, QString, QString)), this, SLOT(setHotkeyMenuEntry(int, QString, QString)));
-    connect(Bridge::getBridge(), SIGNAL(setVisibleMenuEntry(int, bool)), this, SLOT(setVisibleMenuEntry(int, bool)));
-    connect(Bridge::getBridge(), SIGNAL(setVisibleMenu(int, bool)), this, SLOT(setVisibleMenu(int, bool)));
-    connect(Bridge::getBridge(), SIGNAL(setNameMenuEntry(int, QString)), this, SLOT(setNameMenuEntry(int, QString)));
-    connect(Bridge::getBridge(), SIGNAL(setNameMenu(int, QString)), this, SLOT(setNameMenu(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(Bridge::getBridge(), SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
     connect(Bridge::getBridge(), SIGNAL(addQWidgetTab(QWidget*)), this, SLOT(addQWidgetTab(QWidget*)));
@@ -116,6 +103,25 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(showTraceBrowser()), this, SLOT(displayTraceWidget()));
 
     // Setup menu API
+
+    // Because of race conditions with this API we create a direct connection. This means that the slot will directly execute on the thread that emits the signal.
+    // Inside the slots we need to take special care to only do bookkeeping and not interact with the QWidgets without scheduling it on the main thread
+    auto menuType = (Qt::ConnectionType)(Qt::UniqueConnection | Qt::DirectConnection);
+    connect(Bridge::getBridge(), SIGNAL(menuAddMenuToList(QWidget*, QMenu*, GUIMENUTYPE, int)), this, SLOT(addMenuToList(QWidget*, QMenu*, GUIMENUTYPE, int)), menuType);
+    connect(Bridge::getBridge(), SIGNAL(menuAddMenu(int, QString)), this, SLOT(addMenu(int, QString)), menuType);
+    connect(Bridge::getBridge(), SIGNAL(menuAddMenuEntry(int, QString)), this, SLOT(addMenuEntry(int, QString)), menuType);
+    connect(Bridge::getBridge(), SIGNAL(menuAddSeparator(int)), this, SLOT(addSeparator(int)), menuType);
+    connect(Bridge::getBridge(), SIGNAL(menuClearMenu(int, bool)), this, SLOT(clearMenu(int, bool)), menuType);
+    connect(Bridge::getBridge(), SIGNAL(menuRemoveMenuEntry(int)), this, SLOT(removeMenuEntry(int)), menuType);
+    connect(Bridge::getBridge(), SIGNAL(setIconMenu(int, QIcon)), this, SLOT(setIconMenu(int, QIcon)), menuType);
+    connect(Bridge::getBridge(), SIGNAL(setIconMenuEntry(int, QIcon)), this, SLOT(setIconMenuEntry(int, QIcon)), menuType);
+    connect(Bridge::getBridge(), SIGNAL(setCheckedMenuEntry(int, bool)), this, SLOT(setCheckedMenuEntry(int, bool)), menuType);
+    connect(Bridge::getBridge(), SIGNAL(setHotkeyMenuEntry(int, QString, QString)), this, SLOT(setHotkeyMenuEntry(int, QString, QString)), menuType);
+    connect(Bridge::getBridge(), SIGNAL(setVisibleMenuEntry(int, bool)), this, SLOT(setVisibleMenuEntry(int, bool)), menuType);
+    connect(Bridge::getBridge(), SIGNAL(setVisibleMenu(int, bool)), this, SLOT(setVisibleMenu(int, bool)), menuType);
+    connect(Bridge::getBridge(), SIGNAL(setNameMenuEntry(int, QString)), this, SLOT(setNameMenuEntry(int, QString)), menuType);
+    connect(Bridge::getBridge(), SIGNAL(setNameMenu(int, QString)), this, SLOT(setNameMenu(int, QString)), menuType);
+
     initMenuApi();
     Bridge::getBridge()->emitMenuAddToList(this, ui->menuPlugins, GUI_PLUGIN_MENU);
 
@@ -412,6 +418,10 @@ MainWindow::MainWindow(QWidget* parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+
+    mMenuMutex->lock();
+    mMenuMutex->unlock();
+    delete mMenuMutex;
 }
 
 void MainWindow::setupCommandBar()
@@ -1413,24 +1423,55 @@ void MainWindow::findModularCalls()
     displayReferencesWidget();
 }
 
-const MainWindow::MenuInfo* MainWindow::findMenu(int hMenu)
+void MainWindow::initMenuApi()
+{
+    mMenuMutex = new QMutex(QMutex::Recursive);
+    //256 entries are reserved
+    hEntryMenuPool = 256;
+    mEntryList.reserve(1024);
+    mMenuList.reserve(1024);
+}
+
+void MainWindow::menuEntrySlot()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(action && action->objectName().startsWith("ENTRY|"))
+    {
+        int hEntry = -1;
+        if(sscanf_s(action->objectName().mid(6).toUtf8().constData(), "%d", &hEntry) == 1)
+            DbgMenuEntryClicked(hEntry);
+    }
+}
+
+MainWindow::MenuInfo* MainWindow::findMenu(int hMenu)
 {
     if(hMenu == -1)
-        return 0;
-    int nFound = -1;
-    for(int i = 0; i < mMenuList.size(); i++)
-    {
-        if(hMenu == mMenuList.at(i).hMenu)
-        {
-            nFound = i;
-            break;
-        }
-    }
-    return nFound == -1 ? 0 : &mMenuList.at(nFound);
+        return nullptr;
+
+    // TODO: optimize with a map
+    for(auto & menu : mMenuList)
+        if(menu.hMenu == hMenu)
+            return menu.deleted ? nullptr : &menu;
+
+    return nullptr;
+}
+
+MainWindow::MenuEntryInfo* MainWindow::findMenuEntry(int hEntry)
+{
+    if(hEntry == -1)
+        return nullptr;
+
+    // TODO: optimize with a map
+    for(auto & entry : mEntryList)
+        if(entry.hEntry == hEntry)
+            return entry.deleted ? nullptr : &entry;
+
+    return nullptr;
 }
 
 void MainWindow::addMenuToList(QWidget* parent, QMenu* menu, GUIMENUTYPE hMenu, int hParentMenu)
 {
+    QMutexLocker locker(mMenuMutex);
     if(!findMenu(hMenu))
         mMenuList.push_back(MenuInfo(parent, menu, hMenu, hParentMenu, hMenu == GUI_PLUGIN_MENU));
     Bridge::getBridge()->setResult(BridgeResult::MenuAddToList);
@@ -1438,97 +1479,170 @@ void MainWindow::addMenuToList(QWidget* parent, QMenu* menu, GUIMENUTYPE hMenu, 
 
 void MainWindow::addMenu(int hMenu, QString title)
 {
-    const MenuInfo* menu = findMenu(hMenu);
-    if(!menu && hMenu != -1)
+    QMutexLocker locker(mMenuMutex);
+    auto parentMenu = findMenu(hMenu);
+    if(hMenu != -1 && parentMenu == nullptr)
     {
         Bridge::getBridge()->setResult(BridgeResult::MenuAdd, -1);
         return;
     }
+
     int hMenuNew = hEntryMenuPool++;
-    QWidget* parent = hMenu == -1 ? this : menu->parent;
-    QMenu* wMenu = new QMenu(title, parent);
-    wMenu->menuAction()->setVisible(false);
-    mMenuList.push_back(MenuInfo(parent, wMenu, hMenuNew, hMenu, !menu || menu->globalMenu));
-    if(hMenu == -1) //top-level
-        ui->menuBar->addMenu(wMenu);
-    else //deeper level
+    MenuInfo newInfo;
+    newInfo.hMenu = hMenuNew;
+    newInfo.hParentMenu = hMenu;
+    newInfo.globalMenu = !parentMenu || parentMenu->globalMenu;
+    mMenuList.push_back(newInfo);
+
+    MethodInvoker::invokeMethod([this, hMenuNew, title]
     {
-        menu->mMenu->addMenu(wMenu);
-        menu->mMenu->menuAction()->setVisible(true);
-    }
+        QMutexLocker locker(mMenuMutex);
+
+        // Abort if another thread deleted the entry or the parent menu
+        auto menu = findMenu(hMenuNew);
+        if(!menu)
+            return;
+        auto parentMenu = findMenu(menu->hParentMenu);
+        if(parentMenu == nullptr && menu->hParentMenu != -1)
+            return;
+
+        // Actually create the menu
+        QWidget* parent = menu->hParentMenu == -1 ? this : parentMenu->parent;
+        menu->parent = parent;
+        QMenu* wMenu = new QMenu(title, parent);
+        menu->mMenu = wMenu;
+        wMenu->menuAction()->setVisible(false);
+        if(menu->hParentMenu == -1) //top-level
+            ui->menuBar->addMenu(wMenu);
+        else //deeper level
+        {
+            parentMenu->mMenu->addMenu(wMenu);
+            parentMenu->mMenu->menuAction()->setVisible(true);
+        }
+    });
+
     Bridge::getBridge()->setResult(BridgeResult::MenuAdd, hMenuNew);
 }
 
 void MainWindow::addMenuEntry(int hMenu, QString title)
 {
-    const MenuInfo* menu = findMenu(hMenu);
-    if(!menu && hMenu != -1)
+    QMutexLocker locker(mMenuMutex);
+    if(hMenu != -1 && findMenu(hMenu) == nullptr)
     {
         Bridge::getBridge()->setResult(BridgeResult::MenuAddEntry, -1);
         return;
     }
+
     MenuEntryInfo newInfo;
     int hEntryNew = hEntryMenuPool++;
     newInfo.hEntry = hEntryNew;
     newInfo.hParentMenu = hMenu;
-    QWidget* parent = hMenu == -1 ? this : menu->parent;
-    QAction* wAction = new QAction(title, parent);
-    parent->addAction(wAction);
-    wAction->setObjectName(QString().sprintf("ENTRY|%d", hEntryNew));
-    wAction->setShortcutContext((!menu || menu->globalMenu) ? Qt::ApplicationShortcut : Qt::WidgetShortcut);
-    parent->addAction(wAction);
-    connect(wAction, SIGNAL(triggered()), this, SLOT(menuEntrySlot()));
-    newInfo.mAction = wAction;
     mEntryList.push_back(newInfo);
-    if(hMenu == -1) //top level
-        ui->menuBar->addAction(wAction);
-    else //deeper level
+
+    MethodInvoker::invokeMethod([this, hEntryNew, title]
     {
-        menu->mMenu->addAction(wAction);
-        menu->mMenu->menuAction()->setVisible(true);
-    }
+        QMutexLocker locker(mMenuMutex);
+
+        // Abort if another thread deleted the entry or the parent menu
+        auto entry = findMenuEntry(hEntryNew);
+        if(entry == nullptr)
+            return;
+        auto menu = findMenu(entry->hParentMenu);
+        if(menu == nullptr && entry->hParentMenu != -1)
+            return;
+
+        // Actually create the menu action
+        QWidget* parent = entry->hParentMenu == -1 ? this : menu->parent;
+        QAction* wAction = new QAction(title, parent);
+        parent->addAction(wAction);
+        wAction->setObjectName(QString().sprintf("ENTRY|%d", hEntryNew));
+        wAction->setShortcutContext((!menu || menu->globalMenu) ? Qt::ApplicationShortcut : Qt::WidgetShortcut);
+        parent->addAction(wAction); // TODO: something is wrong here
+        connect(wAction, SIGNAL(triggered()), this, SLOT(menuEntrySlot()));
+        entry->mAction = wAction;
+        if(entry->hParentMenu == -1) //top level
+            ui->menuBar->addAction(wAction);
+        else //deeper level
+        {
+            menu->mMenu->addAction(wAction);
+            menu->mMenu->menuAction()->setVisible(true);
+        }
+    });
+
     Bridge::getBridge()->setResult(BridgeResult::MenuAddEntry, hEntryNew);
 }
 
 void MainWindow::addSeparator(int hMenu)
 {
-    const MenuInfo* menu = findMenu(hMenu);
-    if(menu)
+    QMutexLocker locker(mMenuMutex);
+    if(findMenu(hMenu) == nullptr)
     {
-        MenuEntryInfo newInfo;
-        newInfo.hEntry = -1;
-        newInfo.hParentMenu = hMenu;
-        newInfo.mAction = menu->mMenu->addSeparator();
-        mEntryList.push_back(newInfo);
+        Bridge::getBridge()->setResult(BridgeResult::MenuAddSeparator, -1);
+        return;
     }
-    Bridge::getBridge()->setResult(BridgeResult::MenuAddSeparator);
+
+    MenuEntryInfo newInfo;
+    auto hEntryNew = hEntryMenuPool++;
+    newInfo.hEntry = hEntryNew;
+    newInfo.hParentMenu = hMenu;
+    mEntryList.push_back(newInfo);
+
+    MethodInvoker::invokeMethod([this, hEntryNew]
+    {
+        QMutexLocker locker(mMenuMutex);
+
+        // Abort if another thread deleted the entry or the parent menu
+        auto entry = findMenuEntry(hEntryNew);
+        if(entry == nullptr)
+            return;
+        auto menu = findMenu(entry->hParentMenu);
+        if(menu == nullptr)
+            return;
+
+        // Actually create the separator
+        entry->mAction = menu->mMenu->addSeparator();
+    });
+
+    Bridge::getBridge()->setResult(BridgeResult::MenuAddSeparator, hEntryNew);
 }
 
-void MainWindow::clearMenuHelper(int hMenu)
+void MainWindow::clearMenuHelper(int hMenu, bool markAsDeleted)
 {
     //delete menu entries
-    for(auto i = mEntryList.size() - 1; i != -1; i--)
-        if(hMenu == mEntryList.at(i).hParentMenu) //we found an entry that has the menu as parent
-            mEntryList.erase(mEntryList.begin() + i);
-    //delete the menus
-    std::vector<int> menuClearQueue;
-    for(auto i = mMenuList.size() - 1; i != -1; i--)
+    for(int i = mEntryList.size() - 1; i != -1; i--)
     {
-        if(hMenu == mMenuList.at(i).hParentMenu) //we found a menu that has the menu as parent
+        if(hMenu == mEntryList[i].hParentMenu) //we found an entry that has the menu as parent
         {
-            menuClearQueue.push_back(mMenuList.at(i).hMenu);
-            mMenuList.erase(mMenuList.begin() + i);
+            if(markAsDeleted)
+                mEntryList[i].deleted = true;
+            else
+                mEntryList.erase(mEntryList.begin() + i);
         }
     }
+
+    //delete the menus
+    std::vector<int> menuClearQueue;
+    for(int i = mMenuList.size() - 1; i != -1; i--)
+    {
+        if(hMenu == mMenuList[i].hParentMenu) //we found a menu that has the menu as parent
+        {
+            menuClearQueue.push_back(mMenuList[i].hMenu);
+            if(markAsDeleted)
+                mMenuList[i].deleted = true;
+            else
+                mMenuList.erase(mMenuList.begin() + i);
+        }
+    }
+
     //recursively clear the menus
     for(auto & hMenu : menuClearQueue)
-        clearMenuHelper(hMenu);
+        clearMenuHelper(hMenu, markAsDeleted);
 }
 
 void MainWindow::clearMenuImpl(int hMenu, bool erase)
 {
     //this recursively removes the entries from mEntryList and mMenuList
-    clearMenuHelper(hMenu);
+    clearMenuHelper(hMenu, false);
     for(auto it = mMenuList.begin(); it != mMenuList.end(); ++it)
     {
         auto & curMenu = *it;
@@ -1557,93 +1671,126 @@ void MainWindow::clearMenuImpl(int hMenu, bool erase)
 
 void MainWindow::clearMenu(int hMenu, bool erase)
 {
-    clearMenuImpl(hMenu, erase);
-    Bridge::getBridge()->setResult(BridgeResult::MenuClear);
-}
-
-void MainWindow::initMenuApi()
-{
-    //256 entries are reserved
-    hEntryMenuPool = 256;
-    mEntryList.reserve(1024);
-    mMenuList.reserve(1024);
-}
-
-void MainWindow::menuEntrySlot()
-{
-    QAction* action = qobject_cast<QAction*>(sender());
-    if(action && action->objectName().startsWith("ENTRY|"))
+    QMutexLocker locker(mMenuMutex);
+    if(findMenu(hMenu) == nullptr)
     {
-        int hEntry = -1;
-        if(sscanf_s(action->objectName().mid(6).toUtf8().constData(), "%d", &hEntry) == 1)
-            DbgMenuEntryClicked(hEntry);
+        Bridge::getBridge()->setResult(BridgeResult::MenuClear, -1);
+        return;
     }
+
+    // Mark all the children of the menu as deleted
+    clearMenuHelper(hMenu, true);
+
+    MethodInvoker::invokeMethod([this, hMenu, erase]
+    {
+        QMutexLocker locker(mMenuMutex);
+        // Actually clear the menu
+        clearMenuImpl(hMenu, erase);
+    });
+
+
+    Bridge::getBridge()->setResult(BridgeResult::MenuClear);
 }
 
 void MainWindow::removeMenuEntry(int hEntryMenu)
 {
-    //find and remove the hEntryMenu from the mEntryList
-    for(int i = 0; i < mEntryList.size(); i++)
+    QMutexLocker locker(mMenuMutex);
+
+    auto entry = findMenuEntry(hEntryMenu);
+    if(entry != nullptr)
     {
-        if(mEntryList.at(i).hEntry == hEntryMenu)
+        // Delete a single menu entry
+        entry->deleted = true;
+
+        MethodInvoker::invokeMethod([this, hEntryMenu]
         {
-            auto & entry = mEntryList.at(i);
-            auto parentMenu = findMenu(entry.hParentMenu);
-            if(parentMenu)
+            QMutexLocker locker(mMenuMutex);
+
+            for(int i = 0; i < mEntryList.size(); i++)
             {
-                parentMenu->mMenu->removeAction(entry.mAction);
-                if(parentMenu->mMenu->actions().empty())
-                    parentMenu->mMenu->menuAction()->setVisible(false);
-                mEntryList.erase(mEntryList.begin() + i);
+                if(mEntryList.at(i).hEntry == hEntryMenu)
+                {
+                    auto & entry = mEntryList.at(i);
+                    auto parentMenu = findMenu(entry.hParentMenu);
+                    if(parentMenu)
+                    {
+                        parentMenu->mMenu->removeAction(entry.mAction);
+                        if(parentMenu->mMenu->actions().empty())
+                            parentMenu->mMenu->menuAction()->setVisible(false);
+                        mEntryList.erase(mEntryList.begin() + i);
+                    }
+                    break;
+                }
             }
-            Bridge::getBridge()->setResult(BridgeResult::MenuRemove);
-            return;
-        }
+        });
+
+        Bridge::getBridge()->setResult(BridgeResult::MenuRemove);
+        return;
     }
-    //if hEntryMenu is not in mEntryList, clear+erase it from mMenuList
-    clearMenuImpl(hEntryMenu, true);
-    Bridge::getBridge()->setResult(BridgeResult::MenuRemove);
+
+    auto menu = findMenu(hEntryMenu);
+    if(menu != nullptr)
+    {
+        // Mark the menu and all submenus as deleted
+        menu->deleted = true;
+        clearMenuHelper(hEntryMenu, true);
+
+        MethodInvoker::invokeMethod([this, hEntryMenu]
+        {
+            // Actually delete the menu and all submenus
+            clearMenuImpl(hEntryMenu, true);
+        });
+
+        Bridge::getBridge()->setResult(BridgeResult::MenuRemove);
+        return;
+    }
+
+    Bridge::getBridge()->setResult(BridgeResult::MenuRemove, -1);
 }
 
 void MainWindow::setIconMenuEntry(int hEntry, QIcon icon)
 {
-    for(int i = 0; i < mEntryList.size(); i++)
+    MethodInvoker::invokeMethod([this, hEntry, icon]
     {
-        if(mEntryList.at(i).hEntry == hEntry)
-        {
-            const MenuEntryInfo & entry = mEntryList.at(i);
-            entry.mAction->setIcon(icon);
-            break;
-        }
-    }
+        QMutexLocker locker(mMenuMutex);
+
+        auto entry = findMenuEntry(hEntry);
+        if(entry == nullptr)
+            return;
+
+        entry->mAction->setIcon(icon);
+    });
     Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryIcon);
 }
 
 void MainWindow::setIconMenu(int hMenu, QIcon icon)
 {
-    for(int i = 0; i < mMenuList.size(); i++)
+    MethodInvoker::invokeMethod([this, hMenu, icon]
     {
-        if(mMenuList.at(i).hMenu == hMenu)
-        {
-            const MenuInfo & menu = mMenuList.at(i);
-            menu.mMenu->setIcon(icon);
-        }
-    }
+        QMutexLocker locker(mMenuMutex);
+
+        auto menu = findMenu(hMenu);
+        if(menu == nullptr)
+            return;
+
+        menu->mMenu->setIcon(icon);
+    });
     Bridge::getBridge()->setResult(BridgeResult::MenuSetIcon);
 }
 
 void MainWindow::setCheckedMenuEntry(int hEntry, bool checked)
 {
-    for(int i = 0; i < mEntryList.size(); i++)
+    MethodInvoker::invokeMethod([this, hEntry, checked]
     {
-        if(mEntryList.at(i).hEntry == hEntry)
-        {
-            const MenuEntryInfo & entry = mEntryList.at(i);
-            entry.mAction->setCheckable(true);
-            entry.mAction->setChecked(checked);
-            break;
-        }
-    }
+        QMutexLocker locker(mMenuMutex);
+
+        auto entry = findMenuEntry(hEntry);
+        if(entry == nullptr)
+            return;
+
+        entry->mAction->setCheckable(true);
+        entry->mAction->setChecked(checked);
+    });
     Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryChecked);
 }
 
@@ -1679,75 +1826,81 @@ QString MainWindow::nestedMenuEntryDescription(const MenuEntryInfo & entry)
 
 void MainWindow::setHotkeyMenuEntry(int hEntry, QString hotkey, QString id)
 {
-    for(int i = 0; i < mEntryList.size(); i++)
+    MethodInvoker::invokeMethod([this, hEntry, hotkey, id]
     {
-        if(mEntryList.at(i).hEntry == hEntry)
-        {
-            MenuEntryInfo & entry = mEntryList[i];
-            entry.hotkeyId = QString("Plugin_") + id;
-            id.truncate(id.lastIndexOf('_'));
-            entry.hotkey = hotkey;
-            entry.hotkeyGlobal = entry.mAction->shortcutContext() == Qt::ApplicationShortcut;
-            Config()->setPluginShortcut(entry.hotkeyId, nestedMenuEntryDescription(entry), hotkey, entry.hotkeyGlobal);
-            refreshShortcuts();
-            break;
-        }
-    }
+        QMutexLocker locker(mMenuMutex);
+
+        auto entry = findMenuEntry(hEntry);
+        if(entry == nullptr)
+            return;
+
+        entry->hotkeyId = QString("Plugin_") + id;
+        entry->hotkey = hotkey;
+        entry->hotkeyGlobal = entry->mAction->shortcutContext() == Qt::ApplicationShortcut;
+        Config()->setPluginShortcut(entry->hotkeyId, nestedMenuEntryDescription(*entry), hotkey, entry->hotkeyGlobal);
+        refreshShortcuts();
+    });
     Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryHotkey);
 }
 
 void MainWindow::setVisibleMenuEntry(int hEntry, bool visible)
 {
-    for(int i = 0; i < mEntryList.size(); i++)
+    MethodInvoker::invokeMethod([this, hEntry, visible]
     {
-        if(mEntryList.at(i).hEntry == hEntry)
-        {
-            const MenuEntryInfo & entry = mEntryList.at(i);
-            entry.mAction->setVisible(visible);
-            break;
-        }
-    }
+        QMutexLocker locker(mMenuMutex);
+
+        auto entry = findMenuEntry(hEntry);
+        if(entry == nullptr)
+            return;
+
+        entry->mAction->setVisible(visible);
+    });
     Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryVisible);
 }
 
 void MainWindow::setVisibleMenu(int hMenu, bool visible)
 {
-    for(int i = 0; i < mMenuList.size(); i++)
+    MethodInvoker::invokeMethod([this, hMenu, visible]
     {
-        if(mMenuList.at(i).hMenu == hMenu)
-        {
-            const MenuInfo & menu = mMenuList.at(i);
-            menu.mMenu->setVisible(visible);
-        }
-    }
+        QMutexLocker locker(mMenuMutex);
+
+        auto menu = findMenu(hMenu);
+        if(menu == nullptr)
+            return;
+
+        menu->mMenu->setVisible(visible);
+    });
     Bridge::getBridge()->setResult(BridgeResult::MenuSetVisible);
 }
 
 void MainWindow::setNameMenuEntry(int hEntry, QString name)
 {
-    for(int i = 0; i < mEntryList.size(); i++)
+    MethodInvoker::invokeMethod([this, hEntry, name]
     {
-        if(mEntryList.at(i).hEntry == hEntry)
-        {
-            const MenuEntryInfo & entry = mEntryList.at(i);
-            entry.mAction->setText(name);
-            Config()->setPluginShortcut(entry.hotkeyId, nestedMenuEntryDescription(entry), entry.hotkey, entry.hotkeyGlobal);
-            break;
-        }
-    }
+        QMutexLocker locker(mMenuMutex);
+
+        auto entry = findMenuEntry(hEntry);
+        if(entry == nullptr)
+            return;
+
+        entry->mAction->setText(name);
+        Config()->setPluginShortcut(entry->hotkeyId, nestedMenuEntryDescription(*entry), entry->hotkey, entry->hotkeyGlobal);
+    });
     Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryName);
 }
 
 void MainWindow::setNameMenu(int hMenu, QString name)
 {
-    for(int i = 0; i < mMenuList.size(); i++)
+    MethodInvoker::invokeMethod([this, hMenu, name]
     {
-        if(mMenuList.at(i).hMenu == hMenu)
-        {
-            const MenuInfo & menu = mMenuList.at(i);
-            menu.mMenu->setTitle(name);
-        }
-    }
+        QMutexLocker locker(mMenuMutex);
+
+        auto menu = findMenu(hMenu);
+        if(menu == nullptr)
+            return;
+
+        menu->mMenu->setTitle(name);
+    });
     Bridge::getBridge()->setResult(BridgeResult::MenuSetName);
 }
 
