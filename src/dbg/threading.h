@@ -123,7 +123,7 @@ private:
                 return;
             }
 
-            if(threadId == m_guiMainThreadId)
+            if(ProcessGuiEvents && threadId == m_guiMainThreadId)
             {
                 while(!m_TryAcquireSRWLockExclusive(srwLock))
                     GuiProcessEvents();
@@ -141,7 +141,7 @@ private:
         else
         {
             auto cr = &m_crLocks[LockIndex];
-            if(threadId == m_guiMainThreadId)
+            if(ProcessGuiEvents && threadId == m_guiMainThreadId)
             {
                 while(!TryEnterCriticalSection(cr))
                     GuiProcessEvents();
