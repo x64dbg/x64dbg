@@ -210,12 +210,14 @@ private:
     //menu api
     struct MenuEntryInfo
     {
-        QAction* mAction;
-        int hEntry;
-        int hParentMenu;
+        MenuEntryInfo() = default;
+
+        QAction* mAction = nullptr;
+        int hEntry = -1;
+        int hParentMenu = -1;
         QString hotkey;
         QString hotkeyId;
-        bool hotkeyGlobal;
+        bool hotkeyGlobal = false;
     };
 
     struct MenuInfo
@@ -234,8 +236,8 @@ private:
     };
 
     int hEntryMenuPool;
-    QList<MenuEntryInfo> mEntryList;
-    QList<MenuInfo> mMenuList;
+    std::vector<MenuEntryInfo> mEntryList;
+    std::vector<MenuInfo> mMenuList;
 
     void initMenuApi();
     const MenuInfo* findMenu(int hMenu);

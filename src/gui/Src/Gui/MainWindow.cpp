@@ -92,7 +92,6 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(menuAddSeparator(int)), this, SLOT(addSeparator(int)));
     connect(Bridge::getBridge(), SIGNAL(menuClearMenu(int, bool)), this, SLOT(clearMenu(int, bool)));
     connect(Bridge::getBridge(), SIGNAL(menuRemoveMenuEntry(int)), this, SLOT(removeMenuEntry(int)));
-    connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString, QString*)), this, SLOT(getStrWindow(QString, QString*)));
     connect(Bridge::getBridge(), SIGNAL(setIconMenu(int, QIcon)), this, SLOT(setIconMenu(int, QIcon)));
     connect(Bridge::getBridge(), SIGNAL(setIconMenuEntry(int, QIcon)), this, SLOT(setIconMenuEntry(int, QIcon)));
     connect(Bridge::getBridge(), SIGNAL(setCheckedMenuEntry(int, bool)), this, SLOT(setCheckedMenuEntry(int, bool)));
@@ -101,6 +100,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(setVisibleMenu(int, bool)), this, SLOT(setVisibleMenu(int, bool)));
     connect(Bridge::getBridge(), SIGNAL(setNameMenuEntry(int, QString)), this, SLOT(setNameMenuEntry(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(setNameMenu(int, QString)), this, SLOT(setNameMenu(int, QString)));
+    connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString, QString*)), this, SLOT(getStrWindow(QString, QString*)));
     connect(Bridge::getBridge(), SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(Bridge::getBridge(), SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
     connect(Bridge::getBridge(), SIGNAL(addQWidgetTab(QWidget*)), this, SLOT(addQWidgetTab(QWidget*)));
@@ -1413,6 +1413,25 @@ void MainWindow::findModularCalls()
     displayReferencesWidget();
 }
 
+void MainWindow::initMenuApi()
+{
+    //256 entries are reserved
+    hEntryMenuPool = 256;
+    mEntryList.reserve(1024);
+    mMenuList.reserve(1024);
+}
+
+void MainWindow::menuEntrySlot()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(action && action->objectName().startsWith("ENTRY|"))
+    {
+        int hEntry = -1;
+        if(sscanf_s(action->objectName().mid(6).toUtf8().constData(), "%d", &hEntry) == 1)
+            DbgMenuEntryClicked(hEntry);
+    }
+}
+
 const MainWindow::MenuInfo* MainWindow::findMenu(int hMenu)
 {
     if(hMenu == -1)
@@ -1445,6 +1464,7 @@ void MainWindow::addMenu(int hMenu, QString title)
         return;
     }
     int hMenuNew = hEntryMenuPool++;
+    // UI queue
     QWidget* parent = hMenu == -1 ? this : menu->parent;
     QMenu* wMenu = new QMenu(title, parent);
     wMenu->menuAction()->setVisible(false);
@@ -1456,6 +1476,7 @@ void MainWindow::addMenu(int hMenu, QString title)
         menu->mMenu->addMenu(wMenu);
         menu->mMenu->menuAction()->setVisible(true);
     }
+    // UI queue
     Bridge::getBridge()->setResult(BridgeResult::MenuAdd, hMenuNew);
 }
 
@@ -1467,10 +1488,12 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
         Bridge::getBridge()->setResult(BridgeResult::MenuAddEntry, -1);
         return;
     }
-    MenuEntryInfo newInfo;
+    mEntryList.emplace_back();
+    MenuEntryInfo & newInfo = mEntryList.back();
     int hEntryNew = hEntryMenuPool++;
     newInfo.hEntry = hEntryNew;
     newInfo.hParentMenu = hMenu;
+    // UI thread
     QWidget* parent = hMenu == -1 ? this : menu->parent;
     QAction* wAction = new QAction(title, parent);
     parent->addAction(wAction);
@@ -1479,7 +1502,6 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
     parent->addAction(wAction);
     connect(wAction, SIGNAL(triggered()), this, SLOT(menuEntrySlot()));
     newInfo.mAction = wAction;
-    mEntryList.push_back(newInfo);
     if(hMenu == -1) //top level
         ui->menuBar->addAction(wAction);
     else //deeper level
@@ -1487,6 +1509,7 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
         menu->mMenu->addAction(wAction);
         menu->mMenu->menuAction()->setVisible(true);
     }
+    // UI thread
     Bridge::getBridge()->setResult(BridgeResult::MenuAddEntry, hEntryNew);
 }
 
@@ -1495,11 +1518,13 @@ void MainWindow::addSeparator(int hMenu)
     const MenuInfo* menu = findMenu(hMenu);
     if(menu)
     {
-        MenuEntryInfo newInfo;
+        mEntryList.emplace_back();
+        MenuEntryInfo & newInfo = mEntryList.back();
         newInfo.hEntry = -1;
         newInfo.hParentMenu = hMenu;
+        // UI thread
         newInfo.mAction = menu->mMenu->addSeparator();
-        mEntryList.push_back(newInfo);
+        // UI thread
     }
     Bridge::getBridge()->setResult(BridgeResult::MenuAddSeparator);
 }
@@ -1559,25 +1584,6 @@ void MainWindow::clearMenu(int hMenu, bool erase)
 {
     clearMenuImpl(hMenu, erase);
     Bridge::getBridge()->setResult(BridgeResult::MenuClear);
-}
-
-void MainWindow::initMenuApi()
-{
-    //256 entries are reserved
-    hEntryMenuPool = 256;
-    mEntryList.reserve(1024);
-    mMenuList.reserve(1024);
-}
-
-void MainWindow::menuEntrySlot()
-{
-    QAction* action = qobject_cast<QAction*>(sender());
-    if(action && action->objectName().startsWith("ENTRY|"))
-    {
-        int hEntry = -1;
-        if(sscanf_s(action->objectName().mid(6).toUtf8().constData(), "%d", &hEntry) == 1)
-            DbgMenuEntryClicked(hEntry);
-    }
 }
 
 void MainWindow::removeMenuEntry(int hEntryMenu)
