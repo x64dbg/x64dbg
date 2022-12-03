@@ -241,8 +241,8 @@ private:
 
     QMutex* mMenuMutex = nullptr;
     int hEntryMenuPool;
-    std::vector<MenuEntryInfo> mEntryList;
-    std::vector<MenuInfo> mMenuList;
+    QList<MenuEntryInfo> mEntryList;
+    QList<MenuInfo> mMenuList;
 
     void initMenuApi();
     MenuInfo* findMenu(int hMenu);

@@ -1502,7 +1502,6 @@ void MainWindow::addMenu(int hMenu, QString title)
         auto menu = findMenu(hMenuNew);
         if(!menu)
             return;
-
         auto parentMenu = findMenu(menu->hParentMenu);
         if(parentMenu == nullptr && menu->hParentMenu != -1)
             return;
@@ -1539,7 +1538,6 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
     newInfo.hEntry = hEntryNew;
     newInfo.hParentMenu = hMenu;
     mEntryList.push_back(newInfo);
-
 
     MethodInvoker::invokeMethod([this, hEntryNew, title]
     {
@@ -1611,7 +1609,7 @@ void MainWindow::addSeparator(int hMenu)
 void MainWindow::clearMenuHelper(int hMenu, bool markAsDeleted)
 {
     //delete menu entries
-    for(auto i = mEntryList.size() - 1; i != -1; i--)
+    for(int i = mEntryList.size() - 1; i != -1; i--)
     {
         if(hMenu == mEntryList[i].hParentMenu) //we found an entry that has the menu as parent
         {
@@ -1624,19 +1622,15 @@ void MainWindow::clearMenuHelper(int hMenu, bool markAsDeleted)
 
     //delete the menus
     std::vector<int> menuClearQueue;
-    for(auto i = mMenuList.size() - 1; i != -1; i--)
+    for(int i = mMenuList.size() - 1; i != -1; i--)
     {
         if(hMenu == mMenuList[i].hParentMenu) //we found a menu that has the menu as parent
         {
             menuClearQueue.push_back(mMenuList[i].hMenu);
             if(markAsDeleted)
-            {
                 mMenuList[i].deleted = true;
-            }
             else
-            {
                 mMenuList.erase(mMenuList.begin() + i);
-            }
         }
     }
 
