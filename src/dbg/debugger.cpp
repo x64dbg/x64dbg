@@ -473,6 +473,7 @@ static void DebugUpdateTitle(duint disasm_addr, bool analyzeThreadSwitch)
         _snprintf_s(modtext, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Module: %s - ")), modname);
     char threadswitch[256] = "";
     DWORD currentThreadId = ThreadGetId(hActiveThread);
+    bool PIDTIDinhex = settingboolget("Gui", "PidTidInHex");
     if(analyzeThreadSwitch)
     {
         static DWORD PrevThreadId = 0;
@@ -482,7 +483,10 @@ static void DebugUpdateTitle(duint disasm_addr, bool analyzeThreadSwitch)
         {
             char threadName2[MAX_THREAD_NAME_SIZE] = "";
             if(!ThreadGetName(PrevThreadId, threadName2) || threadName2[0] == 0)
-                sprintf_s(threadName2, "%X", PrevThreadId);
+                if(PIDTIDinhex)
+                    sprintf_s(threadName2, "%X", PrevThreadId);
+                else
+                    sprintf_s(threadName2, "%u", PrevThreadId);
             _snprintf_s(threadswitch, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (switched from %s)")), threadName2);
             PrevThreadId = currentThreadId;
         }
@@ -492,7 +496,7 @@ static void DebugUpdateTitle(duint disasm_addr, bool analyzeThreadSwitch)
     if(ThreadGetName(currentThreadId, threadName) && *threadName)
         strcat_s(threadName, " ");
     char PIDnumber[64], TIDnumber[64];
-    if(settingboolget("Gui", "PidInHex"))
+    if(PIDTIDinhex)
     {
         sprintf_s(PIDnumber, "%X", fdProcessInfo->dwProcessId);
         sprintf_s(TIDnumber, "%X", currentThreadId);
