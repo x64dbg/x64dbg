@@ -70,7 +70,7 @@
         </sizepolicy>
        </property>
        <property name="font">
-        <font>
+        <font size="4" >
          <family>Courier New</family>
         </font>
        </property>
@@ -88,7 +88,7 @@
         </sizepolicy>
        </property>
        <property name="font">
-        <font>
+        <font size="4" >
          <family>Courier New</family>
         </font>
        </property>
@@ -120,7 +120,7 @@
         </sizepolicy>
        </property>
        <property name="font">
-        <font>
+        <font size="4" >
          <family>Courier New</family>
         </font>
        </property>
@@ -138,7 +138,7 @@
         </sizepolicy>
        </property>
        <property name="font">
-        <font>
+        <font size="4" >
          <family>Lucida Console</family>
          <pointsize>7</pointsize>
         </font>
@@ -160,7 +160,7 @@
         </sizepolicy>
        </property>
        <property name="font">
-        <font>
+        <font size="4" >
          <family>Courier New</family>
         </font>
        </property>
@@ -178,7 +178,7 @@
         </sizepolicy>
        </property>
        <property name="font">
-        <font>
+        <font size="4" >
          <family>Courier New</family>
         </font>
        </property>
@@ -202,7 +202,7 @@
         </sizepolicy>
        </property>
        <property name="font">
-        <font>
+        <font size="4" >
          <family>Courier New</family>
         </font>
        </property>
@@ -233,7 +233,7 @@
         </sizepolicy>
        </property>
        <property name="font">
-        <font>
+        <font size="4" >
          <family>Courier New</family>
         </font>
        </property>
@@ -245,7 +245,7 @@
         <font>
          <family>Courier New</family>
          <pointsize>8</pointsize>
-        </font>
+        </font size="4" >
        </property>
        <property name="text">
         <string>0000000000000000</string>
