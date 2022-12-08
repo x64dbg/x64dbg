@@ -159,7 +159,7 @@ public slots:
     void closeDeleteSlot();
     void parseFinishedSlot();
     void tokenizerConfigUpdatedSlot();
-    void onSelectionChanged(unsigned long long selection);
+    void selectionChangedSlot(unsigned long long selection);
 
     void gotoSlot();
     void rtrSlot();
@@ -184,7 +184,7 @@ public slots:
 
     void updateSlot();
 
-    void toggleAutoDisassemblyFollowSelectionSlot();
+    void synchronizeCpuSlot();
     void gotoIndexSlot(duint index);
 
 protected:
