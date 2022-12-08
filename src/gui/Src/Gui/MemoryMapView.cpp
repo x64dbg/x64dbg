@@ -146,7 +146,7 @@ void MemoryMapView::setupContextMenu()
     mGotoMenu->setIcon(DIcon("goto"));
 
     //Goto->Origin
-    mGotoOrigin = new QAction(DIcon("cbp"), tr("Origin"), this);
+    mGotoOrigin = new QAction(DIcon("cbp"), ArchValue("EIP", "RIP"), this);
     mGotoOrigin->setShortcutContext(Qt::WidgetShortcut);
     connect(mGotoOrigin, SIGNAL(triggered()), this, SLOT(gotoOriginSlot()));
     this->addAction(mGotoOrigin);

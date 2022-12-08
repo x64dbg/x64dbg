@@ -2221,7 +2221,7 @@ void DisassemblerGraphView::setupContextMenu()
 
     MenuBuilder* gotoMenu = new MenuBuilder(this);
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto"), tr("Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
-    gotoMenu->addAction(makeShortcutAction(DIcon("cbp"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
+    gotoMenu->addAction(makeShortcutAction(DIcon("cbp"), ArchValue("EIP", "RIP"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
     gotoMenu->addAction(makeShortcutAction(DIcon("previous"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
         return mHistory.historyHasPrev();
