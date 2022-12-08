@@ -53,6 +53,7 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
     connect(Bridge::getBridge(), SIGNAL(gotoTraceIndex(duint)), this, SLOT(gotoIndexSlot(duint)));
     connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerConfigUpdatedSlot()));
     connect(this, SIGNAL(selectionChanged(unsigned long long)), this, SLOT(selectionChangedSlot(unsigned long long)));
+    connect(Bridge::getBridge(), SIGNAL(shutdown()), this, SLOT(closeFileSlot()));
 }
 
 TraceBrowser::~TraceBrowser()
@@ -1329,9 +1330,12 @@ void TraceBrowser::closeFileSlot()
 {
     if(isRecording())
         DbgCmdExecDirect("StopTraceRecording");
-    mTraceFile->Close();
-    delete mTraceFile;
-    mTraceFile = nullptr;
+    if(mTraceFile != nullptr)
+    {
+        mTraceFile->Close();
+        delete mTraceFile;
+        mTraceFile = nullptr;
+    }
     emit Bridge::getBridge()->updateTraceBrowser();
 }
 

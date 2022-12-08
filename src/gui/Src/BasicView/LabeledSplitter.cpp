@@ -278,11 +278,11 @@ void LabeledSplitter::loadFromConfig(const QString & configName)
         size_t sizeofState = strlen(state);
         if(sizeofState > 0)
             this->restoreState(QByteArray::fromBase64(QByteArray(state, int(sizeofState))));
-        connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(closeSlot()));
+        connect(Bridge::getBridge(), SIGNAL(shutdown()), this, SLOT(shutdownSlot()));
     }
 }
 
-void LabeledSplitter::closeSlot()
+void LabeledSplitter::shutdownSlot()
 {
     if(Config()->getBool("Gui", "SaveColumnOrder"))
         BridgeSettingSet("Gui", mConfigName.toUtf8().constData(), this->saveState().toBase64().data());

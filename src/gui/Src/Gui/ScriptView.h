@@ -45,7 +45,7 @@ public slots:
     void question(QString message);
     void enableHighlighting(bool enable);
     void messageResult(int result);
-    void closeSlot();
+    void shutdownSlot();
 
 private:
     //private functions

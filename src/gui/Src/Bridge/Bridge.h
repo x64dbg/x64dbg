@@ -52,7 +52,7 @@ signals:
     void addMsgToLog(QByteArray msg);
     void addMsgToLogHtml(QByteArray msg);
     void clearLog();
-    void close();
+    void shutdown();
     void updateRegisters();
     void updateBreakpoints();
     void updateWindowTitle(QString filename);

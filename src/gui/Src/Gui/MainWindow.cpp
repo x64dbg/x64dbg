@@ -809,7 +809,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
         bExecuteThread = false;
         Sleep(100);
         mCloseThread->start();
-        emit Bridge::getBridge()->close();
+        emit Bridge::getBridge()->shutdown();
     }
     if(bCanClose)
     {
