@@ -2133,6 +2133,9 @@ QList<Instruction_t>* Disassembly::instructionsBuffer()
 
 void Disassembly::disassembleAtSlot(dsint parVA, dsint parCIP)
 {
+    if(parCIP == 0)
+        parCIP = mCipVa;
+
     if(mCodeFoldingManager)
     {
         mCodeFoldingManager->expandFoldSegment(parVA);
