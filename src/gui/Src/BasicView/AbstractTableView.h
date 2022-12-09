@@ -154,7 +154,7 @@ private slots:
     void updateColorsSlot();
     void updateFontsSlot();
     void updateShortcutsSlot();
-    void closeSlot();
+    void shutdownSlot();
 
 private:
     struct ColumnResizingData

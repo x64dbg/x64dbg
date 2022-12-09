@@ -181,7 +181,7 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
         {
             auto & section = sections[j];
             section.addr = sectionAlign(section.addr);
-            section.size = sectionAlign(section.size);
+            section.size = (section.size + (PAGE_SIZE - 1)) & ~(PAGE_SIZE - 1);
 
             // Extend the last section to SizeOfImage under the right circumstances
             if(j + 1 == sections.size() && sectionAlignment < PAGE_SIZE)

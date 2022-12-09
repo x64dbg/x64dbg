@@ -24,7 +24,7 @@ public slots:
 protected slots:
     void detachSlot();
     void collapseSlot();
-    void closeSlot();
+    void shutdownSlot();
 
 protected:
     QMenu* mMenu;

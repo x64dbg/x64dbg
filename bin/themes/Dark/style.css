@@ -205,6 +205,14 @@ QMenu::icon {
     margin: 5px;
 }
 
+QMenu::icon:checked { /* appearance of a 'checked' icon */
+    background: #383838;
+    border: 1px inset #878787;
+    position: absolute;
+    margin: 1px;
+    padding: 3px;
+}
+
 QMenu::item {
     padding: 5px 30px 5px 30px;
     border: 1px solid transparent;
@@ -225,6 +233,7 @@ QMenu::separator {
 QMenu::indicator {
     width: 18px;
     height: 18px;
+    padding-left: 4px;
 }
 
 

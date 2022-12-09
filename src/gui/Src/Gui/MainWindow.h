@@ -210,12 +210,15 @@ private:
     //menu api
     struct MenuEntryInfo
     {
-        QAction* mAction;
-        int hEntry;
-        int hParentMenu;
+        MenuEntryInfo() = default;
+
+        QAction* mAction = nullptr;
+        int hEntry = -1;
+        int hParentMenu = -1;
         QString hotkey;
         QString hotkeyId;
-        bool hotkeyGlobal;
+        bool hotkeyGlobal = false;
+        bool deleted = false;
     };
 
     struct MenuInfo
@@ -226,22 +229,27 @@ private:
         {
         }
 
-        QWidget* parent;
-        QMenu* mMenu;
-        int hMenu;
-        int hParentMenu;
-        bool globalMenu;
+        MenuInfo() = default;
+
+        QWidget* parent = nullptr;
+        QMenu* mMenu = nullptr;
+        int hMenu = -1;
+        int hParentMenu = -1;
+        bool globalMenu = false;
+        bool deleted = false;
     };
 
+    QMutex* mMenuMutex = nullptr;
     int hEntryMenuPool;
     QList<MenuEntryInfo> mEntryList;
     QList<MenuInfo> mMenuList;
 
     void initMenuApi();
-    const MenuInfo* findMenu(int hMenu);
+    MenuInfo* findMenu(int hMenu);
+    MenuEntryInfo* findMenuEntry(int hEntry);
     QString nestedMenuDescription(const MenuInfo* menu);
     QString nestedMenuEntryDescription(const MenuEntryInfo & entry);
-    void clearMenuHelper(int hMenu);
+    void clearMenuHelper(int hMenu, bool markAsDeleted);
     void clearMenuImpl(int hMenu, bool erase);
 
     bool bCanClose;

@@ -529,7 +529,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     mCommonActions->build(mMenuBuilder, CommonActions::ActionNewOrigin | CommonActions::ActionNewThread);
     MenuBuilder* gotoMenu = new MenuBuilder(this);
-    gotoMenu->addAction(makeShortcutAction(DIcon("cbp"), tr("Origin"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
+    gotoMenu->addAction(makeShortcutAction(DIcon("cbp"), ArchValue("EIP", "RIP"), SLOT(gotoOriginSlot()), "ActionGotoOrigin"));
     gotoMenu->addAction(makeShortcutAction(DIcon("previous"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
         return historyHasPrevious();

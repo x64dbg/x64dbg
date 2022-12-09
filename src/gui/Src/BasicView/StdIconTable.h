@@ -7,7 +7,7 @@ class StdIconTable : public StdTable
 {
     Q_OBJECT
 public:
-    explicit StdIconTable(QWidget* parent = 0) : StdTable(parent), mIconColumn(0) {};
+    explicit StdIconTable(QWidget* parent = 0) : StdTable(parent), mIconColumn(0) {}
 
     // Data Management
     void setRowIcon(int r, const QIcon & icon); // set the icon for a row

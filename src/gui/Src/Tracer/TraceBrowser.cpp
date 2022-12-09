@@ -52,6 +52,8 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
     connect(Bridge::getBridge(), SIGNAL(openTraceFile(const QString &)), this, SLOT(openSlot(const QString &)));
     connect(Bridge::getBridge(), SIGNAL(gotoTraceIndex(duint)), this, SLOT(gotoIndexSlot(duint)));
     connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerConfigUpdatedSlot()));
+    connect(this, SIGNAL(selectionChanged(unsigned long long)), this, SLOT(selectionChangedSlot(unsigned long long)));
+    connect(Bridge::getBridge(), SIGNAL(shutdown()), this, SLOT(closeFileSlot()));
 }
 
 TraceBrowser::~TraceBrowser()
@@ -968,18 +970,9 @@ void TraceBrowser::setupRightClickContextMenu()
     });
     mMenuBuilder->addMenu(makeMenu(tr("Information")), infoMenu);
 
-
-    QAction* toggleAutoDisassemblyFollowSelection = makeAction(tr("Toggle Auto Disassembly Scroll (off)"), SLOT(toggleAutoDisassemblyFollowSelectionSlot()));
-    mMenuBuilder->addAction(toggleAutoDisassemblyFollowSelection, [this, toggleAutoDisassemblyFollowSelection](QMenu*)
-    {
-        if(!DbgIsDebugging())
-            return false;
-        if(mAutoDisassemblyFollowSelection)
-            toggleAutoDisassemblyFollowSelection->setText(tr("Toggle Auto Disassembly Scroll (on)"));
-        else
-            toggleAutoDisassemblyFollowSelection->setText(tr("Toggle Auto Disassembly Scroll (off)"));
-        return true;
-    });
+    auto synchronizeCpuAction = makeAction(DIcon("sync"), tr("Sync with CPU"), SLOT(synchronizeCpuSlot()));
+    synchronizeCpuAction->setCheckable(true);
+    mMenuBuilder->addAction(synchronizeCpuAction);
 }
 
 void TraceBrowser::contextMenuEvent(QContextMenuEvent* event)
@@ -1191,11 +1184,12 @@ void TraceBrowser::keyPressEvent(QKeyEvent* event)
         AbstractTableView::keyPressEvent(event);
 }
 
-void TraceBrowser::onSelectionChanged(unsigned long long selection)
+void TraceBrowser::selectionChangedSlot(unsigned long long selection)
 {
-    Q_UNUSED(selection);
-    if(mAutoDisassemblyFollowSelection)
-        mCommonActions->followDisassemblySlot();
+    if(mAutoDisassemblyFollowSelection && isFileOpened())
+    {
+        GuiDisasmAt(mTraceFile->Registers(selection).regcontext.cip, 0);
+    }
 }
 
 void TraceBrowser::tokenizerConfigUpdatedSlot()
@@ -1336,9 +1330,12 @@ void TraceBrowser::closeFileSlot()
 {
     if(isRecording())
         DbgCmdExecDirect("StopTraceRecording");
-    mTraceFile->Close();
-    delete mTraceFile;
-    mTraceFile = nullptr;
+    if(mTraceFile != nullptr)
+    {
+        mTraceFile->Close();
+        delete mTraceFile;
+        mTraceFile = nullptr;
+    }
     emit Bridge::getBridge()->updateTraceBrowser();
 }
 
@@ -1870,7 +1867,7 @@ void TraceBrowser::updateSlot()
     reloadData();
 }
 
-void TraceBrowser::toggleAutoDisassemblyFollowSelectionSlot()
+void TraceBrowser::synchronizeCpuSlot()
 {
     mAutoDisassemblyFollowSelection = !mAutoDisassemblyFollowSelection;
 }

@@ -482,7 +482,7 @@ static void DebugUpdateTitle(duint disasm_addr, bool analyzeThreadSwitch)
         {
             char threadName2[MAX_THREAD_NAME_SIZE] = "";
             if(!ThreadGetName(PrevThreadId, threadName2) || threadName2[0] == 0)
-                sprintf_s(threadName2, "%X", PrevThreadId);
+                strcpy_s(threadName2, formatpidtid(PrevThreadId).c_str());
             _snprintf_s(threadswitch, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (switched from %s)")), threadName2);
             PrevThreadId = currentThreadId;
         }
@@ -491,18 +491,7 @@ static void DebugUpdateTitle(duint disasm_addr, bool analyzeThreadSwitch)
     char threadName[MAX_THREAD_NAME_SIZE + 1] = "";
     if(ThreadGetName(currentThreadId, threadName) && *threadName)
         strcat_s(threadName, " ");
-    char PIDnumber[64], TIDnumber[64];
-    if(settingboolget("Gui", "PidInHex"))
-    {
-        sprintf_s(PIDnumber, "%X", fdProcessInfo->dwProcessId);
-        sprintf_s(TIDnumber, "%X", currentThreadId);
-    }
-    else
-    {
-        sprintf_s(PIDnumber, "%u", fdProcessInfo->dwProcessId);
-        sprintf_s(TIDnumber, "%u", currentThreadId);
-    }
-    _snprintf_s(title, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "%s - PID: %s - %sThread: %s%s%s")), szBaseFileName, PIDnumber, modtext, threadName, TIDnumber, threadswitch);
+    _snprintf_s(title, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "%s - PID: %s - %sThread: %s%s%s")), szBaseFileName, formatpidtid(fdProcessInfo->dwProcessId).c_str(), modtext, threadName, formatpidtid(currentThreadId).c_str(), threadswitch);
     GuiUpdateWindowTitle(title);
 }
 
@@ -1574,8 +1563,8 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
     auto entry = duint(CreateThread->lpStartAddress);
     auto parameter = GetContextDataEx(hActiveThread, ArchValue(UE_EBX, UE_RDX));
-    dprintf(QT_TRANSLATE_NOOP("DBG", "Thread %X created, Entry: %s, Parameter: %s\n"),
-            dwThreadId,
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Thread %s created, Entry: %s, Parameter: %s\n"),
+            formatpidtid(dwThreadId).c_str(),
             SymGetSymbolicName(entry).c_str(),
             SymGetSymbolicName(parameter).c_str()
            );
@@ -1612,7 +1601,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
             MEMPAGE page;
             auto limit = duint(tib.StackLimit);
             auto base = duint(tib.StackBase);
-            sprintf_s(page.info, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Thread %X Stack")), dwThreadId);
+            sprintf_s(page.info, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Thread %s Stack")), formatpidtid(dwThreadId).c_str());
             page.mbi.BaseAddress = page.mbi.AllocationBase = tib.StackLimit;
             page.mbi.Protect = page.mbi.AllocationProtect = PAGE_READWRITE;
             page.mbi.RegionSize = base - limit;
@@ -1647,7 +1636,7 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
     plugincbcall(CB_EXITTHREAD, &callbackInfo);
     HistoryClear();
     ThreadExit(dwThreadId);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "Thread %X exit\n"), dwThreadId);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Thread %s exit\n"), formatpidtid(dwThreadId).c_str());
 
     if(settingboolget("Events", "ThreadEnd"))
     {

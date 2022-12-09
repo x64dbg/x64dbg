@@ -75,16 +75,17 @@ AbstractTableView::AbstractTableView(QWidget* parent)
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateColorsSlot()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateFontsSlot()));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(updateShortcutsSlot()));
-    connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(closeSlot()));
+    connect(Bridge::getBridge(), SIGNAL(shutdown()), this, SLOT(shutdownSlot()));
 
     // todo: try Qt::QueuedConnection to init
     Initialize();
 }
 
-void AbstractTableView::closeSlot()
+void AbstractTableView::shutdownSlot()
 {
     if(ConfigBool("Gui", "SaveColumnOrder"))
         saveColumnToConfig();
+    setAllowPainting(false);
 }
 
 /************************************************************************************

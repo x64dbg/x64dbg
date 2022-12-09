@@ -146,7 +146,7 @@ void MemoryMapView::setupContextMenu()
     mGotoMenu->setIcon(DIcon("goto"));
 
     //Goto->Origin
-    mGotoOrigin = new QAction(DIcon("cbp"), tr("Origin"), this);
+    mGotoOrigin = new QAction(DIcon("cbp"), ArchValue("EIP", "RIP"), this);
     mGotoOrigin->setShortcutContext(Qt::WidgetShortcut);
     connect(mGotoOrigin, SIGNAL(triggered()), this, SLOT(gotoOriginSlot()));
     this->addAction(mGotoOrigin);
@@ -286,8 +286,8 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
 {
     if(col == 0) //address
     {
-        QString wStr = getCellContent(rowBase + rowOffset, col);
-        duint addr = getSelectionAddr();
+        int row = rowBase + rowOffset;
+        auto addr = getCellUserdata(row, ColAddress);
         QColor color = mTextColor;
         QColor backgroundColor = Qt::transparent;
         bool isBp = (DbgGetBpxTypeAt(addr) & bp_memory) == bp_memory;
@@ -313,6 +313,7 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
         if(backgroundColor.alpha())
             painter->fillRect(QRect(x, y, w - 1, h), QBrush(backgroundColor));
         painter->setPen(color);
+        QString wStr = getCellContent(rowBase + rowOffset, col);
         painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
         return QString();
     }

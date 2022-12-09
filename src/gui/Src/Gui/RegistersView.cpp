@@ -1088,6 +1088,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(fontsUpdatedSlot()));
     // self communication for repainting (maybe some other widgets needs this information, too)
     connect(this, SIGNAL(refresh()), this, SLOT(reload()));
+    connect(Bridge::getBridge(), SIGNAL(shutdown()), this, SLOT(shutdownSlot()));
 
     InitMappings();
 
@@ -1236,6 +1237,11 @@ void RegistersView::fontsUpdatedSlot()
     //adjust the height of the area.
     setFixedHeight(getEstimateHeight());
     reload();
+}
+
+void RegistersView::shutdownSlot()
+{
+    isActive = false;
 }
 
 void RegistersView::displayCustomContextMenuSlot(QPoint pos)
