@@ -16,6 +16,12 @@ CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), m
     // precreate ContextMenu Actions
     wCM_Modify = new QAction(DIcon("register_edit"), tr("Modify value"), this);
     wCM_Modify->setShortcut(QKeySequence(Qt::Key_Enter));
+    wCM_Increment = new QAction(DIcon("register_edit"), tr("Increment value"), this);
+    wCM_Increment->setShortcut(QKeySequence(Qt::Key_Plus));
+    wCM_Decrement = new QAction(DIcon("register_edit"), tr("Decrement value"), this);
+    wCM_Decrement->setShortcut(QKeySequence(Qt::Key_Minus));
+    wCM_Zero = new QAction(DIcon("register_edit"), tr("Zero value"), this);
+    wCM_Zero->setShortcut(QKeySequence(Qt::Key_0));
     wCM_ToggleValue = setupAction(DIcon("register_toggle"), tr("Toggle"));
     wCM_Undo = setupAction(DIcon("undo"), tr("Undo"));
     wCM_CopyPrevious = setupAction(DIcon("undo"), "");
@@ -36,6 +42,9 @@ CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), m
     connect(wCM_Incrementx87Stack, SIGNAL(triggered()), this, SLOT(onIncrementx87StackAction()));
     connect(wCM_Decrementx87Stack, SIGNAL(triggered()), this, SLOT(onDecrementx87StackAction()));
     connect(wCM_Modify, SIGNAL(triggered()), this, SLOT(onModifyAction()));
+    connect(wCM_Increment, SIGNAL(triggered()), this, SLOT(onIncrementAction()));
+    connect(wCM_Decrement, SIGNAL(triggered()), this, SLOT(onDecrementAction()));
+    connect(wCM_Zero, SIGNAL(triggered()), this, SLOT(onZeroAction()));
     connect(wCM_ToggleValue, SIGNAL(triggered()), this, SLOT(onToggleValueAction()));
     connect(wCM_Undo, SIGNAL(triggered()), this, SLOT(onUndoAction()));
     connect(wCM_CopyPrevious, SIGNAL(triggered()), this, SLOT(onCopyPreviousAction()));
@@ -131,6 +140,12 @@ void CPURegistersView::keyPressEvent(QKeyEvent* event)
 {
     if(isActive && (event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return))
         wCM_Modify->trigger();
+    else if(isActive && (event->key() == Qt::Key_Plus))
+        wCM_Increment->trigger();
+    else if(isActive && (event->key() == Qt::Key_Minus))
+        wCM_Decrement->trigger();
+    else if(isActive && (event->key() == Qt::Key_0))
+        wCM_Zero->trigger();
     else
         RegistersView::keyPressEvent(event);
 }
@@ -423,6 +438,30 @@ void CPURegistersView::onModifyAction()
         displayEditDialog();
 }
 
+void CPURegistersView::onIncrementAction()
+{
+    if(mINCREMENTDECREMET.contains(mSelected))
+    {
+        duint value = *((duint*) registerValue(&wRegDumpStruct, mSelected));
+        setRegister(mSelected, value + 1);
+    }
+}
+
+void CPURegistersView::onDecrementAction()
+{
+    if(mINCREMENTDECREMET.contains(mSelected))
+    {
+        duint value = *((duint*) registerValue(&wRegDumpStruct, mSelected));
+        setRegister(mSelected, value - 1);
+    }
+}
+
+void CPURegistersView::onZeroAction()
+{
+    if(mINCREMENTDECREMET.contains(mSelected))
+        setRegister(mSelected, 0);
+}
+
 void CPURegistersView::onToggleValueAction()
 {
     if(mBOOLDISPLAY.contains(mSelected))
@@ -540,6 +579,13 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
         if(mMODIFYDISPLAY.contains(mSelected))
         {
             wMenu.addAction(wCM_Modify);
+        }
+
+        if(mINCREMENTDECREMET.contains(mSelected))
+        {
+            wMenu.addAction(wCM_Increment);
+            wMenu.addAction(wCM_Decrement);
+            wMenu.addAction(wCM_Zero);
         }
 
         if(mCANSTOREADDRESS.contains(mSelected))
