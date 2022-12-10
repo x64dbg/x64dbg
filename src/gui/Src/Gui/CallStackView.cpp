@@ -11,7 +11,7 @@ CallStackView::CallStackView(StdTable* parent) : StdIconTable(parent)
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("To"), false); //return to
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("From"), false); //return from
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("Size"), false); //size
-    addColumnAt(2 * charwidth, tr("Party"), false); //party
+    addColumnAt(9 * charwidth, tr("Party"), false); //party
     addColumnAt(50 * charwidth, tr("Comment"), false);
     setIconColumn(ColParty);
     loadColumnFromConfig("CallStack");

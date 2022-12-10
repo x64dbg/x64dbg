@@ -25,7 +25,7 @@ MemoryMapView::MemoryMapView(StdTable* parent)
 
     addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Address"), true, tr("Address")); //addr
     addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Size"), false, tr("Size")); //size
-    addColumnAt(charwidth * 2, tr("Party"), false); // party
+    addColumnAt(charwidth * 9, tr("Party"), false); // party
     addColumnAt(8 + charwidth * 32, tr("Info"), false, tr("Page Information")); //page information
     addColumnAt(8 + charwidth * 28, tr("Content"), false, tr("Content of section")); //content of section
     addColumnAt(8 + charwidth * 5, tr("Type"), true, tr("Allocation Type")); //allocation type
