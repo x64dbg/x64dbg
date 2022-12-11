@@ -41,6 +41,8 @@ TraceWidget::TraceWidget(QWidget* parent) :
 
     ui->mTopRightUpperFrameLayout->addWidget(button_changeview);
     ui->mTopRightUpperFrameLayout->addWidget(upperScrollArea);
+    ui->mTopHSplitter->setCollapsible(1, true); // allow collapsing the RegisterView
+
     //info
     ui->mTopLeftLowerFrameLayout->addWidget(mInfo);
     int height = (mInfo->getRowHeight() + 1) * 4;

@@ -79,6 +79,7 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
 
     ui->mTopRightUpperFrameLayout->addWidget(button_changeview);
     ui->mTopRightUpperFrameLayout->addWidget(upperScrollArea);
+    ui->mTopHSplitter->setCollapsible(1, true); // allow collapsing of the RegisterView
 
     ui->mTopRightLowerFrameLayout->addWidget(mArgumentWidget);
 
