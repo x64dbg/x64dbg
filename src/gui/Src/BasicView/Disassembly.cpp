@@ -2155,6 +2155,7 @@ void Disassembly::disassembleClear()
     mDisasm->getEncodeMap()->setMemoryRegion(0);
     setRowCount(0);
     setTableOffset(0);
+    mInstBuffer.clear();
     reloadData();
 }
 
