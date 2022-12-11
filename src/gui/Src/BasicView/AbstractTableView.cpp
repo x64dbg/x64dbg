@@ -219,6 +219,15 @@ void AbstractTableView::editColumnDialog()
  */
 void AbstractTableView::paintEvent(QPaintEvent* event)
 {
+    Q_UNUSED(event);
+
+    QPainter wPainter(this->viewport());
+    wPainter.setFont(font());
+
+    // Paint background
+    if(mBackgroundColor.alpha() == 255) // The secret code to allow the user to set a background image in style.css
+        wPainter.fillRect(wPainter.viewport(), QBrush(mBackgroundColor));
+
     if(!mAllowPainting)
         return;
 
@@ -244,9 +253,6 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
             setColumnWidth(last, getColumnWidth(last));
     }
 
-    Q_UNUSED(event);
-    QPainter wPainter(this->viewport());
-    wPainter.setFont(font());
     int wViewableRowsCount = getViewableRowsCount();
 
     int scrollValue = -horizontalScrollBar()->value();
@@ -263,11 +269,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
         mShouldReload = false;
     }
 
-    // Paints background
-    if(mBackgroundColor.alpha() == 255) // The secret code to allow the user to set a background image in style.css
-        wPainter.fillRect(wPainter.viewport(), QBrush(mBackgroundColor));
-
-    // Paints header
+    // Paint header
     if(mHeader.isVisible == true)
     {
         for(int j = 0; j < getColumnCount(); j++)
@@ -336,7 +338,6 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
         y = getHeaderHeight();
         x += getColumnWidth(j);
     }
-    //emit repainted();
 }
 
 /************************************************************************************
