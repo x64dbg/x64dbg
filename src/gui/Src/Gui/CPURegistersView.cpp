@@ -16,11 +16,11 @@ CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), m
     // precreate ContextMenu Actions
     wCM_Modify = new QAction(DIcon("register_edit"), tr("Modify value"), this);
     wCM_Modify->setShortcut(QKeySequence(Qt::Key_Enter));
-    wCM_Increment = new QAction(DIcon("register_edit"), tr("Increment value"), this);
+    wCM_Increment = new QAction(DIcon("register_inc"), tr("Increment value"), this);
     wCM_Increment->setShortcut(QKeySequence(Qt::Key_Plus));
-    wCM_Decrement = new QAction(DIcon("register_edit"), tr("Decrement value"), this);
+    wCM_Decrement = new QAction(DIcon("register_dec"), tr("Decrement value"), this);
     wCM_Decrement->setShortcut(QKeySequence(Qt::Key_Minus));
-    wCM_Zero = new QAction(DIcon("register_edit"), tr("Zero value"), this);
+    wCM_Zero = new QAction(DIcon("register_zero"), tr("Zero value"), this);
     wCM_Zero->setShortcut(QKeySequence(Qt::Key_0));
     wCM_ToggleValue = setupAction(DIcon("register_toggle"), tr("Toggle"));
     wCM_Undo = setupAction(DIcon("undo"), tr("Undo"));
