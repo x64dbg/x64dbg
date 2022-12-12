@@ -183,7 +183,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     int charwidth = mModuleList->getCharWidth();
     mModuleList->addColumnAt(8 + charwidth * 2 * sizeof(dsint), tr("Base"), true);
     mModuleList->addColumnAt(300, tr("Module"), true);
-    mModuleList->addColumnAt(charwidth * 2, tr("Party"), true); // with icon
+    mModuleList->addColumnAt(charwidth * 9, tr("Party"), true); // with icon
     mModuleList->addColumnAt(8 + charwidth * 60, tr("Path"), true);
     mModuleList->addColumnAt(8 + charwidth * 8, tr("Status"), true);
     mModuleList->loadColumnFromConfig("Module");
