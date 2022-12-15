@@ -22,6 +22,9 @@ protected slots:
     void onIncrementx87StackAction();
     void onDecrementx87StackAction();
     void onModifyAction();
+    void onIncrementAction();
+    void onDecrementAction();
+    void onZeroAction();
     void onToggleValueAction();
     void onUndoAction();
     void onCopyPreviousAction();
@@ -43,6 +46,9 @@ private:
     // context menu actions
     QAction* mFollowInDump;
     QAction* wCM_Modify;
+    QAction* wCM_Increment;
+    QAction* wCM_Decrement;
+    QAction* wCM_Zero;
     QAction* wCM_ToggleValue;
     QAction* wCM_CopyPrevious;
     QAction* wCM_Undo;
