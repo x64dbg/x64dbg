@@ -229,7 +229,7 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             {
                 if(bpxtype & bp_normal) //normal breakpoint
                 {
-                    QColor & bpColor = mBreakpointBackgroundColor;
+                    QColor bpColor = mBreakpointBackgroundColor;
                     if(!bpColor.alpha()) //we don't want transparent text
                         bpColor = mBreakpointColor;
                     if(bpColor == mCipBackgroundColor)
