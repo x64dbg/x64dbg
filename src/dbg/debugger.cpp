@@ -143,13 +143,6 @@ bool dbgsettracecmd(const String & expression, const String & text)
     return traceState.InitCmdCondition(expression, text);
 }
 
-bool dbgsettraceswitchcondition(const String & expression)
-{
-    if(dbgtraceactive())
-        return false;
-    return traceState.InitSwitchCondition(expression);
-}
-
 bool dbgtraceactive()
 {
     return traceState.IsActive();
@@ -1260,7 +1253,7 @@ void cbRtrStep()
         StepOverWrapper((void*)cbRtrStep);
 }
 
-static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*callback)(), bool forceBreakTrace)
+static void cbTraceUniversalConditionalStep(duint cip, void(*stepFunction)(void*), void(*callback)(), bool forceBreakTrace)
 {
     PLUG_CB_TRACEEXECUTE info;
     info.cip = cip;
@@ -1278,13 +1271,6 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
     breakCondition = info.stop;
     auto logCondition = traceState.EvaluateLog(); //true
     auto cmdCondition = traceState.EvaluateCmd(breakCondition == 1 ? 1 : 0); //breakCondition
-    auto switchCondition = traceState.EvaluateSwitch(); //false
-    if(switchCondition == -1)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Error when evaluating switch condition."));
-        switchCondition = 0;
-        breakCondition = -1;
-    }
     if(logCondition != 0) //log
     {
         traceState.LogWrite(stringformatinline(traceState.LogText()));
@@ -1306,14 +1292,11 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
         //TODO: commands like run/step etc will fuck up your shit
         varset("$tracecondition", breakCondition ? 1 : 0, false);
         varset("$tracelogcondition", logCondition ? 1 : 0, true);
-        varset("$traceswitchcondition", switchCondition ? 1 : 0, false);
         duint script_breakcondition;
         if(cmddirectexec(traceState.CmdText().c_str()))
         {
             if(varget("$tracecondition", &script_breakcondition, nullptr, nullptr))
                 breakCondition = script_breakcondition != 0;
-            if(varget("$traceswitchcondition", &script_breakcondition, nullptr, nullptr))
-                switchCondition = script_breakcondition != 0;
         }
         else
         {
@@ -1334,10 +1317,14 @@ static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*cal
     else //continue tracing
     {
         dbgtraceexecute(cip);
-        if(switchCondition) //switch (invert) the step type once
-            bStepInto = !bStepInto;
-        (bStepInto ? StepIntoWow64 : StepOverWrapper)((void*)callback);
+        stepFunction((void*)callback);
     }
+}
+
+static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*callback)(), bool forceBreakTrace)
+{
+    auto stepFunction = (bStepInto ? StepIntoWow64 : StepOverWrapper);
+    cbTraceUniversalConditionalStep(cip, stepFunction, callback, forceBreakTrace);
 }
 
 static void cbTraceXConditionalStep(bool bStepInto, void (*callback)())

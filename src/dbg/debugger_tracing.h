@@ -160,21 +160,6 @@ struct TraceState
         return cmdCondition ? cmdCondition->text : emptyString;
     }
 
-    bool InitSwitchCondition(const String & expression)
-    {
-        delete switchCondition;
-        switchCondition = nullptr;
-        if(expression.empty())
-            return true;
-        switchCondition = new TextCondition(expression, "");
-        return switchCondition->condition.IsValidExpression();
-    }
-
-    char EvaluateSwitch() const
-    {
-        return switchCondition ? switchCondition->Evaluate() : 0;
-    }
-
     void SetLogFile(const char* fileName)
     {
         logFile = StringUtils::Utf8ToUtf16(fileName);
@@ -198,8 +183,6 @@ struct TraceState
         logCondition = nullptr;
         delete cmdCondition;
         cmdCondition = nullptr;
-        delete switchCondition;
-        switchCondition = nullptr;
         logFile.clear();
         delete logWriter;
         logWriter = nullptr;
@@ -211,7 +194,6 @@ private:
     TraceCondition* traceCondition = nullptr;
     TextCondition* logCondition = nullptr;
     TextCondition* cmdCondition = nullptr;
-    TextCondition* switchCondition = nullptr;
     String emptyString;
     WString logFile;
     BufferedWriter* logWriter = nullptr;

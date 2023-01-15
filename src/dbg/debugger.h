@@ -94,7 +94,6 @@ duint dbggetdbgevents();
 bool dbgsettracecondition(const String & expression, duint maxCount);
 bool dbgsettracelog(const String & expression, const String & text);
 bool dbgsettracecmd(const String & expression, const String & text);
-bool dbgsettraceswitchcondition(const String & expression);
 bool dbgtraceactive();
 void dbgforcebreaktrace();
 bool dbgsettracelogfile(const char* fileName);

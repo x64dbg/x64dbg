@@ -88,7 +88,6 @@ void varinit()
     varnew("$tracecounter", 0, VAR_READONLY);
     varnew("$tracecondition", 0, VAR_SYSTEM);
     varnew("$tracelogcondition", 0, VAR_READONLY);
-    varnew("$traceswitchcondition", 0, VAR_SYSTEM);
 
     // Read-only variables
     varnew("$lastalloc", 0, VAR_READONLY);  // Last memory allocation
