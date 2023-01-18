@@ -212,7 +212,6 @@ private:
     bool mShouldReload;
     bool mDrawDebugOnly;
     bool mPopupEnabled;
-    bool mAllowPainting;
     int mPopupTimer;
 
     static int mMouseWheelScrollDelta;
@@ -229,6 +228,8 @@ protected:
     QColor mHeaderTextColor;
     QColor mSelectionColor;
     QString mViewName;
+
+    bool mAllowPainting;
 
     // Font metrics
     CachedFontMetrics* mFontMetrics;

@@ -1829,6 +1829,9 @@ void Disassembly::paintEvent(QPaintEvent* event)
 {
     AbstractTableView::paintEvent(event);
 
+    if(!mAllowPainting)
+        return;
+
     // Delay paint the rich text
     QPainter painter(this->viewport());
     painter.setFont(font());
