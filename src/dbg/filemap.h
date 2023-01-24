@@ -1,18 +1,17 @@
 #pragma once
 
-#include <windows.h>
-#include <string>
+#include <Windows.h>
 
 template<typename T>
 struct FileMap
 {
-    bool Map(const wchar_t* szFileName)
+    bool Map(const wchar_t* szFileName, bool mapImage = false)
     {
         hFile = CreateFileW(szFileName, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
         if(hFile != INVALID_HANDLE_VALUE)
         {
             size = GetFileSize(hFile, nullptr);
-            hMap = CreateFileMappingW(hFile, nullptr, PAGE_READONLY, 0, 0, nullptr);
+            hMap = CreateFileMappingW(hFile, nullptr, PAGE_READONLY | (mapImage ? SEC_IMAGE : 0), 0, 0, nullptr);
             if(hMap)
                 data = (const T*)MapViewOfFile(hMap, FILE_MAP_READ, 0, 0, 0);
         }
