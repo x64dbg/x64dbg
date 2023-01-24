@@ -303,6 +303,21 @@ static bool getAutoComment(duint addr, String & comment)
         comment = StringUtils::sprintf("%s:%u", actualName, lineNumber);
         retval = true;
     }
+    else
+    {
+        SHARED_ACQUIRE(LockModules);
+        auto modInfo = ModInfoFromAddr(addr);
+        if(modInfo != nullptr)
+        {
+            auto exportInfo = modInfo->findExport(addr - modInfo->base);
+            if(exportInfo != nullptr && exportInfo->forwarded)
+            {
+                comment = StringUtils::sprintf("-> %s", exportInfo->forwardName.c_str());
+                retval = true;
+                dputs(comment.c_str());
+            }
+        }
+    }
 
     DISASM_INSTR instr;
     String temp_string;
