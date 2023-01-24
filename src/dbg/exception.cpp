@@ -57,7 +57,7 @@ bool ConstantCodeInit(const String & constantFile)
     std::unordered_map<unsigned int, String> names;
     if(!UniversalCodeInit(constantFile, names, 0))
         return false;
-    for(auto it : names)
+    for(const auto & it : names)
         Constants.insert({ it.second, it.first });
     return true;
 }

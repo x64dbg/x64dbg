@@ -1954,6 +1954,8 @@ bool valfromstring_noexpr(const char* string, duint* value, bool silent, bool ba
         duint start;
         return result && FunctionGet(*value, &start, nullptr) && *value == start;
     }
+    else if(*value = ModBaseFromName(string))  // then come modules
+        return true;
 
     if(!silent)
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid value: \"%s\"!\n"), string);
