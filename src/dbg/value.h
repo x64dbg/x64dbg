@@ -7,7 +7,7 @@
 bool valuesignedcalc();
 void valuesetsignedcalc(bool a);
 duint SafeGetProcAddress(HMODULE hModule, const char* lpProcName);
-bool valapifromstring(const char* name, duint* value, int* value_size, bool printall, bool silent, bool* hexonly);
+bool valapifromstring(const char* name, duint* value, bool silent);
 bool convertNumber(const char* str, duint & result, int radix);
 bool convertLongLongNumber(const char* str, unsigned long long & result, int radix);
 bool valfromstring_noexpr(const char* string, duint* value, bool silent = true, bool baseonly = false, int* value_size = nullptr, bool* isvar = nullptr, bool* hexonly = nullptr);
