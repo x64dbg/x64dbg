@@ -1401,18 +1401,6 @@ bool setregister(const char* string, duint value)
     return false;
 }
 
-duint SafeGetProcAddress(HMODULE hModule, const char* lpProcName)
-{
-    __try
-    {
-        return duint(GetProcAddress(hModule, lpProcName));
-    }
-    __except(EXCEPTION_EXECUTE_HANDLER)
-    {
-        return 0;
-    }
-}
-
 /**
 \brief Gets the address of an API from a name.
 \param name The name of the API, see the command help for more information about valid constructions.
@@ -1527,10 +1515,12 @@ bool valapifromstring(const char* name, duint* value, bool silent)
             duint funcAddress = info.getProcAddress(name);
             if(funcAddress != 0)
             {
-                if(scmp(info.name, "kernel32") && scmp(info.extension, ".dll"))
-                    kernel32 = addrfound.size();
                 if(std::find(addrfound.begin(), addrfound.end(), funcAddress) == addrfound.end())
+                {
+                    if(scmp(info.name, "kernel32") && scmp(info.extension, ".dll"))
+                        kernel32 = addrfound.size();
                     addrfound.push_back(funcAddress);
+                }
             }
         });
 
