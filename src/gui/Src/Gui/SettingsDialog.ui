@@ -115,6 +115,13 @@
          </property>
         </widget>
        </item>
+       <item row="4" column="1">
+        <widget class="QCheckBox" name="chkThreadNameSet">
+         <property name="text">
+          <string>Thread Name Set</string>
+         </property>
+        </widget>
+       </item>
        <item row="8" column="0">
         <widget class="QCheckBox" name="chkDllEntry">
          <property name="text">
@@ -167,7 +174,7 @@
          </property>
         </widget>
        </item>
-       <item row="12" column="0">
+       <item row="4" column="0">
         <widget class="QCheckBox" name="chkDebugStrings">
          <property name="text">
           <string>Debug Strings</string>

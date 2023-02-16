@@ -42,6 +42,7 @@ private slots:
     void on_chkDllUnloadSystem_stateChanged(int arg1);
     void on_chkThreadStart_stateChanged(int arg1);
     void on_chkThreadEnd_stateChanged(int arg1);
+    void on_chkThreadNameSet_stateChanged(int arg1);
     void on_chkDebugStrings_stateChanged(int arg1);
     //Engine tab
     void on_radioUnsigned_clicked();
@@ -188,6 +189,7 @@ private:
         bool eventDllUnloadSystem;
         bool eventThreadStart;
         bool eventThreadEnd;
+        bool eventThreadNameSet;
         bool eventDebugStrings;
         //Engine Tab
         CalcType engineCalcType;
