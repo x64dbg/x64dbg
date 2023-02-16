@@ -2022,6 +2022,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
                 String ThreadNameEscaped = StringUtils::Escape(ThreadName());
                 dprintf(QT_TRANSLATE_NOOP("DBG", "SetThreadName(%X, \"%s\")\n"), nameInfo.dwThreadID, ThreadNameEscaped.c_str());
                 ThreadSetName(nameInfo.dwThreadID, ThreadNameEscaped.c_str());
+                return;
             }
         }
     }
