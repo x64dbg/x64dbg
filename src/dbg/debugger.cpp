@@ -1381,9 +1381,12 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     auto base = (duint)CreateProcessInfo->lpBaseOfImage;
     pDebuggedBase = base; //debugged base = executable
 
-    char DebugFileName[deflen] = "";
-    if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName) && !GetFileNameFromProcessHandle(CreateProcessInfo->hProcess, DebugFileName))
-        strcpy_s(DebugFileName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "??? (GetFileNameFromHandle failed)")));
+    char DebugFileName[MAX_PATH] = "";
+    if(!GetFileNameFromHandle(CreateProcessInfo->hFile, DebugFileName, _countof(DebugFileName)))
+    {
+        if(!GetFileNameFromProcessHandle(CreateProcessInfo->hProcess, DebugFileName, _countof(DebugFileName)))
+            strcpy_s(DebugFileName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "??? (GetFileNameFromHandle failed)")));
+    }
     dprintf(QT_TRANSLATE_NOOP("DBG", "Process Started: %p %s\n"), base, DebugFileName);
 
     char* cmdline = nullptr;
@@ -1412,7 +1415,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
     ModLoad(base, 1, DebugFileName);
 
-    char modname[256] = "";
+    char modname[MAX_MODULE_SIZE] = "";
     if(ModNameFromAddr(base, modname, true))
         BpEnumAll(cbSetModuleBreakpoints, modname, base);
     BpEnumAll(cbSetDLLBreakpoints);
@@ -1720,9 +1723,12 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     void* base = LoadDll->lpBaseOfDll;
 
-    char DLLDebugFileName[deflen] = "";
-    if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName) && !GetFileNameFromModuleHandle(fdProcessInfo->hProcess, HMODULE(base), DLLDebugFileName))
-        strcpy_s(DLLDebugFileName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "??? (GetFileNameFromHandle failed)")));
+    char DLLDebugFileName[MAX_PATH] = "";
+    if(!GetFileNameFromHandle(LoadDll->hFile, DLLDebugFileName, _countof(DLLDebugFileName)))
+    {
+        if(!GetFileNameFromModuleHandle(fdProcessInfo->hProcess, HMODULE(base), DLLDebugFileName, _countof(DLLDebugFileName)))
+            strcpy_s(DLLDebugFileName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "??? (GetFileNameFromHandle failed)")));
+    }
 
     ModLoad((duint)base, 1, DLLDebugFileName);
 
@@ -1887,7 +1893,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     plugincbcall(CB_UNLOADDLL, &callbackInfo);
 
     void* base = UnloadDll->lpBaseOfDll;
-    char modname[256] = "???";
+    char modname[MAX_MODULE_SIZE] = "???";
     if(ModNameFromAddr((duint)base, modname, true))
         BpEnumAll(cbRemoveModuleBreakpoints, modname, duint(base));
     int party = ModGetParty(duint(base));
@@ -2221,7 +2227,7 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
         if((mewow64 && !wow64) || (!mewow64 && wow64))
             continue;
         char szExePath[MAX_PATH] = "";
-        if(GetFileNameFromProcessHandle(hProcess, szExePath))
+        if(GetFileNameFromProcessHandle(hProcess, szExePath, _countof(szExePath)))
             strcpy_s(pe32.szExeFile, szExePath);
         infoList->push_back(pe32);
 

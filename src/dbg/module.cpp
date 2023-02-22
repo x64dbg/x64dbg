@@ -809,11 +809,11 @@ bool ModLoad(duint Base, duint Size, const char* FullPath, bool loadSymbols)
 
         if(fileStart)
         {
-            strcpy_s(file, fileStart + 1);
+            strncpy_s(file, fileStart + 1, _TRUNCATE);
             fileStart[0] = '\0';
         }
         else
-            strcpy_s(file, FullPath);
+            strncpy_s(file, FullPath, _TRUNCATE);
     }
 
     // Calculate module hash from full file name

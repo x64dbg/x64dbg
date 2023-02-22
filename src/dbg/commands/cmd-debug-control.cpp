@@ -38,6 +38,7 @@ static bool skipInt3Stepping(int argc, char* argv[])
 
 bool cbDebugRunInternal(int argc, char* argv[])
 {
+    // Set a singleshot breakpoint at the first parameter
     if(argc >= 2 && !DbgCmdExecDirect(StringUtils::sprintf("bp \"%s\", ss", argv[1]).c_str()))
         return false;
     // Don't "run" twice if the program is already running
@@ -81,7 +82,7 @@ bool cbDebugInit(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Could not open file!"));
         return false;
     }
-    GetFileNameFromHandle(hFile, arg1); //get full path of the file
+    GetFileNameFromHandle(hFile, arg1, _countof(arg1)); //get full path of the file
     dprintf(QT_TRANSLATE_NOOP("DBG", "Debugging: %s\n"), arg1);
     hFile.Close();
 
@@ -240,7 +241,7 @@ bool cbDebugAttach(int argc, char* argv[])
 #endif // _WIN64
         return false;
     }
-    if(!GetFileNameFromProcessHandle(hProcess, szDebuggeePath))
+    if(!GetFileNameFromProcessHandle(hProcess, szDebuggeePath, _countof(szDebuggeePath)))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not get module filename %X!\n"), DWORD(pid));
         return false;

@@ -162,7 +162,7 @@ bool cbInstrVirtualmod(int argc, char* argv[])
         return false;
     }
 
-    char modname[256] = "";
+    char modname[MAX_MODULE_SIZE] = "";
     if(ModNameFromAddr(base, modname, true))
         BpEnumAll(cbSetModuleBreakpoints, modname);
 
