@@ -782,7 +782,7 @@ static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAdd
     _dbg_animatestop(); // Stop animating when a breakpoint is hit
 }
 
-static void cbGenericBreakpoint(BP_TYPE bptype, void* ExceptionAddress = nullptr)
+static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = nullptr)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
@@ -958,19 +958,19 @@ void cbUserBreakpoint()
     cbGenericBreakpoint(BPNORMAL);
 }
 
-void cbHardwareBreakpoint(void* ExceptionAddress)
+void cbHardwareBreakpoint(const void* ExceptionAddress)
 {
     lastExceptionInfo = ((DEBUG_EVENT*)GetDebugData())->u.Exception;
     cbGenericBreakpoint(BPHARDWARE, ExceptionAddress);
 }
 
-void cbMemoryBreakpoint(void* ExceptionAddress)
+void cbMemoryBreakpoint(const void* ExceptionAddress)
 {
     lastExceptionInfo = ((DEBUG_EVENT*)GetDebugData())->u.Exception;
     cbGenericBreakpoint(BPMEMORY, ExceptionAddress);
 }
 
-void cbRunToUserCodeBreakpoint(void* ExceptionAddress)
+void cbRunToUserCodeBreakpoint(const void* ExceptionAddress)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
@@ -1077,7 +1077,7 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
                         ((unsigned char*)&oldbytes)[0], ((unsigned char*)&oldbytes)[1]);
                 BpEnable(bp->addr, BPNORMAL, false);
             }
-            else if(!SetBPX(bp->addr, bp->titantype, (void*)cbUserBreakpoint))
+            else if(!SetBPX(bp->addr, bp->titantype, cbUserBreakpoint))
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Could not set breakpoint %p! (SetBPX)\n"), bp->addr);
         }
         else
@@ -1089,7 +1089,7 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
     {
         duint size = 0;
         MemFindBaseAddr(bp->addr, &size);
-        if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, (void*)cbMemoryBreakpoint))
+        if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, cbMemoryBreakpoint))
             dprintf(QT_TRANSLATE_NOOP("DBG", "Could not set memory breakpoint %p! (SetMemoryBPXEx)\n"), bp->addr);
     }
     break;
@@ -1105,7 +1105,7 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
         int titantype = bp->titantype;
         TITANSETDRX(titantype, drx);
         BpSetTitanType(bp->addr, BPHARDWARE, titantype);
-        if(!SetHardwareBreakPoint(bp->addr, drx, TITANGETTYPE(bp->titantype), TITANGETSIZE(bp->titantype), (void*)cbHardwareBreakpoint))
+        if(!SetHardwareBreakPoint(bp->addr, drx, TITANGETTYPE(bp->titantype), TITANGETSIZE(bp->titantype), cbHardwareBreakpoint))
             dprintf(QT_TRANSLATE_NOOP("DBG", "Could not set hardware breakpoint %p! (SetHardwareBreakPoint)\n"), bp->addr);
         else
             dprintf(QT_TRANSLATE_NOOP("DBG", "Set hardware breakpoint on %p!\n"), bp->addr);
@@ -1192,7 +1192,7 @@ void cbStep()
     else
     {
         dbgtraceexecute(CIP);
-        (bRepeatIn ? StepIntoWow64 : StepOverWrapper)((void*)cbStep);
+        (bRepeatIn ? StepIntoWow64 : StepOverWrapper)(cbStep);
     }
 }
 
@@ -1216,7 +1216,7 @@ static void cbRtrFinalStep(bool checkRepeat = false)
         wait(WAITID_RUN);
     }
     else
-        StepOverWrapper((void*)cbRtrStep);
+        StepOverWrapper(cbRtrStep);
 }
 
 void cbRtrStep()
@@ -1242,18 +1242,18 @@ void cbRtrStep()
             if(cp.Disassemble(cip, data) && cp.IsRet())
                 cbRtrFinalStep(true);
             else
-                StepOverWrapper((void*)cbRtrStep);
+                StepOverWrapper(cbRtrStep);
         }
         else
         {
-            StepOverWrapper((void*)cbRtrStep);
+            StepOverWrapper(cbRtrStep);
         }
     }
     else
-        StepOverWrapper((void*)cbRtrStep);
+        StepOverWrapper(cbRtrStep);
 }
 
-static void cbTraceUniversalConditionalStep(duint cip, void(*stepFunction)(void*), void(*callback)(), bool forceBreakTrace)
+static void __forceinline cbTraceUniversalConditionalStep(duint cip, STEPFUNCTION stepFunction, TITANCBSTEP callback, bool forceBreakTrace)
 {
     PLUG_CB_TRACEEXECUTE info;
     info.cip = cip;
@@ -1317,58 +1317,54 @@ static void cbTraceUniversalConditionalStep(duint cip, void(*stepFunction)(void*
     else //continue tracing
     {
         dbgtraceexecute(cip);
-        stepFunction((void*)callback);
+        stepFunction(callback);
     }
 }
 
-static void cbTraceUniversalConditionalStep(duint cip, bool bStepInto, void(*callback)(), bool forceBreakTrace)
-{
-    auto stepFunction = (bStepInto ? StepIntoWow64 : StepOverWrapper);
-    cbTraceUniversalConditionalStep(cip, stepFunction, callback, forceBreakTrace);
-}
-
-static void cbTraceXConditionalStep(bool bStepInto, void (*callback)())
+void cbTraceXConditionalStep(STEPFUNCTION stepFunction, TITANCBSTEP callback)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
-    cbTraceUniversalConditionalStep(GetContextDataEx(hActiveThread, UE_CIP), bStepInto, callback, false);
+    cbTraceUniversalConditionalStep(GetContextDataEx(hActiveThread, UE_CIP), stepFunction, callback, false);
 }
 
-static void cbTraceXXTraceRecordStep(bool bStepInto, bool bInto, void(*callback)())
+static void cbTraceXXTraceRecordStep(STEPFUNCTION stepFunction, bool bInto, TITANCBSTEP callback)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     auto cip = GetContextDataEx(hActiveThread, UE_CIP);
     auto forceBreakTrace = TraceRecord.getTraceRecordType(cip) != TraceRecordManager::TraceRecordNone && (TraceRecord.getHitCount(cip) == 0) ^ bInto;
-    cbTraceUniversalConditionalStep(cip, bStepInto, callback, forceBreakTrace);
+    cbTraceUniversalConditionalStep(cip, stepFunction, callback, forceBreakTrace);
 }
+
+#define STEP_FUNCTION(into) (into ? StepIntoWow64 : StepOverWrapper)
 
 void cbTraceOverConditionalStep()
 {
-    cbTraceXConditionalStep(false, cbTraceOverConditionalStep);
+    cbTraceXConditionalStep(STEP_FUNCTION(false), cbTraceOverConditionalStep);
 }
 
 void cbTraceIntoConditionalStep()
 {
-    cbTraceXConditionalStep(true, cbTraceIntoConditionalStep);
+    cbTraceXConditionalStep(STEP_FUNCTION(true), cbTraceIntoConditionalStep);
 }
 
 void cbTraceIntoBeyondTraceRecordStep()
 {
-    cbTraceXXTraceRecordStep(true, false, cbTraceIntoBeyondTraceRecordStep);
+    cbTraceXXTraceRecordStep(STEP_FUNCTION(true), false, cbTraceIntoBeyondTraceRecordStep);
 }
 
 void cbTraceOverBeyondTraceRecordStep()
 {
-    cbTraceXXTraceRecordStep(false, false, cbTraceOverBeyondTraceRecordStep);
+    cbTraceXXTraceRecordStep(STEP_FUNCTION(false), false, cbTraceOverBeyondTraceRecordStep);
 }
 
 void cbTraceIntoIntoTraceRecordStep()
 {
-    cbTraceXXTraceRecordStep(true, true, cbTraceIntoIntoTraceRecordStep);
+    cbTraceXXTraceRecordStep(STEP_FUNCTION(true), true, cbTraceIntoIntoTraceRecordStep);
 }
 
 void cbTraceOverIntoTraceRecordStep()
 {
-    cbTraceXXTraceRecordStep(false, true, cbTraceOverIntoTraceRecordStep);
+    cbTraceXXTraceRecordStep(STEP_FUNCTION(false), true, cbTraceOverIntoTraceRecordStep);
 }
 
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
@@ -1669,7 +1665,7 @@ static DWORD WINAPI cbInitializationScriptThread(void*)
     return 0;
 }
 
-static void cbSystemBreakpoint(void* ExceptionData) // TODO: System breakpoint event shouldn't be dropped
+static void cbSystemBreakpoint(const void* ExceptionData) // TODO: System breakpoint event shouldn't be dropped
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
 
@@ -2805,16 +2801,16 @@ static void debugLoopFunction(INIT_STRUCT* init)
     init->event = nullptr;
 
     //set custom handlers
-    SetCustomHandler(UE_CH_CREATEPROCESS, (void*)cbCreateProcess);
-    SetCustomHandler(UE_CH_EXITPROCESS, (void*)cbExitProcess);
-    SetCustomHandler(UE_CH_CREATETHREAD, (void*)cbCreateThread);
-    SetCustomHandler(UE_CH_EXITTHREAD, (void*)cbExitThread);
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, (void*)cbSystemBreakpoint);
-    SetCustomHandler(UE_CH_LOADDLL, (void*)cbLoadDll);
-    SetCustomHandler(UE_CH_UNLOADDLL, (void*)cbUnloadDll);
-    SetCustomHandler(UE_CH_OUTPUTDEBUGSTRING, (void*)cbOutputDebugString);
-    SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (void*)cbException);
-    SetCustomHandler(UE_CH_DEBUGEVENT, (void*)cbDebugEvent);
+    SetCustomHandler(UE_CH_CREATEPROCESS, (TITANCBCH)cbCreateProcess);
+    SetCustomHandler(UE_CH_EXITPROCESS, (TITANCBCH)cbExitProcess);
+    SetCustomHandler(UE_CH_CREATETHREAD, (TITANCBCH)cbCreateThread);
+    SetCustomHandler(UE_CH_EXITTHREAD, (TITANCBCH)cbExitThread);
+    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, (TITANCBCH)cbSystemBreakpoint);
+    SetCustomHandler(UE_CH_LOADDLL, (TITANCBCH)cbLoadDll);
+    SetCustomHandler(UE_CH_UNLOADDLL, (TITANCBCH)cbUnloadDll);
+    SetCustomHandler(UE_CH_OUTPUTDEBUGSTRING, (TITANCBCH)cbOutputDebugString);
+    SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (TITANCBCH)cbException);
+    SetCustomHandler(UE_CH_DEBUGEVENT, (TITANCBCH)cbDebugEvent);
 
     //inform GUI we started without problems
     GuiSetDebugState(initialized);
@@ -2849,7 +2845,7 @@ static void debugLoopFunction(INIT_STRUCT* init)
     //run debug loop (returns when process debugging is stopped)
     if(init->attach)
     {
-        if(AttachDebugger(init->pid, true, fdProcessInfo, (void*)cbAttachDebugger) == false)
+        if(AttachDebugger(init->pid, true, fdProcessInfo, cbAttachDebugger) == false)
         {
             String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
             dprintf(QT_TRANSLATE_NOOP("DBG", "Attach to process failed! GetLastError() = %s\n"), error.c_str());
@@ -2992,7 +2988,7 @@ bool dbgrestartadmin()
     return false;
 }
 
-void StepIntoWow64(LPVOID traceCallBack)
+void StepIntoWow64(TITANCBSTEP traceCallBack)
 {
 #ifndef _WIN64
     //NOTE: this workaround has the potential of detecting x64dbg while tracing, disable it if that happens
@@ -3022,7 +3018,7 @@ void StepIntoWow64(LPVOID traceCallBack)
     }
 }
 
-void StepOverWrapper(LPVOID traceCallBack)
+void StepOverWrapper(TITANCBSTEP traceCallBack)
 {
     if(bPausedOnException && exceptionDispatchAddr && !IsBPXEnabled(exceptionDispatchAddr))
     {

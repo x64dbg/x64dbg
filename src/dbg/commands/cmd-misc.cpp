@@ -145,7 +145,7 @@ bool cbDebugLoadLib(int argc, char* argv[])
         return false;
     }
 
-    if(!SetBPX(ASMAddr + sizeof(loader) - 1, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, (void*)cbDebugLoadLibBPX))
+    if(!SetBPX(ASMAddr + sizeof(loader) - 1, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, cbDebugLoadLibBPX))
     {
         MemFreeRemote(ASMAddr);
         dputs(QT_TRANSLATE_NOOP("DBG", "Error: couldn't SetBPX"));
@@ -244,7 +244,7 @@ bool cbDebugFreeLib(int argc, char* argv[])
         return false;
     }
 
-    if(!SetBPX(ASMAddr + sizeof(loader) - 1, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, (void*)cbDebugFreeLibBPX))
+    if(!SetBPX(ASMAddr + sizeof(loader) - 1, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, cbDebugFreeLibBPX))
     {
         MemFreeRemote(ASMAddr);
         dputs(QT_TRANSLATE_NOOP("DBG", "Error: couldn't SetBPX"));

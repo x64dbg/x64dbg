@@ -357,7 +357,7 @@ bool cbDebugPause(int argc, char* argv[])
         return false;
     }
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    if(!SetBPX(CIP, UE_BREAKPOINT, (void*)cbPauseBreakpoint))
+    if(!SetBPX(CIP, UE_BREAKPOINT, cbPauseBreakpoint))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting breakpoint at %p! (SetBPX)\n"), CIP);
         if(ResumeThread(hActiveThread) == -1)
@@ -403,7 +403,7 @@ bool cbDebugStepInto(int argc, char* argv[])
         return true;
     if(skipInt3Stepping(1, argv) && !--steprepeat)
         return true;
-    StepIntoWow64((void*)cbStep);
+    StepIntoWow64(cbStep);
     // History
     HistoryAdd();
     dbgsetsteprepeat(true, steprepeat);
@@ -431,7 +431,7 @@ bool cbDebugStepOver(int argc, char* argv[])
         return true;
     if(skipInt3Stepping(1, argv) && !--steprepeat)
         return true;
-    StepOverWrapper((void*)cbStep);
+    StepOverWrapper(cbStep);
     // History
     HistoryClear();
     dbgsetsteprepeat(false, steprepeat);
@@ -459,7 +459,7 @@ bool cbDebugStepOut(int argc, char* argv[])
         return true;
     HistoryClear();
     mRtrPreviousCSP = GetContextDataEx(hActiveThread, UE_CSP);
-    StepOverWrapper((void*)cbRtrStep);
+    StepOverWrapper(cbRtrStep);
     dbgsetsteprepeat(false, steprepeat);
     return cbDebugRunInternal(1, argv);
 }

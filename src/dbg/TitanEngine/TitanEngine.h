@@ -326,6 +326,15 @@
 #define CONTEXT_EXTENDED_REGISTERS 0
 #endif
 
+typedef void(*TITANCALLBACKARG)(const void*);
+typedef void(*TITANCALLBACK)();
+
+typedef TITANCALLBACK TITANCBCH;
+typedef TITANCALLBACK TITANCBSTEP;
+typedef TITANCALLBACK TITANCBSOFTBP;
+typedef TITANCALLBACKARG TITANCBHWBP;
+typedef TITANCALLBACKARG TITANCBMEMBP;
+
 typedef struct
 {
     DWORD PE32Offset;
@@ -838,14 +847,14 @@ __declspec(dllexport) void TITCALL SetBPXOptions(long DefaultBreakPointType);
 __declspec(dllexport) bool TITCALL IsBPXEnabled(ULONG_PTR bpxAddress);
 __declspec(dllexport) bool TITCALL EnableBPX(ULONG_PTR bpxAddress);
 __declspec(dllexport) bool TITCALL DisableBPX(ULONG_PTR bpxAddress);
-__declspec(dllexport) bool TITCALL SetBPX(ULONG_PTR bpxAddress, DWORD bpxType, LPVOID bpxCallBack);
+__declspec(dllexport) bool TITCALL SetBPX(ULONG_PTR bpxAddress, DWORD bpxType, TITANCBSOFTBP bpxCallBack);
 __declspec(dllexport) bool TITCALL DeleteBPX(ULONG_PTR bpxAddress);
 __declspec(dllexport) bool TITCALL SafeDeleteBPX(ULONG_PTR bpxAddress);
 __declspec(dllexport) bool TITCALL SetAPIBreakPoint(const char* szDLLName, const char* szAPIName, DWORD bpxType, DWORD bpxPlace, LPVOID bpxCallBack);
 __declspec(dllexport) bool TITCALL DeleteAPIBreakPoint(const char* szDLLName, const char* szAPIName, DWORD bpxPlace);
 __declspec(dllexport) bool TITCALL SafeDeleteAPIBreakPoint(const char* szDLLName, const char* szAPIName, DWORD bpxPlace);
 __declspec(dllexport) bool TITCALL SetMemoryBPX(ULONG_PTR MemoryStart, SIZE_T SizeOfMemory, LPVOID bpxCallBack);
-__declspec(dllexport) bool TITCALL SetMemoryBPXEx(ULONG_PTR MemoryStart, SIZE_T SizeOfMemory, DWORD BreakPointType, bool RestoreOnHit, LPVOID bpxCallBack);
+__declspec(dllexport) bool TITCALL SetMemoryBPXEx(ULONG_PTR MemoryStart, SIZE_T SizeOfMemory, DWORD BreakPointType, bool RestoreOnHit, TITANCBMEMBP bpxCallBack);
 __declspec(dllexport) bool TITCALL RemoveMemoryBPX(ULONG_PTR MemoryStart, SIZE_T SizeOfMemory);
 __declspec(dllexport) bool TITCALL GetContextFPUDataEx(HANDLE hActiveThread, void* FPUSaveArea);
 __declspec(dllexport) void TITCALL Getx87FPURegisters(x87FPURegister_t x87FPURegisters[8], TITAN_ENGINE_CONTEXT_t* titcontext);
@@ -882,15 +891,15 @@ __declspec(dllexport) ULONG_PTR TITCALL GetJumpDestinationEx(HANDLE hProcess, UL
 __declspec(dllexport) ULONG_PTR TITCALL GetJumpDestination(HANDLE hProcess, ULONG_PTR InstructionAddress);
 __declspec(dllexport) bool TITCALL IsJumpGoingToExecuteEx(HANDLE hProcess, HANDLE hThread, ULONG_PTR InstructionAddress, ULONG_PTR RegFlags);
 __declspec(dllexport) bool TITCALL IsJumpGoingToExecute();
-__declspec(dllexport) void TITCALL SetCustomHandler(DWORD ExceptionId, LPVOID CallBack);
+__declspec(dllexport) void TITCALL SetCustomHandler(DWORD ExceptionId, TITANCBCH CallBack);
 __declspec(dllexport) void TITCALL ForceClose();
-__declspec(dllexport) void TITCALL StepInto(LPVOID traceCallBack);
-__declspec(dllexport) void TITCALL StepOver(LPVOID traceCallBack);
-__declspec(dllexport) void TITCALL StepOut(LPVOID StepOut, bool StepFinal);
-__declspec(dllexport) void TITCALL SingleStep(DWORD StepCount, LPVOID StepCallBack);
+__declspec(dllexport) void TITCALL StepInto(TITANCBSTEP traceCallBack);
+__declspec(dllexport) void TITCALL StepOver(TITANCBSTEP traceCallBack);
+__declspec(dllexport) void TITCALL StepOut(TITANCBSTEP StepOut, bool StepFinal);
+__declspec(dllexport) void TITCALL SingleStep(DWORD StepCount, TITANCBSTEP StepCallBack);
 __declspec(dllexport) bool TITCALL GetUnusedHardwareBreakPointRegister(LPDWORD RegisterIndex);
-__declspec(dllexport) bool TITCALL SetHardwareBreakPointEx(HANDLE hActiveThread, ULONG_PTR bpxAddress, DWORD IndexOfRegister, DWORD bpxType, DWORD bpxSize, LPVOID bpxCallBack, LPDWORD IndexOfSelectedRegister);
-__declspec(dllexport) bool TITCALL SetHardwareBreakPoint(ULONG_PTR bpxAddress, DWORD IndexOfRegister, DWORD bpxType, DWORD bpxSize, LPVOID bpxCallBack);
+__declspec(dllexport) bool TITCALL SetHardwareBreakPointEx(HANDLE hActiveThread, ULONG_PTR bpxAddress, DWORD IndexOfRegister, DWORD bpxType, DWORD bpxSize, TITANCBHWBP bpxCallBack, LPDWORD IndexOfSelectedRegister);
+__declspec(dllexport) bool TITCALL SetHardwareBreakPoint(ULONG_PTR bpxAddress, DWORD IndexOfRegister, DWORD bpxType, DWORD bpxSize, TITANCBHWBP bpxCallBack);
 __declspec(dllexport) bool TITCALL DeleteHardwareBreakPoint(DWORD IndexOfRegister);
 __declspec(dllexport) bool TITCALL RemoveAllBreakPoints(DWORD RemoveOption);
 __declspec(dllexport) PROCESS_INFORMATION* TITCALL TitanGetProcessInformation();
@@ -898,12 +907,12 @@ __declspec(dllexport) STARTUPINFOW* TITCALL TitanGetStartupInformation();
 __declspec(dllexport) void TITCALL DebugLoop();
 __declspec(dllexport) void TITCALL SetDebugLoopTimeOut(DWORD TimeOut);
 __declspec(dllexport) void TITCALL SetNextDbgContinueStatus(DWORD SetDbgCode);
-__declspec(dllexport) bool TITCALL AttachDebugger(DWORD ProcessId, bool KillOnExit, LPVOID DebugInfo, LPVOID CallBack);
+__declspec(dllexport) bool TITCALL AttachDebugger(DWORD ProcessId, bool KillOnExit, LPVOID DebugInfo, TITANCALLBACK CallBack);
 __declspec(dllexport) bool TITCALL DetachDebugger(DWORD ProcessId);
 __declspec(dllexport) bool TITCALL DetachDebuggerEx(DWORD ProcessId);
 __declspec(dllexport) void TITCALL DebugLoopEx(DWORD TimeOut);
-__declspec(dllexport) void TITCALL AutoDebugEx(const char* szFileName, bool ReserveModuleBase, const char* szCommandLine, const char* szCurrentFolder, DWORD TimeOut, LPVOID EntryCallBack);
-__declspec(dllexport) void TITCALL AutoDebugExW(const wchar_t* szFileName, bool ReserveModuleBase, const wchar_t* szCommandLine, const wchar_t* szCurrentFolder, DWORD TimeOut, LPVOID EntryCallBack);
+__declspec(dllexport) void TITCALL AutoDebugEx(const char* szFileName, bool ReserveModuleBase, const char* szCommandLine, const char* szCurrentFolder, DWORD TimeOut, TITANCBSOFTBP EntryCallBack);
+__declspec(dllexport) void TITCALL AutoDebugExW(const wchar_t* szFileName, bool ReserveModuleBase, const wchar_t* szCommandLine, const wchar_t* szCurrentFolder, DWORD TimeOut, TITANCBSOFTBP EntryCallBack);
 __declspec(dllexport) bool TITCALL IsFileBeingDebugged();
 __declspec(dllexport) void TITCALL SetErrorModel(bool DisplayErrorMessages);
 // TitanEngine.FindOEP.functions:
