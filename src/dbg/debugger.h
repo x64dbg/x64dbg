@@ -87,7 +87,7 @@ bool dbgcmdnew(const char* name, CBCOMMAND cbCommand, bool debugonly);
 bool dbgcmddel(const char* name);
 bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::string>* commandList, std::vector<std::string>* winTextList);
 bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error);
-bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error, HANDLE hProcess = NULL);
+bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error, HANDLE hProcess);
 cmdline_qoutes_placement_t getqoutesplacement(const char* cmdline);
 void dbgstartscriptthread(CBPLUGINSCRIPT cbScript);
 duint dbggetdbgevents();

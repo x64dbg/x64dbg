@@ -2224,14 +2224,13 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
         if(GetFileNameFromProcessHandle(hProcess, szExePath))
             strcpy_s(pe32.szExeFile, szExePath);
         infoList->push_back(pe32);
-        //
-        char* cmdline;
 
         if(!dbggetwintext(winTextList, pe32.th32ProcessID))
             winTextList->push_back("");
-
-        if(!dbggetcmdline(&cmdline, NULL, hProcess))
-            commandList->push_back("ARG_GET_ERROR");
+        cmdline_error_t err = {};
+        char* cmdline = nullptr;
+        if(!dbggetcmdline(&cmdline, &err, hProcess))
+            commandList->push_back(StringUtils::sprintf("ARG_GET_ERROR:%d:%p", err.type, err.addr));
         else
         {
             cmdline_qoutes_placement_t posEnum = getqoutesplacement(cmdline);
@@ -2363,7 +2362,7 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
     return true;
 }
 
-static bool getcommandlineaddr(duint* addr, cmdline_error_t* cmd_line_error, HANDLE hProcess = NULL)
+static bool getcommandlineaddr(duint* addr, cmdline_error_t* cmd_line_error, HANDLE hProcess)
 {
     duint pprocess_parameters;
 
@@ -2501,7 +2500,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
         cmd_line_error = &cmd_line_error_aux;
 
     // Get the command line address
-    if(!getcommandlineaddr(&cmd_line_error->addr, cmd_line_error))
+    if(!getcommandlineaddr(&cmd_line_error->addr, cmd_line_error, fdProcessInfo->hProcess))
         return false;
     auto command_line_addr = cmd_line_error->addr;
 
@@ -2561,7 +2560,7 @@ bool dbgsetcmdline(const char* cmd_line, cmdline_error_t* cmd_line_error)
     return true;
 }
 
-bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error, HANDLE hProcess /* = NULL */)
+bool dbggetcmdline(char** cmd_line, cmdline_error_t* cmd_line_error, HANDLE hProcess)
 {
     UNICODE_STRING CommandLine;
     Memory<wchar_t*> wstr_cmd;

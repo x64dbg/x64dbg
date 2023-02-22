@@ -631,7 +631,7 @@ bool cbDebugGetCmdline(int argc, char* argv[])
     char* cmd_line;
     cmdline_error_t cmdline_error = { (cmdline_error_type_t)0, 0 };
 
-    if(!dbggetcmdline(&cmd_line, &cmdline_error))
+    if(!dbggetcmdline(&cmd_line, &cmdline_error, fdProcessInfo->hProcess))
     {
         showcommandlineerror(&cmdline_error);
         return false;

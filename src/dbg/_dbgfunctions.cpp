@@ -143,7 +143,7 @@ static bool _getcmdline(char* cmd_line, size_t* cbsize)
     if(!cmd_line && !cbsize)
         return false;
     char* cmdline;
-    if(!dbggetcmdline(&cmdline, NULL))
+    if(!dbggetcmdline(&cmdline, NULL, fdProcessInfo->hProcess))
         return false;
     if(!cmd_line && cbsize)
         *cbsize = strlen(cmdline) + sizeof(char);
