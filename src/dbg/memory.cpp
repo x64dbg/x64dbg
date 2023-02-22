@@ -275,6 +275,8 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
     }
 }
 
+#define MAX_HEAPS 1000
+
 static void ProcessSystemPages(std::vector<MEMPAGE> & pageVector)
 {
     THREADLIST threadList;
@@ -293,6 +295,18 @@ static void ProcessSystemPages(std::vector<MEMPAGE> & pageVector)
         // The stack will be a specific range only, not always the base address
         stackAddrs.push_back((duint)tib.StackLimit);
     }
+
+    ULONG NumberOfHeaps = 0;
+    MemRead(pebBase + offsetof(PEB, NumberOfHeaps), &NumberOfHeaps, sizeof(NumberOfHeaps));
+    duint ProcessHeapsPtr = 0;
+    MemRead(pebBase + offsetof(PEB, ProcessHeaps), &ProcessHeapsPtr, sizeof(ProcessHeapsPtr));
+
+    duint ProcessHeaps[MAX_HEAPS] = {};
+    auto HeapCount = min(_countof(ProcessHeaps), NumberOfHeaps);
+    MemRead(ProcessHeapsPtr, ProcessHeaps, sizeof(duint) * HeapCount);
+    std::unordered_map<duint, uint32_t> processHeapIds;
+    for(uint32_t i = 0; i < HeapCount; i++)
+        processHeapIds.emplace(ProcessHeaps[i], i);
 
     for(auto & page : pageVector)
     {
@@ -361,6 +375,13 @@ static void ProcessSystemPages(std::vector<MEMPAGE> & pageVector)
                 sprintf_s(temp, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Stack (%s)")), tidStr.c_str());
                 appendInfo(temp);
             }
+        }
+
+        auto heapItr = processHeapIds.find(pageBase);
+        if(heapItr != processHeapIds.end())
+        {
+            sprintf_s(temp, "Heap (ID %u)", heapItr->second);
+            appendInfo(temp);
         }
     }
 
