@@ -37,9 +37,19 @@ void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
     // Duplicate the debug thread handle -> thread handle
     DuplicateHandle(GetCurrentProcess(), CreateThread->hThread, GetCurrentProcess(), &curInfo.Handle, 0, FALSE, DUPLICATE_SAME_ACCESS);
 
+    typedef HRESULT(WINAPI * GETTHREADDESCRIPTION)(HANDLE hThread, PWSTR * ppszThreadDescription);
+    static GETTHREADDESCRIPTION _GetThreadDescription = (GETTHREADDESCRIPTION)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetThreadDescription");
+    PWSTR threadDescription = nullptr;
+
     // The first thread (#0) is always the main program thread
     if(curInfo.ThreadNumber <= 0)
         strcpy_s(curInfo.threadName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Main Thread")));
+    else if(_GetThreadDescription && SUCCEEDED(_GetThreadDescription(curInfo.Handle, &threadDescription)) && threadDescription)
+    {
+        if(threadDescription[0])
+            strncpy_s(curInfo.threadName, StringUtils::Escape(StringUtils::Utf16ToUtf8(threadDescription)).c_str(), _TRUNCATE);
+        LocalFree(threadDescription);
+    }
     else
         curInfo.threadName[0] = 0;
 
@@ -126,6 +136,17 @@ void ThreadGetList(THREADLIST* List)
             List->CurrentThread = index;
 
         memcpy(&List->list[index].BasicInfo, &itr.second, sizeof(THREADINFO));
+
+        typedef HRESULT(WINAPI * GETTHREADDESCRIPTION)(HANDLE hThread, PWSTR * ppszThreadDescription);
+        static GETTHREADDESCRIPTION _GetThreadDescription = (GETTHREADDESCRIPTION)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetThreadDescription");
+        PWSTR threadDescription = nullptr;
+        if(_GetThreadDescription && SUCCEEDED(_GetThreadDescription(threadHandle, &threadDescription)) && threadDescription)
+        {
+            // Thread name may have changed
+            if(threadDescription[0])
+                strncpy_s(List->list[index].BasicInfo.threadName, StringUtils::Escape(StringUtils::Utf16ToUtf8(threadDescription)).c_str(), _TRUNCATE);
+            LocalFree(threadDescription);
+        }
 
         List->list[index].ThreadCip = GetContextDataEx(threadHandle, UE_CIP);
         List->list[index].SuspendCount = ThreadGetSuspendCount(threadHandle);
