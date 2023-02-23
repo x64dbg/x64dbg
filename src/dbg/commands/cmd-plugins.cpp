@@ -25,7 +25,7 @@ static DWORD WINAPI scyllaThread(void* lpParam)
         FreeLibrary(hScylla);
         return 0;
     }
-    auto cip = GetContextDataEx(fdProcessInfo->hThread, UE_CIP);
+    auto cip = GetContextDataEx(hActiveThread, UE_CIP);
     auto cipModBase = ModBaseFromAddr(cip);
     ScyllaStartGui(fdProcessInfo->dwProcessId, (HINSTANCE)cipModBase, cip);
     FreeLibrary(hScylla);

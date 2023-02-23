@@ -77,7 +77,7 @@ static void cbDebugLoadLibBPX()
     MemFreeRemote(ASMAddr);
     ThreadResumeAll();
     //update GUI
-    DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+    DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
     //lock
     lock(WAITID_RUN);
     dbgsetforeground();
@@ -177,7 +177,7 @@ static void cbDebugFreeLibBPX()
     MemFreeRemote(ASMAddr);
     ThreadResumeAll();
     //update GUI
-    DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+    DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
     //lock
     lock(WAITID_RUN);
     dbgsetforeground();

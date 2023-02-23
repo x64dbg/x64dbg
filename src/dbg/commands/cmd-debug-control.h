@@ -2,7 +2,13 @@
 
 #include "command.h"
 
-bool cbDebugRunInternal(int argc, char* argv[]);
+enum HistoryAction
+{
+    history_clear,
+    history_record,
+};
+
+bool cbDebugRunInternal(int argc, char* argv[], HistoryAction history);
 bool cbDebugInit(int argc, char* argv[]);
 bool cbDebugStop(int argc, char* argv[]);
 bool cbDebugAttach(int argc, char* argv[]);
@@ -22,3 +28,5 @@ bool cbDebugStepOut(int argc, char* argv[]);
 bool cbDebugeStepOut(int argc, char* argv[]);
 bool cbDebugSkip(int argc, char* argv[]);
 bool cbInstrInstrUndo(int argc, char* argv[]);
+bool cbDebugStepUserInto(int argc, char* argv[]);
+bool cbDebugStepSystemInto(int argc, char* argv[]);

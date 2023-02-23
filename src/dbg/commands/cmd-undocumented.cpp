@@ -364,7 +364,7 @@ bool cbInstrVisualize(int argc, char* argv[])
             BpClear();
             BookmarkClear();
             LabelClear();
-            SetContextDataEx(fdProcessInfo->hThread, UE_CIP, addr);
+            SetContextDataEx(hActiveThread, UE_CIP, addr);
             if(end)
                 BpNew(end, true, false, 0, BPNORMAL, 0, nullptr);
             if(jumpback)
@@ -416,7 +416,7 @@ bool cbInstrVisualize(int argc, char* argv[])
         FunctionAdd(start, end, false);
         BpClear();
         BookmarkClear();
-        SetContextDataEx(fdProcessInfo->hThread, UE_CIP, start);
+        SetContextDataEx(hActiveThread, UE_CIP, start);
         DebugUpdateGuiAsync(start, false);
     }
     return true;

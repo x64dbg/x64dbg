@@ -8,6 +8,26 @@
 #include "debugger.h"
 #include <deque>
 
+/**
+ * @brief The class used to hold history context.
+**/
+class HistoryContext
+{
+public:
+    HistoryContext();
+    void restore();
+
+protected:
+    TITAN_ENGINE_CONTEXT_t registers;
+    struct ChangedData
+    {
+        duint addr;
+        char oldvalue[32];
+    };
+    std::vector<ChangedData> ChangedLocation;
+    bool invalid;
+};
+
 static const duint HistoryMaxCount = 4096;
 static std::deque<HistoryContext> history;
 
@@ -66,16 +86,12 @@ void HistoryContext::restore()
     }
 }
 
-HistoryContext::~HistoryContext()
-{
-}
-
-void HistoryAdd()
+void HistoryRecord()
 {
     EXCLUSIVE_ACQUIRE(LockHistory);
     if(history.size() > HistoryMaxCount)
         history.pop_front();
-    history.emplace_back();
+    history.emplace_back(); // the constructor records the context
 }
 
 void HistoryRestore()

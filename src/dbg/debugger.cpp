@@ -94,7 +94,9 @@ duint DbgEvents = 0;
 duint maxSkipExceptionCount = 0;
 HANDLE mProcHandle;
 HANDLE mForegroundHandle;
-duint mRtrPreviousCSP = 0;
+duint gRtrPreviousCSP = 0;
+static bool bAbortStepping = false;
+static TITANCBSTEP gStepIntoPartyCallback;
 HANDLE hDebugLoopThread = nullptr;
 DWORD dwDebugFlags = 0;
 
@@ -152,6 +154,19 @@ void dbgforcebreaktrace()
 {
     if(traceState.IsActive())
         traceState.SetForceBreakTrace();
+}
+
+bool dbgstepactive()
+{
+    return stepRepeat > 1 || gRtrPreviousCSP != 0 || gStepIntoPartyCallback != nullptr;
+}
+
+void dbgforcebreakstep()
+{
+    if(dbgstepactive())
+    {
+        bAbortStepping = true;
+    }
 }
 
 bool dbgsettracelogfile(const char* fileName)
@@ -244,7 +259,8 @@ void cbDebuggerPaused()
     // Clear tracing conditions
     dbgcleartracestate();
     dbgClearRtuBreakpoints();
-    mRtrPreviousCSP = 0;
+    bAbortStepping = false;
+    stepRepeat = 0;
     // Trace record is not handled by this function currently.
     // Signal thread switch warning
     if(settingboolget("Engine", "HardcoreThreadSwitchWarning"))
@@ -549,13 +565,13 @@ void DebugUpdateTitleAsync(duint disasm_addr, bool analyzeThreadSwitch)
     DebugUpdateTitleTask.WakeUp(disasm_addr, analyzeThreadSwitch);
 }
 
-void DebugUpdateGuiSetStateAsync(duint disasm_addr, bool stack, DBGSTATE state)
+void DebugUpdateGuiSetStateAsync(duint disasm_addr, DBGSTATE state)
 {
     // call paused routine to clean up various tracing states.
     if(state == paused)
         cbDebuggerPaused();
     GuiSetDebugStateAsync(state);
-    DebugUpdateGuiAsync(disasm_addr, stack);
+    DebugUpdateGuiAsync(disasm_addr, true);
 }
 
 void DebugUpdateBreakpointsViewAsync()
@@ -727,7 +743,7 @@ void cbPauseBreakpoint()
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
     DeleteBPX(CIP);
-    DebugUpdateGuiSetStateAsync(CIP, true);
+    DebugUpdateGuiSetStateAsync(CIP, paused);
     _dbg_animatestop(); // Stop animating when paused
     // Trace record
     dbgtraceexecute(CIP);
@@ -775,7 +791,7 @@ static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAdd
             break;
         }
     }
-    DebugUpdateGuiSetStateAsync(CIP, true);
+    DebugUpdateGuiSetStateAsync(CIP, paused);
     // Plugin callback
     PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -828,7 +844,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
             // release the breakpoint lock to prevent deadlocks during the wait
             EXCLUSIVE_RELEASE();
             dputs(QT_TRANSLATE_NOOP("DBG", "Breakpoint reached not in list!"));
-            DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+            DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
             //lock
             lock(WAITID_RUN);
             // Plugin callback
@@ -980,7 +996,7 @@ void cbRunToUserCodeBreakpoint(const void* ExceptionAddress)
     // Trace record
     dbgtraceexecute(CIP);
     // Update GUI
-    DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+    DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
     // Plugin callback
     PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
     plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
@@ -1171,9 +1187,9 @@ void cbStep()
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    if(!stepRepeat || !--stepRepeat)
+    if(bAbortStepping || !stepRepeat || !--stepRepeat)
     {
-        DebugUpdateGuiSetStateAsync(CIP, true);
+        DebugUpdateGuiSetStateAsync(CIP, paused);
         // Trace record
         dbgtraceexecute(CIP);
         // Plugin interaction
@@ -1196,16 +1212,15 @@ void cbStep()
     }
 }
 
-static void cbRtrFinalStep(bool checkRepeat = false)
+static void cbRtrFinalStep(bool checkRepeat)
 {
-    if(!checkRepeat || !stepRepeat || !--stepRepeat)
+    if(bAbortStepping || !checkRepeat || !stepRepeat || !--stepRepeat)
     {
-        dbgcleartracestate();
         hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
         duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
         // Trace record
         dbgtraceexecute(CIP);
-        DebugUpdateGuiSetStateAsync(CIP, true);
+        DebugUpdateGuiSetStateAsync(CIP, paused);
         //lock
         lock(WAITID_RUN);
         // Plugin callback
@@ -1228,10 +1243,11 @@ void cbRtrStep()
     duint csp = GetContextDataEx(hActiveThread, UE_CSP);
     MemRead(cip, data, sizeof(data));
     dbgtraceexecute(cip);
-    if(mRtrPreviousCSP <= csp) //"Run until return" should break only if RSP is bigger than or equal to current value
+    bool reachedReturn = false;
+    if(gRtrPreviousCSP <= csp) //"Run until return" should break only if RSP is bigger than or equal to current value
     {
-        if(data[0] == 0xC3 || data[0] == 0xC2) //retn instruction
-            cbRtrFinalStep(true);
+        if(data[0] == 0xC3 || data[0] == 0xC2)  //retn instruction
+            reachedReturn = true;
         else if(data[0] == 0x26 || data[0] == 0x36 || data[0] == 0x2e || data[0] == 0x3e || (data[0] >= 0x64 && data[0] <= 0x67) || data[0] == 0xf2 || data[0] == 0xf3 //instruction prefixes
 #ifdef _WIN64
                 || (data[0] >= 0x40 && data[0] <= 0x4f)
@@ -1240,17 +1256,20 @@ void cbRtrStep()
         {
             Zydis cp;
             if(cp.Disassemble(cip, data) && cp.IsRet())
-                cbRtrFinalStep(true);
-            else
-                StepOverWrapper(cbRtrStep);
-        }
-        else
-        {
-            StepOverWrapper(cbRtrStep);
+                reachedReturn = true;
         }
     }
+
+    if(reachedReturn || bAbortStepping)
+    {
+        // Clean up internal state
+        gRtrPreviousCSP = 0;
+        cbRtrFinalStep(true);
+    }
     else
+    {
         StepOverWrapper(cbRtrStep);
+    }
 }
 
 static void __forceinline cbTraceUniversalConditionalStep(duint cip, STEPFUNCTION stepFunction, TITANCBSTEP callback, bool forceBreakTrace)
@@ -1312,7 +1331,7 @@ static void __forceinline cbTraceUniversalConditionalStep(duint cip, STEPFUNCTIO
 #else //x86
         dprintf(QT_TRANSLATE_NOOP("DBG", "Trace finished after %u steps!\n"), steps);
 #endif //_WIN64
-        cbRtrFinalStep();
+        cbRtrFinalStep(false); // TODO: replace with generic pause function
     }
     else //continue tracing
     {
@@ -1516,7 +1535,7 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     if(breakHere)
     {
         // lock
-        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
         lock(WAITID_RUN);
     }
     // plugin callback
@@ -1568,7 +1587,7 @@ static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
         //update memory map
         MemUpdateMap();
         //update GUI
-        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
         //lock
         lock(WAITID_RUN);
         // Plugin callback
@@ -1627,7 +1646,7 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
     if(settingboolget("Events", "ThreadEnd"))
     {
         //update GUI
-        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
         //lock
         lock(WAITID_RUN);
         // Plugin callback
@@ -1675,7 +1694,7 @@ static void cbSystemBreakpoint(const void* ExceptionData) // TODO: System breakp
     // Update GUI (this should be the first triggered event)
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     GuiDumpAt(MemFindBaseAddr(cip, 0, true)); //dump somewhere
-    DebugUpdateGuiSetStateAsync(cip, true, running);
+    DebugUpdateGuiSetStateAsync(cip, running);
 
     MemInitRemoteProcessCookie(cookie.cookie);
     GuiUpdateAllViews();
@@ -1869,7 +1888,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     else if(!isNtdll && (settingboolget("Events", "DllLoad") && party != mod_system || settingboolget("Events", "DllLoadSystem") && party == mod_system))
     {
         //update GUI
-        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
         //lock
         lock(WAITID_RUN);
         // Plugin callback
@@ -1903,7 +1922,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     else if(settingboolget("Events", "DllUnload") && party != mod_system || settingboolget("Events", "DllUnloadSystem") && party == mod_system)
     {
         //update GUI
-        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
         //lock
         lock(WAITID_RUN);
         // Plugin callback
@@ -1951,7 +1970,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
     if(settingboolget("Events", "DebugStrings"))
     {
         //update GUI
-        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+        DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
         //lock
         lock(WAITID_RUN);
         // Plugin callback
@@ -2048,7 +2067,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     if(filter.breakOn == ExceptionBreakOn::DoNotBreak)
         return;
 
-    DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+    DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
     //lock
     lock(WAITID_RUN);
     bPausedOnException = true;
@@ -2092,7 +2111,7 @@ static void cbAttachDebugger()
     // Update GUI (this should be the first triggered event)
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
     GuiDumpAt(MemFindBaseAddr(cip, 0, true)); //dump somewhere
-    DebugUpdateGuiSetStateAsync(cip, true, running);
+    DebugUpdateGuiSetStateAsync(cip, running);
 
     MemInitRemoteProcessCookie(cookie.cookie);
     GuiUpdateAllViews();
@@ -2988,7 +3007,7 @@ bool dbgrestartadmin()
     return false;
 }
 
-void StepIntoWow64(TITANCBSTEP traceCallBack)
+void StepIntoWow64(TITANCBSTEP callback)
 {
 #ifndef _WIN64
     //NOTE: this workaround has the potential of detecting x64dbg while tracing, disable it if that happens
@@ -3010,24 +3029,50 @@ void StepIntoWow64(TITANCBSTEP traceCallBack)
 #endif //_WIN64
     if(bPausedOnException && exceptionDispatchAddr && !IsBPXEnabled(exceptionDispatchAddr))
     {
-        SetBPX(exceptionDispatchAddr, UE_SINGLESHOOT, traceCallBack);
+        SetBPX(exceptionDispatchAddr, UE_SINGLESHOOT, callback);
     }
     else
     {
-        StepInto(traceCallBack);
+        StepInto(callback);
     }
 }
 
-void StepOverWrapper(TITANCBSTEP traceCallBack)
+void StepOverWrapper(TITANCBSTEP callback)
 {
     if(bPausedOnException && exceptionDispatchAddr && !IsBPXEnabled(exceptionDispatchAddr))
     {
-        SetBPX(exceptionDispatchAddr, UE_SINGLESHOOT, traceCallBack);
+        SetBPX(exceptionDispatchAddr, UE_SINGLESHOOT, callback);
     }
     else
     {
-        StepOver(traceCallBack);
+        StepOver(callback);
     }
+}
+
+template<MODULEPARTY StopParty>
+static void cbStepIntoParty()
+{
+    if(bAbortStepping || ModGetParty(GetContextDataEx(hActiveThread, UE_CIP)) == StopParty)
+    {
+        bAbortStepping = false;
+        gStepIntoPartyCallback();
+    }
+    else
+    {
+        StepIntoWow64(cbStepIntoParty<StopParty>);
+    }
+}
+
+void StepIntoUser(TITANCBSTEP callback)
+{
+    gStepIntoPartyCallback = callback;
+    StepIntoWow64(cbStepIntoParty<mod_user>);
+}
+
+void StepIntoSystem(TITANCBSTEP callback)
+{
+    gStepIntoPartyCallback = callback;
+    StepIntoWow64(cbStepIntoParty<mod_system>);
 }
 
 bool dbgisdepenabled()

@@ -58,7 +58,7 @@ PLUG_IMPEXP void _plugin_logprint(const char* text)
 
 PLUG_IMPEXP void _plugin_debugpause()
 {
-    DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), true);
+    DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
     lock(WAITID_RUN);
     dbgsetforeground();
     dbgsetskipexceptions(false);

@@ -1,6 +1,5 @@
 #include "cmd-tracing.h"
 #include "debugger.h"
-#include "historycontext.h"
 #include "threading.h"
 #include "module.h"
 #include "console.h"
@@ -30,10 +29,9 @@ static bool genericConditionalTraceCommand(TITANCBSTEP callback, STEPFUNCTION st
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid expression \"%s\"\n"), argv[1]);
         return false;
     }
-    HistoryClear();
 
     stepFunction(callback);
-    return cbDebugRunInternal(1, argv);
+    return cbDebugRunInternal(1, argv, history_clear);
 }
 
 static bool conditionalTraceIntoCommand(TITANCBSTEP callback, int argc, char* argv[])
@@ -102,7 +100,6 @@ bool cbDebugTraceOverIntoTraceRecord(int argc, char* argv[])
 
 bool cbDebugRunToParty(int argc, char* argv[])
 {
-    HistoryClear();
     EXCLUSIVE_ACQUIRE(LockRunToUserCode);
     if(!RunToUserCodeBreakpoints.empty())
     {
@@ -128,7 +125,7 @@ bool cbDebugRunToParty(int argc, char* argv[])
             }
         }
     });
-    return cbDebugRunInternal(1, argv);
+    return cbDebugRunInternal(1, argv, history_clear);
 }
 
 bool cbDebugRunToUserCode(int argc, char* argv[])

@@ -97,8 +97,16 @@ bool disasmfast(const unsigned char* data, duint addr, BASIC_INSTRUCTION_INFO* b
     return true;
 }
 
+void disasm(Zydis & zydis, duint addr)
+{
+    unsigned char data[MAX_DISASM_BUFFER];
+    if(MemRead(addr, data, sizeof(data)))
+        zydis.Disassemble(addr, data);
+}
+
 bool disasmfast(duint addr, BASIC_INSTRUCTION_INFO* basicinfo, bool cache)
 {
+    // unsigned int because of data encoding (likely could be a bit smaller though, this is 4*16=64 bytes)
     unsigned int data[16];
     if(!MemRead(addr, data, sizeof(data), nullptr, cache))
         return false;
