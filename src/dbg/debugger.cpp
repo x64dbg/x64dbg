@@ -3021,7 +3021,7 @@ void StepIntoWow64(TITANCBSTEP callback)
             duint ret;
             if(MemRead(csp, &ret, sizeof(ret)))
             {
-                SetBPX(ret, UE_SINGLESHOOT, traceCallBack);
+                SetBPX(ret, UE_SINGLESHOOT, callback);
                 return;
             }
         }
