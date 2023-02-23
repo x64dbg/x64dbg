@@ -553,10 +553,12 @@ bool cbInstrInstrUndo(int argc, char* argv[])
 
 bool cbDebugStepUserInto(int argc, char* argv[])
 {
-    return false;
+    StepIntoUser(cbStep);
+    return cbDebugRunInternal(1, argv, history_clear);
 }
 
 bool cbDebugStepSystemInto(int argc, char* argv[])
 {
-    return false;
+    StepIntoSystem(cbStep);
+    return cbDebugRunInternal(1, argv, history_clear);
 }

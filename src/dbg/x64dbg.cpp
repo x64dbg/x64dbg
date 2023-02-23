@@ -121,6 +121,8 @@ static void registercommands()
     dbgcmdnew("eStepOut,ertr", cbDebugeStepOut, true); //rtr + skip first chance exceptions
     dbgcmdnew("skip", cbDebugSkip, true); //skip one instruction
     dbgcmdnew("InstrUndo", cbInstrInstrUndo, true); //Instruction undo
+    dbgcmdnew("StepUser", cbDebugStepUserInto, true); // step into until reaching user code
+    dbgcmdnew("StepSystem", cbDebugStepSystemInto, true); // step into until reaching system code
 
     //breakpoint control
     dbgcmdnew("SetBPX,bp,bpx", cbDebugSetBPX, true); //breakpoint
