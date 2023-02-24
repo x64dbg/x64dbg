@@ -24,7 +24,7 @@ public:
         QString text;
         QColor textColor;
         QColor textBackground;
-        CustomRichTextFlags flags;
+        CustomRichTextFlags flags = CustomRichTextFlags::FlagNone;
         bool underline = false;
         QColor underlineColor;
         int underlineWidth = 2;

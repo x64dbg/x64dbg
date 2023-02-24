@@ -300,6 +300,13 @@ void BreakpointsView::updateBreakpointsSlot()
                 for(auto & token : richDisasm)
                     result += token.text;
             }
+            else
+            {
+                RichTextPainter::CustomRichText_t err;
+                err.text = "Failed to read: " + ToPtrString(bp.addr);
+                richDisasm.push_back(err);
+                return err.text;
+            }
             return result;
         };
         //memory/hardware/dll/exception type, name, address comment, condition, log(text+condition), command(text+condition)

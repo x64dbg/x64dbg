@@ -48,7 +48,7 @@ extern "C" DLL_EXPORT duint _dbg_memfindbaseaddr(duint addr, duint* size)
 
 extern "C" DLL_EXPORT bool _dbg_memread(duint addr, unsigned char* dest, duint size, duint* read)
 {
-    return MemRead(addr, dest, size, read, true);
+    return MemRead(addr, dest, size, read);
 }
 
 extern "C" DLL_EXPORT bool _dbg_memwrite(duint addr, const unsigned char* src, duint size, duint* written)
