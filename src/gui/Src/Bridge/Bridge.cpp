@@ -746,8 +746,12 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_SET_LOG_ENABLED:
-        emit setLogEnabled(param1 != 0);
+        loggingEnabled = param1 != 0;
+        emit setLogEnabled(loggingEnabled);
         break;
+
+    case GUI_IS_LOG_ENABLED:
+        return (void*)loggingEnabled;
 
     case GUI_ADD_FAVOURITE_TOOL:
     {

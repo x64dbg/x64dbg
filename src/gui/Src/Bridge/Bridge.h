@@ -44,6 +44,7 @@ public:
     bool mIsRunning = false;
     duint mLastCip = 0;
     SymbolView* symbolView = nullptr;
+    bool loggingEnabled = true;
 
 signals:
     void disassembleAt(dsint va, dsint eip);

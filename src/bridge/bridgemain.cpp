@@ -1759,6 +1759,11 @@ BRIDGE_IMPEXP void GuiEnableLog()
     _gui_sendmessage(GUI_SET_LOG_ENABLED, (void*)1, nullptr);
 }
 
+BRIDGE_IMPEXP bool GuiIsLogEnabled()
+{
+    return !!_gui_sendmessage(GUI_IS_LOG_ENABLED, nullptr, nullptr);
+}
+
 BRIDGE_IMPEXP void GuiAddFavouriteTool(const char* name, const char* description)
 {
     _gui_sendmessage(GUI_ADD_FAVOURITE_TOOL, (void*)name, (void*)description);
