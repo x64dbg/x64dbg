@@ -596,6 +596,7 @@ void BreakpointsView::followBreakpointSlot()
 
 void BreakpointsView::removeBreakpointSlot()
 {
+    GuiDisableUpdateScope s;
     for(int i : getSelection())
     {
         if(isValidBp(i))
@@ -608,6 +609,7 @@ void BreakpointsView::removeBreakpointSlot()
 
 void BreakpointsView::toggleBreakpointSlot()
 {
+    GuiDisableUpdateScope s;
     for(int i : getSelection())
         if(isValidBp(i) && selectedBp(i).active)
             Breakpoints::toggleBPByDisabling(selectedBp(i));
@@ -683,6 +685,7 @@ void BreakpointsView::editBreakpointSlot()
 
 void BreakpointsView::resetHitCountBreakpointSlot()
 {
+    GuiDisableUpdateScope s;
     for(int i : getSelection())
     {
         if(!isValidBp(i))
@@ -708,7 +711,7 @@ void BreakpointsView::resetHitCountBreakpointSlot()
         }());
         QString cmd;
 
-        DbgCmdExec(cmd);
+        DbgCmdExecDirect(cmd);
     }
 }
 
@@ -897,6 +900,7 @@ void BreakpointsView::pasteConditionalBreakpointSlot()
     QString text = clipboard->text();
     QRegExp regexp(ArchValue("(\\w+) ([\\dA-F]{8}),", "(\\w+) ([\\dA-F]{16}),"), Qt::CaseInsensitive);
 
+    GuiDisableUpdateScope s;
     for(int i : getSelection())
     {
         if(!isValidBp(i))
@@ -906,6 +910,6 @@ void BreakpointsView::pasteConditionalBreakpointSlot()
         QList<QString> cmds;
         cmds = text1.split("\r\n");
         for(const auto & j : cmds)
-            DbgCmdExec(j.toUtf8().constData());
+            DbgCmdExecDirect(j.toUtf8().constData());
     }
 }

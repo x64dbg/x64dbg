@@ -45,7 +45,7 @@ void Breakpoints::setBP(BPXTYPE type, duint va)
     break;
     }
 
-    DbgCmdExec(wCmd);
+    DbgCmdExecDirect(wCmd);
 }
 
 /**
@@ -80,7 +80,7 @@ void Breakpoints::enableBP(const BRIDGEBP & bp)
         wCmd = QString("EnableExceptionBPX \"%1\"").arg(ToPtrString(bp.addr));
     }
 
-    DbgCmdExec(wCmd);
+    DbgCmdExecDirect(wCmd);
 }
 
 /**
@@ -145,7 +145,7 @@ void Breakpoints::disableBP(const BRIDGEBP & bp)
         wCmd = QString("DisableExceptionBPX \"%1\"").arg(ToPtrString(bp.addr));
     }
 
-    DbgCmdExec(wCmd);
+    DbgCmdExecDirect(wCmd);
 }
 
 /**
@@ -226,7 +226,7 @@ void Breakpoints::removeBP(const BRIDGEBP & bp)
         break;
     }
 
-    DbgCmdExec(wCmd);
+    DbgCmdExecDirect(wCmd);
 }
 
 /**

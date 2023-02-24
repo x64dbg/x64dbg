@@ -318,24 +318,23 @@ void ReferenceView::toggleBreakpoint()
     if(!mCurList->getRowCount())
         return;
 
+    GuiDisableUpdateScope s;
     foreach(int i, mCurList->getSelection())
         setBreakpointAt(i, Toggle);
 }
 
 void ReferenceView::setBreakpointOnAllCommands()
 {
-    GuiUpdateDisable();
+    GuiDisableUpdateScope s;
     for(int i = 0; i < mCurList->getRowCount(); i++)
         setBreakpointAt(i, Enable);
-    GuiUpdateEnable(true);
 }
 
 void ReferenceView::removeBreakpointOnAllCommands()
 {
-    GuiUpdateDisable();
+    GuiDisableUpdateScope s;
     for(int i = 0; i < mCurList->getRowCount(); i++)
         setBreakpointAt(i, Remove);
-    GuiUpdateEnable(true);
 }
 
 void ReferenceView::setBreakpointOnAllApiCalls()
@@ -346,11 +345,11 @@ void ReferenceView::setBreakpointOnAllApiCalls()
     if(!apiaddr)
         return;
     QString apiText = mCurList->getCellContent(mCurList->getInitialSelection(), 1);
-    GuiUpdateDisable();
+
+    GuiDisableUpdateScope s;
     for(int i = 0; i < mCurList->getRowCount(); i++)
         if(mCurList->getCellContent(i, 1) == apiText)
             setBreakpointAt(i, Enable);
-    GuiUpdateEnable(true);
 }
 
 void ReferenceView::removeBreakpointOnAllApiCalls()
@@ -362,11 +361,11 @@ void ReferenceView::removeBreakpointOnAllApiCalls()
     if(!apiaddr)
         return;
     QString apiText = mCurList->getCellContent(mCurList->getInitialSelection(), 1);
-    GuiUpdateDisable();
+
+    GuiDisableUpdateScope s;
     for(int i = 0; i < mCurList->getRowCount(); i++)
         if(mCurList->getCellContent(i, 1) == apiText)
             setBreakpointAt(i, Remove);
-    GuiUpdateEnable(true);
 }
 
 void ReferenceView::toggleBookmark()
