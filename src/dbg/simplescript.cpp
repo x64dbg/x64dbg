@@ -285,6 +285,7 @@ static bool scriptcreatelinemap(const char* filename)
                 currentLine.u.branch.dest = scriptinternalstep(labelline);
         }
     }
+    // append a ret instruction at the end of the script when appropriate
     if(!linemap.empty())
     {
         memset(&entry, 0, sizeof(entry));
@@ -308,8 +309,10 @@ static bool scriptcreatelinemap(const char* filename)
             }
             break;
         case linebranch:
-            // a branch at the end of the script can only go back
-            break;
+            // an unconditional branch at the end of the script can only go back
+            if(lastline.u.branch.type == scriptjmp)
+                break;
+        // fallthough to append the ret
         case linelabel:
         case linecomment:
         case lineempty:
