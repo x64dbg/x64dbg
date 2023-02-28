@@ -90,6 +90,7 @@ bool bTraceBrowserNeedsUpdate = false;
 bool bForceLoadSymbols = false;
 bool bNewStringAlgorithm = false;
 bool bPidTidInHex = false;
+bool bWindowLongPath = false;
 duint DbgEvents = 0;
 duint maxSkipExceptionCount = 0;
 HANDLE mProcHandle;
@@ -474,6 +475,11 @@ void updateSEHChainAsync()
 
 static void DebugUpdateTitle(duint disasm_addr, bool analyzeThreadSwitch)
 {
+    if(!DbgIsDebugging())
+    {
+        GuiUpdateWindowTitle("");
+        return;
+    }
     char modname[MAX_MODULE_SIZE] = "";
     char modtext[MAX_MODULE_SIZE * 2] = "";
     if(!ModNameFromAddr(disasm_addr, modname, true))
@@ -500,7 +506,10 @@ static void DebugUpdateTitle(duint disasm_addr, bool analyzeThreadSwitch)
     char threadName[MAX_THREAD_NAME_SIZE + 1] = "";
     if(ThreadGetName(currentThreadId, threadName) && *threadName)
         strcat_s(threadName, " ");
-    _snprintf_s(title, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "%s - PID: %s - %sThread: %s%s%s")), szBaseFileName, formatpidtid(fdProcessInfo->dwProcessId).c_str(), modtext, threadName, formatpidtid(currentThreadId).c_str(), threadswitch);
+    // choose between title here
+    auto debugeeName = bWindowLongPath ? szDebuggeePath : szBaseFileName;
+    _snprintf_s(title, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "%s - PID: %s - %sThread: %s%s%s")), debugeeName, formatpidtid(fdProcessInfo->dwProcessId).c_str(), modtext, threadName, formatpidtid(currentThreadId).c_str(), threadswitch);
+
     GuiUpdateWindowTitle(title);
 }
 

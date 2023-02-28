@@ -1200,6 +1200,15 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
             dbgaddexceptionfilter(unknownExceptionsFilter);
         }
 
+        // check if we need to change the main window title
+        bool bNewWindowLongPath = settingboolget("Gui", "WindowLongPath");
+        if(bWindowLongPath != bNewWindowLongPath)
+        {
+            bWindowLongPath = bNewWindowLongPath;
+            duint addr = GetContextDataEx(hActiveThread, UE_CIP);
+            DebugUpdateTitleAsync(addr, false);
+        }
+
         if(BridgeSettingGet("Symbols", "CachePath", settingText.data()))
         {
             // Trim the buffer to fit inside MAX_PATH

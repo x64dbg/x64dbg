@@ -119,6 +119,7 @@ private slots:
     void on_chkTransparentExceptionStepping_toggled(bool checked);
 
     void on_chkQtHighDpiScaling_toggled(bool checked);
+    void on_chkWindowLongPath_toggled(bool checked);
 
 private:
     //enums
@@ -240,6 +241,7 @@ private:
         bool guiAutoFollowInStack;
         bool guiHideSeasonalIcons;
         bool guiEnableQtHighDpiScaling;
+        bool guiEnableWindowLongPath;
         //Misc Tab
         bool miscSetJIT;
         bool miscSymbolStore;
