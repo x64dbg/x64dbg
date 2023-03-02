@@ -911,7 +911,7 @@
        <item>
         <widget class="QCheckBox" name="chkWindowLongPath">
          <property name="text">
-          <string>Set Long Window Path</string>
+          <string>Full executable path in title</string>
          </property>
         </widget>
        </item>

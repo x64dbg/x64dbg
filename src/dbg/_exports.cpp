@@ -1202,10 +1202,15 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
         // check if we need to change the main window title
         bool bNewWindowLongPath = settingboolget("Gui", "WindowLongPath");
-        if(bWindowLongPath != bNewWindowLongPath)
+        if(DbgIsDebugging() && bWindowLongPath != bNewWindowLongPath)
         {
             bWindowLongPath = bNewWindowLongPath;
-            duint addr = GetContextDataEx(hActiveThread, UE_CIP);
+            duint addr = 0;
+            SELECTIONDATA selection;
+            if(GuiSelectionGet(GUI_DISASSEMBLY, &selection))
+                addr = selection.start;
+            else
+                addr = GetContextDataEx(hActiveThread, UE_CIP);
             DebugUpdateTitleAsync(addr, false);
         }
 

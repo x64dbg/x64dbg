@@ -475,11 +475,9 @@ void updateSEHChainAsync()
 
 static void DebugUpdateTitle(duint disasm_addr, bool analyzeThreadSwitch)
 {
-    if(!DbgIsDebugging())
-    {
-        GuiUpdateWindowTitle("");
+    if(GuiIsUpdateDisabled() || !DbgIsDebugging())
         return;
-    }
+
     char modname[MAX_MODULE_SIZE] = "";
     char modtext[MAX_MODULE_SIZE * 2] = "";
     if(!ModNameFromAddr(disasm_addr, modname, true))
