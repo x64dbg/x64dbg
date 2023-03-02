@@ -2,17 +2,20 @@
 
 <img width="100" src="https://github.com/x64dbg/x64dbg/raw/development/src/bug_black.png"/>
 
-[![BountySource](https://www.bountysource.com/badge/team?team_id=18188&style=raised)](https://github.com/sponsors/mrexodia) [![Build status](https://ci.appveyor.com/api/projects/status/h1j489qa1mx67e0h?svg=true)](https://ci.appveyor.com/project/mrexodia/x64dbg) [![Open Source Helpers](https://www.codetriage.com/x64dbg/x64dbg/badges/users.svg)](https://www.codetriage.com/x64dbg/x64dbg) [![Crowdin](https://d322cqt584bo4o.cloudfront.net/x64dbg/localized.svg)](http://translate.x64dbg.com) [![Download x64dbg](https://img.shields.io/sourceforge/dm/x64dbg.svg)](https://sourceforge.net/projects/x64dbg/files/latest/download)
+[![Build status](https://ci.appveyor.com/api/projects/status/h1j489qa1mx67e0h?svg=true)](https://ci.appveyor.com/project/mrexodia/x64dbg) [![Crowdin](https://d322cqt584bo4o.cloudfront.net/x64dbg/localized.svg)](http://translate.x64dbg.com) [![Download x64dbg](https://img.shields.io/sourceforge/dm/x64dbg.svg)](https://sourceforge.net/projects/x64dbg/files/latest/download)
 
-[![Telegram](https://img.shields.io/badge/chat-%20on%20Telegram-blue.svg)](https://telegram.me/x64dbg) [![Discord](https://img.shields.io/badge/chat-on%20Discord-green.svg)](https://invite.gg/x64dbg) [![Slack](https://img.shields.io/badge/chat-on%20Slack-red.svg)](https://x64dbg-slack.herokuapp.com) [![Gitter](https://img.shields.io/badge/chat-on%20Gitter-lightseagreen.svg)](https://gitter.im/x64dbg/x64dbg) [![Freenode](https://img.shields.io/badge/chat-%20on%20freenode-brightgreen.svg)](https://webchat.freenode.net/?channels=x64dbg) [![Matrix](https://img.shields.io/badge/chat-on%20Matrix-yellowgreen.svg)](https://riot.im/app/#/room/#x64dbg:matrix.org) [![XMPP](https://img.shields.io/badge/chat-%20on%20XMPP-orange.svg)](https://inverse.chat/#converse/room?jid=x64dbg@conference.jwchat.org)
+[![Discord](https://img.shields.io/badge/chat-on%20Discord-green.svg)](https://invite.gg/x64dbg) [![Telegram](https://img.shields.io/badge/chat-%20on%20Telegram-blue.svg)](https://telegram.me/x64dbg) [![Gitter](https://img.shields.io/badge/chat-on%20Gitter-lightseagreen.svg)](https://gitter.im/x64dbg/x64dbg) [![Matrix](https://img.shields.io/badge/chat-on%20Matrix-yellowgreen.svg)](https://riot.im/app/#/room/#x64dbg:matrix.org)
 
 An open-source binary debugger for Windows, aimed at malware analysis and reverse engineering of executables you do not have the source code for. There are many features available and a comprehensive [plugin system](http://plugins.x64dbg.com) to add your own. You can find more information on the [blog](https://x64dbg.com/blog)!
 
 ## Screenshots
 
-![main interface](https://i.imgur.com/V2f5AP9.png)
+![main interface (light)](.github/screenshots/cpu-light.png)
 
-![graph](https://i.imgur.com/gVjzntJ.png) ![memory map](https://i.imgur.com/cLJwTjY.png)
+![main interface (dark)](.github/screenshots/cpu-dark.png)
+
+| ![graph](.github/screenshots/graph-light.png) | ![memory map](.github/screenshots/memory-map-light.png) |
+| :--: | :--: |
 
 ## Installation & Usage
 
@@ -55,7 +58,7 @@ You can find an exhaustive list of GitHub contributors [here](https://github.com
 ## Special Thanks
 
 - Sigma for developing the initial GUI
-- All the [donators](https://www.bountysource.com/teams/x64dbg/backers)!
+- All the donators!
 - Everybody adding issues!
 - People I forgot to add to this list
 - [Writers of the blog](https://x64dbg.com/blog/2016/07/09/Looking-for-writers.html)!
@@ -79,5 +82,6 @@ You can find an exhaustive list of GitHub contributors [here](https://github.com
 - [athre0z](https://github.com/athre0z)
 - [ZehMatt](https://github.com/ZehMatt)
 - [mrfearless](https://twitter.com/fearless0)
+- [JustMagic](https://github.com/JustasMasiulis)
 
 Without the help of many people and other open-source projects, it would not have been possible to make x64dbg what is it today, thank you!
