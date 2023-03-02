@@ -91,6 +91,7 @@ void SettingsDialog::LoadSettings()
     settings.guiAutoFollowInStack = false;
     settings.guiHideSeasonalIcons = false;
     settings.guiEnableQtHighDpiScaling = true;
+    settings.guiEnableWindowLongPath = false;
 
     //Events tab
     GetSettingBool("Events", "SystemBreakpoint", &settings.eventSystemBreakpoint);
@@ -308,6 +309,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Gui", "AutoFollowInStack", &settings.guiAutoFollowInStack);
     GetSettingBool("Gui", "NoSeasons", &settings.guiHideSeasonalIcons);
     GetSettingBool("Gui", "EnableQtHighDpiScaling", &settings.guiEnableQtHighDpiScaling);
+    GetSettingBool("Gui", "WindowLongPath", &settings.guiEnableWindowLongPath);
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
     ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
     ui->chkNoCloseDialog->setChecked(settings.guiNoCloseDialog);
@@ -323,6 +325,7 @@ void SettingsDialog::LoadSettings()
     ui->chkHideSeasonalIcons->setChecked(settings.guiHideSeasonalIcons);
     ui->chkHideSeasonalIcons->setVisible(isSeasonal());
     ui->chkQtHighDpiScaling->setChecked(settings.guiEnableQtHighDpiScaling);
+    ui->chkWindowLongPath->setChecked(settings.guiEnableWindowLongPath);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -472,6 +475,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Gui", "AutoFollowInStack", settings.guiAutoFollowInStack);
     BridgeSettingSetUint("Gui", "NoSeasons", settings.guiHideSeasonalIcons);
     BridgeSettingSetUint("Gui", "EnableQtHighDpiScaling", settings.guiEnableQtHighDpiScaling);
+    BridgeSettingSetUint("Gui", "WindowLongPath", settings.guiEnableWindowLongPath);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -1178,3 +1182,7 @@ void SettingsDialog::on_chkQtHighDpiScaling_toggled(bool checked)
     settings.guiEnableQtHighDpiScaling = checked;
 }
 
+void SettingsDialog::on_chkWindowLongPath_toggled(bool checked)
+{
+    settings.guiEnableWindowLongPath = checked;
+}

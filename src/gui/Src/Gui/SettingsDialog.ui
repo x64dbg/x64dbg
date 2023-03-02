@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>386</width>
-    <height>542</height>
+    <width>433</width>
+    <height>635</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -909,6 +909,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkWindowLongPath">
+         <property name="text">
+          <string>Full executable path in title</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacerGUI">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -1135,8 +1142,8 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>358</x>
-     <y>252</y>
+     <x>420</x>
+     <y>622</y>
     </hint>
     <hint type="destinationlabel">
      <x>357</x>
@@ -1151,8 +1158,8 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>286</x>
-     <y>250</y>
+     <x>320</x>
+     <y>622</y>
     </hint>
     <hint type="destinationlabel">
      <x>279</x>
