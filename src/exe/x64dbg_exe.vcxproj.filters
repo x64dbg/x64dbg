@@ -21,6 +21,9 @@
     <ClCompile Include="x64dbg_exe.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="signaturecheck.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -36,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LoadResourceString.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="signaturecheck.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
