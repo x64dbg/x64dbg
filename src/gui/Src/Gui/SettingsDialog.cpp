@@ -108,6 +108,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Events", "DllUnloadSystem", &settings.eventDllUnloadSystem);
     GetSettingBool("Events", "ThreadStart", &settings.eventThreadStart);
     GetSettingBool("Events", "ThreadEnd", &settings.eventThreadEnd);
+    GetSettingBool("Events", "ThreadNameSet", &settings.eventThreadNameSet);
     GetSettingBool("Events", "DebugStrings", &settings.eventDebugStrings);
     ui->chkSystemBreakpoint->setCheckState(bool2check(settings.eventSystemBreakpoint));
     ui->chkExitBreakpoint->setCheckState(bool2check(settings.eventExitBreakpoint));
@@ -123,6 +124,7 @@ void SettingsDialog::LoadSettings()
     ui->chkDllUnloadSystem->setCheckState(bool2check(settings.eventDllUnloadSystem));
     ui->chkThreadStart->setCheckState(bool2check(settings.eventThreadStart));
     ui->chkThreadEnd->setCheckState(bool2check(settings.eventThreadEnd));
+    ui->chkThreadNameSet->setCheckState(bool2check(settings.eventThreadNameSet));
     ui->chkDebugStrings->setCheckState(bool2check(settings.eventDebugStrings));
 
     //Engine tab
@@ -405,6 +407,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Events", "DllUnloadSystem", settings.eventDllUnloadSystem);
     BridgeSettingSetUint("Events", "ThreadStart", settings.eventThreadStart);
     BridgeSettingSetUint("Events", "ThreadEnd", settings.eventThreadEnd);
+    BridgeSettingSetUint("Events", "ThreadNameSet", settings.eventThreadNameSet);
     BridgeSettingSetUint("Events", "DebugStrings", settings.eventDebugStrings);
 
     //Engine tab
@@ -765,6 +768,11 @@ void SettingsDialog::on_chkThreadStart_stateChanged(int arg1)
 void SettingsDialog::on_chkThreadEnd_stateChanged(int arg1)
 {
     settings.eventThreadEnd = arg1 != Qt::Unchecked;
+}
+
+void SettingsDialog::on_chkThreadNameSet_stateChanged(int arg1)
+{
+    settings.eventThreadNameSet = arg1 != Qt::Unchecked;
 }
 
 void SettingsDialog::on_chkDebugStrings_stateChanged(int arg1)

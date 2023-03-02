@@ -1806,9 +1806,9 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
             dprintf(QT_TRANSLATE_NOOP("DBG", "%d invalid TLS callback addresses...\n"), invalidCount);
     }
 
-    auto breakOnDll = dbghandledllbreakpoint(modname, true);
-
-    if((breakOnDll || (settingboolget("Events", "DllEntry") && party != mod_system || settingboolget("Events", "DllEntrySystem") && party == mod_system)) && !bAlreadySetEntry)
+    auto shouldBreakOnDll = dbghandledllbreakpoint(modname, true);
+    auto dllEntrySetting = party == mod_system ? "DllEntrySystem" : "DllEntry";
+    if(!bAlreadySetEntry && (shouldBreakOnDll || settingboolget("Events", dllEntrySetting)))
     {
         auto entry = ModEntryFromAddr(duint(base));
         if(entry)
@@ -1888,11 +1888,12 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     callbackInfo.modname = modname;
     plugincbcall(CB_LOADDLL, &callbackInfo);
 
-    if(breakOnDll)
+    auto dllLoadSetting = party == mod_system ? "DllLoadSystem" : "DllLoad";
+    if(shouldBreakOnDll)
     {
         cbGenericBreakpoint(BPDLL, DLLDebugFileName);
     }
-    else if(!isNtdll && (settingboolget("Events", "DllLoad") && party != mod_system || settingboolget("Events", "DllLoadSystem") && party == mod_system))
+    else if(!isNtdll && settingboolget("Events", dllLoadSetting))
     {
         //update GUI
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
@@ -1922,11 +1923,12 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     DebugUpdateBreakpointsViewAsync();
     dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Unloaded: %p %s\n"), base, modname);
 
+    auto dllUnloadSetting = party == mod_system ? "DllUnloadSystem" : "DllUnload";
     if(dbghandledllbreakpoint(modname, false))
     {
         cbGenericBreakpoint(BPDLL, modname);
     }
-    else if(settingboolget("Events", "DllUnload") && party != mod_system || settingboolget("Events", "DllUnloadSystem") && party == mod_system)
+    else if(settingboolget("Events", dllUnloadSetting))
     {
         //update GUI
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
@@ -2035,8 +2037,10 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             if(MemRead((duint)nameInfo.szName, ThreadName(), MAX_THREAD_NAME_SIZE - 1))
             {
                 String ThreadNameEscaped = StringUtils::Escape(ThreadName());
-                dprintf(QT_TRANSLATE_NOOP("DBG", "SetThreadName(%X, \"%s\")\n"), nameInfo.dwThreadID, ThreadNameEscaped.c_str());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "SetThreadName exception on %p (%X, \"%s\")\n"), addr, nameInfo.dwThreadID, ThreadNameEscaped.c_str());
                 ThreadSetName(nameInfo.dwThreadID, ThreadNameEscaped.c_str());
+                if(!settingboolget("Events", "ThreadNameSet"))
+                    return;
             }
         }
     }
