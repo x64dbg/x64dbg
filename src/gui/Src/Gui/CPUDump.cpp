@@ -286,8 +286,9 @@ void CPUDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
         char string_text[MAX_STRING_SIZE] = "";
         if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
             curData.text = QString(modname) + "." + QString(label_text);
-        else if(DbgGetStringAt(data, string_text))
+        else if(DbgGetStringAt(data, string_text)) // TODO: change order
             curData.text = string_text;
+        // TODO: write module.address as a fallback
         if(!curData.text.length()) //stack comments
         {
             auto va = rvaToVa(rva);

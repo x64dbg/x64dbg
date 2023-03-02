@@ -1604,7 +1604,7 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
     duint register_value = (* ((duint*) registerValue(&wRegDumpStruct, register_selected)));
     QString newText = QString("");
 
-    bool hasString = DbgGetStringAt(register_value, string_text);
+    bool hasString = DbgGetStringAt(register_value, string_text); // TODO: change order
     bool hasLabel = DbgGetLabelAt(register_value, SEG_DEFAULT, label_text);
     bool hasModule = DbgGetModuleAt(register_value, module_text);
     bool hasStatusCode = register_selected == REGISTER_NAME::CAX && (register_value & ArchValue(0xF0000000, 0xFFFFFFFFF0000000)) == 0xC0000000;

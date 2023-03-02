@@ -131,7 +131,7 @@ QString getSymbolicNameStr(duint addr)
     char labelText[MAX_LABEL_SIZE] = "";
     char moduleText[MAX_MODULE_SIZE] = "";
     char string[MAX_STRING_SIZE] = "";
-    bool bHasString = DbgGetStringAt(addr, string);
+    bool bHasString = DbgGetStringAt(addr, string); // TODO: change order
     bool bHasLabel = DbgGetLabelAt(addr, SEG_DEFAULT, labelText);
     bool bHasModule = (DbgGetModuleAt(addr, moduleText) && !QString(labelText).startsWith("JMP.&"));
     QString addrText = DbgMemIsValidReadPtr(addr) ? ToPtrString(addr) : ToHexString(addr);
