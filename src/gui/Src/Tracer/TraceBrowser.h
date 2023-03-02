@@ -78,7 +78,7 @@ private:
     ZydisTokenizer::SingleToken mHighlightToken;
     bool mHighlightingMode;
     bool mPermanentHighlightingMode;
-    bool mAutoDisassemblyFollowSelection;
+    bool mTraceSyncCpu;
     bool mShowMnemonicBrief;
 
     TraceFileReader* mTraceFile;

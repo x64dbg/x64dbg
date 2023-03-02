@@ -34,7 +34,9 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
     mRvaDisplayBase = 0;
     mRvaDisplayEnabled = false;
 
-    mAutoDisassemblyFollowSelection = false;
+    duint setting = 0;
+    BridgeSettingGetUint("Gui", "TraceSyncCpu", &setting);
+    mTraceSyncCpu = setting != 0;
 
     mHighlightingMode = false;
     mPermanentHighlightingMode = false;
@@ -972,6 +974,7 @@ void TraceBrowser::setupRightClickContextMenu()
 
     auto synchronizeCpuAction = makeShortcutAction(DIcon("sync"), tr("Sync with CPU"), SLOT(synchronizeCpuSlot()), "ActionSync");
     synchronizeCpuAction->setCheckable(true);
+    synchronizeCpuAction->setChecked(mTraceSyncCpu);
     mMenuBuilder->addAction(synchronizeCpuAction);
 }
 
@@ -1186,7 +1189,7 @@ void TraceBrowser::keyPressEvent(QKeyEvent* event)
 
 void TraceBrowser::selectionChangedSlot(unsigned long long selection)
 {
-    if(mAutoDisassemblyFollowSelection && isFileOpened())
+    if(mTraceSyncCpu && isFileOpened())
     {
         GuiDisasmAt(mTraceFile->Registers(selection).regcontext.cip, 0);
     }
@@ -1869,7 +1872,8 @@ void TraceBrowser::updateSlot()
 
 void TraceBrowser::synchronizeCpuSlot()
 {
-    mAutoDisassemblyFollowSelection = !mAutoDisassemblyFollowSelection;
+    mTraceSyncCpu = !mTraceSyncCpu;
+    BridgeSettingSetUint("Gui", "TraceSyncCpu", mTraceSyncCpu);
     selectionChangedSlot(getSelectionStart());
 }
 
