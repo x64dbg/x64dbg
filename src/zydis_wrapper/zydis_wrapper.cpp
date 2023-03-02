@@ -607,20 +607,29 @@ bool Zydis::IsUnusual() const
 
     auto id = mInstr.mnemonic;
     return mInstr.attributes & ZYDIS_ATTRIB_IS_PRIVILEGED
-           || id == ZYDIS_MNEMONIC_RDTSC
+           || mInstr.meta.category == ZYDIS_CATEGORY_IO
+           || mInstr.meta.category == ZYDIS_CATEGORY_IOSTRINGOP
+           || mInstr.meta.category == ZYDIS_CATEGORY_RDWRFSGS
+           || mInstr.meta.category == ZYDIS_CATEGORY_SGX
+           || mInstr.meta.category == ZYDIS_CATEGORY_INTERRUPT
            || id == ZYDIS_MNEMONIC_SYSCALL
            || id == ZYDIS_MNEMONIC_SYSENTER
            || id == ZYDIS_MNEMONIC_CPUID
+           || id == ZYDIS_MNEMONIC_RDTSC
            || id == ZYDIS_MNEMONIC_RDTSCP
            || id == ZYDIS_MNEMONIC_RDRAND
            || id == ZYDIS_MNEMONIC_RDSEED
+           || id == ZYDIS_MNEMONIC_RDPID
+           || id == ZYDIS_MNEMONIC_RDPKRU
+           // || id == ZYDIS_MNEMONIC_RDPRU
            || id == ZYDIS_MNEMONIC_UD1
            || id == ZYDIS_MNEMONIC_UD2
            || id == ZYDIS_MNEMONIC_VMCALL
            || id == ZYDIS_MNEMONIC_VMFUNC
            || id == ZYDIS_MNEMONIC_OUTSB
            || id == ZYDIS_MNEMONIC_OUTSW
-           || id == ZYDIS_MNEMONIC_OUTSD;
+           || id == ZYDIS_MNEMONIC_OUTSD
+           || id == ZYDIS_MNEMONIC_WRPKRU;
 }
 
 std::string Zydis::Mnemonic() const

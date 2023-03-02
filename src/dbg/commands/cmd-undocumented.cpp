@@ -254,7 +254,7 @@ bool cbInstrZydis(int argc, char* argv[])
     int argcount = instr->operandCount;
     dputs_untranslated(cp.InstructionText(true).c_str());
     dprintf_untranslated("prefix size: %d\n", instr->raw.prefixes.count);
-    if(instr->raw.rex.isDecoded)
+    if(instr->attributes & ZYDIS_ATTRIB_HAS_REX)
         dprintf_untranslated("rex.W: %d, rex.R: %d, rex.X: %d, rex.B: %d, rex.data: %02x\n", instr->raw.rex.W, instr->raw.rex.R, instr->raw.rex.X, instr->raw.rex.B, instr->raw.rex.data[0]);
     dprintf_untranslated("disp.offset: %d, disp.size: %d\n", instr->raw.disp.offset, instr->raw.disp.size);
     dprintf_untranslated("imm[0].offset: %d, imm[0].size: %d\n", instr->raw.imm[0].offset, instr->raw.imm[0].size);
