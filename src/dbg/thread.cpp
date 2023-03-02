@@ -39,7 +39,7 @@ void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
     // The first thread (#0) is always the main program thread
     if(curInfo.ThreadNumber <= 0)
-        strcpy_s(curInfo.threadName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Main Thread")));
+        strncpy_s(curInfo.threadName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Main Thread")), _TRUNCATE);
     else
         curInfo.threadName[0] = 0;
 
@@ -290,7 +290,7 @@ bool ThreadGetName(DWORD ThreadId, char* Name)
     SHARED_ACQUIRE(LockThreads);
     if(threadList.find(ThreadId) != threadList.end())
     {
-        strcpy_s(Name, MAX_THREAD_NAME_SIZE, threadList[ThreadId].threadName);
+        strncpy_s(Name, MAX_THREAD_NAME_SIZE, threadList[ThreadId].threadName, _TRUNCATE);
         return true;
     }
     return false;
