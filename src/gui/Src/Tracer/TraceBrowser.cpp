@@ -970,7 +970,7 @@ void TraceBrowser::setupRightClickContextMenu()
     });
     mMenuBuilder->addMenu(makeMenu(tr("Information")), infoMenu);
 
-    auto synchronizeCpuAction = makeAction(DIcon("sync"), tr("Sync with CPU"), SLOT(synchronizeCpuSlot()));
+    auto synchronizeCpuAction = makeShortcutAction(DIcon("sync"), tr("Sync with CPU"), SLOT(synchronizeCpuSlot()), "ActionSync");
     synchronizeCpuAction->setCheckable(true);
     mMenuBuilder->addAction(synchronizeCpuAction);
 }
@@ -1870,6 +1870,7 @@ void TraceBrowser::updateSlot()
 void TraceBrowser::synchronizeCpuSlot()
 {
     mAutoDisassemblyFollowSelection = !mAutoDisassemblyFollowSelection;
+    selectionChangedSlot(getSelectionStart());
 }
 
 void TraceBrowser::gotoIndexSlot(duint index)

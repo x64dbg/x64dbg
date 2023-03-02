@@ -2315,7 +2315,7 @@ void DisassemblerGraphView::setupContextMenu()
     mToggleOverview->setCheckable(true);
     mMenuBuilder->addAction(mToggleSummary = makeShortcutAction(DIcon("summary"), tr("S&ummary"), SLOT(toggleSummarySlot()), "ActionGraphToggleSummary"));
     mToggleSummary->setCheckable(true);
-    mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock"), tr("&Sync with %1").arg(ArchValue("EIP", "RIP")), SLOT(toggleSyncOriginSlot()), "ActionGraphSyncOrigin"));
+    mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock"), tr("&Sync with %1").arg(ArchValue("EIP", "RIP")), SLOT(toggleSyncOriginSlot()), "ActionSync"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("image"), tr("&Save as image"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
 
