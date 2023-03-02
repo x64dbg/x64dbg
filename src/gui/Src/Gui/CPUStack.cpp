@@ -277,6 +277,7 @@ void CPUStack::setupContextMenu()
     auto followDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWORD in &Dump"));
 
     mCommonActions->build(mMenuBuilder, CommonActions::ActionDumpN | CommonActions::ActionWatch);
+    mMenuBuilder->addAction(makeAction("Edit columns...", SLOT(editColumnDialog())));
 
     mPluginMenu = new QMenu(this);
     Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_STACK_MENU);
