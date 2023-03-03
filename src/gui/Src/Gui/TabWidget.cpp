@@ -14,8 +14,8 @@ MHTabWidget::MHTabWidget(QWidget* parent, bool allowDetach, bool allowDelete) : 
 
     mTabBar = new MHTabBar(this, allowDetach, allowDelete);
     connect(mTabBar, SIGNAL(OnDetachTab(int, const QPoint &)), this, SLOT(DetachTab(int, const QPoint &)));
-    connect(mTabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
     connect(mTabBar, SIGNAL(OnDeleteTab(int)), this, SLOT(DeleteTab(int)));
+
     connect(mTabBar, SIGNAL(tabMoved(int, int)), this, SLOT(tabMoved(int, int)));
     connect(mTabBar, SIGNAL(currentChanged(int)), this, SLOT(currentChanged(int)));
 
@@ -30,7 +30,6 @@ MHTabWidget::MHTabWidget(QWidget* parent, bool allowDetach, bool allowDelete) : 
 //////////////////////////////////////////////////////////////
 MHTabWidget::~MHTabWidget()
 {
-    disconnect(mTabBar, SIGNAL(OnMoveTab(int, int)), this, SLOT(MoveTab(int, int)));
     disconnect(mTabBar, SIGNAL(OnDetachTab(int, const QPoint &)), this, SLOT(DetachTab(int, const QPoint &)));
     disconnect(mTabBar, SIGNAL(OnDeleteTab(int)), this, SLOT(DeleteTab(int)));
     disconnect(mTabBar, SIGNAL(currentChanged(int)), this, SLOT(currentChanged(int)));
@@ -75,7 +74,7 @@ void MHTabWidget::AttachTab(QWidget* parent)
     QWidget* tearOffWidget = detachedWidget->centralWidget();
 
     // Reattach the tab
-    addTabEx(tearOffWidget, detachedWidget->windowIcon(), detachedWidget->windowTitle(), detachedWidget->mNativeName);
+    auto newIndex = addTabEx(tearOffWidget, detachedWidget->windowIcon(), detachedWidget->windowTitle(), detachedWidget->mNativeName);
 
     // Remove it from the windows list
     for(int i = 0; i < mWindows.size(); i++)
@@ -91,6 +90,10 @@ void MHTabWidget::AttachTab(QWidget* parent)
     disconnect(detachedWidget, SIGNAL(OnFocused(QWidget*)), this, SLOT(OnDetachFocused(QWidget*)));
     detachedWidget->hide();
     detachedWidget->close();
+
+    // Move the tab back to the previous index
+    if(detachedWidget->mPreviousIndex >= 0)
+        mTabBar->moveTab(newIndex, detachedWidget->mPreviousIndex);
 }
 
 // Convert a tab to an external window
@@ -108,6 +111,7 @@ void MHTabWidget::DetachTab(int index, const QPoint & dropPoint)
     detachedWidget->setWindowTitle(tabText(index));
     detachedWidget->setWindowIcon(tabIcon(index));
     detachedWidget->mNativeName = mNativeNames[index];
+    detachedWidget->mPreviousIndex = index;
     mNativeNames.removeAt(index);
 
     // Remove from tab bar
@@ -136,18 +140,6 @@ void MHTabWidget::DetachTab(int index, const QPoint & dropPoint)
     detachedWidget->showNormal();
 }
 
-// Swap two tab indices
-void MHTabWidget::MoveTab(int fromIndex, int toIndex)
-{
-    QString nativeName;
-    removeTab(fromIndex);
-    nativeName = mNativeNames.at(fromIndex);
-    mNativeNames.removeAt(fromIndex);
-    insertTab(toIndex, widget(fromIndex), tabIcon(fromIndex), tabText(fromIndex));
-    mNativeNames.insert(toIndex, nativeName);
-    setCurrentIndex(toIndex);
-}
-
 // Remove a tab, while still keeping the widget intact
 void MHTabWidget::DeleteTab(int index)
 {
@@ -159,10 +151,7 @@ void MHTabWidget::DeleteTab(int index)
 
 void MHTabWidget::tabMoved(int from, int to)
 {
-    QString nativeName;
-    nativeName = mNativeNames.at(from);
-    mNativeNames.removeAt(from);
-    mNativeNames.insert(to, nativeName);
+    std::swap(mNativeNames[from], mNativeNames[to]);
     emit tabMovedTabWidget(from, to);
 }
 
