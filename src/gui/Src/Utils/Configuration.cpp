@@ -361,26 +361,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     disasmUint.insert("MaxModuleSize", -1);
     defaultUints.insert("Disassembler", disasmUint);
 
-    QMap<QString, duint> tabOrderUint;
-    int curTab = 0;
-    tabOrderUint.insert("CPUTab", curTab++);
-    tabOrderUint.insert("GraphTab", curTab++);
-    tabOrderUint.insert("LogTab", curTab++);
-    tabOrderUint.insert("NotesTab", curTab++);
-    tabOrderUint.insert("BreakpointsTab", curTab++);
-    tabOrderUint.insert("MemoryMapTab", curTab++);
-    tabOrderUint.insert("CallStackTab", curTab++);
-    tabOrderUint.insert("SEHTab", curTab++);
-    tabOrderUint.insert("ScriptTab", curTab++);
-    tabOrderUint.insert("SymbolsTab", curTab++);
-    tabOrderUint.insert("SourceTab", curTab++);
-    tabOrderUint.insert("ReferencesTab", curTab++);
-    tabOrderUint.insert("ThreadsTab", curTab++);
-    curTab++; // removed SnowmanTab
-    tabOrderUint.insert("HandlesTab", curTab++);
-    tabOrderUint.insert("TraceTab", curTab++);
-    defaultUints.insert("TabOrder", tabOrderUint);
-
     //font settings
     QFont font("Lucida Console", 8, QFont::Normal, false);
     defaultFonts.insert("AbstractTableView", font);
@@ -737,21 +717,13 @@ void Configuration::readUints()
 
 void Configuration::writeUints()
 {
-    duint setting;
-    bool bSaveLoadTabOrder = ConfigBool("Gui", "LoadSaveTabOrder");
-
     //write config
     for(auto itMap = Uints.cbegin(); itMap != Uints.cend(); ++itMap)
     {
         const QString & category = itMap.key();
         for(auto it = itMap.value().cbegin(); it != itMap.value().cend(); it++)
         {
-            // Do not save settings to file if saveLoadTabOrder checkbox is Unchecked
-            const QString & id = it.key();
-            if(!bSaveLoadTabOrder && category == "TabOrder" && BridgeSettingGetUint(category.toUtf8().constData(), id.toUtf8().constData(), &setting))
-                continue;
-
-            uintToConfig(category, id, it.value());
+            uintToConfig(category, it.key(), it.value());
         }
     }
 }
