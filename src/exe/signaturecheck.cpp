@@ -25,37 +25,11 @@ static void debugMessage(const wchar_t* szMessage)
 }
 #endif // DEBUG_SIGNATURE_CHECKS
 
-// TODO: look at hijacking of wintrust (also old vulnerabilities)
-// - https://www.bleepingcomputer.com/news/security/microsoft-code-sign-check-bypassed-to-drop-zloader-malware/
-// - https://www.trustedsec.com/blog/object-overloading/
-// MSASN1.dll
-// CRYPTSP.dll
-// CRYPTBASE.dll
-// other:
-// cryptnet.dll
-// iphlpapi.dll
-// profapi.dll
-// wininet.dll
-// winmm.dll
-// opengl32.dll
-// glu32.dll
-// dnsapi.dll
-// mpr.dll
-// wldp.dll
-// wtsapi32.dll
-// XP: rsaenh.dll
-// XP: psapi.dll
-// XP: WS2_32.dll
-// XP: WS2HELP.dll
-// XP: DNSAPI.dll
 #pragma comment(lib, "wintrust")
 
 // Source: https://learn.microsoft.com/en-us/windows/win32/seccrypto/example-c-program--verifying-the-signature-of-a-pe-file
 static bool VerifyEmbeddedSignature(LPCWSTR pwszSourceFile, bool checkRevocation)
 {
-    LONG lStatus;
-    DWORD dwLastError;
-
     // Initialize the WINTRUST_FILE_INFO structure.
 
     WINTRUST_FILE_INFO FileData;
@@ -128,94 +102,12 @@ static bool VerifyEmbeddedSignature(LPCWSTR pwszSourceFile, bool checkRevocation
 
     // WinVerifyTrust verifies signatures as specified by the GUID
     // and Wintrust_Data.
-    lStatus = WinVerifyTrust(
-                  NULL,
-                  &WVTPolicyGUID,
-                  &WinTrustData);
+    auto lStatus = WinVerifyTrust(
+                       NULL,
+                       &WVTPolicyGUID,
+                       &WinTrustData);
 
-    bool validSignature = false;
-    switch(lStatus)
-    {
-    case ERROR_SUCCESS:
-        /*
-        Signed file:
-            - Hash that represents the subject is trusted.
-
-            - Trusted publisher without any verification errors.
-
-            - UI was disabled in dwUIChoice. No publisher or
-                time stamp chain errors.
-
-            - UI was enabled in dwUIChoice and the user clicked
-                "Yes" when asked to install and run the signed
-                subject.
-        */
-        wprintf_s(L"The file \"%s\" is signed and the signature "
-                  L"was verified.\n",
-                  pwszSourceFile);
-        validSignature = true;
-        break;
-
-    case TRUST_E_NOSIGNATURE:
-        // The file was not signed or had a signature
-        // that was not valid.
-
-        // Get the reason for no signature.
-        dwLastError = GetLastError();
-        if(TRUST_E_NOSIGNATURE == dwLastError ||
-                TRUST_E_SUBJECT_FORM_UNKNOWN == dwLastError ||
-                TRUST_E_PROVIDER_UNKNOWN == dwLastError)
-        {
-            // The file was not signed.
-            wprintf_s(L"The file \"%s\" is not signed.\n",
-                      pwszSourceFile);
-        }
-        else
-        {
-            // The signature was not valid or there was an error
-            // opening the file.
-            wprintf_s(L"An unknown error occurred trying to "
-                      L"verify the signature of the \"%s\" file.\n",
-                      pwszSourceFile);
-        }
-
-        break;
-
-    case TRUST_E_EXPLICIT_DISTRUST:
-        // The hash that represents the subject or the publisher
-        // is not allowed by the admin or user.
-        wprintf_s(L"The signature is present, but specifically "
-                  L"disallowed.\n");
-        break;
-
-    case TRUST_E_SUBJECT_NOT_TRUSTED:
-        // The user clicked "No" when asked to install and run.
-        wprintf_s(L"The signature is present, but not "
-                  L"trusted.\n");
-        break;
-
-    case CRYPT_E_SECURITY_SETTINGS:
-        /*
-        The hash that represents the subject or the publisher
-        was not explicitly trusted by the admin and the
-        admin policy has disabled user trust. No signature,
-        publisher or time stamp errors.
-        */
-        wprintf_s(L"CRYPT_E_SECURITY_SETTINGS - The hash "
-                  L"representing the subject or the publisher wasn't "
-                  L"explicitly trusted by the admin and admin policy "
-                  L"has disabled user trust. No signature, publisher "
-                  L"or timestamp errors.\n");
-        break;
-
-    default:
-        // The UI was disabled in dwUIChoice or the admin policy
-        // has disabled user trust. lStatus contains the
-        // publisher or time stamp chain error.
-        wprintf_s(L"Error is: 0x%x.\n",
-                  lStatus);
-        break;
-    }
+    bool validSignature = lStatus == ERROR_SUCCESS;
 
     // Any hWVTStateData must be released by a call with close.
     WinTrustData.dwStateAction = WTD_STATEACTION_CLOSE;
@@ -456,6 +348,8 @@ bool InitializeSignatureCheck()
     // - https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-setdefaultdlldirectories
     // - https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-adddlldirectory
     // - https://medium.com/@1ndahous3/safe-code-pitfalls-dll-side-loading-winapi-and-c-73baaf48bdf5
+    // - https://www.bleepingcomputer.com/news/security/microsoft-code-sign-check-bypassed-to-drop-zloader-malware/
+    // - https://www.trustedsec.com/blog/object-overloading/
     HMODULE hKernel32 = GetModuleHandleW(L"kernel32.dll");
     pSetDefaultDllDirectories = (pfnSetDefaultDllDirectories)GetProcAddress(hKernel32, "SetDefaultDllDirectories");
     pSetDllDirectoryW = (pfnSetDllDirectoryW)GetProcAddress(hKernel32, "SetDllDirectoryW");
