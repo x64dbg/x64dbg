@@ -31,7 +31,7 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
     flushTimer = new QTimer(this);
     flushTimer->setInterval(500);
     connect(flushTimer, SIGNAL(timeout()), this, SLOT(flushTimerSlot()));
-    connect(Bridge::getBridge(), SIGNAL(close()), flushTimer, SLOT(stop()));
+    connect(Bridge::getBridge(), SIGNAL(closeApplication()), flushTimer, SLOT(stop()));
 
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateStyle()));

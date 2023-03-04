@@ -7,6 +7,7 @@
 #include <exception>
 #include <signal.h>
 #include "crashdump.h"
+#include "signaturecheck.h"
 
 #define PROCESS_CALLBACK_FILTER_ENABLED 0x1
 
@@ -37,17 +38,14 @@ BOOL
 void CrashDumpInitialize()
 {
     // Get handles to kernel32 and dbghelp
-    HMODULE hKernel32 = GetModuleHandleA("kernel32.dll");
-    HMODULE hDbghelp = LoadLibraryA("dbghelp.dll");
+    HMODULE hDbghelp = LoadLibraryCheckedW(L"dbghelp.dll", false);
 
     if(hDbghelp)
         *(FARPROC*)&MiniDumpWriteDumpPtr = GetProcAddress(hDbghelp, "MiniDumpWriteDump");
 
-    if(hKernel32)
-    {
-        *(FARPROC*)&SetProcessUserModeExceptionPolicyPtr = GetProcAddress(hKernel32, "SetProcessUserModeExceptionPolicy");
-        *(FARPROC*)&GetProcessUserModeExceptionPolicyPtr = GetProcAddress(hKernel32, "GetProcessUserModeExceptionPolicy");
-    }
+    HMODULE hKernel32 = GetModuleHandleA("kernel32.dll");
+    *(FARPROC*)&SetProcessUserModeExceptionPolicyPtr = GetProcAddress(hKernel32, "SetProcessUserModeExceptionPolicy");
+    *(FARPROC*)&GetProcessUserModeExceptionPolicyPtr = GetProcAddress(hKernel32, "GetProcessUserModeExceptionPolicy");
 
     if(MiniDumpWriteDumpPtr)
         SetUnhandledExceptionFilter(CrashDumpExceptionHandler);
