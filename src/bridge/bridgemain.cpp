@@ -32,9 +32,7 @@ static bool bDisableGUIUpdate;
 
 #define LOADLIBRARY(name) \
     szLib=name; \
-    hInst=LoadLibraryW(name); \
-    if(!hInst) \
-        return L"Error loading library \"" name L"\"!"
+    hInst=BridgeLoadLibraryCheckedW(name, false);
 
 #define LOADEXPORT(name) \
     *((FARPROC*)&name)=GetProcAddress(hInst, #name); \
@@ -65,13 +63,12 @@ static bool DirExists(const wchar_t* dir)
     return (attrib != INVALID_FILE_ATTRIBUTES && (attrib & FILE_ATTRIBUTE_DIRECTORY) != 0);
 }
 
-BRIDGE_IMPEXP const wchar_t* BridgeInit()
-{
-    //Initialize critial section
-    InitializeCriticalSection(&csIni);
-    InitializeCriticalSection(&csTranslate);
+static decltype(&BridgeLoadLibraryCheckedW) pLoadLibraryCheckedW;
+static decltype(&BridgeLoadLibraryCheckedA) pLoadLibraryCheckedA;
 
-    //Settings load
+static const wchar_t* InitializeUserDirectory()
+{
+    // Handle user directory
     if(!GetModuleFileNameW(0, szUserDirectory, _countof(szUserDirectory)))
         return L"Error getting module path!";
 
@@ -133,24 +130,69 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit()
     if(!DirExists(userDirUtf16.c_str()))
         return L"Specified user directory doesn't exist";
 
+    // Read the settings from the INI
     wcscpy_s(szIniFile, userDirUtf16.c_str());
     wcscat_s(szIniFile, L"\\");
     wcscat_s(szIniFile, fileNameWithoutExtension);
     wcscat_s(szIniFile, L".ini");
+    BridgeSettingRead(nullptr);
 
     wcscpy_s(szUserDirectory, userDirUtf16.c_str());
+    return nullptr;
+}
 
+BRIDGE_IMPEXP const wchar_t* BridgeInit()
+{
+    //Initialize critial section
+    InitializeCriticalSection(&csIni);
+    InitializeCriticalSection(&csTranslate);
+
+    // Signature checking functions
+    auto hMainModule = GetModuleHandleW(nullptr);
+    pLoadLibraryCheckedW = (decltype(pLoadLibraryCheckedW))GetProcAddress(hMainModule, "LoadLibraryCheckedW");
+    pLoadLibraryCheckedA = (decltype(pLoadLibraryCheckedA))GetProcAddress(hMainModule, "LoadLibraryCheckedA");
+    if(pLoadLibraryCheckedW == nullptr || pLoadLibraryCheckedA == nullptr)
+        return L"Error finding safe library loading functions!";
+
+    auto userDirectoryError = InitializeUserDirectory();
+    if(userDirectoryError != nullptr)
+        return userDirectoryError;
+
+    // Variables used by the macros below
     HINSTANCE hInst;
     const wchar_t* szLib;
     static wchar_t szError[256] = L"";
 
-    //GUI Load
-    LOADLIBRARY(gui_lib);
-    LOADEXPORT(_gui_guiinit);
-    LOADEXPORT(_gui_sendmessage);
-    LOADEXPORT(_gui_translate_text);
+    auto titanEngineDll = []()
+    {
+        switch(DbgGetDebugEngine())
+        {
+        case DebugEngineGleeBug:
+            return L"GleeBug\\TitanEngine.dll";
+        case DebugEngineStaticEngine:
+            return L"StaticEngine\\TitanEngine.dll";
+        default:
+            return L"TitanEngine.dll";
+        }
+    }();
 
-    //DBG Load
+    auto loadIfExists = [&](const wchar_t* szDll)
+    {
+        BridgeLoadLibraryCheckedW(szDll, true);
+    };
+
+    // Imported DLLs (DBG)
+    LOADLIBRARY(titanEngineDll);
+    LOADLIBRARY(L"LLVMDemangle.dll");
+    LOADLIBRARY(L"lz4.dll");
+    LOADLIBRARY(L"jansson.dll");
+    LOADLIBRARY(L"DeviceNameResolver.dll");
+    LOADLIBRARY(L"XEDParse.dll");
+    //loadIfExists(L"asmjit.dll"); // only loaded with user interaction
+    //loadIfExists(L"Scylla.dll"); // only loaded with user interaction
+    loadIfExists(L"msdia140.dll"); // only loaded with user interaction
+
+    // DBG
     LOADLIBRARY(dbg_lib);
     LOADEXPORT(_dbg_dbginit);
     LOADEXPORT(_dbg_memfindbaseaddr);
@@ -173,15 +215,58 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit()
     LOADEXPORT(_dbg_dbgcmddirectexec);
     LOADEXPORT(_dbg_getbranchdestination);
     LOADEXPORT(_dbg_sendmessage);
+
+    // Imported DLLs (GUI)
+    LOADLIBRARY(L"ldconvert.dll");
+    loadIfExists(L"Qt5Core.dll");
+    loadIfExists(L"Qt5Gui.dll");
+    loadIfExists(L"Qt5WinExtras.dll");
+    loadIfExists(L"Qt5Widgets.dll");
+    loadIfExists(L"Qt5Network.dll");
+    loadIfExists(L"platforms\\qwindows.dll");
+    loadIfExists(L"imageformats\\qgif.dll");
+    loadIfExists(L"imageformats\\qicns.dll");
+    loadIfExists(L"imageformats\\qico.dll");
+    loadIfExists(L"imageformats\\qjpeg.dll");
+    loadIfExists(L"Qt5Svg.dll");
+    loadIfExists(L"imageformats\\qsvg.dll");
+    loadIfExists(L"imageformats\\qtga.dll");
+    loadIfExists(L"imageformats\\qtiff.dll");
+    loadIfExists(L"imageformats\\qwbmp.dll");
+    loadIfExists(L"imageformats\\qwebp.dll");
+    loadIfExists(L"bearer\\qgenericbearer.dll");
+    loadIfExists(L"bearer\\qnativewifibearer.dll");
+    loadIfExists(L"iconengines\\qsvgicon.dll");
+    //loadIfExists(L"libeay32.dll"); // only loaded with user interaction
+    //loadIfExists(L"ssleay32.dll"); // only loaded with user interaction
+
+    // GUI
+    LOADLIBRARY(gui_lib);
+    LOADEXPORT(_gui_guiinit);
+    LOADEXPORT(_gui_sendmessage);
+    LOADEXPORT(_gui_translate_text);
+
+    // Backwards compatibility
+    BridgeLoadLibraryCheckedW(L"x64_bridge.dll", true);
+    BridgeLoadLibraryCheckedW(L"x64_dbg.dll", true);
+
     return 0;
+}
+
+BRIDGE_IMPEXP HMODULE WINAPI BridgeLoadLibraryCheckedW(const wchar_t* szDll, bool allowFailure)
+{
+    return pLoadLibraryCheckedW(szDll, allowFailure);
+}
+
+BRIDGE_IMPEXP HMODULE WINAPI BridgeLoadLibraryCheckedA(const char* szDll, bool allowFailure)
+{
+    return pLoadLibraryCheckedA(szDll, allowFailure);
 }
 
 BRIDGE_IMPEXP const wchar_t* BridgeStart()
 {
     if(!_dbg_dbginit || !_gui_guiinit)
         return L"\"_dbg_dbginit\" || \"_gui_guiinit\" was not loaded yet, call BridgeInit!";
-    int errorLine = 0;
-    BridgeSettingRead(&errorLine);
     _dbg_sendmessage(DBG_INITIALIZE_LOCKS, nullptr, nullptr); //initialize locks before any other thread than the main thread are started
     _gui_guiinit(0, 0); //remove arguments
     if(!BridgeSettingFlush())
@@ -1208,7 +1293,12 @@ BRIDGE_IMPEXP void DbgGetSymbolInfo(const SYMBOLPTR* symbolptr, SYMBOLINFO* info
 
 BRIDGE_IMPEXP DEBUG_ENGINE DbgGetDebugEngine()
 {
-    return (DEBUG_ENGINE)_dbg_sendmessage(DBG_GET_DEBUG_ENGINE, nullptr, nullptr);
+    duint setting = DebugEngineTitanEngine;
+    if(!BridgeSettingGetUint("Engine", "DebugEngine", &setting))
+    {
+        BridgeSettingSetUint("Engine", "DebugEngine", setting);
+    }
+    return (DEBUG_ENGINE)setting;
 }
 
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)

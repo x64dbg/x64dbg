@@ -140,7 +140,7 @@
       <AdditionalManifestDependencies>
       </AdditionalManifestDependencies>
       <LargeAddressAware>true</LargeAddressAware>
-      <DelayLoadDLLs>x32bridge.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>user32.dll;wintrust.dll;x32bridge.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -176,7 +176,7 @@
       <ProgramDatabaseFile>$(TargetDir)$(TargetName)_exe.pdb</ProgramDatabaseFile>
       <AdditionalManifestDependencies>
       </AdditionalManifestDependencies>
-      <DelayLoadDLLs>x64bridge.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>user32.dll;wintrust.dll;x64bridge.dll</DelayLoadDLLs>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

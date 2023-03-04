@@ -1,21 +1,57 @@
-#include <Windows.h>
+#include "signaturecheck.h"
+
 #include <delayimp.h>
 #include <Softpub.h>
 #include <wincrypt.h>
 #include <wintrust.h>
 
 #include <string>
+#include <vector>
 
-static wchar_t szModulePath[MAX_PATH];
+static wchar_t szApplicationDir[MAX_PATH];
 static bool bPerformSignatureChecks = false;
+
+//#define DEBUG_SIGNATURE_CHECKS
+
+#ifdef DEBUG_SIGNATURE_CHECKS
+static const wchar_t* gCheckedList[4096];
+static size_t gCheckedListSize = 0;
+
+static void debugMessage(const wchar_t* szMessage)
+{
+    wchar_t finalMessage[512] = L"[signaturecheck] ";
+    wcsncat_s(finalMessage, szMessage, _TRUNCATE);
+    OutputDebugStringW(finalMessage);
+}
+#endif // DEBUG_SIGNATURE_CHECKS
 
 // TODO: look at hijacking of wintrust (also old vulnerabilities)
 // - https://www.bleepingcomputer.com/news/security/microsoft-code-sign-check-bypassed-to-drop-zloader-malware/
 // - https://www.trustedsec.com/blog/object-overloading/
-#pragma comment (lib, "wintrust")
+// MSASN1.dll
+// CRYPTSP.dll
+// CRYPTBASE.dll
+// other:
+// cryptnet.dll
+// iphlpapi.dll
+// profapi.dll
+// wininet.dll
+// winmm.dll
+// opengl32.dll
+// glu32.dll
+// dnsapi.dll
+// mpr.dll
+// wldp.dll
+// wtsapi32.dll
+// XP: rsaenh.dll
+// XP: psapi.dll
+// XP: WS2_32.dll
+// XP: WS2HELP.dll
+// XP: DNSAPI.dll
+#pragma comment(lib, "wintrust")
 
 // Source: https://learn.microsoft.com/en-us/windows/win32/seccrypto/example-c-program--verifying-the-signature-of-a-pe-file
-bool VerifyEmbeddedSignature(LPCWSTR pwszSourceFile, bool checkRevocation = true)
+static bool VerifyEmbeddedSignature(LPCWSTR pwszSourceFile, bool checkRevocation)
 {
     LONG lStatus;
     DWORD dwLastError;
@@ -184,11 +220,12 @@ bool VerifyEmbeddedSignature(LPCWSTR pwszSourceFile, bool checkRevocation = true
     // Any hWVTStateData must be released by a call with close.
     WinTrustData.dwStateAction = WTD_STATEACTION_CLOSE;
 
-    lStatus = WinVerifyTrust(
-                  NULL,
-                  &WVTPolicyGUID,
-                  &WinTrustData);
+    auto lStatusClean = WinVerifyTrust(
+                            NULL,
+                            &WVTPolicyGUID,
+                            &WinTrustData);
 
+    SetLastError(lStatus);
     return validSignature;
 }
 
@@ -207,32 +244,77 @@ static std::wstring Utf8ToUtf16(const char* str)
     return convertedString;
 }
 
+static bool FileExists(const wchar_t* szFullPath)
+{
+    DWORD attrib = GetFileAttributesW(szFullPath);
+    return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+SIGNATURE_EXPORT HMODULE LoadLibraryCheckedW(const wchar_t* szDll, bool allowFailure)
+{
+    std::wstring fullDllPath = szApplicationDir;
+    fullDllPath += szDll;
+
+#ifdef DEBUG_SIGNATURE_CHECKS
+    debugMessage(L"LoadLibraryCheckedW");
+    debugMessage(fullDllPath.c_str());
+    auto checkedPath = (wchar_t*)malloc(sizeof(wchar_t) * (fullDllPath.size() + 1));
+    wcscpy_s(checkedPath, fullDllPath.size() + 1, fullDllPath.c_str());
+    gCheckedList[gCheckedListSize++] = checkedPath;
+#endif // DEBUG_SIGNATURE_CHECKS
+
+    if(allowFailure && !FileExists(fullDllPath.c_str()))
+    {
+#ifdef DEBUG_SIGNATURE_CHECKS
+        debugMessage(L"^^^ DLL NOT FOUND ^^^");
+#endif // DEBUG_SIGNATURE_CHECKS
+        SetLastError(ERROR_MOD_NOT_FOUND);
+        return 0;
+    }
+
+    if(bPerformSignatureChecks)
+    {
+        auto validSignature = VerifyEmbeddedSignature(fullDllPath.c_str(), false);
+        if(!validSignature)
+        {
+#ifdef DEBUG_SIGNATURE_CHECKS
+            wchar_t msg[128] = L"";
+            wsprintfW(msg, L"^^^ INVALID SIGNATURE ^^^ -> %08X", GetLastError());
+            debugMessage(msg);
+#else
+            MessageBoxW(nullptr, fullDllPath.c_str(), L"DLL does not have a valid signature", MB_ICONERROR | MB_SYSTEMMODAL);
+            ExitProcess(TRUST_E_NOSIGNATURE);
+#endif // DEBUG_SIGNATURE_CHECKS
+        }
+    }
+
+    auto hModule = LoadLibraryW(fullDllPath.c_str());
+    auto lastError = GetLastError();
+    if(!allowFailure && !hModule)
+    {
+        MessageBoxW(nullptr, fullDllPath.c_str(), L"DLL not found!", MB_ICONERROR | MB_SYSTEMMODAL);
+        ExitProcess(lastError);
+    }
+    return hModule;
+}
+
+SIGNATURE_EXPORT HMODULE LoadLibraryCheckedA(const char* szDll, bool allowFailure)
+{
+    return LoadLibraryCheckedW(Utf8ToUtf16(szDll).c_str(), allowFailure);
+}
+
 // https://devblogs.microsoft.com/oldnewthing/20170126-00/?p=95265
 static FARPROC WINAPI delayHook(unsigned dliNotify, PDelayLoadInfo pdli)
 {
-    // TODO: pre-parse the imports required and make sure there isn't a fake DLL being loaded
+    // TODO: pre-parse the imports required and make sure there isn't a fake signed DLL being loaded
     if(dliNotify == dliNotePreLoadLibrary)
     {
-        std::wstring fullDllPath = szModulePath;
-        fullDllPath += L'\\';
-        fullDllPath += Utf8ToUtf16(pdli->szDll);
-        MessageBoxW(nullptr, fullDllPath.c_str(), L"dliNotePreLoadLibrary", MB_ICONERROR);
-        if(bPerformSignatureChecks)
+        if(_stricmp(pdli->szDll, "wintrust.dll") == 0 || _stricmp(pdli->szDll, "user32.dll") == 0)
         {
-            auto validSignature = VerifyEmbeddedSignature(fullDllPath.c_str());
-            if(!validSignature)
-            {
-                MessageBoxW(nullptr, fullDllPath.c_str(), L"DLL does not have a valid signature", MB_ICONERROR | MB_SYSTEMMODAL);
-                ExitProcess(TRUST_E_NOSIGNATURE);
-            }
+            return 0;
         }
-        auto hModule = ::LoadLibraryW(fullDllPath.c_str());
-        if(!hModule)
-        {
-            MessageBoxW(nullptr, fullDllPath.c_str(), L"DLL not found!", MB_ICONERROR | MB_SYSTEMMODAL);
-            ExitProcess(ERROR_MOD_NOT_FOUND);
-        }
-        return (FARPROC)hModule;
+
+        return (FARPROC)LoadLibraryCheckedA(pdli->szDll, false);
     }
     return 0;
 }
@@ -244,17 +326,206 @@ const
 #endif // _MSC_FULL_VER
 PfnDliHook __pfnDliNotifyHook2 = delayHook;
 
+#ifdef DEBUG_SIGNATURE_CHECKS
+typedef struct _UNICODE_STRING
+{
+    USHORT Length;
+    USHORT MaximumLength;
+    PWSTR  Buffer;
+} UNICODE_STRING, * PUNICODE_STRING;
+
+typedef struct _LDR_DLL_UNLOADED_NOTIFICATION_DATA
+{
+    ULONG Flags;                    //Reserved.
+    PUNICODE_STRING FullDllName;    //The full path name of the DLL module.
+    PUNICODE_STRING BaseDllName;    //The base file name of the DLL module.
+    PVOID DllBase;                  //A pointer to the base address for the DLL in memory.
+    ULONG SizeOfImage;              //The size of the DLL image, in bytes.
+} LDR_DLL_UNLOADED_NOTIFICATION_DATA, * PLDR_DLL_UNLOADED_NOTIFICATION_DATA;
+
+typedef struct _LDR_DLL_LOADED_NOTIFICATION_DATA
+{
+    ULONG Flags;                    //Reserved.
+    PUNICODE_STRING FullDllName;    //The full path name of the DLL module.
+    PUNICODE_STRING BaseDllName;    //The base file name of the DLL module.
+    PVOID DllBase;                  //A pointer to the base address for the DLL in memory.
+    ULONG SizeOfImage;              //The size of the DLL image, in bytes.
+} LDR_DLL_LOADED_NOTIFICATION_DATA, * PLDR_DLL_LOADED_NOTIFICATION_DATA;
+
+typedef union _LDR_DLL_NOTIFICATION_DATA
+{
+    LDR_DLL_LOADED_NOTIFICATION_DATA Loaded;
+    LDR_DLL_UNLOADED_NOTIFICATION_DATA Unloaded;
+} LDR_DLL_NOTIFICATION_DATA, * PLDR_DLL_NOTIFICATION_DATA, * const PCLDR_DLL_NOTIFICATION_DATA;
+
+#define LDR_DLL_NOTIFICATION_REASON_LOADED 1
+#define LDR_DLL_NOTIFICATION_REASON_UNLOADED 2
+
+VOID CALLBACK LdrDllNotification(
+    _In_     ULONG                       NotificationReason,
+    _In_     PCLDR_DLL_NOTIFICATION_DATA NotificationData,
+    _In_opt_ PVOID                       Context
+);
+
+using PLDR_DLL_NOTIFICATION_FUNCTION = decltype(&LdrDllNotification);
+
+NTSTATUS NTAPI LdrRegisterDllNotification(
+    _In_     ULONG                          Flags,
+    _In_     PLDR_DLL_NOTIFICATION_FUNCTION NotificationFunction,
+    _In_opt_ PVOID                          Context,
+    _Out_    PVOID* Cookie
+);
+
+using PLDR_REGISTER_DLL_NOTIFICATION_FUNCTION = decltype(&LdrRegisterDllNotification);
+
+PLDR_REGISTER_DLL_NOTIFICATION_FUNCTION pLdrRegisterDllNotification;
+
+static VOID CALLBACK MyLdrDllNotification(
+    _In_     ULONG                       NotificationReason,
+    _In_     PCLDR_DLL_NOTIFICATION_DATA NotificationData,
+    _In_opt_ PVOID                       Context
+)
+{
+    if(NotificationReason == LDR_DLL_NOTIFICATION_REASON_LOADED)
+    {
+        auto buffer = NotificationData->Loaded.FullDllName->Buffer;
+        auto length = NotificationData->Loaded.FullDllName->Length;
+        if(memcmp(buffer, szApplicationDir, wcslen(szApplicationDir)) == 0)
+        {
+            auto alreadyChecked = false;
+            for(size_t i = 0; i < gCheckedListSize; i++)
+            {
+                auto checkedPath = gCheckedList[i];
+                auto checkedLen = wcslen(checkedPath);
+                if(length / 2 == checkedLen && memcmp(checkedPath, buffer, length) == 0)
+                {
+                    alreadyChecked = true;
+                    break;
+                }
+            }
+            if(alreadyChecked)
+            {
+                debugMessage(L"DllLoadNotification (checked)");
+            }
+            else
+            {
+                if(wcsstr(buffer, L"\\plugins\\"))
+                    debugMessage(L"DllLoadNotification(plugin)");
+                else
+                    debugMessage(L"=== UNCHECKED === DllLoadNotification");
+            }
+            debugMessage(buffer);
+        }
+    }
+}
+#endif // DEBUG_SIGNATURE_CHECKS
+
+#define LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR    0x00000100
+#define LOAD_LIBRARY_SEARCH_APPLICATION_DIR 0x00000200
+#define LOAD_LIBRARY_SEARCH_USER_DIRS       0x00000400
+#define LOAD_LIBRARY_SEARCH_SYSTEM32        0x00000800
+#define LOAD_LIBRARY_SEARCH_DEFAULT_DIRS    0x00001000
+
+typedef BOOL(WINAPI* pfnSetDefaultDllDirectories)(DWORD DirectoryFlags);
+typedef BOOL(WINAPI* pfnSetDllDirectoryW)(LPCWSTR lpPathName);
+typedef BOOL(WINAPI* pfnAddDllDirectory)(LPCWSTR lpPathName);
+
+static pfnSetDefaultDllDirectories pSetDefaultDllDirectories;
+static pfnSetDllDirectoryW pSetDllDirectoryW;
+static pfnAddDllDirectory pAddDllDirectory;
+
 bool InitializeSignatureCheck()
 {
-    if(!GetModuleFileNameW(GetModuleHandleW(nullptr), szModulePath, _countof(szModulePath)))
+    if(!GetModuleFileNameW(GetModuleHandleW(nullptr), szApplicationDir, _countof(szApplicationDir)))
         return false;
-    bPerformSignatureChecks = VerifyEmbeddedSignature(szModulePath);
-    bPerformSignatureChecks = true; // TODO: remove this
-    auto ptr = wcsrchr(szModulePath, L'\\');
+
+    std::wstring executablePath = szApplicationDir;
+    auto ptr = wcsrchr(szApplicationDir, L'\\');
     if(ptr == nullptr)
         return false;
-    *ptr = L'\0';
-    // TODO: check signature
-    // https://learn.microsoft.com/en-us/windows/win32/seccrypto/example-c-program--verifying-the-signature-of-a-pe-file
+    ptr[1] = L'\0';
+
+    // Get system directory
+    wchar_t szSystemDir[MAX_PATH] = L"";
+    GetSystemDirectoryW(szSystemDir, _countof(szSystemDir));
+
+    // This is generically fixing DLL hijacking by using the following search order
+    // - System directory
+    // - Application directory
+    // References:
+    // - https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-setdefaultdlldirectories
+    // - https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-adddlldirectory
+    // - https://medium.com/@1ndahous3/safe-code-pitfalls-dll-side-loading-winapi-and-c-73baaf48bdf5
+    HMODULE hKernel32 = GetModuleHandleW(L"kernel32.dll");
+    pSetDefaultDllDirectories = (pfnSetDefaultDllDirectories)GetProcAddress(hKernel32, "SetDefaultDllDirectories");
+    pSetDllDirectoryW = (pfnSetDllDirectoryW)GetProcAddress(hKernel32, "SetDllDirectoryW");
+    pAddDllDirectory = (pfnAddDllDirectory)GetProcAddress(hKernel32, "AddDllDirectory");
+    if(pSetDefaultDllDirectories && pSetDllDirectoryW && pAddDllDirectory)
+    {
+        if(!pSetDllDirectoryW(L""))
+            return false;
+
+        // Thanks to daax for finding this order
+        // > If more than one directory has been added, the order in which those directories are searched is unspecified.
+        // Reversing ntdll shows that it is using a singly-linked list, so the order is the opposite in which you add it
+        // Wine: https://github.com/wine-mirror/wine/blob/e796002ee61bf5dfb2718e8f4fb8fa928ccdc236/dlls/ntdll/loader.c#L4423-L4462
+        if(!pAddDllDirectory(szApplicationDir))
+            return false;
+        if(!pAddDllDirectory(szSystemDir))
+            return false;
+
+        if(!pSetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_SYSTEM32 | LOAD_LIBRARY_SEARCH_USER_DIRS))
+            return false;
+    }
+    else
+    {
+        auto loadSystemDll = [&szSystemDir](const wchar_t* szName)
+        {
+            std::wstring fullDllPath;
+            fullDllPath = szSystemDir;
+            fullDllPath += L'\\';
+            fullDllPath += szName;
+            LoadLibraryW(fullDllPath.c_str());
+        };
+
+        // At least prevent DLL hijacking for wintrust.dll on XP/Old 7
+        loadSystemDll(L"msasn1.dll");
+        loadSystemDll(L"cryptsp.dll");
+        loadSystemDll(L"cryptbase.dll");
+        loadSystemDll(L"wintrust.dll");
+        loadSystemDll(L"rsaenh.dll");
+        loadSystemDll(L"psapi.dll");
+    }
+
+    bPerformSignatureChecks = VerifyEmbeddedSignature(executablePath.c_str(), false);
+
+#ifdef DEBUG_SIGNATURE_CHECKS
+    bPerformSignatureChecks = true;
+    pLdrRegisterDllNotification = (PLDR_REGISTER_DLL_NOTIFICATION_FUNCTION)GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "LdrRegisterDllNotification");
+    if(pLdrRegisterDllNotification == nullptr)
+        return true;
+    PVOID Cookie;
+    auto status = pLdrRegisterDllNotification(0, MyLdrDllNotification, nullptr, &Cookie);
+    if(status != 0)
+        return false;
+#endif // DEBUG_SIGNATURE_CHECKS
+
+    if(bPerformSignatureChecks)
+    {
+        // Safely load the MSVC runtime DLLs (since they cannot be delay loaded)
+        auto loadRuntimeDll = [](const wchar_t* szDll)
+        {
+            std::wstring fullDllPath = szApplicationDir;
+            fullDllPath += L'\\';
+            fullDllPath += szDll;
+            if(FileExists(fullDllPath.c_str()))
+                LoadLibraryCheckedW(szDll, true);
+            else
+                LoadLibraryW(szDll);
+        };
+        loadRuntimeDll(L"msvcr120.dll");
+        loadRuntimeDll(L"msvcp120.dll");
+    }
+
     return true;
 }
