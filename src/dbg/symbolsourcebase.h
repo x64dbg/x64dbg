@@ -145,7 +145,7 @@ public:
     }
 
     // only call if isOpen && !isLoading
-    virtual void enumSymbols(const CbEnumSymbol & cbEnum)
+    virtual void enumSymbols(const CbEnumSymbol & cbEnum, duint beginRva = 0, duint endRva = -1)
     {
         // Stub
     }
