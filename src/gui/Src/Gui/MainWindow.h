@@ -5,6 +5,7 @@
 
 class QDragEnterEvent;
 class QDropEvent;
+class QMutex;
 class CloseDialog;
 class CommandLineEdit;
 class MHTabWidget;
