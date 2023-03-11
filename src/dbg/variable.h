@@ -57,7 +57,7 @@ bool varget(const char* Name, duint* Value, int* Size, VAR_TYPE* Type);
 bool varget(const char* Name, char* String, int* Size, VAR_TYPE* Type);
 bool varset(const char* Name, duint Value, bool ReadOnly);
 bool varset(const char* Name, const char* Value, bool ReadOnly);
-bool vardel(const char* Name, bool DelSystem);
+int vardel(const char* Name, bool DelSystem);
 bool vargettype(const char* Name, VAR_TYPE* Type = nullptr, VAR_VALUE_TYPE* ValueType = nullptr);
 bool varenum(VAR* List, size_t* Size);
 
