@@ -349,6 +349,8 @@ bool pluginunload(const char* pluginName, bool unloadall)
     return false;
 }
 
+typedef BOOL(WINAPI* pfnAddDllDirectory)(LPCWSTR lpPathName);
+
 /**
 \brief Loads plugins from a specified directory.
 \param pluginDir The directory to load plugins from.
@@ -358,11 +360,19 @@ void pluginloadall(const char* pluginDir)
     //reserve menu space
     pluginMenuList.reserve(1024);
     pluginMenuEntryList.reserve(1024);
+
     //load new plugins
     wchar_t currentDir[deflen] = L"";
     pluginDirectory = StringUtils::Utf8ToUtf16(pluginDir);
+
+    //add the plugins directory as valid dependency directory
+    static auto pAddDllDirectory = (pfnAddDllDirectory)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "AddDllDirectory");
+    if(pAddDllDirectory)
+        pAddDllDirectory(pluginDirectory.c_str());
+
     GetCurrentDirectoryW(deflen, currentDir);
     SetCurrentDirectoryW(pluginDirectory.c_str());
+
     char searchName[deflen] = "";
 #ifdef _WIN64
     sprintf_s(searchName, "%s\\*.dp64", pluginDir);
@@ -381,6 +391,7 @@ void pluginloadall(const char* pluginDir)
         pluginload(StringUtils::Utf16ToUtf8(foundData.cFileName).c_str(), true);
     }
     while(FindNextFileW(hSearch, &foundData));
+
     FindClose(hSearch);
     SetCurrentDirectoryW(currentDir);
 }
