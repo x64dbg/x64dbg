@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
+#include <QMutex>
 #include <QMessageBox>
 #include <QIcon>
 #include <QUrl>

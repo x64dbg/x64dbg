@@ -319,7 +319,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
                     if(wStr.length())
                     {
                         wPainter.setPen(getCellColor(mTableOffset + i, j));
-                        wPainter.drawText(QRect(x + 4, y, getColumnWidth(j) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+                        wPainter.drawText(QRect(x + 4, y, getColumnWidth(j) - 5, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
                     }
                 }
             }
