@@ -297,9 +297,9 @@ bool varset(const char* Name, const char* Value, bool ReadOnly)
 \brief Deletes a variable.
 \param Name The name of the variable to delete. Cannot be null.
 \param DelSystem true to allow deleting system variables.
-\return true if the variable was deleted successfully, false otherwise.
+\return 0 if the variable was deleted successfully, -1 when variable doesn't exist, -2 when a user could not delete a system variable, -3 when unknown reason caused a variable couldn't be deleted
 */
-bool vardel(const char* Name, bool DelSystem)
+int vardel(const char* Name, bool DelSystem)
 {
     EXCLUSIVE_ACQUIRE(LockVariables);
 
@@ -309,7 +309,7 @@ bool vardel(const char* Name, bool DelSystem)
     name_ += Name;
     auto found = variables.find(name_);
     if(found == variables.end()) //not found
-        return false;
+        return -1;
     if(found->second.alias.length())
     {
         // Release the lock (potential deadlock here)
@@ -319,19 +319,21 @@ bool vardel(const char* Name, bool DelSystem)
     }
 
     if(!DelSystem && found->second.type != VAR_USER)
-        return false;
+        return -2;
     found = variables.begin();
-    String NameString(Name);
+    String NameString(name_);
+    bool deleted = false;
     while(found != variables.end())
     {
         if(found->first == NameString || found->second.alias == NameString)
         {
             found = variables.erase(found); // Invalidate iterators
+            deleted = true;
         }
         else
             found++;
     }
-    return true;
+    return deleted ? 0 : -3; //We should have deleted a variable, failing at here is a bug
 }
 
 /**
