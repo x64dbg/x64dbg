@@ -61,7 +61,7 @@ static size_t getSSERegisterOffset(FormatValueType value, size_t elementSize)
         {
             if(buf[bufptr + 1] >= '0' && buf[bufptr + 1] <= '9' && buf[bufptr + 2] == ']' && buf[bufptr + 3] == '\0')   // [xy]mm\d{1,2}\[\d\]
             {
-                int item = buf[bufptr + 1] - '0';
+                size_t item = buf[bufptr + 1] - '0';
                 if(buf[0] == 'x' && item >= 0 && item < 16 / elementSize)  // xmm
                     return offsetof(REGDUMP, regcontext.XmmRegisters[index]) + item * elementSize;
                 else if(buf[0] == 'y' && item >= 0 && item < 32 / elementSize)  // ymm
