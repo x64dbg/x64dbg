@@ -14,7 +14,7 @@ HRESULT STDMETHODCALLTYPE NoRegCoCreate(const __wchar_t* dllName,
                                         void**     ppv)
 {
     HRESULT hr;
-    HMODULE hModule = LoadLibraryExW(dllName, nullptr, LOAD_WITH_ALTERED_SEARCH_PATH);
+    HMODULE hModule = LoadLibraryW(dllName);
     pDllGetClassObject DllGetClassObject;
     if(hModule && (DllGetClassObject = (pDllGetClassObject)GetProcAddress(hModule, "DllGetClassObject")))
     {
