@@ -960,7 +960,9 @@ void pluginmenuentrysethotkey(int pluginHandle, int hEntry, const char* hotkey)
                 {
                     char name[MAX_PATH] = "";
                     strcpy_s(name, plugin.plugname);
-                    *strrchr(name, '.') = '\0';
+                    auto dot = strrchr(name, '.');
+                    if(dot != nullptr)
+                        *dot = '\0';
                     auto hack = StringUtils::sprintf("%s\1%s_%d", hotkey, name, hEntry);
                     GuiMenuSetEntryHotkey(currentMenu.hEntryMenu, hack.c_str());
                     break;

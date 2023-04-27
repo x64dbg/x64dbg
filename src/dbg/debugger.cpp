@@ -2320,7 +2320,8 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
                     Memory<char*> basicName(strlen(exeName) + 1, "dbglistprocesses:basicName");
                     strncpy_s(basicName(), sizeof(char) * strlen(exeName) + 1, exeName, _TRUNCATE);
                     char* dotInName = strrchr(basicName(), '.');
-                    dotInName[0] = '\0';
+                    if(dotInName != nullptr)
+                        dotInName[0] = '\0';
                     size_t basicNameLen = strlen(basicName());
                     peNameInCmd = strstr(cmdline, basicName());
                     //check for basic name is used in path to exe

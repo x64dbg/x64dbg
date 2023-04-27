@@ -35,6 +35,8 @@ bool cbScriptCmd(int argc, char* argv[])
     if(IsArgumentsLessThan(argc, 2))
         return false;
     auto scriptcmd = strchr(argv[0], ' ');
+    if(scriptcmd == nullptr)
+        return false;
     while(isspace(*scriptcmd))
         scriptcmd++;
     return scriptcmdexec(scriptcmd);
