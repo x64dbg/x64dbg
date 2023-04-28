@@ -86,7 +86,7 @@ bool cbHandleClose(int argc, char* argv[])
         return false;
     if(!handle || !DuplicateHandle(fdProcessInfo->hProcess, HANDLE(handle), NULL, NULL, 0, FALSE, DUPLICATE_CLOSE_SOURCE))
     {
-        String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
+        String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()));
         dprintf(QT_TRANSLATE_NOOP("DBG", "DuplicateHandle failed: %s\n"), error.c_str());
         return false;
     }

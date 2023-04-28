@@ -280,7 +280,7 @@ bool cbInstrMinidump(int argc, char* argv[])
     }
     else
     {
-        String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", lastError));
+        String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", lastError));
         dprintf(QT_TRANSLATE_NOOP("DBG", "MiniDumpWriteDump failed. GetLastError() = %s.\n"), error.c_str());
     }
 

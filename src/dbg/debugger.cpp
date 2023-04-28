@@ -2771,7 +2771,7 @@ static void debugLoopFunction(INIT_STRUCT* init)
         {
             auto lastError = GetLastError();
             auto isElevated = BridgeIsProcessElevated();
-            String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", lastError));
+            String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", lastError));
             if(lastError == ERROR_ELEVATION_REQUIRED && !isElevated)
             {
                 auto msg = StringUtils::Utf8ToUtf16(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "The executable you are trying to debug requires elevation. Restart as admin?")));
