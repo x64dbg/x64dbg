@@ -202,7 +202,7 @@ void RegistersView::InitMappings()
 
     if(mShowFpu)
     {
-        REGISTER_NAME tempRegisterName;
+        REGISTER_NAME tempRegisterName = UNKNOWN;
         offset++;
 
         if(mFpuMode == 1)

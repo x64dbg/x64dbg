@@ -72,18 +72,18 @@ private:
 
     struct JumpLine
     {
-        int line;
-        int destLine;
-        unsigned int jumpOffset;
-        bool isSelected;
-        bool isConditional;
-        bool isJumpGoingToExecute;
+        int line = 0;
+        int destLine = 0;
+        unsigned int jumpOffset = 0;
+        bool isSelected = false;
+        bool isConditional = false;
+        bool isJumpGoingToExecute = false;
     };
     struct LabelArrow
     {
-        int line;
-        int startX;
-        int endX;
+        int line = 0;
+        int startX = 0;
+        int endX = 0;
     };
 
     void AllocateJumpOffsets(std::vector<JumpLine> & jumpLines, std::vector<LabelArrow> & labelArrows);

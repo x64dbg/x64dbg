@@ -50,7 +50,7 @@ bool patterntransform(const string & patterntext, vector<PatternByte> & pattern)
         len++;
     }
 
-    PatternByte newByte;
+    PatternByte newByte = {};
     for(int i = 0, j = 0; i < len; i++)
     {
         if(formattext[i] == '?') //wildcard

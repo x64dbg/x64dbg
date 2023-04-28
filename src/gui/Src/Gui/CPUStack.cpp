@@ -16,7 +16,6 @@ CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
     int charwidth = getCharWidth();
     ColumnDescriptor wColDesc;
     DataDescriptor dDesc;
-    bStackFrozen = false;
     mMultiDump = multiDump;
 
     mForceColumn = 1;

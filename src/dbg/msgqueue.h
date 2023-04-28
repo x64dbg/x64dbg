@@ -9,9 +9,9 @@
 // Message structure
 struct MESSAGE
 {
-    int msg;
-    duint param1;
-    duint param2;
+    int msg = -1;
+    duint param1 = 0;
+    duint param2 = 0;
 };
 
 // Message stack structure

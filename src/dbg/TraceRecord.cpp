@@ -68,7 +68,10 @@ bool TraceRecordManager::setTraceRecordType(duint pageAddress, TraceRecordType t
                 newPage.moduleIndex = getModuleIndex(std::string(modName));
             }
             else
+            {
+                newPage.rva = pageAddress;
                 newPage.moduleIndex = ~0;
+            }
 
             auto inserted = TraceRecord.insert(std::make_pair(ModHashFromAddr(pageAddress), newPage));
             if(inserted.second == false) // we failed to insert new page into the map
@@ -418,7 +421,7 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
             if(written < DWORD(WriteBufferPtr - WriteBuffer)) //Disk full?
             {
                 CloseHandle(rtFile);
-                String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
+                String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()));
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Trace recording has stopped unexpectedly because WriteFile() failed. GetLastError() = %s.\r\n"), error.c_str());
                 rtEnabled = false;
             }
@@ -563,7 +566,7 @@ bool TraceRecordManager::enableTraceRecording(bool enabled, const char* fileName
         }
         else
         {
-            String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
+            String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()));
             dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot create trace recording file. GetLastError() = %s.\r\n"), error.c_str());
             return false;
         }

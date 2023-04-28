@@ -547,7 +547,7 @@ namespace Exprfunc
 
     duint argget(duint index)
     {
-        duint value;
+        duint value = 0;
         valfromstring(argExpr(index).c_str(), &value);
         return value;
     }
@@ -555,7 +555,7 @@ namespace Exprfunc
     duint argset(duint index, duint value)
     {
         auto expr = argExpr(index);
-        duint oldvalue;
+        duint oldvalue = 0;
         valfromstring(expr.c_str(), &oldvalue);
         valtostring(expr.c_str(), value, true);
         return oldvalue;

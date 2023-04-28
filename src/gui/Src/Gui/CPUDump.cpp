@@ -504,7 +504,7 @@ void CPUDump::modifyValueSlot()
     auto d = mDescriptor.at(0).data;
     if(d.itemSize == 4 && d.dwordMode == FloatDword || d.itemSize == 8 && d.qwordMode == DoubleQword)
     {
-        auto size = std::min(getSizeOf(mDescriptor.at(0).data.itemSize), int(sizeof(double)));
+        auto size = std::min(getSizeOf(mDescriptor.at(0).data.itemSize), sizeof(double));
         if(size == 4)
         {
             float value;
@@ -540,11 +540,11 @@ void CPUDump::modifyValueSlot()
     }
     else
     {
-        auto size = std::min(getSizeOf(mDescriptor.at(0).data.itemSize), int(sizeof(dsint)));
+        auto size = std::min(getSizeOf(mDescriptor.at(0).data.itemSize), sizeof(dsint));
         WordEditDialog wEditDialog(this);
         dsint value = 0;
         mMemPage->read(&value, addr, size);
-        wEditDialog.setup(tr("Modify value"), value, size);
+        wEditDialog.setup(tr("Modify value"), value, (int)size);
         if(wEditDialog.exec() != QDialog::Accepted)
             return;
         value = wEditDialog.getVal();

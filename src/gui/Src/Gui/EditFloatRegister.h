@@ -98,7 +98,7 @@ private:
     void editingLongLongFinishedSlot(size_t offset, QString arg);
 
     Ui::EditFloatRegister* ui;
-    QObject* mutex;
+    QObject* mutex = nullptr;
     char Data[64];
     int RegSize;
 };

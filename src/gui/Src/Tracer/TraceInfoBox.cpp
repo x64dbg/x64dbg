@@ -271,7 +271,7 @@ void TraceInfoBox::update(unsigned long long selection, TraceFileReader* traceFi
                     // Handle the most common case (ptr-sized)
                     duint mask;
                     if(zydis[opindex].size < sizeof(void*) * 8)
-                        mask = (1 << zydis[opindex].size) - 1;
+                        mask = ((duint)1 << zydis[opindex].size) - 1;
                     else
                         mask = ~(duint)0;
                     for(memaccessindex = 0; memaccessindex < MemoryOperandsCount; memaccessindex++)

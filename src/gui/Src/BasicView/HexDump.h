@@ -108,7 +108,7 @@ public:
 
     virtual void getColumnRichText(int col, dsint rva, RichTextPainter::List & richText);
 
-    static int getSizeOf(DataSize size);
+    static size_t getSizeOf(DataSize size);
 
     void toString(DataDescriptor desc, duint rva, byte_t* data, RichTextPainter::CustomRichText_t & richText);
 

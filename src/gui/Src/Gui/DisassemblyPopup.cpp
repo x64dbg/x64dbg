@@ -115,7 +115,7 @@ void DisassemblyPopup::setAddress(duint Address)
             auto instruction = mDisasm.DisassembleAt(data, sizeof(data), 0, nextAddr);
             if(!instruction.length)
                 break;
-            instBuffer.append(std::move(instruction));
+            instBuffer.append(instruction);
             if(!hadBranch || bestBranch <= nextAddr)
             {
                 if(instruction.instStr.contains("ret"))

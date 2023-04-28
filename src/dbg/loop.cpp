@@ -262,6 +262,8 @@ void LoopCacheLoad(JSON Root)
 
             if(mod && strlen(mod) < MAX_MODULE_SIZE)
                 loopInfo.modhash = ModHashFromName(mod);
+            else
+                loopInfo.modhash = 0;
 
             // All other variables
             loopInfo.start = (duint)json_hex_value(json_object_get(value, "start"));

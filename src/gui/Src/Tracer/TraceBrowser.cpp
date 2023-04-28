@@ -821,16 +821,13 @@ void TraceBrowser::prepareData()
 {
     auto viewables = getViewableRowsCount();
     int lines = 0;
-    if(mTraceFile != nullptr)
+    if(isFileOpened())
     {
-        if(mTraceFile->Progress() == 100)
-        {
-            duint tableOffset = getTableOffset();
-            if(mTraceFile->Length() < tableOffset + viewables)
-                lines = mTraceFile->Length() - tableOffset;
-            else
-                lines = viewables;
-        }
+        duint tableOffset = getTableOffset();
+        if(mTraceFile->Length() < tableOffset + viewables)
+            lines = mTraceFile->Length() - tableOffset;
+        else
+            lines = viewables;
     }
     setNbrOfLineToPrint(lines);
 }
@@ -1832,10 +1829,10 @@ void TraceBrowser::enableHighlightingModeSlot()
 
 void TraceBrowser::searchConstantSlot()
 {
+    if(!isFileOpened())
+        return;
     WordEditDialog constantDlg(this);
-    duint initialConstant = 0;
-    if(mTraceFile && mTraceFile->Progress() == 100)
-        initialConstant =  mTraceFile->Registers(getInitialSelection()).regcontext.cip;
+    duint initialConstant = mTraceFile->Registers(getInitialSelection()).regcontext.cip;
     constantDlg.setup(tr("Constant"), initialConstant, sizeof(duint));
     if(constantDlg.exec() == QDialog::Accepted)
     {

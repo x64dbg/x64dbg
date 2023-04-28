@@ -56,8 +56,8 @@ public slots:
     void updateSlot();
 
 private:
-    duint mCsp;
-    bool bStackFrozen;
+    duint mCsp = 0;
+    bool bStackFrozen = false;
 
     QAction* mFreezeStack;
     QAction* mFollowStack;
