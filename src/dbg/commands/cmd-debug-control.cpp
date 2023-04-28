@@ -231,6 +231,14 @@ bool cbDebugAttach(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not open process %X!\n"), DWORD(pid));
         return false;
     }
+
+    BOOL debuggerPresent = FALSE;
+    if(CheckRemoteDebuggerPresent(hProcess, &debuggerPresent) && debuggerPresent)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Process is already being debugged!"));
+        return false;
+    }
+
     BOOL wow64 = false, meow64 = false;
     if(!IsWow64Process(hProcess, &wow64) || !IsWow64Process(GetCurrentProcess(), &meow64))
     {
@@ -246,11 +254,13 @@ bool cbDebugAttach(int argc, char* argv[])
 #endif // _WIN64
         return false;
     }
+
     if(!GetFileNameFromProcessHandle(hProcess, szDebuggeePath, _countof(szDebuggeePath)))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not get module filename %X!\n"), DWORD(pid));
         return false;
     }
+
     if(argc > 2) //event handle (JIT)
     {
         duint eventHandle = 0;
@@ -259,6 +269,7 @@ bool cbDebugAttach(int argc, char* argv[])
         if(eventHandle)
             dbgsetattachevent((HANDLE)eventHandle);
     }
+
     if(argc > 3) //thread id to resume (PLMDebug)
     {
         duint tid = 0;
@@ -267,6 +278,7 @@ bool cbDebugAttach(int argc, char* argv[])
         if(tid)
             dbgsetresumetid(tid);
     }
+
     static INIT_STRUCT init;
     init.attach = true;
     init.pid = (DWORD)pid;

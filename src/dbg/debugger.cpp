@@ -2876,10 +2876,15 @@ static void debugLoopFunction(INIT_STRUCT* init)
     //run debug loop (returns when process debugging is stopped)
     if(init->attach)
     {
-        if(AttachDebugger(init->pid, true, fdProcessInfo, cbAttachDebugger) == false)
+        if(!AttachDebugger(init->pid, true, fdProcessInfo, cbAttachDebugger))
         {
-            String error = stringformatinline(StringUtils::sprintf("{winerror@%d}", GetLastError()));
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Attach to process failed! GetLastError() = %s\n"), error.c_str());
+            auto status = NtCurrentTeb()->LastStatusValue;
+            auto error = stringformatinline(StringUtils::sprintf("{ntstatus@%X}", status));
+            if(status == STATUS_PORT_ALREADY_SET)
+            {
+                error = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Process is already being debugged!"));
+            }
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Attach to process failed: %s\n"), error.c_str());
         }
     }
     else
