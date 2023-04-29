@@ -39,7 +39,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("DisassemblyBreakpointColor", QColor("#000000"));
     defaultColors.insert("DisassemblyBreakpointBackgroundColor", QColor("#FF0000"));
     defaultColors.insert("DisassemblyHardwareBreakpointColor", QColor("#000000"));
-    defaultColors.insert("DisassemblyHardwareBreakpointBackgroundColor", Qt::transparent);
+    defaultColors.insert("DisassemblyHardwareBreakpointBackgroundColor", QColor("#FF8080"));
     defaultColors.insert("DisassemblyBookmarkColor", QColor("#000000"));
     defaultColors.insert("DisassemblyBookmarkBackgroundColor", QColor("#FEE970"));
     defaultColors.insert("DisassemblyLabelColor", QColor("#FF0000"));
