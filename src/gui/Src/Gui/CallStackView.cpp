@@ -96,6 +96,25 @@ QString CallStackView::paintContent(QPainter* painter, dsint rowBase, int rowOff
         auto mid = h / 2.0;
         painter->drawLine(QPointF(x, y + mid), QPointF(x + w, y + mid));
     }
+    else if(col == ColFrom || col == ColTo || col == ColAddress)
+    {
+        QString ret = getCellContent(rowBase + rowOffset, col);
+        BPXTYPE bpxtype = DbgGetBpxTypeAt(getCellUserdata(rowBase + rowOffset, col));
+        if(bpxtype & bp_normal)
+        {
+            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor")));
+            painter->setPen(QPen(ConfigColor("DisassemblyBreakpointColor")));
+            painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, ret);
+            return "";
+        }
+        else if(bpxtype & bp_hardware)
+        {
+            painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyHardwareBreakpointBackgroundColor")));
+            painter->setPen(QPen(ConfigColor("DisassemblyHardwareBreakpointColor")));
+            painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, ret);
+            return "";
+        }
+    }
     return StdIconTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
 }
 
@@ -140,6 +159,8 @@ void CallStackView::updateCallStack()
                 setCellContent(currentRow, ColFrom, addrText);
             }
             setCellUserdata(currentRow, ColFrom, callstack.entries[i].from);
+            setCellUserdata(currentRow, ColTo, callstack.entries[i].to);
+            setCellUserdata(currentRow, ColAddress, callstack.entries[i].addr);
             if(i != callstack.total - 1)
                 setCellContent(currentRow, ColSize, ToHexString(callstack.entries[i + 1].addr - callstack.entries[i].addr));
             else

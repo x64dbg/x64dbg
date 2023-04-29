@@ -392,6 +392,9 @@ border-width: 1px 2px 2px 1px;</string>
               <height>18</height>
              </size>
             </property>
+            <property name="toolTip">
+             <string>Open color selector</string>
+            </property>
             <property name="styleSheet">
              <string notr="true">background-color: #FFFFFF; border : 2px solid black</string>
             </property>
@@ -421,6 +424,9 @@ border-width: 1px 2px 2px 1px;</string>
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>Transparent</string>
               </property>
               <property name="styleSheet">
                <string notr="true">background-color: #C0C0C0;
@@ -592,6 +598,9 @@ border-width: 1px 2px 2px 1px;</string>
               <width>30</width>
               <height>18</height>
              </size>
+            </property>
+            <property name="toolTip">
+             <string>Open color selector</string>
             </property>
             <property name="styleSheet">
              <string notr="true">background-color: #FFFFFF; border : 2px solid black</string>
