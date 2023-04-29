@@ -1301,6 +1301,11 @@ BRIDGE_IMPEXP DEBUG_ENGINE DbgGetDebugEngine()
     return (DEBUG_ENGINE)setting;
 }
 
+BRIDGE_IMPEXP bool DbgGetSymbolInfoAt(duint addr, SYMBOLINFO* info)
+{
+    return !!_dbg_sendmessage(DBG_GET_SYMBOL_INFO_AT, (void*)addr, info);
+}
+
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
     EnterCriticalSection(&csTranslate);
