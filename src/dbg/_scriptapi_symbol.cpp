@@ -39,6 +39,11 @@ static bool cbSymbolEnum(const SYMBOLPTR* ptr, void* user)
         __debugbreak();
     }
 
+    if(info.freeDecorated)
+        BridgeFree(info.decoratedSymbol);
+    if(info.freeUndecorated)
+        BridgeFree(info.undecoratedSymbol);
+
     ctx->symbols->push_back(symbol);
     return true;
 }

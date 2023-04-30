@@ -335,6 +335,7 @@ typedef enum
     DBG_MENU_PREPARE,               // param1=int hMenu,                 param2=unused
     DBG_GET_SYMBOL_INFO,            // param1=void* symbol,              param2=SYMBOLINFO* info
     DBG_GET_DEBUG_ENGINE,           // param1=unused,                    param2-unused
+    DBG_GET_SYMBOL_INFO_AT,         // param1=duint addr,                param2=SYMBOLINFO* info
 } DBGMSG;
 
 typedef enum
@@ -1070,6 +1071,7 @@ BRIDGE_IMPEXP bool DbgAnalyzeFunction(duint entry, BridgeCFGraphList* graph);
 BRIDGE_IMPEXP duint DbgEval(const char* expression, bool* DEFAULT_PARAM(success, nullptr));
 BRIDGE_IMPEXP void DbgGetSymbolInfo(const SYMBOLPTR* symbolptr, SYMBOLINFO* info);
 BRIDGE_IMPEXP DEBUG_ENGINE DbgGetDebugEngine();
+BRIDGE_IMPEXP bool DbgGetSymbolInfoAt(duint addr, SYMBOLINFO* info);
 
 //Gui defines
 typedef enum
