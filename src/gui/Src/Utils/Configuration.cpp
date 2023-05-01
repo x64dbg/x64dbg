@@ -248,6 +248,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("SymbolLoadedTextColor", QColor("#008000"));
     defaultColors.insert("BackgroundFlickerColor", QColor("#ff6961"));
     defaultColors.insert("LinkColor", QColor("#0000ff"));
+    defaultColors.insert("LogColor", QColor("#000000"));
+    defaultColors.insert("LogBackgroundColor", QColor("#FFF8F0"));
 
     //bool settings
     QMap<QString, bool> disassemblyBool;
