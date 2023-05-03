@@ -199,6 +199,7 @@ private:
     void onMenuCustomized();
     void setupMenuCustomization();
     QAction* makeCommandAction(QAction* action, const QString & command);
+    void loadTabOrder();
 
     //lists for menu customization
     QList<QAction*> mFileMenuStrings;

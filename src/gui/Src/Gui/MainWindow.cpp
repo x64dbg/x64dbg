@@ -250,11 +250,7 @@ MainWindow::MainWindow(QWidget* parent)
     mWidgetList.push_back(WidgetInfo(mHandlesView, "HandlesTab"));
     mWidgetList.push_back(WidgetInfo(mTraceWidget, "TraceTab"));
 
-    // If LoadSaveTabOrder disabled, load tabs in default order
-    if(!ConfigBool("Gui", "LoadSaveTabOrder"))
-        loadTabDefaultOrder();
-    else
-        loadTabSavedOrder();
+    loadTabOrder();
 
     setCentralWidget(mTabWidget);
     displayCpuWidget();
@@ -1137,6 +1133,15 @@ QAction* MainWindow::makeCommandAction(QAction* action, const QString & command)
     return action;
 }
 
+void MainWindow::loadTabOrder()
+{
+    // If LoadSaveTabOrder disabled, load tabs in default order
+    if(!ConfigBool("Gui", "LoadSaveTabOrder"))
+        loadTabDefaultOrder();
+    else
+        loadTabSavedOrder();
+}
+
 void MainWindow::execCommandSlot()
 {
     QAction* action = qobject_cast<QAction*>(sender());
@@ -1228,6 +1233,7 @@ void MainWindow::openFileSlot()
 void MainWindow::openRecentFileSlot(QString filename)
 {
     DbgCmdExec(QString().sprintf("init \"%s\"", filename.toUtf8().constData()));
+    loadTabOrder();
 }
 
 void MainWindow::runSlot()
@@ -1242,7 +1248,10 @@ void MainWindow::restartDebugging()
 {
     auto last = mMRUList->getEntry(0);
     if(!last.isEmpty())
+    {
         DbgCmdExec(QString("init \"%1\"").arg(last));
+        loadTabOrder();
+    }
 }
 
 void MainWindow::displayBreakpointWidget()
@@ -1264,6 +1273,7 @@ void MainWindow::dropEvent(QDropEvent* pEvent)
     {
         QString filename = QDir::toNativeSeparators(pEvent->mimeData()->urls()[0].toLocalFile());
         DbgCmdExec(QString().sprintf("init \"%s\"", filename.toUtf8().constData()));
+        loadTabOrder();
         pEvent->acceptProposedAction();
     }
 }
