@@ -336,6 +336,7 @@ typedef enum
     DBG_GET_SYMBOL_INFO,            // param1=void* symbol,              param2=SYMBOLINFO* info
     DBG_GET_DEBUG_ENGINE,           // param1=unused,                    param2-unused
     DBG_GET_SYMBOL_INFO_AT,         // param1=duint addr,                param2=SYMBOLINFO* info
+    DBG_XREF_ADD_MULTI,             // param1=const XREF_EDGE* edges,    param2=duint count
 } DBGMSG;
 
 typedef enum
@@ -940,6 +941,12 @@ typedef struct
     XREF_RECORD* references;
 } XREF_INFO;
 
+typedef struct
+{
+    duint address;
+    duint from;
+} XREF_EDGE;
+
 typedef struct SYMBOLPTR_
 {
     duint modbase;
@@ -1072,6 +1079,7 @@ BRIDGE_IMPEXP duint DbgEval(const char* expression, bool* DEFAULT_PARAM(success,
 BRIDGE_IMPEXP void DbgGetSymbolInfo(const SYMBOLPTR* symbolptr, SYMBOLINFO* info);
 BRIDGE_IMPEXP DEBUG_ENGINE DbgGetDebugEngine();
 BRIDGE_IMPEXP bool DbgGetSymbolInfoAt(duint addr, SYMBOLINFO* info);
+BRIDGE_IMPEXP duint DbgXrefAddMulti(const XREF_EDGE* edges, duint count);
 
 //Gui defines
 typedef enum

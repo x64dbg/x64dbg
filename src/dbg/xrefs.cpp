@@ -58,43 +58,118 @@ static Xrefs xrefs;
 
 bool XrefAdd(duint Address, duint From)
 {
-    XREFSINFO info;
-    if(!MemIsValidReadPtr(From) || !xrefs.PrepareValue(info, Address, false))
-        return false;
+    XREF_EDGE edge = { Address, From };
+    return XrefAddMulti(&edge, 1) == 1;
+}
 
-    // Fail if boundary exceeds module size
-    auto moduleBase = ModBaseFromAddr(Address);
-    if(moduleBase != ModBaseFromAddr(From))
-        return false;
+duint XrefAddMulti(const XREF_EDGE* Edges, duint Count)
+{
+    struct FromInfo
+    {
+        bool valid = false;
+        duint moduleBase = 0;
+        duint moduleSize = 0;
+        XREF_RECORD xrefRecord{};
 
-    BASIC_INSTRUCTION_INFO instInfo;
-    DbgDisasmFastAt(From, &instInfo);
+        explicit FromInfo(duint from)
+        {
+            if(!MemIsValidReadPtr(from))
+                return;
 
-    XREF_RECORD xrefRecord;
-    xrefRecord.addr = From - moduleBase;
-    if(instInfo.call)
-        xrefRecord.type = XREF_CALL;
-    else if(instInfo.branch)
-        xrefRecord.type = XREF_JMP;
-    else
-        xrefRecord.type = XREF_DATA;
+            {
+                SHARED_ACQUIRE(LockModules);
+
+                auto module = ModInfoFromAddr(from);
+                if(!module)
+                    return;
+
+                moduleBase = module->base;
+                moduleSize = module->size;
+            }
+
+            BASIC_INSTRUCTION_INFO instInfo;
+            DbgDisasmFastAt(from, &instInfo);
+
+            xrefRecord.addr = from - moduleBase;
+            if(instInfo.call)
+                xrefRecord.type = XREF_CALL;
+            else if(instInfo.branch)
+                xrefRecord.type = XREF_JMP;
+            else
+                xrefRecord.type = XREF_DATA;
+
+            valid = true;
+        }
+    };
+
+    struct AddressInfo
+    {
+        bool valid = false;
+        XREFSINFO* info = nullptr;
+
+        explicit AddressInfo(duint address)
+        {
+            XREFSINFO preparedInfo;
+            if(!xrefs.PrepareValue(preparedInfo, address, false))
+                return;
+
+            auto key = Xrefs::VaKey(address);
+            auto & mapData = xrefs.GetDataUnsafe();
+            auto insertResult = mapData.insert({ key, preparedInfo });
+
+            info = &insertResult.first->second;
+
+            valid = true;
+        }
+    };
 
     EXCLUSIVE_ACQUIRE(LockCrossReferences);
-    auto & mapData = xrefs.GetDataUnsafe();
-    auto key = Xrefs::VaKey(Address);
-    auto found = mapData.find(key);
-    if(found == mapData.end())
+
+    std::unordered_map<duint, FromInfo> fromCache;
+    std::unordered_map<duint, AddressInfo> addressCache;
+    duint succeeded = 0;
+
+    for(duint i = 0; i < Count; i++)
     {
-        info.type = xrefRecord.type;
+        duint address = Edges[i].address;
+        duint from = Edges[i].from;
+
+        FromInfo* fromInfo;
+
+        auto fromCacheIt = fromCache.find(from);
+        if(fromCacheIt == fromCache.end())
+            fromInfo = &fromCache.insert({ from, FromInfo(from) }).first->second;
+        else
+            fromInfo = &fromCacheIt->second;
+
+        if(!fromInfo->valid)
+            continue;
+
+        if(address < fromInfo->moduleBase || address >= fromInfo->moduleBase + fromInfo->moduleSize)
+            continue;
+
+        AddressInfo* addressInfo;
+
+        auto addressCacheIt = addressCache.find(address);
+        if(addressCacheIt == addressCache.end())
+            addressInfo = &addressCache.insert({ address, AddressInfo(address) }).first->second;
+        else
+            addressInfo = &addressCacheIt->second;
+
+        if(!addressInfo->valid)
+            continue;
+
+        auto & info = *addressInfo->info;
+
+        auto & xrefRecord = fromInfo->xrefRecord;
+
         info.references.insert({ xrefRecord.addr, xrefRecord });
-        mapData.insert({ key, info });
+        info.type = max(info.type, xrefRecord.type);
+
+        succeeded++;
     }
-    else
-    {
-        found->second.references.insert({ xrefRecord.addr, xrefRecord });
-        found->second.type = max(found->second.type, xrefRecord.type);
-    }
-    return true;
+
+    return succeeded;
 }
 
 bool XrefGet(duint Address, XREF_INFO* List)
