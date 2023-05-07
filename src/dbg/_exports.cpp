@@ -1670,6 +1670,8 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_GET_SYMBOL_INFO_AT:
     {
+        SHARED_ACQUIRE(LockModules);
+
         SymbolInfo symInfo;
         if(!SymbolFromAddressExact((duint)param1, symInfo))
             return false;
