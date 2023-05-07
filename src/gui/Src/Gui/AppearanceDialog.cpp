@@ -182,9 +182,13 @@ void AppearanceDialog::on_editBackgroundColor_textChanged(const QString & arg1)
             GuiUpdateAllViews();
         }
         if(QColor(ui->editColor->text()).isValid())
-            ui->exampleText->setStyleSheet(QString("color: %1").arg(ui->editColor->text()));
+            text = ui->editColor->text();
         else
-            ui->exampleText->setStyleSheet(QString("color: black"));
+            text = "black";
+        if(ConfigColor(colorInfoList.at(colorInfoIndex).defaultBackgroundColorName).alpha())
+            ui->exampleText->setStyleSheet(QString("color: %1; background-color: %2").arg(text).arg(ConfigColor(colorInfoList.at(colorInfoIndex).defaultBackgroundColorName).name()));
+        else
+            ui->exampleText->setStyleSheet(QString("color: %1").arg(text));
     }
     else
     {
@@ -206,6 +210,7 @@ void AppearanceDialog::on_editBackgroundColor_textChanged(const QString & arg1)
             if(colorMap->contains(id))
                 ui->buttonSave->setEnabled(false); //we cannot save with an invalid color
         }
+        // Update the styles of example text
         if(ui->editBackgroundColor->isEnabled())
         {
             if(QColor(ui->editColor->text()).isValid())
@@ -220,7 +225,7 @@ void AppearanceDialog::on_editBackgroundColor_textChanged(const QString & arg1)
             else
                 ui->exampleText->setStyleSheet(QString("color: black"));
         }
-        ui->exampleText->setFont(ConfigFont("AbstractTableView"));
+        ui->exampleText->setFont(ConfigFont(colorInfoList.at(colorInfoIndex).defaultFontName));
     }
     ui->buttonBackgroundColor->setStyleSheet(styleSheet);
 }
@@ -252,11 +257,18 @@ void AppearanceDialog::on_editColor_textChanged(const QString & arg1)
             emit Config()->colorsUpdated();
             GuiUpdateAllViews();
         }
+        // Update the styles of example text
         if(QColor(ui->editBackgroundColor->text()).isValid() && ui->editBackgroundColor->isEnabled())
             ui->exampleText->setStyleSheet(QString("color: %1; background-color: %2").arg(arg1).arg(ui->editBackgroundColor->text()));
+        else if((!ui->editBackgroundColor->isEnabled() || ui->editBackgroundColor->text() == "#XXXXXX") && ConfigColor(colorInfoList.at(colorInfoIndex).defaultBackgroundColorName).alpha())
+        {
+            //GuiAddLogMessage(colorInfoList.at(colorInfoIndex).defaultBackgroundColorName.toUtf8().constData());
+            //GuiAddLogMessage(ConfigColor(colorInfoList.at(colorInfoIndex).defaultBackgroundColorName).name().toUtf8().constData());
+            ui->exampleText->setStyleSheet(QString("color: %1; background-color: %2").arg(ui->editColor->text()).arg(ConfigColor(colorInfoList.at(colorInfoIndex).defaultBackgroundColorName).name()));
+        }
         else
             ui->exampleText->setStyleSheet(QString("color: %1").arg(arg1));
-        ui->exampleText->setFont(ConfigFont("AbstractTableView"));
+        ui->exampleText->setFont(ConfigFont(colorInfoList.at(colorInfoIndex).defaultFontName));
     }
     else
     {
@@ -297,11 +309,7 @@ void AppearanceDialog::on_listColorNames_itemSelectionChanged()
             defaultValueAction->setEnabled(true);
             currentSettingAction->setEnabled(true);
 
-            QColor color = (*colorMap)[id];
-            QString colorText = color.name().toUpper();
-            if(!color.alpha())
-                colorText = "#XXXXXX";
-            ui->editColor->setText(colorText);
+            ui->editColor->setText(colorToString((*colorMap)[id]));
         }
         else
             ui->editColor->setText("#FFFFFF");
@@ -319,11 +327,7 @@ void AppearanceDialog::on_listColorNames_itemSelectionChanged()
             defaultValueAction->setEnabled(true);
             currentSettingAction->setEnabled(true);
 
-            QColor color = (*colorMap)[id];
-            QString colorText = color.name().toUpper();
-            if(!color.alpha())
-                colorText = "#XXXXXX";
-            ui->editBackgroundColor->setText(colorText);
+            ui->editBackgroundColor->setText(colorToString((*colorMap)[id]));
         }
         else
             ui->editBackgroundColor->setText("#FFFFFF");
@@ -349,11 +353,7 @@ void AppearanceDialog::defaultValueSlot()
         QString id = info.colorName;
         if(Config()->defaultColors.contains(id))
         {
-            QColor color = Config()->defaultColors[id];
-            QString colorText = color.name().toUpper();
-            if(!color.alpha())
-                colorText = "#XXXXXX";
-            ui->editColor->setText(colorText);
+            ui->editColor->setText(colorToString(Config()->defaultColors[id]));
         }
     }
     if(info.backgroundColorName.length())
@@ -361,11 +361,7 @@ void AppearanceDialog::defaultValueSlot()
         QString id = info.backgroundColorName;
         if(Config()->defaultColors.contains(id))
         {
-            QColor color = Config()->defaultColors[id];
-            QString colorText = color.name().toUpper();
-            if(!color.alpha())
-                colorText = "#XXXXXX";
-            ui->editBackgroundColor->setText(colorText);
+            ui->editBackgroundColor->setText(colorToString(Config()->defaultColors[id]));
         }
     }
 }
@@ -378,11 +374,7 @@ void AppearanceDialog::currentSettingSlot()
         QString id = info.colorName;
         if(colorBackupMap.contains(id))
         {
-            QColor color = colorBackupMap[id];
-            QString colorText = color.name().toUpper();
-            if(!color.alpha())
-                colorText = "#XXXXXX";
-            ui->editColor->setText(colorText);
+            ui->editColor->setText(colorToString(colorBackupMap[id]));
         }
     }
     if(info.backgroundColorName.length())
@@ -390,21 +382,19 @@ void AppearanceDialog::currentSettingSlot()
         QString id = info.backgroundColorName;
         if(colorBackupMap.contains(id))
         {
-            QColor color = colorBackupMap[id];
-            QString colorText = color.name().toUpper();
-            if(!color.alpha())
-                colorText = "#XXXXXX";
-            ui->editBackgroundColor->setText(colorText);
+            ui->editBackgroundColor->setText(colorToString(colorBackupMap[id]));
         }
     }
 }
 
-void AppearanceDialog::colorInfoListCategory(QString categoryName)
+void AppearanceDialog::colorInfoListCategory(QString categoryName, const QString & currentBackgroundColorName, const QString & currentFontName)
 {
     // Remove the (now) redundant colon
     while(categoryName[categoryName.length() - 1] == ':')
         categoryName.resize(categoryName.length() - 1);
     currentCategory = new QTreeWidgetItem(QList<QString>({ categoryName }));
+    this->currentBackgroundColorName = currentBackgroundColorName;
+    this->currentFontName = currentFontName;
     ui->listColorNames->addTopLevelItem(currentCategory);
 }
 
@@ -414,6 +404,8 @@ void AppearanceDialog::colorInfoListAppend(QString propertyName, QString colorNa
     info.propertyName = propertyName;
     info.colorName = colorName;
     info.backgroundColorName = backgroundColorName;
+    info.defaultBackgroundColorName = currentBackgroundColorName;
+    info.defaultFontName = currentFontName;
     colorInfoList.append(info);
     auto item = new QTreeWidgetItem(currentCategory, QList<QString>({ propertyName }));
     item->setData(0, Qt::UserRole, QVariant(colorInfoIndex));
@@ -426,7 +418,7 @@ void AppearanceDialog::colorInfoListInit()
     //clear list
     colorInfoIndex = 1;
     colorInfoList.clear();
-    colorInfoList.append(ColorInfo({"", "", ""})); // default, not editable
+    colorInfoList.append(ColorInfo({"", "", "", "AbstractTableViewBackgroundColor", "AbstractTableView"})); // default, not editable
 
     //list entries
     //  Guide lines for entry order:
@@ -436,7 +428,7 @@ void AppearanceDialog::colorInfoListInit()
     //       2. others are sorted by read direction (Top to down / left to right)
     //           Example: "Header Text", "Addresses", "Text",...
     //
-    colorInfoListCategory(tr("General Tables:"));
+    colorInfoListCategory(tr("General Tables:"), "AbstractTableViewBackgroundColor", "AbstractTableView");
     colorInfoListAppend(tr("Background"), "AbstractTableViewBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "AbstractTableViewSelectionColor", "");
     colorInfoListAppend(tr("Header Text"), "AbstractTableViewHeaderTextColor", "");
@@ -444,7 +436,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Separators"), "AbstractTableViewSeparatorColor", "");
 
 
-    colorInfoListCategory(tr("Disassembly:"));
+    colorInfoListCategory(tr("Disassembly:"), "DisassemblyBackgroundColor", "Disassembly");
     colorInfoListAppend(tr("Background"), "DisassemblyBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "DisassemblySelectionColor", "");
     colorInfoListAppend(ArchValue(tr("EIP"), tr("RIP")), "DisassemblyCipColor", "DisassemblyCipBackgroundColor");
@@ -469,7 +461,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Loop Lines"), "DisassemblyLoopColor", "");
 
 
-    colorInfoListCategory(tr("SideBar:"));
+    colorInfoListCategory(tr("SideBar:"), "SideBarBackgroundColor", "Disassembly");
     colorInfoListAppend(tr("Background"), "SideBarBackgroundColor", "");
     colorInfoListAppend(tr("Register Labels"), "SideBarCipLabelColor", "SideBarCipLabelBackgroundColor");
     colorInfoListAppend(tr("Conditional Jump Lines (jump)"), "SideBarConditionalJumpLineTrueColor", "");
@@ -487,7 +479,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Bookmark bullets"), "SideBarBulletBookmarkColor", "");
 
 
-    colorInfoListCategory(tr("Registers:"));
+    colorInfoListCategory(tr("Registers:"), "RegistersBackgroundColor", "Registers");
     colorInfoListAppend(tr("Background"), "RegistersBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "RegistersSelectionColor", "");
     colorInfoListAppend(tr("Register Names"), "RegistersLabelColor", "");
@@ -500,7 +492,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Extra Information"), "RegistersExtraInfoColor", "");
 
 
-    colorInfoListCategory(tr("Instructions:"));
+    colorInfoListCategory(tr("Instructions:"), "DisassemblyBackgroundColor", "Disassembly");
     colorInfoListAppend(tr("Mnemonics"), "InstructionMnemonicColor", "InstructionMnemonicBackgroundColor");
     colorInfoListAppend(tr("Push/Pops"), "InstructionPushPopColor", "InstructionPushPopBackgroundColor");
     colorInfoListAppend(tr("Calls"), "InstructionCallColor", "InstructionCallBackgroundColor");
@@ -535,7 +527,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Highlighting"), "InstructionHighlightColor", "InstructionHighlightBackgroundColor");
 
 
-    colorInfoListCategory(tr("HexDump:"));
+    colorInfoListCategory(tr("HexDump:"), "HexDumpBackgroundColor", "HexDump");
     colorInfoListAppend(tr("Background"), "HexDumpBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "HexDumpSelectionColor", "");
     colorInfoListAppend(tr("Addresses"), "HexDumpAddressColor", "HexDumpAddressBackgroundColor");
@@ -555,7 +547,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Unknown Data Pointer Highlight Color"), "HexDumpUnknownDataPointerHighlightColor", "");
 
 
-    colorInfoListCategory(tr("Stack:"));
+    colorInfoListCategory(tr("Stack:"), "StackBackgroundColor", "Stack");
     colorInfoListAppend(tr("Background"), "StackBackgroundColor", "");
     colorInfoListAppend(ArchValue(tr("ESP"), tr("RSP")), "StackCspColor", "StackCspBackgroundColor");
     colorInfoListAppend(tr("Addresses"), "StackAddressColor", "StackAddressBackgroundColor");
@@ -570,14 +562,14 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("SEH Chain Comment"), "StackSEHChainColor", "");
 
 
-    colorInfoListCategory(tr("HexEdit:"));
+    colorInfoListCategory(tr("HexEdit:"), "HexEditBackgroundColor", "HexEdit");
     colorInfoListAppend(tr("Background"), "HexEditBackgroundColor", "");
     colorInfoListAppend(tr("Selection"), "HexEditSelectionColor", "");
     colorInfoListAppend(tr("Text"), "HexEditTextColor", "");
     colorInfoListAppend(tr("Wildcards"), "HexEditWildcardColor", "");
 
 
-    colorInfoListCategory(tr("Graph:"));
+    colorInfoListCategory(tr("Graph:"), "GraphBackgroundColor", "Disassembly");
     colorInfoListAppend(tr("Background"), "GraphBackgroundColor", "");
     colorInfoListAppend(ArchValue(tr("EIP"), tr("RIP")), "GraphCipColor", "");
     colorInfoListAppend(tr("Breakpoint"), "GraphBreakpointColor", "");
@@ -590,10 +582,12 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("True branch line"), "GraphBrtrueColor", "");
     colorInfoListAppend(tr("False branch line"), "GraphBrfalseColor", "");
 
-
-    colorInfoListCategory(tr("Other:"));
-    colorInfoListAppend(tr("Background Flicker Color"), "BackgroundFlickerColor", "");
+    colorInfoListCategory(tr("Log:"), "LogBackgroundColor", "Log");
+    colorInfoListAppend(tr("Log"), "LogColor", "LogBackgroundColor");
     colorInfoListAppend(tr("Log Link Color") + "*", "LogLinkColor", "LogLinkBackgroundColor");
+
+    colorInfoListCategory(tr("Other:"), "AbstractTableViewBackgroundColor", "AbstractTableView");
+    colorInfoListAppend(tr("Background Flicker Color"), "BackgroundFlickerColor", "");
     colorInfoListAppend(tr("Search Highlight Color"), "SearchListViewHighlightColor", "SearchListViewHighlightBackgroundColor");
     colorInfoListAppend(tr("Patch located in relocation region"), "PatchRelocatedByteHighlightColor", "");
     colorInfoListAppend(tr("Current Thread"), "ThreadCurrentColor", "ThreadCurrentBackgroundColor");
@@ -649,107 +643,39 @@ void AppearanceDialog::colorInfoListInit()
     ui->listColorNames->addAction(currentSettingAction);
 }
 
+static void fontInitHelper(const QFont & font, QFontComboBox & fontSelector, QComboBox & style, QComboBox & sizes)
+{
+    fontSelector.setCurrentFont(QFont(font.family()));
+    if(font.bold() && font.italic())
+        style.setCurrentIndex(3);
+    else if(font.italic())
+        style.setCurrentIndex(2);
+    else if(font.bold())
+        style.setCurrentIndex(1);
+    else
+        style.setCurrentIndex(0);
+    int index = sizes.findText(QString("%1").arg(font.pointSize()));
+    if(index != -1)
+        sizes.setCurrentIndex(index);
+}
+
 void AppearanceDialog::fontInit()
 {
     isInit = true;
     //AbstractTableView
-    QFont font = fontMap->find("AbstractTableView").value();
-    ui->fontAbstractTables->setCurrentFont(QFont(font.family()));
-    if(font.bold() && font.italic())
-        ui->fontAbstractTablesStyle->setCurrentIndex(3);
-    else if(font.italic())
-        ui->fontAbstractTablesStyle->setCurrentIndex(2);
-    else if(font.bold())
-        ui->fontAbstractTablesStyle->setCurrentIndex(1);
-    else
-        ui->fontAbstractTablesStyle->setCurrentIndex(0);
-    int index = ui->fontAbstractTablesSize->findText(QString("%1").arg(font.pointSize()));
-    if(index != -1)
-        ui->fontAbstractTablesSize->setCurrentIndex(index);
+    fontInitHelper(fontMap->find("AbstractTableView").value(), *ui->fontAbstractTables, *ui->fontAbstractTablesStyle, *ui->fontAbstractTablesSize);
     //Disassembly
-    font = fontMap->find("Disassembly").value();
-    ui->fontDisassembly->setCurrentFont(QFont(font.family()));
-    if(font.bold() && font.italic())
-        ui->fontDisassemblyStyle->setCurrentIndex(3);
-    else if(font.italic())
-        ui->fontDisassemblyStyle->setCurrentIndex(2);
-    else if(font.bold())
-        ui->fontDisassemblyStyle->setCurrentIndex(1);
-    else
-        ui->fontDisassemblyStyle->setCurrentIndex(0);
-    index = ui->fontDisassemblySize->findText(QString("%1").arg(font.pointSize()));
-    if(index != -1)
-        ui->fontDisassemblySize->setCurrentIndex(index);
+    fontInitHelper(fontMap->find("Disassembly").value(), *ui->fontDisassembly, *ui->fontDisassemblyStyle, *ui->fontDisassemblySize);
     //HexDump
-    font = fontMap->find("HexDump").value();
-    ui->fontHexDump->setCurrentFont(QFont(font.family()));
-    if(font.bold() && font.italic())
-        ui->fontHexDumpStyle->setCurrentIndex(3);
-    else if(font.italic())
-        ui->fontHexDumpStyle->setCurrentIndex(2);
-    else if(font.bold())
-        ui->fontHexDumpStyle->setCurrentIndex(1);
-    else
-        ui->fontHexDumpStyle->setCurrentIndex(0);
-    index = ui->fontHexDumpSize->findText(QString("%1").arg(font.pointSize()));
-    if(index != -1)
-        ui->fontHexDumpSize->setCurrentIndex(index);
+    fontInitHelper(fontMap->find("HexDump").value(), *ui->fontHexDump, *ui->fontHexDumpStyle, *ui->fontHexDumpSize);
     //Stack
-    font = fontMap->find("Stack").value();
-    ui->fontStack->setCurrentFont(QFont(font.family()));
-    if(font.bold() && font.italic())
-        ui->fontStackStyle->setCurrentIndex(3);
-    else if(font.italic())
-        ui->fontStackStyle->setCurrentIndex(2);
-    else if(font.bold())
-        ui->fontStackStyle->setCurrentIndex(1);
-    else
-        ui->fontStackStyle->setCurrentIndex(0);
-    index = ui->fontStackSize->findText(QString("%1").arg(font.pointSize()));
-    if(index != -1)
-        ui->fontStackSize->setCurrentIndex(index);
+    fontInitHelper(fontMap->find("Stack").value(), *ui->fontStack, *ui->fontStackStyle, *ui->fontStackSize);
     //Registers
-    font = fontMap->find("Registers").value();
-    ui->fontRegisters->setCurrentFont(QFont(font.family()));
-    if(font.bold() && font.italic())
-        ui->fontRegistersStyle->setCurrentIndex(3);
-    else if(font.italic())
-        ui->fontRegistersStyle->setCurrentIndex(2);
-    else if(font.bold())
-        ui->fontRegistersStyle->setCurrentIndex(1);
-    else
-        ui->fontRegistersStyle->setCurrentIndex(0);
-    index = ui->fontRegistersSize->findText(QString("%1").arg(font.pointSize()));
-    if(index != -1)
-        ui->fontRegistersSize->setCurrentIndex(index);
+    fontInitHelper(fontMap->find("Registers").value(), *ui->fontRegisters, *ui->fontRegistersStyle, *ui->fontRegistersSize);
     //HexEdit
-    font = fontMap->find("HexEdit").value();
-    ui->fontHexEdit->setCurrentFont(QFont(font.family()));
-    if(font.bold() && font.italic())
-        ui->fontHexEditStyle->setCurrentIndex(3);
-    else if(font.italic())
-        ui->fontHexEditStyle->setCurrentIndex(2);
-    else if(font.bold())
-        ui->fontHexEditStyle->setCurrentIndex(1);
-    else
-        ui->fontHexEditStyle->setCurrentIndex(0);
-    index = ui->fontHexEditSize->findText(QString("%1").arg(font.pointSize()));
-    if(index != -1)
-        ui->fontHexEditSize->setCurrentIndex(index);
+    fontInitHelper(fontMap->find("HexEdit").value(), *ui->fontHexEdit, *ui->fontHexEditStyle, *ui->fontHexEditSize);
     //Log
-    font = fontMap->find("Log").value();
-    ui->fontLog->setCurrentFont(QFont(font.family()));
-    if(font.bold() && font.italic())
-        ui->fontLogStyle->setCurrentIndex(3);
-    else if(font.italic())
-        ui->fontLogStyle->setCurrentIndex(2);
-    else if(font.bold())
-        ui->fontLogStyle->setCurrentIndex(1);
-    else
-        ui->fontLogStyle->setCurrentIndex(0);
-    index = ui->fontLogSize->findText(QString("%1").arg(font.pointSize()));
-    if(index != -1)
-        ui->fontLogSize->setCurrentIndex(index);
+    fontInitHelper(fontMap->find("Log").value(), *ui->fontLog, *ui->fontLogStyle, *ui->fontLogSize);
     //Application
     ui->labelApplicationFont->setText(fontMap->find("Application").value().family());
     isInit = false;
@@ -811,7 +737,7 @@ QString AppearanceDialog::colorToString(const QColor & color)
 {
     if(!color.alpha())
         return "#XXXXXX";
-    return color.name();
+    return color.name().toUpper();
 }
 
 void AppearanceDialog::on_fontAbstractTables_currentFontChanged(const QFont & f)

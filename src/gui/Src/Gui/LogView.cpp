@@ -64,7 +64,7 @@ LogView::~LogView()
 void LogView::updateStyle()
 {
     setFont(ConfigFont("Log"));
-    setStyleSheet(QString("QTextEdit { color: %1; background-color: %2 }").arg(ConfigColor("AbstractTableViewTextColor").name(), ConfigColor("AbstractTableViewBackgroundColor").name()));
+    setStyleSheet(QString("QTextEdit { color: %1; background-color: %2 }").arg(ConfigColor("LogColor").name(), ConfigColor("LogBackgroundColor").name()));
     QColor LogLinkBackgroundColor = ConfigColor("LogLinkBackgroundColor");
 
     this->document()->setDefaultStyleSheet(QString("a {color: %1; background-color: %2 }").arg(ConfigColor("LogLinkColor").name(), LogLinkBackgroundColor == Qt::transparent ? "transparent" : LogLinkBackgroundColor.name()));
