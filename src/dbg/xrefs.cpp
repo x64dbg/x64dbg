@@ -40,7 +40,7 @@ struct XrefSerializer : AddrInfoSerializer<XREFSINFO>
             record.addr = duint(json_hex_value(json_object_get(reference, "addr")));
             record.type = XREFTYPE(json_hex_value(json_object_get(reference, "type")));
             value.type = max(record.type, value.type);
-            value.references.insert({ record.addr, record });
+            value.references.emplace(record.addr, record);
         }
         return true;
     }
@@ -64,6 +64,7 @@ bool XrefAdd(duint Address, duint From)
 
 duint XrefAddMulti(const XREF_EDGE* Edges, duint Count)
 {
+    // These types are used in a cache to improve performance
     struct FromInfo
     {
         bool valid = false;
@@ -115,7 +116,7 @@ duint XrefAddMulti(const XREF_EDGE* Edges, duint Count)
 
             auto key = Xrefs::VaKey(address);
             auto & mapData = xrefs.GetDataUnsafe();
-            auto insertResult = mapData.insert({ key, preparedInfo });
+            auto insertResult = mapData.emplace(key, preparedInfo);
 
             info = &insertResult.first->second;
 
@@ -134,36 +135,27 @@ duint XrefAddMulti(const XREF_EDGE* Edges, duint Count)
         duint address = Edges[i].address;
         duint from = Edges[i].from;
 
-        FromInfo* fromInfo;
-
         auto fromCacheIt = fromCache.find(from);
         if(fromCacheIt == fromCache.end())
-            fromInfo = &fromCache.insert({ from, FromInfo(from) }).first->second;
-        else
-            fromInfo = &fromCacheIt->second;
+            fromCacheIt = fromCache.emplace(from, FromInfo(from)).first;
 
-        if(!fromInfo->valid)
+        const auto & fromInfo = fromCacheIt->second;
+        if(!fromInfo.valid)
             continue;
-
-        if(address < fromInfo->moduleBase || address >= fromInfo->moduleBase + fromInfo->moduleSize)
+        if(address < fromInfo.moduleBase || address >= fromInfo.moduleBase + fromInfo.moduleSize)
             continue;
-
-        AddressInfo* addressInfo;
 
         auto addressCacheIt = addressCache.find(address);
         if(addressCacheIt == addressCache.end())
-            addressInfo = &addressCache.insert({ address, AddressInfo(address) }).first->second;
-        else
-            addressInfo = &addressCacheIt->second;
+            addressCacheIt = addressCache.emplace(address, AddressInfo(address)).first;
 
-        if(!addressInfo->valid)
+        const auto & addressInfo = addressCacheIt->second;
+        if(!addressInfo.valid)
             continue;
 
-        auto & info = *addressInfo->info;
-
-        auto & xrefRecord = fromInfo->xrefRecord;
-
-        info.references.insert({ xrefRecord.addr, xrefRecord });
+        auto & info = *addressInfo.info;
+        auto & xrefRecord = fromInfo.xrefRecord;
+        info.references.emplace(xrefRecord.addr, xrefRecord);
         info.type = max(info.type, xrefRecord.type);
 
         succeeded++;
