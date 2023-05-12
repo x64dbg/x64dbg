@@ -1306,6 +1306,11 @@ BRIDGE_IMPEXP bool DbgGetSymbolInfoAt(duint addr, SYMBOLINFO* info)
     return !!_dbg_sendmessage(DBG_GET_SYMBOL_INFO_AT, (void*)addr, info);
 }
 
+BRIDGE_IMPEXP duint DbgXrefAddMulti(const XREF_EDGE* edges, duint count)
+{
+    return (duint)_dbg_sendmessage(DBG_XREF_ADD_MULTI, (void*)edges, (void*)count);
+}
+
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
     EnterCriticalSection(&csTranslate);

@@ -5,6 +5,7 @@
 #include "jansson/jansson_x64dbg.h"
 
 bool XrefAdd(duint Address, duint From);
+duint XrefAddMulti(const XREF_EDGE* Edges, duint Count);
 bool XrefGet(duint Address, XREF_INFO* List);
 duint XrefGetCount(duint Address);
 XREFTYPE XrefGetType(duint Address);

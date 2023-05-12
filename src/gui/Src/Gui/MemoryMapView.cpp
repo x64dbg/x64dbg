@@ -273,7 +273,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
 
 static QString getProtectionString(DWORD Protect)
 {
-#define RIGHTS_STRING (sizeof("ERWCG") + 1)
+#define RIGHTS_STRING (sizeof("ERWCG"))
     char rights[RIGHTS_STRING];
 
     if(!DbgFunctions()->PageRightsToString(Protect, rights))

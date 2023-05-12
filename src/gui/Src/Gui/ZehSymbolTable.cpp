@@ -4,15 +4,7 @@
 
 class SymbolInfoWrapper
 {
-    SYMBOLINFO info;
-
-public:
-    SymbolInfoWrapper()
-    {
-        memset(&info, 0, sizeof(SYMBOLINFO));
-    }
-
-    ~SymbolInfoWrapper()
+    void free()
     {
         if(info.freeDecorated)
             BridgeFree(info.decoratedSymbol);
@@ -20,8 +12,27 @@ public:
             BridgeFree(info.undecoratedSymbol);
     }
 
-    SYMBOLINFO* operator&() { return &info; }
+    SYMBOLINFO info{};
+
+public:
+    SymbolInfoWrapper() = default;
+    ~SymbolInfoWrapper() { free(); }
+
+    SymbolInfoWrapper(const SymbolInfoWrapper &) = delete;
+    SymbolInfoWrapper & operator=(const SymbolInfoWrapper &) = delete;
+
+    SYMBOLINFO* put()
+    {
+        free();
+        memset(&info, 0, sizeof(info));
+        return &info;
+    }
+
+    SYMBOLINFO* get() { return &info; }
+    const SYMBOLINFO* get() const { return &info; }
+
     SYMBOLINFO* operator->() { return &info; }
+    const SYMBOLINFO* operator->() const { return &info; }
 };
 
 ZehSymbolTable::ZehSymbolTable(QWidget* parent)
@@ -51,8 +62,8 @@ QString ZehSymbolTable::getCellContent(int r, int c)
     if(!isValidIndex(r, c))
         return QString();
     SymbolInfoWrapper info;
-    DbgGetSymbolInfo(&mData.at(r), &info);
-    return symbolInfoString(&info, c);
+    DbgGetSymbolInfo(&mData.at(r), info.put());
+    return symbolInfoString(info.get(), c);
 }
 
 bool ZehSymbolTable::isValidIndex(int r, int c)
@@ -67,8 +78,8 @@ void ZehSymbolTable::sortRows(int column, bool ascending)
     std::stable_sort(mData.begin(), mData.end(), [this, column, ascending](const SYMBOLPTR & a, const SYMBOLPTR & b)
     {
         SymbolInfoWrapper ainfo, binfo;
-        DbgGetSymbolInfo(&a, &ainfo);
-        DbgGetSymbolInfo(&b, &binfo);
+        DbgGetSymbolInfo(&a, ainfo.put());
+        DbgGetSymbolInfo(&b, binfo.put());
         switch(column)
         {
         case ColAddr:
@@ -88,16 +99,16 @@ void ZehSymbolTable::sortRows(int column, bool ascending)
 
         case ColDecorated:
         {
-            auto acell = symbolInfoString(&ainfo, ColDecorated);
-            auto bcell = symbolInfoString(&binfo, ColDecorated);
+            auto acell = symbolInfoString(ainfo.get(), ColDecorated);
+            auto bcell = symbolInfoString(binfo.get(), ColDecorated);
             int result = QString::compare(acell, bcell);
             return ascending ? result < 0 : result > 0;
         }
 
         case ColUndecorated:
         {
-            auto acell = symbolInfoString(&ainfo, ColUndecorated);
-            auto bcell = symbolInfoString(&binfo, ColUndecorated);
+            auto acell = symbolInfoString(ainfo.get(), ColUndecorated);
+            auto bcell = symbolInfoString(binfo.get(), ColUndecorated);
             int result = QString::compare(acell, bcell);
             return ascending ? result < 0 : result > 0;
         }
