@@ -80,6 +80,7 @@ SOURCES += \
     Src/Gui/RichTextItemDelegate.cpp \
     Src/Gui/SystemBreakpointScriptDialog.cpp \
     Src/Imports.cpp \
+    Src/Tracer/TraceFileDump.cpp \
     Src/Tracer/TraceInfoBox.cpp \
     Src/Tracer/TraceRegisters.cpp \
     Src/Tracer/TraceWidget.cpp \
@@ -202,6 +203,7 @@ HEADERS += \
     Src/Gui/CPURegistersView.h \
     Src/Gui/RichTextItemDelegate.h \
     Src/Gui/SystemBreakpointScriptDialog.h \
+    Src/Tracer/TraceFileDump.h \
     Src/Tracer/TraceInfoBox.h \
     Src/Tracer/TraceRegisters.h \
     Src/Tracer/TraceWidget.h \

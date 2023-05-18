@@ -3,6 +3,7 @@
 #include "Bridge.h"
 #include <QFile>
 #include <atomic>
+#include "TraceFileDump.h"
 
 class TraceFileParser;
 class TraceFilePage;
@@ -38,6 +39,10 @@ public:
 
     void purgeLastPage();
 
+    void buildDump(unsigned long long index);
+    void buildDumpTo(unsigned long long index);
+    void debugdump(unsigned long long index);
+
 signals:
     void parseFinished();
 
@@ -72,6 +77,7 @@ private:
     TraceFileParser* parser;
     std::map<Range, TraceFilePage, RangeCompare> pages;
     TraceFilePage* getPage(unsigned long long index, unsigned long long* base);
+    TraceFileDump dump;
 
     QBeaEngine* mDisasm;
 };

@@ -959,7 +959,8 @@ void TraceBrowser::setupRightClickContextMenu()
             mRvaDisplayEnabled = false;
             for(int i = 0; i < MemoryOperandsCount; i++)
             {
-                menu->addAction(QString("%1: %2 -> %3").arg(getAddrText(MemoryAddress[i], nolabel, false)).arg(ToPtrString(MemoryOldContent[i])).arg(ToPtrString(MemoryNewContent[i])));
+                auto action = menu->addAction(QString("%1: %2 -> %3").arg(getAddrText(MemoryAddress[i], nolabel, false)).arg(ToPtrString(MemoryOldContent[i])).arg(ToPtrString(MemoryNewContent[i])));
+                connect(action, SIGNAL(triggered()), this, SLOT(debugdump()));
             }
             mRvaDisplayEnabled = RvaDisplayEnabled;
             return true;
@@ -1879,4 +1880,10 @@ void TraceBrowser::synchronizeCpuSlot()
 void TraceBrowser::gotoIndexSlot(duint index)
 {
     disasm(index, false);
+}
+
+void TraceBrowser::debugdump()
+{
+    mTraceFile->buildDumpTo(getInitialSelection());
+    mTraceFile->debugdump(getInitialSelection());
 }

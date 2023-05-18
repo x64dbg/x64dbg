@@ -91,7 +91,7 @@ int TraceFileSearchMemReference(TraceFileReader* file, duint address)
 {
     int count = 0;
     Zydis zy;
-    GuiReferenceInitialize(QCoreApplication::translate("TraceFileSearch", "Reference").toUtf8().constData());
+    GuiReferenceInitialize(QCoreApplication::translate("TraceFileSearch", "Reference").append(' ').append(ToPtrString(address)).toUtf8().constData());
     GuiReferenceAddColumn(sizeof(duint) * 2, QCoreApplication::translate("TraceFileSearch", "Address").toUtf8().constData());
     GuiReferenceAddColumn(5, QCoreApplication::translate("TraceFileSearch", "Index").toUtf8().constData());
     GuiReferenceAddColumn(100, QCoreApplication::translate("TraceFileSearch", "Disassembly").toUtf8().constData());

@@ -187,6 +187,8 @@ public slots:
     void synchronizeCpuSlot();
     void gotoIndexSlot(duint index);
 
+    void debugdump();
+
 protected:
     void disasm(unsigned long long index, bool history = true);
 };

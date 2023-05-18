@@ -36,6 +36,7 @@ bool TraceFileReader::Open(const QString & fileName)
         parser->wait();
     }
     error = true;
+    dump.clear();
     traceFile.setFileName(fileName);
     traceFile.open(QFile::ReadOnly);
     if(traceFile.isReadable())
@@ -97,6 +98,7 @@ void TraceFileReader::parseFinishedSlot()
         progress.store(0);
     delete parser;
     parser = nullptr;
+    buildDump(0); // initialize dump with first instruction
     emit parseFinished();
 
     //for(auto i : fileIndex)
@@ -567,6 +569,53 @@ void TraceFileReader::purgeLastPage()
     {
         Q_UNUSED(errReason);
         error = true;
+    }
+}
+
+void TraceFileReader::buildDump(unsigned long long index)
+{
+    int memoryCount = MemoryAccessCount(index);
+    //Zydis disas;
+    unsigned char opcode[MAX_DISASM_BUFFER];
+    int opcodeSize;
+    OpCode(index, opcode, &opcodeSize);
+    dump.addMemAccess(Registers(index).regcontext.cip, opcode, opcode, opcodeSize);
+    //disas.Disassemble(Registers(index).regcontext.cip, opcode, opcodeSize);
+    duint oldMemory[32];
+    duint newMemory[32];
+    duint address[32];
+    bool isValid[32];
+    MemoryAccessInfo(index, address, oldMemory, newMemory, isValid);
+    for(int i = 0; i < memoryCount; i++)
+    {
+        //TODO: disassemble to find out the size of memory operand!
+        dump.addMemAccess(address[i], &oldMemory[i], &newMemory[i], sizeof(duint));
+    }
+}
+
+void TraceFileReader::buildDumpTo(unsigned long long index)
+{
+    auto start = dump.getMaxIndex();
+    for(auto i = start + 1; i <= index; i++)
+    {
+        dump.increaseIndex();
+        buildDump(i);
+    }
+}
+
+void TraceFileReader::debugdump(unsigned long long index)
+{
+    dump.findMemAreas();
+    for(auto c : dump.memAreas)
+    {
+        auto mData = dump.getBytes(c.first, c.second - c.first + 1, index);
+        QString data;
+        for(size_t i = 0; i < mData.size(); i++)
+        {
+            byte_t ch = mData.at(i);
+            data += QString().sprintf("%02X", ch);
+        }
+        GuiAddLogMessage(QString("dump:%1-%2:%3\n").arg(ToPtrString(c.first)).arg(ToPtrString(c.second)).arg(data).toUtf8());
     }
 }
 
