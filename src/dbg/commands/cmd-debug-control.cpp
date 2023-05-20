@@ -29,8 +29,8 @@ static bool skipInt3Stepping(int argc, char* argv[])
     {
         //Don't allow skipping of multiple consecutive INT3 instructions
         getLastExceptionInfo().ExceptionRecord.ExceptionCode = 0;
+        dbgsetcontinuestatus(DBG_CONTINUE); // swallow the exception
         dputs(QT_TRANSLATE_NOOP("DBG", "Skipped INT3!"));
-        cbDebugContinue(1, argv);
         return true;
     }
     return false;
@@ -403,12 +403,12 @@ bool cbDebugContinue(int argc, char* argv[])
 {
     if(argc < 2)
     {
-        SetNextDbgContinueStatus(DBG_CONTINUE);
+        dbgsetcontinuestatus(DBG_CONTINUE);
         dputs(QT_TRANSLATE_NOOP("DBG", "Exception will be swallowed"));
     }
     else
     {
-        SetNextDbgContinueStatus(DBG_EXCEPTION_NOT_HANDLED);
+        dbgsetcontinuestatus(DBG_EXCEPTION_NOT_HANDLED);
         dputs(QT_TRANSLATE_NOOP("DBG", "Exception will be thrown in the program"));
     }
     return true;
@@ -542,8 +542,8 @@ bool cbDebugSkip(int argc, char* argv[])
     duint skiprepeat = 1;
     if(argc > 1 && !valfromstring(argv[1], &skiprepeat, false))
         return false;
-    SetNextDbgContinueStatus(DBG_CONTINUE); //swallow the exception
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+    dbgsetcontinuestatus(DBG_CONTINUE); //swallow the exception
     BASIC_INSTRUCTION_INFO basicinfo;
     while(skiprepeat--)
     {

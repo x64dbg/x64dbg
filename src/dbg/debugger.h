@@ -109,6 +109,8 @@ bool dbgdeletedllbreakpoint(const char* mod, DWORD type);
 void dbgsetdebugflags(DWORD flags);
 void dbgcreatedebugthread(INIT_STRUCT* init);
 String formatpidtid(DWORD pidtid);
+void dbgsetcontinuestatus(DWORD status);
+DWORD dbggetcontinuestatus();
 
 void cbStep();
 void cbRtrStep();
