@@ -197,7 +197,8 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         char* RVAPos = DLLName + (separatorPos - Name);
         RVAPos[0] = RVAPos[1] = '\0';
         RVAPos = RVAPos + 2; //Now 2 strings separated by NULs
-        if(valfromstring(RVAPos, &Address)) //"Address" reused here. No usage of original "Address" argument.
+        duint Rva;
+        if(valfromstring(RVAPos, &Rva))
         {
             if(separatorPos != Name)   //Check if DLL name is surrounded by quotes. Don't be out of bounds!
             {
@@ -210,16 +211,18 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
             if(DLLName[0] != '\0')
             {
                 duint base = ModBaseFromName(DLLName); //Is the DLL actually loaded?
-                Address += base ? base : ModHashFromName(DLLName);
+                Rva += base ? base : ModHashFromName(DLLName);
             }
             else
             {
                 duint base = ModBaseFromName(DLLName + 1);
-                Address += base ? base : ModHashFromName(DLLName + 1);
+                Rva += base ? base : ModHashFromName(DLLName + 1);
             }
 
+            free(DLLName);
+
             // Perform a lookup by address only
-            BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+            BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Rva);
 
             if(!bpInfo)
                 return false;
@@ -229,11 +232,14 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
                 return true;
 
             *Bp = *bpInfo;
-            Bp->addr = Address;
+            Bp->addr = Rva;
             setBpActive(*Bp);
             return true;
         }
-        free(DLLName);
+        else
+        {
+            free(DLLName);
+        }
     }
 
     // Do a lookup by breakpoint name
@@ -347,10 +353,27 @@ bool BpDelete(duint Address, BP_TYPE Type)
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
     // Erase the index from the global list
-    if(Type != BPDLL)
-        return (breakpoints.erase(BreakpointKey(Type, ModHashFromAddr(Address))) > 0);
+    if(Type != BPDLL && Type != BPEXCEPTION)
+        return breakpoints.erase(BreakpointKey(Type, ModHashFromAddr(Address))) > 0;
     else
-        return (breakpoints.erase(BreakpointKey(BPDLL, Address)) > 0);
+        return breakpoints.erase(BreakpointKey(Type, Address)) > 0;
+}
+
+bool BpDelete(const BREAKPOINT & Bp)
+{
+    // Breakpoints without a module can be deleted without special logic
+    if(Bp.type == BPDLL || Bp.type == BPEXCEPTION || Bp.mod[0] == '\0')
+        return breakpoints.erase(BreakpointKey(Bp.type, Bp.addr)) > 0;
+
+    // Extract the RVA from the breakpoint
+    auto rva = Bp.addr;
+    auto loadedBase = ModBaseFromName(Bp.mod);
+    if(loadedBase != 0 && Bp.addr > loadedBase)
+        rva -= loadedBase;
+
+    // Calculate the breakpoint key with the module hash and rva
+    auto modHash = ModHashFromName(Bp.mod);
+    return breakpoints.erase(BreakpointKey(Bp.type, modHash + rva)) > 0;
 }
 
 bool BpEnable(duint Address, BP_TYPE Type, bool Enable)

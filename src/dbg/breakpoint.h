@@ -53,6 +53,7 @@ bool BpNewDll(const char* module, bool Enable, bool Singleshot, DWORD TitanType,
 bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp);
 bool BpGetAny(BP_TYPE Type, const char* Name, BREAKPOINT* Bp);
 bool BpDelete(duint Address, BP_TYPE Type);
+bool BpDelete(const BREAKPOINT & Bp);
 bool BpEnable(duint Address, BP_TYPE Type, bool Enable);
 bool BpSetName(duint Address, BP_TYPE Type, const char* Name);
 bool BpSetTitanType(duint Address, BP_TYPE Type, int TitanType);
