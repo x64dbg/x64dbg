@@ -155,7 +155,12 @@ bool cbDebugLoadLib(int argc, char* argv[])
     ThreadSuspendAll();
     GetFullContextDataEx(LoadLibThread, &backupctx);
     SetContextDataEx(LoadLibThread, UE_CIP, ASMAddr);
+#ifdef _WIN64
+    // Allocate shadow space + align
+    SetContextDataEx(LoadLibThread, UE_CSP, (backupctx.csp - 32) & ~0xF);
+#else
     SetContextDataEx(LoadLibThread, UE_CSP, backupctx.csp & ~0xF);
+#endif // _WIN64
     ResumeThread(LoadLibThread);
 
     unlock(WAITID_RUN);
