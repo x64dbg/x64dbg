@@ -17,15 +17,21 @@
 #include "exception.h"
 #include "stringformat.h"
 
-static bool skipInt3Stepping(int argc, char* argv[])
+static bool isInt3Exception()
 {
-    if(!bSkipInt3Stepping || dbgisrunning() || getLastExceptionInfo().ExceptionRecord.ExceptionCode != EXCEPTION_BREAKPOINT)
+    if(getLastExceptionInfo().ExceptionRecord.ExceptionCode != EXCEPTION_BREAKPOINT)
         return false;
+
     auto exceptionAddress = (duint)getLastExceptionInfo().ExceptionRecord.ExceptionAddress;
     unsigned char data[MAX_DISASM_BUFFER];
     MemRead(exceptionAddress, data, sizeof(data));
     Zydis zydis;
-    if(zydis.Disassemble(exceptionAddress, data) && zydis.IsInt3())
+    return zydis.Disassemble(exceptionAddress, data) && zydis.IsInt3();
+}
+
+static bool skipInt3Stepping(int argc, char* argv[])
+{
+    if(bSkipInt3Stepping && !dbgisrunning() && isInt3Exception())
     {
         //Don't allow skipping of multiple consecutive INT3 instructions
         getLastExceptionInfo().ExceptionRecord.ExceptionCode = 0;
@@ -542,7 +548,14 @@ bool cbDebugSkip(int argc, char* argv[])
     duint skiprepeat = 1;
     if(argc > 1 && !valfromstring(argv[1], &skiprepeat, false))
         return false;
-    duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+
+    // Because an int3 causes CIP to be advanced we start disassembling from there
+    duint cip;
+    if(isInt3Exception())
+        cip = (duint)getLastExceptionInfo().ExceptionRecord.ExceptionAddress;
+    else
+        cip = GetContextDataEx(hActiveThread, UE_CIP);
+
     dbgsetcontinuestatus(DBG_CONTINUE); //swallow the exception
     BASIC_INSTRUCTION_INFO basicinfo;
     while(skiprepeat--)
