@@ -111,7 +111,7 @@ void SystemBreakpointScriptDialog::on_openDebuggee_clicked()
     // First open the script if that is available
     if(!ui->lineEditDebuggee->text().isEmpty())
     {
-        if(!QDesktopServices::openUrl(QUrl(QDir::fromNativeSeparators(ui->lineEditDebuggee->text()))))
+        if(!QDesktopServices::openUrl(QUrl("file:///" + QDir::fromNativeSeparators(ui->lineEditDebuggee->text()))))
         {
             SimpleWarningBox(this, tr("Error!"), tr("File open failed! Please open the file yourself..."));
         }
@@ -134,7 +134,7 @@ void SystemBreakpointScriptDialog::on_openDebuggee_clicked()
             ui->lineEditDebuggee->setText(defaultFileName);
             ui->openDebuggee->setText(tr("Open"));
             // Open the file
-            if(!QDesktopServices::openUrl(QUrl(QDir::fromNativeSeparators(ui->lineEditDebuggee->text()))))
+            if(!QDesktopServices::openUrl(QUrl("file:///" + QDir::fromNativeSeparators(ui->lineEditDebuggee->text()))))
             {
                 SimpleWarningBox(this, tr("Error!"), tr("File open failed! Please open the file yourself..."));
             }

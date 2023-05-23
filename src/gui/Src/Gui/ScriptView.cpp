@@ -533,7 +533,7 @@ void ScriptView::unload()
 void ScriptView::edit()
 {
     if(!filename.isEmpty())
-        if(!QDesktopServices::openUrl(QUrl(QDir::fromNativeSeparators(filename))))
+        if(!QDesktopServices::openUrl(QUrl("file:///" + QDir::fromNativeSeparators(filename))))
             SimpleWarningBox(this, tr("Error!"), tr("File open failed! Please open the file yourself..."));
 }
 
