@@ -255,7 +255,7 @@ TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long 
     {
         FILETIME pageOutTime = pages.begin()->second.lastAccessed;
         Range pageOutIndex = pages.begin()->first;
-        for(auto i : pages)
+        for(auto & i : pages)
         {
             if(pageOutTime.dwHighDateTime < i.second.lastAccessed.dwHighDateTime || (pageOutTime.dwHighDateTime == i.second.lastAccessed.dwHighDateTime && pageOutTime.dwLowDateTime < i.second.lastAccessed.dwLowDateTime))
             {
