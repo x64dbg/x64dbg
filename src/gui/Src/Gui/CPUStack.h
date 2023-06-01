@@ -54,6 +54,8 @@ public slots:
     void dbgStateChangedSlot(DBGSTATE state);
     void disasmSelectionChanged(dsint parVA);
     void updateSlot();
+    void copyPtrColumnSlot();
+    void copyCommentsColumnSlot();
 
 private:
     duint mCsp = 0;

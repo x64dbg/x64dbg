@@ -125,6 +125,14 @@ void CPUStack::setupContextMenu()
     {
         return DbgFunctions()->ModBaseFromAddr(rvaToVa(getInitialSelection())) != 0;
     });
+
+    //Copy->DWORD/QWORD
+    QString ptrName = ArchValue(tr("&DWORD"), tr("&QWORD"));
+    copyMenu->addAction(makeAction(ptrName, SLOT(copyPtrColumnSlot())));
+
+    //Copy->Comments
+    copyMenu->addAction(makeAction(tr("&Comments"), SLOT(copyCommentsColumnSlot())));
+
     mMenuBuilder->addMenu(makeMenu(DIcon("copy"), tr("&Copy")), copyMenu);
 
     //Breakpoint (hardware access) menu
@@ -924,4 +932,50 @@ void CPUStack::dbgStateChangedSlot(DBGSTATE state)
         bStackFrozen = false;
         updateFreezeStackAction();
     }
+}
+
+void CPUStack::copyPtrColumnSlot()
+{
+    const duint wordSize = sizeof(duint);
+    dsint selStart = getSelectionStart();
+    dsint selLen = getSelectionEnd() - selStart + 1;
+    duint wordCount = selLen / wordSize;
+
+    duint* data = new duint[wordCount];
+    mMemPage->read((byte_t*)data, selStart, wordCount * wordSize);
+
+    QString clipboard;
+    for(duint i = 0; i < wordCount; i++)
+    {
+        if(i > 0)
+            clipboard += "\r\n";
+        clipboard += ToPtrString(data[i]);
+    }
+    delete [] data;
+
+    Bridge::CopyToClipboard(clipboard);
+}
+
+void CPUStack::copyCommentsColumnSlot()
+{
+    int commentsColumn = 2;
+    const duint wordSize = sizeof(duint);
+    dsint selStart = getSelectionStart();
+    dsint selLen = getSelectionEnd() - selStart + 1;
+
+    QString clipboard;
+    for(dsint i = 0; i < selLen; i += wordSize)
+    {
+        RichTextPainter::List richText;
+        getColumnRichText(commentsColumn, selStart + i, richText);
+        QString colText;
+        for(auto & r : richText)
+            colText += r.text;
+
+        if(i > 0)
+            clipboard += "\r\n";
+        clipboard += colText;
+    }
+
+    Bridge::CopyToClipboard(clipboard);
 }
