@@ -345,7 +345,7 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
     if(index >= mTraceFile->Length())
         return "";
 
-    const Instruction_t & inst = mTraceFile->Instruction(index);
+    Instruction_t inst = mTraceFile->Instruction(index);
 
     switch(static_cast<TableColumnIndex>(col))
     {
