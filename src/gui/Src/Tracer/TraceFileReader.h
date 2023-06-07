@@ -4,6 +4,7 @@
 #include <QFile>
 #include <atomic>
 #include "TraceFileDump.h"
+#include "zydis_wrapper.h"
 
 class TraceFileParser;
 class TraceFilePage;
@@ -81,3 +82,5 @@ private:
 
     QBeaEngine* mDisasm;
 };
+
+duint resolveZydisRegister(const REGDUMP & registers, ZydisRegister reg);

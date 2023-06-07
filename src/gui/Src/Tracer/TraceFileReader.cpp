@@ -574,22 +574,47 @@ void TraceFileReader::purgeLastPage()
 
 void TraceFileReader::buildDump(unsigned long long index)
 {
-    int memoryCount = MemoryAccessCount(index);
-    //Zydis disas;
+    int MemoryOperandsCount = MemoryAccessCount(index);
+    if(MemoryOperandsCount == 0) //LEA and NOP instructions
+        return;
+    Zydis zydis;
     unsigned char opcode[MAX_DISASM_BUFFER];
     int opcodeSize;
+    REGDUMP registers = Registers(index);;
     OpCode(index, opcode, &opcodeSize);
-    dump.addMemAccess(Registers(index).regcontext.cip, opcode, opcode, opcodeSize);
-    //disas.Disassemble(Registers(index).regcontext.cip, opcode, opcodeSize);
+    dump.addMemAccess(registers.regcontext.cip, opcode, opcode, opcodeSize);
+    zydis.Disassemble(registers.regcontext.cip, opcode, opcodeSize);
     duint oldMemory[32];
     duint newMemory[32];
     duint address[32];
     bool isValid[32];
+    bool used[32];
     MemoryAccessInfo(index, address, oldMemory, newMemory, isValid);
-    for(int i = 0; i < memoryCount; i++)
+    memset(used, 0, sizeof(used));
+    for(int opindex = 0; opindex < zydis.OpCount(); opindex++)
     {
-        //TODO: disassemble to find out the size of memory operand!
-        dump.addMemAccess(address[i], &oldMemory[i], &newMemory[i], sizeof(duint));
+        size_t value = zydis.ResolveOpValue(opindex, [&registers](ZydisRegister reg)
+        {
+            return resolveZydisRegister(registers, reg);
+        });
+        if(zydis[opindex].type == ZYDIS_OPERAND_TYPE_MEMORY)
+        {
+            int size;
+            size = ceil(zydis[opindex].size / 8.0);
+            bool found = false;
+            for(int i = 0; i < MemoryOperandsCount; i++)
+            {
+                // TODO: fix up FS/GS segment
+                if(address[i] != value)
+                    continue;
+                dump.addMemAccess(address[i], &oldMemory[i], &newMemory[i], size);
+                found = true;
+                break;
+            }
+            //if(!found)
+            //bug???
+            //GuiAddLogMessage(QString("buildDump bug %1???\n").arg(index).toUtf8().constData());
+        }
     }
 }
 
@@ -798,3 +823,136 @@ void TraceFilePage::updateInstructions()
 {
     instructions.clear();
 }
+
+duint resolveZydisRegister(const REGDUMP & registers, ZydisRegister regname)
+{
+    switch(regname)
+    {
+#ifdef _WIN64
+    case ZYDIS_REGISTER_RAX:
+        return registers.regcontext.cax;
+    case ZYDIS_REGISTER_RCX:
+        return registers.regcontext.ccx;
+    case ZYDIS_REGISTER_RDX:
+        return registers.regcontext.cdx;
+    case ZYDIS_REGISTER_RBX:
+        return registers.regcontext.cbx;
+    case ZYDIS_REGISTER_RSP:
+        return registers.regcontext.csp;
+    case ZYDIS_REGISTER_RBP:
+        return registers.regcontext.cbp;
+    case ZYDIS_REGISTER_RSI:
+        return registers.regcontext.csi;
+    case ZYDIS_REGISTER_RDI:
+        return registers.regcontext.cdi;
+    case ZYDIS_REGISTER_R8:
+        return registers.regcontext.r8;
+    case ZYDIS_REGISTER_R9:
+        return registers.regcontext.r9;
+    case ZYDIS_REGISTER_R10:
+        return registers.regcontext.r10;
+    case ZYDIS_REGISTER_R11:
+        return registers.regcontext.r11;
+    case ZYDIS_REGISTER_R12:
+        return registers.regcontext.r12;
+    case ZYDIS_REGISTER_R13:
+        return registers.regcontext.r13;
+    case ZYDIS_REGISTER_R14:
+        return registers.regcontext.r14;
+    case ZYDIS_REGISTER_R15:
+        return registers.regcontext.r15;
+    case ZYDIS_REGISTER_R8D:
+        return registers.regcontext.r8 & 0xFFFFFFFF;
+    case ZYDIS_REGISTER_R9D:
+        return registers.regcontext.r9 & 0xFFFFFFFF;
+    case ZYDIS_REGISTER_R10D:
+        return registers.regcontext.r10 & 0xFFFFFFFF;
+    case ZYDIS_REGISTER_R11D:
+        return registers.regcontext.r11 & 0xFFFFFFFF;
+    case ZYDIS_REGISTER_R12D:
+        return registers.regcontext.r12 & 0xFFFFFFFF;
+    case ZYDIS_REGISTER_R13D:
+        return registers.regcontext.r13 & 0xFFFFFFFF;
+    case ZYDIS_REGISTER_R15D:
+        return registers.regcontext.r15 & 0xFFFFFFFF;
+    case ZYDIS_REGISTER_R8W:
+        return registers.regcontext.r8 & 0xFFFF;
+    case ZYDIS_REGISTER_R9W:
+        return registers.regcontext.r9 & 0xFFFF;
+    case ZYDIS_REGISTER_R10W:
+        return registers.regcontext.r10 & 0xFFFF;
+    case ZYDIS_REGISTER_R11W:
+        return registers.regcontext.r11 & 0xFFFF;
+    case ZYDIS_REGISTER_R12W:
+        return registers.regcontext.r12 & 0xFFFF;
+    case ZYDIS_REGISTER_R13W:
+        return registers.regcontext.r13 & 0xFFFF;
+    case ZYDIS_REGISTER_R15W:
+        return registers.regcontext.r15 & 0xFFFF;
+    case ZYDIS_REGISTER_R8B:
+        return registers.regcontext.r8 & 0xFF;
+    case ZYDIS_REGISTER_R9B:
+        return registers.regcontext.r9 & 0xFF;
+    case ZYDIS_REGISTER_R10B:
+        return registers.regcontext.r10 & 0xFF;
+    case ZYDIS_REGISTER_R11B:
+        return registers.regcontext.r11 & 0xFF;
+    case ZYDIS_REGISTER_R12B:
+        return registers.regcontext.r12 & 0xFF;
+    case ZYDIS_REGISTER_R13B:
+        return registers.regcontext.r13 & 0xFF;
+    case ZYDIS_REGISTER_R15B:
+        return registers.regcontext.r15 & 0xFF;
+#endif //_WIN64
+    case ZYDIS_REGISTER_EAX:
+        return registers.regcontext.cax & 0xFFFFFFFF;
+    case ZYDIS_REGISTER_ECX:
+        return registers.regcontext.ccx & 0xFFFFFFFF;
+    case ZYDIS_REGISTER_EDX:
+        return registers.regcontext.cdx & 0xFFFFFFFF;
+    case ZYDIS_REGISTER_EBX:
+        return registers.regcontext.cbx & 0xFFFFFFFF;
+    case ZYDIS_REGISTER_ESP:
+        return registers.regcontext.csp & 0xFFFFFFFF;
+    case ZYDIS_REGISTER_EBP:
+        return registers.regcontext.cbp & 0xFFFFFFFF;
+    case ZYDIS_REGISTER_ESI:
+        return registers.regcontext.csi & 0xFFFFFFFF;
+    case ZYDIS_REGISTER_EDI:
+        return registers.regcontext.cdi & 0xFFFFFFFF;
+    case ZYDIS_REGISTER_AX:
+        return registers.regcontext.cax & 0xFFFF;
+    case ZYDIS_REGISTER_CX:
+        return registers.regcontext.ccx & 0xFFFF;
+    case ZYDIS_REGISTER_DX:
+        return registers.regcontext.cdx & 0xFFFF;
+    case ZYDIS_REGISTER_BX:
+        return registers.regcontext.cbx & 0xFFFF;
+    case ZYDIS_REGISTER_SP:
+        return registers.regcontext.csp & 0xFFFF;
+    case ZYDIS_REGISTER_BP:
+        return registers.regcontext.cbp & 0xFFFF;
+    case ZYDIS_REGISTER_SI:
+        return registers.regcontext.csi & 0xFFFF;
+    case ZYDIS_REGISTER_DI:
+        return registers.regcontext.cdi & 0xFFFF;
+    case ZYDIS_REGISTER_AL:
+        return registers.regcontext.cax & 0xFF;
+    case ZYDIS_REGISTER_CL:
+        return registers.regcontext.ccx & 0xFF;
+    case ZYDIS_REGISTER_DL:
+        return registers.regcontext.cdx & 0xFF;
+    case ZYDIS_REGISTER_BL:
+        return registers.regcontext.cbx & 0xFF;
+    case ZYDIS_REGISTER_AH:
+        return (registers.regcontext.cax & 0xFF00) >> 8;
+    case ZYDIS_REGISTER_CH:
+        return (registers.regcontext.ccx & 0xFF00) >> 8;
+    case ZYDIS_REGISTER_DH:
+        return (registers.regcontext.cdx & 0xFF00) >> 8;
+    case ZYDIS_REGISTER_BH:
+        return (registers.regcontext.cbx & 0xFF00) >> 8;
+    default:
+        return static_cast<ULONG_PTR>(0);
+    }
+};

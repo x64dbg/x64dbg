@@ -192,3 +192,4 @@ public slots:
 protected:
     void disasm(unsigned long long index, bool history = true);
 };
+

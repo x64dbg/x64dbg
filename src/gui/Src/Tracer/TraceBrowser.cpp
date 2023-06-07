@@ -1839,8 +1839,10 @@ void TraceBrowser::searchConstantSlot()
     constantDlg.setup(tr("Constant"), initialConstant, sizeof(duint));
     if(constantDlg.exec() == QDialog::Accepted)
     {
-        TraceFileSearchConstantRange(mTraceFile, constantDlg.getVal(), constantDlg.getVal());
+        auto ticks = GetTickCount();
+        int count = TraceFileSearchConstantRange(mTraceFile, constantDlg.getVal(), constantDlg.getVal());
         emit displayReferencesWidget();
+        GuiAddLogMessage(tr("%1 result(s) in %2ms\n").arg(count).arg(GetTickCount() - ticks).toUtf8().constData());
     }
 }
 
@@ -1850,8 +1852,10 @@ void TraceBrowser::searchMemRefSlot()
     memRefDlg.setup(tr("References"), 0, sizeof(duint));
     if(memRefDlg.exec() == QDialog::Accepted)
     {
-        TraceFileSearchMemReference(mTraceFile, memRefDlg.getVal());
+        auto ticks = GetTickCount();
+        int count = TraceFileSearchMemReference(mTraceFile, memRefDlg.getVal());
         emit displayReferencesWidget();
+        GuiAddLogMessage(tr("%1 result(s) in %2ms\n").arg(count).arg(GetTickCount() - ticks).toUtf8().constData());
     }
 }
 

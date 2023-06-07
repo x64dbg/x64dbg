@@ -24,15 +24,7 @@ unsigned char TraceFileDump::getByte(Key location, bool & success) const
     {
         if(it->first.addr == location.addr)
         {
-            success = true;
-            if(location.index > it->first.index)
-            {
-                return it->second.newData;
-            }
-            else
-            {
-                return it->second.oldData;
-            }
+            goto found;
         }
         else if(it != dump.begin())
         {
@@ -40,20 +32,22 @@ unsigned char TraceFileDump::getByte(Key location, bool & success) const
             --it;
             if(it->first.addr == location.addr)
             {
-                success = true;
-                if(location.index > it->first.index)
-                {
-                    return it->second.newData;
-                }
-                else
-                {
-                    return it->second.oldData;
-                }
+                goto found;
             }
         }
     }
     success = false;
     return 0;
+found:
+    success = true;
+    if(location.index > it->first.index)
+    {
+        return it->second.newData;
+    }
+    else
+    {
+        return it->second.oldData;
+    }
 }
 
 std::vector<unsigned char> TraceFileDump::getBytes(duint addr, duint size, unsigned long long index) const
