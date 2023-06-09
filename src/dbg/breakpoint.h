@@ -73,7 +73,7 @@ uint32 BpGetHitCount(duint Address, BP_TYPE Type);
 bool BpResetHitCount(duint Address, BP_TYPE Type, uint32 newHitCount);
 void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp);
 void BpCacheSave(JSON Root);
-void BpCacheLoad(JSON Root);
+void BpCacheLoad(JSON Root, bool migrateCommandCondition);
 void BpClear();
 bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo);
 

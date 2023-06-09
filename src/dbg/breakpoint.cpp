@@ -863,7 +863,7 @@ static void loadStringValue(JSON value, T & dest, const char* key)
         strncpy_s(dest, text, _TRUNCATE);
 }
 
-void BpCacheLoad(JSON Root)
+void BpCacheLoad(JSON Root, bool migrateCommandCondition)
 {
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
@@ -901,6 +901,13 @@ void BpCacheLoad(JSON Root)
         loadStringValue(value, breakpoint.logCondition, "logCondition");
         loadStringValue(value, breakpoint.commandText, "commandText");
         loadStringValue(value, breakpoint.commandCondition, "commandCondition");
+
+        // On 2023-06-10 the default of the command condition was changed from $breakpointcondition to 1
+        // If we detect an older database, try to preserve the old behavior.
+        if(migrateCommandCondition && *breakpoint.commandText != '\0' && *breakpoint.commandCondition == '\0')
+        {
+            strcpy_s(breakpoint.commandCondition, "$breakpointcondition");
+        }
 
         // Fast resume
         breakpoint.fastResume = json_boolean_value(json_object_get(value, "fastResume"));

@@ -191,6 +191,34 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
     // Multi-byte (UTF8) file path converted to UTF16
     WString databasePathW = StringUtils::Utf8ToUtf16(file);
 
+    // Check if we should migrate the breakpoints
+    bool migrateBreakpoints = false;
+    {
+        HANDLE hFile = CreateFileW(databasePathW.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, 0);
+        if(hFile != INVALID_HANDLE_VALUE)
+        {
+            FILETIME written;
+            if(GetFileTime(hFile, nullptr, nullptr, &written))
+            {
+                // On 2023-06-10 the default of the command condition was changed
+                SYSTEMTIME smigration = {};
+                smigration.wYear = 2023;
+                smigration.wMonth = 6;
+                smigration.wDay = 10;
+                FILETIME migration = {};
+                if(SystemTimeToFileTime(&smigration, &migration))
+                {
+                    if(CompareFileTime(&written, &migration) < 0)
+                    {
+                        dprintf(QT_TRANSLATE_NOOP("DBG", "(migrating breakpoints) "));
+                        migrateBreakpoints = true;
+                    }
+                }
+            }
+            CloseHandle(hFile);
+        }
+    }
+
     // Decompress the file if compression was enabled
     bool useCompression = !settingboolget("Engine", "DisableDatabaseCompression");
     LZ4_STATUS lzmaStatus = LZ4_INVALID_ARCHIVE;
@@ -254,7 +282,7 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
         XrefCacheLoad(root);
         EncodeMapCacheLoad(root);
         TraceRecord.loadFromDb(root);
-        BpCacheLoad(root);
+        BpCacheLoad(root, migrateBreakpoints);
         WatchCacheLoad(root);
 
         // Load notes

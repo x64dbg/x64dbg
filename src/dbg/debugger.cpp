@@ -917,8 +917,9 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
     }
     else
     {
+        // NOTE: This behavior was changed in a breaking way, but too many people were confused
         if(breakCondition != -1)
-            commandCondition = breakCondition; //if no condition is set, execute the command when the debugger would break
+            commandCondition = 1; // If no condition is set, always execute the command
         else
             commandCondition = 0; // Don't execute any command if an error occurs
     }
