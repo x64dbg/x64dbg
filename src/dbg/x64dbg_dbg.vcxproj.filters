@@ -440,9 +440,6 @@
     <ClCompile Include="formatfunctions.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="symcache.cpp">
-      <Filter>Source Files\Symbols</Filter>
-    </ClCompile>
     <ClCompile Include="symbolinfo.cpp">
       <Filter>Source Files\Symbols</Filter>
     </ClCompile>
@@ -875,9 +872,6 @@
       <Filter>Header Files\Third Party\msdia</Filter>
     </ClInclude>
     <ClInclude Include="symbolsourcebase.h">
-      <Filter>Header Files\Symbols</Filter>
-    </ClInclude>
-    <ClInclude Include="symcache.h">
       <Filter>Header Files\Symbols</Filter>
     </ClInclude>
     <ClInclude Include="symbolinfo.h">

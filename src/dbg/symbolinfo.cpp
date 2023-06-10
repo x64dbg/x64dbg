@@ -20,63 +20,128 @@ struct SYMBOLCBDATA
 {
     CBSYMBOLENUM cbSymbolEnum;
     void* user = nullptr;
-    std::vector<char> decoratedSymbol;
-    std::vector<char> undecoratedSymbol;
 };
 
-void SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
+bool SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData, duint BeginRva, duint EndRva, unsigned int SymbolMask)
 {
     SYMBOLCBDATA cbData;
     cbData.cbSymbolEnum = EnumCallback;
     cbData.user = UserData;
-    cbData.decoratedSymbol.resize(MAX_SYM_NAME + 1);
-    cbData.undecoratedSymbol.resize(MAX_SYM_NAME + 1);
 
+    SHARED_ACQUIRE(LockModules);
+    MODINFO* modInfo = ModInfoFromAddr(Base);
+    if(modInfo == nullptr)
+        return false;
+
+    if(SymbolMask & SYMBOL_MASK_SYMBOL && modInfo->symbols->isOpen())
     {
-        SHARED_ACQUIRE(LockModules);
-        MODINFO* modInfo = ModInfoFromAddr(Base);
-        if(modInfo)
+        modInfo->symbols->enumSymbols([&cbData, Base](const SymbolInfo & info)
         {
-            for(size_t i = 0; i < modInfo->exports.size(); i++)
-            {
-                SYMBOLPTR symbolptr;
-                symbolptr.modbase = Base;
-                symbolptr.symbol = &modInfo->exports.at(i);
-                cbData.cbSymbolEnum(&symbolptr, cbData.user);
-            }
+            SYMBOLPTR symbolptr;
+            symbolptr.modbase = Base;
+            symbolptr.symbol = &info;
+            return cbData.cbSymbolEnum(&symbolptr, cbData.user);
+        }, BeginRva, EndRva);
+    }
 
-            // Emit pseudo entry point symbol
-            {
-                SYMBOLPTR symbolptr;
-                symbolptr.modbase = Base;
-                symbolptr.symbol = &modInfo->entrySymbol;
-                cbData.cbSymbolEnum(&symbolptr, cbData.user);
-            }
+    if(SymbolMask & SYMBOL_MASK_EXPORT)
+    {
+        auto entry = &modInfo->entrySymbol;
 
-            for(size_t i = 0; i < modInfo->imports.size(); i++)
+        // There is a pseudo-export for the entry point function
+        auto emitEntryExport = [&]()
+        {
+            if(entry->rva >= BeginRva && entry->rva <= EndRva)
             {
                 SYMBOLPTR symbolptr;
                 symbolptr.modbase = Base;
-                symbolptr.symbol = &modInfo->imports.at(i);
-                cbData.cbSymbolEnum(&symbolptr, cbData.user);
+                symbolptr.symbol = entry;
+                entry = nullptr;
+                return cbData.cbSymbolEnum(&symbolptr, cbData.user);
             }
-            if(modInfo->symbols->isOpen())
+            entry = nullptr;
+            return true;
+        };
+
+        if(!modInfo->exportsByRva.empty())
+        {
+            auto it = modInfo->exportsByRva.begin();
+            if(BeginRva > modInfo->exports[*it].rva)
             {
-                modInfo->symbols->enumSymbols([&cbData, Base](const SymbolInfo & info)
+                it = std::lower_bound(modInfo->exportsByRva.begin(), modInfo->exportsByRva.end(), BeginRva, [&modInfo](size_t index, duint rva)
                 {
+                    return modInfo->exports[index].rva < rva;
+                });
+            }
+            if(it != modInfo->exportsByRva.end())
+            {
+                for(; it != modInfo->exportsByRva.end(); it++)
+                {
+                    const auto & symbol = modInfo->exports[*it];
+                    if(symbol.rva > EndRva)
+                        break;
+
+                    // This is only executed if there is another export after the entry
+                    if(entry != nullptr && symbol.rva >= entry->rva)
+                    {
+                        if(!emitEntryExport())
+                            return true;
+                    }
+
                     SYMBOLPTR symbolptr;
                     symbolptr.modbase = Base;
-                    symbolptr.symbol = &info;
-                    return cbData.cbSymbolEnum(&symbolptr, cbData.user);
-                });
+                    symbolptr.symbol = &symbol;
+                    if(!cbData.cbSymbolEnum(&symbolptr, cbData.user))
+                        return true;
+                }
+
+                // This is executed if the entry is the last 'export'
+                if(entry != nullptr)
+                {
+                    emitEntryExport();
+                }
+            }
+            else
+            {
+                // This is executed if there are exports, but the range doesn't include any real ones
+                emitEntryExport();
+            }
+        }
+        else
+        {
+            // This is executed if there are no exports
+            emitEntryExport();
+        }
+    }
+
+    if(SymbolMask & SYMBOL_MASK_IMPORT && !modInfo->importsByRva.empty())
+    {
+        auto it = modInfo->importsByRva.begin();
+        if(BeginRva > modInfo->imports[*it].iatRva)
+        {
+            it = std::lower_bound(modInfo->importsByRva.begin(), modInfo->importsByRva.end(), BeginRva, [&modInfo](size_t index, duint rva)
+            {
+                return modInfo->imports[index].iatRva < rva;
+            });
+        }
+        if(it != modInfo->importsByRva.end())
+        {
+            for(; it != modInfo->importsByRva.end(); it++)
+            {
+                const auto & symbol = modInfo->imports[*it];
+                if(symbol.iatRva > EndRva)
+                    break;
+
+                SYMBOLPTR symbolptr;
+                symbolptr.modbase = Base;
+                symbolptr.symbol = &symbol;
+                if(!cbData.cbSymbolEnum(&symbolptr, cbData.user))
+                    return true;
             }
         }
     }
-}
 
-void SymEnumFromCache(duint Base, CBSYMBOLENUM EnumCallback, void* UserData)
-{
-    SymEnum(Base, EnumCallback, UserData);
+    return true;
 }
 
 bool SymGetModuleList(std::vector<SYMBOLMODULEINFO>* List)
@@ -347,6 +412,112 @@ String SymGetSymbolicName(duint Address, bool IncludeAddress)
         else
             return StringUtils::sprintf("<%s>", label);
     }
+}
+
+bool SymbolFromAddressExact(duint address, SYMBOLINFO* info)
+{
+    if(address == 0)
+        return false;
+
+    SHARED_ACQUIRE(LockModules);
+    MODINFO* modInfo = ModInfoFromAddr(address);
+    if(modInfo == nullptr)
+        return false;
+
+    duint base = modInfo->base;
+    duint rva = address - base;
+
+    // search in symbols
+    if(modInfo->symbols->isOpen())
+    {
+        SymbolInfo symInfo;
+        if(modInfo->symbols->findSymbolExact(rva, symInfo))
+        {
+            symInfo.copyToGuiSymbol(base, info);
+            return true;
+        }
+    }
+
+    // search in module exports
+    {
+        auto modExport = modInfo->findExport(rva);
+        if(modExport != nullptr)
+        {
+            modExport->copyToGuiSymbol(base, info);
+            return true;
+        }
+    }
+
+    if(modInfo->entrySymbol.rva == rva)
+    {
+        modInfo->entrySymbol.convertToGuiSymbol(base, info);
+        return true;
+    }
+
+    // search in module imports
+    {
+        auto modImport = modInfo->findImport(rva);
+        if(modImport != nullptr)
+        {
+            modImport->copyToGuiSymbol(base, info);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool SymbolFromAddressExactOrLower(duint address, SYMBOLINFO* info)
+{
+    if(address == 0)
+        return false;
+
+    SHARED_ACQUIRE(LockModules);
+    MODINFO* modInfo = ModInfoFromAddr(address);
+    if(modInfo == nullptr)
+        return false;
+
+    duint rva = address - modInfo->base;
+
+    // search in module symbols
+    if(modInfo->symbols->isOpen())
+    {
+        SymbolInfo symInfo;
+        if(modInfo->symbols->findSymbolExactOrLower(rva, symInfo))
+        {
+            symInfo.copyToGuiSymbol(modInfo->base, info);
+            return true;
+        }
+    }
+
+    // search in module exports
+    if(!modInfo->exports.empty())
+    {
+        auto it = [&]()
+        {
+            auto it = std::lower_bound(modInfo->exportsByRva.begin(), modInfo->exportsByRva.end(), rva, [&modInfo](size_t index, duint rva)
+            {
+                return modInfo->exports.at(index).rva < rva;
+            });
+            // not found
+            if(it == modInfo->exportsByRva.end())
+                return --it;
+            // exact match
+            if(modInfo->exports[*it].rva == rva)
+                return it;
+            // right now 'it' points to the first element bigger than rva
+            return it == modInfo->exportsByRva.begin() ? modInfo->exportsByRva.end() : --it;
+        }();
+
+        if(it != modInfo->exportsByRva.end())
+        {
+            const auto & symbol = modInfo->exports[*it];
+            symbol.copyToGuiSymbol(modInfo->base, info);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool SymGetSourceLine(duint Cip, char* FileName, int* Line, duint* disp)

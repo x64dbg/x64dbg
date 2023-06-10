@@ -1357,6 +1357,21 @@ const MODEXPORT* MODINFO::findExport(duint rva) const
     return nullptr;
 }
 
+const MODIMPORT* MODINFO::findImport(duint rva) const
+{
+    if(imports.size())
+    {
+        auto found = std::lower_bound(importsByRva.begin(), importsByRva.end(), rva, [this](size_t index, duint rva)
+        {
+            return imports.at(index).iatRva < rva;
+        });
+        found = found != importsByRva.end() && rva >= imports.at(*found).iatRva ? found : importsByRva.end();
+        if(found != importsByRva.end())
+            return &imports[*found];
+    }
+    return nullptr;
+}
+
 static bool resolveApiSetForward(const String & originatingDll, String & forwardDll, String & forwardExport)
 {
     wchar_t szApiSetDllPath[MAX_PATH] = L"";

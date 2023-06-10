@@ -35,12 +35,12 @@ private: //symbols
 
     struct AddrIndex
     {
-        duint addr;
+        duint rva;
         size_t index;
 
         bool operator<(const AddrIndex & b) const
         {
-            return addr < b.addr;
+            return rva < b.rva;
         }
     };
 

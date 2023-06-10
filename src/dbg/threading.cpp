@@ -51,10 +51,10 @@ void waitdeinitialize()
 
 bool SectionLockerGlobal::m_Initialized = false;
 bool SectionLockerGlobal::m_SRWLocks = false;
-SRWLOCK SectionLockerGlobal::m_srwLocks[SectionLock::LockLast];
-SectionLockerGlobal::owner_info SectionLockerGlobal::m_owner[SectionLock::LockLast];
+CacheAligned<SRWLOCK> SectionLockerGlobal::m_srwLocks[SectionLock::LockLast];
+SectionLockerGlobal::owner_info SectionLockerGlobal::m_exclusiveOwner[SectionLock::LockLast];
 
-CRITICAL_SECTION SectionLockerGlobal::m_crLocks[SectionLock::LockLast];
+CacheAligned<CRITICAL_SECTION> SectionLockerGlobal::m_crLocks[SectionLock::LockLast];
 SectionLockerGlobal::SRWLOCKFUNCTION SectionLockerGlobal::m_InitializeSRWLock;
 SectionLockerGlobal::SRWLOCKFUNCTION SectionLockerGlobal::m_AcquireSRWLockShared;
 SectionLockerGlobal::TRYSRWLOCKFUNCTION SectionLockerGlobal::m_TryAcquireSRWLockShared;

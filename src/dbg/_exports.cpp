@@ -35,7 +35,7 @@
 #include "TraceRecord.h"
 #include "recursiveanalysis.h"
 #include "dbghelp_safe.h"
-#include "symcache.h"
+#include "symbolinfo.h"
 
 static bool bOnlyCipAutoComments = false;
 static bool bNoSourceLineAutoComments = false;
@@ -190,31 +190,35 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
     else //no user labels
     {
         DWORD64 displacement = 0;
-        SymbolInfo symInfo;
-
-        bool res;
-        if(noFuncOffset)
-            res = SymbolFromAddressExact(addr, symInfo);
-        else
-            res = SymbolFromAddressExactOrLower(addr, symInfo);
-
-        if(res)
         {
-            displacement = (DWORD64)symInfo.disp;
+            SYMBOLINFOCPP symInfo;
 
-            //auto name = demanglePE32ExternCFunc(symInfo.decoratedName.c_str());
-            if(bUndecorateSymbolNames && !symInfo.undecoratedName.empty())
-                strncpy_s(label, MAX_LABEL_SIZE, symInfo.undecoratedName.c_str(), _TRUNCATE);
+            bool res;
+            if(noFuncOffset)
+                res = SymbolFromAddressExact(addr, &symInfo);
             else
-                strncpy_s(label, MAX_LABEL_SIZE, symInfo.decoratedName.c_str(), _TRUNCATE);
-            retval = !shouldFilterSymbol(label);
-            if(retval && displacement)
+                res = SymbolFromAddressExactOrLower(addr, &symInfo);
+
+            if(res)
             {
-                char temp[32];
-                sprintf_s(temp, "+%llX", displacement);
-                strncat_s(label, MAX_LABEL_SIZE, temp, _TRUNCATE);
+                displacement = (int32_t)(addr - symInfo.addr);
+
+                //auto name = demanglePE32ExternCFunc(symInfo.decoratedName.c_str());
+                if(bUndecorateSymbolNames && *symInfo.undecoratedSymbol != '\0')
+                    strncpy_s(label, MAX_LABEL_SIZE, symInfo.undecoratedSymbol, _TRUNCATE);
+                else
+                    strncpy_s(label, MAX_LABEL_SIZE, symInfo.decoratedSymbol, _TRUNCATE);
+
+                retval = !shouldFilterSymbol(label);
+                if(retval && displacement != 0)
+                {
+                    char temp[32];
+                    sprintf_s(temp, "+%llX", displacement);
+                    strncat_s(label, MAX_LABEL_SIZE, temp, _TRUNCATE);
+                }
             }
         }
+
         if(!retval)  //search for CALL <jmp.&user32.MessageBoxA>
         {
             BASIC_INSTRUCTION_INFO basicinfo;
@@ -224,21 +228,22 @@ static bool getLabel(duint addr, char* label, bool noFuncOffset)
                 duint val = 0;
                 if(MemRead(basicinfo.memory.value, &val, sizeof(val), nullptr, true))
                 {
+                    SYMBOLINFOCPP symInfo;
                     bool res;
                     if(noFuncOffset)
-                        res = SymbolFromAddressExact(val, symInfo);
+                        res = SymbolFromAddressExact(val, &symInfo);
                     else
-                        res = SymbolFromAddressExactOrLower(val, symInfo);
+                        res = SymbolFromAddressExactOrLower(val, &symInfo);
 
                     if(res)
                     {
                         //pSymbol->Name[pSymbol->MaxNameLen - 1] = '\0';
 
                         //auto name = demanglePE32ExternCFunc(pSymbol->Name);
-                        if(bUndecorateSymbolNames && !symInfo.undecoratedName.empty())
-                            _snprintf_s(label, MAX_LABEL_SIZE, _TRUNCATE, "JMP.&%s", symInfo.undecoratedName.c_str());
+                        if(bUndecorateSymbolNames && *symInfo.undecoratedSymbol != '\0')
+                            _snprintf_s(label, MAX_LABEL_SIZE, _TRUNCATE, "JMP.&%s", symInfo.undecoratedSymbol);
                         else
-                            _snprintf_s(label, MAX_LABEL_SIZE, _TRUNCATE, "JMP.&%s", symInfo.decoratedName.c_str());
+                            _snprintf_s(label, MAX_LABEL_SIZE, _TRUNCATE, "JMP.&%s", symInfo.decoratedSymbol);
                         retval = !shouldFilterSymbol(label);
                         if(retval && displacement)
                         {
@@ -1062,16 +1067,32 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     break;
 
     case DBG_SYMBOL_ENUM:
-    {
-        SYMBOLCBINFO* cbInfo = (SYMBOLCBINFO*)param1;
-        SymEnum(cbInfo->base, cbInfo->cbSymbolEnum, cbInfo->user);
-    }
-    break;
-
     case DBG_SYMBOL_ENUM_FROMCACHE:
     {
         SYMBOLCBINFO* cbInfo = (SYMBOLCBINFO*)param1;
-        SymEnumFromCache(cbInfo->base, cbInfo->cbSymbolEnum, cbInfo->user);
+        if(cbInfo->base == -1)
+        {
+            SHARED_ACQUIRE(LockModules);
+            auto info = ModInfoFromAddr(cbInfo->start);
+            if(info != nullptr && cbInfo->end >= info->base && cbInfo->end < info->base + info->size)
+            {
+                auto beginRva = cbInfo->start - info->base;
+                auto endRva = cbInfo->end - info->base;
+                if(beginRva > endRva)
+                {
+                    return false;
+                }
+                return SymEnum(info->base, cbInfo->cbSymbolEnum, cbInfo->user, beginRva, endRva, cbInfo->symbolMask);
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return SymEnum(cbInfo->base, cbInfo->cbSymbolEnum, cbInfo->user, 0, -1, SYMBOL_MASK_ALL);
+        }
     }
     break;
 
@@ -1670,15 +1691,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_GET_SYMBOL_INFO_AT:
     {
-        SHARED_ACQUIRE(LockModules);
-
-        SymbolInfo symInfo;
-        if(!SymbolFromAddressExact((duint)param1, symInfo))
-            return false;
-
-        auto modbase = ModBaseFromAddr((duint)param1);
-        symInfo.copyToGuiSymbol(modbase, (SYMBOLINFO*)param2);
-        return true;
+        return SymbolFromAddressExact((duint)param1, (SYMBOLINFO*)param2);
     }
     break;
 

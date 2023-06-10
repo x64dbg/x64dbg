@@ -291,7 +291,7 @@ BRIDGE_IMPEXP void* BridgeAlloc(size_t size)
 
 BRIDGE_IMPEXP void BridgeFree(void* ptr)
 {
-    if(ptr)
+    if(ptr != nullptr)
         GlobalFree(ptr);
 }
 
@@ -838,23 +838,35 @@ BRIDGE_IMPEXP bool DbgScriptGetBranchInfo(int line, SCRIPTBRANCH* info)
 }
 
 // FIXME all
-BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
+BRIDGE_IMPEXP bool DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
 {
     SYMBOLCBINFO cbInfo;
     cbInfo.base = base;
     cbInfo.cbSymbolEnum = cbSymbolEnum;
     cbInfo.user = user;
-    _dbg_sendmessage(DBG_SYMBOL_ENUM, &cbInfo, 0);
+    // These fields are ignored if base != -1, but set them anyway to be safe
+    cbInfo.start = 0;
+    cbInfo.end = -1;
+    cbInfo.symbolMask = SYMBOL_MASK_ALL;
+    return !!_dbg_sendmessage(DBG_SYMBOL_ENUM, &cbInfo, 0);
 }
 
 // FIXME all
-BRIDGE_IMPEXP void DbgSymbolEnumFromCache(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
+BRIDGE_IMPEXP bool DbgSymbolEnumFromCache(duint base, CBSYMBOLENUM cbSymbolEnum, void* user)
+{
+    return DbgSymbolEnum(base, cbSymbolEnum, user);
+}
+
+BRIDGE_IMPEXP bool DbgSymbolEnumRange(duint start, duint end, unsigned int symbolMask, CBSYMBOLENUM cbSymbolEnum, void* user)
 {
     SYMBOLCBINFO cbInfo;
-    cbInfo.base = base;
+    cbInfo.base = -1; // This indicates that start/end/mask is used
     cbInfo.cbSymbolEnum = cbSymbolEnum;
     cbInfo.user = user;
-    _dbg_sendmessage(DBG_SYMBOL_ENUM_FROMCACHE, &cbInfo, 0);
+    cbInfo.start = start;
+    cbInfo.end = end;
+    cbInfo.symbolMask = symbolMask;
+    return !!_dbg_sendmessage(DBG_SYMBOL_ENUM, &cbInfo, 0);
 }
 
 BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction)

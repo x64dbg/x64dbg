@@ -531,6 +531,11 @@ typedef enum
     sym_symbol
 } SYMBOLTYPE;
 
+#define SYMBOL_MASK_IMPORT (1u << sym_import)
+#define SYMBOL_MASK_EXPORT (1u << sym_export)
+#define SYMBOL_MASK_SYMBOL (1u << sym_symbol)
+#define SYMBOL_MASK_ALL (SYMBOL_MASK_IMPORT | SYMBOL_MASK_EXPORT | SYMBOL_MASK_SYMBOL)
+
 typedef enum
 {
     mod_user,
@@ -549,6 +554,13 @@ typedef MEMORY_SIZE VALUE_SIZE;
 
 typedef struct DBGFUNCTIONS_ DBGFUNCTIONS;
 
+// Callback declaration:
+// bool cbSymbolEnum(const SYMBOLPTR* symbol, void* user);
+// To get the data from the opaque pointer:
+// SYMBOLINFO info;
+// DbgGetSymbolInfo(symbol, &info);
+// The SYMBOLPTR* becomes invalid when the module is unloaded
+// DO NOT STORE unless you are absolutely certain you handle it correctly
 typedef bool (*CBSYMBOLENUM)(const struct SYMBOLPTR_* symbol, void* user);
 
 //Debugger structs
@@ -638,10 +650,40 @@ typedef struct SYMBOLINFO_
     char* decoratedSymbol;
     char* undecoratedSymbol;
     SYMBOLTYPE type;
+
+    // If true: Use BridgeFree(decoratedSymbol) to deallocate
+    // Else: The decoratedSymbol pointer is valid until the module unloads
     bool freeDecorated;
+
+    // If true: Use BridgeFree(undecoratedSymbol) to deallcoate
+    // Else: The undecoratedSymbol pointer is valid until the module unloads
     bool freeUndecorated;
+
+    // The entry point pseudo-export has ordinal == 0 (invalid ordinal value)
     DWORD ordinal;
 } SYMBOLINFO;
+
+#ifdef __cplusplus
+struct SYMBOLINFOCPP : SYMBOLINFO
+{
+    SYMBOLINFOCPP(const SYMBOLINFOCPP &) = delete;
+    SYMBOLINFOCPP(SYMBOLINFOCPP &&) = delete;
+
+    SYMBOLINFOCPP()
+    {
+        memset(this, 0, sizeof(SYMBOLINFO));
+    }
+
+    ~SYMBOLINFOCPP()
+    {
+        if(freeDecorated)
+            BridgeFree(decoratedSymbol);
+        if(freeUndecorated)
+            BridgeFree(undecoratedSymbol);
+    }
+};
+static_assert(sizeof(SYMBOLINFOCPP) == sizeof(SYMBOLINFO), "");
+#endif // __cplusplus
 
 typedef struct
 {
@@ -654,6 +696,9 @@ typedef struct
     duint base;
     CBSYMBOLENUM cbSymbolEnum;
     void* user;
+    duint start;
+    duint end;
+    unsigned int symbolMask;
 } SYMBOLCBINFO;
 
 typedef struct
@@ -1015,8 +1060,9 @@ BRIDGE_IMPEXP void DbgScriptAbort();
 BRIDGE_IMPEXP SCRIPTLINETYPE DbgScriptGetLineType(int line);
 BRIDGE_IMPEXP void DbgScriptSetIp(int line);
 BRIDGE_IMPEXP bool DbgScriptGetBranchInfo(int line, SCRIPTBRANCH* info);
-BRIDGE_IMPEXP void DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user);
-BRIDGE_IMPEXP void DbgSymbolEnumFromCache(duint base, CBSYMBOLENUM cbSymbolEnum, void* user);
+BRIDGE_IMPEXP bool DbgSymbolEnum(duint base, CBSYMBOLENUM cbSymbolEnum, void* user);
+BRIDGE_IMPEXP bool DbgSymbolEnumFromCache(duint base, CBSYMBOLENUM cbSymbolEnum, void* user);
+BRIDGE_IMPEXP bool DbgSymbolEnumRange(duint start, duint end, unsigned int symbolMask, CBSYMBOLENUM cbSymbolEnum, void* user);
 BRIDGE_IMPEXP bool DbgAssembleAt(duint addr, const char* instruction);
 BRIDGE_IMPEXP duint DbgModBaseFromName(const char* name);
 BRIDGE_IMPEXP void DbgDisasmAt(duint addr, DISASM_INSTR* instr);

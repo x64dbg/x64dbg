@@ -102,7 +102,6 @@
     <ClCompile Include="symbolinfo.cpp" />
     <ClCompile Include="symbolsourcebase.cpp" />
     <ClCompile Include="symbolsourcedia.cpp" />
-    <ClCompile Include="symcache.cpp" />
     <ClCompile Include="tcpconnections.cpp" />
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="threading.cpp" />
@@ -240,7 +239,6 @@
     <ClInclude Include="symbolsourcebase.h" />
     <ClInclude Include="symbolsourcedia.h" />
     <ClInclude Include="symbolundecorator.h" />
-    <ClInclude Include="symcache.h" />
     <ClInclude Include="syscalls.h" />
     <ClInclude Include="taskthread.h" />
     <ClInclude Include="tcpconnections.h" />
