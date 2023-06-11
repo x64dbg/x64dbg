@@ -621,7 +621,7 @@ void TraceFileReader::buildDump(unsigned long long index)
 void TraceFileReader::buildDumpTo(unsigned long long index)
 {
     auto start = dump.getMaxIndex();
-    for(auto i = start + 1; i <= index; i++)
+    for(auto i = start + 1; i < index; i++)
     {
         dump.increaseIndex();
         buildDump(i);
@@ -642,6 +642,11 @@ void TraceFileReader::debugdump(unsigned long long index)
         }
         GuiAddLogMessage(QString("dump:%1-%2:%3\n").arg(ToPtrString(c.first)).arg(ToPtrString(c.second)).arg(data).toUtf8());
     }
+}
+
+std::vector<unsigned long long> TraceFileReader::getReferences(duint startAddr, duint endAddr) const
+{
+    return dump.getReferences(startAddr, endAddr);
 }
 
 //TraceFilePage

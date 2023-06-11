@@ -40,8 +40,8 @@ public:
 
     void purgeLastPage();
 
-    void buildDump(unsigned long long index);
     void buildDumpTo(unsigned long long index);
+    std::vector<unsigned long long> getReferences(duint startAddr, duint endAddr) const;
     void debugdump(unsigned long long index);
 
 signals:
@@ -79,6 +79,7 @@ private:
     std::map<Range, TraceFilePage, RangeCompare> pages;
     TraceFilePage* getPage(unsigned long long index, unsigned long long* base);
     TraceFileDump dump;
+    void buildDump(unsigned long long index);
 
     QBeaEngine* mDisasm;
 };

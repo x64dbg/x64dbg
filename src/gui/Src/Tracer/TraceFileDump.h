@@ -30,6 +30,7 @@ public:
     // Read a byte at "addr" at the moment given in "index"
     unsigned char getByte(Key location, bool & success) const;
     std::vector<unsigned char> getBytes(duint addr, duint size, unsigned long long index) const;
+    std::vector<unsigned long long> getReferences(duint startAddr, duint endAddr) const;
     // Insert a memory access record
     //void addMemAccess(duint addr, DumpRecord record);
     void addMemAccess(duint addr, const void* oldData, const void* newData, size_t size);

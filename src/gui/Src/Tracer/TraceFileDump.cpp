@@ -62,6 +62,33 @@ std::vector<unsigned char> TraceFileDump::getBytes(duint addr, duint size, unsig
     return buffer;
 }
 
+// find references to the memory address
+std::vector<unsigned long long> TraceFileDump::getReferences(duint startAddr, duint endAddr) const
+{
+    std::vector<unsigned long long> index;
+    if(endAddr < startAddr)
+        std::swap(endAddr, startAddr);
+    // find references to the memory address
+    auto it = dump.lower_bound({endAddr, maxIndex + 1});
+    while(it != dump.end() && it->first.addr >= startAddr && it->first.addr <= endAddr)
+    {
+        index.push_back(it->first.index);
+        ++it;
+    }
+    if(index.empty())
+        return index;
+    // rearrange the array and remove duplicates
+    std::sort(index.begin(), index.end());
+    std::vector<unsigned long long> result;
+    result.push_back(index[0]);
+    for(size_t i = 1; i < index.size(); i++)
+    {
+        if(index[i] != result[result.size() - 1])
+            result.push_back(index[i]);
+    }
+    return result;
+}
+
 //void TraceFileDump::addMemAccess(duint addr, DumpRecord record)
 //{
 //    Key location = {addr, maxIndex};
@@ -99,9 +126,9 @@ void TraceFileDump::findMemAreas()
     // find first access to addr
     do
     {
-        auto it = dump.lower_bound({addr - 1, maxIndex});
+        auto it = dump.lower_bound({addr - 1, maxIndex + 1});
         // try to find out if addr-1 is in the dump
-        for(; it != dump.end(); it = dump.lower_bound({addr - 1, maxIndex}))
+        for(; it != dump.end(); it = dump.lower_bound({addr - 1, maxIndex + 1}))
         {
             if(it->first.addr != addr - 1)
                 break;
