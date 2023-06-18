@@ -353,11 +353,13 @@ bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, wchar_t* szResolv
                     if(SUCCEEDED(hres) && expandSuccess)
                     {
                         // Optionally fill the resolved arguments
-                        if(szResolvedArgs) {
+                        if(szResolvedArgs)
+                        {
                             wchar_t linkArgs[MAX_PATH];
                             hres = psl->GetArguments(linkArgs, _countof(linkArgs));
 
-                            if(SUCCEEDED(hres)) {
+                            if(SUCCEEDED(hres))
+                            {
                                 wcscpy_s(szResolvedArgs, nArgsSize, linkArgs);
                             }
                         }
