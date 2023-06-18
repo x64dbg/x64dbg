@@ -75,11 +75,23 @@ bool cbDebugInit(int argc, char* argv[])
     static char arg1[deflen] = "";
     strcpy_s(arg1, argv[1]);
     wchar_t szResolvedPath[MAX_PATH] = L"";
-    if(ResolveShortcut(GuiGetWindowHandle(), StringUtils::Utf8ToUtf16(arg1).c_str(), szResolvedPath, _countof(szResolvedPath)))
+    wchar_t szResolvedArgs[MAX_PATH] = L"";
+
+    static char arg2[deflen] = "";
+    if (argc > 2)
+        strcpy_s(arg2, argv[2]);
+
+    if(ResolveShortcut(GuiGetWindowHandle(), StringUtils::Utf8ToUtf16(arg1).c_str(), szResolvedPath, _countof(szResolvedPath), szResolvedArgs, _countof(szResolvedArgs)))
     {
         auto resolvedPathUtf8 = StringUtils::Utf16ToUtf8(szResolvedPath);
         dprintf(QT_TRANSLATE_NOOP("DBG", "Resolved shortcut \"%s\"->\"%s\"\n"), arg1, resolvedPathUtf8.c_str());
         strcpy_s(arg1, resolvedPathUtf8.c_str());
+        // Assign a command line from the shortcut if it wasn't overriden
+        if(argc <= 2) {
+            auto resolvedArgsUtf8 = StringUtils::Utf16ToUtf8(szResolvedArgs);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Resolved arguments from shortcut \"%s\"\n"), resolvedArgsUtf8.c_str());
+            strcpy_s(arg2, resolvedArgsUtf8.c_str());
+        }
     }
     if(!FileExists(arg1))
     {
@@ -124,9 +136,6 @@ bool cbDebugInit(int argc, char* argv[])
         break;
     }
 
-    static char arg2[deflen] = "";
-    if(argc > 2)
-        strcpy_s(arg2, argv[2]);
     char* commandline = 0;
     if(strlen(arg2))
         commandline = arg2;

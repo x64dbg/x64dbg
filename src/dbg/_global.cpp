@@ -313,7 +313,7 @@ bool IsWow64()
 
 //Taken from: http://www.cplusplus.com/forum/windows/64088/
 //And: https://codereview.stackexchange.com/a/2917
-bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, wchar_t* szResolvedPath, size_t nSize)
+bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, wchar_t* szResolvedPath, size_t nPathSize, wchar_t* szResolvedArgs, size_t nArgsSize)
 {
     if(szResolvedPath == NULL)
         return SUCCEEDED(E_INVALIDARG);
@@ -352,7 +352,16 @@ bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, wchar_t* szResolv
 
                     if(SUCCEEDED(hres) && expandSuccess)
                     {
-                        wcscpy_s(szResolvedPath, nSize, expandedTarget);
+                        // Optionally fill the resolved arguments
+                        if(szResolvedArgs) {
+                            wchar_t linkArgs[MAX_PATH];
+                            hres = psl->GetArguments(linkArgs, _countof(linkArgs));
+
+                            if(SUCCEEDED(hres)) {
+                                wcscpy_s(szResolvedArgs, nArgsSize, linkArgs);
+                            }
+                        }
+                        wcscpy_s(szResolvedPath, nPathSize, expandedTarget);
                     }
                 }
             }
