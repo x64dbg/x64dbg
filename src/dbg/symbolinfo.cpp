@@ -51,7 +51,7 @@ bool SymEnum(duint Base, CBSYMBOLENUM EnumCallback, void* UserData, duint BeginR
         // There is a pseudo-export for the entry point function
         auto emitEntryExport = [&]()
         {
-            if(entry->rva >= BeginRva && entry->rva <= EndRva)
+            if(modInfo->entry != 0 && entry->rva >= BeginRva && entry->rva <= EndRva)
             {
                 SYMBOLPTR symbolptr;
                 symbolptr.modbase = Base;
@@ -448,7 +448,7 @@ bool SymbolFromAddressExact(duint address, SYMBOLINFO* info)
         }
     }
 
-    if(modInfo->entrySymbol.rva == rva)
+    if(modInfo->entry != 0 && modInfo->entrySymbol.rva == rva)
     {
         modInfo->entrySymbol.convertToGuiSymbol(base, info);
         return true;
