@@ -25,6 +25,14 @@ An open-source binary debugger for Windows, aimed at malware analysis and revers
 
 You can also [compile](https://github.com/x64dbg/x64dbg/wiki/Compiling-the-whole-project) x64dbg yourself with a few easy steps!
 
+## Sponsors
+
+[![](.github/sponsors/malcore.png)](https://sponsors.x64dbg.com/malcore)
+
+<br>
+
+[![](.github/sponsors/telekom.svg)](https://sponsors.x64dbg.com/telekom)
+
 ## Contributing
 
 This is a community effort and we accept pull requests! See the [CONTRIBUTING](https://github.com/x64dbg/x64dbg/blob/development/CONTRIBUTING.md) document for more information. If you have any questions you can always [contact us](https://x64dbg.com/#contact) or open an [issue](https://github.com/x64dbg/x64dbg/issues). You can take a look at the [easy issues](https://github.com/x64dbg/x64dbg/issues?q=is%3Aissue+is%3Aopen+label%3Aeasy) to get started.
