@@ -72,20 +72,48 @@ bool cbDebugInit(int argc, char* argv[])
     cbDebugStop(argc, argv);
     ASSERT_TRUE(hDebugLoopThread == nullptr);
 
-    static char arg1[deflen] = "";
+    char arg1[deflen] = "";
     strcpy_s(arg1, argv[1]);
-    wchar_t szResolvedPath[MAX_PATH] = L"";
-    if(ResolveShortcut(GuiGetWindowHandle(), StringUtils::Utf8ToUtf16(arg1).c_str(), szResolvedPath, _countof(szResolvedPath)))
+
+    char arg2[deflen] = "";
+    if(argc > 2)
+        strcpy_s(arg2, argv[2]);
+
+    char arg3[deflen] = "";
+    if(argc > 3)
+        strcpy_s(arg3, argv[3]);
+
+    // Process .lnk files
+    std::wstring executable, arguments, workingDir;
+    if(ResolveShortcut(GuiGetWindowHandle(), StringUtils::Utf8ToUtf16(arg1).c_str(), executable, arguments, workingDir))
     {
-        auto resolvedPathUtf8 = StringUtils::Utf16ToUtf8(szResolvedPath);
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Resolved shortcut \"%s\"->\"%s\"\n"), arg1, resolvedPathUtf8.c_str());
+        auto resolvedPathUtf8 = StringUtils::Utf16ToUtf8(executable);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Resolved shortcut \"%s\" -> \"%s\"\n"), arg1, resolvedPathUtf8.c_str());
         strcpy_s(arg1, resolvedPathUtf8.c_str());
+
+        // Assign a command line from the shortcut if it wasn't overwritten
+        if(argc <= 2)
+        {
+            auto resolvedArgsUtf8 = StringUtils::Utf16ToUtf8(arguments);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Resolved arguments from shortcut \"%s\"\n"), resolvedArgsUtf8.c_str());
+            strcpy_s(arg2, resolvedArgsUtf8.c_str());
+        }
+
+        // Assign a working directory from the shortcut if it wasn't overwritten
+        if(argc <= 3)
+        {
+            auto resolvedWorkingDirUtf8 = StringUtils::Utf16ToUtf8(workingDir);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Resolved working directory from shortcut \"%s\"\n"), resolvedWorkingDirUtf8.c_str());
+            strcpy_s(arg3, resolvedWorkingDirUtf8.c_str());
+        }
     }
+
     if(!FileExists(arg1))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "File does not exist!"));
         return false;
     }
+
     auto arg1w = StringUtils::Utf8ToUtf16(arg1);
     Handle hFile = CreateFileW(arg1w.c_str(), GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
     if(hFile == INVALID_HANDLE_VALUE)
@@ -124,32 +152,23 @@ bool cbDebugInit(int argc, char* argv[])
         break;
     }
 
-    static char arg2[deflen] = "";
-    if(argc > 2)
-        strcpy_s(arg2, argv[2]);
-    char* commandline = 0;
-    if(strlen(arg2))
-        commandline = arg2;
-
-    char arg3[deflen] = "";
-    if(argc > 3)
-        strcpy_s(arg3, argv[3]);
-
-    static char currentfolder[deflen] = "";
+    // Default to the application folder
+    char currentfolder[deflen] = "";
     strcpy_s(currentfolder, arg1);
     int len = (int)strlen(currentfolder);
     while(currentfolder[len] != '\\' && len != 0)
         len--;
     currentfolder[len] = 0;
 
+    // Allow the user to overwrite the working directory
     if(DirExists(arg3))
         strcpy_s(currentfolder, arg3);
 
     static INIT_STRUCT init;
     init.exe = arg1;
-    init.commandline = commandline;
-    if(*currentfolder)
-        init.currentfolder = currentfolder;
+    init.commandline = arg2;
+    init.currentfolder = currentfolder;
+
     dbgcreatedebugthread(&init);
     return true;
 }
