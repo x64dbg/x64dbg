@@ -2735,7 +2735,7 @@ static void debugLoopFunction(INIT_STRUCT* init)
     else
     {
         gInitExe = StringUtils::Utf8ToUtf16(init->exe);
-        strcpy_s(szDebuggeePath, init->exe);
+        strncpy_s(szDebuggeePath, init->exe.c_str(), _TRUNCATE);
     }
 
     pDebuggedEntry = GetPE32DataW(gInitExe.c_str(), 0, UE_OEP);

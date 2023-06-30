@@ -313,11 +313,8 @@ bool IsWow64()
 
 //Taken from: http://www.cplusplus.com/forum/windows/64088/
 //And: https://codereview.stackexchange.com/a/2917
-bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, wchar_t* szResolvedPath, size_t nPathSize, wchar_t* szResolvedArgs, size_t nArgsSize)
+bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, std::wstring & executable, std::wstring & arguments, std::wstring & workingDir)
 {
-    if(szResolvedPath == NULL)
-        return SUCCEEDED(E_INVALIDARG);
-
     //Initialize COM stuff
     if(!SUCCEEDED(CoInitialize(NULL)))
         return false;
@@ -352,18 +349,21 @@ bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, wchar_t* szResolv
 
                     if(SUCCEEDED(hres) && expandSuccess)
                     {
-                        // Optionally fill the resolved arguments
-                        if(szResolvedArgs)
-                        {
-                            wchar_t linkArgs[MAX_PATH];
-                            hres = psl->GetArguments(linkArgs, _countof(linkArgs));
+                        executable = expandedTarget;
 
-                            if(SUCCEEDED(hres))
-                            {
-                                wcscpy_s(szResolvedArgs, nArgsSize, linkArgs);
-                            }
+                        // Extract the arguments
+                        wchar_t linkArgs[MAX_PATH];
+                        if(SUCCEEDED(psl->GetArguments(linkArgs, _countof(linkArgs))))
+                        {
+                            arguments = linkArgs;
                         }
-                        wcscpy_s(szResolvedPath, nPathSize, expandedTarget);
+
+                        // Extract the working directory
+                        wchar_t linkDir[MAX_PATH];
+                        if(SUCCEEDED(psl->GetWorkingDirectory(linkDir, _countof(linkDir))))
+                        {
+                            workingDir = linkDir;
+                        }
                     }
                 }
             }
