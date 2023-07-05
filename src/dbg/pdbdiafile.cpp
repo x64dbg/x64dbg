@@ -199,9 +199,6 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
         return false;
     }
 
-    wchar_t fileExt[MAX_PATH] = { 0 };
-    wchar_t fileDir[MAX_PATH] = { 0 };
-
     HRESULT hr = REGDB_E_CLASSNOTREG;
     hr = NoRegCoCreate(L"msdia140.dll", __uuidof(DiaSource), __uuidof(IDiaDataSource), (LPVOID*)&m_dataSource);
     if(testError(hr) || m_dataSource == nullptr)
@@ -214,42 +211,32 @@ bool PDBDiaFile::open(const wchar_t* file, uint64_t loadAddress, DiaValidationDa
         return false;
     }
 
-    _wsplitpath_s(file, NULL, 0, fileDir, MAX_PATH, NULL, 0, fileExt, MAX_PATH);
-
-    if(_wcsicmp(fileExt, L".pdb") == 0)
+    hr = FileStream::OpenFile(file, &m_stream, false);
+    if(testError(hr))
     {
-        hr = FileStream::OpenFile(file, &m_stream, false);
-        if(testError(hr))
-        {
-            GuiSymbolLogAdd("Unable to open PDB file.\n");
-            return false;
-        }
-        /*std::vector<unsigned char> pdbData;
-        if (!FileHelper::ReadAllData(StringUtils::Utf16ToUtf8(file), pdbData))
-        {
-            GuiSymbolLogAdd("Unable to open PDB file.\n");
-            return false;
-        }
-        m_stream = SHCreateMemStream(pdbData.data(), pdbData.size());*/
+        GuiSymbolLogAdd("Unable to open PDB file.\n");
+        return false;
+    }
+    /*std::vector<unsigned char> pdbData;
+    if (!FileHelper::ReadAllData(StringUtils::Utf16ToUtf8(file), pdbData))
+    {
+        GuiSymbolLogAdd("Unable to open PDB file.\n");
+        return false;
+    }
+    m_stream = SHCreateMemStream(pdbData.data(), pdbData.size());*/
 
-        if(validationData != nullptr)
+    if(validationData != nullptr)
+    {
+        hr = m_dataSource->loadDataFromIStream(m_stream);
+        if(hr == E_PDB_FORMAT)
         {
-            hr = m_dataSource->loadDataFromIStream(m_stream);
-            if(hr == E_PDB_FORMAT)
-            {
-                GuiSymbolLogAdd("PDB uses an obsolete format.\n");
-                return false;
-            }
-        }
-        else
-        {
-            hr = m_dataSource->loadDataFromIStream(m_stream);
+            GuiSymbolLogAdd("PDB uses an obsolete format.\n");
+            return false;
         }
     }
     else
     {
-        // NOTE: Unsupported use with IStream.
-        hr = m_dataSource->loadDataForExe(file, fileDir, nullptr);
+        hr = m_dataSource->loadDataFromIStream(m_stream);
     }
 
     if(testError(hr))

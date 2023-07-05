@@ -11,6 +11,7 @@
 #include "addrinfo.h"
 #include "dbghelp_safe.h"
 #include "exception.h"
+#include "ntdll/ntdll.h"
 #include "WinInet-Downloader/downslib.h"
 #include <shlwapi.h>
 
@@ -222,22 +223,56 @@ bool SymDownloadSymbol(duint Base, const char* SymbolStore)
     auto pdbBaseFile = found ? found + 1 : pdbFile.c_str();
 
     // TODO: strict checks if this path is absolute
-    WString destinationPath(StringUtils::Utf8ToUtf16(szSymbolCachePath));
-    if(destinationPath.empty())
+    WString symbolPath(StringUtils::Utf8ToUtf16(szSymbolCachePath));
+    if(symbolPath.empty())
     {
-        symprintf(QT_TRANSLATE_NOOP("DBG", "No destination symbol path specified...\n"));
+        symprintf(QT_TRANSLATE_NOOP("DBG", "No symbol path specified...\n"));
         return false;
     }
-    CreateDirectoryW(destinationPath.c_str(), nullptr);
-    if(destinationPath.back() != L'\\')
-        destinationPath += L'\\';
-    destinationPath += StringUtils::Utf8ToUtf16(pdbBaseFile);
-    CreateDirectoryW(destinationPath.c_str(), nullptr);
-    destinationPath += L'\\';
-    destinationPath += StringUtils::Utf8ToUtf16(pdbSignature);
-    CreateDirectoryW(destinationPath.c_str(), nullptr);
-    destinationPath += '\\';
-    destinationPath += StringUtils::Utf8ToUtf16(pdbBaseFile);
+    CreateDirectoryW(symbolPath.c_str(), nullptr);
+    if(symbolPath.back() != L'\\')
+        symbolPath += L'\\';
+    symbolPath += StringUtils::Utf8ToUtf16(pdbBaseFile);
+    CreateDirectoryW(symbolPath.c_str(), nullptr);
+    symbolPath += L'\\';
+    symbolPath += StringUtils::Utf8ToUtf16(pdbSignature);
+    CreateDirectoryW(symbolPath.c_str(), nullptr);
+    symbolPath += '\\';
+    symbolPath += StringUtils::Utf8ToUtf16(pdbBaseFile);
+    auto szSymbolPath = StringUtils::Utf16ToUtf8(symbolPath);
+
+    // Try to load the symbol file directly if it exists locally
+    if(FileExists(szSymbolPath.c_str()))
+    {
+        {
+            EXCLUSIVE_ACQUIRE(LockModules);
+            auto info = ModInfoFromAddr(Base);
+            if(info && info->loadSymbols(szSymbolPath, bForceLoadSymbols))
+                return true;
+        }
+
+        // Load failed. If the file is empty, we just delete it and retry the download. Otherwise, bail
+        auto hFile = CreateFileW(symbolPath.c_str(), FILE_READ_ATTRIBUTES | DELETE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
+        bool deleted = false;
+        if(hFile != INVALID_HANDLE_VALUE)
+        {
+            LARGE_INTEGER fileSize;
+            if(GetFileSizeEx(hFile, &fileSize) && fileSize.QuadPart == 0)
+            {
+                IO_STATUS_BLOCK iosb;
+                FILE_DISPOSITION_INFORMATION dispositionInfo;
+                dispositionInfo.DeleteFile = TRUE;
+                deleted = NT_SUCCESS(NtSetInformationFile(hFile, &iosb, &dispositionInfo, sizeof(dispositionInfo), FileDispositionInformation)); // use NT API for XP
+            }
+            CloseHandle(hFile);
+        }
+
+        if(!deleted)
+        {
+            symprintf(QT_TRANSLATE_NOOP("DBG", "Symbol file '%s' exists but could not be loaded!\n"), szSymbolPath.c_str());
+            return false;
+        }
+    }
 
     String symbolUrl(SymbolStore);
     if(symbolUrl.empty())
@@ -249,9 +284,9 @@ bool SymDownloadSymbol(duint Base, const char* SymbolStore)
         symbolUrl += '/';
     symbolUrl += StringUtils::sprintf("%s/%s/%s", pdbBaseFile, pdbSignature.c_str(), pdbBaseFile);
 
-    symprintf(QT_TRANSLATE_NOOP("DBG", "Downloading symbol %s\n  Signature: %s\n  Destination: %s\n  URL: %s\n"), pdbBaseFile, pdbSignature.c_str(), StringUtils::Utf16ToUtf8(destinationPath).c_str(), symbolUrl.c_str());
+    symprintf(QT_TRANSLATE_NOOP("DBG", "Downloading symbol %s\n  Signature: %s\n  Destination: %s\n  URL: %s\n"), pdbBaseFile, pdbSignature.c_str(), StringUtils::Utf16ToUtf8(symbolPath).c_str(), symbolUrl.c_str());
 
-    auto result = downslib_download(symbolUrl.c_str(), destinationPath.c_str(), "x64dbg", 1000, [](void* userdata, unsigned long long read_bytes, unsigned long long total_bytes)
+    auto result = downslib_download(symbolUrl.c_str(), symbolPath.c_str(), "x64dbg", 1000, [](void* userdata, unsigned long long read_bytes, unsigned long long total_bytes)
     {
         if(total_bytes)
         {
@@ -300,7 +335,7 @@ bool SymDownloadSymbol(duint Base, const char* SymbolStore)
         }
 
         // trigger a symbol load
-        info->loadSymbols(StringUtils::Utf16ToUtf8(destinationPath), bForceLoadSymbols);
+        info->loadSymbols(szSymbolPath, bForceLoadSymbols);
     }
 
     return true;
