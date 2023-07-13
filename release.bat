@@ -72,11 +72,13 @@ xcopy src\gui\Translations\*.qm %RELEASEDIR%\release\translations /S /Y
 copy bin\x32\x32bridge.dll %RELEASEDIR%\release\x32\
 copy bin\x32\x32dbg.dll %RELEASEDIR%\release\x32\
 copy bin\x32\x32dbg.exe %RELEASEDIR%\release\x32\
+copy bin\x32\x32dbg.exe %RELEASEDIR%\release\x32\x32dbg-unsigned.exe
 copy bin\x32\x32gui.dll %RELEASEDIR%\release\x32\
 copy bin\x32\loaddll.exe %RELEASEDIR%\release\x32\
 copy bin\x64\x64bridge.dll %RELEASEDIR%\release\x64\
 copy bin\x64\x64dbg.dll %RELEASEDIR%\release\x64\
 copy bin\x64\x64dbg.exe %RELEASEDIR%\release\x64\
+copy bin\x64\x64dbg.exe %RELEASEDIR%\release\x64\x64dbg-unsigned.exe
 copy bin\x64\x64gui.dll %RELEASEDIR%\release\x64\
 copy bin\x64\loaddll.exe %RELEASEDIR%\release\x64\
 
