@@ -119,6 +119,8 @@ struct MODINFO
     ULONG_PTR fileMapVA = 0;
 
     MODULEPARTY party;  // Party. Currently used value: 0: User, 1: System
+    bool isVirtual = false;
+    Memory<unsigned char*> mappedData;
 
     MODINFO()
     {
