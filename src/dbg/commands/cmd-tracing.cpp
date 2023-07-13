@@ -19,6 +19,11 @@ static bool genericConditionalTraceCommand(TITANCBSTEP callback, STEPFUNCTION st
         dputs(QT_TRANSLATE_NOOP("DBG", "Trace already active"));
         return false;
     }
+    if(dbgisrunning())
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Cannot start a trace when running, pause execution first."));
+        return false;
+    }
     duint maxCount;
     if(!BridgeSettingGetUint("Engine", "MaxTraceCount", &maxCount) || !maxCount)
         maxCount = 50000;
@@ -100,6 +105,11 @@ bool cbDebugTraceOverIntoTraceRecord(int argc, char* argv[])
 
 bool cbDebugRunToParty(int argc, char* argv[])
 {
+    if(dbgisrunning())
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Cannot start a trace when running, pause execution first."));
+        return false;
+    }
     EXCLUSIVE_ACQUIRE(LockRunToUserCode);
     if(!RunToUserCodeBreakpoints.empty())
     {

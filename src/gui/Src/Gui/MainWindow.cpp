@@ -1173,6 +1173,13 @@ void MainWindow::execTicnd()
 {
     if(!DbgIsDebugging())
         return;
+
+    if(DbgIsRunning())
+    {
+        SimpleErrorBox(this, tr("Error"), tr("Cannot start a trace when running, pause execution first."));
+        return;
+    }
+
     mSimpleTraceDialog->setTraceCommand("TraceIntoConditional");
     mSimpleTraceDialog->setWindowTitle(tr("Trace into..."));
     mSimpleTraceDialog->setWindowIcon(DIcon("traceinto"));
@@ -1183,6 +1190,13 @@ void MainWindow::execTocnd()
 {
     if(!DbgIsDebugging())
         return;
+
+    if(DbgIsRunning())
+    {
+        SimpleErrorBox(this, tr("Error"), tr("Cannot start a trace when running, pause execution first."));
+        return;
+    }
+
     mSimpleTraceDialog->setTraceCommand("TraceOverConditional");
     mSimpleTraceDialog->setWindowTitle(tr("Trace over..."));
     mSimpleTraceDialog->setWindowIcon(DIcon("traceover"));
