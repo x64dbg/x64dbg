@@ -1361,6 +1361,21 @@ BRIDGE_IMPEXP void GuiLogClear()
     _gui_sendmessage(GUI_CLEAR_LOG, 0, 0);
 }
 
+BRIDGE_IMPEXP void GuiLogSave(const char* filename)
+{
+    _gui_sendmessage(GUI_SAVE_LOG, (void*)filename, 0);
+}
+
+BRIDGE_IMPEXP void GuiLogRedirect(const char* filename)
+{
+    _gui_sendmessage(GUI_REDIRECT_LOG, (void*)filename, 0);
+}
+
+BRIDGE_IMPEXP void GuiLogRedirectStop()
+{
+    _gui_sendmessage(GUI_STOP_REDIRECT_LOG, 0, 0);
+}
+
 BRIDGE_IMPEXP void GuiUpdateEnable(bool updateNow)
 {
     bDisableGUIUpdate = false;

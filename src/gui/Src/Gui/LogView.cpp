@@ -38,6 +38,10 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
     connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QByteArray)), this, SLOT(addMsgToLogSlot(QByteArray)));
     connect(Bridge::getBridge(), SIGNAL(addMsgToLogHtml(QByteArray)), this, SLOT(addMsgToLogSlotHtml(QByteArray)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearLogSlot()));
+    connect(Bridge::getBridge(), SIGNAL(saveLog()), this, SLOT(saveSlot()));
+    connect(Bridge::getBridge(), SIGNAL(saveLogToFile(QString)), this, SLOT(saveSlotToFile(QString)));
+    connect(Bridge::getBridge(), SIGNAL(redirectLogToFile(QString)), this, SLOT(redirectLogSlotToFile(QString)));
+    connect(Bridge::getBridge(), SIGNAL(redirectLogStop()), this, SLOT(redirectLogSlotStop()));
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
     connect(Bridge::getBridge(), SIGNAL(flushLog()), this, SLOT(flushLogSlot()));
     connect(this, SIGNAL(anchorClicked(QUrl)), this, SLOT(onAnchorClicked(QUrl)));
@@ -375,30 +379,56 @@ void LogView::clearLogSlot()
     this->clear();
 }
 
+void LogView::redirectLogSlotStop()
+{
+    if(logRedirection != NULL)
+    {
+        fclose(logRedirection);
+        logRedirection = NULL;
+        GuiAddLogMessage(tr("Log redirection is stopped.\n").toUtf8().constData());
+    }
+    else
+    {
+        GuiAddLogMessage(tr("Log is not redirected.\n").toUtf8().constData());
+    }
+}
+
+void LogView::redirectLogSlotToFile(QString filename)
+{
+    if(logRedirection != NULL)
+    {
+        fclose(logRedirection);
+        logRedirection = NULL;
+        GuiAddLogMessage(tr("Log redirection is stopped.\n").toUtf8().constData());
+    }
+    logRedirection = _wfopen(filename.toStdWString().c_str(), L"ab");
+    if(logRedirection == NULL)
+        GuiAddLogMessage(tr("_wfopen() failed. Log will not be redirected to %1.\n").arg(QString::fromWCharArray(BridgeUserDirectory())).toUtf8().constData());
+    else
+    {
+        if(utf16Redirect && ftell(logRedirection) == 0)
+        {
+            unsigned short BOM = 0xfeff;
+            fwrite(&BOM, 2, 1, logRedirection);
+        }
+        GuiAddLogMessage(tr("Log will be redirected to %1.\n").arg(filename).toUtf8().constData());
+    }
+}
+
 void LogView::redirectLogSlot()
 {
     if(logRedirection != NULL)
     {
         fclose(logRedirection);
         logRedirection = NULL;
+        GuiAddLogMessage(tr("Log redirection is stopped.\n").toUtf8().constData());
     }
     else
     {
         BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files (*.txt);;All files (*.*)"), QString::fromWCharArray(BridgeUserDirectory()), true);
         if(browse.exec() == QDialog::Accepted)
         {
-            logRedirection = _wfopen(browse.path.toStdWString().c_str(), L"ab");
-            if(logRedirection == NULL)
-                GuiAddLogMessage(tr("_wfopen() failed. Log will not be redirected to %1.\n").arg(browse.path).toUtf8().constData());
-            else
-            {
-                if(utf16Redirect && ftell(logRedirection) == 0)
-                {
-                    unsigned short BOM = 0xfeff;
-                    fwrite(&BOM, 2, 1, logRedirection);
-                }
-                GuiAddLogMessage(tr("Log will be redirected to %1.\n").arg(browse.path).toUtf8().constData());
-            }
+            redirectLogSlotToFile(browse.path);
         }
     }
 }
@@ -427,13 +457,8 @@ void LogView::autoScrollSlot()
     autoScroll = !autoScroll;
 }
 
-/**
- * @brief LogView::saveSlot Called by "save" action
- */
-void LogView::saveSlot()
+void LogView::saveSlotToFile(QString fileName)
 {
-    QString fileName;
-    fileName = QString("log-%1.txt").arg(QDateTime::currentDateTime().toString().replace(QChar(':'), QChar('-')));
     QFile savedLog(fileName);
     savedLog.open(QIODevice::Append | QIODevice::Text);
     if(savedLog.error() != QFile::NoError)
@@ -446,6 +471,16 @@ void LogView::saveSlot()
         savedLog.close();
         GuiAddLogMessage(tr("Log have been saved as %1\n").arg(fileName).toUtf8().constData());
     }
+}
+
+/**
+ * @brief LogView::saveSlot Called by "save" action
+ */
+void LogView::saveSlot()
+{
+    QString fileName;
+    fileName = QString("log-%1.txt").arg(QDateTime::currentDateTime().toString().replace(QChar(':'), QChar('-')));
+    saveSlotToFile(fileName);
 }
 
 void LogView::toggleLoggingSlot()

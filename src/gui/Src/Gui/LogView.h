@@ -22,6 +22,8 @@ public slots:
     void updateStyle();
     void addMsgToLogSlot(QByteArray msg); /* Non-HTML Log Function*/
     void addMsgToLogSlotHtml(QByteArray msg); /* HTML accepting Log Function */
+    void redirectLogSlotStop();
+    void redirectLogSlotToFile(QString directory);
     void redirectLogSlot();
     void setLoggingEnabled(bool enabled);
     void autoScrollSlot();
@@ -35,6 +37,7 @@ public slots:
     void onAnchorClicked(const QUrl & link);
 
     void clearLogSlot();
+    void saveSlotToFile(QString filename);
     void saveSlot();
     void toggleLoggingSlot();
     void flushTimerSlot();
