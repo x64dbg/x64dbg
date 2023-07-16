@@ -949,6 +949,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkNoIcons">
+         <property name="text">
+          <string>Disable icons*</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacerGUI">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

@@ -16,10 +16,6 @@
   <property name="windowTitle">
    <string>Struct</string>
   </property>
-  <property name="windowIcon">
-   <iconset theme="struct" resource="../../resource.qrc">
-    <normaloff>:/Default/icons/struct.png</normaloff>:/Default/icons/struct.png</iconset>
-  </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <property name="spacing">
     <number>0</number>
@@ -77,8 +73,6 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="../../resource.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

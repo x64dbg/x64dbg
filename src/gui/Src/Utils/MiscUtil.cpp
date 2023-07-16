@@ -296,6 +296,12 @@ bool ExportCSV(dsint rows, dsint columns, std::vector<QString> headers, std::fun
         return false;
 }
 
+static bool allowIcons()
+{
+    duint setting = 0;
+    return !BridgeSettingGetUint("Gui", "NoIcons", &setting) || !setting;
+}
+
 static bool allowSeasons()
 {
     srand(GetTickCount());
@@ -337,6 +343,9 @@ QIcon DIconHelper(QString name)
 {
     if(name.endsWith(".png"))
         name = name.left(name.length() - 4);
+    static bool icons = allowIcons();
+    if(!icons)
+        return QIcon();
     static bool seasons = allowSeasons();
     static bool christmas = isChristmas();
     static bool easter = isEaster();

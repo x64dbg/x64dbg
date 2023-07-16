@@ -415,6 +415,28 @@ MainWindow::MainWindow(QWidget* parent)
     QTimer::singleShot(0, this, SLOT(loadWindowSettings()));
 
     updateDarkTitleBar(this);
+
+    // Hide the menu icons if the setting is enabled
+    duint noIcons = 0;
+    BridgeSettingGetUint("Gui", "NoIcons", &noIcons);
+    if(noIcons)
+    {
+        QList<QList<QAction*>> stack;
+        stack.push_back(ui->menuBar->actions());
+        while(!stack.isEmpty())
+        {
+            auto actions = stack.back();
+            stack.pop_back();
+            for(auto action : actions)
+            {
+                action->setIconVisibleInMenu(false);
+                if(action->menu())
+                {
+                    stack.push_back(action->menu()->actions());
+                }
+            }
+        }
+    }
 }
 
 MainWindow::~MainWindow()
