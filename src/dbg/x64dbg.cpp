@@ -101,6 +101,9 @@ static void registercommands()
     dbgcmdnew("cmp", cbInstrCmp, false);
     dbgcmdnew("mov,set", cbInstrMov, false); //mov a variable, arg1:dest,arg2:src
 
+    //general purpose (SSE/AVX)
+    dbgcmdnew("movdqu,movups,movupd", cbInstrMovdqu, true); //move from and to XMM register
+
     //debug control
     dbgcmdnew("InitDebug,init,initdbg", cbDebugInit, false); //init debugger arg1:exefile,[arg2:commandline]
     dbgcmdnew("StopDebug,stop,dbgstop", cbDebugStop, true); //stop debugger

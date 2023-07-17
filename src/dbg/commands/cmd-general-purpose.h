@@ -24,3 +24,5 @@ bool cbInstrPop(int argc, char* argv[]);
 bool cbInstrTest(int argc, char* argv[]);
 bool cbInstrCmp(int argc, char* argv[]);
 bool cbInstrMov(int argc, char* argv[]);
+
+bool cbInstrMovdqu(int argc, char* argv[]);
