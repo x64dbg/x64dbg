@@ -365,3 +365,115 @@ bool cbInstrMov(int argc, char* argv[])
     }
     return true;
 }
+
+bool cbInstrMovdqu(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 3))
+        return false;
+    String dstText = argv[1];
+    String srcText = argv[2];
+    duint address = 0;
+    DWORD registerindex = 0;
+    if(srcText[0] == '[' && srcText[srcText.length() - 1] == ']' && memicmp(dstText.c_str(), "xmm", 3) == 0)
+    {
+        char newValue[16];
+        // movdqu xmm0, [address]
+        dstText = dstText.substr(3);
+        srcText = srcText.substr(1, srcText.size() - 2);
+        DWORD registerindex;
+        bool found = true;
+        registerindex = atoi(dstText.c_str());
+        if(registerindex < ArchValue(8, 16))
+        {
+            registerindex += UE_XMM0;
+        }
+        else
+        {
+            goto InvalidDest;
+        }
+        if(!valfromstring(srcText.c_str(), &address))
+        {
+            goto InvalidSrc;
+        }
+        if(!MemRead(address, newValue, 16))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read (all) memory..."));
+            return false;
+        }
+        SetContextDataEx(hActiveThread, registerindex, (ULONG_PTR)newValue);
+        GuiUpdateAllViews(); //refresh disassembly/dump/etc
+        return true;
+    }
+    else if(dstText[0] == '[' && dstText[dstText.length() - 1] == ']' && memicmp(srcText.c_str(), "xmm", 3) == 0)
+    {
+        // movdqu [address], xmm0
+        srcText = srcText.substr(3);
+        dstText = dstText.substr(1, dstText.size() - 2);
+        DWORD registerindex;
+        bool found = true;
+        registerindex = atoi(srcText.c_str());
+        if(registerindex >= ArchValue(8, 16))
+        {
+            goto InvalidSrc;
+        }
+        if(!valfromstring(dstText.c_str(), &address) || !MemIsValidReadPtr(address))
+        {
+            goto InvalidDest;
+        }
+        REGDUMP registers;
+        if(!DbgGetRegDumpEx(&registers, sizeof(registers)))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
+            return false;
+        }
+        if(!MemWrite(address, &registers.regcontext.XmmRegisters[registerindex], 16))
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to write to %p\n"), address);
+            return false;
+        }
+        GuiUpdateAllViews(); //refresh disassembly/dump/etc
+        return true;
+    }
+    else if(memicmp(srcText.c_str(), "xmm", 3) == 0 && memicmp(dstText.c_str(), "xmm", 3) == 0)
+    {
+        // movdqu xmm0, xmm1
+        srcText = srcText.substr(3);
+        dstText = dstText.substr(3);
+        DWORD registerindex[2];
+        bool found = true;
+        registerindex[0] = atoi(srcText.c_str());
+        if(registerindex[0] >= ArchValue(8, 16))
+        {
+            goto InvalidSrc;
+        }
+        registerindex[1] = atoi(dstText.c_str());
+        if(registerindex[1] < ArchValue(8, 16))
+        {
+            registerindex[1] += UE_XMM0;
+        }
+        else
+        {
+            goto InvalidDest;
+        }
+        REGDUMP registers;
+        if(!DbgGetRegDumpEx(&registers, sizeof(registers)))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
+            return false;
+        }
+        SetContextDataEx(hActiveThread, registerindex[1], (ULONG_PTR)&registers.regcontext.XmmRegisters[registerindex[0]]);
+        GuiUpdateAllViews(); //refresh disassembly/dump/etc
+        return true;
+    }
+    else
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Usage: movdqu xmm0, [address] / movdqu [address], xmm0 / movdqu xmm0, xmm1"));
+        return false;
+    }
+InvalidSrc:
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid src \"%s\"\n"), argv[2]);
+    return false;
+InvalidDest:
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid dest \"%s\"\n"), argv[1]);
+    return false;
+}

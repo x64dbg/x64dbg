@@ -2251,75 +2251,14 @@ static void setfpuvalue(const char* string, duint value)
         string += STRLEN_USING_SIZEOF(XMM_PRE_FIELD_STRING);
         DWORD registerindex;
         bool found = true;
-        switch(atoi(string))
+        registerindex = atoi(string);
+        if(registerindex < ArchValue(8, 16))
         {
-        case 0:
-            registerindex = UE_XMM0;
-            break;
-
-        case 1:
-            registerindex = UE_XMM1;
-            break;
-
-        case 2:
-            registerindex = UE_XMM2;
-            break;
-
-        case 3:
-            registerindex = UE_XMM3;
-            break;
-
-        case 4:
-            registerindex = UE_XMM4;
-            break;
-
-        case 5:
-            registerindex = UE_XMM5;
-            break;
-
-        case 6:
-            registerindex = UE_XMM6;
-            break;
-
-        case 7:
-            registerindex = UE_XMM7;
-            break;
-#ifdef _WIN64
-        case 8:
-            registerindex = UE_XMM8;
-            break;
-
-        case 9:
-            registerindex = UE_XMM9;
-            break;
-
-        case 10:
-            registerindex = UE_XMM10;
-            break;
-
-        case 11:
-            registerindex = UE_XMM11;
-            break;
-
-        case 12:
-            registerindex = UE_XMM12;
-            break;
-
-        case 13:
-            registerindex = UE_XMM13;
-            break;
-
-        case 14:
-            registerindex = UE_XMM14;
-            break;
-
-        case 15:
-            registerindex = UE_XMM15;
-            break;
-#endif
-        default:
+            registerindex += UE_XMM0;
+        }
+        else
+        {
             found = false;
-            break;
         }
         if(found)
             SetContextDataEx(hActiveThread, registerindex, value);
