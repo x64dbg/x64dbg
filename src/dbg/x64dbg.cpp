@@ -53,7 +53,7 @@ static bool cbClearLog(int argc, char* argv[])
 static bool cbSaveLog(int argc, char* argv[])
 {
     if(argc < 2)
-        GuiLogSave(0);
+        GuiLogSave(nullptr);
     else
         GuiLogSave(argv[1]);
     return true;
@@ -61,10 +61,9 @@ static bool cbSaveLog(int argc, char* argv[])
 
 static bool cbRedirectLog(int argc, char* argv[])
 {
-    if(argc < 2)
-        GuiLogRedirect(0);
-    else
-        GuiLogRedirect(argv[1]);
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    GuiLogRedirect(argv[1]);
     return true;
 }
 

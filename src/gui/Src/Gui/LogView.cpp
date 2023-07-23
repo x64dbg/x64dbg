@@ -41,7 +41,7 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
     connect(Bridge::getBridge(), SIGNAL(saveLog()), this, SLOT(saveSlot()));
     connect(Bridge::getBridge(), SIGNAL(saveLogToFile(QString)), this, SLOT(saveSlotToFile(QString)));
     connect(Bridge::getBridge(), SIGNAL(redirectLogToFile(QString)), this, SLOT(redirectLogSlotToFile(QString)));
-    connect(Bridge::getBridge(), SIGNAL(redirectLogStop()), this, SLOT(redirectLogSlotStop()));
+    connect(Bridge::getBridge(), SIGNAL(redirectLogStop()), this, SLOT(stopRedirectLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
     connect(Bridge::getBridge(), SIGNAL(flushLog()), this, SLOT(flushLogSlot()));
     connect(this, SIGNAL(anchorClicked(QUrl)), this, SLOT(onAnchorClicked(QUrl)));
@@ -379,7 +379,7 @@ void LogView::clearLogSlot()
     this->clear();
 }
 
-void LogView::redirectLogSlotStop()
+void LogView::stopRedirectLogSlot()
 {
     if(logRedirection != NULL)
     {

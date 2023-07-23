@@ -135,10 +135,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         break;
 
     case GUI_REDIRECT_LOG:
-        if(!param1)
-            emit redirectLogToFile(QString());
-        else
-            emit redirectLogToFile(QString((const char*)param1));
+        emit redirectLogToFile(QString((const char*)param1));
         break;
 
     case GUI_STOP_REDIRECT_LOG:
