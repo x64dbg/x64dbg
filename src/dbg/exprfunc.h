@@ -86,6 +86,8 @@ namespace Exprfunc
     duint exinfocount();
     duint exinfo(duint index);
 
+    duint isdebuggerfocused();
+
     bool streq(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool strieq(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool strstr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);

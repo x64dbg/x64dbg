@@ -1126,6 +1126,7 @@ BRIDGE_IMPEXP void DbgGetSymbolInfo(const SYMBOLPTR* symbolptr, SYMBOLINFO* info
 BRIDGE_IMPEXP DEBUG_ENGINE DbgGetDebugEngine();
 BRIDGE_IMPEXP bool DbgGetSymbolInfoAt(duint addr, SYMBOLINFO* info);
 BRIDGE_IMPEXP duint DbgXrefAddMulti(const XREF_EDGE* edges, duint count);
+BRIDGE_IMPEXP bool GuiIsDebuggerFocused();
 
 //Gui defines
 typedef enum
@@ -1274,6 +1275,7 @@ typedef enum
     GUI_GET_MAIN_THREAD_ID,         // param1=unused,               param2=unused
     GUI_ADD_MSG_TO_LOG_HTML,        // param1=(const char*)msg,     param2=unused
     GUI_IS_LOG_ENABLED,             // param1=unused,               param2=unused
+    GUI_IS_DEBUGGER_FOCUSED,        // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
