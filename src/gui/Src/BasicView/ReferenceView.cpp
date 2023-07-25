@@ -248,12 +248,16 @@ void ReferenceView::referenceContextMenu(QMenu* wMenu)
 
 void ReferenceView::followAddress()
 {
-    DbgCmdExecDirect(QString("disasm " + mCurList->getCellContent(mCurList->getInitialSelection(), 0)));
+    int index = mCurList->getInitialSelection();
+    searchSelectionChanged(index);
+    DbgCmdExecDirect(QString("disasm " + mCurList->getCellContent(index, 0)));
 }
 
 void ReferenceView::followDumpAddress()
 {
-    DbgCmdExecDirect(QString("dump " + mCurList->getCellContent(mCurList->getInitialSelection(), 0)));
+    int index = mCurList->getInitialSelection();
+    searchSelectionChanged(index);
+    DbgCmdExecDirect(QString("dump " + mCurList->getCellContent(index, 0)));
 }
 
 void ReferenceView::followApiAddress()
