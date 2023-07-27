@@ -79,7 +79,7 @@ public:
         std::function<void()> columnSwitch;
     };
 
-    explicit HexDump(QWidget* parent = 0);
+    explicit HexDump(QWidget* parent = 0, MemoryPage* memPage = 0);
     ~HexDump() override;
 
     // Configuration

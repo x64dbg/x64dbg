@@ -6,11 +6,20 @@
 
 TraceInfoBox::TraceInfoBox(TraceWidget* parent) : StdTable(parent)
 {
-    addColumnAt(0, "", true);
+    setWindowTitle("TraceInfoBox");
+    enableMultiSelection(false);
     setShowHeader(false);
-    clear();
+    setRowCount(4);
+    addColumnAt(0, "", true);
+    setCellContent(0, 0, "");
+    setCellContent(1, 0, "");
+    setCellContent(2, 0, "");
+    setCellContent(3, 0, "");
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    setShowHeader(false);
+    clear();
     setMinimumHeight((getRowHeight() + 1) * 4);
 
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
@@ -214,6 +223,11 @@ void TraceInfoBox::setupContextMenu()
 {
     mCopyLineAction = makeAction(tr("Copy Line"), SLOT(copyLineSlot()));
     setupShortcuts();
+}
+
+int TraceInfoBox::getHeight()
+{
+    return ((getRowHeight() + 1) * 4);
 }
 
 void TraceInfoBox::contextMenuSlot(QPoint pos)

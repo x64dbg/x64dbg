@@ -2,6 +2,8 @@
 
 #include "Imports.h"
 #include <map>
+#include <QMutex>
+#include "MemoryPage.h"
 
 class TraceFileDump
 {
@@ -48,4 +50,21 @@ public:
 private:
     std::map<Key, DumpRecord> dump;
     unsigned long long maxIndex;
+};
+
+class TraceFileDumpMemoryPage : public MemoryPage
+{
+    Q_OBJECT
+public:
+    TraceFileDumpMemoryPage(QObject* parent = 0);
+    virtual bool read(void* parDest, dsint parRVA, duint parSize) const override;
+    virtual bool write(const void* parDest, dsint parRVA, duint parSize) override;
+    void setSelectedIndex(unsigned long long index);
+    unsigned long long getSelectedIndex() const;
+    void setDumpObject(TraceFileDump* dump);
+    bool isAvailable() const;
+private:
+    TraceFileDump* dump;
+    mutable QMutex lock;
+    unsigned long long selectedIndex = 0ull;
 };

@@ -11,7 +11,7 @@ static int dwordStringMaxLength(HexDump::DwordViewMode mode);
 static int qwordStringMaxLength(HexDump::QwordViewMode mode);
 static int twordStringMaxLength(HexDump::TwordViewMode mode);
 
-HexDump::HexDump(QWidget* parent)
+HexDump::HexDump(QWidget* parent, MemoryPage* memPage)
     : AbstractTableView(parent)
 {
     memset(&mSelection, 0, sizeof(SelectionData));
@@ -22,7 +22,10 @@ HexDump::HexDump(QWidget* parent)
 
     setRowCount(0);
 
-    mMemPage = new MemoryPage(0, 0);
+    if(!memPage)
+        mMemPage = new MemoryPage(0, 0, this);
+    else
+        mMemPage = memPage;
     mForceColumn = -1;
 
     clearDescriptors();

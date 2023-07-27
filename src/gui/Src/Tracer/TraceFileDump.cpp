@@ -1,3 +1,4 @@
+#include <QMutexLocker>
 #include "TraceFileDump.h"
 #include "StringUtil.h"
 
@@ -13,7 +14,7 @@ TraceFileDump::~TraceFileDump()
 
 void TraceFileDump::clear()
 {
-    maxIndex = 0;
+    maxIndex = 0ull;
     dump.clear();
 }
 
@@ -149,4 +150,51 @@ void TraceFileDump::findMemAreas()
         }
     }
     while(true);
+}
+
+// TraceFileDumpMemoryPage
+TraceFileDumpMemoryPage::TraceFileDumpMemoryPage(QObject* parent) : MemoryPage(0, 0, parent)
+{
+    QMutexLocker locker(&lock);
+    dump = nullptr;
+}
+
+void TraceFileDumpMemoryPage::setSelectedIndex(unsigned long long index)
+{
+    QMutexLocker locker(&lock);
+    if(dump)
+        selectedIndex = std::min(index, dump->getMaxIndex());
+    else
+        selectedIndex = 0ull;
+}
+
+void TraceFileDumpMemoryPage::setDumpObject(TraceFileDump* dump)
+{
+    QMutexLocker locker(&lock);
+    this->dump = dump;
+}
+
+bool TraceFileDumpMemoryPage::isAvailable() const
+{
+    return !!this->dump;
+}
+
+unsigned long long TraceFileDumpMemoryPage::getSelectedIndex() const
+{
+    return selectedIndex;
+}
+
+bool TraceFileDumpMemoryPage::read(void* parDest, dsint parRVA, duint parSize) const
+{
+    QMutexLocker locker(&lock);
+    if(!dump)
+        return false;
+    auto buffer = dump->getBytes(mBase + parRVA, parSize, selectedIndex);
+    memcpy(parDest, buffer.data(), parSize);
+    return true;
+}
+
+bool TraceFileDumpMemoryPage::write(const void* parDest, dsint parRVA, duint parSize)
+{
+    return false; // write is not supported
 }

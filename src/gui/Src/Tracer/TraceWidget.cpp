@@ -2,6 +2,7 @@
 #include "ui_TraceWidget.h"
 #include "TraceBrowser.h"
 #include "TraceInfoBox.h"
+#include "TraceDump.h"
 #include "TraceFileReader.h"
 #include "TraceRegisters.h"
 #include "StdTable.h"
@@ -16,6 +17,8 @@ TraceWidget::TraceWidget(QWidget* parent) :
     mTraceWidget = new TraceBrowser(this);
     mOverview = new StdTable(this);
     mInfo = new TraceInfoBox(this);
+    mMemoryPage = new TraceFileDumpMemoryPage(this);
+    mDump = new TraceDump(mTraceWidget, mMemoryPage, this);
     mGeneralRegs = new TraceRegisters(this);
     //disasm
     ui->mTopLeftUpperRightFrameLayout->addWidget(mTraceWidget);
@@ -45,13 +48,15 @@ TraceWidget::TraceWidget(QWidget* parent) :
 
     //info
     ui->mTopLeftLowerFrameLayout->addWidget(mInfo);
-    int height = (mInfo->getRowHeight() + 1) * 4;
+    int height = mInfo->getHeight();
     ui->mTopLeftLowerFrame->setMinimumHeight(height + 2);
-    ui->mTopHSplitter->setSizes(QList<int>({1000, 1}));
-    ui->mTopLeftVSplitter->setSizes(QList<int>({1000, 1}));
+
+    //dump
+    //ui->mTopLeftLowerFrameLayout->addWidget(mDump);
+    ui->mBotLeftFrameLayout->addWidget(mDump);
 
     //overview
-    ui->mTopRightLowerFrameLayout->addWidget(mOverview);
+    ui->mBotRightFrameLayout->addWidget(mOverview);
 
     //set up overview
     mOverview->addColumnAt(0, "", true);
@@ -61,7 +66,9 @@ TraceWidget::TraceWidget(QWidget* parent) :
     mOverview->setCellContent(1, 0, "world");
     mOverview->setCellContent(2, 0, "00000000");
     mOverview->setCellContent(3, 0, "here we will list all control flow transfers");
-    mOverview->hide();
+    //mOverview->hide();
+    ui->mTopHSplitter->setSizes(QList<int>({1000, 1}));
+    ui->mTopLeftVSplitter->setSizes(QList<int>({1000, 1}));
 }
 
 TraceWidget::~TraceWidget()
@@ -80,10 +87,14 @@ void TraceWidget::traceSelectionChanged(unsigned long long selection)
         {
             registers = traceFile->Registers(selection);
             mInfo->update(selection, traceFile, registers);
+            traceFile->buildDumpTo(selection);
+            mMemoryPage->setDumpObject(traceFile->getDump());
         }
         else
             memset(&registers, 0, sizeof(registers));
     }
+    else
+        mMemoryPage->setDumpObject(nullptr);
     mGeneralRegs->setRegisters(&registers);
 }
 

@@ -123,6 +123,11 @@ unsigned long long TraceFileReader::Length() const
     return length;
 }
 
+TraceFileDump* TraceFileReader::getDump()
+{
+    return &dump;
+}
+
 QString TraceFileReader::getIndexText(unsigned long long index) const
 {
     QString indexString;

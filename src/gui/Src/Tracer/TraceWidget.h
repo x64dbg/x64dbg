@@ -8,7 +8,9 @@ class CPUWidget;
 class TraceRegisters;
 class TraceBrowser;
 class TraceFileReader;
+class TraceFileDumpMemoryPage;
 class TraceInfoBox;
+class TraceDump;
 class StdTable;
 
 namespace Ui
@@ -33,7 +35,9 @@ protected slots:
 protected:
     TraceBrowser* mTraceWidget;
     TraceInfoBox* mInfo;
+    TraceDump* mDump;
     TraceRegisters* mGeneralRegs;
+    TraceFileDumpMemoryPage* mMemoryPage;
     StdTable* mOverview;
 
 private:
