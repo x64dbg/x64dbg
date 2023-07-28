@@ -905,6 +905,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 
     case GUI_GET_MAIN_THREAD_ID:
         return (void*)dwMainThreadId;
+
+    case GUI_IS_DEBUGGER_FOCUSED:
+        return (void*)!!QApplication::activeWindow();
     }
 
     return nullptr;

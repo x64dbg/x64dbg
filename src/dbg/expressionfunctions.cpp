@@ -152,6 +152,9 @@ void ExpressionFunctions::Init()
     //Undocumented
     RegisterEasy("bpgoto", bpgoto);
 
+    //Other
+    RegisterEasy("isdebuggerfocused", isdebuggerfocused);
+
     // Strings
     ExpressionFunctions::Register("utf8", ValueTypeString, { ValueTypeNumber }, Exprfunc::utf8, nullptr);
     ExpressionFunctions::Register("utf16", ValueTypeString, { ValueTypeNumber }, Exprfunc::utf16, nullptr);

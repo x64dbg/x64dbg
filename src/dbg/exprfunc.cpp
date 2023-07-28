@@ -600,6 +600,11 @@ namespace Exprfunc
         return getLastExceptionInfo().ExceptionRecord.ExceptionInformation[index];
     }
 
+    duint isdebuggerfocused()
+    {
+        return GuiIsDebuggerFocused();
+    }
+
     bool streq(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
     {
         assert(argc == 2);
