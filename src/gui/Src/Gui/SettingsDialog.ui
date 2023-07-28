@@ -451,6 +451,9 @@
            <property name="text">
             <string>Animation per-step interval (ms)</string>
            </property>
+           <property name="buddy">
+            <cstring>spinAnimateInterval</cstring>
+           </property>
           </widget>
          </item>
          <item>
@@ -502,6 +505,9 @@
         <widget class="QLabel" name="lblExceptionFilters">
          <property name="text">
           <string>Exception Filters:</string>
+         </property>
+         <property name="buddy">
+          <cstring>listExceptions</cstring>
          </property>
         </widget>
        </item>
@@ -986,12 +992,18 @@
                <property name="text">
                 <string>Symbol Store:</string>
                </property>
+               <property name="buddy">
+                <cstring>editSymbolStore</cstring>
+               </property>
               </widget>
              </item>
              <item>
               <widget class="QLabel" name="lblSymbolPath">
                <property name="text">
                 <string>Symbol Path:</string>
+               </property>
+               <property name="buddy">
+                <cstring>editSymbolCache</cstring>
                </property>
               </widget>
              </item>
@@ -1022,6 +1034,9 @@
             <widget class="QLabel" name="label">
              <property name="text">
               <string>JIT:</string>
+             </property>
+             <property name="buddy">
+              <cstring>editJIT</cstring>
              </property>
             </widget>
            </item>
