@@ -28,6 +28,9 @@
        <property name="text">
         <string>Path:</string>
        </property>
+       <property name="buddy">
+        <cstring>lineEdit</cstring>
+       </property>
       </widget>
      </item>
      <item>

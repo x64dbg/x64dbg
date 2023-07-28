@@ -30,6 +30,9 @@
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
+       <property name="buddy">
+        <cstring>editStart</cstring>
+       </property>
       </widget>
      </item>
      <item row="1" column="0">
@@ -45,6 +48,9 @@
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+       <property name="buddy">
+        <cstring>editEnd</cstring>
        </property>
       </widget>
      </item>

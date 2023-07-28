@@ -406,6 +406,9 @@
              <property name="text">
               <string>Items per line:</string>
              </property>
+             <property name="buddy">
+              <cstring>spinBox</cstring>
+             </property>
             </widget>
            </item>
            <item>

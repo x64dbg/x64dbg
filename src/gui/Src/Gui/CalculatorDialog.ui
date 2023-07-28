@@ -31,12 +31,18 @@
        <property name="text">
         <string>Signed:</string>
        </property>
+       <property name="buddy">
+        <cstring>txtSignedDec</cstring>
+       </property>
       </widget>
      </item>
      <item row="3" column="0">
       <widget class="QLabel" name="label_3">
        <property name="text">
         <string>Unsigned:</string>
+       </property>
+       <property name="buddy">
+        <cstring>txtUnsignedDec</cstring>
        </property>
       </widget>
      </item>
@@ -45,6 +51,9 @@
        <property name="text">
         <string>Unicode:</string>
        </property>
+       <property name="buddy">
+        <cstring>txtUnicode</cstring>
+       </property>
       </widget>
      </item>
      <item row="5" column="0">
@@ -52,12 +61,18 @@
        <property name="text">
         <string>Octal:</string>
        </property>
+       <property name="buddy">
+        <cstring>txtOct</cstring>
+       </property>
       </widget>
      </item>
      <item row="0" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
         <string>Expression:</string>
+       </property>
+       <property name="buddy">
+        <cstring>txtExpression</cstring>
        </property>
       </widget>
      </item>
@@ -102,12 +117,18 @@
        <property name="text">
         <string>Binary:</string>
        </property>
+       <property name="buddy">
+        <cstring>txtBin</cstring>
+       </property>
       </widget>
      </item>
      <item row="9" column="0">
       <widget class="QLabel" name="label_6">
        <property name="text">
         <string>ASCII:</string>
+       </property>
+       <property name="buddy">
+        <cstring>txtAscii</cstring>
        </property>
       </widget>
      </item>
@@ -222,6 +243,9 @@
        <property name="text">
         <string>Hexadecimal:</string>
        </property>
+       <property name="buddy">
+        <cstring>txtHex</cstring>
+       </property>
       </widget>
      </item>
      <item row="0" column="1">
@@ -259,6 +283,9 @@
       <widget class="QLabel" name="label_9">
        <property name="text">
         <string>Bytes:</string>
+       </property>
+       <property name="buddy">
+        <cstring>txtBytes</cstring>
        </property>
       </widget>
      </item>
