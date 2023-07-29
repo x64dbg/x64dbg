@@ -137,6 +137,11 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
         mTcpConnectionsTable->reloadData();
     }
 
+    mWindowsTable->setAccessibleName(tr("Windows"));
+    mHandlesTable->setAccessibleName(tr("Handles"));
+    mTcpConnectionsTable->setAccessibleName(tr("TCP Connections"));
+    mPrivilegesTable->setAccessibleName(tr("Privileges"));
+
     reloadData();
     refreshShortcuts();
 }

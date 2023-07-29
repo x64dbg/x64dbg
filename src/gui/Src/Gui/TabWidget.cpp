@@ -63,6 +63,7 @@ int MHTabWidget::addTabEx(QWidget* widget, const QIcon & icon, const QString & l
 {
     mNativeNames.append(nativeName);
     mHistory.push_back((MIDPKey)widget);
+    widget->setAccessibleName(label);
     return this->addTab(widget, icon, label);
 }
 
