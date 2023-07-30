@@ -286,7 +286,7 @@ bool SymDownloadSymbol(duint Base, const char* SymbolStore)
 
     symprintf(QT_TRANSLATE_NOOP("DBG", "Downloading symbol %s\n  Signature: %s\n  Destination: %s\n  URL: %s\n"), pdbBaseFile, pdbSignature.c_str(), StringUtils::Utf16ToUtf8(symbolPath).c_str(), symbolUrl.c_str());
 
-	DWORD lineDownloadStart = GetTickCount();
+    DWORD lineDownloadStart = GetTickCount();
     auto result = downslib_download(symbolUrl.c_str(), symbolPath.c_str(), "x64dbg", 1000, [](void* userdata, unsigned long long read_bytes, unsigned long long total_bytes)
     {
         if(total_bytes)
@@ -325,9 +325,9 @@ bool SymDownloadSymbol(duint Base, const char* SymbolStore)
         __debugbreak();
     }
 
-	DWORD ms = GetTickCount() - lineDownloadStart;
-	double secs = (double)ms / 1000.0;
-	symprintf(QT_TRANSLATE_NOOP("DBG", "Finished downloading symbol %s in %.03fs\n"), pdbBaseFile, secs);
+    DWORD ms = GetTickCount() - lineDownloadStart;
+    double secs = (double)ms / 1000.0;
+    symprintf(QT_TRANSLATE_NOOP("DBG", "Finished downloading symbol %s in %.03fs\n"), pdbBaseFile, secs);
 
     {
         EXCLUSIVE_ACQUIRE(LockModules);
