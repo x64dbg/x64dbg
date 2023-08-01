@@ -479,7 +479,7 @@ void LogView::saveToFileSlot(QString fileName)
 void LogView::saveSlot()
 {
     QString fileName;
-    fileName = QString("log-%1.txt").arg(QDateTime::currentDateTime().toString().replace(QChar(':'), QChar('-')));
+    fileName = QString("log-%1.txt").arg(isoDateTime());
     saveToFileSlot(fileName);
 }
 
