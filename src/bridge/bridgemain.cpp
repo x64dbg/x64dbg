@@ -78,6 +78,9 @@ static const wchar_t* InitializeUserDirectory()
 
     *backslash = L'\0';
 
+    // Set the current directory to the application directory
+    SetCurrentDirectoryW(szUserDirectory);
+
     // Extract the file name of the x64dbg executable (without extension)
     auto fileNameWithoutExtension = backslash + 1;
     auto period = wcschr(fileNameWithoutExtension, L'.');

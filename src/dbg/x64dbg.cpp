@@ -752,7 +752,6 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         }
     }
     dprintf(QT_TRANSLATE_NOOP("DBG", "Symbol Path: %s\n"), szSymbolCachePath);
-    SetCurrentDirectoryW(StringUtils::Utf8ToUtf16(szProgramDir).c_str());
     dputs(QT_TRANSLATE_NOOP("DBG", "Allocating message stack..."));
     gMsgStack = MsgAllocStack();
     if(!gMsgStack)
