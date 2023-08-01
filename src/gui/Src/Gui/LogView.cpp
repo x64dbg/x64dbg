@@ -36,11 +36,11 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(updateStyle()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(updateStyle()));
     connect(Bridge::getBridge(), SIGNAL(addMsgToLog(QByteArray)), this, SLOT(addMsgToLogSlot(QByteArray)));
-    connect(Bridge::getBridge(), SIGNAL(addMsgToLogHtml(QByteArray)), this, SLOT(addMsgToLogSlotHtml(QByteArray)));
+    connect(Bridge::getBridge(), SIGNAL(addMsgToLogHtml(QByteArray)), this, SLOT(addMsgToLogHtmlSlot(QByteArray)));
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(saveLog()), this, SLOT(saveSlot()));
-    connect(Bridge::getBridge(), SIGNAL(saveLogToFile(QString)), this, SLOT(saveSlotToFile(QString)));
-    connect(Bridge::getBridge(), SIGNAL(redirectLogToFile(QString)), this, SLOT(redirectLogSlotToFile(QString)));
+    connect(Bridge::getBridge(), SIGNAL(saveLogToFile(QString)), this, SLOT(saveToFileSlot(QString)));
+    connect(Bridge::getBridge(), SIGNAL(redirectLogToFile(QString)), this, SLOT(redirectLogToFileSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(redirectLogStop()), this, SLOT(stopRedirectLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
     connect(Bridge::getBridge(), SIGNAL(flushLog()), this, SLOT(flushLogSlot()));
@@ -60,9 +60,9 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
  */
 LogView::~LogView()
 {
-    if(logRedirection != NULL)
+    if(logRedirection != nullptr)
         fclose(logRedirection);
-    logRedirection = NULL;
+    logRedirection = nullptr;
 }
 
 void LogView::updateStyle()
@@ -152,7 +152,7 @@ void LogView::contextMenuEvent(QContextMenuEvent* event)
     wMenu.addAction(actionFindInLog);
     wMenu.addAction(actionFindNext);
     wMenu.addAction(actionFindPrevious);
-    if(logRedirection == NULL)
+    if(logRedirection == nullptr)
         actionRedirectLog->setText(tr("&Redirect Log..."));
     else
         actionRedirectLog->setText(tr("Stop &Redirection"));
@@ -234,10 +234,10 @@ void LogView::linkify(QString & msg)
 }
 
 /**
-* @brief LogView::addMsgToLogSlotHtml Adds a HTML message to the log view. This function is a slot for Bridge::addMsgToLogHtml.
+* @brief LogView::addMsgToLogHtmlSlot Adds a HTML message to the log view. This function is a slot for Bridge::addMsgToLogHtml.
 * @param msg The log message (Which is assumed to contain HTML)
 */
-void LogView::addMsgToLogSlotHtml(QByteArray msg)
+void LogView::addMsgToLogHtmlSlot(QByteArray msg)
 {
     LogView::addMsgToLogSlotRaw(msg, false);
 }
@@ -269,7 +269,7 @@ void LogView::addMsgToLogSlotRaw(QByteArray msg, bool encodeHTML)
     // redirect the log
     QString msgUtf16;
     bool redirectError = false;
-    if(logRedirection != NULL)
+    if(logRedirection != nullptr)
     {
         if(utf16Redirect)
         {
@@ -278,7 +278,7 @@ void LogView::addMsgToLogSlotRaw(QByteArray msg, bool encodeHTML)
             if(!fwrite(msgUtf16.utf16(), msgUtf16.length(), 2, logRedirection))
             {
                 fclose(logRedirection);
-                logRedirection = NULL;
+                logRedirection = nullptr;
                 redirectError = true;
             }
         }
@@ -310,7 +310,7 @@ void LogView::addMsgToLogSlotRaw(QByteArray msg, bool encodeHTML)
             if(!fwrite(data, buffersize, 1, logRedirection))
             {
                 fclose(logRedirection);
-                logRedirection = NULL;
+                logRedirection = nullptr;
                 redirectError = true;
             }
             if(loggingEnabled)
@@ -381,10 +381,10 @@ void LogView::clearLogSlot()
 
 void LogView::stopRedirectLogSlot()
 {
-    if(logRedirection != NULL)
+    if(logRedirection != nullptr)
     {
         fclose(logRedirection);
-        logRedirection = NULL;
+        logRedirection = nullptr;
         GuiAddLogMessage(tr("Log redirection is stopped.\n").toUtf8().constData());
     }
     else
@@ -393,16 +393,16 @@ void LogView::stopRedirectLogSlot()
     }
 }
 
-void LogView::redirectLogSlotToFile(QString filename)
+void LogView::redirectLogToFileSlot(QString filename)
 {
-    if(logRedirection != NULL)
+    if(logRedirection != nullptr)
     {
         fclose(logRedirection);
-        logRedirection = NULL;
+        logRedirection = nullptr;
         GuiAddLogMessage(tr("Log redirection is stopped.\n").toUtf8().constData());
     }
     logRedirection = _wfopen(filename.toStdWString().c_str(), L"ab");
-    if(logRedirection == NULL)
+    if(logRedirection == nullptr)
         GuiAddLogMessage(tr("_wfopen() failed. Log will not be redirected to %1.\n").arg(QString::fromWCharArray(BridgeUserDirectory())).toUtf8().constData());
     else
     {
@@ -417,10 +417,10 @@ void LogView::redirectLogSlotToFile(QString filename)
 
 void LogView::redirectLogSlot()
 {
-    if(logRedirection != NULL)
+    if(logRedirection != nullptr)
     {
         fclose(logRedirection);
-        logRedirection = NULL;
+        logRedirection = nullptr;
         GuiAddLogMessage(tr("Log redirection is stopped.\n").toUtf8().constData());
     }
     else
@@ -428,7 +428,7 @@ void LogView::redirectLogSlot()
         BrowseDialog browse(this, tr("Redirect log to file"), tr("Enter the file to which you want to redirect log messages."), tr("Log files (*.txt);;All files (*.*)"), QString::fromWCharArray(BridgeUserDirectory()), true);
         if(browse.exec() == QDialog::Accepted)
         {
-            redirectLogSlotToFile(browse.path);
+            redirectLogToFileSlot(browse.path);
         }
     }
 }
@@ -457,7 +457,7 @@ void LogView::autoScrollSlot()
     autoScroll = !autoScroll;
 }
 
-void LogView::saveSlotToFile(QString fileName)
+void LogView::saveToFileSlot(QString fileName)
 {
     QFile savedLog(fileName);
     savedLog.open(QIODevice::Append | QIODevice::Text);
@@ -480,7 +480,7 @@ void LogView::saveSlot()
 {
     QString fileName;
     fileName = QString("log-%1.txt").arg(QDateTime::currentDateTime().toString().replace(QChar(':'), QChar('-')));
-    saveSlotToFile(fileName);
+    saveToFileSlot(fileName);
 }
 
 void LogView::toggleLoggingSlot()
