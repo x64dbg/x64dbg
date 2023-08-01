@@ -576,6 +576,7 @@ void MainWindow::loadSelectedTheme(bool reloadOnlyStyleCss)
 
     QString stylePath(":/css/default.css");
     QString settingsPath;
+    QString applicationDirPath = QCoreApplication::applicationDirPath();
     if(*selectedTheme)
     {
         // Handle the icon theme
@@ -583,7 +584,7 @@ void MainWindow::loadSelectedTheme(bool reloadOnlyStyleCss)
         if(strcmp(selectedTheme, "Default") == 0)
         {
             // The Default theme needs some special handling to allow overriding
-            auto overrideDir = QCoreApplication::applicationDirPath() + "/../themes/Default";
+            auto overrideDir = applicationDirPath + "/../themes/Default";
             if(QDir(overrideDir).exists("index.theme"))
             {
                 /*
@@ -611,7 +612,7 @@ void MainWindow::loadSelectedTheme(bool reloadOnlyStyleCss)
         }
         else
         {
-            auto themesDir = QCoreApplication::applicationDirPath() + "/../themes";
+            auto themesDir = applicationDirPath + "/../themes";
             if(QDir(themesDir).exists(QString("%1/index.theme").arg(selectedTheme)))
             {
                 searchPaths << themesDir;
@@ -625,17 +626,17 @@ void MainWindow::loadSelectedTheme(bool reloadOnlyStyleCss)
             QIcon::setThemeSearchPaths(searchPaths);
         }
 
-        QString themePath = QString("%1/../themes/%2/style.css").arg(QCoreApplication::applicationDirPath()).arg(selectedTheme);
+        QString themePath = QString("%1/../themes/%2/style.css").arg(applicationDirPath).arg(selectedTheme);
         if(!QFile(themePath).exists())
-            themePath = QString("%1/../themes/%2/theme.css").arg(QCoreApplication::applicationDirPath()).arg(selectedTheme);
+            themePath = QString("%1/../themes/%2/theme.css").arg(applicationDirPath).arg(selectedTheme);
         if(QFile(themePath).exists())
             stylePath = themePath;
 
-        auto tryIni = [&settingsPath, &selectedTheme](const char* name)
+        auto tryIni = [&applicationDirPath, &settingsPath, &selectedTheme](const char* name)
         {
             if(!settingsPath.isEmpty())
                 return;
-            QString iniPath = QString("%1/../themes/%2/%3").arg(QCoreApplication::applicationDirPath(), selectedTheme, name);
+            QString iniPath = QString("%1/../themes/%2/%3").arg(applicationDirPath, selectedTheme, name);
             if(QFile(iniPath).exists())
                 settingsPath = iniPath;
         };
@@ -654,10 +655,10 @@ void MainWindow::loadSelectedTheme(bool reloadOnlyStyleCss)
     {
         auto style = QTextStream(&cssFile).readAll();
         cssFile.close();
-        style = style.replace("url(./", QString("url(../themes/%2/").arg(selectedTheme));
-        style = style.replace("url(\"./", QString("url(\"../themes/%2/").arg(selectedTheme));
-        style = style.replace("url('./", QString("url('../themes/%2/").arg(selectedTheme));
-        style = style.replace("$RELPATH", QString("../themes/%2/").arg(selectedTheme));
+        style = style.replace("url(./", QString("url(%1/../themes/%2/").arg(applicationDirPath, selectedTheme));
+        style = style.replace("url(\"./", QString("url(\"%1/../themes/%2/").arg(applicationDirPath, selectedTheme));
+        style = style.replace("url('./", QString("url('%1/../themes/%2/").arg(applicationDirPath, selectedTheme));
+        style = style.replace("$RELPATH", QString("%1/../themes/%2").arg(applicationDirPath, selectedTheme));
         qApp->setStyleSheet(style);
     }
 
