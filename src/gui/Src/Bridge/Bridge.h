@@ -53,6 +53,10 @@ signals:
     void addMsgToLog(QByteArray msg);
     void addMsgToLogHtml(QByteArray msg);
     void clearLog();
+    void saveLog();
+    void saveLogToFile(QString file);
+    void redirectLogStop();
+    void redirectLogToFile(QString filename);
     void shutdown();
     void updateRegisters();
     void updateBreakpoints();

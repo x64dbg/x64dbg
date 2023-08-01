@@ -1276,6 +1276,9 @@ typedef enum
     GUI_ADD_MSG_TO_LOG_HTML,        // param1=(const char*)msg,     param2=unused
     GUI_IS_LOG_ENABLED,             // param1=unused,               param2=unused
     GUI_IS_DEBUGGER_FOCUSED,        // param1=unused,               param2=unused
+    GUI_SAVE_LOG,                   // param1=const char* file name,param2=unused
+    GUI_REDIRECT_LOG,               // param1=const char* file name,param2=unused
+    GUI_STOP_REDIRECT_LOG,          // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1345,6 +1348,9 @@ BRIDGE_IMPEXP void GuiSetDebugStateFast(DBGSTATE state);
 BRIDGE_IMPEXP void GuiAddLogMessage(const char* msg);
 BRIDGE_IMPEXP void GuiAddLogMessageHtml(const char* msg);
 BRIDGE_IMPEXP void GuiLogClear();
+BRIDGE_IMPEXP void GuiLogSave(const char* filename);
+BRIDGE_IMPEXP void GuiLogRedirect(const char* filename);
+BRIDGE_IMPEXP void GuiLogRedirectStop();
 BRIDGE_IMPEXP void GuiUpdateAllViews();
 BRIDGE_IMPEXP void GuiUpdateRegisterView();
 BRIDGE_IMPEXP void GuiUpdateDisassemblyView();

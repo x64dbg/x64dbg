@@ -104,6 +104,9 @@ inline QString ToDoubleString(const void* buffer, int precision = std::numeric_l
 
 QString ToLongDoubleString(const void* buffer);
 
+// yyyyMMdd-HHmmss (useful for file suffix)
+QString isoDateTime();
+
 QString ToDateString(const QDate & date);
 
 QString fillValue(const char* value, int valsize = 2, bool bFpuRegistersLittleEndian = false);

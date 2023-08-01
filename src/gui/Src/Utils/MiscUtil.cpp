@@ -374,15 +374,7 @@ QString getDbPath(const QString & filename, bool addDateTimeSuffix)
             {
                 extensionIdx = path.length();
             }
-            auto now = QDateTime::currentDateTime();
-            auto suffix = QString().sprintf("-%04d%02d%02d-%02d%02d%02d",
-                                            now.date().year(),
-                                            now.date().month(),
-                                            now.date().day(),
-                                            now.time().hour(),
-                                            now.time().minute(),
-                                            now.time().second()
-                                           );
+            auto suffix = "-" + isoDateTime();
             path.insert(extensionIdx, suffix);
         }
     }

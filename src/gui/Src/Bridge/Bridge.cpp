@@ -127,6 +127,21 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         emit clearLog();
         break;
 
+    case GUI_SAVE_LOG:
+        if(!param1)
+            emit saveLog();
+        else
+            emit saveLogToFile(QString((const char*)param1));
+        break;
+
+    case GUI_REDIRECT_LOG:
+        emit redirectLogToFile(QString((const char*)param1));
+        break;
+
+    case GUI_STOP_REDIRECT_LOG:
+        emit redirectLogStop();
+        break;
+
     case GUI_UPDATE_REGISTER_VIEW:
         emit updateRegisters();
         break;

@@ -50,6 +50,29 @@ static bool cbClearLog(int argc, char* argv[])
     return true;
 }
 
+static bool cbSaveLog(int argc, char* argv[])
+{
+    if(argc < 2)
+        GuiLogSave(nullptr);
+    else
+        GuiLogSave(argv[1]);
+    return true;
+}
+
+static bool cbRedirectLog(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    GuiLogRedirect(argv[1]);
+    return true;
+}
+
+static bool cbStopRedirectLog(int argc, char* argv[])
+{
+    GuiLogRedirectStop();
+    return true;
+}
+
 static bool cbPrintf(int argc, char* argv[])
 {
     if(argc < 2)
@@ -406,6 +429,9 @@ static void registercommands()
     dbgcmdnew("EnableLog,LogEnable", cbInstrEnableLog, false); //enable log
     dbgcmdnew("DisableLog,LogDisable", cbInstrDisableLog, false); //disable log
     dbgcmdnew("ClearLog,cls,lc,lclr", cbClearLog, false); //clear the log
+    dbgcmdnew("SaveLog,LogSave", cbSaveLog, false); //save the log
+    dbgcmdnew("RedirectLog,LogRedirect", cbRedirectLog, false); //redirect the log
+    dbgcmdnew("StopRedirectLog,LogRedirectStop", cbStopRedirectLog, false); //stop redirecting the log
     dbgcmdnew("AddFavouriteTool", cbInstrAddFavTool, false); //add favourite tool
     dbgcmdnew("AddFavouriteCommand", cbInstrAddFavCmd, false); //add favourite command
     dbgcmdnew("AddFavouriteToolShortcut,SetFavouriteToolShortcut", cbInstrSetFavToolShortcut, false); //set favourite tool shortcut
