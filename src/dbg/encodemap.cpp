@@ -82,7 +82,31 @@ struct EncodeMap : AddrInfoHashMap<LockEncodeMaps, ENCODEMAP, EncodeMapSerialize
 
 static EncodeMap encmaps;
 
-static bool EncodeMapGetorCreate(duint addr, ENCODEMAP & map, bool* created = nullptr)
+static bool EncodeMapValidateModuleInfo(duint key, ENCODEMAP & map, duint segsize)
+{
+    // The map size might be smaller if it was loaded from cache for another
+    // version of the module. Adjust the size in this case.
+    if(map.size < segsize)
+    {
+        byte* newData = (byte*)VirtualAlloc(NULL, segsize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+        if(newData == NULL) return false;
+
+        memcpy(newData, map.data, map.size);
+
+        DecreaseReferenceCount(map.data);
+        VirtualFree(map.data, 0, MEM_RELEASE);
+        encmaps.Delete(key);
+
+        map.size = segsize;
+        map.data = newData;
+        IncreaseReferenceCount(map.data);
+        encmaps.Add(map);
+    }
+
+    return true;
+}
+
+static bool EncodeMapGet(duint addr, ENCODEMAP & map, duint* baseOut = nullptr)
 {
     duint base, segsize;
 
@@ -90,8 +114,32 @@ static bool EncodeMapGetorCreate(duint addr, ENCODEMAP & map, bool* created = nu
     if(!base)
         return false;
 
+    if(baseOut)
+        *baseOut = base;
+
     duint key = EncodeMap::VaKey(base);
-    if(!encmaps.Contains(key))
+    if(!encmaps.Get(key, map))
+        return false;
+
+    if(!EncodeMapValidateModuleInfo(key, map, segsize))
+        return false;
+
+    return true;
+}
+
+static bool EncodeMapGetorCreate(duint addr, ENCODEMAP & map, duint* baseOut = nullptr, bool* created = nullptr)
+{
+    duint base, segsize;
+
+    base = MemFindBaseAddr(addr, &segsize);
+    if(!base)
+        return false;
+
+    if(baseOut)
+        *baseOut = base;
+
+    duint key = EncodeMap::VaKey(base);
+    if(!encmaps.Get(key, map))
     {
         if(created)
             *created = true;
@@ -104,7 +152,9 @@ static bool EncodeMapGetorCreate(duint addr, ENCODEMAP & map, bool* created = nu
     }
     else
     {
-        if(!encmaps.Get(key, map))
+        if(created)
+            *created = false;
+        if(!EncodeMapValidateModuleInfo(key, map, segsize))
             return false;
     }
     return true;
@@ -112,10 +162,9 @@ static bool EncodeMapGetorCreate(duint addr, ENCODEMAP & map, bool* created = nu
 
 void* EncodeMapGetBuffer(duint addr, duint* size, bool create)
 {
-    auto base = MemFindBaseAddr(addr);
-
     ENCODEMAP map;
-    if(create ? EncodeMapGetorCreate(addr, map) : encmaps.Get(EncodeMap::VaKey(base), map))
+    duint base;
+    if(create ? EncodeMapGetorCreate(addr, map, &base) : EncodeMapGet(addr, map, &base))
     {
         auto offset = addr - base;
         if(offset < map.size)
@@ -188,11 +237,9 @@ static bool IsCodeType(ENCODETYPE type)
 
 ENCODETYPE EncodeMapGetType(duint addr, duint codesize)
 {
-    duint size;
-    auto base = MemFindBaseAddr(addr, &size);
-
     ENCODEMAP map;
-    if(base && encmaps.Get(EncodeMap::VaKey(base), map))
+    duint base;
+    if(EncodeMapGet(addr, map, &base))
     {
         auto offset = addr - base;
         if(offset >= map.size)
@@ -205,12 +252,9 @@ ENCODETYPE EncodeMapGetType(duint addr, duint codesize)
 
 duint EncodeMapGetSize(duint addr, duint codesize)
 {
-    auto base = MemFindBaseAddr(addr, nullptr);
-    if(!base)
-        return codesize;
-
     ENCODEMAP map;
-    if(encmaps.Get(EncodeMap::VaKey(base), map))
+    duint base;
+    if(EncodeMapGet(addr, map, &base))
     {
         auto offset = addr - base;
         if(offset >= map.size)
@@ -227,14 +271,9 @@ duint EncodeMapGetSize(duint addr, duint codesize)
 
 bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type, bool* created)
 {
-    auto base = MemFindBaseAddr(addr, nullptr);
-    if(!base)
-        return false;
-
     ENCODEMAP map;
-    if(created)
-        *created = false;
-    if(!EncodeMapGetorCreate(base, map, created))
+    duint base;
+    if(!EncodeMapGetorCreate(addr, map, &base, created))
         return false;
     auto offset = addr - base;
     size = min(map.size - offset, size);
