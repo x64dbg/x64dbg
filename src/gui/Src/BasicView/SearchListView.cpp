@@ -62,7 +62,9 @@ SearchListView::SearchListView(QWidget* parent, AbstractSearchList* abstractSear
             QHBoxLayout* horzLayout = new QHBoxLayout();
             horzLayout->setContentsMargins(4, 0, (enableRegex || enableLock) ? 0 : 4, 0);
             horzLayout->setSpacing(2);
-            horzLayout->addWidget(new QLabel(tr("Search: ")));
+            QLabel* label = new QLabel(tr("Search: "), this);
+            label->setBuddy(mSearchBox);
+            horzLayout->addWidget(label);
             horzLayout->addWidget(mSearchBox);
             horzLayout->addWidget(mLockCheckbox);
             horzLayout->addWidget(mRegexCheckbox);

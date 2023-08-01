@@ -87,6 +87,14 @@ CPUWidget::CPUWidget(QWidget* parent) : QWidget(parent), ui(new Ui::CPUWidget)
     ui->mBotRightFrameLayout->addWidget(mStack);
     connect(mDisas, SIGNAL(selectionChanged(dsint)), mStack, SLOT(disasmSelectionChanged(dsint)));
 
+    mDisas->setAccessibleName(tr("Disassembly"));
+    mStack->setAccessibleName(tr("Stack"));
+    upperScrollArea->setAccessibleName(tr("Registers"));
+    mDump->setAccessibleName(tr("Dump"));
+    mArgumentWidget->setAccessibleName(tr("Arguments"));
+    mSideBar->setAccessibleName(tr("Sidebar"));
+    mInfo->setAccessibleName(tr("InfoBox"));
+
     // load column config
     mDisas->loadColumnFromConfig("CPUDisassembly");
     mStack->loadColumnFromConfig("CPUStack");
