@@ -374,7 +374,7 @@ bool cbInstrMovdqu(int argc, char* argv[])
     String srcText = argv[2];
     duint address = 0;
     DWORD registerindex = 0;
-    if(srcText[0] == '[' && srcText[srcText.length() - 1] == ']' && memicmp(dstText.c_str(), "xmm", 3) == 0)
+    if(srcText[0] == '[' && srcText[srcText.length() - 1] == ']' && _memicmp(dstText.c_str(), "xmm", 3) == 0)
     {
         char newValue[16];
         // movdqu xmm0, [address]
@@ -404,7 +404,7 @@ bool cbInstrMovdqu(int argc, char* argv[])
         GuiUpdateAllViews(); //refresh disassembly/dump/etc
         return true;
     }
-    else if(dstText[0] == '[' && dstText[dstText.length() - 1] == ']' && memicmp(srcText.c_str(), "xmm", 3) == 0)
+    else if(dstText[0] == '[' && dstText[dstText.length() - 1] == ']' && _memicmp(srcText.c_str(), "xmm", 3) == 0)
     {
         // movdqu [address], xmm0
         srcText = srcText.substr(3);
@@ -434,7 +434,7 @@ bool cbInstrMovdqu(int argc, char* argv[])
         GuiUpdateAllViews(); //refresh disassembly/dump/etc
         return true;
     }
-    else if(memicmp(srcText.c_str(), "xmm", 3) == 0 && memicmp(dstText.c_str(), "xmm", 3) == 0)
+    else if(_memicmp(srcText.c_str(), "xmm", 3) == 0 && _memicmp(dstText.c_str(), "xmm", 3) == 0)
     {
         // movdqu xmm0, xmm1
         srcText = srcText.substr(3);

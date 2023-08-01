@@ -885,7 +885,7 @@ bool ModLoad(duint Base, duint Size, const char* FullPath, bool loadSymbols)
 
         // Get information from the local buffer
         // TODO: this does not properly work for file offset -> rva conversions (since virtual modules are SEC_IMAGE)
-        info.loadedSize = Size;
+        info.loadedSize = (DWORD)Size;
         GetModuleInfo(info, (ULONG_PTR)info.mappedData());
     }
 
