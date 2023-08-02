@@ -1,0 +1,26 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    # Skip building pull requests from the same repository
+    if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
+    runs-on: x64dbg-public
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: true
+
+    - name: Build
+      run: |
+        ./build.bat x64
+        ./build.bat x32
+        ./release.bat
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: snapshot
+        path: release/*
