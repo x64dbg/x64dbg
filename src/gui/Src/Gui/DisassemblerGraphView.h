@@ -56,61 +56,45 @@ public:
         }
     };
 
-    struct Token
-    {
-        int start; //token[0]
-        int length; //token[1]
-        QString type; //token[2]
-        duint addr; //token[3]
-        QString name; //token[4]
-    };
-
-    struct HighlightToken
-    {
-        QString type; //highlight_token[0]
-        duint addr; //highlight_token[1]
-        QString name; //highlight_token[2]
-
-        bool equalsToken(const Token & token)
-        {
-            return this->type == token.type &&
-                   this->addr == token.addr &&
-                   this->name == token.name;
-        }
-
-        static HighlightToken* fromToken(const Token & token)
-        {
-            //TODO: memory leaks
-            auto result = new HighlightToken();
-            result->type = token.type;
-            result->addr = token.addr;
-            result->name = token.name;
-            return result;
-        }
-    };
-
     struct Text
     {
+        // text to render; some words here may be colored (with highlighting mode)
         std::vector<RichTextPainter::List> lines;
+        // original text (w/o highlighting)
+        std::vector<RichTextPainter::List> backupLines;
+        // tokens for selection in "Highlighting mode"; one "InstructionToken" per line
+        std::vector<ZydisTokenizer::InstructionToken> lineTokens;
 
         Text() {}
 
-        Text(const QString & text, QColor color, QColor background)
+        void addLine(const RichTextPainter::List & richText, const ZydisTokenizer::InstructionToken & tokens)
         {
-            RichTextPainter::List richText;
+            lines.push_back(richText);
+            backupLines.push_back(richText);
+            lineTokens.push_back(tokens);
+        }
+
+        void updateHighlighting(const ZydisTokenizer::SingleToken & token, QColor color, QColor background)
+        {
+            // highlight the given token and restore the original colors to the rest of the text
+            for(size_t nLine = 0; nLine < lines.size(); nLine++)
+                for(size_t nRich = 0; nRich < lines[nLine].size(); nRich++)
+                {
+                    auto & rt = lines[nLine][nRich], & orig = backupLines[nLine][nRich];
+                    rt.textColor = rt.text == token.text ? color : orig.textColor;
+                    rt.textBackground = rt.text == token.text ? background : orig.textBackground;
+                }
+        }
+
+        static RichTextPainter::CustomRichText_t makeRich(const QString & text, QColor color, QColor background)
+        {
             RichTextPainter::CustomRichText_t rt;
             rt.underline = false;
             rt.text = text;
             rt.textColor = color;
             rt.textBackground = background;
             rt.flags = rt.textBackground.alpha() ? RichTextPainter::FlagAll : RichTextPainter::FlagColor;
-            richText.push_back(rt);
-            lines.push_back(richText);
-        }
-
-        Text(const RichTextPainter::List & richText)
-        {
-            lines.push_back(richText);
+            return rt;
         }
 
         QString ToQString() const
@@ -222,7 +206,7 @@ public:
     void paintEvent(QPaintEvent* event);
     bool isMouseEventInBlock(QMouseEvent* event);
     duint getInstrForMouseEvent(QMouseEvent* event);
-    bool getTokenForMouseEvent(QMouseEvent* event, Token & token);
+    bool getTokenForMouseEvent(QMouseEvent* event, ZydisTokenizer::SingleToken & token);
     bool find_instr(duint addr, Instr & instr);
     void mousePressEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
@@ -289,6 +273,9 @@ public slots:
     void zoomToCursorSlot();
     void getCurrentGraphSlot(BridgeCFGraphList* graphList);
     void dbgStateChangedSlot(DBGSTATE state);
+    void copyHighlightedTokenTextSlot();
+    void copyHighlightedTokenValueSlot();
+    void enableHighlightingModeSlot();
 
 private:
     bool graphZoomMode;
@@ -324,7 +311,6 @@ private:
     bool viewportReady;
     int* desired_pos;
     std::unordered_map<duint, DisassemblerBlock> blocks;
-    HighlightToken* highlight_token;
     std::vector<int> col_edge_x;
     std::vector<int> row_edge_y;
     CachedFontMetrics* mFontMetrics;
@@ -342,6 +328,11 @@ private:
     bool saveGraph;
     bool mHistoryLock; //Don't add a history while going to previous/next
     LayoutType layoutType;
+
+    MenuBuilder* mHighlightMenuBuilder;
+    ZydisTokenizer::SingleToken mHighlightToken;
+    bool mHighlightingModeEnabled;
+    bool mPermanentHighlightingMode;
 
     QAction* mToggleOverview;
     QAction* mToggleSummary;
@@ -374,6 +365,8 @@ private:
     QColor graphNodeColor;
     QColor graphNodeBackgroundColor;
     QColor graphCurrentShadowColor;
+    QColor mInstructionHighlightColor;
+    QColor mInstructionHighlightBackgroundColor;
 
     BridgeCFGraph currentGraph;
     std::unordered_map<duint, duint> currentBlockMap;
@@ -382,4 +375,5 @@ private:
     XrefBrowseDialog* mXrefDlg;
 
     void addReferenceAction(QMenu* menu, duint addr, const QString & description);
+    bool getHighlightedTokenValueText(QString & text);
 };
