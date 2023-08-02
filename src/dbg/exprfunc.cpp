@@ -518,7 +518,6 @@ namespace Exprfunc
     duint refsearchaddr(duint row)
     {
         auto content = GuiReferenceSearchGetCellContent(int(row), 0);
-        GuiReferenceSetSingleSelection(int(row), false);
         duint addr = 0;
         valfromstring(content, &addr, false);
         BridgeFree(content);
