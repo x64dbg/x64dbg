@@ -1,5 +1,5 @@
 #pragma once
-
+#include <QMenu>
 #include <QAction>
 #include <functional>
 #include "Configuration.h"
@@ -12,6 +12,7 @@ using MakeActionFunc1 = std::function<QAction*(const QString &, const SlotFunc &
 using MakeActionFunc2 = std::function<QAction*(const QIcon &, const QString &, const SlotFunc &)>;
 using MakeShortcutActionFunc1 = std::function<QAction*(const QString &, const SlotFunc &, const char*)>;
 using MakeShortcutActionFunc2 = std::function<QAction*(const QIcon &, const QString &, const SlotFunc &, const char*)>;
+using MakeShortcutDescActionFunc2 = std::function<QAction*(const QIcon &, const QString &, const QString &, const SlotFunc &, const char*)>;
 using MakeMenuActionFunc1 = std::function<QAction*(QMenu*, const QString &, const SlotFunc &)>;
 using MakeMenuActionFunc2 = std::function<QAction*(QMenu*, const QIcon &, const QString &, const SlotFunc &)>;
 using MakeShortcutMenuActionFunc1 = std::function<QAction*(QMenu*, const QString &, const SlotFunc &, const char*)>;
@@ -25,6 +26,7 @@ struct ActionHelperFuncs
     MakeActionFunc2 makeAction2;
     MakeShortcutActionFunc1 makeShortcutAction1;
     MakeShortcutActionFunc2 makeShortcutAction2;
+    MakeShortcutDescActionFunc2 makeShortcutDescAction2;
     MakeMenuActionFunc1 makeMenuAction1;
     MakeMenuActionFunc2 makeMenuAction2;
     MakeShortcutMenuActionFunc1 makeShortcutMenuAction1;
@@ -116,6 +118,12 @@ protected:
         funcs.makeShortcutAction2 = [this](const QIcon & icon, const QString & text, const SlotFunc & slot, const char* shortcut)
         {
             return makeShortcutAction(icon, text, slot, shortcut);
+        };
+        funcs.makeShortcutDescAction2 = [this](const QIcon & icon, const QString & text, const QString & description, const SlotFunc & slot, const char* shortcut)
+        {
+            auto action = makeShortcutAction(icon, text, slot, shortcut);
+            action->setStatusTip(description);
+            return action;
         };
         funcs.makeMenuAction1 = [this](QMenu * menu, const QString & text, const SlotFunc & slot)
         {
@@ -259,5 +267,10 @@ protected:
     inline QAction* makeShortcutMenuAction(QMenu* menu, const QIcon & icon, const QString & text, const SlotFunc & slot, const char* shortcut)
     {
         return funcs.makeShortcutMenuAction2(menu, icon, text, slot, shortcut);
+    }
+
+    inline QAction* makeShortcutDescAction(const QIcon & icon, const QString & text, const QString & description, const SlotFunc & slot, const char* shortcut)
+    {
+        return funcs.makeShortcutDescAction2(icon, text, description, slot, shortcut);
     }
 };

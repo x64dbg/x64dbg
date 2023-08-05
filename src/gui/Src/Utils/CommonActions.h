@@ -52,6 +52,8 @@ public:
 
     QAction* makeCommandAction(const QIcon & icon, const QString & text, const char* cmd, const char* shortcut);
     QAction* makeCommandAction(const QIcon & icon, const QString & text, const char* cmd);
+    QAction* makeCommandDescAction(const QIcon & icon, const QString & text, const QString & description, const char* cmd);
+    QAction* makeCommandDescAction(const QIcon & icon, const QString & text, const QString & description, const char* cmd, const char* shortcut);
 public slots:
     void followDisassemblySlot();
     void setLabelSlot();
@@ -72,6 +74,6 @@ public slots:
     void createThreadSlot();
 private:
     GetSelectionFunc mGetSelection;
-    bool WarningBoxNotExecutable(const QString & text, duint wVA);
-    QWidget* widgetparent();
+    bool WarningBoxNotExecutable(const QString & text, duint wVA) const;
+    QWidget* widgetparent() const;
 };

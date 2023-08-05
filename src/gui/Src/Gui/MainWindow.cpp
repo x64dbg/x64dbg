@@ -126,7 +126,7 @@ MainWindow::MainWindow(QWidget* parent)
     initMenuApi();
     Bridge::getBridge()->emitMenuAddToList(this, ui->menuPlugins, GUI_PLUGIN_MENU);
 
-    // Set window title
+    // Set window title to executable name
     if(BridgeIsProcessElevated())
     {
         mWindowMainTitle = tr("%1 [Elevated]").arg(QCoreApplication::applicationName());
