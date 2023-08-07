@@ -8,6 +8,7 @@
 #include <QTextStream>
 #include <QLibraryInfo>
 #include <QDebug>
+#include <QDir>
 #include "MiscUtil.h"
 
 MyApplication::MyApplication(int & argc, char** argv)
@@ -180,6 +181,9 @@ int main(int argc, char* argv[])
     QPalette appPalette = application.palette();
     appPalette.setColor(QPalette::Link, ConfigColor("LinkColor"));
     application.setPalette(appPalette);
+
+    // Register a path prefix for the program main directory
+    QDir::addSearchPath("approot", QApplication::applicationDirPath() + "/..");
 
     // Load the selected theme
     MainWindow::loadSelectedTheme(true);

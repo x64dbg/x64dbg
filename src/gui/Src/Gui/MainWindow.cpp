@@ -655,10 +655,11 @@ void MainWindow::loadSelectedTheme(bool reloadOnlyStyleCss)
     {
         auto style = QTextStream(&cssFile).readAll();
         cssFile.close();
-        style = style.replace("url(./", QString("url(%1/../themes/%2/").arg(applicationDirPath, selectedTheme));
-        style = style.replace("url(\"./", QString("url(\"%1/../themes/%2/").arg(applicationDirPath, selectedTheme));
-        style = style.replace("url('./", QString("url('%1/../themes/%2/").arg(applicationDirPath, selectedTheme));
-        style = style.replace("$RELPATH", QString("%1/../themes/%2").arg(applicationDirPath, selectedTheme));
+
+        style = style.replace("url(./", QString("url(approot:/themes/%1/").arg(selectedTheme));
+        style = style.replace("url(\"./", QString("url(\"approot:/themes/%1/").arg(selectedTheme));
+        style = style.replace("url('./", QString("url('approot:/themes/%1/").arg(selectedTheme));
+        style = style.replace("$RELPATH", QString("approot:/themes/%1").arg(selectedTheme));
         qApp->setStyleSheet(style);
     }
 
