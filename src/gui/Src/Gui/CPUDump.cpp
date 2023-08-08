@@ -614,6 +614,7 @@ void CPUDump::gotoPreviousReferenceSlot()
         if(index > 0 && addr == rvaToVa(getInitialSelection()))
             DbgValToString("$__dump_refindex", index - 1);
         DbgCmdExec("dump refsearch.addr($__dump_refindex)");
+        GuiReferenceSetSingleSelection(int(DbgEval("$__dump_refindex")), false);
     }
 }
 
@@ -625,6 +626,7 @@ void CPUDump::gotoNextReferenceSlot()
         if(index + 1 < count && addr == rvaToVa(getInitialSelection()))
             DbgValToString("$__dump_refindex", index + 1);
         DbgCmdExec("dump refsearch.addr($__dump_refindex)");
+        GuiReferenceSetSingleSelection(int(DbgEval("$__dump_refindex")), false);
     }
 }
 
