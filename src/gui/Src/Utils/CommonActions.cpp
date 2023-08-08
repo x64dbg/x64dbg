@@ -31,7 +31,7 @@ void CommonActions::build(MenuBuilder* builder, int actions)
     // Menu action
     if(actions & ActionDisasm)
     {
-        builder->addAction(makeShortcutAction(DIcon(ArchValue("processor32", "processor64")), tr("Follow in Disassembler"), std::bind(&CommonActions::followDisassemblySlot, this), "ActionFollowDisasm"), wIsDebugging);
+        builder->addAction(makeShortcutDescAction(DIcon(ArchValue("processor32", "processor64")), tr("Follow in Disassembler"), tr("Show this address in disassembler. Equivalent command \"d address\"."), std::bind(&CommonActions::followDisassemblySlot, this), "ActionFollowDisasm"), wIsDebugging);
     }
     if(actions & ActionDisasmData)
     {
@@ -39,7 +39,7 @@ void CommonActions::build(MenuBuilder* builder, int actions)
     }
     if(actions & ActionDump)
     {
-        builder->addAction(makeCommandAction(DIcon("dump"), tr("Follow in Dump"), "dump $"));
+        builder->addAction(makeCommandDescAction(DIcon("dump"), tr("Follow in Dump"), tr("Show the address in dump. Equivalent command \"dump address\"."), "dump $"));
     }
     if(actions & ActionDumpData)
     {
@@ -66,7 +66,7 @@ void CommonActions::build(MenuBuilder* builder, int actions)
     }
     if(actions & ActionStackDump)
     {
-        builder->addAction(makeCommandAction(DIcon("stack"), tr("Follow in Stack"), "sdump $", "ActionFollowStack"), [this](QMenu*)
+        builder->addAction(makeCommandDescAction(DIcon("stack"), tr("Follow in Stack"), tr("Show this address in stack view. Equivalent command \"sdump address\"."), "sdump $", "ActionFollowStack"), [this](QMenu*)
         {
             auto start = mGetSelection();
             return (DbgMemIsValidReadPtr(start) && DbgMemFindBaseAddr(start, 0) == DbgMemFindBaseAddr(DbgValFromString("csp"), 0));
@@ -74,11 +74,11 @@ void CommonActions::build(MenuBuilder* builder, int actions)
     }
     if(actions & ActionMemoryMap)
     {
-        builder->addAction(makeCommandAction(DIcon("memmap_find_address_page"), tr("Follow in Memory Map"), "memmapdump $", "ActionFollowMemMap"), wIsDebugging);
+        builder->addAction(makeCommandDescAction(DIcon("memmap_find_address_page"), tr("Follow in Memory Map"), tr("Show this address in memory map view. Equivalent command \"memmapdump address\"."), "memmapdump $", "ActionFollowMemMap"), wIsDebugging);
     }
     if(actions & ActionGraph)
     {
-        builder->addAction(makeShortcutAction(DIcon("graph"), tr("Graph"), std::bind(&CommonActions::graphSlot, this), "ActionGraph"));
+        builder->addAction(makeShortcutDescAction(DIcon("graph"), tr("Graph"), tr("Show the control flow graph of this function in CPU view. Equivalent command \"graph address\"."), std::bind(&CommonActions::graphSlot, this), "ActionGraph"));
     }
     if(actions & ActionBreakpoint)
     {
@@ -164,19 +164,19 @@ void CommonActions::build(MenuBuilder* builder, int actions)
     }
     if(actions & ActionBookmark)
     {
-        builder->addAction(makeShortcutAction(DIcon("bookmark_toggle"), tr("Toggle Bookmark"), std::bind(&CommonActions::setBookmarkSlot, this), "ActionToggleBookmark"), wIsDebugging);
+        builder->addAction(makeShortcutDescAction(DIcon("bookmark_toggle"), tr("Toggle Bookmark"), tr("Set a bookmark here, or remove bookmark. Equivalent command \"bookmarkset address\"/\"bookmarkdel address\"."), std::bind(&CommonActions::setBookmarkSlot, this), "ActionToggleBookmark"), wIsDebugging);
     }
     if(actions & ActionNewOrigin)
     {
-        builder->addAction(makeShortcutAction(DIcon("neworigin"), tr("Set %1 Here").arg(ArchValue("EIP", "RIP")), std::bind(&CommonActions::setNewOriginHereActionSlot, this), "ActionSetNewOriginHere"));
+        builder->addAction(makeShortcutDescAction(DIcon("neworigin"), tr("Set %1 Here").arg(ArchValue("EIP", "RIP")), tr("Set the next executed instruction to this address. Equivalent command \"mov cip, address\"."), std::bind(&CommonActions::setNewOriginHereActionSlot, this), "ActionSetNewOriginHere"));
     }
     if(actions & ActionNewThread)
     {
-        builder->addAction(makeShortcutAction(DIcon("createthread"), tr("Create New Thread Here"), std::bind(&CommonActions::createThreadSlot, this), "ActionCreateNewThreadHere"));
+        builder->addAction(makeShortcutDescAction(DIcon("createthread"), tr("Create New Thread Here"), tr("Create a new thread at this address. Equivalent command \"createthread address, argument\"."), std::bind(&CommonActions::createThreadSlot, this), "ActionCreateNewThreadHere"));
     }
     if(actions & ActionWatch)
     {
-        builder->addAction(makeCommandAction(DIcon("animal-dog"), ArchValue(tr("&Watch DWORD"), tr("&Watch QWORD")), "AddWatch \"[$]\", \"uint\"", "ActionWatchDwordQword"));
+        builder->addAction(makeCommandDescAction(DIcon("animal-dog"), ArchValue(tr("&Watch DWORD"), tr("&Watch QWORD")), tr("Add the address in the watch view. Equivalent command \"AddWatch [address], \"uint\"\"."), "AddWatch \"[$]\", \"uint\"", "ActionWatchDwordQword"));
     }
 }
 
@@ -197,7 +197,23 @@ QAction* CommonActions::makeCommandAction(const QIcon & icon, const QString & te
     });
 }
 
-QWidget* CommonActions::widgetparent()
+static QAction* makeDescActionHelper(QAction* action, const QString & description)
+{
+    action->setStatusTip(description);
+    return action;
+}
+
+QAction* CommonActions::makeCommandDescAction(const QIcon & icon, const QString & text, const QString & description, const char* cmd)
+{
+    return makeDescActionHelper(makeCommandAction(icon, text, cmd), description);
+}
+
+QAction* CommonActions::makeCommandDescAction(const QIcon & icon, const QString & text, const QString & description, const char* cmd, const char* shortcut)
+{
+    return makeDescActionHelper(makeCommandAction(icon, text, cmd, shortcut), description);
+}
+
+QWidget* CommonActions::widgetparent() const
 {
     return dynamic_cast<QWidget*>(parent());
 }
@@ -294,13 +310,14 @@ void CommonActions::setBookmarkSlot()
 }
 
 // Give a warning about the selected address is not executable
-bool CommonActions::WarningBoxNotExecutable(const QString & text, duint wVA)
+bool CommonActions::WarningBoxNotExecutable(const QString & text, duint wVA) const
 {
     if(DbgFunctions()->IsDepEnabled() && !DbgFunctions()->MemIsCodePage(wVA, false))
     {
-        QMessageBox msgyn(QMessageBox::Warning, tr("Current address is not executable"), text, QMessageBox::Yes | QMessageBox::No, widgetparent());
+        QMessageBox msgyn(QMessageBox::Warning, tr("Address %1 is not executable").arg(ToPtrString(wVA)), text, QMessageBox::Yes | QMessageBox::No, widgetparent());
         msgyn.setWindowIcon(DIcon("compile-warning"));
         msgyn.setParent(widgetparent(), Qt::Dialog);
+        msgyn.setDefaultButton(QMessageBox::No);
         msgyn.setWindowFlags(msgyn.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         if(msgyn.exec() == QMessageBox::No)
             return false;

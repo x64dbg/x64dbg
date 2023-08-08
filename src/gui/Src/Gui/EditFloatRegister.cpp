@@ -172,65 +172,71 @@ EditFloatRegister::EditFloatRegister(int RegisterSize, QWidget* parent) :
 
 void EditFloatRegister::hideUpperPart()
 {
-    ui->line->hide();
-    ui->labelH0->hide();
-    ui->labelH1->hide();
-    ui->labelH2->hide();
-    ui->labelH3->hide();
-    ui->labelH4->hide();
-    ui->labelH5->hide();
-    ui->labelH6->hide();
-    ui->labelH7->hide();
-    ui->labelH8->hide();
-    ui->labelH9->hide();
-    ui->labelHA->hide();
-    ui->labelHB->hide();
-    ui->labelHC->hide();
-    ui->labelHD->hide();
-    ui->labelHE->hide();
-    ui->hexEdit->hide();
-    ui->shortEdit0->hide();
-    ui->shortEdit1->hide();
-    ui->shortEdit2->hide();
-    ui->shortEdit3->hide();
-    ui->shortEdit4->hide();
-    ui->shortEdit5->hide();
-    ui->shortEdit6->hide();
-    ui->shortEdit7->hide();
-    ui->longEdit0->hide();
-    ui->longEdit1->hide();
-    ui->longEdit2->hide();
-    ui->longEdit3->hide();
-    ui->floatEdit0->hide();
-    ui->floatEdit1->hide();
-    ui->floatEdit2->hide();
-    ui->floatEdit3->hide();
-    ui->doubleEdit0->hide();
-    ui->doubleEdit1->hide();
-    ui->longLongEdit0->hide();
-    ui->longLongEdit1->hide();
+    QWidget* useless_controls[] = {ui->line,
+                                   ui->labelH0,
+                                   ui->labelH1,
+                                   ui->labelH2,
+                                   ui->labelH3,
+                                   ui->labelH4,
+                                   ui->labelH5,
+                                   ui->labelH6,
+                                   ui->labelH7,
+                                   ui->labelH8,
+                                   ui->labelH9,
+                                   ui->labelHA,
+                                   ui->labelHB,
+                                   ui->labelHC,
+                                   ui->labelHD,
+                                   ui->labelHE,
+                                   ui->hexEdit,
+                                   ui->shortEdit0,
+                                   ui->shortEdit1,
+                                   ui->shortEdit2,
+                                   ui->shortEdit3,
+                                   ui->shortEdit4,
+                                   ui->shortEdit5,
+                                   ui->shortEdit6,
+                                   ui->shortEdit7,
+                                   ui->longEdit0,
+                                   ui->longEdit1,
+                                   ui->longEdit2,
+                                   ui->longEdit3,
+                                   ui->floatEdit0,
+                                   ui->floatEdit1,
+                                   ui->floatEdit2,
+                                   ui->floatEdit3,
+                                   ui->doubleEdit0,
+                                   ui->doubleEdit1,
+                                   ui->longLongEdit0,
+                                   ui->longLongEdit1
+                                  };
+    for(auto all : useless_controls)
+        all->hide();
 }
 
 void EditFloatRegister::hideNonMMXPart()
 {
-    ui->labelL4->hide();
-    ui->labelL5->hide();
-    ui->labelL6->hide();
-    ui->labelL7->hide();
-    ui->labelLC->hide();
-    ui->labelLD->hide();
-    ui->doubleEdit0_2->hide();
-    ui->doubleEdit1_2->hide();
-    ui->longLongEdit0_2->hide();
-    ui->longLongEdit1_2->hide();
-    ui->shortEdit4_2->hide();
-    ui->shortEdit5_2->hide();
-    ui->shortEdit6_2->hide();
-    ui->shortEdit7_2->hide();
-    ui->longEdit2_2->hide();
-    ui->longEdit3_2->hide();
-    ui->floatEdit2_2->hide();
-    ui->floatEdit3_2->hide();
+    QWidget* useless_controls[] = {ui->labelL4,
+                                   ui->labelL5,
+                                   ui->labelL6,
+                                   ui->labelL7,
+                                   ui->labelLC,
+                                   ui->labelLD,
+                                   ui->doubleEdit0_2,
+                                   ui->doubleEdit1_2,
+                                   ui->longLongEdit0_2,
+                                   ui->longLongEdit1_2,
+                                   ui->shortEdit4_2,
+                                   ui->shortEdit5_2,
+                                   ui->shortEdit6_2,
+                                   ui->shortEdit7_2,
+                                   ui->longEdit2_2,
+                                   ui->longEdit3_2,
+                                   ui->floatEdit2_2,
+                                   ui->floatEdit3_2
+                                  };
+    for(auto all : useless_controls)
+        all->hide();
 }
 
 /**
