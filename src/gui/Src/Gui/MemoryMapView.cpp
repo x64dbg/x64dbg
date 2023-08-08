@@ -195,6 +195,37 @@ void MemoryMapView::setupContextMenu()
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 }
 
+void MemoryMapView::sortRows(int column, bool ascending)
+{
+    auto sortFn = mColumnSortFunctions.at(column);
+    auto addressSortFn = mColumnSortFunctions.at(0);
+    std::vector<size_t> index;
+    index.resize(mData.size());
+    size_t i;
+    for(i = 0; i < mData.size(); i++)
+    {
+        index[i] = i;
+    }
+    std::stable_sort(index.begin(), index.end(), [column, ascending, this, &sortFn, &addressSortFn](const size_t & a, const size_t & b)
+    {
+        if(column > 0 && QString::compare(mData.at(a).at(column).text, mData.at(b).at(column).text) == 0)
+        {
+            auto less = addressSortFn(mData.at(a).at(0).text, mData.at(b).at(0).text);
+            return less;
+        }
+
+        auto less = sortFn(mData.at(a).at(column).text, mData.at(b).at(column).text);
+        return ascending ? less : !less;
+    });
+    auto copy1 = mData;
+    auto copy2 = mIcon;
+    for(i = 0; i < mData.size(); i++)
+    {
+        mData[i] = std::move(copy1[index[i]]);
+        mIcon[i] = std::move(copy2[index[i]]);
+    }
+}
+
 void MemoryMapView::refreshShortcutsSlot()
 {
     mMemoryExecuteSingleshoot->setShortcut(ConfigShortcut("ActionToggleBreakpoint"));

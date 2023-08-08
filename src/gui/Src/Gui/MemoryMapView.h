@@ -12,6 +12,9 @@ public:
     QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
     void setupContextMenu();
 
+protected:
+    void sortRows(int column, bool ascending) override;
+
 signals:
     void showReferences();
 
