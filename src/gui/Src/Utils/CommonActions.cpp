@@ -334,17 +334,23 @@ void CommonActions::editSoftBpActionSlot()
 {
     auto selection = mGetSelection();
     if(selection == 0)
+    {
         return;
+    }
+
     BPXTYPE bpType = DbgGetBpxTypeAt(selection);
     if((bpType & bp_hardware) == bp_hardware)
+    {
         Breakpoints::editBP(bp_hardware, ToHexString(selection), widgetparent());
+    }
     else if((bpType & bp_normal) == bp_normal)
+    {
         Breakpoints::editBP(bp_normal, ToHexString(selection), widgetparent());
+    }
     else
     {
-        DbgCmdExecDirect(QString("bp %1").arg(ToHexString(selection))); //Blocking call
-        if(!Breakpoints::editBP(bp_normal, ToHexString(selection), widgetparent()))
-            Breakpoints::removeBP(bp_normal, selection);
+        auto createCommand = QString("bp %1").arg(ToHexString(selection));
+        Breakpoints::editBP(bp_normal, ToHexString(selection), widgetparent(), createCommand);
     }
 }
 

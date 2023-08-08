@@ -497,25 +497,57 @@ void Breakpoints::toggleBPByRemoving(BPXTYPE type, duint va)
     }
 }
 
-bool Breakpoints::editBP(BPXTYPE type, const QString & addrText, QWidget* widget)
+bool Breakpoints::editBP(BPXTYPE type, const QString & addrText, QWidget* widget, const QString & createCommand)
 {
-    BRIDGEBP bridgebp;
-    if(type != bp_dll)
+    BRIDGEBP bridgebp = {};
+    bool found = false;
+    if(type == bp_dll)
     {
-        duint addr = addrText.toULongLong(nullptr, 16);
-        if(!DbgFunctions()->GetBridgeBp(type, addr, &bridgebp))
-            return false;
+        found = DbgFunctions()->GetBridgeBp(type, reinterpret_cast<duint>(addrText.toUtf8().constData()), &bridgebp);
     }
-    else if(!DbgFunctions()->GetBridgeBp(type, reinterpret_cast<duint>(addrText.toUtf8().constData()), &bridgebp))
+    else
+    {
+        found = DbgFunctions()->GetBridgeBp(type, (duint)addrText.toULongLong(nullptr, 16), &bridgebp);
+    }
+
+    if(!createCommand.isEmpty() && !found)
+    {
+        // Create a dummy BRIDGEBP to edit
+        bridgebp.type = type;
+        if(type == bp_dll)
+        {
+            strncpy_s(bridgebp.mod, addrText.toUtf8().constData(), _TRUNCATE);
+        }
+        else
+        {
+            bridgebp.addr = (duint)addrText.toULongLong(nullptr, 16);
+        }
+    }
+    else if(!found)
+    {
+        // Fail if the breakpoint doesn't exist and we cannot create a new one
         return false;
+    }
+
     EditBreakpointDialog dialog(widget, bridgebp);
     if(dialog.exec() != QDialog::Accepted)
         return false;
+
     auto bp = dialog.getBp();
     auto exec = [](const QString & command)
     {
-        DbgCmdExecDirect(command);
+        return DbgCmdExecDirect(command);
     };
+
+    // Create the breakpoint if it didn't exist yet
+    if(!createCommand.isEmpty() && !found)
+    {
+        if(!exec(createCommand))
+        {
+            return false;
+        }
+    }
+
     switch(type)
     {
     case bp_normal:

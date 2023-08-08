@@ -31,5 +31,5 @@ public:
     static void toggleBPByRemoving(BPXTYPE type, duint va);
     static BPXSTATE BPState(BPXTYPE type, duint va);
     static bool BPTrival(BPXTYPE type, duint va);
-    static bool editBP(BPXTYPE type, const QString & addrText, QWidget* widget);
+    static bool editBP(BPXTYPE type, const QString & addrText, QWidget* widget, const QString & createCommand = QString());
 };
