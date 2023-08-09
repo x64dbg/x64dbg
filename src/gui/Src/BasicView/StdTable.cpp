@@ -11,29 +11,17 @@ StdTable::StdTable(QWidget* parent) : AbstractStdTable(parent)
 bool StdTable::SortBy::AsText(const QString & a, const QString & b)
 {
     auto i = QString::compare(a, b);
-    if(i < 0)
-        return true;
-    if(i > 0)
-        return false;
-    return duint(&a) < duint(&b);
+    return i < 0;
 }
 
 bool StdTable::SortBy::AsInt(const QString & a, const QString & b)
 {
-    if(a.toLongLong() < b.toLongLong())
-        return true;
-    if(a.toLongLong() > b.toLongLong())
-        return false;
-    return duint(&a) < duint(&b);
+    return a.toLongLong() < b.toLongLong();
 }
 
 bool StdTable::SortBy::AsHex(const QString & a, const QString & b)
 {
-    if(a.toLongLong(0, 16) < b.toLongLong(0, 16))
-        return true;
-    if(a.toLongLong(0, 16) > b.toLongLong(0, 16))
-        return false;
-    return duint(&a) < duint(&b);
+    return a.toLongLong(0, 16) < b.toLongLong(0, 16);
 }
 
 /************************************************************************************
