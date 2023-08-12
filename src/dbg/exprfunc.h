@@ -93,6 +93,10 @@ namespace Exprfunc
     bool strstr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool stristr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool strlen(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
-    bool utf16(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool ansi(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool ansi_strict(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool utf8(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool utf8_strict(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool utf16(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool utf16_strict(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
 }
