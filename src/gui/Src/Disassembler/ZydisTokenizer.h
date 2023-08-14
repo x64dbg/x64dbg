@@ -169,6 +169,7 @@ public:
     static void addColorName(TokenType type, QString color, QString backgroundColor);
     static void addStringsToPool(const QString & regs);
     static bool tokenTextPoolEquals(const QString & a, const QString & b);
+    static TokenColor getTokenColor(TokenType type);
 
     static void TokenizeTraceRegister(const char* reg, duint oldValue, duint newValue, std::vector<SingleToken> & tokens);
     static void TokenizeTraceMemory(duint address, duint oldValue, duint newValue, std::vector<SingleToken> & tokens);
