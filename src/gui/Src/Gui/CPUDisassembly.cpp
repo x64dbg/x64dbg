@@ -45,6 +45,9 @@ CPUDisassembly::CPUDisassembly(QWidget* parent, bool isMain) : Disassembly(paren
     // Connect some internal signals
     connect(this, SIGNAL(selectionExpanded()), this, SLOT(selectionUpdatedSlot()));
 
+    // Load configuration
+    mShowMnemonicBrief = ConfigBool("Disassembler", "ShowMnemonicBrief");
+
     Initialize();
 }
 
@@ -1956,6 +1959,7 @@ void CPUDisassembly::traceCoverageDisableSlot()
 void CPUDisassembly::mnemonicBriefSlot()
 {
     mShowMnemonicBrief = !mShowMnemonicBrief;
+    Config()->setBool("Disassembler", "ShowMnemonicBrief", mShowMnemonicBrief);
     reloadData();
 }
 
