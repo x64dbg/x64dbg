@@ -35,12 +35,12 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
     setWindowIcon(DIcon("breakpoint"));
     loadFromBp();
 
-    Config()->setupWindowPos(this);
+    Config()->loadWindowGeometry(this);
 }
 
 EditBreakpointDialog::~EditBreakpointDialog()
 {
-    Config()->saveWindowPos(this);
+    Config()->saveWindowGeometry(this);
     delete ui;
 }
 

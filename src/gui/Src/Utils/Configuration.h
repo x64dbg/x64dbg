@@ -66,8 +66,8 @@ public:
     const Shortcut getShortcut(const QString & key_id) const;
     void setShortcut(const QString & key_id, const QKeySequence key_sequence);
     void setPluginShortcut(const QString & key_id, QString description, QString defaultShortcut, bool global);
-    void setupWindowPos(QWidget* window);
-    void saveWindowPos(QWidget* window);
+    void loadWindowGeometry(QWidget* window);
+    void saveWindowGeometry(QWidget* window);
 
     void zoomFont(const QString & fontName, QWheelEvent* event);
 

@@ -91,12 +91,12 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     QModelIndex index = ui->listType->model()->index(lastDataType, 0);
     ui->listType->setCurrentIndex(index);
 
-    Config()->setupWindowPos(this);
+    Config()->loadWindowGeometry(this);
 }
 
 HexEditDialog::~HexEditDialog()
 {
-    Config()->saveWindowPos(this);
+    Config()->saveWindowGeometry(this);
     delete ui;
 }
 

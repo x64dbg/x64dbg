@@ -28,12 +28,12 @@ BrowseDialog::BrowseDialog(QWidget* parent, const QString & title, const QString
     QCompleter* completer = new QCompleter(ui->lineEdit);
     completer->setModel(new QDirModel(completer));
     ui->lineEdit->setCompleter(completer);
-    Config()->setupWindowPos(this);
+    Config()->loadWindowGeometry(this);
 }
 
 BrowseDialog::~BrowseDialog()
 {
-    Config()->saveWindowPos(this);
+    Config()->saveWindowGeometry(this);
     delete ui;
 }
 

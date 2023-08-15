@@ -69,7 +69,7 @@ FavouriteTools::FavouriteTools(QWidget* parent) :
     emit ui->listTools->itemSelectionChanged();
     updateToolsBtnEnabled();
 
-    Config()->setupWindowPos(this);
+    Config()->loadWindowGeometry(this);
 }
 
 void FavouriteTools::setupTools(QString name, QTableWidget* list)
@@ -503,7 +503,7 @@ void FavouriteTools::tabChanged(int i)
 
 FavouriteTools::~FavouriteTools()
 {
-    Config()->saveWindowPos(this);
+    Config()->saveWindowGeometry(this);
     delete ui;
 }
 

@@ -34,14 +34,14 @@ AssembleDialog::AssembleDialog(QWidget* parent) :
             ui->radioAsmjit->setChecked(true);
     }
 
-    Config()->setupWindowPos(this);
+    Config()->loadWindowGeometry(this);
 }
 
 AssembleDialog::~AssembleDialog()
 {
     mValidateThread->stop();
     mValidateThread->wait();
-    Config()->saveWindowPos(this);
+    Config()->saveWindowGeometry(this);
     delete ui;
 }
 

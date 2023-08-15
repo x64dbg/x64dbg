@@ -47,7 +47,7 @@ SystemBreakpointScriptDialog::SystemBreakpointScriptDialog(QWidget* parent) :
     if(ui->lineEditDebuggee->text().isEmpty())
         ui->openDebuggee->setText(tr("Create"));
 
-    Config()->setupWindowPos(this);
+    Config()->loadWindowGeometry(this);
 }
 
 SystemBreakpointScriptDialog::~SystemBreakpointScriptDialog()

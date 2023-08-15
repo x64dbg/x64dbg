@@ -26,7 +26,7 @@ WordEditDialog::WordEditDialog(QWidget* parent)
     connect(mValidateThread, SIGNAL(expressionChanged(bool, bool, dsint)), this, SLOT(expressionChanged(bool, bool, dsint)));
     connect(ui->expressionLineEdit, SIGNAL(textChanged(QString)), mValidateThread, SLOT(textChanged(QString)));
     mWord = 0;
-    Config()->setupWindowPos(this);
+    Config()->loadWindowGeometry(this);
 }
 
 void WordEditDialog::validateExpression(QString expression)
@@ -39,7 +39,7 @@ void WordEditDialog::validateExpression(QString expression)
 
 WordEditDialog::~WordEditDialog()
 {
-    Config()->saveWindowPos(this);
+    Config()->saveWindowGeometry(this);
     mValidateThread->stop();
     mValidateThread->wait();
     delete ui;
