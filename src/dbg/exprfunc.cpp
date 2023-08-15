@@ -605,32 +605,29 @@ namespace Exprfunc
         return getLastExceptionInfo().ExceptionRecord.ExceptionInformation[index];
     }
 
-    duint isdebuggerfocused()
+    duint isprocessfocused(DWORD process)
     {
         HWND foreground = GetForegroundWindow();
         if(foreground)
         {
             DWORD pid;
             DWORD tid = GetWindowThreadProcessId(foreground, &pid);
-            return pid == GetCurrentProcessId();
+            return pid == process;
         }
         else
             return 0;
+    }
+
+    duint isdebuggerfocused()
+    {
+        return isprocessfocused(GetCurrentProcessId());
     }
 
     duint isdebuggeefocused()
     {
         if(!DbgIsDebugging())
             return 0;
-        HWND foreground = GetForegroundWindow();
-        if(foreground)
-        {
-            DWORD pid;
-            DWORD tid = GetWindowThreadProcessId(foreground, &pid);
-            return pid == fdProcessInfo->dwProcessId;
-        }
-        else
-            return 0;
+        return isprocessfocused(fdProcessInfo->dwProcessId);
     }
 
     bool streq(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
