@@ -154,6 +154,7 @@ void ExpressionFunctions::Init()
 
     //Other
     RegisterEasy("isdebuggerfocused", isdebuggerfocused);
+    RegisterEasy("isdebuggeefocused", isdebuggeefocused);
 
     // Strings
     ExpressionFunctions::Register("ansi", ValueTypeString, { ValueTypeNumber }, Exprfunc::ansi, nullptr);

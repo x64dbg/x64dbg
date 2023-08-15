@@ -602,7 +602,30 @@ namespace Exprfunc
 
     duint isdebuggerfocused()
     {
-        return GuiIsDebuggerFocused();
+        HWND foreground = GetForegroundWindow();
+        if(foreground)
+        {
+            DWORD pid;
+            DWORD tid = GetWindowThreadProcessId(foreground, &pid);
+            return pid == GetCurrentProcessId();
+        }
+        else
+            return 0;
+    }
+
+    duint isdebuggeefocused()
+    {
+        if(!DbgIsDebugging())
+            return 0;
+        HWND foreground = GetForegroundWindow();
+        if(foreground)
+        {
+            DWORD pid;
+            DWORD tid = GetWindowThreadProcessId(foreground, &pid);
+            return pid == fdProcessInfo->dwProcessId;
+        }
+        else
+            return 0;
     }
 
     bool streq(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)

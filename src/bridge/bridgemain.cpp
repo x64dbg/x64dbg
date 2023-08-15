@@ -2015,11 +2015,6 @@ BRIDGE_IMPEXP DWORD GuiGetMainThreadId()
     return (DWORD)(duint)_gui_sendmessage(GUI_GET_MAIN_THREAD_ID, nullptr, nullptr);
 }
 
-BRIDGE_IMPEXP bool GuiIsDebuggerFocused()
-{
-    return !!(duint)_gui_sendmessage(GUI_IS_DEBUGGER_FOCUSED, nullptr, nullptr);
-}
-
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
     hInst = hinstDLL;
