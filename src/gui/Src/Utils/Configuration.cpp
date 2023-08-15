@@ -308,6 +308,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     //"Favourites" menu cannot be customized for item hiding.
     insertMenuBuilderBools(&guiBool, "Help", 50); //Main Menu : Help
     insertMenuBuilderBools(&guiBool, "View", 50); //Main Menu : View
+    insertMenuBuilderBools(&guiBool, "TraceBrowser", 50); //TraceBrowser
     defaultBools.insert("Gui", guiBool);
 
     QMap<QString, duint> guiUint;
