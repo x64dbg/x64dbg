@@ -448,7 +448,7 @@ static bool cbRefFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO*
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(sizeof(duint) * 2, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-        GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceSetRowCount(0);
         GuiReferenceReloadData();
         return true;
@@ -550,9 +550,9 @@ static bool cbRefStr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* 
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-        GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(50, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "String Address")));
-        GuiReferenceAddColumn(500, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "String")));
+        GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "String")));
         GuiReferenceAddCommand(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Follow in Disassembly and Dump")), "disasm $0;dump $2");
         GuiReferenceAddCommand(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Follow string in Dump")), "dump $2");
         GuiReferenceSetSearchStartCol(2); //only search the strings
@@ -600,9 +600,9 @@ static bool cbRefFuncPtr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-        GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(50, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Function pointer")));
-        GuiReferenceAddColumn(500, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label")));
+        GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label")));
         GuiReferenceSetSearchStartCol(2); //only search the function pointers
         GuiReferenceSetRowCount(0);
         GuiReferenceReloadData();
@@ -701,8 +701,8 @@ static bool cbModCallFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFI
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-        GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
-        GuiReferenceAddColumn(MAX_LABEL_SIZE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Destination")));
+        GuiReferenceAddColumn(50, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Destination")));
         GuiReferenceSetRowCount(0);
         GuiReferenceReloadData();
         return true;
@@ -887,7 +887,7 @@ static bool cbGUIDFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-        GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceAddColumn(50, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceAddColumn(40, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "GUID")));
         GuiReferenceAddColumn(20, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "ProgId")));
         GuiReferenceAddColumn(40, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Path")));

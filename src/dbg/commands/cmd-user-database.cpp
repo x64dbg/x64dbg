@@ -79,8 +79,8 @@ bool cbInstrCommentList(int argc, char* argv[])
     //setup reference view
     GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Comments")));
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-    GuiReferenceAddColumn(64, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
-    GuiReferenceAddColumn(10, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Comment")));
+    GuiReferenceAddColumn(50, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Comment")));
     GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
     size_t cbsize;
@@ -159,7 +159,7 @@ bool cbInstrLabelList(int argc, char* argv[])
     //setup reference view
     GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Labels")));
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
-    GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+    GuiReferenceAddColumn(50, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
     GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label")));
     GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
@@ -416,8 +416,8 @@ bool cbInstrArgumentList(int argc, char* argv[])
     GuiReferenceInitialize(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Arguments")));
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Start")));
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "End")));
-    GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)")));
-    GuiReferenceAddColumn(10, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment")));
+    GuiReferenceAddColumn(50, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)")));
+    GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment")));
     GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
     size_t cbsize;
@@ -512,7 +512,7 @@ bool cbInstrLoopList(int argc, char* argv[])
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "End")));
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Depth")));
     GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Parent")));
-    GuiReferenceAddColumn(100, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)")));
+    GuiReferenceAddColumn(50, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly (Start)")));
     GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Label/Comment")));
     GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
