@@ -453,6 +453,11 @@ namespace Exprfunc
         return GetTickCount();
     }
 
+    duint rdtsc()
+    {
+        return __rdtsc();
+    }
+
     static duint readMem(duint addr, duint size)
     {
         duint value = 0;

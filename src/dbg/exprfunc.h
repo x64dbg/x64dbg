@@ -59,6 +59,7 @@ namespace Exprfunc
     duint trhitcount(duint addr);
     duint trisrecording();
     duint gettickcount();
+    duint rdtsc();
 
     duint readbyte(duint addr);
     duint readword(duint addr);
