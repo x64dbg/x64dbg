@@ -7,6 +7,7 @@
 #include "stringformat.h"
 #include "value.h"
 #include "variable.h"
+#include <regex>
 
 bool cbDebugDisasm(int argc, char* argv[])
 {
@@ -36,8 +37,6 @@ bool cbDebugDump(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid address \"%s\"!\n"), argv[1]);
         return false;
     }
-    ACTIVEVIEW activeView;
-    GuiGetActiveView(&activeView);
     if(argc > 2)
     {
         duint index = 0;
@@ -48,18 +47,21 @@ bool cbDebugDump(int argc, char* argv[])
         }
         GuiDumpAtN(addr, int(index));
     }
-    else if(strcmp(activeView.title, "Dump 1") == 0)
-        GuiDumpAtN(addr, 1);
-    else if(strcmp(activeView.title, "Dump 2") == 0)
-        GuiDumpAtN(addr, 2);
-    else if(strcmp(activeView.title, "Dump 3") == 0)
-        GuiDumpAtN(addr, 3);
-    else if(strcmp(activeView.title, "Dump 4") == 0)
-        GuiDumpAtN(addr, 4);
-    else if(strcmp(activeView.title, "Dump 5") == 0)
-        GuiDumpAtN(addr, 5);
     else
-        GuiDumpAt(addr);
+    {
+        ACTIVEVIEW activeView;
+        GuiGetActiveView(&activeView);
+        std::string titleString = activeView.title;
+        std::regex dumpPattern("Dump ([1-9][0-9]*)");
+        std::smatch matchResult;
+        if(std::regex_match(titleString, matchResult, dumpPattern))
+        {
+            int n = std::stoi(matchResult[1].str());
+            GuiDumpAtN(addr, n);
+        }
+        else
+            GuiDumpAt(addr);
+    }
     GuiShowCpu();
     GuiFocusView(GUI_DUMP);
     return true;
