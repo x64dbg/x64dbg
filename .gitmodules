@@ -8,6 +8,3 @@
 	path = deps
 	url = ../deps
 	shallow = true
-[submodule "src/zydis_wrapper/zydis"]
-	path = src/zydis_wrapper/zydis
-	url = ../zydis.git
