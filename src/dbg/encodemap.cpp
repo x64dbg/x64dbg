@@ -287,7 +287,7 @@ bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type, bool* created)
         memset(map.data + offset, (byte)enc_middle, size);
         if(IsCodeType(type) && size > 1)
         {
-            Zydis cp;
+            Zydis zydis;
             Memory<unsigned char*> buffer(size);
             if(!MemRead(addr, buffer(), size))
                 return false;
@@ -296,8 +296,8 @@ bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type, bool* created)
             for(auto i = offset; i < offset + size;)
             {
                 map.data[i] = (byte)type;
-                cp.Disassemble(base + i, buffer() + bufferoffset, int(buffersize - bufferoffset));
-                cmdsize = cp.Success() ? cp.Size() : 1;
+                zydis.Disassemble(base + i, buffer() + bufferoffset, int(buffersize - bufferoffset));
+                cmdsize = zydis.Success() ? zydis.Size() : 1;
                 i += cmdsize;
                 bufferoffset += cmdsize;
                 buffersize -= cmdsize;

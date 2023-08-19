@@ -45,12 +45,12 @@ void LinearAnalysis::populateReferences()
     for(duint i = 0; i < mSize;)
     {
         auto addr = mBase + i;
-        if(mCp.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
+        if(mZydis.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
         {
             auto ref = getReferenceOperand();
             if(ref)
                 mFunctions.push_back({ ref, 0 });
-            i += mCp.Size();
+            i += mZydis.Size();
         }
         else
             i++;
@@ -72,8 +72,8 @@ void LinearAnalysis::analyseFunctions()
         auto end = findFunctionEnd(function.start, maxaddr);
         if(end)
         {
-            if(mCp.Disassemble(end, translateAddr(end), MAX_DISASM_BUFFER))
-                function.end = end + mCp.Size() - 1;
+            if(mZydis.Disassemble(end, translateAddr(end), MAX_DISASM_BUFFER))
+                function.end = end + mZydis.Size() - 1;
             else
                 function.end = end;
         }
@@ -83,10 +83,10 @@ void LinearAnalysis::analyseFunctions()
 duint LinearAnalysis::findFunctionEnd(duint start, duint maxaddr)
 {
     //disassemble first instruction for some heuristics
-    if(mCp.Disassemble(start, translateAddr(start), MAX_DISASM_BUFFER))
+    if(mZydis.Disassemble(start, translateAddr(start), MAX_DISASM_BUFFER))
     {
         //JMP [123456] ; import
-        if(mCp.IsJump() && mCp.OpCount() && mCp[0].type == ZYDIS_OPERAND_TYPE_MEMORY)
+        if(mZydis.IsJump() && mZydis.OpCount() && mZydis[0].type == ZYDIS_OPERAND_TYPE_MEMORY)
             return 0;
     }
 
@@ -95,14 +95,14 @@ duint LinearAnalysis::findFunctionEnd(duint start, duint maxaddr)
     duint jumpback = 0;
     for(duint addr = start, fardest = 0; addr < maxaddr;)
     {
-        if(mCp.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
+        if(mZydis.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
         {
-            if(addr + mCp.Size() > maxaddr) //we went past the maximum allowed address
+            if(addr + mZydis.Size() > maxaddr) //we went past the maximum allowed address
                 break;
 
-            if((mCp.IsJump() || mCp.IsLoop()) && mCp.OpCount() && mCp[0].type == ZYDIS_OPERAND_TYPE_IMMEDIATE) //jump
+            if((mZydis.IsJump() || mZydis.IsLoop()) && mZydis.OpCount() && mZydis[0].type == ZYDIS_OPERAND_TYPE_IMMEDIATE) //jump
             {
-                auto dest = duint(mCp[0].imm.value.u);
+                auto dest = duint(mZydis[0].imm.value.u);
 
                 if(dest >= maxaddr) //jump across function boundaries
                 {
@@ -112,19 +112,19 @@ duint LinearAnalysis::findFunctionEnd(duint start, duint maxaddr)
                 {
                     fardest = dest;
                 }
-                else if(end && dest < end && (mCp.GetId() == ZYDIS_MNEMONIC_JMP || mCp.GetId() == ZYDIS_MNEMONIC_LOOP)) //save the last JMP backwards
+                else if(end && dest < end && (mZydis.GetId() == ZYDIS_MNEMONIC_JMP || mZydis.GetId() == ZYDIS_MNEMONIC_LOOP)) //save the last JMP backwards
                 {
                     jumpback = addr;
                 }
             }
-            else if(mCp.IsRet()) //possible function end?
+            else if(mZydis.IsRet()) //possible function end?
             {
                 end = addr;
                 if(fardest < addr) //we stop if the farthest JXX destination forward is before this RET
                     break;
             }
 
-            addr += mCp.Size();
+            addr += mZydis.Size();
         }
         else
             addr++;
@@ -134,10 +134,10 @@ duint LinearAnalysis::findFunctionEnd(duint start, duint maxaddr)
 
 duint LinearAnalysis::getReferenceOperand() const
 {
-    for(auto i = 0; i < mCp.OpCount(); i++)
+    for(auto i = 0; i < mZydis.OpCount(); i++)
     {
-        const auto & op = mCp[i];
-        if(mCp.IsJump() || mCp.IsLoop()) //skip jumps/loops
+        const auto & op = mZydis[i];
+        if(mZydis.IsJump() || mZydis.IsLoop()) //skip jumps/loops
             continue;
         if(op.type == ZYDIS_OPERAND_TYPE_IMMEDIATE) //we are looking for immediate references
         {

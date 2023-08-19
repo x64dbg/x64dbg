@@ -17,7 +17,7 @@ protected:
     duint mBase;
     duint mSize;
     unsigned char* mData;
-    Zydis mCp;
+    Zydis mZydis;
 
     bool inRange(duint addr) const
     {

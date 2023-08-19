@@ -282,9 +282,9 @@ namespace Exprfunc
         unsigned char data[16];
         if(MemRead(addr, data, sizeof(data), nullptr, true))
         {
-            Zydis cp;
-            if(cp.Disassemble(addr, data))
-                return cp.IsNop();
+            Zydis zydis;
+            if(zydis.Disassemble(addr, data))
+                return zydis.IsNop();
         }
         return false;
     }
@@ -294,9 +294,9 @@ namespace Exprfunc
         unsigned char data[16];
         if(MemRead(addr, data, sizeof(data), nullptr, true))
         {
-            Zydis cp;
-            if(cp.Disassemble(addr, data))
-                return cp.IsUnusual();
+            Zydis zydis;
+            if(zydis.Disassemble(addr, data))
+                return zydis.IsUnusual();
         }
         return false;
     }
@@ -455,7 +455,7 @@ namespace Exprfunc
 
     duint rdtsc()
     {
-        return __rdtsc();
+        return (duint)__rdtsc();
     }
 
     static duint readMem(duint addr, duint size)

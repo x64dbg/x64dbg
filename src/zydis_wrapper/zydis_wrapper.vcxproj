@@ -69,23 +69,23 @@
     <TargetExt>.lib</TargetExt>
     <OutDir>$(ProjectDir)bin\x32\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>$(ProjectDir);$(ProjectDir)\zydis\include;$(ProjectDir)\zydis\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\Zydis;$(ProjectDir)\zydis\include;$(ProjectDir)\zydis\src;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt>.lib</TargetExt>
     <OutDir>$(ProjectDir)bin\x64\</OutDir>
-    <IncludePath>$(ProjectDir);$(IncludePath);$(ProjectDir)\zydis\include;$(ProjectDir)\zydis\src</IncludePath>
+    <IncludePath>$(ProjectDir)\Zydis;$(IncludePath);$(ProjectDir)\zydis\include;$(ProjectDir)\zydis\src</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetExt>.lib</TargetExt>
     <OutDir>$(ProjectDir)bin\x32d\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <IncludePath>$(ProjectDir);$(ProjectDir)\zydis\include;$(ProjectDir)\zydis\src;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)\Zydis;$(ProjectDir)\zydis\include;$(ProjectDir)\zydis\src;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetExt>.lib</TargetExt>
     <OutDir>$(ProjectDir)bin\x64d\</OutDir>
-    <IncludePath>$(ProjectDir);$(IncludePath);$(ProjectDir)\zydis\include;$(ProjectDir)\zydis\src</IncludePath>
+    <IncludePath>$(ProjectDir)\Zydis;$(IncludePath);$(ProjectDir)\zydis\include;$(ProjectDir)\zydis\src</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -138,32 +138,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="zydis\src\Decoder.c" />
-    <ClCompile Include="zydis\src\DecoderData.c" />
-    <ClCompile Include="zydis\src\Formatter.c" />
-    <ClCompile Include="zydis\src\MetaInfo.c" />
-    <ClCompile Include="zydis\src\Mnemonic.c" />
-    <ClCompile Include="zydis\src\Register.c" />
-    <ClCompile Include="zydis\src\SharedData.c" />
-    <ClCompile Include="zydis\src\String.c" />
-    <ClCompile Include="zydis\src\Utils.c" />
-    <ClCompile Include="zydis\src\Zydis.c" />
+    <ClCompile Include="Zydis\Zydis.c">
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">ZYCORE_STATIC_BUILD
+;ZYDIS_STATIC_BUILD;_USING_V110_SDK71_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">ZYCORE_STATIC_BUILD
+;ZYDIS_STATIC_BUILD;_USING_V110_SDK71_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ZYCORE_STATIC_BUILD
+;ZYDIS_STATIC_BUILD;_USING_V110_SDK71_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">ZYCORE_STATIC_BUILD
+;ZYDIS_STATIC_BUILD;_USING_V110_SDK71_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Include="zydis_wrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="zydis\include\Zydis\CommonTypes.h" />
-    <ClInclude Include="zydis\include\Zydis\Decoder.h" />
-    <ClInclude Include="zydis\include\Zydis\DecoderTypes.h" />
-    <ClInclude Include="zydis\include\Zydis\Defines.h" />
-    <ClInclude Include="zydis\include\Zydis\Formatter.h" />
-    <ClInclude Include="zydis\include\Zydis\MetaInfo.h" />
-    <ClInclude Include="zydis\include\Zydis\Mnemonic.h" />
-    <ClInclude Include="zydis\include\Zydis\Register.h" />
-    <ClInclude Include="zydis\include\Zydis\SharedTypes.h" />
-    <ClInclude Include="zydis\include\Zydis\Status.h" />
-    <ClInclude Include="zydis\include\Zydis\String.h" />
-    <ClInclude Include="zydis\include\Zydis\Utils.h" />
-    <ClInclude Include="zydis\include\Zydis\Zydis.h" />
+    <ClInclude Include="Zydis\Zydis.h" />
     <ClInclude Include="zydis_wrapper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

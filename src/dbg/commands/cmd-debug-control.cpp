@@ -504,7 +504,7 @@ static bool IsRepeated(const Zydis & zydis)
     case ZYDIS_MNEMONIC_SCASW:
     case ZYDIS_MNEMONIC_SCASD:
     case ZYDIS_MNEMONIC_SCASQ:
-        return (zydis.GetInstr()->attributes & (ZYDIS_ATTRIB_HAS_REP | ZYDIS_ATTRIB_HAS_REPZ | ZYDIS_ATTRIB_HAS_REPNZ)) != 0;
+        return (zydis.GetInstr()->info.attributes & (ZYDIS_ATTRIB_HAS_REP | ZYDIS_ATTRIB_HAS_REPZ | ZYDIS_ATTRIB_HAS_REPNZ)) != 0;
     }
     return false;
 }

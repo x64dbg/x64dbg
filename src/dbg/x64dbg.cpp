@@ -699,8 +699,6 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dputs(QT_TRANSLATE_NOOP("DBG", "Setting JSON memory management functions..."));
     json_set_alloc_funcs(json_malloc, json_free);
     //#endif //ENABLE_MEM_TRACE
-    dputs(QT_TRANSLATE_NOOP("DBG", "Initializing Zydis..."));
-    Zydis::GlobalInitialize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Getting directory information..."));
 
     strcpy_s(scriptDllDir, szUserDir);
@@ -833,7 +831,6 @@ extern "C" DLL_EXPORT void _dbg_dbgexitsignal()
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up allocated data..."));
     cmdfree();
     varfree();
-    Zydis::GlobalFinalize();
     dputs(QT_TRANSLATE_NOOP("DBG", "Cleaning up wait objects..."));
     waitdeinitialize();
     SafeDbghelpDeinitialize();
