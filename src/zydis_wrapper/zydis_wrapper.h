@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Zydis/Zydis.h"
+#include <type_traits>
 #include <functional>
 #include <string>
 
@@ -9,11 +10,10 @@
 class Zydis
 {
 public:
-    static void GlobalInitialize();
-    static void GlobalFinalize();
-    Zydis();
+    explicit Zydis(bool disasm64);
     Zydis(const Zydis & zydis) = delete;
-    ~Zydis();
+    ~Zydis() = default;
+    void Reset(bool disasm64);
     bool Disassemble(size_t addr, const unsigned char data[MAX_DISASM_BUFFER]);
     bool Disassemble(size_t addr, const unsigned char* data, int size);
     bool DisassembleSafe(size_t addr, const unsigned char* data, int size);
@@ -51,7 +51,7 @@ public:
     };
 
     void RegInfo(uint8_t info[ZYDIS_REGISTER_MAX_VALUE + 1]) const;
-    const char* FlagName(ZydisCPUFlag flag) const;
+    const char* FlagName(uint32_t flag) const;
 
     enum BranchType : uint32_t
     {
@@ -85,10 +85,10 @@ public:
         BTRtm          = BTXabort | BTXbegin,
         BTFar          = BTFarCall | BTFarJmp | BTFarRet,
 
-        BTAny          = std::underlying_type_t<BranchType>(-1)
+        BTAny          = std::underlying_type<BranchType>::type(-1)
     };
 
-    bool IsBranchType(std::underlying_type_t<BranchType> bt) const;
+    bool IsBranchType(std::underlying_type<BranchType>::type bt) const;
 
     enum VectorElementType : uint8_t
     {
@@ -106,13 +106,16 @@ public:
     bool IsJump() const { return IsBranchType(BTJmp); }
     bool IsLoop() const { return IsBranchType(BTLoop); }
     bool IsInt3() const { return IsBranchType(BTInt3); }
+    bool IsSafeNopRegOp(const ZydisDecodedOperand & op) const;
 
 private:
-    static ZydisDecoder mDecoder;
-    static ZydisFormatter mFormatter;
-    static bool mInitialized;
+    ZydisDecoder mDecoder;
+    ZydisFormatter mFormatter;
+    bool mDisasm64;
+    uint64_t mAddr = 0;
     ZydisDecodedInstruction mInstr;
+    ZydisDecodedOperand mOperands[ZYDIS_MAX_OPERAND_COUNT];
     char mInstrText[200];
-    bool mSuccess;
-    uint8_t mVisibleOpCount;
+    bool mSuccess = false;
+    uint8_t mVisibleOpCount = 0;
 };
