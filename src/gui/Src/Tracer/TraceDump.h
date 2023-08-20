@@ -21,6 +21,7 @@ public:
     void contextMenuEvent(QContextMenuEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
+    void printDumpAt(dsint parVA, bool select, bool repaint, bool updateTableOffset);
 
 signals:
     void displayReferencesWidget();
@@ -28,7 +29,7 @@ signals:
 
 public slots:
     void gotoExpressionSlot();
-    void gotoFileOffsetSlot();
+    //void gotoFileOffsetSlot();
     void gotoStartSlot();
     void gotoEndSlot();
     //void gotoPreviousReferenceSlot();

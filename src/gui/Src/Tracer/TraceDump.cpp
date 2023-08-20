@@ -67,10 +67,10 @@ void TraceDump::setupContextMenu()
 
     mMenuBuilder->addMenu(makeMenu(DIcon("copy"), tr("&Copy")), wCopyMenu);
 
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("eraser"), tr("&Restore selection"), SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
+    /*mMenuBuilder->addAction(makeShortcutAction(DIcon("eraser"), tr("&Restore selection"), SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
     {
         return DbgFunctions()->PatchInRange(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd()));
-    });
+    });*/
 
     mCommonActions->build(mMenuBuilder, CommonActions::ActionDisasm | CommonActions::ActionMemoryMap | CommonActions::ActionDumpData | CommonActions::ActionDumpN
                           | CommonActions::ActionDisasmData | CommonActions::ActionStackDump | CommonActions::ActionLabel);
@@ -154,7 +154,7 @@ void TraceDump::setupContextMenu()
 
     MenuBuilder* wGotoMenu = new MenuBuilder(this);
     wGotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto"), tr("&Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
-    wGotoMenu->addAction(makeShortcutAction(DIcon("fileoffset"), tr("File Offset"), SLOT(gotoFileOffsetSlot()), "ActionGotoFileOffset"));
+    //wGotoMenu->addAction(makeShortcutAction(DIcon("fileoffset"), tr("File Offset"), SLOT(gotoFileOffsetSlot()), "ActionGotoFileOffset"));
     wGotoMenu->addAction(makeShortcutAction(DIcon("top"), tr("Start of Page"), SLOT(gotoStartSlot()), "ActionGotoStart"), [this](QMenu*)
     {
         return getSelectionStart() != 0;
@@ -235,6 +235,7 @@ void TraceDump::setupContextMenu()
     //}));
 
     mMenuBuilder->loadFromConfig();
+    disconnect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
     updateShortcuts();
 }
 
@@ -243,6 +244,48 @@ void TraceDump::getAttention()
     BackgroundFlickerThread* thread = new BackgroundFlickerThread(this, mBackgroundColor, this);
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
     thread->start();
+}
+
+void TraceDump::printDumpAt(dsint parVA, bool select, bool repaint, bool updateTableOffset)
+{
+    // Modified from Hexdump, removed memory page information
+    // TODO: get memory range from trace instead
+    duint wSize;
+    auto wBase = mMemoryPage->getBase();
+    dsint wRVA = parVA - wBase; //calculate rva
+    int wBytePerRowCount = getBytePerRowCount(); //get the number of bytes per row
+    dsint wRowCount;
+
+    // Byte offset used to be aligned on the given RVA
+    mByteOffset = (int)((dsint)wRVA % (dsint)wBytePerRowCount);
+    mByteOffset = mByteOffset > 0 ? wBytePerRowCount - mByteOffset : 0;
+
+    // Compute row count
+    wRowCount = wSize / wBytePerRowCount;
+    wRowCount += mByteOffset > 0 ? 1 : 0;
+
+    //if(mRvaDisplayEnabled && mMemPage->getBase() != mRvaDisplayPageBase)
+    //    mRvaDisplayEnabled = false;
+
+    setRowCount(wRowCount); //set the number of rows
+
+    //mMemPage->setAttributes(wBase, wSize);  // Set base and size (Useful when memory page changed)
+
+    if(updateTableOffset)
+    {
+        setTableOffset(-1); //make sure the requested address is always first
+        setTableOffset((wRVA + mByteOffset) / wBytePerRowCount); //change the displayed offset
+    }
+
+    if(select)
+    {
+        setSingleSelection(wRVA);
+        dsint wEndingAddress = wRVA + getSizeOf(mDescriptor.at(0).data.itemSize) - 1;
+        expandSelectionUpTo(wEndingAddress);
+    }
+
+    if(repaint)
+        reloadData();
 }
 
 void TraceDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)
@@ -256,8 +299,9 @@ void TraceDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & ri
         mMemPage->read((byte_t*)&data, rva, sizeof(duint));
 
         char modname[MAX_MODULE_SIZE] = "";
-        if(!DbgGetModuleAt(data, modname))
-            modname[0] = '\0';
+        //TODO
+        //if(!DbgGetModuleAt(data, modname))
+        //    modname[0] = '\0';
         char label_text[MAX_LABEL_SIZE] = "";
         char string_text[MAX_STRING_SIZE] = "";
         if(DbgGetLabelAt(data, SEG_DEFAULT, label_text))
@@ -294,7 +338,7 @@ QString TraceDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset,
 {
     // Reset byte offset when base address is reached
     if(rowBase == 0 && mByteOffset != 0)
-        printDumpAt(mMemPage->getBase(), false, false);
+        HexDump::printDumpAt(mMemPage->getBase(), false, false);
 
     if(!col) //address
     {
@@ -476,18 +520,19 @@ void TraceDump::gotoExpressionSlot()
     if(!mMemoryPage->isAvailable())
         return;
     if(!mGoto)
-        mGoto = new GotoDialog(this, false, true);
+        mGoto = new GotoDialog(this, false, true, true);
     mGoto->setWindowTitle(tr("Enter expression to follow in Dump..."));
     mGoto->setInitialExpression(ToPtrString(rvaToVa(getInitialSelection())));
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
         GuiAddLogMessage(ToPtrString(value).toUtf8());
-        this->printDumpAt(value, true);
+        this->HexDump::printDumpAt(value, true);
     }
 }
 
-void TraceDump::gotoFileOffsetSlot()
+// TODO: Module information need to be read from trace file
+/*void TraceDump::gotoFileOffsetSlot()
 {
     if(!mMemoryPage->isAvailable())
         return;
@@ -511,18 +556,18 @@ void TraceDump::gotoFileOffsetSlot()
     duint value = DbgValFromString(mGotoOffset->expressionText.toUtf8().constData());
     value = DbgFunctions()->FileOffsetToVa(modname, value);
     this->printDumpAt(value, true);
-}
+}*/
 
 void TraceDump::gotoStartSlot()
 {
     duint dest = mMemPage->getBase();
-    this->printDumpAt(dest, true);
+    this->HexDump::printDumpAt(dest, true);
 }
 
 void TraceDump::gotoEndSlot()
 {
     duint dest = mMemPage->getBase() + mMemPage->getSize() - (getViewableRowsCount() * getBytePerRowCount());
-    this->printDumpAt(dest, true);
+    this->HexDump::printDumpAt(dest, true);
 }
 
 void TraceDump::hexAsciiSlot()
@@ -1298,8 +1343,9 @@ void TraceDump::selectionUpdatedSlot()
     QString selEnd = ToPtrString(rvaToVa(getSelectionEnd()));
     QString info = tr("Dump");
     char mod[MAX_MODULE_SIZE] = "";
-    if(DbgFunctions()->ModNameFromAddr(rvaToVa(getSelectionStart()), mod, true))
-        info = QString(mod) + "";
+    //TODO
+    //if(DbgFunctions()->ModNameFromAddr(rvaToVa(getSelectionStart()), mod, true))
+    //    info = QString(mod) + "";
     GuiAddStatusBarMessage(QString(info + ": " + selStart + " -> " + selEnd + QString().sprintf(" (0x%.8X bytes)\n", getSelectionEnd() - getSelectionStart() + 1)).toUtf8().constData());
 }
 
