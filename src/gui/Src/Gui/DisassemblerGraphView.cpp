@@ -1043,7 +1043,7 @@ bool DisassemblerGraphView::getTokenForMouseEvent(QMouseEvent* event, ZydisToken
                 if(instrRow < instr.text.lineTokens.size())
                 {
                     auto & instrToken = instr.text.lineTokens.at(instrRow);
-                    int x = instrToken.x; // skip the breakpoint/CIP mark and RVA prefix
+                    int x = 1 + instrToken.x; // skip the breakpoint/CIP mark and potential RVA prefix
 
                     for(auto & token : instrToken.tokens)
                     {
@@ -1134,7 +1134,8 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
 
                 if(isHighlightable && (mPermanentHighlightingMode || mHighlightingModeEnabled))
                 {
-                    if(oldHighlightToken == currentToken && event->button() == Qt::LeftButton)
+                    bool isEqual = ZydisTokenizer::TokenEquals(&oldHighlightToken, &currentToken);
+                    if(isEqual && event->button() == Qt::LeftButton)
                         // on LMB, deselect an already highlighted token
                         mHighlightToken = ZydisTokenizer::SingleToken();
                     else
@@ -2099,7 +2100,6 @@ void DisassemblerGraphView::loadCurrentGraph()
                         RichTextPainter::List richText;
                         auto zydisTokens = instrTok.tokens;
                         ZydisTokenizer::TokenToRichText(zydisTokens, richText, nullptr);
-                        zydisTokens.x += 1; // account for the breakpoint/CIP mark
 
                         // add rva to node instruction text
                         if(showGraphRva)

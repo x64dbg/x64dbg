@@ -60,8 +60,6 @@ public:
     {
         // text to render; some words here may be colored (with highlighting mode)
         std::vector<RichTextPainter::List> lines;
-        // original text (w/o highlighting)
-        std::vector<RichTextPainter::List> backupLines;
         // tokens for selection in "Highlighting mode"; one "InstructionToken" per line
         std::vector<ZydisTokenizer::InstructionToken> lineTokens;
 
@@ -70,20 +68,38 @@ public:
         void addLine(const RichTextPainter::List & richText, const ZydisTokenizer::InstructionToken & tokens)
         {
             lines.push_back(richText);
-            backupLines.push_back(richText);
             lineTokens.push_back(tokens);
         }
 
-        void updateHighlighting(const ZydisTokenizer::SingleToken & token, QColor color, QColor background)
+        // Highlight the given token and restore the original colors to the rest of the text
+        void updateHighlighting(const ZydisTokenizer::SingleToken & highlightToken, QColor color, QColor background)
         {
-            // highlight the given token and restore the original colors to the rest of the text
+            // assumption: the rich text 'lines' includes a 1:1 copy of the original tokens 'lineTokens'
             for(size_t nLine = 0; nLine < lines.size(); nLine++)
-                for(size_t nRich = 0; nRich < lines[nLine].size(); nRich++)
+            {
+                // based on the tokens X offset, find the first token in the rich text (skip RVA prefix)
+                int i = 0, nRtOffset = 0;
+                while(i < lineTokens[nLine].x && nRtOffset < (int)lines[nLine].size())
                 {
-                    auto & rt = lines[nLine][nRich], & orig = backupLines[nLine][nRich];
-                    rt.textColor = rt.text == token.text ? color : orig.textColor;
-                    rt.textBackground = rt.text == token.text ? background : orig.textBackground;
+                    i += lines[nLine][nRtOffset].text.length();
+                    nRtOffset++;
                 }
+
+                // check if the rich text covers all the Zydis tokens
+                if(lines[nLine].size() - nRtOffset < lineTokens[nLine].tokens.size())
+                    continue; // normally should not happen
+
+                for(size_t nToken = 0; nToken < lineTokens[nLine].tokens.size(); nToken++)
+                {
+                    auto & rt = lines[nLine][nToken + nRtOffset];
+                    auto & token = lineTokens[nLine].tokens[nToken];
+
+                    bool isEqual = ZydisTokenizer::TokenEquals(&token, &highlightToken);
+                    auto tokenOrigColor = ZydisTokenizer::getTokenColor(token.type);
+                    rt.textColor = isEqual ? color : tokenOrigColor.color;
+                    rt.textBackground = isEqual ? background : tokenOrigColor.backgroundColor;
+                }
+            }
         }
 
         static RichTextPainter::CustomRichText_t makeRich(const QString & text, QColor color, QColor background)

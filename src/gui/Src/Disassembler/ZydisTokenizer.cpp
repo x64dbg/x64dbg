@@ -21,6 +21,11 @@ void ZydisTokenizer::addColorName(TokenType type, QString color, QString backgro
     colorNamesMap[int(type)] = TokenColor(color, backgroundColor);
 }
 
+ZydisTokenizer::TokenColor ZydisTokenizer::getTokenColor(TokenType type)
+{
+    return colorNamesMap[(size_t)type];
+}
+
 void ZydisTokenizer::addStringsToPool(const QString & strings)
 {
     QStringList stringList = strings.split(' ', QString::SkipEmptyParts);
