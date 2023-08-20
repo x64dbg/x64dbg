@@ -973,6 +973,8 @@ void TraceBrowser::setupRightClickContextMenu()
     synchronizeCpuAction->setCheckable(true);
     synchronizeCpuAction->setChecked(mTraceSyncCpu);
     mMenuBuilder->addAction(synchronizeCpuAction);
+
+    mMenuBuilder->loadFromConfig();
 }
 
 void TraceBrowser::contextMenuEvent(QContextMenuEvent* event)

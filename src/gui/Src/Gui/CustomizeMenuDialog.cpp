@@ -60,6 +60,8 @@ CustomizeMenuDialog::CustomizeMenuDialog(QWidget* parent) :
             viewName = tr("Help");
         else if(id == "View")
             viewName = tr("View");
+        else if(id == "TraceBrowser")
+            viewName = tr("Trace disassembler");
         else
             continue;
         // Add Parent Node

@@ -43,7 +43,9 @@ Disassembly::Disassembly(QWidget* parent, bool isMain)
     addColumnAt(getCharWidth() * 2 * sizeof(dsint) + 8, tr("Address"), false); //address
     addColumnAt(getCharWidth() * 2 * 12 + 8, tr("Bytes"), false); //bytes
     addColumnAt(getCharWidth() * 40, tr("Disassembly"), false); //disassembly
+    addColumnAt(getCharWidth() * 40, tr("Mnemonic brief"), false);
     addColumnAt(1000, tr("Comments"), false); //comments
+    setColumnHidden(ColMnemonicBrief, true);
 
     setShowHeader(false); //hide header
 
@@ -141,6 +143,48 @@ void Disassembly::tokenizerConfigUpdatedSlot()
     mDisasm->UpdateConfig();
     mPermanentHighlightingMode = ConfigBool("Disassembler", "PermanentHighlightingMode");
     mNoCurrentModuleText = ConfigBool("Disassembler", "NoCurrentModuleText");
+}
+
+static void mnemonicBriefRichText(RichTextPainter::List & richText, const Instruction_t & instr, QColor mMnemonicBriefColor, QColor mMnemonicBriefBackgroundColor)
+{
+    RichTextPainter::CustomRichText_t richBrief;
+    richBrief.underline = false;
+    richBrief.textColor = mMnemonicBriefColor;
+    richBrief.textBackground = mMnemonicBriefBackgroundColor;
+    richBrief.flags = RichTextPainter::FlagAll;
+
+    char brief[MAX_STRING_SIZE] = "";
+    QString mnem;
+    for(const ZydisTokenizer::SingleToken & token : instr.tokens.tokens)
+    {
+        if(token.type != ZydisTokenizer::TokenType::Space && token.type != ZydisTokenizer::TokenType::Prefix)
+        {
+            mnem = token.text;
+            break;
+        }
+    }
+    if(mnem.isEmpty())
+        mnem = instr.instStr;
+
+    int index = mnem.indexOf(' ');
+    if(index != -1)
+        mnem.truncate(index);
+    DbgFunctions()->GetMnemonicBrief(mnem.toUtf8().constData(), MAX_STRING_SIZE, brief);
+
+    QString mnemBrief = brief;
+    if(mnemBrief.length())
+    {
+        RichTextPainter::CustomRichText_t space;
+        space.underline = false;
+        space.flags = RichTextPainter::FlagNone;
+        space.text = " ";
+        if(richText.size())
+            richText.emplace_back(std::move(space));
+
+        richBrief.text = std::move(mnemBrief);
+
+        richText.emplace_back(std::move(richBrief));
+    }
 }
 
 #define HANDLE_RANGE_TYPE(prefix, first, last) \
@@ -512,6 +556,17 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
     }
     break;
 
+    case ColMnemonicBrief: //mnemonic brief
+    {
+        RichTextPainter::List richText;
+        if(mShowMnemonicBrief)
+        {
+            mnemonicBriefRichText(richText, mInstBuffer.at(rowOffset), mMnemonicBriefColor, mMnemonicBriefBackgroundColor);
+        }
+        paintRichText(x, y, w, h, 3, std::move(richText), rowOffset, col);
+    }
+    break;
+
     case ColComment: //draw comments
     {
         //draw arguments
@@ -573,46 +628,9 @@ QString Disassembly::paintContent(QPainter* painter, dsint rowBase, int rowOffse
             richText.emplace_back(std::move(richComment));
         }
 
-        if(mShowMnemonicBrief)
+        if(mShowMnemonicBrief && getColumnHidden(ColMnemonicBrief))
         {
-            RichTextPainter::CustomRichText_t richBrief;
-            richBrief.underline = false;
-            richBrief.textColor = mMnemonicBriefColor;
-            richBrief.textBackground = mMnemonicBriefBackgroundColor;
-            richBrief.flags = RichTextPainter::FlagAll;
-
-            char brief[MAX_STRING_SIZE] = "";
-            QString mnem;
-            for(const ZydisTokenizer::SingleToken & token : mInstBuffer.at(rowOffset).tokens.tokens)
-            {
-                if(token.type != ZydisTokenizer::TokenType::Space && token.type != ZydisTokenizer::TokenType::Prefix)
-                {
-                    mnem = token.text;
-                    break;
-                }
-            }
-            if(mnem.isEmpty())
-                mnem = mInstBuffer.at(rowOffset).instStr;
-
-            int index = mnem.indexOf(' ');
-            if(index != -1)
-                mnem.truncate(index);
-            DbgFunctions()->GetMnemonicBrief(mnem.toUtf8().constData(), MAX_STRING_SIZE, brief);
-
-            QString mnemBrief = brief;
-            if(mnemBrief.length())
-            {
-                RichTextPainter::CustomRichText_t space;
-                space.underline = false;
-                space.flags = RichTextPainter::FlagNone;
-                space.text = " ";
-                if(richText.size())
-                    richText.emplace_back(std::move(space));
-
-                richBrief.text = std::move(mnemBrief);
-
-                richText.emplace_back(std::move(richBrief));
-            }
+            mnemonicBriefRichText(richText, mInstBuffer.at(rowOffset), mMnemonicBriefColor, mMnemonicBriefBackgroundColor);
         }
 
         paintRichText(x, y, w, h, argsize, std::move(richText), rowOffset, col);

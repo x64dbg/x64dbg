@@ -161,6 +161,7 @@ private:
         ColAddress,
         ColBytes,
         ColDisassembly,
+        ColMnemonicBrief,
         ColComment,
     };
 
