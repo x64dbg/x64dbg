@@ -83,6 +83,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("bswap", bswap);
     RegisterEasy("ternary,tern", ternary);
     RegisterEasy("GetTickCount,gettickcount", gettickcount);
+    RegisterEasy("rdtsc", rdtsc);
 
     //Memory
     RegisterEasy("mem.valid,mem.isvalid", memvalid);
@@ -154,6 +155,7 @@ void ExpressionFunctions::Init()
 
     //Other
     RegisterEasy("isdebuggerfocused", isdebuggerfocused);
+    RegisterEasy("isdebuggeefocused", isdebuggeefocused);
 
     // Strings
     ExpressionFunctions::Register("ansi", ValueTypeString, { ValueTypeNumber }, Exprfunc::ansi, nullptr);

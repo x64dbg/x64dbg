@@ -59,6 +59,7 @@ namespace Exprfunc
     duint trhitcount(duint addr);
     duint trisrecording();
     duint gettickcount();
+    duint rdtsc();
 
     duint readbyte(duint addr);
     duint readword(duint addr);
@@ -87,6 +88,7 @@ namespace Exprfunc
     duint exinfo(duint index);
 
     duint isdebuggerfocused();
+    duint isdebuggeefocused();
 
     bool streq(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool strieq(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
