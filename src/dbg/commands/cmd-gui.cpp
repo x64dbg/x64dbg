@@ -47,7 +47,15 @@ bool cbDebugDump(int argc, char* argv[])
         GuiDumpAtN(addr, int(index));
     }
     else
-        GuiDumpAt(addr);
+    {
+        ACTIVEVIEW activeView;
+        GuiGetActiveView(&activeView);
+        int dumpIndex;
+        if(sscanf_s(activeView.title, "Dump %d", &dumpIndex) == 1)
+            GuiDumpAtN(addr, dumpIndex);
+        else
+            GuiDumpAt(addr);
+    }
     GuiShowCpu();
     GuiFocusView(GUI_DUMP);
     return true;
