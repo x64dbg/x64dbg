@@ -106,7 +106,7 @@ static std::vector<MEMPAGE> QueryMemPages()
     return pages;
 }
 
-static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
+static void ProcessFileSections(std::vector<MEMPAGE> & pageVector, std::vector<String> & errors)
 {
     if(pageVector.empty())
         return;
@@ -159,7 +159,7 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
                 // Spam the user with errors to hopefully get more information
                 std::string summary;
                 summary = StringUtils::sprintf("The module at %p (%s%s) triggers a weird bug, please report an issue\n",  modBase, modInfo->name, modInfo->extension);
-                GuiAddLogMessage(summary.c_str());
+                errors.push_back(std::move(summary));
             }
         }
 
@@ -192,6 +192,27 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
                     section.size += sizeOfImage - totalSize;
             }
         }
+
+        auto listIncludedSections = [&]()
+        {
+            size_t infoOffset = 0;
+            // Display module name in first region (useful if PE header and first section have same protection)
+            if(pageBase == modBase)
+                infoOffset = strlen(currentPage.info);
+            for(size_t j = 0; j < sections.size() && infoOffset + 1 < _countof(currentPage.info); j++)
+            {
+                const auto & currentSection = sections.at(j);
+                duint sectionStart = currentSection.addr;
+                duint sectionEnd = sectionStart + currentSection.size;
+                // Check if the section and page overlap
+                if(pageBase < sectionEnd && pageBase + pageSize > sectionStart)
+                {
+                    if(infoOffset)
+                        infoOffset += _snprintf_s(currentPage.info + infoOffset, sizeof(currentPage.info) - infoOffset, _TRUNCATE, ",");
+                    infoOffset += _snprintf_s(currentPage.info + infoOffset, sizeof(currentPage.info) - infoOffset, _TRUNCATE, " \"%s\"", currentSection.name);
+                }
+            }
+        };
 
         // Section view
         if(!bListAllPages)
@@ -247,30 +268,16 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector)
                 for(const auto & page : newPages)
                     summary += StringUtils::sprintf(" \"%s\": %p[%p]\n", page.info, page.mbi.BaseAddress, page.mbi.RegionSize);
                 summary += "Please report an issue!\n";
-                GuiAddLogMessage(summary.c_str());
-                strncat_s(currentPage.info, " (error, see log)", _TRUNCATE);
+                errors.push_back(std::move(summary));
+
+                // Fall back to the 'list all pages' algorithm
+                listIncludedSections();
             }
         }
         // List all pages
         else
         {
-            size_t infoOffset = 0;
-            // Display module name in first region (useful if PE header and first section have same protection)
-            if(pageBase == modBase)
-                infoOffset = strlen(currentPage.info);
-            for(size_t j = 0; j < sections.size() && infoOffset + 1 < _countof(currentPage.info); j++)
-            {
-                const auto & currentSection = sections.at(j);
-                duint sectionStart = currentSection.addr;
-                duint sectionEnd = sectionStart + currentSection.size;
-                // Check if the section and page overlap
-                if(pageBase < sectionEnd && pageBase + pageSize > sectionStart)
-                {
-                    if(infoOffset)
-                        infoOffset += _snprintf_s(currentPage.info + infoOffset, sizeof(currentPage.info) - infoOffset, _TRUNCATE, ",");
-                    infoOffset += _snprintf_s(currentPage.info + infoOffset, sizeof(currentPage.info) - infoOffset, _TRUNCATE, " \"%s\"", currentSection.name);
-                }
-            }
+            listIncludedSections();
         }
     }
 }
@@ -396,7 +403,8 @@ void MemUpdateMap()
     std::vector<MEMPAGE> pageVector = QueryMemPages();
 
     // Process file sections
-    ProcessFileSections(pageVector);
+    std::vector<String> errors;
+    ProcessFileSections(pageVector, errors);
 
     // Get a list of threads for information about Kernel/PEB/TEB/Stack ranges
     ProcessSystemPages(pageVector);
@@ -404,6 +412,17 @@ void MemUpdateMap()
     // Convert the vector to a map
     EXCLUSIVE_ACQUIRE(LockMemoryPages);
     memoryPages.clear();
+
+    // Print the annoying errors only once
+    static std::unordered_set<String> shownErrors;
+    for(auto & error : errors)
+    {
+        if(shownErrors.count(error) == 0)
+        {
+            GuiAddLogMessage(error.c_str());
+            shownErrors.insert(std::move(error));
+        }
+    }
 
     for(const auto & page : pageVector)
     {

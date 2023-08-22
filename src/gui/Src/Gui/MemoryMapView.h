@@ -42,6 +42,8 @@ public slots:
     void disassembleAtSlot(dsint va, dsint cip);
 
 private:
+    void setSwitchViewName();
+
     enum
     {
         ColAddress = 0,

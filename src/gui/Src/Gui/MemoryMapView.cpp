@@ -66,7 +66,8 @@ void MemoryMapView::setupContextMenu()
     connect(mPageMemoryRights, SIGNAL(triggered()), this, SLOT(pageMemoryRights()));
 
     //Switch View
-    mSwitchView = new QAction(DIcon("change-view"), tr("&Switch View"), this);
+    mSwitchView = new QAction(DIcon("change-view"), "", this);
+    setSwitchViewName();
     connect(mSwitchView, SIGNAL(triggered()), this, SLOT(switchView()));
 
     //Breakpoint menu
@@ -362,6 +363,18 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
     return StdIconTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
 }
 
+void MemoryMapView::setSwitchViewName()
+{
+    if(ConfigBool("Engine", "ListAllPages"))
+    {
+        mSwitchView->setText(tr("Section &view"));
+    }
+    else
+    {
+        mSwitchView->setText(tr("Region &view"));
+    }
+}
+
 QAction* MemoryMapView::makeCommandAction(QAction* action, const QString & command)
 {
     action->setData(QVariant(command));
@@ -562,6 +575,7 @@ void MemoryMapView::switchView()
     Config()->setBool("Engine", "ListAllPages", !ConfigBool("Engine", "ListAllPages"));
     Config()->writeBools();
     DbgSettingsUpdated();
+    setSwitchViewName();
     DbgFunctions()->MemUpdateMap();
     setSingleSelection(0);
     setTableOffset(0);
