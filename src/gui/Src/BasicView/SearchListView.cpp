@@ -346,47 +346,52 @@ bool SearchListView::eventFilter(QObject* obj, QEvent* event)
     if(obj == mSearchBox && event->type() == QEvent::KeyPress)
     {
         QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-
-        switch(keyEvent->key())
+        int key = keyEvent->key();
+        if(key == Qt::Key_Return || key == Qt::Key_Enter)
         {
-        // The user pressed enter/return
-        case Qt::Key_Return:
-        case Qt::Key_Enter:
+            // The user pressed enter/return
             if(mCurList->getCellContent(mCurList->getInitialSelection(), 0).length())
                 emit enterPressedSignal();
             return true;
-
-        // Search box misc controls
-        case Qt::Key_Escape:
-            mSearchBox->clear();
-        case Qt::Key_Left:
-        case Qt::Key_Right:
-        case Qt::Key_Backspace:
-        case Qt::Key_Delete:
-        case Qt::Key_Home:
-        case Qt::Key_End:
-        case Qt::Key_Insert:
-            return QWidget::eventFilter(obj, event);
-
+        }
+        if(key == Qt::Key_Escape)
+            clearFilter();
+        if(!mSearchBox->text().isEmpty())
+        {
+            switch(key)
+            {
+            // Search box misc controls
+            case Qt::Key_Left:
+            case Qt::Key_Right:
+            case Qt::Key_Backspace:
+            case Qt::Key_Delete:
+            case Qt::Key_Home:
+            case Qt::Key_End:
+            case Qt::Key_Insert:
+                return QWidget::eventFilter(obj, event);
+            // Search box shortcuts reliant on mSearchBox not being empty
+            case Qt::Key_X: //Ctrl+X
+            case Qt::Key_A: //Ctrl+A
+                if(keyEvent->modifiers() == Qt::ControlModifier)
+                    return QWidget::eventFilter(obj, event);
+            }
+        }
+        switch(key)
+        {
         // Search box shortcuts
         case Qt::Key_V: //Ctrl+V
-        case Qt::Key_X: //Ctrl+X
         case Qt::Key_Z: //Ctrl+Z
-        case Qt::Key_A: //Ctrl+A
         case Qt::Key_Y: //Ctrl+Y
-            if(keyEvent->modifiers() == Qt::CTRL)
+            if(keyEvent->modifiers() == Qt::ControlModifier)
                 return QWidget::eventFilter(obj, event);
         }
-
         // Printable characters go to the search box
         QString keyText = keyEvent->text();
         if(!keyText.isEmpty() && QChar(keyText.toUtf8().at(0)).isPrint())
             return QWidget::eventFilter(obj, event);
-
         // By default, all other keys are forwarded to the search view
         return QApplication::sendEvent(mCurList, event);
     }
-
     return QWidget::eventFilter(obj, event);
 }
 
