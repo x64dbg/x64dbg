@@ -433,7 +433,8 @@ void AbstractStdTable::keyPressEvent(QKeyEvent* event)
             key == Qt::Key_Down ||
             key == Qt::Key_Home ||
             key == Qt::Key_End ||
-            key == Qt::Key_A)
+            key == Qt::Key_A ||
+            key == Qt::Key_C)
     {
         dsint wBotIndex = getTableOffset();
         dsint wTopIndex = wBotIndex + getNbrOfLineToPrint() - 1;
@@ -488,6 +489,13 @@ void AbstractStdTable::keyPressEvent(QKeyEvent* event)
             if(mIsMultiSelectionAllowed && modifiers == Qt::ControlModifier) //Ctrl+A -> select all
             {
                 selectAll();
+            }
+            break;
+
+        case Qt::Key_C:
+            if(modifiers == Qt::ControlModifier) //Ctrl+C -> copy
+            {
+                copyLineSlot();
             }
             break;
         }
