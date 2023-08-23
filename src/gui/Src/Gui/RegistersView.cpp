@@ -1302,6 +1302,35 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     switch(reg)
     {
     //We don't display help messages for general purpose registers as they are very well-known.
+    case EFLAGS:
+    {
+        // generate a small HTML table to briefly list the flags, their bits and masks
+        std::vector<QString> flags =
+        {
+            tr("CF (Carry flag)"), "", tr("PF (Parity flag)"), "", tr("AF (Auxiliary Carry flag)"), "",
+            tr("ZF (Zero flag)"), tr("SF (Sign flag)"), tr("TF (Trap flag)"),
+            tr("IF (Interrupt enable flag)"), tr("DF (Direction flag)"), tr("OF (Overflow flag)")
+        };
+
+        QString bodyRows;
+        for(size_t nBit = 0; nBit < flags.size(); nBit++)
+        {
+            if(!flags[nBit].isEmpty())
+                bodyRows += QString("<tr><td align='center'>%1</td>"    // bit number
+                                    "<td align='right'>%2h</td>"        // mask
+                                    "<td>%3</td></tr>")                 // flag name
+                            .arg(nBit, 2)
+                            .arg(1 << nBit, 0, 16)
+                            .arg(flags[nBit]);
+        }
+
+        QString headerRow = QString("<tr><th>%1</th><th>%2</th><th>%3</th></tr>")
+                            .arg(tr("Bit #"), tr("Mask"), tr("Flag"));
+        return tr("<table cellspacing='7'>"
+                  " <thead>%1</thead>"
+                  " <tbody>%2</tbody>"
+                  "</table>").arg(headerRow).arg(bodyRows);
+    }
     case CF:
         return tr("CF (bit 0) : Carry flag - Set if an arithmetic operation generates a carry or a borrow out of the mostsignificant bit of the result; cleared otherwise.\n"
                   "This flag indicates an overflow condition for unsigned-integer arithmetic. It is also used in multiple-precision arithmetic.");
