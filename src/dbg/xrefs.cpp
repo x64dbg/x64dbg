@@ -34,6 +34,7 @@ struct XrefSerializer : AddrInfoSerializer<XREFSINFO>
         value.type = XREF_DATA;
         size_t i;
         JSON reference;
+        value.references.reserve(json_array_size(references));
         json_array_foreach(references, i, reference)
         {
             XREF_RECORD record;

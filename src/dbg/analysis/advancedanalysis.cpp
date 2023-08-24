@@ -79,6 +79,7 @@ void AdvancedAnalysis::analyzeFunction(duint entryPoint, bool writedata)
     CFGraph graph(entryPoint);
     UintSet visited;
     std::queue<duint> queue;
+    visited.reserve(queue.size());
     mEntryPoints.insert(entryPoint);
     queue.push(graph.entryPoint);
     while(!queue.empty())
@@ -344,6 +345,7 @@ void AdvancedAnalysis::writeDataXrefs()
 
 void AdvancedAnalysis::findFuzzyEntryPoints()
 {
+    mCandidateEPs.reserve(mFuzzyEPs.size());
     for(const auto & entryPoint : mFuzzyEPs)
     {
         mCandidateEPs.insert(entryPoint);
@@ -392,6 +394,7 @@ void AdvancedAnalysis::analyzeCandidateFunctions(bool writedata)
         pendingEPs.clear();
         if(mCandidateEPs.size() == 0)
             return;
+        pendingEPs.reserve(mCandidateEPs.size());
         for(const auto & entryPoint : mCandidateEPs)
         {
             pendingEPs.insert(entryPoint);

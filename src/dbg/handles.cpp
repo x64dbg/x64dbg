@@ -24,6 +24,7 @@ static void HandleTypesEnum()
         return;
 
     auto TypeInfo = TypesInformation()->TypeInformation;
+    HandleTypeNames.reserve(TypesInformation()->NumberOfTypes);
     for(ULONG i = 0; i < TypesInformation()->NumberOfTypes; i++)
     {
         auto wtypeName = WString(TypeInfo->TypeName.Buffer, TypeInfo->TypeName.Buffer + TypeInfo->TypeName.Length / 2);

@@ -149,6 +149,7 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
     CFGraph graph(entryPoint);
     UintSet visited;
     std::queue<duint> queue;
+    visited.reserve(queue.size());
     queue.push(graph.entryPoint);
     while(!queue.empty())
     {
@@ -228,6 +229,8 @@ void RecursiveAnalysis::analyzeFunction(duint entryPoint)
                         {
                             node.brtrue = 0;
                             node.brfalse = 0;
+                            node.exits.reserve(actualSize);
+                            mXrefs.reserve(actualSize);
                             for(index = 0; index < actualSize; index++)
                             {
                                 node.exits.push_back(switchTable()[index]);

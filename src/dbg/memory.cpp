@@ -312,6 +312,7 @@ static void ProcessSystemPages(std::vector<MEMPAGE> & pageVector)
     auto HeapCount = min(_countof(ProcessHeaps), NumberOfHeaps);
     MemRead(ProcessHeapsPtr, ProcessHeaps, sizeof(duint) * HeapCount);
     std::unordered_map<duint, uint32_t> processHeapIds;
+    processHeapIds.reserve(HeapCount);
     for(uint32_t i = 0; i < HeapCount; i++)
         processHeapIds.emplace(ProcessHeaps[i], i);
 
