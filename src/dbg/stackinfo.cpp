@@ -30,6 +30,7 @@ void stackupdateseh()
         STACK_COMMENT comment;
         strcpy_s(comment.color, "!sehclr"); // Special token for SEH chain color.
         auto count = SEHList.size();
+        newcache.reserve(count);
         for(duint i = 0; i < count; i++)
         {
             if(i + 1 != count)
