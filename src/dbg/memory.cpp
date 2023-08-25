@@ -24,6 +24,14 @@ std::map<Range, MEMPAGE, RangeCompare> memoryPages;
 bool bListAllPages = false;
 bool bQueryWorkingSet = false;
 
+// Get system information once.
+static const SYSTEM_INFO systemInfo = []()
+{
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    return si;
+}();
+
 static std::vector<MEMPAGE> QueryMemPages()
 {
     // First gather all possible pages in the memory range
@@ -31,7 +39,7 @@ static std::vector<MEMPAGE> QueryMemPages()
     pages.reserve(200); //TODO: provide a better estimate
 
     SIZE_T numBytes = 0;
-    duint pageStart = 0;
+    duint pageStart = (duint)systemInfo.lpMinimumApplicationAddress;
     duint allocationBase = 0;
 
     do
