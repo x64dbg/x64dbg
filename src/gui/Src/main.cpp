@@ -170,9 +170,6 @@ int main(int argc, char* argv[])
 
     TLS_TranslatedStringMap = new std::map<DWORD, TranslatedStringStorage>();
 
-    // initialize Zydis
-    Zydis::GlobalInitialize();
-
     // load config file + set config font
     mConfiguration = new Configuration;
     application.setFont(ConfigFont("Application"));

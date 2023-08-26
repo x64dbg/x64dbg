@@ -85,12 +85,6 @@ void StdSearchListView::setSearchStartCol(int col)
         mSearchStartCol = col;
 }
 
-bool StdSearchListView::setDisassemblyPopupEnabled(bool enabled)
-{
-    stdList()->setDisassemblyPopupEnabled(enabled);
-    return stdSearchList()->setDisassemblyPopupEnabled(enabled);
-}
-
 StdTable* StdSearchListView::stdList()
 {
     return mSearchListData->mList;

@@ -59,6 +59,7 @@ public:
     };
 
     void RegInfo(uint8_t info[ZYDIS_REGISTER_MAX_VALUE + 1]) const;
+    void FlagInfo(uint8_t info[32]) const;
     const char* FlagName(uint32_t flag) const;
 
     enum BranchType : uint32_t

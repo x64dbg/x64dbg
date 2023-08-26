@@ -3,7 +3,7 @@
 #include "WordEditDialog.h"
 #include "XrefBrowseDialog.h"
 #include "Bridge.h"
-#include "QBeaEngine.h"
+#include "QZydis.h"
 
 CPUInfoBox::CPUInfoBox(QWidget* parent) : StdTable(parent)
 {
@@ -32,7 +32,7 @@ CPUInfoBox::CPUInfoBox(QWidget* parent) : StdTable(parent)
     setSingleSelection(-1);
 
     int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
-    mDisasm = new QBeaEngine(maxModuleSize);
+    mDisasm = new QZydis(maxModuleSize, Bridge::getArch());
 
     setupContextMenu();
 }

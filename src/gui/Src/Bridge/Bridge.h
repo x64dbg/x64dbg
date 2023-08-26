@@ -7,6 +7,15 @@
 #include <QMenu>
 #include "Imports.h"
 #include "BridgeResult.h"
+#include "Architecture.h"
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+namespace Qt
+{
+    static QString::SplitBehavior KeepEmptyParts = QString::KeepEmptyParts;
+    static QString::SplitBehavior SkipEmptyParts = QString::SkipEmptyParts;
+}
+#endif // QT_VERSION
 
 class ReferenceManager;
 class SymbolView;
@@ -23,6 +32,7 @@ public:
 
     static Bridge* getBridge();
     static void initBridge();
+    static Architecture* getArch();
 
     // Message processing function
     void* processMessage(GUIMSG type, void* param1, void* param2);
@@ -47,7 +57,7 @@ public:
     bool loggingEnabled = true;
 
 signals:
-    void disassembleAt(dsint va, dsint eip);
+    void disassembleAt(duint va, duint eip);
     void updateDisassembly();
     void dbgStateChanged(DBGSTATE state);
     void addMsgToLog(QByteArray msg);
@@ -57,11 +67,11 @@ signals:
     void saveLogToFile(QString file);
     void redirectLogStop();
     void redirectLogToFile(QString filename);
-    void shutdown();
+    void close();
     void updateRegisters();
     void updateBreakpoints();
     void updateWindowTitle(QString filename);
-    void dumpAt(dsint va);
+    void dumpAt(duint va);
     void scriptAdd(int count, const char** lines);
     void scriptClear();
     void scriptSetIp(int line);
@@ -76,7 +86,7 @@ signals:
     void clearSymbolLog();
     void setSymbolProgress(int progress);
     void referenceAddColumnAt(int width, QString title);
-    void referenceSetRowCount(dsint count);
+    void referenceSetRowCount(duint count);
     void referenceSetCellContent(int r, int c, QString s);
     void referenceAddCommand(QString title, QString command);
     void referenceReloadData();

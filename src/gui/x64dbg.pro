@@ -49,7 +49,7 @@ QMAKE_CXXFLAGS_RELEASE += -Zi   # Compiler
 QMAKE_LFLAGS_RELEASE += /DEBUG  # Linker
 
 # Build as a library
-DEFINES += BUILD_LIB NOMINMAX
+DEFINES += BUILD_LIB NOMINMAX X64DBG
 TEMPLATE = lib
 
 ##
@@ -66,8 +66,7 @@ INCLUDEPATH += \
     Src/Global \
     Src/Utils \
     Src/ThirdPartyLibs/ldconvert \
-    ../zydis_wrapper \
-    ../zydis_wrapper/zydis/include
+    ../zydis_wrapper
 
 # Resources, sources, headers, and forms
 RESOURCES += \
@@ -76,6 +75,7 @@ RESOURCES += \
 SOURCES += \
     Src/BasicView/StdIconSearchListView.cpp \
     Src/BasicView/StdIconTable.cpp \
+    Src/Disassembler/QZydis.cpp \
     Src/Gui/CPURegistersView.cpp \
     Src/Gui/RichTextItemDelegate.cpp \
     Src/Gui/SystemBreakpointScriptDialog.cpp \
@@ -91,7 +91,6 @@ SOURCES += \
     Src/BasicView/Disassembly.cpp \
     Src/BasicView/HexDump.cpp \
     Src/BasicView/AbstractTableView.cpp \
-    Src/Disassembler/QBeaEngine.cpp \
     Src/Disassembler/ZydisTokenizer.cpp \
     Src/Memory/MemoryPage.cpp \
     Src/Bridge/Bridge.cpp \
@@ -195,10 +194,10 @@ SOURCES += \
     Src/BasicView/StdTableSearchList.cpp \
     Src/Utils/BackgroundFlickerThread.cpp
 
-
 HEADERS += \
     Src/BasicView/StdIconSearchListView.h \
     Src/BasicView/StdIconTable.h \
+    Src/Disassembler/QZydis.h \
     Src/Gui/CPURegistersView.h \
     Src/Gui/RichTextItemDelegate.h \
     Src/Gui/SystemBreakpointScriptDialog.h \
@@ -213,7 +212,6 @@ HEADERS += \
     Src/BasicView/Disassembly.h \
     Src/BasicView/HexDump.h \
     Src/BasicView/AbstractTableView.h \
-    Src/Disassembler/QBeaEngine.h \
     Src/Disassembler/ZydisTokenizer.h \
     Src/Memory/MemoryPage.h \
     Src/Bridge/Bridge.h \
@@ -325,7 +323,6 @@ HEADERS += \
     Src/BasicView/StdTableSearchList.h \
     Src/Utils/MethodInvoker.h \
     Src/Utils/BackgroundFlickerThread.h
-    
 
 FORMS += \
     Src/Gui/SystemBreakpointScriptDialog.ui \

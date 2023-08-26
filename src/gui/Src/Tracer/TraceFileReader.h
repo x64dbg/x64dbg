@@ -6,7 +6,7 @@
 
 class TraceFileParser;
 class TraceFilePage;
-class QBeaEngine;
+class QZydis;
 struct Instruction_t;
 
 #define MAX_MEMORY_OPERANDS 32
@@ -73,5 +73,5 @@ private:
     std::map<Range, TraceFilePage, RangeCompare> pages;
     TraceFilePage* getPage(unsigned long long index, unsigned long long* base);
 
-    QBeaEngine* mDisasm;
+    QZydis* mDisasm;
 };

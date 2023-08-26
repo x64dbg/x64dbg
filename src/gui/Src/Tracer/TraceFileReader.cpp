@@ -18,7 +18,7 @@ TraceFileReader::TraceFileReader(QObject* parent) : QObject(parent)
     EXEPath.clear();
 
     int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
-    mDisasm = new QBeaEngine(maxModuleSize);
+    mDisasm = new QZydis(maxModuleSize, Bridge::getArch());
     connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerUpdatedSlot()));
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(tokenizerUpdatedSlot()));
 }
@@ -705,7 +705,7 @@ void TraceFilePage::OpCode(unsigned long long index, unsigned char* buffer, int*
     memcpy(buffer, opcodes.constData() + opcodeOffset.at(index), *opcodeSize);
 }
 
-const Instruction_t & TraceFilePage::Instruction(unsigned long long index, QBeaEngine & mDisasm)
+const Instruction_t & TraceFilePage::Instruction(unsigned long long index, QZydis & mDisasm)
 {
     if(instructions.size() == 0)
     {

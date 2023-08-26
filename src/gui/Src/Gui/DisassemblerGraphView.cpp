@@ -1,7 +1,7 @@
 #include "DisassemblerGraphView.h"
 #include "MenuBuilder.h"
 #include "CachedFontMetrics.h"
-#include "QBeaEngine.h"
+#include "QZydis.h"
 #include "GotoDialog.h"
 #include "XrefBrowseDialog.h"
 #include <vector>
@@ -21,7 +21,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     : QAbstractScrollArea(parent),
       mFontMetrics(nullptr),
       currentGraph(duint(0)),
-      disasm(ConfigUint("Disassembler", "MaxModuleSize")),
+      disasm(ConfigUint("Disassembler", "MaxModuleSize"), Bridge::getArch()),
       mCip(0),
       mGoto(nullptr),
       syncOrigin(false),
@@ -72,7 +72,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(graphAt(duint)), this, SLOT(graphAtSlot(duint)));
     connect(Bridge::getBridge(), SIGNAL(updateGraph()), this, SLOT(updateGraphSlot()));
     connect(Bridge::getBridge(), SIGNAL(selectionGraphGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(duint, duint)), this, SLOT(disassembleAtSlot(duint, duint)));
     connect(Bridge::getBridge(), SIGNAL(getCurrentGraph(BridgeCFGraphList*)), this, SLOT(getCurrentGraphSlot(BridgeCFGraphList*)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
 
@@ -2522,7 +2522,7 @@ void DisassemblerGraphView::selectionGetSlot(SELECTIONDATA* selection)
     Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
 }
 
-void DisassemblerGraphView::disassembleAtSlot(dsint va, dsint cip)
+void DisassemblerGraphView::disassembleAtSlot(duint va, duint cip)
 {
     Q_UNUSED(va);
     auto cipChanged = mCip != cip;

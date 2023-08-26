@@ -2,7 +2,7 @@
 
 #include "AbstractTableView.h"
 #include "VaHistory.h"
-#include "QBeaEngine.h"
+#include "QZydis.h"
 
 class TraceFileReader;
 class BreakpointMenu;
@@ -16,7 +16,7 @@ public:
     explicit TraceBrowser(QWidget* parent = 0);
     ~TraceBrowser() override;
 
-    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) override;
+    QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
 
     void prepareData() override;
     void updateColors() override;

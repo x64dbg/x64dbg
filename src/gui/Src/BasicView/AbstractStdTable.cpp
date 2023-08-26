@@ -8,7 +8,7 @@ AbstractStdTable::AbstractStdTable(QWidget* parent) : AbstractTableView(parent)
 
     connect(Bridge::getBridge(), SIGNAL(repaintTableView()), this, SLOT(reloadData()));
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequestedSlot(QPoint)));
-    connect(this, SIGNAL(headerButtonPressed(int)), this, SLOT(headerButtonPressedSlot(int)));
+    connect(this, SIGNAL(headerButtonPressed(duint)), this, SLOT(headerButtonPressedSlot(duint)));
 
     Initialize();
 
@@ -22,27 +22,27 @@ AbstractStdTable::AbstractStdTable(QWidget* parent) : AbstractTableView(parent)
     mExportTableCSV = makeShortcutAction(DIcon("database-export"), tr("&Export Table"), SLOT(exportTableSlot()), "ActionExport");
 }
 
-QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString AbstractStdTable::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
     bool isaddr = DbgIsDebugging() && getRowCount() > 0 && col == mAddressColumn;
-    bool wIsSelected = isSelected(rowBase, rowOffset);
-    QString text = getCellContent(rowBase + rowOffset, col);
+    bool rowSelected = isSelected(row);
+    QString text = getCellContent(row, col);
 
-    duint wVA = isaddr ? duint(text.toULongLong(&isaddr, 16)) : 0;
-    auto wIsTraced = isaddr && DbgFunctions()->GetTraceRecordHitCount(wVA) != 0;
+    duint va = isaddr ? duint(text.toULongLong(&isaddr, 16)) : 0;
+    auto rowTraced = isaddr && DbgFunctions()->GetTraceRecordHitCount(va) != 0;
     QColor lineBackgroundColor;
     bool isBackgroundColorSet;
-    if(wIsSelected && wIsTraced)
+    if(rowSelected && rowTraced)
     {
         lineBackgroundColor = mTracedSelectedAddressBackgroundColor;
         isBackgroundColorSet = true;
     }
-    else if(wIsSelected)
+    else if(rowSelected)
     {
         lineBackgroundColor = mSelectionColor;
         isBackgroundColorSet = true;
     }
-    else if(wIsTraced)
+    else if(rowTraced)
     {
         lineBackgroundColor = mTracedBackgroundColor;
         isBackgroundColorSet = true;
@@ -57,16 +57,16 @@ QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int row
     if(col == mAddressColumn && isaddr)
     {
         char label[MAX_LABEL_SIZE] = "";
-        if(bAddressLabel && DbgGetLabelAt(wVA, SEG_DEFAULT, label)) //has label
+        if(bAddressLabel && DbgGetLabelAt(va, SEG_DEFAULT, label)) //has label
         {
             char module[MAX_MODULE_SIZE] = "";
-            if(DbgGetModuleAt(wVA, module) && !QString(label).startsWith("JMP.&"))
+            if(DbgGetModuleAt(va, module) && !QString(label).startsWith("JMP.&"))
                 text += " <" + QString(module) + "." + QString(label) + ">";
             else
                 text += " <" + QString(label) + ">";
         }
-        BPXTYPE bpxtype = DbgGetBpxTypeAt(wVA);
-        bool isbookmark = DbgGetBookmarkAt(wVA);
+        BPXTYPE bpxtype = DbgGetBpxTypeAt(va);
+        bool isbookmark = DbgGetBookmarkAt(va);
 
         duint cip = Bridge::getBridge()->mLastCip;
         if(bCipBase)
@@ -76,7 +76,7 @@ QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int row
                 cip = base;
         }
 
-        if(DbgIsDebugging() && wVA == cip) //debugging + cip
+        if(DbgIsDebugging() && va == cip) //debugging + cip
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(mCipBackgroundColor));
             if(!isbookmark) //no bookmark
@@ -149,7 +149,7 @@ QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int row
                     if(bpxtype == bp_none) //no label, no breakpoint
                     {
                         QColor background;
-                        if(wIsSelected)
+                        if(rowSelected)
                         {
                             background = mSelectedAddressBackgroundColor;
                             painter->setPen(mSelectedAddressColor); //black address (DisassemblySelectedAddressColor)
@@ -177,7 +177,7 @@ QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int row
                         else //other cases (memory breakpoint in disassembly) -> do as normal
                         {
                             QColor background;
-                            if(wIsSelected)
+                            if(rowSelected)
                             {
                                 background = mSelectedAddressBackgroundColor;
                                 painter->setPen(mSelectedAddressColor); //black address (DisassemblySelectedAddressColor)
@@ -265,12 +265,12 @@ QString AbstractStdTable::paintContent(QPainter* painter, dsint rowBase, int row
             }
         }
         while(index != -1);
-        QStringList split = text.split(QChar('\1'), QString::SkipEmptyParts, Qt::CaseInsensitive);
+        QStringList split = text.split(QChar('\1'), Qt::SkipEmptyParts, Qt::CaseInsensitive);
 
         //create rich text list
         RichTextPainter::CustomRichText_t curRichText;
         curRichText.flags = RichTextPainter::FlagColor;
-        QColor textColor = getCellColor(rowBase + rowOffset, col);
+        QColor textColor = getCellColor(row, col);
         QColor textBackgroundColor = Qt::transparent;
         QColor highlightColor = ConfigColor("SearchListViewHighlightColor");
         QColor highlightBackgroundColor = ConfigColor("SearchListViewHighlightBackgroundColor");
@@ -344,6 +344,7 @@ void AbstractStdTable::mouseMoveEvent(QMouseEvent* event)
                 else
                     setSingleSelection(rowIndex);
 
+                // TODO: only update if the selection actually changed
                 updateViewport();
 
                 accept = false;
@@ -384,6 +385,7 @@ void AbstractStdTable::mousePressEvent(QMouseEvent* event)
 
                     mGuiState = AbstractStdTable::MultiRowsSelectionState;
 
+                    // TODO: only update if the selection actually changed
                     updateViewport();
 
                     accept = true;
@@ -412,8 +414,6 @@ void AbstractStdTable::mouseReleaseEvent(QMouseEvent* event)
         if(mGuiState == AbstractStdTable::MultiRowsSelectionState)
         {
             mGuiState = AbstractStdTable::NoState;
-
-            updateViewport();
 
             accept = false;
         }
@@ -509,6 +509,7 @@ void AbstractStdTable::keyPressEvent(QKeyEvent* event)
             setTableOffset(getInitialSelection() - getNbrOfLineToPrint() + 2);
         }
 
+        // TODO: only update if the selection actually changed
         updateViewport();
     }
     else
@@ -530,19 +531,19 @@ void AbstractStdTable::enableColumnSorting(bool enabled)
 /************************************************************************************
                                 Selection Management
 ************************************************************************************/
-void AbstractStdTable::expandSelectionUpTo(int to)
+void AbstractStdTable::expandSelectionUpTo(duint to)
 {
     if(to < mSelection.firstSelectedIndex)
     {
         mSelection.fromIndex = to;
         mSelection.toIndex = mSelection.firstSelectedIndex;
-        emit selectionChangedSignal(to);
+        emit selectionChanged(to);
     }
     else if(to > mSelection.firstSelectedIndex)
     {
         mSelection.fromIndex = mSelection.firstSelectedIndex;
         mSelection.toIndex = to;
-        emit selectionChangedSignal(to);
+        emit selectionChanged(to);
     }
     else if(to == mSelection.firstSelectedIndex)
     {
@@ -612,24 +613,24 @@ void AbstractStdTable::expandBottom()
     }
 }
 
-void AbstractStdTable::setSingleSelection(int index)
+void AbstractStdTable::setSingleSelection(duint index)
 {
     mSelection.firstSelectedIndex = index;
     mSelection.fromIndex = index;
     mSelection.toIndex = index;
-    emit selectionChangedSignal(index);
+    emit selectionChanged(index);
 }
 
-int AbstractStdTable::getInitialSelection() const
+duint AbstractStdTable::getInitialSelection() const
 {
     return mSelection.firstSelectedIndex;
 }
 
-QList<int> AbstractStdTable::getSelection() const
+QList<duint> AbstractStdTable::getSelection() const
 {
-    QList<int> selection;
+    QList<duint> selection;
     selection.reserve(mSelection.toIndex - mSelection.fromIndex);
-    for(int i = mSelection.fromIndex; i <= mSelection.toIndex; i++)
+    for(duint i = mSelection.fromIndex; i <= mSelection.toIndex; i++)
     {
         selection.append(i);
     }
@@ -655,60 +656,56 @@ void AbstractStdTable::selectEnd()
 
 void AbstractStdTable::selectNext()
 {
-    int wNext = getInitialSelection() + 1;
+    // TODO: fix the signed/unsigned
+    duint next = getInitialSelection() + 1;
 
     // Bounding
-    wNext = wNext > getRowCount() - 1 ? getRowCount() - 1 : wNext;
-    wNext = wNext < 0  ? 0 : wNext;
+    next = next > getRowCount() - 1 ? getRowCount() - 1 : next;
+    next = next < 0  ? 0 : next;
 
-    setSingleSelection(wNext);
+    setSingleSelection(next);
 }
 
 void AbstractStdTable::selectPrevious()
 {
-    int wNext = getInitialSelection() - 1;
+    duint next = getInitialSelection() - 1;
 
     // Bounding
-    wNext = wNext > getRowCount() - 1 ? getRowCount() - 1 : wNext;
-    wNext = wNext < 0  ? 0 : wNext;
+    next = next > getRowCount() - 1 ? getRowCount() - 1 : next;
+    next = next < 0  ? 0 : next;
 
-    setSingleSelection(wNext);
+    setSingleSelection(next);
 }
 
 void AbstractStdTable::selectAll()
 {
-    int index = 0;
-    int indexEnd = getRowCount() - 1;
+    duint index = 0;
+    duint indexEnd = getRowCount() - 1;
 
     mSelection.firstSelectedIndex = index;
     mSelection.fromIndex = index;
     mSelection.toIndex = indexEnd;
 
-    emit selectionChangedSignal(index);
+    emit selectionChanged(index);
 }
 
-bool AbstractStdTable::isSelected(int base, int offset) const
+bool AbstractStdTable::isSelected(duint row) const
 {
-    int wIndex = base + offset;
-
-    if(wIndex >= mSelection.fromIndex && wIndex <= mSelection.toIndex)
-        return true;
-    else
-        return false;
+    return row >= mSelection.fromIndex && row <= mSelection.toIndex;
 }
 
-bool AbstractStdTable::scrollSelect(int offset)
+bool AbstractStdTable::scrollSelect(duint row)
 {
-    if(!isValidIndex(offset, 0))
+    if(!isValidIndex(row, 0))
         return false;
 
-    int rangefrom = getTableOffset();
-    int rangeto = rangefrom + getViewableRowsCount() - 1;
-    if(offset < rangefrom) //offset lays before the current view
-        setTableOffset(offset);
-    else if(offset > (rangeto - 1)) //offset lays after the current view
-        setTableOffset(offset - getViewableRowsCount() + 2);
-    setSingleSelection(offset);
+    auto rangefrom = getTableOffset();
+    auto rangeto = rangefrom + getViewableRowsCount() - 1;
+    if(row < rangefrom) //offset lays before the current view
+        setTableOffset(row);
+    else if(row > (rangeto - 1)) //offset lays after the current view
+        setTableOffset(row - getViewableRowsCount() + 2);
+    setSingleSelection(row);
     return true;
 }
 
@@ -735,15 +732,15 @@ void AbstractStdTable::deleteAllColumns()
 
 void AbstractStdTable::copyLineSlot()
 {
-    int colCount = getColumnCount();
+    auto colCount = getColumnCount();
     QString finalText = "";
     if(colCount == 1)
         finalText = getCellContent(getInitialSelection(), 0);
     else
     {
-        for(int selected : getSelection())
+        for(auto selected : getSelection())
         {
-            for(int i = 0; i < colCount; i++)
+            for(duint i = 0; i < colCount; i++)
             {
                 QString cellContent = getCellContent(selected, i);
                 if(!cellContent.length()) //skip empty cells
@@ -761,14 +758,14 @@ void AbstractStdTable::copyLineSlot()
 
 void AbstractStdTable::copyLineToLogSlot()
 {
-    int colCount = getColumnCount();
-    int selected = getInitialSelection();
+    auto colCount = getColumnCount();
+    auto selected = getInitialSelection();
     QString finalText = "";
     if(colCount == 1)
         finalText = getCellContent(selected, 0);
     else
     {
-        for(int i = 0; i < colCount; i++)
+        for(duint i = 0; i < colCount; i++)
         {
             QString cellContent = getCellContent(selected, i);
             if(!cellContent.length()) //skip empty cells
@@ -785,12 +782,12 @@ void AbstractStdTable::copyLineToLogSlot()
 
 QString AbstractStdTable::copyTable(const std::vector<int> & colWidths)
 {
-    int colCount = getColumnCount();
-    int rowCount = getRowCount();
+    auto colCount = getColumnCount();
+    auto rowCount = getRowCount();
     QString finalText = "";
     if(colCount == 1)
     {
-        for(int i = 0; i < rowCount; i++)
+        for(duint i = 0; i < rowCount; i++)
         {
             QString cellContent = getCellContent(i, 0);
             if(!cellContent.length()) //skip empty cells
@@ -803,7 +800,7 @@ QString AbstractStdTable::copyTable(const std::vector<int> & colWidths)
         //std::vector<int> colWidths;
         //for(int i = 0; i < colCount; i++)
         //    colWidths.push_back(getMaxColumnLength(i));
-        for(int i = 0; i < colCount; i++)
+        for(duint i = 0; i < colCount; i++)
         {
             if(i)
                 finalText += " ";
@@ -855,11 +852,11 @@ void AbstractStdTable::copyTableToLogSlot()
 void AbstractStdTable::copyTableResizeSlot()
 {
     std::vector<int> colWidths;
-    int rowCount = getRowCount();
-    int colCount = getColumnCount();
-    for(int i = 0; i < colCount; i++)
+    auto rowCount = getRowCount();
+    auto colCount = getColumnCount();
+    for(duint i = 0; i < colCount; i++)
     {
-        int max = getCellContent(0, i).length();
+        auto max = getCellContent(0, i).length();
         for(int j = 1; j < rowCount; j++)
             max = std::max(getCellContent(j, i).length(), max);
         colWidths.push_back(max);
@@ -874,7 +871,7 @@ void AbstractStdTable::copyTableResizeToLogSlot()
     int colCount = getColumnCount();
     for(int i = 0; i < colCount; i++)
     {
-        int max = getCellContent(0, i).length();
+        auto max = getCellContent(0, i).length();
         for(int j = 1; j < rowCount; j++)
             max = std::max(getCellContent(j, i).length(), max);
         colWidths.push_back(max);
@@ -934,7 +931,7 @@ void AbstractStdTable::setupCopyMenu(QMenu* copyMenu)
 
 void AbstractStdTable::setupCopyColumnMenu(QMenu* copyMenu)
 {
-    for(int i = 0; i < getColumnCount(); i++)
+    for(duint i = 0; i < getColumnCount(); i++)
     {
         if(!getCellContent(getInitialSelection(), i).length()) //skip empty cells
             continue;
@@ -1022,7 +1019,7 @@ void AbstractStdTable::contextMenuRequestedSlot(const QPoint & pos)
     }
 }
 
-void AbstractStdTable::headerButtonPressedSlot(int col)
+void AbstractStdTable::headerButtonPressedSlot(duint col)
 {
     if(!mIsColumnSortingAllowed)
         return;
@@ -1046,22 +1043,16 @@ void AbstractStdTable::reloadData()
     AbstractTableView::reloadData();
 }
 
-duint AbstractStdTable::getDisassemblyPopupAddress(int mousex, int mousey)
+duint AbstractStdTable::getAddressForPosition(int x, int y)
 {
-    if(!bDisassemblyPopupEnabled) //No disassembly popup is meaningful for this table
-        return 0;
-    int c = getColumnIndexFromX(mousex);
-    int r = getTableOffset() + getIndexOffsetFromY(transY(mousey));
+    auto c = getColumnIndexFromX(x);
+    auto r = getTableOffset() + getIndexOffsetFromY(transY(y));
     if(r < getRowCount())
     {
         QString cell = getCellContent(r, c);
         duint addr;
         bool ok = false;
-#ifdef _WIN64
         addr = cell.toULongLong(&ok, 16);
-#else //x86
-        addr = cell.toULong(&ok, 16);
-#endif //_WIN64
         if(!ok)
             return 0;
         else

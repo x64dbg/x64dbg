@@ -858,6 +858,36 @@ void Zydis::RegInfo(uint8_t regs[ZYDIS_REGISTER_MAX_VALUE + 1]) const
     }
 }
 
+void Zydis::FlagInfo(uint8_t info[32]) const
+{
+    auto instr = GetInstr();
+    if(instr == nullptr)
+    {
+        memset(info, 0, 32);
+        return;
+    }
+
+    for(uint8_t i = 0; i < 32; i++)
+    {
+        auto flag = 1u << i;
+        uint8_t rai = Zydis::RAINone;
+        if(FlagName(flag) != nullptr)
+        {
+            const auto & flags = *instr->info.cpu_flags;
+            if((flags.tested & flag) == flag)
+            {
+                rai |= Zydis::RAIRead;
+            }
+            auto writeMask = flags.modified | flags.set_0 | flags.set_1 | flags.undefined;
+            if((writeMask & flag) == flag)
+            {
+                rai |= Zydis::RAIWrite;
+            }
+        }
+        info[i] = rai;
+    }
+}
+
 const char* Zydis::FlagName(uint32_t flag) const
 {
     switch(flag)

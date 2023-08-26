@@ -1,19 +1,24 @@
-#include "QBeaEngine.h"
+#include "QZydis.h"
 #include "StringUtil.h"
 #include "EncodeMap.h"
 #include "CodeFolding.h"
+#include "Bridge.h"
 
-QBeaEngine::QBeaEngine(int maxModuleSize)
-    : _tokenizer(maxModuleSize), mCodeFoldingManager(nullptr), _bLongDataInst(false)
+#ifndef _countof
+#define _countof(array) (sizeof(array) / sizeof(array[0]))
+#endif // _countof
+
+QZydis::QZydis(int maxModuleSize, Architecture* architecture)
+    : mTokenizer(maxModuleSize, architecture), mArchitecture(architecture)
 {
     ZydisTokenizer::UpdateColors();
     UpdateDataInstructionMap();
-    this->mEncodeMap = new EncodeMap();
+    mEncodeMap = new EncodeMap();
 }
 
-QBeaEngine::~QBeaEngine()
+QZydis::~QZydis()
 {
-    delete this->mEncodeMap;
+    delete mEncodeMap;
 }
 
 /**
@@ -28,14 +33,14 @@ QBeaEngine::~QBeaEngine()
  *
  * @return      Return the RVA (Relative to the data pointer) of the nth instruction before the instruction pointed by ip
  */
-ulong QBeaEngine::DisassembleBack(const byte_t* data, duint base, duint size, duint ip, int n)
+ulong QZydis::DisassembleBack(const uint8_t* data, duint base, duint size, duint ip, int n)
 {
     int i;
     uint abuf[128], addr, back, cmdsize;
     const unsigned char* pdata;
 
     // Reset Disasm Structure
-    Zydis cp;
+    Zydis zydis(mArchitecture->disasm64());
 
     // Check if the pointer is not null
     if(data == NULL)
@@ -89,10 +94,10 @@ ulong QBeaEngine::DisassembleBack(const byte_t* data, duint base, duint size, du
         }
         else
         {
-            if(!cp.DisassembleSafe(addr + base, pdata, (int)size))
+            if(!zydis.DisassembleSafe(addr + base, pdata, (int)size))
                 cmdsize = 2; //heuristic for better output (FF FE or FE FF are usually part of an instruction)
             else
-                cmdsize = cp.Size();
+                cmdsize = zydis.Size();
 
             cmdsize = mEncodeMap->getDataSize(base + addr, cmdsize);
 
@@ -124,14 +129,14 @@ ulong QBeaEngine::DisassembleBack(const byte_t* data, duint base, duint size, du
  *
  * @return      Return the RVA (Relative to the data pointer) of the nth instruction after the instruction pointed by ip
  */
-ulong QBeaEngine::DisassembleNext(const byte_t* data, duint base, duint size, duint ip, int n)
+ulong QZydis::DisassembleNext(const uint8_t* data, duint base, duint size, duint ip, int n)
 {
     int i;
     uint cmdsize;
     const unsigned char* pdata;
 
     // Reset Disasm Structure
-    Zydis cp;
+    Zydis zydis(mArchitecture->disasm64());
 
     if(data == NULL)
         return 0;
@@ -154,10 +159,10 @@ ulong QBeaEngine::DisassembleNext(const byte_t* data, duint base, duint size, du
         }
         else
         {
-            if(!cp.DisassembleSafe(ip + base, pdata, (int)size))
+            if(!zydis.DisassembleSafe(ip + base, pdata, (int)size))
                 cmdsize = 1;
             else
-                cmdsize = cp.Size();
+                cmdsize = zydis.Size();
 
             cmdsize = mEncodeMap->getDataSize(base + ip, cmdsize);
 
@@ -181,7 +186,7 @@ ulong QBeaEngine::DisassembleNext(const byte_t* data, duint base, duint size, du
  *
  * @return      Return the disassembled instruction
  */
-Instruction_t QBeaEngine::DisassembleAt(const byte_t* data, duint size, duint origBase, duint origInstRVA, bool datainstr)
+Instruction_t QZydis::DisassembleAt(const uint8_t* data, duint size, duint origBase, duint origInstRVA, bool datainstr)
 {
     if(datainstr)
     {
@@ -189,147 +194,140 @@ Instruction_t QBeaEngine::DisassembleAt(const byte_t* data, duint size, duint or
         if(!mEncodeMap->isCode(type))
             return DecodeDataAt(data, size, origBase, origInstRVA, type);
     }
+
     //tokenize
     ZydisTokenizer::InstructionToken cap;
-    _tokenizer.Tokenize(origBase + origInstRVA, data, size, cap);
-    int len = _tokenizer.Size();
+    mTokenizer.Tokenize(origBase + origInstRVA, data, size, cap);
+    int len = mTokenizer.Size();
 
-    const auto & cp = _tokenizer.GetZydis();
-    bool success = cp.Success();
-
+    const auto & zydis = mTokenizer.GetZydis();
+    bool success = zydis.Success();
 
     auto branchType = Instruction_t::None;
-    Instruction_t wInst;
-    if(success && cp.IsBranchType(Zydis::BTJmp | Zydis::BTCall | Zydis::BTRet | Zydis::BTLoop | Zydis::BTXbegin))
+    Instruction_t inst;
+    if(success && zydis.IsBranchType(Zydis::BTJmp | Zydis::BTCall | Zydis::BTRet | Zydis::BTLoop | Zydis::BTXbegin))
     {
-        wInst.branchDestination = DbgGetBranchDestination(origBase + origInstRVA);
-        if(cp.IsBranchType(Zydis::BTUncondJmp))
+        inst.branchDestination = DbgGetBranchDestination(origBase + origInstRVA);
+        if(zydis.IsBranchType(Zydis::BTUncondJmp))
             branchType = Instruction_t::Unconditional;
-        else if(cp.IsBranchType(Zydis::BTCall))
+        else if(zydis.IsBranchType(Zydis::BTCall))
             branchType = Instruction_t::Call;
-        else if(cp.IsBranchType(Zydis::BTCondJmp) || cp.IsBranchType(Zydis::BTLoop))
+        else if(zydis.IsBranchType(Zydis::BTCondJmp) || zydis.IsBranchType(Zydis::BTLoop))
             branchType = Instruction_t::Conditional;
     }
     else
-        wInst.branchDestination = 0;
+        inst.branchDestination = 0;
 
-    wInst.instStr = QString(cp.InstructionText().c_str());
-    wInst.dump = QByteArray((const char*)data, len);
-    wInst.rva = origInstRVA;
+    inst.instStr = QString(zydis.InstructionText().c_str());
+    inst.dump = QByteArray((const char*)data, len);
+    inst.rva = origInstRVA;
     if(mCodeFoldingManager && mCodeFoldingManager->isFolded(origInstRVA))
-        wInst.length = mCodeFoldingManager->getFoldEnd(origInstRVA + origBase) - (origInstRVA + origBase) + 1;
+        inst.length = mCodeFoldingManager->getFoldEnd(origInstRVA + origBase) - (origInstRVA + origBase) + 1;
     else
-        wInst.length = len;
-    wInst.branchType = branchType;
-    wInst.tokens = cap;
-    cp.BytesGroup(&wInst.prefixSize, &wInst.opcodeSize, &wInst.group1Size, &wInst.group2Size, &wInst.group3Size);
-    for(uint8_t i = 0; i < _countof(wInst.vectorElementType); ++i)
-        wInst.vectorElementType[i] = cp.getVectorElementType(i);
+        inst.length = len;
+    inst.branchType = branchType;
+    inst.tokens = cap;
+    zydis.BytesGroup(&inst.prefixSize, &inst.opcodeSize, &inst.group1Size, &inst.group2Size, &inst.group3Size);
+    for(uint8_t i = 0; i < _countof(inst.vectorElementType); ++i)
+        inst.vectorElementType[i] = zydis.getVectorElementType(i);
 
     if(!success)
-        return wInst;
+        return inst;
 
-    auto instr = cp.GetInstr();
-    cp.RegInfo(reginfo);
+    uint8_t regInfo[ZYDIS_REGISTER_MAX_VALUE + 1];
+    uint8_t flagInfo[32];
+    zydis.RegInfo(regInfo);
+    zydis.FlagInfo(flagInfo);
 
-    for(size_t i = 0; i < _countof(instr->accessedFlags); ++i)
+    regInfo[ZYDIS_REGISTER_RFLAGS] = Zydis::RAINone;
+    regInfo[ZYDIS_REGISTER_EFLAGS] = Zydis::RAINone;
+    regInfo[ZYDIS_REGISTER_FLAGS]  = Zydis::RAINone;
+    regInfo[mArchitecture->disasm64() ? ZYDIS_REGISTER_RIP : ZYDIS_REGISTER_EIP] = Zydis::RAINone;
+
+    inst.regsReferenced.reserve(ZYDIS_REGISTER_MAX_VALUE + 21);
+    for(int i = ZYDIS_REGISTER_NONE; i <= ZYDIS_REGISTER_MAX_VALUE; ++i)
     {
-        auto flagAction = instr->accessedFlags[i].action;
-        if(flagAction == ZYDIS_CPUFLAG_ACTION_NONE)
-            continue;
-
-        Zydis::RegAccessInfo rai;
-        switch(flagAction)
+        if(regInfo[i] != Zydis::RAINone)
         {
-        case ZYDIS_CPUFLAG_ACTION_MODIFIED:
-        case ZYDIS_CPUFLAG_ACTION_SET_0:
-        case ZYDIS_CPUFLAG_ACTION_SET_1:
-            rai = Zydis::RAIWrite;
-            break;
-        case ZYDIS_CPUFLAG_ACTION_TESTED:
-            rai = Zydis::RAIRead;
-            break;
-        default:
-            rai = Zydis::RAINone;
-            break;
+            inst.regsReferenced.emplace_back(zydis.RegName(ZydisRegister(i)), regInfo[i]);
         }
-
-        reginfo[ZYDIS_REGISTER_RFLAGS] = Zydis::RAINone;
-        reginfo[ZYDIS_REGISTER_EFLAGS] = Zydis::RAINone;
-        reginfo[ZYDIS_REGISTER_FLAGS]  = Zydis::RAINone;
-
-        wInst.regsReferenced.emplace_back(cp.FlagName(ZydisCPUFlag(i)), rai);
+    }
+    for(uint8_t i = 0; i < _countof(flagInfo); i++)
+    {
+        auto flag = 1u << i;
+        auto name = zydis.FlagName(flag);
+        auto rai = flagInfo[i];
+        if(name != nullptr && rai != Zydis::RAINone)
+        {
+            inst.regsReferenced.emplace_back(name, rai);
+        }
     }
 
-    wInst.regsReferenced.reserve(ZYDIS_REGISTER_MAX_VALUE);
-    reginfo[ArchValue(ZYDIS_REGISTER_EIP, ZYDIS_REGISTER_RIP)] = Zydis::RAINone;
-    for(int i = ZYDIS_REGISTER_NONE; i <= ZYDIS_REGISTER_MAX_VALUE; ++i)
-        if(reginfo[i])
-            wInst.regsReferenced.emplace_back(cp.RegName(ZydisRegister(i)), reginfo[i]);
-
     // Info about volatile and nonvolatile registers
-    if(cp.IsBranchType(Zydis::BranchType::BTCall))
+    if(zydis.IsBranchType(Zydis::BranchType::BTCall))
     {
         enum : uint8_t
         {
             Volatile = Zydis::RAIImplicit | Zydis::RAIWrite,
             Parameter = Volatile | Zydis::RAIRead,
         };
-#define info(reg, type) wInst.regsReferenced.emplace_back(#reg, type)
+#define info(reg, type) inst.regsReferenced.emplace_back(#reg, type)
 
-#ifdef _WIN64
-        // https://docs.microsoft.com/en-us/cpp/build/x64-software-conventions
-        info(rax, Volatile);
-        info(rcx, Parameter);
-        info(rdx, Parameter);
-        info(r8, Parameter);
-        info(r9, Parameter);
-        info(r10, Volatile);
-        info(r11, Volatile);
-        info(xmm0, Parameter);
-        info(ymm0, Parameter);
-        info(xmm1, Parameter);
-        info(ymm1, Parameter);
-        info(xmm2, Parameter);
-        info(ymm2, Parameter);
-        info(xmm3, Parameter);
-        info(ymm3, Parameter);
-        info(xmm4, Parameter);
-        info(ymm4, Parameter);
-        info(xmm5, Parameter);
-        info(ymm5, Parameter);
-
-#else
-        // https://en.wikipedia.org/wiki/X86_calling_conventions#Caller-saved_(volatile)_registers
-        info(eax, Volatile);
-        info(edx, Volatile);
-        info(ecx, Volatile);
-#endif // _WIN64
+        if(mArchitecture->disasm64())
+        {
+            // https://docs.microsoft.com/en-us/cpp/build/x64-software-conventions
+            info(rax, Volatile);
+            info(rcx, Parameter);
+            info(rdx, Parameter);
+            info(r8, Parameter);
+            info(r9, Parameter);
+            info(r10, Volatile);
+            info(r11, Volatile);
+            info(xmm0, Parameter);
+            info(ymm0, Parameter);
+            info(xmm1, Parameter);
+            info(ymm1, Parameter);
+            info(xmm2, Parameter);
+            info(ymm2, Parameter);
+            info(xmm3, Parameter);
+            info(ymm3, Parameter);
+            info(xmm4, Parameter);
+            info(ymm4, Parameter);
+            info(xmm5, Parameter);
+            info(ymm5, Parameter);
+        }
+        else
+        {
+            // https://en.wikipedia.org/wiki/X86_calling_conventions#Caller-saved_(volatile)_registers
+            info(eax, Volatile);
+            info(edx, Volatile);
+            info(ecx, Volatile);
+        }
 
 #undef info
     }
 
-    return wInst;
+    return inst;
 }
 
-Instruction_t QBeaEngine::DecodeDataAt(const byte_t* data, duint size, duint origBase, duint origInstRVA, ENCODETYPE type)
+Instruction_t QZydis::DecodeDataAt(const uint8_t* data, duint size, duint origBase, duint origInstRVA, ENCODETYPE type)
 {
     //tokenize
     ZydisTokenizer::InstructionToken cap;
 
-    auto infoIter = dataInstMap.find(type);
-    if(infoIter == dataInstMap.end())
-        infoIter = dataInstMap.find(enc_byte);
+    auto infoIter = mDataInstMap.find(type);
+    if(infoIter == mDataInstMap.end())
+        infoIter = mDataInstMap.find(enc_byte);
 
     int len = mEncodeMap->getDataSize(origBase + origInstRVA, 1);
 
-    QString mnemonic = _bLongDataInst ? infoIter.value().longName : infoIter.value().shortName;
+    QString mnemonic = mLongDataInst ? infoIter.value().longName : infoIter.value().shortName;
 
     len = std::min(len, (int)size);
 
     QString datastr = GetDataTypeString(data, len, type);
 
-    _tokenizer.TokenizeData(mnemonic, datastr, cap);
+    mTokenizer.TokenizeData(mnemonic, datastr, cap);
 
     Instruction_t inst;
     inst.instStr = mnemonic + " " + datastr;
@@ -352,35 +350,40 @@ Instruction_t QBeaEngine::DecodeDataAt(const byte_t* data, duint size, duint ori
     return inst;
 }
 
-void QBeaEngine::UpdateDataInstructionMap()
+void QZydis::UpdateDataInstructionMap()
 {
-    dataInstMap.clear();
-    dataInstMap.insert(enc_byte, {"db", "byte", "int8"});
-    dataInstMap.insert(enc_word, {"dw", "word", "short"});
-    dataInstMap.insert(enc_dword, {"dd", "dword", "int"});
-    dataInstMap.insert(enc_fword, {"df", "fword", "fword"});
-    dataInstMap.insert(enc_qword, {"dq", "qword", "long"});
-    dataInstMap.insert(enc_tbyte, {"tbyte", "tbyte", "tbyte"});
-    dataInstMap.insert(enc_oword, {"oword", "oword", "oword"});
-    dataInstMap.insert(enc_mmword, {"mmword", "mmword", "long long"});
-    dataInstMap.insert(enc_xmmword, {"xmmword", "xmmword", "_m128"});
-    dataInstMap.insert(enc_ymmword, {"ymmword", "ymmword", "_m256"});
-    dataInstMap.insert(enc_real4, {"real4", "real4", "float"});
-    dataInstMap.insert(enc_real8, {"real8", "real8", "double"});
-    dataInstMap.insert(enc_real10, {"real10", "real10", "long double"});
-    dataInstMap.insert(enc_ascii, {"ascii", "ascii", "string"});
-    dataInstMap.insert(enc_unicode, {"unicode", "unicode", "wstring"});
+    mDataInstMap.clear();
+    mDataInstMap.insert(enc_byte, {"db", "byte", "int8"});
+    mDataInstMap.insert(enc_word, {"dw", "word", "short"});
+    mDataInstMap.insert(enc_dword, {"dd", "dword", "int"});
+    mDataInstMap.insert(enc_fword, {"df", "fword", "fword"});
+    mDataInstMap.insert(enc_qword, {"dq", "qword", "long"});
+    mDataInstMap.insert(enc_tbyte, {"tbyte", "tbyte", "tbyte"});
+    mDataInstMap.insert(enc_oword, {"oword", "oword", "oword"});
+    mDataInstMap.insert(enc_mmword, {"mmword", "mmword", "long long"});
+    mDataInstMap.insert(enc_xmmword, {"xmmword", "xmmword", "_m128"});
+    mDataInstMap.insert(enc_ymmword, {"ymmword", "ymmword", "_m256"});
+    mDataInstMap.insert(enc_real4, {"real4", "real4", "float"});
+    mDataInstMap.insert(enc_real8, {"real8", "real8", "double"});
+    mDataInstMap.insert(enc_real10, {"real10", "real10", "long double"});
+    mDataInstMap.insert(enc_ascii, {"ascii", "ascii", "string"});
+    mDataInstMap.insert(enc_unicode, {"unicode", "unicode", "wstring"});
 }
 
-void QBeaEngine::setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager)
+void QZydis::setCodeFoldingManager(CodeFoldingHelper* CodeFoldingManager)
 {
     mCodeFoldingManager = CodeFoldingManager;
 }
 
-void QBeaEngine::UpdateConfig()
+void QZydis::UpdateConfig()
 {
-    _bLongDataInst = ConfigBool("Disassembler", "LongDataInstruction");
-    _tokenizer.UpdateConfig();
+    mLongDataInst = ConfigBool("Disassembler", "LongDataInstruction");
+    mTokenizer.UpdateConfig();
+}
+
+void QZydis::UpdateArchitecture()
+{
+    mTokenizer.UpdateArchitecture();
 }
 
 void formatOpcodeString(const Instruction_t & inst, RichTextPainter::List & list, std::vector<std::pair<size_t, bool>> & realBytes)

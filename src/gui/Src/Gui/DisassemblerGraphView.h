@@ -14,7 +14,7 @@
 #include <QMutex>
 #include "Bridge.h"
 #include "RichTextPainter.h"
-#include "QBeaEngine.h"
+#include "QZydis.h"
 #include "ActionHelpers.h"
 #include "VaHistory.h"
 
@@ -273,7 +273,7 @@ public slots:
     void selectionGetSlot(SELECTIONDATA* selection);
     void tokenizerConfigUpdatedSlot();
     void loadCurrentGraph();
-    void disassembleAtSlot(dsint va, dsint cip);
+    void disassembleAtSlot(duint va, duint cip);
     void gotoExpressionSlot();
     void gotoOriginSlot();
     void gotoPreviousSlot();
@@ -386,7 +386,7 @@ private:
 
     BridgeCFGraph currentGraph;
     std::unordered_map<duint, duint> currentBlockMap;
-    QBeaEngine disasm;
+    QZydis disasm;
     GotoDialog* mGoto;
     XrefBrowseDialog* mXrefDlg;
 

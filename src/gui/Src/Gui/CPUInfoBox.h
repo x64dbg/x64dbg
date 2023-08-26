@@ -4,7 +4,7 @@
 
 class WordEditDialog;
 class XrefBrowseDialog;
-class QBeaEngine;
+class QZydis;
 
 class CPUInfoBox : public StdTable
 {
@@ -46,7 +46,7 @@ private:
     void setupContextMenu();
     void setupShortcuts();
     XrefBrowseDialog* mXrefDlg = nullptr;
-    QBeaEngine* mDisasm;
+    QZydis* mDisasm;
 
     QAction* mCopyAddressAction;
     QAction* mCopyRvaAction;

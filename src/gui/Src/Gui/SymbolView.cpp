@@ -39,7 +39,7 @@ public:
         mSymbolSystemTextColor = ConfigColor("SymbolSystemTextColor");
     }
 
-    QColor getCellColor(int r, int c) override
+    QColor getCellColor(duint r, duint c) override
     {
         if(c == ColParty || c == ColPath)
         {
@@ -62,7 +62,7 @@ public:
         }
     }
 
-    QString getCellContent(int r, int c) override
+    QString getCellContent(duint r, duint c) override
     {
         if(c != ColStatus)
             return StdTable::getCellContent(r, c);
@@ -79,7 +79,7 @@ public:
     }
 
 private:
-    MODULESYMBOLSTATUS getStatus(int r)
+    MODULESYMBOLSTATUS getStatus(duint r)
     {
         return DbgFunctions()->ModSymbolStatus(getCellUserdata(r, 0));
     }
@@ -128,7 +128,7 @@ public:
         return mSearchList;
     }
 
-    void filter(const QString & filter, FilterType type, int startColumn) override
+    void filter(const QString & filter, FilterType type, duint startColumn) override
     {
         mSearchList->setRowCount(0);
         int newRowCount = 0;
@@ -179,7 +179,6 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mModuleList->setSearchStartCol(ColBase);
     mModuleList->enableMultiSelection(true);
     mModuleList->setAddressColumn(ColBase, true);
-    mModuleList->setDisassemblyPopupEnabled(false);
     int charwidth = mModuleList->getCharWidth();
     mModuleList->addColumnAt(8 + charwidth * 2 * sizeof(dsint), tr("Base"), true);
     mModuleList->addColumnAt(300, tr("Module"), true);
@@ -220,8 +219,8 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearSymbolLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(clearSymbolLog()), this, SLOT(clearSymbolLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(selectionSymmodGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
-    connect(mModuleList->stdList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
-    connect(mModuleList->stdSearchList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(moduleSelectionChanged(int)));
+    connect(mModuleList->stdList(), SIGNAL(selectionChanged(duint)), this, SLOT(moduleSelectionChanged(duint)));
+    connect(mModuleList->stdSearchList(), SIGNAL(selectionChanged(duint)), this, SLOT(moduleSelectionChanged(duint)));
     connect(mModuleList, SIGNAL(emptySearchResult()), this, SLOT(emptySearchResultSlot()));
     connect(mModuleList, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(moduleContextMenu(QMenu*)));
     connect(mModuleList, SIGNAL(enterPressedSignal()), this, SLOT(moduleFollow()));
@@ -425,7 +424,7 @@ void SymbolView::clearSymbolLogSlot()
     ui->symbolLogEdit->clear();
 }
 
-void SymbolView::moduleSelectionChanged(int index)
+void SymbolView::moduleSelectionChanged(duint index)
 {
     Q_UNUSED(index);
     setUpdatesEnabled(false);
@@ -559,7 +558,7 @@ void SymbolView::symbolFollowImport()
 
 void SymbolView::symbolSelectModule(duint base)
 {
-    for(dsint i = 0; i < mModuleList->stdList()->getRowCount(); i++)
+    for(duint i = 0; i < mModuleList->stdList()->getRowCount(); i++)
     {
         if(mModuleList->stdList()->getCellUserdata(i, ColBase) == base)
         {

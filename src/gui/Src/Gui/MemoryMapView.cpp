@@ -19,7 +19,6 @@ MemoryMapView::MemoryMapView(StdTable* parent)
 {
     setDrawDebugOnly(true);
     enableMultiSelection(true);
-    setDisassemblyPopupEnabled(false);
 
     int charwidth = getCharWidth();
 
@@ -38,7 +37,7 @@ MemoryMapView::MemoryMapView(StdTable* parent)
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(stateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(selectInMemoryMap(duint)), this, SLOT(selectAddress(duint)));
     connect(Bridge::getBridge(), SIGNAL(selectionMemmapGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(duint, duint)), this, SLOT(disassembleAtSlot(duint, duint)));
     connect(Bridge::getBridge(), SIGNAL(focusMemmap()), this, SLOT(setFocus()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
@@ -283,11 +282,10 @@ static QString getProtectionString(DWORD Protect)
     return QString(rights);
 }
 
-QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString MemoryMapView::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
     if(col == 0) //address
     {
-        int row = rowBase + rowOffset;
         auto addr = getCellUserdata(row, ColAddress);
         QColor color = mTextColor;
         QColor backgroundColor = Qt::transparent;
@@ -308,25 +306,25 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
             color = ConfigColor("MemoryMapCipColor");
             backgroundColor = ConfigColor("MemoryMapCipBackgroundColor");
         }
-        else if(isSelected(rowBase, rowOffset) == true)
+        else if(isSelected(row) == true)
             painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
 
         if(backgroundColor.alpha())
             painter->fillRect(QRect(x, y, w - 1, h), QBrush(backgroundColor));
         painter->setPen(color);
-        QString wStr = getCellContent(rowBase + rowOffset, col);
-        painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+        QString str = getCellContent(row, col);
+        painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, str);
         return QString();
     }
     else if(col == ColPageInfo) //info
     {
-        QString wStr = StdIconTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
-        auto addr = getCellUserdata(rowBase + rowOffset, ColAddress);
-        if(wStr.contains(" \""))
+        QString str = StdIconTable::paintContent(painter, row, col, x, y, w, h);
+        auto addr = getCellUserdata(row, ColAddress);
+        if(str.contains(" \""))
         {
-            auto idx = wStr.indexOf(" \"");
-            auto pre = wStr.mid(0, idx);
-            auto post = wStr.mid(idx);
+            auto idx = str.indexOf(" \"");
+            auto pre = str.mid(0, idx);
+            auto post = str.mid(idx);
             RichTextPainter::List richText;
             RichTextPainter::CustomRichText_t entry;
             entry.flags = RichTextPainter::FlagColor;
@@ -346,21 +344,21 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
         {
             auto party = DbgFunctions()->ModGetParty(addr);
             painter->setPen(ConfigColor(party == mod_user ? "SymbolUserTextColor" : "SymbolSystemTextColor"));
-            painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+            painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, str);
             return QString();
         }
     }
     else if(col == ColCurProtect) //CPROT
     {
-        QString wStr = StdIconTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);;
+        QString str = StdIconTable::paintContent(painter, row, col, x, y, w, h);;
         if(!ConfigBool("Engine", "ListAllPages"))
         {
             painter->setPen(ConfigColor("MemoryMapSectionTextColor"));
-            painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+            painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, str);
             return QString();
         }
     }
-    return StdIconTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+    return StdIconTable::paintContent(painter, row, col, x, y, w, h);
 }
 
 void MemoryMapView::setSwitchViewName()
@@ -679,13 +677,15 @@ void MemoryMapView::selectAddress(duint va)
     if(base)
     {
         auto rows = getRowCount();
-        for(dsint row = 0; row < rows; row++)
+        for(duint row = 0; row < rows; row++)
+        {
             if(getCellUserdata(row, ColAddress) == base)
             {
                 scrollSelect(row);
                 reloadData();
                 return;
             }
+        }
     }
     SimpleErrorBox(this, tr("Error"), tr("Address %0 not found in memory map...").arg(ToPtrString(va)));
 }
@@ -737,7 +737,7 @@ void MemoryMapView::selectionGetSlot(SELECTIONDATA* selection)
     Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
 }
 
-void MemoryMapView::disassembleAtSlot(dsint va, dsint cip)
+void MemoryMapView::disassembleAtSlot(duint va, duint cip)
 {
     Q_UNUSED(va)
     mCipBase = DbgMemFindBaseAddr(cip, nullptr);;
@@ -745,11 +745,11 @@ void MemoryMapView::disassembleAtSlot(dsint va, dsint cip)
 
 void MemoryMapView::commentSlot()
 {
-    duint wVA = getSelectionAddr();
+    duint va = getSelectionAddr();
     LineEditDialog mLineEdit(this);
-    QString addr_text = ToPtrString(wVA);
+    QString addr_text = ToPtrString(va);
     char comment_text[MAX_COMMENT_SIZE] = "";
-    if(DbgGetCommentAt((duint)wVA, comment_text))
+    if(DbgGetCommentAt((duint)va, comment_text))
     {
         if(comment_text[0] == '\1') //automatic comment
             mLineEdit.setText(QString(comment_text + 1));
@@ -759,7 +759,7 @@ void MemoryMapView::commentSlot()
     mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
-    if(!DbgSetCommentAt(wVA, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))
+    if(!DbgSetCommentAt(va, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))
         SimpleErrorBox(this, tr("Error!"), tr("DbgSetCommentAt failed!"));
 
     GuiUpdateMemoryView();
