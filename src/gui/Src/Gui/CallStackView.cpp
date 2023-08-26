@@ -53,16 +53,16 @@ void CallStackView::setupContextMenu()
     // TODO: Is Label/Comment/Bookmark useful?
     mCommonActions->build(mMenuBuilder, CommonActions::ActionBreakpoint);
     mMenuBuilder->addSeparator();
-    QAction* wShowSuspectedCallStack = makeAction(tr("Show Suspected Call Stack Frame"), SLOT(showSuspectedCallStack()));
-    mMenuBuilder->addAction(wShowSuspectedCallStack, [wShowSuspectedCallStack](QMenu*)
+    QAction* showSuspectedCallStack = makeAction(tr("Show Suspected Call Stack Frame"), SLOT(showSuspectedCallStack()));
+    mMenuBuilder->addAction(showSuspectedCallStack, [showSuspectedCallStack](QMenu*)
     {
         duint i;
         if(!BridgeSettingGetUint("Engine", "ShowSuspectedCallStack", &i))
             i = 0;
         if(i != 0)
-            wShowSuspectedCallStack->setText(tr("Show Active Call Stack Frame"));
+            showSuspectedCallStack->setText(tr("Show Active Call Stack Frame"));
         else
-            wShowSuspectedCallStack->setText(tr("Show Suspected Call Stack Frame"));
+            showSuspectedCallStack->setText(tr("Show Suspected Call Stack Frame"));
         return true;
     });
     MenuBuilder* mCopyMenu = new MenuBuilder(this);
@@ -196,10 +196,10 @@ void CallStackView::updateCallStack()
 
 void CallStackView::contextMenuSlot(const QPoint pos)
 {
-    QMenu wMenu(this); //create context menu
-    mMenuBuilder->build(&wMenu);
-    if(!wMenu.isEmpty())
-        wMenu.exec(mapToGlobal(pos)); //execute context menu
+    QMenu menu(this); //create context menu
+    mMenuBuilder->build(&menu);
+    if(!menu.isEmpty())
+        menu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 void CallStackView::followAddress()

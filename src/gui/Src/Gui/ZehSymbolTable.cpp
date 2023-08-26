@@ -151,9 +151,9 @@ QString ZehSymbolTable::symbolInfoString(const SYMBOLINFO* info, int c)
         // Get module name for import symbols
         if(info->type == sym_import)
         {
-            duint wVA;
-            if(DbgMemRead(info->addr, &wVA, sizeof(duint)))
-                if(DbgGetModuleAt(wVA, modname))
+            duint va = 0;
+            if(DbgMemRead(info->addr, &va, sizeof(duint)))
+                if(DbgGetModuleAt(va, modname))
                     return QString(modname).append('.').append(info->decoratedSymbol);
         }
         return info->decoratedSymbol;
@@ -168,10 +168,10 @@ QString ZehSymbolTable::symbolInfoString(const SYMBOLINFO* info, int c)
             {
             case sym_import:
             {
-                duint wVA;
-                if(DbgMemRead(info->addr, &wVA, sizeof(duint)))
+                duint va = 0;
+                if(DbgMemRead(info->addr, &va, sizeof(duint)))
                 {
-                    DbgGetLabelAt(wVA, SEG_DEFAULT, label);
+                    DbgGetLabelAt(va, SEG_DEFAULT, label);
                     return label;
                 }
             }

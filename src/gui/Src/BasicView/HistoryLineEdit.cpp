@@ -67,7 +67,7 @@ QString HistoryLineEdit::addHistoryClear()
 
 void HistoryLineEdit::keyPressEvent(QKeyEvent* event)
 {
-    int wKey = event->key();
+    int key = event->key();
 
     //This fixes a very annoying bug on some systems
     if(bSixPressed)
@@ -79,14 +79,14 @@ void HistoryLineEdit::keyPressEvent(QKeyEvent* event)
             return;
         }
     }
-    if(wKey == Qt::Key_6)
+    if(key == Qt::Key_6)
         bSixPressed = true;
 
-    if(wKey == Qt::Key_Up || wKey == Qt::Key_Down)
+    if(key == Qt::Key_Up || key == Qt::Key_Down)
     {
-        if(wKey == Qt::Key_Up)
+        if(key == Qt::Key_Up)
             mCmdIndex++;
-        else if(wKey == Qt::Key_Down)
+        else if(key == Qt::Key_Down)
             mCmdIndex--;
 
         mCmdIndex = mCmdIndex < -1 ? -1 : mCmdIndex;

@@ -256,13 +256,13 @@ void CPUDisassembly::setupFollowReferenceMenu(dsint wVA, QMenu* menu, bool isRef
  */
 void CPUDisassembly::contextMenuEvent(QContextMenuEvent* event)
 {
-    QMenu wMenu(this);
+    QMenu menu(this);
     if(!mHighlightContextMenu)
-        mMenuBuilder->build(&wMenu);
+        mMenuBuilder->build(&menu);
     else if(mHighlightToken.text.length())
-        mHighlightMenuBuilder->build(&wMenu);
-    if(wMenu.actions().length())
-        wMenu.exec(event->globalPos());
+        mHighlightMenuBuilder->build(&menu);
+    if(menu.actions().length())
+        menu.exec(event->globalPos());
 }
 
 /************************************************************************************
@@ -898,12 +898,12 @@ void CPUDisassembly::assembleSlot()
 
     do
     {
-        dsint wRVA = getInitialSelection();
-        duint wVA = rvaToVa(wRVA);
-        unfold(wRVA);
-        QString addr_text = ToPtrString(wVA);
+        dsint rva = getInitialSelection();
+        duint va = rvaToVa(rva);
+        unfold(rva);
+        QString addr_text = ToPtrString(va);
 
-        Instruction_t instr = this->DisassembleAt(wRVA);
+        Instruction_t instr = this->DisassembleAt(rva);
 
         QString actual_inst = instr.instStr;
 

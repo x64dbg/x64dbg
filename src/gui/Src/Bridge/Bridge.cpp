@@ -358,11 +358,11 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         char* text = (char*)param2;
         if(!text || !parVA || !DbgIsDebugging())
             return 0;
-        byte_t wBuffer[16];
-        if(!DbgMemRead(parVA, wBuffer, 16))
+        byte_t buffer[16];
+        if(!DbgMemRead(parVA, buffer, 16))
             return 0;
-        QBeaEngine disasm(int(ConfigUint("Disassembler", "MaxModuleSize")));
-        Instruction_t instr = disasm.DisassembleAt(wBuffer, 16, 0, parVA);
+        QBeaEngine disasm(int(ConfigUint("Disassembler", "MaxModuleSize")), Bridge::getArch());
+        Instruction_t instr = disasm.DisassembleAt(buffer, 16, 0, parVA);
         QString finalInstruction;
         for(const auto & curToken : instr.tokens.tokens)
             finalInstruction += curToken.text;

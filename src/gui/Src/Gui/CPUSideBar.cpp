@@ -5,24 +5,17 @@
 #include "CachedFontMetrics.h"
 #include <QToolTip>
 
-CPUSideBar::CPUSideBar(CPUDisassembly* Ptr, QWidget* parent) : QAbstractScrollArea(parent)
+CPUSideBar::CPUSideBar(CPUDisassembly* disassembly, QWidget* parent)
+    : QAbstractScrollArea(parent)
 {
     setWindowTitle("SideBar");
-    topVA = -1;
-    selectedVA = -1;
-    viewableRows = 0;
-    mFontMetrics = nullptr;
 
-    mDisas = Ptr;
-
-    mInstrBuffer = mDisas->instructionsBuffer();
-
-    memset(&regDump, 0, sizeof(REGDUMP));
+    mDisassembly = disassembly;
+    mInstrBuffer = mDisassembly->instructionsBuffer();
 
     updateSlots();
 
-    this->setMouseTracking(true);
-
+    setMouseTracking(true);
 }
 
 CPUSideBar::~CPUSideBar()
@@ -73,21 +66,21 @@ void CPUSideBar::updateColors()
 
 void CPUSideBar::updateFonts()
 {
-    mDefaultFont = mDisas->font();
-    this->setFont(mDefaultFont);
+    mDefaultFont = mDisassembly->font();
+    setFont(mDefaultFont);
 
     delete mFontMetrics;
     mFontMetrics = new CachedFontMetrics(this, mDefaultFont);
-    fontWidth  = mFontMetrics->width(' ');
-    fontHeight = mFontMetrics->height();
+    mFontWidth  = mFontMetrics->width(' ');
+    mFontHeight = mFontMetrics->height();
 
     mBulletYOffset = 2;
-    mBulletRadius = fontHeight - 2 * mBulletYOffset;
+    mBulletRadius = mFontHeight - 2 * mBulletYOffset;
 }
 
 QSize CPUSideBar::sizeHint() const
 {
-    return QSize(40, this->viewport()->height());
+    return QSize(40, viewport()->height());
 }
 
 void CPUSideBar::debugStateChangedSlot(DBGSTATE state)
@@ -100,27 +93,27 @@ void CPUSideBar::debugStateChangedSlot(DBGSTATE state)
 
 void CPUSideBar::reload()
 {
-    fontHeight = mDisas->getRowHeight();
+    mFontHeight = mDisassembly->getRowHeight();
     viewport()->update();
 }
 
-void CPUSideBar::changeTopmostAddress(dsint i)
+void CPUSideBar::changeTopmostAddress(duint i)
 {
-    topVA = i;
-    DbgGetRegDumpEx(&regDump, sizeof(REGDUMP));
+    mTopVA = i;
+    DbgGetRegDumpEx(&mRegDump, sizeof(REGDUMP));
     reload();
 }
 
-void CPUSideBar::setViewableRows(int rows)
+void CPUSideBar::setViewableRows(duint rows)
 {
-    viewableRows = rows;
+    mViewableRows = rows;
 }
 
-void CPUSideBar::setSelection(dsint selVA)
+void CPUSideBar::setSelection(duint selVA)
 {
-    if(selVA != selectedVA)
+    if(selVA != mSelectedVA)
     {
-        selectedVA = selVA;
+        mSelectedVA = selVA;
         reload();
     }
 }
@@ -134,8 +127,8 @@ bool CPUSideBar::isJump(int i) const
     Instruction_t::BranchType branchType = instr.branchType;
     if(branchType == Instruction_t::Unconditional || branchType == Instruction_t::Conditional)
     {
-        duint start = mDisas->getBase();
-        duint end = start + mDisas->getSize();
+        duint start = mDisassembly->getBase();
+        duint end = start + mDisassembly->getSize();
         duint addr = DbgGetBranchDestination(start + instr.rva);
 
         if(!addr)
@@ -151,7 +144,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 {
     Q_UNUSED(event);
 
-    QPainter painter(this->viewport());
+    QPainter painter(viewport());
 
     // Paints background
     painter.fillRect(painter.viewport(), mBackgroundColor);
@@ -160,16 +153,16 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     if(mInstrBuffer->size() == 0)
         return;
 
-    if(mCodeFoldingManager.isFolded(regDump.regcontext.cip))
+    if(mCodeFoldingManager.isFolded(mRegDump.regcontext.cip))
     {
-        mCodeFoldingManager.expandFoldSegment(regDump.regcontext.cip);
-        mDisas->reloadData();
+        mCodeFoldingManager.expandFoldSegment(mRegDump.regcontext.cip);
+        mDisassembly->reloadData();
     }
 
     int jumpoffset = 0;
 
-    duint last_va = mInstrBuffer->last().rva + mDisas->getBase();
-    duint first_va = mInstrBuffer->first().rva + mDisas->getBase();
+    duint last_va = mInstrBuffer->last().rva + mDisassembly->getBase();
+    duint first_va = mInstrBuffer->first().rva + mDisassembly->getBase();
 
     QVector<std::pair<QString, duint>> regLabel;
     auto appendReg = [&regLabel, last_va, first_va](const QString & name, duint value)
@@ -178,33 +171,33 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
             regLabel.append(std::make_pair(name, value));
     };
 #ifdef _WIN64
-    appendReg("RIP", regDump.regcontext.cip);
-    appendReg("RAX", regDump.regcontext.cax);
-    appendReg("RCX", regDump.regcontext.ccx);
-    appendReg("RDX", regDump.regcontext.cdx);
-    appendReg("RBX", regDump.regcontext.cbx);
-    appendReg("RSP", regDump.regcontext.csp);
-    appendReg("RBP", regDump.regcontext.cbp);
-    appendReg("RSI", regDump.regcontext.csi);
-    appendReg("RDI", regDump.regcontext.cdi);
-    appendReg("R8", regDump.regcontext.r8);
-    appendReg("R9", regDump.regcontext.r9);
-    appendReg("R10", regDump.regcontext.r10);
-    appendReg("R11", regDump.regcontext.r11);
-    appendReg("R12", regDump.regcontext.r12);
-    appendReg("R13", regDump.regcontext.r13);
-    appendReg("R14", regDump.regcontext.r14);
-    appendReg("R15", regDump.regcontext.r15);
+    appendReg("RIP", mRegDump.regcontext.cip);
+    appendReg("RAX", mRegDump.regcontext.cax);
+    appendReg("RCX", mRegDump.regcontext.ccx);
+    appendReg("RDX", mRegDump.regcontext.cdx);
+    appendReg("RBX", mRegDump.regcontext.cbx);
+    appendReg("RSP", mRegDump.regcontext.csp);
+    appendReg("RBP", mRegDump.regcontext.cbp);
+    appendReg("RSI", mRegDump.regcontext.csi);
+    appendReg("RDI", mRegDump.regcontext.cdi);
+    appendReg("R8", mRegDump.regcontext.r8);
+    appendReg("R9", mRegDump.regcontext.r9);
+    appendReg("R10", mRegDump.regcontext.r10);
+    appendReg("R11", mRegDump.regcontext.r11);
+    appendReg("R12", mRegDump.regcontext.r12);
+    appendReg("R13", mRegDump.regcontext.r13);
+    appendReg("R14", mRegDump.regcontext.r14);
+    appendReg("R15", mRegDump.regcontext.r15);
 #else //x86
-    appendReg("EIP", regDump.regcontext.cip);
-    appendReg("EAX", regDump.regcontext.cax);
-    appendReg("ECX", regDump.regcontext.ccx);
-    appendReg("EDX", regDump.regcontext.cdx);
-    appendReg("EBX", regDump.regcontext.cbx);
-    appendReg("ESP", regDump.regcontext.csp);
-    appendReg("EBP", regDump.regcontext.cbp);
-    appendReg("ESI", regDump.regcontext.csi);
-    appendReg("EDI", regDump.regcontext.cdi);
+    appendReg("EIP", mRegDump.regcontext.cip);
+    appendReg("EAX", mRegDump.regcontext.cax);
+    appendReg("ECX", mRegDump.regcontext.ccx);
+    appendReg("EDX", mRegDump.regcontext.cdx);
+    appendReg("EBX", mRegDump.regcontext.cbx);
+    appendReg("ESP", mRegDump.regcontext.csp);
+    appendReg("EBP", mRegDump.regcontext.cbp);
+    appendReg("ESI", mRegDump.regcontext.csi);
+    appendReg("EDI", mRegDump.regcontext.cdi);
 #endif //_WIN64
     if(ConfigBool("Gui", "SidebarWatchLabels"))
     {
@@ -222,13 +215,13 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     std::vector<JumpLine> jumpLines;
     std::vector<LabelArrow> labelArrows;
 
-    for(int line = 0; line < viewableRows; line++)
+    for(int line = 0; line < mViewableRows; line++)
     {
         if(line >= mInstrBuffer->size()) //at the end of the page it will crash otherwise
             break;
 
         const Instruction_t & instr = mInstrBuffer->at(line);
-        duint instrVA = instr.rva + mDisas->getBase();
+        duint instrVA = instr.rva + mDisassembly->getBase();
         duint instrVAEnd = instrVA + instr.length;
 
         // draw bullet
@@ -236,12 +229,12 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 
         if(isJump(line)) //handle jumps
         {
-            duint baseAddr = mDisas->getBase();
+            duint baseAddr = mDisassembly->getBase();
             duint destVA = DbgGetBranchDestination(baseAddr + instr.rva);
 
             JumpLine jmp;
             jmp.isJumpGoingToExecute = DbgIsJumpGoingToExecute(instrVA);
-            jmp.isSelected = (selectedVA == instrVA || selectedVA == destVA);
+            jmp.isSelected = (mSelectedVA == instrVA || mSelectedVA == destVA);
             jmp.isConditional = instr.branchType == Instruction_t::Conditional;
             jmp.line = line;
 
@@ -253,7 +246,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
             jumpoffset++;
 
             // Do not draw jumps that leave the memory range
-            if(destVA >= mDisas->getBase() + mDisas->getSize() || destVA < mDisas->getBase())
+            if(destVA >= mDisassembly->getBase() + mDisassembly->getSize() || destVA < mDisassembly->getBase())
                 continue;
 
             if(destVA <= last_va && destVA >= first_va)
@@ -261,7 +254,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
                 int destLine = line;
                 while(destLine > -1 && destLine < mInstrBuffer->size())
                 {
-                    duint va = mInstrBuffer->at(destLine).rva + mDisas->getBase();
+                    duint va = mInstrBuffer->at(destLine).rva + mDisassembly->getBase();
                     if(destVA > instrVA) //jump goes down
                     {
                         duint vaEnd = va + mInstrBuffer->at(destLine).length - 1;
@@ -279,7 +272,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
                 jmp.destLine = destLine;
             }
             else if(destVA > last_va)
-                jmp.destLine = viewableRows + 6;
+                jmp.destLine = mViewableRows + 6;
             else if(destVA < first_va)
                 jmp.destLine = -6;
             jumpLines.emplace_back(jmp);
@@ -300,16 +293,16 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
         if(isFoldingGraphicsPresent(line) == 1)
         {
             if(mCodeFoldingManager.isFoldStart(instrVA))
-                drawFoldingCheckbox(&painter, line * fontHeight, mCodeFoldingManager.isFolded(instrVA));
+                drawFoldingCheckbox(&painter, line * mFontHeight, mCodeFoldingManager.isFolded(instrVA));
             else
-                drawFoldingCheckbox(&painter, line * fontHeight, false);
+                drawFoldingCheckbox(&painter, line * mFontHeight, false);
         }
         else if(mCodeFoldingManager.isFoldBody(instrVA))
         {
             painter.setPen(QColor(Qt::black));
-            painter.drawLine(QPointF(viewport()->width() - fontHeight / 2 - mBulletXOffset - mBulletRadius, line * fontHeight), QPointF(viewport()->width() - fontHeight / 2 - mBulletXOffset - mBulletRadius, (line + 1) * fontHeight));
+            painter.drawLine(QPointF(viewport()->width() - mFontHeight / 2 - mBulletXOffset - mBulletRadius, line * mFontHeight), QPointF(viewport()->width() - mFontHeight / 2 - mBulletXOffset - mBulletRadius, (line + 1) * mFontHeight));
             if(mCodeFoldingManager.isFoldEnd(instrVA + instr.length - 1))
-                painter.drawLine(QPointF(viewport()->width() - fontHeight / 2 - mBulletXOffset - mBulletRadius, (line + 1) * fontHeight), QPointF(viewport()->width(), (line + 1) * fontHeight));
+                painter.drawLine(QPointF(viewport()->width() - mFontHeight / 2 - mBulletXOffset - mBulletRadius, (line + 1) * mFontHeight), QPointF(viewport()->width(), (line + 1) * mFontHeight));
         }
     }
     if(jumpLines.size())
@@ -321,7 +314,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     else
     {
         for(auto i = labelArrows.begin(); i != labelArrows.end(); i++)
-            i->endX = viewport()->width() - 1 - 11 - (isFoldingGraphicsPresent(i->line) != 0 ? mBulletRadius + fontHeight : 0);
+            i->endX = viewport()->width() - 1 - 11 - (isFoldingGraphicsPresent(i->line) != 0 ? mBulletRadius + mFontHeight : 0);
     }
     drawLabelArrows(&painter, labelArrows);
 }
@@ -335,12 +328,12 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
     // get clicked line
     const int x = e->pos().x();
     const int y = e->pos().y();
-    const int line = y / fontHeight;
+    const int line = y / mFontHeight;
     if(line >= mInstrBuffer->size())
         return;
     const int width = viewport()->width();
 
-    const int bulletRadius = fontHeight / 2 + 1; //14/2=7
+    const int bulletRadius = mFontHeight / 2 + 1; //14/2=7
     const int bulletX = width - mBulletXOffset;
     //const int bulletY = line * fontHeight + mBulletYOffset;
 
@@ -349,30 +342,30 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
     if(x > bulletX + bulletRadius)
         return;
     // calculate virtual address of clicked line
-    duint wVA = mInstrBuffer->at(line).rva + mDisas->getBase();
+    duint va = mInstrBuffer->at(line).rva + mDisassembly->getBase();
     if(CheckBoxPresent)
     {
-        if(x > width - fontHeight - mBulletXOffset - mBulletRadius && x < width - mBulletXOffset - mBulletRadius)
+        if(x > width - mFontHeight - mBulletXOffset - mBulletRadius && x < width - mBulletXOffset - mBulletRadius)
         {
             if(e->button() == Qt::LeftButton)
             {
                 duint start, end;
                 const Instruction_t* instr = &mInstrBuffer->at(line);
-                const dsint SelectionStart = mDisas->getSelectionStart();
-                const dsint SelectionEnd = mDisas->getSelectionEnd();
-                if(mCodeFoldingManager.isFoldStart(wVA))
+                const dsint SelectionStart = mDisassembly->getSelectionStart();
+                const dsint SelectionEnd = mDisassembly->getSelectionEnd();
+                if(mCodeFoldingManager.isFoldStart(va))
                 {
-                    mCodeFoldingManager.setFolded(wVA, !mCodeFoldingManager.isFolded(wVA));
+                    mCodeFoldingManager.setFolded(va, !mCodeFoldingManager.isFolded(va));
                 }
                 else if(instr->rva == SelectionStart && (SelectionEnd - SelectionStart + 1) != instr->length)
                 {
-                    bool success = mCodeFoldingManager.addFoldSegment(wVA, mDisas->getSelectionEnd() - mDisas->getSelectionStart());
+                    bool success = mCodeFoldingManager.addFoldSegment(va, mDisassembly->getSelectionEnd() - mDisassembly->getSelectionStart());
                     if(!success)
                         GuiAddLogMessage(tr("Cannot fold selection.\n").toUtf8().constData());
                 }
-                else if((DbgArgumentGet(wVA, &start, &end) || DbgFunctionGet(wVA, &start, &end)) && wVA == start)
+                else if((DbgArgumentGet(va, &start, &end) || DbgFunctionGet(va, &start, &end)) && va == start)
                 {
-                    bool success = mCodeFoldingManager.addFoldSegment(wVA, end - start);
+                    bool success = mCodeFoldingManager.addFoldSegment(va, end - start);
                     if(!success)
                         GuiAddLogMessage(tr("Cannot fold selection.\n").toUtf8().constData());
                 }
@@ -381,9 +374,9 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
             }
             else if(e->button() == Qt::RightButton)
             {
-                mCodeFoldingManager.delFoldSegment(wVA);
+                mCodeFoldingManager.delFoldSegment(va);
             }
-            mDisas->reloadData();
+            mDisassembly->reloadData();
             viewport()->update();
         }
     }
@@ -394,52 +387,52 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
 
     if(e->button() == Qt::LeftButton)
     {
-        QString wCmd;
+        QString cmd;
         // create --> disable --> delete --> create --> ...
-        switch(Breakpoints::BPState(bp_normal, wVA))
+        switch(Breakpoints::BPState(bp_normal, va))
         {
         case bp_enabled:
             // breakpoint exists and is enabled --> disable breakpoint
-            wCmd = "bd ";
+            cmd = "bd ";
             break;
         case bp_disabled:
             // is disabled --> delete or enable
-            if(Breakpoints::BPTrival(bp_normal, wVA))
-                wCmd = "bc ";
+            if(Breakpoints::BPTrival(bp_normal, va))
+                cmd = "bc ";
             else
-                wCmd = "be ";
+                cmd = "be ";
             break;
         case bp_non_existent:
             // no breakpoint was found --> create breakpoint
-            wCmd = "bp ";
+            cmd = "bp ";
             break;
         }
-        wCmd += ToPtrString(wVA);
-        DbgCmdExec(wCmd);
+        cmd += ToPtrString(va);
+        DbgCmdExec(cmd);
     }
 }
 
 void CPUSideBar::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    const int line = event->y() / fontHeight;
+    const int line = event->y() / mFontHeight;
     if(line >= mInstrBuffer->size())
         return;
     const bool CheckBoxPresent = isFoldingGraphicsPresent(line);
 
     if(CheckBoxPresent)
     {
-        if(event->x() > width() - fontHeight - mBulletXOffset - mBulletRadius && event->x() < width() - mBulletXOffset - mBulletRadius)
+        if(event->x() > width() - mFontHeight - mBulletXOffset - mBulletRadius && event->x() < width() - mBulletXOffset - mBulletRadius)
         {
             if(event->button() == Qt::LeftButton)
             {
-                duint wVA = mInstrBuffer->at(line).rva + mDisas->getBase();
-                duint start = mCodeFoldingManager.getFoldBegin(wVA);
-                duint end = mCodeFoldingManager.getFoldEnd(wVA);
-                if(mCodeFoldingManager.isFolded(wVA) || (start <= regDump.regcontext.cip && end >= regDump.regcontext.cip))
+                duint va = mInstrBuffer->at(line).rva + mDisassembly->getBase();
+                duint start = mCodeFoldingManager.getFoldBegin(va);
+                duint end = mCodeFoldingManager.getFoldEnd(va);
+                if(mCodeFoldingManager.isFolded(va) || (start <= mRegDump.regcontext.cip && end >= mRegDump.regcontext.cip))
                 {
-                    mDisas->setSingleSelection(start - mDisas->getBase());
-                    mDisas->expandSelectionUpTo(end - mDisas->getBase());
-                    mDisas->setFocus();
+                    mDisassembly->setSingleSelection(start - mDisassembly->getBase());
+                    mDisassembly->expandSelectionUpTo(end - mDisassembly->getBase());
+                    mDisassembly->setFocus();
                 }
             }
         }
@@ -460,33 +453,33 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
     const QPoint & globalMousePos = event->globalPos();
     const int width = viewport()->width();
 
-    const int mLine = mousePos.y() / fontHeight;
+    const int mLine = mousePos.y() / mFontHeight;
 
     const bool lineInBounds = mLine > 0 && mLine < mInstrBuffer->size();
 
     const int mBulletX = width - mBulletXOffset;
-    const int mBulletY = mLine * fontHeight + mBulletYOffset;
+    const int mBulletY = mLine * mFontHeight + mBulletYOffset;
 
     const int mouseBulletXOffset = abs(mBulletX - mousePos.x());
     const int mouseBulletYOffset = abs(mBulletY - mousePos.y());
 
     // calculate virtual address of clicked line
-    duint wVA = 0;
+    duint va = 0;
     if(lineInBounds)
-        wVA = mInstrBuffer->at(mLine).rva + mDisas->getBase();
+        va = mInstrBuffer->at(mLine).rva + mDisassembly->getBase();
 
     // check if mouse is on a code folding box
-    if(mousePos.x() > width - fontHeight - mBulletXOffset - mBulletRadius && mousePos.x() < width - mBulletXOffset - mBulletRadius)
+    if(mousePos.x() > width - mFontHeight - mBulletXOffset - mBulletRadius && mousePos.x() < width - mBulletXOffset - mBulletRadius)
     {
         if(isFoldingGraphicsPresent(mLine))
         {
-            if(mCodeFoldingManager.isFolded(wVA))
+            if(mCodeFoldingManager.isFolded(va))
             {
                 QToolTip::showText(globalMousePos, tr("Click to unfold, right click to delete."));
             }
             else
             {
-                if(mCodeFoldingManager.isFoldStart(wVA))
+                if(mCodeFoldingManager.isFoldStart(va))
                     QToolTip::showText(globalMousePos, tr("Click to fold, right click to delete."));
                 else
                     QToolTip::showText(globalMousePos, tr("Click to fold."));
@@ -501,7 +494,7 @@ void CPUSideBar::mouseMoveEvent(QMouseEvent* event)
     }
     else
     {
-        switch(Breakpoints::BPState(bp_normal, wVA))
+        switch(Breakpoints::BPState(bp_normal, va))
         {
         case bp_enabled:
             QToolTip::showText(globalMousePos, tr("Breakpoint Enabled"));
@@ -524,8 +517,8 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
     // Pixel adjustment to make drawing lines even
     int pixel_y_offs = 0;
 
-    int y_start =  fontHeight * (1 + startLine) - 0.5 * fontHeight - pixel_y_offs;
-    int y_end =  fontHeight * (1 + endLine) - 0.5 * fontHeight;
+    int y_start =  mFontHeight * (1 + startLine) - 0.5 * mFontHeight - pixel_y_offs;
+    int y_end =  mFontHeight * (1 + endLine) - 0.5 * mFontHeight;
     int y_diff = y_end >= y_start ? 1 : -1;
 
     if(conditional)
@@ -581,21 +574,21 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
     const int viewportHeight = viewport()->height();
 
     const int JumpPadding = 11;
-    int x = viewportWidth - jumpoffset * JumpPadding - 15 - fontHeight;
+    int x = viewportWidth - jumpoffset * JumpPadding - 15 - mFontHeight;
     int x_right = viewportWidth - 12;
 
     // special handling of self-jumping
     if(startLine == endLine)
     {
-        y_start -= fontHeight / 4;
-        y_end += fontHeight / 4;
+        y_start -= mFontHeight / 4;
+        y_end += mFontHeight / 4;
     }
 
     // Horizontal (<----)
     if(!isFoldingGraphicsPresent(startLine) != 0)
         painter->drawLine(x_right, y_start, x, y_start);
     else
-        painter->drawLine(x_right - mBulletRadius - fontHeight, y_start, x, y_start);
+        painter->drawLine(x_right - mBulletRadius - mFontHeight, y_start, x, y_start);
 
     // Vertical
     painter->drawLine(x, y_start, x, y_end);
@@ -609,82 +602,82 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
     {
         // Horizontal (---->)
         if(isFoldingGraphicsPresent(endLine) != 0)
-            painter->drawLine(x, y_end, x_right - mBulletRadius - fontHeight, y_end);
+            painter->drawLine(x, y_end, x_right - mBulletRadius - mFontHeight, y_end);
         else
             painter->drawLine(x, y_end, x_right, y_end);
 
-        if(endLine == viewableRows + 6)
+        if(endLine == mViewableRows + 6)
         {
             int y = viewportHeight - 1;
             if(y > y_start)
             {
                 painter->setPen(solidLine);
-                QPoint wPoints[] =
+                QPoint points[] =
                 {
                     QPoint(x - 3, y - 3),
                     QPoint(x, y),
                     QPoint(x + 3, y - 3),
                 };
-                painter->drawPolyline(wPoints, 3);
+                painter->drawPolyline(points, 3);
             }
         }
         else if(endLine == -6)
         {
             int y = 0;
             painter->setPen(solidLine);
-            QPoint wPoints[] =
+            QPoint points[] =
             {
                 QPoint(x - 3, y + 3),
                 QPoint(x, y),
                 QPoint(x + 3, y + 3),
             };
-            painter->drawPolyline(wPoints, 3);
+            painter->drawPolyline(points, 3);
         }
         else
         {
             if(isFoldingGraphicsPresent(endLine) != 0)
-                x_right -= mBulletRadius + fontHeight;
+                x_right -= mBulletRadius + mFontHeight;
             painter->setPen(solidLine);
-            QPoint wPoints[] =
+            QPoint points[] =
             {
                 QPoint(x_right - 3, y_end - 3),
                 QPoint(x_right, y_end),
                 QPoint(x_right - 3, y_end + 3),
             };
-            painter->drawPolyline(wPoints, 3);
+            painter->drawPolyline(points, 3);
         }
     }
     else
     {
-        if(endLine == viewableRows + 6)
+        if(endLine == mViewableRows + 6)
         {
             int y = viewportHeight - 1;
             x--;
             painter->setPen(solidLine);
-            QPoint wPoints[] =
+            QPoint points[] =
             {
                 QPoint(x - 3, y - 3),
                 QPoint(x, y),
                 QPoint(x + 3, y - 3),
             };
-            painter->drawPolyline(wPoints, 3);
+            painter->drawPolyline(points, 3);
         }
         else if(endLine == -6)
         {
             int y = 0;
             painter->setPen(solidLine);
-            QPoint wPoints[] =
+            QPoint points[] =
             {
                 QPoint(x - 3, y + 3),
                 QPoint(x, y),
                 QPoint(x + 3, y + 3),
             };
-            painter->drawPolyline(wPoints, 3);
+            painter->drawPolyline(points, 3);
         }
         else
         {
             if(isFoldingGraphicsPresent(endLine) != 0)
-                drawStraightArrow(painter, x, y_end, x_right - mBulletRadius - fontHeight, y_end);
+                drawStraightArrow(painter, x, y_end, x_right - mBulletRadius - mFontHeight, y_end);
             else
                 drawStraightArrow(painter, x, y_end, x_right, y_end);
         }
@@ -706,7 +699,7 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
     painter->setPen(mBackgroundColor);
 
     const int x = viewport()->width() - mBulletXOffset; //initial x
-    const int y = line * fontHeight; //initial y
+    const int y = line * mFontHeight; //initial y
 
     painter->setRenderHint(QPainter::Antialiasing, true);
     if(isbpdisabled) //disabled breakpoint
@@ -720,16 +713,16 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
 CPUSideBar::LabelArrow CPUSideBar::drawLabel(QPainter* painter, int Line, const QString & Text)
 {
     painter->save();
-    const int LineCoordinate = fontHeight * (1 + Line);
+    const int LineCoordinate = mFontHeight * (1 + Line);
 
     const QColor & IPLabel = mCipLabelColor;
     const QColor & IPLabelBG = mCipLabelBackgroundColor;
 
     int width = mFontMetrics->width(Text);
     int x = 1;
-    int y = LineCoordinate - fontHeight;
+    int y = LineCoordinate - mFontHeight;
 
-    QRect rect(x, y, width, fontHeight - 1);
+    QRect rect(x, y, width, mFontHeight - 1);
 
     // Draw rectangle
     painter->setBrush(IPLabelBG);
@@ -745,7 +738,7 @@ CPUSideBar::LabelArrow CPUSideBar::drawLabel(QPainter* painter, int Line, const 
 
     painter->setPen(QPen(IPLabelBG, 2.0));
     painter->setBrush(QBrush(IPLabelBG));
-    drawStraightArrow(painter, rect.right() + 2, y, this->viewport()->width() - x - 11 - (isFoldingGraphicsPresent(Line) != 0 ? mBulletRadius + fontHeight : 0), y);*/
+    drawStraightArrow(painter, rect.right() + 2, y, viewport()->width() - x - 11 - (isFoldingGraphicsPresent(Line) != 0 ? mBulletRadius + fontHeight : 0), y);*/
 
     LabelArrow labelArrow;
     labelArrow.line = Line;
@@ -767,7 +760,7 @@ void CPUSideBar::drawLabelArrows(QPainter* painter, const std::vector<LabelArrow
         {
             if(i.startX < i.endX)
             {
-                int y = fontHeight * (1 + i.line) - 0.5 * fontHeight;
+                int y = mFontHeight * (1 + i.line) - 0.5 * mFontHeight;
                 drawStraightArrow(painter, i.startX, y, i.endX, y);
             }
         }
@@ -777,16 +770,16 @@ void CPUSideBar::drawLabelArrows(QPainter* painter, const std::vector<LabelArrow
 
 void CPUSideBar::drawFoldingCheckbox(QPainter* painter, int y, bool state)
 {
-    int x = viewport()->width() - fontHeight - mBulletXOffset - mBulletRadius;
+    int x = viewport()->width() - mFontHeight - mBulletXOffset - mBulletRadius;
     painter->save();
     painter->setBrush(QBrush(mChkBoxBackColor));
     painter->setPen(QColor(mChkBoxForeColor));
-    QRect rect(x, y, fontHeight, fontHeight);
+    QRect rect(x, y, mFontHeight, mFontHeight);
     painter->drawRect(rect);
 
-    painter->drawLine(QPointF(x + fontHeight / 4, y + fontHeight / 2), QPointF(x + 3 * fontHeight / 4, y + fontHeight / 2));
+    painter->drawLine(QPointF(x + mFontHeight / 4, y + mFontHeight / 2), QPointF(x + 3 * mFontHeight / 4, y + mFontHeight / 2));
     if(state) // "+"
-        painter->drawLine(QPointF(x + fontHeight / 2, y + fontHeight / 4), QPointF(x + fontHeight / 2, y + 3 * fontHeight / 4));
+        painter->drawLine(QPointF(x + mFontHeight / 2, y + mFontHeight / 4), QPointF(x + mFontHeight / 2, y + 3 * mFontHeight / 4));
     painter->restore();
 }
 
@@ -804,8 +797,8 @@ void CPUSideBar::drawStraightArrow(QPainter* painter, int x1, int y1, int x2, in
 
 void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines, std::vector<LabelArrow> & labelArrows)
 {
-    unsigned int* numLines = new unsigned int[viewableRows * 2]; // Low:jump offsets of the vertical jumping line, High:jump offsets of the horizontal jumping line.
-    memset(numLines, 0, sizeof(unsigned int) * viewableRows * 2);
+    unsigned int* numLines = new unsigned int[mViewableRows * 2]; // Low:jump offsets of the vertical jumping line, High:jump offsets of the horizontal jumping line.
+    memset(numLines, 0, sizeof(unsigned int) * mViewableRows * 2);
     // preprocessing
     for(size_t i = 0; i < jumpLines.size(); i++)
     {
@@ -824,7 +817,7 @@ void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines, std::vec
         unsigned int maxJmpOffset = 0;
         if(jmp.line < jmp.destLine)
         {
-            for(int j = jmp.line; j <= jmp.destLine && j < viewableRows; j++)
+            for(int j = jmp.line; j <= jmp.destLine && j < mViewableRows; j++)
             {
                 if(numLines[j] > maxJmpOffset)
                     maxJmpOffset = numLines[j];
@@ -841,7 +834,7 @@ void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines, std::vec
         jmp.jumpOffset = maxJmpOffset + 1;
         if(jmp.line < jmp.destLine)
         {
-            for(int j = jmp.line; j <= jmp.destLine && j < viewableRows; j++)
+            for(int j = jmp.line; j <= jmp.destLine && j < mViewableRows; j++)
                 numLines[j] = jmp.jumpOffset;
         }
         else
@@ -849,20 +842,20 @@ void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines, std::vec
             for(int j = jmp.line; j >= jmp.destLine && j >= 0; j--)
                 numLines[j] = jmp.jumpOffset;
         }
-        if(jmp.line >= 0 && jmp.line < viewableRows)
-            numLines[jmp.line + viewableRows] = jmp.jumpOffset;
-        if(jmp.destLine >= 0 && jmp.destLine < viewableRows)
-            numLines[jmp.destLine + viewableRows] = jmp.jumpOffset;
+        if(jmp.line >= 0 && jmp.line < mViewableRows)
+            numLines[jmp.line + mViewableRows] = jmp.jumpOffset;
+        if(jmp.destLine >= 0 && jmp.destLine < mViewableRows)
+            numLines[jmp.destLine + mViewableRows] = jmp.jumpOffset;
     }
     // set label arrows according to jump offsets
     auto viewportWidth = viewport()->width();
     const int JumpPadding = 11;
     for(auto i = labelArrows.begin(); i != labelArrows.end(); i++)
     {
-        if(numLines[i->line + viewableRows] != 0)
-            i->endX = viewportWidth - numLines[i->line + viewableRows] * JumpPadding - 15 - fontHeight; // This expression should be consistent with drawJump
+        if(numLines[i->line + mViewableRows] != 0)
+            i->endX = viewportWidth - numLines[i->line + mViewableRows] * JumpPadding - 15 - mFontHeight; // This expression should be consistent with drawJump
         else
-            i->endX = viewportWidth - 1 - 11 - (isFoldingGraphicsPresent(i->line) != 0 ? mBulletRadius + fontHeight : 0);
+            i->endX = viewportWidth - 1 - 11 - (isFoldingGraphicsPresent(i->line) != 0 ? mBulletRadius + mFontHeight : 0);
     }
     delete[] numLines;
 }
@@ -874,13 +867,13 @@ int CPUSideBar::isFoldingGraphicsPresent(int line)
     const Instruction_t* instr = &mInstrBuffer->at(line);
     if(instr == nullptr) //Selection out of a memory page
         return 0;
-    auto wVA = instr->rva + mDisas->getBase();
-    if(mCodeFoldingManager.isFoldStart(wVA)) //Code is already folded
+    auto va = instr->rva + mDisassembly->getBase();
+    if(mCodeFoldingManager.isFoldStart(va)) //Code is already folded
         return 1;
-    const dsint SelectionStart = mDisas->getSelectionStart();
-    const dsint SelectionEnd = mDisas->getSelectionEnd();
+    const dsint SelectionStart = mDisassembly->getSelectionStart();
+    const dsint SelectionEnd = mDisassembly->getSelectionEnd();
     duint start, end;
-    if((DbgArgumentGet(wVA, &start, &end) || DbgFunctionGet(wVA, &start, &end)) && wVA == start)
+    if((DbgArgumentGet(va, &start, &end) || DbgFunctionGet(va, &start, &end)) && va == start)
     {
         return end - start + 1 != instr->length ? 1 : 0;
     }

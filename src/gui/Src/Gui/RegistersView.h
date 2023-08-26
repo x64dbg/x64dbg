@@ -238,8 +238,8 @@ protected:
     // contains names of closest registers in view
     QMap<REGISTER_NAME, Register_Relative_Position> mRegisterRelativePlaces;
     // contains a dump of the current register values
-    REGDUMP wRegDumpStruct;
-    REGDUMP wCipRegDumpStruct;
+    REGDUMP mRegDumpStruct;
+    REGDUMP mCipRegDumpStruct;
     // font measures (TODO: create a class that calculates all thos values)
     unsigned int mRowHeight, mCharWidth;
     // SIMD registers display mode

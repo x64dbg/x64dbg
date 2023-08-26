@@ -5,17 +5,17 @@
 class VaHistory
 {
 public:
-    void addVaToHistory(duint parVa)
+    void addVaToHistory(duint va)
     {
         //truncate everything right from the current VA
         if(mVaHistory.size() && mCurrentVa < mVaHistory.size() - 1) //mCurrentVa is not the last
             mVaHistory.erase(mVaHistory.begin() + mCurrentVa + 1, mVaHistory.end());
 
         //do not have 2x the same va in a row
-        if(!mVaHistory.size() || mVaHistory.back() != parVa)
+        if(!mVaHistory.size() || mVaHistory.back() != va)
         {
             mCurrentVa++;
-            mVaHistory.push_back(parVa);
+            mVaHistory.push_back(va);
         }
     }
 

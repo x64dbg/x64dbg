@@ -331,25 +331,25 @@ Instruction_t QBeaEngine::DecodeDataAt(const byte_t* data, duint size, duint ori
 
     _tokenizer.TokenizeData(mnemonic, datastr, cap);
 
-    Instruction_t wInst;
-    wInst.instStr = mnemonic + " " + datastr;
-    wInst.dump = QByteArray((const char*)data, len);
-    wInst.rva = origInstRVA;
-    wInst.length = len;
-    wInst.branchType = Instruction_t::None;
-    wInst.branchDestination = 0;
-    wInst.tokens = cap;
-    wInst.prefixSize = 0;
-    wInst.opcodeSize = len;
-    wInst.group1Size = 0;
-    wInst.group2Size = 0;
-    wInst.group3Size = 0;
-    wInst.vectorElementType[0] = Zydis::VETDefault;
-    wInst.vectorElementType[1] = Zydis::VETDefault;
-    wInst.vectorElementType[2] = Zydis::VETDefault;
-    wInst.vectorElementType[3] = Zydis::VETDefault;
+    Instruction_t inst;
+    inst.instStr = mnemonic + " " + datastr;
+    inst.dump = QByteArray((const char*)data, len);
+    inst.rva = origInstRVA;
+    inst.length = len;
+    inst.branchType = Instruction_t::None;
+    inst.branchDestination = 0;
+    inst.tokens = cap;
+    inst.prefixSize = 0;
+    inst.opcodeSize = len;
+    inst.group1Size = 0;
+    inst.group2Size = 0;
+    inst.group3Size = 0;
+    inst.vectorElementType[0] = Zydis::VETDefault;
+    inst.vectorElementType[1] = Zydis::VETDefault;
+    inst.vectorElementType[2] = Zydis::VETDefault;
+    inst.vectorElementType[3] = Zydis::VETDefault;
 
-    return wInst;
+    return inst;
 }
 
 void QBeaEngine::UpdateDataInstructionMap()

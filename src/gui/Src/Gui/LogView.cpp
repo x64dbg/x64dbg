@@ -133,32 +133,32 @@ void LogView::refreshShortcutsSlot()
 
 void LogView::contextMenuEvent(QContextMenuEvent* event)
 {
-    QMenu wMenu(this);
-    wMenu.addAction(actionClear);
-    wMenu.addAction(actionSelectAll);
-    wMenu.addAction(actionCopy);
+    QMenu menu(this);
+    menu.addAction(actionClear);
+    menu.addAction(actionSelectAll);
+    menu.addAction(actionCopy);
     if(QApplication::clipboard()->mimeData()->hasText())
-        wMenu.addAction(actionPaste);
-    wMenu.addAction(actionSave);
+        menu.addAction(actionPaste);
+    menu.addAction(actionSave);
     if(getLoggingEnabled())
         actionToggleLogging->setText(tr("Disable &Logging"));
     else
         actionToggleLogging->setText(tr("Enable &Logging"));
     actionCopyToDebuggeeNotes->setEnabled(DbgIsDebugging());
-    wMenu.addMenu(menuCopyToNotes);
-    wMenu.addAction(actionToggleLogging);
+    menu.addMenu(menuCopyToNotes);
+    menu.addAction(actionToggleLogging);
     actionAutoScroll->setChecked(autoScroll);
-    wMenu.addAction(actionAutoScroll);
-    wMenu.addAction(actionFindInLog);
-    wMenu.addAction(actionFindNext);
-    wMenu.addAction(actionFindPrevious);
+    menu.addAction(actionAutoScroll);
+    menu.addAction(actionFindInLog);
+    menu.addAction(actionFindNext);
+    menu.addAction(actionFindPrevious);
     if(logRedirection == nullptr)
         actionRedirectLog->setText(tr("&Redirect Log..."));
     else
         actionRedirectLog->setText(tr("Stop &Redirection"));
-    wMenu.addAction(actionRedirectLog);
+    menu.addAction(actionRedirectLog);
 
-    wMenu.exec(event->globalPos());
+    menu.exec(event->globalPos());
 }
 
 void LogView::showEvent(QShowEvent* event)

@@ -297,16 +297,16 @@ void SearchListView::clearFilter()
 
 void SearchListView::listContextMenu(const QPoint & pos)
 {
-    QMenu wMenu(this);
-    emit listContextMenuSignal(&wMenu);
-    wMenu.addSeparator();
-    wMenu.addAction(mSearchAction);
-    QMenu wCopyMenu(tr("&Copy"), this);
-    wCopyMenu.setIcon(DIcon("copy"));
-    mCurList->setupCopyMenu(&wCopyMenu);
-    if(wCopyMenu.actions().length())
-        wMenu.addMenu(&wCopyMenu);
-    wMenu.exec(mCurList->mapToGlobal(pos));
+    QMenu menu(this);
+    emit listContextMenuSignal(&menu);
+    menu.addSeparator();
+    menu.addAction(mSearchAction);
+    QMenu copyMenu(tr("&Copy"), this);
+    copyMenu.setIcon(DIcon("copy"));
+    mCurList->setupCopyMenu(&copyMenu);
+    if(copyMenu.actions().length())
+        menu.addMenu(&copyMenu);
+    menu.exec(mCurList->mapToGlobal(pos));
 }
 
 void SearchListView::doubleClickedSlot()

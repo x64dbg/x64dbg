@@ -26,7 +26,7 @@ public slots:
 
     void setSingleSelection(int index, bool scroll);
     void addCommand(QString title, QString command);
-    void referenceContextMenu(QMenu* wMenu);
+    void referenceContextMenu(QMenu* menu);
     void followAddress();
     void followDumpAddress();
     void followApiAddress();

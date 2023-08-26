@@ -10,8 +10,7 @@ StdTable::StdTable(QWidget* parent) : AbstractStdTable(parent)
 ************************************************************************************/
 bool StdTable::SortBy::AsText(const QString & a, const QString & b)
 {
-    auto i = QString::compare(a, b);
-    return i < 0;
+    return QString::compare(a, b) < 0;
 }
 
 bool StdTable::SortBy::AsInt(const QString & a, const QString & b)

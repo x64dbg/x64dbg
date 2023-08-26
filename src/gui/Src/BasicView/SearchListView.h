@@ -32,7 +32,7 @@ private slots:
 
 signals:
     void enterPressedSignal();
-    void listContextMenuSignal(QMenu* wMenu);
+    void listContextMenuSignal(QMenu* menu);
     void emptySearchResult();
 
 protected:

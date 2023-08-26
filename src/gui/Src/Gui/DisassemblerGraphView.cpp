@@ -1026,14 +1026,14 @@ bool DisassemblerGraphView::getTokenForMouseEvent(QMouseEvent* event, ZydisToken
         int row = int(blocky / this->charHeight);
 
         //Check tokens to see if one was clicked
-        int selectedCodeRow = row - block.block.header_text.lines.size();
+        int selectedCodeRow = row - (int)block.block.header_text.lines.size();
         if(selectedCodeRow < 0)
             return false; // skip the header
 
         int rowIndex = 0;
         for(auto & instr : block.block.instrs)
         {
-            int lineCount = instr.text.lines.size();
+            auto lineCount = (int)instr.text.lines.size();
 
             if(rowIndex + lineCount > selectedCodeRow)
             {
@@ -1111,9 +1111,9 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
         }
         else if(event->button() == Qt::RightButton)
         {
-            QMenu wMenu(this);
-            mMenuBuilder->build(&wMenu);
-            wMenu.exec(event->globalPos()); //execute context menu
+            QMenu menu(this);
+            mMenuBuilder->build(&menu);
+            menu.exec(event->globalPos()); //execute context menu
         }
     }
     else if(event->button() & (Qt::LeftButton | Qt::RightButton))
@@ -1182,9 +1182,9 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
             if(overrideCtxMenu && !mHighlightToken.text.isEmpty())
             {
                 // show the "copy highlighted token" context menu
-                QMenu wMenu(this);
-                mHighlightMenuBuilder->build(&wMenu);
-                wMenu.exec(event->globalPos());
+                QMenu menu(this);
+                mHighlightMenuBuilder->build(&menu);
+                menu.exec(event->globalPos());
                 lastRightClickPosition.pos = {};
             }
             else if(!overrideCtxMenu)
@@ -2415,9 +2415,9 @@ void DisassemblerGraphView::setupContextMenu()
 
 void DisassemblerGraphView::showContextMenu(QMouseEvent* event)
 {
-    QMenu wMenu(this);
-    mMenuBuilder->build(&wMenu);
-    wMenu.exec(event->globalPos());
+    QMenu menu(this);
+    mMenuBuilder->build(&menu);
+    menu.exec(event->globalPos());
 
     lastRightClickPosition.pos = {};
 }
@@ -2596,17 +2596,17 @@ void DisassemblerGraphView::xrefSlot()
 {
     if(!DbgIsDebugging())
         return;
-    duint wVA = this->get_cursor_pos();
-    if(!DbgMemIsValidReadPtr(wVA))
+    duint va = this->get_cursor_pos();
+    if(!DbgMemIsValidReadPtr(va))
         return;
     XREF_INFO mXrefInfo;
-    DbgXrefGet(wVA, &mXrefInfo);
+    DbgXrefGet(va, &mXrefInfo);
     if(!mXrefInfo.refcount)
         return;
     BridgeFree(mXrefInfo.references);
     if(!mXrefDlg)
         mXrefDlg = new XrefBrowseDialog(this);
-    mXrefDlg->setup(wVA, [](duint addr)
+    mXrefDlg->setup(va, [](duint addr)
     {
         DbgCmdExec(QString("graph %1").arg(ToPtrString(addr)));
     });

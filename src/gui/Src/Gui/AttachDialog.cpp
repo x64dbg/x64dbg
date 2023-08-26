@@ -138,12 +138,12 @@ retryFindWindow:
     }
 }
 
-void AttachDialog::processListContextMenu(QMenu* wMenu)
+void AttachDialog::processListContextMenu(QMenu* menu)
 {
     // Don't show menu options if nothing is listed
     if(!mSearchListView->mCurList->getRowCount())
         return;
 
-    wMenu->addAction(mAttachAction);
-    wMenu->addAction(mRefreshAction);
+    menu->addAction(mAttachAction);
+    menu->addAction(mRefreshAction);
 }

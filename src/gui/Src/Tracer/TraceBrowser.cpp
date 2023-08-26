@@ -317,12 +317,12 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
     reg = mTraceFile->Registers(index);
     cur_addr = reg.regcontext.cip;
     auto traceCount = DbgFunctions()->GetTraceRecordHitCount(cur_addr);
-    bool wIsSelected = (index >= mSelection.fromIndex && index <= mSelection.toIndex);
+    bool rowSelected = (index >= mSelection.fromIndex && index <= mSelection.toIndex);
 
     // Highlight if selected
-    if(wIsSelected && traceCount)
+    if(rowSelected && traceCount)
         painter->fillRect(QRect(x, y, w, h), QBrush(mTracedSelectedAddressBackgroundColor));
-    else if(wIsSelected)
+    else if(rowSelected)
         painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
     else if(traceCount)
     {

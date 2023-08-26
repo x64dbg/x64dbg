@@ -2,7 +2,7 @@
 
 #include <QAbstractScrollArea>
 #include <QPen>
-#include "QBeaEngine.h"
+#include "QZydis.h"
 #include "CodeFolding.h"
 #include "Imports.h"
 
@@ -11,11 +11,11 @@ class CPUDisassembly;
 class CPUSideBar : public QAbstractScrollArea
 {
     Q_OBJECT
-    QPair<dsint, dsint> mHighlightedJump;
+    QPair<duint, duint> mHighlightedJump;
 
 public:
     // Constructors
-    explicit CPUSideBar(CPUDisassembly* Ptr, QWidget* parent = 0);
+    CPUSideBar(CPUDisassembly* disassembly, QWidget* parent = 0);
     ~CPUSideBar();
 
     QSize sizeHint() const;
@@ -38,9 +38,9 @@ public slots:
 
     void debugStateChangedSlot(DBGSTATE state);
     void reload();
-    void changeTopmostAddress(dsint i);
-    void setViewableRows(int rows);
-    void setSelection(dsint selVA);
+    void changeTopmostAddress(duint i);
+    void setViewableRows(duint rows);
+    void setSelection(duint selVA);
     void foldDisassembly(duint startAddress, duint length);
 
 protected:
@@ -56,19 +56,19 @@ protected:
     CodeFoldingHelper mCodeFoldingManager;
 
 private:
-    CachedFontMetrics* mFontMetrics;
-    dsint topVA;
-    dsint selectedVA;
+    CachedFontMetrics* mFontMetrics = nullptr;
+    duint mTopVA = -1;
+    duint mSelectedVA = -1;
     QFont mDefaultFont;
-    int fontWidth, fontHeight;
-    int viewableRows;
-    int mBulletRadius;
+    int mFontWidth = 0;
+    int mFontHeight = 0;
+    duint mViewableRows = 0;
+    int mBulletRadius = 0;
     int mBulletYOffset = 10;
     const int mBulletXOffset = 10;
-
-    CPUDisassembly* mDisas;
+    CPUDisassembly* mDisassembly = nullptr;
     QList<Instruction_t>* mInstrBuffer;
-    REGDUMP regDump;
+    REGDUMP mRegDump = {};
 
     struct JumpLine
     {

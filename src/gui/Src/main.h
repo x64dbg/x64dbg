@@ -21,7 +21,7 @@ public:
 };
 
 int main(int argc, char* argv[]);
-extern char currentLocale[MAX_SETTING_SIZE];
+extern char gCurrentLocale[MAX_SETTING_SIZE];
 
 struct TranslatedStringStorage
 {

@@ -39,9 +39,9 @@ private slots:
     void symbolFollowImport();
     void symbolSelectModule(duint base);
     void enterPressedSlot();
-    void symbolContextMenu(QMenu* wMenu);
+    void symbolContextMenu(QMenu* menu);
     void symbolRefreshCurrent();
-    void moduleContextMenu(QMenu* wMenu);
+    void moduleContextMenu(QMenu* menu);
     void moduleFollow();
     void moduleEntryFollow();
     void moduleDownloadSymbols();

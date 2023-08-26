@@ -465,21 +465,21 @@ void AbstractTableView::mousePressEvent(QMouseEvent* event)
 {
     if(((event->buttons() & Qt::LeftButton) != 0) && ((event->buttons() & Qt::RightButton) == 0))
     {
-        if(mColResizeData.splitHandle == true)
+        if(mColResizeData.splitHandle)
         {
-            int wColIndex = getColumnDisplayIndexFromX(event->x());
-            int wDisplayIndex = getColumnDisplayIndexFromX(event->x());
-            int wStartPos = getColumnPosition(wDisplayIndex); // Position X of the start of column
+            int colIndex = getColumnDisplayIndexFromX(event->x());
+            int displayIndex = getColumnDisplayIndexFromX(event->x());
+            int startPos = getColumnPosition(displayIndex); // Position X of the start of column
 
             mGuiState = AbstractTableView::ResizeColumnState;
 
-            if(event->x() <= (wStartPos + 2))
+            if(event->x() <= (startPos + 2))
             {
-                mColResizeData.index = wColIndex - 1;
+                mColResizeData.index = colIndex - 1;
             }
             else
             {
-                mColResizeData.index = wColIndex;
+                mColResizeData.index = colIndex;
             }
 
             mColResizeData.lastPosX = event->x();
@@ -488,16 +488,16 @@ void AbstractTableView::mousePressEvent(QMouseEvent* event)
         {
             mReorderStartX = event->x();
 
-            int wColIndex = getColumnIndexFromX(event->x());
-            if(mColumnList[wColIndex].header.isClickable)
+            int colIndex = getColumnIndexFromX(event->x());
+            if(mColumnList[colIndex].header.isClickable)
             {
-                //qDebug() << "Button " << wColIndex << "has been pressed.";
-                emit headerButtonPressed(wColIndex);
+                //qDebug() << "Button " << colIndex << "has been pressed.";
+                emit headerButtonPressed(colIndex);
 
-                mColumnList[wColIndex].header.isPressed = true;
-                mColumnList[wColIndex].header.isMouseOver = true;
+                mColumnList[colIndex].header.isPressed = true;
+                mColumnList[colIndex].header.isMouseOver = true;
 
-                mHeader.activeButtonIndex = wColIndex;
+                mHeader.activeButtonIndex = colIndex;
 
                 mGuiState = AbstractTableView::HeaderButtonPressed;
 
@@ -536,9 +536,8 @@ void AbstractTableView::mouseReleaseEvent(QMouseEvent* event)
         }
         else if(mGuiState == AbstractTableView::HeaderButtonPressed)
         {
-            if(mColumnList[mHeader.activeButtonIndex].header.isMouseOver == true)
+            if(mColumnList[mHeader.activeButtonIndex].header.isMouseOver)
             {
-                //qDebug() << "Button " << mHeader.activeButtonIndex << "has been released.";
                 emit headerButtonReleased(mHeader.activeButtonIndex);
             }
             mGuiState = AbstractTableView::NoState;
@@ -662,28 +661,34 @@ void AbstractTableView::leaveEvent(QEvent* event)
  */
 void AbstractTableView::keyPressEvent(QKeyEvent* event)
 {
-    int wKey = event->key();
+    auto key = event->key();
     if(event->modifiers() != Qt::NoModifier && event->modifiers() != Qt::KeypadModifier)
-        return;
+        return QAbstractScrollArea::keyPressEvent(event);
 
-    if(wKey == Qt::Key_Up)
+    if(key == Qt::Key_Up)
     {
         verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
     }
-    else if(wKey == Qt::Key_Down)
+    else if(key == Qt::Key_Down)
     {
         verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
     }
-    else if(wKey == Qt::Key_PageUp)
+    else if(key == Qt::Key_PageUp)
     {
         verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepSub);
     }
-    else if(wKey == Qt::Key_PageDown)
+    else if(key == Qt::Key_PageDown)
     {
         verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepAdd);
     }
-    else if(wKey == Qt::Key_Return || wKey == Qt::Key_Enter) //user pressed enter
+    else if(key == Qt::Key_Return || key == Qt::Key_Enter) //user pressed enter
+    {
         emit enterPressedSignal();
+    }
+    else
+    {
+        QAbstractScrollArea::keyPressEvent(event);
+    }
 }
 
 /************************************************************************************
@@ -918,26 +923,26 @@ int AbstractTableView::getIndexOffsetFromY(int y) const
  */
 int AbstractTableView::getColumnIndexFromX(int x) const
 {
-    int wX = -horizontalScrollBar()->value();
-    int wColIndex = 0;
+    int scrollX = -horizontalScrollBar()->value();
+    duint colIndex = 0;
 
-    while(wColIndex < getColumnCount())
+    while(colIndex < getColumnCount())
     {
-        int col = mColumnOrder[wColIndex];
+        auto col = mColumnOrder[colIndex];
         if(getColumnHidden(col))
         {
-            wColIndex++;
+            colIndex++;
             continue;
         }
-        wX += getColumnWidth(col);
+        scrollX += getColumnWidth(col);
 
-        if(x <= wX)
+        if(x <= scrollX)
         {
-            return mColumnOrder[wColIndex];
+            return mColumnOrder[colIndex];
         }
-        else if(wColIndex < getColumnCount())
+        else if(colIndex < getColumnCount())
         {
-            wColIndex++;
+            colIndex++;
         }
     }
     return getColumnCount() > 0 ? mColumnOrder[getColumnCount() - 1] : -1;
@@ -952,26 +957,26 @@ int AbstractTableView::getColumnIndexFromX(int x) const
  */
 int AbstractTableView::getColumnDisplayIndexFromX(int x)
 {
-    int wX = -horizontalScrollBar()->value();
-    int wColIndex = 0;
+    int scrollX = -horizontalScrollBar()->value();
+    int colIndex = 0;
 
-    while(wColIndex < getColumnCount())
+    while(colIndex < getColumnCount())
     {
-        int col = mColumnOrder[wColIndex];
+        auto col = mColumnOrder[colIndex];
         if(getColumnHidden(col))
         {
-            wColIndex++;
+            colIndex++;
             continue;
         }
-        wX += getColumnWidth(col);
+        scrollX += getColumnWidth(col);
 
-        if(x <= wX)
+        if(x <= scrollX)
         {
-            return wColIndex;
+            return colIndex;
         }
-        else if(wColIndex < getColumnCount())
+        else if(colIndex < getColumnCount())
         {
-            wColIndex++;
+            colIndex++;
         }
     }
     return getColumnCount() - 1;
@@ -1014,7 +1019,7 @@ int AbstractTableView::transY(int y) const
 }
 
 /**
- * @brief       Returns the number of viewable rows in the current window (Partially viewable rows are aslo counted).
+ * @brief       Returns the number of viewable rows in the current window (Partially viewable rows are also counted).
  *
  * @return      Number of viewable rows.
  */
@@ -1178,7 +1183,7 @@ int AbstractTableView::getColumnOrder(int index) const
 
 int AbstractTableView::getHeaderHeight() const
 {
-    if(mHeader.isVisible == true)
+    if(mHeader.isVisible)
         return mHeader.height;
     else
         return 0;
@@ -1211,7 +1216,7 @@ void AbstractTableView::setShowHeader(bool show)
 
 int AbstractTableView::getCharWidth() const
 {
-    return QFontMetrics(this->font()).width(QChar(' '));
+    return mFontMetrics->width(' ');
 }
 
 /************************************************************************************

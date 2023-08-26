@@ -9,9 +9,9 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
     if(!DbgIsDebugging())
         return;
 
-    QMenu wMenu(this); //create context menu
-    mMenuBuilder->build(&wMenu);
-    wMenu.exec(mapToGlobal(pos)); //execute context menu
+    QMenu menu(this); //create context menu
+    mMenuBuilder->build(&menu);
+    menu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 void ThreadView::GoToThreadEntry()

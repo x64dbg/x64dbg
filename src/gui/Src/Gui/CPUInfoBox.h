@@ -14,17 +14,17 @@ public:
     ~CPUInfoBox();
     int getHeight();
     void addFollowMenuItem(QMenu* menu, QString name, duint value);
-    void setupFollowMenu(QMenu* menu, duint wVA);
+    void setupFollowMenu(QMenu* menu, duint va);
     void addModifyValueMenuItem(QMenu* menu, QString name, duint value);
-    void setupModifyValueMenu(QMenu* menu, duint wVA);
+    void setupModifyValueMenu(QMenu* menu, duint va);
     void addWatchMenuItem(QMenu* menu, QString name, duint value);
-    void setupWatchMenu(QMenu* menu, duint wVA);
-    int followInDump(dsint wVA);
+    void setupWatchMenu(QMenu* menu, duint va);
+    int followInDump(duint va);
 
     static QString formatSSEOperand(const QByteArray & data, unsigned char vectorType);
 
 public slots:
-    void disasmSelectionChanged(dsint parVA);
+    void disasmSelectionChanged(duint parVA);
     void dbgStateChanged(DBGSTATE state);
     void contextMenuSlot(QPoint pos);
     void followActionSlot();
@@ -37,9 +37,9 @@ public slots:
     void addInfoLine(const QString & infoLine);
 
 private:
-    dsint curAddr;
-    dsint curRva;
-    dsint curOffset;
+    duint mCurAddr = 0;
+    duint mCurRva = 0;
+    duint mCurOffset = 0;
     void setInfoLine(int line, QString text);
     QString getInfoLine(int line);
     void clear();

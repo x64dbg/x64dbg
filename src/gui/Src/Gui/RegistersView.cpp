@@ -1194,8 +1194,8 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     connect(wCM_CopyAll, SIGNAL(triggered()), this, SLOT(onCopyAllAction()));
     connect(wCM_ChangeFPUView, SIGNAL(triggered()), this, SLOT(onChangeFPUViewAction()));
 
-    memset(&wRegDumpStruct, 0, sizeof(REGDUMP));
-    memset(&wCipRegDumpStruct, 0, sizeof(REGDUMP));
+    memset(&mRegDumpStruct, 0, sizeof(REGDUMP));
+    memset(&mCipRegDumpStruct, 0, sizeof(REGDUMP));
     mCip = 0;
     mRegisterUpdates.clear();
 
@@ -1226,10 +1226,10 @@ void RegistersView::fontsUpdatedSlot()
     if(mChangeViewButton)
         mChangeViewButton->setFont(font);
     //update metrics information
-    int wRowsHeight = QFontMetrics(this->font()).height();
-    wRowsHeight = (wRowsHeight * 105) / 100;
-    wRowsHeight = (wRowsHeight % 2) == 0 ? wRowsHeight : wRowsHeight + 1;
-    mRowHeight = wRowsHeight;
+    int rowHeight = QFontMetrics(this->font()).height();
+    rowHeight = (rowHeight * 105) / 100;
+    rowHeight = (rowHeight % 2) == 0 ? rowHeight : rowHeight + 1;
+    mRowHeight = rowHeight;
     mCharWidth = QFontMetrics(this->font()).averageCharWidth();
 
     //reload layout because the layout is dependent on the font.
@@ -1451,7 +1451,7 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     {
         char dat[1024];
         LASTERROR* error;
-        error = (LASTERROR*)registerValue(&wRegDumpStruct, LastError);
+        error = (LASTERROR*)registerValue(&mRegDumpStruct, LastError);
         if(DbgFunctions()->StringFormatInline(QString().sprintf("{winerror@%X}", error->code).toUtf8().constData(), sizeof(dat), dat))
             return dat;
         else
@@ -1461,7 +1461,7 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     {
         char dat[1024];
         LASTSTATUS* error;
-        error = (LASTSTATUS*)registerValue(&wRegDumpStruct, LastStatus);
+        error = (LASTSTATUS*)registerValue(&mRegDumpStruct, LastStatus);
         if(DbgFunctions()->StringFormatInline(QString().sprintf("{ntstatus@%X}", error->code).toUtf8().constData(), sizeof(dat), dat))
             return dat;
         else
@@ -1552,9 +1552,9 @@ void RegistersView::paintEvent(QPaintEvent* event)
             mChangeViewButton->setText(tr("Show FPU"));
     }
 
-    QPainter wPainter(this->viewport());
-    wPainter.setFont(font());
-    wPainter.fillRect(wPainter.viewport(), QBrush(ConfigColor("RegistersBackgroundColor")));
+    QPainter painter(this->viewport());
+    painter.setFont(font());
+    painter.fillRect(painter.viewport(), QBrush(ConfigColor("RegistersBackgroundColor")));
 
     // Don't draw the registers if a program isn't actually running
     if(!isActive)
@@ -1564,7 +1564,7 @@ void RegistersView::paintEvent(QPaintEvent* event)
     for(auto itr = mRegisterMapping.begin(); itr != mRegisterMapping.end(); itr++)
     {
         // Paint register at given position
-        drawRegister(&wPainter, itr.key(), registerValue(&wRegDumpStruct, itr.key()));
+        drawRegister(&painter, itr.key(), registerValue(&mRegDumpStruct, itr.key()));
     }
 }
 
@@ -1629,8 +1629,8 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
     char string_text[MAX_STRING_SIZE] = "";
     char status_text[MAX_STRING_SIZE] = "";
 
-    QString valueText = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, register_selected))), mRegisterPlaces[register_selected].valuesize, 16, QChar('0')).toUpper();
-    duint register_value = (* ((duint*) registerValue(&wRegDumpStruct, register_selected)));
+    QString valueText = QString("%1").arg((* ((duint*) registerValue(&mRegDumpStruct, register_selected))), mRegisterPlaces[register_selected].valuesize, 16, QChar('0')).toUpper();
+    duint register_value = (* ((duint*) registerValue(&mRegDumpStruct, register_selected)));
     QString newText = QString("");
 
     bool hasString = DbgGetStringAt(register_value, string_text);
@@ -2113,11 +2113,11 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
 
             if(reg >= x87r0 && reg <= x87r7)
             {
-                newText = QString("ST%1 ").arg(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, reg))->st_value);
+                newText = QString("ST%1 ").arg(((X87FPUREGISTER*) registerValue(&mRegDumpStruct, reg))->st_value);
             }
             else
             {
-                newText = QString("x87r%1 ").arg((wRegDumpStruct.x87StatusWordFields.TOP + (reg - x87st0)) & 7);
+                newText = QString("x87r%1 ").arg((mRegDumpStruct.x87StatusWordFields.TOP + (reg - x87st0)) & 7);
             }
             width = fontMetrics.width(newText);
             p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
@@ -2131,7 +2131,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
             if(reg >= x87r0 && reg <= x87r7 && mRegisterUpdates.contains((REGISTER_NAME)(x87TW_0 + (reg - x87r0))))
                 p->setPen(ConfigColor("RegistersModifiedColor"));
 
-            newText += GetTagWordStateString(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, reg))->tag) + QString(" ");
+            newText += GetTagWordStateString(((X87FPUREGISTER*) registerValue(&mRegDumpStruct, reg))->tag) + QString(" ");
 
             width = fontMetrics.width(newText);
             p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
@@ -2145,7 +2145,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
             if(isActive && mRegisterUpdates.contains(reg))
                 p->setPen(ConfigColor("RegistersModifiedColor"));
 
-            newText += ToLongDoubleString(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, reg))->data);
+            newText += ToLongDoubleString(((X87FPUREGISTER*) registerValue(&mRegDumpStruct, reg))->data);
             width = fontMetrics.width(newText);
             p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, newText);
         }
@@ -2179,7 +2179,7 @@ void RegistersView::appendRegister(QString & text, REGISTER_NAME reg, const char
     Q_UNUSED(name64);
     text.append(name32);
 #endif //_WIN64
-    text.append(GetRegStringValueFromValue(reg, registerValue(&wRegDumpStruct, reg)));
+    text.append(GetRegStringValueFromValue(reg, registerValue(&mRegDumpStruct, reg)));
     symbol = getRegisterLabel(reg);
     if(symbol != "")
     {
@@ -2268,12 +2268,12 @@ void RegistersView::onFpuMode()
 
 void RegistersView::onCopyToClipboardAction()
 {
-    Bridge::CopyToClipboard(GetRegStringValueFromValue(mSelected, registerValue(&wRegDumpStruct, mSelected)));
+    Bridge::CopyToClipboard(GetRegStringValueFromValue(mSelected, registerValue(&mRegDumpStruct, mSelected)));
 }
 
 void RegistersView::onCopyFloatingPointToClipboardAction()
 {
-    Bridge::CopyToClipboard(ToLongDoubleString(((X87FPUREGISTER*) registerValue(&wRegDumpStruct, mSelected))->data));
+    Bridge::CopyToClipboard(ToLongDoubleString(((X87FPUREGISTER*) registerValue(&mRegDumpStruct, mSelected))->data));
 }
 
 void RegistersView::onCopySymbolToClipboardAction()
@@ -2847,7 +2847,7 @@ void RegistersView::setRegisters(REGDUMP* reg)
     // tests if new-register-value == old-register-value holds
     if(mCip != reg->regcontext.cip) //CIP changed
     {
-        wCipRegDumpStruct = wRegDumpStruct;
+        mCipRegDumpStruct = mRegDumpStruct;
         mRegisterUpdates.clear();
         mCip = reg->regcontext.cip;
     }
@@ -2855,17 +2855,17 @@ void RegistersView::setRegisters(REGDUMP* reg)
     // iterate all ids (CAX, CBX, ...)
     for(auto itr = mRegisterMapping.begin(); itr != mRegisterMapping.end(); itr++)
     {
-        if(CompareRegisters(itr.key(), reg, &wCipRegDumpStruct) != 0)
+        if(CompareRegisters(itr.key(), reg, &mCipRegDumpStruct) != 0)
             mRegisterUpdates.insert(itr.key());
         else if(mRegisterUpdates.contains(itr.key())) //registers are equal
             mRegisterUpdates.remove(itr.key());
     }
 
     // now we can save the values
-    wRegDumpStruct = (*reg);
+    mRegDumpStruct = (*reg);
 
     if(mCip != reg->regcontext.cip)
-        wCipRegDumpStruct = wRegDumpStruct;
+        mCipRegDumpStruct = mRegDumpStruct;
 
     // force repaint
     emit refresh();

@@ -434,9 +434,9 @@ void SymbolView::moduleSelectionChanged(int index)
     for(auto index : mModuleList->mCurList->getSelection())
     {
         QString modBase = mModuleList->mCurList->getCellContent(index, ColBase);
-        duint wVA;
-        if(DbgFunctions()->ValFromString(modBase.toUtf8().constData(), &wVA))
-            selectedModules.push_back(wVA);
+        duint va = 0;
+        if(DbgFunctions()->ValFromString(modBase.toUtf8().constData(), &va))
+            selectedModules.push_back(va);
     }
 
     std::vector<SYMBOLPTR> data;
@@ -512,17 +512,17 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
         BridgeFree(modules);
 }
 
-void SymbolView::symbolContextMenu(QMenu* wMenu)
+void SymbolView::symbolContextMenu(QMenu* menu)
 {
     if(!mSymbolList->mCurList->getRowCount())
         return;
-    wMenu->addAction(mFollowSymbolAction);
-    wMenu->addAction(mFollowSymbolDumpAction);
+    menu->addAction(mFollowSymbolAction);
+    menu->addAction(mFollowSymbolDumpAction);
     if(mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 1) == tr("Import"))
-        wMenu->addAction(mFollowSymbolImportAction);
-    wMenu->addSeparator();
-    wMenu->addAction(mToggleBreakpoint);
-    wMenu->addAction(mToggleBookmark);
+        menu->addAction(mFollowSymbolImportAction);
+    menu->addSeparator();
+    menu->addAction(mToggleBreakpoint);
+    menu->addAction(mToggleBookmark);
 }
 
 void SymbolView::symbolRefreshCurrent()
@@ -587,43 +587,43 @@ void SymbolView::enterPressedSlot()
     }
 }
 
-void SymbolView::moduleContextMenu(QMenu* wMenu)
+void SymbolView::moduleContextMenu(QMenu* menu)
 {
     if(!DbgIsDebugging() || !mModuleList->mCurList->getRowCount())
         return;
 
-    wMenu->addAction(mFollowModuleAction);
-    wMenu->addAction(mFollowModuleEntryAction);
-    wMenu->addAction(mFollowInMemMap);
-    wMenu->addAction(mDownloadSymbolsAction);
-    wMenu->addAction(mDownloadAllSymbolsAction);
+    menu->addAction(mFollowModuleAction);
+    menu->addAction(mFollowModuleEntryAction);
+    menu->addAction(mFollowInMemMap);
+    menu->addAction(mDownloadSymbolsAction);
+    menu->addAction(mDownloadAllSymbolsAction);
     duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColBase).toUtf8().constData());
     char szModPath[MAX_PATH] = "";
     if(DbgFunctions()->ModPathFromAddr(modbase, szModPath, _countof(szModPath)))
     {
-        wMenu->addAction(mCopyPathAction);
-        wMenu->addAction(mBrowseInExplorer);
+        menu->addAction(mCopyPathAction);
+        menu->addAction(mBrowseInExplorer);
     }
-    wMenu->addAction(mLoadLib);
-    wMenu->addAction(mFreeLib);
-    wMenu->addSeparator();
+    menu->addAction(mLoadLib);
+    menu->addAction(mFreeLib);
+    menu->addSeparator();
     int party = DbgFunctions()->ModGetParty(modbase);
     if(party != 0)
-        wMenu->addAction(mModSetUserAction);
+        menu->addAction(mModSetUserAction);
     if(party != 1)
-        wMenu->addAction(mModSetSystemAction);
-    wMenu->addAction(mModSetPartyAction);
-    QMenu wCopyMenu(tr("&Copy"), this);
-    wCopyMenu.setIcon(DIcon("copy"));
-    mModuleList->mCurList->setupCopyMenu(&wCopyMenu);
-    if(wCopyMenu.actions().length())
+        menu->addAction(mModSetSystemAction);
+    menu->addAction(mModSetPartyAction);
+    QMenu copyMenu(tr("&Copy"), this);
+    copyMenu.setIcon(DIcon("copy"));
+    mModuleList->mCurList->setupCopyMenu(&copyMenu);
+    if(copyMenu.actions().length())
     {
-        wMenu->addSeparator();
-        wMenu->addMenu(&wCopyMenu);
+        menu->addSeparator();
+        menu->addMenu(&copyMenu);
     }
-    wMenu->addSeparator();
+    menu->addSeparator();
     DbgMenuPrepare(GUI_SYMMOD_MENU);
-    wMenu->addActions(mPluginMenu->actions());
+    menu->addActions(mPluginMenu->actions());
 }
 
 void SymbolView::moduleFollow()
@@ -731,30 +731,30 @@ void SymbolView::toggleBreakpoint()
     for(auto selectedIdx : selection)
     {
         QString addrText = mSymbolList->mCurList->getCellContent(selectedIdx, 0);
-        duint wVA;
-        if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
+        duint va;
+        if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &va))
             return;
 
         //Import means that the address is an IAT entry so we read the actual function address
         if(mSymbolList->mCurList->getCellContent(selectedIdx, 1) == tr("Import"))
-            DbgMemRead(wVA, &wVA, sizeof(wVA));
+            DbgMemRead(va, &va, sizeof(va));
 
-        if(!DbgMemIsValidReadPtr(wVA))
+        if(!DbgMemIsValidReadPtr(va))
             return;
 
-        BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
-        QString wCmd;
+        BPXTYPE bpType = DbgGetBpxTypeAt(va);
+        QString cmd;
 
-        if((wBpType & bp_normal) == bp_normal)
+        if((bpType & bp_normal) == bp_normal)
         {
-            wCmd = "bc " + ToPtrString(wVA);
+            cmd = "bc " + ToPtrString(va);
         }
         else
         {
-            wCmd = "bp " + ToPtrString(wVA);
+            cmd = "bp " + ToPtrString(va);
         }
 
-        DbgCmdExec(wCmd);
+        DbgCmdExec(cmd);
     }
 }
 
@@ -770,17 +770,17 @@ void SymbolView::toggleBookmark()
     for(auto index : selection)
     {
         QString addrText = mSymbolList->mCurList->getCellContent(index, 0);
-        duint wVA;
-        if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
+        duint va;
+        if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &va))
             return;
-        if(!DbgMemIsValidReadPtr(wVA))
+        if(!DbgMemIsValidReadPtr(va))
             return;
 
         bool result;
-        if(DbgGetBookmarkAt(wVA))
-            result = DbgSetBookmarkAt(wVA, false);
+        if(DbgGetBookmarkAt(va))
+            result = DbgSetBookmarkAt(va, false);
         else
-            result = DbgSetBookmarkAt(wVA, true);
+            result = DbgSetBookmarkAt(va, true);
         if(!result)
         {
             QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("DbgSetBookmarkAt failed!"));

@@ -112,9 +112,9 @@ QString SourceView::getSourcePath()
 
 void SourceView::contextMenuSlot(const QPoint & pos)
 {
-    QMenu wMenu(this);
-    mMenuBuilder->build(&wMenu);
-    wMenu.exec(mapToGlobal(pos));
+    QMenu menu(this);
+    mMenuBuilder->build(&menu);
+    menu.exec(mapToGlobal(pos));
 }
 
 void SourceView::gotoLineSlot()

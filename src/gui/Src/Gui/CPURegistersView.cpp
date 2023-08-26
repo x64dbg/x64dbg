@@ -252,17 +252,17 @@ void CPURegistersView::displayEditDialog()
             updateRegistersSlot();
         }
         else if(mFPUYMM.contains(mSelected))
-            editSIMDRegister(this, 256, tr("Edit YMM register"), registerValue(&wRegDumpStruct, mSelected), mSelected);
+            editSIMDRegister(this, 256, tr("Edit YMM register"), registerValue(&mRegDumpStruct, mSelected), mSelected);
         else if(mFPUXMM.contains(mSelected))
-            editSIMDRegister(this, 128, tr("Edit XMM register"), registerValue(&wRegDumpStruct, mSelected), mSelected);
+            editSIMDRegister(this, 128, tr("Edit XMM register"), registerValue(&mRegDumpStruct, mSelected), mSelected);
         else if(mFPUMMX.contains(mSelected))
-            editSIMDRegister(this, 64, tr("Edit MMX register"), registerValue(&wRegDumpStruct, mSelected), mSelected);
+            editSIMDRegister(this, 64, tr("Edit MMX register"), registerValue(&mRegDumpStruct, mSelected), mSelected);
         else
         {
             bool errorinput = false;
             LineEditDialog mLineEdit(this);
 
-            mLineEdit.setText(GetRegStringValueFromValue(mSelected,  registerValue(&wRegDumpStruct, mSelected)));
+            mLineEdit.setText(GetRegStringValueFromValue(mSelected,  registerValue(&mRegDumpStruct, mSelected)));
             mLineEdit.setWindowTitle(tr("Edit FPU register"));
             mLineEdit.setWindowIcon(DIcon("log"));
             mLineEdit.setCursorPosition(0);
@@ -357,7 +357,7 @@ void CPURegistersView::displayEditDialog()
     {
         bool errorinput = false;
         LineEditDialog mLineEdit(this);
-        LASTERROR* error = (LASTERROR*)registerValue(&wRegDumpStruct, LastError);
+        LASTERROR* error = (LASTERROR*)registerValue(&mRegDumpStruct, LastError);
         mLineEdit.setText(QString::number(error->code, 16));
         mLineEdit.setWindowTitle(tr("Set Last Error"));
         mLineEdit.setCursorPosition(0);
@@ -378,7 +378,7 @@ void CPURegistersView::displayEditDialog()
     {
         bool statusinput = false;
         LineEditDialog mLineEdit(this);
-        LASTSTATUS* status = (LASTSTATUS*)registerValue(&wRegDumpStruct, LastStatus);
+        LASTSTATUS* status = (LASTSTATUS*)registerValue(&mRegDumpStruct, LastStatus);
         mLineEdit.setText(QString::number(status->code, 16));
         mLineEdit.setWindowTitle(tr("Set Last Status"));
         mLineEdit.setCursorPosition(0);
@@ -397,10 +397,10 @@ void CPURegistersView::displayEditDialog()
     }
     else
     {
-        WordEditDialog wEditDial(this);
-        wEditDial.setup(tr("Edit"), (* ((duint*) registerValue(&wRegDumpStruct, mSelected))), sizeof(dsint));
-        if(wEditDial.exec() == QDialog::Accepted) //OK button clicked
-            setRegister(mSelected, wEditDial.getVal());
+        WordEditDialog editDialog(this);
+        editDialog.setup(tr("Edit"), (* ((duint*) registerValue(&mRegDumpStruct, mSelected))), sizeof(dsint));
+        if(editDialog.exec() == QDialog::Accepted) //OK button clicked
+            setRegister(mSelected, editDialog.getVal());
     }
 }
 
@@ -423,13 +423,13 @@ void CPURegistersView::CreateDumpNMenu(QMenu* dumpMenu)
 void CPURegistersView::onIncrementx87StackAction()
 {
     if(mFPUx87_80BITSDISPLAY.contains(mSelected))
-        setRegister(x87SW_TOP, ((* ((duint*) registerValue(&wRegDumpStruct, x87SW_TOP))) + 1) % 8);
+        setRegister(x87SW_TOP, ((* ((duint*) registerValue(&mRegDumpStruct, x87SW_TOP))) + 1) % 8);
 }
 
 void CPURegistersView::onDecrementx87StackAction()
 {
     if(mFPUx87_80BITSDISPLAY.contains(mSelected))
-        setRegister(x87SW_TOP, ((* ((duint*) registerValue(&wRegDumpStruct, x87SW_TOP))) - 1) % 8);
+        setRegister(x87SW_TOP, ((* ((duint*) registerValue(&mRegDumpStruct, x87SW_TOP))) - 1) % 8);
 }
 
 void CPURegistersView::onModifyAction()
@@ -442,7 +442,7 @@ void CPURegistersView::onIncrementAction()
 {
     if(mINCREMENTDECREMET.contains(mSelected))
     {
-        duint value = *((duint*) registerValue(&wRegDumpStruct, mSelected));
+        duint value = *((duint*) registerValue(&mRegDumpStruct, mSelected));
         setRegister(mSelected, value + 1);
     }
 }
@@ -451,7 +451,7 @@ void CPURegistersView::onDecrementAction()
 {
     if(mINCREMENTDECREMET.contains(mSelected))
     {
-        duint value = *((duint*) registerValue(&wRegDumpStruct, mSelected));
+        duint value = *((duint*) registerValue(&mRegDumpStruct, mSelected));
         setRegister(mSelected, value - 1);
     }
 }
@@ -466,7 +466,7 @@ void CPURegistersView::onToggleValueAction()
 {
     if(mBOOLDISPLAY.contains(mSelected))
     {
-        int value = (int)(* (bool*) registerValue(&wRegDumpStruct, mSelected));
+        int value = (int)(* (bool*) registerValue(&mRegDumpStruct, mSelected));
         setRegister(mSelected, value ^ 1);
     }
 }
@@ -476,9 +476,9 @@ void CPURegistersView::onUndoAction()
     if(mUNDODISPLAY.contains(mSelected))
     {
         if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
-            setRegister(mSelected, (duint)registerValue(&wCipRegDumpStruct, mSelected));
+            setRegister(mSelected, (duint)registerValue(&mCipRegDumpStruct, mSelected));
         else
-            setRegister(mSelected, *(duint*)registerValue(&wCipRegDumpStruct, mSelected));
+            setRegister(mSelected, *(duint*)registerValue(&mCipRegDumpStruct, mSelected));
     }
 }
 
@@ -507,8 +507,8 @@ void CPURegistersView::onFollowInDisassembly()
 {
     if(mCANSTOREADDRESS.contains(mSelected))
     {
-        QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
-        if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&wRegDumpStruct, mSelected)))))
+        QString addr = QString("%1").arg((* ((duint*) registerValue(&mRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&mRegDumpStruct, mSelected)))))
             DbgCmdExec(QString().sprintf("disasm \"%s\"", addr.toUtf8().constData()));
     }
 }
@@ -517,8 +517,8 @@ void CPURegistersView::onFollowInDump()
 {
     if(mCANSTOREADDRESS.contains(mSelected))
     {
-        QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
-        if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&wRegDumpStruct, mSelected)))))
+        QString addr = QString("%1").arg((* ((duint*) registerValue(&mRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&mRegDumpStruct, mSelected)))))
             DbgCmdExec(QString().sprintf("dump \"%s\"", addr.toUtf8().constData()));
     }
 }
@@ -527,8 +527,8 @@ void CPURegistersView::onFollowInDumpN()
 {
     if(mCANSTOREADDRESS.contains(mSelected))
     {
-        QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
-        if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&wRegDumpStruct, mSelected)))))
+        QString addr = QString("%1").arg((* ((duint*) registerValue(&mRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&mRegDumpStruct, mSelected)))))
         {
             QAction* action = qobject_cast<QAction*>(sender());
             int numDump = action->data().toInt();
@@ -541,8 +541,8 @@ void CPURegistersView::onFollowInStack()
 {
     if(mCANSTOREADDRESS.contains(mSelected))
     {
-        QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
-        if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&wRegDumpStruct, mSelected)))))
+        QString addr = QString("%1").arg((* ((duint*) registerValue(&mRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&mRegDumpStruct, mSelected)))))
             DbgCmdExec(QString().sprintf("sdump \"%s\"", addr.toUtf8().constData()));
     }
 }
@@ -551,8 +551,8 @@ void CPURegistersView::onFollowInMemoryMap()
 {
     if(mCANSTOREADDRESS.contains(mSelected))
     {
-        QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
-        if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&wRegDumpStruct, mSelected)))))
+        QString addr = QString("%1").arg((* ((duint*) registerValue(&mRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&mRegDumpStruct, mSelected)))))
             DbgCmdExec(QString().sprintf("memmapdump \"%s\"", addr.toUtf8().constData()));
     }
 }
@@ -561,7 +561,7 @@ void CPURegistersView::onRemoveHardware()
 {
     if(mSelected == DR0 || mSelected == DR1 || mSelected == DR2 || mSelected == DR3)
     {
-        QString addr = QString("%1").arg((* ((duint*) registerValue(&wRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
+        QString addr = QString("%1").arg((* ((duint*) registerValue(&mRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
         DbgCmdExec(QString().sprintf("bphc \"%s\"", addr.toUtf8().constData()));
     }
 }
@@ -570,7 +570,7 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
 {
     if(!isActive)
         return;
-    QMenu wMenu(this);
+    QMenu menu(this);
     QMenu* followInDumpNMenu = nullptr;
     setupSIMDModeMenu();
 
@@ -578,111 +578,111 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
     {
         if(mMODIFYDISPLAY.contains(mSelected))
         {
-            wMenu.addAction(wCM_Modify);
+            menu.addAction(wCM_Modify);
         }
 
         if(mINCREMENTDECREMET.contains(mSelected))
         {
-            wMenu.addAction(wCM_Increment);
-            wMenu.addAction(wCM_Decrement);
-            wMenu.addAction(wCM_Zero);
+            menu.addAction(wCM_Increment);
+            menu.addAction(wCM_Decrement);
+            menu.addAction(wCM_Zero);
         }
 
         if(mCANSTOREADDRESS.contains(mSelected))
         {
-            duint addr = (* ((duint*) registerValue(&wRegDumpStruct, mSelected)));
+            duint addr = (* ((duint*) registerValue(&mRegDumpStruct, mSelected)));
             if(DbgMemIsValidReadPtr(addr))
             {
-                wMenu.addAction(wCM_FollowInDump);
-                followInDumpNMenu = new QMenu(tr("Follow in &Dump"), &wMenu);
+                menu.addAction(wCM_FollowInDump);
+                followInDumpNMenu = new QMenu(tr("Follow in &Dump"), &menu);
                 CreateDumpNMenu(followInDumpNMenu);
-                wMenu.addMenu(followInDumpNMenu);
-                wMenu.addAction(wCM_FollowInDisassembly);
-                wMenu.addAction(wCM_FollowInMemoryMap);
+                menu.addMenu(followInDumpNMenu);
+                menu.addAction(wCM_FollowInDisassembly);
+                menu.addAction(wCM_FollowInMemoryMap);
                 duint size = 0;
                 duint base = DbgMemFindBaseAddr(DbgValFromString("csp"), &size);
                 if(addr >= base && addr < base + size)
-                    wMenu.addAction(wCM_FollowInStack);
+                    menu.addAction(wCM_FollowInStack);
             }
         }
 
         if(mSelected == DR0 || mSelected == DR1 || mSelected == DR2 || mSelected == DR3)
         {
-            if(* ((duint*) registerValue(&wRegDumpStruct, mSelected)) != 0)
-                wMenu.addAction(wCM_RemoveHardware);
+            if(* ((duint*) registerValue(&mRegDumpStruct, mSelected)) != 0)
+                menu.addAction(wCM_RemoveHardware);
         }
 
-        wMenu.addAction(wCM_CopyToClipboard);
+        menu.addAction(wCM_CopyToClipboard);
         if(mFPUx87_80BITSDISPLAY.contains(mSelected))
         {
-            wMenu.addAction(wCM_CopyFloatingPointValueToClipboard);
+            menu.addAction(wCM_CopyFloatingPointValueToClipboard);
         }
         if(mLABELDISPLAY.contains(mSelected))
         {
             QString symbol = getRegisterLabel(mSelected);
             if(symbol != "")
-                wMenu.addAction(wCM_CopySymbolToClipboard);
+                menu.addAction(wCM_CopySymbolToClipboard);
         }
-        wMenu.addAction(wCM_CopyAll);
+        menu.addAction(wCM_CopyAll);
 
         if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mSEGMENTREGISTER.contains(mSelected) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
         {
-            wMenu.addAction(wCM_Highlight);
+            menu.addAction(wCM_Highlight);
         }
 
-        if(mUNDODISPLAY.contains(mSelected) && CompareRegisters(mSelected, &wRegDumpStruct, &wCipRegDumpStruct) != 0)
+        if(mUNDODISPLAY.contains(mSelected) && CompareRegisters(mSelected, &mRegDumpStruct, &mCipRegDumpStruct) != 0)
         {
-            wMenu.addAction(wCM_Undo);
-            wCM_CopyPrevious->setData(GetRegStringValueFromValue(mSelected, registerValue(&wCipRegDumpStruct, mSelected)));
+            menu.addAction(wCM_Undo);
+            wCM_CopyPrevious->setData(GetRegStringValueFromValue(mSelected, registerValue(&mCipRegDumpStruct, mSelected)));
             wCM_CopyPrevious->setText(tr("Copy old value: %1").arg(wCM_CopyPrevious->data().toString()));
-            wMenu.addAction(wCM_CopyPrevious);
+            menu.addAction(wCM_CopyPrevious);
         }
 
         if(mBOOLDISPLAY.contains(mSelected))
         {
-            wMenu.addAction(wCM_ToggleValue);
+            menu.addAction(wCM_ToggleValue);
         }
 
         if(mFPUx87_80BITSDISPLAY.contains(mSelected))
         {
-            wMenu.addAction(wCM_Incrementx87Stack);
-            wMenu.addAction(wCM_Decrementx87Stack);
+            menu.addAction(wCM_Incrementx87Stack);
+            menu.addAction(wCM_Decrementx87Stack);
         }
 
         if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
         {
-            wMenu.addMenu(mSwitchSIMDDispMode);
+            menu.addMenu(mSwitchSIMDDispMode);
         }
 
         if(mFPUMMX.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
         {
             if(mFpuMode != 0)
-                wMenu.addAction(mDisplaySTX);
+                menu.addAction(mDisplaySTX);
             if(mFpuMode != 1)
-                wMenu.addAction(mDisplayx87rX);
+                menu.addAction(mDisplayx87rX);
             if(mFpuMode != 2)
-                wMenu.addAction(mDisplayMMX);
+                menu.addAction(mDisplayMMX);
         }
 
-        wMenu.exec(this->mapToGlobal(pos));
+        menu.exec(this->mapToGlobal(pos));
     }
     else
     {
-        wMenu.addSeparator();
-        wMenu.addAction(wCM_ChangeFPUView);
-        wMenu.addAction(wCM_CopyAll);
-        wMenu.addMenu(mSwitchSIMDDispMode);
+        menu.addSeparator();
+        menu.addAction(wCM_ChangeFPUView);
+        menu.addAction(wCM_CopyAll);
+        menu.addMenu(mSwitchSIMDDispMode);
         if(mFpuMode != 0)
-            wMenu.addAction(mDisplaySTX);
+            menu.addAction(mDisplaySTX);
         if(mFpuMode != 1)
-            wMenu.addAction(mDisplayx87rX);
+            menu.addAction(mDisplayx87rX);
         if(mFpuMode != 2)
-            wMenu.addAction(mDisplayMMX);
-        wMenu.addSeparator();
-        QAction* wHwbpCsp = wMenu.addAction(DIcon("breakpoint"), tr("Set Hardware Breakpoint on %1").arg(ArchValue("ESP", "RSP")));
-        QAction* wAction = wMenu.exec(this->mapToGlobal(pos));
+            menu.addAction(mDisplayMMX);
+        menu.addSeparator();
+        QAction* hwbpCsp = menu.addAction(DIcon("breakpoint"), tr("Set Hardware Breakpoint on %1").arg(ArchValue("ESP", "RSP")));
+        QAction* action = menu.exec(this->mapToGlobal(pos));
 
-        if(wAction == wHwbpCsp)
+        if(action == hwbpCsp)
             DbgCmdExec("bphws csp,rw");
     }
 }
@@ -693,31 +693,31 @@ void CPURegistersView::setRegister(REGISTER_NAME reg, duint value)
     if(mRegisterMapping.contains(reg))
     {
         // map x87st0 to x87r0
-        QString wRegName;
+        QString regName;
         if(reg >= x87st0 && reg <= x87st7)
-            wRegName = QString().sprintf("st%d", reg - x87st0);
+            regName = QString().sprintf("st%d", reg - x87st0);
         else
             // map "cax" to "eax" or "rax"
-            wRegName = mRegisterMapping.constFind(reg).value();
+            regName = mRegisterMapping.constFind(reg).value();
 
         // flags need to '_' infront
         if(mFlags.contains(reg))
-            wRegName = "_" + wRegName;
+            regName = "_" + regName;
 
         // we change the value (so highlight it)
         mRegisterUpdates.insert(reg);
         // tell everything the compiler
         if(mFPU.contains(reg))
-            wRegName = "_" + wRegName;
+            regName = "_" + regName;
 
-        DbgValToString(wRegName.toUtf8().constData(), value);
+        DbgValToString(regName.toUtf8().constData(), value);
 
         // force repaint
         emit refresh();
     }
 }
 
-void CPURegistersView::disasmSelectionChangedSlot(dsint va)
+void CPURegistersView::disasmSelectionChangedSlot(duint va)
 {
     mHighlightRegs = mParent->getDisasmWidget()->DisassembleAt(va - mParent->getDisasmWidget()->getBase()).regsReferenced;
     emit refresh();

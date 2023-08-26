@@ -570,10 +570,10 @@ void BreakpointsView::tokenizerConfigUpdatedSlot()
 
 void BreakpointsView::contextMenuSlot(const QPoint & pos)
 {
-    QMenu wMenu(this);
-    mMenuBuilder->build(&wMenu);
-    if(!wMenu.actions().isEmpty())
-        wMenu.exec(mapToGlobal(pos));
+    QMenu menu(this);
+    mMenuBuilder->build(&menu);
+    if(!menu.actions().isEmpty())
+        menu.exec(mapToGlobal(pos));
 }
 
 void BreakpointsView::followBreakpointSlot()

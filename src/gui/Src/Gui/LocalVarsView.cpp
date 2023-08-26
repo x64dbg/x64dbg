@@ -121,9 +121,9 @@ void LocalVarsView::mousePressEvent(QMouseEvent* event)
 
 void LocalVarsView::contextMenuSlot(const QPoint & pos)
 {
-    QMenu wMenu(this);
-    mMenu->build(&wMenu);
-    wMenu.exec(mapToGlobal(pos));
+    QMenu menu(this);
+    mMenu->build(&menu);
+    menu.exec(mapToGlobal(pos));
 }
 
 void LocalVarsView::baseChangedSlot()
@@ -270,7 +270,7 @@ void LocalVarsView::updateSlot()
             } // Analyze finish
             this->currentFunc = start;
         }
-        for(dsint i = 0; i < getRowCount(); i++)
+        for(duint i = 0; i < getRowCount(); i++)
         {
             duint val = 0;
             QByteArray buf = getCellContent(i, 1).toUtf8();

@@ -736,7 +736,7 @@ void MainWindow::setupLanguagesMenu2()
     QMenu* languageMenu = dynamic_cast<QMenu*>(sender()); //The only sender is languageMenu
     QAction* action_enUS = languageMenu->actions()[0]; //There is only one action "action_enUS" created by setupLanguagesMenu()
     QDir translationsDir(QString("%1/../translations/").arg(QCoreApplication::applicationDirPath()));
-    QString wCurrentLocale(currentLocale);
+    QString currentLocale(gCurrentLocale);
 
     if(!translationsDir.exists())
     {
@@ -745,7 +745,7 @@ void MainWindow::setupLanguagesMenu2()
         disconnect(languageMenu, SIGNAL(aboutToShow()), this, 0);
         return;
     }
-    if(wCurrentLocale == QString("en_US"))
+    if(currentLocale == QString("en_US"))
         action_enUS->setChecked(true);
     QStringList filter;
     filter << "x64dbg_*.qm";
@@ -761,7 +761,7 @@ void MainWindow::setupLanguagesMenu2()
                 QAction* actionLanguage = new QAction(QString("[%1] %2 - %3").arg(localeName).arg(j.nativeLanguageName()).arg(j.nativeCountryName()), languageMenu);
                 connect(actionLanguage, SIGNAL(triggered()), this, SLOT(chooseLanguage()));
                 actionLanguage->setCheckable(true);
-                actionLanguage->setChecked(localeName == wCurrentLocale);
+                actionLanguage->setChecked(localeName == currentLocale);
                 languageMenu->addAction(actionLanguage);
                 break;
             }
@@ -1531,24 +1531,24 @@ void MainWindow::addMenu(int hMenu, QString title)
         QMutexLocker locker(mMenuMutex);
 
         // Abort if another thread deleted the entry or the parent menu
-        auto menu = findMenu(hMenuNew);
-        if(!menu)
+        auto menuInfo = findMenu(hMenuNew);
+        if(!menuInfo)
             return;
-        auto parentMenu = findMenu(menu->hParentMenu);
-        if(parentMenu == nullptr && menu->hParentMenu != -1)
+        auto parentMenu = findMenu(menuInfo->hParentMenu);
+        if(parentMenu == nullptr && menuInfo->hParentMenu != -1)
             return;
 
         // Actually create the menu
-        QWidget* parent = menu->hParentMenu == -1 ? this : parentMenu->parent;
-        menu->parent = parent;
-        QMenu* wMenu = new QMenu(title, parent);
-        menu->mMenu = wMenu;
-        wMenu->menuAction()->setVisible(false);
-        if(menu->hParentMenu == -1) //top-level
-            ui->menuBar->addMenu(wMenu);
+        QWidget* parent = menuInfo->hParentMenu == -1 ? this : parentMenu->parent;
+        menuInfo->parent = parent;
+        QMenu* menu = new QMenu(title, parent);
+        menuInfo->mMenu = menu;
+        menu->menuAction()->setVisible(false);
+        if(menuInfo->hParentMenu == -1) //top-level
+            ui->menuBar->addMenu(menu);
         else //deeper level
         {
-            parentMenu->mMenu->addMenu(wMenu);
+            parentMenu->mMenu->addMenu(menu);
             parentMenu->mMenu->menuAction()->setVisible(true);
         }
     });
@@ -1585,18 +1585,18 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
 
         // Actually create the menu action
         QWidget* parent = entry->hParentMenu == -1 ? this : menu->parent;
-        QAction* wAction = new QAction(title, parent);
-        parent->addAction(wAction);
-        wAction->setObjectName(QString().sprintf("ENTRY|%d", hEntryNew));
-        wAction->setShortcutContext((!menu || menu->globalMenu) ? Qt::ApplicationShortcut : Qt::WidgetShortcut);
-        parent->addAction(wAction); // TODO: something is wrong here
-        connect(wAction, SIGNAL(triggered()), this, SLOT(menuEntrySlot()));
-        entry->mAction = wAction;
+        QAction* action = new QAction(title, parent);
+        parent->addAction(action);
+        action->setObjectName(QString().sprintf("ENTRY|%d", hEntryNew));
+        action->setShortcutContext((!menu || menu->globalMenu) ? Qt::ApplicationShortcut : Qt::WidgetShortcut);
+        parent->addAction(action); // TODO: something is wrong here
+        connect(action, SIGNAL(triggered()), this, SLOT(menuEntrySlot()));
+        entry->mAction = action;
         if(entry->hParentMenu == -1) //top level
-            ui->menuBar->addAction(wAction);
+            ui->menuBar->addAction(action);
         else //deeper level
         {
-            menu->mMenu->addAction(wAction);
+            menu->mMenu->addAction(action);
             menu->mMenu->menuAction()->setVisible(true);
         }
     });
@@ -2481,7 +2481,7 @@ void MainWindow::chooseLanguage()
     QAction* action = qobject_cast<QAction*>(sender());
     QString localeName = action->text();
     localeName = localeName.mid(1, localeName.indexOf(QChar(']')) - 1);
-    action->setChecked(localeName == QString(currentLocale));
+    action->setChecked(localeName == QString(gCurrentLocale));
     if(localeName != "en_US")
     {
         QDir translationsDir(QString("%1/../translations/").arg(QCoreApplication::applicationDirPath()));

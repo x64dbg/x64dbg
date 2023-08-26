@@ -326,7 +326,7 @@ void AbstractStdTable::updateColors()
 
 void AbstractStdTable::mouseMoveEvent(QMouseEvent* event)
 {
-    bool wAccept = true;
+    bool accept = true;
     int y = transY(event->y());
 
     if(mGuiState == AbstractStdTable::MultiRowsSelectionState)
@@ -335,18 +335,18 @@ void AbstractStdTable::mouseMoveEvent(QMouseEvent* event)
 
         if(y >= 0 && y <= this->getTableHeight())
         {
-            int wRowIndex = getTableOffset() + getIndexOffsetFromY(y);
+            auto rowIndex = getTableOffset() + getIndexOffsetFromY(y);
 
-            if(wRowIndex < getRowCount())
+            if(rowIndex < getRowCount())
             {
                 if(mIsMultiSelectionAllowed)
-                    expandSelectionUpTo(wRowIndex);
+                    expandSelectionUpTo(rowIndex);
                 else
-                    setSingleSelection(wRowIndex);
+                    setSingleSelection(rowIndex);
 
                 updateViewport();
 
-                wAccept = false;
+                accept = false;
             }
         }
         else if(y < 0)
@@ -359,13 +359,13 @@ void AbstractStdTable::mouseMoveEvent(QMouseEvent* event)
         }
     }
 
-    if(wAccept)
+    if(accept)
         AbstractTableView::mouseMoveEvent(event);
 }
 
 void AbstractStdTable::mousePressEvent(QMouseEvent* event)
 {
-    bool wAccept = false;
+    bool accept = false;
 
     if(((event->buttons() & Qt::LeftButton) != 0) && ((event->buttons() & Qt::RightButton) == 0))
     {
@@ -373,26 +373,26 @@ void AbstractStdTable::mousePressEvent(QMouseEvent* event)
         {
             if(event->y() > getHeaderHeight())
             {
-                int wRowIndex = getTableOffset() + getIndexOffsetFromY(transY(event->y()));
+                auto rowIndex = getTableOffset() + getIndexOffsetFromY(transY(event->y()));
 
-                if(wRowIndex < getRowCount())
+                if(rowIndex < getRowCount())
                 {
                     if(mIsMultiSelectionAllowed && (event->modifiers() & Qt::ShiftModifier))
-                        expandSelectionUpTo(wRowIndex);
+                        expandSelectionUpTo(rowIndex);
                     else
-                        setSingleSelection(wRowIndex);
+                        setSingleSelection(rowIndex);
 
                     mGuiState = AbstractStdTable::MultiRowsSelectionState;
 
                     updateViewport();
 
-                    wAccept = true;
+                    accept = true;
                 }
             }
         }
     }
 
-    if(!wAccept)
+    if(!accept)
         AbstractTableView::mousePressEvent(event);
 }
 
@@ -405,7 +405,7 @@ void AbstractStdTable::mouseDoubleClickEvent(QMouseEvent* event)
 
 void AbstractStdTable::mouseReleaseEvent(QMouseEvent* event)
 {
-    bool wAccept = true;
+    bool accept = true;
 
     if((event->buttons() & Qt::LeftButton) == 0)
     {
@@ -415,11 +415,11 @@ void AbstractStdTable::mouseReleaseEvent(QMouseEvent* event)
 
             updateViewport();
 
-            wAccept = false;
+            accept = false;
         }
     }
 
-    if(wAccept)
+    if(accept)
         AbstractTableView::mouseReleaseEvent(event);
 }
 
@@ -436,8 +436,8 @@ void AbstractStdTable::keyPressEvent(QKeyEvent* event)
             key == Qt::Key_A ||
             key == Qt::Key_C)
     {
-        dsint wBotIndex = getTableOffset();
-        dsint wTopIndex = wBotIndex + getNbrOfLineToPrint() - 1;
+        auto botIndex = getTableOffset();
+        auto topIndex = botIndex + getNbrOfLineToPrint() - 1;
 
         switch(key)
         {
@@ -500,11 +500,11 @@ void AbstractStdTable::keyPressEvent(QKeyEvent* event)
             break;
         }
 
-        if(getInitialSelection() < wBotIndex)
+        if(getInitialSelection() < botIndex)
         {
             setTableOffset(getInitialSelection());
         }
-        else if(getInitialSelection() >= wTopIndex)
+        else if(getInitialSelection() >= topIndex)
         {
             setTableOffset(getInitialSelection() - getNbrOfLineToPrint() + 2);
         }
@@ -552,46 +552,46 @@ void AbstractStdTable::expandSelectionUpTo(int to)
 
 void AbstractStdTable::expandUp()
 {
-    int wRowIndex = mSelection.firstSelectedIndex - 1;
-    if(wRowIndex >= 0)
+    auto rowIndex = mSelection.firstSelectedIndex - 1;
+    if(rowIndex >= 0)
     {
-        if(wRowIndex < mSelection.fromIndex)
+        if(rowIndex < mSelection.fromIndex)
         {
-            mSelection.fromIndex = wRowIndex;
-            mSelection.firstSelectedIndex = wRowIndex;
+            mSelection.fromIndex = rowIndex;
+            mSelection.firstSelectedIndex = rowIndex;
 
         }
         else
         {
-            mSelection.firstSelectedIndex = wRowIndex;
-            mSelection.toIndex = wRowIndex;
+            mSelection.firstSelectedIndex = rowIndex;
+            mSelection.toIndex = rowIndex;
         }
 
-        emit selectionChangedSignal(wRowIndex);
+        emit selectionChanged(rowIndex);
     }
 }
 
 void AbstractStdTable::expandDown()
 {
-    int wRowIndex = mSelection.firstSelectedIndex + 1;
-    int endIndex = getRowCount() - 1;
-    if(wRowIndex <= endIndex)
+    auto rowIndex = mSelection.firstSelectedIndex + 1;
+    auto endIndex = getRowCount() - 1;
+    if(rowIndex <= endIndex)
     {
 
-        if(wRowIndex > mSelection.toIndex)
+        if(rowIndex > mSelection.toIndex)
         {
-            mSelection.firstSelectedIndex = wRowIndex;
-            mSelection.toIndex = wRowIndex;
+            mSelection.firstSelectedIndex = rowIndex;
+            mSelection.toIndex = rowIndex;
 
         }
         else
         {
-            mSelection.fromIndex = wRowIndex;
-            mSelection.firstSelectedIndex = wRowIndex;
+            mSelection.fromIndex = rowIndex;
+            mSelection.firstSelectedIndex = rowIndex;
         }
 
 
-        emit selectionChangedSignal(wRowIndex);
+        emit selectionChanged(rowIndex);
     }
 }
 
@@ -605,10 +605,10 @@ void AbstractStdTable::expandTop()
 
 void AbstractStdTable::expandBottom()
 {
-    int endIndex = getRowCount() - 1;
-    if(endIndex >= 0)
+    auto rowCount = getRowCount();
+    if(rowCount > 0)
     {
-        expandSelectionUpTo(endIndex);
+        expandSelectionUpTo(rowCount - 1);
     }
 }
 
@@ -646,7 +646,7 @@ void AbstractStdTable::selectStart()
 
 void AbstractStdTable::selectEnd()
 {
-    int endIndex = getRowCount() - 1;
+    auto endIndex = getRowCount() - 1;
     if(endIndex >= 0)
     {
         setSingleSelection(endIndex);
@@ -1002,6 +1002,8 @@ void AbstractStdTable::setCopyMenuOnly(bool bSet, bool bDebugOnly)
 
 void AbstractStdTable::contextMenuRequestedSlot(const QPoint & pos)
 {
+    if(pos.y() < getHeaderHeight())
+        return;
     if(!mCopyMenuOnly)
     {
         emit contextMenuSignal(pos);
@@ -1009,14 +1011,14 @@ void AbstractStdTable::contextMenuRequestedSlot(const QPoint & pos)
     }
     if(mCopyMenuDebugOnly && !DbgIsDebugging())
         return;
-    QMenu wMenu(this);
-    QMenu wCopyMenu(tr("&Copy"), this);
-    setupCopyMenu(&wCopyMenu);
-    if(wCopyMenu.actions().length())
+    auto menu = new QMenu(this);
+    auto copyMenu = new QMenu(tr("&Copy"), this);
+    setupCopyMenu(copyMenu);
+    if(copyMenu->actions().length())
     {
-        wMenu.addSeparator();
-        wMenu.addMenu(&wCopyMenu);
-        wMenu.exec(mapToGlobal(pos));
+        menu->addSeparator();
+        menu->addMenu(copyMenu);
+        menu->popup(mapToGlobal(pos));
     }
 }
 
