@@ -12,7 +12,7 @@ class CustomizeMenuDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit CustomizeMenuDialog(QWidget* parent = 0);
+    explicit CustomizeMenuDialog(QWidget* parent = nullptr);
     ~CustomizeMenuDialog();
 
 public slots:

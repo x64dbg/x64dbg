@@ -15,7 +15,7 @@ class CPUSideBar : public QAbstractScrollArea
 
 public:
     // Constructors
-    CPUSideBar(CPUDisassembly* disassembly, QWidget* parent = 0);
+    CPUSideBar(CPUDisassembly* disassembly, QWidget* parent = nullptr);
     ~CPUSideBar();
 
     QSize sizeHint() const;

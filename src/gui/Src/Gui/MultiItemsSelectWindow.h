@@ -57,7 +57,7 @@ private:
     class OpenViewsTreeWidget : public QTreeWidget
     {
     public:
-        explicit OpenViewsTreeWidget(QWidget* parent = 0) : QTreeWidget(parent) {}
+        explicit OpenViewsTreeWidget(QWidget* parent = nullptr) : QTreeWidget(parent) {}
         ~OpenViewsTreeWidget() {}
         QSize sizeHint() const;
     };

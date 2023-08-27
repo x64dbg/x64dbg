@@ -21,7 +21,7 @@ public:
         QString procVA;
         QString wndHandle;
     };
-    explicit MessagesBreakpoints(MsgBreakpointData pbpData, QWidget* parent = 0);
+    explicit MessagesBreakpoints(MsgBreakpointData pbpData, QWidget* parent = nullptr);
     ~MessagesBreakpoints();
     MsgBreakpointData bpData;
 

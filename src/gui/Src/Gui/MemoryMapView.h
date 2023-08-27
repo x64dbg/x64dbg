@@ -8,8 +8,8 @@ class MemoryMapView : public StdIconTable
 {
     Q_OBJECT
 public:
-    explicit MemoryMapView(StdTable* parent = 0);
-    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    explicit MemoryMapView(StdTable* parent = nullptr);
+    QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
     void setupContextMenu();
 
 signals:
@@ -39,7 +39,7 @@ public slots:
     void addVirtualModSlot();
     void findReferencesSlot();
     void selectionGetSlot(SELECTIONDATA* selection);
-    void disassembleAtSlot(dsint va, dsint cip);
+    void disassembleAtSlot(duint va, duint cip);
 
 private:
     void setSwitchViewName();

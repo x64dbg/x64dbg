@@ -42,7 +42,7 @@ class PatchDialog : public QDialog
     }
 
 public:
-    explicit PatchDialog(QWidget* parent = 0);
+    explicit PatchDialog(QWidget* parent = nullptr);
     ~PatchDialog();
 
 private:

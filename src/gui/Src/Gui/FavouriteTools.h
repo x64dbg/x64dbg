@@ -14,7 +14,7 @@ class FavouriteTools : public QDialog
     Q_OBJECT
 
 public:
-    explicit FavouriteTools(QWidget* parent = 0);
+    explicit FavouriteTools(QWidget* parent = nullptr);
     ~FavouriteTools();
 public slots:
     void on_btnAddFavouriteTool_clicked();

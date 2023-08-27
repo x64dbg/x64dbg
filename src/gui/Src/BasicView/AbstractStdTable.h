@@ -6,7 +6,7 @@ class AbstractStdTable : public AbstractTableView
 {
     Q_OBJECT
 public:
-    explicit AbstractStdTable(QWidget* parent = 0);
+    explicit AbstractStdTable(QWidget* parent = nullptr);
     QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
     void updateColors() override;
     void reloadData() override;

@@ -27,12 +27,12 @@ class Bridge : public QObject
     friend class BridgeResult;
 
 public:
-    explicit Bridge(QObject* parent = 0);
+    explicit Bridge(QObject* parent = nullptr);
     ~Bridge();
 
     static Bridge* getBridge();
     static void initBridge();
-    static Architecture* getArch();
+    static Architecture* getArchitecture();
 
     // Message processing function
     void* processMessage(GUIMSG type, void* param1, void* param2);

@@ -9,7 +9,7 @@ class NotesManager : public QTabWidget
 {
     Q_OBJECT
 public:
-    explicit NotesManager(QWidget* parent = 0);
+    explicit NotesManager(QWidget* parent = nullptr);
 
 public slots:
     void dbgStateChangedSlot(DBGSTATE state);

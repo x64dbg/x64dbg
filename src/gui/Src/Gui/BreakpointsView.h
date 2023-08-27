@@ -11,7 +11,7 @@ class BreakpointsView : public StdTable
 {
     Q_OBJECT
 public:
-    explicit BreakpointsView(QWidget* parent = 0);
+    explicit BreakpointsView(QWidget* parent = nullptr);
 
 protected:
     void setupContextMenu();

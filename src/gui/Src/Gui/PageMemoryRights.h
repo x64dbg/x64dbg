@@ -13,7 +13,7 @@ class PageMemoryRights : public QDialog
     Q_OBJECT
 
 public:
-    explicit PageMemoryRights(QWidget* parent = 0);
+    explicit PageMemoryRights(QWidget* parent = nullptr);
     void RunAddrSize(duint, duint, QString);
     ~PageMemoryRights();
 

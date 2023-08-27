@@ -9,7 +9,7 @@ class LogStatusLabel : public QLabel
 {
     Q_OBJECT
 public:
-    explicit LogStatusLabel(QStatusBar* parent = 0);
+    explicit LogStatusLabel(QStatusBar* parent = nullptr);
 
 public slots:
     void logUpdate(QString message, bool encodeHTML = true);

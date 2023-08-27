@@ -13,7 +13,7 @@ class HexEditDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit HexEditDialog(QWidget* parent = 0);
+    explicit HexEditDialog(QWidget* parent = nullptr);
     ~HexEditDialog();
 
     void showEntireBlock(bool show, bool checked = false);

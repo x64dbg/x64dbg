@@ -29,7 +29,7 @@ class CalculatorDialog : public QDialog
     QString inFormat(const duint val, CalculatorDialog::Format format) const;
 
 public:
-    explicit CalculatorDialog(QWidget* parent = 0);
+    explicit CalculatorDialog(QWidget* parent = nullptr);
     ~CalculatorDialog();
     void validateExpression(QString expression);
     void setExpressionFocus();

@@ -20,7 +20,7 @@ class SymbolView : public QWidget
     Q_OBJECT
 
 public:
-    explicit SymbolView(QWidget* parent = 0);
+    explicit SymbolView(QWidget* parent = nullptr);
     ~SymbolView() override;
     void setupContextMenu();
     void saveWindowSettings();
@@ -32,7 +32,7 @@ private slots:
     void updateStyle();
     void addMsgToSymbolLogSlot(QString msg);
     void clearSymbolLogSlot();
-    void moduleSelectionChanged(int index);
+    void moduleSelectionChanged(duint index);
     void updateSymbolList(int module_count, SYMBOLMODULEINFO* modules);
     void symbolFollow();
     void symbolFollowDump();

@@ -12,7 +12,7 @@ class LineEditDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit LineEditDialog(QWidget* parent = 0);
+    explicit LineEditDialog(QWidget* parent = nullptr);
     ~LineEditDialog();
     QString editText;
     bool bChecked;

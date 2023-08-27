@@ -13,7 +13,7 @@ class HexLineEdit : public QLineEdit
 
 public:
 
-    explicit HexLineEdit(QWidget* parent = 0);
+    explicit HexLineEdit(QWidget* parent = nullptr);
     ~HexLineEdit();
 
     void keyPressEvent(QKeyEvent* event);

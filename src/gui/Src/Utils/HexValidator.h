@@ -6,7 +6,7 @@ class HexValidator : public QValidator
 {
     Q_OBJECT
 public:
-    explicit HexValidator(QObject* parent = 0);
+    explicit HexValidator(QObject* parent = nullptr);
     ~HexValidator();
 
     void fixup(QString & input) const;

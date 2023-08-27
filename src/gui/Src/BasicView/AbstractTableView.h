@@ -31,7 +31,7 @@ class AbstractTableView : public QAbstractScrollArea, public ActionHelper<Abstra
     Q_OBJECT
 
 public:
-    explicit AbstractTableView(QWidget* parent = 0);
+    explicit AbstractTableView(QWidget* parent = nullptr);
     virtual ~AbstractTableView() = default;
 
     // Configuration
@@ -187,7 +187,7 @@ private:
     QList<Column> mColumnList;
     QList<duint> mColumnOrder;
     int mReorderStartX = -1;
-    int mHoveredColumnDisplayIndex = -1;
+    duint mHoveredColumnDisplayIndex = 0;
 
     duint mRowCount = 0;
     duint mTableOffset = 0;
@@ -213,7 +213,7 @@ private:
         int rightShiftCount = 0;
     } mScrollBarAttributes;
 
-    int getColumnDisplayIndexFromX(int x);
+    duint getColumnDisplayIndexFromX(int x);
     friend class ColumnReorderDialog;
 
     void updateLastColumnWidth();

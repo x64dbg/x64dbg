@@ -7,12 +7,12 @@ class CallStackView : public StdIconTable
 {
     Q_OBJECT
 public:
-    explicit CallStackView(StdTable* parent = 0);
+    explicit CallStackView(StdTable* parent = nullptr);
     void setupContextMenu();
     duint getSelectionVa();
 
 protected:
-    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) override;
+    QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
 
 protected slots:
     void updateCallStack();
