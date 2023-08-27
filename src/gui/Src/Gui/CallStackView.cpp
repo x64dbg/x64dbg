@@ -73,16 +73,16 @@ void CallStackView::setupContextMenu()
     mMenuBuilder->loadFromConfig();
 }
 
-QString CallStackView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString CallStackView::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
-    if(isSelected(rowBase, rowOffset))
+    if(isSelected(row))
         painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
 
-    bool isSpaceRow = !getCellContent(rowBase + rowOffset, ColThread).isEmpty();
+    bool isSpaceRow = !getCellContent(row, ColThread).isEmpty();
 
-    if(col == ColThread && !(rowBase + rowOffset))
+    if(col == ColThread && row == 0)
     {
-        QString ret = getCellContent(rowBase + rowOffset, col);
+        QString ret = getCellContent(row, col);
         if(!ret.isEmpty())
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("ThreadCurrentBackgroundColor")));
@@ -98,8 +98,8 @@ QString CallStackView::paintContent(QPainter* painter, dsint rowBase, int rowOff
     }
     else if(col == ColFrom || col == ColTo || col == ColAddress)
     {
-        QString ret = getCellContent(rowBase + rowOffset, col);
-        BPXTYPE bpxtype = DbgGetBpxTypeAt(getCellUserdata(rowBase + rowOffset, col));
+        QString ret = getCellContent(row, col);
+        BPXTYPE bpxtype = DbgGetBpxTypeAt(getCellUserdata(row, col));
         if(bpxtype & bp_normal)
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor")));
@@ -115,7 +115,7 @@ QString CallStackView::paintContent(QPainter* painter, dsint rowBase, int rowOff
             return "";
         }
     }
-    return StdIconTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+    return StdIconTable::paintContent(painter, row, col, x, y, w, h);
 }
 
 void CallStackView::updateCallStack()

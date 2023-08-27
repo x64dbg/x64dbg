@@ -811,10 +811,10 @@ QString AbstractStdTable::copyTable(const std::vector<int> & colWidths)
                 finalText += getColTitle(i);
         }
         finalText += "\r\n";
-        for(int i = 0; i < rowCount; i++)
+        for(duint i = 0; i < rowCount; i++)
         {
             QString finalRowText = "";
-            for(int j = 0; j < colCount; j++)
+            for(duint j = 0; j < colCount; j++)
             {
                 if(j)
                     finalRowText += " ";
@@ -857,7 +857,7 @@ void AbstractStdTable::copyTableResizeSlot()
     for(duint i = 0; i < colCount; i++)
     {
         auto max = getCellContent(0, i).length();
-        for(int j = 1; j < rowCount; j++)
+        for(duint j = 1; j < rowCount; j++)
             max = std::max(getCellContent(j, i).length(), max);
         colWidths.push_back(max);
     }
@@ -894,7 +894,7 @@ void AbstractStdTable::exportTableSlot()
 {
     std::vector<QString> headers;
     headers.reserve(getColumnCount());
-    for(int i = 0; i < getColumnCount(); i++)
+    for(duint i = 0; i < getColumnCount(); i++)
         headers.push_back(getColTitle(i));
     ExportCSV(getRowCount(), getColumnCount(), headers, [this](duint row, duint column)
     {
@@ -975,7 +975,7 @@ void AbstractStdTable::setupCopyColumnMenu(MenuBuilder* copyMenu)
 {
     copyMenu->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
-        for(int i = 0; i < getColumnCount(); i++)
+        for(duint i = 0; i < getColumnCount(); i++)
         {
             if(!getCellContent(getInitialSelection(), i).length()) //skip empty cells
                 continue;

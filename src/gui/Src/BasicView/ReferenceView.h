@@ -75,7 +75,7 @@ private:
         Remove
     };
 
-    void setBreakpointAt(int row, BPSetAction action);
+    void setBreakpointAt(duint row, BPSetAction action);
     dsint apiAddressFromString(const QString & s);
 
     void mouseReleaseEvent(QMouseEvent* event);

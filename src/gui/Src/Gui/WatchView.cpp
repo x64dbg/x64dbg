@@ -181,10 +181,9 @@ QString WatchView::getSelectedId()
     return QChar('.') + getCellContent(getInitialSelection(), ColId);
 }
 
-QString WatchView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString WatchView::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
-    QString ret = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
-    const dsint row = rowBase + rowOffset;
+    QString ret = StdTable::paintContent(painter, row, col, x, y, w, h);
     if(row != getInitialSelection() && DbgFunctions()->WatchIsWatchdogTriggered(getCellContent(row, ColId).toUInt()))
     {
         painter->fillRect(QRect(x, y, w, h), mWatchTriggeredBackgroundColor);

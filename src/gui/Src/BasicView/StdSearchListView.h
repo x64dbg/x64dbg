@@ -23,7 +23,7 @@ public slots:
     virtual void setRowCount(dsint count);
     void setCellContent(int r, int c, QString s);
     void reloadData();
-    void setSearchStartCol(int col);
+    void setSearchStartCol(duint col);
 
 private:
     StdTableSearchList* mSearchListData;

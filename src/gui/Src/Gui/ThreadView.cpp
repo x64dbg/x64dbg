@@ -366,10 +366,10 @@ void ThreadView::updateThreadList()
     reloadData();
 }
 
-QString ThreadView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString ThreadView::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
-    QString ret = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
-    duint threadId = getCellUserdata(rowBase + rowOffset, 1);
+    QString ret = StdTable::paintContent(painter, row, col, x, y, w, h);
+    duint threadId = getCellUserdata(row, 1);
     if(threadId == mCurrentThreadId && !col)
     {
         painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("ThreadCurrentBackgroundColor")));

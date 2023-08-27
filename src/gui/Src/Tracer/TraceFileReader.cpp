@@ -18,7 +18,8 @@ TraceFileReader::TraceFileReader(QObject* parent) : QObject(parent)
     EXEPath.clear();
 
     int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
-    mDisasm = new QZydis(maxModuleSize, Bridge::getArch());
+    // TODO: refactor this to come from the parent TraceWidget
+    mDisasm = new QZydis(maxModuleSize, Bridge::getArchitecture());
     connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerUpdatedSlot()));
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(tokenizerUpdatedSlot()));
 }

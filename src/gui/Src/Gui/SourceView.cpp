@@ -41,7 +41,7 @@ SourceView::~SourceView()
     clear();
 }
 
-QString SourceView::getCellContent(int r, int c)
+QString SourceView::getCellContent(duint r, duint c)
 {
     if(!isValidIndex(r, c))
         return QString();
@@ -59,7 +59,7 @@ QString SourceView::getCellContent(int r, int c)
     return "INVALID";
 }
 
-bool SourceView::isValidIndex(int r, int c)
+bool SourceView::isValidIndex(duint r, duint c)
 {
     if(!mFileLines)
         return false;
@@ -68,7 +68,7 @@ bool SourceView::isValidIndex(int r, int c)
     return r >= 0 && size_t(r) < mFileLines->size();
 }
 
-void SourceView::sortRows(int column, bool ascending)
+void SourceView::sortRows(duint column, bool ascending)
 {
     Q_UNUSED(column);
     Q_UNUSED(ascending);
@@ -83,7 +83,7 @@ void SourceView::prepareData()
         mPrepareTableOffset = getTableOffset();
         mLines.clear();
         mLines.resize(lines);
-        for(auto i = 0; i < lines; i++)
+        for(duint i = 0; i < lines; i++)
             parseLine(mPrepareTableOffset + i, mLines[i]);
     }
 }

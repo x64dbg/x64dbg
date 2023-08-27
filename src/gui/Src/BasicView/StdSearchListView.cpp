@@ -79,7 +79,7 @@ void StdSearchListView::reloadData()
     });
 }
 
-void StdSearchListView::setSearchStartCol(int col)
+void StdSearchListView::setSearchStartCol(duint col)
 {
     if(col < stdList()->getColumnCount())
         mSearchStartCol = col;

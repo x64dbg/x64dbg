@@ -93,7 +93,6 @@ SearchListView::SearchListView(QWidget* parent, AbstractSearchList* abstractSear
 
     // Set global variables
     mCurList = abstractSearchList->list();
-    mSearchStartCol = 0;
 
     // Install input event filter
     mSearchBox->installEventFilter(this);
@@ -205,9 +204,9 @@ void SearchListView::filterEntries()
     bool hasSetSingleSelection = false;
     if(!mLastFirstColValue.isEmpty())
     {
-        int rows = mCurList->getRowCount();
+        auto rows = mCurList->getRowCount();
         mCurList->setTableOffset(0);
-        for(int i = 0; i < rows; i++)
+        for(duint i = 0; i < rows; i++)
         {
             if(mCurList->getCellContent(i, 0) == mLastFirstColValue)
             {

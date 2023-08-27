@@ -10,7 +10,7 @@ class WatchView : public StdTable
 public:
     WatchView(CPUMultiDump* parent);
 
-    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) override;
+    QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
     void updateColors() override;
 
 public slots:

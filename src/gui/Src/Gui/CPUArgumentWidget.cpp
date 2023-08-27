@@ -3,13 +3,10 @@
 #include "Configuration.h"
 #include "Bridge.h"
 
-CPUArgumentWidget::CPUArgumentWidget(QWidget* parent) :
+CPUArgumentWidget::CPUArgumentWidget(Architecture* architecture, QWidget* parent) :
     QWidget(parent),
     ui(new Ui::CPUArgumentWidget),
-    mTable(nullptr),
-    mCurrentCallingConvention(-1),
-    mStackOffset(0),
-    mAllowUpdate(true)
+    mArchitecture(architecture)
 {
     ui->setupUi(this);
     mTable = ui->table;
@@ -32,7 +29,7 @@ CPUArgumentWidget::CPUArgumentWidget(QWidget* parent) :
     connect(mFollowAddrStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
 
     connect(Bridge::getBridge(), SIGNAL(repaintTableView()), this, SLOT(refreshData()));
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(duint, duint)), this, SLOT(disassembleAtSlot(duint, duint)));
 }
 
 CPUArgumentWidget::~CPUArgumentWidget()
@@ -46,7 +43,7 @@ void CPUArgumentWidget::updateStackOffset(bool iscall)
     mStackOffset = cur.getStackOffset() + (iscall ? 0 : cur.getCallOffset());
 }
 
-void CPUArgumentWidget::disassembleAtSlot(dsint addr, dsint cip)
+void CPUArgumentWidget::disassembleAtSlot(duint addr, duint cip)
 {
     Q_UNUSED(addr);
     if(mCurrentCallingConvention == -1) //no calling conventions

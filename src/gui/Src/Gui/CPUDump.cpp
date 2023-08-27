@@ -15,11 +15,11 @@
 #include "MiscUtil.h"
 #include "BackgroundFlickerThread.h"
 
-CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
+CPUDump::CPUDump(CPUMultiDump* multiDump, CPUDisassembly* disassembly, QWidget* parent)
+    : HexDump(multiDump->getArchitecture(), parent),
+      mMultiDump(multiDump),
+      mDisassembly(disassembly)
 {
-    mDisas = disas;
-    mMultiDump = multiDump;
-
     duint setting;
     if(BridgeSettingGetUint("Gui", "AsciiSeparator", &setting))
         mAsciiSeparator = setting & 0xF;
@@ -27,7 +27,7 @@ CPUDump::CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent
     setView((ViewEnum_t)ConfigUint("HexDump", "DefaultView"));
 
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
-    connect(this, SIGNAL(headerButtonReleased(int)), this, SLOT(headerButtonReleasedSlot(int)));
+    connect(this, SIGNAL(headerButtonReleased(duint)), this, SLOT(headerButtonReleasedSlot(duint)));
 
     mPluginMenu = multiDump->mDumpPluginMenu;
 
@@ -263,7 +263,7 @@ void CPUDump::getAttention()
     thread->start();
 }
 
-void CPUDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)
+void CPUDump::getColumnRichText(duint col, duint rva, RichTextPainter::List & richText)
 {
     if(col && !mDescriptor.at(col - 1).isData && mDescriptor.at(col - 1).itemCount) //print comments
     {
@@ -308,16 +308,17 @@ void CPUDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & rich
         HexDump::getColumnRichText(col, rva, richText);
 }
 
-QString CPUDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString CPUDump::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
     // Reset byte offset when base address is reached
-    if(rowBase == 0 && mByteOffset != 0)
+    // TODO: wtf?
+    if(getTableOffset() == 0 && mByteOffset != 0)
         printDumpAt(mMemPage->getBase(), false, false);
 
     if(!col) //address
     {
         char label[MAX_LABEL_SIZE] = "";
-        dsint cur_addr = rvaToVa((rowBase + rowOffset) * getBytePerRowCount() - mByteOffset);
+        dsint cur_addr = rvaToVa(row * getBytePerRowCount() - mByteOffset);
         QColor background;
         if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //label
         {
@@ -334,7 +335,7 @@ QString CPUDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, i
         painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, makeAddrText(cur_addr));
         return QString();
     }
-    return HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+    return HexDump::paintContent(painter, row, col, x, y, w, h);
 }
 
 void CPUDump::contextMenuEvent(QContextMenuEvent* event)
@@ -1327,7 +1328,7 @@ void CPUDump::findReferencesSlot()
 {
     QString addrStart = ToPtrString(rvaToVa(getSelectionStart()));
     QString addrEnd = ToPtrString(rvaToVa(getSelectionEnd()));
-    QString addrDisasm = ToPtrString(mDisas->rvaToVa(mDisas->getSelectionStart()));
+    QString addrDisasm = ToPtrString(mDisassembly->rvaToVa(mDisassembly->getSelectionStart()));
     DbgCmdExec(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm));
     emit displayReferencesWidget();
 }
@@ -1611,7 +1612,7 @@ void CPUDump::setView(ViewEnum_t view)
     }
 }
 
-void CPUDump::headerButtonReleasedSlot(int colIndex)
+void CPUDump::headerButtonReleasedSlot(duint colIndex)
 {
     auto callback = mDescriptor[colIndex].columnSwitch;
     if(callback)

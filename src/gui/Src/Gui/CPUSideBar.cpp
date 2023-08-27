@@ -215,7 +215,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     std::vector<JumpLine> jumpLines;
     std::vector<LabelArrow> labelArrows;
 
-    for(int line = 0; line < mViewableRows; line++)
+    for(duint line = 0; line < mViewableRows; line++)
     {
         if(line >= mInstrBuffer->size()) //at the end of the page it will crash otherwise
             break;

@@ -43,6 +43,8 @@ class QZydis
 {
 public:
     QZydis(int maxModuleSize, Architecture* architecture);
+    QZydis(const QZydis &) = delete;
+    QZydis(QZydis &&) = delete;
     ~QZydis();
     ulong DisassembleBack(const uint8_t* data, duint base, duint size, duint ip, int n);
     ulong DisassembleNext(const uint8_t* data, duint base, duint size, duint ip, int n);

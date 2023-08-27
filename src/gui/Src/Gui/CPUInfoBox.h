@@ -1,6 +1,7 @@
 #pragma once
 
 #include "StdTable.h"
+#include "Architecture.h"
 
 class WordEditDialog;
 class XrefBrowseDialog;
@@ -10,7 +11,7 @@ class CPUInfoBox : public StdTable
 {
     Q_OBJECT
 public:
-    explicit CPUInfoBox(QWidget* parent = 0);
+    CPUInfoBox(Architecture* architecture, QWidget* parent = nullptr);
     ~CPUInfoBox();
     int getHeight();
     void addFollowMenuItem(QMenu* menu, QString name, duint value);
@@ -37,6 +38,7 @@ public slots:
     void addInfoLine(const QString & infoLine);
 
 private:
+    Architecture* mArchitecture = nullptr;
     duint mCurAddr = 0;
     duint mCurRva = 0;
     duint mCurOffset = 0;

@@ -13,8 +13,9 @@ class Disassembly : public AbstractTableView
 {
     Q_OBJECT
 public:
-    Disassembly(QWidget* parent, bool isMain, Architecture* architecture);
+    Disassembly(Architecture* architecture, bool isMain, QWidget* parent = nullptr);
     ~Disassembly() override;
+    Architecture* getArchitecture() const;
 
     // Configuration
     void updateColors() override;

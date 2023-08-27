@@ -56,7 +56,7 @@ ZehSymbolTable::ZehSymbolTable(QWidget* parent)
     Initialize();
 }
 
-QString ZehSymbolTable::getCellContent(int r, int c)
+QString ZehSymbolTable::getCellContent(duint r, duint c)
 {
     QMutexLocker lock(&mMutex);
     if(!isValidIndex(r, c))
@@ -66,13 +66,13 @@ QString ZehSymbolTable::getCellContent(int r, int c)
     return symbolInfoString(info.get(), c);
 }
 
-bool ZehSymbolTable::isValidIndex(int r, int c)
+bool ZehSymbolTable::isValidIndex(duint r, duint c)
 {
     QMutexLocker lock(&mMutex);
     return r >= 0 && r < (int)mData.size() && c >= 0 && c <= ColUndecorated;
 }
 
-void ZehSymbolTable::sortRows(int column, bool ascending)
+void ZehSymbolTable::sortRows(duint column, bool ascending)
 {
     QMutexLocker lock(&mMutex);
     std::stable_sort(mData.begin(), mData.end(), [this, column, ascending](const SYMBOLPTR & a, const SYMBOLPTR & b)
@@ -119,7 +119,7 @@ void ZehSymbolTable::sortRows(int column, bool ascending)
     });
 }
 
-QString ZehSymbolTable::symbolInfoString(const SYMBOLINFO* info, int c)
+QString ZehSymbolTable::symbolInfoString(const SYMBOLINFO* info, duint c)
 {
     switch(c)
     {

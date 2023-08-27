@@ -1102,7 +1102,7 @@ void TraceBrowser::mouseDoubleClickEvent(QMouseEvent* event)
 
 void TraceBrowser::mouseMoveEvent(QMouseEvent* event)
 {
-    duint index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
+    auto index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
     if((event->buttons() & Qt::LeftButton) != 0 && getGuiState() == AbstractTableView::NoState && mTraceFile != nullptr && mTraceFile->Progress() == 100)
     {
         if(index < getRowCount())
@@ -1751,7 +1751,7 @@ void TraceBrowser::exportSlot()
         return;
     std::vector<QString> headers;
     headers.reserve(getColumnCount());
-    for(int i = 0; i < getColumnCount(); i++)
+    for(duint i = 0; i < getColumnCount(); i++)
         headers.push_back(getColTitle(i));
     ExportCSV(getRowCount(), getColumnCount(), headers, [this](dsint row, dsint col)
     {

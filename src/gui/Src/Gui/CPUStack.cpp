@@ -9,7 +9,8 @@
 #include "CPUMultiDump.h"
 #include "GotoDialog.h"
 
-CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent) : HexDump(parent)
+CPUStack::CPUStack(CPUMultiDump* multiDump, QWidget* parent)
+    : HexDump(multiDump->getArchitecture(), parent)
 {
     setWindowTitle("Stack");
     setShowHeader(false);
@@ -309,7 +310,7 @@ void CPUStack::updateFreezeStackAction()
     mFreezeStack->setChecked(bStackFrozen);
 }
 
-void CPUStack::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)
+void CPUStack::getColumnRichText(duint col, duint rva, RichTextPainter::List & richText)
 {
     // Compute VA
     duint va = rvaToVa(rva);
@@ -365,24 +366,24 @@ void CPUStack::getColumnRichText(int col, dsint rva, RichTextPainter::List & ric
         HexDump::getColumnRichText(col, rva, richText);
 }
 
-QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString CPUStack::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
     // Compute RVA
-    int wBytePerRowCount = getBytePerRowCount();
-    dsint wRva = (rowBase + rowOffset) * wBytePerRowCount - mByteOffset;
-    duint wVa = rvaToVa(wRva);
+    auto bytePerRowCount = getBytePerRowCount();
+    dsint rva = row * bytePerRowCount - mByteOffset;
+    duint va = rvaToVa(rva);
 
-    bool wIsSelected = isSelected(wRva);
-    if(wIsSelected) //highlight if selected
+    bool rowSelected = isSelected(rva);
+    if(rowSelected) //highlight if selected
         painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
 
     if(col == 0) // paint stack address
     {
         QColor background;
         char labelText[MAX_LABEL_SIZE] = "";
-        if(DbgGetLabelAt(wVa, SEG_DEFAULT, labelText)) //label
+        if(DbgGetLabelAt(va, SEG_DEFAULT, labelText)) //label
         {
-            if(wVa == mCsp) //CSP
+            if(va == mCsp) //CSP
             {
                 background = ConfigColor("StackCspBackgroundColor");
                 painter->setPen(QPen(ConfigColor("StackCspColor")));
@@ -395,12 +396,12 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
         }
         else //no label
         {
-            if(wVa == mCsp) //CSP
+            if(va == mCsp) //CSP
             {
                 background = ConfigColor("StackCspBackgroundColor");
                 painter->setPen(QPen(ConfigColor("StackCspColor")));
             }
-            else if(wIsSelected) //selected normal address
+            else if(rowSelected) //selected normal address
             {
                 background = ConfigColor("StackSelectedAddressBackgroundColor");
                 painter->setPen(QPen(ConfigColor("StackSelectedAddressColor"))); //black address (DisassemblySelectedAddressColor)
@@ -413,7 +414,7 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
         }
         if(background.alpha())
             painter->fillRect(QRect(x, y, w, h), QBrush(background)); //fill background when defined
-        painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, makeAddrText(wVa));
+        painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, makeAddrText(va));
         return QString();
     }
     else if(col == 1) // paint stack data
@@ -422,14 +423,14 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
         {
             int stackFrameBitfield = 0; // 0:none, 1:top of stack frame, 2:bottom of stack frame, 4:middle of stack frame
             int party = 0;
-            if(wVa >= mCallstack[0].addr)
+            if(va >= mCallstack[0].addr)
             {
                 for(size_t i = 0; i < mCallstack.size() - 1; i++)
                 {
-                    if(wVa >= mCallstack[i].addr && wVa < mCallstack[i + 1].addr)
+                    if(va >= mCallstack[i].addr && va < mCallstack[i + 1].addr)
                     {
-                        stackFrameBitfield |= (mCallstack[i].addr == wVa) ? 1 : 0;
-                        stackFrameBitfield |= (mCallstack[i + 1].addr == wVa + sizeof(duint)) ? 2 : 0;
+                        stackFrameBitfield |= (mCallstack[i].addr == va) ? 1 : 0;
+                        stackFrameBitfield |= (mCallstack[i + 1].addr == va + sizeof(duint)) ? 2 : 0;
                         if(stackFrameBitfield == 0)
                             stackFrameBitfield = 4;
                         party = mCallstack[i].party;
@@ -438,14 +439,14 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
                 }
                 // draw stack frame
                 if(stackFrameBitfield == 0)
-                    return HexDump::paintContent(painter, rowBase, rowOffset, 1, x, y, w, h);
+                    return HexDump::paintContent(painter, row, 1, x, y, w, h);
                 else
                 {
                     int height = getRowHeight();
                     int halfHeight = height / 2;
                     int width = 5;
                     int offset = 2;
-                    auto result = HexDump::paintContent(painter, rowBase, rowOffset, 1, x + (width - 2), y, w - (width - 2), h);
+                    auto result = HexDump::paintContent(painter, row, 1, x + (width - 2), y, w - (width - 2), h);
                     if(party == mod_user)
                         painter->setPen(QPen(mUserStackFrameColor, 2));
                     else
@@ -468,13 +469,13 @@ QString CPUStack::paintContent(QPainter* painter, dsint rowBase, int rowOffset, 
                 }
             }
             else
-                return HexDump::paintContent(painter, rowBase, rowOffset, 1, x, y, w, h);
+                return HexDump::paintContent(painter, row, 1, x, y, w, h);
         }
         else
-            return HexDump::paintContent(painter, rowBase, rowOffset, 1, x, y, w, h);
+            return HexDump::paintContent(painter, row, 1, x, y, w, h);
     }
     else
-        return HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+        return HexDump::paintContent(painter, row, col, x, y, w, h);
 }
 
 void CPUStack::contextMenuEvent(QContextMenuEvent* event)
@@ -602,7 +603,7 @@ void CPUStack::updateSlot()
     }
 }
 
-void CPUStack::disasmSelectionChanged(dsint parVA)
+void CPUStack::disasmSelectionChanged(duint parVA)
 {
     // When the selected instruction is changed, select the argument that is in the stack.
     DISASM_INSTR instr;

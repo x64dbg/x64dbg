@@ -112,7 +112,7 @@ retryFindWindow:
             refresh();
             QString pidText = QString().sprintf(ConfigBool("Gui", "PidTidInHex") ? "%.8X" : "%u", pid);
             bool found = false;
-            for(int i = 0; i < mSearchListView->mCurList->getRowCount(); i++)
+            for(duint i = 0; i < mSearchListView->mCurList->getRowCount(); i++)
             {
                 if(mSearchListView->mCurList->getCellContent(i, ColPid) == pidText)
                 {

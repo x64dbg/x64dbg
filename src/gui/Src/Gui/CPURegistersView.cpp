@@ -37,7 +37,7 @@ CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), m
     connect(Bridge::getBridge(), SIGNAL(updateRegisters()), this, SLOT(updateRegistersSlot()));
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(displayCustomContextMenuSlot(QPoint)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
-    connect(parent->getDisasmWidget(), SIGNAL(selectionChanged(dsint)), this, SLOT(disasmSelectionChangedSlot(dsint)));
+    connect(parent->getDisasmWidget(), SIGNAL(selectionChanged(duint)), this, SLOT(disasmSelectionChangedSlot(duint)));
     // context menu actions
     connect(wCM_Incrementx87Stack, SIGNAL(triggered()), this, SLOT(onIncrementx87StackAction()));
     connect(wCM_Decrementx87Stack, SIGNAL(triggered()), this, SLOT(onDecrementx87StackAction()));

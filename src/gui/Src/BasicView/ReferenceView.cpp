@@ -102,8 +102,8 @@ void ReferenceView::connectBridge()
     connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), this, SLOT(referenceSetProgressSlot(int)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceAddCommand(QString, QString)), this, SLOT(addCommand(QString, QString)));
-    connect(stdSearchList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
-    connect(stdList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
+    connect(stdSearchList(), SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(int)));
+    connect(stdList(), SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(int)));
 }
 
 void ReferenceView::disconnectBridge()
@@ -113,8 +113,8 @@ void ReferenceView::disconnectBridge()
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), this, SLOT(referenceSetProgressSlot(int)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceAddCommand(QString, QString)), this, SLOT(addCommand(QString, QString)));
-    disconnect(stdSearchList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
-    disconnect(stdList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
+    disconnect(stdSearchList(), SIGNAL(selectionChanged(int)), this, SLOT(searchSelectionChanged(int)));
+    disconnect(stdList(), SIGNAL(selectionChanged(int)), this, SLOT(searchSelectionChanged(int)));
 }
 
 int ReferenceView::progress() const
@@ -284,7 +284,7 @@ void ReferenceView::followGenericAddress()
     }
 }
 
-void ReferenceView::setBreakpointAt(int row, BPSetAction action)
+void ReferenceView::setBreakpointAt(duint row, BPSetAction action)
 {
     if(!DbgIsDebugging())
         return;
@@ -334,14 +334,14 @@ void ReferenceView::toggleBreakpoint()
 void ReferenceView::setBreakpointOnAllCommands()
 {
     GuiDisableUpdateScope s;
-    for(int i = 0; i < mCurList->getRowCount(); i++)
+    for(duint i = 0; i < mCurList->getRowCount(); i++)
         setBreakpointAt(i, Enable);
 }
 
 void ReferenceView::removeBreakpointOnAllCommands()
 {
     GuiDisableUpdateScope s;
-    for(int i = 0; i < mCurList->getRowCount(); i++)
+    for(duint i = 0; i < mCurList->getRowCount(); i++)
         setBreakpointAt(i, Remove);
 }
 
@@ -355,7 +355,7 @@ void ReferenceView::setBreakpointOnAllApiCalls()
     QString apiText = mCurList->getCellContent(mCurList->getInitialSelection(), 1);
 
     GuiDisableUpdateScope s;
-    for(int i = 0; i < mCurList->getRowCount(); i++)
+    for(duint i = 0; i < mCurList->getRowCount(); i++)
         if(mCurList->getCellContent(i, 1) == apiText)
             setBreakpointAt(i, Enable);
 }
@@ -371,7 +371,7 @@ void ReferenceView::removeBreakpointOnAllApiCalls()
     QString apiText = mCurList->getCellContent(mCurList->getInitialSelection(), 1);
 
     GuiDisableUpdateScope s;
-    for(int i = 0; i < mCurList->getRowCount(); i++)
+    for(duint i = 0; i < mCurList->getRowCount(); i++)
         if(mCurList->getCellContent(i, 1) == apiText)
             setBreakpointAt(i, Remove);
 }
@@ -423,7 +423,7 @@ void ReferenceView::referenceExecCommand()
         for(int selected : mCurList->getSelection()) //to do: enable multi-selection
         {
             QString specializedCommand = command;
-            for(int i = 0; i < mCurList->getColumnCount(); i++)
+            for(duint i = 0; i < mCurList->getColumnCount(); i++)
             {
                 QString token = "$" + QString::number(i);
                 if(specializedCommand.contains(token))

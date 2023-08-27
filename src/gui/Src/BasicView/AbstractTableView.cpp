@@ -132,7 +132,7 @@ void AbstractTableView::updateShortcutsSlot()
 void AbstractTableView::loadColumnFromConfig(const QString & viewName)
 {
     duint columnCount = getColumnCount();
-    for(int i = 0; i < columnCount; i++)
+    for(duint i = 0; i < columnCount; i++)
     {
         duint width = ConfigUint("Gui", QString("%1ColumnWidth%2").arg(viewName).arg(i).toUtf8().constData());
         duint hidden = ConfigUint("Gui", QString("%1ColumnHidden%2").arg(viewName).arg(i).toUtf8().constData());
@@ -224,7 +224,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
         QPen separatorPen(mSeparatorColor, 2);
         QBrush backgroundBrush(mHeaderBackgroundColor);
 
-        for(int j = 0; j < getColumnCount(); j++)
+        for(duint j = 0; j < getColumnCount(); j++)
         {
             int i = mColumnOrder[j];
             if(getColumnHidden(i))
@@ -267,7 +267,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
     int y = getHeaderHeight();
 
     // Iterate over all columns and cells
-    for(int k = 0; k < getColumnCount(); k++)
+    for(duint k = 0; k < getColumnCount(); k++)
     {
         int j = mColumnOrder[k];
         if(getColumnHidden(j))
@@ -322,8 +322,8 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
 {
     if(getColumnCount() <= 1)
         return;
-    int colIndex = getColumnIndexFromX(event->x());
-    int displayIndex = getColumnDisplayIndexFromX(event->x());
+    auto colIndex = getColumnIndexFromX(event->x());
+    auto displayIndex = getColumnDisplayIndexFromX(event->x());
     int startPos = getColumnPosition(displayIndex); // Position X of the start of column
     int endPos = startPos + getColumnWidth(colIndex); // Position X of the end of column
     bool onHandle = ((colIndex != 0) && (event->x() >= startPos) && (event->x() <= (startPos + 2))) || ((event->x() <= endPos) && (event->x() >= (endPos - 2)));
@@ -384,7 +384,7 @@ void AbstractTableView::mouseMoveEvent(QMouseEvent* event)
 
     case AbstractTableView::HeaderButtonPressed:
     {
-        int colIndex = getColumnIndexFromX(event->x());
+        auto colIndex = getColumnIndexFromX(event->x());
 
         if(colIndex == mHeader.activeButtonIndex)
         {
@@ -447,7 +447,7 @@ void AbstractTableView::mousePressEvent(QMouseEvent* event)
         {
             mReorderStartX = event->x();
 
-            int colIndex = getColumnIndexFromX(event->x());
+            auto colIndex = getColumnIndexFromX(event->x());
             if(mColumnList[colIndex].header.isClickable)
             {
                 //qDebug() << "Button " << colIndex << "has been pressed.";
@@ -515,7 +515,7 @@ void AbstractTableView::mouseReleaseEvent(QMouseEvent* event)
         }
 
         // Release all buttons
-        for(int i = 0; i < getColumnCount(); i++)
+        for(duint i = 0; i < getColumnCount(); i++)
         {
             mColumnList[i].header.isPressed = false;
         }
@@ -904,7 +904,7 @@ void AbstractTableView::updateScrollBarRange(duint range)
         {
             // Count leading zeros
             int leadingZeroCount = 0;
-            for(duint mask = 0x8000000000000000; mask != 0; mask >>= 1)
+            for(uint64_t mask = 0x8000000000000000; mask != 0; mask >>= 1)
             {
                 if((maxTableOffset & mask) != 0)
                 {
@@ -954,28 +954,23 @@ dsint AbstractTableView::getIndexOffsetFromY(int y) const
 duint AbstractTableView::getColumnIndexFromX(int x) const
 {
     int scrollX = -horizontalScrollBar()->value();
-    duint colIndex = 0;
 
-    while(colIndex < getColumnCount())
+    for(duint colIndex = 0; colIndex < getColumnCount(); colIndex++)
     {
         auto col = mColumnOrder[colIndex];
         if(getColumnHidden(col))
         {
-            colIndex++;
             continue;
         }
-        scrollX += getColumnWidth(col);
 
+        scrollX += getColumnWidth(col);
         if(x <= scrollX)
         {
             return mColumnOrder[colIndex];
         }
-        else if(colIndex < getColumnCount())
-        {
-            colIndex++;
-        }
     }
-    return getColumnCount() > 0 ? mColumnOrder[getColumnCount() - 1] : -1;
+
+    return getColumnCount() > 0 ? mColumnOrder[getColumnCount() - 1] : - 1;
 }
 
 /**
@@ -985,31 +980,27 @@ duint AbstractTableView::getColumnIndexFromX(int x) const
  *
  * @return      Displayed index.
  */
-int AbstractTableView::getColumnDisplayIndexFromX(int x)
+duint AbstractTableView::getColumnDisplayIndexFromX(int x)
 {
     int scrollX = -horizontalScrollBar()->value();
-    int colIndex = 0;
 
-    while(colIndex < getColumnCount())
+    for(duint colIndex = 0; colIndex < getColumnCount(); colIndex++)
     {
         auto col = mColumnOrder[colIndex];
         if(getColumnHidden(col))
         {
-            colIndex++;
             continue;
         }
-        scrollX += getColumnWidth(col);
 
+        scrollX += getColumnWidth(col);
         if(x <= scrollX)
         {
             return colIndex;
         }
-        else if(colIndex < getColumnCount())
-        {
-            colIndex++;
-        }
     }
-    return getColumnCount() - 1;
+
+    // TODO: what if there are no columns?
+    return getColumnCount() > 0 ? getColumnCount() - 1 : -1;
 }
 
 void AbstractTableView::updateLastColumnWidth()
@@ -1020,7 +1011,7 @@ void AbstractTableView::updateLastColumnWidth()
         int totalWidth = 0;
         int lastWidth = totalWidth;
         int last = 0;
-        for(int i = 0; i < getColumnCount(); i++)
+        for(duint i = 0; i < getColumnCount(); i++)
         {
             if(getColumnHidden(mColumnOrder[i]))
                 continue;
@@ -1041,7 +1032,7 @@ void AbstractTableView::updateLastColumnWidth()
     MethodInvoker::invokeMethod([this]()
     {
         int totalWidth = 0;
-        for(int i = 0; i < getColumnCount(); i++)
+        for(duint i = 0; i < getColumnCount(); i++)
             if(!getColumnHidden(i))
                 totalWidth += getColumnWidth(i);
 
@@ -1065,7 +1056,7 @@ int AbstractTableView::getColumnPosition(duint index) const
 
     if((index >= 0) && (index < getColumnCount()))
     {
-        for(int i = 0; i < index; i++)
+        for(duint i = 0; i < index; i++)
             if(!getColumnHidden(mColumnOrder[i]))
                 posX += getColumnWidth(mColumnOrder[i]);
         return posX;
@@ -1150,7 +1141,7 @@ void AbstractTableView::deleteAllColumns()
 
 void AbstractTableView::setColTitle(duint col, const QString & title)
 {
-    if(mColumnList.size() > 0 && col >= 0 && col < mColumnList.size())
+    if(mColumnList.size() > 0 && col < mColumnList.size())
     {
         Column column = mColumnList.takeAt(col);
         column.title = title;
@@ -1160,7 +1151,7 @@ void AbstractTableView::setColTitle(duint col, const QString & title)
 
 QString AbstractTableView::getColTitle(duint col) const
 {
-    if(mColumnList.size() > 0 && col >= 0 && col < mColumnList.size())
+    if(mColumnList.size() > 0 && col < mColumnList.size())
         return mColumnList[col].title;
     return QString();
 }

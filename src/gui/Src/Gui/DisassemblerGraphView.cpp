@@ -17,18 +17,12 @@
 #include "MiscUtil.h"
 #include <QMainWindow>
 
-DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
+DisassemblerGraphView::DisassemblerGraphView(Architecture* architecture, QWidget* parent)
     : QAbstractScrollArea(parent),
-      mFontMetrics(nullptr),
-      currentGraph(duint(0)),
-      disasm(ConfigUint("Disassembler", "MaxModuleSize"), Bridge::getArch()),
-      mCip(0),
-      mGoto(nullptr),
-      syncOrigin(false),
-      forceCenter(false),
-      layoutType(LayoutType::Medium),
-      mHistoryLock(false),
-      mXrefDlg(nullptr)
+      mArchitecture(architecture),
+      currentGraph(0),
+      disasm(ConfigUint("Disassembler", "MaxModuleSize"), architecture),
+      layoutType(LayoutType::Medium)
 {
     this->status = "Loading...";
 

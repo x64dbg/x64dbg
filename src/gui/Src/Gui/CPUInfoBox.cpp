@@ -5,7 +5,9 @@
 #include "Bridge.h"
 #include "QZydis.h"
 
-CPUInfoBox::CPUInfoBox(QWidget* parent) : StdTable(parent)
+CPUInfoBox::CPUInfoBox(Architecture* architecture, QWidget* parent)
+    : StdTable(parent),
+      mArchitecture(architecture)
 {
     setWindowTitle("InfoBox");
     enableMultiSelection(false);
@@ -32,7 +34,7 @@ CPUInfoBox::CPUInfoBox(QWidget* parent) : StdTable(parent)
     setSingleSelection(-1);
 
     int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
-    mDisasm = new QZydis(maxModuleSize, Bridge::getArch());
+    mDisasm = new QZydis(maxModuleSize, architecture);
 
     setupContextMenu();
 }

@@ -52,30 +52,36 @@ void StdTable::deleteAllColumns()
     mColumnSortFunctions.clear();
 }
 
-void StdTable::setRowCount(dsint count)
+void StdTable::setRowCount(duint count)
 {
-    int wRowToAddOrRemove = count - int(mData.size());
-    for(int i = 0; i < qAbs(wRowToAddOrRemove); i++)
+    auto oldSize = mData.size();
+    mData.resize(count);
+    if(oldSize < count)
     {
-        if(wRowToAddOrRemove > 0)
+        for(duint i = oldSize; i < count; i++)
         {
-            mData.push_back(std::vector<CellData>());
-            for(int j = 0; j < getColumnCount(); j++)
-                mData[mData.size() - 1].push_back(CellData());
+            mData[i].resize(getColumnCount());
         }
-        else
-            mData.pop_back();
     }
     AbstractTableView::setRowCount(count);
 }
 
-void StdTable::setCellContent(int r, int c, QString s)
+void StdTable::setCellContent(duint r, duint c, QString s)
 {
     if(isValidIndex(r, c))
         mData[r][c].text = std::move(s);
 }
 
-QString StdTable::getCellContent(int r, int c)
+void StdTable::setCellContent(duint r, duint c, QString s, duint userdata)
+{
+    if(isValidIndex(r, c))
+    {
+        mData[r][c].text = std::move(s);
+        mData[r][c].userdata = userdata;
+    }
+}
+
+QString StdTable::getCellContent(duint r, duint c)
 {
     if(isValidIndex(r, c))
         return mData[r][c].text;
@@ -83,25 +89,25 @@ QString StdTable::getCellContent(int r, int c)
         return QString("");
 }
 
-void StdTable::setCellUserdata(int r, int c, duint userdata)
+void StdTable::setCellUserdata(duint r, duint c, duint userdata)
 {
     if(isValidIndex(r, c))
         mData[r][c].userdata = userdata;
 }
 
-duint StdTable::getCellUserdata(int r, int c)
+duint StdTable::getCellUserdata(duint r, duint c)
 {
     return isValidIndex(r, c) ? mData[r][c].userdata : 0;
 }
 
-bool StdTable::isValidIndex(int r, int c)
+bool StdTable::isValidIndex(duint r, duint c)
 {
     if(r < 0 || c < 0 || r >= int(mData.size()))
         return false;
     return c < int(mData.at(r).size());
 }
 
-void StdTable::sortRows(int column, bool ascending)
+void StdTable::sortRows(duint column, bool ascending)
 {
     auto sortFn = mColumnSortFunctions.at(column);
     std::stable_sort(mData.begin(), mData.end(), [column, ascending, &sortFn](const std::vector<CellData> & a, const std::vector<CellData> & b)

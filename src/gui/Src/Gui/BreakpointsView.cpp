@@ -22,7 +22,7 @@ BreakpointsView::BreakpointsView(QWidget* parent)
     addColumnAt(0, tr("Summary"), true);
     loadColumnFromConfig("BreakpointsView");
 
-    mDisasm = new QZydis(ConfigUint("Disassembler", "MaxModuleSize"), Bridge::getArch());
+    mDisasm = new QZydis(ConfigUint("Disassembler", "MaxModuleSize"), Bridge::getArchitecture());
     mDisasm->UpdateConfig();
     enableMultiSelection(true);
 

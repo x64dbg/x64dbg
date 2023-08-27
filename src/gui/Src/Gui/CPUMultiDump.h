@@ -14,11 +14,12 @@ class CPUMultiDump : public MHTabWidget
 {
     Q_OBJECT
 public:
-    explicit CPUMultiDump(CPUDisassembly* disas, int nbCpuDumpTabs = 1, QWidget* parent = 0);
+    explicit CPUMultiDump(CPUDisassembly* disassembly, int nbCpuDumpTabs = 1, QWidget* parent = nullptr);
+    Architecture* getArchitecture() const;
     CPUDump* getCurrentCPUDump();
     void getTabNames(QList<QString> & names);
     int getMaxCPUTabs();
-    QMenu* mDumpPluginMenu;
+    QMenu* mDumpPluginMenu; // TODO: no
     void saveWindowSettings();
     void loadWindowSettings();
 
@@ -27,8 +28,8 @@ signals:
 
 public slots:
     void updateCurrentTabSlot(int tabIndex);
-    void printDumpAtSlot(dsint parVa);
-    void printDumpAtNSlot(duint parVa, int index);
+    void printDumpAtSlot(duint va);
+    void printDumpAtNSlot(duint va, int index);
     void selectionGetSlot(SELECTIONDATA* selectionData);
     void selectionSetSlot(const SELECTIONDATA* selectionData);
     void dbgStateChangedSlot(DBGSTATE dbgState);
@@ -46,7 +47,8 @@ private:
     WatchView* mWatch;
     LocalVarsView* mLocalVars;
     StructWidget* mStructWidget;
-    CPUDisassembly* mDisassembly = nullptr;
+    CPUDisassembly* mMainDisassembly = nullptr;
+    CPUDisassembly* mExtraDisassembly = nullptr;
 
     int GetDumpWindowIndex(int dump);
     int GetWatchWindowIndex();

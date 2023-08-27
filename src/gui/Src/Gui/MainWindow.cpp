@@ -195,7 +195,7 @@ MainWindow::MainWindow(QWidget* parent)
     mScriptView->hide();
 
     // CPU view
-    mCpuWidget = new CPUWidget();
+    mCpuWidget = new CPUWidget(Bridge::getArchitecture());
     mCpuWidget->setWindowTitle(tr("CPU"));
 #ifdef _WIN64
     mCpuWidget->setWindowIcon(DIcon("processor64"));
@@ -836,7 +836,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
         bExecuteThread = false;
         Sleep(100);
         mCloseThread->start();
-        emit Bridge::getBridge()->shutdown();
+        emit Bridge::getBridge()->close();
     }
     if(bCanClose)
     {

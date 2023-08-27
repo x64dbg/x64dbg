@@ -284,7 +284,7 @@ void HandlesView::enableAllPrivilegesSlot()
 {
     if(!DbgIsDebugging())
         return;
-    for(int i = 0; i < mPrivilegesTable->getRowCount(); i++)
+    for(duint i = 0; i < mPrivilegesTable->getRowCount(); i++)
         if(mPrivilegesTable->getCellContent(i, 1) != tr("Unknown"))
             DbgCmdExecDirect(QString("EnablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(i, 0)));
     enumPrivileges();
@@ -294,7 +294,7 @@ void HandlesView::disableAllPrivilegesSlot()
 {
     if(!DbgIsDebugging())
         return;
-    for(int i = 0; i < mPrivilegesTable->getRowCount(); i++)
+    for(duint i = 0; i < mPrivilegesTable->getRowCount(); i++)
         if(mPrivilegesTable->getCellContent(i, 1) != tr("Unknown"))
             DbgCmdExecDirect(QString("DisablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(i, 0)));
     enumPrivileges();

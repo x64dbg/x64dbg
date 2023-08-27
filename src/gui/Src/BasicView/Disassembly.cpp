@@ -8,10 +8,10 @@
 #include "MemoryPage.h"
 #include "DisassemblyPopup.h"
 
-Disassembly::Disassembly(QWidget* parent, bool isMain, Architecture* architecture)
+Disassembly::Disassembly(Architecture* architecture, bool isMain, QWidget* parent)
     : AbstractTableView(parent),
-      mIsMain(isMain),
-      mArchitecture(architecture)
+      mArchitecture(architecture),
+      mIsMain(isMain)
 {
     mMemPage = new MemoryPage(0, 0);
 
@@ -71,6 +71,11 @@ Disassembly::~Disassembly()
     delete mDisasm;
     if(mXrefInfo.refcount != 0)
         BridgeFree(mXrefInfo.references);
+}
+
+Architecture* Disassembly::getArchitecture() const
+{
+    return mArchitecture;
 }
 
 void Disassembly::updateColors()
@@ -663,7 +668,7 @@ void Disassembly::mouseMoveEvent(QMouseEvent* event)
 
         if((transY(y) >= 0) && (transY(y) <= this->getTableHeight()))
         {
-            int i = getIndexOffsetFromY(transY(y));
+            auto i = getIndexOffsetFromY(transY(y));
 
             if(mMemPage->getSize() > 0)
             {
@@ -713,7 +718,7 @@ duint Disassembly::getAddressForPosition(int mousex, int mousey)
         return 0; //Don't show this in highlight mode
     if(getColumnIndexFromX(mousex) != 2)
         return 0; //Disassembly popup for other column is undefined
-    int rowOffset = getIndexOffsetFromY(transY(mousey));
+    auto rowOffset = getIndexOffsetFromY(transY(mousey));
     if(rowOffset < mInstBuffer.size())
     {
         ZydisTokenizer::SingleToken token;
@@ -752,7 +757,7 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
     {
         if(getColumnIndexFromX(event->x()) == 2) //click in instruction column
         {
-            int rowOffset = getIndexOffsetFromY(transY(event->y()));
+            auto rowOffset = getIndexOffsetFromY(transY(event->y()));
             if(rowOffset < mInstBuffer.size())
             {
                 ZydisTokenizer::SingleToken token;
@@ -790,7 +795,7 @@ void Disassembly::mousePressEvent(QMouseEvent* event)
         {
             if(event->y() > getHeaderHeight())
             {
-                dsint index = getIndexOffsetFromY(transY(event->y()));
+                auto index = getIndexOffsetFromY(transY(event->y()));
 
                 if(mInstBuffer.size() > index && index >= 0)
                 {

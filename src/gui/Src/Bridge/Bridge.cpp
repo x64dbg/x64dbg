@@ -85,7 +85,7 @@ void Bridge::initBridge()
     mBridge = new Bridge();
 }
 
-Architecture* Bridge::getArch()
+Architecture* Bridge::getArchitecture()
 {
     return &mArch;
 }
@@ -335,7 +335,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 
     case GUI_REF_SETSEARCHSTARTCOL:
         if(referenceManager->currentReferenceView())
-            referenceManager->currentReferenceView()->setSearchStartCol((int)param1);
+            referenceManager->currentReferenceView()->setSearchStartCol((duint)param1);
         break;
 
     case GUI_REF_INITIALIZE:
@@ -379,7 +379,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         byte_t buffer[16];
         if(!DbgMemRead(parVA, buffer, 16))
             return 0;
-        QZydis disasm(int(ConfigUint("Disassembler", "MaxModuleSize")), Bridge::getArch());
+        QZydis disasm(int(ConfigUint("Disassembler", "MaxModuleSize")), Bridge::getArchitecture());
         Instruction_t instr = disasm.DisassembleAt(buffer, 16, 0, parVA);
         QString finalInstruction;
         for(const auto & curToken : instr.tokens.tokens)
