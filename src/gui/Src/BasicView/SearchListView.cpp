@@ -355,7 +355,12 @@ bool SearchListView::eventFilter(QObject* obj, QEvent* event)
             return true;
         }
         if(key == Qt::Key_Escape)
-            clearFilter();
+        {
+            if(mFilterText.isEmpty())
+                return QWidget::eventFilter(obj, event);
+            else
+                clearFilter();
+        }
         if(!mSearchBox->text().isEmpty())
         {
             switch(key)
