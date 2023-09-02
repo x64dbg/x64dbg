@@ -294,10 +294,10 @@ MainWindow::MainWindow(QWidget* parent)
     makeCommandAction(ui->actionRtu, "TraceOverConditional mod.user(cip)");
     connect(ui->actionTicnd, SIGNAL(triggered()), this, SLOT(execTicnd()));
     connect(ui->actionTocnd, SIGNAL(triggered()), this, SLOT(execTocnd()));
-    connect(ui->actionTRBit, SIGNAL(triggered()), this, SLOT(execTRBit()));
-    connect(ui->actionTRByte, SIGNAL(triggered()), this, SLOT(execTRByte()));
-    connect(ui->actionTRWord, SIGNAL(triggered()), this, SLOT(execTRWord()));
-    connect(ui->actionTRNone, SIGNAL(triggered()), this, SLOT(execTRNone()));
+    connect(ui->actionTRBit, SIGNAL(triggered()), mCpuWidget->getDisasmWidget(), SLOT(traceCoverageBitSlot()));
+    connect(ui->actionTRByte, SIGNAL(triggered()), mCpuWidget->getDisasmWidget(), SLOT(traceCoverageByteSlot()));
+    connect(ui->actionTRWord, SIGNAL(triggered()), mCpuWidget->getDisasmWidget(), SLOT(traceCoverageWordSlot()));
+    connect(ui->actionTRNone, SIGNAL(triggered()), mCpuWidget->getDisasmWidget(), SLOT(traceCoverageDisableSlot()));
     makeCommandAction(ui->actionTRTIBT, "tibt");
     makeCommandAction(ui->actionTRTOBT, "tobt");
     makeCommandAction(ui->actionTRTIIT, "tiit");
@@ -334,6 +334,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionReportBug, SIGNAL(triggered()), this, SLOT(reportBug()));
     connect(ui->actionBlog, SIGNAL(triggered()), this, SLOT(blog()));
     connect(ui->actionCrashDump, SIGNAL(triggered()), this, SLOT(crashDump()));
+    connect(ui->actionMnemonic_Help, SIGNAL(triggered()), this, SLOT(mnemonicHelp()));
     connect(ui->actionAttach, SIGNAL(triggered()), this, SLOT(displayAttach()));
     makeCommandAction(ui->actionDetach, "detach");
     connect(ui->actionChangeCommandLine, SIGNAL(triggered()), this, SLOT(changeCommandLine()));
@@ -1171,26 +1172,6 @@ void MainWindow::execCommandSlot()
 void MainWindow::setFocusToCommandBar()
 {
     mCmdLineEdit->setFocus();
-}
-
-void MainWindow::execTRBit()
-{
-    mCpuWidget->getDisasmWidget()->traceCoverageBitSlot();
-}
-
-void MainWindow::execTRByte()
-{
-    mCpuWidget->getDisasmWidget()->traceCoverageByteSlot();
-}
-
-void MainWindow::execTRWord()
-{
-    mCpuWidget->getDisasmWidget()->traceCoverageWordSlot();
-}
-
-void MainWindow::execTRNone()
-{
-    mCpuWidget->getDisasmWidget()->traceCoverageDisableSlot();
 }
 
 void MainWindow::execTicnd()
@@ -2108,6 +2089,16 @@ void MainWindow::crashDump()
 
     // Congratulations! We survived a fatal error!
     SimpleWarningBox(this, tr("Have fun debugging the debugger!"), tr("Debugger detected!"));
+}
+
+void MainWindow::mnemonicHelp()
+{
+    QString mnemonic;
+    if(SimpleInputBox(this, tr("Mnemonic help"), "", mnemonic, "call"))
+    {
+        DbgCmdExec(QString("mnemonichelp ").append(mnemonic).toUtf8().constData());
+        showQWidgetTab(mLogView);
+    }
 }
 
 void MainWindow::displayAttach()

@@ -80,10 +80,6 @@ public slots:
     void displayBreakpointWidget();
     void updateWindowTitleSlot(QString filename);
     void runSlot();
-    void execTRBit();
-    void execTRByte();
-    void execTRWord();
-    void execTRNone();
     void displayCpuWidget();
     void displayCpuWidgetShowCpu();
     void displaySymbolWidget();
@@ -130,6 +126,7 @@ public slots:
     void refreshShortcuts();
     void openShortcuts();
     void changeTopmost(bool checked);
+    void mnemonicHelp();
     void donate();
     void blog();
     void reportBug();
