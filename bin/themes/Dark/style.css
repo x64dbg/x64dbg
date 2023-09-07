@@ -196,9 +196,9 @@ QMenuBar::item:disabled:selected {
 }
 
 QMenu {
-    border: 1px solid #212121;
+    border: 1px solid #808080;
     color: #e0e0e0;
-    margin: 2px;
+    padding: 2px;
 }
 
 QMenu::icon {
@@ -281,7 +281,7 @@ QMenu::right-arrow {
 }
 
 QWidget:disabled {
-    color: #454545;
+    color: #646464;
     background-color: #212121;
 }
 
@@ -311,6 +311,11 @@ QLineEdit {
     border: 1px solid #212121;
     border-radius: 2px;
     color: #e0e0e0;
+}
+
+/* e.g. "System breakpoint scripts" dialog */
+QLineEdit:disabled {
+    background-color: #282828;
 }
 
 QAbstractItemView QLineEdit {
@@ -501,7 +506,7 @@ QMainWindow::separator:hover {
 
 QMenu::separator {
     height: 1px;
-    background-color: #2a2b2f;
+    background-color: #808080;
     color: white;
     padding-left: 4px;
     margin-left: 10px;
@@ -550,7 +555,7 @@ QPushButton {
     color: #e0e0e0;
     background-color: #212121;
     border-width: 1px;
-    border-color: #2a2b2f;
+    border-color: #808080;
     border-style: solid;
     padding: 5px;
     border-radius: 2px;
@@ -567,7 +572,7 @@ QPushButton:disabled {
     padding-left: 10px;
     padding-right: 10px;
     border-radius: 2px;
-    color: #454545;
+    color: #646464;
 }
 
 QPushButton:focus {
@@ -581,11 +586,11 @@ QPushButton:pressed {
     padding-bottom: -17px;
 }
 
-QComboBox {
+QComboBox, QFontComboBox {
     selection-background-color: #89a2f6;
     selection-color: #000000;
     border-style: solid;
-    border: 1px solid #212121;
+    border: 1px solid #424242;
     border-radius: 2px;
     padding: 5px;
     min-width: 75px;
@@ -596,15 +601,19 @@ QPushButton:checked {
     border-color: #2a2b2f;
 }
 
+QPushButton:hover {
+    border: 1px solid #e0e0e0;
+    color: #e0e0e0;
+}
+
 QComboBox:hover,
-QPushButton:hover,
 QAbstractSpinBox:hover,
 QLineEdit:hover,
 QTextEdit:hover,
 QPlainTextEdit:hover,
 QAbstractView:hover,
 QTreeView:hover {
-    border: 1px solid #414141;
+    border: 1px solid #646464;
     color: #e0e0e0;
 }
 
@@ -619,6 +628,7 @@ QComboBox QAbstractItemView {
     border-radius: 2px;
     border: 1px solid #212121;
     selection-background-color: #414141;
+    selection-color: #ffffff;   /* e.g. calling convention ComboBox */
 }
 
 QComboBox::drop-down {
@@ -1096,4 +1106,13 @@ QTabWidget::pane {
 QTabBar::tear { 
     width: 0px;
     border: none;
+}
+
+/* e.g. "Exception filters" list, "Patch file" modules list, "Set page memory rights" table, "Select font" list, etc */
+QTableView, QListView {
+    selection-color: #c8c8c8;
+}
+
+DisassemblyPopup { 
+    border: 1px solid #c0c0c0; 
 }
