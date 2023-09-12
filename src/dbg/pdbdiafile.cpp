@@ -41,10 +41,14 @@ public:
         if(hFile == INVALID_HANDLE_VALUE)
             return HRESULT_FROM_WIN32(GetLastError());
 
-        *ppStream = new FileStream(hFile);
-
-        if(*ppStream == NULL)
+        try
+        {
+            *ppStream = new FileStream(hFile);
+        }
+        catch(const std::bad_alloc &)
+        {
             CloseHandle(hFile);
+        }
 
         return S_OK;
     }
