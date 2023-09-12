@@ -275,7 +275,7 @@ bool cbInstrBookmarkList(int argc, char* argv[])
 
 bool cbInstrBookmarkClear(int argc, char* argv[])
 {
-    LabelClear();
+    BookmarkClear();
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "All bookmarks deleted!"));
     return true;
