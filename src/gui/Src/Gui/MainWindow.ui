@@ -150,6 +150,7 @@
      <string>&amp;Help</string>
     </property>
     <addaction name="actionCalculator"/>
+    <addaction name="actionMnemonic_Help"/>
     <addaction name="actionCheckUpdates"/>
     <addaction name="actionBlog"/>
     <addaction name="actionDonate"/>
@@ -1534,6 +1535,19 @@
    </property>
    <property name="statusTip">
     <string>Display information about Qt</string>
+   </property>
+  </action>
+  <action name="actionMnemonic_Help">
+   <property name="icon">
+    <iconset>
+     <normalon>:/Default/icons/helpmnemonic.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Mnemonic Help</string>
+   </property>
+   <property name="statusTip">
+    <string>Output the detailed help information about an assembly mnemonic to the log. Equivalent command &quot;mnemonichelp name&quot;.</string>
    </property>
   </action>
  </widget>
