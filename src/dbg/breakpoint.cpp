@@ -131,11 +131,11 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
 
     if(Type != BPDLL && Type != BPEXCEPTION)
     {
-        return breakpoints.insert(std::make_pair(BreakpointKey(Type, ModHashFromAddr(Address)), bp)).second;
+        return breakpoints.emplace(BreakpointKey(Type, ModHashFromAddr(Address)), bp).second;
     }
     else
     {
-        return breakpoints.insert(std::make_pair(BreakpointKey(Type, Address), bp)).second;
+        return breakpoints.emplace(BreakpointKey(Type, Address), bp).second;
     }
 }
 
@@ -159,7 +159,7 @@ bool BpNewDll(const char* module, bool Enable, bool Singleshot, DWORD TitanType,
     // Insert new entry to the global list
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
 
-    return breakpoints.insert(std::make_pair(BreakpointKey(BPDLL, bp.addr), bp)).second;
+    return breakpoints.emplace(BreakpointKey(BPDLL, bp.addr), bp).second;
 }
 
 bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
@@ -310,7 +310,7 @@ bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo)
                 _strlwr_s(temp.mod, strlen(temp.mod) + 1);
                 temp.addr = ModHashFromName(module1);
                 breakpoints.erase(i.first);
-                auto newItem = breakpoints.insert(std::make_pair(BreakpointKey(BPDLL, temp.addr), temp));
+                auto newItem = breakpoints.emplace(BreakpointKey(BPDLL, temp.addr), temp);
                 *newBpInfo = &newItem.first->second;
                 return true;
             }
@@ -327,7 +327,7 @@ bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo)
                 _strlwr_s(temp.mod, strlen(temp.mod) + 1);
                 temp.addr = ModHashFromName(dashPos1 + 1);
                 breakpoints.erase(i.first);
-                auto newItem = breakpoints.insert(std::make_pair(BreakpointKey(BPDLL, temp.addr), temp));
+                auto newItem = breakpoints.emplace(BreakpointKey(BPDLL, temp.addr), temp);
                 *newBpInfo = &newItem.first->second;
                 return true;
             }

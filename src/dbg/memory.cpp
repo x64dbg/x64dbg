@@ -437,7 +437,7 @@ void MemUpdateMap()
     {
         duint start = (duint)page.mbi.BaseAddress;
         duint size = (duint)page.mbi.RegionSize;
-        memoryPages.insert(std::make_pair(std::make_pair(start, start + size - 1), page));
+        memoryPages.emplace(std::make_pair(start, start + size - 1), page);
     }
 }
 

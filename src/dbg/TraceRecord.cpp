@@ -73,7 +73,7 @@ bool TraceRecordManager::setTraceRecordType(duint pageAddress, TraceRecordType t
                 newPage.moduleIndex = ~0;
             }
 
-            auto inserted = TraceRecord.insert(std::make_pair(ModHashFromAddr(pageAddress), newPage));
+            auto inserted = TraceRecord.emplace(ModHashFromAddr(pageAddress), newPage);
             if(inserted.second == false) // we failed to insert new page into the map
             {
                 efree(newPage.rawPtr);
@@ -683,7 +683,7 @@ void TraceRecordManager::loadFromDb(JSON root)
                     currentPage.moduleIndex = ~0;
                     key = currentPage.rva;
                 }
-                TraceRecord.insert(std::make_pair(key, currentPage));
+                TraceRecord.emplace(key, currentPage);
             }
             else
                 efree(currentPage.rawPtr, "TraceRecordManager");

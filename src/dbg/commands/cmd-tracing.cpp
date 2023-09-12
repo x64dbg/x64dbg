@@ -129,7 +129,7 @@ bool cbDebugRunToParty(int argc, char* argv[])
                 if(!BpGet(j.addr, BPMEMORY, nullptr, &bp))
                 {
                     size_t size = DbgMemGetPageSize(j.addr);
-                    RunToUserCodeBreakpoints.push_back(std::make_pair(j.addr, size));
+                    RunToUserCodeBreakpoints.emplace_back(j.addr, size);
                     SetMemoryBPXEx(j.addr, size, UE_MEMORY_EXECUTE, false, cbRunToUserCodeBreakpoint);
                 }
             }

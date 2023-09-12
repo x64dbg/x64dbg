@@ -1021,7 +1021,7 @@ bool cbInstrGUIDFind(int argc, char* argv[])
                 //very likely a GUID
                 GUID temp;
                 if(CLSIDFromString(subkeyName, &temp) == S_OK)
-                    allRegisteredGUIDs.insert(std::make_pair(temp, 0));
+                    allRegisteredGUIDs.emplace(temp, 0);
             }
         }
         subkeyNameLen = 40;
