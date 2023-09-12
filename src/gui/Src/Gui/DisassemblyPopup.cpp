@@ -4,6 +4,7 @@
 #include "StringUtil.h"
 #include "MiscUtil.h"
 #include <QPainter>
+#include <QStyleOptionFrame>
 
 DisassemblyPopup::DisassemblyPopup(QWidget* parent) :
     QFrame(parent, Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus),
@@ -84,6 +85,13 @@ void DisassemblyPopup::paintEvent(QPaintEvent* event)
         RichTextPainter::paintRichText(&p, 3, y, mWidth - 3, charHeight, 0, instruction.first, mFontMetrics);
         y += charHeight;
     }
+
+    // The code above will destroy the stylesheet adjustments, making it impossible to change the border color.
+    // To remedy this, we redraw a thin 'stylizable' frame here
+    QStyleOptionFrame opt;
+    initStyleOption(&opt);
+    style()->drawPrimitive(QStyle::PE_Frame, &opt, &p, this);
+
     QFrame::paintEvent(event);
 }
 
