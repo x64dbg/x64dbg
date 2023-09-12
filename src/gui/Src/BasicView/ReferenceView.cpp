@@ -187,10 +187,14 @@ void ReferenceView::setRowCount(dsint count)
 
 void ReferenceView::setSingleSelection(int index, bool scroll)
 {
-    clearFilter();
+    //clearFilter();
     stdList()->setSingleSelection(index);
+    stdSearchList()->setSingleSelection(index);
     if(scroll) //TODO: better scrolling
+    {
         stdList()->setTableOffset(index);
+        stdSearchList()->setTableOffset(index);
+    }
 }
 
 void ReferenceView::addCommand(QString title, QString command)
