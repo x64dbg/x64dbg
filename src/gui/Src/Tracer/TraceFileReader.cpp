@@ -580,7 +580,6 @@ void TraceFileReader::purgeLastPage()
 // Extract memory access information of given index into dump object
 void TraceFileReader::buildDump(unsigned long long index)
 {
-    Zydis zydis;
     unsigned char opcode[MAX_DISASM_BUFFER];
     int opcodeSize;
     REGDUMP registers = Registers(index);;
@@ -590,24 +589,34 @@ void TraceFileReader::buildDump(unsigned long long index)
     int MemoryOperandsCount = MemoryAccessCount(index);
     if(MemoryOperandsCount == 0) //LEA and NOP instructions are ignored here
         return;
-    zydis.Disassemble(registers.regcontext.cip, opcode, opcodeSize);
+    // TODO: This doesn't get correct memory operand size
     duint oldMemory[32];
     duint newMemory[32];
     duint address[32];
     bool isValid[32];
-    bool used[32];
     MemoryAccessInfo(index, address, oldMemory, newMemory, isValid);
-    memset(used, 0, sizeof(used));
-    for(int opindex = 0; opindex < zydis.OpCount(); opindex++)
+    for(int i = 0; i < MemoryOperandsCount; i++)
     {
-        size_t value = zydis.ResolveOpValue(opindex, [&registers](ZydisRegister reg)
-        {
-            return resolveZydisRegister(registers, reg);
-        });
-        if(zydis[opindex].type == ZYDIS_OPERAND_TYPE_MEMORY)
+        dump.addMemAccess(address[i], &oldMemory[i], &newMemory[i], sizeof(duint));
+    }
+    /*
+    // TODO: This works poorly for edge cases, still doesn't work with PUSH DWORD PTR FS:[ESP+EAX]
+    Zydis zydis;
+    zydis.Disassemble(registers.regcontext.cip, opcode, opcodeSize);
+    //bool used[32];
+    //memset(used, 0, sizeof(used));
+    // fix PUSH DWORD PTR [ESP] uses different ESP values
+    if(zydis.GetInstr()->mnemonic == ZYDIS_MNEMONIC_PUSH) // fix PUSH instructions, add explicit memory operand
+    {
+        const auto & operand = zydis[0];
+        if(operand.type == ZYDIS_OPERAND_TYPE_MEMORY)
         {
             int size;
-            size = ceil(zydis[opindex].size / 8.0);
+            size = ceil((float)operand.size / 8.0f);
+            size_t value = zydis.ResolveOpValue(0, [&registers](ZydisRegister reg)
+            {
+                return resolveZydisRegister(registers, reg);
+            });
             bool found = false;
             for(int i = 0; i < MemoryOperandsCount; i++)
             {
@@ -623,6 +632,53 @@ void TraceFileReader::buildDump(unsigned long long index)
             //GuiAddLogMessage(QString("buildDump bug %1???\n").arg(index).toUtf8().constData());
         }
     }
+    // fix PUSH instructions, add implicit memory operand
+    if(zydis.GetInstr()->mnemonic == ZYDIS_MNEMONIC_PUSH ||zydis.GetInstr()->mnemonic == ZYDIS_MNEMONIC_PUSHF || zydis.GetInstr()->mnemonic == ZYDIS_MNEMONIC_PUSHFD || zydis.GetInstr()->mnemonic == ZYDIS_MNEMONIC_PUSHFQ)
+    {
+        size_t new_csp = registers.regcontext.csp - sizeof(duint);
+        bool found = false;
+        for(int i = 0; i < MemoryOperandsCount; i++)
+        {
+            if(address[i] != new_csp)
+                continue;
+            dump.addMemAccess(address[i], &oldMemory[i], &newMemory[i], sizeof(duint));
+            found = true;
+            break;
+        }
+        //if(!found)
+        //bug???
+        //GuiAddLogMessage(QString("buildDump bug %1???\n").arg(index).toUtf8().constData());
+    }
+    else
+    {
+        for(int opindex = 0; opindex < zydis.GetInstr()->operandCount; opindex++)
+        {
+            const auto & operand = zydis.GetInstr()->operands[opindex];
+            if(operand.type == ZYDIS_OPERAND_TYPE_MEMORY)
+            {
+                int size;
+                size = ceil((float)operand.size / 8.0f);
+                size_t value = zydis.ResolveOpValue(opindex, [&registers](ZydisRegister reg)
+                {
+                    return resolveZydisRegister(registers, reg);
+                });
+                bool found = false;
+                for(int i = 0; i < MemoryOperandsCount; i++)
+                {
+                    // TODO: fix up FS/GS segment
+                    if(address[i] != value)
+                        continue;
+                    dump.addMemAccess(address[i], &oldMemory[i], &newMemory[i], size);
+                    found = true;
+                    break;
+                }
+                //if(!found)
+                //bug???
+                //GuiAddLogMessage(QString("buildDump bug %1???\n").arg(index).toUtf8().constData());
+            }
+        }
+    }
+    */
 }
 
 // Build dump index to the given index
