@@ -20,6 +20,7 @@
 TraceDump::TraceDump(TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, QWidget* parent) : mMemoryPage(memoryPage), HexDump(parent, memoryPage)
 {
     mDisas = disas;
+    setDrawDebugOnly(false);
     //mMultiDump = multiDump;
 
     duint setting;
@@ -224,7 +225,7 @@ void TraceDump::setupContextMenu()
     mMenuBuilder->addMenu(makeMenu(DIcon("float"), tr("&Float")), wFloatMenu);
 
     mMenuBuilder->addAction(makeAction(DIcon("address"), tr("&Address"), SLOT(addressAsciiSlot())));
-    mMenuBuilder->addAction(makeAction(DIcon("processor-cpu"), tr("&Disassembly"), SLOT(disassemblySlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("processor-cpu"), tr("&Disassembly"), SLOT(disassemblySlot())))->setEnabled(false); //TODO
 
     //mMenuBuilder->addSeparator();
     //mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
@@ -1257,9 +1258,9 @@ void TraceDump::addressUnicodeSlot()
 
 void TraceDump::disassemblySlot()
 {
-    SELECTIONDATA selection;
-    selectionGet(&selection);
-    emit showDisassemblyTab(selection.start, selection.end, rvaToVa(getTableOffsetRva()));
+    //SELECTIONDATA selection;
+    //selectionGet(&selection);
+    //emit showDisassemblyTab(selection.start, selection.end, rvaToVa(getTableOffsetRva()));
 }
 
 void TraceDump::selectionGet(SELECTIONDATA* selection)

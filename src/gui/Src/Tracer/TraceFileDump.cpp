@@ -21,11 +21,12 @@ void TraceFileDump::clear()
 unsigned char TraceFileDump::getByte(Key location, bool & success) const
 {
     auto it = dump.lower_bound(location);
+    success = false;
     if(it != dump.end())
     {
         if(it->first.addr == location.addr)
         {
-            goto found;
+            success = true;
         }
         else if(it != dump.begin())
         {
@@ -33,14 +34,14 @@ unsigned char TraceFileDump::getByte(Key location, bool & success) const
             --it;
             if(it->first.addr == location.addr)
             {
-                goto found;
+                success = true;
             }
         }
     }
-    success = false;
-    return 0;
-found:
-    success = true;
+    if(!success)
+    {
+        return 0;
+    }
     if(location.index > it->first.index)
     {
         return it->second.newData;
@@ -54,11 +55,86 @@ found:
 std::vector<unsigned char> TraceFileDump::getBytes(duint addr, duint size, unsigned long long index) const
 {
     std::vector<unsigned char> buffer;
+    char failedTimes = 0;
     buffer.resize(size);
     for(duint i = 0; i < size; i++)
     {
-        bool success;
-        buffer[i] = getByte({addr + i, index}, success);
+        Key location = {addr + i, index};
+        auto it = dump.lower_bound(location);
+        bool success = false;
+        if(it != dump.end())
+        {
+            if(it->first.addr == location.addr)
+            {
+                success = true;
+            }
+            else if(it != dump.begin())
+            {
+                // try to get to next record which may hold the required data
+                --it;
+                if(it->first.addr == location.addr)
+                {
+                    success = true;
+                }
+                else if(it->first.addr > location.addr) // this must be higher address than requested location, gap should be filled with zeroes
+                {
+                    duint gap_size = it->first.addr - location.addr;
+                    gap_size = std::min(gap_size, size - i); // prevent overflow
+                    memset(&buffer[i], 0, gap_size);
+                    i += gap_size - 1;
+                    continue;
+                }
+                else
+                {
+                    GuiAddLogMessage("impossible!");
+                }
+            }
+        }
+        if(!success)
+        {
+            buffer[i] = 0;
+            continue;
+        }
+        if(location.index > it->first.index)
+        {
+            buffer[i] = it->second.newData;
+        }
+        else
+        {
+            buffer[i] = it->second.oldData; // Old data of new instruction is preferred
+        }
+        // Peek at next entries to see if we are lucky to have data for addr+i+1 easily, works for data only accessed once
+        while(it != dump.begin() &&  i + 1 < size && failedTimes < 5)
+        {
+            --it;
+            if(it->first.addr == addr + i + 1)
+            {
+                // At the right address, but still not sure whether the index is right
+                if(it == dump.begin() || std::prev(it)->first.addr != addr + i + 1)
+                {
+                    // OK
+                    ++i;
+                    if(location.index > it->first.index)
+                    {
+                        buffer[i] = it->second.newData;
+                    }
+                    else
+                    {
+                        buffer[i] = it->second.oldData; // Old data of new instruction is preferred
+                    }
+                    failedTimes = 0;
+                    continue;
+                }
+            }
+            failedTimes++; // This trick doesn't work for frequently accessed memory areas, e.g call stack. Disable it quickly.
+            break;
+        }
+        if(it == dump.begin() && i < size - 1)
+        {
+            // Nothing more, fill the rest with zeros and done
+            memset(&buffer[i + 1], 0, size - i - 1);
+            break;
+        }
     }
     return buffer;
 }

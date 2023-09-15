@@ -685,7 +685,7 @@ void TraceFileReader::buildDump(unsigned long long index)
 void TraceFileReader::buildDumpTo(unsigned long long index)
 {
     auto start = dump.getMaxIndex(); // Don't re-add existing dump
-    for(auto i = start + 1; i < index; i++)
+    for(auto i = start + 1; i <= index; i++)
     {
         dump.increaseIndex();
         buildDump(i);
