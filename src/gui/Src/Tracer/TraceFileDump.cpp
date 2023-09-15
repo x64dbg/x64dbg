@@ -153,7 +153,7 @@ void TraceFileDump::findMemAreas()
 }
 
 // TraceFileDumpMemoryPage
-TraceFileDumpMemoryPage::TraceFileDumpMemoryPage(QObject* parent) : MemoryPage(0x1000, ((duint) - 1) >> 1, parent)
+TraceFileDumpMemoryPage::TraceFileDumpMemoryPage(QObject* parent) : MemoryPage(0x10000, 0x1000, parent)
 {
     QMutexLocker locker(&lock);
     dump = nullptr;

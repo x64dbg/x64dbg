@@ -239,6 +239,19 @@ void TraceDump::setupContextMenu()
     updateShortcuts();
 }
 
+void TraceDump::mousePressEvent(QMouseEvent* event)
+{
+    if(event->buttons() == Qt::MiddleButton) //copy address to clipboard
+    {
+        //Allow copying while not debugging
+        MessageBeep(MB_OK);
+        QString addrText = ToPtrString(rvaToVa(getInitialSelection()));
+        Bridge::CopyToClipboard(addrText);
+        return;
+    }
+    HexDump::mousePressEvent(event);
+}
+
 void TraceDump::getAttention()
 {
     BackgroundFlickerThread* thread = new BackgroundFlickerThread(this, mBackgroundColor, this);
@@ -250,9 +263,15 @@ void TraceDump::printDumpAt(dsint parVA, bool select, bool repaint, bool updateT
 {
     // Modified from Hexdump, removed memory page information
     // TODO: get memory range from trace instead
-    duint wSize;
+    const duint wSize = 0x1000;  // TODO: Using 4KB pages currently
     auto wBase = mMemoryPage->getBase();
     dsint wRVA = parVA - wBase; //calculate rva
+    if(wRVA < 0 || wRVA >= wSize)
+    {
+        wBase = parVA & ~(wSize - 1);
+        mMemoryPage->setAttributes(wBase, wSize);
+        wRVA = parVA - wBase; //calculate rva
+    }
     int wBytePerRowCount = getBytePerRowCount(); //get the number of bytes per row
     dsint wRowCount;
 
@@ -268,8 +287,6 @@ void TraceDump::printDumpAt(dsint parVA, bool select, bool repaint, bool updateT
     //    mRvaDisplayEnabled = false;
 
     setRowCount(wRowCount); //set the number of rows
-
-    //mMemPage->setAttributes(wBase, wSize);  // Set base and size (Useful when memory page changed)
 
     if(updateTableOffset)
     {
@@ -337,8 +354,8 @@ void TraceDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & ri
 QString TraceDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
 {
     // Reset byte offset when base address is reached
-    if(rowBase == 0 && mByteOffset != 0)
-        HexDump::printDumpAt(mMemPage->getBase(), false, false);
+    //if(rowBase == 0 && mByteOffset != 0)
+    //    HexDump::printDumpAt(mMemPage->getBase(), false, false);
 
     if(!col) //address
     {
@@ -527,7 +544,7 @@ void TraceDump::gotoExpressionSlot()
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
         GuiAddLogMessage(ToPtrString(value).toUtf8());
-        this->HexDump::printDumpAt(value, true);
+        this->printDumpAt(value, true, true, true);
     }
 }
 
@@ -561,13 +578,13 @@ void TraceDump::gotoExpressionSlot()
 void TraceDump::gotoStartSlot()
 {
     duint dest = mMemPage->getBase();
-    this->HexDump::printDumpAt(dest, true);
+    this->printDumpAt(dest, true, true, true);
 }
 
 void TraceDump::gotoEndSlot()
 {
     duint dest = mMemPage->getBase() + mMemPage->getSize() - (getViewableRowsCount() * getBytePerRowCount());
-    this->HexDump::printDumpAt(dest, true);
+    this->printDumpAt(dest, true, true, true);
 }
 
 void TraceDump::hexAsciiSlot()

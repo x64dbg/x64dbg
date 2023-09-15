@@ -58,14 +58,14 @@ TraceWidget::TraceWidget(QWidget* parent) :
     //overview
     ui->mBotRightFrameLayout->addWidget(mOverview);
 
-    //set up overview
+    // TODO: set up overview
     mOverview->addColumnAt(0, "", true);
     mOverview->setShowHeader(false);
     mOverview->setRowCount(4);
     mOverview->setCellContent(0, 0, "hello");
     mOverview->setCellContent(1, 0, "world");
     mOverview->setCellContent(2, 0, "00000000");
-    mOverview->setCellContent(3, 0, "here we will list all control flow transfers");
+    mOverview->setCellContent(3, 0, "TODO: Draw call stack here");
     //mOverview->hide();
     ui->mTopHSplitter->setSizes(QList<int>({1000, 1}));
     ui->mTopLeftVSplitter->setSizes(QList<int>({1000, 1}));
@@ -85,10 +85,14 @@ void TraceWidget::traceSelectionChanged(unsigned long long selection)
     {
         if(selection < traceFile->Length())
         {
+            // update registers view
             registers = traceFile->Registers(selection);
             mInfo->update(selection, traceFile, registers);
-            traceFile->buildDumpTo(selection);
+            // update dump view
+            traceFile->buildDumpTo(selection); // TODO: sometimes this can be slow
             mMemoryPage->setDumpObject(traceFile->getDump());
+            mMemoryPage->setSelectedIndex(selection);
+            mDump->reloadData();
         }
         else
             memset(&registers, 0, sizeof(registers));

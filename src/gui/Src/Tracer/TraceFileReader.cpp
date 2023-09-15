@@ -577,17 +577,19 @@ void TraceFileReader::purgeLastPage()
     }
 }
 
+// Extract memory access information of given index into dump object
 void TraceFileReader::buildDump(unsigned long long index)
 {
-    int MemoryOperandsCount = MemoryAccessCount(index);
-    if(MemoryOperandsCount == 0) //LEA and NOP instructions
-        return;
     Zydis zydis;
     unsigned char opcode[MAX_DISASM_BUFFER];
     int opcodeSize;
     REGDUMP registers = Registers(index);;
     OpCode(index, opcode, &opcodeSize);
+    // Always add opcode into dump
     dump.addMemAccess(registers.regcontext.cip, opcode, opcode, opcodeSize);
+    int MemoryOperandsCount = MemoryAccessCount(index);
+    if(MemoryOperandsCount == 0) //LEA and NOP instructions are ignored here
+        return;
     zydis.Disassemble(registers.regcontext.cip, opcode, opcodeSize);
     duint oldMemory[32];
     duint newMemory[32];
@@ -623,9 +625,10 @@ void TraceFileReader::buildDump(unsigned long long index)
     }
 }
 
+// Build dump index to the given index
 void TraceFileReader::buildDumpTo(unsigned long long index)
 {
-    auto start = dump.getMaxIndex();
+    auto start = dump.getMaxIndex(); // Don't re-add existing dump
     for(auto i = start + 1; i < index; i++)
     {
         dump.increaseIndex();
@@ -633,7 +636,7 @@ void TraceFileReader::buildDumpTo(unsigned long long index)
     }
 }
 
-void TraceFileReader::debugdump(unsigned long long index)
+void TraceFileReader::debugdump(unsigned long long index) //TODO: remove me
 {
     dump.findMemAreas();
     for(auto c : dump.memAreas)

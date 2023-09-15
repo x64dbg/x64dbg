@@ -21,6 +21,7 @@ public:
     void contextMenuEvent(QContextMenuEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
+    void mousePressEvent(QMouseEvent* event);
     void printDumpAt(dsint parVA, bool select, bool repaint, bool updateTableOffset);
 
 signals:
