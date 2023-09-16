@@ -65,17 +65,14 @@ void SourceViewerManager::closeTab(int index)
     auto sourceView = qobject_cast<SourceView*>(widget(index));
     removeTab(index);
     if(sourceView)
-        sourceView->clear();
+        delete sourceView;
 }
 
 void SourceViewerManager::closeAllTabs()
 {
     while(count())
     {
-        auto sourceView = qobject_cast<SourceView*>(widget(0));
-        removeTab(0);
-        if(sourceView)
-            sourceView->clear();
+        closeTab(0);
     }
 }
 
