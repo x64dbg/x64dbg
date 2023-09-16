@@ -275,7 +275,7 @@ void ControlFlowAnalysis::Functions()
             {
                 auto function = findFunctionStart(block, parents);
                 if(!function) //this happens with loops / unreferenced blocks sometimes
-                    delayedBlocks.push_back(DelayedBlock(block, parents));
+                    delayedBlocks.emplace_back(block, parents);
                 else
                     block->function = function;
             }

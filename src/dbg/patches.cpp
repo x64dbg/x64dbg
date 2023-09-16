@@ -56,7 +56,7 @@ bool PatchSet(duint Address, unsigned char OldByte, unsigned char NewByte)
     else
     {
         // The entry was never found, insert it
-        patches.insert(std::make_pair(key, newPatch));
+        patches.emplace(key, newPatch);
     }
 
     return true;

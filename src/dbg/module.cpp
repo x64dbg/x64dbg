@@ -902,7 +902,7 @@ bool ModLoad(duint Base, duint Size, const char* FullPath, bool loadSymbols)
 
     // Add module to list
     EXCLUSIVE_ACQUIRE(LockModules);
-    modinfo.insert(std::make_pair(Range(Base, Base + Size - 1), std::move(infoPtr)));
+    modinfo.emplace(Range(Base, Base + Size - 1), std::move(infoPtr));
     EXCLUSIVE_RELEASE();
 
     // Put labels for virtual module exports
