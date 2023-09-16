@@ -50,13 +50,20 @@ void ReferenceManager::newReferenceView(QString name)
 
 void ReferenceManager::closeTab(int index)
 {
+    auto view = qobject_cast<ReferenceView*>(widget(index));
     removeTab(index);
+    if(mCurrentReferenceView == view)
+        mCurrentReferenceView = nullptr;
+    if(view)
+        delete view;
     if(count() <= 0)
         emit showCpu();
 }
 
 void ReferenceManager::closeAllTabs()
 {
-    clear();
-    emit showCpu();
+    while(count())
+    {
+        closeTab(0);
+    }
 }
