@@ -83,6 +83,7 @@ SOURCES += \
     Src/Tracer/TraceDump.cpp \
     Src/Tracer/TraceFileDump.cpp \
     Src/Tracer/TraceInfoBox.cpp \
+    Src/Tracer/TraceManager.cpp \
     Src/Tracer/TraceRegisters.cpp \
     Src/Tracer/TraceWidget.cpp \
     Src/Utils/CommonActions.cpp \
@@ -207,6 +208,7 @@ HEADERS += \
     Src/Tracer/TraceDump.h \
     Src/Tracer/TraceFileDump.h \
     Src/Tracer/TraceInfoBox.h \
+    Src/Tracer/TraceManager.h \
     Src/Tracer/TraceRegisters.h \
     Src/Tracer/TraceWidget.h \
     Src/Utils/CommonActions.h \
