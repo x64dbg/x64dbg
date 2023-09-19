@@ -87,12 +87,12 @@ bool TraceBrowser::toggleTraceRecording(QWidget* parent)
     }
     else
     {
-        auto extension = ArchValue("trace32", "trace64");
+        auto extension = ArchValue(".trace32", ".trace64");
         BrowseDialog browse(
             parent,
             tr("Start trace recording"),
             tr("Trace recording file"),
-            tr("Trace recordings (*.%1);;All files (*.*)").arg(extension),
+            tr("Trace recordings (*%1);;All files (*.*)").arg(extension),
             getDbPath(mainModuleName() + extension, true),
             true
         );
