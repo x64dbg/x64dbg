@@ -12,7 +12,7 @@ class SearchListView : public QWidget, public ActionHelper<SearchListView>
     Q_OBJECT
 
 public:
-    explicit SearchListView(QWidget* parent, AbstractSearchList* abstractSearchList, bool enableRegex, bool enableLock);
+    SearchListView(QWidget* parent, AbstractSearchList* abstractSearchList, bool enableRegex, bool enableLock);
 
     AbstractStdTable* mCurList = nullptr;
     duint mSearchStartCol = 0;

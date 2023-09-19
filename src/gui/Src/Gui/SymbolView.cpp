@@ -6,6 +6,8 @@
 #include "BrowseDialog.h"
 #include "StdIconSearchListView.h"
 #include "ZehSymbolTable.h"
+#include "DisassemblyPopup.h"
+
 #include <QVBoxLayout>
 #include <QProcess>
 #include <QFileDialog>
@@ -173,6 +175,10 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     mSymbolSearchList = new SymbolSearchList();
     mSymbolList = new SearchListView(this, mSymbolSearchList, true, true);
     mSymbolList->mSearchStartCol = 1;
+
+    // Add a disassembly popup
+    new DisassemblyPopup(mSymbolSearchList->list(), Bridge::getArchitecture());
+    new DisassemblyPopup(mSymbolSearchList->searchList(), Bridge::getArchitecture());
 
     // Create module list
     mModuleList = new StdIconSearchListView(this, true, false, new StdTableSearchList(new ModuleStdTable(), new ModuleStdTable()));

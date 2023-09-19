@@ -5,6 +5,7 @@
 #include "Bridge.h"
 #include "MenuBuilder.h"
 #include "Breakpoints.h"
+#include "DisassemblyPopup.h"
 
 BreakpointsView::BreakpointsView(QWidget* parent)
     : StdTable(parent), mExceptionMaxLength(0)
@@ -37,6 +38,8 @@ BreakpointsView::BreakpointsView(QWidget* parent)
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followBreakpointSlot()));
 
     Initialize();
+
+    new DisassemblyPopup(this, Bridge::getArchitecture());
 }
 
 void BreakpointsView::setupContextMenu()

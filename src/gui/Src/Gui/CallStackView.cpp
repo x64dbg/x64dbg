@@ -1,6 +1,7 @@
 #include "CallStackView.h"
 #include "CommonActions.h"
 #include "Bridge.h"
+#include "DisassemblyPopup.h"
 
 CallStackView::CallStackView(StdTable* parent) : StdIconTable(parent)
 {
@@ -21,6 +22,8 @@ CallStackView::CallStackView(StdTable* parent) : StdIconTable(parent)
     connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(followFrom()));
 
     setupContextMenu();
+
+    new DisassemblyPopup(this, Bridge::getArchitecture());
 }
 
 void CallStackView::setupContextMenu()

@@ -10,6 +10,7 @@
 #include "StdIconSearchListView.h"
 #include "MainWindow.h"
 #include "MessagesBreakpoints.h"
+#include "DisassemblyPopup.h"
 #include <QVBoxLayout>
 
 HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
@@ -26,6 +27,10 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mHandlesTable->addColumnAt(8 + 16 * charWidth, tr("Access"), true, "", StdTable::SortBy::AsHex);
     mHandlesTable->addColumnAt(8 + charWidth * 20, tr("Name"), true);
     mHandlesTable->loadColumnFromConfig("Handle");
+
+    // Add disassembly popups
+    new DisassemblyPopup(mHandlesTable->stdList(), Bridge::getArchitecture());
+    new DisassemblyPopup(mHandlesTable->stdSearchList(), Bridge::getArchitecture());
 
     // Setup windows list
     mWindowsTable = new StdIconSearchListView(this, true, true);

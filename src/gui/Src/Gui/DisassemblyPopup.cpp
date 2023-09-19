@@ -107,13 +107,12 @@ bool DisassemblyPopup::eventFilter(QObject* object, QEvent* event)
         case QEvent::KeyPress:
         {
             hide();
+            stopPopupTimer();
         }
         break;
 
         case QEvent::MouseMove:
         {
-            hide();
-
             auto mouseEvent = (QMouseEvent*)event;
             auto x = mouseEvent->x();
             auto y = mouseEvent->y();
@@ -121,11 +120,23 @@ bool DisassemblyPopup::eventFilter(QObject* object, QEvent* event)
             // TODO: make sure the cursor isn't on the column separators
             if(y > mParent->getHeaderHeight())
             {
-                mLastX = x;
-                mLastY = y;
-                if(mPopupTimer != 0)
-                    killTimer(mPopupTimer);
-                mPopupTimer = startTimer(QApplication::startDragTime());
+                // Show the popup if relevant for the current position
+                auto addr = mParent->getAddressForPosition(x, y);
+                if(getAddress() != addr)
+                {
+                    if(DbgFunctions()->MemIsCodePage(addr, false))
+                    {
+                        move(mParent->mapToGlobal(QPoint(x + 20, y + fontMetrics().height() * 2)));
+                        setAddress(addr);
+                        if(mPopupTimer == 0)
+                            mPopupTimer = startTimer(QApplication::startDragTime());
+                    }
+                    else
+                    {
+                        hide();
+                        stopPopupTimer();
+                    }
+                }
             }
         }
         break;
@@ -142,46 +153,35 @@ void DisassemblyPopup::timerEvent(QTimerEvent* event)
 {
     if(event->timerId() == mPopupTimer)
     {
-        // Kill the timer
-        killTimer(mPopupTimer);
-        mPopupTimer = 0;
+        // Show the popup
+        show();
 
-        // Show the popup if relevant for the current position
-        auto addr = mParent->getAddressForPosition(mLastX, mLastY);
-        if(getAddress() != addr)
-        {
-            if(DbgFunctions()->MemIsCodePage(addr, false))
-            {
-                move(mParent->mapToGlobal(QPoint(mLastX + 20, mLastY + fontMetrics().height() * 2)));
-                setAddress(addr);
-                show();
-            }
-            else
-            {
-                hide();
-                if(mPopupTimer != 0)
-                {
-                    mPopupTimer = 0;
-                    killTimer(mPopupTimer);
-                }
-            }
-        }
+        stopPopupTimer();
     }
 
     QFrame::timerEvent(event);
 }
 
-void DisassemblyPopup::setAddress(duint Address)
+void DisassemblyPopup::stopPopupTimer()
 {
-    mAddr = Address;
+    if(mPopupTimer != 0)
+    {
+        killTimer(mPopupTimer);
+        mPopupTimer = 0;
+    }
+}
+
+void DisassemblyPopup::setAddress(duint addr)
+{
+    mAddr = addr;
     QList<Instruction_t> instBuffer;
     mDisassemblyToken.clear();
     mDisasm.UpdateArchitecture();
+
     if(mAddr != 0)
     {
         mWidth = 1;
         // Get RVA
-        auto addr = Address;
         duint size;
         duint base = DbgMemFindBaseAddr(addr, &size);
         // Prepare RVA of every instruction

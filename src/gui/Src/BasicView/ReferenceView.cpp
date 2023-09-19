@@ -6,6 +6,7 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "MiscUtil.h"
+#include "DisassemblyPopup.h"
 
 ReferenceView::ReferenceView(bool sourceView, QWidget* parent) : StdSearchListView(parent, true, false), mParent(dynamic_cast<QTabWidget*>(parent))
 {
@@ -53,6 +54,10 @@ ReferenceView::ReferenceView(bool sourceView, QWidget* parent) : StdSearchListVi
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followGenericAddress()));
 
     setupContextMenu();
+
+    // Add disassembly popups
+    new DisassemblyPopup(stdList(), Bridge::getArchitecture());
+    new DisassemblyPopup(stdSearchList(), Bridge::getArchitecture());
 }
 
 void ReferenceView::setupContextMenu()

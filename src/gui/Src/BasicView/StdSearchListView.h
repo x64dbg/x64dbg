@@ -31,6 +31,8 @@ private:
 protected:
     friend class SymbolView;
     friend class Bridge;
+    friend class HandlesView;
+
     StdTable* stdList();
     StdTable* stdSearchList();
 };

@@ -3,6 +3,7 @@
 #include "Bridge.h"
 #include "StringUtil.h"
 #include "LineEditDialog.h"
+#include "DisassemblyPopup.h"
 
 void ThreadView::contextMenuSlot(const QPoint & pos)
 {
@@ -179,6 +180,8 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
     setupContextMenu();
+
+    new DisassemblyPopup(this, Bridge::getArchitecture());
 }
 
 void ThreadView::updateThreadList()

@@ -4,6 +4,7 @@
 #include "Imports.h"
 #include "QZydis.h"
 #include "AbstractTableView.h"
+#include "StdSearchListView.h"
 
 class CachedFontMetrics;
 
@@ -25,6 +26,7 @@ protected:
     void paintEvent(QPaintEvent* event) override;
     bool eventFilter(QObject* object, QEvent* event) override;
     void timerEvent(QTimerEvent* event) override;
+    void stopPopupTimer();
 
     CachedFontMetrics* mFontMetrics = nullptr;
     duint mAddr = 0;
@@ -35,8 +37,6 @@ protected:
     int mCharHeight = 0;
     int mWidth = 0;
     int mPopupTimer = 0;
-    int mLastX = 0;
-    int mLastY = 0;
     unsigned int mMaxInstructions = 20;
 
     QColor mDisassemblyBackgroundColor;
