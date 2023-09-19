@@ -1119,6 +1119,8 @@ void AbstractTableView::addColumnAt(int width, const QString & title, bool isCli
     column.title = title;
     mColumnOrder.append(mColumnList.length());
     mColumnList.append(column);
+
+    updateLastColumnWidth();
 }
 
 void AbstractTableView::setRowCount(duint count)

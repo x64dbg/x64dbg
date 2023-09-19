@@ -37,10 +37,6 @@ void DisassemblyPopup::updateColors()
     mCommentBackgroundColor = ConfigColor("DisassemblyCommentBackgroundColor");
     mCommentAutoColor = ConfigColor("DisassemblyAutoCommentColor");
     mCommentAutoBackgroundColor = ConfigColor("DisassemblyAutoCommentBackgroundColor");
-    // TODO: fix this
-    //QPalette palette;
-    //palette.setColor(QPalette::Foreground, ConfigColor("AbstractTableViewSeparatorColor"));
-    //setPalette(palette);
 }
 
 void DisassemblyPopup::tokenizerConfigUpdated()
