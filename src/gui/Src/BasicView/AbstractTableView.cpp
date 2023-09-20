@@ -256,7 +256,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
                 painter.setPen(separatorPen);
             }
 
-            painter.drawLine(x, y + height - separatorPen.width(), x + width - separatorPen.width(), y + height - separatorPen.width());
+            painter.drawLine(x, y + height - separatorPen.width() + 1, x + width - separatorPen.width(), y + height - separatorPen.width() + 1);
             painter.drawLine(x + width - separatorPen.width() + 1, y, x + width - separatorPen.width() + 1, y + height - separatorPen.width());
 
             x += width;
