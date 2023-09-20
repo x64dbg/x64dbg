@@ -28,6 +28,9 @@ public:
 
     TraceBrowser* getTraceBrowser();
 
+public slots:
+    void openSlot(const QString & fileName);
+
 protected slots:
     void traceSelectionChanged(unsigned long long selection);
     void updateSlot();

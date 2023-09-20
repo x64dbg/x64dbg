@@ -102,6 +102,11 @@ void TraceWidget::traceSelectionChanged(unsigned long long selection)
     mGeneralRegs->setRegisters(&registers);
 }
 
+void TraceWidget::openSlot(const QString & fileName)
+{
+    emit mTraceWidget->openSlot(fileName);
+}
+
 void TraceWidget::updateSlot()
 {
     auto fileOpened = mTraceWidget->isFileOpened();
