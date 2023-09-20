@@ -13,6 +13,7 @@ public:
 
 public slots:
     void open();
+    void openSlot(const QString &);
     void closeTab(int index);
     void closeAllTabs();
 

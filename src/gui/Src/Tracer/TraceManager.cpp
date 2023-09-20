@@ -24,10 +24,11 @@ TraceManager::TraceManager(QWidget* parent) : QTabWidget(parent)
     setCornerWidget(mCloseAllTabs, Qt::TopLeftCorner);
 
     connect(this, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
+    connect(Bridge::getBridge(), SIGNAL(openTraceFile(const QString &)), this, SLOT(openSlot(const QString &)));
 
     // Add a placeholder tab
     QFrame* mPlaceholder = new QFrame(this);
-    addTab(mPlaceholder, tr("Placeholder")); //TODO: Proper title
+    addTab(mPlaceholder, tr("Placeholder")); //TODO: This is only to prevent buttons from disappearing
 }
 
 void TraceManager::open()
@@ -42,11 +43,16 @@ void TraceManager::open()
     );
     if(browse.exec() != QDialog::Accepted)
         return;
+    openSlot(browse.path);
+}
+
+void TraceManager::openSlot(const QString & path)
+{
     //load the new file
-    TraceWidget* newView = new TraceWidget(this);
-    addTab(newView, tr("Trace")); //TODO: Proper title
+    TraceWidget* newView = new TraceWidget(Bridge::getArchitecture(), this);
+    addTab(newView, path); //TODO: Proper title
     setCurrentIndex(count() - 1);
-    emit newView->openSlot(browse.path);
+    emit newView->openSlot(path);
 }
 
 void TraceManager::closeTab(int index)

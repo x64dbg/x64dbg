@@ -51,7 +51,6 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
     Initialize();
 
     connect(Bridge::getBridge(), SIGNAL(updateTraceBrowser()), this, SLOT(updateSlot()));
-    connect(Bridge::getBridge(), SIGNAL(openTraceFile(const QString &)), this, SLOT(openSlot(const QString &)));
     connect(Bridge::getBridge(), SIGNAL(gotoTraceIndex(duint)), this, SLOT(gotoIndexSlot(duint)));
 
     connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerConfigUpdatedSlot()));
@@ -66,6 +65,7 @@ TraceBrowser::~TraceBrowser()
         mTraceFile->Close();
         delete mTraceFile;
     }
+    Config()->unregisterMenuBuilder(mMenuBuilder);
 }
 
 bool TraceBrowser::isFileOpened() const

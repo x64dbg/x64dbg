@@ -8,7 +8,7 @@
 #include "StdTable.h"
 #include "CPUInfoBox.h"
 
-TraceWidget::TraceWidget(QWidget* parent) :
+TraceWidget::TraceWidget(Architecture* architecture, QWidget* parent) :
     QWidget(parent),
     ui(new Ui::TraceWidget)
 {
@@ -18,7 +18,7 @@ TraceWidget::TraceWidget(QWidget* parent) :
     mOverview = new StdTable(this);
     mInfo = new TraceInfoBox(this);
     mMemoryPage = new TraceFileDumpMemoryPage(this);
-    mDump = new TraceDump(mTraceWidget, mMemoryPage, this);
+    mDump = new TraceDump(architecture, mTraceWidget, mMemoryPage, this);
     mGeneralRegs = new TraceRegisters(this);
     //disasm
     ui->mTopLeftUpperRightFrameLayout->addWidget(mTraceWidget);

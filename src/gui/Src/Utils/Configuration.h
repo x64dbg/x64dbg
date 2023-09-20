@@ -56,6 +56,7 @@ public:
     void writeShortcuts();
     void registerMenuBuilder(MenuBuilder* menu, size_t count);
     void registerMainMenuStringList(QList<QAction*>* menu);
+    void unregisterMenuBuilder(MenuBuilder* meun);
 
     const QColor getColor(const QString & id) const;
     const bool getBool(const QString & category, const QString & id) const;

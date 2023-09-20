@@ -13,7 +13,8 @@ class TraceDump : public HexDump
 {
     Q_OBJECT
 public:
-    explicit TraceDump(TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, QWidget* parent);
+    explicit TraceDump(Architecture* architecture, TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, QWidget* parent);
+    ~TraceDump();
     void getColumnRichText(duint col, duint rva, RichTextPainter::List & richText) override;
     QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
     void setupContextMenu();
@@ -78,7 +79,7 @@ public slots:
     void selectionUpdatedSlot();
     void syncWithExpressionSlot();
 
-    void headerButtonReleasedSlot(int colIndex);
+    void headerButtonReleasedSlot(duint colIndex);
 
 private:
     TraceFileDumpMemoryPage* mMemoryPage;

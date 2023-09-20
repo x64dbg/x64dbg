@@ -17,7 +17,7 @@
 #include "MiscUtil.h"
 #include "BackgroundFlickerThread.h"
 
-TraceDump::TraceDump(TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, QWidget* parent) : mMemoryPage(memoryPage), HexDump(Bridge::getArchitecture(), parent, memoryPage)
+TraceDump::TraceDump(Architecture* architecture, TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, QWidget* parent) : mMemoryPage(memoryPage), HexDump(architecture, parent, memoryPage)
 {
     mDisas = disas;
     setDrawDebugOnly(false);
@@ -30,7 +30,7 @@ TraceDump::TraceDump(TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, Q
     setView((ViewEnum_t)ConfigUint("HexDump", "DefaultView"));
 
     connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
-    connect(this, SIGNAL(headerButtonReleased(int)), this, SLOT(headerButtonReleasedSlot(int)));
+    connect(this, SIGNAL(headerButtonReleased(duint)), this, SLOT(headerButtonReleasedSlot(duint)));
 
     //mPluginMenu = multiDump->mDumpPluginMenu;
 
@@ -238,6 +238,11 @@ void TraceDump::setupContextMenu()
     mMenuBuilder->loadFromConfig();
     disconnect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
     updateShortcuts();
+}
+
+TraceDump::~TraceDump()
+{
+    Config()->unregisterMenuBuilder(mMenuBuilder);
 }
 
 void TraceDump::mousePressEvent(QMouseEvent* event)
@@ -1457,7 +1462,7 @@ void TraceDump::setView(ViewEnum_t view)
     }
 }
 
-void TraceDump::headerButtonReleasedSlot(int colIndex)
+void TraceDump::headerButtonReleasedSlot(duint colIndex)
 {
     auto callback = mDescriptor[colIndex].columnSwitch;
     if(callback)

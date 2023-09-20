@@ -1105,6 +1105,19 @@ void Configuration::registerMainMenuStringList(QList<QAction*>* menu)
     NamedMenuBuilders.append(MenuMap(menu, menu->size() - 1));
 }
 
+void Configuration::unregisterMenuBuilder(MenuBuilder* menu)
+{
+    QString id = menu->getId();
+    for(auto i = NamedMenuBuilders.begin(); i != NamedMenuBuilders.end(); ++i)
+    {
+        if(i->type == 0 && i->builder->getId() == id)
+        {
+            NamedMenuBuilders.erase(i);
+            return;
+        }
+    }
+}
+
 void Configuration::zoomFont(const QString & fontName, QWheelEvent* event)
 {
     QPoint numDegrees = event->angleDelta() / 8;

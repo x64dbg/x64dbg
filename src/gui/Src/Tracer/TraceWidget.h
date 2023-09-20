@@ -23,7 +23,7 @@ class TraceWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit TraceWidget(QWidget* parent);
+    explicit TraceWidget(Architecture* architecture, QWidget* parent);
     ~TraceWidget();
 
     TraceBrowser* getTraceBrowser();
