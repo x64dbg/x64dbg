@@ -4,7 +4,6 @@
 #include "RichTextPainter.h"
 #include "MemoryPage.h"
 #include "VaHistory.h"
-#include <QTextCodec>
 
 class HexDump : public AbstractTableView
 {
@@ -74,12 +73,12 @@ public:
         bool isData = true;
         int itemCount = 16;
         int separator = 0;
-        QTextCodec* textCodec = nullptr; //name of the text codec (leave empty if you want to keep your sanity)
+        QByteArray textEncoding; // name of the text codec (leave empty if you want to keep your sanity)
         DataDescriptor data;
         std::function<void()> columnSwitch;
     };
 
-    explicit HexDump(QWidget* parent = 0, MemoryPage* memPage = 0);
+    explicit HexDump(Architecture* architecture, QWidget* parent = nullptr, MemoryPage* memPage = nullptr);
     ~HexDump() override;
 
     // Configuration
@@ -87,41 +86,40 @@ public:
     void updateFonts() override;
     void updateShortcuts() override;
 
-    //QString getStringToPrint(int rowBase, int rowOffset, int col);
     void mouseMoveEvent(QMouseEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
 
-    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) override;
+    QString paintContent(QPainter* painter, duint row, duint column, int x, int y, int w, int h) override;
     void paintGraphicDump(QPainter* painter, int x, int y, int addr);
-    void printSelected(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    void printSelected(QPainter* painter, duint row, duint column, int x, int y, int w, int h);
 
     // Selection Management
-    void expandSelectionUpTo(dsint rva);
-    void setSingleSelection(dsint rva);
-    dsint getInitialSelection() const;
-    dsint getSelectionStart() const;
-    dsint getSelectionEnd() const;
-    bool isSelected(dsint rva) const;
+    void expandSelectionUpTo(duint rva);
+    void setSingleSelection(duint rva);
+    duint getInitialSelection() const;
+    duint getSelectionStart() const;
+    duint getSelectionEnd() const;
+    bool isSelected(duint rva) const;
 
-    virtual void getColumnRichText(int col, dsint rva, RichTextPainter::List & richText);
+    virtual void getColumnRichText(duint column, duint rva, RichTextPainter::List & richText);
 
     static size_t getSizeOf(DataSize size);
 
-    void toString(DataDescriptor desc, duint rva, byte_t* data, RichTextPainter::CustomRichText_t & richText);
+    void toString(DataDescriptor desc, duint rva, uint8_t* data, RichTextPainter::CustomRichText_t & richText);
 
-    void byteToString(duint rva, byte_t byte, ByteViewMode mode, RichTextPainter::CustomRichText_t & richText);
-    void wordToString(duint rva, uint16 word, WordViewMode mode, RichTextPainter::CustomRichText_t & richText);
-    static void dwordToString(duint rva, uint32 dword, DwordViewMode mode, RichTextPainter::CustomRichText_t & richText);
-    static void qwordToString(duint rva, uint64 qword, QwordViewMode mode, RichTextPainter::CustomRichText_t & richText);
+    void byteToString(duint rva, uint8_t byte, ByteViewMode mode, RichTextPainter::CustomRichText_t & richText);
+    void wordToString(duint rva, uint16_t word, WordViewMode mode, RichTextPainter::CustomRichText_t & richText);
+    static void dwordToString(duint rva, uint32_t dword, DwordViewMode mode, RichTextPainter::CustomRichText_t & richText);
+    static void qwordToString(duint rva, uint64_t qword, QwordViewMode mode, RichTextPainter::CustomRichText_t & richText);
     static void twordToString(duint rva, void* tword, TwordViewMode mode, RichTextPainter::CustomRichText_t & richText);
 
     int getItemIndexFromX(int x) const;
-    dsint getItemStartingAddress(int x, int y);
+    duint getItemStartingAddress(int x, int y);
 
-    int getBytePerRowCount() const;
+    size_t getBytePerRowCount() const;
     int getItemPixelWidth(ColumnDescriptor desc) const;
 
     //descriptor management
@@ -129,8 +127,8 @@ public:
     void appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor descriptor);
     void clearDescriptors();
 
-    virtual void printDumpAt(dsint parVA, bool select, bool repaint = true, bool updateTableOffset = true);
-    duint rvaToVa(dsint rva) const;
+    virtual void printDumpAt(duint parVA, bool select, bool repaint = true, bool updateTableOffset = true);
+    duint rvaToVa(duint rva) const;
 
     duint getTableOffsetRva() const;
     QString makeAddrText(duint va) const;
@@ -144,7 +142,7 @@ signals:
     void selectionUpdated();
 
 public slots:
-    void printDumpAt(dsint parVA);
+    void printDumpAt(duint parVA);
     void debugStateChanged(DBGSTATE state);
     void updateDumpSlot();
     void copySelectionSlot();
@@ -162,9 +160,9 @@ private:
 
     struct SelectionData
     {
-        dsint firstSelectedIndex;
-        dsint fromIndex;
-        dsint toIndex;
+        duint firstSelectedIndex = 0;
+        duint fromIndex = 0;
+        duint toIndex = 0;
     };
 
     SelectionData mSelection;
@@ -209,13 +207,14 @@ private:
     std::vector<uint8_t> mUpdateCacheTemp;
 
 protected:
-    MemoryPage* mMemPage;
-    int mByteOffset;
+    Architecture* mArchitecture = nullptr;
+    MemoryPage* mMemPage = nullptr;
+    dsint mByteOffset = 0;
     QList<ColumnDescriptor> mDescriptor;
     int mForceColumn;
     bool mRvaDisplayEnabled;
     duint mRvaDisplayBase;
-    dsint mRvaDisplayPageBase;
+    duint mRvaDisplayPageBase;
     QString mSyncAddrExpression;
     QAction* mCopyAddress;
     QAction* mCopyRva;

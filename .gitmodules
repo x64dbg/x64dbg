@@ -1,6 +1,3 @@
-[submodule "src/gui/Translations"]
-	path = src/gui/Translations
-	url = ../Translations.git
 [submodule "src/dbg/btparser"]
 	path = src/dbg/btparser
 	url = ../btparser
@@ -8,6 +5,3 @@
 	path = deps
 	url = ../deps
 	shallow = true
-[submodule "src/zydis_wrapper/zydis"]
-	path = src/zydis_wrapper/zydis
-	url = ../zydis.git

@@ -18,13 +18,12 @@ public:
     void enableMultiSelection(bool enabled);
     void setAddressColumn(int col, bool cipBase = false);
     void loadColumnFromConfig(const QString & viewName);
-    bool setDisassemblyPopupEnabled(bool enabled);
 
 public slots:
     virtual void setRowCount(dsint count);
     void setCellContent(int r, int c, QString s);
     void reloadData();
-    void setSearchStartCol(int col);
+    void setSearchStartCol(duint col);
 
 private:
     StdTableSearchList* mSearchListData;
@@ -32,6 +31,8 @@ private:
 protected:
     friend class SymbolView;
     friend class Bridge;
+    friend class HandlesView;
+
     StdTable* stdList();
     StdTable* stdSearchList();
 };

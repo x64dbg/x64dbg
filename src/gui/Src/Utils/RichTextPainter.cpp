@@ -5,6 +5,12 @@
 //TODO: fix performance (possibly use QTextLayout?)
 void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int h, int xinc, const List & richText, CachedFontMetrics* fontMetrics)
 {
+#ifdef Q_OS_DARWIN
+    w -= 2;
+#else
+    w -= 1;
+#endif // Q_OS_DARWIN
+
     QPen pen;
     QPen highlightPen;
     QBrush brush(Qt::cyan);
@@ -41,7 +47,7 @@ void RichTextPainter::paintRichText(QPainter* painter, int x, int y, int w, int 
             painter->setPen(pen);
             break;
         }
-        painter->drawText(QRect(x + xinc, y, w - xinc, h), Qt::TextBypassShaping, curRichText.text);
+        painter->drawText(QRect(x + xinc, y, w - xinc, h), 0, curRichText.text);
         if(curRichText.underline && curRichText.underlineColor.alpha())
         {
             highlightPen.setColor(curRichText.underlineColor);

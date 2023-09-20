@@ -31,9 +31,9 @@ bool CodeFollowPass::Analyse()
     return false;
 }
 
-duint CodeFollowPass::GetReferenceOperand(const ZydisDecodedInstruction & Context)
+duint CodeFollowPass::GetReferenceOperand(const ZydisDisassembledInstruction & Context)
 {
-    for(int i = 0; i < Context.operandCount; i++)
+    for(int i = 0; i < Context.info.operand_count; i++)
     {
         auto operand = Context.operands[i];
 
@@ -50,9 +50,9 @@ duint CodeFollowPass::GetReferenceOperand(const ZydisDecodedInstruction & Contex
     return 0;
 }
 
-duint CodeFollowPass::GetMemoryOperand(Zydis & Disasm, const ZydisDecodedInstruction & Context, bool* Indirect)
+duint CodeFollowPass::GetMemoryOperand(Zydis & Disasm, const ZydisDisassembledInstruction & Context, bool* Indirect)
 {
-    if(Context.operandCount <= 0)
+    if(Context.info.operand_count <= 0)
         return 0;
 
     // Only the first operand matters

@@ -1,7 +1,7 @@
 #include "DisassemblerGraphView.h"
 #include "MenuBuilder.h"
 #include "CachedFontMetrics.h"
-#include "QBeaEngine.h"
+#include "QZydis.h"
 #include "GotoDialog.h"
 #include "XrefBrowseDialog.h"
 #include <vector>
@@ -17,18 +17,12 @@
 #include "MiscUtil.h"
 #include <QMainWindow>
 
-DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
+DisassemblerGraphView::DisassemblerGraphView(Architecture* architecture, QWidget* parent)
     : QAbstractScrollArea(parent),
-      mFontMetrics(nullptr),
-      currentGraph(duint(0)),
-      disasm(ConfigUint("Disassembler", "MaxModuleSize")),
-      mCip(0),
-      mGoto(nullptr),
-      syncOrigin(false),
-      forceCenter(false),
-      layoutType(LayoutType::Medium),
-      mHistoryLock(false),
-      mXrefDlg(nullptr)
+      mArchitecture(architecture),
+      currentGraph(0),
+      disasm(ConfigUint("Disassembler", "MaxModuleSize"), architecture),
+      layoutType(LayoutType::Medium)
 {
     this->status = "Loading...";
 
@@ -72,7 +66,7 @@ DisassemblerGraphView::DisassemblerGraphView(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(graphAt(duint)), this, SLOT(graphAtSlot(duint)));
     connect(Bridge::getBridge(), SIGNAL(updateGraph()), this, SLOT(updateGraphSlot()));
     connect(Bridge::getBridge(), SIGNAL(selectionGraphGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(duint, duint)), this, SLOT(disassembleAtSlot(duint, duint)));
     connect(Bridge::getBridge(), SIGNAL(getCurrentGraph(BridgeCFGraphList*)), this, SLOT(getCurrentGraphSlot(BridgeCFGraphList*)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
 
@@ -1026,14 +1020,14 @@ bool DisassemblerGraphView::getTokenForMouseEvent(QMouseEvent* event, ZydisToken
         int row = int(blocky / this->charHeight);
 
         //Check tokens to see if one was clicked
-        int selectedCodeRow = row - block.block.header_text.lines.size();
+        int selectedCodeRow = row - (int)block.block.header_text.lines.size();
         if(selectedCodeRow < 0)
             return false; // skip the header
 
         int rowIndex = 0;
         for(auto & instr : block.block.instrs)
         {
-            int lineCount = instr.text.lines.size();
+            auto lineCount = (int)instr.text.lines.size();
 
             if(rowIndex + lineCount > selectedCodeRow)
             {
@@ -1111,9 +1105,9 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
         }
         else if(event->button() == Qt::RightButton)
         {
-            QMenu wMenu(this);
-            mMenuBuilder->build(&wMenu);
-            wMenu.exec(event->globalPos()); //execute context menu
+            QMenu menu(this);
+            mMenuBuilder->build(&menu);
+            menu.exec(event->globalPos()); //execute context menu
         }
     }
     else if(event->button() & (Qt::LeftButton | Qt::RightButton))
@@ -1182,9 +1176,9 @@ void DisassemblerGraphView::mousePressEvent(QMouseEvent* event)
             if(overrideCtxMenu && !mHighlightToken.text.isEmpty())
             {
                 // show the "copy highlighted token" context menu
-                QMenu wMenu(this);
-                mHighlightMenuBuilder->build(&wMenu);
-                wMenu.exec(event->globalPos());
+                QMenu menu(this);
+                mHighlightMenuBuilder->build(&menu);
+                menu.exec(event->globalPos());
                 lastRightClickPosition.pos = {};
             }
             else if(!overrideCtxMenu)
@@ -2415,9 +2409,9 @@ void DisassemblerGraphView::setupContextMenu()
 
 void DisassemblerGraphView::showContextMenu(QMouseEvent* event)
 {
-    QMenu wMenu(this);
-    mMenuBuilder->build(&wMenu);
-    wMenu.exec(event->globalPos());
+    QMenu menu(this);
+    mMenuBuilder->build(&menu);
+    menu.exec(event->globalPos());
 
     lastRightClickPosition.pos = {};
 }
@@ -2522,7 +2516,7 @@ void DisassemblerGraphView::selectionGetSlot(SELECTIONDATA* selection)
     Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
 }
 
-void DisassemblerGraphView::disassembleAtSlot(dsint va, dsint cip)
+void DisassemblerGraphView::disassembleAtSlot(duint va, duint cip)
 {
     Q_UNUSED(va);
     auto cipChanged = mCip != cip;
@@ -2596,17 +2590,17 @@ void DisassemblerGraphView::xrefSlot()
 {
     if(!DbgIsDebugging())
         return;
-    duint wVA = this->get_cursor_pos();
-    if(!DbgMemIsValidReadPtr(wVA))
+    duint va = this->get_cursor_pos();
+    if(!DbgMemIsValidReadPtr(va))
         return;
     XREF_INFO mXrefInfo;
-    DbgXrefGet(wVA, &mXrefInfo);
+    DbgXrefGet(va, &mXrefInfo);
     if(!mXrefInfo.refcount)
         return;
     BridgeFree(mXrefInfo.references);
     if(!mXrefDlg)
         mXrefDlg = new XrefBrowseDialog(this);
-    mXrefDlg->setup(wVA, [](duint addr)
+    mXrefDlg->setup(va, [](duint addr)
     {
         DbgCmdExec(QString("graph %1").arg(ToPtrString(addr)));
     });

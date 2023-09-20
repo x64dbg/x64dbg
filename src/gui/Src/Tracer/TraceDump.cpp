@@ -17,7 +17,7 @@
 #include "MiscUtil.h"
 #include "BackgroundFlickerThread.h"
 
-TraceDump::TraceDump(TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, QWidget* parent) : mMemoryPage(memoryPage), HexDump(parent, memoryPage)
+TraceDump::TraceDump(TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, QWidget* parent) : mMemoryPage(memoryPage), HexDump(Bridge::getArchitecture(), parent, memoryPage)
 {
     mDisas = disas;
     setDrawDebugOnly(false);
@@ -306,7 +306,7 @@ void TraceDump::printDumpAt(dsint parVA, bool select, bool repaint, bool updateT
         reloadData();
 }
 
-void TraceDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & richText)
+void TraceDump::getColumnRichText(duint col, duint rva, RichTextPainter::List & richText)
 {
     if(col && !mDescriptor.at(col - 1).isData && mDescriptor.at(col - 1).itemCount) //print comments
     {
@@ -352,7 +352,7 @@ void TraceDump::getColumnRichText(int col, dsint rva, RichTextPainter::List & ri
         HexDump::getColumnRichText(col, rva, richText);
 }
 
-QString TraceDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString TraceDump::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
     // Reset byte offset when base address is reached
     //if(rowBase == 0 && mByteOffset != 0)
@@ -361,7 +361,7 @@ QString TraceDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset,
     if(!col) //address
     {
         char label[MAX_LABEL_SIZE] = "";
-        dsint cur_addr = rvaToVa((rowBase + rowOffset) * getBytePerRowCount() - mByteOffset);
+        dsint cur_addr = rvaToVa(row * getBytePerRowCount() - mByteOffset);
         QColor background;
         if(DbgGetLabelAt(cur_addr, SEG_DEFAULT, label)) //label
         {
@@ -378,7 +378,7 @@ QString TraceDump::paintContent(QPainter* painter, dsint rowBase, int rowOffset,
         painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, makeAddrText(cur_addr));
         return QString();
     }
-    return HexDump::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+    return HexDump::paintContent(painter, row, col, x, y, w, h);
 }
 
 void TraceDump::contextMenuEvent(QContextMenuEvent* event)
@@ -678,7 +678,7 @@ void TraceDump::hexCodepageSlot()
     wColDesc.isData = true; //text (in code page)
     wColDesc.itemCount = 16;
     wColDesc.separator = 0;
-    wColDesc.textCodec = QTextCodec::codecForName(codepage);
+    wColDesc.textEncoding = codepage;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -710,7 +710,7 @@ void TraceDump::hexLastCodepageSlot()
     wColDesc.isData = true; //text (in code page)
     wColDesc.itemCount = 16;
     wColDesc.separator = 0;
-    wColDesc.textCodec = QTextCodec::codecForName(allCodecs.at(lastCodepage));
+    wColDesc.textEncoding = allCodecs.at(lastCodepage);
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -733,7 +733,7 @@ void TraceDump::textLastCodepageSlot()
     wColDesc.isData = true; //text (in code page)
     wColDesc.itemCount = 64;
     wColDesc.separator = 0;
-    wColDesc.textCodec = QTextCodec::codecForName(allCodecs.at(lastCodepage));
+    wColDesc.textEncoding = allCodecs.at(lastCodepage);
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
@@ -807,7 +807,7 @@ void TraceDump::textCodepageSlot()
     wColDesc.isData = true; //text (in code page)
     wColDesc.itemCount = 64;
     wColDesc.separator = 0;
-    wColDesc.textCodec = QTextCodec::codecForName(codepage);
+    wColDesc.textEncoding = codepage;
     dDesc.itemSize = Byte;
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;

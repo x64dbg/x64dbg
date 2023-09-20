@@ -16,25 +16,25 @@ Breakpoints::Breakpoints(QObject* parent) : QObject(parent)
  */
 void Breakpoints::setBP(BPXTYPE type, duint va)
 {
-    QString wCmd = "";
+    QString cmd = "";
 
     switch(type)
     {
     case bp_normal:
     {
-        wCmd = "bp " + ToPtrString(va);
+        cmd = "bp " + ToPtrString(va);
     }
     break;
 
     case bp_hardware:
     {
-        wCmd = "bph " + ToPtrString(va);
+        cmd = "bph " + ToPtrString(va);
     }
     break;
 
     case bp_memory:
     {
-        wCmd = "bpm " + ToPtrString(va);
+        cmd = "bpm " + ToPtrString(va);
     }
     break;
 
@@ -45,7 +45,7 @@ void Breakpoints::setBP(BPXTYPE type, duint va)
     break;
     }
 
-    DbgCmdExecDirect(wCmd);
+    DbgCmdExecDirect(cmd);
 }
 
 /**
@@ -57,30 +57,30 @@ void Breakpoints::setBP(BPXTYPE type, duint va)
  */
 void Breakpoints::enableBP(const BRIDGEBP & bp)
 {
-    QString wCmd = "";
+    QString cmd = "";
 
     if(bp.type == bp_hardware)
     {
-        wCmd = QString("bphwe \"%1\"").arg(ToPtrString(bp.addr));
+        cmd = QString("bphwe \"%1\"").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_normal)
     {
-        wCmd = QString("be \"%1\"").arg(ToPtrString(bp.addr));
+        cmd = QString("be \"%1\"").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_memory)
     {
-        wCmd = QString("bpme \"%1\"").arg(ToPtrString(bp.addr));
+        cmd = QString("bpme \"%1\"").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_dll)
     {
-        wCmd = QString("LibrarianEnableBreakPoint \"%1\"").arg(QString(bp.mod));
+        cmd = QString("LibrarianEnableBreakPoint \"%1\"").arg(QString(bp.mod));
     }
     else if(bp.type == bp_exception)
     {
-        wCmd = QString("EnableExceptionBPX \"%1\"").arg(ToPtrString(bp.addr));
+        cmd = QString("EnableExceptionBPX \"%1\"").arg(ToPtrString(bp.addr));
     }
 
-    DbgCmdExecDirect(wCmd);
+    DbgCmdExecDirect(cmd);
 }
 
 /**
@@ -96,21 +96,21 @@ void Breakpoints::enableBP(const BRIDGEBP & bp)
  */
 void Breakpoints::enableBP(BPXTYPE type, duint va)
 {
-    BPMAP wBPList;
+    BPMAP bpList;
 
     // Get breakpoints list
-    DbgGetBpList(type, &wBPList);
+    DbgGetBpList(type, &bpList);
 
     // Find breakpoint at address VA
-    for(int wI = 0; wI < wBPList.count; wI++)
+    for(int i = 0; i < bpList.count; i++)
     {
-        if(wBPList.bp[wI].addr == va)
+        if(bpList.bp[i].addr == va)
         {
-            enableBP(wBPList.bp[wI]);
+            enableBP(bpList.bp[i]);
         }
     }
-    if(wBPList.count)
-        BridgeFree(wBPList.bp);
+    if(bpList.count)
+        BridgeFree(bpList.bp);
 }
 
 /**
@@ -122,30 +122,30 @@ void Breakpoints::enableBP(BPXTYPE type, duint va)
  */
 void Breakpoints::disableBP(const BRIDGEBP & bp)
 {
-    QString wCmd = "";
+    QString cmd = "";
 
     if(bp.type == bp_hardware)
     {
-        wCmd = QString("bphwd \"%1\"").arg(ToPtrString(bp.addr));
+        cmd = QString("bphwd \"%1\"").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_normal)
     {
-        wCmd = QString("bd \"%1\"").arg(ToPtrString(bp.addr));
+        cmd = QString("bd \"%1\"").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_memory)
     {
-        wCmd = QString("bpmd \"%1\"").arg(ToPtrString(bp.addr));
+        cmd = QString("bpmd \"%1\"").arg(ToPtrString(bp.addr));
     }
     else if(bp.type == bp_dll)
     {
-        wCmd = QString("LibrarianDisableBreakPoint \"%1\"").arg(QString(bp.mod));
+        cmd = QString("LibrarianDisableBreakPoint \"%1\"").arg(QString(bp.mod));
     }
     else if(bp.type == bp_exception)
     {
-        wCmd = QString("DisableExceptionBPX \"%1\"").arg(ToPtrString(bp.addr));
+        cmd = QString("DisableExceptionBPX \"%1\"").arg(ToPtrString(bp.addr));
     }
 
-    DbgCmdExecDirect(wCmd);
+    DbgCmdExecDirect(cmd);
 }
 
 /**
@@ -161,21 +161,21 @@ void Breakpoints::disableBP(const BRIDGEBP & bp)
  */
 void Breakpoints::disableBP(BPXTYPE type, duint va)
 {
-    BPMAP wBPList;
+    BPMAP bpList;
 
     // Get breakpoints list
-    DbgGetBpList(type, &wBPList);
+    DbgGetBpList(type, &bpList);
 
     // Find breakpoint at address VA
-    for(int wI = 0; wI < wBPList.count; wI++)
+    for(int i = 0; i < bpList.count; i++)
     {
-        if(wBPList.bp[wI].addr == va)
+        if(bpList.bp[i].addr == va)
         {
-            disableBP(wBPList.bp[wI]);
+            disableBP(bpList.bp[i]);
         }
     }
-    if(wBPList.count)
-        BridgeFree(wBPList.bp);
+    if(bpList.count)
+        BridgeFree(bpList.bp);
 }
 
 static QString getBpIdentifier(const BRIDGEBP & bp)
@@ -198,35 +198,35 @@ static QString getBpIdentifier(const BRIDGEBP & bp)
  */
 void Breakpoints::removeBP(const BRIDGEBP & bp)
 {
-    QString wCmd = "";
+    QString cmd = "";
 
     switch(bp.type)
     {
     case bp_normal:
-        wCmd = QString("bc \"%1\"").arg(getBpIdentifier(bp));
+        cmd = QString("bc \"%1\"").arg(getBpIdentifier(bp));
         break;
 
     case bp_hardware:
-        wCmd = QString("bphc \"%1\"").arg(getBpIdentifier(bp));
+        cmd = QString("bphc \"%1\"").arg(getBpIdentifier(bp));
         break;
 
     case bp_memory:
-        wCmd = QString("bpmc \"%1\"").arg(getBpIdentifier(bp));
+        cmd = QString("bpmc \"%1\"").arg(getBpIdentifier(bp));
         break;
 
     case bp_dll:
-        wCmd = QString("bcdll \"%1\"").arg(QString(bp.mod));
+        cmd = QString("bcdll \"%1\"").arg(QString(bp.mod));
         break;
 
     case bp_exception:
-        wCmd = QString("DeleteExceptionBPX \"%1\"").arg(ToPtrString(bp.addr));
+        cmd = QString("DeleteExceptionBPX \"%1\"").arg(ToPtrString(bp.addr));
         break;
 
     default:
         break;
     }
 
-    DbgCmdExecDirect(wCmd);
+    DbgCmdExecDirect(cmd);
 }
 
 /**
@@ -242,40 +242,40 @@ void Breakpoints::removeBP(const BRIDGEBP & bp)
  */
 void Breakpoints::removeBP(BPXTYPE type, duint va)
 {
-    BPMAP wBPList;
+    BPMAP bpList;
 
     // Get breakpoints list
-    DbgGetBpList(type, &wBPList);
+    DbgGetBpList(type, &bpList);
 
     // Find breakpoint at address VA
-    for(int wI = 0; wI < wBPList.count; wI++)
+    for(int i = 0; i < bpList.count; i++)
     {
-        if(wBPList.bp[wI].addr == va)
+        if(bpList.bp[i].addr == va)
         {
-            removeBP(wBPList.bp[wI]);
+            removeBP(bpList.bp[i]);
         }
     }
-    if(wBPList.count)
-        BridgeFree(wBPList.bp);
+    if(bpList.count)
+        BridgeFree(bpList.bp);
 }
 
 void Breakpoints::removeBP(const QString & DLLName)
 {
-    BPMAP wBPList;
+    BPMAP bpList;
 
     // Get breakpoints list
-    DbgGetBpList(bp_dll, &wBPList);
+    DbgGetBpList(bp_dll, &bpList);
 
     // Find breakpoint at DLLName
-    for(int wI = 0; wI < wBPList.count; wI++)
+    for(int i = 0; i < bpList.count; i++)
     {
-        if(QString(wBPList.bp[wI].mod) == DLLName)
+        if(QString(bpList.bp[i].mod) == DLLName)
         {
-            removeBP(wBPList.bp[wI]);
+            removeBP(bpList.bp[i]);
         }
     }
-    if(wBPList.count)
-        BridgeFree(wBPList.bp);
+    if(bpList.count)
+        BridgeFree(bpList.bp);
 }
 
 /**
@@ -308,68 +308,68 @@ void Breakpoints::toggleBPByDisabling(const BRIDGEBP & bp)
  */
 void Breakpoints::toggleBPByDisabling(BPXTYPE type, duint va)
 {
-    BPMAP wBPList;
+    BPMAP bpList;
 
     // Get breakpoints list
-    DbgGetBpList(type, &wBPList);
+    DbgGetBpList(type, &bpList);
 
     // Find breakpoint at address VA
-    for(int wI = 0; wI < wBPList.count; wI++)
+    for(int i = 0; i < bpList.count; i++)
     {
-        if(wBPList.bp[wI].addr == va)
+        if(bpList.bp[i].addr == va)
         {
-            toggleBPByDisabling(wBPList.bp[wI]);
+            toggleBPByDisabling(bpList.bp[i]);
         }
     }
-    if(wBPList.count)
-        BridgeFree(wBPList.bp);
+    if(bpList.count)
+        BridgeFree(bpList.bp);
 }
 
 void Breakpoints::toggleBPByDisabling(const QString & DLLName)
 {
-    BPMAP wBPList;
+    BPMAP bpList;
 
     // Get breakpoints list
-    DbgGetBpList(bp_dll, &wBPList);
+    DbgGetBpList(bp_dll, &bpList);
 
     // Find breakpoint at module name
-    for(int wI = 0; wI < wBPList.count; wI++)
+    for(int i = 0; i < bpList.count; i++)
     {
-        if(QString(wBPList.bp[wI].mod) == DLLName)
+        if(QString(bpList.bp[i].mod) == DLLName)
         {
-            toggleBPByDisabling(wBPList.bp[wI]);
+            toggleBPByDisabling(bpList.bp[i]);
         }
     }
-    if(wBPList.count)
-        BridgeFree(wBPList.bp);
+    if(bpList.count)
+        BridgeFree(bpList.bp);
 }
 
 void Breakpoints::toggleAllBP(BPXTYPE type, bool bEnable)
 {
-    BPMAP wBPList;
+    BPMAP bpList;
 
     // Get breakpoints list
-    DbgGetBpList(type, &wBPList);
+    DbgGetBpList(type, &bpList);
 
     if(bEnable)
     {
         // Find breakpoint at address VA
-        for(int wI = 0; wI < wBPList.count; wI++)
+        for(int i = 0; i < bpList.count; i++)
         {
-            enableBP(wBPList.bp[wI]);
+            enableBP(bpList.bp[i]);
         }
     }
     else
     {
         // Find breakpoint at address VA
-        for(int wI = 0; wI < wBPList.count; wI++)
+        for(int i = 0; i < bpList.count; i++)
         {
-            disableBP(wBPList.bp[wI]);
+            disableBP(bpList.bp[i]);
         }
     }
 
-    if(wBPList.count)
-        BridgeFree(wBPList.bp);
+    if(bpList.count)
+        BridgeFree(bpList.bp);
 }
 
 /**
@@ -382,18 +382,18 @@ void Breakpoints::toggleAllBP(BPXTYPE type, bool bEnable)
  */
 BPXSTATE Breakpoints::BPState(BPXTYPE type, duint va)
 {
-    BPMAP wBPList;
+    BPMAP bpList;
     BPXSTATE result = bp_non_existent;
 
     // Get breakpoints list
-    DbgGetBpList(type, &wBPList);
+    DbgGetBpList(type, &bpList);
 
     // Find breakpoint at address VA
-    for(int wI = 0; wI < wBPList.count; wI++)
+    for(int i = 0; i < bpList.count; i++)
     {
-        if(wBPList.bp[wI].addr == va)
+        if(bpList.bp[i].addr == va)
         {
-            if(wBPList.bp[wI].enabled)
+            if(bpList.bp[i].enabled)
             {
                 result = bp_enabled;
                 break;
@@ -405,32 +405,32 @@ BPXSTATE Breakpoints::BPState(BPXTYPE type, duint va)
             }
         }
     }
-    if(wBPList.count)
-        BridgeFree(wBPList.bp);
+    if(bpList.count)
+        BridgeFree(bpList.bp);
 
     return result;
 }
 
 bool Breakpoints::BPTrival(BPXTYPE type, duint va)
 {
-    BPMAP wBPList;
+    BPMAP bpList;
     bool trival = true;
 
     // Get breakpoints list
-    DbgGetBpList(type, &wBPList);
+    DbgGetBpList(type, &bpList);
 
     // Find breakpoint at address VA
-    for(int wI = 0; wI < wBPList.count; wI++)
+    for(int i = 0; i < bpList.count; i++)
     {
-        BRIDGEBP & bp = wBPList.bp[wI];
+        BRIDGEBP & bp = bpList.bp[i];
         if(bp.addr == va)
         {
             trival = !(bp.breakCondition[0] || bp.logCondition[0] || bp.commandCondition[0] || bp.commandText[0] || bp.logText[0] || bp.name[0] || bp.fastResume || bp.silent);
             break;
         }
     }
-    if(wBPList.count)
-        BridgeFree(wBPList.bp);
+    if(bpList.count)
+        BridgeFree(bpList.bp);
 
     return trival;
 }
@@ -449,49 +449,49 @@ bool Breakpoints::BPTrival(BPXTYPE type, duint va)
  */
 void Breakpoints::toggleBPByRemoving(BPXTYPE type, duint va)
 {
-    BPMAP wBPList;
-    bool wNormalWasRemoved = false;
-    bool wMemoryWasRemoved = false;
-    bool wHardwareWasRemoved = false;
+    BPMAP bpList;
+    bool normalWasRemoved = false;
+    bool memoryWasRemoved = false;
+    bool hardwareWasRemoved = false;
 
     // Get breakpoints list
-    DbgGetBpList(type, &wBPList);
+    DbgGetBpList(type, &bpList);
 
     // Find breakpoints at address VA and remove them
-    for(int wI = 0; wI < wBPList.count; wI++)
+    for(int i = 0; i < bpList.count; i++)
     {
-        if(wBPList.bp[wI].addr == va)
+        if(bpList.bp[i].addr == va)
         {
-            removeBP(wBPList.bp[wI]);
+            removeBP(bpList.bp[i]);
 
-            switch(wBPList.bp[wI].type)
+            switch(bpList.bp[i].type)
             {
             case bp_normal:
-                wNormalWasRemoved = true;
+                normalWasRemoved = true;
                 break;
             case bp_memory:
-                wMemoryWasRemoved = true;
+                memoryWasRemoved = true;
                 break;
             case bp_hardware:
-                wHardwareWasRemoved = true;
+                hardwareWasRemoved = true;
                 break;
             default:
                 break;
             }
         }
     }
-    if(wBPList.count)
-        BridgeFree(wBPList.bp);
+    if(bpList.count)
+        BridgeFree(bpList.bp);
 
-    if((type == bp_none || type == bp_normal) && (wNormalWasRemoved == false))
+    if((type == bp_none || type == bp_normal) && (normalWasRemoved == false))
     {
         setBP(bp_normal, va);
     }
-    else if((type == bp_none || type == bp_memory) && (wMemoryWasRemoved == false))
+    else if((type == bp_none || type == bp_memory) && (memoryWasRemoved == false))
     {
         setBP(bp_memory, va);
     }
-    else if((type == bp_none || type == bp_hardware) && (wHardwareWasRemoved == false))
+    else if((type == bp_none || type == bp_hardware) && (hardwareWasRemoved == false))
     {
         setBP(bp_hardware, va);
     }

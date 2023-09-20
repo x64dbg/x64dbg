@@ -3,7 +3,6 @@
 #include <QProgressBar>
 #include <QLabel>
 #include "StdSearchListView.h"
-class DisassemblyPopup;
 
 class QTabWidget;
 
@@ -26,7 +25,7 @@ public slots:
 
     void setSingleSelection(int index, bool scroll);
     void addCommand(QString title, QString command);
-    void referenceContextMenu(QMenu* wMenu);
+    void referenceContextMenu(QMenu* menu);
     void followAddress();
     void followDumpAddress();
     void followApiAddress();
@@ -75,7 +74,7 @@ private:
         Remove
     };
 
-    void setBreakpointAt(int row, BPSetAction action);
+    void setBreakpointAt(duint row, BPSetAction action);
     dsint apiAddressFromString(const QString & s);
 
     void mouseReleaseEvent(QMouseEvent* event);

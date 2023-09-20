@@ -9,7 +9,7 @@ class SourceViewerManager : public QTabWidget
 {
     Q_OBJECT
 public:
-    explicit SourceViewerManager(QWidget* parent = 0);
+    explicit SourceViewerManager(QWidget* parent = nullptr);
 
 public slots:
     void loadSourceFile(QString path, duint addr);

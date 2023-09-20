@@ -80,9 +80,9 @@ template<typename T>
 inline QString ToFloatingString(const void* buffer, int precision)
 {
     auto value = *(const T*)buffer;
-    std::stringstream wFloatingStr;
-    wFloatingStr << std::setprecision(precision) << value;
-    return QString::fromStdString(wFloatingStr.str());
+    std::stringstream floatingStr;
+    floatingStr << std::setprecision(precision) << value;
+    return QString::fromStdString(floatingStr.str());
 }
 
 template<typename T>

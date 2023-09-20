@@ -75,7 +75,7 @@ class MHDetachedWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MHDetachedWindow(QWidget* parent = 0);
+    MHDetachedWindow(QWidget* parent = nullptr);
     ~MHDetachedWindow();
 
     QString mNativeName;

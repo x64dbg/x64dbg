@@ -14,8 +14,8 @@ class TraceDump : public HexDump
     Q_OBJECT
 public:
     explicit TraceDump(TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, QWidget* parent);
-    void getColumnRichText(int col, dsint rva, RichTextPainter::List & richText) override;
-    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    void getColumnRichText(duint col, duint rva, RichTextPainter::List & richText) override;
+    QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
     void setupContextMenu();
     void getAttention();
     void contextMenuEvent(QContextMenuEvent* event);

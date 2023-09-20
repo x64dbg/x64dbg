@@ -12,7 +12,7 @@ class ComboBoxDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ComboBoxDialog(QWidget* parent = 0);
+    explicit ComboBoxDialog(QWidget* parent = nullptr);
     ~ComboBoxDialog();
     bool bChecked;
     QString currentText();

@@ -17,7 +17,7 @@ public:
     AbstractStdTable* list() const override { return mList; }
     AbstractStdTable* searchList() const override { return mSearchList; }
 
-    void filter(const QString & filter, FilterType type, int startColumn) override;
+    void filter(const QString & filter, FilterType type, duint startColumn) override;
 
 private:
     StdTable* mList;

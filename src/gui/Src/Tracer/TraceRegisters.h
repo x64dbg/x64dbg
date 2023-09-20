@@ -6,7 +6,7 @@ class TraceRegisters : public RegistersView
 {
     Q_OBJECT
 public:
-    TraceRegisters(QWidget* parent = 0);
+    TraceRegisters(QWidget* parent = nullptr);
 
     void setRegisters(REGDUMP* registers);
     void setActive(bool isActive);

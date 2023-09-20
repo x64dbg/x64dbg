@@ -6,7 +6,7 @@ class StdTable : public AbstractStdTable
 {
     Q_OBJECT
 public:
-    explicit StdTable(QWidget* parent = 0);
+    explicit StdTable(QWidget* parent = nullptr);
 
     // Sorting
     struct SortBy
@@ -20,13 +20,14 @@ public:
     // Data Management
     void addColumnAt(int width, QString title, bool isClickable, QString copyTitle = "", SortBy::t sortFn = SortBy::AsText);
     void deleteAllColumns() override;
-    void setRowCount(dsint count) override;
-    void setCellContent(int r, int c, QString s);
-    QString getCellContent(int r, int c) override;
-    void setCellUserdata(int r, int c, duint userdata);
-    duint getCellUserdata(int r, int c);
-    bool isValidIndex(int r, int c) override;
-    void sortRows(int column, bool ascending) override;
+    void setRowCount(duint count) override;
+    void setCellContent(duint r, duint c, QString s);
+    void setCellContent(duint r, duint c, QString s, duint userdata);
+    QString getCellContent(duint r, duint c) override;
+    void setCellUserdata(duint r, duint c, duint userdata);
+    duint getCellUserdata(duint r, duint c);
+    bool isValidIndex(duint r, duint c) override;
+    void sortRows(duint column, bool ascending) override;
 
 protected:
     struct CellData

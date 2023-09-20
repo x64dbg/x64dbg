@@ -12,7 +12,7 @@ class ShortcutEdit : public QLineEdit
     bool mError;
 
 public:
-    explicit ShortcutEdit(QWidget* parent = 0);
+    explicit ShortcutEdit(QWidget* parent = nullptr);
     const QKeySequence getKeysequence() const;
     bool error() const;
 

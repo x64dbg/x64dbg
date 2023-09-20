@@ -17,19 +17,19 @@ void XrefsAnalysis::Analyse()
 
     for(auto addr = mBase; addr < mBase + mSize;)
     {
-        if(!mCp.Disassemble(addr, translateAddr(addr)))
+        if(!mZydis.Disassemble(addr, translateAddr(addr)))
         {
             addr++;
             continue;
         }
-        addr += mCp.Size();
+        addr += mZydis.Size();
 
         XREF xref;
         xref.addr = 0;
-        xref.from = mCp.Address();
-        for(auto i = 0; i < mCp.OpCount(); i++)
+        xref.from = (duint)mZydis.Address();
+        for(auto i = 0; i < mZydis.OpCount(); i++)
         {
-            duint dest = mCp.ResolveOpValue(i, [](ZydisRegister)->size_t
+            auto dest = (duint)mZydis.ResolveOpValue(i, [](ZydisRegister) -> uint64_t
             {
                 return 0;
             });

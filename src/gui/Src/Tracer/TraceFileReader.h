@@ -8,7 +8,7 @@
 
 class TraceFileParser;
 class TraceFilePage;
-class QBeaEngine;
+class QZydis;
 struct Instruction_t;
 
 #define MAX_MEMORY_OPERANDS 32
@@ -82,7 +82,7 @@ private:
     TraceFileDump dump;
     void buildDump(unsigned long long index);
 
-    QBeaEngine* mDisasm;
+    QZydis* mDisasm;
 };
 
 duint resolveZydisRegister(const REGDUMP & registers, ZydisRegister reg);

@@ -6,7 +6,7 @@ class SEHChainView : public StdTable
 {
     Q_OBJECT
 public:
-    explicit SEHChainView(StdTable* parent = 0);
+    explicit SEHChainView(StdTable* parent = nullptr);
     void setupContextMenu();
 
 protected slots:

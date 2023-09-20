@@ -243,23 +243,26 @@ bool cbInstrZydis(int argc, char* argv[])
         if(!valfromstring(argv[2], &addr, false))
             return false;
 
-    Zydis cp;
-    if(!cp.Disassemble(addr, data))
+    Zydis zydis;
+    if(!zydis.Disassemble(addr, data))
     {
         dputs_untranslated("Failed to disassemble!\n");
         return false;
     }
 
-    auto instr = cp.GetInstr();
-    int argcount = instr->operandCount;
-    dputs_untranslated(cp.InstructionText(true).c_str());
-    dprintf_untranslated("prefix size: %d\n", instr->raw.prefixes.count);
-    if(instr->attributes & ZYDIS_ATTRIB_HAS_REX)
-        dprintf_untranslated("rex.W: %d, rex.R: %d, rex.X: %d, rex.B: %d, rex.data: %02x\n", instr->raw.rex.W, instr->raw.rex.R, instr->raw.rex.X, instr->raw.rex.B, instr->raw.rex.data[0]);
-    dprintf_untranslated("disp.offset: %d, disp.size: %d\n", instr->raw.disp.offset, instr->raw.disp.size);
-    dprintf_untranslated("imm[0].offset: %d, imm[0].size: %d\n", instr->raw.imm[0].offset, instr->raw.imm[0].size);
-    dprintf_untranslated("imm[1].offset: %d, imm[1].size: %d\n", instr->raw.imm[1].offset, instr->raw.imm[1].size);
-    dprintf_untranslated("size: %d, id: %d, opcount: %d\n", cp.Size(), cp.GetId(), instr->operandCount);
+    auto instr = zydis.GetInstr();
+    int argcount = zydis.OpCount();
+    dputs_untranslated(zydis.InstructionText(true).c_str());
+    dprintf_untranslated("prefix size: %d\n", instr->info.raw.prefix_count);
+    if(instr->info.attributes & ZYDIS_ATTRIB_HAS_REX)
+    {
+        auto rexdata = data[instr->info.raw.rex.offset];
+        dprintf_untranslated("rex.W: %d, rex.R: %d, rex.X: %d, rex.B: %d, rex.data: %02x\n", instr->info.raw.rex.W, instr->info.raw.rex.R, instr->info.raw.rex.X, instr->info.raw.rex.B, rexdata);
+    }
+    dprintf_untranslated("disp.offset: %d, disp.size: %d\n", instr->info.raw.disp.offset, instr->info.raw.disp.size);
+    dprintf_untranslated("imm[0].offset: %d, imm[0].size: %d\n", instr->info.raw.imm[0].offset, instr->info.raw.imm[0].size);
+    dprintf_untranslated("imm[1].offset: %d, imm[1].size: %d\n", instr->info.raw.imm[1].offset, instr->info.raw.imm[1].size);
+    dprintf_untranslated("size: %d, id: %d, opcount: %d\n", zydis.Size(), zydis.GetId(), instr->info.operand_count);
     auto rwstr = [](uint8_t action)
     {
         switch(action)
@@ -297,11 +300,11 @@ bool cbInstrZydis(int argc, char* argv[])
     for(int i = 0; i < argcount; i++)
     {
         const auto & op = instr->operands[i];
-        dprintf("operand %d (size: %d, access: %s, visibility: %s) \"%s\", ", i + 1, op.size, rwstr(op.action), vis(op.visibility), cp.OperandText(i).c_str());
+        dprintf("operand %d (size: %d, access: %s, visibility: %s) \"%s\", ", i + 1, op.size, rwstr(op.actions), vis(op.visibility), zydis.OperandText(i).c_str());
         switch(op.type)
         {
         case ZYDIS_OPERAND_TYPE_REGISTER:
-            dprintf_untranslated("register: %s\n", cp.RegName(op.reg.value));
+            dprintf_untranslated("register: %s\n", zydis.RegName(op.reg.value));
             break;
         case ZYDIS_OPERAND_TYPE_IMMEDIATE:
             dprintf_untranslated("immediate: 0x%p\n", op.imm.value.u);
@@ -311,9 +314,9 @@ bool cbInstrZydis(int argc, char* argv[])
             //[base + index * scale +/- disp]
             const auto & mem = op.mem;
             dprintf_untranslated("memory segment: %s, base: %s, index: %s, scale: %d, displacement: 0x%p\n",
-                                 cp.RegName(mem.segment),
-                                 cp.RegName(mem.base),
-                                 cp.RegName(mem.index),
+                                 zydis.RegName(mem.segment),
+                                 zydis.RegName(mem.base),
+                                 zydis.RegName(mem.index),
                                  mem.scale,
                                  mem.disp.value);
         }
@@ -348,7 +351,7 @@ bool cbInstrVisualize(int argc, char* argv[])
     //DisassemblyBreakpointColor = #000000
     {
         //initialize
-        Zydis _cp;
+        Zydis zydis;
         duint _base = start;
         duint _size = maxaddr - start;
         Memory<unsigned char*> _data(_size);
@@ -376,14 +379,14 @@ bool cbInstrVisualize(int argc, char* argv[])
 
             //continue algorithm
             const unsigned char* curData = (addr >= _base && addr < _base + _size) ? _data() + (addr - _base) : nullptr;
-            if(_cp.Disassemble(addr, curData, MAX_DISASM_BUFFER))
+            if(zydis.Disassemble(addr, curData, MAX_DISASM_BUFFER))
             {
-                if(addr + _cp.Size() > maxaddr) //we went past the maximum allowed address
+                if(addr + zydis.Size() > maxaddr) //we went past the maximum allowed address
                     break;
 
-                if((_cp.IsJump() || _cp.IsLoop()) && _cp.OpCount() && _cp[0].type == ZYDIS_OPERAND_TYPE_IMMEDIATE) //jump
+                if((zydis.IsJump() || zydis.IsLoop()) && zydis.OpCount() && zydis[0].type == ZYDIS_OPERAND_TYPE_IMMEDIATE) //jump
                 {
-                    duint dest = (duint)_cp[0].imm.value.u;
+                    duint dest = (duint)zydis[0].imm.value.u;
 
                     if(dest >= maxaddr) //jump across function boundaries
                     {
@@ -393,19 +396,19 @@ bool cbInstrVisualize(int argc, char* argv[])
                     {
                         fardest = dest;
                     }
-                    else if(end && dest < end && _cp.GetId() == ZYDIS_MNEMONIC_JMP) //save the last JMP backwards
+                    else if(end && dest < end && zydis.GetId() == ZYDIS_MNEMONIC_JMP) //save the last JMP backwards
                     {
                         jumpback = addr;
                     }
                 }
-                else if(_cp.IsRet()) //possible function end?
+                else if(zydis.IsRet()) //possible function end?
                 {
                     end = addr;
                     if(fardest < addr) //we stop if the farthest JXX destination forward is before this RET
                         break;
                 }
 
-                addr += _cp.Size();
+                addr += zydis.Size();
             }
             else
                 addr++;
@@ -471,22 +474,22 @@ bool cbInstrBriefcheck(int argc, char* argv[])
         return false;
     Memory<unsigned char*> buffer(size + 16);
     DbgMemRead(base, buffer(), size);
-    Zydis cp;
+    Zydis zydis;
     std::unordered_set<String> reported;
     for(duint i = 0; i < size;)
     {
-        if(!cp.Disassemble(base + i, buffer() + i, 16))
+        if(!zydis.Disassemble(base + i, buffer() + i, 16))
         {
             i++;
             continue;
         }
-        i += cp.Size();
-        auto mnem = StringUtils::ToLower(cp.Mnemonic());
+        i += zydis.Size();
+        auto mnem = StringUtils::ToLower(zydis.Mnemonic());
         auto brief = MnemonicHelp::getBriefDescription(mnem.c_str());
         if(brief.length() || reported.count(mnem))
             continue;
         reported.insert(mnem);
-        dprintf_untranslated("%p: %s\n", cp.Address(), mnem.c_str());
+        dprintf_untranslated("%p: %s\n", zydis.Address(), mnem.c_str());
     }
     return true;
 }

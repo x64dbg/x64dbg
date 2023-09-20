@@ -10,15 +10,15 @@ class ScriptView : public StdTable
 {
     Q_OBJECT
 public:
-    explicit ScriptView(StdTable* parent = 0);
+    explicit ScriptView(StdTable* parent = nullptr);
 
     // Configuration
-    void updateColors();
+    void updateColors() override;
 
     // Reimplemented Functions
-    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
-    void mouseDoubleClickEvent(QMouseEvent* event);
-    void keyPressEvent(QKeyEvent* event);
+    QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
+    void keyPressEvent(QKeyEvent* event) override;
 
 public slots:
     void contextMenuSlot(const QPoint & pos);

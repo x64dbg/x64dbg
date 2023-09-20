@@ -7,7 +7,7 @@ class EncodeMap : public QObject
 {
     Q_OBJECT
 public:
-    explicit EncodeMap(QObject* parent = 0);
+    explicit EncodeMap(QObject* parent = nullptr);
     ~EncodeMap();
 
     void setMemoryRegion(duint va);

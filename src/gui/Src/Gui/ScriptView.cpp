@@ -16,7 +16,6 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
     enableMultiSelection(false);
     enableColumnSorting(false);
     setDrawDebugOnly(false);
-    setDisassemblyPopupEnabled(false);
 
     int charwidth = getCharWidth();
 
@@ -54,7 +53,7 @@ ScriptView::ScriptView(StdTable* parent) : StdTable(parent)
     connect(Bridge::getBridge(), SIGNAL(scriptMessage(QString)), this, SLOT(message(QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptQuestion(QString)), this, SLOT(question(QString)));
     connect(Bridge::getBridge(), SIGNAL(scriptEnableHighlighting(bool)), this, SLOT(enableHighlighting(bool)));
-    connect(Bridge::getBridge(), SIGNAL(shutdown()), this, SLOT(shutdownSlot()));
+    connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(shutdownSlot()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
     Initialize();
@@ -68,14 +67,14 @@ void ScriptView::updateColors()
     mBackgroundColor = ConfigColor("DisassemblyBackgroundColor");
 }
 
-QString ScriptView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString ScriptView::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
-    bool wIsSelected = isSelected(rowBase, rowOffset);
+    bool rowSelected = isSelected(row);
     // Highlight if selected
-    if(wIsSelected)
+    if(rowSelected)
         painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor)); //ScriptViewSelectionColor
     QString returnString;
-    int line = rowBase + rowOffset + 1;
+    int line = row + 1;
     SCRIPTLINETYPE linetype = DbgScriptGetLineType(line);
     switch(col)
     {
@@ -131,7 +130,7 @@ QString ScriptView::paintContent(QPainter* painter, dsint rowBase, int rowOffset
             RichTextPainter::List richText;
             RichTextPainter::CustomRichText_t newRichText;
             newRichText.underline = false;
-            QString command = getCellContent(rowBase + rowOffset, col);
+            QString command = getCellContent(row, col);
 
             //handle comments
             int comment_idx = command.indexOf("\1"); //find the index of the comment
@@ -312,13 +311,13 @@ QString ScriptView::paintContent(QPainter* painter, dsint rowBase, int rowOffset
             returnString = "";
         }
         else //no syntax highlighting
-            returnString = getCellContent(rowBase + rowOffset, col);
+            returnString = getCellContent(row, col);
     }
     break;
 
     case 2: //info
     {
-        returnString = getCellContent(rowBase + rowOffset, col);
+        returnString = getCellContent(row, col);
     }
     break;
     }
@@ -327,9 +326,9 @@ QString ScriptView::paintContent(QPainter* painter, dsint rowBase, int rowOffset
 
 void ScriptView::contextMenuSlot(const QPoint & pos)
 {
-    QMenu wMenu(this);
-    mMenu->build(&wMenu);
-    wMenu.exec(mapToGlobal(pos));
+    QMenu menu(this);
+    mMenu->build(&menu);
+    menu.exec(mapToGlobal(pos));
 }
 
 void ScriptView::mouseDoubleClickEvent(QMouseEvent* event)
@@ -348,8 +347,8 @@ void ScriptView::keyPressEvent(QKeyEvent* event)
     int key = event->key();
     if(key == Qt::Key_Up || key == Qt::Key_Down)
     {
-        dsint botRVA = getTableOffset();
-        dsint topRVA = botRVA + getNbrOfLineToPrint() - 1;
+        auto botRVA = getTableOffset();
+        auto topRVA = botRVA + getNbrOfLineToPrint() - 1;
         if(key == Qt::Key_Up)
             selectPrevious();
         else

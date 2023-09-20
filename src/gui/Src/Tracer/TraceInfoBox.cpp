@@ -232,11 +232,11 @@ int TraceInfoBox::getHeight()
 
 void TraceInfoBox::contextMenuSlot(QPoint pos)
 {
-    QMenu wMenu(this); //create context menu
-    QMenu wCopyMenu(tr("&Copy"), this);
-    setupCopyMenu(&wCopyMenu);
-    wMenu.addMenu(&wCopyMenu);
-    wMenu.exec(mapToGlobal(pos)); //execute context menu
+    QMenu menu(this); //create context menu
+    QMenu copyMenu(tr("&Copy"), this);
+    setupCopyMenu(&copyMenu);
+    menu.addMenu(&copyMenu);
+    menu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 void TraceInfoBox::setupShortcuts()

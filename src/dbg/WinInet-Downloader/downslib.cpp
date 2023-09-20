@@ -67,7 +67,10 @@ downslib_error downslib_download(const char* url,
                               0);
 
     if(!hInternet)
+    {
+        CloseHandle(hFile);
         return downslib_error::inetopen;
+    }
 
     // Set a time-out value in milliseconds
     InternetSetOptionA(hInternet,

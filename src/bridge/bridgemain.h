@@ -176,7 +176,10 @@ extern "C"
 #define MAX_SECTION_SIZE 10
 #define MAX_COMMAND_LINE_SIZE 256
 #define MAX_MNEMONIC_SIZE 64
+
+#ifndef PAGE_SIZE
 #define PAGE_SIZE 0x1000
+#endif // PAGE_SIZE
 
 //Debugger enums
 typedef enum

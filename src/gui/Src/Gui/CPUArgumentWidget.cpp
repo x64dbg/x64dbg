@@ -3,13 +3,10 @@
 #include "Configuration.h"
 #include "Bridge.h"
 
-CPUArgumentWidget::CPUArgumentWidget(QWidget* parent) :
+CPUArgumentWidget::CPUArgumentWidget(Architecture* architecture, QWidget* parent) :
     QWidget(parent),
     ui(new Ui::CPUArgumentWidget),
-    mTable(nullptr),
-    mCurrentCallingConvention(-1),
-    mStackOffset(0),
-    mAllowUpdate(true)
+    mArchitecture(architecture)
 {
     ui->setupUi(this);
     mTable = ui->table;
@@ -32,7 +29,7 @@ CPUArgumentWidget::CPUArgumentWidget(QWidget* parent) :
     connect(mFollowAddrStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
 
     connect(Bridge::getBridge(), SIGNAL(repaintTableView()), this, SLOT(refreshData()));
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(duint, duint)), this, SLOT(disassembleAtSlot(duint, duint)));
 }
 
 CPUArgumentWidget::~CPUArgumentWidget()
@@ -46,7 +43,7 @@ void CPUArgumentWidget::updateStackOffset(bool iscall)
     mStackOffset = cur.getStackOffset() + (iscall ? 0 : cur.getCallOffset());
 }
 
-void CPUArgumentWidget::disassembleAtSlot(dsint addr, dsint cip)
+void CPUArgumentWidget::disassembleAtSlot(duint addr, duint cip)
 {
     Q_UNUSED(addr);
     if(mCurrentCallingConvention == -1) //no calling conventions
@@ -120,12 +117,12 @@ void CPUArgumentWidget::refreshData()
     mTable->reloadData();
 }
 
-static void configAction(QMenu & wMenu, const QIcon & icon, QAction* action, const QString & value, const QString & name)
+static void configAction(QMenu & menu, const QIcon & icon, QAction* action, const QString & value, const QString & name)
 {
     action->setText(QApplication::translate("CPUArgumentWidget", "Follow %1 in %2").arg(value).arg(name));
     action->setIcon(icon);
     action->setObjectName(value);
-    wMenu.addAction(action);
+    menu.addAction(action);
 }
 
 void CPUArgumentWidget::contextMenuSlot(QPoint pos)
@@ -136,7 +133,7 @@ void CPUArgumentWidget::contextMenuSlot(QPoint pos)
     if(int(mArgumentValues.size()) <= selection)
         return;
     auto value = mArgumentValues[selection];
-    QMenu wMenu(this);
+    QMenu menu(this);
     if(DbgMemIsValidReadPtr(value))
     {
         duint valueAddr;
@@ -152,27 +149,27 @@ void CPUArgumentWidget::contextMenuSlot(QPoint pos)
             return addr >= base && addr < base + size;
         };
 
-        configAction(wMenu, DIcon(ArchValue("processor32", "processor64")), mFollowDisasm, valueText, tr("Disassembler"));
-        configAction(wMenu, DIcon("dump"), mFollowDump, valueText, tr("Dump"));
+        configAction(menu, DIcon(ArchValue("processor32", "processor64")), mFollowDisasm, valueText, tr("Disassembler"));
+        configAction(menu, DIcon("dump"), mFollowDump, valueText, tr("Dump"));
         if(inStackRange(value))
-            configAction(wMenu, DIcon("stack"), mFollowStack, valueText, tr("Stack"));
+            configAction(menu, DIcon("stack"), mFollowStack, valueText, tr("Stack"));
         if(DbgMemIsValidReadPtr(valueAddr))
         {
-            configAction(wMenu, DIcon(ArchValue("processor32", "processor64")), mFollowAddrDisasm, valueAddrText, tr("Disassembler"));
-            configAction(wMenu, DIcon("dump"), mFollowDump, valueAddrText, tr("Dump"));
+            configAction(menu, DIcon(ArchValue("processor32", "processor64")), mFollowAddrDisasm, valueAddrText, tr("Disassembler"));
+            configAction(menu, DIcon("dump"), mFollowDump, valueAddrText, tr("Dump"));
             if(inStackRange(valueAddr))
-                configAction(wMenu, DIcon("stack"), mFollowAddrStack, valueAddrText, tr("Stack"));
+                configAction(menu, DIcon("stack"), mFollowAddrStack, valueAddrText, tr("Stack"));
         }
     }
-    QMenu wCopyMenu(tr("&Copy"));
-    wCopyMenu.setIcon(DIcon("copy"));
-    mTable->setupCopyMenu(&wCopyMenu);
-    if(wCopyMenu.actions().length())
+    QMenu copyMenu(tr("&Copy"));
+    copyMenu.setIcon(DIcon("copy"));
+    mTable->setupCopyMenu(&copyMenu);
+    if(copyMenu.actions().length())
     {
-        wMenu.addSeparator();
-        wMenu.addMenu(&wCopyMenu);
+        menu.addSeparator();
+        menu.addMenu(&copyMenu);
     }
-    wMenu.exec(mTable->mapToGlobal(pos));
+    menu.exec(mTable->mapToGlobal(pos));
 }
 
 void CPUArgumentWidget::followDisasmSlot()

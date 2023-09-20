@@ -8,7 +8,7 @@ class ReferenceManager : public QTabWidget
 {
     Q_OBJECT
 public:
-    explicit ReferenceManager(QWidget* parent = 0);
+    explicit ReferenceManager(QWidget* parent = nullptr);
     ReferenceView* currentReferenceView();
 
 private slots:

@@ -15,7 +15,7 @@ class Breakpoints : public QObject
     Q_OBJECT
 
 public:
-    explicit Breakpoints(QObject* parent = 0);
+    explicit Breakpoints(QObject* parent = nullptr);
     static void setBP(BPXTYPE type, duint va);
     static void enableBP(const BRIDGEBP & bp);
     static void enableBP(BPXTYPE type, duint va);

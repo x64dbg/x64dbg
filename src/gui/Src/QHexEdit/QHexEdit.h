@@ -8,7 +8,7 @@ class QHexEdit : public QScrollArea
 {
     Q_OBJECT
 public:
-    QHexEdit(QWidget* parent = 0);
+    QHexEdit(QWidget* parent = nullptr);
 
     //data management
     void setData(const QByteArray & data, const QByteArray & mask);

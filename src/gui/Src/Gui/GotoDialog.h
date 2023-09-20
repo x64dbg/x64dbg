@@ -16,7 +16,7 @@ class GotoDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit GotoDialog(QWidget* parent = 0, bool allowInvalidExpression = false, bool allowInvalidAddress = false, bool allowNotDebugging = false);
+    explicit GotoDialog(QWidget* parent = nullptr, bool allowInvalidExpression = false, bool allowInvalidAddress = false, bool allowNotDebugging = false);
     ~GotoDialog();
     QString expressionText;
     duint validRangeStart;

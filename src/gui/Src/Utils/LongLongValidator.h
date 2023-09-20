@@ -16,7 +16,7 @@ public:
         UnsignedLongLong
     };
 
-    explicit LongLongValidator(DataType t, QObject* parent = 0);
+    explicit LongLongValidator(DataType t, QObject* parent = nullptr);
     ~LongLongValidator();
 
     void fixup(QString & input) const;

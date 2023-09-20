@@ -65,18 +65,18 @@ void SEHChainView::contextMenuSlot(const QPoint pos)
 {
     if(!DbgIsDebugging() || this->getRowCount() == 0)
         return;
-    QMenu wMenu(this); //create context menu
-    wMenu.addAction(mFollowAddress);
-    wMenu.addAction(mFollowHandler);
-    QMenu wCopyMenu(tr("&Copy"), this);
-    wCopyMenu.setIcon(DIcon("copy"));
-    setupCopyMenu(&wCopyMenu);
-    if(wCopyMenu.actions().length())
+    QMenu menu(this); //create context menu
+    menu.addAction(mFollowAddress);
+    menu.addAction(mFollowHandler);
+    QMenu copyMenu(tr("&Copy"), this);
+    copyMenu.setIcon(DIcon("copy"));
+    setupCopyMenu(&copyMenu);
+    if(copyMenu.actions().length())
     {
-        wMenu.addSeparator();
-        wMenu.addMenu(&wCopyMenu);
+        menu.addSeparator();
+        menu.addMenu(&copyMenu);
     }
-    wMenu.exec(mapToGlobal(pos)); //execute context menu
+    menu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 void SEHChainView::doubleClickedSlot()

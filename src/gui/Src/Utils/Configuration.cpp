@@ -25,6 +25,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("AbstractTableViewBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("AbstractTableViewTextColor", QColor("#000000"));
     defaultColors.insert("AbstractTableViewHeaderTextColor", QColor("#000000"));
+    defaultColors.insert("AbstractTableViewHeaderBackgroundColor", QColor("#C0C0C0"));
     defaultColors.insert("AbstractTableViewSelectionColor", QColor("#C0C0C0"));
 
     defaultColors.insert("DisassemblyCipColor", QColor("#FFFFFF"));
