@@ -311,9 +311,16 @@ extern "C" __declspec(dllexport) bool isasciistring(const unsigned char* data, i
     if(bNewStringAlgorithm)
     {
         int len = 0;
-        char* safebuffer = new char[maxlen];
-        if(!safebuffer)
+        char* safebuffer;
+        try
+        {
+            safebuffer = new char[maxlen];
+        }
+        catch(const std::bad_alloc &)
+        {
             return false;
+        }
+
         for(const char* p = (const char*)data; *p && len < maxlen - 1; len++, p++)
         {
             safebuffer[p - (const char*)data] = *p;
@@ -366,9 +373,16 @@ extern "C" __declspec(dllexport) bool isasciistring(const unsigned char* data, i
 extern "C" __declspec(dllexport) bool isunicodestring(const unsigned char* data, int maxlen)
 {
     int len = 0;
-    wchar_t* safebuffer = new wchar_t[maxlen];
-    if(!safebuffer)
+    wchar_t* safebuffer;
+    try
+    {
+        safebuffer = new wchar_t[maxlen];
+    }
+    catch(const std::bad_alloc &)
+    {
         return false;
+    }
+
     for(const wchar_t* p = (const wchar_t*)data; *p && len < maxlen - 1; len += sizeof(wchar_t), p++)
     {
         safebuffer[p - (const wchar_t*)data] = *p;
