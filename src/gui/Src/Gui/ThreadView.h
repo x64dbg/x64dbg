@@ -7,8 +7,8 @@ class ThreadView : public StdTable
 {
     Q_OBJECT
 public:
-    explicit ThreadView(StdTable* parent = 0);
-    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    explicit ThreadView(StdTable* parent = nullptr);
+    QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
     void setupContextMenu();
 
 public slots:

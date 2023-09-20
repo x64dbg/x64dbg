@@ -1,6 +1,7 @@
 #include "CallStackView.h"
 #include "CommonActions.h"
 #include "Bridge.h"
+#include "DisassemblyPopup.h"
 
 CallStackView::CallStackView(StdTable* parent) : StdIconTable(parent)
 {
@@ -21,6 +22,8 @@ CallStackView::CallStackView(StdTable* parent) : StdIconTable(parent)
     connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(followFrom()));
 
     setupContextMenu();
+
+    new DisassemblyPopup(this, Bridge::getArchitecture());
 }
 
 void CallStackView::setupContextMenu()
@@ -53,16 +56,16 @@ void CallStackView::setupContextMenu()
     // TODO: Is Label/Comment/Bookmark useful?
     mCommonActions->build(mMenuBuilder, CommonActions::ActionBreakpoint);
     mMenuBuilder->addSeparator();
-    QAction* wShowSuspectedCallStack = makeAction(tr("Show Suspected Call Stack Frame"), SLOT(showSuspectedCallStack()));
-    mMenuBuilder->addAction(wShowSuspectedCallStack, [wShowSuspectedCallStack](QMenu*)
+    QAction* showSuspectedCallStack = makeAction(tr("Show Suspected Call Stack Frame"), SLOT(showSuspectedCallStack()));
+    mMenuBuilder->addAction(showSuspectedCallStack, [showSuspectedCallStack](QMenu*)
     {
         duint i;
         if(!BridgeSettingGetUint("Engine", "ShowSuspectedCallStack", &i))
             i = 0;
         if(i != 0)
-            wShowSuspectedCallStack->setText(tr("Show Active Call Stack Frame"));
+            showSuspectedCallStack->setText(tr("Show Active Call Stack Frame"));
         else
-            wShowSuspectedCallStack->setText(tr("Show Suspected Call Stack Frame"));
+            showSuspectedCallStack->setText(tr("Show Suspected Call Stack Frame"));
         return true;
     });
     MenuBuilder* mCopyMenu = new MenuBuilder(this);
@@ -73,16 +76,16 @@ void CallStackView::setupContextMenu()
     mMenuBuilder->loadFromConfig();
 }
 
-QString CallStackView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString CallStackView::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
-    if(isSelected(rowBase, rowOffset))
+    if(isSelected(row))
         painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
 
-    bool isSpaceRow = !getCellContent(rowBase + rowOffset, ColThread).isEmpty();
+    bool isSpaceRow = !getCellContent(row, ColThread).isEmpty();
 
-    if(col == ColThread && !(rowBase + rowOffset))
+    if(col == ColThread && row == 0)
     {
-        QString ret = getCellContent(rowBase + rowOffset, col);
+        QString ret = getCellContent(row, col);
         if(!ret.isEmpty())
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("ThreadCurrentBackgroundColor")));
@@ -98,8 +101,8 @@ QString CallStackView::paintContent(QPainter* painter, dsint rowBase, int rowOff
     }
     else if(col == ColFrom || col == ColTo || col == ColAddress)
     {
-        QString ret = getCellContent(rowBase + rowOffset, col);
-        BPXTYPE bpxtype = DbgGetBpxTypeAt(getCellUserdata(rowBase + rowOffset, col));
+        QString ret = getCellContent(row, col);
+        BPXTYPE bpxtype = DbgGetBpxTypeAt(getCellUserdata(row, col));
         if(bpxtype & bp_normal)
         {
             painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("DisassemblyBreakpointBackgroundColor")));
@@ -115,7 +118,7 @@ QString CallStackView::paintContent(QPainter* painter, dsint rowBase, int rowOff
             return "";
         }
     }
-    return StdIconTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+    return StdIconTable::paintContent(painter, row, col, x, y, w, h);
 }
 
 void CallStackView::updateCallStack()
@@ -196,10 +199,10 @@ void CallStackView::updateCallStack()
 
 void CallStackView::contextMenuSlot(const QPoint pos)
 {
-    QMenu wMenu(this); //create context menu
-    mMenuBuilder->build(&wMenu);
-    if(!wMenu.isEmpty())
-        wMenu.exec(mapToGlobal(pos)); //execute context menu
+    QMenu menu(this); //create context menu
+    mMenuBuilder->build(&menu);
+    if(!menu.isEmpty())
+        menu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 void CallStackView::followAddress()

@@ -17,7 +17,7 @@ class StructWidget : public QWidget, public ActionHelper<StructWidget>
     Q_OBJECT
 
 public:
-    explicit StructWidget(QWidget* parent = 0);
+    explicit StructWidget(QWidget* parent = nullptr);
     ~StructWidget();
     void saveWindowSettings();
     void loadWindowSettings();

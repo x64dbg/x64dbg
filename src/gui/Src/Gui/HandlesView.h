@@ -22,8 +22,8 @@ public slots:
     void refreshShortcuts();
     void dbgStateChanged(DBGSTATE state);
 
-    void handlesTableContextMenuSlot(QMenu* wMenu);
-    void tcpConnectionsTableContextMenuSlot(QMenu* wMenu);
+    void handlesTableContextMenuSlot(QMenu* menu);
+    void tcpConnectionsTableContextMenuSlot(QMenu* menu);
     void windowsTableContextMenuSlot(QMenu*);
     void privilegesTableContextMenuSlot(const QPoint & pos);
 

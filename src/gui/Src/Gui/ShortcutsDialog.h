@@ -16,7 +16,7 @@ class ShortcutsDialog : public QDialog
     int currentRow;
 
 public:
-    explicit ShortcutsDialog(QWidget* parent = 0);
+    explicit ShortcutsDialog(QWidget* parent = nullptr);
     ~ShortcutsDialog();
 
 protected slots:

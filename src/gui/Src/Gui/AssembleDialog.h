@@ -16,7 +16,7 @@ class AssembleDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit AssembleDialog(QWidget* parent = 0);
+    explicit AssembleDialog(QWidget* parent = nullptr);
     ~AssembleDialog();
     QString editText;
     static bool bWarningShowedOnce;

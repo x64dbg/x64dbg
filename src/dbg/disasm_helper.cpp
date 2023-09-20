@@ -22,7 +22,7 @@ duint disasmback(unsigned char* data, duint base, duint size, duint ip, int n)
     unsigned char* pdata;
 
     // Reset Disasm Structure
-    Zydis cp;
+    Zydis zydis;
 
     // Check if the pointer is not null
     if(data == NULL)
@@ -58,10 +58,10 @@ duint disasmback(unsigned char* data, duint base, duint size, duint ip, int n)
     {
         abuf[i % 128] = addr;
 
-        if(!cp.Disassemble(0, pdata, (int)size))
+        if(!zydis.Disassemble(0, pdata, (int)size))
             cmdsize = 1;
         else
-            cmdsize = cp.Size();
+            cmdsize = zydis.Size();
 
         pdata += cmdsize;
         addr += cmdsize;
@@ -82,7 +82,7 @@ duint disasmnext(unsigned char* data, duint base, duint size, duint ip, int n)
     unsigned char* pdata;
 
     // Reset Disasm Structure
-    Zydis cp;
+    Zydis zydis;
 
     if(data == NULL)
         return 0;
@@ -98,10 +98,10 @@ duint disasmnext(unsigned char* data, duint base, duint size, duint ip, int n)
 
     for(i = 0; i < n && size > 0; i++)
     {
-        if(!cp.Disassemble(0, pdata, (int)size))
+        if(!zydis.Disassemble(0, pdata, (int)size))
             cmdsize = 1;
         else
-            cmdsize = cp.Size();
+            cmdsize = zydis.Size();
 
         pdata += cmdsize;
         ip += cmdsize;
@@ -111,16 +111,16 @@ duint disasmnext(unsigned char* data, duint base, duint size, duint ip, int n)
     return ip;
 }
 
-static void HandleZydisOperand(Zydis & cp, int opindex, DISASM_ARG* arg, bool getregs)
+static void HandleZydisOperand(Zydis & zydis, int opindex, DISASM_ARG* arg, bool getregs)
 {
-    auto value = cp.ResolveOpValue(opindex, [&cp, getregs](ZydisRegister reg)
+    auto value = (duint)zydis.ResolveOpValue(opindex, [&zydis, getregs](ZydisRegister reg)
     {
-        auto regName = getregs ? cp.RegName(reg) : nullptr;
+        auto regName = getregs ? zydis.RegName(reg) : nullptr;
         return regName ? getregister(nullptr, regName) : 0; //TODO: temporary needs enums + caching
     });
-    const auto & op = cp[opindex];
+    const auto & op = zydis[opindex];
     arg->segment = SEG_DEFAULT;
-    auto opText = cp.OperandText(opindex);
+    auto opText = zydis.OperandText(opindex);
     StringUtils::ReplaceAll(opText, "0x", "");
     strcpy_s(arg->mnemonic, opText.c_str());
     switch(op.type)
@@ -144,7 +144,7 @@ static void HandleZydisOperand(Zydis & cp, int opindex, DISASM_ARG* arg, bool ge
         arg->type = arg_memory;
         const auto & mem = op.mem;
         if(mem.base == ZYDIS_REGISTER_RIP) //rip-relative
-            arg->constant = cp.Address() + duint(mem.disp.value) + cp.Size();
+            arg->constant = (duint)zydis.Address() + duint(mem.disp.value) + zydis.Size();
         else
             arg->constant = duint(mem.disp.value);
         if(mem.segment == ArchValue(ZYDIS_REGISTER_FS, ZYDIS_REGISTER_GS))
@@ -216,13 +216,13 @@ static void HandleZydisOperand(Zydis & cp, int opindex, DISASM_ARG* arg, bool ge
     }
 }
 
-void disasmget(Zydis & cp, unsigned char* buffer, duint addr, DISASM_INSTR* instr, bool getregs)
+void disasmget(Zydis & zydis, unsigned char* buffer, duint addr, DISASM_INSTR* instr, bool getregs)
 {
     memset(instr, 0, sizeof(DISASM_INSTR));
-    cp.Disassemble(addr, buffer, MAX_DISASM_BUFFER);
-    if(trydisasm(buffer, addr, instr, cp.Success() ? cp.Size() : 1))
+    zydis.Disassemble(addr, buffer, MAX_DISASM_BUFFER);
+    if(trydisasm(buffer, addr, instr, zydis.Success() ? zydis.Size() : 1))
         return;
-    if(!cp.Success())
+    if(!zydis.Success())
     {
         strcpy_s(instr->instruction, "???");
         instr->instr_size = 1;
@@ -230,21 +230,21 @@ void disasmget(Zydis & cp, unsigned char* buffer, duint addr, DISASM_INSTR* inst
         instr->argcount = 0;
         return;
     }
-    auto cpInstr = cp.GetInstr();
-    strncpy_s(instr->instruction, cp.InstructionText().c_str(), _TRUNCATE);
-    instr->instr_size = cpInstr->length;
-    if(cp.IsBranchType(Zydis::BTJmp | Zydis::BTLoop | Zydis::BTRet | Zydis::BTCall))
+    auto zyInstr = zydis.GetInstr();
+    strncpy_s(instr->instruction, zydis.InstructionText().c_str(), _TRUNCATE);
+    instr->instr_size = zyInstr->info.length;
+    if(zydis.IsBranchType(Zydis::BTJmp | Zydis::BTLoop | Zydis::BTRet | Zydis::BTCall))
         instr->type = instr_branch;
     else if(strstr(instr->instruction, "sp") || strstr(instr->instruction, "bp"))
         instr->type = instr_stack;
     else
         instr->type = instr_normal;
-    instr->argcount = cp.OpCount() <= 3 ? cp.OpCount() : 3;
+    instr->argcount = zydis.OpCount() <= 3 ? zydis.OpCount() : 3;
     for(int i = 0; i < instr->argcount; i++)
-        HandleZydisOperand(cp, i, &instr->arg[i], getregs);
+        HandleZydisOperand(zydis, i, &instr->arg[i], getregs);
 }
 
-void disasmget(Zydis & cp, duint addr, DISASM_INSTR* instr, bool getregs)
+void disasmget(Zydis & zydis, duint addr, DISASM_INSTR* instr, bool getregs)
 {
     if(!DbgIsDebugging())
     {
@@ -254,15 +254,15 @@ void disasmget(Zydis & cp, duint addr, DISASM_INSTR* instr, bool getregs)
     }
     unsigned char buffer[MAX_DISASM_BUFFER] = "";
     if(MemRead(addr, buffer, sizeof(buffer)))
-        disasmget(cp, buffer, addr, instr, getregs);
+        disasmget(zydis, buffer, addr, instr, getregs);
     else
         memset(instr, 0, sizeof(DISASM_INSTR)); // Buffer overflow
 }
 
 void disasmget(unsigned char* buffer, duint addr, DISASM_INSTR* instr, bool getregs)
 {
-    Zydis cp;
-    disasmget(cp, buffer, addr, instr, getregs);
+    Zydis zydis;
+    disasmget(zydis, buffer, addr, instr, getregs);
 }
 
 void disasmget(duint addr, DISASM_INSTR* instr, bool getregs)
@@ -532,10 +532,10 @@ bool disasmgetstringatwrapper(duint addr, char* dest, bool cache)
 
 int disasmgetsize(duint addr, unsigned char* data)
 {
-    Zydis cp;
-    if(!cp.Disassemble(addr, data, MAX_DISASM_BUFFER))
+    Zydis zydis;
+    if(!zydis.Disassemble(addr, data, MAX_DISASM_BUFFER))
         return 1;
-    return int(EncodeMapGetSize(addr, cp.Size()));
+    return int(EncodeMapGetSize(addr, zydis.Size()));
 }
 
 int disasmgetsize(duint addr)

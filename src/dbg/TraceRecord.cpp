@@ -205,14 +205,14 @@ void TraceRecordManager::TraceExecute(duint address, duint size)
 //See https://www.felixcloutier.com/x86/FXSAVE.html, max 512 bytes
 #define memoryContentSize 512
 
-static void HandleZydisOperand(const Zydis & cp, int opindex, DISASM_ARGTYPE* argType, duint* value, unsigned char memoryContent[memoryContentSize], unsigned char* memorySize)
+static void HandleZydisOperand(const Zydis & zydis, int opindex, DISASM_ARGTYPE* argType, duint* value, unsigned char memoryContent[memoryContentSize], unsigned char* memorySize)
 {
-    *value = cp.ResolveOpValue(opindex, [&cp](ZydisRegister reg)
+    *value = (duint)zydis.ResolveOpValue(opindex, [&zydis](ZydisRegister reg) -> uint64_t
     {
-        auto regName = cp.RegName(reg);
+        auto regName = zydis.RegName(reg);
         return regName ? getregister(nullptr, regName) : 0; //TODO: temporary needs enums + caching
     });
-    const auto & op = cp[opindex];
+    const auto & op = zydis[opindex];
     switch(op.type)
     {
     case ZYDIS_OPERAND_TYPE_REGISTER:
@@ -269,7 +269,7 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
     if(newInstruction.Success() && !newInstruction.IsNop() && newInstruction.GetId() != ZYDIS_MNEMONIC_LEA)
     {
         // This can happen when trace execute instruction is used, we need to fix that or something would go wrong with the GUI.
-        newContext.registers.regcontext.cip = newInstruction.Address();
+        newContext.registers.regcontext.cip = (duint)newInstruction.Address();
         DISASM_ARGTYPE argType;
         duint value;
         unsigned char memoryContent[memoryContentSize];
@@ -553,13 +553,13 @@ bool TraceRecordManager::enableTraceRecording(bool enabled, const char* fileName
             for(size_t i = 0; i < _countof(rtOldContextChanged); i++)
                 rtOldContextChanged[i] = true;
             dprintf(QT_TRANSLATE_NOOP("DBG", "Started trace recording to file: %s\r\n"), fileName);
-            Zydis cp;
+            Zydis zydis;
             unsigned char instr[MAX_DISASM_BUFFER];
             auto cip = GetContextDataEx(hActiveThread, UE_CIP);
             if(MemRead(cip, instr, MAX_DISASM_BUFFER))
             {
-                cp.DisassembleSafe(cip, instr, MAX_DISASM_BUFFER);
-                TraceExecuteRecord(cp);
+                zydis.DisassembleSafe(cip, instr, MAX_DISASM_BUFFER);
+                TraceExecuteRecord(zydis);
             }
             GuiOpenTraceFile(fileName);
             return true;

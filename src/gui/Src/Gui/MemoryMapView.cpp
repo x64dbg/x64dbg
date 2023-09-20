@@ -19,7 +19,6 @@ MemoryMapView::MemoryMapView(StdTable* parent)
 {
     setDrawDebugOnly(true);
     enableMultiSelection(true);
-    setDisassemblyPopupEnabled(false);
 
     int charwidth = getCharWidth();
 
@@ -38,7 +37,7 @@ MemoryMapView::MemoryMapView(StdTable* parent)
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(stateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(selectInMemoryMap(duint)), this, SLOT(selectAddress(duint)));
     connect(Bridge::getBridge(), SIGNAL(selectionMemmapGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(duint, duint)), this, SLOT(disassembleAtSlot(duint, duint)));
     connect(Bridge::getBridge(), SIGNAL(focusMemmap()), this, SLOT(setFocus()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
@@ -216,38 +215,38 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
 
     duint selectedAddr = getSelectionAddr();
 
-    QMenu wMenu(this); //create context menu
-    wMenu.addAction(mFollowDisassembly);
-    wMenu.addAction(mFollowDump);
+    QMenu menu(this); //create context menu
+    menu.addAction(mFollowDisassembly);
+    menu.addAction(mFollowDump);
 
     if(DbgFunctions()->ModBaseFromAddr(selectedAddr))
-        wMenu.addAction(mFollowSymbols);
+        menu.addAction(mFollowSymbols);
 
-    wMenu.addAction(mDumpMemory);
-    //wMenu.addAction(mLoadMemory); //TODO:loaddata command
-    wMenu.addAction(mComment);
-    wMenu.addAction(mFindPattern);
-    wMenu.addAction(mSwitchView);
-    wMenu.addAction(mReferences);
-    wMenu.addSeparator();
-    wMenu.addAction(mMemoryAllocate);
-    wMenu.addAction(mMemoryFree);
-    wMenu.addAction(mAddVirtualMod);
-    wMenu.addMenu(mGotoMenu);
-    wMenu.addSeparator();
-    wMenu.addAction(mPageMemoryRights);
-    wMenu.addSeparator();
-    wMenu.addMenu(mBreakpointMenu);
-    wMenu.addSeparator();
+    menu.addAction(mDumpMemory);
+    //menu.addAction(mLoadMemory); //TODO:loaddata command
+    menu.addAction(mComment);
+    menu.addAction(mFindPattern);
+    menu.addAction(mSwitchView);
+    menu.addAction(mReferences);
+    menu.addSeparator();
+    menu.addAction(mMemoryAllocate);
+    menu.addAction(mMemoryFree);
+    menu.addAction(mAddVirtualMod);
+    menu.addMenu(mGotoMenu);
+    menu.addSeparator();
+    menu.addAction(mPageMemoryRights);
+    menu.addSeparator();
+    menu.addMenu(mBreakpointMenu);
+    menu.addSeparator();
     DbgMenuPrepare(GUI_MEMMAP_MENU);
-    wMenu.addActions(mPluginMenu->actions());
-    QMenu wCopyMenu(tr("&Copy"), this);
-    wCopyMenu.setIcon(DIcon("copy"));
-    setupCopyMenu(&wCopyMenu);
-    if(wCopyMenu.actions().length())
+    menu.addActions(mPluginMenu->actions());
+    QMenu copyMenu(tr("&Copy"), this);
+    copyMenu.setIcon(DIcon("copy"));
+    setupCopyMenu(&copyMenu);
+    if(copyMenu.actions().length())
     {
-        wMenu.addSeparator();
-        wMenu.addMenu(&wCopyMenu);
+        menu.addSeparator();
+        menu.addMenu(&copyMenu);
     }
 
     if((DbgGetBpxTypeAt(selectedAddr) & bp_memory) == bp_memory) //memory breakpoint set
@@ -269,7 +268,7 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
 
     mAddVirtualMod->setVisible(!DbgFunctions()->ModBaseFromAddr(selectedAddr));
 
-    wMenu.exec(mapToGlobal(pos)); //execute context menu
+    menu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 static QString getProtectionString(DWORD Protect)
@@ -283,11 +282,10 @@ static QString getProtectionString(DWORD Protect)
     return QString(rights);
 }
 
-QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString MemoryMapView::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
     if(col == 0) //address
     {
-        int row = rowBase + rowOffset;
         auto addr = getCellUserdata(row, ColAddress);
         QColor color = mTextColor;
         QColor backgroundColor = Qt::transparent;
@@ -308,25 +306,25 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
             color = ConfigColor("MemoryMapCipColor");
             backgroundColor = ConfigColor("MemoryMapCipBackgroundColor");
         }
-        else if(isSelected(rowBase, rowOffset) == true)
+        else if(isSelected(row) == true)
             painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
 
         if(backgroundColor.alpha())
             painter->fillRect(QRect(x, y, w - 1, h), QBrush(backgroundColor));
         painter->setPen(color);
-        QString wStr = getCellContent(rowBase + rowOffset, col);
-        painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+        QString str = getCellContent(row, col);
+        painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, str);
         return QString();
     }
     else if(col == ColPageInfo) //info
     {
-        QString wStr = StdIconTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
-        auto addr = getCellUserdata(rowBase + rowOffset, ColAddress);
-        if(wStr.contains(" \""))
+        QString str = StdIconTable::paintContent(painter, row, col, x, y, w, h);
+        auto addr = getCellUserdata(row, ColAddress);
+        if(str.contains(" \""))
         {
-            auto idx = wStr.indexOf(" \"");
-            auto pre = wStr.mid(0, idx);
-            auto post = wStr.mid(idx);
+            auto idx = str.indexOf(" \"");
+            auto pre = str.mid(0, idx);
+            auto post = str.mid(idx);
             RichTextPainter::List richText;
             RichTextPainter::CustomRichText_t entry;
             entry.flags = RichTextPainter::FlagColor;
@@ -346,21 +344,21 @@ QString MemoryMapView::paintContent(QPainter* painter, dsint rowBase, int rowOff
         {
             auto party = DbgFunctions()->ModGetParty(addr);
             painter->setPen(ConfigColor(party == mod_user ? "SymbolUserTextColor" : "SymbolSystemTextColor"));
-            painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+            painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, str);
             return QString();
         }
     }
     else if(col == ColCurProtect) //CPROT
     {
-        QString wStr = StdIconTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);;
+        QString str = StdIconTable::paintContent(painter, row, col, x, y, w, h);;
         if(!ConfigBool("Engine", "ListAllPages"))
         {
             painter->setPen(ConfigColor("MemoryMapSectionTextColor"));
-            painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+            painter->drawText(QRect(x + 4, y, getColumnWidth(col) - 4, getRowHeight()), Qt::AlignVCenter | Qt::AlignLeft, str);
             return QString();
         }
     }
-    return StdIconTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+    return StdIconTable::paintContent(painter, row, col, x, y, w, h);
 }
 
 void MemoryMapView::setSwitchViewName()
@@ -407,84 +405,78 @@ void MemoryMapView::ExecCommand()
 
 void MemoryMapView::refreshMap()
 {
-    MEMMAP wMemMapStruct;
-    int wI;
+    MEMMAP memoryMap = {};
+    DbgMemMap(&memoryMap);
 
-    memset(&wMemMapStruct, 0, sizeof(MEMMAP));
+    setRowCount(memoryMap.count);
 
-    DbgMemMap(&wMemMapStruct);
-
-    setRowCount(wMemMapStruct.count);
-
-    QString wS;
-    MEMORY_BASIC_INFORMATION wMbi;
-    for(wI = 0; wI < wMemMapStruct.count; wI++)
+    for(int i = 0; i < memoryMap.count; i++)
     {
-        wMbi = (wMemMapStruct.page)[wI].mbi;
+        const auto & mbi = (memoryMap.page)[i].mbi;
 
         // Base address
-        setCellContent(wI, ColAddress, ToPtrString((duint)wMbi.BaseAddress));
-        setCellUserdata(wI, ColAddress, (duint)wMbi.BaseAddress);
+        setCellContent(i, ColAddress, ToPtrString((duint)mbi.BaseAddress));
+        setCellUserdata(i, ColAddress, (duint)mbi.BaseAddress);
 
         // Size
-        setCellContent(wI, ColSize, ToPtrString((duint)wMbi.RegionSize));
-        setCellUserdata(wI, ColSize, (duint)wMbi.RegionSize);
+        setCellContent(i, ColSize, ToPtrString((duint)mbi.RegionSize));
+        setCellUserdata(i, ColSize, (duint)mbi.RegionSize);
 
         // Party
-        int party = DbgFunctions()->ModGetParty((duint)wMbi.BaseAddress);
+        int party = DbgFunctions()->ModGetParty((duint)mbi.BaseAddress);
         switch(party)
         {
         case mod_user:
-            setCellContent(wI, ColParty, tr("User"));
-            setRowIcon(wI, DIcon("markasuser"));
+            setCellContent(i, ColParty, tr("User"));
+            setRowIcon(i, DIcon("markasuser"));
             break;
         case mod_system:
-            setCellContent(wI, ColParty, tr("System"));
-            setRowIcon(wI, DIcon("markassystem"));
+            setCellContent(i, ColParty, tr("System"));
+            setRowIcon(i, DIcon("markassystem"));
             break;
         default:
-            setCellContent(wI, ColParty, QString::number(party));
-            setRowIcon(wI, DIcon("markasparty"));
+            setCellContent(i, ColParty, QString::number(party));
+            setRowIcon(i, DIcon("markasparty"));
             break;
         }
 
         // Information
-        wS = QString((wMemMapStruct.page)[wI].info);
-        setCellContent(wI, ColPageInfo, wS);
+        auto content = QString((memoryMap.page)[i].info);
+        setCellContent(i, ColPageInfo, content);
 
         // Content, TODO: proper section content analysis in dbg/memory.cpp:MemUpdateMap
         char comment_text[MAX_COMMENT_SIZE];
-        if(DbgFunctions()->GetUserComment((duint)wMbi.BaseAddress, comment_text)) // user comment present
-            wS = comment_text;
-        else if(wS.contains(".bss"))
-            wS = tr("Uninitialized data");
-        else if(wS.contains(".data"))
-            wS = tr("Initialized data");
-        else if(wS.contains(".edata"))
-            wS = tr("Export tables");
-        else if(wS.contains(".idata"))
-            wS = tr("Import tables");
-        else if(wS.contains(".pdata"))
-            wS = tr("Exception information");
-        else if(wS.contains(".rdata"))
-            wS = tr("Read-only initialized data");
-        else if(wS.contains(".reloc"))
-            wS = tr("Base relocations");
-        else if(wS.contains(".rsrc"))
-            wS = tr("Resources");
-        else if(wS.contains(".text"))
-            wS = tr("Executable code");
-        else if(wS.contains(".tls"))
-            wS = tr("Thread-local storage");
-        else if(wS.contains(".xdata"))
-            wS = tr("Exception information");
+        if(DbgFunctions()->GetUserComment((duint)mbi.BaseAddress, comment_text)) // user comment present
+            content = comment_text;
+        else if(content.contains(".bss"))
+            content = tr("Uninitialized data");
+        else if(content.contains(".data"))
+            content = tr("Initialized data");
+        else if(content.contains(".edata"))
+            content = tr("Export tables");
+        else if(content.contains(".idata"))
+            content = tr("Import tables");
+        else if(content.contains(".pdata"))
+            content = tr("Exception information");
+        else if(content.contains(".rdata"))
+            content = tr("Read-only initialized data");
+        else if(content.contains(".reloc"))
+            content = tr("Base relocations");
+        else if(content.contains(".rsrc"))
+            content = tr("Resources");
+        else if(content.contains(".text"))
+            content = tr("Executable code");
+        else if(content.contains(".tls"))
+            content = tr("Thread-local storage");
+        else if(content.contains(".xdata"))
+            content = tr("Exception information");
         else
-            wS = QString("");
-        setCellContent(wI, ColContent, std::move(wS));
+            content = QString("");
+        setCellContent(i, ColContent, std::move(content));
 
         // Type
         const char* type = "";
-        switch(wMbi.Type)
+        switch(mbi.Type)
         {
         case MEM_IMAGE:
             type = "IMG";
@@ -499,17 +491,17 @@ void MemoryMapView::refreshMap()
             type = "N/A";
             break;
         }
-        setCellContent(wI, ColAllocation, type);
+        setCellContent(i, ColAllocation, type);
 
         // current access protection
-        setCellContent(wI, ColCurProtect, getProtectionString(wMbi.Protect));
+        setCellContent(i, ColCurProtect, getProtectionString(mbi.Protect));
 
         // allocation protection
-        setCellContent(wI, ColAllocProtect, getProtectionString(wMbi.AllocationProtect));
+        setCellContent(i, ColAllocProtect, getProtectionString(mbi.AllocationProtect));
 
     }
-    if(wMemMapStruct.page != 0)
-        BridgeFree(wMemMapStruct.page);
+    if(memoryMap.page != 0)
+        BridgeFree(memoryMap.page);
     reloadData(); //refresh memory map
 }
 
@@ -685,13 +677,15 @@ void MemoryMapView::selectAddress(duint va)
     if(base)
     {
         auto rows = getRowCount();
-        for(dsint row = 0; row < rows; row++)
+        for(duint row = 0; row < rows; row++)
+        {
             if(getCellUserdata(row, ColAddress) == base)
             {
                 scrollSelect(row);
                 reloadData();
                 return;
             }
+        }
     }
     SimpleErrorBox(this, tr("Error"), tr("Address %0 not found in memory map...").arg(ToPtrString(va)));
 }
@@ -743,7 +737,7 @@ void MemoryMapView::selectionGetSlot(SELECTIONDATA* selection)
     Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
 }
 
-void MemoryMapView::disassembleAtSlot(dsint va, dsint cip)
+void MemoryMapView::disassembleAtSlot(duint va, duint cip)
 {
     Q_UNUSED(va)
     mCipBase = DbgMemFindBaseAddr(cip, nullptr);;
@@ -751,11 +745,11 @@ void MemoryMapView::disassembleAtSlot(dsint va, dsint cip)
 
 void MemoryMapView::commentSlot()
 {
-    duint wVA = getSelectionAddr();
+    duint va = getSelectionAddr();
     LineEditDialog mLineEdit(this);
-    QString addr_text = ToPtrString(wVA);
+    QString addr_text = ToPtrString(va);
     char comment_text[MAX_COMMENT_SIZE] = "";
-    if(DbgGetCommentAt((duint)wVA, comment_text))
+    if(DbgGetCommentAt((duint)va, comment_text))
     {
         if(comment_text[0] == '\1') //automatic comment
             mLineEdit.setText(QString(comment_text + 1));
@@ -765,7 +759,7 @@ void MemoryMapView::commentSlot()
     mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
-    if(!DbgSetCommentAt(wVA, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))
+    if(!DbgSetCommentAt(va, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))
         SimpleErrorBox(this, tr("Error!"), tr("DbgSetCommentAt failed!"));
 
     GuiUpdateMemoryView();

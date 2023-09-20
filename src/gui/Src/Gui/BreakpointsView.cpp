@@ -5,6 +5,7 @@
 #include "Bridge.h"
 #include "MenuBuilder.h"
 #include "Breakpoints.h"
+#include "DisassemblyPopup.h"
 
 BreakpointsView::BreakpointsView(QWidget* parent)
     : StdTable(parent), mExceptionMaxLength(0)
@@ -22,14 +23,14 @@ BreakpointsView::BreakpointsView(QWidget* parent)
     addColumnAt(0, tr("Summary"), true);
     loadColumnFromConfig("BreakpointsView");
 
-    mDisasm = new QBeaEngine(ConfigUint("Disassembler", "MaxModuleSize"));
+    mDisasm = new QZydis(ConfigUint("Disassembler", "MaxModuleSize"), Bridge::getArchitecture());
     mDisasm->UpdateConfig();
     enableMultiSelection(true);
 
     setupContextMenu();
 
     connect(Bridge::getBridge(), SIGNAL(updateBreakpoints()), this, SLOT(updateBreakpointsSlot()));
-    connect(Bridge::getBridge(), SIGNAL(disassembleAt(dsint, dsint)), this, SLOT(disassembleAtSlot(dsint, dsint)));
+    connect(Bridge::getBridge(), SIGNAL(disassembleAt(duint, duint)), this, SLOT(disassembleAtSlot(duint, duint)));
     connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerConfigUpdatedSlot()));
 
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
@@ -37,6 +38,8 @@ BreakpointsView::BreakpointsView(QWidget* parent)
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followBreakpointSlot()));
 
     Initialize();
+
+    new DisassemblyPopup(this, Bridge::getArchitecture());
 }
 
 void BreakpointsView::setupContextMenu()
@@ -139,7 +142,7 @@ void BreakpointsView::updateColors()
     updateBreakpointsSlot();
 }
 
-void BreakpointsView::sortRows(int column, bool ascending)
+void BreakpointsView::sortRows(duint column, bool ascending)
 {
     std::stable_sort(mData.begin(), mData.end(), [this, column, ascending](const std::vector<CellData> & a, const std::vector<CellData> & b)
     {
@@ -161,15 +164,15 @@ void BreakpointsView::sortRows(int column, bool ascending)
     });
 }
 
-QString BreakpointsView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString BreakpointsView::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
-    if(isSelected(rowBase, rowOffset))
+    if(isSelected(row))
         painter->fillRect(QRect(x, y, w, h), QBrush(col == ColDisasm ? mDisasmSelectionColor : mSelectionColor));
     else if(col == ColDisasm)
         painter->fillRect(QRect(x, y, w, h), QBrush(mDisasmBackgroundColor));
-    auto index = bpIndex(rowBase + rowOffset);
+    auto index = bpIndex(row);
     auto & bp = mBps.at(index);
-    auto cellContent = getCellContent(rowBase + rowOffset, col);
+    auto cellContent = getCellContent(row, col);
     if(col > ColType && !bp.addr && !bp.active)
     {
         auto mid = h / 2.0;
@@ -556,7 +559,7 @@ void BreakpointsView::updateBreakpointsSlot()
     reloadData();
 }
 
-void BreakpointsView::disassembleAtSlot(dsint addr, dsint cip)
+void BreakpointsView::disassembleAtSlot(duint addr, duint cip)
 {
     Q_UNUSED(addr);
     mCip = cip;
@@ -570,10 +573,10 @@ void BreakpointsView::tokenizerConfigUpdatedSlot()
 
 void BreakpointsView::contextMenuSlot(const QPoint & pos)
 {
-    QMenu wMenu(this);
-    mMenuBuilder->build(&wMenu);
-    if(!wMenu.actions().isEmpty())
-        wMenu.exec(mapToGlobal(pos));
+    QMenu menu(this);
+    mMenuBuilder->build(&menu);
+    if(!menu.actions().isEmpty())
+        menu.exec(mapToGlobal(pos));
 }
 
 void BreakpointsView::followBreakpointSlot()

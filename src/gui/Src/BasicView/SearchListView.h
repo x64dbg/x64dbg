@@ -12,10 +12,10 @@ class SearchListView : public QWidget, public ActionHelper<SearchListView>
     Q_OBJECT
 
 public:
-    explicit SearchListView(QWidget* parent, AbstractSearchList* abstractSearchList, bool enableRegex, bool enableLock);
+    SearchListView(QWidget* parent, AbstractSearchList* abstractSearchList, bool enableRegex, bool enableLock);
 
-    AbstractStdTable* mCurList;
-    int mSearchStartCol;
+    AbstractStdTable* mCurList = nullptr;
+    duint mSearchStartCol = 0;
 
     bool findTextInList(AbstractStdTable* list, QString text, int row, int startcol, bool startswith);
     void refreshSearchList();
@@ -32,7 +32,7 @@ private slots:
 
 signals:
     void enterPressedSignal();
-    void listContextMenuSignal(QMenu* wMenu);
+    void listContextMenuSignal(QMenu* menu);
     void emptySearchResult();
 
 protected:

@@ -6,6 +6,7 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "MiscUtil.h"
+#include "DisassemblyPopup.h"
 
 ReferenceView::ReferenceView(bool sourceView, QWidget* parent) : StdSearchListView(parent, true, false), mParent(dynamic_cast<QTabWidget*>(parent))
 {
@@ -53,6 +54,10 @@ ReferenceView::ReferenceView(bool sourceView, QWidget* parent) : StdSearchListVi
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followGenericAddress()));
 
     setupContextMenu();
+
+    // Add disassembly popups
+    new DisassemblyPopup(stdList(), Bridge::getArchitecture());
+    new DisassemblyPopup(stdSearchList(), Bridge::getArchitecture());
 }
 
 void ReferenceView::setupContextMenu()
@@ -102,8 +107,8 @@ void ReferenceView::connectBridge()
     connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), this, SLOT(referenceSetProgressSlot(int)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceAddCommand(QString, QString)), this, SLOT(addCommand(QString, QString)));
-    connect(stdSearchList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
-    connect(stdList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
+    connect(stdSearchList(), SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(int)));
+    connect(stdList(), SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(int)));
 }
 
 void ReferenceView::disconnectBridge()
@@ -113,8 +118,8 @@ void ReferenceView::disconnectBridge()
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), this, SLOT(referenceSetProgressSlot(int)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceAddCommand(QString, QString)), this, SLOT(addCommand(QString, QString)));
-    disconnect(stdSearchList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
-    disconnect(stdList(), SIGNAL(selectionChangedSignal(int)), this, SLOT(searchSelectionChanged(int)));
+    disconnect(stdSearchList(), SIGNAL(selectionChanged(int)), this, SLOT(searchSelectionChanged(int)));
+    disconnect(stdList(), SIGNAL(selectionChanged(int)), this, SLOT(searchSelectionChanged(int)));
 }
 
 int ReferenceView::progress() const
@@ -203,7 +208,7 @@ void ReferenceView::addCommand(QString title, QString command)
     mCommands.append(command);
 }
 
-void ReferenceView::referenceContextMenu(QMenu* wMenu)
+void ReferenceView::referenceContextMenu(QMenu* menu)
 {
     if(!mCurList->getRowCount())
         return;
@@ -213,39 +218,39 @@ void ReferenceView::referenceContextMenu(QMenu* wMenu)
         return;
     if(DbgMemIsValidReadPtr(addr))
     {
-        wMenu->addAction(mFollowAddress);
-        wMenu->addAction(mFollowDumpAddress);
+        menu->addAction(mFollowAddress);
+        menu->addAction(mFollowDumpAddress);
         dsint apiaddr = apiAddressFromString(mCurList->getCellContent(mCurList->getInitialSelection(), 1));
         if(apiaddr)
-            wMenu->addAction(mFollowApiAddress);
-        wMenu->addSeparator();
-        wMenu->addAction(mToggleBreakpoint);
-        wMenu->addAction(mSetBreakpointOnAllCommands);
-        wMenu->addAction(mRemoveBreakpointOnAllCommands);
+            menu->addAction(mFollowApiAddress);
+        menu->addSeparator();
+        menu->addAction(mToggleBreakpoint);
+        menu->addAction(mSetBreakpointOnAllCommands);
+        menu->addAction(mRemoveBreakpointOnAllCommands);
         if(apiaddr)
         {
             char label[MAX_LABEL_SIZE] = "";
             if(DbgGetLabelAt(apiaddr, SEG_DEFAULT, label))
             {
-                wMenu->addSeparator();
+                menu->addSeparator();
                 mSetBreakpointOnAllApiCalls->setText(tr("Set breakpoint on all calls to %1").arg(label));
-                wMenu->addAction(mSetBreakpointOnAllApiCalls);
+                menu->addAction(mSetBreakpointOnAllApiCalls);
                 mRemoveBreakpointOnAllApiCalls->setText(tr("Remove breakpoint on all calls to %1").arg(label));
-                wMenu->addAction(mRemoveBreakpointOnAllApiCalls);
+                menu->addAction(mRemoveBreakpointOnAllApiCalls);
             }
         }
-        wMenu->addSeparator();
-        wMenu->addAction(mToggleBookmark);
+        menu->addSeparator();
+        menu->addAction(mToggleBookmark);
     }
     if(this->mCommands.size() > 0)
     {
-        wMenu->addSeparator();
+        menu->addSeparator();
         for(auto i = 0; i < this->mCommandTitles.size(); i++)
         {
-            QAction* newCommandAction = new QAction(this->mCommandTitles.at(i), wMenu);
+            QAction* newCommandAction = new QAction(this->mCommandTitles.at(i), menu);
             newCommandAction->setData(QVariant(mCommands.at(i)));
             connect(newCommandAction, SIGNAL(triggered()), this, SLOT(referenceExecCommand()));
-            wMenu->addAction(newCommandAction);
+            menu->addAction(newCommandAction);
         }
     }
 }
@@ -284,7 +289,7 @@ void ReferenceView::followGenericAddress()
     }
 }
 
-void ReferenceView::setBreakpointAt(int row, BPSetAction action)
+void ReferenceView::setBreakpointAt(duint row, BPSetAction action)
 {
     if(!DbgIsDebugging())
         return;
@@ -292,30 +297,30 @@ void ReferenceView::setBreakpointAt(int row, BPSetAction action)
     if(!mCurList->getRowCount())
         return;
     QString addrText = mCurList->getCellContent(row, 0).toUtf8().constData();
-    duint wVA;
-    if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
+    duint va = 0;
+    if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &va))
         return;
-    if(!DbgMemIsValidReadPtr(wVA))
+    if(!DbgMemIsValidReadPtr(va))
         return;
 
-    BPXTYPE wBpType = DbgGetBpxTypeAt(wVA);
-    QString wCmd;
+    BPXTYPE bpType = DbgGetBpxTypeAt(va);
+    QString cmd;
 
-    if((wBpType & bp_normal) == bp_normal)
+    if((bpType & bp_normal) == bp_normal)
     {
         if(action == Toggle || action == Remove)
-            wCmd = "bc " + ToPtrString(wVA);
+            cmd = "bc " + ToPtrString(va);
         else if(action == Disable)
-            wCmd = "bpd " + ToPtrString(wVA);
+            cmd = "bpd " + ToPtrString(va);
         else if(action == Enable)
-            wCmd = "bpe " + ToPtrString(wVA);
+            cmd = "bpe " + ToPtrString(va);
     }
-    else if(wBpType == bp_none && (action == Toggle || action == Enable))
+    else if(bpType == bp_none && (action == Toggle || action == Enable))
     {
-        wCmd = "bp " + ToPtrString(wVA);
+        cmd = "bp " + ToPtrString(va);
     }
 
-    DbgCmdExecDirect(wCmd);
+    DbgCmdExecDirect(cmd);
 }
 
 void ReferenceView::toggleBreakpoint()
@@ -334,14 +339,14 @@ void ReferenceView::toggleBreakpoint()
 void ReferenceView::setBreakpointOnAllCommands()
 {
     GuiDisableUpdateScope s;
-    for(int i = 0; i < mCurList->getRowCount(); i++)
+    for(duint i = 0; i < mCurList->getRowCount(); i++)
         setBreakpointAt(i, Enable);
 }
 
 void ReferenceView::removeBreakpointOnAllCommands()
 {
     GuiDisableUpdateScope s;
-    for(int i = 0; i < mCurList->getRowCount(); i++)
+    for(duint i = 0; i < mCurList->getRowCount(); i++)
         setBreakpointAt(i, Remove);
 }
 
@@ -355,7 +360,7 @@ void ReferenceView::setBreakpointOnAllApiCalls()
     QString apiText = mCurList->getCellContent(mCurList->getInitialSelection(), 1);
 
     GuiDisableUpdateScope s;
-    for(int i = 0; i < mCurList->getRowCount(); i++)
+    for(duint i = 0; i < mCurList->getRowCount(); i++)
         if(mCurList->getCellContent(i, 1) == apiText)
             setBreakpointAt(i, Enable);
 }
@@ -371,7 +376,7 @@ void ReferenceView::removeBreakpointOnAllApiCalls()
     QString apiText = mCurList->getCellContent(mCurList->getInitialSelection(), 1);
 
     GuiDisableUpdateScope s;
-    for(int i = 0; i < mCurList->getRowCount(); i++)
+    for(duint i = 0; i < mCurList->getRowCount(); i++)
         if(mCurList->getCellContent(i, 1) == apiText)
             setBreakpointAt(i, Remove);
 }
@@ -384,17 +389,17 @@ void ReferenceView::toggleBookmark()
     if(!mCurList->getRowCount())
         return;
     QString addrText = mCurList->getCellContent(mCurList->getInitialSelection(), 0);
-    duint wVA;
-    if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &wVA))
+    duint va = 0;
+    if(!DbgFunctions()->ValFromString(addrText.toUtf8().constData(), &va))
         return;
-    if(!DbgMemIsValidReadPtr(wVA))
+    if(!DbgMemIsValidReadPtr(va))
         return;
 
     bool result;
-    if(DbgGetBookmarkAt(wVA))
-        result = DbgSetBookmarkAt(wVA, false);
+    if(DbgGetBookmarkAt(va))
+        result = DbgSetBookmarkAt(va, false);
     else
-        result = DbgSetBookmarkAt(wVA, true);
+        result = DbgSetBookmarkAt(va, true);
     if(!result)
         SimpleErrorBox(this, tr("Error!"), tr("DbgSetBookmarkAt failed!"));
     GuiUpdateAllViews();
@@ -423,7 +428,7 @@ void ReferenceView::referenceExecCommand()
         for(int selected : mCurList->getSelection()) //to do: enable multi-selection
         {
             QString specializedCommand = command;
-            for(int i = 0; i < mCurList->getColumnCount(); i++)
+            for(duint i = 0; i < mCurList->getColumnCount(); i++)
             {
                 QString token = "$" + QString::number(i);
                 if(specializedCommand.contains(token))

@@ -14,7 +14,7 @@ class AboutDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit AboutDialog(UpdateChecker* updateChecker, QWidget* parent = 0);
+    explicit AboutDialog(UpdateChecker* updateChecker, QWidget* parent = nullptr);
     ~AboutDialog();
 
 protected:

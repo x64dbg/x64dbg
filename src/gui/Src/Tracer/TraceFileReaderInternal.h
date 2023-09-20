@@ -2,7 +2,7 @@
 
 #include <QThread>
 #include "TraceFileReader.h"
-#include "QBeaEngine.h"
+#include "QZydis.h"
 
 class TraceFileParser : public QThread
 {
@@ -20,7 +20,7 @@ public:
     unsigned long long Length() const;
     const REGDUMP & Registers(unsigned long long index) const;
     void OpCode(unsigned long long index, unsigned char* buffer, int* opcodeSize) const;
-    const Instruction_t & Instruction(unsigned long long index, QBeaEngine & mDisasm);
+    const Instruction_t & Instruction(unsigned long long index, QZydis & mDisasm);
     DWORD ThreadId(unsigned long long index) const;
     int MemoryAccessCount(unsigned long long index) const;
     void MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid) const;

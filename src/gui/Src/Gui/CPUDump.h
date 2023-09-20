@@ -12,14 +12,14 @@ class CPUDump : public HexDump
 {
     Q_OBJECT
 public:
-    explicit CPUDump(CPUDisassembly* disas, CPUMultiDump* multiDump, QWidget* parent = 0);
-    void getColumnRichText(int col, dsint rva, RichTextPainter::List & richText) override;
-    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h);
+    explicit CPUDump(CPUMultiDump* multiDump, CPUDisassembly* disasassembly, QWidget* parent = nullptr);
+    void getColumnRichText(duint col, duint rva, RichTextPainter::List & richText) override;
+    QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
     void setupContextMenu();
     void getAttention();
-    void contextMenuEvent(QContextMenuEvent* event);
-    void mouseDoubleClickEvent(QMouseEvent* event);
-    void mouseMoveEvent(QMouseEvent* event);
+    void contextMenuEvent(QContextMenuEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
 
 signals:
     void displayReferencesWidget();
@@ -82,7 +82,7 @@ public slots:
     void syncWithExpressionSlot();
     void allocMemorySlot();
 
-    void headerButtonReleasedSlot(int colIndex);
+    void headerButtonReleasedSlot(duint colIndex);
 
 private:
     MenuBuilder* mMenuBuilder;
@@ -94,8 +94,8 @@ private:
 
     GotoDialog* mGoto = nullptr;
     GotoDialog* mGotoOffset = nullptr;
-    CPUDisassembly* mDisas;
-    CPUMultiDump* mMultiDump;
+    CPUDisassembly* mDisassembly = nullptr;
+    CPUMultiDump* mMultiDump = nullptr;
     int mAsciiSeparator = 0;
 
     enum ViewEnum_t

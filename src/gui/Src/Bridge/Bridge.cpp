@@ -1,6 +1,6 @@
 #include "Bridge.h"
 #include <QClipboard>
-#include "QBeaEngine.h"
+#include "QZydis.h"
 #include "main.h"
 #include "Exports.h"
 
@@ -11,6 +11,19 @@
                             Global Variables
 ************************************************************************************/
 static Bridge* mBridge;
+
+class BridgeArchitecture : public Architecture
+{
+    bool disasm64() const override
+    {
+        return ArchValue(false, true);
+    }
+
+    bool addr64() const override
+    {
+        return ArchValue(false, true);
+    }
+} mArch;
 
 /************************************************************************************
                             Class Members
@@ -72,6 +85,11 @@ void Bridge::initBridge()
     mBridge = new Bridge();
 }
 
+Architecture* Bridge::getArchitecture()
+{
+    return &mArch;
+}
+
 /************************************************************************************
                             Helper Functions
 ************************************************************************************/
@@ -100,7 +118,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     {
     case GUI_DISASSEMBLE_AT:
         mLastCip = (duint)param2;
-        emit disassembleAt((dsint)param1, (dsint)param2);
+        emit disassembleAt((duint)param1, (duint)param2);
         break;
 
     case GUI_SET_DEBUG_STATE:
@@ -317,7 +335,7 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 
     case GUI_REF_SETSEARCHSTARTCOL:
         if(referenceManager->currentReferenceView())
-            referenceManager->currentReferenceView()->setSearchStartCol((int)param1);
+            referenceManager->currentReferenceView()->setSearchStartCol((duint)param1);
         break;
 
     case GUI_REF_INITIALIZE:
@@ -358,11 +376,11 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         char* text = (char*)param2;
         if(!text || !parVA || !DbgIsDebugging())
             return 0;
-        byte_t wBuffer[16];
-        if(!DbgMemRead(parVA, wBuffer, 16))
+        byte_t buffer[16];
+        if(!DbgMemRead(parVA, buffer, 16))
             return 0;
-        QBeaEngine disasm(int(ConfigUint("Disassembler", "MaxModuleSize")));
-        Instruction_t instr = disasm.DisassembleAt(wBuffer, 16, 0, parVA);
+        QZydis disasm(int(ConfigUint("Disassembler", "MaxModuleSize")), Bridge::getArchitecture());
+        Instruction_t instr = disasm.DisassembleAt(buffer, 16, 0, parVA);
         QString finalInstruction;
         for(const auto & curToken : instr.tokens.tokens)
             finalInstruction += curToken.text;

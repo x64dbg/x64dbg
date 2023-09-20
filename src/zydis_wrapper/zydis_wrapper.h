@@ -1,6 +1,9 @@
 #pragma once
 
+#define ZYCORE_STATIC_BUILD
+#define ZYDIS_STATIC_BUILD
 #include "Zydis/Zydis.h"
+#include <type_traits>
 #include <functional>
 #include <string>
 
@@ -9,36 +12,41 @@
 class Zydis
 {
 public:
-    static void GlobalInitialize();
-    static void GlobalFinalize();
-    Zydis();
+#ifdef _WIN64
+    Zydis() : Zydis(true) {}
+#elif _WIN32
+    Zydis() : Zydis(false) {}
+#endif // _WIN64
+
+    explicit Zydis(bool disasm64);
     Zydis(const Zydis & zydis) = delete;
-    ~Zydis();
-    bool Disassemble(size_t addr, const unsigned char data[MAX_DISASM_BUFFER]);
-    bool Disassemble(size_t addr, const unsigned char* data, int size);
-    bool DisassembleSafe(size_t addr, const unsigned char* data, int size);
-    const ZydisDecodedInstruction* GetInstr() const;
+    ~Zydis() = default;
+    void Reset(bool disasm64);
+    bool Disassemble(uint64_t addr, const unsigned char data[MAX_DISASM_BUFFER]);
+    bool Disassemble(uint64_t addr, const unsigned char* data, size_t size);
+    bool DisassembleSafe(uint64_t addr, const unsigned char* data, size_t size);
+    const ZydisDisassembledInstruction* GetInstr() const;
     bool Success() const;
     const char* RegName(ZydisRegister reg) const;
-    std::string OperandText(int opindex) const;
-    int Size() const;
-    size_t Address() const;
+    std::string OperandText(uint8_t opindex) const;
+    uint8_t Size() const;
+    uint64_t Address() const;
     bool IsFilling() const;
     bool IsUnusual() const;
     bool IsNop() const;
     bool IsPushPop() const;
     ZydisMnemonic GetId() const;
     std::string InstructionText(bool replaceRipRelative = true) const;
-    int OpCount() const;
-    const ZydisDecodedOperand & operator[](int index) const;
+    uint8_t OpCount() const;
+    const ZydisDecodedOperand & operator[](uint8_t index) const;
     std::string Mnemonic() const;
-    const char* MemSizeName(int size) const;
-    size_t BranchDestination() const;
-    size_t ResolveOpValue(int opindex, const std::function<size_t(ZydisRegister)> & resolveReg) const;
-    bool IsBranchGoingToExecute(size_t cflags, size_t ccx) const;
-    static bool IsBranchGoingToExecute(ZydisMnemonic id, size_t cflags, size_t ccx);
-    bool IsConditionalGoingToExecute(size_t cflags, size_t ccx) const;
-    static bool IsConditionalGoingToExecute(ZydisMnemonic id, size_t cflags, size_t ccx);
+    const char* MemSizeName(size_t size) const;
+    uint64_t BranchDestination() const;
+    uint64_t ResolveOpValue(uint8_t opindex, const std::function<uint64_t(ZydisRegister)> & resolveReg) const;
+    bool IsBranchGoingToExecute(uint32_t eflags, uint64_t ccx) const;
+    static bool IsBranchGoingToExecute(ZydisMnemonic id, uint32_t eflags, uint64_t ccx);
+    bool IsConditionalGoingToExecute(uint32_t eflags, uint64_t ccx) const;
+    static bool IsConditionalGoingToExecute(ZydisMnemonic id, uint32_t eflags, uint64_t ccx);
     void BytesGroup(uint8_t* prefixSize, uint8_t* opcodeSize, uint8_t* group1Size, uint8_t* group2Size, uint8_t* group3Size) const;
 
     enum RegAccessInfo : uint8_t
@@ -51,7 +59,8 @@ public:
     };
 
     void RegInfo(uint8_t info[ZYDIS_REGISTER_MAX_VALUE + 1]) const;
-    const char* FlagName(ZydisCPUFlag flag) const;
+    void FlagInfo(uint8_t info[32]) const;
+    const char* FlagName(uint32_t flag) const;
 
     enum BranchType : uint32_t
     {
@@ -85,10 +94,10 @@ public:
         BTRtm          = BTXabort | BTXbegin,
         BTFar          = BTFarCall | BTFarJmp | BTFarRet,
 
-        BTAny          = std::underlying_type_t<BranchType>(-1)
+        BTAny          = std::underlying_type<BranchType>::type(-1)
     };
 
-    bool IsBranchType(std::underlying_type_t<BranchType> bt) const;
+    bool IsBranchType(std::underlying_type<BranchType>::type bt) const;
 
     enum VectorElementType : uint8_t
     {
@@ -98,7 +107,7 @@ public:
         VETInt32,
         VETInt64
     };
-    VectorElementType getVectorElementType(int opindex) const;
+    VectorElementType getVectorElementType(uint8_t opindex) const;
 
     // Shortcuts.
     bool IsRet() const { return IsBranchType(BTRet); }
@@ -106,13 +115,15 @@ public:
     bool IsJump() const { return IsBranchType(BTJmp); }
     bool IsLoop() const { return IsBranchType(BTLoop); }
     bool IsInt3() const { return IsBranchType(BTInt3); }
+    bool IsSafeNopRegOp(const ZydisDecodedOperand & op) const;
 
 private:
-    static ZydisDecoder mDecoder;
-    static ZydisFormatter mFormatter;
-    static bool mInitialized;
-    ZydisDecodedInstruction mInstr;
+    ZydisDecoder mDecoder;
+    ZydisFormatter mFormatter;
+    bool mDisasm64;
+    uint64_t mAddr = 0;
+    ZydisDisassembledInstruction mInstr;
     char mInstrText[200];
-    bool mSuccess;
-    uint8_t mVisibleOpCount;
+    bool mSuccess = false;
+    uint8_t mVisibleOpCount = 0;
 };

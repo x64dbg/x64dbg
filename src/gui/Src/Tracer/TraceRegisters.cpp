@@ -20,64 +20,64 @@ void TraceRegisters::setRegisters(REGDUMP* registers)
 void TraceRegisters::setActive(bool isActive)
 {
     this->isActive = isActive;
-    this->RegistersView::setRegisters(&this->wRegDumpStruct);
+    this->RegistersView::setRegisters(&this->mRegDumpStruct);
 }
 
 void TraceRegisters::displayCustomContextMenuSlot(QPoint pos)
 {
     if(!isActive)
         return;
-    QMenu wMenu(this);
+    QMenu menu(this);
     setupSIMDModeMenu();
 
     if(mSelected != UNKNOWN)
     {
-        wMenu.addAction(wCM_CopyToClipboard);
+        menu.addAction(wCM_CopyToClipboard);
         if(mFPUx87_80BITSDISPLAY.contains(mSelected))
         {
-            wMenu.addAction(wCM_CopyFloatingPointValueToClipboard);
+            menu.addAction(wCM_CopyFloatingPointValueToClipboard);
         }
         if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
         {
-            wMenu.addAction(wCM_CopySIMDRegister);
+            menu.addAction(wCM_CopySIMDRegister);
         }
         if(mLABELDISPLAY.contains(mSelected))
         {
             QString symbol = getRegisterLabel(mSelected);
             if(symbol != "")
-                wMenu.addAction(wCM_CopySymbolToClipboard);
+                menu.addAction(wCM_CopySymbolToClipboard);
         }
-        wMenu.addAction(wCM_CopyAll);
+        menu.addAction(wCM_CopyAll);
 
         if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
         {
-            wMenu.addMenu(mSwitchSIMDDispMode);
+            menu.addMenu(mSwitchSIMDDispMode);
         }
 
         if(mFPUMMX.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
         {
             if(mFpuMode != 0)
-                wMenu.addAction(mDisplaySTX);
+                menu.addAction(mDisplaySTX);
             if(mFpuMode != 1)
-                wMenu.addAction(mDisplayx87rX);
+                menu.addAction(mDisplayx87rX);
             if(mFpuMode != 2)
-                wMenu.addAction(mDisplayMMX);
+                menu.addAction(mDisplayMMX);
         }
 
-        wMenu.exec(this->mapToGlobal(pos));
+        menu.exec(this->mapToGlobal(pos));
     }
     else // Right-click on empty space
     {
-        wMenu.addSeparator();
-        wMenu.addAction(wCM_ChangeFPUView);
-        wMenu.addAction(wCM_CopyAll);
-        wMenu.addMenu(mSwitchSIMDDispMode);
+        menu.addSeparator();
+        menu.addAction(wCM_ChangeFPUView);
+        menu.addAction(wCM_CopyAll);
+        menu.addMenu(mSwitchSIMDDispMode);
         if(mFpuMode != 0)
-            wMenu.addAction(mDisplaySTX);
+            menu.addAction(mDisplaySTX);
         if(mFpuMode != 1)
-            wMenu.addAction(mDisplayx87rX);
+            menu.addAction(mDisplayx87rX);
         if(mFpuMode != 2)
-            wMenu.addAction(mDisplayMMX);
+            menu.addAction(mDisplayMMX);
     }
 }
 
@@ -94,11 +94,11 @@ static void showCopyFloatRegister(int bits, QWidget* parent, const QString & tit
 void TraceRegisters::onCopySIMDRegister()
 {
     if(mFPUYMM.contains(mSelected))
-        showCopyFloatRegister(256, this, tr("View YMM register"), registerValue(&wRegDumpStruct, mSelected));
+        showCopyFloatRegister(256, this, tr("View YMM register"), registerValue(&mRegDumpStruct, mSelected));
     else if(mFPUXMM.contains(mSelected))
-        showCopyFloatRegister(128, this, tr("View XMM register"), registerValue(&wRegDumpStruct, mSelected));
+        showCopyFloatRegister(128, this, tr("View XMM register"), registerValue(&mRegDumpStruct, mSelected));
     else if(mFPUMMX.contains(mSelected))
-        showCopyFloatRegister(64, this, tr("View MMX register"), registerValue(&wRegDumpStruct, mSelected));
+        showCopyFloatRegister(64, this, tr("View MMX register"), registerValue(&mRegDumpStruct, mSelected));
 }
 
 void TraceRegisters::mouseDoubleClickEvent(QMouseEvent* event)
@@ -113,7 +113,7 @@ void TraceRegisters::mouseDoubleClickEvent(QMouseEvent* event)
     if(!identifyRegister(y, x, 0))
         return;
     if(mSelected == CIP) //double clicked on CIP register: follow in disassembly
-        DbgCmdExec(QString("disasm %1").arg(ToPtrString(wRegDumpStruct.regcontext.cip)));
+        DbgCmdExec(QString("disasm %1").arg(ToPtrString(mRegDumpStruct.regcontext.cip)));
     // double clicked on XMM register: open view XMM register dialog
     else if(mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected) || mFPUMMX.contains(mSelected))
         onCopySIMDRegister();

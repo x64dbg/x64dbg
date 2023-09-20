@@ -63,14 +63,14 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             sprintf_s(fullName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "%s (Region %p)")), Name, scanStart);
 
         // Initialize disassembler
-        Zydis cp;
+        Zydis zydis;
 
         // Allow an "initialization" notice
         refInfo.refcount = 0;
         refInfo.userinfo = UserData;
         refInfo.name = fullName;
 
-        RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, true, [](int percent)
+        RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, zydis, true, [](int percent)
         {
             GuiReferenceSetCurrentTaskProgress(percent, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Region Search")));
             GuiReferenceSetProgress(percent);
@@ -104,14 +104,14 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             sprintf_s(fullName, "%s (%p)", Name, scanStart);
 
         // Initialize disassembler
-        Zydis cp;
+        Zydis zydis;
 
         // Allow an "initialization" notice
         refInfo.refcount = 0;
         refInfo.userinfo = UserData;
         refInfo.name = fullName;
 
-        RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, true, [](int percent)
+        RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, zydis, true, [](int percent)
         {
             GuiReferenceSetCurrentTaskProgress(percent, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Module Search")));
             GuiReferenceSetProgress(percent);
@@ -147,7 +147,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         }
 
         // Initialize disassembler
-        Zydis cp;
+        Zydis zydis;
 
         // Determine the full module
         sprintf_s(fullName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "User Modules (%s)")), Name);
@@ -165,7 +165,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             scanStart = modList[i].base;
             scanSize = modList[i].size;
 
-            RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, initCallBack, [&i, &modList](int percent)
+            RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, zydis, initCallBack, [&i, &modList](int percent)
             {
                 float fPercent = (float)percent / 100.f;
                 float fTotalPercent = ((float)i + fPercent) / (float)modList.size();
@@ -209,7 +209,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         }
 
         // Initialize disassembler
-        Zydis cp;
+        Zydis zydis;
 
         // Determine the full module
         sprintf_s(fullName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "System Modules (%s)")), Name);
@@ -228,7 +228,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             scanSize = modList[i].size;
 
 
-            RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, initCallBack, [&i, &modList](int percent)
+            RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, zydis, initCallBack, [&i, &modList](int percent)
             {
                 float fPercent = (float)percent / 100.f;
                 float fTotalPercent = ((float)i + fPercent) / (float)modList.size();
@@ -271,7 +271,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         }
 
         // Initialize disassembler
-        Zydis cp;
+        Zydis zydis;
 
         // Determine the full module
         sprintf_s(fullName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "All Modules (%s)")), Name);
@@ -289,7 +289,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
             if(i != 0)
                 initCallBack = false;
 
-            RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, cp, initCallBack, [&i, &modList](int percent)
+            RefFindInRange(scanStart, scanSize, Callback, UserData, Silent, refInfo, zydis, initCallBack, [&i, &modList](int percent)
             {
                 float fPercent = (float)percent / 100.f;
                 float fTotalPercent = ((float)i + fPercent) / (float)modList.size();
@@ -309,7 +309,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
     return refInfo.refcount;
 }
 
-int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserData, bool Silent, REFINFO & refInfo, Zydis & cp, bool initCallBack, const CBPROGRESS & cbUpdateProgress, bool disasmText)
+int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserData, bool Silent, REFINFO & refInfo, Zydis & zydis, bool initCallBack, const CBPROGRESS & cbUpdateProgress, bool disasmText)
 {
     // Allocate and read a buffer from the remote process
     Memory<unsigned char*> data(scanSize, "reffind:data");
@@ -339,15 +339,15 @@ int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserDa
         int disasmMaxSize = min(MAX_DISASM_BUFFER, (int)(scanSize - i)); // Prevent going past the boundary
         int disasmLen = 1;
 
-        if(cp.Disassemble(scanStart, data() + i, disasmMaxSize))
+        if(zydis.Disassemble(scanStart, data() + i, disasmMaxSize))
         {
             BASIC_INSTRUCTION_INFO basicinfo;
-            fillbasicinfo(&cp, &basicinfo, disasmText);
+            fillbasicinfo(&zydis, &basicinfo, disasmText);
 
-            if(Callback(&cp, &basicinfo, &refInfo))
+            if(Callback(&zydis, &basicinfo, &refInfo))
                 refInfo.refcount++;
 
-            disasmLen = cp.Size();
+            disasmLen = zydis.Size();
         }
         else
         {

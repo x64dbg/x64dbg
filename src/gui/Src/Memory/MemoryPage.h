@@ -7,7 +7,7 @@ class MemoryPage : public QObject
 {
     Q_OBJECT
 public:
-    explicit MemoryPage(duint parBase, duint parSize, QObject* parent = 0);
+    explicit MemoryPage(duint parBase, duint parSize, QObject* parent = nullptr);
 
     bool read(void* parDest, dsint parRVA, duint parSize) const;
     bool write(const void* parDest, dsint parRVA, duint parSize);

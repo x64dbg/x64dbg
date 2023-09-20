@@ -14,7 +14,7 @@ class ColumnReorderDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ColumnReorderDialog(AbstractTableView* parent = 0);
+    explicit ColumnReorderDialog(AbstractTableView* parent = nullptr);
     ~ColumnReorderDialog();
 
 private slots:

@@ -14,6 +14,6 @@ public:
     virtual bool Analyse() override;
 
 private:
-    duint GetReferenceOperand(const ZydisDecodedInstruction & Context);
-    duint GetMemoryOperand(Zydis & Disasm, const ZydisDecodedInstruction & Context, bool* Indirect);
+    duint GetReferenceOperand(const ZydisDisassembledInstruction & Context);
+    duint GetMemoryOperand(Zydis & Disasm, const ZydisDisassembledInstruction & Context, bool* Indirect);
 };

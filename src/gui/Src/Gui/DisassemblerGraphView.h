@@ -14,7 +14,7 @@
 #include <QMutex>
 #include "Bridge.h"
 #include "RichTextPainter.h"
-#include "QBeaEngine.h"
+#include "QZydis.h"
 #include "ActionHelpers.h"
 #include "VaHistory.h"
 
@@ -206,7 +206,7 @@ public:
         bool inBlock = false;
     };
 
-    DisassemblerGraphView(QWidget* parent = nullptr);
+    DisassemblerGraphView(Architecture* architecture, QWidget* parent = nullptr);
     ~DisassemblerGraphView();
     void resetGraph();
     void initFont();
@@ -273,7 +273,7 @@ public slots:
     void selectionGetSlot(SELECTIONDATA* selection);
     void tokenizerConfigUpdatedSlot();
     void loadCurrentGraph();
-    void disassembleAtSlot(dsint va, dsint cip);
+    void disassembleAtSlot(duint va, duint cip);
     void gotoExpressionSlot();
     void gotoOriginSlot();
     void gotoPreviousSlot();
@@ -294,6 +294,7 @@ public slots:
     void enableHighlightingModeSlot();
 
 private:
+    Architecture* mArchitecture = nullptr;
     bool graphZoomMode;
     qreal zoomLevel;
     qreal zoomLevelOld;
@@ -329,23 +330,23 @@ private:
     std::unordered_map<duint, DisassemblerBlock> blocks;
     std::vector<int> col_edge_x;
     std::vector<int> row_edge_y;
-    CachedFontMetrics* mFontMetrics;
-    MenuBuilder* mMenuBuilder;
-    CommonActions* mCommonActions;
-    QMenu* mPluginMenu;
+    CachedFontMetrics* mFontMetrics = nullptr;
+    MenuBuilder* mMenuBuilder = nullptr;
+    CommonActions* mCommonActions = nullptr;
+    QMenu* mPluginMenu = nullptr;
     bool drawOverview;
     bool onlySummary;
-    bool syncOrigin;
+    bool syncOrigin = false;
     int overviewXOfs;
     int overviewYOfs;
     qreal overviewScale;
-    duint mCip;
-    bool forceCenter;
+    duint mCip = 0;
+    bool forceCenter = false;
     bool saveGraph;
-    bool mHistoryLock; //Don't add a history while going to previous/next
+    bool mHistoryLock = false; //Don't add a history while going to previous/next
     LayoutType layoutType;
 
-    MenuBuilder* mHighlightMenuBuilder;
+    MenuBuilder* mHighlightMenuBuilder = nullptr;
     ZydisTokenizer::SingleToken mHighlightToken;
     bool mHighlightingModeEnabled;
     bool mPermanentHighlightingMode;
@@ -386,9 +387,9 @@ private:
 
     BridgeCFGraph currentGraph;
     std::unordered_map<duint, duint> currentBlockMap;
-    QBeaEngine disasm;
-    GotoDialog* mGoto;
-    XrefBrowseDialog* mXrefDlg;
+    QZydis disasm;
+    GotoDialog* mGoto = nullptr;
+    XrefBrowseDialog* mXrefDlg = nullptr;
 
     void addReferenceAction(QMenu* menu, duint addr, const QString & description);
     bool getHighlightedTokenValueText(QString & text);

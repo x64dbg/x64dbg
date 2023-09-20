@@ -710,9 +710,9 @@ static bool cbModCallFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFI
     duint foundaddr = 0;
     char label[MAX_LABEL_SIZE] = "";
     char module[MAX_MODULE_SIZE] = "";
-    duint base = ModBaseFromAddr(disasm->Address()), size = 0;
+    duint base = ModBaseFromAddr((duint)disasm->Address()), size = 0;
     if(!base)
-        base = MemFindBaseAddr(disasm->Address(), &size);
+        base = MemFindBaseAddr((duint)disasm->Address(), &size);
     else
         size = ModSizeFromAddr(base);
     if(!base || !size)

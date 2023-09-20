@@ -3,15 +3,16 @@
 #include "Bridge.h"
 #include "StringUtil.h"
 #include "LineEditDialog.h"
+#include "DisassemblyPopup.h"
 
 void ThreadView::contextMenuSlot(const QPoint & pos)
 {
     if(!DbgIsDebugging())
         return;
 
-    QMenu wMenu(this); //create context menu
-    mMenuBuilder->build(&wMenu);
-    wMenu.exec(mapToGlobal(pos)); //execute context menu
+    QMenu menu(this); //create context menu
+    mMenuBuilder->build(&menu);
+    menu.exec(mapToGlobal(pos)); //execute context menu
 }
 
 void ThreadView::GoToThreadEntry()
@@ -179,6 +180,8 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
     setupContextMenu();
+
+    new DisassemblyPopup(this, Bridge::getArchitecture());
 }
 
 void ThreadView::updateThreadList()
@@ -366,10 +369,10 @@ void ThreadView::updateThreadList()
     reloadData();
 }
 
-QString ThreadView::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString ThreadView::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
-    QString ret = StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
-    duint threadId = getCellUserdata(rowBase + rowOffset, 1);
+    QString ret = StdTable::paintContent(painter, row, col, x, y, w, h);
+    duint threadId = getCellUserdata(row, 1);
     if(threadId == mCurrentThreadId && !col)
     {
         painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("ThreadCurrentBackgroundColor")));

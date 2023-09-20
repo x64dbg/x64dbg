@@ -10,7 +10,7 @@ ColumnReorderDialog::ColumnReorderDialog(AbstractTableView* parent) :
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
-    for(int j = 0; j < parent->getColumnCount(); j++)
+    for(duint j = 0; j < parent->getColumnCount(); j++)
     {
         int i = parent->mColumnOrder[j];
         if(parent->getColumnHidden(i))

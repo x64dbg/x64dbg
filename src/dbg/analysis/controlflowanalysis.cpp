@@ -140,26 +140,26 @@ void ControlFlowAnalysis::BasicBlockStarts()
     for(duint i = 0; i < mSize;)
     {
         auto addr = mBase + i;
-        if(mCp.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
+        if(mZydis.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
         {
             if(bSkipFilling) //handle filling skip mode
             {
-                if(!mCp.IsFilling()) //do nothing until the filling stopped
+                if(!mZydis.IsFilling()) //do nothing until the filling stopped
                 {
                     bSkipFilling = false;
                     mBlockStarts.insert(addr);
                 }
             }
-            else if(mCp.IsRet()) //RET breaks control flow
+            else if(mZydis.IsRet()) //RET breaks control flow
             {
                 bSkipFilling = true; //skip INT3/NOP/whatever filling bytes (those are not part of the control flow)
             }
-            else if(mCp.IsJump() || mCp.IsLoop()) //branches
+            else if(mZydis.IsJump() || mZydis.IsLoop()) //branches
             {
                 auto dest1 = getReferenceOperand();
                 duint dest2 = 0;
-                if(mCp.GetId() != ZYDIS_MNEMONIC_JMP) //conditional jump
-                    dest2 = addr + mCp.Size();
+                if(mZydis.GetId() != ZYDIS_MNEMONIC_JMP) //conditional jump
+                    dest2 = addr + mZydis.Size();
 
                 if(!dest1 && !dest2) //TODO: better code for this (make sure absolutely no filling is inserted)
                     bSkipFilling = true;
@@ -168,7 +168,7 @@ void ControlFlowAnalysis::BasicBlockStarts()
                 if(dest2)
                     mBlockStarts.insert(dest2);
             }
-            else if(mCp.IsCall())
+            else if(mZydis.IsCall())
             {
                 auto dest1 = getReferenceOperand();
                 if(dest1)
@@ -183,7 +183,7 @@ void ControlFlowAnalysis::BasicBlockStarts()
                 if(dest1)
                     mBlockStarts.insert(dest1);
             }
-            i += mCp.Size();
+            i += mZydis.Size();
         }
         else
             i++;
@@ -204,23 +204,23 @@ void ControlFlowAnalysis::BasicBlocks()
         for(duint addr = start, prevaddr; addr < mBase + mSize;)
         {
             prevaddr = addr;
-            if(mCp.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
+            if(mZydis.Disassemble(addr, translateAddr(addr), MAX_DISASM_BUFFER))
             {
-                if(mCp.IsRet())
+                if(mZydis.IsRet())
                 {
                     insertBlock(BasicBlock(start, addr, 0, 0)); //leaf block
                     break;
                 }
-                else if(mCp.IsJump() || mCp.IsLoop())
+                else if(mZydis.IsJump() || mZydis.IsLoop())
                 {
                     auto dest1 = getReferenceOperand();
-                    auto dest2 = mCp.GetId() != ZYDIS_MNEMONIC_JMP ? addr + mCp.Size() : 0;
+                    auto dest2 = mZydis.GetId() != ZYDIS_MNEMONIC_JMP ? addr + mZydis.Size() : 0;
                     insertBlock(BasicBlock(start, addr, dest1, dest2));
                     insertParent(dest1, start);
                     insertParent(dest2, start);
                     break;
                 }
-                addr += mCp.Size();
+                addr += mZydis.Size();
             }
             else
                 addr++;
@@ -413,9 +413,9 @@ String ControlFlowAnalysis::blockToString(const BasicBlock* block)
 
 duint ControlFlowAnalysis::getReferenceOperand() const
 {
-    for(auto i = 0; i < mCp.OpCount(); i++)
+    for(auto i = 0; i < mZydis.OpCount(); i++)
     {
-        const auto & op = mCp[i];
+        const auto & op = mZydis[i];
         if(op.type == ZYDIS_OPERAND_TYPE_IMMEDIATE)
         {
             auto dest = duint(op.imm.value.u);
@@ -426,7 +426,7 @@ duint ControlFlowAnalysis::getReferenceOperand() const
         {
             auto dest = duint(op.mem.disp.value);
             if(op.mem.base == ZYDIS_REGISTER_RIP) //rip-relative
-                dest += mCp.Address() + mCp.Size();
+                dest += (duint)mZydis.Address() + mZydis.Size();
             if(inRange(dest))
                 return dest;
         }

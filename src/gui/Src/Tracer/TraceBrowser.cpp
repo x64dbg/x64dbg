@@ -4,7 +4,7 @@
 #include "RichTextPainter.h"
 #include "main.h"
 #include "BrowseDialog.h"
-#include "QBeaEngine.h"
+#include "QZydis.h"
 #include "GotoDialog.h"
 #include "CommonActions.h"
 #include "LineEditDialog.h"
@@ -55,7 +55,7 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
     connect(Bridge::getBridge(), SIGNAL(gotoTraceIndex(duint)), this, SLOT(gotoIndexSlot(duint)));
     connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerConfigUpdatedSlot()));
     connect(this, SIGNAL(selectionChanged(unsigned long long)), this, SLOT(selectionChangedSlot(unsigned long long)));
-    connect(Bridge::getBridge(), SIGNAL(shutdown()), this, SLOT(closeFileSlot()));
+    connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(closeFileSlot()));
 }
 
 TraceBrowser::~TraceBrowser()
@@ -87,12 +87,12 @@ bool TraceBrowser::toggleTraceRecording(QWidget* parent)
     }
     else
     {
-        auto extension = ArchValue("trace32", "trace64");
+        auto extension = ArchValue(".trace32", ".trace64");
         BrowseDialog browse(
             parent,
             tr("Start trace recording"),
             tr("Trace recording file"),
-            tr("Trace recordings (*.%1);;All files (*.*)").arg(extension),
+            tr("Trace recordings (*%1);;All files (*.*)").arg(extension),
             getDbPath(mainModuleName() + extension, true),
             true
         );
@@ -286,7 +286,7 @@ int TraceBrowser::paintFunctionGraphic(QPainter* painter, int x, int y, Function
     return x_add + line_width + end_add;
 }
 
-QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString TraceBrowser::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
     if(!isFileOpened())
     {
@@ -311,18 +311,18 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
         painter->drawRect(rect);
     }
 
-    duint index = rowBase + rowOffset;
+    duint index = row;
     duint cur_addr;
     REGDUMP reg;
     reg = mTraceFile->Registers(index);
     cur_addr = reg.regcontext.cip;
     auto traceCount = DbgFunctions()->GetTraceRecordHitCount(cur_addr);
-    bool wIsSelected = (index >= mSelection.fromIndex && index <= mSelection.toIndex);
+    bool rowSelected = (index >= mSelection.fromIndex && index <= mSelection.toIndex);
 
     // Highlight if selected
-    if(wIsSelected && traceCount)
+    if(rowSelected && traceCount)
         painter->fillRect(QRect(x, y, w, h), QBrush(mTracedSelectedAddressBackgroundColor));
-    else if(wIsSelected)
+    else if(rowSelected)
         painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
     else if(traceCount)
     {
@@ -403,7 +403,7 @@ QString TraceBrowser::paintContent(QPainter* painter, dsint rowBase, int rowOffs
                     {
 NotDebuggingLabel:
                         QColor background;
-                        if(wIsSelected)
+                        if(rowSelected)
                         {
                             background = mSelectedAddressBackgroundColor;
                             painter->setPen(mSelectedAddressColor); //black address (DisassemblySelectedAddressColor)
@@ -431,7 +431,7 @@ NotDebuggingLabel:
                         else //other cases (memory breakpoint in disassembly) -> do as normal
                         {
                             QColor background;
-                            if(wIsSelected)
+                            if(rowSelected)
                             {
                                 background = mSelectedAddressBackgroundColor;
                                 painter->setPen(mSelectedAddressColor); //black address (DisassemblySelectedAddressColor)
@@ -569,25 +569,25 @@ NotDebuggingLabel:
             next_addr = mTraceFile->Registers(index + 1).regcontext.cip;
             if(next_addr < cur_addr)
             {
-                QPoint wPoints[] =
+                QPoint points[] =
                 {
                     QPoint(x + funcsize, y + halfRow + 1),
                     QPoint(x + funcsize + 2, y + halfRow - 1),
                     QPoint(x + funcsize + 4, y + halfRow + 1),
                 };
                 jumpsize = 8;
-                painter->drawPolyline(wPoints, 3);
+                painter->drawPolyline(points, 3);
             }
             else if(next_addr > cur_addr)
             {
-                QPoint wPoints[] =
+                QPoint points[] =
                 {
                     QPoint(x + funcsize, y + halfRow - 1),
                     QPoint(x + funcsize + 2, y + halfRow + 1),
                     QPoint(x + funcsize + 4, y + halfRow - 1),
                 };
                 jumpsize = 8;
-                painter->drawPolyline(wPoints, 3);
+                painter->drawPolyline(points, 3);
             }
         }
 
@@ -1102,7 +1102,7 @@ void TraceBrowser::mouseDoubleClickEvent(QMouseEvent* event)
 
 void TraceBrowser::mouseMoveEvent(QMouseEvent* event)
 {
-    dsint index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
+    auto index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
     if((event->buttons() & Qt::LeftButton) != 0 && getGuiState() == AbstractTableView::NoState && mTraceFile != nullptr && mTraceFile->Progress() == 100)
     {
         if(index < getRowCount())
@@ -1751,7 +1751,7 @@ void TraceBrowser::exportSlot()
         return;
     std::vector<QString> headers;
     headers.reserve(getColumnCount());
-    for(int i = 0; i < getColumnCount(); i++)
+    for(duint i = 0; i < getColumnCount(); i++)
         headers.push_back(getColTitle(i));
     ExportCSV(getRowCount(), getColumnCount(), headers, [this](dsint row, dsint col)
     {

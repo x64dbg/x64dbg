@@ -8,7 +8,7 @@ class LogView : public QTextBrowser
 {
     Q_OBJECT
 public:
-    explicit LogView(QWidget* parent = 0);
+    explicit LogView(QWidget* parent = nullptr);
     ~LogView();
     void setupContextMenu();
     void contextMenuEvent(QContextMenuEvent* event) override;

@@ -1,7 +1,7 @@
 #include "StdTableSearchList.h"
 #include "StdIconTable.h"
 
-void StdTableSearchList::filter(const QString & filter, FilterType type, int startColumn)
+void StdTableSearchList::filter(const QString & filter, FilterType type, duint startColumn)
 {
     StdIconTable* mSearchIconList = qobject_cast<StdIconTable*>(mSearchList);
     StdIconTable* mIconList = qobject_cast<StdIconTable*>(mList);

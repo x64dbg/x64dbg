@@ -6,8 +6,8 @@ class AbstractStdTable : public AbstractTableView
 {
     Q_OBJECT
 public:
-    explicit AbstractStdTable(QWidget* parent = 0);
-    QString paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h) override;
+    explicit AbstractStdTable(QWidget* parent = nullptr);
+    QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
     void updateColors() override;
     void reloadData() override;
 
@@ -21,30 +21,29 @@ public:
     void enableColumnSorting(bool enabled);
 
     // Selection Management
-    void expandSelectionUpTo(int to);
+    void expandSelectionUpTo(duint to);
     void expandUp();
     void expandDown();
     void expandTop();
     void expandBottom();
-    void setSingleSelection(int index);
-    int getInitialSelection() const;
-    QList<int> getSelection() const;
+    void setSingleSelection(duint index);
+    duint getInitialSelection() const;
+    QList<duint> getSelection() const;
     void selectStart();
     void selectEnd();
     void selectNext();
     void selectPrevious();
     void selectAll();
-    bool isSelected(int base, int offset) const;
-    bool scrollSelect(int offset);
+    bool isSelected(duint row) const;
+    bool scrollSelect(duint row);
 
     // Data Management
     void addColumnAt(int width, QString title, bool isClickable, QString copyTitle = "");
     void deleteAllColumns() override;
 
-    virtual QString getCellContent(int r, int c) = 0;
-    virtual bool isValidIndex(int r, int c) = 0;
-    virtual void sortRows(int column, bool ascending) = 0;
-    duint getDisassemblyPopupAddress(int mousex, int mousey) override;
+    virtual QString getCellContent(duint row, duint column) = 0;
+    virtual bool isValidIndex(duint row, duint column) = 0;
+    virtual void sortRows(duint column, bool ascending) = 0;
 
     //context menu helpers
     void setupCopyMenu(QMenu* copyMenu);
@@ -54,13 +53,13 @@ public:
     void setCopyMenuOnly(bool bSet, bool bDebugOnly = true);
 
     //draw helpers
-    void setHighlightText(QString highlightText, int minCol = 0)
+    void setHighlightText(QString highlightText, duint minCol = 0)
     {
         mHighlightText = highlightText;
         mMinimumHighlightColumn = minCol;
     }
 
-    void setAddressColumn(int col, bool cipBase = false)
+    void setAddressColumn(duint col, bool cipBase = false)
     {
         mAddressColumn = col;
         bCipBase = cipBase;
@@ -71,13 +70,8 @@ public:
         bAddressLabel = addressLabel;
     }
 
-    bool setDisassemblyPopupEnabled(bool enabled)
-    {
-        return bDisassemblyPopupEnabled = enabled;
-    }
-
 signals:
-    void selectionChangedSignal(int index);
+    void selectionChanged(duint index);
     void keyPressedSignal(QKeyEvent* event);
     void doubleClickedSignal();
     void contextMenuSignal(const QPoint & pos);
@@ -92,21 +86,22 @@ public slots:
     void copyEntrySlot();
     void exportTableSlot();
     void contextMenuRequestedSlot(const QPoint & pos);
-    void headerButtonPressedSlot(int col);
+    void headerButtonPressedSlot(duint col);
 
 protected:
     QString copyTable(const std::vector<int> & colWidths);
+    duint getAddressForPosition(int x, int y) override;
 
     struct SelectionData
     {
-        int firstSelectedIndex = 0;
-        int fromIndex = 0;
-        int toIndex = 0;
+        duint firstSelectedIndex = 0;
+        duint fromIndex = 0;
+        duint toIndex = 0;
     };
 
     SelectionData mSelection;
 
-    enum
+    enum GuiState
     {
         NoState,
         MultiRowsSelectionState
@@ -121,7 +116,7 @@ protected:
 
     struct SortData
     {
-        int column = -1;
+        duint column = -1;
         bool ascending = true;
     } mSort;
 
@@ -146,7 +141,6 @@ protected:
     int mMinimumHighlightColumn = 0;
     int mAddressColumn = -1;
     bool bAddressLabel = true;
-    bool bDisassemblyPopupEnabled = true;
 
     QAction* mCopyLine;
     QAction* mCopyTable;

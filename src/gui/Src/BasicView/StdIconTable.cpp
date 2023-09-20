@@ -24,20 +24,13 @@ int StdIconTable::getIconColumn() const
     return mIconColumn;
 }
 
-void StdIconTable::setRowCount(dsint count)
+void StdIconTable::setRowCount(duint count)
 {
-    int wRowToAddOrRemove = count - int(mIcon.size());
-    for(int i = 0; i < qAbs(wRowToAddOrRemove); i++)
-    {
-        if(wRowToAddOrRemove > 0)
-            mIcon.push_back(QIcon());
-        else
-            mIcon.pop_back();
-    }
+    mIcon.resize(count);
     StdTable::setRowCount(count);
 }
 
-void StdIconTable::sortRows(int column, bool ascending)
+void StdIconTable::sortRows(duint column, bool ascending)
 {
     auto sortFn = mColumnSortFunctions.at(column);
     std::vector<size_t> index;
@@ -61,24 +54,24 @@ void StdIconTable::sortRows(int column, bool ascending)
     }
 }
 
-QString StdIconTable::paintContent(QPainter* painter, dsint rowBase, int rowOffset, int col, int x, int y, int w, int h)
+QString StdIconTable::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
     if(col == mIconColumn)
     {
         // Draw the selection first, so that transparent icons are drawn properly
-        if(isSelected(rowBase, rowOffset))
+        if(isSelected(row))
             painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
 
-        mIcon.at(rowBase + rowOffset).paint(painter, x, y, h, h);
-        QString wStr = StdTable::paintContent(painter, rowBase, rowOffset, col, x + h, y, w - h, h);
+        mIcon.at(row).paint(painter, x, y, h, h);
+        QString str = StdTable::paintContent(painter, row, col, x + h, y, w - h, h);
 
-        if(wStr.length())
+        if(str.length())
         {
-            painter->setPen(getCellColor(rowBase + rowOffset, col));
-            painter->drawText(QRect(x + 4 + h, y, w - 4 - h, h), Qt::AlignVCenter | Qt::AlignLeft, wStr);
+            painter->setPen(getCellColor(row, col));
+            painter->drawText(QRect(x + 4 + h, y, w - 4 - h, h), Qt::AlignVCenter | Qt::AlignLeft, str);
         }
         return QString();
     }
     else
-        return StdTable::paintContent(painter, rowBase, rowOffset, col, x, y, w, h);
+        return StdTable::paintContent(painter, row, col, x, y, w, h);
 }

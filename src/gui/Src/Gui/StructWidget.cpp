@@ -284,10 +284,10 @@ duint StructWidget::selectedValue() const
 
 void StructWidget::on_treeWidget_customContextMenuRequested(const QPoint & pos)
 {
-    QMenu wMenu;
-    mMenuBuilder->build(&wMenu);
-    if(wMenu.actions().count())
-        wMenu.exec(ui->treeWidget->viewport()->mapToGlobal(pos));
+    QMenu menu;
+    mMenuBuilder->build(&menu);
+    if(menu.actions().count())
+        menu.exec(ui->treeWidget->viewport()->mapToGlobal(pos));
 }
 
 void StructWidget::followDumpSlot()

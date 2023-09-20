@@ -63,8 +63,8 @@ void MessagesBreakpoints::on_btnOk_clicked()
 
     if(!translMsg)
     {
-        BPXTYPE wBpType = DbgGetBpxTypeAt(procVA);
-        if(wBpType == bp_none)
+        BPXTYPE bpType = DbgGetBpxTypeAt(procVA);
+        if(bpType == bp_none)
             DbgCmdExec(QString("bp 0x%1").arg(bpData.procVA));
 
         bpCondCmd = QString("bpcnd 0x%1, \"arg.get(1) == 0x%2").arg(bpData.procVA).arg(messages.key(ui->cboxMessages->currentText()), 1, 16);
@@ -72,8 +72,8 @@ void MessagesBreakpoints::on_btnOk_clicked()
     }
     else
     {
-        BPXTYPE wBpType = DbgGetBpxTypeAt(DbgValFromString("TranslateMessage"));
-        if(wBpType == bp_none)
+        BPXTYPE bpType = DbgGetBpxTypeAt(DbgValFromString("TranslateMessage"));
+        if(bpType == bp_none)
             DbgCmdExec("bp TranslateMessage");
 
 #ifdef _WIN64

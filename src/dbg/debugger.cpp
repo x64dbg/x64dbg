@@ -1263,8 +1263,8 @@ void cbRtrStep()
 #endif //_WIN64
                )
         {
-            Zydis cp;
-            if(cp.Disassemble(cip, data) && cp.IsRet())
+            Zydis zydis;
+            if(zydis.Disassemble(cip, data) && zydis.IsRet())
                 reachedReturn = true;
         }
     }

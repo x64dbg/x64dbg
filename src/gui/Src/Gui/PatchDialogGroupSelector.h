@@ -13,7 +13,7 @@ class PatchDialogGroupSelector : public QDialog
     Q_OBJECT
 
 public:
-    explicit PatchDialogGroupSelector(QWidget* parent = 0);
+    explicit PatchDialogGroupSelector(QWidget* parent = nullptr);
     ~PatchDialogGroupSelector();
     void setGroupTitle(const QString & title);
     void setPreviousEnabled(bool enable);

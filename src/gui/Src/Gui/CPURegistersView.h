@@ -6,7 +6,7 @@ class CPURegistersView : public RegistersView
 {
     Q_OBJECT
 public:
-    CPURegistersView(CPUWidget* parent = 0);
+    CPURegistersView(CPUWidget* parent = nullptr);
 
 public slots:
     void setRegister(REGISTER_NAME reg, duint value);
@@ -36,7 +36,7 @@ protected slots:
     void onRemoveHardware();
     void onHighlightSlot();
     void ModifyFields(const QString & title, STRING_VALUE_TABLE_t* table, SIZE_T size);
-    void disasmSelectionChangedSlot(dsint va);
+    void disasmSelectionChangedSlot(duint va);
 
 private:
     void CreateDumpNMenu(QMenu* dumpMenu);

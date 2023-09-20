@@ -74,6 +74,6 @@ public slots:
     void createThreadSlot();
 private:
     GetSelectionFunc mGetSelection;
-    bool WarningBoxNotExecutable(const QString & text, duint wVA) const;
+    bool WarningBoxNotExecutable(const QString & text, duint va) const;
     QWidget* widgetparent() const;
 };
