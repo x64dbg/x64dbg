@@ -12,6 +12,7 @@
 #include "formatfunctions.h"
 #include <algorithm>
 #include <shlwapi.h>
+#include <vector>
 
 /**
 \brief List of plugins.
@@ -67,6 +68,46 @@ static const char* pluginExtension = ".dp32";
 #endif
 
 /**
+/brief Normalizes the plugin name. Strips the extension and path.
+\param pluginName Can be name or partial plugin path.
+\return The normalized plugin name.
+ */
+static std::string pluginNormalizeName(std::string pluginName)
+{
+    auto pathPos = pluginName.find_last_of("\\/");
+    if(pathPos != std::string::npos)
+        pluginName = pluginName.substr(pathPos + 1);
+    auto extPos = pluginName.find_last_of(".");
+    if(extPos != std::string::npos)
+        pluginName = pluginName.substr(0, extPos);
+    return pluginName;
+}
+
+/**
+\brief Returns the full path to the plugin.
+\param pluginName Name of the plugin, the parameter must not contain the extension.
+\return The full path to the plugin.
+ */
+static std::string pluginGetFullPath(std::string pluginName)
+{
+    std::string pluginPath = StringUtils::Utf16ToUtf8(pluginDirectory) + "\\" + pluginName;
+
+    // Check if the plugin is a directory.
+    if(PathIsDirectoryW(StringUtils::Utf8ToUtf16(pluginPath).c_str()))
+    {
+        // Plugin is probably inside the directory.
+        pluginPath += "\\" + pluginName + pluginExtension;
+    }
+    else
+    {
+        // Ordinary file
+        pluginPath += pluginExtension;
+    }
+
+    return pluginPath;
+}
+
+/**
 \brief Loads a plugin from the plugin directory.
 \param pluginName Name of the plugin.
 \param loadall true on unload all.
@@ -78,11 +119,11 @@ bool pluginload(const char* pluginName, bool loadall)
     if(!pluginName)
         return false;
 
-    char name[MAX_PATH] = "";
-    strncpy_s(name, pluginName, _TRUNCATE);
+    // Normalize the plugin name, this can be potentially called from the pluginload command.
+    std::string name = pluginNormalizeName(pluginName);
 
-    if(!loadall)
-        strncat_s(name, pluginExtension, _TRUNCATE);
+    // Obtain the actual plugin path.
+    std::string pluginFullPath = pluginGetFullPath(name);
 
     wchar_t currentDir[deflen] = L"";
     if(!loadall)
@@ -91,16 +132,13 @@ bool pluginload(const char* pluginName, bool loadall)
         SetCurrentDirectoryW(pluginDirectory.c_str());
     }
 
-    char searchName[deflen] = "";
-    sprintf_s(searchName, "%s\\%s", StringUtils::Utf16ToUtf8(pluginDirectory.c_str()).c_str(), name);
-
     //Check to see if this plugin is already loaded
     if(!loadall)
     {
         EXCLUSIVE_ACQUIRE(LockPluginList);
         for(auto it = pluginList.begin(); it != pluginList.end(); ++it)
         {
-            if(_stricmp(it->plugname, name) == 0 && it->isLoaded)
+            if(_stricmp(it->plugname, name.c_str()) == 0 && it->isLoaded)
             {
                 dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s already loaded\n"), name);
                 SetCurrentDirectoryW(currentDir);
@@ -110,7 +148,7 @@ bool pluginload(const char* pluginName, bool loadall)
     }
 
     //check if the file exists
-    if(!loadall && !PathFileExistsW(StringUtils::Utf8ToUtf16(searchName).c_str()))
+    if(!loadall && !PathFileExistsW(StringUtils::Utf8ToUtf16(pluginFullPath).c_str()))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Cannot find plugin: %s\n"), name);
         return false;
@@ -119,7 +157,7 @@ bool pluginload(const char* pluginName, bool loadall)
     //setup plugin data
     memset(&pluginData, 0, sizeof(pluginData));
     pluginData.initStruct.pluginHandle = curPluginHandle;
-    pluginData.hPlugin = LoadLibraryW(StringUtils::Utf8ToUtf16(searchName).c_str()); //load the plugin library
+    pluginData.hPlugin = LoadLibraryW(StringUtils::Utf8ToUtf16(pluginFullPath).c_str()); //load the plugin library
     if(!pluginData.hPlugin)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Failed to load plugin: %s\n"), name);
@@ -139,8 +177,8 @@ bool pluginload(const char* pluginName, bool loadall)
     pluginData.plugstop = (PLUGSTOP)GetProcAddress(pluginData.hPlugin, "plugstop");
     pluginData.plugsetup = (PLUGSETUP)GetProcAddress(pluginData.hPlugin, "plugsetup");
 
-    strncpy_s(pluginData.plugpath, searchName, MAX_PATH);
-    strncpy_s(pluginData.plugname, name, MAX_PATH);
+    strncpy_s(pluginData.plugpath, pluginFullPath.c_str(), MAX_PATH);
+    strncpy_s(pluginData.plugname, name.c_str(), MAX_PATH);
 
     //init plugin
     if(!pluginData.pluginit(&pluginData.initStruct))
@@ -278,20 +316,20 @@ bool pluginload(const char* pluginName, bool loadall)
 */
 bool pluginunload(const char* pluginName, bool unloadall)
 {
-    char name[MAX_PATH] = "";
-    strncpy_s(name, pluginName, _TRUNCATE);
-
-    if(!unloadall)
-        strncat_s(name, pluginExtension, _TRUNCATE);
+    // Normalize the plugin name.
+    std::string name = pluginNormalizeName(pluginName);
 
     auto found = pluginList.end();
     {
         EXCLUSIVE_ACQUIRE(LockPluginList);
         found = std::find_if(pluginList.begin(), pluginList.end(), [&name](const PLUG_DATA & a)
         {
-            return _stricmp(a.plugname, name) == 0;
+            return _stricmp(a.plugname, name.c_str()) == 0;
         });
     }
+
+    // Will contain the actual plugin name if found.
+    std::string actualName = name;
 
     if(found != pluginList.end())
     {
@@ -303,6 +341,9 @@ bool pluginunload(const char* pluginName, bool unloadall)
         plugincmdunregisterall(pluginHandle);
         pluginexprfuncunregisterall(pluginHandle);
         pluginformatfuncunregisterall(pluginHandle);
+
+        // Copy the actual name.
+        actualName = currentPlugin.plugname;
 
         //remove the callbacks
         {
@@ -337,15 +378,16 @@ bool pluginunload(const char* pluginName, bool unloadall)
 
         if(canFreeLibrary)
             FreeLibrary(currentPlugin.hPlugin);
-        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s unloaded\n"), name);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s unloaded\n"), actualName.c_str());
         return true;
     }
-    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s not found\n"), name);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s not found\n"), actualName.c_str());
     return false;
 }
 
 typedef BOOL(WINAPI* pfnAddDllDirectory)(LPCWSTR lpPathName);
 
+// Returns a list of all available plugins in the specified directory without the extension.
 static std::vector<std::wstring> enumerateAvailablePlugins(const std::wstring & pluginDir)
 {
     std::vector<std::wstring> result;
@@ -362,6 +404,16 @@ static std::vector<std::wstring> enumerateAvailablePlugins(const std::wstring & 
         return result;
     }
 
+    const auto stripExtension = [](const std::wstring & fileName)->std::wstring
+    {
+        size_t pos = fileName.find_last_of(L'.');
+        if(pos == std::wstring::npos)
+        {
+            return fileName;
+        }
+        return fileName.substr(0, pos);
+    };
+
     do
     {
         // Check if directory
@@ -376,7 +428,7 @@ static std::vector<std::wstring> enumerateAvailablePlugins(const std::wstring & 
 
             if(PathFileExistsW(pluginPath))
             {
-                result.push_back(pluginName);
+                result.push_back(foundData.cFileName);
             }
         }
         else
@@ -394,7 +446,7 @@ static std::vector<std::wstring> enumerateAvailablePlugins(const std::wstring & 
                 continue;
             }
 
-            result.push_back(foundData.cFileName);
+            result.push_back(stripExtension(foundData.cFileName));
         }
     }
     while(FindNextFileW(hSearch, &foundData));
