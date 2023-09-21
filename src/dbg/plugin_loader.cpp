@@ -60,6 +60,12 @@ static std::vector<PLUG_FORMATFUNCTION> pluginFormatfunctionList;
 
 static PLUG_DATA pluginData;
 
+#ifdef _WIN64
+static const char* pluginExtension = ".dp64";
+#else
+static const char* pluginExtension = ".dp32";
+#endif
+
 /**
 \brief Loads a plugin from the plugin directory.
 \param pluginName Name of the plugin.
@@ -76,11 +82,7 @@ bool pluginload(const char* pluginName, bool loadall)
     strncpy_s(name, pluginName, _TRUNCATE);
 
     if(!loadall)
-#ifdef _WIN64
-        strncat_s(name, ".dp64", _TRUNCATE);
-#else
-        strncat_s(name, ".dp32", _TRUNCATE);
-#endif
+        strncat_s(name, pluginExtension, _TRUNCATE);
 
     wchar_t currentDir[deflen] = L"";
     if(!loadall)
@@ -88,12 +90,9 @@ bool pluginload(const char* pluginName, bool loadall)
         GetCurrentDirectoryW(deflen, currentDir);
         SetCurrentDirectoryW(pluginDirectory.c_str());
     }
+
     char searchName[deflen] = "";
-#ifdef _WIN64
     sprintf_s(searchName, "%s\\%s", StringUtils::Utf16ToUtf8(pluginDirectory.c_str()).c_str(), name);
-#else
-    sprintf_s(searchName, "%s\\%s", StringUtils::Utf16ToUtf8(pluginDirectory.c_str()).c_str(), name);
-#endif // _WIN64
 
     //Check to see if this plugin is already loaded
     if(!loadall)
@@ -283,11 +282,7 @@ bool pluginunload(const char* pluginName, bool unloadall)
     strncpy_s(name, pluginName, _TRUNCATE);
 
     if(!unloadall)
-#ifdef _WIN64
-        strncat_s(name, ".dp64", _TRUNCATE);
-#else
-        strncat_s(name, ".dp32", _TRUNCATE);
-#endif
+        strncat_s(name, pluginExtension, _TRUNCATE);
 
     auto found = pluginList.end();
     {
@@ -355,11 +350,7 @@ static std::vector<std::wstring> enumerateAvailablePlugins(const std::wstring & 
 {
     std::vector<std::wstring> result;
 
-#ifdef _WIN64
-    const wchar_t* pluginExt = L".dp64";
-#else
-    const wchar_t* pluginExt = L".dp32";
-#endif // _WIN64
+    const std::wstring pluginExt = StringUtils::Utf8ToUtf16(pluginExtension);
 
     wchar_t searchQuery[deflen] = L"";
     swprintf_s(searchQuery, L"%s\\*.*", pluginDir.c_str());
@@ -378,7 +369,7 @@ static std::vector<std::wstring> enumerateAvailablePlugins(const std::wstring & 
         {
             // Check if plugin exists with the same name as the directory
             wchar_t pluginName[deflen] = L"";
-            swprintf_s(pluginName, L"%s\\%s%s", foundData.cFileName, foundData.cFileName, pluginExt);
+            swprintf_s(pluginName, L"%s\\%s%s", foundData.cFileName, foundData.cFileName, pluginExt.c_str());
 
             wchar_t pluginPath[deflen] = L"";
             swprintf_s(pluginPath, L"%s\\%s", pluginDir.c_str(), pluginName);
@@ -391,14 +382,14 @@ static std::vector<std::wstring> enumerateAvailablePlugins(const std::wstring & 
         else
         {
             // Check if filename ends with the extension
-            wchar_t* extPos = wcsstr(foundData.cFileName, pluginExt);
+            wchar_t* extPos = wcsstr(foundData.cFileName, pluginExt.c_str());
             if(extPos == nullptr)
             {
                 continue;
             }
 
             // Ensure that the extension is at the end of the filename
-            if(extPos[wcslen(pluginExt)] != L'\0')
+            if(extPos[pluginExt.size()] != L'\0')
             {
                 continue;
             }
