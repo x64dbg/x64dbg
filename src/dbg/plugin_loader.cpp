@@ -499,6 +499,14 @@ void pluginloadall(const char* pluginDir)
 
     for(const std::wstring & pluginName : availablePlugins)
     {
+        // Check if the plugin is a sub-directory and also add it to the search paths.
+        std::wstring pluginPath = pluginDirectory + L"\\" + pluginName;
+
+        if(PathIsDirectoryW(pluginPath.c_str()))
+        {
+            pAddDllDirectory(pluginPath.c_str());
+        }
+
         pluginload(StringUtils::Utf16ToUtf8(pluginName).c_str(), true);
     }
 
