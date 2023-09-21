@@ -138,7 +138,7 @@ bool pluginload(const char* pluginName, bool loadall)
         EXCLUSIVE_ACQUIRE(LockPluginList);
         for(auto it = pluginList.begin(); it != pluginList.end(); ++it)
         {
-            if(_stricmp(it->plugname, name.c_str()) == 0 && it->isLoaded)
+            if(_stricmp(it->plugname, name.c_str()) == 0)
             {
                 dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s already loaded\n"), name);
                 SetCurrentDirectoryW(currentDir);
@@ -300,7 +300,6 @@ bool pluginload(const char* pluginName, bool loadall)
         setupStruct.hMenuSymmod = pluginData.hMenuSymmod;
         pluginData.plugsetup(&setupStruct);
     }
-    pluginData.isLoaded = true;
     curPluginHandle++;
 
     if(!loadall)
