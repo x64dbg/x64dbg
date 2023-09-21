@@ -140,7 +140,7 @@ bool pluginload(const char* pluginName, bool loadall)
         {
             if(_stricmp(it->plugname, name.c_str()) == 0)
             {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s already loaded\n"), name);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s already loaded\n"), it->plugname);
                 SetCurrentDirectoryW(currentDir);
                 return false;
             }
@@ -150,7 +150,7 @@ bool pluginload(const char* pluginName, bool loadall)
     //check if the file exists
     if(!loadall && !PathFileExistsW(StringUtils::Utf8ToUtf16(pluginFullPath).c_str()))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Cannot find plugin: %s\n"), name);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Cannot find plugin: %s\n"), name.c_str());
         return false;
     }
 
@@ -160,14 +160,14 @@ bool pluginload(const char* pluginName, bool loadall)
     pluginData.hPlugin = LoadLibraryW(StringUtils::Utf8ToUtf16(pluginFullPath).c_str()); //load the plugin library
     if(!pluginData.hPlugin)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Failed to load plugin: %s\n"), name);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Failed to load plugin: %s\n"), name.c_str());
         SetCurrentDirectoryW(currentDir);
         return false;
     }
     pluginData.pluginit = (PLUGINIT)GetProcAddress(pluginData.hPlugin, "pluginit");
     if(!pluginData.pluginit)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Export \"pluginit\" not found in plugin: %s\n"), name);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Export \"pluginit\" not found in plugin: %s\n"), name.c_str());
         for(int i = CB_INITDEBUG; i < CB_LAST; i++)
             pluginunregistercallback(curPluginHandle, CBTYPE(i));
         FreeLibrary(pluginData.hPlugin);
@@ -183,7 +183,7 @@ bool pluginload(const char* pluginName, bool loadall)
     //init plugin
     if(!pluginData.pluginit(&pluginData.initStruct))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] pluginit failed for plugin: %s\n"), name);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] pluginit failed for plugin: %s\n"), name.c_str());
         for(int i = CB_INITDEBUG; i < CB_LAST; i++)
             pluginunregistercallback(curPluginHandle, CBTYPE(i));
         FreeLibrary(pluginData.hPlugin);
@@ -492,11 +492,21 @@ void pluginloadall(const char* pluginDir)
 */
 void pluginunloadall()
 {
-    SHARED_ACQUIRE(LockPluginList);
-    auto pluginListCopy = pluginList;
-    SHARED_RELEASE();
+    // Get a copy of the list of thread-safety reasons.
+    const auto pluginListCopy = []()
+    {
+        SHARED_ACQUIRE(LockPluginList);
+        return pluginList;
+    }();
+
+    // Unload all plugins.
     for(const auto & plugin : pluginListCopy)
         pluginunload(plugin.plugname, true);
+
+    // Remove all plugins from the list.
+    SHARED_ACQUIRE(LockPluginList);
+    pluginList.clear();
+    SHARED_RELEASE();
 }
 
 /**
