@@ -92,19 +92,24 @@ static std::string pluginGetFullPath(std::string pluginName)
 {
     std::string pluginPath = StringUtils::Utf16ToUtf8(pluginDirectory) + "\\" + pluginName;
 
-    // Check if the plugin is a directory.
-    if(PathIsDirectoryW(StringUtils::Utf8ToUtf16(pluginPath).c_str()))
+    // Check if the plugin is in a sub-directory.
+    std::string pluginPathSubdir = pluginPath + "\\" + pluginName + pluginExtension;
+    if(PathIsDirectoryW(StringUtils::Utf8ToUtf16(pluginPathSubdir).c_str()))
     {
-        // Plugin is probably inside the directory.
-        pluginPath += "\\" + pluginName + pluginExtension;
-    }
-    else
-    {
-        // Ordinary file
-        pluginPath += pluginExtension;
+        // Plugin resides in sub directory.
+        return pluginPathSubdir;
     }
 
-    return pluginPath;
+    // Check if plugin is from the main plugin directory.
+    std::string pluginPathWithExt = pluginPath + pluginExtension;
+    if(PathFileExistsW(StringUtils::Utf8ToUtf16(pluginPathWithExt).c_str()))
+    {
+        // Plugin resides in main plugins directory.
+        return pluginPathWithExt;
+    }
+
+    // Unable to determine the full path to the plugin, probably doesn't exist.
+    return "";
 }
 
 /**
@@ -133,17 +138,17 @@ bool pluginload(const char* pluginName, bool loadall)
     }
 
     //Check to see if this plugin is already loaded
-    if(!loadall)
+    EXCLUSIVE_ACQUIRE(LockPluginList);
+    for(auto it = pluginList.begin(); it != pluginList.end(); ++it)
     {
-        EXCLUSIVE_ACQUIRE(LockPluginList);
-        for(auto it = pluginList.begin(); it != pluginList.end(); ++it)
+        if(_stricmp(it->plugname, name.c_str()) == 0)
         {
-            if(_stricmp(it->plugname, name.c_str()) == 0)
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s already loaded\n"), it->plugname);
+            if(!loadall)
             {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s already loaded\n"), it->plugname);
                 SetCurrentDirectoryW(currentDir);
-                return false;
             }
+            return false;
         }
     }
 
