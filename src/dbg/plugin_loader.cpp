@@ -94,7 +94,7 @@ static std::string pluginGetFullPath(std::string pluginName)
 
     // Check if the plugin is in a sub-directory.
     std::string pluginPathSubdir = pluginPath + "\\" + pluginName + pluginExtension;
-    if(PathIsDirectoryW(StringUtils::Utf8ToUtf16(pluginPathSubdir).c_str()))
+    if(PathFileExistsW(StringUtils::Utf8ToUtf16(pluginPathSubdir).c_str()))
     {
         // Plugin resides in sub directory.
         return pluginPathSubdir;
