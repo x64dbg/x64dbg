@@ -143,9 +143,9 @@ bool pluginload(const char* pluginName, bool loadall)
     {
         if(_stricmp(it->plugname, name.c_str()) == 0)
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s already loaded\n"), it->plugname);
             if(!loadall)
             {
+                dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s already loaded\n"), it->plugname);
                 SetCurrentDirectoryW(currentDir);
             }
             return false;
@@ -456,6 +456,10 @@ static std::vector<std::wstring> enumerateAvailablePlugins(const std::wstring & 
     while(FindNextFileW(hSearch, &foundData));
 
     FindClose(hSearch);
+
+    // Sort the list of plugins.
+    std::sort(result.begin(), result.end());
+
     return result;
 }
 
@@ -480,6 +484,15 @@ void pluginloadall(const char* pluginDir)
 
     // Enumerate all plugins from plugins directory.
     const auto availablePlugins = enumerateAvailablePlugins(StringUtils::Utf8ToUtf16(pluginDir));
+
+    // Check the sorted list for duplicate names.
+    for(size_t i = 1; i < availablePlugins.size(); ++i)
+    {
+        if(availablePlugins[i] == availablePlugins[i - 1])
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Plugin with same name found: %s, will only load plugin using sub-directory.\n"), StringUtils::Utf16ToUtf8(availablePlugins[i]).c_str());
+        }
+    }
 
     GetCurrentDirectoryW(deflen, currentDir);
     SetCurrentDirectoryW(pluginDirectory.c_str());
