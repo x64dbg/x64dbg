@@ -351,6 +351,67 @@ bool pluginunload(const char* pluginName, bool unloadall)
 
 typedef BOOL(WINAPI* pfnAddDllDirectory)(LPCWSTR lpPathName);
 
+static std::vector<std::wstring> enumerateAvailablePlugins(const std::wstring & pluginDir)
+{
+    std::vector<std::wstring> result;
+
+#ifdef _WIN64
+    const wchar_t* pluginExt = L".dp64";
+#else
+    const wchar_t* pluginExt = L".dp32";
+#endif // _WIN64
+
+    wchar_t searchQuery[deflen] = L"";
+    swprintf_s(searchQuery, L"%s\\*.*", pluginDir.c_str());
+
+    WIN32_FIND_DATAW foundData;
+    HANDLE hSearch = FindFirstFileW(searchQuery, &foundData);
+    if(hSearch == INVALID_HANDLE_VALUE)
+    {
+        return result;
+    }
+
+    do
+    {
+        // Check if directory
+        if(foundData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        {
+            // Check if plugin exists with the same name as the directory
+            wchar_t pluginName[deflen] = L"";
+            swprintf_s(pluginName, L"%s\\%s%s", foundData.cFileName, foundData.cFileName, pluginExt);
+
+            wchar_t pluginPath[deflen] = L"";
+            swprintf_s(pluginPath, L"%s\\%s", pluginDir.c_str(), pluginName);
+
+            if(PathFileExistsW(pluginPath))
+            {
+                result.push_back(pluginName);
+            }
+        }
+        else
+        {
+            // Check if filename ends with the extension
+            wchar_t* extPos = wcsstr(foundData.cFileName, pluginExt);
+            if(extPos == nullptr)
+            {
+                continue;
+            }
+
+            // Ensure that the extension is at the end of the filename
+            if(extPos[wcslen(pluginExt)] != L'\0')
+            {
+                continue;
+            }
+
+            result.push_back(foundData.cFileName);
+        }
+    }
+    while(FindNextFileW(hSearch, &foundData));
+
+    FindClose(hSearch);
+    return result;
+}
+
 /**
 \brief Loads plugins from a specified directory.
 \param pluginDir The directory to load plugins from.
@@ -370,29 +431,17 @@ void pluginloadall(const char* pluginDir)
     if(pAddDllDirectory)
         pAddDllDirectory(pluginDirectory.c_str());
 
+    // Enumerate all plugins from plugins directory.
+    const auto availablePlugins = enumerateAvailablePlugins(StringUtils::Utf8ToUtf16(pluginDir));
+
     GetCurrentDirectoryW(deflen, currentDir);
     SetCurrentDirectoryW(pluginDirectory.c_str());
 
-    char searchName[deflen] = "";
-#ifdef _WIN64
-    sprintf_s(searchName, "%s\\*.dp64", pluginDir);
-#else
-    sprintf_s(searchName, "%s\\*.dp32", pluginDir);
-#endif // _WIN64
-    WIN32_FIND_DATAW foundData;
-    HANDLE hSearch = FindFirstFileW(StringUtils::Utf8ToUtf16(searchName).c_str(), &foundData);
-    if(hSearch == INVALID_HANDLE_VALUE)
+    for(const std::wstring & pluginName : availablePlugins)
     {
-        SetCurrentDirectoryW(currentDir);
-        return;
+        pluginload(StringUtils::Utf16ToUtf8(pluginName).c_str(), true);
     }
-    do
-    {
-        pluginload(StringUtils::Utf16ToUtf8(foundData.cFileName).c_str(), true);
-    }
-    while(FindNextFileW(hSearch, &foundData));
 
-    FindClose(hSearch);
     SetCurrentDirectoryW(currentDir);
 }
 
