@@ -1,0 +1,3 @@
+[target.cpp-httplib]
+type = "interface"
+include-directories = ["cpp-httplib"]

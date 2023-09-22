@@ -1,6 +1,6 @@
 #include "AbstractStdTable.h"
 #include "Bridge.h"
-#include "RichTextPainter.h"
+#include <Utils/RichTextPainter.h>
 
 AbstractStdTable::AbstractStdTable(QWidget* parent) : AbstractTableView(parent)
 {

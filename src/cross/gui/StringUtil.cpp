@@ -1,14 +1,15 @@
 #include <stdint.h>
-#include "main.h"
+//#include "main.h"
 #include "StringUtil.h"
 #include "MiscUtil.h"
-#include "ldconvert.h"
-#include <Configuration.h>
+//#include "ldconvert.h"
+#include "Configuration.h"
+#include "Bridge.h"
 
 QString ToLongDoubleString(const void* buffer)
 {
     char str[32];
-    ld2str(buffer, str);
+    //ld2str(buffer, str);
     return str;
 }
 
@@ -37,7 +38,7 @@ QString EscapeCh(QChar ch)
     case '\b':
         return "\\b";
     default:
-        return QString(1, ch);
+        return QString(1, QChar(ch));
     }
 }
 
@@ -180,17 +181,6 @@ QString composeRegTextYMM(const char* value, int mode)
         return composeRegTextXMM(value + 16, mode) + ' ' + composeRegTextXMM(value, mode);
 }
 
-QString composeRegTextZMM(const char* value, int mode)
-{
-    bool bFpuRegistersLittleEndian = ConfigBool("Gui", "FpuRegistersLittleEndian");
-    if(mode == 0)
-        return fillValue(value, 64, bFpuRegistersLittleEndian);
-    else if(bFpuRegistersLittleEndian)
-        return composeRegTextXMM(value, mode) + ' ' + composeRegTextXMM(value + 16, mode) + ' ' + composeRegTextXMM(value + 32, mode) + ' ' + composeRegTextXMM(value + 48, mode);
-    else
-        return composeRegTextXMM(value + 48, mode) + ' ' + composeRegTextXMM(value + 32, mode) + ' ' + composeRegTextXMM(value + 16, mode) + ' ' + composeRegTextXMM(value, mode);
-}
-
 QString GetDataTypeString(const void* buffer, duint size, ENCODETYPE type)
 {
     switch(type)
@@ -215,8 +205,6 @@ QString GetDataTypeString(const void* buffer, duint size, ENCODETYPE type)
         return composeRegTextXMM((const char*)buffer, ConfigUint("Gui", "SIMDRegistersDisplayMode"));
     case enc_ymmword:
         return composeRegTextYMM((const char*)buffer, ConfigUint("Gui", "SIMDRegistersDisplayMode"));
-    case enc_zmmword:
-        return composeRegTextZMM((const char*)buffer, ConfigUint("Gui", "SIMDRegistersDisplayMode"));
     case enc_real4:
         return ToFloatString(buffer);
     case enc_real8:
@@ -226,23 +214,10 @@ QString GetDataTypeString(const void* buffer, duint size, ENCODETYPE type)
     case enc_ascii:
         return EscapeCh(*(const char*)buffer);
     case enc_unicode:
-        return EscapeCh(*(const wchar_t*)buffer);
+        return EscapeCh(QChar((uchar) * (const wchar_t*)buffer));
     default:
         return ToIntegralString<unsigned char>(buffer);
     }
-}
-
-QString isoDateTime()
-{
-    auto now = QDateTime::currentDateTime();
-    return QString().sprintf("%04d%02d%02d-%02d%02d%02d",
-                             now.date().year(),
-                             now.date().month(),
-                             now.date().day(),
-                             now.time().hour(),
-                             now.time().minute(),
-                             now.time().second()
-                            );
 }
 
 QString ToDateString(const QDate & date)
@@ -262,9 +237,12 @@ QString ToDateString(const QDate & date)
         "Nov",
         "Dec"
     };
-    return QString().sprintf("%s %d %d", months[date.month() - 1], date.day(), date.year());
+    char result[32];
+    sprintf_s(result, "%s %d %d", months[date.month() - 1], date.day(), date.year());
+    return result;
 }
 
+#if 0
 QString FILETIMEToDate(const FILETIME & date)
 {
     FILETIME localdate;
@@ -277,10 +255,11 @@ QString FILETIMEToDate(const FILETIME & date)
     localdate.dwHighDateTime = time100ns >> 32;
     localdate.dwLowDateTime = time100ns & 0xFFFFFFFF;
     if(qdate != QDate::currentDate())
-        return QLocale(QString(gCurrentLocale)).toString(qdate) + FILETIMEToTime(localdate);
+        return QLocale(QString(currentLocale)).toString(qdate) + FILETIMEToTime(localdate);
     else // today
         return FILETIMEToTime(localdate);
 }
+#endif // 0
 
 bool GetCommentFormat(duint addr, QString & comment, bool* autoComment)
 {
@@ -302,13 +281,4 @@ bool GetCommentFormat(duint addr, QString & comment, bool* autoComment)
     else
         comment = commentData + a;
     return true;
-}
-
-QString DbgCmdEscape(QString argument)
-{
-    // TODO: implement this properly
-    argument.replace("\"", "\\\"");
-    argument.replace("{", "\\{");
-
-    return argument;
 }

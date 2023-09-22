@@ -1,4 +1,4 @@
-#include <Configuration.h>
+#include "Configuration.h"
 #include <QApplication>
 #include <QFontInfo>
 #include <QMessageBox>
@@ -6,7 +6,9 @@
 #include <QScreen>
 #include <QGuiApplication>
 #include <QWheelEvent>
-#include "AbstractTableView.h"
+#include <QFontDatabase>
+#include <BasicView/AbstractTableView.h>
+#include "Bridge.h"
 
 Configuration* Configuration::mPtr = nullptr;
 
@@ -14,6 +16,13 @@ inline void insertMenuBuilderBools(QMap<QString, bool>* config, const char* id, 
 {
     for(size_t i = 0; i < count; i++)
         config->insert(QString("Menu%1Hidden%2").arg(id).arg(i), false);
+}
+
+inline static void addWindowPosConfig(QMap<QString, duint> & guiUint, const char* windowName)
+{
+    QString n(windowName);
+    guiUint.insert(n + "X", 0);
+    guiUint.insert(n + "Y", 0);
 }
 
 Configuration::Configuration() : QObject(), noMoreMsgbox(false)
@@ -33,7 +42,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("DisassemblyBreakpointColor", QColor("#000000"));
     defaultColors.insert("DisassemblyBreakpointBackgroundColor", QColor("#FF0000"));
     defaultColors.insert("DisassemblyHardwareBreakpointColor", QColor("#000000"));
-    defaultColors.insert("DisassemblyHardwareBreakpointBackgroundColor", QColor("#FF8080"));
+    defaultColors.insert("DisassemblyHardwareBreakpointBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyBookmarkColor", QColor("#000000"));
     defaultColors.insert("DisassemblyBookmarkBackgroundColor", QColor("#FEE970"));
     defaultColors.insert("DisassemblyLabelColor", QColor("#FF0000"));
@@ -242,8 +251,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("SymbolLoadedTextColor", QColor("#008000"));
     defaultColors.insert("BackgroundFlickerColor", QColor("#ff6961"));
     defaultColors.insert("LinkColor", QColor("#0000ff"));
-    defaultColors.insert("LogColor", QColor("#000000"));
-    defaultColors.insert("LogBackgroundColor", QColor("#FFF8F0"));
 
     //bool settings
     QMap<QString, bool> disassemblyBool;
@@ -254,16 +261,15 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     disassemblyBool.insert("KeepSize", false);
     disassemblyBool.insert("FillNOPs", false);
     disassemblyBool.insert("Uppercase", false);
-    disassemblyBool.insert("FindCommandFromSelection", true);
-    disassemblyBool.insert("FindPatternFromSelection", true);
+    disassemblyBool.insert("FindCommandEntireBlock", false);
     disassemblyBool.insert("OnlyCipAutoComments", false);
     disassemblyBool.insert("TabbedMnemonic", false);
     disassemblyBool.insert("LongDataInstruction", false);
     disassemblyBool.insert("NoHighlightOperands", false);
     disassemblyBool.insert("PermanentHighlightingMode", false);
+    disassemblyBool.insert("0xPrefixValues", false);
     disassemblyBool.insert("NoBranchDisasmPreview", false);
     disassemblyBool.insert("NoCurrentModuleText", false);
-    disassemblyBool.insert("ShowMnemonicBrief", false);
     defaultBools.insert("Disassembler", disassemblyBool);
 
     QMap<QString, bool> engineBool;
@@ -280,6 +286,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("FpuRegistersLittleEndian", false);
     guiBool.insert("SaveColumnOrder", true);
     guiBool.insert("NoCloseDialog", false);
+    guiBool.insert("PidTidInHex", false);
     guiBool.insert("SidebarWatchLabels", true);
     guiBool.insert("LoadSaveTabOrder", true);
     guiBool.insert("ShowGraphRva", false);
@@ -290,10 +297,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("AutoRepeatOnEnter", false);
     guiBool.insert("AutoFollowInStack", true);
     guiBool.insert("EnableQtHighDpiScaling", true);
-    guiBool.insert("Topmost", false);
-    guiBool.insert("CPUDumpStartFromSelect", true);
-    guiBool.insert("CPUStackStartFromSelect", true);
-    guiBool.insert("AutoTraceDump", false);
     //Named menu settings
     insertMenuBuilderBools(&guiBool, "CPUDisassembly", 50); //CPUDisassembly
     insertMenuBuilderBools(&guiBool, "CPUDump", 50); //CPUDump
@@ -311,14 +314,10 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     //"Favourites" menu cannot be customized for item hiding.
     insertMenuBuilderBools(&guiBool, "Help", 50); //Main Menu : Help
     insertMenuBuilderBools(&guiBool, "View", 50); //Main Menu : View
-    insertMenuBuilderBools(&guiBool, "TraceBrowser", 50); //TraceBrowser
-    insertMenuBuilderBools(&guiBool, "TraceDump", 50); //Trace Dump
-    insertMenuBuilderBools(&guiBool, "TraceStack", 50); //Trace Stack
-    insertMenuBuilderBools(&guiBool, "TraceXrefBrowseDialog", 50); //TraceXrefBrowseDialog
     defaultBools.insert("Gui", guiBool);
 
     QMap<QString, duint> guiUint;
-    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CPUDisassembly", 5);
+    AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CPUDisassembly", 4);
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "CPUStack", 3);
     for(int i = 1; i <= 5; i++)
         AbstractTableView::setupColumnConfigDefaultValue(guiUint, QString("CPUDump%1").arg(i), 4);
@@ -340,6 +339,15 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     AbstractTableView::setupColumnConfigDefaultValue(guiUint, "Trace", 7);
     guiUint.insert("SIMDRegistersDisplayMode", 0);
     guiUint.insert("EditFloatRegisterDefaultMode", 0);
+    addWindowPosConfig(guiUint, "AssembleDialog");
+    addWindowPosConfig(guiUint, "AttachDialog");
+    addWindowPosConfig(guiUint, "GotoDialog");
+    addWindowPosConfig(guiUint, "EditBreakpointDialog");
+    addWindowPosConfig(guiUint, "BrowseDialog");
+    addWindowPosConfig(guiUint, "FavouriteTools");
+    addWindowPosConfig(guiUint, "HexEditDialog");
+    addWindowPosConfig(guiUint, "WordEditDialog");
+    addWindowPosConfig(guiUint, "SystemBreakpointScriptDialog");
     defaultUints.insert("Gui", guiUint);
 
     //uint settings
@@ -352,12 +360,38 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultBools.insert("HexDump", hexdumpBool);
 
     QMap<QString, duint> disasmUint;
-    disasmUint.insert("0xPrefixValues", ValueStyleDefault);
     disasmUint.insert("MaxModuleSize", -1);
     defaultUints.insert("Disassembler", disasmUint);
 
+    QMap<QString, duint> tabOrderUint;
+    int curTab = 0;
+    tabOrderUint.insert("CPUTab", curTab++);
+    tabOrderUint.insert("GraphTab", curTab++);
+    tabOrderUint.insert("LogTab", curTab++);
+    tabOrderUint.insert("NotesTab", curTab++);
+    tabOrderUint.insert("BreakpointsTab", curTab++);
+    tabOrderUint.insert("MemoryMapTab", curTab++);
+    tabOrderUint.insert("CallStackTab", curTab++);
+    tabOrderUint.insert("SEHTab", curTab++);
+    tabOrderUint.insert("ScriptTab", curTab++);
+    tabOrderUint.insert("SymbolsTab", curTab++);
+    tabOrderUint.insert("SourceTab", curTab++);
+    tabOrderUint.insert("ReferencesTab", curTab++);
+    tabOrderUint.insert("ThreadsTab", curTab++);
+    curTab++; // removed SnowmanTab
+    tabOrderUint.insert("HandlesTab", curTab++);
+    tabOrderUint.insert("TraceTab", curTab++);
+    defaultUints.insert("TabOrder", tabOrderUint);
+
     //font settings
+#ifdef Q_OS_DARWIN
+    QFont font("Menlo", 13, QFont::Normal, false);
+#elif defined(Q_OS_WIN)
     QFont font("Lucida Console", 8, QFont::Normal, false);
+#else
+    auto font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    font.setPointSize(13);
+#endif // Q_OS_DARWIN
     defaultFonts.insert("AbstractTableView", font);
     defaultFonts.insert("Disassembly", font);
     defaultFonts.insert("HexDump", font);
@@ -365,7 +399,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultFonts.insert("Registers", font);
     defaultFonts.insert("HexEdit", font);
     defaultFonts.insert("Application", QApplication::font());
-    defaultFonts.insert("Log", QFont("Courier New", 8, QFont::Normal, false));
+    defaultFonts.insert("Log", font);
 
     // hotkeys settings
     defaultShortcuts.insert("FileOpen", Shortcut({tr("File"), tr("Open")}, "F3", true));
@@ -488,7 +522,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionDeleteLoop", Shortcut({tr("Actions"), tr("Delete Loop")}, "Ctrl+Shift+L"));
     defaultShortcuts.insert("ActionToggleArgument", Shortcut({tr("Actions"), tr("Toggle Argument")}, "Shift+A"));
     defaultShortcuts.insert("ActionAssemble", Shortcut({tr("Actions"), tr("Assemble")}, "Space"));
-    defaultShortcuts.insert("ActionSetNewOriginHere", Shortcut({tr("Actions"), tr("Set %1 Here").arg(ArchValue("EIP", "RIP"))}, "Ctrl+*"));
+    defaultShortcuts.insert("ActionSetNewOriginHere", Shortcut({tr("Actions"), tr("Set EIP/RIP Here")}, "Ctrl+*"));
     defaultShortcuts.insert("ActionGotoOrigin", Shortcut({tr("Actions"), tr("Goto Origin")}, "*"));
     defaultShortcuts.insert("ActionGotoCBP", Shortcut({tr("Actions"), tr("Goto EBP/RBP")}));
     defaultShortcuts.insert("ActionGotoPrevious", Shortcut({tr("Actions"), tr("Goto Previous")}, "-"));
@@ -516,7 +550,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionToggleLogging", Shortcut({tr("Actions"), tr("Enable/Disable Logging")}, ""));
     defaultShortcuts.insert("ActionAllocateMemory", Shortcut({tr("Actions"), tr("Allocate Memory")}, ""));
     defaultShortcuts.insert("ActionFreeMemory", Shortcut({tr("Actions"), tr("Free Memory")}, ""));
-    defaultShortcuts.insert("ActionSync", Shortcut({tr("Actions"), tr("Sync")}, "S"));
+    defaultShortcuts.insert("ActionSyncWithExpression", Shortcut({tr("Actions"), tr("Sync With Expression")}, ""));
     defaultShortcuts.insert("ActionCopyAllRegisters", Shortcut({tr("Actions"), tr("Copy All Registers")}, ""));
     defaultShortcuts.insert("ActionMarkAsUser", Shortcut({tr("Actions"), tr("Mark As User Module")}, ""));
     defaultShortcuts.insert("ActionMarkAsSystem", Shortcut({tr("Actions"), tr("Mark As System Module")}, ""));
@@ -541,7 +575,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionTreatSelectionAsMMWord", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("MMWord")}, ""));
     defaultShortcuts.insert("ActionTreatSelectionAsXMMWord", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("XMMWord")}, ""));
     defaultShortcuts.insert("ActionTreatSelectionAsYMMWord", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("YMMWord")}, ""));
-    defaultShortcuts.insert("ActionTreatSelectionAsZMMWord", Shortcut({tr("Actions"), tr("Treat Selection As"), tr("ZMMWord")}, ""));
     defaultShortcuts.insert("ActionTreatSelectionHeadAsCode", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("Code")}, ""));
     defaultShortcuts.insert("ActionTreatSelectionHeadAsByte", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("Byte")}, ""));
     defaultShortcuts.insert("ActionTreatSelectionHeadAsWord", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("Word")}, ""));
@@ -558,7 +591,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionTreatSelectionHeadAsMMWord", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("MMWord")}, ""));
     defaultShortcuts.insert("ActionTreatSelectionHeadAsXMMWord", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("XMMWord")}, ""));
     defaultShortcuts.insert("ActionTreatSelectionHeadAsYMMWord", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("YMMWord")}, ""));
-    defaultShortcuts.insert("ActionTreatSelectionHeadAsZMMWord", Shortcut({tr("Actions"), tr("Treat Selection Head As"), tr("ZMMWord")}, ""));
     defaultShortcuts.insert("ActionToggleRegisterValue", Shortcut({tr("Actions"), tr("Toggle Register Value")}, "Space"));
     defaultShortcuts.insert("ActionClear", Shortcut({tr("Actions"), tr("Clear")}, "Ctrl+L"));
     defaultShortcuts.insert("ActionCopy", Shortcut({tr("Actions"), tr("Copy")}, "Ctrl+C"));
@@ -581,10 +613,10 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionGraphZoomToCursor", Shortcut({tr("Actions"), tr("Graph"), tr("Zoom to cursor")}, "Z"));
     defaultShortcuts.insert("ActionGraphFitToWindow", Shortcut({tr("Actions"), tr("Graph"), tr("Fit To Window")}, "Shift+Z"));
     defaultShortcuts.insert("ActionGraphFollowDisassembler", Shortcut({tr("Actions"), tr("Graph"), tr("Follow in disassembler")}, "Shift+Return"));
-    defaultShortcuts.insert("ActionGraphCopyImage", Shortcut({tr("Actions"), tr("Graph"), tr("Copy image")}, ""));
     defaultShortcuts.insert("ActionGraphSaveImage", Shortcut({tr("Actions"), tr("Graph"), tr("Save as image")}, "I"));
     defaultShortcuts.insert("ActionGraphToggleOverview", Shortcut({tr("Actions"), tr("Graph"), tr("Toggle overview")}, "O"));
     defaultShortcuts.insert("ActionGraphToggleSummary", Shortcut({tr("Actions"), tr("Graph"), tr("Toggle summary")}, "U"));
+    defaultShortcuts.insert("ActionGraphSyncOrigin", Shortcut({tr("Actions"), tr("Graph"), tr("Toggle sync with EIP/RIP")}, "S"));
     defaultShortcuts.insert("ActionIncrementx87Stack", Shortcut({tr("Actions"), tr("Increment x87 Stack")}));
     defaultShortcuts.insert("ActionDecrementx87Stack", Shortcut({tr("Actions"), tr("Decrement x87 Stack")}));
     defaultShortcuts.insert("ActionRedirectLog", Shortcut({tr("Actions"), tr("Redirect Log")}));
@@ -598,7 +630,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionFollowDisasm", Shortcut({tr("Actions"), tr("Follow in Disassembler")}));
     defaultShortcuts.insert("ActionFollowDwordQwordDisasm", Shortcut({tr("Actions"), tr("Follow DWORD/QWORD in Disassembler")}));
     defaultShortcuts.insert("ActionFollowDwordQwordDump", Shortcut({tr("Actions"), tr("Follow DWORD/QWORD in Dump")}));
-    defaultShortcuts.insert("ActionDisplayType", Shortcut({tr("Actions"), tr("Display type")}));
     defaultShortcuts.insert("ActionFreezeStack", Shortcut({tr("Actions"), tr("Freeze the stack")}));
     defaultShortcuts.insert("ActionGotoBaseOfStackFrame", Shortcut({tr("Actions"), tr("Go to Base of Stack Frame")}));
     defaultShortcuts.insert("ActionGotoPrevStackFrame", Shortcut({tr("Actions"), tr("Go to Previous Stack Frame")}));
@@ -716,13 +747,21 @@ void Configuration::readUints()
 
 void Configuration::writeUints()
 {
+    duint setting;
+    bool bSaveLoadTabOrder = ConfigBool("Gui", "LoadSaveTabOrder");
+
     //write config
     for(auto itMap = Uints.cbegin(); itMap != Uints.cend(); ++itMap)
     {
         const QString & category = itMap.key();
         for(auto it = itMap.value().cbegin(); it != itMap.value().cend(); it++)
         {
-            uintToConfig(category, it.key(), it.value());
+            // Do not save settings to file if saveLoadTabOrder checkbox is Unchecked
+            const QString & id = it.key();
+            if(!bSaveLoadTabOrder && category == "TabOrder" && BridgeSettingGetUint(category.toUtf8().constData(), id.toUtf8().constData(), &setting))
+                continue;
+
+            uintToConfig(category, id, it.value());
         }
     }
 }
@@ -735,9 +774,10 @@ void Configuration::readFonts()
     {
         const QString & id = it.key();
         QFont font = fontFromConfig(id);
-        QFontInfo fontInfo(font);
+        it.value() = font;
+        /*QFontInfo fontInfo(font);
         if(id == "Application" || fontInfo.fixedPitch())
-            it.value() = font;
+            it.value() = font;*/
     }
 }
 
@@ -1100,68 +1140,51 @@ bool Configuration::shortcutToConfig(const QString & id, const QKeySequence shor
     return BridgeSettingSet("Shortcuts", _id.toUtf8().constData(), _key.toUtf8().constData());
 }
 
-bool Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
+void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
 {
     QString id = menu->getId();
     for(const auto & i : NamedMenuBuilders)
-    {
-        if(i.type == 0)
-        {
-            if(i.builder.isNull())
-                continue;
-            if(i.builder->getId() == id)
-                return false; //already exists
-        }
-    }
+        if(i.type == 0 && i.builder->getId() == id)
+            return; //already exists
     NamedMenuBuilders.append(MenuMap(menu, count));
-    return true;
 }
 
-bool Configuration::registerMainMenuStringList(QList<QAction*>* menu)
+void Configuration::registerMainMenuStringList(QList<QAction*>* menu)
 {
     NamedMenuBuilders.append(MenuMap(menu, menu->size() - 1));
-    return true;
-}
-
-void Configuration::unregisterMenuBuilder(MenuBuilder* menu)
-{
-    QString id = menu->getId();
-    for(auto i = NamedMenuBuilders.begin(); i != NamedMenuBuilders.end(); ++i)
-    {
-        if(i->type == 0)
-        {
-            if(i->builder.isNull())
-            {
-                NamedMenuBuilders.erase(i);
-                continue;
-            }
-            if(i->builder->getId() == id)
-            {
-                NamedMenuBuilders.erase(i);
-                return;
-            }
-        }
-    }
 }
 
 void Configuration::zoomFont(const QString & fontName, QWheelEvent* event)
 {
-    QPoint numDegrees = event->angleDelta() / 8;
-    int ticks = numDegrees.y() / 15;
-    QFont myFont = Fonts[fontName];
-    char fontSizes[] = {6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 0}; // The list of font sizes in ApperanceDialog
-    char* currentFontSize = strchr(fontSizes, myFont.pointSize() & 127);
-    if(currentFontSize)
+    auto & angleDeltaY = mZoomFontDelta[fontName];
+    angleDeltaY += event->angleDelta().y();
+
+    const auto tickValue = 15 * 8;
+    auto ticks = std::min(std::max(angleDeltaY / tickValue, -1), 1);
+    if(ticks != 0)
     {
-        currentFontSize += ticks;
-        if(currentFontSize > fontSizes + 11)
-            currentFontSize = fontSizes + 11;
-        else if(currentFontSize < fontSizes)
-            currentFontSize = fontSizes;
-        myFont.setPointSize(*currentFontSize);
-        Fonts[fontName] = myFont;
-        writeFonts();
-        GuiUpdateAllViews();
+        angleDeltaY %= tickValue;
+
+        QFont myFont = Fonts[fontName];
+        int fontSizes[] = {6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22}; // The list of font sizes in ApperanceDialog
+        auto currentFontSize = std::find_if(std::begin(fontSizes), std::end(fontSizes), [&myFont](int fontSize)
+        {
+            return fontSize >= myFont.pointSize();
+        });
+
+        if(currentFontSize != std::end(fontSizes))
+        {
+            currentFontSize += ticks;
+            if(currentFontSize >= std::end(fontSizes))
+                currentFontSize = std::end(fontSizes) - 1;
+            else if(currentFontSize < fontSizes)
+                currentFontSize = fontSizes;
+
+            myFont.setPointSize(*currentFontSize);
+            Fonts[fontName] = myFont;
+            writeFonts();
+            GuiUpdateAllViews();
+        }
     }
 }
 

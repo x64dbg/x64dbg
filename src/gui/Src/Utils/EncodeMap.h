@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cstdint>
+
 #include <QObject>
-#include "Imports.h"
+#include <Imports.h>
 
 class EncodeMap : public QObject
 {
@@ -81,6 +83,6 @@ public:
 protected:
     duint mBase;
     duint mSize;
-    byte* mBuffer;
+    uint8_t* mBuffer;
     duint mBufferSize;
 };

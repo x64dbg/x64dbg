@@ -1,0 +1,49 @@
+# Reference: https://build-cpp.github.io/cmkr/cmake-toml
+[project]
+name = "cross"
+include-after = ["gui/Qt.cmake"]
+
+[subdir.gui]
+
+[subdir.vendor]
+
+[template.qt_executable]
+type = "executable"
+add-function = "qt_executable"
+pass-sources = true
+
+[target.minidump]
+type = "qt_executable"
+sources = [
+    "minidump/*.cpp",
+    "minidump/*.h",
+    "minidump/*.ui",
+    "minidump/*.qrc",
+]
+link-libraries = [
+    "${QT_LIBRARIES}",
+    "widgets",
+    "cpp-httplib",
+]
+compile-features = ["cxx_std_17"]
+cmake-after = """
+qt_finalize_executable(${CMKR_TARGET})
+"""
+
+[target.remote_table]
+type = "qt_executable"
+sources = [
+    "remote_table/*.cpp",
+    "remote_table/*.h",
+    "remote_table/*.ui",
+    "remote_table/*.qrc",
+    "remote_table/json.hpp",
+]
+link-libraries = [
+    "${QT_LIBRARIES}",
+    "widgets",
+]
+compile-features = ["cxx_std_17"]
+cmake-after = """
+qt_finalize_executable(${CMKR_TARGET})
+"""
