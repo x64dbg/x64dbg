@@ -26,6 +26,7 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     ui->lineEditAscii->setEncoding(QTextCodec::codecForName("System"));
     ui->lineEditUnicode->setEncoding(QTextCodec::codecForName("UTF-16"));
     ui->chkKeepSize->setChecked(ConfigBool("HexDump", "KeepSize"));
+    ui->chkKeepSize->hide();
     ui->chkEntireBlock->hide();
 
     mDataInitialized = false;

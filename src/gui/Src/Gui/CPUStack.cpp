@@ -778,6 +778,7 @@ void CPUStack::followStackSlot()
 void CPUStack::binaryEditSlot()
 {
     HexEditDialog hexEdit(this);
+    hexEdit.showKeepSize(true);
     dsint selStart = getSelectionStart();
     dsint selSize = getSelectionEnd() - selStart + 1;
     byte_t* data = new byte_t[selSize];
@@ -799,7 +800,6 @@ void CPUStack::binaryEditSlot()
 void CPUStack::binaryFillSlot()
 {
     HexEditDialog hexEdit(this);
-    hexEdit.showKeepSize(false);
     hexEdit.mHexEdit->setOverwriteMode(false);
     dsint selStart = getSelectionStart();
     hexEdit.setWindowTitle(tr("Fill data at %1").arg(ToPtrString(rvaToVa(selStart))));
