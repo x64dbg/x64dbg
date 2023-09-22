@@ -95,6 +95,9 @@ void MHTabWidget::AttachTab(QWidget* parent)
     // Move the tab back to the previous index
     if(detachedWidget->mPreviousIndex >= 0)
         mTabBar->moveTab(newIndex, detachedWidget->mPreviousIndex);
+
+    //Free MHDetachedWindow
+    delete detachedWidget;
 }
 
 // Convert a tab to an external window
