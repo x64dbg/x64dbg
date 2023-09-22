@@ -1,9 +1,9 @@
 #pragma once
 
 #include "AbstractTableView.h"
-#include "QZydis.h"
+#include <Disassembler/QZydis.h>
 #include <QTextLayout>
-#include "Architecture.h"
+#include <Disassembler/Architecture.h>
 
 class CodeFoldingHelper;
 class MemoryPage;
