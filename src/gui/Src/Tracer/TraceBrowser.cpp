@@ -13,9 +13,8 @@
 #include "MRUList.h"
 #include <QFileDialog>
 
-TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
+TraceBrowser::TraceBrowser(TraceFileReader* traceFile, QWidget* parent) : AbstractTableView(parent), mTraceFile(traceFile)
 {
-    mTraceFile = nullptr;
     addColumnAt(getCharWidth() * 2 * 2 + 8, tr("Index"), false); //index
     addColumnAt(getCharWidth() * 2 * sizeof(dsint) + 8, tr("Address"), false); //address
     addColumnAt(getCharWidth() * 2 * 12 + 8, tr("Bytes"), false); //bytes
@@ -56,21 +55,17 @@ TraceBrowser::TraceBrowser(QWidget* parent) : AbstractTableView(parent)
     connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(tokenizerConfigUpdatedSlot()));
     connect(this, SIGNAL(selectionChanged(unsigned long long)), this, SLOT(selectionChangedSlot(unsigned long long)));
     connect(Bridge::getBridge(), SIGNAL(close()), this, SLOT(closeFileSlot()));
+    connect(getTraceFile(), SIGNAL(parseFinished()), this, SLOT(parseFinishedSlot()));
 }
 
 TraceBrowser::~TraceBrowser()
 {
-    if(mTraceFile)
-    {
-        mTraceFile->Close();
-        delete mTraceFile;
-    }
     Config()->unregisterMenuBuilder(mMenuBuilder);
 }
 
 bool TraceBrowser::isFileOpened() const
 {
-    return mTraceFile && mTraceFile->Progress() == 100 && mTraceFile->Length() > 0;
+    return mTraceFile && mTraceFile->Length() > 0;
 }
 
 bool TraceBrowser::isRecording()
@@ -983,7 +978,7 @@ void TraceBrowser::contextMenuEvent(QContextMenuEvent* event)
 void TraceBrowser::mousePressEvent(QMouseEvent* event)
 {
     auto index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
-    if(getGuiState() != AbstractTableView::NoState || !getTraceFile() || getTraceFile()->Progress() < 100)
+    if(getGuiState() != AbstractTableView::NoState || !getTraceFile())
     {
         AbstractTableView::mousePressEvent(event);
         return;
@@ -1065,7 +1060,7 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
 
 void TraceBrowser::mouseDoubleClickEvent(QMouseEvent* event)
 {
-    if(event->button() == Qt::LeftButton && getTraceFile() != nullptr && getTraceFile()->Progress() == 100)
+    if(event->button() == Qt::LeftButton && getTraceFile() != nullptr)
     {
         switch(getColumnIndexFromX(event->x()))
         {
@@ -1099,7 +1094,7 @@ void TraceBrowser::mouseDoubleClickEvent(QMouseEvent* event)
 void TraceBrowser::mouseMoveEvent(QMouseEvent* event)
 {
     auto index = getIndexOffsetFromY(transY(event->y())) + getTableOffset();
-    if((event->buttons() & Qt::LeftButton) != 0 && getGuiState() == AbstractTableView::NoState && getTraceFile() != nullptr && getTraceFile()->Progress() == 100)
+    if((event->buttons() & Qt::LeftButton) != 0 && getGuiState() == AbstractTableView::NoState && getTraceFile() != nullptr)
     {
         if(index < getRowCount())
         {
@@ -1124,7 +1119,7 @@ void TraceBrowser::keyPressEvent(QKeyEvent* event)
     int key = event->key();
     auto curindex = getInitialSelection();
     auto visibleindex = curindex;
-    if((key == Qt::Key_Up || key == Qt::Key_Down) && getTraceFile() && getTraceFile()->Progress() == 100)
+    if((key == Qt::Key_Up || key == Qt::Key_Down) && getTraceFile())
     {
         if(key == Qt::Key_Up)
         {
@@ -1308,15 +1303,16 @@ void TraceBrowser::openFileSlot()
 
 void TraceBrowser::openSlot(const QString & fileName)
 {
-    if(mTraceFile != nullptr)
-    {
-        mTraceFile->Close();
-        delete mTraceFile;
-    }
-    mTraceFile = new TraceFileReader(this);
-    connect(mTraceFile, SIGNAL(parseFinished()), this, SLOT(parseFinishedSlot()));
-    mFileName = fileName;
-    mTraceFile->Open(fileName);
+    //if(mTraceFile != nullptr)
+    //{
+    //    mTraceFile->Close();
+    //    delete mTraceFile;
+    //}
+    //mTraceFile = new TraceFileReader(this);
+    //connect(mTraceFile, SIGNAL(parseFinished()), this, SLOT(parseFinishedSlot()));
+    //mFileName = fileName;
+    //mTraceFile->Open(fileName);
+    GuiOpenTraceFile(fileName.toUtf8().constData()); // Open in Trace Manager
 }
 
 void TraceBrowser::toggleTraceRecordingSlot()
@@ -1324,6 +1320,7 @@ void TraceBrowser::toggleTraceRecordingSlot()
     toggleTraceRecording(this);
 }
 
+// TODO: emit close tab event
 void TraceBrowser::closeFileSlot()
 {
     if(isRecording())
@@ -1407,7 +1404,7 @@ void TraceBrowser::disasm(unsigned long long index, bool history)
 
 void TraceBrowser::gotoSlot()
 {
-    if(getTraceFile() == nullptr || getTraceFile()->Progress() < 100)
+    if(getTraceFile() == nullptr)
         return;
     GotoDialog gotoDlg(this, false, true, true);
     if(gotoDlg.exec() == QDialog::Accepted)
@@ -1590,7 +1587,7 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
 
 void TraceBrowser::copySelectionSlot(bool copyBytes)
 {
-    if(getTraceFile() == nullptr || getTraceFile()->Progress() < 100)
+    if(getTraceFile() == nullptr)
         return;
 
     QString selectionString = "";
@@ -1611,7 +1608,7 @@ void TraceBrowser::copySelectionSlot(bool copyBytes)
 
 void TraceBrowser::copySelectionToFileSlot(bool copyBytes)
 {
-    if(getTraceFile() == nullptr || getTraceFile()->Progress() < 100)
+    if(getTraceFile() == nullptr)
         return;
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Open File"), "", tr("Text Files (*.txt)"));
@@ -1652,7 +1649,7 @@ void TraceBrowser::copySelectionToFileNoBytesSlot()
 
 void TraceBrowser::copyDisassemblySlot()
 {
-    if(getTraceFile() == nullptr || getTraceFile()->Progress() < 100)
+    if(getTraceFile() == nullptr)
         return;
 
     QString clipboard = "";
@@ -1694,7 +1691,7 @@ void TraceBrowser::copyDisassemblySlot()
 void TraceBrowser::copyRvaSlot()
 {
     QString text;
-    if(getTraceFile() == nullptr || getTraceFile()->Progress() < 100)
+    if(getTraceFile() == nullptr)
         return;
 
     for(unsigned long long i = getSelectionStart(); i <= getSelectionEnd(); i++)
@@ -1719,7 +1716,7 @@ void TraceBrowser::copyRvaSlot()
 void TraceBrowser::copyFileOffsetSlot()
 {
     QString text;
-    if(getTraceFile() == nullptr || getTraceFile()->Progress() < 100)
+    if(getTraceFile() == nullptr)
         return;
 
     for(unsigned long long i = getSelectionStart(); i <= getSelectionEnd(); i++)
@@ -1743,7 +1740,7 @@ void TraceBrowser::copyFileOffsetSlot()
 
 void TraceBrowser::exportSlot()
 {
-    if(getTraceFile() == nullptr || getTraceFile()->Progress() < 100)
+    if(getTraceFile() == nullptr)
         return;
     std::vector<QString> headers;
     headers.reserve(getColumnCount());
@@ -1856,7 +1853,7 @@ void TraceBrowser::searchMemRefSlot()
 
 void TraceBrowser::updateSlot()
 {
-    if(getTraceFile() && getTraceFile()->Progress() == 100) // && this->isVisible()
+    if(getTraceFile()) // && this->isVisible()
     {
         if(isRecording())
         {

@@ -113,10 +113,11 @@ bool TraceFileReader::isError() const
 }
 
 // Return 100 when loading is completed
-int TraceFileReader::Progress() const
-{
-    return progress.load();
-}
+// TODO: Trace view should start showing its first instructions as soon as they are loaded
+//int TraceFileReader::Progress() const
+//{
+//    return progress.load();
+//}
 
 // Return the count of instructions
 unsigned long long TraceFileReader::Length() const

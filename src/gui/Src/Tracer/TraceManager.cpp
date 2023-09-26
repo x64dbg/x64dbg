@@ -11,7 +11,7 @@ TraceManager::TraceManager(QWidget* parent) : QTabWidget(parent)
 
     //Open
     mOpen = new QPushButton(this);
-    mOpen->setIcon(DIcon("control-record")); //TODO: New icon
+    mOpen->setIcon(DIcon("folder-horizontal-open")); //TODO: New icon
     mOpen->setToolTip(tr("Open"));
     connect(mOpen, SIGNAL(clicked()), this, SLOT(open()));
     setCornerWidget(mOpen, Qt::TopRightCorner);
@@ -28,7 +28,12 @@ TraceManager::TraceManager(QWidget* parent) : QTabWidget(parent)
 
     // Add a placeholder tab
     QFrame* mPlaceholder = new QFrame(this);
-    addTab(mPlaceholder, tr("Placeholder")); //TODO: This is only to prevent buttons from disappearing
+    addTab(mPlaceholder, tr("Placeholder")); //TODO: This is only to prevent open buttons from disappearing
+}
+
+TraceManager::~TraceManager()
+{
+    closeAllTabs();
 }
 
 void TraceManager::open()
@@ -49,10 +54,10 @@ void TraceManager::open()
 void TraceManager::openSlot(const QString & path)
 {
     //load the new file
-    TraceWidget* newView = new TraceWidget(Bridge::getArchitecture(), this);
+    TraceWidget* newView = new TraceWidget(Bridge::getArchitecture(), path, this);
     addTab(newView, path); //TODO: Proper title
     setCurrentIndex(count() - 1);
-    emit newView->openSlot(path);
+    //emit newView->openSlot(path);
 }
 
 void TraceManager::closeTab(int index)
@@ -72,8 +77,19 @@ void TraceManager::closeTab(int index)
 
 void TraceManager::closeAllTabs()
 {
+    bool closeBack = true;
     while(count() > 1)
     {
-        closeTab(count() - 1);
+        if(closeBack)
+        {
+            int beforeTabs = count();
+            closeTab(count() - 1);
+            if(count() == beforeTabs) // Placeholder tab can't be closed, so close tabs before it instead
+                closeBack = false;
+        }
+        else
+        {
+            closeTab(0);
+        }
     }
 }

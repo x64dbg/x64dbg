@@ -23,7 +23,7 @@ public:
     void mouseDoubleClickEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
     void mousePressEvent(QMouseEvent* event);
-    void printDumpAt(dsint parVA, bool select, bool repaint, bool updateTableOffset);
+    void printDumpAt(duint parVA, bool select, bool repaint, bool updateTableOffset) override;
 
 signals:
     void displayReferencesWidget();

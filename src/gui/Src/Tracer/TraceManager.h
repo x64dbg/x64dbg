@@ -10,6 +10,7 @@ class TraceManager : public QTabWidget
     Q_OBJECT
 public:
     explicit TraceManager(QWidget* parent = 0);
+    ~TraceManager();
 
 public slots:
     void open();

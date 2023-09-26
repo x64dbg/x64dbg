@@ -23,7 +23,7 @@ public:
     void Close();
     bool Delete();
     bool isError() const;
-    int Progress() const;
+    //int Progress() const; // TODO: Trace view should start showing its first instructions as soon as they are loaded
 
     QString getIndexText(unsigned long long index) const;
 
@@ -32,9 +32,13 @@ public:
     REGDUMP Registers(unsigned long long index);
     void OpCode(unsigned long long index, unsigned char* buffer, int* opcodeSize);
     const Instruction_t & Instruction(unsigned long long index);
+    // Get thread ID
     DWORD ThreadId(unsigned long long index);
+    // Get number of memory accesses
     int MemoryAccessCount(unsigned long long index);
+    // Get memory access information. Size of these buffers are MAX_MEMORY_OPERANDS.
     void MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid);
+    // Get hash of EXE
     duint HashValue() const;
     const QString & ExePath() const;
 

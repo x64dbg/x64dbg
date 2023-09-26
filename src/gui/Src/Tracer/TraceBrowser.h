@@ -13,7 +13,7 @@ class TraceBrowser : public AbstractTableView
 {
     Q_OBJECT
 public:
-    explicit TraceBrowser(QWidget* parent = nullptr);
+    explicit TraceBrowser(TraceFileReader* traceFile, QWidget* parent = nullptr);
     ~TraceBrowser() override;
 
     QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;

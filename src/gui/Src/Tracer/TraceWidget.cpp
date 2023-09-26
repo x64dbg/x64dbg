@@ -8,13 +8,15 @@
 #include "StdTable.h"
 #include "CPUInfoBox.h"
 
-TraceWidget::TraceWidget(Architecture* architecture, QWidget* parent) :
+TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, QWidget* parent) :
     QWidget(parent),
     ui(new Ui::TraceWidget)
 {
     ui->setupUi(this);
 
-    mTraceWidget = new TraceBrowser(this);
+    mTraceFile = new TraceFileReader(this);
+    mTraceFile->Open(fileName);
+    mTraceWidget = new TraceBrowser(mTraceFile, this);
     mOverview = new StdTable(this);
     mInfo = new TraceInfoBox(this);
     mMemoryPage = new TraceFileDumpMemoryPage(this);
@@ -39,6 +41,7 @@ TraceWidget::TraceWidget(Architecture* architecture, QWidget* parent) :
     connect(button_changeview, SIGNAL(clicked()), mGeneralRegs, SLOT(onChangeFPUViewAction()));
     connect(mTraceWidget, SIGNAL(selectionChanged(unsigned long long)), this, SLOT(traceSelectionChanged(unsigned long long)));
     connect(Bridge::getBridge(), SIGNAL(updateTraceBrowser()), this, SLOT(updateSlot()));
+    connect(mTraceFile, SIGNAL(parseFinished()), this, SLOT(parseFinishedSlot()));
 
     mGeneralRegs->SetChangeButton(button_changeview);
 
@@ -73,24 +76,28 @@ TraceWidget::TraceWidget(Architecture* architecture, QWidget* parent) :
 
 TraceWidget::~TraceWidget()
 {
+    if(mTraceFile)
+    {
+        mTraceFile->Close();
+        delete mTraceFile;
+        mTraceFile = nullptr;
+    }
     delete ui;
 }
 
 void TraceWidget::traceSelectionChanged(unsigned long long selection)
 {
     REGDUMP registers;
-    TraceFileReader* traceFile;
-    traceFile = mTraceWidget->getTraceFile();
-    if(traceFile != nullptr && traceFile->Progress() == 100)
+    if(mTraceFile != nullptr)
     {
-        if(selection < traceFile->Length())
+        if(selection < mTraceFile->Length())
         {
             // update registers view
-            registers = traceFile->Registers(selection);
-            mInfo->update(selection, traceFile, registers);
+            registers = mTraceFile->Registers(selection);
+            mInfo->update(selection, mTraceFile, registers);
             // update dump view
-            traceFile->buildDumpTo(selection); // TODO: sometimes this can be slow
-            mMemoryPage->setDumpObject(traceFile->getDump());
+            mTraceFile->buildDumpTo(selection); // TODO: sometimes this can be slow
+            mMemoryPage->setDumpObject(mTraceFile->getDump());
             mMemoryPage->setSelectedIndex(selection);
             mDump->reloadData();
         }
@@ -102,10 +109,30 @@ void TraceWidget::traceSelectionChanged(unsigned long long selection)
     mGeneralRegs->setRegisters(&registers);
 }
 
-void TraceWidget::openSlot(const QString & fileName)
+void TraceWidget::parseFinishedSlot()
 {
-    emit mTraceWidget->openSlot(fileName);
+    duint initialAddress;
+    const int count = mTraceFile->MemoryAccessCount(0);
+    if(count > 0)
+    {
+        duint address[MAX_MEMORY_OPERANDS];
+        duint oldMemory[MAX_MEMORY_OPERANDS];
+        duint newMemory[MAX_MEMORY_OPERANDS];
+        bool isValid[MAX_MEMORY_OPERANDS];
+        mTraceFile->MemoryAccessInfo(0, address, oldMemory, newMemory, isValid);
+        initialAddress = address[count - 1];
+    }
+    else
+    {
+        initialAddress = mTraceFile->Registers(0).regcontext.cip;
+    }
+    mDump->printDumpAt(initialAddress, false, true, true);
 }
+
+//void TraceWidget::openSlot(const QString & fileName)
+//{
+//    emit mTraceWidget->openSlot(fileName);
+//}
 
 void TraceWidget::updateSlot()
 {

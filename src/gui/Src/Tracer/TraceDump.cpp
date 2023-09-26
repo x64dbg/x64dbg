@@ -265,7 +265,7 @@ void TraceDump::getAttention()
     thread->start();
 }
 
-void TraceDump::printDumpAt(dsint parVA, bool select, bool repaint, bool updateTableOffset)
+void TraceDump::printDumpAt(duint parVA, bool select, bool repaint, bool updateTableOffset)
 {
     // Modified from Hexdump, removed memory page information
     // TODO: get memory range from trace instead
