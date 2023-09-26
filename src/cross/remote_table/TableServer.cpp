@@ -31,7 +31,7 @@ TableServer::TableServer(QObject* parent)
                     auto magic = request["jsonrpc"].get<std::string>();
                     if(magic != "2.0")
                     {
-                        qDebug() << "[server] Invalid magic:" << magic;
+                        qDebug() << "[server] Invalid magic:" << QString::fromStdString(magic);
                         return;
                     }
                     auto method = request["method"].get<std::string>();
