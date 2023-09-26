@@ -53,6 +53,11 @@ QString RemoteTable::getCellContent(duint row, duint col)
     }
 }
 
+duint RemoteTable::getCellUserdata(duint row, duint column)
+{
+    return 0;
+}
+
 bool RemoteTable::isValidIndex(duint row, duint col)
 {
     if(row >= getRowCount())
