@@ -99,7 +99,8 @@ void TraceFileReader::parseFinishedSlot()
         progress.store(0);
     delete parser;
     parser = nullptr;
-    buildDump(0); // initialize dump with first instruction
+    if(Length() > 0)
+        buildDump(0); // initialize dump with first instruction
     emit parseFinished();
 
     //for(auto i : fileIndex)
@@ -534,6 +535,7 @@ void TraceFileReader::purgeLastPage()
     unsigned long long index = 0;
     unsigned long long lastIndex = 0;
     bool isBlockExist = false;
+    const bool previousEmpty = Length() == 0;
     if(length > 0)
     {
         index = fileIndex.back().first;
@@ -571,6 +573,8 @@ void TraceFileReader::purgeLastPage()
             fileIndex.back().second.second = index - (lastIndex - 1);
         error = false;
         length = index;
+        if(previousEmpty && length > 0)
+            buildDump(0); // Initialize dump
     }
     catch(std::wstring & errReason)
     {

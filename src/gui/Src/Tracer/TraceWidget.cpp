@@ -112,21 +112,25 @@ void TraceWidget::traceSelectionChanged(unsigned long long selection)
 void TraceWidget::parseFinishedSlot()
 {
     duint initialAddress;
-    const int count = mTraceFile->MemoryAccessCount(0);
-    if(count > 0)
+    if(mTraceFile->Length() > 0)
     {
-        duint address[MAX_MEMORY_OPERANDS];
-        duint oldMemory[MAX_MEMORY_OPERANDS];
-        duint newMemory[MAX_MEMORY_OPERANDS];
-        bool isValid[MAX_MEMORY_OPERANDS];
-        mTraceFile->MemoryAccessInfo(0, address, oldMemory, newMemory, isValid);
-        initialAddress = address[count - 1];
+        const int count = mTraceFile->MemoryAccessCount(0);
+        if(count > 0)
+        {
+            // Display source operand
+            duint address[MAX_MEMORY_OPERANDS];
+            duint oldMemory[MAX_MEMORY_OPERANDS];
+            duint newMemory[MAX_MEMORY_OPERANDS];
+            bool isValid[MAX_MEMORY_OPERANDS];
+            mTraceFile->MemoryAccessInfo(0, address, oldMemory, newMemory, isValid);
+            initialAddress = address[count - 1];
+        }
+        else
+        {
+            initialAddress = mTraceFile->Registers(0).regcontext.cip;
+        }
+        mDump->printDumpAt(initialAddress, false, true, true);
     }
-    else
-    {
-        initialAddress = mTraceFile->Registers(0).regcontext.cip;
-    }
-    mDump->printDumpAt(initialAddress, false, true, true);
 }
 
 //void TraceWidget::openSlot(const QString & fileName)
