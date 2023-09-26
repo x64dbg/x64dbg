@@ -1,9 +1,12 @@
 # Reference: https://build-cpp.github.io/cmkr/cmake-toml
+[cmake]
+version = "3.19"
+
 [project]
 name = "cross"
-include-after = ["gui/Qt.cmake"]
+include-after = ["widgets/Qt.cmake"]
 
-[subdir.gui]
+[subdir.widgets]
 
 [subdir.vendor]
 
@@ -21,14 +24,10 @@ sources = [
     "minidump/*.qrc",
 ]
 link-libraries = [
-    "${QT_LIBRARIES}",
-    "widgets",
+    "x64dbg::widgets",
     "cpp-httplib",
 ]
 compile-features = ["cxx_std_17"]
-cmake-after = """
-qt_finalize_executable(${CMKR_TARGET})
-"""
 
 [target.remote_table]
 type = "qt_executable"
@@ -40,10 +39,6 @@ sources = [
     "remote_table/json.hpp",
 ]
 link-libraries = [
-    "${QT_LIBRARIES}",
-    "widgets",
+    "x64dbg::widgets",
 ]
 compile-features = ["cxx_std_17"]
-cmake-after = """
-qt_finalize_executable(${CMKR_TARGET})
-"""

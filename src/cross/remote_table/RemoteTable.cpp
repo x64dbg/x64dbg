@@ -152,7 +152,7 @@ void RemoteTable::prepareData()
 
     if(!mCurrentSent)
     {
-        if(mNextRequired) __debugbreak();
+        assert(!mNextRequired);
         mCurrentSent = true;
 
         qDebug() << "send rpc request";
@@ -173,7 +173,7 @@ void RemoteTable::handleTableResponse(const TableResponse & response)
     {
         mNextRequired = false;
         mCurrentRequest = mNextRequest;
-        if(!mCurrentSent) __debugbreak();
+        assert(mCurrentSent);
 
         qDebug() << "send rpc request (backlog)";
 

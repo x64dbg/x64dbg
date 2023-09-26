@@ -1,5 +1,7 @@
 #include "JsonRpcClient.h"
 
+#include <QDebug>
+
 JsonRpcClient::JsonRpcClient(QObject* parent)
     : QObject(parent)
 {
@@ -42,7 +44,7 @@ void JsonRpcClient::textMessageReceivedSlot(const QString & message)
         auto magic = response.at("jsonrpc").get<std::string>();
         if(magic != "2.0")
         {
-            qDebug() << "[client] Invalid magic:" << magic;
+            qDebug() << "[client] Invalid magic:" << QString::fromStdString(magic);
             return;
         }
         auto result = response.at("result");

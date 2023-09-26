@@ -85,7 +85,7 @@
   <customwidget>
    <class>HistoryLineEdit</class>
    <extends>QLineEdit</extends>
-   <header>HistoryLineEdit.h</header>
+   <header>BasicView/HistoryLineEdit.h</header>
   </customwidget>
  </customwidgets>
  <resources>

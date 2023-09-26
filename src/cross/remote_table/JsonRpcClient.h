@@ -5,6 +5,7 @@
 
 #include <unordered_map>
 #include <functional>
+#include <string>
 #include "json.hpp"
 
 // https://www.jsonrpc.org/specification

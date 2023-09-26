@@ -72,12 +72,13 @@ set(widgets_SOURCES
 
 include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_library(widgets STATIC
+add_library(x64dbg_widgets STATIC
     ${hook_SOURCES}
     ${widgets_SOURCES}
 )
+add_library(x64dbg::widgets ALIAS x64dbg_widgets)
 
-target_include_directories(widgets PUBLIC
+target_include_directories(x64dbg_widgets PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${widgets_SOURCE_DIR}
 )
@@ -85,11 +86,11 @@ target_include_directories(widgets PUBLIC
 source_group(TREE ${widgets_SOURCE_DIR} FILES ${widgets_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} PREFIX hook FILES ${hook_SOURCES})
 
-target_compile_definitions(widgets PRIVATE
+target_compile_definitions(x64dbg_widgets PRIVATE
     QT_NO_DEPRECATED_WARNINGS
 )
 
-target_link_libraries(widgets PUBLIC
+target_link_libraries(x64dbg_widgets PUBLIC
     ${QT_LIBRARIES}
     zydis_wrapper
 )
