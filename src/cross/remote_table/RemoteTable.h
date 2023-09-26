@@ -16,6 +16,7 @@ public:
 
 protected:
     QString getCellContent(duint row, duint col) override;
+    duint getCellUserdata(duint row, duint column) override;
     bool isValidIndex(duint row, duint col) override;
     void sortRows(duint column, bool ascending) override;
     duint sliderMovedHook(QScrollBar::SliderAction action, duint value, dsint delta) override;
