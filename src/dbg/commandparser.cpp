@@ -78,9 +78,6 @@ Command::Command(const String & command)
             case '{':
                 dataAppend(ch);
                 break;
-            case '\\':
-                dataAppend(ch);
-                break;
             default:
                 dataAppend('\\');
                 dataAppend(ch);
