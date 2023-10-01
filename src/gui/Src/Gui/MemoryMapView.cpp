@@ -606,7 +606,6 @@ void MemoryMapView::findPatternSlot()
     duint entireBlockEnabled = 0;
     BridgeSettingGetUint("Gui", "MemoryMapEntireBlock", &entireBlockEnabled);
     hexEdit.showEntireBlock(true, entireBlockEnabled);
-    hexEdit.showKeepSize(false);
     hexEdit.isDataCopiable(false);
     hexEdit.mHexEdit->setOverwriteMode(false);
     hexEdit.setWindowTitle(tr("Find Pattern..."));
