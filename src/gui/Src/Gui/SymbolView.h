@@ -30,6 +30,7 @@ public:
 
 private slots:
     void updateStyle();
+    void reloadDataSlot();
     void addMsgToSymbolLogSlot(QString msg);
     void clearSymbolLogSlot();
     void moduleSelectionChanged(duint index);
