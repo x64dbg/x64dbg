@@ -66,7 +66,7 @@ struct PLUG_FORMATFUNCTION
 };
 
 //plugin management functions
-bool pluginload(const char* pluginname, bool loadall = false);
+bool pluginload(const char* pluginname);
 bool pluginunload(const char* pluginname, bool unloadall = false);
 void pluginloadall(const char* pluginDir);
 void pluginunloadall();
