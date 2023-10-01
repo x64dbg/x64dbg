@@ -57,7 +57,7 @@ QString RemoteTable::getCellContent(duint row, duint col)
     }
     if(relativeRow < mRemoteData.size())
     {
-        const auto& remoteRow = mRemoteData[relativeRow];
+        const auto & remoteRow = mRemoteData[relativeRow];
         QString data;
         if(col < remoteRow.size())
         {
@@ -209,7 +209,7 @@ void RemoteTable::handleTableResponse(const TableResponse & response)
     mMaxResponseTime = 0;
     mMinResponseTime = UINT64_MAX;
     mAvgResponseTime = 0;
-    for(const auto& responseTime : mResponseTimes)
+    for(const auto & responseTime : mResponseTimes)
     {
         mMaxResponseTime = std::max(mMaxResponseTime, responseTime);
         mMinResponseTime = std::min(mMinResponseTime, responseTime);

@@ -23,14 +23,6 @@ MainWindow::MainWindow(QWidget* parent)
     {
         loadMinidump(args.at(1));
     }
-#if defined(Q_OS_DARWIN) || 1
-    else
-    {
-        loadMinidump(":/dmp/HarnessMinimal_x64.dmp");
-        mDisassembly->disassembleAt(0x7FFC9E0D1010, false, -1);
-        mHexDump->printDumpAt(0x7FFC9E203010);
-    }
-#endif
 }
 
 MainWindow::~MainWindow()

@@ -4,8 +4,9 @@
 #include <QPushButton>
 #include <QLabel>
 
-namespace Ui {
-class OverlayFrame;
+namespace Ui
+{
+    class OverlayFrame;
 }
 
 class OverlayFrame : public QFrame

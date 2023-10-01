@@ -46,6 +46,7 @@ bool REToolSync::connect(const QString & endpoint)
     // Ping the server
     mEndpoint = endpoint;
     httplib::Client client(mEndpoint.toUtf8().data());
+    client.set_connection_timeout(0, 300000);
     {
         auto response = client.Get("/api/ping");
         if(!response || response->status != 200)
