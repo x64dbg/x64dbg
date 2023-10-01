@@ -27,7 +27,7 @@ static std::wstring gPluginDirectory;
 /**
 \brief The current plugin handle.
 */
-static int gCurPluginHandle = 0;
+static int gCurPluginHandle = 1;
 
 /**
 \brief List of plugin callbacks.
@@ -199,8 +199,9 @@ bool pluginload(const char* pluginName)
     // Setup plugin data
     // NOTE: This is a global because during registration the plugin
     // isn't in the gPluginList yet
+    auto pluginHandle = gCurPluginHandle++;
     gLoadingPlugin = {};
-    gLoadingPlugin.initStruct.pluginHandle = gCurPluginHandle;
+    gLoadingPlugin.initStruct.pluginHandle = pluginHandle;
     gLoadingPlugin.hPlugin = LoadLibraryW(pluginPath.c_str()); //load the plugin library
     if(!gLoadingPlugin.hPlugin)
     {
@@ -212,7 +213,7 @@ bool pluginload(const char* pluginName)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Export \"pluginit\" not found in plugin: %s\n"), normalizedName.c_str());
         for(int i = CB_INITDEBUG; i < CB_LAST; i++)
-            pluginunregistercallback(gCurPluginHandle, CBTYPE(i));
+            pluginunregistercallback(pluginHandle, CBTYPE(i));
         FreeLibrary(gLoadingPlugin.hPlugin);
         return false;
     }
@@ -221,13 +222,14 @@ bool pluginload(const char* pluginName)
 
     strncpy_s(gLoadingPlugin.plugpath, StringUtils::Utf16ToUtf8(pluginPath).c_str(), _TRUNCATE);
     strncpy_s(gLoadingPlugin.plugname, normalizedName.c_str(), _TRUNCATE);
+    strncpy_s(gLoadingPlugin.initStruct.pluginName, normalizedName.c_str(), _TRUNCATE);
 
     // Init plugin
     if(!gLoadingPlugin.pluginit(&gLoadingPlugin.initStruct))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] pluginit failed for plugin: %s\n"), normalizedName.c_str());
         for(int i = CB_INITDEBUG; i < CB_LAST; i++)
-            pluginunregistercallback(gCurPluginHandle, CBTYPE(i));
+            pluginunregistercallback(pluginHandle, CBTYPE(i));
         FreeLibrary(gLoadingPlugin.hPlugin);
         return false;
     }
@@ -235,7 +237,7 @@ bool pluginload(const char* pluginName)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] %s is incompatible with this SDK version\n"), gLoadingPlugin.initStruct.pluginName);
         for(int i = CB_INITDEBUG; i < CB_LAST; i++)
-            pluginunregistercallback(gCurPluginHandle, CBTYPE(i));
+            pluginunregistercallback(pluginHandle, CBTYPE(i));
         FreeLibrary(gLoadingPlugin.hPlugin);
         return false;
     }
@@ -247,13 +249,13 @@ bool pluginload(const char* pluginName)
     if(cbPlugin)
     {
         for(int i = CB_INITDEBUG; i < CB_LAST; i++)
-            pluginregistercallback(gCurPluginHandle, CBTYPE(i), cbPlugin);
+            pluginregistercallback(pluginHandle, CBTYPE(i), cbPlugin);
     }
-    auto regExport = [](const char* exportname, CBTYPE cbType)
+    auto regExport = [pluginHandle](const char* exportname, CBTYPE cbType)
     {
         auto cbPlugin = CBPLUGIN(GetProcAddress(gLoadingPlugin.hPlugin, exportname));
         if(cbPlugin)
-            pluginregistercallback(gCurPluginHandle, cbType, cbPlugin);
+            pluginregistercallback(pluginHandle, cbType, cbPlugin);
     };
     regExport("CBINITDEBUG", CB_INITDEBUG);
     regExport("CBSTOPDEBUG", CB_STOPDEBUG);
@@ -340,7 +342,6 @@ bool pluginload(const char* pluginName)
         setupStruct.hMenuSymmod = gLoadingPlugin.hMenuSymmod;
         gLoadingPlugin.plugsetup(&setupStruct);
     }
-    gCurPluginHandle++;
 
     // Clear the loading plugin structure (since it's now in the plugin list)
     gLoadingPlugin = {};
