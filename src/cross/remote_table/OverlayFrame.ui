@@ -35,7 +35,7 @@
    <enum>QFrame::Plain</enum>
   </property>
   <property name="lineWidth">
-   <number>3</number>
+   <number>1</number>
   </property>
   <property name="midLineWidth">
    <number>0</number>
@@ -90,7 +90,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Connecting...</string>
+        <string>Loading...</string>
        </property>
       </widget>
      </item>

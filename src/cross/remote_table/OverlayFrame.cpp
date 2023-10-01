@@ -16,7 +16,7 @@ OverlayFrame* OverlayFrame::embed(QWidget* parent, bool visible)
     return frame;
 }
 
-OverlayFrame::OverlayFrame(QWidget *parent) :
+OverlayFrame::OverlayFrame(QWidget* parent) :
     QFrame(parent),
     ui(new Ui::OverlayFrame)
 {
