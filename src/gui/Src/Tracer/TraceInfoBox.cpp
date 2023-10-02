@@ -35,7 +35,7 @@ TraceInfoBox::~TraceInfoBox()
 
 void TraceInfoBox::update(unsigned long long selection, TraceFileReader* traceFile, const REGDUMP & registers)
 {
-    int infoline = 0;
+    duint infoline = 0;
     Zydis zydis;
     unsigned char opcode[16];
     QString line;
@@ -52,7 +52,7 @@ void TraceInfoBox::update(unsigned long long selection, TraceFileReader* traceFi
         traceFile->MemoryAccessInfo(selection, MemoryAddress, MemoryOldContent, MemoryNewContent, MemoryIsValid);
     if(zydis.Disassemble(registers.regcontext.cip, opcode, opsize))
     {
-        int opindex;
+        uint8_t opindex;
         int memaccessindex;
         //Jumps
         if(zydis.IsBranchType(Zydis::BTCondJmp))
@@ -214,7 +214,7 @@ void TraceInfoBox::update(unsigned long long selection, TraceFileReader* traceFi
 void TraceInfoBox::clear()
 {
     setRowCount(4);
-    for(int i = 0; i < 4; i++)
+    for(duint i = 0; i < 4; i++)
         setCellContent(i, 0, QString());
     reloadData();
 }

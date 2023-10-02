@@ -22,8 +22,6 @@ public:
 
     // Context menu management
     void setupRightClickContextMenu();
-    void addFollowReferenceMenuItem(QString name, duint value, QMenu* menu, bool isReferences, bool isFollowInCPU);
-    void setupFollowReferenceMenu(duint va, QMenu* menu, bool isReferences, bool isFollowInCPU);
     void copySelectionSlot(bool copyBytes);
     void copySelectionToFileSlot(bool copyBytes);
     void setSideBar(CPUSideBar* sideBar);
@@ -115,6 +113,9 @@ private:
     bool getTokenValueText(QString & text);
 
     void pushSelectionInto(bool copyBytes, QTextStream & stream, QTextStream* htmlStream = nullptr);
+
+    void addFollowReferenceMenuItem(QString name, duint value, QMenu* menu, bool isReferences, bool isFollowInCPU);
+    void setupFollowReferenceMenu(duint va, QMenu* menu, bool isReferences, bool isFollowInCPU);
 
     // Menus
     QMenu* mHwSlotSelectMenu;

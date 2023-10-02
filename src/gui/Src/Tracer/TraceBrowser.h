@@ -90,7 +90,6 @@ private:
     QColor mBytesBackgroundColor;
 
     QColor mInstructionHighlightColor;
-    QColor mSelectionColor;
 
     QColor mCipBackgroundColor;
     QColor mCipColor;
@@ -150,6 +149,7 @@ signals:
     void displayReferencesWidget();
     void displayLogWidget();
     void selectionChanged(unsigned long long selection);
+    void closeFile();
 
 public slots:
     void openFileSlot();
@@ -187,9 +187,7 @@ public slots:
     void synchronizeCpuSlot();
     void gotoIndexSlot(duint index);
 
-    void debugdump();
-
-protected:
+private:
     void disasm(unsigned long long index, bool history = true);
 };
 

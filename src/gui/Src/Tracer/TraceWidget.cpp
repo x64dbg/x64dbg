@@ -42,6 +42,7 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     connect(mTraceWidget, SIGNAL(selectionChanged(unsigned long long)), this, SLOT(traceSelectionChanged(unsigned long long)));
     connect(Bridge::getBridge(), SIGNAL(updateTraceBrowser()), this, SLOT(updateSlot()));
     connect(mTraceFile, SIGNAL(parseFinished()), this, SLOT(parseFinishedSlot()));
+    connect(mTraceWidget, SIGNAL(closeFile()), this, SLOT(closeFileSlot()));
 
     mGeneralRegs->SetChangeButton(button_changeview);
 
@@ -112,7 +113,12 @@ void TraceWidget::traceSelectionChanged(unsigned long long selection)
 void TraceWidget::parseFinishedSlot()
 {
     duint initialAddress;
-    if(mTraceFile->Length() > 0)
+    if(mTraceFile->isError())
+    {
+        SimpleErrorBox(this, tr("Error"), tr("Error when opening trace recording"));
+        emit closeFile();
+    }
+    else if(mTraceFile->Length() > 0)
     {
         const int count = mTraceFile->MemoryAccessCount(0);
         if(count > 0)
@@ -144,6 +150,11 @@ void TraceWidget::updateSlot()
     mGeneralRegs->setActive(fileOpened);
     if(!fileOpened)
         mInfo->clear();
+}
+
+void TraceWidget::closeFileSlot()
+{
+    emit closeFile();
 }
 
 TraceBrowser* TraceWidget::getTraceBrowser()

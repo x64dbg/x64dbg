@@ -1,4 +1,5 @@
 #include <QFrame>
+#include <QTimerEvent>
 #include "TraceManager.h"
 #include "BrowseDialog.h"
 #include "StringUtil.h"
@@ -7,7 +8,6 @@
 TraceManager::TraceManager(QWidget* parent) : QTabWidget(parent)
 {
     setMovable(true);
-    setTabsClosable(true);
 
     //Open
     mOpen = new QPushButton(this);
@@ -56,8 +56,12 @@ void TraceManager::openSlot(const QString & path)
     //load the new file
     TraceWidget* newView = new TraceWidget(Bridge::getArchitecture(), path, this);
     addTab(newView, path); //TODO: Proper title
-    setCurrentIndex(count() - 1);
-    //emit newView->openSlot(path);
+    int index = count() - 1;
+    setCurrentIndex(index);
+    connect(newView, &TraceWidget::closeFile, this, [index, this]()
+    {
+        closeTab(index);
+    });
 }
 
 void TraceManager::closeTab(int index)
@@ -66,7 +70,8 @@ void TraceManager::closeTab(int index)
     if(view)
     {
         removeTab(index);
-        delete view;
+        mViewsToDelete.append(view); // It needs to return from close event before we can delete
+        startTimer(100);
     }
     else
     {
@@ -92,4 +97,13 @@ void TraceManager::closeAllTabs()
             closeTab(0);
         }
     }
+}
+
+// These tabs are deleted after the close tab event completes
+void TraceManager::timerEvent(QTimerEvent* event)
+{
+    for(auto & i : mViewsToDelete)
+        delete i;
+    mViewsToDelete.clear();
+    killTimer(event->timerId());
 }

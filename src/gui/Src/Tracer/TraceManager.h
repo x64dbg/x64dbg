@@ -18,7 +18,11 @@ public slots:
     void closeTab(int index);
     void closeAllTabs();
 
+protected:
+    void timerEvent(QTimerEvent* event) override;
+
 private:
     QPushButton* mOpen;
     QPushButton* mCloseAllTabs;
+    QList<QObject*> mViewsToDelete;
 };

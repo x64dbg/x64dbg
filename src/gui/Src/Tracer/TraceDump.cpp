@@ -12,7 +12,7 @@
 #include "GotoDialog.h"
 #include "TraceBrowser.h"
 #include "CommonActions.h"
-#include "WordEditDialog.h"
+//#include "WordEditDialog.h"
 #include "CodepageSelectionDialog.h"
 #include "MiscUtil.h"
 #include "BackgroundFlickerThread.h"
@@ -82,76 +82,79 @@ void TraceDump::setupContextMenu()
         return DbgMemIsValidReadPtr(ptr);
     };
 
-    MenuBuilder* wBreakpointMenu = new MenuBuilder(this);
-    MenuBuilder* wHardwareAccessMenu = new MenuBuilder(this, [this](QMenu*)
-    {
-        return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_hardware) == 0;
-    });
-    MenuBuilder* wHardwareWriteMenu = new MenuBuilder(this, [this](QMenu*)
-    {
-        return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_hardware) == 0;
-    });
-    MenuBuilder* wMemoryAccessMenu = new MenuBuilder(this, [this](QMenu*)
-    {
-        return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
-    });
-    MenuBuilder* wMemoryReadMenu = new MenuBuilder(this, [this](QMenu*)
-    {
-        return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
-    });
-    MenuBuilder* wMemoryWriteMenu = new MenuBuilder(this, [this](QMenu*)
-    {
-        return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
-    });
-    MenuBuilder* wMemoryExecuteMenu = new MenuBuilder(this, [this](QMenu*)
-    {
-        return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
-    });
-    wHardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_byte"), tr("&Byte"), "bphws $, r, 1"));
-    wHardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_word"), tr("&Word"), "bphws $, r, 2"));
-    wHardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_dword"), tr("&Dword"), "bphws $, r, 4"));
-#ifdef _WIN64
-    wHardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_qword"), tr("&Qword"), "bphws $, r, 8"));
-#endif //_WIN64
-    wHardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_byte"), tr("&Byte"), "bphws $, w, 1"));
-    wHardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_word"), tr("&Word"), "bphws $, w, 2"));
-    wHardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_dword"), tr("&Dword"), "bphws $, w, 4"));
-#ifdef _WIN64
-    wHardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_qword"), tr("&Qword"), "bphws $, w, 8"));
-#endif //_WIN64
-    wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_access"), tr("Hardware, &Access")), wHardwareAccessMenu);
-    wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_write"), tr("Hardware, &Write")), wHardwareWriteMenu);
-    wBreakpointMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_execute"), tr("Hardware, &Execute"), "bphws $, x"), [this](QMenu*)
-    {
-        return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_hardware) == 0;
-    });
-    wBreakpointMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_remove"), tr("Remove &Hardware"), "bphwc $"), [this](QMenu*)
-    {
-        return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_hardware) != 0;
-    });
-    wBreakpointMenu->addSeparator();
-    wMemoryAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), "bpm $, 0, a"));
-    wMemoryAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), "bpm $, 1, a"));
-    wMemoryReadMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), "bpm $, 0, r"));
-    wMemoryReadMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), "bpm $, 1, r"));
-    wMemoryWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), "bpm $, 0, w"));
-    wMemoryWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), "bpm $, 1, w"));
-    wMemoryExecuteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), "bpm $, 0, x"));
-    wMemoryExecuteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), "bpm $, 1, x"));
-    wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_access"), tr("Memory, Access")), wMemoryAccessMenu);
-    wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_read"), tr("Memory, Read")), wMemoryReadMenu);
-    wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_write"), tr("Memory, Write")), wMemoryWriteMenu);
-    wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_execute"), tr("Memory, Execute")), wMemoryExecuteMenu);
-    wBreakpointMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_remove"), tr("Remove &Memory"), "bpmc $"), [this](QMenu*)
-    {
-        return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) != 0;
-    });
-    mMenuBuilder->addMenu(makeMenu(DIcon("breakpoint"), tr("&Breakpoint")), wBreakpointMenu);
+    //TODO: Is it necessary to set memory breakpoints here?
+    //MenuBuilder* wBreakpointMenu = new MenuBuilder(this);
+    //MenuBuilder* wHardwareAccessMenu = new MenuBuilder(this, [this](QMenu*)
+    //{
+    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_hardware) == 0;
+    //});
+    //MenuBuilder* wHardwareWriteMenu = new MenuBuilder(this, [this](QMenu*)
+    //{
+    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_hardware) == 0;
+    //});
+    //MenuBuilder* wMemoryAccessMenu = new MenuBuilder(this, [this](QMenu*)
+    //{
+    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
+    //});
+    //MenuBuilder* wMemoryReadMenu = new MenuBuilder(this, [this](QMenu*)
+    //{
+    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
+    //});
+    //MenuBuilder* wMemoryWriteMenu = new MenuBuilder(this, [this](QMenu*)
+    //{
+    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
+    //});
+    //MenuBuilder* wMemoryExecuteMenu = new MenuBuilder(this, [this](QMenu*)
+    //{
+    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
+    //});
+    //wHardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_byte"), tr("&Byte"), "bphws $, r, 1"));
+    //wHardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_word"), tr("&Word"), "bphws $, r, 2"));
+    //wHardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_dword"), tr("&Dword"), "bphws $, r, 4"));
+    //#ifdef _WIN64
+    //wHardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_qword"), tr("&Qword"), "bphws $, r, 8"));
+    //#endif //_WIN64
+    //wHardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_byte"), tr("&Byte"), "bphws $, w, 1"));
+    //wHardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_word"), tr("&Word"), "bphws $, w, 2"));
+    //wHardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_dword"), tr("&Dword"), "bphws $, w, 4"));
+    //#ifdef _WIN64
+    //wHardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_qword"), tr("&Qword"), "bphws $, w, 8"));
+    //#endif //_WIN64
+    //wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_access"), tr("Hardware, &Access")), wHardwareAccessMenu);
+    //wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_write"), tr("Hardware, &Write")), wHardwareWriteMenu);
+    //wBreakpointMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_execute"), tr("Hardware, &Execute"), "bphws $, x"), [this](QMenu*)
+    //{
+    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_hardware) == 0;
+    //});
+    //wBreakpointMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_remove"), tr("Remove &Hardware"), "bphwc $"), [this](QMenu*)
+    //{
+    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_hardware) != 0;
+    //});
+    //wBreakpointMenu->addSeparator();
+    //wMemoryAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), "bpm $, 0, a"));
+    //wMemoryAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), "bpm $, 1, a"));
+    //wMemoryReadMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), "bpm $, 0, r"));
+    //wMemoryReadMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), "bpm $, 1, r"));
+    //wMemoryWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), "bpm $, 0, w"));
+    //wMemoryWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), "bpm $, 1, w"));
+    //wMemoryExecuteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), "bpm $, 0, x"));
+    //wMemoryExecuteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), "bpm $, 1, x"));
+    //wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_access"), tr("Memory, Access")), wMemoryAccessMenu);
+    //wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_read"), tr("Memory, Read")), wMemoryReadMenu);
+    //wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_write"), tr("Memory, Write")), wMemoryWriteMenu);
+    //wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_execute"), tr("Memory, Execute")), wMemoryExecuteMenu);
+    //wBreakpointMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_remove"), tr("Remove &Memory"), "bpmc $"), [this](QMenu*)
+    //{
+    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) != 0;
+    //});
+    //mMenuBuilder->addMenu(makeMenu(DIcon("breakpoint"), tr("&Breakpoint")), wBreakpointMenu);
 
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("search-for"), tr("&Find Pattern..."), SLOT(findPattern()), "ActionFindPattern"));
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("find"), tr("Find &References"), SLOT(findReferencesSlot()), "ActionFindReferences"));
+    //TODO: find in dump
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon("search-for"), tr("&Find Pattern..."), SLOT(findPattern()), "ActionFindPattern"));
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon("find"), tr("Find &References"), SLOT(findReferencesSlot()), "ActionFindReferences"));
 
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("sync"), tr("&Sync with expression"), SLOT(syncWithExpressionSlot()), "ActionSync"));
+    //TODO: Do we really need to sync with expression here?
+    //mMenuBuilder->addAction(makeShortcutAction(DIcon("sync"), tr("&Sync with expression"), SLOT(syncWithExpressionSlot()), "ActionSync"));
 
     MenuBuilder* wGotoMenu = new MenuBuilder(this);
     wGotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto"), tr("&Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
@@ -1332,19 +1335,20 @@ void TraceDump::binarySaveToFileSlot()
 
 void TraceDump::findPattern()
 {
-    HexEditDialog hexEdit(this);
-    hexEdit.showEntireBlock(true);
-    hexEdit.isDataCopiable(false);
-    hexEdit.mHexEdit->setOverwriteMode(false);
-    hexEdit.setWindowTitle(tr("Find Pattern..."));
-    if(hexEdit.exec() != QDialog::Accepted)
-        return;
-    dsint addr = rvaToVa(getSelectionStart());
-    if(hexEdit.entireBlock())
-        addr = DbgMemFindBaseAddr(addr, 0);
-    QString addrText = ToPtrString(addr);
-    DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&"));
-    emit displayReferencesWidget();
+    //TODO
+    //HexEditDialog hexEdit(this);
+    //hexEdit.showEntireBlock(true);
+    //hexEdit.isDataCopiable(false);
+    //hexEdit.mHexEdit->setOverwriteMode(false);
+    //hexEdit.setWindowTitle(tr("Find Pattern..."));
+    //if(hexEdit.exec() != QDialog::Accepted)
+    //return;
+    //dsint addr = rvaToVa(getSelectionStart());
+    //if(hexEdit.entireBlock())
+    //addr = DbgMemFindBaseAddr(addr, 0);
+    //QString addrText = ToPtrString(addr);
+    //DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&"));
+    //emit displayReferencesWidget();
 }
 
 void TraceDump::copyFileOffsetSlot()
@@ -1372,18 +1376,18 @@ void TraceDump::selectionUpdatedSlot()
     GuiAddStatusBarMessage(QString(info + ": " + selStart + " -> " + selEnd + QString().sprintf(" (0x%.8X bytes)\n", getSelectionEnd() - getSelectionStart() + 1)).toUtf8().constData());
 }
 
-void TraceDump::syncWithExpressionSlot()
-{
-    if(!mMemoryPage->isAvailable())
-        return;
-    GotoDialog gotoDialog(this, true);
-    gotoDialog.setWindowTitle(tr("Enter expression to sync with..."));
-    gotoDialog.setInitialExpression(mSyncAddrExpression);
-    if(gotoDialog.exec() != QDialog::Accepted)
-        return;
-    mSyncAddrExpression = gotoDialog.expressionText;
-    updateDumpSlot();
-}
+//void TraceDump::syncWithExpressionSlot()
+//{
+//if(!mMemoryPage->isAvailable())
+//return;
+//GotoDialog gotoDialog(this, true);
+//gotoDialog.setWindowTitle(tr("Enter expression to sync with..."));
+//gotoDialog.setInitialExpression(mSyncAddrExpression);
+//if(gotoDialog.exec() != QDialog::Accepted)
+//return;
+//mSyncAddrExpression = gotoDialog.expressionText;
+//updateDumpSlot();
+//}
 
 void TraceDump::setView(ViewEnum_t view)
 {

@@ -1,4 +1,5 @@
 #include "TraceBrowser.h"
+#include "TraceWidget.h"
 #include "TraceFileReader.h"
 #include "TraceFileSearch.h"
 #include "RichTextPainter.h"
@@ -291,10 +292,7 @@ QString TraceBrowser::paintContent(QPainter* painter, duint row, duint col, int 
     if(getTraceFile()->isError())
     {
         GuiAddLogMessage(tr("An error occurred when reading trace file.\r\n").toUtf8().constData());
-        mTraceFile->Close();
-        delete mTraceFile;
-        mTraceFile = nullptr;
-        setRowCount(0);
+        emit closeFile();
         return "";
     }
     if(mHighlightingMode)
@@ -504,54 +502,58 @@ NotDebuggingLabel:
 
     case Opcode:
     {
-        //draw functions
-        Function_t funcType;
-        FUNCTYPE funcFirst = DbgGetFunctionTypeAt(cur_addr);
-        FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + inst.length - 1);
-        HANDLE_RANGE_TYPE(FUNC, funcFirst, funcLast);
-        switch(funcFirst)
-        {
-        case FUNC_SINGLE:
-            funcType = Function_single;
-            break;
-        case FUNC_NONE:
-            funcType = Function_none;
-            break;
-        case FUNC_BEGIN:
-            funcType = Function_start;
-            break;
-        case FUNC_MIDDLE:
-            funcType = Function_middle;
-            break;
-        case FUNC_END:
-            funcType = Function_end;
-            break;
-        }
-        int funcsize = paintFunctionGraphic(painter, x, y, funcType, false);
-
-        painter->setPen(mFunctionPen);
-
-        XREFTYPE refType = DbgGetXrefTypeAt(cur_addr);
-        char indicator;
-        if(refType == XREF_JMP)
-        {
-            indicator = '>';
-        }
-        else if(refType == XREF_CALL)
-        {
-            indicator = '$';
-        }
-        else if(funcType != Function_none)
-        {
-            indicator = '.';
-        }
-        else
-        {
-            indicator = ' ';
-        }
-
         int charwidth = getCharWidth();
-        painter->drawText(QRect(x + funcsize, y, charwidth, h), Qt::AlignVCenter | Qt::AlignLeft, QString(indicator));
+        int funcsize = 0;
+        if(DbgIsDebugging())
+        {
+            //draw functions
+            Function_t funcType;
+            FUNCTYPE funcFirst = DbgGetFunctionTypeAt(cur_addr);
+            FUNCTYPE funcLast = DbgGetFunctionTypeAt(cur_addr + inst.length - 1);
+            HANDLE_RANGE_TYPE(FUNC, funcFirst, funcLast);
+            switch(funcFirst)
+            {
+            case FUNC_SINGLE:
+                funcType = Function_single;
+                break;
+            case FUNC_NONE:
+                funcType = Function_none;
+                break;
+            case FUNC_BEGIN:
+                funcType = Function_start;
+                break;
+            case FUNC_MIDDLE:
+                funcType = Function_middle;
+                break;
+            case FUNC_END:
+                funcType = Function_end;
+                break;
+            }
+            funcsize = paintFunctionGraphic(painter, x, y, funcType, false);
+
+            painter->setPen(mFunctionPen);
+
+            char indicator;
+            XREFTYPE refType = DbgGetXrefTypeAt(cur_addr);
+            if(refType == XREF_JMP)
+            {
+                indicator = '>';
+            }
+            else if(refType == XREF_CALL)
+            {
+                indicator = '$';
+            }
+            else if(funcType != Function_none)
+            {
+                indicator = '.';
+            }
+            else
+            {
+                indicator = ' ';
+            }
+
+            painter->drawText(QRect(x + funcsize, y, charwidth, h), Qt::AlignVCenter | Qt::AlignLeft, QString(indicator));
+        }
         funcsize += charwidth;
 
         //draw jump arrows
@@ -838,6 +840,7 @@ void TraceBrowser::setupRightClickContextMenu()
         else
             return getTraceFile()->Registers(getInitialSelection()).regcontext.cip;
     });
+
     QAction* toggleTraceRecording = makeShortcutAction(DIcon("control-record"), tr("Start recording"), SLOT(toggleTraceRecordingSlot()), "ActionToggleRunTrace");
     mMenuBuilder->addAction(toggleTraceRecording, [toggleTraceRecording](QMenu*)
     {
@@ -948,10 +951,7 @@ void TraceBrowser::setupRightClickContextMenu()
             char nolabel[MAX_LABEL_SIZE];
             mRvaDisplayEnabled = false;
             for(int i = 0; i < MemoryOperandsCount; i++)
-            {
-                auto action = menu->addAction(QString("%1: %2 -> %3").arg(getAddrText(MemoryAddress[i], nolabel, false)).arg(ToPtrString(MemoryOldContent[i])).arg(ToPtrString(MemoryNewContent[i])));
-                connect(action, SIGNAL(triggered()), this, SLOT(debugdump()));
-            }
+                menu->addAction(QString("%1: %2 -> %3").arg(getAddrText(MemoryAddress[i], nolabel, false)).arg(ToPtrString(MemoryOldContent[i])).arg(ToPtrString(MemoryNewContent[i])));
             mRvaDisplayEnabled = RvaDisplayEnabled;
             return true;
         }
@@ -1320,18 +1320,11 @@ void TraceBrowser::toggleTraceRecordingSlot()
     toggleTraceRecording(this);
 }
 
-// TODO: emit close tab event
 void TraceBrowser::closeFileSlot()
 {
     if(isRecording())
         DbgCmdExecDirect("StopTraceRecording");
-    if(mTraceFile != nullptr)
-    {
-        mTraceFile->Close();
-        delete mTraceFile;
-        mTraceFile = nullptr;
-    }
-    emit Bridge::getBridge()->updateTraceBrowser();
+    emit closeFile();
 }
 
 void TraceBrowser::closeDeleteSlot()
@@ -1342,9 +1335,7 @@ void TraceBrowser::closeDeleteSlot()
         if(isRecording())
             DbgCmdExecDirect("StopTraceRecording");
         mTraceFile->Delete();
-        delete mTraceFile;
-        mTraceFile = nullptr;
-        emit Bridge::getBridge()->updateTraceBrowser();
+        emit closeFile();
     }
 }
 
@@ -1352,9 +1343,6 @@ void TraceBrowser::parseFinishedSlot()
 {
     if(mTraceFile->isError())
     {
-        SimpleErrorBox(this, tr("Error"), tr("Error when opening trace recording"));
-        delete mTraceFile;
-        mTraceFile = nullptr;
         setRowCount(0);
     }
     else
@@ -1876,10 +1864,4 @@ void TraceBrowser::synchronizeCpuSlot()
 void TraceBrowser::gotoIndexSlot(duint index)
 {
     disasm(index, false);
-}
-
-void TraceBrowser::debugdump()
-{
-    getTraceFile()->buildDumpTo(getInitialSelection());
-    getTraceFile()->debugdump(getInitialSelection());
 }

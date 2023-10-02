@@ -32,10 +32,14 @@ public:
 public slots:
     //void openSlot(const QString & fileName);
 
+signals:
+    void closeFile();
+
 protected slots:
     void traceSelectionChanged(unsigned long long selection);
     void parseFinishedSlot();
     void updateSlot();
+    void closeFileSlot();
 
 protected:
     TraceFileReader* mTraceFile;

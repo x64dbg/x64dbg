@@ -77,7 +77,7 @@ public slots:
     void findReferencesSlot();
 
     void selectionUpdatedSlot();
-    void syncWithExpressionSlot();
+    //void syncWithExpressionSlot();//TODO: Do we really need to sync with expression here?
 
     void headerButtonReleasedSlot(duint colIndex);
 
