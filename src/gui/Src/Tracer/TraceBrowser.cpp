@@ -61,7 +61,6 @@ TraceBrowser::TraceBrowser(TraceFileReader* traceFile, QWidget* parent) : Abstra
 
 TraceBrowser::~TraceBrowser()
 {
-    Config()->unregisterMenuBuilder(mMenuBuilder);
 }
 
 bool TraceBrowser::isFileOpened() const

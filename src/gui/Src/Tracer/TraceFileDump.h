@@ -22,8 +22,8 @@ public:
     {
         unsigned char oldData;
         unsigned char newData;
-        unsigned char isWrite;
-        unsigned char isExecute;
+        //unsigned char isWrite;
+        //unsigned char isExecute;
     };
 
     TraceFileDump();

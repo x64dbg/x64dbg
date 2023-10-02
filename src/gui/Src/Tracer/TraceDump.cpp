@@ -19,7 +19,7 @@
 
 TraceDump::TraceDump(Architecture* architecture, TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, QWidget* parent) : mMemoryPage(memoryPage), HexDump(architecture, parent, memoryPage)
 {
-    mDisas = disas;
+    //mDisas = disas; //TODO: unused
     setDrawDebugOnly(false);
     //mMultiDump = multiDump;
 
@@ -245,7 +245,6 @@ void TraceDump::setupContextMenu()
 
 TraceDump::~TraceDump()
 {
-    Config()->unregisterMenuBuilder(mMenuBuilder);
 }
 
 void TraceDump::mousePressEvent(QMouseEvent* event)

@@ -92,7 +92,7 @@ private:
 
     GotoDialog* mGoto = nullptr;
     GotoDialog* mGotoOffset = nullptr;
-    TraceBrowser* mDisas;
+    //TraceBrowser* mDisas;
     //CPUMultiDump* mMultiDump;
     int mAsciiSeparator = 0;
 

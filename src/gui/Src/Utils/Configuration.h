@@ -54,8 +54,8 @@ public:
     void writeFonts();
     void readShortcuts();
     void writeShortcuts();
-    void registerMenuBuilder(MenuBuilder* menu, size_t count);
-    void registerMainMenuStringList(QList<QAction*>* menu);
+    bool registerMenuBuilder(MenuBuilder* menu, size_t count);
+    bool registerMainMenuStringList(QList<QAction*>* menu);
     void unregisterMenuBuilder(MenuBuilder* meun);
 
     const QColor getColor(const QString & id) const;

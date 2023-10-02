@@ -27,9 +27,7 @@ public:
     explicit TraceWidget(Architecture* architecture, const QString & fileName, QWidget* parent);
     ~TraceWidget();
 
-    TraceBrowser* getTraceBrowser();
-
-public slots:
+    //public slots:
     //void openSlot(const QString & fileName);
 
 signals:
@@ -43,7 +41,7 @@ protected slots:
 
 protected:
     TraceFileReader* mTraceFile;
-    TraceBrowser* mTraceWidget;
+    TraceBrowser* mTraceBrowser;
     TraceInfoBox* mInfo;
     TraceDump* mDump;
     TraceRegisters* mGeneralRegs;

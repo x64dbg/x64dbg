@@ -70,8 +70,7 @@ void TraceManager::closeTab(int index)
     if(view)
     {
         removeTab(index);
-        mViewsToDelete.append(view); // It needs to return from close event before we can delete
-        startTimer(100);
+        view->deleteLater(); // It needs to return from close event before we can delete
     }
     else
     {
@@ -97,13 +96,4 @@ void TraceManager::closeAllTabs()
             closeTab(0);
         }
     }
-}
-
-// These tabs are deleted after the close tab event completes
-void TraceManager::timerEvent(QTimerEvent* event)
-{
-    for(auto & i : mViewsToDelete)
-        delete i;
-    mViewsToDelete.clear();
-    killTimer(event->timerId());
 }

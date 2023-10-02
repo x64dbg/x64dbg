@@ -84,10 +84,8 @@ std::vector<unsigned char> TraceFileDump::getBytes(duint addr, duint size, unsig
                     i += gap_size - 1;
                     continue;
                 }
-                else
-                {
-                    GuiAddLogMessage("impossible!");
-                }
+                //else
+                //    GuiAddLogMessage("impossible!");
             }
         }
         if(!success)
@@ -184,8 +182,8 @@ void TraceFileDump::addMemAccess(duint addr, const void* oldData, const void* ne
         records[i - 1].first.index = maxIndex;
         records[i - 1].second.oldData = ((const unsigned char*)oldData)[b];
         records[i - 1].second.newData = ((const unsigned char*)newData)[b];
-        records[i - 1].second.isWrite = 0; //TODO
-        records[i - 1].second.isExecute = 0;
+        //records[i - 1].second.isWrite = 0; //TODO
+        //records[i - 1].second.isExecute = 0;
     }
     dump.insert(records.begin(), records.end());
 }

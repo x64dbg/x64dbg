@@ -1091,18 +1091,20 @@ bool Configuration::shortcutToConfig(const QString & id, const QKeySequence shor
     return BridgeSettingSet("Shortcuts", _id.toUtf8().constData(), _key.toUtf8().constData());
 }
 
-void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
+bool Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
 {
     QString id = menu->getId();
     for(const auto & i : NamedMenuBuilders)
         if(i.type == 0 && i.builder->getId() == id)
-            return; //already exists
+            return false; //already exists
     NamedMenuBuilders.append(MenuMap(menu, count));
+    return true;
 }
 
-void Configuration::registerMainMenuStringList(QList<QAction*>* menu)
+bool Configuration::registerMainMenuStringList(QList<QAction*>* menu)
 {
     NamedMenuBuilders.append(MenuMap(menu, menu->size() - 1));
+    return true;
 }
 
 void Configuration::unregisterMenuBuilder(MenuBuilder* menu)

@@ -16,14 +16,14 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
 
     mTraceFile = new TraceFileReader(this);
     mTraceFile->Open(fileName);
-    mTraceWidget = new TraceBrowser(mTraceFile, this);
+    mTraceBrowser = new TraceBrowser(mTraceFile, this);
     mOverview = new StdTable(this);
     mInfo = new TraceInfoBox(this);
     mMemoryPage = new TraceFileDumpMemoryPage(this);
-    mDump = new TraceDump(architecture, mTraceWidget, mMemoryPage, this);
+    mDump = new TraceDump(architecture, mTraceBrowser, mMemoryPage, this);
     mGeneralRegs = new TraceRegisters(this);
     //disasm
-    ui->mTopLeftUpperRightFrameLayout->addWidget(mTraceWidget);
+    ui->mTopLeftUpperRightFrameLayout->addWidget(mTraceBrowser);
     //registers
     mGeneralRegs->setFixedWidth(1000);
     mGeneralRegs->ShowFPU(true);
@@ -39,10 +39,10 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     QPushButton* button_changeview = new QPushButton("", this);
     button_changeview->setStyleSheet("Text-align:left;padding: 4px;padding-left: 10px;");
     connect(button_changeview, SIGNAL(clicked()), mGeneralRegs, SLOT(onChangeFPUViewAction()));
-    connect(mTraceWidget, SIGNAL(selectionChanged(unsigned long long)), this, SLOT(traceSelectionChanged(unsigned long long)));
+    connect(mTraceBrowser, SIGNAL(selectionChanged(unsigned long long)), this, SLOT(traceSelectionChanged(unsigned long long)));
     connect(Bridge::getBridge(), SIGNAL(updateTraceBrowser()), this, SLOT(updateSlot()));
     connect(mTraceFile, SIGNAL(parseFinished()), this, SLOT(parseFinishedSlot()));
-    connect(mTraceWidget, SIGNAL(closeFile()), this, SLOT(closeFileSlot()));
+    connect(mTraceBrowser, SIGNAL(closeFile()), this, SLOT(closeFileSlot()));
 
     mGeneralRegs->SetChangeButton(button_changeview);
 
@@ -70,7 +70,7 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     mOverview->setCellContent(1, 0, "world");
     mOverview->setCellContent(2, 0, "00000000");
     mOverview->setCellContent(3, 0, "TODO: Draw call stack here");
-    //mOverview->hide();
+    mOverview->hide();
     ui->mTopHSplitter->setSizes(QList<int>({1000, 1}));
     ui->mTopLeftVSplitter->setSizes(QList<int>({1000, 1}));
 }
@@ -141,12 +141,12 @@ void TraceWidget::parseFinishedSlot()
 
 //void TraceWidget::openSlot(const QString & fileName)
 //{
-//    emit mTraceWidget->openSlot(fileName);
+//    emit mTraceBrowser->openSlot(fileName);
 //}
 
 void TraceWidget::updateSlot()
 {
-    auto fileOpened = mTraceWidget->isFileOpened();
+    auto fileOpened = mTraceBrowser->isFileOpened();
     mGeneralRegs->setActive(fileOpened);
     if(!fileOpened)
         mInfo->clear();
@@ -155,9 +155,4 @@ void TraceWidget::updateSlot()
 void TraceWidget::closeFileSlot()
 {
     emit closeFile();
-}
-
-TraceBrowser* TraceWidget::getTraceBrowser()
-{
-    return mTraceWidget;
 }
