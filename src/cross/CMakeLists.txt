@@ -94,15 +94,18 @@ endif()
 set(remote_table_SOURCES
 	"remote_table/JsonRpcClient.cpp"
 	"remote_table/MainWindow.cpp"
+	"remote_table/OverlayFrame.cpp"
 	"remote_table/RemoteTable.cpp"
 	"remote_table/TableServer.cpp"
 	"remote_table/main.cpp"
 	"remote_table/JsonRpcClient.h"
 	"remote_table/MainWindow.h"
+	"remote_table/OverlayFrame.h"
 	"remote_table/RemoteTable.h"
 	"remote_table/TableRpcData.h"
 	"remote_table/TableServer.h"
 	"remote_table/MainWindow.ui"
+	"remote_table/OverlayFrame.ui"
 	"remote_table/json.hpp"
 	cmake.toml
 )

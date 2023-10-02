@@ -4,6 +4,13 @@
 
 #include <QMessageBox>
 #include <QTimer>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QFrame>
+#include <QProgressBar>
+#include <QLabel>
+#include <QTextBrowser>
 
 RemoteTable::RemoteTable(QWidget* parent)
     : AbstractStdTable(parent)
@@ -34,22 +41,37 @@ RemoteTable::RemoteTable(QWidget* parent)
 
     // Test
     setRowCount(0x2000ull);
+
+    mOverlay = OverlayFrame::embed(this, false);
 }
 
 QString RemoteTable::getCellContent(duint row, duint col)
 {
+    // TODO: get data from a container that's aware of the outgoing requests
+    // (perhaps this should be done transparently in the request/response handling?)
     auto relativeRow = row - getTableOffset();
-    auto base = QString("row: %1, col: %2").arg(row, 5).arg(col);
+    QString base;
+    if(col == 0)
+    {
+        base = QString("[row: %1] ").arg(row, 5);
+    }
     if(relativeRow < mRemoteData.size())
     {
-        auto data = QString::fromStdString(mRemoteData[relativeRow][col]);
-        return base + " " + data;
+        const auto& remoteRow = mRemoteData[relativeRow];
+        QString data;
+        if(col < remoteRow.size())
+        {
+            data = QString::fromStdString(remoteRow[col]);
+        }
+        else
+        {
+            data = "(BAD SERVER)";
+        }
+        return base + data;
     }
     else
     {
-        return "(FETCHING DATA...)";
-        return QString();
-        return base + " (FETCHING DATA...)";
+        return base + "(FETCHING DATA...)";
     }
 }
 
@@ -140,20 +162,24 @@ void RemoteTable::prepareData()
     //mRemoteData.clear();
     //qDebug() << "prepareData";
 
-    // TODO: do some cooldown and don't enqueue unnecessary requests
+    // TODO: do some cooldown and don't enqueue unnecessary requests (while dragging the scroll bar)
     // TODO: use the average/median/last latency of the connection as a debouncing timer
-    // TODO: use some basic prediction heuristics (scroll direction etc) to anticipate the scroll
+    // TODO: use some basic prediction heuristics (scroll direction etc) to anticipate
+    // the scroll (request a bigger range)
     // TODO: measure the ping
+    // TODO: implement partial reuse of the data
 
     TableRequest r;
     r.offset = offset;
     r.lines = linesToPrint;
-    r.scroll = 0; // TODO
+    r.scroll = 0; // TODO: unused for now, used to scroll up in disassembly (variable size)
 
     if(!mCurrentSent)
     {
         assert(!mNextRequired);
         mCurrentSent = true;
+        mCurrentSentTime = now;
+        mOverlay->setVisible(true);
 
         qDebug() << "send rpc request";
         mCurrentRequest = r;
@@ -161,7 +187,7 @@ void RemoteTable::prepareData()
     }
     else
     {
-        qDebug() << "add rpc to backlog";
+        //qDebug() << "add rpc to backlog";
         mNextRequest = r;
         mNextRequired = true;
     }
@@ -169,24 +195,83 @@ void RemoteTable::prepareData()
 
 void RemoteTable::handleTableResponse(const TableResponse & response)
 {
+    // Calculate response time statistics
+    auto now = std::chrono::system_clock::now();
+    auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - mCurrentSentTime).count();
+    mResponseTimes.push_back(elapsedMs);
+    const size_t MAX_RESPONSE_TIMES = 10;
+    while(mResponseTimes.size() > MAX_RESPONSE_TIMES)
+    {
+        mResponseTimes.pop_front();
+    }
+    std::vector<uint64_t> sorted;
+    sorted.reserve(mResponseTimes.size());
+    mMaxResponseTime = 0;
+    mMinResponseTime = UINT64_MAX;
+    mAvgResponseTime = 0;
+    for(const auto& responseTime : mResponseTimes)
+    {
+        mMaxResponseTime = std::max(mMaxResponseTime, responseTime);
+        mMinResponseTime = std::min(mMinResponseTime, responseTime);
+        mAvgResponseTime += responseTime;
+        sorted.push_back(responseTime);
+    }
+    mAvgResponseTime /= mResponseTimes.size();
+    std::sort(sorted.begin(), sorted.end());
+    auto middle = sorted.size() / 2;
+    if(sorted.size() % 2 == 0)
+    {
+        mMedResponseTime = (sorted[middle - 1] + sorted[middle]) / 2;
+    }
+    else
+    {
+        mMedResponseTime = sorted[middle];
+    }
+
+    qDebug() << "[response time] now:" << elapsedMs << "min:" << mMinResponseTime << "max:" << mMaxResponseTime << "avg:" << mAvgResponseTime << "med:" << mMedResponseTime;
+
+    // Handle deferred request
     if(mNextRequired)
     {
         mNextRequired = false;
+        auto previousRequest = mCurrentRequest;
         mCurrentRequest = mNextRequest;
         assert(mCurrentSent);
+        mCurrentSentTime = now;
 
         qDebug() << "send rpc request (backlog)";
 
         mRpc.call<TableResponse>(mCurrentRequest, [this](TableResponse response) { handleTableResponse(response); });
+
+        // TODO: display the results that fit the new outgoing request?
+        auto tableOffset = getTableOffset();
+        qDebug() << "[partial] tableOffset:" << tableOffset << "requestOffset:" << previousRequest.offset << "@" << previousRequest.lines;
+        // The first row displayed here depends on the difference between the current table offset and the previous offset requested
+        if(tableOffset < previousRequest.offset)
+        {
+            // TODO: ??
+            qDebug() << "TODO: implement negative offset";
+        }
+        else
+        {
+            auto diff = tableOffset - previousRequest.offset;
+            for(int i = 0; i < mRemoteData.size(); i++)
+            {
+
+            }
+        }
     }
     else
     {
         mCurrentSent = false;
         qDebug() << "final response";
-    }
 
-    mRemoteData = std::move(response.rows);
-    updateViewport();
+        mOverlay->setVisible(false);
+
+        // Update the displayed data with the final response
+        mRemoteData = std::move(response.rows);
+        updateViewport();
+    }
 }
 
 void RemoteTable::setupMenu()

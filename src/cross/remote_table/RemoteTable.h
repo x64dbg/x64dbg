@@ -4,8 +4,11 @@
 #include "MagicMenu.h"
 #include "JsonRpcClient.h"
 #include "TableRpcData.h"
+#include "OverlayFrame.h"
 
 #include <QWebSocket>
+#include <QWidget>
+#include <deque>
 
 class RemoteTable : public AbstractStdTable, public MagicMenu<RemoteTable>
 {
@@ -37,9 +40,18 @@ private:
 
     TableRequest mCurrentRequest;
     bool mCurrentSent = false;
+    std::chrono::time_point<std::chrono::system_clock> mCurrentSentTime;
 
     TableRequest mNextRequest;
     bool mNextRequired = false;
+
+    OverlayFrame* mOverlay = nullptr;
+
+    std::deque<uint64_t> mResponseTimes;
+    uint64_t mMinResponseTime = 0;
+    uint64_t mMaxResponseTime = 100;
+    uint64_t mAvgResponseTime = 100;
+    uint64_t mMedResponseTime = 100;
 
     void handleTableResponse(const TableResponse & response);
     void setupMenu();
