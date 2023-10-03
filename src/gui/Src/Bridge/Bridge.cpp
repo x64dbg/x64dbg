@@ -576,6 +576,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         case GUI_STACK:
             emit selectionStackSet(selection);
             break;
+        case GUI_MEMMAP:
+            emit selectionMemmapSet(selection);
+            break;
         default:
             return (void*)false;
         }
