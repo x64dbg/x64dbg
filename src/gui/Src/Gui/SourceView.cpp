@@ -27,8 +27,8 @@ SourceView::SourceView(QString path, duint addr, QWidget* parent)
     setupContextMenu();
 
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
-    connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(followDisassemblerSlot()));
-    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisassemblerSlot()));
+    connect(this, SIGNAL(doubleClickedSignal()), mCommonActions, SLOT(followDisassemblySlot()));
+    connect(this, SIGNAL(enterPressedSignal()), mCommonActions, SLOT(followDisassemblySlot()));
     connect(Bridge::getBridge(), SIGNAL(updateDisassembly()), this, SLOT(reloadData()));
 
     Initialize();
