@@ -123,6 +123,7 @@ signals:
     void selectionStackSet(const SELECTIONDATA* selection);
     void selectionGraphGet(SELECTIONDATA* selection);
     void selectionMemmapGet(SELECTIONDATA* selection);
+    void selectionMemmapSet(const SELECTIONDATA* selection);
     void selectionSymmodGet(SELECTIONDATA* selection);
     void getStrWindow(const QString title, QString* text);
     void autoCompleteAddCmd(const QString cmd);

@@ -37,6 +37,7 @@ MemoryMapView::MemoryMapView(StdTable* parent)
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(stateChangedSlot(DBGSTATE)));
     connect(Bridge::getBridge(), SIGNAL(selectInMemoryMap(duint)), this, SLOT(selectAddress(duint)));
     connect(Bridge::getBridge(), SIGNAL(selectionMemmapGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(selectionMemmapSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(duint, duint)), this, SLOT(disassembleAtSlot(duint, duint)));
     connect(Bridge::getBridge(), SIGNAL(focusMemmap()), this, SLOT(setFocus()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
@@ -734,6 +735,47 @@ void MemoryMapView::selectionGetSlot(SELECTIONDATA* selection)
     selection->start = getCellUserdata(sel.front(), ColAddress);
     selection->end = getCellUserdata(sel.back(), ColAddress) + getCellUserdata(sel.back(), ColSize) - 1;
     Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
+}
+
+void MemoryMapView::selectionSetSlot(const SELECTIONDATA* selection)
+{
+    const auto rowCount = getRowCount();
+    if(rowCount == 0)
+    {
+        Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 0);
+        return;
+    }
+
+    const auto badIndex = (duint) - 1;
+    duint firstIdx = badIndex;
+    duint lastIdx = badIndex;
+
+    for(duint row = 0; row < rowCount; row++)
+    {
+        const duint addrStart = getCellUserdata(row, ColAddress);
+        if(addrStart < selection->start)
+            continue;
+
+        const duint addrEnd = addrStart + getCellUserdata(row, ColSize);
+        if(addrEnd > selection->end)
+            break;
+
+        if(firstIdx == badIndex)
+            firstIdx = row;
+
+        lastIdx = row;
+    }
+
+    if(firstIdx == badIndex || lastIdx == badIndex)
+    {
+        Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 0);
+        return;
+    }
+
+    setSingleSelection(firstIdx);
+    expandSelectionUpTo(lastIdx);
+    reloadData();
+    Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 1);
 }
 
 void MemoryMapView::disassembleAtSlot(duint va, duint cip)

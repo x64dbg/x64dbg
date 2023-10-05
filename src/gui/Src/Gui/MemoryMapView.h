@@ -39,6 +39,7 @@ public slots:
     void addVirtualModSlot();
     void findReferencesSlot();
     void selectionGetSlot(SELECTIONDATA* selection);
+    void selectionSetSlot(const SELECTIONDATA* selection);
     void disassembleAtSlot(duint va, duint cip);
 
 private:
