@@ -864,6 +864,10 @@ bool ModLoad(duint Base, duint Size, const char* FullPath, bool loadSymbols)
         // Load the physical module from disk
         if(StaticFileLoadW(wszFullPath.c_str(), UE_ACCESS_READ, false, &info.fileHandle, &info.loadedSize, &info.fileMap, &info.fileMapVA))
         {
+            // Fix an anti-debug trick, which opens exclusive access to the file
+            CloseHandle(info.fileHandle);
+            info.fileHandle = (HANDLE)1; // Set to non-zero for TitanEngine compatibility
+
             GetModuleInfo(info, info.fileMapVA);
 
             Size = GetPE32DataFromMappedFile(info.fileMapVA, 0, UE_SIZEOFIMAGE);
