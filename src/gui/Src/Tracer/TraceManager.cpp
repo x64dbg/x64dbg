@@ -1,7 +1,9 @@
 #include <QFrame>
 #include <QTimerEvent>
 #include "TraceManager.h"
+#include "TraceBrowser.h"
 #include "BrowseDialog.h"
+#include "MRUList.h"
 #include "StringUtil.h"
 #include "MiscUtil.h"
 
@@ -9,12 +11,10 @@ TraceManager::TraceManager(QWidget* parent) : QTabWidget(parent)
 {
     setMovable(true);
 
-    //Open
-    mOpen = new QPushButton(this);
-    mOpen->setIcon(DIcon("folder-horizontal-open")); //TODO: New icon
-    mOpen->setToolTip(tr("Open"));
-    connect(mOpen, SIGNAL(clicked()), this, SLOT(open()));
-    setCornerWidget(mOpen, Qt::TopRightCorner);
+    //MRU
+    mMRUList = new MRUList(this, "Recent Trace Files");
+    connect(mMRUList, SIGNAL(openFile(QString)), this, SLOT(openSlot(QString)));
+    mMRUList->load();
 
     //Close All Tabs
     mCloseAllTabs = new QPushButton(this);
@@ -25,10 +25,6 @@ TraceManager::TraceManager(QWidget* parent) : QTabWidget(parent)
 
     connect(this, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
     connect(Bridge::getBridge(), SIGNAL(openTraceFile(const QString &)), this, SLOT(openSlot(const QString &)));
-
-    // Add a placeholder tab
-    QFrame* mPlaceholder = new QFrame(this);
-    addTab(mPlaceholder, tr("Placeholder")); //TODO: This is only to prevent open buttons from disappearing
 }
 
 TraceManager::~TraceManager()
@@ -58,6 +54,8 @@ void TraceManager::openSlot(const QString & path)
     addTab(newView, path); //TODO: Proper title
     int index = count() - 1;
     setCurrentIndex(index);
+    mMRUList->addEntry(path);
+    mMRUList->save();
     connect(newView, &TraceWidget::closeFile, this, [index, this]()
     {
         closeTab(index);
@@ -72,28 +70,48 @@ void TraceManager::closeTab(int index)
         removeTab(index);
         view->deleteLater(); // It needs to return from close event before we can delete
     }
-    else
-    {
-        // Placeholder tab
-        return;
-    }
 }
 
 void TraceManager::closeAllTabs()
 {
-    bool closeBack = true;
-    while(count() > 1)
+    while(count())
     {
-        if(closeBack)
-        {
-            int beforeTabs = count();
-            closeTab(count() - 1);
-            if(count() == beforeTabs) // Placeholder tab can't be closed, so close tabs before it instead
-                closeBack = false;
-        }
-        else
-        {
-            closeTab(0);
-        }
+        closeTab(count() - 1);
     }
+}
+
+void TraceManager::toggleTraceRecording()
+{
+    TraceBrowser::toggleTraceRecording(this);
+}
+
+void TraceManager::contextMenuEvent(QContextMenuEvent* event)
+{
+    QMenu wMenu;
+    QAction traceCoverageToggleTraceRecording(tr("Start recording"));
+    if(TraceBrowser::isRecording())
+    {
+        traceCoverageToggleTraceRecording.setText(tr("Stop trace recording"));
+        traceCoverageToggleTraceRecording.setIcon(DIcon("control-stop"));
+    }
+    else
+    {
+        traceCoverageToggleTraceRecording.setText(tr("Start trace recording"));
+        traceCoverageToggleTraceRecording.setIcon(DIcon("control-record"));
+    }
+    connect(&traceCoverageToggleTraceRecording, SIGNAL(triggered()), this, SLOT(toggleTraceRecording()));
+    // Disable toggle trace when not debugging
+    if(!DbgIsDebugging())
+        traceCoverageToggleTraceRecording.setEnabled(false);
+    wMenu.addAction(&traceCoverageToggleTraceRecording);
+
+    QAction openAction(DIcon("folder-horizontal-open"), tr("Open"));
+    connect(&openAction, SIGNAL(triggered()), this, SLOT(open()));
+    wMenu.addAction(&openAction);
+
+    QMenu wMRUMenu(tr("Recent Files"));
+    mMRUList->appendMenu(&wMRUMenu);
+    wMenu.addMenu(&wMRUMenu);
+
+    wMenu.exec(mapToGlobal(event->pos()));
 }

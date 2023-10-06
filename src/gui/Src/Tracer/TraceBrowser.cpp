@@ -42,10 +42,6 @@ TraceBrowser::TraceBrowser(TraceFileReader* traceFile, QWidget* parent) : Abstra
     mPermanentHighlightingMode = false;
     mShowMnemonicBrief = false;
 
-    mMRUList = new MRUList(this, "Recent Trace Files");
-    connect(mMRUList, SIGNAL(openFile(QString)), this, SLOT(openSlot(QString)));
-    mMRUList->load();
-
     setupRightClickContextMenu();
 
     Initialize();
@@ -866,17 +862,6 @@ void TraceBrowser::setupRightClickContextMenu()
         return isFileOpened();
     };
 
-    mMenuBuilder->addAction(makeAction(DIcon("folder-horizontal-open"), tr("Open"), SLOT(openFileSlot())), mTraceFileIsNull);
-    mMenuBuilder->addMenu(makeMenu(DIcon("recentfiles"), tr("Recent Files")), [this](QMenu * menu)
-    {
-        if(getTraceFile() == nullptr)
-        {
-            mMRUList->appendMenu(menu);
-            return true;
-        }
-        else
-            return false;
-    });
     mMenuBuilder->addAction(makeAction(DIcon("close"), tr("Close recording"), SLOT(closeFileSlot())), mTraceFileNotNull);
     mMenuBuilder->addAction(makeAction(DIcon("delete"), tr("Delete recording"), SLOT(closeDeleteSlot())), mTraceFileNotNull);
     mMenuBuilder->addSeparator();
@@ -1353,8 +1338,6 @@ void TraceBrowser::parseFinishedSlot()
                                  tr("Checksum is different for current trace file and the debugee. This probably means you have opened a wrong trace file. This trace file is recorded for \"%1\"").arg(mTraceFile->ExePath()));
             }
         setRowCount(mTraceFile->Length());
-        mMRUList->addEntry(mFileName);
-        mMRUList->save();
     }
     setSingleSelection(0);
     makeVisible(0);

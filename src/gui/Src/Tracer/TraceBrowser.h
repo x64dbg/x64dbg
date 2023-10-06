@@ -6,7 +6,6 @@
 
 class TraceFileReader;
 class BreakpointMenu;
-class MRUList;
 class CommonActions;
 
 class TraceBrowser : public AbstractTableView
@@ -83,7 +82,6 @@ private:
 
     TraceFileReader* mTraceFile;
     BreakpointMenu* mBreakpointMenu;
-    MRUList* mMRUList;
     QString mFileName;
 
     QColor mBytesColor;
