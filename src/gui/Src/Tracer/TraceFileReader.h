@@ -46,7 +46,6 @@ public:
 
     void buildDumpTo(unsigned long long index);
     std::vector<unsigned long long> getReferences(duint startAddr, duint endAddr) const;
-    void debugdump(unsigned long long index);
     TraceFileDump* getDump();
 
 signals:

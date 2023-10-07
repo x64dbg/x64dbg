@@ -72,9 +72,9 @@ public slots:
 
     void binaryCopySlot();
     void binarySaveToFileSlot();
-    void findPattern();
+    //void findPattern();
     void copyFileOffsetSlot();
-    void findReferencesSlot();
+    //void findReferencesSlot();
 
     void selectionUpdatedSlot();
     //void syncWithExpressionSlot();//TODO: Do we really need to sync with expression here?

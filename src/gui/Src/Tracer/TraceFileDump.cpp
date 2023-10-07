@@ -190,62 +190,55 @@ void TraceFileDump::addMemAccess(duint addr, const void* oldData, const void* ne
 
 // Find continuous memory areas. It is done separate from adding memory accesses because the number of addresses is less than that of memory accesses
 // TODO: We also need another findMemAreas() which only updates incrementally, when the user steps while tracing
-void TraceFileDump::findMemAreas()
-{
-    memAreas.clear();
-    if(dump.empty())
-        return;
-    duint addr = dump.begin()->first.addr; //highest address
-    duint end = addr;
-    duint start;
-    // find first access to addr
-    do
-    {
-        auto it = dump.lower_bound({addr - 1, maxIndex + 1});
-        // try to find out if addr-1 is in the dump
-        for(; it != dump.end(); it = dump.lower_bound({addr - 1, maxIndex + 1}))
-        {
-            if(it->first.addr != addr - 1)
-                break;
-            addr--;
-        }
-        // addr-1 is not in the dump, insert the memory area
-        start = addr;
-        memAreas.push_back(std::make_pair(start, end));
-        // get to next lowest address
-        if(it != dump.end())
-        {
-            addr = it->first.addr;
-            end = addr;
-        }
-        else
-        {
-            break;
-        }
-    }
-    while(true);
-}
+// TODO: User interface (UI)
+//void TraceFileDump::findMemAreas()
+//{
+//memAreas.clear();
+//if(dump.empty())
+//return;
+//duint addr = dump.begin()->first.addr; //highest address
+//duint end = addr;
+//duint start;
+//// find first access to addr
+//do
+//{
+//auto it = dump.lower_bound({addr - 1, maxIndex + 1});
+//// try to find out if addr-1 is in the dump
+//for(; it != dump.end(); it = dump.lower_bound({addr - 1, maxIndex + 1}))
+//{
+//if(it->first.addr != addr - 1)
+//break;
+//addr--;
+//}
+//// addr-1 is not in the dump, insert the memory area
+//start = addr;
+//memAreas.push_back(std::make_pair(start, end));
+//// get to next lowest address
+//if(it != dump.end())
+//{
+//addr = it->first.addr;
+//end = addr;
+//}
+//else
+//{
+//break;
+//}
+//}
+//while(true);
+//}
 
 // TraceFileDumpMemoryPage
-TraceFileDumpMemoryPage::TraceFileDumpMemoryPage(QObject* parent) : MemoryPage(0x10000, 0x1000, parent)
+TraceFileDumpMemoryPage::TraceFileDumpMemoryPage(TraceFileDump* dump, QObject* parent) : MemoryPage(0x10000, 0x1000, parent)
 {
-    QMutexLocker locker(&lock);
-    dump = nullptr;
+    this->dump = dump;
 }
 
 void TraceFileDumpMemoryPage::setSelectedIndex(unsigned long long index)
 {
-    QMutexLocker locker(&lock);
     if(dump)
         selectedIndex = std::min(index, dump->getMaxIndex());
     else
         selectedIndex = 0ull;
-}
-
-void TraceFileDumpMemoryPage::setDumpObject(TraceFileDump* dump)
-{
-    QMutexLocker locker(&lock);
-    this->dump = dump;
 }
 
 bool TraceFileDumpMemoryPage::isAvailable() const
@@ -260,7 +253,6 @@ unsigned long long TraceFileDumpMemoryPage::getSelectedIndex() const
 
 bool TraceFileDumpMemoryPage::read(void* parDest, dsint parRVA, duint parSize) const
 {
-    QMutexLocker locker(&lock);
     if(!dump)
         return false;
     auto buffer = dump->getBytes(mBase + parRVA, parSize, selectedIndex);

@@ -8,11 +8,9 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "HexEditDialog.h"
-//#include "CPUMultiDump.h"
 #include "GotoDialog.h"
 #include "TraceBrowser.h"
 #include "CommonActions.h"
-//#include "WordEditDialog.h"
 #include "CodepageSelectionDialog.h"
 #include "MiscUtil.h"
 #include "BackgroundFlickerThread.h"
@@ -83,71 +81,6 @@ void TraceDump::setupContextMenu()
     };
 
     //TODO: Is it necessary to set memory breakpoints here?
-    //MenuBuilder* wBreakpointMenu = new MenuBuilder(this);
-    //MenuBuilder* wHardwareAccessMenu = new MenuBuilder(this, [this](QMenu*)
-    //{
-    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_hardware) == 0;
-    //});
-    //MenuBuilder* wHardwareWriteMenu = new MenuBuilder(this, [this](QMenu*)
-    //{
-    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_hardware) == 0;
-    //});
-    //MenuBuilder* wMemoryAccessMenu = new MenuBuilder(this, [this](QMenu*)
-    //{
-    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
-    //});
-    //MenuBuilder* wMemoryReadMenu = new MenuBuilder(this, [this](QMenu*)
-    //{
-    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
-    //});
-    //MenuBuilder* wMemoryWriteMenu = new MenuBuilder(this, [this](QMenu*)
-    //{
-    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
-    //});
-    //MenuBuilder* wMemoryExecuteMenu = new MenuBuilder(this, [this](QMenu*)
-    //{
-    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) == 0;
-    //});
-    //wHardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_byte"), tr("&Byte"), "bphws $, r, 1"));
-    //wHardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_word"), tr("&Word"), "bphws $, r, 2"));
-    //wHardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_dword"), tr("&Dword"), "bphws $, r, 4"));
-    //#ifdef _WIN64
-    //wHardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_qword"), tr("&Qword"), "bphws $, r, 8"));
-    //#endif //_WIN64
-    //wHardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_byte"), tr("&Byte"), "bphws $, w, 1"));
-    //wHardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_word"), tr("&Word"), "bphws $, w, 2"));
-    //wHardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_dword"), tr("&Dword"), "bphws $, w, 4"));
-    //#ifdef _WIN64
-    //wHardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_qword"), tr("&Qword"), "bphws $, w, 8"));
-    //#endif //_WIN64
-    //wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_access"), tr("Hardware, &Access")), wHardwareAccessMenu);
-    //wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_write"), tr("Hardware, &Write")), wHardwareWriteMenu);
-    //wBreakpointMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_execute"), tr("Hardware, &Execute"), "bphws $, x"), [this](QMenu*)
-    //{
-    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_hardware) == 0;
-    //});
-    //wBreakpointMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_remove"), tr("Remove &Hardware"), "bphwc $"), [this](QMenu*)
-    //{
-    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_hardware) != 0;
-    //});
-    //wBreakpointMenu->addSeparator();
-    //wMemoryAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), "bpm $, 0, a"));
-    //wMemoryAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), "bpm $, 1, a"));
-    //wMemoryReadMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), "bpm $, 0, r"));
-    //wMemoryReadMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), "bpm $, 1, r"));
-    //wMemoryWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), "bpm $, 0, w"));
-    //wMemoryWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), "bpm $, 1, w"));
-    //wMemoryExecuteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), "bpm $, 0, x"));
-    //wMemoryExecuteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), "bpm $, 1, x"));
-    //wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_access"), tr("Memory, Access")), wMemoryAccessMenu);
-    //wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_read"), tr("Memory, Read")), wMemoryReadMenu);
-    //wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_write"), tr("Memory, Write")), wMemoryWriteMenu);
-    //wBreakpointMenu->addMenu(makeMenu(DIcon("breakpoint_memory_execute"), tr("Memory, Execute")), wMemoryExecuteMenu);
-    //wBreakpointMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_remove"), tr("Remove &Memory"), "bpmc $"), [this](QMenu*)
-    //{
-    //return (DbgGetBpxTypeAt(rvaToVa(getSelectionStart())) & bp_memory) != 0;
-    //});
-    //mMenuBuilder->addMenu(makeMenu(DIcon("breakpoint"), tr("&Breakpoint")), wBreakpointMenu);
 
     //TODO: find in dump
     //mMenuBuilder->addAction(makeShortcutAction(DIcon("search-for"), tr("&Find Pattern..."), SLOT(findPattern()), "ActionFindPattern"));
@@ -422,109 +355,6 @@ void TraceDump::mouseDoubleClickEvent(QMouseEvent* event)
     }
 }
 
-#ifdef TODO
-static QString getTooltipForVa(duint va, int depth)
-{
-    duint ptr = 0;
-    if(!HexDump::mMemPage->read(va, &ptr, sizeof(duint)))
-        return QString();
-
-    QString tooltip;
-    /* TODO: if this is enabled, make sure the context menu items also work
-    // If the VA is not a valid pointer, try to align it
-    if(!DbgMemIsValidReadPtr(ptr))
-    {
-     va -= va % sizeof(duint);
-     DbgMemRead(va, &ptr, sizeof(duint));
-    }*/
-
-    // Check if its a pointer
-    switch(DbgGetEncodeTypeAt(va, 1))
-    {
-    // Get information about the pointer type
-    case enc_unknown:
-    default:
-        if(DbgMemIsValidReadPtr(ptr) && depth >= 0)
-        {
-            tooltip = QString("[%1] = %2").arg(ToPtrString(ptr), getTooltipForVa(ptr, depth - 1));
-        }
-        // If not a pointer, hide tooltips
-        else
-        {
-            bool isCodePage;
-            isCodePage = DbgFunctions()->MemIsCodePage(va, false);
-            char disassembly[GUI_MAX_DISASSEMBLY_SIZE];
-            if(isCodePage)
-            {
-                if(GuiGetDisassembly(va, disassembly))
-                    tooltip = QString::fromUtf8(disassembly);
-                else
-                    tooltip = "";
-            }
-            else
-                tooltip = QString("[%1] = %2").arg(ToPtrString(va)).arg(ToPtrString(ptr));
-            if(DbgFunctions()->ModGetParty(va) == 1)
-                tooltip += " (" + (isCodePage ? TraceDump::tr("System Code") : TraceDump::tr("System Data")) + ")";
-            else
-                tooltip += " (" + (isCodePage ? TraceDump::tr("User Code") : TraceDump::tr("User Data")) + ")";
-        }
-        break;
-    case enc_code:
-        char disassembly[GUI_MAX_DISASSEMBLY_SIZE];
-        if(GuiGetDisassembly(va, disassembly))
-            tooltip = QString::fromUtf8(disassembly);
-        else
-            tooltip = "";
-        if(DbgFunctions()->ModGetParty(va) == 1)
-            tooltip += " (" + TraceDump::tr("System Code") + ")";
-        else
-            tooltip += " (" + TraceDump::tr("User Code") + ")";
-        break;
-    case enc_real4:
-        tooltip = ToFloatString(&va) + TraceDump::tr(" (Real4)");
-        break;
-    case enc_real8:
-        double numd;
-        DbgMemRead(va, &numd, sizeof(double));
-        tooltip = ToDoubleString(&numd) + TraceDump::tr(" (Real8)");
-        break;
-    case enc_byte:
-        tooltip = ToByteString(va) + TraceDump::tr(" (BYTE)");
-        break;
-    case enc_word:
-        tooltip = ToWordString(va) + TraceDump::tr(" (WORD)");
-        break;
-    case enc_dword:
-        tooltip = QString("%1").arg((unsigned int)va, 8, 16, QChar('0')).toUpper() + TraceDump::tr(" (DWORD)");
-        break;
-    case enc_qword:
-#ifdef _WIN64
-        tooltip = QString("%1").arg((unsigned long long)va, 16, 16, QChar('0')).toUpper() + TraceDump::tr(" (QWORD)");
-#else //x86
-        unsigned long long qword;
-        qword = 0;
-        DbgMemRead(va, &qword, 8);
-        tooltip = QString("%1").arg((unsigned long long)qword, 16, 16, QChar('0')).toUpper() + TraceDump::tr(" (QWORD)");
-#endif //_WIN64
-        break;
-    case enc_ascii:
-    case enc_unicode:
-        char str[MAX_STRING_SIZE];
-        if(DbgGetStringAt(va, str))
-            tooltip = QString::fromUtf8(str) + TraceDump::tr(" (String)");
-        else
-            tooltip = TraceDump::tr("(Unknown String)");
-        break;
-    }
-    return tooltip;
-}
-#else
-static QString getTooltipForVa(duint va, int depth)
-{
-    return QString();
-}
-#endif
-
 void TraceDump::mouseMoveEvent(QMouseEvent* event)
 {
     // Get mouse pointer relative position
@@ -535,7 +365,7 @@ void TraceDump::mouseMoveEvent(QMouseEvent* event)
     auto va = rvaToVa(getItemStartingAddress(x, y));
 
     // Read VA
-    QToolTip::showText(event->globalPos(), getTooltipForVa(va, 4));
+    //QToolTip::showText(event->globalPos(), getTooltipForVa(va, 4)); //TODO: Unsupported
 
     HexDump::mouseMoveEvent(event);
 }
@@ -557,31 +387,10 @@ void TraceDump::gotoExpressionSlot()
 }
 
 // TODO: Module information need to be read from trace file
-/*void TraceDump::gotoFileOffsetSlot()
-{
-    if(!mMemoryPage->isAvailable())
-        return;
-    char modname[MAX_MODULE_SIZE] = "";
-    if(!DbgFunctions()->ModNameFromAddr(rvaToVa(getSelectionStart()), modname, true))
-    {
-        SimpleErrorBox(this, tr("Error!"), tr("Not inside a module..."));
-        return;
-    }
-    if(!mGotoOffset)
-        mGotoOffset = new GotoDialog(this);
-    mGotoOffset->fileOffset = true;
-    mGotoOffset->modName = QString(modname);
-    mGotoOffset->setWindowTitle(tr("Goto File Offset in %1").arg(QString(modname)));
-    duint addr = rvaToVa(getInitialSelection());
-    duint offset = DbgFunctions()->VaToFileOffset(addr);
-    if(offset)
-        mGotoOffset->setInitialExpression(ToHexString(offset));
-    if(mGotoOffset->exec() != QDialog::Accepted)
-        return;
-    duint value = DbgValFromString(mGotoOffset->expressionText.toUtf8().constData());
-    value = DbgFunctions()->FileOffsetToVa(modname, value);
-    this->printDumpAt(value, true);
-}*/
+//void TraceDump::gotoFileOffsetSlot()
+//{
+//...
+//}
 
 void TraceDump::gotoStartSlot()
 {
@@ -1294,15 +1103,15 @@ void TraceDump::selectionSet(const SELECTIONDATA* selection)
     Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 1);
 }
 
-void TraceDump::findReferencesSlot()
-{
-    //TODO
-    //QString addrStart = ToPtrString(rvaToVa(getSelectionStart()));
-    //QString addrEnd = ToPtrString(rvaToVa(getSelectionEnd()));
-    //QString addrDisasm = ToPtrString(mDisas->rvaToVa(mDisas->getSelectionStart()));
-    //DbgCmdExec(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm));
-    //emit displayReferencesWidget();
-}
+//TODO
+//void TraceDump::findReferencesSlot()
+//{
+//QString addrStart = ToPtrString(rvaToVa(getSelectionStart()));
+//QString addrEnd = ToPtrString(rvaToVa(getSelectionEnd()));
+//QString addrDisasm = ToPtrString(mDisas->rvaToVa(mDisas->getSelectionStart()));
+//DbgCmdExec(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm));
+//emit displayReferencesWidget();
+//}
 
 void TraceDump::binaryCopySlot()
 {
@@ -1332,23 +1141,23 @@ void TraceDump::binarySaveToFileSlot()
     }
 }
 
-void TraceDump::findPattern()
-{
-    //TODO
-    //HexEditDialog hexEdit(this);
-    //hexEdit.showEntireBlock(true);
-    //hexEdit.isDataCopiable(false);
-    //hexEdit.mHexEdit->setOverwriteMode(false);
-    //hexEdit.setWindowTitle(tr("Find Pattern..."));
-    //if(hexEdit.exec() != QDialog::Accepted)
-    //return;
-    //dsint addr = rvaToVa(getSelectionStart());
-    //if(hexEdit.entireBlock())
-    //addr = DbgMemFindBaseAddr(addr, 0);
-    //QString addrText = ToPtrString(addr);
-    //DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&"));
-    //emit displayReferencesWidget();
-}
+//TODO
+//void TraceDump::findPattern()
+//{
+//HexEditDialog hexEdit(this);
+//hexEdit.showEntireBlock(true);
+//hexEdit.isDataCopiable(false);
+//hexEdit.mHexEdit->setOverwriteMode(false);
+//hexEdit.setWindowTitle(tr("Find Pattern..."));
+//if(hexEdit.exec() != QDialog::Accepted)
+//return;
+//dsint addr = rvaToVa(getSelectionStart());
+//if(hexEdit.entireBlock())
+//addr = DbgMemFindBaseAddr(addr, 0);
+//QString addrText = ToPtrString(addr);
+//DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&"));
+//emit displayReferencesWidget();
+//}
 
 void TraceDump::copyFileOffsetSlot()
 {

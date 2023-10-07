@@ -44,8 +44,8 @@ public:
     {
         return maxIndex;
     }
-    // Find continuous memory areas
-    void findMemAreas();
+    // Find continuous memory areas (currently unused)
+    // void findMemAreas();
     std::vector<std::pair<duint, duint>> memAreas;
 private:
     std::map<Key, DumpRecord> dump;
@@ -56,15 +56,13 @@ class TraceFileDumpMemoryPage : public MemoryPage
 {
     Q_OBJECT
 public:
-    TraceFileDumpMemoryPage(QObject* parent = 0);
+    TraceFileDumpMemoryPage(TraceFileDump* dump, QObject* parent = nullptr);
     virtual bool read(void* parDest, dsint parRVA, duint parSize) const override;
     virtual bool write(const void* parDest, dsint parRVA, duint parSize) override;
     void setSelectedIndex(unsigned long long index);
     unsigned long long getSelectedIndex() const;
-    void setDumpObject(TraceFileDump* dump);
     bool isAvailable() const;
 private:
     TraceFileDump* dump;
-    mutable QMutex lock;
     unsigned long long selectedIndex = 0ull;
 };

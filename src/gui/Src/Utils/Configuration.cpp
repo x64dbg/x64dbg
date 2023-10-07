@@ -292,6 +292,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("AutoFollowInStack", true);
     guiBool.insert("EnableQtHighDpiScaling", true);
     guiBool.insert("Topmost", false);
+    guiBool.insert("DisableTraceDump", false);
     //Named menu settings
     insertMenuBuilderBools(&guiBool, "CPUDisassembly", 50); //CPUDisassembly
     insertMenuBuilderBools(&guiBool, "CPUDump", 50); //CPUDump

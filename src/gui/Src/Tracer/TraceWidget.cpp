@@ -19,8 +19,16 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     mTraceBrowser = new TraceBrowser(mTraceFile, this);
     mOverview = new StdTable(this);
     mInfo = new TraceInfoBox(this);
-    mMemoryPage = new TraceFileDumpMemoryPage(this);
-    mDump = new TraceDump(architecture, mTraceBrowser, mMemoryPage, this);
+    if(!Config()->getBool("Gui", "DisableTraceDump"))
+    {
+        mMemoryPage = new TraceFileDumpMemoryPage(mTraceFile->getDump(), this);
+        mDump = new TraceDump(architecture, mTraceBrowser, mMemoryPage, this);
+    }
+    else
+    {
+        mMemoryPage = nullptr;
+        mDump = nullptr;
+    }
     mGeneralRegs = new TraceRegisters(this);
     //disasm
     ui->mTopLeftUpperRightFrameLayout->addWidget(mTraceBrowser);
@@ -40,7 +48,6 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     button_changeview->setStyleSheet("Text-align:left;padding: 4px;padding-left: 10px;");
     connect(button_changeview, SIGNAL(clicked()), mGeneralRegs, SLOT(onChangeFPUViewAction()));
     connect(mTraceBrowser, SIGNAL(selectionChanged(unsigned long long)), this, SLOT(traceSelectionChanged(unsigned long long)));
-    connect(Bridge::getBridge(), SIGNAL(updateTraceBrowser()), this, SLOT(updateSlot()));
     connect(mTraceFile, SIGNAL(parseFinished()), this, SLOT(parseFinishedSlot()));
     connect(mTraceBrowser, SIGNAL(closeFile()), this, SLOT(closeFileSlot()));
 
@@ -56,8 +63,8 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     ui->mTopLeftLowerFrame->setMinimumHeight(height + 2);
 
     //dump
-    //ui->mTopLeftLowerFrameLayout->addWidget(mDump);
-    ui->mBotLeftFrameLayout->addWidget(mDump);
+    if(mDump)
+        ui->mBotLeftFrameLayout->addWidget(mDump);
 
     //overview
     ui->mBotRightFrameLayout->addWidget(mOverview);
@@ -73,6 +80,13 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     mOverview->hide();
     ui->mTopHSplitter->setSizes(QList<int>({1000, 1}));
     ui->mTopLeftVSplitter->setSizes(QList<int>({1000, 1}));
+
+    mTraceBrowser->setAccessibleName(tr("Disassembly"));
+    mOverview->setAccessibleName(tr("Stack"));
+    upperScrollArea->setAccessibleName(tr("Registers"));
+    if(mDump)
+        mDump->setAccessibleName(tr("Dump"));
+    mInfo->setAccessibleName(tr("InfoBox"));
 }
 
 TraceWidget::~TraceWidget()
@@ -97,16 +111,16 @@ void TraceWidget::traceSelectionChanged(unsigned long long selection)
             registers = mTraceFile->Registers(selection);
             mInfo->update(selection, mTraceFile, registers);
             // update dump view
-            mTraceFile->buildDumpTo(selection); // TODO: sometimes this can be slow
-            mMemoryPage->setDumpObject(mTraceFile->getDump());
-            mMemoryPage->setSelectedIndex(selection);
-            mDump->reloadData();
+            if(mDump)
+            {
+                mTraceFile->buildDumpTo(selection); // TODO: sometimes this can be slow // TODO: Is it a good idea to build dump index just when opening the file?
+                mMemoryPage->setSelectedIndex(selection);
+                mDump->reloadData();
+            }
         }
         else
             memset(&registers, 0, sizeof(registers));
     }
-    else
-        mMemoryPage->setDumpObject(nullptr);
     mGeneralRegs->setRegisters(&registers);
 }
 
@@ -128,36 +142,29 @@ void TraceWidget::parseFinishedSlot()
                                  tr("Checksum is different for current trace file and the debugee. This probably means you have opened a wrong trace file. This trace file is recorded for \"%1\"").arg(mTraceFile->ExePath()));
             }
         }
-        const int count = mTraceFile->MemoryAccessCount(0);
-        if(count > 0)
+        if(mDump)
         {
-            // Display source operand
-            duint address[MAX_MEMORY_OPERANDS];
-            duint oldMemory[MAX_MEMORY_OPERANDS];
-            duint newMemory[MAX_MEMORY_OPERANDS];
-            bool isValid[MAX_MEMORY_OPERANDS];
-            mTraceFile->MemoryAccessInfo(0, address, oldMemory, newMemory, isValid);
-            initialAddress = address[count - 1];
+            // Setting the initial address of dump view
+            const int count = mTraceFile->MemoryAccessCount(0);
+            if(count > 0)
+            {
+                // Display source operand
+                duint address[MAX_MEMORY_OPERANDS];
+                duint oldMemory[MAX_MEMORY_OPERANDS];
+                duint newMemory[MAX_MEMORY_OPERANDS];
+                bool isValid[MAX_MEMORY_OPERANDS];
+                mTraceFile->MemoryAccessInfo(0, address, oldMemory, newMemory, isValid);
+                initialAddress = address[count - 1];
+            }
+            else
+            {
+                // No memory operands, so display opcode instead
+                initialAddress = mTraceFile->Registers(0).regcontext.cip;
+            }
+            mDump->printDumpAt(initialAddress, false, true, true);
         }
-        else
-        {
-            initialAddress = mTraceFile->Registers(0).regcontext.cip;
-        }
-        mDump->printDumpAt(initialAddress, false, true, true);
+        mGeneralRegs->setActive(true);
     }
-}
-
-//void TraceWidget::openSlot(const QString & fileName)
-//{
-//    emit mTraceBrowser->openSlot(fileName);
-//}
-
-void TraceWidget::updateSlot()
-{
-    auto fileOpened = mTraceBrowser->isFileOpened();
-    mGeneralRegs->setActive(fileOpened);
-    if(!fileOpened)
-        mInfo->clear();
 }
 
 void TraceWidget::closeFileSlot()

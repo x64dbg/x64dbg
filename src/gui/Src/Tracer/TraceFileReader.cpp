@@ -99,7 +99,7 @@ void TraceFileReader::parseFinishedSlot()
         progress.store(0);
     delete parser;
     parser = nullptr;
-    if(Length() > 0)
+    if(Length() > 0 && !Config()->getBool("Gui", "DisableTraceDump"))
         buildDump(0); // initialize dump with first instruction
     emit parseFinished();
 
@@ -573,7 +573,7 @@ void TraceFileReader::purgeLastPage()
             fileIndex.back().second.second = index - (lastIndex - 1);
         error = false;
         length = index;
-        if(previousEmpty && length > 0)
+        if(previousEmpty && length > 0 && !Config()->getBool("Gui", "DisableTraceDump"))
             buildDump(0); // Initialize dump
     }
     catch(std::wstring & errReason)
@@ -695,22 +695,6 @@ void TraceFileReader::buildDumpTo(unsigned long long index)
     {
         dump.increaseIndex();
         buildDump(i);
-    }
-}
-
-void TraceFileReader::debugdump(unsigned long long index) //TODO: remove me
-{
-    dump.findMemAreas();
-    for(auto c : dump.memAreas)
-    {
-        auto mData = dump.getBytes(c.first, c.second - c.first + 1, index);
-        QString data;
-        for(size_t i = 0; i < mData.size(); i++)
-        {
-            byte_t ch = mData.at(i);
-            data += QString().sprintf("%02X", ch);
-        }
-        GuiAddLogMessage(QString("dump:%1-%2:%3\n").arg(ToPtrString(c.first)).arg(ToPtrString(c.second)).arg(data).toUtf8());
     }
 }
 
@@ -890,12 +874,13 @@ void TraceFilePage::MemoryAccessInfo(unsigned long long index, duint* address, d
         address[i] = memoryAddress.at(base + i);
         oldMemory[i] = this->oldMemory.at(base + i);
         newMemory[i] = this->newMemory.at(base + i);
-        isValid[i] = true; // proposed flag
+        isValid[i] = true; // TODO: proposed flag
     }
 }
 
 void TraceFilePage::updateInstructions()
 {
+    // Just clear them, they will be updated when accessed
     instructions.clear();
 }
 
