@@ -5,6 +5,7 @@
 
 CallStackView::CallStackView(StdTable* parent) : StdIconTable(parent)
 {
+    
     int charwidth = getCharWidth();
 
     addColumnAt(8 * charwidth, tr("Thread ID"), false);
@@ -123,6 +124,22 @@ QString CallStackView::paintContent(QPainter* painter, duint row, duint col, int
 
 void CallStackView::updateCallStack()
 {
+    void CallStackView::updateCallStack() {
+    // ...
+    for (int j = 0; j < threadList.count; j++) {
+        // ...
+        // Check if the thread is marked as a system thread
+        bool isSystemThread = threadList.list[currentIndexToDraw].isSystemThread;
+
+        // Check if the user wants to hide system threads
+        if (!isSystemThread || !hideSystemThreads) {
+            // Include this thread in the call stack view
+            // ...
+        }
+            }
+        // ...
+                }
+
     if(!DbgFunctions()->GetCallStackByThread)
         return;
 
