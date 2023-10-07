@@ -120,6 +120,14 @@ void TraceWidget::parseFinishedSlot()
     }
     else if(mTraceFile->Length() > 0)
     {
+        if(mTraceFile->HashValue() && DbgIsDebugging())
+        {
+            if(DbgFunctions()->DbGetHash() != mTraceFile->HashValue())
+            {
+                SimpleWarningBox(this, tr("Trace file is recorded for another debuggee"),
+                                 tr("Checksum is different for current trace file and the debugee. This probably means you have opened a wrong trace file. This trace file is recorded for \"%1\"").arg(mTraceFile->ExePath()));
+            }
+        }
         const int count = mTraceFile->MemoryAccessCount(0);
         if(count > 0)
         {

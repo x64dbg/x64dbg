@@ -88,7 +88,7 @@ void TraceManager::toggleTraceRecording()
 void TraceManager::contextMenuEvent(QContextMenuEvent* event)
 {
     QMenu wMenu;
-    QAction traceCoverageToggleTraceRecording(tr("Start recording"));
+    QAction traceCoverageToggleTraceRecording(tr("Start recording"), this);
     if(TraceBrowser::isRecording())
     {
         traceCoverageToggleTraceRecording.setText(tr("Stop trace recording"));
@@ -105,7 +105,7 @@ void TraceManager::contextMenuEvent(QContextMenuEvent* event)
         traceCoverageToggleTraceRecording.setEnabled(false);
     wMenu.addAction(&traceCoverageToggleTraceRecording);
 
-    QAction openAction(DIcon("folder-horizontal-open"), tr("Open"));
+    QAction openAction(DIcon("folder-horizontal-open"), tr("Open"), this);
     connect(&openAction, SIGNAL(triggered()), this, SLOT(open()));
     wMenu.addAction(&openAction);
 

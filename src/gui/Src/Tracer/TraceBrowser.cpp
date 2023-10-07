@@ -836,38 +836,13 @@ void TraceBrowser::setupRightClickContextMenu()
             return getTraceFile()->Registers(getInitialSelection()).regcontext.cip;
     });
 
-    QAction* toggleTraceRecording = makeShortcutAction(DIcon("control-record"), tr("Start recording"), SLOT(toggleTraceRecordingSlot()), "ActionToggleRunTrace");
-    mMenuBuilder->addAction(toggleTraceRecording, [toggleTraceRecording](QMenu*)
+    auto mTraceFileNotNull = [](QMenu*)
     {
-        if(!DbgIsDebugging())
-            return false;
-        if(isRecording())
-        {
-            toggleTraceRecording->setText(tr("Stop recording"));
-            toggleTraceRecording->setIcon(DIcon("control-stop"));
-        }
-        else
-        {
-            toggleTraceRecording->setText(tr("Start recording"));
-            toggleTraceRecording->setIcon(DIcon("control-record"));
-        }
-        return true;
-    });
-    auto mTraceFileIsNull = [this](QMenu*)
-    {
-        return !isFileOpened();
+        return true; // This should always be true now
     };
-    auto mTraceFileNotNull = [this](QMenu*)
-    {
-        return isFileOpened();
-    };
-
-    mMenuBuilder->addAction(makeAction(DIcon("close"), tr("Close recording"), SLOT(closeFileSlot())), mTraceFileNotNull);
-    mMenuBuilder->addAction(makeAction(DIcon("delete"), tr("Delete recording"), SLOT(closeDeleteSlot())), mTraceFileNotNull);
-    mMenuBuilder->addSeparator();
     auto isDebugging = [this](QMenu*)
     {
-        return isFileOpened() && DbgIsDebugging();
+        return DbgIsDebugging();
     };
 
     MenuBuilder* copyMenu = new MenuBuilder(this, mTraceFileNotNull);
@@ -948,6 +923,27 @@ void TraceBrowser::setupRightClickContextMenu()
     synchronizeCpuAction->setCheckable(true);
     synchronizeCpuAction->setChecked(mTraceSyncCpu);
     mMenuBuilder->addAction(synchronizeCpuAction);
+
+    mMenuBuilder->addSeparator();
+    QAction* toggleTraceRecording = makeShortcutAction(DIcon("control-record"), tr("Start recording"), SLOT(toggleTraceRecordingSlot()), "ActionToggleRunTrace");
+    mMenuBuilder->addAction(toggleTraceRecording, [toggleTraceRecording](QMenu*)
+    {
+        if(!DbgIsDebugging())
+            return false;
+        if(isRecording())
+        {
+            toggleTraceRecording->setText(tr("Stop recording"));
+            toggleTraceRecording->setIcon(DIcon("control-stop"));
+        }
+        else
+        {
+            toggleTraceRecording->setText(tr("Start recording"));
+            toggleTraceRecording->setIcon(DIcon("control-record"));
+        }
+        return true;
+    });
+    mMenuBuilder->addAction(makeAction(DIcon("close"), tr("Close recording"), SLOT(closeFileSlot())), mTraceFileNotNull);
+    mMenuBuilder->addAction(makeAction(DIcon("delete"), tr("Delete recording"), SLOT(closeDeleteSlot())), mTraceFileNotNull);
 
     mMenuBuilder->loadFromConfig();
 }
@@ -1331,12 +1327,6 @@ void TraceBrowser::parseFinishedSlot()
     }
     else
     {
-        if(mTraceFile->HashValue() && DbgIsDebugging())
-            if(DbgFunctions()->DbGetHash() != mTraceFile->HashValue())
-            {
-                SimpleWarningBox(this, tr("Trace file is recorded for another debuggee"),
-                                 tr("Checksum is different for current trace file and the debugee. This probably means you have opened a wrong trace file. This trace file is recorded for \"%1\"").arg(mTraceFile->ExePath()));
-            }
         setRowCount(mTraceFile->Length());
     }
     setSingleSelection(0);

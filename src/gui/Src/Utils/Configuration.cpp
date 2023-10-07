@@ -1095,8 +1095,15 @@ bool Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
 {
     QString id = menu->getId();
     for(const auto & i : NamedMenuBuilders)
-        if(i.type == 0 && i.builder->getId() == id)
-            return false; //already exists
+    {
+        if(i.type == 0)
+        {
+            if(i.builder.isNull())
+                continue;
+            if(i.builder->getId() == id)
+                return false; //already exists
+        }
+    }
     NamedMenuBuilders.append(MenuMap(menu, count));
     return true;
 }
@@ -1112,10 +1119,18 @@ void Configuration::unregisterMenuBuilder(MenuBuilder* menu)
     QString id = menu->getId();
     for(auto i = NamedMenuBuilders.begin(); i != NamedMenuBuilders.end(); ++i)
     {
-        if(i->type == 0 && i->builder->getId() == id)
+        if(i->type == 0)
         {
-            NamedMenuBuilders.erase(i);
-            return;
+            if(i->builder.isNull())
+            {
+                NamedMenuBuilders.erase(i);
+                continue;
+            }
+            if(i->builder->getId() == id)
+            {
+                NamedMenuBuilders.erase(i);
+                return;
+            }
         }
     }
 }

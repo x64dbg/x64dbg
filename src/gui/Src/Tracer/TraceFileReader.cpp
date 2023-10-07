@@ -417,9 +417,9 @@ void TraceFileParser::readFileHeader(TraceFileReader* that)
                 {
                     a = a.mid(2);
 #ifdef _WIN64
-                    that->hashValue = a.toLongLong(&ok, 16);
+                    that->hashValue = a.toULongLong(&ok, 16);
 #else //x86
-                    that->hashValue = a.toLong(&ok, 16);
+                    that->hashValue = a.toULong(&ok, 16);
 #endif //_WIN64
                     if(!ok)
                         that->hashValue = 0;
