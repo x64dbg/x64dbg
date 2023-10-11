@@ -56,7 +56,7 @@
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="../../resource.qrc">:/Default/icons/fatal-error.png</pixmap>
+              <pixmap>:/Default/icons/fatal-error.png</pixmap>
              </property>
             </widget>
            </item>
