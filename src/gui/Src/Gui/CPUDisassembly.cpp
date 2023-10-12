@@ -1217,7 +1217,6 @@ void CPUDisassembly::findCallsSlot()
 void CPUDisassembly::findPatternSlot()
 {
     HexEditDialog hexEdit(this);
-    hexEdit.showEntireBlock(true);
     hexEdit.isDataCopiable(false);
     hexEdit.mHexEdit->setOverwriteMode(false);
     hexEdit.setWindowTitle(tr("Find Pattern..."));
@@ -1225,12 +1224,11 @@ void CPUDisassembly::findPatternSlot()
         return;
 
     dsint addr = rvaToVa(getSelectionStart());
-    if(hexEdit.entireBlock())
-        addr = DbgMemFindBaseAddr(addr, 0);
 
     QString command;
     if(sender() == mFindPatternRegion)
     {
+        addr = DbgMemFindBaseAddr(addr, 0);
         command = QString("findall %1, %2").arg(ToHexString(addr), hexEdit.mHexEdit->pattern());
     }
     else if(sender() == mFindPatternModule)
