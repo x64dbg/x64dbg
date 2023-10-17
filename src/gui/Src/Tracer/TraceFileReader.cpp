@@ -160,6 +160,11 @@ const QString & TraceFileReader::ExePath() const
     return EXEPath;
 }
 
+QString TraceFileReader::FileName() const
+{
+    return QDir::toNativeSeparators(traceFile.fileName());
+}
+
 // Return the registers context at a given index
 REGDUMP TraceFileReader::Registers(unsigned long long index)
 {

@@ -828,19 +828,16 @@ void TraceBrowser::prepareData()
 void TraceBrowser::setupRightClickContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this);
-    mCommonActions = new CommonActions(this, getActionHelperFuncs(), [this]
+    mCommonActions = new CommonActions(this, getActionHelperFuncs(), [this]()
     {
-        if(!isFileOpened())
-            return (duint)0;
-        else
-            return getTraceFile()->Registers(getInitialSelection()).regcontext.cip;
+        return getTraceFile()->Registers(getInitialSelection()).regcontext.cip;
     });
 
     auto mTraceFileNotNull = [](QMenu*)
     {
         return true; // This should always be true now
     };
-    auto isDebugging = [this](QMenu*)
+    auto isDebugging = [](QMenu*)
     {
         return DbgIsDebugging();
     };
@@ -944,6 +941,7 @@ void TraceBrowser::setupRightClickContextMenu()
     });
     mMenuBuilder->addAction(makeAction(DIcon("close"), tr("Close recording"), SLOT(closeFileSlot())), mTraceFileNotNull);
     mMenuBuilder->addAction(makeAction(DIcon("delete"), tr("Delete recording"), SLOT(closeDeleteSlot())), mTraceFileNotNull);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("browseinexplorer"), tr("Browse in Explorer"), SLOT(browseInExplorerSlot()), "ActionBrowseInExplorer"), mTraceFileNotNull);
 
     mMenuBuilder->loadFromConfig();
 }
@@ -1283,16 +1281,15 @@ void TraceBrowser::openFileSlot()
 
 void TraceBrowser::openSlot(const QString & fileName)
 {
-    //if(mTraceFile != nullptr)
-    //{
-    //    mTraceFile->Close();
-    //    delete mTraceFile;
-    //}
-    //mTraceFile = new TraceFileReader(this);
-    //connect(mTraceFile, SIGNAL(parseFinished()), this, SLOT(parseFinishedSlot()));
-    //mFileName = fileName;
-    //mTraceFile->Open(fileName);
     GuiOpenTraceFile(fileName.toUtf8().constData()); // Open in Trace Manager
+}
+
+void TraceBrowser::browseInExplorerSlot()
+{
+    QStringList arguments;
+    arguments << QString("/select,");
+    arguments << QString(mTraceFile->FileName());
+    QProcess::startDetached(QString("%1/explorer.exe").arg(QProcessEnvironment::systemEnvironment().value("windir")), arguments);
 }
 
 void TraceBrowser::toggleTraceRecordingSlot()

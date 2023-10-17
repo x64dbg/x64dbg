@@ -41,6 +41,7 @@ public:
     // Get hash of EXE
     duint HashValue() const;
     const QString & ExePath() const;
+    QString FileName() const;
 
     void purgeLastPage();
 

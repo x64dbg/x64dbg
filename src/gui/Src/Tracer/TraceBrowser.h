@@ -152,6 +152,7 @@ signals:
 public slots:
     void openFileSlot();
     void openSlot(const QString & fileName);
+    void browseInExplorerSlot();
     void toggleTraceRecordingSlot();
     void closeFileSlot();
     void closeDeleteSlot();
