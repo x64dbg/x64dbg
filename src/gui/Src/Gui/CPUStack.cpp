@@ -866,13 +866,17 @@ void CPUStack::findPattern()
 {
     HexEditDialog hexEdit(this);
     hexEdit.isDataCopiable(false);
+    hexEdit.showStartFromSelection(true, ConfigBool("Gui", "CPUStackStartFromSelect"));
     hexEdit.mHexEdit->setOverwriteMode(false);
     hexEdit.setWindowTitle(tr("Find Pattern..."));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
 
     dsint addr = rvaToVa(getSelectionStart());
-    addr = DbgMemFindBaseAddr(addr, 0);
+    bool startFromSelection = hexEdit.startFromSelection();
+    Config()->setBool("Gui", "CPUStackStartFromSelect", startFromSelection);
+    if(!startFromSelection)
+        addr = DbgMemFindBaseAddr(addr, 0);
 
     QString addrText = ToPtrString(addr);
     DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&"));

@@ -1444,12 +1444,16 @@ void CPUDump::findPattern()
 {
     HexEditDialog hexEdit(this);
     hexEdit.isDataCopiable(false);
+    hexEdit.showStartFromSelection(true, ConfigBool("Gui", "CPUDumpStartFromSelect"));
     hexEdit.mHexEdit->setOverwriteMode(false);
     hexEdit.setWindowTitle(tr("Find Pattern..."));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
+    bool startFromSelection = hexEdit.startFromSelection();
+    Config()->setBool("Gui", "CPUDumpStartFromSelect", startFromSelection);
     dsint addr = rvaToVa(getSelectionStart());
-    addr = DbgMemFindBaseAddr(addr, 0);
+    if(!startFromSelection)
+        addr = DbgMemFindBaseAddr(addr, 0);
     QString addrText = ToPtrString(addr);
     DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&"));
     emit displayReferencesWidget();
