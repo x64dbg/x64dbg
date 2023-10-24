@@ -2244,7 +2244,7 @@ void DisassemblerGraphView::setupContextMenu()
      * There are several options for how menu will look like. This makes interaction more clear and predictable.
      * E.g clicking outside of block (especially at large zoom level) will set breakpoint menu hidden
      * as well as any action that needs text to be visible will also be hidden.
-     * Notice: keyboard shortcuts still work - this implies that user understands what he is doing. */
+     * Notice: keyboard shortcuts still work - this implies that the user understands what they are doing. */
 
     mMenuBuilder = new MenuBuilder(this, [this](QMenu*)
     {
