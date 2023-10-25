@@ -10,7 +10,9 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
       mBp(bp)
 {
     ui->setupUi(this);
-    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
+    setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+    setFixedHeight(sizeHint().height()); // resizable only horizontally
+
     switch(bp.type)
     {
     case bp_dll:
