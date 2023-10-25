@@ -35,6 +35,8 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
     setWindowIcon(DIcon("breakpoint"));
     loadFromBp();
 
+    connect(this, SIGNAL(accepted()), this, SLOT(acceptedSlot()));
+
     Config()->loadWindowGeometry(this);
 }
 
@@ -66,53 +68,22 @@ void copyTruncate(T & dest, QString src)
     strncpy_s(dest, src.toUtf8().constData(), _TRUNCATE);
 }
 
-void EditBreakpointDialog::on_editName_textEdited(const QString & arg1)
-{
-    copyTruncate(mBp.name, arg1);
-}
-
-void EditBreakpointDialog::on_editBreakCondition_textEdited(const QString & arg1)
-{
-    copyTruncate(mBp.breakCondition, arg1);
-}
-
 void EditBreakpointDialog::on_editLogText_textEdited(const QString & arg1)
 {
     ui->checkBoxSilent->setChecked(true);
-    copyTruncate(mBp.logText, arg1);
 }
 
-void EditBreakpointDialog::on_editLogCondition_textEdited(const QString & arg1)
+void EditBreakpointDialog::acceptedSlot()
 {
-    copyTruncate(mBp.logCondition, arg1);
-}
+    copyTruncate(mBp.breakCondition, ui->editBreakCondition->text());
+    copyTruncate(mBp.logText, ui->editLogText->text());
+    copyTruncate(mBp.logCondition, ui->editLogCondition->text());
+    copyTruncate(mBp.commandText, ui->editCommandText->text());
+    copyTruncate(mBp.commandCondition, ui->editCommandCondition->text());
+    copyTruncate(mBp.name, ui->editName->text());
 
-void EditBreakpointDialog::on_editCommandText_textEdited(const QString & arg1)
-{
-    copyTruncate(mBp.commandText, arg1);
-}
-
-void EditBreakpointDialog::on_editCommandCondition_textEdited(const QString & arg1)
-{
-    copyTruncate(mBp.commandCondition, arg1);
-}
-
-void EditBreakpointDialog::on_checkBoxFastResume_toggled(bool checked)
-{
-    mBp.fastResume = checked;
-}
-
-void EditBreakpointDialog::on_spinHitCount_valueChanged(int arg1)
-{
-    mBp.hitCount = arg1;
-}
-
-void EditBreakpointDialog::on_checkBoxSilent_toggled(bool checked)
-{
-    mBp.silent = checked;
-}
-
-void EditBreakpointDialog::on_checkBoxSingleshoot_toggled(bool checked)
-{
-    mBp.singleshoot = checked;
+    mBp.singleshoot = ui->checkBoxSingleshoot->isChecked();
+    mBp.fastResume = ui->checkBoxFastResume->isChecked();
+    mBp.hitCount = ui->spinHitCount->value();
+    mBp.silent = ui->checkBoxSilent->isChecked();
 }
