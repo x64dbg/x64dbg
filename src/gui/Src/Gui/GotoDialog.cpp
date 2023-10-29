@@ -85,7 +85,8 @@ void GotoDialog::setInitialExpression(const QString & expression)
     emit ui->editExpression->textEdited(expression);
 }
 
-static QString breakWithLines(const unsigned int numberCharsPerLine, const QString &txt, const bool condBreakBefore){
+static QString breakWithLines(const unsigned int numberCharsPerLine, const QString & txt, const bool condBreakBefore)
+{
 
     const QString BRStr = QString("<br>");
     const unsigned int breakCount = txt.size() / numberCharsPerLine;
@@ -93,8 +94,9 @@ static QString breakWithLines(const unsigned int numberCharsPerLine, const QStri
 
     QString result = txt;
 
-    for(unsigned int i = 1 ; i <= breakCount; i++){
-        result = result.left(charactersToSkip * i) + BRStr + result.right( result.size() - charactersToSkip * i);
+    for(unsigned int i = 1 ; i <= breakCount; i++)
+    {
+        result = result.left(charactersToSkip * i) + BRStr + result.right(result.size() - charactersToSkip * i);
     }
 
     if(condBreakBefore && breakCount >= 1)
