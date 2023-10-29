@@ -26,10 +26,23 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="HistoryLineEdit" name="editExpression"/>
+        <widget class="HistoryLineEdit" name="editExpression">
+         <property name="maximumSize">
+          <size>
+           <width>4132</width>
+           <height>16777215</height>
+          </size>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QLabel" name="labelError">
+         <property name="maximumSize">
+          <size>
+           <width>4132</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string/>
          </property>
@@ -58,7 +71,7 @@
        <item>
         <widget class="QPushButton" name="buttonOk">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -71,7 +84,7 @@
        <item>
         <widget class="QPushButton" name="buttonCancel">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
