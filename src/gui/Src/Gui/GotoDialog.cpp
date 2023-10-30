@@ -90,7 +90,7 @@ static QString breakWithLines(const unsigned int numberCharsPerLine, const QStri
     const QString BRStr = QString("<br>");
     const unsigned int breakCount = txt.size() / numberCharsPerLine;
     QString result = txt;
-    
+
     for(unsigned int i = 1 ; i <= breakCount; i++)
     {
         unsigned int charactersToSkip = (numberCharsPerLine + BRStr.size()) * i - BRStr.size();
