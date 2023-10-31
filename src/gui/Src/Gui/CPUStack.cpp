@@ -865,15 +865,19 @@ void CPUStack::binaryPasteIgnoreSizeSlot()
 void CPUStack::findPattern()
 {
     HexEditDialog hexEdit(this);
-    hexEdit.showEntireBlock(true);
     hexEdit.isDataCopiable(false);
+    hexEdit.showStartFromSelection(true, ConfigBool("Gui", "CPUStackStartFromSelect"));
     hexEdit.mHexEdit->setOverwriteMode(false);
     hexEdit.setWindowTitle(tr("Find Pattern..."));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
+
     dsint addr = rvaToVa(getSelectionStart());
-    if(hexEdit.entireBlock())
+    bool startFromSelection = hexEdit.startFromSelection();
+    Config()->setBool("Gui", "CPUStackStartFromSelect", startFromSelection);
+    if(!startFromSelection)
         addr = DbgMemFindBaseAddr(addr, 0);
+
     QString addrText = ToPtrString(addr);
     DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&"));
     emit displayReferencesWidget();

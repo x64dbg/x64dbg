@@ -1217,20 +1217,23 @@ void CPUDisassembly::findCallsSlot()
 void CPUDisassembly::findPatternSlot()
 {
     HexEditDialog hexEdit(this);
-    hexEdit.showEntireBlock(true);
     hexEdit.isDataCopiable(false);
+    if(sender() == mFindPatternRegion)
+        hexEdit.showStartFromSelection(true, ConfigBool("Disassembler", "FindPatternFromSelection"));
     hexEdit.mHexEdit->setOverwriteMode(false);
     hexEdit.setWindowTitle(tr("Find Pattern..."));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
 
     dsint addr = rvaToVa(getSelectionStart());
-    if(hexEdit.entireBlock())
-        addr = DbgMemFindBaseAddr(addr, 0);
 
     QString command;
     if(sender() == mFindPatternRegion)
     {
+        bool startFromSelection = hexEdit.startFromSelection();
+        Config()->setBool("Disassembler", "FindPatternFromSelection", startFromSelection);
+        if(!startFromSelection)
+            addr = DbgMemFindBaseAddr(addr, 0);
         command = QString("findall %1, %2").arg(ToHexString(addr), hexEdit.mHexEdit->pattern());
     }
     else if(sender() == mFindPatternModule)
@@ -1775,18 +1778,18 @@ void CPUDisassembly::findCommandSlot()
 
     LineEditDialog mLineEdit(this);
     mLineEdit.enableCheckBox(refFindType == 0);
-    mLineEdit.setCheckBoxText(tr("Entire &Block"));
-    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FindCommandEntireBlock"));
+    mLineEdit.setCheckBoxText(tr("Start from &Selection"));
+    mLineEdit.setCheckBox(ConfigBool("Disassembler", "FindCommandFromSelection"));
     mLineEdit.setWindowTitle("Find Command");
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
-    Config()->setBool("Disassembler", "FindCommandEntireBlock", mLineEdit.bChecked);
+    Config()->setBool("Disassembler", "FindCommandFromSelection", mLineEdit.bChecked);
 
     char error[MAX_ERROR_SIZE] = "";
     unsigned char dest[16];
     int asmsize = 0;
     duint va = rvaToVa(getInitialSelection());
-    if(mLineEdit.bChecked) // entire block
+    if(!mLineEdit.bChecked) // start search from selection
         va = mMemPage->getBase();
 
     if(!DbgFunctions()->Assemble(mMemPage->getBase() + mMemPage->getSize() / 2, dest, &asmsize, mLineEdit.editText.toUtf8().constData(), error))

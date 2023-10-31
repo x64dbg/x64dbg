@@ -612,12 +612,23 @@ void MemoryMapView::findPatternSlot()
     hexEdit.setWindowTitle(tr("Find Pattern..."));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
-    duint addr = getSelectionAddr();
+
     entireBlockEnabled = hexEdit.entireBlock();
     BridgeSettingSetUint("Gui", "MemoryMapEntireBlock", entireBlockEnabled);
     if(entireBlockEnabled)
-        addr = 0;
-    DbgCmdExec(QString("findallmem %1, %2, &data&").arg(ToPtrString(addr)).arg(hexEdit.mHexEdit->pattern()));
+    {
+        DbgCmdExec(QString("findallmem 0, %2").arg(hexEdit.mHexEdit->pattern()));
+    }
+    else
+    {
+        QList<duint> selection = getSelection();
+        if(selection.isEmpty())
+            return;
+        duint addrFirst = getCellUserdata(selection.first(), ColAddress);
+        duint addrLast = getCellUserdata(selection.last(), ColAddress);
+        duint size = getCellUserdata(selection.last(), ColSize);
+        DbgCmdExec(QString("findallmem %1, %2, %3").arg(ToPtrString(addrFirst)).arg(hexEdit.mHexEdit->pattern()).arg(ToHexString(addrLast - addrFirst + size)));
+    }
     emit showReferences();
 }
 
