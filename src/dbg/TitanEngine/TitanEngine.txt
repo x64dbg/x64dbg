@@ -385,16 +385,16 @@ executable and data parts to current highly sophisticated protections that are p
 at slow down in the reversing process. Number of such techniques increases every year. Hence we need 
 to ask ourselves, can we keep up with the tools that we have? 
 
-Protections have evolved over the last few years, but so have the reverserï¿½s tools. Some of those 
+Protections have evolved over the last few years, but so have the reverser’s tools. Some of those 
 tools are still in use today since they were written to solve a specific problem, or at least a part of it. Yet 
-when it comes to writing unpackers this process hasnï¿½t evolved much. We are limited to writing our own 
+when it comes to writing unpackers this process hasn’t evolved much. We are limited to writing our own 
 code for every scenario in the field. 
 
-We have designed TitanEngine in such fashion that writing unpackers would mimic analystï¿½s 
+We have designed TitanEngine in such fashion that writing unpackers would mimic analyst’s 
 manual unpacking process. Basic set of libraries, which will later become the framework, had the 
 functionality of the four most common tools used in the unpacking process: debugger, dumper, 
 importer and realigner. With the guided execution and a set of callbacks these separate modules 
-complement themselves in a manner compatible with the way any reverse engineer would use their tools 
+complement themselves in a manner compatible with the way any reverse engineer would use his tools 
 of choice to unpack the file. This creates an execution timeline which parries the protection execution 
 and gathers information from it while guided to the point from where the protection passes control to 
 the original software code. When that point is reached file gets dumped to disk and fixed so it resembles 
@@ -422,7 +422,7 @@ TitanEngine SDK contains:
 . Integrated import tracer & fixer 
 . Integrated relocation fixer 
 . Integrated file realigner 
-. Functions to work with TLS, Resources, Exports,ï¿½ 
+. Functions to work with TLS, Resources, Exports,… 
 
 
 
@@ -440,10 +440,10 @@ because the format being unpacked is a simple one or more commonly referred to a
 
 This kind of PE file protectors (because packing is a very basic form of protection) have a simple 
 layout that only encrypts the code and resources, and in some cases even takes the role of the import 
-loader. Even if we encounter the most advanced representative of this shell protection type it wonï¿½t 
+loader. Even if we encounter the most advanced representative of this shell protection type it won’t 
 differ much from its most basic protection model. Which is, no modification to the PE section layout 
 other than adding a new section for the crypter code and encryption of the entire code and resource 
-sections with possible import loader role for the crypter stub. Since these modifications donï¿½t impact the 
+sections with possible import loader role for the crypter stub. Since these modifications don’t impact the 
 file in such way that major file reconstruction should be done writing static unpackers also has its 
 general model. This is, get the needed data for decryption of the encrypter parts and reconstruction of 
 the import table followed by removing the crypter section. 
@@ -455,7 +455,7 @@ eliminations, code splices, code markers, etc.
 
  However static unpackers can be used for a more difficult use cases which require the full file 
 reconstruction in order to complete the unpacking process. In such cases static unpacking can be used 
-and itï¿½s recommended only if the security is of the vital importance. These cases most commonly require 
+and it’s recommended only if the security is of the vital importance. These cases most commonly require 
 the identification of the compression algorithm used and its adaptation to our own code. This code 
 ripping must be done very carefully and it requires the full understanding of the algorithm which 
 decompresses the code. There are a few standard compression algorithms in use by most PE shells so 
@@ -562,9 +562,9 @@ Figure (2) Packer file & execution layout
 Introduction to generic unpackers 
 
 Most complex way of creating unpackers is creating generic unpackers. Totally opposite from 
-the other two cases when creating generic unpackers you donï¿½t need to worry about extracting a good 
+the other two cases when creating generic unpackers you don’t need to worry about extracting a good 
 enough patter on code segment to create a good signature for your unpacker. Quite simply because 
-these unpackers donï¿½t care about the shell specifics, they only care about their overall behavior which is 
+these unpackers don’t care about the shell specifics, they only care about their overall behavior which is 
 common for shell modifiers of the same group. This means that there can never be a general generic 
 unpacker but several wide range generic unpackers targeting specific behavior groups. 
 
@@ -572,7 +572,7 @@ unpacker but several wide range generic unpackers targeting specific behavior gr
 algorithm targeting these shell modifiers. Major challenge here is retaining as much control as possible 
 without slowing down the unpacking process drastically. Slowdown occurs because we use memory 
 breakpoints to monitor packed shell access to executable sections. If we reset the memory breakpoint 
-each time the packer accesses the section we will have a major speed impact and if we donï¿½t we reset 
+each time the packer accesses the section we will have a major speed impact and if we don’t we reset 
 we risk not to catch the original entry point jump event and even let file execute. There are a few ways 
 to do this but one is most common. 
 
@@ -756,7 +756,7 @@ Unicode support
 Unicode support has been added to TitanEngine with version 2.0.2. However Unicode functions 
 are not documented in this document because changes between function versions that use ASCII or 
 UNICODE strings as input/output parameters are minor. Unicode functions are defined in the SDK and 
-can be used normally. Such functions can be easily recognized by the appendix ï¿½Wï¿½ which they have. For 
+can be used normally. Such functions can be easily recognized by the appendix “W” which they have. For 
 specific function definitions please refer to the SDK header files. 
 
 Python support 
@@ -1239,7 +1239,7 @@ None.
 Disassemble function 
 
 The function Disassemble disassembles data from the context of currently debugged process. This 
-function will fail if no process is being debugged or the specified address doesnï¿½t exist inside debugged 
+function will fail if no process is being debugged or the specified address doesn’t exist inside debugged 
 process. 
 
  Syntax 
@@ -1392,7 +1392,7 @@ LengthDisassemble function
 
 The function LengthDisassemble gets the length, in bytes, of the disassembled instruction from the 
 context of the process currently being debugged. This function fails if no process is being debugged or if 
-the specified address doesnï¿½t exist inside the debugged process. 
+the specified address doesn’t exist inside the debugged process. 
 
 Syntax 
 
@@ -1855,7 +1855,7 @@ DetachDebugger function
 Please use DetachDebuggerEx instead. The DetachDebugger function detaches the debugger from a 
 debugged process. DetachDebugger detaches the debugger from a running process, allowing the 
 process to continue running. All exceptions must be processed before detaching. Since exception 
-processing canï¿½t be done from any TitanEngine callback, this function should NOT be used. 
+processing can’t be done from any TitanEngine callback, this function should NOT be used. 
 
 Syntax 
 
@@ -2657,7 +2657,7 @@ None.
 
 EnableBPX function 
 
-EnableBPX enables a currently-disabled INT 3 breakpoint. This function canï¿½t be used to enable memory 
+EnableBPX enables a currently-disabled INT 3 breakpoint. This function can’t be used to enable memory 
 or hardware breakpoints, and should only be used after DisableBPX. 
 
 Syntax 
@@ -2704,7 +2704,7 @@ None.
 
 DisableBPX function 
 
-DisableBPX disables a currently enabled or active INT 3 breakpoint. This function canï¿½t be used to 
+DisableBPX disables a currently enabled or active INT 3 breakpoint. This function can’t be used to 
 disable memory or hardware breakpoints. 
 
 Syntax 
@@ -2750,7 +2750,7 @@ None.
 
 IsBPXEnabled function 
 
-IsBPXEnabled determines whether or not the specified INT3 breakpoint is enabled. This function canï¿½t 
+IsBPXEnabled determines whether or not the specified INT3 breakpoint is enabled. This function can’t 
 be used to check the state of memory or hardware breakpoints. 
 
 Syntax 
@@ -2798,7 +2798,7 @@ None.
 
 DeleteBPX function 
 
-The DeleteBPX function is used to remove set INT3 breakpoints. This function canï¿½t be used to remove 
+The DeleteBPX function is used to remove set INT3 breakpoints. This function can’t be used to remove 
 memory or hardware breakpoints. 
 
 Syntax 
@@ -2848,7 +2848,7 @@ None.
 SafeDeleteBPX function 
 
 This function has been deprecated. It has been preserved only for compatibility with earlier versions of 
-TitanEngine SDK. SafeDeleteBPX is used to remove an existing INT3 breakpoint. This function canï¿½t be 
+TitanEngine SDK. SafeDeleteBPX is used to remove an existing INT3 breakpoint. This function can’t be 
 used to remove memory or hardware breakpoints. 
 
 Syntax 
@@ -4018,7 +4018,7 @@ or to XMM_SAVE_AREA32 for 64 bit systems.
 
 Return value 
 
-This function returns TRUE on successful data retrieval or FALSE if data isnï¿½t available. 
+This function returns TRUE on successful data retrieval or FALSE if data isn’t available. 
 
  
 
@@ -4320,7 +4320,7 @@ PatternSize
 WildCard 
 
  [in] Pointer to a wild card byte which will be ignored during search. This wild card is 
-equal to search asterisk ï¿½?ï¿½ and those bytes inside the search pattern will always be 
+equal to search asterisk “?” and those bytes inside the search pattern will always be 
 considered as found. Usually this byte is NULL. 
 
 Return value 
@@ -4391,7 +4391,7 @@ PatternSize
 WildCard 
 
  [in] Pointer to a wild card byte which will be ignored during search. This wild card is 
-equal to search asterisk ï¿½?ï¿½ and those bytes inside the search pattern will always be 
+equal to search asterisk “?” and those bytes inside the search pattern will always be 
 considered as found. Usually this byte is NULL. 
 
 Return value 
@@ -4465,13 +4465,13 @@ SizeOfPatternToMatch
 WildCard 
 
  [in] Pointer to a wild card byte which will be ignored during search. This wild card is 
-equal to search asterisk ï¿½?ï¿½ and those bytes inside the search pattern will always be 
+equal to search asterisk “?” and those bytes inside the search pattern will always be 
 considered as found. Usually this byte is NULL. 
 
 Return value 
 
 Function returns TRUE if the provided pattern matches the memory content or FALSE if it 
-doesnï¿½t. 
+doesn’t. 
 
 Remarks 
 
@@ -4533,13 +4533,13 @@ SizeOfPatternToMatch
 WildCard 
 
  [in] Pointer to a wild card byte which will be ignored during search. This wild card is 
-equal to search asterisk ï¿½?ï¿½ and those bytes inside the search pattern will always be 
+equal to search asterisk “?” and those bytes inside the search pattern will always be 
 considered as found. Usually this byte is NULL. 
 
 Return value 
 
 Function returns TRUE if the provided pattern matches the memory content or FALSE if it 
-doesnï¿½t. 
+doesn’t. 
 
 Remarks 
 
@@ -4918,7 +4918,7 @@ ReplaceSize
 WildCard 
 
  [in] Pointer to a wild card byte which will be ignored during search and replace. This 
-wild card is equal to search asterisk ï¿½?ï¿½ and those bytes inside the search pattern 
+wild card is equal to search asterisk “?” and those bytes inside the search pattern 
 will always be considered as found. Usually this byte is NULL. 
 
  
@@ -5018,7 +5018,7 @@ ReplaceSize
 WildCard 
 
  [in] Pointer to a wild card byte which will be ignored during search and replace. This 
-wild card is equal to search asterisk ï¿½?ï¿½ and those bytes inside the search pattern 
+wild card is equal to search asterisk “?” and those bytes inside the search pattern 
 will always be considered as found. Usually this byte is NULL. 
 
  
@@ -5308,7 +5308,7 @@ JustJumps
 Return value 
 
 Returns the address targeted by jump/call or NULL if the instruction at the specified address 
-isnï¿½t a jump or call. 
+isn’t a jump or call. 
 
 Remarks 
 
@@ -5361,7 +5361,7 @@ InstructionAddress
 
 Return value 
 
-Returns the address targeted by jump/call or NULL if the instruction on selected address isnï¿½t 
+Returns the address targeted by jump/call or NULL if the instruction on selected address isn’t 
 jump or call. 
 
 Remarks 
@@ -5423,7 +5423,7 @@ instruction at EIP/RIP will be targeted.
 
 RegFlags 
 
- [in] Used to override current EFLAGS/RFLAGS. Used only if EIP/RIP isnï¿½t at targeted 
+ [in] Used to override current EFLAGS/RFLAGS. Used only if EIP/RIP isn’t at targeted 
 instruction. Optional parameter, if not specified EFLAGS/RFLAGS will be read from 
 the specified thread. 
 
@@ -5958,7 +5958,7 @@ None.
 ThreaderGetThreadData retrieves a pointer to an array of THREAD_ITEM_DATA entries containing 
 information about the existing threads. The hThread item in the last structure in the array is set to NULL. 
 The number of items in the array is the number of existing threads inside the debugged process. The size 
-of this array isnï¿½t stored anywhere and must be determined on the fly. 
+of this array isn’t stored anywhere and must be determined on the fly. 
 
 Syntax 
 
@@ -6080,7 +6080,7 @@ hThread
 
 Return value 
 
-This function returns TRUE if thread is paused or FALSE if its execution canï¿½t be paused at this 
+This function returns TRUE if thread is paused or FALSE if its execution can’t be paused at this 
 time. 
 
 Remarks 
@@ -6127,7 +6127,7 @@ hThread
 
 Return value 
 
-This function returns TRUE if thread resumes or FALSE if its execution canï¿½t resume at this time. 
+This function returns TRUE if thread resumes or FALSE if its execution can’t resume at this time. 
 
 Remarks 
 
@@ -6562,7 +6562,7 @@ ThreadId
 
 Return value 
 
-This function returns the handle of the specified thread or NULL if the thread doesnï¿½t exist 
+This function returns the handle of the specified thread or NULL if the thread doesn’t exist 
 anymore. 
 
 Remarks 
@@ -6689,7 +6689,7 @@ ThreadId
 
 Return value 
 
-This function returns handle for the new thread or NULL if the thread wasnï¿½t created or 
+This function returns handle for the new thread or NULL if the thread wasn’t created or 
 AutoCloseTheHandle was set to TRUE. 
 
 Remarks 
@@ -6754,7 +6754,7 @@ ThreadId
 
 Return value 
 
-This function returns handle for the new thread or NULL if the thread wasnï¿½t created or 
+This function returns handle for the new thread or NULL if the thread wasn’t created or 
 AutoCloseTheHandle was set to TRUE. 
 
 Remarks 
@@ -8097,7 +8097,7 @@ None.
 
  HooksDisableIATRedirection function 
 
-HooksDisableIATRedirection disables all installed hooks inside the selected moduleï¿½s import address 
+HooksDisableIATRedirection disables all installed hooks inside the selected module’s import address 
 table. Original bytes are restored in the process and therefore using this function in multithreaded 
 environment is recommended only after transitioning to safe patching mode. 
 
@@ -8257,7 +8257,7 @@ None.
 
  HooksEnableIATRedirection function 
 
-HooksEnableIATRedirection enables all disabled hooks inside the selected moduleï¿½s import address 
+HooksEnableIATRedirection enables all disabled hooks inside the selected module’s import address 
 table. Original bytes are restored in the process and therefore using this function in multithreaded 
 environment is recommended only after transitioning to safe patching mode. 
 
@@ -8417,7 +8417,7 @@ None.
 
  HooksRemoveIATRedirection function 
 
-HooksEnableIATRedirection removes all installed hooks inside the selected moduleï¿½s import address 
+HooksEnableIATRedirection removes all installed hooks inside the selected module’s import address 
 table. Original bytes are restored in the process and therefore using this function in multithreaded 
 environment is recommended only after transitioning to safe patching mode. 
 
@@ -8481,7 +8481,7 @@ HooksInsertNewRedirection installs a new hook on the selected address. Memory is
 process of installing hooks and therefore using this function in multithreaded environment is 
 recommended only after transitioning to safe patching mode. You can only have one hook on the 
 selected address and therefore trying to hook the same address twice will result into this function 
-returning false indicating that the hook wasnï¿½t installed. 
+returning false indicating that the hook wasn’t installed. 
 
 Syntax 
 
@@ -8543,7 +8543,7 @@ HooksInsertNewIATRedirectionEx installs a new import address hook. Memory is cha
 process of installing hooks and therefore using this function in multithreaded environment is 
 recommended only after transitioning to safe patching mode. You can only have one hook on the 
 selected address and therefore trying to hook the same address twice will result into this function 
-returning false indicating that the hook wasnï¿½t installed. 
+returning false indicating that the hook wasn’t installed. 
 
 Syntax 
 
@@ -8610,7 +8610,7 @@ HooksInsertNewIATRedirection installs a new import address hook. Memory is chang
 of installing hooks and therefore using this function in multithreaded environment is recommended only 
 after transitioning to safe patching mode. You can only have one hook on the selected address and 
 therefore trying to hook the same address twice will result into this function returning false indicating 
-that the hook wasnï¿½t installed. 
+that the hook wasn’t installed. 
 
 Syntax 
 
@@ -9071,7 +9071,7 @@ szImageName
 Return value 
 
 This function returns process ID if the process is running and found, or NULL if the image with 
-the specified name isnï¿½t currently running. 
+the specified name isn’t currently running. 
 
 Remarks 
 
@@ -9355,7 +9355,7 @@ szNativeName
 
 Return value 
 
-Function returns a pointer to the decoded file name, or NULL if the supplied string canï¿½t be 
+Function returns a pointer to the decoded file name, or NULL if the supplied string can’t be 
 decoded. 
 
 Remarks 
@@ -10227,7 +10227,7 @@ ResortFileSections function
 
 ResortFileSections sorts a file's physical sections, putting them in the order of ascending physical offset. 
 This can be useful if there you need to add data to, or expand; the last logical section of the file, but it 
-isnï¿½t physically located in the last physical section of the file. 
+isn’t physically located in the last physical section of the file. 
 
 Syntax 
 
@@ -10259,7 +10259,7 @@ This function returns TRUE on successful resort and FALSE if the sorting fails.
 
 Remarks 
 
-The file's size doesnï¿½t change, but its hash does, because sections will be physically moved to 
+The file's size doesn’t change, but its hash does, because sections will be physically moved to 
 new positions. 
 
 Example 
@@ -10525,7 +10525,7 @@ szFileName
 
 Return value 
 
-This function returns TRUE if the overlay is removed and FALSE if overlay or file isnï¿½t found. 
+This function returns TRUE if the overlay is removed and FALSE if overlay or file isn’t found. 
 
 Remarks 
 
@@ -10571,7 +10571,7 @@ read/write/executable.
 
 Return value 
 
-This function returns TRUE on success and FALSE if the file doesnï¿½t exist or the PE header is 
+This function returns TRUE on success and FALSE if the file doesn’t exist or the PE header is 
 broken. 
 
 Remarks 
@@ -10769,7 +10769,7 @@ AlignResizeData
 
 Return value 
 
-This function returns TRUE on success and FALSE if the file doesnï¿½t exist or the PE header is 
+This function returns TRUE on success and FALSE if the file doesn’t exist or the PE header is 
 broken. 
 
 Remarks 
@@ -10812,7 +10812,7 @@ szFileName
 
  [in] Pointer to the full path of a file. This string pointer will be stored in case other 
 modules need to retrieve it but have no direct access to the variable. The string 
-itself wonï¿½t be moved or modified so it must remain at that location for all time it is 
+itself won’t be moved or modified so it must remain at that location for all time it is 
 needed. 
 
  
@@ -10905,7 +10905,7 @@ will be deleted.
 
 Return value 
 
-This function returns TRUE on success and FALSE if the file doesnï¿½t exist or the PE header is 
+This function returns TRUE on success and FALSE if the file doesn’t exist or the PE header is 
 broken. 
 
 Remarks 
@@ -10961,7 +10961,7 @@ NumberOfSections
 
 Return value 
 
-This function returns TRUE on success and FALSE if the file doesnï¿½t exist or the PE header is 
+This function returns TRUE on success and FALSE if the file doesn’t exist or the PE header is 
 broken. 
 
 Remarks 
@@ -11083,7 +11083,7 @@ Dumper module structures.
 
 Return value 
 
-This function returns TRUE on success and FALSE if the file doesnï¿½t exist or the PE header is 
+This function returns TRUE on success and FALSE if the file doesn’t exist or the PE header is 
 broken. 
 
 Remarks 
@@ -11200,7 +11200,7 @@ module structures.
 
 Return value 
 
-This function returns TRUE on success and FALSE if the file doesnï¿½t exist or the PE header is 
+This function returns TRUE on success and FALSE if the file doesn’t exist or the PE header is 
 broken. 
 
 Remarks 
@@ -11273,7 +11273,7 @@ NewDataValue
 
 Return value 
 
-This function returns TRUE on success and FALSE if the file doesnï¿½t exist or the PE header is 
+This function returns TRUE on success and FALSE if the file doesn’t exist or the PE header is 
 broken. 
 
 Remarks 
@@ -11330,7 +11330,7 @@ module structures.
 
 Return value 
 
-This function returns TRUE on success and FALSE if the file doesnï¿½t exist or the PE header is 
+This function returns TRUE on success and FALSE if the file doesn’t exist or the PE header is 
 broken. 
 
 Remarks 
@@ -11392,7 +11392,7 @@ located at the beginning of this section Dumper module constants.
 
 Return value 
 
-This function returns TRUE on success and FALSE if the file doesnï¿½t exist or the PE header is 
+This function returns TRUE on success and FALSE if the file doesn’t exist or the PE header is 
 broken. 
 
 Remarks 
@@ -11448,7 +11448,7 @@ under Dumper module structures.
 
 Return value 
 
-This function returns TRUE on success and FALSE if the file doesnï¿½t exist or the PE header is 
+This function returns TRUE on success and FALSE if the file doesn’t exist or the PE header is 
 broken. 
 
 Remarks 
@@ -11946,7 +11946,7 @@ None.
 
 ImporterAddNewDll adds new DLLs to the new import tree. This function creates a new DLL entry 
 making all subsequent ImporterAddNewAPI function calls add APIs to the current DLL. If you want to add 
-APIs that donï¿½t belong to the current DLL, add a new DLL entry first. PECOFF specifications imply that 
+APIs that don’t belong to the current DLL, add a new DLL entry first. PECOFF specifications imply that 
 trunks are in a plus four (or eight on x64) sequence. The importer takes care of this automatically and 
 adds a new DLL entry equal to the last entered DLL if this sequence is broken. 
 
@@ -12005,7 +12005,7 @@ None.
  ImporterAddNewAPI function 
 
 ImporterAddNewAPI adds a new API to the current import tree. This function creates a new API entry 
-under currently selected DLL added by ImporterAddNewDLL. If the APIs donï¿½t belong to the current DLL, 
+under currently selected DLL added by ImporterAddNewDLL. If the APIs don’t belong to the current DLL, 
 add a new DLL entry first. PECOFF specifications imply that trunks are in a plus four (or eight on x64) 
 sequence. The importer takes care of this automatically, and adds a new DLL entry equal to the last 
 entered DLL if this sequence is broken. 
@@ -12064,7 +12064,7 @@ None.
  ImporterAddNewOrdinalAPI function 
 
 ImporterAddNewOrdinalAPI adds a new ordinal API to the current import tree. This function creates a 
-new API entry under currently selected DLL added by ImporterAddNewOrdinalAPI. If the APIs donï¿½t 
+new API entry under currently selected DLL added by ImporterAddNewOrdinalAPI. If the APIs don’t 
 belong to the current DLL, add a new DLL entry first. PECOFF specifications imply that trunks are in a 
 plus four (or eight on x64) sequence. The importer takes care of this automatically, and adds a new DLL 
 entry equal to the last entered DLL if this sequence is broken. 
@@ -12540,9 +12540,9 @@ unsafe. Process which is searched for the DLL is always the currently debugged p
 
 Example 
 
-ImporterGetDLLName(GetProcAddress(GetModuleHandleA(ï¿½kernel32.dllï¿½), ï¿½VirtualAllocï¿½)); 
+ImporterGetDLLName(GetProcAddress(GetModuleHandleA(“kernel32.dll”), “VirtualAlloc”)); 
 
-This will return a pointer to ï¿½kernel32.dllï¿½ string, without the quotes. Example can fail in ASLR 
+This will return a pointer to “kernel32.dll” string, without the quotes. Example can fail in ASLR 
 environment since API address must reside inside the debugged process, therefore if used like 
 this local API address inside debugger must be relocated to remote one inside the debugge. 
 
@@ -12593,9 +12593,9 @@ unsafe. Process which is searched for the API is always the currently debugged p
 
 Example 
 
-ImporterGetAPIName(GetProcAddress(GetModuleHandleA(ï¿½kernel32.dllï¿½), ï¿½VirtualAllocï¿½)); 
+ImporterGetAPIName(GetProcAddress(GetModuleHandleA(“kernel32.dll”), “VirtualAlloc”)); 
 
-This will return a pointer to ï¿½VirtualAllocï¿½ string, without the quotes. Example can fail in ASLR 
+This will return a pointer to “VirtualAlloc” string, without the quotes. Example can fail in ASLR 
 environment since API address must reside inside the debugged process, therefore if used like 
 this local API address inside debugger must be relocated to remote one inside the debugge. 
 
@@ -12715,7 +12715,7 @@ None.
 ImporterGetRemoteAPIAddress realigns the local API address to remote one inside the debugged 
 process. This function is usefully in cases when local and remote DLL are not loaded on the same base 
 address or in case of ASLR. Keep in mind that your process might not have loaded all the remote DLL 
-files so that this function cannot be used in case that module in which the API resides isnï¿½t loaded. 
+files so that this function cannot be used in case that module in which the API resides isn’t loaded. 
 
 Syntax 
 
@@ -12859,7 +12859,7 @@ called in debugged process.
 
 Return value 
 
-Local API address for the remotely found API or NULL if that API canï¿½t be found in your process. 
+Local API address for the remotely found API or NULL if that API can’t be found in your process. 
 
 Remarks 
 
@@ -13084,7 +13084,7 @@ either manually compiled or generated with EnumProcessModules Windows API.
 Return value 
 
 Function returns the index of the DLL in the list to which selected API belongs to or NULL if API 
-isnï¿½t valid or found in the provided DLL list. 
+isn’t valid or found in the provided DLL list. 
 
 Remarks 
 
@@ -13151,7 +13151,7 @@ either manually compiled or generated with EnumProcessModules Windows API.
 Return value 
 
 Function returns the index of the DLL in the list to which selected API belongs to or NULL if API 
-isnï¿½t valid or found in the provided DLL list. 
+isn’t valid or found in the provided DLL list. 
 
 Remarks 
 
@@ -13208,7 +13208,7 @@ LocalModuleBase
 
 Return value 
 
-Function returns the remote DLL base for the locally loaded module or NULL if module isnï¿½t 
+Function returns the remote DLL base for the locally loaded module or NULL if module isn’t 
 found. 
 
 Remarks 
@@ -13262,7 +13262,7 @@ returned.
 
 Return value 
 
-Function returns the remote DLL base for the specified module or NULL if module isnï¿½t found. 
+Function returns the remote DLL base for the specified module or NULL if module isn’t found. 
 
 Remarks 
 
@@ -13317,7 +13317,7 @@ called in debugged process.
 
 Return value 
 
-Function returns TRUE if API is forwarded and FALSE if it isnï¿½t. 
+Function returns TRUE if API is forwarded and FALSE if it isn’t. 
 
 Remarks 
 
@@ -13325,9 +13325,9 @@ None.
 
 Example 
 
-hModule = GetModuleHandleA(ï¿½ntdll.dllï¿½); 
+hModule = GetModuleHandleA(“ntdll.dll”); 
 
-ImporterIsForwardedAPI(hProcess, GetProcAddress(hModule, ï¿½RtlAllocateHeapï¿½)); 
+ImporterIsForwardedAPI(hProcess, GetProcAddress(hModule, “RtlAllocateHeap”)); 
 
 Function would return TRUE because this API is a forward for kernel32.HeapAlloc 
 
@@ -13383,9 +13383,9 @@ None.
 
 Example 
 
-hModule = GetModuleHandleA(ï¿½ntdll.dllï¿½); 
+hModule = GetModuleHandleA(“ntdll.dll”); 
 
-ImporterGetForwardedAPIName(hProcess, GetProcAddress(hModule, ï¿½RtlAllocateHeapï¿½)); 
+ImporterGetForwardedAPIName(hProcess, GetProcAddress(hModule, “RtlAllocateHeap”)); 
 
 Function would return HeapAlloc because this API is a forward for kernel32.HeapAlloc 
 
@@ -13494,9 +13494,9 @@ None.
 
 Example 
 
-hModule = GetModuleHandleA(ï¿½ntdll.dllï¿½); 
+hModule = GetModuleHandleA(“ntdll.dll”); 
 
-ImporterGetForwardedDLLName(hProcess, GetProcAddress(hModule, ï¿½RtlAllocateHeapï¿½)); 
+ImporterGetForwardedDLLName(hProcess, GetProcAddress(hModule, “RtlAllocateHeap”)); 
 
 Return would be kernel32.dll because this API is in that DLL as a forward for kernel32.HeapAlloc 
 
@@ -13554,7 +13554,7 @@ either manually compiled or generated with EnumProcessModules Windows API.
 Return value 
 
 Function returns the index of the DLL in the list to which resolved API forwarder belongs to or 
-NULL if API isnï¿½t valid or found in the provided DLL list. 
+NULL if API isn’t valid or found in the provided DLL list. 
 
 Remarks 
 
@@ -13606,7 +13606,7 @@ tree, for example VirtualAlloc.
 Return value 
 
 Function returns the address on which the import trunk for selected API is written or NULL is 
-that API wasnï¿½t added to import tree. 
+that API wasn’t added to import tree. 
 
 Remarks 
 
@@ -13657,7 +13657,7 @@ adding that API.
 Return value 
 
 Function returns the address on which the selected ordinal API is written or NULL is that ordinal 
-number wasnï¿½t added to import tree. 
+number wasn’t added to import tree. 
 
 Remarks 
 
@@ -13708,7 +13708,7 @@ that API.
 Return value 
 
 Function returns pointer to string which is the name of the API for supplied trunk address or 
-NULL if API isnï¿½t found. 
+NULL if API isn’t found. 
 
 Remarks 
 
@@ -13759,7 +13759,7 @@ that API.
 Return value 
 
 Function returns pointer to string which is the name of the DLL which holds the API for supplied 
-trunk address or NULL if API isnï¿½t found. 
+trunk address or NULL if API isn’t found. 
 
 Remarks 
 
@@ -13885,7 +13885,7 @@ None.
  ImporterMoveIAT function 
 
 ImporterMoveIAT turns on a switch to make the importer export the import table in a way that ensures 
-strings are written after the import tree, which is important when fixing import eliminations if we donï¿½t 
+strings are written after the import tree, which is important when fixing import eliminations if we don’t 
 know where APIs will be written. If that is the case, all APIs need to be added to the tree with relative 
 addresses, starting from NULL and incrementing by four (or eight for x64) or double that value if we 
 need to write a pointer for new DLL. This data will later be relocated to match the new section in which 
@@ -14113,8 +14113,8 @@ None.
 
 ImporterCopyOriginalIAT copies IAT from one file to another. This function assumes that the IAT will be 
 in the same virtual location in both files, so it is only used in cases when you dynamically unpack 
-crypters and where the format doesnï¿½t handle imports by itself. Instead it leaves the import table 
-handling to Windows loader, as if the file wasnï¿½t packed. 
+crypters and where the format doesn’t handle imports by itself. Instead it leaves the import table 
+handling to Windows loader, as if the file wasn’t packed. 
 
 Syntax 
 
@@ -14167,7 +14167,7 @@ None.
 
  ImporterMoveOriginalIAT function 
 
-ImporterMoveOriginalIAT moves IAT from one file to another. This function doesnï¿½t actually modify the 
+ImporterMoveOriginalIAT moves IAT from one file to another. This function doesn’t actually modify the 
 original file, but loads the import table and exports it to selected dump file. 
 
 Syntax 
@@ -14477,20 +14477,20 @@ ImporterAutoSearchIAT.
 SearchStep 
 
 [in] Search step is a value which will be used to iterate the search position. Default value 
-is four (or eight on x64) and it will be used is you donï¿½t specify the search step and 
+is four (or eight on x64) and it will be used is you don’t specify the search step and 
 use NULL. 
 
 TryAutoFix 
 
 [in] Boolean switch that indicates whether or not to trace possible import pointers, in 
 order to fix the import table. This can be always set to TRUE, but can be disabled in 
-case you are sure that the target doesnï¿½t use import redirection. 
+case you are sure that the target doesn’t use import redirection. 
 
 FixEliminations 
 
 [in] Boolean switch that indicates whether or not to fix possible import eliminations, in 
 order to fix the import table. This can be always set to TRUE, but can be disabled in 
-case you are sure that the target doesnï¿½t use import elimination. 
+case you are sure that the target doesn’t use import elimination. 
 
 UnknownPointerFixCallback 
 
@@ -15425,7 +15425,7 @@ DWORD64, but since this is a pointer void* can also be used.
 
 Return value 
 
-This function returns TRUE if the selected file is a DLL and FALSE if it isnï¿½t. 
+This function returns TRUE if the selected file is a DLL and FALSE if it isn’t. 
 
 Remarks 
 
@@ -15681,7 +15681,7 @@ None.
 RelocaterAddNewRelocation adds an address from the remote process to the list of addresses tnat 
 need relocating, if the file is allocated at a base address other then default one. Just like when adding 
 import via the importer, you must add relocations one page at a time. The engine itself will take care of 
-page switching but once the page is switched you canï¿½t go back to adding data to any of the previous 
+page switching but once the page is switched you can’t go back to adding data to any of the previous 
 pages. 
 
 Syntax 
@@ -16831,7 +16831,7 @@ physical ones. This is a done by simulating the Windows PE loader.
 
 Return value 
 
-Return is the base address of the newly loaded file, or NULL if the file isnï¿½t a PE file or it couldnï¿½t 
+Return is the base address of the newly loaded file, or NULL if the file isn’t a PE file or it couldn’t 
 be loaded. 
 
 Remarks 
@@ -17499,7 +17499,7 @@ FileSizeLow
 FileSizeHigh 
 
 [out] Pointer to DWORD variable which will receive the high file size. This parameter can 
-be NULL if you donï¿½t intend to open files larger than 4 Gb. 
+be NULL if you don’t intend to open files larger than 4 Gb. 
 
  
 
@@ -17895,7 +17895,7 @@ DecryptionKeySize
  [in] Specifies the size of the decryption key that will be used. Can be custom or one of 
 the following key sizes: UE_STATIC_KEY_SIZE_1, UE_STATIC_KEY_SIZE_2, 
 UE_STATIC_KEY_SIZE_4 or UE_STATIC_KEY_SIZE_8. If you use a custom 
-size, make sure the MemorySize % DecryptionKeySize is NULL. If modus isnï¿½t NULL, 
+size, make sure the MemorySize % DecryptionKeySize is NULL. If modus isn’t NULL, 
 the last few bytes of the memory content will not be decrypted. 
 
 DecryptionCallBack 
@@ -18041,7 +18041,7 @@ DecryptionKeySize
  [in] Specifies the size of the decryption key that will be used. Can be custom or one of 
 the following key sizes: UE_STATIC_KEY_SIZE_1, UE_STATIC_KEY_SIZE_2, 
 UE_STATIC_KEY_SIZE_4 or UE_STATIC_KEY_SIZE_8. If you use a custom 
-size, make sure the MemorySize % DecryptionKeySize is NULL. If modus isnï¿½t NULL, 
+size, make sure the MemorySize % DecryptionKeySize is NULL. If modus isn’t NULL, 
 the last few bytes of the memory content will not be decrypted. 
 
 SpecDecryptionType 
@@ -18654,7 +18654,7 @@ references are resolved with this function.
 
 Return value 
 
-Function returns a pointer to the handle name, or NULL if the supplied string canï¿½t be retrieved. 
+Function returns a pointer to the handle name, or NULL if the supplied string can’t be retrieved. 
 
 Remarks 
 
@@ -19145,7 +19145,7 @@ szMutexString
 
 Return value 
 
-Returns the handle inside the remote process for the selected mutex or NULL if mutex isnï¿½t 
+Returns the handle inside the remote process for the selected mutex or NULL if mutex isn’t 
 found. 
 
 Remarks 
@@ -19226,14 +19226,14 @@ Guide to writing extensions for TitanEngine
 TitanEngine extensions are created as normal dynamic link libraries placed in the selected folder (either 
 .\plugins\x86 or .\plugins\x64) for the engine to load. Following export functions are used by the engine: 
 
-. TitanResetPlugin ï¿½ Function which is called every time the debugging starts within the 
+. TitanResetPlugin – Function which is called every time the debugging starts within the 
 DebuLoop function. 
-. TitanReleasePlugin ï¿½ Function which is called when the plugin gets unloaded or the engine 
+. TitanReleasePlugin – Function which is called when the plugin gets unloaded or the engine 
 shuts down. 
-. TitanRegisterPlugin ï¿½ Function which is called when the plugin gets loaded by the engine. Plugin 
+. TitanRegisterPlugin – Function which is called when the plugin gets loaded by the engine. Plugin 
 should register itself by using a unique name (up to 64 characters long) and optionally fill the 
 version information. 
-. TitanDebuggingCallBack ï¿½ Function which is called for every debug even registered by the 
+. TitanDebuggingCallBack – Function which is called for every debug even registered by the 
 engine. This function has a CallReason parameter which can be one of the following: 
 UE_PLUGIN_CALL_REASON_PREDEBUG, UE_PLUGIN_CALL_REASON_EXCEPTION or 
 UE_PLUGIN_CALL_REASON_POSTDEBUG. 
@@ -19651,7 +19651,7 @@ szPluginName
 
 Return value 
 
-Pointer to PluginInformation structure or NULL if the selected plugin isnï¿½t currently loaded. 
+Pointer to PluginInformation structure or NULL if the selected plugin isn’t currently loaded. 
 
 Remarks 
 
@@ -19670,7 +19670,7 @@ Engine module
 
  
 
-The engine module isnï¿½t a separate module or a functional part; instead it is a top level engine 
+The engine module isn’t a separate module or a functional part; instead it is a top level engine 
 functionality which utilizes multiple engine functions to perform a certain task. 
 
  
@@ -19789,8 +19789,8 @@ None.
  EngineDeleteCreatedDependencies function 
 
 EngineDeleteCreatedDependencies deletes logged created missing dependencies. This function 
-performs disk cleanup at the end of unpacking process. If files canï¿½t be deleted at that particular time 
-they will be moved to systemï¿½s temporary folder for user deletion. 
+performs disk cleanup at the end of unpacking process. If files can’t be deleted at that particular time 
+they will be moved to system’s temporary folder for user deletion. 
 
 Syntax 
 
@@ -19828,7 +19828,7 @@ None.
  EngineCreateUnpackerWindow function 
 
 EngineCreateUnpackerWindow creates a default and easily customizable graphical user interface for 
-your unpacker project. Program doesnï¿½t return from this call until the window has been closed. 
+your unpacker project. Program doesn’t return from this call until the window has been closed. 
 
 Syntax 
 
@@ -19950,7 +19950,7 @@ Engine unpacker simplification module
 
  
 
-The engine module isnï¿½t a separate module or a functional part; instead it is a top level engine 
+The engine module isn’t a separate module or a functional part; instead it is a top level engine 
 functionality which utilizes multiple engine functions to perform a certain task. Engine unpacker 
 simplification functions enable easy unpacker coding for most common portable executable packers. 
 
@@ -20216,10 +20216,10 @@ Remarks
 For simplification to work correctly you must define LoadLibrary, GetProcAddress and entry 
 point breakpoints as a minimum of functionality. 
 
-If relocation snapshot two isnï¿½t defined second snapshot is automatically performed once the 
+If relocation snapshot two isn’t defined second snapshot is automatically performed once the 
 entry point breakpoint is hit. 
 
-If you donï¿½t set the original entry point and use the default entry point callback EIP/RIP address 
+If you don’t set the original entry point and use the default entry point callback EIP/RIP address 
 will be used to set that data. 
 
 Example 
@@ -20234,7 +20234,7 @@ None.
  EngineUnpackerSetEntryPointAddress function 
 
 EngineUnpackerSetEntryPointAddress sets the original entry point address. This function is used if 
-breaking at the original entry point isnï¿½t possible and the address of the original entry point must be 
+breaking at the original entry point isn’t possible and the address of the original entry point must be 
 read by the program. 
 
 Syntax 
