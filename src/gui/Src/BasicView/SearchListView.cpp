@@ -122,39 +122,11 @@ SearchListView::SearchListView(QWidget* parent, AbstractSearchList* abstractSear
     abstractSearchList->list()->setFocusProxy(mSearchBox);
 }
 
-bool SearchListView::findTextInList(AbstractStdTable* list, QString text, int row, int startcol, bool startswith)
-{
-    int count = list->getColumnCount();
-    if(startcol + 1 > count)
-        return false;
-    if(startswith)
-    {
-        for(int i = startcol; i < count; i++)
-            if(list->getCellContent(row, i).startsWith(text, Qt::CaseInsensitive))
-                return true;
-    }
-    else
-    {
-        for(int i = startcol; i < count; i++)
-        {
-            auto state = mRegexCheckbox->checkState();
-            if(state != Qt::Unchecked)
-            {
-                if(list->getCellContent(row, i).contains(QRegExp(text, state == Qt::PartiallyChecked ? Qt::CaseInsensitive : Qt::CaseSensitive)))
-                    return true;
-            }
-            else
-            {
-                if(list->getCellContent(row, i).contains(text, Qt::CaseInsensitive))
-                    return true;
-            }
-        }
-    }
-    return false;
-}
 
 void SearchListView::filterEntries()
 {
+    // Copy the filter text before entering the critical section
+    auto filterText = mFilterText;
     mAbstractSearchList->lock();
 
     // store the first selection value
@@ -166,7 +138,7 @@ void SearchListView::filterEntries()
     // get the correct previous list instance
     auto mPrevList = mAbstractSearchList->list()->isVisible() ? mAbstractSearchList->list() : mAbstractSearchList->searchList();
 
-    if(mFilterText.length())
+    if(filterText.length())
     {
         MethodInvoker::invokeMethod([this]()
         {
@@ -187,7 +159,7 @@ void SearchListView::filterEntries()
             filterType = AbstractSearchList::FilterRegexCaseSensitive;
             break;
         }
-        mAbstractSearchList->filter(mFilterText, filterType, mSearchStartCol);
+        mAbstractSearchList->filter(filterText, filterType, mSearchStartCol);
     }
     else
     {
@@ -236,9 +208,6 @@ void SearchListView::filterEntries()
     else
         mAbstractSearchList->searchList()->setHighlightText(QString());
 
-    // Reload the search list data
-    mAbstractSearchList->searchList()->reloadData();
-
     // setup the same layout of the previous list control
     if(mPrevList != mCurList)
     {
@@ -250,6 +219,9 @@ void SearchListView::filterEntries()
             mCurList->setColumnWidth(i, mPrevList->getColumnWidth(i));
         }
     }
+
+    // Reload the search list data
+    mCurList->reloadData();
 
     mAbstractSearchList->unlock();
 }

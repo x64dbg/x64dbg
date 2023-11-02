@@ -17,7 +17,6 @@ public:
     AbstractStdTable* mCurList = nullptr;
     duint mSearchStartCol = 0;
 
-    bool findTextInList(AbstractStdTable* list, QString text, int row, int startcol, bool startswith);
     void refreshSearchList();
     void clearFilter();
     bool isSearchBoxLocked();
