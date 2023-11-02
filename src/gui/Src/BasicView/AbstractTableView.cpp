@@ -210,6 +210,8 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
         mShouldReload = false;
     }
 
+    // TODO: report if mTableOffset is out of view
+
     // Paints background
     if(mBackgroundColor.alpha() == 255) // The secret code to allow the user to set a background image in style.css
         painter.fillRect(painter.viewport(), QBrush(mBackgroundColor));
@@ -1133,6 +1135,8 @@ void AbstractTableView::setRowCount(duint count)
     {
         updateScrollBarRange(getRowCount());
     });
+
+    // TODO: report if mTableOffset is out of view
 }
 
 void AbstractTableView::deleteAllColumns()
@@ -1304,7 +1308,10 @@ void AbstractTableView::setTableOffset(duint val)
     auto rowCount = getRowCount();
     auto viewableRows = getViewableRowsCount();
     if(rowCount <= viewableRows)
+    {
+        mTableOffset = 0;
         return;
+    }
     auto maxTableOffset = getMaxTableOffset();
 
     // If val is within the last viewable rows
