@@ -107,8 +107,8 @@ void ReferenceView::connectBridge()
     connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), this, SLOT(referenceSetProgressSlot(int)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceAddCommand(QString, QString)), this, SLOT(addCommand(QString, QString)));
-    connect(stdSearchList(), SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(int)));
-    connect(stdList(), SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(int)));
+    connect(stdSearchList(), SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(duint)));
+    connect(stdList(), SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(duint)));
 }
 
 void ReferenceView::disconnectBridge()
@@ -118,8 +118,8 @@ void ReferenceView::disconnectBridge()
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), this, SLOT(referenceSetProgressSlot(int)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceAddCommand(QString, QString)), this, SLOT(addCommand(QString, QString)));
-    disconnect(stdSearchList(), SIGNAL(selectionChanged(int)), this, SLOT(searchSelectionChanged(int)));
-    disconnect(stdList(), SIGNAL(selectionChanged(int)), this, SLOT(searchSelectionChanged(int)));
+    disconnect(stdSearchList(), SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(duint)));
+    disconnect(stdList(), SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(duint)));
 }
 
 int ReferenceView::progress() const
@@ -153,7 +153,7 @@ void ReferenceView::referenceSetCurrentTaskProgressSlot(int progress, QString ta
     mSearchCurrentTaskProgress->setFormat(taskTitle + " " + QString::number(progress) + "%");
 }
 
-void ReferenceView::searchSelectionChanged(int index)
+void ReferenceView::searchSelectionChanged(duint index)
 {
     DbgValToString("$__disasm_refindex", index);
     DbgValToString("$__dump_refindex", index);
@@ -257,14 +257,14 @@ void ReferenceView::referenceContextMenu(QMenu* menu)
 
 void ReferenceView::followAddress()
 {
-    int index = mCurList->getInitialSelection();
+    auto index = mCurList->getInitialSelection();
     searchSelectionChanged(index);
     DbgCmdExecDirect(QString("disasm " + mCurList->getCellContent(index, 0)));
 }
 
 void ReferenceView::followDumpAddress()
 {
-    int index = mCurList->getInitialSelection();
+    auto index = mCurList->getInitialSelection();
     searchSelectionChanged(index);
     DbgCmdExecDirect(QString("dump " + mCurList->getCellContent(index, 0)));
 }

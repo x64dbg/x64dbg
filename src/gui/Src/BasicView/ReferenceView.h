@@ -39,7 +39,7 @@ public slots:
     void refreshShortcutsSlot();
     void referenceSetProgressSlot(int progress);
     void referenceSetCurrentTaskProgressSlot(int progress, QString taskTitle);
-    void searchSelectionChanged(int index);
+    void searchSelectionChanged(duint index);
     void reloadDataSlot();
 
 signals:

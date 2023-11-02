@@ -6,9 +6,9 @@ void StdTableSearchList::filter(const QString & filter, FilterType type, duint s
     StdIconTable* mSearchIconList = qobject_cast<StdIconTable*>(mSearchList);
     StdIconTable* mIconList = qobject_cast<StdIconTable*>(mList);
     mSearchList->setRowCount(0);
-    int rows = mList->getRowCount();
-    int columns = mList->getColumnCount();
-    for(int i = 0, j = 0; i < rows; i++)
+    auto rows = mList->getRowCount();
+    auto columns = mList->getColumnCount();
+    for(duint i = 0, j = 0; i < rows; i++)
     {
         if(rowMatchesFilter(filter, type, i, startColumn))
         {
