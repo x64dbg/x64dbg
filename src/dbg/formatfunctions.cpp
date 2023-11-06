@@ -61,19 +61,14 @@ static FORMATRESULT memoryFormatter(char* dest, size_t destCount, int argc, char
         strcpy_s(dest, destCount, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid argument...")));
         return FORMAT_ERROR_MESSAGE;
     }
-    if(size == 0)
-    {
-        strcpy_s(dest, destCount, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Not enough arguments...")));
-        return FORMAT_ERROR_MESSAGE;
-    }
     if(size > 1024 * 1024 * 10) //10MB max
     {
         strcpy_s(dest, destCount, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Too much data (10MB max)...")));
         return FORMAT_ERROR_MESSAGE;
     }
     std::vector<Char> data(size);
-    duint read = 0;
-    if(!MemRead(addr, data.data(), size * sizeof(Char), &read) && read == 0)
+    duint read = -1;
+    if(!MemRead(addr, data.data(), size * sizeof(Char), &read) && read == -1)
     {
         strcpy_s(dest, destCount, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Failed to read memory...")));
         return FORMAT_ERROR_MESSAGE;
