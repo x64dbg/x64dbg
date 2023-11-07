@@ -141,6 +141,15 @@ ExpressionParser::ExpressionParser(const String & expression)
     mTokens.reserve(r);
     mCurToken.reserve(r);
     tokenize();
+#if 0
+    // Print the tokens for debugging
+    dprintf_untranslated("'%s':\n", expression.c_str());
+    for(const auto & token : mTokens)
+    {
+        dprintf_untranslated("  % 2d '%s'\n", token.type(), token.data().c_str());
+    }
+    dprintf_untranslated("\n");
+#endif
     shuntingYard();
 }
 
@@ -930,108 +939,203 @@ bool ExpressionParser::Calculate(EvalValue & value, bool signedcalc, bool allowa
         else if(token.type() == Token::Type::Function)
         {
             const auto & name = token.data();
+            const auto argCount = token.info();
             ValueType returnType;
             std::vector<ValueType> argTypes;
             if(!ExpressionFunctions::GetType(name, returnType, argTypes))
-                return false;
-            if(int(stack.size()) < argTypes.size())
-                return false;
-            std::vector<ExpressionValue> argv;
-            argv.resize(argTypes.size());
-            for(size_t i = 0; i < argTypes.size(); i++)
             {
-                const auto & argType = argTypes[argTypes.size() - i - 1];
-                auto & top = stack[stack.size() - i - 1];
-                ExpressionValue arg;
-                if(top.isString)
+                if(!silent)
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "No such expression function '%s'\n"), name.c_str());
+                return false;
+            }
+
+            size_t requiredArguments = 0;
+            for(const auto & argType : argTypes)
+            {
+                switch(argType)
                 {
-                    arg = { ValueTypeString, 0, StringValue{ top.data.c_str(), false } };
+                case ValueTypeOptionalNumber:
+                case ValueTypeOptionalString:
+                case ValueTypeOptionalAny:
+                    break;
+                default:
+                    requiredArguments++;
+                    break;
                 }
-                else if(top.evaluated)
+            }
+
+            auto typeName = [](ValueType t) -> String
+            {
+                switch(t)
                 {
-                    arg = { ValueTypeNumber, top.value };
+                case ValueTypeOptionalNumber:
+                case ValueTypeNumber:
+                    return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "number"));
+                case ValueTypeOptionalString:
+                case ValueTypeString:
+                    return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "string"));
+                case ValueTypeOptionalAny:
+                case ValueTypeAny:
+                    return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "any"));
+                }
+                return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid"));
+            };
+
+            auto makeSignature = [&]()
+            {
+                String signature = name;
+                signature += "(";
+                for(size_t j = 0; j < argTypes.size(); j++)
+                {
+                    if(j == requiredArguments)
+                    {
+                        signature += "[";
+                    }
+                    if(j > 0)
+                    {
+                        signature += ", ";
+                    }
+                    signature += typeName(argTypes[j]);
+                }
+                if(requiredArguments < argTypes.size())
+                {
+                    signature += "]";
+                }
+                signature += ")";
+                return signature;
+            };
+
+            if(stack.size() < requiredArguments || argCount > argTypes.size())
+            {
+                if(!silent)
+                {
+                    std::string expected;
+                    if(requiredArguments == argTypes.size())
+                        expected = StringUtils::sprintf("%d", (int)requiredArguments);
+                    else
+                        expected = StringUtils::sprintf("%d-%d", (int)requiredArguments, (int)argTypes.size());
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "Bad argument count for expression function %s (expected %s, got %d)!\n"),
+                            makeSignature().c_str(),
+                            expected.c_str(),
+                            (int)argCount
+                           );
+                }
+                return false;
+            }
+
+            std::vector<ExpressionValue> argv;
+            argv.resize(argCount);
+            for(size_t i = 0; i < argCount; i++)
+            {
+                // Get the expected (concrete) argument type
+                auto argType = argTypes[i];
+                switch(argType)
+                {
+                case ValueTypeOptionalNumber:
+                    argType = ValueTypeNumber;
+                    break;
+                case ValueTypeOptionalString:
+                    argType = ValueTypeString;
+                    break;
+                case ValueTypeOptionalAny:
+                    argType = ValueTypeAny;
+                    break;
+                default:
+                    break;
+                }
+
+                auto & argEval = stack[stack.size() - argCount + i];
+                ExpressionValue argValue;
+                if(argEval.isString)
+                {
+                    argValue = { ValueTypeString, 0, StringValue{ argEval.data.c_str(), false } };
+                }
+                else if(argEval.evaluated)
+                {
+                    argValue = { ValueTypeNumber, argEval.value };
                 }
                 else
                 {
                     duint result;
-                    if(!top.DoEvaluate(result, silent, baseonly, value_size, isvar, hexonly))
+                    if(!argEval.DoEvaluate(result, silent, baseonly, value_size, isvar, hexonly))
                         return false;
-                    arg = { ValueTypeNumber, result };
+                    argValue = { ValueTypeNumber, result };
                 }
 
-                if(arg.type != argType && argType != ValueTypeAny)
+                if(argValue.type != argType && argType != ValueTypeAny)
                 {
                     if(!silent)
                     {
-                        auto typeName = [](ValueType t) -> String
-                        {
-                            switch(t)
-                            {
-                            case ValueTypeNumber:
-                                return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "number"));
-                            case ValueTypeString:
-                                return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "string"));
-                            }
-                            return GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "invalid"));
-                        };
                         String argValueStr;
-                        if(arg.type == ValueTypeNumber)
+                        if(argValue.type == ValueTypeNumber)
                         {
-                            argValueStr = StringUtils::sprintf("0x%p", arg.number);
+                            argValueStr = StringUtils::sprintf("0x%p", argValue.number);
                         }
-                        else if(arg.type == ValueTypeString)
+                        else if(argValue.type == ValueTypeString)
                         {
-                            argValueStr = "\"" + StringUtils::Escape(arg.string.ptr) + "\"";
+                            argValueStr = "\"" + StringUtils::Escape(argValue.string.ptr) + "\"";
                         }
                         else
                         {
                             argValueStr = "???";
                         }
-                        String signature = name;
-                        signature += "(";
-                        for(size_t j = 0; j < argTypes.size(); j++)
-                        {
-                            if(j > 0)
-                            {
-                                signature += ", ";
-                            }
-                            signature += typeName(argTypes[j]);
-                        }
-                        signature += ")";
                         dprintf(QT_TRANSLATE_NOOP("DBG", "Expression function %s argument %d/%d (%s) type mismatch (expected %s, got %s)!\n"),
-                                signature.c_str(),
-                                argTypes.size() - i,
+                                makeSignature().c_str(),
+                                i + 1,
                                 argTypes.size(),
                                 argValueStr.c_str(),
                                 typeName(argType).c_str(),
-                                typeName(arg.type).c_str()
+                                typeName(argValue.type).c_str()
                                );
                     }
                     return false;
                 }
 
-                argv[argTypes.size() - i - 1] = arg;
+                argv[i] = argValue;
             }
 
             ExpressionValue result = { ValueTypeNumber, 0 };
             if(!ExpressionFunctions::Call(name, result, argv))
+            {
+                if(!silent)
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "Expression function %s errored!\n"),
+                            makeSignature().c_str()
+                           );
                 return false;
+            }
 
-            if(result.type == ValueTypeAny)
+            // Check the return type
+            switch(result.type)
+            {
+            case ValueTypeNumber:
+            case ValueTypeString:
+                break;
+            default:
+                if(!silent)
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "Expression function %s returned an invalid value!\n"),
+                            makeSignature().c_str()
+                           );
                 return false;
+            }
 
+            // Pop the arguments off the stack
+            // NOTE: Do not move, the string pointers are needed during the call
             for(size_t i = 0; i < argv.size(); i++)
             {
                 stack.pop_back();
             }
+
+            // Push the result on the stack
             if(result.type == ValueTypeString)
             {
-                stack.push_back(EvalValue(result.string.ptr, true));
+                stack.emplace_back(result.string.ptr, true);
+
+                // We can free the string since it was copied into the EvalValue
                 if(result.string.isOwner)
                     BridgeFree((void*)result.string.ptr);
             }
             else
-                stack.push_back(EvalValue(result.number));
+                stack.emplace_back(result.number);
         }
         else
             stack.push_back(EvalValue(token.data(), token.type() == Token::Type::QuotedData));

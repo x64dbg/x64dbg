@@ -180,10 +180,39 @@ bool ExpressionFunctions::Register(const String & name, const ValueType & return
     if(mFunctions.count(aliases[0]))
         return false;
 
+    // Return type cannot be optional
+    switch(returnType)
+    {
+    case ValueTypeOptionalNumber:
+    case ValueTypeOptionalString:
+    case ValueTypeOptionalAny:
+        return false;
+    default:
+        break;
+    }
+
+    // Make sure optional arguments are at the end
+    bool seenOptional = false;
+    for(const auto & argType : argTypes)
+    {
+        switch(argType)
+        {
+        case ValueTypeOptionalNumber:
+        case ValueTypeOptionalString:
+        case ValueTypeOptionalAny:
+            seenOptional = true;
+            break;
+        default:
+            if(seenOptional)
+                return false;
+            break;
+        }
+    }
+
     Function f;
     f.name = aliases[0];
-    f.argTypes = argTypes;
     f.returnType = returnType;
+    f.argTypes = argTypes;
     f.cbFunction = cbFunction;
     f.userdata = userdata;
     mFunctions[aliases[0]] = f;
@@ -228,13 +257,6 @@ bool ExpressionFunctions::Call(const String & name, ExpressionValue & result, st
     if(found == mFunctions.end())
         return false;
     const auto & f = found->second;
-    if(f.argTypes.size() != int(argv.size()))
-        return false;
-    for(size_t i = 0; i < argv.size(); i++)
-    {
-        if(argv[i].type != f.argTypes[i] && f.argTypes[i] != ValueTypeAny)
-            return false;
-    }
     return f.cbFunction(&result, (int)argv.size(), argv.data(), f.userdata);
 }
 
