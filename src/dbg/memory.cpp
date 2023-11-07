@@ -96,7 +96,7 @@ static std::vector<MEMPAGE> QueryMemPages()
             else
             {
                 // Otherwise append the page to the last created entry
-                if(pages.size())        //make sure to not dereference an invalid pointer
+                if(pages.size()) //make sure to not dereference an invalid pointer
                     pages.back().mbi.RegionSize += mbi.RegionSize;
             }
         }
@@ -471,7 +471,7 @@ duint MemFindBaseAddr(duint Address, duint* Size, bool Refresh, bool FindReserve
     if(found == memoryPages.end())
         return 0;
 
-    if(!FindReserved && found->second.mbi.State == MEM_RESERVE)        //check if the current page is reserved.
+    if(!FindReserved && found->second.mbi.State == MEM_RESERVE) //check if the current page is reserved.
         return 0;
 
     // Return the allocation region size when requested
@@ -526,12 +526,13 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
     if(cache && !MemIsValidReadPtr(BaseAddress, true))
         return false;
 
-    if(!Buffer || !Size)
+    if(!Buffer)
         return false;
 
     duint bytesReadTemp = 0;
     if(!NumberOfBytesRead)
         NumberOfBytesRead = &bytesReadTemp;
+    *NumberOfBytesRead = 0;
 
     duint offset = 0;
     duint requestedSize = Size;
@@ -575,12 +576,13 @@ bool MemReadUnsafe(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfB
     if(!MemIsCanonicalAddress(BaseAddress) || BaseAddress < PAGE_SIZE || !DbgIsDebugging())
         return false;
 
-    if(!Buffer || !Size)
+    if(!Buffer)
         return false;
 
     duint bytesReadTemp = 0;
     if(!NumberOfBytesRead)
         NumberOfBytesRead = &bytesReadTemp;
+    *NumberOfBytesRead = 0;
 
     duint offset = 0;
     duint requestedSize = Size;
@@ -622,12 +624,13 @@ bool MemWrite(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOf
     if(!MemIsCanonicalAddress(BaseAddress))
         return false;
 
-    if(!Buffer || !Size)
+    if(!Buffer)
         return false;
 
     SIZE_T bytesWrittenTemp = 0;
     if(!NumberOfBytesWritten)
         NumberOfBytesWritten = &bytesWrittenTemp;
+    *NumberOfBytesWritten = 0;
 
     duint offset = 0;
     duint requestedSize = Size;
@@ -657,8 +660,8 @@ bool MemWrite(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOf
 
 bool MemPatch(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOfBytesWritten)
 {
-    // Buffer and size must be valid
-    if(!Buffer || Size <= 0)
+    // Buffer must be valid
+    if(!Buffer)
         return false;
 
     // Allocate the memory
@@ -777,7 +780,7 @@ bool MemGetPageRights(duint Address, char* Rights)
 
 bool MemPageRightsToString(DWORD Protect, char* Rights)
 {
-    if(!Protect)        //reserved pages don't have a protection (https://goo.gl/Izkk0c)
+    if(!Protect) //reserved pages don't have a protection (https://goo.gl/Izkk0c)
     {
         *Rights = '\0';
         return true;
@@ -1044,7 +1047,7 @@ bool MemGetProtect(duint Address, bool Reserved, bool Cache, unsigned int* Prote
         auto found = memoryPages.find({ Address, Address });
         if(found == memoryPages.end())
             return false;
-        if(!Reserved && found->second.mbi.State == MEM_RESERVE)     //check if the current page is reserved.
+        if(!Reserved && found->second.mbi.State == MEM_RESERVE) //check if the current page is reserved.
             return false;
 
         *Protect = found->second.mbi.Protect;
