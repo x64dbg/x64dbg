@@ -17,7 +17,7 @@ public:
         explicit EvalValue(duint value)
             : evaluated(true), value(value) {}
 
-        explicit EvalValue(const String & data, bool isString)
+        EvalValue(const String & data, bool isString)
             : evaluated(false), data(data), isString(isString) {}
 
         bool DoEvaluate(duint & result, bool silent = true, bool baseonly = false, int* value_size = nullptr, bool* isvar = nullptr, bool* hexonly = nullptr) const
@@ -61,8 +61,8 @@ public:
             QuotedData,
             Function,
             Comma,
-            OpenBracket,
-            CloseBracket,
+            OpenParen,
+            CloseParen,
 
             OperatorUnarySub,
             OperatorUnaryAdd,
@@ -133,6 +133,16 @@ public:
             return mType;
         }
 
+        duint info() const
+        {
+            return mInfo;
+        }
+
+        void setInfo(duint info)
+        {
+            mInfo = info;
+        }
+
         Associativity associativity() const;
         int precedence() const;
         bool isOperator() const;
@@ -140,6 +150,7 @@ public:
     private:
         String mData;
         Type mType;
+        duint mInfo = 0;
     };
 
 private:

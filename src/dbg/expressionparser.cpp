@@ -215,10 +215,10 @@ void ExpressionParser::tokenize()
                     addOperatorToken(ch, Token::Type::Comma);
                     break;
                 case '(':
-                    addOperatorToken(ch, Token::Type::OpenBracket);
+                    addOperatorToken(ch, Token::Type::OpenParen);
                     break;
                 case ')':
-                    addOperatorToken(ch, Token::Type::CloseBracket);
+                    addOperatorToken(ch, Token::Type::CloseParen);
                     break;
                 case '~':
                     addOperatorToken(ch, Token::Type::OperatorNot);
@@ -367,7 +367,14 @@ void ExpressionParser::addOperatorToken(const String & data, Token::Type type)
 {
     if(mCurToken.length()) //add a new data token when there is data in the buffer
     {
-        mTokens.push_back(Token(mCurToken, type == Token::Type::OpenBracket ? Token::Type::Function : resolveQuotedData()));
+        if(type == Token::Type::OpenParen)
+        {
+            mTokens.push_back(Token(mCurToken, Token::Type::Function));
+        }
+        else
+        {
+            mTokens.push_back(Token(mCurToken, resolveQuotedData()));
+        }
         mCurToken.clear();
         mCurTokenQuoted.clear();
     }
@@ -388,7 +395,7 @@ bool ExpressionParser::isUnaryOperator() const
         return true;
     auto lastType = mTokens.back().type();
     //if the previous token is not data or a close bracket, this operator is a unary operator
-    return lastType != Token::Type::Data && lastType != Token::Type::QuotedData && lastType != Token::Type::CloseBracket;
+    return lastType != Token::Type::Data && lastType != Token::Type::QuotedData && lastType != Token::Type::CloseParen;
 }
 
 void ExpressionParser::shuntingYard()
@@ -396,6 +403,7 @@ void ExpressionParser::shuntingYard()
     //Implementation of Dijkstra's Shunting-yard algorithm (https://en.wikipedia.org/wiki/Shunting-yard_algorithm)
     std::vector<Token> queue;
     std::vector<Token> stack;
+    std::vector<duint> argCount;
     auto len = mTokens.size();
     queue.reserve(len);
     stack.reserve(len);
@@ -410,9 +418,18 @@ void ExpressionParser::shuntingYard()
             queue.push_back(token);
             break;
         case Token::Type::Function: //If the token is a function token, then push it onto the stack.
+        {
             stack.push_back(token);
-            break;
+
+            // Unless the syntax is 'fn()' there is always at least one argument
+            if(i + 2 < mTokens.size() && mTokens[i + 1].type() == Token::Type::OpenParen && mTokens[i + 2].type() == Token::Type::CloseParen)
+                argCount.push_back(0);
+            else
+                argCount.push_back(1);
+        }
+        break;
         case Token::Type::Comma: //If the token is a function argument separator (e.g., a comma):
+        {
             while(true) //Until the token at the top of the stack is a left parenthesis, pop operators off the stack onto the output queue.
             {
                 if(stack.empty()) //If no left parentheses are encountered, either the separator was misplaced or parentheses were mismatched.
@@ -421,16 +438,20 @@ void ExpressionParser::shuntingYard()
                     return;
                 }
                 const auto & curToken = stack.back();
-                if(curToken.type() == Token::Type::OpenBracket)
+                if(curToken.type() == Token::Type::OpenParen)
                     break;
                 queue.push_back(curToken);
                 stack.pop_back();
             }
-            break;
-        case Token::Type::OpenBracket: //If the token is a left parenthesis (i.e. "("), then push it onto the stack.
+
+            if(!argCount.empty()) // A comma increases the argument count
+                argCount.back()++;
+        }
+        break;
+        case Token::Type::OpenParen: //If the token is a left parenthesis (i.e. "("), then push it onto the stack.
             stack.push_back(token);
             break;
-        case Token::Type::CloseBracket: //If the token is a right parenthesis (i.e. ")"):
+        case Token::Type::CloseParen: //If the token is a right parenthesis (i.e. ")"):
         {
             while(true) //Until the token at the top of the stack is a left parenthesis, pop operators off the stack onto the output queue.
             {
@@ -441,14 +462,16 @@ void ExpressionParser::shuntingYard()
                 }
                 auto curToken = stack.back();
                 stack.pop_back(); //Pop the left parenthesis from the stack, but not onto the output queue.
-                if(curToken.type() == Token::Type::OpenBracket) //the bracket is already popped here
+                if(curToken.type() == Token::Type::OpenParen) //the bracket is already popped here
                     break;
                 queue.push_back(curToken);
             }
-            auto size = stack.size();
-            if(size && stack[size - 1].type() == Token::Type::Function) //If the token at the top of the stack is a function token, pop it onto the output queue.
+            if(!stack.empty() && stack.back().type() == Token::Type::Function) //If the token at the top of the stack is a function token, pop it onto the output queue.
             {
-                queue.push_back(stack[size - 1]);
+                // Propagate the argument count as extra information
+                stack.back().setInfo(argCount.back());
+                argCount.pop_back();
+                queue.push_back(stack.back());
                 stack.pop_back();
             }
         }
@@ -476,7 +499,7 @@ void ExpressionParser::shuntingYard()
     while(!stack.empty()) //While there are still operator tokens in the stack:
     {
         const auto & curToken = stack.back();
-        if(curToken.type() == Token::Type::OpenBracket || curToken.type() == Token::Type::CloseBracket) //If the operator token on the top of the stack is a parenthesis, then there are mismatched parentheses.
+        if(curToken.type() == Token::Type::OpenParen || curToken.type() == Token::Type::CloseParen) //If the operator token on the top of the stack is a parenthesis, then there are mismatched parentheses.
         {
             mIsValidExpression = false;
             return;
