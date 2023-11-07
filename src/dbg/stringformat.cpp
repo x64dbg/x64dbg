@@ -123,8 +123,13 @@ static String printValue(FormatValueType value, StringValueType type)
         if(!parser.Calculate(evalue, valuesignedcalc(), false))
             return "???";
 
-        if(type == StringValueType::Default && evalue.isString)
-            return evalue.data;
+        if(evalue.isString)
+        {
+            if(type == StringValueType::Default)
+                return StringUtils::Escape(evalue.data);
+            else if(type == StringValueType::String)
+                return evalue.data; // allow raw string output
+        }
 
         duint valuint = 0;
         if(evalue.isString || !evalue.DoEvaluate(valuint))
