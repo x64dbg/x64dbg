@@ -690,14 +690,24 @@ namespace Exprfunc
     template<bool Strict>
     bool ansi(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
     {
-        assert(argc == 1);
+        assert(argc >= 1);
         assert(argv[0].type == ValueTypeNumber);
 
         duint addr = argv[0].number;
 
-        std::vector<char> tempStr(MAX_STRING_SIZE + 1);
-        duint NumberOfBytesRead = 0;
-        if(!MemRead(addr, tempStr.data(), tempStr.size() - 1, &NumberOfBytesRead) && NumberOfBytesRead == 0 && Strict)
+        std::vector<char> tempStr;
+        if(argc > 1)
+        {
+            assert(argv[1].type == ValueTypeNumber);
+            tempStr.resize(argv[1].number + 1);
+        }
+        else
+        {
+            tempStr.resize(MAX_STRING_SIZE + 1);
+        }
+
+        duint NumberOfBytesRead = -1;
+        if(!MemRead(addr, tempStr.data(), tempStr.size() - 1, &NumberOfBytesRead) && NumberOfBytesRead == -1 && Strict)
         {
             return false;
         }
@@ -709,14 +719,24 @@ namespace Exprfunc
     template<bool Strict>
     bool utf8(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
     {
-        assert(argc == 1);
+        assert(argc >= 1);
         assert(argv[0].type == ValueTypeNumber);
 
         duint addr = argv[0].number;
 
-        std::vector<char> tempStr(MAX_STRING_SIZE + 1);
-        duint NumberOfBytesRead = 0;
-        if(!MemRead(addr, tempStr.data(), tempStr.size() - 1, &NumberOfBytesRead) && NumberOfBytesRead == 0 && Strict)
+        std::vector<char> tempStr;
+        if(argc > 1)
+        {
+            assert(argv[1].type == ValueTypeNumber);
+            tempStr.resize(argv[1].number + 1);
+        }
+        else
+        {
+            tempStr.resize(MAX_STRING_SIZE + 1);
+        }
+
+        duint NumberOfBytesRead = -1;
+        if(!MemRead(addr, tempStr.data(), tempStr.size() - 1, &NumberOfBytesRead) && NumberOfBytesRead == -1 && Strict)
         {
             return false;
         }
@@ -728,14 +748,24 @@ namespace Exprfunc
     template<bool Strict>
     bool utf16(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
     {
-        assert(argc == 1);
+        assert(argc >= 1);
         assert(argv[0].type == ValueTypeNumber);
 
         duint addr = argv[0].number;
 
-        std::vector<wchar_t> tempStr(MAX_STRING_SIZE + 1);
-        duint NumberOfBytesRead = 0;
-        if(!MemRead(addr, tempStr.data(), sizeof(wchar_t) * (tempStr.size() - 1), &NumberOfBytesRead) && NumberOfBytesRead == 0 && Strict)
+        std::vector<wchar_t> tempStr;
+        if(argc > 1)
+        {
+            assert(argv[1].type == ValueTypeNumber);
+            tempStr.resize(argv[1].number + 1);
+        }
+        else
+        {
+            tempStr.resize(MAX_STRING_SIZE + 1);
+        }
+
+        duint NumberOfBytesRead = -1;
+        if(!MemRead(addr, tempStr.data(), sizeof(wchar_t) * (tempStr.size() - 1), &NumberOfBytesRead) && NumberOfBytesRead == -1 && Strict)
         {
             return false;
         }
