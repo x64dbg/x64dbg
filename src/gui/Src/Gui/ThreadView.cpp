@@ -174,7 +174,7 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
     loadColumnFromConfig("Thread");
 
     //setCopyMenuOnly(true);
-
+    connect(Bridge::getBridge(), SIGNAL(selectionThreadsSet(const SELECTIONDATA*)), this, SLOT(selectionThreadsSet(const SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(updateThreads()), this, SLOT(updateThreadList()));
     connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
@@ -182,6 +182,23 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
     setupContextMenu();
 
     new DisassemblyPopup(this, Bridge::getArchitecture());
+}
+
+void ThreadView::selectionThreadsSet(const SELECTIONDATA* selection)
+{
+    if(selection->start >= getRowCount() ||
+            selection->end >= getRowCount()   ||
+            selection->start > selection->end)
+    {
+        Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 0);
+        return;
+    }
+
+    mSelection.firstSelectedIndex = selection->start;
+    mSelection.fromIndex = selection->start;
+    mSelection.toIndex = selection->end;
+    Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 1);
+    emit selectionChanged(mSelection.firstSelectedIndex);
 }
 
 void ThreadView::updateThreadList()
@@ -394,12 +411,13 @@ void ThreadView::doubleClickedSlot()
 
 void ThreadView::SetNameSlot()
 {
-    duint threadId = getCellUserdata(getInitialSelection(), 1);
-    LineEditDialog mLineEdit(this);
-    mLineEdit.setWindowTitle(tr("Name") + threadId);
-    mLineEdit.setText(getCellContent(getInitialSelection(), 13));
-    if(mLineEdit.exec() != QDialog::Accepted)
-        return;
-    QString escapedName = mLineEdit.editText.replace("\"", "\\\"");
-    DbgCmdExec(QString("setthreadname %1, \"%2\"").arg(ToHexString(threadId)).arg(escapedName));
+    const duint threadID = getCellUserdata(getInitialSelection(), 1);
+    const QString currentThreadsName = getCellContent(getInitialSelection(), 13);
+
+    const QString windowTitle = QStringLiteral("%1 - %2").arg(tr("Changing Threads Name")).arg(threadID);
+    QString newThreadsName("");
+
+    SimpleInputBox(this, windowTitle, "", newThreadsName, "Place new threads name here...");
+    QString escapedName = newThreadsName.replace("\"", "\\\"");
+    DbgCmdExec(QString("setthreadname %1, \"%2\"").arg(ToHexString(threadID)).arg(escapedName));
 }

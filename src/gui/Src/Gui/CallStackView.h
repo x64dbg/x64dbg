@@ -21,6 +21,8 @@ protected slots:
     void followTo();
     void followFrom();
     void showSuspectedCallStack();
+    void followInThreads();
+    void renameThread();
 
 private:
     enum
@@ -37,4 +39,5 @@ private:
     MenuBuilder* mMenuBuilder;
     CommonActions* mCommonActions;
     bool isSelectionValid();
+    bool CallStackView::isThreadHeaderSelected();
 };

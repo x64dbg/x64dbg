@@ -125,6 +125,7 @@ signals:
     void selectionMemmapGet(SELECTIONDATA* selection);
     void selectionMemmapSet(const SELECTIONDATA* selection);
     void selectionSymmodGet(SELECTIONDATA* selection);
+    void selectionThreadsSet(const SELECTIONDATA* selection);
     void getStrWindow(const QString title, QString* text);
     void autoCompleteAddCmd(const QString cmd);
     void autoCompleteDelCmd(const QString cmd);
@@ -139,6 +140,7 @@ signals:
     void symbolRefreshCurrent();
     void loadSourceFile(const QString path, duint addr);
     void showCpu();
+    void showThreads();
     void addQWidgetTab(QWidget* qWidget);
     void showQWidgetTab(QWidget* qWidget);
     void closeQWidgetTab(QWidget* qWidget);

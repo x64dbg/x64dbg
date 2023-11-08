@@ -10,8 +10,11 @@ public:
     explicit ThreadView(StdTable* parent = nullptr);
     QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
     void setupContextMenu();
+signals:
+    void displayThreadsView();
 
 public slots:
+    void selectionThreadsSet(const SELECTIONDATA* selection);
     void updateThreadList();
     void doubleClickedSlot();
     void ExecCommand();

@@ -7,7 +7,7 @@ CallStackView::CallStackView(StdTable* parent) : StdIconTable(parent)
 {
     int charwidth = getCharWidth();
 
-    addColumnAt(8 * charwidth, tr("Thread ID"), false);
+    addColumnAt(32 * charwidth, tr("Thread ID"), false);
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("Address"), false); //address in the stack
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("To"), false); //return to
     addColumnAt(8 + charwidth * sizeof(dsint) * 2, tr("From"), false); //return from
@@ -56,6 +56,7 @@ void CallStackView::setupContextMenu()
     // TODO: Is Label/Comment/Bookmark useful?
     mCommonActions->build(mMenuBuilder, CommonActions::ActionBreakpoint);
     mMenuBuilder->addSeparator();
+
     QAction* showSuspectedCallStack = makeAction(tr("Show Suspected Call Stack Frame"), SLOT(showSuspectedCallStack()));
     mMenuBuilder->addAction(showSuspectedCallStack, [showSuspectedCallStack](QMenu*)
     {
@@ -68,6 +69,20 @@ void CallStackView::setupContextMenu()
             showSuspectedCallStack->setText(tr("Show Suspected Call Stack Frame"));
         return true;
     });
+
+    mMenuBuilder->addSeparator();
+    QAction* followInThreads = makeAction(tr("Follow in Threads"), SLOT(followInThreads()));
+    mMenuBuilder->addAction(followInThreads, [this](QMenu*)
+    {
+        return isThreadHeaderSelected();
+    });
+
+    QAction* renameThread = makeAction(tr("Rename Thread"), SLOT(renameThread()));
+    mMenuBuilder->addAction(renameThread, [this](QMenu*)
+    {
+        return isThreadHeaderSelected();
+    });
+
     MenuBuilder* mCopyMenu = new MenuBuilder(this);
     setupCopyMenu(mCopyMenu);
     // Column count cannot be zero
@@ -146,7 +161,14 @@ void CallStackView::updateCallStack()
         memset(&callstack, 0, sizeof(DBGCALLSTACK));
         DbgFunctions()->GetCallStackByThread(threadList.list[currentIndexToDraw].BasicInfo.Handle, &callstack);
         setRowCount(currentRow + callstack.total + 1);
-        setCellContent(currentRow, ColThread, ToDecString(threadList.list[currentIndexToDraw].BasicInfo.ThreadId));
+
+        QString threadName = threadList.list[currentIndexToDraw].BasicInfo.threadName;
+        QString colThreadString = ToDecString(threadList.list[currentIndexToDraw].BasicInfo.ThreadId);
+
+        if(threadName.size() > 0)
+            colThreadString += " - " + threadName; // The " - " is crucial here, because later split is happening
+
+        setCellContent(currentRow, ColThread, colThreadString);
 
         currentRow++;
 
@@ -223,6 +245,27 @@ void CallStackView::followFrom()
     DbgCmdExecDirect(QString("disasm " + addrText));
 }
 
+void CallStackView::renameThread()
+{
+    const QStringList threadIDName = getCellContent(getInitialSelection(), 0).split("-", QString::SplitBehavior::SkipEmptyParts);
+    const duint threadID = threadIDName[0].toInt();
+
+    const QString windowTitle = QStringLiteral("%1 - %2").arg(tr("Changing Threads Name")).arg(threadID);
+    QString newThreadsName("");
+
+    SimpleInputBox(this, windowTitle, "", newThreadsName, "Place new threads name here...");
+    QString escapedName = newThreadsName.replace("\"", "\\\"");
+    DbgCmdExec(QString("setthreadname %1, \"%2\"").arg(ToHexString(threadID)).arg(escapedName));
+}
+void CallStackView::followInThreads()
+{
+    QStringList threadIDName = getCellContent(getInitialSelection(), ColThread).split(" - ");
+    if(threadIDName[0].size() == 0)
+        return;
+
+    DbgCmdExecDirect(QString("showthreadid " + threadIDName[0]));
+}
+
 void CallStackView::showSuspectedCallStack()
 {
     duint i;
@@ -233,6 +276,11 @@ void CallStackView::showSuspectedCallStack()
     DbgSettingsUpdated();
     updateCallStack();
     emit Bridge::getBridge()->updateDump();
+}
+
+bool CallStackView::isThreadHeaderSelected()
+{
+    return !getCellContent(getInitialSelection(), ColThread).isEmpty();
 }
 
 bool CallStackView::isSelectionValid()

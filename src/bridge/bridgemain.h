@@ -1152,6 +1152,7 @@ typedef enum
     GUI_GRAPH,
     GUI_MEMMAP,
     GUI_SYMMOD,
+    GUI_THREADS,
 } GUISELECTIONTYPE;
 
 #define GUI_MAX_LINE_SIZE 65536
@@ -1281,6 +1282,7 @@ typedef enum
     GUI_SAVE_LOG,                   // param1=const char* file name,param2=unused
     GUI_REDIRECT_LOG,               // param1=const char* file name,param2=unused
     GUI_STOP_REDIRECT_LOG,          // param1=unused,               param2=unused
+    GUI_SHOW_THREADS,               // param1=unused,               param2=unused
 } GUIMSG;
 
 //GUI Typedefs
@@ -1423,6 +1425,7 @@ BRIDGE_IMPEXP void GuiMenuSetName(int hMenu, const char* name);
 BRIDGE_IMPEXP void GuiMenuSetEntryName(int hEntry, const char* name);
 BRIDGE_IMPEXP void GuiMenuSetEntryHotkey(int hEntry, const char* hack);
 BRIDGE_IMPEXP void GuiShowCpu();
+BRIDGE_IMPEXP void GuiShowThreads();
 BRIDGE_IMPEXP void GuiAddQWidgetTab(void* qWidget);
 BRIDGE_IMPEXP void GuiShowQWidgetTab(void* qWidget);
 BRIDGE_IMPEXP void GuiCloseQWidgetTab(void* qWidget);
