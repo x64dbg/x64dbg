@@ -189,9 +189,11 @@ namespace Exprfunc
         return result;
     }
 
-    duint ternary(duint condition, duint value1, duint value2)
+    bool ternary(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
     {
-        return condition ? value1 : value2;
+        *result = argv[0].number ? argv[1] : argv[2];
+        result->string.isOwner = false;
+        return true;
     }
 
     duint memvalid(duint addr)

@@ -26,7 +26,7 @@ namespace Exprfunc
     duint kusd();
 
     duint bswap(duint value);
-    duint ternary(duint condition, duint value1, duint value2);
+    bool ternary(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
 
     duint memvalid(duint addr);
     duint membase(duint addr);
