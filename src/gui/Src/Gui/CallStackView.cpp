@@ -145,7 +145,7 @@ void CallStackView::updateCallStackSlot()
     memset(&threadList, 0, sizeof(THREADLIST));
     DbgGetThreadList(&threadList);
 
-    int currentRow = 0;
+    duint currentRow = 0;
     int currentIndexToDraw = 0;
     setRowCount(0);
     for(int j = 0; j < threadList.count; j++)
@@ -161,6 +161,8 @@ void CallStackView::updateCallStackSlot()
         memset(&callstack, 0, sizeof(DBGCALLSTACK));
         DbgFunctions()->GetCallStackByThread(threadList.list[currentIndexToDraw].BasicInfo.Handle, &callstack);
         setRowCount(currentRow + callstack.total + 1);
+        auto threadId = threadList.list[currentIndexToDraw].BasicInfo.ThreadId;
+        setCellContent(currentRow, ColThread, ToDecString(threadId));
 
         QString threadName = threadList.list[currentIndexToDraw].BasicInfo.threadName;
         QString colThreadString = ToDecString(threadList.list[currentIndexToDraw].BasicInfo.ThreadId);
@@ -183,6 +185,7 @@ void CallStackView::updateCallStackSlot()
                 addrText = ToPtrString(callstack.entries[i].from);
                 setCellContent(currentRow, ColFrom, addrText);
             }
+            setCellUserdata(currentRow, ColThread, threadId);
             setCellUserdata(currentRow, ColFrom, callstack.entries[i].from);
             setCellUserdata(currentRow, ColTo, callstack.entries[i].to);
             setCellUserdata(currentRow, ColAddress, callstack.entries[i].addr);
@@ -231,18 +234,25 @@ void CallStackView::followAddressSlot()
 {
     QString addrText = getCellContent(getInitialSelection(), ColAddress);
     DbgCmdExecDirect(QString("sdump " + addrText));
+    switchThread();
 }
 
 void CallStackView::followToSlot()
 {
     QString addrText = getCellContent(getInitialSelection(), ColTo);
     DbgCmdExecDirect(QString("disasm " + addrText));
+    switchThread();
 }
 
 void CallStackView::followFromSlot()
 {
     QString addrText = getCellContent(getInitialSelection(), ColFrom);
-    DbgCmdExecDirect(QString("disasm " + addrText));
+    // Double click signal is recieved by this as well, so we must check again.
+    if(!addrText.isEmpty() && isSelectionValid())
+    {
+        DbgCmdExecDirect(QString("disasm " + addrText));
+        switchThread();
+    }
 }
 
 void CallStackView::renameThreadSlot()
@@ -293,4 +303,13 @@ duint CallStackView::getSelectionVa()
         return getCellUserdata(getInitialSelection(), ColFrom);
     else
         return 0;
+}
+
+// Switch to the new thread if it is not the current thread
+void CallStackView::switchThread()
+{
+    DWORD currentThread = DbgGetThreadId();
+    DWORD newThread = getCellUserdata(getInitialSelection(), ColThread);
+    if(currentThread != newThread)
+        DbgCmdExecDirect(QString("switchthread %1").arg(ToHexString(newThread)).toUtf8().constData());
 }
