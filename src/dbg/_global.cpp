@@ -3,10 +3,12 @@
 \brief Implements the global class.
 */
 
+#include <windows.h>
 #include "_global.h"
 #include <objbase.h>
 #include <shlobj.h>
 #include <psapi.h>
+#include <thread>
 #include "DeviceNameResolver/DeviceNameResolver.h"
 
 /**
@@ -392,4 +394,54 @@ void WaitForMultipleThreadsTermination(const HANDLE* hThread, int count, DWORD t
     WaitForMultipleObjects(count, hThread, TRUE, timeout);
     for(int i = 0; i < count; i++)
         CloseHandle(hThread[i]);
+}
+
+// This implementation supports both conventional single-cpu PC configurations
+// and multi-cpu system on NUMA (Non-uniform_memory_access) architecture
+// Original code from here: https://developercommunity.visualstudio.com/t/hardware-concurrency-returns-an-incorrect-result/350854
+duint GetThreadCount()
+{
+    duint threadCount = std::thread::hardware_concurrency();
+
+    typedef BOOL(*WINAPI GetLogicalProcessorInformationEx_t)(
+        LOGICAL_PROCESSOR_RELATIONSHIP,
+        PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX,
+        PDWORD
+    );
+
+    static auto p_GetLogicalProcessorInformationEx = (GetLogicalProcessorInformationEx_t)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetLogicalProcessorInformationEx");
+    if(p_GetLogicalProcessorInformationEx == nullptr)
+    {
+        return threadCount;
+    }
+
+    DWORD length = 0;
+    if(p_GetLogicalProcessorInformationEx(RelationAll, nullptr, &length) || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+    {
+        return threadCount;
+    }
+
+    std::vector<uint8_t> buffer(length);
+    if(!p_GetLogicalProcessorInformationEx(RelationAll, (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)buffer.data(), &length))
+    {
+        return threadCount;
+    }
+
+    threadCount = 0;
+    for(DWORD offset = 0; offset < length;)
+    {
+        auto info = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)(buffer.data() + offset);
+        if(info->Relationship == RelationProcessorCore)
+        {
+            for(WORD group = 0; group < info->Processor.GroupCount; ++group)
+            {
+                for(KAFFINITY mask = info->Processor.GroupMask[group].Mask; mask != 0; mask >>= 1)
+                {
+                    threadCount += mask & 1;
+                }
+            }
+        }
+        offset += info->Size;
+    }
+    return threadCount;
 }

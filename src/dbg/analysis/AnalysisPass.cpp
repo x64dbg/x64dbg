@@ -77,7 +77,7 @@ duint AnalysisPass::IdealThreadCount()
     if(m_InternalMaxThreads == 0)
     {
         // Determine the maximum hardware thread count at once
-        duint maximumThreads = max(std::thread::hardware_concurrency(), 1);
+        duint maximumThreads = max(GetThreadCount(), 1);
 
         // Don't consume 100% of the CPU, adjust accordingly
         if(maximumThreads > 1)
