@@ -40,4 +40,5 @@ private:
     CommonActions* mCommonActions;
     bool isSelectionValid();
     bool CallStackView::isThreadHeaderSelected();
+    void switchThread();
 };
