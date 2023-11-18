@@ -17,8 +17,8 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
 
 void ThreadView::GoToThreadEntry()
 {
-    QString addr_text = getCellContent(getInitialSelection(), 2);
-    DbgCmdExecDirect(QString("disasm " + addr_text));
+    QString addrText = getCellContent(getInitialSelection(), 2);
+    DbgCmdExecDirect(QString("disasm " + addrText));
 }
 
 void ThreadView::setupContextMenu()
@@ -405,8 +405,8 @@ void ThreadView::doubleClickedSlot()
     duint threadId = getCellUserdata(getInitialSelection(), 1);
     DbgCmdExecDirect("switchthread " + ToHexString(threadId));
 
-    QString addr_text = getCellContent(getInitialSelection(), 4);
-    DbgCmdExec("disasm " + addr_text);
+    QString addrText = getCellContent(getInitialSelection(), 4);
+    DbgCmdExec("disasm " + addrText);
 }
 
 void ThreadView::SetNameSlot()

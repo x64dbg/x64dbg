@@ -234,11 +234,11 @@ void CommonActions::setLabelSlot()
     duint va = mGetSelection();
     LineEditDialog mLineEdit(widgetparent());
     mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
-    QString addr_text = ToPtrString(va);
+    QString addrText = ToPtrString(va);
     char label_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetLabelAt((duint)va, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
-    mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
+    mLineEdit.setWindowTitle(tr("Add label at ") + addrText);
 restart:
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
@@ -267,7 +267,7 @@ void CommonActions::setCommentSlot()
     duint va = mGetSelection();
     LineEditDialog mLineEdit(widgetparent());
     mLineEdit.setTextMaxLength(MAX_COMMENT_SIZE - 2);
-    QString addr_text = ToPtrString(va);
+    QString addrText = ToPtrString(va);
     char comment_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetCommentAt((duint)va, comment_text))
     {
@@ -276,7 +276,7 @@ void CommonActions::setCommentSlot()
         else
             mLineEdit.setText(QString(comment_text));
     }
-    mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
+    mLineEdit.setWindowTitle(tr("Add comment at ") + addrText);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     QString comment = mLineEdit.editText.replace('\r', "").replace('\n', "");
