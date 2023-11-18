@@ -739,11 +739,11 @@ void CPUDisassembly::setLabelSlot()
     duint va = rvaToVa(getInitialSelection());
     LineEditDialog mLineEdit(this);
     mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
-    QString addr_text = ToPtrString(va);
+    QString addrText = ToPtrString(va);
     char label_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetLabelAt((duint)va, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
-    mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
+    mLineEdit.setWindowTitle(tr("Add label at ") + addrText);
 restart:
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
@@ -785,11 +785,11 @@ void CPUDisassembly::setLabelAddressSlot()
         return;
     LineEditDialog mLineEdit(this);
     mLineEdit.setTextMaxLength(MAX_LABEL_SIZE - 2);
-    QString addr_text = ToPtrString(addr);
+    QString addrText = ToPtrString(addr);
     char label_text[MAX_LABEL_SIZE] = "";
     if(DbgGetLabelAt(addr, SEG_DEFAULT, label_text))
         mLineEdit.setText(QString(label_text));
-    mLineEdit.setWindowTitle(tr("Add label at ") + addr_text);
+    mLineEdit.setWindowTitle(tr("Add label at ") + addrText);
 restart:
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
@@ -902,7 +902,7 @@ void CPUDisassembly::assembleSlot()
         dsint rva = getInitialSelection();
         duint va = rvaToVa(rva);
         unfold(rva);
-        QString addr_text = ToPtrString(va);
+        QString addrText = ToPtrString(va);
 
         Instruction_t instr = this->DisassembleAt(rva);
 
@@ -919,7 +919,7 @@ void CPUDisassembly::assembleSlot()
             if(ConfigBool("Disassembler", "Uppercase"))
                 actual_inst = actual_inst.toUpper().replace(QRegularExpression("0X([0-9A-F]+)"), "0x\\1");
             assembleDialog.setTextEditValue(actual_inst);
-            assembleDialog.setWindowTitle(tr("Assemble at %1").arg(addr_text));
+            assembleDialog.setWindowTitle(tr("Assemble at %1").arg(addrText));
             assembleDialog.setFillWithNopsChecked(ConfigBool("Disassembler", "FillNOPs"));
             assembleDialog.setKeepSizeChecked(ConfigBool("Disassembler", "KeepSize"));
 
@@ -1798,11 +1798,11 @@ void CPUDisassembly::findCommandSlot()
         return;
     }
 
-    QString addr_text = ToPtrString(va);
+    QString addrText = ToPtrString(va);
 
     dsint size = mMemPage->getSize();
     if(refFindType != -1)
-        DbgCmdExec(QString("findasm \"%1\", %2, .%3, %4").arg(mLineEdit.editText).arg(addr_text).arg(size).arg(refFindType));
+        DbgCmdExec(QString("findasm \"%1\", %2, .%3, %4").arg(mLineEdit.editText).arg(addrText).arg(size).arg(refFindType));
     else
     {
         duint start, end;

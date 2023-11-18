@@ -230,95 +230,95 @@ void XrefBrowseDialog::onDebuggerClose(DBGSTATE state)
 
 void XrefBrowseDialog::breakpointSlot()
 {
-    QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
+    QString addrText = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
     if(DbgGetBpxTypeAt(mXrefInfo.references[ui->listWidget->currentRow()].addr) & bp_normal)
-        DbgCmdExec(QString("bc " + addr_text));
+        DbgCmdExec(QString("bc " + addrText));
     else
-        DbgCmdExec(QString("bp " + addr_text));
+        DbgCmdExec(QString("bp " + addrText));
 }
 
 void XrefBrowseDialog::hardwareAccess1Slot()
 {
-    QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", r, 1"));
+    QString addrText = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
+    DbgCmdExec(QString("bphws " + addrText + ", r, 1"));
 }
 
 void XrefBrowseDialog::hardwareAccess2Slot()
 {
-    QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", r, 2"));
+    QString addrText = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
+    DbgCmdExec(QString("bphws " + addrText + ", r, 2"));
 }
 
 void XrefBrowseDialog::hardwareAccess4Slot()
 {
-    QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", r, 4"));
+    QString addrText = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
+    DbgCmdExec(QString("bphws " + addrText + ", r, 4"));
 }
 
 void XrefBrowseDialog::hardwareAccess8Slot()
 {
-    QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", r, 8"));
+    QString addrText = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
+    DbgCmdExec(QString("bphws " + addrText + ", r, 8"));
 }
 
 void XrefBrowseDialog::hardwareWrite1Slot()
 {
-    QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", w, 1"));
+    QString addrText = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
+    DbgCmdExec(QString("bphws " + addrText + ", w, 1"));
 }
 
 void XrefBrowseDialog::hardwareWrite2Slot()
 {
-    QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", w, 2"));
+    QString addrText = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
+    DbgCmdExec(QString("bphws " + addrText + ", w, 2"));
 }
 
 void XrefBrowseDialog::hardwareWrite4Slot()
 {
-    QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", w, 4"));
+    QString addrText = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
+    DbgCmdExec(QString("bphws " + addrText + ", w, 4"));
 }
 
 void XrefBrowseDialog::hardwareWrite8Slot()
 {
-    QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphws " + addr_text + ", w, 8"));
+    QString addrText = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
+    DbgCmdExec(QString("bphws " + addrText + ", w, 8"));
 }
 
 void XrefBrowseDialog::hardwareRemoveSlot()
 {
-    QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bphwc " + addr_text));
+    QString addrText = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
+    DbgCmdExec(QString("bphwc " + addrText));
 }
 
 void XrefBrowseDialog::memoryAccessSingleshootSlot()
 {
-    QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bpm " + addr_text + ", 0, a"));
+    QString addrText = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
+    DbgCmdExec(QString("bpm " + addrText + ", 0, a"));
 }
 
 void XrefBrowseDialog::memoryAccessRestoreSlot()
 {
-    QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bpm " + addr_text + ", 1, a"));
+    QString addrText = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
+    DbgCmdExec(QString("bpm " + addrText + ", 1, a"));
 }
 
 void XrefBrowseDialog::memoryWriteSingleshootSlot()
 {
-    QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bpm " + addr_text + ", 0, w"));
+    QString addrText = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
+    DbgCmdExec(QString("bpm " + addrText + ", 0, w"));
 }
 
 void XrefBrowseDialog::memoryWriteRestoreSlot()
 {
-    QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bpm " + addr_text + ", 1, w"));
+    QString addrText = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
+    DbgCmdExec(QString("bpm " + addrText + ", 1, w"));
 }
 
 void XrefBrowseDialog::memoryRemoveSlot()
 {
-    QString addr_text = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
-    DbgCmdExec(QString("bpmc " + addr_text));
+    QString addrText = ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr);
+    DbgCmdExec(QString("bpmc " + addrText));
 }
 
 void XrefBrowseDialog::copyThisSlot()
@@ -330,11 +330,11 @@ void XrefBrowseDialog::breakpointAllSlot()
 {
     for(int i = 0; i < ui->listWidget->count(); i++)
     {
-        QString addr_text = ToPtrString(mXrefInfo.references[i].addr);
+        QString addrText = ToPtrString(mXrefInfo.references[i].addr);
         if(DbgGetBpxTypeAt(mXrefInfo.references[i].addr) & bp_normal)
-            DbgCmdExec(QString("bc " + addr_text));
+            DbgCmdExec(QString("bc " + addrText));
         else
-            DbgCmdExec(QString("bp " + addr_text));
+            DbgCmdExec(QString("bp " + addrText));
     }
 }
 

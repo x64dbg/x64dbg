@@ -579,6 +579,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         case GUI_MEMMAP:
             emit selectionMemmapSet(selection);
             break;
+        case GUI_THREADS:
+            emit selectionThreadsSet(selection);
+            break;
         default:
             return (void*)false;
         }
@@ -642,6 +645,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
 
     case GUI_LOAD_SOURCE_FILE:
         emit loadSourceFile(QString((const char*)param1), (duint)param2);
+        break;
+
+    case GUI_SHOW_THREADS:
+        emit showThreads();
         break;
 
     case GUI_SHOW_CPU:

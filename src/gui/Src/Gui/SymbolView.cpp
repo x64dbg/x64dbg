@@ -701,7 +701,7 @@ void SymbolView::moduleLoad()
     if(browse.exec() != QDialog::Accepted && browse.path.length())
         return;
     auto fileName = browse.path;
-    DbgCmdExec(QString("loadlib \"%1\"").arg(fileName.replace("\\", "\\\\")));
+    DbgCmdExec(QString("loadlib \"%1\"").arg(DbgCmdEscape(fileName)));
 }
 
 void SymbolView::moduleFree()

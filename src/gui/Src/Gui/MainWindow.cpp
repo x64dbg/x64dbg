@@ -91,6 +91,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString, QString*)), this, SLOT(getStrWindow(QString, QString*)));
     connect(Bridge::getBridge(), SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(Bridge::getBridge(), SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
+    connect(Bridge::getBridge(), SIGNAL(showThreads()), this, SLOT(displayThreadsWidget()));
     connect(Bridge::getBridge(), SIGNAL(addQWidgetTab(QWidget*)), this, SLOT(addQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(showQWidgetTab(QWidget*)), this, SLOT(showQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(closeQWidgetTab(QWidget*)), this, SLOT(closeQWidgetTab(QWidget*)));
@@ -368,6 +369,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySymbolsWidget()), this, SLOT(displaySymbolWidget()));
+    connect(mThreadView, SIGNAL(displayThreadsView()), this, SLOT(displayThreadsWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(showPatches()), this, SLOT(patchWindow()));
     connect(mCpuWidget->getGraphWidget(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
 
@@ -1363,6 +1365,11 @@ void MainWindow::displayCpuWidget()
     showQWidgetTab(mCpuWidget);
 }
 
+void MainWindow::displayThreadsWidget()
+{
+    showQWidgetTab(mThreadView);
+}
+
 void MainWindow::displaySymbolWidget()
 {
     showQWidgetTab(mSymbolView);
@@ -1376,11 +1383,6 @@ void MainWindow::displaySourceViewWidget()
 void MainWindow::displayReferencesWidget()
 {
     showQWidgetTab(mReferenceManager);
-}
-
-void MainWindow::displayThreadsWidget()
-{
-    showQWidgetTab(mThreadView);
 }
 
 void MainWindow::displayGraphWidget()

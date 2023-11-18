@@ -813,9 +813,7 @@ void BreakpointsView::addExceptionBreakpointSlot()
 
 static QString escape(QString data)
 {
-    //data = data.replace("\\", "\\\\");
-    data = data.replace("\"", "\\\"");
-    return data;
+    return DbgCmdEscape(std::move(data));
 }
 
 void BreakpointsView::copyConditionalBreakpointSlot()

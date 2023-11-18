@@ -545,12 +545,12 @@ void MemoryMapView::memoryExecuteSingleshootToggleSlot()
 {
     for(int i : getSelection())
     {
-        QString addr_text = getCellContent(i, ColAddress);
+        QString addrText = getCellContent(i, ColAddress);
         duint selectedAddr = getSelectionAddr();
         if((DbgGetBpxTypeAt(selectedAddr) & bp_memory) == bp_memory) //memory breakpoint set
-            DbgCmdExec(QString("bpmc ") + addr_text);
+            DbgCmdExec(QString("bpmc ") + addrText);
         else
-            DbgCmdExec(QString("bpm %1, 0, x").arg(addr_text));
+            DbgCmdExec(QString("bpm %1, 0, x").arg(addrText));
     }
 }
 
@@ -799,7 +799,7 @@ void MemoryMapView::commentSlot()
 {
     duint va = getSelectionAddr();
     LineEditDialog mLineEdit(this);
-    QString addr_text = ToPtrString(va);
+    QString addrText = ToPtrString(va);
     char comment_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetCommentAt((duint)va, comment_text))
     {
@@ -808,7 +808,7 @@ void MemoryMapView::commentSlot()
         else
             mLineEdit.setText(QString(comment_text));
     }
-    mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
+    mLineEdit.setWindowTitle(tr("Add comment at ") + addrText);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetCommentAt(va, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))

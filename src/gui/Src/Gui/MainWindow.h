@@ -80,12 +80,12 @@ public slots:
     void displayBreakpointWidget();
     void updateWindowTitleSlot(QString filename);
     void runSlot();
+    void displayThreadsWidget();
     void displayCpuWidget();
     void displayCpuWidgetShowCpu();
     void displaySymbolWidget();
     void displaySourceViewWidget();
     void displayReferencesWidget();
-    void displayThreadsWidget();
     void displayVariables();
     void displayGraphWidget();
     void displayTraceWidget();

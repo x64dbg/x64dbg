@@ -15,33 +15,27 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
     menu.exec(mapToGlobal(pos)); //execute context menu
 }
 
-void ThreadView::GoToThreadEntry()
+void ThreadView::gotoThreadEntrySlot()
 {
-    QString addr_text = getCellContent(getInitialSelection(), 2);
-    DbgCmdExecDirect(QString("disasm " + addr_text));
+    QString addrText = getCellContent(getInitialSelection(), 2);
+    DbgCmdExecDirect(QString("disasm " + addrText));
 }
 
 void ThreadView::setupContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this);
-    //Switch thread menu
+
     mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-switch"), tr("Switch Thread"), this), "switchthread $"));
-
-    //Suspend thread menu
     mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-pause"), tr("Suspend Thread"), this), "suspendthread $"));
-
-    //Resume thread menu
     mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-resume"), tr("Resume Thread"), this), "resumethread $"));
-
     mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-pause"), tr("Suspend All Threads"), this), "suspendallthreads"));
-
     mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-resume"), tr("Resume All Threads"), this), "resumeallthreads"));
-
-    //Kill thread menu
     mMenuBuilder->addAction(makeCommandAction(new QAction(DIcon("thread-kill"), tr("Kill Thread"), this), "killthread $"));
+
     mMenuBuilder->addSeparator();
-    // Set name
-    mMenuBuilder->addAction(makeAction(DIcon("thread-setname"), tr("Set Name"), SLOT(SetNameSlot())));
+
+    mMenuBuilder->addAction(makeAction(DIcon("thread-setname"), tr("Set Name"), SLOT(setNameSlot())));
+
     // Set priority
     QAction* mSetPriorityIdle = makeCommandAction(new QAction(DIcon("thread-priority-idle"), tr("Idle"), this), "setprioritythread $, Idle");
     QAction* mSetPriorityAboveNormal = makeCommandAction(new QAction(DIcon("thread-priority-above-normal"), tr("Above Normal"), this), "setprioritythread $, AboveNormal");
@@ -94,9 +88,7 @@ void ThreadView::setupContextMenu()
     mSetPriority->addAction(mSetPriorityLowest);
     mSetPriority->addAction(mSetPriorityIdle);
     mMenuBuilder->addMenu(makeMenu(DIcon("thread-setpriority_alt"), tr("Set Priority")), mSetPriority);
-
-    // GoToThreadEntry
-    mMenuBuilder->addAction(makeAction(DIcon("thread-entry"), tr("Go to Thread Entry"), SLOT(GoToThreadEntry())), [this](QMenu * menu)
+    mMenuBuilder->addAction(makeAction(DIcon("thread-entry"), tr("Go to Thread Entry"), SLOT(gotoThreadEntrySlot())), [this](QMenu * menu)
     {
         bool ok;
         ULONGLONG entry = getCellContent(getInitialSelection(), 2).toULongLong(&ok, 16);
@@ -126,14 +118,14 @@ void ThreadView::setupContextMenu()
 QAction* ThreadView::makeCommandAction(QAction* action, const QString & command)
 {
     action->setData(QVariant(command));
-    connect(action, SIGNAL(triggered()), this, SLOT(ExecCommand()));
+    connect(action, SIGNAL(triggered()), this, SLOT(execCommandSlot()));
     return action;
 }
 
 /**
  * @brief ThreadView::ExecCommand execute command slot for menus. Only used by command that reference thread id.
  */
-void ThreadView::ExecCommand()
+void ThreadView::execCommandSlot()
 {
     QAction* action = qobject_cast<QAction*>(sender());
     if(action)
@@ -174,8 +166,8 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
     loadColumnFromConfig("Thread");
 
     //setCopyMenuOnly(true);
-
-    connect(Bridge::getBridge(), SIGNAL(updateThreads()), this, SLOT(updateThreadList()));
+    connect(Bridge::getBridge(), SIGNAL(selectionThreadsSet(const SELECTIONDATA*)), this, SLOT(selectionThreadsSet(const SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(updateThreads()), this, SLOT(updateThreadListSlot()));
     connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
 
@@ -184,7 +176,24 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
     new DisassemblyPopup(this, Bridge::getArchitecture());
 }
 
-void ThreadView::updateThreadList()
+void ThreadView::selectionThreadsSet(const SELECTIONDATA* selection)
+{
+    if(selection->start >= getRowCount() ||
+            selection->end >= getRowCount()   ||
+            selection->start > selection->end)
+    {
+        Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 0);
+        return;
+    }
+
+    mSelection.firstSelectedIndex = selection->start;
+    mSelection.fromIndex = selection->start;
+    mSelection.toIndex = selection->end;
+    Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 1);
+    emit selectionChanged(mSelection.firstSelectedIndex);
+}
+
+void ThreadView::updateThreadListSlot()
 {
     THREADLIST threadList;
     memset(&threadList, 0, sizeof(THREADLIST));
@@ -388,18 +397,16 @@ void ThreadView::doubleClickedSlot()
     duint threadId = getCellUserdata(getInitialSelection(), 1);
     DbgCmdExecDirect("switchthread " + ToHexString(threadId));
 
-    QString addr_text = getCellContent(getInitialSelection(), 4);
-    DbgCmdExec("disasm " + addr_text);
+    QString addrText = getCellContent(getInitialSelection(), 4);
+    DbgCmdExec("disasm " + addrText);
 }
 
-void ThreadView::SetNameSlot()
+void ThreadView::setNameSlot()
 {
     duint threadId = getCellUserdata(getInitialSelection(), 1);
-    LineEditDialog mLineEdit(this);
-    mLineEdit.setWindowTitle(tr("Name") + threadId);
-    mLineEdit.setText(getCellContent(getInitialSelection(), 13));
-    if(mLineEdit.exec() != QDialog::Accepted)
+    QString threadName = getCellContent(getInitialSelection(), 13);
+    if(!SimpleInputBox(this, tr("Thread name - %1").arg(threadId), threadName, threadName, QString()))
         return;
-    QString escapedName = mLineEdit.editText.replace("\"", "\\\"");
-    DbgCmdExec(QString("setthreadname %1, \"%2\"").arg(ToHexString(threadId)).arg(escapedName));
+
+    DbgCmdExec(QString("setthreadname %1, \"%2\"").arg(ToHexString(threadId)).arg(DbgCmdEscape(threadName)));
 }
