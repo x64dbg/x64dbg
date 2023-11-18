@@ -85,6 +85,24 @@ void GotoDialog::setInitialExpression(const QString & expression)
     emit ui->editExpression->textEdited(expression);
 }
 
+static QString breakWithLines(const unsigned int numberCharsPerLine, const QString & txt, const bool condBreakBefore)
+{
+    const QString BRStr = QString("<br>");
+    const unsigned int breakCount = txt.size() / numberCharsPerLine;
+    QString result = txt;
+
+    for(unsigned int i = 1 ; i <= breakCount; i++)
+    {
+        unsigned int charactersToSkip = (numberCharsPerLine + BRStr.size()) * i - BRStr.size();
+        result = result.left(charactersToSkip) + BRStr + result.right(result.size() - charactersToSkip);
+    }
+
+    if(condBreakBefore && breakCount >= 1)
+        result = BRStr + result;
+
+    return result;
+}
+
 void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsint value)
 {
     QString expression = ui->editExpression->text();
@@ -167,6 +185,8 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
                 addrText = QString(module) + "." + ToPtrString(addr);
             else
                 addrText = ToPtrString(addr);
+
+            addrText = breakWithLines(ui->editExpression->size().width() / 11, addrText, true); // 11 is a good value for WWWWWWWs
             ui->labelError->setText(tr("<font color='#00DD00'><b>Correct expression! -&gt; </b></font>") + addrText);
             setOkEnabled(true);
             expressionText = expression;
