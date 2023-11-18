@@ -399,49 +399,49 @@ void WaitForMultipleThreadsTermination(const HANDLE* hThread, int count, DWORD t
 // This implementation supports both conventional single-cpu PC configurations
 // and multi-cpu system on NUMA (Non-uniform_memory_access) architecture
 // Original code from here: https://developercommunity.visualstudio.com/t/hardware-concurrency-returns-an-incorrect-result/350854
-// Modified by GermanAizek
-duint GetThreadCount() noexcept
+duint GetThreadCount()
 {
+    duint threadCount = std::thread::hardware_concurrency();
+
+    typedef BOOL(*WINAPI GetLogicalProcessorInformationEx_t)(
+        LOGICAL_PROCESSOR_RELATIONSHIP,
+        PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX,
+        PDWORD
+    );
+
+    static auto p_GetLogicalProcessorInformationEx = (GetLogicalProcessorInformationEx_t)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetLogicalProcessorInformationEx");
+    if(p_GetLogicalProcessorInformationEx == nullptr)
+    {
+        return threadCount;
+    }
+
     DWORD length = 0;
-    duint concurrency = 0;
-    const auto validConcurrency = [&concurrency]() noexcept -> duint
+    if(p_GetLogicalProcessorInformationEx(RelationAll, nullptr, &length) || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
     {
-        return (concurrency == 0) ? std::thread::hardware_concurrency() : concurrency;
-    };
-    if(GetLogicalProcessorInformationEx(RelationAll, nullptr, &length) != FALSE)
-    {
-        return validConcurrency();
+        return threadCount;
     }
-    if(GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+
+    std::vector<uint8_t> buffer(length);
+    if(!p_GetLogicalProcessorInformationEx(RelationAll, (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)buffer.data(), &length))
     {
-        return validConcurrency();
+        return threadCount;
     }
-    std::unique_ptr<void, void (*)(void*)> buffer(std::malloc(length), std::free);
-    if(!buffer)
+
+    threadCount = 0;
+    for(DWORD offset = 0; offset < length;)
     {
-        return validConcurrency();
-    }
-    auto* mem = reinterpret_cast<unsigned char*>(buffer.get());
-    if(GetLogicalProcessorInformationEx(
-                RelationAll, reinterpret_cast<PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX>(mem), &length) == false)
-    {
-        return validConcurrency();
-    }
-    DWORD i = 0;
-    while(i < length)
-    {
-        const auto* proc = reinterpret_cast<PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX>(mem + i);
-        if(proc->Relationship == RelationProcessorCore)
+        auto info = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)(buffer.data() + offset);
+        if(info->Relationship == RelationProcessorCore)
         {
-            for(WORD group = 0; group < proc->Processor.GroupCount; ++group)
+            for(WORD group = 0; group < info->Processor.GroupCount; ++group)
             {
-                for(KAFFINITY mask = proc->Processor.GroupMask[group].Mask; mask != 0; mask >>= 1)
+                for(KAFFINITY mask = info->Processor.GroupMask[group].Mask; mask != 0; mask >>= 1)
                 {
-                    concurrency += mask & 1;
+                    threadCount += mask & 1;
                 }
             }
         }
-        i += proc->Size;
+        offset += info->Size;
     }
-    return validConcurrency();
+    return threadCount;
 }
