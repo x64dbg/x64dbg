@@ -91,7 +91,7 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
 
         //plugin data
         PLUG_CB_LOADSAVEDB pluginSaveDb;
-        // Some plugins may wish to change this value so that all plugins after his or her plugin will save data into plugin-supplied storage instead of the system's.
+        // Some plugins may wish to change this value so that all plugins after their plugin will save data into plugin-supplied storage instead of the system's.
         // We back up this value so that the debugger is not fooled by such plugins.
         JSON pluginRoot = json_object();
         pluginSaveDb.root = pluginRoot;
