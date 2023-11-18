@@ -15,12 +15,12 @@ signals:
 
 public slots:
     void selectionThreadsSet(const SELECTIONDATA* selection);
-    void updateThreadList();
+    void updateThreadListSlot();
     void doubleClickedSlot();
-    void ExecCommand();
-    void GoToThreadEntry();
+    void execCommandSlot();
+    void gotoThreadEntrySlot();
     void contextMenuSlot(const QPoint & pos);
-    void SetNameSlot();
+    void setNameSlot();
 
 private:
     QAction* makeCommandAction(QAction* action, const QString & command);

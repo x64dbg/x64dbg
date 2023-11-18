@@ -15,14 +15,14 @@ protected:
     QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
 
 protected slots:
-    void updateCallStack();
+    void updateCallStackSlot();
     void contextMenuSlot(const QPoint pos);
-    void followAddress();
-    void followTo();
-    void followFrom();
-    void showSuspectedCallStack();
-    void followInThreads();
-    void renameThread();
+    void followAddressSlot();
+    void followToSlot();
+    void followFromSlot();
+    void showSuspectedCallStackSlot();
+    void followInThreadsSlot();
+    void renameThreadSlot();
 
 private:
     enum
