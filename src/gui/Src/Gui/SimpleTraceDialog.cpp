@@ -35,9 +35,7 @@ void SimpleTraceDialog::setTraceCommand(const QString & command)
 
 static QString escapeText(QString str)
 {
-    str.replace(QChar('\\'), QString("\\\\"));
-    str.replace(QChar('"'), QString("\\\""));
-    return str;
+    return DbgCmdEscape(std::move(str));
 }
 
 void SimpleTraceDialog::on_btnOk_clicked()

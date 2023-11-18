@@ -290,3 +290,11 @@ bool GetCommentFormat(duint addr, QString & comment, bool* autoComment)
         comment = commentData + a;
     return true;
 }
+
+QString DbgCmdEscape(QString argument)
+{
+    // TODO: implement this properly
+    argument.replace("\"", "\\\"");
+
+    return argument;
+}

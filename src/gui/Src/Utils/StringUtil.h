@@ -145,3 +145,5 @@ QString FILETIMEToDate(const FILETIME & date);
 bool GetCommentFormat(duint addr, QString & comment, bool* autoComment = nullptr);
 
 QString EscapeCh(QChar ch);
+
+QString DbgCmdEscape(QString argument);

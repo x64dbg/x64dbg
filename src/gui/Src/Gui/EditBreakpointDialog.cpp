@@ -65,13 +65,13 @@ void EditBreakpointDialog::loadFromBp()
 template<typename T>
 void copyTruncate(T & dest, QString src)
 {
-    src.replace(QChar('\\'), QString("\\\\"));
-    src.replace(QChar('"'), QString("\\\""));
+    src = DbgCmdEscape(std::move(src));
     strncpy_s(dest, src.toUtf8().constData(), _TRUNCATE);
 }
 
 void EditBreakpointDialog::on_editLogText_textEdited(const QString & arg1)
 {
+    Q_UNUSED(arg1);
     ui->checkBoxSilent->setChecked(true);
 }
 
