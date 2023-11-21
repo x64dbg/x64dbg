@@ -257,7 +257,7 @@ public:
     VaHistory mHistory;
 
 signals:
-    void selectionChanged(dsint parVA);
+    void selectionChanged(duint parVA);
     void displayLogWidget();
     void detachGraph();
 
