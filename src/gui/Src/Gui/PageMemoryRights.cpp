@@ -67,12 +67,15 @@ void PageMemoryRights::on_btnSelectall_clicked()
 
 void PageMemoryRights::on_btnDeselectall_clicked()
 {
-    QModelIndexList indexList = ui->pagetableWidget->selectionModel()->selectedIndexes();
-    foreach(QModelIndex index, indexList)
-    {
-        ui->pagetableWidget->selectionModel()->select(index, QItemSelectionModel::Deselect);
+    QModelIndexList selectedIndexes = ui->pagetableWidget->selectionModel()->selectedIndexes();
+    if(selectedIndexes.isEmpty())
+        return;
 
-    }
+    QModelIndex topLeft = selectedIndexes.first();
+    QModelIndex bottomRight = selectedIndexes.last();
+
+    QItemSelection selection(topLeft, bottomRight);
+    ui->pagetableWidget->selectionModel()->select(selection, QItemSelectionModel::Deselect);
 }
 
 void PageMemoryRights::on_btnSetrights_clicked()
