@@ -55,14 +55,14 @@ void PageMemoryRights::RunAddrSize(duint addrin, duint sizein, QString pagetypei
 
 void PageMemoryRights::on_btnSelectall_clicked()
 {
-    for(int i = 0; i < ui->pagetableWidget->rowCount(); i++)
-    {
-        for(int j = 0; j < ui->pagetableWidget->columnCount(); j++)
-        {
-            QModelIndex idx = (ui->pagetableWidget->model()->index(i, j));
-            ui->pagetableWidget->selectionModel()->select(idx, QItemSelectionModel::Select);
-        }
-    }
+    const auto rowCount = ui->pagetableWidget->rowCount();
+    const auto columnCount = ui->pagetableWidget->columnCount();
+
+    QModelIndex topLeft = ui->pagetableWidget->model()->index(0, 0);
+    QModelIndex bottomRight = ui->pagetableWidget->model()->index(rowCount - 1, columnCount - 1);
+
+    QItemSelection selection(topLeft, bottomRight);
+    ui->pagetableWidget->selectionModel()->select(selection, QItemSelectionModel::Select);
 }
 
 void PageMemoryRights::on_btnDeselectall_clicked()
