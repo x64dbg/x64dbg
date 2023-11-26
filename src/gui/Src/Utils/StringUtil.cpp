@@ -295,6 +295,7 @@ QString DbgCmdEscape(QString argument)
 {
     // TODO: implement this properly
     argument.replace("\"", "\\\"");
+    argument.replace("{", "\\{");
 
     return argument;
 }
