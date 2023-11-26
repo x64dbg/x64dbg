@@ -1248,7 +1248,7 @@ void MainWindow::openFileSlot()
 
 void MainWindow::openRecentFileSlot(QString filename)
 {
-    DbgCmdExec(QString().sprintf("init \"%s\"", filename.toUtf8().constData()));
+    DbgCmdExec(QString().sprintf("init \"%s\"", DbgCmdEscape(filename).toUtf8().constData()));
 }
 
 void MainWindow::runSlot()
@@ -1263,7 +1263,7 @@ void MainWindow::restartDebugging()
 {
     auto last = mMRUList->getEntry(0);
     if(!last.isEmpty())
-        DbgCmdExec(QString("init \"%1\"").arg(last));
+        DbgCmdExec(QString("init \"%1\"").arg(DbgCmdEscape(last)));
 }
 
 void MainWindow::displayBreakpointWidget()
@@ -1281,10 +1281,11 @@ void MainWindow::dragEnterEvent(QDragEnterEvent* pEvent)
 
 void MainWindow::dropEvent(QDropEvent* pEvent)
 {
+
     if(pEvent->mimeData()->hasUrls())
     {
         QString filename = QDir::toNativeSeparators(pEvent->mimeData()->urls()[0].toLocalFile());
-        DbgCmdExec(QString().sprintf("init \"%s\"", filename.toUtf8().constData()));
+        DbgCmdExec(QString().sprintf("init \"%s\"", DbgCmdEscape(filename).toUtf8().constData()));
         pEvent->acceptProposedAction();
     }
 }
