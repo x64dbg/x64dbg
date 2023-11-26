@@ -212,7 +212,7 @@ public:
     void initFont();
     void adjustSize(int viewportWidth, int viewportHeight, QPoint mousePosition = QPoint(0, 0), bool fitToWindow = false);
     void resizeEvent(QResizeEvent* event);
-    duint get_cursor_pos();
+    duint get_cursor_pos() const;
     void set_cursor_pos(duint addr);
     std::tuple<duint, duint> get_selection_range();
     void set_selection_range(std::tuple<duint, duint> range);
@@ -220,9 +220,9 @@ public:
     void paintNormal(QPainter & p, QRect & viewportRect, int xofs, int yofs);
     void paintOverview(QPainter & p, QRect & viewportRect, int xofs, int yofs);
     void paintEvent(QPaintEvent* event);
-    bool isMouseEventInBlock(QMouseEvent* event);
-    duint getInstrForMouseEvent(QMouseEvent* event);
-    bool getTokenForMouseEvent(QMouseEvent* event, ZydisTokenizer::SingleToken & token);
+    bool isMouseEventInBlock(QMouseEvent* event) const;
+    duint getInstrForMouseEvent(QMouseEvent* event) const;
+    bool getTokenForMouseEvent(QMouseEvent* event, ZydisTokenizer::SingleToken & token) const;
     bool find_instr(duint addr, Instr & instr);
     void mousePressEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
@@ -236,7 +236,7 @@ public:
     template<typename T>
     using Matrix = std::vector<std::vector<T>>;
     using EdgesVector = Matrix<std::vector<bool>>;
-    bool isEdgeMarked(EdgesVector & edges, int row, int col, int index);
+    bool isEdgeMarked(EdgesVector & edges, int row, int col, int index) const;
     void markEdge(EdgesVector & edges, int row, int col, int index, bool used = true);
     int findHorizEdgeIndex(EdgesVector & edges, int row, int min_col, int max_col);
     int findVertEdgeIndex(EdgesVector & edges, int col, int min_row, int max_row);
@@ -257,7 +257,7 @@ public:
     VaHistory mHistory;
 
 signals:
-    void selectionChanged(dsint parVA);
+    void selectionChanged(duint parVA);
     void displayLogWidget();
     void detachGraph();
 
@@ -392,5 +392,5 @@ private:
     XrefBrowseDialog* mXrefDlg = nullptr;
 
     void addReferenceAction(QMenu* menu, duint addr, const QString & description);
-    bool getHighlightedTokenValueText(QString & text);
+    bool getHighlightedTokenValueText(QString & text) const;
 };
