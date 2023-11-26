@@ -71,13 +71,13 @@ void CallStackView::setupContextMenu()
     });
 
     mMenuBuilder->addSeparator();
-    QAction* followInThreads = makeAction(tr("Follow in Threads"), SLOT(followInThreadsSlot()));
+    QAction* followInThreads = makeAction(DIcon("arrow-threads"), tr("Follow in Threads"), SLOT(followInThreadsSlot()));
     mMenuBuilder->addAction(followInThreads, [this](QMenu*)
     {
         return isThreadHeaderSelected();
     });
 
-    QAction* renameThread = makeAction(tr("Rename Thread"), SLOT(renameThreadSlot()));
+    QAction* renameThread = makeAction(DIcon("thread-setname"), tr("Rename Thread"), SLOT(renameThreadSlot()));
     mMenuBuilder->addAction(renameThread, [this](QMenu*)
     {
         return isThreadHeaderSelected();
