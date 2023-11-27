@@ -60,8 +60,10 @@ bool SymbolSourceDIA::loadPDB(const std::string & path, const std::string & modn
         _symbolsLoaded = false;
         _loadCounter.store(2);
         _symbolsThread = CreateThread(nullptr, 0, SymbolsThread, this, CREATE_SUSPENDED, nullptr);
+        setThreadAffinityAllGroupCores(_symbolsThread);
         SetWin10ThreadDescription(_symbolsThread, L"SymbolsThread");
         _sourceLinesThread = CreateThread(nullptr, 0, SourceLinesThread, this, CREATE_SUSPENDED, nullptr);
+        setThreadAffinityAllGroupCores(_sourceLinesThread);
         SetWin10ThreadDescription(_sourceLinesThread, L"SourceLinesThread");
         ResumeThread(_symbolsThread);
         ResumeThread(_sourceLinesThread);

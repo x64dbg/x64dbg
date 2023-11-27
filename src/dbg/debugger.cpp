@@ -284,8 +284,11 @@ void cbDebuggerPaused()
 void dbginit()
 {
     hTimeWastedCounterThread = CreateThread(nullptr, 0, timeWastedCounterThread, nullptr, 0, nullptr);
+    setThreadAffinityAllGroupCores(hTimeWastedCounterThread);
     hMemMapThread = CreateThread(nullptr, 0, memMapThread, nullptr, 0, nullptr);
+    setThreadAffinityAllGroupCores(hMemMapThread);
     hDumpRefreshThread = CreateThread(nullptr, 0, dumpRefreshThread, nullptr, 0, nullptr);
+    setThreadAffinityAllGroupCores(hDumpRefreshThread);
 }
 
 void dbgstop()
@@ -1732,11 +1735,15 @@ static void cbSystemBreakpoint(const void* ExceptionData) // TODO: System breakp
         PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
         plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
         dbgsetforeground();
-        CloseHandle(CreateThread(NULL, 0, cbInitializationScriptThread, NULL, 0, NULL));
+        auto handle = CreateThread(NULL, 0, cbInitializationScriptThread, NULL, 0, NULL);
+        setThreadAffinityAllGroupCores(handle);
+        CloseHandle(handle);
     }
     else
     {
-        CloseHandle(CreateThread(NULL, 0, cbInitializationScriptThread, NULL, 0, NULL));
+        auto handle = CreateThread(NULL, 0, cbInitializationScriptThread, NULL, 0, NULL);
+        setThreadAffinityAllGroupCores(handle);
+        CloseHandle(handle);
         unlock(WAITID_RUN);
     }
     wait(WAITID_RUN);
@@ -2675,7 +2682,9 @@ static DWORD WINAPI scriptThread(void* data)
 
 void dbgstartscriptthread(CBPLUGINSCRIPT cbScript)
 {
-    CloseHandle(CreateThread(0, 0, scriptThread, (LPVOID)cbScript, 0, 0));
+    auto handle = CreateThread(0, 0, scriptThread, (LPVOID)cbScript, 0, 0);
+    setThreadAffinityAllGroupCores(handle);
+    CloseHandle(handle);
 }
 
 static void* InitDLLDebugW(const wchar_t* szFileName, const wchar_t* szCommandLine, const wchar_t* szCurrentFolder)
@@ -2998,6 +3007,7 @@ void dbgcreatedebugthread(INIT_STRUCT* init)
         }
         return 0;
     }, init, 0, nullptr);
+    setThreadAffinityAllGroupCores(hDebugLoopThread);
     WaitForSingleObject(event, INFINITE);
     CloseHandle(event);
 }

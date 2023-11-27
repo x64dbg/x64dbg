@@ -221,6 +221,7 @@ bool HandlesGetName(HANDLE remoteHandle, String & name, String & typeName)
         {
             HANDLE hThread;
             hThread = CreateThread(nullptr, 0, getNameThread, &getName, 0, nullptr);
+            setThreadAffinityAllGroupCores(hThread);
             auto result = WaitForSingleObject(hThread, 200);
             if(result != WAIT_OBJECT_0)
             {

@@ -597,6 +597,7 @@ void scriptload(const char* filename)
     static char filename_[MAX_PATH] = "";
     strcpy_s(filename_, filename);
     auto hThread = CreateThread(nullptr, 0, scriptLoadSyncThread, filename_, 0, nullptr);
+    setThreadAffinityAllGroupCores(hThread);
     while(WaitForSingleObject(hThread, 100) == WAIT_TIMEOUT)
         GuiProcessEvents();
     CloseHandle(hThread);

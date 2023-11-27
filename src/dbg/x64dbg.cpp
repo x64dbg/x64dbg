@@ -574,7 +574,9 @@ static bool DbgScriptDllExec(const char* dll)
         if(AsyncStart)
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "[Script DLL] Creating thread to call the export \"AsyncStart\"...\n"));
-            CloseHandle(CreateThread(nullptr, 0, DbgScriptDllExecThread, new DLLSCRIPTEXECTHREADINFO(hScriptDll, AsyncStart), 0, nullptr)); //on-purpose memory leak here
+            auto handle = CreateThread(nullptr, 0, DbgScriptDllExecThread, new DLLSCRIPTEXECTHREADINFO(hScriptDll, AsyncStart), 0, nullptr); //on-purpose memory leak here
+            setThreadAffinityAllGroupCores(handle);
+            CloseHandle(handle);
         }
         else
         {
@@ -709,7 +711,9 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dputs(QT_TRANSLATE_NOOP("DBG", "Start file read thread..."));
     {
         auto hEvent = CreateEventW(nullptr, false, FALSE, nullptr);
-        CloseHandle(CreateThread(nullptr, 0, loadDbThread, hEvent, 0, nullptr));
+        auto handle = CreateThread(nullptr, 0, loadDbThread, hEvent, 0, nullptr);
+        setThreadAffinityAllGroupCores(handle);
+        CloseHandle(handle);
         // Wait until the loadDbThread signals it's finished
         WaitForSingleObject(hEvent, INFINITE);
         CloseHandle(hEvent);
@@ -782,6 +786,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     GuiRegisterScriptLanguage(&info);
     dputs(QT_TRANSLATE_NOOP("DBG", "Starting command loop..."));
     hCommandLoopThread = CreateThread(nullptr, 0, DbgCommandLoopThread, nullptr, 0, nullptr);
+    setThreadAffinityAllGroupCores(hCommandLoopThread);
     char plugindir[deflen] = "";
     strcpy_s(plugindir, szProgramDir);
     strcat_s(plugindir, "\\plugins");

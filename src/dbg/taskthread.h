@@ -139,6 +139,7 @@ TaskThread_<F, Args...>::TaskThread_(F fn,
         ((TaskThread_<F, Args...>*)thisPtr)->Loop();
         return 0;
     }, this, 0, nullptr);
+    setThreadAffinityAllGroupCores(this->hThread);
 }
 
 template <typename F, typename... Args>

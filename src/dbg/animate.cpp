@@ -36,6 +36,7 @@ bool _dbg_animatecommand(const char* command)
         if(hAnimateThread == nullptr)
         {
             hAnimateThread = CreateThread(NULL, 0, animateThread, nullptr, 0, nullptr);
+            setThreadAffinityAllGroupCores(hAnimateThread);
         }
     }
     else // command = null : stop animating

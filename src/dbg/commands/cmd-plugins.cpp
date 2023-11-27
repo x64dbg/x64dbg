@@ -41,7 +41,9 @@ bool cbDebugStartScylla(int argc, char* argv[])
         return false;
     }
     bScyllaLoaded = true;
-    CloseHandle(CreateThread(0, 0, scyllaThread, 0, 0, 0));
+    auto handle = CreateThread(0, 0, scyllaThread, 0, 0, 0);
+    setThreadAffinityAllGroupCores(handle);
+    CloseHandle(handle);
     return true;
 }
 

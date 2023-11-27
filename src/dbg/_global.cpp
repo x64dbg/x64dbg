@@ -396,6 +396,15 @@ void WaitForMultipleThreadsTermination(const HANDLE* hThread, int count, DWORD t
         CloseHandle(hThread[i]);
 }
 
+void setThreadAffinityAllGroupCores(HANDLE handle)
+{
+    const auto threads = GetThreadCount();
+    if (threads >= 64 && BridgeGetNtBuildNumber() <= 19045 /* Windows 10 22H2 */)
+    {
+        SetThreadAffinityMask(handle, (1 << threads) - 1);
+    }
+}
+
 // This implementation supports both conventional single-cpu PC configurations
 // and multi-cpu system on NUMA (Non-uniform_memory_access) architecture
 // Original code from here: https://developercommunity.visualstudio.com/t/hardware-concurrency-returns-an-incorrect-result/350854

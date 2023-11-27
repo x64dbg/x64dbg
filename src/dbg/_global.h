@@ -65,6 +65,7 @@ bool IsWow64();
 bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, std::wstring & executable, std::wstring & arguments, std::wstring & workingDir);
 void WaitForThreadTermination(HANDLE hThread, DWORD timeout = INFINITE);
 void WaitForMultipleThreadsTermination(const HANDLE* hThread, int count, DWORD timeout = INFINITE);
+void setThreadAffinityAllGroupCores(HANDLE handle);
 duint GetThreadCount();
 
 #ifdef _WIN64
