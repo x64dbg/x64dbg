@@ -123,7 +123,7 @@ QAction* ThreadView::makeCommandAction(QAction* action, const QString & command)
 }
 
 /**
- * @brief ThreadView::ExecCommand execute command slot for menus. Only used by command that reference thread id.
+ * @brief ThreadView::execCommandSlot execute command slot for menus. Only used by command that reference thread id.
  */
 void ThreadView::execCommandSlot()
 {
