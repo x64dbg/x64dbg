@@ -127,12 +127,15 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
 
     connect(mHandlesTable, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(handlesTableContextMenuSlot(QMenu*)));
     connect(mWindowsTable, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(windowsTableContextMenuSlot(QMenu*)));
+    connect(mWindowsTable, SIGNAL(enterPressedSignal()), this, SLOT(followInDisasmSlot()));
     connect(mTcpConnectionsTable, SIGNAL(listContextMenuSignal(QMenu*)), this, SLOT(tcpConnectionsTableContextMenuSlot(QMenu*)));
     connect(mPrivilegesTable, SIGNAL(contextMenuSignal(const QPoint &)), this, SLOT(privilegesTableContextMenuSlot(const QPoint &)));
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcuts()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChanged(DBGSTATE)));
 
+#ifdef _WIN32 // This is only supported on Windows Vista or greater
     if(!IsWindowsVistaOrGreater())
+#endif //_WIN32
     {
         mTcpConnectionsTable->setRowCount(1);
         mTcpConnectionsTable->setCellContent(0, 0, tr("TCP Connection enumeration is only available on Windows Vista or greater."));
@@ -395,6 +398,8 @@ void HandlesView::enumHandles()
 
 static QIcon getWindowIcon(HWND hWnd)
 {
+    QIcon result;
+#ifdef _WIN32
     HICON winIcon;
     if(IsWindowUnicode(hWnd))
     {
@@ -407,12 +412,12 @@ static QIcon getWindowIcon(HWND hWnd)
         //if(SendMessageTimeoutA(hWnd, WM_GETICON, 0, 0, SMTO_ABORTIFHUNG | SMTO_BLOCK | SMTO_ERRORONEXIT, 500, (PDWORD)&winIcon) == 0)
         winIcon = (HICON)GetClassLongPtrA(hWnd, -14); //GCL_HICON
     }
-    QIcon result;
     if(winIcon != 0)
     {
         result = QIcon(QtWin::fromHICON(winIcon));
         DestroyIcon(winIcon);
     }
+#endif //_WIN32
     return result;
 }
 
