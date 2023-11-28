@@ -21,7 +21,7 @@ public:
 public slots:
     void addColumnAtRef(int width, QString title);
 
-    void setRowCount(dsint count) override;
+    void setRowCount(duint count) override;
 
     void setSingleSelection(int index, bool scroll);
     void addCommand(QString title, QString command);

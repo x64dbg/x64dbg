@@ -18,12 +18,13 @@ public:
     void enableMultiSelection(bool enabled);
     void setAddressColumn(int col, bool cipBase = false);
     void loadColumnFromConfig(const QString & viewName);
+    virtual void setRowCount(duint count);
+    void setCellContent(duint row, duint column, QString s);
+    void setCellUserdata(duint row, duint column, duint userdata);
+    void setSearchStartCol(duint column);
 
 public slots:
-    virtual void setRowCount(dsint count);
-    void setCellContent(int r, int c, QString s);
     void reloadData();
-    void setSearchStartCol(duint col);
 
 private:
     StdTableSearchList* mSearchListData;
