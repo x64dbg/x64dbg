@@ -154,7 +154,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Symbol view
     mSymbolView = new SymbolView();
-    Bridge::getBridge()->symbolView = mSymbolView;
+    Bridge::getBridge()->mSymbolView = mSymbolView;
     mSymbolView->setWindowTitle(tr("Symbols"));
     mSymbolView->setWindowIcon(DIcon("pdb"));
     mSymbolView->hide();
@@ -207,7 +207,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Reference manager
     mReferenceManager = new ReferenceManager(this);
-    Bridge::getBridge()->referenceManager = mReferenceManager;
+    Bridge::getBridge()->mReferenceManager = mReferenceManager;
     mReferenceManager->setWindowTitle(tr("References"));
     mReferenceManager->setWindowIcon(DIcon("search"));
 
