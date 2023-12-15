@@ -320,7 +320,6 @@ void HandlesView::disableWindowSlot()
     enumWindows();
 }
 
-
 void HandlesView::followInDisasmSlot()
 {
     DbgCmdExec(QString("disasm %1").arg(mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 0)));
@@ -328,17 +327,9 @@ void HandlesView::followInDisasmSlot()
 
 void HandlesView::followInThreads()
 {
-    QString threadId = mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 4);
-
-    if(Config()->getBool("Gui", "PidTidInHex"))
-    {
-        duint threadIdNum = strtoll(threadId.toUtf8().constData(), NULL, 0x10);
-        threadId = QString::number(threadIdNum);
-    }
-
-    DbgCmdExec(QString("showthreadid %1").arg(threadId));
+    auto threadId = mWindowsTable->mCurList->getCellUserdata(mWindowsTable->mCurList->getInitialSelection(), 4);
+    DbgCmdExec(QString("showthreadid %1").arg(ToHexString(threadId)));
 }
-
 
 void HandlesView::toggleBPSlot()
 {
@@ -448,11 +439,13 @@ void HandlesView::enumWindows()
             mWindowsTable->setCellContent(i, 1, ToHexString(windows[i].handle));
             mWindowsTable->setCellContent(i, 2, QString(windows[i].windowTitle));
             mWindowsTable->setCellContent(i, 3, QString(windows[i].windowClass));
-            // Thread ID
-            if(Config()->getBool("Gui", "PidTidInHex"))
-                mWindowsTable->setCellContent(i, 4, ToHexString(windows[i].threadId));
+            auto tidStr = QString().sprintf(Config()->getBool("Gui", "PidTidInHex") ? "%X" : "%u", windows[i].threadId);
+            char threadName[MAX_THREAD_NAME_SIZE];
+            if(DbgFunctions()->ThreadGetName(windows[i].threadId, threadName) && *threadName != '\0')
+                mWindowsTable->setCellContent(i, 4, QString::fromUtf8(threadName) + QString(" (%1)").arg(tidStr));
             else
-                mWindowsTable->setCellContent(i, 4, QString::number(windows[i].threadId));
+                mWindowsTable->setCellContent(i, 4, tidStr);
+            mWindowsTable->setCellUserdata(i, 4, windows[i].threadId);
             //Style
             mWindowsTable->setCellContent(i, 5, ToHexString(windows[i].style));
             //StyleEx
