@@ -19,10 +19,9 @@ bool cbShowThreadId(int argc, char* argv[])
     }
     else if(argc == 2)
     {
-        threadID = strtoll(argv[1], NULL, 10);
-        if(threadID == 0)
+        if(!valfromstring(argv[1], &threadID))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not search for thread ID 0 or argument was not a number in decimal base.\n"));
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to parse an expression: %s.\n"), argv[1]);
             return false;
         }
     }
@@ -37,7 +36,7 @@ bool cbShowThreadId(int argc, char* argv[])
     GuiUpdateThreadView(); // To be sure that we have the freshest stuff
 
     bool threadFound = false;
-    uint32_t row;
+    int row;
     for(row = 0; row < threads_head.count; row++)
     {
         THREADALLINFO currThread = threads_head.list[row];
