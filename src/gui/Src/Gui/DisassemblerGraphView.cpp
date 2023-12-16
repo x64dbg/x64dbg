@@ -218,7 +218,7 @@ void DisassemblerGraphView::resizeEvent(QResizeEvent* event)
     adjustSize(event->size().width(), event->size().height());
 }
 
-duint DisassemblerGraphView::get_cursor_pos()
+duint DisassemblerGraphView::get_cursor_pos() const
 {
     if(this->cur_instr == 0)
         return this->function;
@@ -934,7 +934,7 @@ void DisassemblerGraphView::wheelEvent(QWheelEvent* event)
     }
 }
 
-bool DisassemblerGraphView::isMouseEventInBlock(QMouseEvent* event)
+bool DisassemblerGraphView::isMouseEventInBlock(QMouseEvent* event) const
 {
     //Convert coordinates to system used in blocks
     int xofs = this->horizontalScrollBar()->value();
@@ -945,7 +945,7 @@ bool DisassemblerGraphView::isMouseEventInBlock(QMouseEvent* event)
     // Check each block for hits
     for(auto & blockIt : this->blocks)
     {
-        DisassemblerBlock & block = blockIt.second;
+        auto & block = blockIt.second;
         //Compute coordinate relative to text area in block
         int blockx = x - (block.x + (2 * this->charWidth));
         int blocky = y - (block.y + (2 * this->charWidth));
@@ -959,7 +959,7 @@ bool DisassemblerGraphView::isMouseEventInBlock(QMouseEvent* event)
     return false;
 }
 
-duint DisassemblerGraphView::getInstrForMouseEvent(QMouseEvent* event)
+duint DisassemblerGraphView::getInstrForMouseEvent(QMouseEvent* event) const
 {
     //Convert coordinates to system used in blocks
     int xofs = this->horizontalScrollBar()->value();
@@ -970,7 +970,7 @@ duint DisassemblerGraphView::getInstrForMouseEvent(QMouseEvent* event)
     //Check each block for hits
     for(auto & blockIt : this->blocks)
     {
-        DisassemblerBlock & block = blockIt.second;
+        auto & block = blockIt.second;
         //Compute coordinate relative to text area in block
         int blockx = x - (block.x + (2 * this->charWidth));
         int blocky = y - (block.y + (2 * this->charWidth));
@@ -985,7 +985,7 @@ duint DisassemblerGraphView::getInstrForMouseEvent(QMouseEvent* event)
         int cur_row = int(block.block.header_text.lines.size());
         if(row < cur_row)
             return block.block.entry;
-        for(Instr & instr : block.block.instrs)
+        for(auto & instr : block.block.instrs)
         {
             if(row < cur_row + int(instr.text.lines.size()))
                 return instr.addr;
@@ -995,7 +995,7 @@ duint DisassemblerGraphView::getInstrForMouseEvent(QMouseEvent* event)
     return 0;
 }
 
-bool DisassemblerGraphView::getTokenForMouseEvent(QMouseEvent* event, ZydisTokenizer::SingleToken & tokenOut)
+bool DisassemblerGraphView::getTokenForMouseEvent(QMouseEvent* event, ZydisTokenizer::SingleToken & tokenOut) const
 {
     //Convert coordinates to system used in blocks
     int xofs = this->horizontalScrollBar()->value();
@@ -1006,7 +1006,7 @@ bool DisassemblerGraphView::getTokenForMouseEvent(QMouseEvent* event, ZydisToken
     //Check each block for hits
     for(auto & blockIt : this->blocks)
     {
-        DisassemblerBlock & block = blockIt.second;
+        auto & block = blockIt.second;
         //Compute coordinate relative to text area in block
         int blockx = x - (block.x + (2 * this->charWidth));
         int blocky = y - (block.y + (2 * this->charWidth));
@@ -1064,12 +1064,16 @@ bool DisassemblerGraphView::getTokenForMouseEvent(QMouseEvent* event, ZydisToken
 bool DisassemblerGraphView::find_instr(duint addr, Instr & instrOut)
 {
     for(auto & blockIt : this->blocks)
+    {
         for(Instr & instr : blockIt.second.block.instrs)
+        {
             if(instr.addr == addr)
             {
                 instrOut = instr;
                 return true;
             }
+        }
+    }
     return false;
 }
 
@@ -1358,7 +1362,7 @@ void DisassemblerGraphView::computeGraphLayout(DisassemblerBlock & block)
     block.row_count = row_count;
 }
 
-bool DisassemblerGraphView::isEdgeMarked(EdgesVector & edges, int row, int col, int index)
+bool DisassemblerGraphView::isEdgeMarked(EdgesVector & edges, int row, int col, int index) const
 {
     if(index >= int(edges[row][col].size()))
         return false;
@@ -2692,7 +2696,7 @@ void DisassemblerGraphView::copyHighlightedTokenValueSlot()
         Bridge::CopyToClipboard(text);
 }
 
-bool DisassemblerGraphView::getHighlightedTokenValueText(QString & text)
+bool DisassemblerGraphView::getHighlightedTokenValueText(QString & text) const
 {
     if(mHighlightToken.type <= ZydisTokenizer::TokenType::MnemonicUnusual)
         return false;

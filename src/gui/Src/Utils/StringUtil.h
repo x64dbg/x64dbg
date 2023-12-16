@@ -19,11 +19,11 @@ inline QString ToPtrString(duint Address)
 
     char temp[32];
 #ifdef _WIN64
-    sprintf_s(temp, "%016llX", Address);
+    auto size = sprintf_s(temp, "%016llX", Address);
 #else
-    sprintf_s(temp, "%08X", Address);
+    auto size = sprintf_s(temp, "%08X", Address);
 #endif // _WIN64
-    return QString(temp);
+    return QString::fromLatin1(temp, size);
 }
 
 inline QString ToLongLongHexString(unsigned long long Value)
