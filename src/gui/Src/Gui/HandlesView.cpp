@@ -118,7 +118,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mActionFollowProc = new QAction(DIcon(ArchValue("processor32", "processor64")), tr("Follow Proc in Disassembler"), this);
     connect(mActionFollowProc, SIGNAL(triggered()), this, SLOT(followInDisasmSlot()));
     mActionFollowProc->setShortcut(Qt::Key_Return);
-    mActionFollowThread = new QAction(DIcon("arrow-threads"), tr("Follow in Threads window"), this);
+    mActionFollowThread = new QAction(DIcon("arrow-threads"), tr("Follow in Threads"), this);
     connect(mActionFollowThread, SIGNAL(triggered()), this, SLOT(followInThreads()));
     mWindowsTable->addAction(mActionFollowProc);
     mActionToggleProcBP = new QAction(DIcon("breakpoint_toggle"), tr("Toggle Breakpoint in Proc"), this);

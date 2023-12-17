@@ -162,7 +162,6 @@ void CallStackView::updateCallStackSlot()
         DbgFunctions()->GetCallStackByThread(threadList.list[currentIndexToDraw].BasicInfo.Handle, &callstack);
         setRowCount(currentRow + callstack.total + 1);
         auto threadId = threadList.list[currentIndexToDraw].BasicInfo.ThreadId;
-        setCellContent(currentRow, ColThread, ToDecString(threadId));
 
         QString threadName = threadList.list[currentIndexToDraw].BasicInfo.threadName;
         QString colThreadString = ToDecString(threadList.list[currentIndexToDraw].BasicInfo.ThreadId);
@@ -265,6 +264,7 @@ void CallStackView::renameThreadSlot()
 
     DbgCmdExec(QString("setthreadname %1, \"%2\"").arg(ToHexString(threadId)).arg(DbgCmdEscape(threadName)));
 }
+
 void CallStackView::followInThreadsSlot()
 {
     QStringList threadIDName = getCellContent(getInitialSelection(), ColThread).split(" - ");
