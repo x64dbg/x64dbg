@@ -41,8 +41,15 @@ MemoryMapView::MemoryMapView(StdTable* parent)
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(duint, duint)), this, SLOT(disassembleAtSlot(duint, duint)));
     connect(Bridge::getBridge(), SIGNAL(focusMemmap()), this, SLOT(setFocus()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
+    connect(this, SIGNAL(sortHappenedSignal()), this, SLOT(sortHappenedSlot()));
+    connect(this, SIGNAL(selectionChanged(duint)), this, SLOT(selectionChangedSlot(duint)));
 
     setupContextMenu();
+}
+
+void MemoryMapView::sortHappenedSlot()
+{
+    selectAddressRange(mSelectedAddressRange);
 }
 
 void MemoryMapView::setupContextMenu()
@@ -194,6 +201,11 @@ void MemoryMapView::setupContextMenu()
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
+}
+
+void MemoryMapView::selectionChangedSlot(duint index)
+{
+    mSelectedAddressRange = getAddressRangeFromSelection(getSelection());
 }
 
 void MemoryMapView::refreshShortcutsSlot()
@@ -426,6 +438,98 @@ static QString getProtectionString(DWORD protect)
     }
 }
 
+
+void MemoryMapView::selectAddressRange(const std::pair<duint, duint> & addressRange)
+{
+    if(addressRange.first == 0 || addressRange.second == 0)
+        return;
+
+    const auto savedAddressRange = addressRange;
+
+    QList<duint> selectedRows{};
+
+    for(duint i = mSort.ascending ? 0 : (getRowCount() - 1); i < getRowCount();  mSort.ascending ? i++ : i--)
+    {
+        auto currRowAddress = getCellUserdata(i, ColAddress);
+        auto currRowSize = getCellUserdata(i, ColSize);
+        std::pair<duint, duint> currAddressRange{currRowAddress, currRowAddress + currRowSize};
+
+        if(currAddressRange.second != 0)
+            currAddressRange.second--;
+
+        if((currAddressRange.first >= savedAddressRange.first && savedAddressRange.first <= currAddressRange.second) &&
+                (currAddressRange.second <= savedAddressRange.second && savedAddressRange.second >= currAddressRange.first))
+        {
+            selectedRows.append(i);
+        }
+        else if(!selectedRows.empty())
+        {
+            break;
+        }
+    }
+
+    if(selectedRows.empty())
+        return;
+
+    SelectionData toSet{};
+
+    if(mSort.ascending)
+    {
+        toSet.firstSelectedIndex = selectedRows.at(0);
+        toSet.toIndex = *(selectedRows.cend() - 1);
+    }
+    else
+    {
+        toSet.firstSelectedIndex = *(selectedRows.cend() - 1);
+        toSet.toIndex = selectedRows.at(0);
+    }
+
+    toSet.fromIndex = toSet.firstSelectedIndex;
+    tryEmitAddressSelectionChange(toSet, savedAddressRange);
+}
+
+void MemoryMapView::tryEmitAddressSelectionChange(const SelectionData & newSelection, const std::pair<duint, duint> & basedUpon)
+{
+    if(basedUpon.first == mSelectedAddressRange.first && basedUpon.second == mSelectedAddressRange.second)
+    {
+        if(newSelection.firstSelectedIndex != mSelection.firstSelectedIndex ||
+                newSelection.fromIndex != mSelection.fromIndex ||
+                newSelection.toIndex != mSelection.toIndex)
+        {
+            mSelection = newSelection;
+            emit selectionChanged(newSelection.firstSelectedIndex);
+        }
+    }
+}
+
+std::pair<duint, duint> MemoryMapView::getAddressRangeFromSelection(QList<duint> & selection)
+{
+    if(selection.empty())
+        return {};
+
+    std::map<duint, duint> entries;
+
+    for(duint i : selection)
+    {
+        entries.emplace(
+            std::pair<duint, duint>
+            (getCellUserdata(i, ColAddress), i));
+    }
+
+    duint startAddress = entries.cbegin()->first;
+
+    auto lastValidElement = --entries.cend();
+    duint lastAddressRow = lastValidElement->second;
+    duint lastAddressSize = getCellUserdata(lastAddressRow, ColSize);
+
+    duint lastAddress = lastValidElement->first + lastAddressSize;
+
+    if(lastAddress != 0) // watchout for 0
+        lastAddress--;   // decrementing by one to make it [addr, addr + size - 1] instead of [addr, addr + size)
+
+    return {startAddress, lastAddress};
+}
+
 void MemoryMapView::refreshMapSlot()
 {
     MEMMAP memoryMap = {};
@@ -526,7 +630,10 @@ void MemoryMapView::refreshMapSlot()
     }
     if(memoryMap.page != 0)
         BridgeFree(memoryMap.page);
+
     reloadData(); //refresh memory map
+
+    selectAddressRange(mSelectedAddressRange);
 }
 
 void MemoryMapView::stateChangedSlot(DBGSTATE state)

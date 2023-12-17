@@ -16,6 +16,7 @@ signals:
     void showReferences();
 
 public slots:
+    void selectionChangedSlot(duint index);
     void refreshShortcutsSlot();
     void stateChangedSlot(DBGSTATE state);
     void followDumpSlot();
@@ -41,9 +42,13 @@ public slots:
     void selectionGetSlot(SELECTIONDATA* selection);
     void selectionSetSlot(const SELECTIONDATA* selection);
     void disassembleAtSlot(duint va, duint cip);
-
+    void sortHappenedSlot();
 private:
+
     void setSwitchViewName();
+    std::pair<duint, duint> getAddressRangeFromSelection(QList<duint> & selection);
+    void tryEmitAddressSelectionChange(const SelectionData & newSelection, const std::pair<duint, duint> & newAddressRange);
+    void selectAddressRange(const std::pair<duint, duint> & addressRange);
 
     enum
     {
@@ -67,6 +72,7 @@ private:
         return getCellContent(getInitialSelection(), ColAddress);
     }
 
+    std::pair<duint, duint> mSelectedAddressRange;
     QAction* makeCommandAction(QAction* action, const QString & command);
 
     GotoDialog* mGoto = nullptr;

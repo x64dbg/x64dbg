@@ -1040,6 +1040,8 @@ void AbstractStdTable::headerButtonPressedSlot(duint col)
     else
         mSort.ascending = !mSort.ascending;
     reloadData();
+
+    emit sortHappenedSignal();
 }
 
 void AbstractStdTable::reloadData()
