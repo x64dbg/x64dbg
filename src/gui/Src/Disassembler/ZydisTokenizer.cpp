@@ -351,21 +351,31 @@ bool ZydisTokenizer::TokenEquals(const SingleToken* a, const SingleToken* b, boo
     return tokenTextPoolEquals(a->text, b->text);
 }
 
+
+static bool tokenIsSpace(ZydisTokenizer::TokenType type)
+{
+    return type == ZydisTokenizer::TokenType::Space || type == ZydisTokenizer::TokenType::ArgumentSpace || type == ZydisTokenizer::TokenType::MemoryOperatorSpace;
+}
+
 void ZydisTokenizer::addToken(TokenType type, QString text, const TokenValue & value)
 {
-    switch(type)
+    bool isItSpaceType = tokenIsSpace(type);
+    if(!isItSpaceType)
     {
-    case TokenType::Space:
-    case TokenType::ArgumentSpace:
-    case TokenType::MemoryOperatorSpace:
-        break;
-    default:
         text = text.trimmed();
-        break;
     }
+
     if(mUppercase && !value.size)
         text = text.toUpper();
-    mInst.tokens.push_back(SingleToken(mIsNop ? TokenType::MnemonicNop : type, text, value));
+
+    if(isItSpaceType)
+    {
+        mInst.tokens.push_back(SingleToken(type, text, value));
+    }
+    else
+    {
+        mInst.tokens.push_back(SingleToken(mIsNop ? TokenType::MnemonicNop : type, text, value));
+    }
 }
 
 void ZydisTokenizer::addToken(TokenType type, const QString & text)
