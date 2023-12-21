@@ -71,13 +71,13 @@ void CallStackView::setupContextMenu()
     });
 
     mMenuBuilder->addSeparator();
-    QAction* followInThreads = makeAction(tr("Follow in Threads"), SLOT(followInThreadsSlot()));
+    QAction* followInThreads = makeAction(DIcon("arrow-threads"), tr("Follow in Threads"), SLOT(followInThreadsSlot()));
     mMenuBuilder->addAction(followInThreads, [this](QMenu*)
     {
         return isThreadHeaderSelected();
     });
 
-    QAction* renameThread = makeAction(tr("Rename Thread"), SLOT(renameThreadSlot()));
+    QAction* renameThread = makeAction(DIcon("thread-setname"), tr("Rename Thread"), SLOT(renameThreadSlot()));
     mMenuBuilder->addAction(renameThread, [this](QMenu*)
     {
         return isThreadHeaderSelected();
@@ -162,7 +162,6 @@ void CallStackView::updateCallStackSlot()
         DbgFunctions()->GetCallStackByThread(threadList.list[currentIndexToDraw].BasicInfo.Handle, &callstack);
         setRowCount(currentRow + callstack.total + 1);
         auto threadId = threadList.list[currentIndexToDraw].BasicInfo.ThreadId;
-        setCellContent(currentRow, ColThread, ToDecString(threadId));
 
         QString threadName = threadList.list[currentIndexToDraw].BasicInfo.threadName;
         QString colThreadString = ToDecString(threadList.list[currentIndexToDraw].BasicInfo.ThreadId);
@@ -265,6 +264,7 @@ void CallStackView::renameThreadSlot()
 
     DbgCmdExec(QString("setthreadname %1, \"%2\"").arg(ToHexString(threadId)).arg(DbgCmdEscape(threadName)));
 }
+
 void CallStackView::followInThreadsSlot()
 {
     QStringList threadIDName = getCellContent(getInitialSelection(), ColThread).split(" - ");

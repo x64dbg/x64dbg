@@ -130,6 +130,7 @@ signals:
     void selectionMemmapGet(SELECTIONDATA* selection);
     void selectionMemmapSet(const SELECTIONDATA* selection);
     void selectionSymmodGet(SELECTIONDATA* selection);
+    void selectionThreadsGet(SELECTIONDATA* selection);
     void selectionThreadsSet(const SELECTIONDATA* selection);
     void getStrWindow(const QString title, QString* text);
     void autoCompleteAddCmd(const QString cmd);

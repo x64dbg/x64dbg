@@ -10,55 +10,21 @@
 
 bool cbShowThreadId(int argc, char* argv[])
 {
-    duint threadID = 0;
+    if(argc > 1)
+    {
+        duint threadId = 0;
+        if(!valfromstring(argv[1], &threadId, false))
+            return false;
 
-    if(argc > 2)
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Too many arguments specified. Only 1 argument can be passed, or none.\n"));
-        return false;
-    }
-    else if(argc == 2)
-    {
-        threadID = strtoll(argv[1], NULL, 10);
-        if(threadID == 0)
+        SELECTIONDATA newSelection = { threadId, threadId };
+        if(!GuiSelectionSet(GUI_THREADS, &newSelection))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not search for thread ID 0 or argument was not a number in decimal base.\n"));
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %s\n"), formatpidtid((DWORD)threadId).c_str());
             return false;
         }
     }
-    else if(argc == 1)
-    {
-        GuiShowThreads();
-        return true;
-    }
-
-    THREADLIST threads_head{};
-    DbgGetThreadList(&threads_head);
-    GuiUpdateThreadView(); // To be sure that we have the freshest stuff
-
-    bool threadFound = false;
-    uint32_t row;
-    for(row = 0; row < threads_head.count; row++)
-    {
-        THREADALLINFO currThread = threads_head.list[row];
-        if(currThread.BasicInfo.ThreadId == threadID)
-        {
-            threadFound = true;
-            break;
-        }
-    }
-
-    BridgeFree(threads_head.list);
-    if(!threadFound)
-    {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not find provided thread ID: %llu\n"), threadID);
-        return false;
-    }
-
-    SELECTIONDATA foundThreadGUIRow{row, row};
 
     GuiShowThreads();
-    GuiSelectionSet(GUI_THREADS, &foundThreadGUIRow);
     return true;
 }
 

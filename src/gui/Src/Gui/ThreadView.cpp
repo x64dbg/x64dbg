@@ -17,7 +17,7 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
 
 void ThreadView::gotoThreadEntrySlot()
 {
-    QString addrText = getCellContent(getInitialSelection(), 2);
+    QString addrText = getCellContent(getInitialSelection(), ColEntry);
     DbgCmdExecDirect(QString("disasm " + addrText));
 }
 
@@ -167,6 +167,7 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
 
     //setCopyMenuOnly(true);
     connect(Bridge::getBridge(), SIGNAL(selectionThreadsSet(const SELECTIONDATA*)), this, SLOT(selectionThreadsSet(const SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(selectionThreadsGet(SELECTIONDATA*)), this, SLOT(selectionThreadsGet(SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(updateThreads()), this, SLOT(updateThreadListSlot()));
     connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
@@ -178,19 +179,27 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
 
 void ThreadView::selectionThreadsSet(const SELECTIONDATA* selection)
 {
-    if(selection->start >= getRowCount() ||
-            selection->end >= getRowCount()   ||
-            selection->start > selection->end)
+    auto selectedThreadId = selection->start;
+    auto rowCount = getRowCount();
+    for(duint row = 0; row < rowCount; row++)
     {
-        Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 0);
-        return;
+        auto threadId = getCellUserdata(row, ColThreadId);
+        if(threadId == selectedThreadId)
+        {
+            setSingleSelection(row);
+            Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 1);
+            return;
+        }
     }
 
-    mSelection.firstSelectedIndex = selection->start;
-    mSelection.fromIndex = selection->start;
-    mSelection.toIndex = selection->end;
-    Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 1);
-    emit selectionChanged(mSelection.firstSelectedIndex);
+    Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 0);
+}
+
+void ThreadView::selectionThreadsGet(SELECTIONDATA* selection)
+{
+    auto threadId = getCellUserdata(getInitialSelection(), ColThreadId);
+    selection->start = selection->end = threadId;
+    Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
 }
 
 void ThreadView::updateThreadListSlot()
@@ -203,15 +212,15 @@ void ThreadView::updateThreadListSlot()
     for(int i = 0; i < threadList.count; i++)
     {
         if(!threadList.list[i].BasicInfo.ThreadNumber)
-            setCellContent(i, 0, tr("Main"));
+            setCellContent(i, ColNumber, tr("Main"));
         else
-            setCellContent(i, 0, ToDecString(threadList.list[i].BasicInfo.ThreadNumber));
-        setCellContent(i, 1, QString().sprintf(tidFormat, threadList.list[i].BasicInfo.ThreadId));
-        setCellUserdata(i, 1, threadList.list[i].BasicInfo.ThreadId);
-        setCellContent(i, 2, ToPtrString(threadList.list[i].BasicInfo.ThreadStartAddress));
-        setCellContent(i, 3, ToPtrString(threadList.list[i].BasicInfo.ThreadLocalBase));
-        setCellContent(i, 4, ToPtrString(threadList.list[i].ThreadCip));
-        setCellContent(i, 5, ToDecString(threadList.list[i].SuspendCount));
+            setCellContent(i, ColNumber, ToDecString(threadList.list[i].BasicInfo.ThreadNumber));
+        setCellContent(i, ColThreadId, QString().sprintf(tidFormat, threadList.list[i].BasicInfo.ThreadId));
+        setCellUserdata(i, ColThreadId, threadList.list[i].BasicInfo.ThreadId);
+        setCellContent(i, ColEntry, ToPtrString(threadList.list[i].BasicInfo.ThreadStartAddress));
+        setCellContent(i, ColTeb, ToPtrString(threadList.list[i].BasicInfo.ThreadLocalBase));
+        setCellContent(i, ColCip, ToPtrString(threadList.list[i].ThreadCip));
+        setCellContent(i, ColSuspendCount, ToDecString(threadList.list[i].SuspendCount));
         QString priorityString;
         switch(threadList.list[i].Priority)
         {
@@ -240,7 +249,7 @@ void ThreadView::updateThreadListSlot()
             priorityString = tr("Unknown");
             break;
         }
-        setCellContent(i, 6, priorityString);
+        setCellContent(i, ColPriority, priorityString);
         QString waitReasonString;
         switch(threadList.list[i].WaitReason)
         {
@@ -359,13 +368,13 @@ void ThreadView::updateThreadListSlot()
             waitReasonString = "Unknown";
             break;
         }
-        setCellContent(i, 7, waitReasonString);
-        setCellContent(i, 8, QString("%1").arg(threadList.list[i].LastError, sizeof(unsigned int) * 2, 16, QChar('0')).toUpper());
-        setCellContent(i, 9, FILETIMEToTime(threadList.list[i].UserTime));
-        setCellContent(i, 10, FILETIMEToTime(threadList.list[i].KernelTime));
-        setCellContent(i, 11, FILETIMEToDate(threadList.list[i].CreationTime));
-        setCellContent(i, 12, ToLongLongHexString(threadList.list[i].Cycles));
-        setCellContent(i, 13, threadList.list[i].BasicInfo.threadName);
+        setCellContent(i, ColWaitReason, waitReasonString);
+        setCellContent(i, ColLastError, QString("%1").arg(threadList.list[i].LastError, sizeof(unsigned int) * 2, 16, QChar('0')).toUpper());
+        setCellContent(i, ColUserTime, FILETIMEToTime(threadList.list[i].UserTime));
+        setCellContent(i, ColKernelTime, FILETIMEToTime(threadList.list[i].KernelTime));
+        setCellContent(i, ColCreationTime, FILETIMEToDate(threadList.list[i].CreationTime));
+        setCellContent(i, ColCpuCycles, ToLongLongHexString(threadList.list[i].Cycles));
+        setCellContent(i, ColThreadName, threadList.list[i].BasicInfo.threadName);
     }
     mCurrentThreadId = -1;
     if(threadList.count)
@@ -381,7 +390,7 @@ void ThreadView::updateThreadListSlot()
 QString ThreadView::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
     QString ret = StdTable::paintContent(painter, row, col, x, y, w, h);
-    duint threadId = getCellUserdata(row, 1);
+    duint threadId = getCellUserdata(row, ColThreadId);
     if(threadId == mCurrentThreadId && !col)
     {
         painter->fillRect(QRect(x, y, w, h), QBrush(ConfigColor("ThreadCurrentBackgroundColor")));
@@ -394,17 +403,17 @@ QString ThreadView::paintContent(QPainter* painter, duint row, duint col, int x,
 
 void ThreadView::doubleClickedSlot()
 {
-    duint threadId = getCellUserdata(getInitialSelection(), 1);
+    duint threadId = getCellUserdata(getInitialSelection(), ColThreadId);
     DbgCmdExecDirect("switchthread " + ToHexString(threadId));
 
-    QString addrText = getCellContent(getInitialSelection(), 4);
+    QString addrText = getCellContent(getInitialSelection(), ColCip);
     DbgCmdExec("disasm " + addrText);
 }
 
 void ThreadView::setNameSlot()
 {
-    duint threadId = getCellUserdata(getInitialSelection(), 1);
-    QString threadName = getCellContent(getInitialSelection(), 13);
+    duint threadId = getCellUserdata(getInitialSelection(), ColThreadId);
+    QString threadName = getCellContent(getInitialSelection(), ColThreadName);
     if(!SimpleInputBox(this, tr("Thread name - %1").arg(threadId), threadName, threadName, QString()))
         return;
 

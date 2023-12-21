@@ -47,7 +47,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mWindowsTable->addColumnAt(8 + 16 * charWidth, tr("StyleEx"), true, "", StdTable::SortBy::AsHex);
     mWindowsTable->addColumnAt(8 + 8 * charWidth, tr("Parent"), true);
     mWindowsTable->addColumnAt(8 + 20 * charWidth, tr("Size"), true);
-    mWindowsTable->addColumnAt(8 + 6 * charWidth, tr("Enable"), true);
+    mWindowsTable->addColumnAt(8 + 8 * charWidth, tr("Enable"), true);
     mWindowsTable->loadColumnFromConfig("Window");
     mWindowsTable->setIconColumn(2);
 
@@ -118,6 +118,8 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mActionFollowProc = new QAction(DIcon(ArchValue("processor32", "processor64")), tr("Follow Proc in Disassembler"), this);
     connect(mActionFollowProc, SIGNAL(triggered()), this, SLOT(followInDisasmSlot()));
     mActionFollowProc->setShortcut(Qt::Key_Return);
+    mActionFollowThread = new QAction(DIcon("arrow-threads"), tr("Follow in Threads"), this);
+    connect(mActionFollowThread, SIGNAL(triggered()), this, SLOT(followInThreads()));
     mWindowsTable->addAction(mActionFollowProc);
     mActionToggleProcBP = new QAction(DIcon("breakpoint_toggle"), tr("Toggle Breakpoint in Proc"), this);
     connect(mActionToggleProcBP, SIGNAL(triggered()), this, SLOT(toggleBPSlot()));
@@ -221,6 +223,7 @@ void HandlesView::windowsTableContextMenuSlot(QMenu* menu)
         }
 
         menu->addAction(mActionFollowProc);
+        menu->addAction(mActionFollowThread);
         menu->addAction(mActionToggleProcBP);
         menu->addAction(mActionMessageProcBP);
     }
@@ -323,6 +326,12 @@ void HandlesView::disableWindowSlot()
 void HandlesView::followInDisasmSlot()
 {
     DbgCmdExec(QString("disasm %1").arg(mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 0)));
+}
+
+void HandlesView::followInThreads()
+{
+    auto threadId = mWindowsTable->mCurList->getCellUserdata(mWindowsTable->mCurList->getInitialSelection(), 4);
+    DbgCmdExec(QString("showthreadid %1").arg(ToHexString(threadId)));
 }
 
 void HandlesView::toggleBPSlot()
@@ -435,13 +444,13 @@ void HandlesView::enumWindows()
             mWindowsTable->setCellContent(i, 1, ToHexString(windows[i].handle));
             mWindowsTable->setCellContent(i, 2, QString(windows[i].windowTitle));
             mWindowsTable->setCellContent(i, 3, QString(windows[i].windowClass));
-            char threadname[MAX_THREAD_NAME_SIZE];
-            if(DbgFunctions()->ThreadGetName(windows[i].threadId, threadname) && *threadname != '\0')
-                mWindowsTable->setCellContent(i, 4, QString::fromUtf8(threadname));
-            else if(Config()->getBool("Gui", "PidTidInHex"))
-                mWindowsTable->setCellContent(i, 4, ToHexString(windows[i].threadId));
+            auto tidStr = QString().sprintf(Config()->getBool("Gui", "PidTidInHex") ? "%X" : "%u", windows[i].threadId);
+            char threadName[MAX_THREAD_NAME_SIZE];
+            if(DbgFunctions()->ThreadGetName(windows[i].threadId, threadName) && *threadName != '\0')
+                mWindowsTable->setCellContent(i, 4, QString::fromUtf8(threadName) + QString(" (%1)").arg(tidStr));
             else
-                mWindowsTable->setCellContent(i, 4, QString::number(windows[i].threadId));
+                mWindowsTable->setCellContent(i, 4, tidStr);
+            mWindowsTable->setCellUserdata(i, 4, windows[i].threadId);
             //Style
             mWindowsTable->setCellContent(i, 5, ToHexString(windows[i].style));
             //StyleEx

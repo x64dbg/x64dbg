@@ -25,7 +25,7 @@ public:
     void setCellContent(duint r, duint c, QString s, duint userdata);
     QString getCellContent(duint r, duint c) override;
     void setCellUserdata(duint r, duint c, duint userdata);
-    duint getCellUserdata(duint r, duint c);
+    duint getCellUserdata(duint r, duint c) override;
     bool isValidIndex(duint r, duint c) override;
     void sortRows(duint column, bool ascending) override;
 

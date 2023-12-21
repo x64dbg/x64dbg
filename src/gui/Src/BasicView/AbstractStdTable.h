@@ -42,6 +42,7 @@ public:
     void deleteAllColumns() override;
 
     virtual QString getCellContent(duint row, duint column) = 0;
+    virtual duint getCellUserdata(duint row, duint column) = 0;
     virtual bool isValidIndex(duint row, duint column) = 0;
     virtual void sortRows(duint column, bool ascending) = 0;
 

@@ -9,8 +9,9 @@ class ZehSymbolTable : public AbstractStdTable
 public:
     ZehSymbolTable(QWidget* parent = nullptr);
 
-    QString getCellContent(duint r, duint c) override;
-    bool isValidIndex(duint r, duint c) override;
+    QString getCellContent(duint row, duint column) override;
+    duint getCellUserdata(duint row, duint column) override;
+    bool isValidIndex(duint row, duint column) override;
     void sortRows(duint column, bool ascending) override;
 
     friend class SymbolView;

@@ -182,7 +182,7 @@ void ReferenceView::addColumnAtRef(int width, QString title)
     StdSearchListView::addColumnAt(width, title, true);
 }
 
-void ReferenceView::setRowCount(dsint count)
+void ReferenceView::setRowCount(duint count)
 {
     if(!stdList()->getRowCount() && count) //from zero to N rows
         searchSelectionChanged(0);

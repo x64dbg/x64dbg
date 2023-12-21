@@ -688,6 +688,9 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
         case GUI_SYMMOD:
             emit selectionSymmodGet(selection);
             break;
+        case GUI_THREADS:
+            emit selectionThreadsGet(selection);
+            break;
         default:
             return (void*)false;
         }
