@@ -7,7 +7,7 @@
 #include "StdIconSearchListView.h"
 #include "ZehSymbolTable.h"
 #include "DisassemblyPopup.h"
-
+#include <QDesktopServices>
 #include <QVBoxLayout>
 #include <QProcess>
 #include <QFileDialog>
@@ -321,6 +321,9 @@ void SymbolView::setupContextMenu()
     mSymbolSearchList->addAction(mToggleBookmark);
     connect(mToggleBookmark, SIGNAL(triggered()), this, SLOT(toggleBookmark()));
 
+    mLabelHelp = new QAction(DIcon("help"), tr("Help on Symbolic Name"), this);
+    connect(mLabelHelp, SIGNAL(triggered()), this, SLOT(labelHelpSlot()));
+
     //Modules
     mFollowModuleAction = new QAction(disassembler, tr("&Follow in Disassembler"), this);
     mFollowModuleAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
@@ -529,6 +532,7 @@ void SymbolView::symbolContextMenu(QMenu* menu)
     menu->addAction(mFollowSymbolDumpAction);
     if(mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 1) == tr("Import"))
         menu->addAction(mFollowSymbolImportAction);
+    menu->addAction(mLabelHelp);
     menu->addSeparator();
     menu->addAction(mToggleBreakpoint);
     menu->addAction(mToggleBookmark);
@@ -577,6 +581,34 @@ void SymbolView::symbolSelectModule(duint base)
             mModuleList->clearFilter();
             break;
         }
+    }
+}
+
+void SymbolView::labelHelpSlot()
+{
+    QString topic = mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), ZehSymbolTable::ColUndecorated);
+    if(topic.isEmpty())
+        topic = mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), ZehSymbolTable::ColDecorated);
+    if(topic.isEmpty())
+        return;
+    char setting[MAX_SETTING_SIZE] = "";
+    if(!BridgeSettingGet("Misc", "HelpOnSymbolicNameUrl", setting))
+    {
+        //"execute://winhlp32.exe -k@topic ..\\win32.hlp";
+        strcpy_s(setting, "https://www.google.com/search?q=@topic");
+        BridgeSettingSet("Misc", "HelpOnSymbolicNameUrl", setting);
+    }
+    QString baseUrl(setting);
+    QString fullUrl = baseUrl.replace("@topic", topic);
+
+    if(baseUrl.startsWith("execute://"))
+    {
+        QString command = fullUrl.right(fullUrl.length() - 10);
+        QProcess::execute(command);
+    }
+    else
+    {
+        QDesktopServices::openUrl(QUrl(fullUrl));
     }
 }
 
