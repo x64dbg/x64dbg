@@ -2,6 +2,7 @@
 #define _MODULE_H
 
 #include "_global.h"
+#include "jansson/jansson_x64dbg.h" // addrinfo.h and serializablemap.h use functions defined here so can't be included
 #include <functional>
 
 #include "symbolsourcebase.h"
@@ -173,6 +174,9 @@ void ModEnum(const std::function<void(const MODINFO &)> & cbEnum);
 
 MODULEPARTY ModGetParty(duint Address);
 void ModSetParty(duint Address, MODULEPARTY Party);
+void ModCacheSave(JSON root);
+void ModCacheLoad(JSON root);
+void ModCacheClear();
 bool ModRelocationsFromAddr(duint Address, std::vector<MODRELOCATIONINFO> & Relocations);
 bool ModRelocationAtAddr(duint Address, MODRELOCATIONINFO* Relocation);
 bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONINFO> & Relocations);

@@ -701,6 +701,58 @@ static bool GetUnsafeModuleInfoImpl(MODINFO & Info, ULONG_PTR FileMapVA, void(*f
     return true;
 }
 
+// User/system module
+static auto GetDefaultParty(const MODINFO & Info)
+{
+    if(Info.isVirtual)
+        return mod_user;
+    // Determine whether the module is located in system
+    wchar_t szWindowsDir[MAX_PATH];
+    GetWindowsDirectoryW(szWindowsDir, _countof(szWindowsDir));
+    String Utf8Sysdir = StringUtils::Utf16ToUtf8(szWindowsDir);
+    Utf8Sysdir.append("\\");
+    if(_memicmp(Utf8Sysdir.c_str(), Info.path, Utf8Sysdir.size()) == 0)
+    {
+        return mod_system;
+    }
+    else
+    {
+        return mod_user;
+    }
+}
+
+struct MODULEPARTYINFO : AddrInfo
+{
+    MODULEPARTY party;
+};
+
+struct ModuleSerializer : AddrInfoSerializer<MODULEPARTYINFO>
+{
+    bool Save(const MODULEPARTYINFO & value) override
+    {
+        setHex("hash", value.modhash);
+        setInt("party", value.party);
+        return true;
+    }
+
+    bool Load(MODULEPARTYINFO & value) override
+    {
+        value.addr = 0;
+        value.manual = true;
+        return getHex("hash", value.modhash) && getInt("party", value.party);
+    }
+};
+
+struct ModulePartyInfo : AddrInfoHashMap<LockModuleHashes, MODULEPARTYINFO, ModuleSerializer>
+{
+    const char* jsonKey() const override
+    {
+        return "modules";
+    }
+};
+
+static ModulePartyInfo modulePartyInfo;
+
 void GetModuleInfo(MODINFO & Info, ULONG_PTR FileMapVA)
 {
     // Get the PE headers
@@ -840,22 +892,14 @@ bool ModLoad(duint Base, duint Size, const char* FullPath, bool loadSymbols)
     info.fileMap = nullptr;
     info.fileMapVA = 0;
 
-    // Determine whether the module is located in system
-    wchar_t szWindowsDir[MAX_PATH];
-    GetWindowsDirectoryW(szWindowsDir, _countof(szWindowsDir));
-    String Utf8Sysdir = StringUtils::Utf16ToUtf8(szWindowsDir);
-    Utf8Sysdir.append("\\");
-    if(_memicmp(Utf8Sysdir.c_str(), FullPath, Utf8Sysdir.size()) == 0)
-    {
-        info.party = mod_system;
-    }
-    else
-    {
-        info.party = mod_user;
-    }
-
     // Load module data
     info.isVirtual = strstr(FullPath, "virtual:\\") == FullPath;
+
+    MODULEPARTYINFO modParty;
+    if(modulePartyInfo.Get(info.hash, modParty))
+        info.party = modParty.party;
+    else
+        info.party = GetDefaultParty(info);
 
     if(!info.isVirtual)
     {
@@ -1188,6 +1232,34 @@ void ModSetParty(duint Address, MODULEPARTY Party)
         return;
 
     module->party = Party;
+
+    // DB
+    MODULEPARTYINFO DBEntry;
+    if(Party != GetDefaultParty(module[0]))  // Save non-default party settings
+    {
+        DBEntry.addr = 0;
+        DBEntry.modhash = module->hash;
+        DBEntry.party = Party;
+        DBEntry.manual = true;
+        modulePartyInfo.Add(DBEntry);
+    }
+    else
+        modulePartyInfo.Delete(module->hash); // Don't need to save the default party
+}
+
+void ModCacheSave(JSON root)
+{
+    modulePartyInfo.CacheSave(root);
+}
+
+void ModCacheLoad(JSON root)
+{
+    modulePartyInfo.CacheLoad(root);
+}
+
+void ModCacheClear()
+{
+    modulePartyInfo.Clear();
 }
 
 bool ModRelocationsFromAddr(duint Address, std::vector<MODRELOCATIONINFO> & Relocations)
