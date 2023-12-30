@@ -701,8 +701,8 @@ static bool GetUnsafeModuleInfoImpl(MODINFO & Info, ULONG_PTR FileMapVA, void(*f
     return true;
 }
 
-// User/system module
-static auto GetDefaultParty(const MODINFO & Info)
+// Determine user/system module based on path, the default method
+static MODULEPARTY GetDefaultParty(const MODINFO & Info)
 {
     if(Info.isVirtual)
         return mod_user;
@@ -721,6 +721,7 @@ static auto GetDefaultParty(const MODINFO & Info)
     }
 }
 
+// These are used to store party in DB
 struct MODULEPARTYINFO : AddrInfo
 {
     MODULEPARTY party;
