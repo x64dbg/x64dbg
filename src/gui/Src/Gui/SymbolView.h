@@ -42,6 +42,7 @@ private slots:
     void enterPressedSlot();
     void symbolContextMenu(QMenu* menu);
     void symbolRefreshCurrent();
+    void labelHelpSlot();
     void moduleContextMenu(QMenu* menu);
     void moduleFollow();
     void moduleEntryFollow();
@@ -90,6 +91,7 @@ private:
     QAction* mFollowInMemMap;
     QAction* mLoadLib;
     QAction* mFreeLib;
+    QAction* mLabelHelp;
     QMenu* mPluginMenu;
 
     static void cbSymbolEnum(SYMBOLINFO* symbol, void* user);

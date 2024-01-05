@@ -1883,7 +1883,7 @@ void CPUDisassembly::labelHelpSlot()
     QString baseUrl(setting);
     QString fullUrl = baseUrl.replace("@topic", topic);
 
-    if(fullUrl.startsWith("execute://"))
+    if(baseUrl.startsWith("execute://"))
     {
         QString command = fullUrl.right(fullUrl.length() - 10);
         QProcess::execute(command);
