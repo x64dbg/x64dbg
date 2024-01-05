@@ -71,6 +71,7 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
         EncodeMapCacheSave(root);
         TraceRecord.saveToDb(root);
         BpCacheSave(root);
+        ModCacheSave(root);
         WatchCacheSave(root);
 
         //save notes
@@ -283,6 +284,7 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
         EncodeMapCacheLoad(root);
         TraceRecord.loadFromDb(root);
         BpCacheLoad(root, migrateBreakpoints);
+        ModCacheLoad(root);
         WatchCacheLoad(root);
 
         // Load notes
@@ -340,6 +342,7 @@ void DbClear(bool terminating)
     EncodeMapClear();
     TraceRecord.clear();
     BpClear();
+    ModCacheClear();
     WatchClear();
     GuiSetDebuggeeNotes("");
 
