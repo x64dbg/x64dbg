@@ -288,20 +288,15 @@ void CPUInfoBox::disasmSelectionChanged(duint parVA)
         }
         else
         {
-            QString valText;
-            auto symbolicName = getSymbolicNameStr(arg.value);
-            if(!symbolicName.contains(valText))
-                valText = QString("%1 (%2)").arg(symbolicName, valText);
-            else
-                valText = symbolicName;
+            QString valText = getSymbolicNameStr(arg.value);
             QString mnemonic(arg.mnemonic);
             bool ok;
             mnemonic.toULongLong(&ok, 16);
             if(ok) //skip certain numbers
             {
-                if(ToHexString(arg.value) == symbolicName)
+                if(ToHexString(arg.value) == valText)
                     continue;
-                setInfoLine(j, symbolicName);
+                setInfoLine(j, valText);
             }
             else if(!mnemonic.startsWith("xmm") &&
                     !mnemonic.startsWith("ymm") &&
