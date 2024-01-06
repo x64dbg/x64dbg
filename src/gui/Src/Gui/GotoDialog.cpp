@@ -46,7 +46,9 @@ GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowI
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedSlot(int)));
     connect(Config(), SIGNAL(disableAutoCompleteUpdated()), this, SLOT(disableAutoCompleteUpdated()));
 
+    auto prevSize = size();
     Config()->loadWindowGeometry(this);
+    this->resize(prevSize);
 }
 
 GotoDialog::~GotoDialog()
@@ -61,6 +63,9 @@ void GotoDialog::showEvent(QShowEvent* event)
 {
     Q_UNUSED(event);
     mValidateThread->start();
+
+    // Fix the label width
+    ui->labelError->setMaximumWidth(ui->labelError->width());
 }
 
 void GotoDialog::hideEvent(QHideEvent* event)
@@ -83,24 +88,6 @@ void GotoDialog::setInitialExpression(const QString & expression)
 {
     ui->editExpression->setText(expression);
     emit ui->editExpression->textEdited(expression);
-}
-
-static QString breakWithLines(const unsigned int numberCharsPerLine, const QString & txt, const bool condBreakBefore)
-{
-    const QString BRStr = QString("<br>");
-    const unsigned int breakCount = txt.size() / numberCharsPerLine;
-    QString result = txt;
-
-    for(unsigned int i = 1 ; i <= breakCount; i++)
-    {
-        unsigned int charactersToSkip = (numberCharsPerLine + BRStr.size()) * i - BRStr.size();
-        result = result.left(charactersToSkip) + BRStr + result.right(result.size() - charactersToSkip);
-    }
-
-    if(condBreakBefore && breakCount >= 1)
-        result = BRStr + result;
-
-    return result;
 }
 
 void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsint value)
@@ -186,8 +173,8 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
             else
                 addrText = ToPtrString(addr);
 
-            addrText = breakWithLines(ui->editExpression->size().width() / 11, addrText, true); // 11 is a good value for WWWWWWWs
-            ui->labelError->setText(tr("<font color='#00DD00'><b>Correct expression! -&gt; </b></font>") + addrText);
+            ui->labelError->setToolTip(QString("<qt>%1</qt>").arg(addrText.toHtmlEscaped()));
+            ui->labelError->setText(tr("<font color='#00DD00'><b>Correct expression! -&gt; </b></font>") + addrText.toHtmlEscaped());
             setOkEnabled(true);
             expressionText = expression;
         }
