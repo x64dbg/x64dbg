@@ -578,7 +578,6 @@ bool ZydisTokenizer::tokenizeImmOperand(const ZydisDecodedOperand & op)
         auto opsize = mZydis.GetInstr()->info.operand_width;
         valueType = TokenType::Value;
         value = duint(op.imm.value.u) & (duint(-1) >> (sizeof(duint) * 8 - opsize));
-
     }
     auto tokenValue = TokenValue(op.size / 8, value);
     addToken(valueType, printValue(tokenValue, true), tokenValue);
