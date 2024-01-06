@@ -184,6 +184,7 @@ void DisassemblyPopup::setAddress(duint addr)
         // Get RVA
         duint size;
         duint base = DbgMemFindBaseAddr(addr, &size);
+
         // Prepare RVA of every instruction
         unsigned int i = 0;
         instBuffer.clear();
@@ -224,6 +225,7 @@ void DisassemblyPopup::setAddress(duint addr)
             i++;
         }
         while(i < mMaxInstructions);
+
         // Disassemble
         for(auto & instruction : instBuffer)
         {
@@ -236,17 +238,28 @@ void DisassemblyPopup::setAddress(duint addr)
             mWidth = std::max(mWidth, currentInstructionWidth);
             mDisassemblyToken.push_back(std::make_pair(std::move(richText), DbgFunctions()->GetTraceRecordHitCount(instruction.rva) != 0));
         }
+
         // Address
         mAddrText = getSymbolicName(addr);
+
         // Comments
         GetCommentFormat(addr, mAddrComment, &mAddrCommentAuto);
         if(mAddrComment.length())
             mAddrText.append(' ');
+
+        // Truncate first line to something reasonable
+        if(mAddrText.length() + mAddrComment.length() > 100)
+            mAddrComment.clear();
+        if(mAddrText.length() > 100)
+            mAddrText = mAddrText.left(100) + " ...";
+
         // Calculate width of address
         mWidth = std::max(mWidth, mFontMetrics->width(mAddrText) + mFontMetrics->width(mAddrComment));
-        mWidth += mCharWidth * 6;
+
+        mWidth += 3;
+
         // Resize popup
-        resize(mWidth + 2, mCharHeight * int(mDisassemblyToken.size() + 1) + 2);
+        resize(mWidth + 2, mCharHeight * int(mDisassemblyToken.size() + 1) + 4);
     }
     update();
 }
