@@ -62,6 +62,7 @@ void ColumnReorderDialog::on_okButton_clicked()
         mParent->mColumnOrder[i] = col;
         mParent->setColumnHidden(col, true);
     }
+    mParent->reloadData();
     this->done(QDialog::Accepted);
 }
 
