@@ -445,3 +445,63 @@ duint GetThreadCount()
     }
     return threadCount;
 }
+
+void x64dbgVirtualFree(unsigned char* data, PVOID* buffers)
+{
+    ULONG HighestNodeNumber;
+    if (!IsNUMA())
+    {
+        VirtualFree(data, 0, MEM_RELEASE);
+    }
+    else
+    {
+        if (buffers != NULL)
+        {
+            for (UINT i = 0; i < GetThreadCount(); i++)
+            {
+                if (buffers[i] != NULL)
+                {
+                    VirtualFree(buffers[i], 0, MEM_RELEASE);
+                }
+            }
+
+            free(buffers);
+        }
+    }
+}
+
+void x64dbgVirtualAllocEx(HANDLE proc, unsigned char* data, duint dataSize, PVOID* buffers)
+{
+    ULONG HighestNodeNumber;
+    if (!IsNUMA())
+    {
+        data = (unsigned char*)VirtualAllocEx(proc, nullptr, dataSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+    }
+    else
+    {
+        for (UCHAR i = 0; i < GetThreadCount(); i++)
+        {
+            UCHAR NodeNumber;
+
+            if (!GetNumaProcessorNode(i, &NodeNumber))
+            {
+                assert(false);
+            }
+
+            data = (unsigned char*)VirtualAllocExNuma(proc, nullptr, dataSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE, NodeNumber);
+
+            buffers[i] = data;
+
+            // Full Memory call below will touch every page in the buffer, faulting them into our working set.
+            FillMemory(data, dataSize, 'x');
+        }
+    }
+}
+
+bool IsNUMA() noexcept
+{
+    ULONG HighestNodeNumber;
+    if (!GetNumaHighestNodeNumber(&HighestNodeNumber) || HighestNodeNumber == 0)
+        return false;
+    return true;
+}

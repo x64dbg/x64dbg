@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <thread>
+#include <windows.h>
 #include "AnalysisPass.h"
 #include "memory.h"
 
@@ -14,19 +15,25 @@ AnalysisPass::AnalysisPass(duint VirtualStart, duint VirtualEnd, BBlockArray & M
 
     // Read remote instruction data to local memory
     m_DataSize = VirtualEnd - VirtualStart;
-    m_Data = (unsigned char*)VirtualAlloc(nullptr, m_DataSize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+
+    if (IsNUMA())
+        Buffers = (PVOID*)malloc(sizeof(PVOID) * GetThreadCount());
+
+    x64dbgVirtualAllocEx(GetCurrentProcess(), m_Data, m_DataSize, Buffers);
 
     if(!MemRead(VirtualStart, m_Data, m_DataSize))
     {
-        VirtualFree(m_Data, 0, MEM_RELEASE);
+        x64dbgVirtualFree(m_Data, Buffers);
         assert(false);
     }
 }
 
 AnalysisPass::~AnalysisPass()
 {
-    if(m_Data)
-        VirtualFree(m_Data, 0, MEM_RELEASE);
+    if (m_Data)
+    {
+        x64dbgVirtualFree(m_Data, Buffers);
+    }
 }
 
 BasicBlock* AnalysisPass::FindBBlockInRange(duint Address)

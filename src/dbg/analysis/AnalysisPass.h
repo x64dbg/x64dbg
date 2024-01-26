@@ -18,6 +18,7 @@ protected:
     duint m_DataSize;
     unsigned char* m_Data;
     BBlockArray & m_MainBlocks;
+    PVOID* Buffers = NULL;
 
     unsigned char* TranslateAddress(duint Address)
     {

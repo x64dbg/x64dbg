@@ -66,6 +66,9 @@ bool ResolveShortcut(HWND hwnd, const wchar_t* szShortcutPath, std::wstring & ex
 void WaitForThreadTermination(HANDLE hThread, DWORD timeout = INFINITE);
 void WaitForMultipleThreadsTermination(const HANDLE* hThread, int count, DWORD timeout = INFINITE);
 duint GetThreadCount();
+void x64dbgVirtualFree(unsigned char* data, PVOID* buffers);
+void x64dbgVirtualAllocEx(HANDLE proc, unsigned char* data, duint dataSize, PVOID* buffers);
+bool IsNUMA() noexcept;
 
 #ifdef _WIN64
 #define ArchValue(x32value, x64value) x64value
