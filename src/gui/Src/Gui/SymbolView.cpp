@@ -68,16 +68,23 @@ public:
     {
         if(c != ColStatus)
             return StdTable::getCellContent(r, c);
-        switch(getStatus(r))
+        QString text;
+        duint status = getStatus(r);
+        switch(status)
         {
         default:
         case MODSYMUNLOADED:
-            return tr("Unloaded");
+            text = tr("Unloaded");
+            break;
         case MODSYMLOADING:
-            return tr("Loading");
+            text = tr("Loading");
+            break;
         case MODSYMLOADED:
-            return tr("Loaded");
+            text = tr("Loaded");
+            break;
         }
+        setCellContent(r, c, QString::number(status));
+        return text;
     }
 
 private:
