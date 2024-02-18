@@ -68,23 +68,16 @@ public:
     {
         if(c != ColStatus)
             return StdTable::getCellContent(r, c);
-        QString text;
-        duint status = getStatus(r);
-        switch(status)
+        switch(getStatus(r))
         {
         default:
         case MODSYMUNLOADED:
-            text = tr("Unloaded");
-            break;
+            return tr("Unloaded");
         case MODSYMLOADING:
-            text = tr("Loading");
-            break;
+            return tr("Loading");
         case MODSYMLOADED:
-            text = tr("Loaded");
-            break;
+            return tr("Loaded");
         }
-        setCellContent(r, c, QString::number(status));
-        return text;
     }
 
 private:
@@ -502,6 +495,7 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
         duint base = modules[i].base;
         mModuleBaseList.insert(modName, base);
         int party = DbgFunctions()->ModGetParty(base);
+        QString status = QString::number(DbgFunctions()->ModSymbolStatus(base));
         mModuleList->stdList()->setCellContent(i, ColBase, ToPtrString(base));
         mModuleList->stdList()->setCellUserdata(i, ColBase, base);
         mModuleList->stdList()->setCellContent(i, ColModule, modName);
@@ -524,6 +518,7 @@ void SymbolView::updateSymbolList(int module_count, SYMBOLMODULEINFO* modules)
         if(!DbgFunctions()->ModPathFromAddr(base, szModPath, _countof(szModPath)))
             *szModPath = '\0';
         mModuleList->stdList()->setCellContent(i, ColPath, szModPath);
+        mModuleList->stdList()->setCellContent(i, ColStatus, status);
     }
     mModuleList->stdList()->reloadData();
     //NOTE: DO NOT CALL mModuleList->refreshSearchList() IT WILL DEGRADE PERFORMANCE!
@@ -548,6 +543,7 @@ void SymbolView::symbolContextMenu(QMenu* menu)
 void SymbolView::symbolRefreshCurrent()
 {
     mModuleList->stdList()->setSingleSelection(mModuleList->stdList()->getInitialSelection());
+    DbgFunctions()->RefreshModuleList();
 }
 
 void SymbolView::symbolFollow()
