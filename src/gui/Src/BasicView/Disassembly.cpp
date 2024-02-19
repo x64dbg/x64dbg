@@ -1416,8 +1416,8 @@ duint Disassembly::getPreviousInstructionRVA(duint rva, duint count)
 {
     QByteArray buffer;
 
-    // TODO: fix sign check
-    auto bottomByteRealRVA = (dsint)rva - 16 * (count + 3);
+    // TODO: explicitly bail out early
+    dsint bottomByteRealRVA = (dsint)rva - 16 * (count + 3);
     if(mCodeFoldingManager)
     {
         if(mCodeFoldingManager->isFolded(rvaToVa(bottomByteRealRVA)))
@@ -1502,7 +1502,7 @@ duint Disassembly::getInstructionRVA(duint index, dsint count)
     else if(count > 0)
         addr = getNextInstructionRVA(index, qAbs(count));
 
-
+    // TODO: fix this sign check
     if(addr < 0)
         addr = 0;
     else if(addr > getRowCount() - 1)

@@ -20,6 +20,9 @@
   <layout class="QVBoxLayout" name="verticalLayout_4">
    <item>
     <widget class="QTabWidget" name="tabModeSelect">
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -53,7 +56,7 @@
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="../../resource.qrc">:/Default/icons/fatal-error.png</pixmap>
+              <pixmap>:/Default/icons/fatal-error.png</pixmap>
              </property>
             </widget>
            </item>
@@ -84,6 +87,9 @@
          </item>
          <item>
           <widget class="HexLineEdit" name="lineEditAscii">
+           <property name="focusPolicy">
+            <enum>Qt::StrongFocus</enum>
+           </property>
            <property name="styleSheet">
             <string notr="true">QLineEdit {border-style: outset; border-width: 1px; border-color: black}</string>
            </property>
@@ -165,7 +171,7 @@
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="../../resource.qrc">:/Default/icons/fatal-error.png</pixmap>
+              <pixmap>:/Default/icons/fatal-error.png</pixmap>
              </property>
             </widget>
            </item>
@@ -206,6 +212,9 @@
                <height>16777215</height>
               </size>
              </property>
+             <property name="focusPolicy">
+              <enum>Qt::NoFocus</enum>
+             </property>
              <property name="text">
               <string>Code&amp;page...</string>
              </property>
@@ -239,7 +248,7 @@
          <item>
           <widget class="QScrollArea" name="scrollArea">
            <property name="focusPolicy">
-            <enum>Qt::NoFocus</enum>
+            <enum>Qt::StrongFocus</enum>
            </property>
            <property name="widgetResizable">
             <bool>true</bool>
@@ -310,6 +319,9 @@
            </item>
            <item>
             <widget class="QPushButton" name="btnCodePage2">
+             <property name="focusPolicy">
+              <enum>Qt::NoFocus</enum>
+             </property>
              <property name="text">
               <string>Code&amp;page...</string>
              </property>
@@ -317,6 +329,9 @@
            </item>
            <item>
             <widget class="QCheckBox" name="chkCRLF">
+             <property name="focusPolicy">
+              <enum>Qt::NoFocus</enum>
+             </property>
              <property name="toolTip">
               <string>Convert to Windows style line ending.</string>
              </property>
@@ -383,6 +398,9 @@
           <layout class="QHBoxLayout" name="horizontalLayout_5">
            <item>
             <widget class="QPushButton" name="buttonCopy">
+             <property name="focusPolicy">
+              <enum>Qt::NoFocus</enum>
+             </property>
              <property name="text">
               <string>Copy</string>
              </property>
@@ -413,6 +431,9 @@
            </item>
            <item>
             <widget class="QSpinBox" name="spinBox">
+             <property name="focusPolicy">
+              <enum>Qt::NoFocus</enum>
+             </property>
              <property name="minimum">
               <number>1</number>
              </property>
@@ -433,6 +454,9 @@
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QCheckBox" name="chkKeepSize">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="text">
         <string>&amp;Keep Size</string>
        </property>
@@ -440,8 +464,18 @@
      </item>
      <item>
       <widget class="QCheckBox" name="chkEntireBlock">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="text">
         <string>&amp;Entire Block</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="chkFromSelection">
+       <property name="text">
+        <string>Start from &amp;Selection</string>
        </property>
       </widget>
      </item>
@@ -460,6 +494,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="btnOk">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="text">
         <string>&amp;OK</string>
        </property>
@@ -470,6 +507,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="btnCancel">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="text">
         <string>&amp;Cancel</string>
        </property>
@@ -486,6 +526,15 @@
    <header>HexLineEdit.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>lineEditAscii</tabstop>
+  <tabstop>lineEditUnicode</tabstop>
+  <tabstop>lineEditCodepage</tabstop>
+  <tabstop>scrollArea</tabstop>
+  <tabstop>listType</tabstop>
+  <tabstop>editCode</tabstop>
+  <tabstop>stringEditor</tabstop>
+ </tabstops>
  <resources>
   <include location="../../resource.qrc"/>
  </resources>

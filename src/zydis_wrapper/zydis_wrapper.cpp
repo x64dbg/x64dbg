@@ -183,14 +183,27 @@ const char* Zydis::RegName(ZydisRegister reg) const
 std::string Zydis::OperandText(uint8_t opindex) const
 {
     if(!Success() || opindex >= mInstr.info.operand_count)
-        return std::string();
+        return {};
 
     auto & op = mInstr.operands[opindex];
-    char buf[200];
-    if(ZYAN_SUCCESS(ZydisFormatterFormatOperand(&this->mFormatter, &mInstr.info, &mInstr.operands[opindex], buf, sizeof(buf), mAddr, nullptr)))
-        return std::string(buf);
-    else
-        return std::string();
+    char buf[200] = {};
+    if(!ZYAN_SUCCESS(ZydisFormatterFormatOperand(&this->mFormatter, &mInstr.info, &op, buf, sizeof(buf), mAddr, nullptr)))
+        return {};
+
+    //Extract only the part inside the []
+    if(op.type == ZYDIS_OPERAND_TYPE_MEMORY)
+    {
+        auto openBracket = strchr(buf, '[');
+        if(openBracket)
+        {
+            std::string result;
+            result = openBracket + 1;
+            if(result.back() == ']')
+                result.pop_back();
+            return result;
+        }
+    }
+    return buf;
 }
 
 uint8_t Zydis::Size() const
@@ -604,6 +617,8 @@ uint64_t Zydis::ResolveOpValue(uint8_t opindex, const std::function<uint64_t(Zyd
     {
     case ZYDIS_OPERAND_TYPE_IMMEDIATE:
         dest = uint64_t(op.imm.value.u);
+        if(!IsBranchType(Zydis::BTJmp | Zydis::BTCall | Zydis::BTLoop | Zydis::BTXbegin))
+            dest &= (uint64_t(-1) >> (sizeof(uint64_t) * 8 - mInstr.info.operand_width));
         break;
     case ZYDIS_OPERAND_TYPE_REGISTER:
         dest = resolveReg(op.reg.value);

@@ -4,22 +4,22 @@
                                 Data Management
 ************************************************************************************/
 
-void StdIconTable::setRowIcon(int r, const QIcon & icon)
+void StdIconTable::setRowIcon(duint r, const QIcon & icon)
 {
     mIcon.at(r) = icon;
 }
 
-QIcon StdIconTable::getRowIcon(int r) const
+QIcon StdIconTable::getRowIcon(duint r) const
 {
     return mIcon.at(r);
 }
 
-void StdIconTable::setIconColumn(int c)
+void StdIconTable::setIconColumn(duint c)
 {
     mIconColumn = c;
 }
 
-int StdIconTable::getIconColumn() const
+duint StdIconTable::getIconColumn() const
 {
     return mIconColumn;
 }

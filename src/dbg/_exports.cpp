@@ -1513,7 +1513,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_GET_STRING_AT:
     {
-        return disasmgetstringatwrapper(duint(param1), (char*)param2);
+        return disasmgetstringatwrapper(duint(param1), (char*)param2, true);
     }
     break;
 

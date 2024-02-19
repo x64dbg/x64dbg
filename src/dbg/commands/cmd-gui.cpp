@@ -8,6 +8,26 @@
 #include "value.h"
 #include "variable.h"
 
+bool cbShowThreadId(int argc, char* argv[])
+{
+    if(argc > 1)
+    {
+        duint threadId = 0;
+        if(!valfromstring(argv[1], &threadId, false))
+            return false;
+
+        SELECTIONDATA newSelection = { threadId, threadId };
+        if(!GuiSelectionSet(GUI_THREADS, &newSelection))
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %s\n"), formatpidtid((DWORD)threadId).c_str());
+            return false;
+        }
+    }
+
+    GuiShowThreads();
+    return true;
+}
+
 bool cbDebugDisasm(int argc, char* argv[])
 {
     duint addr = 0;

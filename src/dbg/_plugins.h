@@ -240,7 +240,11 @@ typedef enum
 {
     ValueTypeNumber,
     ValueTypeString,
-    ValueTypeAny, // Cannot be used for values, only for argTypes (to accept any type)
+    // Types below cannot be used for values, only for registration
+    ValueTypeAny,
+    ValueTypeOptionalNumber,
+    ValueTypeOptionalString,
+    ValueTypeOptionalAny,
 } ValueType;
 
 typedef struct

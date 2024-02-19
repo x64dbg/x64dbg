@@ -885,8 +885,17 @@ void AbstractStdTable::copyEntrySlot()
     if(!action)
         return;
     int col = action->objectName().toInt();
-    QString finalText = getCellContent(getInitialSelection(), col);
-    while(finalText.endsWith(" ")) finalText.chop(1);
+    QString finalText;
+    for(int row : getSelection())
+    {
+        if(!finalText.isEmpty())
+        {
+            finalText += "\n";
+        }
+        finalText += getCellContent(row, col);
+        while(finalText.endsWith(' '))
+            finalText.chop(1);
+    }
     Bridge::CopyToClipboard(finalText);
 }
 

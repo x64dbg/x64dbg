@@ -190,6 +190,7 @@ int main(int argc, char* argv[])
     qRegisterMetaType<duint>("duint");
     qRegisterMetaType<byte_t>("byte_t");
     qRegisterMetaType<DBGSTATE>("DBGSTATE");
+    qRegisterMetaType<GUIMSG>("GUIMSG");
 
     // Set QString codec to UTF-8
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
@@ -207,7 +208,7 @@ int main(int argc, char* argv[])
     mainWindow->show();
 
     // Set some data
-    Bridge::getBridge()->winId = (void*)mainWindow->winId();
+    Bridge::getBridge()->mWinId = (void*)mainWindow->winId();
 
     // Init debugger
     const char* errormsg = DbgInit();

@@ -21,7 +21,7 @@ public:
 public slots:
     void addColumnAtRef(int width, QString title);
 
-    void setRowCount(dsint count) override;
+    void setRowCount(duint count) override;
 
     void setSingleSelection(int index, bool scroll);
     void addCommand(QString title, QString command);
@@ -39,7 +39,7 @@ public slots:
     void refreshShortcutsSlot();
     void referenceSetProgressSlot(int progress);
     void referenceSetCurrentTaskProgressSlot(int progress, QString taskTitle);
-    void searchSelectionChanged(int index);
+    void searchSelectionChanged(duint index);
     void reloadDataSlot();
 
 signals:

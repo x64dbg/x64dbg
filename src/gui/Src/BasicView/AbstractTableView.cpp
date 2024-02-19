@@ -210,6 +210,8 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
         mShouldReload = false;
     }
 
+    // TODO: report if mTableOffset is out of view
+
     // Paints background
     if(mBackgroundColor.alpha() == 255) // The secret code to allow the user to set a background image in style.css
         painter.fillRect(painter.viewport(), QBrush(mBackgroundColor));
@@ -256,7 +258,7 @@ void AbstractTableView::paintEvent(QPaintEvent* event)
                 painter.setPen(separatorPen);
             }
 
-            painter.drawLine(x, y + height - separatorPen.width(), x + width - separatorPen.width(), y + height - separatorPen.width());
+            painter.drawLine(x, y + height - separatorPen.width() + 1, x + width - separatorPen.width(), y + height - separatorPen.width() + 1);
             painter.drawLine(x + width - separatorPen.width() + 1, y, x + width - separatorPen.width() + 1, y + height - separatorPen.width());
 
             x += width;
@@ -1133,6 +1135,8 @@ void AbstractTableView::setRowCount(duint count)
     {
         updateScrollBarRange(getRowCount());
     });
+
+    // TODO: report if mTableOffset is out of view
 }
 
 void AbstractTableView::deleteAllColumns()
@@ -1143,7 +1147,7 @@ void AbstractTableView::deleteAllColumns()
 
 void AbstractTableView::setColTitle(duint col, const QString & title)
 {
-    if(mColumnList.size() > 0 && col < mColumnList.size())
+    if(mColumnList.size() > 0 && col < (duint)mColumnList.size())
     {
         Column column = mColumnList.takeAt(col);
         column.title = title;
@@ -1153,7 +1157,7 @@ void AbstractTableView::setColTitle(duint col, const QString & title)
 
 QString AbstractTableView::getColTitle(duint col) const
 {
-    if(mColumnList.size() > 0 && col < mColumnList.size())
+    if(mColumnList.size() > 0 && col < (duint)mColumnList.size())
         return mColumnList[col].title;
     return QString();
 }
@@ -1304,7 +1308,10 @@ void AbstractTableView::setTableOffset(duint val)
     auto rowCount = getRowCount();
     auto viewableRows = getViewableRowsCount();
     if(rowCount <= viewableRows)
+    {
+        mTableOffset = 0;
         return;
+    }
     auto maxTableOffset = getMaxTableOffset();
 
     // If val is within the last viewable rows

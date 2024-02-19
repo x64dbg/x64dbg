@@ -29,7 +29,8 @@ bool cbBadCmd(int argc, char* argv[])
     {
         if(evalue.isString)
         {
-            dputs_untranslated(StringUtils::Escape(evalue.data).c_str());
+            varset("$ans", evalue.data.c_str(), true);
+            dprintf_untranslated("\"%s\"\n", StringUtils::Escape(evalue.data).c_str());
         }
         else if(evalue.DoEvaluate(value, silent, baseonly, &valsize, &isvar, &hexonly))
         {

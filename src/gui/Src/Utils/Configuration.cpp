@@ -254,7 +254,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     disassemblyBool.insert("KeepSize", false);
     disassemblyBool.insert("FillNOPs", false);
     disassemblyBool.insert("Uppercase", false);
-    disassemblyBool.insert("FindCommandEntireBlock", false);
+    disassemblyBool.insert("FindCommandFromSelection", true);
+    disassemblyBool.insert("FindPatternFromSelection", true);
     disassemblyBool.insert("OnlyCipAutoComments", false);
     disassemblyBool.insert("TabbedMnemonic", false);
     disassemblyBool.insert("LongDataInstruction", false);
@@ -292,6 +293,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("AutoFollowInStack", true);
     guiBool.insert("EnableQtHighDpiScaling", true);
     guiBool.insert("Topmost", false);
+    guiBool.insert("CPUDumpStartFromSelect", true);
+    guiBool.insert("CPUStackStartFromSelect", true);
     guiBool.insert("DisableTraceDump", false);
     //Named menu settings
     insertMenuBuilderBools(&guiBool, "CPUDisassembly", 50); //CPUDisassembly

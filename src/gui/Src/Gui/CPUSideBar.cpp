@@ -217,7 +217,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
 
     for(duint line = 0; line < mViewableRows; line++)
     {
-        if(line >= mInstrBuffer->size()) //at the end of the page it will crash otherwise
+        if(line >= (duint)mInstrBuffer->size()) //at the end of the page it will crash otherwise
             break;
 
         const Instruction_t & instr = mInstrBuffer->at(line);
@@ -817,7 +817,7 @@ void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines, std::vec
         unsigned int maxJmpOffset = 0;
         if(jmp.line < jmp.destLine)
         {
-            for(int j = jmp.line; j <= jmp.destLine && j < mViewableRows; j++)
+            for(int j = jmp.line; j <= jmp.destLine && (duint)j < mViewableRows; j++)
             {
                 if(numLines[j] > maxJmpOffset)
                     maxJmpOffset = numLines[j];
@@ -834,7 +834,7 @@ void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines, std::vec
         jmp.jumpOffset = maxJmpOffset + 1;
         if(jmp.line < jmp.destLine)
         {
-            for(int j = jmp.line; j <= jmp.destLine && j < mViewableRows; j++)
+            for(int j = jmp.line; j <= jmp.destLine && (duint)j < mViewableRows; j++)
                 numLines[j] = jmp.jumpOffset;
         }
         else
@@ -842,9 +842,9 @@ void CPUSideBar::AllocateJumpOffsets(std::vector<JumpLine> & jumpLines, std::vec
             for(int j = jmp.line; j >= jmp.destLine && j >= 0; j--)
                 numLines[j] = jmp.jumpOffset;
         }
-        if(jmp.line >= 0 && jmp.line < mViewableRows)
+        if(jmp.line >= 0 && (duint)jmp.line < mViewableRows)
             numLines[jmp.line + mViewableRows] = jmp.jumpOffset;
-        if(jmp.destLine >= 0 && jmp.destLine < mViewableRows)
+        if(jmp.destLine >= 0 && (duint)jmp.destLine < mViewableRows)
             numLines[jmp.destLine + mViewableRows] = jmp.jumpOffset;
     }
     // set label arrows according to jump offsets

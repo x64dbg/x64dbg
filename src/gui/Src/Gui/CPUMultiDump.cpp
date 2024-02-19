@@ -254,7 +254,7 @@ void CPUMultiDump::showDisassemblyTabSlot(duint selectionStart, duint selectionE
     mExtraDisassembly->disassembleAtSlot(selectionStart, Bridge::getBridge()->mLastCip);
     if(clearHistory)
         mExtraDisassembly->historyClear();
-    // Make the address visisble in memory
+    // Make the address visible in memory
     mExtraDisassembly->disassembleAt(selectionStart, true, -1);
     // Set selection to match the dump
     mExtraDisassembly->setSingleSelection(selectionStart - mExtraDisassembly->getBase());

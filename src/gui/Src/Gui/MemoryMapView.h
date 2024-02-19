@@ -24,21 +24,22 @@ public slots:
     void doubleClickedSlot();
     void memoryExecuteSingleshootToggleSlot();
     void memoryAllocateSlot();
-    void ExecCommand();
+    void execCommandSlot();
     void contextMenuSlot(const QPoint & pos);
-    void switchView();
-    void pageMemoryRights();
-    void refreshMap();
+    void switchViewSlot();
+    void pageMemoryRightsSlot();
+    void refreshMapSlot();
     void findPatternSlot();
-    void dumpMemory();
-    void loadMemory();
+    void dumpMemorySlot();
+    void loadMemorySlot();
     void commentSlot();
-    void selectAddress(duint va);
+    void selectAddressSlot(duint va);
     void gotoOriginSlot();
     void gotoExpressionSlot();
     void addVirtualModSlot();
     void findReferencesSlot();
     void selectionGetSlot(SELECTIONDATA* selection);
+    void selectionSetSlot(const SELECTIONDATA* selection);
     void disassembleAtSlot(duint va, duint cip);
 
 private:

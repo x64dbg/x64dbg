@@ -56,20 +56,40 @@ ZehSymbolTable::ZehSymbolTable(QWidget* parent)
     Initialize();
 }
 
-QString ZehSymbolTable::getCellContent(duint r, duint c)
+QString ZehSymbolTable::getCellContent(duint row, duint column)
 {
     QMutexLocker lock(&mMutex);
-    if(!isValidIndex(r, c))
+    if(!isValidIndex(row, column))
         return QString();
     SymbolInfoWrapper info;
-    DbgGetSymbolInfo(&mData.at(r), info.put());
-    return symbolInfoString(info.get(), c);
+    DbgGetSymbolInfo(&mData.at(row), info.put());
+    return symbolInfoString(info.get(), column);
 }
 
-bool ZehSymbolTable::isValidIndex(duint r, duint c)
+duint ZehSymbolTable::getCellUserdata(duint row, duint column)
 {
     QMutexLocker lock(&mMutex);
-    return r >= 0 && r < (int)mData.size() && c >= 0 && c <= ColUndecorated;
+    if(!isValidIndex(row, column))
+        return 0;
+    SymbolInfoWrapper info;
+    DbgGetSymbolInfo(&mData.at(row), info.put());
+    switch(column)
+    {
+    case ColAddr:
+        return info->addr;
+    case ColOrdinal:
+        return info->ordinal;
+    case ColType:
+        return info->type;
+    default:
+        return 0;
+    }
+}
+
+bool ZehSymbolTable::isValidIndex(duint row, duint column)
+{
+    QMutexLocker lock(&mMutex);
+    return row >= 0 && row < (int)mData.size() && column >= 0 && column <= ColUndecorated;
 }
 
 void ZehSymbolTable::sortRows(duint column, bool ascending)

@@ -10,10 +10,10 @@ public:
     explicit StdIconTable(QWidget* parent = nullptr) : StdTable(parent), mIconColumn(0) {}
 
     // Data Management
-    void setRowIcon(int r, const QIcon & icon); // set the icon for a row
-    QIcon getRowIcon(int r) const;
-    void setIconColumn(int c); // set in which column the icons appear
-    int getIconColumn() const;
+    void setRowIcon(duint r, const QIcon & icon); // set the icon for a row
+    QIcon getRowIcon(duint r) const;
+    void setIconColumn(duint c); // set in which column the icons appear
+    duint getIconColumn() const;
     void setRowCount(duint count) override;
     void sortRows(duint column, bool ascending) override;
 
@@ -21,5 +21,5 @@ public:
 
 protected:
     std::vector<QIcon> mIcon; //listof(row) where row = (listof(col) where col = CellData)
-    int mIconColumn;
+    duint mIconColumn;
 };

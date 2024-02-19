@@ -319,7 +319,7 @@ static VOID CALLBACK MyLdrDllNotification(
 
 typedef BOOL(WINAPI* pfnSetDefaultDllDirectories)(DWORD DirectoryFlags);
 typedef BOOL(WINAPI* pfnSetDllDirectoryW)(LPCWSTR lpPathName);
-typedef BOOL(WINAPI* pfnAddDllDirectory)(LPCWSTR lpPathName);
+typedef PVOID(WINAPI* pfnAddDllDirectory)(LPCWSTR lpPathName);
 
 static pfnSetDefaultDllDirectories pSetDefaultDllDirectories;
 static pfnSetDllDirectoryW pSetDllDirectoryW;

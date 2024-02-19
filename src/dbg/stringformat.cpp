@@ -2,6 +2,7 @@
 #include "value.h"
 #include "symbolinfo.h"
 #include "module.h"
+#include "memory.h"
 #include "disasm_fast.h"
 #include "disasm_helper.h"
 #include "formatfunctions.h"
@@ -122,8 +123,13 @@ static String printValue(FormatValueType value, StringValueType type)
         if(!parser.Calculate(evalue, valuesignedcalc(), false))
             return "???";
 
-        if(type == StringValueType::Default && evalue.isString)
-            return evalue.data;
+        if(evalue.isString)
+        {
+            if(type == StringValueType::Default)
+                return StringUtils::Escape(evalue.data);
+            else if(type == StringValueType::String)
+                return evalue.data; // allow raw string output
+        }
 
         duint valuint = 0;
         if(evalue.isString || !evalue.DoEvaluate(valuint))
@@ -151,9 +157,19 @@ static String printValue(FormatValueType value, StringValueType type)
         case StringValueType::Pointer:
             return StringUtils::sprintf("%p", valuint);
         case StringValueType::String:
+        {
             if(disasmgetstringatwrapper(valuint, string, false))
+            {
                 return string;
+            }
+            else
+            {
+                char data;
+                if(MemRead(valuint, &data, sizeof(data)) && data == '\0')
+                    return "\"\"";
+            }
             break;
+        }
         case StringValueType::AddrInfo:
         {
             auto symbolic = SymGetSymbolicName(valuint);

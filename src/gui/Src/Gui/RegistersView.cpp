@@ -1332,7 +1332,7 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
                   "</table>").arg(headerRow).arg(bodyRows);
     }
     case CF:
-        return tr("CF (bit 0) : Carry flag - Set if an arithmetic operation generates a carry or a borrow out of the mostsignificant bit of the result; cleared otherwise.\n"
+        return tr("CF (bit 0) : Carry flag - Set if an arithmetic operation generates a carry or a borrow out of the most-significant bit of the result; cleared otherwise.\n"
                   "This flag indicates an overflow condition for unsigned-integer arithmetic. It is also used in multiple-precision arithmetic.");
     case PF:
         return tr("PF (bit 2) : Parity flag - Set if the least-significant byte of the result contains an even number of 1 bits; cleared otherwise.");

@@ -26,7 +26,7 @@ namespace Exprfunc
     duint kusd();
 
     duint bswap(duint value);
-    duint ternary(duint condition, duint value1, duint value2);
+    bool ternary(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
 
     duint memvalid(duint addr);
     duint membase(duint addr);
@@ -101,4 +101,7 @@ namespace Exprfunc
     bool utf8_strict(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool utf16(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool utf16_strict(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+
+    bool syscall_name(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool syscall_id(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
 }

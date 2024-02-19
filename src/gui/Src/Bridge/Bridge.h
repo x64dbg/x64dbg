@@ -26,6 +26,11 @@ class Bridge : public QObject
 
     friend class BridgeResult;
 
+    void doUpdate(GUIMSG msg);
+
+private slots:
+    void throttleUpdateSlot(GUIMSG msg);
+
 public:
     explicit Bridge(QObject* parent = nullptr);
     ~Bridge();
@@ -49,12 +54,12 @@ public:
     void setDbgStopped();
 
     //Public variables
-    void* winId = nullptr;
-    ReferenceManager* referenceManager = nullptr;
+    void* mWinId = nullptr;
+    ReferenceManager* mReferenceManager = nullptr;
     bool mIsRunning = false;
     duint mLastCip = 0;
-    SymbolView* symbolView = nullptr;
-    bool loggingEnabled = true;
+    SymbolView* mSymbolView = nullptr;
+    bool mLoggingEnabled = true;
 
 signals:
     void disassembleAt(duint va, duint eip);
@@ -123,7 +128,10 @@ signals:
     void selectionStackSet(const SELECTIONDATA* selection);
     void selectionGraphGet(SELECTIONDATA* selection);
     void selectionMemmapGet(SELECTIONDATA* selection);
+    void selectionMemmapSet(const SELECTIONDATA* selection);
     void selectionSymmodGet(SELECTIONDATA* selection);
+    void selectionThreadsGet(SELECTIONDATA* selection);
+    void selectionThreadsSet(const SELECTIONDATA* selection);
     void getStrWindow(const QString title, QString* text);
     void autoCompleteAddCmd(const QString cmd);
     void autoCompleteDelCmd(const QString cmd);
@@ -138,6 +146,7 @@ signals:
     void symbolRefreshCurrent();
     void loadSourceFile(const QString path, duint addr);
     void showCpu();
+    void showThreads();
     void addQWidgetTab(QWidget* qWidget);
     void showQWidgetTab(QWidget* qWidget);
     void closeQWidgetTab(QWidget* qWidget);
@@ -180,11 +189,14 @@ signals:
     void showReferences();
     void gotoTraceIndex(duint index);
     void showTraceBrowser();
+    void throttleUpdate(GUIMSG msg);
 
 private:
-    CRITICAL_SECTION csBridge;
-    HANDLE resultEvents[BridgeResult::Last];
-    duint bridgeResults[BridgeResult::Last];
-    DWORD dwMainThreadId = 0;
-    volatile bool dbgStopped = false;
+    CRITICAL_SECTION mCsBridge;
+    HANDLE mResultEvents[BridgeResult::Last];
+    duint mBridgeResults[BridgeResult::Last];
+    DWORD mMainThreadId = 0;
+    volatile bool mDbgStopped = false;
+    QMap<GUIMSG, DWORD> mLastUpdates;
+    QMap<GUIMSG, QTimer*> mUpdateTimers;
 };

@@ -127,9 +127,10 @@ void TraceWidget::traceSelectionChanged(unsigned long long selection)
 void TraceWidget::parseFinishedSlot()
 {
     duint initialAddress;
-    if(mTraceFile->isError())
+    QString reason;
+    if(mTraceFile->isError(reason))
     {
-        SimpleErrorBox(this, tr("Error"), tr("Error when opening trace recording"));
+        SimpleErrorBox(this, tr("Error"), tr("Error when opening trace recording (reason: %1)").arg(reason));
         emit closeFile();
     }
     else if(mTraceFile->Length() > 0)

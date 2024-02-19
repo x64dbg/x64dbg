@@ -144,6 +144,8 @@ QString getSymbolicNameStr(duint addr)
         finalText = QString("%1.%2").arg(moduleText).arg(addrText);
     else if(bHasLabel) //<label>
         finalText = QString("<%1>").arg(labelText);
+    else if(addr == 0)
+        finalText = addrText;
     else
     {
         finalText = addrText;
@@ -158,6 +160,18 @@ QString getSymbolicNameStr(duint addr)
             QChar c = QChar((ushort)addr);
             if(c.isPrint() || c.isSpace())
                 finalText += QString(" L'%1'").arg(EscapeCh(c));
+        }
+        else if((addr & 0xFFFFFFFFF0000000ull) == 0xC0000000)
+        {
+            auto format = QString("{ntstatus@%1}").arg(ToHexString(addr));
+            if(DbgFunctions()->StringFormatInline(format.toUtf8().constData(), sizeof(string), string))
+            {
+                auto colon = strchr(string, ':');
+                if(colon)
+                    *colon = '\0';
+                finalText += " ";
+                finalText += string;
+            }
         }
     }
     return finalText;

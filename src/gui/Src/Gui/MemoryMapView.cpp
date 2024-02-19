@@ -33,10 +33,11 @@ MemoryMapView::MemoryMapView(StdTable* parent)
     loadColumnFromConfig("MemoryMap");
     setIconColumn(ColParty);
 
-    connect(Bridge::getBridge(), SIGNAL(updateMemory()), this, SLOT(refreshMap()));
+    connect(Bridge::getBridge(), SIGNAL(updateMemory()), this, SLOT(refreshMapSlot()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(stateChangedSlot(DBGSTATE)));
-    connect(Bridge::getBridge(), SIGNAL(selectInMemoryMap(duint)), this, SLOT(selectAddress(duint)));
+    connect(Bridge::getBridge(), SIGNAL(selectInMemoryMap(duint)), this, SLOT(selectAddressSlot(duint)));
     connect(Bridge::getBridge(), SIGNAL(selectionMemmapGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(selectionMemmapSet(const SELECTIONDATA*)), this, SLOT(selectionSetSlot(const SELECTIONDATA*)));
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(duint, duint)), this, SLOT(disassembleAtSlot(duint, duint)));
     connect(Bridge::getBridge(), SIGNAL(focusMemmap()), this, SLOT(setFocus()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
@@ -62,12 +63,12 @@ void MemoryMapView::setupContextMenu()
 
     //Set PageMemory Rights
     mPageMemoryRights = new QAction(DIcon("memmap_set_page_memory_rights"), tr("Set Page Memory Rights"), this);
-    connect(mPageMemoryRights, SIGNAL(triggered()), this, SLOT(pageMemoryRights()));
+    connect(mPageMemoryRights, SIGNAL(triggered()), this, SLOT(pageMemoryRightsSlot()));
 
     //Switch View
     mSwitchView = new QAction(DIcon("change-view"), "", this);
     setSwitchViewName();
-    connect(mSwitchView, SIGNAL(triggered()), this, SLOT(switchView()));
+    connect(mSwitchView, SIGNAL(triggered()), this, SLOT(switchViewSlot()));
 
     //Breakpoint menu
     mBreakpointMenu = new QMenu(tr("Memory &Breakpoint"), this);
@@ -168,11 +169,11 @@ void MemoryMapView::setupContextMenu()
     //Dump
     //TODO: These two actions should also appear in CPUDump
     mDumpMemory = new QAction(DIcon("binary_save"), tr("&Dump Memory to File"), this);
-    connect(mDumpMemory, SIGNAL(triggered()), this, SLOT(dumpMemory()));
+    connect(mDumpMemory, SIGNAL(triggered()), this, SLOT(dumpMemorySlot()));
 
     //Load
     mLoadMemory = new QAction(DIcon(""), tr("&Overwrite with Data from File"), this);
-    connect(mLoadMemory, SIGNAL(triggered()), this, SLOT(loadMemory()));
+    connect(mLoadMemory, SIGNAL(triggered()), this, SLOT(loadMemorySlot()));
 
     //Add virtual module
     mAddVirtualMod = new QAction(DIcon("virtual"), tr("Add virtual module"), this);
@@ -271,17 +272,6 @@ void MemoryMapView::contextMenuSlot(const QPoint & pos)
     menu.exec(mapToGlobal(pos)); //execute context menu
 }
 
-static QString getProtectionString(DWORD Protect)
-{
-#define RIGHTS_STRING (sizeof("ERWCG"))
-    char rights[RIGHTS_STRING];
-
-    if(!DbgFunctions()->PageRightsToString(Protect, rights))
-        return "bad";
-
-    return QString(rights);
-}
-
 QString MemoryMapView::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
     if(col == 0) //address
@@ -376,14 +366,14 @@ void MemoryMapView::setSwitchViewName()
 QAction* MemoryMapView::makeCommandAction(QAction* action, const QString & command)
 {
     action->setData(QVariant(command));
-    connect(action, SIGNAL(triggered()), this, SLOT(ExecCommand()));
+    connect(action, SIGNAL(triggered()), this, SLOT(execCommandSlot()));
     return action;
 }
 
 /**
- * @brief MemoryMapView::ExecCommand execute command slot for menus.
+ * @brief MemoryMapView::execCommandSlot execute command slot for menus.
  */
-void MemoryMapView::ExecCommand()
+void MemoryMapView::execCommandSlot()
 {
     QAction* action = qobject_cast<QAction*>(sender());
     if(action)
@@ -403,16 +393,52 @@ void MemoryMapView::ExecCommand()
     }
 }
 
-void MemoryMapView::refreshMap()
+static QString getProtectionString(DWORD protect)
+{
+    //reserved pages don't have a protection (https://goo.gl/Izkk0c)
+    if(protect == 0)
+    {
+        return QString();
+    }
+
+#define meme(prot, str) (prot & PAGE_GUARD) ? QStringLiteral(str QT_UNICODE_LITERAL("G")) : QStringLiteral(str QT_UNICODE_LITERAL("-"))
+
+    switch(protect & 0xFF)
+    {
+    case PAGE_NOACCESS:
+        return meme(protect, "----");
+    case PAGE_READONLY:
+        return meme(protect, "-R--");
+    case PAGE_READWRITE:
+        return meme(protect, "-RW-");
+    case PAGE_WRITECOPY:
+        return meme(protect, "-RWC");
+    case PAGE_EXECUTE:
+        return meme(protect, "E---");
+    case PAGE_EXECUTE_READ:
+        return meme(protect, "ER--");
+    case PAGE_EXECUTE_READWRITE:
+        return meme(protect, "ERW-");
+    case PAGE_EXECUTE_WRITECOPY:
+        return meme(protect, "ERWC");
+    default:
+        return meme(protect, "????");
+    }
+}
+
+void MemoryMapView::refreshMapSlot()
 {
     MEMMAP memoryMap = {};
     DbgMemMap(&memoryMap);
 
     setRowCount(memoryMap.count);
 
+    auto strUser = tr("User");
+    auto strSystem = tr("System");
+
     for(int i = 0; i < memoryMap.count; i++)
     {
-        const auto & mbi = (memoryMap.page)[i].mbi;
+        const auto & mbi = memoryMap.page[i].mbi;
 
         // Base address
         setCellContent(i, ColAddress, ToPtrString((duint)mbi.BaseAddress));
@@ -427,11 +453,11 @@ void MemoryMapView::refreshMap()
         switch(party)
         {
         case mod_user:
-            setCellContent(i, ColParty, tr("User"));
+            setCellContent(i, ColParty, strUser);
             setRowIcon(i, DIcon("markasuser"));
             break;
         case mod_system:
-            setCellContent(i, ColParty, tr("System"));
+            setCellContent(i, ColParty, strSystem);
             setRowIcon(i, DIcon("markassystem"));
             break;
         default:
@@ -441,64 +467,62 @@ void MemoryMapView::refreshMap()
         }
 
         // Information
-        auto content = QString((memoryMap.page)[i].info);
-        setCellContent(i, ColPageInfo, content);
+        auto info = memoryMap.page[i].info;
+        setCellContent(i, ColPageInfo, info);
 
         // Content, TODO: proper section content analysis in dbg/memory.cpp:MemUpdateMap
+        QString content;
         char comment_text[MAX_COMMENT_SIZE];
         if(DbgFunctions()->GetUserComment((duint)mbi.BaseAddress, comment_text)) // user comment present
             content = comment_text;
-        else if(content.contains(".bss"))
+        else if(strncmp(info, ".bss", 4) == 0)
             content = tr("Uninitialized data");
-        else if(content.contains(".data"))
+        else if(strncmp(info, ".data", 5) == 0)
             content = tr("Initialized data");
-        else if(content.contains(".edata"))
+        else if(strncmp(info, ".edata", 6) == 0)
             content = tr("Export tables");
-        else if(content.contains(".idata"))
+        else if(strncmp(info, ".idata", 6) == 0)
             content = tr("Import tables");
-        else if(content.contains(".pdata"))
+        else if(strncmp(info, ".pdata", 6) == 0)
             content = tr("Exception information");
-        else if(content.contains(".rdata"))
+        else if(strncmp(info, ".rdata", 6) == 0)
             content = tr("Read-only initialized data");
-        else if(content.contains(".reloc"))
+        else if(strncmp(info, ".reloc", 6) == 0)
             content = tr("Base relocations");
-        else if(content.contains(".rsrc"))
+        else if(strncmp(info, ".rsrc", 5) == 0)
             content = tr("Resources");
-        else if(content.contains(".text"))
+        else if(strncmp(info, ".text", 5) == 0)
             content = tr("Executable code");
-        else if(content.contains(".tls"))
+        else if(strncmp(info, ".tls", 4) == 0)
             content = tr("Thread-local storage");
-        else if(content.contains(".xdata"))
+        else if(strncmp(info, ".xdata", 6) == 0)
             content = tr("Exception information");
-        else
-            content = QString("");
         setCellContent(i, ColContent, std::move(content));
 
         // Type
-        const char* type = "";
+        QString type;
         switch(mbi.Type)
         {
         case MEM_IMAGE:
-            type = "IMG";
+            type = QStringLiteral("IMG");
             break;
         case MEM_MAPPED:
-            type = "MAP";
+            type = QStringLiteral("MAP");
             break;
         case MEM_PRIVATE:
-            type = "PRV";
+            type = QStringLiteral("PRV");
             break;
         default:
-            type = "N/A";
+            type = QStringLiteral("N/A");
             break;
         }
-        setCellContent(i, ColAllocation, type);
+        setCellContent(i, ColAllocation, std::move(type));
 
         // current access protection
         setCellContent(i, ColCurProtect, getProtectionString(mbi.Protect));
 
         // allocation protection
         setCellContent(i, ColAllocProtect, getProtectionString(mbi.AllocationProtect));
-
     }
     if(memoryMap.page != 0)
         BridgeFree(memoryMap.page);
@@ -508,7 +532,7 @@ void MemoryMapView::refreshMap()
 void MemoryMapView::stateChangedSlot(DBGSTATE state)
 {
     if(state == paused)
-        refreshMap();
+        refreshMapSlot();
 }
 
 void MemoryMapView::followDumpSlot()
@@ -544,25 +568,25 @@ void MemoryMapView::memoryExecuteSingleshootToggleSlot()
 {
     for(int i : getSelection())
     {
-        QString addr_text = getCellContent(i, ColAddress);
+        QString addrText = getCellContent(i, ColAddress);
         duint selectedAddr = getSelectionAddr();
         if((DbgGetBpxTypeAt(selectedAddr) & bp_memory) == bp_memory) //memory breakpoint set
-            DbgCmdExec(QString("bpmc ") + addr_text);
+            DbgCmdExec(QString("bpmc ") + addrText);
         else
-            DbgCmdExec(QString("bpm %1, 0, x").arg(addr_text));
+            DbgCmdExec(QString("bpm %1, 0, x").arg(addrText));
     }
 }
 
-void MemoryMapView::pageMemoryRights()
+void MemoryMapView::pageMemoryRightsSlot()
 {
     PageMemoryRights PageMemoryRightsDialog(this);
-    connect(&PageMemoryRightsDialog, SIGNAL(refreshMemoryMap()), this, SLOT(refreshMap()));
+    connect(&PageMemoryRightsDialog, SIGNAL(refreshMemoryMap()), this, SLOT(refreshMapSlot()));
     duint addr = getSelectionAddr();
     duint size = getCellUserdata(getInitialSelection(), ColSize);
     PageMemoryRightsDialog.RunAddrSize(addr, size, getCellContent(getInitialSelection(), ColCurProtect));
 }
 
-void MemoryMapView::switchView()
+void MemoryMapView::switchViewSlot()
 {
     Config()->setBool("Engine", "ListAllPages", !ConfigBool("Engine", "ListAllPages"));
     Config()->writeBools();
@@ -606,22 +630,32 @@ void MemoryMapView::findPatternSlot()
     duint entireBlockEnabled = 0;
     BridgeSettingGetUint("Gui", "MemoryMapEntireBlock", &entireBlockEnabled);
     hexEdit.showEntireBlock(true, entireBlockEnabled);
-    hexEdit.showKeepSize(false);
     hexEdit.isDataCopiable(false);
     hexEdit.mHexEdit->setOverwriteMode(false);
     hexEdit.setWindowTitle(tr("Find Pattern..."));
     if(hexEdit.exec() != QDialog::Accepted)
         return;
-    duint addr = getSelectionAddr();
+
     entireBlockEnabled = hexEdit.entireBlock();
     BridgeSettingSetUint("Gui", "MemoryMapEntireBlock", entireBlockEnabled);
     if(entireBlockEnabled)
-        addr = 0;
-    DbgCmdExec(QString("findallmem %1, %2, &data&").arg(ToPtrString(addr)).arg(hexEdit.mHexEdit->pattern()));
+    {
+        DbgCmdExec(QString("findallmem 0, %2").arg(hexEdit.mHexEdit->pattern()));
+    }
+    else
+    {
+        QList<duint> selection = getSelection();
+        if(selection.isEmpty())
+            return;
+        duint addrFirst = getCellUserdata(selection.first(), ColAddress);
+        duint addrLast = getCellUserdata(selection.last(), ColAddress);
+        duint size = getCellUserdata(selection.last(), ColSize);
+        DbgCmdExec(QString("findallmem %1, %2, %3").arg(ToPtrString(addrFirst)).arg(hexEdit.mHexEdit->pattern()).arg(ToHexString(addrLast - addrFirst + size)));
+    }
     emit showReferences();
 }
 
-void MemoryMapView::dumpMemory()
+void MemoryMapView::dumpMemorySlot()
 {
     duint start = 0;
     duint end = 0;
@@ -654,7 +688,7 @@ void MemoryMapView::dumpMemory()
     }
 }
 
-void MemoryMapView::loadMemory()
+void MemoryMapView::loadMemorySlot()
 {
     auto modname = mainModuleName();
     if(!modname.isEmpty())
@@ -671,7 +705,7 @@ void MemoryMapView::loadMemory()
     }
 }
 
-void MemoryMapView::selectAddress(duint va)
+void MemoryMapView::selectAddressSlot(duint va)
 {
     auto base = DbgMemFindBaseAddr(va, nullptr);
     if(base)
@@ -692,7 +726,7 @@ void MemoryMapView::selectAddress(duint va)
 
 void MemoryMapView::gotoOriginSlot()
 {
-    selectAddress(mCipBase);
+    selectAddressSlot(mCipBase);
 }
 
 void MemoryMapView::gotoExpressionSlot()
@@ -703,7 +737,7 @@ void MemoryMapView::gotoExpressionSlot()
     mGoto->setInitialExpression(ToPtrString(getSelectionAddr()));
     if(mGoto->exec() == QDialog::Accepted)
     {
-        selectAddress(DbgValFromString(mGoto->expressionText.toUtf8().constData()));
+        selectAddressSlot(DbgValFromString(mGoto->expressionText.toUtf8().constData()));
     }
 }
 
@@ -737,6 +771,47 @@ void MemoryMapView::selectionGetSlot(SELECTIONDATA* selection)
     Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
 }
 
+void MemoryMapView::selectionSetSlot(const SELECTIONDATA* selection)
+{
+    const auto rowCount = getRowCount();
+    if(rowCount == 0)
+    {
+        Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 0);
+        return;
+    }
+
+    const auto badIndex = (duint) - 1;
+    duint firstIdx = badIndex;
+    duint lastIdx = badIndex;
+
+    for(duint row = 0; row < rowCount; row++)
+    {
+        const duint addrStart = getCellUserdata(row, ColAddress);
+        if(addrStart < selection->start)
+            continue;
+
+        const duint addrEnd = addrStart + getCellUserdata(row, ColSize);
+        if(addrEnd > selection->end)
+            break;
+
+        if(firstIdx == badIndex)
+            firstIdx = row;
+
+        lastIdx = row;
+    }
+
+    if(firstIdx == badIndex || lastIdx == badIndex)
+    {
+        Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 0);
+        return;
+    }
+
+    setSingleSelection(firstIdx);
+    expandSelectionUpTo(lastIdx);
+    reloadData();
+    Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 1);
+}
+
 void MemoryMapView::disassembleAtSlot(duint va, duint cip)
 {
     Q_UNUSED(va)
@@ -747,7 +822,7 @@ void MemoryMapView::commentSlot()
 {
     duint va = getSelectionAddr();
     LineEditDialog mLineEdit(this);
-    QString addr_text = ToPtrString(va);
+    QString addrText = ToPtrString(va);
     char comment_text[MAX_COMMENT_SIZE] = "";
     if(DbgGetCommentAt((duint)va, comment_text))
     {
@@ -756,7 +831,7 @@ void MemoryMapView::commentSlot()
         else
             mLineEdit.setText(QString(comment_text));
     }
-    mLineEdit.setWindowTitle(tr("Add comment at ") + addr_text);
+    mLineEdit.setWindowTitle(tr("Add comment at ") + addrText);
     if(mLineEdit.exec() != QDialog::Accepted)
         return;
     if(!DbgSetCommentAt(va, mLineEdit.editText.replace('\r', "").replace('\n', "").toUtf8().constData()))

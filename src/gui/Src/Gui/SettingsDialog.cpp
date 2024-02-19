@@ -685,13 +685,13 @@ void SettingsDialog::on_chkSetJIT_stateChanged(int arg1)
             if((DbgFunctions()->GetJit(NULL, true) == false) && (ui->editJIT->text() == qsjit_def_entry))
             {
                 /*
-                 * Only do this when the user wants uncheck the JIT and there are not an OLD JIT Stored
-                 * and the JIT in Windows registry its this debugger.
-                 * Scenario 1: the JIT in Windows registry its this debugger, if the database of the
-                 * debugger was removed and the user wants uncheck the JIT: he cant (this block its executed then)
+                 * Only do this when the user wants to uncheck the JIT and there is not an OLD JIT Stored
+                 * and the JIT in Windows registry is this debugger.
+                 * Scenario 1: the JIT in Windows registry is this debugger, if the database of the
+                 * debugger was removed and the user wants uncheck the JIT: they can't (this block its executed then)
                  * -
-                 * Scenario 2: the JIT in Windows registry its NOT this debugger, if the database of the debugger
-                 * was removed and the user in MISC tab wants check and uncheck the JIT checkbox: he can (this block its NOT executed then).
+                 * Scenario 2: the JIT in Windows registry is NOT this debugger, if the database of the debugger
+                 * was removed and the user in MISC tab wants check and uncheck the JIT checkbox: they can (this block its NOT executed then).
                 */
                 SimpleWarningBox(this, tr("ERROR NOT FOUND OLD JIT"), tr("NOT FOUND OLD JIT ENTRY STORED, USE SETJIT COMMAND"));
                 settings.miscSetJIT = true;

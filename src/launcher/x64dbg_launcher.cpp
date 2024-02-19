@@ -714,9 +714,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             break;
         case PeArch::Invalid:
             if(FileExists(szPath))
-                MessageBox(nullptr, argv[1], LoadResString(IDS_INVDPE), MB_ICONERROR);
+                MessageBox(nullptr, LoadResString(IDS_INVDPE), argv[1], MB_ICONERROR);
             else
-                MessageBox(nullptr, argv[1], LoadResString(IDS_FILEERR), MB_ICONERROR);
+                MessageBox(nullptr, LoadResString(IDS_FILEERR), argv[1], MB_ICONERROR);
             break;
         default:
             __debugbreak();

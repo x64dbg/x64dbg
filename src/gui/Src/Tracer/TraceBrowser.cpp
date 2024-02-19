@@ -284,9 +284,10 @@ QString TraceBrowser::paintContent(QPainter* painter, duint row, duint col, int 
     {
         return "";
     }
-    if(getTraceFile()->isError())
+    QString reason;
+    if(getTraceFile()->isError(reason))
     {
-        GuiAddLogMessage(tr("An error occurred when reading trace file.\r\n").toUtf8().constData());
+        GuiAddLogMessage(tr("An error occurred when reading trace file (reason: %1).\r\n").arg(reason).toUtf8().constData());
         emit closeFile();
         return "";
     }
@@ -1318,8 +1319,10 @@ void TraceBrowser::closeDeleteSlot()
 
 void TraceBrowser::parseFinishedSlot()
 {
-    if(mTraceFile->isError())
+    QString reason;
+    if(mTraceFile->isError(reason))
     {
+        // Trace widget will display an error message and close the tab. Here we don't do it again.
         setRowCount(0);
     }
     else

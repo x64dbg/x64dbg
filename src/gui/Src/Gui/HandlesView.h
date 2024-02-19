@@ -35,6 +35,7 @@ public slots:
     void enableWindowSlot();
     void disableWindowSlot();
     void followInDisasmSlot();
+    void followInThreads();
     void toggleBPSlot();
     void messagesBPSlot();
 
@@ -56,6 +57,7 @@ private:
     QAction* mActionEnableWindow;
     QAction* mActionDisableWindow;
     QAction* mActionFollowProc;
+    QAction* mActionFollowThread;
     QAction* mActionToggleProcBP;
     QAction* mActionMessageProcBP;
 

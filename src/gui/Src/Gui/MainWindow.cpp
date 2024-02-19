@@ -91,6 +91,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(getStrWindow(QString, QString*)), this, SLOT(getStrWindow(QString, QString*)));
     connect(Bridge::getBridge(), SIGNAL(showCpu()), this, SLOT(displayCpuWidget()));
     connect(Bridge::getBridge(), SIGNAL(showReferences()), this, SLOT(displayReferencesWidget()));
+    connect(Bridge::getBridge(), SIGNAL(showThreads()), this, SLOT(displayThreadsWidget()));
     connect(Bridge::getBridge(), SIGNAL(addQWidgetTab(QWidget*)), this, SLOT(addQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(showQWidgetTab(QWidget*)), this, SLOT(showQWidgetTab(QWidget*)));
     connect(Bridge::getBridge(), SIGNAL(closeQWidgetTab(QWidget*)), this, SLOT(closeQWidgetTab(QWidget*)));
@@ -153,7 +154,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Symbol view
     mSymbolView = new SymbolView();
-    Bridge::getBridge()->symbolView = mSymbolView;
+    Bridge::getBridge()->mSymbolView = mSymbolView;
     mSymbolView->setWindowTitle(tr("Symbols"));
     mSymbolView->setWindowIcon(DIcon("pdb"));
     mSymbolView->hide();
@@ -206,7 +207,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     // Reference manager
     mReferenceManager = new ReferenceManager(this);
-    Bridge::getBridge()->referenceManager = mReferenceManager;
+    Bridge::getBridge()->mReferenceManager = mReferenceManager;
     mReferenceManager->setWindowTitle(tr("References"));
     mReferenceManager->setWindowIcon(DIcon("search"));
 
@@ -368,6 +369,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySourceManagerWidget()), this, SLOT(displaySourceViewWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displaySymbolsWidget()), this, SLOT(displaySymbolWidget()));
+    connect(mThreadView, SIGNAL(displayThreadsView()), this, SLOT(displayThreadsWidget()));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(showPatches()), this, SLOT(patchWindow()));
     connect(mCpuWidget->getGraphWidget(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
 
@@ -1246,7 +1248,7 @@ void MainWindow::openFileSlot()
 
 void MainWindow::openRecentFileSlot(QString filename)
 {
-    DbgCmdExec(QString().sprintf("init \"%s\"", filename.toUtf8().constData()));
+    DbgCmdExec(QString().sprintf("init \"%s\"", DbgCmdEscape(filename).toUtf8().constData()));
 }
 
 void MainWindow::runSlot()
@@ -1261,7 +1263,7 @@ void MainWindow::restartDebugging()
 {
     auto last = mMRUList->getEntry(0);
     if(!last.isEmpty())
-        DbgCmdExec(QString("init \"%1\"").arg(last));
+        DbgCmdExec(QString("init \"%1\"").arg(DbgCmdEscape(last)));
 }
 
 void MainWindow::displayBreakpointWidget()
@@ -1279,10 +1281,11 @@ void MainWindow::dragEnterEvent(QDragEnterEvent* pEvent)
 
 void MainWindow::dropEvent(QDropEvent* pEvent)
 {
+
     if(pEvent->mimeData()->hasUrls())
     {
         QString filename = QDir::toNativeSeparators(pEvent->mimeData()->urls()[0].toLocalFile());
-        DbgCmdExec(QString().sprintf("init \"%s\"", filename.toUtf8().constData()));
+        DbgCmdExec(QString().sprintf("init \"%s\"", DbgCmdEscape(filename).toUtf8().constData()));
         pEvent->acceptProposedAction();
     }
 }
@@ -1363,6 +1366,11 @@ void MainWindow::displayCpuWidget()
     showQWidgetTab(mCpuWidget);
 }
 
+void MainWindow::displayThreadsWidget()
+{
+    showQWidgetTab(mThreadView);
+}
+
 void MainWindow::displaySymbolWidget()
 {
     showQWidgetTab(mSymbolView);
@@ -1376,11 +1384,6 @@ void MainWindow::displaySourceViewWidget()
 void MainWindow::displayReferencesWidget()
 {
     showQWidgetTab(mReferenceManager);
-}
-
-void MainWindow::displayThreadsWidget()
-{
-    showQWidgetTab(mThreadView);
 }
 
 void MainWindow::displayGraphWidget()

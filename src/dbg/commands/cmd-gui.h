@@ -2,6 +2,7 @@
 
 #include "command.h"
 
+bool cbShowThreadId(int argc, char* argv[]);
 bool cbDebugDisasm(int argc, char* argv[]);
 bool cbDebugDump(int argc, char* argv[]);
 bool cbDebugStackDump(int argc, char* argv[]);

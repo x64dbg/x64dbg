@@ -415,6 +415,7 @@ static void registercommands()
     dbgcmdnew("scriptcmd", cbScriptCmd, false); // execute a script command TODO: undocumented
 
     //gui
+    dbgcmdnew("showthreadid", cbShowThreadId, false); // show given thread in threads
     dbgcmdnew("disasm,dis,d", cbDebugDisasm, true); //doDisasm
     dbgcmdnew("dump", cbDebugDump, true); //dump at address
     dbgcmdnew("sdump", cbDebugStackDump, true); //dump at stack address

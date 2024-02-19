@@ -27,8 +27,8 @@ SourceView::SourceView(QString path, duint addr, QWidget* parent)
     setupContextMenu();
 
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
-    connect(this, SIGNAL(doubleClickedSignal()), this, SLOT(followDisassemblerSlot()));
-    connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisassemblerSlot()));
+    connect(this, SIGNAL(doubleClickedSignal()), mCommonActions, SLOT(followDisassemblySlot()));
+    connect(this, SIGNAL(enterPressedSignal()), mCommonActions, SLOT(followDisassemblySlot()));
     connect(Bridge::getBridge(), SIGNAL(updateDisassembly()), this, SLOT(reloadData()));
 
     Initialize();
@@ -41,12 +41,12 @@ SourceView::~SourceView()
     clear();
 }
 
-QString SourceView::getCellContent(duint r, duint c)
+QString SourceView::getCellContent(duint row, duint column)
 {
-    if(!isValidIndex(r, c))
+    if(!isValidIndex(row, column))
         return QString();
-    LineData & line = mLines.at(r - mPrepareTableOffset);
-    switch(c)
+    LineData & line = mLines.at(row - mPrepareTableOffset);
+    switch(column)
     {
     case ColAddr:
         return line.addr ? ToPtrString(line.addr) : QString();
@@ -59,13 +59,29 @@ QString SourceView::getCellContent(duint r, duint c)
     return "INVALID";
 }
 
-bool SourceView::isValidIndex(duint r, duint c)
+duint SourceView::getCellUserdata(duint row, duint column)
+{
+    if(!isValidIndex(row, column))
+        return 0;
+    LineData & line = mLines.at(row - mPrepareTableOffset);
+    switch(column)
+    {
+    case ColAddr:
+        return line.addr;
+    case ColLine:
+        return line.index + 1;
+    default:
+        return 0;
+    }
+}
+
+bool SourceView::isValidIndex(duint row, duint column)
 {
     if(!mFileLines)
         return false;
-    if(c < ColAddr || c > ColCode)
+    if(column < ColAddr || column > ColCode)
         return false;
-    return r >= 0 && size_t(r) < mFileLines->size();
+    return row >= 0 && size_t(row) < mFileLines->size();
 }
 
 void SourceView::sortRows(duint column, bool ascending)
