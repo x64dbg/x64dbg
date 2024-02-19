@@ -68,7 +68,13 @@ void TraceRegisters::displayCustomContextMenuSlot(QPoint pos)
                 menu.addAction(mDisplayMMX);
         }
 
-        menu.addAction(wCM_SetRegister);
+        if((!mNoChange.contains(mSelected)) ||
+                mSelected == LastError ||
+                mSelected == LastStatus ||
+                mSelected == CIP)
+        {
+            menu.addAction(wCM_SetRegister);
+        }
 
         menu.exec(this->mapToGlobal(pos));
     }
@@ -140,7 +146,7 @@ void TraceRegisters::onSetRegister()
     }
 
     // we change the value (so highlight it)
-    mRegisterUpdates.insert(reg);
+    //    mRegisterUpdates.insert(reg);
 
     qDebug() << "This is the value " << value;
     qDebug() << "This is the string " << regName.toUtf8().constData();
@@ -148,7 +154,7 @@ void TraceRegisters::onSetRegister()
     DbgValToString(regName.toUtf8().constData(), value);
 
     // force repaint
-    emit refresh();
+    //    emit refresh();
 }
 
 void TraceRegisters::mouseDoubleClickEvent(QMouseEvent* event)
