@@ -118,7 +118,8 @@ void TraceRegisters::onSetRegister()
     // map x87st0 to x87r0
     REGISTER_NAME reg = mSelected;
     QString regName;
-    duint value = *((duint*)registerValue(&mRegDumpStruct, mSelected));
+    //    duint value = *((duint*)registerValue(&mRegDumpStruct, mSelected));
+    duint value;
     if(reg >= x87st0 && reg <= x87st7)
         regName = QString().sprintf("st%d", reg - x87st0);
     else
@@ -129,25 +130,37 @@ void TraceRegisters::onSetRegister()
     if(mFlags.contains(reg))
     {
         regName = "_" + regName;
-        value = (int)(* (bool*) registerValue(&mRegDumpStruct, mSelected));
+        //        value = (int)(* (bool*) registerValue(&mRegDumpStruct, mSelected));
     }
-
-
-    // tell everything the compiler
     if(mFPU.contains(reg))
-    {
         regName = "_" + regName;
-        value = (duint)registerValue(&mRegDumpStruct, mSelected);
-    }
-
-    if(mTAGWORD.contains(reg) || reg == MxCsr_RC || reg == x87CW_RC || reg == x87CW_PC || reg == x87SW_TOP)
-    {
-        value = (* ((const unsigned short*)registerValue(&mRegDumpStruct, mSelected)));
-    }
+    //    else if(mFPUXMM.contains(reg) || mFPUYMM.contains(reg) || mFPUMMX.contains(reg))
+    //    {
+    //        regName = "_" + regName;
+    ////        value = (duint)((const char *)registerValue(&mRegDumpStruct, mSelected));
+    //    }
+    //    else if(mFPUx87.contains(reg) || mFPU.contains(reg))
+    //    {
+    //        value = (* ((const unsigned short*)registerValue(&mRegDumpStruct, mSelected)));
+    //    }
 
     // we change the value (so highlight it)
     //    mRegisterUpdates.insert(reg);
 
+    if(mUINTDISPLAY.contains(reg) || reg == LastError || reg == LastStatus)
+        value = *((const duint*)registerValue(&mRegDumpStruct, mSelected));
+    else if(mBOOLDISPLAY.contains(reg))
+        value = (duint)(*(const bool*)registerValue(&mRegDumpStruct, mSelected));
+    else if(mUSHORTDISPLAY.contains(reg) || mFIELDVALUE.contains(reg))
+        value = (duint)(*(const unsigned short*)registerValue(&mRegDumpStruct, mSelected));
+    else if(mDWORDDISPLAY.contains(reg))
+        value = (duint)(*(const DWORD*)registerValue(&mRegDumpStruct, mSelected));
+    else if(mFPUXMM.contains(reg) || mFPUYMM.contains(reg) || mFPUMMX.contains(reg) || mFPUx87_80BITSDISPLAY.contains(reg))
+        value = (duint)((const char*)registerValue(&mRegDumpStruct, mSelected));
+    else
+        qDebug() << "What do I do with " << reg;
+
+    qDebug() << "Trace Registers";
     qDebug() << "This is the value " << value;
     qDebug() << "This is the string " << regName.toUtf8().constData();
 
