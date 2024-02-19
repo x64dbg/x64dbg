@@ -51,7 +51,7 @@ bool cbInstrVarDel(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return false;
-    if(!vardel(argv[1], false))
+    if(vardel(argv[1], false) != 0)
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete variable \"%s\"\n"), argv[1]);
     else
         dprintf(QT_TRANSLATE_NOOP("DBG", "Deleted variable \"%s\"\n"), argv[1]);
