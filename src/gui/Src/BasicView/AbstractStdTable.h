@@ -139,7 +139,7 @@ protected:
     QColor mTracedSelectedAddressBackgroundColor;
     bool bCipBase = false;
     QString mHighlightText;
-    int mMinimumHighlightColumn = 0;
+    duint mMinimumHighlightColumn = 0;
     int mAddressColumn = -1;
     bool bAddressLabel = true;
 

@@ -33,7 +33,7 @@ void WatchView::updateWatch()
     BridgeList<WATCHINFO> WatchList;
     DbgGetWatchList(&WatchList);
     setRowCount(WatchList.Count());
-    if(getInitialSelection() >= WatchList.Count() && WatchList.Count() > 0)
+    if(getInitialSelection() >= (duint)WatchList.Count() && WatchList.Count() > 0)
         setSingleSelection(WatchList.Count() - 1);
     for(int i = 0; i < WatchList.Count(); i++)
     {
@@ -232,7 +232,7 @@ void WatchView::modifyWatchSlot()
     BridgeList<WATCHINFO> WatchList;
     DbgGetWatchList(&WatchList);
     auto sel = getInitialSelection();
-    if(sel > WatchList.Count())
+    if(sel > (duint)WatchList.Count())
         return;
     WordEditDialog modifyDialog(this);
     modifyDialog.setup(tr("Modify \"%1\"").arg(QString(WatchList[sel].WatchName)), WatchList[sel].value, sizeof(duint));

@@ -698,7 +698,7 @@ QString HexDump::paintContent(QPainter* painter, duint row, duint col, int x, in
 
 void HexDump::printSelected(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
-    if(col > 0 && col <= mDescriptor.size())
+    if(col > 0 && col <= (duint)mDescriptor.size())
     {
         ColumnDescriptor curDescriptor = mDescriptor.at(col - 1);
         auto bytePerRowCount = getBytePerRowCount();
