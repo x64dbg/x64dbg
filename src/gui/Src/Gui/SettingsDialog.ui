@@ -962,6 +962,16 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="chkDisableTraceDump">
+         <property name="toolTip">
+          <string>Dump in trace view consumes significant memory and CPU resources. It can be disabled if you find it too slow. Already opened trace tabs are not affected.</string>
+         </property>
+         <property name="text">
+          <string>Disable dump in trace view</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacerGUI">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

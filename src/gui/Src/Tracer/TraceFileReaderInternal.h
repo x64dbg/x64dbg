@@ -34,10 +34,10 @@ private:
     TraceFileReader* mParent;
     std::vector<REGDUMP> mRegisters;
     QByteArray opcodes;
-    std::vector<size_t> opcodeOffset;
+    std::vector<unsigned int> opcodeOffset;
     std::vector<unsigned char> opcodeSize;
     std::vector<Instruction_t> instructions;
-    std::vector<size_t> memoryOperandOffset;
+    std::vector<unsigned int> memoryOperandOffset;
     std::vector<char> memoryFlags;
     std::vector<duint> memoryAddress;
     std::vector<duint> oldMemory;

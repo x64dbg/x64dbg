@@ -78,7 +78,7 @@ public:
         std::function<void()> columnSwitch;
     };
 
-    HexDump(Architecture* architecture, QWidget* parent = nullptr);
+    explicit HexDump(Architecture* architecture, QWidget* parent = nullptr, MemoryPage* memPage = nullptr);
     ~HexDump() override;
 
     // Configuration
@@ -127,7 +127,7 @@ public:
     void appendResetDescriptor(int width, QString title, bool clickable, ColumnDescriptor descriptor);
     void clearDescriptors();
 
-    void printDumpAt(duint parVA, bool select, bool repaint = true, bool updateTableOffset = true);
+    virtual void printDumpAt(duint parVA, bool select, bool repaint = true, bool updateTableOffset = true);
     duint rvaToVa(duint rva) const;
 
     duint getTableOffsetRva() const;

@@ -8,7 +8,10 @@ class CPUWidget;
 class TraceRegisters;
 class TraceBrowser;
 class TraceFileReader;
+class TraceFileDumpMemoryPage;
 class TraceInfoBox;
+class TraceDump;
+class TraceFileReader;
 class StdTable;
 
 namespace Ui
@@ -21,19 +24,24 @@ class TraceWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit TraceWidget(QWidget* parent);
+    explicit TraceWidget(Architecture* architecture, const QString & fileName, QWidget* parent);
     ~TraceWidget();
 
-    TraceBrowser* getTraceBrowser();
+signals:
+    void closeFile();
 
 protected slots:
     void traceSelectionChanged(unsigned long long selection);
-    void updateSlot();
+    void parseFinishedSlot();
+    void closeFileSlot();
 
 protected:
-    TraceBrowser* mTraceWidget;
+    TraceFileReader* mTraceFile;
+    TraceBrowser* mTraceBrowser;
     TraceInfoBox* mInfo;
+    TraceDump* mDump;
     TraceRegisters* mGeneralRegs;
+    TraceFileDumpMemoryPage* mMemoryPage;
     StdTable* mOverview;
 
 private:
