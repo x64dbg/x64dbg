@@ -71,6 +71,7 @@ void TraceFileReader::Close()
     hashValue = 0;
     EXEPath.clear();
     error = false;
+    errorMessage.clear();
 }
 
 bool TraceFileReader::Delete()
@@ -87,6 +88,7 @@ bool TraceFileReader::Delete()
     hashValue = 0;
     EXEPath.clear();
     error = false;
+    errorMessage.clear();
     return value;
 }
 
@@ -105,8 +107,10 @@ void TraceFileReader::parseFinishedSlot()
 }
 
 // Return if the file read was error
-bool TraceFileReader::isError() const
+bool TraceFileReader::isError(QString & reason) const
 {
+    if(error)
+        reason = errorMessage;
     return error;
 }
 
@@ -503,18 +507,19 @@ void TraceFileParser::run()
         if(index > 0)
             that->fileIndex.back().second.second = index - (lastIndex - 1);
         that->error = false;
+        that->errorMessage.clear();
         that->length = index;
         that->progress = 100;
     }
     catch(const std::wstring & errReason)
     {
-        Q_UNUSED(errReason);
-        //MessageBox(0, errReason.c_str(), L"debug", MB_ICONERROR);
         that->error = true;
+        that->errorMessage = "[TraceFileParser::run] " + QString::fromStdWString(errReason);
     }
     catch(std::bad_alloc &)
     {
         that->error = true;
+        that->errorMessage = "[TraceFileParser::run] std::bad_alloc";
     }
 
     that->traceFile.moveToThread(that->thread());
@@ -562,12 +567,13 @@ void TraceFileReader::purgeLastPage()
         if(isBlockExist)
             fileIndex.back().second.second = index - (lastIndex - 1);
         error = false;
+        errorMessage.clear();
         length = index;
     }
     catch(std::wstring & errReason)
     {
-        Q_UNUSED(errReason);
         error = true;
+        errorMessage = "[TraceFileReader::purgeLastPage] " + QString::fromStdWString(errReason);
     }
 }
 
@@ -684,9 +690,10 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
         }
 
     }
-    catch(const std::exception &)
+    catch(const std::exception & x)
     {
         mParent->error = true;
+        mParent->errorMessage = QString("[TraceFilePage::TraceFilePage] %1").arg(x.what());
     }
 }
 

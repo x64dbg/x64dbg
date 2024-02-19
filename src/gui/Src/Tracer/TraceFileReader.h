@@ -20,7 +20,7 @@ public:
     bool Open(const QString & fileName);
     void Close();
     bool Delete();
-    bool isError() const;
+    bool isError(QString & reason) const;
     int Progress() const;
 
     QString getIndexText(unsigned long long index) const;
@@ -64,6 +64,7 @@ private:
     std::vector<std::pair<unsigned long long, Range>> fileIndex; //index;<file offset;length>
     std::atomic<int> progress;
     bool error;
+    QString errorMessage;
     TraceFilePage* lastAccessedPage;
     unsigned long long lastAccessedIndexOffset;
     friend class TraceFileParser;

@@ -292,9 +292,10 @@ QString TraceBrowser::paintContent(QPainter* painter, duint row, duint col, int 
     {
         return "";
     }
-    if(mTraceFile->isError())
+    QString reason;
+    if(mTraceFile->isError(reason))
     {
-        GuiAddLogMessage(tr("An error occurred when reading trace file.\r\n").toUtf8().constData());
+        GuiAddLogMessage(tr("An error occurred when reading trace file (reason: %1).\r\n").arg(reason).toUtf8().constData());
         mTraceFile->Close();
         delete mTraceFile;
         mTraceFile = nullptr;
@@ -1357,9 +1358,10 @@ void TraceBrowser::closeDeleteSlot()
 
 void TraceBrowser::parseFinishedSlot()
 {
-    if(mTraceFile->isError())
+    QString reason;
+    if(mTraceFile->isError(reason))
     {
-        SimpleErrorBox(this, tr("Error"), tr("Error when opening trace recording"));
+        SimpleErrorBox(this, tr("Error"), tr("Error when opening trace recording (reason: %1)").arg(reason));
         delete mTraceFile;
         mTraceFile = nullptr;
         setRowCount(0);
