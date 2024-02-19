@@ -169,6 +169,8 @@ void ExpressionFunctions::Init()
     ExpressionFunctions::Register("streq", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::streq);
     ExpressionFunctions::Register("strieq", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::strieq);
     ExpressionFunctions::Register("strlen", ValueTypeNumber, { ValueTypeString }, Exprfunc::strlen);
+
+    ExpressionFunctions::Register("syscall.name", ValueTypeString, { ValueTypeNumber }, Exprfunc::syscall_name);
 }
 
 bool ExpressionFunctions::Register(const String & name, const ValueType & returnType, const std::vector<ValueType> & argTypes, const CBEXPRESSIONFUNCTION & cbFunction, void* userdata)
