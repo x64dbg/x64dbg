@@ -819,4 +819,14 @@ namespace Exprfunc
         *result = ValueString(SyscallToName(argv[0].number));
         return true;
     }
+
+    bool syscall_id(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        auto id = SyscallToId(argv[0].string.ptr);
+        if(id == -1)
+            return false;
+
+        *result = ValueNumber(id);
+        return true;
+    }
 }

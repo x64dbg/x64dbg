@@ -22,5 +22,6 @@ std::vector<CONSTANTINFO> ConstantList();
 // To use this function, use EXCLUSIVE_ACQUIRE(LockModules)
 bool SyscallInit();
 const String & SyscallToName(unsigned int index);
+unsigned int SyscallToId(const String & name);
 
 #endif // _EXCEPTION_H

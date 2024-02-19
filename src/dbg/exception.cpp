@@ -13,6 +13,7 @@ static std::unordered_map<unsigned int, String> NtStatusNames;
 static std::unordered_map<unsigned int, String> ErrorNames;
 static std::unordered_map<String, unsigned int> Constants;
 static std::unordered_map<unsigned int, String> SyscallIndices;
+static std::unordered_map<String, unsigned int> SyscallNames;
 
 static bool UniversalCodeInit(const String & file, std::unordered_map<unsigned int, String> & names, unsigned char radix)
 {
@@ -253,12 +254,43 @@ bool SyscallInit()
                 SyscallIndices.insert({ index, syscall.Name });
         }
     }
-    ModClear(false);
+
+    // Populate the name map
+    for(const auto & itr : SyscallIndices)
+    {
+        SyscallNames.emplace(itr.second, itr.first);
+    }
+
+    // Also allow lookup with only the least significant 14 bits
+    // Reference: https://alice.climent-pommeret.red/posts/a-syscall-journey-in-the-windows-kernel/
+    for(const auto & itr : SyscallIndices)
+    {
+        auto truncated = itr.first & 0x3FFF;
+        if(truncated != itr.first)
+        {
+            SyscallIndices.emplace(truncated, itr.second);
+        }
+    }
+
+    // Clear the GUI
+    ModClear(true);
+
     return result;
 }
 
 const String & SyscallToName(unsigned int index)
 {
-    auto found = SyscallIndices.find(index);
+    auto found = SyscallIndices.find(index & 0x3FFF);
     return found != SyscallIndices.end() ? found->second : emptyString;
+}
+
+unsigned int SyscallToId(const String & name)
+{
+    if(name.find("Zw") == 0)
+    {
+        return SyscallToId("Nt" + name.substr(2));
+    }
+
+    auto found = SyscallNames.find(name);
+    return found != SyscallNames.end() ? found->second : -1;
 }
