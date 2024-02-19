@@ -4,12 +4,16 @@
 #include "EditFloatRegister.h"
 #include "StringUtil.h"
 #include "MiscUtil.h"
+#include <QDebug>
 
 TraceRegisters::TraceRegisters(QWidget* parent) : RegistersView(parent)
 {
     wCM_CopySIMDRegister = setupAction(DIcon("copy"), tr("Copy floating point value"));
     connect(wCM_CopySIMDRegister, SIGNAL(triggered()), this, SLOT(onCopySIMDRegister()));
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(displayCustomContextMenuSlot(QPoint)));
+
+    wCM_SetRegister = setupAction(tr("Set Register value"));
+    connect(wCM_SetRegister, SIGNAL(triggered()), this, SLOT(onSetRegister()));
 }
 
 void TraceRegisters::setRegisters(REGDUMP* registers)
@@ -64,6 +68,8 @@ void TraceRegisters::displayCustomContextMenuSlot(QPoint pos)
                 menu.addAction(mDisplayMMX);
         }
 
+        menu.addAction(wCM_SetRegister);
+
         menu.exec(this->mapToGlobal(pos));
     }
     else // Right-click on empty space
@@ -99,6 +105,50 @@ void TraceRegisters::onCopySIMDRegister()
         showCopyFloatRegister(128, this, tr("View XMM register"), registerValue(&mRegDumpStruct, mSelected));
     else if(mFPUMMX.contains(mSelected))
         showCopyFloatRegister(64, this, tr("View MMX register"), registerValue(&mRegDumpStruct, mSelected));
+}
+
+void TraceRegisters::onSetRegister()
+{
+    // map x87st0 to x87r0
+    REGISTER_NAME reg = mSelected;
+    QString regName;
+    duint value = *((duint*)registerValue(&mRegDumpStruct, mSelected));
+    if(reg >= x87st0 && reg <= x87st7)
+        regName = QString().sprintf("st%d", reg - x87st0);
+    else
+        // map "cax" to "eax" or "rax"
+        regName = mRegisterMapping.constFind(reg).value();
+
+    // flags need to '_' infront
+    if(mFlags.contains(reg))
+    {
+        regName = "_" + regName;
+        value = (int)(* (bool*) registerValue(&mRegDumpStruct, mSelected));
+    }
+
+
+    // tell everything the compiler
+    if(mFPU.contains(reg))
+    {
+        regName = "_" + regName;
+        value = (duint)registerValue(&mRegDumpStruct, mSelected);
+    }
+
+    if(mTAGWORD.contains(reg) || reg == MxCsr_RC || reg == x87CW_RC || reg == x87CW_PC || reg == x87SW_TOP)
+    {
+        value = (* ((const unsigned short*)registerValue(&mRegDumpStruct, mSelected)));
+    }
+
+    // we change the value (so highlight it)
+    mRegisterUpdates.insert(reg);
+
+    qDebug() << "This is the value " << value;
+    qDebug() << "This is the string " << regName.toUtf8().constData();
+
+    DbgValToString(regName.toUtf8().constData(), value);
+
+    // force repaint
+    emit refresh();
 }
 
 void TraceRegisters::mouseDoubleClickEvent(QMouseEvent* event)
