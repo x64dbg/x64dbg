@@ -4,7 +4,6 @@
 #include "EditFloatRegister.h"
 #include "StringUtil.h"
 #include "MiscUtil.h"
-#include <QDebug>
 
 TraceRegisters::TraceRegisters(QWidget* parent) : RegistersView(parent)
 {
@@ -12,8 +11,8 @@ TraceRegisters::TraceRegisters(QWidget* parent) : RegistersView(parent)
     connect(wCM_CopySIMDRegister, SIGNAL(triggered()), this, SLOT(onCopySIMDRegister()));
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(displayCustomContextMenuSlot(QPoint)));
 
-    wCM_SetRegister = setupAction(tr("Set Register value"));
-    connect(wCM_SetRegister, SIGNAL(triggered()), this, SLOT(onSetRegister()));
+    wCM_SetCurrentRegister = setupAction(tr("Set as current value"));
+    connect(wCM_SetCurrentRegister, SIGNAL(triggered()), this, SLOT(onSetCurrentRegister()));
 }
 
 void TraceRegisters::setRegisters(REGDUMP* registers)
@@ -73,7 +72,7 @@ void TraceRegisters::displayCustomContextMenuSlot(QPoint pos)
                 mSelected == LastStatus ||
                 mSelected == CIP)
         {
-            menu.addAction(wCM_SetRegister);
+            menu.addAction(wCM_SetCurrentRegister);
         }
 
         menu.exec(this->mapToGlobal(pos));
@@ -113,12 +112,11 @@ void TraceRegisters::onCopySIMDRegister()
         showCopyFloatRegister(64, this, tr("View MMX register"), registerValue(&mRegDumpStruct, mSelected));
 }
 
-void TraceRegisters::onSetRegister()
+void TraceRegisters::onSetCurrentRegister()
 {
     // map x87st0 to x87r0
     REGISTER_NAME reg = mSelected;
     QString regName;
-    //    duint value = *((duint*)registerValue(&mRegDumpStruct, mSelected));
     duint value;
     if(reg >= x87st0 && reg <= x87st7)
         regName = QString().sprintf("st%d", reg - x87st0);
@@ -126,28 +124,15 @@ void TraceRegisters::onSetRegister()
         // map "cax" to "eax" or "rax"
         regName = mRegisterMapping.constFind(reg).value();
 
-    // flags need to '_' infront
+    // flags and MFPU need to '_' infront
     if(mFlags.contains(reg))
-    {
         regName = "_" + regName;
-        //        value = (int)(* (bool*) registerValue(&mRegDumpStruct, mSelected));
-    }
+    \
+
     if(mFPU.contains(reg))
         regName = "_" + regName;
-    //    else if(mFPUXMM.contains(reg) || mFPUYMM.contains(reg) || mFPUMMX.contains(reg))
-    //    {
-    //        regName = "_" + regName;
-    ////        value = (duint)((const char *)registerValue(&mRegDumpStruct, mSelected));
-    //    }
-    //    else if(mFPUx87.contains(reg) || mFPU.contains(reg))
-    //    {
-    //        value = (* ((const unsigned short*)registerValue(&mRegDumpStruct, mSelected)));
-    //    }
 
-    // we change the value (so highlight it)
-    //    mRegisterUpdates.insert(reg);
-
-    if(mUINTDISPLAY.contains(reg) || reg == LastError || reg == LastStatus)
+    if(mUINTDISPLAY.contains(reg))
         value = *((const duint*)registerValue(&mRegDumpStruct, mSelected));
     else if(mBOOLDISPLAY.contains(reg))
         value = (duint)(*(const bool*)registerValue(&mRegDumpStruct, mSelected));
@@ -158,16 +143,10 @@ void TraceRegisters::onSetRegister()
     else if(mFPUXMM.contains(reg) || mFPUYMM.contains(reg) || mFPUMMX.contains(reg) || mFPUx87_80BITSDISPLAY.contains(reg))
         value = (duint)((const char*)registerValue(&mRegDumpStruct, mSelected));
     else
-        qDebug() << "What do I do with " << reg;
-
-    qDebug() << "Trace Registers";
-    qDebug() << "This is the value " << value;
-    qDebug() << "This is the string " << regName.toUtf8().constData();
+        value = *((const duint*)registerValue(&mRegDumpStruct, mSelected));
 
     DbgValToString(regName.toUtf8().constData(), value);
 
-    // force repaint
-    //    emit refresh();
 }
 
 void TraceRegisters::mouseDoubleClickEvent(QMouseEvent* event)
