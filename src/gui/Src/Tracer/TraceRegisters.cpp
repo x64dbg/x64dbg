@@ -125,11 +125,7 @@ void TraceRegisters::onSetCurrentRegister()
         regName = mRegisterMapping.constFind(reg).value();
 
     // flags and MFPU need to '_' infront
-    if(mFlags.contains(reg))
-        regName = "_" + regName;
-    \
-
-    if(mFPU.contains(reg))
+    if(mFlags.contains(reg) || mFPU.contains(reg))
         regName = "_" + regName;
 
     if(mUINTDISPLAY.contains(reg))
