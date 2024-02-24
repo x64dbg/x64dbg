@@ -1,5 +1,7 @@
 // Microsoft Visual C++ generated resource script.
 //
+#pragma code_page(65001)
+
 #include "resource.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
@@ -17,7 +19,6 @@
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NEU)
 LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
-#pragma code_page(1252)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -51,6 +52,7 @@ END
 //
 
 1                       RT_MANIFEST             ".\\manifest.xml"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -128,29 +130,12 @@ END
 // AFX_DIALOG_LAYOUT
 //
 
-IDD_DIALOGLAUNCHER AFX_DIALOG_LAYOUT 
+IDD_DIALOGLAUNCHER AFX_DIALOG_LAYOUT
 BEGIN
-    0x0000
+    0
 END
 
 #endif    // Neutral resources
-/////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
-
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// String Table
-//
-
-
-#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
