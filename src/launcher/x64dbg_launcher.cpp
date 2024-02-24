@@ -104,7 +104,7 @@ static TCHAR* GetDesktopPath()
     return nullptr;
 }
 
-static HRESULT AddDesktopShortcut(TCHAR* szPathOfFile, const TCHAR* szNameOfLink)
+static HRESULT AddDesktopShortcut(TCHAR* szPathOfFile, const TCHAR* szNameOfLink, bool isElevated)
 {
     HRESULT hRes = NULL;
 
@@ -130,6 +130,19 @@ static HRESULT AddDesktopShortcut(TCHAR* szPathOfFile, const TCHAR* szNameOfLink
             TCHAR path[MAX_PATH + 1] = TEXT("");
             _tmakepath_s(path, nullptr, GetDesktopPath(), szNameOfLink, TEXT("lnk"));
             CComBSTR tmp(path);
+
+            if(isElevated)
+            {
+                CComQIPtr<IShellLinkDataList> pdl(ppf);
+
+                DWORD dwFlags;
+
+                pdl->GetFlags(&dwFlags);
+
+                dwFlags |= SLDF_RUNAS_USER;
+
+                pdl->SetFlags(dwFlags);
+            }
             hRes = ppf->Save(tmp, TRUE);
         }
     }
@@ -596,9 +609,17 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         }
         if(MessageBox(nullptr, LoadResString(IDS_ASKDESKTOPSHORTCUT), LoadResString(IDS_QUESTION), MB_YESNO | MB_ICONQUESTION) == IDYES)
         {
-            AddDesktopShortcut(sz32Path, TEXT("x32dbg"));
+            AddDesktopShortcut(sz32Path, TEXT("x32dbg"), false);
             if(isWoW64())
-                AddDesktopShortcut(sz64Path, TEXT("x64dbg"));
+                AddDesktopShortcut(sz64Path, TEXT("x64dbg"), false);
+            bDoneSomething = true;
+        }
+
+        if(MessageBox(nullptr, LoadResString(IDS_ASKADMINDESKTOPSHORTCUT), LoadResString(IDS_QUESTION), MB_YESNO | MB_ICONQUESTION) == IDYES)
+        {
+            AddDesktopShortcut(sz32Path, TEXT("x32dbg_admin"), true);
+            if(isWoW64())
+                AddDesktopShortcut(sz64Path, TEXT("x64dbg_admin"), true);
             bDoneSomething = true;
         }
 
