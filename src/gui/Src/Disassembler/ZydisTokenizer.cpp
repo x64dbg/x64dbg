@@ -372,6 +372,12 @@ void ZydisTokenizer::addToken(TokenType type, QString text, const TokenValue & v
     {
         mInst.tokens.push_back(SingleToken(type, text, value));
     }
+    else if(type == TokenType::Address && text.startsWith("<&"))
+    {
+        mInst.tokens.push_back(SingleToken(TokenType::Address, "<", value));
+        mInst.tokens.push_back(SingleToken(TokenType::MemoryBaseRegister, "&", value));
+        mInst.tokens.push_back(SingleToken(TokenType::Address, text.mid(2)));
+    }
     else
     {
         mInst.tokens.push_back(SingleToken(mIsNop ? TokenType::MnemonicNop : type, text, value));
