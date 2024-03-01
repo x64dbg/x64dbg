@@ -31,13 +31,13 @@ struct BREAKPOINT
     unsigned short oldbytes;                          // original bytes (for software breakpoitns)
     BP_TYPE type;                                     // breakpoint type
     DWORD titantype;                                  // type passed to titanengine
-    char name[MAX_BREAKPOINT_SIZE];                   // breakpoint name
+    std::string name;                                 // breakpoint name
     char mod[MAX_MODULE_SIZE];                        // module name
-    char breakCondition[MAX_CONDITIONAL_EXPR_SIZE];   // condition to stop. If true, debugger halts.
-    char logText[MAX_CONDITIONAL_TEXT_SIZE];          // text to log.
-    char logCondition[MAX_CONDITIONAL_EXPR_SIZE];     // condition to log
-    char commandText[MAX_CONDITIONAL_TEXT_SIZE];      // script command to execute.
-    char commandCondition[MAX_CONDITIONAL_EXPR_SIZE]; // condition to execute the command
+    std::string breakCondition;                       // condition to stop. If true, debugger halts.
+    std::string logText;                              // text to log.
+    std::string logCondition;                         // condition to log
+    std::string commandText;                          // script command to execute.
+    std::string commandCondition;                     // condition to execute the command
     uint32 hitcount;                                  // hit counter
     bool fastResume;                                  // if true, debugger resumes without any GUI/Script/Plugin interaction.
     duint memsize;                                    // memory breakpoint size (not implemented)

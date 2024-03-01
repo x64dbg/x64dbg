@@ -1400,13 +1400,13 @@ static bool cbBreakpointList(const BREAKPOINT* bp)
     bool enabled = bp->enabled;
     if(bp->type == BPDLL)
     {
-        if(*bp->name)
-            dprintf_untranslated("%d:%s:\"%s\":\"%s\"\n", enabled, type, bp->mod, bp->name);
+        if(!bp->name.empty())
+            dprintf_untranslated("%d:%s:\"%s\":\"%s\"\n", enabled, type, bp->mod, bp->name.c_str());
         else
             dprintf_untranslated("%d:%s:\"%s\"\n", enabled, type, bp->mod);
     }
-    else if(*bp->name)
-        dprintf_untranslated("%d:%s:%p:\"%s\"\n", enabled, type, bp->addr, bp->name);
+    else if(!bp->name.empty())
+        dprintf_untranslated("%d:%s:%p:\"%s\"\n", enabled, type, bp->addr, bp->name.c_str());
     else
         dprintf_untranslated("%d:%s:%p\n", enabled, type, bp->addr);
     return true;

@@ -112,7 +112,7 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
     {
         ModNameFromAddr(Address, bp.mod, true);
     }
-    strncpy_s(bp.name, Name, _TRUNCATE);
+    bp.name = Name;
 
     bp.active = true;
     if(Type != BPDLL && Type != BPEXCEPTION)
@@ -148,7 +148,7 @@ bool BpNewDll(const char* module, bool Enable, bool Singleshot, DWORD TitanType,
     BREAKPOINT bp;
     memset(&bp, 0, sizeof(BREAKPOINT));
     strcpy_s(bp.mod, module);
-    strcpy_s(bp.name, Name);
+    bp.name = Name;
     bp.active = true;
     bp.enabled = Enable;
     bp.singleshoot = Singleshot;
@@ -246,7 +246,7 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
     for(auto & i : breakpoints)
     {
         // Breakpoint name match
-        if(_stricmp(Name, i.second.name) != 0)
+        if(_stricmp(Name, i.second.name.c_str()) != 0)
             // Module name match in case of DLL Breakpoints
             if(i.second.type != BPDLL || _stricmp(Name, i.second.mod) != 0)
                 continue;
@@ -413,7 +413,7 @@ bool BpSetName(duint Address, BP_TYPE Type, const char* Name)
     if(!bpInfo)
         return false;
 
-    strncpy_s(bpInfo->name, Name, _TRUNCATE);
+    bpInfo->name = Name;
     return true;
 }
 
@@ -443,7 +443,7 @@ bool BpSetBreakCondition(duint Address, BP_TYPE Type, const char* Condition)
     if(!bpInfo)
         return false;
 
-    strncpy_s(bpInfo->breakCondition, Condition, _TRUNCATE);
+    bpInfo->breakCondition = Condition;
     return true;
 }
 
@@ -458,7 +458,7 @@ bool BpSetLogText(duint Address, BP_TYPE Type, const char* Log)
     if(!bpInfo)
         return false;
 
-    strncpy_s(bpInfo->logText, Log, _TRUNCATE);
+    bpInfo->logText = Log;
 
     // Make log breakpoints silent (meaning they don't output the default log).
     bpInfo->silent = *Log != '\0';
@@ -476,7 +476,7 @@ bool BpSetLogCondition(duint Address, BP_TYPE Type, const char* Condition)
     if(!bpInfo)
         return false;
 
-    strncpy_s(bpInfo->logCondition, Condition, _TRUNCATE);
+    bpInfo->logCondition = Condition;
     return true;
 }
 
@@ -491,7 +491,7 @@ bool BpSetCommandText(duint Address, BP_TYPE Type, const char* Cmd)
     if(!bpInfo)
         return false;
 
-    strncpy_s(bpInfo->commandText, Cmd, _TRUNCATE);
+    bpInfo->commandText = Cmd;
     return true;
 }
 
@@ -506,7 +506,7 @@ bool BpSetCommandCondition(duint Address, BP_TYPE Type, const char* Condition)
     if(!bpInfo)
         return false;
 
-    strncpy_s(bpInfo->commandCondition, Condition, _TRUNCATE);
+    bpInfo->commandCondition = Condition;
     return true;
 }
 
@@ -687,12 +687,12 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp)
 
     memset(BridgeBp, 0, sizeof(BRIDGEBP));
     strncpy_s(BridgeBp->mod, Bp->mod, _TRUNCATE);
-    strncpy_s(BridgeBp->name, Bp->name, _TRUNCATE);
-    strncpy_s(BridgeBp->breakCondition, Bp->breakCondition, _TRUNCATE);
-    strncpy_s(BridgeBp->logText, Bp->logText, _TRUNCATE);
-    strncpy_s(BridgeBp->logCondition, Bp->logCondition, _TRUNCATE);
-    strncpy_s(BridgeBp->commandText, Bp->commandText, _TRUNCATE);
-    strncpy_s(BridgeBp->commandCondition, Bp->commandCondition, _TRUNCATE);
+    strncpy_s(BridgeBp->name, Bp->name.c_str(), _TRUNCATE);
+    strncpy_s(BridgeBp->breakCondition, Bp->breakCondition.c_str(), _TRUNCATE);
+    strncpy_s(BridgeBp->logText, Bp->logText.c_str(), _TRUNCATE);
+    strncpy_s(BridgeBp->logCondition, Bp->logCondition.c_str(), _TRUNCATE);
+    strncpy_s(BridgeBp->commandText, Bp->commandText.c_str(), _TRUNCATE);
+    strncpy_s(BridgeBp->commandCondition, Bp->commandCondition.c_str(), _TRUNCATE);
 
     BridgeBp->active = Bp->active;
     BridgeBp->addr = Bp->addr;
@@ -855,12 +855,19 @@ void BpCacheSave(JSON Root)
     json_decref(jsonBreakpoints);
 }
 
-template<typename T>
-static void loadStringValue(JSON value, T & dest, const char* key)
+template<size_t Count>
+static void loadStringValue(JSON value, char(& dest)[Count], const char* key)
 {
     auto text = json_string_value(json_object_get(value, key));
     if(text)
         strncpy_s(dest, text, _TRUNCATE);
+}
+
+static void loadStringValue(JSON value, std::string & dest, const char* key)
+{
+    auto text = json_string_value(json_object_get(value, key));
+    if(text)
+        dest = text;
 }
 
 void BpCacheLoad(JSON Root, bool migrateCommandCondition)
@@ -904,9 +911,9 @@ void BpCacheLoad(JSON Root, bool migrateCommandCondition)
 
         // On 2023-06-10 the default of the command condition was changed from $breakpointcondition to 1
         // If we detect an older database, try to preserve the old behavior.
-        if(migrateCommandCondition && *breakpoint.commandText != '\0' && *breakpoint.commandCondition == '\0')
+        if(migrateCommandCondition && !breakpoint.commandText.empty() && !breakpoint.commandCondition.empty())
         {
-            strcpy_s(breakpoint.commandCondition, "$breakpointcondition");
+            breakpoint.commandCondition = "$breakpointcondition";
         }
 
         // Fast resume
