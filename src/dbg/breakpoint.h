@@ -38,6 +38,7 @@ struct BREAKPOINT
     std::string logCondition;                         // condition to log
     std::string commandText;                          // script command to execute.
     std::string commandCondition;                     // condition to execute the command
+    std::string logFile;                              // file path to log to
     uint32 hitcount;                                  // hit counter
     bool fastResume;                                  // if true, debugger resumes without any GUI/Script/Plugin interaction.
     duint memsize;                                    // memory breakpoint size (not implemented)
@@ -62,6 +63,7 @@ bool BpSetLogText(duint Address, BP_TYPE Type, const char* Log);
 bool BpSetLogCondition(duint Address, BP_TYPE Type, const char* Condition);
 bool BpSetCommandText(duint Address, BP_TYPE Type, const char* Cmd);
 bool BpSetCommandCondition(duint Address, BP_TYPE Type, const char* Condition);
+bool BpSetLogFile(duint Address, BP_TYPE Type, const char* LogFile);
 bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume);
 bool BpSetSingleshoot(duint Address, BP_TYPE Type, bool singleshoot);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base = 0);

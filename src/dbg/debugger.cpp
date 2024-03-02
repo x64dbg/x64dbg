@@ -102,6 +102,44 @@ static TITANCBSTEP gStepIntoPartyCallback;
 HANDLE hDebugLoopThread = nullptr;
 DWORD dwDebugFlags = 0;
 
+struct BreakpointLogFile
+{
+    HANDLE hFile = INVALID_HANDLE_VALUE;
+    bool needsFlush = false;
+};
+
+static std::unordered_map<std::string, BreakpointLogFile> gBreakpointLogFiles;
+
+static BreakpointLogFile & dbgOpenBreakpointLogFile(const std::string & logFile)
+{
+    // TODO: convert filename to lower case?
+
+    auto itr = gBreakpointLogFiles.find(logFile);
+    if(itr != gBreakpointLogFiles.end())
+        return itr->second;
+
+    auto hFile = CreateFileW(
+                     StringUtils::Utf8ToUtf16(logFile).c_str(),
+                     FILE_APPEND_DATA | FILE_GENERIC_READ, FILE_SHARE_READ,
+                     nullptr,
+                     OPEN_ALWAYS,
+                     FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH,
+                     nullptr
+                 );
+    if(hFile != INVALID_HANDLE_VALUE)
+    {
+        SetFilePointer(hFile, 0, nullptr, FILE_END);
+        BreakpointLogFile newFile;
+        newFile.hFile = hFile;
+        return gBreakpointLogFiles.emplace(logFile, newFile).first->second;
+    }
+    else
+    {
+        static BreakpointLogFile invalidLogFile;
+        return invalidLogFile;
+    }
+}
+
 static duint dbgcleartracestate()
 {
     auto steps = traceState.StepCount();
@@ -279,6 +317,15 @@ void cbDebuggerPaused()
     }
     // Watchdog
     cbCheckWatchdog(0, nullptr);
+    // Flush breakpoint logs
+    for(auto & itr : gBreakpointLogFiles)
+    {
+        if(itr.second.needsFlush)
+        {
+            FlushFileBuffers(itr.second.hFile);
+            itr.second.needsFlush = false;
+        }
+    }
 }
 
 void dbginit()
@@ -949,9 +996,34 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
     // Update breakpoint view
     DebugUpdateBreakpointsViewAsync();
 
+    DWORD logFileError = ERROR_SUCCESS;
     if(!bp.logText.empty() && logCondition == 1) //log
     {
-        dprintf_untranslated("%s\n", stringformatinline(bp.logText).c_str());
+        auto formattedText = stringformatinline(bp.logText);
+        if(!bp.logFile.empty())
+        {
+            auto logFile = dbgOpenBreakpointLogFile(bp.logFile);
+            if(logFile.hFile == INVALID_HANDLE_VALUE)
+            {
+                // Pause and display the error
+                breakCondition = 1;
+                logFileError = GetLastError();
+
+                // Show the log in the regular log tab
+                dprintf_untranslated("%s\n", formattedText.c_str());
+            }
+            else
+            {
+                formattedText += "\n";
+                DWORD written = 0;
+                WriteFile(logFile.hFile, formattedText.c_str(), (DWORD)formattedText.length(), &written, nullptr);
+                logFile.needsFlush = true;
+            }
+        }
+        else
+        {
+            dprintf_untranslated("%s\n", formattedText.c_str());
+        }
     }
     if(!bp.commandText.empty() && commandCondition) //command
     {
@@ -979,6 +1051,13 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
     }
     else //resume immediately
         unlock(WAITID_RUN);
+
+    // Make sure the log file error is displayed last
+    if(logFileError != ERROR_SUCCESS)
+    {
+        String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()));
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to open breakpoint log: %s (%s)\n"), bp.logFile.c_str(), error.c_str());
+    }
 
     //wait until the user resumes
     wait(WAITID_RUN);
@@ -2955,6 +3034,13 @@ static void debugLoopFunction(INIT_STRUCT* init)
         DeleteFileW(gDllLoader.c_str());
         gDllLoader.clear();
     }
+
+    // Close the breakpoint log files
+    for(const auto & itr : gBreakpointLogFiles)
+    {
+        CloseHandle(itr.second.hFile);
+    }
+    gBreakpointLogFiles.clear();
 }
 
 void dbgsetdebuggeeinitscript(const char* fileName)

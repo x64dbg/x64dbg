@@ -182,6 +182,7 @@ static void registercommands()
     dbgcmdnew("SetBreakpointLogCondition,bplogcondition", cbDebugSetBPXLogCondition, true); //set breakpoint logCondition
     dbgcmdnew("SetBreakpointCommand", cbDebugSetBPXCommand, true); //set breakpoint command on hit
     dbgcmdnew("SetBreakpointCommandCondition", cbDebugSetBPXCommandCondition, true); //set breakpoint commandCondition
+    dbgcmdnew("SetBreakpointLogFile", cbDebugSetBPXLogFile, true); //set breakpoint logFile
     dbgcmdnew("SetBreakpointFastResume", cbDebugSetBPXFastResume, true); //set breakpoint fast resume
     dbgcmdnew("SetBreakpointSingleshoot", cbDebugSetBPXSingleshoot, true); //set breakpoint singleshoot
     dbgcmdnew("SetBreakpointSilent", cbDebugSetBPXSilent, true); //set breakpoint fast resume
@@ -194,6 +195,7 @@ static void registercommands()
     dbgcmdnew("SetHardwareBreakpointLogCondition,bphwlogcondition", cbDebugSetBPXHardwareLogCondition, true); //set breakpoint logText
     dbgcmdnew("SetHardwareBreakpointCommand", cbDebugSetBPXHardwareCommand, true); //set breakpoint command on hit
     dbgcmdnew("SetHardwareBreakpointCommandCondition", cbDebugSetBPXHardwareCommandCondition, true); //set breakpoint commandCondition
+    dbgcmdnew("SetHardwareBreakpointLogFile", cbDebugSetBPXHardwareLogFile, true); //set breakpoint logFile
     dbgcmdnew("SetHardwareBreakpointFastResume", cbDebugSetBPXHardwareFastResume, true); //set breakpoint fast resume
     dbgcmdnew("SetHardwareBreakpointSingleshoot", cbDebugSetBPXHardwareSingleshoot, true); //set breakpoint singleshoot
     dbgcmdnew("SetHardwareBreakpointSilent", cbDebugSetBPXHardwareSilent, true); //set breakpoint fast resume
@@ -206,6 +208,7 @@ static void registercommands()
     dbgcmdnew("SetMemoryBreakpointLogCondition,bpmlogcondition", cbDebugSetBPXMemoryLogCondition, true); //set breakpoint logCondition
     dbgcmdnew("SetMemoryBreakpointCommand", cbDebugSetBPXMemoryCommand, true); //set breakpoint command on hit
     dbgcmdnew("SetMemoryBreakpointCommandCondition", cbDebugSetBPXMemoryCommandCondition, true); //set breakpoint commandCondition
+    dbgcmdnew("SetMemoryBreakpointLogFile", cbDebugSetBPXMemoryLogFile, true); //set breakpoint logFile
     dbgcmdnew("SetMemoryBreakpointFastResume", cbDebugSetBPXMemoryFastResume, true); //set breakpoint fast resume
     dbgcmdnew("SetMemoryBreakpointSingleshoot", cbDebugSetBPXMemorySingleshoot, true); //set breakpoint singleshoot
     dbgcmdnew("SetMemoryBreakpointSilent", cbDebugSetBPXMemorySilent, true); //set breakpoint fast resume
@@ -218,6 +221,7 @@ static void registercommands()
     dbgcmdnew("SetLibrarianBreakpointLogCondition", cbDebugSetBPXDLLLogCondition, true); //set breakpoint logCondition
     dbgcmdnew("SetLibrarianBreakpointCommand", cbDebugSetBPXDLLCommand, true); //set breakpoint command on hit
     dbgcmdnew("SetLibrarianBreakpointCommandCondition", cbDebugSetBPXDLLCommandCondition, true); //set breakpoint commandCondition
+    dbgcmdnew("SetLibrarianBreakpointLogFile", cbDebugSetBPXDLLLogFile, true); //set breakpoint logFile
     dbgcmdnew("SetLibrarianBreakpointFastResume", cbDebugSetBPXDLLFastResume, true); //set breakpoint fast resume
     dbgcmdnew("SetLibrarianBreakpointSingleshoot", cbDebugSetBPXDLLSingleshoot, true); //set breakpoint singleshoot
     dbgcmdnew("SetLibrarianBreakpointSilent", cbDebugSetBPXDLLSilent, true); //set breakpoint fast resume
@@ -230,6 +234,7 @@ static void registercommands()
     dbgcmdnew("SetExceptionBreakpointLogCondition", cbDebugSetBPXExceptionLogCondition, true); //set breakpoint logCondition
     dbgcmdnew("SetExceptionBreakpointCommand", cbDebugSetBPXExceptionCommand, true); //set breakpoint command on hit
     dbgcmdnew("SetExceptionBreakpointCommandCondition", cbDebugSetBPXExceptionCommandCondition, true); //set breakpoint commandCondition
+    dbgcmdnew("SetExceptionBreakpointLogFile", cbDebugSetBPXExceptionLogFile, true); //set breakpoint logFile
     dbgcmdnew("SetExceptionBreakpointFastResume", cbDebugSetBPXExceptionFastResume, true); //set breakpoint fast resume
     dbgcmdnew("SetExceptionBreakpointSingleshoot", cbDebugSetBPXExceptionSingleshoot, true); //set breakpoint singleshoot
     dbgcmdnew("SetExceptionBreakpointSilent", cbDebugSetBPXExceptionSilent, true); //set breakpoint fast resume

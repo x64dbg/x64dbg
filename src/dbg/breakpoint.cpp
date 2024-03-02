@@ -510,6 +510,21 @@ bool BpSetCommandCondition(duint Address, BP_TYPE Type, const char* Condition)
     return true;
 }
 
+bool BpSetLogFile(duint Address, BP_TYPE Type, const char* LogFile)
+{
+    ASSERT_DEBUGGING("Command function call");
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    // Set breakpoint hit command
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+
+    if(!bpInfo)
+        return false;
+
+    bpInfo->logFile = LogFile;
+    return true;
+}
+
 bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume)
 {
     ASSERT_DEBUGGING("Command function call");
@@ -843,6 +858,7 @@ void BpCacheSave(JSON Root)
         json_object_set_new(jsonObj, "logCondition", json_string(breakpoint.logCondition));
         json_object_set_new(jsonObj, "commandText", json_string(breakpoint.commandText));
         json_object_set_new(jsonObj, "commandCondition", json_string(breakpoint.commandCondition));
+        json_object_set_new(jsonObj, "logFile", json_string(breakpoint.logFile));
         json_object_set_new(jsonObj, "fastResume", json_boolean(breakpoint.fastResume));
         json_object_set_new(jsonObj, "silent", json_boolean(breakpoint.silent));
         json_array_append_new(jsonBreakpoints, jsonObj);
@@ -908,6 +924,7 @@ void BpCacheLoad(JSON Root, bool migrateCommandCondition)
         loadStringValue(value, breakpoint.logCondition, "logCondition");
         loadStringValue(value, breakpoint.commandText, "commandText");
         loadStringValue(value, breakpoint.commandCondition, "commandCondition");
+        loadStringValue(value, breakpoint.logFile, "logFile");
 
         // On 2023-06-10 the default of the command condition was changed from $breakpointcondition to 1
         // If we detect an older database, try to preserve the old behavior.
