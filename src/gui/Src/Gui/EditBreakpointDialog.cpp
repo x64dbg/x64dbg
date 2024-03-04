@@ -3,8 +3,9 @@
 #include "StringUtil.h"
 #include "MiscUtil.h"
 #include "Configuration.h"
+#include "BrowseDialog.h"
 
-EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
+EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const Breakpoints::Data & bp)
     : QDialog(parent),
       ui(new Ui::EditBreakpointDialog),
       mBp(bp)
@@ -16,22 +17,22 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const BRIDGEBP & bp)
     switch(bp.type)
     {
     case bp_dll:
-        setWindowTitle(tr("Edit DLL Breakpoint %1").arg(QString(bp.mod)));
+        setWindowTitle(tr("Edit DLL Breakpoint %1").arg(mBp.module));
         break;
     case bp_normal:
-        setWindowTitle(tr("Edit Breakpoint %1").arg(getSymbolicName(bp.addr)));
+        setWindowTitle(tr("Edit Breakpoint %1").arg(getSymbolicName(mBp.addr)));
         break;
     case bp_hardware:
-        setWindowTitle(tr("Edit Hardware Breakpoint %1").arg(getSymbolicName(bp.addr)));
+        setWindowTitle(tr("Edit Hardware Breakpoint %1").arg(getSymbolicName(mBp.addr)));
         break;
     case bp_memory:
-        setWindowTitle(tr("Edit Memory Breakpoint %1").arg(getSymbolicName(bp.addr)));
+        setWindowTitle(tr("Edit Memory Breakpoint %1").arg(getSymbolicName(mBp.addr)));
         break;
     case bp_exception:
-        setWindowTitle(tr("Edit Exception Breakpoint %1").arg(getSymbolicName(bp.addr)));
+        setWindowTitle(tr("Edit Exception Breakpoint %1").arg(getSymbolicName(mBp.addr)));
         break;
     default:
-        setWindowTitle(tr("Edit Breakpoint %1").arg(getSymbolicName(bp.addr)));
+        setWindowTitle(tr("Edit Breakpoint %1").arg(getSymbolicName(mBp.addr)));
         break;
     }
     setWindowIcon(DIcon("breakpoint"));
@@ -60,13 +61,8 @@ void EditBreakpointDialog::loadFromBp()
     ui->editLogCondition->setText(mBp.logCondition);
     ui->editCommandText->setText(mBp.commandText);
     ui->editCommandCondition->setText(mBp.commandCondition);
-}
-
-template<typename T>
-void copyTruncate(T & dest, QString src)
-{
-    src = DbgCmdEscape(std::move(src));
-    strncpy_s(dest, src.toUtf8().constData(), _TRUNCATE);
+    mLogFile = mBp.logFile;
+    ui->buttonLogFile->setToolTip(mLogFile);
 }
 
 void EditBreakpointDialog::on_editLogText_textEdited(const QString & arg1)
@@ -75,17 +71,34 @@ void EditBreakpointDialog::on_editLogText_textEdited(const QString & arg1)
     ui->checkBoxSilent->setChecked(true);
 }
 
+void EditBreakpointDialog::on_buttonLogFile_clicked()
+{
+    BrowseDialog browse(
+        this,
+        tr("Breakpoint log file"),
+        tr("Enter the path to the log file."),
+        tr("Log Files (*.txt *.log);;All Files (*.*)"),
+        mLogFile.isEmpty() ? getDbPath(mainModuleName() + ".log", false) : mLogFile,
+        true
+    );
+    if(browse.exec() == QDialog::Accepted)
+        mLogFile = browse.path;
+    else
+        mLogFile.clear();
+    ui->buttonLogFile->setToolTip(mLogFile);
+}
+
 void EditBreakpointDialog::acceptedSlot()
 {
-    copyTruncate(mBp.breakCondition, ui->editBreakCondition->text());
-    copyTruncate(mBp.logText, ui->editLogText->text());
-    copyTruncate(mBp.logCondition, ui->editLogCondition->text());
-    copyTruncate(mBp.commandText, ui->editCommandText->text());
-    copyTruncate(mBp.commandCondition, ui->editCommandCondition->text());
-    copyTruncate(mBp.name, ui->editName->text());
-
-    mBp.singleshoot = ui->checkBoxSingleshoot->isChecked();
-    mBp.fastResume = ui->checkBoxFastResume->isChecked();
+    mBp.breakCondition = ui->editBreakCondition->text();
+    mBp.logText = ui->editLogText->text();
+    mBp.logCondition = ui->editLogCondition->text();
+    mBp.commandText = ui->editCommandText->text();
+    mBp.commandCondition = ui->editCommandCondition->text();
+    mBp.name = ui->editName->text();
     mBp.hitCount = ui->spinHitCount->value();
+    mBp.singleshoot = ui->checkBoxSingleshoot->isChecked();
     mBp.silent = ui->checkBoxSilent->isChecked();
+    mBp.fastResume = ui->checkBoxFastResume->isChecked();
+    mBp.logFile = mLogFile;
 }

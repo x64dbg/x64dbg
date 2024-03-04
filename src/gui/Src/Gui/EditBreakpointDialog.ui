@@ -185,6 +185,13 @@
    <item>
     <layout class="QHBoxLayout" name="layoutSaveCancel">
      <item>
+      <widget class="QPushButton" name="buttonLogFile">
+       <property name="text">
+        <string>Log F&amp;ile...</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
