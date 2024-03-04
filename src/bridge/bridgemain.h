@@ -1,14 +1,14 @@
 #ifndef _BRIDGEMAIN_H_
 #define _BRIDGEMAIN_H_
 
-#include <windows.h>
+#include <Windows.h>
 
 #ifndef __cplusplus
 #include <stdbool.h>
 #define DEFAULT_PARAM(name, value) name
 #else
 #define DEFAULT_PARAM(name, value) name = value
-#endif
+#endif // __cplusplus
 
 //default structure alignments forced
 #ifdef _WIN64
@@ -36,7 +36,7 @@ typedef signed long dsint;
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif // __cplusplus
 
 //Bridge defines
 #define MAX_SETTING_SIZE 65536
@@ -147,7 +147,7 @@ BRIDGE_IMPEXP const wchar_t* BridgeUserDirectory();
 
 #ifdef __cplusplus
 }
-#endif
+#endif // __cplusplus
 
 //list structure (and C++ wrapper)
 #include "bridgelist.h"
@@ -157,7 +157,7 @@ BRIDGE_IMPEXP const wchar_t* BridgeUserDirectory();
 #ifdef __cplusplus
 extern "C"
 {
-#endif
+#endif // __cplusplus
 
 //Debugger defines
 #define MAX_LABEL_SIZE 256
@@ -1477,7 +1477,7 @@ BRIDGE_IMPEXP DWORD GuiGetMainThreadId();
 
 #ifdef __cplusplus
 }
-#endif
+#endif // __cplusplus
 
 // Some useful C++ wrapper classes
 #ifdef __cplusplus
