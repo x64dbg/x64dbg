@@ -763,9 +763,9 @@ static void printDllBpInfo(const BREAKPOINT & bp)
         bptype = _strdup("");
     }
     if(!bp.name.empty())
-        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint %s (%s): Module %s\n"), bp.name.c_str(), bptype, bp.mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint %s (%s): Module %s\n"), bp.name.c_str(), bptype, bp.module.c_str());
     else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint (%s): Module %s\n"), bptype, bp.mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint (%s): Module %s\n"), bptype, bp.module.c_str());
     free(bptype);
 }
 
@@ -927,7 +927,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
     EXCLUSIVE_RELEASE();
 
     if(bptype != BPDLL && bptype != BPEXCEPTION)
-        bp.addr += ModBaseFromName(bp.mod);
+        bp.addr += ModBaseFromName(bp.module.c_str());
     bp.active = true; //a breakpoint that has been hit is active
 
     varset("$breakpointcounter", bp.hitcount, true); //save the breakpoint counter as a variable
@@ -1235,7 +1235,7 @@ bool cbSetDLLBreakpoints(const BREAKPOINT* bp)
         return true;
     if(bp->type != BPDLL)
         return true;
-    dbgsetdllbreakpoint(bp->mod, bp->titantype, bp->singleshoot);
+    dbgsetdllbreakpoint(bp->module.c_str(), bp->titantype, bp->singleshoot);
     return true;
 }
 

@@ -1,7 +1,7 @@
-#ifndef _BREAKPOINT_H
-#define _BREAKPOINT_H
+#pragma once
 
 #include "_global.h"
+#include "_dbgfunctions.h"
 #include "jansson/jansson_x64dbg.h"
 
 #define TITANSETDRX(titantype, drx) titantype &= 0x0FF, titantype |= (((drx - UE_DR0) & 0xF) << 8)
@@ -32,7 +32,7 @@ struct BREAKPOINT
     BP_TYPE type;                                     // breakpoint type
     DWORD titantype;                                  // type passed to titanengine
     std::string name;                                 // breakpoint name
-    char mod[MAX_MODULE_SIZE];                        // module name
+    std::string module;                               // module name
     std::string breakCondition;                       // condition to stop. If true, debugger halts.
     std::string logText;                              // text to log.
     std::string logCondition;                         // condition to log
@@ -79,4 +79,17 @@ void BpCacheLoad(JSON Root, bool migrateCommandCondition);
 void BpClear();
 bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo);
 
-#endif // _BREAKPOINT_H
+// New breakpoint API
+
+std::vector<BP_REF> BpRefList();
+bool BpRefVa(BP_REF & Ref, BPXTYPE Type, duint Va);
+bool BpRefRva(BP_REF & Ref, BPXTYPE Type, const char* Module, duint Rva);
+void BpRefDll(BP_REF & Ref, const char* Module);
+void BpRefException(BP_REF & Ref, unsigned int ExceptionCode);
+bool BpRefExists(const BP_REF & Ref);
+
+bool BpGetFieldNumber(const BP_REF & Ref, BP_FIELD Field, duint & Value);
+bool BpSetFieldNumber(const BP_REF & Ref, BP_FIELD Field, duint Value);
+bool BpGetFieldText(const BP_REF & Ref, BP_FIELD Field, std::string & Value);
+bool BpGetFieldText(const BP_REF & Ref, BP_FIELD Field, CBSTRING Callback, void* Userdata);
+bool BpSetFieldText(const BP_REF & Ref, BP_FIELD Field, const char* Value);

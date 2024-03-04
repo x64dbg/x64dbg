@@ -587,4 +587,50 @@ void dbgfunctionsinit()
                 callback(type.name.c_str(), userdata);
         }
     };
+
+    // New breakpoint API
+    _dbgfunctions.BpRefList = [](duint * count)
+    {
+        auto refs = BpRefList();
+        *count = refs.size();
+        auto result = (BP_REF*)BridgeAlloc(refs.size() * sizeof(BP_REF));
+        memcpy(result, refs.data(), refs.size() * sizeof(BP_REF));
+        return result;
+    };
+    _dbgfunctions.BpRefVa = [](BP_REF * ref, BPXTYPE type, duint va)
+    {
+        return BpRefVa(*ref, type, va);
+    };
+    _dbgfunctions.BpRefRva = [](BP_REF * ref, BPXTYPE type, const char* module, duint rva)
+    {
+        return BpRefRva(*ref, type, module, rva);
+    };
+    _dbgfunctions.BpRefDll = [](BP_REF * ref, const char* module)
+    {
+        BpRefDll(*ref, module);
+    };
+    _dbgfunctions.BpRefException = [](BP_REF * ref, unsigned int code)
+    {
+        BpRefException(*ref, code);
+    };
+    _dbgfunctions.BpRefExists = [](const BP_REF * ref)
+    {
+        return BpRefExists(*ref);
+    };
+    _dbgfunctions.BpGetFieldNumber = [](const BP_REF * ref, BP_FIELD field, duint * value)
+    {
+        return BpGetFieldNumber(*ref, field, *value);
+    };
+    _dbgfunctions.BpSetFieldNumber = [](const BP_REF * ref, BP_FIELD field, duint value)
+    {
+        return BpSetFieldNumber(*ref, field, value);
+    };
+    _dbgfunctions.BpGetFieldText = [](const BP_REF * ref, BP_FIELD field, CBSTRING callback, void* userdata)
+    {
+        return BpGetFieldText(*ref, field, callback, userdata);
+    };
+    _dbgfunctions.BpSetFieldText = [](const BP_REF * ref, BP_FIELD field, const char* value)
+    {
+        return BpSetFieldText(*ref, field, value);
+    };
 }
