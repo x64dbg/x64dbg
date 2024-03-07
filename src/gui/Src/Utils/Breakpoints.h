@@ -68,5 +68,5 @@ public:
     static void toggleBPByDisabling(const Data & bp);
     static BPXSTATE BPState(BPXTYPE type, duint va);
     static bool BPTrival(BPXTYPE type, duint va);
-    static bool editBP(BPXTYPE type, const QString & addrText, QWidget* widget, const QString & createCommand = QString());
+    static bool editBP(BPXTYPE type, const QString & module, duint address, QWidget* widget, const QString & createCommand = QString());
 };

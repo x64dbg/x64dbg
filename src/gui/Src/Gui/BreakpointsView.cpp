@@ -639,66 +639,13 @@ void BreakpointsView::editBreakpointSlot()
     if(!isValidBp())
         return;
     const auto & bp = selectedBp();
-    if(bp.type == bp_dll)
+    if(bp.type == bp_dll || bp.type == bp_exception)
     {
-        Breakpoints::editBP(bp_dll, bp.module, this);
-    }
-    else if(bp.active || bp.type == bp_exception)
-    {
-        Breakpoints::editBP(bp.type, ToPtrString(bp.addr), this);
+        Breakpoints::editBP(bp.type, bp.module, bp.addr, this);
     }
     else
     {
-        QString addrText = QString().sprintf("\"%s\":$%X", bp.module, bp.addr);
-        EditBreakpointDialog dialog(this, bp);
-        if(dialog.exec() != QDialog::Accepted)
-            return;
-        auto exec = [](const QString & command)
-        {
-            DbgCmdExecDirect(command);
-        };
-        const auto & newBp = dialog.getBp();
-        switch(bp.type)
-        {
-        case bp_normal:
-            exec(QString("SetBreakpointName %1, \"%2\"").arg(addrText).arg(newBp.name));
-            exec(QString("SetBreakpointCondition %1, \"%2\"").arg(addrText).arg(newBp.breakCondition));
-            exec(QString("SetBreakpointLog %1, \"%2\"").arg(addrText).arg(newBp.logText));
-            exec(QString("SetBreakpointLogCondition %1, \"%2\"").arg(addrText).arg(newBp.logCondition));
-            exec(QString("SetBreakpointCommand %1, \"%2\"").arg(addrText).arg(newBp.commandText));
-            exec(QString("SetBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(newBp.commandCondition));
-            exec(QString("ResetBreakpointHitCount %1, %2").arg(addrText).arg(ToPtrString(newBp.hitCount)));
-            exec(QString("SetBreakpointFastResume %1, %2").arg(addrText).arg(newBp.fastResume));
-            exec(QString("SetBreakpointSilent %1, %2").arg(addrText).arg(newBp.silent));
-            exec(QString("SetBreakpointSingleshoot %1, %2").arg(addrText).arg(newBp.singleshoot));
-            break;
-        case bp_hardware:
-            exec(QString("SetHardwareBreakpointName %1, \"%2\"").arg(addrText).arg(newBp.name));
-            exec(QString("SetHardwareBreakpointCondition %1, \"%2\"").arg(addrText).arg(newBp.breakCondition));
-            exec(QString("SetHardwareBreakpointLog %1, \"%2\"").arg(addrText).arg(newBp.logText));
-            exec(QString("SetHardwareBreakpointLogCondition %1, \"%2\"").arg(addrText).arg(newBp.logCondition));
-            exec(QString("SetHardwareBreakpointCommand %1, \"%2\"").arg(addrText).arg(newBp.commandText));
-            exec(QString("SetHardwareBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(newBp.commandCondition));
-            exec(QString("ResetHardwareBreakpointHitCount %1, %2").arg(addrText).arg(ToPtrString(newBp.hitCount)));
-            exec(QString("SetHardwareBreakpointFastResume %1, %2").arg(addrText).arg(newBp.fastResume));
-            exec(QString("SetHardwareBreakpointSilent %1, %2").arg(addrText).arg(newBp.silent));
-            exec(QString("SetHardwareBreakpointSingleshoot %1, %2").arg(addrText).arg(newBp.singleshoot));
-            break;
-        case bp_memory:
-            exec(QString("SetMemoryBreakpointName %1, \"\"%2\"\"").arg(addrText).arg(newBp.name));
-            exec(QString("SetMemoryBreakpointCondition %1, \"%2\"").arg(addrText).arg(newBp.breakCondition));
-            exec(QString("SetMemoryBreakpointLog %1, \"%2\"").arg(addrText).arg(newBp.logText));
-            exec(QString("SetMemoryBreakpointLogCondition %1, \"%2\"").arg(addrText).arg(newBp.logCondition));
-            exec(QString("SetMemoryBreakpointCommand %1, \"%2\"").arg(addrText).arg(newBp.commandText));
-            exec(QString("SetMemoryBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(newBp.commandCondition));
-            exec(QString("ResetMemoryBreakpointHitCount %1, %2").arg(addrText).arg(ToPtrString(newBp.hitCount)));
-            exec(QString("SetMemoryBreakpointFastResume %1, %2").arg(addrText).arg(newBp.fastResume));
-            exec(QString("SetMemoryBreakpointSilent %1, %2").arg(addrText).arg(newBp.silent));
-            exec(QString("SetMemoryBreakpointSingleshoot %1, %2").arg(addrText).arg(newBp.singleshoot));
-            break;
-        default:
-            break;
-        }
+        Breakpoints::editBP(bp.type, bp.active ? QString() : bp.module, bp.addr, this);
     }
 }
 
@@ -728,9 +675,6 @@ void BreakpointsView::resetHitCountBreakpointSlot()
                 return QString("invalid");
             }
         }());
-        QString cmd;
-
-        DbgCmdExecDirect(cmd);
     }
 }
 
