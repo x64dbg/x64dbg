@@ -168,7 +168,6 @@
     <property name="title">
      <string>&amp;Plugins</string>
     </property>
-    <addaction name="actionScylla"/>
    </widget>
    <widget class="QMenu" name="menuOptions">
     <property name="title">
