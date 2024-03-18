@@ -10,6 +10,9 @@ TraceRegisters::TraceRegisters(QWidget* parent) : RegistersView(parent)
     wCM_CopySIMDRegister = setupAction(DIcon("copy"), tr("Copy floating point value"));
     connect(wCM_CopySIMDRegister, SIGNAL(triggered()), this, SLOT(onCopySIMDRegister()));
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(displayCustomContextMenuSlot(QPoint)));
+
+    wCM_SetCurrentRegister = setupAction(tr("Set as current value"));
+    connect(wCM_SetCurrentRegister, SIGNAL(triggered()), this, SLOT(onSetCurrentRegister()));
 }
 
 void TraceRegisters::setRegisters(REGDUMP* registers)
@@ -64,6 +67,14 @@ void TraceRegisters::displayCustomContextMenuSlot(QPoint pos)
                 menu.addAction(mDisplayMMX);
         }
 
+        if((!mNoChange.contains(mSelected)) ||
+                mSelected == LastError ||
+                mSelected == LastStatus ||
+                mSelected == CIP)
+        {
+            menu.addAction(wCM_SetCurrentRegister);
+        }
+
         menu.exec(this->mapToGlobal(pos));
     }
     else // Right-click on empty space
@@ -99,6 +110,39 @@ void TraceRegisters::onCopySIMDRegister()
         showCopyFloatRegister(128, this, tr("View XMM register"), registerValue(&mRegDumpStruct, mSelected));
     else if(mFPUMMX.contains(mSelected))
         showCopyFloatRegister(64, this, tr("View MMX register"), registerValue(&mRegDumpStruct, mSelected));
+}
+
+void TraceRegisters::onSetCurrentRegister()
+{
+    // map x87st0 to x87r0
+    REGISTER_NAME reg = mSelected;
+    QString regName;
+    duint value;
+    if(reg >= x87st0 && reg <= x87st7)
+        regName = QString().sprintf("st%d", reg - x87st0);
+    else
+        // map "cax" to "eax" or "rax"
+        regName = mRegisterMapping.constFind(reg).value();
+
+    // flags and MFPU need to '_' infront
+    if(mFlags.contains(reg) || mFPU.contains(reg))
+        regName = "_" + regName;
+
+    if(mUINTDISPLAY.contains(reg))
+        value = *((const duint*)registerValue(&mRegDumpStruct, mSelected));
+    else if(mBOOLDISPLAY.contains(reg))
+        value = (duint)(*(const bool*)registerValue(&mRegDumpStruct, mSelected));
+    else if(mUSHORTDISPLAY.contains(reg) || mFIELDVALUE.contains(reg))
+        value = (duint)(*(const unsigned short*)registerValue(&mRegDumpStruct, mSelected));
+    else if(mDWORDDISPLAY.contains(reg))
+        value = (duint)(*(const DWORD*)registerValue(&mRegDumpStruct, mSelected));
+    else if(mFPUXMM.contains(reg) || mFPUYMM.contains(reg) || mFPUMMX.contains(reg) || mFPUx87_80BITSDISPLAY.contains(reg))
+        value = (duint)((const char*)registerValue(&mRegDumpStruct, mSelected));
+    else
+        value = *((const duint*)registerValue(&mRegDumpStruct, mSelected));
+
+    DbgValToString(regName.toUtf8().constData(), value);
+
 }
 
 void TraceRegisters::mouseDoubleClickEvent(QMouseEvent* event)
