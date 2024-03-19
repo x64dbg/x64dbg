@@ -431,8 +431,10 @@ void MemoryMapView::refreshMapSlot()
     MEMMAP memoryMap = {};
     DbgMemMap(&memoryMap);
 
-    setRowCount(memoryMap.count);
+    duint currSelectedAddressRow = (duint)getCellUserdata(getInitialSelection(), ColAddress);
+    bool oldAddressFound = false;
 
+    setRowCount(memoryMap.count);
     auto strUser = tr("User");
     auto strSystem = tr("System");
 
@@ -444,6 +446,11 @@ void MemoryMapView::refreshMapSlot()
         setCellContent(i, ColAddress, ToPtrString((duint)mbi.BaseAddress));
         setCellUserdata(i, ColAddress, (duint)mbi.BaseAddress);
 
+        if((duint)mbi.BaseAddress == currSelectedAddressRow)
+        {
+            oldAddressFound = true;
+            currSelectedAddressRow = i;
+        }
         // Size
         setCellContent(i, ColSize, ToPtrString((duint)mbi.RegionSize));
         setCellUserdata(i, ColSize, (duint)mbi.RegionSize);
@@ -527,6 +534,13 @@ void MemoryMapView::refreshMapSlot()
     if(memoryMap.page != 0)
         BridgeFree(memoryMap.page);
     reloadData(); //refresh memory map
+
+    if(oldAddressFound && currSelectedAddressRow != prevSelectedRow)
+    {
+        setSingleSelection(currSelectedAddressRow);
+        prevSelectedRow = currSelectedAddressRow;
+    }
+
 }
 
 void MemoryMapView::stateChangedSlot(DBGSTATE state)

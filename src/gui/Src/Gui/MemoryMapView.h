@@ -106,4 +106,5 @@ private:
     QMenu* mPluginMenu;
 
     duint mCipBase;
+    int prevSelectedRow;
 };
