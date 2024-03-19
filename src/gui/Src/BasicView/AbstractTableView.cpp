@@ -1,10 +1,10 @@
 #include "AbstractTableView.h"
 #include <QStyleOptionButton>
 #include "Configuration.h"
-#include "ColumnReorderDialog.h"
-#include "CachedFontMetrics.h"
+#include <Gui/ColumnReorderDialog.h>
+#include <Utils/CachedFontMetrics.h>
 #include "Bridge.h"
-#include "MethodInvoker.h"
+#include <Utils/MethodInvoker.h>
 
 AbstractTableScrollBar::AbstractTableScrollBar(QScrollBar* scrollbar)
 {

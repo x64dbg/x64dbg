@@ -1,0 +1,44 @@
+# Reference: https://build-cpp.github.io/cmkr/cmake-toml
+[cmake]
+version = "3.19"
+
+[project]
+name = "cross"
+include-after = ["widgets/Qt.cmake"]
+
+[subdir.widgets]
+
+[subdir.vendor]
+
+[template.qt_executable]
+type = "executable"
+add-function = "qt_executable"
+pass-sources = true
+
+[target.minidump]
+type = "qt_executable"
+sources = [
+    "minidump/*.cpp",
+    "minidump/*.h",
+    "minidump/*.ui",
+    "minidump/*.qrc",
+]
+link-libraries = [
+    "x64dbg::widgets",
+    "cpp-httplib",
+]
+compile-features = ["cxx_std_17"]
+
+[target.remote_table]
+type = "qt_executable"
+sources = [
+    "remote_table/*.cpp",
+    "remote_table/*.h",
+    "remote_table/*.ui",
+    "remote_table/*.qrc",
+    "remote_table/json.hpp",
+]
+link-libraries = [
+    "x64dbg::widgets",
+]
+compile-features = ["cxx_std_17"]

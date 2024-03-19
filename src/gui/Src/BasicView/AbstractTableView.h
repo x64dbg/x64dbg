@@ -9,9 +9,9 @@
 #include <QMenu>
 #include "StringUtil.h"
 #include "Configuration.h"
-#include "MenuBuilder.h"
+#include <Utils/MenuBuilder.h>
 #include "MiscUtil.h"
-#include "ActionHelpers.h"
+#include <Utils/ActionHelpers.h>
 
 class CachedFontMetrics;
 class ColumnReorderDialog;

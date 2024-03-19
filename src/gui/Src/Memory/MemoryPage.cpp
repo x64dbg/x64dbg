@@ -1,4 +1,5 @@
 #include "MemoryPage.h"
+#include <Bridge.h>
 
 MemoryPage::MemoryPage(duint parBase, duint parSize, QObject* parent) : QObject(parent), mBase(0), mSize(0)
 {

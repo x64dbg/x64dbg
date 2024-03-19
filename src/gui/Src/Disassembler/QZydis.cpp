@@ -1,8 +1,8 @@
 #include "QZydis.h"
 #include "StringUtil.h"
-#include "EncodeMap.h"
-#include "CodeFolding.h"
-#include "Bridge.h"
+#include <Utils/EncodeMap.h>
+#include <Utils/CodeFolding.h>
+#include <Bridge.h>
 
 #ifndef _countof
 #define _countof(array) (sizeof(array) / sizeof(array[0]))

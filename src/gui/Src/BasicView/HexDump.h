@@ -1,9 +1,10 @@
 #pragma once
 
 #include "AbstractTableView.h"
-#include "RichTextPainter.h"
-#include "MemoryPage.h"
-#include "VaHistory.h"
+#include <Utils/RichTextPainter.h>
+#include <Memory/MemoryPage.h>
+#include <Utils/VaHistory.h>
+#include <Disassembler/Architecture.h>
 
 class HexDump : public AbstractTableView
 {

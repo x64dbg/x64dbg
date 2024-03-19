@@ -5,14 +5,15 @@ ipch/
 Win32/
 x64/
 release/
-build/
+build*/
+cmake-build*/
 gui_build/
 debug/
 *XE Results*/
 doxygen*/
 doc/
 COV/
-minidump/
+bin/*/minidump/
 CppDependOut/
 .vs/
 .vscode/
@@ -47,6 +48,7 @@ pin.log*
 *.cdproj
 src/gui/Translations/*.qm
 x64dbg.VC.db
+CMakeLists.txt.user
 
 # Project to ignore
 help/x64*dbg.chm

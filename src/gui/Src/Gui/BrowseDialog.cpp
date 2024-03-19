@@ -1,7 +1,7 @@
 #include "BrowseDialog.h"
 #include "ui_BrowseDialog.h"
 #include "MiscUtil.h"
-#include <QDirModel>
+#include <QFileSystemModel>
 #include <QCompleter>
 #include <QFileDialog>
 #include <Configuration.h>
@@ -26,7 +26,7 @@ BrowseDialog::BrowseDialog(QWidget* parent, const QString & title, const QString
         ui->lineEdit->setSelection(lastSlashIdx + 1, periodIdx - lastSlashIdx - 1);
     }
     QCompleter* completer = new QCompleter(ui->lineEdit);
-    completer->setModel(new QDirModel(completer));
+    completer->setModel(new QFileSystemModel(completer));
     ui->lineEdit->setCompleter(completer);
     Config()->loadWindowGeometry(this);
 }

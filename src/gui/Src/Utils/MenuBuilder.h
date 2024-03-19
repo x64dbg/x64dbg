@@ -13,7 +13,7 @@ class MenuBuilder : public QObject
 public:
     typedef std::function<bool(QMenu*)> BuildCallback;
 
-    inline MenuBuilder(QObject* parent, BuildCallback callback = nullptr)
+    explicit MenuBuilder(QObject* parent, BuildCallback callback = nullptr)
         : QObject(parent),
           _callback(callback)
     {
@@ -21,24 +21,24 @@ public:
 
     void loadFromConfig();
 
-    inline void addSeparator()
+    void addSeparator()
     {
         _containers.push_back(Container());
     }
 
-    inline QAction* addAction(QAction* action)
+    QAction* addAction(QAction* action)
     {
         _containers.push_back(Container(action));
         return action;
     }
 
-    inline QAction* addAction(QAction* action, BuildCallback callback)
+    QAction* addAction(QAction* action, BuildCallback callback)
     {
         addBuilder(new MenuBuilder(action->parent(), callback))->addAction(action);
         return action;
     }
 
-    inline QMenu* addMenu(QMenu* menu)
+    QMenu* addMenu(QMenu* menu)
     {
         _containers.push_back(Container(menu));
         return menu;
@@ -48,7 +48,7 @@ public:
 
     QMenu* addMenu(QMenu* submenu, MenuBuilder* builder);
 
-    inline MenuBuilder* addBuilder(MenuBuilder* builder)
+    MenuBuilder* addBuilder(MenuBuilder* builder)
     {
         _containers.push_back(Container(builder));
         return builder;
@@ -63,7 +63,7 @@ public:
 
     bool build(QMenu* menu) const;
 
-    inline bool empty() const
+    bool empty() const
     {
         return _containers.empty();
     }
