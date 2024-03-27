@@ -358,16 +358,16 @@ void CommonActions::editSoftBpActionSlot()
     BPXTYPE bpType = DbgGetBpxTypeAt(selection);
     if((bpType & bp_hardware) == bp_hardware)
     {
-        Breakpoints::editBP(bp_hardware, ToHexString(selection), widgetparent());
+        Breakpoints::editBP(bp_hardware, QString(), selection, widgetparent());
     }
     else if((bpType & bp_normal) == bp_normal)
     {
-        Breakpoints::editBP(bp_normal, ToHexString(selection), widgetparent());
+        Breakpoints::editBP(bp_normal, QString(), selection, widgetparent());
     }
     else
     {
         auto createCommand = QString("bp %1").arg(ToHexString(selection));
-        Breakpoints::editBP(bp_normal, ToHexString(selection), widgetparent(), createCommand);
+        Breakpoints::editBP(bp_normal, QString(), selection, widgetparent(), createCommand);
     }
 }
 

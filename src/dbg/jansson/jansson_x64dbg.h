@@ -23,3 +23,9 @@ unsigned json_int_t json_hex_value(const json_t* hex)
     sscanf_s(hexvalue, "0x%llX", &ret);
     return ret;
 }
+
+static JSON_INLINE
+json_t* json_string(const std::string & str)
+{
+    return json_stringn(str.c_str(), str.length());
+}

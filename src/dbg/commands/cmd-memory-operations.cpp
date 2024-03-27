@@ -182,6 +182,7 @@ bool cbInstrSavedata(int argc, char* argv[])
     if(IsArgumentsLessThan(argc, 4))
         return false;
     duint addr, size;
+    // TODO: allow omitting the size to dump the rest of the region
     if(!valfromstring(argv[2], &addr, false) || !valfromstring(argv[3], &size, false))
         return false;
 

@@ -12,12 +12,14 @@
 
 #else
 
+#include <Windows.h>
+
 #ifdef __GNUC__
 #include "dbghelp/dbghelp.h"
 #else
 #pragma warning(push)
 #pragma warning(disable:4091)
-#include <dbghelp.h>
+#include <DbgHelp.h>
 #pragma warning(pop)
 #endif // __GNUC__
 

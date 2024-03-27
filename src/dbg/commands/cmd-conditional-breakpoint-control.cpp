@@ -59,6 +59,11 @@ static bool cbDebugSetBPXCommandConditionCommon(BP_TYPE Type, int argc, char* ar
     return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "command condition"))), BpSetCommandCondition);
 }
 
+static bool cbDebugSetBPXLogFileCommon(BP_TYPE Type, int argc, char* argv[])
+{
+    return cbDebugSetBPXTextCommon(Type, argc, argv, String(GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "log file"))), BpSetLogFile);
+}
+
 static bool cbDebugSetBPXFastResumeCommon(BP_TYPE Type, int argc, char* argv[])
 {
     BREAKPOINT bp;
@@ -208,6 +213,11 @@ bool cbDebugSetBPXCommandCondition(int argc, char* argv[])
     return cbDebugSetBPXCommandConditionCommon(BPNORMAL, argc, argv);
 }
 
+bool cbDebugSetBPXLogFile(int argc, char* argv[])
+{
+    return cbDebugSetBPXLogFileCommon(BPNORMAL, argc, argv);
+}
+
 bool cbDebugSetBPXFastResume(int argc, char* argv[])
 {
     return cbDebugSetBPXFastResumeCommon(BPNORMAL, argc, argv);
@@ -261,6 +271,11 @@ bool cbDebugSetBPXHardwareCommand(int argc, char* argv[])
 bool cbDebugSetBPXHardwareCommandCondition(int argc, char* argv[])
 {
     return cbDebugSetBPXCommandConditionCommon(BPHARDWARE, argc, argv);
+}
+
+bool cbDebugSetBPXHardwareLogFile(int argc, char* argv[])
+{
+    return cbDebugSetBPXLogFileCommon(BPHARDWARE, argc, argv);
 }
 
 bool cbDebugSetBPXHardwareFastResume(int argc, char* argv[])
@@ -318,6 +333,11 @@ bool cbDebugSetBPXMemoryCommandCondition(int argc, char* argv[])
     return cbDebugSetBPXCommandConditionCommon(BPMEMORY, argc, argv);
 }
 
+bool cbDebugSetBPXMemoryLogFile(int argc, char* argv[])
+{
+    return cbDebugSetBPXLogFileCommon(BPMEMORY, argc, argv);
+}
+
 bool cbDebugSetBPXMemoryFastResume(int argc, char* argv[])
 {
     return cbDebugSetBPXFastResumeCommon(BPMEMORY, argc, argv);
@@ -373,6 +393,11 @@ bool cbDebugSetBPXDLLCommandCondition(int argc, char* argv[])
     return cbDebugSetBPXCommandConditionCommon(BPDLL, argc, argv);
 }
 
+bool cbDebugSetBPXDLLLogFile(int argc, char* argv[])
+{
+    return cbDebugSetBPXLogFileCommon(BPDLL, argc, argv);
+}
+
 bool cbDebugSetBPXDLLFastResume(int argc, char* argv[])
 {
     return cbDebugSetBPXFastResumeCommon(BPDLL, argc, argv);
@@ -426,6 +451,11 @@ bool cbDebugSetBPXExceptionCommand(int argc, char* argv[])
 bool cbDebugSetBPXExceptionCommandCondition(int argc, char* argv[])
 {
     return cbDebugSetBPXCommandConditionCommon(BPEXCEPTION, argc, argv);
+}
+
+bool cbDebugSetBPXExceptionLogFile(int argc, char* argv[])
+{
+    return cbDebugSetBPXLogFileCommon(BPEXCEPTION, argc, argv);
 }
 
 bool cbDebugSetBPXExceptionFastResume(int argc, char* argv[])

@@ -3,7 +3,6 @@
 \brief Implements the global class.
 */
 
-#include <windows.h>
 #include "_global.h"
 #include <objbase.h>
 #include <shlobj.h>

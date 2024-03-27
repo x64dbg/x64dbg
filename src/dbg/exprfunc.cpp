@@ -816,7 +816,7 @@ namespace Exprfunc
 
     bool syscall_name(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
     {
-        *result = ValueString(SyscallToName(argv[0].number));
+        *result = ValueString(SyscallToName((unsigned int)argv[0].number));
         return true;
     }
 
