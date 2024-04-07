@@ -49,6 +49,21 @@ void CallStackView::setupContextMenu()
     {
         return !getCellContent(getInitialSelection(), ColFrom).isEmpty() && isSelectionValid();
     });
+    QAction* loadSymbols = makeAction(DIcon("pdb"), tr("Download Symbols for Module"), SLOT(loadSymbolsSlot()));
+    mMenuBuilder->addAction(loadSymbols, [this](QMenu*)
+    {
+       return isSelectionValid();
+    });
+    QAction* loadSymbolsSingleThread = makeAction(DIcon("pdb"), tr("Download Symbols for All Modules (This Thread)"), SLOT(loadSymbolsSingleThreadSlot()));
+    mMenuBuilder->addAction(loadSymbolsSingleThread, [this](QMenu*)
+    {
+        return isSelectionValid();
+    });
+    QAction* loadSymbolsAllThreads = makeAction(DIcon("pdb"), tr("Download Symbols for All Modules (All Threads)"), SLOT(loadSymbolsAllThreadsSlot()));
+    mMenuBuilder->addAction(loadSymbolsAllThreads, [this](QMenu*)
+    {
+        return isSelectionValid();
+    });
     mFollowFrom->setShortcutContext(Qt::WidgetShortcut);
     mFollowFrom->setShortcut(QKeySequence("enter"));
     connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followFromSlot()));
@@ -263,6 +278,45 @@ void CallStackView::renameThreadSlot()
         return;
 
     DbgCmdExec(QString("setthreadname %1, \"%2\"").arg(ToHexString(threadId)).arg(DbgCmdEscape(threadName)));
+}
+
+void CallStackView::loadSymbolsSlot()
+{
+    char module[MAX_MODULE_SIZE] = "";
+    if(DbgGetModuleAt(getCellUserdata(getInitialSelection(), ColFrom), module))
+        DbgCmdExec(QString("symdownload \"%0\"").arg(module));
+}
+
+void CallStackView::loadSymbolsSingleThreadSlot()
+{
+    char module[MAX_MODULE_SIZE] = "";
+    duint firstRowForThread = 0;
+    const duint threadId = getCellUserdata(getInitialSelection(), ColThread);
+    for (duint row = getInitialSelection(); row > 0; --row)
+    {
+        if (getCellUserdata(row, ColThread) != threadId)
+        {
+            firstRowForThread = row + 1;
+            break;
+        }
+    }
+    for (duint row = firstRowForThread; row < getRowCount(); ++row)
+    {
+        if (getCellUserdata(row, ColThread) != threadId)
+            break;
+        if(DbgGetModuleAt(getCellUserdata(row, ColFrom), module))
+            DbgCmdExec(QString("symdownload \"%0\"").arg(module));
+    }
+}
+
+void CallStackView::loadSymbolsAllThreadsSlot()
+{
+    char module[MAX_MODULE_SIZE] = "";
+    for (duint row = 0; row < getRowCount(); ++row)
+    {
+        if (DbgGetModuleAt(getCellUserdata(row, ColFrom), module))
+            DbgCmdExec(QString("symdownload \"%0\"").arg(module));
+    }
 }
 
 void CallStackView::followInThreadsSlot()
