@@ -178,6 +178,7 @@ void TraceDump::setupContextMenu()
 
 TraceDump::~TraceDump()
 {
+    mMemPage = nullptr; // Let the stack view delete it instead! If both views are trying to delete, it will crash.
 }
 
 void TraceDump::mousePressEvent(QMouseEvent* event)

@@ -11,8 +11,8 @@ class TraceFileReader;
 class TraceFileDumpMemoryPage;
 class TraceInfoBox;
 class TraceDump;
+class TraceStack;
 class TraceFileReader;
-class StdTable;
 
 namespace Ui
 {
@@ -42,7 +42,7 @@ protected:
     TraceDump* mDump;
     TraceRegisters* mGeneralRegs;
     TraceFileDumpMemoryPage* mMemoryPage;
-    StdTable* mOverview;
+    TraceStack* mStack;
 
 private:
     Ui::TraceWidget* ui;

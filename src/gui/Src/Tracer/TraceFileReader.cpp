@@ -592,6 +592,11 @@ void TraceFileReader::purgeLastPage()
         error = true;
         errorMessage = "[TraceFileReader::purgeLastPage] " + QString::fromStdWString(errReason);
     }
+    catch(std::bad_alloc &)
+    {
+        error = true;
+        errorMessage = "[TraceFileReader::purgeLastPage] std::bad_alloc";
+    }
 }
 
 // Extract memory access information of given index into dump object

@@ -3,6 +3,7 @@
 #include "TraceBrowser.h"
 #include "TraceInfoBox.h"
 #include "TraceDump.h"
+#include "TraceStack.h"
 #include "TraceFileReader.h"
 #include "TraceRegisters.h"
 #include "StdTable.h"
@@ -17,17 +18,18 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     mTraceFile = new TraceFileReader(this);
     mTraceFile->Open(fileName);
     mTraceBrowser = new TraceBrowser(mTraceFile, this);
-    mOverview = new StdTable(this);
     mInfo = new TraceInfoBox(this);
     if(!Config()->getBool("Gui", "DisableTraceDump"))
     {
         mMemoryPage = new TraceFileDumpMemoryPage(mTraceFile->getDump(), this);
         mDump = new TraceDump(architecture, mTraceBrowser, mMemoryPage, this);
+        mStack = new TraceStack(architecture, mTraceBrowser, mMemoryPage, this);
     }
     else
     {
         mMemoryPage = nullptr;
         mDump = nullptr;
+        mStack = nullptr;
     }
     mGeneralRegs = new TraceRegisters(this);
     //disasm
@@ -62,30 +64,25 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     int height = mInfo->getHeight();
     ui->mTopLeftLowerFrame->setMinimumHeight(height + 2);
 
-    //dump
     if(mDump)
+    {
+        //dump
         ui->mBotLeftFrameLayout->addWidget(mDump);
 
-    //overview
-    ui->mBotRightFrameLayout->addWidget(mOverview);
+        //stack
+        ui->mBotRightFrameLayout->addWidget(mStack);
+    }
 
-    // TODO: set up overview
-    mOverview->addColumnAt(0, "", true);
-    mOverview->setShowHeader(false);
-    mOverview->setRowCount(4);
-    mOverview->setCellContent(0, 0, "hello");
-    mOverview->setCellContent(1, 0, "world");
-    mOverview->setCellContent(2, 0, "00000000");
-    mOverview->setCellContent(3, 0, "TODO: Draw call stack here");
-    mOverview->hide();
     ui->mTopHSplitter->setSizes(QList<int>({1000, 1}));
     ui->mTopLeftVSplitter->setSizes(QList<int>({1000, 1}));
 
     mTraceBrowser->setAccessibleName(tr("Disassembly"));
-    mOverview->setAccessibleName(tr("Stack"));
     upperScrollArea->setAccessibleName(tr("Registers"));
     if(mDump)
+    {
         mDump->setAccessibleName(tr("Dump"));
+        mStack->setAccessibleName(tr("Stack"));
+    }
     mInfo->setAccessibleName(tr("InfoBox"));
 }
 
@@ -116,6 +113,7 @@ void TraceWidget::traceSelectionChanged(unsigned long long selection)
                 mTraceFile->buildDumpTo(selection); // TODO: sometimes this can be slow // TODO: Is it a good idea to build dump index just when opening the file?
                 mMemoryPage->setSelectedIndex(selection);
                 mDump->reloadData();
+                mStack->reloadData();
             }
         }
         else
@@ -163,6 +161,8 @@ void TraceWidget::parseFinishedSlot()
                 initialAddress = mTraceFile->Registers(0).regcontext.cip;
             }
             mDump->printDumpAt(initialAddress, false, true, true);
+            // Setting the initial address of stack view
+            mStack->printDumpAt(mTraceFile->Registers(0).regcontext.csp, false, true, true);
         }
         mGeneralRegs->setActive(true);
     }
