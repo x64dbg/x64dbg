@@ -80,6 +80,19 @@ public:
         }
     }
 
+    void sortRows(duint column, bool ascending) override
+    {
+        // HACK: when sorting by status, forcefully fill in the text so the sorting works
+        if(column == ColStatus)
+        {
+            for(duint row = 0; row < mData.size(); row++)
+            {
+                mData[row][column].text = getCellContent(row, column);
+            }
+        }
+        StdIconTable::sortRows(column, ascending);
+    }
+
 private:
     MODULESYMBOLSTATUS getStatus(duint r)
     {
