@@ -27,34 +27,21 @@ public:
     void setupContextMenu();
     //void updateFreezeStackAction();
     void printDumpAt(duint parVA, bool select, bool repaint, bool updateTableOffset) override;
+    void reloadData() override;
 
 signals:
     void displayReferencesWidget();
 
 public slots:
     void stackDumpAt(duint addr, duint csp);
-    //void gotoCspSlot();
-    //5void gotoCbpSlot();
+    void gotoCspSlot();
+    void gotoCbpSlot();
     void gotoExpressionSlot();
-    //void gotoPreviousFrameSlot();
-    //void gotoNextFrameSlot();
-    //void gotoFrameBaseSlot();
-    void selectionGet(SELECTIONDATA* selection);
-    void selectionSet(const SELECTIONDATA* selection);
-    void selectionUpdatedSlot();
+    //void selectionUpdatedSlot();
     void followDisasmSlot();
     void followStackSlot();
-    //void binaryEditSlot();
-    //void binaryFillSlot();
     void binaryCopySlot();
-    //void binaryPasteSlot();
-    //void findPattern();
-    //void binaryPasteIgnoreSizeSlot();
-    //void undoSelectionSlot();
-    //void modifySlot();
-    void realignSlot();
     //void freezeStackSlot();
-    //void dbgStateChangedSlot(DBGSTATE state);
     void disasmSelectionChanged(duint parVA);
     void updateSlot();
     void copyPtrColumnSlot();
@@ -62,6 +49,7 @@ public slots:
 
 private:
     TraceFileDumpMemoryPage* mMemoryPage;
+    TraceBrowser* mDisas;
 
     duint mCsp = 0;
     bool bStackFrozen = false;
@@ -69,7 +57,6 @@ private:
     QAction* mFreezeStack;
     QAction* mFollowStack;
     QAction* mFollowDisasm;
-    //QMenu* mPluginMenu;
 
     GotoDialog* mGoto;
     //CPUMultiDump* mMultiDump;

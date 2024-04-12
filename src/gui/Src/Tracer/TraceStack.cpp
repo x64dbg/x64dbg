@@ -2,6 +2,7 @@
 #include "TraceDump.h"
 #include "TraceFileReader.h"
 #include "TraceFileDump.h"
+#include "TraceBrowser.h"
 #include "CPUDump.h"
 #include <QClipboard>
 #include "Configuration.h"
@@ -13,7 +14,7 @@
 #include "GotoDialog.h"
 
 TraceStack::TraceStack(Architecture* architecture, TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, QWidget* parent)
-    : mMemoryPage(memoryPage), HexDump(architecture, parent, memoryPage)
+    : mMemoryPage(memoryPage), mDisas(disas), HexDump(architecture, parent, memoryPage)
 {
     setWindowTitle("Stack");
     setDrawDebugOnly(false);
@@ -49,7 +50,7 @@ TraceStack::TraceStack(Architecture* architecture, TraceBrowser* disas, TraceFil
     mGoto = 0;
 
     // Slots
-    connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
+    //connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
     Initialize();
 }
@@ -75,43 +76,19 @@ void TraceStack::updateFonts()
 
 void TraceStack::setupContextMenu()
 {
-    mMenuBuilder = new MenuBuilder(this, [](QMenu*)
+    mMenuBuilder = new MenuBuilder(this, [this](QMenu*)
     {
-        return DbgIsDebugging();
+        return mMemoryPage->isAvailable();
     });
     mCommonActions = new CommonActions(this, getActionHelperFuncs(), [this]()
     {
         return rvaToVa(getSelectionStart());
     });
 
-    //Realign
-    mMenuBuilder->addAction(makeAction(DIcon("align-stack-pointer"), tr("Align Stack Pointer"), SLOT(realignSlot())), [this](QMenu*)
-    {
-        return (mCsp & (sizeof(duint) - 1)) != 0;
-    });
-
-    // Modify
-    //mMenuBuilder->addAction(makeAction(DIcon("modify"), tr("Modify"), SLOT(modifySlot())));
-
     auto binaryMenu = new MenuBuilder(this);
-
-    //Binary->Edit
-    //binaryMenu->addAction(makeShortcutAction(DIcon("binary_edit"), tr("&Edit"), SLOT(binaryEditSlot()), "ActionBinaryEdit"));
-
-    //Binary->Fill
-    //binaryMenu->addAction(makeShortcutAction(DIcon("binary_fill"), tr("&Fill..."), SLOT(binaryFillSlot()), "ActionBinaryFill"));
-
-    //Binary->Separator
-    //binaryMenu->addSeparator();
 
     //Binary->Copy
     binaryMenu->addAction(makeShortcutAction(DIcon("binary_copy"), tr("&Copy"), SLOT(binaryCopySlot()), "ActionBinaryCopy"));
-
-    //Binary->Paste
-    //binaryMenu->addAction(makeShortcutAction(DIcon("binary_paste"), tr("&Paste"), SLOT(binaryPasteSlot()), "ActionBinaryPaste"));
-
-    //Binary->Paste (Ignore Size)
-    //binaryMenu->addAction(makeShortcutAction(DIcon("binary_paste_ignoresize"), tr("Paste (&Ignore Size)"), SLOT(binaryPasteIgnoreSizeSlot()), "ActionBinaryPasteIgnoreSize"));
 
     mMenuBuilder->addMenu(makeMenu(DIcon("binary"), tr("B&inary")), binaryMenu);
 
@@ -132,103 +109,16 @@ void TraceStack::setupContextMenu()
 
     mMenuBuilder->addMenu(makeMenu(DIcon("copy"), tr("&Copy")), copyMenu);
 
-    //Breakpoint (hardware access) menu
-    auto hardwareAccessMenu = makeMenu(DIcon("breakpoint_access"), tr("Hardware, Access"));
-    hardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_byte"), tr("&Byte"), "bphws $, r, 1"));
-    hardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_word"), tr("&Word"), "bphws $, r, 2"));
-    hardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_dword"), tr("&Dword"), "bphws $, r, 4"));
-#ifdef _WIN64
-    hardwareAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_qword"), tr("&Qword"), "bphws $, r, 8"));
-#endif //_WIN64
-
-    //Breakpoint (hardware write) menu
-    auto hardwareWriteMenu = makeMenu(DIcon("breakpoint_write"), tr("Hardware, Write"));
-    hardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_byte"), tr("&Byte"), "bphws $, w, 1"));
-    hardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_word"), tr("&Word"), "bphws $, w, 2"));
-    hardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_dword"), tr("&Dword"), "bphws $, w, 4"));
-#ifdef _WIN64
-    hardwareWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_qword"), tr("&Qword"), "bphws $, r, 8"));
-#endif //_WIN64
-
-    //Breakpoint (remove hardware)
-    auto hardwareRemove = mCommonActions->makeCommandAction(DIcon("breakpoint_remove"), tr("Remove &Hardware"), "bphwc $");
-
-    //Breakpoint (memory access) menu
-    auto memoryAccessMenu = makeMenu(DIcon("breakpoint_memory_access"), tr("Memory, Access"));
-    memoryAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), "bpm $, 0, a"));
-    memoryAccessMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), "bpm $, 1, a"));
-
-    //Breakpoint (memory write) menu
-    auto memoryWriteMenu = makeMenu(DIcon("breakpoint_memory_write"), tr("Memory, Write"));
-    memoryWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_singleshoot"), tr("&Singleshoot"), "bpm $, 0, w"));
-    memoryWriteMenu->addAction(mCommonActions->makeCommandAction(DIcon("breakpoint_memory_restore_on_hit"), tr("&Restore on hit"), "bpm $, 1, w"));
-
-    //Breakpoint (remove memory) menu
-    auto memoryRemove = mCommonActions->makeCommandAction(DIcon("breakpoint_remove"), tr("Remove &Memory"), "bpmc $");
-
-    //Breakpoint menu
-    auto breakpointMenu = new MenuBuilder(this);
-
-    //Breakpoint menu
-    breakpointMenu->addBuilder(new MenuBuilder(this, [ = ](QMenu * menu)
-    {
-        duint selectedAddr = rvaToVa(getInitialSelection());
-        if(DbgGetBpxTypeAt(selectedAddr) & bp_hardware) //hardware breakpoint set
-        {
-            menu->addAction(hardwareRemove);
-        }
-        else //memory breakpoint not set
-        {
-            menu->addMenu(hardwareAccessMenu);
-            menu->addMenu(hardwareWriteMenu);
-        }
-
-        menu->addSeparator();
-
-        if(DbgGetBpxTypeAt(selectedAddr) & bp_memory) //memory breakpoint set
-        {
-            menu->addAction(memoryRemove);
-        }
-        else //memory breakpoint not set
-        {
-            menu->addMenu(memoryAccessMenu);
-            menu->addMenu(memoryWriteMenu);
-        }
-        return true;
-    }));
-    mMenuBuilder->addMenu(makeMenu(DIcon("breakpoint"), tr("Brea&kpoint")), breakpointMenu);
-
-    // Restore Selection
-    //mMenuBuilder->addAction(makeShortcutAction(DIcon("eraser"), tr("&Restore selection"), SLOT(undoSelectionSlot()), "ActionUndoSelection"), [this](QMenu*)
-    //{
-    //    dsint start = rvaToVa(getSelectionStart());
-    //    dsint end = rvaToVa(getSelectionEnd());
-    //    return DbgFunctions()->PatchInRange(start, end);
-    //});
-
-    //Find Pattern
-    //mMenuBuilder->addAction(makeShortcutAction(DIcon("search-for"), tr("&Find Pattern..."), SLOT(findPattern()), "ActionFindPattern"));
+    //TODO: Find Pattern
 
     //Follow CSP
-    //mMenuBuilder->addAction(makeShortcutAction(DIcon("neworigin"), ArchValue(tr("Follow E&SP"), tr("Follow R&SP")), SLOT(gotoCspSlot()), "ActionGotoOrigin"));
-    //mMenuBuilder->addAction(makeShortcutAction(DIcon("cbp"), ArchValue(tr("Follow E&BP"), tr("Follow R&BP")), SLOT(gotoCbpSlot()), "ActionGotoCBP"), [](QMenu*)
-    //{
-    //    return DbgMemIsValidReadPtr(DbgValFromString("cbp"));
-    //});
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("neworigin"), ArchValue(tr("Follow E&SP"), tr("Follow R&SP")), SLOT(gotoCspSlot()), "ActionGotoOrigin"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("cbp"), ArchValue(tr("Follow E&BP"), tr("Follow R&BP")), SLOT(gotoCbpSlot()), "ActionGotoCBP"));
 
     auto gotoMenu = new MenuBuilder(this);
 
     //Go to Expression
     gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto"), tr("Go to &Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
-
-    //Go to Base of Stack Frame
-    //gotoMenu->addAction(makeShortcutAction(DIcon("neworigin"), tr("Go to Base of Stack Frame"), SLOT(gotoFrameBaseSlot()), "ActionGotoBaseOfStackFrame"));
-
-    //Go to Previous Frame
-    //gotoMenu->addAction(makeShortcutAction(DIcon("previous"), tr("Go to Previous Stack Frame"), SLOT(gotoPreviousFrameSlot()), "ActionGotoPrevStackFrame"));
-
-    //Go to Next Frame
-    //gotoMenu->addAction(makeShortcutAction(DIcon("next"), tr("Go to Next Stack Frame"), SLOT(gotoNextFrameSlot()), "ActionGotoNextStackFrame"));
 
     //Go to Previous
     gotoMenu->addAction(makeShortcutAction(DIcon("previous"), tr("Go to Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
@@ -277,22 +167,7 @@ void TraceStack::setupContextMenu()
         return DbgMemRead(rvaToVa(getInitialSelection()), (unsigned char*)&ptr, sizeof(ptr)) && DbgMemIsValidReadPtr(ptr);
     });
 
-    //Follow PTR in Dump
-    auto followDumpName = ArchValue(tr("Follow DWORD in &Dump"), tr("Follow QWORD in &Dump"));
-
-    mCommonActions->build(mMenuBuilder, CommonActions::ActionDumpN | CommonActions::ActionWatch);
     mMenuBuilder->addAction(makeAction("Edit columns...", SLOT(editColumnDialog())));
-
-    //mPluginMenu = new QMenu(this);
-    //Bridge::getBridge()->emitMenuAddToList(this, mPluginMenu, GUI_STACK_MENU);
-
-    //mMenuBuilder->addSeparator();
-    //mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
-    //{
-    //    DbgMenuPrepare(GUI_STACK_MENU);
-    //    menu->addActions(mPluginMenu->actions());
-    //    return true;
-    //}));
 
     mMenuBuilder->loadFromConfig();
     disconnect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
@@ -362,6 +237,12 @@ void TraceStack::getColumnRichText(duint col, duint rva, RichTextPainter::List &
     }
     else
         HexDump::getColumnRichText(col, rva, richText);
+}
+
+void TraceStack::reloadData()
+{
+    mCsp = mDisas->getTraceFile()->Registers(mDisas->getInitialSelection()).regcontext.csp;
+    HexDump::reloadData();
 }
 
 QString TraceStack::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
@@ -634,112 +515,57 @@ void TraceStack::disasmSelectionChanged(duint parVA)
 }
 
 // TODO
-//void TraceStack::gotoCspSlot()
-//{
-//DbgCmdExec("sdump csp");
-//}
+void TraceStack::gotoCspSlot()
+{
+    if(getInitialSelection() != mCsp)
+        stackDumpAt(mCsp, mCsp);
+}
 
-//void TraceStack::gotoCbpSlot()
-//{
-//DbgCmdExec("sdump cbp");
-//}
-
-//int TraceStack::getCurrentFrame(const std::vector<TraceStack::CPUCallStack> & mCallstack, duint va)
-//{
-//if(mCallstack.size())
-//for(size_t i = 0; i < mCallstack.size() - 1; i++)
-//if(va >= mCallstack[i].addr && va < mCallstack[i + 1].addr)
-//return int(i);
-//return -1;
-//}
-
-//void TraceStack::gotoFrameBaseSlot()
-//{
-//int frame = getCurrentFrame(mCallstack, rvaToVa(getInitialSelection()));
-//if(frame != -1)
-//DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[frame].addr)));
-//}
-
-//void TraceStack::gotoNextFrameSlot()
-//{
-//int frame = getCurrentFrame(mCallstack, rvaToVa(getInitialSelection()));
-//if(frame != -1 && frame + 1 < int(mCallstack.size()))
-//DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[frame + 1].addr)));
-//}
-
-//void TraceStack::gotoPreviousFrameSlot()
-//{
-//int frame = getCurrentFrame(mCallstack, rvaToVa(getInitialSelection()));
-//if(frame > 0)
-//DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[frame - 1].addr)));
-//}
+void TraceStack::gotoCbpSlot()
+{
+    stackDumpAt(mDisas->getTraceFile()->Registers(mDisas->getInitialSelection()).regcontext.cbp, mCsp);
+}
 
 void TraceStack::gotoExpressionSlot()
 {
-    if(!DbgIsDebugging())
+    if(!mMemoryPage->isAvailable())
         return;
-    duint size = 0;
-    duint base = DbgMemFindBaseAddr(mCsp, &size);
     if(!mGoto)
-        mGoto = new GotoDialog(this);
-    mGoto->validRangeStart = base;
-    mGoto->validRangeEnd = base + size;
+        mGoto = new GotoDialog(this, false, true, true);
+    //TODO: Address validation doesn't work for now
     mGoto->setWindowTitle(tr("Enter expression to follow in Stack..."));
     mGoto->setInitialExpression(ToPtrString(rvaToVa(getInitialSelection())));
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
-        DbgCmdExec(QString().sprintf("sdump %p", value));
+        stackDumpAt(value, mCsp);
     }
 }
 
-void TraceStack::selectionGet(SELECTIONDATA* selection)
-{
-    selection->start = rvaToVa(getSelectionStart());
-    selection->end = rvaToVa(getSelectionEnd());
-    Bridge::getBridge()->setResult(BridgeResult::SelectionGet, 1);
-}
-
-void TraceStack::selectionSet(const SELECTIONDATA* selection)
-{
-    dsint selMin = mMemPage->getBase();
-    dsint selMax = selMin + mMemPage->getSize();
-    dsint start = selection->start;
-    dsint end = selection->end;
-    if(start < selMin || start >= selMax || end < selMin || end >= selMax) //selection out of range
-    {
-        Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 0);
-        return;
-    }
-    setSingleSelection(start - selMin);
-    expandSelectionUpTo(end - selMin);
-    reloadData();
-    Bridge::getBridge()->setResult(BridgeResult::SelectionSet, 1);
-}
-void TraceStack::selectionUpdatedSlot()
-{
-    duint selectedData;
-    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
-        if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
-        {
-            duint stackBegin = mMemPage->getBase();
-            duint stackEnd = stackBegin + mMemPage->getSize();
-            if(selectedData >= stackBegin && selectedData < stackEnd) //data is a pointer to stack address
-            {
-                disconnect(SIGNAL(enterPressedSignal()));
-                connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followStackSlot()));
-                mFollowDisasm->setShortcut(QKeySequence(""));
-                mFollowStack->setShortcut(QKeySequence("enter"));
-            }
-            else
-            {
-                disconnect(SIGNAL(enterPressedSignal()));
-                connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisasmSlot()));
-                mFollowStack->setShortcut(QKeySequence(""));
-                mFollowDisasm->setShortcut(QKeySequence("enter"));
-            }
-        }
-}
+//void TraceStack::selectionUpdatedSlot()
+//{
+//    duint selectedData;
+//    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
+//        if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
+//        {
+//            duint stackBegin = mMemPage->getBase();
+//            duint stackEnd = stackBegin + mMemPage->getSize();
+//            if(selectedData >= stackBegin && selectedData < stackEnd) //data is a pointer to stack address
+//            {
+//                disconnect(SIGNAL(enterPressedSignal()));
+//                connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followStackSlot()));
+//                mFollowDisasm->setShortcut(QKeySequence(""));
+//                mFollowStack->setShortcut(QKeySequence("enter"));
+//            }
+//            else
+//            {
+//                disconnect(SIGNAL(enterPressedSignal()));
+//                connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisasmSlot()));
+//                mFollowStack->setShortcut(QKeySequence(""));
+//                mFollowDisasm->setShortcut(QKeySequence("enter"));
+//            }
+//        }
+//}
 
 void TraceStack::followDisasmSlot()
 {
@@ -756,11 +582,10 @@ void TraceStack::followStackSlot()
 {
     duint selectedData;
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
-        if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
-        {
-            QString addrText = ToPtrString(selectedData);
-            DbgCmdExec(QString("sdump " + addrText));
-        }
+        //if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
+        //{
+        stackDumpAt(selectedData, mCsp);
+    //}
 }
 
 void TraceStack::binaryCopySlot()
@@ -773,17 +598,6 @@ void TraceStack::binaryCopySlot()
     hexEdit.mHexEdit->setData(QByteArray((const char*)data, selSize));
     delete [] data;
     Bridge::CopyToClipboard(hexEdit.mHexEdit->pattern(true));
-}
-
-void TraceStack::realignSlot()
-{
-#ifdef _WIN64
-    mCsp &= ~0x7;
-#else //x86
-    mCsp &= ~0x3;
-#endif //_WIN64
-    DbgValToString("csp", mCsp);
-    GuiUpdateAllViews();
 }
 
 void TraceStack::copyPtrColumnSlot()
