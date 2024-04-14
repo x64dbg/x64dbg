@@ -23,6 +23,7 @@ protected slots:
     void showSuspectedCallStackSlot();
     void followInThreadsSlot();
     void renameThreadSlot();
+    void loadSymbolsForThreadSlot();
 
 private:
     enum
