@@ -11,7 +11,9 @@
 #endif
 #define WINVER _WIN32_WINNT
 
+#ifndef _WIN32_IE
 #define _WIN32_IE 0x0500
+#endif //_WIN32_IE
 
 // Allow including Windows.h without bringing in a redefined and outdated subset of NTSTATUSes.
 // To get NTSTATUS defines, #undef WIN32_NO_STATUS after Windows.h and then #include <ntstatus.h>

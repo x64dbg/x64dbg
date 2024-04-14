@@ -17,7 +17,7 @@ RtlGetLastNtStatus(
 #pragma comment(lib, "..\\dbg\\ntdll\\ntdll_x86.lib")
 #endif // _WIN64
 
-int WinMain(
+int WINAPI WinMain(
     HINSTANCE hInstance,
     HINSTANCE hPrevInstance,
     LPSTR     lpCmdLine,
