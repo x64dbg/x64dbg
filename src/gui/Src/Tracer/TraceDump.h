@@ -28,12 +28,13 @@ public:
 signals:
     void displayReferencesWidget();
     void showDisassemblyTab(duint selectionStart, duint selectionEnd, duint firstAddress);
+    void xrefSignal(duint addr);
 
 public slots:
     void gotoExpressionSlot();
     //void gotoFileOffsetSlot();
-    void gotoStartSlot();
-    void gotoEndSlot();
+    //void gotoStartSlot();
+    //void gotoEndSlot();
     //void gotoPreviousReferenceSlot();
     //void gotoNextReferenceSlot();
 
@@ -79,6 +80,8 @@ public slots:
     void selectionUpdatedSlot();
     //void syncWithExpressionSlot();//TODO: Do we really need to sync with expression here?
 
+    void gotoXrefSlot();
+
     void headerButtonReleasedSlot(duint colIndex);
 
 private:
@@ -92,7 +95,7 @@ private:
 
     GotoDialog* mGoto = nullptr;
     GotoDialog* mGotoOffset = nullptr;
-    //TraceBrowser* mDisas;
+    TraceBrowser* mDisas;
     //CPUMultiDump* mMultiDump;
     int mAsciiSeparator = 0;
 

@@ -13,6 +13,7 @@ class TraceInfoBox;
 class TraceDump;
 class TraceStack;
 class TraceFileReader;
+class TraceXrefBrowseDialog;
 
 namespace Ui
 {
@@ -34,6 +35,7 @@ protected slots:
     void traceSelectionChanged(unsigned long long selection);
     void parseFinishedSlot();
     void closeFileSlot();
+    void xrefSlot(duint addr);
 
 protected:
     TraceFileReader* mTraceFile;
@@ -43,6 +45,7 @@ protected:
     TraceRegisters* mGeneralRegs;
     TraceFileDumpMemoryPage* mMemoryPage;
     TraceStack* mStack;
+    TraceXrefBrowseDialog* mXrefDlg;
 
 private:
     Ui::TraceWidget* ui;

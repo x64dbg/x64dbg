@@ -6,6 +6,7 @@
 #include "TraceStack.h"
 #include "TraceFileReader.h"
 #include "TraceRegisters.h"
+#include "TraceXrefBrowseDialog.h"
 #include "StdTable.h"
 #include "CPUInfoBox.h"
 
@@ -24,12 +25,14 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
         mMemoryPage = new TraceFileDumpMemoryPage(mTraceFile->getDump(), this);
         mDump = new TraceDump(architecture, mTraceBrowser, mMemoryPage, this);
         mStack = new TraceStack(architecture, mTraceBrowser, mMemoryPage, this);
+        mXrefDlg = nullptr;
     }
     else
     {
         mMemoryPage = nullptr;
         mDump = nullptr;
         mStack = nullptr;
+        mXrefDlg = nullptr;
     }
     mGeneralRegs = new TraceRegisters(this);
     //disasm
@@ -68,9 +71,11 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     {
         //dump
         ui->mBotLeftFrameLayout->addWidget(mDump);
+        connect(mDump, SIGNAL(xrefSignal(duint)), this, SLOT(xrefSlot(duint)));
 
         //stack
         ui->mBotRightFrameLayout->addWidget(mStack);
+        connect(mStack, SIGNAL(xrefSignal(duint)), this, SLOT(xrefSlot(duint)));
     }
 
     ui->mTopHSplitter->setSizes(QList<int>({1000, 1}));
@@ -120,6 +125,17 @@ void TraceWidget::traceSelectionChanged(unsigned long long selection)
             memset(&registers, 0, sizeof(registers));
     }
     mGeneralRegs->setRegisters(&registers);
+}
+
+void TraceWidget::xrefSlot(duint addr)
+{
+    if(!mXrefDlg)
+        mXrefDlg = new TraceXrefBrowseDialog(this);
+    mXrefDlg->setup(mTraceBrowser->getInitialSelection(), addr, mTraceFile, [this](duint addr)
+    {
+        mTraceBrowser->gotoIndexSlot(addr);
+    });
+    mXrefDlg->showNormal();
 }
 
 void TraceWidget::parseFinishedSlot()

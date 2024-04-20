@@ -31,12 +31,14 @@ public:
 
 signals:
     void displayReferencesWidget();
+    void xrefSignal(duint addr);
 
 public slots:
     void stackDumpAt(duint addr, duint csp);
     void gotoCspSlot();
     void gotoCbpSlot();
     void gotoExpressionSlot();
+    void gotoXrefSlot();
     //void selectionUpdatedSlot();
     void followDisasmSlot();
     void followStackSlot();

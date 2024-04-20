@@ -316,6 +316,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     insertMenuBuilderBools(&guiBool, "TraceBrowser", 50); //TraceBrowser
     insertMenuBuilderBools(&guiBool, "TraceDump", 50); //Trace Dump
     insertMenuBuilderBools(&guiBool, "TraceStack", 50); //Trace Stack
+    insertMenuBuilderBools(&guiBool, "TraceXrefBrowseDialog", 50); //TraceXrefBrowseDialog
     defaultBools.insert("Gui", guiBool);
 
     QMap<QString, duint> guiUint;

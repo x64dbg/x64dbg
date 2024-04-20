@@ -17,7 +17,7 @@
 
 TraceDump::TraceDump(Architecture* architecture, TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, QWidget* parent) : mMemoryPage(memoryPage), HexDump(architecture, parent, memoryPage)
 {
-    //mDisas = disas; //TODO: unused
+    mDisas = disas;
     setDrawDebugOnly(false);
     //mMultiDump = multiDump;
 
@@ -92,11 +92,11 @@ void TraceDump::setupContextMenu()
     MenuBuilder* wGotoMenu = new MenuBuilder(this);
     wGotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto"), tr("&Expression"), SLOT(gotoExpressionSlot()), "ActionGotoExpression"));
     //wGotoMenu->addAction(makeShortcutAction(DIcon("fileoffset"), tr("File Offset"), SLOT(gotoFileOffsetSlot()), "ActionGotoFileOffset"));
-    wGotoMenu->addAction(makeShortcutAction(DIcon("top"), tr("Start of Page"), SLOT(gotoStartSlot()), "ActionGotoStart"), [this](QMenu*)
-    {
-        return getSelectionStart() != 0;
-    });
-    wGotoMenu->addAction(makeShortcutAction(DIcon("bottom"), tr("End of Page"), SLOT(gotoEndSlot()), "ActionGotoEnd"));
+    //wGotoMenu->addAction(makeShortcutAction(DIcon("top"), tr("Start of Page"), SLOT(gotoStartSlot()), "ActionGotoStart"), [this](QMenu*)
+    //{
+    //    return getSelectionStart() != 0;
+    //});
+    //wGotoMenu->addAction(makeShortcutAction(DIcon("bottom"), tr("End of Page"), SLOT(gotoEndSlot()), "ActionGotoEnd"));
     wGotoMenu->addAction(makeShortcutAction(DIcon("previous"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
         return mHistory.historyHasPrev();
@@ -106,6 +106,7 @@ void TraceDump::setupContextMenu()
         return mHistory.historyHasNext();
     });
     mMenuBuilder->addMenu(makeMenu(DIcon("goto"), tr("&Go to")), wGotoMenu);
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs"), tr("xrefs..."), SLOT(gotoXrefSlot()), "ActionXrefs"));
     mMenuBuilder->addSeparator();
 
     MenuBuilder* wHexMenu = new MenuBuilder(this);
@@ -393,16 +394,21 @@ void TraceDump::gotoExpressionSlot()
 //...
 //}
 
-void TraceDump::gotoStartSlot()
-{
-    duint dest = mMemPage->getBase();
-    this->printDumpAt(dest, true, true, true);
-}
+//void TraceDump::gotoStartSlot()
+//{
+//    duint dest = mMemPage->getBase();
+//    this->printDumpAt(dest, true, true, true);
+//}
 
-void TraceDump::gotoEndSlot()
+//void TraceDump::gotoEndSlot()
+//{
+//    duint dest = mMemPage->getBase() + mMemPage->getSize() - (getViewableRowsCount() * getBytePerRowCount());
+//    this->printDumpAt(dest, true, true, true);
+//}
+
+void TraceDump::gotoXrefSlot()
 {
-    duint dest = mMemPage->getBase() + mMemPage->getSize() - (getViewableRowsCount() * getBytePerRowCount());
-    this->printDumpAt(dest, true, true, true);
+    emit xrefSignal(rvaToVa(getInitialSelection()));
 }
 
 void TraceDump::hexAsciiSlot()

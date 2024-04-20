@@ -134,27 +134,29 @@ void TraceStack::setupContextMenu()
 
     mMenuBuilder->addMenu(makeMenu(DIcon("goto"), tr("&Go to")), gotoMenu);
 
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs"), tr("xrefs..."), SLOT(gotoXrefSlot()), "ActionXrefs"));
+
     //Freeze the stack
     //mMenuBuilder->addAction(mFreezeStack = makeShortcutAction(DIcon("freeze"), tr("Freeze the stack"), SLOT(freezeStackSlot()), "ActionFreezeStack"));
     //mFreezeStack->setCheckable(true);
 
     //Follow in Memory Map
-    mCommonActions->build(mMenuBuilder, CommonActions::ActionMemoryMap | CommonActions::ActionDump | CommonActions::ActionDumpData);
+    //mCommonActions->build(mMenuBuilder, CommonActions::ActionMemoryMap | CommonActions::ActionDump | CommonActions::ActionDumpData);
 
     //Follow in Stack
-    auto followStackName = ArchValue(tr("Follow DWORD in &Stack"), tr("Follow QWORD in &Stack"));
-    mFollowStack = makeAction(DIcon("stack"), followStackName, SLOT(followStackSlot()));
-    mFollowStack->setShortcutContext(Qt::WidgetShortcut);
-    mFollowStack->setShortcut(QKeySequence("enter"));
-    mMenuBuilder->addAction(mFollowStack, [this](QMenu*)
-    {
-        duint ptr;
-        if(!DbgMemRead(rvaToVa(getInitialSelection()), (unsigned char*)&ptr, sizeof(ptr)))
-            return false;
-        duint stackBegin = mMemPage->getBase();
-        duint stackEnd = stackBegin + mMemPage->getSize();
-        return ptr >= stackBegin && ptr < stackEnd;
-    });
+    //auto followStackName = ArchValue(tr("Follow DWORD in &Stack"), tr("Follow QWORD in &Stack"));
+    //mFollowStack = makeAction(DIcon("stack"), followStackName, SLOT(followStackSlot()));
+    //mFollowStack->setShortcutContext(Qt::WidgetShortcut);
+    //mFollowStack->setShortcut(QKeySequence("enter"));
+    //mMenuBuilder->addAction(mFollowStack, [this](QMenu*)
+    //{
+    //    duint ptr;
+    //    if(!DbgMemRead(rvaToVa(getInitialSelection()), (unsigned char*)&ptr, sizeof(ptr)))
+    //        return false;
+    //    duint stackBegin = mMemPage->getBase();
+    //    duint stackEnd = stackBegin + mMemPage->getSize();
+    //    return ptr >= stackBegin && ptr < stackEnd;
+    //});
 
     //Follow in Disassembler
     auto disasmIcon = DIcon(ArchValue("processor32", "processor64"));
@@ -586,6 +588,11 @@ void TraceStack::followStackSlot()
         //{
         stackDumpAt(selectedData, mCsp);
     //}
+}
+
+void TraceStack::gotoXrefSlot()
+{
+    emit xrefSignal(rvaToVa(getInitialSelection()));
 }
 
 void TraceStack::binaryCopySlot()
