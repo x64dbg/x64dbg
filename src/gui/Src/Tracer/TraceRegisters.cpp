@@ -67,10 +67,10 @@ void TraceRegisters::displayCustomContextMenuSlot(QPoint pos)
                 menu.addAction(mDisplayMMX);
         }
 
-        if((!mNoChange.contains(mSelected)) ||
+        if(((!mNoChange.contains(mSelected)) ||
                 mSelected == LastError ||
                 mSelected == LastStatus ||
-                mSelected == CIP)
+                mSelected == CIP) && DbgIsDebugging())
         {
             menu.addAction(wCM_SetCurrentRegister);
         }

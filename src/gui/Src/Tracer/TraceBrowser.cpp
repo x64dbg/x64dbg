@@ -882,6 +882,11 @@ void TraceBrowser::setupRightClickContextMenu()
     });
     mMenuBuilder->addMenu(makeMenu(DIcon("goto"), tr("Go to")), gotoMenu);
 
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs"), tr("xrefs..."), SLOT(gotoXrefSlot()), "ActionXrefs"), [this](QMenu*)
+    {
+        return !Config()->getBool("Gui", "DisableTraceDump"); // Do not show xrefs when dump is disabled
+    });
+
     MenuBuilder* searchMenu = new MenuBuilder(this, mTraceFileNotNull);
     searchMenu->addAction(makeAction(DIcon("search_for_constant"), tr("Address/Constant"), SLOT(searchConstantSlot())));
     searchMenu->addAction(makeAction(DIcon("memory-map"), tr("Memory Reference"), SLOT(searchMemRefSlot())));
@@ -940,9 +945,12 @@ void TraceBrowser::setupRightClickContextMenu()
         }
         return true;
     });
-    mMenuBuilder->addAction(makeAction(DIcon("close"), tr("Close recording"), SLOT(closeFileSlot())), mTraceFileNotNull);
-    mMenuBuilder->addAction(makeAction(DIcon("delete"), tr("Delete recording"), SLOT(closeDeleteSlot())), mTraceFileNotNull);
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("browseinexplorer"), tr("Browse in Explorer"), SLOT(browseInExplorerSlot()), "ActionBrowseInExplorer"), mTraceFileNotNull);
+    mMenuBuilder->addAction(makeAction(DIcon("close"), tr("Close recording"), SLOT(closeFileSlot())), mTraceFileNotNull)
+    ->setStatusTip(tr("Close the trace file tab, and stop recording trace."));
+    mMenuBuilder->addAction(makeAction(DIcon("delete"), tr("Delete recording"), SLOT(closeDeleteSlot())), mTraceFileNotNull)
+    ->setStatusTip(tr("Delete the trace file from disk, and stop recording trace."));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("browseinexplorer"), tr("Browse in Explorer"), SLOT(browseInExplorerSlot()), "ActionBrowseInExplorer"), mTraceFileNotNull)
+    ->setStatusTip(tr("Open the trace file in Explorer."));
 
     mMenuBuilder->loadFromConfig();
 }
@@ -1391,6 +1399,12 @@ void TraceBrowser::gotoPreviousSlot()
 {
     if(mHistory.historyHasPrev())
         disasm(mHistory.historyPrev(), false);
+}
+
+
+void TraceBrowser::gotoXrefSlot()
+{
+    emit xrefSignal(getTraceFile()->Registers(getInitialSelection()).regcontext.cip);
 }
 
 void TraceBrowser::copyCipSlot()

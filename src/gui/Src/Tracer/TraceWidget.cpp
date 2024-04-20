@@ -69,6 +69,7 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
 
     if(mDump)
     {
+        connect(mTraceBrowser, SIGNAL(xrefSignal(duint)), this, SLOT(xrefSlot(duint)));
         //dump
         ui->mBotLeftFrameLayout->addWidget(mDump);
         connect(mDump, SIGNAL(xrefSignal(duint)), this, SLOT(xrefSlot(duint)));

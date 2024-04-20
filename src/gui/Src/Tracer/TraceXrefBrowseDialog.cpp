@@ -51,25 +51,28 @@ void TraceXrefBrowseDialog::setup(duint index, duint address, TraceFileReader* t
     mXrefInfo.reserve(xrefInfo.size());
     for(auto & i : xrefInfo)
     {
-        mXrefInfo.emplace_back(TRACE_XREF_RECORD({i, traceFile->Registers(i).regcontext.cip, XREF_DATA}));
+        mXrefInfo.emplace_back(TRACE_XREF_RECORD({i, traceFile->Registers(i).regcontext.cip}));
     }
 
     setWindowTitle(QString(tr("xrefs at <%1>")).arg(GetFunctionSymbol(address)));
     for(duint i = 0; i < mXrefInfo.size(); i++)
     {
         Zydis zydis;
-        std::string disasm;
+        QString disasm;
         unsigned char data[16] = { 0xCC };
         int size;
         traceFile->OpCode(mXrefInfo[i].index, data, &size);
         zydis.Disassemble(mXrefInfo[i].addr, data);
         if(zydis.Success())
         {
-            disasm = zydis.InstructionText();
-            ui->listWidget->addItem(QString::fromStdString(disasm));
+            disasm = QString::fromStdString(zydis.InstructionText());
         }
         else
-            ui->listWidget->addItem("???");
+        {
+            disasm = "???";
+        }
+        disasm = traceFile->getIndexText(mXrefInfo[i].index) + ": " + disasm;
+        ui->listWidget->addItem(disasm);
     }
     ui->listWidget->setCurrentRow(0);
     ui->listWidget->setFocus();

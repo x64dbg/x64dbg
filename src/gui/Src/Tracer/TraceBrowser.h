@@ -147,6 +147,7 @@ signals:
     void displayReferencesWidget();
     void displayLogWidget();
     void selectionChanged(unsigned long long selection);
+    void xrefSignal(duint addr);
     void closeFile();
 
 public slots:
@@ -164,6 +165,7 @@ public slots:
     void rtrSlot();
     void gotoPreviousSlot();
     void gotoNextSlot();
+    void gotoXrefSlot();
     void enableHighlightingModeSlot();
     void mnemonicBriefSlot();
     void mnemonicHelpSlot();

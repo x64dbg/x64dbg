@@ -45,7 +45,6 @@ private:
     {
         unsigned long long index;
         duint addr;
-        XREFTYPE type;
     } TRACE_XREF_RECORD;
     std::vector<TRACE_XREF_RECORD> mXrefInfo;
     duint mAddress;
