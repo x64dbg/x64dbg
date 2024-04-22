@@ -144,7 +144,6 @@ private:
     int paintFunctionGraphic(QPainter* painter, int x, int y, Function_t funcType, bool loop);
 
 signals:
-    void displayReferencesWidget();
     void displayLogWidget();
     void selectionChanged(unsigned long long selection);
     void xrefSignal(duint addr);

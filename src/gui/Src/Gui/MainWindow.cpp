@@ -230,8 +230,7 @@ MainWindow::MainWindow(QWidget* parent)
     mTraceWidget = new TraceManager(this);
     mTraceWidget->setWindowTitle(tr("Trace"));
     mTraceWidget->setWindowIcon(DIcon("trace"));
-    //connect(mTraceWidget->getTraceBrowser(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
-    //connect(mTraceWidget->getTraceBrowser(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
+    connect(mTraceWidget, SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
 
     mTabWidget = new MHTabWidget(this, true, true);
 

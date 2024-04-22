@@ -53,6 +53,7 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     button_changeview->setStyleSheet("Text-align:left;padding: 4px;padding-left: 10px;");
     connect(button_changeview, SIGNAL(clicked()), mGeneralRegs, SLOT(onChangeFPUViewAction()));
     connect(mTraceBrowser, SIGNAL(selectionChanged(unsigned long long)), this, SLOT(traceSelectionChanged(unsigned long long)));
+    connect(mTraceBrowser, SIGNAL(displayLogWidget()), this, SLOT(displayLogWidgetSlot()));
     connect(mTraceFile, SIGNAL(parseFinished()), this, SLOT(parseFinishedSlot()));
     connect(mTraceBrowser, SIGNAL(closeFile()), this, SLOT(closeFileSlot()));
 
@@ -188,4 +189,9 @@ void TraceWidget::parseFinishedSlot()
 void TraceWidget::closeFileSlot()
 {
     emit closeFile();
+}
+
+void TraceWidget::displayLogWidgetSlot()
+{
+    emit displayLogWidget();
 }

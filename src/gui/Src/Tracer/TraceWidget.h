@@ -30,8 +30,10 @@ public:
 
 signals:
     void closeFile();
+    void displayLogWidget();
 
 protected slots:
+    void displayLogWidgetSlot();
     void traceSelectionChanged(unsigned long long selection);
     void parseFinishedSlot();
     void closeFileSlot();

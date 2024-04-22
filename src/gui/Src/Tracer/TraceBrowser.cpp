@@ -1807,7 +1807,7 @@ void TraceBrowser::searchConstantSlot()
     {
         auto ticks = GetTickCount();
         int count = TraceFileSearchConstantRange(getTraceFile(), constantDlg.getVal(), constantDlg.getVal());
-        emit displayReferencesWidget();
+        GuiShowReferences();
         GuiAddLogMessage(tr("%1 result(s) in %2ms\n").arg(count).arg(GetTickCount() - ticks).toUtf8().constData());
     }
 }
@@ -1820,7 +1820,7 @@ void TraceBrowser::searchMemRefSlot()
     {
         auto ticks = GetTickCount();
         int count = TraceFileSearchMemReference(getTraceFile(), memRefDlg.getVal());
-        emit displayReferencesWidget();
+        GuiShowReferences();
         GuiAddLogMessage(tr("%1 result(s) in %2ms\n").arg(count).arg(GetTickCount() - ticks).toUtf8().constData());
     }
 }

@@ -60,6 +60,10 @@ void TraceManager::openSlot(const QString & path)
     {
         closeTab(index);
     });
+    connect(newView, &TraceWidget::displayLogWidget, this, [this]()
+    {
+        emit displayLogWidget();
+    });
 }
 
 void TraceManager::closeTab(int index)

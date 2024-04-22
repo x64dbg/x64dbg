@@ -16,6 +16,9 @@ public:
 
     void contextMenuEvent(QContextMenuEvent* event) override;
 
+signals:
+    void displayLogWidget();
+
 public slots:
     void open();
     void openSlot(const QString &);
