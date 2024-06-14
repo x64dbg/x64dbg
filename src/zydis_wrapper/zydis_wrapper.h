@@ -38,6 +38,7 @@ public:
     ZydisMnemonic GetId() const;
     std::string InstructionText(bool replaceRipRelative = true) const;
     uint8_t OpCount() const;
+    uint8_t VisibleOpCount() const;
     const ZydisDecodedOperand & operator[](uint8_t index) const;
     std::string Mnemonic() const;
     const char* MemSizeName(size_t size) const;
@@ -125,5 +126,4 @@ private:
     ZydisDisassembledInstruction mInstr;
     char mInstrText[200];
     bool mSuccess = false;
-    uint8_t mVisibleOpCount = 0;
 };
