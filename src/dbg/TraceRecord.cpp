@@ -281,7 +281,6 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
             // check for overflow of the memory buffer
             if(newMemoryArrayCount * sizeof(duint) + memorySize > memoryArrayCount * sizeof(duint))
                 continue;
-            // TODO: Implicit memory access by push and pop instructions
             // TODO: Support memory value of ??? for invalid memory access
             if(argType == arg_memory)
             {
@@ -308,7 +307,7 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
             newMemoryAddress[--newMemoryArrayCount] = newContext.registers.regcontext.csp - sizeof(duint);
             newMemoryArrayCount++;
         }
-        //TODO: PUSHAD/POPAD
+        //TODO: PUSHAD
         assert(newMemoryArrayCount < memoryArrayCount);
     }
     if(rtPrevInstAvailable)
