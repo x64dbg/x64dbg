@@ -37,7 +37,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 void MainWindow::on_actionLoad_DMP_triggered()
 {
-    auto dumpFile = QFileDialog::getOpenFileName(this, "Load dump", QString(), "Dump Files (*.dmp)");
+    auto dumpFile = QFileDialog::getOpenFileName(this, "Load dump", QString(), "Dump Files (*.dmp *.exe)");
     if(!dumpFile.isEmpty())
     {
         loadFile(dumpFile);
@@ -68,6 +68,13 @@ void MainWindow::loadFile(const QString & path)
     mMemoryMap->loadFileParser(parser);
     mHexDump->loadFileParser(parser);
     mDisassembly->loadFileParser(parser);
+
+    // Disassemble at the entry point
+    auto entryPoint = parser->entryPoint();
+    if(entryPoint != 0)
+    {
+        emit mNavigation->gotoDisassembly(entryPoint);
+    }
 }
 
 void MainWindow::setupNavigation()

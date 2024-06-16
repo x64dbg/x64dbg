@@ -25,6 +25,7 @@ struct FileParser
     virtual ~FileParser() = default;
     virtual bool disasm64() = 0;
     virtual std::vector<MemoryRegion> MemoryRegions() const = 0;
+    virtual uint64_t entryPoint() const = 0;
 };
 
 // TODO: replace this with something smarter
