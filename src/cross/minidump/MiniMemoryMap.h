@@ -1,7 +1,7 @@
 #pragma once
 
 #include <BasicView/StdTable.h>
-#include "MiniDump.h"
+#include "FileParser.h"
 #include "MagicMenu.h"
 #include "Navigation.h"
 
@@ -11,12 +11,12 @@ class MiniMemoryMap : public StdTable, public MagicMenu<MiniMemoryMap>
 
 public:
     explicit MiniMemoryMap(Navigation* navigation, QWidget* parent = nullptr);
-    void loadMinidump(MiniDump::AbstractParser* parser);
+    void loadFileParser(FileParser* parser);
     void gotoAddress(duint address);
     duint selectedAddress();
 
 private:
-    MiniDump::AbstractParser* mParser = nullptr;
+    FileParser* mParser = nullptr;
     Navigation* mNavigation = nullptr;
 
     enum ColumnIndex

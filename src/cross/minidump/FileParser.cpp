@@ -1,4 +1,4 @@
-#include "MiniDump.h"
+#include "FileParser.h"
 #include "Bridge.h"
 #include "udmp-parser.h"
 #include <QDebug>
@@ -89,7 +89,7 @@ private:
     bool mDisasm64 = false;
 } gArchitecture;
 
-struct UserDumpParser : MiniDump::AbstractParser
+struct DmpFileParser : FileParser
 {
     udmpparser::UserDumpParser mDmp;
     DumpMemoryProvider mMemory;
@@ -116,14 +116,14 @@ struct UserDumpParser : MiniDump::AbstractParser
         return std::holds_alternative<udmpparser::Context64_t>(thread->Context);
     }
 
-    std::vector<MiniDump::MemoryRegion> MemoryRegions() const override
+    std::vector<MemoryRegion> MemoryRegions() const override
     {
-        std::vector<MiniDump::MemoryRegion> regions;
+        std::vector<MemoryRegion> regions;
         const auto& mem = mDmp.GetMem();
         for(const auto& itr : mem)
         {
             regions.emplace_back();
-            MiniDump::MemoryRegion& region = regions.back();
+            MemoryRegion& region = regions.back();
             const udmpparser::MemBlock_t & block = itr.second;
             region.BaseAddress = block.BaseAddress;
             region.RegionSize = block.RegionSize;
@@ -147,7 +147,7 @@ struct UserDumpParser : MiniDump::AbstractParser
     }
 };
 
-std::unique_ptr<MiniDump::AbstractParser> MiniDump::AbstractParser::Create(const uint8_t* begin, const uint8_t* end, std::string& error)
+std::unique_ptr<FileParser> FileParser::Create(const uint8_t* begin, const uint8_t* end, std::string& error)
 {
     // Invalidate the global memory provider (TODO: localize everything)
     DbgSetMemoryProvider(nullptr);
@@ -165,7 +165,7 @@ std::unique_ptr<MiniDump::AbstractParser> MiniDump::AbstractParser::Create(const
     uint8_t mdmpMagic[4] = {'M', 'D', 'M', 'P'};
     if(memcmp(magic, mdmpMagic, sizeof(mdmpMagic)) == 0)
     {
-        auto parser = std::make_unique<UserDumpParser>();
+        auto parser = std::make_unique<DmpFileParser>();
         if(!parser->mDmp.Parse(begin, end))
         {
             error = "Minidump parsing failed!";
@@ -189,8 +189,7 @@ std::unique_ptr<MiniDump::AbstractParser> MiniDump::AbstractParser::Create(const
     return nullptr;
 }
 
-
-Architecture* MiniDump::Architecture()
+Architecture* GlobalArchitecture()
 {
     return &gArchitecture;
 }

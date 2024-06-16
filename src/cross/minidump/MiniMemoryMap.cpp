@@ -35,7 +35,7 @@ MiniMemoryMap::MiniMemoryMap(Navigation* navigation, QWidget* parent)
     setupMenu();
 }
 
-void MiniMemoryMap::loadMinidump(MiniDump::AbstractParser* parser)
+void MiniMemoryMap::loadFileParser(FileParser* parser)
 {
     mParser = parser;
 
@@ -50,7 +50,7 @@ void MiniMemoryMap::loadMinidump(MiniDump::AbstractParser* parser)
     auto regions = parser->MemoryRegions();
     setRowCount(regions.size());
     size_t row = 0;
-    for(const MiniDump::MemoryRegion & region : regions)
+    for(const MemoryRegion & region : regions)
     {
         setCellContent(row, ColBaseAddress, formatHex(region.BaseAddress), region.BaseAddress);
         setCellContent(row, ColRegionSize, formatHex(region.RegionSize), region.RegionSize);
