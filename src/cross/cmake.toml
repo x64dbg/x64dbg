@@ -27,7 +27,7 @@ link-libraries = [
     "x64dbg::widgets",
     "cpp-httplib",
 ]
-compile-features = ["cxx_std_17"]
+compile-features = ["cxx_std_20"]
 
 [target.remote_table]
 type = "qt_executable"
@@ -41,4 +41,4 @@ sources = [
 link-libraries = [
     "x64dbg::widgets",
 ]
-compile-features = ["cxx_std_17"]
+compile-features = ["cxx_std_20"]

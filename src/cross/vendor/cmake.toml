@@ -1,3 +1,7 @@
 [target.cpp-httplib]
 type = "interface"
 include-directories = ["cpp-httplib"]
+
+[target.linux-pe]
+type = "interface"
+include-directories = ["linux-pe"]

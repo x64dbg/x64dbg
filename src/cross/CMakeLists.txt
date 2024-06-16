@@ -77,7 +77,7 @@ qt_executable(minidump ${minidump_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${minidump_SOURCES})
 
 target_compile_features(minidump PRIVATE
-	cxx_std_17
+	cxx_std_20
 )
 
 target_link_libraries(minidump PRIVATE
@@ -114,7 +114,7 @@ qt_executable(remote_table ${remote_table_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${remote_table_SOURCES})
 
 target_compile_features(remote_table PRIVATE
-	cxx_std_17
+	cxx_std_20
 )
 
 target_link_libraries(remote_table PRIVATE
