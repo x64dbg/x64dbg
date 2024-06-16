@@ -35,7 +35,7 @@ MiniMemoryMap::MiniMemoryMap(Navigation* navigation, QWidget* parent)
     setupMenu();
 }
 
-void MiniMemoryMap::loadMinidump(udmpparser::UserDumpParser* parser)
+void MiniMemoryMap::loadMinidump(MiniDump::AbstractParser* parser)
 {
     mParser = parser;
 
@@ -47,35 +47,22 @@ void MiniMemoryMap::loadMinidump(udmpparser::UserDumpParser* parser)
         return;
     }
 
-    auto & mem = parser->GetMem();
-    setRowCount(mem.size());
+    auto regions = parser->MemoryRegions();
+    setRowCount(regions.size());
     size_t row = 0;
-    for(const auto & itr : mem)
+    for(const MiniDump::MemoryRegion & region : regions)
     {
-        const udmpparser::MemBlock_t & block = itr.second;
-        setCellContent(row, ColBaseAddress, formatHex(block.BaseAddress), block.BaseAddress);
-        setCellContent(row, ColRegionSize, formatHex(block.RegionSize), block.RegionSize);
-        setCellContent(row, ColState, StateToStringShort(block.State).c_str(), block.State);
-        if(block.State != MEM_FREE)
-        {
-            setCellContent(row, ColAllocationBase, formatHex(block.AllocationBase), block.AllocationBase);
-            setCellContent(row, ColAllocationProtect, ProtectToStringShort(block.AllocationProtect).c_str(), block.AllocationProtect);
-            setCellContent(row, ColProtect, ProtectToStringShort(block.Protect).c_str(), block.Protect);
-            setCellContent(row, ColType, TypeToStringShort(block.Type).c_str(), block.Type);
-        }
+        setCellContent(row, ColBaseAddress, formatHex(region.BaseAddress), region.BaseAddress);
+        setCellContent(row, ColRegionSize, formatHex(region.RegionSize), region.RegionSize);
+        setCellContent(row, ColState, QString::fromStdString(region.State));
+        if(region.AllocationBase != -1)
+            setCellContent(row, ColAllocationBase, formatHex(region.AllocationBase), region.AllocationBase);
         else
-        {
             setCellContent(row, ColAllocationBase, {});
-            setCellContent(row, ColAllocationProtect, {});
-            setCellContent(row, ColProtect, {});
-            setCellContent(row, ColType, {});
-        }
-
-        auto module = parser->GetModule(block.BaseAddress);
-        if(module != nullptr)
-        {
-            setCellContent(row, ColInfo, QString::fromStdString(module->ModuleName), module->BaseOfImage);
-        }
+        setCellContent(row, ColProtect, QString::fromStdString(region.Protect));
+        setCellContent(row, ColAllocationProtect, QString::fromStdString(region.AllocationProtect));
+        setCellContent(row, ColType, QString::fromStdString(region.Type));
+        setCellContent(row, ColInfo, QString::fromStdString(region.Info));
 
         row++;
     }

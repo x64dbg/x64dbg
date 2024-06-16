@@ -11,12 +11,12 @@ class MiniMemoryMap : public StdTable, public MagicMenu<MiniMemoryMap>
 
 public:
     explicit MiniMemoryMap(Navigation* navigation, QWidget* parent = nullptr);
-    void loadMinidump(udmpparser::UserDumpParser* parser);
+    void loadMinidump(MiniDump::AbstractParser* parser);
     void gotoAddress(duint address);
     duint selectedAddress();
 
 private:
-    udmpparser::UserDumpParser* mParser = nullptr;
+    MiniDump::AbstractParser* mParser = nullptr;
     Navigation* mNavigation = nullptr;
 
     enum ColumnIndex

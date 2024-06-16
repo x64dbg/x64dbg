@@ -10,7 +10,7 @@ MiniHexDump::MiniHexDump(Navigation* navigation, Architecture* architecture, QWi
     setupMenu();
 }
 
-void MiniHexDump::loadMinidump(udmpparser::UserDumpParser* parser)
+void MiniHexDump::loadMinidump(MiniDump::AbstractParser* parser)
 {
     mParser = parser;
     mMemPage->setAttributes(0, 0);

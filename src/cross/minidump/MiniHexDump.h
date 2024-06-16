@@ -11,13 +11,13 @@ class MiniHexDump : public HexDump, public MagicMenu<MiniHexDump>
 
 public:
     explicit MiniHexDump(Navigation* navigation, Architecture* architecture, QWidget* parent = nullptr);
-    void loadMinidump(udmpparser::UserDumpParser* parser);
+    void loadMinidump(MiniDump::AbstractParser* parser);
 
 private slots:
     void hexAsciiSlot();
 
 private:
-    udmpparser::UserDumpParser* mParser = nullptr;
+    MiniDump::AbstractParser* mParser = nullptr;
     int mAsciiSeparator = 0;
     Navigation* mNavigation = nullptr;
 
