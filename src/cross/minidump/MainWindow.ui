@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dumpulator</string>
+   <string>Minidump</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -30,7 +30,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>37</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -44,7 +44,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionLoad_DMP">
    <property name="text">
-    <string>Load DMP</string>
+    <string>Load DMP/EXE</string>
    </property>
   </action>
  </widget>
