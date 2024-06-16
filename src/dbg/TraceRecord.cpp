@@ -308,13 +308,6 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
             newMemoryAddress[--newMemoryArrayCount] = newContext.registers.regcontext.csp - sizeof(duint);
             newMemoryArrayCount++;
         }
-        else if(newInstruction.GetId() == ZYDIS_MNEMONIC_POP || newInstruction.GetId() == ZYDIS_MNEMONIC_POPF || newInstruction.GetId() == ZYDIS_MNEMONIC_POPFD
-                || newInstruction.GetId() == ZYDIS_MNEMONIC_POPFQ || newInstruction.GetId() == ZYDIS_MNEMONIC_RET)
-        {
-            MemRead(newContext.registers.regcontext.csp, &newMemory[newMemoryArrayCount], sizeof(duint));
-            newMemoryAddress[--newMemoryArrayCount] = newContext.registers.regcontext.csp;
-            newMemoryArrayCount++;
-        }
         //TODO: PUSHAD/POPAD
         assert(newMemoryArrayCount < memoryArrayCount);
     }
