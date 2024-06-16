@@ -5,7 +5,6 @@
 #include <QVBoxLayout>
 #include <QFileDialog>
 #include "StringUtil.h"
-#include <fstream>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -21,7 +20,7 @@ MainWindow::MainWindow(QWidget* parent)
     auto args = qApp->arguments();
     if(args.length() > 1)
     {
-        loadMinidump(args.at(1));
+        loadFile(args.at(1));
     }
 }
 
@@ -41,11 +40,11 @@ void MainWindow::on_actionLoad_DMP_triggered()
     auto dumpFile = QFileDialog::getOpenFileName(this, "Load dump", QString(), "Dump Files (*.dmp)");
     if(!dumpFile.isEmpty())
     {
-        loadMinidump(dumpFile);
+        loadFile(dumpFile);
     }
 }
 
-void MainWindow::loadMinidump(const QString & path)
+void MainWindow::loadFile(const QString & path)
 {
     QFile file(path);
     if(!file.open(QIODevice::ReadOnly))
@@ -57,7 +56,7 @@ void MainWindow::loadMinidump(const QString & path)
     mDumpData.resize(file.size());
     file.read((char*)mDumpData.data(), mDumpData.size());
     std::string error;
-    mParser = MiniDump::AbstractParser::Create(mDumpData.data(), mDumpData.data() + mDumpData.size(), error);
+    mParser = FileParser::Create(mDumpData.data(), mDumpData.data() + mDumpData.size(), error);
     if(!mParser)
     {
         QMessageBox::critical(this, "Error", QString::fromStdString(error));
@@ -66,9 +65,9 @@ void MainWindow::loadMinidump(const QString & path)
 
     // Reload the views
     auto parser = mParser.get();
-    mMemoryMap->loadMinidump(parser);
-    mHexDump->loadMinidump(parser);
-    mDisassembly->loadMinidump(parser);
+    mMemoryMap->loadFileParser(parser);
+    mHexDump->loadFileParser(parser);
+    mDisassembly->loadFileParser(parser);
 }
 
 void MainWindow::setupNavigation()
@@ -117,10 +116,10 @@ void MainWindow::setupWidgets()
     mMemoryMap = new MiniMemoryMap(mNavigation, this);
     ui->tabWidget->addTab(mMemoryMap, "Memory Map");
 
-    mHexDump = new MiniHexDump(mNavigation, MiniDump::Architecture(), this);
+    mHexDump = new MiniHexDump(mNavigation, GlobalArchitecture(), this);
     ui->tabWidget->addTab(mHexDump, "Dump");
 
-    mDisassembly = new MiniDisassembly(mNavigation, MiniDump::Architecture(), this);
+    mDisassembly = new MiniDisassembly(mNavigation, GlobalArchitecture(), this);
     ui->tabWidget->addTab(mDisassembly, "Disassembly");
 }
 

@@ -26,6 +26,7 @@ sources = [
 link-libraries = [
     "x64dbg::widgets",
     "cpp-httplib",
+    "linux-pe",
 ]
 compile-features = ["cxx_std_20"]
 

@@ -11,7 +11,7 @@ MiniDisassembly::MiniDisassembly(Navigation* navigation, Architecture* architect
     setupMenu();
 }
 
-void MiniDisassembly::loadMinidump(const MiniDump::AbstractParser* parser)
+void MiniDisassembly::loadFileParser(const FileParser* parser)
 {
     mParser = parser;
     mMemPage->setAttributes(0, 0);

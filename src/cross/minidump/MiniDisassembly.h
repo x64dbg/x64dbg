@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MiniDump.h"
+#include "FileParser.h"
 #include <BasicView/Disassembly.h>
 #include "MagicMenu.h"
 #include "Navigation.h"
@@ -11,10 +11,10 @@ class MiniDisassembly : public Disassembly, public MagicMenu<MiniDisassembly>
 
 public:
     MiniDisassembly(Navigation* navigation, Architecture* architecture, QWidget* parent = nullptr);
-    void loadMinidump(const MiniDump::AbstractParser* parser);
+    void loadFileParser(const FileParser* parser);
 
 private:
-    const MiniDump::AbstractParser* mParser = nullptr;
+    const FileParser* mParser = nullptr;
     Navigation* mNavigation = nullptr;
 
     void setupMenu();

@@ -29,7 +29,7 @@ private slots:
     void on_actionLoad_DMP_triggered();
 
 private:
-    void loadMinidump(const QString & path);
+    void loadFile(const QString & path);
     void setupNavigation();
     void setupWidgets();
     void setupToolSync();
@@ -37,7 +37,7 @@ private:
 private:
     Ui::MainWindow* ui = nullptr;
     std::vector<uint8_t> mDumpData;
-    std::unique_ptr<MiniDump::AbstractParser> mParser;
+    std::unique_ptr<FileParser> mParser;
     MiniMemoryMap* mMemoryMap = nullptr;
     MiniHexDump* mHexDump = nullptr;
     MiniDisassembly* mDisassembly = nullptr;

@@ -50,19 +50,19 @@ set(CMAKE_FOLDER ${CMKR_CMAKE_FOLDER})
 
 # Target: minidump
 set(minidump_SOURCES
+	"minidump/FileParser.cpp"
 	"minidump/GotoDialog.cpp"
 	"minidump/MainWindow.cpp"
 	"minidump/MiniDisassembly.cpp"
-	"minidump/MiniDump.cpp"
 	"minidump/MiniHexDump.cpp"
 	"minidump/MiniMemoryMap.cpp"
 	"minidump/Navigation.cpp"
 	"minidump/REToolSync.cpp"
 	"minidump/main.cpp"
+	"minidump/FileParser.h"
 	"minidump/GotoDialog.h"
 	"minidump/MainWindow.h"
 	"minidump/MiniDisassembly.h"
-	"minidump/MiniDump.h"
 	"minidump/MiniHexDump.h"
 	"minidump/MiniMemoryMap.h"
 	"minidump/Navigation.h"
@@ -83,6 +83,7 @@ target_compile_features(minidump PRIVATE
 target_link_libraries(minidump PRIVATE
 	x64dbg::widgets
 	cpp-httplib
+	linux-pe
 )
 
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)

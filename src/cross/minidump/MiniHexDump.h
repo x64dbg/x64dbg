@@ -1,7 +1,7 @@
 #pragma once
 
 #include <BasicView/HexDump.h>
-#include "MiniDump.h"
+#include "FileParser.h"
 #include "MagicMenu.h"
 #include "Navigation.h"
 
@@ -11,13 +11,13 @@ class MiniHexDump : public HexDump, public MagicMenu<MiniHexDump>
 
 public:
     explicit MiniHexDump(Navigation* navigation, Architecture* architecture, QWidget* parent = nullptr);
-    void loadMinidump(MiniDump::AbstractParser* parser);
+    void loadFileParser(FileParser* parser);
 
 private slots:
     void hexAsciiSlot();
 
 private:
-    MiniDump::AbstractParser* mParser = nullptr;
+    FileParser* mParser = nullptr;
     int mAsciiSeparator = 0;
     Navigation* mNavigation = nullptr;
 
