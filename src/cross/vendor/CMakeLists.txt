@@ -13,3 +13,10 @@ target_include_directories(cpp-httplib INTERFACE
 	cpp-httplib
 )
 
+# Target: linux-pe
+add_library(linux-pe INTERFACE)
+
+target_include_directories(linux-pe INTERFACE
+	linux-pe
+)
+
