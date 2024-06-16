@@ -56,16 +56,16 @@ void MainWindow::loadMinidump(const QString & path)
 
     mDumpData.resize(file.size());
     file.read((char*)mDumpData.data(), mDumpData.size());
-    mParser = std::make_unique<udmpparser::UserDumpParser>();
-    if(!mParser->Parse(mDumpData.data(), mDumpData.data() + mDumpData.size()))
+    std::string error;
+    mParser = MiniDump::AbstractParser::Create(mDumpData.data(), mDumpData.data() + mDumpData.size(), error);
+    if(!mParser)
     {
-        QMessageBox::critical(this, "Error", "Failed to parse dump");
+        QMessageBox::critical(this, "Error", QString::fromStdString(error));
         return;
     }
 
     // Reload the views
     auto parser = mParser.get();
-    MiniDump::Load(parser);
     mMemoryMap->loadMinidump(parser);
     mHexDump->loadMinidump(parser);
     mDisassembly->loadMinidump(parser);

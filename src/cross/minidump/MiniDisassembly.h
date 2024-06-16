@@ -11,10 +11,10 @@ class MiniDisassembly : public Disassembly, public MagicMenu<MiniDisassembly>
 
 public:
     MiniDisassembly(Navigation* navigation, Architecture* architecture, QWidget* parent = nullptr);
-    void loadMinidump(const udmpparser::UserDumpParser* parser);
+    void loadMinidump(const MiniDump::AbstractParser* parser);
 
 private:
-    const udmpparser::UserDumpParser* mParser = nullptr;
+    const MiniDump::AbstractParser* mParser = nullptr;
     Navigation* mNavigation = nullptr;
 
     void setupMenu();

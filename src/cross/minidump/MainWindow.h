@@ -37,7 +37,7 @@ private:
 private:
     Ui::MainWindow* ui = nullptr;
     std::vector<uint8_t> mDumpData;
-    std::unique_ptr<udmpparser::UserDumpParser> mParser;
+    std::unique_ptr<MiniDump::AbstractParser> mParser;
     MiniMemoryMap* mMemoryMap = nullptr;
     MiniHexDump* mHexDump = nullptr;
     MiniDisassembly* mDisassembly = nullptr;
