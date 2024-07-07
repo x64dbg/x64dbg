@@ -53,7 +53,7 @@ bool IsArgumentsLessThan(int argc, int minimumCount)
 {
     if(argc < minimumCount)
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Not enough arguments! At least %d arguments must be specified.\n"), minimumCount - 1);
+        dprintf_html(QT_TRANSLATE_NOOP("DBG", "Not enough arguments! At least %d argument(s) must be specified. Arguments are <a href=\"https://help.x64dbg.com/en/latest/commands/index.html\">comma-separated</a>."), minimumCount - 1);
         return true;
     }
     return false;
