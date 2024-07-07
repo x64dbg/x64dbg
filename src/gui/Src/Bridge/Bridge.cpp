@@ -189,7 +189,9 @@ void Bridge::doUpdate(GUIMSG msg)
     auto now = GetTickCount();
     auto elapsed = now - start;
     if(elapsed > 5)
-        qDebug() << msg2str(msg) << elapsed << "ms";
+    {
+        //qDebug() << "[DebugMonitor]" << msg2str(msg) << elapsed << "ms";
+    }
 
     mLastUpdates[msg] = now;
 }
