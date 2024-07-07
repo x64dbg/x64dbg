@@ -282,6 +282,7 @@ void CPUDump::getColumnRichText(duint col, duint rva, RichTextPainter::List & ri
             curData.text = QString(modname) + "." + QString(label_text);
         else if(DbgGetStringAt(data, string_text))
             curData.text = string_text;
+
         if(!curData.text.length()) //stack comments
         {
             auto va = rvaToVa(rva);
@@ -299,6 +300,10 @@ void CPUDump::getColumnRichText(duint col, duint rva, RichTextPainter::List & ri
                 else
                     curData.textColor = ConfigColor("StackInactiveTextColor");
                 curData.text = comment.comment;
+            }
+            else if(*modname)
+            {
+                curData.text = QString("%1.%2").arg(modname, ToPtrString(va));
             }
         }
         if(curData.text.length())

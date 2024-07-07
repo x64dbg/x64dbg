@@ -136,6 +136,8 @@ typedef enum
     MODSYMLOADED
 } MODULESYMBOLSTATUS;
 
+typedef void(*CBSTRING)(const char* str, void* userdata);
+
 typedef bool (*ASSEMBLEATEX)(duint addr, const char* instruction, char* error, bool fillnop);
 typedef bool (*SECTIONFROMADDR)(duint addr, char* section);
 typedef bool (*MODNAMEFROMADDR)(duint addr, char* modname, bool extension);
@@ -287,6 +289,7 @@ typedef struct DBGFUNCTIONS_
     GETADDRFROMLINEEX GetAddrFromLineEx;
     MODSYMBOLSTATUS ModSymbolStatus;
     GETCALLSTACKBYTHREAD GetCallStackByThread;
+    void (*EnumStructs)(CBSTRING callback, void* userdata);
 } DBGFUNCTIONS;
 
 #ifdef BUILD_DBG

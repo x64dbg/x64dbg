@@ -523,7 +523,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.userdata = nullptr;
         auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
 
-        mPath.push_back((member.name == "visit" ? type.name : member.name) + ".");
+        mPath.push_back((member.name == "display" ? type.name : member.name) + ".");
         mParents.push_back(Parent(type.isunion ? Parent::Union : Parent::Struct));
         parent().node = node;
         parent().size = td.size;
@@ -635,7 +635,7 @@ bool cbInstrVisitType(int argc, char* argv[])
     if(IsArgumentsLessThan(argc, 2))
         return false;
     auto type = argv[1];
-    auto name = "visit";
+    auto name = "display";
     duint addr = 0;
     auto maxPtrDepth = 0;
     if(argc > 2)
