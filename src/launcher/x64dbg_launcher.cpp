@@ -428,22 +428,22 @@ static void EnableHiDPI()
 {
     // Windows 10 Build 1607
     LPFN_SetProcessDpiAwarenessContext SetProcessDpiAwarenessContext = (LPFN_SetProcessDpiAwarenessContext)GetProcAddress(GetModuleHandle(TEXT("user32.dll")), "SetProcessDpiAwarenessContext");
-    if (SetProcessDpiAwarenessContext != nullptr)
+    if(SetProcessDpiAwarenessContext != nullptr)
     {
         // Windows 10 Build 1703
-        if (SetProcessDpiAwarenessContext(-4)) //DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
+        if(SetProcessDpiAwarenessContext(-4))  //DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
         {
             return;
         }
         // Windows 10 Build 1607
-        if (SetProcessDpiAwarenessContext(-3)) //DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE
+        if(SetProcessDpiAwarenessContext(-3))  //DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE
         {
             return;
         }
     }
     // Windows Vista
     LPFN_SetProcessDPIAware SetProcessDPIAware = (LPFN_SetProcessDPIAware)GetProcAddress(GetModuleHandle(TEXT("user32.dll")), "SetProcessDPIAware");
-    if (SetProcessDPIAware != nullptr)
+    if(SetProcessDPIAware != nullptr)
     {
         SetProcessDPIAware();
     }
