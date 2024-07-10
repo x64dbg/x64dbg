@@ -119,3 +119,18 @@ void dprint_untranslated_html(_In_z_ _Printf_format_string_ const char* Text)
 {
     GuiAddLogMessageHtmlAsync(Text);
 }
+
+/**
+\brief Print a formatted string to the console.
+\param format The printf format to use (see documentation of printf for more information).
+*/
+void dprintf_html(_In_z_ _Printf_format_string_ const char* Format, ...)
+{
+    va_list args;
+
+    va_start(args, Format);
+    char buffer[16384];
+    vsnprintf_s(buffer, _TRUNCATE, GuiTranslateText(Format), args);
+    GuiAddLogMessageHtmlAsync(buffer);
+    va_end(args);
+}

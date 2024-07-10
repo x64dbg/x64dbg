@@ -348,7 +348,7 @@ PLUG_IMPEXP bool _plugin_menuentryremove(int pluginHandle, int hEntry);
 PLUG_IMPEXP void _plugin_startscript(CBPLUGINSCRIPT cbScript);
 PLUG_IMPEXP bool _plugin_waituntilpaused();
 PLUG_IMPEXP bool _plugin_registerexprfunction(int pluginHandle, const char* name, int argc, CBPLUGINEXPRFUNCTION cbFunction, void* userdata);
-PLUG_IMPEXP bool _plugin_registerexprfunctionex(int pluginHandle, const char* name, const ValueType & returnType, const ValueType* argTypes, size_t argCount, CBPLUGINEXPRFUNCTIONEX cbFunction, void* userdata);
+PLUG_IMPEXP bool _plugin_registerexprfunctionex(int pluginHandle, const char* name, ValueType returnType, const ValueType* argTypes, size_t argCount, CBPLUGINEXPRFUNCTIONEX cbFunction, void* userdata);
 PLUG_IMPEXP bool _plugin_unregisterexprfunction(int pluginHandle, const char* name);
 PLUG_IMPEXP bool _plugin_unload(const char* pluginName);
 PLUG_IMPEXP bool _plugin_load(const char* pluginName);

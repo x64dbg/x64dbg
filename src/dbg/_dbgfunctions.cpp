@@ -31,6 +31,7 @@
 #include "exception.h"
 #include "database.h"
 #include "dbghelp_safe.h"
+#include "types.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -576,4 +577,14 @@ void dbgfunctionsinit()
     _dbgfunctions.GetAddrFromLineEx = _getaddrfromlineex;
     _dbgfunctions.ModSymbolStatus = _modsymbolstatus;
     _dbgfunctions.GetCallStackByThread = _getcallstackbythread;
+    _dbgfunctions.EnumStructs = [](CBSTRING callback, void* userdata)
+    {
+        std::vector<Types::TypeManager::Summary> types;
+        EnumTypes(types);
+        for(const auto & type : types)
+        {
+            if(type.kind == "struct" || type.kind == "union" || type.kind == "class")
+                callback(type.name.c_str(), userdata);
+        }
+    };
 }

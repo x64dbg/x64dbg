@@ -458,6 +458,9 @@
     <ClCompile Include="symbolsourcebase.cpp">
       <Filter>Source Files\Symbols</Filter>
     </ClCompile>
+    <ClCompile Include="_apichecker.c">
+      <Filter>Source Files\Interfaces/Exports</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dbghelp\dbghelp.h">
@@ -897,6 +900,9 @@
     </ClInclude>
     <ClInclude Include="LLVMDemangle\LLVMDemangle.h">
       <Filter>Header Files\Third Party\LLVMDemangle</Filter>
+    </ClInclude>
+    <ClInclude Include="bridgemain.h">
+      <Filter>Header Files\Interfaces/Exports</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

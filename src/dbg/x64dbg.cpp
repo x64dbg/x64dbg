@@ -392,7 +392,7 @@ static void registercommands()
     dbgcmdnew("AddArg", cbInstrAddArg, false); //AddArg
     dbgcmdnew("AppendArg", cbInstrAppendArg, false); //AppendArg
     dbgcmdnew("SizeofType", cbInstrSizeofType, false); //SizeofType
-    dbgcmdnew("VisitType", cbInstrVisitType, false); //VisitType
+    dbgcmdnew("VisitType,DisplayType,dt", cbInstrVisitType, false); //VisitType
     dbgcmdnew("ClearTypes", cbInstrClearTypes, false); //ClearTypes
     dbgcmdnew("RemoveType", cbInstrRemoveType, false); //RemoveType
     dbgcmdnew("EnumTypes", cbInstrEnumTypes, false); //EnumTypes
@@ -764,9 +764,8 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
     dputs(QT_TRANSLATE_NOOP("DBG", "Registering expression functions..."));
     FormatFunctions::Init();
     dputs(QT_TRANSLATE_NOOP("DBG", "Registering format functions..."));
-    SCRIPTTYPEINFO info;
+    SCRIPTTYPEINFO info = {};
     strcpy_s(info.name, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Default")));
-    info.id = 0;
     info.execute = [](const char* cmd)
     {
         if(!DbgCmdExec(cmd))
@@ -774,7 +773,6 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit()
         GuiFlushLog();
         return true;
     };
-    info.completeCommand = nullptr;
     GuiRegisterScriptLanguage(&info);
     dputs(QT_TRANSLATE_NOOP("DBG", "Registering Script DLL command handler..."));
     strcpy_s(info.name, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Script DLL")));

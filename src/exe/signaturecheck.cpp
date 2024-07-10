@@ -10,6 +10,7 @@
 
 static wchar_t szApplicationDir[MAX_PATH];
 static bool bPerformSignatureChecks = false;
+static bool bNewerThanXP = false;
 
 //#define DEBUG_SIGNATURE_CHECKS
 
@@ -79,6 +80,10 @@ static bool VerifyEmbeddedSignature(LPCWSTR pwszSourceFile, bool checkRevocation
 
     // Check certificate revocations
     WinTrustData.fdwRevocationChecks = checkRevocation ? WTD_REVOKE_WHOLECHAIN : WTD_REVOKE_NONE;
+
+    // Do not connect to the internet (https://stackoverflow.com/a/48527128/1806760)
+    if(bNewerThanXP)
+        WinTrustData.dwProvFlags = WTD_CACHE_ONLY_URL_RETRIEVAL;
 
     // Verify an embedded signature on a file.
     WinTrustData.dwUnionChoice = WTD_CHOICE_FILE;
@@ -355,6 +360,8 @@ bool InitializeSignatureCheck()
     pAddDllDirectory = (pfnAddDllDirectory)GetProcAddress(hKernel32, "AddDllDirectory");
     if(pSetDefaultDllDirectories && pSetDllDirectoryW && pAddDllDirectory)
     {
+        bNewerThanXP = true;
+
         if(!pSetDllDirectoryW(L""))
             return false;
 

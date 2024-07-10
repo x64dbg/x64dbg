@@ -1,10 +1,13 @@
+#include <QFileDialog>
+#include <QTextDocumentFragment>
+#include <QMessageBox>
+
 #include "StructWidget.h"
 #include "ui_StructWidget.h"
 #include "Configuration.h"
 #include "MenuBuilder.h"
 #include "LineEditDialog.h"
 #include "GotoDialog.h"
-#include <QFileDialog>
 #include "StringUtil.h"
 #include "MiscUtil.h"
 #include "RichTextItemDelegate.h"
@@ -32,8 +35,8 @@ StructWidget::StructWidget(QWidget* parent) :
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(shortcutsUpdatedSlot()));
     colorsUpdatedSlot();
     fontsUpdatedSlot();
-    setupContextMenu();
     setupColumns();
+    setupContextMenu();
 }
 
 StructWidget::~StructWidget()
@@ -45,28 +48,26 @@ void StructWidget::saveWindowSettings()
 {
     auto saveColumn = [this](int column)
     {
-        auto settingName = QString("StructWidgetColumn%1").arg(column);
+        auto settingName = QString("StructWidgetV2Column%1").arg(column);
         BridgeSettingSetUint("Gui", settingName.toUtf8().constData(), ui->treeWidget->columnWidth(column));
     };
-    saveColumn(0);
-    saveColumn(1);
-    saveColumn(2);
-    saveColumn(3);
+    auto columnCount = ui->treeWidget->columnCount();
+    for(int i = 0; i < columnCount; i++)
+        saveColumn(i);
 }
 
 void StructWidget::loadWindowSettings()
 {
     auto loadColumn = [this](int column)
     {
-        auto settingName = QString("StructWidgetColumn%1").arg(column);
+        auto settingName = QString("StructWidgetV2Column%1").arg(column);
         duint width = 0;
         if(BridgeSettingGetUint("Gui", settingName.toUtf8().constData(), &width))
             ui->treeWidget->setColumnWidth(column, width);
     };
-    loadColumn(0);
-    loadColumn(1);
-    loadColumn(2);
-    loadColumn(3);
+    auto columnCount = ui->treeWidget->columnCount();
+    for(int i = 0; i < columnCount; i++)
+        loadColumn(i);
 }
 
 void StructWidget::colorsUpdatedSlot()
@@ -100,7 +101,19 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
     dtype.type = *type;
     dtype.name = highlightTypeName(dtype.type.name);
     dtype.type.name = nullptr;
-    auto text = QStringList() << dtype.name << ToPtrString(dtype.type.addr + dtype.type.offset) << "0x" + ToHexString(dtype.type.size);
+    QStringList text;
+    auto columnCount = ui->treeWidget->columnCount();
+    for(int i = 0; i < columnCount; i++)
+        text.append(QString());
+
+    text[ColOffset] = "+0x" + ToHexString(dtype.type.offset);
+    text[ColField] = dtype.name;
+    if(dtype.type.offset == 0 && true)
+        text[ColAddress] = QString("<u>%1</u>").arg(ToPtrString(dtype.type.addr + dtype.type.offset));
+    else
+        text[ColAddress] = ToPtrString(dtype.type.addr + dtype.type.offset);
+    text[ColSize] = "0x" + ToHexString(dtype.type.size);
+    text[ColValue] = ""; // NOTE: filled in later
     QTreeWidgetItem* item = parent ? new QTreeWidgetItem((QTreeWidgetItem*)parent, text) : new QTreeWidgetItem(ui->treeWidget, text);
     item->setExpanded(dtype.type.expanded);
     QVariant var;
@@ -125,7 +138,7 @@ void StructWidget::typeUpdateWidget()
         auto name = type.name.toUtf8();
         type.type.name = name.constData();
         auto addr = type.type.addr + type.type.offset;
-        item->setText(1, ToPtrString(addr));
+        item->setText(ColAddress, ToPtrString(addr));
         QString valueStr;
         if(type.type.callback) //use the provided callback
         {
@@ -155,7 +168,7 @@ void StructWidget::typeUpdateWidget()
             else if(type.type.addr)
                 valueStr = "???";
         }
-        item->setText(3, valueStr);
+        item->setText(ColValue, valueStr);
     }
     ui->treeWidget->setUpdatesEnabled(true);
 }
@@ -169,9 +182,14 @@ void StructWidget::dbgStateChangedSlot(DBGSTATE state)
 void StructWidget::setupColumns()
 {
     auto charWidth = ui->treeWidget->fontMetrics().width(' ');
-    ui->treeWidget->setColumnWidth(0, 4 + charWidth * 60); //Name
-    ui->treeWidget->setColumnWidth(1, 6 + charWidth * sizeof(duint) * 2); //Address
-    ui->treeWidget->setColumnWidth(2, 4 + charWidth * 6); //Size
+    ui->treeWidget->setColumnWidth(ColField, 4 + charWidth * 60);
+    ui->treeWidget->setColumnWidth(ColOffset, 6 + charWidth * 7);
+    ui->treeWidget->setColumnWidth(ColAddress, 6 + charWidth * sizeof(duint) * 2);
+    ui->treeWidget->setColumnWidth(ColSize, 4 + charWidth * 6);
+
+    // NOTE: Trick to display the expander icons in the second column
+    // Reference: https://stackoverflow.com/a/25887454/1806760
+    // ui->treeWidget->header()->moveSection(ColField, ColOffset);
 }
 
 #define hasSelection !!ui->treeWidget->selectedItems().count()
@@ -181,6 +199,10 @@ void StructWidget::setupColumns()
 void StructWidget::setupContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this);
+    mMenuBuilder->addAction(makeAction(DIcon("dump"), tr("&Follow address in Dump"), SLOT(followDumpSlot())), [this](QMenu*)
+    {
+        return hasSelection && DbgMemIsValidReadPtr(selectedType.addr + selectedType.offset);
+    });
     mMenuBuilder->addAction(makeAction(DIcon("dump"), tr("Follow value in Dump"), SLOT(followValueDumpSlot())), [this](QMenu*)
     {
         return DbgMemIsValidReadPtr(selectedValue());
@@ -189,15 +211,11 @@ void StructWidget::setupContextMenu()
     {
         return DbgMemIsValidReadPtr(selectedValue());
     });
-    mMenuBuilder->addAction(makeAction(DIcon("dump"), tr("&Follow address in Dump"), SLOT(followDumpSlot())), [this](QMenu*)
-    {
-        return hasSelection && DbgMemIsValidReadPtr(selectedType.addr + selectedType.offset);
-    });
     mMenuBuilder->addAction(makeAction(DIcon("structaddr"), tr("Change address"), SLOT(changeAddrSlot())), [this](QMenu*)
     {
         return hasSelection && !selectedItem->parent() && DbgIsDebugging();
     });
-    mMenuBuilder->addAction(makeAction(DIcon("visitstruct"), tr("Visit type"), SLOT(visitSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("visitstruct"), tr("Display type"), SLOT(visitSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("database-import"), tr("Load JSON"), SLOT(loadJsonSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("source"), tr("Parse header"), SLOT(parseFileSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("removestruct"), tr("Remove"), SLOT(removeSlot())), [this](QMenu*)
@@ -206,6 +224,21 @@ void StructWidget::setupContextMenu()
     });
     mMenuBuilder->addAction(makeAction(DIcon("eraser"), tr("Clear"), SLOT(clearSlot())));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
+
+    auto copyMenu = new MenuBuilder(this);
+    auto columnCount = ui->treeWidget->columnCount();
+    auto headerItem = ui->treeWidget->headerItem();
+    for(int column = 0; column < columnCount; column++)
+    {
+        auto action = makeAction(headerItem->text(column), SLOT(copyColumnSlot()));
+        action->setObjectName(QString("%1").arg(column));
+        copyMenu->addAction(action, [this, column](QMenu*)
+        {
+            return hasSelection && !selectedItem->text(column).isEmpty();
+        });
+    }
+    mMenuBuilder->addMenu(makeMenu(DIcon("copy"), tr("&Copy")), copyMenu);
+
     mMenuBuilder->loadFromConfig();
 }
 
@@ -226,7 +259,6 @@ QString StructWidget::highlightTypeName(QString name) const
             "wchar_t",
             "int16_t",
             "uint8_t",
-            "struct",
             "double",
             "size_t",
             "uint64",
@@ -235,7 +267,6 @@ QString StructWidget::highlightTypeName(QString name) const
             "uint16",
             "signed",
             "int8_t",
-            "union",
             "const",
             "float",
             "duint",
@@ -269,14 +300,18 @@ QString StructWidget::highlightTypeName(QString name) const
     }();
 
     name.replace(re, "<b>\\1</b>");
-    return std::move(name);
+
+    static QRegExp sre("^(struct|union|class|enum) ([a-zA-Z0-9_:$]+)");
+    name.replace(sre, "<u>\\1</u> <b>\\2</b>");
+
+    return name;
 }
 
 duint StructWidget::selectedValue() const
 {
     if(!hasSelection)
         return 0;
-    QStringList split = selectedItem->text(3).split(',');
+    QStringList split = selectedItem->text(ColValue).split(',');
     if(split.length() < 1)
         return 0;
     return split[0].toULongLong(nullptr, 0);
@@ -325,18 +360,28 @@ void StructWidget::removeSlot()
 
 void StructWidget::visitSlot()
 {
-    //TODO: replace with a list to pick from
-    LineEditDialog mLineEdit(this);
-    mLineEdit.setWindowTitle(tr("Type to visit"));
-    if(mLineEdit.exec() != QDialog::Accepted || !mLineEdit.editText.length())
+    QStringList structs;
+    DbgFunctions()->EnumStructs([](const char* name, void* userdata)
+    {
+        ((QStringList*)userdata)->append(name);
+    }, &structs);
+    if(structs.isEmpty())
+    {
+        SimpleErrorBox(this, tr("Error"), tr("No types loaded yet, parse a header first..."));
+        return;
+    }
+
+    QString selection;
+    if(!SimpleChoiceBox(this, tr("Type to display"), "", structs, selection, true, "", &DIcon("struct"), 1) || selection.isEmpty())
         return;
     if(!mGotoDialog)
         mGotoDialog = new GotoDialog(this);
     duint addr = 0;
-    mGotoDialog->setWindowTitle(tr("Address to visit"));
+    mGotoDialog->setWindowTitle(tr("Address to display %1 at").arg(selection));
     if(DbgIsDebugging() && mGotoDialog->exec() == QDialog::Accepted)
         addr = DbgValFromString(mGotoDialog->expressionText.toUtf8().constData());
-    DbgCmdExec(QString("VisitType %1, %2, 2").arg(mLineEdit.editText, ToPtrString(addr)));
+    DbgCmdExec(QString("VisitType %1, %2, 2").arg(selection, ToPtrString(addr)));
+    // TODO: show a proper error message on failure
 }
 
 void StructWidget::loadJsonSlot()
@@ -387,4 +432,16 @@ void StructWidget::changeAddrSlot()
 void StructWidget::refreshSlot()
 {
     typeUpdateWidget();
+}
+
+void StructWidget::copyColumnSlot()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(action == nullptr || !hasSelection)
+        return;
+    auto column = action->objectName().toInt();
+    auto text = selectedItem->text(column);
+    text = QTextDocumentFragment::fromHtml(text).toPlainText();
+    if(!text.isEmpty())
+        Bridge::CopyToClipboard(text);
 }

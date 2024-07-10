@@ -208,7 +208,7 @@ void WatchView::addWatchSlot()
 {
     QString name;
     if(SimpleInputBox(this, tr("Enter the expression to watch"), "", name, tr("Example: [EAX]")))
-        DbgCmdExecDirect(QString("AddWatch ").append(name));
+        DbgCmdExecDirect(QString("AddWatch \"%1\"").arg(DbgCmdEscape(name)));
     updateWatch();
 }
 
@@ -223,7 +223,7 @@ void WatchView::renameWatchSlot()
     QString name;
     QString originalName = getCellContent(getInitialSelection(), ColName);
     if(SimpleInputBox(this, tr("Enter the name of the watch variable"), originalName, name, originalName))
-        DbgCmdExecDirect(QString("SetWatchName ").append(getSelectedId() + "," + name));
+        DbgCmdExecDirect(QString("SetWatchName %1, \"%2\"").arg(getSelectedId(), DbgCmdEscape(name)));
     updateWatch();
 }
 
@@ -250,7 +250,7 @@ void WatchView::editWatchSlot()
     QString originalExpr = getCellContent(getInitialSelection(), ColExpr);
     QString currentType = getCellContent(getInitialSelection(), ColType);
     if(SimpleInputBox(this, tr("Enter the expression to watch"), originalExpr, expr, tr("Example: [EAX]")))
-        DbgCmdExecDirect(QString("SetWatchExpression ").append(getSelectedId()).append(",").append(expr).append(",").append(currentType));
+        DbgCmdExecDirect(QString("SetWatchExpression %1, \"%2\", %3").arg(getSelectedId(), DbgCmdEscape(expr), currentType));
     updateWatch();
 }
 

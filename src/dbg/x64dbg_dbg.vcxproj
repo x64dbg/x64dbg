@@ -114,6 +114,7 @@
     <ClCompile Include="WinInet-Downloader\downslib.cpp" />
     <ClCompile Include="x64dbg.cpp" />
     <ClCompile Include="xrefs.cpp" />
+    <ClCompile Include="_apichecker.c" />
     <ClCompile Include="_exports.cpp" />
     <ClCompile Include="_dbgfunctions.cpp" />
     <ClCompile Include="_global.cpp" />
@@ -155,6 +156,7 @@
     <ClInclude Include="assemble.h" />
     <ClInclude Include="bookmark.h" />
     <ClInclude Include="breakpoint.h" />
+    <ClInclude Include="bridgemain.h" />
     <ClInclude Include="btparser\btparser\ast.h" />
     <ClInclude Include="btparser\btparser\helpers.h" />
     <ClInclude Include="btparser\btparser\keywords.h" />
