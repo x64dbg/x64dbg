@@ -7,6 +7,17 @@
 
 #include <string>
 #include <vector>
+#include <cstdint>
+
+#pragma warning(push)
+#pragma warning(disable: 4018 4146 4244)
+#include "tweetnacl.c"
+#pragma warning(pop)
+
+void randombytes(uint8_t* buf, uint64_t len)
+{
+    __debugbreak();
+}
 
 static wchar_t szApplicationDir[MAX_PATH];
 static bool bPerformSignatureChecks = false;
@@ -28,16 +39,71 @@ static void debugMessage(const wchar_t* szMessage)
 
 #pragma comment(lib, "wintrust")
 
+#pragma pack(push, 1)
+struct EmbeddedSignature
+{
+    uint8_t signature[64];
+    uint8_t hash[64];
+    uint64_t magic;
+};
+#pragma pack(pop)
+
 // Source: https://learn.microsoft.com/en-us/windows/win32/seccrypto/example-c-program--verifying-the-signature-of-a-pe-file
 static bool VerifyEmbeddedSignature(LPCWSTR pwszSourceFile, bool checkRevocation)
 {
+    auto hFile = CreateFileW(pwszSourceFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+    if(hFile == INVALID_HANDLE_VALUE)
+    {
+        return false;
+    }
+
+    auto fileSize = GetFileSize(hFile, nullptr);
+    SetFilePointer(hFile, fileSize - sizeof(EmbeddedSignature), nullptr, FILE_BEGIN);
+    EmbeddedSignature signature = {};
+    DWORD read = 0;
+    ReadFile(hFile, &signature, sizeof(signature), &read, nullptr);
+    SetFilePointer(hFile, 0, nullptr, FILE_BEGIN);
+    if(signature.magic == 0xDEAD13371337BEEF)
+    {
+        // Read the file in memory
+        fileSize -= sizeof(EmbeddedSignature);
+        std::vector<uint8_t> fileData(fileSize);
+        auto success = ReadFile(hFile, fileData.data(), fileSize, &read, nullptr);
+        CloseHandle(hFile);
+        if(!success)
+        {
+            return false;
+        }
+
+        // Hash the file contents
+        uint8_t expected[64] = {};
+        crypto_hash(expected, fileData.data(), fileSize);
+
+        // Verify the signature block
+        u8 pk[32] =
+        {
+            0x04, 0x81, 0x5E, 0x72, 0xBC, 0x6C, 0x9F, 0xA0, 0x21, 0xE9, 0x79, 0x71,
+            0xEA, 0x91, 0x12, 0xC4, 0xFA, 0xB8, 0x25, 0xDF, 0x57, 0x83, 0xCD, 0xF1,
+            0x90, 0xBD, 0xDA, 0x1F, 0x19, 0x3B, 0x06, 0x86
+        };
+        u64 mlen = 0;
+        u8 m[sizeof(EmbeddedSignature)] = {};
+        if(crypto_sign_open(m, &mlen, (const u8*)&signature, sizeof(signature), pk) != 0)
+        {
+            return false;
+        }
+
+        // Compare the hashes
+        return memcmp(m, expected, 64) == 0;
+    }
+
     // Initialize the WINTRUST_FILE_INFO structure.
 
     WINTRUST_FILE_INFO FileData;
     memset(&FileData, 0, sizeof(FileData));
     FileData.cbStruct = sizeof(WINTRUST_FILE_INFO);
     FileData.pcwszFilePath = pwszSourceFile;
-    FileData.hFile = NULL;
+    FileData.hFile = hFile;
     FileData.pgKnownSubject = NULL;
 
     /*
@@ -121,6 +187,8 @@ static bool VerifyEmbeddedSignature(LPCWSTR pwszSourceFile, bool checkRevocation
                             NULL,
                             &WVTPolicyGUID,
                             &WinTrustData);
+
+    CloseHandle(hFile);
 
     SetLastError(lStatus);
     return validSignature;
