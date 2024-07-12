@@ -491,6 +491,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionGotoPrevious", Shortcut({tr("Actions"), tr("Goto Previous")}, "-"));
     defaultShortcuts.insert("ActionGotoNext", Shortcut({tr("Actions"), tr("Goto Next")}, "+"));
     defaultShortcuts.insert("ActionGotoExpression", Shortcut({tr("Actions"), tr("Goto Expression")}, "Ctrl+G"));
+    defaultShortcuts.insert("ActionGotoIndex", Shortcut({tr("Actions"), tr("Goto Index")}, ""));
     defaultShortcuts.insert("ActionGotoStart", Shortcut({tr("Actions"), tr("Goto Start of Page")}, "Home"));
     defaultShortcuts.insert("ActionGotoEnd", Shortcut({tr("Actions"), tr("Goto End of Page")}, "End"));
     defaultShortcuts.insert("ActionGotoFunctionStart", Shortcut({tr("Actions"), tr("Goto Start of Function")}, "Ctrl+Home"));

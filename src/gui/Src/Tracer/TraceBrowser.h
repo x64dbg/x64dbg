@@ -162,6 +162,7 @@ public slots:
     void selectionChangedSlot(unsigned long long selection);
 
     void gotoSlot();
+    void gotoIndexSlot();
     void rtrSlot();
     void gotoPreviousSlot();
     void gotoNextSlot();
@@ -189,4 +190,5 @@ public slots:
 
 protected:
     void disasm(unsigned long long index, bool history = true);
+    void disasmByAddress(unsigned long long index, bool history = true);
 };

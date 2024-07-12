@@ -921,7 +921,8 @@ void TraceBrowser::setupRightClickContextMenu()
         return true;
     });
     MenuBuilder* gotoMenu = new MenuBuilder(this, isValid);
-    gotoMenu->addAction(makeShortcutAction(DIcon("goto"), tr("Index"), SLOT(gotoSlot()), "ActionGotoExpression"), isValid);
+    gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto"), tr("Expression"), SLOT(gotoSlot()), "ActionGotoExpression"), isValid);
+    gotoMenu->addAction(makeShortcutAction(DIcon("goto"), tr("Index"), SLOT(gotoIndexSlot()), "ActionGotoIndex"), isValid);
     gotoMenu->addAction(makeAction(DIcon("arrow-step-rtr"), tr("Function return"), SLOT(rtrSlot())), isValid);
     gotoMenu->addAction(makeShortcutAction(DIcon("previous"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
@@ -1411,6 +1412,30 @@ void TraceBrowser::disasm(unsigned long long index, bool history)
     emit selectionChanged(getInitialSelection());
 }
 
+void TraceBrowser::disasmByAddress(unsigned long long address, bool history)
+{
+    for(int i = 0; i < mTraceFile->Length(); i++)
+    {
+        if(mTraceFile->Registers(i).regcontext.cip == address)
+        {
+            disasm(i, history);
+            break;
+        }
+    }
+}
+
+void TraceBrowser::gotoIndexSlot()
+{
+    if(mTraceFile == nullptr || mTraceFile->Progress() < 100)
+        return;
+    GotoDialog gotoDlg(this, false, true, true);
+    if(gotoDlg.exec() == QDialog::Accepted)
+    {
+        auto val = DbgValFromString(gotoDlg.expressionText.toUtf8().constData());
+        if(val >= 0 && val < mTraceFile->Length()) disasm(val);
+    }
+}
+
 void TraceBrowser::gotoSlot()
 {
     if(mTraceFile == nullptr || mTraceFile->Progress() < 100)
@@ -1419,10 +1444,10 @@ void TraceBrowser::gotoSlot()
     if(gotoDlg.exec() == QDialog::Accepted)
     {
         auto val = DbgValFromString(gotoDlg.expressionText.toUtf8().constData());
-        if(val >= 0 && val < mTraceFile->Length())
-            disasm(val);
+        if(val >= 0) disasmByAddress(val);
     }
 }
+
 
 void TraceBrowser::rtrSlot()
 {
