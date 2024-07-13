@@ -882,10 +882,7 @@ void TraceBrowser::setupRightClickContextMenu()
     });
     mMenuBuilder->addMenu(makeMenu(DIcon("goto"), tr("Go to")), gotoMenu);
 
-    mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs"), tr("xrefs..."), SLOT(gotoXrefSlot()), "ActionXrefs"), [this](QMenu*)
-    {
-        return !Config()->getBool("Gui", "DisableTraceDump"); // Do not show xrefs when dump is disabled
-    });
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("xrefs"), tr("xrefs..."), SLOT(gotoXrefSlot()), "ActionXrefs"));
 
     MenuBuilder* searchMenu = new MenuBuilder(this, mTraceFileNotNull);
     searchMenu->addAction(makeAction(DIcon("search_for_constant"), tr("Address/Constant"), SLOT(searchConstantSlot())));

@@ -1,5 +1,6 @@
 #include "TraceWidget.h"
 #include "ui_TraceWidget.h"
+#include <QPushButton>
 #include "TraceBrowser.h"
 #include "TraceInfoBox.h"
 #include "TraceDump.h"
@@ -20,20 +21,24 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     mTraceFile->Open(fileName);
     mTraceBrowser = new TraceBrowser(mTraceFile, this);
     mInfo = new TraceInfoBox(this);
+    mArchitecture = architecture;
     if(!Config()->getBool("Gui", "DisableTraceDump"))
     {
+        mTraceFile->getDump()->setEnabled();
         mMemoryPage = new TraceFileDumpMemoryPage(mTraceFile->getDump(), this);
         mDump = new TraceDump(architecture, mTraceBrowser, mMemoryPage, this);
         mStack = new TraceStack(architecture, mTraceBrowser, mMemoryPage, this);
-        mXrefDlg = nullptr;
+        mLoadDump = nullptr;
     }
     else
     {
         mMemoryPage = nullptr;
         mDump = nullptr;
         mStack = nullptr;
-        mXrefDlg = nullptr;
+        mLoadDump = new QPushButton(tr("Load dump"), this);
+        connect(mLoadDump, SIGNAL(clicked()), this, SLOT(loadDump()));
     }
+    mXrefDlg = nullptr;
     mGeneralRegs = new TraceRegisters(this);
     //disasm
     ui->mTopLeftUpperRightFrameLayout->addWidget(mTraceBrowser);
@@ -68,9 +73,9 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     int height = mInfo->getHeight();
     ui->mTopLeftLowerFrame->setMinimumHeight(height + 2);
 
+    connect(mTraceBrowser, SIGNAL(xrefSignal(duint)), this, SLOT(xrefSlot(duint)));
     if(mDump)
     {
-        connect(mTraceBrowser, SIGNAL(xrefSignal(duint)), this, SLOT(xrefSlot(duint)));
         //dump
         ui->mBotLeftFrameLayout->addWidget(mDump);
         connect(mDump, SIGNAL(xrefSignal(duint)), this, SLOT(xrefSlot(duint)));
@@ -78,6 +83,10 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
         //stack
         ui->mBotRightFrameLayout->addWidget(mStack);
         connect(mStack, SIGNAL(xrefSignal(duint)), this, SLOT(xrefSlot(duint)));
+    }
+    else
+    {
+        ui->mBotLeftFrameLayout->addWidget(mLoadDump);
     }
 
     ui->mTopHSplitter->setSizes(QList<int>({1000, 1}));
@@ -131,6 +140,8 @@ void TraceWidget::traceSelectionChanged(unsigned long long selection)
 
 void TraceWidget::xrefSlot(duint addr)
 {
+    if(!mDump)
+        loadDump();
     if(!mXrefDlg)
         mXrefDlg = new TraceXrefBrowseDialog(this);
     mXrefDlg->setup(mTraceBrowser->getInitialSelection(), addr, mTraceFile, [this](duint addr)
@@ -161,26 +172,7 @@ void TraceWidget::parseFinishedSlot()
         }
         if(mDump)
         {
-            // Setting the initial address of dump view
-            const int count = mTraceFile->MemoryAccessCount(0);
-            if(count > 0)
-            {
-                // Display source operand
-                duint address[MAX_MEMORY_OPERANDS];
-                duint oldMemory[MAX_MEMORY_OPERANDS];
-                duint newMemory[MAX_MEMORY_OPERANDS];
-                bool isValid[MAX_MEMORY_OPERANDS];
-                mTraceFile->MemoryAccessInfo(0, address, oldMemory, newMemory, isValid);
-                initialAddress = address[count - 1];
-            }
-            else
-            {
-                // No memory operands, so display opcode instead
-                initialAddress = mTraceFile->Registers(0).regcontext.cip;
-            }
-            mDump->printDumpAt(initialAddress, false, true, true);
-            // Setting the initial address of stack view
-            mStack->printDumpAt(mTraceFile->Registers(0).regcontext.csp, false, true, true);
+            setupDumpInitialAddresses(0);
         }
         mGeneralRegs->setActive(true);
     }
@@ -194,4 +186,55 @@ void TraceWidget::closeFileSlot()
 void TraceWidget::displayLogWidgetSlot()
 {
     emit displayLogWidget();
+}
+
+void TraceWidget::loadDump()
+{
+    mTraceFile->getDump()->setEnabled();
+    mMemoryPage = new TraceFileDumpMemoryPage(mTraceFile->getDump(), this);
+    auto selection = mTraceBrowser->getInitialSelection();
+    mTraceFile->buildDumpTo(selection); // TODO: sometimes this can be slow // TODO: Is it a good idea to build dump index just when opening the file?
+    mMemoryPage->setSelectedIndex(selection);
+    mDump = new TraceDump(mArchitecture, mTraceBrowser, mMemoryPage, this);
+    mStack = new TraceStack(mArchitecture, mTraceBrowser, mMemoryPage, this);
+
+    //dump
+    ui->mBotLeftFrameLayout->removeWidget(mLoadDump);
+    delete mLoadDump;
+    mLoadDump = nullptr;
+    ui->mBotLeftFrameLayout->addWidget(mDump);
+    connect(mDump, SIGNAL(xrefSignal(duint)), this, SLOT(xrefSlot(duint)));
+    mDump->setAccessibleName(tr("Dump"));
+
+    //stack
+    ui->mBotRightFrameLayout->addWidget(mStack);
+    connect(mStack, SIGNAL(xrefSignal(duint)), this, SLOT(xrefSlot(duint)));
+    mStack->setAccessibleName(tr("Stack"));
+
+    setupDumpInitialAddresses(selection);
+}
+
+void TraceWidget::setupDumpInitialAddresses(unsigned long long selection)
+{
+    // Setting the initial address of dump view
+    duint initialAddress;
+    const int count = mTraceFile->MemoryAccessCount(selection);
+    if(count > 0)
+    {
+        // Display source operand
+        duint address[MAX_MEMORY_OPERANDS];
+        duint oldMemory[MAX_MEMORY_OPERANDS];
+        duint newMemory[MAX_MEMORY_OPERANDS];
+        bool isValid[MAX_MEMORY_OPERANDS];
+        mTraceFile->MemoryAccessInfo(selection, address, oldMemory, newMemory, isValid);
+        initialAddress = address[count - 1];
+    }
+    else
+    {
+        // No memory operands, so display opcode instead
+        initialAddress = mTraceFile->Registers(selection).regcontext.cip;
+    }
+    mDump->printDumpAt(initialAddress, false, true, true);
+    // Setting the initial address of stack view
+    mStack->printDumpAt(mTraceFile->Registers(selection).regcontext.csp, false, true, true);
 }

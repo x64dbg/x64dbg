@@ -29,6 +29,14 @@ public:
     TraceFileDump();
     ~TraceFileDump();
     void clear();
+    inline void setEnabled()
+    {
+        enabled = true;
+    }
+    inline bool isEnabled() const
+    {
+        return enabled;
+    }
     // Read a byte at "addr" at the moment given in "index"
     unsigned char getByte(Key location, bool & success) const;
     std::vector<unsigned char> getBytes(duint addr, duint size, unsigned long long index) const;
@@ -50,6 +58,7 @@ public:
 private:
     std::map<Key, DumpRecord> dump;
     unsigned long long maxIndex;
+    bool enabled;
 };
 
 class TraceFileDumpMemoryPage : public MemoryPage

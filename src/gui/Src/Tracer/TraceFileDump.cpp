@@ -1,10 +1,12 @@
 #include <QMutexLocker>
+#include "Configuration.h"
 #include "TraceFileDump.h"
 #include "StringUtil.h"
 
 TraceFileDump::TraceFileDump()
 {
     maxIndex = 0ull;
+    enabled = false;
 }
 
 TraceFileDump::~TraceFileDump()

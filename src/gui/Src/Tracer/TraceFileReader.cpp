@@ -101,7 +101,7 @@ void TraceFileReader::parseFinishedSlot()
         progress.store(0);
     delete parser;
     parser = nullptr;
-    if(Length() > 0 && !Config()->getBool("Gui", "DisableTraceDump"))
+    if(Length() > 0 && getDump()->isEnabled())
         buildDump(0); // initialize dump with first instruction
     emit parseFinished();
 
@@ -584,7 +584,7 @@ void TraceFileReader::purgeLastPage()
         error = false;
         errorMessage.clear();
         length = index;
-        if(previousEmpty && length > 0 && !Config()->getBool("Gui", "DisableTraceDump"))
+        if(previousEmpty && length > 0 && getDump()->isEnabled())
             buildDump(0); // Initialize dump
     }
     catch(std::wstring & errReason)

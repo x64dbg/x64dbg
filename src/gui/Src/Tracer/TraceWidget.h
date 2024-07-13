@@ -4,6 +4,7 @@
 #include "Bridge.h"
 
 class QVBoxLayout;
+class QPushButton;
 class CPUWidget;
 class TraceRegisters;
 class TraceBrowser;
@@ -36,6 +37,7 @@ protected slots:
     void displayLogWidgetSlot();
     void traceSelectionChanged(unsigned long long selection);
     void parseFinishedSlot();
+    void loadDump();
     void closeFileSlot();
     void xrefSlot(duint addr);
 
@@ -48,7 +50,10 @@ protected:
     TraceFileDumpMemoryPage* mMemoryPage;
     TraceStack* mStack;
     TraceXrefBrowseDialog* mXrefDlg;
+    QPushButton* mLoadDump;
+    Architecture* mArchitecture;
 
 private:
     Ui::TraceWidget* ui;
+    void setupDumpInitialAddresses(unsigned long long selection);
 };

@@ -98,7 +98,7 @@ int TraceFileSearchMemReference(TraceFileReader* file, duint address)
     GuiReferenceAddColumn(100, QCoreApplication::translate("TraceFileSearch", "Disassembly").toUtf8().constData());
     GuiReferenceAddCommand(QCoreApplication::translate("TraceFileSearch", "Follow index in trace").toUtf8().constData(), "gototrace 0x$1");
     GuiReferenceSetRowCount(0);
-    bool useTraceDump = !Config()->getBool("Gui", "DisableTraceDump");
+    bool useTraceDump = file->getDump()->isEnabled();
 
     if(useTraceDump)
     {

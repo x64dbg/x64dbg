@@ -964,10 +964,10 @@
        <item>
         <widget class="QCheckBox" name="chkDisableTraceDump">
          <property name="toolTip">
-          <string>Dump in trace view consumes significant memory and CPU resources. It can be disabled if you find it too slow. Already opened trace tabs are not affected.</string>
+          <string>Dump in trace view consumes significant memory. If disabled, it will not be loaded by default. The user can always load the dump manually. Dump in already opened trace tabs are not disabled until you close them.</string>
          </property>
          <property name="text">
-          <string>Disable dump in trace view</string>
+          <string>Do not automatically load dump in trace view</string>
          </property>
         </widget>
        </item>
