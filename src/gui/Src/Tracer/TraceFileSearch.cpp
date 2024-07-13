@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <QCoreApplication>
 #include "TraceFileReader.h"
 #include "TraceFileSearch.h"

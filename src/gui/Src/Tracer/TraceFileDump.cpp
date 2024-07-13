@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <QMutexLocker>
 #include "Configuration.h"
 #include "TraceFileDump.h"
