@@ -2567,8 +2567,10 @@ void DisassemblerGraphView::saveImageSlot()
     }
 
     //save viewport to image
-    QRect completeRenderRect = QRect(0, 0, this->renderWidth, this->renderHeight);
+    auto scaleFactor = this->devicePixelRatioF();
+    QRect completeRenderRect = QRect(0, 0, this->renderWidth * scaleFactor, this->renderHeight * scaleFactor);
     QImage img(completeRenderRect.size(), QImage::Format_ARGB32);
+    img.setDevicePixelRatio(scaleFactor);
     QPainter painter(&img);
     this->viewport()->render(&painter);
     if(!path.toLower().endsWith(".webp"))
