@@ -3,11 +3,11 @@
 #include <QTabWidget>
 #include <QPushButton>
 #include <QMap>
-#include "TraceWidget.h"
+#include "TabWidget.h"
 
 class MRUList;
 
-class TraceManager : public QTabWidget
+class TraceManager : public MHTabWidget
 {
     Q_OBJECT
 public:
@@ -22,11 +22,10 @@ signals:
 public slots:
     void open();
     void openSlot(const QString &);
-    void closeTab(int index);
+    void DeleteTab(int index) override;
     void closeAllTabs();
     void toggleTraceRecording();
 
 private:
     MRUList* mMRUList;
-    QPushButton* mCloseAllTabs;
 };
