@@ -17,6 +17,7 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
 {
     ui->setupUi(this);
 
+    setCursor(QCursor(Qt::CursorShape::WaitCursor));
     mTraceFile = new TraceFileReader(this);
     mTraceFile->Open(fileName);
     mTraceBrowser = new TraceBrowser(mTraceFile, this);
@@ -141,7 +142,7 @@ void TraceWidget::traceSelectionChanged(unsigned long long selection)
 void TraceWidget::xrefSlot(duint addr)
 {
     if(!mDump)
-        loadDump();
+        loadDumpFully();
     if(!mXrefDlg)
         mXrefDlg = new TraceXrefBrowseDialog(this);
     mXrefDlg->setup(mTraceBrowser->getInitialSelection(), addr, mTraceFile, [this](duint addr)
@@ -176,6 +177,7 @@ void TraceWidget::parseFinishedSlot()
         }
         mGeneralRegs->setActive(true);
     }
+    setCursor(QCursor(Qt::CursorShape::ArrowCursor));
 }
 
 void TraceWidget::closeFileSlot()
@@ -190,10 +192,11 @@ void TraceWidget::displayLogWidgetSlot()
 
 void TraceWidget::loadDump()
 {
+    assert(!mDump); // Check whether the dump is already loaded
     mTraceFile->getDump()->setEnabled();
     mMemoryPage = new TraceFileDumpMemoryPage(mTraceFile->getDump(), this);
     auto selection = mTraceBrowser->getInitialSelection();
-    mTraceFile->buildDumpTo(selection); // TODO: sometimes this can be slow // TODO: Is it a good idea to build dump index just when opening the file?
+    mTraceFile->buildDumpTo(selection); // TODO: sometimes this can be slow
     mMemoryPage->setSelectedIndex(selection);
     mDump = new TraceDump(mArchitecture, mTraceBrowser, mMemoryPage, this);
     mStack = new TraceStack(mArchitecture, mTraceBrowser, mMemoryPage, this);
@@ -212,6 +215,17 @@ void TraceWidget::loadDump()
     mStack->setAccessibleName(tr("Stack"));
 
     setupDumpInitialAddresses(selection);
+}
+
+void TraceWidget::loadDumpFully()
+{
+    if(mTraceFile->Length() > 0)
+    {
+        if(!mTraceFile->getDump()->isEnabled())
+            loadDump();
+        // Fully build dump index
+        mTraceFile->buildDumpTo(mTraceFile->Length() - 1);
+    }
 }
 
 void TraceWidget::setupDumpInitialAddresses(unsigned long long selection)

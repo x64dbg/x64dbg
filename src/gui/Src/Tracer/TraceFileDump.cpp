@@ -22,6 +22,7 @@ void TraceFileDump::clear()
 
 unsigned char TraceFileDump::getByte(Key location, bool & success) const
 {
+    assert(isEnabled());
     auto it = dump.lower_bound(location);
     success = false;
     if(it != dump.end())
@@ -54,11 +55,11 @@ unsigned char TraceFileDump::getByte(Key location, bool & success) const
     }
 }
 
-std::vector<unsigned char> TraceFileDump::getBytes(duint addr, duint size, unsigned long long index) const
+void TraceFileDump::getBytes(duint addr, duint size, unsigned long long index, void* buffer) const
 {
-    std::vector<unsigned char> buffer;
+    assert(isEnabled());
+    unsigned char* ptr = (unsigned char*)buffer;
     char failedTimes = 0;
-    buffer.resize(size);
     for(duint i = 0; i < size; i++)
     {
         Key location = {addr + i, index};
@@ -82,7 +83,7 @@ std::vector<unsigned char> TraceFileDump::getBytes(duint addr, duint size, unsig
                 {
                     duint gap_size = it->first.addr - location.addr;
                     gap_size = std::min(gap_size, size - i); // prevent overflow
-                    memset(&buffer[i], 0, gap_size);
+                    memset(&ptr[i], 0, gap_size);
                     i += gap_size - 1;
                     continue;
                 }
@@ -92,16 +93,16 @@ std::vector<unsigned char> TraceFileDump::getBytes(duint addr, duint size, unsig
         }
         if(!success)
         {
-            buffer[i] = 0;
+            ptr[i] = 0;
             continue;
         }
         if(location.index > it->first.index)
         {
-            buffer[i] = it->second.newData;
+            ptr[i] = it->second.newData;
         }
         else
         {
-            buffer[i] = it->second.oldData; // Old data of new instruction is preferred
+            ptr[i] = it->second.oldData; // Old data of new instruction is preferred
         }
         // Peek at next entries to see if we are lucky to have data for addr+i+1 easily, works for data only accessed once
         while(it != dump.begin() &&  i + 1 < size && failedTimes < 5)
@@ -116,11 +117,11 @@ std::vector<unsigned char> TraceFileDump::getBytes(duint addr, duint size, unsig
                     ++i;
                     if(location.index > it->first.index)
                     {
-                        buffer[i] = it->second.newData;
+                        ptr[i] = it->second.newData;
                     }
                     else
                     {
-                        buffer[i] = it->second.oldData; // Old data of new instruction is preferred
+                        ptr[i] = it->second.oldData; // Old data of new instruction is preferred
                     }
                     failedTimes = 0;
                     continue;
@@ -132,16 +133,16 @@ std::vector<unsigned char> TraceFileDump::getBytes(duint addr, duint size, unsig
         if(it == dump.begin() && i < size - 1)
         {
             // Nothing more, fill the rest with zeros and done
-            memset(&buffer[i + 1], 0, size - i - 1);
+            memset(&ptr[i + 1], 0, size - i - 1);
             break;
         }
     }
-    return buffer;
 }
 
 // find references to the memory address
 std::vector<unsigned long long> TraceFileDump::getReferences(duint startAddr, duint endAddr) const
 {
+    assert(isEnabled());
     std::vector<unsigned long long> index;
     if(endAddr < startAddr)
         std::swap(endAddr, startAddr);
@@ -174,6 +175,7 @@ std::vector<unsigned long long> TraceFileDump::getReferences(duint startAddr, du
 
 void TraceFileDump::addMemAccess(duint addr, const void* oldData, const void* newData, size_t size)
 {
+    assert(isEnabled());
     std::vector<std::pair<Key, DumpRecord>> records;
     records.resize(size);
     // insert in the correct order
@@ -257,8 +259,7 @@ bool TraceFileDumpMemoryPage::read(void* parDest, dsint parRVA, duint parSize) c
 {
     if(!dump)
         return false;
-    auto buffer = dump->getBytes(mBase + parRVA, parSize, selectedIndex);
-    memcpy(parDest, buffer.data(), parSize);
+    dump->getBytes(mBase + parRVA, parSize, selectedIndex, parDest);
     return true;
 }
 

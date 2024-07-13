@@ -14,7 +14,7 @@
 #include "MRUList.h"
 #include <QFileDialog>
 
-TraceBrowser::TraceBrowser(TraceFileReader* traceFile, QWidget* parent) : AbstractTableView(parent), mTraceFile(traceFile)
+TraceBrowser::TraceBrowser(TraceFileReader* traceFile, TraceWidget* parent) : AbstractTableView(parent), mTraceFile(traceFile)
 {
     addColumnAt(getCharWidth() * 2 * 2 + 8, tr("Index"), false); //index
     addColumnAt(getCharWidth() * 2 * sizeof(dsint) + 8, tr("Address"), false); //address
@@ -26,6 +26,8 @@ TraceBrowser::TraceBrowser(TraceFileReader* traceFile, QWidget* parent) : Abstra
     loadColumnFromConfig("Trace");
 
     setShowHeader(false); //hide header
+
+    mParent = parent;
 
     mSelection.firstSelectedIndex = 0;
     mSelection.fromIndex = 0;
@@ -870,7 +872,8 @@ void TraceBrowser::setupRightClickContextMenu()
         return true;
     });
     MenuBuilder* gotoMenu = new MenuBuilder(this, mTraceFileNotNull);
-    gotoMenu->addAction(makeShortcutAction(DIcon("goto"), tr("Index"), SLOT(gotoSlot()), "ActionGotoExpression"), mTraceFileNotNull);
+    gotoMenu->addAction(makeShortcutAction(DIcon("geolocation-goto"), tr("Expression"), SLOT(gotoSlot()), "ActionGotoExpression"), mTraceFileNotNull);
+    gotoMenu->addAction(makeAction(DIcon("goto"), tr("Index"), SLOT(gotoIndexSlot())), mTraceFileNotNull);
     gotoMenu->addAction(makeAction(DIcon("arrow-step-rtr"), tr("Function return"), SLOT(rtrSlot())), mTraceFileNotNull);
     gotoMenu->addAction(makeShortcutAction(DIcon("previous"), tr("Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
@@ -1367,7 +1370,50 @@ void TraceBrowser::disasm(unsigned long long index, bool history)
     emit selectionChanged(getInitialSelection());
 }
 
-void TraceBrowser::gotoSlot()
+bool TraceBrowser::disasmByAddress(duint address, bool history)
+{
+    mParent->loadDumpFully();
+    auto references = getTraceFile()->getDump()->getReferences(address, address);
+    unsigned long long index;
+    bool found = false;
+    if(references.empty())
+    {
+        return false;
+    }
+    else
+    {
+        for(auto i : references)
+        {
+            if(getTraceFile()->Registers(i).regcontext.cip == address)
+            {
+                if(found == false)
+                {
+                    found = true;
+                    index = i;
+                }
+                else
+                {
+                    // Multiple results, display the Xref dialog
+                    emit xrefSignal(address);
+                    return true;
+                }
+
+            }
+        }
+        if(found)
+        {
+            disasm(index, history);
+        }
+        else
+        {
+            // There is no instruction execution, show the user some other types of memory access
+            emit xrefSignal(address);
+        }
+        return true;
+    }
+}
+
+void TraceBrowser::gotoIndexSlot()
 {
     if(getTraceFile() == nullptr)
         return;
@@ -1377,6 +1423,18 @@ void TraceBrowser::gotoSlot()
         auto val = DbgValFromString(gotoDlg.expressionText.toUtf8().constData());
         if(val >= 0 && val < getTraceFile()->Length())
             disasm(val);
+    }
+}
+
+void TraceBrowser::gotoSlot()
+{
+    if(getTraceFile() == nullptr)
+        return;
+    GotoDialog gotoDlg(this, false, true, true);
+    if(gotoDlg.exec() == QDialog::Accepted)
+    {
+        auto val = DbgValFromString(gotoDlg.expressionText.toUtf8().constData());
+        disasmByAddress(val);
     }
 }
 
@@ -1816,6 +1874,7 @@ void TraceBrowser::searchMemRefSlot()
     if(memRefDlg.exec() == QDialog::Accepted)
     {
         auto ticks = GetTickCount();
+        mParent->loadDumpFully();
         int count = TraceFileSearchMemReference(getTraceFile(), memRefDlg.getVal());
         GuiShowReferences();
         GuiAddLogMessage(tr("%1 result(s) in %2ms\n").arg(count).arg(GetTickCount() - ticks).toUtf8().constData());

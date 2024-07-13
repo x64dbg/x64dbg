@@ -29,6 +29,12 @@ public:
     explicit TraceWidget(Architecture* architecture, const QString & fileName, QWidget* parent);
     ~TraceWidget();
 
+    // Enable trace dump and load it fully before searching
+    void loadDumpFully();
+public slots:
+    // Enable trace dump in order to use these features
+    void loadDump();
+
 signals:
     void closeFile();
     void displayLogWidget();
@@ -37,7 +43,6 @@ protected slots:
     void displayLogWidgetSlot();
     void traceSelectionChanged(unsigned long long selection);
     void parseFinishedSlot();
-    void loadDump();
     void closeFileSlot();
     void xrefSlot(duint addr);
 

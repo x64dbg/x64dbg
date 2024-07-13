@@ -5,6 +5,7 @@
 #include "QZydis.h"
 
 class TraceFileReader;
+class TraceWidget;
 class BreakpointMenu;
 class CommonActions;
 
@@ -12,7 +13,7 @@ class TraceBrowser : public AbstractTableView
 {
     Q_OBJECT
 public:
-    explicit TraceBrowser(TraceFileReader* traceFile, QWidget* parent = nullptr);
+    explicit TraceBrowser(TraceFileReader* traceFile, TraceWidget* parent = nullptr);
     ~TraceBrowser() override;
 
     QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
@@ -161,6 +162,7 @@ public slots:
     void selectionChangedSlot(unsigned long long selection);
 
     void gotoSlot();
+    void gotoIndexSlot();
     void rtrSlot();
     void gotoPreviousSlot();
     void gotoNextSlot();
@@ -188,6 +190,10 @@ public slots:
     void gotoIndexSlot(duint index);
 
 private:
+    // Go to by index
     void disasm(unsigned long long index, bool history = true);
+    // Go to by address, display the Xref dialog if multiple indicies are found
+    bool disasmByAddress(duint address, bool history = true);
+    TraceWidget* mParent;
 };
 
