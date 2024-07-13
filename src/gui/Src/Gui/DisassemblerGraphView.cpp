@@ -96,7 +96,6 @@ void DisassemblerGraphView::resetGraph()
     this->drawOverview = false;
     this->onlySummary = false;
     this->blocks.clear();
-    this->saveGraph = false;
 
     this->analysis = Analysis();
     this->currentGraph = BridgeCFGraph(0);
@@ -844,9 +843,8 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
     }
 
     // while selecting a token to highlight, draw a thin 2px red border around the viewport
-    if(!saveGraph && mHighlightingModeEnabled)
+    if(mHighlightingModeEnabled)
     {
-        QPainter p(this->viewport());
         QPen pen(Qt::red);
         pen.setWidth(2);
         p.setPen(pen);
@@ -854,44 +852,6 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
         QRect viewportRect = this->viewport()->rect();
         viewportRect.adjust(1, 1, -1, -1);
         p.drawRect(viewportRect);
-    }
-
-    if(saveGraph)
-    {
-        //TODO: speed up large graph saving or show gif loader so it won't look like it has crashed
-
-        //Image corresponds to the current zoom level
-        saveGraph = false;
-        QString path = QFileDialog::getSaveFileName(this, tr("Save as image"), "", tr("PNG file (*.png);;BMP file (*.bmp)"));
-        if(path.isEmpty())
-            return;
-
-        QSize size = this->viewport()->size();
-        QPoint scrollbarPos = QPoint(this->horizontalScrollBar()->value(), this->verticalScrollBar()->value());
-
-        // expand to full render Rectangle
-        this->viewport()->resize(this->renderWidth, this->renderHeight);
-
-        if(graphZoomMode)
-        {
-            adjustSize(this->renderWidth, this->renderHeight, QPoint(), true); //set scrollbars to 50%
-        }
-
-        //save viewport to image
-        QRect completeRenderRect = QRect(0, 0, this->renderWidth, this->renderHeight);
-        QImage img(completeRenderRect.size(), QImage::Format_ARGB32);
-        QPainter painter(&img);
-        this->viewport()->render(&painter);
-        img.save(path);
-
-        //restore changes made to viewport for full render saving
-        this->viewport()->resize(size);
-
-        if(graphZoomMode)
-        {
-            this->horizontalScrollBar()->setValue(scrollbarPos.x());
-            this->verticalScrollBar()->setValue(scrollbarPos.y());
-        }
     }
 }
 
@@ -2586,8 +2546,44 @@ void DisassemblerGraphView::refreshSlot()
 
 void DisassemblerGraphView::saveImageSlot()
 {
-    saveGraph = true;
-    this->viewport()->update();
+    //this->viewport()->update();
+
+    //TODO: speed up large graph saving or show gif loader so it won't look like it has crashed
+
+    //Image corresponds to the current zoom level
+    QString path = QFileDialog::getSaveFileName(this, tr("Save as image"), "", tr("PNG file (*.png);;WebP file (*.webp);;BMP file (*.bmp);;TIFF file (*.tif)"));
+    if(path.isEmpty())
+        return;
+
+    QSize size = this->viewport()->size();
+    QPoint scrollbarPos = QPoint(this->horizontalScrollBar()->value(), this->verticalScrollBar()->value());
+
+    // expand to full render Rectangle
+    this->viewport()->resize(this->renderWidth, this->renderHeight);
+
+    if(graphZoomMode)
+    {
+        adjustSize(this->renderWidth, this->renderHeight, QPoint(), true); //set scrollbars to 50%
+    }
+
+    //save viewport to image
+    QRect completeRenderRect = QRect(0, 0, this->renderWidth, this->renderHeight);
+    QImage img(completeRenderRect.size(), QImage::Format_ARGB32);
+    QPainter painter(&img);
+    this->viewport()->render(&painter);
+    if(!path.toLower().endsWith(".webp"))
+        img.save(path);
+    else
+        img.save(path, nullptr, 100);
+
+    //restore changes made to viewport for full render saving
+    this->viewport()->resize(size);
+
+    if(graphZoomMode)
+    {
+        this->horizontalScrollBar()->setValue(scrollbarPos.x());
+        this->verticalScrollBar()->setValue(scrollbarPos.y());
+    }
 }
 
 void DisassemblerGraphView::xrefSlot()
