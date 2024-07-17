@@ -14,7 +14,7 @@
 #include "GotoDialog.h"
 
 TraceStack::TraceStack(Architecture* architecture, TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, QWidget* parent)
-    : mMemoryPage(memoryPage), mDisas(disas), HexDump(architecture, parent, memoryPage)
+    : HexDump(architecture, parent, memoryPage), mDisas(disas)
 {
     setWindowTitle("Stack");
     setDrawDebugOnly(false);
@@ -50,7 +50,7 @@ TraceStack::TraceStack(Architecture* architecture, TraceBrowser* disas, TraceFil
     mGoto = 0;
 
     // Slots
-    //connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
+    connect(this, SIGNAL(selectionUpdated()), this, SLOT(selectionUpdatedSlot()));
 
     Initialize();
 }
@@ -78,7 +78,7 @@ void TraceStack::setupContextMenu()
 {
     mMenuBuilder = new MenuBuilder(this, [this](QMenu*)
     {
-        return mMemoryPage->isAvailable();
+        return static_cast<TraceFileDumpMemoryPage*>(mMemPage)->isAvailable();
     });
     mCommonActions = new CommonActions(this, getActionHelperFuncs(), [this]()
     {
@@ -144,29 +144,33 @@ void TraceStack::setupContextMenu()
     //mCommonActions->build(mMenuBuilder, CommonActions::ActionMemoryMap | CommonActions::ActionDump | CommonActions::ActionDumpData);
 
     //Follow in Stack
-    //auto followStackName = ArchValue(tr("Follow DWORD in &Stack"), tr("Follow QWORD in &Stack"));
-    //mFollowStack = makeAction(DIcon("stack"), followStackName, SLOT(followStackSlot()));
-    //mFollowStack->setShortcutContext(Qt::WidgetShortcut);
+    auto followStackName = ArchValue(tr("Follow DWORD in &Stack"), tr("Follow QWORD in &Stack"));
+    mFollowStack = makeAction(DIcon("stack"), followStackName, SLOT(followStackSlot()));
+    mFollowStack->setShortcutContext(Qt::WidgetShortcut);
     //mFollowStack->setShortcut(QKeySequence("enter"));
-    //mMenuBuilder->addAction(mFollowStack, [this](QMenu*)
-    //{
-    //    duint ptr;
-    //    if(!DbgMemRead(rvaToVa(getInitialSelection()), (unsigned char*)&ptr, sizeof(ptr)))
-    //        return false;
-    //    duint stackBegin = mMemPage->getBase();
-    //    duint stackEnd = stackBegin + mMemPage->getSize();
-    //    return ptr >= stackBegin && ptr < stackEnd;
-    //});
+    mMenuBuilder->addAction(mFollowStack, [this](QMenu*)
+    {
+        duint ptr;
+        if(!mMemPage->read(&ptr, getInitialSelection(), sizeof(ptr)))
+            return false;
+        duint stackBegin = mMemPage->getBase();
+        duint stackEnd = stackBegin + mMemPage->getSize();
+        return ptr >= stackBegin && ptr < stackEnd;
+    });
 
     //Follow in Disassembler
     auto disasmIcon = DIcon(ArchValue("processor32", "processor64"));
     mFollowDisasm = makeAction(disasmIcon, ArchValue(tr("&Follow DWORD in Disassembler"), tr("&Follow QWORD in Disassembler")), SLOT(followDisasmSlot()));
     mFollowDisasm->setShortcutContext(Qt::WidgetShortcut);
-    mFollowDisasm->setShortcut(QKeySequence("enter"));
+    //mFollowDisasm->setShortcut(QKeySequence("enter"));
     mMenuBuilder->addAction(mFollowDisasm, [this](QMenu*)
     {
         duint ptr;
-        return DbgMemRead(rvaToVa(getInitialSelection()), (unsigned char*)&ptr, sizeof(ptr)) && DbgMemIsValidReadPtr(ptr);
+        if(!mMemPage->read(&ptr, getInitialSelection(), sizeof(ptr)))
+            return false;
+        if(mDisas->getTraceFile()->getDump()->isValidReadPtr(ptr))
+            return true;
+        return false;
     });
 
     mMenuBuilder->addAction(makeAction("Edit columns...", SLOT(editColumnDialog())));
@@ -363,7 +367,7 @@ void TraceStack::wheelEvent(QWheelEvent* event)
 
 void TraceStack::stackDumpAt(duint addr, duint csp)
 {
-    if(DbgMemIsValidReadPtr(addr))
+    if(mDisas->getTraceFile()->getDump()->isValidReadPtr(addr))
         mHistory.addVaToHistory(addr);
     mCsp = csp;
 
@@ -432,12 +436,12 @@ void TraceStack::printDumpAt(duint parVA, bool select, bool repaint, bool update
     // Modified from Hexdump, removed memory page information
     // TODO: get memory range from trace instead
     const duint wSize = 0x1000;  // TODO: Using 4KB pages currently
-    auto wBase = mMemoryPage->getBase();
+    auto wBase = mMemPage->getBase();
     dsint wRVA = parVA - wBase; //calculate rva
     if(wRVA < 0 || wRVA >= wSize)
     {
         wBase = parVA & ~(wSize - 1);
-        mMemoryPage->setAttributes(wBase, wSize);
+        mMemPage->setAttributes(wBase, wSize);
         wRVA = parVA - wBase; //calculate rva
     }
     int wBytePerRowCount = getBytePerRowCount(); //get the number of bytes per row
@@ -473,6 +477,7 @@ void TraceStack::printDumpAt(duint parVA, bool select, bool repaint, bool update
         reloadData();
 }
 
+/*
 void TraceStack::disasmSelectionChanged(duint parVA)
 {
     // When the selected instruction is changed, select the argument that is in the stack.
@@ -514,7 +519,7 @@ void TraceStack::disasmSelectionChanged(duint parVA)
         mUnderlineRangeEndVa = underlineEnd;
         reloadData();
     }
-}
+}*/
 
 // TODO
 void TraceStack::gotoCspSlot()
@@ -530,7 +535,7 @@ void TraceStack::gotoCbpSlot()
 
 void TraceStack::gotoExpressionSlot()
 {
-    if(!mMemoryPage->isAvailable())
+    if(!static_cast<TraceFileDumpMemoryPage*>(mMemPage)->isAvailable())
         return;
     if(!mGoto)
         mGoto = new GotoDialog(this, false, true, true);
@@ -544,40 +549,42 @@ void TraceStack::gotoExpressionSlot()
     }
 }
 
-//void TraceStack::selectionUpdatedSlot()
-//{
-//    duint selectedData;
-//    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
-//        if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
-//        {
-//            duint stackBegin = mMemPage->getBase();
-//            duint stackEnd = stackBegin + mMemPage->getSize();
-//            if(selectedData >= stackBegin && selectedData < stackEnd) //data is a pointer to stack address
-//            {
-//                disconnect(SIGNAL(enterPressedSignal()));
-//                connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followStackSlot()));
-//                mFollowDisasm->setShortcut(QKeySequence(""));
-//                mFollowStack->setShortcut(QKeySequence("enter"));
-//            }
-//            else
-//            {
-//                disconnect(SIGNAL(enterPressedSignal()));
-//                connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisasmSlot()));
-//                mFollowStack->setShortcut(QKeySequence(""));
-//                mFollowDisasm->setShortcut(QKeySequence("enter"));
-//            }
-//        }
-//}
+void TraceStack::selectionUpdatedSlot()
+{
+    duint selectedData;
+    if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
+    {
+        if(mDisas->getTraceFile()->getDump()->isValidReadPtr(selectedData)) //data is a pointer
+        {
+            duint stackBegin = mMemPage->getBase();
+            duint stackEnd = stackBegin + mMemPage->getSize();
+            if(selectedData >= stackBegin && selectedData < stackEnd) //data is a pointer to stack address
+            {
+                disconnect(SIGNAL(enterPressedSignal()));
+                connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followStackSlot()));
+                mFollowDisasm->setShortcut(QKeySequence(""));
+                mFollowStack->setShortcut(QKeySequence("enter"));
+            }
+            else
+            {
+                disconnect(SIGNAL(enterPressedSignal()));
+                connect(this, SIGNAL(enterPressedSignal()), this, SLOT(followDisasmSlot()));
+                mFollowStack->setShortcut(QKeySequence(""));
+                mFollowDisasm->setShortcut(QKeySequence("enter"));
+            }
+        }
+        else
+        {
+            disconnect(SIGNAL(enterPressedSignal()));
+        }
+    }
+}
 
 void TraceStack::followDisasmSlot()
 {
     duint selectedData;
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
-        if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
-        {
-            QString addrText = ToPtrString(selectedData);
-            DbgCmdExec(QString("disasm " + addrText));
-        }
+        mDisas->gotoAddressSlot(selectedData);
 }
 
 void TraceStack::followStackSlot()

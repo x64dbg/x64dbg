@@ -188,12 +188,13 @@ public slots:
 
     void synchronizeCpuSlot();
     void gotoIndexSlot(duint index);
+    void gotoAddressSlot(duint index);
 
 private:
     // Go to by index
     void disasm(unsigned long long index, bool history = true);
     // Go to by address, display the Xref dialog if multiple indicies are found
-    bool disasmByAddress(duint address, bool history = true);
+    void disasmByAddress(duint address, bool history = true);
     TraceWidget* mParent;
 };
 

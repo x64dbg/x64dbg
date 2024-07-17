@@ -38,7 +38,7 @@ public:
         return enabled;
     }
     // Read a byte at "addr" at the moment given in "index"
-    unsigned char getByte(Key location, bool & success) const;
+    bool isValidReadPtr(duint addr) const;
     void getBytes(duint addr, duint size, unsigned long long index, void* buffer) const;
     std::vector<unsigned long long> getReferences(duint startAddr, duint endAddr) const;
     // Insert a memory access record
@@ -57,6 +57,7 @@ public:
     std::vector<std::pair<duint, duint>> memAreas;
 private:
     std::map<Key, DumpRecord> dump;
+    // maxIndex is the last index included here. As the debuggee steps there will be new data coming.
     unsigned long long maxIndex;
     bool enabled;
 };

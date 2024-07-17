@@ -39,18 +39,17 @@ public slots:
     void gotoCbpSlot();
     void gotoExpressionSlot();
     void gotoXrefSlot();
-    //void selectionUpdatedSlot();
+    void selectionUpdatedSlot();
     void followDisasmSlot();
     void followStackSlot();
     void binaryCopySlot();
     //void freezeStackSlot();
-    void disasmSelectionChanged(duint parVA);
+    //void disasmSelectionChanged(duint parVA);
     void updateSlot();
     void copyPtrColumnSlot();
     void copyCommentsColumnSlot();
 
 private:
-    TraceFileDumpMemoryPage* mMemoryPage;
     TraceBrowser* mDisas;
 
     duint mCsp = 0;

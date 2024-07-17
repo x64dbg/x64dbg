@@ -136,6 +136,8 @@ void TraceWidget::traceSelectionChanged(unsigned long long selection)
         else
             memset(&registers, 0, sizeof(registers));
     }
+    else
+        memset(&registers, 0, sizeof(registers));
     mGeneralRegs->setRegisters(&registers);
 }
 
@@ -154,12 +156,13 @@ void TraceWidget::xrefSlot(duint addr)
 
 void TraceWidget::parseFinishedSlot()
 {
-    duint initialAddress;
     QString reason;
+    setCursor(QCursor(Qt::CursorShape::ArrowCursor));
     if(mTraceFile->isError(reason))
     {
         SimpleErrorBox(this, tr("Error"), tr("Error when opening trace recording (reason: %1)").arg(reason));
         emit closeFile();
+        return;
     }
     else if(mTraceFile->Length() > 0)
     {
@@ -175,9 +178,8 @@ void TraceWidget::parseFinishedSlot()
         {
             setupDumpInitialAddresses(0);
         }
-        mGeneralRegs->setActive(true);
     }
-    setCursor(QCursor(Qt::CursorShape::ArrowCursor));
+    mGeneralRegs->setActive(true);
 }
 
 void TraceWidget::closeFileSlot()

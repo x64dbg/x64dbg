@@ -21,39 +21,19 @@ void TraceFileDump::clear()
     dump.clear();
 }
 
-unsigned char TraceFileDump::getByte(Key location, bool & success) const
+bool TraceFileDump::isValidReadPtr(duint address) const
 {
     assert(isEnabled());
+    Key location = {address, maxIndex + 1};
     auto it = dump.lower_bound(location);
-    success = false;
     if(it != dump.end())
     {
-        if(it->first.addr == location.addr)
+        if(it->first.addr == address)
         {
-            success = true;
-        }
-        else if(it != dump.begin())
-        {
-            // try to get to next record which may hold the required data
-            --it;
-            if(it->first.addr == location.addr)
-            {
-                success = true;
-            }
+            return true;
         }
     }
-    if(!success)
-    {
-        return 0;
-    }
-    if(location.index > it->first.index)
-    {
-        return it->second.newData;
-    }
-    else
-    {
-        return it->second.oldData;
-    }
+    return false;
 }
 
 void TraceFileDump::getBytes(duint addr, duint size, unsigned long long index, void* buffer) const

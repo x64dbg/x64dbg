@@ -55,6 +55,7 @@ protected:
     TraceFileDumpMemoryPage* mMemoryPage;
     TraceStack* mStack;
     TraceXrefBrowseDialog* mXrefDlg;
+
     QPushButton* mLoadDump;
     Architecture* mArchitecture;
 

@@ -1370,7 +1370,7 @@ void TraceBrowser::disasm(unsigned long long index, bool history)
     emit selectionChanged(getInitialSelection());
 }
 
-bool TraceBrowser::disasmByAddress(duint address, bool history)
+void TraceBrowser::disasmByAddress(duint address, bool history)
 {
     mParent->loadDumpFully();
     auto references = getTraceFile()->getDump()->getReferences(address, address);
@@ -1378,7 +1378,25 @@ bool TraceBrowser::disasmByAddress(duint address, bool history)
     bool found = false;
     if(references.empty())
     {
-        return false;
+        QString addr = ToPtrString(address);
+        QMessageBox msg(this);
+        msg.setIcon(QMessageBox::Warning);
+        msg.setWindowTitle(tr("Address not found in trace"));
+        if(DbgIsDebugging())
+        {
+            msg.setText(tr("The address %1 is not found in trace.").arg(addr) + ' ' + tr("Do you want to follow in CPU instead?"));
+            msg.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+            if(msg.exec() == QMessageBox::Yes)
+            {
+                DbgCmdExec(QString("disasm %1").arg(addr));
+            }
+        }
+        else
+        {
+            msg.setText(tr("The address %1 is not found in trace.").arg(addr));
+            msg.setStandardButtons(QMessageBox::Ok);
+            msg.exec();
+        }
     }
     else
     {
@@ -1395,7 +1413,7 @@ bool TraceBrowser::disasmByAddress(duint address, bool history)
                 {
                     // Multiple results, display the Xref dialog
                     emit xrefSignal(address);
-                    return true;
+                    return;
                 }
 
             }
@@ -1409,7 +1427,6 @@ bool TraceBrowser::disasmByAddress(duint address, bool history)
             // There is no instruction execution, show the user some other types of memory access
             emit xrefSignal(address);
         }
-        return true;
     }
 }
 
@@ -1906,4 +1923,9 @@ void TraceBrowser::synchronizeCpuSlot()
 void TraceBrowser::gotoIndexSlot(duint index)
 {
     disasm(index, false);
+}
+
+void TraceBrowser::gotoAddressSlot(duint address)
+{
+    disasmByAddress(address, false);
 }
