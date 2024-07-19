@@ -27,8 +27,8 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     {
         mTraceFile->getDump()->setEnabled();
         mMemoryPage = new TraceFileDumpMemoryPage(mTraceFile->getDump(), this);
-        mDump = new TraceDump(architecture, mTraceBrowser, mMemoryPage, this);
-        mStack = new TraceStack(architecture, mTraceBrowser, mMemoryPage, this);
+        mDump = new TraceDump(architecture, this, mMemoryPage);
+        mStack = new TraceStack(architecture, this, mMemoryPage);
         mLoadDump = nullptr;
     }
     else
@@ -200,8 +200,8 @@ void TraceWidget::loadDump()
     auto selection = mTraceBrowser->getInitialSelection();
     mTraceFile->buildDumpTo(selection); // TODO: sometimes this can be slow
     mMemoryPage->setSelectedIndex(selection);
-    mDump = new TraceDump(mArchitecture, mTraceBrowser, mMemoryPage, this);
-    mStack = new TraceStack(mArchitecture, mTraceBrowser, mMemoryPage, this);
+    mDump = new TraceDump(mArchitecture, this, mMemoryPage);
+    mStack = new TraceStack(mArchitecture, this, mMemoryPage);
 
     //dump
     ui->mBotLeftFrameLayout->removeWidget(mLoadDump);

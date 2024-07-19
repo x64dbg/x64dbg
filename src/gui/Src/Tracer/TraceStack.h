@@ -6,6 +6,7 @@
 class CPUMultiDump;
 class GotoDialog;
 class CommonActions;
+class TraceWidget;
 class TraceBrowser;
 class TraceFileDumpMemoryPage;
 
@@ -13,7 +14,7 @@ class TraceStack : public HexDump
 {
     Q_OBJECT
 public:
-    explicit TraceStack(Architecture* architecture, TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, QWidget* parent = nullptr);
+    explicit TraceStack(Architecture* architecture, TraceWidget* parent, TraceFileDumpMemoryPage* memoryPage);
 
     // Configuration
     void updateColors() override;
@@ -50,7 +51,7 @@ public slots:
     void copyCommentsColumnSlot();
 
 private:
-    TraceBrowser* mDisas;
+    TraceWidget* mParent;
 
     duint mCsp = 0;
     bool bStackFrozen = false;

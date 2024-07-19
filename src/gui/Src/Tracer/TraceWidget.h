@@ -29,6 +29,22 @@ public:
     explicit TraceWidget(Architecture* architecture, const QString & fileName, QWidget* parent);
     ~TraceWidget();
 
+    inline TraceFileReader* getTraceFile() const
+    {
+        return mTraceFile;
+    };
+    inline TraceBrowser* getTraceBrowser() const
+    {
+        return mTraceBrowser;
+    };
+    inline TraceDump* getTraceDump() const
+    {
+        return mDump;
+    };
+    inline TraceStack* getTraceStack() const
+    {
+        return mStack;
+    };
     // Enable trace dump and load it fully before searching
     void loadDumpFully();
 public slots:

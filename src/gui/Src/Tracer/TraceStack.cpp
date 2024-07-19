@@ -1,3 +1,4 @@
+#include "TraceWidget.h"
 #include "TraceStack.h"
 #include "TraceDump.h"
 #include "TraceFileReader.h"
@@ -13,9 +14,11 @@
 #include "CPUMultiDump.h"
 #include "GotoDialog.h"
 
-TraceStack::TraceStack(Architecture* architecture, TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, QWidget* parent)
-    : HexDump(architecture, parent, memoryPage), mDisas(disas)
+TraceStack::TraceStack(Architecture* architecture, TraceWidget* parent, TraceFileDumpMemoryPage* memoryPage)
+    : HexDump(architecture, parent, memoryPage)
 {
+    mParent = parent;
+
     setWindowTitle("Stack");
     setDrawDebugOnly(false);
     setShowHeader(false);
@@ -168,7 +171,7 @@ void TraceStack::setupContextMenu()
         duint ptr;
         if(!mMemPage->read(&ptr, getInitialSelection(), sizeof(ptr)))
             return false;
-        if(mDisas->getTraceFile()->getDump()->isValidReadPtr(ptr))
+        if(mParent->getTraceFile()->getDump()->isValidReadPtr(ptr))
             return true;
         return false;
     });
@@ -247,7 +250,7 @@ void TraceStack::getColumnRichText(duint col, duint rva, RichTextPainter::List &
 
 void TraceStack::reloadData()
 {
-    mCsp = mDisas->getTraceFile()->Registers(mDisas->getInitialSelection()).regcontext.csp;
+    mCsp = mParent->getTraceFile()->Registers(mParent->getTraceBrowser()->getInitialSelection()).regcontext.csp;
     HexDump::reloadData();
 }
 
@@ -367,7 +370,7 @@ void TraceStack::wheelEvent(QWheelEvent* event)
 
 void TraceStack::stackDumpAt(duint addr, duint csp)
 {
-    if(mDisas->getTraceFile()->getDump()->isValidReadPtr(addr))
+    if(mParent->getTraceFile()->getDump()->isValidReadPtr(addr))
         mHistory.addVaToHistory(addr);
     mCsp = csp;
 
@@ -530,7 +533,7 @@ void TraceStack::gotoCspSlot()
 
 void TraceStack::gotoCbpSlot()
 {
-    stackDumpAt(mDisas->getTraceFile()->Registers(mDisas->getInitialSelection()).regcontext.cbp, mCsp);
+    stackDumpAt(mParent->getTraceFile()->Registers(mParent->getTraceBrowser()->getInitialSelection()).regcontext.cbp, mCsp);
 }
 
 void TraceStack::gotoExpressionSlot()
@@ -554,7 +557,7 @@ void TraceStack::selectionUpdatedSlot()
     duint selectedData;
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
     {
-        if(mDisas->getTraceFile()->getDump()->isValidReadPtr(selectedData)) //data is a pointer
+        if(mParent->getTraceFile()->getDump()->isValidReadPtr(selectedData)) //data is a pointer
         {
             duint stackBegin = mMemPage->getBase();
             duint stackEnd = stackBegin + mMemPage->getSize();
@@ -584,7 +587,7 @@ void TraceStack::followDisasmSlot()
 {
     duint selectedData;
     if(mMemPage->read((byte_t*)&selectedData, getInitialSelection(), sizeof(duint)))
-        mDisas->gotoAddressSlot(selectedData);
+        mParent->getTraceBrowser()->gotoAddressSlot(selectedData);
 }
 
 void TraceStack::followStackSlot()

@@ -1,4 +1,5 @@
 #include "TraceDump.h"
+#include "TraceWidget.h"
 #include "TraceFileReader.h"
 #include "TraceFileDump.h"
 #include <QMessageBox>
@@ -15,9 +16,9 @@
 #include "MiscUtil.h"
 #include "BackgroundFlickerThread.h"
 
-TraceDump::TraceDump(Architecture* architecture, TraceBrowser* disas, TraceFileDumpMemoryPage* memoryPage, QWidget* parent) : mMemoryPage(memoryPage), HexDump(architecture, parent, memoryPage)
+TraceDump::TraceDump(Architecture* architecture, TraceWidget* parent, TraceFileDumpMemoryPage* memoryPage) : mMemoryPage(memoryPage), HexDump(architecture, parent, memoryPage)
 {
-    mDisas = disas;
+    mParent = parent;
     setDrawDebugOnly(false);
     //mMultiDump = multiDump;
 
