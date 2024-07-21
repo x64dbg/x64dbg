@@ -1,6 +1,8 @@
+#include <QMessageBox>
+#include <QPushButton>
+
 #include "TraceWidget.h"
 #include "ui_TraceWidget.h"
-#include <QPushButton>
 #include "TraceBrowser.h"
 #include "TraceInfoBox.h"
 #include "TraceDump.h"
@@ -75,7 +77,7 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     ui->mTopLeftLowerFrame->setMinimumHeight(height + 2);
 
     connect(mTraceBrowser, SIGNAL(xrefSignal(duint)), this, SLOT(xrefSlot(duint)));
-    if(mDump)
+    if(mDump != nullptr)
     {
         //dump
         ui->mBotLeftFrameLayout->addWidget(mDump);
@@ -95,7 +97,7 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
 
     mTraceBrowser->setAccessibleName(tr("Disassembly"));
     upperScrollArea->setAccessibleName(tr("Registers"));
-    if(mDump)
+    if(mDump != nullptr)
     {
         mDump->setAccessibleName(tr("Dump"));
         mStack->setAccessibleName(tr("Stack"));
@@ -125,9 +127,9 @@ void TraceWidget::traceSelectionChanged(unsigned long long selection)
             registers = mTraceFile->Registers(selection);
             mInfo->update(selection, mTraceFile, registers);
             // update dump view
-            if(mDump)
+            if(mDump != nullptr)
             {
-                mTraceFile->buildDumpTo(selection); // TODO: sometimes this can be slow // TODO: Is it a good idea to build dump index just when opening the file?
+                mTraceFile->buildDumpTo(selection); // TODO: sometimes this can be slow
                 mMemoryPage->setSelectedIndex(selection);
                 mDump->reloadData();
                 mStack->reloadData();
@@ -174,7 +176,7 @@ void TraceWidget::parseFinishedSlot()
                                  tr("Checksum is different for current trace file and the debugee. This probably means you have opened a wrong trace file. This trace file is recorded for \"%1\"").arg(mTraceFile->ExePath()));
             }
         }
-        if(mDump)
+        if(mDump != nullptr)
         {
             setupDumpInitialAddresses(0);
         }
@@ -194,7 +196,23 @@ void TraceWidget::displayLogWidgetSlot()
 
 void TraceWidget::loadDump()
 {
-    assert(!mDump); // Check whether the dump is already loaded
+    // The dump should not be loaded at this point
+    if(mDump != nullptr)
+        return;
+
+    // Warn the user
+    auto fileSize = mTraceFile->FileSize();
+    auto estimatedGb = fileSize / 1024.0 / 1024.0 / 1024.0 * 10.0;
+    if(estimatedGb > 0.2)
+    {
+        auto message = tr("Enabling the trace dump can consume a lot of memory (max ~%1GiB for this trace) and freeze x64dbg for prolonged periods of time. This feature is still experimental, please report any bugs you encounter.").arg(estimatedGb, 0, 'f', 2);
+        QMessageBox msg(QMessageBox::Warning, tr("Warning"), message, QMessageBox::Ok | QMessageBox::Cancel, this);
+        msg.setWindowIcon(DIcon("exclamation"));
+        msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+        if(msg.exec() == QMessageBox::Cancel)
+            return;
+    }
+
     mTraceFile->getDump()->setEnabled();
     mMemoryPage = new TraceFileDumpMemoryPage(mTraceFile->getDump(), this);
     auto selection = mTraceBrowser->getInitialSelection();
@@ -221,13 +239,14 @@ void TraceWidget::loadDump()
 
 void TraceWidget::loadDumpFully()
 {
-    if(mTraceFile->Length() > 0)
-    {
-        if(!mTraceFile->getDump()->isEnabled())
-            loadDump();
-        // Fully build dump index
-        mTraceFile->buildDumpTo(mTraceFile->Length() - 1);
-    }
+    if(mTraceFile->Length() == 0)
+        return;
+
+    if(!mTraceFile->getDump()->isEnabled())
+        loadDump();
+
+    // Fully build dump index
+    mTraceFile->buildDumpTo(mTraceFile->Length() - 1);
 }
 
 void TraceWidget::setupDumpInitialAddresses(unsigned long long selection)
