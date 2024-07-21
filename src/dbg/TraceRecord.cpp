@@ -274,7 +274,7 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
         duint value;
         unsigned char memoryContent[memoryContentSize];
         unsigned char memorySize;
-        for(int i = 0; i < newInstruction.OpCount(); i++)
+        for(int i = 0; i < newInstruction.TotalOpCount(); i++)
         {
             memset(memoryContent, 0, sizeof(memoryContent));
             HandleZydisOperand(newInstruction, i, &argType, &value, memoryContent, &memorySize);
@@ -303,6 +303,7 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
                 || newInstruction.GetId() == ZYDIS_MNEMONIC_PUSHFQ || newInstruction.GetId() == ZYDIS_MNEMONIC_CALL //TODO: far call accesses 2 stack entries
           )
         {
+            // Discussion: https://github.com/zyantific/zydis/issues/510
             MemRead(newContext.registers.regcontext.csp - sizeof(duint), &newMemory[newMemoryArrayCount], sizeof(duint));
             newMemoryAddress[--newMemoryArrayCount] = newContext.registers.regcontext.csp - sizeof(duint);
             newMemoryArrayCount++;

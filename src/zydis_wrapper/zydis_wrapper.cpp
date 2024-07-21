@@ -122,7 +122,6 @@ bool Zydis::Disassemble(uint64_t addr, const unsigned char* data, size_t size)
             //TODO: what is this used for?
             ZydisCalcAbsoluteAddress(&mInstr.info, &op, mAddr, (uint64_t*)&op.mem.disp.value);
         }
-
     }
 
     mSuccess = true;
@@ -364,23 +363,23 @@ std::string Zydis::InstructionText(bool replaceRipRelative) const
 }
 
 
-uint8_t Zydis::VisibleOpCount() const
-{
-    if(!Success())
-        return 0;
-    return mInstr.info.operand_count_visible;
-}
-
-uint8_t Zydis::OpCount() const
+uint8_t Zydis::TotalOpCount() const
 {
     if(!Success())
         return 0;
     return mInstr.info.operand_count;
 }
 
+uint8_t Zydis::OpCount() const
+{
+    if(!Success())
+        return 0;
+    return mInstr.info.operand_count_visible;
+}
+
 const ZydisDecodedOperand & Zydis::operator[](uint8_t index) const
 {
-    if(!Success() || index >= OpCount())
+    if(!Success() || index >= TotalOpCount())
         throw std::out_of_range("Operand out of range");
     return mInstr.operands[index];
 }
