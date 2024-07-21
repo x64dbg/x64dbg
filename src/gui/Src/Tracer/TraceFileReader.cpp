@@ -743,19 +743,19 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
     try
     {
         if(mParent->traceFile.seek(fileOffset) == false)
-            throw std::exception();
+            throw std::exception("Failed to seek to offset");
         //Process file content
         while(!mParent->traceFile.atEnd() && length < maxLength)
         {
             if(!mParent->traceFile.isReadable())
-                throw std::exception();
+                throw std::exception("Trace file not readable");
             unsigned char blockType;
             unsigned char changedCountFlags[3]; //reg changed count, mem accessed count, flags
             mParent->traceFile.read((char*)&blockType, 1);
             if(blockType == 0)
             {
                 if(mParent->traceFile.read((char*)&changedCountFlags, 3) != 3)
-                    throw std::exception();
+                    throw std::exception("Failed to read 3 bytes (truncated?)");
                 if(changedCountFlags[2] & 0x80) //Thread Id
                     mParent->traceFile.read((char*)&lastThreadId, 4);
                 threadId.push_back(lastThreadId);
@@ -763,33 +763,29 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
                 {
                     QByteArray opcode = mParent->traceFile.read(changedCountFlags[2] & 0x0F);
                     if(opcode.isEmpty())
-                        throw std::exception();
+                        throw std::exception("Failed to read opcode");
                     opcodeOffset.push_back(opcodes.size());
                     opcodeSize.push_back(opcode.size());
                     opcodes.append(opcode);
                 }
                 else
-                    throw std::exception();
+                    throw std::exception("No opcode");
                 if(changedCountFlags[0] > 0) //registers
                 {
                     int lastPosition = -1;
                     if(changedCountFlags[0] > _countof(regwords)) //Bad count?
-                        throw std::exception();
+                        throw std::exception("Bad count");
                     if(mParent->traceFile.read((char*)changed, changedCountFlags[0]) != changedCountFlags[0])
-                        throw std::exception();
+                        throw std::exception("Could not read changed regs");
                     if(mParent->traceFile.read((char*)regContent, changedCountFlags[0] * sizeof(duint)) != changedCountFlags[0] * sizeof(duint))
-                    {
-                        throw std::exception();
-                    }
+                        throw std::exception("Could not read changed content");
                     for(int i = 0; i < changedCountFlags[0]; i++)
                     {
                         lastPosition = lastPosition + changed[i] + 1;
                         if(lastPosition < _countof(regwords) && lastPosition >= 0)
                             regwords[lastPosition] = regContent[i];
                         else //out of bounds?
-                        {
-                            throw std::exception();
-                        }
+                            throw std::exception("Changes out of bounds?");
                     }
                     mRegisters.push_back(registers);
                 }
@@ -797,22 +793,22 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
                 {
                     QByteArray memflags;
                     if(changedCountFlags[1] > _countof(memAddress)) //too many memory operands?
-                        throw std::exception();
+                        throw std::exception("Too many memory operands?");
                     memflags = mParent->traceFile.read(changedCountFlags[1]);
                     if(memflags.length() < changedCountFlags[1])
-                        throw std::exception();
+                        throw std::exception("Memory operand count mismatch");
                     memoryOperandOffset.push_back(memOperandOffset);
                     memOperandOffset += changedCountFlags[1];
                     if(mParent->traceFile.read((char*)memAddress, sizeof(duint) * changedCountFlags[1]) != sizeof(duint) * changedCountFlags[1])
-                        throw std::exception();
+                        throw std::exception("Failed to read memory change addresses");
                     if(mParent->traceFile.read((char*)memOldContent, sizeof(duint) * changedCountFlags[1]) != sizeof(duint) * changedCountFlags[1])
-                        throw std::exception();
+                        throw std::exception("Failed to read memory change content");
                     for(unsigned char i = 0; i < changedCountFlags[1]; i++)
                     {
                         if((memflags[i] & 1) == 0)
                         {
                             if(mParent->traceFile.read((char*)&memNewContent[i], sizeof(duint)) != sizeof(duint))
-                                throw std::exception();
+                                throw std::exception("Failed to read memory content");
                         }
                         else
                             memNewContent[i] = memOldContent[i];
@@ -830,9 +826,8 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
                 length++;
             }
             else
-                throw std::exception();
+                throw std::exception("Unexpected block type");
         }
-
     }
     catch(const std::exception & x)
     {
