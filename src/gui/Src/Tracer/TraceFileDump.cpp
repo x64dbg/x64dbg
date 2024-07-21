@@ -246,5 +246,8 @@ bool TraceFileDumpMemoryPage::read(void* parDest, dsint parRVA, duint parSize) c
 
 bool TraceFileDumpMemoryPage::write(const void* parDest, dsint parRVA, duint parSize)
 {
+    Q_UNUSED(parDest);
+    Q_UNUSED(parRVA);
+    Q_UNUSED(parSize);
     return false; // write is not supported
 }

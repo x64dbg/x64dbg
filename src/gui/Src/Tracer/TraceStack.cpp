@@ -436,6 +436,8 @@ void TraceStack::updateSlot()
 
 void TraceStack::printDumpAt(duint parVA, bool select, bool repaint, bool updateTableOffset)
 {
+    // TODO: use the latest version from the hexdump, or refactor into a helper function
+
     // Modified from Hexdump, removed memory page information
     // TODO: get memory range from trace instead
     const duint wSize = 0x1000;  // TODO: Using 4KB pages currently
@@ -447,7 +449,7 @@ void TraceStack::printDumpAt(duint parVA, bool select, bool repaint, bool update
         mMemPage->setAttributes(wBase, wSize);
         wRVA = parVA - wBase; //calculate rva
     }
-    int wBytePerRowCount = getBytePerRowCount(); //get the number of bytes per row
+    auto wBytePerRowCount = getBytePerRowCount(); //get the number of bytes per row
     dsint wRowCount;
 
     // Byte offset used to be aligned on the given RVA

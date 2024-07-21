@@ -735,7 +735,7 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
     duint memAddress[MAX_MEMORY_OPERANDS];
     duint memOldContent[MAX_MEMORY_OPERANDS];
     duint memNewContent[MAX_MEMORY_OPERANDS];
-    size_t memOperandOffset = 0;
+    uint32_t memOperandOffset = 0;
     mParent = parent;
     length = 0;
     GetSystemTimes(nullptr, nullptr, &lastAccessed); //system user time, no GetTickCount64() for XP compatibility.

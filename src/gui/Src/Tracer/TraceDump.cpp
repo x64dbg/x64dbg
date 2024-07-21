@@ -205,6 +205,8 @@ void TraceDump::getAttention()
 
 void TraceDump::printDumpAt(duint parVA, bool select, bool repaint, bool updateTableOffset)
 {
+    // TODO: use the latest version from the hexdump, or refactor into a helper function
+
     // Modified from Hexdump, removed memory page information
     // TODO: get memory range from trace instead
     const duint wSize = 0x1000;  // TODO: Using 4KB pages currently
@@ -216,7 +218,7 @@ void TraceDump::printDumpAt(duint parVA, bool select, bool repaint, bool updateT
         mMemoryPage->setAttributes(wBase, wSize);
         wRVA = parVA - wBase; //calculate rva
     }
-    int wBytePerRowCount = getBytePerRowCount(); //get the number of bytes per row
+    auto wBytePerRowCount = getBytePerRowCount(); //get the number of bytes per row
     dsint wRowCount;
 
     // Byte offset used to be aligned on the given RVA
@@ -340,7 +342,7 @@ void TraceDump::mouseDoubleClickEvent(QMouseEvent* event)
     case 0: //address
     {
         //very ugly way to calculate the base of the current row (no clue why it works)
-        dsint deltaRowBase = getInitialSelection() % getBytePerRowCount() + mByteOffset;
+        auto deltaRowBase = getInitialSelection() % getBytePerRowCount() + mByteOffset;
         if(deltaRowBase >= getBytePerRowCount())
             deltaRowBase -= getBytePerRowCount();
         dsint mSelectedVa = rvaToVa(getInitialSelection() - deltaRowBase);
@@ -368,6 +370,7 @@ void TraceDump::mouseMoveEvent(QMouseEvent* event)
     auto va = rvaToVa(getItemStartingAddress(x, y));
 
     // Read VA
+    Q_UNUSED(va);
     //QToolTip::showText(event->globalPos(), getTooltipForVa(va, 4)); //TODO: Unsupported
 
     HexDump::mouseMoveEvent(event);
@@ -1186,6 +1189,7 @@ void TraceDump::selectionUpdatedSlot()
     QString selEnd = ToPtrString(rvaToVa(getSelectionEnd()));
     QString info = tr("Dump");
     char mod[MAX_MODULE_SIZE] = "";
+    Q_UNUSED(mod);
     //TODO
     //if(DbgFunctions()->ModNameFromAddr(rvaToVa(getSelectionStart()), mod, true))
     //    info = QString(mod) + "";
