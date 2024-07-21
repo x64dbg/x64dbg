@@ -295,7 +295,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("Topmost", false);
     guiBool.insert("CPUDumpStartFromSelect", true);
     guiBool.insert("CPUStackStartFromSelect", true);
-    guiBool.insert("DisableTraceDump", true);
+    guiBool.insert("AutoTraceDump", false);
     //Named menu settings
     insertMenuBuilderBools(&guiBool, "CPUDisassembly", 50); //CPUDisassembly
     insertMenuBuilderBools(&guiBool, "CPUDump", 50); //CPUDump

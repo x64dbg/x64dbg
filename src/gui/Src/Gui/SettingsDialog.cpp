@@ -274,7 +274,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Gui", "EnableQtHighDpiScaling", &settings.guiEnableQtHighDpiScaling);
     GetSettingBool("Gui", "WindowLongPath", &settings.guiEnableWindowLongPath);
     GetSettingBool("Gui", "NoIcons", &settings.guiNoIcons);
-    GetSettingBool("Gui", "DisableTraceDump", &settings.guiDisableTraceDump);
+    GetSettingBool("Gui", "AutoTraceDump", &settings.guiAutoTraceDump);
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
     ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
     ui->chkNoCloseDialog->setChecked(settings.guiNoCloseDialog);
@@ -292,7 +292,7 @@ void SettingsDialog::LoadSettings()
     ui->chkQtHighDpiScaling->setChecked(settings.guiEnableQtHighDpiScaling);
     ui->chkWindowLongPath->setChecked(settings.guiEnableWindowLongPath);
     ui->chkNoIcons->setChecked(settings.guiNoIcons);
-    ui->chkDisableTraceDump->setChecked(settings.guiDisableTraceDump);
+    ui->chkAutoTraceDump->setChecked(settings.guiAutoTraceDump);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -445,7 +445,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Gui", "EnableQtHighDpiScaling", settings.guiEnableQtHighDpiScaling);
     BridgeSettingSetUint("Gui", "WindowLongPath", settings.guiEnableWindowLongPath);
     BridgeSettingSetUint("Gui", "NoIcons", settings.guiNoIcons);
-    BridgeSettingSetUint("Gui", "DisableTraceDump", settings.guiDisableTraceDump);
+    BridgeSettingSetUint("Gui", "AutoTraceDump", settings.guiAutoTraceDump);
 
     //Misc tab
     if(DbgFunctions()->GetJit)
@@ -1167,7 +1167,7 @@ void SettingsDialog::on_chkNoIcons_toggled(bool checked)
     settings.guiNoIcons = checked;
 }
 
-void SettingsDialog::on_chkDisableTraceDump_toggled(bool checked)
+void SettingsDialog::on_chkAutoTraceDump_toggled(bool checked)
 {
-    settings.guiDisableTraceDump = checked;
+    settings.guiAutoTraceDump = checked;
 }

@@ -23,7 +23,7 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     mTraceBrowser = new TraceBrowser(mTraceFile, this);
     mInfo = new TraceInfoBox(this);
     mArchitecture = architecture;
-    if(!Config()->getBool("Gui", "DisableTraceDump"))
+    if(Config()->getBool("Gui", "AutoTraceDump"))
     {
         mTraceFile->getDump()->setEnabled();
         mMemoryPage = new TraceFileDumpMemoryPage(mTraceFile->getDump(), this);
