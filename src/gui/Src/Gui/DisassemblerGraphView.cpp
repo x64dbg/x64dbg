@@ -2573,10 +2573,11 @@ void DisassemblerGraphView::saveImageSlot()
     img.setDevicePixelRatio(scaleFactor);
     QPainter painter(&img);
     this->viewport()->render(&painter);
-    if(!path.toLower().endsWith(".webp"))
-        img.save(path);
+    bool success;
+    if(!path.endsWith(".webp", Qt::CaseInsensitive))
+        success = img.save(path);
     else
-        img.save(path, nullptr, 100);
+        success = img.save(path, nullptr, 100); //WebP needs this to save in lossless format. But this makes PNG larger than BMP.
 
     //restore changes made to viewport for full render saving
     this->viewport()->resize(size);
@@ -2586,6 +2587,9 @@ void DisassemblerGraphView::saveImageSlot()
         this->horizontalScrollBar()->setValue(scrollbarPos.x());
         this->verticalScrollBar()->setValue(scrollbarPos.y());
     }
+
+    if(!success)
+        SimpleErrorBox(this, tr("Error"), tr("Image saving failed!"));
 }
 
 void DisassemblerGraphView::xrefSlot()
