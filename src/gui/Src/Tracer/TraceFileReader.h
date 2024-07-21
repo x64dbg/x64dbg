@@ -28,6 +28,7 @@ public:
     QString getIndexText(unsigned long long index) const;
 
     unsigned long long Length() const;
+    uint64_t FileSize() const;
 
     REGDUMP Registers(unsigned long long index);
     void OpCode(unsigned long long index, unsigned char* buffer, int* opcodeSize);
@@ -69,19 +70,20 @@ private:
     };
 
     QFile traceFile;
-    unsigned long long length;
-    duint hashValue;
+    qint64 fileSize = 0;
+    unsigned long long length = 0;
+    duint hashValue = 0;
     QString EXEPath;
     std::vector<std::pair<unsigned long long, Range>> fileIndex; //index;<file offset;length>
     std::atomic<int> progress;
-    bool error;
+    bool error = true;
     QString errorMessage;
-    TraceFilePage* lastAccessedPage;
-    unsigned long long lastAccessedIndexOffset;
+    TraceFilePage* lastAccessedPage = nullptr;
+    unsigned long long lastAccessedIndexOffset = 0;
     friend class TraceFileParser;
     friend class TraceFilePage;
 
-    TraceFileParser* parser;
+    TraceFileParser* parser = nullptr;
     std::map<Range, TraceFilePage, RangeCompare> pages;
     TraceFilePage* getPage(unsigned long long index, unsigned long long* base);
     TraceFileDump dump;

@@ -8,13 +8,7 @@
 
 TraceFileReader::TraceFileReader(QObject* parent) : QObject(parent)
 {
-    length = 0;
     progress = 0;
-    error = true;
-    parser = nullptr;
-    lastAccessedPage = nullptr;
-    lastAccessedIndexOffset = 0;
-    hashValue = 0;
     EXEPath.clear();
 
     int maxModuleSize = (int)ConfigUint("Disassembler", "MaxModuleSize");
@@ -42,6 +36,7 @@ bool TraceFileReader::Open(const QString & fileName)
     traceFile.open(QFile::ReadOnly);
     if(traceFile.isReadable())
     {
+        fileSize = traceFile.size();
         parser = new TraceFileParser(this);
         connect(parser, SIGNAL(finished()), this, SLOT(parseFinishedSlot()));
         progress.store(0);
@@ -51,6 +46,7 @@ bool TraceFileReader::Open(const QString & fileName)
     }
     else
     {
+        fileSize = 0;
         progress.store(0);
         emit parseFinished();
         return false;
@@ -128,6 +124,11 @@ bool TraceFileReader::isError(QString & reason) const
 unsigned long long TraceFileReader::Length() const
 {
     return length;
+}
+
+uint64_t TraceFileReader::FileSize() const
+{
+    return fileSize;
 }
 
 TraceFileDump* TraceFileReader::getDump()
