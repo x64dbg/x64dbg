@@ -342,7 +342,6 @@ private:
     qreal overviewScale;
     duint mCip = 0;
     bool forceCenter = false;
-    bool saveGraph;
     bool mHistoryLock = false; //Don't add a history while going to previous/next
     LayoutType layoutType;
 
