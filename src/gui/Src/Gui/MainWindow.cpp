@@ -2059,7 +2059,7 @@ void MainWindow::blog()
     msg.setDefaultButton(QMessageBox::Ok);
     if(msg.exec() != QMessageBox::Ok)
         return;
-    QDesktopServices::openUrl(QUrl("http://blog.x64dbg.com"));
+    QDesktopServices::openUrl(QUrl("https://blog.x64dbg.com"));
 }
 
 void MainWindow::reportBug()
@@ -2072,7 +2072,7 @@ void MainWindow::reportBug()
     msg.setDefaultButton(QMessageBox::Ok);
     if(msg.exec() != QMessageBox::Ok)
         return;
-    QDesktopServices::openUrl(QUrl("http://report.x64dbg.com"));
+    QDesktopServices::openUrl(QUrl("https://report.x64dbg.com"));
 }
 
 void MainWindow::crashDump()
@@ -2162,7 +2162,7 @@ void MainWindow::changeCommandLine()
 
 static void onlineManual()
 {
-    QDesktopServices::openUrl(QUrl("http://help.x64dbg.com"));
+    QDesktopServices::openUrl(QUrl("https://help.x64dbg.com"));
 }
 
 void MainWindow::displayManual()
@@ -2175,7 +2175,7 @@ void MainWindow::displayManual()
         {
             QMessageBox messagebox(QMessageBox::Critical, tr("Error"),
                                    tr("Manual cannot be opened. Please check if x64dbg.chm exists and ensure there is no other problems with your system.") + '\n'
-                                   + tr("Do you want to open online manual at http://help.x64dbg.com ?"),
+                                   + tr("Do you want to open online manual at https://help.x64dbg.com ?"),
                                    QMessageBox::Yes | QMessageBox::No);
             if(messagebox.exec() == QMessageBox::Yes)
                 onlineManual();
@@ -2260,7 +2260,7 @@ void MainWindow::dbgStateChangedSlot(DBGSTATE state)
 
 void MainWindow::on_actionFaq_triggered()
 {
-    QDesktopServices::openUrl(QUrl("http://faq.x64dbg.com"));
+    QDesktopServices::openUrl(QUrl("https://faq.x64dbg.com"));
 }
 
 void MainWindow::on_actionReloadStylesheet_triggered()
@@ -2725,7 +2725,7 @@ void MainWindow::onMenuCustomized()
 
 void MainWindow::on_actionPlugins_triggered()
 {
-    QDesktopServices::openUrl(QUrl("http://plugins.x64dbg.com"));
+    QDesktopServices::openUrl(QUrl("https://plugins.x64dbg.com"));
 }
 
 void MainWindow::on_actionCheckUpdates_triggered()
