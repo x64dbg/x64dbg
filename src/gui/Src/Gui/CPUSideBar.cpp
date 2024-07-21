@@ -329,7 +329,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
     const int x = e->pos().x();
     const int y = e->pos().y();
     const int line = y / mFontHeight;
-    if(line >= mInstrBuffer->size())
+    if(line < 0 || line >= mInstrBuffer->size())
         return;
     const int width = viewport()->width();
 
