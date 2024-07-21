@@ -101,8 +101,6 @@ bool Zydis::Disassemble(uint64_t addr, const unsigned char* data, size_t size)
                          nullptr)))
         return false;
 
-    // Count explicit operands.
-    mVisibleOpCount = 0;
     for(ZyanU8 i = 0; i < mInstr.info.operand_count; ++i)
     {
         auto & op = mInstr.operands[i];
@@ -124,11 +122,6 @@ bool Zydis::Disassemble(uint64_t addr, const unsigned char* data, size_t size)
             //TODO: what is this used for?
             ZydisCalcAbsoluteAddress(&mInstr.info, &op, mAddr, (uint64_t*)&op.mem.disp.value);
         }
-
-        if(op.visibility == ZYDIS_OPERAND_VISIBILITY_HIDDEN)
-            break;
-
-        ++mVisibleOpCount;
     }
 
     mSuccess = true;
@@ -369,16 +362,24 @@ std::string Zydis::InstructionText(bool replaceRipRelative) const
     return result;
 }
 
+
+uint8_t Zydis::TotalOpCount() const
+{
+    if(!Success())
+        return 0;
+    return mInstr.info.operand_count;
+}
+
 uint8_t Zydis::OpCount() const
 {
     if(!Success())
         return 0;
-    return mVisibleOpCount;
+    return mInstr.info.operand_count_visible;
 }
 
 const ZydisDecodedOperand & Zydis::operator[](uint8_t index) const
 {
-    if(!Success() || index >= OpCount())
+    if(!Success() || index >= TotalOpCount())
         throw std::out_of_range("Operand out of range");
     return mInstr.operands[index];
 }

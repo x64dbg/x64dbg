@@ -274,14 +274,13 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
         duint value;
         unsigned char memoryContent[memoryContentSize];
         unsigned char memorySize;
-        for(int i = 0; i < newInstruction.OpCount(); i++)
+        for(int i = 0; i < newInstruction.TotalOpCount(); i++)
         {
             memset(memoryContent, 0, sizeof(memoryContent));
             HandleZydisOperand(newInstruction, i, &argType, &value, memoryContent, &memorySize);
             // check for overflow of the memory buffer
             if(newMemoryArrayCount * sizeof(duint) + memorySize > memoryArrayCount * sizeof(duint))
                 continue;
-            // TODO: Implicit memory access by push and pop instructions
             // TODO: Support memory value of ??? for invalid memory access
             if(argType == arg_memory)
             {
@@ -304,18 +303,12 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
                 || newInstruction.GetId() == ZYDIS_MNEMONIC_PUSHFQ || newInstruction.GetId() == ZYDIS_MNEMONIC_CALL //TODO: far call accesses 2 stack entries
           )
         {
+            // Discussion: https://github.com/zyantific/zydis/issues/510
             MemRead(newContext.registers.regcontext.csp - sizeof(duint), &newMemory[newMemoryArrayCount], sizeof(duint));
-            newMemoryAddress[newMemoryArrayCount] = newContext.registers.regcontext.csp - sizeof(duint);
+            newMemoryAddress[--newMemoryArrayCount] = newContext.registers.regcontext.csp - sizeof(duint);
             newMemoryArrayCount++;
         }
-        else if(newInstruction.GetId() == ZYDIS_MNEMONIC_POP || newInstruction.GetId() == ZYDIS_MNEMONIC_POPF || newInstruction.GetId() == ZYDIS_MNEMONIC_POPFD
-                || newInstruction.GetId() == ZYDIS_MNEMONIC_POPFQ || newInstruction.GetId() == ZYDIS_MNEMONIC_RET)
-        {
-            MemRead(newContext.registers.regcontext.csp, &newMemory[newMemoryArrayCount], sizeof(duint));
-            newMemoryAddress[newMemoryArrayCount] = newContext.registers.regcontext.csp;
-            newMemoryArrayCount++;
-        }
-        //TODO: PUSHAD/POPAD
+        //TODO: PUSHAD
         assert(newMemoryArrayCount < memoryArrayCount);
     }
     if(rtPrevInstAvailable)
