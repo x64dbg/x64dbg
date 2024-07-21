@@ -23,7 +23,9 @@ void TraceFileDump::clear()
 
 bool TraceFileDump::isValidReadPtr(duint address) const
 {
-    assert(isEnabled());
+    if(!isEnabled())
+        return false;
+
     Key location = {address, maxIndex + 1};
     auto it = dump.lower_bound(location);
     if(it != dump.end())
@@ -38,7 +40,9 @@ bool TraceFileDump::isValidReadPtr(duint address) const
 
 void TraceFileDump::getBytes(duint addr, duint size, unsigned long long index, void* buffer) const
 {
-    assert(isEnabled());
+    if(!isEnabled())
+        return;
+
     unsigned char* ptr = (unsigned char*)buffer;
     char failedTimes = 0;
     for(duint i = 0; i < size; i++)
@@ -123,7 +127,9 @@ void TraceFileDump::getBytes(duint addr, duint size, unsigned long long index, v
 // find references to the memory address
 std::vector<unsigned long long> TraceFileDump::getReferences(duint startAddr, duint endAddr) const
 {
-    assert(isEnabled());
+    if(!isEnabled())
+        return {};
+
     std::vector<unsigned long long> index;
     if(endAddr < startAddr)
         std::swap(endAddr, startAddr);
@@ -156,7 +162,9 @@ std::vector<unsigned long long> TraceFileDump::getReferences(duint startAddr, du
 
 void TraceFileDump::addMemAccess(duint addr, const void* oldData, const void* newData, size_t size)
 {
-    assert(isEnabled());
+    if(!isEnabled())
+        return;
+
     std::vector<std::pair<Key, DumpRecord>> records;
     records.resize(size);
     // insert in the correct order

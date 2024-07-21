@@ -91,58 +91,65 @@ int TraceFileSearchConstantRange(TraceFileReader* file, duint start, duint end)
 
 int TraceFileSearchMemReference(TraceFileReader* file, duint address)
 {
-    int count = 0;
-    Zydis zy;
+    // Empty trace does not have references
+    if(file->Length() == 0)
+        return 0;
+
+    // We now only support indexed search, so the dump index must be built first.
+    if(!file->getDump()->isEnabled())
+        return 0;
+
+    // Create reference view
     GuiReferenceInitialize(QCoreApplication::translate("TraceFileSearch", "Reference").append(' ').append(ToPtrString(address)).toUtf8().constData());
     GuiReferenceAddColumn(sizeof(duint) * 2, QCoreApplication::translate("TraceFileSearch", "Address").toUtf8().constData());
     GuiReferenceAddColumn(5, QCoreApplication::translate("TraceFileSearch", "Index").toUtf8().constData());
     GuiReferenceAddColumn(100, QCoreApplication::translate("TraceFileSearch", "Disassembly").toUtf8().constData());
     GuiReferenceAddCommand(QCoreApplication::translate("TraceFileSearch", "Follow index in trace").toUtf8().constData(), "gototrace 0x$1");
     GuiReferenceSetRowCount(0);
-    // We now only support indexed search. So the dump index must be built first.
-    assert(file->getDump()->isEnabled());
 
-    if(file->Length() > 0)
+    // Build the dump to the end
+    file->buildDumpTo(file->Length() - 1);
+
+    // Find references
+    auto results = file->getReferences(address, address + sizeof(duint) - 1);
+
+    // Collect results
+    Zydis zy;
+    int count = 0;
+    for(size_t i = 0; i < results.size(); i++)
     {
-        file->buildDumpTo(file->Length() - 1);
-        auto results = file->getReferences(address, address + sizeof(duint) - 1);
-        for(size_t i = 0; i < results.size(); i++)
+        bool found = false;
+        unsigned long long index = results[i];
+        //Memory
+        duint memAddr[MAX_MEMORY_OPERANDS];
+        duint memOldContent[MAX_MEMORY_OPERANDS];
+        duint memNewContent[MAX_MEMORY_OPERANDS];
+        bool isValid[MAX_MEMORY_OPERANDS];
+        int memAccessCount = file->MemoryAccessCount(index);
+        if(memAccessCount > 0)
         {
-            bool found = false;
-            unsigned long long index = results[i];
-            //Memory
-            duint memAddr[MAX_MEMORY_OPERANDS];
-            duint memOldContent[MAX_MEMORY_OPERANDS];
-            duint memNewContent[MAX_MEMORY_OPERANDS];
-            bool isValid[MAX_MEMORY_OPERANDS];
-            int memAccessCount = file->MemoryAccessCount(index);
-            if(memAccessCount > 0)
+            file->MemoryAccessInfo(index, memAddr, memOldContent, memNewContent, isValid);
+            for(int i = 0; i < memAccessCount; i++)
             {
-                file->MemoryAccessInfo(index, memAddr, memOldContent, memNewContent, isValid);
-                for(int i = 0; i < memAccessCount; i++)
-                {
-                    found |= inRange(memAddr[i], address, address + sizeof(duint) - 1);
-                }
-                //Constants: TO DO
-                //Populate reference view
-                if(found)
-                {
-                    GuiReferenceSetRowCount(count + 1);
-                    GuiReferenceSetCellContent(count, 0, ToPtrString(file->Registers(index).regcontext.cip).toUtf8().constData());
-                    GuiReferenceSetCellContent(count, 1, file->getIndexText(index).toUtf8().constData());
-                    unsigned char opcode[16];
-                    int opcodeSize = 0;
-                    file->OpCode(index, opcode, &opcodeSize);
-                    zy.Disassemble(file->Registers(index).regcontext.cip, opcode, opcodeSize);
-                    GuiReferenceSetCellContent(count, 2, zy.InstructionText(true).c_str());
-                    //GuiReferenceSetCurrentTaskProgress; GuiReferenceSetProgress
-                    count++;
-                }
+                found |= inRange(memAddr[i], address, address + sizeof(duint) - 1);
+            }
+            //Constants: TO DO
+            //Populate reference view
+            if(found)
+            {
+                GuiReferenceSetRowCount(count + 1);
+                GuiReferenceSetCellContent(count, 0, ToPtrString(file->Registers(index).regcontext.cip).toUtf8().constData());
+                GuiReferenceSetCellContent(count, 1, file->getIndexText(index).toUtf8().constData());
+                unsigned char opcode[16];
+                int opcodeSize = 0;
+                file->OpCode(index, opcode, &opcodeSize);
+                zy.Disassemble(file->Registers(index).regcontext.cip, opcode, opcodeSize);
+                GuiReferenceSetCellContent(count, 2, zy.InstructionText(true).c_str());
+                //GuiReferenceSetCurrentTaskProgress; GuiReferenceSetProgress
+                count++;
             }
         }
     }
-    else
-        count = 0;
     return count;
 }
 
