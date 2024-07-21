@@ -53,8 +53,8 @@
 #include "MRUList.h"
 #include "AboutDialog.h"
 #include "UpdateChecker.h"
-#include "Tracer/TraceBrowser.h"
-#include "Tracer/TraceWidget.h"
+#include "Tracer/TraceManager.h"
+//#include "Tracer/TraceWidget.h"
 #include "Utils/MethodInvoker.h"
 
 MainWindow::MainWindow(QWidget* parent)
@@ -227,11 +227,10 @@ MainWindow::MainWindow(QWidget* parent)
     mHandlesView->setWindowIcon(DIcon("handles"));
 
     // Trace view
-    mTraceWidget = new TraceWidget(this);
+    mTraceWidget = new TraceManager(this);
     mTraceWidget->setWindowTitle(tr("Trace"));
     mTraceWidget->setWindowIcon(DIcon("trace"));
-    connect(mTraceWidget->getTraceBrowser(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
-    connect(mTraceWidget->getTraceBrowser(), SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
+    connect(mTraceWidget, SIGNAL(displayLogWidget()), this, SLOT(displayLogWidget()));
 
     mTabWidget = new MHTabWidget(this, true, true);
 

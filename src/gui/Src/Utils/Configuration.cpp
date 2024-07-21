@@ -295,6 +295,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("Topmost", false);
     guiBool.insert("CPUDumpStartFromSelect", true);
     guiBool.insert("CPUStackStartFromSelect", true);
+    guiBool.insert("AutoTraceDump", false);
     //Named menu settings
     insertMenuBuilderBools(&guiBool, "CPUDisassembly", 50); //CPUDisassembly
     insertMenuBuilderBools(&guiBool, "CPUDump", 50); //CPUDump
@@ -313,6 +314,9 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     insertMenuBuilderBools(&guiBool, "Help", 50); //Main Menu : Help
     insertMenuBuilderBools(&guiBool, "View", 50); //Main Menu : View
     insertMenuBuilderBools(&guiBool, "TraceBrowser", 50); //TraceBrowser
+    insertMenuBuilderBools(&guiBool, "TraceDump", 50); //Trace Dump
+    insertMenuBuilderBools(&guiBool, "TraceStack", 50); //Trace Stack
+    insertMenuBuilderBools(&guiBool, "TraceXrefBrowseDialog", 50); //TraceXrefBrowseDialog
     defaultBools.insert("Gui", guiBool);
 
     QMap<QString, duint> guiUint;
@@ -1093,18 +1097,48 @@ bool Configuration::shortcutToConfig(const QString & id, const QKeySequence shor
     return BridgeSettingSet("Shortcuts", _id.toUtf8().constData(), _key.toUtf8().constData());
 }
 
-void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
+bool Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
 {
     QString id = menu->getId();
     for(const auto & i : NamedMenuBuilders)
-        if(i.type == 0 && i.builder->getId() == id)
-            return; //already exists
+    {
+        if(i.type == 0)
+        {
+            if(i.builder.isNull())
+                continue;
+            if(i.builder->getId() == id)
+                return false; //already exists
+        }
+    }
     NamedMenuBuilders.append(MenuMap(menu, count));
+    return true;
 }
 
-void Configuration::registerMainMenuStringList(QList<QAction*>* menu)
+bool Configuration::registerMainMenuStringList(QList<QAction*>* menu)
 {
     NamedMenuBuilders.append(MenuMap(menu, menu->size() - 1));
+    return true;
+}
+
+void Configuration::unregisterMenuBuilder(MenuBuilder* menu)
+{
+    QString id = menu->getId();
+    for(auto i = NamedMenuBuilders.begin(); i != NamedMenuBuilders.end(); ++i)
+    {
+        if(i->type == 0)
+        {
+            if(i->builder.isNull())
+            {
+                NamedMenuBuilders.erase(i);
+                continue;
+            }
+            if(i->builder->getId() == id)
+            {
+                NamedMenuBuilders.erase(i);
+                return;
+            }
+        }
+    }
 }
 
 void Configuration::zoomFont(const QString & fontName, QWheelEvent* event)

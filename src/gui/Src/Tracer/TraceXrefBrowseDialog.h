@@ -10,15 +10,18 @@ namespace Ui
     class XrefBrowseDialog;
 }
 
-class XrefBrowseDialog : public QDialog, public ActionHelper<XrefBrowseDialog>
+class TraceFileReader;
+class TraceFileDump;
+
+class TraceXrefBrowseDialog : public QDialog, public ActionHelper<TraceXrefBrowseDialog>
 {
     Q_OBJECT
 
 public:
-    explicit XrefBrowseDialog(QWidget* parent);
-    ~XrefBrowseDialog();
+    explicit TraceXrefBrowseDialog(QWidget* parent);
+    ~TraceXrefBrowseDialog();
     using GotoFunction = std::function<void(duint)>;
-    void setup(duint address, GotoFunction gotoFunction);
+    void setup(duint index, duint address, TraceFileReader* traceFile, GotoFunction gotoFunction);
 
 private slots:
     void on_listWidget_itemDoubleClicked(QListWidgetItem* item);
@@ -28,34 +31,22 @@ private slots:
     void on_listWidget_itemClicked(QListWidgetItem* item);
     void on_listWidget_customContextMenuRequested(const QPoint & pos);
 
-    void onDebuggerClose(DBGSTATE state);
-    void memoryAccessSingleshootSlot();
-    void memoryAccessRestoreSlot();
-    void memoryWriteSingleshootSlot();
-    void memoryWriteRestoreSlot();
-    void memoryRemoveSlot();
-    void hardwareAccess1Slot();
-    void hardwareAccess2Slot();
-    void hardwareAccess4Slot();
-    void hardwareAccess8Slot();
-    void hardwareWrite1Slot();
-    void hardwareWrite2Slot();
-    void hardwareWrite4Slot();
-    void hardwareWrite8Slot();
-    void hardwareRemoveSlot();
-    void breakpointSlot();
     void copyThisSlot();
     void copyAllSlot();
-    void breakpointAllSlot();
 
 private:
-    Ui::XrefBrowseDialog* ui;
+    Ui::XrefBrowseDialog* ui; // This uses the same dialog UI as XrefBrowseDialog
 
     void changeAddress(duint address);
     void setupContextMenu();
     static QString GetFunctionSymbol(duint addr);
 
-    XREF_INFO mXrefInfo;
+    typedef struct
+    {
+        unsigned long long index;
+        duint addr;
+    } TRACE_XREF_RECORD;
+    std::vector<TRACE_XREF_RECORD> mXrefInfo;
     duint mAddress;
     int mPrevSelectionSize;
     MenuBuilder* mMenu;

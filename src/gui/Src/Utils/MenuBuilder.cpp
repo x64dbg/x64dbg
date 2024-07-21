@@ -9,7 +9,13 @@
 void MenuBuilder::loadFromConfig()
 {
     this->id = parent()->metaObject()->className(); // Set the ID first because the following subroutine will use it
-    Config()->registerMenuBuilder(this, _containers.size()); // Register it to the config so the customization dialog can get the text of actions here.
+    if(Config()->registerMenuBuilder(this, _containers.size())) // Register it to the config so the customization dialog can get the text of actions here.
+        connect(this, SIGNAL(destroyed()), this, SLOT(unregisterMenuBuilder())); // Remember to unregister menu builder
+}
+
+void MenuBuilder::unregisterMenuBuilder()
+{
+    Config()->unregisterMenuBuilder(this);
 }
 
 QMenu* MenuBuilder::addMenu(QMenu* submenu, BuildCallback callback)

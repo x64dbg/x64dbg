@@ -709,7 +709,7 @@ void CPUInfoBox::addWatchMenuItem(QMenu* menu, QString name, duint value)
 }
 
 /**
- * @brief CPUInfoBox::setupFollowMenu Set up a follow menu.
+ * @brief CPUInfoBox::setupWatchMenu Set up a watch menu.
  * @param menu The menu to create
  * @param va The selected VA
  */

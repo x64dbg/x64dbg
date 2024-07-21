@@ -359,7 +359,7 @@ void CPUDump::mouseDoubleClickEvent(QMouseEvent* event)
     case 0: //address
     {
         //very ugly way to calculate the base of the current row (no clue why it works)
-        duint deltaRowBase = getInitialSelection() % getBytePerRowCount() + mByteOffset;
+        auto deltaRowBase = getInitialSelection() % getBytePerRowCount() + mByteOffset;
         if(deltaRowBase >= getBytePerRowCount())
             deltaRowBase -= getBytePerRowCount();
         dsint mSelectedVa = rvaToVa(getInitialSelection() - deltaRowBase);

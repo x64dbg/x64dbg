@@ -115,5 +115,7 @@ private:
     BuildCallback _callback;
     QString id;
     std::vector<Container> _containers;
+private slots:
+    void unregisterMenuBuilder();
 };
 

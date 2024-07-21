@@ -110,6 +110,7 @@ private slots:
     void on_chkQtHighDpiScaling_toggled(bool checked);
     void on_chkWindowLongPath_toggled(bool checked);
     void on_chkNoIcons_toggled(bool checked);
+    void on_chkAutoTraceDump_toggled(bool checked);
     //Misc tab
     void on_chkSetJIT_stateChanged(int arg1);
     void on_editSymbolStore_textEdited(const QString & arg1);
@@ -248,6 +249,7 @@ private:
         bool guiEnableQtHighDpiScaling = true;
         bool guiEnableWindowLongPath = false;
         bool guiNoIcons = false;
+        bool guiAutoTraceDump = false;
         //Misc Tab
         bool miscSetJIT = false;
         bool miscSymbolStore = false;

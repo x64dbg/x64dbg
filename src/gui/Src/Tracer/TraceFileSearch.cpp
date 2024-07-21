@@ -1,8 +1,10 @@
+#include <assert.h>
+#include <QCoreApplication>
 #include "TraceFileReader.h"
 #include "TraceFileSearch.h"
 #include "zydis_wrapper.h"
 #include "StringUtil.h"
-#include <QCoreApplication>
+#include "Configuration.h"
 
 static bool inRange(duint value, duint start, duint end)
 {
@@ -89,18 +91,35 @@ int TraceFileSearchConstantRange(TraceFileReader* file, duint start, duint end)
 
 int TraceFileSearchMemReference(TraceFileReader* file, duint address)
 {
-    int count = 0;
-    Zydis zy;
-    GuiReferenceInitialize(QCoreApplication::translate("TraceFileSearch", "Reference").toUtf8().constData());
+    // Empty trace does not have references
+    if(file->Length() == 0)
+        return 0;
+
+    // We now only support indexed search, so the dump index must be built first.
+    if(!file->getDump()->isEnabled())
+        return 0;
+
+    // Create reference view
+    GuiReferenceInitialize(QCoreApplication::translate("TraceFileSearch", "Reference").append(' ').append(ToPtrString(address)).toUtf8().constData());
     GuiReferenceAddColumn(sizeof(duint) * 2, QCoreApplication::translate("TraceFileSearch", "Address").toUtf8().constData());
     GuiReferenceAddColumn(5, QCoreApplication::translate("TraceFileSearch", "Index").toUtf8().constData());
     GuiReferenceAddColumn(100, QCoreApplication::translate("TraceFileSearch", "Disassembly").toUtf8().constData());
     GuiReferenceAddCommand(QCoreApplication::translate("TraceFileSearch", "Follow index in trace").toUtf8().constData(), "gototrace 0x$1");
     GuiReferenceSetRowCount(0);
 
-    for(unsigned long long index = 0; index < file->Length(); index++)
+    // Build the dump to the end
+    file->buildDumpTo(file->Length() - 1);
+
+    // Find references
+    auto results = file->getReferences(address, address + sizeof(duint) - 1);
+
+    // Collect results
+    Zydis zy;
+    int count = 0;
+    for(size_t i = 0; i < results.size(); i++)
     {
         bool found = false;
+        unsigned long long index = results[i];
         //Memory
         duint memAddr[MAX_MEMORY_OPERANDS];
         duint memOldContent[MAX_MEMORY_OPERANDS];

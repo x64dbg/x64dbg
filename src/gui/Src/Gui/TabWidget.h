@@ -36,7 +36,7 @@ signals:
 public slots:
     void AttachTab(QWidget* parent);
     void DetachTab(int index, const QPoint &);
-    void DeleteTab(int index);
+    virtual void DeleteTab(int index);
     void tabMoved(int from, int to);
     void OnDetachFocused(QWidget* parent);
     void currentChanged(int index);

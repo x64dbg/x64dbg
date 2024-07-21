@@ -3,9 +3,11 @@
 #include <QObject>
 #include <QKeySequence>
 #include <QMap>
+#include <QPointer>
 #include <QColor>
 #include <QFont>
 #include "Imports.h"
+#include "MenuBuilder.h"
 
 // TODO: declare AppearanceDialog and SettingsDialog entries here, so that you only have to do it in once place
 #define Config() (Configuration::instance())
@@ -17,7 +19,6 @@
 #define ConfigHScrollBarStyle() "QScrollBar:horizontal{border:1px solid grey;background:#f1f1f1;height:10px}QScrollBar::handle:horizontal{background:#aaaaaa;min-width:20px;margin:1px}QScrollBar::add-line:horizontal,QScrollBar::sub-line:horizontal{width:0;height:0}"
 #define ConfigVScrollBarStyle() "QScrollBar:vertical{border:1px solid grey;background:#f1f1f1;width:10px}QScrollBar::handle:vertical{background:#aaaaaa;min-height:20px;margin:1px}QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{width:0;height:0}"
 
-class MenuBuilder;
 class QAction;
 class QWheelEvent;
 
@@ -54,8 +55,9 @@ public:
     void writeFonts();
     void readShortcuts();
     void writeShortcuts();
-    void registerMenuBuilder(MenuBuilder* menu, size_t count);
-    void registerMainMenuStringList(QList<QAction*>* menu);
+    bool registerMenuBuilder(MenuBuilder* menu, size_t count);
+    bool registerMainMenuStringList(QList<QAction*>* menu);
+    void unregisterMenuBuilder(MenuBuilder* meun);
 
     const QColor getColor(const QString & id) const;
     const bool getBool(const QString & category, const QString & id) const;
@@ -88,12 +90,9 @@ public:
     //custom menu maps
     struct MenuMap
     {
-        union
-        {
-            QList<QAction*>* mainMenuList;
-            MenuBuilder* builder;
-        };
-        int type;
+        QList<QAction*>* mainMenuList;
+        QPointer<MenuBuilder> builder;
+        int type; // 0: builder; 1: mainMenuList
         size_t count;
 
         MenuMap() { }
