@@ -45,11 +45,11 @@ public:
     {
         return mStack;
     };
-    // Enable trace dump and load it fully before searching
-    void loadDumpFully();
+    // Enable trace dump and load it fully before searching. Return false if the user cancels.
+    bool loadDumpFully();
 public slots:
-    // Enable trace dump in order to use these features
-    void loadDump();
+    // Enable trace dump in order to use these features. Return false if the user cancels.
+    bool loadDump();
 
 signals:
     void closeFile();

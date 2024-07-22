@@ -1372,7 +1372,8 @@ void TraceBrowser::disasm(unsigned long long index, bool history)
 
 void TraceBrowser::disasmByAddress(duint address, bool history)
 {
-    mParent->loadDumpFully();
+    if(!mParent->loadDumpFully())
+        return;
     auto references = getTraceFile()->getDump()->getReferences(address, address);
     unsigned long long index;
     bool found = false;
@@ -1891,7 +1892,8 @@ void TraceBrowser::searchMemRefSlot()
     if(memRefDlg.exec() == QDialog::Accepted)
     {
         auto ticks = GetTickCount();
-        mParent->loadDumpFully();
+        if(!mParent->loadDumpFully())
+            return;
         int count = TraceFileSearchMemReference(getTraceFile(), memRefDlg.getVal());
         GuiShowReferences();
         GuiAddLogMessage(tr("%1 result(s) in %2ms\n").arg(count).arg(GetTickCount() - ticks).toUtf8().constData());

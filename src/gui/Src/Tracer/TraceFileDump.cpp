@@ -3,6 +3,7 @@
 #include "Configuration.h"
 #include "TraceFileDump.h"
 #include "StringUtil.h"
+#include <thread>
 
 TraceFileDump::TraceFileDump()
 {
@@ -12,7 +13,16 @@ TraceFileDump::TraceFileDump()
 
 TraceFileDump::~TraceFileDump()
 {
-
+    if(dump.size() > 65536)
+    {
+        // Move this huge object to another thread so the dump can be closed quickly.
+        std::map<Key, DumpRecord>* alt_dump = new std::map<Key, DumpRecord>(std::move(dump));
+        std::thread cleaner([](std::map<Key, DumpRecord>* alt_dump)
+        {
+            delete alt_dump; // This can be freeing several GB of memory.
+        }, alt_dump);
+        cleaner.detach(); // Continue to free memory
+    }
 }
 
 void TraceFileDump::clear()

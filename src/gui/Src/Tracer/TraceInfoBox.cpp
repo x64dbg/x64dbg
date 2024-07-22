@@ -258,13 +258,14 @@ void TraceInfoBox::addFollowMenuItem(QMenu* menu, QString name, duint value)
  */
 void TraceInfoBox::setupFollowMenu(QMenu* menu, duint va)
 {
+    TraceFileReader* traceFile = mParent->getTraceFile();
+    const TraceFileDump* traceDump = traceFile->getDump();
+    if(!traceDump->isEnabled())
+        return;
     //most basic follow action
     addFollowMenuItem(menu, tr("&Selected Address"), va);
 
     //add follow actions
-    mParent->loadDumpFully();
-    TraceFileReader* traceFile = mParent->getTraceFile();
-    TraceFileDump* traceDump = traceFile->getDump();
     duint selection = mParent->getTraceBrowser()->getInitialSelection();
     Zydis zydis;
     unsigned char opcode[16];
@@ -337,11 +338,7 @@ void TraceInfoBox::contextMenuSlot(QPoint pos)
     QMenu menu(this); //create context menu
     QMenu followMenu(tr("&Follow in Dump"), this);
     followMenu.setIcon(DIcon("dump"));
-    connect(&followMenu, &QMenu::aboutToShow, [&followMenu, this]()
-    {
-        // The following method will load dump, so we postpone until the mouse hovers it.
-        setupFollowMenu(&followMenu, mCurAddr);
-    });
+    setupFollowMenu(&followMenu, mCurAddr);
     menu.addMenu(&followMenu);
     QMenu copyMenu(tr("&Copy"), this);
     setupCopyMenu(&copyMenu);
