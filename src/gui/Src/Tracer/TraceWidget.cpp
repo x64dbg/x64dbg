@@ -146,7 +146,8 @@ void TraceWidget::traceSelectionChanged(unsigned long long selection)
 void TraceWidget::xrefSlot(duint addr)
 {
     if(!mDump)
-        loadDumpFully();
+        if(!loadDumpFully())
+            return;
     if(!mXrefDlg)
         mXrefDlg = new TraceXrefBrowseDialog(this);
     mXrefDlg->setup(mTraceBrowser->getInitialSelection(), addr, mTraceFile, [this](duint addr)
@@ -194,11 +195,11 @@ void TraceWidget::displayLogWidgetSlot()
     emit displayLogWidget();
 }
 
-void TraceWidget::loadDump()
+bool TraceWidget::loadDump()
 {
     // The dump should not be loaded at this point
     if(mDump != nullptr)
-        return;
+        return true;
 
     // Warn the user
     auto fileSize = mTraceFile->FileSize();
@@ -210,7 +211,7 @@ void TraceWidget::loadDump()
         msg.setWindowIcon(DIcon("exclamation"));
         msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
         if(msg.exec() == QMessageBox::Cancel)
-            return;
+            return false;
     }
 
     mTraceFile->getDump()->setEnabled();
@@ -235,18 +236,21 @@ void TraceWidget::loadDump()
     mStack->setAccessibleName(tr("Stack"));
 
     setupDumpInitialAddresses(selection);
+    return true;
 }
 
-void TraceWidget::loadDumpFully()
+bool TraceWidget::loadDumpFully()
 {
     if(mTraceFile->Length() == 0)
-        return;
+        return false;
 
     if(!mTraceFile->getDump()->isEnabled())
-        loadDump();
+        if(!loadDump())
+            return false;
 
     // Fully build dump index
     mTraceFile->buildDumpTo(mTraceFile->Length() - 1);
+    return true;
 }
 
 void TraceWidget::setupDumpInitialAddresses(unsigned long long selection)
