@@ -258,9 +258,11 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector, std::vector<S
             for(const auto & page : newPages)
                 totalSize += page.mbi.RegionSize;
 
-            if(totalSize < pageSize)
+            // On Windows 11 24H2+, modules that support hotpatching contain an extra page mapped into their image region
+            // Reference: https://ynwarcs.github.io/Win11-24H2-CFG
+            static auto buildNumber = BridgeGetNtBuildNumber();
+            if(buildNumber >= 26100 && totalSize + 0x1000 == pageSize)
             {
-                // On Windows 11 24H2+, modules that support hotpatching contain an extra page mapped into their image region
                 MEMPAGE imageExtensionPage = {};
                 imageExtensionPage.mbi.BaseAddress = (PVOID)(pageBase + totalSize);
                 imageExtensionPage.mbi.RegionSize = pageSize - totalSize;
