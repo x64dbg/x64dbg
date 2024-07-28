@@ -1194,9 +1194,9 @@ bool BpSetFieldNumber(const BP_REF & Ref, BP_FIELD Field, duint Value)
         switch(Field)
         {
         case bpf_enabled:
-            // TODO: actually enable/disable the breakpoint
-            bp.enabled = !!Value;
-            return true;
+            // TODO: actually enable/disable the breakpoint (requires further refactoring)
+            //bp.enabled = !!Value;
+            return false;
         case bpf_singleshoot:
             bp.singleshoot = !!Value;
             return true;
