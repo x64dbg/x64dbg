@@ -517,9 +517,16 @@ void dbgfunctionsinit()
     _dbgfunctions.PatchInRange = _patchinrange;
     _dbgfunctions.MemPatch = _mempatch;
     _dbgfunctions.PatchRestoreRange = _patchrestorerange;
-    _dbgfunctions.PatchEnum = (PATCHENUM)PatchEnum;
+    _dbgfunctions.PatchEnum = [](DBGPATCHINFO * patchlist, size_t* cbsize)
+    {
+        static_assert(sizeof(DBGPATCHINFO) == sizeof(PATCHINFO), "");
+        return PatchEnum((PATCHINFO*)patchlist, cbsize);
+    };
     _dbgfunctions.PatchRestore = _patchrestore;
-    _dbgfunctions.PatchFile = (PATCHFILE)PatchFile;
+    _dbgfunctions.PatchFile = [](DBGPATCHINFO * patchlist, int count, const char* szFileName, char* error)
+    {
+        return PatchFile((PATCHINFO*)patchlist, count, szFileName, error);
+    };
     _dbgfunctions.ModPathFromAddr = ModPathFromAddr;
     _dbgfunctions.ModPathFromName = ModPathFromName;
     _dbgfunctions.DisasmFast = disasmfast;
@@ -542,7 +549,10 @@ void dbgfunctionsinit()
     _dbgfunctions.GetAddrFromLine = _getaddrfromline;
     _dbgfunctions.GetSourceFromAddr = _getsourcefromaddr;
     _dbgfunctions.ValFromString = _valfromstring;
-    _dbgfunctions.PatchGetEx = (PATCHGETEX)PatchGet;
+    _dbgfunctions.PatchGetEx = [](duint addr, DBGPATCHINFO * patch)
+    {
+        return PatchGet(addr, (PATCHINFO*)patch);
+    };
     _dbgfunctions.GetBridgeBp = _getbridgebp;
     _dbgfunctions.StringFormatInline = _stringformatinline;
     _dbgfunctions.GetMnemonicBrief = _getmnemonicbrief;
@@ -569,7 +579,11 @@ void dbgfunctionsinit()
     _dbgfunctions.EnumExceptions = _enumexceptions;
     _dbgfunctions.MemBpSize = _membpsize;
     _dbgfunctions.ModRelocationsFromAddr = _modrelocationsfromaddr;
-    _dbgfunctions.ModRelocationAtAddr = (MODRELOCATIONATADDR)ModRelocationAtAddr;
+    _dbgfunctions.ModRelocationAtAddr = [](duint addr, DBGRELOCATIONINFO * relocation)
+    {
+        static_assert(sizeof(DBGRELOCATIONINFO) == sizeof(MODRELOCATIONINFO), "");
+        return ModRelocationAtAddr(addr, (MODRELOCATIONINFO*)relocation);
+    };
     _dbgfunctions.ModRelocationsInRange = _modrelocationsinrange;
     _dbgfunctions.DbGetHash = DbGetHash;
     _dbgfunctions.SymAutoComplete = SymAutoComplete;
