@@ -102,44 +102,6 @@ static TITANCBSTEP gStepIntoPartyCallback;
 HANDLE hDebugLoopThread = nullptr;
 DWORD dwDebugFlags = 0;
 
-struct BreakpointLogFile
-{
-    HANDLE hFile = INVALID_HANDLE_VALUE;
-    bool needsFlush = false;
-};
-
-static std::unordered_map<std::string, BreakpointLogFile> gBreakpointLogFiles;
-
-static BreakpointLogFile & dbgOpenBreakpointLogFile(const std::string & logFile)
-{
-    // TODO: convert filename to lower case?
-
-    auto itr = gBreakpointLogFiles.find(logFile);
-    if(itr != gBreakpointLogFiles.end())
-        return itr->second;
-
-    auto hFile = CreateFileW(
-                     StringUtils::Utf8ToUtf16(logFile).c_str(),
-                     FILE_APPEND_DATA | FILE_GENERIC_READ, FILE_SHARE_READ,
-                     nullptr,
-                     OPEN_ALWAYS,
-                     FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH,
-                     nullptr
-                 );
-    if(hFile != INVALID_HANDLE_VALUE)
-    {
-        SetFilePointer(hFile, 0, nullptr, FILE_END);
-        BreakpointLogFile newFile;
-        newFile.hFile = hFile;
-        return gBreakpointLogFiles.emplace(logFile, newFile).first->second;
-    }
-    else
-    {
-        static BreakpointLogFile invalidLogFile;
-        return invalidLogFile;
-    }
-}
-
 static duint dbgcleartracestate()
 {
     auto steps = traceState.StepCount();
@@ -318,14 +280,7 @@ void cbDebuggerPaused()
     // Watchdog
     cbCheckWatchdog(0, nullptr);
     // Flush breakpoint logs
-    for(auto & itr : gBreakpointLogFiles)
-    {
-        if(itr.second.needsFlush)
-        {
-            FlushFileBuffers(itr.second.hFile);
-            itr.second.needsFlush = false;
-        }
-    }
+    BpLogFileFlush();
 }
 
 void dbginit()
@@ -1002,8 +957,8 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
         auto formattedText = stringformatinline(bp.logText);
         if(!bp.logFile.empty())
         {
-            auto logFile = dbgOpenBreakpointLogFile(bp.logFile);
-            if(logFile.hFile == INVALID_HANDLE_VALUE)
+            auto logFile = BpLogFileOpen(bp.logFile);
+            if(logFile == INVALID_HANDLE_VALUE)
             {
                 // Pause and display the error
                 breakCondition = 1;
@@ -1016,8 +971,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
             {
                 formattedText += "\n";
                 DWORD written = 0;
-                WriteFile(logFile.hFile, formattedText.c_str(), (DWORD)formattedText.length(), &written, nullptr);
-                logFile.needsFlush = true;
+                WriteFile(logFile, formattedText.c_str(), (DWORD)formattedText.length(), &written, nullptr);
             }
         }
         else
@@ -3034,13 +2988,6 @@ static void debugLoopFunction(INIT_STRUCT* init)
         DeleteFileW(gDllLoader.c_str());
         gDllLoader.clear();
     }
-
-    // Close the breakpoint log files
-    for(const auto & itr : gBreakpointLogFiles)
-    {
-        CloseHandle(itr.second.hFile);
-    }
-    gBreakpointLogFiles.clear();
 }
 
 void dbgsetdebuggeeinitscript(const char* fileName)

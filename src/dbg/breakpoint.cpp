@@ -14,7 +14,20 @@
 #include <algorithm>
 
 typedef std::pair<BP_TYPE, duint> BreakpointKey;
-std::map<BreakpointKey, BREAKPOINT> breakpoints;
+static std::map<BreakpointKey, BREAKPOINT> breakpoints;
+
+struct BreakpointLogFile
+{
+    int refCount = 0;
+    HANDLE hFile = INVALID_HANDLE_VALUE;
+    bool needsFlush = false;
+};
+
+static std::unordered_map<std::string,
+       BreakpointLogFile,
+       StringUtils::CaseInsensitiveHash,
+       StringUtils::CaseInsensitiveEqual> breakpointLogFiles;
+static bool breakpointLogTruncate = false;
 
 static void setBpActive(BREAKPOINT & bp, duint addrAdjust = 0)
 {
@@ -355,6 +368,19 @@ duint BpGetDLLBpAddr(const char* fileName)
     return ModHashFromName(dashPos1);
 }
 
+static bool safeDelete(BP_TYPE Type, duint AddressHash)
+{
+    auto itr = breakpoints.find(BreakpointKey(Type, AddressHash));
+    if(itr == breakpoints.end())
+    {
+        return false;
+    }
+
+    BpLogFileRelease(itr->second.logFile);
+    breakpoints.erase(itr);
+    return true;
+}
+
 bool BpDelete(duint Address, BP_TYPE Type)
 {
     ASSERT_DEBUGGING("Command function call");
@@ -362,16 +388,16 @@ bool BpDelete(duint Address, BP_TYPE Type)
 
     // Erase the index from the global list
     if(Type != BPDLL && Type != BPEXCEPTION)
-        return breakpoints.erase(BreakpointKey(Type, ModHashFromAddr(Address))) > 0;
+        return safeDelete(Type, ModHashFromAddr(Address));
     else
-        return breakpoints.erase(BreakpointKey(Type, Address)) > 0;
+        return safeDelete(Type, Address);
 }
 
 bool BpDelete(const BREAKPOINT & Bp)
 {
     // Breakpoints without a module can be deleted without special logic
     if(Bp.type == BPDLL || Bp.type == BPEXCEPTION || Bp.module.empty())
-        return breakpoints.erase(BreakpointKey(Bp.type, Bp.addr)) > 0;
+        return safeDelete(Bp.type, Bp.addr);
 
     // Extract the RVA from the breakpoint
     auto rva = Bp.addr;
@@ -381,7 +407,7 @@ bool BpDelete(const BREAKPOINT & Bp)
 
     // Calculate the breakpoint key with the module hash and rva
     auto modHash = ModHashFromName(Bp.module.c_str());
-    return breakpoints.erase(BreakpointKey(Bp.type, modHash + rva)) > 0;
+    return safeDelete(Bp.type, modHash + rva);
 }
 
 bool BpEnable(duint Address, BP_TYPE Type, bool Enable)
@@ -529,7 +555,10 @@ bool BpSetLogFile(duint Address, BP_TYPE Type, const char* LogFile)
     if(!bpInfo)
         return false;
 
-    bpInfo->logFile = LogFile;
+    std::string newLogFile = LogFile;
+    BpLogFileAcquire(newLogFile);
+    BpLogFileRelease(bpInfo->logFile);
+    bpInfo->logFile = std::move(newLogFile);
     return true;
 }
 
@@ -973,6 +1002,7 @@ void BpCacheLoad(JSON Root, bool migrateCommandCondition)
         loadStringValue(value, breakpoint.commandText, "commandText");
         loadStringValue(value, breakpoint.commandCondition, "commandCondition");
         loadStringValue(value, breakpoint.logFile, "logFile");
+        BpLogFileAcquire(breakpoint.logFile);
 
         // On 2023-06-10 the default of the command condition was changed from $breakpointcondition to 1
         // If we detect an older database, try to preserve the old behavior.
@@ -1003,6 +1033,101 @@ void BpClear()
 {
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
     breakpoints.clear();
+
+    // Close breakpoint logs
+    for(const auto & itr : breakpointLogFiles)
+    {
+        if(itr.second.hFile != INVALID_HANDLE_VALUE)
+        {
+            CloseHandle(itr.second.hFile);
+        }
+    }
+    breakpointLogFiles.clear();
+}
+
+void BpLogFileAcquire(const std::string & logFile)
+{
+    if(!logFile.empty())
+    {
+        breakpointLogFiles[logFile].refCount++;
+    }
+}
+
+void BpLogFileRelease(const std::string & logFile)
+{
+    if(logFile.empty())
+    {
+        return;
+    }
+
+    auto itr = breakpointLogFiles.find(logFile);
+    if(itr == breakpointLogFiles.end())
+    {
+        // Trying to release a non-existing log file
+        return;
+    }
+
+    if(--itr->second.refCount <= 0)
+    {
+        auto hFile = itr->second.hFile;
+        if(hFile != INVALID_HANDLE_VALUE)
+        {
+            CloseHandle(hFile);
+        }
+        breakpointLogFiles.erase(itr);
+    }
+}
+
+HANDLE BpLogFileOpen(const std::string & logFile)
+{
+    SHARED_ACQUIRE(LockBreakpoints);
+
+    auto itr = breakpointLogFiles.find(logFile);
+    if(itr == breakpointLogFiles.end())
+    {
+        // NOTE: This can only happen when there is a programming error
+        SetLastError(ERROR_HANDLE_EOF);
+        return INVALID_HANDLE_VALUE;
+    }
+
+    if(itr->second.hFile != INVALID_HANDLE_VALUE)
+    {
+        itr->second.needsFlush = true;
+        return itr->second.hFile;
+    }
+
+    auto hFile = CreateFileW(
+                     StringUtils::Utf8ToUtf16(logFile).c_str(),
+                     GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ,
+                     nullptr,
+                     breakpointLogTruncate ? CREATE_ALWAYS : OPEN_ALWAYS,
+                     FILE_ATTRIBUTE_NORMAL,
+                     nullptr
+                 );
+    if(hFile != INVALID_HANDLE_VALUE)
+    {
+        if(!breakpointLogTruncate)
+        {
+            SetFilePointer(hFile, 0, nullptr, FILE_END);
+        }
+
+        itr->second.hFile = hFile;
+        itr->second.needsFlush = true;
+    }
+    return hFile;
+}
+
+void BpLogFileFlush()
+{
+    SHARED_ACQUIRE(LockBreakpoints);
+    for(auto & itr : breakpointLogFiles)
+    {
+        if(itr.second.needsFlush)
+        {
+            FlushFileBuffers(itr.second.hFile);
+            itr.second.needsFlush = false;
+        }
+    }
 }
 
 // New breakpoint API
@@ -1286,9 +1411,13 @@ bool BpSetFieldText(const BP_REF & Ref, BP_FIELD Field, const char* Value)
             bp.commandCondition = Value;
             return true;
         case bpf_logfile:
-            // TODO: ref count log file?
-            bp.logFile = Value;
+        {
+            std::string newLogFile = Value;
+            BpLogFileAcquire(newLogFile);
+            BpLogFileRelease(bp.logFile);
+            bp.logFile = std::move(newLogFile);
             return true;
+        }
         default:
             __debugbreak();
             return false;
