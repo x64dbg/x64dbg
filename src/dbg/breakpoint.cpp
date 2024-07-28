@@ -27,7 +27,7 @@ static std::unordered_map<std::string,
        BreakpointLogFile,
        StringUtils::CaseInsensitiveHash,
        StringUtils::CaseInsensitiveEqual> breakpointLogFiles;
-static bool breakpointLogTruncate = false;
+bool bTruncateBreakpointLogs = false;
 
 static void setBpActive(BREAKPOINT & bp, duint addrAdjust = 0)
 {
@@ -1100,13 +1100,13 @@ HANDLE BpLogFileOpen(const std::string & logFile)
                      StringUtils::Utf8ToUtf16(logFile).c_str(),
                      GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ,
                      nullptr,
-                     breakpointLogTruncate ? CREATE_ALWAYS : OPEN_ALWAYS,
+                     bTruncateBreakpointLogs ? CREATE_ALWAYS : OPEN_ALWAYS,
                      FILE_ATTRIBUTE_NORMAL,
                      nullptr
                  );
     if(hFile != INVALID_HANDLE_VALUE)
     {
-        if(!breakpointLogTruncate)
+        if(!bTruncateBreakpointLogs)
         {
             SetFilePointer(hFile, 0, nullptr, FILE_END);
         }

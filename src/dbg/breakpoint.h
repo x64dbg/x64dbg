@@ -4,6 +4,8 @@
 #include "_dbgfunctions.h"
 #include "jansson/jansson_x64dbg.h"
 
+extern bool bTruncateBreakpointLogs;
+
 #define TITANSETDRX(titantype, drx) titantype &= 0x0FF, titantype |= (((drx - UE_DR0) & 0xF) << 8)
 #define TITANGETDRX(titantype) UE_DR0 + ((titantype >> 8) & 0xF)
 #define TITANDRXVALID(titantype) TITANGETDRX(titantype) != UE_DR7
