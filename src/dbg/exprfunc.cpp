@@ -671,13 +671,17 @@ namespace Exprfunc
 
         size_t len1 = ::strlen(argv[0].string.ptr);
         size_t len2 = ::strlen(argv[1].string.ptr);
-        auto it = std::search(
-                      argv[0].string.ptr, argv[0].string.ptr + len1,
-                      argv[1].string.ptr, argv[1].string.ptr + len2,
-        [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
-                  );
+        auto lowercompare = [](char ch1, char ch2)
+        {
+            return StringUtils::ToLower(ch1) == StringUtils::ToLower(ch2);
+        };
+        auto found = std::search(
+                         argv[0].string.ptr, argv[0].string.ptr + len1,
+                         argv[1].string.ptr, argv[1].string.ptr + len2,
+                         lowercompare
+                     ) != argv[0].string.ptr + len1;
 
-        *result = ValueNumber(it != argv[0].string.ptr + len1);
+        *result = ValueNumber(found);
         return true;
     }
 

@@ -477,7 +477,7 @@ String StringUtils::ToLower(const String & s)
 {
     auto result = s;
     for(size_t i = 0; i < result.size(); i++)
-        result[i] = tolower(result[i]);
+        result[i] = ToLower(result[i]);
     return result;
 }
 
@@ -626,7 +626,7 @@ int StringUtils::hackicmp(const char* s1, const char* s2)
         if(c1 == '\0')
             return 0;
     s1--, s2--;
-    while((c1 = tolower(*s1++)) == (c2 = tolower(*s2++)))
+    while((c1 = ToLower(*s1++)) == (c2 = ToLower(*s2++)))
         if(c1 == '\0')
             return 0;
     return c1 - c2;
