@@ -279,6 +279,8 @@ void cbDebuggerPaused()
     }
     // Watchdog
     cbCheckWatchdog(0, nullptr);
+    // Flush breakpoint logs
+    BpLogFileFlush();
 }
 
 void dbginit()
@@ -607,8 +609,8 @@ static void printSoftBpInfo(const BREAKPOINT & bp)
     else if((titantype & UE_BREAKPOINT_TYPE_LONG_INT3) == UE_BREAKPOINT_TYPE_LONG_INT3)
         bptype = "LONG INT3";
     auto symbolicname = SymGetSymbolicName(bp.addr);
-    if(*bp.name)
-        dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint \"%s\" at %s!\n"), bptype, bp.name, symbolicname.c_str());
+    if(!bp.name.empty())
+        dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint \"%s\" at %s!\n"), bptype, bp.name.c_str(), symbolicname.c_str());
     else
         dprintf(QT_TRANSLATE_NOOP("DBG", "%s breakpoint at %s!\n"), bptype, symbolicname.c_str());
 }
@@ -650,8 +652,8 @@ static void printHwBpInfo(const BREAKPOINT & bp)
         bptype = _strdup(" ");
     }
     auto symbolicname = SymGetSymbolicName(bp.addr);
-    if(*bp.name)
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint (%s%s) \"%s\" at %s!\n"), bpsize, bptype, bp.name, symbolicname.c_str());
+    if(!bp.name.empty())
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint (%s%s) \"%s\" at %s!\n"), bpsize, bptype, bp.name.c_str(), symbolicname.c_str());
     else
         dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint (%s%s) at %s!\n"), bpsize, bptype, symbolicname.c_str());
     free(bptype);
@@ -678,11 +680,11 @@ static void printMemBpInfo(const BREAKPOINT & bp, const void* ExceptionAddress)
         bptype = _strdup("");
     }
     auto symbolicname = SymGetSymbolicName(bp.addr);
-    if(*bp.name)
+    if(!bp.name.empty())
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint%s \"%s\" at %s, exception address: %s!\n"),
                 bptype,
-                bp.name,
+                bp.name.c_str(),
                 symbolicname.c_str(),
                 SymGetSymbolicName(duint(ExceptionAddress)).c_str()
                );
@@ -715,17 +717,17 @@ static void printDllBpInfo(const BREAKPOINT & bp)
     default:
         bptype = _strdup("");
     }
-    if(*bp.name)
-        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint %s (%s): Module %s\n"), bp.name, bptype, bp.mod);
+    if(!bp.name.empty())
+        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint %s (%s): Module %s\n"), bp.name.c_str(), bptype, bp.module.c_str());
     else
-        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint (%s): Module %s\n"), bptype, bp.mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "DLL Breakpoint (%s): Module %s\n"), bptype, bp.module.c_str());
     free(bptype);
 }
 
 static void printExceptionBpInfo(const BREAKPOINT & bp, duint CIP)
 {
-    if(*bp.name != 0)
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Exception Breakpoint %s (%p) at %p!\n"), bp.name, bp.addr, CIP);
+    if(!bp.name.empty())
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Exception Breakpoint %s (%p) at %p!\n"), bp.name.c_str(), bp.addr, CIP);
     else
         dprintf(QT_TRANSLATE_NOOP("DBG", "Exception Breakpoint %s (%p) at %p!\n"), ExceptionCodeToName((unsigned int)bp.addr).c_str(), bp.addr, CIP);
 }
@@ -743,6 +745,13 @@ static char getConditionValue(const char* expression)
         return value != 0 ? 1 : 0;
     else
         return -1; // Error
+}
+
+static char getConditionValue(const std::string & expression)
+{
+    if(expression.empty())
+        return -1; // Error
+    return getConditionValue(expression.c_str());
 }
 
 void cbPauseBreakpoint()
@@ -873,7 +882,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
     EXCLUSIVE_RELEASE();
 
     if(bptype != BPDLL && bptype != BPEXCEPTION)
-        bp.addr += ModBaseFromName(bp.mod);
+        bp.addr += ModBaseFromName(bp.module.c_str());
     bp.active = true; //a breakpoint that has been hit is active
 
     varset("$breakpointcounter", bp.hitcount, true); //save the breakpoint counter as a variable
@@ -882,7 +891,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
     char breakCondition;
     char logCondition;
     char commandCondition;
-    if(*bp.breakCondition)
+    if(!bp.breakCondition.empty())
     {
         breakCondition = getConditionValue(bp.breakCondition);
         if(breakCondition == -1)
@@ -892,7 +901,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
         breakCondition = 1; //break if no condition is set
     if(bp.fastResume && breakCondition == 0) // fast resume: ignore GUI/Script/Plugin/Other if the debugger would not break
         return;
-    if(*bp.logCondition)
+    if(!bp.logCondition.empty())
     {
         logCondition = getConditionValue(bp.logCondition);
         if(logCondition == -1)
@@ -905,7 +914,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
     }
     else
         logCondition = 1; //log if no condition is set
-    if(*bp.commandCondition)
+    if(!bp.commandCondition.empty())
     {
         commandCondition = getConditionValue(bp.commandCondition);
         if(commandCondition == -1)
@@ -942,17 +951,41 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
     // Update breakpoint view
     DebugUpdateBreakpointsViewAsync();
 
-    if(*bp.logText && logCondition == 1) //log
+    DWORD logFileError = ERROR_SUCCESS;
+    if(!bp.logText.empty() && logCondition == 1) //log
     {
-        dprintf_untranslated("%s\n", stringformatinline(bp.logText).c_str());
+        auto formattedText = stringformatinline(bp.logText);
+        if(!bp.logFile.empty())
+        {
+            auto logFile = BpLogFileOpen(bp.logFile);
+            if(logFile == INVALID_HANDLE_VALUE)
+            {
+                // Pause and display the error
+                breakCondition = 1;
+                logFileError = GetLastError();
+
+                // Show the log in the regular log tab
+                dprintf_untranslated("%s\n", formattedText.c_str());
+            }
+            else
+            {
+                formattedText += "\n";
+                DWORD written = 0;
+                WriteFile(logFile, formattedText.c_str(), (DWORD)formattedText.length(), &written, nullptr);
+            }
+        }
+        else
+        {
+            dprintf_untranslated("%s\n", formattedText.c_str());
+        }
     }
-    if(*bp.commandText && commandCondition) //command
+    if(!bp.commandText.empty() && commandCondition) //command
     {
         //TODO: commands like run/step etc will fuck up your shit
         varset("$breakpointcondition", (breakCondition != 0) ? 1 : 0, false);
         varset("$breakpointlogcondition", (logCondition != 0) ? 1 : 0, true);
         duint script_breakcondition;
-        if(!cmddirectexec(bp.commandText))
+        if(!cmddirectexec(bp.commandText.c_str()))
         {
             breakCondition = -1; // Error executing the command (The error message is probably already printed)
         }
@@ -972,6 +1005,13 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
     }
     else //resume immediately
         unlock(WAITID_RUN);
+
+    // Make sure the log file error is displayed last
+    if(logFileError != ERROR_SUCCESS)
+    {
+        String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()));
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to open breakpoint log: %s (%s)\n"), bp.logFile.c_str(), error.c_str());
+    }
 
     //wait until the user resumes
     wait(WAITID_RUN);
@@ -1149,7 +1189,7 @@ bool cbSetDLLBreakpoints(const BREAKPOINT* bp)
         return true;
     if(bp->type != BPDLL)
         return true;
-    dbgsetdllbreakpoint(bp->mod, bp->titantype, bp->singleshoot);
+    dbgsetdllbreakpoint(bp->module.c_str(), bp->titantype, bp->singleshoot);
     return true;
 }
 

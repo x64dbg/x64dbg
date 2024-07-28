@@ -15,6 +15,8 @@ public:
     BrowseDialog(QWidget* parent, const QString & title, const QString & text, const QString & filter, const QString & defaultPath, bool save);
     ~BrowseDialog();
 
+    void setConfirmOverwrite(bool value);
+
     QString path;
 public slots:
     void on_browse_clicked();
@@ -24,4 +26,5 @@ private:
     Ui::BrowseDialog* ui;
     QString mFilter;
     bool mSave;
+    bool mConfirmOverwrite = true;
 };

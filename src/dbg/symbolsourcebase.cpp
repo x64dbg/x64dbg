@@ -68,9 +68,8 @@ bool NameIndex::findByName(const std::vector<NameIndex> & byName, const std::str
 
 bool SymbolSourceBase::mapSourceFilePdbToDisk(const std::string & pdb, const std::string & disk)
 {
-    std::string pdblower = pdb, disklower = disk;
-    std::transform(pdblower.begin(), pdblower.end(), pdblower.begin(), tolower);
-    std::transform(disklower.begin(), disklower.end(), disklower.begin(), tolower);
+    auto pdblower = StringUtils::ToLower(pdb);
+    auto disklower = StringUtils::ToLower(disk);
 
     // Abort if the disk file doesn't exist
     if(!FileExists(disklower.c_str()))
@@ -103,8 +102,7 @@ bool SymbolSourceBase::mapSourceFilePdbToDisk(const std::string & pdb, const std
 
 bool SymbolSourceBase::getSourceFileDiskToPdb(const std::string & disk, std::string & pdb) const
 {
-    std::string disklower = disk;
-    std::transform(disklower.begin(), disklower.end(), disklower.begin(), tolower);
+    auto disklower = StringUtils::ToLower(disk);
     auto found = _sourceFileMapDiskToPdb.find(disklower);
     if(found == _sourceFileMapDiskToPdb.end())
         return false;
@@ -114,8 +112,7 @@ bool SymbolSourceBase::getSourceFileDiskToPdb(const std::string & disk, std::str
 
 bool SymbolSourceBase::getSourceFilePdbToDisk(const std::string & pdb, std::string & disk) const
 {
-    std::string pdblower = pdb;
-    std::transform(pdblower.begin(), pdblower.end(), pdblower.begin(), tolower);
+    auto pdblower = StringUtils::ToLower(pdb);
     auto found = _sourceFileMapPdbToDisk.find(pdblower);
     if(found == _sourceFileMapPdbToDisk.end())
         return false;

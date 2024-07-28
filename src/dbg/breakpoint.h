@@ -1,8 +1,10 @@
-#ifndef _BREAKPOINT_H
-#define _BREAKPOINT_H
+#pragma once
 
 #include "_global.h"
+#include "_dbgfunctions.h"
 #include "jansson/jansson_x64dbg.h"
+
+extern bool bTruncateBreakpointLogs;
 
 #define TITANSETDRX(titantype, drx) titantype &= 0x0FF, titantype |= (((drx - UE_DR0) & 0xF) << 8)
 #define TITANGETDRX(titantype) UE_DR0 + ((titantype >> 8) & 0xF)
@@ -31,13 +33,14 @@ struct BREAKPOINT
     unsigned short oldbytes;                          // original bytes (for software breakpoitns)
     BP_TYPE type;                                     // breakpoint type
     DWORD titantype;                                  // type passed to titanengine
-    char name[MAX_BREAKPOINT_SIZE];                   // breakpoint name
-    char mod[MAX_MODULE_SIZE];                        // module name
-    char breakCondition[MAX_CONDITIONAL_EXPR_SIZE];   // condition to stop. If true, debugger halts.
-    char logText[MAX_CONDITIONAL_TEXT_SIZE];          // text to log.
-    char logCondition[MAX_CONDITIONAL_EXPR_SIZE];     // condition to log
-    char commandText[MAX_CONDITIONAL_TEXT_SIZE];      // script command to execute.
-    char commandCondition[MAX_CONDITIONAL_EXPR_SIZE]; // condition to execute the command
+    std::string name;                                 // breakpoint name
+    std::string module;                               // module name
+    std::string breakCondition;                       // condition to stop. If true, debugger halts.
+    std::string logText;                              // text to log.
+    std::string logCondition;                         // condition to log
+    std::string commandText;                          // script command to execute.
+    std::string commandCondition;                     // condition to execute the command
+    std::string logFile;                              // file path to log to
     uint32 hitcount;                                  // hit counter
     bool fastResume;                                  // if true, debugger resumes without any GUI/Script/Plugin interaction.
     duint memsize;                                    // memory breakpoint size (not implemented)
@@ -62,6 +65,7 @@ bool BpSetLogText(duint Address, BP_TYPE Type, const char* Log);
 bool BpSetLogCondition(duint Address, BP_TYPE Type, const char* Condition);
 bool BpSetCommandText(duint Address, BP_TYPE Type, const char* Cmd);
 bool BpSetCommandCondition(duint Address, BP_TYPE Type, const char* Condition);
+bool BpSetLogFile(duint Address, BP_TYPE Type, const char* LogFile);
 bool BpSetFastResume(duint Address, BP_TYPE Type, bool fastResume);
 bool BpSetSingleshoot(duint Address, BP_TYPE Type, bool singleshoot);
 bool BpEnumAll(BPENUMCALLBACK EnumCallback, const char* Module, duint base = 0);
@@ -76,5 +80,22 @@ void BpCacheSave(JSON Root);
 void BpCacheLoad(JSON Root, bool migrateCommandCondition);
 void BpClear();
 bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo);
+void BpLogFileAcquire(const std::string & logFile);
+void BpLogFileRelease(const std::string & logFile);
+HANDLE BpLogFileOpen(const std::string & logFile);
+void BpLogFileFlush();
 
-#endif // _BREAKPOINT_H
+// New breakpoint API
+
+std::vector<BP_REF> BpRefList();
+bool BpRefVa(BP_REF & Ref, BPXTYPE Type, duint Va);
+bool BpRefRva(BP_REF & Ref, BPXTYPE Type, const char* Module, duint Rva);
+void BpRefDll(BP_REF & Ref, const char* Module);
+void BpRefException(BP_REF & Ref, unsigned int ExceptionCode);
+bool BpRefExists(const BP_REF & Ref);
+
+bool BpGetFieldNumber(const BP_REF & Ref, BP_FIELD Field, duint & Value);
+bool BpSetFieldNumber(const BP_REF & Ref, BP_FIELD Field, duint Value);
+bool BpGetFieldText(const BP_REF & Ref, BP_FIELD Field, std::string & Value);
+bool BpGetFieldText(const BP_REF & Ref, BP_FIELD Field, CBSTRING Callback, void* Userdata);
+bool BpSetFieldText(const BP_REF & Ref, BP_FIELD Field, const char* Value);

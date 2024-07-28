@@ -173,7 +173,7 @@ QString BreakpointsView::paintContent(QPainter* painter, duint row, duint col, i
     auto index = bpIndex(row);
     auto & bp = mBps.at(index);
     auto cellContent = getCellContent(row, col);
-    if(col > ColType && !bp.addr && !bp.active)
+    if(col > ColType && bp.addr == 0 && !bp.active)
     {
         auto mid = h / 2.0;
         painter->drawLine(QPointF(x, y + mid), QPointF(x + w, y + mid));
@@ -216,19 +216,22 @@ void BreakpointsView::updateBreakpointsSlot()
             mExceptionMaxLength = std::max(mExceptionMaxLength, int(strlen(exceptions[i].name)));
         }
         mExceptionList.sort();
-
     }
-    BPMAP bpmap;
-    DbgGetBpList(bp_none, &bpmap);
-    setRowCount(bpmap.count);
+
+    if(DbgFunctions()->BpRefList == nullptr)
+        return;
+
+    duint count = 0;
+    auto refList = DbgFunctions()->BpRefList(&count);
+    setRowCount(count);
     mBps.clear();
-    mBps.reserve(bpmap.count + 5);
+    mBps.reserve(count + 5);
     mRich.clear();
-    mRich.reserve(bpmap.count + 5);
+    mRich.reserve(count + 5);
     BPXTYPE lasttype = bp_none;
-    for(int i = 0, row = 0; i < bpmap.count; i++, row++)
+    for(duint i = 0, row = 0; i < count; i++, row++)
     {
-        BRIDGEBP & bp = bpmap.bp[i];
+        Breakpoints::Data bp(refList[i]);
 
         if(lasttype != bp.type)
         {
@@ -245,8 +248,7 @@ void BreakpointsView::updateBreakpointsSlot()
             setCellContent(row, ColSummary, QString());
             row++;
 
-            BRIDGEBP fakebp;
-            memset(&fakebp, 0, sizeof(fakebp));
+            Breakpoints::Data fakebp;
             fakebp.type = lasttype;
             mBps.push_back(fakebp);
             mRich.push_back(std::make_pair(RichTextPainter::List(), RichTextPainter::List()));
@@ -260,7 +262,7 @@ void BreakpointsView::updateBreakpointsSlot()
         {
             if(bp.type == bp_dll)
             {
-                auto base = DbgModBaseFromName(bp.mod);
+                auto base = DbgModBaseFromName(bp.module.toUtf8().constData());
                 if(!base)
                     base = -1;
                 return ToPtrString(base);
@@ -277,9 +279,9 @@ void BreakpointsView::updateBreakpointsSlot()
                 return found == mExceptionMap.end() ? "" : found->second;
             }
             else if(bp.type != bp_dll && DbgGetLabelAt(bp.addr, SEG_DEFAULT, label))
-                return QString("<%1.%2>").arg(bp.mod, label);
+                return QString("<%1.%2>").arg(bp.module, label);
             else
-                return bp.mod;
+                return bp.module;
         };
         auto stateName = [&]()
         {
@@ -312,7 +314,7 @@ void BreakpointsView::updateBreakpointsSlot()
             }
             return result;
         };
-        //memory/hardware/dll/exception type, name, address comment, condition, log(text+condition), command(text+condition)
+        //memory/hardware/dll/exception type, name, address comment, condition, log(text+condition), command(text+condition), logFile(path)
         auto summaryText = [&]()
         {
             auto colored = [&richSummary](QString text, QColor color)
@@ -345,7 +347,7 @@ void BreakpointsView::updateBreakpointsSlot()
                 next();
                 colored(comment, mSummaryStringColor);
             }
-            else if(*bp.name)
+            else if(!bp.name.isEmpty())
             {
                 next();
                 colored(bp.name, mSummaryStringColor);
@@ -472,7 +474,7 @@ void BreakpointsView::updateBreakpointsSlot()
                 return QString();
             }
 
-            if(*bp.breakCondition)
+            if(!bp.breakCondition.isEmpty())
             {
                 next();
                 colored(tr("breakif"), mSummaryKeywordColor);
@@ -489,10 +491,10 @@ void BreakpointsView::updateBreakpointsSlot()
             }
             else //fast resume skips all other steps
             {
-                if(*bp.logText)
+                if(!bp.logText.isEmpty())
                 {
                     next();
-                    if(*bp.logCondition)
+                    if(!bp.logCondition.isEmpty())
                     {
                         colored(tr("logif"), mSummaryKeywordColor);
                         colored("(", mSummaryParenColor);
@@ -506,13 +508,21 @@ void BreakpointsView::updateBreakpointsSlot()
                         colored("(", mSummaryParenColor);
                     }
                     colored(QString("\"%1\"").arg(bp.logText), mSummaryStringColor);
+                    if(!bp.logFile.isEmpty())
+                    {
+                        colored(", ", mSummaryParenColor);
+                        colored("file", mSummaryKeywordColor);
+                        colored("(", mSummaryParenColor);
+                        colored(bp.logFile, mSummaryStringColor);
+                        colored(")", mSummaryParenColor);
+                    }
                     colored(")", mSummaryParenColor);
                 }
 
-                if(*bp.commandText)
+                if(!bp.commandText.isEmpty())
                 {
                     next();
-                    if(*bp.commandCondition)
+                    if(!bp.commandCondition.isEmpty())
                     {
                         colored(tr("cmdif"), mSummaryKeywordColor);
                         colored("(", mSummaryParenColor);
@@ -547,10 +557,9 @@ void BreakpointsView::updateBreakpointsSlot()
 
         mRich.push_back(std::make_pair(std::move(richDisasm), std::move(richSummary)));
     }
-    if(bpmap.count)
+    BridgeFree(refList);
+    if(count)
     {
-        BridgeFree(bpmap.bp);
-
         auto sel = getInitialSelection();
         auto rows = getRowCount();
         if(sel >= rows)
@@ -589,7 +598,7 @@ void BreakpointsView::followBreakpointSlot()
         GuiAddStatusBarMessage(tr("Cannot follow this breakpoint.\n").toUtf8().constData());
         return;
     }
-    duint addr = bp.type == bp_dll ? DbgModBaseFromName(bp.mod) : bp.addr;
+    duint addr = bp.type == bp_dll ? DbgModBaseFromName(bp.module.toUtf8().constData()) : bp.addr;
     if(!DbgMemIsValidReadPtr(addr))
     {
         GuiAddStatusBarMessage(tr("Cannot follow this breakpoint.\n").toUtf8().constData());
@@ -611,7 +620,7 @@ void BreakpointsView::removeBreakpointSlot()
     {
         if(isValidBp(i))
         {
-            const BRIDGEBP & bp = selectedBp(i);
+            const auto & bp = selectedBp(i);
             Breakpoints::removeBP(bp);
         }
     }
@@ -629,67 +638,14 @@ void BreakpointsView::editBreakpointSlot()
 {
     if(!isValidBp())
         return;
-    const BRIDGEBP & bp = selectedBp();
-    if(bp.type == bp_dll)
+    const auto & bp = selectedBp();
+    if(bp.type == bp_dll || bp.type == bp_exception)
     {
-        Breakpoints::editBP(bp_dll, bp.mod, this);
-    }
-    else if(bp.active || bp.type == bp_exception)
-    {
-        Breakpoints::editBP(bp.type, ToPtrString(bp.addr), this);
+        Breakpoints::editBP(bp.type, bp.module, bp.addr, this);
     }
     else
     {
-        QString addrText = QString().sprintf("\"%s\":$%X", bp.mod, bp.addr);
-        EditBreakpointDialog dialog(this, bp);
-        if(dialog.exec() != QDialog::Accepted)
-            return;
-        auto exec = [](const QString & command)
-        {
-            DbgCmdExecDirect(command);
-        };
-        const BRIDGEBP & newBp = dialog.getBp();
-        switch(bp.type)
-        {
-        case bp_normal:
-            exec(QString("SetBreakpointName %1, \"%2\"").arg(addrText).arg(newBp.name));
-            exec(QString("SetBreakpointCondition %1, \"%2\"").arg(addrText).arg(newBp.breakCondition));
-            exec(QString("SetBreakpointLog %1, \"%2\"").arg(addrText).arg(newBp.logText));
-            exec(QString("SetBreakpointLogCondition %1, \"%2\"").arg(addrText).arg(newBp.logCondition));
-            exec(QString("SetBreakpointCommand %1, \"%2\"").arg(addrText).arg(newBp.commandText));
-            exec(QString("SetBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(newBp.commandCondition));
-            exec(QString("ResetBreakpointHitCount %1, %2").arg(addrText).arg(ToPtrString(newBp.hitCount)));
-            exec(QString("SetBreakpointFastResume %1, %2").arg(addrText).arg(newBp.fastResume));
-            exec(QString("SetBreakpointSilent %1, %2").arg(addrText).arg(newBp.silent));
-            exec(QString("SetBreakpointSingleshoot %1, %2").arg(addrText).arg(newBp.singleshoot));
-            break;
-        case bp_hardware:
-            exec(QString("SetHardwareBreakpointName %1, \"%2\"").arg(addrText).arg(newBp.name));
-            exec(QString("SetHardwareBreakpointCondition %1, \"%2\"").arg(addrText).arg(newBp.breakCondition));
-            exec(QString("SetHardwareBreakpointLog %1, \"%2\"").arg(addrText).arg(newBp.logText));
-            exec(QString("SetHardwareBreakpointLogCondition %1, \"%2\"").arg(addrText).arg(newBp.logCondition));
-            exec(QString("SetHardwareBreakpointCommand %1, \"%2\"").arg(addrText).arg(newBp.commandText));
-            exec(QString("SetHardwareBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(newBp.commandCondition));
-            exec(QString("ResetHardwareBreakpointHitCount %1, %2").arg(addrText).arg(ToPtrString(newBp.hitCount)));
-            exec(QString("SetHardwareBreakpointFastResume %1, %2").arg(addrText).arg(newBp.fastResume));
-            exec(QString("SetHardwareBreakpointSilent %1, %2").arg(addrText).arg(newBp.silent));
-            exec(QString("SetHardwareBreakpointSingleshoot %1, %2").arg(addrText).arg(newBp.singleshoot));
-            break;
-        case bp_memory:
-            exec(QString("SetMemoryBreakpointName %1, \"\"%2\"\"").arg(addrText).arg(newBp.name));
-            exec(QString("SetMemoryBreakpointCondition %1, \"%2\"").arg(addrText).arg(newBp.breakCondition));
-            exec(QString("SetMemoryBreakpointLog %1, \"%2\"").arg(addrText).arg(newBp.logText));
-            exec(QString("SetMemoryBreakpointLogCondition %1, \"%2\"").arg(addrText).arg(newBp.logCondition));
-            exec(QString("SetMemoryBreakpointCommand %1, \"%2\"").arg(addrText).arg(newBp.commandText));
-            exec(QString("SetMemoryBreakpointCommandCondition %1, \"%2\"").arg(addrText).arg(newBp.commandCondition));
-            exec(QString("ResetMemoryBreakpointHitCount %1, %2").arg(addrText).arg(ToPtrString(newBp.hitCount)));
-            exec(QString("SetMemoryBreakpointFastResume %1, %2").arg(addrText).arg(newBp.fastResume));
-            exec(QString("SetMemoryBreakpointSilent %1, %2").arg(addrText).arg(newBp.silent));
-            exec(QString("SetMemoryBreakpointSingleshoot %1, %2").arg(addrText).arg(newBp.singleshoot));
-            break;
-        default:
-            break;
-        }
+        Breakpoints::editBP(bp.type, bp.active ? QString() : bp.module, bp.addr, this);
     }
 }
 
@@ -712,16 +668,13 @@ void BreakpointsView::resetHitCountBreakpointSlot()
             case bp_memory:
                 return QString("ResetMemoryBreakpointHitCount %1").arg(ToPtrString(bp.addr));
             case bp_dll:
-                return QString("ResetLibrarianBreakpointHitCount \"%1\"").arg(bp.mod);
+                return QString("ResetLibrarianBreakpointHitCount \"%1\"").arg(bp.module);
             case bp_exception:
                 return QString("ResetExceptionBreakpointHitCount %1").arg(ToHexString(bp.addr));
             default:
                 return QString("invalid");
             }
         }());
-        QString cmd;
-
-        DbgCmdExecDirect(cmd);
     }
 }
 
@@ -818,7 +771,7 @@ static QString escape(QString data)
 
 void BreakpointsView::copyConditionalBreakpointSlot()
 {
-    BRIDGEBP bp = selectedBp();
+    const auto & bp = selectedBp();
     const char* bpcnd;
     const char* bplog;
     const char* bpcmd;
@@ -887,7 +840,7 @@ void BreakpointsView::copyConditionalBreakpointSlot()
     if(bp.type != bp_dll)
         addr = ToPtrString(bp.addr);
     else
-        addr = '"' + escape(bp.mod) + '"';
+        addr = '"' + escape(bp.module) + '"';
     QTextStream s(&text, QIODevice::WriteOnly);
     s << QString(bpcnd).arg(addr).arg(escape(bp.breakCondition)) << "\r\n";
     s << QString(bplog).arg(addr).arg(escape(bp.logText)) << "\r\n";

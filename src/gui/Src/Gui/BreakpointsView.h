@@ -4,6 +4,7 @@
 #include "Bridge.h"
 #include "StdTable.h"
 #include "QZydis.h"
+#include "Breakpoints.h"
 
 class MenuBuilder;
 
@@ -52,7 +53,7 @@ private:
     std::unordered_map<duint, const char*> mExceptionMap;
     QStringList mExceptionList;
     int mExceptionMaxLength;
-    std::vector<BRIDGEBP> mBps;
+    std::vector<Breakpoints::Data> mBps;
     std::vector<std::pair<RichTextPainter::List, RichTextPainter::List>> mRich;
     QColor mDisasmBackgroundColor;
     QColor mDisasmSelectionColor;
@@ -71,7 +72,7 @@ private:
         return mData.at(i).at(ColAddr).userdata;
     }
 
-    const BRIDGEBP & selectedBp(int index = -1) const
+    const Breakpoints::Data & selectedBp(int index = -1) const
     {
         if(index == -1)
             index = getInitialSelection();

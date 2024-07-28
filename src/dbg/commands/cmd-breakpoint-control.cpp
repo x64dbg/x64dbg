@@ -907,12 +907,12 @@ static bool cbDeleteAllDllBreakpoints(const BREAKPOINT* bp)
         return true;
     if(!BpDelete(*bp))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete DLL breakpoint %s (BpDelete)\n"), bp->mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete DLL breakpoint %s (BpDelete)\n"), bp->module.c_str());
         return false;
     }
-    if(!dbgdeletedllbreakpoint(bp->mod, bp->titantype))
+    if(!dbgdeletedllbreakpoint(bp->module.c_str(), bp->titantype))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete DLL breakpoint %s (LibrarianRemoveBreakPoint)\n"), bp->mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete DLL breakpoint %s (LibrarianRemoveBreakPoint)\n"), bp->module.c_str());
         return false;
     }
     return true;
@@ -925,12 +925,12 @@ static bool cbEnableAllDllBreakpoints(const BREAKPOINT* bp)
 
     if(!BpEnable(bp->addr, BPDLL, true))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (BpEnable)\n"), bp->mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (BpEnable)\n"), bp->module.c_str());
         return false;
     }
-    if(!dbgsetdllbreakpoint(bp->mod, bp->titantype, bp->singleshoot))
+    if(!dbgsetdllbreakpoint(bp->module.c_str(), bp->titantype, bp->singleshoot))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (LibrarianSetBreakPoint)\n"), bp->mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (LibrarianSetBreakPoint)\n"), bp->module.c_str());
         return false;
     }
     return true;
@@ -943,12 +943,12 @@ static bool cbDisableAllDllBreakpoints(const BREAKPOINT* bp)
 
     if(!BpEnable(bp->addr, BPDLL, false))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (BpEnable)\n"), bp->mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (BpEnable)\n"), bp->module.c_str());
         return false;
     }
-    if(!dbgdeletedllbreakpoint(bp->mod, bp->titantype))
+    if(!dbgdeletedllbreakpoint(bp->module.c_str(), bp->titantype))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (LibrarianRemoveBreakPoint)\n"), bp->mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (LibrarianRemoveBreakPoint)\n"), bp->module.c_str());
         return false;
     }
     return true;
@@ -1022,7 +1022,7 @@ bool cbDebugBcDll(int argc, char* argv[])
         return false;
     }
     DebugUpdateBreakpointsViewAsync();
-    if(!dbgdeletedllbreakpoint(bp.mod, bp.titantype))
+    if(!dbgdeletedllbreakpoint(bp.module.c_str(), bp.titantype))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Failed to remove DLL breakpoint (dbgdeletedllbreakpoint)..."));
         return false;
@@ -1061,12 +1061,12 @@ bool cbDebugBpDllEnable(int argc, char* argv[])
     }
     if(!BpEnable(found.addr, BPDLL, true))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (BpEnable)\n"), found.mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (BpEnable)\n"), found.module.c_str());
         return false;
     }
-    if(!dbgsetdllbreakpoint(found.mod, found.titantype, found.singleshoot))
+    if(!dbgsetdllbreakpoint(found.module.c_str(), found.titantype, found.singleshoot))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (LibrarianSetBreakPoint)\n"), found.mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable DLL breakpoint %s (LibrarianSetBreakPoint)\n"), found.module.c_str());
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "DLL breakpoint enable!"));
     GuiUpdateAllViews();
@@ -1103,12 +1103,12 @@ bool cbDebugBpDllDisable(int argc, char* argv[])
     }
     if(!BpEnable(found.addr, BPDLL, false))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (BpEnable)\n"), found.mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (BpEnable)\n"), found.module.c_str());
         return false;
     }
-    if(!dbgdeletedllbreakpoint(found.mod, found.titantype))
+    if(!dbgdeletedllbreakpoint(found.module.c_str(), found.titantype))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (LibrarianRemoveBreakPoint)\n"), found.mod);
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable DLL breakpoint %s (LibrarianRemoveBreakPoint)\n"), found.module.c_str());
     }
     dputs(QT_TRANSLATE_NOOP("DBG", "DLL breakpoint disabled!"));
     GuiUpdateAllViews();
@@ -1400,13 +1400,13 @@ static bool cbBreakpointList(const BREAKPOINT* bp)
     bool enabled = bp->enabled;
     if(bp->type == BPDLL)
     {
-        if(*bp->name)
-            dprintf_untranslated("%d:%s:\"%s\":\"%s\"\n", enabled, type, bp->mod, bp->name);
+        if(!bp->name.empty())
+            dprintf_untranslated("%d:%s:\"%s\":\"%s\"\n", enabled, type, bp->module.c_str(), bp->name.c_str());
         else
-            dprintf_untranslated("%d:%s:\"%s\"\n", enabled, type, bp->mod);
+            dprintf_untranslated("%d:%s:\"%s\"\n", enabled, type, bp->module.c_str());
     }
-    else if(*bp->name)
-        dprintf_untranslated("%d:%s:%p:\"%s\"\n", enabled, type, bp->addr, bp->name);
+    else if(!bp->name.empty())
+        dprintf_untranslated("%d:%s:%p:\"%s\"\n", enabled, type, bp->addr, bp->name.c_str());
     else
         dprintf_untranslated("%d:%s:%p\n", enabled, type, bp->addr);
     return true;

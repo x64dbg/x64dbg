@@ -122,8 +122,7 @@ bool parsedatainstruction(const char* instruction, DataInstruction & di)
 {
     String instStr = StringUtils::Trim(String(instruction));
     size_t pos = instStr.find_first_of(" \t");
-    String opcode = instStr.substr(0, pos);
-    std::transform(opcode.begin(), opcode.end(), opcode.begin(), ::tolower);
+    String opcode = StringUtils::ToLower(instStr.substr(0, pos));
     if(assembleMap.find(opcode) == assembleMap.end())
         return false;
     di.type = assembleMap[opcode];

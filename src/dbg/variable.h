@@ -38,14 +38,6 @@ struct VAR
     VAR_VALUE value;
 };
 
-struct CaseInsensitiveCompare
-{
-    bool operator()(const String & str1, const String & str2) const
-    {
-        return _stricmp(str1.c_str(), str2.c_str()) < 0;
-    }
-};
-
 //functions
 void varsetvalue(VAR* Var, VAR_VALUE* Value);
 bool varset(const char* Name, VAR_VALUE* Value, bool ReadOnly);

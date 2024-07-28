@@ -3,6 +3,8 @@
 
 #ifndef __cplusplus
 #include <stdbool.h>
+#else
+#include <string>
 #endif
 
 typedef struct
@@ -135,6 +137,58 @@ typedef enum
     MODSYMLOADING,
     MODSYMLOADED
 } MODULESYMBOLSTATUS;
+
+typedef enum
+{
+    bpf_type, // number (read-only, BPXTYPE)
+    bpf_offset, // number (read-only)
+    bpf_address, // number (read-only)
+    bpf_enabled, // number (bool)
+    bpf_singleshoot, // number (bool)
+    bpf_active, // number (read-only)
+    bpf_silent, // number (bool)
+    bpf_typeex, // number (read-only, BPHWTYPE/BPMEMTYPE/BPDLLTYPE/BPEXTYPE)
+    bpf_hwsize, // number (read-only, BPHWSIZE)
+    bpf_hwslot, // number (read-only)
+    bpf_oldbytes, // number (read-only, uint16_t)
+    bpf_fastresume, // number (bool)
+    bpf_hitcount, // number
+    bpf_module, // text (read-only)
+    bpf_name, // text
+    bpf_breakcondition, // text
+    bpf_logtext, // text
+    bpf_logcondition, // text
+    bpf_commandtext, // text
+    bpf_commandcondition, // text
+    bpf_logfile, // text
+} BP_FIELD;
+
+// An instance of this structure represents a reference to a breakpoint.
+// Use DbgFunctions()->BpRefXxx() list/create references.
+// Use DbgFunctions()->BpXxx() to manipulate breakpoints with the references.
+typedef struct
+{
+    BPXTYPE type;
+    duint module;
+    duint offset;
+
+    // C++ helper functions
+#ifdef __cplusplus
+    bool GetField(BP_FIELD field, duint & value);
+    bool GetField(BP_FIELD field, bool & value);
+    bool SetField(BP_FIELD field, duint value);
+    bool GetField(BP_FIELD field, std::string & value);
+    bool SetField(BP_FIELD field, const std::string & value);
+
+    template<class T, typename = typename std::enable_if< std::is_enum<T>::value, T >::type>
+    void GetField(BP_FIELD field, T & value)
+    {
+        duint n = 0;
+        getField(field, n);
+        value = (T)n;
+    }
+#endif // __cplusplus
+} BP_REF;
 
 typedef void(*CBSTRING)(const char* str, void* userdata);
 
@@ -290,7 +344,52 @@ typedef struct DBGFUNCTIONS_
     MODSYMBOLSTATUS ModSymbolStatus;
     GETCALLSTACKBYTHREAD GetCallStackByThread;
     void (*EnumStructs)(CBSTRING callback, void* userdata);
+    // New Breakpoint API
+    BP_REF* (*BpRefList)(duint* count);
+    bool (*BpRefVa)(BP_REF* ref, BPXTYPE type, duint va);
+    bool (*BpRefRva)(BP_REF* ref, BPXTYPE type, const char* module, duint rva);
+    void (*BpRefDll)(BP_REF* ref, const char* module);
+    void (*BpRefException)(BP_REF* ref, unsigned int code);
+    bool (*BpRefExists)(const BP_REF* ref);
+    bool (*BpGetFieldNumber)(const BP_REF* ref, BP_FIELD field, duint* value);
+    bool (*BpSetFieldNumber)(const BP_REF* ref, BP_FIELD field, duint value);
+    bool (*BpGetFieldText)(const BP_REF* ref, BP_FIELD field, CBSTRING callback, void* userdata);
+    bool (*BpSetFieldText)(const BP_REF* ref, BP_FIELD field, const char* value);
 } DBGFUNCTIONS;
+
+#ifdef __cplusplus
+inline bool BP_REF::GetField(BP_FIELD field, duint & value)
+{
+    return DbgFunctions()->BpGetFieldNumber(this, field, &value);
+}
+
+inline bool BP_REF::GetField(BP_FIELD field, bool & value)
+{
+    duint n = 0;
+    if(!DbgFunctions()->BpGetFieldNumber(this, field, &n))
+        return false;
+    value = !!n;
+    return true;
+}
+
+inline bool BP_REF::SetField(BP_FIELD field, duint value)
+{
+    return DbgFunctions()->BpSetFieldNumber(this, field, value);
+}
+
+inline bool BP_REF::GetField(BP_FIELD field, std::string & value)
+{
+    return DbgFunctions()->BpGetFieldText(this, field, [](const char* str, void* userdata)
+    {
+        *(std::string*)userdata = str;
+    }, &value);
+}
+
+inline bool BP_REF::SetField(BP_FIELD field, const std::string & value)
+{
+    return DbgFunctions()->BpSetFieldText(this, field, value.c_str());
+}
+#endif // __cplusplus
 
 #ifdef BUILD_DBG
 

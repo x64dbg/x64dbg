@@ -11,7 +11,7 @@
 /**
 \brief The container that stores all variables.
 */
-std::map<String, VAR, CaseInsensitiveCompare> variables;
+std::map<String, VAR, StringUtils::CaseInsensitiveLess> variables;
 
 /**
 \brief Sets a variable with a value.
