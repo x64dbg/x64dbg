@@ -44,6 +44,17 @@ void Breakpoints::setBP(BPXTYPE type, duint va)
     DbgCmdExecDirect(cmd);
 }
 
+static QString getBpIdentifier(const Breakpoints::Data & bp)
+{
+    if(!bp.module.isEmpty())
+    {
+        auto modbase = DbgModBaseFromName(bp.module.toUtf8().constData());
+        if(!modbase)
+            return QString("\"%1\":$%2").arg(bp.module.toUtf8().constData()).arg(ToHexString(bp.addr));
+    }
+    return ToPtrString(bp.addr);
+}
+
 /**
  * @brief       Enable breakpoint according to the given breakpoint descriptor.
  *
@@ -53,20 +64,19 @@ void Breakpoints::setBP(BPXTYPE type, duint va)
  */
 void Breakpoints::enableBP(const Data & bp)
 {
-    // TODO: use generic breakpoint key (getBpIdentifier)
     QString cmd = "";
 
     if(bp.type == bp_hardware)
     {
-        cmd = QString("bphwe \"%1\"").arg(ToPtrString(bp.addr));
+        cmd = QString("bphwe \"%1\"").arg(getBpIdentifier(bp));
     }
     else if(bp.type == bp_normal)
     {
-        cmd = QString("be \"%1\"").arg(ToPtrString(bp.addr));
+        cmd = QString("be \"%1\"").arg(getBpIdentifier(bp));
     }
     else if(bp.type == bp_memory)
     {
-        cmd = QString("bpme \"%1\"").arg(ToPtrString(bp.addr));
+        cmd = QString("bpme \"%1\"").arg(getBpIdentifier(bp));
     }
     else if(bp.type == bp_dll)
     {
@@ -89,20 +99,19 @@ void Breakpoints::enableBP(const Data & bp)
  */
 void Breakpoints::disableBP(const Data & bp)
 {
-    // TODO: use generic breakpoint key (getBpIdentifier)
     QString cmd = "";
 
     if(bp.type == bp_hardware)
     {
-        cmd = QString("bphwd \"%1\"").arg(ToPtrString(bp.addr));
+        cmd = QString("bphwd \"%1\"").arg(getBpIdentifier(bp));
     }
     else if(bp.type == bp_normal)
     {
-        cmd = QString("bd \"%1\"").arg(ToPtrString(bp.addr));
+        cmd = QString("bd \"%1\"").arg(getBpIdentifier(bp));
     }
     else if(bp.type == bp_memory)
     {
-        cmd = QString("bpmd \"%1\"").arg(ToPtrString(bp.addr));
+        cmd = QString("bpmd \"%1\"").arg(getBpIdentifier(bp));
     }
     else if(bp.type == bp_dll)
     {
@@ -114,17 +123,6 @@ void Breakpoints::disableBP(const Data & bp)
     }
 
     DbgCmdExecDirect(cmd);
-}
-
-static QString getBpIdentifier(const Breakpoints::Data & bp)
-{
-    if(!bp.module.isEmpty())
-    {
-        auto modbase = DbgModBaseFromName(bp.module.toUtf8().constData());
-        if(!modbase)
-            return QString("\"%1\":$%2").arg(bp.module.toUtf8().constData()).arg(ToHexString(bp.addr));
-    }
-    return ToPtrString(bp.addr);
 }
 
 /**
