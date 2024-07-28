@@ -27,7 +27,7 @@ static DWORD WINAPI animateThread(void* arg1)
     return 0;
 }
 
-bool _dbg_animatecommand(const char* command)
+bool dbganimatecommand(const char* command)
 {
     if(command) // Animate command
     {
