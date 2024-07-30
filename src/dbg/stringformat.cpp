@@ -274,6 +274,8 @@ static unsigned int getArgNumType(const String & formatString, StringValueType &
 
 static String handleFormatString(const String & formatString, const FormatValueVector & values)
 {
+    if(formatString == "\\n")
+        return "\n";
     auto type = StringValueType::Unknown;
     auto argnum = getArgNumType(formatString, type);
     if(type != StringValueType::Unknown && argnum < values.size())
@@ -344,6 +346,8 @@ static String printComplexValue(FormatValueType value, const String & complexArg
 
 static String handleFormatStringInline(const String & formatString)
 {
+    if(formatString == "\\n")
+        return "\n";
     auto type = StringValueType::Unknown;
     String complexArgs;
     auto value = getArgExpressionType(formatString, type, complexArgs);
