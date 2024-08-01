@@ -1,9 +1,9 @@
 #pragma once
 
 #include "StdTable.h"
+#include "TraceFileReader.h"
 
 class TraceWidget;
-class TraceFileReader;
 
 class TraceInfoBox : public StdTable
 {
@@ -15,7 +15,7 @@ public:
     void addFollowMenuItem(QMenu* menu, QString name, duint value);
     ~TraceInfoBox();
 
-    void update(unsigned long long selection, TraceFileReader* traceFile, const REGDUMP & registers);
+    void update(TRACEINDEX selection, TraceFileReader* traceFile, const REGDUMP & registers);
     void clear();
 
 public slots:

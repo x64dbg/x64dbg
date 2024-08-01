@@ -4,14 +4,12 @@
 #include "ActionHelpers.h"
 #include <QDialog>
 #include <QListWidgetItem>
+#include "TraceFileReader.h"
 
 namespace Ui
 {
     class XrefBrowseDialog;
 }
-
-class TraceFileReader;
-class TraceFileDump;
 
 class TraceXrefBrowseDialog : public QDialog, public ActionHelper<TraceXrefBrowseDialog>
 {
@@ -43,7 +41,7 @@ private:
 
     typedef struct
     {
-        unsigned long long index;
+        TRACEINDEX index;
         duint addr;
     } TRACE_XREF_RECORD;
     std::vector<TRACE_XREF_RECORD> mXrefInfo;

@@ -2,18 +2,17 @@
 
 #include <QWidget>
 #include "Bridge.h"
+#include "TraceFileReader.h"
 
 class QVBoxLayout;
 class QPushButton;
 class CPUWidget;
 class TraceRegisters;
 class TraceBrowser;
-class TraceFileReader;
 class TraceFileDumpMemoryPage;
 class TraceInfoBox;
 class TraceDump;
 class TraceStack;
-class TraceFileReader;
 class TraceXrefBrowseDialog;
 
 namespace Ui
@@ -57,7 +56,7 @@ signals:
 
 protected slots:
     void displayLogWidgetSlot();
-    void traceSelectionChanged(unsigned long long selection);
+    void traceSelectionChanged(TRACEINDEX selection);
     void parseFinishedSlot();
     void closeFileSlot();
     void xrefSlot(duint addr);
@@ -77,5 +76,5 @@ protected:
 
 private:
     Ui::TraceWidget* ui;
-    void setupDumpInitialAddresses(unsigned long long selection);
+    void setupDumpInitialAddresses(TRACEINDEX selection);
 };

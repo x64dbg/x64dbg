@@ -5,13 +5,15 @@
 #include <QMutex>
 #include "MemoryPage.h"
 
+typedef DWORD TRACEINDEX;
+
 class TraceFileDump
 {
 public:
     struct Key
     {
         duint addr;
-        unsigned long long index;
+        TRACEINDEX index;
         friend bool operator <(const Key & a, const Key & b)
         {
             // order is inverted, highest address is less! We want to use lower_bound() to find last memory access index.
@@ -39,8 +41,8 @@ public:
     }
     // Read a byte at "addr" at the moment given in "index"
     bool isValidReadPtr(duint addr) const;
-    void getBytes(duint addr, duint size, unsigned long long index, void* buffer) const;
-    std::vector<unsigned long long> getReferences(duint startAddr, duint endAddr) const;
+    void getBytes(duint addr, duint size, TRACEINDEX index, void* buffer) const;
+    std::vector<TRACEINDEX> getReferences(duint startAddr, duint endAddr) const;
     // Insert a memory access record
     //void addMemAccess(duint addr, DumpRecord record);
     void addMemAccess(duint addr, const void* oldData, const void* newData, size_t size);
@@ -48,7 +50,7 @@ public:
     {
         maxIndex++;
     }
-    inline unsigned long long getMaxIndex()
+    inline TRACEINDEX getMaxIndex()
     {
         return maxIndex;
     }
@@ -58,7 +60,7 @@ public:
 private:
     std::map<Key, DumpRecord> dump;
     // maxIndex is the last index included here. As the debuggee steps there will be new data coming.
-    unsigned long long maxIndex;
+    TRACEINDEX maxIndex;
     bool enabled;
 };
 
@@ -69,10 +71,10 @@ public:
     TraceFileDumpMemoryPage(TraceFileDump* dump, QObject* parent = nullptr);
     virtual bool read(void* parDest, dsint parRVA, duint parSize) const override;
     virtual bool write(const void* parDest, dsint parRVA, duint parSize) override;
-    void setSelectedIndex(unsigned long long index);
-    unsigned long long getSelectedIndex() const;
+    void setSelectedIndex(TRACEINDEX index);
+    TRACEINDEX getSelectedIndex() const;
     bool isAvailable() const;
 private:
     TraceFileDump* dump;
-    unsigned long long selectedIndex = 0ull;
+    TRACEINDEX selectedIndex = static_cast<TRACEINDEX>(0);
 };

@@ -2,7 +2,6 @@
 #include "TraceWidget.h"
 #include "TraceDump.h"
 #include "TraceBrowser.h"
-#include "TraceFileReader.h"
 #include "CPUInfoBox.h"
 #include "zydis_wrapper.h"
 
@@ -36,7 +35,7 @@ TraceInfoBox::~TraceInfoBox()
 
 }
 
-void TraceInfoBox::update(unsigned long long selection, TraceFileReader* traceFile, const REGDUMP & registers)
+void TraceInfoBox::update(TRACEINDEX selection, TraceFileReader* traceFile, const REGDUMP & registers)
 {
     duint infoline = 0;
     Zydis zydis;

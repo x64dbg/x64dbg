@@ -60,7 +60,7 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     QPushButton* button_changeview = new QPushButton("", this);
     button_changeview->setStyleSheet("Text-align:left;padding: 4px;padding-left: 10px;");
     connect(button_changeview, SIGNAL(clicked()), mGeneralRegs, SLOT(onChangeFPUViewAction()));
-    connect(mTraceBrowser, SIGNAL(selectionChanged(unsigned long long)), this, SLOT(traceSelectionChanged(unsigned long long)));
+    connect(mTraceBrowser, SIGNAL(selectionChanged(TRACEINDEX)), this, SLOT(traceSelectionChanged(TRACEINDEX)));
     connect(mTraceBrowser, SIGNAL(displayLogWidget()), this, SLOT(displayLogWidgetSlot()));
     connect(mTraceFile, SIGNAL(parseFinished()), this, SLOT(parseFinishedSlot()));
     connect(mTraceBrowser, SIGNAL(closeFile()), this, SLOT(closeFileSlot()));
@@ -116,7 +116,7 @@ TraceWidget::~TraceWidget()
     delete ui;
 }
 
-void TraceWidget::traceSelectionChanged(unsigned long long selection)
+void TraceWidget::traceSelectionChanged(TRACEINDEX selection)
 {
     REGDUMP registers;
     if(mTraceFile != nullptr)
@@ -253,7 +253,7 @@ bool TraceWidget::loadDumpFully()
     return true;
 }
 
-void TraceWidget::setupDumpInitialAddresses(unsigned long long selection)
+void TraceWidget::setupDumpInitialAddresses(TRACEINDEX selection)
 {
     // Setting the initial address of dump view
     duint initialAddress;

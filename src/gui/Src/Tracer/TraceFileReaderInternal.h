@@ -16,14 +16,14 @@ class TraceFileParser : public QThread
 class TraceFilePage
 {
 public:
-    TraceFilePage(TraceFileReader* parent, unsigned long long fileOffset, unsigned long long maxLength);
-    unsigned long long Length() const;
-    const REGDUMP & Registers(unsigned long long index) const;
-    void OpCode(unsigned long long index, unsigned char* buffer, int* opcodeSize) const;
-    const Instruction_t & Instruction(unsigned long long index, QZydis & mDisasm);
-    DWORD ThreadId(unsigned long long index) const;
-    int MemoryAccessCount(unsigned long long index) const;
-    void MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid) const;
+    TraceFilePage(TraceFileReader* parent, unsigned long long fileOffset, TRACEINDEX maxLength);
+    TRACEINDEX Length() const;
+    const REGDUMP & Registers(TRACEINDEX index) const;
+    void OpCode(TRACEINDEX index, unsigned char* buffer, int* opcodeSize) const;
+    const Instruction_t & Instruction(TRACEINDEX index, QZydis & mDisasm);
+    DWORD ThreadId(TRACEINDEX index) const;
+    int MemoryAccessCount(TRACEINDEX index) const;
+    void MemoryAccessInfo(TRACEINDEX index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid) const;
 
     FILETIME lastAccessed; //system user time
 
@@ -43,5 +43,5 @@ private:
     std::vector<duint> oldMemory;
     std::vector<duint> newMemory;
     std::vector<DWORD> threadId;
-    unsigned long long length;
+    TRACEINDEX length;
 };
