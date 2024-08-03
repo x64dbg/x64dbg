@@ -46,6 +46,7 @@ public:
     };
     // Enable trace dump and load it fully before searching. Return false if the user cancels.
     bool loadDumpFully();
+    void setupFollowMenu(QMenu* menu);
 public slots:
     // Enable trace dump in order to use these features. Return false if the user cancels.
     bool loadDump();
@@ -60,6 +61,7 @@ protected slots:
     void parseFinishedSlot();
     void closeFileSlot();
     void xrefSlot(duint addr);
+    void followActionSlot();
 
 protected:
     TraceFileReader* mTraceFile;
@@ -77,4 +79,5 @@ protected:
 private:
     Ui::TraceWidget* ui;
     void setupDumpInitialAddresses(TRACEINDEX selection);
+    void addFollowMenuItem(QMenu* menu, QString name, duint value);
 };

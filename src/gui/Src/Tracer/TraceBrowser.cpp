@@ -857,6 +857,12 @@ void TraceBrowser::setupRightClickContextMenu()
 
     mMenuBuilder->addMenu(makeMenu(DIcon("copy"), tr("&Copy")), copyMenu);
 
+    mMenuBuilder->addMenu(makeMenu(DIcon("dump"), tr("&Follow in Dump")), [this](QMenu * menu)
+    {
+        mParent->setupFollowMenu(menu);
+        return true;
+    });
+
     mCommonActions->build(mMenuBuilder, CommonActions::ActionDisasm | CommonActions::ActionBreakpoint | CommonActions::ActionLabel | CommonActions::ActionComment | CommonActions::ActionBookmark);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("highlight"), tr("&Highlighting mode"), SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"), mTraceFileNotNull);
     mMenuBuilder->addAction(makeShortcutAction(DIcon("helpmnemonic"), tr("Help on mnemonic"), SLOT(mnemonicHelpSlot()), "ActionHelpOnMnemonic"), mTraceFileNotNull);

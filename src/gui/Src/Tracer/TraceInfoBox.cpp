@@ -233,131 +233,17 @@ int TraceInfoBox::getHeight()
     return ((getRowHeight() + 1) * 4);
 }
 
-/**
- * @brief TraceInfoBox::addFollowMenuItem Add a follow action to the menu
- * @param menu The menu to which the follow action adds
- * @param name The user-friendly name of the action
- * @param value The VA of the address
- */
-void TraceInfoBox::addFollowMenuItem(QMenu* menu, QString name, duint value)
-{
-    foreach(QAction* action, menu->actions()) //check for duplicate action
-        if(action->text() == name)
-            return;
-    QAction* newAction = new QAction(name, menu);
-    menu->addAction(newAction);
-    newAction->setObjectName(ToPtrString(value));
-    connect(newAction, SIGNAL(triggered()), this, SLOT(followActionSlot()));
-}
-
-/**
- * @brief TraceInfoBox::setupFollowMenu Set up a follow menu.
- * @param menu The menu to create
- * @param va The selected VA
- */
-void TraceInfoBox::setupFollowMenu(QMenu* menu, duint va)
-{
-    TraceFileReader* traceFile = mParent->getTraceFile();
-    const TraceFileDump* traceDump = traceFile->getDump();
-    if(!traceDump->isEnabled())
-        return;
-    //most basic follow action
-    addFollowMenuItem(menu, tr("&Selected Address"), va);
-
-    //add follow actions
-    duint selection = mParent->getTraceBrowser()->getInitialSelection();
-    Zydis zydis;
-    unsigned char opcode[16];
-    int opsize;
-    traceFile->OpCode(selection, opcode, &opsize);
-    duint MemoryAddress[MAX_MEMORY_OPERANDS];
-    duint MemoryOldContent[MAX_MEMORY_OPERANDS];
-    duint MemoryNewContent[MAX_MEMORY_OPERANDS];
-    bool MemoryIsValid[MAX_MEMORY_OPERANDS];
-    int MemoryOperandsCount;
-    MemoryOperandsCount = traceFile->MemoryAccessCount(selection);
-    if(MemoryOperandsCount > 0)
-        traceFile->MemoryAccessInfo(selection, MemoryAddress, MemoryOldContent, MemoryNewContent, MemoryIsValid);
-    REGDUMP registers = traceFile->Registers(selection);
-    if(zydis.Disassemble(mCurAddr, opcode, opsize))
-    {
-        for(uint8_t opindex = 0; opindex < zydis.OpCount(); opindex++)
-        {
-            size_t value = zydis.ResolveOpValue(opindex, [&registers](ZydisRegister reg)
-            {
-                return resolveZydisRegister(registers, reg);
-            });
-
-            if(zydis[opindex].type == ZYDIS_OPERAND_TYPE_MEMORY)
-            {
-                if(zydis[opindex].size == sizeof(void*) * 8)
-                {
-                    if(traceDump->isValidReadPtr(value))
-                    {
-                        addFollowMenuItem(menu, tr("&Address: ") + QString::fromStdString(zydis.OperandText(opindex)), value);
-                    }
-                    for(uint8_t memaccessindex = 0; memaccessindex < MemoryOperandsCount; memaccessindex++)
-                    {
-                        if(MemoryAddress[memaccessindex] == value)
-                        {
-                            if(traceDump->isValidReadPtr(MemoryOldContent[memaccessindex]))
-                            {
-                                if(MemoryOldContent[memaccessindex] != MemoryNewContent[memaccessindex])
-                                {
-                                    addFollowMenuItem(menu, tr("&Old value: ") + ToPtrString(MemoryOldContent[memaccessindex]), MemoryOldContent[memaccessindex]);
-                                }
-                                else
-                                {
-                                    addFollowMenuItem(menu, tr("&Value: ") + ToPtrString(MemoryOldContent[memaccessindex]), MemoryOldContent[memaccessindex]);
-                                    break;
-                                }
-                            }
-                            if(traceDump->isValidReadPtr(MemoryNewContent[memaccessindex]))
-                            {
-                                addFollowMenuItem(menu, tr("&New value: ") + ToPtrString(MemoryNewContent[memaccessindex]), MemoryNewContent[memaccessindex]);
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-            else if(zydis[opindex].type == ZYDIS_OPERAND_TYPE_IMMEDIATE)
-            {
-                if(traceDump->isValidReadPtr(value))
-                {
-                    addFollowMenuItem(menu, tr("&Constant: ") + QString::fromStdString(zydis.OperandText(opindex)), value);
-                }
-            }
-        }
-    }
-}
-
 void TraceInfoBox::contextMenuSlot(QPoint pos)
 {
     QMenu menu(this); //create context menu
     QMenu followMenu(tr("&Follow in Dump"), this);
     followMenu.setIcon(DIcon("dump"));
-    setupFollowMenu(&followMenu, mCurAddr);
+    mParent->setupFollowMenu(&followMenu);
     menu.addMenu(&followMenu);
     QMenu copyMenu(tr("&Copy"), this);
     setupCopyMenu(&copyMenu);
     menu.addMenu(&copyMenu);
     menu.exec(mapToGlobal(pos)); //execute context menu
-}
-
-/**
- * @brief TraceInfoBox::followActionSlot Called when follow action is clicked
- */
-void TraceInfoBox::followActionSlot()
-{
-    QAction* action = qobject_cast<QAction*>(sender());
-    duint data;
-#ifdef _WIN64
-    data = action->objectName().toULongLong(nullptr, 16);
-#else
-    data = action->objectName().toULong(nullptr, 16);
-#endif //_WIN64
-    mParent->getTraceDump()->printDumpAt(data, true, true, true);
 }
 
 void TraceInfoBox::setupShortcuts()
