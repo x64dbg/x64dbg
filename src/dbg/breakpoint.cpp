@@ -123,7 +123,6 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
         Name = "";
 
     BREAKPOINT bp;
-    memset(&bp, 0, sizeof(BREAKPOINT));
 
     if(Type != BPEXCEPTION)
     {
@@ -164,7 +163,7 @@ bool BpNewDll(const char* module, bool Enable, bool Singleshot, DWORD TitanType,
     if(!Name)
         Name = "";
 
-    BREAKPOINT bp = {};
+    BREAKPOINT bp;
     bp.module = module;
     bp.name = Name;
     bp.active = true;
@@ -979,7 +978,6 @@ void BpCacheLoad(JSON Root, bool migrateCommandCondition)
     json_array_foreach(jsonBreakpoints, i, value)
     {
         BREAKPOINT breakpoint;
-        memset(&breakpoint, 0, sizeof(BREAKPOINT));
 
         breakpoint.type = (BP_TYPE)json_integer_value(json_object_get(value, "type"));
         if(breakpoint.type == BPNORMAL)

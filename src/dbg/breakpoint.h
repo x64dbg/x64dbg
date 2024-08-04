@@ -25,25 +25,25 @@ enum BP_TYPE
 
 struct BREAKPOINT
 {
-    duint addr;                                       // address of the breakpoint (rva relative to base of mod)
-    bool enabled;                                     // whether the breakpoint is enabled
-    bool singleshoot;                                 // whether the breakpoint should be deleted on first hit
-    bool active;                                      // whether the breakpoint is active or not
-    bool silent;                                      // whether the breakpoint diplays a default message when hit
-    unsigned short oldbytes;                          // original bytes (for software breakpoitns)
-    BP_TYPE type;                                     // breakpoint type
-    DWORD titantype;                                  // type passed to titanengine
-    std::string name;                                 // breakpoint name
-    std::string module;                               // module name
-    std::string breakCondition;                       // condition to stop. If true, debugger halts.
-    std::string logText;                              // text to log.
-    std::string logCondition;                         // condition to log
-    std::string commandText;                          // script command to execute.
-    std::string commandCondition;                     // condition to execute the command
-    std::string logFile;                              // file path to log to
-    uint32 hitcount;                                  // hit counter
-    bool fastResume;                                  // if true, debugger resumes without any GUI/Script/Plugin interaction.
-    duint memsize;                                    // memory breakpoint size (not implemented)
+    duint addr = 0;               // address of the breakpoint (rva relative to base of mod)
+    bool enabled = false;         // whether the breakpoint is enabled
+    bool singleshoot = false;     // whether the breakpoint should be deleted on first hit
+    bool active = false;          // whether the breakpoint is active or not
+    bool silent = false;          // whether the breakpoint diplays a default message when hit
+    unsigned short oldbytes = 0;  // original bytes (for software breakpoitns)
+    BP_TYPE type = BPNORMAL;      // breakpoint type
+    DWORD titantype = 0;          // type passed to titanengine
+    std::string name;             // breakpoint name
+    std::string module;           // module name
+    std::string breakCondition;   // condition to stop. If true, debugger halts.
+    std::string logText;          // text to log.
+    std::string logCondition;     // condition to log
+    std::string commandText;      // script command to execute.
+    std::string commandCondition; // condition to execute the command
+    std::string logFile;          // file path to log to
+    uint32 hitcount = 0;          // hit counter
+    bool fastResume = false;      // if true, debugger resumes without any GUI/Script/Plugin interaction.
+    duint memsize = 0;            // memory breakpoint size (not implemented)
 };
 
 // Breakpoint enumeration callback
