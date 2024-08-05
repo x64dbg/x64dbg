@@ -253,13 +253,8 @@ DWORD ThreadGetLastErrorTEB(ULONG_PTR ThreadLocalBase)
 
 DWORD ThreadGetLastError(DWORD ThreadId)
 {
-    SHARED_ACQUIRE(LockThreads);
-
-    if(threadList.find(ThreadId) != threadList.end())
-        return ThreadGetLastErrorTEB(threadList[ThreadId].ThreadLocalBase);
-
-    ASSERT_ALWAYS("Trying to get last error of a thread that doesn't exist!");
-    return 0;
+    auto ThreadLocalBase = ThreadGetLocalBase(ThreadId);
+    return ThreadLocalBase != 0 ? ThreadGetLastErrorTEB(ThreadLocalBase) : 0;
 }
 
 NTSTATUS ThreadGetLastStatusTEB(ULONG_PTR ThreadLocalBase)
@@ -274,13 +269,8 @@ NTSTATUS ThreadGetLastStatusTEB(ULONG_PTR ThreadLocalBase)
 
 NTSTATUS ThreadGetLastStatus(DWORD ThreadId)
 {
-    SHARED_ACQUIRE(LockThreads);
-
-    if(threadList.find(ThreadId) != threadList.end())
-        return ThreadGetLastStatusTEB(threadList[ThreadId].ThreadLocalBase);
-
-    ASSERT_ALWAYS("Trying to get last status of a thread that doesn't exist!");
-    return 0;
+    auto ThreadLocalBase = ThreadGetLocalBase(ThreadId);
+    return ThreadLocalBase != 0 ? ThreadGetLastStatusTEB(ThreadLocalBase) : 0;
 }
 
 bool ThreadSetName(DWORD ThreadId, const char* Name)
@@ -380,7 +370,24 @@ ULONG_PTR ThreadGetLocalBase(DWORD ThreadId)
 {
     SHARED_ACQUIRE(LockThreads);
     auto found = threadList.find(ThreadId);
-    return found != threadList.end() ? found->second.ThreadLocalBase : 0;
+    if(found != threadList.end())
+    {
+        return found->second.ThreadLocalBase;
+    }
+
+    ULONG_PTR ThreadLocalBase = 0;
+    auto hThread = OpenThread(THREAD_QUERY_INFORMATION, FALSE, ThreadId);
+    if(hThread)
+    {
+        THREAD_BASIC_INFORMATION threadInfo = {};
+        ULONG threadInfoSize = 0;
+        if(NT_SUCCESS(NtQueryInformationThread(hThread, ThreadBasicInformation, &threadInfo, sizeof(threadInfo), &threadInfoSize)))
+        {
+            ThreadLocalBase = (ULONG_PTR)threadInfo.TebBaseAddress;
+        }
+        CloseHandle(hThread);
+    }
+    return ThreadLocalBase;
 }
 
 ULONG64 ThreadQueryCycleTime(HANDLE hThread)
