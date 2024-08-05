@@ -1,5 +1,5 @@
 #include "TraceXrefBrowseDialog.h"
-#include "ui_XrefBrowseDialog.h"
+#include "ui_TraceXrefBrowseDialog.h"
 #include "TraceFileReader.h"
 #include "TraceFileDump.h"
 #include "StringUtil.h"
@@ -8,7 +8,7 @@
 
 TraceXrefBrowseDialog::TraceXrefBrowseDialog(QWidget* parent) :
     QDialog(parent),
-    ui(new Ui::XrefBrowseDialog)
+    ui(new Ui::TraceXrefBrowseDialog)
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);

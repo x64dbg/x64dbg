@@ -371,7 +371,8 @@ FORMS += \
     Src/Gui/MessagesBreakpoints.ui \
     Src/Gui/AboutDialog.ui \
     Src/Gui/ComboBoxDialog.ui \
-    Src/Tracer/TraceWidget.ui
+    Src/Tracer/TraceWidget.ui \
+    Src/Tracer/TraceXrefBrowseDialog.ui
 
 ##
 ## Libraries

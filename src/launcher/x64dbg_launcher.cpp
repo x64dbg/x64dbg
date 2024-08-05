@@ -16,8 +16,6 @@
 #include "../exe/icon.h"
 #include "../dbg/GetPeArch.h"
 
-#pragma comment(lib, "comctl32.lib")
-
 static bool FileExists(const TCHAR* file)
 {
     auto attrib = GetFileAttributes(file);

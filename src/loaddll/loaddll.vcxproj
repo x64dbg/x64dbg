@@ -101,6 +101,7 @@
       </AdditionalManifestDependencies>
       <LargeAddressAware>true</LargeAddressAware>
       <DelayLoadDLLs>user32.dll</DelayLoadDLLs>
+      <AdditionalDependencies>$(SolutionDir)src\dbg\ntdll\ntdll_x86.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -119,6 +120,7 @@
       <AdditionalManifestDependencies>
       </AdditionalManifestDependencies>
       <DelayLoadDLLs>user32.dll</DelayLoadDLLs>
+      <AdditionalDependencies>$(SolutionDir)src\dbg\ntdll\ntdll_x86.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -136,6 +138,7 @@
       <AdditionalManifestDependencies>
       </AdditionalManifestDependencies>
       <DelayLoadDLLs>user32.dll</DelayLoadDLLs>
+      <AdditionalDependencies>$(SolutionDir)src\dbg\ntdll\ntdll_x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -153,6 +156,7 @@
       <AdditionalManifestDependencies>
       </AdditionalManifestDependencies>
       <DelayLoadDLLs>user32.dll</DelayLoadDLLs>
+      <AdditionalDependencies>$(SolutionDir)src\dbg\ntdll\ntdll_x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

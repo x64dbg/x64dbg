@@ -11,12 +11,6 @@ RtlGetLastNtStatus(
     VOID
 );
 
-#ifdef _WIN64
-#pragma comment(lib, "..\\dbg\\ntdll\\ntdll_x64.lib")
-#else
-#pragma comment(lib, "..\\dbg\\ntdll\\ntdll_x86.lib")
-#endif // _WIN64
-
 int WINAPI WinMain(
     HINSTANCE hInstance,
     HINSTANCE hPrevInstance,
