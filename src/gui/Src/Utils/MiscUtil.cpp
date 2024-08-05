@@ -179,7 +179,7 @@ QString getSymbolicNameStr(duint addr)
 
 QIcon getFileIcon(QString file)
 {
-    SHFILEINFO info;
+    SHFILEINFOW info;
     if(SHGetFileInfoW((const wchar_t*)file.utf16(), 0, &info, sizeof(info), SHGFI_ICON) == 0)
         return QIcon(); //API error
     QIcon result = QIcon(QtWin::fromHICON(info.hIcon));

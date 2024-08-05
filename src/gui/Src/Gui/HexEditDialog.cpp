@@ -758,7 +758,7 @@ void HexEditDialog::printData(DataType type)
     {
         INETNTOPW InetNtopW;
         int numIPs = mData.size() / 16;
-        HMODULE hWinsock = LoadLibrary(L"ws2_32.dll");
+        HMODULE hWinsock = LoadLibraryW(L"ws2_32.dll");
         InetNtopW = INETNTOPW(GetProcAddress(hWinsock, "InetNtopW"));
         if(InetNtopW)
         {

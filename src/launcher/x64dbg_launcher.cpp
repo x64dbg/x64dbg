@@ -309,7 +309,7 @@ static void restartInstall()
     ShellExecute(nullptr, operation, szApplicationDir, TEXT("::install"), szCurrentDir, SW_SHOWNORMAL);
 }
 
-static BOOL CALLBACK DlgLauncher(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+static INT_PTR CALLBACK DlgLauncher(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch(uMsg)
     {
