@@ -1,6 +1,6 @@
 #include "SymbolAutoCompleteModel.h"
 #include "MiscUtil.h"
-#include "Configuration.h"
+#include <Configuration.h>
 
 SymbolAutoCompleteModel::SymbolAutoCompleteModel(std::function<QString()> getTextProc, QObject* parent)
     : QAbstractItemModel(parent),
