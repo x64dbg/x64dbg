@@ -2,18 +2,17 @@
 
 #include <QWidget>
 #include "Bridge.h"
+#include "TraceFileReader.h"
 
 class QVBoxLayout;
 class QPushButton;
 class CPUWidget;
 class TraceRegisters;
 class TraceBrowser;
-class TraceFileReader;
 class TraceFileDumpMemoryPage;
 class TraceInfoBox;
 class TraceDump;
 class TraceStack;
-class TraceFileReader;
 class TraceXrefBrowseDialog;
 
 namespace Ui
@@ -47,6 +46,7 @@ public:
     };
     // Enable trace dump and load it fully before searching. Return false if the user cancels.
     bool loadDumpFully();
+    void setupFollowMenu(QMenu* menu);
 public slots:
     // Enable trace dump in order to use these features. Return false if the user cancels.
     bool loadDump();
@@ -57,10 +57,11 @@ signals:
 
 protected slots:
     void displayLogWidgetSlot();
-    void traceSelectionChanged(unsigned long long selection);
+    void traceSelectionChanged(TRACEINDEX selection);
     void parseFinishedSlot();
     void closeFileSlot();
     void xrefSlot(duint addr);
+    void followActionSlot();
 
 protected:
     TraceFileReader* mTraceFile;
@@ -77,5 +78,6 @@ protected:
 
 private:
     Ui::TraceWidget* ui;
-    void setupDumpInitialAddresses(unsigned long long selection);
+    void setupDumpInitialAddresses(TRACEINDEX selection);
+    void addFollowMenuItem(QMenu* menu, QString name, duint value);
 };

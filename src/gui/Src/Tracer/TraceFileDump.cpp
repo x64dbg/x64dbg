@@ -7,7 +7,7 @@
 
 TraceFileDump::TraceFileDump()
 {
-    maxIndex = 0ull;
+    maxIndex = static_cast<TRACEINDEX>(0);
     enabled = false;
 }
 
@@ -27,7 +27,7 @@ TraceFileDump::~TraceFileDump()
 
 void TraceFileDump::clear()
 {
-    maxIndex = 0ull;
+    maxIndex = static_cast<TRACEINDEX>(0);
     dump.clear();
 }
 
@@ -48,7 +48,7 @@ bool TraceFileDump::isValidReadPtr(duint address) const
     return false;
 }
 
-void TraceFileDump::getBytes(duint addr, duint size, unsigned long long index, void* buffer) const
+void TraceFileDump::getBytes(duint addr, duint size, TRACEINDEX index, void* buffer) const
 {
     if(!isEnabled())
         return;
@@ -135,12 +135,12 @@ void TraceFileDump::getBytes(duint addr, duint size, unsigned long long index, v
 }
 
 // find references to the memory address
-std::vector<unsigned long long> TraceFileDump::getReferences(duint startAddr, duint endAddr) const
+std::vector<TRACEINDEX> TraceFileDump::getReferences(duint startAddr, duint endAddr) const
 {
     if(!isEnabled())
         return {};
 
-    std::vector<unsigned long long> index;
+    std::vector<TRACEINDEX> index;
     if(endAddr < startAddr)
         std::swap(endAddr, startAddr);
     // find references to the memory address
@@ -154,7 +154,7 @@ std::vector<unsigned long long> TraceFileDump::getReferences(duint startAddr, du
         return index;
     // rearrange the array and remove duplicates
     std::sort(index.begin(), index.end());
-    std::vector<unsigned long long> result;
+    std::vector<TRACEINDEX> result;
     result.push_back(index[0]);
     for(size_t i = 1; i < index.size(); i++)
     {
@@ -236,12 +236,12 @@ TraceFileDumpMemoryPage::TraceFileDumpMemoryPage(TraceFileDump* dump, QObject* p
     this->dump = dump;
 }
 
-void TraceFileDumpMemoryPage::setSelectedIndex(unsigned long long index)
+void TraceFileDumpMemoryPage::setSelectedIndex(TRACEINDEX index)
 {
     if(dump)
         selectedIndex = std::min(index, dump->getMaxIndex());
     else
-        selectedIndex = 0ull;
+        selectedIndex = static_cast<TRACEINDEX>(0);
 }
 
 bool TraceFileDumpMemoryPage::isAvailable() const
@@ -249,7 +249,7 @@ bool TraceFileDumpMemoryPage::isAvailable() const
     return !!this->dump;
 }
 
-unsigned long long TraceFileDumpMemoryPage::getSelectedIndex() const
+TRACEINDEX TraceFileDumpMemoryPage::getSelectedIndex() const
 {
     return selectedIndex;
 }

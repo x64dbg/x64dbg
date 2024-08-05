@@ -3,8 +3,8 @@
 #include "AbstractTableView.h"
 #include "VaHistory.h"
 #include "QZydis.h"
+#include "TraceFileReader.h"
 
-class TraceFileReader;
 class TraceWidget;
 class BreakpointMenu;
 class CommonActions;
@@ -59,8 +59,8 @@ private:
     void mouseDoubleClickEvent(QMouseEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
 
-    ZydisTokenizer::InstructionToken memoryTokens(unsigned long long atIndex);
-    ZydisTokenizer::InstructionToken registersTokens(unsigned long long atIndex);
+    ZydisTokenizer::InstructionToken memoryTokens(TRACEINDEX atIndex);
+    ZydisTokenizer::InstructionToken registersTokens(TRACEINDEX atIndex);
     VaHistory mHistory;
     MenuBuilder* mMenuBuilder;
     CommonActions* mCommonActions;
@@ -146,7 +146,7 @@ private:
 
 signals:
     void displayLogWidget();
-    void selectionChanged(unsigned long long selection);
+    void selectionChanged(TRACEINDEX selection);
     void xrefSignal(duint addr);
     void closeFile();
 
@@ -159,7 +159,7 @@ public slots:
     void closeDeleteSlot();
     void parseFinishedSlot();
     void tokenizerConfigUpdatedSlot();
-    void selectionChangedSlot(unsigned long long selection);
+    void selectionChangedSlot(TRACEINDEX selection);
 
     void gotoSlot();
     void gotoIndexSlot();
@@ -192,7 +192,7 @@ public slots:
 
 private:
     // Go to by index
-    void disasm(unsigned long long index, bool history = true);
+    void disasm(TRACEINDEX index, bool history = true);
     // Go to by address, display the Xref dialog if multiple indicies are found
     void disasmByAddress(duint address, bool history = true);
     TraceWidget* mParent;

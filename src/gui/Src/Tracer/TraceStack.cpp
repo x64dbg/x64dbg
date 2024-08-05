@@ -1,8 +1,6 @@
 #include "TraceWidget.h"
 #include "TraceStack.h"
 #include "TraceDump.h"
-#include "TraceFileReader.h"
-#include "TraceFileDump.h"
 #include "TraceBrowser.h"
 #include "CPUDump.h"
 #include <QClipboard>

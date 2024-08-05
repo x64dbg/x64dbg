@@ -1,18 +1,24 @@
 #include <QMouseEvent>
 #include "TraceRegisters.h"
+#include "TraceWidget.h"
+#include "TraceDump.h"
 #include "Configuration.h"
 #include "EditFloatRegister.h"
 #include "StringUtil.h"
 #include "MiscUtil.h"
 
-TraceRegisters::TraceRegisters(QWidget* parent) : RegistersView(parent)
+TraceRegisters::TraceRegisters(TraceWidget* parent) : RegistersView(parent)
 {
+    mParent = parent;
     wCM_CopySIMDRegister = setupAction(DIcon("copy"), tr("Copy floating point value"));
     connect(wCM_CopySIMDRegister, SIGNAL(triggered()), this, SLOT(onCopySIMDRegister()));
     connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(displayCustomContextMenuSlot(QPoint)));
 
     wCM_SetCurrentRegister = setupAction(tr("Set as current value"));
     connect(wCM_SetCurrentRegister, SIGNAL(triggered()), this, SLOT(onSetCurrentRegister()));
+
+    wCM_FollowInDump = new QAction(DIcon("dump"), tr("Follow in Dump"), this);
+    connect(wCM_FollowInDump, SIGNAL(triggered()), this, SLOT(onFollowInDump()));
 }
 
 void TraceRegisters::setRegisters(REGDUMP* registers)
@@ -35,6 +41,10 @@ void TraceRegisters::displayCustomContextMenuSlot(QPoint pos)
 
     if(mSelected != UNKNOWN)
     {
+        if(mCANSTOREADDRESS.contains(mSelected))
+        {
+            menu.addAction(wCM_FollowInDump);
+        }
         menu.addAction(wCM_CopyToClipboard);
         if(mFPUx87_80BITSDISPLAY.contains(mSelected))
         {
@@ -162,4 +172,14 @@ void TraceRegisters::mouseDoubleClickEvent(QMouseEvent* event)
     else if(mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected) || mFPUMMX.contains(mSelected))
         onCopySIMDRegister();
     // double clicked on GPR: nothing to do (copy?)
+}
+
+void TraceRegisters::onFollowInDump()
+{
+    // First check if the dump is loaded
+    if(!mParent->getTraceFile()->getDump()->isEnabled())
+        if(!mParent->loadDump()) // Try to load the dump
+            return;
+    duint value = *((const duint*)registerValue(&mRegDumpStruct, mSelected));
+    mParent->getTraceDump()->printDumpAt(value, true, true, true);
 }

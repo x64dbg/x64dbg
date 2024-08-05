@@ -121,7 +121,7 @@ bool TraceFileReader::isError(QString & reason) const
 //}
 
 // Return the count of instructions
-unsigned long long TraceFileReader::Length() const
+TRACEINDEX TraceFileReader::Length() const
 {
     return length;
 }
@@ -136,7 +136,7 @@ TraceFileDump* TraceFileReader::getDump()
     return &dump;
 }
 
-QString TraceFileReader::getIndexText(unsigned long long index) const
+QString TraceFileReader::getIndexText(TRACEINDEX index) const
 {
     QString indexString;
     indexString = QString::number(index, 16).toUpper();
@@ -171,9 +171,9 @@ QString TraceFileReader::FileName() const
 }
 
 // Return the registers context at a given index
-REGDUMP TraceFileReader::Registers(unsigned long long index)
+REGDUMP TraceFileReader::Registers(TRACEINDEX index)
 {
-    unsigned long long base;
+    TRACEINDEX base;
     TraceFilePage* page = getPage(index, &base);
     if(page == nullptr)
     {
@@ -186,9 +186,9 @@ REGDUMP TraceFileReader::Registers(unsigned long long index)
 }
 
 // Return the opcode at a given index. buffer must be 16 bytes long.
-void TraceFileReader::OpCode(unsigned long long index, unsigned char* buffer, int* opcodeSize)
+void TraceFileReader::OpCode(TRACEINDEX index, unsigned char* buffer, int* opcodeSize)
 {
-    unsigned long long base;
+    TRACEINDEX base;
     TraceFilePage* page = getPage(index, &base);
     if(page == nullptr)
     {
@@ -201,18 +201,18 @@ void TraceFileReader::OpCode(unsigned long long index, unsigned char* buffer, in
 }
 
 // Return the disassembled instruction at a given index.
-const Instruction_t & TraceFileReader::Instruction(unsigned long long index)
+const Instruction_t & TraceFileReader::Instruction(TRACEINDEX index)
 {
-    unsigned long long base;
+    TRACEINDEX base;
     TraceFilePage* page = getPage(index, &base);
     // The caller must guarantee page is not null, most likely they have already called some other getters.
     return page->Instruction(index - base, *mDisasm);
 }
 
 // Return the thread id at a given index
-DWORD TraceFileReader::ThreadId(unsigned long long index)
+DWORD TraceFileReader::ThreadId(TRACEINDEX index)
 {
-    unsigned long long base;
+    TRACEINDEX base;
     TraceFilePage* page = getPage(index, &base);
     if(page == nullptr)
         return 0;
@@ -221,9 +221,9 @@ DWORD TraceFileReader::ThreadId(unsigned long long index)
 }
 
 // Return the number of recorded memory accesses at a given index
-int TraceFileReader::MemoryAccessCount(unsigned long long index)
+int TraceFileReader::MemoryAccessCount(TRACEINDEX index)
 {
-    unsigned long long base;
+    TRACEINDEX base;
     TraceFilePage* page = getPage(index, &base);
     if(page == nullptr)
         return 0;
@@ -232,9 +232,9 @@ int TraceFileReader::MemoryAccessCount(unsigned long long index)
 }
 
 // Return the memory access info at a given index
-void TraceFileReader::MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid)
+void TraceFileReader::MemoryAccessInfo(TRACEINDEX index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid)
 {
-    unsigned long long base;
+    TRACEINDEX base;
     TraceFilePage* page = getPage(index, &base);
     if(page == nullptr)
         return;
@@ -266,7 +266,7 @@ static size_t getMaxCachedPages()
 }
 
 // Used internally to get the page for the given index and read from disk if necessary
-TraceFilePage* TraceFileReader::getPage(unsigned long long index, unsigned long long* base)
+TraceFilePage* TraceFileReader::getPage(TRACEINDEX index, TRACEINDEX* base)
 {
     // Try to access the most recently used page
     if(lastAccessedPage)
@@ -484,8 +484,8 @@ static bool readBlock(QFile & traceFile)
 void TraceFileParser::run()
 {
     TraceFileReader* that = dynamic_cast<TraceFileReader*>(parent());
-    unsigned long long index = 0;
-    unsigned long long lastIndex = 0;
+    TRACEINDEX index = 0;
+    TRACEINDEX lastIndex = 0;
     if(that == NULL)
     {
         return; //Error
@@ -543,8 +543,8 @@ void TraceFileParser::run()
 // Remove last page from memory and read from disk again to show updates
 void TraceFileReader::purgeLastPage()
 {
-    unsigned long long index = 0;
-    unsigned long long lastIndex = 0;
+    TRACEINDEX index = 0;
+    TRACEINDEX lastIndex = 0;
     bool isBlockExist = false;
     const bool previousEmpty = Length() == 0;
     if(length > 0)
@@ -601,7 +601,7 @@ void TraceFileReader::purgeLastPage()
 }
 
 // Extract memory access information of given index into dump object
-void TraceFileReader::buildDump(unsigned long long index)
+void TraceFileReader::buildDump(TRACEINDEX index)
 {
     unsigned char opcode[MAX_DISASM_BUFFER];
     int opcodeSize;
@@ -707,7 +707,7 @@ void TraceFileReader::buildDump(unsigned long long index)
 }
 
 // Build dump index to the given index
-void TraceFileReader::buildDumpTo(unsigned long long index)
+void TraceFileReader::buildDumpTo(TRACEINDEX index)
 {
     auto start = dump.getMaxIndex(); // Don't re-add existing dump
     for(auto i = start + 1; i <= index; i++)
@@ -717,13 +717,13 @@ void TraceFileReader::buildDumpTo(unsigned long long index)
     }
 }
 
-std::vector<unsigned long long> TraceFileReader::getReferences(duint startAddr, duint endAddr) const
+std::vector<TRACEINDEX> TraceFileReader::getReferences(duint startAddr, duint endAddr) const
 {
     return dump.getReferences(startAddr, endAddr);
 }
 
 //TraceFilePage
-TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOffset, unsigned long long maxLength)
+TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOffset, TRACEINDEX maxLength)
 {
     DWORD lastThreadId = 0;
     union
@@ -837,28 +837,28 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
     }
 }
 
-unsigned long long TraceFilePage::Length() const
+TRACEINDEX TraceFilePage::Length() const
 {
     return length;
 }
 
-const REGDUMP & TraceFilePage::Registers(unsigned long long index) const
+const REGDUMP & TraceFilePage::Registers(TRACEINDEX index) const
 {
     return mRegisters.at(index);
 }
 
-void TraceFilePage::OpCode(unsigned long long index, unsigned char* buffer, int* opcodeSize) const
+void TraceFilePage::OpCode(TRACEINDEX index, unsigned char* buffer, int* opcodeSize) const
 {
     *opcodeSize = this->opcodeSize.at(index);
     memcpy(buffer, opcodes.constData() + opcodeOffset.at(index), *opcodeSize);
 }
 
-const Instruction_t & TraceFilePage::Instruction(unsigned long long index, QZydis & mDisasm)
+const Instruction_t & TraceFilePage::Instruction(TRACEINDEX index, QZydis & mDisasm)
 {
     if(instructions.size() == 0)
     {
         instructions.reserve(length);
-        for(unsigned long long i = 0; i < length; i++)
+        for(TRACEINDEX i = 0; i < length; i++)
         {
             instructions.emplace_back(mDisasm.DisassembleAt((const byte_t*)opcodes.constData() + opcodeOffset.at(i), opcodeSize.at(i), 0, Registers(i).regcontext.cip, false));
         }
@@ -866,12 +866,12 @@ const Instruction_t & TraceFilePage::Instruction(unsigned long long index, QZydi
     return instructions.at(index);
 }
 
-DWORD TraceFilePage::ThreadId(unsigned long long index) const
+DWORD TraceFilePage::ThreadId(TRACEINDEX index) const
 {
     return threadId.at(index);
 }
 
-int TraceFilePage::MemoryAccessCount(unsigned long long index) const
+int TraceFilePage::MemoryAccessCount(TRACEINDEX index) const
 {
     size_t a = memoryOperandOffset.at(index);
     if(index == length - 1)
@@ -880,7 +880,7 @@ int TraceFilePage::MemoryAccessCount(unsigned long long index) const
         return (int)(memoryOperandOffset.at(index + 1) - a);
 }
 
-void TraceFilePage::MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid) const
+void TraceFilePage::MemoryAccessInfo(TRACEINDEX index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid) const
 {
     auto count = MemoryAccessCount(index);
     auto base = memoryOperandOffset.at(index);

@@ -1,11 +1,9 @@
-#include "TraceDump.h"
-#include "TraceWidget.h"
-#include "TraceFileReader.h"
-#include "TraceFileDump.h"
 #include <QMessageBox>
 #include <QClipboard>
 #include <QFileDialog>
 #include <QToolTip>
+#include "TraceDump.h"
+#include "TraceWidget.h"
 #include "Configuration.h"
 #include "Bridge.h"
 #include "HexEditDialog.h"

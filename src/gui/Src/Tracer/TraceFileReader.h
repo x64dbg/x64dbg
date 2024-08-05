@@ -25,20 +25,20 @@ public:
     bool isError(QString & reason) const;
     //int Progress() const; // TODO: Trace view should start showing its first instructions as soon as they are loaded
 
-    QString getIndexText(unsigned long long index) const;
+    QString getIndexText(TRACEINDEX index) const;
 
-    unsigned long long Length() const;
+    TRACEINDEX Length() const;
     uint64_t FileSize() const;
 
-    REGDUMP Registers(unsigned long long index);
-    void OpCode(unsigned long long index, unsigned char* buffer, int* opcodeSize);
-    const Instruction_t & Instruction(unsigned long long index);
+    REGDUMP Registers(TRACEINDEX index);
+    void OpCode(TRACEINDEX index, unsigned char* buffer, int* opcodeSize);
+    const Instruction_t & Instruction(TRACEINDEX index);
     // Get thread ID
-    DWORD ThreadId(unsigned long long index);
+    DWORD ThreadId(TRACEINDEX index);
     // Get number of memory accesses
-    int MemoryAccessCount(unsigned long long index);
+    int MemoryAccessCount(TRACEINDEX index);
     // Get memory access information. Size of these buffers are MAX_MEMORY_OPERANDS.
-    void MemoryAccessInfo(unsigned long long index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid);
+    void MemoryAccessInfo(TRACEINDEX index, duint* address, duint* oldMemory, duint* newMemory, bool* isValid);
     // Get hash of EXE
     duint HashValue() const;
     const QString & ExePath() const;
@@ -46,8 +46,8 @@ public:
 
     void purgeLastPage();
 
-    void buildDumpTo(unsigned long long index);
-    std::vector<unsigned long long> getReferences(duint startAddr, duint endAddr) const;
+    void buildDumpTo(TRACEINDEX index);
+    std::vector<TRACEINDEX> getReferences(duint startAddr, duint endAddr) const;
     TraceFileDump* getDump();
 
 signals:
@@ -60,7 +60,7 @@ private slots:
     void tokenizerUpdatedSlot();
 
 private:
-    typedef std::pair<unsigned long long, unsigned long long> Range;
+    typedef std::pair<TRACEINDEX, TRACEINDEX> Range;
     struct RangeCompare //from addrinfo.h
     {
         bool operator()(const Range & a, const Range & b) const //a before b?
@@ -71,7 +71,7 @@ private:
 
     QFile traceFile;
     qint64 fileSize = 0;
-    unsigned long long length = 0;
+    TRACEINDEX length = 0;
     duint hashValue = 0;
     QString EXEPath;
     std::vector<std::pair<unsigned long long, Range>> fileIndex; //index;<file offset;length>
@@ -79,15 +79,15 @@ private:
     bool error = true;
     QString errorMessage;
     TraceFilePage* lastAccessedPage = nullptr;
-    unsigned long long lastAccessedIndexOffset = 0;
+    TRACEINDEX lastAccessedIndexOffset = 0;
     friend class TraceFileParser;
     friend class TraceFilePage;
 
     TraceFileParser* parser = nullptr;
     std::map<Range, TraceFilePage, RangeCompare> pages;
-    TraceFilePage* getPage(unsigned long long index, unsigned long long* base);
+    TraceFilePage* getPage(TRACEINDEX index, TRACEINDEX* base);
     TraceFileDump dump;
-    void buildDump(unsigned long long index);
+    void buildDump(TRACEINDEX index);
 
     QZydis* mDisasm;
 };
