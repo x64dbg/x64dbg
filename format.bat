@@ -1,2 +1,3 @@
 @echo off
-hooks\AStyleHelper.exe Silent
+git config core.autocrlf false
+%~dp0.github\format\AStyleHelper.exe Silent

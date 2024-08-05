@@ -4,13 +4,13 @@
 #
 
 #check if the formatter is present
-if [ ! -f ./hooks/AStyleHelper.exe ]; then
+if [ ! -f ./.github/format/AStyleHelper.exe ]; then
     echo "AStyleHelper not found!"
     exit 0
 fi
 
 #format the code
-"./hooks/AStyleHelper.exe" Silent
+"./.github/format/AStyleHelper.exe" Silent
 
 #exit when nothing needs to be done
 if [ $? == 0 ]; then
@@ -28,6 +28,6 @@ fi
 #cancel commit if the changes were undone by the formatting
 gitFiles=$(git diff-index --name-only --cached HEAD)
 if [ -z "$gitFiles" ]; then
-    "./hooks/AStyleHelper.exe" "After formatting, no files were staged..."
+    "./.github/AStyleHelper.exe" "After formatting, no files were staged..."
     exit 1
 fi
