@@ -422,7 +422,6 @@ static void deleteZoneData(const std::wstring & rootDir)
 }
 
 typedef BOOL(WINAPI* LPFN_SetProcessDpiAwarenessContext)(int);
-typedef BOOL(WINAPI* LPFN_SetProcessDPIAware)();
 
 static void EnableHiDPI()
 {
@@ -431,21 +430,7 @@ static void EnableHiDPI()
     if(SetProcessDpiAwarenessContext != nullptr)
     {
         // Windows 10 Build 1703
-        if(SetProcessDpiAwarenessContext(-4))  //DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
-        {
-            return;
-        }
-        // Windows 10 Build 1607
-        if(SetProcessDpiAwarenessContext(-3))  //DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE
-        {
-            return;
-        }
-    }
-    // Windows Vista
-    LPFN_SetProcessDPIAware SetProcessDPIAware = (LPFN_SetProcessDPIAware)GetProcAddress(GetModuleHandle(TEXT("user32.dll")), "SetProcessDPIAware");
-    if(SetProcessDPIAware != nullptr)
-    {
-        SetProcessDPIAware();
+        SetProcessDpiAwarenessContext(-4);  //DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
     }
 }
 
