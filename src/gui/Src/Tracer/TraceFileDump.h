@@ -2,6 +2,7 @@
 
 #include "Imports.h"
 #include <map>
+#include <functional>
 #include <QMutex>
 #include "MemoryPage.h"
 
@@ -44,8 +45,9 @@ public:
     void getBytes(duint addr, duint size, TRACEINDEX index, void* buffer) const;
     std::vector<TRACEINDEX> getReferences(duint startAddr, duint endAddr) const;
     // Insert a memory access record
-    //void addMemAccess(duint addr, DumpRecord record);
     void addMemAccess(duint addr, const void* oldData, const void* newData, size_t size);
+    // Find pattern
+    void findAllMem(const unsigned char* data, const unsigned char* mask, size_t size, std::function<bool(duint, TRACEINDEX, TRACEINDEX)> matchFunction) const;
     inline void increaseIndex()
     {
         maxIndex++;

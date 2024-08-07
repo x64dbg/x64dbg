@@ -19,7 +19,7 @@ public:
     void getColumnRichText(duint col, duint rva, RichTextPainter::List & richText) override;
     QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
     void setupContextMenu();
-    void getAttention();
+    //void getAttention();
     void contextMenuEvent(QContextMenuEvent* event);
     void mouseDoubleClickEvent(QMouseEvent* event);
     void mouseMoveEvent(QMouseEvent* event);
@@ -27,7 +27,6 @@ public:
     void printDumpAt(duint parVA, bool select, bool repaint, bool updateTableOffset) override;
 
 signals:
-    void displayReferencesWidget();
     void showDisassemblyTab(duint selectionStart, duint selectionEnd, duint firstAddress);
     void xrefSignal(duint addr);
 
@@ -74,7 +73,7 @@ public slots:
 
     void binaryCopySlot();
     void binarySaveToFileSlot();
-    //void findPattern();
+    void findPattern();
     void copyFileOffsetSlot();
     //void findReferencesSlot();
 

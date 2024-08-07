@@ -119,7 +119,7 @@ int TraceFileSearchMemReference(TraceFileReader* file, duint address)
     for(size_t i = 0; i < results.size(); i++)
     {
         bool found = false;
-        unsigned long long index = results[i];
+        auto index = results[i];
         //Memory
         duint memAddr[MAX_MEMORY_OPERANDS];
         duint memOldContent[MAX_MEMORY_OPERANDS];
@@ -153,12 +153,12 @@ int TraceFileSearchMemReference(TraceFileReader* file, duint address)
     return count;
 }
 
-unsigned long long TraceFileSearchFuncReturn(TraceFileReader* file, unsigned long long start)
+TRACEINDEX TraceFileSearchFuncReturn(TraceFileReader* file, TRACEINDEX start)
 {
     auto mCsp = file->Registers(start).regcontext.csp;
     auto TID = file->ThreadId(start);
     Zydis zy;
-    for(unsigned long long index = start; index < file->Length(); index++)
+    for(TRACEINDEX index = start; index < file->Length(); index++)
     {
         if(mCsp <= file->Registers(index).regcontext.csp && file->ThreadId(index) == TID) //"Run until return" should break only if RSP is bigger than or equal to current value
         {
@@ -179,4 +179,130 @@ unsigned long long TraceFileSearchFuncReturn(TraceFileReader* file, unsigned lon
         }
     }
     return start; //Nothing found, so just stay here
+}
+
+int TraceFileSearchMemPattern(TraceFileReader* file, const QString & pattern)
+{
+    if(!file->getDump()->isEnabled())
+        return 0;
+    std::vector<unsigned char> data, mask;
+    bool high = true;
+    for(auto ch : pattern)
+    {
+        if(ch > 0x80)
+            return 0;
+        char c = ch.toLatin1();
+        if(isspace(c))
+            continue;
+        if(high)
+        {
+            if(c == '?')
+            {
+                data.push_back((char)0);
+                mask.push_back((char)0);
+            }
+            else if(c >= '0' && c <= '9')
+            {
+                data.push_back((char)((c - '0') << 4));
+                mask.push_back((char)0xf0);
+            }
+            else if(c >= 'A' && c <= 'F')
+            {
+                data.push_back((char)((c - 'A' + 10) << 4));
+                mask.push_back((char)0xf0);
+            }
+            else if(c >= 'a' && c <= 'f')
+            {
+                data.push_back((char)((c - 'a' + 10) << 4));
+                mask.push_back((char)0xf0);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        else
+        {
+            unsigned char* dataEnd = &data[data.size() - 1];
+            unsigned char* maskEnd = &mask[mask.size() - 1];
+            if(c == '?')
+            {
+                // do nothing
+            }
+            else if(c >= '0' && c <= '9')
+            {
+                *dataEnd |= (char)(c - '0');
+                *maskEnd |= (char)0xf;
+            }
+            else if(c >= 'A' && c <= 'F')
+            {
+                *dataEnd |= (char)(c - 'A' + 10);
+                *maskEnd |= (char)0xf;
+            }
+            else if(c >= 'a' && c <= 'f')
+            {
+                *dataEnd |= (char)(c - 'a' + 10);
+                *maskEnd |= (char)0xf;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        high = !high;
+    }
+    // Create reference view
+    QString patternshort;
+    for(int i = 0; i < (data.size() > 16 ? 16 : data.size()); i++)
+    {
+        patternshort += ToByteString(data[i]);
+        if((mask[i] & 0xf0) == 0)
+            patternshort[patternshort.size() - 2] = '?';
+        if((mask[i] & 0x0f) == 0)
+            patternshort[patternshort.size() - 1] = '?';
+    }
+    if(data.size() > 16)
+        patternshort += "...";
+    QString patterntitle = QCoreApplication::translate("TraceFileSearch", "Pattern: %1").arg(patternshort);
+    GuiReferenceInitialize(patterntitle.toUtf8().constData());
+    GuiReferenceAddColumn(sizeof(duint) * 2, QCoreApplication::translate("TraceFileSearch", "Address").toUtf8().constData());
+    GuiReferenceAddColumn(20, QCoreApplication::translate("TraceFileSearch", "Start Index").toUtf8().constData());
+    GuiReferenceAddColumn(20, QCoreApplication::translate("TraceFileSearch", "End Index").toUtf8().constData());
+    GuiReferenceAddColumn(sizeof(duint) * 2, ArchValue("EIP", "RIP"));
+    GuiReferenceAddColumn(100, QCoreApplication::translate("TraceFileSearch", "Disassembly").toUtf8().constData());
+    GuiReferenceSetRowCount(0);
+    GuiReferenceAddCommand(QCoreApplication::translate("TraceFileSearch", "Follow start index in trace").toUtf8().constData(), "gototrace 0x$1");
+    GuiReferenceAddCommand(QCoreApplication::translate("TraceFileSearch", "Follow end index in trace").toUtf8().constData(), "gototrace 0x$2");
+
+    // Build the dump to the end
+    file->buildDumpTo(file->Length() - 1);
+    int count = 0;
+    Zydis zy;
+    file->getDump()->findAllMem(data.data(), mask.data(), data.size(), [&](duint address, TRACEINDEX startIndex, TRACEINDEX endIndex)
+    {
+        GuiReferenceSetRowCount(count + 1);
+        GuiReferenceSetCellContent(count, 0, ToPtrString(address).toUtf8().constData());
+        GuiReferenceSetCellContent(count, 1, file->getIndexText(startIndex).toUtf8().constData());
+        GuiReferenceSetCellContent(count, 2, file->getIndexText(endIndex).toUtf8().constData());
+        if(startIndex > 0)
+        {
+            duint cip;
+            cip = file->Registers(startIndex).regcontext.cip;
+            GuiReferenceSetCellContent(count, 3, ToPtrString(cip).toUtf8().constData());
+            unsigned char opcode[16];
+            int opcodeSize = 0;
+            file->OpCode(startIndex, opcode, &opcodeSize);
+            zy.Disassemble(cip, opcode, opcodeSize);
+            GuiReferenceSetCellContent(count, 4, zy.InstructionText(true).c_str());
+        }
+        else
+        {
+            // It has been like that since the start of trace
+            GuiReferenceSetCellContent(count, 3, ArchValue("00000000", "0000000000000000"));
+            GuiReferenceSetCellContent(count, 4, "");
+        }
+        count++;
+        return count < 5000;
+    });
+    return count;
 }
