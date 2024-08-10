@@ -69,6 +69,35 @@ static bool handlePatternArgument(const char* pattern, std::vector<PatternByte> 
     return result;
 }
 
+class SearchTimer
+{
+public:
+    SearchTimer()
+    {
+        if(!LPFN_GetTickCount64)
+            LPFN_GetTickCount64 = (ULONGLONG(*)())GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetTickCount64");
+        if(LPFN_GetTickCount64)
+            ticks = LPFN_GetTickCount64();
+        else
+            ticks = GetTickCount();
+    }
+    void StopTimer()
+    {
+        if(LPFN_GetTickCount64)
+            ticks = LPFN_GetTickCount64() - ticks;
+        else
+            ticks = GetTickCount() - ticks;
+    }
+    DWORD GetTicks()
+    {
+        return ticks;
+    }
+private:
+    ULONGLONG ticks;
+    static ULONGLONG(*LPFN_GetTickCount64)();
+};
+ULONGLONG(*SearchTimer::LPFN_GetTickCount64)() = nullptr;
+
 bool cbInstrFind(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
@@ -177,7 +206,7 @@ bool cbInstrFindAll(int argc, char* argv[])
         GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
     GuiReferenceSetRowCount(0);
     GuiReferenceReloadData();
-    DWORD ticks = GetTickCount();
+    SearchTimer ticks;
     int refCount = 0;
     duint i = 0;
     duint result = 0;
@@ -213,7 +242,8 @@ bool cbInstrFindAll(int argc, char* argv[])
         refCount++;
     }
     GuiReferenceReloadData();
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%d occurrences found in %ums\n"), refCount, GetTickCount() - ticks);
+    ticks.StopTimer();
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d occurrences found in %ums\n"), refCount, ticks.GetTicks());
     varset("$result", refCount, false);
     return true;
 }
@@ -300,7 +330,7 @@ bool cbInstrFindAllMem(int argc, char* argv[])
     }
     SHARED_RELEASE();
 
-    DWORD ticks = GetTickCount();
+    SearchTimer ticks;
 
     std::vector<duint> results;
     if(!MemFindInMap(searchPages, searchpattern, results, maxFindResults))
@@ -348,7 +378,8 @@ bool cbInstrFindAllMem(int argc, char* argv[])
     }
 
     GuiReferenceReloadData();
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%d occurrences found in %ums\n"), refCount, GetTickCount() - ticks);
+    ticks.StopTimer();
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%d occurrences found in %ums\n"), refCount, ticks.GetTicks());
     varset("$result", refCount, false);
 
     return true;
@@ -413,11 +444,12 @@ bool cbInstrFindAsm(int argc, char* argv[])
     memset(&basicinfo, 0, sizeof(BASIC_INSTRUCTION_INFO));
     disasmfast(dest, addr + size / 2, &basicinfo);
 
-    duint ticks = GetTickCount();
+    SearchTimer ticks;
     char title[256] = "";
     sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Command: \"%s\"")), basicinfo.instruction);
     int found = RefFind(addr, size, cbFindAsm, (void*)&basicinfo.instruction[0], false, title, (REFFINDTYPE)refFindType, true);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%u result(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
+    ticks.StopTimer();
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u result(s) in %ums\n"), DWORD(found), ticks.GetTicks());
     varset("$result", found, false);
     return true;
 }
@@ -526,7 +558,7 @@ bool cbInstrRefFindRange(int argc, char* argv[])
     if(argc >= 5)
         if(!valfromstring(argv[4], &size))
             size = 0;
-    duint ticks = GetTickCount();
+    SearchTimer ticks;
     char title[256] = "";
     if(range.start == range.end)
         sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Constant: %p")), range.start);
@@ -539,7 +571,8 @@ bool cbInstrRefFindRange(int argc, char* argv[])
             refFindType = CURRENT_REGION;
 
     int found = RefFind(addr, size, cbRefFind, &range, false, title, (REFFINDTYPE)refFindType, false);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%u reference(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
+    ticks.StopTimer();
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u reference(s) in %ums\n"), DWORD(found), ticks.GetTicks());
     varset("$result", found, false);
     return true;
 }
@@ -645,7 +678,7 @@ static bool cbRefFuncPtr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
 
 bool cbInstrRefStr(int argc, char* argv[])
 {
-    duint ticks = GetTickCount();
+    SearchTimer ticks;
     duint addr;
     duint size = 0;
     String TranslatedString;
@@ -664,14 +697,15 @@ bool cbInstrRefStr(int argc, char* argv[])
 
     TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Strings"));
     int found = RefFind(addr, size, cbRefStr, 0, false, TranslatedString.c_str(), (REFFINDTYPE)refFindType, false);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%u string(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
+    ticks.StopTimer();
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u string(s) in %ums\n"), DWORD(found), ticks.GetTicks());
     varset("$result", found, false);
     return true;
 }
 
 bool cbInstrRefFuncionPointer(int argc, char* argv[])
 {
-    duint ticks = GetTickCount();
+    SearchTimer ticks;
     duint addr;
     duint size = 0;
     String TranslatedString;
@@ -690,7 +724,8 @@ bool cbInstrRefFuncionPointer(int argc, char* argv[])
 
     TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Function pointers"));
     int found = RefFind(addr, size, cbRefFuncPtr, 0, false, TranslatedString.c_str(), (REFFINDTYPE)refFindType, false);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%u function pointer(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
+    ticks.StopTimer();
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u function pointer(s) in %ums\n"), DWORD(found), ticks.GetTicks());
     varset("$result", found, false);
     return true;
 }
@@ -789,10 +824,11 @@ bool cbInstrModCallFind(int argc, char* argv[])
         if(refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != USER_MODULES && refFindType != SYSTEM_MODULES && refFindType != ALL_MODULES)
             refFindType = CURRENT_REGION;
 
-    duint ticks = GetTickCount();
+    SearchTimer ticks;
     String Calls = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Calls"));
     int found = RefFind(addr, size, cbModCallFind, 0, false, Calls.c_str(), (REFFINDTYPE)refFindType, false);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%u call(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
+    ticks.StopTimer();
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u call(s) in %ums\n"), DWORD(found), ticks.GetTicks());
     varset("$result", found, false);
     return true;
 }
@@ -980,7 +1016,7 @@ static bool cbGUIDFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
 
 bool cbInstrGUIDFind(int argc, char* argv[])
 {
-    duint ticks = GetTickCount();
+    SearchTimer ticks;
     duint addr;
     duint size = 0;
     String TranslatedString;
@@ -1033,7 +1069,8 @@ bool cbInstrGUIDFind(int argc, char* argv[])
 
     TranslatedString = GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "GUID"));
     int found = RefFind(addr, size, cbGUIDFind, &refInfo, false, TranslatedString.c_str(), (REFFINDTYPE)refFindType, false);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "%u GUID(s) in %ums\n"), DWORD(found), GetTickCount() - DWORD(ticks));
+    ticks.StopTimer();
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u GUID(s) in %ums\n"), DWORD(found), ticks.GetTicks());
     varset("$result", found, false);
     RegCloseKey(CLSID);
     return true;

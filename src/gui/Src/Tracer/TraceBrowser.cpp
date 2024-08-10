@@ -1,8 +1,9 @@
+#include <QMessageBox>
+#include <QFileDialog>
 #include "TraceBrowser.h"
 #include "TraceWidget.h"
 #include "TraceFileSearch.h"
 #include "RichTextPainter.h"
-#include "main.h"
 #include "BrowseDialog.h"
 #include "QZydis.h"
 #include "GotoDialog.h"
@@ -11,7 +12,6 @@
 #include "WordEditDialog.h"
 #include "CachedFontMetrics.h"
 #include "MRUList.h"
-#include <QFileDialog>
 
 TraceBrowser::TraceBrowser(TraceFileReader* traceFile, TraceWidget* parent) : AbstractTableView(parent), mTraceFile(traceFile)
 {
@@ -1882,10 +1882,11 @@ void TraceBrowser::searchConstantSlot()
     constantDlg.setup(tr("Constant"), initialConstant, sizeof(duint));
     if(constantDlg.exec() == QDialog::Accepted)
     {
-        auto ticks = GetTickCount();
+        QTime ticks;
+        ticks.start();
         int count = TraceFileSearchConstantRange(getTraceFile(), constantDlg.getVal(), constantDlg.getVal());
         GuiShowReferences();
-        GuiAddLogMessage(tr("%1 result(s) in %2ms\n").arg(count).arg(GetTickCount() - ticks).toUtf8().constData());
+        GuiAddLogMessage(tr("%1 result(s) in %2ms\n").arg(count).arg(ticks.elapsed()).toUtf8().constData());
     }
 }
 
@@ -1895,12 +1896,13 @@ void TraceBrowser::searchMemRefSlot()
     memRefDlg.setup(tr("References"), 0, sizeof(duint));
     if(memRefDlg.exec() == QDialog::Accepted)
     {
-        auto ticks = GetTickCount();
+        QTime ticks;
+        ticks.start();
         if(!mParent->loadDumpFully())
             return;
         int count = TraceFileSearchMemReference(getTraceFile(), memRefDlg.getVal());
         GuiShowReferences();
-        GuiAddLogMessage(tr("%1 result(s) in %2ms\n").arg(count).arg(GetTickCount() - ticks).toUtf8().constData());
+        GuiAddLogMessage(tr("%1 result(s) in %2ms\n").arg(count).arg(ticks.elapsed()).toUtf8().constData());
     }
 }
 

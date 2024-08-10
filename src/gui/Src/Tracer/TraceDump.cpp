@@ -1162,8 +1162,11 @@ void TraceDump::findPattern()
         return;
     if(mParent->loadDumpFully())
     {
-        TraceFileSearchMemPattern(mParent->getTraceFile(), hexEdit.mHexEdit->pattern());
+        QTime ticks;
+        ticks.start();
+        auto count = TraceFileSearchMemPattern(mParent->getTraceFile(), hexEdit.mHexEdit->pattern());
         GuiShowReferences();
+        GuiAddLogMessage(QCoreApplication::translate("DBG", "%1 occurrence(s) in %2ms\n").arg(count).arg(ticks.elapsed()).toUtf8().constData());
     }
 }
 
