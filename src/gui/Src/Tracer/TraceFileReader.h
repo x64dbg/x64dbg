@@ -27,10 +27,13 @@ public:
 
     QString getIndexText(TRACEINDEX index) const;
 
-    TRACEINDEX Length() const;
-    uint64_t FileSize() const;
+    TRACEINDEX Length() const noexcept;
+    uint64_t FileSize() const noexcept;
 
+    // Get register dump
     REGDUMP Registers(TRACEINDEX index);
+    // Just get value of EIP
+    duint Address(TRACEINDEX index);
     void OpCode(TRACEINDEX index, unsigned char* buffer, int* opcodeSize);
     const Instruction_t & Instruction(TRACEINDEX index);
     // Get thread ID

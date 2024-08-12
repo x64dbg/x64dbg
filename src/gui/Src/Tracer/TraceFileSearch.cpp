@@ -75,12 +75,12 @@ int TraceFileSearchConstantRange(TraceFileReader* file, duint start, duint end)
         if(found)
         {
             GuiReferenceSetRowCount(count + 1);
-            GuiReferenceSetCellContent(count, 0, ToPtrString(file->Registers(index).regcontext.cip).toUtf8().constData());
+            GuiReferenceSetCellContent(count, 0, ToPtrString(file->Address(index)).toUtf8().constData());
             GuiReferenceSetCellContent(count, 1, file->getIndexText(index).toUtf8().constData());
             unsigned char opcode[16];
             int opcodeSize = 0;
             file->OpCode(index, opcode, &opcodeSize);
-            zy.Disassemble(file->Registers(index).regcontext.cip, opcode, opcodeSize);
+            zy.Disassemble(file->Address(index), opcode, opcodeSize);
             GuiReferenceSetCellContent(count, 2, zy.InstructionText(true).c_str());
             //GuiReferenceSetCurrentTaskProgress; GuiReferenceSetProgress
             count++;
@@ -138,12 +138,12 @@ int TraceFileSearchMemReference(TraceFileReader* file, duint address)
             if(found)
             {
                 GuiReferenceSetRowCount(count + 1);
-                GuiReferenceSetCellContent(count, 0, ToPtrString(file->Registers(index).regcontext.cip).toUtf8().constData());
+                GuiReferenceSetCellContent(count, 0, ToPtrString(file->Address(index)).toUtf8().constData());
                 GuiReferenceSetCellContent(count, 1, file->getIndexText(index).toUtf8().constData());
                 unsigned char opcode[16];
                 int opcodeSize = 0;
                 file->OpCode(index, opcode, &opcodeSize);
-                zy.Disassemble(file->Registers(index).regcontext.cip, opcode, opcodeSize);
+                zy.Disassemble(file->Address(index), opcode, opcodeSize);
                 GuiReferenceSetCellContent(count, 2, zy.InstructionText(true).c_str());
                 //GuiReferenceSetCurrentTaskProgress; GuiReferenceSetProgress
                 count++;
@@ -160,7 +160,8 @@ TRACEINDEX TraceFileSearchFuncReturn(TraceFileReader* file, TRACEINDEX start)
     Zydis zy;
     for(TRACEINDEX index = start; index < file->Length(); index++)
     {
-        if(mCsp <= file->Registers(index).regcontext.csp && file->ThreadId(index) == TID) //"Run until return" should break only if RSP is bigger than or equal to current value
+        auto registers = file->Registers(index);
+        if(mCsp <= registers.regcontext.csp && file->ThreadId(index) == TID) //"Run until return" should break only if RSP is bigger than or equal to current value
         {
             unsigned char data[16];
             int opcodeSize = 0;
@@ -173,7 +174,7 @@ TRACEINDEX TraceFileSearchFuncReturn(TraceFileReader* file, TRACEINDEX start)
 #endif //_WIN64
                    )
             {
-                if(zy.Disassemble(file->Registers(index).regcontext.cip, data, opcodeSize) && zy.IsRet())
+                if(zy.Disassemble(registers.regcontext.cip, data, opcodeSize) && zy.IsRet())
                     return index;
             }
         }
@@ -287,7 +288,7 @@ int TraceFileSearchMemPattern(TraceFileReader* file, const QString & pattern)
         if(startIndex > 0)
         {
             duint cip;
-            cip = file->Registers(startIndex).regcontext.cip;
+            cip = file->Address(startIndex);
             GuiReferenceSetCellContent(count, 3, ToPtrString(cip).toUtf8().constData());
             unsigned char opcode[16];
             int opcodeSize = 0;

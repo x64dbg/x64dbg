@@ -277,7 +277,7 @@ void TraceWidget::setupDumpInitialAddresses(TRACEINDEX selection)
     else
     {
         // No memory operands, so display opcode instead
-        initialAddress = mTraceFile->Registers(selection).regcontext.cip;
+        initialAddress = mTraceFile->Address(selection);
     }
     mDump->printDumpAt(initialAddress, false, true, true);
     // Setting the initial address of stack view

@@ -44,8 +44,8 @@ public:
     bool isValidReadPtr(duint addr) const;
     void getBytes(duint addr, duint size, TRACEINDEX index, void* buffer) const;
     std::vector<TRACEINDEX> getReferences(duint startAddr, duint endAddr) const;
-    // Insert a memory access record
-    void addMemAccess(duint addr, const void* oldData, const void* newData, size_t size);
+    // Insert memory access records
+    void addMemAccess(duint cip, unsigned char* opcode, int opcodeSize, duint* memAddr, const duint* oldMemory, const duint* newMemory, size_t count);
     // Find pattern
     void findAllMem(const unsigned char* data, const unsigned char* mask, size_t size, std::function<bool(duint, TRACEINDEX, TRACEINDEX)> matchFunction) const;
     inline void increaseIndex() noexcept

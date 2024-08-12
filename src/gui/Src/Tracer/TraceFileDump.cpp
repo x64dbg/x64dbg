@@ -1,10 +1,13 @@
 #include <assert.h>
 #include <QMutexLocker>
-#include "Configuration.h"
-#include "TraceFileDump.h"
-#include "StringUtil.h"
 #include <thread>
 #include <deque>
+#include <array>
+#include "Configuration.h"
+#include "zydis_wrapper.h"
+#include "TraceFileReader.h"
+#include "TraceFileDump.h"
+#include "StringUtil.h"
 
 TraceFileDump::TraceFileDump()
 {
@@ -166,25 +169,42 @@ std::vector<TRACEINDEX> TraceFileDump::getReferences(duint startAddr, duint endA
     return result;
 }
 
-void TraceFileDump::addMemAccess(duint addr, const void* oldData, const void* newData, size_t size)
+// Insert memory access records
+void TraceFileDump::addMemAccess(duint cip, unsigned char* opcode, int opcodeSize, duint* memAddr, const duint* oldMemory, const duint* newMemory, size_t count)
 {
-    if(!isEnabled())
-        return;
-
-    std::vector<std::pair<Key, DumpRecord>> records;
-    records.resize(size);
-    // insert in the correct order
-    for(size_t i = size; i > 0; i--)
+    std::array < std::pair<Key, DumpRecord>, MAX_DISASM_BUFFER + MAX_MEMORY_OPERANDS* sizeof(duint) > records;
+    // This function used stack memory allocation instead of heap allocation for performance, can't handle more than MAX_MEMORY_OPERANDS elements.
+    assert(count <= MAX_MEMORY_OPERANDS);
+    int base;
+    for(size_t j = 0; j < count; j++)
     {
-        auto b = size - i;
-        records[i - 1].first.addr = addr + b;
-        records[i - 1].first.index = maxIndex;
-        records[i - 1].second.oldData = ((const unsigned char*)oldData)[b];
-        records[i - 1].second.newData = ((const unsigned char*)newData)[b];
-        //records[i - 1].second.isWrite = 0; //TODO
-        //records[i - 1].second.isExecute = 0;
+        base = j * sizeof(duint);
+        // insert in the correct order
+        for(size_t i = sizeof(duint); i > 0; i--)
+        {
+            auto b = base + sizeof(duint) - i;
+            records[base + i - 1].first.addr = memAddr[j] + b;
+            records[base + i - 1].first.index = maxIndex;
+            records[base + i - 1].second.oldData = ((const unsigned char*)oldMemory)[b];
+            records[base + i - 1].second.newData = ((const unsigned char*)newMemory)[b];
+            //records[i - 1].second.isWrite = 0; //TODO
+            //records[i - 1].second.isExecute = 0;
+        }
     }
-    dump.insert(records.begin(), records.end());
+    // Always add opcode into dump
+    base = count * sizeof(duint);
+    for(int i = opcodeSize; i > 0; i--)
+    {
+        auto b = opcodeSize - i;
+        records[base + i - 1].first.addr = cip + b;
+        records[base + i - 1].first.index = maxIndex;
+        records[base + i - 1].second.oldData = opcode[b];
+        records[base + i - 1].second.newData = opcode[b];
+        //records[i - 1].second.isWrite = 0; //TODO
+        //records[i - 1].second.isExecute = 1;
+    }
+    // Insert all the records at once
+    dump.insert(records.begin(), std::next(records.begin(), count * sizeof(duint) + opcodeSize));
 }
 
 // Find continuous memory areas. It is done separate from adding memory accesses because the number of addresses is less than that of memory accesses
@@ -258,7 +278,6 @@ void TraceFileDump::findAllMem(const unsigned char* data, const unsigned char* m
     std::deque<PARTIALMATCH> partialMatches; // Queue for partial matches
     std::vector<std::pair<unsigned char, TRACEINDEX>> values; // First is value, second is end index
     auto it = dump.rbegin();
-    //it++;
     duint prevAddress = it->first.addr;
     // Due to the inverted order, the reverse iterator is used
     do

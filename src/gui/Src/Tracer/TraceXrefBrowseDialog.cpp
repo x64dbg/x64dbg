@@ -51,7 +51,7 @@ void TraceXrefBrowseDialog::setup(duint index, duint address, TraceFileReader* t
     mXrefInfo.reserve(xrefInfo.size());
     for(auto & i : xrefInfo)
     {
-        mXrefInfo.emplace_back(TRACE_XREF_RECORD({i, traceFile->Registers(i).regcontext.cip}));
+        mXrefInfo.emplace_back(TRACE_XREF_RECORD({i, traceFile->Address(i)}));
     }
 
     setWindowTitle(QString(tr("xrefs at <%1>")).arg(GetFunctionSymbol(address)));
