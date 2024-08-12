@@ -27,8 +27,8 @@ public:
 
     QString getIndexText(TRACEINDEX index) const;
 
-    TRACEINDEX Length() const noexcept;
-    uint64_t FileSize() const noexcept;
+    TRACEINDEX Length() const;
+    uint64_t FileSize() const;
 
     // Get register dump
     REGDUMP Registers(TRACEINDEX index);

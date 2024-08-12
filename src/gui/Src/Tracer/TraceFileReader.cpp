@@ -121,12 +121,12 @@ bool TraceFileReader::isError(QString & reason) const
 //}
 
 // Return the count of instructions
-TRACEINDEX TraceFileReader::Length() const noexcept
+TRACEINDEX TraceFileReader::Length() const
 {
     return length;
 }
 
-uint64_t TraceFileReader::FileSize() const noexcept
+uint64_t TraceFileReader::FileSize() const
 {
     return fileSize;
 }
@@ -175,14 +175,14 @@ REGDUMP TraceFileReader::Registers(TRACEINDEX index)
 {
     TRACEINDEX base;
     TraceFilePage* page = getPage(index, &base);
-    if(page == nullptr)
+    if(page != nullptr)
+        return page->Registers(index - base);
+    else
     {
         REGDUMP registers;
         memset(&registers, 0, sizeof(registers));
         return registers;
     }
-    else
-        return page->Registers(index - base);
 }
 
 // Return the registers context at a given index
@@ -858,7 +858,7 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
     }
 }
 
-TRACEINDEX TraceFilePage::Length() const noexcept
+TRACEINDEX TraceFilePage::Length() const
 {
     return length;
 }

@@ -347,12 +347,12 @@ void TraceWidget::setupFollowMenu(QMenu* menu)
 
             if(zydis[opindex].type == ZYDIS_OPERAND_TYPE_MEMORY)
             {
+                if(traceDump->isValidReadPtr(value))
+                {
+                    addFollowMenuItem(menu, tr("&Address: ") + QString::fromStdString(zydis.OperandText(opindex)), value);
+                }
                 if(zydis[opindex].size == sizeof(void*) * 8)
                 {
-                    if(traceDump->isValidReadPtr(value))
-                    {
-                        addFollowMenuItem(menu, tr("&Address: ") + QString::fromStdString(zydis.OperandText(opindex)), value);
-                    }
                     for(uint8_t memaccessindex = 0; memaccessindex < MemoryOperandsCount; memaccessindex++)
                     {
                         if(MemoryAddress[memaccessindex] == value)

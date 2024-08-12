@@ -17,7 +17,7 @@ class TraceFilePage
 {
 public:
     TraceFilePage(TraceFileReader* parent, unsigned long long fileOffset, TRACEINDEX maxLength);
-    TRACEINDEX Length() const noexcept;
+    TRACEINDEX Length() const;
     const REGDUMP & Registers(TRACEINDEX index) const;
     const duint Address(TRACEINDEX index) const;
     void OpCode(TRACEINDEX index, unsigned char* buffer, int* opcodeSize) const;
