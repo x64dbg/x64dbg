@@ -15,7 +15,7 @@ public:
     {
         duint addr;
         TRACEINDEX index;
-        friend bool operator <(const Key & a, const Key & b)
+        friend bool operator <(const Key & a, const Key & b) noexcept
         {
             // order is inverted, highest address is less! We want to use lower_bound() to find last memory access index.
             return a.addr > b.addr || a.addr == b.addr && a.index > b.index;
@@ -32,11 +32,11 @@ public:
     TraceFileDump();
     ~TraceFileDump();
     void clear();
-    inline void setEnabled()
+    inline void setEnabled() noexcept
     {
         enabled = true;
     }
-    inline bool isEnabled() const
+    inline bool isEnabled() const noexcept
     {
         return enabled;
     }
@@ -48,11 +48,11 @@ public:
     void addMemAccess(duint addr, const void* oldData, const void* newData, size_t size);
     // Find pattern
     void findAllMem(const unsigned char* data, const unsigned char* mask, size_t size, std::function<bool(duint, TRACEINDEX, TRACEINDEX)> matchFunction) const;
-    inline void increaseIndex()
+    inline void increaseIndex() noexcept
     {
         maxIndex++;
     }
-    inline TRACEINDEX getMaxIndex()
+    inline TRACEINDEX getMaxIndex() noexcept
     {
         return maxIndex;
     }

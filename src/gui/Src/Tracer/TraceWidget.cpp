@@ -145,9 +145,8 @@ void TraceWidget::traceSelectionChanged(TRACEINDEX selection)
 
 void TraceWidget::xrefSlot(duint addr)
 {
-    if(!mDump)
-        if(!loadDumpFully())
-            return;
+    if(!loadDumpFully())
+        return;
     if(!mXrefDlg)
         mXrefDlg = new TraceXrefBrowseDialog(this);
     mXrefDlg->setup(mTraceBrowser->getInitialSelection(), addr, mTraceFile, [this](duint addr)
@@ -248,8 +247,15 @@ bool TraceWidget::loadDumpFully()
         if(!loadDump())
             return false;
 
+    QTime ticks;
+    ticks.start();
     // Fully build dump index
     mTraceFile->buildDumpTo(mTraceFile->Length() - 1);
+    auto elapsed = ticks.elapsed();
+    if(elapsed >= 200)
+    {
+        GuiAddLogMessage(tr("Loaded trace dump in %1ms\n").arg(elapsed).toUtf8().constData());
+    }
     return true;
 }
 
