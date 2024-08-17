@@ -165,6 +165,7 @@ signals:
     void focusStack();
     void focusGraph();
     void focusMemmap();
+    void focusSymmod();
     void updateWatch();
     void loadGraph(BridgeCFGraphList* graph, duint addr);
     void graphAt(duint addr);
