@@ -106,6 +106,7 @@ static void registercommands()
     dbgcmdnew("add", cbInstrAdd, false);
     dbgcmdnew("sub", cbInstrSub, false);
     dbgcmdnew("mul", cbInstrMul, false);
+    dbgcmdnew("mulhi", cbInstrMulhi, false);
     dbgcmdnew("div", cbInstrDiv, false);
     dbgcmdnew("and", cbInstrAnd, false);
     dbgcmdnew("or", cbInstrOr, false);
@@ -120,6 +121,8 @@ static void registercommands()
     dbgcmdnew("sar", cbInstrSar, false);
     dbgcmdnew("push", cbInstrPush, true);
     dbgcmdnew("pop", cbInstrPop, true);
+    dbgcmdnew("popcnt", cbInstrPopcnt, false);
+    dbgcmdnew("lzcnt", cbInstrLzcnt, false);
     dbgcmdnew("test", cbInstrTest, false);
     dbgcmdnew("cmp", cbInstrCmp, false);
     dbgcmdnew("mov,set", cbInstrMov, false); //mov a variable, arg1:dest,arg2:src
