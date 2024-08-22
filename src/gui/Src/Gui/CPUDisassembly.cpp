@@ -3,6 +3,7 @@
 #include <QFile>
 #include <QDesktopServices>
 #include <QClipboard>
+#include <QStringList>
 #include "CPUDisassembly.h"
 #include "main.h"
 #include "CPUSideBar.h"
@@ -295,6 +296,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     MenuBuilder* copyMenu = new MenuBuilder(this);
     copyMenu->addAction(makeShortcutAction(DIcon("copy_selection"), tr("&Selection"), SLOT(copySelectionSlot()), "ActionCopy"));
     copyMenu->addAction(makeAction(DIcon("copy_selection"), tr("Selection to &File"), SLOT(copySelectionToFileSlot())));
+    copyMenu->addAction(makeAction(DIcon("copy_selection"), tr("Selection (Bytes only)"), SLOT(copySelectionBytesSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_selection_no_bytes"), tr("Selection (&No Bytes)"), SLOT(copySelectionNoBytesSlot())));
     copyMenu->addAction(makeAction(DIcon("copy_selection_no_bytes"), tr("Selection to File (No Bytes)"), SLOT(copySelectionToFileNoBytesSlot())));
     copyMenu->addAction(makeShortcutAction(DIcon("copy_address"), tr("&Address"), SLOT(copyAddressSlot()), "ActionCopyAddress"));
@@ -1518,6 +1520,32 @@ void CPUDisassembly::copySelectionToFileSlot(bool copyBytes)
         pushSelectionInto(copyBytes, stream);
         file.close();
     }
+}
+
+void CPUDisassembly::copySelectionBytesSlot()
+{
+    QStringList lines;
+
+    prepareDataRange(getSelectionStart(), getSelectionEnd(), [&](int i, const Instruction_t & inst)
+    {
+        QByteArray bytes = inst.dump.toHex().toUpper();
+        QString hexString;
+        hexString.reserve(bytes.size() + bytes.size() / 2);
+
+        for(int j = 0; j < bytes.size(); j += 2)
+        {
+            if(j > 0)
+            {
+                hexString.append(' ');
+            }
+            hexString.append(bytes.mid(j, 2));
+        }
+
+        lines.append(hexString);
+        return true;
+    });
+
+    Bridge::CopyToClipboard(lines.join("\r\n"));
 }
 
 void CPUDisassembly::setSideBar(CPUSideBar* sideBar)
