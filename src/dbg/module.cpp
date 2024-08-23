@@ -677,13 +677,30 @@ static void ReadExceptionDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         return;
 
     Info.runtimeFunctions.resize(totalBytes / sizeof(RUNTIME_FUNCTION));
-    for(size_t i = 0; i < Info.runtimeFunctions.size(); i++)
-        Info.runtimeFunctions[i] = baseRuntimeFunctions[i];
+    memcpy(Info.runtimeFunctions.data(), baseRuntimeFunctions, Info.runtimeFunctions.size() * sizeof(RUNTIME_FUNCTION));
+
+    for(const auto & runtimeFunction : Info.runtimeFunctions)
+    {
+        if((runtimeFunction.UnwindData & RUNTIME_FUNCTION_INDIRECT) != 0)
+        {
+            auto parentEntryRva = runtimeFunction.UnwindData & ~RUNTIME_FUNCTION_INDIRECT;
+            auto parentIndex = (parentEntryRva - ((ULONG_PTR)baseRuntimeFunctions - FileMapVA)) / sizeof(RUNTIME_FUNCTION);
+            if(parentIndex < Info.runtimeFunctions.size())
+            {
+                const auto & parentEntry = Info.runtimeFunctions[parentIndex];
+                Info.parentFunctions.emplace_back(parentEntryRva, parentEntry.BeginAddress);
+            }
+        }
+    }
 
     std::stable_sort(Info.runtimeFunctions.begin(), Info.runtimeFunctions.end(), [](const RUNTIME_FUNCTION & a, const RUNTIME_FUNCTION & b)
     {
         return std::tie(a.BeginAddress, a.EndAddress) < std::tie(b.BeginAddress, b.EndAddress);
     });
+
+    std::stable_sort(Info.parentFunctions.begin(), Info.parentFunctions.end());
+    dprintf("parent functions: %d, runtime functions: %d\n", (int)Info.parentFunctions.size(), (int)Info.runtimeFunctions.size()
+           );
 }
 #endif // _WIN64
 
@@ -1336,17 +1353,30 @@ bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONI
 }
 
 #if _WIN64
-const RUNTIME_FUNCTION* MODINFO::findRuntimeFunction(DWORD rva) const
+const RUNTIME_FUNCTION* MODINFO::findRuntimeFunction(DWORD rva, bool resolveIndirect) const
 {
-    const auto found = std::lower_bound(runtimeFunctions.cbegin(), runtimeFunctions.cend(), rva, [](const RUNTIME_FUNCTION & a, const DWORD & rva)
+    const auto entryItr = std::lower_bound(runtimeFunctions.cbegin(), runtimeFunctions.cend(), rva, [](const RUNTIME_FUNCTION & a, const DWORD & rva)
     {
         return a.EndAddress <= rva;
     });
 
-    if(found != runtimeFunctions.cend() && rva >= found->BeginAddress)
-        return &*found;
+    if(entryItr == runtimeFunctions.cend() || rva < entryItr->BeginAddress)
+        return nullptr;
 
-    return nullptr;
+    auto entry = &*entryItr;
+    if(resolveIndirect && (entry->UnwindData & RUNTIME_FUNCTION_INDIRECT))
+    {
+        auto parentEntryRva = entry->UnwindData & ~RUNTIME_FUNCTION_INDIRECT;
+        const auto parentItr = std::lower_bound(parentFunctions.begin(), parentFunctions.end(), parentEntryRva, [](const std::pair<DWORD, DWORD> & a, const DWORD & b)
+        {
+            return a.first < b;
+        });
+        if(parentItr == parentFunctions.end() || rva < parentItr->first)
+            return nullptr;
+
+        return findRuntimeFunction(parentItr->second, false);
+    }
+    return entry;
 }
 #endif
 

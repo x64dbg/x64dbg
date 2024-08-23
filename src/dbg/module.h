@@ -92,9 +92,10 @@ struct MODINFO
     std::vector<MODRELOCATIONINFO> relocations;
     std::vector<duint> tlsCallbacks;
 #if _WIN64
+    std::vector<std::pair<uint32_t, uint32_t>> parentFunctions; //key: function RVA, value: parent function RVA
     std::vector<RUNTIME_FUNCTION> runtimeFunctions; //sorted by (begin, end)
 
-    const RUNTIME_FUNCTION* findRuntimeFunction(DWORD rva) const;
+    const RUNTIME_FUNCTION* findRuntimeFunction(DWORD rva, bool resolveIndirect = true) const;
 #endif // _WIN64
 
     MODEXPORT entrySymbol;
