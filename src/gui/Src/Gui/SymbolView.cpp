@@ -238,6 +238,7 @@ SymbolView::SymbolView(QWidget* parent) : QWidget(parent), ui(new Ui::SymbolView
     connect(Bridge::getBridge(), SIGNAL(clearLog()), this, SLOT(clearSymbolLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(clearSymbolLog()), this, SLOT(clearSymbolLogSlot()));
     connect(Bridge::getBridge(), SIGNAL(selectionSymmodGet(SELECTIONDATA*)), this, SLOT(selectionGetSlot(SELECTIONDATA*)));
+    connect(Bridge::getBridge(), SIGNAL(focusSymmod()), mModuleList, SLOT(setFocus()));
     connect(mModuleList->stdList(), SIGNAL(selectionChanged(duint)), this, SLOT(moduleSelectionChanged(duint)));
     connect(mModuleList->stdSearchList(), SIGNAL(selectionChanged(duint)), this, SLOT(moduleSelectionChanged(duint)));
     connect(mModuleList, SIGNAL(emptySearchResult()), this, SLOT(emptySearchResultSlot()));

@@ -103,6 +103,8 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(symbolSelectModule(duint)), this, SLOT(displaySymbolWidget()));
     connect(Bridge::getBridge(), SIGNAL(closeApplication()), this, SLOT(close()));
     connect(Bridge::getBridge(), SIGNAL(showTraceBrowser()), this, SLOT(displayTraceWidget()));
+    connect(Bridge::getBridge(), SIGNAL(focusMemmap()), this, SLOT(displayMemMapWidget()));
+    connect(Bridge::getBridge(), SIGNAL(focusSymmod()), this, SLOT(displaySymbolWidget()));
 
     // Setup menu API
 
