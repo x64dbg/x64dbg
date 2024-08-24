@@ -19,14 +19,14 @@ MemoryMapView::MemoryMapView(StdTable* parent)
 {
     setDrawDebugOnly(true);
     enableMultiSelection(true);
+    setAddressColumn(ColAddress);
 
     int charwidth = getCharWidth();
-
-    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Address"), true, tr("Address")); //addr
-    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Size"), false, tr("Size")); //size
-    addColumnAt(charwidth * 9, tr("Party"), false); // party
-    addColumnAt(8 + charwidth * 32, tr("Info"), false, tr("Page Information")); //page information
-    addColumnAt(8 + charwidth * 28, tr("Content"), false, tr("Content of section")); //content of section
+    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Address"), true, tr("Address"), SortBy::AsHex); //addr
+    addColumnAt(8 + charwidth * 2 * sizeof(duint), tr("Size"), true, tr("Size"), SortBy::AsHex); //size
+    addColumnAt(charwidth * 9, tr("Party"), true); // party
+    addColumnAt(8 + charwidth * 32, tr("Info"), true, tr("Page Information")); //page information
+    addColumnAt(8 + charwidth * 28, tr("Content"), true, tr("Content of section")); //content of section
     addColumnAt(8 + charwidth * 5, tr("Type"), true, tr("Allocation Type")); //allocation type
     addColumnAt(8 + charwidth * 11, tr("Protection"), true, tr("Current Protection")); //current protection
     addColumnAt(8 + charwidth * 8, tr("Initial"), true, tr("Allocation Protection")); //allocation protection
@@ -41,15 +41,10 @@ MemoryMapView::MemoryMapView(StdTable* parent)
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(duint, duint)), this, SLOT(disassembleAtSlot(duint, duint)));
     connect(Bridge::getBridge(), SIGNAL(focusMemmap()), this, SLOT(setFocus()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
-    connect(this, SIGNAL(sortHappenedSignal()), this, SLOT(sortHappenedSlot()));
     connect(this, SIGNAL(selectionChanged(duint)), this, SLOT(selectionChangedSlot(duint)));
+    connect(this, SIGNAL(sortChangedSignal()), this, SLOT(fixSelectionRangeSlot()));
 
     setupContextMenu();
-}
-
-void MemoryMapView::sortHappenedSlot()
-{
-    selectAddressRange(mSelectedAddressRange);
 }
 
 void MemoryMapView::setupContextMenu()
@@ -205,7 +200,46 @@ void MemoryMapView::setupContextMenu()
 
 void MemoryMapView::selectionChangedSlot(duint index)
 {
-    mSelectedAddressRange = getAddressRangeFromSelection(getSelection());
+    Q_UNUSED(index);
+
+    mSelectionStart = getCellUserdata(mSelection.firstSelectedIndex, ColAddress);
+    mSelectionEnd = mSelectionStart + getCellUserdata(mSelection.firstSelectedIndex, ColSize);
+    mSelectionCount = mSelection.toIndex - mSelection.fromIndex;
+    mSelectionSort = mSort.column;
+}
+
+void MemoryMapView::fixSelectionRangeSlot()
+{
+    for(duint row = 0; row < getRowCount(); row++)
+    {
+        auto start = getCellUserdata(row, ColAddress);
+        auto end = start + getCellUserdata(row, ColSize);
+        if(start == mSelectionStart && end == mSelectionEnd)
+        {
+            // Restore the selection
+            mSelection.firstSelectedIndex = row;
+            mSelection.fromIndex = mSelection.toIndex = row;
+            if(mSelectionSort == mSort.column)
+            {
+                mSelection.toIndex += mSelectionCount;
+                updateViewport();
+            }
+            else
+            {
+                // Scroll to the selected range when the sort changes
+                auto rangefrom = getTableOffset();
+                auto rangeto = rangefrom + getViewableRowsCount() - 1;
+                if(mSelection.fromIndex < rangefrom) //offset lays before the current view
+                    setTableOffset(mSelection.fromIndex);
+                else if(mSelection.toIndex > (rangeto - 1)) //offset lays after the current view
+                    setTableOffset(mSelection.toIndex - getViewableRowsCount() + 1);
+                else
+                    updateViewport();
+            }
+
+            break;
+        }
+    }
 }
 
 void MemoryMapView::refreshShortcutsSlot()
@@ -438,98 +472,6 @@ static QString getProtectionString(DWORD protect)
     }
 }
 
-
-void MemoryMapView::selectAddressRange(const std::pair<duint, duint> & addressRange)
-{
-    if(addressRange.first == 0 || addressRange.second == 0)
-        return;
-
-    const auto savedAddressRange = addressRange;
-
-    QList<duint> selectedRows{};
-
-    for(duint i = mSort.ascending ? 0 : (getRowCount() - 1); i < getRowCount();  mSort.ascending ? i++ : i--)
-    {
-        auto currRowAddress = getCellUserdata(i, ColAddress);
-        auto currRowSize = getCellUserdata(i, ColSize);
-        std::pair<duint, duint> currAddressRange{currRowAddress, currRowAddress + currRowSize};
-
-        if(currAddressRange.second != 0)
-            currAddressRange.second--;
-
-        if((currAddressRange.first >= savedAddressRange.first && savedAddressRange.first <= currAddressRange.second) &&
-                (currAddressRange.second <= savedAddressRange.second && savedAddressRange.second >= currAddressRange.first))
-        {
-            selectedRows.append(i);
-        }
-        else if(!selectedRows.empty())
-        {
-            break;
-        }
-    }
-
-    if(selectedRows.empty())
-        return;
-
-    SelectionData toSet{};
-
-    if(mSort.ascending)
-    {
-        toSet.firstSelectedIndex = selectedRows.at(0);
-        toSet.toIndex = *(selectedRows.cend() - 1);
-    }
-    else
-    {
-        toSet.firstSelectedIndex = *(selectedRows.cend() - 1);
-        toSet.toIndex = selectedRows.at(0);
-    }
-
-    toSet.fromIndex = toSet.firstSelectedIndex;
-    tryEmitAddressSelectionChange(toSet, savedAddressRange);
-}
-
-void MemoryMapView::tryEmitAddressSelectionChange(const SelectionData & newSelection, const std::pair<duint, duint> & basedUpon)
-{
-    if(basedUpon.first == mSelectedAddressRange.first && basedUpon.second == mSelectedAddressRange.second)
-    {
-        if(newSelection.firstSelectedIndex != mSelection.firstSelectedIndex ||
-                newSelection.fromIndex != mSelection.fromIndex ||
-                newSelection.toIndex != mSelection.toIndex)
-        {
-            mSelection = newSelection;
-            emit selectionChanged(newSelection.firstSelectedIndex);
-        }
-    }
-}
-
-std::pair<duint, duint> MemoryMapView::getAddressRangeFromSelection(QList<duint> & selection)
-{
-    if(selection.empty())
-        return {};
-
-    std::map<duint, duint> entries;
-
-    for(duint i : selection)
-    {
-        entries.emplace(
-            std::pair<duint, duint>
-            (getCellUserdata(i, ColAddress), i));
-    }
-
-    duint startAddress = entries.cbegin()->first;
-
-    auto lastValidElement = --entries.cend();
-    duint lastAddressRow = lastValidElement->second;
-    duint lastAddressSize = getCellUserdata(lastAddressRow, ColSize);
-
-    duint lastAddress = lastValidElement->first + lastAddressSize;
-
-    if(lastAddress != 0) // watchout for 0
-        lastAddress--;   // decrementing by one to make it [addr, addr + size - 1] instead of [addr, addr + size)
-
-    return {startAddress, lastAddress};
-}
-
 void MemoryMapView::refreshMapSlot()
 {
     MEMMAP memoryMap = {};
@@ -632,8 +574,7 @@ void MemoryMapView::refreshMapSlot()
         BridgeFree(memoryMap.page);
 
     reloadData(); //refresh memory map
-
-    selectAddressRange(mSelectedAddressRange);
+    fixSelectionRangeSlot();
 }
 
 void MemoryMapView::stateChangedSlot(DBGSTATE state)
