@@ -1032,7 +1032,13 @@ void AbstractStdTable::headerButtonPressedSlot(duint col)
 {
     if(!mIsColumnSortingAllowed)
         return;
-    if(mSort.column != col)
+
+    if(mSort.column == -1 && col == mAddressColumn)
+    {
+        mSort.column = col;
+        mSort.ascending = false;
+    }
+    else if(mSort.column != col)
     {
         mSort.column = col;
         mSort.ascending = true;
@@ -1040,6 +1046,8 @@ void AbstractStdTable::headerButtonPressedSlot(duint col)
     else
         mSort.ascending = !mSort.ascending;
     reloadData();
+
+    emit sortChangedSignal();
 }
 
 void AbstractStdTable::reloadData()

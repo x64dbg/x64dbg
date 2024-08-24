@@ -16,6 +16,8 @@ signals:
     void showReferences();
 
 public slots:
+    void selectionChangedSlot(duint index);
+    void fixSelectionRangeSlot();
     void refreshShortcutsSlot();
     void stateChangedSlot(DBGSTATE state);
     void followDumpSlot();
@@ -105,5 +107,9 @@ private:
     QAction* mReferences;
     QMenu* mPluginMenu;
 
-    duint mCipBase;
+    duint mCipBase = 0;
+    duint mSelectionStart = 0;
+    duint mSelectionEnd = 0;
+    duint mSelectionCount = 0;
+    duint mSelectionSort = -1;
 };
