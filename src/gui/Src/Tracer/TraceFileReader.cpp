@@ -175,14 +175,25 @@ REGDUMP TraceFileReader::Registers(TRACEINDEX index)
 {
     TRACEINDEX base;
     TraceFilePage* page = getPage(index, &base);
-    if(page == nullptr)
+    if(page != nullptr)
+        return page->Registers(index - base);
+    else
     {
         REGDUMP registers;
         memset(&registers, 0, sizeof(registers));
         return registers;
     }
+}
+
+// Return the registers context at a given index
+duint TraceFileReader::Address(TRACEINDEX index)
+{
+    TRACEINDEX base;
+    TraceFilePage* page = getPage(index, &base);
+    if(page == nullptr)
+        return 0;
     else
-        return page->Registers(index - base);
+        return page->Address(index - base);
 }
 
 // Return the opcode at a given index. buffer must be 16 bytes long.
@@ -455,12 +466,11 @@ static bool readBlock(QFile & traceFile)
         throw std::wstring(L"Read block type failed");
     if(blockType == 0)
     {
-
         if(traceFile.read((char*)&changedCountFlags, 3) != 3)
             throw std::wstring(L"Read flags failed");
         //skipping: thread id, registers
         if(traceFile.seek(traceFile.pos() + ((changedCountFlags[2] & 0x80) ? 4 : 0) + (changedCountFlags[2] & 0x0F) + changedCountFlags[0] * (1 + sizeof(duint))) == false)
-            throw std::wstring(L"Unspecified");
+            throw std::wstring(L"Seek failed");
         QByteArray memflags;
         memflags = traceFile.read(changedCountFlags[1]);
         if(memflags.length() < changedCountFlags[1])
@@ -469,7 +479,7 @@ static bool readBlock(QFile & traceFile)
         for(unsigned char i = 0; i < changedCountFlags[1]; i++)
             skipOffset += ((memflags[i] & 1) == 1) ? 2 : 3;
         if(traceFile.seek(traceFile.pos() + skipOffset * sizeof(duint)) == false)
-            throw std::wstring(L"Unspecified");
+            throw std::wstring(L"Seek failed");
         //Gathered information, build index
         if(changedCountFlags[0] == (FIELD_OFFSET(REGDUMP, lastError) + sizeof(DWORD)) / sizeof(duint))
             return true;
@@ -603,87 +613,44 @@ void TraceFileReader::purgeLastPage()
 // Extract memory access information of given index into dump object
 void TraceFileReader::buildDump(TRACEINDEX index)
 {
-    unsigned char opcode[MAX_DISASM_BUFFER];
-    int opcodeSize;
-    REGDUMP registers = Registers(index);;
-    OpCode(index, opcode, &opcodeSize);
-    // Always add opcode into dump
-    dump.addMemAccess(registers.regcontext.cip, opcode, opcode, opcodeSize);
-    int MemoryOperandsCount = MemoryAccessCount(index);
-    if(MemoryOperandsCount == 0) //LEA and NOP instructions are ignored here
-        return;
-    // Method 1
-    // TODO: This doesn't get correct memory operand size
-    duint oldMemory[32];
-    duint newMemory[32];
-    duint address[32];
-    bool isValid[32];
-    MemoryAccessInfo(index, address, oldMemory, newMemory, isValid);
-    for(int i = 0; i < MemoryOperandsCount; i++)
+    try
     {
-        dump.addMemAccess(address[i], &oldMemory[i], &newMemory[i], sizeof(duint));
-    }
-    // Method 2
-    /*
-    // TODO: This works poorly for edge cases, still doesn't work with PUSH DWORD PTR FS:[ESP+EAX]
-    Zydis zydis;
-    zydis.Disassemble(registers.regcontext.cip, opcode, opcodeSize);
-    //bool used[32];
-    //memset(used, 0, sizeof(used));
-    // fix PUSH DWORD PTR [ESP] uses different ESP values
-    if(zydis.GetInstr()->mnemonic == ZYDIS_MNEMONIC_PUSH) // fix PUSH instructions, add explicit memory operand
-    {
-        const auto & operand = zydis[0];
-        if(operand.type == ZYDIS_OPERAND_TYPE_MEMORY)
+        unsigned char opcode[MAX_DISASM_BUFFER];
+        int opcodeSize;
+        duint cip = Address(index);;
+        OpCode(index, opcode, &opcodeSize);
+        int MemoryOperandsCount = MemoryAccessCount(index);
+        // Method 1
+        // TODO: This doesn't get correct memory operand size
+        duint oldMemory[32];
+        duint newMemory[32];
+        duint address[32];
+        bool isValid[32];
+        if(MemoryOperandsCount > 0) //LEA and NOP instructions are ignored here
         {
-            int size;
-            size = ceil((float)operand.size / 8.0f);
-            size_t value = zydis.ResolveOpValue(0, [&registers](ZydisRegister reg)
-            {
-                return resolveZydisRegister(registers, reg);
-            });
-            bool found = false;
-            for(int i = 0; i < MemoryOperandsCount; i++)
-            {
-                // TODO: fix up FS/GS segment
-                if(address[i] != value)
-                    continue;
-                dump.addMemAccess(address[i], &oldMemory[i], &newMemory[i], size);
-                found = true;
-                break;
-            }
-            //if(!found)
-            //bug???
-            //GuiAddLogMessage(QString("buildDump bug %1???\n").arg(index).toUtf8().constData());
+            MemoryAccessInfo(index, address, oldMemory, newMemory, isValid);
         }
-    }
-    // fix PUSH instructions, add implicit memory operand
-    if(zydis.GetInstr()->mnemonic == ZYDIS_MNEMONIC_PUSH ||zydis.GetInstr()->mnemonic == ZYDIS_MNEMONIC_PUSHF || zydis.GetInstr()->mnemonic == ZYDIS_MNEMONIC_PUSHFD || zydis.GetInstr()->mnemonic == ZYDIS_MNEMONIC_PUSHFQ)
-    {
-        size_t new_csp = registers.regcontext.csp - sizeof(duint);
-        bool found = false;
-        for(int i = 0; i < MemoryOperandsCount; i++)
+        dump.addMemAccess(cip, opcode, opcodeSize, address, oldMemory, newMemory, MemoryOperandsCount);
+        //for(int i = 0; i < MemoryOperandsCount; i++)
+        //{
+        //    dump.addMemAccess(address[i], &oldMemory[i], &newMemory[i], sizeof(duint));
+        //}
+        // Method 2
+        /*
+        // TODO: This works poorly for edge cases, still doesn't work with PUSH DWORD PTR FS:[ESP+EAX]
+        Zydis zydis;
+        zydis.Disassemble(registers.regcontext.cip, opcode, opcodeSize);
+        //bool used[32];
+        //memset(used, 0, sizeof(used));
+        // fix PUSH DWORD PTR [ESP] uses different ESP values
+        if(zydis.GetInstr()->mnemonic == ZYDIS_MNEMONIC_PUSH) // fix PUSH instructions, add explicit memory operand
         {
-            if(address[i] != new_csp)
-                continue;
-            dump.addMemAccess(address[i], &oldMemory[i], &newMemory[i], sizeof(duint));
-            found = true;
-            break;
-        }
-        //if(!found)
-        //bug???
-        //GuiAddLogMessage(QString("buildDump bug %1???\n").arg(index).toUtf8().constData());
-    }
-    else
-    {
-        for(int opindex = 0; opindex < zydis.GetInstr()->operandCount; opindex++)
-        {
-            const auto & operand = zydis.GetInstr()->operands[opindex];
+            const auto & operand = zydis[0];
             if(operand.type == ZYDIS_OPERAND_TYPE_MEMORY)
             {
                 int size;
                 size = ceil((float)operand.size / 8.0f);
-                size_t value = zydis.ResolveOpValue(opindex, [&registers](ZydisRegister reg)
+                size_t value = zydis.ResolveOpValue(0, [&registers](ZydisRegister reg)
                 {
                     return resolveZydisRegister(registers, reg);
                 });
@@ -702,14 +669,68 @@ void TraceFileReader::buildDump(TRACEINDEX index)
                 //GuiAddLogMessage(QString("buildDump bug %1???\n").arg(index).toUtf8().constData());
             }
         }
+        // fix PUSH instructions, add implicit memory operand
+        if(zydis.GetInstr()->mnemonic == ZYDIS_MNEMONIC_PUSH ||zydis.GetInstr()->mnemonic == ZYDIS_MNEMONIC_PUSHF || zydis.GetInstr()->mnemonic == ZYDIS_MNEMONIC_PUSHFD || zydis.GetInstr()->mnemonic == ZYDIS_MNEMONIC_PUSHFQ)
+        {
+            size_t new_csp = registers.regcontext.csp - sizeof(duint);
+            bool found = false;
+            for(int i = 0; i < MemoryOperandsCount; i++)
+            {
+                if(address[i] != new_csp)
+                    continue;
+                dump.addMemAccess(address[i], &oldMemory[i], &newMemory[i], sizeof(duint));
+                found = true;
+                break;
+            }
+            //if(!found)
+            //bug???
+            //GuiAddLogMessage(QString("buildDump bug %1???\n").arg(index).toUtf8().constData());
+        }
+        else
+        {
+            for(int opindex = 0; opindex < zydis.GetInstr()->operandCount; opindex++)
+            {
+                const auto & operand = zydis.GetInstr()->operands[opindex];
+                if(operand.type == ZYDIS_OPERAND_TYPE_MEMORY)
+                {
+                    int size;
+                    size = ceil((float)operand.size / 8.0f);
+                    size_t value = zydis.ResolveOpValue(opindex, [&registers](ZydisRegister reg)
+                    {
+                        return resolveZydisRegister(registers, reg);
+                    });
+                    bool found = false;
+                    for(int i = 0; i < MemoryOperandsCount; i++)
+                    {
+                        // TODO: fix up FS/GS segment
+                        if(address[i] != value)
+                            continue;
+                        dump.addMemAccess(address[i], &oldMemory[i], &newMemory[i], size);
+                        found = true;
+                        break;
+                    }
+                    //if(!found)
+                    //bug???
+                    //GuiAddLogMessage(QString("buildDump bug %1???\n").arg(index).toUtf8().constData());
+                }
+            }
+        }
+        */
     }
-    */
+    catch(std::bad_alloc &)
+    {
+        error = true;
+        errorMessage = "[TraceFileReader::buildDump] std::bad_alloc";
+        dump.clear(); // There's no enough memory, so we free up some memory
+    }
 }
 
 // Build dump index to the given index
 void TraceFileReader::buildDumpTo(TRACEINDEX index)
 {
     auto start = dump.getMaxIndex(); // Don't re-add existing dump
+    if(start == 0) // maxIndex=0, trace dump is just enabled
+        buildDump(0);
     for(auto i = start + 1; i <= index; i++)
     {
         dump.increaseIndex();
@@ -845,6 +866,11 @@ TRACEINDEX TraceFilePage::Length() const
 const REGDUMP & TraceFilePage::Registers(TRACEINDEX index) const
 {
     return mRegisters.at(index);
+}
+
+const duint TraceFilePage::Address(TRACEINDEX index) const
+{
+    return mRegisters.at(index).regcontext.cip;
 }
 
 void TraceFilePage::OpCode(TRACEINDEX index, unsigned char* buffer, int* opcodeSize) const

@@ -12,7 +12,8 @@
 #include "CommonActions.h"
 #include "CodepageSelectionDialog.h"
 #include "MiscUtil.h"
-#include "BackgroundFlickerThread.h"
+//#include "BackgroundFlickerThread.h"
+#include "TraceFileSearch.h"
 
 TraceDump::TraceDump(Architecture* architecture, TraceWidget* parent, TraceFileDumpMemoryPage* memoryPage) : mMemoryPage(memoryPage), HexDump(architecture, parent, memoryPage)
 {
@@ -82,7 +83,7 @@ void TraceDump::setupContextMenu()
     //TODO: Is it necessary to set memory breakpoints here?
 
     //TODO: find in dump
-    //mMenuBuilder->addAction(makeShortcutAction(DIcon("search-for"), tr("&Find Pattern..."), SLOT(findPattern()), "ActionFindPattern"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("search-for"), tr("&Find Pattern..."), SLOT(findPattern()), "ActionFindPattern"));
     //mMenuBuilder->addAction(makeShortcutAction(DIcon("find"), tr("Find &References"), SLOT(findReferencesSlot()), "ActionFindReferences"));
 
     //TODO: Do we really need to sync with expression here?
@@ -194,12 +195,12 @@ void TraceDump::mousePressEvent(QMouseEvent* event)
     HexDump::mousePressEvent(event);
 }
 
-void TraceDump::getAttention()
-{
-    BackgroundFlickerThread* thread = new BackgroundFlickerThread(this, mBackgroundColor, this);
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    thread->start();
-}
+//void TraceDump::getAttention()
+//{
+//    BackgroundFlickerThread* thread = new BackgroundFlickerThread(this, mBackgroundColor, this);
+//    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+//    thread->start();
+//}
 
 void TraceDump::printDumpAt(duint parVA, bool select, bool repaint, bool updateTableOffset)
 {
@@ -1150,23 +1151,24 @@ void TraceDump::binarySaveToFileSlot()
     }
 }
 
-//TODO
-//void TraceDump::findPattern()
-//{
-//HexEditDialog hexEdit(this);
-//hexEdit.showEntireBlock(true);
-//hexEdit.isDataCopiable(false);
-//hexEdit.mHexEdit->setOverwriteMode(false);
-//hexEdit.setWindowTitle(tr("Find Pattern..."));
-//if(hexEdit.exec() != QDialog::Accepted)
-//return;
-//dsint addr = rvaToVa(getSelectionStart());
-//if(hexEdit.entireBlock())
-//addr = DbgMemFindBaseAddr(addr, 0);
-//QString addrText = ToPtrString(addr);
-//DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&"));
-//emit displayReferencesWidget();
-//}
+void TraceDump::findPattern()
+{
+    HexEditDialog hexEdit(this);
+    hexEdit.showEntireBlock(true);
+    hexEdit.isDataCopiable(false);
+    hexEdit.mHexEdit->setOverwriteMode(false);
+    hexEdit.setWindowTitle(tr("Find Pattern..."));
+    if(hexEdit.exec() != QDialog::Accepted)
+        return;
+    if(mParent->loadDumpFully())
+    {
+        QTime ticks;
+        ticks.start();
+        auto count = TraceFileSearchMemPattern(mParent->getTraceFile(), hexEdit.mHexEdit->pattern());
+        GuiShowReferences();
+        GuiAddLogMessage(QCoreApplication::translate("DBG", "%1 occurrence(s) in %2ms\n").arg(count).arg(ticks.elapsed()).toUtf8().constData());
+    }
+}
 
 void TraceDump::copyFileOffsetSlot()
 {

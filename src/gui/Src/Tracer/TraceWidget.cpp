@@ -145,9 +145,8 @@ void TraceWidget::traceSelectionChanged(TRACEINDEX selection)
 
 void TraceWidget::xrefSlot(duint addr)
 {
-    if(!mDump)
-        if(!loadDumpFully())
-            return;
+    if(!loadDumpFully())
+        return;
     if(!mXrefDlg)
         mXrefDlg = new TraceXrefBrowseDialog(this);
     mXrefDlg->setup(mTraceBrowser->getInitialSelection(), addr, mTraceFile, [this](duint addr)
@@ -248,8 +247,15 @@ bool TraceWidget::loadDumpFully()
         if(!loadDump())
             return false;
 
+    QTime ticks;
+    ticks.start();
     // Fully build dump index
     mTraceFile->buildDumpTo(mTraceFile->Length() - 1);
+    auto elapsed = ticks.elapsed();
+    if(elapsed >= 200)
+    {
+        GuiAddLogMessage(tr("Loaded trace dump in %1ms\n").arg(elapsed).toUtf8().constData());
+    }
     return true;
 }
 
@@ -271,7 +277,7 @@ void TraceWidget::setupDumpInitialAddresses(TRACEINDEX selection)
     else
     {
         // No memory operands, so display opcode instead
-        initialAddress = mTraceFile->Registers(selection).regcontext.cip;
+        initialAddress = mTraceFile->Address(selection);
     }
     mDump->printDumpAt(initialAddress, false, true, true);
     // Setting the initial address of stack view
@@ -341,12 +347,12 @@ void TraceWidget::setupFollowMenu(QMenu* menu)
 
             if(zydis[opindex].type == ZYDIS_OPERAND_TYPE_MEMORY)
             {
+                if(traceDump->isValidReadPtr(value))
+                {
+                    addFollowMenuItem(menu, tr("&Address: ") + QString::fromStdString(zydis.OperandText(opindex)), value);
+                }
                 if(zydis[opindex].size == sizeof(void*) * 8)
                 {
-                    if(traceDump->isValidReadPtr(value))
-                    {
-                        addFollowMenuItem(menu, tr("&Address: ") + QString::fromStdString(zydis.OperandText(opindex)), value);
-                    }
                     for(uint8_t memaccessindex = 0; memaccessindex < MemoryOperandsCount; memaccessindex++)
                     {
                         if(MemoryAddress[memaccessindex] == value)
