@@ -261,7 +261,6 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Gui", "FpuRegistersLittleEndian", &settings.guiFpuRegistersLittleEndian);
     GetSettingBool("Gui", "SaveColumnOrder", &settings.guiSaveColumnOrder);
     GetSettingBool("Gui", "NoCloseDialog", &settings.guiNoCloseDialog);
-    GetSettingBool("Gui", "PidTidInHex", &settings.guiPidTidInHex);
     GetSettingBool("Gui", "SidebarWatchLabels", &settings.guiSidebarWatchLabels);
     GetSettingBool("Gui", "NoForegroundWindow", &settings.guiNoForegroundWindow);
     GetSettingBool("Gui", "LoadSaveTabOrder", &settings.guiLoadSaveTabOrder);
@@ -278,7 +277,6 @@ void SettingsDialog::LoadSettings()
     ui->chkFpuRegistersLittleEndian->setChecked(settings.guiFpuRegistersLittleEndian);
     ui->chkSaveColumnOrder->setChecked(settings.guiSaveColumnOrder);
     ui->chkNoCloseDialog->setChecked(settings.guiNoCloseDialog);
-    ui->chkPidTidInHex->setChecked(settings.guiPidTidInHex);
     ui->chkSidebarWatchLabels->setChecked(settings.guiSidebarWatchLabels);
     ui->chkNoForegroundWindow->setChecked(settings.guiNoForegroundWindow);
     ui->chkSaveLoadTabOrder->setChecked(settings.guiLoadSaveTabOrder);
@@ -431,8 +429,7 @@ void SettingsDialog::SaveSettings()
     //Gui tab
     BridgeSettingSetUint("Gui", "FpuRegistersLittleEndian", settings.guiFpuRegistersLittleEndian);
     BridgeSettingSetUint("Gui", "SaveColumnOrder", settings.guiSaveColumnOrder);
-    BridgeSettingSetUint("Gui", "NoCloseDialog", settings.guiNoCloseDialog);
-    BridgeSettingSetUint("Gui", "PidTidInHex", settings.guiPidTidInHex);
+    BridgeSettingSetUint("Gui", "NoCloseDialog", settings.guiNoCloseDialog);;
     BridgeSettingSetUint("Gui", "SidebarWatchLabels", settings.guiSidebarWatchLabels);
     BridgeSettingSetUint("Gui", "NoForegroundWindow", settings.guiNoForegroundWindow);
     BridgeSettingSetUint("Gui", "LoadSaveTabOrder", settings.guiLoadSaveTabOrder);
@@ -1007,11 +1004,6 @@ void SettingsDialog::on_chkAutoFollowInStack_toggled(bool checked)
 void SettingsDialog::on_chkSkipInt3Stepping_toggled(bool checked)
 {
     settings.engineSkipInt3Stepping = checked;
-}
-
-void SettingsDialog::on_chkPidTidInHex_clicked(bool checked)
-{
-    settings.guiPidTidInHex = checked;
 }
 
 void SettingsDialog::on_chkNoScriptTimeout_stateChanged(int arg1)

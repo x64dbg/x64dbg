@@ -208,7 +208,7 @@ void TraceInfoBox::update(TRACEINDEX selection, TraceFileReader* traceFile, cons
         }
         DWORD tid;
         tid = traceFile->ThreadId(selection);
-        line = QString("ThreadID: %1").arg(ConfigBool("Gui", "PidTidInHex") ? ToHexString(tid) : QString::number(tid));
+        line = QString("ThreadID: %1").arg(QString::number(tid));
         setCellContent(3, 0, line);
     }
     reloadData();

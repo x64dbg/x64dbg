@@ -157,7 +157,6 @@ extern bool bVerboseExceptionLogging;
 extern bool bNoWow64SingleStepWorkaround;
 extern bool bForceLoadSymbols;
 extern bool bNewStringAlgorithm;
-extern bool bPidTidInHex;
 extern bool bWindowLongPath;
 extern duint maxSkipExceptionCount;
 extern HANDLE mProcHandle;
