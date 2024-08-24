@@ -699,8 +699,6 @@ static void ReadExceptionDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     });
 
     std::stable_sort(Info.parentFunctions.begin(), Info.parentFunctions.end());
-    dprintf("parent functions: %d, runtime functions: %d\n", (int)Info.parentFunctions.size(), (int)Info.runtimeFunctions.size()
-           );
 }
 #endif // _WIN64
 
