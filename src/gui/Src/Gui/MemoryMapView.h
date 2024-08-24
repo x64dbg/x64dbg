@@ -111,5 +111,5 @@ private:
     duint mSelectionStart = 0;
     duint mSelectionEnd = 0;
     duint mSelectionCount = 0;
-    duint mSelectionSort = -1;
+    SortData mSelectionSort;
 };

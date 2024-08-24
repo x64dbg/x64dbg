@@ -205,7 +205,7 @@ void MemoryMapView::selectionChangedSlot(duint index)
     mSelectionStart = getCellUserdata(mSelection.firstSelectedIndex, ColAddress);
     mSelectionEnd = mSelectionStart + getCellUserdata(mSelection.firstSelectedIndex, ColSize);
     mSelectionCount = mSelection.toIndex - mSelection.fromIndex;
-    mSelectionSort = mSort.column;
+    mSelectionSort = mSort;
 }
 
 void MemoryMapView::fixSelectionRangeSlot()
@@ -219,7 +219,7 @@ void MemoryMapView::fixSelectionRangeSlot()
             // Restore the selection
             mSelection.firstSelectedIndex = row;
             mSelection.fromIndex = mSelection.toIndex = row;
-            if(mSelectionSort == mSort.column)
+            if(mSelectionSort.column == mSort.column && mSelectionSort.ascending == mSort.ascending)
             {
                 mSelection.toIndex += mSelectionCount;
                 updateViewport();
