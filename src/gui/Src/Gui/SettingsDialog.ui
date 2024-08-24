@@ -868,13 +868,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="chkPidTidInHex">
-         <property name="text">
-          <string>Show PID/TID in HEX</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QCheckBox" name="chkSaveLoadTabOrder">
          <property name="text">
           <string>Enable Load/Save Tab Order</string>

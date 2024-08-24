@@ -100,7 +100,6 @@ private slots:
     void on_chkSaveColumnOrder_stateChanged(int arg1);
     void on_chkSaveLoadTabOrder_stateChanged(int arg1);
     void on_chkNoCloseDialog_toggled(bool checked);
-    void on_chkPidTidInHex_clicked(bool checked);
     void on_chkSidebarWatchLabels_stateChanged(int arg1);
     void on_chkNoForegroundWindow_toggled(bool checked);
     void on_chkShowExitConfirmation_toggled(bool checked);
@@ -236,7 +235,6 @@ private:
         bool guiFpuRegistersLittleEndian = false;
         bool guiSaveColumnOrder = false;
         bool guiNoCloseDialog = false;
-        bool guiPidTidInHex = false;
         bool guiSidebarWatchLabels = false;
         bool guiNoForegroundWindow = true;
         bool guiLoadSaveTabOrder = true;

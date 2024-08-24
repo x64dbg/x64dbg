@@ -3044,10 +3044,7 @@ void dbgcreatedebugthread(INIT_STRUCT* init)
 
 String formatpidtid(DWORD pidtid)
 {
-    if(bPidTidInHex)
-        return StringUtils::sprintf("%X", pidtid);
-    else
-        return StringUtils::sprintf("%u", pidtid);
+    return StringUtils::sprintf("%u", pidtid);
 }
 
 void dbgsetcontinuestatus(DWORD status)

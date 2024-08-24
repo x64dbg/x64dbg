@@ -150,7 +150,7 @@ ThreadView::ThreadView(StdTable* parent) : StdTable(parent)
     enableMultiSelection(true);
     int charwidth = getCharWidth();
     addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, tr("Number"), true, "", SortBy::AsInt);
-    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, tr("ID"), true, "", ConfigBool("Gui", "PidTidInHex") ? SortBy::AsHex : SortBy::AsInt);
+    addColumnAt(8 + charwidth * sizeof(unsigned int) * 2, tr("ID"), true, "", SortBy::AsInt);
     addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("Entry"), true, "", SortBy::AsHex);
     addColumnAt(8 + charwidth * sizeof(duint) * 2, tr("TEB"), true, "", SortBy::AsHex);
     addColumnAt(8 + charwidth * sizeof(duint) * 2, ArchValue(tr("EIP"), tr("RIP")), true, "", SortBy::AsHex);
@@ -208,7 +208,7 @@ void ThreadView::updateThreadListSlot()
     memset(&threadList, 0, sizeof(THREADLIST));
     DbgGetThreadList(&threadList);
     setRowCount(threadList.count);
-    auto tidFormat = ConfigBool("Gui", "PidTidInHex") ? "%X" : "%d";
+    auto tidFormat = "%d";
     for(int i = 0; i < threadList.count; i++)
     {
         if(!threadList.list[i].BasicInfo.ThreadNumber)
