@@ -71,6 +71,23 @@ bool cbInstrMul(int argc, char* argv[])
     return cmddirectexec(StringUtils::sprintf("%s*=%s", argv[1], argv[2]).c_str());
 }
 
+bool cbInstrMulhi(int argc, char* argv[])
+{
+    duint value2;
+    if(IsArgumentsLessThan(argc, 3) || !valfromstring(argv[2], &value2, false))
+        return false;
+
+    return ReadWriteVariable(argv[1], [value2](duint * value, int size)
+    {
+#ifdef _WIN64
+        *value = UnsignedMultiplyHigh(*value, value2);
+#else //x86
+        *value = (((unsigned long long)value2) * (*value)) >> 32;
+#endif
+        return true;
+    });
+}
+
 bool cbInstrDiv(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 3))
@@ -246,6 +263,91 @@ bool cbInstrPop(int argc, char* argv[])
         if(!valtostring(argv[1], value, false))
             return false;
     }
+    return true;
+}
+
+bool cbInstrPopcnt(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 3))
+        return false;
+    duint arg = 0;
+    if(!valfromstring(argv[2], &arg, false))
+        return false;
+    duint ezflag;
+    duint bsflag = 0;
+    if(arg == 0)
+    {
+        ezflag = 1;
+    }
+    else
+    {
+        ezflag = 0;
+#ifdef _WIN64
+        arg = __popcnt64(arg);
+#else //x86
+        arg = __popcnt(arg);
+#endif
+        bool isvar = false;
+        duint temp = 0;
+        valfromstring(argv[1], &temp, true, true, 0, &isvar, 0); //there is no return check on this because the destination might not exist yet
+        if(!isvar)
+            isvar = vargettype(argv[1], 0);
+        if(!isvar || !valtostring(argv[1], arg, true))
+        {
+            duint value;
+            if(valfromstring(argv[1], &value))  //if the var is a value already it's an invalid destination
+            {
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid dest \"%s\"\n"), argv[1]);
+                return false;
+            }
+            varnew(argv[1], arg, VAR_USER);
+        }
+    }
+    varset("$_EZ_FLAG", ezflag, true);
+    varset("$_BS_FLAG", bsflag, true);
+    return true;
+}
+
+bool cbInstrLzcnt(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 3))
+        return false;
+    duint arg = 0;
+    if(!valfromstring(argv[2], &arg, false))
+        return false;
+    duint ezflag;
+    duint bsflag = 0;
+    if(arg == 0)
+    {
+        ezflag = 1;
+        arg = sizeof(duint);
+    }
+    else
+    {
+        ezflag = 0;
+#ifdef _WIN64
+        arg = __lzcnt64(arg);
+#else //x86
+        arg = __lzcnt(arg);
+#endif
+        bool isvar = false;
+        duint temp = 0;
+        valfromstring(argv[1], &temp, true, true, 0, &isvar, 0); //there is no return check on this because the destination might not exist yet
+        if(!isvar)
+            isvar = vargettype(argv[1], 0);
+        if(!isvar || !valtostring(argv[1], arg, true))
+        {
+            duint value;
+            if(valfromstring(argv[1], &value))  //if the var is a value already it's an invalid destination
+            {
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid dest \"%s\"\n"), argv[1]);
+                return false;
+            }
+            varnew(argv[1], arg, VAR_USER);
+        }
+    }
+    varset("$_EZ_FLAG", ezflag, true);
+    varset("$_BS_FLAG", bsflag, true);
     return true;
 }
 
