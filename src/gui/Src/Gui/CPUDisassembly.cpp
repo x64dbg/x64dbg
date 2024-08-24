@@ -114,10 +114,7 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
         }
         else
         {
-            duint dest = DbgGetBranchDestination(rvaToVa(getInitialSelection()));
-
-            if(DbgMemIsValidReadPtr(dest))
-                gotoAddress(dest);
+            followInstruction(getInitialSelection());
         }
     }
     break;

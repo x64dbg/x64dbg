@@ -93,6 +93,7 @@ public:
     void unfold(duint rva);
     bool hightlightToken(const ZydisTokenizer::SingleToken & token);
     bool isHighlightMode() const;
+    bool followInstruction(duint rva);
 
 signals:
     void selectionChanged(duint va);

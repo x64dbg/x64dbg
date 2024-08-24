@@ -935,46 +935,7 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
     }
     else if(key == Qt::Key_Return || key == Qt::Key_Enter)
     {
-        // Follow branch instruction
-        duint dest = DbgGetBranchDestination(rvaToVa(getInitialSelection()));
-        if(DbgMemIsValidReadPtr(dest))
-        {
-            gotoAddress(dest);
-            return;
-        }
-#ifdef X64DBG
-        // Follow memory operand in dump
-        DISASM_INSTR instr;
-        DbgDisasmAt(rvaToVa(getInitialSelection()), &instr);
-        for(int op = instr.argcount - 1; op >= 0; op--)
-        {
-            if(instr.arg[op].type == arg_memory)
-            {
-                dest = instr.arg[op].value;
-                if(DbgMemIsValidReadPtr(dest))
-                {
-                    if(instr.arg[op].segment == SEG_SS)
-                        DbgCmdExec(QString("sdump %1").arg(ToPtrString(dest)));
-                    else
-                        DbgCmdExec(QString("dump %1").arg(ToPtrString(dest)));
-                    return;
-                }
-            }
-        }
-        // Follow constant in dump
-        for(int op = instr.argcount - 1; op >= 0; op--)
-        {
-            if(instr.arg[op].type == arg_normal)
-            {
-                dest = instr.arg[op].value;
-                if(DbgMemIsValidReadPtr(dest))
-                {
-                    DbgCmdExec(QString("dump %1").arg(ToPtrString(dest)));
-                    return;
-                }
-            }
-        }
-#endif // X64DBG
+        followInstruction(getInitialSelection());
     }
     else
         AbstractTableView::keyPressEvent(event);
@@ -2366,4 +2327,54 @@ bool Disassembly::hightlightToken(const ZydisTokenizer::SingleToken & token)
 bool Disassembly::isHighlightMode() const
 {
     return mHighlightingMode;
+}
+
+bool Disassembly::followInstruction(duint rva)
+{
+    // Follow branch instruction
+    duint dest = DbgGetBranchDestination(rvaToVa(rva));
+    if(DbgMemIsValidReadPtr(dest))
+    {
+        gotoAddress(dest);
+        return true;
+    }
+#ifdef X64DBG
+    // Follow memory operand in dump
+    DISASM_INSTR instr;
+    DbgDisasmAt(rvaToVa(rva), &instr);
+    for(int op = instr.argcount - 1; op >= 0; op--)
+    {
+        if(instr.arg[op].type == arg_memory)
+        {
+            dest = instr.arg[op].value;
+            if(DbgMemIsValidReadPtr(dest))
+            {
+                if(DbgFunctions()->MemIsCodePage(dest, false))
+                    gotoAddress(dest);
+                else if(instr.arg[op].segment == SEG_SS)
+                    DbgCmdExec(QString("sdump %1").arg(ToPtrString(dest)));
+                else
+                    DbgCmdExec(QString("dump %1").arg(ToPtrString(dest)));
+                return true;
+            }
+        }
+    }
+    // Follow constant in dump
+    for(int op = instr.argcount - 1; op >= 0; op--)
+    {
+        if(instr.arg[op].type == arg_normal)
+        {
+            dest = instr.arg[op].value;
+            if(DbgMemIsValidReadPtr(dest))
+            {
+                if(DbgFunctions()->MemIsCodePage(dest, false))
+                    gotoAddress(dest);
+                else
+                    DbgCmdExec(QString("dump %1").arg(ToPtrString(dest)));
+                return true;
+            }
+        }
+    }
+#endif // X64DBG
+    return false;
 }
