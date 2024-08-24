@@ -302,7 +302,7 @@ void SymbolView::invalidateSymbolSource(duint base)
             mSymbolSearchList->mSearchList->setRowCount(0);
             mSymbolSearchList->mSearchList->setHighlightText(QString());
             GuiSymbolLogAdd(QString("[SymbolView] reload symbols for base %1\n").arg(ToPtrString(base)).toUtf8().constData());
-            // TODO: properly reload symbol list
+            emit mModuleList->mCurList->selectionChanged(mModuleList->mCurList->getInitialSelection());
             break;
         }
     }
