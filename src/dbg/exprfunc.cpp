@@ -694,97 +694,69 @@ namespace Exprfunc
         return true;
     }
 
-    template<bool Strict>
-    bool ansi(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    template<bool Strict, typename T>
+    bool readstring(std::vector<T> & temp, int argc, const ExpressionValue* argv, void* userdata)
     {
         assert(argc >= 1);
         assert(argv[0].type == ValueTypeNumber);
 
         duint addr = argv[0].number;
 
-        std::vector<char> tempStr;
-        if(argc > 1)
+        auto truncate = argc > 1;
+        if(truncate)
         {
             assert(argv[1].type == ValueTypeNumber);
-            tempStr.resize(argv[1].number + 1);
+            temp.resize(argv[1].number + 1);
         }
         else
         {
-            tempStr.resize(MAX_STRING_SIZE + 1);
+            // TODO: check for null-termination and resize accordingly
+            temp.resize(MAX_STRING_SIZE + 1);
         }
 
-        duint NumberOfBytesRead = -1;
-        if(!MemRead(addr, tempStr.data(), tempStr.size() - 1, &NumberOfBytesRead) && NumberOfBytesRead == -1 && Strict)
+        duint NumberOfBytesRead = 0;
+        if(!MemRead(addr, temp.data(), temp.size() - 1, &NumberOfBytesRead) && NumberOfBytesRead == 0 && Strict)
         {
             return false;
         }
 
-        *result = ValueString(StringUtils::LocalCpToUtf8(tempStr.data()));
+        return true;
+    }
+
+    template<bool Strict>
+    bool ansi(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        std::vector<char> temp;
+        if(!readstring<Strict>(temp, argc, argv, userdata))
+            return false;
+
+        *result = ValueString(StringUtils::LocalCpToUtf8(temp.data()));
         return true;
     }
 
     template<bool Strict>
     bool utf8(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
     {
-        assert(argc >= 1);
-        assert(argv[0].type == ValueTypeNumber);
-
-        duint addr = argv[0].number;
-
-        std::vector<char> tempStr;
-        if(argc > 1)
-        {
-            assert(argv[1].type == ValueTypeNumber);
-            tempStr.resize(argv[1].number + 1);
-        }
-        else
-        {
-            tempStr.resize(MAX_STRING_SIZE + 1);
-        }
-
-        duint NumberOfBytesRead = -1;
-        if(!MemRead(addr, tempStr.data(), tempStr.size() - 1, &NumberOfBytesRead) && NumberOfBytesRead == -1 && Strict)
-        {
+        std::vector<char> temp;
+        if(!readstring<Strict>(temp, argc, argv, userdata))
             return false;
-        }
 
-        *result = ValueString(tempStr.data());
+        *result = ValueString(temp.data());
         return true;
     }
 
     template<bool Strict>
     bool utf16(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
     {
-        assert(argc >= 1);
-        assert(argv[0].type == ValueTypeNumber);
-
-        duint addr = argv[0].number;
-
-        std::vector<wchar_t> tempStr;
-        if(argc > 1)
-        {
-            assert(argv[1].type == ValueTypeNumber);
-            tempStr.resize(argv[1].number + 1);
-        }
-        else
-        {
-            tempStr.resize(MAX_STRING_SIZE + 1);
-        }
-
-        duint NumberOfBytesRead = -1;
-        if(!MemRead(addr, tempStr.data(), sizeof(wchar_t) * (tempStr.size() - 1), &NumberOfBytesRead) && NumberOfBytesRead == -1 && Strict)
-        {
+        std::vector<wchar_t> temp;
+        if(!readstring<Strict>(temp, argc, argv, userdata))
             return false;
-        }
 
-        auto utf8Str = StringUtils::Utf16ToUtf8(tempStr.data());
-        if(utf8Str.empty() && wcslen(tempStr.data()) > 0)
-        {
+        auto utf8Str = StringUtils::Utf16ToUtf8(temp.data());
+        if(utf8Str.empty() && wcslen(temp.data()) > 0)
             return false;
-        }
 
         *result = ValueString(utf8Str);
-
         return true;
     }
 
