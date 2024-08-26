@@ -906,7 +906,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
         logCondition = getConditionValue(bp.logCondition);
         if(logCondition == -1)
         {
-            dprintf_untranslated("%s\n", stringformatinline(bp.logText).c_str()); // Always log when an error occurs, and log before the error message
+            dputs_untranslated(stringformatinline(bp.logText).c_str()); // Always log when an error occurs, and log before the error message
             dputs(QT_TRANSLATE_NOOP("DBG", "Error when evaluating log condition.")); // Then an error message is printed
             breakCondition = -1; // Force breaking when an error occurs
             logCondition = 0; // No need to log twice
@@ -965,7 +965,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
                 logFileError = GetLastError();
 
                 // Show the log in the regular log tab
-                dprintf_untranslated("%s\n", formattedText.c_str());
+                dputs_untranslated(formattedText.c_str());
             }
             else
             {
@@ -976,7 +976,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
         }
         else
         {
-            dprintf_untranslated("%s\n", formattedText.c_str());
+            dputs_untranslated(formattedText.c_str());
         }
     }
     if(!bp.commandText.empty() && commandCondition) //command

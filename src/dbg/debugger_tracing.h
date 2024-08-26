@@ -89,7 +89,7 @@ struct TraceState
             }
         }
         else
-            dprintf_untranslated("%s\n", text.c_str());
+            dputs_untranslated(text.c_str());
     }
 
     bool IsActive() const

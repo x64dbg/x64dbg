@@ -74,6 +74,7 @@ void dprintf_untranslated(_In_z_ _Printf_format_string_ const char* Format, ...)
 */
 void dprintf_args(_In_z_ _Printf_format_string_ const char* Format, va_list Args)
 {
+    // TODO: remove this limit
     char buffer[16384];
     vsnprintf_s(buffer, _TRUNCATE, GuiTranslateText(Format), Args);
 
@@ -86,19 +87,13 @@ void dprintf_args(_In_z_ _Printf_format_string_ const char* Format, va_list Args
 */
 void dputs_untranslated(_In_z_ const char* Text)
 {
+    GuiAddLogMessageAsync(Text);
+
     // Only append the newline if the caller didn't
-    size_t textlen = strlen(Text);
-    if(Text[textlen - 1] != '\n')
-    {
-        Memory<char*> buffer(textlen + 2, "dputs");
-        memcpy(buffer(), Text, textlen);
-        buffer()[textlen] = '\n';
-        buffer()[textlen + 1] = '\0';
-        GuiAddLogMessageAsync(buffer());
-    }
-    else
-        GuiAddLogMessageAsync(Text);
+    if(*Text && Text[strlen(Text) - 1] != '\n')
+        GuiAddLogMessageAsync("\n");
 }
+
 /**
 \brief Print a formatted string to the console.
 \param format The printf format to use (see documentation of printf for more information).
@@ -106,6 +101,7 @@ void dputs_untranslated(_In_z_ const char* Text)
 */
 void dprintf_args_untranslated(_In_z_ _Printf_format_string_ const char* Format, va_list Args)
 {
+    // TODO: remove this limit
     char buffer[16384];
     vsnprintf_s(buffer, _TRUNCATE, Format, Args);
 
@@ -133,4 +129,9 @@ void dprintf_html(_In_z_ _Printf_format_string_ const char* Format, ...)
     vsnprintf_s(buffer, _TRUNCATE, GuiTranslateText(Format), args);
     GuiAddLogMessageHtmlAsync(buffer);
     va_end(args);
+}
+
+void dlogprint_untranslated(const char* Text)
+{
+    GuiAddLogMessageAsync(Text);
 }

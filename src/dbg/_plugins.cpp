@@ -53,7 +53,7 @@ PLUG_IMPEXP void _plugin_logputs(const char* text)
 
 PLUG_IMPEXP void _plugin_logprint(const char* text)
 {
-    dprintf_untranslated("%s", text);
+    dlogprint_untranslated(text);
 }
 
 PLUG_IMPEXP void _plugin_debugpause()
