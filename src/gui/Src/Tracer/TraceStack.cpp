@@ -174,7 +174,7 @@ void TraceStack::setupContextMenu()
         return false;
     });
 
-    mMenuBuilder->addAction(makeAction("Edit columns...", SLOT(editColumnDialog())));
+    mMenuBuilder->addAction(makeAction(tr("Edit columns..."), SLOT(editColumnDialog())));
 
     mMenuBuilder->loadFromConfig();
     disconnect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));

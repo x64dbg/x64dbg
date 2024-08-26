@@ -706,10 +706,6 @@ void MainWindow::themeTriggeredSlot()
 
 void MainWindow::setupThemesMenu()
 {
-    auto exists = [](const QString & str)
-    {
-        return QFile(str).exists();
-    };
     char selectedTheme[MAX_SETTING_SIZE];
     BridgeSettingGet("Theme", "Selected", selectedTheme);
     QDirIterator it(QString("%1/../themes").arg(QCoreApplication::applicationDirPath()), QDir::NoDotAndDotDot | QDir::Dirs);
@@ -723,6 +719,9 @@ void MainWindow::setupThemesMenu()
         // The Default theme folder is a hidden theme to override the default theme
         if(name == "Default")
             continue;
+        // Translation support for the built-in 'Dark' theme
+        if(name == "Dark")
+            name = tr("Dark");
         auto action = ui->menuTheme->addAction(name);
         connect(action, SIGNAL(triggered()), this, SLOT(themeTriggeredSlot()));
         action->setText(name);

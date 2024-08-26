@@ -364,7 +364,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     });
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("highlight"), tr("&Highlighting mode"), SLOT(enableHighlightingModeSlot()), "ActionHighlightingMode"));
-    mMenuBuilder->addAction(makeAction("Edit columns...", SLOT(editColumnDialog())));
+    mMenuBuilder->addAction(makeAction(tr("Edit columns..."), SLOT(editColumnDialog())));
 
     MenuBuilder* labelMenu = new MenuBuilder(this);
     labelMenu->addAction(makeShortcutAction(tr("Label Current Address"), SLOT(setLabelSlot()), "ActionSetLabel"));
