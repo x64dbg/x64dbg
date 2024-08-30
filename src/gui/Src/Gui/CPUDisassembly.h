@@ -77,6 +77,7 @@ public slots:
     void copySelectionToFileSlot();
     void copySelectionNoBytesSlot();
     void copySelectionToFileNoBytesSlot();
+    void copySelectionBytesSlot();
     void copyAddressSlot();
     void copyRvaSlot();
     void copyFileOffsetSlot();
