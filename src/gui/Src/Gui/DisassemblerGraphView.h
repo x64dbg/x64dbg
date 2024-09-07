@@ -272,7 +272,7 @@ public slots:
     void toggleSummarySlot();
     void selectionGetSlot(SELECTIONDATA* selection);
     void tokenizerConfigUpdatedSlot();
-    void loadCurrentGraph();
+    void loadCurrentGraphSlot();
     void disassembleAtSlot(duint va, duint cip);
     void gotoExpressionSlot();
     void gotoOriginSlot();

@@ -2004,10 +2004,10 @@ void DisassemblerGraphView::tokenizerConfigUpdatedSlot()
 {
     disasm.UpdateConfig();
     mPermanentHighlightingMode = ConfigBool("Disassembler", "PermanentHighlightingMode");
-    loadCurrentGraph();
+    loadCurrentGraphSlot();
 }
 
-void DisassemblerGraphView::loadCurrentGraph()
+void DisassemblerGraphView::loadCurrentGraphSlot()
 {
     if(ConfigBool("Gui", "GraphZoomMode"))
     {
@@ -2151,7 +2151,7 @@ void DisassemblerGraphView::loadGraphSlot(BridgeCFGraphList* graphList, duint ad
     currentBlockMap.clear();
     this->cur_instr = addr ? addr : this->function;
     this->forceCenter = true;
-    loadCurrentGraph();
+    loadCurrentGraphSlot();
     Bridge::getBridge()->setResult(BridgeResult::LoadGraph, 1);
 }
 
@@ -2170,6 +2170,7 @@ void DisassemblerGraphView::updateGraphSlot()
         zoomLevelOld = 1;
     }
 
+    loadCurrentGraphSlot();
     this->viewport()->update();
 }
 
@@ -2439,7 +2440,7 @@ void DisassemblerGraphView::colorsUpdatedSlot()
     mInstructionHighlightBackgroundColor = ConfigColor("InstructionHighlightBackgroundColor");
 
     fontChanged();
-    loadCurrentGraph();
+    loadCurrentGraphSlot();
 }
 
 void DisassemblerGraphView::fontsUpdatedSlot()
@@ -2461,7 +2462,7 @@ void DisassemblerGraphView::toggleOverviewSlot()
     {
         onlySummary = false;
         mToggleSummary->setChecked(false);
-        loadCurrentGraph();
+        loadCurrentGraphSlot();
     }
     else
         this->viewport()->update();
@@ -2471,7 +2472,7 @@ void DisassemblerGraphView::toggleSummarySlot()
 {
     drawOverview = false;
     onlySummary = !onlySummary;
-    loadCurrentGraph();
+    loadCurrentGraphSlot();
 }
 
 void DisassemblerGraphView::selectionGetSlot(SELECTIONDATA* selection)
