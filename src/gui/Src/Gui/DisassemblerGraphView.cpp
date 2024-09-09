@@ -813,6 +813,7 @@ void DisassemblerGraphView::paintEvent(QPaintEvent* event)
     Q_UNUSED(event);
     QPainter p(this->viewport());
     p.setFont(this->font());
+    p.setLayoutDirection(Qt::LayoutDirectionAuto);
 
     int xofs = this->horizontalScrollBar()->value();
     int yofs = this->verticalScrollBar()->value();
