@@ -16,7 +16,8 @@ enum CMDRESULT
     STATUS_ERROR = false,
     STATUS_CONTINUE = true,
     STATUS_EXIT = 2,
-    STATUS_PAUSE = 3
+    STATUS_PAUSE = 3,
+    STATUS_CONTINUE_BRANCH = 4
 };
 
 static std::vector<LINEMAPENTRY> linemap;
@@ -416,7 +417,7 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd, bool silentRet)
         }
         scriptIp = scriptstack.back();
         scriptstack.pop_back(); //remove last stack entry
-        return STATUS_CONTINUE;
+        return STATUS_CONTINUE_BRANCH;
     }
     else if(scriptisinternalcommand(cmd, "error")) //show an error and end the script
     {
@@ -453,7 +454,7 @@ static CMDRESULT scriptinternalcmdexec(const char* cmd, bool silentRet)
                 scriptIp = scriptinternalstep(labelIp); //go to the first command after the label
                 GuiScriptSetIp(scriptIp);
             }
-            return STATUS_CONTINUE;
+            return STATUS_CONTINUE_BRANCH;
         }
     }
     auto res = cmddirectexec(cmd);
@@ -480,6 +481,7 @@ static bool scriptinternalcmd(bool silentRet)
         switch(scriptLastError)
         {
         case STATUS_CONTINUE:
+        case STATUS_CONTINUE_BRANCH:
             if(scriptIp == scriptIpOld)
             {
                 bContinue = false;
@@ -568,7 +570,7 @@ bool scriptRunSync(int destline, bool silentRet)
         GuiUpdateEnable(true);
     GuiScriptSetIp(scriptIp);
     // the script fully executed (which means scriptIp is reset to the first line), without any errors
-    return scriptIp == scriptinternalstep(0) && (scriptLastError == STATUS_EXIT || scriptLastError == STATUS_CONTINUE);
+    return scriptIp == scriptinternalstep(0) && (scriptLastError == STATUS_EXIT || scriptLastError == STATUS_CONTINUE || scriptLastError == STATUS_CONTINUE_BRANCH);
 }
 
 bool scriptLoadSync(const char* filename)
@@ -691,6 +693,12 @@ bool scriptcmdexec(const char* command)
         break;
     case STATUS_PAUSE:
     case STATUS_CONTINUE:
+        break;
+    case STATUS_CONTINUE_BRANCH:
+        if(!bIsRunning)
+        {
+            scriptrun(scriptIp);
+        }
         break;
     }
     return true;
