@@ -414,6 +414,7 @@ MainWindow::MainWindow(QWidget* parent)
     char setting[MAX_SETTING_SIZE] = "";
 
     // To avoid the window from flashing briefly at the initial position before being moved to saved position and size, initialize the main window position and size here
+    // NOTE: apparently this is not correct (https://forum.qt.io/topic/76589/proper-way-to-restore-state-geometry-on-application-start), but it works on some machines.
     if(BridgeSettingGet("Main Window Settings", "Geometry", setting))
         restoreGeometry(QByteArray::fromBase64(QByteArray(setting)));
     QTimer::singleShot(0, this, SLOT(loadWindowSettings()));
@@ -990,6 +991,8 @@ void MainWindow::loadWindowSettings()
 {
     // Main Window settings
     char setting[MAX_SETTING_SIZE] = "";
+    if(BridgeSettingGet("Main Window Settings", "Geometry", setting))
+        restoreGeometry(QByteArray::fromBase64(QByteArray(setting)));
     if(BridgeSettingGet("Main Window Settings", "State", setting))
         restoreState(QByteArray::fromBase64(QByteArray(setting)));
 
