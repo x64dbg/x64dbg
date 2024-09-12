@@ -18,6 +18,7 @@ TraceWidget::TraceWidget(Architecture* architecture, const QString & fileName, Q
     ui(new Ui::TraceWidget)
 {
     ui->setupUi(this);
+    setLayoutDirection(Qt::LeftToRight);
 
     setCursor(QCursor(Qt::CursorShape::WaitCursor));
     mTraceFile = new TraceFileReader(this);
