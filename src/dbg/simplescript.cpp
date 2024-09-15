@@ -630,6 +630,14 @@ void scriptrun(int destline, bool silentRet)
     bIsRunning = true;
     std::thread t([destline, silentRet]
     {
+        // When this command is called from a breakpoint callback, it may need to wait until debugger is paused
+        // FIXME: It's assumed that the user set break condition to 1 when using scriptcmd, but what happens when it is not the case?
+        int time = 0;
+        while(DbgIsDebugging() && dbgisrunning() && !bAbort && time < 1000)  //while not locked (NOTE: possible deadlock)
+        {
+            Sleep(1);
+            time++;
+        }
         scriptRunSync(destline, silentRet);
     });
     t.detach();
