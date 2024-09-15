@@ -26,7 +26,7 @@ struct LINEMAPENTRY
 //functions
 void scriptload(const char* filename);
 void scriptunload();
-void scriptrun(int destline);
+void scriptrun(int destline, bool silentRet = false);
 void scriptstep();
 bool scriptbptoggle(int line);
 bool scriptbpget(int line);
@@ -38,7 +38,7 @@ void scriptreset();
 bool scriptgetbranchinfo(int line, SCRIPTBRANCH* info);
 void scriptlog(const char* msg);
 bool scriptLoadSync(const char* filename);
-bool scriptRunSync(int destline, bool silentRet);
+bool scriptRunSync(int destline, bool silentRet = false);
 
 //script commands
 

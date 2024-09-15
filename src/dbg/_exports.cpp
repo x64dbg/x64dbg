@@ -1014,7 +1014,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_SCRIPT_RUN:
     {
-        scriptrun((int)(duint)param1);
+        scriptrun((int)(duint)param1, param2 != nullptr);
     }
     break;
 

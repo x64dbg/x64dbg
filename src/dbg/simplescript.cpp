@@ -615,19 +615,22 @@ void scriptunload()
     bAbort = false;
 }
 
-void scriptrun(int destline)
+void scriptrun(int destline, bool silentRet)
 {
     if(DbgIsDebugging() && dbgisrunning())
     {
-        GuiScriptError(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debugger must be paused to run a script!")));
+        if(!silentRet)
+            GuiScriptError(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Debugger must be paused to run a script!")));
+        else
+            dputs(QT_TRANSLATE_NOOP("DBG", "Debugger must be paused to run a script!"));
         return;
     }
     if(bIsRunning) //already running
         return;
     bIsRunning = true;
-    std::thread t([destline]
+    std::thread t([destline, silentRet]
     {
-        scriptRunSync(destline, false);
+        scriptRunSync(destline, silentRet);
     });
     t.detach();
 }
@@ -697,7 +700,7 @@ bool scriptcmdexec(const char* command)
     case STATUS_CONTINUE_BRANCH:
         if(!bIsRunning)
         {
-            scriptrun(scriptIp);
+            scriptrun(scriptIp, true);
         }
         break;
     }
