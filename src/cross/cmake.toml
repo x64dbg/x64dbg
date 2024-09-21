@@ -14,6 +14,7 @@ include-after = ["widgets/Qt.cmake"]
 type = "executable"
 add-function = "qt_executable"
 pass-sources = true
+compile-features = ["cxx_std_20"]
 
 [target.minidump]
 type = "qt_executable"
@@ -28,7 +29,6 @@ link-libraries = [
     "cpp-httplib",
     "linux-pe",
 ]
-compile-features = ["cxx_std_20"]
 
 [target.remote_table]
 type = "qt_executable"
@@ -42,4 +42,15 @@ sources = [
 link-libraries = [
     "x64dbg::widgets",
 ]
-compile-features = ["cxx_std_20"]
+
+[target.struct_viewer]
+type = "qt_executable"
+sources = [
+    "struct_viewer/*.cpp",
+    "struct_viewer/*.h",
+    "struct_viewer/*.ui",
+    "struct_viewer/*.qrc",
+]
+link-libraries = [
+    "x64dbg::widgets",
+]

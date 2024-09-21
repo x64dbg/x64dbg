@@ -127,3 +127,28 @@ if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT remote_table)
 endif()
 
+# Target: struct_viewer
+set(struct_viewer_SOURCES
+	"struct_viewer/MainWindow.cpp"
+	"struct_viewer/main.cpp"
+	"struct_viewer/MainWindow.h"
+	"struct_viewer/MainWindow.ui"
+	cmake.toml
+)
+
+qt_executable(struct_viewer ${struct_viewer_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${struct_viewer_SOURCES})
+
+target_compile_features(struct_viewer PRIVATE
+	cxx_std_20
+)
+
+target_link_libraries(struct_viewer PRIVATE
+	x64dbg::widgets
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT struct_viewer)
+endif()
+
