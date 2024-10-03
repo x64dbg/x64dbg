@@ -166,7 +166,7 @@ typedef enum
 // An instance of this structure represents a reference to a breakpoint.
 // Use DbgFunctions()->BpRefXxx() list/create references.
 // Use DbgFunctions()->BpXxx() to manipulate breakpoints with the references.
-typedef struct
+struct BP_REF
 {
     BPXTYPE type;
     duint module;
@@ -184,11 +184,13 @@ typedef struct
     void GetField(BP_FIELD field, T & value)
     {
         duint n = 0;
-        getField(field, n);
+        GetField(field, n);
         value = (T)n;
     }
 #endif // __cplusplus
-} BP_REF;
+};
+
+typedef struct BP_REF BP_REF;
 
 typedef void(*CBSTRING)(const char* str, void* userdata);
 
