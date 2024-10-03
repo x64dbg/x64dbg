@@ -551,7 +551,7 @@ void RecursiveAnalysis::dominatorAnalysis(duint entryPoint)
     for(const auto & x : indexToAddress)
     {
         char label[256];
-        sprintf_s(label, "block%p", x.first);
+        sprintf_s(label, "block%p", (void*)x.first);
         LabelSet(x.second, label, false, true);
     }
 }

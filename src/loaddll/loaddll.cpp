@@ -48,7 +48,7 @@ int WINAPI WinMain(
     if(hDll == nullptr)
     {
         auto lastStatus = RtlGetLastNtStatus();
-        swprintf_s(szTemp, L"Failed to load DLL", GetLastError());
+        swprintf_s(szTemp, L"Failed to load DLL (LastError: %u)", GetLastError());
         MessageBoxW(0, szLibraryPath, szTemp, MB_ICONERROR | MB_SYSTEMMODAL);
         return lastStatus;
     }

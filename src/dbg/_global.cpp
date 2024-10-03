@@ -45,7 +45,7 @@ void* emalloc(size_t size, const char* reason)
     if(!a)
     {
         wchar_t sizeString[25];
-        swprintf_s(sizeString, L"%p bytes", size);
+        swprintf_s(sizeString, L"%p bytes", (void*)size);
         MessageBoxW(0, L"Could not allocate memory (minidump will be created)", sizeString, MB_ICONERROR);
         __debugbreak();
         ExitProcess(1);

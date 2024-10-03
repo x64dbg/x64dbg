@@ -58,7 +58,7 @@ static void getSymAddrName(duint addr, char(& str)[_Count])
     if(addrinfo.module[0] != '\0')
         _snprintf_s(str, _TRUNCATE, "%s.", addrinfo.module);
     if(addrinfo.label[0] == '\0')
-        _snprintf_s(addrinfo.label, _TRUNCATE, "%p", addr);
+        _snprintf_s(addrinfo.label, _TRUNCATE, "%p", (void*)addr);
     strncat_s(str, addrinfo.label, _TRUNCATE);
 }
 
@@ -129,7 +129,7 @@ bool stackcommentget(duint addr, STACK_COMMENT* comment)
             }
             else
             {
-                _snprintf_s(comment->comment, _TRUNCATE, "%s.%p", module, data);
+                _snprintf_s(comment->comment, _TRUNCATE, "%s.%p", module, (void*)data);
             }
         }
         return true;

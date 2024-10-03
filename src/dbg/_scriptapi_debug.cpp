@@ -44,21 +44,21 @@ SCRIPT_EXPORT void Script::Debug::StepOut()
 SCRIPT_EXPORT bool Script::Debug::SetBreakpoint(duint address)
 {
     char command[128] = "";
-    sprintf_s(command, "bp %p", address);
+    sprintf_s(command, "bp %p", (void*)address);
     return DbgCmdExecDirect(command);
 }
 
 SCRIPT_EXPORT bool Script::Debug::DeleteBreakpoint(duint address)
 {
     char command[128] = "";
-    sprintf_s(command, "bc %p", address);
+    sprintf_s(command, "bc %p", (void*)address);
     return DbgCmdExecDirect(command);
 
 }
 SCRIPT_EXPORT bool Script::Debug::DisableBreakpoint(duint address)
 {
     char command[128] = "";
-    sprintf_s(command, "bd %p", address);
+    sprintf_s(command, "bd %p", (void*)address);
     return DbgCmdExecDirect(command);
 }
 
@@ -66,13 +66,13 @@ SCRIPT_EXPORT bool Script::Debug::SetHardwareBreakpoint(duint address, HardwareT
 {
     char command[128] = "";
     const char* types[] = { "rw", "w", "x" };
-    sprintf_s(command, "bphws %p, %s", address, types[type]);
+    sprintf_s(command, "bphws %p, %s", (void*)address, types[type]);
     return DbgCmdExecDirect(command);
 }
 
 SCRIPT_EXPORT bool Script::Debug::DeleteHardwareBreakpoint(duint address)
 {
     char command[128] = "";
-    sprintf_s(command, "bphwc %p", address);
+    sprintf_s(command, "bphwc %p", (void*)address);
     return DbgCmdExecDirect(command);
 }

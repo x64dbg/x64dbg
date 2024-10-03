@@ -424,7 +424,7 @@ void ThreadUpdateWaitReasons()
     {
         for(ULONG thread = 0; thread < process->NumberOfThreads; ++thread)
         {
-            auto tid = (DWORD)process->Threads[thread].ClientId.UniqueThread;
+            auto tid = (DWORD)(duint)process->Threads[thread].ClientId.UniqueThread;
             if(threadList.count(tid))
                 threadWaitReasons[tid] = (THREADWAITREASON)process->Threads[thread].WaitReason;
         }

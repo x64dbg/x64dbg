@@ -90,7 +90,7 @@ public:
     }
     DWORD GetTicks()
     {
-        return ticks;
+        return (DWORD)ticks;
     }
 private:
     ULONGLONG ticks;
@@ -218,7 +218,7 @@ bool cbInstrFindAll(int argc, char* argv[])
         i += foundoffset + 1;
         result = addr + i - 1;
         char msg[deflen] = "";
-        sprintf_s(msg, "%p", result);
+        sprintf_s(msg, "%p", (void*)result);
         GuiReferenceSetRowCount(refCount + 1);
         GuiReferenceSetCellContent(refCount, 0, msg);
         if(findData)
@@ -354,7 +354,7 @@ bool cbInstrFindAllMem(int argc, char* argv[])
     for(duint result : results)
     {
         char msg[deflen] = "";
-        sprintf_s(msg, "%p", result);
+        sprintf_s(msg, "%p", (void*)result);
         GuiReferenceSetRowCount(refCount + 1);
         GuiReferenceSetCellContent(refCount, 0, msg);
         if(findData)
@@ -401,7 +401,7 @@ static bool cbFindAsm(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO*
     if(found)
     {
         char addrText[20] = "";
-        sprintf_s(addrText, "%p", disasm->Address());
+        sprintf_s(addrText, "%p", (void*)(duint)disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
@@ -530,7 +530,7 @@ static bool cbRefFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO*
     if(found)
     {
         char addrText[20] = "";
-        sprintf_s(addrText, "%p", disasm->Address());
+        sprintf_s(addrText, "%p", (void*)(duint)disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
@@ -600,9 +600,9 @@ static bool cbRefStr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* 
     auto addRef = [&](duint strAddr)
     {
         char addrText[20] = "";
-        sprintf_s(addrText, "%p", disasm->Address());
+        sprintf_s(addrText, "%p", (void*)(duint)disasm->Address());
         char strAddrText[20] = "";
-        sprintf_s(strAddrText, "%p", strAddr);
+        sprintf_s(strAddrText, "%p", (void*)strAddr);
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[4096] = "";
@@ -647,7 +647,7 @@ static bool cbRefFuncPtr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
     auto addRef = [&](duint pointer)
     {
         char addrText[20] = "";
-        sprintf_s(addrText, "%p", disasm->Address());
+        sprintf_s(addrText, "%p", (void*)(duint)disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[4096] = "";
@@ -656,7 +656,7 @@ static bool cbRefFuncPtr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
         else
             GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
         char label[MAX_LABEL_SIZE];
-        sprintf_s(addrText, "%p", pointer);
+        sprintf_s(addrText, "%p", (void*)pointer);
         memset(label, 0, sizeof(label));
         DbgGetLabelAt(pointer, SEG_DEFAULT, label);
         GuiReferenceSetCellContent(refinfo->refcount, 2, addrText);
@@ -792,7 +792,7 @@ static bool cbModCallFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFI
     if(foundaddr)
     {
         char addrText[20] = "";
-        sprintf_s(addrText, "%p", disasm->Address());
+        sprintf_s(addrText, "%p", (void*)(duint)disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
@@ -987,7 +987,7 @@ static bool cbGUIDFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
         if(found)
         {
             char addrText[20] = "";
-            sprintf_s(addrText, "%p", disasm->Address());
+            sprintf_s(addrText, "%p", (void*)(duint)disasm->Address());
             GuiReferenceSetRowCount(refinfo->refcount + 1);
             GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
             char disassembly[4096] = "";

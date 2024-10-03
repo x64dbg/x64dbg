@@ -101,7 +101,7 @@ int RefFind(duint Address, duint Size, CBREF Callback, void* UserData, bool Sile
         if(ModNameFromAddr(scanStart, moduleName, true))
             sprintf_s(fullName, "%s (%s)", Name, moduleName);
         else
-            sprintf_s(fullName, "%s (%p)", Name, scanStart);
+            sprintf_s(fullName, "%s (%p)", Name, (void*)scanStart);
 
         // Initialize disassembler
         Zydis zydis;

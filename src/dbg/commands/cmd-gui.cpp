@@ -220,7 +220,7 @@ bool cbInstrRefadd(int argc, char* argv[])
     int index = GuiReferenceGetRowCount();
     GuiReferenceSetRowCount(index + 1);
     char addr_text[32] = "";
-    sprintf_s(addr_text, "%p", addr);
+    sprintf_s(addr_text, "%p", (void*)addr);
     GuiReferenceSetCellContent(index, 0, addr_text);
     GuiReferenceSetCellContent(index, 1, stringformatinline(argv[2]).c_str());
     GuiReferenceReloadData();
