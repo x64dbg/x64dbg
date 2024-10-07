@@ -145,3 +145,48 @@ void SectionLockerGlobal::Deinitialize()
 
     m_Initialized = false;
 }
+
+static DWORD gTlsIndex = TLS_OUT_OF_INDEXES;
+
+TLSData::TLSData()
+{
+    moduleHashLower.reserve(MAX_MODULE_SIZE);
+}
+
+bool TLSData::notify(DWORD fdwReason)
+{
+    switch(fdwReason)
+    {
+    case DLL_PROCESS_ATTACH:
+        gTlsIndex = TlsAlloc();
+        return gTlsIndex != TLS_OUT_OF_INDEXES;
+
+    case DLL_THREAD_DETACH:
+    {
+        auto data = (TLSData*)TlsGetValue(gTlsIndex);
+        delete data;
+    }
+    return true;
+
+    case DLL_PROCESS_DETACH:
+    {
+        auto data = (TLSData*)TlsGetValue(gTlsIndex);
+        delete data;
+        TlsFree(gTlsIndex);
+    }
+    return true;
+    }
+
+    return false;
+}
+
+TLSData* TLSData::get()
+{
+    auto data = (TLSData*)TlsGetValue(gTlsIndex);
+    if(data == nullptr)
+    {
+        data = new TLSData();
+        TlsSetValue(gTlsIndex, data);
+    }
+    return data;
+}

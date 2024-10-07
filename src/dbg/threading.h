@@ -1,5 +1,4 @@
-#ifndef _THREADING_H
-#define _THREADING_H
+#pragma once
 
 #include "_global.h"
 
@@ -256,4 +255,14 @@ private:
     using Internal = SectionLockerGlobal;
 };
 
-#endif // _THREADING_H
+struct TLSData
+{
+    String moduleHashLower;
+
+    TLSData();
+    TLSData(const TLSData &) = delete;
+    TLSData & operator=(const TLSData &) = delete;
+
+    static bool notify(DWORD fdwReason);
+    static TLSData* get();
+};
