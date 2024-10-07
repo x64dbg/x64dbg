@@ -1,4 +1,7 @@
 @echo off
-echo Run this to install the auto-format hook.
 git config core.autocrlf false
-copy %~dp0pre-commit %~dp0..\..\.git\hooks\pre-commit
+set PRE_COMMIT_HOOK=%~dp0..\..\.git\hooks\pre-commit
+if not exist "%PRE_COMMIT_HOOK%" (
+    echo Installing pre-commit hook...
+    copy %~dp0pre-commit %PRE_COMMIT_HOOK%
+)
