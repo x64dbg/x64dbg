@@ -971,7 +971,11 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
             {
                 formattedText += "\n";
                 DWORD written = 0;
-                WriteFile(logFile, formattedText.c_str(), (DWORD)formattedText.length(), &written, nullptr);
+                if(WriteFile(logFile, formattedText.c_str(), (DWORD)formattedText.length(), &written, nullptr) == FALSE)
+                {
+                    // WriteFile failed
+                    logFileError = GetLastError();
+                };
             }
         }
         else
