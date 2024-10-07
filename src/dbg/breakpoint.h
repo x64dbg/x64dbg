@@ -79,7 +79,6 @@ void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp);
 void BpCacheSave(JSON Root);
 void BpCacheLoad(JSON Root, bool migrateCommandCondition);
 void BpClear();
-bool BpUpdateDllPath(const char* module1, BREAKPOINT** newBpInfo);
 void BpLogFileAcquire(const std::string & logFile);
 void BpLogFileRelease(const std::string & logFile);
 HANDLE BpLogFileOpen(const std::string & logFile);
