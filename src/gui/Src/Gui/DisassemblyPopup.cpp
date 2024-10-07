@@ -60,6 +60,7 @@ void DisassemblyPopup::paintEvent(QPaintEvent* event)
     QRect viewportRect(0, 0, width(), height());
     QPainter p(this);
     p.setFont(font());
+    p.setLayoutDirection(Qt::LayoutDirectionAuto);
 
     // Render background
     p.fillRect(viewportRect, mDisassemblyBackgroundColor);

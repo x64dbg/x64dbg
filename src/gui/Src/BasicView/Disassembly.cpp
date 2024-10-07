@@ -1839,6 +1839,7 @@ void Disassembly::paintEvent(QPaintEvent* event)
     // Delay paint the rich text
     QPainter painter(this->viewport());
     painter.setFont(font());
+    painter.setLayoutDirection(Qt::LayoutDirectionAuto);
     int x = -horizontalScrollBar()->value();
 
     for(int column = 0; column < (int)mRichText.size(); column++)
