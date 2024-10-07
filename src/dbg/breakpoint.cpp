@@ -974,6 +974,10 @@ void BpCacheLoad(JSON Root, bool migrateCommandCondition)
         }
         else
         {
+            // NOTE: full paths in DLL breakpoints are not supported
+            auto slashIdx = breakpoint.module.rfind('\\');
+            if(slashIdx != String::npos)
+                breakpoint.module = breakpoint.module.substr(slashIdx + 1);
             key = BpGetDLLBpAddr(breakpoint.module.c_str());
             breakpoint.addr = key;
         }
@@ -1118,7 +1122,7 @@ std::vector<BP_REF> BpRefList()
             BpRefDll(ref, bp.module.c_str());
             break;
         case BPEXCEPTION:
-            BpRefException(ref, bp.addr);
+            BpRefException(ref, (unsigned int)bp.addr);
             break;
         default:
             ref.type = BpTypeToBridge(bp.type);

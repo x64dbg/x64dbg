@@ -958,7 +958,14 @@ bool cbDebugBpDll(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return false;
-    _strlwr_s(argv[1], strlen(argv[1]) + 1); //NOTE: does not really work on unicode strings
+
+    String mod;
+    auto slashIdx = strrchr(argv[1], '\\');
+    if(slashIdx != nullptr)
+        mod = StringUtils::ToLower(slashIdx + 1);
+    else
+        mod = StringUtils::ToLower(argv[1]);
+
     DWORD type = UE_ON_LIB_ALL;
     if(argc > 2)
     {
@@ -978,17 +985,17 @@ bool cbDebugBpDll(int argc, char* argv[])
     bool singleshoot = false;
     if(argc > 3)
         singleshoot = true;
-    if(!BpNewDll(argv[1], true, singleshoot, type, ""))
+    if(!BpNewDll(mod.c_str(), true, singleshoot, type, ""))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error creating Dll breakpoint! (BpNewDll)"));
         return false;
     }
-    if(!dbgsetdllbreakpoint(argv[1], type, singleshoot))
+    if(!dbgsetdllbreakpoint(mod.c_str(), type, singleshoot))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error creating Dll breakpoint! (LibrarianSetBreakPoint)"));
         return false;
     }
-    dprintf(QT_TRANSLATE_NOOP("DBG", "Dll breakpoint set on \"%s\"!\n"), argv[1]);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Dll breakpoint set on \"%s\"!\n"), mod.c_str());
     DebugUpdateBreakpointsViewAsync();
     return true;
 }
