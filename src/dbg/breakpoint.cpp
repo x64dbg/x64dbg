@@ -1158,18 +1158,16 @@ std::vector<BP_REF> BpRefList()
     {
         const auto & bp = itr.second;
         BP_REF ref = {};
-        ref.type = BpTypeToBridge(bp.type);
         switch(bp.type)
         {
         case BPDLL:
-            ref.module = bp.addr;
-            ref.offset = 0;
+            BpRefDll(ref, bp.module.c_str());
             break;
         case BPEXCEPTION:
-            ref.module = 0;
-            ref.offset = bp.addr;
+            BpRefException(ref, bp.addr);
             break;
         default:
+            ref.type = BpTypeToBridge(bp.type);
             ref.module = ModHashFromName(bp.module.c_str());
             ref.offset = bp.addr;
             break;
