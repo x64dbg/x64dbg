@@ -886,7 +886,7 @@ bool ModLoad(duint Base, duint Size, const char* FullPath, bool loadSymbols)
     }
 
     // Calculate module hash from full file name
-    info.hash = ModHashFromName(file);
+    info.hash = ModHashFromName(file, false);
 
     // Copy the extension into the module struct
     {
@@ -1100,14 +1100,27 @@ duint ModContentHashFromAddr(duint Address)
         return 0;
 }
 
-duint ModHashFromName(const char* Module)
+duint ModHashFromName(const char* Module, bool tolower)
 {
     // return MODINFO.hash (based on the name)
     ASSERT_NONNULL(Module);
-    auto len = int(strlen(Module));
+    auto len = strlen(Module);
     if(!len)
         return 0;
-    auto hash = murmurhash(Module, len);
+
+    duint hash = 0;
+    if(tolower)
+    {
+        auto & moduleLower = TLSData::get()->moduleHashLower;
+        moduleLower.clear();
+        for(size_t i = 0; i < len; i++)
+            moduleLower.push_back(StringUtils::ToLower(Module[i]));
+        hash = murmurhash(moduleLower.c_str(), moduleLower.size());
+    }
+    else
+    {
+        hash = murmurhash(Module, len);
+    }
 
     //update the hash cache
     SHARED_ACQUIRE(LockModuleHashes);

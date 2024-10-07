@@ -259,11 +259,7 @@ void LoopCacheLoad(JSON Root)
 
             // Module name
             const char* mod = json_string_value(json_object_get(value, "module"));
-
-            if(mod && strlen(mod) < MAX_MODULE_SIZE)
-                loopInfo.modhash = ModHashFromName(mod);
-            else
-                loopInfo.modhash = 0;
+            loopInfo.modhash = ModHashFromName(mod);
 
             // All other variables
             loopInfo.start = (duint)json_hex_value(json_object_get(value, "start"));

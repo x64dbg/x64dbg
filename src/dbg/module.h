@@ -156,7 +156,7 @@ duint ModBaseFromAddr(duint Address);
 // Get a unique hash for an address in the module.
 // IMPORTANT: If you want to get a hash for the module base, pass the base
 duint ModHashFromAddr(duint Address);
-duint ModHashFromName(const char* Module);
+duint ModHashFromName(const char* Module, bool tolower = true);
 duint ModContentHashFromAddr(duint Address);
 duint ModBaseFromName(const char* Module);
 duint ModSizeFromAddr(duint Address);
