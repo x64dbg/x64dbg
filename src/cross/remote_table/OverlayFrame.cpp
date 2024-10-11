@@ -20,6 +20,7 @@ OverlayFrame::OverlayFrame(QWidget* parent) :
     QFrame(parent),
     ui(new Ui::OverlayFrame)
 {
+    // TODO: forward the scroll/key events to the window below
     ui->setupUi(this);
 }
 
