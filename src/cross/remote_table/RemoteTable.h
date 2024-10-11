@@ -8,6 +8,7 @@
 
 #include <QWebSocket>
 #include <QWidget>
+#include <QTimer>
 #include <deque>
 
 class RemoteTable : public AbstractStdTable, public MagicMenu<RemoteTable>
@@ -24,6 +25,7 @@ protected:
     void sortRows(duint column, bool ascending) override;
     duint sliderMovedHook(QScrollBar::SliderAction action, duint value, dsint delta) override;
     void prepareData() override;
+    void wheelEvent(QWheelEvent* event) override;
 
 private:
     enum ColumnIndex
@@ -32,15 +34,18 @@ private:
         ColData,
     };
 
+    using Epoch = std::chrono::time_point<std::chrono::system_clock>;
+
+    duint mRemoteTableOffset = 0;
     std::vector<std::vector<std::string>> mRemoteData;
-    std::chrono::time_point<std::chrono::system_clock> mLastPrepare;
+    Epoch mLastPrepare;
 
     QWebSocket mSocket;
     JsonRpcClient mRpc;
 
     TableRequest mCurrentRequest;
     bool mCurrentSent = false;
-    std::chrono::time_point<std::chrono::system_clock> mCurrentSentTime;
+    Epoch mCurrentSentTime;
 
     TableRequest mNextRequest;
     bool mNextRequired = false;
@@ -52,6 +57,11 @@ private:
     uint64_t mMaxResponseTime = 100;
     uint64_t mAvgResponseTime = 100;
     uint64_t mMedResponseTime = 100;
+
+    QTimer* mScrollTimer = nullptr;
+    dsint mScrollDelta = 0;
+    Epoch mScrollStart;
+    std::deque<std::pair<Epoch, dsint>> mScrollEvents;
 
     void handleTableResponse(const TableResponse & response);
     void setupMenu();

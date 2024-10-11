@@ -43,36 +43,57 @@ RemoteTable::RemoteTable(QWidget* parent)
     setRowCount(0x2000ull);
 
     mOverlay = OverlayFrame::embed(this, false);
+    mScrollTimer = new QTimer(this);
+    mScrollTimer->setSingleShot(true);
+    mScrollTimer->setInterval(500); // TODO: this interval should probably be the latency
+    connect(mScrollTimer, &QTimer::timeout, this, [this]
+    {
+        qDebug() << "Total scroll for debounce interval: " << mScrollDelta;
+        uint64_t minTime = UINT64_MAX;
+        uint64_t maxTime = 0;
+        dsint totalDelta = 0;
+        for(const auto&[time,delta] : mScrollEvents) {
+            uint64_t timeMs = std::chrono::duration_cast<std::chrono::milliseconds>(time.time_since_epoch()).count();
+            minTime = std::min(minTime, timeMs);
+            maxTime = std::max(maxTime, timeMs);
+            totalDelta += delta;
+        }
+        auto totalMs = maxTime - minTime;
+        auto div = totalMs / 1000.0;
+        qDebug() << "time:" << totalMs << "total:" << totalDelta << "velocity:" << totalDelta / div << "(lines/second)";
+        mScrollEvents.clear();
+        mScrollDelta = 0;
+    });
 }
 
 QString RemoteTable::getCellContent(duint row, duint col)
 {
-    // TODO: get data from a container that's aware of the outgoing requests
-    // (perhaps this should be done transparently in the request/response handling?)
-    auto relativeRow = row - getTableOffset();
+    // Show the real row number for debugging purposes
     QString base;
     if(col == 0)
     {
         base = QString("[row: %1] ").arg(row, 5);
     }
-    if(relativeRow < mRemoteData.size())
-    {
-        const auto & remoteRow = mRemoteData[relativeRow];
-        QString data;
-        if(col < remoteRow.size())
-        {
-            data = QString::fromStdString(remoteRow[col]);
-        }
-        else
-        {
-            data = "(BAD SERVER)";
-        }
-        return base + data;
-    }
-    else
+
+    // Ignore out of range data
+    dsint relativeRow = row - mRemoteTableOffset;
+    if(relativeRow < 0 || relativeRow >= mRemoteData.size())
     {
         return base + "(FETCHING DATA...)";
     }
+
+    // Display the data we do have
+    const auto & remoteRow = mRemoteData[relativeRow];
+    QString data;
+    if(col < remoteRow.size())
+    {
+        data = QString::fromStdString(remoteRow[col]);
+    }
+    else
+    {
+        data = "(BAD SERVER)";
+    }
+    return base + data;
 }
 
 duint RemoteTable::getCellUserdata(duint row, duint column)
@@ -94,6 +115,14 @@ void RemoteTable::sortRows(duint column, bool ascending)
 
 duint RemoteTable::sliderMovedHook(QScrollBar::SliderAction action, duint value, dsint delta)
 {
+    // Use a debounce timer to predict the scrolling
+    if(!mScrollTimer->isActive())
+    {
+        mScrollStart = std::chrono::system_clock::now();
+    }
+    mScrollDelta += delta;
+    mScrollTimer->start();
+
     auto actionName = [action]()
     {
         switch(action)
@@ -166,13 +195,22 @@ void RemoteTable::prepareData()
     // TODO: use the average/median/last latency of the connection as a debouncing timer
     // TODO: use some basic prediction heuristics (scroll direction etc) to anticipate
     // the scroll (request a bigger range)
-    // TODO: measure the ping
-    // TODO: implement partial reuse of the data
 
     TableRequest r;
     r.offset = offset;
     r.lines = linesToPrint;
     r.scroll = 0; // TODO: unused for now, used to scroll up in disassembly (variable size)
+
+    if(mScrollDelta < 0)
+    {
+        // TODO: set scroll to -100 to get 100 extra line up
+    }
+    else if(mScrollDelta > 0)
+    {
+        // TODO: increase the lines based on scroll velocity
+        //r.lines *= 2;
+    }
+    //qDebug() << "scrollDelta:" << mScrollDelta;
 
     if(!mCurrentSent)
     {
@@ -191,6 +229,14 @@ void RemoteTable::prepareData()
         mNextRequest = r;
         mNextRequired = true;
     }
+}
+
+void RemoteTable::wheelEvent(QWheelEvent* event)
+{
+    dsint prevScrollDelta = mScrollDelta;
+    AbstractStdTable::wheelEvent(event);
+    auto now = std::chrono::system_clock::now();
+    mScrollEvents.emplace_back(now, mScrollDelta - prevScrollDelta);
 }
 
 void RemoteTable::handleTableResponse(const TableResponse & response)
@@ -229,6 +275,8 @@ void RemoteTable::handleTableResponse(const TableResponse & response)
     }
 
     qDebug() << "[response time] now:" << elapsedMs << "min:" << mMinResponseTime << "max:" << mMaxResponseTime << "avg:" << mAvgResponseTime << "med:" << mMedResponseTime;
+
+    // TODO: use these statistics to send a deferred request a bit earlier
 
     // Handle deferred request
     if(mNextRequired)
@@ -269,6 +317,7 @@ void RemoteTable::handleTableResponse(const TableResponse & response)
         mOverlay->setVisible(false);
 
         // Update the displayed data with the final response
+        mRemoteTableOffset = mCurrentRequest.offset;
         mRemoteData = std::move(response.rows);
         updateViewport();
     }
