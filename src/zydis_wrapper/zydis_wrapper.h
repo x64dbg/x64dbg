@@ -1,7 +1,13 @@
 #pragma once
 
+#ifndef ZYCORE_STATIC_BUILD
 #define ZYCORE_STATIC_BUILD
+#endif // ZYCORE_STATIC_BUILD
+
+#ifndef ZYDIS_STATIC_BUILD
 #define ZYDIS_STATIC_BUILD
+#endif // ZYDIS_STATIC_BUILD
+
 #include "Zydis/Zydis.h"
 #include <type_traits>
 #include <functional>

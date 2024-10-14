@@ -8,7 +8,7 @@
 
 namespace Ui
 {
-    class XrefBrowseDialog;
+    class TraceXrefBrowseDialog;
 }
 
 class TraceXrefBrowseDialog : public QDialog, public ActionHelper<TraceXrefBrowseDialog>
@@ -33,7 +33,7 @@ private slots:
     void copyAllSlot();
 
 private:
-    Ui::XrefBrowseDialog* ui; // This uses the same dialog UI as XrefBrowseDialog
+    Ui::TraceXrefBrowseDialog* ui;
 
     void changeAddress(duint address);
     void setupContextMenu();
