@@ -235,9 +235,18 @@ static void editSIMDRegister(CPURegistersView* parent, int bits, const QString &
 
 void CPURegistersView::displayEditDialog()
 {
+    auto name = mRegisterMapping[mSelected];
     if(mFPU.contains(mSelected))
     {
-        if(mTAGWORD.contains(mSelected))
+        if(mSelected == x87TagWord || mSelected == x87StatusWord || mSelected == x87ControlWord || mSelected == MxCsr)
+        {
+            WordEditDialog editDialog(this);
+            auto value = *(duint*)registerValue(&mRegDumpStruct, mSelected);
+            editDialog.setup(tr("Edit %1").arg(name), value, mSelected == x87ControlWord ? sizeof(uint32_t) : sizeof(uint16_t));
+            if(editDialog.exec() == QDialog::Accepted) //OK button clicked
+                setRegister(mSelected, editDialog.getVal());
+        }
+        else if(mTAGWORD.contains(mSelected))
             MODIFY_FIELDS_DISPLAY(tr("Edit"), "Tag " + mRegisterMapping.constFind(mSelected).value(), TagWordValueStringTable);
         else if(mSelected == MxCsr_RC)
             MODIFY_FIELDS_DISPLAY(tr("Edit"), "MxCsr_RC", MxCsrRCValueStringTable);
@@ -252,11 +261,11 @@ void CPURegistersView::displayEditDialog()
             updateRegistersSlot();
         }
         else if(mFPUYMM.contains(mSelected))
-            editSIMDRegister(this, 256, tr("Edit YMM register"), registerValue(&mRegDumpStruct, mSelected), mSelected);
+            editSIMDRegister(this, 256, tr("Edit %1 register").arg(name), registerValue(&mRegDumpStruct, mSelected), mSelected);
         else if(mFPUXMM.contains(mSelected))
-            editSIMDRegister(this, 128, tr("Edit XMM register"), registerValue(&mRegDumpStruct, mSelected), mSelected);
+            editSIMDRegister(this, 128, tr("Edit %1 register").arg(name), registerValue(&mRegDumpStruct, mSelected), mSelected);
         else if(mFPUMMX.contains(mSelected))
-            editSIMDRegister(this, 64, tr("Edit MMX register"), registerValue(&mRegDumpStruct, mSelected), mSelected);
+            editSIMDRegister(this, 64, tr("Edit %1 register").arg(name), registerValue(&mRegDumpStruct, mSelected), mSelected);
         else
         {
             bool errorinput = false;
@@ -398,7 +407,8 @@ void CPURegistersView::displayEditDialog()
     else
     {
         WordEditDialog editDialog(this);
-        editDialog.setup(tr("Edit"), (* ((duint*) registerValue(&mRegDumpStruct, mSelected))), sizeof(dsint));
+        auto value = *(duint*)registerValue(&mRegDumpStruct, mSelected);
+        editDialog.setup(tr("Edit %1").arg(name), value, sizeof(dsint));
         if(editDialog.exec() == QDialog::Accepted) //OK button clicked
             setRegister(mSelected, editDialog.getVal());
     }
