@@ -3806,30 +3806,30 @@ typedef struct _PEB
 // Only for Windows 11 24H2+
 typedef struct _SEGMENT_HEAP
 {
-	UCHAR Reserved0[0x10];  // 0x0  ~ 0x10	Skip unused members
-	ULONG Signature;        // 0x10 ~ 0x14
-	UCHAR Padding0[0x04];   // 0x14 ~ 0x18
-	UCHAR Reserved1[0x20];  // 0x18 ~ 0x38	Skip unused members
-	PVOID UserContext;      // 0x38 ~ 0x40
+    UCHAR Reserved0[0x10];  // 0x0  ~ 0x10  Skip unused members
+    ULONG Signature;        // 0x10 ~ 0x14
+    UCHAR Padding0[0x04];   // 0x14 ~ 0x18
+    UCHAR Reserved1[0x20];  // 0x18 ~ 0x38  Skip unused members
+    PVOID UserContext;      // 0x38 ~ 0x40
 } SEGMENT_HEAP, *PSEGMENT_HEAP;
 
 // Only for Windows 11 24H2+
 typedef struct _HEAP
 {
-	UCHAR Reserved0[0x10];   // 0x0   ~ 0x10  Skip unused members
-	ULONG SegmentSignature;  // 0x10  ~ 0x14
-	UCHAR Padding0[0x04];    // 0x14  ~ 0x18
-	UCHAR Reserved1[0x170];  // 0x18  ~ 0x188 Skip unused members
-	PVOID UserContext;       // 0x188 ~ 0x190
-	UCHAR Reserved2[0x130];  // 0x190 ~ 0x2C0 Skip unused members
+    UCHAR Reserved0[0x10];   // 0x0   ~ 0x10  Skip unused members
+    ULONG SegmentSignature;  // 0x10  ~ 0x14
+    UCHAR Padding0[0x04];    // 0x14  ~ 0x18
+    UCHAR Reserved1[0x170];  // 0x18  ~ 0x188 Skip unused members
+    PVOID UserContext;       // 0x188 ~ 0x190
+    UCHAR Reserved2[0x130];  // 0x190 ~ 0x2C0 Skip unused members
 } HEAP, *PHEAP;
 
 // Only for Windows 11 24H2+
 typedef struct _PROCESS_HEAP_DESCRIPTOR
 {
-	PVOID Next;
-	PVOID Prev;
-	PHEAP Heap;
+    PVOID Next;
+    PVOID Prev;
+    PHEAP Heap;
 } PROCESS_HEAP_DESCRIPTOR, *PPROCESS_HEAP_DESCRIPTOR;
 
 

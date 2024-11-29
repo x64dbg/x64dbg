@@ -337,45 +337,46 @@ static void ProcessSystemPages(std::vector<MEMPAGE> & pageVector)
     for(uint32_t i = 0; i < HeapCount; i++)
         processHeapIds.emplace(ProcessHeaps[i], i);
 
-	// On Windows 11 24H2+, PEB does not store all the heap in the process.
-	// Reference: https://cafe.naver.com/megayuchi/683, https://cafe.naver.com/megayuchi/684
-	static auto buildNumber = BridgeGetNtBuildNumber();
-	if (buildNumber >= 26100 && HeapCount == 1)
-	{
-		ULONG SegmentSignature = 0;
-		MemRead(ProcessHeaps[0] + offsetof(HEAP, SegmentSignature), &SegmentSignature, sizeof(SegmentSignature));
+    // On Windows 11 24H2+, PEB does not store all the heap in the process.
+    // Reference: https://cafe.naver.com/megayuchi/683, https://cafe.naver.com/megayuchi/684
+    static auto buildNumber = BridgeGetNtBuildNumber();
+    if(buildNumber >= 26100 && HeapCount == 1)
+    {
+        ULONG SegmentSignature = 0;
+        MemRead(ProcessHeaps[0] + offsetof(HEAP, SegmentSignature), &SegmentSignature, sizeof(SegmentSignature));
 
-		duint ProcessHeapDescriptorPtr = 0;
-		if (SegmentSignature == RTL_NT_HEAP_SIGNATURE)
-		{
-			MemRead(ProcessHeaps[0] + offsetof(HEAP, UserContext), &ProcessHeapDescriptorPtr, sizeof(ProcessHeapDescriptorPtr));
-		}
-		else if (SegmentSignature == RTL_SEGMENT_HEAP_SIGNATURE)
-		{
-			MemRead(ProcessHeaps[0] + offsetof(SEGMENT_HEAP, UserContext), &ProcessHeapDescriptorPtr, sizeof(ProcessHeapDescriptorPtr));
-		}
+        duint ProcessHeapDescriptorPtr = 0;
+        if(SegmentSignature == RTL_NT_HEAP_SIGNATURE)
+        {
+            MemRead(ProcessHeaps[0] + offsetof(HEAP, UserContext), &ProcessHeapDescriptorPtr, sizeof(ProcessHeapDescriptorPtr));
+        }
+        else if(SegmentSignature == RTL_SEGMENT_HEAP_SIGNATURE)
+        {
+            MemRead(ProcessHeaps[0] + offsetof(SEGMENT_HEAP, UserContext), &ProcessHeapDescriptorPtr, sizeof(ProcessHeapDescriptorPtr));
+        }
 
-		duint CurrentProcessHeapId = HeapCount;
-		duint CurrentProcessHeapDescriptorPtr = ProcessHeapDescriptorPtr;
+        duint CurrentProcessHeapId = HeapCount;
+        duint CurrentProcessHeapDescriptorPtr = ProcessHeapDescriptorPtr;
 
-		while (CurrentProcessHeapDescriptorPtr != 0) {
-			MemRead(CurrentProcessHeapDescriptorPtr + offsetof(PROCESS_HEAP_DESCRIPTOR, Next), &CurrentProcessHeapDescriptorPtr, sizeof(CurrentProcessHeapDescriptorPtr));
-			if (CurrentProcessHeapDescriptorPtr == 0)
-				break;
+        while(CurrentProcessHeapDescriptorPtr != 0)
+        {
+            MemRead(CurrentProcessHeapDescriptorPtr + offsetof(PROCESS_HEAP_DESCRIPTOR, Next), &CurrentProcessHeapDescriptorPtr, sizeof(CurrentProcessHeapDescriptorPtr));
+            if(CurrentProcessHeapDescriptorPtr == 0)
+                break;
 
-			duint ProcessHeapPtr = 0;
-			MemRead(CurrentProcessHeapDescriptorPtr + offsetof(PROCESS_HEAP_DESCRIPTOR, Heap), &ProcessHeapPtr, sizeof(ProcessHeapPtr));
-			if (ProcessHeapPtr == 0)
-				break;
+            duint ProcessHeapPtr = 0;
+            MemRead(CurrentProcessHeapDescriptorPtr + offsetof(PROCESS_HEAP_DESCRIPTOR, Heap), &ProcessHeapPtr, sizeof(ProcessHeapPtr));
+            if(ProcessHeapPtr == 0)
+                break;
 
-			// Check for current heap is correct
-			MemRead(ProcessHeapPtr + offsetof(HEAP, SegmentSignature), &SegmentSignature, sizeof(SegmentSignature));
-			if (SegmentSignature != RTL_NT_HEAP_SIGNATURE && SegmentSignature != RTL_SEGMENT_HEAP_SIGNATURE)
-				break;
+            // Check for current heap is correct
+            MemRead(ProcessHeapPtr + offsetof(HEAP, SegmentSignature), &SegmentSignature, sizeof(SegmentSignature));
+            if(SegmentSignature != RTL_NT_HEAP_SIGNATURE && SegmentSignature != RTL_SEGMENT_HEAP_SIGNATURE)
+                break;
 
-			processHeapIds.emplace(ProcessHeapPtr, CurrentProcessHeapId++);
-		} 
-	}
+            processHeapIds.emplace(ProcessHeapPtr, CurrentProcessHeapId++);
+        }
+    }
 
     for(auto & page : pageVector)
     {
