@@ -774,7 +774,7 @@ static duint BpToBridgeTypeEx(const BREAKPOINT & Bp)
     return 0;
 }
 
-static duint BpToBridgeHwSize(const BREAKPOINT & Bp)
+static BPHWSIZE BpToBridgeHwSize(const BREAKPOINT & Bp)
 {
     switch(Bp.type)
     {
@@ -794,7 +794,7 @@ static duint BpToBridgeHwSize(const BREAKPOINT & Bp)
     default:
         break;
     }
-    return 0;
+    return hw_byte;
 }
 
 static duint BpToBridgeHwSlot(const BREAKPOINT & Bp)
