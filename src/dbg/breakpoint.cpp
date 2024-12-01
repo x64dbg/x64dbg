@@ -774,7 +774,7 @@ static duint BpToBridgeTypeEx(const BREAKPOINT & Bp)
     return 0;
 }
 
-static duint BpToBridgeHwSize(const BREAKPOINT & Bp)
+static BPHWSIZE BpToBridgeHwSize(const BREAKPOINT & Bp)
 {
     switch(Bp.type)
     {
@@ -782,19 +782,19 @@ static duint BpToBridgeHwSize(const BREAKPOINT & Bp)
         switch(TITANGETSIZE(Bp.titantype))
         {
         case UE_HARDWARE_SIZE_1:
-            return 1;
+            return hw_byte;
         case UE_HARDWARE_SIZE_2:
-            return 2;
+            return hw_word;
         case UE_HARDWARE_SIZE_4:
-            return 4;
+            return hw_dword;
         case UE_HARDWARE_SIZE_8:
-            return 8;
+            return hw_qword;
         }
         break;
     default:
         break;
     }
-    return 0;
+    return hw_byte;
 }
 
 static duint BpToBridgeHwSlot(const BREAKPOINT & Bp)
