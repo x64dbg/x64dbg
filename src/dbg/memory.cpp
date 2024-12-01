@@ -303,6 +303,37 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector, std::vector<S
     }
 }
 
+#define WIN11_RTL_NT_HEAP_SIGNATURE 0xFFEEFFEE
+#define WIN11_RTL_SEGMENT_HEAP_SIGNATURE 0xDDEEDDEE
+
+// Only for Windows 11 24H2+
+typedef struct _WIN11_SEGMENT_HEAP
+{
+    UCHAR Reserved0[0x10];  // 0x0  ~ 0x10  Skip unused members
+    ULONG Signature;        // 0x10 ~ 0x14
+    UCHAR Reserved1[0x24];  // 0x14 ~ 0x38  Skip unused members
+    PVOID UserContext;      // 0x38 ~ 0x40
+} WIN11_SEGMENT_HEAP, *PWIN11_SEGMENT_HEAP;
+
+// Only for Windows 11 24H2+
+typedef struct _WIN11_HEAP
+{
+    UCHAR Reserved0[0x10];   // 0x0   ~ 0x10  Skip unused members
+    ULONG SegmentSignature;  // 0x10  ~ 0x14
+    UCHAR Reserved1[0x174];  // 0x14  ~ 0x188 Skip unused members
+    PVOID UserContext;       // 0x188 ~ 0x190
+    UCHAR Reserved2[0x130];  // 0x190 ~ 0x2C0 Skip unused members
+} WIN11_HEAP, * PWIN11_HEAP;
+
+// Only for Windows 11 24H2+
+typedef struct _WIN11_PROCESS_HEAP_DESCRIPTOR
+{
+    PVOID Next;
+    PVOID Prev;
+    PWIN11_HEAP Heap;
+} WIN11_PROCESS_HEAP_DESCRIPTOR, *PWIN11_PROCESS_HEAP_DESCRIPTOR;
+
+
 #define MAX_HEAPS 1000
 
 static void ProcessSystemPages(std::vector<MEMPAGE> & pageVector)
@@ -343,16 +374,16 @@ static void ProcessSystemPages(std::vector<MEMPAGE> & pageVector)
     if(buildNumber >= 26100 && HeapCount == 1)
     {
         ULONG SegmentSignature = 0;
-        MemRead(ProcessHeaps[0] + offsetof(HEAP, SegmentSignature), &SegmentSignature, sizeof(SegmentSignature));
+        MemRead(ProcessHeaps[0] + offsetof(WIN11_HEAP, SegmentSignature), &SegmentSignature, sizeof(SegmentSignature));
 
         duint ProcessHeapDescriptorPtr = 0;
-        if(SegmentSignature == RTL_NT_HEAP_SIGNATURE)
+        if(SegmentSignature == WIN11_RTL_NT_HEAP_SIGNATURE)
         {
-            MemRead(ProcessHeaps[0] + offsetof(HEAP, UserContext), &ProcessHeapDescriptorPtr, sizeof(ProcessHeapDescriptorPtr));
+            MemRead(ProcessHeaps[0] + offsetof(WIN11_HEAP, UserContext), &ProcessHeapDescriptorPtr, sizeof(ProcessHeapDescriptorPtr));
         }
-        else if(SegmentSignature == RTL_SEGMENT_HEAP_SIGNATURE)
+        else if(SegmentSignature == WIN11_RTL_SEGMENT_HEAP_SIGNATURE)
         {
-            MemRead(ProcessHeaps[0] + offsetof(SEGMENT_HEAP, UserContext), &ProcessHeapDescriptorPtr, sizeof(ProcessHeapDescriptorPtr));
+            MemRead(ProcessHeaps[0] + offsetof(WIN11_SEGMENT_HEAP, UserContext), &ProcessHeapDescriptorPtr, sizeof(ProcessHeapDescriptorPtr));
         }
 
         duint CurrentProcessHeapId = HeapCount;
@@ -360,21 +391,21 @@ static void ProcessSystemPages(std::vector<MEMPAGE> & pageVector)
 
         while(CurrentProcessHeapDescriptorPtr != 0)
         {
-            MemRead(CurrentProcessHeapDescriptorPtr + offsetof(PROCESS_HEAP_DESCRIPTOR, Next), &CurrentProcessHeapDescriptorPtr, sizeof(CurrentProcessHeapDescriptorPtr));
+            MemRead(CurrentProcessHeapDescriptorPtr + offsetof(WIN11_PROCESS_HEAP_DESCRIPTOR, Next), &CurrentProcessHeapDescriptorPtr, sizeof(CurrentProcessHeapDescriptorPtr));
             if(CurrentProcessHeapDescriptorPtr == 0)
                 break;
 
             duint ProcessHeapPtr = 0;
-            MemRead(CurrentProcessHeapDescriptorPtr + offsetof(PROCESS_HEAP_DESCRIPTOR, Heap), &ProcessHeapPtr, sizeof(ProcessHeapPtr));
+            MemRead(CurrentProcessHeapDescriptorPtr + offsetof(WIN11_PROCESS_HEAP_DESCRIPTOR, Heap), &ProcessHeapPtr, sizeof(ProcessHeapPtr));
             if(ProcessHeapPtr == 0)
                 break;
 
             // Check for current heap is correct
-            MemRead(ProcessHeapPtr + offsetof(HEAP, SegmentSignature), &SegmentSignature, sizeof(SegmentSignature));
-            if(SegmentSignature != RTL_NT_HEAP_SIGNATURE && SegmentSignature != RTL_SEGMENT_HEAP_SIGNATURE)
+            MemRead(ProcessHeapPtr + offsetof(WIN11_HEAP, SegmentSignature), &SegmentSignature, sizeof(SegmentSignature));
+            if(SegmentSignature != WIN11_RTL_NT_HEAP_SIGNATURE && SegmentSignature != WIN11_RTL_SEGMENT_HEAP_SIGNATURE)
                 break;
 
-            processHeapIds.emplace(ProcessHeapPtr, CurrentProcessHeapId++);
+            processHeapIds.emplace(ProcessHeapPtr, (uint32_t)CurrentProcessHeapId++);
         }
     }
 
