@@ -634,6 +634,22 @@ void BreakpointsView::toggleBreakpointSlot()
             Breakpoints::toggleBPByDisabling(selectedBp(i));
 }
 
+void BreakpointsView::exportmatcsv()
+{
+    std::vector<QString> headers;
+    headers.reserve(3);
+    // for(duint i = 0; i < getColumnCount(); i++)
+    // headers.push_back(getColTitle(i));
+    headers.push_back(getColTitle(1));
+    headers.push_back(getColTitle(3));
+    headers.push_back(getColTitle(0));
+
+    ExportCSV(getRowCount(), 3, headers, [this](duint row, duint column)
+    {
+        return getCellContent(row, column);
+    });
+}
+
 void BreakpointsView::editBreakpointSlot()
 {
     if(!isValidBp())

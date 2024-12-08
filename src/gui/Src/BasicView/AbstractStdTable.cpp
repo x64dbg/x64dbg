@@ -905,6 +905,7 @@ void AbstractStdTable::exportTableSlot()
     headers.reserve(getColumnCount());
     for(duint i = 0; i < getColumnCount(); i++)
         headers.push_back(getColTitle(i));
+
     ExportCSV(getRowCount(), getColumnCount(), headers, [this](duint row, duint column)
     {
         return getCellContent(row, column);

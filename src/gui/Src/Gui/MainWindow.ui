@@ -55,6 +55,7 @@
      <addaction name="separator"/>
      <addaction name="actionImportdatabase"/>
      <addaction name="actionExportdatabase"/>
+     <addaction name="actionWhaaaat"/>
     </widget>
     <addaction name="actionOpen"/>
     <addaction name="menuRecentFiles"/>
@@ -1342,6 +1343,15 @@
    </property>
    <property name="text">
     <string>&amp;Export database</string>
+   </property>
+  </action> 
+  <action name="actionWhaaaat">
+   <property name="icon">
+    <iconset theme="barbie" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/barbie.png</normaloff>:/Default/icons/barbie.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Whaaaat</string>
    </property>
   </action>
   <action name="actionPreviousTab">

@@ -361,6 +361,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->actionCustomizeMenus, SIGNAL(triggered()), this, SLOT(customizeMenu()));
     connect(ui->actionVariables, SIGNAL(triggered()), this, SLOT(displayVariables()));
     makeCommandAction(ui->actionDbsave, "dbsave");
+    makeCommandAction(ui->actionDbsave, "dbsavecyber");
     makeCommandAction(ui->actionDbload, "dbload");
     makeCommandAction(ui->actionDbrecovery, "dbload bak");
     makeCommandAction(ui->actionDbclear, "dbclear");
@@ -1057,6 +1058,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionDbrecovery, ConfigShortcut("FileDbrecovery"));
     setGlobalShortcut(ui->actionImportdatabase, ConfigShortcut("FileImportDatabase"));
     setGlobalShortcut(ui->actionExportdatabase, ConfigShortcut("FileExportDatabase"));
+    setGlobalShortcut(ui->actionWhaaaat, ConfigShortcut("FileWhaaaat"));
     setGlobalShortcut(ui->actionRestartAdmin, ConfigShortcut("FileRestartAdmin"));
     setGlobalShortcut(ui->actionExit, ConfigShortcut("FileExit"));
 
@@ -2644,6 +2646,18 @@ void MainWindow::on_actionExportdatabase_triggered()
     if(!filename.length())
         return;
     DbgCmdExec(QString("dbsave \"%1\"").arg(QDir::toNativeSeparators(filename)));
+}
+
+void MainWindow::on_actionWhaaaat_triggered()
+{
+    if(!DbgIsDebugging())
+        return;
+    // auto filename = QFileDialog::getSaveFileName(this, tr("Export database"), QString(), tr("Databases (%1);;All files (*.*)").arg(ArchValue("*.dd32", "*.dd64")));
+    // if(!filename.length())
+    //     return;
+
+    mBreakpointsView->exportmatcsv();
+    // DbgCmdExec(QString("dbsavecyber \"%1\"").arg(QDir::toNativeSeparators(filename)));
 }
 
 static void setupMenuCustomizationHelper(QMenu* parentMenu, QList<QAction*> & stringList)

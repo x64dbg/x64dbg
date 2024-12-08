@@ -11,8 +11,13 @@ class MenuBuilder;
 class BreakpointsView : public StdTable
 {
     Q_OBJECT
+
+public slots:
+    void exportmatcsv();
+
 public:
     explicit BreakpointsView(QWidget* parent = nullptr);
+
 
 protected:
     void setupContextMenu();

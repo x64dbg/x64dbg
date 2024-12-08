@@ -248,6 +248,7 @@
         <file>icons/enable.png</file>
         <file>icons/disable.png</file>
         <file>icons/database-export.png</file>
+        <file>icons/barbie.png</file>
         <file>icons/database-import.png</file>
         <file>icons/lock.png</file>
         <file>icons/createthread.png</file>
@@ -319,6 +320,7 @@
         <file>icons/control-record.png</file>
         <file>icons/delete.png</file>
         <file>icons/close.png</file>
+        
     </qresource>
     <qresource prefix="/css">
         <file>default.css</file>
