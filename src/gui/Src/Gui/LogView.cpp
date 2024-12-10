@@ -265,6 +265,9 @@ void LogView::addMsgToLogSlotRaw(QByteArray msg, bool encodeHTML)
     * - No carriage return (http://utf8everywhere.org/#faq.crlf).
     */
 
+    if(msg.length() == 0 || msg.at(0) == '\0')
+        return;
+
     // fix Unix-style line endings.
     // redirect the log
     QString msgUtf16;
