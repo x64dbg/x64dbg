@@ -120,6 +120,8 @@ void CommandLineEdit::execute()
         if(cmd.trimmed().isEmpty())
             if(Config()->getBool("Gui", "AutoRepeatOnEnter"))
                 cmd = getLineFromHistory();
+        // Clear the status bar
+        GuiAddStatusBarMessage("\n");
         // Send this string directly to the user
         exec(cmd.toUtf8().constData());
     }
