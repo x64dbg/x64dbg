@@ -6,6 +6,16 @@ if(CMKR_ROOT_PROJECT)
 	configure_file(cmake.toml cmake.toml COPYONLY)
 endif()
 
+# Subdirectory: btparser
+set(CMKR_CMAKE_FOLDER ${CMAKE_FOLDER})
+if(CMAKE_FOLDER)
+	set(CMAKE_FOLDER "${CMAKE_FOLDER}/btparser")
+else()
+	set(CMAKE_FOLDER btparser)
+endif()
+add_subdirectory(btparser)
+set(CMAKE_FOLDER ${CMKR_CMAKE_FOLDER})
+
 # Target: cpp-httplib
 add_library(cpp-httplib INTERFACE)
 

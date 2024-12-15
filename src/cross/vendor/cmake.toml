@@ -5,3 +5,5 @@ include-directories = ["cpp-httplib"]
 [target.linux-pe]
 type = "interface"
 include-directories = ["linux-pe"]
+
+[subdir.btparser]
