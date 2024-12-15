@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>fonts/IntelOneMono-Regular.ttf</file>
+        <file>fonts/IntelOneMono-MediumItalic.ttf</file>
+        <file>fonts/IntelOneMono-Medium.ttf</file>
+        <file>fonts/IntelOneMono-LightItalic.ttf</file>
+        <file>fonts/IntelOneMono-Light.ttf</file>
+        <file>fonts/IntelOneMono-Italic.ttf</file>
+        <file>fonts/IntelOneMono-BoldItalic.ttf</file>
+        <file>fonts/IntelOneMono-Bold.ttf</file>
+    </qresource>
+</RCC>
