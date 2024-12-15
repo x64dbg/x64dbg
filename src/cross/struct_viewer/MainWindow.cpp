@@ -32,6 +32,8 @@ void MainWindow::loadFile(const QString & path)
 
 void MainWindow::setupWidgets()
 {
+    mStructWidget = new StructWidget();
+    ui->tabWidget->addTab(mStructWidget, mStructWidget->windowTitle());
 }
 
 void MainWindow::on_action_Load_file_triggered()

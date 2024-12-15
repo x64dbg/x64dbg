@@ -130,9 +130,12 @@ endif()
 # Target: struct_viewer
 set(struct_viewer_SOURCES
 	"struct_viewer/MainWindow.cpp"
+	"struct_viewer/StructWidget.cpp"
 	"struct_viewer/main.cpp"
 	"struct_viewer/MainWindow.h"
+	"struct_viewer/StructWidget.h"
 	"struct_viewer/MainWindow.ui"
+	"struct_viewer/StructWidget.ui"
 	cmake.toml
 )
 
@@ -145,6 +148,7 @@ target_compile_features(struct_viewer PRIVATE
 
 target_link_libraries(struct_viewer PRIVATE
 	x64dbg::widgets
+	btparser
 )
 
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)

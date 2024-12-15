@@ -53,4 +53,5 @@ sources = [
 ]
 link-libraries = [
     "x64dbg::widgets",
+    "btparser",
 ]

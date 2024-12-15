@@ -5,6 +5,8 @@
 
 #include <QMainWindow>
 
+#include "StructWidget.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -26,5 +28,6 @@ private:
 
 private:
     Ui::MainWindow* ui = nullptr;
+    StructWidget* mStructWidget = nullptr;
 };
 #endif // MAINWINDOW_H
