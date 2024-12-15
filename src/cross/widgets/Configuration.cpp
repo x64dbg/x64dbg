@@ -7,6 +7,7 @@
 #include <QGuiApplication>
 #include <QWheelEvent>
 #include <QFontDatabase>
+#include <QDir>
 #include <BasicView/AbstractTableView.h>
 #include "Bridge.h"
 
@@ -28,6 +29,35 @@ inline static void addWindowPosConfig(QMap<QString, duint> & guiUint, const char
 Configuration::Configuration() : QObject(), noMoreMsgbox(false)
 {
     mPtr = this;
+
+    // load fonts from resources
+    Q_INIT_RESOURCE(resources);
+    QSet<QString> embeddedFamilies;
+    for (const QString& file : QDir(":/fonts").entryList(QDir::Files))
+    {
+        if(file.endsWith(".ttf"))
+        {
+            auto id = QFontDatabase::addApplicationFont(":/fonts/" + file);
+            if(id == -1)
+            {
+                qDebug() << "Failed to load font" << file;
+            }
+            else
+            {
+                for(const auto& family : QFontDatabase::applicationFontFamilies(id))
+                {
+                    embeddedFamilies.insert(family);
+                }
+            }
+        }
+    }
+    for(const auto& family : embeddedFamilies)
+    {
+        auto font = QFont(family, PlatformFontWeight, QFont::Normal);
+        font.setFixedPitch(true);
+        EmbeddedFonts.push_back(std::move(font));
+    }
+
     //setup default color map
     defaultColors.clear();
     defaultColors.insert("AbstractTableViewSeparatorColor", QColor("#808080"));
@@ -384,14 +414,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultUints.insert("TabOrder", tabOrderUint);
 
     //font settings
-#ifdef Q_OS_DARWIN
-    QFont font("Menlo", 13, QFont::Normal, false);
-#elif defined(Q_OS_WIN)
-    QFont font("Lucida Console", 8, QFont::Normal, false);
-#else
-    auto font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    font.setPointSize(13);
-#endif // Q_OS_DARWIN
+    auto font = monospaceFont();
     defaultFonts.insert("AbstractTableView", font);
     defaultFonts.insert("Disassembly", font);
     defaultFonts.insert("HexDump", font);
@@ -947,9 +970,7 @@ const QFont Configuration::getFont(const QString & id) const
 {
     if(Fonts.contains(id))
         return Fonts.constFind(id).value();
-    QFont ret("Lucida Console", 8, QFont::Normal, false);
-    ret.setFixedPitch(true);
-    ret.setStyleHint(QFont::Monospace);
+    auto ret = monospaceFont();
     if(noMoreMsgbox)
         return ret;
     QMessageBox msg(QMessageBox::Warning, tr("NOT FOUND IN CONFIG!"), id, QMessageBox::Retry | QMessageBox::Cancel);
@@ -1089,10 +1110,7 @@ QFont Configuration::fontFromConfig(const QString & id)
         }
         if(id == "Application")
             return QApplication::font();
-        QFont ret("Lucida Console", 8, QFont::Normal, false);
-        ret.setFixedPitch(true);
-        ret.setStyleHint(QFont::Monospace);
-        return ret;
+        return monospaceFont();
     }
     QFont font;
     if(!font.fromString(setting))
@@ -1105,10 +1123,7 @@ QFont Configuration::fontFromConfig(const QString & id)
         }
         if(id == "Application")
             return QApplication::font();
-        QFont ret("Lucida Console", 8, QFont::Normal, false);
-        ret.setFixedPitch(true);
-        ret.setStyleHint(QFont::Monospace);
-        return ret;
+        return monospaceFont();
     }
     return font;
 }
@@ -1186,6 +1201,17 @@ void Configuration::zoomFont(const QString & fontName, QWheelEvent* event)
             GuiUpdateAllViews();
         }
     }
+}
+
+QFont Configuration::monospaceFont() const
+{
+    if(EmbeddedFonts.empty())
+    {
+        auto font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+        font.setPointSize(13);
+        return font;
+    }
+    return EmbeddedFonts.front();
 }
 
 static bool IsPointVisible(QPoint pos)

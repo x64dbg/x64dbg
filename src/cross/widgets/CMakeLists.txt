@@ -75,6 +75,7 @@ include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 add_library(x64dbg_widgets STATIC
     ${hook_SOURCES}
     ${widgets_SOURCES}
+    resources.qrc
 )
 add_library(x64dbg::widgets ALIAS x64dbg_widgets)
 
