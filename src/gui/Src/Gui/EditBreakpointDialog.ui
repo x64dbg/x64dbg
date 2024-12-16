@@ -61,13 +61,20 @@
        <property name="text">
         <string>&amp;Break Condition:</string>
        </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
        <property name="buddy">
         <cstring>editBreakCondition</cstring>
        </property>
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QLineEdit" name="editBreakCondition"/>
+      <widget class="QLineEdit" name="editBreakCondition">
+       <property name="placeholderText">
+        <string>Example: arg(0) == 123 (numbers are hex by default)</string>
+       </property>
+      </widget>
      </item>
      <item row="1" column="1">
       <widget class="QLineEdit" name="editLogText"/>

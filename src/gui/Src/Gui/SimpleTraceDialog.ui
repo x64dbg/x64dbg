@@ -58,6 +58,9 @@
      <property name="text">
       <string>&amp;Break Condition:</string>
      </property>
+     <property name="openExternalLinks">
+      <bool>true</bool>
+     </property>
      <property name="buddy">
       <cstring>editBreakCondition</cstring>
      </property>

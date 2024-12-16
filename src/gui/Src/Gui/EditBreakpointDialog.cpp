@@ -14,6 +14,8 @@ EditBreakpointDialog::EditBreakpointDialog(QWidget* parent, const Breakpoints::D
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     setFixedHeight(sizeHint().height()); // resizable only horizontally
 
+    ui->labelBreakCondition->setText(QString("<a href=\"https://help.x64dbg.com/en/latest/introduction/ConditionalBreakpoint.html\">%1</a>:").arg(ui->labelBreakCondition->text().replace(":", "")));
+
     switch(bp.type)
     {
     case bp_dll:
