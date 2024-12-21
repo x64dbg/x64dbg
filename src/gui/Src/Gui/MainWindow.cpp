@@ -1654,7 +1654,10 @@ void MainWindow::clearMenuHelper(int hMenu, bool markAsDeleted)
             if(markAsDeleted)
                 mEntryList[i].deleted = true;
             else
+            {
+                mEntryList[i].mAction->setShortcut(QKeySequence());
                 mEntryList.erase(mEntryList.begin() + i);
+            }
         }
     }
 
