@@ -14,6 +14,7 @@ class BreakpointsView : public StdTable
 
 public slots:
     void exportmatcsv();
+    void importmatcsv();
 
 public:
     explicit BreakpointsView(QWidget* parent = nullptr);

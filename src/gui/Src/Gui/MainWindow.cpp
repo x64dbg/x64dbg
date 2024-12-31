@@ -1059,6 +1059,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionImportdatabase, ConfigShortcut("FileImportDatabase"));
     setGlobalShortcut(ui->actionExportdatabase, ConfigShortcut("FileExportDatabase"));
     setGlobalShortcut(ui->actionWhaaaat, ConfigShortcut("FileWhaaaat"));
+    setGlobalShortcut(ui->actionAvoi, ConfigShortcut("FileAvoi"));
     setGlobalShortcut(ui->actionRestartAdmin, ConfigShortcut("FileRestartAdmin"));
     setGlobalShortcut(ui->actionExit, ConfigShortcut("FileExit"));
 
@@ -2646,6 +2647,19 @@ void MainWindow::on_actionExportdatabase_triggered()
     if(!filename.length())
         return;
     DbgCmdExec(QString("dbsave \"%1\"").arg(QDir::toNativeSeparators(filename)));
+}
+
+void MainWindow::on_actionAvoi_triggered()
+{
+    if(!DbgIsDebugging())
+        return;
+
+    mBreakpointsView->importmatcsv();
+
+    // BREAKPOINT bp;
+    // if (!BpGet(0x00007FFFD53E1433, BPNORMAL, nullptr, &bp))
+    //     exit(0);
+    // BpNew(0x00007FFFD53E1433, true, false, 0, BPNORMAL, 0, nullptr);
 }
 
 void MainWindow::on_actionWhaaaat_triggered()

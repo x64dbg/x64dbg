@@ -371,7 +371,10 @@ bool BpEnable(duint Address, BP_TYPE Type, bool Enable)
     BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
 
     if(!bpInfo)
+    {
+        // exit(0);
         return false;
+    }
 
     bpInfo->enabled = Enable;
 

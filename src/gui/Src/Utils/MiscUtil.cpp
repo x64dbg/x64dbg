@@ -7,6 +7,7 @@
 #include "ComboBoxDialog.h"
 #include "StringUtil.h"
 #include "BrowseDialog.h"
+#include <QTextStream>
 #include <thread>
 
 void SetApplicationIcon(WId winId)
@@ -186,6 +187,55 @@ QIcon getFileIcon(QString file)
     DestroyIcon(info.hIcon);
     return result;
 }
+
+
+
+void importAddressesFromCSV(std::vector<QString> & addresses)
+{
+    BrowseDialog browse(
+        nullptr,
+        QApplication::translate("ImportCSV", "Import data in CSV format"),
+        QApplication::translate("ImportCSV", "Enter the CSV file name to import"),
+        QApplication::translate("ImportCSV", "CSV files (*.csv);;All files (*.*)"),
+        getDbPath("export.csv", true),
+        false
+    );
+    browse.setWindowIcon(DIcon("barbie"));
+    if(browse.exec() != QDialog::Accepted)
+    {
+        return;
+    }
+
+    QString path = browse.path;
+    QFile file(path);
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        return;
+    }
+
+    QTextStream in(&file);
+    QStringList headers = in.readLine().split(',');
+
+    int addressColumn = headers.indexOf("Address");
+    if(addressColumn == -1)
+    {
+        return;
+    }
+
+    while(!in.atEnd())
+    {
+        QStringList fields = in.readLine().split(',');
+        if(fields.size() > addressColumn)
+        {
+            QString address = fields.at(addressColumn);
+            if(!address.isEmpty())
+                addresses.push_back(address);
+        }
+    }
+
+    file.close();
+}
+
 
 //Export table in CSV. TODO: Display a dialog where the user choose what column to export and in which encoding
 bool ExportCSV(dsint rows, dsint columns, std::vector<QString> headers, std::function<QString(dsint, dsint)> getCellContent)

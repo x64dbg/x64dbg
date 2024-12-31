@@ -55,13 +55,26 @@
      <addaction name="separator"/>
      <addaction name="actionImportdatabase"/>
      <addaction name="actionExportdatabase"/>
-     <addaction name="actionWhaaaat"/>
     </widget>
+
+    <widget class="QMenu" name="menuImale">
+     <property name="title">
+      <string>Imale</string>
+     </property>
+     <property name="icon">
+      <iconset theme="olives" resource="../../resource.qrc">
+       <normaloff>:/Default/icons/olives.png</normaloff>:/Default/icons/olives.png</iconset>
+     </property>
+     <addaction name="actionWhaaaat"/>
+     <addaction name="actionAvoi"/>
+    </widget>
+
     <addaction name="actionOpen"/>
     <addaction name="menuRecentFiles"/>
     <addaction name="actionAttach"/>
     <addaction name="actionDetach"/>
     <addaction name="menuDatabase"/>
+    <addaction name="menuImale"/>
     <addaction name="actionPatches"/>
     <addaction name="actionChangeCommandLine"/>
     <addaction name="actionRestartAdmin"/>
@@ -1354,6 +1367,17 @@
     <string>&amp;Whaaaat</string>
    </property>
   </action>
+
+  <action name="actionAvoi">
+   <property name="icon">
+    <iconset theme="set" resource="../../resource.qrc">
+     <normaloff>:/Default/icons/set.png</normaloff>:/Default/icons/set.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Avoi</string>
+   </property>
+  </action>
+
   <action name="actionPreviousTab">
    <property name="icon">
     <iconset theme="previous" resource="../../resource.qrc">

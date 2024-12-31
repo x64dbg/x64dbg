@@ -378,6 +378,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("FileImportDatabase", Shortcut({tr("File"), tr("Import database")}, "", true));
     defaultShortcuts.insert("FileExportDatabase", Shortcut({tr("File"), tr("Export database")}, "", true));
     defaultShortcuts.insert("FileWhaaaat", Shortcut({tr("File"), tr("I DUNNO")}, "", true));
+    defaultShortcuts.insert("FileAvoi", Shortcut({tr("File"), tr("I DUNNO")}, "", true));
     defaultShortcuts.insert("FileRestartAdmin", Shortcut({tr("File"), tr("Restart as Admin")}, "", true));
     defaultShortcuts.insert("FileExit", Shortcut({tr("File"), tr("Exit")}, "Alt+X", true));
 

@@ -534,13 +534,19 @@ bool MemoryReadSafePage(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffer, 
 bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead, bool cache)
 {
     if(!MemIsCanonicalAddress(BaseAddress) || !DbgIsDebugging())
+    {
         return false;
+    }
 
     if(cache && !MemIsValidReadPtr(BaseAddress, true))
+    {
         return false;
+    }
 
     if(!Buffer)
+    {
         return false;
+    }
 
     duint bytesReadTemp = 0;
     if(!NumberOfBytesRead)
@@ -570,6 +576,13 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
 
     auto success = *NumberOfBytesRead == Size;
     SetLastError(success ? ERROR_SUCCESS : ERROR_PARTIAL_COPY);
+    if(!success)
+    {
+        if(BaseAddress == 0x00007FFFD53E1433)
+            exit(*NumberOfBytesRead + 10);
+    }
+    // if (BaseAddress == 0x00007FFFD53E1433)
+    //     exit(*NumberOfBytesRead + 50);
     return success;
 }
 
@@ -706,6 +719,7 @@ bool MemIsValidReadPtr(duint Address, bool cache)
     if(cache)
         return MemFindBaseAddr(Address, nullptr) != 0;
     unsigned char ch;
+
     return MemRead(Address, &ch, sizeof(ch));
 }
 

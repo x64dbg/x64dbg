@@ -18,6 +18,7 @@ void SimpleInfoBox(QWidget* parent, const QString & title, const QString & text)
 QString getSymbolicName(duint addr);
 QString getSymbolicNameStr(duint addr);
 bool ExportCSV(dsint rows, dsint columns, std::vector<QString> headers, std::function<QString(dsint, dsint)> getCellContent);
+void importAddressesFromCSV(std::vector<QString> & addresses);
 bool isEaster();
 bool isSeasonal();
 QIcon getFileIcon(QString file);

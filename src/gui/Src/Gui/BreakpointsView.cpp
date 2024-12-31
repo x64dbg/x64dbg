@@ -634,19 +634,50 @@ void BreakpointsView::toggleBreakpointSlot()
             Breakpoints::toggleBPByDisabling(selectedBp(i));
 }
 
+void BreakpointsView::importmatcsv()
+{
+    std::vector<QString> addrs;
+    importAddressesFromCSV(addrs);
+    int i;
+    for(i = 1; i < addrs.size(); i++)
+    {
+        if(addrs[i].isEmpty())
+            continue;
+        if(!DbgCmdExecDirect(QString("bp 0x") + addrs[i]))
+            exit(i * 100 + 30000 + addrs[i].length());
+    }
+}
+
+
+
 void BreakpointsView::exportmatcsv()
 {
     std::vector<QString> headers;
     headers.reserve(3);
-    // for(duint i = 0; i < getColumnCount(); i++)
-    // headers.push_back(getColTitle(i));
+
     headers.push_back(getColTitle(1));
     headers.push_back(getColTitle(3));
     headers.push_back(getColTitle(0));
 
     ExportCSV(getRowCount(), 3, headers, [this](duint row, duint column)
     {
-        return getCellContent(row, column);
+        switch(column)
+        {
+        case 0:
+            return getCellContent(row, 1);
+            break;
+
+        case 1:
+            return getCellContent(row, 3);
+            break;
+
+        case 2:
+            return getCellContent(row, 0);
+            break;
+
+        default:
+            exit(500 + column);
+        }
     });
 }
 
