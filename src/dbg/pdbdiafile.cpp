@@ -7,7 +7,7 @@
 #include <algorithm>
 
 #include "msdia/dia2.h"
-#include "msdia/cvConst.h"
+#include "msdia/cvconst.h"
 #include "msdia/diacreate.h"
 
 #include "pdbdiafile.h"

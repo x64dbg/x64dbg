@@ -8,7 +8,7 @@ typedef HRESULT(__stdcall* pDllGetClassObject)(
 );
 
 
-HRESULT STDMETHODCALLTYPE NoRegCoCreate(const __wchar_t* dllName,
+HRESULT STDMETHODCALLTYPE NoRegCoCreate(const wchar_t* dllName,
                                         REFCLSID   rclsid,
                                         REFIID     riid,
                                         void**     ppv)

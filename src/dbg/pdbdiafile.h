@@ -1,6 +1,6 @@
 #pragma once
 
-#include "PDBDiaTypes.h"
+#include "pdbdiatypes.h"
 
 #include <vector>
 #include <map>
