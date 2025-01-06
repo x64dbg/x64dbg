@@ -40,7 +40,7 @@ struct XrefSerializer : AddrInfoSerializer<XREFSINFO>
             XREF_RECORD record;
             record.addr = duint(json_hex_value(json_object_get(reference, "addr")));
             record.type = XREFTYPE(json_hex_value(json_object_get(reference, "type")));
-            value.type = max(record.type, value.type);
+            value.type = std::max(record.type, value.type);
             value.references.emplace(record.addr, record);
         }
         return true;
@@ -157,7 +157,7 @@ duint XrefAddMulti(const XREF_EDGE* Edges, duint Count)
         auto & info = *addressInfo.info;
         auto & xrefRecord = fromInfo.xrefRecord;
         info.references.emplace(xrefRecord.addr, xrefRecord);
-        info.type = max(info.type, xrefRecord.type);
+        info.type = std::max(info.type, xrefRecord.type);
 
         succeeded++;
     }

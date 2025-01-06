@@ -7,6 +7,7 @@
 #include "variable.h"
 #include "threading.h"
 #include <map>
+#include <algorithm>
 
 /**
 \brief The container that stores all variables.
@@ -240,7 +241,7 @@ bool varget(const char* Name, char* String, int* Size, VAR_TYPE* Type)
     if(Type)
         *Type = vartype;
     if(String)
-        memcpy(String, varvalue.u.data->data(), Size ? min(*Size, varsize) : varsize);
+        memcpy(String, varvalue.u.data->data(), Size ? std::min(*Size, varsize) : varsize);
     return true;
 }
 

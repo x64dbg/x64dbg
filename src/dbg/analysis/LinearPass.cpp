@@ -36,14 +36,14 @@ bool LinearPass::Analyse()
     concurrency::parallel_for(duint(0), IdealThreadCount(), [&](duint i)
     {
         duint threadWorkStart = m_VirtualStart + (workAmount * i);
-        duint threadWorkStop = min((threadWorkStart + workAmount), m_VirtualEnd);
+        duint threadWorkStop = std::min((threadWorkStart + workAmount), m_VirtualEnd);
 
         // Allow a 256-byte variance of scanning because of
         // integer rounding errors and instruction overlap
         if(threadWorkStart > m_VirtualStart)
         {
-            threadWorkStart = max((threadWorkStart - 256), m_VirtualStart);
-            threadWorkStop = min((threadWorkStop + 256), m_VirtualEnd);
+            threadWorkStart = std::max((threadWorkStart - 256), m_VirtualStart);
+            threadWorkStop = std::min((threadWorkStop + 256), m_VirtualEnd);
         }
 
         // Memory allocation optimization
@@ -98,13 +98,13 @@ void LinearPass::AnalyseOverlaps()
     concurrency::parallel_for(duint(0), IdealThreadCount(), [&](duint i)
     {
         duint threadWorkStart = (workAmount * i);
-        duint threadWorkStop = min((threadWorkStart + workAmount), workTotal);
+        duint threadWorkStop = std::min((threadWorkStart + workAmount), workTotal);
 
         // Again, allow an overlap of +/- 1 entry
         if(threadWorkStart > 0)
         {
-            threadWorkStart = max((threadWorkStart - 1), 0);
-            threadWorkStop = min((threadWorkStop + 1), workTotal);
+            threadWorkStart = std::max((threadWorkStart - 1), (duint)0);
+            threadWorkStop = std::min((threadWorkStop + 1), workTotal);
         }
 
         // Execute
@@ -257,7 +257,7 @@ void LinearPass::AnalysisOverlapWorker(duint Start, duint End, BBlockArray* Inse
     auto BlockOverlapsRemove = [](BasicBlock * A, BasicBlock * B) -> BasicBlock*
     {
         // Do the blocks overlap?
-        if(max(A->VirtualStart, B->VirtualStart) <= min((A->VirtualEnd - 1), (B->VirtualEnd - 1)))
+        if(std::max(A->VirtualStart, B->VirtualStart) <= std::min((A->VirtualEnd - 1), (B->VirtualEnd - 1)))
         {
             // Return the block that should be removed
             if(A->Size() > B->Size())

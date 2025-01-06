@@ -276,7 +276,7 @@ bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type, bool* created)
     if(!EncodeMapGetorCreate(addr, map, &base, created))
         return false;
     auto offset = addr - base;
-    size = min(map.size - offset, size);
+    size = std::min(map.size - offset, size);
     auto datasize = GetEncodeTypeSize(type);
     if(datasize == 1 && !IsCodeType(type))
     {

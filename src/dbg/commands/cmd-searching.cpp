@@ -52,8 +52,8 @@ static bool handlePatternArgument(const char* pattern, std::vector<PatternByte> 
                    || patterntransform(StringUtils::Trim(stringformatinline(pattern), "#"), searchpattern)) && !searchpattern.empty();
     if(result && patternshort)
     {
-        const auto maxShortSize = 16;
-        for(size_t i = 0; i < min(searchpattern.size(), maxShortSize); i++)
+        const size_t maxShortSize = 16;
+        for(size_t i = 0; i < std::min(searchpattern.size(), maxShortSize); i++)
         {
             auto doNibble = [&patternshort](const PatternByte::PatternNibble & n)
             {

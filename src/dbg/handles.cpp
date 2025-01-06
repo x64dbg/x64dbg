@@ -1,5 +1,6 @@
 #include "ntdll/ntdll.h"
 #include <functional>
+#include <algorithm>
 #include "handles.h"
 #include "exception.h"
 #include "debugger.h"
@@ -298,7 +299,7 @@ static WINDOW_INFO getWindowInfo(HWND hWnd)
         limitedbuffer[255] = 0;
     }
     auto UTF8WindowTitle = StringUtils::Utf16ToUtf8(limitedbuffer);
-    memcpy(info.windowTitle, UTF8WindowTitle.c_str(), min(UTF8WindowTitle.size(), sizeof(info.windowTitle))); //Copy window title with repect to buffer size constraints
+    memcpy(info.windowTitle, UTF8WindowTitle.c_str(), std::min(UTF8WindowTitle.size(), sizeof(info.windowTitle))); //Copy window title with repect to buffer size constraints
     GetClassNameW(hWnd, limitedbuffer, 256);
     if(limitedbuffer[255] != 0) //Window class too long. Add "..." to the end of buffer.
     {
@@ -309,7 +310,7 @@ static WINDOW_INFO getWindowInfo(HWND hWnd)
         limitedbuffer[255] = 0;
     }
     UTF8WindowTitle = StringUtils::Utf16ToUtf8(limitedbuffer);
-    memcpy(info.windowClass, UTF8WindowTitle.c_str(), min(UTF8WindowTitle.size(), sizeof(info.windowClass))); //Copy window class with repect to buffer size constraints
+    memcpy(info.windowClass, UTF8WindowTitle.c_str(), std::min(UTF8WindowTitle.size(), sizeof(info.windowClass))); //Copy window class with repect to buffer size constraints
     return info;
 }
 

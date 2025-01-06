@@ -60,8 +60,8 @@ void AdvancedAnalysis::SetMarkers()
         for(const auto & node : function.nodes)
         {
             icount += node.second.icount;
-            start = min(node.second.start, start);
-            end = max(node.second.end, end);
+            start = std::min(node.second.start, start);
+            end = std::max(node.second.end, end);
         }
         if(!FunctionAdd(start, end, false, icount))
         {

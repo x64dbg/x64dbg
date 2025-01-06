@@ -458,13 +458,13 @@ bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode
 
         // Convert ANSI string to UTF-8
         std::string asciiData2 = StringUtils::LocalCpToUtf8((const char*)data());
-        memcpy(asciiData, asciiData2.c_str(), min((size_t(maxlen) + 1) * 2, asciiData2.size() + 1));
+        memcpy(asciiData, asciiData2.c_str(), std::min((size_t(maxlen) + 1) * 2, asciiData2.size() + 1));
 
         // Escape the string
         String escaped = StringUtils::Escape(asciiData);
 
         // Copy data back to outgoing parameter
-        strncpy_s(ascii, min(int(escaped.length()) + 1, maxlen), escaped.c_str(), _TRUNCATE);
+        strncpy_s(ascii, std::min(int(escaped.length()) + 1, maxlen), escaped.c_str(), _TRUNCATE);
         return true;
     }
 
@@ -475,13 +475,13 @@ bool disasmgetstringat(duint addr, STRING_TYPE* type, char* ascii, char* unicode
 
         // Convert UTF-16 string to UTF-8
         std::string asciiData2 = StringUtils::Utf16ToUtf8((const wchar_t*)data());
-        memcpy(asciiData, asciiData2.c_str(), min((size_t(maxlen) + 1) * 2, asciiData2.size() + 1));
+        memcpy(asciiData, asciiData2.c_str(), std::min((size_t(maxlen) + 1) * 2, asciiData2.size() + 1));
 
         // Escape the string
         String escaped = StringUtils::Escape(asciiData);
 
         // Copy data back to outgoing parameter
-        strncpy_s(unicode, min(int(escaped.length()) + 1, maxlen), escaped.c_str(), _TRUNCATE);
+        strncpy_s(unicode, std::min(int(escaped.length()) + 1, maxlen), escaped.c_str(), _TRUNCATE);
         return true;
     }
 

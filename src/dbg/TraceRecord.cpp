@@ -238,7 +238,7 @@ static void HandleZydisOperand(const Zydis & zydis, int opindex, DISASM_ARGTYPE*
         *memorySize = op.size / 8;
         if(*memorySize <= memoryContentSize && DbgMemIsValidReadPtr(*value))
         {
-            MemRead(*value, memoryContent, max(op.size / 8, sizeof(duint)));
+            MemRead(*value, memoryContent, std::max(op.size / 8, (int)sizeof(duint)));
         }
     }
     break;

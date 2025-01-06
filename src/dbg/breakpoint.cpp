@@ -312,7 +312,7 @@ bool BpGetAny(BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
 
 duint BpGetDLLBpAddr(const char* fileName)
 {
-    const char* dashPos1 = max(strrchr(fileName, '\\'), strrchr(fileName, '/'));
+    const char* dashPos1 = std::max(strrchr(fileName, '\\'), strrchr(fileName, '/'));
     if(dashPos1 == nullptr)
         dashPos1 = fileName;
     else

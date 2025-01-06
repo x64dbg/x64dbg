@@ -37,5 +37,5 @@ protected:
     void SetIdealThreadCount(duint Count);
 
 private:
-    BYTE m_InternalMaxThreads;
+    duint m_InternalMaxThreads;
 };

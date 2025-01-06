@@ -177,7 +177,7 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector, std::vector<S
 
         // It looks like a section alignment of 0x10000 becomes PAGE_SIZE in reality
         // The rest of the space is mapped as RESERVED
-        sectionAlignment = min(sectionAlignment, PAGE_SIZE);
+        sectionAlignment = std::min(sectionAlignment, (duint)PAGE_SIZE);
 
         auto sectionAlign = [sectionAlignment](duint value)
         {
@@ -233,7 +233,7 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector, std::vector<S
             {
                 MEMPAGE headerPage = {};
                 VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)modBase, &headerPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
-                headerPage.mbi.RegionSize = min(sections.front().addr - modBase, pageSize);
+                headerPage.mbi.RegionSize = std::min(sections.front().addr - modBase, pageSize);
                 strcpy_s(headerPage.info, currentPage.info);
                 newPages.push_back(headerPage);
             }
@@ -361,7 +361,7 @@ static void ProcessSystemPages(std::vector<MEMPAGE> & pageVector)
     MemRead(pebBase + offsetof(PEB, ProcessHeaps), &ProcessHeapsPtr, sizeof(ProcessHeapsPtr));
 
     duint ProcessHeaps[MAX_HEAPS] = {};
-    auto HeapCount = min(_countof(ProcessHeaps), NumberOfHeaps);
+    auto HeapCount = std::min(_countof(ProcessHeaps), (size_t)NumberOfHeaps);
     MemRead(ProcessHeapsPtr, ProcessHeaps, sizeof(duint) * HeapCount);
     std::unordered_map<duint, uint32_t> processHeapIds;
     processHeapIds.reserve(HeapCount);
@@ -622,7 +622,7 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
     duint offset = 0;
     duint requestedSize = Size;
     duint sizeLeftInFirstPage = PAGE_SIZE - (BaseAddress & (PAGE_SIZE - 1));
-    duint readSize = min(sizeLeftInFirstPage, requestedSize);
+    duint readSize = std::min(sizeLeftInFirstPage, requestedSize);
 
     while(readSize)
     {
@@ -634,7 +634,7 @@ bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRe
 
         offset += readSize;
         requestedSize -= readSize;
-        readSize = min(PAGE_SIZE, requestedSize);
+        readSize = std::min((duint)PAGE_SIZE, requestedSize);
 
         if(readSize && (BaseAddress + offset) % PAGE_SIZE)
             __debugbreak(); //TODO: remove when proven stable, this checks if (BaseAddress + offset) is aligned to PAGE_SIZE after the first call
@@ -672,7 +672,7 @@ bool MemReadUnsafe(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfB
     duint offset = 0;
     duint requestedSize = Size;
     duint sizeLeftInFirstPage = PAGE_SIZE - (BaseAddress & (PAGE_SIZE - 1));
-    duint readSize = min(sizeLeftInFirstPage, requestedSize);
+    duint readSize = std::min(sizeLeftInFirstPage, requestedSize);
 
     while(readSize)
     {
@@ -684,7 +684,7 @@ bool MemReadUnsafe(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfB
 
         offset += readSize;
         requestedSize -= readSize;
-        readSize = min(PAGE_SIZE, requestedSize);
+        readSize = std::min((duint)PAGE_SIZE, requestedSize);
 
         if(readSize && (BaseAddress + offset) % PAGE_SIZE)
             __debugbreak(); //TODO: remove when proven stable, this checks if (BaseAddress + offset) is aligned to PAGE_SIZE after the first call
@@ -720,7 +720,7 @@ bool MemWrite(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOf
     duint offset = 0;
     duint requestedSize = Size;
     duint sizeLeftInFirstPage = PAGE_SIZE - (BaseAddress & (PAGE_SIZE - 1));
-    duint writeSize = min(sizeLeftInFirstPage, requestedSize);
+    duint writeSize = std::min(sizeLeftInFirstPage, requestedSize);
 
     while(writeSize)
     {
@@ -732,7 +732,7 @@ bool MemWrite(duint BaseAddress, const void* Buffer, duint Size, duint* NumberOf
 
         offset += writeSize;
         requestedSize -= writeSize;
-        writeSize = min(PAGE_SIZE, requestedSize);
+        writeSize = std::min((duint)PAGE_SIZE, requestedSize);
 
         if(writeSize && (BaseAddress + offset) % PAGE_SIZE)
             __debugbreak(); //TODO: remove when proven stable, this checks if (BaseAddress + offset) is aligned to PAGE_SIZE after the first call
@@ -1103,7 +1103,7 @@ bool MemReadDumb(duint BaseAddress, void* Buffer, duint Size)
     duint offset = 0;
     duint requestedSize = Size;
     duint sizeLeftInFirstPage = PAGE_SIZE - (BaseAddress & (PAGE_SIZE - 1));
-    duint readSize = min(sizeLeftInFirstPage, requestedSize);
+    duint readSize = std::min(sizeLeftInFirstPage, requestedSize);
 
     bool success = true;
     while(readSize)
@@ -1113,7 +1113,7 @@ bool MemReadDumb(duint BaseAddress, void* Buffer, duint Size)
             success = false;
         offset += readSize;
         requestedSize -= readSize;
-        readSize = min(PAGE_SIZE, requestedSize);
+        readSize = std::min((duint)PAGE_SIZE, requestedSize);
     }
     return success;
 }

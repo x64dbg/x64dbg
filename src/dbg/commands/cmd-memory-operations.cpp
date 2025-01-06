@@ -111,7 +111,7 @@ bool cbDebugMemcpy(int argc, char* argv[])
     for(size_t i = 0; i < size; i += buffer.size())
     {
         duint NumberOfBytesRead = 0;
-        auto readOk = MemRead(src + i, buffer.data(), min(buffer.size(), size - i), &NumberOfBytesRead);
+        auto readOk = MemRead(src + i, buffer.data(), std::min(buffer.size(), (size_t)(size - i)), &NumberOfBytesRead);
         duint NumberOfBytesWritten = 0;
         auto writeOk = MemWrite(dst + i, buffer.data(), NumberOfBytesRead, &NumberOfBytesWritten);
         totalNumberOfBytesWritten += NumberOfBytesWritten;

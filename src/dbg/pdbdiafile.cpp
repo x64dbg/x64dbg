@@ -454,7 +454,7 @@ bool PDBDiaFile::enumerateLineNumbers(uint32_t rva, uint32_t size, std::vector<D
     for(ULONG step = 0; step < steps; step++)
     {
         ULONG begin = step * bucket;
-        ULONG end = min((ULONG)lineCount, (step + 1) * bucket);
+        ULONG end = std::min((ULONG)lineCount, (step + 1) * bucket);
 
         if(cancelled)
             return false;
