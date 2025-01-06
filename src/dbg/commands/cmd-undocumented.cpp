@@ -325,6 +325,8 @@ bool cbInstrZydis(int argc, char* argv[])
         case ZYDIS_OPERAND_TYPE_POINTER:
             dprintf_untranslated("pointer: %X:%p\n", op.ptr.segment, op.ptr.offset);
             break;
+        default:
+            break;
         }
     }
 

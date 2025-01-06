@@ -82,5 +82,5 @@ private:
     CommonActions* mCommonActions;
 
     std::vector<CPUCallStack> mCallstack;
-    static int CPUStack::getCurrentFrame(const std::vector<CPUStack::CPUCallStack> & mCallstack, duint va);
+    static int getCurrentFrame(const std::vector<CPUStack::CPUCallStack> & mCallstack, duint va);
 };

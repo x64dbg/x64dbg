@@ -10,8 +10,6 @@
 #include <windows.h>
 #include <stdint.h>
 
-#pragma pack(push, 1)
-
 // Global.Constant.Structure.Declaration:
 // Engine.External:
 #define UE_STRUCT_PE32STRUCT 1
@@ -1126,7 +1124,5 @@ __declspec(dllexport) void* TITCALL ExtensionManagerGetPluginInfo(const char* sz
 #ifdef __cplusplus
 }
 #endif
-
-#pragma pack(pop)
 
 #endif /*TITANENGINE*/

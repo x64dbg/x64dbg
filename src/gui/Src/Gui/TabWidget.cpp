@@ -1,6 +1,6 @@
 // Qt includes
-#include "tabbar.h"
-#include "tabwidget.h"
+#include "TabBar.h"
+#include "TabWidget.h"
 #include <QMoveEvent>
 #include <QApplication>
 #include <QDesktopWidget>

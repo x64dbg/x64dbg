@@ -43,10 +43,10 @@ QByteArray ByteReverse(QByteArray && array)
     return array;
 }
 
-bool SimpleInputBox(QWidget* parent, const QString & title, QString defaultValue, QString & output, const QString & placeholderText, const QIcon* icon)
+bool SimpleInputBox(QWidget* parent, const QString & title, QString defaultValue, QString & output, const QString & placeholderText, const QIcon & icon)
 {
     LineEditDialog mEdit(parent);
-    mEdit.setWindowIcon(icon ? *icon : parent->windowIcon());
+    mEdit.setWindowIcon(icon.isNull() ? parent->windowIcon() : icon);
     mEdit.setText(defaultValue);
     mEdit.setPlaceholderText(placeholderText);
     mEdit.setWindowTitle(title);
@@ -60,10 +60,10 @@ bool SimpleInputBox(QWidget* parent, const QString & title, QString defaultValue
         return false;
 }
 
-bool SimpleChoiceBox(QWidget* parent, const QString & title, QString defaultValue, const QStringList & choices, QString & output, bool editable, const QString & placeholderText, const QIcon* icon, int minimumContentsLength)
+bool SimpleChoiceBox(QWidget* parent, const QString & title, QString defaultValue, const QStringList & choices, QString & output, bool editable, const QString & placeholderText, const QIcon & icon, int minimumContentsLength)
 {
     ComboBoxDialog mChoice(parent);
-    mChoice.setWindowIcon(icon ? *icon : parent->windowIcon());
+    mChoice.setWindowIcon(icon.isNull() ? icon : parent->windowIcon());
     mChoice.setEditable(editable);
     mChoice.setItems(choices);
     mChoice.setText(defaultValue);

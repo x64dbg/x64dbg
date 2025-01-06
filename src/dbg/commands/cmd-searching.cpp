@@ -790,6 +790,8 @@ static bool cbModCallFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFI
             }
         }
         break;
+    default:
+        break;
     }
     if(foundaddr)
     {

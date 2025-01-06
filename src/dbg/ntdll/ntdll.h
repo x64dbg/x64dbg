@@ -3925,7 +3925,9 @@ typedef struct _TEB
 
     union
     {
+#if (_WIN32_WINNT >= 0x0601)
         PROCESSOR_NUMBER CurrentIdealProcessor;
+#endif
         ULONG IdealProcessorValue;
         struct
         {
@@ -9064,6 +9066,8 @@ RtlWalkHeap(
     _Inout_ PRTL_HEAP_WALK_ENTRY Entry
 );
 
+// NOTE: mingw had an incorrect definition for these
+#ifndef __MINGW32__
 NTSYSAPI
 NTSTATUS
 NTAPI
@@ -9084,6 +9088,7 @@ RtlSetHeapInformation(
     _In_opt_ PVOID HeapInformation,
     _In_opt_ SIZE_T HeapInformationLength
 );
+#endif // __MINGW__
 
 NTSYSAPI
 SIZE_T

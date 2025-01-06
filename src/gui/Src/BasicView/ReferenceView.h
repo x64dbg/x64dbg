@@ -77,5 +77,5 @@ private:
     void setBreakpointAt(duint row, BPSetAction action);
     dsint apiAddressFromString(const QString & s);
 
-    void mouseReleaseEvent(QMouseEvent* event);
+    void mouseReleaseEvent(QMouseEvent* event) override;
 };

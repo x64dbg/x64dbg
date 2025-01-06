@@ -108,6 +108,8 @@ duint decodesimpledata(const unsigned char* buffer, ENCODETYPE type)
     case enc_qword:
         return *((unsigned long long int*)buffer);
 #endif // _WIN64
+    default:
+        break;
     }
     return 0;
 }

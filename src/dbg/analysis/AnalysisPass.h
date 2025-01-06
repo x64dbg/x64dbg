@@ -2,6 +2,7 @@
 
 #include "_global.h"
 #include "BasicBlock.h"
+#include <functional>
 
 class AnalysisPass
 {
@@ -35,6 +36,7 @@ protected:
     duint FindBBlockIndex(BasicBlock* Block);
     duint IdealThreadCount();
     void SetIdealThreadCount(duint Count);
+    void ParallelFor(duint ThreadCount, const std::function<void(duint)> & Worker);
 
 private:
     duint m_InternalMaxThreads;

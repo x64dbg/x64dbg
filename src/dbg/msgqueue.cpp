@@ -37,7 +37,7 @@ bool MsgSend(MESSAGE_STACK* Stack, int Msg, duint Param1, duint Param2)
     newMessage.param2 = Param2;
 
     // Asynchronous send
-    asend(Stack->msgs, newMessage);
+    Stack->msgs.enqueue(newMessage);
     return true;
 }
 
@@ -48,7 +48,7 @@ bool MsgGet(MESSAGE_STACK* Stack, MESSAGE* Msg)
         return false;
 
     // Don't increment the wait count because this does not wait
-    return try_receive(Stack->msgs, *Msg);
+    return Stack->msgs.try_dequeue(*Msg);
 }
 
 // Wait for a message on the specified stack
@@ -59,6 +59,6 @@ void MsgWait(MESSAGE_STACK* Stack, MESSAGE* Msg)
 
     // Increment/decrement wait count
     InterlockedIncrement((volatile long*)&Stack->WaitingCalls);
-    *Msg = Stack->msgs.dequeue();
+    Stack->msgs.wait_dequeue(*Msg);
     InterlockedDecrement((volatile long*)&Stack->WaitingCalls);
 }

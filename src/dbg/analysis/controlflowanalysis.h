@@ -5,6 +5,7 @@
 #include "analysis.h"
 #include "addrinfo.h"
 #include <functional>
+#include <unordered_set>
 
 class ControlFlowAnalysis : public Analysis
 {

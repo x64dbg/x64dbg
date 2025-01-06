@@ -9,8 +9,8 @@
 #include <QMimeData>
 #include <QMenu>
 
-#include "tabbar.h"
-#include "tabwidget.h"
+#include "TabBar.h"
+#include "TabWidget.h"
 
 //////////////////////////////////////////////////////////////
 // Default Constructor

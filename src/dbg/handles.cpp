@@ -75,7 +75,7 @@ bool HandlesEnum(std::vector<HANDLEINFO> & handles)
         info.GrantedAccess = handle.GrantedAccess;
         auto typeNameItr = HandleTypeNames.find(handle.ObjectTypeIndex);
         if(typeNameItr != HandleTypeNames.end())
-            HandleTypeCache.emplace((HANDLE)handle.HandleValue, typeNameItr->second);
+            HandleTypeCache.emplace((HANDLE)(duint)handle.HandleValue, typeNameItr->second);
         handles.push_back(info);
     }
     return true;

@@ -1,4 +1,4 @@
-#include "selectfields.h"
+#include "SelectFields.h"
 #include "ui_selectfields.h"
 
 SelectFields::SelectFields(QWidget* parent) :

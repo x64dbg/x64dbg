@@ -174,6 +174,8 @@ static void HandleZydisOperand(Zydis & zydis, int opindex, DISASM_ARG* arg, bool
             case ZYDIS_REGISTER_SS:
                 arg->segment = SEG_SS;
                 break;
+            default:
+                break;
             }
         }
         arg->value = value;

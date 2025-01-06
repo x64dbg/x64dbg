@@ -585,6 +585,7 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
     }
 
     // Horizontal (<----)
+    // TODO: something is wrong here
     if(!isFoldingGraphicsPresent(startLine) != 0)
         painter->drawLine(x_right, y_start, x, y_start);
     else

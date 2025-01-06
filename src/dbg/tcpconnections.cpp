@@ -1,53 +1,112 @@
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-// NOTE: This is a hack to get Windows 7 definitions in this file
-#ifndef WIN32_NO_STATUS
-#define WIN32_NO_STATUS
-#endif
-#include <WS2tcpip.h>
-#undef _WIN32_WINNT
-#undef WINVER
-#undef _WIN32_IE
 #include "tcpconnections.h"
-#include "IPHlpApi.h"
+#include <WS2tcpip.h>
 
-static const char* TcpStateToString(DWORD State)
+typedef enum
+{
+    DBG_MIB_TCP_STATE_CLOSED = 1,
+    DBG_MIB_TCP_STATE_LISTEN = 2,
+    DBG_MIB_TCP_STATE_SYN_SENT = 3,
+    DBG_MIB_TCP_STATE_SYN_RCVD = 4,
+    DBG_MIB_TCP_STATE_ESTAB = 5,
+    DBG_MIB_TCP_STATE_FIN_WAIT1 = 6,
+    DBG_MIB_TCP_STATE_FIN_WAIT2 = 7,
+    DBG_MIB_TCP_STATE_CLOSE_WAIT = 8,
+    DBG_MIB_TCP_STATE_CLOSING = 9,
+    DBG_MIB_TCP_STATE_LAST_ACK = 10,
+    DBG_MIB_TCP_STATE_TIME_WAIT = 11,
+    DBG_MIB_TCP_STATE_DELETE_TCB = 12,
+} DBG_MIB_TCP_STATE;
+
+static const char* TcpStateToString(unsigned int State)
 {
     switch(State)
     {
-    case MIB_TCP_STATE_CLOSED:
+    case DBG_MIB_TCP_STATE_CLOSED:
         return "CLOSED";
-    case MIB_TCP_STATE_LISTEN:
+    case DBG_MIB_TCP_STATE_LISTEN:
         return "LISTEN";
-    case MIB_TCP_STATE_SYN_SENT:
+    case DBG_MIB_TCP_STATE_SYN_SENT:
         return "SYN-SENT";
-    case MIB_TCP_STATE_SYN_RCVD:
+    case DBG_MIB_TCP_STATE_SYN_RCVD:
         return "SYN-RECEIVED";
-    case MIB_TCP_STATE_ESTAB:
+    case DBG_MIB_TCP_STATE_ESTAB:
         return "ESTABLISHED";
-    case MIB_TCP_STATE_FIN_WAIT1:
+    case DBG_MIB_TCP_STATE_FIN_WAIT1:
         return "FIN-WAIT-1";
-    case MIB_TCP_STATE_FIN_WAIT2:
+    case DBG_MIB_TCP_STATE_FIN_WAIT2:
         return "FIN-WAIT-2";
-    case MIB_TCP_STATE_CLOSE_WAIT:
+    case DBG_MIB_TCP_STATE_CLOSE_WAIT:
         return "CLOSE-WAIT";
-    case MIB_TCP_STATE_CLOSING:
+    case DBG_MIB_TCP_STATE_CLOSING:
         return "CLOSING";
-    case MIB_TCP_STATE_LAST_ACK:
+    case DBG_MIB_TCP_STATE_LAST_ACK:
         return "LAST-ACK";
-    case MIB_TCP_STATE_TIME_WAIT:
+    case DBG_MIB_TCP_STATE_TIME_WAIT:
         return "TIME-WAIT";
-    case MIB_TCP_STATE_DELETE_TCB:
+    case DBG_MIB_TCP_STATE_DELETE_TCB:
         return "DELETE-TCB";
     default:
         return "UNKNOWN";
     }
 }
 
-typedef ULONG(WINAPI* GETTCPTABLE2)(PMIB_TCPTABLE2 TcpTable, PULONG SizePointer, BOOL Order);
-typedef ULONG(WINAPI* GETTCP6TABLE2)(PMIB_TCP6TABLE2 TcpTable, PULONG SizePointer, BOOL Order);
-typedef PCTSTR(WSAAPI* INETNTOPW)(INT Family, PVOID pAddr, wchar_t* pStringBuf, size_t StringBufSize);
+typedef enum
+{
+    DbgTcpConnectionOffloadStateInHost,
+    DbgTcpConnectionOffloadStateOffloading,
+    DbgTcpConnectionOffloadStateOffloaded,
+    DbgTcpConnectionOffloadStateUploading,
+    DbgTcpConnectionOffloadStateMax
+} DBG_TCP_CONNECTION_OFFLOAD_STATE, *PTCP_CONNECTION_OFFLOAD_STATE;
+
+typedef struct _DBG_MIB_TCPROW2
+{
+    DWORD                            dwState;
+    DWORD                            dwLocalAddr;
+    DWORD                            dwLocalPort;
+    DWORD                            dwRemoteAddr;
+    DWORD                            dwRemotePort;
+    DWORD                            dwOwningPid;
+    DBG_TCP_CONNECTION_OFFLOAD_STATE dwOffloadState;
+} DBG_MIB_TCPROW2, *PDBG_MIB_TCPROW2;
+
+typedef struct _DBG_MIB_TCPTABLE2
+{
+    DWORD           dwNumEntries;
+    DBG_MIB_TCPROW2 table[1];
+} DBG_MIB_TCPTABLE2, *PDBG_MIB_TCPTABLE2;
+
+typedef struct _DBG_IN6_ADDR
+{
+    union
+    {
+        UCHAR       Byte[16];
+        USHORT      Word[8];
+    } u;
+} DBG_IN6_ADDR, * PDBG_IN6_ADDR, FAR* LPDBG_IN6_ADDR;
+
+typedef struct _MIB_TCP6ROW2
+{
+    DBG_IN6_ADDR                     LocalAddr;
+    DWORD                            dwLocalScopeId;
+    DWORD                            dwLocalPort;
+    DBG_IN6_ADDR                     RemoteAddr;
+    DWORD                            dwRemoteScopeId;
+    DWORD                            dwRemotePort;
+    DWORD                            State;
+    DWORD                            dwOwningPid;
+    DBG_TCP_CONNECTION_OFFLOAD_STATE dwOffloadState;
+} DBG_MIB_TCP6ROW2, *PDBG_MIB_TCP6ROW2;
+
+typedef struct _DBG_MIB_TCP6TABLE2
+{
+    DWORD        dwNumEntries;
+    DBG_MIB_TCP6ROW2 table[1];
+} DBG_MIB_TCP6TABLE2, *PDBG_MIB_TCP6TABLE2;
+
+typedef ULONG(WINAPI* GETTCPTABLE2)(PDBG_MIB_TCPTABLE2 TcpTable, PULONG SizePointer, BOOL Order);
+typedef ULONG(WINAPI* GETTCP6TABLE2)(PDBG_MIB_TCP6TABLE2 TcpTable, PULONG SizePointer, BOOL Order);
+typedef PCTSTR(WINAPI* INETNTOPW)(INT Family, PVOID pAddr, wchar_t* pStringBuf, size_t StringBufSize);
 
 bool TcpEnumConnections(duint pid, std::vector<TCPCONNECTIONINFO> & connections)
 {
@@ -57,24 +116,24 @@ bool TcpEnumConnections(duint pid, std::vector<TCPCONNECTIONINFO> & connections)
         return false;
 
     // To ensure WindowsXP compatibility we won't link them statically
-    static auto GetTcpTable2 = GETTCPTABLE2(GetProcAddress(hIpHlp, "GetTcpTable2"));
-    static auto GetTcp6Table2 = GETTCP6TABLE2(GetProcAddress(hIpHlp, "GetTcp6Table2"));
-    static auto InetNtopW = INETNTOPW(GetProcAddress(GetModuleHandleW(L"ws2_32.dll"), "InetNtopW"));
-    if(!InetNtopW)
+    static auto pGetTcpTable2 = GETTCPTABLE2(GetProcAddress(hIpHlp, "GetTcpTable2"));
+    static auto pGetTcp6Table2 = GETTCP6TABLE2(GetProcAddress(hIpHlp, "GetTcp6Table2"));
+    static auto pInetNtopW = INETNTOPW(GetProcAddress(GetModuleHandleW(L"ws2_32.dll"), "InetNtopW"));
+    if(!pInetNtopW)
         return false;
 
     TCPCONNECTIONINFO info;
     wchar_t AddrBuffer[TCP_ADDR_SIZE] = L"";
 
-    if(GetTcpTable2)
+    if(pGetTcpTable2)
     {
         ULONG ulSize = 0;
         // Make an initial call to GetTcpTable2 to get the necessary size into the ulSize variable
-        if(GetTcpTable2(nullptr, &ulSize, TRUE) == ERROR_INSUFFICIENT_BUFFER)
+        if(pGetTcpTable2(nullptr, &ulSize, TRUE) == ERROR_INSUFFICIENT_BUFFER)
         {
-            Memory<MIB_TCPTABLE2*> pTcpTable(ulSize);
+            Memory<DBG_MIB_TCPTABLE2*> pTcpTable(ulSize);
             // Make a second call to GetTcpTable2 to get the actual data we require
-            if(GetTcpTable2(pTcpTable(), &ulSize, TRUE) == NO_ERROR)
+            if(pGetTcpTable2(pTcpTable(), &ulSize, TRUE) == NO_ERROR)
             {
                 for(auto i = 0; i < int(pTcpTable()->dwNumEntries); i++)
                 {
@@ -87,12 +146,12 @@ bool TcpEnumConnections(duint pid, std::vector<TCPCONNECTIONINFO> & connections)
 
                     struct in_addr IpAddr;
                     IpAddr.S_un.S_addr = u_long(entry.dwLocalAddr);
-                    InetNtopW(AF_INET, &IpAddr, AddrBuffer, TCP_ADDR_SIZE);
+                    pInetNtopW(AF_INET, &IpAddr, AddrBuffer, TCP_ADDR_SIZE);
                     strcpy_s(info.LocalAddress, StringUtils::Utf16ToUtf8(AddrBuffer).c_str());
                     info.LocalPort = ntohs(u_short(entry.dwLocalPort));
 
                     IpAddr.S_un.S_addr = u_long(entry.dwRemoteAddr);
-                    InetNtopW(AF_INET, &IpAddr, AddrBuffer, TCP_ADDR_SIZE);
+                    pInetNtopW(AF_INET, &IpAddr, AddrBuffer, TCP_ADDR_SIZE);
                     strcpy_s(info.RemoteAddress, StringUtils::Utf16ToUtf8(AddrBuffer).c_str());
                     info.RemotePort = ntohs(u_short(entry.dwRemotePort));
 
@@ -102,15 +161,15 @@ bool TcpEnumConnections(duint pid, std::vector<TCPCONNECTIONINFO> & connections)
         }
     }
 
-    if(GetTcp6Table2)
+    if(pGetTcp6Table2)
     {
         ULONG ulSize = 0;
         // Make an initial call to GetTcp6Table2 to get the necessary size into the ulSize variable
-        if(GetTcp6Table2(nullptr, &ulSize, TRUE) == ERROR_INSUFFICIENT_BUFFER)
+        if(pGetTcp6Table2(nullptr, &ulSize, TRUE) == ERROR_INSUFFICIENT_BUFFER)
         {
-            Memory<MIB_TCP6TABLE2*> pTcp6Table(ulSize);
+            Memory<DBG_MIB_TCP6TABLE2*> pTcp6Table(ulSize);
             // Make a second call to GetTcpTable2 to get the actual data we require
-            if(GetTcp6Table2(pTcp6Table(), &ulSize, TRUE) == NO_ERROR)
+            if(pGetTcp6Table2(pTcp6Table(), &ulSize, TRUE) == NO_ERROR)
             {
                 for(auto i = 0; i < int(pTcp6Table()->dwNumEntries); i++)
                 {
@@ -121,11 +180,11 @@ bool TcpEnumConnections(duint pid, std::vector<TCPCONNECTIONINFO> & connections)
                     info.State = entry.State;
                     strcpy_s(info.StateText, TcpStateToString(info.State));
 
-                    InetNtopW(AF_INET6, &entry.LocalAddr, AddrBuffer, TCP_ADDR_SIZE);
+                    pInetNtopW(AF_INET6, &entry.LocalAddr, AddrBuffer, TCP_ADDR_SIZE);
                     sprintf_s(info.LocalAddress, "[%s]", StringUtils::Utf16ToUtf8(AddrBuffer).c_str());
                     info.LocalPort = ntohs(u_short(entry.dwLocalPort));
 
-                    InetNtopW(AF_INET6, &entry.RemoteAddr, AddrBuffer, TCP_ADDR_SIZE);
+                    pInetNtopW(AF_INET6, &entry.RemoteAddr, AddrBuffer, TCP_ADDR_SIZE);
                     sprintf_s(info.RemoteAddress, "[%s]", StringUtils::Utf16ToUtf8(AddrBuffer).c_str());
                     info.RemotePort = ntohs(u_short(entry.dwRemotePort));
 

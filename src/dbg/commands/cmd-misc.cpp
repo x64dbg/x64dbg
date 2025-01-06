@@ -62,7 +62,7 @@ static duint DLLNameMem;
 static duint ASMAddr;
 static TITAN_ENGINE_CONTEXT_t backupctx = { 0 };
 
-static void cbDebugLoadLibBPX()
+void cbDebugLoadLibBPX()
 {
     HANDLE LoadLibThread = ThreadGetHandle((DWORD)LoadLibThreadID);
 #ifdef _WIN64

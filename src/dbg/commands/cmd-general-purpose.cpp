@@ -80,7 +80,9 @@ bool cbInstrMulhi(int argc, char* argv[])
     return ReadWriteVariable(argv[1], [value2](duint * value, int size)
     {
 #ifdef _WIN64
-        *value = UnsignedMultiplyHigh(*value, value2);
+        unsigned __int64 res;
+        _umul128(*value, value2, &res);
+        *value = res;
 #else //x86
         *value = (((unsigned long long)value2) * (*value)) >> 32;
 #endif

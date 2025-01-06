@@ -5,6 +5,7 @@
 #include "MiscUtil.h"
 #include "StringUtil.h"
 #include <sysinfoapi.h>
+#include <stdexcept>
 
 TraceFileReader::TraceFileReader(QObject* parent) : QObject(parent)
 {
@@ -765,19 +766,19 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
     try
     {
         if(mParent->traceFile.seek(fileOffset) == false)
-            throw std::exception("Failed to seek to offset");
+            throw std::runtime_error("Failed to seek to offset");
         //Process file content
         while(!mParent->traceFile.atEnd() && length < maxLength)
         {
             if(!mParent->traceFile.isReadable())
-                throw std::exception("Trace file not readable");
+                throw std::runtime_error("Trace file not readable");
             unsigned char blockType;
             unsigned char changedCountFlags[3]; //reg changed count, mem accessed count, flags
             mParent->traceFile.read((char*)&blockType, 1);
             if(blockType == 0)
             {
                 if(mParent->traceFile.read((char*)&changedCountFlags, 3) != 3)
-                    throw std::exception("Failed to read 3 bytes (truncated?)");
+                    throw std::runtime_error("Failed to read 3 bytes (truncated?)");
                 if(changedCountFlags[2] & 0x80) //Thread Id
                     mParent->traceFile.read((char*)&lastThreadId, 4);
                 threadId.push_back(lastThreadId);
@@ -785,29 +786,29 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
                 {
                     QByteArray opcode = mParent->traceFile.read(changedCountFlags[2] & 0x0F);
                     if(opcode.isEmpty())
-                        throw std::exception("Failed to read opcode");
+                        throw std::runtime_error("Failed to read opcode");
                     opcodeOffset.push_back(opcodes.size());
                     opcodeSize.push_back(opcode.size());
                     opcodes.append(opcode);
                 }
                 else
-                    throw std::exception("No opcode");
+                    throw std::runtime_error("No opcode");
                 if(changedCountFlags[0] > 0) //registers
                 {
                     int lastPosition = -1;
                     if(changedCountFlags[0] > _countof(regwords)) //Bad count?
-                        throw std::exception("Bad count");
+                        throw std::runtime_error("Bad count");
                     if(mParent->traceFile.read((char*)changed, changedCountFlags[0]) != changedCountFlags[0])
-                        throw std::exception("Could not read changed regs");
+                        throw std::runtime_error("Could not read changed regs");
                     if(mParent->traceFile.read((char*)regContent, changedCountFlags[0] * sizeof(duint)) != changedCountFlags[0] * sizeof(duint))
-                        throw std::exception("Could not read changed content");
+                        throw std::runtime_error("Could not read changed content");
                     for(int i = 0; i < changedCountFlags[0]; i++)
                     {
                         lastPosition = lastPosition + changed[i] + 1;
                         if(lastPosition < _countof(regwords) && lastPosition >= 0)
                             regwords[lastPosition] = regContent[i];
                         else //out of bounds?
-                            throw std::exception("Changes out of bounds?");
+                            throw std::runtime_error("Changes out of bounds?");
                     }
                     mRegisters.push_back(registers);
                 }
@@ -815,22 +816,22 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
                 {
                     QByteArray memflags;
                     if(changedCountFlags[1] > _countof(memAddress)) //too many memory operands?
-                        throw std::exception("Too many memory operands?");
+                        throw std::runtime_error("Too many memory operands?");
                     memflags = mParent->traceFile.read(changedCountFlags[1]);
                     if(memflags.length() < changedCountFlags[1])
-                        throw std::exception("Memory operand count mismatch");
+                        throw std::runtime_error("Memory operand count mismatch");
                     memoryOperandOffset.push_back(memOperandOffset);
                     memOperandOffset += changedCountFlags[1];
                     if(mParent->traceFile.read((char*)memAddress, sizeof(duint) * changedCountFlags[1]) != sizeof(duint) * changedCountFlags[1])
-                        throw std::exception("Failed to read memory change addresses");
+                        throw std::runtime_error("Failed to read memory change addresses");
                     if(mParent->traceFile.read((char*)memOldContent, sizeof(duint) * changedCountFlags[1]) != sizeof(duint) * changedCountFlags[1])
-                        throw std::exception("Failed to read memory change content");
+                        throw std::runtime_error("Failed to read memory change content");
                     for(unsigned char i = 0; i < changedCountFlags[1]; i++)
                     {
                         if((memflags[i] & 1) == 0)
                         {
                             if(mParent->traceFile.read((char*)&memNewContent[i], sizeof(duint)) != sizeof(duint))
-                                throw std::exception("Failed to read memory content");
+                                throw std::runtime_error("Failed to read memory content");
                         }
                         else
                             memNewContent[i] = memOldContent[i];
@@ -848,10 +849,10 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
                 length++;
             }
             else
-                throw std::exception("Unexpected block type");
+                throw std::runtime_error("Unexpected block type");
         }
     }
-    catch(const std::exception & x)
+    catch(const std::runtime_error & x)
     {
         mParent->error = true;
         mParent->errorMessage = QString("[TraceFilePage::TraceFilePage] %1").arg(x.what());
