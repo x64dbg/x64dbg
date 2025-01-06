@@ -1,9 +1,9 @@
+#include "ntdll/ntdll.h"
 #include "formatfunctions.h"
 #include "threading.h"
 #include "value.h"
 #include "memory.h"
 #include "exception.h"
-#include "ntdll/ntdll.h"
 #include "disasm_fast.h"
 
 std::unordered_map<String, FormatFunctions::Function> FormatFunctions::mFunctions;

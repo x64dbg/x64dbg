@@ -1,6 +1,6 @@
+#include "ntdll/ntdll.h"
 #include "module.h"
 #include "TitanEngine/TitanEngine.h"
-#include "ntdll/ntdll.h"
 #include "threading.h"
 #include "symbolinfo.h"
 #include "murmurhash.h"

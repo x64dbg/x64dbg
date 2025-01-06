@@ -1,6 +1,6 @@
+#include "ntdll/ntdll.h"
 #include <functional>
 #include "handles.h"
-#include "ntdll/ntdll.h"
 #include "exception.h"
 #include "debugger.h"
 #include "thread.h"

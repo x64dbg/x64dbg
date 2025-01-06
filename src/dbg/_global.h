@@ -19,6 +19,8 @@
 // To get NTSTATUS defines, #undef WIN32_NO_STATUS after Windows.h and then #include <ntstatus.h>
 #define WIN32_NO_STATUS
 
+#include "ntdll/ntdll.h"
+
 #include "../dbg_types.h"
 #include "../dbg_assert.h"
 #include "../bridge/bridgemain.h"

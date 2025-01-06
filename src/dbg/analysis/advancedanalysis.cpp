@@ -10,7 +10,7 @@ AdvancedAnalysis::AdvancedAnalysis(duint base, duint size, bool dump)
     : Analysis(base, size),
       mDump(dump)
 {
-    mEncMap = new byte[size];
+    mEncMap = new uint8_t[size];
     memset(mEncMap, 0, size);
 }
 
@@ -37,7 +37,7 @@ void AdvancedAnalysis::SetMarkers()
             FileHelper::WriteAllText(StringUtils::sprintf("cfgraph_%p.dot", function.entryPoint), function.ToDot());
 
     duint encMapSize;
-    byte* buffer = (byte*)EncodeMapGetBuffer(mBase, &encMapSize, true);
+    uint8_t* buffer = (uint8_t*)EncodeMapGetBuffer(mBase, &encMapSize, true);
     memcpy(buffer, mEncMap, encMapSize);
     EncodeMapReleaseBuffer(buffer);
 
@@ -97,7 +97,7 @@ void AdvancedAnalysis::analyzeFunction(duint entryPoint, bool writedata)
             if(!mZydis.Disassemble(node.end, translateAddr(node.end)))
             {
                 if(writedata)
-                    mEncMap[node.end - mBase] = (byte)enc_byte;
+                    mEncMap[node.end - mBase] = (uint8_t)enc_byte;
                 // If the next byte would be out of the memory range finish this node
                 if(!inRange(node.end + 1))
                 {
@@ -112,15 +112,15 @@ void AdvancedAnalysis::analyzeFunction(duint entryPoint, bool writedata)
             if(!inRange(node.end + mZydis.Size() - 1))
             {
                 duint remainingSize = mBase + mSize - node.end;
-                memset(&mEncMap[node.end - mBase], (byte)enc_byte, remainingSize);
+                memset(&mEncMap[node.end - mBase], (uint8_t)enc_byte, remainingSize);
                 graph.AddNode(node);
                 break;
             }
             if(writedata)
             {
-                mEncMap[node.end - mBase] = (byte)enc_code;
+                mEncMap[node.end - mBase] = (uint8_t)enc_code;
                 for(size_t i = 1; i < mZydis.Size(); i++)
-                    mEncMap[node.end - mBase + i] = (byte)enc_middle;
+                    mEncMap[node.end - mBase + i] = (uint8_t)enc_middle;
             }
             if(mZydis.IsJump() || mZydis.IsLoop()) //jump
             {
@@ -228,10 +228,10 @@ void AdvancedAnalysis::findInvalidXrefs()
     {
         duint jmps = 0, calls = 0;
         duint addr = vec.first;
-        byte desttype = mEncMap[vec.first - mBase];
+        auto desttype = mEncMap[vec.first - mBase];
         for(auto & xref : vec.second)
         {
-            byte type = mEncMap[xref.from - mBase];
+            auto type = mEncMap[xref.from - mBase];
             if(desttype == enc_code && type != enc_unknown && type != enc_code)
                 xref.valid = false;
             else if(desttype == enc_middle)
@@ -319,21 +319,21 @@ void AdvancedAnalysis::writeDataXrefs()
                         }
                         if(size == 1)
                         {
-                            mEncMap[offset] = (byte)type;
+                            mEncMap[offset] = (uint8_t)type;
                         }
                         else
                         {
                             // Check if the entire referenced data fits into the memory range
                             if((offset + size) <= mSize)
                             {
-                                mEncMap[offset] = (byte)type;
-                                memset(mEncMap + offset + 1, (byte)enc_middle, size - 1);
+                                mEncMap[offset] = (uint8_t)type;
+                                memset(mEncMap + offset + 1, (uint8_t)enc_middle, size - 1);
                             }
                             else
                             {
                                 // If it doesn't fit, mark the remaining places as bytes
                                 duint remainingSize = mSize - offset;
-                                memset(mEncMap + offset, (byte)enc_byte, size);
+                                memset(mEncMap + offset, (uint8_t)enc_byte, size);
                             }
                         }
                     }

@@ -1,3 +1,10 @@
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+// NOTE: This is a hack to get Windows 7 definitions in this file
+#ifndef WIN32_NO_STATUS
+#define WIN32_NO_STATUS
+#endif
 #include <WS2tcpip.h>
 #undef _WIN32_WINNT
 #undef WINVER

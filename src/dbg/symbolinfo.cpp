@@ -4,6 +4,7 @@
 @brief Implements the symbolinfo class.
 */
 
+#include "ntdll/ntdll.h"
 #include "symbolinfo.h"
 #include "debugger.h"
 #include "console.h"
@@ -11,7 +12,6 @@
 #include "addrinfo.h"
 #include "dbghelp_safe.h"
 #include "exception.h"
-#include "ntdll/ntdll.h"
 #include "WinInet-Downloader/downslib.h"
 #include <shlwapi.h>
 

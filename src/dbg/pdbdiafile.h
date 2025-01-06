@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <atomic>
 
+struct IStream;
 struct IDiaDataSource;
 struct IDiaSession;
 struct IDiaSymbol;

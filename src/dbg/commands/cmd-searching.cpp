@@ -11,6 +11,8 @@
 #include "disasm_helper.h"
 #include "symbolinfo.h"
 
+#include <ObjBase.h>
+
 static int maxFindResults = 5000;
 
 static bool handlePatternArgument(const char* pattern, std::vector<PatternByte> & searchpattern, String* patternshort = nullptr)

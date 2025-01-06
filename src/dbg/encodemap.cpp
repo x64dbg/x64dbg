@@ -6,7 +6,7 @@
 struct ENCODEMAP : AddrInfo
 {
     duint size;
-    byte* data;
+    uint8_t* data;
 };
 
 std::unordered_map<duint, duint> referenceCount;
@@ -63,7 +63,7 @@ struct EncodeMapSerializer : AddrInfoSerializer<ENCODEMAP>
         if(!StringUtils::FromCompressedHex(json_string_value(dataJson), data))
             return false;
         value.size = data.size();
-        value.data = (byte*)VirtualAlloc(NULL, value.size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+        value.data = (uint8_t*)VirtualAlloc(NULL, value.size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         if(!value.data)
             return false;
         memcpy(value.data, data.data(), data.size());
@@ -88,7 +88,7 @@ static bool EncodeMapValidateModuleInfo(duint key, ENCODEMAP & map, duint segsiz
     // version of the module. Adjust the size in this case.
     if(map.size < segsize)
     {
-        byte* newData = (byte*)VirtualAlloc(NULL, segsize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+        auto newData = (uint8_t*)VirtualAlloc(NULL, segsize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         if(newData == NULL) return false;
 
         memcpy(newData, map.data, map.size);
@@ -144,7 +144,7 @@ static bool EncodeMapGetorCreate(duint addr, ENCODEMAP & map, duint* baseOut = n
         if(created)
             *created = true;
         map.size = segsize;
-        map.data = (byte*)VirtualAlloc(NULL, segsize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+        map.data = (uint8_t*)VirtualAlloc(NULL, segsize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         if(map.data == NULL) return false;
         IncreaseReferenceCount(map.data);
         encmaps.PrepareValue(map, base, false);
@@ -280,11 +280,11 @@ bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type, bool* created)
     auto datasize = GetEncodeTypeSize(type);
     if(datasize == 1 && !IsCodeType(type))
     {
-        memset(map.data + offset, (byte)type, size);
+        memset(map.data + offset, (uint8_t)type, size);
     }
     else
     {
-        memset(map.data + offset, (byte)enc_middle, size);
+        memset(map.data + offset, (uint8_t)enc_middle, size);
         if(IsCodeType(type) && size > 1)
         {
             Zydis zydis;
@@ -295,7 +295,7 @@ bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type, bool* created)
             duint buffersize = size, bufferoffset = 0, cmdsize;
             for(auto i = offset; i < offset + size;)
             {
-                map.data[i] = (byte)type;
+                map.data[i] = (uint8_t)type;
                 zydis.Disassemble(base + i, buffer() + bufferoffset, int(buffersize - bufferoffset));
                 cmdsize = zydis.Success() ? zydis.Size() : 1;
                 i += cmdsize;
@@ -306,7 +306,7 @@ bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type, bool* created)
         else
         {
             for(auto i = offset; i < offset + size; i += datasize)
-                map.data[i] = (byte)type;
+                map.data[i] = (uint8_t)type;
         }
 
     }
@@ -314,7 +314,7 @@ bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type, bool* created)
     for(auto i = offset + size + 1; i < map.size; i++)
     {
         if(map.data[i] == enc_middle)
-            map.data[i] = (byte)enc_unknown;
+            map.data[i] = (uint8_t)enc_unknown;
         else
             break;
     }

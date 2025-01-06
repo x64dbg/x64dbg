@@ -7,7 +7,6 @@
 #include "thread.h"
 #include "memory.h"
 #include "threading.h"
-#include "ntdll/ntdll.h"
 #include "debugger.h"
 
 static std::unordered_map<DWORD, THREADINFO> threadList;

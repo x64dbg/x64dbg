@@ -1,15 +1,26 @@
-#ifndef NTDLL_H
-#define NTDLL_H
-
 #pragma once
+
+#ifndef _WIN32_WINNT
+#ifdef _WIN64
+#define _WIN32_WINNT 0x0502 // XP x64 is version 5.2
+#else
+#define _WIN32_WINNT 0x0501
+#endif
+#endif // _WIN32_WINNT
+
+#ifdef WINVER // Overwrite WINVER if given on command line
+#undef WINVER
+#endif // WINVER
+#define WINVER _WIN32_WINNT
+
+#ifndef _WIN32_IE
+#define _WIN32_IE 0x0500
+#endif //_WIN32_IE
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -11292,5 +11303,3 @@ TpAlpcUnregisterCompletionList(
 #ifdef __cplusplus
 }
 #endif
-
-#endif // NTDLL_H

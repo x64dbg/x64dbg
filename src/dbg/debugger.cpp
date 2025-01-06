@@ -37,6 +37,7 @@
 #include "debugger_cookie.h"
 #include "debugger_tracing.h"
 #include "handles.h"
+#include <shellapi.h>
 
 // Debugging variables
 static PROCESS_INFORMATION g_pi = {0, 0, 0, 0};

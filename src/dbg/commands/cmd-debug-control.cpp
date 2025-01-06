@@ -1,5 +1,5 @@
-#include "cmd-debug-control.h"
 #include "ntdll/ntdll.h"
+#include "cmd-debug-control.h"
 #include "console.h"
 #include "debugger.h"
 #include "animate.h"

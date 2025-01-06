@@ -1,8 +1,8 @@
 #ifndef _THREAD_H
 #define _THREAD_H
 
-#include "_global.h"
 #include "ntdll/ntdll.h"
+#include "_global.h"
 
 void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread);
 void ThreadExit(DWORD ThreadId);

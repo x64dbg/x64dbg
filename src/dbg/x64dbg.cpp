@@ -27,6 +27,7 @@
 #include "formatfunctions.h"
 #include "stringformat.h"
 #include "dbghelp_safe.h"
+#include <shellapi.h>
 
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;

@@ -74,7 +74,9 @@ void RecursiveAnalysis::SetMarkers()
             }
             else
             {
+#ifndef ALIGN_UP
 #define ALIGN_UP(Address, Align) (((ULONG_PTR)(Address) + (Align) - 1) & ~((Align) - 1))
+#endif // ALIGN_UP
                 auto nextInstr = rangeEnd + disasmLen(rangeEnd);
                 // The next instruction(s) might be padding to align IP, also allow this case to count as consecutive
                 if(nextInstr == node.start || ((node.start & 0xF) == 0 && ALIGN_UP(nextInstr, 16) == node.start))
