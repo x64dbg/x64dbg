@@ -343,8 +343,8 @@ void LogView::addMsgToLogSlotRaw(QByteArray msg, bool encodeHTML)
     }
     else
     {
-        msgUtf16.replace(QChar('\n'), QString("<br/>\n"));
         msgUtf16.replace(QString("\r\n"), QString("<br/>\n"));
+        msgUtf16.replace(QChar('\n'), QString("<br/>\n"));
     }
     if(encodeHTML)
     {
