@@ -736,7 +736,7 @@ bool cbDebugSetMemoryBpx(int argc, char* argv[])
     if(BpGet(base, BPMEMORY, 0, &bp))
     {
         if(!bp.enabled)
-            return BpEnable(base, BPMEMORY, true);
+            return DbgCmdExecDirect(StringUtils::sprintf("bpme %p", bp.addr).c_str());
         dputs(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint already set!"));
         return true;
     }
@@ -750,7 +750,68 @@ bool cbDebugSetMemoryBpx(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting memory breakpoint! (SetMemoryBPXEx)"));
         return false;
     }
-    dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint at %p set!\n"), addr);
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint at %p[%p] set!\n"), base, size);
+    GuiUpdateAllViews();
+    return true;
+}
+
+bool cbDebugSetMemoryRangeBpx(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 3))
+        return false;
+
+    duint start = 0;
+    if(!valfromstring(argv[1], &start, false))
+        return false;
+
+    duint size = 0;
+    if(!valfromstring(argv[2], &size, false))
+        return false;
+
+    DWORD type = UE_MEMORY;
+    bool singleshot = false;
+    if(argc > 3)
+    {
+        switch(argv[3][0])
+        {
+        case 'a': //read+write+execute
+            type = UE_MEMORY;
+            break;
+        case 'r': //read
+            type = UE_MEMORY_READ;
+            break;
+        case 'w': //write
+            type = UE_MEMORY_WRITE;
+            break;
+        case 'x': //execute
+            type = UE_MEMORY_EXECUTE;
+            break;
+        default:
+            dputs(QT_TRANSLATE_NOOP("DBG", "Invalid type specified!"));
+            return false;
+        }
+        singleshot = strstr(argv[3], "ss") != nullptr;
+    }
+
+    BREAKPOINT bp;
+    if(BpGet(start, BPMEMORY, 0, &bp))
+    {
+        if(!bp.enabled)
+            return DbgCmdExecDirect(StringUtils::sprintf("bpme %p", bp.addr).c_str());
+        dputs(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint already set!"));
+        return true;
+    }
+    if(!BpNew(start, true, singleshot, 0, BPMEMORY, type, 0, size))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error setting memory breakpoint! (BpNew)"));
+        return false;
+    }
+    if(!SetMemoryBPXEx(start, size, type, !singleshot, cbMemoryBreakpoint))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Error setting memory breakpoint! (SetMemoryBPXEx)"));
+        return false;
+    }
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint at %p[%p] set!\n"), start, size);
     GuiUpdateAllViews();
     return true;
 }

@@ -11,6 +11,7 @@ bool cbDebugDeleteHardwareBreakpoint(int argc, char* argv[]);
 bool cbDebugEnableHardwareBreakpoint(int argc, char* argv[]);
 bool cbDebugDisableHardwareBreakpoint(int argc, char* argv[]);
 bool cbDebugSetMemoryBpx(int argc, char* argv[]);
+bool cbDebugSetMemoryRangeBpx(int argc, char* argv[]);
 bool cbDebugDeleteMemoryBreakpoint(int argc, char* argv[]);
 bool cbDebugEnableMemoryBreakpoint(int argc, char* argv[]);
 bool cbDebugDisableMemoryBreakpoint(int argc, char* argv[]);
