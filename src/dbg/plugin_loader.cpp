@@ -163,7 +163,8 @@ bool pluginload(const char* pluginName, bool loadall)
     // Obtain the actual plugin path.
     auto pluginPath = gPluginDirectory + L"\\" + StringUtils::Utf8ToUtf16(normalizedName);
     auto pluginSubPath = pluginPath + L"\\" + StringUtils::Utf8ToUtf16(normalizedName) + gPluginExtension;
-    if(PathFileExistsW(pluginSubPath.c_str()))
+    auto subdirPlugin = !!PathFileExistsW(pluginSubPath.c_str());
+    if(subdirPlugin)
     {
         // Plugin resides in a subdirectory
         pluginDirectory = pluginPath;
@@ -194,7 +195,7 @@ bool pluginload(const char* pluginName, bool loadall)
 
     // Set the working and DLL load directories
     ChangeDirectory cd(pluginDirectory.c_str());
-    DllDirectory dd(loadall ? nullptr : pluginDirectory.c_str());
+    DllDirectory dd(loadall && !subdirPlugin ? nullptr : pluginDirectory.c_str());
 
     // Setup plugin data
     // NOTE: This is a global because during registration the plugin
