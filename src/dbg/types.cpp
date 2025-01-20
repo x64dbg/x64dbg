@@ -41,10 +41,16 @@ bool TypeManager::AddType(const std::string & owner, const std::string & type, c
     if(owner.empty())
         return false;
     validPtr(type);
-    auto found = types.find(type);
-    if(found == types.end())
-        return false;
-    return addType(owner, found->second.primitive, name);
+
+    auto found_t = types.find(type);
+    if (found_t != types.end())
+        return addType(owner, found_t->second.primitive, name);
+
+    auto found_s = structs.find(type);
+    if (found_s != structs.end())
+        return addType(owner, Void, name, type);
+
+    return false;
 }
 
 bool TypeManager::AddStruct(const std::string & owner, const std::string & name)
@@ -369,6 +375,14 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor) const
     if(foundT != types.end())
     {
         const auto & t = foundT->second;
+        if (t.primitive == Void) // check if struct type
+        {
+            Member member = root;
+            member.type = t.pointto;
+
+            return visitMember(member, visitor);
+        }
+
         if(!t.pointto.empty())
         {
             if(!isDefined(t.pointto))
@@ -381,6 +395,7 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor) const
             }
             return true;
         }
+        
         return visitor.visitType(root, t);
     }
     auto foundS = structs.find(root.type);

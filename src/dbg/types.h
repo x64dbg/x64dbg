@@ -8,7 +8,7 @@ namespace Types
 {
     enum Primitive
     {
-        Void,
+        Void,   // struct/union
         Int8,
         Uint8,
         Int16,
@@ -31,7 +31,7 @@ namespace Types
         std::string owner; //Type owner
         std::string name; //Type identifier.
         std::string pointto; //Type identifier of *Type
-        Primitive primitive; //Primitive type.
+        Primitive primitive; //Primitive type.  Void is Struct typedef
         int size = 0; //Size in bytes.
     };
 
