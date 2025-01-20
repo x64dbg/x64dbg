@@ -37,6 +37,7 @@ namespace Types
 
     struct Member
     {
+        std::string assignedType;
         std::string name; //Member identifier
         std::string type; //Type.name
         int arrsize = 0; //Number of elements if Member is an array

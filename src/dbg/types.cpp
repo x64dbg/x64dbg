@@ -91,6 +91,7 @@ bool TypeManager::AddMember(const std::string & parent, const std::string & type
     m.name = name;
     m.arrsize = arrsize;
     m.type = type;
+    m.assignedType = type;
     m.offset = offset;
 
     if(offset >= 0) //user-defined offset
@@ -158,6 +159,7 @@ bool TypeManager::AddArg(const std::string & function, const std::string & type,
     Member arg;
     arg.name = name;
     arg.type = type;
+    arg.assignedType = type;
     found->second.args.push_back(arg);
     return true;
 }
@@ -191,6 +193,8 @@ bool TypeManager::Visit(const std::string & type, const std::string & name, Visi
     Member m;
     m.name = name;
     m.type = type;
+    m.assignedType = type;
+    
     return visitMember(m, visitor);
 }
 
@@ -401,7 +405,7 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor) const
     auto foundS = structs.find(root.type);
     if(foundS != structs.end())
     {
-        const auto & s = foundS->second;
+        const auto& s = foundS->second;
         if(!visitor.visitStructUnion(root, s))
             return false;
         for(const auto & child : s.members)

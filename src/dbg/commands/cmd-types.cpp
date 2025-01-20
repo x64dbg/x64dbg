@@ -509,7 +509,7 @@ struct PrintVisitor : TypeManager::Visitor
         if(!mParents.empty() && parent().type == Parent::Type::Union)
             mOffset = parent().offset;
 
-        String tname = StringUtils::sprintf("%s %s %s", type.isunion ? "union" : "struct", type.name.c_str(), member.name.c_str());
+        String tname = StringUtils::sprintf("%s %s %s", type.isunion ? "union" : "struct", member.assignedType.c_str(), member.name.c_str());
 
         TYPEDESCRIPTOR td;
         td.expanded = true;
@@ -523,7 +523,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.userdata = nullptr;
         auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
 
-        mPath.push_back((member.name == "display" ? type.name : member.name) + ".");
+        mPath.push_back((member.name == "display" ? type.name : member.assignedType) + ".");
         mParents.push_back(Parent(type.isunion ? Parent::Union : Parent::Struct));
         parent().node = node;
         parent().size = td.size;
@@ -533,7 +533,7 @@ struct PrintVisitor : TypeManager::Visitor
 
     bool visitArray(const Member & member) override
     {
-        String tname = StringUtils::sprintf("%s %s[%d]", member.type.c_str(), member.name.c_str(), member.arrsize);
+        String tname = StringUtils::sprintf("%s %s[%d]", member.assignedType.c_str(), member.name.c_str(), member.arrsize);
 
         TYPEDESCRIPTOR td;
         td.expanded = member.arrsize <= 5;
@@ -565,7 +565,7 @@ struct PrintVisitor : TypeManager::Visitor
         if(!mAddr || !MemRead(mAddr + offset, &value, sizeof(value)))
             return false;
 
-        mPath.push_back(member.name + "->");
+        mPath.push_back(member.assignedType + "->");
         mParents.push_back(Parent(Parent::Pointer));
         parent().offset = mOffset;
         parent().addr = mAddr;
