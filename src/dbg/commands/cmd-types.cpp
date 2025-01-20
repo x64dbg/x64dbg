@@ -484,7 +484,7 @@ struct PrintVisitor : TypeManager::Visitor
         auto ptr = mAddr + mOffset;
         if(MemIsValidReadPtr(ptr))
         {
-            if(!LabelGet(ptr, nullptr) && (parent().index == 1 || ptype != Parent::Array))
+            if(!LabelGet(ptr, nullptr) && (!mParents.empty() && (parent().index == 1 || ptype != Parent::Array)))
                 LabelSet(ptr, path.c_str(), false, true);
         }
 
