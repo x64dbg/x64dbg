@@ -37,8 +37,6 @@ static void debugMessage(const wchar_t* szMessage)
 }
 #endif // DEBUG_SIGNATURE_CHECKS
 
-#pragma comment(lib, "wintrust")
-
 #pragma pack(push, 1)
 struct EmbeddedSignature
 {

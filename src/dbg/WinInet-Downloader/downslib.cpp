@@ -7,8 +7,6 @@
 #include <Wininet.h>
 #include <functional>
 
-#pragma comment(lib, "Wininet.lib")
-
 class Cleanup
 {
     std::function<void()> fn;

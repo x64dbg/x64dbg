@@ -2,6 +2,7 @@
 #define _BRIDGEMAIN_H_
 
 #include <Windows.h>
+#include <stdint.h>
 
 #ifndef __cplusplus
 #include <stdbool.h>

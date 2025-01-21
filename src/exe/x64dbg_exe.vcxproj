@@ -142,6 +142,7 @@
       <LargeAddressAware>true</LargeAddressAware>
       <DelayLoadDLLs>user32.dll;wintrust.dll;x32bridge.dll</DelayLoadDLLs>
       <ModuleDefinitionFile>signaturecheck.def</ModuleDefinitionFile>
+      <AdditionalDependencies>Wintrust.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -161,6 +162,7 @@
       <AdditionalManifestDependencies>
       </AdditionalManifestDependencies>
       <ModuleDefinitionFile>signaturecheck.def</ModuleDefinitionFile>
+      <AdditionalDependencies>Wintrust.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -180,6 +182,7 @@
       </AdditionalManifestDependencies>
       <DelayLoadDLLs>user32.dll;wintrust.dll;x64bridge.dll</DelayLoadDLLs>
       <ModuleDefinitionFile>signaturecheck.def</ModuleDefinitionFile>
+      <AdditionalDependencies>Wintrust.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -198,6 +201,7 @@
       <AdditionalManifestDependencies>
       </AdditionalManifestDependencies>
       <ModuleDefinitionFile>signaturecheck.def</ModuleDefinitionFile>
+      <AdditionalDependencies>Wintrust.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

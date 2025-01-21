@@ -1,0 +1,243 @@
+[cmake]
+version = "3.15"
+cmkr-include = "cmake/cmkr.cmake"
+
+[project]
+name = "x64dbg"
+description = "An open-source x64/x32 debugger for windows."
+include-before = [
+    "cmake/VSToolchain.cmake"
+]
+include-after = [
+    "cmake/Qt5Helpers.cmake",
+    "cmake/VSFlags.cmake",
+]
+
+[conditions]
+x86 = "CMAKE_SIZEOF_VOID_P EQUAL 4"
+x64 = "CMAKE_SIZEOF_VOID_P EQUAL 8"
+
+[find-package]
+Qt5 = { components = ["Widgets", "Network", "WinExtras"] }
+
+[target.zydis_wrapper]
+type = "static"
+sources = [
+    "src/zydis_wrapper/*.cpp",
+    "src/zydis_wrapper/*.h",
+    "src/zydis_wrapper/Zydis/Zydis.h",
+    "src/zydis_wrapper/zydis/Zydis.c",
+]
+include-directories = [
+    "src/zydis_wrapper",
+]
+private-include-directories = [
+    "src/zydis_wrapper/Zydis",
+]
+compile-definitions = [
+    "ZYCORE_STATIC_BUILD",
+    "ZYDIS_STATIC_BUILD",
+]
+
+[target.bridge]
+type = "shared"
+sources = [
+    "src/bridge/*.cpp",
+    "src/bridge/*.c",
+    "src/bridge/*.h",
+]
+private-compile-definitions = [
+    "BUILD_BRIDGE",
+]
+
+[target.bridge.properties]
+x86.OUTPUT_NAME = "x32bridge"
+x64.OUTPUT_NAME = "x64bridge"
+
+[target.btparser]
+type = "static"
+sources = [
+    "src/dbg/btparser/btparser/lexer.cpp",
+    "src/dbg/btparser/btparser/parser.cpp",
+    "src/dbg/btparser/btparser/ast.h",
+    "src/dbg/btparser/btparser/helpers.h",
+    "src/dbg/btparser/btparser/keywords.h",
+    "src/dbg/btparser/btparser/lexer.h",
+    "src/dbg/btparser/btparser/operators.h",
+    "src/dbg/btparser/btparser/parser.h",
+    "src/dbg/btparser/btparser/testfiles.h",
+]
+include-directories = [
+    "src/dbg/btparser",
+]
+
+[target.dbg]
+type = "shared"
+sources = [
+    "src/dbg/*.cpp",
+    "src/dbg/*.h",
+    "src/dbg/analysis/*.cpp",
+    "src/dbg/analysis/*.h",
+    "src/dbg/commands/*.cpp",
+    "src/dbg/commands/*.h",
+    "src/dbg/DeviceNameResolver/*.h",
+    "src/dbg/jansson/*.h",
+    "src/dbg/lz4/*.h",
+    "src/dbg/msdia/*.cpp",
+    "src/dbg/msdia/*.h",
+    "src/dbg/ntdll/*.h",
+    "src/dbg/TitanEngine/*.h",
+    "src/dbg/WinInet-Downloader/*.cpp",
+    "src/dbg/WinInet-Downloader/*.h",
+    "src/dbg/XEDParse/*.h",
+]
+private-link-libraries = [
+    "zydis_wrapper",
+    "bridge",
+    "btparser",
+    "Psapi",
+    "Shlwapi",
+    "Ws2_32",
+    "Wininet",
+]
+x86.private-link-libraries = [
+    "src/dbg/dbghelp/dbghelp_x86.lib",
+    "src/dbg/DeviceNameResolver/DeviceNameResolver_x86.lib",
+    "src/dbg/jansson/jansson_x86.lib",
+    "src/dbg/lz4/lz4_x86.lib",
+    "src/dbg/ntdll/ntdll_x86.lib",
+    "src/dbg/TitanEngine/TitanEngine_x86.lib",
+    "src/dbg/XEDParse/XEDParse_x86.lib",
+    "src/dbg/LLVMDemangle/LLVMDemangle_x86.lib",
+]
+x64.private-link-libraries = [
+    "src/dbg/dbghelp/dbghelp_x64.lib",
+    "src/dbg/DeviceNameResolver/DeviceNameResolver_x64.lib",
+    "src/dbg/jansson/jansson_x64.lib",
+    "src/dbg/lz4/lz4_x64.lib",
+    "src/dbg/ntdll/ntdll_x64.lib",
+    "src/dbg/TitanEngine/TitanEngine_x64.lib",
+    "src/dbg/XEDParse/XEDParse_x64.lib",
+    "src/dbg/LLVMDemangle/LLVMDemangle_x64.lib",
+]
+private-compile-definitions = [
+    "BUILD_DBG",
+]
+private-include-directories = [
+    "src/dbg",
+    "src/dbg/analysis",
+    "src/dbg/commands",
+]
+
+[target.dbg.properties]
+x86.OUTPUT_NAME = "x32dbg"
+x64.OUTPUT_NAME = "x64dbg"
+
+[target.gui]
+type = "shared"
+sources = [
+    "src/gui/**.cpp",
+    "src/gui/**.h",
+    "src/gui/**.ui",
+    "src/gui/**.qrc",
+]
+private-link-libraries = [
+    "Qt5::Widgets",
+    "Qt5::Network",
+    "Qt5::WinExtras",
+    "zydis_wrapper",
+    "bridge",
+    "winmm",
+]
+x86.private-link-libraries = [
+    "src/gui/Src/ThirdPartyLibs/ldconvert/ldconvert_x86.lib",
+]
+x64.private-link-libraries = [
+    "src/gui/Src/ThirdPartyLibs/ldconvert/ldconvert_x64.lib",
+]
+private-include-directories = [
+    "src",
+    "src/gui/Src",
+    "src/gui/Src/Gui",
+    "src/gui/Src/BasicView",
+    "src/gui/Src/Disassembler",
+    "src/gui/Src/Memory",
+    "src/gui/Src/Bridge",
+    "src/gui/Src/Global",
+    "src/gui/Src/Utils",
+    "src/gui/Src/ThirdPartyLibs/ldconvert",
+]
+private-compile-definitions = [
+    "BUILD_LIB",
+    "NOMINMAX",
+]
+cmake-after = """
+# Enable Qt moc/rrc/uic support
+target_qt(${CMKR_TARGET})
+
+# Copy Qt DLLs next to the application
+target_windeployqt(${CMKR_TARGET})
+"""
+
+[target.gui.properties]
+x86.OUTPUT_NAME = "x32gui"
+x64.OUTPUT_NAME = "x64gui"
+
+[target.loaddll]
+type = "executable"
+sources = [
+    "src/loaddll/loaddll.cpp",
+]
+x86.link-libraries = [
+    "src/dbg/ntdll/ntdll_x86.lib",
+]
+x64.link-libraries = [
+    "src/dbg/ntdll/ntdll_x64.lib",
+]
+
+[target.loaddll.properties]
+WIN32_EXECUTABLE = "ON"
+
+[target.exe]
+type = "executable"
+sources = [
+    "src/exe/*.cpp",
+    "src/exe/*.h",
+    "src/exe/manifest.xml",
+    "src/exe/resource.rc",
+    "src/exe/strings.rc",
+]
+x86.sources = ["src/exe/icon32.rc"]
+x64.sources = ["src/exe/icon64.rc"]
+link-libraries = [
+    "bridge",
+    "Wintrust",
+]
+msvc.link-options = [
+    "/DEF:${CMAKE_SOURCE_DIR}/src/exe/signaturecheck.def",
+]
+
+[target.exe.properties]
+x86.OUTPUT_NAME = "x32dbg"
+x64.OUTPUT_NAME = "x64dbg"
+x86.PDB_NAME = "x32dbg_exe"
+x64.PDB_NAME = "x64dbg_exe"
+WIN32_EXECUTABLE = "ON"
+
+[target.launcher]
+type = "executable"
+condition = "x86"
+sources = [
+    "src/launcher/*.cpp",
+    "src/exe/icon.rc",
+    "src/exe/resource.rc",
+    "src/exe/strings.rc",
+]
+link-libraries = [
+    "Shlwapi",
+    "Comctl32",
+]
+
+[target.launcher.properties]
+OUTPUT_NAME = "x96dbg"
+WIN32_EXECUTABLE = "ON"

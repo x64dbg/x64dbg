@@ -3,9 +3,14 @@ root = true
 
 ; Windows-style newlines
 [*]
-end_of_line = CRLF
+end_of_line = crlf
+trim_trailing_whitespace = true
 
 ; Tab indentation
 [*.{cpp,h}]
 indent_style = space
 tab_width = 4
+
+[{CMakeLists.txt,*.cmake,cmake.toml}]
+indent_style = space
+end_of_line = lf
