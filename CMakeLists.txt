@@ -31,7 +31,6 @@ project(x64dbg
 		"An open-source x64/x32 debugger for windows."
 )
 
-include("cmake/Qt5Helpers.cmake")
 include("cmake/VSFlags.cmake")
 
 # Packages
@@ -814,12 +813,17 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
 	)
 endif()
 
-set(CMKR_TARGET gui)
-# Enable Qt moc/rrc/uic support
-target_qt(${CMKR_TARGET})
+set_target_properties(gui PROPERTIES
+	AUTOMOC
+		ON
+	AUTORCC
+		ON
+	AUTOUIC
+		ON
+)
 
-# Copy Qt DLLs next to the application
-target_windeployqt(${CMKR_TARGET})
+set(CMKR_TARGET gui)
+include("cmake/deps.cmake")
 
 # Target: loaddll
 set(loaddll_SOURCES
@@ -896,6 +900,7 @@ target_link_libraries(exe PRIVATE
 if(MSVC) # msvc
 	target_link_options(exe PRIVATE
 		"/DEF:${CMAKE_SOURCE_DIR}/src/exe/signaturecheck.def"
+		"/INCREMENTAL:NO"
 	)
 endif()
 
@@ -926,6 +931,10 @@ get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} D
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT exe)
 endif()
+
+set(CMKR_TARGET exe)
+# Make the executable the main target
+add_dependencies(exe dbg gui deps)
 
 # Target: launcher
 if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86

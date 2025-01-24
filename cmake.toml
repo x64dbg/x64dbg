@@ -9,7 +9,6 @@ include-before = [
     "cmake/VSToolchain.cmake"
 ]
 include-after = [
-    "cmake/Qt5Helpers.cmake",
     "cmake/VSFlags.cmake",
 ]
 
@@ -171,17 +170,14 @@ private-compile-definitions = [
     "BUILD_LIB",
     "NOMINMAX",
 ]
-cmake-after = """
-# Enable Qt moc/rrc/uic support
-target_qt(${CMKR_TARGET})
-
-# Copy Qt DLLs next to the application
-target_windeployqt(${CMKR_TARGET})
-"""
+include-after = ["cmake/deps.cmake"]
 
 [target.gui.properties]
 x86.OUTPUT_NAME = "x32gui"
 x64.OUTPUT_NAME = "x64gui"
+AUTOMOC = true
+AUTORCC = true
+AUTOUIC = true
 
 [target.loaddll]
 type = "executable"
@@ -215,7 +211,12 @@ link-libraries = [
 ]
 msvc.link-options = [
     "/DEF:${CMAKE_SOURCE_DIR}/src/exe/signaturecheck.def",
+    "/INCREMENTAL:NO",
 ]
+cmake-after = """
+# Make the executable the main target
+add_dependencies(exe dbg gui deps)
+"""
 
 [target.exe.properties]
 x86.OUTPUT_NAME = "x32dbg"
