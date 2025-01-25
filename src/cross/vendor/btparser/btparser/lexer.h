@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <functional>
 #include <string>
+#include <stdexcept>
 
 class Lexer
 {
@@ -69,7 +70,7 @@ public:
             ErrorMessage.clear();
         }
 
-        void Throw(const std::string& reason) const
+        void Throw(const std::string & reason) const
         {
             std::string message;
             message += "[";

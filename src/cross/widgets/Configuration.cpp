@@ -33,7 +33,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     // load fonts from resources
     Q_INIT_RESOURCE(resources);
     QSet<QString> embeddedFamilies;
-    for (const QString& file : QDir(":/fonts").entryList(QDir::Files))
+    for(const QString & file : QDir(":/fonts").entryList(QDir::Files))
     {
         if(file.endsWith(".ttf"))
         {
@@ -44,14 +44,14 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
             }
             else
             {
-                for(const auto& family : QFontDatabase::applicationFontFamilies(id))
+                for(const auto & family : QFontDatabase::applicationFontFamilies(id))
                 {
                     embeddedFamilies.insert(family);
                 }
             }
         }
     }
-    for(const auto& family : embeddedFamilies)
+    for(const auto & family : embeddedFamilies)
     {
         auto font = QFont(family, PlatformFontWeight, QFont::Normal);
         font.setFixedPitch(true);
@@ -1155,13 +1155,42 @@ bool Configuration::shortcutToConfig(const QString & id, const QKeySequence shor
     return BridgeSettingSet("Shortcuts", _id.toUtf8().constData(), _key.toUtf8().constData());
 }
 
-void Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
+bool Configuration::registerMenuBuilder(MenuBuilder* menu, size_t count)
 {
     QString id = menu->getId();
     for(const auto & i : NamedMenuBuilders)
-        if(i.type == 0 && i.builder->getId() == id)
-            return; //already exists
+    {
+        if(i.type == 0)
+        {
+            if(i.builder == nullptr)
+                continue;
+            if(i.builder->getId() == id)
+                return false; //already exists
+        }
+    }
     NamedMenuBuilders.append(MenuMap(menu, count));
+    return true;
+}
+
+void Configuration::unregisterMenuBuilder(MenuBuilder* menu)
+{
+    QString id = menu->getId();
+    for(auto i = NamedMenuBuilders.begin(); i != NamedMenuBuilders.end(); ++i)
+    {
+        if(i->type == 0)
+        {
+            if(i->builder == nullptr)
+            {
+                NamedMenuBuilders.erase(i);
+                continue;
+            }
+            if(i->builder->getId() == id)
+            {
+                NamedMenuBuilders.erase(i);
+                return;
+            }
+        }
+    }
 }
 
 void Configuration::registerMainMenuStringList(QList<QAction*>* menu)
@@ -1209,6 +1238,7 @@ QFont Configuration::monospaceFont() const
     {
         auto font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
         font.setPointSize(13);
+        font.setWeight(QFont::Medium);
         return font;
     }
     return EmbeddedFonts.front();
