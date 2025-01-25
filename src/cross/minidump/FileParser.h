@@ -20,7 +20,7 @@ struct MemoryRegion
 
 struct FileParser
 {
-    static std::unique_ptr<FileParser> Create(const uint8_t* begin, const uint8_t* end, std::string& error);
+    static std::unique_ptr<FileParser> Create(const uint8_t* begin, const uint8_t* end, std::string & error);
 
     virtual ~FileParser() = default;
     virtual bool disasm64() = 0;

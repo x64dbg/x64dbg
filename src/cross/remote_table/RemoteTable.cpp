@@ -52,7 +52,8 @@ RemoteTable::RemoteTable(QWidget* parent)
         uint64_t minTime = UINT64_MAX;
         uint64_t maxTime = 0;
         dsint totalDelta = 0;
-        for(const auto&[time,delta] : mScrollEvents) {
+        for(const auto&[time, delta] : mScrollEvents)
+        {
             uint64_t timeMs = std::chrono::duration_cast<std::chrono::milliseconds>(time.time_since_epoch()).count();
             minTime = std::min(minTime, timeMs);
             maxTime = std::max(maxTime, timeMs);

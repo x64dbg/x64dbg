@@ -6,7 +6,7 @@
 #include "Configuration.h"
 #include "btparser/types.h"
 
-StructWidget::StructWidget(QWidget *parent)
+StructWidget::StructWidget(QWidget* parent)
     : QWidget(parent)
     , ui(new Ui::StructWidget)
 {
@@ -36,7 +36,7 @@ void StructWidget::on_pushButtonParse_clicked()
     if(!manager.ParseTypes(declaration, "StructWidget", errors))
     {
         QString message = "Parsing failed:";
-        for(const auto& error : errors)
+        for(const auto & error : errors)
         {
             message += "\n";
             message += QString::fromStdString(error);
