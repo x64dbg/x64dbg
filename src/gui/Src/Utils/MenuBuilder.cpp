@@ -1,6 +1,6 @@
 #include "MenuBuilder.h"
 #include "Bridge.h"
-#include "Configuration.h"
+#include <Configuration.h>
 
 /**
  * @brief MenuBuilder::loadFromConfig Set the menu builder to be customizable

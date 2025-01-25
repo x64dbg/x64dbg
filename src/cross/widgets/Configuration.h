@@ -4,6 +4,7 @@
 #include <QKeySequence>
 #include <QMap>
 #include <QColor>
+#include <QVector>
 #include <QFont>
 #include "Types.h"
 
@@ -54,8 +55,9 @@ public:
     void writeFonts();
     void readShortcuts();
     void writeShortcuts();
-    void registerMenuBuilder(MenuBuilder* menu, size_t count);
+    bool registerMenuBuilder(MenuBuilder* menu, size_t count);
     void registerMainMenuStringList(QList<QAction*>* menu);
+    void unregisterMenuBuilder(MenuBuilder* menu);
 
     const QColor getColor(const QString & id) const;
     const bool getBool(const QString & category, const QString & id) const;
