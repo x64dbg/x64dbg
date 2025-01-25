@@ -119,7 +119,7 @@ struct DmpFileParser : FileParser
             thread = &mDmp.GetThreads().begin()->second;
         }
         bool disasm64 = false;
-        std::visit([&](auto&& arg)
+        std::visit([&](auto && arg)
         {
             using T = std::decay_t<decltype(arg)>;
             if constexpr(std::is_same_v<T, udmpparser::Context64_t>)
@@ -139,11 +139,11 @@ struct DmpFileParser : FileParser
     std::vector<MemoryRegion> MemoryRegions() const override
     {
         std::vector<MemoryRegion> regions;
-        const auto& mem = mDmp.GetMem();
-        for(const auto& itr : mem)
+        const auto & mem = mDmp.GetMem();
+        for(const auto & itr : mem)
         {
             regions.emplace_back();
-            MemoryRegion& region = regions.back();
+            MemoryRegion & region = regions.back();
             const udmpparser::MemBlock_t & block = itr.second;
             region.BaseAddress = block.BaseAddress;
             region.RegionSize = block.RegionSize;
@@ -197,7 +197,7 @@ struct PeFileParser : FileParser, MemoryProvider
     uint64_t mEntryPoint = 0;
     std::vector<Section> mSections;
 
-    bool Parse(const uint8_t* begin, const uint8_t* end, std::string& error)
+    bool Parse(const uint8_t* begin, const uint8_t* end, std::string & error)
     {
         mBegin = begin;
         mEnd = end;
@@ -246,7 +246,7 @@ struct PeFileParser : FileParser, MemoryProvider
             // Align the sections
             for(uint32_t i = 0; i < pnth->file_header.num_sections; i++)
             {
-                const auto& section = *pnth->get_section(i);
+                const auto & section = *pnth->get_section(i);
 
                 std::string name;
                 for(auto ch : section.name.short_name)
@@ -332,10 +332,10 @@ struct PeFileParser : FileParser, MemoryProvider
     std::vector<MemoryRegion> MemoryRegions() const override
     {
         std::vector<MemoryRegion> regions;
-        for(const auto& section : mSections)
+        for(const auto & section : mSections)
         {
             regions.emplace_back();
-            MemoryRegion& region = regions.back();
+            MemoryRegion & region = regions.back();
             region.BaseAddress = section.addr;
             region.RegionSize = section.size;
             region.State = StateToStringShort(MEM_COMMIT);
@@ -355,7 +355,7 @@ struct PeFileParser : FileParser, MemoryProvider
 
     bool read(duint addr, void* dest, duint size) override
     {
-        for(const auto& section : mSections)
+        for(const auto & section : mSections)
         {
             // TODO: support reading across sections
             if(addr >= section.addr && addr + size <= section.addr + section.size)
@@ -383,7 +383,7 @@ struct PeFileParser : FileParser, MemoryProvider
 
     bool getRange(duint addr, duint & base, duint & size) override
     {
-        for(const auto& section : mSections)
+        for(const auto & section : mSections)
         {
             if(addr >= section.addr && addr < section.addr + section.size)
             {
@@ -397,7 +397,7 @@ struct PeFileParser : FileParser, MemoryProvider
 
     bool isCodePtr(duint addr) override
     {
-        for(const auto& section : mSections)
+        for(const auto & section : mSections)
         {
             if(addr >= section.addr && addr < section.addr + section.size)
             {
@@ -409,7 +409,7 @@ struct PeFileParser : FileParser, MemoryProvider
 
     bool isValidPtr(duint addr) override
     {
-        for(const auto& section : mSections)
+        for(const auto & section : mSections)
         {
             if(addr >= section.addr && addr < section.addr + section.size)
             {
@@ -420,7 +420,7 @@ struct PeFileParser : FileParser, MemoryProvider
     }
 };
 
-std::unique_ptr<FileParser> FileParser::Create(const uint8_t* begin, const uint8_t* end, std::string& error)
+std::unique_ptr<FileParser> FileParser::Create(const uint8_t* begin, const uint8_t* end, std::string & error)
 {
     // Invalidate the global memory provider (TODO: localize everything)
     DbgSetMemoryProvider(nullptr);

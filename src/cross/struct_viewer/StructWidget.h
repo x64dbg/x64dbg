@@ -3,8 +3,9 @@
 
 #include <QWidget>
 
-namespace Ui {
-class StructWidget;
+namespace Ui
+{
+    class StructWidget;
 }
 
 class StructWidget : public QWidget
@@ -12,7 +13,7 @@ class StructWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit StructWidget(QWidget *parent = nullptr);
+    explicit StructWidget(QWidget* parent = nullptr);
     ~StructWidget();
 
 private slots:
@@ -21,7 +22,7 @@ private slots:
     void on_plainTextEditDeclaration_textChanged();
 
 private:
-    Ui::StructWidget *ui;
+    Ui::StructWidget* ui;
 };
 
 #endif // STRUCTWIDGET_H
