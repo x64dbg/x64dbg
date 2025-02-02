@@ -450,6 +450,8 @@ public:
     std::string pid;
     std::string tid;
     std::string event;
+    std::string command;
+    std::string commandFile;
     bool help = false;
 
     CommandlineArguments() : ArgumentParser("x64dbg")
@@ -460,6 +462,10 @@ public:
         addString("-p", pid, "Process ID to attach to.");
         addString("-tid", tid, "Thread Identifier (TID) of the thread to resume after attaching.");
         addString("-e", event, "Handle to an Event Object to signal on attach");
+
+        // TODO: Allow repeating multiple -c arguments
+        addString("-c", command, "Specifies the initial debugger command to run at start-up.");
+        addString("-cf", commandFile, "Specifies the path and name of a script file. This script file is executed as soon as the debugger is started.");
 
         addBool("-help", help, "Show this message");
     }
@@ -680,6 +686,17 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         if(bDoneSomething)
             MessageBox(nullptr, LoadResString(IDS_NEWCFGWRITTEN), LoadResString(IDS_DONE), MB_ICONINFORMATION);
     }
+
+    std::wstring extraArguments;
+    if(!args.command.empty())
+    {
+        extraArguments += StringUtils::sprintf(L" -c \"%s\"", escape(StringUtils::Utf8ToUtf16(args.command)).c_str());
+    }
+    if(!args.commandFile.empty())
+    {
+        extraArguments += StringUtils::sprintf(L" -cf \"%s\"", escape(StringUtils::Utf8ToUtf16(args.commandFile)).c_str());
+    }
+
     std::wstring cmdLine;
     if(!args.pid.empty() && parseId(StringUtils::Utf8ToUtf16(args.pid).c_str(), pid))
     {
@@ -692,6 +709,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         {
             cmdLine += StringUtils::sprintf(L" -e %u", id2);
         }
+        cmdLine += extraArguments;
         loadPid(cmdLine.c_str());
     }
     else if(!args.filename.empty()) //one or more arguments -> execute debugger
@@ -728,6 +746,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         cmdLine += L" \"";
         cmdLine += szCurDir;
         cmdLine += L"\"";
+
+        cmdLine += extraArguments;
 
         if(!args.extraCmdline.empty())
         {

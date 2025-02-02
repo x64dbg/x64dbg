@@ -29,6 +29,7 @@
 #include "stringformat.h"
 #include "dbghelp_safe.h"
 #include <shellapi.h>
+#include <fstream>
 
 static MESSAGE_STACK* gMsgStack = 0;
 static HANDLE hCommandLoopThread = 0;
@@ -692,6 +693,8 @@ public:
     String pid;
     String tid;
     String event;
+    String command;
+    String commandFile;
     bool help = false;
 
     CommandlineArguments() : ArgumentParser("x64dbg")
@@ -704,6 +707,10 @@ public:
         addString("-a", pid, "Alias for -p.");
         addString("-tid", tid, "Thread Identifier (TID) of the thread to resume after attaching.");
         addString("-e", event, "Handle to an Event Object to signal on attach");
+
+        // TODO: Allow repeating multiple -c arguments
+        addString("-c", command, "Specifies the initial debugger command to run at start-up.");
+        addString("-cf", commandFile, "Specifies the path and name of a script file. This script file is executed as soon as the debugger is started.");
 
         addBool("-help", help, "Show this message");
     }
@@ -777,6 +784,27 @@ const char* parseArguments()
         {
             //2 arguments (-p PID)
             DbgCmdExec(StringUtils::sprintf("attach .%s", args.pid).c_str()); //attach pid
+        }
+    }
+
+    if(!args.command.empty())
+    {
+        DbgCmdExec(args.command.c_str());
+    }
+
+    if(!args.commandFile.empty())
+    {
+        std::ifstream commandFile(args.commandFile);
+        if(!commandFile.is_open())
+        {
+            return _strdup(StringUtils::sprintf("Error: Command file \"%s\" couldn't be opened.\n", args.commandFile.c_str()).c_str());
+        }
+        String line;
+        while(std::getline(commandFile, line))
+        {
+            if(line.empty())
+                continue;
+            DbgCmdExec(line.c_str());
         }
     }
 
