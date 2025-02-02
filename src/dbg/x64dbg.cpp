@@ -687,7 +687,7 @@ class CommandlineArguments : public ArgumentParser
 {
 public:
     String filename;
-    String cmdline;
+    std::vector<std::string> extraCmdline;
     String currentDir;
     String pid;
     String tid;
@@ -697,8 +697,8 @@ public:
     CommandlineArguments() : ArgumentParser("x64dbg")
     {
         addPositional("filename", filename, "Filename of program to debug");
-        addPositional("cmdline", cmdline, "Command line arguments to pass to debugged program");
         addPositional("currentdir", currentDir, "Current working directory of new process");
+        addExtra(extraCmdline);
 
         addString("-p", pid, "Process ID to attach to.");
         addString("-a", pid, "Alias for -p.");
@@ -737,17 +737,22 @@ const char* parseArguments()
     }
     if(!args.filename.empty())
     {
-        if(!args.cmdline.empty())
+        if(!args.extraCmdline.empty())
         {
+            std::string cmdline;
+            for(const auto & arg : args.extraCmdline)
+            {
+                cmdline += StringUtils::sprintf("\"%s\" ", escape(arg).c_str());
+            }
             if(!args.currentDir.empty())
             {
                 //3 arguments (init filename, cmdline, currentdir)
-                DbgCmdExec(StringUtils::sprintf("init \"%s\", \"%s\", \"%s\"", escape(args.filename).c_str(), escape(args.cmdline).c_str(), escape(args.currentDir).c_str()).c_str());
+                DbgCmdExec(StringUtils::sprintf("init \"%s\", \"%s\", \"%s\"", escape(args.filename).c_str(), escape(cmdline).c_str(), escape(args.currentDir).c_str()).c_str());
             }
             else
             {
                 //2 arguments (init filename, cmdline)
-                DbgCmdExec(StringUtils::sprintf("init \"%s\", \"%s\"", escape(args.filename).c_str(), escape(args.cmdline).c_str()).c_str());
+                DbgCmdExec(StringUtils::sprintf("init \"%s\", \"%s\"", escape(args.filename).c_str(), escape(cmdline).c_str()).c_str());
             }
         }
         else

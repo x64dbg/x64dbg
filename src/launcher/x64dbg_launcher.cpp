@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <string>
 #include <queue>
+#include <memory>
 #include <shlwapi.h>
 #include <objbase.h>
 #pragma warning(push)
@@ -14,7 +15,9 @@
 #include "../exe/resource.h"
 #include "../exe/LoadResourceString.h"
 #include "../exe/icon.h"
+#include "../dbg/args.h"
 #include "../dbg/GetPeArch.h"
+#include "../dbg/stringutils.h"
 
 static bool FileExists(const TCHAR* file)
 {
@@ -432,6 +435,36 @@ static void EnableHiDPI()
     }
 }
 
+static std::wstring escape(std::wstring cmdline)
+{
+    StringUtils::ReplaceAll(cmdline, L"\\", L"\\\\");
+    StringUtils::ReplaceAll(cmdline, L"\"", L"\\\"");
+    return cmdline;
+}
+
+class CommandlineArguments : public ArgumentParser
+{
+public:
+    std::string filename;
+    std::vector<std::string> extraCmdline;
+    std::string pid;
+    std::string tid;
+    std::string event;
+    bool help = false;
+
+    CommandlineArguments() : ArgumentParser("x64dbg")
+    {
+        addPositional("filename", filename, "Filename of program to debug");
+        addExtra(extraCmdline);
+
+        addString("-p", pid, "Process ID to attach to.");
+        addString("-tid", tid, "Thread Identifier (TID) of the thread to resume after attaching.");
+        addString("-e", event, "Handle to an Event Object to signal on attach");
+
+        addBool("-help", help, "Show this message");
+    }
+};
+
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
     EnableHiDPI();
@@ -555,15 +588,39 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     OutputDebugStringW(L"[x96dbg] Command line:");
     OutputDebugStringW(GetCommandLineW());
 
-    //Handle command line
-    auto argc = 0;
-    auto argv = CommandLineToArgvW(GetCommandLineW(), &argc);
-
     // If x64dbg is not found, perform installation
     if(bDoneSomething)
     {
         restartInstall();
         return 0;
+    }
+
+    //Handle command line
+    int argc = 0;
+    auto argvW = std::unique_ptr<wchar_t* [], decltype(&::LocalFree)>(CommandLineToArgvW(GetCommandLineW(), &argc), ::LocalFree);
+    //MessageBoxW(0, GetCommandLineW(), StringUtils::sprintf(L"%d", argc).c_str(), MB_SYSTEMMODAL);
+    auto argvS = std::make_unique<std::string[]>(argc);
+    auto argvA = std::make_unique<char* []>(argc);
+    for(int i = 0; i < argc; ++i)
+    {
+        argvS[i] = StringUtils::Utf16ToUtf8(argvW[i]);
+        argvA[i] = const_cast<char*>(argvS[i].c_str());
+    }
+
+    CommandlineArguments args;
+    try
+    {
+        args.parse(argc, argvA.get());
+    }
+    catch(const std::exception & e)
+    {
+        MessageBox(nullptr, StringUtils::Utf8ToUtf16(StringUtils::sprintf("Error: %s\n\nHelp:\n%s\n", e.what(), args.helpStr().c_str())).c_str(), LoadResString(IDS_ERROR), MB_ICONERROR);
+        return 1;
+    }
+    if(args.help)
+    {
+        MessageBox(nullptr, StringUtils::Utf8ToUtf16(args.helpStr()).c_str(), LoadResString(IDS_ERROR), MB_ICONERROR);
+        return 1;
     }
 
     if(argc <= 1) //no arguments -> launcher dialog
@@ -580,7 +637,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         }
         DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_DIALOGLAUNCHER), 0, DlgLauncher);
     }
-    else if(argc == 2 && !wcscmp(argv[1], L"::install")) //set configuration
+    else if(argc == 2 && args.filename == "::install") //set configuration
     {
         if(!FileExists(sz32Path) && BrowseFileOpen(nullptr, TEXT("x32dbg.exe\0x32dbg.exe\0*.exe\0*.exe\0\0"), nullptr, sz32Path, MAX_PATH, szCurrentDir))
         {
@@ -623,25 +680,21 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         if(bDoneSomething)
             MessageBox(nullptr, LoadResString(IDS_NEWCFGWRITTEN), LoadResString(IDS_DONE), MB_ICONINFORMATION);
     }
-    else if(argc == 3 && !wcscmp(argv[1], L"-p") && parseId(argv[2], pid)) //-p PID
+    std::wstring cmdLine;
+    if(!args.pid.empty() && parseId(StringUtils::Utf8ToUtf16(args.pid).c_str(), pid))
     {
-        wchar_t cmdLine[32] = L"";
-        wsprintfW(cmdLine, L"-p %u", pid);
-        loadPid(cmdLine);
+        cmdLine += StringUtils::sprintf(L"-p %u", pid);
+        if(!args.tid.empty() && parseId(StringUtils::Utf8ToUtf16(args.tid).c_str(), id2))
+        {
+            cmdLine += StringUtils::sprintf(L" -tid %u", id2);
+        }
+        else if(!args.event.empty() && parseId(StringUtils::Utf8ToUtf16(args.event).c_str(), id2))
+        {
+            cmdLine += StringUtils::sprintf(L" -e %u", id2);
+        }
+        loadPid(cmdLine.c_str());
     }
-    else if(argc == 5 && !wcscmp(argv[1], L"-p") && !wcscmp(argv[3], L"-tid") && parseId(argv[2], pid) && parseId(argv[4], id2)) //-p PID -tid TID
-    {
-        wchar_t cmdLine[32] = L"";
-        wsprintfW(cmdLine, L"-p %u -tid %u", pid, id2);
-        loadPid(cmdLine);
-    }
-    else if(argc == 5 && !wcscmp(argv[1], L"-p") && !wcscmp(argv[3], L"-e") && parseId(argv[2], pid) && parseId(argv[4], id2)) //-p PID -e EVENT
-    {
-        wchar_t cmdLine[32] = L"";
-        wsprintfW(cmdLine, L"-a %u -e %u", pid, id2);
-        loadPid(cmdLine);
-    }
-    else if(argc >= 2) //one or more arguments -> execute debugger
+    else if(!args.filename.empty()) //one or more arguments -> execute debugger
     {
         BOOL canDisableRedirect = FALSE;
         RedirectWow rWow;
@@ -654,44 +707,20 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             }
         }
 
+        std::wstring filename = StringUtils::Utf8ToUtf16(args.filename);
         TCHAR szPath[MAX_PATH] = TEXT("");
-        if(PathIsRelative(argv[1])) //resolve the full path if a relative path is specified (TODO: honor the PATH environment variable)
+        if(PathIsRelative(filename.c_str())) //resolve the full path if a relative path is specified (TODO: honor the PATH environment variable)
         {
             GetCurrentDirectory(_countof(szPath), szPath);
-            PathAppend(szPath, argv[1]);
+            PathAppend(szPath, filename.c_str());
         }
-        else if(!ResolveShortcut(nullptr, argv[1], szPath, _countof(szPath))) //attempt to resolve the shortcut path
-            _tcscpy_s(szPath, argv[1]); //fall back to the origin full path
+        else if(!ResolveShortcut(nullptr, filename.c_str(), szPath, _countof(szPath)))  //attempt to resolve the shortcut path
+            _tcscpy_s(szPath, filename.c_str()); //fall back to the origin full path
 
-        std::wstring cmdLine, escaped;
+        std::wstring cmdLine;
         cmdLine.push_back(L'\"');
         cmdLine += szPath;
         cmdLine.push_back(L'\"');
-        if(argc > 2) //forward any commandline parameters
-        {
-            cmdLine += L" \"";
-            for(auto i = 2; i < argc; i++)
-            {
-                if(i > 2)
-                    cmdLine.push_back(L' ');
-
-                escaped.clear();
-                auto len = wcslen(argv[i]);
-                for(size_t j = 0; j < len; j++)
-                {
-                    if(argv[i][j] == L'\"')
-                        escaped.push_back(L'\"');
-                    escaped.push_back(argv[i][j]);
-                }
-
-                cmdLine += escaped;
-            }
-            cmdLine += L"\"";
-        }
-        else //empty command line
-        {
-            cmdLine += L" \"\"";
-        }
 
         //append current working directory
         TCHAR szCurDir[MAX_PATH] = TEXT("");
@@ -699,6 +728,19 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         cmdLine += L" \"";
         cmdLine += szCurDir;
         cmdLine += L"\"";
+
+        if(!args.extraCmdline.empty())
+        {
+            cmdLine += L" -- ";
+            for(const auto & arg : args.extraCmdline)
+            {
+                cmdLine += StringUtils::sprintf(L"\"%s\" ", escape(StringUtils::Utf8ToUtf16(arg)).c_str());
+            }
+        }
+        else //empty command line
+        {
+            cmdLine += L" -- \"\"";
+        }
 
         if(canDisableRedirect)
             rWow.DisableRedirect();
@@ -726,14 +768,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             break;
         case PeArch::Invalid:
             if(FileExists(szPath))
-                MessageBox(nullptr, LoadResString(IDS_INVDPE), argv[1], MB_ICONERROR);
+                MessageBox(nullptr, LoadResString(IDS_INVDPE), filename.c_str(), MB_ICONERROR);
             else
-                MessageBox(nullptr, LoadResString(IDS_FILEERR), argv[1], MB_ICONERROR);
+                MessageBox(nullptr, LoadResString(IDS_FILEERR), filename.c_str(), MB_ICONERROR);
             break;
         default:
             __debugbreak();
         }
     }
-    LocalFree(argv);
     return 0;
 }

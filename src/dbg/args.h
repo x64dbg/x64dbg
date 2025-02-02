@@ -1,3 +1,6 @@
+/**
+ Based on https://github.com/LLVMParty/args
+*/
 #pragma once
 
 #include <cstdlib>
@@ -7,7 +10,6 @@
 #include <unordered_set>
 #include <stdexcept>
 
-// https://github.com/LLVMParty/args
 class ArgumentParser
 {
 protected:
@@ -17,7 +19,7 @@ protected:
         {
             value = arg;
         };
-        positionalArgs.push_back(Arg{ name, help, required, fn });
+        positionalArgs.push_back(Arg{name, help, required, fn});
     }
 
     void addString(const std::string & flagname, std::string & value, const std::string & help, bool required = false)
@@ -48,7 +50,7 @@ protected:
                 }
             }
         };
-        flagArgs.push_back(Arg{ flagname, help, required, fn });
+        flagArgs.push_back(Arg{flagname, help, required, fn});
     }
 
     void addBool(const std::string & flagname, bool & value, const std::string & help, bool required = false)
@@ -76,7 +78,16 @@ protected:
                 }
             }
         };
-        flagArgs.push_back(Arg{ flagname, help, required, fn });
+        flagArgs.push_back(Arg{flagname, help, required, fn});
+    }
+
+    void addExtra(std::vector<std::string> & args)
+    {
+        if(extra != nullptr)
+        {
+            throw std::runtime_error("cannot add extra arguments multiple times");
+        }
+        extra = &args;
     }
 
     explicit ArgumentParser(std::string description) : description(std::move(description))
@@ -84,13 +95,13 @@ protected:
     }
 
 public:
-    virtual ~ArgumentParser() = default;
-    ArgumentParser(const ArgumentParser &) = delete;
+    virtual ~ArgumentParser()                        = default;
+    ArgumentParser(const ArgumentParser &)            = delete;
     ArgumentParser & operator=(const ArgumentParser &) = delete;
-    ArgumentParser(ArgumentParser &&) = delete;
-    ArgumentParser & operator=(ArgumentParser &&) = delete;
+    ArgumentParser(ArgumentParser &&)                 = delete;
+    ArgumentParser & operator=(ArgumentParser &&)      = delete;
 
-    void parseOrExit(int argc, char** argv, const char* helpflag = "-help")
+    void parseOrExit(int argc, const char* const* argv, const char* helpflag = "-help")
     {
         bool help = false;
         addBool(helpflag, help, "Show this message");
@@ -111,10 +122,10 @@ public:
         }
     }
 
-    void parse(int argc, char** argv)
+    void parse(int argc, const char* const* argv)
     {
-        this->argc = argc;
-        this->argv = argv;
+        this->argc        = argc;
+        this->argv        = argv;
         bool seenRequired = false;
         for(const auto & positionalArg : positionalArgs)
         {
@@ -153,6 +164,16 @@ public:
             {
                 continue;
             }
+
+            if(arg == "--" && extra != nullptr)
+            {
+                for(int j = i + 1; j < argc; j++)
+                {
+                    extra->push_back(argv[j]);
+                }
+                break;
+            }
+
             if(arg[0] == '-')
             {
                 didExtract = false;
@@ -232,6 +253,10 @@ public:
                 help += ']';
             }
         }
+        if(extra != nullptr)
+        {
+            help += " -- [extra arguments]";
+        }
         help += '\n';
 
         if(!description.empty())
@@ -288,13 +313,14 @@ private:
         }
     };
 
-    std::string      description;
-    std::vector<Arg> positionalArgs;
-    std::vector<Arg> flagArgs;
+    std::string               description;
+    std::vector<Arg>          positionalArgs;
+    std::vector<Arg>          flagArgs;
+    std::vector<std::string>* extra = nullptr;
 
-    int                             i = 1;
-    int                             argc = 0;
-    char**                          argv = nullptr;
+    int                             i          = 1;
+    int                             argc       = 0;
+    const char* const*              argv       = nullptr;
     bool                            didExtract = false;
     std::string                     arg;
     std::unordered_set<std::string> flagsExtracted;

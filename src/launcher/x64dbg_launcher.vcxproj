@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\dbg\stringutils.cpp" />
     <ClCompile Include="x64dbg_launcher.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -19,6 +20,7 @@
     <ResourceCompile Include="..\exe\Strings.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\dbg\args.h" />
     <ClInclude Include="..\exe\resource.h" />
     <ClInclude Include="..\exe\icon.h" />
     <ClInclude Include="..\exe\strings.h" />
