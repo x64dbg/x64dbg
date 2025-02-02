@@ -722,11 +722,11 @@ const char* parseArguments()
     auto argvW = std::unique_ptr<wchar_t* [], decltype(&::LocalFree)>(CommandLineToArgvW(GetCommandLineW(), &argc), ::LocalFree);
     //MessageBoxW(0, GetCommandLineW(), StringUtils::sprintf(L"%d", argc).c_str(), MB_SYSTEMMODAL);
     auto argvS = std::make_unique<String[]>(argc);
-    auto argvA = std::make_unique<char* []>(argc);
+    auto argvA = std::make_unique<const char* []>(argc);
     for(int i = 0; i < argc; ++i)
     {
         argvS[i] = StringUtils::Utf16ToUtf8(argvW[i]);
-        argvA[i] = const_cast<char*>(argvS[i].c_str());
+        argvA[i] = argvS[i].c_str();
     }
 
     CommandlineArguments args;
