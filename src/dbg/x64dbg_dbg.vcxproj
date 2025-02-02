@@ -137,6 +137,7 @@
     <ClCompile Include="_scriptapi_symbol.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\args\include\args.hpp" />
     <ClInclude Include="addrinfo.h" />
     <ClInclude Include="analysis\advancedanalysis.h" />
     <ClInclude Include="analysis\analysis.h" />

@@ -5,3 +5,7 @@
 	path = deps
 	url = ../deps
 	shallow = true
+[submodule "src/args"]
+	path = src/args
+	url = https://github.com/LLVMParty/args
+	shallow = true
