@@ -712,7 +712,7 @@ public:
 const char* parseArguments()
 {
     int argc = 0;
-    wchar_t** argvW = CommandLineToArgvW(GetCommandLineW(), &argc);
+    auto argvW = std::unique_ptr<wchar_t* [], decltype(&::LocalFree)>(CommandLineToArgvW(GetCommandLineW(), &argc), ::LocalFree);
     //MessageBoxW(0, GetCommandLineW(), StringUtils::sprintf(L"%d", argc).c_str(), MB_SYSTEMMODAL);
     auto argvS = std::make_unique<String[]>(argc);
     auto argvA = std::make_unique<char* []>(argc);
@@ -729,12 +729,10 @@ const char* parseArguments()
     }
     catch(const std::exception & e)
     {
-        LocalFree(argvW);
         return _strdup(StringUtils::sprintf("Error: %s\n\nHelp:\n%s\n", e.what(), args.helpStr().c_str()).c_str());
     }
     if(args.help)
     {
-        LocalFree(argvW);
         return _strdup(args.helpStr().c_str());
     }
     if(!args.filename.empty())
@@ -777,7 +775,6 @@ const char* parseArguments()
         }
     }
 
-    LocalFree(argvW);
     return nullptr;
 }
 
