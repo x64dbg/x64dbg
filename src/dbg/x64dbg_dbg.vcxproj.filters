@@ -904,7 +904,7 @@
     <ClInclude Include="bridgemain.h">
       <Filter>Header Files\Interfaces/Exports</Filter>
     </ClInclude>
-    <ClInclude Include="..\args\include\args.hpp">
+    <ClInclude Include="args.h">
       <Filter>Header Files\Utilities</Filter>
     </ClInclude>
   </ItemGroup>
