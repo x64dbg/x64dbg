@@ -234,6 +234,61 @@ namespace Exprfunc
         return MemDecodePointer(&decoded, IsVistaOrLater()) ? decoded : ptr;
     }
 
+    bool memcmpextfn(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argc == 2);
+        assert(argv[0].type == ValueTypeNumber);
+        assert(argv[1].type == ValueTypeString);
+
+        std::vector<unsigned char> bytes;
+        size_t n_nibbles = 0;
+        bool nibble = false;
+
+        for (size_t i = 0; i < ::strlen(argv[1].string.ptr); i++) {
+            unsigned char v = *(argv[1].string.ptr + i);
+            if (iswspace(v)) continue;
+            
+            if (v >= 'A' && v <= 'F') v = (v-'A') + 0xA;
+            else if (v >= 'a' && v <= 'f') v = (v-'a') + 0xA;
+            else if (v >= '0' && v <= '9') v = (v-'0');
+            else return false;
+
+            if (nibble)
+                bytes[bytes.size()-1] |= v;
+            else
+                bytes.push_back(v << 4);
+
+            nibble = !nibble;
+        }
+
+        // edge case: the user entered an odd number of hex-digits
+        // in this case, we need to shift each nibble to the right
+        if (nibble) {
+            unsigned char carry_nibble = 0;
+            for (size_t i = 0; i < bytes.size(); i++) {
+                unsigned char lower = bytes[i] & 0xF;
+                bytes[i] >>= 4;
+                bytes[i] |= carry_nibble << 4;
+                carry_nibble = lower;
+            }
+        }
+
+        unsigned char* rel_data = (unsigned char*)malloc(bytes.size() * sizeof(unsigned char));
+        if (rel_data == NULL)
+            return false;
+
+        if (!MemRead(argv[0].number, rel_data, bytes.size() * sizeof(unsigned char))) {
+            free(rel_data);
+            return false;
+        }
+
+        *result = ValueNumber(memcmp(bytes.data(), rel_data, bytes.size()));
+
+        free(rel_data);
+
+        return true;
+    }
+
     duint dislen(duint addr)
     {
         BASIC_INSTRUCTION_INFO info;

@@ -92,6 +92,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("mem.iscode", memiscode);
     RegisterEasy("mem.isstring", memisstring);
     RegisterEasy("mem.decodepointer", memdecodepointer);
+    ExpressionFunctions::Register("mem.cmp", ValueTypeNumber, {ValueTypeNumber, ValueTypeString}, memcmpextfn);
 
     //Disassembly
     RegisterEasy("dis.len,dis.size", dislen);
