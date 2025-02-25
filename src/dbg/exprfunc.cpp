@@ -244,7 +244,12 @@ namespace Exprfunc
         if(!patterntransform(argv[1].string.ptr, pattern))
             return false;
 
-        *result = ValueNumber(patternfind((unsigned char*)argv[0].number, pattern.size(), pattern) == 0);
+        std::vector<unsigned char> data(pattern.size());
+        if(!MemRead(argv[0].number, data.data(), data.size()))
+            return false;
+
+        *result = ValueNumber(patternfind(data.data(), pattern.size(), pattern) == 0);
+
 
         return true;
     }
