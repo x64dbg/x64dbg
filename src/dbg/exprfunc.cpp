@@ -234,61 +234,45 @@ namespace Exprfunc
         return MemDecodePointer(&decoded, IsVistaOrLater()) ? decoded : ptr;
     }
 
-    bool memcmpextfn(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    bool memmatch(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
     {
         assert(argc == 2);
         assert(argv[0].type == ValueTypeNumber);
         assert(argv[1].type == ValueTypeString);
 
-        std::vector<unsigned char> bytes;
-        size_t n_nibbles = 0;
-        bool nibble = false;
+        std::vector<PatternByte> pattern;
+        PatternByte pb{};
+        size_t ni = 0;
 
         for(size_t i = 0; i < ::strlen(argv[1].string.ptr); i++)
         {
-            unsigned char v = *(argv[1].string.ptr + i);
+            unsigned char v = argv[1].string.ptr[i];
             if(iswspace(v)) continue;
 
             if(v >= 'A' && v <= 'F') v = (v - 'A') + 0xA;
             else if(v >= 'a' && v <= 'f') v = (v - 'a') + 0xA;
             else if(v >= '0' && v <= '9') v = (v - '0');
+            else if(v == '?');
             else return false;
 
-            if(nibble)
-                bytes[bytes.size() - 1] |= v;
+            if(v == '?')
+                pb.nibble[ni % 2].wildcard = true;
             else
-                bytes.push_back(v << 4);
+                pb.nibble[ni % 2].data = v;
 
-            nibble = !nibble;
-        }
-
-        // edge case: the user entered an odd number of hex-digits
-        // in this case, we need to shift each nibble to the right
-        if(nibble)
-        {
-            unsigned char carry_nibble = 0;
-            for(size_t i = 0; i < bytes.size(); i++)
+            if(ni % 2)
             {
-                unsigned char lower = bytes[i] & 0xF;
-                bytes[i] >>= 4;
-                bytes[i] |= carry_nibble << 4;
-                carry_nibble = lower;
+                pattern.push_back(pb);
+                pb = {};
             }
+
+            ni++;
         }
 
-        unsigned char* rel_data = (unsigned char*)malloc(bytes.size() * sizeof(unsigned char));
-        if(rel_data == NULL)
-            return false;
+        // fail on invald odd input length (excluding whitespaces)
+        if(ni % 2) return false;
 
-        if(!MemRead(argv[0].number, rel_data, bytes.size() * sizeof(unsigned char)))
-        {
-            free(rel_data);
-            return false;
-        }
-
-        *result = ValueNumber(memcmp(bytes.data(), rel_data, bytes.size()));
-
-        free(rel_data);
+        *result = ValueNumber(patternfind((unsigned char*)argv[0].number, pattern.size(), pattern) == 0);
 
         return true;
     }
