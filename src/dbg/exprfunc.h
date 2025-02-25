@@ -34,6 +34,7 @@ namespace Exprfunc
     duint memiscode(duint addr);
     duint memisstring(duint addr);
     duint memdecodepointer(duint ptr);
+    bool memmatch(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
 
     duint dislen(duint addr);
     duint disiscond(duint addr);

@@ -234,6 +234,26 @@ namespace Exprfunc
         return MemDecodePointer(&decoded, IsVistaOrLater()) ? decoded : ptr;
     }
 
+    bool memmatch(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argc == 2);
+        assert(argv[0].type == ValueTypeNumber);
+        assert(argv[1].type == ValueTypeString);
+
+        std::vector<PatternByte> pattern;
+        if(!patterntransform(argv[1].string.ptr, pattern))
+            return false;
+
+        std::vector<unsigned char> data(pattern.size());
+        if(!MemRead(argv[0].number, data.data(), data.size()))
+            return false;
+
+        *result = ValueNumber(patternfind(data.data(), pattern.size(), pattern) == 0);
+
+
+        return true;
+    }
+
     duint dislen(duint addr)
     {
         BASIC_INSTRUCTION_INFO info;
