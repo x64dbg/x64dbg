@@ -241,36 +241,8 @@ namespace Exprfunc
         assert(argv[1].type == ValueTypeString);
 
         std::vector<PatternByte> pattern;
-        PatternByte pb{};
-        size_t ni = 0;
-
-        for(size_t i = 0; i < ::strlen(argv[1].string.ptr); i++)
-        {
-            unsigned char v = argv[1].string.ptr[i];
-            if(iswspace(v)) continue;
-
-            if(v >= 'A' && v <= 'F') v = (v - 'A') + 0xA;
-            else if(v >= 'a' && v <= 'f') v = (v - 'a') + 0xA;
-            else if(v >= '0' && v <= '9') v = (v - '0');
-            else if(v == '?');
-            else return false;
-
-            if(v == '?')
-                pb.nibble[ni % 2].wildcard = true;
-            else
-                pb.nibble[ni % 2].data = v;
-
-            if(ni % 2)
-            {
-                pattern.push_back(pb);
-                pb = {};
-            }
-
-            ni++;
-        }
-
-        // fail on invald odd input length (excluding whitespaces)
-        if(ni % 2) return false;
+        if(!patterntransform(argv[1].string.ptr, pattern))
+            return false;
 
         *result = ValueNumber(patternfind((unsigned char*)argv[0].number, pattern.size(), pattern) == 0);
 
