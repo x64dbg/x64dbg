@@ -216,6 +216,9 @@ int ThreadGetSuspendCount(HANDLE Thread)
         return suspendCount;
     }
 
+    if(BridgeGetNtBuildNumber() >= 9600)
+        return 0;
+
     //
     // Suspend a thread in order to get the previous suspension count
     // WARNING: This function is very bad (threads should not be randomly interrupted)
