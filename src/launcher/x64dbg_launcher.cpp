@@ -141,9 +141,9 @@ static HRESULT RemoveDesktopShortcut(const TCHAR* szNameOfLink)
     TCHAR szDesktopPath[MAX_PATH + 1] = TEXT("");
     _tmakepath_s(szDesktopPath, nullptr, GetDesktopPath(), szNameOfLink, TEXT("lnk"));
 
-    if (FileExists(szDesktopPath))
+    if(FileExists(szDesktopPath))
     {
-        if (!DeleteFile(szDesktopPath))
+        if(!DeleteFile(szDesktopPath))
         {
             MessageBox(nullptr, TEXT("Failed to delete the desktop shortcut."), TEXT("Error"), MB_ICONERROR);
             hRes = HRESULT_FROM_WIN32(GetLastError());
@@ -177,7 +177,7 @@ static bool RegisterShellExtension(const TCHAR* key, const TCHAR* command)
 
 static bool UnregisterShellExtension(const TCHAR* key)
 {
-    if (SHDeleteKey(HKEY_CLASSES_ROOT, key) != ERROR_SUCCESS)
+    if(SHDeleteKey(HKEY_CLASSES_ROOT, key) != ERROR_SUCCESS)
     {
         MessageBox(nullptr, LoadResString(IDS_REGDELETEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR | MB_OK);
         return false;
@@ -328,22 +328,22 @@ static void RemoveDBFileTypeIcon()
     LPCWSTR dbx32key = L".dd32";
     LPCWSTR dbx64key = L".dd64";
 
-    if (RegDeleteKey(HKEY_CLASSES_ROOT, L".dd32\\DefaultIcon") != ERROR_SUCCESS)
+    if(RegDeleteKey(HKEY_CLASSES_ROOT, L".dd32\\DefaultIcon") != ERROR_SUCCESS)
     {
         MessageBox(nullptr, LoadResString(IDS_REGDELETEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
     }
 
-    if (RegDeleteKey(HKEY_CLASSES_ROOT, dbx32key) != ERROR_SUCCESS)
+    if(RegDeleteKey(HKEY_CLASSES_ROOT, dbx32key) != ERROR_SUCCESS)
     {
         MessageBox(nullptr, LoadResString(IDS_REGDELETEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
     }
 
-    if (RegDeleteKey(HKEY_CLASSES_ROOT, L".dd64\\DefaultIcon") != ERROR_SUCCESS)
+    if(RegDeleteKey(HKEY_CLASSES_ROOT, L".dd64\\DefaultIcon") != ERROR_SUCCESS)
     {
         MessageBox(nullptr, LoadResString(IDS_REGDELETEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
     }
 
-    if (RegDeleteKey(HKEY_CLASSES_ROOT, dbx64key) != ERROR_SUCCESS)
+    if(RegDeleteKey(HKEY_CLASSES_ROOT, dbx64key) != ERROR_SUCCESS)
     {
         MessageBox(nullptr, LoadResString(IDS_REGDELETEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
     }
@@ -450,22 +450,22 @@ const wchar_t* SHELLEXT_ICON_DLL_KEY = L"dllfile\\shell\\Debug with x64dbg";
 
 INT_PTR CALLBACK DlgConfigurations(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    switch (message)
+    switch(message)
     {
     case WM_INITDIALOG:
-        {
-            HANDLE hIcon;
-            hIcon = LoadIconW(GetModuleHandle(0), MAKEINTRESOURCE(IDI_ICON1));
-            SendMessageW(hDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-            return (INT_PTR)TRUE;
-        }
+    {
+        HANDLE hIcon;
+        hIcon = LoadIconW(GetModuleHandle(0), MAKEINTRESOURCE(IDI_ICON1));
+        SendMessageW(hDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+        return (INT_PTR)TRUE;
+    }
     case WM_COMMAND:
         // Retrieve the state of checkboxes
         BOOL bShellExt = IsDlgButtonChecked(hDlg, IDC_CHECK_SHELLEXT) == BST_CHECKED;
         BOOL bDesktopShortcut = IsDlgButtonChecked(hDlg, IDC_CHECK_DESKTOPSHORTCUT) == BST_CHECKED;
         BOOL bIcon = IsDlgButtonChecked(hDlg, IDC_CHECK_ICON) == BST_CHECKED;
 
-        if (LOWORD(wParam) == IDYES)
+        if(LOWORD(wParam) == IDYES)
         {
             // Construct the message string
             //TCHAR message[256];
@@ -478,7 +478,7 @@ INT_PTR CALLBACK DlgConfigurations(HWND hDlg, UINT message, WPARAM wParam, LPARA
             //MessageBox(hDlg, message, TEXT("Options Results"), MB_OK | MB_ICONINFORMATION);
 
             // Perform actions based on checkbox states
-            if (bShellExt)
+            if(bShellExt)
             {
                 TCHAR szLauncherCommand[MAX_PATH] = TEXT("");
                 _stprintf_s(szLauncherCommand, _countof(szLauncherCommand), TEXT("\"%s\" \"%%1\""), szApplicationDir);
@@ -486,21 +486,21 @@ INT_PTR CALLBACK DlgConfigurations(HWND hDlg, UINT message, WPARAM wParam, LPARA
                 TCHAR szIconCommand[MAX_PATH] = TEXT("");
                 _stprintf_s(szIconCommand, _countof(szIconCommand), TEXT("\"%s\",0"), szApplicationDir);
 
-                if (RegisterShellExtension(SHELLEXT_EXE_KEY, szLauncherCommand))
+                if(RegisterShellExtension(SHELLEXT_EXE_KEY, szLauncherCommand))
                     AddShellIcon(SHELLEXT_ICON_EXE_KEY, szIconCommand, LoadResString(IDS_SHELLEXTDBG));
 
-                if (RegisterShellExtension(SHELLEXT_DLL_KEY, szLauncherCommand))
+                if(RegisterShellExtension(SHELLEXT_DLL_KEY, szLauncherCommand))
                     AddShellIcon(SHELLEXT_ICON_DLL_KEY, szIconCommand, LoadResString(IDS_SHELLEXTDBG));
             }
 
-            if (bDesktopShortcut)
+            if(bDesktopShortcut)
             {
                 AddDesktopShortcut(sz32Path, TEXT("x32dbg"));
-                if (isWoW64())
+                if(isWoW64())
                     AddDesktopShortcut(sz64Path, TEXT("x64dbg"));
             }
 
-            if (bIcon)
+            if(bIcon)
             {
                 AddDBFileTypeIcon(sz32Path, sz64Path);
             }
@@ -508,9 +508,9 @@ INT_PTR CALLBACK DlgConfigurations(HWND hDlg, UINT message, WPARAM wParam, LPARA
             EndDialog(hDlg, IDOK);
             return (INT_PTR)TRUE;
         }
-        else if (LOWORD(wParam) == IDNO)
+        else if(LOWORD(wParam) == IDNO)
         {
-            if (bShellExt)
+            if(bShellExt)
             {
                 UnregisterShellExtension(SHELLEXT_EXE_KEY);
                 UnregisterShellExtension(SHELLEXT_ICON_EXE_KEY);
@@ -518,14 +518,14 @@ INT_PTR CALLBACK DlgConfigurations(HWND hDlg, UINT message, WPARAM wParam, LPARA
                 UnregisterShellExtension(SHELLEXT_ICON_DLL_KEY);
             }
 
-            if (bDesktopShortcut)
+            if(bDesktopShortcut)
             {
                 RemoveDesktopShortcut(TEXT("x32dbg"));
-                if (isWoW64())
+                if(isWoW64())
                     RemoveDesktopShortcut(TEXT("x64dbg"));
             }
 
-            if (bIcon)
+            if(bIcon)
             {
                 RemoveDBFileTypeIcon();
             }
@@ -533,7 +533,7 @@ INT_PTR CALLBACK DlgConfigurations(HWND hDlg, UINT message, WPARAM wParam, LPARA
             EndDialog(hDlg, IDNO);
             return (INT_PTR)TRUE;
         }
-        else if (LOWORD(wParam) == IDCANCEL)
+        else if(LOWORD(wParam) == IDCANCEL)
         {
             EndDialog(hDlg, IDCANCEL);
             return (INT_PTR)TRUE;
