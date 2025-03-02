@@ -8,6 +8,12 @@
 #define IDC_BUTTON3                     1003
 #define IDC_BUTTONINSTALL               1003
 
+// Dialog Procedure
+#define IDD_OPTIONS_DIALOG        102
+#define IDC_CHECK_SHELLEXT        2001
+#define IDC_CHECK_DESKTOPSHORTCUT 2002
+#define IDC_CHECK_ICON            2003
+
 // Next default values for new objects
 //
 #ifdef APSTUDIO_INVOKED

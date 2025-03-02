@@ -23,6 +23,7 @@
 #define IDS_SHELLEXTDBG                 122
 #define IDS_ASKICON                     123
 #define IDS_BRIDGESTARTERR              126
+#define IDS_REGDELETEKEYFAIL            127
 
 // Next default values for new objects
 //
