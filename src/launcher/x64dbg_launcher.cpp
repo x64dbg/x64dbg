@@ -457,6 +457,12 @@ INT_PTR CALLBACK DlgConfigurations(HWND hDlg, UINT message, WPARAM wParam, LPARA
         HANDLE hIcon;
         hIcon = LoadIconW(GetModuleHandle(0), MAKEINTRESOURCE(IDI_ICON1));
         SendMessageW(hDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+
+        // Set the state of checkboxes
+        CheckDlgButton(hDlg, IDC_CHECK_SHELLEXT, BST_CHECKED);
+        CheckDlgButton(hDlg, IDC_CHECK_DESKTOPSHORTCUT, BST_CHECKED);
+        CheckDlgButton(hDlg, IDC_CHECK_ICON, BST_CHECKED);
+
         return (INT_PTR)TRUE;
     }
     case WM_COMMAND:
@@ -467,15 +473,6 @@ INT_PTR CALLBACK DlgConfigurations(HWND hDlg, UINT message, WPARAM wParam, LPARA
 
         if(LOWORD(wParam) == IDYES)
         {
-            // Construct the message string
-            //TCHAR message[256];
-            //_stprintf_s(message, _countof(message), TEXT("Shell Extension: %s\nDesktop Shortcut: %s\nIcon: %s"),
-            //    bShellExt ? TEXT("Enabled") : TEXT("Disabled"),
-            //    bDesktopShortcut ? TEXT("Enabled") : TEXT("Disabled"),
-            //    bIcon ? TEXT("Enabled") : TEXT("Disabled"));
-
-            // Display the message box
-            //MessageBox(hDlg, message, TEXT("Options Results"), MB_OK | MB_ICONINFORMATION);
 
             // Perform actions based on checkbox states
             if(bShellExt)
