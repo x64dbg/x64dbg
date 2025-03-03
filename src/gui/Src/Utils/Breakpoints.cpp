@@ -205,14 +205,14 @@ bool Breakpoints::BPTrival(BPXTYPE type, duint va)
     BP_REF ref;
     DbgFunctions()->BpRefVa(&ref, type, va);
     Data bp(ref);
-    return !bp.breakCondition.isEmpty() ||
-           !bp.logCondition.isEmpty() ||
-           !bp.commandCondition.isEmpty() ||
-           !bp.commandText.isEmpty() ||
-           !bp.logText.isEmpty() ||
-           !bp.name.isEmpty() ||
-           bp.fastResume ||
-           bp.silent;
+    return bp.breakCondition.isEmpty() &&
+           bp.logText.isEmpty() &&
+           bp.logCondition.isEmpty() &&
+           bp.commandText.isEmpty() &&
+           bp.commandCondition.isEmpty() &&
+           bp.name.isEmpty() &&
+           !bp.fastResume &&
+           !bp.silent;
 }
 
 bool Breakpoints::editBP(BPXTYPE type, const QString & module, duint address, QWidget* widget, const QString & createCommand)
