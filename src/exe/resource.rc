@@ -161,7 +161,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     LTEXT "Select the options you want to configure:", IDC_STATIC, 10, 5, 180, 10
     CONTROL "Context menu entries", IDC_CHECK_SHELLEXT, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 10, 20, 180, 10
-    CONTROL "Desktop Shortcuts", IDC_CHECK_DESKTOPSHORTCUT, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 10, 40, 180, 10
+    CONTROL "Desktop shortcuts", IDC_CHECK_DESKTOPSHORTCUT, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 10, 40, 180, 10
     CONTROL "Database icons", IDC_CHECK_ICON, "Button", BS_AUTOCHECKBOX | WS_TABSTOP, 10, 60, 180, 10
     DEFPUSHBUTTON "Install", IDYES, 20, 90, 50, 14
     PUSHBUTTON "Uninstall", IDNO, 75, 90, 50, 14
