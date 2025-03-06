@@ -671,17 +671,18 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         else if(!ResolveShortcut(nullptr, argv[1], szPath, _countof(szPath))) //attempt to resolve the shortcut path
             _tcscpy_s(szPath, argv[1]); //fall back to the origin full path
 
+        //append current working directory
         std::wstring cmdLine;
+        TCHAR szCurDir[MAX_PATH] = TEXT("");
+        GetCurrentDirectory(_countof(szCurDir), szCurDir);
+        cmdLine += L"-workingDir \"";
+        cmdLine += szCurDir;
+        cmdLine += L"\" ";
+
+        //append the path to the executable
         cmdLine.push_back(L'\"');
         cmdLine += szPath;
         cmdLine.push_back(L'\"');
-
-        //append current working directory
-        TCHAR szCurDir[MAX_PATH] = TEXT("");
-        GetCurrentDirectory(_countof(szCurDir), szCurDir);
-        cmdLine += L" \"";
-        cmdLine += szCurDir;
-        cmdLine += L"\"";
 
         if(argc > 2) //forward any commandline parameters
         {

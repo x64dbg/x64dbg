@@ -700,9 +700,9 @@ public:
     CommandlineArguments() : ArgumentParser("x64dbg")
     {
         addPositional("filename", filename, "Filename of program to debug");
-        addPositional("currentdir", currentDir, "Current working directory of new process");
         addExtra(extraCmdline);
 
+        addString("-workingDir", currentDir, "Current working directory of new process. Defaults to current working directory if not specified.");
         addString("-p", pid, "Process ID to attach to.");
         addString("-a", pid, "Alias for -p.");
         addString("-tid", tid, "Thread Identifier (TID) of the thread to resume after attaching.");
@@ -742,6 +742,14 @@ const char* parseArguments()
     {
         return _strdup(args.helpStr().c_str());
     }
+    // Default to current working directory if not specified otherwise
+    auto currentDir = args.currentDir;
+    if(currentDir.empty())
+    {
+        WCHAR szCurDir[MAX_PATH] = L"";
+        GetCurrentDirectoryW(_countof(szCurDir), szCurDir);
+        currentDir = StringUtils::Utf16ToUtf8(szCurDir);
+    }
     if(!args.filename.empty())
     {
         if(!args.extraCmdline.empty())
@@ -751,10 +759,10 @@ const char* parseArguments()
             {
                 cmdline += StringUtils::sprintf("\"%s\" ", escape(arg).c_str());
             }
-            if(!args.currentDir.empty())
+            if(!currentDir.empty())
             {
                 //3 arguments (init filename, cmdline, currentdir)
-                DbgCmdExec(StringUtils::sprintf("init \"%s\", \"%s\", \"%s\"", escape(args.filename).c_str(), escape(cmdline).c_str(), escape(args.currentDir).c_str()).c_str());
+                DbgCmdExec(StringUtils::sprintf("init \"%s\", \"%s\", \"%s\"", escape(args.filename).c_str(), escape(cmdline).c_str(), escape(currentDir).c_str()).c_str());
             }
             else
             {
