@@ -35,9 +35,6 @@
     <ClInclude Include="..\exe\strings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\dbg\args.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="x64dbg_launcher.cpp">
