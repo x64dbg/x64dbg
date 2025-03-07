@@ -746,9 +746,7 @@ const char* parseArguments()
     auto currentDir = args.currentDir;
     if(currentDir.empty())
     {
-        WCHAR szCurDir[MAX_PATH] = L"";
-        GetCurrentDirectoryW(_countof(szCurDir), szCurDir);
-        currentDir = StringUtils::Utf16ToUtf8(szCurDir);
+        currentDir = StringUtils::Utf16ToUtf8(BridgeWorkingDirectory());
     }
     if(!args.filename.empty())
     {
