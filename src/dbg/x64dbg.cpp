@@ -29,6 +29,7 @@
 #include "stringformat.h"
 #include "dbghelp_safe.h"
 #include <shellapi.h>
+#include <shlwapi.h>
 #include <fstream>
 
 static MESSAGE_STACK* gMsgStack = 0;
@@ -795,23 +796,29 @@ const char* parseArguments()
 
     if(!args.command.empty())
     {
-        DbgCmdExec(args.command.c_str());
+        DbgCmdExec(("scriptcmd " + args.command).c_str());
     }
 
     if(!args.commandFile.empty())
     {
-        std::ifstream commandFile(args.commandFile);
-        if(!commandFile.is_open())
+        WString commandFilePath = StringUtils::Utf8ToUtf16(args.commandFile);
+        if(PathIsRelativeW(commandFilePath.c_str()))
         {
-            return _strdup(StringUtils::sprintf("Error: Command file \"%s\" couldn't be opened.\n", args.commandFile.c_str()).c_str());
+            wchar_t commandPath[MAX_PATH] = L"";
+            PathCombineW(commandPath, StringUtils::Utf8ToUtf16(currentDir).c_str(), commandFilePath.c_str());
+            commandFilePath = commandPath;
         }
-        String line;
-        while(std::getline(commandFile, line))
+        String commandFile = StringUtils::Utf16ToUtf8(commandFilePath);
+        std::ifstream commandFileStream(commandFile);
+        if(!commandFileStream.is_open())
         {
-            if(line.empty())
-                continue;
-            DbgCmdExec(line.c_str());
+            return _strdup(StringUtils::sprintf("Error: Command file \"%s\" couldn't be opened.\n", commandFile.c_str()).c_str());
         }
+        if(dbggetdebuggeeinitscript()[0] != 0)
+        {
+            return _strdup(StringUtils::sprintf("Error: Command file \"%s\" cannot be set. There is a debuggee init script configured already to \"%s\".\n", commandFile.c_str(), dbggetdebuggeeinitscript()).c_str());
+        }
+        dbgsetdebuggeeinitscript(commandFile.c_str());
     }
 
     return nullptr;
