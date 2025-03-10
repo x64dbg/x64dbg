@@ -145,6 +145,8 @@ bool TypeManager::AddMember(const std::string & parent, const std::string & type
     m.type = type;
     m.assignedType = type;
     m.offsetFUCK = bitOffset;
+
+    // maybe have a second size and fall back on bitsize if that one is -1
     m.bitSize = bitSize;
 
     if(bitOffset >= 0 && !s.isunion)  //user-defined offset
@@ -158,10 +160,9 @@ bool TypeManager::AddMember(const std::string & parent, const std::string & type
             if(bitPadding % 8 == 0)
             {
 ADD_BYTE_PADDING:
-
                 Member pad;
                 pad.type = "char";
-                pad.arrsize = bitOffset - s.sizeFUCK;
+                pad.arrsize = bitPadding / 8;
 
                 // can just add byte padding
                 char padName[32] = { };
@@ -184,7 +185,9 @@ ADD_BYTE_PADDING:
                 pad.name = padName;
                 s.members.push_back(pad);
 
-                goto ADD_BYTE_PADDING;
+                // more to add
+                if(bitPadding != remBit)
+                    goto ADD_BYTE_PADDING;
             }
 
             s.sizeFUCK = bitOffset;
@@ -834,9 +837,6 @@ void LoadModel(const std::string & owner, Model & model)
     {
         if(su.name.empty())  //skip error-signalled structs/unions
             continue;
-
-        if(su.name == "_RTL_BALANCED_LINKS")
-            __debugbreak();
 
         for(auto & member : su.members)
         {
