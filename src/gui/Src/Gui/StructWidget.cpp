@@ -106,13 +106,13 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
     for(int i = 0; i < columnCount; i++)
         text.append(QString());
 
-    text[ColOffset] = "+0x" + ToHexString(dtype.type.offset);
+    text[ColOffset] = "+0x" + ToHexString(dtype.type.offset / 8);
     text[ColField] = dtype.name;
     if(dtype.type.offset == 0 && true)
-        text[ColAddress] = QString("<u>%1</u>").arg(ToPtrString(dtype.type.addr + dtype.type.offset));
+        text[ColAddress] = QString("<u>%1</u>").arg(ToPtrString(dtype.type.addr + (dtype.type.offset / 8)));
     else
-        text[ColAddress] = ToPtrString(dtype.type.addr + dtype.type.offset);
-    text[ColSize] = "0x" + ToHexString(dtype.type.size);
+        text[ColAddress] = ToPtrString(dtype.type.addr + (dtype.type.offset / 8));
+    text[ColSize] = "0x" + ToHexString(dtype.type.size / 8);
     text[ColValue] = ""; // NOTE: filled in later
     QTreeWidgetItem* item = parent ? new QTreeWidgetItem((QTreeWidgetItem*)parent, text) : new QTreeWidgetItem(ui->treeWidget, text);
     item->setExpanded(dtype.type.expanded);
@@ -137,9 +137,11 @@ void StructWidget::typeUpdateWidget()
         auto type = item->data(0, Qt::UserRole).value<TypeDescriptor>();
         auto name = type.name.toUtf8();
         type.type.name = name.constData();
-        auto addr = type.type.addr + type.type.offset;
+
+        auto addr = type.type.addr + (type.type.offset / 8);
         item->setText(ColAddress, ToPtrString(addr));
         QString valueStr;
+
         if(type.type.callback) //use the provided callback
         {
             char value[128] = "";

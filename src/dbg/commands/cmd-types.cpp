@@ -290,7 +290,6 @@ bool cbInstrAddArg(int argc, char* argv[])
     }
     dprintf_untranslated("%s: %s %s;\n", argv[1], argv[2], argv[3]);
     return true;
-
 }
 
 bool cbInstrAppendArg(int argc, char* argv[])
@@ -324,15 +323,17 @@ bool cbInstrSizeofType(int argc, char* argv[])
 struct PrintVisitor : TypeManager::Visitor
 {
     explicit PrintVisitor(duint data = 0, int maxPtrDepth = 0)
-        : mAddr(data), mMaxPtrDepth(maxPtrDepth) { }
+        : mAddr(data), mMaxPtrDepth(maxPtrDepth)
+    {
+    }
 
-    template<typename T>
+    template <typename T>
     static String basicPrint(void* data, const char* format)
     {
         return StringUtils::sprintf(format, *(T*)data);
     }
 
-    template<typename T, typename U>
+    template <typename T, typename U>
     static String basicPrint(void* data, const char* format)
     {
         return StringUtils::sprintf(format, *(T*)data, *(U*)data);
@@ -346,11 +347,27 @@ struct PrintVisitor : TypeManager::Visitor
             return true;
         }
         String valueStr;
-        Memory<unsigned char*> data(type->size);
-        if(MemRead(type->addr + type->offset, data(), data.size()))
+
+        size_t byteSize = (type->offset % 8 + type->size + 7) / 8;
+        Memory<unsigned char*> data(byteSize);
+
+        if(MemRead(type->addr + (type->offset / 8), data(), data.size()))
         {
             if(type->reverse)
                 std::reverse(data(), data() + data.size());
+
+            size_t bitOffset = type->offset % 8;
+            if(bitOffset != 0)
+            {
+                uint64_t extractedValue = 0;
+                memcpy(&extractedValue, data(), std::min(sizeof(extractedValue), data.size()));
+                extractedValue >>= bitOffset;
+                extractedValue &= (1ULL << type->size) - 1;
+
+                memset(data(), 0, data.size());
+                memcpy(data(), &extractedValue, std::min(sizeof(extractedValue), data.size()));
+            }
+
             switch(Primitive(type->id))
             {
             case Void:
@@ -448,6 +465,87 @@ struct PrintVisitor : TypeManager::Visitor
         return true;
     }
 
+    static bool cbPrintEnum(const TYPEDESCRIPTOR* type, char* dest, size_t* destCount)
+    {
+        if(!type->addr || !type->userdata)
+        {
+            *dest = '\0';
+            return true;
+        }
+
+        String valueStr;
+        size_t byteSize = (type->offset % 8 + type->size + 7) / 8; // Convert bit size to byte size
+        Memory<unsigned char*> data(byteSize);
+
+        if(MemRead(type->addr + (type->offset / 8), data(), data.size()))
+        {
+            if(type->reverse)
+                std::reverse(data(), data() + data.size());
+
+            size_t bitOffset = type->offset % 8;
+            uint64_t extractedValue = 0;
+
+            memcpy(&extractedValue, data(), std::min(sizeof(extractedValue), data.size()));
+            extractedValue >>= bitOffset;
+            extractedValue &= (1ULL << type->size) - 1;
+
+            const auto enumData = static_cast<Enum*>(type->userdata);
+            if(enumData->isFlags)
+            {
+                bool first = true;
+                uint64_t remainingBits = extractedValue;
+
+                for(const auto & member : enumData->members)
+                {
+                    if((extractedValue & member.first) == member.first && member.first != 0)
+                    {
+                        if(!first)
+                            valueStr += " | ";
+
+                        valueStr += member.second;
+                        remainingBits &= ~member.first;
+                        first = false;
+                    }
+                }
+
+                if(remainingBits != 0)
+                {
+                    if(!first)
+                        valueStr += " | ";
+
+                    valueStr += StringUtils::sprintf("0x%llX", remainingBits);
+                }
+
+                if(first)
+                    valueStr = StringUtils::sprintf("0x%llX", extractedValue);
+            }
+            else
+            {
+                auto it = std::find_if(enumData->members.begin(), enumData->members.end(),
+                                       [extractedValue](const std::pair<uint64_t, std::string> & member)
+                {
+                    return member.first == extractedValue;
+                });
+
+                if(it != enumData->members.end())
+                    valueStr = it->second;
+                else
+                    valueStr = StringUtils::sprintf("0x%llX", extractedValue);
+            }
+        }
+        else
+            valueStr = "???";
+
+        if(*destCount <= valueStr.size())
+        {
+            *destCount = valueStr.size() + 1;
+            return false;
+        }
+
+        strcpy_s(dest, *destCount, valueStr.c_str());
+        return true;
+    }
+
     bool visitType(const Member & member, const Type & type) override
     {
         if(!mParents.empty() && parent().type == Parent::Union)
@@ -461,7 +559,10 @@ struct PrintVisitor : TypeManager::Visitor
         }
         else
         {
-            tname = StringUtils::sprintf("%s %s", type.name.c_str(), member.name.c_str());
+            if(member.bitSize != -1)
+                tname = StringUtils::sprintf("%s %s : %d", type.name.c_str(), member.name.c_str(), member.bitSize);
+            else
+                tname = StringUtils::sprintf("%s %s", type.name.c_str(), member.name.c_str());
 
             // Prepend struct/union to pointer types
             if(!type.pointto.empty())
@@ -481,7 +582,7 @@ struct PrintVisitor : TypeManager::Visitor
         }
         path.append(member.name);
 
-        auto ptr = mAddr + mOffset;
+        auto ptr = mAddr + (mOffset / 8);
         if(MemIsValidReadPtr(ptr))
         {
             if(!LabelGet(ptr, nullptr) && (!mParents.empty() && (parent().index == 1 || ptype != Parent::Array)))
@@ -495,11 +596,11 @@ struct PrintVisitor : TypeManager::Visitor
         td.addr = mAddr;
         td.offset = mOffset;
         td.id = type.primitive;
-        td.size = type.size;
+        td.size = member.bitSize != -1 ? member.bitSize : type.sizeFUCK;
         td.callback = cbPrintPrimitive;
         td.userdata = nullptr;
         mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
-        mOffset += type.size;
+        mOffset += td.size;
 
         return true;
     }
@@ -518,7 +619,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.addr = mAddr;
         td.offset = mOffset;
         td.id = Void;
-        td.size = type.size;
+        td.size = type.sizeFUCK;
         td.callback = nullptr;
         td.userdata = nullptr;
         auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
@@ -528,6 +629,29 @@ struct PrintVisitor : TypeManager::Visitor
         parent().node = node;
         parent().size = td.size;
         parent().offset = mOffset;
+        return true;
+    }
+
+    bool visitEnum(const Member & member, const Enum & num) override
+    {
+        if(!mParents.empty() && parent().type == Parent::Type::Union)
+            mOffset = parent().offset;
+
+        String tname = StringUtils::sprintf("enum %s %s", member.assignedType.c_str(), member.name.c_str());
+
+        TYPEDESCRIPTOR td;
+        td.expanded = true;
+        td.reverse = false;
+        td.name = tname.c_str();
+        td.addr = mAddr;
+        td.offset = mOffset;
+        td.id = Void;
+        td.size = num.sizeFUCK;
+        td.callback = cbPrintEnum;
+        td.userdata = const_cast<Enum*>(&num);
+        mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
+        mOffset += td.size;
+
         return true;
     }
 
@@ -570,7 +694,7 @@ struct PrintVisitor : TypeManager::Visitor
         parent().offset = mOffset;
         parent().addr = mAddr;
         parent().node = mNode;
-        parent().size = type.size;
+        parent().size = type.sizeFUCK;
         mOffset = 0;
         mAddr = value;
         mPtrDepth++;
@@ -613,7 +737,9 @@ private:
         int size = 0;
 
         explicit Parent(Type type)
-            : type(type) { }
+            : type(type)
+        {
+        }
     };
 
     Parent & parent()

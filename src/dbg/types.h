@@ -8,7 +8,7 @@ namespace Types
 {
     enum Primitive
     {
-        Void,   // struct/union
+        Void, // struct/union
         Int8,
         Uint8,
         Int16,
@@ -32,7 +32,7 @@ namespace Types
         std::string name; //Type identifier.
         std::string pointto; //Type identifier of *Type
         Primitive primitive; //Primitive type.  Void is Struct typedef
-        int size = 0; //Size in bytes.
+        int sizeFUCK = 0; //Size in bytes.
     };
 
     struct Member
@@ -40,8 +40,10 @@ namespace Types
         std::string assignedType;
         std::string name; //Member identifier
         std::string type; //Type.name
+
         int arrsize = 0; //Number of elements if Member is an array
-        int offset = -1; //Member offset (only stored for reference)
+        int bitSize = -1; //Bitfield size
+        int offsetFUCK = -1; //Member offset (only stored for reference)
     };
 
     struct StructUnion
@@ -50,7 +52,7 @@ namespace Types
         std::string name; //StructUnion identifier
         std::vector<Member> members; //StructUnion members
         bool isunion = false; //Is this a union?
-        int size = 0;
+        int sizeFUCK = 0;
     };
 
     enum CallingConvention
@@ -71,16 +73,29 @@ namespace Types
         std::vector<Member> args; //Function arguments
     };
 
+    struct Enum
+    {
+        std::string owner;
+        std::string name;
+        std::vector<std::pair<uint64_t, std::string>> members;
+        uint8_t sizeFUCK;
+        bool isFlags;
+    };
+
     struct TypeManager
     {
         struct Visitor
         {
-            virtual ~Visitor() { }
+            virtual ~Visitor()
+            {
+            }
+
             virtual bool visitType(const Member & member, const Type & type) = 0;
             virtual bool visitStructUnion(const Member & member, const StructUnion & type) = 0;
             virtual bool visitArray(const Member & member) = 0;
             virtual bool visitPtr(const Member & member, const Type & type) = 0;
             virtual bool visitBack(const Member & member) = 0;
+            virtual bool visitEnum(const Member & member, const Enum & num) = 0;
         };
 
         struct Summary
@@ -95,9 +110,12 @@ namespace Types
         bool AddType(const std::string & owner, const std::string & type, const std::string & name);
         bool AddStruct(const std::string & owner, const std::string & name);
         bool AddUnion(const std::string & owner, const std::string & name);
-        bool AddMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize = 0, int offset = -1);
+        bool AddEnum(const std::string & owner, const std::string & name, bool isFlags, uint8_t size);
+        bool AddEnumMember(const std::string & parent, const std::string & name, uint64_t value);
+        bool AddMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int bitSize);
         bool AppendMember(const std::string & type, const std::string & name, int arrsize = 0, int offset = -1);
-        bool AddFunction(const std::string & owner, const std::string & name, const std::string & rettype, CallingConvention callconv = Cdecl, bool noreturn = false);
+        bool AddFunction(const std::string & owner, const std::string & name, const std::string & rettype, CallingConvention callconv = Cdecl,
+                         bool noreturn = false);
         bool AddArg(const std::string & function, const std::string & type, const std::string & name);
         bool AppendArg(const std::string & type, const std::string & name);
         int Sizeof(const std::string & type) const;
@@ -110,6 +128,7 @@ namespace Types
     private:
         std::unordered_map<Primitive, int> primitivesizes;
         std::unordered_map<std::string, Type> types;
+        std::unordered_map<std::string, struct Enum> enums;
         std::unordered_map<std::string, StructUnion> structs;
         std::unordered_map<std::string, Function> functions;
         std::string laststruct;
@@ -128,6 +147,7 @@ namespace Types
         std::vector<Member> types;
         std::vector<StructUnion> structUnions;
         std::vector<Function> functions;
+        std::vector<Enum> enums;
     };
 };
 
@@ -136,7 +156,8 @@ bool AddStruct(const std::string & owner, const std::string & name);
 bool AddUnion(const std::string & owner, const std::string & name);
 bool AddMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize = 0, int offset = -1);
 bool AppendMember(const std::string & type, const std::string & name, int arrsize = 0, int offset = -1);
-bool AddFunction(const std::string & owner, const std::string & name, const std::string & rettype, Types::CallingConvention callconv = Types::Cdecl, bool noreturn = false);
+bool AddFunction(const std::string & owner, const std::string & name, const std::string & rettype, Types::CallingConvention callconv = Types::Cdecl,
+                 bool noreturn = false);
 bool AddArg(const std::string & function, const std::string & type, const std::string & name);
 bool AppendArg(const std::string & type, const std::string & name);
 int SizeofType(const std::string & type);

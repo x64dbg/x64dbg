@@ -43,11 +43,19 @@ bool TypeManager::AddType(const std::string & owner, const std::string & type, c
     validPtr(type);
 
     auto found_t = types.find(type);
-    if (found_t != types.end())
+    if(found_t != types.end())
         return addType(owner, found_t->second.primitive, name);
 
+    auto found_e = enums.find(type);
+    if(found_e != enums.end())
+        return addType(owner, Void, name, type);
+
     auto found_s = structs.find(type);
-    if (found_s != structs.end())
+    if(found_s != structs.end())
+        return addType(owner, Void, name, type);
+
+    auto found_f = functions.find(type);
+    if(found_f != functions.end())
         return addType(owner, Void, name, type);
 
     return false;
@@ -70,44 +78,116 @@ bool TypeManager::AddUnion(const std::string & owner, const std::string & name)
     return addStructUnion(u);
 }
 
-bool TypeManager::AddMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int offset)
+bool TypeManager::AddEnum(const std::string & owner, const std::string & name, bool isFlags, uint8_t size)
+{
+    struct Enum e;
+    e.owner = owner;
+    e.name = name;
+    e.members = {};
+    e.isFlags = isFlags;
+    e.sizeFUCK = size;
+
+    if(enums.find(name) != enums.end())
+        return false;
+
+    enums.insert({ e.name, e });
+    return true;
+}
+
+bool TypeManager::AddEnumMember(const std::string & parent, const std::string & name, uint64_t value)
+{
+    auto found = enums.find(parent);
+    if(found == enums.end())
+        return false;
+
+    found->second.members.emplace_back(value, name);
+    return true;
+}
+
+bool TypeManager::AddMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int bitSize)
 {
     if(!isDefined(type) && !validPtr(type))
         return false;
     auto found = structs.find(parent);
     if(arrsize < 0 || found == structs.end() || !isDefined(type) || name.empty() || type.empty() || type == parent)
         return false;
-    auto & s = found->second;
 
+    // cannot have bit field array
+    if(bitSize % 8 != 0 && arrsize != 0)
+        return false;
+
+    // cannot be pointer and bitfield
+    if(type.back() == '*' && bitSize != primitivesizes[Pointer] * 8)
+        return false;
+
+    auto & s = found->second;
     for(const auto & member : s.members)
         if(member.name == name)
             return false;
 
-    auto typeSize = Sizeof(type);
-    if(arrsize)
-        typeSize *= arrsize;
+    int typeSize;
+    if(arrsize != 0)
+    {
+        // is an array
+        typeSize = Sizeof(type) * arrsize;
+    }
+    else
+    {
+        if(bitSize != -1)
+            typeSize = bitSize;
+        else
+            typeSize = Sizeof(type);
+    }
 
     Member m;
     m.name = name;
     m.arrsize = arrsize;
     m.type = type;
     m.assignedType = type;
-    m.offset = offset;
+    m.offsetFUCK = bitOffset;
+    m.bitSize = bitSize;
 
-    if(offset >= 0) //user-defined offset
+    if(bitOffset >= 0 && !s.isunion)  //user-defined offset
     {
-        if(offset < s.size)
+        if(bitOffset < s.sizeFUCK)
             return false;
-        if(offset > s.size)
+
+        if(bitOffset > s.sizeFUCK)
         {
-            Member pad;
-            pad.type = "char";
-            pad.arrsize = offset - s.size;
-            char padname[32] = "";
-            sprintf_s(padname, "padding%d", pad.arrsize);
-            pad.name = padname;
-            s.members.push_back(pad);
-            s.size += pad.arrsize;
+            auto bitPadding = bitOffset - s.sizeFUCK;
+            if(bitPadding % 8 == 0)
+            {
+ADD_BYTE_PADDING:
+
+                Member pad;
+                pad.type = "char";
+                pad.arrsize = bitOffset - s.sizeFUCK;
+
+                // can just add byte padding
+                char padName[32] = { };
+                sprintf_s(padName, "padding%d", bitPadding / 8);
+
+                pad.name = padName;
+                s.members.push_back(pad);
+            }
+            else
+            {
+                auto remBit = bitPadding % 8;
+
+                Member pad;
+                pad.type = "long long";
+                pad.bitSize = remBit;
+
+                char padName[32] = { };
+                sprintf_s(padName, "padding%db", bitPadding);
+
+                pad.name = padName;
+                s.members.push_back(pad);
+
+                goto ADD_BYTE_PADDING;
+            }
+
+            s.sizeFUCK = bitOffset;
         }
     }
 
@@ -115,22 +195,24 @@ bool TypeManager::AddMember(const std::string & parent, const std::string & type
 
     if(s.isunion)
     {
-        if(typeSize > s.size)
-            s.size = typeSize;
+        if(typeSize > s.sizeFUCK)
+            s.sizeFUCK = typeSize;
     }
     else
     {
-        s.size += typeSize;
+        s.sizeFUCK += typeSize;
     }
+
     return true;
 }
 
 bool TypeManager::AppendMember(const std::string & type, const std::string & name, int arrsize, int offset)
 {
-    return AddMember(laststruct, type, name, arrsize, offset);
+    return AddMember(laststruct, type, name, arrsize, offset, -1);
 }
 
-bool TypeManager::AddFunction(const std::string & owner, const std::string & name, const std::string & rettype, CallingConvention callconv, bool noreturn)
+bool TypeManager::AddFunction(const std::string & owner, const std::string & name, const std::string & rettype, CallingConvention callconv,
+                              bool noreturn)
 {
     auto found = functions.find(name);
     if(found != functions.end() || name.empty() || owner.empty())
@@ -144,7 +226,7 @@ bool TypeManager::AddFunction(const std::string & owner, const std::string & nam
     f.rettype = rettype;
     f.callconv = callconv;
     f.noreturn = noreturn;
-    functions.insert({f.name, f});
+    functions.insert({ f.name, f });
     return true;
 }
 
@@ -173,18 +255,26 @@ int TypeManager::Sizeof(const std::string & type) const
 {
     auto foundT = types.find(type);
     if(foundT != types.end())
-        return foundT->second.size;
+        return foundT->second.sizeFUCK;
+
+    auto foundE = enums.find(type);
+    if(foundE != enums.end())
+        return foundE->second.sizeFUCK;
+
     auto foundS = structs.find(type);
     if(foundS != structs.end())
-        return foundS->second.size;
+        return foundS->second.sizeFUCK;
+
     auto foundF = functions.find(type);
     if(foundF != functions.end())
     {
         const auto foundP = primitivesizes.find(Pointer);
         if(foundP != primitivesizes.end())
-            return foundP->second;
-        return sizeof(void*);
+            return foundP->second * 8;
+
+        return sizeof(void*) * 8;
     }
+
     return 0;
 }
 
@@ -194,11 +284,11 @@ bool TypeManager::Visit(const std::string & type, const std::string & name, Visi
     m.name = name;
     m.type = type;
     m.assignedType = type;
-    
+
     return visitMember(m, visitor);
 }
 
-template<typename K, typename V>
+template <typename K, typename V>
 static void filterOwnerMap(std::unordered_map<K, V> & map, const std::string & owner)
 {
     for(auto i = map.begin(); i != map.end();)
@@ -220,7 +310,7 @@ void TypeManager::Clear(const std::string & owner)
     filterOwnerMap(functions, owner);
 }
 
-template<typename K, typename V>
+template <typename K, typename V>
 static bool removeType(std::unordered_map<K, V> & map, const std::string & type)
 {
     auto found = map.find(type);
@@ -252,7 +342,7 @@ static std::string getKind(const Function & f)
     return "function";
 }
 
-template<typename K, typename V>
+template <typename K, typename V>
 static void enumType(const std::unordered_map<K, V> & map, std::vector<TypeManager::Summary> & types)
 {
     for(auto i = map.begin(); i != map.end(); ++i)
@@ -313,7 +403,7 @@ std::string Types::TypeManager::StructUnionPtrType(const std::string & pointto) 
     return getKind(itr->second);
 }
 
-template<typename K, typename V>
+template <typename K, typename V>
 static bool mapContains(const std::unordered_map<K, V> & map, const K & k)
 {
     return map.find(k) != map.end();
@@ -321,7 +411,7 @@ static bool mapContains(const std::unordered_map<K, V> & map, const K & k)
 
 bool TypeManager::isDefined(const std::string & id) const
 {
-    return mapContains(types, id) || mapContains(structs, id);
+    return mapContains(types, id) || mapContains(structs, id) || mapContains(enums, id) || mapContains(functions, id);
 }
 
 bool TypeManager::validPtr(const std::string & id)
@@ -338,6 +428,9 @@ bool TypeManager::validPtr(const std::string & id)
         auto foundS = structs.find(type);
         if(foundS != structs.end())
             owner = foundS->second.owner;
+        auto foundE = enums.find(type);
+        if(foundE != enums.end())
+            owner = foundE->second.owner;
         return addType(owner, Pointer, id, type);
     }
     return false;
@@ -348,7 +441,7 @@ bool TypeManager::addStructUnion(const StructUnion & s)
     laststruct = s.name;
     if(s.owner.empty() || s.name.empty() || isDefined(s.name))
         return false;
-    structs.insert({s.name, s});
+    structs.insert({ s.name, s });
     return true;
 }
 
@@ -356,7 +449,7 @@ bool TypeManager::addType(const Type & t)
 {
     if(t.name.empty() || isDefined(t.name))
         return false;
-    types.insert({t.name, t});
+    types.insert({ t.name, t });
     return true;
 }
 
@@ -368,7 +461,7 @@ bool TypeManager::addType(const std::string & owner, Primitive primitive, const 
     t.owner = owner;
     t.name = name;
     t.primitive = primitive;
-    t.size = primitivesizes[primitive];
+    t.sizeFUCK = primitivesizes[primitive] * 8;
     t.pointto = pointto;
     return addType(t);
 }
@@ -379,7 +472,7 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor) const
     if(foundT != types.end())
     {
         const auto & t = foundT->second;
-        if (t.primitive == Void) // check if struct type
+        if(t.primitive == Void)  // check if struct type
         {
             Member member = root;
             member.type = t.pointto;
@@ -391,7 +484,7 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor) const
         {
             if(!isDefined(t.pointto))
                 return false;
-            if(visitor.visitPtr(root, t)) //allow the visitor to bail out
+            if(visitor.visitPtr(root, t))  //allow the visitor to bail out
             {
                 if(!Visit(t.pointto, "*" + root.name, visitor))
                     return false;
@@ -399,13 +492,14 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor) const
             }
             return true;
         }
-        
+
         return visitor.visitType(root, t);
     }
+
     auto foundS = structs.find(root.type);
     if(foundS != structs.end())
     {
-        const auto& s = foundS->second;
+        const auto & s = foundS->second;
         if(!visitor.visitStructUnion(root, s))
             return false;
         for(const auto & child : s.members)
@@ -425,6 +519,14 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor) const
         }
         return visitor.visitBack(root);
     }
+
+    auto foundE = enums.find(root.type);
+    if(foundE != enums.end())
+    {
+        const auto & e = foundE->second;
+        return visitor.visitEnum(root, e);
+    }
+
     return false;
 }
 
@@ -449,7 +551,7 @@ bool AddUnion(const std::string & owner, const std::string & name)
 bool AddMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int offset)
 {
     EXCLUSIVE_ACQUIRE(LockTypeManager);
-    return typeManager.AddMember(parent, type, name, arrsize, offset);
+    return typeManager.AddMember(parent, type, name, arrsize, offset, -1);
 }
 
 bool AppendMember(const std::string & type, const std::string & name, int arrsize, int offset)
@@ -534,14 +636,13 @@ static void loadTypes(const JSON troot, std::vector<Member> & types)
     }
 }
 
-static void loadStructUnions(const JSON suroot, bool isunion, std::vector<StructUnion> & structUnions)
+static void loadStructUnions(const JSON suroot, std::vector<StructUnion> & structUnions)
 {
     if(!suroot)
         return;
     size_t i;
     JSON vali;
     StructUnion curSu;
-    curSu.isunion = isunion;
     json_array_foreach(suroot, i, vali)
     {
         auto suname = json_string_value(json_object_get(vali, "name"));
@@ -549,7 +650,10 @@ static void loadStructUnions(const JSON suroot, bool isunion, std::vector<Struct
             continue;
         curSu.name = suname;
         curSu.members.clear();
+        curSu.isunion = json_boolean_value(json_object_get(vali, "isUnion"));
+
         auto members = json_object_get(vali, "members");
+
         size_t j;
         JSON valj;
         Member curMember;
@@ -562,7 +666,15 @@ static void loadStructUnions(const JSON suroot, bool isunion, std::vector<Struct
             curMember.type = type;
             curMember.name = name;
             curMember.arrsize = json_default_int(valj, "arrsize", 0);
-            curMember.offset = json_default_int(valj, "offset", -1);
+            curMember.bitSize = json_default_int(valj, "bitSize", -1);
+
+            curMember.offsetFUCK = json_default_int(valj, "offset", -1);
+            if(curMember.offsetFUCK != -1)
+            {
+                curMember.offsetFUCK *= 8;
+                curMember.offsetFUCK += json_default_int(valj, "bitOffset", 0);
+            }
+
             curSu.members.push_back(curMember);
         }
         structUnions.push_back(curSu);
@@ -617,6 +729,56 @@ static void loadFunctions(const JSON froot, std::vector<Function> & functions)
     }
 }
 
+static void loadEnums(const JSON suroot, std::vector<struct Enum> & enums)
+{
+    if(!suroot)
+        return;
+    size_t i;
+    JSON vali;
+
+    Enum curE;
+    json_array_foreach(suroot, i, vali)
+    {
+        auto suname = json_string_value(json_object_get(vali, "name"));
+        if(!suname || !*suname)
+            continue;
+        curE.name = suname;
+        curE.members.clear();
+
+        auto size = json_default_int(vali, "size", -1);
+        if(size == -1)
+            size = json_default_int(vali, "bitSize", 8);
+        else
+            size *= 8;
+
+        curE.sizeFUCK = size;
+        curE.isFlags = json_boolean(vali, "isFlags");
+
+        auto members = json_object_get(vali, "members");
+        size_t j;
+        JSON valj;
+
+        std::pair<uint64_t, std::string> curMember;
+        json_array_foreach(members, j, valj)
+        {
+            const auto valueObject = json_object_get(valj, "name");
+            if(!valueObject)
+                continue;
+
+            auto value = json_default_int(valj, "value", 0);
+            auto name = json_string_value(json_object_get(valj, "name"));
+            if(value == -1 || !name || !*name)
+                continue;
+
+            curMember.first = value;
+            curMember.second = name;
+            curE.members.push_back(curMember);
+        }
+
+        enums.push_back(curE);
+    }
+}
+
 void LoadModel(const std::string & owner, Model & model)
 {
     //Add all base struct/union types first to avoid errors later
@@ -628,6 +790,19 @@ void LoadModel(const std::string & owner, Model & model)
             //TODO properly handle errors
             dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add %s %s;\n"), su.isunion ? "union" : "struct", su.name.c_str());
             su.name.clear(); //signal error
+        }
+    }
+
+    for(auto & num : model.enums)
+    {
+        if(num.name.empty())  //skip error-signalled functions
+            continue;
+
+        auto success = typeManager.AddEnum(owner, num.name, num.isFlags, num.sizeFUCK);
+        if(!success)
+        {
+            //TODO properly handle errors
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add enum %s\n"), num.name.c_str());
         }
     }
 
@@ -657,11 +832,15 @@ void LoadModel(const std::string & owner, Model & model)
     //Add struct/union members
     for(auto & su : model.structUnions)
     {
-        if(su.name.empty()) //skip error-signalled structs/unions
+        if(su.name.empty())  //skip error-signalled structs/unions
             continue;
+
+        if(su.name == "_RTL_BALANCED_LINKS")
+            __debugbreak();
+
         for(auto & member : su.members)
         {
-            auto success = typeManager.AddMember(su.name, member.type, member.name, member.arrsize, member.offset);
+            auto success = typeManager.AddMember(su.name, member.type, member.name, member.arrsize, member.offsetFUCK, member.bitSize);
             if(!success)
             {
                 //TODO properly handle errors
@@ -670,10 +849,26 @@ void LoadModel(const std::string & owner, Model & model)
         }
     }
 
+    for(auto & num : model.enums)
+    {
+        if(num.name.empty())  //skip error-signalled functions
+            continue;
+
+        for(auto & mem : num.members)
+        {
+            auto success = typeManager.AddEnumMember(num.name, mem.second, mem.first);
+            if(!success)
+            {
+                //TODO properly handle errors
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add enum member %s\n"), mem.second.c_str());
+            }
+        }
+    }
+
     //Add function arguments
     for(auto & function : model.functions)
     {
-        if(function.name.empty()) //skip error-signalled functions
+        if(function.name.empty())  //skip error-signalled functions
             continue;
         for(auto & arg : function.args)
         {
@@ -696,12 +891,11 @@ bool LoadTypesJson(const std::string & json, const std::string & owner)
         Model model;
         loadTypes(json_object_get(root, "types"), model.types);
         loadTypes(json_object_get(root, ArchValue("types32", "types64")), model.types);
-        loadStructUnions(json_object_get(root, "structs"), false, model.structUnions);
-        loadStructUnions(json_object_get(root, ArchValue("structs32", "structs64")), false, model.structUnions);
-        loadStructUnions(json_object_get(root, "unions"), true, model.structUnions);
-        loadStructUnions(json_object_get(root, ArchValue("unions32", "unions64")), true, model.structUnions);
+        loadStructUnions(json_object_get(root, "structUnions"), model.structUnions);
         loadFunctions(json_object_get(root, "functions"), model.functions);
         loadFunctions(json_object_get(root, ArchValue("functions32", "functions64")), model.functions);
+        loadEnums(json_object_get(root, "enums"), model.enums);
+        loadEnums(json_object_get(root, ArchValue("enums32", "enums64")), model.enums);
 
         LoadModel(owner, model);
 
