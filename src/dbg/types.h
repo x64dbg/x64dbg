@@ -8,7 +8,7 @@ namespace Types
 {
     enum Primitive
     {
-        Void, // struct/union
+        Typedef, // struct/union
         Int8,
         Uint8,
         Int16,
@@ -23,7 +23,8 @@ namespace Types
         Double,
         Pointer,
         PtrString, //char* (null-terminated)
-        PtrWString //wchar_t* (null-terminated)
+        PtrWString, //wchar_t* (null-terminated)
+        Void,
     };
 
     struct Type
@@ -120,7 +121,7 @@ namespace Types
         bool AddFunctionReturn(const std::string & name, const std::string & rettype);
         bool AddArg(const std::string & function, const std::string & type, const std::string & name);
         bool AppendArg(const std::string & type, const std::string & name);
-        int Sizeof(const std::string & type) const;
+        int Sizeof(const std::string & type, std::string* underlyingType = nullptr);
         bool Visit(const std::string & type, const std::string & name, Visitor & visitor) const;
         void Clear(const std::string & owner = "");
         bool RemoveType(const std::string & type);

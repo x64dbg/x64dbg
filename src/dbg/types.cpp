@@ -30,7 +30,7 @@ TypeManager::TypeManager()
     p("dsint", Dsint, sizeof(void*));
     p("duint,size_t", Duint, sizeof(void*));
     p("float", Float, sizeof(float));
-    p("double", Double, sizeof(double));
+    p("double,long double", Double, sizeof(double));
     p("ptr,void*", Pointer, sizeof(void*));
     p("char*,const char*", PtrString, sizeof(char*));
     p("wchar_t*,const wchar_t*", PtrWString, sizeof(wchar_t*));
@@ -48,15 +48,18 @@ bool TypeManager::AddType(const std::string & owner, const std::string & type, c
 
     auto found_e = enums.find(type);
     if(found_e != enums.end())
-        return addType(owner, Void, name, type);
+        return addType(owner, Typedef, name, type);
 
     auto found_s = structs.find(type);
     if(found_s != structs.end())
-        return addType(owner, Void, name, type);
+        return addType(owner, Typedef, name, type);
 
     auto found_f = functions.find(type);
     if(found_f != functions.end())
-        return addType(owner, Void, name, type);
+        return addType(owner, Typedef, name, type);
+
+    if(type == "void")
+        return addType(owner, Void, name);
 
     return false;
 }
@@ -246,6 +249,7 @@ bool TypeManager::AddFunction(const std::string & owner, const std::string & nam
     Function f;
     f.owner = owner;
     f.name = name;
+    f.rettype = "";
 
     // return type cannot be set yet
 
@@ -289,33 +293,43 @@ bool TypeManager::AppendArg(const std::string & type, const std::string & name)
     return AddArg(lastfunction, type, name);
 }
 
-int TypeManager::Sizeof(const std::string & type) const
+int TypeManager::Sizeof(const std::string & type, std::string* underlyingType)
 {
+    if(!types.empty() && type.back() == '*')
+    {
+        if(underlyingType != nullptr) *underlyingType = type;
+        return primitivesizes[Pointer] * 8;
+    }
+
     auto foundT = types.find(type);
     if(foundT != types.end())
     {
         if(!foundT->second.pointto.empty())
-            return Sizeof(foundT->second.pointto);
+            return Sizeof(foundT->second.pointto, underlyingType);
 
+        if(underlyingType != nullptr) *underlyingType = foundT->second.name;
         return foundT->second.sizeFUCK;
     }
 
     auto foundE = enums.find(type);
     if(foundE != enums.end())
+    {
+        if(underlyingType != nullptr) *underlyingType = foundE->second.name;
         return foundE->second.sizeFUCK;
+    }
 
     auto foundS = structs.find(type);
     if(foundS != structs.end())
+    {
+        if(underlyingType != nullptr) *underlyingType = foundS->second.name;
         return foundS->second.sizeFUCK;
+    }
 
     auto foundF = functions.find(type);
     if(foundF != functions.end())
     {
-        const auto foundP = primitivesizes.find(Pointer);
-        if(foundP != primitivesizes.end())
-            return foundP->second * 8;
-
-        return sizeof(void*) * 8;
+        if(underlyingType != nullptr) *underlyingType = foundF->second.name;
+        return primitivesizes[Pointer] * 8;
     }
 
     return 0;
@@ -464,6 +478,7 @@ bool TypeManager::validPtr(const std::string & id)
         auto type = id.substr(0, id.length() - 1);
         if(!isDefined(type) && !validPtr(type))
             return false;
+
         std::string owner("ptr");
         auto foundT = types.find(type);
         if(foundT != types.end())
@@ -477,8 +492,10 @@ bool TypeManager::validPtr(const std::string & id)
         auto foundP = functions.find(type);
         if(foundP != functions.end())
             owner = foundP->second.owner;
+
         return addType(owner, Pointer, id, type);
     }
+
     return false;
 }
 
@@ -501,6 +518,24 @@ bool TypeManager::addType(const Type & t)
 
 bool TypeManager::addType(const std::string & owner, Primitive primitive, const std::string & name, const std::string & pointto)
 {
+    auto foundT = types.find(name);
+    if(foundT != types.end())
+    {
+        if(pointto.empty())
+        {
+            if(primitivesizes[primitive] == primitivesizes[foundT->second.primitive])
+                return true;
+        }
+        else
+        {
+            std::string underlyingType;
+            Sizeof(pointto, &underlyingType);
+
+            if(underlyingType == pointto)
+                return true;
+        }
+    }
+
     if(name.empty() || isDefined(name))
         return false;
     Type t;
@@ -518,7 +553,7 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor) const
     if(foundT != types.end())
     {
         const auto & t = foundT->second;
-        if(t.primitive == Void)  // check if struct type
+        if(t.primitive == Typedef)  // check if struct type
         {
             Member member = root;
             member.type = t.pointto;
@@ -884,12 +919,9 @@ void LoadModel(const std::string & owner, Model & model)
         if(su.name.empty())  //skip error-signalled structs/unions
             continue;
 
-        const auto suggested_size = su.sizeFUCK;
+        const auto suggestedSize = su.sizeFUCK;
         for(auto & member : su.members)
         {
-            if(su.name == "_SYSTEM_PROCESSOR_CYCLE_STATS_INFORMATION")
-                __debugbreak();
-
             auto success = typeManager.AddStructMember(su.name, member.type, member.name, member.arrsize, member.offsetFUCK, member.bitSize);
             if(!success)
             {
@@ -898,8 +930,8 @@ void LoadModel(const std::string & owner, Model & model)
             }
         }
 
-        if(suggested_size != 0)
-            typeManager.AppendStructPadding(su.name, suggested_size);
+        if(suggestedSize != 0)
+            typeManager.AppendStructPadding(su.name, suggestedSize);
     }
 
     for(auto & num : model.enums)

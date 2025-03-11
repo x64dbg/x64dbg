@@ -618,7 +618,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
-        td.id = Void;
+        td.id = Typedef;
         td.size = type.sizeFUCK;
         td.callback = nullptr;
         td.userdata = nullptr;
@@ -645,7 +645,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
-        td.id = Void;
+        td.id = Typedef;
         td.size = num.sizeFUCK;
         td.callback = cbPrintEnum;
         td.userdata = const_cast<Enum*>(&num);
@@ -665,7 +665,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
-        td.id = Void;
+        td.id = Typedef;
         td.size = member.arrsize * SizeofType(member.type);
         td.callback = nullptr;
         td.userdata = nullptr;
