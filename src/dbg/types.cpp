@@ -61,20 +61,22 @@ bool TypeManager::AddType(const std::string & owner, const std::string & type, c
     return false;
 }
 
-bool TypeManager::AddStruct(const std::string & owner, const std::string & name)
+bool TypeManager::AddStruct(const std::string & owner, const std::string & name, int constantSize)
 {
     StructUnion s;
     s.name = name;
     s.owner = owner;
+    s.sizeFUCK = constantSize;
     return addStructUnion(s);
 }
 
-bool TypeManager::AddUnion(const std::string & owner, const std::string & name)
+bool TypeManager::AddUnion(const std::string & owner, const std::string & name, int constantSize)
 {
     StructUnion u;
     u.owner = owner;
     u.name = name;
-    u.isunion = true;
+    u.isUnion = true;
+    u.sizeFUCK = constantSize;
     return addStructUnion(u);
 }
 
@@ -83,7 +85,7 @@ bool TypeManager::AddEnum(const std::string & owner, const std::string & name, b
     struct Enum e;
     e.owner = owner;
     e.name = name;
-    e.members = {};
+    e.members = { };
     e.isFlags = isFlags;
     e.sizeFUCK = size;
 
@@ -104,7 +106,7 @@ bool TypeManager::AddEnumMember(const std::string & parent, const std::string & 
     return true;
 }
 
-bool TypeManager::AddMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int bitSize)
+bool TypeManager::AddStructMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int bitSize)
 {
     if(!isDefined(type) && !validPtr(type))
         return false;
@@ -117,8 +119,16 @@ bool TypeManager::AddMember(const std::string & parent, const std::string & type
         return false;
 
     // cannot be pointer and bitfield
-    if(type.back() == '*' && bitSize != primitivesizes[Pointer] * 8)
-        return false;
+    if(type.back() == '*')
+    {
+        // this is a pointer type
+        auto expectedSize = primitivesizes[Pointer] * 8;
+        if(arrsize != 0)
+            expectedSize *= arrsize;
+
+        if(bitSize != expectedSize)
+            return false;
+    }
 
     auto & s = found->second;
     for(const auto & member : s.members)
@@ -139,64 +149,28 @@ bool TypeManager::AddMember(const std::string & parent, const std::string & type
             typeSize = Sizeof(type);
     }
 
+    // cannot have a bitfield greater than typeSize
+    if(bitSize != -1 && bitSize > typeSize)
+        return false;
+
     Member m;
     m.name = name;
     m.arrsize = arrsize;
     m.type = type;
     m.assignedType = type;
     m.offsetFUCK = bitOffset;
+    m.bitSize = m.bitSize != typeSize ? bitSize : typeSize;
 
-    // maybe have a second size and fall back on bitsize if that one is -1
-    m.bitSize = bitSize;
-
-    if(bitOffset >= 0 && !s.isunion)  //user-defined offset
+    if(bitOffset >= 0 && !s.isUnion)  //user-defined offset
     {
         if(bitOffset < s.sizeFUCK)
             return false;
 
         if(bitOffset > s.sizeFUCK)
-        {
-            auto bitPadding = bitOffset - s.sizeFUCK;
-            if(bitPadding % 8 == 0)
-            {
-ADD_BYTE_PADDING:
-                Member pad;
-                pad.type = "char";
-                pad.arrsize = bitPadding / 8;
-
-                // can just add byte padding
-                char padName[32] = { };
-                sprintf_s(padName, "padding%d", bitPadding / 8);
-
-                pad.name = padName;
-                s.members.push_back(pad);
-            }
-            else
-            {
-                auto remBit = bitPadding % 8;
-
-                Member pad;
-                pad.type = "long long";
-                pad.bitSize = remBit;
-
-                char padName[32] = { };
-                sprintf_s(padName, "padding%db", bitPadding);
-
-                pad.name = padName;
-                s.members.push_back(pad);
-
-                // more to add
-                if(bitPadding != remBit)
-                    goto ADD_BYTE_PADDING;
-            }
-
-            s.sizeFUCK = bitOffset;
-        }
+            AppendStructPadding(parent, bitOffset);
     }
 
-    s.members.push_back(m);
-
-    if(s.isunion)
+    if(s.isUnion)
     {
         if(typeSize > s.sizeFUCK)
             s.sizeFUCK = typeSize;
@@ -206,15 +180,63 @@ ADD_BYTE_PADDING:
         s.sizeFUCK += typeSize;
     }
 
+    s.members.push_back(m);
     return true;
 }
 
-bool TypeManager::AppendMember(const std::string & type, const std::string & name, int arrsize, int offset)
+bool TypeManager::AppendStructMember(const std::string & type, const std::string & name, int arrsize, int offset)
 {
-    return AddMember(laststruct, type, name, arrsize, offset, -1);
+    return AddStructMember(laststruct, type, name, arrsize, offset, -1);
 }
 
-bool TypeManager::AddFunction(const std::string & owner, const std::string & name, const std::string & rettype, CallingConvention callconv,
+bool TypeManager::AppendStructPadding(const std::string & parent, int targetOffset)
+{
+    auto found = structs.find(parent);
+    if(found == structs.end())
+        return false;
+
+    auto & s = found->second;
+    if(s.sizeFUCK >= targetOffset || s.isUnion)
+        return false;
+
+    auto bitPadding = targetOffset - s.sizeFUCK;
+    if(bitPadding % 8 != 0)
+    {
+        const auto remBits = bitPadding % 8;
+
+        Member pad;
+        pad.type = "long long";
+        pad.bitSize = remBits;
+
+        char padName[32] = { };
+        sprintf_s(padName, "padding%db", remBits);
+
+        pad.name = padName;
+        s.members.push_back(pad);
+
+        // more to add
+        bitPadding -= remBits;
+    }
+
+    if(bitPadding)
+    {
+        Member pad;
+        pad.type = "char";
+        pad.arrsize = bitPadding / 8;
+
+        // can just add byte padding
+        char padName[32] = { };
+        sprintf_s(padName, "padding%d", bitPadding / 8);
+
+        pad.name = padName;
+        s.members.push_back(pad);
+    }
+
+    s.sizeFUCK = targetOffset;
+    return true;
+}
+
+bool TypeManager::AddFunction(const std::string & owner, const std::string & name, CallingConvention callconv,
                               bool noreturn)
 {
     auto found = functions.find(name);
@@ -224,12 +246,25 @@ bool TypeManager::AddFunction(const std::string & owner, const std::string & nam
     Function f;
     f.owner = owner;
     f.name = name;
-    if(rettype != "void" && !isDefined(rettype) && !validPtr(rettype))
-        return false;
-    f.rettype = rettype;
+
+    // return type cannot be set yet
+
     f.callconv = callconv;
     f.noreturn = noreturn;
     functions.insert({ f.name, f });
+    return true;
+}
+
+bool TypeManager::AddFunctionReturn(const std::string & name, const std::string & rettype)
+{
+    auto found = functions.find(name);
+    if(found == functions.end() || name.empty())
+        return false;
+
+    Function & f = found->second;
+    if(rettype != "void" && !isDefined(rettype) && !validPtr(rettype))
+        return false;
+    f.rettype = rettype;
     return true;
 }
 
@@ -258,7 +293,12 @@ int TypeManager::Sizeof(const std::string & type) const
 {
     auto foundT = types.find(type);
     if(foundT != types.end())
+    {
+        if(!foundT->second.pointto.empty())
+            return Sizeof(foundT->second.pointto);
+
         return foundT->second.sizeFUCK;
+    }
 
     auto foundE = enums.find(type);
     if(foundE != enums.end())
@@ -332,7 +372,7 @@ bool TypeManager::RemoveType(const std::string & type)
 
 static std::string getKind(const StructUnion & su)
 {
-    return su.isunion ? "union" : "struct";
+    return su.isUnion ? "union" : "struct";
 }
 
 static std::string getKind(const Type & t)
@@ -434,6 +474,9 @@ bool TypeManager::validPtr(const std::string & id)
         auto foundE = enums.find(type);
         if(foundE != enums.end())
             owner = foundE->second.owner;
+        auto foundP = functions.find(type);
+        if(foundP != functions.end())
+            owner = foundP->second.owner;
         return addType(owner, Pointer, id, type);
     }
     return false;
@@ -554,19 +597,19 @@ bool AddUnion(const std::string & owner, const std::string & name)
 bool AddMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int offset)
 {
     EXCLUSIVE_ACQUIRE(LockTypeManager);
-    return typeManager.AddMember(parent, type, name, arrsize, offset, -1);
+    return typeManager.AddStructMember(parent, type, name, arrsize, offset, -1);
 }
 
 bool AppendMember(const std::string & type, const std::string & name, int arrsize, int offset)
 {
     EXCLUSIVE_ACQUIRE(LockTypeManager);
-    return typeManager.AppendMember(type, name, arrsize, offset);
+    return typeManager.AppendStructMember(type, name, arrsize, offset);
 }
 
 bool AddFunction(const std::string & owner, const std::string & name, const std::string & rettype, Types::CallingConvention callconv, bool noreturn)
 {
     EXCLUSIVE_ACQUIRE(LockTypeManager);
-    return typeManager.AddFunction(owner, name, rettype, callconv, noreturn);
+    return typeManager.AddFunction(owner, name, callconv, noreturn);
 }
 
 bool AddArg(const std::string & function, const std::string & type, const std::string & name)
@@ -651,9 +694,11 @@ static void loadStructUnions(const JSON suroot, std::vector<StructUnion> & struc
         auto suname = json_string_value(json_object_get(vali, "name"));
         if(!suname || !*suname)
             continue;
+
         curSu.name = suname;
         curSu.members.clear();
-        curSu.isunion = json_boolean_value(json_object_get(vali, "isUnion"));
+        curSu.isUnion = json_boolean_value(json_object_get(vali, "isUnion"));
+        curSu.sizeFUCK = json_default_int(vali, "size", 0) * 8;
 
         auto members = json_object_get(vali, "members");
 
@@ -666,6 +711,7 @@ static void loadStructUnions(const JSON suroot, std::vector<StructUnion> & struc
             auto name = json_string_value(json_object_get(valj, "name"));
             if(!type || !*type || !name || !*name)
                 continue;
+
             curMember.type = type;
             curMember.name = name;
             curMember.arrsize = json_default_int(valj, "arrsize", 0);
@@ -787,12 +833,24 @@ void LoadModel(const std::string & owner, Model & model)
     //Add all base struct/union types first to avoid errors later
     for(auto & su : model.structUnions)
     {
-        auto success = su.isunion ? typeManager.AddUnion(owner, su.name) : typeManager.AddStruct(owner, su.name);
+        auto success = su.isUnion ? typeManager.AddUnion(owner, su.name, 0) : typeManager.AddStruct(owner, su.name, 0);
         if(!success)
         {
             //TODO properly handle errors
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add %s %s;\n"), su.isunion ? "union" : "struct", su.name.c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add %s %s;\n"), su.isUnion ? "union" : "struct", su.name.c_str());
             su.name.clear(); //signal error
+        }
+    }
+
+    //Add base function types to avoid errors later
+    for(auto & function : model.functions)
+    {
+        auto success = typeManager.AddFunction(owner, function.name, function.callconv, function.noreturn);
+        if(!success)
+        {
+            //TODO properly handle errors
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add function %s %s()\n"), function.rettype.c_str(), function.name.c_str());
+            function.name.clear(); //signal error
         }
     }
 
@@ -820,33 +878,28 @@ void LoadModel(const std::string & owner, Model & model)
         }
     }
 
-    //Add base function types to avoid errors later
-    for(auto & function : model.functions)
-    {
-        auto success = typeManager.AddFunction(owner, function.name, function.rettype, function.callconv, function.noreturn);
-        if(!success)
-        {
-            //TODO properly handle errors
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add function %s %s()\n"), function.rettype.c_str(), function.name.c_str());
-            function.name.clear(); //signal error
-        }
-    }
-
     //Add struct/union members
     for(auto & su : model.structUnions)
     {
         if(su.name.empty())  //skip error-signalled structs/unions
             continue;
 
+        const auto suggested_size = su.sizeFUCK;
         for(auto & member : su.members)
         {
-            auto success = typeManager.AddMember(su.name, member.type, member.name, member.arrsize, member.offsetFUCK, member.bitSize);
+            if(su.name == "_SYSTEM_PROCESSOR_CYCLE_STATS_INFORMATION")
+                __debugbreak();
+
+            auto success = typeManager.AddStructMember(su.name, member.type, member.name, member.arrsize, member.offsetFUCK, member.bitSize);
             if(!success)
             {
                 //TODO properly handle errors
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add member %s %s.%s;\n"), member.type.c_str(), su.name.c_str(), member.name.c_str());
             }
         }
+
+        if(suggested_size != 0)
+            typeManager.AppendStructPadding(su.name, suggested_size);
     }
 
     for(auto & num : model.enums)
@@ -870,6 +923,13 @@ void LoadModel(const std::string & owner, Model & model)
     {
         if(function.name.empty())  //skip error-signalled functions
             continue;
+
+        bool status = typeManager.AddFunctionReturn(function.name, function.rettype);
+        if(!status)
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add return type %s.%s;\n"), function.name.c_str(), function.rettype.c_str());
+        }
+
         for(auto & arg : function.args)
         {
             auto success = typeManager.AddArg(function.name, arg.type, arg.name);

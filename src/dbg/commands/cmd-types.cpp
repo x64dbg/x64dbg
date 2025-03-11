@@ -559,7 +559,7 @@ struct PrintVisitor : TypeManager::Visitor
         }
         else
         {
-            if(member.bitSize != -1)
+            if(member.bitSize != type.sizeFUCK)
                 tname = StringUtils::sprintf("%s %s : %d", type.name.c_str(), member.name.c_str(), member.bitSize);
             else
                 tname = StringUtils::sprintf("%s %s", type.name.c_str(), member.name.c_str());
@@ -610,7 +610,7 @@ struct PrintVisitor : TypeManager::Visitor
         if(!mParents.empty() && parent().type == Parent::Type::Union)
             mOffset = parent().offset;
 
-        String tname = StringUtils::sprintf("%s %s %s", type.isunion ? "union" : "struct", member.assignedType.c_str(), member.name.c_str());
+        String tname = StringUtils::sprintf("%s %s %s", type.isUnion ? "union" : "struct", member.assignedType.c_str(), member.name.c_str());
 
         TYPEDESCRIPTOR td;
         td.expanded = true;
@@ -625,7 +625,7 @@ struct PrintVisitor : TypeManager::Visitor
         auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
 
         mPath.push_back((member.name == "display" ? type.name : member.assignedType) + ".");
-        mParents.push_back(Parent(type.isunion ? Parent::Union : Parent::Struct));
+        mParents.push_back(Parent(type.isUnion ? Parent::Union : Parent::Struct));
         parent().node = node;
         parent().size = td.size;
         parent().offset = mOffset;

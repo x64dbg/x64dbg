@@ -51,8 +51,8 @@ namespace Types
         std::string owner; //StructUnion owner
         std::string name; //StructUnion identifier
         std::vector<Member> members; //StructUnion members
-        bool isunion = false; //Is this a union?
-        int sizeFUCK = 0;
+        bool isUnion = false; //Is this a union?
+        int sizeFUCK = -1;
     };
 
     enum CallingConvention
@@ -108,14 +108,16 @@ namespace Types
 
         explicit TypeManager();
         bool AddType(const std::string & owner, const std::string & type, const std::string & name);
-        bool AddStruct(const std::string & owner, const std::string & name);
-        bool AddUnion(const std::string & owner, const std::string & name);
+        bool AddStruct(const std::string & owner, const std::string & name, int constantSize = -1);
+        bool AddUnion(const std::string & owner, const std::string & name, int constantSize = -1);
         bool AddEnum(const std::string & owner, const std::string & name, bool isFlags, uint8_t size);
         bool AddEnumMember(const std::string & parent, const std::string & name, uint64_t value);
-        bool AddMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int bitSize);
-        bool AppendMember(const std::string & type, const std::string & name, int arrsize = 0, int offset = -1);
-        bool AddFunction(const std::string & owner, const std::string & name, const std::string & rettype, CallingConvention callconv = Cdecl,
+        bool AddStructMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int bitSize);
+        bool AppendStructMember(const std::string & type, const std::string & name, int arrsize = 0, int offset = -1);
+        bool AppendStructPadding(const std::string & type, int targetOffset);
+        bool AddFunction(const std::string & owner, const std::string & name, CallingConvention callconv = Cdecl,
                          bool noreturn = false);
+        bool AddFunctionReturn(const std::string & name, const std::string & rettype);
         bool AddArg(const std::string & function, const std::string & type, const std::string & name);
         bool AppendArg(const std::string & type, const std::string & name);
         int Sizeof(const std::string & type) const;
