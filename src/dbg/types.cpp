@@ -109,7 +109,7 @@ bool TypeManager::AddEnumMember(const std::string & parent, const std::string & 
     return true;
 }
 
-bool TypeManager::AddStructMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int bitSize)
+bool TypeManager::AddStructMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int bitSize, bool isBitfield)
 {
     if(!isDefined(type) && !validPtr(type))
         return false;
@@ -118,7 +118,7 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
         return false;
 
     // cannot have bit field array
-    if(bitSize % 8 != 0 && arrsize != 0)
+    if(isBitfield && arrsize != 0)
         return false;
 
     // cannot be pointer and bitfield
@@ -140,20 +140,12 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
 
     int typeSize;
     if(arrsize != 0)
-    {
-        // is an array
         typeSize = Sizeof(type) * arrsize;
-    }
     else
-    {
-        if(bitSize != -1)
-            typeSize = bitSize;
-        else
-            typeSize = Sizeof(type);
-    }
+        typeSize = Sizeof(type);
 
     // cannot have a bitfield greater than typeSize
-    if(bitSize != -1 && bitSize > typeSize)
+    if(isBitfield && bitSize > typeSize)
         return false;
 
     Member m;
@@ -162,7 +154,8 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
     m.type = type;
     m.assignedType = type;
     m.offsetFUCK = bitOffset;
-    m.bitSize = m.bitSize != typeSize ? bitSize : typeSize;
+    m.bitSize = isBitfield ? bitSize : typeSize;
+    m.bitfield = isBitfield;
 
     if(bitOffset >= 0 && !s.isUnion)  //user-defined offset
     {
@@ -180,7 +173,7 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
     }
     else
     {
-        s.sizeFUCK += typeSize;
+        s.sizeFUCK += m.bitSize;
     }
 
     s.members.push_back(m);
@@ -189,7 +182,7 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
 
 bool TypeManager::AppendStructMember(const std::string & type, const std::string & name, int arrsize, int offset)
 {
-    return AddStructMember(laststruct, type, name, arrsize, offset, -1);
+    return AddStructMember(laststruct, type, name, arrsize, offset, -1, false);
 }
 
 bool TypeManager::AppendStructPadding(const std::string & parent, int targetOffset)
@@ -225,6 +218,7 @@ bool TypeManager::AppendStructPadding(const std::string & parent, int targetOffs
     {
         Member pad;
         pad.type = "char";
+        pad.bitSize = bitPadding;
         pad.arrsize = bitPadding / 8;
 
         // can just add byte padding
@@ -632,7 +626,7 @@ bool AddUnion(const std::string & owner, const std::string & name)
 bool AddMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int offset)
 {
     EXCLUSIVE_ACQUIRE(LockTypeManager);
-    return typeManager.AddStructMember(parent, type, name, arrsize, offset, -1);
+    return typeManager.AddStructMember(parent, type, name, arrsize, offset, -1, false);
 }
 
 bool AppendMember(const std::string & type, const std::string & name, int arrsize, int offset)
@@ -751,6 +745,7 @@ static void loadStructUnions(const JSON suroot, std::vector<StructUnion> & struc
             curMember.name = name;
             curMember.arrsize = json_default_int(valj, "arrsize", 0);
             curMember.bitSize = json_default_int(valj, "bitSize", -1);
+            curMember.bitfield = json_boolean_value(json_object_get(valj, "bitfield"));
 
             curMember.offsetFUCK = json_default_int(valj, "offset", -1);
             if(curMember.offsetFUCK != -1)
@@ -922,7 +917,7 @@ void LoadModel(const std::string & owner, Model & model)
         const auto suggestedSize = su.sizeFUCK;
         for(auto & member : su.members)
         {
-            auto success = typeManager.AddStructMember(su.name, member.type, member.name, member.arrsize, member.offsetFUCK, member.bitSize);
+            auto success = typeManager.AddStructMember(su.name, member.type, member.name, member.arrsize, member.offsetFUCK, member.bitSize, member.bitfield);
             if(!success)
             {
                 //TODO properly handle errors

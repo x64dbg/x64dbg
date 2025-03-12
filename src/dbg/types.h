@@ -44,6 +44,7 @@ namespace Types
 
         int arrsize = 0; //Number of elements if Member is an array
         int bitSize = -1; //Bitfield size
+        bool bitfield = false;
         int offsetFUCK = -1; //Member offset (only stored for reference)
     };
 
@@ -113,7 +114,7 @@ namespace Types
         bool AddUnion(const std::string & owner, const std::string & name, int constantSize = -1);
         bool AddEnum(const std::string & owner, const std::string & name, bool isFlags, uint8_t size);
         bool AddEnumMember(const std::string & parent, const std::string & name, uint64_t value);
-        bool AddStructMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int bitSize);
+        bool AddStructMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int bitSize, bool isBitfield);
         bool AppendStructMember(const std::string & type, const std::string & name, int arrsize = 0, int offset = -1);
         bool AppendStructPadding(const std::string & type, int targetOffset);
         bool AddFunction(const std::string & owner, const std::string & name, CallingConvention callconv = Cdecl,

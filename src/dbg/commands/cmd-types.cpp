@@ -348,24 +348,29 @@ struct PrintVisitor : TypeManager::Visitor
         }
         String valueStr;
 
-        size_t byteSize = (type->offset % 8 + type->size + 7) / 8;
-        Memory<unsigned char*> data(byteSize);
-
+        Memory<unsigned char*> data((type->size + 7) / 8);
         if(MemRead(type->addr + (type->offset / 8), data(), data.size()))
         {
             if(type->reverse)
                 std::reverse(data(), data() + data.size());
 
-            size_t bitOffset = type->offset % 8;
-            if(bitOffset != 0)
+            size_t bitsFromRead = type->offset % 8;
+            if(bitsFromRead != 0) // have to shift the data over
             {
-                uint64_t extractedValue = 0;
-                memcpy(&extractedValue, data(), std::min(sizeof(extractedValue), data.size()));
-                extractedValue >>= bitOffset;
-                extractedValue &= (1ULL << type->size) - 1;
+                uint8_t currentCarry = 0;
+                for(size_t i = data.size(); i > 0; i--)
+                {
+                    uint8_t newCarry = data()[i - 1] << (8 - bitsFromRead);
+                    data()[i - 1] = (data()[i - 1] >> bitsFromRead) | currentCarry;
+                    currentCarry = newCarry;
+                }
+            }
 
-                memset(data(), 0, data.size());
-                memcpy(data(), &extractedValue, std::min(sizeof(extractedValue), data.size()));
+            size_t bitsOverread = data.size() * 8 - type->size;
+            if(bitsOverread)
+            {
+                // Clear the overread bits
+                data()[data.size() - 1] &= (1 << (type->size % 8)) - 1;
             }
 
             switch(Primitive(type->id))
@@ -559,7 +564,7 @@ struct PrintVisitor : TypeManager::Visitor
         }
         else
         {
-            if(member.bitSize != type.sizeFUCK)
+            if(member.bitfield)
                 tname = StringUtils::sprintf("%s %s : %d", type.name.c_str(), member.name.c_str(), member.bitSize);
             else
                 tname = StringUtils::sprintf("%s %s", type.name.c_str(), member.name.c_str());
@@ -596,7 +601,10 @@ struct PrintVisitor : TypeManager::Visitor
         td.addr = mAddr;
         td.offset = mOffset;
         td.id = type.primitive;
-        td.size = member.bitSize != -1 ? member.bitSize : type.sizeFUCK;
+        td.size = member.bitSize;
+        if(td.size == -1)
+            __debugbreak();
+
         td.callback = cbPrintPrimitive;
         td.userdata = nullptr;
         mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
