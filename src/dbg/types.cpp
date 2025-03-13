@@ -577,15 +577,22 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor) const
         const auto & s = foundS->second;
         if(!visitor.visitStructUnion(root, s))
             return false;
+
         for(const auto & child : s.members)
         {
             if(child.arrsize)
             {
                 if(!visitor.visitArray(child))
                     return false;
+
+                Member am = child;
+                am.bitSize = child.bitSize / child.arrsize;
+                am.arrsize = -1;
+
                 for(auto i = 0; i < child.arrsize; i++)
-                    if(!visitMember(child, visitor))
+                    if(!visitMember(am, visitor))
                         return false;
+
                 if(!visitor.visitBack(child))
                     return false;
             }

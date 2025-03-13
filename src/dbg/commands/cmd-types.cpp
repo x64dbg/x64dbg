@@ -348,29 +348,29 @@ struct PrintVisitor : TypeManager::Visitor
         }
         String valueStr;
 
-        Memory<unsigned char*> data((type->size + 7) / 8);
-        if(MemRead(type->addr + (type->offset / 8), data(), data.size()))
+        Memory<unsigned char*> data(8);
+        if(MemRead(type->addr + type->offset + type->bitOffset / 8, data(), (type->bitSize + 7) / 8))
         {
             if(type->reverse)
                 std::reverse(data(), data() + data.size());
 
-            size_t bitsFromRead = type->offset % 8;
-            if(bitsFromRead != 0) // have to shift the data over
+            size_t bitsFromStart = type->bitOffset % 8;
+            if(bitsFromStart != 0)  // have to shift the data over
             {
                 uint8_t currentCarry = 0;
                 for(size_t i = data.size(); i > 0; i--)
                 {
-                    uint8_t newCarry = data()[i - 1] << (8 - bitsFromRead);
-                    data()[i - 1] = (data()[i - 1] >> bitsFromRead) | currentCarry;
+                    uint8_t newCarry = data()[i - 1] << 8 - bitsFromStart;
+                    data()[i - 1] = data()[i - 1] >> bitsFromStart | currentCarry;
+
                     currentCarry = newCarry;
                 }
             }
 
-            size_t bitsOverread = data.size() * 8 - type->size;
-            if(bitsOverread)
+            if(type->bitSize % 8 != 0)
             {
-                // Clear the overread bits
-                data()[data.size() - 1] &= (1 << (type->size % 8)) - 1;
+                uint8_t mask = (1 << type->bitSize % 8) - 1;
+                data()[(type->bitSize + 7) / 8 - 1] &= mask;
             }
 
             switch(Primitive(type->id))
@@ -479,20 +479,20 @@ struct PrintVisitor : TypeManager::Visitor
         }
 
         String valueStr;
-        size_t byteSize = (type->offset % 8 + type->size + 7) / 8; // Convert bit size to byte size
+        const size_t byteSize = (type->bitSize + 7) / 8; // convert bit size to byte size
         Memory<unsigned char*> data(byteSize);
 
-        if(MemRead(type->addr + (type->offset / 8), data(), data.size()))
+        if(MemRead(type->addr + type->offset, data(), data.size()))
         {
             if(type->reverse)
                 std::reverse(data(), data() + data.size());
 
-            size_t bitOffset = type->offset % 8;
+            const size_t bitOffset = type->offset % 8;
             uint64_t extractedValue = 0;
 
             memcpy(&extractedValue, data(), std::min(sizeof(extractedValue), data.size()));
             extractedValue >>= bitOffset;
-            extractedValue &= (1ULL << type->size) - 1;
+            extractedValue &= (1ULL << byteSize) - 1;
 
             const auto enumData = static_cast<Enum*>(type->userdata);
             if(enumData->isFlags)
@@ -554,7 +554,10 @@ struct PrintVisitor : TypeManager::Visitor
     bool visitType(const Member & member, const Type & type) override
     {
         if(!mParents.empty() && parent().type == Parent::Union)
+        {
             mOffset = parent().offset;
+            mBitOffset = 0;
+        }
 
         String tname;
         auto ptype = mParents.empty() ? Parent::Struct : parent().type;
@@ -587,28 +590,35 @@ struct PrintVisitor : TypeManager::Visitor
         }
         path.append(member.name);
 
-        auto ptr = mAddr + (mOffset / 8);
+        auto ptr = mAddr + mOffset;
         if(MemIsValidReadPtr(ptr))
         {
             if(!LabelGet(ptr, nullptr) && (!mParents.empty() && (parent().index == 1 || ptype != Parent::Array)))
                 LabelSet(ptr, path.c_str(), false, true);
         }
 
-        TYPEDESCRIPTOR td;
+        TYPEDESCRIPTOR td = { };
         td.expanded = false;
         td.reverse = false;
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
         td.id = type.primitive;
-        td.size = member.bitSize;
-        if(td.size == -1)
-            __debugbreak();
-
+        td.bitSize = member.bitSize;
         td.callback = cbPrintPrimitive;
         td.userdata = nullptr;
+        td.bitOffset = mBitOffset;
         mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
-        mOffset += td.size;
+
+        if(!member.bitfield)
+        {
+            mBitOffset = 0;
+            mOffset += td.bitSize / 8;
+        }
+        else
+        {
+            mBitOffset += member.bitSize;
+        }
 
         return true;
     }
@@ -616,26 +626,29 @@ struct PrintVisitor : TypeManager::Visitor
     bool visitStructUnion(const Member & member, const StructUnion & type) override
     {
         if(!mParents.empty() && parent().type == Parent::Type::Union)
+        {
             mOffset = parent().offset;
+            mBitOffset = 0;
+        }
 
         String tname = StringUtils::sprintf("%s %s %s", type.isUnion ? "union" : "struct", member.assignedType.c_str(), member.name.c_str());
 
-        TYPEDESCRIPTOR td;
+        TYPEDESCRIPTOR td = { };
         td.expanded = true;
         td.reverse = false;
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
         td.id = Typedef;
-        td.size = type.sizeFUCK;
+        td.bitSize = type.sizeFUCK;
         td.callback = nullptr;
         td.userdata = nullptr;
         auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
 
         mPath.push_back((member.name == "display" ? type.name : member.assignedType) + ".");
-        mParents.push_back(Parent(type.isUnion ? Parent::Union : Parent::Struct));
+        mParents.emplace_back(type.isUnion ? Parent::Union : Parent::Struct);
         parent().node = node;
-        parent().size = td.size;
+        parent().size = td.bitSize / 8;
         parent().offset = mOffset;
         return true;
     }
@@ -643,22 +656,25 @@ struct PrintVisitor : TypeManager::Visitor
     bool visitEnum(const Member & member, const Enum & num) override
     {
         if(!mParents.empty() && parent().type == Parent::Type::Union)
+        {
             mOffset = parent().offset;
+            mBitOffset = 0;
+        }
 
         String tname = StringUtils::sprintf("enum %s %s", member.assignedType.c_str(), member.name.c_str());
 
-        TYPEDESCRIPTOR td;
+        TYPEDESCRIPTOR td = { };
         td.expanded = true;
         td.reverse = false;
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
         td.id = Typedef;
-        td.size = num.sizeFUCK;
+        td.bitSize = num.sizeFUCK;
         td.callback = cbPrintEnum;
         td.userdata = const_cast<Enum*>(&num);
         mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
-        mOffset += td.size;
+        mOffset += td.bitSize / 8;
 
         return true;
     }
@@ -667,22 +683,22 @@ struct PrintVisitor : TypeManager::Visitor
     {
         String tname = StringUtils::sprintf("%s %s[%d]", member.assignedType.c_str(), member.name.c_str(), member.arrsize);
 
-        TYPEDESCRIPTOR td;
+        TYPEDESCRIPTOR td = { };
         td.expanded = member.arrsize <= 5;
         td.reverse = false;
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
         td.id = Typedef;
-        td.size = member.arrsize * SizeofType(member.type);
+        td.bitSize = member.arrsize * SizeofType(member.type);
         td.callback = nullptr;
         td.userdata = nullptr;
         auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
 
         mPath.push_back(member.name + ".");
-        mParents.push_back(Parent(Parent::Array));
+        mParents.emplace_back(Parent::Array);
         parent().node = node;
-        parent().size = td.size;
+        parent().size = td.bitSize / 8;
         return true;
     }
 
@@ -698,11 +714,11 @@ struct PrintVisitor : TypeManager::Visitor
             return false;
 
         mPath.push_back(member.assignedType + "->");
-        mParents.push_back(Parent(Parent::Pointer));
+        mParents.emplace_back(Parent::Pointer);
         parent().offset = mOffset;
         parent().addr = mAddr;
         parent().node = mNode;
-        parent().size = type.sizeFUCK;
+        parent().size = type.sizeFUCK / 8;
         mOffset = 0;
         mAddr = value;
         mPtrDepth++;
@@ -757,6 +773,7 @@ private:
 
     std::vector<Parent> mParents;
     duint mOffset = 0;
+    duint mBitOffset = 0;
     duint mAddr = 0;
     int mPtrDepth = 0;
     int mMaxPtrDepth = 0;

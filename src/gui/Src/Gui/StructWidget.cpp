@@ -106,13 +106,13 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
     for(int i = 0; i < columnCount; i++)
         text.append(QString());
 
-    text[ColOffset] = "+0x" + ToHexString(dtype.type.offset / 8);
+    text[ColOffset] = "+0x" + ToHexString(dtype.type.offset);
     text[ColField] = dtype.name;
     if(dtype.type.offset == 0 && true)
-        text[ColAddress] = QString("<u>%1</u>").arg(ToPtrString(dtype.type.addr + (dtype.type.offset / 8)));
+        text[ColAddress] = QString("<u>%1</u>").arg(ToPtrString(dtype.type.addr + dtype.type.offset));
     else
-        text[ColAddress] = ToPtrString(dtype.type.addr + (dtype.type.offset / 8));
-    text[ColSize] = "0x" + ToHexString(dtype.type.size / 8);
+        text[ColAddress] = ToPtrString(dtype.type.addr + dtype.type.offset);
+    text[ColSize] = "0x" + ToHexString(dtype.type.bitSize / 8);
     text[ColValue] = ""; // NOTE: filled in later
     QTreeWidgetItem* item = parent ? new QTreeWidgetItem((QTreeWidgetItem*)parent, text) : new QTreeWidgetItem(ui->treeWidget, text);
     item->setExpanded(dtype.type.expanded);
@@ -138,7 +138,7 @@ void StructWidget::typeUpdateWidget()
         auto name = type.name.toUtf8();
         type.type.name = name.constData();
 
-        auto addr = type.type.addr + (type.type.offset / 8);
+        auto addr = type.type.addr + type.type.offset;
         item->setText(ColAddress, ToPtrString(addr));
         QString valueStr;
 
@@ -158,18 +158,20 @@ void StructWidget::typeUpdateWidget()
             else
                 valueStr = value;
         }
-        else if(!item->childCount() && type.type.size > 0 && type.type.size <= sizeof(uint64_t)) //attempt to display small, non-parent values
+        else if(!item->childCount() && type.type.bitSize > 0 && type.type.bitSize / 8 <= sizeof(uint64_t)) //attempt to display small, non-parent values
         {
             uint64_t data;
-            if(DbgMemRead(addr, &data, type.type.size))
+            // todo fix mem read for bit offset
+            if(DbgMemRead(addr, &data, type.type.bitSize / 8))
             {
                 if(type.type.reverse)
-                    std::reverse((char*)data, (char*)data + type.type.size);
-                valueStr = QString().sprintf("0x%llX, %llu", data, data);
+                    std::reverse((char*)data, (char*)data + (type.type.bitSize / 8));
+                valueStr = QString().sprintf("0x%llX, %llu", data, data, data);
             }
             else if(type.type.addr)
                 valueStr = "???";
         }
+
         item->setText(ColValue, valueStr);
     }
     ui->treeWidget->setUpdatesEnabled(true);
