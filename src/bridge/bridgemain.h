@@ -146,6 +146,11 @@ BRIDGE_IMPEXP unsigned int BridgeGetNtBuildNumber();
 /// </summary>
 BRIDGE_IMPEXP const wchar_t* BridgeUserDirectory();
 
+/// <summary>
+/// Returns true if x64dbg is running under ARM64 emulation.
+/// </summary>
+BRIDGE_IMPEXP bool BridgeIsARM64Emulated();
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

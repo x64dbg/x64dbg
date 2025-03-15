@@ -463,6 +463,29 @@ BRIDGE_IMPEXP const wchar_t* BridgeUserDirectory()
     return szUserDirectory;
 }
 
+BRIDGE_IMPEXP bool BridgeIsARM64Emulated()
+{
+    DWORD flags = CONTEXT_CONTROL;
+    typedef BOOL(WINAPI * type_IsWow64Process2)(HANDLE, USHORT*, USHORT*);
+    auto p_IsWow64Process2 = (type_IsWow64Process2)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "IsWow64Process2");
+    if(p_IsWow64Process2)
+    {
+        USHORT processMachine = 0;
+        USHORT nativeMachine = 0;
+        if(p_IsWow64Process2(GetCurrentProcess(), &processMachine, &nativeMachine))
+        {
+#ifndef IMAGE_FILE_MACHINE_ARM64
+#define IMAGE_FILE_MACHINE_ARM64 0xAA64
+#endif // IMAGE_FILE_MACHINE_ARM64
+            if(nativeMachine == IMAGE_FILE_MACHINE_ARM || nativeMachine == IMAGE_FILE_MACHINE_ARM64)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 BRIDGE_IMPEXP bool DbgMemRead(duint va, void* dest, duint size)
 {
 #ifdef _DEBUG
