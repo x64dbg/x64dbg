@@ -11,7 +11,7 @@ if(CMAKE_SCRIPT_MODE_FILE)
 
     message(STATUS "Copying dependencies from ${DEPS_DIR} to ${GUI_DIR}")
 
-    execute_process(COMMAND ${WINDEPLOYQT} --no-compiler-runtime ${GUI_DLL})
+    execute_process(COMMAND ${WINDEPLOYQT} --no-compiler-runtime --force ${GUI_DLL})
 
     function(copy_dep relfile)
         if(EXISTS ${relfile})
