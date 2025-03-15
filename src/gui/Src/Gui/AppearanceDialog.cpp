@@ -334,8 +334,28 @@ void AppearanceDialog::on_listColorNames_itemSelectionChanged()
     }
     else
         ui->editBackgroundColor->setText("#FFFFFF");
-}
 
+    // Ensure the Example Text background color is always updated
+    QString textColor = ui->editColor->text();
+    QString backgroundColor = ui->editBackgroundColor->text();
+    if(backgroundColor == "#XXXXXX")
+    {
+        backgroundColor = "transparent";
+    }
+    if(QColor(textColor).isValid() && QColor(backgroundColor).isValid())
+    {
+        ui->exampleText->setStyleSheet(QString("color: %1; background-color: %2").arg(textColor).arg(backgroundColor));
+    }
+    else if(QColor(textColor).isValid())
+    {
+        ui->exampleText->setStyleSheet(QString("color: %1").arg(textColor));
+    }
+    else
+    {
+        ui->exampleText->setStyleSheet("color: black");
+    }
+    ui->exampleText->setFont(ConfigFont(colorInfoList.at(colorInfoIndex).defaultFontName));
+}
 void AppearanceDialog::on_buttonSave_clicked()
 {
     Config()->writeColors();
