@@ -802,7 +802,7 @@ bool cbInstrKmovq(int argc, char* argv[])
         DWORD registerindex;
         bool found = true;
         registerindex = atoi(dstText.c_str());
-        if(registerindex >= 8 || registerindex == 0)
+        if(registerindex >= 8)
         {
             goto InvalidDest;
         }
@@ -821,7 +821,7 @@ bool cbInstrKmovq(int argc, char* argv[])
             dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
             return false;
         }
-        context.Opmask[registerindex - 1] = newValue;
+        context.Opmask[registerindex] = newValue;
         SetAVX512Context(hActiveThread, &context);
         GuiUpdateAllViews(); //refresh disassembly/dump/etc
         return true;
@@ -834,7 +834,7 @@ bool cbInstrKmovq(int argc, char* argv[])
         DWORD registerindex;
         bool found = true;
         registerindex = atoi(srcText.c_str());
-        if(registerindex >= 8 || registerindex == 0)
+        if(registerindex >= 8)
         {
             goto InvalidSrc;
         }
@@ -848,7 +848,7 @@ bool cbInstrKmovq(int argc, char* argv[])
             dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
             return false;
         }
-        if(!MemWrite(address, &context.Opmask[registerindex - 1], sizeof(ULONGLONG)))
+        if(!MemWrite(address, &context.Opmask[registerindex], sizeof(ULONGLONG)))
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to write to %p\n"), address);
             return false;
@@ -869,7 +869,7 @@ bool cbInstrKmovq(int argc, char* argv[])
             goto InvalidSrc;
         }
         registerindex[1] = atoi(dstText.c_str());
-        if(registerindex[1] >= 8 || registerindex[1] == 0)
+        if(registerindex[1] >= 8)
         {
             goto InvalidDest;
         }
@@ -879,17 +879,14 @@ bool cbInstrKmovq(int argc, char* argv[])
             dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
             return false;
         }
-        if(registerindex[0] != 0)
-            context.Opmask[registerindex[1] - 1] = context.Opmask[registerindex[0] - 1];
-        else // kmovq k1, k0, set k1 = 0
-            context.Opmask[registerindex[1] - 1] = 0ull;
+        context.Opmask[registerindex[1]] = context.Opmask[registerindex[0]];
         SetAVX512Context(hActiveThread, &context);
         GuiUpdateAllViews(); //refresh disassembly/dump/etc
         return true;
     }
     else
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Usage: kmovq k1, [address] / kmovq [address], k1 / kmov1 k1, k2"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Usage: kmovq k1, [address] / kmovq [address], k1 / kmovq k1, k2"));
         return false;
     }
 InvalidSrc:
