@@ -12,9 +12,10 @@ public:
         FilterContainsTextCaseSensitive, //unused
         FilterContainsTextCaseInsensitive,
         FilterRegexCaseSensitive,
-        FilterRegexCaseInsensitive
+        FilterRegexCaseInsensitive,
     };
 
+    virtual ~AbstractSearchList() = default;
     virtual void lock() = 0;
     virtual void unlock() = 0;
     virtual AbstractStdTable* list() const = 0;

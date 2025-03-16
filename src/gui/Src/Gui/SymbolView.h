@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include "Bridge.h"
+#include "StdIconTable.h"
 
 class QMenu;
 class StdSearchListView;
@@ -14,6 +15,27 @@ namespace Ui
 {
     class SymbolView;
 }
+
+class ModuleStdTable final : public StdIconTable
+{
+    Q_OBJECT
+
+public:
+    ModuleStdTable();
+    void updateColors() override;
+    QColor getCellColor(duint r, duint c) override;
+    QString getCellContent(duint r, duint c) override;
+    void sortRows(duint column, bool ascending) override;
+
+private:
+    MODULESYMBOLSTATUS getStatus(duint r);
+
+    QColor mSymbolSystemTextColor;
+    QColor mSymbolUserTextColor;
+    QColor mSymbolUnloadedTextColor;
+    QColor mSymbolLoadingTextColor;
+    QColor mSymbolLoadedTextColor;
+};
 
 class SymbolView : public QWidget
 {
