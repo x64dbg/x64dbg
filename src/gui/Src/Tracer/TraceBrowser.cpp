@@ -288,7 +288,7 @@ QString TraceBrowser::paintContent(QPainter* painter, duint row, duint col, int 
     QString reason;
     if(getTraceFile()->isError(reason))
     {
-        GuiAddLogMessage(tr("An error occurred when reading trace file (reason: %1).\r\n").arg(reason).toUtf8().constData());
+        GuiAddLogMessage(tr("An error occurred when reading trace file (reason: %1).\n").arg(reason).toUtf8().constData());
         emit closeFile();
         return "";
     }

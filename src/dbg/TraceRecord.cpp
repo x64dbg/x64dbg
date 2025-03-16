@@ -415,7 +415,7 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
             {
                 CloseHandle(rtFile);
                 String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()));
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Trace recording has stopped unexpectedly because WriteFile() failed. GetLastError() = %s.\r\n"), error.c_str());
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Trace recording has stopped unexpectedly because WriteFile() failed. GetLastError() = %s.\n"), error.c_str());
                 rtEnabled = false;
             }
         }
@@ -546,7 +546,7 @@ bool TraceRecordManager::enableTraceRecording(bool enabled, const char* fileName
             rtNeedThreadId = true;
             for(size_t i = 0; i < _countof(rtOldContextChanged); i++)
                 rtOldContextChanged[i] = true;
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Started trace recording to file: %s\r\n"), fileName);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Started trace recording to file: %s\n"), fileName);
             Zydis zydis;
             unsigned char instr[MAX_DISASM_BUFFER];
             auto cip = GetContextDataEx(hActiveThread, UE_CIP);
@@ -561,7 +561,7 @@ bool TraceRecordManager::enableTraceRecording(bool enabled, const char* fileName
         else
         {
             String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()));
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot create trace recording file. GetLastError() = %s.\r\n"), error.c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Cannot create trace recording file. GetLastError() = %s.\n"), error.c_str());
             return false;
         }
     }

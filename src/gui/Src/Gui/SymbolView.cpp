@@ -24,6 +24,8 @@ enum
 
 class ModuleStdTable final : public StdIconTable
 {
+    Q_OBJECT
+
 public:
     ModuleStdTable()
     {
