@@ -4,6 +4,7 @@
 /bin/*.dll
 /bin/*.ini
 /bin/*.chm
+/bin/*.zip
 /src/**/x64/
 /src/**/Win32/
 /src/gui_build/
