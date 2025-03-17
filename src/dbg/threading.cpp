@@ -31,7 +31,7 @@ void unlock(WAIT_ID id)
 
 bool waitislocked(WAIT_ID id)
 {
-    return !WaitForSingleObject(waitArray[id], 0) == WAIT_OBJECT_0;
+    return !(WaitForSingleObject(waitArray[id], 0) == WAIT_OBJECT_0);
 }
 
 void waitinitialize()

@@ -33,7 +33,7 @@ int TraceFileSearchConstantRange(TraceFileReader* file, duint start, duint end)
         regcontext = file->Registers(index).regcontext;
         bool found = false;
         //Registers
-#define FINDREG(fieldName) found |= inRange(regcontext.##fieldName, start, end)
+#define FINDREG(fieldName) found |= inRange(regcontext.fieldName, start, end)
         FINDREG(cax);
         FINDREG(ccx);
         FINDREG(cdx);

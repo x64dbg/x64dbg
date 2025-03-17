@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Bridge/bridgemain.h"
+#include "bridge/bridgemain.h"
 #include "HistoryLineEdit.h"
 #include <QAbstractItemView>
 #include <QCompleter>

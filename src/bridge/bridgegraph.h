@@ -31,7 +31,7 @@ typedef struct
 } BridgeCFGraphList;
 
 #ifdef __cplusplus
-#if _MSC_VER >= 1700 && !defined(NO_CPP11)
+#if __cplusplus >= 201103 || (defined(_MSC_VER) && _MSC_VER >= 1700)
 
 #include <unordered_map>
 #include <unordered_set>

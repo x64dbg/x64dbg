@@ -107,7 +107,7 @@ retryFindWindow:
     else
     {
         DWORD pid, tid;
-        if(tid = GetWindowThreadProcessId(hWndFound, &pid))
+        if((tid = GetWindowThreadProcessId(hWndFound, &pid)))
         {
             refresh();
             QString pidText = QString().sprintf("%u", pid);

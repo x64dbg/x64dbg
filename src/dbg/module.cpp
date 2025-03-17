@@ -24,7 +24,9 @@ static NTSTATUS ImageNtHeaders(duint base, duint size, PIMAGE_NT_HEADERS* outHea
 {
     PIMAGE_NT_HEADERS ntHeaders;
 
+#ifndef __GNUC__
     __try
+#endif // __GNUC__
     {
         if(base == 0 || outHeaders == nullptr)
             return STATUS_INVALID_PARAMETER;
@@ -51,10 +53,12 @@ static NTSTATUS ImageNtHeaders(duint base, duint size, PIMAGE_NT_HEADERS* outHea
         if(ntHeaders->Signature != IMAGE_NT_SIGNATURE)
             return STATUS_INVALID_IMAGE_FORMAT;
     }
+#ifndef __GNUC__
     __except(EXCEPTION_EXECUTE_HANDLER)
     {
         return GetExceptionCode();
     }
+#endif // __GNUC__
 
     *outHeaders = ntHeaders;
     return STATUS_SUCCESS;
@@ -704,6 +708,9 @@ static void ReadExceptionDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 
 static bool GetUnsafeModuleInfoImpl(MODINFO & Info, ULONG_PTR FileMapVA, void(*func)(MODINFO &, ULONG_PTR), const char* name)
 {
+#ifdef __GNUC__
+    func(Info, FileMapVA);
+#else
     __try
     {
         func(Info, FileMapVA);
@@ -713,6 +720,7 @@ static bool GetUnsafeModuleInfoImpl(MODINFO & Info, ULONG_PTR FileMapVA, void(*f
         dprintf(QT_TRANSLATE_NOOP("DBG", "Exception while getting module info (%s), please report...\n"), name);
         return false;
     }
+#endif // __GNUC__
     return true;
 }
 

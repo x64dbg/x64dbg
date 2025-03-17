@@ -69,7 +69,7 @@ void CrashDumpInitialize()
     {
         _set_purecall_handler(TerminateHandler);                // https://msdn.microsoft.com/en-us/library/t296ys27.aspx
         _set_invalid_parameter_handler(InvalidParameterHandler);// https://msdn.microsoft.com/en-us/library/a9yf33zb.aspx
-        set_terminate(TerminateHandler);                        // http://en.cppreference.com/w/cpp/error/set_terminate
+        std::set_terminate(TerminateHandler);                   // http://en.cppreference.com/w/cpp/error/set_terminate
         signal(SIGABRT, AbortHandler);                          // https://msdn.microsoft.com/en-us/library/xdkz3x12.aspx
     }
 }

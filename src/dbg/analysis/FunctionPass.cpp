@@ -1,5 +1,4 @@
 #include "FunctionPass.h"
-#include <ppl.h>
 #include "memory.h"
 #include "console.h"
 #include "debugger.h"
@@ -75,7 +74,7 @@ bool FunctionPass::Analyse()
     // Initialize thread vector
     auto threadFunctions = new std::vector<FunctionDef>[IdealThreadCount()];
 
-    concurrency::parallel_for(duint(0), IdealThreadCount(), [&](duint i)
+    ParallelFor(IdealThreadCount(), [&](duint i)
     {
         // Memory allocation optimization
         // TODO: Option to conserve memory

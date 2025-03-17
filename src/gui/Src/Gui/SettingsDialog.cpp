@@ -148,6 +148,8 @@ void SettingsDialog::LoadSettings()
     case DebugEngineGleeBug:
         ui->radioGleeBug->setChecked(true);
         break;
+    case DebugEngineStaticEngine:
+        break;
     }
     switch(settings.engineBreakpointType)
     {

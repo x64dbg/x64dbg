@@ -832,6 +832,9 @@ void HexEditDialog::printData(DataType type)
     case DataSHA512_3:
         data = printHash(mData, QCryptographicHash::Sha3_512);
         break;
+
+    default:
+        break;
     }
     ui->editCode->setPlainText(data);
 }

@@ -1,10 +1,12 @@
 #pragma once
 
+#ifndef _WIN32_WINNT
 #ifdef _WIN64
 #define _WIN32_WINNT 0x0502 // XP x64 is version 5.2
 #else
 #define _WIN32_WINNT 0x0501
 #endif
+#endif // _WIN32_WINNT
 
 #ifdef WINVER // Overwrite WINVER if given on command line
 #undef WINVER
@@ -33,6 +35,12 @@
 #endif //QT_TRANSLATE_NOOP
 // Uncomment the following line to allow memory leak tracing
 //#define ENABLE_MEM_TRACE
+
+#ifdef _MSC_VER
+#define DBG_ALIGNAS(x) __declspec(align(x))
+#else
+#define DBG_ALIGNAS(x) alignas(x)
+#endif // _MSC_VER
 
 //defines
 #define deflen 1024

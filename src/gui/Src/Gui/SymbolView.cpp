@@ -865,8 +865,7 @@ void SymbolView::moduleSetParty()
     duint modbase = DbgValFromString(mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColBase).toUtf8().constData());
     party = DbgFunctions()->ModGetParty(modbase);
     QString mLineEditeditText;
-    QIcon bookmark = DIcon("bookmark");
-    if(SimpleInputBox(this, tr("Mark the party of the module as"), QString::number(party), mLineEditeditText, tr("0 is user module, 1 is system module."), &bookmark))
+    if(SimpleInputBox(this, tr("Mark the party of the module as"), QString::number(party), mLineEditeditText, tr("0 is user module, 1 is system module."), DIcon("bookmark")))
     {
         bool ok;
         party = mLineEditeditText.toInt(&ok);

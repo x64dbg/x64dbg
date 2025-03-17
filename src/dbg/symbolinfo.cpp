@@ -189,6 +189,12 @@ static void SymSetProgress(int percentage, const char* pdbBaseFile)
     GuiSymbolSetProgress(percentage);
 }
 
+template<class... Args>
+static void symprintf(const char* format, Args... args)
+{
+    GuiSymbolLogAdd(StringUtils::sprintf(GuiTranslateText(format), args...).c_str());
+}
+
 bool SymDownloadSymbol(duint Base, const char* SymbolStore)
 {
     struct DownloadBaseGuard
@@ -196,7 +202,6 @@ bool SymDownloadSymbol(duint Base, const char* SymbolStore)
         DownloadBaseGuard(duint downloadBase) { symbolDownloadingBase = downloadBase; GuiRepaintTableView(); }
         ~DownloadBaseGuard() { symbolDownloadingBase = 0; GuiRepaintTableView(); }
     } g(Base);
-#define symprintf(format, ...) GuiSymbolLogAdd(StringUtils::sprintf(GuiTranslateText(format), __VA_ARGS__).c_str())
 
     // Default to Microsoft's symbol server
     if(!SymbolStore)

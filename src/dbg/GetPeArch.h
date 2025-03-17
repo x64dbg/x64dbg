@@ -27,7 +27,9 @@ static PeArch GetPeArch(const wchar_t* szFileName)
             auto fileMap = MapViewOfFile(hMappedFile, FILE_MAP_READ, 0, 0, 0);
             if(fileMap)
             {
+#ifndef __GNUC__
                 __try
+#endif // __GNUC__
                 {
                     auto pidh = PIMAGE_DOS_HEADER(fileMap);
                     if(pidh->e_magic == IMAGE_DOS_SIGNATURE)
@@ -97,9 +99,11 @@ static PeArch GetPeArch(const wchar_t* szFileName)
                         }
                     }
                 }
+#ifndef __GNUC__
                 __except(EXCEPTION_EXECUTE_HANDLER)
                 {
                 }
+#endif // __GNUC__
                 UnmapViewOfFile(fileMap);
             }
             CloseHandle(hMappedFile);

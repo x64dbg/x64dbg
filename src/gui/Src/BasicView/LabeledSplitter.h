@@ -19,7 +19,6 @@ public:
 
 public slots:
     void attachSlot(LabeledSplitterDetachedWindow* widget);
-    void contextMenuEvent(QContextMenuEvent* event);
 
 protected slots:
     void detachSlot();
@@ -27,6 +26,8 @@ protected slots:
     void shutdownSlot();
 
 protected:
+    void contextMenuEvent(QContextMenuEvent* event) override;
+
     QMenu* mMenu;
     QAction* mExpandCollapseAction;
     QString mConfigName;

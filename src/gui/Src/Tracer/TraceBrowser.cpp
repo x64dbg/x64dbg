@@ -347,6 +347,8 @@ QString TraceBrowser::paintContent(QPainter* painter, duint row, duint col, int 
 
     case Address:
     {
+        BPXTYPE bpxtype = bp_none;
+        bool isbookmark = false;
         QString addrText;
         char label[MAX_LABEL_SIZE] = "";
         if(!DbgIsDebugging())
@@ -356,8 +358,8 @@ QString TraceBrowser::paintContent(QPainter* painter, duint row, duint col, int 
         }
         else
             addrText = getAddrText(cur_addr, label, true);
-        BPXTYPE bpxtype = DbgGetBpxTypeAt(cur_addr);
-        bool isbookmark = DbgGetBookmarkAt(cur_addr);
+        bpxtype = DbgGetBpxTypeAt(cur_addr);
+        isbookmark = DbgGetBookmarkAt(cur_addr);
         //todo: cip
         {
             if(!isbookmark) //no bookmark
@@ -784,8 +786,8 @@ ZydisTokenizer::InstructionToken TraceBrowser::registersTokens(TRACEINDEX atInde
     REGDUMP next = (atIndex + 1 < getTraceFile()->Length()) ? getTraceFile()->Registers(atIndex + 1) : now;
     std::vector<ZydisTokenizer::SingleToken> tokens;
 
-#define addRegValues(str, reg) if (atIndex ==0 || now.regcontext.##reg != next.regcontext.##reg) { \
-    ZydisTokenizer::TokenizeTraceRegister(str, now.regcontext.##reg, next.regcontext.##reg, tokens);};
+#define addRegValues(str, reg) if (atIndex == 0 || now.regcontext.reg != next.regcontext.reg) { \
+    ZydisTokenizer::TokenizeTraceRegister(str, now.regcontext.reg, next.regcontext.reg, tokens);};
 
     addRegValues(ArchValue("eax", "rax"), cax)
     addRegValues(ArchValue("ebx", "rbx"), cbx)
@@ -1043,6 +1045,8 @@ void TraceBrowser::mousePressEvent(QMouseEvent* event)
         break;
     case Qt::ForwardButton:
         gotoNextSlot();
+        break;
+    default:
         break;
     }
 
