@@ -29,4 +29,6 @@ cmake-build*/
 .DS_Store
 Makefile
 Makefile.*
+
 CMakeLists.txt.user
+/.cache
