@@ -2,6 +2,12 @@
 version = "3.15"
 cmkr-include = "cmake/cmkr.cmake"
 
+[options]
+X64DBG_BUILD_IN_TREE = true
+
+[variables]
+CMAKE_MODULE_PATH = "${CMAKE_SOURCE_DIR}/cmake"
+
 [project]
 name = "x64dbg"
 description = "An open-source x64/x32 debugger for windows."
@@ -215,7 +221,7 @@ msvc.link-options = [
 ]
 cmake-after = """
 # Make the executable the main target
-add_dependencies(exe dbg gui deps)
+add_dependencies(exe dbg gui loaddll deps)
 """
 
 [target.exe.properties]
@@ -238,7 +244,9 @@ link-libraries = [
     "Shlwapi",
     "Comctl32",
 ]
+cmake-after = "add_dependencies(exe launcher)"
 
 [target.launcher.properties]
 OUTPUT_NAME = "x96dbg"
 WIN32_EXECUTABLE = "ON"
+X64DBG_BUILD_IN_TREE.RUNTIME_OUTPUT_DIRECTORY = "${PROJECT_SOURCE_DIR}/bin"

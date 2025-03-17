@@ -24,6 +24,12 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS cmake.toml)
 endif()
 
+# Options
+option(X64DBG_BUILD_IN_TREE "" ON)
+
+# Variables
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
 include("cmake/VSToolchain.cmake")
 
 project(x64dbg
@@ -934,7 +940,7 @@ endif()
 
 set(CMKR_TARGET exe)
 # Make the executable the main target
-add_dependencies(exe dbg gui deps)
+add_dependencies(exe dbg gui loaddll deps)
 
 # Target: launcher
 if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
@@ -963,9 +969,19 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
 			ON
 	)
 
+	if(X64DBG_BUILD_IN_TREE) # X64DBG_BUILD_IN_TREE
+		set_target_properties(launcher PROPERTIES
+			RUNTIME_OUTPUT_DIRECTORY
+				"${PROJECT_SOURCE_DIR}/bin"
+		)
+	endif()
+
 	get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 	if(NOT CMKR_VS_STARTUP_PROJECT)
 		set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT launcher)
 	endif()
+
+	set(CMKR_TARGET launcher)
+	add_dependencies(exe launcher)
 
 endif()

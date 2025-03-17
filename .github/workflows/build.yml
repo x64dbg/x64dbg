@@ -1,0 +1,86 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  cmake:
+    # Skip building pull requests from the same repository
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, x86]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Install Ninja
+        uses: seanmiddleditch/gha-setup-ninja@3b1f8f94a2f8254bd26914c4ab9474d4f0015f67 # v6
+
+      - name: Visual Studio Development Environment
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+        with:
+          arch: ${{ matrix.arch }}
+
+      - name: Build
+        run: |
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.arch }}
+          path: bin
+          if-no-files-found: error
+          include-hidden-files: true
+
+  package:
+    needs: cmake
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Download x64 Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-x64
+          path: bin
+
+      - name: Download x86 Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-x86
+          path: bin
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bin-${{ github.sha}}
+          path: bin
+          if-no-files-found: error
+          include-hidden-files: true
+
+      - name: Create snapshot
+        run: |
+          curl.exe -L https://github.com/x64dbg/translations/releases/download/translations/qm.zip -o bin\qm.zip
+          7z x bin\qm.zip -obin
+          cmake -P .\cmake\release.cmake
+          $timestamp = Get-Date -Format "yyyy-MM-dd_HH_mm"
+          7z a -tzip -mx=9 snapshot_$timestamp.zip release\pluginsdk release\release release\commithash.txt
+          7z a -tzip -mx=9 symbols-snapshot_$timestamp.zip release\pdb release\commithash.txt
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: x64dbg-${{ github.sha}}
+          path: '*.zip'
+          if-no-files-found: error
+          include-hidden-files: true
