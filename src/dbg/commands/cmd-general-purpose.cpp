@@ -579,3 +579,323 @@ InvalidDest:
     dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid dest \"%s\"\n"), argv[1]);
     return false;
 }
+
+bool cbInstrVmovdqu(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 3))
+        return false;
+    String dstText = argv[1];
+    String srcText = argv[2];
+    duint address = 0;
+    DWORD registerindex = 0;
+    // AVX
+    if(srcText[0] == '[' && srcText[srcText.length() - 1] == ']' && _memicmp(dstText.c_str(), "ymm", 3) == 0)
+    {
+        YmmRegister_t newValue;
+        // vmovdqu ymm0, [address]
+        dstText = dstText.substr(3);
+        srcText = srcText.substr(1, srcText.size() - 2);
+        DWORD registerindex;
+        bool found = true;
+        registerindex = atoi(dstText.c_str());
+        if(registerindex >= ArchValue(8, 32))
+        {
+            goto InvalidDest;
+        }
+        if(!valfromstring(srcText.c_str(), &address))
+        {
+            goto InvalidSrc;
+        }
+        if(!MemRead(address, &newValue, sizeof(newValue)))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read (all) memory..."));
+            return false;
+        }
+        TITAN_ENGINE_CONTEXT_t context;
+        if(!GetAVXContext(hActiveThread, &context))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
+            return false;
+        }
+        context.YmmRegisters[registerindex] = newValue;
+        SetAVXContext(hActiveThread, &context);
+        GuiUpdateAllViews(); //refresh disassembly/dump/etc
+        return true;
+    }
+    else if(dstText[0] == '[' && dstText[dstText.length() - 1] == ']' && _memicmp(srcText.c_str(), "ymm", 3) == 0)
+    {
+        // vmovdqu [address], ymm0
+        srcText = srcText.substr(3);
+        dstText = dstText.substr(1, dstText.size() - 2);
+        DWORD registerindex;
+        bool found = true;
+        registerindex = atoi(srcText.c_str());
+        if(registerindex >= ArchValue(8, 32))
+        {
+            goto InvalidSrc;
+        }
+        if(!valfromstring(dstText.c_str(), &address) || !MemIsValidReadPtr(address))
+        {
+            goto InvalidDest;
+        }
+        TITAN_ENGINE_CONTEXT_t context;
+        if(!GetAVXContext(hActiveThread, &context))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
+            return false;
+        }
+        if(!MemWrite(address, &context.YmmRegisters[registerindex], sizeof(ZmmRegister_t)))
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to write to %p\n"), address);
+            return false;
+        }
+        GuiUpdateAllViews(); //refresh disassembly/dump/etc
+        return true;
+    }
+    else if(_memicmp(srcText.c_str(), "ymm", 3) == 0 && _memicmp(dstText.c_str(), "ymm", 3) == 0)
+    {
+        // vmovdqu ymm0, ymm1
+        srcText = srcText.substr(3);
+        dstText = dstText.substr(3);
+        DWORD registerindex[2];
+        bool found = true;
+        registerindex[0] = atoi(srcText.c_str());
+        if(registerindex[0] >= ArchValue(8, 32))
+        {
+            goto InvalidSrc;
+        }
+        registerindex[1] = atoi(dstText.c_str());
+        if(registerindex[1] >= ArchValue(8, 32))
+        {
+            goto InvalidDest;
+        }
+        TITAN_ENGINE_CONTEXT_t context;
+        if(!GetAVXContext(hActiveThread, &context))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
+            return false;
+        }
+        context.YmmRegisters[registerindex[1]] = context.YmmRegisters[registerindex[0]];
+        SetAVXContext(hActiveThread, &context);
+        GuiUpdateAllViews(); //refresh disassembly/dump/etc
+        return true;
+    }
+    // AVX-512
+    else if(srcText[0] == '[' && srcText[srcText.length() - 1] == ']' && _memicmp(dstText.c_str(), "zmm", 3) == 0)
+    {
+        ZmmRegister_t newValue;
+        // vmovdqu zmm0, [address]
+        dstText = dstText.substr(3);
+        srcText = srcText.substr(1, srcText.size() - 2);
+        DWORD registerindex;
+        bool found = true;
+        registerindex = atoi(dstText.c_str());
+        if(registerindex >= ArchValue(8, 32))
+        {
+            goto InvalidDest;
+        }
+        if(!valfromstring(srcText.c_str(), &address))
+        {
+            goto InvalidSrc;
+        }
+        if(!MemRead(address, &newValue, sizeof(newValue)))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read (all) memory..."));
+            return false;
+        }
+        TITAN_ENGINE_CONTEXT_AVX512_t context;
+        if(!GetAVX512Context(hActiveThread, &context))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
+            return false;
+        }
+        context.ZmmRegisters[registerindex] = newValue;
+        SetAVX512Context(hActiveThread, &context);
+        GuiUpdateAllViews(); //refresh disassembly/dump/etc
+        return true;
+    }
+    else if(dstText[0] == '[' && dstText[dstText.length() - 1] == ']' && _memicmp(srcText.c_str(), "zmm", 3) == 0)
+    {
+        // vmovdqu [address], zmm0
+        srcText = srcText.substr(3);
+        dstText = dstText.substr(1, dstText.size() - 2);
+        DWORD registerindex;
+        bool found = true;
+        registerindex = atoi(srcText.c_str());
+        if(registerindex >= ArchValue(8, 32))
+        {
+            goto InvalidSrc;
+        }
+        if(!valfromstring(dstText.c_str(), &address) || !MemIsValidReadPtr(address))
+        {
+            goto InvalidDest;
+        }
+        TITAN_ENGINE_CONTEXT_AVX512_t context;
+        if(!GetAVX512Context(hActiveThread, &context))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
+            return false;
+        }
+        if(!MemWrite(address, &context.ZmmRegisters[registerindex], sizeof(ZmmRegister_t)))
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to write to %p\n"), address);
+            return false;
+        }
+        GuiUpdateAllViews(); //refresh disassembly/dump/etc
+        return true;
+    }
+    else if(_memicmp(srcText.c_str(), "zmm", 3) == 0 && _memicmp(dstText.c_str(), "zmm", 3) == 0)
+    {
+        // vmovdqu zmm0, zmm1
+        srcText = srcText.substr(3);
+        dstText = dstText.substr(3);
+        DWORD registerindex[2];
+        bool found = true;
+        registerindex[0] = atoi(srcText.c_str());
+        if(registerindex[0] >= ArchValue(8, 32))
+        {
+            goto InvalidSrc;
+        }
+        registerindex[1] = atoi(dstText.c_str());
+        if(registerindex[1] >= ArchValue(8, 32))
+        {
+            goto InvalidDest;
+        }
+        TITAN_ENGINE_CONTEXT_AVX512_t context;
+        if(!GetAVX512Context(hActiveThread, &context))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
+            return false;
+        }
+        context.ZmmRegisters[registerindex[1]] = context.ZmmRegisters[registerindex[0]];
+        SetAVX512Context(hActiveThread, &context);
+        GuiUpdateAllViews(); //refresh disassembly/dump/etc
+        return true;
+    }
+    else
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Usage: vmovdqu zmm0 (or ymm0), [address] / vmovdqu [address], zmm0 (or ymm0) / vmovdqu zmm0 (or ymm0), zmm1 (or ymm1)"));
+        return false;
+    }
+InvalidSrc:
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid src \"%s\"\n"), argv[2]);
+    return false;
+InvalidDest:
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid dest \"%s\"\n"), argv[1]);
+    return false;
+}
+
+bool cbInstrKmovq(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 3))
+        return false;
+    String dstText = argv[1];
+    String srcText = argv[2];
+    duint address = 0;
+    DWORD registerindex = 0;
+    if(srcText[0] == '[' && srcText[srcText.length() - 1] == ']' && _memicmp(dstText.c_str(), "k", 1) == 0)
+    {
+        ULONGLONG newValue;
+        // kmovq k1, [address]
+        dstText = dstText.substr(1);
+        srcText = srcText.substr(1, srcText.size() - 2);
+        DWORD registerindex;
+        bool found = true;
+        registerindex = atoi(dstText.c_str());
+        if(registerindex >= 8 || registerindex == 0)
+        {
+            goto InvalidDest;
+        }
+        if(!valfromstring(srcText.c_str(), &address))
+        {
+            goto InvalidSrc;
+        }
+        if(!MemRead(address, &newValue, sizeof(newValue)))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read (all) memory..."));
+            return false;
+        }
+        TITAN_ENGINE_CONTEXT_AVX512_t context;
+        if(!GetAVX512Context(hActiveThread, &context))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
+            return false;
+        }
+        context.Opmask[registerindex - 1] = newValue;
+        SetAVX512Context(hActiveThread, &context);
+        GuiUpdateAllViews(); //refresh disassembly/dump/etc
+        return true;
+    }
+    else if(dstText[0] == '[' && dstText[dstText.length() - 1] == ']' && _memicmp(srcText.c_str(), "k", 1) == 0)
+    {
+        // kmovq [address], k1
+        srcText = srcText.substr(1);
+        dstText = dstText.substr(1, dstText.size() - 2);
+        DWORD registerindex;
+        bool found = true;
+        registerindex = atoi(srcText.c_str());
+        if(registerindex >= 8 || registerindex == 0)
+        {
+            goto InvalidSrc;
+        }
+        if(!valfromstring(dstText.c_str(), &address) || !MemIsValidReadPtr(address))
+        {
+            goto InvalidDest;
+        }
+        TITAN_ENGINE_CONTEXT_AVX512_t context;
+        if(!GetAVX512Context(hActiveThread, &context))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
+            return false;
+        }
+        if(!MemWrite(address, &context.Opmask[registerindex - 1], sizeof(ULONGLONG)))
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to write to %p\n"), address);
+            return false;
+        }
+        GuiUpdateAllViews(); //refresh disassembly/dump/etc
+        return true;
+    }
+    else if(_memicmp(srcText.c_str(), "k", 1) == 0 && _memicmp(dstText.c_str(), "k", 1) == 0)
+    {
+        // kmovq k1, k2
+        srcText = srcText.substr(1);
+        dstText = dstText.substr(1);
+        DWORD registerindex[2];
+        bool found = true;
+        registerindex[0] = atoi(srcText.c_str());
+        if(registerindex[0] >= 8)
+        {
+            goto InvalidSrc;
+        }
+        registerindex[1] = atoi(dstText.c_str());
+        if(registerindex[1] >= 8 || registerindex[1] == 0)
+        {
+            goto InvalidDest;
+        }
+        TITAN_ENGINE_CONTEXT_AVX512_t context;
+        if(!GetAVX512Context(hActiveThread, &context))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
+            return false;
+        }
+        if(registerindex[0] != 0)
+            context.Opmask[registerindex[1] - 1] = context.Opmask[registerindex[0] - 1];
+        else // kmovq k1, k0, set k1 = 0
+            context.Opmask[registerindex[1] - 1] = 0ull;
+        SetAVX512Context(hActiveThread, &context);
+        GuiUpdateAllViews(); //refresh disassembly/dump/etc
+        return true;
+    }
+    else
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Usage: kmovq k1, [address] / kmovq [address], k1 / kmov1 k1, k2"));
+        return false;
+    }
+InvalidSrc:
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid src \"%s\"\n"), argv[2]);
+    return false;
+InvalidDest:
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid dest \"%s\"\n"), argv[1]);
+    return false;
+}

@@ -748,6 +748,46 @@ static void TranslateTitanContextToRegContext(const TITAN_ENGINE_CONTEXT_t* titc
     memcpy(regcontext->YmmRegisters, titcontext->YmmRegisters, sizeof(regcontext->YmmRegisters));
 }
 
+static void TranslateTitanContextToRegContext(const TITAN_ENGINE_CONTEXT_t & titcontext, const TITAN_ENGINE_CONTEXT_AVX512_t & titcontext_AVX512, REGISTERCONTEXT_AVX512 & regcontext)
+{
+    regcontext.cax = titcontext.cax;
+    regcontext.ccx = titcontext.ccx;
+    regcontext.cdx = titcontext.cdx;
+    regcontext.cbx = titcontext.cbx;
+    regcontext.csp = titcontext.csp;
+    regcontext.cbp = titcontext.cbp;
+    regcontext.csi = titcontext.csi;
+    regcontext.cdi = titcontext.cdi;
+#ifdef _WIN64
+    regcontext.r8 = titcontext.r8;
+    regcontext.r9 = titcontext.r9;
+    regcontext.r10 = titcontext.r10;
+    regcontext.r11 = titcontext.r11;
+    regcontext.r12 = titcontext.r12;
+    regcontext.r13 = titcontext.r13;
+    regcontext.r14 = titcontext.r14;
+    regcontext.r15 = titcontext.r15;
+#endif //_WIN64
+    regcontext.cip = titcontext.cip;
+    regcontext.eflags = titcontext.eflags;
+    regcontext.gs = titcontext.gs;
+    regcontext.fs = titcontext.fs;
+    regcontext.es = titcontext.es;
+    regcontext.ds = titcontext.ds;
+    regcontext.cs = titcontext.cs;
+    regcontext.ss = titcontext.ss;
+    regcontext.dr0 = titcontext.dr0;
+    regcontext.dr1 = titcontext.dr1;
+    regcontext.dr2 = titcontext.dr2;
+    regcontext.dr3 = titcontext.dr3;
+    regcontext.dr6 = titcontext.dr6;
+    regcontext.dr7 = titcontext.dr7;
+    memcpy(regcontext.RegisterArea, titcontext.RegisterArea, sizeof(regcontext.RegisterArea));
+    TranslateTitanFpu(&titcontext.x87fpu, &regcontext.x87fpu);
+    regcontext.MxCsr = titcontext.MxCsr;
+    memcpy(regcontext.ZmmRegisters, titcontext_AVX512.ZmmRegisters, sizeof(regcontext.ZmmRegisters));
+}
+
 static void TranslateTitanFpuRegister(const x87FPURegister_t* titanReg, X87FPUREGISTER* reg)
 {
     memcpy(reg->data, titanReg->data, sizeof(reg->data));
@@ -797,6 +837,41 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
     GetMxCsrFields(& (regdump->MxCsrFields), regdump->regcontext.MxCsr);
     Getx87ControlWordFields(& (regdump->x87ControlWordFields), regdump->regcontext.x87fpu.ControlWord);
     Getx87StatusWordFields(& (regdump->x87StatusWordFields), regdump->regcontext.x87fpu.StatusWord);
+
+    LASTERROR lastError;
+    memset(&lastError.name, 0, sizeof(lastError.name));
+    lastError.code = ThreadGetLastError(ThreadGetId(hActiveThread));
+    strncpy_s(lastError.name, ErrorCodeToName(lastError.code).c_str(), _TRUNCATE);
+    regdump->lastError = lastError;
+
+    LASTSTATUS lastStatus;
+    memset(&lastStatus.name, 0, sizeof(lastStatus.name));
+    lastStatus.code = ThreadGetLastStatus(ThreadGetId(hActiveThread));
+    strncpy_s(lastStatus.name, NtStatusCodeToName(lastStatus.code).c_str(), _TRUNCATE);
+    regdump->lastStatus = lastStatus;
+
+    return true;
+}
+
+extern "C" DLL_EXPORT bool _dbg_getregdump_AVX512(REGDUMP_AVX512* regdump)
+{
+    if(!DbgIsDebugging())
+    {
+        memset(regdump, 0, sizeof(REGDUMP_AVX512));
+        return true;
+    }
+
+    TITAN_ENGINE_CONTEXT_t titcontext;
+    if(!GetFullContextDataEx(hActiveThread, &titcontext))
+        return false;
+    TITAN_ENGINE_CONTEXT_AVX512_t titcontext_AVX512;
+    if(!GetAVX512Context(hActiveThread, &titcontext_AVX512))
+        return false;
+
+    // NOTE: this is not thread-safe, but that's fine because lastContext is only used for GUI-related operations
+    memcpy(&lastContext, &titcontext, sizeof(titcontext));
+
+    TranslateTitanContextToRegContext(titcontext, titcontext_AVX512, regdump->regcontext);
 
     LASTERROR lastError;
     memset(&lastError.name, 0, sizeof(lastError.name));

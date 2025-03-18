@@ -212,6 +212,7 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit()
     LOADEXPORT(_dbg_encodetypeset);
     LOADEXPORT(_dbg_bpgettypeat);
     LOADEXPORT(_dbg_getregdump);
+    LOADEXPORT(_dbg_getregdump_AVX512);
     LOADEXPORT(_dbg_valtostring);
     LOADEXPORT(_dbg_memisvalidreadptr);
     LOADEXPORT(_dbg_getbplist);
@@ -712,25 +713,32 @@ extern "C" __declspec(dllexport) bool DbgGetRegDump(REGDUMP* regdump)
         X87CONTROLWORDFIELDS x87ControlWordFields;
         LASTERROR lastError;
     } REGDUMP_OLD;
-    return DbgGetRegDumpEx(regdump, sizeof(REGDUMP_OLD));
+    return DbgGetRegDumpEx((REGDUMP*)regdump, sizeof(REGDUMP_OLD));
 }
 
 BRIDGE_IMPEXP bool DbgGetRegDumpEx(REGDUMP* regdump, size_t size)
 {
     if(size == sizeof(REGDUMP))
-        return _dbg_getregdump(regdump);
-
-    if(size > sizeof(REGDUMP))
-        __debugbreak();
-
-    REGDUMP temp;
-    if(!_dbg_getregdump(&temp))
     {
-        memset(regdump, 0, size);
-        return false;
+        return _dbg_getregdump((REGDUMP*)regdump);
     }
-    memcpy(regdump, &temp, size);
-    return true;
+    else if(size < sizeof(REGDUMP))
+    {
+        REGDUMP temp;
+        if(!DbgGetRegDumpEx(&temp, sizeof(REGDUMP)))
+        {
+            memset(regdump, 0, size);
+            return false;
+        }
+        memcpy(regdump, &temp, size);
+        return true;
+    }
+
+    if(size == sizeof(REGDUMP_AVX512))
+        return _dbg_getregdump_AVX512((REGDUMP_AVX512*)regdump);
+    else
+        __debugbreak();
+    return false;
 }
 
 // FIXME all

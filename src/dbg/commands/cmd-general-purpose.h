@@ -29,3 +29,5 @@ bool cbInstrCmp(int argc, char* argv[]);
 bool cbInstrMov(int argc, char* argv[]);
 
 bool cbInstrMovdqu(int argc, char* argv[]);
+bool cbInstrVmovdqu(int argc, char* argv[]);
+bool cbInstrKmovq(int argc, char* argv[]);
