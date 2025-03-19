@@ -31,7 +31,7 @@ static size_t getSSERegisterOffset(FormatValueType value, size_t elementSize)
 {
     char buf[16]; // a safe buffer with sufficient length to prevent buffer overflow while parsing
     memset(buf, 0, sizeof(buf));
-    if(strlen(value) > sizeof(buf))
+    if(strlen(value) >= sizeof(buf))
     {
         return 0;
     }
