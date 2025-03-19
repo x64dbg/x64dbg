@@ -31,6 +31,10 @@ static size_t getSSERegisterOffset(FormatValueType value, size_t elementSize)
 {
     char buf[16]; // a safe buffer with sufficient length to prevent buffer overflow while parsing
     memset(buf, 0, sizeof(buf));
+    if(strlen(value) > sizeof(buf))
+    {
+        return 0;
+    }
     strcpy_s(buf, value); // copy value into buf
     _strlwr_s(buf); // convert "XMM" to "xmm"
     if(buf[1] == 'm' && buf[2] == 'm' && (buf[0] == 'x' || buf[0] == 'y'))  // begins with /[xy]mm/
