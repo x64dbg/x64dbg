@@ -29,8 +29,7 @@ typedef bool (*DBGADDRINFOGET)(duint addr, SEGMENTREG segment, BRIDGE_ADDRINFO* 
 typedef bool (*DBGADDRINFOSET)(duint addr, BRIDGE_ADDRINFO* addrinfo);
 typedef bool(*DBGENCODETYPESET)(duint addr, duint size, ENCODETYPE type);
 typedef BPXTYPE(*DBGBPGETTYPEAT)(duint addr);
-typedef bool (*DBGGETREGDUMP)(REGDUMP* regdump);
-typedef bool (*DBGGETREGDUMPAVX512)(REGDUMP_AVX512* regdump);
+typedef bool (*DBGGETREGDUMP)(REGDUMP_AVX512* regdump);
 typedef bool (*DBGVALTOSTRING)(const char* string, duint value);
 typedef bool (*DBGMEMISVALIDREADPTR)(duint addr);
 typedef int (*DBGGETBPLIST)(BPXTYPE type, BPMAP* bplist);
@@ -54,7 +53,6 @@ extern DBGADDRINFOSET _dbg_addrinfoset;
 extern DBGENCODETYPESET _dbg_encodetypeset;
 extern DBGBPGETTYPEAT _dbg_bpgettypeat;
 extern DBGGETREGDUMP _dbg_getregdump;
-extern DBGGETREGDUMPAVX512 _dbg_getregdump_AVX512;
 extern DBGVALTOSTRING _dbg_valtostring;
 extern DBGMEMISVALIDREADPTR _dbg_memisvalidreadptr;
 extern DBGGETBPLIST _dbg_getbplist;

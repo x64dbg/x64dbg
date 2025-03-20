@@ -19,7 +19,6 @@ DBGADDRINFOSET _dbg_addrinfoset;
 DBGENCODETYPESET _dbg_encodetypeset;
 DBGBPGETTYPEAT _dbg_bpgettypeat;
 DBGGETREGDUMP _dbg_getregdump;
-DBGGETREGDUMPAVX512 _dbg_getregdump_AVX512;
 DBGVALTOSTRING _dbg_valtostring;
 DBGMEMISVALIDREADPTR _dbg_memisvalidreadptr;
 DBGGETBPLIST _dbg_getbplist;

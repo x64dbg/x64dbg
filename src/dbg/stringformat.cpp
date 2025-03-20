@@ -24,7 +24,7 @@ enum class StringValueType
     FloatingPointDouble
 };
 
-// get an offset of REGDUMP structure, or 0 when the input is not an SSE register.
+// get an offset of REGDUMP_AVX512 structure, or 0 when the input is not an SSE register.
 // value: string like "xmm0"
 // elementSize: 4 or 8 for float and double respectively
 static size_t getSSERegisterOffset(FormatValueType value, size_t elementSize)
@@ -37,21 +37,22 @@ static size_t getSSERegisterOffset(FormatValueType value, size_t elementSize)
     }
     strcpy_s(buf, value); // copy value into buf
     _strlwr_s(buf); // convert "XMM" to "xmm"
-    if(buf[1] == 'm' && buf[2] == 'm' && (buf[0] == 'x' || buf[0] == 'y'))  // begins with /[xy]mm/
+    bool AVX512 = detectAVX512();
+    if(buf[1] == 'm' && buf[2] == 'm' && (buf[0] == 'x' || buf[0] == 'y' || (buf[0] == 'z' && AVX512)))  // begins with /[xyz]mm/
     {
-        int index = 0; // the index of XMM/YMM register
+        int index = 0; // the index of XMM/YMM/ZMM register
         int bufptr = 0; // where is the character after the XMM register string
         if(buf[3] >= '0' && buf[3] <= '9' && buf[4] >= '0' && buf[4] <= '9')
         {
             index = (buf[3] - '0') * 10 + (buf[4] - '0'); // convert "10" to 10
-            if(index >= ArchValue(8, 16))  // limit to available XMM registers (32bit: XMM0~XMM7, 64bit: XMM0~XMM15)
+            if(index >= ArchValue(8, (AVX512 ? 32 : 16)))  // limit to available XMM registers (32bit: XMM0~XMM7, 64bit: XMM0~XMM31)
                 return 0;
             bufptr = 5;
         }
         else if(buf[3] >= '0' && buf[3] <= '9')
         {
             index = buf[3] - '0'; // convert "7" to 7
-            if(index >= ArchValue(8, 16))  // limit to available XMM registers (32bit: XMM0~XMM7, 64bit: XMM0~XMM15)
+            if(index >= ArchValue(8, (AVX512 ? 32 : 16)))  // limit to available XMM registers (32bit: XMM0~XMM7, 64bit: XMM0~XMM31)
                 return 0;
             bufptr = 4;
         }
@@ -59,20 +60,28 @@ static size_t getSSERegisterOffset(FormatValueType value, size_t elementSize)
             return 0; // return value 0 is EAX which is not an SSE register, and represents in general the input value is not an SSE register.
 
         if(buf[bufptr] == '\0')   // [xy]mm\d{1,2}
-            return offsetof(REGDUMP, regcontext.XmmRegisters[index]);
+            return offsetof(REGDUMP_AVX512, regcontext.ZmmRegisters[index].Low.Low);
         else if(elementSize == 8 && buf[0] == 'x' && buf[bufptr] == 'h' && buf[bufptr + 1] == '\0')   // xmm\d{1,2}h
-            return offsetof(REGDUMP, regcontext.XmmRegisters[index].High);
+            return offsetof(REGDUMP_AVX512, regcontext.ZmmRegisters[index].Low.High);
         else if(buf[bufptr] == '[')
         {
-            if(buf[bufptr + 1] >= '0' && buf[bufptr + 1] <= '9' && buf[bufptr + 2] == ']' && buf[bufptr + 3] == '\0')   // [xy]mm\d{1,2}\[\d\]
+            if(buf[bufptr + 1] >= '0' && buf[bufptr + 1] <= '9' && buf[bufptr + 2] == ']' && buf[bufptr + 3] == '\0')   // [xyz]mm\d{1,2}\[\d\]
             {
                 size_t item = buf[bufptr + 1] - '0';
                 if(buf[0] == 'x' && item >= 0 && item < 16 / elementSize)  // xmm
-                    return offsetof(REGDUMP, regcontext.XmmRegisters[index]) + item * elementSize;
+                    return offsetof(REGDUMP_AVX512, regcontext.ZmmRegisters[index]) + item * elementSize;
                 else if(buf[0] == 'y' && item >= 0 && item < 32 / elementSize)  // ymm
-                    return offsetof(REGDUMP, regcontext.YmmRegisters[index]) + item * elementSize;
+                    return offsetof(REGDUMP_AVX512, regcontext.ZmmRegisters[index]) + item * elementSize;
+                else if(buf[0] == 'z' && item >= 0 && item < 64 / elementSize) // zmm
+                    return offsetof(REGDUMP_AVX512, regcontext.ZmmRegisters[index]) + item * elementSize;
                 else
                     return 0;
+            }
+            else if(buf[bufptr + 1] == '1' && buf[bufptr + 2] >= '0' && buf[bufptr + 2] <= '9' && buf[bufptr + 3] == ']' && buf[bufptr + 4] == '\0')    // zmm\d{1,2}\[1\d\]
+            {
+                size_t item = 10 + (buf[bufptr + 2] - '0');
+                if(buf[0] == 'z' && item >= 0 && item < 64 / elementSize)  // zmm
+                    return offsetof(REGDUMP_AVX512, regcontext.ZmmRegisters[index]) + item * elementSize;
             }
             else
                 return 0;
@@ -88,11 +97,11 @@ template<class T> String printFloatValue(FormatValueType value)
 {
     static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value, "This function is used to print float and double values.");
     size_t offset = getSSERegisterOffset(value, sizeof(T));
-    REGDUMP registers;
+    REGDUMP_AVX512 registers;
     T data;
     if(offset != 0) // prints an FPU register
     {
-        assert((offset + sizeof(T)) <= sizeof(REGDUMP));
+        assert((offset + sizeof(T)) <= sizeof(REGDUMP_AVX512));
         if(DbgGetRegDumpEx(&registers, sizeof(registers)))
             data = *(T*)((char*)&registers + offset);
         else

@@ -73,4 +73,14 @@ duint GetThreadCount();
 #define ArchValue(x32value, x64value) x32value
 #endif //_WIN64
 
+inline bool detectAVX512()
+{
+    int EABCDX[4];
+    __cpuid(EABCDX, 7); // detect AVX-512
+    if(EABCDX[1] & (1 << 16))  // EBX.bit16=1, supports AVX-512
+        return true;
+    else
+        return false;
+}
+
 #include "dynamicmem.h"

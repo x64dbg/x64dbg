@@ -522,13 +522,13 @@ bool cbInstrMovdqu(int argc, char* argv[])
         {
             goto InvalidDest;
         }
-        REGDUMP registers;
+        REGDUMP_AVX512 registers;
         if(!DbgGetRegDumpEx(&registers, sizeof(registers)))
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
             return false;
         }
-        if(!MemWrite(address, &registers.regcontext.XmmRegisters[registerindex], 16))
+        if(!MemWrite(address, &registers.regcontext.ZmmRegisters[registerindex].Low.Low, 16))
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to write to %p\n"), address);
             return false;
@@ -557,13 +557,13 @@ bool cbInstrMovdqu(int argc, char* argv[])
         {
             goto InvalidDest;
         }
-        REGDUMP registers;
+        REGDUMP_AVX512 registers;
         if(!DbgGetRegDumpEx(&registers, sizeof(registers)))
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
             return false;
         }
-        SetContextDataEx(hActiveThread, registerindex[1], (ULONG_PTR)&registers.regcontext.XmmRegisters[registerindex[0]]);
+        SetContextDataEx(hActiveThread, registerindex[1], (ULONG_PTR)&registers.regcontext.ZmmRegisters[registerindex[0]].Low.Low);
         GuiUpdateAllViews(); //refresh disassembly/dump/etc
         return true;
     }

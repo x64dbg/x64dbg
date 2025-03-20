@@ -801,59 +801,7 @@ static void TranslateTitanFpuRegisters(const x87FPURegister_t titanFpu[8], X87FP
         TranslateTitanFpuRegister(&titanFpu[i], &fpu[i]);
 }
 
-extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump)
-{
-    if(!DbgIsDebugging())
-    {
-        memset(regdump, 0, sizeof(REGDUMP));
-        return true;
-    }
-
-    TITAN_ENGINE_CONTEXT_t titcontext;
-    if(!GetFullContextDataEx(hActiveThread, &titcontext))
-        return false;
-
-    // NOTE: this is not thread-safe, but that's fine because lastContext is only used for GUI-related operations
-    memcpy(&lastContext, &titcontext, sizeof(titcontext));
-
-    TranslateTitanContextToRegContext(&titcontext, &regdump->regcontext);
-
-    duint cflags = regdump->regcontext.eflags;
-    regdump->flags.c = (cflags & (1 << 0)) != 0;
-    regdump->flags.p = (cflags & (1 << 2)) != 0;
-    regdump->flags.a = (cflags & (1 << 4)) != 0;
-    regdump->flags.z = (cflags & (1 << 6)) != 0;
-    regdump->flags.s = (cflags & (1 << 7)) != 0;
-    regdump->flags.t = (cflags & (1 << 8)) != 0;
-    regdump->flags.i = (cflags & (1 << 9)) != 0;
-    regdump->flags.d = (cflags & (1 << 10)) != 0;
-    regdump->flags.o = (cflags & (1 << 11)) != 0;
-
-    x87FPURegister_t x87FPURegisters[8];
-    Getx87FPURegisters(x87FPURegisters,  &titcontext);
-    TranslateTitanFpuRegisters(x87FPURegisters, regdump->x87FPURegisters);
-
-    GetMMXRegisters(regdump->mmx,  &titcontext);
-    GetMxCsrFields(& (regdump->MxCsrFields), regdump->regcontext.MxCsr);
-    Getx87ControlWordFields(& (regdump->x87ControlWordFields), regdump->regcontext.x87fpu.ControlWord);
-    Getx87StatusWordFields(& (regdump->x87StatusWordFields), regdump->regcontext.x87fpu.StatusWord);
-
-    LASTERROR lastError;
-    memset(&lastError.name, 0, sizeof(lastError.name));
-    lastError.code = ThreadGetLastError(ThreadGetId(hActiveThread));
-    strncpy_s(lastError.name, ErrorCodeToName(lastError.code).c_str(), _TRUNCATE);
-    regdump->lastError = lastError;
-
-    LASTSTATUS lastStatus;
-    memset(&lastStatus.name, 0, sizeof(lastStatus.name));
-    lastStatus.code = ThreadGetLastStatus(ThreadGetId(hActiveThread));
-    strncpy_s(lastStatus.name, NtStatusCodeToName(lastStatus.code).c_str(), _TRUNCATE);
-    regdump->lastStatus = lastStatus;
-
-    return true;
-}
-
-extern "C" DLL_EXPORT bool _dbg_getregdump_AVX512(REGDUMP_AVX512* regdump)
+extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP_AVX512* regdump)
 {
     if(!DbgIsDebugging())
     {
@@ -862,11 +810,11 @@ extern "C" DLL_EXPORT bool _dbg_getregdump_AVX512(REGDUMP_AVX512* regdump)
     }
 
     TITAN_ENGINE_CONTEXT_t titcontext;
+    TITAN_ENGINE_CONTEXT_AVX512_t titcontext_AVX512;
     if(!GetFullContextDataEx(hActiveThread, &titcontext))
         return false;
-    TITAN_ENGINE_CONTEXT_AVX512_t titcontext_AVX512;
-    if(!GetAVX512Context(hActiveThread, &titcontext_AVX512))
-        return false;
+    memset(&titcontext_AVX512, 0, sizeof(titcontext_AVX512));
+    GetAVX512Context(hActiveThread, &titcontext_AVX512);
 
     // NOTE: this is not thread-safe, but that's fine because lastContext is only used for GUI-related operations
     memcpy(&lastContext, &titcontext, sizeof(titcontext));

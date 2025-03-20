@@ -131,9 +131,7 @@ static void registercommands()
     //general purpose (SSE/AVX/AVX-512)
     dbgcmdnew("movdqu,movups,movupd", cbInstrMovdqu, true); //move from and to XMM register
     dbgcmdnew("vmovups,vmovupd,vmovdqu", cbInstrVmovdqu, true); //move from and to YMM/ZMM register
-    int EABCDX[4];
-    __cpuid(EABCDX, 7); // detect AVX-512
-    if(EABCDX[1] & (1 << 16))    // EBX.bit16=1, supports AVX-512
+    if(detectAVX512())
     {
         dbgcmdnew("kmovq", cbInstrKmovq, true); //move qword from and to K0-K7 register
         dbgcmdnew("kmovd", cbInstrKmovd, true); //move dword from and to K0-K7 register

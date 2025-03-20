@@ -263,7 +263,7 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
     duint newMemoryAddress[memoryArrayCount];
     duint oldMemory[memoryArrayCount];
     unsigned char newMemoryArrayCount = 0;
-    DbgGetRegDumpEx(&newContext.registers, sizeof(REGDUMP));
+    DbgGetRegDumpEx((REGDUMP_AVX512*)&newContext.registers, sizeof(REGDUMP)); //TODO: Migrate
     newThreadId = ThreadGetId(hActiveThread);
     // Don't try to resolve memory values for invalid/lea/nop instructions
     if(newInstruction.Success() && !newInstruction.IsNop() && newInstruction.GetId() != ZYDIS_MNEMONIC_LEA)
