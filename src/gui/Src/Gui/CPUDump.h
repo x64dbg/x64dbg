@@ -59,6 +59,7 @@ public slots:
     void floatFloatSlot();
     void floatDoubleSlot();
     void floatLongDoubleSlot();
+    void floatHalfSlot();
 
     void addressUnicodeSlot();
     void addressAsciiSlot();
@@ -122,7 +123,8 @@ private:
         ViewAddressAscii,
         ViewAddressUnicode,
         ViewHexCodepage,
-        ViewTextCodepage
+        ViewTextCodepage,
+        ViewFloatHalf
     };
 
     void setView(ViewEnum_t view);
