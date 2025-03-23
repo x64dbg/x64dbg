@@ -31,7 +31,8 @@ public:
         HexWord,
         UnicodeWord,
         SignedDecWord,
-        UnsignedDecWord
+        UnsignedDecWord,
+        HalfFloatWord //half precision floatint point
     };
 
     enum DwordViewMode

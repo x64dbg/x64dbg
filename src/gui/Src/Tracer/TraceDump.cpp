@@ -159,6 +159,7 @@ void TraceDump::setupContextMenu()
     wFloatMenu->addAction(makeAction(DIcon("32bit-float"), tr("&Float (32-bit)"), SLOT(floatFloatSlot())));
     wFloatMenu->addAction(makeAction(DIcon("64bit-float"), tr("&Double (64-bit)"), SLOT(floatDoubleSlot())));
     wFloatMenu->addAction(makeAction(DIcon("80bit-float"), tr("&Long double (80-bit)"), SLOT(floatLongDoubleSlot())));
+    wFloatMenu->addAction(makeAction(DIcon("word"), tr("&Half float (16-bit)"), SLOT(floatHalfSlot())));
     mMenuBuilder->addMenu(makeMenu(DIcon("float"), tr("&Float")), wFloatMenu);
 
     mMenuBuilder->addAction(makeAction(DIcon("address"), tr("&Address"), SLOT(addressAsciiSlot())));
@@ -988,6 +989,31 @@ void TraceDump::floatLongDoubleSlot()
     dDesc.byteMode = AsciiByte;
     wColDesc.data = dDesc;
     appendDescriptor(0, "", false, wColDesc);
+
+    reloadData();
+}
+
+void TraceDump::floatHalfSlot()
+{
+    Config()->setUint("HexDump", "DefaultView", (duint)ViewFloatHalf);
+    int charwidth = getCharWidth();
+    ColumnDescriptor colDesc;
+    DataDescriptor dDesc;
+
+    colDesc.isData = true; //float half
+    colDesc.itemCount = 4;
+    colDesc.separator = 0;
+    colDesc.data.itemSize = Word;
+    colDesc.data.wordMode = HalfFloatWord;
+    appendResetDescriptor(8 + charwidth * 40, tr("Half float (16-bit)"), false, colDesc);
+
+    colDesc.isData = false; //empty column
+    colDesc.itemCount = 0;
+    colDesc.separator = 0;
+    dDesc.itemSize = Byte;
+    dDesc.byteMode = AsciiByte;
+    colDesc.data = dDesc;
+    appendDescriptor(0, "", false, colDesc);
 
     reloadData();
 }
