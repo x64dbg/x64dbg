@@ -1,0 +1,97 @@
+use aes::{Aes256, BlockEncrypt, BlockDecrypt};
+use aes::cipher::{NewCipher, Block};
+use rand::Rng;
+use sha2::{Sha256, Digest};
+use std::fs::{File, OpenOptions};
+use std::io::{self, Read, Write};
+use std::path::Path;
+use std::error::Error;
+
+const KEY_SIZE: usize = 32; // 256 bits
+const BLOCK_SIZE: usize = 16; // AES block size
+
+struct Forwinds {
+    key: Vec<u8>,
+}
+
+impl Forwinds {
+    fn new(key: Vec<u8>) -> Self {
+        Forwinds { key }
+    }
+
+    fn encrypt(&self, data: &[u8]) -> Result<Vec<u8>, Box<dyn Error>> {
+        let mut block = [0u8; BLOCK_SIZE];
+        let mut encrypted_data = Vec::new();
+
+        for chunk in data.chunks(BLOCK_SIZE) {
+            let mut padded_chunk = chunk.to_vec();
+            if padded_chunk.len() < BLOCK_SIZE {
+                padded_chunk.resize(BLOCK_SIZE, 0);
+            }
+            let cipher = Aes256::new(&self.key.into());
+            cipher.encrypt_block(&mut block);
+            encrypted_data.extend_from_slice(&block);
+        }
+
+        Ok(encrypted_data)
+    }
+
+    fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>, Box<dyn Error>> {
+        let mut block = [0u8; BLOCK_SIZE];
+        let mut decrypted_data = Vec::new();
+
+        for chunk in data.chunks(BLOCK_SIZE) {
+            let mut chunk_copy = chunk.to_vec();
+            let cipher = Aes256::new(&self.key.into());
+            cipher.decrypt_block(&mut block);
+            decrypted_data.extend_from_slice(&block);
+        }
+
+        Ok(decrypted_data)
+    }
+
+    fn hash(&self, data: &[u8]) -> String {
+        let mut hasher = Sha256::new();
+        hasher.update(data);
+        let result = hasher.finalize();
+        hex::encode(result)
+    }
+
+    fn save_to_file<P: AsRef<Path>>(&self, path: P, data: &[u8]) -> io::Result<()> {
+        let mut file = OpenOptions::new().write(true).create(true).open(path)?;
+        file.write_all(data)?;
+        Ok(())
+    }
+
+    fn load_from_file<P: AsRef<Path>>(&self, path: P) -> io::Result<Vec<u8>> {
+        let mut file = File::open(path)?;
+        let mut data = Vec::new();
+        file.read_to_end(&mut data)?;
+        Ok(data)
+    }
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let key = rand::thread_rng().gen::<[u8; KEY_SIZE]>().to_vec();
+    let forwinds = Forwinds::new(key);
+
+    // Example data to encrypt
+    let data = b"Sensitive data that needs encryption.";
+    
+    // Encrypt the data
+    let encrypted_data = forwinds.encrypt(data)?;
+    forwinds.save_to_file("encrypted_data.bin", &encrypted_data)?;
+
+    // Load the encrypted data
+    let loaded_encrypted_data = forwinds.load_from_file("encrypted_data.bin")?;
+
+    // Decrypt the data
+    let decrypted_data = forwinds.decrypt(&loaded_encrypted_data)?;
+    println!("Decrypted data: {:?}", String::from_utf8(decrypted_data)?);
+
+    // Hash the original data
+    let hash = forwinds.hash(data);
+    println!("SHA-256 Hash: {}", hash);
+
+    Ok(())
+}
