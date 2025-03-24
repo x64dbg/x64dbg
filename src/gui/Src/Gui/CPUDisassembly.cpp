@@ -499,7 +499,7 @@ void CPUDisassembly::setupRightClickContextMenu()
             QAction* action;
             QIcon icon;
             if(iconTable[i])
-                icon = DIcon(QString("treat_selection_as_%1").arg(iconTable[i]));
+                icon = DIconHelper(QString("treat_selection_as_%1").arg(iconTable[i]));
             if(shortcutTable[i])
                 action = makeShortcutAction(icon, tr(strTable[i]), SLOT(setEncodeTypeRangeSlot()), QString("ActionTreatSelectionAs%1").arg(shortcutTable[i]).toUtf8().constData());
             else
