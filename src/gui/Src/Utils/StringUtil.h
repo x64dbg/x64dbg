@@ -112,6 +112,7 @@ QString ToDateString(const QDate & date);
 QString fillValue(const char* value, int valsize = 2, bool bFpuRegistersLittleEndian = false);
 QString composeRegTextXMM(const char* value, int mode);
 QString composeRegTextYMM(const char* value, int mode);
+QString composeRegTextZMM(const char* value, int mode);
 
 QString GetDataTypeString(const void* buffer, duint size, ENCODETYPE type);
 

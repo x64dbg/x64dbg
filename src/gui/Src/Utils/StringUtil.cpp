@@ -180,6 +180,17 @@ QString composeRegTextYMM(const char* value, int mode)
         return composeRegTextXMM(value + 16, mode) + ' ' + composeRegTextXMM(value, mode);
 }
 
+QString composeRegTextZMM(const char* value, int mode)
+{
+    bool bFpuRegistersLittleEndian = ConfigBool("Gui", "FpuRegistersLittleEndian");
+    if(mode == 0)
+        return fillValue(value, 64, bFpuRegistersLittleEndian);
+    else if(bFpuRegistersLittleEndian)
+        return composeRegTextXMM(value, mode) + ' ' + composeRegTextXMM(value + 16, mode) + ' ' + composeRegTextXMM(value + 32, mode) + ' ' + composeRegTextXMM(value + 48, mode);
+    else
+        return composeRegTextXMM(value + 48, mode) + ' ' + composeRegTextXMM(value + 32, mode) + ' ' + composeRegTextXMM(value + 16, mode) + ' ' + composeRegTextXMM(value, mode);
+}
+
 QString GetDataTypeString(const void* buffer, duint size, ENCODETYPE type)
 {
     switch(type)

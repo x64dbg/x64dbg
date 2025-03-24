@@ -167,7 +167,7 @@ void CPURegistersView::updateRegistersSlot()
 {
     // read registers
     REGDUMP z;
-    DbgGetRegDumpEx(&z, sizeof(REGDUMP));
+    DbgGetRegDumpEx((REGDUMP_AVX512*)&z, sizeof(z)); //TODO
     // update gui
     setRegisters(&z);
 }

@@ -68,7 +68,7 @@ private:
     const int mBulletXOffset = 10;
     CPUDisassembly* mDisassembly = nullptr;
     QList<Instruction_t>* mInstrBuffer;
-    REGDUMP mRegDump = {};
+    REGDUMP_AVX512 mRegDump = {};
 
     struct JumpLine
     {

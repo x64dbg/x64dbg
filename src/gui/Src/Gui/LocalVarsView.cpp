@@ -148,8 +148,8 @@ void LocalVarsView::updateSlot()
         reloadData();
         return;
     }
-    REGDUMP z;
-    DbgGetRegDumpEx(&z, sizeof(REGDUMP));
+    REGDUMP_AVX512 z;
+    DbgGetRegDumpEx(&z, sizeof(z));
     duint start, end;
 
     if(DbgFunctionGet(z.regcontext.cip, &start, &end))
