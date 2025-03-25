@@ -215,6 +215,8 @@ QString GetDataTypeString(const void* buffer, duint size, ENCODETYPE type)
         return composeRegTextXMM((const char*)buffer, ConfigUint("Gui", "SIMDRegistersDisplayMode"));
     case enc_ymmword:
         return composeRegTextYMM((const char*)buffer, ConfigUint("Gui", "SIMDRegistersDisplayMode"));
+    case enc_zmmword:
+        return composeRegTextZMM((const char*)buffer, ConfigUint("Gui", "SIMDRegistersDisplayMode"));
     case enc_real4:
         return ToFloatString(buffer);
     case enc_real8:

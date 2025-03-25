@@ -319,6 +319,7 @@
         <file>icons/control-record.png</file>
         <file>icons/delete.png</file>
         <file>icons/close.png</file>
+        <file>icons/treat_selection_as_zmm.png</file>
     </qresource>
     <qresource prefix="/css">
         <file>default.css</file>

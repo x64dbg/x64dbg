@@ -467,7 +467,7 @@ typedef enum
     enc_mmword,   //8 bytes
     enc_xmmword,  //16 bytes
     enc_ymmword,  //32 bytes
-    enc_zmmword,  //64 bytes avx512 not supported
+    enc_zmmword,  //64 bytes
     enc_real4,    //4 byte float
     enc_real8,    //8 byte double
     enc_real10,   //10 byte decimal
