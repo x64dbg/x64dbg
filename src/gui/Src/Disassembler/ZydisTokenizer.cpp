@@ -111,6 +111,22 @@ void ZydisTokenizer::UpdateStringPool()
     addStringsToPool("xmm13 ymm13 zmm13");
     addStringsToPool("xmm14 ymm14 zmm14");
     addStringsToPool("xmm15 ymm15 zmm15");
+    addStringsToPool("xmm16 ymm16 zmm16");
+    addStringsToPool("xmm17 ymm17 zmm17");
+    addStringsToPool("xmm18 ymm18 zmm18");
+    addStringsToPool("xmm19 ymm19 zmm19");
+    addStringsToPool("xmm20 ymm20 zmm20");
+    addStringsToPool("xmm21 ymm21 zmm21");
+    addStringsToPool("xmm22 ymm22 zmm22");
+    addStringsToPool("xmm23 ymm23 zmm23");
+    addStringsToPool("xmm24 ymm24 zmm24");
+    addStringsToPool("xmm25 ymm25 zmm25");
+    addStringsToPool("xmm26 ymm26 zmm26");
+    addStringsToPool("xmm27 ymm27 zmm27");
+    addStringsToPool("xmm28 ymm28 zmm28");
+    addStringsToPool("xmm29 ymm29 zmm29");
+    addStringsToPool("xmm30 ymm30 zmm30");
+    addStringsToPool("xmm31 ymm31 zmm31");
 }
 
 bool ZydisTokenizer::Tokenize(duint addr, const unsigned char* data, int datasize, InstructionToken & instruction)

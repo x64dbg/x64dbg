@@ -861,12 +861,11 @@ BRIDGE_IMPEXP bool DbgGetRegDumpEx(REGDUMP_AVX512* regdump, size_t size)
             memcpy(actual->regcontext.RegisterArea, regdump2.regcontext.RegisterArea, sizeof(actual->regcontext.RegisterArea));
             for(int i = 0; i < _countof(actual->regcontext.XmmRegisters); i++)
             {
-                __m128 temp;
-                temp = _mm_loadu_ps((const float*)&regdump2.regcontext.ZmmRegisters[i].Low.Low);
-                _mm_storeu_ps((float*)&actual->regcontext.XmmRegisters[i], temp);
-                _mm_storeu_ps((float*)&actual->regcontext.YmmRegisters[i].Low, temp);
-                temp = _mm_loadu_ps((const float*)&regdump2.regcontext.ZmmRegisters[i].Low.High);
-                _mm_storeu_ps((float*)&actual->regcontext.YmmRegisters[i].High, temp);
+                auto temp = regdump2.regcontext.ZmmRegisters[i].Low.Low);
+                actual->regcontext.XmmRegisters[i] = temp;
+                actual->regcontext.YmmRegisters[i].Low = temp;
+                temp = regdump2.regcontext.ZmmRegisters[i].Low.High;
+                actual->regcontext.YmmRegisters[i].High = temp;
             }
 
             duint cflags = actual->regcontext.eflags;

@@ -96,8 +96,6 @@ void CPURegistersView::mousePressEvent(QMouseEvent* event)
                     CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::MmxRegister, mRegisterMapping.constFind(r).value()));
                 else if(mFPUXMM.contains(r))
                     CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(r).value()));
-                else if(mFPUYMM.contains(r))
-                    CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(r).value()));
                 else if(mSEGMENTREGISTER.contains(r))
                     CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::MemorySegment, mRegisterMapping.constFind(r).value()));
                 else
@@ -166,8 +164,8 @@ void CPURegistersView::debugStateChangedSlot(DBGSTATE state)
 void CPURegistersView::updateRegistersSlot()
 {
     // read registers
-    REGDUMP z;
-    DbgGetRegDumpEx((REGDUMP_AVX512*)&z, sizeof(z)); //TODO
+    REGDUMP_AVX512 z;
+    DbgGetRegDumpEx(&z, sizeof(z));
     // update gui
     setRegisters(&z);
 }
@@ -260,10 +258,10 @@ void CPURegistersView::displayEditDialog()
             // if(mFpuMode == false)
             updateRegistersSlot();
         }
-        else if(mFPUYMM.contains(mSelected))
-            editSIMDRegister(this, 256, tr("Edit %1 register").arg(name), registerValue(&mRegDumpStruct, mSelected), mSelected);
         else if(mFPUXMM.contains(mSelected))
-            editSIMDRegister(this, 128, tr("Edit %1 register").arg(name), registerValue(&mRegDumpStruct, mSelected), mSelected);
+        {
+            editSIMDRegister(this, GetSizeRegister(mSelected) * 8, tr("Edit %1 register").arg(name), registerValue(&mRegDumpStruct, mSelected), mSelected);
+        }
         else if(mFPUMMX.contains(mSelected))
             editSIMDRegister(this, 64, tr("Edit %1 register").arg(name), registerValue(&mRegDumpStruct, mSelected), mSelected);
         else
@@ -485,7 +483,7 @@ void CPURegistersView::onUndoAction()
 {
     if(mUNDODISPLAY.contains(mSelected))
     {
-        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
+        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
             setRegister(mSelected, (duint)registerValue(&mCipRegDumpStruct, mSelected));
         else
             setRegister(mSelected, *(duint*)registerValue(&mCipRegDumpStruct, mSelected));
@@ -508,8 +506,6 @@ void CPURegistersView::onHighlightSlot()
         CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::MmxRegister, mRegisterMapping.constFind(mSelected).value()));
     else if(mFPUXMM.contains(mSelected))
         CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(mSelected).value()));
-    else if(mFPUYMM.contains(mSelected))
-        CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(mSelected).value()));
     CPUDisassemblyView->reloadData();
 }
 
@@ -635,12 +631,12 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
         }
         menu.addAction(wCM_CopyAll);
 
-        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mSEGMENTREGISTER.contains(mSelected) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
+        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mSEGMENTREGISTER.contains(mSelected) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected))
         {
             menu.addAction(wCM_Highlight);
         }
 
-        if(mUNDODISPLAY.contains(mSelected) && CompareRegisters(mSelected, &mRegDumpStruct, &mCipRegDumpStruct) != 0)
+        if(mUNDODISPLAY.contains(mSelected) && CompareRegisters(mSelected, &mRegDumpStruct) != 0)
         {
             menu.addAction(wCM_Undo);
             wCM_CopyPrevious->setData(GetRegStringValueFromValue(mSelected, registerValue(&mCipRegDumpStruct, mSelected)));
@@ -659,7 +655,7 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
             menu.addAction(wCM_Decrementx87Stack);
         }
 
-        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
+        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected))
         {
             menu.addMenu(mSwitchSIMDDispMode);
         }
