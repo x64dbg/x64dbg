@@ -18,6 +18,7 @@ public slots:
     void onCopySIMDRegister();
     void onSetCurrentRegister();
     void onFollowInDump();
+    void onHighlightSlot();
 
 protected:
     virtual void mouseDoubleClickEvent(QMouseEvent* event);
@@ -27,4 +28,5 @@ private:
     QAction* wCM_CopySIMDRegister;
     QAction* wCM_SetCurrentRegister;
     QAction* wCM_FollowInDump;
+    QAction* wCM_Highlight;
 };

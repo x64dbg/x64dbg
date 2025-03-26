@@ -502,7 +502,7 @@ void CPURegistersView::onUndoAction()
 {
     if(mUNDODISPLAY.contains(mSelected))
     {
-        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
+        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUOpmask.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
             setRegister(mSelected, (duint)registerValue(&mCipRegDumpStruct, mSelected));
         else
             setRegister(mSelected, *(duint*)registerValue(&mCipRegDumpStruct, mSelected));
@@ -525,6 +525,8 @@ void CPURegistersView::onHighlightSlot()
         CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::MmxRegister, mRegisterMapping.constFind(mSelected).value()));
     else if(mFPUXMM.contains(mSelected))
         CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(mSelected).value()));
+    else if(mFPUOpmask.contains(mSelected))
+        CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::ZmmRegister, mRegisterMapping.constFind(mSelected).value()));
     CPUDisassemblyView->reloadData();
 }
 
@@ -650,7 +652,7 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
         }
         menu.addAction(wCM_CopyAll);
 
-        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mSEGMENTREGISTER.contains(mSelected) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected))
+        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mSEGMENTREGISTER.contains(mSelected) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUOpmask.contains(mSelected))
         {
             menu.addAction(wCM_Highlight);
         }

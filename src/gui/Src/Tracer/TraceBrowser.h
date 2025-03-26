@@ -34,6 +34,8 @@ public:
     static bool isRecording();
     static bool toggleTraceRecording(QWidget* parent);
 
+    bool hightlightToken(const ZydisTokenizer::SingleToken & token);
+
 private:
     enum TableColumnIndex
     {
