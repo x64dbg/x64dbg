@@ -906,6 +906,7 @@ typedef struct
 #else // x86
     ZMMREGISTER ZmmRegisters[8];
 #endif
+    ULONGLONG Opmask[8];
 } REGISTERCONTEXT_AVX512;
 
 typedef struct

@@ -1945,7 +1945,7 @@ static bool longEnough(const char* str, size_t min_length)
 }
 
 /**
-\brief Checks if a string starts with another string.
+\brief Checks if a string starts with another string (ignores case).
 \param pre The desired prefix of the string.
 \param str The complete string.
 \return true if \p str starts with \p pre.
@@ -2341,6 +2341,26 @@ static void setfpuvalue(const char* string, duint value)
         }
         if(found)
             SetContextDataEx(hActiveThread, registerindex, value);
+    }
+    else if(startsWith("K", string))  // Opmask registers
+    {
+        DWORD registerindex;
+        bool found = true;
+        registerindex = atoi(string + 1);
+        if(registerindex >= 8)
+        {
+            found = false;
+        }
+        TITAN_ENGINE_CONTEXT_AVX512_t context;
+        if(!GetAVX512Context(hActiveThread, &context))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
+        }
+        else
+        {
+            context.Opmask[registerindex] = *(ULONGLONG*)value;
+            SetAVX512Context(hActiveThread, &context);
+        }
     }
 }
 

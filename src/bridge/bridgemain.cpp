@@ -861,7 +861,7 @@ BRIDGE_IMPEXP bool DbgGetRegDumpEx(REGDUMP_AVX512* regdump, size_t size)
             memcpy(actual->regcontext.RegisterArea, regdump2.regcontext.RegisterArea, sizeof(actual->regcontext.RegisterArea));
             for(int i = 0; i < _countof(actual->regcontext.XmmRegisters); i++)
             {
-                auto temp = regdump2.regcontext.ZmmRegisters[i].Low.Low);
+                auto temp = regdump2.regcontext.ZmmRegisters[i].Low.Low;
                 actual->regcontext.XmmRegisters[i] = temp;
                 actual->regcontext.YmmRegisters[i].Low = temp;
                 temp = regdump2.regcontext.ZmmRegisters[i].Low.High;

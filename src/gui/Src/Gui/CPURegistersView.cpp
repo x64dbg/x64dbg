@@ -293,6 +293,11 @@ void CPURegistersView::displayEditDialog()
                         fpuvalue = (duint) mLineEdit.editText.toUShort(&ok, 16);
                     else if(mDWORDDISPLAY.contains(mSelected))
                         fpuvalue = mLineEdit.editText.toUInt(&ok, 16);
+                    else if(mFPUOpmask.contains(mSelected))
+                    {
+                        ULONGLONG newopmaskvalue = mLineEdit.editText.toULongLong(&ok, 16);
+                        setRegister(mSelected, reinterpret_cast<duint>(&newopmaskvalue));
+                    }
                     else if(mFPUx87_80BITSDISPLAY.contains(mSelected))
                     {
                         QString editTextLower = mLineEdit.editText.toLower();

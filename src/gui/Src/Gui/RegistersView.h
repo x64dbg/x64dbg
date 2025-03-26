@@ -67,6 +67,7 @@ public:
         XMM16, XMM17, XMM18, XMM19, XMM20, XMM21, XMM22, XMM23,
         XMM24, XMM25, XMM26, XMM27, XMM28, XMM29, XMM30, XMM31,
 #endif //_WIN64
+        K0, K1, K2, K3, K4, K5, K6, K7,
         UNKNOWN
     };
 protected:
@@ -99,7 +100,7 @@ protected:
         REGISTERCONTEXT_AVX512 regcontext;
         FLAGS flags;
         X87FPUREGISTER x87FPURegisters[8];
-        unsigned long long mmx[8];
+        //unsigned long long mmx[8];
         MXCSRFIELDS MxCsrFields;
         X87STATUSWORDFIELDS x87StatusWordFields;
         X87CONTROLWORDFIELDS x87ControlWordFields;
@@ -146,6 +147,8 @@ public:
     static void* operator new(size_t size);
     static void operator delete(void* p);
     int getEstimateHeight();
+
+    static bool isAVX512Supported();
 
 public slots:
     virtual void refreshShortcutsSlot();
@@ -204,6 +207,8 @@ protected slots:
     void onCopySymbolToClipboardAction();
     // switch SIMD display modes
     void onSIMDMode();
+    void onXMMSizeAutoClicked();
+    void onAlwaysShowAVX512Clicked();
     void onFpuMode();
     void onCopyAllAction();
 protected:
@@ -239,6 +244,7 @@ protected:
     QSet<REGISTER_NAME> mFPUx87;
     QSet<REGISTER_NAME> mFPUMMX;
     QSet<REGISTER_NAME> mFPUXMM;
+    QSet<REGISTER_NAME> mFPUOpmask;
     // contains all id's of registers if there occurs a change
     QSet<REGISTER_NAME> mRegisterUpdates;
     // registers that do not allow changes
@@ -260,6 +266,8 @@ protected:
     char mFpuMode; //0 = order by ST(X), 1 = order by x87rX, 2 = MMX registers
     char mXMMMode; //0 = XMM, 1 = YMM, 2 = ZMM
     bool mXMMModeAuto; //true = automatically switch on and off YMM/ZMM display
+    bool mAlwaysShowAVX512Registers; //true = always show AVX512 registers, false = auto
+    bool mAVX512RegistersShown;
     dsint mCip;
     std::vector<std::pair<const char*, uint8_t>> mHighlightRegs;
     // menu actions
@@ -285,4 +293,6 @@ protected:
     QAction* SIMDSQWord;
     QAction* SIMDUQWord;
     QAction* SIMDHQWord;
+    QAction* SIMDXMMSizeAuto;
+    QAction* SIMDAlwaysShowAVX512;
 };
