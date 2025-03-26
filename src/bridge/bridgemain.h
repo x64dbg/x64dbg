@@ -885,21 +885,12 @@ typedef struct
 #endif //_WIN64
     ULONG_PTR cip;
     ULONG_PTR eflags;
-    unsigned short gs;
-    unsigned short fs;
-    unsigned short es;
-    unsigned short ds;
-    unsigned short cs;
-    unsigned short ss;
     ULONG_PTR dr0;
     ULONG_PTR dr1;
     ULONG_PTR dr2;
     ULONG_PTR dr3;
     ULONG_PTR dr6;
     ULONG_PTR dr7;
-    BYTE RegisterArea[80];
-    X87FPU x87fpu;
-    DWORD MxCsr;
     // To save space, aliased SSE and AVX states are shared with AVX-512 states instead. If the CPU does not support AVX-512, the unused part will be ignored.
 #ifdef _WIN64
     ZMMREGISTER ZmmRegisters[32];
@@ -907,6 +898,15 @@ typedef struct
     ZMMREGISTER ZmmRegisters[8];
 #endif
     ULONGLONG Opmask[8];
+    BYTE RegisterArea[80];
+    DWORD MxCsr;
+    X87FPU x87fpu;
+    unsigned short gs;
+    unsigned short fs;
+    unsigned short es;
+    unsigned short ds;
+    unsigned short cs;
+    unsigned short ss;
 } REGISTERCONTEXT_AVX512;
 
 typedef struct
@@ -938,8 +938,8 @@ typedef struct
 {
     REGISTERCONTEXT_AVX512 regcontext;
     // To save space, original aliased fields (flags, x87FPURegisters, mmx, MxCsrFields, x87StatusWordFields, x87ControlWordFields) are removed, and can be found in regcontext.
-    LASTERROR lastError;
-    LASTSTATUS lastStatus;
+    DWORD lastError;
+    DWORD lastStatus;
 } REGDUMP_AVX512;
 
 typedef struct

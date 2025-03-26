@@ -727,17 +727,9 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP_AVX512* regdump)
 
     TranslateTitanContextToRegContext(titcontext, titcontext_AVX512, regdump->regcontext);
 
-    LASTERROR lastError;
-    memset(&lastError.name, 0, sizeof(lastError.name));
-    lastError.code = ThreadGetLastError(ThreadGetId(hActiveThread));
-    strncpy_s(lastError.name, ErrorCodeToName(lastError.code).c_str(), _TRUNCATE);
-    regdump->lastError = lastError;
-
-    LASTSTATUS lastStatus;
-    memset(&lastStatus.name, 0, sizeof(lastStatus.name));
-    lastStatus.code = ThreadGetLastStatus(ThreadGetId(hActiveThread));
-    strncpy_s(lastStatus.name, NtStatusCodeToName(lastStatus.code).c_str(), _TRUNCATE);
-    regdump->lastStatus = lastStatus;
+    auto threadId = ThreadGetId(hActiveThread);
+    regdump->lastError = ThreadGetLastError(threadId);
+    regdump->lastStatus =  ThreadGetLastStatus(threadId);
 
     return true;
 }

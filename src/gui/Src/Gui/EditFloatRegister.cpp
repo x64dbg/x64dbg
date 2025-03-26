@@ -51,7 +51,9 @@ EditFloatRegister::EditFloatRegister(int RegisterSize, QWidget* parent) :
         GuiAddLogMessage(tr("Error, register size %1 is not supported.\n").arg(RegisterSize).toUtf8().constData());
         break;
     }
-    setFixedWidth(width());
+    int estimatedWidth = fontMetrics().boundingRect("-32767000").width() * 8 + fontMetrics().boundingRect(ui->labelLC->text()).width();
+    estimatedWidth += 16 * ui->gridLayout_XMM->horizontalSpacing();
+    setFixedWidth(estimatedWidth);
     adjustSize();
 
     connect(ui->hexEdit, SIGNAL(textEdited(QString)), this, SLOT(editingHex1FinishedSlot(QString)));

@@ -8,7 +8,7 @@
 #include "bridgemain.h"
 #include <stdio.h>
 #include <ShlObj.h>
-#include <xmmintrin.h>
+#include "../dbg/_dbgfunctions.h"
 #include "Utf8Ini.h"
 
 static HINSTANCE hInst;
@@ -892,15 +892,40 @@ BRIDGE_IMPEXP bool DbgGetRegDumpEx(REGDUMP_AVX512* regdump, size_t size)
                 actual->x87FPURegisters[i].tag = (int)((actual->regcontext.x87fpu.TagWord >> (i * 2)) & 0x3);
             }
 
-            actual->lastError = regdump2.lastError;
-            if(size == sizeof(REGDUMP))
-                actual->lastStatus = regdump2.lastStatus; // Not supported in REGDUMP_OLD
+            actual->lastError.code = regdump2.lastError;
+            char fmtString[64] = "";
+            auto pStringFormatInline = DbgFunctions()->StringFormatInline; // When called before dbgfunctionsinit() this can be NULL!
+            if(pStringFormatInline && sprintf_s(fmtString, _TRUNCATE, "{winerrorname@%X}", actual->lastError.code) != -1)
+            {
+                pStringFormatInline(fmtString, sizeof(actual->lastError.name), actual->lastError.name);
+            }
+            else
+            {
+                memset(actual->lastError.name, 0, sizeof(actual->lastError.name));
+            }
+
+            if(size == sizeof(REGDUMP))  // Not supported in REGDUMP_OLD
+            {
+                actual->lastStatus.code = regdump2.lastStatus;
+                if(pStringFormatInline && sprintf_s(fmtString, _TRUNCATE, "{ntstatusname@%X}", actual->lastStatus.code) != -1)
+                {
+                    pStringFormatInline(fmtString, sizeof(actual->lastStatus.name), actual->lastStatus.name);
+                }
+                else
+                {
+                    memset(actual->lastStatus.name, 0, sizeof(actual->lastStatus.name));
+                }
+            }
             return true;
         }
         else
         {
             return false;
         }
+    }
+    else if(size == sizeof(REGDUMP_AVX512))
+    {
+        return _dbg_getregdump(regdump);
     }
     else if(size < sizeof(REGDUMP))
     {
@@ -913,9 +938,6 @@ BRIDGE_IMPEXP bool DbgGetRegDumpEx(REGDUMP_AVX512* regdump, size_t size)
         memcpy(regdump, &temp, size);
         return true;
     }
-
-    if(size == sizeof(REGDUMP_AVX512))
-        return _dbg_getregdump(regdump);
     else
         __debugbreak();
     return false;

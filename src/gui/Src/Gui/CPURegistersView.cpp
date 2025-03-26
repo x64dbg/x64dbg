@@ -165,9 +165,11 @@ void CPURegistersView::updateRegistersSlot()
 {
     // read registers
     REGDUMP_AVX512 z;
-    DbgGetRegDumpEx(&z, sizeof(z));
-    // update gui
-    setRegisters(&z);
+    if(DbgGetRegDumpEx(&z, sizeof(z)))
+    {
+        // update gui
+        setRegisters(&z);
+    }
 }
 
 void CPURegistersView::ModifyFields(const QString & title, STRING_VALUE_TABLE_t* table, SIZE_T size)

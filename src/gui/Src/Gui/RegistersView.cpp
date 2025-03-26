@@ -735,7 +735,6 @@ RegistersView::REGDUMP_EXTENDED RegistersView::expandContext(const REGDUMP* reg)
     memset(&value.regcontext.Opmask, 0, sizeof(value.regcontext.Opmask));
     value.flags = reg->flags;
     memcpy(value.x87FPURegisters, reg->x87FPURegisters, sizeof(value.x87FPURegisters));
-    //memcpy(value.mmx, reg->mmx, sizeof(value.mmx));
     value.MxCsrFields = reg->MxCsrFields;
     value.x87StatusWordFields = reg->x87StatusWordFields;
     value.x87ControlWordFields = reg->x87ControlWordFields;
@@ -873,13 +872,30 @@ RegistersView::REGDUMP_EXTENDED RegistersView::expandContext(const REGDUMP_AVX51
     for(int i = 0; i < 8; i++)
     {
         memcpy(value.x87FPURegisters[i].data, GetRegisterAreaOf87register(value.regcontext.RegisterArea, x87r0_position, i), 10);
-        //value.mmx[i] = *((uint64_t*)&value.x87FPURegisters[i].data);
         value.x87FPURegisters[i].st_value = GetSTValueFromIndex(x87r0_position, i);
         value.x87FPURegisters[i].tag = (int)((value.regcontext.x87fpu.TagWord >> (i * 2)) & 0x3);
     }
 
-    value.lastError = reg->lastError;
-    value.lastStatus = reg->lastStatus;
+    value.lastError.code = reg->lastError;
+    char fmtString[64] = "";
+    auto pStringFormatInline = DbgFunctions()->StringFormatInline; // When called before dbgfunctionsinit() this can be NULL!
+    if(pStringFormatInline && sprintf_s(fmtString, _TRUNCATE, "{winerrorname@%X}", value.lastError.code) != -1)
+    {
+        pStringFormatInline(fmtString, sizeof(value.lastError.name), value.lastError.name);
+    }
+    else
+    {
+        memset(value.lastError.name, 0, sizeof(value.lastError.name));
+    }
+    value.lastStatus.code = reg->lastStatus;
+    if(pStringFormatInline && sprintf_s(fmtString, _TRUNCATE, "{ntstatusname@%X}", value.lastStatus.code) != -1)
+    {
+        pStringFormatInline(fmtString, sizeof(value.lastStatus.name), value.lastStatus.name);
+    }
+    else
+    {
+        memset(value.lastStatus.name, 0, sizeof(value.lastStatus.name));
+    }
     return value;
 }
 
@@ -1939,7 +1955,7 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
         }
     }
 
-    return std::move(newText);
+    return newText;
 }
 
 /**
@@ -2020,7 +2036,7 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, const char*
     }
     else if(mFPUOpmask.contains(reg))
     {
-        valueText = QString("%1").arg((* ((const quint64*) value)), 1, 16, QChar('0')).toUpper();
+        valueText = QString("%1").arg((* ((const quint64*) value)), 16, 16, QChar('0')).toUpper();
     }
     else
     {
@@ -2579,20 +2595,20 @@ static int detectXMMMode(const ZMMREGISTER* ZmmRegisters)
 
 static bool detectAVX512Used(const REGISTERCONTEXT_AVX512* context)
 {
-    __m128 temp = _mm_load_ps((float*)&context->Opmask[0]);
+    __m128 temp = _mm_load_ps((const float*)&context->Opmask[0]);
     quint64* ptr = (quint64*)&temp;
-    for(int i = 1; i < 3; i++)
-        temp = _mm_or_ps(temp, _mm_load_ps((float*)&context->Opmask[i * 2]));
+    for(int i = 1; i <= 3; i++)
+        temp = _mm_or_ps(temp, _mm_load_ps((const float*)&context->Opmask[i * 2]));
     if(ptr[0] | ptr[1])
         return true;
 #ifdef _WIN64
-    for(int i = 16; i < 31; i++)
+    for(int i = 16; i <= 31; i++)
     {
         __m128 temp2[2];
-        temp2[0] = _mm_load_ps((float*)&context->ZmmRegisters[i].Low.Low);
-        temp2[1] = _mm_load_ps((float*)&context->ZmmRegisters[i].Low.High);
-        temp2[0] = _mm_or_ps(temp2[0], _mm_load_ps((float*)&context->ZmmRegisters[i].Low.High));
-        temp2[1] = _mm_or_ps(temp2[1], _mm_load_ps((float*)&context->ZmmRegisters[i].High.High));
+        temp2[0] = _mm_load_ps((const float*)&context->ZmmRegisters[i].Low.Low);
+        temp2[1] = _mm_load_ps((const float*)&context->ZmmRegisters[i].Low.High);
+        temp2[0] = _mm_or_ps(temp2[0], _mm_load_ps((const float*)&context->ZmmRegisters[i].Low.High));
+        temp2[1] = _mm_or_ps(temp2[1], _mm_load_ps((const float*)&context->ZmmRegisters[i].High.High));
         temp = _mm_or_ps(temp, temp2[0]);
         temp = _mm_or_ps(temp, temp2[1]);
     }
@@ -2618,16 +2634,7 @@ void RegistersView::onAlwaysShowAVX512Clicked()
         GuiAddLogMessage(tr("AVX-512 isn't supported on this computer.\n").toUtf8().constData());
     }
     SIMDAlwaysShowAVX512->setChecked(mAlwaysShowAVX512Registers);
-    bool old_AVX512RegistersShown = mAVX512RegistersShown;
-    if(mAlwaysShowAVX512Registers)
-        mAVX512RegistersShown = true;
-    else
-        mAVX512RegistersShown = detectAVX512Used(&mRegDumpStruct.regcontext);
-    if(mAVX512RegistersShown != old_AVX512RegistersShown)
-    {
-        InitMappings();
-        emit refresh();
-    }
+    autoUpdateXMMModesAndRefresh();
 }
 
 void RegistersView::onFpuMode()
@@ -3004,38 +3011,29 @@ char* RegistersView::registerValue(const REGDUMP_EXTENDED* regd, const REGISTER_
         return (char*) &regd->regcontext.dr7;
 
     // MMX values are the same as x87 FPU
+    case x87r0:
     case MM0:
         return (char*) &regd->x87FPURegisters[0];
+    case x87r1:
     case MM1:
         return (char*) &regd->x87FPURegisters[1];
+    case x87r2:
     case MM2:
         return (char*) &regd->x87FPURegisters[2];
+    case x87r3:
     case MM3:
         return (char*) &regd->x87FPURegisters[3];
+    case x87r4:
     case MM4:
         return (char*) &regd->x87FPURegisters[4];
+    case x87r5:
     case MM5:
         return (char*) &regd->x87FPURegisters[5];
+    case x87r6:
     case MM6:
         return (char*) &regd->x87FPURegisters[6];
-    case MM7:
-        return (char*) &regd->x87FPURegisters[7];
-
-    case x87r0:
-        return (char*) &regd->x87FPURegisters[0];
-    case x87r1:
-        return (char*) &regd->x87FPURegisters[1];
-    case x87r2:
-        return (char*) &regd->x87FPURegisters[2];
-    case x87r3:
-        return (char*) &regd->x87FPURegisters[3];
-    case x87r4:
-        return (char*) &regd->x87FPURegisters[4];
-    case x87r5:
-        return (char*) &regd->x87FPURegisters[5];
-    case x87r6:
-        return (char*) &regd->x87FPURegisters[6];
     case x87r7:
+    case MM7:
         return (char*) &regd->x87FPURegisters[7];
 
     case x87st0:
@@ -3276,30 +3274,11 @@ void RegistersView::setRegisters(REGDUMP* reg)
     if(mCip != reg->regcontext.cip)
         mCipRegDumpStruct = mRegDumpStruct;
 
-    mXMMMode = mXMMModeAuto ? detectXMMMode(mRegDumpStruct.regcontext.ZmmRegisters) : 2;
-
-    bool old_AVX512RegistersShown = mAVX512RegistersShown;
-    if(!mAlwaysShowAVX512Registers)
-    {
-        mAVX512RegistersShown = detectAVX512Used(&mRegDumpStruct.regcontext);
-    }
-    else
-    {
-        mAVX512RegistersShown = true;
-    }
-    if(mAVX512RegistersShown != old_AVX512RegistersShown)
-        InitMappings();
-
-    // force repaint
-    emit refresh();
+    autoUpdateXMMModesAndRefresh();
 }
 
 void RegistersView::setRegisters(REGDUMP_AVX512* reg)
 {
-    if(detectAVX512Used(&reg->regcontext))
-    {
-        GuiAddLogMessage("AVX-512 used?");
-    }
     auto converted = expandContext(reg);
     // tests if new-register-value == old-register-value holds
     if(mCip != reg->regcontext.cip) //CIP changed
@@ -3324,6 +3303,24 @@ void RegistersView::setRegisters(REGDUMP_AVX512* reg)
     if(mCip != reg->regcontext.cip)
         mCipRegDumpStruct = mRegDumpStruct;
 
+    autoUpdateXMMModesAndRefresh();
+}
+
+// Scroll the viewport so that the register will be visible on the screen
+void RegistersView::ensureRegisterVisible(REGISTER_NAME reg)
+{
+    QScrollArea* upperScrollArea = (QScrollArea*)this->parentWidget()->parentWidget();
+
+    int ySpace = yTopSpacing;
+    if(mVScrollOffset != 0)
+        ySpace = 0;
+    int y = mRowHeight * (mRegisterPlaces[reg].line + mVScrollOffset) + ySpace;
+
+    upperScrollArea->ensureVisible(0, y);
+}
+
+void RegistersView::autoUpdateXMMModesAndRefresh()
+{
     mXMMMode = mXMMModeAuto ? detectXMMMode(mRegDumpStruct.regcontext.ZmmRegisters) : 2;
 
     bool old_AVX512RegistersShown = mAVX512RegistersShown;
@@ -3340,17 +3337,4 @@ void RegistersView::setRegisters(REGDUMP_AVX512* reg)
 
     // force repaint
     emit refresh();
-}
-
-// Scroll the viewport so that the register will be visible on the screen
-void RegistersView::ensureRegisterVisible(REGISTER_NAME reg)
-{
-    QScrollArea* upperScrollArea = (QScrollArea*)this->parentWidget()->parentWidget();
-
-    int ySpace = yTopSpacing;
-    if(mVScrollOffset != 0)
-        ySpace = 0;
-    int y = mRowHeight * (mRegisterPlaces[reg].line + mVScrollOffset) + ySpace;
-
-    upperScrollArea->ensureVisible(0, y);
 }

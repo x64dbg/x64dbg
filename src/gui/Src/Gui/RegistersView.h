@@ -100,7 +100,6 @@ protected:
         REGISTERCONTEXT_AVX512 regcontext;
         FLAGS flags;
         X87FPUREGISTER x87FPURegisters[8];
-        //unsigned long long mmx[8];
         MXCSRFIELDS MxCsrFields;
         X87STATUSWORDFIELDS x87StatusWordFields;
         X87CONTROLWORDFIELDS x87ControlWordFields;
@@ -268,6 +267,7 @@ protected:
     bool mXMMModeAuto; //true = automatically switch on and off YMM/ZMM display
     bool mAlwaysShowAVX512Registers; //true = always show AVX512 registers, false = auto
     bool mAVX512RegistersShown;
+    void autoUpdateXMMModesAndRefresh();
     dsint mCip;
     std::vector<std::pair<const char*, uint8_t>> mHighlightRegs;
     // menu actions
