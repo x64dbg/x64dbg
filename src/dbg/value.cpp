@@ -1963,6 +1963,7 @@ static bool startsWith(const char* pre, const char* str)
 #define MMX_PRE_FIELD_STRING "MM"
 #define XMM_PRE_FIELD_STRING "XMM"
 #define YMM_PRE_FIELD_STRING "YMM"
+#define ZMM_PRE_FIELD_STRING "ZMM"
 #define x8780BITFPU_PRE_FIELD_STRING "x87r"
 #define x8780BITFPU_PRE_FIELD_STRING_ST "st"
 #define STRLEN_USING_SIZEOF(string) (sizeof(string) - 1)
@@ -2345,21 +2346,37 @@ static void setfpuvalue(const char* string, duint value)
     else if(startsWith("K", string))  // Opmask registers
     {
         DWORD registerindex;
-        bool found = true;
         registerindex = atoi(string + 1);
-        if(registerindex >= 8)
+        if(registerindex < 8)
         {
-            found = false;
+            TITAN_ENGINE_CONTEXT_AVX512_t context;
+            if(!GetAVX512Context(hActiveThread, &context))
+            {
+                dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
+            }
+            else
+            {
+                context.Opmask[registerindex] = *(ULONGLONG*)value;
+                SetAVX512Context(hActiveThread, &context);
+            }
         }
-        TITAN_ENGINE_CONTEXT_AVX512_t context;
-        if(!GetAVX512Context(hActiveThread, &context))
+    }
+    else if(startsWith(ZMM_PRE_FIELD_STRING, string))
+    {
+        DWORD registerindex;
+        registerindex = atoi(string + STRLEN_USING_SIZEOF(ZMM_PRE_FIELD_STRING));
+        if(registerindex < ArchValue(8, 32))
         {
-            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
-        }
-        else
-        {
-            context.Opmask[registerindex] = *(ULONGLONG*)value;
-            SetAVX512Context(hActiveThread, &context);
+            TITAN_ENGINE_CONTEXT_AVX512_t context;
+            if(!GetAVX512Context(hActiveThread, &context))
+            {
+                dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
+            }
+            else
+            {
+                context.ZmmRegisters[registerindex] = *(ZmmRegister_t*)value;
+                SetAVX512Context(hActiveThread, &context);
+            }
         }
     }
 }

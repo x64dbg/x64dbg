@@ -69,6 +69,8 @@ private slots:
     void editingUpperLongLong0FinishedSlot(QString arg);
     void editingUpperLongLong1FinishedSlot(QString arg);
 
+    void AVX512ScrollbarScrolled(int value);
+
 private:
     HexValidator hexValidate;
     LongLongValidator signedShortValidator;
@@ -99,6 +101,8 @@ private:
 
     Ui::EditFloatRegister* ui;
     QObject* mutex = nullptr;
-    char Data[64];
+    // The compiler could use MOVAPS instruction to copy this data so it needs to be aligned.
+    __declspec(align(32)) char Data[64];
     int RegSize;
+    int AVX512EditUpper;
 };

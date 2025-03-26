@@ -310,7 +310,15 @@ void CPURegistersView::displayEditDialog()
                     else if(mFPUOpmask.contains(mSelected))
                     {
                         ULONGLONG newopmaskvalue = mLineEdit.editText.toULongLong(&ok, 16);
-                        setRegister(mSelected, reinterpret_cast<duint>(&newopmaskvalue));
+                        if(!ok)
+                        {
+                            errorinput = true;
+                        }
+                        else
+                        {
+                            setRegister(mSelected, reinterpret_cast<duint>(&newopmaskvalue));
+                            return;
+                        }
                     }
                     else if(mFPUx87_80BITSDISPLAY.contains(mSelected))
                     {
@@ -726,6 +734,18 @@ void CPURegistersView::setRegister(REGISTER_NAME reg, duint value)
         else
             // map "cax" to "eax" or "rax"
             regName = mRegisterMapping.constFind(reg).value();
+        if(reg >= XMM0 && reg <= ArchValue(XMM7, XMM31))
+        {
+            switch(mXMMMode)
+            {
+            case 1:
+                regName[0] = 'Y';
+                break;
+            case 2:
+                regName[0] = 'Z';
+                break;
+            }
+        }
 
         // flags need to '_' infront
         if(mFlags.contains(reg))
