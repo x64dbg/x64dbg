@@ -238,6 +238,18 @@ void CPURegistersView::displayEditDialog()
     auto name = mRegisterMapping[mSelected];
     if(mFPU.contains(mSelected))
     {
+        if(!isAVX512Supported())
+        {
+            if(mFPUOpmask.contains(mSelected)
+#ifdef _WIN64
+                    || mSelected >= XMM16 && mSelected <= XMM31
+#endif //_WIN64
+              )
+            {
+                SimpleErrorBox(this, tr("Error"), RegistersView::tr("AVX-512 isn't supported on this computer.\n").trimmed());
+                return;
+            }
+        }
         if(mSelected == x87TagWord || mSelected == x87StatusWord || mSelected == x87ControlWord || mSelected == MxCsr)
         {
             WordEditDialog editDialog(this);
@@ -662,7 +674,7 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
             menu.addAction(wCM_Decrementx87Stack);
         }
 
-        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected))
+        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUOpmask.contains(mSelected))
         {
             menu.addMenu(mSwitchSIMDDispMode);
         }
