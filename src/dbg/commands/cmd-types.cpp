@@ -631,7 +631,19 @@ struct PrintVisitor : TypeManager::Visitor
             mBitOffset = 0;
         }
 
-        String tname = StringUtils::sprintf("%s %s %s", type.isUnion ? "union" : "struct", member.assignedType.c_str(), member.name.c_str());
+        std::string targetType;
+        if(member.assignedType.find("__anonymous") == 0)
+            targetType = "";
+        else
+            targetType = member.assignedType;
+
+        std::string targetName;
+        if(member.name.find("__anonymous") == 0)
+            targetName = "";
+        else
+            targetName = member.name;
+
+        String tname = StringUtils::sprintf("%s %s %s", type.isUnion ? "union" : "struct", targetType.c_str(), targetName.c_str());
 
         TYPEDESCRIPTOR td = { };
         td.expanded = true;
