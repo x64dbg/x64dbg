@@ -44,8 +44,9 @@ namespace Types
 
         int arrsize = 0; //Number of elements if Member is an array
         int bitSize = -1; //Bitfield size
-        bool bitfield = false;
         int offsetFUCK = -1; //Member offset (only stored for reference)
+
+        bool bitfield = false;
     };
 
     struct StructUnion

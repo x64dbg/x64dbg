@@ -734,7 +734,14 @@ static void loadStructUnions(const JSON suroot, std::vector<StructUnion> & struc
         curSu.name = suname;
         curSu.members.clear();
         curSu.isUnion = json_boolean_value(json_object_get(vali, "isUnion"));
-        curSu.sizeFUCK = json_default_int(vali, "size", 0) * 8;
+
+        auto size = json_default_int(vali, "size", -1);
+        if(size == -1)
+            size = json_default_int(vali, "bitSize", 8);
+        else
+            size *= 8;
+
+        curSu.sizeFUCK = size;
 
         auto members = json_object_get(vali, "members");
 
@@ -751,7 +758,12 @@ static void loadStructUnions(const JSON suroot, std::vector<StructUnion> & struc
             curMember.type = type;
             curMember.name = name;
             curMember.arrsize = json_default_int(valj, "arrsize", 0);
-            curMember.bitSize = json_default_int(valj, "bitSize", -1);
+            size = json_default_int(valj, "size", -1);
+            if(size == -1)
+                size = json_default_int(valj, "bitSize", 8);
+            else
+                size *= 8;
+            curMember.bitSize = size;
             curMember.bitfield = json_boolean_value(json_object_get(valj, "bitfield"));
 
             curMember.offsetFUCK = json_default_int(valj, "offset", -1);
@@ -979,7 +991,8 @@ void LoadModel(const std::string & owner, Model & model)
 bool LoadTypesJson(const std::string & json, const std::string & owner)
 {
     EXCLUSIVE_ACQUIRE(LockTypeManager);
-    auto root = json_loads(json.c_str(), 0, 0);
+    json_error_t err;
+    auto root = json_loads(json.c_str(), 0, &err);
     if(root)
     {
         Model model;
