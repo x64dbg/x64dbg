@@ -555,6 +555,8 @@ void RegistersView::InitMappings()
         mRegisterRelativePlaces.insert(XMM15, Register_Relative_Position(XMM14, (mAVX512RegistersShown ? XMM16 : DR0)));
         if(mAVX512RegistersShown)
         {
+            offset++;
+
             mRegisterMapping.insert(XMM16, "XMM16");
             mRegisterPlaces.insert(XMM16, Register_Position(offset++, 0, 6, 16 * 2));
             mRegisterRelativePlaces.insert(XMM16, Register_Relative_Position(XMM15, XMM17));
@@ -633,7 +635,7 @@ void RegistersView::InitMappings()
             mRegisterRelativePlaces.insert(K5, Register_Relative_Position(K4, K6));
             mRegisterMapping.insert(K6, "K6");
             mRegisterPlaces.insert(K6, Register_Position(offset++, 0, 4, 16 * 2));
-            mRegisterRelativePlaces.insert(K6, Register_Relative_Position(K5, K6));
+            mRegisterRelativePlaces.insert(K6, Register_Relative_Position(K5, K7));
             mRegisterMapping.insert(K7, "K7");
             mRegisterPlaces.insert(K7, Register_Position(offset++, 0, 4, 16 * 2));
             mRegisterRelativePlaces.insert(K7, Register_Relative_Position(K6, DR0));
@@ -649,11 +651,7 @@ void RegistersView::InitMappings()
 
     if(mShowFpu)
     {
-#ifdef _WIN64
-        mRegisterRelativePlaces.insert(DR0, Register_Relative_Position((mAVX512RegistersShown ? XMM31 : XMM15), DR1));
-#else
-        mRegisterRelativePlaces.insert(DR0, Register_Relative_Position(XMM7, DR1));
-#endif
+        mRegisterRelativePlaces.insert(DR0, Register_Relative_Position((mAVX512RegistersShown ? K7 : ArchValue(XMM7, XMM15)), DR1));
     }
     else
     {
