@@ -235,7 +235,19 @@ static void editSIMDRegister(CPURegistersView* parent, int bits, const QString &
 
 void CPURegistersView::displayEditDialog()
 {
-    auto name = mRegisterMapping[mSelected];
+    QString name = mRegisterMapping[mSelected];
+    // change the name from XMM to YMM and ZMM depending on mXMMMode
+    if(mSelected >= XMM0 && mSelected <= ArchValue(XMM7, XMM31))
+    {
+        if(mXMMMode == 1)
+        {
+            name[0] = 'Y';
+        }
+        else if(mXMMMode == 2)
+        {
+            name[0] = 'Z';
+        }
+    }
     if(mFPU.contains(mSelected))
     {
         if(!isAVX512Supported())

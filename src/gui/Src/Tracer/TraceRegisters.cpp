@@ -23,6 +23,10 @@ TraceRegisters::TraceRegisters(TraceWidget* parent) : RegistersView(parent)
 
     wCM_Highlight = setupAction(DIcon("highlight"), tr("Highlight"));
     connect(wCM_Highlight, SIGNAL(triggered()), this, SLOT(onHighlightSlot()));
+
+    delete SIMDAlwaysShowAVX512; // Currently it doesn't support AVX512
+    SIMDAlwaysShowAVX512 = nullptr;
+    mXMMModeYMMOnly = true;
 }
 
 void TraceRegisters::setRegisters(REGDUMP* registers)

@@ -924,6 +924,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mAlwaysShowAVX512Registers = false;
     mXMMMode = 0;
     mAVX512RegistersShown = isAVX512Supported();
+    mXMMModeYMMOnly = !isAVX512Supported();
     isActive = false;
 
     // general purposes register (we allow the user to modify the value)
@@ -1388,7 +1389,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     connect(mDisplaySTX, SIGNAL(triggered()), this, SLOT(onFpuMode()));
     connect(mDisplayx87rX, SIGNAL(triggered()), this, SLOT(onFpuMode()));
     connect(mDisplayMMX, SIGNAL(triggered()), this, SLOT(onFpuMode()));
-    SIMDXMMSizeAuto = new QAction(tr("Always show full ZMM register"), mSwitchSIMDDispMode);
+    SIMDXMMSizeAuto = new QAction(tr("Always show maximum vector length"), mSwitchSIMDDispMode);
     SIMDAlwaysShowAVX512 = new QAction(tr("Always show all AVX-512 registers"), mSwitchSIMDDispMode);
     connect(SIMDXMMSizeAuto, SIGNAL(triggered()), this, SLOT(onXMMSizeAutoClicked()));
     connect(SIMDAlwaysShowAVX512, SIGNAL(triggered()), this, SLOT(onAlwaysShowAVX512Clicked()));
@@ -2304,8 +2305,21 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         p->restore();
         */
 
-        // draw name of value
-        int width = fontMetrics.width(mRegisterMapping[reg]);
+        //get the register name
+        QString regName = mRegisterMapping[reg];
+        // change the name from XMM to YMM and ZMM depending on mXMMMode
+        if(regName.size() > 3 && mXMMMode != 0 && regName[0] == 'X' && regName[1] == 'M' && regName[2] == 'M')
+        {
+            if(mXMMMode == 1)
+            {
+                regName[0] = 'Y';
+            }
+            else if(mXMMMode == 2)
+            {
+                regName[0] = 'Z';
+            }
+        }
+        int width = fontMetrics.width(regName);
 
         // set the color of the register label
 #ifdef _WIN64
@@ -2329,20 +2343,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         }
 #endif //_WIN64
 
-        //draw the register name
-        auto regName = mRegisterMapping[reg];
-        // change the name from XMM to YMM and ZMM depending on mXMMMode
-        if(regName.size() > 3 && mXMMMode != 0 && regName[0] == 'X' && regName[1] == 'M' && regName[2] == 'M')
-        {
-            if(mXMMMode == 1)
-            {
-                regName[0] = 'Y';
-            }
-            else if(mXMMMode == 2)
-            {
-                regName[0] = 'Z';
-            }
-        }
+        // draw name of value
         p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, regName);
 
         //highlight the register based on access
@@ -2622,7 +2623,7 @@ void RegistersView::onXMMSizeAutoClicked()
 {
     mXMMModeAuto = !mXMMModeAuto;
     SIMDXMMSizeAuto->setChecked(!mXMMModeAuto);
-    mXMMMode = mXMMModeAuto ? detectXMMMode(mRegDumpStruct.regcontext.ZmmRegisters) : 2;
+    mXMMMode = mXMMModeAuto ? detectXMMMode(mRegDumpStruct.regcontext.ZmmRegisters) : (mXMMModeYMMOnly ? 1 : 2);
     emit refresh();
 }
 
@@ -3321,7 +3322,7 @@ void RegistersView::ensureRegisterVisible(REGISTER_NAME reg)
 
 void RegistersView::autoUpdateXMMModesAndRefresh()
 {
-    mXMMMode = mXMMModeAuto ? detectXMMMode(mRegDumpStruct.regcontext.ZmmRegisters) : 2;
+    mXMMMode = mXMMModeAuto ? detectXMMMode(mRegDumpStruct.regcontext.ZmmRegisters) : (mXMMModeYMMOnly ? 1 : 2);
 
     bool old_AVX512RegistersShown = mAVX512RegistersShown;
     if(!mAlwaysShowAVX512Registers)

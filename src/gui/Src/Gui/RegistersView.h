@@ -265,6 +265,7 @@ protected:
     char mFpuMode; //0 = order by ST(X), 1 = order by x87rX, 2 = MMX registers
     char mXMMMode; //0 = XMM, 1 = YMM, 2 = ZMM
     bool mXMMModeAuto; //true = automatically switch on and off YMM/ZMM display
+    bool mXMMModeYMMOnly; //true = only show YMM registers when the user requests to show full vector length
     bool mAlwaysShowAVX512Registers; //true = always show AVX512 registers, false = auto
     bool mAVX512RegistersShown;
     void autoUpdateXMMModesAndRefresh();
