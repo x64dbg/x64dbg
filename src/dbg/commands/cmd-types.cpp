@@ -479,20 +479,33 @@ struct PrintVisitor : TypeManager::Visitor
         }
 
         String valueStr;
-        const size_t byteSize = (type->bitSize + 7) / 8; // convert bit size to byte size
-        Memory<unsigned char*> data(byteSize);
 
-        if(MemRead(type->addr + type->offset, data(), data.size()))
+        Memory<unsigned char*> data(8 + 1);
+        if(MemRead(type->addr + type->offset + type->bitOffset / 8, data(), (type->bitSize + 7) / 8))
         {
             if(type->reverse)
                 std::reverse(data(), data() + data.size());
 
-            const size_t bitOffset = type->offset % 8;
-            uint64_t extractedValue = 0;
+            size_t bitsFromStart = type->bitOffset % 8;
+            if(bitsFromStart != 0)  // have to shift the data over
+            {
+                uint8_t currentCarry = 0;
+                for(size_t i = data.size(); i > 0; i--)
+                {
+                    uint8_t newCarry = data()[i - 1] << 8 - bitsFromStart;
+                    data()[i - 1] = data()[i - 1] >> bitsFromStart | currentCarry;
 
-            memcpy(&extractedValue, data(), std::min(sizeof(extractedValue), data.size()));
-            extractedValue >>= bitOffset;
-            extractedValue &= (1ULL << byteSize) - 1;
+                    currentCarry = newCarry;
+                }
+            }
+
+            if(type->bitSize % 8 != 0)
+            {
+                uint8_t mask = (1 << type->bitSize % 8) - 1;
+                data()[(type->bitSize + 7) / 8 - 1] &= mask;
+            }
+
+            uint64_t extractedValue = *data();
 
             const auto enumData = static_cast<Enum*>(type->userdata);
             if(enumData->isFlags)
