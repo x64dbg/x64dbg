@@ -42,9 +42,16 @@ bool TypeManager::AddType(const std::string & owner, const std::string & type, c
         return false;
     validPtr(type);
 
-    auto found_t = types.find(type);
-    if(found_t != types.end())
-        return addType(owner, found_t->second.primitive, name);
+    auto foundType = types.find(type);
+    if(foundType != types.end())
+    {
+        if(foundType->second.primitive == Typedef)
+            return addType(owner, Typedef, name, type);
+        if(foundType->second.primitive == Pointer)
+            return addType(owner, Typedef, name, type);
+
+        return addType(owner, foundType->second.primitive, name);
+    }
 
     auto found_e = enums.find(type);
     if(found_e != enums.end())

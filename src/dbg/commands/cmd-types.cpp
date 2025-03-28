@@ -341,14 +341,14 @@ struct PrintVisitor : TypeManager::Visitor
 
     static bool cbPrintPrimitive(const TYPEDESCRIPTOR* type, char* dest, size_t* destCount)
     {
-        if(!type->addr)
+        if(!type->addr || !type->bitSize)
         {
             *dest = '\0';
             return true;
         }
         String valueStr;
 
-        Memory<unsigned char*> data(8);
+        Memory<unsigned char*> data((type->bitSize + 7) / 8);
         if(MemRead(type->addr + type->offset + type->bitOffset / 8, data(), (type->bitSize + 7) / 8))
         {
             if(type->reverse)
@@ -568,9 +568,9 @@ struct PrintVisitor : TypeManager::Visitor
         else
         {
             if(member.bitfield)
-                tname = StringUtils::sprintf("%s %s : %d", type.name.c_str(), member.name.c_str(), member.bitSize);
+                tname = StringUtils::sprintf("%s %s : %d", member.assignedType.c_str(), member.name.c_str(), member.bitSize);
             else
-                tname = StringUtils::sprintf("%s %s", type.name.c_str(), member.name.c_str());
+                tname = StringUtils::sprintf("%s %s", member.assignedType.c_str(), member.name.c_str());
 
             // Prepend struct/union to pointer types
             if(!type.pointto.empty())
@@ -604,7 +604,10 @@ struct PrintVisitor : TypeManager::Visitor
         td.addr = mAddr;
         td.offset = mOffset;
         td.id = type.primitive;
-        td.bitSize = member.bitSize;
+        td.bitSize = type.sizeFUCK;
+        if(td.bitSize < 0)
+            __debugbreak();
+
         td.callback = cbPrintPrimitive;
         td.userdata = nullptr;
         td.bitOffset = mBitOffset;
