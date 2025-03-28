@@ -366,6 +366,7 @@ void TypeManager::Clear(const std::string & owner)
     filterOwnerMap(types, owner);
     filterOwnerMap(structs, owner);
     filterOwnerMap(functions, owner);
+    filterOwnerMap(enums, owner);
 }
 
 template <typename K, typename V>
