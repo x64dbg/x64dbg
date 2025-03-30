@@ -207,7 +207,7 @@ sources = [
     "src/exe/*.h",
     "src/exe/manifest.xml",
     "src/exe/resource.rc",
-    "src/exe/strings.rc",
+    "src/exe/strings_utf8.rc",
 ]
 x86.sources = ["src/exe/icon32.rc"]
 x64.sources = ["src/exe/icon64.rc"]
@@ -251,7 +251,7 @@ sources = [
     "src/launcher/*.cpp",
     "src/exe/icon.rc",
     "src/exe/resource.rc",
-    "src/exe/strings.rc",
+    "src/exe/strings_utf8.rc",
 ]
 link-libraries = [
     "Shlwapi",

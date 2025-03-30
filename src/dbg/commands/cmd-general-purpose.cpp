@@ -973,7 +973,7 @@ bool cbInstrKmovd(int argc, char* argv[])
         // kmovd k1, [address]
         if(!valfromstring(srcText.c_str(), &newValue))
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid src \"%s\"\n"), srcText);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid src \"%s\"\n"), srcText.c_str());
             return false;
         }
         // Zero extend to 64 bits

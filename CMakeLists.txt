@@ -897,7 +897,7 @@ set(exe_SOURCES
 	"src/exe/signaturecheck.cpp"
 	"src/exe/signaturecheck.h"
 	"src/exe/strings.h"
-	"src/exe/strings.rc"
+	"src/exe/strings_utf8.rc"
 	"src/exe/x64dbg_exe.cpp"
 )
 
@@ -1008,7 +1008,7 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
 		cmake.toml
 		"src/exe/icon.rc"
 		"src/exe/resource.rc"
-		"src/exe/strings.rc"
+		"src/exe/strings_utf8.rc"
 		"src/launcher/x64dbg_launcher.cpp"
 	)
 

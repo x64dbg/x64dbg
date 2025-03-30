@@ -4,7 +4,7 @@ static const char* guimsg2str(GUIMSG msg)
 {
     switch(msg)
     {
-#define GUIMSG_NAME(msg) case msg: return #msg;
+#define GUIMSG_NAME(msg, param1, param2) case msg: return #msg;
         GUIMSG_LIST(GUIMSG_NAME)
 #undef GUIMSG_NAME
     }
