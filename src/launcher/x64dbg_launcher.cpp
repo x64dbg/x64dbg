@@ -134,6 +134,29 @@ static HRESULT AddDesktopShortcut(TCHAR* szPathOfFile, const TCHAR* szNameOfLink
     return hRes;
 }
 
+static HRESULT RemoveDesktopShortcut(const TCHAR* szNameOfLink)
+{
+    HRESULT hRes = S_OK;
+
+    TCHAR szDesktopPath[MAX_PATH + 1] = TEXT("");
+    _tmakepath_s(szDesktopPath, nullptr, GetDesktopPath(), szNameOfLink, TEXT("lnk"));
+
+    if(FileExists(szDesktopPath))
+    {
+        if(!DeleteFile(szDesktopPath))
+        {
+            MessageBox(nullptr, TEXT("Failed to delete the desktop shortcut."), TEXT("Error"), MB_ICONERROR);
+            hRes = HRESULT_FROM_WIN32(GetLastError());
+        }
+    }
+    else
+    {
+        hRes = HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
+    }
+
+    return hRes;
+}
+
 static bool RegisterShellExtension(const TCHAR* key, const TCHAR* command)
 {
     HKEY hKey;
@@ -150,6 +173,16 @@ static bool RegisterShellExtension(const TCHAR* key, const TCHAR* command)
     }
     RegCloseKey(hKey);
     return result;
+}
+
+static bool UnregisterShellExtension(const TCHAR* key)
+{
+    if(SHDeleteKey(HKEY_CLASSES_ROOT, key) != ERROR_SUCCESS)
+    {
+        MessageBox(nullptr, LoadResString(IDS_REGDELETEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR | MB_OK);
+        return false;
+    }
+    return true;
 }
 
 static void AddShellIcon(const TCHAR* key, const TCHAR* icon, const TCHAR* title)
@@ -290,6 +323,34 @@ static void AddDBFileTypeIcon(TCHAR* sz32Path, TCHAR* sz64Path)
     return;
 }
 
+static void RemoveDBFileTypeIcon()
+{
+    LPCWSTR dbx32key = L".dd32";
+    LPCWSTR dbx64key = L".dd64";
+
+    if(RegDeleteKey(HKEY_CLASSES_ROOT, L".dd32\\DefaultIcon") != ERROR_SUCCESS)
+    {
+        MessageBox(nullptr, LoadResString(IDS_REGDELETEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
+    }
+
+    if(RegDeleteKey(HKEY_CLASSES_ROOT, dbx32key) != ERROR_SUCCESS)
+    {
+        MessageBox(nullptr, LoadResString(IDS_REGDELETEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
+    }
+
+    if(RegDeleteKey(HKEY_CLASSES_ROOT, L".dd64\\DefaultIcon") != ERROR_SUCCESS)
+    {
+        MessageBox(nullptr, LoadResString(IDS_REGDELETEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
+    }
+
+    if(RegDeleteKey(HKEY_CLASSES_ROOT, dbx64key) != ERROR_SUCCESS)
+    {
+        MessageBox(nullptr, LoadResString(IDS_REGDELETEKEYFAIL), LoadResString(IDS_ASKADMIN), MB_ICONERROR);
+    }
+
+    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
+}
+
 static TCHAR szApplicationDir[MAX_PATH] = TEXT("");
 static TCHAR szCurrentDir[MAX_PATH] = TEXT("");
 static TCHAR sz32Path[MAX_PATH] = TEXT("");
@@ -385,6 +446,99 @@ const wchar_t* SHELLEXT_EXE_KEY = L"exefile\\shell\\Debug with x64dbg\\Command";
 const wchar_t* SHELLEXT_ICON_EXE_KEY = L"exefile\\shell\\Debug with x64dbg";
 const wchar_t* SHELLEXT_DLL_KEY = L"dllfile\\shell\\Debug with x64dbg\\Command";
 const wchar_t* SHELLEXT_ICON_DLL_KEY = L"dllfile\\shell\\Debug with x64dbg";
+
+
+INT_PTR CALLBACK DlgConfigurations(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch(message)
+    {
+    case WM_INITDIALOG:
+    {
+        HANDLE hIcon;
+        hIcon = LoadIconW(GetModuleHandle(0), MAKEINTRESOURCE(IDI_ICON1));
+        SendMessageW(hDlg, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+
+        // Set the state of checkboxes
+        CheckDlgButton(hDlg, IDC_CHECK_SHELLEXT, BST_CHECKED);
+        CheckDlgButton(hDlg, IDC_CHECK_DESKTOPSHORTCUT, BST_CHECKED);
+        CheckDlgButton(hDlg, IDC_CHECK_ICON, BST_CHECKED);
+
+        return (INT_PTR)TRUE;
+    }
+    case WM_COMMAND:
+        // Retrieve the state of checkboxes
+        BOOL bShellExt = IsDlgButtonChecked(hDlg, IDC_CHECK_SHELLEXT) == BST_CHECKED;
+        BOOL bDesktopShortcut = IsDlgButtonChecked(hDlg, IDC_CHECK_DESKTOPSHORTCUT) == BST_CHECKED;
+        BOOL bIcon = IsDlgButtonChecked(hDlg, IDC_CHECK_ICON) == BST_CHECKED;
+
+        if(LOWORD(wParam) == IDYES)
+        {
+
+            // Perform actions based on checkbox states
+            if(bShellExt)
+            {
+                TCHAR szLauncherCommand[MAX_PATH] = TEXT("");
+                _stprintf_s(szLauncherCommand, _countof(szLauncherCommand), TEXT("\"%s\" \"%%1\""), szApplicationDir);
+
+                TCHAR szIconCommand[MAX_PATH] = TEXT("");
+                _stprintf_s(szIconCommand, _countof(szIconCommand), TEXT("\"%s\",0"), szApplicationDir);
+
+                if(RegisterShellExtension(SHELLEXT_EXE_KEY, szLauncherCommand))
+                    AddShellIcon(SHELLEXT_ICON_EXE_KEY, szIconCommand, LoadResString(IDS_SHELLEXTDBG));
+
+                if(RegisterShellExtension(SHELLEXT_DLL_KEY, szLauncherCommand))
+                    AddShellIcon(SHELLEXT_ICON_DLL_KEY, szIconCommand, LoadResString(IDS_SHELLEXTDBG));
+            }
+
+            if(bDesktopShortcut)
+            {
+                AddDesktopShortcut(sz32Path, TEXT("x32dbg"));
+                if(isWoW64())
+                    AddDesktopShortcut(sz64Path, TEXT("x64dbg"));
+            }
+
+            if(bIcon)
+            {
+                AddDBFileTypeIcon(sz32Path, sz64Path);
+            }
+
+            EndDialog(hDlg, IDOK);
+            return (INT_PTR)TRUE;
+        }
+        else if(LOWORD(wParam) == IDNO)
+        {
+            if(bShellExt)
+            {
+                UnregisterShellExtension(SHELLEXT_EXE_KEY);
+                UnregisterShellExtension(SHELLEXT_ICON_EXE_KEY);
+                UnregisterShellExtension(SHELLEXT_DLL_KEY);
+                UnregisterShellExtension(SHELLEXT_ICON_DLL_KEY);
+            }
+
+            if(bDesktopShortcut)
+            {
+                RemoveDesktopShortcut(TEXT("x32dbg"));
+                if(isWoW64())
+                    RemoveDesktopShortcut(TEXT("x64dbg"));
+            }
+
+            if(bIcon)
+            {
+                RemoveDBFileTypeIcon();
+            }
+
+            EndDialog(hDlg, IDNO);
+            return (INT_PTR)TRUE;
+        }
+        else if(LOWORD(wParam) == IDCANCEL)
+        {
+            EndDialog(hDlg, IDCANCEL);
+            return (INT_PTR)TRUE;
+        }
+        break;
+    }
+    return (INT_PTR)FALSE;
+}
 
 static void deleteZoneData(const std::wstring & rootDir)
 {
@@ -596,34 +750,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         }
         deleteZoneData(szCurrentDir);
         deleteZoneData(szCurrentDir + std::wstring(L"\\..\\pluginsdk"));
-        if(MessageBox(nullptr, LoadResString(IDS_ASKSHELLEXT), LoadResString(IDS_QUESTION), MB_YESNO | MB_ICONQUESTION) == IDYES)
-        {
-            TCHAR szLauncherCommand[MAX_PATH] = TEXT("");
-            _stprintf_s(szLauncherCommand, _countof(szLauncherCommand), TEXT("\"%s\" \"%%1\""), szApplicationDir);
-            TCHAR szIconCommand[MAX_PATH] = TEXT("");
-            _stprintf_s(szIconCommand, _countof(szIconCommand), TEXT("\"%s\",0"), szApplicationDir);
-            if(RegisterShellExtension(SHELLEXT_EXE_KEY, szLauncherCommand))
-                AddShellIcon(SHELLEXT_ICON_EXE_KEY, szIconCommand, LoadResString(IDS_SHELLEXTDBG));
-            if(RegisterShellExtension(SHELLEXT_DLL_KEY, szLauncherCommand))
-                AddShellIcon(SHELLEXT_ICON_DLL_KEY, szIconCommand, LoadResString(IDS_SHELLEXTDBG));
-            bDoneSomething = true;
-        }
-        if(MessageBox(nullptr, LoadResString(IDS_ASKDESKTOPSHORTCUT), LoadResString(IDS_QUESTION), MB_YESNO | MB_ICONQUESTION) == IDYES)
-        {
-            AddDesktopShortcut(sz32Path, TEXT("x32dbg"));
-            if(isWoW64())
-                AddDesktopShortcut(sz64Path, TEXT("x64dbg"));
-            bDoneSomething = true;
-        }
 
-        if(MessageBox(nullptr, LoadResString(IDS_ASKICON), LoadResString(IDS_QUESTION), MB_YESNO | MB_ICONQUESTION) == IDYES)
-        {
-            AddDBFileTypeIcon(sz32Path, sz64Path);
-            bDoneSomething = true;
-        }
-
-        if(bDoneSomething)
-            MessageBox(nullptr, LoadResString(IDS_NEWCFGWRITTEN), LoadResString(IDS_DONE), MB_ICONINFORMATION);
+        INT_PTR result = DialogBox(hInstance, MAKEINTRESOURCE(IDD_OPTIONS_DIALOG), nullptr, DlgConfigurations);
     }
     else if(argc == 3 && !wcscmp(argv[1], L"-p") && parseId(argv[2], pid)) //-p PID
     {
