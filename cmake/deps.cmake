@@ -86,3 +86,8 @@ endif()
 add_custom_target(deps
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_LIST_DIR}/deps.cmake $<TARGET_FILE:gui> ${DEPS_DIR} $<TARGET_FILE:Qt5::windeployqt>
 )
+
+# Make a rebuild copy the dependencies again
+set_target_properties(deps PROPERTIES
+    ADDITIONAL_CLEAN_FILES $<TARGET_FILE_DIR:gui>/.deps_copied
+)
