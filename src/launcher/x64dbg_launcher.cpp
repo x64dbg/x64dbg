@@ -560,10 +560,12 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     auto argv = CommandLineToArgvW(GetCommandLineW(), &argc);
 
     // If x64dbg is not found, perform installation
+    auto bInstaller = argc == 2 && !wcscmp(argv[1], L"::install");
     if(bDoneSomething)
     {
         restartInstall();
-        return 0;
+        if(bInstaller)
+            return ERROR_OPERATION_ABORTED; // WritePrivateProfileString above somehow failed, abort
     }
 
     if(argc <= 1) //no arguments -> launcher dialog
@@ -580,7 +582,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         }
         DialogBox(GetModuleHandle(0), MAKEINTRESOURCE(IDD_DIALOGLAUNCHER), 0, DlgLauncher);
     }
-    else if(argc == 2 && !wcscmp(argv[1], L"::install")) //set configuration
+    else if(bInstaller) //set configuration
     {
         if(!FileExists(sz32Path) && BrowseFileOpen(nullptr, TEXT("x32dbg.exe\0x32dbg.exe\0*.exe\0*.exe\0\0"), nullptr, sz32Path, MAX_PATH, szCurrentDir))
         {
