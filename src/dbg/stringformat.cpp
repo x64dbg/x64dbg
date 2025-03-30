@@ -89,8 +89,8 @@ static size_t getSSERegisterOffset(FormatValueType value, size_t elementSize)
         else
             return 0;
     }
-    else
-        return 0; // TO DO: ST(...)
+    // TODO: ST(...)
+    return 0;
 }
 
 template<class T> String printFloatValue(FormatValueType value)
