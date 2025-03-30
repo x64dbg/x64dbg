@@ -158,6 +158,8 @@ void SearchListView::filterEntries()
         case Qt::Checked:
             filterType = AbstractSearchList::FilterRegexCaseSensitive;
             break;
+        default:
+            break;
         }
         mAbstractSearchList->filter(filterText, filterType, mSearchStartCol);
     }

@@ -563,6 +563,8 @@ bool BpSetSingleshoot(duint Address, BP_TYPE Type, bool singleshoot)
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable memory breakpoint %p (SetMemoryBPXEx)\n"), Address);
         }
         break;
+    default:
+        break;
     }
     return true;
 }

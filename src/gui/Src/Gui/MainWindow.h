@@ -50,7 +50,7 @@ public:
 
     void setupCommandBar();
     void setupStatusBar();
-    void closeEvent(QCloseEvent* event);
+    void closeEvent(QCloseEvent* event) override;
     void setTab(QWidget* widget);
     void loadTabDefaultOrder();
     void loadTabSavedOrder();

@@ -40,6 +40,6 @@ private:
     MenuBuilder* mMenuBuilder;
     CommonActions* mCommonActions;
     bool isSelectionValid();
-    bool CallStackView::isThreadHeaderSelected();
+    bool isThreadHeaderSelected();
     void switchThread();
 };

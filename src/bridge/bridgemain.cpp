@@ -2043,7 +2043,7 @@ BRIDGE_IMPEXP void GuiExecuteOnGuiThread(GUICALLBACK cbGuiThread)
     GuiExecuteOnGuiThreadEx([](void* cb)
     {
         ((GUICALLBACK)cb)();
-    }, cbGuiThread);
+    }, (void*)cbGuiThread);
 }
 
 BRIDGE_IMPEXP void GuiUpdateTimeWastedCounter()

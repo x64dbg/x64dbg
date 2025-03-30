@@ -8,7 +8,11 @@ class Handle
 public:
     Handle(HANDLE h = nullptr) : mHandle(h) { }
     Handle(const Handle &) = delete;
-    Handle(Handle &&) = delete;
+    Handle(Handle && o)
+    {
+        mHandle = o.mHandle;
+        o.mHandle = nullptr;
+    }
 
     ~Handle()
     {

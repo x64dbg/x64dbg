@@ -755,11 +755,11 @@ extern "C" DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* bpmap)
     int retcount = 0;
     std::vector<BRIDGEBP> bridgeList;
     BRIDGEBP curBp;
-    BP_TYPE currentBpType;
+    int currentBpType;
     switch(type)
     {
     case bp_none:
-        currentBpType = BP_TYPE(-1);
+        currentBpType = -1;
         break;
     case bp_normal:
         currentBpType = BPNORMAL;

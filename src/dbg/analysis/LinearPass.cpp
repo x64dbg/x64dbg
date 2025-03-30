@@ -1,8 +1,9 @@
-#include <thread>
-#include <ppl.h>
 #include "AnalysisPass.h"
 #include "LinearPass.h"
 #include <zydis_wrapper.h>
+
+#include <thread>
+#include <algorithm>
 
 LinearPass::LinearPass(duint VirtualStart, duint VirtualEnd, BBlockArray & MainBlocks)
     : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)
@@ -33,7 +34,7 @@ bool LinearPass::Analyse()
     // Initialize thread vector
     auto threadBlocks = new std::vector<BasicBlock>[IdealThreadCount()];
 
-    concurrency::parallel_for(duint(0), IdealThreadCount(), [&](duint i)
+    ParallelFor(IdealThreadCount(), [&](duint i)
     {
         duint threadWorkStart = m_VirtualStart + (workAmount * i);
         duint threadWorkStop = std::min((threadWorkStart + workAmount), m_VirtualEnd);
@@ -95,7 +96,7 @@ void LinearPass::AnalyseOverlaps()
     // Initialize thread vectors
     auto threadInserts = new std::vector<BasicBlock>[IdealThreadCount()];
 
-    concurrency::parallel_for(duint(0), IdealThreadCount(), [&](duint i)
+    ParallelFor(IdealThreadCount(), [&](duint i)
     {
         duint threadWorkStart = (workAmount * i);
         duint threadWorkStop = std::min((threadWorkStart + workAmount), workTotal);

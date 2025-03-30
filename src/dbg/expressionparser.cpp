@@ -519,7 +519,7 @@ void ExpressionParser::shuntingYard()
     mPrefixTokens = std::move(queue);
 }
 
-#if defined(_WIN64) && (!defined(__clang__) || __clang_major__ > 3) // This produces an ICE under Clang <= 3.8; fixed in 5.0.
+#if defined(_WIN64)
 #include <intrin.h>
 
 static unsigned long long umulhi(unsigned long long x, unsigned long long y)

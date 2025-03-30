@@ -1,0 +1,21 @@
+set(LLVM_MINGW /Users/admin/llvm-mingw-ucrt)
+set(CMAKE_PREFIX_PATH /Users/admin/Qt5.6.3-msvc2015/msvc2015_64)
+
+set(CMAKE_SYSTEM_PROCESSOR x86_64)
+set(CMAKE_C_COMPILER_TARGET ${CMAKE_SYSTEM_PROCESSOR}-w64-mingw32)
+set(CMAKE_C_COMPILER ${LLVM_MINGW}/bin/x86_64-w64-mingw32-clang)
+set(CMAKE_CXX_COMPILER ${LLVM_MINGW}/bin/x86_64-w64-mingw32-clang++)
+set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_SYSTEM_VERSION 1)
+
+# This is working (thanks to Simon for finding this trick)
+set(CMAKE_AR ${LLVM_MINGW}/bin/llvm-ar)
+set(CMAKE_RANLIB ${LLVM_MINGW}/bin/x86_64-w64-mingw32-ranlib)
+set(CMAKE_RC_COMPILER ${LLVM_MINGW}/bin/llvm-rc)
+set(CMAKE_RC_COMPILER /Users/admin/Projects/zig-cross/cmake/zig-rc)
+
+set(CMAKE_PROJECT_INCLUDE ${CMAKE_CURRENT_LIST_DIR}/qt-cross.cmake)
+set(CMAKE_CXX_FLAGS_INIT "-stdlib=libc++ -mlzcnt")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "--start-no-unused-arguments -rtlib=compiler-rt -unwindlib=libunwind --end-no-unused-arguments")
+set(CMAKE_MODULE_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT}")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "${CMAKE_EXE_LINKER_FLAGS_INIT}")

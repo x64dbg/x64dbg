@@ -76,8 +76,8 @@ private: //general
     std::string _modname;
     duint _imageBase;
     duint _imageSize;
-    std::atomic<bool> _symbolsLoaded = false;
-    std::atomic<bool> _linesLoaded = false;
+    std::atomic<bool> _symbolsLoaded;
+    std::atomic<bool> _linesLoaded;
 
 private:
     static int hackicmp(const char* s1, const char* s2)

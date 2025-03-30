@@ -94,3 +94,16 @@ void AnalysisPass::SetIdealThreadCount(duint Count)
 {
     m_InternalMaxThreads = std::min(Count, (duint)255);
 }
+
+void AnalysisPass::ParallelFor(duint ThreadCount, const std::function<void(duint)> & Worker)
+{
+    std::vector<std::thread> threads(ThreadCount);
+    for(duint i = 0; i < ThreadCount; i++)
+    {
+        threads[i] = std::thread(Worker, i);
+    }
+    for(auto & thread : threads)
+    {
+        thread.join();
+    }
+}

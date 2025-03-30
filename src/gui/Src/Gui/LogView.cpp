@@ -113,8 +113,8 @@ void LogView::setupContextMenu()
     actionAutoScroll->setCheckable(true);
     actionAutoScroll->setChecked(autoScroll);
     actionFindInLog = setupAction(tr("Find"), this, SLOT(findInLogSlot()));
-    actionFindNext = setupAction(tr("Find Next Occurance"), this, SLOT(findNextInLogSlot()));;
-    actionFindPrevious = setupAction(tr("Find Previous Occurance"), this, SLOT(findPreviousInLogSlot()));
+    actionFindNext = setupAction(tr("Find Next Occurence"), this, SLOT(findNextInLogSlot()));;
+    actionFindPrevious = setupAction(tr("Find Previous Occurence"), this, SLOT(findPreviousInLogSlot()));
 
     refreshShortcutsSlot();
     connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));

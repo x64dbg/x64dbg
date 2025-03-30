@@ -163,7 +163,7 @@ void StructWidget::typeUpdateWidget()
             {
                 if(type.type.reverse)
                     std::reverse((char*)data, (char*)data + type.type.size);
-                valueStr = QString().sprintf("0x%llX, %llu", data, data, data);
+                valueStr = QString().sprintf("0x%llX, %llu", data, data);
             }
             else if(type.type.addr)
                 valueStr = "???";
@@ -372,7 +372,7 @@ void StructWidget::visitSlot()
     }
 
     QString selection;
-    if(!SimpleChoiceBox(this, tr("Type to display"), "", structs, selection, true, "", &DIcon("struct"), 1) || selection.isEmpty())
+    if(!SimpleChoiceBox(this, tr("Type to display"), "", structs, selection, true, "", DIcon("struct"), 1) || selection.isEmpty())
         return;
     if(!mGotoDialog)
         mGotoDialog = new GotoDialog(this);
