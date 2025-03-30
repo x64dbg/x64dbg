@@ -23,6 +23,9 @@ struct GuiState
     duint dump = 0;
     duint stack = 0;
     duint csp = 0;
+    duint graph = 0;
+    duint memmap = 0;
+    duint symmod = 0;
     std::string globalNotes;
     std::string debuggeeNotes;
 } guistate;
@@ -65,11 +68,17 @@ extern "C" __declspec(dllexport) int _gui_guiinit(int argc, char* argv[])
         }
         else if(command == "state")
         {
-            printf("disasm: 0x%p\n", guistate.disasm);
-            printf("   cip: 0x%p\n", guistate.cip);
-            printf("  dump: 0x%p\n", guistate.dump);
-            printf(" stack: 0x%p\n", guistate.stack);
-            printf("   csp: 0x%p\n", guistate.csp);
+            printf("disasm: 0x%p\n", (void*)guistate.disasm);
+            printf("   cip: 0x%p\n", (void*)guistate.cip);
+            printf("  dump: 0x%p\n", (void*)guistate.dump);
+            printf(" stack: 0x%p\n", (void*)guistate.stack);
+            printf("   csp: 0x%p\n", (void*)guistate.csp);
+            if(guistate.graph)
+                printf("  graph: 0x%p\n", (void*)guistate.graph);
+            if(guistate.memmap)
+                printf(" memmap: 0x%p\n", (void*)guistate.memmap);
+            if(guistate.symmod)
+                printf("symmod: 0x%p\n", (void*)guistate.symmod);
         }
         else
         {
@@ -140,11 +149,11 @@ extern "C" __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param
         return GetConsoleWindow();
 
     case GUI_SYMBOL_LOG_ADD:
-        printf("[SYMBOL] %s", param1);
+        printf("[SYMBOL] %s", (const char*)param1);
         break;
 
     case GUI_ADD_MSG_TO_LOG:
-        printf("%s", param1);
+        printf("%s", (const char*)param1);
         break;
 
     case GUI_SET_DEBUG_STATE:
@@ -164,7 +173,7 @@ extern "C" __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param
 
     case GUI_UNREGISTER_SCRIPT_LANG:
     {
-        int id = (int)param1;
+        int id = (int)(duint)param1;
         if(id != 0)
         {
             puts("[TODO] Not implemented GUI_UNREGISTER_SCRIPT_LANG");
@@ -226,7 +235,7 @@ extern "C" __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param
 
     case GUI_SELECTION_GET:
     {
-        int hWindow = (int)param1;
+        int hWindow = (int)(duint)param1;
         SELECTIONDATA* selection = (SELECTIONDATA*)param2;
         if(!DbgIsDebugging())
             return (void*)false;
@@ -242,6 +251,15 @@ extern "C" __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param
         case GUI_STACK:
             p = guistate.stack;
             break;
+        case GUI_GRAPH:
+            p = guistate.graph;
+            break;
+        case GUI_MEMMAP:
+            p = guistate.memmap;
+            break;
+        case GUI_SYMMOD:
+            p = guistate.symmod;
+            break;
         default:
             return (void*)false;
         }
@@ -252,7 +270,7 @@ extern "C" __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param
 
     case GUI_SELECTION_SET:
     {
-        int hWindow = (int)param1;
+        int hWindow = (int)(duint)param1;
         const SELECTIONDATA* selection = (const SELECTIONDATA*)param2;
         if(!DbgIsDebugging())
             return (void*)false;
@@ -267,6 +285,15 @@ extern "C" __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param
             break;
         case GUI_STACK:
             guistate.stack = selection->start;
+            break;
+        case GUI_GRAPH:
+            guistate.graph = selection->start;
+            break;
+        case GUI_MEMMAP:
+            guistate.memmap = selection->start;
+            break;
+        case GUI_SYMMOD:
+            guistate.symmod = selection->start;
             break;
         default:
             return (void*)false;
