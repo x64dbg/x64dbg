@@ -67,10 +67,10 @@ static bool DirExists(const wchar_t* dir)
 static decltype(&BridgeLoadLibraryCheckedW) pLoadLibraryCheckedW;
 static decltype(&BridgeLoadLibraryCheckedA) pLoadLibraryCheckedA;
 
-static const wchar_t* InitializeUserDirectory()
+static const wchar_t* InitializeUserDirectory(HINSTANCE hMainModule, const wchar_t* szUserDirectoryOverride)
 {
     // Handle user directory
-    if(!GetModuleFileNameW(0, szUserDirectory, _countof(szUserDirectory)))
+    if(!GetModuleFileNameW(hMainModule, szUserDirectory, _countof(szUserDirectory)))
         return L"Error getting module path!";
 
     auto backslash = wcsrchr(szUserDirectory, L'\\');
@@ -95,6 +95,16 @@ static const wchar_t* InitializeUserDirectory()
     wcscat_s(szFolderRedirect, L"\\userdir");
 
     std::wstring userDirUtf16;
+    if(szUserDirectoryOverride != nullptr)
+    {
+        // NOTE: This is just a sanity check, but headless is the only user of this
+        if(wcslen(szUserDirectoryOverride) < 4 || szUserDirectoryOverride[1] != L':' || szUserDirectoryOverride[2] != L'\\')
+        {
+            return L"szUserDirectoryOverride has to be an absolute path";
+        }
+        userDirUtf16 = szUserDirectoryOverride;
+    }
+    else
     {
         std::vector<char> userDirUtf8;
         auto hFile = CreateFileW(szFolderRedirect, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
@@ -145,7 +155,7 @@ static const wchar_t* InitializeUserDirectory()
     return nullptr;
 }
 
-BRIDGE_IMPEXP const wchar_t* BridgeInit()
+BRIDGE_IMPEXP const wchar_t* BridgeInit(BRIDGE_CONFIG* config)
 {
     //Initialize critial section
     InitializeCriticalSection(&csIni);
@@ -158,7 +168,7 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit()
     if(pLoadLibraryCheckedW == nullptr || pLoadLibraryCheckedA == nullptr)
         return L"Error finding safe library loading functions!";
 
-    auto userDirectoryError = InitializeUserDirectory();
+    auto userDirectoryError = InitializeUserDirectory(hMainModule, config->szUserDirectory);
     if(userDirectoryError != nullptr)
         return userDirectoryError;
 
@@ -245,7 +255,15 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit()
     loadIfExists(L"ssleay32.dll");
 
     // GUI
-    LOADLIBRARY(gui_lib);
+    if(config->hGuiModule != nullptr)
+    {
+        hInst = config->hGuiModule;
+        szLib = L"headless";
+    }
+    else
+    {
+        LOADLIBRARY(gui_lib);
+    }
     LOADEXPORT(_gui_guiinit);
     LOADEXPORT(_gui_sendmessage);
     LOADEXPORT(_gui_translate_text);
@@ -254,7 +272,7 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit()
     BridgeLoadLibraryCheckedW(L"x64_bridge.dll", true);
     BridgeLoadLibraryCheckedW(L"x64_dbg.dll", true);
 
-    return 0;
+    return nullptr;
 }
 
 BRIDGE_IMPEXP HMODULE WINAPI BridgeLoadLibraryCheckedW(const wchar_t* szDll, bool allowFailure)
@@ -272,13 +290,13 @@ BRIDGE_IMPEXP const wchar_t* BridgeStart()
     if(!_dbg_dbginit || !_gui_guiinit)
         return L"\"_dbg_dbginit\" || \"_gui_guiinit\" was not loaded yet, call BridgeInit!";
     _dbg_sendmessage(DBG_INITIALIZE_LOCKS, nullptr, nullptr); //initialize locks before any other thread than the main thread are started
-    _gui_guiinit(0, 0); //remove arguments
+    _gui_guiinit(0, nullptr); //remove arguments
     if(!BridgeSettingFlush())
         return L"Failed to save settings!";
     _dbg_sendmessage(DBG_DEINITIALIZE_LOCKS, nullptr, nullptr); //deinitialize locks when only one thread is left (hopefully)
     DeleteCriticalSection(&csIni);
     DeleteCriticalSection(&csTranslate);
-    return 0;
+    return nullptr;
 }
 
 BRIDGE_IMPEXP void* BridgeAlloc(size_t size)

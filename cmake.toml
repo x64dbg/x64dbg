@@ -97,9 +97,9 @@ sources = [
     "src/dbg/XEDParse/*.h",
 ]
 private-link-libraries = [
-    "zydis_wrapper",
-    "bridge",
-    "btparser",
+    "::zydis_wrapper",
+    "::bridge",
+    "::btparser",
     "Psapi",
     "Shlwapi",
     "Ws2_32",
@@ -150,8 +150,8 @@ private-link-libraries = [
     "Qt5::Widgets",
     "Qt5::Network",
     "Qt5::WinExtras",
-    "zydis_wrapper",
-    "bridge",
+    "::zydis_wrapper",
+    "::bridge",
     "winmm",
 ]
 x86.private-link-libraries = [
@@ -212,12 +212,11 @@ sources = [
 x86.sources = ["src/exe/icon32.rc"]
 x64.sources = ["src/exe/icon64.rc"]
 link-libraries = [
-    "bridge",
+    "::bridge",
     "Wintrust",
 ]
 msvc.link-options = [
     "/DEF:${CMAKE_SOURCE_DIR}/src/exe/signaturecheck.def",
-    "/INCREMENTAL:NO",
 ]
 cmake-after = """
 # Make the executable the main target
@@ -230,6 +229,20 @@ x64.OUTPUT_NAME = "x64dbg"
 x86.PDB_NAME = "x32dbg_exe"
 x64.PDB_NAME = "x64dbg_exe"
 WIN32_EXECUTABLE = "ON"
+
+[target.headless]
+type = "executable"
+sources = [
+    "src/headless/*.cpp",
+    "src/headless/*.h",
+]
+link-libraries = [
+    "::bridge",
+]
+msvc.link-options = [
+    "/DEF:${CMAKE_SOURCE_DIR}/src/exe/signaturecheck.def",
+]
+cmake-after = "add_dependencies(headless exe)"
 
 [target.launcher]
 type = "executable"

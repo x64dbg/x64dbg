@@ -32,7 +32,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
     CrashDumpInitialize();
 
-    const wchar_t* errormsg = BridgeInit();
+    BRIDGE_CONFIG config = {};
+    const wchar_t* errormsg = BridgeInit(&config);
     if(errormsg)
     {
         MessageBoxW(0, errormsg, LoadResString(IDS_BRIDGEINITERR), MB_ICONERROR | MB_SYSTEMMODAL);

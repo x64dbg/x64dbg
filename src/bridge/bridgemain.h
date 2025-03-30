@@ -44,12 +44,17 @@ extern "C"
 #define DBG_VERSION 25
 
 //Bridge functions
+typedef struct _BRIDGE_CONFIG
+{
+    HINSTANCE hGuiModule;
+    const wchar_t* szUserDirectory;
+} BRIDGE_CONFIG;
 
 /// <summary>
 /// Initialize the bridge.
 /// </summary>
 /// <returns>On error it returns a non-null error message.</returns>
-BRIDGE_IMPEXP const wchar_t* BridgeInit();
+BRIDGE_IMPEXP const wchar_t* BridgeInit(BRIDGE_CONFIG* config);
 
 BRIDGE_IMPEXP HMODULE WINAPI BridgeLoadLibraryCheckedW(const wchar_t* szDll, bool allowFailure);
 
@@ -1225,132 +1230,142 @@ typedef enum
 #define GUI_MAX_LINE_SIZE 65536
 #define GUI_MAX_DISASSEMBLY_SIZE 2048
 
-//Gui enums
+//Gui enums (NOTE: only add new messages to the end of the list)
+// clang-format off
+#define GUIMSG_LIST(msg) \
+    msg(GUI_DISASSEMBLE_AT, (duint)va, (duint)cip) \
+    msg(GUI_SET_DEBUG_STATE, (DBGSTATE)state, unused) \
+    msg(GUI_ADD_MSG_TO_LOG, (const char*)msg, unused) \
+    msg(GUI_CLEAR_LOG, unused, unused) \
+    msg(GUI_UPDATE_REGISTER_VIEW, unused, unused) \
+    msg(GUI_UPDATE_DISASSEMBLY_VIEW, unused, unused) \
+    msg(GUI_UPDATE_BREAKPOINTS_VIEW, unused, unused) \
+    msg(GUI_UPDATE_WINDOW_TITLE, (const char*)file, unused) \
+    msg(GUI_GET_WINDOW_HANDLE, unused, unused) \
+    msg(GUI_DUMP_AT, (duint)va, unused) \
+    msg(GUI_SCRIPT_ADD, int count, const char** lines) \
+    msg(GUI_SCRIPT_CLEAR, unused, unused) \
+    msg(GUI_SCRIPT_SETIP, int line, unused) \
+    msg(GUI_SCRIPT_ERROR, int line, const char* message) \
+    msg(GUI_SCRIPT_SETTITLE, const char* title, unused) \
+    msg(GUI_SCRIPT_SETINFOLINE, int line, const char* info) \
+    msg(GUI_SCRIPT_MESSAGE, const char* message, unused) \
+    msg(GUI_SCRIPT_MSGYN, const char* message, unused) \
+    msg(GUI_SYMBOL_LOG_ADD, (const char*)msg, unused) \
+    msg(GUI_SYMBOL_LOG_CLEAR, unused, unused) \
+    msg(GUI_SYMBOL_SET_PROGRESS, int percent, unused) \
+    msg(GUI_SYMBOL_UPDATE_MODULE_LIST, int count, SYMBOLMODULEINFO* modules) \
+    msg(GUI_REF_ADDCOLUMN, int width, (const char*)title) \
+    msg(GUI_REF_SETROWCOUNT, int rows, unused) \
+    msg(GUI_REF_GETROWCOUNT, unused, unused) \
+    msg(GUI_REF_DELETEALLCOLUMNS, unused, unused) \
+    msg(GUI_REF_SETCELLCONTENT, (CELLINFO*)info, unused) \
+    msg(GUI_REF_GETCELLCONTENT, int row, int col) \
+    msg(GUI_REF_RELOADDATA, unused, unused) \
+    msg(GUI_REF_SETSINGLESELECTION, int index, bool scroll) \
+    msg(GUI_REF_SETPROGRESS, int progress, unused) \
+    msg(GUI_REF_SETCURRENTTASKPROGRESS, int progress, const char* taskTitle) \
+    msg(GUI_REF_SETSEARCHSTARTCOL, int col, unused) \
+    msg(GUI_STACK_DUMP_AT, duint addr, duint csp) \
+    msg(GUI_UPDATE_DUMP_VIEW, unused, unused) \
+    msg(GUI_UPDATE_THREAD_VIEW, unused, unused) \
+    msg(GUI_ADD_RECENT_FILE, (const char*)file, unused) \
+    msg(GUI_SET_LAST_EXCEPTION, unsigned int code, unused) \
+    msg(GUI_GET_DISASSEMBLY, duint addr, char* text) \
+    msg(GUI_MENU_ADD, int hMenu, const char* title) \
+    msg(GUI_MENU_ADD_ENTRY, int hMenu, const char* title) \
+    msg(GUI_MENU_ADD_SEPARATOR, int hMenu, unused) \
+    msg(GUI_MENU_CLEAR, int hMenu, unused) \
+    msg(GUI_SELECTION_GET, GUISELECTIONTYPE, SELECTIONDATA* selection) \
+    msg(GUI_SELECTION_SET, GUISELECTIONTYPE, const SELECTIONDATA* selection) \
+    msg(GUI_GETLINE_WINDOW, const char* title, char* text) \
+    msg(GUI_AUTOCOMPLETE_ADDCMD, const char* cmd, ununsed) \
+    msg(GUI_AUTOCOMPLETE_DELCMD, const char* cmd, ununsed) \
+    msg(GUI_AUTOCOMPLETE_CLEARALL, unused, unused) \
+    msg(GUI_SCRIPT_ENABLEHIGHLIGHTING, bool enable, unused) \
+    msg(GUI_ADD_MSG_TO_STATUSBAR, const char* msg, unused) \
+    msg(GUI_UPDATE_SIDEBAR, unused, unused) \
+    msg(GUI_REPAINT_TABLE_VIEW, unused, unused) \
+    msg(GUI_UPDATE_PATCHES, unused, unused) \
+    msg(GUI_UPDATE_CALLSTACK, unused, unused) \
+    msg(GUI_UPDATE_SEHCHAIN, unused, unused) \
+    msg(GUI_SYMBOL_REFRESH_CURRENT, unused, unused) \
+    msg(GUI_UPDATE_MEMORY_VIEW, unused, unused) \
+    msg(GUI_REF_INITIALIZE, const char* name, unused) \
+    msg(GUI_LOAD_SOURCE_FILE, const char* path, duint addr) \
+    msg(GUI_MENU_SET_ICON, int hMenu, ICONINFO*) \
+    msg(GUI_MENU_SET_ENTRY_ICON, int hEntry, ICONINFO*) \
+    msg(GUI_SHOW_CPU, unused, unused) \
+    msg(GUI_ADD_QWIDGET_TAB, QWidget*, unused) \
+    msg(GUI_SHOW_QWIDGET_TAB, QWidget*, unused) \
+    msg(GUI_CLOSE_QWIDGET_TAB, QWidget*, unused) \
+    msg(GUI_EXECUTE_ON_GUI_THREAD, GUICALLBACKEX cb, void* userdata) \
+    msg(GUI_UPDATE_TIME_WASTED_COUNTER, unused, unused) \
+    msg(GUI_SET_GLOBAL_NOTES, const char* text, unused) \
+    msg(GUI_GET_GLOBAL_NOTES, char** text, unused) \
+    msg(GUI_SET_DEBUGGEE_NOTES, const char* text, unused) \
+    msg(GUI_GET_DEBUGGEE_NOTES, char** text, unused) \
+    msg(GUI_DUMP_AT_N, int index, duint va) \
+    msg(GUI_DISPLAY_WARNING, const char *text, unused) \
+    msg(GUI_REGISTER_SCRIPT_LANG, SCRIPTTYPEINFO* info, unused) \
+    msg(GUI_UNREGISTER_SCRIPT_LANG, int id, unused) \
+    msg(GUI_UPDATE_ARGUMENT_VIEW, unused, unused) \
+    msg(GUI_FOCUS_VIEW, int hWindow, unused) \
+    msg(GUI_UPDATE_WATCH_VIEW, unused, unused) \
+    msg(GUI_LOAD_GRAPH, BridgeCFGraphList*, unused) \
+    msg(GUI_GRAPH_AT, duint addr, unused) \
+    msg(GUI_UPDATE_GRAPH_VIEW, unused, unused) \
+    msg(GUI_SET_LOG_ENABLED, bool isEnabled, unused) \
+    msg(GUI_ADD_FAVOURITE_TOOL, const char* name, const char* description) \
+    msg(GUI_ADD_FAVOURITE_COMMAND, const char* command, const char* shortcut) \
+    msg(GUI_SET_FAVOURITE_TOOL_SHORTCUT, const char* name, const char* shortcut) \
+    msg(GUI_FOLD_DISASSEMBLY, duint startAddress, duint length) \
+    msg(GUI_SELECT_IN_MEMORY_MAP, duint addr, unused) \
+    msg(GUI_GET_ACTIVE_VIEW, ACTIVEVIEW*, unused) \
+    msg(GUI_MENU_SET_ENTRY_CHECKED, int hEntry, bool checked) \
+    msg(GUI_ADD_INFO_LINE, const char* infoline, unused) \
+    msg(GUI_PROCESS_EVENTS, unused, unused) \
+    msg(GUI_TYPE_ADDNODE, void* parent, TYPEDESCRIPTOR* type) \
+    msg(GUI_TYPE_CLEAR, unused, unused) \
+    msg(GUI_UPDATE_TYPE_WIDGET, unused, unused) \
+    msg(GUI_CLOSE_APPLICATION, unused, unused) \
+    msg(GUI_MENU_SET_VISIBLE, int hMenu, bool visible) \
+    msg(GUI_MENU_SET_ENTRY_VISIBLE, int hEntry, bool visible) \
+    msg(GUI_MENU_SET_NAME, int hMenu, const char* name) \
+    msg(GUI_MENU_SET_ENTRY_NAME, int hEntry, const char* name) \
+    msg(GUI_FLUSH_LOG, unused, unused) \
+    msg(GUI_MENU_SET_ENTRY_HOTKEY, int hEntry, const char* hack) \
+    msg(GUI_REF_SEARCH_GETROWCOUNT, unused, unused) \
+    msg(GUI_REF_SEARCH_GETCELLCONTENT, int row, int col) \
+    msg(GUI_MENU_REMOVE, int hEntryMenu, unused) \
+    msg(GUI_REF_ADDCOMMAND, const char* title, const char* command) \
+    msg(GUI_OPEN_TRACE_FILE, const char* file name, unused) \
+    msg(GUI_UPDATE_TRACE_BROWSER, unused, unused) \
+    msg(GUI_INVALIDATE_SYMBOL_SOURCE, duint base, unused) \
+    msg(GUI_GET_CURRENT_GRAPH, BridgeCFGraphList*, unused) \
+    msg(GUI_SHOW_REF, unused, unused) \
+    msg(GUI_SELECT_IN_SYMBOLS_TAB, duint addr, unused) \
+    msg(GUI_GOTO_TRACE, duint index, unused) \
+    msg(GUI_SHOW_TRACE, unused, unused) \
+    msg(GUI_GET_MAIN_THREAD_ID, unused, unused) \
+    msg(GUI_ADD_MSG_TO_LOG_HTML, (const char*)msg, unused) \
+    msg(GUI_IS_LOG_ENABLED, unused, unused) \
+    msg(GUI_IS_DEBUGGER_FOCUSED_UNUSED, unused, unused) \
+    msg(GUI_SAVE_LOG, const char* file name, unused) \
+    msg(GUI_REDIRECT_LOG, const char* file name, unused) \
+    msg(GUI_STOP_REDIRECT_LOG, unused, unused) \
+    msg(GUI_SHOW_THREADS, unused, unused) \
+
+// clang-format on
+
+#define GUIMSG_ENUM(msg, param1, param2) msg,
+
 typedef enum
 {
-    GUI_DISASSEMBLE_AT,             // param1=(duint)va,            param2=(duint)cip
-    GUI_SET_DEBUG_STATE,            // param1=(DBGSTATE)state,      param2=unused
-    GUI_ADD_MSG_TO_LOG,             // param1=(const char*)msg,     param2=unused
-    GUI_CLEAR_LOG,                  // param1=unused,               param2=unused
-    GUI_UPDATE_REGISTER_VIEW,       // param1=unused,               param2=unused
-    GUI_UPDATE_DISASSEMBLY_VIEW,    // param1=unused,               param2=unused
-    GUI_UPDATE_BREAKPOINTS_VIEW,    // param1=unused,               param2=unused
-    GUI_UPDATE_WINDOW_TITLE,        // param1=(const char*)file,    param2=unused
-    GUI_GET_WINDOW_HANDLE,          // param1=unused,               param2=unused
-    GUI_DUMP_AT,                    // param1=(duint)va             param2=unused
-    GUI_SCRIPT_ADD,                 // param1=int count,            param2=const char** lines
-    GUI_SCRIPT_CLEAR,               // param1=unused,               param2=unused
-    GUI_SCRIPT_SETIP,               // param1=int line,             param2=unused
-    GUI_SCRIPT_ERROR,               // param1=int line,             param2=const char* message
-    GUI_SCRIPT_SETTITLE,            // param1=const char* title,    param2=unused
-    GUI_SCRIPT_SETINFOLINE,         // param1=int line,             param2=const char* info
-    GUI_SCRIPT_MESSAGE,             // param1=const char* message,  param2=unused
-    GUI_SCRIPT_MSGYN,               // param1=const char* message,  param2=unused
-    GUI_SYMBOL_LOG_ADD,             // param1(const char*)msg,      param2=unused
-    GUI_SYMBOL_LOG_CLEAR,           // param1=unused,               param2=unused
-    GUI_SYMBOL_SET_PROGRESS,        // param1=int percent           param2=unused
-    GUI_SYMBOL_UPDATE_MODULE_LIST,  // param1=int count,            param2=SYMBOLMODULEINFO* modules
-    GUI_REF_ADDCOLUMN,              // param1=int width,            param2=(const char*)title
-    GUI_REF_SETROWCOUNT,            // param1=int rows,             param2=unused
-    GUI_REF_GETROWCOUNT,            // param1=unused,               param2=unused
-    GUI_REF_DELETEALLCOLUMNS,       // param1=unused,               param2=unused
-    GUI_REF_SETCELLCONTENT,         // param1=(CELLINFO*)info,      param2=unused
-    GUI_REF_GETCELLCONTENT,         // param1=int row,              param2=int col
-    GUI_REF_RELOADDATA,             // param1=unused,               param2=unused
-    GUI_REF_SETSINGLESELECTION,     // param1=int index,            param2=bool scroll
-    GUI_REF_SETPROGRESS,            // param1=int progress,         param2=unused
-    GUI_REF_SETCURRENTTASKPROGRESS, // param1=int progress,         param2=const char* taskTitle
-    GUI_REF_SETSEARCHSTARTCOL,      // param1=int col               param2=unused
-    GUI_STACK_DUMP_AT,              // param1=duint addr,           param2=duint csp
-    GUI_UPDATE_DUMP_VIEW,           // param1=unused,               param2=unused
-    GUI_UPDATE_THREAD_VIEW,         // param1=unused,               param2=unused
-    GUI_ADD_RECENT_FILE,            // param1=(const char*)file,    param2=unused
-    GUI_SET_LAST_EXCEPTION,         // param1=unsigned int code,    param2=unused
-    GUI_GET_DISASSEMBLY,            // param1=duint addr,           param2=char* text
-    GUI_MENU_ADD,                   // param1=int hMenu,            param2=const char* title
-    GUI_MENU_ADD_ENTRY,             // param1=int hMenu,            param2=const char* title
-    GUI_MENU_ADD_SEPARATOR,         // param1=int hMenu,            param2=unused
-    GUI_MENU_CLEAR,                 // param1=int hMenu,            param2=unused
-    GUI_SELECTION_GET,              // param1=GUISELECTIONTYPE,     param2=SELECTIONDATA* selection
-    GUI_SELECTION_SET,              // param1=GUISELECTIONTYPE,     param2=const SELECTIONDATA* selection
-    GUI_GETLINE_WINDOW,             // param1=const char* title,    param2=char* text
-    GUI_AUTOCOMPLETE_ADDCMD,        // param1=const char* cmd,      param2=ununsed
-    GUI_AUTOCOMPLETE_DELCMD,        // param1=const char* cmd,      param2=ununsed
-    GUI_AUTOCOMPLETE_CLEARALL,      // param1=unused,               param2=unused
-    GUI_SCRIPT_ENABLEHIGHLIGHTING,  // param1=bool enable,          param2=unused
-    GUI_ADD_MSG_TO_STATUSBAR,       // param1=const char* msg,      param2=unused
-    GUI_UPDATE_SIDEBAR,             // param1=unused,               param2=unused
-    GUI_REPAINT_TABLE_VIEW,         // param1=unused,               param2=unused
-    GUI_UPDATE_PATCHES,             // param1=unused,               param2=unused
-    GUI_UPDATE_CALLSTACK,           // param1=unused,               param2=unused
-    GUI_UPDATE_SEHCHAIN,            // param1=unused,               param2=unused
-    GUI_SYMBOL_REFRESH_CURRENT,     // param1=unused,               param2=unused
-    GUI_UPDATE_MEMORY_VIEW,         // param1=unused,               param2=unused
-    GUI_REF_INITIALIZE,             // param1=const char* name,     param2=unused
-    GUI_LOAD_SOURCE_FILE,           // param1=const char* path,     param2=duint addr
-    GUI_MENU_SET_ICON,              // param1=int hMenu,            param2=ICONINFO*
-    GUI_MENU_SET_ENTRY_ICON,        // param1=int hEntry,           param2=ICONINFO*
-    GUI_SHOW_CPU,                   // param1=unused,               param2=unused
-    GUI_ADD_QWIDGET_TAB,            // param1=QWidget*,             param2=unused
-    GUI_SHOW_QWIDGET_TAB,           // param1=QWidget*,             param2=unused
-    GUI_CLOSE_QWIDGET_TAB,          // param1=QWidget*,             param2=unused
-    GUI_EXECUTE_ON_GUI_THREAD,      // param1=GUICALLBACKEX cb,     param2=void* userdata
-    GUI_UPDATE_TIME_WASTED_COUNTER, // param1=unused,               param2=unused
-    GUI_SET_GLOBAL_NOTES,           // param1=const char* text,     param2=unused
-    GUI_GET_GLOBAL_NOTES,           // param1=char** text,          param2=unused
-    GUI_SET_DEBUGGEE_NOTES,         // param1=const char* text,     param2=unused
-    GUI_GET_DEBUGGEE_NOTES,         // param1=char** text,          param2=unused
-    GUI_DUMP_AT_N,                  // param1=int index,            param2=duint va
-    GUI_DISPLAY_WARNING,            // param1=const char *text,     param2=unused
-    GUI_REGISTER_SCRIPT_LANG,       // param1=SCRIPTTYPEINFO* info, param2=unused
-    GUI_UNREGISTER_SCRIPT_LANG,     // param1=int id,               param2=unused
-    GUI_UPDATE_ARGUMENT_VIEW,       // param1=unused,               param2=unused
-    GUI_FOCUS_VIEW,                 // param1=int hWindow,          param2=unused
-    GUI_UPDATE_WATCH_VIEW,          // param1=unused,               param2=unused
-    GUI_LOAD_GRAPH,                 // param1=BridgeCFGraphList*    param2=unused
-    GUI_GRAPH_AT,                   // param1=duint addr            param2=unused
-    GUI_UPDATE_GRAPH_VIEW,          // param1=unused,               param2=unused
-    GUI_SET_LOG_ENABLED,            // param1=bool isEnabled        param2=unused
-    GUI_ADD_FAVOURITE_TOOL,         // param1=const char* name      param2=const char* description
-    GUI_ADD_FAVOURITE_COMMAND,      // param1=const char* command   param2=const char* shortcut
-    GUI_SET_FAVOURITE_TOOL_SHORTCUT,// param1=const char* name      param2=const char* shortcut
-    GUI_FOLD_DISASSEMBLY,           // param1=duint startAddress    param2=duint length
-    GUI_SELECT_IN_MEMORY_MAP,       // param1=duint addr,           param2=unused
-    GUI_GET_ACTIVE_VIEW,            // param1=ACTIVEVIEW*,          param2=unused
-    GUI_MENU_SET_ENTRY_CHECKED,     // param1=int hEntry,           param2=bool checked
-    GUI_ADD_INFO_LINE,              // param1=const char* infoline, param2=unused
-    GUI_PROCESS_EVENTS,             // param1=unused,               param2=unused
-    GUI_TYPE_ADDNODE,               // param1=void* parent,         param2=TYPEDESCRIPTOR* type
-    GUI_TYPE_CLEAR,                 // param1=unused,               param2=unused
-    GUI_UPDATE_TYPE_WIDGET,         // param1=unused,               param2=unused
-    GUI_CLOSE_APPLICATION,          // param1=unused,               param2=unused
-    GUI_MENU_SET_VISIBLE,           // param1=int hMenu,            param2=bool visible
-    GUI_MENU_SET_ENTRY_VISIBLE,     // param1=int hEntry,           param2=bool visible
-    GUI_MENU_SET_NAME,              // param1=int hMenu,            param2=const char* name
-    GUI_MENU_SET_ENTRY_NAME,        // param1=int hEntry,           param2=const char* name
-    GUI_FLUSH_LOG,                  // param1=unused,               param2=unused
-    GUI_MENU_SET_ENTRY_HOTKEY,      // param1=int hEntry,           param2=const char* hack
-    GUI_REF_SEARCH_GETROWCOUNT,     // param1=unused,               param2=unused
-    GUI_REF_SEARCH_GETCELLCONTENT,  // param1=int row,              param2=int col
-    GUI_MENU_REMOVE,                // param1=int hEntryMenu,       param2=unused
-    GUI_REF_ADDCOMMAND,             // param1=const char* title,    param2=const char* command
-    GUI_OPEN_TRACE_FILE,            // param1=const char* file name,param2=unused
-    GUI_UPDATE_TRACE_BROWSER,       // param1=unused,               param2=unused
-    GUI_INVALIDATE_SYMBOL_SOURCE,   // param1=duint base,           param2=unused
-    GUI_GET_CURRENT_GRAPH,          // param1=BridgeCFGraphList*,   param2=unused
-    GUI_SHOW_REF,                   // param1=unused,               param2=unused
-    GUI_SELECT_IN_SYMBOLS_TAB,      // param1=duint addr,           param2=unused
-    GUI_GOTO_TRACE,                 // param1=duint index,          param2=unused
-    GUI_SHOW_TRACE,                 // param1=unused,               param2=unused
-    GUI_GET_MAIN_THREAD_ID,         // param1=unused,               param2=unused
-    GUI_ADD_MSG_TO_LOG_HTML,        // param1=(const char*)msg,     param2=unused
-    GUI_IS_LOG_ENABLED,             // param1=unused,               param2=unused
-    GUI_IS_DEBUGGER_FOCUSED_UNUSED,        // This message is removed, could be used for future purposes
-    GUI_SAVE_LOG,                   // param1=const char* file name,param2=unused
-    GUI_REDIRECT_LOG,               // param1=const char* file name,param2=unused
-    GUI_STOP_REDIRECT_LOG,          // param1=unused,               param2=unused
-    GUI_SHOW_THREADS,               // param1=unused,               param2=unused
+    GUIMSG_LIST(GUIMSG_ENUM)
 } GUIMSG;
+
+#undef GUIMSG_ENUM
 
 //GUI Typedefs
 struct _TYPEDESCRIPTOR;

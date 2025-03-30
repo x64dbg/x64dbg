@@ -405,6 +405,18 @@ target_include_directories(dbg PRIVATE
 	"src/dbg/commands"
 )
 
+if(NOT TARGET zydis_wrapper)
+	message(FATAL_ERROR "Target \"zydis_wrapper\" referenced by \"dbg\" does not exist!")
+endif()
+
+if(NOT TARGET bridge)
+	message(FATAL_ERROR "Target \"bridge\" referenced by \"dbg\" does not exist!")
+endif()
+
+if(NOT TARGET btparser)
+	message(FATAL_ERROR "Target \"btparser\" referenced by \"dbg\" does not exist!")
+endif()
+
 target_link_libraries(dbg PRIVATE
 	zydis_wrapper
 	bridge
@@ -784,6 +796,14 @@ target_include_directories(gui PRIVATE
 	"src/gui/Src/ThirdPartyLibs/ldconvert"
 )
 
+if(NOT TARGET zydis_wrapper)
+	message(FATAL_ERROR "Target \"zydis_wrapper\" referenced by \"gui\" does not exist!")
+endif()
+
+if(NOT TARGET bridge)
+	message(FATAL_ERROR "Target \"bridge\" referenced by \"gui\" does not exist!")
+endif()
+
 target_link_libraries(gui PRIVATE
 	Qt5::Widgets
 	Qt5::Network
@@ -898,6 +918,10 @@ add_executable(exe)
 target_sources(exe PRIVATE ${exe_SOURCES})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${exe_SOURCES})
 
+if(NOT TARGET bridge)
+	message(FATAL_ERROR "Target \"bridge\" referenced by \"exe\" does not exist!")
+endif()
+
 target_link_libraries(exe PRIVATE
 	bridge
 	Wintrust
@@ -906,7 +930,6 @@ target_link_libraries(exe PRIVATE
 if(MSVC) # msvc
 	target_link_options(exe PRIVATE
 		"/DEF:${CMAKE_SOURCE_DIR}/src/exe/signaturecheck.def"
-		"/INCREMENTAL:NO"
 	)
 endif()
 
@@ -941,6 +964,43 @@ endif()
 set(CMKR_TARGET exe)
 # Make the executable the main target
 add_dependencies(exe dbg gui loaddll deps)
+
+# Target: headless
+set(headless_SOURCES
+	cmake.toml
+	"src/headless/headless.cpp"
+	"src/headless/signaturecheck.cpp"
+	"src/headless/stringutils.cpp"
+	"src/headless/stringutils.h"
+	"src/headless/tostring.h"
+)
+
+add_executable(headless)
+
+target_sources(headless PRIVATE ${headless_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${headless_SOURCES})
+
+if(NOT TARGET bridge)
+	message(FATAL_ERROR "Target \"bridge\" referenced by \"headless\" does not exist!")
+endif()
+
+target_link_libraries(headless PRIVATE
+	bridge
+)
+
+if(MSVC) # msvc
+	target_link_options(headless PRIVATE
+		"/DEF:${CMAKE_SOURCE_DIR}/src/exe/signaturecheck.def"
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT headless)
+endif()
+
+set(CMKR_TARGET headless)
+add_dependencies(headless exe)
 
 # Target: launcher
 if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
