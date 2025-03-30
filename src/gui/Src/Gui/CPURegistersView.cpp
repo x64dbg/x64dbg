@@ -96,8 +96,6 @@ void CPURegistersView::mousePressEvent(QMouseEvent* event)
                     CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::MmxRegister, mRegisterMapping.constFind(r).value()));
                 else if(mFPUXMM.contains(r))
                     CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(r).value()));
-                else if(mFPUYMM.contains(r))
-                    CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(r).value()));
                 else if(mSEGMENTREGISTER.contains(r))
                     CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::MemorySegment, mRegisterMapping.constFind(r).value()));
                 else
@@ -166,10 +164,12 @@ void CPURegistersView::debugStateChangedSlot(DBGSTATE state)
 void CPURegistersView::updateRegistersSlot()
 {
     // read registers
-    REGDUMP z;
-    DbgGetRegDumpEx(&z, sizeof(REGDUMP));
-    // update gui
-    setRegisters(&z);
+    REGDUMP_AVX512 z;
+    if(DbgGetRegDumpEx(&z, sizeof(z)))
+    {
+        // update gui
+        setRegisters(&z);
+    }
 }
 
 void CPURegistersView::ModifyFields(const QString & title, STRING_VALUE_TABLE_t* table, SIZE_T size)
@@ -235,9 +235,33 @@ static void editSIMDRegister(CPURegistersView* parent, int bits, const QString &
 
 void CPURegistersView::displayEditDialog()
 {
-    auto name = mRegisterMapping[mSelected];
+    QString name = mRegisterMapping[mSelected];
+    // change the name from XMM to YMM and ZMM depending on mXMMMode
+    if(mSelected >= XMM0 && mSelected <= ArchValue(XMM7, XMM31))
+    {
+        if(mXMMMode == 1)
+        {
+            name[0] = 'Y';
+        }
+        else if(mXMMMode == 2)
+        {
+            name[0] = 'Z';
+        }
+    }
     if(mFPU.contains(mSelected))
     {
+        if(!isAVX512Supported())
+        {
+            if(mFPUOpmask.contains(mSelected)
+#ifdef _WIN64
+                    || mSelected >= XMM16 && mSelected <= XMM31
+#endif //_WIN64
+              )
+            {
+                SimpleErrorBox(this, tr("Error"), RegistersView::tr("AVX-512 isn't supported on this computer.\n").trimmed());
+                return;
+            }
+        }
         if(mSelected == x87TagWord || mSelected == x87StatusWord || mSelected == x87ControlWord || mSelected == MxCsr)
         {
             WordEditDialog editDialog(this);
@@ -260,10 +284,10 @@ void CPURegistersView::displayEditDialog()
             // if(mFpuMode == false)
             updateRegistersSlot();
         }
-        else if(mFPUYMM.contains(mSelected))
-            editSIMDRegister(this, 256, tr("Edit %1 register").arg(name), registerValue(&mRegDumpStruct, mSelected), mSelected);
         else if(mFPUXMM.contains(mSelected))
-            editSIMDRegister(this, 128, tr("Edit %1 register").arg(name), registerValue(&mRegDumpStruct, mSelected), mSelected);
+        {
+            editSIMDRegister(this, GetSizeRegister(mSelected) * 8, tr("Edit %1 register").arg(name), registerValue(&mRegDumpStruct, mSelected), mSelected);
+        }
         else if(mFPUMMX.contains(mSelected))
             editSIMDRegister(this, 64, tr("Edit %1 register").arg(name), registerValue(&mRegDumpStruct, mSelected), mSelected);
         else
@@ -295,6 +319,19 @@ void CPURegistersView::displayEditDialog()
                         fpuvalue = (duint) mLineEdit.editText.toUShort(&ok, 16);
                     else if(mDWORDDISPLAY.contains(mSelected))
                         fpuvalue = mLineEdit.editText.toUInt(&ok, 16);
+                    else if(mFPUOpmask.contains(mSelected))
+                    {
+                        ULONGLONG newopmaskvalue = mLineEdit.editText.toULongLong(&ok, 16);
+                        if(!ok)
+                        {
+                            errorinput = true;
+                        }
+                        else
+                        {
+                            setRegister(mSelected, reinterpret_cast<duint>(&newopmaskvalue));
+                            return;
+                        }
+                    }
                     else if(mFPUx87_80BITSDISPLAY.contains(mSelected))
                     {
                         QString editTextLower = mLineEdit.editText.toLower();
@@ -485,7 +522,7 @@ void CPURegistersView::onUndoAction()
 {
     if(mUNDODISPLAY.contains(mSelected))
     {
-        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
+        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUOpmask.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
             setRegister(mSelected, (duint)registerValue(&mCipRegDumpStruct, mSelected));
         else
             setRegister(mSelected, *(duint*)registerValue(&mCipRegDumpStruct, mSelected));
@@ -508,8 +545,8 @@ void CPURegistersView::onHighlightSlot()
         CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::MmxRegister, mRegisterMapping.constFind(mSelected).value()));
     else if(mFPUXMM.contains(mSelected))
         CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::XmmRegister, mRegisterMapping.constFind(mSelected).value()));
-    else if(mFPUYMM.contains(mSelected))
-        CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::YmmRegister, mRegisterMapping.constFind(mSelected).value()));
+    else if(mFPUOpmask.contains(mSelected))
+        CPUDisassemblyView->hightlightToken(ZydisTokenizer::SingleToken(ZydisTokenizer::TokenType::ZmmRegister, mRegisterMapping.constFind(mSelected).value()));
     CPUDisassemblyView->reloadData();
 }
 
@@ -635,12 +672,12 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
         }
         menu.addAction(wCM_CopyAll);
 
-        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mSEGMENTREGISTER.contains(mSelected) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
+        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mSEGMENTREGISTER.contains(mSelected) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUOpmask.contains(mSelected))
         {
             menu.addAction(wCM_Highlight);
         }
 
-        if(mUNDODISPLAY.contains(mSelected) && CompareRegisters(mSelected, &mRegDumpStruct, &mCipRegDumpStruct) != 0)
+        if(mUNDODISPLAY.contains(mSelected) && CompareRegisters(mSelected, &mRegDumpStruct) != 0)
         {
             menu.addAction(wCM_Undo);
             wCM_CopyPrevious->setData(GetRegStringValueFromValue(mSelected, registerValue(&mCipRegDumpStruct, mSelected)));
@@ -659,7 +696,7 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
             menu.addAction(wCM_Decrementx87Stack);
         }
 
-        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUYMM.contains(mSelected))
+        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUOpmask.contains(mSelected))
         {
             menu.addMenu(mSwitchSIMDDispMode);
         }
@@ -709,6 +746,18 @@ void CPURegistersView::setRegister(REGISTER_NAME reg, duint value)
         else
             // map "cax" to "eax" or "rax"
             regName = mRegisterMapping.constFind(reg).value();
+        if(reg >= XMM0 && reg <= ArchValue(XMM7, XMM31))
+        {
+            switch(mXMMMode)
+            {
+            case 1:
+                regName[0] = 'Y';
+                break;
+            case 2:
+                regName[0] = 'Z';
+                break;
+            }
+        }
 
         // flags need to '_' infront
         if(mFlags.contains(reg))

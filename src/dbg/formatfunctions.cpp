@@ -152,9 +152,22 @@ void FormatFunctions::Init()
         });
     });
 
+    Register("winerrorname", [](char* dest, size_t destCount, int argc, char* argv[], duint code, void* userdata)
+    {
+        auto name = ErrorCodeToName((unsigned int)code);
+        if(destCount <= name.size() + 1)
+        {
+            return FORMAT_BUFFER_TOO_SMALL;
+        }
+        else
+        {
+            memcpy(dest, name.c_str(), name.size() + 1);
+            return FORMAT_SUCCESS;
+        }
+    });
+
     Register("winerror", [](char* dest, size_t destCount, int argc, char* argv[], duint code, void* userdata)
     {
-        std::vector<wchar_t> helpMessage(destCount);
         String errName = ErrorCodeToName((unsigned int)code);
 #ifdef _WIN64
         if((code >> 32) != 0)  //Data in high part: not an error code
@@ -175,9 +188,22 @@ void FormatFunctions::Init()
         return formatErrorMsg(GetModuleHandleW(L"kernel32.dll"), errName, DWORD(code), dest, destCount);
     });
 
+    Register("ntstatusname", [](char* dest, size_t destCount, int argc, char* argv[], duint code, void* userdata)
+    {
+        auto name = NtStatusCodeToName((unsigned int)code);
+        if(destCount <= name.size() + 1)
+        {
+            return FORMAT_BUFFER_TOO_SMALL;
+        }
+        else
+        {
+            memcpy(dest, name.c_str(), name.size() + 1);
+            return FORMAT_SUCCESS;
+        }
+    });
+
     Register("ntstatus", [](char* dest, size_t destCount, int argc, char* argv[], duint code, void* userdata)
     {
-        std::vector<wchar_t> helpMessage(destCount);
         String errName = NtStatusCodeToName((unsigned int)code);
         if(errName.size() == 0)
             errName = StringUtils::sprintf("%08X", DWORD(code));

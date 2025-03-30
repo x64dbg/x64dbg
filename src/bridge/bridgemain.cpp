@@ -8,6 +8,7 @@
 #include "bridgemain.h"
 #include <stdio.h>
 #include <ShlObj.h>
+#include "../dbg/_dbgfunctions.h"
 #include "Utf8Ini.h"
 
 static HINSTANCE hInst;
@@ -698,39 +699,248 @@ BRIDGE_IMPEXP duint DbgValFromString(const char* string)
     return value;
 }
 
+typedef struct
+{
+    REGISTERCONTEXT regcontext;
+    FLAGS flags;
+    X87FPUREGISTER x87FPURegisters[8];
+    unsigned long long mmx[8];
+    MXCSRFIELDS MxCsrFields;
+    X87STATUSWORDFIELDS x87StatusWordFields;
+    X87CONTROLWORDFIELDS x87ControlWordFields;
+    LASTERROR lastError;
+} REGDUMP_OLD;
+
 //deprecated api, only provided for binary compatibility
 extern "C" __declspec(dllexport) bool DbgGetRegDump(REGDUMP* regdump)
 {
-    typedef struct
-    {
-        REGISTERCONTEXT regcontext;
-        FLAGS flags;
-        X87FPUREGISTER x87FPURegisters[8];
-        unsigned long long mmx[8];
-        MXCSRFIELDS MxCsrFields;
-        X87STATUSWORDFIELDS x87StatusWordFields;
-        X87CONTROLWORDFIELDS x87ControlWordFields;
-        LASTERROR lastError;
-    } REGDUMP_OLD;
-    return DbgGetRegDumpEx(regdump, sizeof(REGDUMP_OLD));
+    return DbgGetRegDumpEx((REGDUMP_AVX512*)regdump, sizeof(REGDUMP_OLD));
 }
 
-BRIDGE_IMPEXP bool DbgGetRegDumpEx(REGDUMP* regdump, size_t size)
+#define MXCSRFLAG_IE 0x1
+#define MXCSRFLAG_DE 0x2
+#define MXCSRFLAG_ZE 0x4
+#define MXCSRFLAG_OE 0x8
+#define MXCSRFLAG_UE 0x10
+#define MXCSRFLAG_PE 0x20
+#define MXCSRFLAG_DAZ 0x40
+#define MXCSRFLAG_IM 0x80
+#define MXCSRFLAG_DM 0x100
+#define MXCSRFLAG_ZM 0x200
+#define MXCSRFLAG_OM 0x400
+#define MXCSRFLAG_UM 0x800
+#define MXCSRFLAG_PM 0x1000
+#define MXCSRFLAG_FZ 0x8000
+
+static void GetMxCsrFields(MXCSRFIELDS* MxCsrFields, DWORD MxCsr)
 {
-    if(size == sizeof(REGDUMP))
-        return _dbg_getregdump(regdump);
+    MxCsrFields->IE = ((MxCsr & MXCSRFLAG_IE) != 0);
+    MxCsrFields->DE = ((MxCsr & MXCSRFLAG_DE) != 0);
+    MxCsrFields->ZE = ((MxCsr & MXCSRFLAG_ZE) != 0);
+    MxCsrFields->OE = ((MxCsr & MXCSRFLAG_OE) != 0);
+    MxCsrFields->UE = ((MxCsr & MXCSRFLAG_UE) != 0);
+    MxCsrFields->PE = ((MxCsr & MXCSRFLAG_PE) != 0);
+    MxCsrFields->DAZ = ((MxCsr & MXCSRFLAG_DAZ) != 0);
+    MxCsrFields->IM = ((MxCsr & MXCSRFLAG_IM) != 0);
+    MxCsrFields->DM = ((MxCsr & MXCSRFLAG_DM) != 0);
+    MxCsrFields->ZM = ((MxCsr & MXCSRFLAG_ZM) != 0);
+    MxCsrFields->OM = ((MxCsr & MXCSRFLAG_OM) != 0);
+    MxCsrFields->UM = ((MxCsr & MXCSRFLAG_UM) != 0);
+    MxCsrFields->PM = ((MxCsr & MXCSRFLAG_PM) != 0);
+    MxCsrFields->FZ = ((MxCsr & MXCSRFLAG_FZ) != 0);
 
-    if(size > sizeof(REGDUMP))
-        __debugbreak();
+    MxCsrFields->RC = (MxCsr & 0x6000) >> 13;
+}
 
-    REGDUMP temp;
-    if(!_dbg_getregdump(&temp))
+#define x87CONTROLWORD_FLAG_IM 0x1
+#define x87CONTROLWORD_FLAG_DM 0x2
+#define x87CONTROLWORD_FLAG_ZM 0x4
+#define x87CONTROLWORD_FLAG_OM 0x8
+#define x87CONTROLWORD_FLAG_UM 0x10
+#define x87CONTROLWORD_FLAG_PM 0x20
+#define x87CONTROLWORD_FLAG_IEM 0x80
+#define x87CONTROLWORD_FLAG_IC 0x1000
+
+static void Getx87ControlWordFields(X87CONTROLWORDFIELDS* x87ControlWordFields, WORD ControlWord)
+{
+    x87ControlWordFields->IM = ((ControlWord & x87CONTROLWORD_FLAG_IM) != 0);
+    x87ControlWordFields->DM = ((ControlWord & x87CONTROLWORD_FLAG_DM) != 0);
+    x87ControlWordFields->ZM = ((ControlWord & x87CONTROLWORD_FLAG_ZM) != 0);
+    x87ControlWordFields->OM = ((ControlWord & x87CONTROLWORD_FLAG_OM) != 0);
+    x87ControlWordFields->UM = ((ControlWord & x87CONTROLWORD_FLAG_UM) != 0);
+    x87ControlWordFields->PM = ((ControlWord & x87CONTROLWORD_FLAG_PM) != 0);
+    x87ControlWordFields->IEM = ((ControlWord & x87CONTROLWORD_FLAG_IEM) != 0);
+    x87ControlWordFields->IC = ((ControlWord & x87CONTROLWORD_FLAG_IC) != 0);
+
+    x87ControlWordFields->RC = ((ControlWord & 0xC00) >> 10);
+    x87ControlWordFields->PC = ((ControlWord & 0x300) >> 8);
+}
+
+#define x87STATUSWORD_FLAG_I 0x1
+#define x87STATUSWORD_FLAG_D 0x2
+#define x87STATUSWORD_FLAG_Z 0x4
+#define x87STATUSWORD_FLAG_O 0x8
+#define x87STATUSWORD_FLAG_U 0x10
+#define x87STATUSWORD_FLAG_P 0x20
+#define x87STATUSWORD_FLAG_SF 0x40
+#define x87STATUSWORD_FLAG_ES 0x80
+#define x87STATUSWORD_FLAG_C0 0x100
+#define x87STATUSWORD_FLAG_C1 0x200
+#define x87STATUSWORD_FLAG_C2 0x400
+#define x87STATUSWORD_FLAG_C3 0x4000
+#define x87STATUSWORD_FLAG_B 0x8000
+
+static void Getx87StatusWordFields(X87STATUSWORDFIELDS* x87StatusWordFields, WORD StatusWord)
+{
+    x87StatusWordFields->I = ((StatusWord & x87STATUSWORD_FLAG_I) != 0);
+    x87StatusWordFields->D = ((StatusWord & x87STATUSWORD_FLAG_D) != 0);
+    x87StatusWordFields->Z = ((StatusWord & x87STATUSWORD_FLAG_Z) != 0);
+    x87StatusWordFields->O = ((StatusWord & x87STATUSWORD_FLAG_O) != 0);
+    x87StatusWordFields->U = ((StatusWord & x87STATUSWORD_FLAG_U) != 0);
+    x87StatusWordFields->P = ((StatusWord & x87STATUSWORD_FLAG_P) != 0);
+    x87StatusWordFields->SF = ((StatusWord & x87STATUSWORD_FLAG_SF) != 0);
+    x87StatusWordFields->ES = ((StatusWord & x87STATUSWORD_FLAG_ES) != 0);
+    x87StatusWordFields->C0 = ((StatusWord & x87STATUSWORD_FLAG_C0) != 0);
+    x87StatusWordFields->C1 = ((StatusWord & x87STATUSWORD_FLAG_C1) != 0);
+    x87StatusWordFields->C2 = ((StatusWord & x87STATUSWORD_FLAG_C2) != 0);
+    x87StatusWordFields->C3 = ((StatusWord & x87STATUSWORD_FLAG_C3) != 0);
+    x87StatusWordFields->B = ((StatusWord & x87STATUSWORD_FLAG_B) != 0);
+
+    x87StatusWordFields->TOP = ((StatusWord & 0x3800) >> 11);
+}
+
+// Definitions From TitanEngine
+#define Getx87r0PositionInRegisterArea(STInTopStack) ((8 - STInTopStack) % 8)
+#define Calculatex87registerPositionInRegisterArea(x87r0_position, index) (((x87r0_position + index) % 8))
+#define GetRegisterAreaOf87register(register_area, x87r0_position, index) (((char *) register_area) + 10 * Calculatex87registerPositionInRegisterArea(x87r0_position, index) )
+#define GetSTValueFromIndex(x87r0_position, index) ((x87r0_position + index) % 8)
+
+BRIDGE_IMPEXP bool DbgGetRegDumpEx(REGDUMP_AVX512* regdump, size_t size)
+{
+    if(size == sizeof(REGDUMP) || size == sizeof(REGDUMP_OLD))
     {
-        memset(regdump, 0, size);
-        return false;
+        REGDUMP_AVX512 regdump2;
+        if(_dbg_getregdump(&regdump2))
+        {
+            // Translate from REGDUMP_AVX512 to REGDUMP
+            REGDUMP* actual = (REGDUMP*)regdump;
+            actual->regcontext.cax = regdump2.regcontext.cax;
+            actual->regcontext.ccx = regdump2.regcontext.ccx;
+            actual->regcontext.cdx = regdump2.regcontext.cdx;
+            actual->regcontext.cbx = regdump2.regcontext.cbx;
+            actual->regcontext.csp = regdump2.regcontext.csp;
+            actual->regcontext.cbp = regdump2.regcontext.cbp;
+            actual->regcontext.csi = regdump2.regcontext.csi;
+            actual->regcontext.cdi = regdump2.regcontext.cdi;
+#ifdef _WIN64
+            actual->regcontext.r8 = regdump2.regcontext.r8;
+            actual->regcontext.r9 = regdump2.regcontext.r9;
+            actual->regcontext.r10 = regdump2.regcontext.r10;
+            actual->regcontext.r11 = regdump2.regcontext.r11;
+            actual->regcontext.r12 = regdump2.regcontext.r12;
+            actual->regcontext.r13 = regdump2.regcontext.r13;
+            actual->regcontext.r14 = regdump2.regcontext.r14;
+            actual->regcontext.r15 = regdump2.regcontext.r15;
+#endif
+            actual->regcontext.cip = regdump2.regcontext.cip;
+            actual->regcontext.eflags = regdump2.regcontext.eflags;
+            actual->regcontext.gs = regdump2.regcontext.gs;
+            actual->regcontext.fs = regdump2.regcontext.fs;
+            actual->regcontext.es = regdump2.regcontext.es;
+            actual->regcontext.ds = regdump2.regcontext.ds;
+            actual->regcontext.cs = regdump2.regcontext.cs;
+            actual->regcontext.ss = regdump2.regcontext.ss;
+            actual->regcontext.dr0 = regdump2.regcontext.dr0;
+            actual->regcontext.dr1 = regdump2.regcontext.dr1;
+            actual->regcontext.dr2 = regdump2.regcontext.dr2;
+            actual->regcontext.dr3 = regdump2.regcontext.dr3;
+            actual->regcontext.dr6 = regdump2.regcontext.dr6;
+            actual->regcontext.dr7 = regdump2.regcontext.dr7;
+            actual->regcontext.x87fpu = regdump2.regcontext.x87fpu;
+            actual->regcontext.MxCsr = regdump2.regcontext.MxCsr;
+            memcpy(actual->regcontext.RegisterArea, regdump2.regcontext.RegisterArea, sizeof(actual->regcontext.RegisterArea));
+            for(int i = 0; i < _countof(actual->regcontext.XmmRegisters); i++)
+            {
+                auto temp = regdump2.regcontext.ZmmRegisters[i].Low.Low;
+                actual->regcontext.XmmRegisters[i] = temp;
+                actual->regcontext.YmmRegisters[i].Low = temp;
+                temp = regdump2.regcontext.ZmmRegisters[i].Low.High;
+                actual->regcontext.YmmRegisters[i].High = temp;
+            }
+
+            duint cflags = actual->regcontext.eflags;
+            actual->flags.c = (cflags & (1 << 0)) != 0;
+            actual->flags.p = (cflags & (1 << 2)) != 0;
+            actual->flags.a = (cflags & (1 << 4)) != 0;
+            actual->flags.z = (cflags & (1 << 6)) != 0;
+            actual->flags.s = (cflags & (1 << 7)) != 0;
+            actual->flags.t = (cflags & (1 << 8)) != 0;
+            actual->flags.i = (cflags & (1 << 9)) != 0;
+            actual->flags.d = (cflags & (1 << 10)) != 0;
+            actual->flags.o = (cflags & (1 << 11)) != 0;
+
+            GetMxCsrFields(&(actual->MxCsrFields), actual->regcontext.MxCsr);
+            Getx87ControlWordFields(&(actual->x87ControlWordFields), actual->regcontext.x87fpu.ControlWord);
+            Getx87StatusWordFields(&(actual->x87StatusWordFields), actual->regcontext.x87fpu.StatusWord);
+
+            DWORD x87r0_position = Getx87r0PositionInRegisterArea(actual->x87StatusWordFields.TOP);
+            for(int i = 0; i < 8; i++)
+            {
+                memcpy(actual->x87FPURegisters[i].data, GetRegisterAreaOf87register(actual->regcontext.RegisterArea, x87r0_position, i), 10);
+                actual->mmx[i] = *((uint64_t*)&actual->x87FPURegisters[i].data);
+                actual->x87FPURegisters[i].st_value = GetSTValueFromIndex(x87r0_position, i);
+                actual->x87FPURegisters[i].tag = (int)((actual->regcontext.x87fpu.TagWord >> (i * 2)) & 0x3);
+            }
+
+            actual->lastError.code = regdump2.lastError;
+            char fmtString[64] = "";
+            auto pStringFormatInline = DbgFunctions()->StringFormatInline; // When called before dbgfunctionsinit() this can be NULL!
+            if(pStringFormatInline && sprintf_s(fmtString, _TRUNCATE, "{winerrorname@%X}", actual->lastError.code) != -1)
+            {
+                pStringFormatInline(fmtString, sizeof(actual->lastError.name), actual->lastError.name);
+            }
+            else
+            {
+                memset(actual->lastError.name, 0, sizeof(actual->lastError.name));
+            }
+
+            if(size == sizeof(REGDUMP))  // Not supported in REGDUMP_OLD
+            {
+                actual->lastStatus.code = regdump2.lastStatus;
+                if(pStringFormatInline && sprintf_s(fmtString, _TRUNCATE, "{ntstatusname@%X}", actual->lastStatus.code) != -1)
+                {
+                    pStringFormatInline(fmtString, sizeof(actual->lastStatus.name), actual->lastStatus.name);
+                }
+                else
+                {
+                    memset(actual->lastStatus.name, 0, sizeof(actual->lastStatus.name));
+                }
+            }
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
-    memcpy(regdump, &temp, size);
-    return true;
+    else if(size == sizeof(REGDUMP_AVX512))
+    {
+        return _dbg_getregdump(regdump);
+    }
+    else if(size < sizeof(REGDUMP))
+    {
+        REGDUMP temp;
+        if(!DbgGetRegDumpEx((REGDUMP_AVX512*)&temp, sizeof(REGDUMP)))
+        {
+            memset(regdump, 0, size);
+            return false;
+        }
+        memcpy(regdump, &temp, size);
+        return true;
+    }
+    else
+        __debugbreak();
+    return false;
 }
 
 // FIXME all

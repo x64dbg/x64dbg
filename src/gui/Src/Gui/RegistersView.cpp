@@ -8,7 +8,6 @@
 #include "Configuration.h"
 #include "WordEditDialog.h"
 #include "LineEditDialog.h"
-#include "EditFloatRegister.h"
 #include "SelectFields.h"
 #include "MiscUtil.h"
 #include "ldconvert.h"
@@ -553,75 +552,94 @@ void RegistersView::InitMappings()
         mRegisterRelativePlaces.insert(XMM14, Register_Relative_Position(XMM13, XMM15));
         mRegisterMapping.insert(XMM15, "XMM15");
         mRegisterPlaces.insert(XMM15, Register_Position(offset++, 0, 6, 16 * 2));
-        mRegisterRelativePlaces.insert(XMM15, Register_Relative_Position(XMM14, YMM0));
+        mRegisterRelativePlaces.insert(XMM15, Register_Relative_Position(XMM14, (mAVX512RegistersShown ? XMM16 : DR0)));
+        if(mAVX512RegistersShown)
+        {
+            offset++;
+
+            mRegisterMapping.insert(XMM16, "XMM16");
+            mRegisterPlaces.insert(XMM16, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM16, Register_Relative_Position(XMM15, XMM17));
+            mRegisterMapping.insert(XMM17, "XMM17");
+            mRegisterPlaces.insert(XMM17, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM17, Register_Relative_Position(XMM16, XMM18));
+            mRegisterMapping.insert(XMM18, "XMM18");
+            mRegisterPlaces.insert(XMM18, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM18, Register_Relative_Position(XMM17, XMM19));
+            mRegisterMapping.insert(XMM19, "XMM19");
+            mRegisterPlaces.insert(XMM19, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM19, Register_Relative_Position(XMM18, XMM20));
+            mRegisterMapping.insert(XMM20, "XMM20");
+            mRegisterPlaces.insert(XMM20, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM20, Register_Relative_Position(XMM19, XMM21));
+            mRegisterMapping.insert(XMM21, "XMM21");
+            mRegisterPlaces.insert(XMM21, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM21, Register_Relative_Position(XMM20, XMM22));
+            mRegisterMapping.insert(XMM22, "XMM22");
+            mRegisterPlaces.insert(XMM22, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM22, Register_Relative_Position(XMM21, XMM23));
+            mRegisterMapping.insert(XMM23, "XMM23");
+            mRegisterPlaces.insert(XMM23, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM23, Register_Relative_Position(XMM22, XMM24));
+            mRegisterMapping.insert(XMM24, "XMM24");
+            mRegisterPlaces.insert(XMM24, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM24, Register_Relative_Position(XMM23, XMM25));
+            mRegisterMapping.insert(XMM25, "XMM25");
+            mRegisterPlaces.insert(XMM25, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM25, Register_Relative_Position(XMM24, XMM26));
+            mRegisterMapping.insert(XMM26, "XMM26");
+            mRegisterPlaces.insert(XMM26, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM26, Register_Relative_Position(XMM25, XMM27));
+            mRegisterMapping.insert(XMM27, "XMM27");
+            mRegisterPlaces.insert(XMM27, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM27, Register_Relative_Position(XMM26, XMM28));
+            mRegisterMapping.insert(XMM28, "XMM28");
+            mRegisterPlaces.insert(XMM28, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM28, Register_Relative_Position(XMM27, XMM29));
+            mRegisterMapping.insert(XMM29, "XMM29");
+            mRegisterPlaces.insert(XMM29, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM29, Register_Relative_Position(XMM28, XMM30));
+            mRegisterMapping.insert(XMM30, "XMM30");
+            mRegisterPlaces.insert(XMM30, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM30, Register_Relative_Position(XMM29, XMM31));
+            mRegisterMapping.insert(XMM31, "XMM31");
+            mRegisterPlaces.insert(XMM31, Register_Position(offset++, 0, 6, 16 * 2));
+            mRegisterRelativePlaces.insert(XMM31, Register_Relative_Position(XMM30, K0));
+        }
 #else
         mRegisterMapping.insert(XMM7, "XMM7");
         mRegisterPlaces.insert(XMM7, Register_Position(offset++, 0, 6, 16 * 2));
-        mRegisterRelativePlaces.insert(XMM7, Register_Relative_Position(XMM6, YMM0));
+        mRegisterRelativePlaces.insert(XMM7, Register_Relative_Position(XMM6, (mAVX512RegistersShown ? K0 : DR0)));
 #endif
+        if(mAVX512RegistersShown)
+        {
+            offset++;
 
-        offset++;
-
-#ifdef _WIN64
-        mRegisterMapping.insert(YMM0, "YMM0");
-        mRegisterPlaces.insert(YMM0, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM0, Register_Relative_Position(XMM15, YMM1));
-#else
-        mRegisterMapping.insert(YMM0, "YMM0");
-        mRegisterPlaces.insert(YMM0, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM0, Register_Relative_Position(XMM7, YMM1));
-#endif
-        mRegisterMapping.insert(YMM1, "YMM1");
-        mRegisterPlaces.insert(YMM1, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM1, Register_Relative_Position(YMM0, YMM2));
-        mRegisterMapping.insert(YMM2, "YMM2");
-        mRegisterPlaces.insert(YMM2, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM2, Register_Relative_Position(YMM1, YMM3));
-        mRegisterMapping.insert(YMM3, "YMM3");
-        mRegisterPlaces.insert(YMM3, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM3, Register_Relative_Position(YMM2, YMM4));
-        mRegisterMapping.insert(YMM4, "YMM4");
-        mRegisterPlaces.insert(YMM4, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM4, Register_Relative_Position(YMM3, YMM5));
-        mRegisterMapping.insert(YMM5, "YMM5");
-        mRegisterPlaces.insert(YMM5, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM5, Register_Relative_Position(YMM4, YMM6));
-        mRegisterMapping.insert(YMM6, "YMM6");
-        mRegisterPlaces.insert(YMM6, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM6, Register_Relative_Position(YMM5, YMM7));
-#ifdef _WIN64
-        mRegisterMapping.insert(YMM7, "YMM7");
-        mRegisterPlaces.insert(YMM7, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM7, Register_Relative_Position(YMM6, YMM8));
-        mRegisterMapping.insert(YMM8, "YMM8");
-        mRegisterPlaces.insert(YMM8, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM8, Register_Relative_Position(YMM7, YMM9));
-        mRegisterMapping.insert(YMM9, "YMM9");
-        mRegisterPlaces.insert(YMM9, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM9, Register_Relative_Position(YMM8, YMM10));
-        mRegisterMapping.insert(YMM10, "YMM10");
-        mRegisterPlaces.insert(YMM10, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM10, Register_Relative_Position(YMM9, YMM11));
-        mRegisterMapping.insert(YMM11, "YMM11");
-        mRegisterPlaces.insert(YMM11, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM11, Register_Relative_Position(YMM10, YMM12));
-        mRegisterMapping.insert(YMM12, "YMM12");
-        mRegisterPlaces.insert(YMM12, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM12, Register_Relative_Position(YMM11, YMM13));
-        mRegisterMapping.insert(YMM13, "YMM13");
-        mRegisterPlaces.insert(YMM13, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM13, Register_Relative_Position(YMM12, YMM14));
-        mRegisterMapping.insert(YMM14, "YMM14");
-        mRegisterPlaces.insert(YMM14, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM14, Register_Relative_Position(YMM13, YMM15));
-        mRegisterMapping.insert(YMM15, "YMM15");
-        mRegisterPlaces.insert(YMM15, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM15, Register_Relative_Position(YMM14, DR0));
-#else
-        mRegisterMapping.insert(YMM7, "YMM7");
-        mRegisterPlaces.insert(YMM7, Register_Position(offset++, 0, 6, 32 * 2));
-        mRegisterRelativePlaces.insert(YMM7, Register_Relative_Position(YMM6, DR0));
-#endif
+            mRegisterMapping.insert(K0, "K0");
+            mRegisterPlaces.insert(K0, Register_Position(offset++, 0, 4, 16 * 2));
+            mRegisterRelativePlaces.insert(K0, Register_Relative_Position(ArchValue(XMM7, XMM31), K1));
+            mRegisterMapping.insert(K1, "K1");
+            mRegisterPlaces.insert(K1, Register_Position(offset++, 0, 4, 16 * 2));
+            mRegisterRelativePlaces.insert(K1, Register_Relative_Position(K0, K2));
+            mRegisterMapping.insert(K2, "K2");
+            mRegisterPlaces.insert(K2, Register_Position(offset++, 0, 4, 16 * 2));
+            mRegisterRelativePlaces.insert(K2, Register_Relative_Position(K1, K3));
+            mRegisterMapping.insert(K3, "K3");
+            mRegisterPlaces.insert(K3, Register_Position(offset++, 0, 4, 16 * 2));
+            mRegisterRelativePlaces.insert(K3, Register_Relative_Position(K2, K4));
+            mRegisterMapping.insert(K4, "K4");
+            mRegisterPlaces.insert(K4, Register_Position(offset++, 0, 4, 16 * 2));
+            mRegisterRelativePlaces.insert(K4, Register_Relative_Position(K3, K5));
+            mRegisterMapping.insert(K5, "K5");
+            mRegisterPlaces.insert(K5, Register_Position(offset++, 0, 4, 16 * 2));
+            mRegisterRelativePlaces.insert(K5, Register_Relative_Position(K4, K6));
+            mRegisterMapping.insert(K6, "K6");
+            mRegisterPlaces.insert(K6, Register_Position(offset++, 0, 4, 16 * 2));
+            mRegisterRelativePlaces.insert(K6, Register_Relative_Position(K5, K7));
+            mRegisterMapping.insert(K7, "K7");
+            mRegisterPlaces.insert(K7, Register_Position(offset++, 0, 4, 16 * 2));
+            mRegisterRelativePlaces.insert(K7, Register_Relative_Position(K6, DR0));
+        }
     }
     else
     {
@@ -633,11 +651,7 @@ void RegistersView::InitMappings()
 
     if(mShowFpu)
     {
-#ifdef _WIN64
-        mRegisterRelativePlaces.insert(DR0, Register_Relative_Position(YMM15, DR1));
-#else
-        mRegisterRelativePlaces.insert(DR0, Register_Relative_Position(YMM7, DR1));
-#endif
+        mRegisterRelativePlaces.insert(DR0, Register_Relative_Position((mAVX512RegistersShown ? K7 : ArchValue(XMM7, XMM15)), DR1));
     }
     else
     {
@@ -663,6 +677,224 @@ void RegistersView::InitMappings()
     mRegisterRelativePlaces.insert(DR7, Register_Relative_Position(DR6, UNKNOWN));
 
     mRowsNeeded = offset + 1;
+    //adjust the height of the area.
+    setFixedHeight(getEstimateHeight());
+}
+
+RegistersView::REGDUMP_EXTENDED RegistersView::expandContext(const REGDUMP* reg)
+{
+    RegistersView::REGDUMP_EXTENDED value;
+    value.regcontext.cax = reg->regcontext.cax;
+    value.regcontext.ccx = reg->regcontext.ccx;
+    value.regcontext.cdx = reg->regcontext.cdx;
+    value.regcontext.cbx = reg->regcontext.cbx;
+    value.regcontext.csp = reg->regcontext.csp;
+    value.regcontext.cbp = reg->regcontext.cbp;
+    value.regcontext.csi = reg->regcontext.csi;
+    value.regcontext.cdi = reg->regcontext.cdi;
+#ifdef _WIN64
+    value.regcontext.r8 = reg->regcontext.r8;
+    value.regcontext.r9 = reg->regcontext.r9;
+    value.regcontext.r10 = reg->regcontext.r10;
+    value.regcontext.r11 = reg->regcontext.r11;
+    value.regcontext.r12 = reg->regcontext.r12;
+    value.regcontext.r13 = reg->regcontext.r13;
+    value.regcontext.r14 = reg->regcontext.r14;
+    value.regcontext.r15 = reg->regcontext.r15;
+#endif // _WIN64
+    value.regcontext.cip = reg->regcontext.cip;
+    value.regcontext.eflags = reg->regcontext.eflags;
+    value.regcontext.gs = reg->regcontext.gs;
+    value.regcontext.fs = reg->regcontext.fs;
+    value.regcontext.es = reg->regcontext.es;
+    value.regcontext.ds = reg->regcontext.ds;
+    value.regcontext.cs = reg->regcontext.cs;
+    value.regcontext.ss = reg->regcontext.ss;
+    value.regcontext.dr0 = reg->regcontext.dr0;
+    value.regcontext.dr1 = reg->regcontext.dr1;
+    value.regcontext.dr2 = reg->regcontext.dr2;
+    value.regcontext.dr3 = reg->regcontext.dr3;
+    value.regcontext.dr6 = reg->regcontext.dr6;
+    value.regcontext.dr7 = reg->regcontext.dr7;
+    value.regcontext.x87fpu = reg->regcontext.x87fpu;
+    value.regcontext.MxCsr = reg->regcontext.MxCsr;
+    memcpy(value.regcontext.RegisterArea, reg->regcontext.RegisterArea, sizeof(value.regcontext.RegisterArea));
+    YMMREGISTER zeroYMM;
+    memset(&zeroYMM, 0, sizeof(zeroYMM));
+    for(int i = 0; i < ArchValue(8, 16); i++)
+    {
+        value.regcontext.ZmmRegisters[i].Low = reg->regcontext.YmmRegisters[i];
+        value.regcontext.ZmmRegisters[i].High = zeroYMM;
+    }
+#ifdef _WIN64
+    // ZMM16-ZMM31
+    memset(&value.regcontext.ZmmRegisters[16], 0, sizeof(ZMMREGISTER) * 16);
+#endif
+    memset(&value.regcontext.Opmask, 0, sizeof(value.regcontext.Opmask));
+    value.flags = reg->flags;
+    memcpy(value.x87FPURegisters, reg->x87FPURegisters, sizeof(value.x87FPURegisters));
+    value.MxCsrFields = reg->MxCsrFields;
+    value.x87StatusWordFields = reg->x87StatusWordFields;
+    value.x87ControlWordFields = reg->x87ControlWordFields;
+    value.lastError = reg->lastError;
+    value.lastStatus = reg->lastStatus;
+    return value;
+}
+
+#ifndef MXCSRFLAG_IE
+#define MXCSRFLAG_IE 0x1
+#define MXCSRFLAG_DE 0x2
+#define MXCSRFLAG_ZE 0x4
+#define MXCSRFLAG_OE 0x8
+#define MXCSRFLAG_UE 0x10
+#define MXCSRFLAG_PE 0x20
+#define MXCSRFLAG_DAZ 0x40
+#define MXCSRFLAG_IM 0x80
+#define MXCSRFLAG_DM 0x100
+#define MXCSRFLAG_ZM 0x200
+#define MXCSRFLAG_OM 0x400
+#define MXCSRFLAG_UM 0x800
+#define MXCSRFLAG_PM 0x1000
+#define MXCSRFLAG_FZ 0x8000
+#endif
+
+static void GetMxCsrFields(MXCSRFIELDS* MxCsrFields, DWORD MxCsr)
+{
+    MxCsrFields->IE = ((MxCsr & MXCSRFLAG_IE) != 0);
+    MxCsrFields->DE = ((MxCsr & MXCSRFLAG_DE) != 0);
+    MxCsrFields->ZE = ((MxCsr & MXCSRFLAG_ZE) != 0);
+    MxCsrFields->OE = ((MxCsr & MXCSRFLAG_OE) != 0);
+    MxCsrFields->UE = ((MxCsr & MXCSRFLAG_UE) != 0);
+    MxCsrFields->PE = ((MxCsr & MXCSRFLAG_PE) != 0);
+    MxCsrFields->DAZ = ((MxCsr & MXCSRFLAG_DAZ) != 0);
+    MxCsrFields->IM = ((MxCsr & MXCSRFLAG_IM) != 0);
+    MxCsrFields->DM = ((MxCsr & MXCSRFLAG_DM) != 0);
+    MxCsrFields->ZM = ((MxCsr & MXCSRFLAG_ZM) != 0);
+    MxCsrFields->OM = ((MxCsr & MXCSRFLAG_OM) != 0);
+    MxCsrFields->UM = ((MxCsr & MXCSRFLAG_UM) != 0);
+    MxCsrFields->PM = ((MxCsr & MXCSRFLAG_PM) != 0);
+    MxCsrFields->FZ = ((MxCsr & MXCSRFLAG_FZ) != 0);
+
+    MxCsrFields->RC = (MxCsr & 0x6000) >> 13;
+}
+
+#ifndef x87CONTROLWORD_FLAG_IM
+#define x87CONTROLWORD_FLAG_IM 0x1
+#define x87CONTROLWORD_FLAG_DM 0x2
+#define x87CONTROLWORD_FLAG_ZM 0x4
+#define x87CONTROLWORD_FLAG_OM 0x8
+#define x87CONTROLWORD_FLAG_UM 0x10
+#define x87CONTROLWORD_FLAG_PM 0x20
+#define x87CONTROLWORD_FLAG_IEM 0x80
+#define x87CONTROLWORD_FLAG_IC 0x1000
+#endif
+
+static void Getx87ControlWordFields(X87CONTROLWORDFIELDS* x87ControlWordFields, WORD ControlWord)
+{
+    x87ControlWordFields->IM = ((ControlWord & x87CONTROLWORD_FLAG_IM) != 0);
+    x87ControlWordFields->DM = ((ControlWord & x87CONTROLWORD_FLAG_DM) != 0);
+    x87ControlWordFields->ZM = ((ControlWord & x87CONTROLWORD_FLAG_ZM) != 0);
+    x87ControlWordFields->OM = ((ControlWord & x87CONTROLWORD_FLAG_OM) != 0);
+    x87ControlWordFields->UM = ((ControlWord & x87CONTROLWORD_FLAG_UM) != 0);
+    x87ControlWordFields->PM = ((ControlWord & x87CONTROLWORD_FLAG_PM) != 0);
+    x87ControlWordFields->IEM = ((ControlWord & x87CONTROLWORD_FLAG_IEM) != 0);
+    x87ControlWordFields->IC = ((ControlWord & x87CONTROLWORD_FLAG_IC) != 0);
+
+    x87ControlWordFields->RC = ((ControlWord & 0xC00) >> 10);
+    x87ControlWordFields->PC = ((ControlWord & 0x300) >> 8);
+}
+
+#ifndef x87STATUSWORD_FLAG_I
+#define x87STATUSWORD_FLAG_I 0x1
+#define x87STATUSWORD_FLAG_D 0x2
+#define x87STATUSWORD_FLAG_Z 0x4
+#define x87STATUSWORD_FLAG_O 0x8
+#define x87STATUSWORD_FLAG_U 0x10
+#define x87STATUSWORD_FLAG_P 0x20
+#define x87STATUSWORD_FLAG_SF 0x40
+#define x87STATUSWORD_FLAG_ES 0x80
+#define x87STATUSWORD_FLAG_C0 0x100
+#define x87STATUSWORD_FLAG_C1 0x200
+#define x87STATUSWORD_FLAG_C2 0x400
+#define x87STATUSWORD_FLAG_C3 0x4000
+#define x87STATUSWORD_FLAG_B 0x8000
+#endif
+
+static void Getx87StatusWordFields(X87STATUSWORDFIELDS* x87StatusWordFields, WORD StatusWord)
+{
+    x87StatusWordFields->I = ((StatusWord & x87STATUSWORD_FLAG_I) != 0);
+    x87StatusWordFields->D = ((StatusWord & x87STATUSWORD_FLAG_D) != 0);
+    x87StatusWordFields->Z = ((StatusWord & x87STATUSWORD_FLAG_Z) != 0);
+    x87StatusWordFields->O = ((StatusWord & x87STATUSWORD_FLAG_O) != 0);
+    x87StatusWordFields->U = ((StatusWord & x87STATUSWORD_FLAG_U) != 0);
+    x87StatusWordFields->P = ((StatusWord & x87STATUSWORD_FLAG_P) != 0);
+    x87StatusWordFields->SF = ((StatusWord & x87STATUSWORD_FLAG_SF) != 0);
+    x87StatusWordFields->ES = ((StatusWord & x87STATUSWORD_FLAG_ES) != 0);
+    x87StatusWordFields->C0 = ((StatusWord & x87STATUSWORD_FLAG_C0) != 0);
+    x87StatusWordFields->C1 = ((StatusWord & x87STATUSWORD_FLAG_C1) != 0);
+    x87StatusWordFields->C2 = ((StatusWord & x87STATUSWORD_FLAG_C2) != 0);
+    x87StatusWordFields->C3 = ((StatusWord & x87STATUSWORD_FLAG_C3) != 0);
+    x87StatusWordFields->B = ((StatusWord & x87STATUSWORD_FLAG_B) != 0);
+
+    x87StatusWordFields->TOP = ((StatusWord & 0x3800) >> 11);
+}
+
+// Definitions From TitanEngine
+#define Getx87r0PositionInRegisterArea(STInTopStack) ((8 - STInTopStack) % 8)
+#define Calculatex87registerPositionInRegisterArea(x87r0_position, index) (((x87r0_position + index) % 8))
+#define GetRegisterAreaOf87register(register_area, x87r0_position, index) (((char *) register_area) + 10 * Calculatex87registerPositionInRegisterArea(x87r0_position, index) )
+#define GetSTValueFromIndex(x87r0_position, index) ((x87r0_position + index) % 8)
+
+RegistersView::REGDUMP_EXTENDED RegistersView::expandContext(const REGDUMP_AVX512* reg)
+{
+    RegistersView::REGDUMP_EXTENDED value;
+    static_assert(std::is_same < decltype(value.regcontext), decltype(reg->regcontext) > (), "Type must match");
+    memcpy(&value.regcontext, &reg->regcontext, sizeof(value.regcontext));
+
+    duint cflags = value.regcontext.eflags;
+    value.flags.c = (cflags & (1 << 0)) != 0;
+    value.flags.p = (cflags & (1 << 2)) != 0;
+    value.flags.a = (cflags & (1 << 4)) != 0;
+    value.flags.z = (cflags & (1 << 6)) != 0;
+    value.flags.s = (cflags & (1 << 7)) != 0;
+    value.flags.t = (cflags & (1 << 8)) != 0;
+    value.flags.i = (cflags & (1 << 9)) != 0;
+    value.flags.d = (cflags & (1 << 10)) != 0;
+    value.flags.o = (cflags & (1 << 11)) != 0;
+
+    GetMxCsrFields(&(value.MxCsrFields), value.regcontext.MxCsr);
+    Getx87ControlWordFields(&(value.x87ControlWordFields), value.regcontext.x87fpu.ControlWord);
+    Getx87StatusWordFields(&(value.x87StatusWordFields), value.regcontext.x87fpu.StatusWord);
+
+    DWORD x87r0_position = Getx87r0PositionInRegisterArea(value.x87StatusWordFields.TOP);
+    for(int i = 0; i < 8; i++)
+    {
+        memcpy(value.x87FPURegisters[i].data, GetRegisterAreaOf87register(value.regcontext.RegisterArea, x87r0_position, i), 10);
+        value.x87FPURegisters[i].st_value = GetSTValueFromIndex(x87r0_position, i);
+        value.x87FPURegisters[i].tag = (int)((value.regcontext.x87fpu.TagWord >> (i * 2)) & 0x3);
+    }
+
+    value.lastError.code = reg->lastError;
+    char fmtString[64] = "";
+    auto pStringFormatInline = DbgFunctions()->StringFormatInline; // When called before dbgfunctionsinit() this can be NULL!
+    if(pStringFormatInline && sprintf_s(fmtString, _TRUNCATE, "{winerrorname@%X}", value.lastError.code) != -1)
+    {
+        pStringFormatInline(fmtString, sizeof(value.lastError.name), value.lastError.name);
+    }
+    else
+    {
+        memset(value.lastError.name, 0, sizeof(value.lastError.name));
+    }
+    value.lastStatus.code = reg->lastStatus;
+    if(pStringFormatInline && sprintf_s(fmtString, _TRUNCATE, "{ntstatusname@%X}", value.lastStatus.code) != -1)
+    {
+        pStringFormatInline(fmtString, sizeof(value.lastStatus.name), value.lastStatus.name);
+    }
+    else
+    {
+        memset(value.lastStatus.name, 0, sizeof(value.lastStatus.name));
+    }
+    return value;
 }
 
 QAction* RegistersView::setupAction(const QIcon & icon, const QString & text)
@@ -686,6 +918,11 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     setWindowTitle("Registers");
     mChangeViewButton = NULL;
     mFpuMode = 0;
+    mXMMModeAuto = true;
+    mAlwaysShowAVX512Registers = false;
+    mXMMMode = 0;
+    mAVX512RegistersShown = isAVX512Supported();
+    mXMMModeYMMOnly = !isAVX512Supported();
     isActive = false;
 
     // general purposes register (we allow the user to modify the value)
@@ -1003,7 +1240,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
         mFPU.insert(i);
     }
 
-    for(REGISTER_NAME i = XMM0; i <= ArchValue(XMM7, XMM15); i = (REGISTER_NAME)(i + 1))
+    for(REGISTER_NAME i = XMM0; i <= ArchValue(XMM7, XMM31); i = (REGISTER_NAME)(i + 1))
     {
         mFPUXMM.insert(i);
         mMODIFYDISPLAY.insert(i);
@@ -1011,9 +1248,9 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
         mFPU.insert(i);
     }
 
-    for(REGISTER_NAME i = YMM0; i <= ArchValue(YMM7, YMM15); i = (REGISTER_NAME)(i + 1))
+    for(REGISTER_NAME i = K0; i <= K7; i = (REGISTER_NAME)(i + 1))
     {
-        mFPUYMM.insert(i);
+        mFPUOpmask.insert(i);
         mMODIFYDISPLAY.insert(i);
         mUNDODISPLAY.insert(i);
         mFPU.insert(i);
@@ -1150,6 +1387,10 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     connect(mDisplaySTX, SIGNAL(triggered()), this, SLOT(onFpuMode()));
     connect(mDisplayx87rX, SIGNAL(triggered()), this, SLOT(onFpuMode()));
     connect(mDisplayMMX, SIGNAL(triggered()), this, SLOT(onFpuMode()));
+    SIMDXMMSizeAuto = new QAction(tr("Always show maximum vector length"), mSwitchSIMDDispMode);
+    SIMDAlwaysShowAVX512 = new QAction(tr("Always show all AVX-512 registers"), mSwitchSIMDDispMode);
+    connect(SIMDXMMSizeAuto, SIGNAL(triggered()), this, SLOT(onXMMSizeAutoClicked()));
+    connect(SIMDAlwaysShowAVX512, SIGNAL(triggered()), this, SLOT(onAlwaysShowAVX512Clicked()));
     // Make SIMD display mode actions checkable and unchecked
     SIMDHex->setCheckable(true);
     SIMDFloat->setCheckable(true);
@@ -1163,6 +1404,8 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     SIMDSQWord->setCheckable(true);
     SIMDUQWord->setCheckable(true);
     SIMDHQWord->setCheckable(true);
+    SIMDXMMSizeAuto->setCheckable(true);
+    SIMDAlwaysShowAVX512->setCheckable(true);
     SIMDHex->setChecked(true);
     SIMDFloat->setChecked(false);
     SIMDDouble->setChecked(false);
@@ -1175,6 +1418,8 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     SIMDSQWord->setChecked(false);
     SIMDUQWord->setChecked(false);
     SIMDHQWord->setChecked(false);
+    SIMDXMMSizeAuto->setChecked(!mXMMModeAuto);
+    SIMDAlwaysShowAVX512->setChecked(mAVX512RegistersShown);
     mSwitchSIMDDispMode->addAction(SIMDHex);
     mSwitchSIMDDispMode->addAction(SIMDFloat);
     mSwitchSIMDDispMode->addAction(SIMDDouble);
@@ -1187,6 +1432,9 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     mSwitchSIMDDispMode->addAction(SIMDHWord);
     mSwitchSIMDDispMode->addAction(SIMDHDWord);
     mSwitchSIMDDispMode->addAction(SIMDHQWord);
+    mSwitchSIMDDispMode->addSeparator();
+    mSwitchSIMDDispMode->addAction(SIMDXMMSizeAuto);
+    mSwitchSIMDDispMode->addAction(SIMDAlwaysShowAVX512);
 
     connect(wCM_CopyToClipboard, SIGNAL(triggered()), this, SLOT(onCopyToClipboardAction()));
     connect(wCM_CopyFloatingPointValueToClipboard, SIGNAL(triggered()), this, SLOT(onCopyFloatingPointToClipboardAction()));
@@ -1219,6 +1467,22 @@ RegistersView::~RegistersView()
 {
 }
 
+static bool detectAVX512()
+{
+    int EABCDX[4];
+    __cpuid(EABCDX, 7); // detect AVX-512
+    if(EABCDX[1] & (1 << 16))  // EBX.bit16=1, supports AVX-512
+        return true;
+    else
+        return false;
+}
+
+bool RegistersView::isAVX512Supported()
+{
+    static bool avx512 = detectAVX512();
+    return avx512;
+}
+
 void RegistersView::fontsUpdatedSlot()
 {
     auto font = ConfigFont("Registers");
@@ -1234,8 +1498,6 @@ void RegistersView::fontsUpdatedSlot()
 
     //reload layout because the layout is dependent on the font.
     InitMappings();
-    //adjust the height of the area.
-    setFixedHeight(getEstimateHeight());
     reload();
 }
 
@@ -1253,7 +1515,6 @@ void RegistersView::ShowFPU(bool set_showfpu)
 {
     mShowFpu = set_showfpu;
     InitMappings();
-    setFixedHeight(getEstimateHeight());
     reload();
 }
 
@@ -1271,21 +1532,32 @@ bool RegistersView::identifyRegister(const int line, const int offset, REGISTER_
     if(clickedReg)
         *clickedReg = UNKNOWN;
     bool found_flag = false;
-    QMap<REGISTER_NAME, Register_Position>::const_iterator it = mRegisterPlaces.begin();
+    QMap<REGISTER_NAME, Register_Position>::const_iterator it = mRegisterPlaces.cbegin();
     // iterate all registers that being displayed
-    while(it != mRegisterPlaces.end())
+    while(it != mRegisterPlaces.cend())
     {
         if((it.value().line == (line - mVScrollOffset))    /* same line ? */
-                && ((1 + it.value().start) <= offset)   /* between start ... ? */
-                && (offset <= (1 + it.value().start + it.value().labelwidth + it.value().valuesize)) /* ... and end ? */
           )
         {
+            // These registers occupy a whole line
+            if(it.key() >= CAX && it.key() <= EFLAGS
+                    || it.key() >= MM0 && it.key() <= MM7
+                    || it.key() >= DR0 && it.key() <= DR7
+                    || it.key() >= K0 && it.key() <= K7
+                    || it.key() >= XMM0 && it.key() <= ArchValue(XMM7, XMM31))
+            {
+                found_flag = true;
+            }
+            else if(((1 + it.value().start) <= offset)   /* between start ... ? */
+                    && (offset <= (1 + it.value().start + it.value().labelwidth + it.value().valuesize)) /* ... and end ? */)
+            {
+                found_flag = true;
+            }
             // we found a matching register in the viewport
-            if(clickedReg)
+            if(found_flag && clickedReg)
                 *clickedReg = (REGISTER_NAME)it.key();
-            found_flag = true;
-            break;
-
+            if(found_flag)
+                break;
         }
         ++it;
     }
@@ -1682,7 +1954,7 @@ QString RegistersView::getRegisterLabel(REGISTER_NAME register_selected)
         }
     }
 
-    return std::move(newText);
+    return newText;
 }
 
 /**
@@ -1761,6 +2033,10 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, const char*
             valueText = QString().sprintf("%08X", data->code);
         mRegisterPlaces[LastStatus].valuesize = valueText.length();
     }
+    else if(mFPUOpmask.contains(reg))
+    {
+        valueText = QString("%1").arg((* ((const quint64*) value)), 16, 16, QChar('0')).toUpper();
+    }
     else
     {
         SIZE_T size = GetSizeRegister(reg);
@@ -1768,17 +2044,30 @@ QString RegistersView::GetRegStringValueFromValue(REGISTER_NAME reg, const char*
         if(size != 0)
         {
             if(mFPUXMM.contains(reg))
-                valueText = GetDataTypeString(value, size, enc_xmmword);
-            else if(mFPUYMM.contains(reg))
-                valueText = GetDataTypeString(value, size, enc_ymmword);
+            {
+                switch(mXMMMode)
+                {
+                case 0:
+                    valueText = GetDataTypeString(value, size, enc_xmmword);
+                    break;
+                case 1:
+                    valueText = GetDataTypeString(value, size, enc_ymmword);
+                    break;
+                case 2:
+                    valueText = GetDataTypeString(value, size, enc_zmmword);
+                    break;
+                }
+            }
             else
+            {
                 valueText = fillValue(value, size, bFpuRegistersLittleEndian);
+            }
         }
         else
             valueText = QString("???");
     }
 
-    return std::move(valueText);
+    return valueText;
 }
 
 #define MxCsr_RC_NEAR 0
@@ -2014,8 +2303,21 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         p->restore();
         */
 
-        // draw name of value
-        int width = fontMetrics.width(mRegisterMapping[reg]);
+        //get the register name
+        QString regName = mRegisterMapping[reg];
+        // change the name from XMM to YMM and ZMM depending on mXMMMode
+        if(regName.size() > 3 && mXMMMode != 0 && regName[0] == 'X' && regName[1] == 'M' && regName[2] == 'M')
+        {
+            if(mXMMMode == 1)
+            {
+                regName[0] = 'Y';
+            }
+            else if(mXMMMode == 2)
+            {
+                regName[0] = 'Z';
+            }
+        }
+        int width = fontMetrics.width(regName);
 
         // set the color of the register label
 #ifdef _WIN64
@@ -2039,8 +2341,7 @@ void RegistersView::drawRegister(QPainter* p, REGISTER_NAME reg, char* value)
         }
 #endif //_WIN64
 
-        //draw the register name
-        auto regName = mRegisterMapping[reg];
+        // draw name of value
         p->drawText(x, y, width, mRowHeight, Qt::AlignVCenter, regName);
 
         //highlight the register based on access
@@ -2259,6 +2560,82 @@ void RegistersView::onSIMDMode()
     GuiUpdateDisassemblyView(); // refresh display mode for data in disassembly
 }
 
+// detect XMM/YMM/ZMM Mode
+static int detectXMMMode(const ZMMREGISTER* ZmmRegisters)
+{
+    __m128 AVX_High = _mm_load_ps((const float*)&ZmmRegisters[0].Low.High);
+    __m128 AVX512_High = _mm_load_ps((const float*)&ZmmRegisters[0].High.Low);
+    AVX512_High = _mm_or_ps(AVX512_High, _mm_load_ps((float*)&ZmmRegisters[0].High.High));
+    for(int i = 1; i < ArchValue(8, 32); i++)
+    {
+        AVX_High = _mm_or_ps(AVX_High, _mm_load_ps((const float*)&ZmmRegisters[i].Low.High));
+        AVX512_High = _mm_or_ps(AVX512_High, _mm_load_ps((const float*)&ZmmRegisters[i].High.Low));
+        AVX512_High = _mm_or_ps(AVX512_High, _mm_load_ps((const float*)&ZmmRegisters[i].High.High));
+    }
+    quint64* AVXDetectPtr;
+    AVXDetectPtr = (quint64*)&AVX512_High;
+    if(AVXDetectPtr[0] | AVXDetectPtr[1])
+    {
+        return 2;
+    }
+    else
+    {
+        AVXDetectPtr = (quint64*)&AVX_High;
+        if(AVXDetectPtr[0] | AVXDetectPtr[1])
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+}
+
+static bool detectAVX512Used(const REGISTERCONTEXT_AVX512* context)
+{
+    __m128 temp = _mm_load_ps((const float*)&context->Opmask[0]);
+    quint64* ptr = (quint64*)&temp;
+    for(int i = 1; i <= 3; i++)
+        temp = _mm_or_ps(temp, _mm_load_ps((const float*)&context->Opmask[i * 2]));
+    if(ptr[0] | ptr[1])
+        return true;
+#ifdef _WIN64
+    for(int i = 16; i <= 31; i++)
+    {
+        __m128 temp2[2];
+        temp2[0] = _mm_load_ps((const float*)&context->ZmmRegisters[i].Low.Low);
+        temp2[1] = _mm_load_ps((const float*)&context->ZmmRegisters[i].Low.High);
+        temp2[0] = _mm_or_ps(temp2[0], _mm_load_ps((const float*)&context->ZmmRegisters[i].Low.High));
+        temp2[1] = _mm_or_ps(temp2[1], _mm_load_ps((const float*)&context->ZmmRegisters[i].High.High));
+        temp = _mm_or_ps(temp, temp2[0]);
+        temp = _mm_or_ps(temp, temp2[1]);
+    }
+    if(ptr[0] | ptr[1])
+        return true;
+#endif //_WIN64
+    return false;
+}
+
+void RegistersView::onXMMSizeAutoClicked()
+{
+    mXMMModeAuto = !mXMMModeAuto;
+    SIMDXMMSizeAuto->setChecked(!mXMMModeAuto);
+    mXMMMode = mXMMModeAuto ? detectXMMMode(mRegDumpStruct.regcontext.ZmmRegisters) : (mXMMModeYMMOnly ? 1 : 2);
+    emit refresh();
+}
+
+void RegistersView::onAlwaysShowAVX512Clicked()
+{
+    mAlwaysShowAVX512Registers = !mAlwaysShowAVX512Registers;
+    if(mAlwaysShowAVX512Registers && !isAVX512Supported())
+    {
+        GuiAddLogMessage(tr("AVX-512 isn't supported on this computer.\n").toUtf8().constData());
+    }
+    SIMDAlwaysShowAVX512->setChecked(mAlwaysShowAVX512Registers);
+    autoUpdateXMMModesAndRefresh();
+}
+
 void RegistersView::onFpuMode()
 {
     mFpuMode = (char)(dynamic_cast<QAction*>(sender())->data().toInt());
@@ -2428,25 +2805,31 @@ void RegistersView::onCopyAllAction()
         appendRegister(text, REGISTER_NAME::XMM13, "XMM13 : ", "XMM13 : ");
         appendRegister(text, REGISTER_NAME::XMM14, "XMM14 : ", "XMM14 : ");
         appendRegister(text, REGISTER_NAME::XMM15, "XMM15 : ", "XMM15 : ");
+        appendRegister(text, REGISTER_NAME::XMM16, "XMM16 : ", "XMM16 : ");
+        appendRegister(text, REGISTER_NAME::XMM17, "XMM17 : ", "XMM17 : ");
+        appendRegister(text, REGISTER_NAME::XMM18, "XMM18 : ", "XMM18 : ");
+        appendRegister(text, REGISTER_NAME::XMM19, "XMM19 : ", "XMM19 : ");
+        appendRegister(text, REGISTER_NAME::XMM20, "XMM20 : ", "XMM20 : ");
+        appendRegister(text, REGISTER_NAME::XMM21, "XMM21 : ", "XMM21 : ");
+        appendRegister(text, REGISTER_NAME::XMM22, "XMM22 : ", "XMM22 : ");
+        appendRegister(text, REGISTER_NAME::XMM23, "XMM23 : ", "XMM23 : ");
+        appendRegister(text, REGISTER_NAME::XMM24, "XMM24 : ", "XMM24 : ");
+        appendRegister(text, REGISTER_NAME::XMM25, "XMM25 : ", "XMM25 : ");
+        appendRegister(text, REGISTER_NAME::XMM26, "XMM26 : ", "XMM26 : ");
+        appendRegister(text, REGISTER_NAME::XMM27, "XMM27 : ", "XMM27 : ");
+        appendRegister(text, REGISTER_NAME::XMM28, "XMM28 : ", "XMM28 : ");
+        appendRegister(text, REGISTER_NAME::XMM29, "XMM29 : ", "XMM29 : ");
+        appendRegister(text, REGISTER_NAME::XMM30, "XMM30 : ", "XMM30 : ");
+        appendRegister(text, REGISTER_NAME::XMM31, "XMM31 : ", "XMM31 : ");
 #endif
-        appendRegister(text, REGISTER_NAME::YMM0, "YMM0  : ", "YMM0  : ");
-        appendRegister(text, REGISTER_NAME::YMM1, "YMM1  : ", "YMM1  : ");
-        appendRegister(text, REGISTER_NAME::YMM2, "YMM2  : ", "YMM2  : ");
-        appendRegister(text, REGISTER_NAME::YMM3, "YMM3  : ", "YMM3  : ");
-        appendRegister(text, REGISTER_NAME::YMM4, "YMM4  : ", "YMM4  : ");
-        appendRegister(text, REGISTER_NAME::YMM5, "YMM5  : ", "YMM5  : ");
-        appendRegister(text, REGISTER_NAME::YMM6, "YMM6  : ", "YMM6  : ");
-        appendRegister(text, REGISTER_NAME::YMM7, "YMM7  : ", "YMM7  : ");
-#ifdef _WIN64
-        appendRegister(text, REGISTER_NAME::YMM8, "YMM8  : ", "YMM8  : ");
-        appendRegister(text, REGISTER_NAME::YMM9, "YMM9  : ", "YMM9  : ");
-        appendRegister(text, REGISTER_NAME::YMM10, "YMM10 : ", "YMM10 : ");
-        appendRegister(text, REGISTER_NAME::YMM11, "YMM11 : ", "YMM11 : ");
-        appendRegister(text, REGISTER_NAME::YMM12, "YMM12 : ", "YMM12 : ");
-        appendRegister(text, REGISTER_NAME::YMM13, "YMM13 : ", "YMM13 : ");
-        appendRegister(text, REGISTER_NAME::YMM14, "YMM14 : ", "YMM14 : ");
-        appendRegister(text, REGISTER_NAME::YMM15, "YMM15 : ", "YMM15 : ");
-#endif
+        appendRegister(text, REGISTER_NAME::K0, "K0  : ", "K0  : ");
+        appendRegister(text, REGISTER_NAME::K1, "K1  : ", "K1  : ");
+        appendRegister(text, REGISTER_NAME::K2, "K2  : ", "K2  : ");
+        appendRegister(text, REGISTER_NAME::K3, "K3  : ", "K3  : ");
+        appendRegister(text, REGISTER_NAME::K4, "K4  : ", "K4  : ");
+        appendRegister(text, REGISTER_NAME::K5, "K5  : ", "K5  : ");
+        appendRegister(text, REGISTER_NAME::K6, "K6  : ", "K6  : ");
+        appendRegister(text, REGISTER_NAME::K7, "K7  : ", "K7  : ");
     }
     appendRegister(text, REGISTER_NAME::DR0, "DR0 : ", "DR0 : ");
     appendRegister(text, REGISTER_NAME::DR1, "DR1 : ", "DR1 : ");
@@ -2485,32 +2868,49 @@ SIZE_T RegistersView::GetSizeRegister(const REGISTER_NAME reg_name)
     else if(mFPUMMX.contains(reg_name))
         size = 8;
     else if(mFPUXMM.contains(reg_name))
-        size = 16;
-    else if(mFPUYMM.contains(reg_name))
-        size = 32;
+    {
+        switch(mXMMMode)
+        {
+        case 0:
+        default:
+            size = 16;
+            break;
+        case 1:
+            size = 32;
+            break;
+        case 2:
+            size = 64;
+            break;
+        }
+    }
     else if(reg_name == LastError)
         size = sizeof(DWORD);
     else if(reg_name == LastStatus)
         size = sizeof(NTSTATUS);
+    else if(mFPUOpmask.contains(reg_name))
+        size = 8;
     else
         size = 0;
 
     return size;
 }
 
-int RegistersView::CompareRegisters(const REGISTER_NAME reg_name, REGDUMP* regdump1, REGDUMP* regdump2)
+int RegistersView::CompareRegisters(const REGISTER_NAME reg_name, REGDUMP_EXTENDED* regdump)
 {
     SIZE_T size = GetSizeRegister(reg_name);
-    char* reg1_data = registerValue(regdump1, reg_name);
-    char* reg2_data = registerValue(regdump2, reg_name);
-
     if(size != 0)
+    {
+        char* reg1_data = registerValue(regdump, reg_name);
+        char* reg2_data = registerValue(&mCipRegDumpStruct, reg_name);
         return memcmp(reg1_data, reg2_data, size);
+    }
     else
+    {
         return -1;
+    }
 }
 
-char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
+char* RegistersView::registerValue(const REGDUMP_EXTENDED* regd, const REGISTER_NAME reg)
 {
     static int null_value = 0;
     // this is probably the most efficient general method to access the values of the struct
@@ -2609,38 +3009,30 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
     case DR7:
         return (char*) &regd->regcontext.dr7;
 
-    case MM0:
-        return (char*) &regd->mmx[0];
-    case MM1:
-        return (char*) &regd->mmx[1];
-    case MM2:
-        return (char*) &regd->mmx[2];
-    case MM3:
-        return (char*) &regd->mmx[3];
-    case MM4:
-        return (char*) &regd->mmx[4];
-    case MM5:
-        return (char*) &regd->mmx[5];
-    case MM6:
-        return (char*) &regd->mmx[6];
-    case MM7:
-        return (char*) &regd->mmx[7];
-
+    // MMX values are the same as x87 FPU
     case x87r0:
+    case MM0:
         return (char*) &regd->x87FPURegisters[0];
     case x87r1:
+    case MM1:
         return (char*) &regd->x87FPURegisters[1];
     case x87r2:
+    case MM2:
         return (char*) &regd->x87FPURegisters[2];
     case x87r3:
+    case MM3:
         return (char*) &regd->x87FPURegisters[3];
     case x87r4:
+    case MM4:
         return (char*) &regd->x87FPURegisters[4];
     case x87r5:
+    case MM5:
         return (char*) &regd->x87FPURegisters[5];
     case x87r6:
+    case MM6:
         return (char*) &regd->x87FPURegisters[6];
     case x87r7:
+    case MM7:
         return (char*) &regd->x87FPURegisters[7];
 
     case x87st0:
@@ -2769,74 +3161,87 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
         return (char*) &regd->MxCsrFields.RC;
 
     case XMM0:
-        return (char*) &regd->regcontext.XmmRegisters[0];
+        return (char*) &regd->regcontext.ZmmRegisters[0];
     case XMM1:
-        return (char*) &regd->regcontext.XmmRegisters[1];
+        return (char*) &regd->regcontext.ZmmRegisters[1];
     case XMM2:
-        return (char*) &regd->regcontext.XmmRegisters[2];
+        return (char*) &regd->regcontext.ZmmRegisters[2];
     case XMM3:
-        return (char*) &regd->regcontext.XmmRegisters[3];
+        return (char*) &regd->regcontext.ZmmRegisters[3];
     case XMM4:
-        return (char*) &regd->regcontext.XmmRegisters[4];
+        return (char*) &regd->regcontext.ZmmRegisters[4];
     case XMM5:
-        return (char*) &regd->regcontext.XmmRegisters[5];
+        return (char*) &regd->regcontext.ZmmRegisters[5];
     case XMM6:
-        return (char*) &regd->regcontext.XmmRegisters[6];
+        return (char*) &regd->regcontext.ZmmRegisters[6];
     case XMM7:
-        return (char*) &regd->regcontext.XmmRegisters[7];
+        return (char*) &regd->regcontext.ZmmRegisters[7];
 #ifdef _WIN64
     case XMM8:
-        return (char*) &regd->regcontext.XmmRegisters[8];
+        return (char*) &regd->regcontext.ZmmRegisters[8];
     case XMM9:
-        return (char*) &regd->regcontext.XmmRegisters[9];
+        return (char*) &regd->regcontext.ZmmRegisters[9];
     case XMM10:
-        return (char*) &regd->regcontext.XmmRegisters[10];
+        return (char*) &regd->regcontext.ZmmRegisters[10];
     case XMM11:
-        return (char*) &regd->regcontext.XmmRegisters[11];
+        return (char*) &regd->regcontext.ZmmRegisters[11];
     case XMM12:
-        return (char*) &regd->regcontext.XmmRegisters[12];
+        return (char*) &regd->regcontext.ZmmRegisters[12];
     case XMM13:
-        return (char*) &regd->regcontext.XmmRegisters[13];
+        return (char*) &regd->regcontext.ZmmRegisters[13];
     case XMM14:
-        return (char*) &regd->regcontext.XmmRegisters[14];
+        return (char*) &regd->regcontext.ZmmRegisters[14];
     case XMM15:
-        return (char*) &regd->regcontext.XmmRegisters[15];
+        return (char*) &regd->regcontext.ZmmRegisters[15];
+    case XMM16:
+        return (char*) &regd->regcontext.ZmmRegisters[16];
+    case XMM17:
+        return (char*) &regd->regcontext.ZmmRegisters[17];
+    case XMM18:
+        return (char*) &regd->regcontext.ZmmRegisters[18];
+    case XMM19:
+        return (char*) &regd->regcontext.ZmmRegisters[19];
+    case XMM20:
+        return (char*) &regd->regcontext.ZmmRegisters[20];
+    case XMM21:
+        return (char*) &regd->regcontext.ZmmRegisters[21];
+    case XMM22:
+        return (char*) &regd->regcontext.ZmmRegisters[22];
+    case XMM23:
+        return (char*) &regd->regcontext.ZmmRegisters[23];
+    case XMM24:
+        return (char*) &regd->regcontext.ZmmRegisters[24];
+    case XMM25:
+        return (char*) &regd->regcontext.ZmmRegisters[25];
+    case XMM26:
+        return (char*) &regd->regcontext.ZmmRegisters[26];
+    case XMM27:
+        return (char*) &regd->regcontext.ZmmRegisters[27];
+    case XMM28:
+        return (char*) &regd->regcontext.ZmmRegisters[28];
+    case XMM29:
+        return (char*) &regd->regcontext.ZmmRegisters[29];
+    case XMM30:
+        return (char*) &regd->regcontext.ZmmRegisters[30];
+    case XMM31:
+        return (char*) &regd->regcontext.ZmmRegisters[31];
 #endif //_WIN64
-
-    case YMM0:
-        return (char*) &regd->regcontext.YmmRegisters[0];
-    case YMM1:
-        return (char*) &regd->regcontext.YmmRegisters[1];
-    case YMM2:
-        return (char*) &regd->regcontext.YmmRegisters[2];
-    case YMM3:
-        return (char*) &regd->regcontext.YmmRegisters[3];
-    case YMM4:
-        return (char*) &regd->regcontext.YmmRegisters[4];
-    case YMM5:
-        return (char*) &regd->regcontext.YmmRegisters[5];
-    case YMM6:
-        return (char*) &regd->regcontext.YmmRegisters[6];
-    case YMM7:
-        return (char*) &regd->regcontext.YmmRegisters[7];
-#ifdef _WIN64
-    case YMM8:
-        return (char*) &regd->regcontext.YmmRegisters[8];
-    case YMM9:
-        return (char*) &regd->regcontext.YmmRegisters[9];
-    case YMM10:
-        return (char*) &regd->regcontext.YmmRegisters[10];
-    case YMM11:
-        return (char*) &regd->regcontext.YmmRegisters[11];
-    case YMM12:
-        return (char*) &regd->regcontext.YmmRegisters[12];
-    case YMM13:
-        return (char*) &regd->regcontext.YmmRegisters[13];
-    case YMM14:
-        return (char*) &regd->regcontext.YmmRegisters[14];
-    case YMM15:
-        return (char*) &regd->regcontext.YmmRegisters[15];
-#endif //_WIN64
+    case K0:
+        return (char*) &regd->regcontext.Opmask[0];
+    case K1:
+        return (char*) &regd->regcontext.Opmask[1];
+    case K2:
+        return (char*) &regd->regcontext.Opmask[2];
+    case K3:
+        return (char*) &regd->regcontext.Opmask[3];
+    case K4:
+        return (char*) &regd->regcontext.Opmask[4];
+    case K5:
+        return (char*) &regd->regcontext.Opmask[5];
+    case K6:
+        return (char*) &regd->regcontext.Opmask[6];
+    case K7:
+        return (char*) &regd->regcontext.Opmask[7];
     }
 
     return (char*) &null_value;
@@ -2844,6 +3249,7 @@ char* RegistersView::registerValue(const REGDUMP* regd, const REGISTER_NAME reg)
 
 void RegistersView::setRegisters(REGDUMP* reg)
 {
+    auto converted = expandContext(reg);
     // tests if new-register-value == old-register-value holds
     if(mCip != reg->regcontext.cip) //CIP changed
     {
@@ -2855,20 +3261,48 @@ void RegistersView::setRegisters(REGDUMP* reg)
     // iterate all ids (CAX, CBX, ...)
     for(auto itr = mRegisterMapping.begin(); itr != mRegisterMapping.end(); itr++)
     {
-        if(CompareRegisters(itr.key(), reg, &mCipRegDumpStruct) != 0)
+        if(CompareRegisters(itr.key(), &converted) != 0)
             mRegisterUpdates.insert(itr.key());
         else if(mRegisterUpdates.contains(itr.key())) //registers are equal
             mRegisterUpdates.remove(itr.key());
     }
 
     // now we can save the values
-    mRegDumpStruct = (*reg);
+    mRegDumpStruct = converted;
 
     if(mCip != reg->regcontext.cip)
         mCipRegDumpStruct = mRegDumpStruct;
 
-    // force repaint
-    emit refresh();
+    autoUpdateXMMModesAndRefresh();
+}
+
+void RegistersView::setRegisters(REGDUMP_AVX512* reg)
+{
+    auto converted = expandContext(reg);
+    // tests if new-register-value == old-register-value holds
+    if(mCip != reg->regcontext.cip) //CIP changed
+    {
+        mCipRegDumpStruct = mRegDumpStruct;
+        mRegisterUpdates.clear();
+        mCip = reg->regcontext.cip;
+    }
+
+    // iterate all ids (CAX, CBX, ...)
+    for(auto itr = mRegisterMapping.begin(); itr != mRegisterMapping.end(); itr++)
+    {
+        if(CompareRegisters(itr.key(), &converted) != 0)
+            mRegisterUpdates.insert(itr.key());
+        else if(mRegisterUpdates.contains(itr.key())) //registers are equal
+            mRegisterUpdates.remove(itr.key());
+    }
+
+    // now we can save the values
+    mRegDumpStruct = converted;
+
+    if(mCip != reg->regcontext.cip)
+        mCipRegDumpStruct = mRegDumpStruct;
+
+    autoUpdateXMMModesAndRefresh();
 }
 
 // Scroll the viewport so that the register will be visible on the screen
@@ -2882,4 +3316,24 @@ void RegistersView::ensureRegisterVisible(REGISTER_NAME reg)
     int y = mRowHeight * (mRegisterPlaces[reg].line + mVScrollOffset) + ySpace;
 
     upperScrollArea->ensureVisible(0, y);
+}
+
+void RegistersView::autoUpdateXMMModesAndRefresh()
+{
+    mXMMMode = mXMMModeAuto ? detectXMMMode(mRegDumpStruct.regcontext.ZmmRegisters) : (mXMMModeYMMOnly ? 1 : 2);
+
+    bool old_AVX512RegistersShown = mAVX512RegistersShown;
+    if(!mAlwaysShowAVX512Registers)
+    {
+        mAVX512RegistersShown = detectAVX512Used(&mRegDumpStruct.regcontext);
+    }
+    else
+    {
+        mAVX512RegistersShown = true;
+    }
+    if(mAVX512RegistersShown != old_AVX512RegistersShown)
+        InitMappings();
+
+    // force repaint
+    emit refresh();
 }

@@ -1939,3 +1939,10 @@ void TraceBrowser::gotoAddressSlot(duint address)
 {
     disasmByAddress(address, false);
 }
+
+bool TraceBrowser::hightlightToken(const ZydisTokenizer::SingleToken & token)
+{
+    mHighlightToken = token;
+    mHighlightingMode = false;
+    return true;
+}

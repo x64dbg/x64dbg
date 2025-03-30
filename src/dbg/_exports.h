@@ -20,7 +20,7 @@ DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRIDGE_ADDRINFO
 DLL_EXPORT bool _dbg_addrinfoset(duint addr, BRIDGE_ADDRINFO* addrinfo);
 DLL_EXPORT bool _dbg_encodetypeset(duint addr, duint size, ENCODETYPE type);
 DLL_EXPORT int _dbg_bpgettypeat(duint addr);
-DLL_EXPORT bool _dbg_getregdump(REGDUMP* regdump);
+DLL_EXPORT bool _dbg_getregdump(REGDUMP_AVX512* regdump);
 DLL_EXPORT bool _dbg_valtostring(const char* string, duint value);
 DLL_EXPORT int _dbg_getbplist(BPXTYPE type, BPMAP* list);
 DLL_EXPORT duint _dbg_getbranchdestination(duint addr);

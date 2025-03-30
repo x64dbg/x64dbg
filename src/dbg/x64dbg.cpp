@@ -128,8 +128,14 @@ static void registercommands()
     dbgcmdnew("cmp", cbInstrCmp, false);
     dbgcmdnew("mov,set", cbInstrMov, false); //mov a variable, arg1:dest,arg2:src
 
-    //general purpose (SSE/AVX)
+    //general purpose (SSE/AVX/AVX-512)
     dbgcmdnew("movdqu,movups,movupd", cbInstrMovdqu, true); //move from and to XMM register
+    dbgcmdnew("vmovups,vmovupd,vmovdqu", cbInstrVmovdqu, true); //move from and to YMM/ZMM register
+    if(detectAVX512())
+    {
+        dbgcmdnew("kmovq", cbInstrKmovq, true); //move qword from and to K0-K7 register
+        dbgcmdnew("kmovd", cbInstrKmovd, true); //move dword from and to K0-K7 register
+    }
 
     //debug control
     dbgcmdnew("InitDebug,init,initdbg", cbDebugInit, false); //init debugger arg1:exefile,[arg2:commandline]

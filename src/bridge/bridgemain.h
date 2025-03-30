@@ -450,7 +450,8 @@ typedef enum
     size_dword = 4,
     size_qword = 8,
     size_xmmword = 16,
-    size_ymmword = 32
+    size_ymmword = 32,
+    size_zmmword = 64
 } MEMORY_SIZE;
 
 typedef enum
@@ -466,7 +467,7 @@ typedef enum
     enc_mmword,   //8 bytes
     enc_xmmword,  //16 bytes
     enc_ymmword,  //32 bytes
-    enc_zmmword,  //64 bytes avx512 not supported
+    enc_zmmword,  //64 bytes
     enc_real4,    //4 byte float
     enc_real8,    //8 byte double
     enc_real10,   //10 byte decimal
@@ -793,6 +794,12 @@ typedef struct
 
 typedef struct
 {
+    YMMREGISTER Low; //AVX part
+    YMMREGISTER High; //AVX-512 part
+} ZMMREGISTER;
+
+typedef struct
+{
     BYTE    data[10];
     int     st_value;
     int     tag;
@@ -858,6 +865,52 @@ typedef struct
 
 typedef struct
 {
+    ULONG_PTR cax;
+    ULONG_PTR ccx;
+    ULONG_PTR cdx;
+    ULONG_PTR cbx;
+    ULONG_PTR csp;
+    ULONG_PTR cbp;
+    ULONG_PTR csi;
+    ULONG_PTR cdi;
+#ifdef _WIN64
+    ULONG_PTR r8;
+    ULONG_PTR r9;
+    ULONG_PTR r10;
+    ULONG_PTR r11;
+    ULONG_PTR r12;
+    ULONG_PTR r13;
+    ULONG_PTR r14;
+    ULONG_PTR r15;
+#endif //_WIN64
+    ULONG_PTR cip;
+    ULONG_PTR eflags;
+    ULONG_PTR dr0;
+    ULONG_PTR dr1;
+    ULONG_PTR dr2;
+    ULONG_PTR dr3;
+    ULONG_PTR dr6;
+    ULONG_PTR dr7;
+    // To save space, aliased SSE and AVX states are shared with AVX-512 states instead. If the CPU does not support AVX-512, the unused part will be ignored.
+#ifdef _WIN64
+    ZMMREGISTER ZmmRegisters[32];
+#else // x86
+    ZMMREGISTER ZmmRegisters[8];
+#endif
+    ULONGLONG Opmask[8];
+    BYTE RegisterArea[80];
+    DWORD MxCsr;
+    X87FPU x87fpu;
+    unsigned short gs;
+    unsigned short fs;
+    unsigned short es;
+    unsigned short ds;
+    unsigned short cs;
+    unsigned short ss;
+} REGISTERCONTEXT_AVX512;
+
+typedef struct
+{
     DWORD code;
     char name[128];
 } LASTERROR;
@@ -880,6 +933,14 @@ typedef struct
     LASTERROR lastError;
     LASTSTATUS lastStatus;
 } REGDUMP;
+
+typedef struct
+{
+    REGISTERCONTEXT_AVX512 regcontext;
+    // To save space, original aliased fields (flags, x87FPURegisters, mmx, MxCsrFields, x87StatusWordFields, x87ControlWordFields) are removed, and can be found in regcontext.
+    DWORD lastError;
+    DWORD lastStatus;
+} REGDUMP_AVX512;
 
 typedef struct
 {
@@ -1051,7 +1112,7 @@ BRIDGE_IMPEXP void DbgClearBookmarkRange(duint start, duint end);
 BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text);
 BRIDGE_IMPEXP BPXTYPE DbgGetBpxTypeAt(duint addr);
 BRIDGE_IMPEXP duint DbgValFromString(const char* string);
-BRIDGE_IMPEXP bool DbgGetRegDumpEx(REGDUMP* regdump, size_t size);
+BRIDGE_IMPEXP bool DbgGetRegDumpEx(REGDUMP_AVX512* regdump, size_t size);
 BRIDGE_IMPEXP bool DbgValToString(const char* string, duint value);
 BRIDGE_IMPEXP bool DbgMemIsValidReadPtr(duint addr);
 BRIDGE_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list);

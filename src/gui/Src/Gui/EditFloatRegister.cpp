@@ -28,6 +28,7 @@ EditFloatRegister::EditFloatRegister(int RegisterSize, QWidget* parent) :
     ui(new Ui::EditFloatRegister)
 {
     memset(Data, 0, sizeof(Data));
+    AVX512EditUpper = 0;
     ui->setupUi(this);
     setModal(true);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
@@ -45,13 +46,19 @@ EditFloatRegister::EditFloatRegister(int RegisterSize, QWidget* parent) :
         ui->labelLowRegister->setText(QString("MM:"));
         break;
     case 256:
-        break;
     case 512:
+        break;
     default:
         GuiAddLogMessage(tr("Error, register size %1 is not supported.\n").arg(RegisterSize).toUtf8().constData());
         break;
     }
-    setFixedWidth(width());
+    int estimatedWidth = fontMetrics().boundingRect("-32767000").width() * 8 + fontMetrics().boundingRect(ui->labelLC->text()).width();
+    estimatedWidth += 16 * ui->gridLayout_XMM->horizontalSpacing();
+    if(RegisterSize > 256)
+        estimatedWidth += ui->scrollAVX512->width();
+    else
+        ui->scrollAVX512->hide();
+    setFixedWidth(estimatedWidth);
     adjustSize();
 
     connect(ui->hexEdit, SIGNAL(textEdited(QString)), this, SLOT(editingHex1FinishedSlot(QString)));
@@ -166,6 +173,10 @@ EditFloatRegister::EditFloatRegister(int RegisterSize, QWidget* parent) :
         {
             ui->doubleEdit0->setValidator(&doubleValidator);
             ui->doubleEdit1->setValidator(&doubleValidator);
+            if(RegisterSize > 256)
+            {
+                connect(ui->scrollAVX512, SIGNAL(valueChanged(int)), this, SLOT(AVX512ScrollbarScrolled(int)));
+            }
         }
     }
 }
@@ -274,6 +285,7 @@ void EditFloatRegister::reloadDataLow()
     if(mutex == nullptr)
         mutex = this;
     int maxBytes;
+    char* CurrentData = Data + AVX512EditUpper;
     if(RegSize >= 128)
         maxBytes = 16;
     else
@@ -281,38 +293,38 @@ void EditFloatRegister::reloadDataLow()
     if(mutex != ui->hexEdit_2)
     {
         if(ConfigBool("Gui", "FpuRegistersLittleEndian"))
-            ui->hexEdit_2->setText(QString(QByteArray(Data, maxBytes).toHex()).toUpper());
+            ui->hexEdit_2->setText(QString(QByteArray(CurrentData, maxBytes).toHex()).toUpper());
         else
-            ui->hexEdit_2->setText(QString(ByteReverse(QByteArray(Data, maxBytes)).toHex()).toUpper());
+            ui->hexEdit_2->setText(QString(ByteReverse(QByteArray(CurrentData, maxBytes)).toHex()).toUpper());
     }
-    reloadLongData(*ui->longEdit0_2, Data);
-    reloadLongData(*ui->longEdit1_2, Data + 4);
+    reloadLongData(*ui->longEdit0_2, CurrentData);
+    reloadLongData(*ui->longEdit1_2, CurrentData + 4);
     if(RegSize > 64)
     {
-        reloadLongData(*ui->longEdit2_2, Data + 8);
-        reloadLongData(*ui->longEdit3_2, Data + 12);
+        reloadLongData(*ui->longEdit2_2, CurrentData + 8);
+        reloadLongData(*ui->longEdit3_2, CurrentData + 12);
     }
-    reloadShortData(*ui->shortEdit0_2, Data);
-    reloadShortData(*ui->shortEdit1_2, Data + 2);
-    reloadShortData(*ui->shortEdit2_2, Data + 4);
-    reloadShortData(*ui->shortEdit3_2, Data + 6);
+    reloadShortData(*ui->shortEdit0_2, CurrentData);
+    reloadShortData(*ui->shortEdit1_2, CurrentData + 2);
+    reloadShortData(*ui->shortEdit2_2, CurrentData + 4);
+    reloadShortData(*ui->shortEdit3_2, CurrentData + 6);
     if(RegSize > 64)
     {
-        reloadShortData(*ui->shortEdit4_2, Data + 8);
-        reloadShortData(*ui->shortEdit5_2, Data + 10);
-        reloadShortData(*ui->shortEdit6_2, Data + 12);
-        reloadShortData(*ui->shortEdit7_2, Data + 14);
+        reloadShortData(*ui->shortEdit4_2, CurrentData + 8);
+        reloadShortData(*ui->shortEdit5_2, CurrentData + 10);
+        reloadShortData(*ui->shortEdit6_2, CurrentData + 12);
+        reloadShortData(*ui->shortEdit7_2, CurrentData + 14);
     }
-    reloadFloatData(*ui->floatEdit0_2, Data);
-    reloadFloatData(*ui->floatEdit1_2, Data + 4);
+    reloadFloatData(*ui->floatEdit0_2, CurrentData);
+    reloadFloatData(*ui->floatEdit1_2, CurrentData + 4);
     if(RegSize > 64)
     {
-        reloadFloatData(*ui->floatEdit2_2, Data + 8);
-        reloadFloatData(*ui->floatEdit3_2, Data + 12);
-        reloadDoubleData(*ui->doubleEdit0_2, Data);
-        reloadDoubleData(*ui->doubleEdit1_2, Data + 8);
-        reloadLongLongData(*ui->longLongEdit0_2, Data);
-        reloadLongLongData(*ui->longLongEdit1_2, Data + 8);
+        reloadFloatData(*ui->floatEdit2_2, CurrentData + 8);
+        reloadFloatData(*ui->floatEdit3_2, CurrentData + 12);
+        reloadDoubleData(*ui->doubleEdit0_2, CurrentData);
+        reloadDoubleData(*ui->doubleEdit1_2, CurrentData + 8);
+        reloadLongLongData(*ui->longLongEdit0_2, CurrentData);
+        reloadLongLongData(*ui->longLongEdit1_2, CurrentData + 8);
     }
     mutex = nullptr;
 }
@@ -324,33 +336,34 @@ void EditFloatRegister::reloadDataHigh()
 {
     if(mutex == nullptr)
         mutex = this;
+    char* CurrentData = Data + AVX512EditUpper;
     if(mutex != ui->hexEdit)
     {
         if(ConfigBool("Gui", "FpuRegistersLittleEndian"))
-            ui->hexEdit->setText(QString(QByteArray(Data + 16, 16).toHex()).toUpper());
+            ui->hexEdit->setText(QString(QByteArray(CurrentData + 16, 16).toHex()).toUpper());
         else
-            ui->hexEdit->setText(QString(ByteReverse(QByteArray(Data + 16, 16)).toHex()).toUpper());
+            ui->hexEdit->setText(QString(ByteReverse(QByteArray(CurrentData + 16, 16)).toHex()).toUpper());
     }
-    reloadLongData(*ui->longEdit0, Data + 16);
-    reloadLongData(*ui->longEdit1, Data + 20);
-    reloadLongData(*ui->longEdit2, Data + 24);
-    reloadLongData(*ui->longEdit3, Data + 28);
-    reloadShortData(*ui->shortEdit0, Data + 16);
-    reloadShortData(*ui->shortEdit1, Data + 18);
-    reloadShortData(*ui->shortEdit2, Data + 20);
-    reloadShortData(*ui->shortEdit3, Data + 22);
-    reloadShortData(*ui->shortEdit4, Data + 24);
-    reloadShortData(*ui->shortEdit5, Data + 26);
-    reloadShortData(*ui->shortEdit6, Data + 28);
-    reloadShortData(*ui->shortEdit7, Data + 30);
-    reloadFloatData(*ui->floatEdit0, Data + 16);
-    reloadFloatData(*ui->floatEdit1, Data + 20);
-    reloadFloatData(*ui->floatEdit2, Data + 24);
-    reloadFloatData(*ui->floatEdit3, Data + 28);
-    reloadDoubleData(*ui->doubleEdit0, Data + 16);
-    reloadDoubleData(*ui->doubleEdit1, Data + 24);
-    reloadLongLongData(*ui->longLongEdit0, Data + 16);
-    reloadLongLongData(*ui->longLongEdit1, Data + 24);
+    reloadLongData(*ui->longEdit0, CurrentData + 16);
+    reloadLongData(*ui->longEdit1, CurrentData + 20);
+    reloadLongData(*ui->longEdit2, CurrentData + 24);
+    reloadLongData(*ui->longEdit3, CurrentData + 28);
+    reloadShortData(*ui->shortEdit0, CurrentData + 16);
+    reloadShortData(*ui->shortEdit1, CurrentData + 18);
+    reloadShortData(*ui->shortEdit2, CurrentData + 20);
+    reloadShortData(*ui->shortEdit3, CurrentData + 22);
+    reloadShortData(*ui->shortEdit4, CurrentData + 24);
+    reloadShortData(*ui->shortEdit5, CurrentData + 26);
+    reloadShortData(*ui->shortEdit6, CurrentData + 28);
+    reloadShortData(*ui->shortEdit7, CurrentData + 30);
+    reloadFloatData(*ui->floatEdit0, CurrentData + 16);
+    reloadFloatData(*ui->floatEdit1, CurrentData + 20);
+    reloadFloatData(*ui->floatEdit2, CurrentData + 24);
+    reloadFloatData(*ui->floatEdit3, CurrentData + 28);
+    reloadDoubleData(*ui->doubleEdit0, CurrentData + 16);
+    reloadDoubleData(*ui->doubleEdit1, CurrentData + 24);
+    reloadLongLongData(*ui->longLongEdit0, CurrentData + 16);
+    reloadLongLongData(*ui->longLongEdit1, CurrentData + 24);
     mutex = nullptr;
 }
 
@@ -635,17 +648,18 @@ void EditFloatRegister::editingHex1FinishedSlot(QString arg)
 {
     mutex = sender();
     QString filled(arg.toUpper());
+    char* CurrentData = Data + AVX512EditUpper;
     if(ConfigBool("Gui", "FpuRegistersLittleEndian"))
     {
         filled.append(QString(32 - filled.length(), QChar('0')));
         for(int i = 0; i < 16; i++)
-            Data[i + 16] = filled.mid(i * 2, 2).toInt(0, 16);
+            CurrentData[i + 16] = filled.mid(i * 2, 2).toInt(0, 16);
     }
     else
     {
         filled.prepend(QString(32 - filled.length(), QChar('0')));
         for(int i = 0; i < 16; i++)
-            Data[i + 16] = filled.mid(30 - i * 2, 2).toInt(0, 16);
+            CurrentData[i + 16] = filled.mid(30 - i * 2, 2).toInt(0, 16);
     }
     reloadDataHigh();
 }
@@ -658,6 +672,7 @@ void EditFloatRegister::editingHex2FinishedSlot(QString arg)
 {
     mutex = sender();
     QString filled(arg.toUpper());
+    char* CurrentData = Data + AVX512EditUpper;
     int maxBytes;
     if(RegSize >= 128)
         maxBytes = 16;
@@ -667,13 +682,13 @@ void EditFloatRegister::editingHex2FinishedSlot(QString arg)
     {
         filled.append(QString(maxBytes * 2 - filled.length(), QChar('0')));
         for(int i = 0; i < maxBytes; i++)
-            Data[i] = filled.mid(i * 2, 2).toInt(0, 16);
+            CurrentData[i] = filled.mid(i * 2, 2).toInt(0, 16);
     }
     else
     {
         filled.prepend(QString(maxBytes * 2 - filled.length(), QChar('0')));
         for(int i = 0; i < maxBytes; i++)
-            Data[i] = filled.mid((maxBytes - i - 1) * 2, 2).toInt(0, 16);
+            CurrentData[i] = filled.mid((maxBytes - i - 1) * 2, 2).toInt(0, 16);
     }
     reloadDataLow();
 }
@@ -681,52 +696,57 @@ void EditFloatRegister::editingHex2FinishedSlot(QString arg)
 void EditFloatRegister::editingShortFinishedSlot(size_t offset, QString arg)
 {
     mutex = sender();
+    char* CurrentData = Data + AVX512EditUpper;
     if(ui->radioHex->isChecked())
-        *(unsigned short*)(Data + offset) = arg.toUShort(0, 16);
+        *(unsigned short*)(CurrentData + offset) = arg.toUShort(0, 16);
     else if(ui->radioSigned->isChecked())
-        *(short*)(Data + offset) = arg.toShort();
+        *(short*)(CurrentData + offset) = arg.toShort();
     else
-        *(unsigned short*)(Data + offset) = arg.toUShort();
+        *(unsigned short*)(CurrentData + offset) = arg.toUShort();
     offset < 16 ? reloadDataLow() : reloadDataHigh();
 }
 void EditFloatRegister::editingLongFinishedSlot(size_t offset, QString arg)
 {
     mutex = sender();
+    char* CurrentData = Data + AVX512EditUpper;
     if(ui->radioHex->isChecked())
-        *(unsigned int*)(Data + offset) = arg.toUInt(0, 16);
+        *(unsigned int*)(CurrentData + offset) = arg.toUInt(0, 16);
     else if(ui->radioSigned->isChecked())
-        *(int*)(Data + offset) = arg.toInt();
+        *(int*)(CurrentData + offset) = arg.toInt();
     else
-        *(unsigned int*)(Data + offset) = arg.toUInt();
+        *(unsigned int*)(CurrentData + offset) = arg.toUInt();
     offset < 16 ? reloadDataLow() : reloadDataHigh();
 }
 void EditFloatRegister::editingFloatFinishedSlot(size_t offset, QString arg)
 {
     mutex = sender();
+    char* CurrentData = Data + AVX512EditUpper;
     bool ok;
     float data = arg.toFloat(&ok);
     if(ok)
-        *(float*)(Data + offset) = data;
+        *(float*)(CurrentData + offset) = data;
     offset < 16 ? reloadDataLow() : reloadDataHigh();
 }
 void EditFloatRegister::editingDoubleFinishedSlot(size_t offset, QString arg)
 {
     mutex = sender();
+    char* CurrentData = Data + AVX512EditUpper;
     bool ok;
     double data = arg.toDouble(&ok);
     if(ok)
-        *(double*)(Data + offset) = data;
+        *(double*)(CurrentData + offset) = data;
     offset < 16 ? reloadDataLow() : reloadDataHigh();
 }
 void EditFloatRegister::editingLongLongFinishedSlot(size_t offset, QString arg)
 {
     mutex = sender();
+    char* CurrentData = Data + AVX512EditUpper;
     if(ui->radioHex->isChecked())
-        *(unsigned long long*)(Data + offset) = arg.toULongLong(0, 16);
+        *(unsigned long long*)(CurrentData + offset) = arg.toULongLong(0, 16);
     else if(ui->radioSigned->isChecked())
-        *(long long*)(Data + offset) = arg.toLongLong();
+        *(long long*)(CurrentData + offset) = arg.toLongLong();
     else
-        *(unsigned long long*)(Data + offset) = arg.toULongLong();
+        *(unsigned long long*)(CurrentData + offset) = arg.toULongLong();
     offset < 16 ? reloadDataLow() : reloadDataHigh();
 }
 
@@ -889,4 +909,51 @@ void EditFloatRegister::editingUpperLongLong0FinishedSlot(QString arg)
 void EditFloatRegister::editingUpperLongLong1FinishedSlot(QString arg)
 {
     editingLongLongFinishedSlot(16 + 1 * 8, arg);
+}
+void EditFloatRegister::AVX512ScrollbarScrolled(int value)
+{
+    if(value > 0)
+    {
+        // scroll to bottom, lower part
+        AVX512EditUpper = 0;
+        ui->labelL0->setText("0-1");
+        ui->labelL1->setText("2-3");
+        ui->labelL2->setText("4-5");
+        ui->labelL3->setText("6-7");
+        ui->labelL4->setText("8-9");
+        ui->labelL5->setText("A-B");
+        ui->labelL6->setText("C-D");
+        ui->labelL7->setText("E-F");
+        ui->labelH0->setText("10-11");
+        ui->labelH1->setText("12-13");
+        ui->labelH2->setText("14-15");
+        ui->labelH3->setText("16-17");
+        ui->labelH4->setText("18-19");
+        ui->labelH5->setText("1A-1B");
+        ui->labelH6->setText("1C-1D");
+        ui->labelH7->setText("1E-1F");
+    }
+    else
+    {
+        // scroll to top, upper part
+        AVX512EditUpper = 32;
+        ui->labelL0->setText("20-21");
+        ui->labelL1->setText("22-23");
+        ui->labelL2->setText("24-25");
+        ui->labelL3->setText("26-27");
+        ui->labelL4->setText("28-29");
+        ui->labelL5->setText("2A-2B");
+        ui->labelL6->setText("2C-2D");
+        ui->labelL7->setText("2E-2F");
+        ui->labelH0->setText("30-31");
+        ui->labelH1->setText("32-33");
+        ui->labelH2->setText("34-35");
+        ui->labelH3->setText("36-37");
+        ui->labelH4->setText("38-39");
+        ui->labelH5->setText("3A-3B");
+        ui->labelH6->setText("3C-3D");
+        ui->labelH7->setText("3E-3F");
+    }
+    reloadDataLow();
+    reloadDataHigh();
 }

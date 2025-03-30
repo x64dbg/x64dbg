@@ -100,7 +100,7 @@ void CPUSideBar::reload()
 void CPUSideBar::changeTopmostAddress(duint i)
 {
     mTopVA = i;
-    DbgGetRegDumpEx(&mRegDump, sizeof(REGDUMP));
+    DbgGetRegDumpEx(&mRegDump, sizeof(mRegDump));
     reload();
 }
 

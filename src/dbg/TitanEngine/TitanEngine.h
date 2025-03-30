@@ -614,6 +614,12 @@ typedef struct
 
 typedef struct
 {
+    YmmRegister_t Low; //AVX part
+    YmmRegister_t High; //AVX-512 part
+} ZmmRegister_t;
+
+typedef struct
+{
     BYTE    data[10];
     int     st_value;
     int     tag;
@@ -676,6 +682,16 @@ typedef struct
     YmmRegister_t YmmRegisters[8];
 #endif
 } TITAN_ENGINE_CONTEXT_t;
+
+typedef struct
+{
+#ifdef _WIN64
+    ZmmRegister_t ZmmRegisters[32];
+#else // x86
+    ZmmRegister_t ZmmRegisters[8];
+#endif
+    ULONGLONG Opmask[8];
+} TITAN_ENGINE_CONTEXT_AVX512_t;
 
 #ifdef __cplusplus
 extern "C"
@@ -868,6 +884,8 @@ __declspec(dllexport) bool TITCALL SetContextDataEx(HANDLE hActiveThread, DWORD 
 __declspec(dllexport) bool TITCALL SetContextData(DWORD IndexOfRegister, ULONG_PTR NewRegisterValue);
 __declspec(dllexport) bool TITCALL GetAVXContext(HANDLE hActiveThread, TITAN_ENGINE_CONTEXT_t* titcontext);
 __declspec(dllexport) bool TITCALL SetAVXContext(HANDLE hActiveThread, TITAN_ENGINE_CONTEXT_t* titcontext);
+__declspec(dllexport) bool TITCALL GetAVX512Context(HANDLE hActiveThread, TITAN_ENGINE_CONTEXT_AVX512_t* titcontext);
+__declspec(dllexport) bool TITCALL SetAVX512Context(HANDLE hActiveThread, TITAN_ENGINE_CONTEXT_AVX512_t* titcontext);
 __declspec(dllexport) void TITCALL ClearExceptionNumber();
 __declspec(dllexport) long TITCALL CurrentExceptionNumber();
 __declspec(dllexport) bool TITCALL MatchPatternEx(HANDLE hProcess, void* MemoryToCheck, int SizeOfMemoryToCheck, void* PatternToMatch, int SizeOfPatternToMatch, PBYTE WildCard);
