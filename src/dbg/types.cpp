@@ -129,6 +129,7 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
         return false;
 
     // cannot be pointer and bitfield
+    int typeSize;
     if(type.back() == '*')
     {
         // this is a pointer type
@@ -138,6 +139,15 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
 
         if(bitSize != expectedSize)
             return false;
+
+        typeSize = expectedSize;
+    }
+    else
+    {
+        if(arrsize != 0)
+            typeSize = Sizeof(type) * arrsize;
+        else
+            typeSize = Sizeof(type);
     }
 
     auto & s = found->second;
@@ -145,15 +155,17 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
         if(member.name == name)
             return false;
 
-    int typeSize;
-    if(arrsize != 0)
-        typeSize = Sizeof(type) * arrsize;
-    else
-        typeSize = Sizeof(type);
-
     // cannot have a bitfield greater than typeSize
-    if(isBitfield && bitSize > typeSize)
-        return false;
+    if(isBitfield)
+    {
+        if(bitSize > typeSize)
+            return false;
+
+        typeSize = bitSize;
+    }
+
+    if(typeSize == -1)
+        __debugbreak();
 
     Member m;
     m.name = name;
@@ -161,7 +173,7 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
     m.type = type;
     m.assignedType = type;
     m.offsetFUCK = bitOffset;
-    m.bitSize = isBitfield ? bitSize : typeSize;
+    m.bitSize = typeSize;
     m.bitfield = isBitfield;
 
     if(bitOffset >= 0 && !s.isUnion)  //user-defined offset
@@ -617,6 +629,10 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor) const
         return visitor.visitEnum(root, e);
     }
 
+    auto foundF = functions.find(root.type);
+    if(foundF != functions.end())
+        return true;
+
     return false;
 }
 
@@ -775,11 +791,10 @@ static void loadStructUnions(const JSON suroot, std::vector<StructUnion> & struc
             curMember.bitfield = json_boolean_value(json_object_get(valj, "bitfield"));
 
             curMember.offsetFUCK = json_default_int(valj, "offset", -1);
-            if(curMember.offsetFUCK != -1)
-            {
+            if(curMember.offsetFUCK == -1)
+                curMember.offsetFUCK = json_default_int(valj, "bitOffset", -1);
+            else
                 curMember.offsetFUCK *= 8;
-                curMember.offsetFUCK += json_default_int(valj, "bitOffset", 0);
-            }
 
             curSu.members.push_back(curMember);
         }
