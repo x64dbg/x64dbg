@@ -83,6 +83,8 @@ public slots:
     void syncWithExpressionSlot();
     void allocMemorySlot();
 
+    void visitSlot();
+
     void headerButtonReleasedSlot(duint colIndex);
 
 private:
@@ -95,6 +97,7 @@ private:
 
     GotoDialog* mGoto = nullptr;
     GotoDialog* mGotoOffset = nullptr;
+    GotoDialog* mGotoType = nullptr;
     CPUDisassembly* mDisassembly = nullptr;
     CPUMultiDump* mMultiDump = nullptr;
     int mAsciiSeparator = 0;
