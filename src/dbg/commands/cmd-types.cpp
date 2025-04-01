@@ -486,13 +486,14 @@ struct PrintVisitor : TypeManager::Visitor
         }
 
         String valueStr;
+        auto enumData = TypeEnumData(type->name);
 
         auto readSize = (type->bitSize + 7) / 8; // round up to nearest byte
         if(type->bitOffset % 8 != 0)
             readSize += 1;
 
         Memory<unsigned char*> data(readSize);
-        if(MemRead(type->addr + type->offset + type->bitOffset / 8, data(), readSize))
+        if(!enumData.name.empty() && MemRead(type->addr + type->offset + type->bitOffset / 8, data(), readSize))
         {
             if(type->reverse)
                 std::reverse(data(), data() + data.size());
@@ -522,13 +523,12 @@ struct PrintVisitor : TypeManager::Visitor
             uint64_t extractedValue = 0;
             memcpy(&extractedValue, data(), std::min(8, type->bitSize));
 
-            const auto enumData = static_cast<Enum*>(type->userdata);
-            if(enumData->isFlags)
+            if(enumData.isFlags)
             {
                 bool first = true;
                 uint64_t remainingBits = extractedValue;
 
-                for(const auto & member : enumData->members)
+                for(const auto & member : enumData.members)
                 {
                     if((extractedValue & member.first) == member.first && member.first != 0)
                     {
@@ -554,20 +554,22 @@ struct PrintVisitor : TypeManager::Visitor
             }
             else
             {
-                auto it = std::find_if(enumData->members.begin(), enumData->members.end(),
+                auto it = std::find_if(enumData.members.begin(), enumData.members.end(),
                                        [extractedValue](const std::pair<uint64_t, std::string> & member)
                 {
                     return member.first == extractedValue;
                 });
 
-                if(it != enumData->members.end())
+                if(it != enumData.members.end())
                     valueStr = it->second;
                 else
                     valueStr = StringUtils::sprintf("0x%llX", extractedValue);
             }
         }
         else
+        {
             valueStr = "???";
+        }
 
         if(*destCount <= valueStr.size())
         {
@@ -715,7 +717,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.id = Typedef;
         td.bitSize = num.sizeFUCK;
         td.callback = cbPrintEnum;
-        td.userdata = const_cast<Enum*>(&num);
+        td.userdata = TypeEnumData;
         mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
         mOffset += td.bitSize / 8;
 

@@ -348,6 +348,15 @@ int TypeManager::Sizeof(const std::string & type, std::string* underlyingType)
     return 0;
 }
 
+Enum TypeManager::TypeEnumData(const std::string & type)
+{
+    const auto enumT = enums.find(type);
+    if(enumT != enums.end())
+        return enumT->second;
+
+    return { };
+}
+
 bool TypeManager::Visit(const std::string & type, const std::string & name, Visitor & visitor) const
 {
     Member m;
@@ -682,6 +691,12 @@ bool AppendArg(const std::string & type, const std::string & name)
 {
     EXCLUSIVE_ACQUIRE(LockTypeManager);
     return typeManager.AppendArg(type, name);
+}
+
+Enum TypeEnumData(const std::string & type)
+{
+    SHARED_ACQUIRE(LockTypeManager);
+    return typeManager.TypeEnumData(type);
 }
 
 int SizeofType(const std::string & type)

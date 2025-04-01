@@ -124,6 +124,7 @@ namespace Types
         bool AddArg(const std::string & function, const std::string & type, const std::string & name);
         bool AppendArg(const std::string & type, const std::string & name);
         int Sizeof(const std::string & type, std::string* underlyingType = nullptr);
+        Enum TypeEnumData(const std::string & type);
         bool Visit(const std::string & type, const std::string & name, Visitor & visitor) const;
         void Clear(const std::string & owner = "");
         bool RemoveType(const std::string & type);
@@ -165,6 +166,7 @@ bool AddFunction(const std::string & owner, const std::string & name, const std:
                  bool noreturn = false);
 bool AddArg(const std::string & function, const std::string & type, const std::string & name);
 bool AppendArg(const std::string & type, const std::string & name);
+Types::Enum TypeEnumData(const std::string & type);
 int SizeofType(const std::string & type);
 bool VisitType(const std::string & type, const std::string & name, Types::TypeManager::Visitor & visitor);
 void ClearTypes(const std::string & owner = "");
