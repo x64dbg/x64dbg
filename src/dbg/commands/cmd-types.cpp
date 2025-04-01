@@ -348,8 +348,12 @@ struct PrintVisitor : TypeManager::Visitor
         }
         String valueStr;
 
-        Memory<unsigned char*> data((type->bitSize + 7) / 8);
-        if(MemRead(type->addr + type->offset + type->bitOffset / 8, data(), (type->bitSize + 7) / 8))
+        auto readSize = (type->bitSize + 7) / 8; // round up to nearest byte
+        if(type->bitOffset % 8 != 0)
+            readSize += 1;
+
+        Memory<unsigned char*> data(readSize);
+        if(MemRead(type->addr + type->offset + type->bitOffset / 8, data(), readSize))
         {
             if(type->reverse)
                 std::reverse(data(), data() + data.size());
@@ -365,6 +369,9 @@ struct PrintVisitor : TypeManager::Visitor
 
                     currentCarry = newCarry;
                 }
+
+                // pop the last byte
+                data()[data.size() - 1] = 0;
             }
 
             if(type->bitSize % 8 != 0)
@@ -480,8 +487,12 @@ struct PrintVisitor : TypeManager::Visitor
 
         String valueStr;
 
-        Memory<unsigned char*> data(8 + 1);
-        if(MemRead(type->addr + type->offset + type->bitOffset / 8, data(), (type->bitSize + 7) / 8))
+        auto readSize = (type->bitSize + 7) / 8; // round up to nearest byte
+        if(type->bitOffset % 8 != 0)
+            readSize += 1;
+
+        Memory<unsigned char*> data(readSize);
+        if(MemRead(type->addr + type->offset + type->bitOffset / 8, data(), readSize))
         {
             if(type->reverse)
                 std::reverse(data(), data() + data.size());
@@ -497,15 +508,19 @@ struct PrintVisitor : TypeManager::Visitor
 
                     currentCarry = newCarry;
                 }
+
+                // pop the last byte
+                data()[data.size() - 1] = 0;
             }
 
             if(type->bitSize % 8 != 0)
             {
-                uint8_t mask = (1 << type->bitSize % 8) - 1;
+                const uint8_t mask = (1 << type->bitSize % 8) - 1;
                 data()[(type->bitSize + 7) / 8 - 1] &= mask;
             }
 
-            uint64_t extractedValue = *data();
+            uint64_t extractedValue = 0;
+            memcpy(&extractedValue, data(), std::min(8, type->bitSize));
 
             const auto enumData = static_cast<Enum*>(type->userdata);
             if(enumData->isFlags)
@@ -617,7 +632,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.addr = mAddr;
         td.offset = mOffset;
         td.id = type.primitive;
-        td.bitSize = type.sizeFUCK;
+        td.bitSize = member.bitfield ? member.bitSize : type.sizeFUCK;
         if(td.bitSize < 0)
             __debugbreak();
 
