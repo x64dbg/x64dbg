@@ -1413,15 +1413,18 @@ typedef struct
     char className[MAX_STRING_SIZE];
 } ACTIVEVIEW;
 
+#define TYPEDESCRIPTOR_MAGIC 0x1337
+
 typedef struct _TYPEDESCRIPTOR
 {
     bool expanded; //is the type node expanded?
     bool reverse; //big endian?
+    uint16_t magic; // compatiblity
     const char* name; //type name (int b)
     duint addr; //virtual address
     duint offset; //offset to addr for the actual location in bytes
     int id; //type id
-    int bitSize; //sizeof(type) in bits
+    int sizeBits; //sizeof(type) in bits
     TYPETOSTRING callback; //convert to string
     void* userdata; //user data
     duint bitOffset; // bit offset from first bitfield

@@ -121,7 +121,7 @@ bool TypeManager::AddEnumMember(const std::string & parent, const std::string & 
     return true;
 }
 
-bool TypeManager::AddStructMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int bitSize, bool isBitfield)
+bool TypeManager::AddStructMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int sizeBits, bool isBitfield)
 {
     if(!isDefined(type) && !validPtr(type))
         return false;
@@ -142,7 +142,7 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
         if(arrsize != 0)
             expectedSize *= arrsize;
 
-        if(bitSize != expectedSize)
+        if(sizeBits != expectedSize)
             return false;
 
         typeSize = expectedSize;
@@ -163,10 +163,10 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
     // cannot have a bitfield greater than typeSize
     if(isBitfield)
     {
-        if(bitSize > typeSize)
+        if(sizeBits > typeSize)
             return false;
 
-        typeSize = bitSize;
+        typeSize = sizeBits;
     }
 
     if(typeSize == -1)
@@ -174,12 +174,11 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
 
     Member m;
     m.name = name;
-    m.arrsize = arrsize;
+    m.arraySize = arrsize;
     m.type = type;
-    m.assignedType = type;
     m.offsetBits = bitOffset;
-    m.bitSize = typeSize;
-    m.bitfield = isBitfield;
+    m.sizeBits = typeSize;
+    m.isBitfield = isBitfield;
 
     if(bitOffset >= 0 && !s.isUnion)  //user-defined offset
     {
@@ -197,7 +196,7 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
     }
     else
     {
-        s.sizeBits += m.bitSize;
+        s.sizeBits += m.sizeBits;
     }
 
     s.members.push_back(m);
@@ -226,7 +225,7 @@ bool TypeManager::AppendStructPadding(const std::string & parent, int targetOffs
 
         Member pad;
         pad.type = "long long";
-        pad.bitSize = remBits;
+        pad.sizeBits = remBits;
 
         char padName[32] = { };
         sprintf_s(padName, "padding%db", remBits);
@@ -242,8 +241,8 @@ bool TypeManager::AppendStructPadding(const std::string & parent, int targetOffs
     {
         Member pad;
         pad.type = "char";
-        pad.bitSize = bitPadding;
-        pad.arrsize = bitPadding / 8;
+        pad.sizeBits = bitPadding;
+        pad.arraySize = bitPadding / 8;
 
         // can just add byte padding
         char padName[32] = { };
@@ -301,7 +300,6 @@ bool TypeManager::AddArg(const std::string & function, const std::string & type,
     Member arg;
     arg.name = name;
     arg.type = type;
-    arg.assignedType = type;
     found->second.args.push_back(arg);
     return true;
 }
@@ -372,9 +370,8 @@ bool TypeManager::Visit(const std::string & type, const std::string & name, Visi
     Member m;
     m.name = name;
     m.type = type;
-    m.assignedType = type;
 
-    return visitMember(m, visitor);
+    return visitMember(m, visitor, m.type);
 }
 
 void TypeManager::Clear(const std::string & owner)
@@ -563,25 +560,25 @@ bool TypeManager::addType(const std::string & owner, Primitive primitive, const 
     return addType(t);
 }
 
-bool TypeManager::visitMember(const Member & root, Visitor & visitor) const
+bool TypeManager::visitMember(const Member & root, Visitor & visitor, const std::string & prettyType) const
 {
     auto foundT = types.find(root.type);
     if(foundT != types.end())
     {
         const auto & t = foundT->second;
-        if(t.primitive == Alias)  // check if struct type
+        if(t.primitive == Alias) // check if struct type
         {
             Member member = root;
             member.type = t.pointto;
 
-            return visitMember(member, visitor);
+            return visitMember(member, visitor, prettyType);
         }
 
         if(!t.pointto.empty())
         {
             if(!isDefined(t.pointto))
                 return false;
-            if(visitor.visitPtr(root, t))  //allow the visitor to bail out
+            if(visitor.visitPtr(root, t, prettyType)) //allow the visitor to bail out
             {
                 if(!Visit(t.pointto, "*" + root.name, visitor))
                     return false;
@@ -590,35 +587,35 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor) const
             return true;
         }
 
-        return visitor.visitType(root, t);
+        return visitor.visitType(root, t, prettyType);
     }
 
     auto foundS = structs.find(root.type);
     if(foundS != structs.end())
     {
         const auto & s = foundS->second;
-        if(!visitor.visitStructUnion(root, s))
+        if(!visitor.visitStructUnion(root, s, prettyType))
             return false;
 
         for(const auto & child : s.members)
         {
-            if(child.arrsize)
+            if(child.arraySize > 0)
             {
-                if(!visitor.visitArray(child))
+                if(!visitor.visitArray(child, child.type))
                     return false;
 
                 Member am = child;
-                am.bitSize = child.bitSize / child.arrsize;
-                am.arrsize = -1;
+                am.sizeBits = child.sizeBits / child.arraySize;
+                am.arraySize = -1;
 
-                for(auto i = 0; i < child.arrsize; i++)
-                    if(!visitMember(am, visitor))
+                for(auto i = 0; i < child.arraySize; i++)
+                    if(!visitMember(am, visitor, ""))
                         return false;
 
                 if(!visitor.visitBack(child))
                     return false;
             }
-            else if(!visitMember(child, visitor))
+            else if(!visitMember(child, visitor, child.type))
                 return false;
         }
         return visitor.visitBack(root);
@@ -628,12 +625,36 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor) const
     if(foundE != enums.end())
     {
         const auto & e = foundE->second;
-        return visitor.visitEnum(root, e);
+        return visitor.visitEnum(root, e, prettyType);
     }
 
     auto foundF = functions.find(root.type);
     if(foundF != functions.end())
-        return true;
+    {
+        const auto & function = foundF->second;
+
+        std::string functionType = function.noreturn ? "__noreturn " : "";
+        functionType += function.rettype;
+        functionType += "(";
+        for(size_t i = 0; i < function.args.size(); i++)
+        {
+            if(i > 0)
+                functionType += ", ";
+            functionType += function.args[i].type;
+        }
+        functionType += ")*";
+
+        Member fm;
+        fm.name = function.name;
+        fm.type = functionType;
+        fm.offsetBits = root.offsetBits;
+
+        Typedef ft;
+        ft.primitive = Pointer;
+        ft.sizeBits = primitivesizes.at(Pointer) * 8;
+
+        return visitor.visitType(fm, ft, fm.type);
+    }
 
     return false;
 }
@@ -769,7 +790,7 @@ static void loadStructUnions(const JSON suroot, std::vector<StructUnion> & struc
 
         auto size = json_default_int(vali, "size", -1);
         if(size == -1)
-            size = json_default_int(vali, "bitSize", 8);
+            size = json_default_int(vali, "sizeBits", 8);
         else
             size *= 8;
 
@@ -789,14 +810,15 @@ static void loadStructUnions(const JSON suroot, std::vector<StructUnion> & struc
 
             curMember.type = type;
             curMember.name = name;
-            curMember.arrsize = json_default_int(valj, "arrsize", 0);
+            curMember.arraySize = json_default_int(valj, "arrsize", 0);
+            // NOTE: Attempt to keep support for the previous JSON format
             size = json_default_int(valj, "size", -1);
             if(size == -1)
-                size = json_default_int(valj, "bitSize", 8);
+                size = json_default_int(valj, "sizeBits", 8);
             else
                 size *= 8;
-            curMember.bitSize = size;
-            curMember.bitfield = json_boolean_value(json_object_get(valj, "bitfield"));
+            curMember.sizeBits = size;
+            curMember.isBitfield = json_boolean_value(json_object_get(valj, "bitfield"));
 
             curMember.offsetBits = json_default_int(valj, "offset", -1);
             if(curMember.offsetBits == -1)
@@ -876,7 +898,7 @@ static void loadEnums(const JSON suroot, std::vector<struct Enum> & enums)
 
         auto size = json_default_int(vali, "size", -1);
         if(size == -1)
-            size = json_default_int(vali, "bitSize", 8);
+            size = json_default_int(vali, "sizeBits", 8);
         else
             size *= 8;
 
@@ -967,7 +989,7 @@ void LoadModel(const std::string & owner, Model & model)
         const auto suggestedSize = su.sizeBits;
         for(auto & member : su.members)
         {
-            auto success = typeManager.AddStructMember(su.name, member.type, member.name, member.arrsize, member.offsetBits, member.bitSize, member.bitfield);
+            auto success = typeManager.AddStructMember(su.name, member.type, member.name, member.arraySize, member.offsetBits, member.sizeBits, member.isBitfield);
             if(!success)
             {
                 //TODO properly handle errors

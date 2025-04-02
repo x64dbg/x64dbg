@@ -44,22 +44,21 @@ namespace Types
 
     struct Member
     {
-        std::string assignedType;
         std::string name; //Member identifier
         std::string type; //Type.name
 
-        int arrsize = 0; //Number of elements if Member is an array
-        int bitSize = -1; //Bitfield size
+        int arraySize = -1; //Number of elements if Member is an array
+        int sizeBits = -1; //Member size in bits
         int offsetBits = -1; //Member offset (only stored for reference)
 
-        bool bitfield = false;
+        bool isBitfield = false; //Is this a bitfield?
     };
 
     struct StructUnion : TypeBase
     {
         std::vector<Member> members; //StructUnion members
         bool isUnion = false; //Is this a union?
-        int sizeBits = -1;
+        int sizeBits = -1; //Structure size in bits
     };
 
     enum CallingConvention
@@ -67,7 +66,7 @@ namespace Types
         Cdecl,
         Stdcall,
         Thiscall,
-        Delphi
+        Delphi,
     };
 
     struct Function : TypeBase
@@ -81,8 +80,8 @@ namespace Types
     struct Enum : TypeBase
     {
         std::vector<std::pair<uint64_t, std::string>> members;
-        uint8_t sizeBits;
-        bool isFlags;
+        uint8_t sizeBits; //Enum size in bits
+        bool isFlags; //Enum members are bit flags
     };
 
     struct TypeManager
@@ -93,12 +92,12 @@ namespace Types
             {
             }
 
-            virtual bool visitType(const Member & member, const Typedef & type) = 0;
-            virtual bool visitStructUnion(const Member & member, const StructUnion & type) = 0;
-            virtual bool visitArray(const Member & member) = 0;
-            virtual bool visitPtr(const Member & member, const Typedef & type) = 0;
+            virtual bool visitType(const Member & member, const Typedef & type, const std::string & prettyType) = 0;
+            virtual bool visitStructUnion(const Member & member, const StructUnion & type, const std::string & prettyType) = 0;
+            virtual bool visitArray(const Member & member, const std::string & prettyType) = 0;
+            virtual bool visitPtr(const Member & member, const Typedef & type, const std::string & prettyType) = 0;
             virtual bool visitBack(const Member & member) = 0;
-            virtual bool visitEnum(const Member & member, const Enum & num) = 0;
+            virtual bool visitEnum(const Member & member, const Enum & num, const std::string & prettyType) = 0;
         };
 
         struct Summary
@@ -115,7 +114,7 @@ namespace Types
         bool AddUnion(const std::string & owner, const std::string & name, int constantSize = -1);
         bool AddEnum(const std::string & owner, const std::string & name, bool isFlags, uint8_t size);
         bool AddEnumMember(const std::string & parent, const std::string & name, uint64_t value);
-        bool AddStructMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int bitSize, bool isBitfield);
+        bool AddStructMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int sizeBits, bool isBitfield);
         bool AppendStructMember(const std::string & type, const std::string & name, int arrsize = 0, int offset = -1);
         bool AppendStructPadding(const std::string & type, int targetOffset);
         bool AddFunction(const std::string & owner, const std::string & name, CallingConvention callconv = Cdecl,
@@ -125,7 +124,7 @@ namespace Types
         bool AppendArg(const std::string & type, const std::string & name);
         int Sizeof(const std::string & type,
                    std::string* underlyingType = nullptr);
-        Types::TypeBase* LookupTypeById(uint32_t typeId);
+        TypeBase* LookupTypeById(uint32_t typeId);
         bool Visit(const std::string & type, const std::string & name, Visitor & visitor) const;
         void Clear(const std::string & owner = "");
         bool RemoveType(const std::string & type);
@@ -149,7 +148,7 @@ namespace Types
         bool addStructUnion(const StructUnion & s);
         bool addType(const std::string & owner, Primitive primitive, const std::string & name, const std::string & pointto = "");
         bool addType(const Typedef & t);
-        bool visitMember(const Member & root, Visitor & visitor) const;
+        bool visitMember(const Member & root, Visitor & visitor, const std::string & prettyType) const;
 
         template <typename K, typename V>
         bool removeType(std::unordered_map<K, V> & map, const std::string & type)
