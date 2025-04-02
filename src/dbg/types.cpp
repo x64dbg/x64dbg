@@ -76,7 +76,7 @@ bool TypeManager::AddStruct(const std::string & owner, const std::string & name,
     StructUnion s;
     s.name = name;
     s.owner = owner;
-    s.sizeFUCK = constantSize;
+    s.sizeBits = constantSize;
     return addStructUnion(s);
 }
 
@@ -86,7 +86,7 @@ bool TypeManager::AddUnion(const std::string & owner, const std::string & name, 
     u.owner = owner;
     u.name = name;
     u.isUnion = true;
-    u.sizeFUCK = constantSize;
+    u.sizeBits = constantSize;
     return addStructUnion(u);
 }
 
@@ -172,27 +172,27 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
     m.arrsize = arrsize;
     m.type = type;
     m.assignedType = type;
-    m.offsetFUCK = bitOffset;
+    m.offsetBits = bitOffset;
     m.bitSize = typeSize;
     m.bitfield = isBitfield;
 
     if(bitOffset >= 0 && !s.isUnion)  //user-defined offset
     {
-        if(bitOffset < s.sizeFUCK)
+        if(bitOffset < s.sizeBits)
             return false;
 
-        if(bitOffset > s.sizeFUCK)
+        if(bitOffset > s.sizeBits)
             AppendStructPadding(parent, bitOffset);
     }
 
     if(s.isUnion)
     {
-        if(typeSize > s.sizeFUCK)
-            s.sizeFUCK = typeSize;
+        if(typeSize > s.sizeBits)
+            s.sizeBits = typeSize;
     }
     else
     {
-        s.sizeFUCK += m.bitSize;
+        s.sizeBits += m.bitSize;
     }
 
     s.members.push_back(m);
@@ -211,10 +211,10 @@ bool TypeManager::AppendStructPadding(const std::string & parent, int targetOffs
         return false;
 
     auto & s = found->second;
-    if(s.sizeFUCK >= targetOffset || s.isUnion)
+    if(s.sizeBits >= targetOffset || s.isUnion)
         return false;
 
-    auto bitPadding = targetOffset - s.sizeFUCK;
+    auto bitPadding = targetOffset - s.sizeBits;
     if(bitPadding % 8 != 0)
     {
         const auto remBits = bitPadding % 8;
@@ -248,7 +248,7 @@ bool TypeManager::AppendStructPadding(const std::string & parent, int targetOffs
         s.members.push_back(pad);
     }
 
-    s.sizeFUCK = targetOffset;
+    s.sizeBits = targetOffset;
     return true;
 }
 
@@ -321,7 +321,7 @@ int TypeManager::Sizeof(const std::string & type, std::string* underlyingType)
             return Sizeof(foundT->second.pointto, underlyingType);
 
         if(underlyingType != nullptr) *underlyingType = foundT->second.name;
-        return foundT->second.sizeFUCK;
+        return foundT->second.sizeBits;
     }
 
     auto foundE = enums.find(type);
@@ -335,7 +335,7 @@ int TypeManager::Sizeof(const std::string & type, std::string* underlyingType)
     if(foundS != structs.end())
     {
         if(underlyingType != nullptr) *underlyingType = foundS->second.name;
-        return foundS->second.sizeFUCK;
+        return foundS->second.sizeBits;
     }
 
     auto foundF = functions.find(type);
@@ -565,7 +565,7 @@ bool TypeManager::addType(const std::string & owner, Primitive primitive, const 
     t.owner = owner;
     t.name = name;
     t.primitive = primitive;
-    t.sizeFUCK = primitivesizes[primitive] * 8;
+    t.sizeBits = primitivesizes[primitive] * 8;
     t.pointto = pointto;
     return addType(t);
 }
@@ -780,7 +780,7 @@ static void loadStructUnions(const JSON suroot, std::vector<StructUnion> & struc
         else
             size *= 8;
 
-        curSu.sizeFUCK = size;
+        curSu.sizeBits = size;
 
         auto members = json_object_get(vali, "members");
 
@@ -805,11 +805,11 @@ static void loadStructUnions(const JSON suroot, std::vector<StructUnion> & struc
             curMember.bitSize = size;
             curMember.bitfield = json_boolean_value(json_object_get(valj, "bitfield"));
 
-            curMember.offsetFUCK = json_default_int(valj, "offset", -1);
-            if(curMember.offsetFUCK == -1)
-                curMember.offsetFUCK = json_default_int(valj, "bitOffset", -1);
+            curMember.offsetBits = json_default_int(valj, "offset", -1);
+            if(curMember.offsetBits == -1)
+                curMember.offsetBits = json_default_int(valj, "bitOffset", -1);
             else
-                curMember.offsetFUCK *= 8;
+                curMember.offsetBits *= 8;
 
             curSu.members.push_back(curMember);
         }
@@ -971,10 +971,10 @@ void LoadModel(const std::string & owner, Model & model)
         if(su.name.empty())  //skip error-signalled structs/unions
             continue;
 
-        const auto suggestedSize = su.sizeFUCK;
+        const auto suggestedSize = su.sizeBits;
         for(auto & member : su.members)
         {
-            auto success = typeManager.AddStructMember(su.name, member.type, member.name, member.arrsize, member.offsetFUCK, member.bitSize, member.bitfield);
+            auto success = typeManager.AddStructMember(su.name, member.type, member.name, member.arrsize, member.offsetBits, member.bitSize, member.bitfield);
             if(!success)
             {
                 //TODO properly handle errors

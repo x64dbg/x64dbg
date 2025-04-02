@@ -634,7 +634,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.addr = mAddr;
         td.offset = mOffset;
         td.id = type.primitive;
-        td.bitSize = member.bitfield ? member.bitSize : type.sizeFUCK;
+        td.bitSize = member.bitfield ? member.bitSize : type.sizeBits;
         if(td.bitSize < 0)
             __debugbreak();
 
@@ -685,7 +685,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.addr = mAddr;
         td.offset = mOffset;
         td.id = Typedef;
-        td.bitSize = type.sizeFUCK;
+        td.bitSize = type.sizeBits;
         td.callback = nullptr;
         td.userdata = nullptr;
         auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
@@ -763,7 +763,7 @@ struct PrintVisitor : TypeManager::Visitor
         parent().offset = mOffset;
         parent().addr = mAddr;
         parent().node = mNode;
-        parent().size = type.sizeFUCK / 8;
+        parent().size = type.sizeBits / 8;
         mOffset = 0;
         mAddr = value;
         mPtrDepth++;
@@ -854,6 +854,8 @@ bool cbInstrVisitType(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "VisitType failed"));
         return false;
     }
+
+    GuiShowStructView();
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "Done!"));
     return true;

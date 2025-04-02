@@ -1588,13 +1588,12 @@ void CPUDump::visitSlot()
     }
 
     QString selection;
-    if(!SimpleChoiceBox(this, tr("Type to display"), "", structs, selection, true, "", &DIcon("struct"), 1) || selection.isEmpty())
+    if(!SimpleChoiceBox(this, tr("Type to display"), "", structs, selection, true, "", DIcon("struct"), 1) || selection.isEmpty())
         return;
     if(!mGotoType)
         mGotoType = new GotoDialog(this);
     mGotoType->setWindowTitle(tr("Address to display %1 at").arg(selection));
 
-    DbgCmdExec(QString("GuiTypeClear"));
     DbgCmdExec(QString("VisitType %1, %2, 2").arg(selection, ToPtrString(vaSelected)));
 }
 

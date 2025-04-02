@@ -33,7 +33,7 @@ namespace Types
         std::string name; //Type identifier.
         std::string pointto; //Type identifier of *Type
         Primitive primitive; //Primitive type.  Void is Struct typedef
-        int sizeFUCK = 0; //Size in bytes.
+        int sizeBits = 0; //Size in bits.
     };
 
     struct Member
@@ -44,7 +44,7 @@ namespace Types
 
         int arrsize = 0; //Number of elements if Member is an array
         int bitSize = -1; //Bitfield size
-        int offsetFUCK = -1; //Member offset (only stored for reference)
+        int offsetBits = -1; //Member offset (only stored for reference)
 
         bool bitfield = false;
     };
@@ -55,7 +55,7 @@ namespace Types
         std::string name; //StructUnion identifier
         std::vector<Member> members; //StructUnion members
         bool isUnion = false; //Is this a union?
-        int sizeFUCK = -1;
+        int sizeBits = -1;
     };
 
     enum CallingConvention

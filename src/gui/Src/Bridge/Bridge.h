@@ -161,6 +161,7 @@ signals:
     void unregisterScriptLang(int id);
     void focusDisasm();
     void focusDump();
+    void focusStruct();
     void focusStack();
     void focusGraph();
     void focusMemmap();

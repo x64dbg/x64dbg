@@ -36,6 +36,7 @@ public slots:
     void openChangeTabTitleDialogSlot(int tabIndex);
     void displayReferencesWidgetSlot();
     void focusCurrentDumpSlot();
+    void focusStructSlot();
     void showDisassemblyTabSlot(duint selectionStart, duint selectionEnd, duint firstAddress);
     void getDumpAttention();
 
@@ -51,7 +52,9 @@ private:
     CPUDisassembly* mExtraDisassembly = nullptr;
 
     int GetDumpWindowIndex(int dump);
+    int GetStructWindowIndex();
     int GetWatchWindowIndex();
     void SwitchToDumpWindow();
+    void SwitchToStructWindow();
     void SwitchToWatchWindow();
 };

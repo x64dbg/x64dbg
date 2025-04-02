@@ -1355,6 +1355,7 @@ typedef enum
     msg(GUI_REDIRECT_LOG, const char* file name, unused) \
     msg(GUI_STOP_REDIRECT_LOG, unused, unused) \
     msg(GUI_SHOW_THREADS, unused, unused) \
+    msg(GUI_SHOW_STRUCT, unused, unused) \
 
 // clang-format on
 
@@ -1557,6 +1558,7 @@ BRIDGE_IMPEXP void GuiSelectInSymbolsTab(duint addr);
 BRIDGE_IMPEXP void GuiGotoTrace(duint index);
 BRIDGE_IMPEXP void GuiShowTrace();
 BRIDGE_IMPEXP DWORD GuiGetMainThreadId();
+BRIDGE_IMPEXP void GuiShowStructView();
 
 #ifdef __cplusplus
 }
