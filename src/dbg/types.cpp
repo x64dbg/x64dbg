@@ -45,25 +45,25 @@ bool TypeManager::AddType(const std::string & owner, const std::string & type, c
     auto foundType = types.find(type);
     if(foundType != types.end())
     {
-        if(foundType->second.primitive == Typedef)
-            return addType(owner, Typedef, name, type);
+        if(foundType->second.primitive == Alias)
+            return addType(owner, Alias, name, type);
         if(foundType->second.primitive == Pointer)
-            return addType(owner, Typedef, name, type);
+            return addType(owner, Alias, name, type);
 
         return addType(owner, foundType->second.primitive, name);
     }
 
     auto found_e = enums.find(type);
     if(found_e != enums.end())
-        return addType(owner, Typedef, name, type);
+        return addType(owner, Alias, name, type);
 
     auto found_s = structs.find(type);
     if(found_s != structs.end())
-        return addType(owner, Typedef, name, type);
+        return addType(owner, Alias, name, type);
 
     auto found_f = functions.find(type);
     if(found_f != functions.end())
-        return addType(owner, Typedef, name, type);
+        return addType(owner, Alias, name, type);
 
     if(type == "void")
         return addType(owner, Void, name);
@@ -77,6 +77,7 @@ bool TypeManager::AddStruct(const std::string & owner, const std::string & name,
     s.name = name;
     s.owner = owner;
     s.sizeBits = constantSize;
+
     return addStructUnion(s);
 }
 
@@ -87,6 +88,7 @@ bool TypeManager::AddUnion(const std::string & owner, const std::string & name, 
     u.name = name;
     u.isUnion = true;
     u.sizeBits = constantSize;
+
     return addStructUnion(u);
 }
 
@@ -102,7 +104,10 @@ bool TypeManager::AddEnum(const std::string & owner, const std::string & name, b
     if(enums.find(name) != enums.end())
         return false;
 
-    enums.insert({ e.name, e });
+    auto & type = enums.insert({ e.name, e }).first->second;
+    typeIdMap[currentTypeId] = &type;
+    type.typeId = currentTypeId++;
+
     return true;
 }
 
@@ -268,7 +273,7 @@ bool TypeManager::AddFunction(const std::string & owner, const std::string & nam
 
     f.callconv = callconv;
     f.noreturn = noreturn;
-    functions.insert({ f.name, f });
+    typeIdMap[currentTypeId++] = &functions.insert({ f.name, f }).first->second;
     return true;
 }
 
@@ -310,7 +315,8 @@ int TypeManager::Sizeof(const std::string & type, std::string* underlyingType)
 {
     if(!types.empty() && type.back() == '*')
     {
-        if(underlyingType != nullptr) *underlyingType = type;
+        if(underlyingType != nullptr)
+            *underlyingType = type;
         return primitivesizes[Pointer] * 8;
     }
 
@@ -320,41 +326,45 @@ int TypeManager::Sizeof(const std::string & type, std::string* underlyingType)
         if(!foundT->second.pointto.empty())
             return Sizeof(foundT->second.pointto, underlyingType);
 
-        if(underlyingType != nullptr) *underlyingType = foundT->second.name;
+        if(underlyingType != nullptr)
+            *underlyingType = foundT->second.name;
         return foundT->second.sizeBits;
     }
 
     auto foundE = enums.find(type);
     if(foundE != enums.end())
     {
-        if(underlyingType != nullptr) *underlyingType = foundE->second.name;
+        if(underlyingType != nullptr)
+            *underlyingType = foundE->second.name;
         return foundE->second.sizeFUCK;
     }
 
     auto foundS = structs.find(type);
     if(foundS != structs.end())
     {
-        if(underlyingType != nullptr) *underlyingType = foundS->second.name;
+        if(underlyingType != nullptr)
+            *underlyingType = foundS->second.name;
         return foundS->second.sizeBits;
     }
 
     auto foundF = functions.find(type);
     if(foundF != functions.end())
     {
-        if(underlyingType != nullptr) *underlyingType = foundF->second.name;
+        if(underlyingType != nullptr)
+            *underlyingType = foundF->second.name;
         return primitivesizes[Pointer] * 8;
     }
 
     return 0;
 }
 
-Enum TypeManager::TypeEnumData(const std::string & type)
+TypeBase* TypeManager::LookupTypeById(const uint32_t typeId)
 {
-    const auto enumT = enums.find(type);
-    if(enumT != enums.end())
-        return enumT->second;
+    const auto type = typeIdMap.find(typeId);
+    if(type == typeIdMap.end())
+        return nullptr;
 
-    return { };
+    return type->second;
 }
 
 bool TypeManager::Visit(const std::string & type, const std::string & name, Visitor & visitor) const
@@ -367,19 +377,6 @@ bool TypeManager::Visit(const std::string & type, const std::string & name, Visi
     return visitMember(m, visitor);
 }
 
-template <typename K, typename V>
-static void filterOwnerMap(std::unordered_map<K, V> & map, const std::string & owner)
-{
-    for(auto i = map.begin(); i != map.end();)
-    {
-        auto j = i++;
-        if(j->second.owner.empty())
-            continue;
-        if(owner.empty() || j->second.owner == owner)
-            map.erase(j);
-    }
-}
-
 void TypeManager::Clear(const std::string & owner)
 {
     laststruct.clear();
@@ -390,21 +387,9 @@ void TypeManager::Clear(const std::string & owner)
     filterOwnerMap(enums, owner);
 }
 
-template <typename K, typename V>
-static bool removeType(std::unordered_map<K, V> & map, const std::string & type)
-{
-    auto found = map.find(type);
-    if(found == map.end())
-        return false;
-    if(found->second.owner.empty())
-        return false;
-    map.erase(found);
-    return true;
-}
-
 bool TypeManager::RemoveType(const std::string & type)
 {
-    return removeType(types, type) || removeType(structs, type) || removeType(functions, type);
+    return removeType(types, type) || removeType(structs, type) || removeType(functions, type) || removeType(enums, type);
 }
 
 static std::string getKind(const StructUnion & su)
@@ -412,7 +397,7 @@ static std::string getKind(const StructUnion & su)
     return su.isUnion ? "union" : "struct";
 }
 
-static std::string getKind(const Type & t)
+static std::string getKind(const Typedef & t)
 {
     return "typedef";
 }
@@ -527,15 +512,23 @@ bool TypeManager::addStructUnion(const StructUnion & s)
     laststruct = s.name;
     if(s.owner.empty() || s.name.empty() || isDefined(s.name))
         return false;
-    structs.insert({ s.name, s });
+
+    auto & type = structs.insert({ s.name, s }).first->second;
+    typeIdMap[currentTypeId] = &type;
+    type.typeId = currentTypeId++;
+
     return true;
 }
 
-bool TypeManager::addType(const Type & t)
+bool TypeManager::addType(const Typedef & t)
 {
     if(t.name.empty() || isDefined(t.name))
         return false;
-    types.insert({ t.name, t });
+
+    auto & type = types.insert({ t.name, t }).first->second;
+    typeIdMap[currentTypeId] = &type;
+    type.typeId = currentTypeId++;
+
     return true;
 }
 
@@ -561,7 +554,7 @@ bool TypeManager::addType(const std::string & owner, Primitive primitive, const 
 
     if(name.empty() || isDefined(name))
         return false;
-    Type t;
+    Typedef t;
     t.owner = owner;
     t.name = name;
     t.primitive = primitive;
@@ -576,7 +569,7 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor) const
     if(foundT != types.end())
     {
         const auto & t = foundT->second;
-        if(t.primitive == Typedef)  // check if struct type
+        if(t.primitive == Alias)  // check if struct type
         {
             Member member = root;
             member.type = t.pointto;
@@ -693,10 +686,10 @@ bool AppendArg(const std::string & type, const std::string & name)
     return typeManager.AppendArg(type, name);
 }
 
-Enum TypeEnumData(const std::string & type)
+TypeBase* LookupTypeById(uint32_t typeId)
 {
     SHARED_ACQUIRE(LockTypeManager);
-    return typeManager.TypeEnumData(type);
+    return typeManager.LookupTypeById(typeId);
 }
 
 int SizeofType(const std::string & type)
@@ -888,7 +881,7 @@ static void loadEnums(const JSON suroot, std::vector<struct Enum> & enums)
             size *= 8;
 
         curE.sizeFUCK = size;
-        curE.isFlags = json_boolean(vali, "isFlags");
+        curE.isFlags = json_boolean(json_object_get(vali, "isFlags"));
 
         auto members = json_object_get(vali, "members");
         size_t j;

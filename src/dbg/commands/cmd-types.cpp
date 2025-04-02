@@ -479,21 +479,21 @@ struct PrintVisitor : TypeManager::Visitor
 
     static bool cbPrintEnum(const TYPEDESCRIPTOR* type, char* dest, size_t* destCount)
     {
-        if(!type->addr || !type->userdata)
+        if(!type->addr)
         {
             *dest = '\0';
             return true;
         }
 
         String valueStr;
-        auto enumData = TypeEnumData(type->name);
+        auto enumTypeIdData = LookupTypeById(type->id);
 
         auto readSize = (type->bitSize + 7) / 8; // round up to nearest byte
         if(type->bitOffset % 8 != 0)
             readSize += 1;
 
         Memory<unsigned char*> data(readSize);
-        if(!enumData.name.empty() && MemRead(type->addr + type->offset + type->bitOffset / 8, data(), readSize))
+        if(enumTypeIdData != nullptr && MemRead(type->addr + type->offset + type->bitOffset / 8, data(), readSize))
         {
             if(type->reverse)
                 std::reverse(data(), data() + data.size());
@@ -523,6 +523,7 @@ struct PrintVisitor : TypeManager::Visitor
             uint64_t extractedValue = 0;
             memcpy(&extractedValue, data(), std::min(8, type->bitSize));
 
+            auto & enumData = *(Enum*)enumTypeIdData;
             if(enumData.isFlags)
             {
                 bool first = true;
@@ -581,7 +582,7 @@ struct PrintVisitor : TypeManager::Visitor
         return true;
     }
 
-    bool visitType(const Member & member, const Type & type) override
+    bool visitType(const Member & member, const Typedef & type) override
     {
         if(!mParents.empty() && parent().type == Parent::Union)
         {
@@ -684,7 +685,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
-        td.id = Typedef;
+        td.id = Alias;
         td.bitSize = type.sizeBits;
         td.callback = nullptr;
         td.userdata = nullptr;
@@ -714,10 +715,10 @@ struct PrintVisitor : TypeManager::Visitor
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
-        td.id = Typedef;
+        td.id = num.typeId;
         td.bitSize = num.sizeFUCK;
         td.callback = cbPrintEnum;
-        td.userdata = TypeEnumData;
+        td.userdata = LookupTypeById;
         mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
         mOffset += td.bitSize / 8;
 
@@ -734,7 +735,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
-        td.id = Typedef;
+        td.id = Alias;
         td.bitSize = member.arrsize * SizeofType(member.type);
         td.callback = nullptr;
         td.userdata = nullptr;
@@ -747,7 +748,7 @@ struct PrintVisitor : TypeManager::Visitor
         return true;
     }
 
-    bool visitPtr(const Member & member, const Type & type) override
+    bool visitPtr(const Member & member, const Typedef & type) override
     {
         auto offset = mOffset;
         auto res = visitType(member, type); //print the pointer value

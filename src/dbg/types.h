@@ -8,7 +8,7 @@ namespace Types
 {
     enum Primitive
     {
-        Typedef, // struct/union
+        Alias, // Typedef/struct/union
         Int8,
         Uint8,
         Int16,
@@ -27,10 +27,16 @@ namespace Types
         Void,
     };
 
-    struct Type
+    struct TypeBase
     {
-        std::string owner; //Type owner
+        std::string owner; //Type owner (header file name).
         std::string name; //Type identifier.
+
+        uint32_t typeId = 0; // id from typeIdMap
+    };
+
+    struct Typedef : TypeBase
+    {
         std::string pointto; //Type identifier of *Type
         Primitive primitive; //Primitive type.  Void is Struct typedef
         int sizeBits = 0; //Size in bits.
@@ -49,10 +55,8 @@ namespace Types
         bool bitfield = false;
     };
 
-    struct StructUnion
+    struct StructUnion : TypeBase
     {
-        std::string owner; //StructUnion owner
-        std::string name; //StructUnion identifier
         std::vector<Member> members; //StructUnion members
         bool isUnion = false; //Is this a union?
         int sizeBits = -1;
@@ -66,20 +70,16 @@ namespace Types
         Delphi
     };
 
-    struct Function
+    struct Function : TypeBase
     {
-        std::string owner; //Function owner
-        std::string name; //Function identifier
         std::string rettype; //Function return type
         CallingConvention callconv = Cdecl; //Function calling convention
         bool noreturn = false; //Function does not return (ExitProcess, _exit)
         std::vector<Member> args; //Function arguments
     };
 
-    struct Enum
+    struct Enum : TypeBase
     {
-        std::string owner;
-        std::string name;
         std::vector<std::pair<uint64_t, std::string>> members;
         uint8_t sizeFUCK;
         bool isFlags;
@@ -93,10 +93,10 @@ namespace Types
             {
             }
 
-            virtual bool visitType(const Member & member, const Type & type) = 0;
+            virtual bool visitType(const Member & member, const Typedef & type) = 0;
             virtual bool visitStructUnion(const Member & member, const StructUnion & type) = 0;
             virtual bool visitArray(const Member & member) = 0;
-            virtual bool visitPtr(const Member & member, const Type & type) = 0;
+            virtual bool visitPtr(const Member & member, const Typedef & type) = 0;
             virtual bool visitBack(const Member & member) = 0;
             virtual bool visitEnum(const Member & member, const Enum & num) = 0;
         };
@@ -123,8 +123,9 @@ namespace Types
         bool AddFunctionReturn(const std::string & name, const std::string & rettype);
         bool AddArg(const std::string & function, const std::string & type, const std::string & name);
         bool AppendArg(const std::string & type, const std::string & name);
-        int Sizeof(const std::string & type, std::string* underlyingType = nullptr);
-        Enum TypeEnumData(const std::string & type);
+        int Sizeof(const std::string & type,
+                   std::string* underlyingType = nullptr);
+        Types::TypeBase* LookupTypeById(uint32_t typeId);
         bool Visit(const std::string & type, const std::string & name, Visitor & visitor) const;
         void Clear(const std::string & owner = "");
         bool RemoveType(const std::string & type);
@@ -132,8 +133,11 @@ namespace Types
         std::string StructUnionPtrType(const std::string & pointto) const;
 
     private:
+        uint32_t currentTypeId = 100;
+        std::unordered_map<uint32_t, TypeBase*> typeIdMap;
+
         std::unordered_map<Primitive, int> primitivesizes;
-        std::unordered_map<std::string, Type> types;
+        std::unordered_map<std::string, Typedef> types;
         std::unordered_map<std::string, struct Enum> enums;
         std::unordered_map<std::string, StructUnion> structs;
         std::unordered_map<std::string, Function> functions;
@@ -144,8 +148,37 @@ namespace Types
         bool validPtr(const std::string & id);
         bool addStructUnion(const StructUnion & s);
         bool addType(const std::string & owner, Primitive primitive, const std::string & name, const std::string & pointto = "");
-        bool addType(const Type & t);
+        bool addType(const Typedef & t);
         bool visitMember(const Member & root, Visitor & visitor) const;
+
+        template <typename K, typename V>
+        bool removeType(std::unordered_map<K, V> & map, const std::string & type)
+        {
+            auto found = map.find(type);
+            if(found == map.end())
+                return false;
+            if(found->second.owner.empty())
+                return false;
+            typeIdMap.erase(found->second.typeId);
+            map.erase(found);
+            return true;
+        }
+
+        template <typename K, typename V>
+        void filterOwnerMap(std::unordered_map<K, V> & map, const std::string & owner)
+        {
+            for(auto i = map.begin(); i != map.end();)
+            {
+                auto j = i++;
+                if(j->second.owner.empty())
+                    continue;
+                if(owner.empty() || j->second.owner == owner)
+                {
+                    typeIdMap.erase(j->second.typeId);
+                    map.erase(j);
+                }
+            }
+        }
     };
 
     struct Model
@@ -166,7 +199,7 @@ bool AddFunction(const std::string & owner, const std::string & name, const std:
                  bool noreturn = false);
 bool AddArg(const std::string & function, const std::string & type, const std::string & name);
 bool AppendArg(const std::string & type, const std::string & name);
-Types::Enum TypeEnumData(const std::string & type);
+Types::TypeBase* LookupTypeById(uint32_t typeId);
 int SizeofType(const std::string & type);
 bool VisitType(const std::string & type, const std::string & name, Types::TypeManager::Visitor & visitor);
 void ClearTypes(const std::string & owner = "");
