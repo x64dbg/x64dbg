@@ -99,7 +99,7 @@ bool TypeManager::AddEnum(const std::string & owner, const std::string & name, b
     e.name = name;
     e.members = { };
     e.isFlags = isFlags;
-    e.sizeFUCK = size;
+    e.sizeBits = size;
 
     if(enums.find(name) != enums.end())
         return false;
@@ -336,7 +336,7 @@ int TypeManager::Sizeof(const std::string & type, std::string* underlyingType)
     {
         if(underlyingType != nullptr)
             *underlyingType = foundE->second.name;
-        return foundE->second.sizeFUCK;
+        return foundE->second.sizeBits;
     }
 
     auto foundS = structs.find(type);
@@ -880,7 +880,7 @@ static void loadEnums(const JSON suroot, std::vector<struct Enum> & enums)
         else
             size *= 8;
 
-        curE.sizeFUCK = size;
+        curE.sizeBits = size;
         curE.isFlags = json_boolean(json_object_get(vali, "isFlags"));
 
         auto members = json_object_get(vali, "members");
@@ -939,7 +939,7 @@ void LoadModel(const std::string & owner, Model & model)
         if(num.name.empty())  //skip error-signalled functions
             continue;
 
-        auto success = typeManager.AddEnum(owner, num.name, num.isFlags, num.sizeFUCK);
+        auto success = typeManager.AddEnum(owner, num.name, num.isFlags, num.sizeBits);
         if(!success)
         {
             //TODO properly handle errors

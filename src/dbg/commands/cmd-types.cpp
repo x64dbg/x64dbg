@@ -716,7 +716,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.addr = mAddr;
         td.offset = mOffset;
         td.id = num.typeId;
-        td.bitSize = num.sizeFUCK;
+        td.bitSize = num.sizeBits;
         td.callback = cbPrintEnum;
         td.userdata = LookupTypeById;
         mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);

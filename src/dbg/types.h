@@ -81,7 +81,7 @@ namespace Types
     struct Enum : TypeBase
     {
         std::vector<std::pair<uint64_t, std::string>> members;
-        uint8_t sizeFUCK;
+        uint8_t sizeBits;
         bool isFlags;
     };
 
