@@ -810,7 +810,7 @@ static void loadStructUnions(const JSON suroot, std::vector<StructUnion> & struc
 
             curMember.type = type;
             curMember.name = name;
-            curMember.arraySize = json_default_int(valj, "arraySize", 0);
+            curMember.arraySize = json_default_int(valj, "arrsize", 0);
             // NOTE: Attempt to keep support for the previous JSON format
             size = json_default_int(valj, "size", -1);
             if(size == -1)
@@ -842,7 +842,7 @@ static void loadFunctions(const JSON froot, std::vector<Function> & functions)
     functions.reserve(json_array_size(froot));
     json_array_foreach(froot, i, vali)
     {
-        auto returnType = json_string_value(json_object_get(vali, "returnType"));
+        auto returnType = json_string_value(json_object_get(vali, "rettype"));
         auto fname = json_string_value(json_object_get(vali, "name"));
         if(!returnType || !*returnType || !fname || !*fname)
             continue;
