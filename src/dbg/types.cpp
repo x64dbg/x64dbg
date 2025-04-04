@@ -22,7 +22,7 @@ TypeManager::TypeManager()
     p("int8_t,int8,char,byte,bool,signed char", Int8, sizeof(char));
     p("uint8_t,uint8,uchar,unsigned char,ubyte", Uint8, sizeof(unsigned char));
     p("int16_t,int16,wchar_t,char16_t,short", Int16, sizeof(short));
-    p("uint16_t,uint16,ushort,unsigned short", Int16, sizeof(unsigned short));
+    p("uint16_t,uint16,ushort,unsigned short", Uint16, sizeof(unsigned short));
     p("int32_t,int32,int,long", Int32, sizeof(int));
     p("uint32_t,uint32,unsigned int,unsigned long", Uint32, sizeof(unsigned int));
     p("int64_t,int64,long long", Int64, sizeof(long long));
