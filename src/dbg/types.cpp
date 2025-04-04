@@ -14,7 +14,7 @@ TypeManager::TypeManager()
 {
     auto p = [this](const std::string & n, Primitive p, int size)
     {
-        primitivesizes[p] = size;
+        primitiveSizes[p] = size;
         auto splits = StringUtils::Split(n, ',');
         for(const auto & split : splits)
             addType("", p, split);
@@ -121,16 +121,16 @@ bool TypeManager::AddEnumMember(const std::string & parent, const std::string & 
     return true;
 }
 
-bool TypeManager::AddStructMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int sizeBits, bool isBitfield)
+bool TypeManager::AddStructMember(const std::string & parent, const std::string & type, const std::string & name, int arraySize, int bitOffset, int sizeBits, bool isBitfield)
 {
     if(!isDefined(type) && !validPtr(type))
         return false;
     auto found = structs.find(parent);
-    if(arrsize < 0 || found == structs.end() || !isDefined(type) || name.empty() || type.empty() || type == parent)
+    if(arraySize < 0 || found == structs.end() || !isDefined(type) || name.empty() || type.empty() || type == parent)
         return false;
 
     // cannot have bit field array
-    if(isBitfield && arrsize != 0)
+    if(isBitfield && arraySize != 0)
         return false;
 
     // cannot be pointer and bitfield
@@ -138,9 +138,9 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
     if(type.back() == '*')
     {
         // this is a pointer type
-        auto expectedSize = primitivesizes[Pointer] * 8;
-        if(arrsize != 0)
-            expectedSize *= arrsize;
+        auto expectedSize = primitiveSizes[Pointer] * 8;
+        if(arraySize != 0)
+            expectedSize *= arraySize;
 
         if(sizeBits != expectedSize)
             return false;
@@ -149,8 +149,8 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
     }
     else
     {
-        if(arrsize != 0)
-            typeSize = Sizeof(type) * arrsize;
+        if(arraySize != 0)
+            typeSize = Sizeof(type) * arraySize;
         else
             typeSize = Sizeof(type);
     }
@@ -174,7 +174,7 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
 
     Member m;
     m.name = name;
-    m.arraySize = arrsize;
+    m.arraySize = arraySize;
     m.type = type;
     m.offsetBits = bitOffset;
     m.sizeBits = typeSize;
@@ -203,9 +203,9 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
     return true;
 }
 
-bool TypeManager::AppendStructMember(const std::string & type, const std::string & name, int arrsize, int offset)
+bool TypeManager::AppendStructMember(const std::string & type, const std::string & name, int arraySize, int offset)
 {
-    return AddStructMember(laststruct, type, name, arrsize, offset, -1, false);
+    return AddStructMember(lastStruct, type, name, arraySize, offset, -1, false);
 }
 
 bool TypeManager::AppendStructPadding(const std::string & parent, int targetOffset)
@@ -262,11 +262,11 @@ bool TypeManager::AddFunction(const std::string & owner, const std::string & nam
     auto found = functions.find(name);
     if(found != functions.end() || name.empty() || owner.empty())
         return false;
-    lastfunction = name;
+    lastFunction = name;
     Function f;
     f.owner = owner;
     f.name = name;
-    f.rettype = "";
+    f.returnType = "";
 
     // return type cannot be set yet
 
@@ -276,16 +276,16 @@ bool TypeManager::AddFunction(const std::string & owner, const std::string & nam
     return true;
 }
 
-bool TypeManager::AddFunctionReturn(const std::string & name, const std::string & rettype)
+bool TypeManager::AddFunctionReturn(const std::string & name, const std::string & returnType)
 {
     auto found = functions.find(name);
     if(found == functions.end() || name.empty())
         return false;
 
     Function & f = found->second;
-    if(rettype != "void" && !isDefined(rettype) && !validPtr(rettype))
+    if(returnType != "void" && !isDefined(returnType) && !validPtr(returnType))
         return false;
-    f.rettype = rettype;
+    f.returnType = returnType;
     return true;
 }
 
@@ -296,7 +296,7 @@ bool TypeManager::AddArg(const std::string & function, const std::string & type,
     auto found = functions.find(function);
     if(found == functions.end() || function.empty() || name.empty() || !isDefined(type))
         return false;
-    lastfunction = function;
+    lastFunction = function;
     Member arg;
     arg.name = name;
     arg.type = type;
@@ -306,7 +306,7 @@ bool TypeManager::AddArg(const std::string & function, const std::string & type,
 
 bool TypeManager::AppendArg(const std::string & type, const std::string & name)
 {
-    return AddArg(lastfunction, type, name);
+    return AddArg(lastFunction, type, name);
 }
 
 int TypeManager::Sizeof(const std::string & type, std::string* underlyingType)
@@ -315,14 +315,14 @@ int TypeManager::Sizeof(const std::string & type, std::string* underlyingType)
     {
         if(underlyingType != nullptr)
             *underlyingType = type;
-        return primitivesizes[Pointer] * 8;
+        return primitiveSizes[Pointer] * 8;
     }
 
     auto foundT = types.find(type);
     if(foundT != types.end())
     {
-        if(!foundT->second.pointto.empty())
-            return Sizeof(foundT->second.pointto, underlyingType);
+        if(!foundT->second.alias.empty())
+            return Sizeof(foundT->second.alias, underlyingType);
 
         if(underlyingType != nullptr)
             *underlyingType = foundT->second.name;
@@ -350,7 +350,7 @@ int TypeManager::Sizeof(const std::string & type, std::string* underlyingType)
     {
         if(underlyingType != nullptr)
             *underlyingType = foundF->second.name;
-        return primitivesizes[Pointer] * 8;
+        return primitiveSizes[Pointer] * 8;
     }
 
     return 0;
@@ -376,8 +376,8 @@ bool TypeManager::Visit(const std::string & type, const std::string & name, Visi
 
 void TypeManager::Clear(const std::string & owner)
 {
-    laststruct.clear();
-    lastfunction.clear();
+    lastStruct.clear();
+    lastFunction.clear();
     filterOwnerMap(types, owner);
     filterOwnerMap(structs, owner);
     filterOwnerMap(functions, owner);
@@ -457,9 +457,9 @@ void TypeManager::Enum(std::vector<Summary> & typeList) const
     });
 }
 
-std::string Types::TypeManager::StructUnionPtrType(const std::string & pointto) const
+std::string Types::TypeManager::StructUnionPtrType(const std::string & alias) const
 {
-    auto itr = structs.find(pointto);
+    auto itr = structs.find(alias);
     if(itr == structs.end())
         return "";
     return getKind(itr->second);
@@ -506,7 +506,7 @@ bool TypeManager::validPtr(const std::string & id)
 
 bool TypeManager::addStructUnion(const StructUnion & s)
 {
-    laststruct = s.name;
+    lastStruct = s.name;
     if(s.owner.empty() || s.name.empty() || isDefined(s.name))
         return false;
 
@@ -529,22 +529,22 @@ bool TypeManager::addType(const Typedef & t)
     return true;
 }
 
-bool TypeManager::addType(const std::string & owner, Primitive primitive, const std::string & name, const std::string & pointto)
+bool TypeManager::addType(const std::string & owner, Primitive primitive, const std::string & name, const std::string & alias)
 {
     auto foundT = types.find(name);
     if(foundT != types.end())
     {
-        if(pointto.empty())
+        if(alias.empty())
         {
-            if(primitivesizes[primitive] == primitivesizes[foundT->second.primitive])
+            if(primitiveSizes[primitive] == primitiveSizes[foundT->second.primitive])
                 return true;
         }
         else
         {
             std::string underlyingType;
-            Sizeof(pointto, &underlyingType);
+            Sizeof(alias, &underlyingType);
 
-            if(underlyingType == pointto)
+            if(underlyingType == alias)
                 return true;
         }
     }
@@ -555,8 +555,8 @@ bool TypeManager::addType(const std::string & owner, Primitive primitive, const 
     t.owner = owner;
     t.name = name;
     t.primitive = primitive;
-    t.sizeBits = primitivesizes[primitive] * 8;
-    t.pointto = pointto;
+    t.sizeBits = primitiveSizes[primitive] * 8;
+    t.alias = alias;
     return addType(t);
 }
 
@@ -569,18 +569,18 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor, const std:
         if(t.primitive == Alias) // check if struct type
         {
             Member member = root;
-            member.type = t.pointto;
+            member.type = t.alias;
 
             return visitMember(member, visitor, prettyType);
         }
 
-        if(!t.pointto.empty())
+        if(!t.alias.empty())
         {
-            if(!isDefined(t.pointto))
+            if(!isDefined(t.alias))
                 return false;
             if(visitor.visitPtr(root, t, prettyType)) //allow the visitor to bail out
             {
-                if(!Visit(t.pointto, "*" + root.name, visitor))
+                if(!Visit(t.alias, "*" + root.name, visitor))
                     return false;
                 return visitor.visitBack(root);
             }
@@ -634,7 +634,7 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor, const std:
         const auto & function = foundF->second;
 
         std::string functionType = function.noreturn ? "__noreturn " : "";
-        functionType += function.rettype;
+        functionType += function.returnType;
         functionType += "(";
         for(size_t i = 0; i < function.args.size(); i++)
         {
@@ -651,7 +651,7 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor, const std:
 
         Typedef ft;
         ft.primitive = Pointer;
-        ft.sizeBits = primitivesizes.at(Pointer) * 8;
+        ft.sizeBits = primitiveSizes.at(Pointer) * 8;
 
         return visitor.visitType(fm, ft, fm.type);
     }
@@ -677,19 +677,19 @@ bool AddUnion(const std::string & owner, const std::string & name)
     return typeManager.AddUnion(owner, name);
 }
 
-bool AddMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int offset)
+bool AddMember(const std::string & parent, const std::string & type, const std::string & name, int arraySize, int offset)
 {
     EXCLUSIVE_ACQUIRE(LockTypeManager);
-    return typeManager.AddStructMember(parent, type, name, arrsize, offset, -1, false);
+    return typeManager.AddStructMember(parent, type, name, arraySize, offset, -1, false);
 }
 
-bool AppendMember(const std::string & type, const std::string & name, int arrsize, int offset)
+bool AppendMember(const std::string & type, const std::string & name, int arraySize, int offset)
 {
     EXCLUSIVE_ACQUIRE(LockTypeManager);
-    return typeManager.AppendStructMember(type, name, arrsize, offset);
+    return typeManager.AppendStructMember(type, name, arraySize, offset);
 }
 
-bool AddFunction(const std::string & owner, const std::string & name, const std::string & rettype, Types::CallingConvention callconv, bool noreturn)
+bool AddFunction(const std::string & owner, const std::string & name, const std::string & returnType, Types::CallingConvention callconv, bool noreturn)
 {
     EXCLUSIVE_ACQUIRE(LockTypeManager);
     return typeManager.AddFunction(owner, name, callconv, noreturn);
@@ -810,7 +810,7 @@ static void loadStructUnions(const JSON suroot, std::vector<StructUnion> & struc
 
             curMember.type = type;
             curMember.name = name;
-            curMember.arraySize = json_default_int(valj, "arrsize", 0);
+            curMember.arraySize = json_default_int(valj, "arraySize", 0);
             // NOTE: Attempt to keep support for the previous JSON format
             size = json_default_int(valj, "size", -1);
             if(size == -1)
@@ -842,11 +842,11 @@ static void loadFunctions(const JSON froot, std::vector<Function> & functions)
     functions.reserve(json_array_size(froot));
     json_array_foreach(froot, i, vali)
     {
-        auto rettype = json_string_value(json_object_get(vali, "rettype"));
+        auto returnType = json_string_value(json_object_get(vali, "returnType"));
         auto fname = json_string_value(json_object_get(vali, "name"));
-        if(!rettype || !*rettype || !fname || !*fname)
+        if(!returnType || !*returnType || !fname || !*fname)
             continue;
-        curFunction.rettype = rettype;
+        curFunction.returnType = returnType;
         curFunction.name = fname;
         curFunction.args.clear();
         auto callconv = json_string_value(json_object_get(vali, "callconv"));
@@ -951,7 +951,7 @@ void LoadModel(const std::string & owner, Model & model)
         if(!success)
         {
             //TODO properly handle errors
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add function %s %s()\n"), function.rettype.c_str(), function.name.c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add function %s %s()\n"), function.returnType.c_str(), function.name.c_str());
             function.name.clear(); //signal error
         }
     }
@@ -1023,10 +1023,10 @@ void LoadModel(const std::string & owner, Model & model)
         if(function.name.empty())  //skip error-signalled functions
             continue;
 
-        bool status = typeManager.AddFunctionReturn(function.name, function.rettype);
+        bool status = typeManager.AddFunctionReturn(function.name, function.returnType);
         if(!status)
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add return type %s.%s;\n"), function.name.c_str(), function.rettype.c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add return type %s.%s;\n"), function.name.c_str(), function.returnType.c_str());
         }
 
         for(auto & arg : function.args)
@@ -1075,7 +1075,7 @@ bool LoadTypesFile(const std::string & path, const std::string & owner)
     return LoadTypesJson(json, owner);
 }
 
-std::string StructUnionPtrType(const std::string & pointto)
+std::string StructUnionPtrType(const std::string & alias)
 {
-    return typeManager.StructUnionPtrType(pointto);
+    return typeManager.StructUnionPtrType(alias);
 }

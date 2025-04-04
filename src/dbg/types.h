@@ -37,8 +37,8 @@ namespace Types
 
     struct Typedef : TypeBase
     {
-        std::string pointto; //Type identifier of *Type
-        Primitive primitive; //Primitive type.  Void is Struct typedef
+        std::string alias; //Typedef and Pointer primitives have this set to the type they point to
+        Primitive primitive; //Primitive type.
         int sizeBits = 0; //Size in bits.
     };
 
@@ -71,7 +71,7 @@ namespace Types
 
     struct Function : TypeBase
     {
-        std::string rettype; //Function return type
+        std::string returnType; //Function return type
         CallingConvention callconv = Cdecl; //Function calling convention
         bool noreturn = false; //Function does not return (ExitProcess, _exit)
         std::vector<Member> args; //Function arguments
@@ -88,10 +88,7 @@ namespace Types
     {
         struct Visitor
         {
-            virtual ~Visitor()
-            {
-            }
-
+            virtual ~Visitor() = default;
             virtual bool visitType(const Member & member, const Typedef & type, const std::string & prettyType) = 0;
             virtual bool visitStructUnion(const Member & member, const StructUnion & type, const std::string & prettyType) = 0;
             virtual bool visitArray(const Member & member, const std::string & prettyType) = 0;
@@ -108,18 +105,18 @@ namespace Types
             int size = 0;
         };
 
-        explicit TypeManager();
+        TypeManager();
         bool AddType(const std::string & owner, const std::string & type, const std::string & name);
         bool AddStruct(const std::string & owner, const std::string & name, int constantSize = -1);
         bool AddUnion(const std::string & owner, const std::string & name, int constantSize = -1);
         bool AddEnum(const std::string & owner, const std::string & name, bool isFlags, uint8_t size);
         bool AddEnumMember(const std::string & parent, const std::string & name, uint64_t value);
-        bool AddStructMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize, int bitOffset, int sizeBits, bool isBitfield);
-        bool AppendStructMember(const std::string & type, const std::string & name, int arrsize = 0, int offset = -1);
+        bool AddStructMember(const std::string & parent, const std::string & type, const std::string & name, int arraySize, int bitOffset, int sizeBits, bool isBitfield);
+        bool AppendStructMember(const std::string & type, const std::string & name, int arraySize = 0, int offset = -1);
         bool AppendStructPadding(const std::string & type, int targetOffset);
         bool AddFunction(const std::string & owner, const std::string & name, CallingConvention callconv = Cdecl,
                          bool noreturn = false);
-        bool AddFunctionReturn(const std::string & name, const std::string & rettype);
+        bool AddFunctionReturn(const std::string & name, const std::string & returnType);
         bool AddArg(const std::string & function, const std::string & type, const std::string & name);
         bool AppendArg(const std::string & type, const std::string & name);
         int Sizeof(const std::string & type,
@@ -129,24 +126,24 @@ namespace Types
         void Clear(const std::string & owner = "");
         bool RemoveType(const std::string & type);
         void Enum(std::vector<Summary> & typeList) const;
-        std::string StructUnionPtrType(const std::string & pointto) const;
+        std::string StructUnionPtrType(const std::string & alias) const;
 
     private:
         uint32_t currentTypeId = 100;
         std::unordered_map<uint32_t, TypeBase*> typeIdMap;
 
-        std::unordered_map<Primitive, int> primitivesizes;
+        std::unordered_map<Primitive, int> primitiveSizes;
         std::unordered_map<std::string, Typedef> types;
         std::unordered_map<std::string, struct Enum> enums;
         std::unordered_map<std::string, StructUnion> structs;
         std::unordered_map<std::string, Function> functions;
-        std::string laststruct;
-        std::string lastfunction;
+        std::string lastStruct;
+        std::string lastFunction;
 
         bool isDefined(const std::string & id) const;
         bool validPtr(const std::string & id);
         bool addStructUnion(const StructUnion & s);
-        bool addType(const std::string & owner, Primitive primitive, const std::string & name, const std::string & pointto = "");
+        bool addType(const std::string & owner, Primitive primitive, const std::string & name, const std::string & alias = "");
         bool addType(const Typedef & t);
         bool visitMember(const Member & root, Visitor & visitor, const std::string & prettyType) const;
 
@@ -192,9 +189,9 @@ namespace Types
 bool AddType(const std::string & owner, const std::string & type, const std::string & name);
 bool AddStruct(const std::string & owner, const std::string & name);
 bool AddUnion(const std::string & owner, const std::string & name);
-bool AddMember(const std::string & parent, const std::string & type, const std::string & name, int arrsize = 0, int offset = -1);
-bool AppendMember(const std::string & type, const std::string & name, int arrsize = 0, int offset = -1);
-bool AddFunction(const std::string & owner, const std::string & name, const std::string & rettype, Types::CallingConvention callconv = Types::Cdecl,
+bool AddMember(const std::string & parent, const std::string & type, const std::string & name, int arraySize = 0, int offset = -1);
+bool AppendMember(const std::string & type, const std::string & name, int arraySize = 0, int offset = -1);
+bool AddFunction(const std::string & owner, const std::string & name, const std::string & returnType, Types::CallingConvention callconv = Types::Cdecl,
                  bool noreturn = false);
 bool AddArg(const std::string & function, const std::string & type, const std::string & name);
 bool AppendArg(const std::string & type, const std::string & name);
@@ -207,4 +204,4 @@ void EnumTypes(std::vector<Types::TypeManager::Summary> & typeList);
 bool LoadTypesJson(const std::string & json, const std::string & owner);
 bool LoadTypesFile(const std::string & path, const std::string & owner);
 bool ParseTypes(const std::string & parse, const std::string & owner);
-std::string StructUnionPtrType(const std::string & pointto);
+std::string StructUnionPtrType(const std::string & alias);

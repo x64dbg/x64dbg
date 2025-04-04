@@ -177,13 +177,13 @@ bool cbInstrAddMember(int argc, char* argv[])
     auto parent = argv[1];
     auto type = argv[2];
     auto name = argv[3];
-    int arrsize = 0, offset = -1;
+    int arraySize = 0, offset = -1;
     if(argc > 4)
     {
         duint value;
         if(!valfromstring(argv[4], &value, false))
             return false;
-        arrsize = int(value);
+        arraySize = int(value);
         if(argc > 5)
         {
             if(!valfromstring(argv[5], &value, false))
@@ -191,14 +191,14 @@ bool cbInstrAddMember(int argc, char* argv[])
             offset = int(value);
         }
     }
-    if(!AddMember(parent, type, name, arrsize, offset))
+    if(!AddMember(parent, type, name, arraySize, offset))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddMember failed"));
         return false;
     }
     dprintf_untranslated("%s: %s %s", parent, type, name);
-    if(arrsize > 0)
-        dprintf_untranslated("[%d]", arrsize);
+    if(arraySize > 0)
+        dprintf_untranslated("[%d]", arraySize);
     if(offset >= 0)
         dprintf_untranslated(" (offset: %d)", offset);
     dputs_untranslated(";");
@@ -211,13 +211,13 @@ bool cbInstrAppendMember(int argc, char* argv[])
         return false;
     auto type = argv[1];
     auto name = argv[2];
-    int arrsize = 0, offset = -1;
+    int arraySize = 0, offset = -1;
     if(argc > 3)
     {
         duint value;
         if(!valfromstring(argv[3], &value, false))
             return false;
-        arrsize = int(value);
+        arraySize = int(value);
         if(argc > 4)
         {
             if(!valfromstring(argv[4], &value, false))
@@ -225,14 +225,14 @@ bool cbInstrAppendMember(int argc, char* argv[])
             offset = int(value);
         }
     }
-    if(!AppendMember(type, name, arrsize, offset))
+    if(!AppendMember(type, name, arraySize, offset))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AppendMember failed"));
         return false;
     }
     dprintf_untranslated("%s %s", type, name);
-    if(arrsize > 0)
-        dprintf_untranslated("[%d]", arrsize);
+    if(arraySize > 0)
+        dprintf_untranslated("[%d]", arraySize);
     if(offset >= 0)
         dprintf_untranslated(" (offset: %d)", offset);
     dputs_untranslated(";");
@@ -244,7 +244,7 @@ bool cbInstrAddFunction(int argc, char* argv[])
     if(IsArgumentsLessThan(argc, 3))
         return false;
     auto name = argv[1];
-    auto rettype = argv[2];
+    auto returnType = argv[2];
     auto callconv = Cdecl;
     auto noreturn = false;
     if(argc > 3)
@@ -270,12 +270,12 @@ bool cbInstrAddFunction(int argc, char* argv[])
             noreturn = value != 0;
         }
     }
-    if(!AddFunction(towner, name, rettype, callconv, noreturn))
+    if(!AddFunction(towner, name, returnType, callconv, noreturn))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddFunction failed"));
         return false;
     }
-    dprintf_untranslated("%s %s();\n", rettype, name);
+    dprintf_untranslated("%s %s();\n", returnType, name);
     return true;
 }
 
@@ -604,9 +604,9 @@ struct PrintVisitor : TypeManager::Visitor
                 tname = StringUtils::sprintf("%s %s", prettyType.c_str(), member.name.c_str());
 
             // Prepend struct/union to pointer types
-            if(!type.pointto.empty())
+            if(!type.alias.empty())
             {
-                auto ptrname = StructUnionPtrType(type.pointto);
+                auto ptrname = StructUnionPtrType(type.alias);
                 if(!ptrname.empty())
                     tname = ptrname + " " + tname;
             }
