@@ -1,5 +1,8 @@
 include_guard()
 
+# Initialize submodule if necessary
+include(${CMAKE_CURRENT_LIST_DIR}/init-submodules.cmake)
+
 # Change these defaults to point to your infrastructure if desired
 set(CMKR_REPO "https://github.com/build-cpp/cmkr" CACHE STRING "cmkr git repository" FORCE)
 set(CMKR_TAG "v0.2.44" CACHE STRING "cmkr git tag (this needs to be available forever)" FORCE)
