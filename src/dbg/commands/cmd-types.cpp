@@ -348,37 +348,48 @@ struct PrintVisitor : TypeManager::Visitor
         }
         String valueStr;
 
-        auto readSize = (type->sizeBits + 7) / 8; // round up to nearest byte
-        if(type->bitOffset % 8 != 0)
+        auto readStart = type->addr + type->offset + type->bitOffset / 8;
+        auto readSize = (type->sizeBits + 7) / 8;
+
+        auto memoryReadEnd = readSize;
+        auto lastSignificantByte = (type->bitOffset % 8 + type->sizeBits + 7) / 8;
+
+        bool crossByteRead = memoryReadEnd != lastSignificantByte;
+        if(crossByteRead)
             readSize += 1;
 
-        Memory<unsigned char*> data(readSize);
-        if(MemRead(type->addr + type->offset + type->bitOffset / 8, data(), readSize))
+        Memory<unsigned char*> readBuffer(readSize);
+        if(MemRead(readStart, readBuffer(), readSize))
         {
             if(type->reverse)
-                std::reverse(data(), data() + data.size());
+                std::reverse(readBuffer(), readBuffer() + readBuffer.size());
 
             size_t bitsFromStart = type->bitOffset % 8;
             if(bitsFromStart != 0)  // have to shift the data over
             {
                 uint8_t currentCarry = 0;
-                for(size_t i = data.size(); i > 0; i--)
+                for(size_t i = readBuffer.size(); i > 0; i--)
                 {
-                    uint8_t newCarry = data()[i - 1] << 8 - bitsFromStart;
-                    data()[i - 1] = data()[i - 1] >> bitsFromStart | currentCarry;
+                    uint8_t newCarry = readBuffer()[i - 1] << 8 - bitsFromStart;
+                    readBuffer()[i - 1] = readBuffer()[i - 1] >> bitsFromStart | currentCarry;
 
                     currentCarry = newCarry;
                 }
 
                 // pop the last byte
-                data()[data.size() - 1] = 0;
+                // since it will be empty after a cross read
+                if(crossByteRead)
+                    readBuffer()[readBuffer.size() - 1] = 0;
             }
 
             if(type->sizeBits % 8 != 0)
             {
                 uint8_t mask = (1 << type->sizeBits % 8) - 1;
-                data()[(type->sizeBits + 7) / 8 - 1] &= mask;
+                readBuffer()[(type->sizeBits + 7) / 8 - 1] &= mask;
             }
+
+            Memory<unsigned char*> data(sizeof(unsigned long long));
+            memcpy(data(), readBuffer(), std::min(data.size(), readBuffer.size()));
 
             switch(Primitive(type->id))
             {
@@ -488,40 +499,48 @@ struct PrintVisitor : TypeManager::Visitor
         String valueStr;
         auto enumTypeIdData = LookupTypeById(type->id);
 
-        auto readSize = (type->sizeBits + 7) / 8; // round up to nearest byte
-        if(type->bitOffset % 8 != 0)
+        auto readStart = type->addr + type->offset + type->bitOffset / 8;
+        auto readSize = (type->sizeBits + 7) / 8;
+
+        auto memoryReadEnd = readSize;
+        auto lastSignificantByte = (type->bitOffset % 8 + type->sizeBits + 7) / 8;
+
+        bool crossByteRead = memoryReadEnd != lastSignificantByte;
+        if(crossByteRead)
             readSize += 1;
 
-        Memory<unsigned char*> data(readSize);
-        if(enumTypeIdData != nullptr && MemRead(type->addr + type->offset + type->bitOffset / 8, data(), readSize))
+        Memory<unsigned char*> readBuffer(readSize);
+        if(MemRead(readStart, readBuffer(), readSize))
         {
             if(type->reverse)
-                std::reverse(data(), data() + data.size());
+                std::reverse(readBuffer(), readBuffer() + readBuffer.size());
 
             size_t bitsFromStart = type->bitOffset % 8;
             if(bitsFromStart != 0)  // have to shift the data over
             {
                 uint8_t currentCarry = 0;
-                for(size_t i = data.size(); i > 0; i--)
+                for(size_t i = readBuffer.size(); i > 0; i--)
                 {
-                    uint8_t newCarry = data()[i - 1] << 8 - bitsFromStart;
-                    data()[i - 1] = data()[i - 1] >> bitsFromStart | currentCarry;
+                    uint8_t newCarry = readBuffer()[i - 1] << 8 - bitsFromStart;
+                    readBuffer()[i - 1] = readBuffer()[i - 1] >> bitsFromStart | currentCarry;
 
                     currentCarry = newCarry;
                 }
 
                 // pop the last byte
-                data()[data.size() - 1] = 0;
+                // since it will be empty after a cross read
+                if(crossByteRead)
+                    readBuffer()[readBuffer.size() - 1] = 0;
             }
 
             if(type->sizeBits % 8 != 0)
             {
-                const uint8_t mask = (1 << type->sizeBits % 8) - 1;
-                data()[(type->sizeBits + 7) / 8 - 1] &= mask;
+                uint8_t mask = (1 << type->sizeBits % 8) - 1;
+                readBuffer()[(type->sizeBits + 7) / 8 - 1] &= mask;
             }
 
             uint64_t extractedValue = 0;
-            memcpy(&extractedValue, data(), std::min(8, (type->sizeBits + 7) / 8));
+            memcpy(&extractedValue, readBuffer(), std::min(sizeof(uint64_t), readBuffer.size()));
 
             auto & enumData = *(Enum*)enumTypeIdData;
             if(enumData.isFlags)
