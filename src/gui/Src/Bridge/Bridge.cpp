@@ -1063,6 +1063,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     case GUI_IS_DEBUGGER_FOCUSED_UNUSED:
         break;
 
+    case GUI_SHOW_STRUCT:
+        emit focusStruct();
+        break;
+
     case GUI_UPDATE_REGISTER_VIEW:
     case GUI_UPDATE_DISASSEMBLY_VIEW:
     case GUI_UPDATE_BREAKPOINTS_VIEW:

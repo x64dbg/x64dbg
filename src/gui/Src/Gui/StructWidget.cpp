@@ -14,7 +14,7 @@
 
 struct TypeDescriptor
 {
-    TYPEDESCRIPTOR type;
+    TYPEDESCRIPTOR type = {};
     QString name;
 };
 Q_DECLARE_METATYPE(TypeDescriptor)
@@ -98,7 +98,24 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
     ui->treeWidget->setUpdatesEnabled(false);
 
     TypeDescriptor dtype;
-    dtype.type = *type;
+    if(type->magic == TYPEDESCRIPTOR_MAGIC)
+    {
+        dtype.type = *type;
+    }
+    else
+    {
+        dtype.type.expanded = type->expanded;
+        dtype.type.reverse = type->reverse;
+        dtype.type.magic = TYPEDESCRIPTOR_MAGIC;
+        dtype.type.name = type->name;
+        dtype.type.addr = type->addr;
+        dtype.type.offset = type->offset;
+        dtype.type.id = type->id;
+        dtype.type.sizeBits = type->sizeBits * 8;
+        dtype.type.callback = type->callback;
+        dtype.type.userdata = type->userdata;
+        dtype.type.bitOffset = 0;
+    }
     dtype.name = highlightTypeName(dtype.type.name);
     dtype.type.name = nullptr;
     QStringList text;
@@ -112,7 +129,7 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
         text[ColAddress] = QString("<u>%1</u>").arg(ToPtrString(dtype.type.addr + dtype.type.offset));
     else
         text[ColAddress] = ToPtrString(dtype.type.addr + dtype.type.offset);
-    text[ColSize] = "0x" + ToHexString(dtype.type.size);
+    text[ColSize] = "0x" + ToHexString(dtype.type.sizeBits / 8);
     text[ColValue] = ""; // NOTE: filled in later
     QTreeWidgetItem* item = parent ? new QTreeWidgetItem((QTreeWidgetItem*)parent, text) : new QTreeWidgetItem(ui->treeWidget, text);
     item->setExpanded(dtype.type.expanded);
@@ -137,9 +154,11 @@ void StructWidget::typeUpdateWidget()
         auto type = item->data(0, Qt::UserRole).value<TypeDescriptor>();
         auto name = type.name.toUtf8();
         type.type.name = name.constData();
+
         auto addr = type.type.addr + type.type.offset;
         item->setText(ColAddress, ToPtrString(addr));
         QString valueStr;
+
         if(type.type.callback) //use the provided callback
         {
             char value[128] = "";
@@ -156,18 +175,20 @@ void StructWidget::typeUpdateWidget()
             else
                 valueStr = value;
         }
-        else if(!item->childCount() && type.type.size > 0 && type.type.size <= sizeof(uint64_t)) //attempt to display small, non-parent values
+        else if(!item->childCount() && type.type.sizeBits > 0 && type.type.sizeBits / 8 <= sizeof(uint64_t)) //attempt to display small, non-parent values
         {
             uint64_t data;
-            if(DbgMemRead(addr, &data, type.type.size))
+            // todo fix mem read for bit offset
+            if(DbgMemRead(addr, &data, type.type.sizeBits / 8))
             {
                 if(type.type.reverse)
-                    std::reverse((char*)data, (char*)data + type.type.size);
-                valueStr = QString().sprintf("0x%llX, %llu", data, data);
+                    std::reverse((char*)data, (char*)data + (type.type.sizeBits / 8));
+                valueStr = QString().sprintf("0x%llX, %llu", data, data, data);
             }
             else if(type.type.addr)
                 valueStr = "???";
         }
+
         item->setText(ColValue, valueStr);
     }
     ui->treeWidget->setUpdatesEnabled(true);

@@ -177,13 +177,13 @@ bool cbInstrAddMember(int argc, char* argv[])
     auto parent = argv[1];
     auto type = argv[2];
     auto name = argv[3];
-    int arrsize = 0, offset = -1;
+    int arraySize = 0, offset = -1;
     if(argc > 4)
     {
         duint value;
         if(!valfromstring(argv[4], &value, false))
             return false;
-        arrsize = int(value);
+        arraySize = int(value);
         if(argc > 5)
         {
             if(!valfromstring(argv[5], &value, false))
@@ -191,14 +191,14 @@ bool cbInstrAddMember(int argc, char* argv[])
             offset = int(value);
         }
     }
-    if(!AddMember(parent, type, name, arrsize, offset))
+    if(!AddMember(parent, type, name, arraySize, offset))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddMember failed"));
         return false;
     }
     dprintf_untranslated("%s: %s %s", parent, type, name);
-    if(arrsize > 0)
-        dprintf_untranslated("[%d]", arrsize);
+    if(arraySize > 0)
+        dprintf_untranslated("[%d]", arraySize);
     if(offset >= 0)
         dprintf_untranslated(" (offset: %d)", offset);
     dputs_untranslated(";");
@@ -211,13 +211,13 @@ bool cbInstrAppendMember(int argc, char* argv[])
         return false;
     auto type = argv[1];
     auto name = argv[2];
-    int arrsize = 0, offset = -1;
+    int arraySize = 0, offset = -1;
     if(argc > 3)
     {
         duint value;
         if(!valfromstring(argv[3], &value, false))
             return false;
-        arrsize = int(value);
+        arraySize = int(value);
         if(argc > 4)
         {
             if(!valfromstring(argv[4], &value, false))
@@ -225,14 +225,14 @@ bool cbInstrAppendMember(int argc, char* argv[])
             offset = int(value);
         }
     }
-    if(!AppendMember(type, name, arrsize, offset))
+    if(!AppendMember(type, name, arraySize, offset))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AppendMember failed"));
         return false;
     }
     dprintf_untranslated("%s %s", type, name);
-    if(arrsize > 0)
-        dprintf_untranslated("[%d]", arrsize);
+    if(arraySize > 0)
+        dprintf_untranslated("[%d]", arraySize);
     if(offset >= 0)
         dprintf_untranslated(" (offset: %d)", offset);
     dputs_untranslated(";");
@@ -244,7 +244,7 @@ bool cbInstrAddFunction(int argc, char* argv[])
     if(IsArgumentsLessThan(argc, 3))
         return false;
     auto name = argv[1];
-    auto rettype = argv[2];
+    auto returnType = argv[2];
     auto callconv = Cdecl;
     auto noreturn = false;
     if(argc > 3)
@@ -270,12 +270,12 @@ bool cbInstrAddFunction(int argc, char* argv[])
             noreturn = value != 0;
         }
     }
-    if(!AddFunction(towner, name, rettype, callconv, noreturn))
+    if(!AddFunction(towner, name, returnType, callconv, noreturn))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "AddFunction failed"));
         return false;
     }
-    dprintf_untranslated("%s %s();\n", rettype, name);
+    dprintf_untranslated("%s %s();\n", returnType, name);
     return true;
 }
 
@@ -290,7 +290,6 @@ bool cbInstrAddArg(int argc, char* argv[])
     }
     dprintf_untranslated("%s: %s %s;\n", argv[1], argv[2], argv[3]);
     return true;
-
 }
 
 bool cbInstrAppendArg(int argc, char* argv[])
@@ -324,15 +323,17 @@ bool cbInstrSizeofType(int argc, char* argv[])
 struct PrintVisitor : TypeManager::Visitor
 {
     explicit PrintVisitor(duint data = 0, int maxPtrDepth = 0)
-        : mAddr(data), mMaxPtrDepth(maxPtrDepth) { }
+        : mAddr(data), mMaxPtrDepth(maxPtrDepth)
+    {
+    }
 
-    template<typename T>
+    template <typename T>
     static String basicPrint(void* data, const char* format)
     {
         return StringUtils::sprintf(format, *(T*)data);
     }
 
-    template<typename T, typename U>
+    template <typename T, typename U>
     static String basicPrint(void* data, const char* format)
     {
         return StringUtils::sprintf(format, *(T*)data, *(U*)data);
@@ -340,17 +341,56 @@ struct PrintVisitor : TypeManager::Visitor
 
     static bool cbPrintPrimitive(const TYPEDESCRIPTOR* type, char* dest, size_t* destCount)
     {
-        if(!type->addr)
+        if(!type->addr || !type->sizeBits)
         {
             *dest = '\0';
             return true;
         }
         String valueStr;
-        Memory<unsigned char*> data(type->size);
-        if(MemRead(type->addr + type->offset, data(), data.size()))
+
+        auto readStart = type->addr + type->offset + type->bitOffset / 8;
+        auto readSize = (type->sizeBits + 7) / 8;
+
+        auto memoryReadEnd = readSize;
+        auto lastSignificantByte = (type->bitOffset % 8 + type->sizeBits + 7) / 8;
+
+        bool crossByteRead = memoryReadEnd != lastSignificantByte;
+        if(crossByteRead)
+            readSize += 1;
+
+        Memory<unsigned char*> readBuffer(readSize);
+        if(MemRead(readStart, readBuffer(), readSize))
         {
             if(type->reverse)
-                std::reverse(data(), data() + data.size());
+                std::reverse(readBuffer(), readBuffer() + readBuffer.size());
+
+            size_t bitsFromStart = type->bitOffset % 8;
+            if(bitsFromStart != 0)  // have to shift the data over
+            {
+                uint8_t currentCarry = 0;
+                for(size_t i = readBuffer.size(); i > 0; i--)
+                {
+                    uint8_t newCarry = readBuffer()[i - 1] << 8 - bitsFromStart;
+                    readBuffer()[i - 1] = readBuffer()[i - 1] >> bitsFromStart | currentCarry;
+
+                    currentCarry = newCarry;
+                }
+
+                // pop the last byte
+                // since it will be empty after a cross read
+                if(crossByteRead)
+                    readBuffer()[readBuffer.size() - 1] = 0;
+            }
+
+            if(type->sizeBits % 8 != 0)
+            {
+                uint8_t mask = (1 << type->sizeBits % 8) - 1;
+                readBuffer()[(type->sizeBits + 7) / 8 - 1] &= mask;
+            }
+
+            Memory<unsigned char*> data(sizeof(unsigned long long));
+            memcpy(data(), readBuffer(), std::min(data.size(), readBuffer.size()));
+
             switch(Primitive(type->id))
             {
             case Void:
@@ -448,10 +488,126 @@ struct PrintVisitor : TypeManager::Visitor
         return true;
     }
 
-    bool visitType(const Member & member, const Type & type) override
+    static bool cbPrintEnum(const TYPEDESCRIPTOR* type, char* dest, size_t* destCount)
+    {
+        if(!type->addr)
+        {
+            *dest = '\0';
+            return true;
+        }
+
+        String valueStr;
+        auto enumTypeIdData = LookupTypeById(type->id);
+
+        auto readStart = type->addr + type->offset + type->bitOffset / 8;
+        auto readSize = (type->sizeBits + 7) / 8;
+
+        auto memoryReadEnd = readSize;
+        auto lastSignificantByte = (type->bitOffset % 8 + type->sizeBits + 7) / 8;
+
+        bool crossByteRead = memoryReadEnd != lastSignificantByte;
+        if(crossByteRead)
+            readSize += 1;
+
+        Memory<unsigned char*> readBuffer(readSize);
+        if(MemRead(readStart, readBuffer(), readSize))
+        {
+            if(type->reverse)
+                std::reverse(readBuffer(), readBuffer() + readBuffer.size());
+
+            size_t bitsFromStart = type->bitOffset % 8;
+            if(bitsFromStart != 0)  // have to shift the data over
+            {
+                uint8_t currentCarry = 0;
+                for(size_t i = readBuffer.size(); i > 0; i--)
+                {
+                    uint8_t newCarry = readBuffer()[i - 1] << 8 - bitsFromStart;
+                    readBuffer()[i - 1] = readBuffer()[i - 1] >> bitsFromStart | currentCarry;
+
+                    currentCarry = newCarry;
+                }
+
+                // pop the last byte
+                // since it will be empty after a cross read
+                if(crossByteRead)
+                    readBuffer()[readBuffer.size() - 1] = 0;
+            }
+
+            if(type->sizeBits % 8 != 0)
+            {
+                uint8_t mask = (1 << type->sizeBits % 8) - 1;
+                readBuffer()[(type->sizeBits + 7) / 8 - 1] &= mask;
+            }
+
+            uint64_t extractedValue = 0;
+            memcpy(&extractedValue, readBuffer(), std::min(sizeof(uint64_t), readBuffer.size()));
+
+            auto & enumData = *(Enum*)enumTypeIdData;
+            if(enumData.isFlags)
+            {
+                bool first = true;
+                uint64_t remainingBits = extractedValue;
+
+                for(const auto & member : enumData.members)
+                {
+                    if((extractedValue & member.first) == member.first && member.first != 0)
+                    {
+                        if(!first)
+                            valueStr += " | ";
+
+                        valueStr += member.second;
+                        remainingBits &= ~member.first;
+                        first = false;
+                    }
+                }
+
+                if(remainingBits != 0)
+                {
+                    if(!first)
+                        valueStr += " | ";
+
+                    valueStr += StringUtils::sprintf("0x%llX", remainingBits);
+                }
+
+                if(first)
+                    valueStr = StringUtils::sprintf("0x%llX", extractedValue);
+            }
+            else
+            {
+                auto it = std::find_if(enumData.members.begin(), enumData.members.end(),
+                                       [extractedValue](const std::pair<uint64_t, std::string> & member)
+                {
+                    return member.first == extractedValue;
+                });
+
+                if(it != enumData.members.end())
+                    valueStr = it->second;
+                else
+                    valueStr = StringUtils::sprintf("0x%llX", extractedValue);
+            }
+        }
+        else
+        {
+            valueStr = "???";
+        }
+
+        if(*destCount <= valueStr.size())
+        {
+            *destCount = valueStr.size() + 1;
+            return false;
+        }
+
+        strcpy_s(dest, *destCount, valueStr.c_str());
+        return true;
+    }
+
+    bool visitType(const Member & member, const Typedef & type, const std::string & prettyType) override
     {
         if(!mParents.empty() && parent().type == Parent::Union)
+        {
             mOffset = parent().offset;
+            mBitOffset = 0;
+        }
 
         String tname;
         auto ptype = mParents.empty() ? Parent::Struct : parent().type;
@@ -461,12 +617,15 @@ struct PrintVisitor : TypeManager::Visitor
         }
         else
         {
-            tname = StringUtils::sprintf("%s %s", type.name.c_str(), member.name.c_str());
+            if(member.isBitfield)
+                tname = StringUtils::sprintf("%s %s : %d", prettyType.c_str(), member.name.c_str(), member.sizeBits);
+            else
+                tname = StringUtils::sprintf("%s %s", prettyType.c_str(), member.name.c_str());
 
             // Prepend struct/union to pointer types
-            if(!type.pointto.empty())
+            if(!type.alias.empty())
             {
-                auto ptrname = StructUnionPtrType(type.pointto);
+                auto ptrname = StructUnionPtrType(type.alias);
                 if(!ptrname.empty())
                     tname = ptrname + " " + tname;
             }
@@ -484,80 +643,138 @@ struct PrintVisitor : TypeManager::Visitor
         auto ptr = mAddr + mOffset;
         if(MemIsValidReadPtr(ptr))
         {
-            if(!LabelGet(ptr, nullptr) && (parent().index == 1 || ptype != Parent::Array))
+            if(!LabelGet(ptr, nullptr) && (!mParents.empty() && (parent().index == 1 || ptype != Parent::Array)))
                 LabelSet(ptr, path.c_str(), false, true);
         }
 
-        TYPEDESCRIPTOR td;
+        TYPEDESCRIPTOR td = { };
         td.expanded = false;
         td.reverse = false;
+        td.magic = TYPEDESCRIPTOR_MAGIC;
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
         td.id = type.primitive;
-        td.size = type.size;
+        td.sizeBits = member.isBitfield ? member.sizeBits : type.sizeBits;
+        if(td.sizeBits < 0)
+            __debugbreak();
+
         td.callback = cbPrintPrimitive;
         td.userdata = nullptr;
+        td.bitOffset = mBitOffset;
         mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
-        mOffset += type.size;
+
+        if(!member.isBitfield)
+        {
+            mBitOffset = 0;
+            mOffset += td.sizeBits / 8;
+        }
+        else
+        {
+            mBitOffset += member.sizeBits;
+        }
 
         return true;
     }
 
-    bool visitStructUnion(const Member & member, const StructUnion & type) override
+    bool visitStructUnion(const Member & member, const StructUnion & type, const std::string & prettyType) override
     {
         if(!mParents.empty() && parent().type == Parent::Type::Union)
+        {
             mOffset = parent().offset;
+            mBitOffset = 0;
+        }
 
-        String tname = StringUtils::sprintf("%s %s %s", type.isunion ? "union" : "struct", type.name.c_str(), member.name.c_str());
+        std::string targetType;
+        if(prettyType.find("__anonymous") == 0)
+            targetType = "";
+        else
+            targetType = prettyType;
 
-        TYPEDESCRIPTOR td;
+        std::string targetName;
+        if(member.name.find("__anonymous") == 0)
+            targetName = "";
+        else
+            targetName = member.name;
+
+        String tname = StringUtils::sprintf("%s %s %s", type.isUnion ? "union" : "struct", targetType.c_str(), targetName.c_str());
+
+        TYPEDESCRIPTOR td = { };
         td.expanded = true;
         td.reverse = false;
+        td.magic = TYPEDESCRIPTOR_MAGIC;
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
-        td.id = Void;
-        td.size = type.size;
+        td.id = Alias;
+        td.sizeBits = type.sizeBits;
         td.callback = nullptr;
         td.userdata = nullptr;
         auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
 
-        mPath.push_back((member.name == "display" ? type.name : member.name) + ".");
-        mParents.push_back(Parent(type.isunion ? Parent::Union : Parent::Struct));
+        mPath.push_back((member.name == "display" ? type.name : prettyType) + ".");
+        mParents.emplace_back(type.isUnion ? Parent::Union : Parent::Struct);
         parent().node = node;
-        parent().size = td.size;
+        parent().size = td.sizeBits / 8;
         parent().offset = mOffset;
         return true;
     }
 
-    bool visitArray(const Member & member) override
+    bool visitEnum(const Member & member, const Enum & num, const std::string & prettyType) override
     {
-        String tname = StringUtils::sprintf("%s %s[%d]", member.type.c_str(), member.name.c_str(), member.arrsize);
+        if(!mParents.empty() && parent().type == Parent::Type::Union)
+        {
+            mOffset = parent().offset;
+            mBitOffset = 0;
+        }
 
-        TYPEDESCRIPTOR td;
-        td.expanded = member.arrsize <= 5;
+        String tname = StringUtils::sprintf("enum %s %s", prettyType.c_str(), member.name.c_str());
+
+        TYPEDESCRIPTOR td = { };
+        td.expanded = true;
         td.reverse = false;
+        td.magic = TYPEDESCRIPTOR_MAGIC;
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
-        td.id = Void;
-        td.size = member.arrsize * SizeofType(member.type);
+        td.id = num.typeId;
+        td.sizeBits = num.sizeBits;
+        td.callback = cbPrintEnum;
+        td.userdata = LookupTypeById;
+        mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
+        mOffset += td.sizeBits / 8;
+
+        return true;
+    }
+
+    bool visitArray(const Member & member, const std::string & prettyType) override
+    {
+        String tname = StringUtils::sprintf("%s %s[%d]", prettyType.c_str(), member.name.c_str(), member.arraySize);
+
+        TYPEDESCRIPTOR td = { };
+        td.expanded = member.arraySize <= 5 && member.name.find("padding") != 0;
+        td.reverse = false;
+        td.magic = TYPEDESCRIPTOR_MAGIC;
+        td.name = tname.c_str();
+        td.addr = mAddr;
+        td.offset = mOffset;
+        td.id = Alias;
+        td.sizeBits = member.arraySize * SizeofType(member.type);
         td.callback = nullptr;
         td.userdata = nullptr;
         auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
 
         mPath.push_back(member.name + ".");
-        mParents.push_back(Parent(Parent::Array));
+        mParents.emplace_back(Parent::Array);
         parent().node = node;
-        parent().size = td.size;
+        parent().size = td.sizeBits / 8;
         return true;
     }
 
-    bool visitPtr(const Member & member, const Type & type) override
+    bool visitPtr(const Member & member, const Typedef & type, const std::string & prettyType) override
     {
         auto offset = mOffset;
-        auto res = visitType(member, type); //print the pointer value
+        auto res = visitType(member, type, prettyType); //print the pointer value
         if(mPtrDepth >= mMaxPtrDepth)
             return false;
 
@@ -565,12 +782,12 @@ struct PrintVisitor : TypeManager::Visitor
         if(!mAddr || !MemRead(mAddr + offset, &value, sizeof(value)))
             return false;
 
-        mPath.push_back(member.name + "->");
-        mParents.push_back(Parent(Parent::Pointer));
+        mPath.push_back(prettyType + "->");
+        mParents.emplace_back(Parent::Pointer);
         parent().offset = mOffset;
         parent().addr = mAddr;
         parent().node = mNode;
-        parent().size = type.size;
+        parent().size = type.sizeBits / 8;
         mOffset = 0;
         mAddr = value;
         mPtrDepth++;
@@ -613,7 +830,9 @@ private:
         int size = 0;
 
         explicit Parent(Type type)
-            : type(type) { }
+            : type(type)
+        {
+        }
     };
 
     Parent & parent()
@@ -623,6 +842,7 @@ private:
 
     std::vector<Parent> mParents;
     duint mOffset = 0;
+    duint mBitOffset = 0;
     duint mAddr = 0;
     int mPtrDepth = 0;
     int mMaxPtrDepth = 0;
@@ -658,6 +878,8 @@ bool cbInstrVisitType(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "VisitType failed"));
         return false;
     }
+
+    GuiShowStructView();
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "Done!"));
     return true;

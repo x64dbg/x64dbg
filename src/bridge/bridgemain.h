@@ -1355,6 +1355,7 @@ typedef enum
     msg(GUI_REDIRECT_LOG, const char* file name, unused) \
     msg(GUI_STOP_REDIRECT_LOG, unused, unused) \
     msg(GUI_SHOW_THREADS, unused, unused) \
+    msg(GUI_SHOW_STRUCT, unused, unused) \
 
 // clang-format on
 
@@ -1412,17 +1413,21 @@ typedef struct
     char className[MAX_STRING_SIZE];
 } ACTIVEVIEW;
 
+#define TYPEDESCRIPTOR_MAGIC 0x1337
+
 typedef struct _TYPEDESCRIPTOR
 {
     bool expanded; //is the type node expanded?
     bool reverse; //big endian?
+    uint16_t magic; // compatiblity
     const char* name; //type name (int b)
     duint addr; //virtual address
-    duint offset; //offset to addr for the actual location
+    duint offset; //offset to addr for the actual location in bytes
     int id; //type id
-    int size; //sizeof(type)
+    int sizeBits; //sizeof(type) in bits
     TYPETOSTRING callback; //convert to string
     void* userdata; //user data
+    duint bitOffset; // bit offset from first bitfield
 } TYPEDESCRIPTOR;
 
 //GUI functions
@@ -1556,6 +1561,7 @@ BRIDGE_IMPEXP void GuiSelectInSymbolsTab(duint addr);
 BRIDGE_IMPEXP void GuiGotoTrace(duint index);
 BRIDGE_IMPEXP void GuiShowTrace();
 BRIDGE_IMPEXP DWORD GuiGetMainThreadId();
+BRIDGE_IMPEXP void GuiShowStructView();
 
 #ifdef __cplusplus
 }
