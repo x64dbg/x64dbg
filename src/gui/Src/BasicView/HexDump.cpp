@@ -173,7 +173,7 @@ void HexDump::printDumpAt(duint parVA, bool select, bool repaint, bool updateTab
     mByteOffset = mByteOffset > 0 ? (dsint)bytePerRowCount - mByteOffset : 0;
 
     // Compute row count
-    auto rowCount = size / bytePerRowCount;
+    auto rowCount = (size + bytePerRowCount - 1) / bytePerRowCount;
     rowCount += mByteOffset > 0 ? 1 : 0;
 
     if(mRvaDisplayEnabled && mMemPage->getBase() != mRvaDisplayPageBase)
