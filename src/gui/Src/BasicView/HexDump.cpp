@@ -162,7 +162,7 @@ void HexDump::printDumpAt(duint parVA, bool select, bool repaint, bool updateTab
 {
     duint size = 0;
     auto base = DbgMemFindBaseAddr(parVA, &size); //get memory base
-    if(!base || !size)
+    if(size == 0)
         return;
     auto rva = parVA - base; //calculate rva
     auto bytePerRowCount = getBytePerRowCount(); //get the number of bytes per row
