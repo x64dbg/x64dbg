@@ -223,4 +223,5 @@ protected:
     QAction* mCopySelection;
     duint mUnderlineRangeStartVa = 0;
     duint mUnderlineRangeEndVa = 0;
+    bool mUnderliningEnabled = true;
 };
