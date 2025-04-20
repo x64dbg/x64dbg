@@ -851,7 +851,7 @@ void HexDump::getColumnRichText(duint col, duint rva, RichTextPainter::List & ri
                         spaceData.text = QString(' ').repeated(maxLen - curData.text.length());
                         richText.push_back(spaceData);
                     }
-                    if(i % sizeof(duint) == 0 && byteCount == 1 && desc.data.byteMode == HexByte) //pointer underlining
+                    if(mUnderliningEnabled && i % sizeof(duint) == 0 && byteCount == 1 && desc.data.byteMode == HexByte) //pointer underlining
                     {
                         auto ptr = *(duint*)(data + i * byteCount);
                         if((spaceData.underline = curData.underline = DbgMemIsValidReadPtr(ptr)))
