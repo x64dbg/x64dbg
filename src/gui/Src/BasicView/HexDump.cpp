@@ -811,8 +811,13 @@ void HexDump::getColumnRichText(duint col, duint rva, RichTextPainter::List & ri
 
         bufferByteCount = bufferByteCount > (mMemPage->getSize() - rva) ? mMemPage->getSize() - rva : bufferByteCount;
 
-        // TODO: reuse a member buffer for this?
-        uint8_t* data = new uint8_t[bufferByteCount];
+        if(bufferByteCount + 1 > mReadBuffer.size())
+        {
+            mReadBuffer.resize(bufferByteCount + 1);
+        }
+
+        auto data = mReadBuffer.data();
+        memset(data, 0, mReadBuffer.size());
         mMemPage->read(data, rva, bufferByteCount);
 
         if(!desc.textEncoding.isEmpty()) //convert the row bytes to unicode
@@ -905,8 +910,6 @@ void HexDump::getColumnRichText(duint col, duint rva, RichTextPainter::List & ri
                     richText.pop_back();
             }
         }
-
-        delete[] data;
     }
 }
 

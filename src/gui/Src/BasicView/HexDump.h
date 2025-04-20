@@ -207,6 +207,7 @@ private:
     } mUpdateCache;
     std::vector<uint8_t> mUpdateCacheData;
     std::vector<uint8_t> mUpdateCacheTemp;
+    std::vector<uint8_t> mReadBuffer;
 
 protected:
     Architecture* mArchitecture = nullptr;
