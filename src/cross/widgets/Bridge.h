@@ -138,6 +138,27 @@ bool DbgSetEncodeType(duint addr, duint size, ENCODETYPE type);
 void DbgDelEncodeTypeRange(duint start, duint end);
 void DbgDelEncodeTypeSegment(duint start);
 
+struct TYPEDESCRIPTOR;
+
+typedef bool (*TYPETOSTRING)(const TYPEDESCRIPTOR* type, char* dest, size_t* destCount); //don't change destCount for final failure
+
+#define TYPEDESCRIPTOR_MAGIC 0x1337
+
+struct TYPEDESCRIPTOR
+{
+    bool expanded; //is the type node expanded?
+    bool reverse; //big endian?
+    uint16_t magic; // compatiblity
+    const char* name; //type name (int b)
+    duint addr; //virtual address
+    duint offset; //offset to addr for the actual location in bytes
+    int id; //type id
+    int sizeBits; //sizeof(type) in bits
+    TYPETOSTRING callback; //convert to string
+    void* userdata; //user data
+    duint bitOffset; // bit offset from first bitfield
+};
+
 using GuiCallback = void(*)(void*);
 
 void GuiExecuteOnGuiThreadEx(GuiCallback callback, void* data);

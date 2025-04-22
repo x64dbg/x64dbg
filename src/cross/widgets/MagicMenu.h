@@ -6,6 +6,8 @@
 #include <QCoreApplication>
 #include <QDebug>
 
+class AbstractTableView;
+
 // TODO: support QT_TR_NOOP in linguist
 #define TR(str) TranslatedText(str)
 
@@ -68,8 +70,11 @@ public:
         base()->setContextMenuPolicy(Qt::CustomContextMenu);
         QObject::connect(base(), &QWidget::customContextMenuRequested, [this](const QPoint & pos)
         {
-            if(pos.y() < base()->getHeaderHeight())
-                return;
+            if constexpr(std::is_base_of_v<AbstractTableView, Base>)
+            {
+                if(pos.y() < base()->getHeaderHeight())
+                    return;
+            }
             auto wMenu = new QMenu(base());
             mMenuBuilder->build(wMenu);
             if(wMenu->actions().length())

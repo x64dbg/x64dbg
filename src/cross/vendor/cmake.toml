@@ -7,3 +7,7 @@ type = "interface"
 include-directories = ["linux-pe"]
 
 [subdir.btparser]
+
+[fetch-content.PatternLanguage]
+git = "https://github.com/WerWolv/PatternLanguage"
+tag = "0b850bfa62670bd4d6ddc5b81218233f193946b8"

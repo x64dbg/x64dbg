@@ -3,8 +3,23 @@
 
 # Create a configure-time dependency on cmake.toml to improve IDE support
 if(CMKR_ROOT_PROJECT)
-	configure_file(cmake.toml cmake.toml COPYONLY)
+	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS cmake.toml)
 endif()
+
+include(FetchContent)
+
+# Fix warnings about DOWNLOAD_EXTRACT_TIMESTAMP
+if(POLICY CMP0135)
+	cmake_policy(SET CMP0135 NEW)
+endif()
+message(STATUS "Fetching PatternLanguage (0b850bfa62670bd4d6ddc5b81218233f193946b8)...")
+FetchContent_Declare(PatternLanguage
+	GIT_REPOSITORY
+		"https://github.com/WerWolv/PatternLanguage"
+	GIT_TAG
+		0b850bfa62670bd4d6ddc5b81218233f193946b8
+)
+FetchContent_MakeAvailable(PatternLanguage)
 
 # Subdirectory: btparser
 set(CMKR_CMAKE_FOLDER ${CMAKE_FOLDER})
@@ -29,4 +44,3 @@ add_library(linux-pe INTERFACE)
 target_include_directories(linux-pe INTERFACE
 	linux-pe
 )
-
