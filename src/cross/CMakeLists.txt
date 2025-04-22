@@ -21,8 +21,13 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 	set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 	# Create a configure-time dependency on cmake.toml to improve IDE support
-	configure_file(cmake.toml cmake.toml COPYONLY)
+	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS cmake.toml)
 endif()
+
+# Options
+option(LIBPL_ENABLE_CLI "" OFF)
+option(LIBPL_ENABLE_TESTS "" OFF)
+option(LIBWOLV_ENABLE_TESTS "" OFF)
 
 project(cross)
 
@@ -50,27 +55,27 @@ set(CMAKE_FOLDER ${CMKR_CMAKE_FOLDER})
 
 # Target: minidump
 set(minidump_SOURCES
+	cmake.toml
 	"minidump/FileParser.cpp"
-	"minidump/GotoDialog.cpp"
-	"minidump/MainWindow.cpp"
-	"minidump/MiniDisassembly.cpp"
-	"minidump/MiniHexDump.cpp"
-	"minidump/MiniMemoryMap.cpp"
-	"minidump/Navigation.cpp"
-	"minidump/REToolSync.cpp"
-	"minidump/main.cpp"
 	"minidump/FileParser.h"
+	"minidump/GotoDialog.cpp"
 	"minidump/GotoDialog.h"
+	"minidump/MainWindow.cpp"
 	"minidump/MainWindow.h"
+	"minidump/MainWindow.ui"
+	"minidump/MiniDisassembly.cpp"
 	"minidump/MiniDisassembly.h"
+	"minidump/MiniHexDump.cpp"
 	"minidump/MiniHexDump.h"
+	"minidump/MiniMemoryMap.cpp"
 	"minidump/MiniMemoryMap.h"
+	"minidump/Navigation.cpp"
 	"minidump/Navigation.h"
+	"minidump/REToolSync.cpp"
 	"minidump/REToolSync.h"
+	"minidump/main.cpp"
 	"minidump/udmp-parser.h"
 	"minidump/udmp-utils.h"
-	"minidump/MainWindow.ui"
-	cmake.toml
 )
 
 qt_executable(minidump ${minidump_SOURCES})
@@ -93,22 +98,22 @@ endif()
 
 # Target: remote_table
 set(remote_table_SOURCES
+	cmake.toml
 	"remote_table/JsonRpcClient.cpp"
-	"remote_table/MainWindow.cpp"
-	"remote_table/OverlayFrame.cpp"
-	"remote_table/RemoteTable.cpp"
-	"remote_table/TableServer.cpp"
-	"remote_table/main.cpp"
 	"remote_table/JsonRpcClient.h"
+	"remote_table/MainWindow.cpp"
 	"remote_table/MainWindow.h"
+	"remote_table/MainWindow.ui"
+	"remote_table/OverlayFrame.cpp"
 	"remote_table/OverlayFrame.h"
+	"remote_table/OverlayFrame.ui"
+	"remote_table/RemoteTable.cpp"
 	"remote_table/RemoteTable.h"
 	"remote_table/TableRpcData.h"
+	"remote_table/TableServer.cpp"
 	"remote_table/TableServer.h"
-	"remote_table/MainWindow.ui"
-	"remote_table/OverlayFrame.ui"
 	"remote_table/json.hpp"
-	cmake.toml
+	"remote_table/main.cpp"
 )
 
 qt_executable(remote_table ${remote_table_SOURCES})
@@ -129,14 +134,14 @@ endif()
 
 # Target: struct_viewer
 set(struct_viewer_SOURCES
-	"struct_viewer/MainWindow.cpp"
-	"struct_viewer/StructWidget.cpp"
-	"struct_viewer/main.cpp"
-	"struct_viewer/MainWindow.h"
-	"struct_viewer/StructWidget.h"
-	"struct_viewer/MainWindow.ui"
-	"struct_viewer/StructWidget.ui"
 	cmake.toml
+	"struct_viewer/MainWindow.cpp"
+	"struct_viewer/MainWindow.h"
+	"struct_viewer/MainWindow.ui"
+	"struct_viewer/StructWidget.cpp"
+	"struct_viewer/StructWidget.h"
+	"struct_viewer/StructWidget.ui"
+	"struct_viewer/main.cpp"
 )
 
 qt_executable(struct_viewer ${struct_viewer_SOURCES})
@@ -156,3 +161,65 @@ if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT struct_viewer)
 endif()
 
+# Target: hex_viewer
+set(hex_viewer_SOURCES
+	cmake.toml
+	"hex_viewer/CodeEditor.cpp"
+	"hex_viewer/CodeEditor.h"
+	"hex_viewer/DataExplorerDialog.cpp"
+	"hex_viewer/DataExplorerDialog.h"
+	"hex_viewer/DataExplorerDialog.ui"
+	"hex_viewer/File.cpp"
+	"hex_viewer/File.h"
+	"hex_viewer/GotoDialog.cpp"
+	"hex_viewer/GotoDialog.h"
+	"hex_viewer/MainWindow.cpp"
+	"hex_viewer/MainWindow.h"
+	"hex_viewer/MainWindow.ui"
+	"hex_viewer/MiniHexDump.cpp"
+	"hex_viewer/MiniHexDump.h"
+	"hex_viewer/Navigation.cpp"
+	"hex_viewer/Navigation.h"
+	"hex_viewer/PatternHighlighter.cpp"
+	"hex_viewer/PatternHighlighter.h"
+	"hex_viewer/PatternLanguage.cpp"
+	"hex_viewer/PatternLanguage.h"
+	"hex_viewer/RichTextItemDelegate.cpp"
+	"hex_viewer/RichTextItemDelegate.h"
+	"hex_viewer/StructWidget.cpp"
+	"hex_viewer/StructWidget.h"
+	"hex_viewer/StructWidget.ui"
+	"hex_viewer/Styled.h"
+	"hex_viewer/main.cpp"
+)
+
+qt_executable(hex_viewer ${hex_viewer_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${hex_viewer_SOURCES})
+
+target_compile_features(hex_viewer PRIVATE
+	cxx_std_20
+)
+
+target_include_directories(hex_viewer PRIVATE
+	hex_viewer
+)
+
+if(NOT TARGET libpl)
+	message(FATAL_ERROR "Target \"libpl\" referenced by \"hex_viewer\" does not exist!")
+endif()
+
+if(NOT TARGET libpl-gen)
+	message(FATAL_ERROR "Target \"libpl-gen\" referenced by \"hex_viewer\" does not exist!")
+endif()
+
+target_link_libraries(hex_viewer PRIVATE
+	x64dbg::widgets
+	libpl
+	libpl-gen
+	fmt::fmt-header-only
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT hex_viewer)
+endif()

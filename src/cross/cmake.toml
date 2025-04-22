@@ -6,6 +6,11 @@ version = "3.19"
 name = "cross"
 include-after = ["widgets/Qt.cmake"]
 
+[options]
+LIBPL_ENABLE_CLI = false
+LIBPL_ENABLE_TESTS = false
+LIBWOLV_ENABLE_TESTS = false
+
 [subdir.widgets]
 
 [subdir.vendor]
@@ -54,4 +59,22 @@ sources = [
 link-libraries = [
     "x64dbg::widgets",
     "btparser",
+]
+
+[target.hex_viewer]
+type = "qt_executable"
+sources = [
+    "hex_viewer/*.cpp",
+    "hex_viewer/*.h",
+    "hex_viewer/*.ui",
+    "hex_viewer/*.qrc",
+]
+link-libraries = [
+    "x64dbg::widgets",
+    "::libpl",
+    "::libpl-gen",
+    "fmt::fmt-header-only",
+]
+private-include-directories = [
+    "hex_viewer",
 ]
