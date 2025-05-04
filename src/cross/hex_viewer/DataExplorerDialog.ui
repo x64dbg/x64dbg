@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>DataExplorerDialog</class>
- <widget class="QDialog" name="DataExplorerDialog">
+ <widget class="QWidget" name="DataExplorerDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -13,10 +13,6 @@
   <property name="windowTitle">
    <string>DataExplorer</string>
   </property>
-  <property name="windowIcon">
-   <iconset resource="resource.qrc">
-    <normaloff>:/images/icon.png</normaloff>:/images/icon.png</iconset>
-  </property>
   <widget class="CodeEditor" name="codeEdit">
    <property name="geometry">
     <rect>
@@ -25,13 +21,6 @@
      <width>711</width>
      <height>401</height>
     </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>Courier New</family>
-     <pointsize>8</pointsize>
-     <bold>true</bold>
-    </font>
    </property>
    <property name="styleSheet">
     <string notr="true">CodeEditor {
@@ -65,7 +54,7 @@ struct Test {
   Cat c2[2];
 };
 
-Test t @ 0x2;</string>
+Test t @ 0x3;</string>
    </property>
   </widget>
   <widget class="QLabel" name="label">
@@ -90,11 +79,6 @@ Test t @ 0x2;</string>
      <height>181</height>
     </rect>
    </property>
-   <property name="font">
-    <font>
-     <family>Courier New</family>
-    </font>
-   </property>
    <property name="openLinks">
     <bool>false</bool>
    </property>
@@ -110,9 +94,9 @@ Test t @ 0x2;</string>
    </property>
    <property name="font">
     <font>
-     <family>Segoe UI Emoji</family>
+     <family>Apple Symbols</family>
      <pointsize>12</pointsize>
-     <bold>true</bold>
+     <bold>false</bold>
     </font>
    </property>
    <property name="toolTip">
@@ -138,8 +122,6 @@ Test t @ 0x2;</string>
    <header>CodeEditor.h</header>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="resource.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

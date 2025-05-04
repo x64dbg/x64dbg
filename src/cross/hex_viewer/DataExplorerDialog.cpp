@@ -6,6 +6,7 @@
 #include <QSettings>
 #include "PatternHighlighter.h"
 #include "Bridge.h"
+#include "Configuration.h"
 
 #include <unordered_map>
 
@@ -93,13 +94,14 @@ struct PatternVisitor
     }
 };
 
-DataExplorerDialog::DataExplorerDialog(QWidget* parent) : QDialog(parent), ui(new Ui::DataExplorerDialog)
+DataExplorerDialog::DataExplorerDialog(QWidget* parent) : QWidget(parent), ui(new Ui::DataExplorerDialog)
 {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
-    setFixedSize(size());
 
-    ui->codeEdit->setFont(QFont("Courier New", 8));
+    auto font = Config()->monospaceFont();
+    font.setPointSize(28);
+    //ui->codeEdit->setFont(font);
 
     auto action = new QAction(ui->codeEdit);
     action->setShortcut(QKeySequence("Ctrl+R"));
@@ -108,22 +110,6 @@ DataExplorerDialog::DataExplorerDialog(QWidget* parent) : QDialog(parent), ui(ne
 
     mVisitor = new PatternVisitor;
     mHighlighter = new PatternHighlighter(ui->codeEdit, ui->codeEdit->document());
-
-    // Restore settings
-    {
-        QSettings settings("DataExplorer");
-
-        auto cursor = ui->codeEdit->textCursor();
-        auto savedPosition = settings.value("cursor", cursor.position()).toInt();
-        auto savedCode = settings.value("code", ui->codeEdit->toPlainText()).toString();
-        ui->codeEdit->setPlainText(savedCode);
-        cursor.setPosition(savedPosition);
-        ui->codeEdit->setTextCursor(cursor);
-
-        restoreGeometry(settings.value("geometry").toByteArray());
-        if(settings.value("visible").toBool())
-            show();
-    }
 }
 
 DataExplorerDialog::~DataExplorerDialog()
@@ -131,17 +117,6 @@ DataExplorerDialog::~DataExplorerDialog()
     delete ui;
     delete mVisitor;
     delete mHighlighter;
-}
-
-void DataExplorerDialog::closeEvent(QCloseEvent* event)
-{
-    QSettings settings("DataExplorer");
-    settings.setValue("code", ui->codeEdit->toPlainText());
-    settings.setValue("cursor", ui->codeEdit->textCursor().position());
-    settings.setValue("geometry", saveGeometry());
-    settings.setValue("visible", isVisible());
-
-    QDialog::closeEvent(event);
 }
 
 void DataExplorerDialog::changeEvent(QEvent* event)
@@ -159,7 +134,7 @@ void DataExplorerDialog::changeEvent(QEvent* event)
             mHighlighter->setDocument(ui->codeEdit->document());
         }
     }
-    QDialog::changeEvent(event);
+    QWidget::changeEvent(event);
 }
 
 void DataExplorerDialog::on_buttonParse_pressed()
