@@ -93,10 +93,10 @@ public:
     void lineNumberAreaPaintEvent(QPaintEvent* event);
     int lineNumberAreaWidth();
     void setErrorLine(int line);
-    void setTokenHighlights(const QString& token, const QList<int>& lines);
+    void setTokenHighlights(const QString & token, const QList<int> & lines);
     void setHackedReadonly(bool readonly);
 
-    int measureFontWidth(const QString& str);
+    int measureFontWidth(const QString & str);
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
@@ -106,7 +106,7 @@ protected:
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
     void highlightCurrentLine();
-    void updateLineNumberArea(const QRect& rect, int dy);
+    void updateLineNumberArea(const QRect & rect, int dy);
 
 private:
     QWidget* lineNumberArea;

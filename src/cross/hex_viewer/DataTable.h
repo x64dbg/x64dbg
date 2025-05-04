@@ -27,7 +27,8 @@ private:
         return QString("%1").arg(data);
     }
 
-    enum Columns {
+    enum Columns
+    {
         ColType,
         ColValue,
     };

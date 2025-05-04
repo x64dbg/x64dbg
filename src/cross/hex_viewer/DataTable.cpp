@@ -3,14 +3,16 @@
 
 #include <QDebug>
 
-DataTable::DataTable(QWidget *parent)
+DataTable::DataTable(QWidget* parent)
     : StdTable(parent)
 {
-    auto type = [this](const QString& name, DataFn fn) {
+    auto type = [this](const QString & name, DataFn fn)
+    {
         mTypes.emplace_back(name, std::move(fn));
     };
 
-    type("Binary (u8)", [this](duint start, duint end) {
+    type("Binary (u8)", [this](duint start, duint end)
+    {
         uint8_t data = 0;
         read(&data, start, sizeof(data));
         uint8_t mask = 0x80;
@@ -24,18 +26,22 @@ DataTable::DataTable(QWidget *parent)
         }
         return result;
     });
-    type("uint8_t", [this](duint start, duint end) {
+    type("uint8_t", [this](duint start, duint end)
+    {
         return primitive<uint8_t>(start);
     });
-    type("int8_t", [this](duint start, duint end) {
+    type("int8_t", [this](duint start, duint end)
+    {
         return primitive<int8_t>(start);
     });
-    type("uint16_t", [this](duint start, duint end) {
+    type("uint16_t", [this](duint start, duint end)
+    {
         uint16_t data = 0;
         read(&data, start, sizeof(data));
         return QString("%1").arg(data);
     });
-    type("int16_t", [this](duint start, duint end) {
+    type("int16_t", [this](duint start, duint end)
+    {
         int16_t data = 0;
         read(&data, start, sizeof(data));
         return QString("%1").arg(data);
@@ -66,7 +72,7 @@ void DataTable::selectionChanged(duint start, duint end)
     reloadData();
 }
 
-bool DataTable::read(void *destination, duint addr, duint size)
+bool DataTable::read(void* destination, duint addr, duint size)
 {
     return DbgMemRead(addr, destination, size);
 }

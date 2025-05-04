@@ -74,7 +74,7 @@ int CodeEditor::lineNumberAreaWidth()
 {
     int digits = 1;
     int max = qMax(1, blockCount());
-    while (max >= 10)
+    while(max >= 10)
     {
         max /= 10;
         ++digits;
@@ -89,7 +89,7 @@ void CodeEditor::setErrorLine(int line)
     highlightCurrentLine();
 }
 
-void CodeEditor::setTokenHighlights(const QString& token, const QList<int>& lines)
+void CodeEditor::setTokenHighlights(const QString & token, const QList<int> & lines)
 {
     mHighlightToken = token;
     mHighlightLines = lines;
@@ -101,7 +101,7 @@ void CodeEditor::setHackedReadonly(bool readonly)
     mHackedReadonly = readonly;
 }
 
-int CodeEditor::measureFontWidth(const QString& str)
+int CodeEditor::measureFontWidth(const QString & str)
 {
     auto metrics = fontMetrics();
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
@@ -116,14 +116,14 @@ void CodeEditor::updateLineNumberAreaWidth(int /* newBlockCount */)
     setViewportMargins(lineNumberAreaWidth(), 0, 0, 0);
 }
 
-void CodeEditor::updateLineNumberArea(const QRect& rect, int dy)
+void CodeEditor::updateLineNumberArea(const QRect & rect, int dy)
 {
-    if (dy)
+    if(dy)
         lineNumberArea->scroll(0, dy);
     else
         lineNumberArea->update(0, rect.y(), lineNumberArea->width(), rect.height());
 
-    if (rect.contains(viewport()->rect()))
+    if(rect.contains(viewport()->rect()))
         updateLineNumberAreaWidth(0);
 }
 
@@ -181,7 +181,7 @@ void CodeEditor::keyPressEvent(QKeyEvent* event)
                 break;
         case Qt::Key_C:
             // Copy
-            if (event->modifiers() & (Qt::ControlModifier | Qt::MetaModifier))
+            if(event->modifiers() & (Qt::ControlModifier | Qt::MetaModifier))
                 break;
         default:
         {
@@ -207,7 +207,7 @@ void CodeEditor::highlightCurrentLine()
 {
     QList<QTextEdit::ExtraSelection> extraSelections;
 
-    if (!mHackedReadonly /* isReadOnly() */)
+    if(!mHackedReadonly /* isReadOnly() */)
     {
         QTextEdit::ExtraSelection selection;
         selection.format.setBackground(selectedLineHighlightColor());
@@ -217,7 +217,7 @@ void CodeEditor::highlightCurrentLine()
         extraSelections.append(selection);
     }
 
-    if (mErrorLine != -1)
+    if(mErrorLine != -1)
     {
         QTextEdit::ExtraSelection selection;
         selection.format.setBackground(errorLineHighlightColor());
@@ -271,9 +271,9 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent* event)
     int top = qRound(blockBoundingGeometry(block).translated(contentOffset()).top());
     int bottom = top + qRound(blockBoundingRect(block).height());
 
-    while (block.isValid() && top <= event->rect().bottom())
+    while(block.isValid() && top <= event->rect().bottom())
     {
-        if (block.isVisible() && bottom >= event->rect().top())
+        if(block.isVisible() && bottom >= event->rect().top())
         {
             QString number = QString::number(blockNumber + 1);
             painter.setPen(lineNumberColor());
