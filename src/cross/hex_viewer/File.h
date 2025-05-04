@@ -7,9 +7,9 @@
 // TODO: implement as mapped file
 class File : public QObject, public MemoryProvider
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-    explicit File(duint virtualBase, const QString& fileName);
+    explicit File(duint virtualBase, const QString & fileName);
     ~File();
 
 protected:

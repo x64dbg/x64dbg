@@ -19,7 +19,7 @@ public:
     void refreshColors(const CodeEditor* style);
 
 protected:
-    void highlightBlock(const QString& text) override;
+    void highlightBlock(const QString & text) override;
 
 private:
     struct HighlightingRule

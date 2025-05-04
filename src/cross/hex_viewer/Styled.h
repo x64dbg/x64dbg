@@ -34,7 +34,7 @@ public:
 
     QColor get(bool ensurePolished = true) const
     {
-        if (ensurePolished && widget)
+        if(ensurePolished && widget)
         {
             widget->ensurePolished();
         }

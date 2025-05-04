@@ -1,6 +1,6 @@
 #include "File.h"
 
-File::File(duint virtualBase, const QString &fileName)
+File::File(duint virtualBase, const QString & fileName)
     : mVirtualBase(virtualBase)
 {
     mFile = new QFile(fileName, this);
@@ -21,9 +21,10 @@ File::~File()
     }
 }
 
-bool File::read(duint addr, void *dest, duint size)
+bool File::read(duint addr, void* dest, duint size)
 {
-    if(addr < mVirtualBase || addr + size > mVirtualBase + mSize) {
+    if(addr < mVirtualBase || addr + size > mVirtualBase + mSize)
+    {
         return false;
     }
 
@@ -32,7 +33,7 @@ bool File::read(duint addr, void *dest, duint size)
     return mFile->read((char*)dest, size) == size;
 }
 
-bool File::getRange(duint addr, duint &base, duint &size)
+bool File::getRange(duint addr, duint & base, duint & size)
 {
     if(!isValidPtr(addr))
     {

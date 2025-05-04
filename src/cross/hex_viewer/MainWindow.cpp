@@ -35,7 +35,8 @@ void MainWindow::loadFile(const QString & path)
 {
     DbgSetMemoryProvider(nullptr);
 
-    if(mFile != nullptr) {
+    if(mFile != nullptr)
+    {
         delete mFile;
         mFile = nullptr;
     }
@@ -45,7 +46,7 @@ void MainWindow::loadFile(const QString & path)
     {
         mFile = new File(virtualBase, path);
     }
-    catch(const std::exception& x)
+    catch(const std::exception & x)
     {
         QMessageBox::critical(this, tr("Error"), x.what());
     }
@@ -87,12 +88,15 @@ void MainWindow::setupNavigation()
     });
 }
 
-struct DefaultArchitecture : Architecture {
-    bool disasm64() const override {
+struct DefaultArchitecture : Architecture
+{
+    bool disasm64() const override
+    {
         return true;
     }
 
-    bool addr64() const override {
+    bool addr64() const override
+    {
         return true;
     }
 } gArchitecture;
@@ -113,7 +117,8 @@ void MainWindow::setupWidgets()
     mStructWidget = new StructWidget(this);
 
     mDataTable = new DataTable(this);
-    connect(mHexDump, &MiniHexDump::selectionUpdated, [this]() {
+    connect(mHexDump, &MiniHexDump::selectionUpdated, [this]()
+    {
         mDataTable->selectionChanged(mHexDump->getSelectionStart(), mHexDump->getSelectionEnd());
     });
 

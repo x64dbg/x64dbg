@@ -210,7 +210,7 @@ void StructWidget::setupColumns()
 
 void StructWidget::setupContextMenu()
 {
-    auto makeAction = [this](const QIcon& icon, const QString& text, const char* slot)
+    auto makeAction = [this](const QIcon & icon, const QString & text, const char* slot)
     {
         auto action = new QAction(text, this);
         action->setIcon(icon);
@@ -218,7 +218,7 @@ void StructWidget::setupContextMenu()
         return action;
     };
 
-    auto makeMenu = [this](const QIcon& icon, const QString& title)
+    auto makeMenu = [this](const QIcon & icon, const QString & title)
     {
         auto menu = new QMenu(title, this);
         menu->setIcon(icon);
