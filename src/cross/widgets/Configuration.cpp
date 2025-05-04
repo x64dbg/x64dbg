@@ -26,7 +26,7 @@ inline static void addWindowPosConfig(QMap<QString, duint> & guiUint, const char
     guiUint.insert(n + "Y", 0);
 }
 
-Configuration::Configuration(const ConfigurationPalette& p) : QObject(), noMoreMsgbox(false)
+Configuration::Configuration(const ConfigurationPalette & p) : QObject(), noMoreMsgbox(false)
 {
     mPtr = this;
 
@@ -55,6 +55,7 @@ Configuration::Configuration(const ConfigurationPalette& p) : QObject(), noMoreM
     {
         auto font = QFont(family, PlatformFontWeight, QFont::Normal);
         font.setFixedPitch(true);
+        font.setStyleStrategy(QFont::PreferAntialias);
         EmbeddedFonts.push_back(std::move(font));
     }
 
@@ -1249,6 +1250,7 @@ QFont Configuration::monospaceFont() const
         auto font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
         font.setPointSize(13);
         font.setWeight(QFont::Medium);
+        font.setStyleStrategy(QFont::PreferAntialias);
         return font;
     }
     return EmbeddedFonts.front();

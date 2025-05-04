@@ -2,6 +2,7 @@
 #include "ui_DataExplorerDialog.h"
 #include <QMessageBox>
 #include <QDir>
+#include <QAction>
 #include <QTextBlock>
 #include <QSettings>
 #include "PatternHighlighter.h"
@@ -23,7 +24,7 @@ struct PatternVisitor
         if(itr == mNames.end())
             return false;
 
-        const auto& str = itr->second;
+        const auto & str = itr->second;
         if(*destCount <= str.second)
         {
             *destCount = str.second + 1;
@@ -33,7 +34,7 @@ struct PatternVisitor
         return true;
     }
 
-    TreeNode visit(TreeNode parent, const VisitInfo& info)
+    TreeNode visit(TreeNode parent, const VisitInfo & info)
     {
         if(parent == nullptr)
         {
@@ -64,7 +65,7 @@ struct PatternVisitor
         td.sizeBits = info.size * 8;
         // TODO: detect primitive types and exclude them from the toString callback
         td.offset = info.offset - mCurrentBase;
-        td.callback = [](const TYPEDESCRIPTOR *type, char* dest, size_t* destCount)
+        td.callback = [](const TYPEDESCRIPTOR * type, char* dest, size_t* destCount)
         {
             return ((PatternVisitor*)type->userdata)->valueCallback(type, dest, destCount);
         };
@@ -72,16 +73,16 @@ struct PatternVisitor
         auto node = nullptr; // TODO
         //auto node = GuiTypeAddNode(parent, &td);
 #ifdef _DEBUG
-        _plugin_logprintf("[%p->%p] %s %s |%s| (address: 0x%llX, size: 0x%llX, line: %d)\n",
-                          parent,
-                          node,
-                          info.type_name,
-                          info.variable_name,
-                          info.value,
-                          info.offset,
-                          info.size,
-                          info.line
-                          );
+        printf("[%p->%p] %s %s |%s| (address: 0x%llX, size: 0x%llX, line: %d)\n",
+               parent,
+               node,
+               info.type_name,
+               info.variable_name,
+               info.value,
+               info.offset,
+               info.size,
+               info.line
+              );
 #endif
         return node;
     }
@@ -121,12 +122,12 @@ DataExplorerDialog::~DataExplorerDialog()
 
 void DataExplorerDialog::changeEvent(QEvent* event)
 {
-    if (event->type() == QEvent::StyleChange)
+    if(event->type() == QEvent::StyleChange)
     {
         duint dark = 0;
         BridgeSettingGetUint("Colors", "DarkTitleBar", &dark);
         //_plugin_logprintf("[changeEvent] dark=%d\n", dark != 0);
-        if (mHighlighter)
+        if(mHighlighter)
         {
             ensurePolished();
             mHighlighter->refreshColors(ui->codeEdit);
@@ -164,11 +165,11 @@ void DataExplorerDialog::on_buttonParse_pressed()
     {
         ((DataExplorerDialog*)userdata)->logHandler(level, message);
     };
-    args.compile_error = [](void* userdata, const CompileError* error)
+    args.compile_error = [](void* userdata, const CompileError * error)
     {
         ((DataExplorerDialog*)userdata)->compileError(*error);
     };
-    args.eval_error = [](void *userdata, const EvalError* error)
+    args.eval_error = [](void* userdata, const EvalError * error)
     {
         ((DataExplorerDialog*)userdata)->evalError(*error);
     };
@@ -177,7 +178,7 @@ void DataExplorerDialog::on_buttonParse_pressed()
         // TODO: page cache?
         return DbgMemRead(address, buffer, size);
     };
-    args.visit = [](void *userdata, TreeNode parent, const VisitInfo *info) -> TreeNode
+    args.visit = [](void* userdata, TreeNode parent, const VisitInfo * info) -> TreeNode
     {
         return ((DataExplorerDialog*)userdata)->mVisitor->visit(parent, *info);
     };
@@ -220,13 +221,13 @@ void DataExplorerDialog::logHandler(LogLevel level, const char* message)
     cursor.endEditBlock();
 }
 
-void DataExplorerDialog::compileError(const CompileError& error)
+void DataExplorerDialog::compileError(const CompileError & error)
 {
     Q_UNUSED(error);
     // TODO: highlight error lines
 }
 
-void DataExplorerDialog::evalError(const EvalError& error)
+void DataExplorerDialog::evalError(const EvalError & error)
 {
     auto errorLine = error.location.line;
     auto errorColumn = error.location.column;
@@ -242,7 +243,7 @@ void DataExplorerDialog::evalError(const EvalError& error)
 }
 
 
-void DataExplorerDialog::on_logEdit_anchorClicked(const QUrl &url)
+void DataExplorerDialog::on_logEdit_anchorClicked(const QUrl & url)
 {
     if(url.scheme() == "navigate")
     {
