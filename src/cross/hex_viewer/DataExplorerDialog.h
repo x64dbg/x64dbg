@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QDialog>
+#include <QWidget>
 
 #include "PatternLanguage.h"
 
@@ -9,7 +9,7 @@ namespace Ui
 class DataExplorerDialog;
 }
 
-class DataExplorerDialog : public QDialog
+class DataExplorerDialog : public QWidget
 {
     Q_OBJECT
 
@@ -18,7 +18,6 @@ public:
     ~DataExplorerDialog();
 
 protected:
-    void closeEvent(QCloseEvent* event) override;
     void changeEvent(QEvent* event) override;
 
 private slots:

@@ -8,6 +8,11 @@
 #include "MiniHexDump.h"
 #include "Navigation.h"
 #include "File.h"
+#include "CodeEditor.h"
+#include "PatternHighlighter.h"
+#include "StructWidget.h"
+#include <QTextBrowser>
+#include "DataTable.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -34,5 +39,10 @@ private:
     Navigation* mNavigation = nullptr;
     MiniHexDump* mHexDump = nullptr;
     File* mFile = nullptr;
+    CodeEditor* mCodeEditor = nullptr;
+    PatternHighlighter* mHighlighter = nullptr;
+    QTextBrowser* mLogBrowser = nullptr;
+    StructWidget* mStructWidget = nullptr;
+    DataTable* mDataTable = nullptr;
 };
 #endif // MAINWINDOW_H

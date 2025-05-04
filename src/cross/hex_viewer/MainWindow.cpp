@@ -3,7 +3,11 @@
 #include <QDebug>
 #include <QMessageBox>
 #include <QVBoxLayout>
+#include <QSplitter>
+#include <QHBoxLayout>
 #include <QFileDialog>
+#include <QCheckBox>
+#include <QSpacerItem>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -101,7 +105,57 @@ Architecture* GlobalArchitecture()
 void MainWindow::setupWidgets()
 {
     mHexDump = new MiniHexDump(mNavigation, GlobalArchitecture(), this);
-    ui->tabWidget->addTab(mHexDump, "Dump");
+    mCodeEditor = new CodeEditor(this);
+    mCodeEditor->setFont(Config()->monospaceFont());
+    mHighlighter = new PatternHighlighter(mCodeEditor, mCodeEditor->document());
+    mLogBrowser = new QTextBrowser(this);
+    mLogBrowser->setFont(Config()->monospaceFont());
+    mStructWidget = new StructWidget(this);
+
+    mDataTable = new DataTable(this);
+    connect(mHexDump, &MiniHexDump::selectionUpdated, [this]() {
+        mDataTable->selectionChanged(mHexDump->getSelectionStart(), mHexDump->getSelectionEnd());
+    });
+
+    auto hl = new QHBoxLayout();
+    //hl->addSpacing()
+    hl->addStretch(1);
+    hl->addWidget(new QCheckBox("Auto"));
+    hl->addWidget(new QPushButton("Run"));
+    hl->setContentsMargins(4, 4, 4, 0);
+
+    auto vl = new QVBoxLayout();
+    vl->addWidget(mCodeEditor);
+    vl->addLayout(hl);
+    vl->setContentsMargins(0, 0, 0, 0);
+    vl->setSpacing(0);
+
+    auto codeWidget = new QWidget();
+    codeWidget->setLayout(vl);
+
+    auto codeSplitter = new QSplitter(Qt::Vertical, this);
+    codeSplitter->addWidget(codeWidget);
+    codeSplitter->addWidget(mLogBrowser);
+    codeSplitter->setStretchFactor(0, 80);
+    codeSplitter->setStretchFactor(0, 20);
+
+    auto structTabs = new QTabWidget(this);
+    structTabs->addTab(mDataTable, "Data");
+    structTabs->addTab(mStructWidget, "Struct");
+
+    auto hexSplitter = new QSplitter(Qt::Vertical, this);
+    hexSplitter->addWidget(mHexDump);
+    hexSplitter->addWidget(structTabs);
+    hexSplitter->setStretchFactor(0, 65);
+    hexSplitter->setStretchFactor(1, 35);
+
+    auto mainSplitter = new QSplitter(Qt::Horizontal, this);
+    mainSplitter->addWidget(hexSplitter);
+    mainSplitter->addWidget(codeSplitter);
+    mainSplitter->setStretchFactor(0, 58);
+    mainSplitter->setStretchFactor(1, 42);
+
+    ui->tabWidget->addTab(mainSplitter, "Hex");
 }
 
 void MainWindow::on_action_Load_file_triggered()

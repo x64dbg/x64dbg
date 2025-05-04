@@ -1040,7 +1040,7 @@ void HexDump::byteToString(duint rva, uint8_t byte, ByteViewMode mode, RichTextP
             richText.textBackground = mByteFFBackgroundColor;
             break;
         default:
-            if(isprint(byte) || isspace(byte))
+            if((byte >= 0x20 && byte <= 0x7E) || isspace(byte))
             {
                 richText.textColor = mByteIsPrintColor;
                 richText.textBackground = mByteIsPrintBackgroundColor;

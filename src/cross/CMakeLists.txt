@@ -169,6 +169,8 @@ set(hex_viewer_SOURCES
 	"hex_viewer/DataExplorerDialog.cpp"
 	"hex_viewer/DataExplorerDialog.h"
 	"hex_viewer/DataExplorerDialog.ui"
+	"hex_viewer/DataTable.cpp"
+	"hex_viewer/DataTable.h"
 	"hex_viewer/File.cpp"
 	"hex_viewer/File.h"
 	"hex_viewer/GotoDialog.cpp"

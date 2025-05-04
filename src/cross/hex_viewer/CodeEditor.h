@@ -67,24 +67,25 @@ class CodeEditor : public QPlainTextEdit, Styled<CodeEditor>
     Q_OBJECT
 
 public:
-    CSS_COLOR(selectedLineHighlightColor, "#DFDBBE");
-    CSS_COLOR(errorLineHighlightColor, "#FF9999");
-    CSS_COLOR(lineNumberColor, "#8799C4");
-    CSS_COLOR(lineNumberBackgroundColor, "#fefff7");
+    // One Dark Pro
+    CSS_COLOR(selectedLineHighlightColor, "#2c313c");
+    CSS_COLOR(errorLineHighlightColor, "#c24039");
+    CSS_COLOR(lineNumberColor, "#5c6370");
+    CSS_COLOR(lineNumberBackgroundColor, "#282c34");
 
-    CSS_COLOR(keywordColor, "#800000");
-    CSS_COLOR(instructionColor, "#333F47");
+    CSS_COLOR(keywordColor, "#c678dd");
+    CSS_COLOR(instructionColor, "#c678dd");
 
-    CSS_COLOR(globalVariableColor, "#1BA7B3");
-    CSS_COLOR(localVariableColor, "#E90B55");
-    CSS_COLOR(constantColor, "#A34784");
-    CSS_COLOR(integerTypeColor, "#1BA7B3");
+    CSS_COLOR(globalVariableColor, "#e06c75");
+    CSS_COLOR(localVariableColor, "#e06c75");
+    CSS_COLOR(constantColor, "#56b6c2");
+    CSS_COLOR(integerTypeColor, "#d19a66");
 
-    CSS_COLOR(commentColor, "#8799C4");
-    CSS_COLOR(metadataColor, "#8799C4");
-    CSS_COLOR(functionColor, "#006793");
-    CSS_COLOR(stringColor, "#008000");
-    CSS_COLOR(operatorColor, "#C2492E");
+    CSS_COLOR(commentColor, "#5c6370");
+    CSS_COLOR(metadataColor, "#5c6370");
+    CSS_COLOR(functionColor, "#61afef");
+    CSS_COLOR(stringColor, "#98c379");
+    CSS_COLOR(operatorColor, "#c678dd");
 
 public:
     CodeEditor(QWidget* parent = nullptr);
