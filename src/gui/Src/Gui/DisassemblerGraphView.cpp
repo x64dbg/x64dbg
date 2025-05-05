@@ -2331,6 +2331,7 @@ void DisassemblerGraphView::setupContextMenu()
     mToggleSummary->setCheckable(true);
     mMenuBuilder->addAction(mToggleSyncOrigin = makeShortcutAction(DIcon("lock"), tr("&Sync with %1").arg(ArchValue("EIP", "RIP")), SLOT(toggleSyncOriginSlot()), "ActionSync"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
+    mMenuBuilder->addAction(makeShortcutAction(DIcon("image"), tr("Copy image"), SLOT(copyImageSlot()), "ActionGraphCopyImage"));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("image"), tr("&Save as image"), SLOT(saveImageSlot()), "ActionGraphSaveImage"));
 
     MenuBuilder* layoutMenu = new MenuBuilder(this);
@@ -2546,17 +2547,13 @@ void DisassemblerGraphView::refreshSlot()
     DbgCmdExec(QString("graph %1, force").arg(ToPtrString(this->cur_instr)));
 }
 
-void DisassemblerGraphView::saveImageSlot()
+QImage DisassemblerGraphView::getImage()
 {
     //this->viewport()->update();
 
     //TODO: speed up large graph saving or show gif loader so it won't look like it has crashed
 
     //Image corresponds to the current zoom level
-    QString path = QFileDialog::getSaveFileName(this, tr("Save as image"), "", tr("PNG file (*.png);;WebP file (*.webp);;BMP file (*.bmp);;TIFF file (*.tif)"));
-    if(path.isEmpty())
-        return;
-
     QSize size = this->viewport()->size();
     QPoint scrollbarPos = QPoint(this->horizontalScrollBar()->value(), this->verticalScrollBar()->value());
 
@@ -2569,29 +2566,48 @@ void DisassemblerGraphView::saveImageSlot()
     }
 
     //save viewport to image
-    auto scaleFactor = this->devicePixelRatioF();
-    QRect completeRenderRect = QRect(0, 0, this->renderWidth * scaleFactor, this->renderHeight * scaleFactor);
+    auto scaleFactor = devicePixelRatioF();
+    QRect completeRenderRect = QRect(0, 0, renderWidth * scaleFactor, renderHeight * scaleFactor);
     QImage img(completeRenderRect.size(), QImage::Format_ARGB32);
     img.setDevicePixelRatio(scaleFactor);
     QPainter painter(&img);
-    this->viewport()->render(&painter);
+    viewport()->render(&painter);
+
+    //restore changes made to viewport for full render saving
+    viewport()->resize(size);
+
+    if(graphZoomMode)
+    {
+        horizontalScrollBar()->setValue(scrollbarPos.x());
+        verticalScrollBar()->setValue(scrollbarPos.y());
+    }
+
+    return img;
+}
+
+void DisassemblerGraphView::saveImageSlot()
+{
+    QString path = QFileDialog::getSaveFileName(this, tr("Save as image"), "", tr("PNG file (*.png);;WebP file (*.webp);;BMP file (*.bmp);;TIFF file (*.tif)"));
+    if(path.isEmpty())
+        return;
+
+    QImage img = getImage();
     bool success;
     if(!path.endsWith(".webp", Qt::CaseInsensitive))
         success = img.save(path);
     else
         success = img.save(path, nullptr, 100); //WebP needs this to save in lossless format. But this makes PNG larger than BMP.
 
-    //restore changes made to viewport for full render saving
-    this->viewport()->resize(size);
-
-    if(graphZoomMode)
-    {
-        this->horizontalScrollBar()->setValue(scrollbarPos.x());
-        this->verticalScrollBar()->setValue(scrollbarPos.y());
-    }
-
     if(!success)
         SimpleErrorBox(this, tr("Error"), tr("Image saving failed!"));
+}
+
+void DisassemblerGraphView::copyImageSlot()
+{
+    QImage img = getImage();
+
+    QClipboard* clipboard = QApplication::clipboard();
+    clipboard->setImage(img);
 }
 
 void DisassemblerGraphView::xrefSlot()
