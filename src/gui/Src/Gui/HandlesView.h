@@ -34,6 +34,7 @@ public slots:
     void enableAllPrivilegesSlot();
     void enableWindowSlot();
     void disableWindowSlot();
+    void focusWindowSlot();
     void followInDisasmSlot();
     void followInThreads();
     void toggleBPSlot();
@@ -56,6 +57,7 @@ private:
     QAction* mActionEnableAllPrivileges;
     QAction* mActionEnableWindow;
     QAction* mActionDisableWindow;
+    QAction* mActionFocusWindow;
     QAction* mActionFollowProc;
     QAction* mActionFollowThread;
     QAction* mActionToggleProcBP;
