@@ -857,7 +857,12 @@ bool cbInstrVisitType(int argc, char* argv[])
     auto type = argv[1];
     auto name = "display";
     duint addr = 0;
-    auto maxPtrDepth = 0;
+    auto maxPtrDepth = 2;
+
+    duint setting = 0;
+    if(BridgeSettingGetUint("Engine", "DefaultTypePtrDepth", &setting) && setting != 0)
+        maxPtrDepth = setting;
+
     if(argc > 2)
     {
         if(!valfromstring(argv[2], &addr, false))
@@ -867,7 +872,8 @@ bool cbInstrVisitType(int argc, char* argv[])
             duint value;
             if(!valfromstring(argv[3], &value, false))
                 return false;
-            maxPtrDepth = int(value);
+            if(dsint(value) >= 0)
+                maxPtrDepth = int(value);
             if(argc > 4)
                 name = argv[4];
         }
