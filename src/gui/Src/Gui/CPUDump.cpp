@@ -81,7 +81,7 @@ void CPUDump::setupContextMenu()
         return DbgFunctions()->PatchInRange(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd()));
     });
 
-    mCommonActions->build(mMenuBuilder, CommonActions::ActionDisasm | CommonActions::ActionMemoryMap | CommonActions::ActionDumpData | CommonActions::ActionDumpN
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionDisasm | CommonActions::ActionMemoryMap | CommonActions::ActionDisplayType | CommonActions::ActionDumpData | CommonActions::ActionDumpN
                           | CommonActions::ActionDisasmData | CommonActions::ActionStackDump | CommonActions::ActionLabel | CommonActions::ActionWatch);
 
     mMenuBuilder->addAction(makeShortcutAction(DIcon("modify"), tr("&Modify Value"), SLOT(modifyValueSlot()), "ActionModifyValue"), [this](QMenu*)
@@ -246,7 +246,6 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addAction(makeAction(DIcon("processor-cpu"), tr("&Disassembly"), SLOT(disassemblySlot())));
 
     mMenuBuilder->addSeparator();
-    mMenuBuilder->addAction(makeAction(DIcon("visitstruct"), tr("Display type"), SLOT(displayTypeSlot())));
 
     mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
@@ -1568,33 +1567,6 @@ void CPUDump::allocMemorySlot()
             return;
         }
     }
-}
-
-void CPUDump::displayTypeSlot()
-{
-    // Copy pasta from setupFollowMenu for now
-    auto vaSelected = rvaToVa(getInitialSelection());
-
-    QStringList structs;
-    DbgFunctions()->EnumStructs([](const char* name, void* userdata)
-    {
-        ((QStringList*)userdata)->append(name);
-    }, &structs);
-
-    if(structs.isEmpty())
-    {
-        SimpleErrorBox(this, tr("Error"), tr("No types loaded yet, parse a header first..."));
-        return;
-    }
-
-    QString selection;
-    if(!SimpleChoiceBox(this, tr("Type to display"), "", structs, selection, true, "", DIcon("struct"), 1) || selection.isEmpty())
-        return;
-    if(!mGotoType)
-        mGotoType = new GotoDialog(this);
-    mGotoType->setWindowTitle(tr("Address to display %1 at").arg(selection));
-
-    DbgCmdExec(QString("DisplayType %1, %2").arg(selection, ToPtrString(vaSelected)));
 }
 
 void CPUDump::setView(ViewEnum_t view)

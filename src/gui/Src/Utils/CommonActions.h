@@ -40,7 +40,8 @@ public:
         ActionXrefMore = 1 << 24, // Xref (submenu)
         ActionNewOrigin = 1 << 25, // Set EIP/RIP Here
         ActionNewThread = 1 << 26, // Create New Thread Here
-        ActionWatch = 1 << 27 // Watch DWORD
+        ActionWatch = 1 << 27, // Watch DWORD
+        ActionDisplayType = 1 << 28, // Display type
     } CommonActionsList;
 
     using GetSelectionFunc = std::function<duint()>;
@@ -70,10 +71,12 @@ public slots:
     void setHwBpAt(duint va, int slot);
 
     void graphSlot();
+    void displayTypeSlot();
     void setNewOriginHereActionSlot();
     void createThreadSlot();
 private:
     GetSelectionFunc mGetSelection;
     bool WarningBoxNotExecutable(const QString & text, duint va) const;
     QWidget* widgetparent() const;
+    class GotoDialog* mGotoType = nullptr;
 };

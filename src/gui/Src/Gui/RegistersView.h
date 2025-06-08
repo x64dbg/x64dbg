@@ -4,6 +4,7 @@
 #include <QSet>
 #include <QMap>
 #include "Bridge.h"
+#include "CommonActions.h"
 
 class CPUWidget;
 class CPUMultiDump;
@@ -22,7 +23,7 @@ namespace Ui
     class RegistersView;
 }
 
-class RegistersView : public QScrollArea
+class RegistersView : public QScrollArea, public ActionHelper<RegistersView>
 {
     Q_OBJECT
 

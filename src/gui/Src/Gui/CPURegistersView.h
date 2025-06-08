@@ -41,7 +41,10 @@ protected slots:
 private:
     void CreateDumpNMenu(QMenu* dumpMenu);
     void displayEditDialog();
+    void setupContextMenu();
 
+    MenuBuilder* mMenuBuilder;
+    CommonActions* mCommonActions;
     CPUWidget* mParent;
     // context menu actions
     QAction* mFollowInDump;

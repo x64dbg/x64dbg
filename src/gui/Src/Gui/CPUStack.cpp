@@ -253,7 +253,7 @@ void CPUStack::setupContextMenu()
     mFreezeStack->setCheckable(true);
 
     //Follow in Memory Map
-    mCommonActions->build(mMenuBuilder, CommonActions::ActionMemoryMap | CommonActions::ActionDump | CommonActions::ActionDumpData);
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionMemoryMap | CommonActions::ActionDisplayType | CommonActions::ActionDump | CommonActions::ActionDumpData);
 
     //Follow in Stack
     auto followStackName = ArchValue(tr("Follow DWORD in &Stack"), tr("Follow QWORD in &Stack"));

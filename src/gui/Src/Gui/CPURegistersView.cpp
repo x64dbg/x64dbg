@@ -13,6 +13,34 @@
 
 CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), mParent(parent)
 {
+    // foreign messages
+    connect(Bridge::getBridge(), SIGNAL(updateRegisters()), this, SLOT(updateRegistersSlot()));
+    connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(displayCustomContextMenuSlot(QPoint)));
+    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
+    connect(parent->getDisasmWidget(), SIGNAL(selectionChanged(duint)), this, SLOT(disasmSelectionChangedSlot(duint)));
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
+
+    setupContextMenu();
+
+    refreshShortcutsSlot();
+}
+
+void CPURegistersView::setupContextMenu()
+{
+    mMenuBuilder = new MenuBuilder(this, [](QMenu*)
+    {
+        return DbgIsDebugging();
+    });
+
+    mCommonActions = new CommonActions(this, getActionHelperFuncs(), [this]() -> duint
+    {
+        if(mCANSTOREADDRESS.contains(mSelected))
+        {
+            return *(duint*)registerValue(&mRegDumpStruct, mSelected);
+        }
+        return 0;
+    });
+
     // precreate ContextMenu Actions
     wCM_Modify = new QAction(DIcon("register_edit"), tr("Modify value"), this);
     wCM_Modify->setShortcut(QKeySequence(Qt::Key_Enter));
@@ -33,11 +61,7 @@ CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), m
     wCM_Incrementx87Stack = setupAction(DIcon("arrow-small-down"), tr("Increment x87 Stack"));
     wCM_Decrementx87Stack = setupAction(DIcon("arrow-small-up"), tr("Decrement x87 Stack"));
     wCM_Highlight = setupAction(DIcon("highlight"), tr("Highlight"));
-    // foreign messages
-    connect(Bridge::getBridge(), SIGNAL(updateRegisters()), this, SLOT(updateRegistersSlot()));
-    connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(displayCustomContextMenuSlot(QPoint)));
-    connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChangedSlot(DBGSTATE)));
-    connect(parent->getDisasmWidget(), SIGNAL(selectionChanged(duint)), this, SLOT(disasmSelectionChangedSlot(duint)));
+
     // context menu actions
     connect(wCM_Incrementx87Stack, SIGNAL(triggered()), this, SLOT(onIncrementx87StackAction()));
     connect(wCM_Decrementx87Stack, SIGNAL(triggered()), this, SLOT(onDecrementx87StackAction()));
@@ -55,8 +79,8 @@ CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), m
     connect(wCM_RemoveHardware, SIGNAL(triggered()), this, SLOT(onRemoveHardware()));
     connect(wCM_Highlight, SIGNAL(triggered()), this, SLOT(onHighlightSlot()));
 
-    refreshShortcutsSlot();
-    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
+    // TODO: port all the menus to MenuBuilder
+    mCommonActions->build(mMenuBuilder, CommonActions::ActionDisplayType);
 }
 
 void CPURegistersView::refreshShortcutsSlot()
@@ -646,6 +670,8 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
                 menu.addMenu(followInDumpNMenu);
                 menu.addAction(wCM_FollowInDisassembly);
                 menu.addAction(wCM_FollowInMemoryMap);
+                // TODO: port everything to the MenuBuilder pattern
+                mMenuBuilder->build(&menu);
                 duint size = 0;
                 duint base = DbgMemFindBaseAddr(DbgValFromString("csp"), &size);
                 if(addr >= base && addr < base + size)

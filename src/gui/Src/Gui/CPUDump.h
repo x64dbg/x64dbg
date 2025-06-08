@@ -83,8 +83,6 @@ public slots:
     void syncWithExpressionSlot();
     void allocMemorySlot();
 
-    void displayTypeSlot();
-
     void headerButtonReleasedSlot(duint colIndex);
 
 private:

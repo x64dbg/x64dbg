@@ -205,6 +205,7 @@ void StructWidget::typeUpdateWidget()
     if(mScrollItem != nullptr)
     {
         ui->treeWidget->scrollToItem(mScrollItem, QAbstractItemView::PositionAtTop);
+        ui->treeWidget->setCurrentItem(mScrollItem);
         mScrollItem = nullptr;
     }
 }

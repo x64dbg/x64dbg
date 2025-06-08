@@ -8,6 +8,7 @@
 #include "Breakpoints.h"
 #include "LineEditDialog.h"
 #include "WordEditDialog.h"
+#include "GotoDialog.h"
 
 CommonActions::CommonActions(QWidget* parent, ActionHelperFuncs funcs, GetSelectionFunc getSelection)
     : QObject(parent), ActionHelperProxy(funcs), mGetSelection(getSelection)
@@ -79,6 +80,15 @@ void CommonActions::build(MenuBuilder* builder, int actions)
     if(actions & ActionGraph)
     {
         builder->addAction(makeShortcutDescAction(DIcon("graph"), tr("Graph"), tr("Show the control flow graph of this function in CPU view. Equivalent command \"graph address\"."), std::bind(&CommonActions::graphSlot, this), "ActionGraph"));
+    }
+    if(actions & ActionDisplayType)
+    {
+        auto action = makeShortcutDescAction(DIcon("visitstruct"), tr("Display type at %1").arg("0"), tr("Display a type at this address in the struct view."), std::bind(&CommonActions::displayTypeSlot, this), "ActionDisplayType");
+        builder->addAction(action, [this, action](QMenu*)
+        {
+            action->setText(tr("Display type at %1").arg(ToPtrString(mGetSelection())));
+            return true;
+        });
     }
     if(actions & ActionBreakpoint)
     {
@@ -450,6 +460,33 @@ void CommonActions::graphSlot()
 {
     if(DbgCmdExecDirect(QString("graph %1").arg(ToPtrString(mGetSelection()))))
         GuiFocusView(GUI_GRAPH);
+}
+
+void CommonActions::displayTypeSlot()
+{
+    // Copy pasta from setupFollowMenu for now
+    auto va = mGetSelection();
+
+    QStringList structs;
+    DbgFunctions()->EnumStructs([](const char* name, void* userdata)
+    {
+        ((QStringList*)userdata)->append(name);
+    }, &structs);
+
+    if(structs.isEmpty())
+    {
+        SimpleErrorBox(widgetparent(), tr("Error"), tr("No types loaded yet, parse a header first..."));
+        return;
+    }
+
+    QString selection;
+    if(!SimpleChoiceBox(widgetparent(), tr("Type to display at %1").arg(ToPtrString(va)), "", structs, selection, true, "", DIcon("struct"), 1) || selection.isEmpty())
+        return;
+    if(!mGotoType)
+        mGotoType = new GotoDialog(widgetparent());
+    mGotoType->setWindowTitle(tr("Address to display %1 at").arg(selection));
+
+    DbgCmdExec(QString("DisplayType %1, %2").arg(selection, ToPtrString(va)));
 }
 
 void CommonActions::setNewOriginHereActionSlot()
