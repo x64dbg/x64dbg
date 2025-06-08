@@ -47,7 +47,7 @@ namespace Types
         std::string name; //Member identifier
         std::string type; //Type.name
 
-        int arraySize = -1; //Number of elements if Member is an array
+        int arraySize = 0; //Number of elements if Member is an array
         int sizeBits = -1; //Member size in bits
         int offsetBits = -1; //Member offset (only stored for reference)
 

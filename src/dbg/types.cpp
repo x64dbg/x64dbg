@@ -142,7 +142,7 @@ bool TypeManager::AddStructMember(const std::string & parent, const std::string 
         if(arraySize != 0)
             expectedSize *= arraySize;
 
-        if(sizeBits != expectedSize)
+        if(sizeBits != -1 && sizeBits != expectedSize)
             return false;
 
         typeSize = expectedSize;
