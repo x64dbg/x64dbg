@@ -1,12 +1,10 @@
 #include <QFileDialog>
 #include <QTextDocumentFragment>
-#include <QMessageBox>
 
 #include "StructWidget.h"
 #include "ui_StructWidget.h"
 #include "Configuration.h"
 #include "MenuBuilder.h"
-#include "LineEditDialog.h"
 #include "GotoDialog.h"
 #include "StringUtil.h"
 #include "MiscUtil.h"
@@ -131,7 +129,17 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
         text[ColAddress] = ToPtrString(dtype.type.addr + dtype.type.offset);
     text[ColSize] = "0x" + ToHexString(dtype.type.sizeBits / 8);
     text[ColValue] = ""; // NOTE: filled in later
-    QTreeWidgetItem* item = parent ? new QTreeWidgetItem((QTreeWidgetItem*)parent, text) : new QTreeWidgetItem(ui->treeWidget, text);
+    QTreeWidgetItem* item = nullptr;
+    if(parent == nullptr)
+    {
+        item = new QTreeWidgetItem(ui->treeWidget, text);
+        // Scroll to the new root node in typeUpdateWidget
+        mScrollItem = dtype.type.expanded ? item : nullptr;
+    }
+    else
+    {
+        item = new QTreeWidgetItem((QTreeWidgetItem*)parent, text);
+    }
     item->setExpanded(dtype.type.expanded);
     QVariant var;
     var.setValue(dtype);
@@ -192,6 +200,13 @@ void StructWidget::typeUpdateWidget()
         item->setText(ColValue, valueStr);
     }
     ui->treeWidget->setUpdatesEnabled(true);
+
+    // Scroll to the newly-created node (typeAddNode)
+    if(mScrollItem != nullptr)
+    {
+        ui->treeWidget->scrollToItem(mScrollItem, QAbstractItemView::PositionAtTop);
+        mScrollItem = nullptr;
+    }
 }
 
 void StructWidget::dbgStateChangedSlot(DBGSTATE state)
@@ -236,7 +251,7 @@ void StructWidget::setupContextMenu()
     {
         return hasSelection && !selectedItem->parent() && DbgIsDebugging();
     });
-    mMenuBuilder->addAction(makeAction(DIcon("visitstruct"), tr("Display type"), SLOT(visitSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("visitstruct"), tr("Display type"), SLOT(displayTypeSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("database-import"), tr("Load JSON"), SLOT(loadJsonSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("source"), tr("Parse header"), SLOT(parseFileSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("removestruct"), tr("Remove"), SLOT(removeSlot())), [this](QMenu*)
@@ -379,7 +394,7 @@ void StructWidget::removeSlot()
     delete selectedItem;
 }
 
-void StructWidget::visitSlot()
+void StructWidget::displayTypeSlot()
 {
     QStringList structs;
     DbgFunctions()->EnumStructs([](const char* name, void* userdata)
@@ -401,8 +416,7 @@ void StructWidget::visitSlot()
     mGotoDialog->setWindowTitle(tr("Address to display %1 at").arg(selection));
     if(DbgIsDebugging() && mGotoDialog->exec() == QDialog::Accepted)
         addr = DbgValFromString(mGotoDialog->expressionText.toUtf8().constData());
-    DbgCmdExec(QString("VisitType %1, %2, 2").arg(selection, ToPtrString(addr)));
-    // TODO: show a proper error message on failure
+    DbgCmdExec(QString("DisplayType %1, %2").arg(selection, ToPtrString(addr)));
 }
 
 void StructWidget::loadJsonSlot()

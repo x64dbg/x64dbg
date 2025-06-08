@@ -37,6 +37,7 @@ private:
     MenuBuilder* mMenuBuilder;
     GotoDialog* mGotoDialog = nullptr;
     QColor mTextColor;
+    class QTreeWidgetItem* mScrollItem = nullptr;
 
     void setupColumns();
     void setupContextMenu();
@@ -60,7 +61,7 @@ private slots:
     void followValueDisasmSlot();
     void clearSlot();
     void removeSlot();
-    void visitSlot();
+    void displayTypeSlot();
     void loadJsonSlot();
     void parseFileSlot();
     void changeAddrSlot();

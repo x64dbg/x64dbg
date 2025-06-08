@@ -246,7 +246,7 @@ void CPUDump::setupContextMenu()
     mMenuBuilder->addAction(makeAction(DIcon("processor-cpu"), tr("&Disassembly"), SLOT(disassemblySlot())));
 
     mMenuBuilder->addSeparator();
-    mMenuBuilder->addAction(makeAction(DIcon("visitstruct"), tr("Display type"), SLOT(visitSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("visitstruct"), tr("Display type"), SLOT(displayTypeSlot())));
 
     mMenuBuilder->addBuilder(new MenuBuilder(this, [this](QMenu * menu)
     {
@@ -1570,7 +1570,7 @@ void CPUDump::allocMemorySlot()
     }
 }
 
-void CPUDump::visitSlot()
+void CPUDump::displayTypeSlot()
 {
     // Copy pasta from setupFollowMenu for now
     auto vaSelected = rvaToVa(getInitialSelection());
@@ -1594,7 +1594,7 @@ void CPUDump::visitSlot()
         mGotoType = new GotoDialog(this);
     mGotoType->setWindowTitle(tr("Address to display %1 at").arg(selection));
 
-    DbgCmdExec(QString("VisitType %1, %2, 2").arg(selection, ToPtrString(vaSelected)));
+    DbgCmdExec(QString("DisplayType %1, %2").arg(selection, ToPtrString(vaSelected)));
 }
 
 void CPUDump::setView(ViewEnum_t view)
