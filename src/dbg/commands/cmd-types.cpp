@@ -947,8 +947,14 @@ bool cbInstrParseTypes(int argc, char* argv[])
         dputs("failed to read file!");
         return false;
     }
-    if(!ParseTypes(data, owner))
+
+    int errorCount = 0;
+    if(!ParseTypes(data, owner, errorCount))
+    {
+        dprintf("Failed to parse header: %s (%d errors, see log)\n", argv[1], errorCount);
         return false;
+    }
+
     dprintf("Parsed header: %s\n", argv[1]);
     return true;
 }

@@ -5,9 +5,9 @@ using namespace Types;
 
 #include "btparser/btparser/lexer.h"
 
-void LoadModel(const std::string & owner, Model & model);
+int LoadModel(const std::string & owner, Model & model);
 
-bool ParseTypes(const std::string & parse, const std::string & owner)
+bool ParseTypes(const std::string & parse, const std::string & owner, int & errorCount)
 {
     Lexer lexer;
     lexer.SetInputData(parse);
@@ -251,7 +251,7 @@ bool ParseTypes(const std::string & parse, const std::string & owner)
         }
     }
 
-    LoadModel(owner, model);
+    errorCount = LoadModel(owner, model);
 
     return true;
 }

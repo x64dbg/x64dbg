@@ -930,8 +930,10 @@ static void loadEnums(const JSON suroot, std::vector<struct Enum> & enums)
     }
 }
 
-void LoadModel(const std::string & owner, Model & model)
+int LoadModel(const std::string & owner, Model & model)
 {
+    int errorCount = 0;
+
     //Add all base struct/union types first to avoid errors later
     for(auto & su : model.structUnions)
     {
@@ -939,6 +941,7 @@ void LoadModel(const std::string & owner, Model & model)
         if(!success)
         {
             //TODO properly handle errors
+            errorCount++;
             dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add %s %s;\n"), su.isUnion ? "union" : "struct", su.name.c_str());
             su.name.clear(); //signal error
         }
@@ -951,6 +954,7 @@ void LoadModel(const std::string & owner, Model & model)
         if(!success)
         {
             //TODO properly handle errors
+            errorCount++;
             dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add function %s %s()\n"), function.returnType.c_str(), function.name.c_str());
             function.name.clear(); //signal error
         }
@@ -965,6 +969,7 @@ void LoadModel(const std::string & owner, Model & model)
         if(!success)
         {
             //TODO properly handle errors
+            errorCount++;
             dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add enum %s\n"), num.name.c_str());
         }
     }
@@ -976,6 +981,7 @@ void LoadModel(const std::string & owner, Model & model)
         if(!success)
         {
             //TODO properly handle errors
+            errorCount++;
             dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add typedef %s %s;\n"), type.type.c_str(), type.name.c_str());
         }
     }
@@ -993,6 +999,7 @@ void LoadModel(const std::string & owner, Model & model)
             if(!success)
             {
                 //TODO properly handle errors
+                errorCount++;
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add member %s %s.%s;\n"), member.type.c_str(), su.name.c_str(), member.name.c_str());
             }
         }
@@ -1012,6 +1019,7 @@ void LoadModel(const std::string & owner, Model & model)
             if(!success)
             {
                 //TODO properly handle errors
+                errorCount++;
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add enum member %s\n"), mem.second.c_str());
             }
         }
@@ -1026,6 +1034,8 @@ void LoadModel(const std::string & owner, Model & model)
         bool status = typeManager.AddFunctionReturn(function.name, function.returnType);
         if(!status)
         {
+            //TODO properly handle errors
+            errorCount++;
             dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add return type %s.%s;\n"), function.name.c_str(), function.returnType.c_str());
         }
 
@@ -1035,10 +1045,12 @@ void LoadModel(const std::string & owner, Model & model)
             if(!success)
             {
                 //TODO properly handle errors
+                errorCount++;
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to add argument %s %s.%s;\n"), arg.type.c_str(), function.name.c_str(), arg.name.c_str());
             }
         }
     }
+    return errorCount;
 }
 
 bool LoadTypesJson(const std::string & json, const std::string & owner)

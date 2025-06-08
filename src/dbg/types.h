@@ -203,5 +203,5 @@ bool RemoveType(const std::string & type);
 void EnumTypes(std::vector<Types::TypeManager::Summary> & typeList);
 bool LoadTypesJson(const std::string & json, const std::string & owner);
 bool LoadTypesFile(const std::string & path, const std::string & owner);
-bool ParseTypes(const std::string & parse, const std::string & owner);
+bool ParseTypes(const std::string & parse, const std::string & owner, int & errorCount);
 std::string StructUnionPtrType(const std::string & alias);
