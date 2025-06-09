@@ -45,6 +45,7 @@ bool ParseTypes(const std::string & parse, const std::string & owner, int & erro
 
     auto errLine = [&]()
     {
+        errorCount++;
         dprintf("[line %d:%d] ", curToken().CurLine, curToken().LineIndex);
     };
     auto eatSemic = [&]()
@@ -252,6 +253,5 @@ bool ParseTypes(const std::string & parse, const std::string & owner, int & erro
     }
 
     errorCount = LoadModel(owner, model);
-
-    return true;
+    return errorCount == 0;
 }
