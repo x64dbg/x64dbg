@@ -27,6 +27,8 @@ CPUArgumentWidget::CPUArgumentWidget(Architecture* architecture, QWidget* parent
     connect(mFollowStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
     mFollowAddrStack = new QAction(this);
     connect(mFollowAddrStack, SIGNAL(triggered()), this, SLOT(followStackSlot()));
+    mCopyClipboard = new QAction(this);
+    connect(mCopyClipboard, SIGNAL(triggered()), this, SLOT(onCopyToClipboardAction()));
 
     connect(Bridge::getBridge(), SIGNAL(repaintTableView()), this, SLOT(refreshData()));
     connect(Bridge::getBridge(), SIGNAL(disassembleAt(duint, duint)), this, SLOT(disassembleAtSlot(duint, duint)));
@@ -161,14 +163,22 @@ void CPUArgumentWidget::contextMenuSlot(QPoint pos)
                 configAction(menu, DIcon("stack"), mFollowAddrStack, valueAddrText, tr("Stack"));
         }
     }
+
     QMenu copyMenu(tr("&Copy"));
     copyMenu.setIcon(DIcon("copy"));
     mTable->setupCopyMenu(&copyMenu);
     if(copyMenu.actions().length())
     {
         menu.addSeparator();
+
+        mCopyClipboard->setText(QString("Copy Value"));
+        mCopyClipboard->setIcon(DIcon("copy"));
+        mCopyClipboard->setObjectName(ToHexString(value));
+        menu.addAction(mCopyClipboard);
+
         menu.addMenu(&copyMenu);
     }
+
     menu.exec(mTable->mapToGlobal(pos));
 }
 
@@ -194,6 +204,14 @@ void CPUArgumentWidget::followStackSlot()
     if(!action)
         return;
     DbgCmdExec(QString("sdump \"%1\"").arg(action->objectName()));
+}
+
+void CPUArgumentWidget::onCopyToClipboardAction()
+{
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(!action)
+        return;
+    Bridge::CopyToClipboard(action->objectName());
 }
 
 void CPUArgumentWidget::loadConfig()

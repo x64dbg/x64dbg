@@ -49,6 +49,7 @@ private slots:
     void followDisasmSlot();
     void followDumpSlot();
     void followStackSlot();
+    void onCopyToClipboardAction();
     void on_comboCallingConvention_currentIndexChanged(int index);
     void on_spinArgCount_valueChanged(int arg1);
     void on_checkBoxLock_stateChanged(int arg1);
@@ -148,6 +149,7 @@ private:
     QAction* mFollowAddrDump;
     QAction* mFollowStack;
     QAction* mFollowAddrStack;
+    QAction* mCopyClipboard;
 
     void loadConfig();
     void setupTable();
