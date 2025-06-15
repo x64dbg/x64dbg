@@ -22,9 +22,8 @@ StructWidget::StructWidget(QWidget* parent) :
     ui(new Ui::StructWidget)
 {
     ui->setupUi(this);
-    //ui->treeWidget->setStyleSheet("QTreeWidget { background-color: #FFF8F0; alternate-background-color: #DCD9CF; }");
-    ui->treeWidget->setItemDelegate(new RichTextItemDelegate(&mTextColor, ui->treeWidget));
-    connect(Bridge::getBridge(), SIGNAL(typeAddNode(void*, const TYPEDESCRIPTOR*)), this, SLOT(typeAddNode(void*, const TYPEDESCRIPTOR*)));
+    ui->treeWidget->setItemDelegate(new RichTextItemDelegate(ui->treeWidget));
+    connect(Bridge::getBridge(), SIGNAL(typeAddNode(void*, const TYPEDESCRIPTOR*, void**)), this, SLOT(typeAddNode(void*, const TYPEDESCRIPTOR*, void**)));
     connect(Bridge::getBridge(), SIGNAL(typeClear()), this, SLOT(typeClear()));
     connect(Bridge::getBridge(), SIGNAL(typeUpdateWidget()), this, SLOT(typeUpdateWidget()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
@@ -70,11 +69,6 @@ void StructWidget::loadWindowSettings()
 
 void StructWidget::colorsUpdatedSlot()
 {
-    mTextColor = ConfigColor("StructTextColor");
-    auto background = ConfigColor("StructBackgroundColor");
-    auto altBackground = ConfigColor("StructAlternateBackgroundColor");
-    //auto style = QString("QTreeWidget { background-color: %1; alternate-background-color: %2; }").arg(background.name(), altBackground.name());
-    //ui->treeWidget->setStyleSheet(style);
 }
 
 void StructWidget::fontsUpdatedSlot()
@@ -85,7 +79,7 @@ void StructWidget::fontsUpdatedSlot()
     ui->treeWidget->header()->setFont(font);
 }
 
-void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
+void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type, void** result)
 {
     // Disable updates until the next typeUpdateWidget()
     ui->treeWidget->setUpdatesEnabled(false);
@@ -129,6 +123,7 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
     QVariant var;
     var.setValue(dtype);
     item->setData(0, Qt::UserRole, var);
+    *result = item;
 }
 
 void StructWidget::typeClear()
@@ -196,7 +191,7 @@ void StructWidget::setupColumns()
     auto charWidth = ui->treeWidget->fontMetrics().horizontalAdvance(' ');
     ui->treeWidget->setColumnWidth(ColField, 4 + charWidth * 35);
     ui->treeWidget->setColumnWidth(ColOffset, 6 + charWidth * 7);
-    ui->treeWidget->setColumnWidth(ColAddress, 6 + charWidth * 8);
+    ui->treeWidget->setColumnWidth(ColAddress, 6 + charWidth * 16);
     ui->treeWidget->setColumnWidth(ColSize, 4 + charWidth * 6);
 
     // NOTE: Trick to display the expander icons in the second column

@@ -166,9 +166,6 @@ set(hex_viewer_SOURCES
 	cmake.toml
 	"hex_viewer/CodeEditor.cpp"
 	"hex_viewer/CodeEditor.h"
-	"hex_viewer/DataExplorerDialog.cpp"
-	"hex_viewer/DataExplorerDialog.h"
-	"hex_viewer/DataExplorerDialog.ui"
 	"hex_viewer/DataTable.cpp"
 	"hex_viewer/DataTable.h"
 	"hex_viewer/File.cpp"

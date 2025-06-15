@@ -8,13 +8,10 @@ class RichTextItemDelegate : public QStyledItemDelegate
     Q_OBJECT
 
 public:
-    explicit RichTextItemDelegate(QColor* textColor, QObject* parent = nullptr);
+    explicit RichTextItemDelegate(QObject* parent = nullptr);
 
 protected:
     void paint(QPainter* painter, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
     QSize sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const override;
-
-private:
-    QColor* mTextColor = nullptr;
 };
 

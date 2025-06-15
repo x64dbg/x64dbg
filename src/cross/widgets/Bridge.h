@@ -182,6 +182,10 @@ signals:
     void updateDisassembly();
     void dbgStateChanged(DBGSTATE state);
 
+    void typeAddNode(void* parent, const TYPEDESCRIPTOR* descriptor, void** result);
+    void typeClear();
+    void typeUpdateWidget();
+
 public:
     static Bridge* getBridge();
     static void CopyToClipboard(const QString & str);

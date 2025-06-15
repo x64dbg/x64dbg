@@ -26,7 +26,7 @@ public slots:
     void colorsUpdatedSlot();
     void fontsUpdatedSlot();
 
-    void typeAddNode(void* parent, const TYPEDESCRIPTOR* type);
+    void typeAddNode(void* parent, const TYPEDESCRIPTOR* type, void** result);
     void typeClear();
     void typeUpdateWidget();
     void dbgStateChangedSlot(DBGSTATE state);
@@ -35,7 +35,6 @@ private:
     Ui::StructWidget* ui;
     MenuBuilder* mMenuBuilder;
     GotoDialog* mGotoDialog = nullptr;
-    QColor mTextColor;
 
     void setupColumns();
     void setupContextMenu();
