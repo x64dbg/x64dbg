@@ -152,6 +152,7 @@ public slots:
     void copyRvaSlot();
     void gotoPreviousSlot();
     void gotoNextSlot();
+    void updateSelectionUnderline();
 
 private:
     enum GuiState
@@ -209,7 +210,12 @@ private:
     std::vector<uint8_t> mUpdateCacheTemp;
     std::vector<uint8_t> mReadBuffer;
 
+    std::vector<uint8_t> mUnderlineBuffer;
+    std::vector<std::pair<duint, uint8_t>> mUnderlineRanges;
+
 protected:
+    void prepareData() override;
+
     Architecture* mArchitecture = nullptr;
     MemoryPage* mMemPage = nullptr;
     dsint mByteOffset = 0;
@@ -224,5 +230,6 @@ protected:
     QAction* mCopySelection;
     duint mUnderlineRangeStartVa = 0;
     duint mUnderlineRangeEndVa = 0;
-    bool mUnderliningEnabled = true;
+    bool mPointerUnderliningEnabled = true;
+    bool mSelectionUnderliningEnabled = false;
 };

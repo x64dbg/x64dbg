@@ -52,6 +52,7 @@ HexDump::HexDump(Architecture* architecture, QWidget* parent, MemoryPage* memPag
     // Slots
     connect(Bridge::getBridge(), SIGNAL(updateDump()), this, SLOT(updateDumpSlot()));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(debugStateChanged(DBGSTATE)));
+    connect(this, &HexDump::selectionUpdated, this, &HexDump::updateSelectionUnderline);
     setupCopyMenu();
 
     Initialize();
@@ -213,6 +214,82 @@ void HexDump::gotoPreviousSlot()
 void HexDump::gotoNextSlot()
 {
     printDumpAt(mHistory.historyNext());
+}
+
+void HexDump::updateSelectionUnderline()
+{
+    mUnderlineRanges.clear();
+
+    duint viewStart = getTableOffset() * getBytePerRowCount();
+    duint viewSize = getViewableRowsCount() * getBytePerRowCount();
+    duint viewEnd = viewStart + viewSize;
+
+    duint selectionSize = mSelection.toIndex - mSelection.fromIndex + 1;
+    if(selectionSize > viewSize)
+    {
+        qDebug() << "Selection too big for highlighting!";
+        return;
+    }
+
+    std::vector<uint8_t> pattern(selectionSize);
+    if(!mMemPage->read(pattern.data(), mSelection.fromIndex, pattern.size()))
+    {
+        qDebug() << "Failed to read memory";
+        return;
+    }
+
+    dsint scanRva = viewStart - pattern.size();
+    duint scanSize = viewSize + pattern.size() * 2;
+
+    if(scanRva < 0)
+    {
+        duint adjust = -scanRva;
+        scanRva += adjust;
+        scanSize -= adjust;
+    }
+
+    duint endRva = mMemPage->getBase() + mMemPage->getSize();
+    if(scanRva + scanSize > endRva)
+    {
+        duint adjust = scanRva + scanSize - endRva;
+        scanSize -= adjust;
+    }
+
+    if(scanSize < pattern.size())
+    {
+        qDebug() << "data too small for highlighting (should not be possible)";
+        return;
+    }
+
+
+    mUnderlineBuffer.resize(scanSize);
+    if(!mMemPage->read(mUnderlineBuffer.data(), scanRva, scanSize))
+    {
+        qDebug() << "failed to read highlight scan buffer";
+        return;
+    }
+
+    for(size_t i = 0; i < scanSize - pattern.size(); i++)
+    {
+        duint hcur = scanRva + i;
+        if(memcmp(pattern.data(), mUnderlineBuffer.data() + i, pattern.size()) == 0)
+        {
+            if(hcur < mSelection.fromIndex || hcur >= mSelection.fromIndex + selectionSize)
+            {
+                mUnderlineRanges.emplace_back(hcur, pattern.size());
+                i += pattern.size() - 1;
+            }
+        }
+    }
+}
+
+void HexDump::prepareData()
+{
+    AbstractTableView::prepareData();
+    if(mSelectionUnderliningEnabled && mMemPage->getSize() > 0)
+    {
+        updateSelectionUnderline();
+    }
 }
 
 duint HexDump::rvaToVa(duint rva) const
@@ -790,12 +867,15 @@ void HexDump::getColumnRichText(duint col, duint rva, RichTextPainter::List & ri
     curData.flags = RichTextPainter::FlagAll;
     curData.textColor = mTextColor;
     curData.textBackground = Qt::transparent;
-    curData.underlineColor = Qt::transparent;
 
     RichTextPainter::CustomRichText_t spaceData;
     spaceData.underline = false;
     spaceData.flags = RichTextPainter::FlagNone;
-    spaceData.underlineColor = Qt::transparent;
+
+    // Selection underlining
+    spaceData.underlineColor = curData.underlineColor = mSeparatorColor;
+    spaceData.underlineWidth = curData.underlineWidth = 2;
+    spaceData.underlineConnectPrev = curData.underlineConnectPrev = true;
 
     if(!col) //address
     {
@@ -806,8 +886,8 @@ void HexDump::getColumnRichText(duint col, duint rva, RichTextPainter::List & ri
     {
         const ColumnDescriptor & desc = mDescriptor.at(col - 1);
 
-        auto byteCount = getSizeOf(desc.data.itemSize);
-        auto bufferByteCount = desc.itemCount * byteCount;
+        auto itemSizeBytes = getSizeOf(desc.data.itemSize);
+        auto bufferByteCount = desc.itemCount * itemSizeBytes;
 
         bufferByteCount = bufferByteCount > (mMemPage->getSize() - rva) ? mMemPage->getSize() - rva : bufferByteCount;
 
@@ -848,38 +928,65 @@ void HexDump::getColumnRichText(duint col, duint rva, RichTextPainter::List & ri
                 curData.flags = RichTextPainter::FlagAll;
 
                 int maxLen = getStringMaxLength(desc.data);
-                if((rva + i + byteCount - 1) < mMemPage->getSize())
+                if((rva + i + itemSizeBytes - 1) < mMemPage->getSize())
                 {
-                    toString(desc.data, rva + i * byteCount, data + i * byteCount, curData);
+                    duint itemRva = rva + i * itemSizeBytes;
+                    toString(desc.data, itemRva, data + i * itemSizeBytes, curData);
+
+                    if(mSelectionUnderliningEnabled)
+                    {
+                        curData.underline = false;
+                        spaceData.underline = false;
+                        for(const auto [rangeRva, rangeSize] : mUnderlineRanges)
+                        {
+                            if(itemRva >= rangeRva && itemRva + itemSizeBytes <= rangeRva + rangeSize)
+                            {
+                                curData.underline = true;
+                                spaceData.underline = itemRva + itemSizeBytes + 1 <= rangeRva + rangeSize;
+                                break;
+                            }
+                        }
+                    }
+
                     if(curData.text.length() < maxLen)
                     {
                         spaceData.text = QString(' ').repeated(maxLen - curData.text.length());
                         richText.push_back(spaceData);
                     }
-                    if(mUnderliningEnabled && i % sizeof(duint) == 0 && byteCount == 1 && desc.data.byteMode == HexByte) //pointer underlining
+
+                    // Pointer underlining
+                    if(mPointerUnderliningEnabled)
                     {
-                        auto ptr = *(duint*)(data + i * byteCount);
-                        if((spaceData.underline = curData.underline = DbgMemIsValidReadPtr(ptr)))
+                        if(i % sizeof(duint) == 0 && itemSizeBytes == 1 && desc.data.byteMode == HexByte)
                         {
-                            auto codePage = DbgFunctions()->MemIsCodePage(ptr, false);
-                            auto modbase = DbgFunctions()->ModBaseFromAddr(ptr);
-                            if(modbase)
+                            auto ptr = *(duint*)(data + i * itemSizeBytes);
+                            if((spaceData.underline = curData.underline = DbgMemIsValidReadPtr(ptr)))
                             {
-                                if(DbgFunctions()->ModGetParty(modbase) == 1) //system
-                                    spaceData.underlineColor = curData.underlineColor = codePage ? mSystemModuleCodePointerHighlightColor : mSystemModuleDataPointerHighlightColor;
-                                else //user
-                                    spaceData.underlineColor = curData.underlineColor = codePage ? mUserModuleCodePointerHighlightColor : mUserModuleDataPointerHighlightColor;
+                                auto codePage = DbgFunctions()->MemIsCodePage(ptr, false);
+                                auto modbase = DbgFunctions()->ModBaseFromAddr(ptr);
+                                if(modbase)
+                                {
+                                    if(DbgFunctions()->ModGetParty(modbase) == 1) //system
+                                        spaceData.underlineColor = curData.underlineColor = codePage ? mSystemModuleCodePointerHighlightColor : mSystemModuleDataPointerHighlightColor;
+                                    else //user
+                                        spaceData.underlineColor = curData.underlineColor = codePage ? mUserModuleCodePointerHighlightColor : mUserModuleDataPointerHighlightColor;
+                                }
+                                else
+                                    spaceData.underlineColor = curData.underlineColor = codePage ? mUnknownCodePointerHighlightColor : mUnknownDataPointerHighlightColor;
                             }
-                            else
-                                spaceData.underlineColor = curData.underlineColor = codePage ? mUnknownCodePointerHighlightColor : mUnknownDataPointerHighlightColor;
+                        }
+                        else
+                        {
+                            spaceData.underlineColor = curData.underlineColor = mSeparatorColor;
                         }
                     }
                     richText.push_back(curData);
                     if(maxLen)
                     {
                         spaceData.text = QString(' ');
-                        if(i % sizeof(duint) == sizeof(duint) - 1)
-                            spaceData.underline = false;
+                        // TODO: this is wrong, probably should be something slightly different
+                        /*if(i % sizeof(duint) == sizeof(duint) - 1)
+                            spaceData.underline = false;*/
                         richText.push_back(spaceData);
                     }
                 }
