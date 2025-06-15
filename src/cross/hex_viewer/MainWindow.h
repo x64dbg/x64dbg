@@ -30,6 +30,7 @@ public:
 private slots:
     void onButtonRunPressed();
     void onLogAnchorClicked(const QUrl & url);
+    void gotoHexDump(duint address, duint size);
 
     void on_action_Load_file_triggered();
 

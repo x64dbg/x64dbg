@@ -166,7 +166,7 @@ void MainWindow::setupNavigation()
         {
         case Navigation::Dump:
             qDebug() << "Dump at: " << address;
-            mHexDump->printDumpAt(address);
+            gotoHexDump(address, 1);
             break;
         default:
             qDebug() << "Unknown window: " << window;
@@ -211,6 +211,7 @@ void MainWindow::setupWidgets()
     {
         mDataTable->selectionChanged(mHexDump->getSelectionStart(), mHexDump->getSelectionEnd());
     });
+    connect(mStructWidget, &StructWidget::selectionUpdated, this, &MainWindow::gotoHexDump);
 
     auto hl = new QHBoxLayout();
     //hl->addSpacing()
@@ -232,13 +233,13 @@ void MainWindow::setupWidgets()
 
     auto codeSplitter = new QSplitter(Qt::Vertical, this);
     codeSplitter->addWidget(codeWidget);
-    codeSplitter->addWidget(mLogBrowser);
+    codeSplitter->addWidget(mStructWidget);
     codeSplitter->setStretchFactor(0, 80);
     codeSplitter->setStretchFactor(0, 20);
 
     mStructTabs = new QTabWidget(this);
-    mStructTabs->addTab(mDataTable, "Data");
-    mStructTabs->addTab(mStructWidget, "Struct");
+    mStructTabs->addTab(mDataTable, "Inspector");
+    mStructTabs->addTab(mLogBrowser, "Console");
 
     auto hexSplitter = new QSplitter(Qt::Vertical, this);
     hexSplitter->addWidget(mHexDump);
@@ -312,6 +313,27 @@ void MainWindow::evalError(const EvalError & error)
     }
 }
 
+void MainWindow::gotoHexDump(duint address, duint size)
+{
+    duint viewStart = mHexDump->getTableOffset() * mHexDump->getBytePerRowCount();
+    duint viewSize = mHexDump->getViewableRowsCount() * mHexDump->getBytePerRowCount();
+    duint viewEnd = viewStart + viewSize;
+    duint alignedAddress = address - address % 16;
+    // Make sure the address is in view
+    if(address < viewStart || address >= viewEnd)
+    {
+        mHexDump->printDumpAt(alignedAddress, false, false, true);
+    }
+    // Go to the aligned address and then set the selection
+    mHexDump->printDumpAt(alignedAddress, true, false, false);
+    mHexDump->setSingleSelection(address);
+    if(size > 1)
+    {
+        mHexDump->expandSelectionUpTo(address + size - 1);
+    }
+    mHexDump->updateViewport();
+}
+
 void MainWindow::onLogAnchorClicked(const QUrl & url)
 {
     if(url.scheme() == "navigate")
@@ -382,10 +404,7 @@ void MainWindow::onButtonRunPressed()
     mCodeEditor->setErrorLine(-1);
     auto status = PatternRun(&args);
     emit Bridge::getBridge()->typeUpdateWidget();
-    if(status == PatternSuccess)
-    {
-        mStructTabs->setCurrentIndex(1);
-    }
+    mStructTabs->setCurrentIndex(1);
 }
 
 

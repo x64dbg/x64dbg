@@ -10,6 +10,10 @@
 #include "MiscUtil.h"
 #include "RichTextItemDelegate.h"
 
+#define hasSelection !!ui->treeWidget->selectedItems().count()
+#define selectedItem ui->treeWidget->selectedItems()[0]
+#define selectedType selectedItem->data(0, Qt::UserRole).value<TypeDescriptor>().type
+
 struct TypeDescriptor
 {
     TYPEDESCRIPTOR type = {};
@@ -34,6 +38,14 @@ StructWidget::StructWidget(QWidget* parent) :
     fontsUpdatedSlot();
     setupColumns();
     setupContextMenu();
+
+    connect(ui->treeWidget, &QTreeWidget::itemSelectionChanged, [this]()
+    {
+        if(hasSelection)
+        {
+            emit selectionUpdated(selectedType.addr + selectedType.offset, selectedType.sizeBits / 8);
+        }
+    });
 }
 
 StructWidget::~StructWidget()
@@ -113,9 +125,9 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type, void** 
     text[ColOffset] = "+0x" + ToHexString(dtype.type.offset);
     text[ColField] = dtype.name;
     if(dtype.type.offset == 0 && true)
-        text[ColAddress] = QString("<u>%1</u>").arg(ToPtrString(dtype.type.addr + dtype.type.offset));
+        text[ColAddress] = QString("<u>%1</u>").arg(ToHexString(dtype.type.addr + dtype.type.offset));
     else
-        text[ColAddress] = ToPtrString(dtype.type.addr + dtype.type.offset);
+        text[ColAddress] = ToHexString(dtype.type.addr + dtype.type.offset);
     text[ColSize] = "0x" + ToHexString(dtype.type.sizeBits / 8);
     text[ColValue] = ""; // NOTE: filled in later
     QTreeWidgetItem* item = parent ? new QTreeWidgetItem((QTreeWidgetItem*)parent, text) : new QTreeWidgetItem(ui->treeWidget, text);
@@ -142,7 +154,7 @@ void StructWidget::typeUpdateWidget()
         type.type.name = name.constData();
 
         auto addr = type.type.addr + type.type.offset;
-        item->setText(ColAddress, ToPtrString(addr));
+        item->setText(ColAddress, ToHexString(addr));
         QString valueStr;
 
         if(type.type.callback) //use the provided callback
@@ -191,17 +203,13 @@ void StructWidget::setupColumns()
     auto charWidth = ui->treeWidget->fontMetrics().horizontalAdvance(' ');
     ui->treeWidget->setColumnWidth(ColField, 4 + charWidth * 35);
     ui->treeWidget->setColumnWidth(ColOffset, 6 + charWidth * 7);
-    ui->treeWidget->setColumnWidth(ColAddress, 6 + charWidth * 16);
+    ui->treeWidget->setColumnWidth(ColAddress, 6 + charWidth * 8);
     ui->treeWidget->setColumnWidth(ColSize, 4 + charWidth * 6);
 
     // NOTE: Trick to display the expander icons in the second column
     // Reference: https://stackoverflow.com/a/25887454/1806760
     // ui->treeWidget->header()->moveSection(ColField, ColOffset);
 }
-
-#define hasSelection !!ui->treeWidget->selectedItems().count()
-#define selectedItem ui->treeWidget->selectedItems()[0]
-#define selectedType selectedItem->data(0, Qt::UserRole).value<TypeDescriptor>().type
 
 void StructWidget::setupContextMenu()
 {

@@ -31,6 +31,9 @@ public slots:
     void typeUpdateWidget();
     void dbgStateChangedSlot(DBGSTATE state);
 
+signals:
+    void selectionUpdated(duint address, duint size);
+
 private:
     Ui::StructWidget* ui;
     MenuBuilder* mMenuBuilder;

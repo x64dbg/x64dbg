@@ -6,7 +6,8 @@ MiniHexDump::MiniHexDump(Navigation* navigation, Architecture* architecture, QWi
     : HexDump(architecture, parent)
     , mNavigation(navigation)
 {
-    mUnderliningEnabled = false;
+    mPointerUnderliningEnabled = false;
+    mSelectionUnderliningEnabled = true;
     hexAsciiSlot();
     setupMenu();
 }
