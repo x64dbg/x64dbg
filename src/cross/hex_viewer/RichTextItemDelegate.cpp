@@ -5,9 +5,8 @@
 #include <QAbstractTextDocumentLayout>
 #include <QApplication>
 
-RichTextItemDelegate::RichTextItemDelegate(QColor* textColor, QObject* parent)
-    : QStyledItemDelegate(parent),
-      mTextColor(textColor)
+RichTextItemDelegate::RichTextItemDelegate(QObject* parent)
+    : QStyledItemDelegate(parent)
 {
 }
 
@@ -33,7 +32,16 @@ void RichTextItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem &
 
     QTextDocument doc;
     doc.setDefaultTextOption(textOption);
-    doc.setHtml(QString("<font color=\"%1\">%2</font>").arg(mTextColor->name(), option.text));
+    QString textColor;
+    if(option.state & QStyle::State_Selected)
+    {
+        textColor = option.palette.highlightedText().color().name();
+    }
+    else
+    {
+        textColor = option.palette.text().color().name();
+    }
+    doc.setHtml(QString("<font color=\"%1\">%2</font>").arg(textColor, option.text));
     doc.setDefaultFont(option.font);
     doc.setDocumentMargin(0);
     doc.setTextWidth(option.rect.width());

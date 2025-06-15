@@ -113,6 +113,7 @@ int main(int argc, char* argv[])
     palette.setColor(QPalette::Link, oneDarkFunction);
     palette.setColor(QPalette::LinkVisited, oneDarkFunction);
     palette.setColor(QPalette::Highlight, oneDarkFunction);
+    palette.setColor(QPalette::Highlight, oneDarkFunction);
     palette.setColor(QPalette::HighlightedText, oneDarkBackground);
 
     palette.setColor(QPalette::Light, oneDarkBackground.lighter(120));
@@ -122,6 +123,7 @@ int main(int argc, char* argv[])
     palette.setColor(QPalette::Shadow, oneDarkBackground.darker(160));
 
     palette.setColor(QPalette::Disabled, QPalette::WindowText, oneDarkComment);
+    palette.setColor(QPalette::Disabled, QPalette::Text, oneDarkComment);
     palette.setColor(QPalette::Disabled, QPalette::Text, oneDarkComment);
     palette.setColor(QPalette::Disabled, QPalette::ButtonText, oneDarkComment);
     palette.setColor(QPalette::Disabled, QPalette::Highlight, oneDarkBackground.darker(150));

@@ -240,9 +240,9 @@ private:
                 [&](const std::shared_ptr<ptrn::Pattern> & value) -> std::string
                 { return ::fmt::format("\"{}\"", value->toString()); },
                 [&](const u128 & value) -> std::string
-                {return "nope"; },
+                {return ::fmt::format("{}", value); },
                 [&](const i128 & value) -> std::string
-                {return "nope"; },
+                {return ::fmt::format("{}", value); },
             }, pattern->getValue());
         }
 

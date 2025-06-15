@@ -10,6 +10,7 @@
 #include "File.h"
 #include "CodeEditor.h"
 #include "PatternHighlighter.h"
+#include "PatternLanguage.h"
 #include "StructWidget.h"
 #include <QTextBrowser>
 #include "DataTable.h"
@@ -27,12 +28,18 @@ public:
     ~MainWindow();
 
 private slots:
+    void onButtonRunPressed();
+    void onLogAnchorClicked(const QUrl & url);
+
     void on_action_Load_file_triggered();
 
 private:
     void loadFile(const QString & path);
     void setupNavigation();
     void setupWidgets();
+    void logHandler(LogLevel level, const char* message);
+    void compileError(const CompileError & error);
+    void evalError(const EvalError & error);
 
 private:
     Ui::MainWindow* ui = nullptr;
@@ -44,5 +51,7 @@ private:
     QTextBrowser* mLogBrowser = nullptr;
     StructWidget* mStructWidget = nullptr;
     DataTable* mDataTable = nullptr;
+    class PatternVisitor* mVisitor = nullptr;
+    QTabWidget* mStructTabs = nullptr;
 };
 #endif // MAINWINDOW_H
