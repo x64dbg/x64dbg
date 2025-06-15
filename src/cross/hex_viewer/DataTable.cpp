@@ -10,6 +10,18 @@ DataTable::DataTable(QWidget *parent)
         mTypes.emplace_back(name, std::move(fn));
     };
 
+    type("Address", [this](duint start, duint end) {
+        auto size = end - start + 1;
+        if(size > 1)
+        {
+            return QString("0x%1 - 0x%2 (0x%3 bytes)").arg(ToHexString(start)).arg(ToHexString(end)).arg(ToHexString(size));
+        }
+        else
+        {
+            return "0x" + ToHexString(start);
+        }
+    });
+
     type("Binary (u8)", [this](duint start, duint end) {
         uint8_t data = 0;
         read(&data, start, sizeof(data));
