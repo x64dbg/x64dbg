@@ -706,7 +706,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.name = tname.c_str();
         td.addr = mAddr;
         td.offset = mOffset;
-        td.id = Alias;
+        td.id = type.typeId;
         td.sizeBits = type.sizeBits;
         td.callback = nullptr;
         td.userdata = nullptr;
@@ -854,7 +854,28 @@ bool cbInstrVisitType(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
         return false;
-    auto type = argv[1];
+
+    std::string type;
+    if(argv[1][0] == '#')
+    {
+        duint typeId;
+        if(!valfromstring(argv[1] + 1, &typeId, false))
+            return false;
+
+        const TypeBase* typeDescriptor = LookupTypeById(typeId);
+        if(!typeDescriptor || !typeDescriptor->name.c_str())
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Invalid type ID"));
+            return false;
+        }
+
+        type = typeDescriptor->name;
+    }
+    else
+    {
+        type = argv[1];
+    }
+
     auto name = "display";
     duint addr = 0;
     auto maxPtrDepth = 2;
@@ -878,6 +899,7 @@ bool cbInstrVisitType(int argc, char* argv[])
                 name = argv[4];
         }
     }
+
     PrintVisitor visitor(addr, maxPtrDepth);
     if(!VisitType(type, name, visitor))
     {

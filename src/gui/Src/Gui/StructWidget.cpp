@@ -1,14 +1,14 @@
 #include <QFileDialog>
 #include <QTextDocumentFragment>
 
-#include "StructWidget.h"
-#include "ui_StructWidget.h"
 #include "Configuration.h"
-#include "MenuBuilder.h"
 #include "GotoDialog.h"
-#include "StringUtil.h"
+#include "MenuBuilder.h"
 #include "MiscUtil.h"
 #include "RichTextItemDelegate.h"
+#include "StringUtil.h"
+#include "StructWidget.h"
+#include "ui_StructWidget.h"
 
 struct TypeDescriptor
 {
@@ -129,10 +129,20 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
         text[ColAddress] = ToPtrString(dtype.type.addr + dtype.type.offset);
     text[ColSize] = "0x" + ToHexString(dtype.type.sizeBits / 8);
     text[ColValue] = ""; // NOTE: filled in later
+
     QTreeWidgetItem* item = nullptr;
     if(parent == nullptr)
     {
-        item = new QTreeWidgetItem(ui->treeWidget, text);
+        if(mInsertIndex != -1)
+        {
+            item = new QTreeWidgetItem(text);
+            ui->treeWidget->insertTopLevelItem(mInsertIndex, item);
+        }
+        else
+        {
+            item = new QTreeWidgetItem(ui->treeWidget, text);
+        }
+
         // Scroll to the new root node in typeUpdateWidget
         mScrollItem = dtype.type.expanded ? item : nullptr;
     }
@@ -140,13 +150,15 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
     {
         item = new QTreeWidgetItem((QTreeWidgetItem*)parent, text);
     }
+
     item->setExpanded(dtype.type.expanded);
+
     QVariant var;
     var.setValue(dtype);
     item->setData(0, Qt::UserRole, var);
+
     Bridge::getBridge()->setResult(BridgeResult::TypeAddNode, dsint(item));
 }
-
 void StructWidget::typeClear()
 {
     ui->treeWidget->clear();
@@ -261,6 +273,10 @@ void StructWidget::setupContextMenu()
     });
     mMenuBuilder->addAction(makeAction(DIcon("eraser"), tr("Clear"), SLOT(clearSlot())));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
+    mMenuBuilder->addAction(makeAction(DIcon("reload"), tr("Reload Type"), SLOT(reloadTypeSlot())), [this](QMenu*)
+    {
+        return hasSelection && !selectedItem->parent(); // Only allow for top-level types
+    });
 
     auto copyMenu = new MenuBuilder(this);
     auto columnCount = ui->treeWidget->columnCount();
@@ -468,8 +484,41 @@ void StructWidget::changeAddrSlot()
 void StructWidget::refreshSlot()
 {
     typeUpdateWidget();
+
+    // Update mInsertIndex to the current row index of the selected item
+    if(hasSelection)
+        mInsertIndex = ui->treeWidget->currentIndex().row();
+    else
+        mInsertIndex = -1; // Reset if no selection
 }
 
+void StructWidget::reloadTypeSlot()
+{
+    if(!hasSelection || !DbgIsDebugging())
+        return;
+
+    auto selectedAddr = selectedType.addr + selectedType.offset;
+
+    QTreeWidgetItem* parentItem = selectedItem->parent();
+    mInsertIndex = parentItem ? parentItem->indexOfChild(selectedItem) : ui->treeWidget->indexOfTopLevelItem(selectedItem);
+
+    auto type = selectedItem->data(0, Qt::UserRole).value<TypeDescriptor>();
+    auto typeId = type.type.id;
+
+    delete selectedItem;
+
+    DbgCmdExec(QString("DisplayType #.%1, %2").arg(typeId).arg(ToPtrString(selectedAddr)));
+    refreshSlot();
+
+    if(mInsertIndex != -1)
+    {
+        QTreeWidgetItem* newItem = ui->treeWidget->topLevelItem(ui->treeWidget->topLevelItemCount() - 1);
+        if(parentItem)
+            parentItem->insertChild(mInsertIndex, newItem);
+        else
+            ui->treeWidget->insertTopLevelItem(mInsertIndex, newItem);
+    }
+}
 void StructWidget::copyColumnSlot()
 {
     QAction* action = qobject_cast<QAction*>(sender());

@@ -37,6 +37,7 @@ private:
     MenuBuilder* mMenuBuilder;
     GotoDialog* mGotoDialog = nullptr;
     QColor mTextColor;
+    int mInsertIndex = -1;
     class QTreeWidgetItem* mScrollItem = nullptr;
 
     void setupColumns();
@@ -66,5 +67,6 @@ private slots:
     void parseFileSlot();
     void changeAddrSlot();
     void refreshSlot();
+    void reloadTypeSlot();
     void copyColumnSlot();
 };
