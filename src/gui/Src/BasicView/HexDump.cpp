@@ -4,6 +4,7 @@
 #include "StringUtil.h"
 #include <QMessageBox>
 #include <QFloat16>
+#include <QDebug>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QStringDecoder>
@@ -937,8 +938,10 @@ void HexDump::getColumnRichText(duint col, duint rva, RichTextPainter::List & ri
                     {
                         curData.underline = false;
                         spaceData.underline = false;
-                        for(const auto [rangeRva, rangeSize] : mUnderlineRanges)
+                        for(const auto & itr : mUnderlineRanges)
                         {
+                            auto rangeRva = itr.first;
+                            auto rangeSize = itr.second;
                             if(itemRva >= rangeRva && itemRva + itemSizeBytes <= rangeRva + rangeSize)
                             {
                                 curData.underline = true;

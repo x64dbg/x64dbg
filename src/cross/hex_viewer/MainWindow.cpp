@@ -80,7 +80,7 @@ struct PatternVisitor
                info.offset,
                info.size,
                info.line
-               );
+              );
         return node;
     }
 

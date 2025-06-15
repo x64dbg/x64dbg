@@ -211,7 +211,7 @@ private:
     std::vector<uint8_t> mReadBuffer;
 
     std::vector<uint8_t> mUnderlineBuffer;
-    std::vector<std::pair<duint, uint8_t>> mUnderlineRanges;
+    std::vector<std::pair<duint, duint>> mUnderlineRanges;
 
 protected:
     void prepareData() override;
