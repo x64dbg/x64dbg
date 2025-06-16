@@ -283,6 +283,7 @@ public slots:
     void followDisassemblySlot();
     void refreshSlot();
     void saveImageSlot();
+    void copyImageSlot();
     void xrefSlot();
     void mnemonicHelpSlot();
     void fitToWindowSlot();
@@ -392,4 +393,5 @@ private:
 
     void addReferenceAction(QMenu* menu, duint addr, const QString & description);
     bool getHighlightedTokenValueText(QString & text) const;
+    QImage getImage();
 };
