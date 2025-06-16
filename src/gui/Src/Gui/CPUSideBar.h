@@ -84,10 +84,12 @@ private:
         int line = 0;
         int startX = 0;
         int endX = 0;
+        int textWidth = 0;
+        QString text;
     };
 
     void AllocateJumpOffsets(std::vector<JumpLine> & jumpLines, std::vector<LabelArrow> & labelArrows);
-    LabelArrow drawLabel(QPainter* painter, int Line, const QString & Text);
+    LabelArrow makeLabelArrow(int Line, const QString & Text);
     void drawLabelArrows(QPainter* painter, const std::vector<LabelArrow> & labelArrows);
 
     // Configuration

@@ -215,11 +215,8 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
     std::vector<JumpLine> jumpLines;
     std::vector<LabelArrow> labelArrows;
 
-    for(duint line = 0; line < mViewableRows; line++)
+    for(duint line = 0; line < mViewableRows && line < (duint)mInstrBuffer->size(); line++)
     {
-        if(line >= (duint)mInstrBuffer->size()) //at the end of the page it will crash otherwise
-            break;
-
         const Instruction_t & instr = mInstrBuffer->at(line);
         duint instrVA = instr.rva + mDisassembly->getBase();
         duint instrVAEnd = instrVA + instr.length;
@@ -287,8 +284,13 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
         if(regLabelText.size())
         {
             regLabelText.chop(1);
-            labelArrows.push_back(drawLabel(&painter, line, regLabelText));
+            labelArrows.push_back(makeLabelArrow(line, regLabelText));
         }
+    }
+    for(duint line = 0; line < mViewableRows && line < (duint)mInstrBuffer->size(); line++)
+    {
+        const Instruction_t & instr = mInstrBuffer->at(line);
+        duint instrVA = instr.rva + mDisassembly->getBase();
 
         if(isFoldingGraphicsPresent(line) == 1)
         {
@@ -711,42 +713,14 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
     painter->restore();
 }
 
-CPUSideBar::LabelArrow CPUSideBar::drawLabel(QPainter* painter, int Line, const QString & Text)
+CPUSideBar::LabelArrow CPUSideBar::makeLabelArrow(int Line, const QString & Text)
 {
-    painter->save();
-    const int LineCoordinate = mFontHeight * (1 + Line);
-
-    const QColor & IPLabel = mCipLabelColor;
-    const QColor & IPLabelBG = mCipLabelBackgroundColor;
-
-    int width = mFontMetrics->width(Text);
-    int x = 1;
-    int y = LineCoordinate - mFontHeight;
-
-    QRect rect(x, y, width, mFontHeight - 1);
-
-    // Draw rectangle
-    painter->setBrush(IPLabelBG);
-    painter->setPen(IPLabelBG);
-    painter->drawRect(rect);
-
-    // Draw text inside the rectangle
-    painter->setPen(IPLabel);
-    painter->drawText(rect, Qt::AlignHCenter | Qt::AlignVCenter, Text);
-
-    // Draw arrow
-    /*y = fontHeight * (1 + Line) - 0.5 * fontHeight;
-
-    painter->setPen(QPen(IPLabelBG, 2.0));
-    painter->setBrush(QBrush(IPLabelBG));
-    drawStraightArrow(painter, rect.right() + 2, y, viewport()->width() - x - 11 - (isFoldingGraphicsPresent(Line) != 0 ? mBulletRadius + fontHeight : 0), y);*/
-
     LabelArrow labelArrow;
+    labelArrow.text = Text;
+    labelArrow.textWidth = mFontMetrics->width(Text);
     labelArrow.line = Line;
-    labelArrow.startX = rect.right() + 2;
+    labelArrow.startX = 1 + labelArrow.textWidth + 2;
     labelArrow.endX = 0;
-
-    painter->restore();
 
     return labelArrow;
 }
@@ -756,11 +730,31 @@ void CPUSideBar::drawLabelArrows(QPainter* painter, const std::vector<LabelArrow
     if(!labelArrows.empty())
     {
         painter->save();
-        painter->setPen(QPen(mCipLabelBackgroundColor, 2.0));
-        for(auto i : labelArrows)
+
+        for(auto & i : labelArrows)
         {
+            const int LineCoordinate = mFontHeight * (1 + i.line);
+
+            const QColor & IPLabel = mCipLabelColor;
+            const QColor & IPLabelBG = mCipLabelBackgroundColor;
+
+            int x = 1;
+            int y = LineCoordinate - mFontHeight;
+
+            QRect rect(x, y, i.textWidth, mFontHeight - 1);
+
+            // Draw rectangle
+            painter->setBrush(IPLabelBG);
+            painter->setPen(IPLabelBG);
+            painter->drawRect(rect);
+
+            // Draw text inside the rectangle
+            painter->setPen(IPLabel);
+            painter->drawText(rect, Qt::AlignHCenter | Qt::AlignVCenter, i.text);
+
             if(i.startX < i.endX)
             {
+                painter->setPen(QPen(mCipLabelBackgroundColor, 2.0));
                 int y = mFontHeight * (1 + i.line) - 0.5 * mFontHeight;
                 drawStraightArrow(painter, i.startX, y, i.endX, y);
             }
