@@ -152,6 +152,7 @@
     <ClInclude Include="analysis\recursiveanalysis.h" />
     <ClInclude Include="analysis\xrefsanalysis.h" />
     <ClInclude Include="animate.h" />
+    <ClInclude Include="args.h" />
     <ClInclude Include="argument.h" />
     <ClInclude Include="assemble.h" />
     <ClInclude Include="bookmark.h" />

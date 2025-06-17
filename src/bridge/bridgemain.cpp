@@ -13,6 +13,7 @@
 
 static HINSTANCE hInst;
 static Utf8Ini settings;
+static wchar_t szWorkingDirectory[MAX_PATH] = L"";
 static wchar_t szUserDirectory[MAX_PATH] = L"";
 static wchar_t szIniFile[MAX_PATH] = L"";
 static CRITICAL_SECTION csIni;
@@ -78,6 +79,9 @@ static const wchar_t* InitializeUserDirectory(HINSTANCE hMainModule, const wchar
         return L"Error getting module directory!";
 
     *backslash = L'\0';
+
+    // Preserve the working directory for the debuggee
+    GetCurrentDirectoryW(_countof(szWorkingDirectory), szWorkingDirectory);
 
     // Set the current directory to the application directory
     SetCurrentDirectoryW(szUserDirectory);
@@ -475,6 +479,11 @@ BRIDGE_IMPEXP unsigned int BridgeGetNtBuildNumber()
         NtBuildNumber = NtBuildNumber7;
     }
     return NtBuildNumber;
+}
+
+BRIDGE_IMPEXP const wchar_t* BridgeWorkingDirectory()
+{
+    return szWorkingDirectory;
 }
 
 BRIDGE_IMPEXP const wchar_t* BridgeUserDirectory()

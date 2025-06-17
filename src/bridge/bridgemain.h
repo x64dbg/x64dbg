@@ -147,6 +147,12 @@ BRIDGE_IMPEXP bool BridgeIsProcessElevated();
 BRIDGE_IMPEXP unsigned int BridgeGetNtBuildNumber();
 
 /// <summary>
+/// Returns the original working directory when starting the debugger.
+/// The working directory is changed to the x64dbg directory after initialization.
+/// </summary>
+BRIDGE_IMPEXP const wchar_t* BridgeWorkingDirectory();
+
+/// <summary>
 /// Returns the user directory (without trailing backslash).
 /// </summary>
 BRIDGE_IMPEXP const wchar_t* BridgeUserDirectory();

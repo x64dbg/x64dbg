@@ -15,6 +15,7 @@
 #include "../exe/LoadResourceString.h"
 #include "../exe/icon.h"
 #include "../dbg/GetPeArch.h"
+#include "../dbg/stringutils.h"
 
 static bool FileExists(const TCHAR* file)
 {
@@ -586,6 +587,13 @@ static void EnableHiDPI()
     }
 }
 
+static std::wstring escape(std::wstring cmdline)
+{
+    StringUtils::ReplaceAll(cmdline, L"\\", L"\\\\");
+    StringUtils::ReplaceAll(cmdline, L"\"", L"\\\"");
+    return cmdline;
+}
+
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
     EnableHiDPI();
@@ -793,42 +801,27 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         else if(!ResolveShortcut(nullptr, argv[1], szPath, _countof(szPath))) //attempt to resolve the shortcut path
             _tcscpy_s(szPath, argv[1]); //fall back to the origin full path
 
-        std::wstring cmdLine, escaped;
+        //append current working directory
+        std::wstring cmdLine;
+        TCHAR szCurDir[MAX_PATH] = TEXT("");
+        GetCurrentDirectory(_countof(szCurDir), szCurDir);
+        cmdLine += L"-workingDir \"";
+        cmdLine += szCurDir;
+        cmdLine += L"\" ";
+
+        //append the path to the executable
         cmdLine.push_back(L'\"');
         cmdLine += szPath;
         cmdLine.push_back(L'\"');
+
         if(argc > 2) //forward any commandline parameters
         {
-            cmdLine += L" \"";
+            cmdLine += L" --";
             for(auto i = 2; i < argc; i++)
             {
-                if(i > 2)
-                    cmdLine.push_back(L' ');
-
-                escaped.clear();
-                auto len = wcslen(argv[i]);
-                for(size_t j = 0; j < len; j++)
-                {
-                    if(argv[i][j] == L'\"')
-                        escaped.push_back(L'\"');
-                    escaped.push_back(argv[i][j]);
-                }
-
-                cmdLine += escaped;
+                cmdLine += StringUtils::sprintf(L" \"%s\"", escape(argv[i]).c_str());
             }
-            cmdLine += L"\"";
         }
-        else //empty command line
-        {
-            cmdLine += L" \"\"";
-        }
-
-        //append current working directory
-        TCHAR szCurDir[MAX_PATH] = TEXT("");
-        GetCurrentDirectory(_countof(szCurDir), szCurDir);
-        cmdLine += L" \"";
-        cmdLine += szCurDir;
-        cmdLine += L"\"";
 
         if(canDisableRedirect)
             rWow.DisableRedirect();

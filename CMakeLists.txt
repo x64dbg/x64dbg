@@ -215,6 +215,7 @@ set(dbg_SOURCES
 	"src/dbg/analysis/xrefsanalysis.h"
 	"src/dbg/animate.cpp"
 	"src/dbg/animate.h"
+	"src/dbg/args.h"
 	"src/dbg/argument.cpp"
 	"src/dbg/argument.h"
 	"src/dbg/assemble.cpp"
@@ -1006,6 +1007,7 @@ add_dependencies(headless exe)
 if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
 	set(launcher_SOURCES
 		cmake.toml
+		"src/dbg/stringutils.cpp"
 		"src/exe/icon.rc"
 		"src/exe/resource.rc"
 		"src/exe/strings_utf8.rc"

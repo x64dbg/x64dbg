@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\dbg\stringutils.cpp" />
     <ClCompile Include="x64dbg_launcher.cpp" />
   </ItemGroup>
   <ItemGroup>

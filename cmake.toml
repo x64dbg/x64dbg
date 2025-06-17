@@ -249,6 +249,7 @@ type = "executable"
 condition = "x86"
 sources = [
     "src/launcher/*.cpp",
+    "src/dbg/stringutils.cpp",
     "src/exe/icon.rc",
     "src/exe/resource.rc",
     "src/exe/strings_utf8.rc",
