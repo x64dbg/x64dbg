@@ -67,6 +67,5 @@ private slots:
     void parseFileSlot();
     void changeAddrSlot();
     void refreshSlot();
-    void reloadTypeSlot();
     void copyColumnSlot();
 };

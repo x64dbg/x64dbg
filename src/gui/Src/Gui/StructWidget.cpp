@@ -277,10 +277,6 @@ void StructWidget::setupContextMenu()
     });
     mMenuBuilder->addAction(makeAction(DIcon("eraser"), tr("Clear"), SLOT(clearSlot())));
     mMenuBuilder->addAction(makeShortcutAction(DIcon("sync"), tr("&Refresh"), SLOT(refreshSlot()), "ActionRefresh"));
-    mMenuBuilder->addAction(makeAction(DIcon("reload"), tr("Reload Type"), SLOT(reloadTypeSlot())), [this](QMenu*)
-    {
-        return hasSelection && !selectedItem->parent(); // Only allow for top-level types
-    });
 
     auto copyMenu = new MenuBuilder(this);
     auto columnCount = ui->treeWidget->columnCount();
@@ -487,18 +483,20 @@ void StructWidget::changeAddrSlot()
 
 void StructWidget::refreshSlot()
 {
-    typeUpdateWidget();
+    auto doRefresh = [&]
+    {
+        typeUpdateWidget();
 
-    // Update mInsertIndex to the current row index of the selected item
-    if(hasSelection)
-        mInsertIndex = ui->treeWidget->currentIndex().row();
-    else
-        mInsertIndex = -1; // Reset if no selection
-}
+        // Update mInsertIndex to the current row index of the selected item
+        if(hasSelection)
+            mInsertIndex = ui->treeWidget->currentIndex().row();
+        else
+            mInsertIndex = -1; // Reset if no selection
+    };
 
-void StructWidget::reloadTypeSlot()
-{
-    if(!hasSelection || !DbgIsDebugging())
+    doRefresh();
+
+    if(!hasSelection || selectedItem->parent() || !DbgIsDebugging())
         return;
 
     auto selectedAddr = selectedType.addr + selectedType.offset;
@@ -507,14 +505,12 @@ void StructWidget::reloadTypeSlot()
     mInsertIndex = parentItem ? parentItem->indexOfChild(selectedItem) : ui->treeWidget->indexOfTopLevelItem(selectedItem);
 
     auto type = selectedItem->data(0, Qt::UserRole).value<TypeDescriptor>();
-    auto typeId = type.type.id;
-
     QString typeName = selectedItem->data(0, Qt::UserRole + 1).value<QString>();
 
     delete selectedItem;
 
     DbgCmdExec(QString("DisplayType %1, %2").arg(typeName).arg(ToPtrString(selectedAddr)));
-    refreshSlot();
+    doRefresh();
 
     if(mInsertIndex != -1)
     {
@@ -525,6 +521,7 @@ void StructWidget::reloadTypeSlot()
             ui->treeWidget->insertTopLevelItem(mInsertIndex, newItem);
     }
 }
+
 void StructWidget::copyColumnSlot()
 {
     QAction* action = qobject_cast<QAction*>(sender());
