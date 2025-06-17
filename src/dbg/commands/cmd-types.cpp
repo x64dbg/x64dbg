@@ -662,6 +662,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.callback = cbPrintPrimitive;
         td.userdata = nullptr;
         td.bitOffset = mBitOffset;
+        td.typeName = member.name.c_str();
         mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
 
         if(!member.isBitfield)
@@ -710,6 +711,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.sizeBits = type.sizeBits;
         td.callback = nullptr;
         td.userdata = nullptr;
+        td.typeName = targetType.c_str();
         auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
 
         mPath.push_back((member.name == "display" ? type.name : prettyType) + ".");
@@ -741,6 +743,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.sizeBits = num.sizeBits;
         td.callback = cbPrintEnum;
         td.userdata = LookupTypeById;
+        td.typeName = member.name.c_str();
         mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
         mOffset += td.sizeBits / 8;
 
@@ -762,6 +765,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.sizeBits = member.arraySize * SizeofType(member.type);
         td.callback = nullptr;
         td.userdata = nullptr;
+        td.typeName = member.name.c_str();
         auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
 
         mPath.push_back(member.name + ".");

@@ -53,16 +53,16 @@ bool TypeManager::AddType(const std::string & owner, const std::string & type, c
         return addType(owner, foundType->second.primitive, name);
     }
 
-    auto found_e = enums.find(type);
-    if(found_e != enums.end())
+    auto foundE = enums.find(type);
+    if(foundE != enums.end())
         return addType(owner, Alias, name, type);
 
-    auto found_s = structs.find(type);
-    if(found_s != structs.end())
+    auto foundS = structs.find(type);
+    if(foundS != structs.end())
         return addType(owner, Alias, name, type);
 
-    auto found_f = functions.find(type);
-    if(found_f != functions.end())
+    auto foundF = functions.find(type);
+    if(foundF != functions.end())
         return addType(owner, Alias, name, type);
 
     if(type == "void")

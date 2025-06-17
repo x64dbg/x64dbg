@@ -112,10 +112,13 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
         dtype.type.sizeBits = type->sizeBits * 8;
         dtype.type.callback = type->callback;
         dtype.type.userdata = type->userdata;
+        dtype.type.typeName = type->typeName;
         dtype.type.bitOffset = 0;
     }
+
     dtype.name = highlightTypeName(dtype.type.name);
     dtype.type.name = nullptr;
+
     QStringList text;
     auto columnCount = ui->treeWidget->columnCount();
     for(int i = 0; i < columnCount; i++)
@@ -156,6 +159,7 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
     QVariant var;
     var.setValue(dtype);
     item->setData(0, Qt::UserRole, var);
+    item->setData(0, Qt::UserRole + 1, QString(dtype.type.typeName));
 
     Bridge::getBridge()->setResult(BridgeResult::TypeAddNode, dsint(item));
 }
@@ -505,9 +509,11 @@ void StructWidget::reloadTypeSlot()
     auto type = selectedItem->data(0, Qt::UserRole).value<TypeDescriptor>();
     auto typeId = type.type.id;
 
+    QString typeName = selectedItem->data(0, Qt::UserRole + 1).value<QString>();
+
     delete selectedItem;
 
-    DbgCmdExec(QString("DisplayType #.%1, %2").arg(typeId).arg(ToPtrString(selectedAddr)));
+    DbgCmdExec(QString("DisplayType %1, %2").arg(typeName).arg(ToPtrString(selectedAddr)));
     refreshSlot();
 
     if(mInsertIndex != -1)
