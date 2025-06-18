@@ -497,7 +497,7 @@ struct PrintVisitor : TypeManager::Visitor
         }
 
         String valueStr;
-        auto enumTypeIdData = LookupTypeById(type->id);
+        auto enumTypeIdData = LookupTypeByName(type->typeName);
 
         auto readStart = type->addr + type->offset + type->bitOffset / 8;
         auto readSize = (type->sizeBits + 7) / 8;
@@ -542,48 +542,55 @@ struct PrintVisitor : TypeManager::Visitor
             uint64_t extractedValue = 0;
             memcpy(&extractedValue, readBuffer(), std::min(sizeof(uint64_t), readBuffer.size()));
 
-            auto & enumData = *(Enum*)enumTypeIdData;
-            if(enumData.isFlags)
+            if(enumTypeIdData)
             {
-                bool first = true;
-                uint64_t remainingBits = extractedValue;
-
-                for(const auto & member : enumData.members)
+                auto & enumData = *(Enum*)enumTypeIdData;
+                if(enumData.isFlags)
                 {
-                    if((extractedValue & member.first) == member.first && member.first != 0)
+                    bool first = true;
+                    uint64_t remainingBits = extractedValue;
+
+                    for(const auto & member : enumData.members)
+                    {
+                        if((extractedValue & member.first) == member.first && member.first != 0)
+                        {
+                            if(!first)
+                                valueStr += " | ";
+
+                            valueStr += member.second;
+                            remainingBits &= ~member.first;
+                            first = false;
+                        }
+                    }
+
+                    if(remainingBits != 0)
                     {
                         if(!first)
                             valueStr += " | ";
 
-                        valueStr += member.second;
-                        remainingBits &= ~member.first;
-                        first = false;
+                        valueStr += StringUtils::sprintf("0x%llX", remainingBits);
                     }
-                }
 
-                if(remainingBits != 0)
+                    if(first)
+                        valueStr = StringUtils::sprintf("0x%llX", extractedValue);
+                }
+                else
                 {
-                    if(!first)
-                        valueStr += " | ";
+                    auto it = std::find_if(enumData.members.begin(), enumData.members.end(),
+                                           [extractedValue](const std::pair<uint64_t, std::string> & member)
+                    {
+                        return member.first == extractedValue;
+                    });
 
-                    valueStr += StringUtils::sprintf("0x%llX", remainingBits);
+                    if(it != enumData.members.end())
+                        valueStr = it->second;
+                    else
+                        valueStr = StringUtils::sprintf("0x%llX", extractedValue);
                 }
-
-                if(first)
-                    valueStr = StringUtils::sprintf("0x%llX", extractedValue);
             }
             else
             {
-                auto it = std::find_if(enumData.members.begin(), enumData.members.end(),
-                                       [extractedValue](const std::pair<uint64_t, std::string> & member)
-                {
-                    return member.first == extractedValue;
-                });
-
-                if(it != enumData.members.end())
-                    valueStr = it->second;
-                else
-                    valueStr = StringUtils::sprintf("0x%llX", extractedValue);
+                valueStr = StringUtils::sprintf("0x%llX", extractedValue);
             }
         }
         else
@@ -662,7 +669,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.callback = cbPrintPrimitive;
         td.userdata = nullptr;
         td.bitOffset = mBitOffset;
-        td.typeName = member.name.c_str();
+        td.typeName = member.type.c_str();
         mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
 
         if(!member.isBitfield)
@@ -711,7 +718,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.sizeBits = type.sizeBits;
         td.callback = nullptr;
         td.userdata = nullptr;
-        td.typeName = targetType.c_str();
+        td.typeName = type.name.c_str();
         auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
 
         mPath.push_back((member.name == "display" ? type.name : prettyType) + ".");
@@ -743,7 +750,8 @@ struct PrintVisitor : TypeManager::Visitor
         td.sizeBits = num.sizeBits;
         td.callback = cbPrintEnum;
         td.userdata = LookupTypeById;
-        td.typeName = member.name.c_str();
+        td.typeName = member.type.c_str();
+
         mNode = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
         mOffset += td.sizeBits / 8;
 
@@ -765,7 +773,7 @@ struct PrintVisitor : TypeManager::Visitor
         td.sizeBits = member.arraySize * SizeofType(member.type);
         td.callback = nullptr;
         td.userdata = nullptr;
-        td.typeName = member.name.c_str();
+        td.typeName = nullptr;
         auto node = GuiTypeAddNode(mParents.empty() ? nullptr : parent().node, &td);
 
         mPath.push_back(member.name + ".");
