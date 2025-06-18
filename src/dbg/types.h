@@ -123,6 +123,7 @@ namespace Types
         int Sizeof(const std::string & type,
                    std::string* underlyingType = nullptr);
         TypeBase* LookupTypeById(uint32_t typeId);
+        TypeBase* LookupTypeByName(const std::string & typeName);
         bool Visit(const std::string & type, const std::string & name, Visitor & visitor) const;
         void Clear(const std::string & owner = "");
         bool RemoveType(const std::string & type);
@@ -197,6 +198,7 @@ bool AddFunction(const std::string & owner, const std::string & name, const std:
 bool AddArg(const std::string & function, const std::string & type, const std::string & name);
 bool AppendArg(const std::string & type, const std::string & name);
 Types::TypeBase* LookupTypeById(uint32_t typeId);
+Types::TypeBase* LookupTypeByName(const char* typeName);
 int SizeofType(const std::string & type);
 bool VisitType(const std::string & type, const std::string & name, Types::TypeManager::Visitor & visitor);
 void ClearTypes(const std::string & owner = "");

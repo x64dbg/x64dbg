@@ -14,6 +14,7 @@ struct TypeDescriptor
 {
     TYPEDESCRIPTOR type = {};
     QString name;
+    QString typeName;
 };
 Q_DECLARE_METATYPE(TypeDescriptor)
 
@@ -109,7 +110,7 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
         dtype.type.addr = type->addr;
         dtype.type.offset = type->offset;
         dtype.type.id = type->id;
-        dtype.type.sizeBits = type->sizeBits * 8;
+        dtype.type.sizeBits = type->sizeBits;
         dtype.type.callback = type->callback;
         dtype.type.userdata = type->userdata;
         dtype.type.typeName = type->typeName;
@@ -117,7 +118,9 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
     }
 
     dtype.name = highlightTypeName(dtype.type.name);
+    dtype.typeName = QString(dtype.type.typeName);
     dtype.type.name = nullptr;
+    dtype.type.typeName = nullptr;
 
     QStringList text;
     auto columnCount = ui->treeWidget->columnCount();
@@ -126,7 +129,7 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
 
     text[ColOffset] = "+0x" + ToHexString(dtype.type.offset);
     text[ColField] = dtype.name;
-    if(dtype.type.offset == 0 && true)
+    if(dtype.type.offset == 0)
         text[ColAddress] = QString("<u>%1</u>").arg(ToPtrString(dtype.type.addr + dtype.type.offset));
     else
         text[ColAddress] = ToPtrString(dtype.type.addr + dtype.type.offset);
@@ -159,7 +162,6 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
     QVariant var;
     var.setValue(dtype);
     item->setData(0, Qt::UserRole, var);
-    item->setData(0, Qt::UserRole + 1, QString(dtype.type.typeName));
 
     Bridge::getBridge()->setResult(BridgeResult::TypeAddNode, dsint(item));
 }
@@ -177,7 +179,9 @@ void StructWidget::typeUpdateWidget()
         QTreeWidgetItem* item = *it;
         auto type = item->data(0, Qt::UserRole).value<TypeDescriptor>();
         auto name = type.name.toUtf8();
+        auto typeName = type.typeName.toUtf8();
         type.type.name = name.constData();
+        type.type.typeName = typeName.constData();
 
         auto addr = type.type.addr + type.type.offset;
         item->setText(ColAddress, ToPtrString(addr));
@@ -505,11 +509,10 @@ void StructWidget::refreshSlot()
     mInsertIndex = parentItem ? parentItem->indexOfChild(selectedItem) : ui->treeWidget->indexOfTopLevelItem(selectedItem);
 
     auto type = selectedItem->data(0, Qt::UserRole).value<TypeDescriptor>();
-    QString typeName = selectedItem->data(0, Qt::UserRole + 1).value<QString>();
 
     delete selectedItem;
 
-    DbgCmdExec(QString("DisplayType %1, %2").arg(typeName).arg(ToPtrString(selectedAddr)));
+    DbgCmdExec(QString("DisplayType %1, %2").arg(type.typeName).arg(ToPtrString(selectedAddr)));
     doRefresh();
 
     if(mInsertIndex != -1)

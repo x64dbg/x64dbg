@@ -365,6 +365,27 @@ TypeBase* TypeManager::LookupTypeById(const uint32_t typeId)
     return type->second;
 }
 
+TypeBase* TypeManager::LookupTypeByName(const std::string & typeName)
+{
+    auto foundT = types.find(typeName);
+    if(foundT != types.end())
+        return &foundT->second;
+
+    auto foundE = enums.find(typeName);
+    if(foundE != enums.end())
+        return &foundE->second;
+
+    auto foundS = structs.find(typeName);
+    if(foundS != structs.end())
+        return &foundS->second;
+
+    auto foundF = functions.find(typeName);
+    if(foundF != functions.end())
+        return &foundF->second;
+
+    return nullptr;
+}
+
 bool TypeManager::Visit(const std::string & type, const std::string & name, Visitor & visitor) const
 {
     Member m;
@@ -711,6 +732,12 @@ TypeBase* LookupTypeById(uint32_t typeId)
 {
     SHARED_ACQUIRE(LockTypeManager);
     return typeManager.LookupTypeById(typeId);
+}
+
+TypeBase* LookupTypeByName(const char* name)
+{
+    SHARED_ACQUIRE(LockTypeManager);
+    return typeManager.LookupTypeByName(name);
 }
 
 int SizeofType(const std::string & type)
