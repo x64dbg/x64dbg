@@ -278,18 +278,19 @@ void StructWidget::setupContextMenu()
     {
         return DbgMemIsValidReadPtr(selectedValue());
     });
+    mMenuBuilder->addSeparator();
+    mMenuBuilder->addAction(makeAction(DIcon("visitstruct"), tr("Display type"), SLOT(displayTypeSlot())));
     mMenuBuilder->addAction(makeDescAction(DIcon("structaddr"), tr("Reload type"), tr("Reload the type from the database and display it (at a different address)."), SLOT(reloadTypeSlot())), [this](QMenu*)
     {
         return hasSelection && !selectedItem->parent() && DbgIsDebugging();
     });
-    mMenuBuilder->addAction(makeAction(DIcon("visitstruct"), tr("Display type"), SLOT(displayTypeSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("database-import"), tr("Load JSON"), SLOT(loadJsonSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("source"), tr("Parse header"), SLOT(parseFileSlot())));
     mMenuBuilder->addAction(makeAction(DIcon("removestruct"), tr("Remove"), SLOT(removeSlot())), [this](QMenu*)
     {
         return hasSelection && !selectedItem->parent();
     });
-    mMenuBuilder->addAction(makeAction(DIcon("eraser"), tr("Clear displayed types"), SLOT(clearSlot())));
+    mMenuBuilder->addAction(makeAction(DIcon("eraser"), tr("Remove all"), SLOT(clearSlot())));
     mMenuBuilder->addAction(makeShortcutDescAction(DIcon("sync"), tr("&Refresh values"), tr("Quickly refresh the values, without reloading the type."), SLOT(typeUpdateWidget()), "ActionRefresh"));
 
     auto copyMenu = new MenuBuilder(this);
