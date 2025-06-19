@@ -3,8 +3,9 @@
 #include "ui_GotoDialog.h"
 #include "StringUtil.h"
 #include "Configuration.h"
-#include "QCompleter"
 #include "SymbolAutoCompleteModel.h"
+
+#include <QCompleter>
 
 GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowInvalidAddress, bool allowNotDebugging)
     : QDialog(parent),
@@ -33,9 +34,6 @@ GotoDialog::GotoDialog(QWidget* parent, bool allowInvalidExpression, bool allowI
     completer->setCaseSensitivity(Config()->getBool("Gui", "CaseSensitiveAutoComplete") ? Qt::CaseSensitive : Qt::CaseInsensitive);
     if(!Config()->getBool("Gui", "DisableAutoComplete"))
         ui->editExpression->setCompleter(completer);
-    validRangeStart = 0;
-    validRangeEnd = ~0;
-    fileOffset = false;
     mValidateThread = new ValidateExpressionThread(this);
     mValidateThread->setOnExpressionChangedCallback(std::bind(&GotoDialog::validateExpression, this, std::placeholders::_1));
 
@@ -59,9 +57,31 @@ GotoDialog::~GotoDialog()
     delete ui;
 }
 
+int GotoDialog::exec()
+{
+    expressionText.clear();
+    return QDialog::exec();
+}
+
+void GotoDialog::validateExpression(const QString & expression)
+{
+    duint value = 0;
+    bool validExpression = DbgFunctions()->ValFromString(expression.toUtf8().constData(), &value);
+    unsigned char ch = 0;
+    bool validPointer = validExpression && DbgMemIsValidReadPtr(value) && DbgMemRead(value, &ch, sizeof(ch));
+    this->mValidateThread->emitExpressionChanged(validExpression, validPointer, value);
+}
+
+void GotoDialog::setInitialExpression(const QString & expression)
+{
+    ui->editExpression->setText(expression);
+    emit ui->editExpression->textEdited(expression);
+}
+
 void GotoDialog::showEvent(QShowEvent* event)
 {
     Q_UNUSED(event);
+    expressionText.clear();
     mValidateThread->start();
 
     // Fix the label width
@@ -73,21 +93,6 @@ void GotoDialog::hideEvent(QHideEvent* event)
     Q_UNUSED(event);
     mValidateThread->stop();
     mValidateThread->wait();
-}
-
-void GotoDialog::validateExpression(QString expression)
-{
-    duint value;
-    bool validExpression = DbgFunctions()->ValFromString(expression.toUtf8().constData(), &value);
-    unsigned char ch;
-    bool validPointer = validExpression && DbgMemIsValidReadPtr(value) && DbgMemRead(value, &ch, sizeof(ch));
-    this->mValidateThread->emitExpressionChanged(validExpression, validPointer, value);
-}
-
-void GotoDialog::setInitialExpression(const QString & expression)
-{
-    ui->editExpression->setText(expression);
-    emit ui->editExpression->textEdited(expression);
 }
 
 void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsint value)
@@ -151,7 +156,7 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
             setOkEnabled(false);
             expressionText.clear();
         }
-        else if(!IsValidMemoryRange(addr) && !allowInvalidAddress)
+        else if(!isValidMemoryRange(addr) && !allowInvalidAddress)
         {
             ui->labelError->setText(tr("<font color='red'><b>Memory out of range...</b></font>") + addrText);
             setOkEnabled(false);
@@ -181,7 +186,7 @@ void GotoDialog::expressionChanged(bool validExpression, bool validPointer, dsin
     }
 }
 
-bool GotoDialog::IsValidMemoryRange(duint addr)
+bool GotoDialog::isValidMemoryRange(duint addr)
 {
     return addr >= validRangeStart && addr < validRangeEnd;
 }
@@ -195,7 +200,7 @@ void GotoDialog::on_buttonOk_clicked()
 {
     QString expression = ui->editExpression->text();
     ui->editExpression->addLineToHistory(expression);
-    ui->editExpression->setText("");
+    ui->editExpression->clear();
     expressionChanged(false, false, 0);
     expressionText = expression;
 }
@@ -203,7 +208,7 @@ void GotoDialog::on_buttonOk_clicked()
 void GotoDialog::finishedSlot(int result)
 {
     if(result == QDialog::Rejected)
-        ui->editExpression->setText("");
+        ui->editExpression->clear();
     ui->editExpression->setFocus();
 }
 
