@@ -103,6 +103,8 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
     }
     else
     {
+        // NOTE: This path is for binary backwards compatibility with the following structure:
+        // https://github.com/x64dbg/x64dbg/blob/1d3aa9b40716b42d086a90619db01fa12532eea6/src/bridge/bridgemain.h#L1339-L1350
         dtype.type.expanded = type->expanded;
         dtype.type.reverse = type->reverse;
         dtype.type.magic = TYPEDESCRIPTOR_MAGIC;
@@ -110,15 +112,21 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
         dtype.type.addr = type->addr;
         dtype.type.offset = type->offset;
         dtype.type.id = type->id;
-        dtype.type.sizeBits = type->sizeBits;
+        dtype.type.sizeBits = type->sizeBits * 8;
         dtype.type.callback = type->callback;
         dtype.type.userdata = type->userdata;
-        dtype.type.typeName = type->typeName;
+        dtype.type.typeName = nullptr;
         dtype.type.bitOffset = 0;
     }
 
     dtype.name = highlightTypeName(dtype.type.name);
-    dtype.typeName = QString(dtype.type.typeName);
+    if(dtype.type.typeName != nullptr)
+    {
+        dtype.typeName = QString(dtype.type.typeName);
+    }
+
+    // NOTE: The lifetime for these is expected to end until we return here, which is
+    // why we set these to nullptr (use the QString in dtype instead)
     dtype.type.name = nullptr;
     dtype.type.typeName = nullptr;
 
