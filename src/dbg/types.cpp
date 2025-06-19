@@ -226,6 +226,7 @@ bool TypeManager::AppendStructPadding(const std::string & parent, int targetOffs
         Member pad;
         pad.type = "long long";
         pad.sizeBits = remBits;
+        pad.isBitfield = true;
 
         char padName[32] = { };
         sprintf_s(padName, "padding%db", remBits);
