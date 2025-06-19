@@ -18,7 +18,7 @@ class StructWidget : public QWidget, public ActionHelper<StructWidget>
 
 public:
     explicit StructWidget(QWidget* parent = nullptr);
-    ~StructWidget();
+    ~StructWidget() override;
     void saveWindowSettings();
     void loadWindowSettings();
 
@@ -65,7 +65,6 @@ private slots:
     void displayTypeSlot();
     void loadJsonSlot();
     void parseFileSlot();
-    void changeAddrSlot();
-    void refreshSlot();
+    void reloadTypeSlot();
     void copyColumnSlot();
 };
