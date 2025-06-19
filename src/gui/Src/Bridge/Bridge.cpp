@@ -1002,6 +1002,12 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     }
     break;
 
+    case GUI_TYPE_VISIT:
+    {
+        emit typeVisit(QString((const char*)param1), (duint)param2);
+    }
+    break;
+
     case GUI_CLOSE_APPLICATION:
         emit closeApplication();
         break;

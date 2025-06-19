@@ -378,6 +378,8 @@ set(dbg_SOURCES
 	"src/dbg/types.cpp"
 	"src/dbg/types.h"
 	"src/dbg/typesparser.cpp"
+	"src/dbg/typevisitor.cpp"
+	"src/dbg/typevisitor.h"
 	"src/dbg/value.cpp"
 	"src/dbg/value.h"
 	"src/dbg/variable.cpp"

@@ -351,6 +351,7 @@ typedef enum
     DBG_GET_DEBUG_ENGINE,           // param1=unused,                    param2-unused
     DBG_GET_SYMBOL_INFO_AT,         // param1=duint addr,                param2=SYMBOLINFO* info
     DBG_XREF_ADD_MULTI,             // param1=const XREF_EDGE* edges,    param2=duint count
+    DBG_TYPE_VISIT,                 // param1=TYPEVISITDATA* data,       param2=unused
 } DBGMSG;
 
 typedef enum
@@ -565,6 +566,7 @@ typedef enum
 } DEBUG_ENGINE;
 
 //Debugger typedefs
+struct _TYPEDESCRIPTOR;
 typedef MEMORY_SIZE VALUE_SIZE;
 
 typedef struct DBGFUNCTIONS_ DBGFUNCTIONS;
@@ -577,6 +579,8 @@ typedef struct DBGFUNCTIONS_ DBGFUNCTIONS;
 // The SYMBOLPTR* becomes invalid when the module is unloaded
 // DO NOT STORE unless you are absolutely certain you handle it correctly
 typedef bool (*CBSYMBOLENUM)(const struct SYMBOLPTR_* symbol, void* user);
+
+typedef bool (*TYPETOSTRING)(const struct _TYPEDESCRIPTOR* type, char* dest, size_t* destCount); //don't change destCount for final failure
 
 //Debugger structs
 typedef struct
@@ -1073,6 +1077,24 @@ typedef struct SYMBOLPTR_
     const void* symbol;
 } SYMBOLPTR;
 
+#define TYPEDESCRIPTOR_MAGIC 0x1337
+
+typedef struct _TYPEDESCRIPTOR
+{
+    bool expanded; //is the type node expanded?
+    bool reverse; //big endian?
+    uint16_t magic; // compatiblity (set to TYPEDESCRIPTOR_MAGIC for the new version)
+    const char* name; //type name (int b)
+    duint addr; //virtual address
+    duint offset; //offset to addr for the actual location in bytes
+    int id; //type id
+    int sizeBits; //sizeof(type) in bits
+    TYPETOSTRING callback; //convert to string
+    void* userdata; //user data
+    duint bitOffset; // bit offset from first bitfield
+    const char* typeName; // undecorated typename
+} TYPEDESCRIPTOR;
+
 //Debugger functions
 BRIDGE_IMPEXP const char* DbgInit();
 BRIDGE_IMPEXP void DbgExit();
@@ -1202,7 +1224,6 @@ BRIDGE_IMPEXP DEBUG_ENGINE DbgGetDebugEngine();
 BRIDGE_IMPEXP bool DbgGetSymbolInfoAt(duint addr, SYMBOLINFO* info);
 BRIDGE_IMPEXP duint DbgXrefAddMulti(const XREF_EDGE* edges, duint count);
 
-//Gui defines
 typedef enum
 {
     GUI_PLUGIN_MENU,
@@ -1227,6 +1248,23 @@ typedef enum
     GUI_THREADS,
 } GUISELECTIONTYPE;
 
+typedef void* (*TYPEVISITFUNC)(void* parent, const TYPEDESCRIPTOR* type, void* userdata);
+
+typedef struct _TYPEVISITDATA
+{
+    const char* typeName;
+    const char* declName; // optional
+    void* root;
+    duint addr;
+    int maxPtrDepth; // negative for default
+    bool createLabels; // create (temporary) labels for every member
+    TYPEVISITFUNC callback;
+    void* userdata;
+} TYPEVISITDATA;
+
+BRIDGE_IMPEXP bool DbgTypeVisit(const TYPEVISITDATA* data);
+
+//Gui defines
 #define GUI_MAX_LINE_SIZE 65536
 #define GUI_MAX_DISASSEMBLY_SIZE 2048
 
@@ -1356,6 +1394,7 @@ typedef enum
     msg(GUI_STOP_REDIRECT_LOG, unused, unused) \
     msg(GUI_SHOW_THREADS, unused, unused) \
     msg(GUI_SHOW_STRUCT, unused, unused) \
+    msg(GUI_TYPE_VISIT, const char* typeName, duint addr) \
 
 // clang-format on
 
@@ -1369,13 +1408,10 @@ typedef enum
 #undef GUIMSG_ENUM
 
 //GUI Typedefs
-struct _TYPEDESCRIPTOR;
-
 typedef void (*GUICALLBACK)();
 typedef void (*GUICALLBACKEX)(void*);
 typedef bool (*GUISCRIPTEXECUTE)(const char* text);
 typedef void (*GUISCRIPTCOMPLETER)(const char* text, char** entries, int* entryCount);
-typedef bool (*TYPETOSTRING)(const struct _TYPEDESCRIPTOR* type, char* dest, size_t* destCount); //don't change destCount for final failure
 
 //GUI structures
 typedef struct
@@ -1412,24 +1448,6 @@ typedef struct
     char title[MAX_STRING_SIZE];
     char className[MAX_STRING_SIZE];
 } ACTIVEVIEW;
-
-#define TYPEDESCRIPTOR_MAGIC 0x1337
-
-typedef struct _TYPEDESCRIPTOR
-{
-    bool expanded; //is the type node expanded?
-    bool reverse; //big endian?
-    uint16_t magic; // compatiblity
-    const char* name; //type name (int b)
-    duint addr; //virtual address
-    duint offset; //offset to addr for the actual location in bytes
-    int id; //type id
-    int sizeBits; //sizeof(type) in bits
-    TYPETOSTRING callback; //convert to string
-    void* userdata; //user data
-    duint bitOffset; // bit offset from first bitfield
-    const char* typeName; // undecorated typename
-} TYPEDESCRIPTOR;
 
 //GUI functions
 //code page is utf8
@@ -1548,6 +1566,7 @@ BRIDGE_IMPEXP void GuiAddInfoLine(const char* infoLine);
 BRIDGE_IMPEXP void GuiProcessEvents();
 BRIDGE_IMPEXP void* GuiTypeAddNode(void* parent, const TYPEDESCRIPTOR* type);
 BRIDGE_IMPEXP bool GuiTypeClear();
+BRIDGE_IMPEXP void GuiTypeVisit(const char* typeName, duint addr);
 BRIDGE_IMPEXP void GuiUpdateTypeWidget();
 BRIDGE_IMPEXP void GuiCloseApplication();
 BRIDGE_IMPEXP void GuiFlushLog();

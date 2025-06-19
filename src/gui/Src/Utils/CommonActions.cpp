@@ -486,7 +486,7 @@ void CommonActions::displayTypeSlot()
         mGotoType = new GotoDialog(widgetparent());
     mGotoType->setWindowTitle(tr("Address to display %1 at").arg(selection));
 
-    DbgCmdExec(QString("DisplayType %1, %2").arg(selection, ToPtrString(va)));
+    Bridge::getBridge()->typeVisit(selection, va);
 }
 
 void CommonActions::setNewOriginHereActionSlot()

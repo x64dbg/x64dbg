@@ -1577,6 +1577,11 @@ BRIDGE_IMPEXP duint DbgXrefAddMulti(const XREF_EDGE* edges, duint count)
     return (duint)_dbg_sendmessage(DBG_XREF_ADD_MULTI, (void*)edges, (void*)count);
 }
 
+BRIDGE_IMPEXP bool DbgTypeVisit(const TYPEVISITDATA* data)
+{
+    return !!_dbg_sendmessage(DBG_TYPE_VISIT, (void*)data, nullptr);
+}
+
 BRIDGE_IMPEXP const char* GuiTranslateText(const char* Source)
 {
     EnterCriticalSection(&csTranslate);
@@ -2199,6 +2204,11 @@ BRIDGE_IMPEXP void* GuiTypeAddNode(void* parent, const TYPEDESCRIPTOR* type)
 BRIDGE_IMPEXP bool GuiTypeClear()
 {
     return !!_gui_sendmessage(GUI_TYPE_CLEAR, nullptr, nullptr);
+}
+
+BRIDGE_IMPEXP void GuiTypeVisit(const char* typeName, duint addr)
+{
+    _gui_sendmessage(GUI_TYPE_VISIT, (void*)typeName, (void*)addr);
 }
 
 BRIDGE_IMPEXP void GuiUpdateTypeWidget()

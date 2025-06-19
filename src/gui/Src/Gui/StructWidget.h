@@ -27,9 +27,10 @@ public slots:
     void fontsUpdatedSlot();
     void shortcutsUpdatedSlot();
 
-    void typeAddNode(void* parent, const TYPEDESCRIPTOR* type);
-    void typeClear();
-    void typeUpdateWidget();
+    void typeAddNodeSlot(void* parent, const TYPEDESCRIPTOR* type);
+    void typeClearSlot();
+    void typeVisitSlot(QString typeName, duint addr);
+    void typeUpdateWidgetSlot();
     void dbgStateChangedSlot(DBGSTATE state);
 
 private:
@@ -44,6 +45,7 @@ private:
     void setupContextMenu();
     QString highlightTypeName(QString name) const;
     duint selectedValue() const;
+    class QTreeWidgetItem* typeAddNode(class QTreeWidgetItem* parent, const TYPEDESCRIPTOR* type);
 
     enum
     {

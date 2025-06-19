@@ -36,6 +36,7 @@
 #include "recursiveanalysis.h"
 #include "dbghelp_safe.h"
 #include "symbolinfo.h"
+#include "typevisitor.h"
 
 static bool bOnlyCipAutoComments = false;
 static bool bNoSourceLineAutoComments = false;
@@ -1069,7 +1070,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         bTruncateBreakpointLogs = settingboolget("Engine", "TruncateBreakpointLogs");
         stackupdatesettings();
 
-        duint setting;
+        duint setting = 0;
         if(BridgeSettingGetUint("Engine", "BreakpointType", &setting))
         {
             switch(setting)
@@ -1183,6 +1184,9 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
             newStringAlgorithm = acp == 932 || acp == 936 || acp == 949 || acp == 950 || acp == 951 || acp == 1251;
         }
         bNewStringAlgorithm = !!newStringAlgorithm;
+
+        if(BridgeSettingGetUint("Engine", "DefaultTypePtrDepth", &setting) && (dsint)setting >= 0)
+            gDefaultMaxPtrDepth = int(setting);
     }
     break;
 
@@ -1619,6 +1623,29 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     case DBG_XREF_ADD_MULTI:
     {
         return XrefAddMulti((const XREF_EDGE*)param1, (duint)param2);
+    }
+    break;
+
+    case DBG_TYPE_VISIT:
+    {
+        auto data = (const TYPEVISITDATA*)param1;
+        if(data == nullptr || data->typeName == nullptr || data->callback == nullptr)
+            return false;
+
+        auto addNode = [data](void* parent, const TYPEDESCRIPTOR * type) -> void*
+        {
+            return (void*)data->callback(parent, type, data->userdata);
+        };
+
+        auto maxPtrDepth = data->maxPtrDepth;
+        if(maxPtrDepth < 0)
+        {
+            maxPtrDepth = gDefaultMaxPtrDepth;
+        }
+
+        NodeVisitor visitor(addNode, data->root, data->addr, maxPtrDepth, data->createLabels);
+        auto declName = data->declName ? data->declName : "";
+        return VisitType(data->typeName, declName, visitor);
     }
     break;
     }

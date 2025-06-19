@@ -25,9 +25,10 @@ StructWidget::StructWidget(QWidget* parent) :
     ui->setupUi(this);
     ui->treeWidget->setStyleSheet("QTreeWidget { background-color: #FFF8F0; alternate-background-color: #DCD9CF; }");
     ui->treeWidget->setItemDelegate(new RichTextItemDelegate(&mTextColor, ui->treeWidget));
-    connect(Bridge::getBridge(), SIGNAL(typeAddNode(void*, const TYPEDESCRIPTOR*)), this, SLOT(typeAddNode(void*, const TYPEDESCRIPTOR*)));
-    connect(Bridge::getBridge(), SIGNAL(typeClear()), this, SLOT(typeClear()));
-    connect(Bridge::getBridge(), SIGNAL(typeUpdateWidget()), this, SLOT(typeUpdateWidget()));
+    connect(Bridge::getBridge(), SIGNAL(typeAddNode(void*, const TYPEDESCRIPTOR*)), this, SLOT(typeAddNodeSlot(void*, const TYPEDESCRIPTOR*)));
+    connect(Bridge::getBridge(), SIGNAL(typeClear()), this, SLOT(typeClearSlot()));
+    connect(Bridge::getBridge(), SIGNAL(typeUpdateWidget()), this, SLOT(typeUpdateWidgetSlot()));
+    connect(Bridge::getBridge(), SIGNAL(typeVisit(QString, duint)), this, SLOT(typeVisitSlot(QString, duint)));
     connect(Bridge::getBridge(), SIGNAL(dbgStateChanged(DBGSTATE)), this, SLOT(dbgStateChangedSlot(DBGSTATE)));
     connect(Config(), SIGNAL(colorsUpdated()), this, SLOT(colorsUpdatedSlot()));
     connect(Config(), SIGNAL(fontsUpdated()), this, SLOT(fontsUpdatedSlot()));
@@ -91,97 +92,40 @@ void StructWidget::shortcutsUpdatedSlot()
     updateShortcuts();
 }
 
-void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
+void StructWidget::typeAddNodeSlot(void* parent, const TYPEDESCRIPTOR* type)
 {
-    // Disable updates until the next typeUpdateWidget()
-    ui->treeWidget->setUpdatesEnabled(false);
-
-    TypeDescriptor dtype;
-    if(type->magic == TYPEDESCRIPTOR_MAGIC)
-    {
-        dtype.type = *type;
-    }
-    else
-    {
-        // NOTE: This path is for binary backwards compatibility with the following structure:
-        // https://github.com/x64dbg/x64dbg/blob/1d3aa9b40716b42d086a90619db01fa12532eea6/src/bridge/bridgemain.h#L1339-L1350
-        dtype.type.expanded = type->expanded;
-        dtype.type.reverse = type->reverse;
-        dtype.type.magic = TYPEDESCRIPTOR_MAGIC;
-        dtype.type.name = type->name;
-        dtype.type.addr = type->addr;
-        dtype.type.offset = type->offset;
-        dtype.type.id = type->id;
-        dtype.type.sizeBits = type->sizeBits * 8;
-        dtype.type.callback = type->callback;
-        dtype.type.userdata = type->userdata;
-        dtype.type.typeName = nullptr;
-        dtype.type.bitOffset = 0;
-    }
-
-    dtype.name = highlightTypeName(dtype.type.name);
-    if(dtype.type.typeName != nullptr)
-    {
-        dtype.typeName = QString(dtype.type.typeName);
-    }
-
-    // NOTE: The lifetime for these is expected to end until we return here, which is
-    // why we set these to nullptr (use the QString in dtype instead)
-    dtype.type.name = nullptr;
-    dtype.type.typeName = nullptr;
-
-    QStringList text;
-    auto columnCount = ui->treeWidget->columnCount();
-    for(int i = 0; i < columnCount; i++)
-        text.append(QString());
-
-    text[ColOffset] = "+0x" + ToHexString(dtype.type.offset);
-    text[ColField] = dtype.name;
-    if(dtype.type.offset == 0)
-        text[ColAddress] = QString("<u>%1</u>").arg(ToPtrString(dtype.type.addr + dtype.type.offset));
-    else
-        text[ColAddress] = ToPtrString(dtype.type.addr + dtype.type.offset);
-    text[ColSize] = "0x" + ToHexString(dtype.type.sizeBits / 8);
-    text[ColValue] = ""; // NOTE: filled in later
-
-    QTreeWidgetItem* item = nullptr;
-    if(parent == nullptr)
-    {
-        if(mInsertIndex != -1)
-        {
-            item = new QTreeWidgetItem(text);
-            ui->treeWidget->insertTopLevelItem(mInsertIndex, item);
-
-            mInsertIndex = -1;
-        }
-        else
-        {
-            item = new QTreeWidgetItem(ui->treeWidget, text);
-        }
-
-        // Scroll to the new root node in typeUpdateWidget
-        mScrollItem = dtype.type.expanded ? item : nullptr;
-    }
-    else
-    {
-        item = new QTreeWidgetItem((QTreeWidgetItem*)parent, text);
-    }
-
-    item->setExpanded(dtype.type.expanded);
-
-    QVariant var;
-    var.setValue(dtype);
-    item->setData(0, Qt::UserRole, var);
-
+    auto item = typeAddNode((QTreeWidgetItem*)parent, type);
     Bridge::getBridge()->setResult(BridgeResult::TypeAddNode, dsint(item));
 }
-void StructWidget::typeClear()
+
+void StructWidget::typeClearSlot()
 {
     ui->treeWidget->clear();
     Bridge::getBridge()->setResult(BridgeResult::TypeClear);
 }
 
-void StructWidget::typeUpdateWidget()
+void StructWidget::typeVisitSlot(QString typeName, duint addr)
+{
+    TYPEVISITDATA data = {};
+    auto typeNameUtf8 = typeName.toUtf8();
+    data.typeName = typeNameUtf8.constData();
+    data.addr = addr;
+    data.maxPtrDepth = -1;
+    data.createLabels = true;
+    data.callback = [](void* parent, const TYPEDESCRIPTOR * type, void* userdata) -> void*
+    {
+        return ((StructWidget*)userdata)->typeAddNode((QTreeWidgetItem*)parent, type);
+    };
+    data.userdata = this;
+    if(!DbgTypeVisit(&data))
+    {
+        SimpleErrorBox(this, tr("Error"), tr("Failed to visit type..."));
+    }
+    typeUpdateWidgetSlot();
+    GuiUpdateAllViews();
+}
+
+void StructWidget::typeUpdateWidgetSlot()
 {
     ui->treeWidget->setUpdatesEnabled(false);
     for(QTreeWidgetItemIterator it(ui->treeWidget); *it; ++it)
@@ -291,7 +235,7 @@ void StructWidget::setupContextMenu()
         return hasSelection && !selectedItem->parent();
     });
     mMenuBuilder->addAction(makeAction(DIcon("eraser"), tr("Remove all"), SLOT(clearSlot())));
-    mMenuBuilder->addAction(makeShortcutDescAction(DIcon("sync"), tr("&Refresh values"), tr("Quickly refresh the values, without reloading the type."), SLOT(typeUpdateWidget()), "ActionRefresh"));
+    mMenuBuilder->addAction(makeShortcutDescAction(DIcon("sync"), tr("&Refresh values"), tr("Quickly refresh the values, without reloading the type."), SLOT(typeUpdateWidgetSlot()), "ActionRefresh"));
 
     auto copyMenu = new MenuBuilder(this);
     auto columnCount = ui->treeWidget->columnCount();
@@ -385,6 +329,90 @@ duint StructWidget::selectedValue() const
     return split[0].toULongLong(nullptr, 0);
 }
 
+QTreeWidgetItem* StructWidget::typeAddNode(QTreeWidgetItem* parent, const TYPEDESCRIPTOR* type)
+{
+    // Disable updates until the next typeUpdateWidget()
+    ui->treeWidget->setUpdatesEnabled(false);
+
+    TypeDescriptor dtype;
+    if(type->magic == TYPEDESCRIPTOR_MAGIC)
+    {
+        dtype.type = *type;
+    }
+    else
+    {
+        // NOTE: This path is for binary backwards compatibility with the following structure:
+        // https://github.com/x64dbg/x64dbg/blob/1d3aa9b40716b42d086a90619db01fa12532eea6/src/bridge/bridgemain.h#L1339-L1350
+        dtype.type.expanded = type->expanded;
+        dtype.type.reverse = type->reverse;
+        dtype.type.magic = TYPEDESCRIPTOR_MAGIC;
+        dtype.type.name = type->name;
+        dtype.type.addr = type->addr;
+        dtype.type.offset = type->offset;
+        dtype.type.id = type->id;
+        dtype.type.sizeBits = type->sizeBits * 8;
+        dtype.type.callback = type->callback;
+        dtype.type.userdata = type->userdata;
+        dtype.type.typeName = nullptr;
+        dtype.type.bitOffset = 0;
+    }
+
+    dtype.name = highlightTypeName(dtype.type.name);
+    if(dtype.type.typeName != nullptr)
+    {
+        dtype.typeName = QString(dtype.type.typeName);
+    }
+
+    // NOTE: The lifetime for these is expected to end until we return here, which is
+    // why we set these to nullptr (use the QString in dtype instead)
+    dtype.type.name = nullptr;
+    dtype.type.typeName = nullptr;
+
+    QStringList text;
+    auto columnCount = ui->treeWidget->columnCount();
+    for(int i = 0; i < columnCount; i++)
+        text.append(QString());
+
+    text[ColOffset] = "+0x" + ToHexString(dtype.type.offset);
+    text[ColField] = dtype.name;
+    if(dtype.type.offset == 0)
+        text[ColAddress] = QString("<u>%1</u>").arg(ToPtrString(dtype.type.addr + dtype.type.offset));
+    else
+        text[ColAddress] = ToPtrString(dtype.type.addr + dtype.type.offset);
+    text[ColSize] = "0x" + ToHexString(dtype.type.sizeBits / 8);
+    text[ColValue] = ""; // NOTE: filled in later
+
+    QTreeWidgetItem* item = nullptr;
+    if(parent == nullptr)
+    {
+        if(mInsertIndex != -1)
+        {
+            item = new QTreeWidgetItem(text);
+            ui->treeWidget->insertTopLevelItem(mInsertIndex, item);
+
+            mInsertIndex = -1;
+        }
+        else
+        {
+            item = new QTreeWidgetItem(ui->treeWidget, text);
+        }
+
+        // Scroll to the new root node in typeUpdateWidget
+        mScrollItem = dtype.type.expanded ? item : nullptr;
+    }
+    else
+    {
+        item = new QTreeWidgetItem((QTreeWidgetItem*)parent, text);
+    }
+
+    item->setExpanded(dtype.type.expanded);
+
+    QVariant var;
+    var.setValue(dtype);
+    item->setData(0, Qt::UserRole, var);
+    return item;
+}
+
 void StructWidget::on_treeWidget_customContextMenuRequested(const QPoint & pos)
 {
     QMenu menu;
@@ -448,7 +476,7 @@ void StructWidget::displayTypeSlot()
     mGotoDialog->setWindowTitle(tr("Address to display %1 at").arg(selection));
     if(DbgIsDebugging() && mGotoDialog->exec() == QDialog::Accepted)
         addr = DbgValFromString(mGotoDialog->expressionText.toUtf8().constData());
-    DbgCmdExec(QString("DisplayType %1, %2").arg(selection, ToPtrString(addr)));
+    typeVisitSlot(selection, addr);
 }
 
 void StructWidget::loadJsonSlot()
@@ -488,7 +516,7 @@ void StructWidget::reloadTypeSlot()
     delete selectedItem;
 
     auto address = DbgValFromString(mGotoDialog->expressionText.toUtf8().constData());
-    DbgCmdExec(QString("DisplayType %1, %2").arg(type.typeName, ToPtrString(address)));
+    typeVisitSlot(type.typeName, address);
 }
 
 void StructWidget::copyColumnSlot()
