@@ -3,31 +3,46 @@
 # Simple script to auto-format every source file before committing.
 #
 
-#check if the formatter is present
-if [ ! -f ./.github/format/AStyleHelper.exe ]; then
+# Check if the formatter is present
+if [ ! -f .github/format/AStyleHelper.exe ]; then
     echo "AStyleHelper not found!"
     exit 0
 fi
 
-#format the code
-"./.github/format/AStyleHelper.exe" Silent
+# Get stamp file epoch (default to 0)
+STAMP_EPOCH=$(date -u -r .git/AStyleHelper.stamp +%s 2>/dev/null)
+STAMP_EPOCH=${STAMP_EPOCH:-0}
 
-#exit when nothing needs to be done
-if [ $? == 0 ]; then
+# If the HEAD is newer than the stamp (we switched branches), set stamp to 0
+if [ $(date -u -r .git/HEAD +%s 2>/dev/null) -gt $STAMP_EPOCH ]; then
+    echo "AStyleHelper: branch switched, performing full formatting"
+    STAMP_EPOCH=0
+fi
+
+# Format the code
+".github/format/AStyleHelper.exe" Silent $STAMP_EPOCH
+FORMAT_STATUS=$?
+
+# Touch the stamp file to indicate when the last formatting was done
+touch .git/AStyleHelper.stamp
+
+# Exit when nothing needs to be done
+if [ $FORMAT_STATUS -eq 0 ]; then
+    echo "AStyleHelper: no formatting needed"
     exit 0
 fi
 
-#stage the formatted files (when staged in this commit)
-gitFiles=$(git diff-index --name-only --cached HEAD)
-if [[ -n "${gitFiles}" ]]; then
-    for fname in $gitFiles; do
-        git add --all -- "${fname}"
+# Stage the formatted files (when staged in this commit)
+GIT_FILES=$(git diff-index --name-only --cached HEAD)
+if [[ -n "$GIT_FILES" ]]; then
+    for GIT_FILE in $GIT_FILES; do
+        git add --all -- "$GIT_FILE"
     done
 fi
 
-#cancel commit if the changes were undone by the formatting
-gitFiles=$(git diff-index --name-only --cached HEAD)
-if [ -z "$gitFiles" ]; then
-    "./.github/AStyleHelper.exe" "After formatting, no files were staged..."
+# Cancel commit if the changes were undone by the formatting
+GIT_FILES=$(git diff-index --name-only --cached HEAD)
+if [ -z "$GIT_FILES" ]; then
+    ".github/AStyleHelper.exe" "After formatting, no files were staged..."
     exit 1
 fi
