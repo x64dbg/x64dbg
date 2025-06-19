@@ -888,7 +888,7 @@ bool cbInstrVisitType(int argc, char* argv[])
         type = argv[1];
     }
 
-    auto name = "display";
+    auto name = "";
     duint addr = 0;
     auto maxPtrDepth = 2;
 
