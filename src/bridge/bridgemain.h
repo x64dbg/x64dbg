@@ -1428,6 +1428,7 @@ typedef struct _TYPEDESCRIPTOR
     TYPETOSTRING callback; //convert to string
     void* userdata; //user data
     duint bitOffset; // bit offset from first bitfield
+    const char* typeName; // undecorated typename
 } TYPEDESCRIPTOR;
 
 //GUI functions

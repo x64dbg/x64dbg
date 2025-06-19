@@ -2,9 +2,9 @@
 #include <QMenu>
 #include <QAction>
 #include <functional>
+#include <utility>
 #include "Configuration.h"
 
-//TODO: find the right "const &" "&", "&&" "" etc for passing around std::function
 using SlotFunc = std::function<void()>;
 using MakeMenuFunc1 = std::function<QMenu*(const QString &)>;
 using MakeMenuFunc2 = std::function<QMenu*(const QIcon &, const QString &)>;
@@ -12,7 +12,6 @@ using MakeActionFunc1 = std::function<QAction*(const QString &, const SlotFunc &
 using MakeActionFunc2 = std::function<QAction*(const QIcon &, const QString &, const SlotFunc &)>;
 using MakeShortcutActionFunc1 = std::function<QAction*(const QString &, const SlotFunc &, const char*)>;
 using MakeShortcutActionFunc2 = std::function<QAction*(const QIcon &, const QString &, const SlotFunc &, const char*)>;
-using MakeShortcutDescActionFunc2 = std::function<QAction*(const QIcon &, const QString &, const QString &, const SlotFunc &, const char*)>;
 using MakeMenuActionFunc1 = std::function<QAction*(QMenu*, const QString &, const SlotFunc &)>;
 using MakeMenuActionFunc2 = std::function<QAction*(QMenu*, const QIcon &, const QString &, const SlotFunc &)>;
 using MakeShortcutMenuActionFunc1 = std::function<QAction*(QMenu*, const QString &, const SlotFunc &, const char*)>;
@@ -26,7 +25,6 @@ struct ActionHelperFuncs
     MakeActionFunc2 makeAction2;
     MakeShortcutActionFunc1 makeShortcutAction1;
     MakeShortcutActionFunc2 makeShortcutAction2;
-    MakeShortcutDescActionFunc2 makeShortcutDescAction2;
     MakeMenuActionFunc1 makeMenuAction1;
     MakeMenuActionFunc2 makeMenuAction2;
     MakeShortcutMenuActionFunc1 makeShortcutMenuAction1;
@@ -47,7 +45,7 @@ private:
         QAction* action;
         QString shortcut;
 
-        inline ActionShortcut(QAction* action, const char* shortcut)
+        ActionShortcut(QAction* action, const char* shortcut)
             : action(action),
               shortcut(shortcut)
         {
@@ -55,6 +53,8 @@ private:
     };
 
 public:
+    virtual ~ActionHelper() = default;
+
     virtual void updateShortcuts()
     {
         for(const auto & actionShortcut : actionShortcutPairs)
@@ -62,37 +62,37 @@ public:
     }
 
 private:
-    inline QAction* connectAction(QAction* action, const char* slot)
+    QAction* connectAction(QAction* action, const char* slot)
     {
         QObject::connect(action, SIGNAL(triggered(bool)), getBase(), slot);
         return action;
     }
 
     template<class T> // lambda or base member pointer
-    inline QAction* connectAction(QAction* action, T callback)
+    QAction* connectAction(QAction* action, T callback)
     {
         //in case of a lambda getBase() is used as the 'context' object and not the 'receiver'
         QObject::connect(action, &QAction::triggered, getBase(), callback);
         return action;
     }
 
-    inline QAction* connectShortcutAction(QAction* action, const char* shortcut)
+    QAction* connectShortcutAction(QAction* action, const char* shortcut)
     {
         actionShortcutPairs.push_back(ActionShortcut(action, shortcut));
         action->setShortcut(ConfigShortcut(shortcut));
-        action->setShortcutContext(Qt::WidgetShortcut);
+        action->setShortcutContext(Qt::WidgetWithChildrenShortcut);
         getBase()->addAction(action);
         return action;
     }
 
-    inline QAction* connectMenuAction(QMenu* menu, QAction* action)
+    QAction* connectMenuAction(QMenu* menu, QAction* action)
     {
         menu->addAction(action);
         return action;
     }
 
 protected:
-    inline ActionHelperFuncs getActionHelperFuncs()
+    ActionHelperFuncs getActionHelperFuncs()
     {
         ActionHelperFuncs funcs;
         funcs.makeMenu1 = [this](const QString & title)
@@ -119,12 +119,6 @@ protected:
         {
             return makeShortcutAction(icon, text, slot, shortcut);
         };
-        funcs.makeShortcutDescAction2 = [this](const QIcon & icon, const QString & text, const QString & description, const SlotFunc & slot, const char* shortcut)
-        {
-            auto action = makeShortcutAction(icon, text, slot, shortcut);
-            action->setStatusTip(description);
-            return action;
-        };
         funcs.makeMenuAction1 = [this](QMenu * menu, const QString & text, const SlotFunc & slot)
         {
             return makeMenuAction(menu, text, slot);
@@ -144,12 +138,12 @@ protected:
         return funcs;
     }
 
-    inline QMenu* makeMenu(const QString & title)
+    QMenu* makeMenu(const QString & title)
     {
         return new QMenu(title, getBase());
     }
 
-    inline QMenu* makeMenu(const QIcon & icon, const QString & title)
+    QMenu* makeMenu(const QIcon & icon, const QString & title)
     {
         QMenu* menu = new QMenu(title, getBase());
         menu->setIcon(icon);
@@ -157,49 +151,73 @@ protected:
     }
 
     template<typename T>
-    inline QAction* makeAction(const QString & text, T slot)
+    QAction* makeAction(const QString & text, T slot)
     {
         return connectAction(new QAction(text, getBase()), slot);
     }
 
     template<typename T>
-    inline QAction* makeAction(const QIcon & icon, const QString & text, T slot)
+    QAction* makeDescAction(const QString & text, const QString & description, T slot)
+    {
+        auto action = makeAction(text, slot);
+        action->setStatusTip(description);
+        return action;
+    }
+
+    template<typename T>
+    QAction* makeAction(const QIcon & icon, const QString & text, T slot)
     {
         return connectAction(new QAction(icon, text, getBase()), slot);
     }
 
     template<typename T>
-    inline QAction* makeShortcutAction(const QString & text, T slot, const char* shortcut)
+    QAction* makeDescAction(const QIcon & icon, const QString & text, const QString & description, T slot)
+    {
+        auto action = makeAction(icon, text, slot);
+        action->setStatusTip(description);
+        return action;
+    }
+
+    template<typename T>
+    QAction* makeShortcutAction(const QString & text, T slot, const char* shortcut)
     {
         return connectShortcutAction(makeAction(text, slot), shortcut);
     }
 
     template<typename T>
-    inline QAction* makeShortcutAction(const QIcon & icon, const QString & text, T slot, const char* shortcut)
+    QAction* makeShortcutAction(const QIcon & icon, const QString & text, T slot, const char* shortcut)
     {
         return connectShortcutAction(makeAction(icon, text, slot), shortcut);
     }
 
     template<typename T>
-    inline QAction* makeMenuAction(QMenu* menu, const QString & text, T slot)
+    QAction* makeShortcutDescAction(const QIcon & icon, const QString & text, const QString & description, T slot, const char* shortcut)
+    {
+        auto action = makeShortcutAction(icon, text, slot, shortcut);
+        action->setStatusTip(description);
+        return action;
+    }
+
+    template<typename T>
+    QAction* makeMenuAction(QMenu* menu, const QString & text, T slot)
     {
         return connectMenuAction(menu, makeAction(text, slot));
     }
 
     template<typename T>
-    inline QAction* makeMenuAction(QMenu* menu, const QIcon & icon, const QString & text, T slot)
+    QAction* makeMenuAction(QMenu* menu, const QIcon & icon, const QString & text, T slot)
     {
         return connectMenuAction(menu, makeAction(icon, text, slot));
     }
 
     template<typename T>
-    inline QAction* makeShortcutMenuAction(QMenu* menu, const QString & text, T slot, const char* shortcut)
+    QAction* makeShortcutMenuAction(QMenu* menu, const QString & text, T slot, const char* shortcut)
     {
         return connectShortcutAction(makeMenuAction(menu, text, slot), shortcut);
     }
 
     template<typename T>
-    inline QAction* makeShortcutMenuAction(QMenu* menu, const QIcon & icon, const QString & text, T slot, const char* shortcut)
+    QAction* makeShortcutMenuAction(QMenu* menu, const QIcon & icon, const QString & text, T slot, const char* shortcut)
     {
         return connectShortcutAction(makeMenuAction(menu, icon, text, slot), shortcut);
     }
@@ -215,62 +233,78 @@ class ActionHelperProxy
     ActionHelperFuncs funcs;
 
 public:
-    ActionHelperProxy(ActionHelperFuncs funcs)
-        : funcs(funcs) { }
+    explicit ActionHelperProxy(ActionHelperFuncs funcs)
+        : funcs(std::move(funcs)) { }
 
 protected:
-    inline QMenu* makeMenu(const QString & title)
+    QMenu* makeMenu(const QString & title)
     {
         return funcs.makeMenu1(title);
     }
 
-    inline QMenu* makeMenu(const QIcon & icon, const QString & title)
+    QMenu* makeMenu(const QIcon & icon, const QString & title)
     {
         return funcs.makeMenu2(icon, title);
     }
 
-    inline QAction* makeAction(const QString & text, const SlotFunc & slot)
+    QAction* makeAction(const QString & text, const SlotFunc & slot)
     {
         return funcs.makeAction1(text, slot);
     }
 
-    inline QAction* makeAction(const QIcon & icon, const QString & text, const SlotFunc & slot)
+    QAction* makeDescAction(const QString & text, const QString & description, const SlotFunc & slot)
+    {
+        auto action = makeAction(text, slot);
+        action->setStatusTip(description);
+        return action;
+    }
+
+    QAction* makeAction(const QIcon & icon, const QString & text, const SlotFunc & slot)
     {
         return funcs.makeAction2(icon, text, slot);
     }
 
-    inline QAction* makeShortcutAction(const QString & text, const SlotFunc & slot, const char* shortcut)
+    QAction* makeDescAction(const QIcon & icon, const QString & text, const QString & description, const SlotFunc & slot)
+    {
+        auto action = makeAction(icon, text, slot);
+        action->setStatusTip(description);
+        return action;
+    }
+
+    QAction* makeShortcutAction(const QString & text, const SlotFunc & slot, const char* shortcut)
     {
         return funcs.makeShortcutAction1(text, slot, shortcut);
     }
 
-    inline QAction* makeShortcutAction(const QIcon & icon, const QString & text, const SlotFunc & slot, const char* shortcut)
+    QAction* makeShortcutAction(const QIcon & icon, const QString & text, const SlotFunc & slot, const char* shortcut)
     {
         return funcs.makeShortcutAction2(icon, text, slot, shortcut);
     }
 
-    inline QAction* makeMenuAction(QMenu* menu, const QString & text, const SlotFunc & slot)
+    QAction* makeShortcutDescAction(const QIcon & icon, const QString & text, const QString & description, const SlotFunc & slot, const char* shortcut)
+    {
+        auto action = makeShortcutAction(icon, text, slot, shortcut);
+        action->setStatusTip(description);
+        return action;
+    }
+
+    QAction* makeMenuAction(QMenu* menu, const QString & text, const SlotFunc & slot)
     {
         return funcs.makeMenuAction1(menu, text, slot);
     }
 
-    inline QAction* makeMenuAction(QMenu* menu, const QIcon & icon, const QString & text, const SlotFunc & slot)
+    QAction* makeMenuAction(QMenu* menu, const QIcon & icon, const QString & text, const SlotFunc & slot)
     {
         return funcs.makeMenuAction2(menu, icon, text, slot);
     }
 
-    inline QAction* makeShortcutMenuAction(QMenu* menu, const QString & text, const SlotFunc & slot, const char* shortcut)
+    QAction* makeShortcutMenuAction(QMenu* menu, const QString & text, const SlotFunc & slot, const char* shortcut)
     {
         return funcs.makeShortcutMenuAction1(menu, text, slot, shortcut);
     }
 
-    inline QAction* makeShortcutMenuAction(QMenu* menu, const QIcon & icon, const QString & text, const SlotFunc & slot, const char* shortcut)
+    QAction* makeShortcutMenuAction(QMenu* menu, const QIcon & icon, const QString & text, const SlotFunc & slot, const char* shortcut)
     {
         return funcs.makeShortcutMenuAction2(menu, icon, text, slot, shortcut);
-    }
-
-    inline QAction* makeShortcutDescAction(const QIcon & icon, const QString & text, const QString & description, const SlotFunc & slot, const char* shortcut)
-    {
-        return funcs.makeShortcutDescAction2(icon, text, description, slot, shortcut);
     }
 };

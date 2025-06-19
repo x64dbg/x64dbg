@@ -53,16 +53,16 @@ bool TypeManager::AddType(const std::string & owner, const std::string & type, c
         return addType(owner, foundType->second.primitive, name);
     }
 
-    auto found_e = enums.find(type);
-    if(found_e != enums.end())
+    auto foundE = enums.find(type);
+    if(foundE != enums.end())
         return addType(owner, Alias, name, type);
 
-    auto found_s = structs.find(type);
-    if(found_s != structs.end())
+    auto foundS = structs.find(type);
+    if(foundS != structs.end())
         return addType(owner, Alias, name, type);
 
-    auto found_f = functions.find(type);
-    if(found_f != functions.end())
+    auto foundF = functions.find(type);
+    if(foundF != functions.end())
         return addType(owner, Alias, name, type);
 
     if(type == "void")
@@ -363,6 +363,27 @@ TypeBase* TypeManager::LookupTypeById(const uint32_t typeId)
         return nullptr;
 
     return type->second;
+}
+
+TypeBase* TypeManager::LookupTypeByName(const std::string & typeName)
+{
+    auto foundT = types.find(typeName);
+    if(foundT != types.end())
+        return &foundT->second;
+
+    auto foundE = enums.find(typeName);
+    if(foundE != enums.end())
+        return &foundE->second;
+
+    auto foundS = structs.find(typeName);
+    if(foundS != structs.end())
+        return &foundS->second;
+
+    auto foundF = functions.find(typeName);
+    if(foundF != functions.end())
+        return &foundF->second;
+
+    return nullptr;
 }
 
 bool TypeManager::Visit(const std::string & type, const std::string & name, Visitor & visitor) const
@@ -711,6 +732,12 @@ TypeBase* LookupTypeById(uint32_t typeId)
 {
     SHARED_ACQUIRE(LockTypeManager);
     return typeManager.LookupTypeById(typeId);
+}
+
+TypeBase* LookupTypeByName(const char* name)
+{
+    SHARED_ACQUIRE(LockTypeManager);
+    return typeManager.LookupTypeByName(name);
 }
 
 int SizeofType(const std::string & type)
