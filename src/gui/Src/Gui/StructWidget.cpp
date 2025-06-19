@@ -143,6 +143,8 @@ void StructWidget::typeAddNode(void* parent, const TYPEDESCRIPTOR* type)
         {
             item = new QTreeWidgetItem(text);
             ui->treeWidget->insertTopLevelItem(mInsertIndex, item);
+
+            mInsertIndex = -1;
         }
         else
         {
@@ -487,42 +489,25 @@ void StructWidget::changeAddrSlot()
 
 void StructWidget::refreshSlot()
 {
-    auto doRefresh = [&]
-    {
-        typeUpdateWidget();
-
-        // Update mInsertIndex to the current row index of the selected item
-        if(hasSelection)
-            mInsertIndex = ui->treeWidget->currentIndex().row();
-        else
-            mInsertIndex = -1; // Reset if no selection
-    };
-
-    doRefresh();
+    typeUpdateWidget();
+    if(hasSelection)
+        mInsertIndex = ui->treeWidget->currentIndex().row();
+    else
+        mInsertIndex = -1; // Reset if no selection
 
     if(!hasSelection || selectedItem->parent() || !DbgIsDebugging())
         return;
 
-    auto selectedAddr = selectedType.addr + selectedType.offset;
+    // Top level will have no offset
+    const auto selectedAddr = selectedType.addr;
 
     QTreeWidgetItem* parentItem = selectedItem->parent();
     mInsertIndex = parentItem ? parentItem->indexOfChild(selectedItem) : ui->treeWidget->indexOfTopLevelItem(selectedItem);
 
     auto type = selectedItem->data(0, Qt::UserRole).value<TypeDescriptor>();
-
     delete selectedItem;
 
     DbgCmdExec(QString("DisplayType %1, %2").arg(type.typeName).arg(ToPtrString(selectedAddr)));
-    doRefresh();
-
-    if(mInsertIndex != -1)
-    {
-        QTreeWidgetItem* newItem = ui->treeWidget->topLevelItem(ui->treeWidget->topLevelItemCount() - 1);
-        if(parentItem)
-            parentItem->insertChild(mInsertIndex, newItem);
-        else
-            ui->treeWidget->insertTopLevelItem(mInsertIndex, newItem);
-    }
 }
 
 void StructWidget::copyColumnSlot()
