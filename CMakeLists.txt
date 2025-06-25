@@ -414,6 +414,12 @@ target_include_directories(dbg PRIVATE
 	"src/dbg/commands"
 )
 
+if(MSVC) # msvc
+	target_link_libraries(dbg PUBLIC
+		Delayimp
+	)
+endif()
+
 if(NOT TARGET zydis_wrapper)
 	message(FATAL_ERROR "Target \"zydis_wrapper\" referenced by \"dbg\" does not exist!")
 endif()
@@ -459,6 +465,12 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
 		"${CMAKE_CURRENT_SOURCE_DIR}/src/dbg/TitanEngine/TitanEngine_x64.lib"
 		"${CMAKE_CURRENT_SOURCE_DIR}/src/dbg/XEDParse/XEDParse_x64.lib"
 		"${CMAKE_CURRENT_SOURCE_DIR}/src/dbg/LLVMDemangle/LLVMDemangle_x64.lib"
+	)
+endif()
+
+if(MSVC) # msvc
+	target_link_options(dbg PUBLIC
+		"/DELAYLOAD:TitanEngine.dll"
 	)
 endif()
 
@@ -883,6 +895,18 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
 	)
 endif()
 
+if(MSVC) # msvc
+	target_link_libraries(loaddll PRIVATE
+		Delayimp
+	)
+endif()
+
+if(MSVC) # msvc
+	target_link_options(loaddll PRIVATE
+		"/DELAYLOAD:user32.dll"
+	)
+endif()
+
 set_target_properties(loaddll PROPERTIES
 	MSVC_RUNTIME_LIBRARY
 		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
@@ -939,10 +963,26 @@ target_link_libraries(exe PRIVATE
 )
 
 if(MSVC) # msvc
-	target_link_options(exe PRIVATE
-		"/DEF:${CMAKE_SOURCE_DIR}/src/exe/signaturecheck.def"
+	target_link_libraries(exe PRIVATE
+		Delayimp
 	)
 endif()
+
+if(MSVC) # msvc
+	target_link_options(exe PRIVATE
+		"/DEF:${CMAKE_SOURCE_DIR}/src/exe/signaturecheck.def"
+		"/DELAYLOAD:user32.dll"
+		"/DELAYLOAD:wintrust.dll"
+		"/DELAYLOAD:$<TARGET_FILE_NAME:bridge>"
+	)
+endif()
+
+set_target_properties(exe PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+	WIN32_EXECUTABLE
+		ON
+)
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
 	set_target_properties(exe PROPERTIES
@@ -961,11 +1001,6 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
 			x64dbg_exe
 	)
 endif()
-
-set_target_properties(exe PROPERTIES
-	WIN32_EXECUTABLE
-		ON
-)
 
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 if(NOT CMKR_VS_STARTUP_PROJECT)

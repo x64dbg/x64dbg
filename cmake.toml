@@ -134,6 +134,12 @@ private-include-directories = [
     "src/dbg/analysis",
     "src/dbg/commands",
 ]
+msvc.link-options = [
+    "/DELAYLOAD:TitanEngine.dll",
+]
+msvc.link-libraries = [
+    "Delayimp",
+]
 
 [target.dbg.properties]
 x86.OUTPUT_NAME = "x32dbg"
@@ -198,12 +204,19 @@ x86.link-libraries = [
 x64.link-libraries = [
     "src/dbg/ntdll/ntdll_x64.lib",
 ]
+msvc.link-options = [
+    "/DELAYLOAD:user32.dll",
+]
+msvc.link-libraries = [
+    "Delayimp",
+]
 
 [target.loaddll.properties]
 WIN32_EXECUTABLE = "ON"
 
 [target.exe]
 type = "executable"
+msvc-runtime = "static"
 sources = [
     "src/exe/*.cpp",
     "src/exe/*.h",
@@ -219,6 +232,12 @@ link-libraries = [
 ]
 msvc.link-options = [
     "/DEF:${CMAKE_SOURCE_DIR}/src/exe/signaturecheck.def",
+    "/DELAYLOAD:user32.dll",
+    "/DELAYLOAD:wintrust.dll",
+    "/DELAYLOAD:$<TARGET_FILE_NAME:bridge>",
+]
+msvc.link-libraries = [
+    "Delayimp",
 ]
 cmake-after = """
 # Make the executable the main target
