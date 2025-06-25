@@ -7,13 +7,14 @@ if (CMAKE_GENERATOR MATCHES "Visual Studio")
     add_compile_options(/MP)
 endif()
 
-# Generate PDB files for release builds
 if(MSVC)
+    # Generate PDB files for release builds
+    add_link_options($<$<CONFIG:Release,MinSizeRel>:/DEBUG:FULL>)
+    # Disable incremental linking
     add_link_options(
-        $<$<CONFIG:Release>:/DEBUG:FULL>
-        $<$<CONFIG:Release>:/INCREMENTAL:NO>
-        $<$<CONFIG:Release>:/OPT:REF>
-        $<$<CONFIG:Release>:/OPT:ICF>
+        $<$<CONFIG:Release,MinSizeRel,RelWithDebInfo>:/INCREMENTAL:NO>
+        $<$<CONFIG:Release,MinSizeRel,RelWithDebInfo>:/OPT:REF>
+        $<$<CONFIG:Release,MinSizeRel,RelWithDebInfo>:/OPT:ICF>
     )
 endif()
 

@@ -11,6 +11,7 @@ CMAKE_MODULE_PATH = "${CMAKE_SOURCE_DIR}/cmake"
 [project]
 name = "x64dbg"
 description = "An open-source x64/x32 debugger for windows."
+msvc-runtime = "dynamic"
 include-before = [
     "cmake/VSToolchain.cmake"
 ]
@@ -187,6 +188,7 @@ AUTOUIC = true
 
 [target.loaddll]
 type = "executable"
+msvc-runtime = "static"
 sources = [
     "src/loaddll/loaddll.cpp",
 ]
@@ -247,6 +249,7 @@ cmake-after = "add_dependencies(headless exe)"
 [target.launcher]
 type = "executable"
 condition = "x86"
+msvc-runtime = "static"
 sources = [
     "src/launcher/*.cpp",
     "src/exe/icon.rc",

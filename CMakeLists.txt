@@ -7,6 +7,9 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
 	message(FATAL_ERROR "In-tree builds are not supported. Run CMake from a separate directory: cmake -B build")
 endif()
 
+# Enable support for MSVC_RUNTIME_LIBRARY
+cmake_policy(SET CMP0091 NEW)
+
 set(CMKR_ROOT_PROJECT OFF)
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 	set(CMKR_ROOT_PROJECT ON)
@@ -22,6 +25,10 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 
 	# Create a configure-time dependency on cmake.toml to improve IDE support
 	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS cmake.toml)
+	if(NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
+		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+	endif()
+
 endif()
 
 # Options
@@ -877,6 +884,8 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
 endif()
 
 set_target_properties(loaddll PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
 	WIN32_EXECUTABLE
 		ON
 )
@@ -1025,6 +1034,8 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
 	)
 
 	set_target_properties(launcher PROPERTIES
+		MSVC_RUNTIME_LIBRARY
+			"MultiThreaded$<$<CONFIG:Debug>:Debug>"
 		OUTPUT_NAME
 			x96dbg
 		WIN32_EXECUTABLE
