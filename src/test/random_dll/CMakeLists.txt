@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.15)
+project(random_dll)
+if(MSVC)
+    add_link_options(/DEBUG:FULL /INCREMENTAL:NO /OPT:REF /OPT:ICF)
+endif()
+add_library(random SHARED test_dll.cpp)
+add_executable(random_dll_test main.cpp)
