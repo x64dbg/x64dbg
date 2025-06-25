@@ -11,6 +11,7 @@
 #include "expressionparser.h"
 #include "variable.h"
 #include "cmd-undocumented.h"
+#include "stringformat.h"
 
 COMMAND* cmd_list = 0;
 
@@ -207,6 +208,17 @@ bool cbCommandProvider(char* cmd, int maxlen);
 
 void cmdsplit(const char* cmd, StringList & commands)
 {
+    // Allow prefixing commands with $ to format them
+    String cmdFormatted;
+    if(*cmd == '$')
+    {
+        cmd++;
+        while(*cmd == ' ')
+            cmd++;
+        cmdFormatted = stringformatinline(cmd);
+        cmd = cmdFormatted.c_str();
+    }
+
     commands.clear();
     auto len = strlen(cmd);
     auto inquote = false;
