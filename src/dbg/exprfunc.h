@@ -105,4 +105,16 @@ namespace Exprfunc
 
     bool syscall_name(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
     bool syscall_id(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+
+    bool strlower(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool strupper(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool strcat(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool substr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool strchr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool strrchr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool strreplace(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool strreplace_first(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool strreplace_last(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool streval(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
+    bool strtrim(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata);
 }

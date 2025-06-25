@@ -135,7 +135,7 @@ void ExpressionFunctions::Init()
 
     //References
     RegisterEasy("ref.count", refcount);
-    RegisterEasy("ref.addr", refaddr);
+    RegisterEasy("ref.addr,ref", refaddr);
     RegisterEasy("refsearch.count", refsearchcount);
     RegisterEasy("refsearch.addr", refsearchaddr);
 
@@ -165,11 +165,22 @@ void ExpressionFunctions::Init()
     ExpressionFunctions::Register("utf8.strict", ValueTypeString, { ValueTypeNumber, ValueTypeOptionalNumber }, Exprfunc::utf8_strict);
     ExpressionFunctions::Register("utf16", ValueTypeString, { ValueTypeNumber, ValueTypeOptionalNumber }, Exprfunc::utf16);
     ExpressionFunctions::Register("utf16.strict", ValueTypeString, { ValueTypeNumber, ValueTypeOptionalNumber }, Exprfunc::utf16_strict);
-    ExpressionFunctions::Register("strstr", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::strstr);
-    ExpressionFunctions::Register("stristr", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::stristr);
+    ExpressionFunctions::Register("strstr,strcontains", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::strstr);
+    ExpressionFunctions::Register("stristr,stricontains", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::stristr);
     ExpressionFunctions::Register("streq", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::streq);
     ExpressionFunctions::Register("strieq", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::strieq);
     ExpressionFunctions::Register("strlen", ValueTypeNumber, { ValueTypeString }, Exprfunc::strlen);
+    ExpressionFunctions::Register("strlower", ValueTypeString, { ValueTypeString }, Exprfunc::strlower);
+    ExpressionFunctions::Register("strupper", ValueTypeString, { ValueTypeString }, Exprfunc::strupper);
+    ExpressionFunctions::Register("strcat", ValueTypeString, { ValueTypeString, ValueTypeString }, Exprfunc::strcat);
+    ExpressionFunctions::Register("substr", ValueTypeString, { ValueTypeString, ValueTypeNumber, ValueTypeOptionalNumber }, Exprfunc::substr);
+    ExpressionFunctions::Register("strchr", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::strchr);
+    ExpressionFunctions::Register("strrchr", ValueTypeNumber, { ValueTypeString, ValueTypeString }, Exprfunc::strrchr);
+    ExpressionFunctions::Register("strreplace", ValueTypeString, { ValueTypeString, ValueTypeString, ValueTypeString }, Exprfunc::strreplace);
+    ExpressionFunctions::Register("strreplace_first", ValueTypeString, { ValueTypeString, ValueTypeString, ValueTypeString }, Exprfunc::strreplace_first);
+    ExpressionFunctions::Register("strreplace_last", ValueTypeString, { ValueTypeString, ValueTypeString, ValueTypeString }, Exprfunc::strreplace_last);
+    ExpressionFunctions::Register("streval", ValueTypeNumber, { ValueTypeString }, Exprfunc::streval);
+    ExpressionFunctions::Register("strtrim", ValueTypeString, { ValueTypeString }, Exprfunc::strtrim);
 
     ExpressionFunctions::Register("syscall.name", ValueTypeString, { ValueTypeNumber }, Exprfunc::syscall_name);
     ExpressionFunctions::Register("syscall.id", ValueTypeNumber, { ValueTypeString }, Exprfunc::syscall_id);

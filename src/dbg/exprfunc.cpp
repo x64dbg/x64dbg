@@ -825,4 +825,169 @@ namespace Exprfunc
         *result = ValueNumber(id);
         return true;
     }
+
+    bool strlower(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argc == 1);
+        assert(argv[0].type == ValueTypeString);
+
+        *result = ValueString(StringUtils::ToLower(argv[0].string.ptr));
+        return true;
+    }
+
+    bool strupper(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argc == 1);
+        assert(argv[0].type == ValueTypeString);
+
+        String str = argv[0].string.ptr;
+        for(auto & ch : str)
+            ch = toupper(ch);
+
+        *result = ValueString(str);
+        return true;
+    }
+
+    bool strcat(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argc == 2);
+        assert(argv[0].type == ValueTypeString);
+        assert(argv[1].type == ValueTypeString);
+
+        String str = argv[0].string.ptr;
+        str += argv[1].string.ptr;
+
+        *result = ValueString(str);
+        return true;
+    }
+
+    bool substr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argc >= 2 && argc <= 3);
+        assert(argv[0].type == ValueTypeString);
+        assert(argv[1].type == ValueTypeNumber);
+
+        String str = argv[0].string.ptr;
+        size_t start = (size_t)argv[1].number;
+
+        if(start >= str.length())
+        {
+            *result = ValueString("");
+            return true;
+        }
+
+        size_t length = str.length() - start;
+        if(argc == 3)
+        {
+            assert(argv[2].type == ValueTypeNumber);
+            length = std::min(length, (size_t)argv[2].number);
+        }
+
+        *result = ValueString(str.substr(start, length));
+        return true;
+    }
+
+    bool strchr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argc == 2);
+        assert(argv[0].type == ValueTypeString);
+        assert(argv[1].type == ValueTypeString);
+
+        String str = argv[0].string.ptr;
+        String needle = argv[1].string.ptr;
+
+        size_t pos = str.find(needle);
+        *result = ValueNumber(pos == String::npos ? -1 : (duint)pos);
+        return true;
+    }
+
+    bool strrchr(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argc == 2);
+        assert(argv[0].type == ValueTypeString);
+        assert(argv[1].type == ValueTypeString);
+
+        String str = argv[0].string.ptr;
+        String needle = argv[1].string.ptr;
+
+        size_t pos = str.rfind(needle);
+        *result = ValueNumber(pos == String::npos ? -1 : (duint)pos);
+        return true;
+    }
+
+    bool strreplace(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argc == 3);
+        assert(argv[0].type == ValueTypeString);
+        assert(argv[1].type == ValueTypeString);
+        assert(argv[2].type == ValueTypeString);
+
+        String str = argv[0].string.ptr;
+        String from = argv[1].string.ptr;
+        String to = argv[2].string.ptr;
+
+        StringUtils::ReplaceAll(str, from, to);
+        *result = ValueString(str);
+        return true;
+    }
+
+    bool strreplace_first(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argc == 3);
+        assert(argv[0].type == ValueTypeString);
+        assert(argv[1].type == ValueTypeString);
+        assert(argv[2].type == ValueTypeString);
+
+        String str = argv[0].string.ptr;
+        String from = argv[1].string.ptr;
+        String to = argv[2].string.ptr;
+
+        size_t pos = str.find(from);
+        if(pos != String::npos)
+            str.replace(pos, from.length(), to);
+
+        *result = ValueString(str);
+        return true;
+    }
+
+    bool strreplace_last(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argc == 3);
+        assert(argv[0].type == ValueTypeString);
+        assert(argv[1].type == ValueTypeString);
+        assert(argv[2].type == ValueTypeString);
+
+        String str = argv[0].string.ptr;
+        String from = argv[1].string.ptr;
+        String to = argv[2].string.ptr;
+
+        size_t pos = str.rfind(from);
+        if(pos != String::npos)
+            str.replace(pos, from.length(), to);
+
+        *result = ValueString(str);
+        return true;
+    }
+
+    bool streval(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argc == 1);
+        assert(argv[0].type == ValueTypeString);
+
+        duint value;
+        if(!valfromstring(argv[0].string.ptr, &value))
+            return false;
+
+        *result = ValueNumber(value);
+        return true;
+    }
+
+    bool strtrim(ExpressionValue* result, int argc, const ExpressionValue* argv, void* userdata)
+    {
+        assert(argc == 1);
+        assert(argv[0].type == ValueTypeString);
+
+        *result = ValueString(StringUtils::Trim(argv[0].string.ptr));
+        return true;
+    }
 }
