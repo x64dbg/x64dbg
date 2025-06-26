@@ -3,6 +3,7 @@
 
 #include "Configuration.h"
 #include "GotoDialog.h"
+#include "DisplayTypeDialog.h"
 #include "MenuBuilder.h"
 #include "MiscUtil.h"
 #include "RichTextItemDelegate.h"
@@ -456,27 +457,7 @@ void StructWidget::removeSlot()
 
 void StructWidget::displayTypeSlot()
 {
-    QStringList structs;
-    DbgFunctions()->EnumStructs([](const char* name, void* userdata)
-    {
-        ((QStringList*)userdata)->append(name);
-    }, &structs);
-    if(structs.isEmpty())
-    {
-        SimpleErrorBox(this, tr("Error"), tr("No types loaded yet, parse a header first..."));
-        return;
-    }
-
-    QString selection;
-    if(!SimpleChoiceBox(this, tr("Type to display"), "", structs, selection, true, "", DIcon("struct"), 1) || selection.isEmpty())
-        return;
-    if(!mGotoDialog)
-        mGotoDialog = new GotoDialog(this);
-    duint addr = 0;
-    mGotoDialog->setWindowTitle(tr("Address to display %1 at").arg(selection));
-    if(DbgIsDebugging() && mGotoDialog->exec() == QDialog::Accepted)
-        addr = DbgValFromString(mGotoDialog->expressionText.toUtf8().constData());
-    typeVisitSlot(selection, addr);
+    DisplayTypeDialog::pickType(this);
 }
 
 void StructWidget::loadJsonSlot()

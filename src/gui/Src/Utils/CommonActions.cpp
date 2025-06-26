@@ -9,6 +9,7 @@
 #include "LineEditDialog.h"
 #include "WordEditDialog.h"
 #include "GotoDialog.h"
+#include "DisplayTypeDialog.h"
 
 CommonActions::CommonActions(QWidget* parent, ActionHelperFuncs funcs, GetSelectionFunc getSelection)
     : QObject(parent), ActionHelperProxy(funcs), mGetSelection(getSelection)
@@ -464,29 +465,7 @@ void CommonActions::graphSlot()
 
 void CommonActions::displayTypeSlot()
 {
-    // Copy pasta from setupFollowMenu for now
-    auto va = mGetSelection();
-
-    QStringList structs;
-    DbgFunctions()->EnumStructs([](const char* name, void* userdata)
-    {
-        ((QStringList*)userdata)->append(name);
-    }, &structs);
-
-    if(structs.isEmpty())
-    {
-        SimpleErrorBox(widgetparent(), tr("Error"), tr("No types loaded yet, parse a header first..."));
-        return;
-    }
-
-    QString selection;
-    if(!SimpleChoiceBox(widgetparent(), tr("Type to display at %1").arg(ToPtrString(va)), "", structs, selection, true, "", DIcon("struct"), 1) || selection.isEmpty())
-        return;
-    if(!mGotoType)
-        mGotoType = new GotoDialog(widgetparent());
-    mGotoType->setWindowTitle(tr("Address to display %1 at").arg(selection));
-
-    Bridge::getBridge()->typeVisit(selection, va);
+    DisplayTypeDialog::pickType(widgetparent(), mGetSelection());
 }
 
 void CommonActions::setNewOriginHereActionSlot()
