@@ -100,6 +100,12 @@ void DisplayTypeDialog::updateTypeListSlot()
         ((QStringList*)userdata)->append(name);
     }, &structs);
 
+    if(structs.isEmpty())
+    {
+        SimpleErrorBox(this, tr("Error"), tr("No types loaded yet, parse a header first..."));
+        return;
+    }
+
     ui->typeList->setRowCount(structs.count());
     for(int i = 0; i < structs.count(); i++)
     {

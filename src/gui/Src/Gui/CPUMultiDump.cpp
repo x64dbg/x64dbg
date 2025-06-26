@@ -46,7 +46,7 @@ CPUMultiDump::CPUMultiDump(CPUDisassembly* disassembly, int nbCpuDumpTabs, QWidg
     this->addTabEx(mLocalVars, DIcon("localvars"), tr("Locals"), "Locals");
 
     mStructWidget = new StructWidget(this);
-    this->addTabEx(mStructWidget, DIcon("struct"), mStructWidget->windowTitle(), "Struct");
+    this->addTabEx(mStructWidget, DIcon("struct"), tr("Struct"), "Struct");
 
     connect(this, SIGNAL(currentChanged(int)), this, SLOT(updateCurrentTabSlot(int)));
     connect(tabBar(), SIGNAL(OnDoubleClickTabIndex(int)), this, SLOT(openChangeTabTitleDialogSlot(int)));
@@ -111,12 +111,12 @@ int CPUMultiDump::getMaxCPUTabs()
 
 void CPUMultiDump::saveWindowSettings()
 {
-    mStructWidget->saveWindowSettings();
+    mStructWidget->saveWindowSettings("StructWidget");
 }
 
 void CPUMultiDump::loadWindowSettings()
 {
-    mStructWidget->loadWindowSettings();
+    mStructWidget->loadWindowSettings("StructWidget");
 }
 
 int CPUMultiDump::GetDumpWindowIndex(int dump)

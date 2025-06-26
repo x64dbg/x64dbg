@@ -686,7 +686,6 @@ set(gui_SOURCES
 	"src/gui/Src/Gui/SourceViewerManager.h"
 	"src/gui/Src/Gui/StructWidget.cpp"
 	"src/gui/Src/Gui/StructWidget.h"
-	"src/gui/Src/Gui/StructWidget.ui"
 	"src/gui/Src/Gui/SymbolView.cpp"
 	"src/gui/Src/Gui/SymbolView.h"
 	"src/gui/Src/Gui/SymbolView.ui"

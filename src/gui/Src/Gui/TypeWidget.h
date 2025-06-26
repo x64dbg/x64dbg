@@ -40,7 +40,7 @@ public slots:
     void fontsUpdatedSlot();
     void updateValuesSlot();
 
-private:
+protected:
     QString highlightTypeName(QString name) const;
 
     QTreeWidgetItem* mScrollItem = nullptr;
