@@ -293,6 +293,17 @@ static bool cbPrintEnum(const TYPEDESCRIPTOR* type, char* dest, size_t* destCoun
     return true;
 }
 
+static const char* LookupTypePrefix(const std::string & typeName)
+{
+    auto type = LookupTypeByName(typeName);
+    auto td = dynamic_cast<Typedef*>(type);
+    if(td != nullptr && td->primitive == Alias)
+    {
+        return LookupTypePrefix(td->alias);
+    }
+    return type->prefix();
+}
+
 bool NodeVisitor::visitType(const Member & member, const Typedef & type, const std::string & prettyType)
 {
     if(!mParents.empty() && parent().type == Parent::Union)
@@ -302,31 +313,42 @@ bool NodeVisitor::visitType(const Member & member, const Typedef & type, const s
     }
 
     String tname;
-    auto ptype = mParents.empty() ? Parent::Struct : parent().type;
-    if(ptype == Parent::Array)
+    auto isArrayMember = !mParents.empty() && parent().type == Parent::Type::Array;
+    if(isArrayMember)
     {
-        tname = StringUtils::sprintf("%s[%u]", member.name.c_str(), parent().index++);
+        tname += '[';
+        tname += std::to_string(parent().arrayIndex++);
+        tname += ']';
+        tname += ' ';
     }
-    else
-    {
-        if(member.isBitfield)
-            tname = StringUtils::sprintf("%s %s : %d", prettyType.c_str(), member.name.c_str(), member.sizeBits);
-        else
-            tname = StringUtils::sprintf("%s %s", prettyType.c_str(), member.name.c_str());
 
-        // Prepend struct/union to pointer types
-        if(!type.alias.empty())
+    if(type.primitive == Pointer && !type.alias.empty())
+    {
+        auto ptrPrefix = LookupTypePrefix(type.alias);
+        if(*ptrPrefix)
         {
-            auto ptrname = StructUnionPtrType(type.alias);
-            if(!ptrname.empty())
-                tname = ptrname + " " + tname;
+            tname += ptrPrefix;
+            tname += ' ';
+        }
+    }
+
+    if(!isArrayMember)
+    {
+        tname += prettyType;
+        tname += ' ';
+        tname += member.name;
+
+        if(member.isBitfield)
+        {
+            tname += " : ";
+            tname += std::to_string(member.sizeBits);
         }
     }
 
     std::string path;
     for(size_t i = 0; i < mPath.size(); i++)
     {
-        if(ptype == Parent::Array && i + 1 == mPath.size())
+        if(isArrayMember && i + 1 == mPath.size())
             break;
         path.append(mPath[i]);
     }
@@ -335,7 +357,7 @@ bool NodeVisitor::visitType(const Member & member, const Typedef & type, const s
     auto ptr = mAddr + mOffset;
     if(mCreateLabels && MemIsValidReadPtr(ptr))
     {
-        if(!LabelGet(ptr, nullptr) && (!mParents.empty() && (parent().index == 1 || ptype != Parent::Array)))
+        if(!LabelGet(ptr, nullptr) && (!mParents.empty() && (parent().arrayIndex == 1 || !isArrayMember)))
             LabelSet(ptr, path.c_str(), false, true);
     }
 
@@ -378,20 +400,29 @@ bool NodeVisitor::visitStructUnion(const Member & member, const StructUnion & ty
         mBitOffset = 0;
     }
 
-    std::string targetType;
-    if(prettyType.find("__anonymous") == 0)
-        targetType = "";
-    else
-        targetType = prettyType;
+    std::string tname;
+    auto isArrayMember = !mParents.empty() && parent().type == Parent::Type::Array;
+    if(isArrayMember)
+    {
+        tname += '[';
+        tname += std::to_string(parent().arrayIndex++);
+        tname += ']';
+        tname += ' ';
+    }
 
-    std::string targetName;
-    if(member.name.find("__anonymous") == 0)
-        targetName = "";
-    else
-        targetName = member.name;
+    tname += type.isUnion ? "union" : "struct";
 
-    // TODO: the targetType is empty when displaying array members
-    String tname = StringUtils::sprintf("%s %s %s", type.isUnion ? "union" : "struct", targetType.c_str(), targetName.c_str());
+    if(prettyType.find("__anonymous") != 0)
+    {
+        tname += ' ';
+        tname += prettyType;
+    }
+
+    if(!isArrayMember && member.name.find("__anonymous") != 0)
+    {
+        tname += ' ';
+        tname += member.name;
+    }
 
     TYPEDESCRIPTOR td = { };
     td.expanded = mParents.size() < mMaxExpandDepth;
@@ -423,7 +454,28 @@ bool NodeVisitor::visitEnum(const Member & member, const Enum & num, const std::
         mBitOffset = 0;
     }
 
-    String tname = StringUtils::sprintf("enum %s %s", prettyType.c_str(), member.name.c_str());
+    std::string tname;
+    auto isArrayMember = !mParents.empty() && parent().type == Parent::Type::Array;
+    if(isArrayMember)
+    {
+        tname += '[';
+        tname += std::to_string(parent().arrayIndex++);
+        tname += ']';
+        tname += ' ';
+    }
+
+    tname += "enum";
+    if(prettyType.find("__anonymous") != 0)
+    {
+        tname += ' ';
+        tname += prettyType;
+    }
+
+    if(!isArrayMember && member.name.find("__anonymous") != 0)
+    {
+        tname += ' ';
+        tname += member.name;
+    }
 
     TYPEDESCRIPTOR td = { };
     td.expanded = mParents.size() < mMaxExpandDepth;
@@ -446,7 +498,19 @@ bool NodeVisitor::visitEnum(const Member & member, const Enum & num, const std::
 
 bool NodeVisitor::visitArray(const Member & member, const std::string & prettyType)
 {
-    String tname = StringUtils::sprintf("%s %s[%d]", prettyType.c_str(), member.name.c_str(), member.arraySize);
+    // TODO: support array of arrays?
+
+    std::string tname = LookupTypePrefix(member.type);
+    if(!tname.empty())
+    {
+        tname += ' ';
+    }
+    tname += prettyType;
+    tname += ' ';
+    tname += member.name;
+    tname += '[';
+    tname += std::to_string(member.arraySize);
+    tname += ']';
 
     TYPEDESCRIPTOR td = { };
     auto isPadding = member.name.find("padding") == 0;
@@ -472,6 +536,8 @@ bool NodeVisitor::visitArray(const Member & member, const std::string & prettyTy
 
 bool NodeVisitor::visitPtr(const Member & member, const Typedef & type, const std::string & prettyType)
 {
+    // TODO: support array of pointers?
+
     auto offset = mOffset;
     auto res = visitType(member, type, prettyType); //print the pointer value
     if(mPtrDepth >= mMaxPtrDepth)

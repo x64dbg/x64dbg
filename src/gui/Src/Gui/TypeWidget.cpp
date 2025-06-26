@@ -238,6 +238,10 @@ void TypeWidget::updateValuesSlot()
 
 QString TypeWidget::highlightTypeName(QString name) const
 {
+    // Pass through names that already have HTML tags
+    if(name.contains('<'))
+        return name;
+
     // TODO: this can be improved with colors
     static auto re = []
     {
@@ -295,8 +299,8 @@ QString TypeWidget::highlightTypeName(QString name) const
 
     name.replace(re, "<b>\\1</b>");
 
-    static QRegExp sre("^(struct|union|class|enum) ([a-zA-Z0-9_:$]+)");
-    name.replace(sre, "<u>\\1</u> <b>\\2</b>");
+    static QRegExp sre("^(\\[\\d+\\] )?(struct|union|class|enum)( [a-zA-Z0-9_:$]+)?");
+    name.replace(sre, "\\1<u>\\2</u><b>\\3</b>");
 
     return name;
 }

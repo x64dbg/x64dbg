@@ -631,7 +631,7 @@ bool TypeManager::visitMember(const Member & root, Visitor & visitor, const std:
                 am.arraySize = -1;
 
                 for(auto i = 0; i < child.arraySize; i++)
-                    if(!visitMember(am, visitor, ""))
+                    if(!visitMember(am, visitor, am.type))
                         return false;
 
                 if(!visitor.visitBack(child))
@@ -735,7 +735,7 @@ TypeBase* LookupTypeById(uint32_t typeId)
     return typeManager.LookupTypeById(typeId);
 }
 
-TypeBase* LookupTypeByName(const char* name)
+TypeBase* LookupTypeByName(const std::string & name)
 {
     SHARED_ACQUIRE(LockTypeManager);
     return typeManager.LookupTypeByName(name);

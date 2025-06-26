@@ -30,14 +30,22 @@ namespace Types
 
     struct TypeBase
     {
+        virtual ~TypeBase() = default;
+        virtual const char* prefix() const = 0;
+
         std::string owner; //Type owner (header file name).
         std::string name; //Type identifier.
 
         uint32_t typeId = 0; // id from typeIdMap
     };
 
-    struct Typedef : TypeBase
+    struct Typedef final : TypeBase
     {
+        const char* prefix() const override
+        {
+            return "";
+        }
+
         std::string alias; //Typedef and Pointer primitives have this set to the type they point to
         Primitive primitive; //Primitive type.
         int sizeBits = 0; //Size in bits.
@@ -55,8 +63,13 @@ namespace Types
         bool isBitfield = false; //Is this a bitfield?
     };
 
-    struct StructUnion : TypeBase
+    struct StructUnion final : TypeBase
     {
+        const char* prefix() const override
+        {
+            return isUnion ? "union" : "struct";
+        }
+
         std::vector<Member> members; //StructUnion members
         bool isUnion = false; //Is this a union?
         int sizeBits = -1; //Structure size in bits
@@ -70,16 +83,26 @@ namespace Types
         Delphi,
     };
 
-    struct Function : TypeBase
+    struct Function final : TypeBase
     {
+        const char* prefix() const override
+        {
+            return "";
+        }
+
         std::string returnType; //Function return type
         CallingConvention callconv = Cdecl; //Function calling convention
         bool noreturn = false; //Function does not return (ExitProcess, _exit)
         std::vector<Member> args; //Function arguments
     };
 
-    struct Enum : TypeBase
+    struct Enum final : TypeBase
     {
+        const char* prefix() const override
+        {
+            return "enum";
+        }
+
         std::vector<std::pair<uint64_t, std::string>> members;
         uint8_t sizeBits; //Enum size in bits
         bool isFlags; //Enum members are bit flags
@@ -198,7 +221,7 @@ bool AddFunction(const std::string & owner, const std::string & name, const std:
 bool AddArg(const std::string & function, const std::string & type, const std::string & name);
 bool AppendArg(const std::string & type, const std::string & name);
 Types::TypeBase* LookupTypeById(uint32_t typeId);
-Types::TypeBase* LookupTypeByName(const char* typeName);
+Types::TypeBase* LookupTypeByName(const std::string & typeName);
 int SizeofType(const std::string & type);
 bool VisitType(const std::string & type, const std::string & name, Types::TypeManager::Visitor & visitor);
 void ClearTypes(const std::string & owner = "");

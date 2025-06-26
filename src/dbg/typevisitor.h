@@ -45,7 +45,7 @@ private:
         };
 
         Type type;
-        unsigned int index = 0;
+        unsigned int arrayIndex = 0;
         duint addr = 0;
         duint offset = 0;
         void* node = nullptr;
