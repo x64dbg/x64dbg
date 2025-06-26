@@ -24,6 +24,7 @@ public:
     explicit MessagesBreakpoints(MsgBreakpointData pbpData, QWidget* parent = nullptr);
     ~MessagesBreakpoints();
     MsgBreakpointData bpData;
+    duint procVA;
 
 private slots:
     void on_btnOk_clicked();
