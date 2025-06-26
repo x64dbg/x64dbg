@@ -27,6 +27,7 @@ DisplayTypeDialog::DisplayTypeDialog(QWidget* parent) :
     // Type list
     ui->typeList->addColumnAt(0, tr("Type Name"), true);
     connect(ui->typeList, &StdSearchListView::selectionChanged, this, &DisplayTypeDialog::updateTypeWidgetSlot);
+    connect(Bridge::getBridge(), &Bridge::typeListUpdated, this, &DisplayTypeDialog::updateTypeListSlot);
     updateTypeListSlot();
 
     loadWindowSettings();
@@ -40,6 +41,18 @@ DisplayTypeDialog::~DisplayTypeDialog()
 
 void DisplayTypeDialog::pickType(QWidget* parent, duint defaultAddr)
 {
+    bool hasTypes = false;
+    DbgFunctions()->EnumStructs([](const char* name, void* userdata)
+    {
+        *(bool*)userdata = true;
+    }, &hasTypes);
+
+    if(!hasTypes)
+    {
+        SimpleErrorBox(parent, tr("Error"), tr("No types loaded yet, parse a header first..."));
+        return;
+    }
+
     DisplayTypeDialog dialog(parent);
     if(defaultAddr != 0)
     {
@@ -100,20 +113,25 @@ void DisplayTypeDialog::updateTypeListSlot()
         ((QStringList*)userdata)->append(name);
     }, &structs);
 
-    if(structs.isEmpty())
-    {
-        SimpleErrorBox(this, tr("Error"), tr("No types loaded yet, parse a header first..."));
-        return;
-    }
-
+    auto reselectType = getSelectedType();
+    auto reselectIndex = ui->typeList->mCurList->getInitialSelection();
     ui->typeList->setRowCount(structs.count());
     for(int i = 0; i < structs.count(); i++)
     {
-        ui->typeList->setCellContent(i, ColType, structs[i]);
+        ui->typeList->setCellContent(i, ColType, std::move(structs[i]));
     }
-    ui->typeList->reloadData();
+    ui->typeList->refreshSearchList();
 
-    updateTypeWidgetSlot();
+    auto rowCount = ui->typeList->mCurList->getRowCount();
+    for(int i = 0; i < rowCount; i++)
+    {
+        if(ui->typeList->mCurList->getCellContent(i, ColType) == reselectType)
+        {
+            reselectIndex = i;
+            break;
+        }
+    }
+    ui->typeList->mCurList->setSingleSelection(reselectIndex);
 }
 
 void DisplayTypeDialog::updateTypeWidgetSlot()

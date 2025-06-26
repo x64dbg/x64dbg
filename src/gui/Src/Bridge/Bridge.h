@@ -181,6 +181,7 @@ signals:
     void typeClear();
     void typeUpdateWidget();
     void typeVisit(QString typeName, duint addr);
+    void typeListUpdated();
     void closeApplication();
     void flushLog();
     void getDumpAttention();

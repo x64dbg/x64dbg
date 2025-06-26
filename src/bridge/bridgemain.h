@@ -1397,6 +1397,7 @@ BRIDGE_IMPEXP bool DbgTypeVisit(const TYPEVISITDATA* data);
     msg(GUI_SHOW_THREADS, unused, unused) \
     msg(GUI_SHOW_STRUCT, unused, unused) \
     msg(GUI_TYPE_VISIT, const char* typeName, duint addr) \
+    msg(GUI_TYPE_LIST_UPDATED, unused, unused) \
 
 // clang-format on
 
@@ -1569,6 +1570,7 @@ BRIDGE_IMPEXP void GuiProcessEvents();
 BRIDGE_IMPEXP void* GuiTypeAddNode(void* parent, const TYPEDESCRIPTOR* type);
 BRIDGE_IMPEXP bool GuiTypeClear();
 BRIDGE_IMPEXP void GuiTypeVisit(const char* typeName, duint addr);
+BRIDGE_IMPEXP void GuiTypeListUpdated();
 BRIDGE_IMPEXP void GuiUpdateTypeWidget();
 BRIDGE_IMPEXP void GuiCloseApplication();
 BRIDGE_IMPEXP void GuiFlushLog();

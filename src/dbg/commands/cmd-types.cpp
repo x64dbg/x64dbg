@@ -139,6 +139,7 @@ bool cbInstrAddType(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "AddType failed"));
         return false;
     }
+    GuiTypeListUpdated();
     dprintf_untranslated("typedef %s %s;\n", argv[2], argv[1]);
     return true;
 }
@@ -152,6 +153,7 @@ bool cbInstrAddStruct(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "AddStruct failed"));
         return false;
     }
+    GuiTypeListUpdated();
     dprintf_untranslated("struct %s;\n", argv[1]);
     return true;
 }
@@ -165,6 +167,7 @@ bool cbInstrAddUnion(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "AddUnion failed"));
         return false;
     }
+    GuiTypeListUpdated();
     dprintf_untranslated("union %s;\n", argv[1]);
     return true;
 }
@@ -195,6 +198,7 @@ bool cbInstrAddMember(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "AddMember failed"));
         return false;
     }
+    GuiTypeListUpdated();
     dprintf_untranslated("%s: %s %s", parent, type, name);
     if(arraySize > 0)
         dprintf_untranslated("[%d]", arraySize);
@@ -229,6 +233,7 @@ bool cbInstrAppendMember(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "AppendMember failed"));
         return false;
     }
+    GuiTypeListUpdated();
     dprintf_untranslated("%s %s", type, name);
     if(arraySize > 0)
         dprintf_untranslated("[%d]", arraySize);
@@ -274,6 +279,7 @@ bool cbInstrAddFunction(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "AddFunction failed"));
         return false;
     }
+    GuiTypeListUpdated();
     dprintf_untranslated("%s %s();\n", returnType, name);
     return true;
 }
@@ -287,6 +293,7 @@ bool cbInstrAddArg(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "AddArg failed"));
         return false;
     }
+    GuiTypeListUpdated();
     dprintf_untranslated("%s: %s %s;\n", argv[1], argv[2], argv[3]);
     return true;
 }
@@ -300,6 +307,7 @@ bool cbInstrAppendArg(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "AppendArg failed"));
         return false;
     }
+    GuiTypeListUpdated();
     dprintf_untranslated("%s %s;\n", argv[1], argv[2]);
     return true;
 }
@@ -386,6 +394,7 @@ bool cbInstrClearTypes(int argc, char* argv[])
     if(argc > 1)
         owner = argv[1];
     ClearTypes(owner);
+    GuiTypeListUpdated();
     return true;
 }
 
@@ -398,6 +407,7 @@ bool cbInstrRemoveType(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "RemoveType failed"));
         return false;
     }
+    GuiTypeListUpdated();
     dprintf(QT_TRANSLATE_NOOP("DBG", "Type %s removed\n"), argv[1]);
     return true;
 }
@@ -426,6 +436,7 @@ bool cbInstrLoadTypes(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "LoadTypes failed"));
         return false;
     }
+    GuiTypeListUpdated();
     dputs(QT_TRANSLATE_NOOP("DBG", "Types loaded"));
     return true;
 }
@@ -450,6 +461,7 @@ bool cbInstrParseTypes(int argc, char* argv[])
         return false;
     }
 
+    GuiTypeListUpdated();
     dprintf("Parsed header: %s\n", argv[1]);
     return true;
 }

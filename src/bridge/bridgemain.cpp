@@ -2211,6 +2211,11 @@ BRIDGE_IMPEXP void GuiTypeVisit(const char* typeName, duint addr)
     _gui_sendmessage(GUI_TYPE_VISIT, (void*)typeName, (void*)addr);
 }
 
+BRIDGE_IMPEXP void GuiTypeListUpdated()
+{
+    _gui_sendmessage(GUI_TYPE_LIST_UPDATED, nullptr, nullptr);
+}
+
 BRIDGE_IMPEXP void GuiUpdateTypeWidget()
 {
     _gui_sendmessage(GUI_UPDATE_TYPE_WIDGET, nullptr, nullptr);

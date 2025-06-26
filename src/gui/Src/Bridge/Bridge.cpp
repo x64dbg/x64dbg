@@ -1008,6 +1008,10 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     }
     break;
 
+    case GUI_TYPE_LIST_UPDATED:
+        emit typeListUpdated();
+        break;
+
     case GUI_CLOSE_APPLICATION:
         emit closeApplication();
         break;

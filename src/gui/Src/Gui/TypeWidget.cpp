@@ -55,7 +55,7 @@ void TypeWidget::clearTypes()
 
 QTreeWidgetItem* TypeWidget::typeAddNode(QTreeWidgetItem* parent, const TYPEDESCRIPTOR* type)
 {
-    // Disable updates until the next typeUpdateWidget()
+    // Disable updates until the next updateValuesSlot()
     setUpdatesEnabled(false);
 
     TypeDescriptor dtype;
