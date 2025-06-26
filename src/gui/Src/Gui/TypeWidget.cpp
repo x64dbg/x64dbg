@@ -223,7 +223,7 @@ void TypeWidget::updateValuesSlot()
             else if(type.type.addr)
                 valueStr = "???";
         }
-        item->setText(ColValue, valueStr);
+        item->setText(ColValue, valueStr.toHtmlEscaped());
     }
     setUpdatesEnabled(true);
 

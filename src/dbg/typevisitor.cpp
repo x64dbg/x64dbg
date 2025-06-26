@@ -13,25 +13,25 @@ int gDefaultMaxExpandArray = 5;
 using namespace Types;
 
 template <typename T>
-static String basicPrint(void* data, const char* format)
+static std::string basicPrint(void* data, const char* format)
 {
     return StringUtils::sprintf(format, *(T*)data);
 }
 
 template <typename T, typename U>
-static String basicPrint(void* data, const char* format)
+static std::string basicPrint(void* data, const char* format)
 {
     return StringUtils::sprintf(format, *(T*)data, *(U*)data);
 }
 
 static bool cbPrintPrimitive(const TYPEDESCRIPTOR* type, char* dest, size_t* destCount)
 {
-    if(!type->addr || !type->sizeBits)
+    if(type->addr == 0 || !type->sizeBits)
     {
         *dest = '\0';
         return true;
     }
-    String valueStr;
+    std::string valueStr;
 
     auto readStart = type->addr + type->offset + type->bitOffset / 8;
     auto readSize = (type->sizeBits + 7) / 8;
@@ -175,13 +175,13 @@ static bool cbPrintPrimitive(const TYPEDESCRIPTOR* type, char* dest, size_t* des
 
 static bool cbPrintEnum(const TYPEDESCRIPTOR* type, char* dest, size_t* destCount)
 {
-    if(!type->addr)
+    if(type->addr == 0)
     {
         *dest = '\0';
         return true;
     }
 
-    String valueStr;
+    std::string valueStr;
     auto enumTypeIdData = LookupTypeByName(type->typeName);
 
     auto readStart = type->addr + type->offset + type->bitOffset / 8;
@@ -293,6 +293,66 @@ static bool cbPrintEnum(const TYPEDESCRIPTOR* type, char* dest, size_t* destCoun
     return true;
 }
 
+static bool cbPrintArray(const TYPEDESCRIPTOR* type, char* dest, size_t* destCount)
+{
+    if(type->addr == 0 || type->typeName == nullptr || *type->typeName == '\0')
+    {
+        *dest = '\0';
+        return true;
+    }
+
+    // set in NodeVisitor::visitArray
+    auto arrayAddr = type->addr + type->offset;
+    auto entrySizeBits = (int)(duint)type->userdata;
+    auto characterCount = std::min(type->sizeBits / entrySizeBits, MAX_STRING_SIZE);
+
+    std::string valueStr;
+    if(entrySizeBits == 8)
+    {
+        std::vector<char> str(characterCount + 1);
+        if(!MemRead(arrayAddr, str.data(), str.size() - 1))
+        {
+            return false;
+        }
+
+        if(str[0] != '\0')
+        {
+            valueStr += '\"';
+            valueStr += StringUtils::Escape(str.data());
+            valueStr += '\"';
+        }
+    }
+    else if(entrySizeBits == 16)
+    {
+        std::vector<wchar_t> str(characterCount + 1);
+        if(!MemRead(arrayAddr, str.data(), (str.size() - 1) * 2) && str[0] != L'\0')
+        {
+            return false;
+        }
+
+        auto utf8 = StringUtils::Utf16ToUtf8(str.data());
+        if(!utf8.empty())
+        {
+            valueStr += "L\"";
+            valueStr += StringUtils::Escape(utf8);
+            valueStr += '\"';
+        }
+    }
+    else
+    {
+        return false;
+    }
+
+    if(*destCount <= valueStr.size())
+    {
+        *destCount = valueStr.size() + 1;
+        return false;
+    }
+
+    strcpy_s(dest, *destCount, valueStr.c_str());
+    return true;
+}
+
 static const char* LookupTypePrefix(const std::string & typeName)
 {
     auto type = LookupTypeByName(typeName);
@@ -312,7 +372,7 @@ bool NodeVisitor::visitType(const Member & member, const Typedef & type, const s
         mBitOffset = 0;
     }
 
-    String tname;
+    std::string tname;
     auto isArrayMember = !mParents.empty() && parent().type == Parent::Type::Array;
     if(isArrayMember)
     {
@@ -325,7 +385,7 @@ bool NodeVisitor::visitType(const Member & member, const Typedef & type, const s
     if(type.primitive == Pointer && !type.alias.empty())
     {
         auto ptrPrefix = LookupTypePrefix(type.alias);
-        if(*ptrPrefix)
+        if(*ptrPrefix != '\0')
         {
             tname += ptrPrefix;
             tname += ' ';
@@ -500,7 +560,8 @@ bool NodeVisitor::visitArray(const Member & member, const std::string & prettyTy
 {
     // TODO: support array of arrays?
 
-    std::string tname = LookupTypePrefix(member.type);
+    auto typePrefix = LookupTypePrefix(member.type);
+    std::string tname = typePrefix;
     if(!tname.empty())
     {
         tname += ' ';
@@ -521,10 +582,18 @@ bool NodeVisitor::visitArray(const Member & member, const std::string & prettyTy
     td.addr = mAddr;
     td.offset = mOffset;
     td.id = Alias;
-    td.sizeBits = member.arraySize * SizeofType(member.type);
-    td.callback = nullptr;
-    td.userdata = nullptr;
-    td.typeName = nullptr;
+    auto memberSizeBits = SizeofType(member.type);
+    td.sizeBits = member.arraySize * memberSizeBits;
+    if(*typePrefix == '\0' && (memberSizeBits == 8 || memberSizeBits == 16))
+    {
+        td.callback = cbPrintArray;
+    }
+    else
+    {
+        td.callback = nullptr;
+    }
+    td.userdata = (void*)(duint)memberSizeBits;
+    td.typeName = member.type.c_str();
     auto node = mAddNode(parentNode(), &td);
 
     mPath.push_back(member.name + ".");
