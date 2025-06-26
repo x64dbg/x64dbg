@@ -124,7 +124,6 @@ SearchListView::SearchListView(QWidget* parent, AbstractSearchList* abstractSear
     abstractSearchList->list()->setFocusProxy(mSearchBox);
 }
 
-
 void SearchListView::filterEntries()
 {
     // Copy the filter text before entering the critical section

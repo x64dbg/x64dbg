@@ -110,8 +110,12 @@ void DisplayTypeDialog::updateTypeListSlot()
     QStringList structs;
     DbgFunctions()->EnumStructs([](const char* name, void* userdata)
     {
-        ((QStringList*)userdata)->append(name);
+        if(strncmp(name, "__anonymous", 11) != 0)
+        {
+            ((QStringList*)userdata)->append(name);
+        }
     }, &structs);
+    std::stable_sort(structs.begin(), structs.end());
 
     auto reselectType = getSelectedType();
     auto reselectIndex = ui->typeList->mCurList->getInitialSelection();
