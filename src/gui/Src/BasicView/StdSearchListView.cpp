@@ -1,6 +1,11 @@
 #include "StdSearchListView.h"
 #include "MethodInvoker.h"
 
+StdSearchListView::StdSearchListView(QWidget* parent)
+    : StdSearchListView(parent, true, false)
+{
+}
+
 StdSearchListView::StdSearchListView(QWidget* parent, bool enableRegex, bool enableLock)
     : StdSearchListView(parent, enableRegex, enableLock, new StdTableSearchList())
 {

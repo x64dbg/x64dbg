@@ -111,8 +111,10 @@ SearchListView::SearchListView(QWidget* parent, AbstractSearchList* abstractSear
     // Slots
     connect(abstractSearchList->list(), SIGNAL(contextMenuSignal(QPoint)), this, SLOT(listContextMenu(QPoint)));
     connect(abstractSearchList->list(), SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
+    connect(abstractSearchList->list(), &AbstractStdTable::selectionChanged, this, &SearchListView::selectionChanged);
     connect(abstractSearchList->searchList(), SIGNAL(contextMenuSignal(QPoint)), this, SLOT(listContextMenu(QPoint)));
     connect(abstractSearchList->searchList(), SIGNAL(doubleClickedSignal()), this, SLOT(doubleClickedSlot()));
+    connect(abstractSearchList->searchList(), &AbstractStdTable::selectionChanged, this, &SearchListView::selectionChanged);
     connect(mSearchBox, SIGNAL(textEdited(QString)), this, SLOT(searchTextEdited(QString)));
     connect(mRegexCheckbox, SIGNAL(stateChanged(int)), this, SLOT(on_checkBoxRegex_stateChanged(int)));
     connect(mLockCheckbox, SIGNAL(toggled(bool)), mSearchBox, SLOT(setDisabled(bool)));

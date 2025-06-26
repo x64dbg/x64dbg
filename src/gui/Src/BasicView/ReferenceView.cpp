@@ -107,8 +107,7 @@ void ReferenceView::connectBridge()
     connect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), this, SLOT(referenceSetProgressSlot(int)));
     connect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
     connect(Bridge::getBridge(), SIGNAL(referenceAddCommand(QString, QString)), this, SLOT(addCommand(QString, QString)));
-    connect(stdSearchList(), SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(duint)));
-    connect(stdList(), SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(duint)));
+    connect(this, SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(duint)));
 }
 
 void ReferenceView::disconnectBridge()
@@ -118,8 +117,7 @@ void ReferenceView::disconnectBridge()
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetProgress(int)), this, SLOT(referenceSetProgressSlot(int)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceSetCurrentTaskProgress(int, QString)), this, SLOT(referenceSetCurrentTaskProgressSlot(int, QString)));
     disconnect(Bridge::getBridge(), SIGNAL(referenceAddCommand(QString, QString)), this, SLOT(addCommand(QString, QString)));
-    disconnect(stdSearchList(), SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(duint)));
-    disconnect(stdList(), SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(duint)));
+    disconnect(this, SIGNAL(selectionChanged(duint)), this, SLOT(searchSelectionChanged(duint)));
 }
 
 int ReferenceView::progress() const

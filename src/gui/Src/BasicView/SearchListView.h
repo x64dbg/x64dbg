@@ -21,6 +21,8 @@ public:
     void clearFilter();
     bool isSearchBoxLocked();
 
+    // TODO: allow dynamically enable/disable regex/lock
+
 private slots:
     void filterEntries();
     void searchTextEdited(const QString & text);
@@ -33,6 +35,7 @@ signals:
     void enterPressedSignal();
     void listContextMenuSignal(QMenu* menu);
     void emptySearchResult();
+    void selectionChanged(duint row);
 
 protected:
     bool eventFilter(QObject* obj, QEvent* event);

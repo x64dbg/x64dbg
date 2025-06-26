@@ -7,6 +7,7 @@ class StdSearchListView : public SearchListView
 {
     Q_OBJECT
 public:
+    explicit StdSearchListView(QWidget* parent = nullptr);
     StdSearchListView(QWidget* parent, bool enableRegex, bool enableLock);
     StdSearchListView(QWidget* parent, bool enableRegex, bool enableLock, StdTableSearchList* tableSearchList);
     ~StdSearchListView() override;
