@@ -127,6 +127,8 @@ void DisplayTypeDialog::updateTypeWidgetSlot()
         data.typeName = typeNameUtf8.constData();
         data.addr = mCurrentAddress;
         data.maxPtrDepth = -1;
+        data.maxExpandDepth = 1;
+        data.maxExpandArray = 0;
         data.createLabels = false;
         data.callback = [](void* parent, const TYPEDESCRIPTOR * type, void* userdata) -> void*
         {

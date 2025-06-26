@@ -365,7 +365,9 @@ bool cbInstrVisitType(int argc, char* argv[])
         }
     }
 
-    NodeVisitor visitor(GuiTypeAddNode, nullptr, addr, maxPtrDepth, true);
+    NodeVisitor visitor(GuiTypeAddNode, nullptr, addr);
+    visitor.mMaxPtrDepth = maxPtrDepth;
+    visitor.mCreateLabels = true;
     if(!VisitType(type, name, visitor))
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "VisitType failed"));

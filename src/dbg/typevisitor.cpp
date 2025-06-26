@@ -7,6 +7,8 @@
 #include <algorithm>
 
 int gDefaultMaxPtrDepth = 2;
+int gDefaultMaxExpandDepth = INT_MAX;
+int gDefaultMaxExpandArray = 5;
 
 using namespace Types;
 
@@ -338,7 +340,7 @@ bool NodeVisitor::visitType(const Member & member, const Typedef & type, const s
     }
 
     TYPEDESCRIPTOR td = { };
-    td.expanded = false;
+    td.expanded = mParents.size() < mMaxExpandDepth;
     td.reverse = false;
     td.magic = TYPEDESCRIPTOR_MAGIC;
     td.name = tname.c_str();
@@ -388,10 +390,11 @@ bool NodeVisitor::visitStructUnion(const Member & member, const StructUnion & ty
     else
         targetName = member.name;
 
+    // TODO: the targetType is empty when displaying array members
     String tname = StringUtils::sprintf("%s %s %s", type.isUnion ? "union" : "struct", targetType.c_str(), targetName.c_str());
 
     TYPEDESCRIPTOR td = { };
-    td.expanded = true;
+    td.expanded = mParents.size() < mMaxExpandDepth;
     td.reverse = false;
     td.magic = TYPEDESCRIPTOR_MAGIC;
     td.name = tname.c_str();
@@ -404,7 +407,7 @@ bool NodeVisitor::visitStructUnion(const Member & member, const StructUnion & ty
     td.typeName = type.name.c_str();
     auto node = mAddNode(parentNode(), &td);
 
-    mPath.push_back((member.name == "display" ? type.name : prettyType) + ".");
+    mPath.push_back((member.name.empty() ? type.name : prettyType) + ".");
     mParents.emplace_back(type.isUnion ? Parent::Union : Parent::Struct);
     parent().node = node;
     parent().size = td.sizeBits / 8;
@@ -423,7 +426,7 @@ bool NodeVisitor::visitEnum(const Member & member, const Enum & num, const std::
     String tname = StringUtils::sprintf("enum %s %s", prettyType.c_str(), member.name.c_str());
 
     TYPEDESCRIPTOR td = { };
-    td.expanded = true;
+    td.expanded = mParents.size() < mMaxExpandDepth;
     td.reverse = false;
     td.magic = TYPEDESCRIPTOR_MAGIC;
     td.name = tname.c_str();
@@ -446,7 +449,8 @@ bool NodeVisitor::visitArray(const Member & member, const std::string & prettyTy
     String tname = StringUtils::sprintf("%s %s[%d]", prettyType.c_str(), member.name.c_str(), member.arraySize);
 
     TYPEDESCRIPTOR td = { };
-    td.expanded = member.arraySize <= 5 && member.name.find("padding") != 0;
+    auto isPadding = member.name.find("padding") == 0;
+    td.expanded = mParents.size() < mMaxExpandDepth && member.arraySize <= mMaxExpandArray && !isPadding;
     td.reverse = false;
     td.magic = TYPEDESCRIPTOR_MAGIC;
     td.name = tname.c_str();

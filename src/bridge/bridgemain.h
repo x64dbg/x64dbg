@@ -1257,6 +1257,8 @@ typedef struct _TYPEVISITDATA
     void* root;
     duint addr;
     int maxPtrDepth; // negative for default
+    int maxExpandDepth; // negative for default
+    int maxExpandArray; // negative for default
     bool createLabels; // create (temporary) labels for every member
     TYPEVISITFUNC callback;
     void* userdata;

@@ -6,20 +6,26 @@
 #include <functional>
 
 extern int gDefaultMaxPtrDepth;
+extern int gDefaultMaxExpandDepth;
+extern int gDefaultMaxExpandArray;
 
 struct NodeVisitor : Types::TypeManager::Visitor
 {
     using AddNodeFn = std::function<void* (void* parent, const TYPEDESCRIPTOR* type)>;
 
-    explicit NodeVisitor(AddNodeFn addNode, void* rootNode, duint addr, int maxPtrDepth, bool createLabels)
+    explicit NodeVisitor(AddNodeFn addNode, void* rootNode, duint addr)
         : mAddNode(std::move(addNode))
         , mRootNode(rootNode)
         , mAddr(addr)
-        , mMaxPtrDepth(maxPtrDepth)
-        , mCreateLabels(createLabels)
     {
     }
 
+    int mMaxPtrDepth = gDefaultMaxPtrDepth;
+    int mMaxExpandDepth = gDefaultMaxExpandDepth;
+    int mMaxExpandArray = gDefaultMaxExpandArray;
+    bool mCreateLabels = false;
+
+protected:
     bool visitType(const Types::Member & member, const Types::Typedef & type, const std::string & prettyType) override;
     bool visitStructUnion(const Types::Member & member, const Types::StructUnion & type, const std::string & prettyType) override;
     bool visitEnum(const Types::Member & member, const Types::Enum & num, const std::string & prettyType) override;
@@ -62,14 +68,13 @@ private:
     }
 
     AddNodeFn mAddNode;
+    void* mRootNode = nullptr;
+
     std::vector<Parent> mParents;
     duint mOffset = 0;
     duint mBitOffset = 0;
     duint mAddr = 0;
     int mPtrDepth = 0;
-    int mMaxPtrDepth = 0;
-    bool mCreateLabels = false;
-    void* mRootNode = nullptr;
     void* mNode = nullptr;
     std::vector<std::string> mPath;
 };

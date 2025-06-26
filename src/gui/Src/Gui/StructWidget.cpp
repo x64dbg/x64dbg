@@ -99,6 +99,8 @@ void StructWidget::typeVisitSlot(QString typeName, duint addr)
     data.typeName = typeNameUtf8.constData();
     data.addr = addr;
     data.maxPtrDepth = -1;
+    data.maxExpandDepth = -1;
+    data.maxExpandArray = -1;
     data.createLabels = true;
     data.callback = [](void* parent, const TYPEDESCRIPTOR * type, void* userdata) -> void*
     {
