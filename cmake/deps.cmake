@@ -36,9 +36,7 @@ if(CMAKE_SCRIPT_MODE_FILE)
 
     file(GLOB DEPS RELATIVE ${DEPS_DIR} "${DEPS_DIR}/*.dll")
     foreach(DEP ${DEPS})
-        if(NOT DEP MATCHES "^(Qt5|msvc)")
-            copy_dep(${DEP})
-        endif()
+        copy_dep(${DEP})
     endforeach()
 
     copy_dep(GleeBug/TitanEngine.dll)
