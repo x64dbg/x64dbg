@@ -74,8 +74,9 @@ jobs:
           7z x bin\qm.zip -obin
           cmake -P .\cmake\release.cmake
           $timestamp = Get-Date -Format "yyyy-MM-dd_HH_mm"
-          7z a -tzip -mx=9 snapshot_$timestamp.zip release\pluginsdk release\release release\commithash.txt
-          7z a -tzip -mx=9 symbols-snapshot_$timestamp.zip release\pdb release\commithash.txt
+          cd release
+          7z a -tzip -mx=9 ..\snapshot_$timestamp.zip pluginsdk release commithash.txt
+          7z a -tzip -mx=9 ..\symbols-snapshot_$timestamp.zip pdb commithash.txt
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
