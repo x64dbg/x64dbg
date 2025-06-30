@@ -327,7 +327,7 @@ bool cbInstrFindAllMem(int argc, char* argv[])
             }
         }
 
-        if(page.address >= addr && (find_size == -1 || page.address + page.size <= addr + find_size))
+        if(page.address <= addr && (find_size == -1 || page.address + page.size <= addr + find_size))
             searchPages.push_back(page);
     }
     SHARED_RELEASE();
