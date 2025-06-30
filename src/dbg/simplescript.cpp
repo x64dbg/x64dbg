@@ -208,6 +208,11 @@ static bool scriptcreatelinemap(const char* filename)
         }
 
         int rawlen = (int)strlen(cur.raw);
+        while ((rawlen > 0) && isspace(cur.raw[rawlen - 1])) //Trim trailing whitespace
+        {
+            rawlen--;
+        }
+        cur.raw[rawlen] = '\0'; //// Truncate the string by setting a new null terminator
         if(!rawlen) //empty
         {
             cur.type = lineempty;
