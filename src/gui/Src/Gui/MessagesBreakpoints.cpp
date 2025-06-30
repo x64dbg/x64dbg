@@ -10,6 +10,24 @@ MessagesBreakpoints::MessagesBreakpoints(MsgBreakpointData pbpData, QWidget* par
     setModal(true);
     bpData = pbpData;
 
+    if (!DbgFunctions()->ValFromString(bpData.procVA.toUtf8().constData(), &procVA) ||
+        !DbgMemIsValidReadPtr(procVA))
+    {
+        ui->chkTranslateMessage->setDisabled(true);
+        ui->chkTranslateMessage->setChecked(true);
+    }
+
+    duint wndHandle;
+    if (!DbgFunctions()->ValFromString(bpData.wndHandle.toUtf8().constData(), &wndHandle) ||
+        !IsWindow((HWND)wndHandle))
+    {
+        ui->rbtnBreakAny->setDisabled(true);
+        ui->rbtnBreakCurrent->setDisabled(true);
+
+        ui->rbtnBreakAny->setChecked(true);
+        ui->rbtnBreakCurrent->setChecked(false);
+    }
+
     int index = 0;
 
     filterMessages =
@@ -49,17 +67,10 @@ MessagesBreakpoints::~MessagesBreakpoints()
 
 void MessagesBreakpoints::on_btnOk_clicked()
 {
-    duint procVA;
-    duint wndHandle;
     QString bpCondCmd;
     bool translMsg = ui->chkTranslateMessage->isChecked();
-
-    if(!DbgFunctions()->ValFromString(bpData.wndHandle.toUtf8().constData(), &wndHandle) ||
-            !DbgFunctions()->ValFromString(bpData.procVA.toUtf8().constData(), &procVA))
-        return;
-
-    if(!DbgMemIsValidReadPtr(procVA) || !IsWindow((HWND)wndHandle))
-        return;
+    bool breakCur = ui->rbtnBreakCurrent->isChecked();
+    QString msgHex = QString::number(messages.key(ui->cboxMessages->currentText()), 16);
 
     if(!translMsg)
     {
@@ -67,8 +78,8 @@ void MessagesBreakpoints::on_btnOk_clicked()
         if(bpType == bp_none)
             DbgCmdExec(QString("bp 0x%1").arg(bpData.procVA));
 
-        bpCondCmd = QString("bpcnd 0x%1, \"arg.get(1) == 0x%2").arg(bpData.procVA).arg(messages.key(ui->cboxMessages->currentText()), 1, 16);
-        bpCondCmd.append(ui->rbtnBreakCurrent->isChecked() ? QString(" && arg.get(0) == 0x%1\"").arg(bpData.wndHandle) : "\"");
+        bpCondCmd = QString("bpcnd 0x%1, \"arg.get(1) == 0x%2").arg(bpData.procVA).arg(msgHex);
+        bpCondCmd.append(breakCur ? QString(" && arg.get(0) == 0x%1\"").arg(bpData.wndHandle) : "\"");
     }
     else
     {
@@ -77,11 +88,11 @@ void MessagesBreakpoints::on_btnOk_clicked()
             DbgCmdExec("bp TranslateMessage");
 
 #ifdef _WIN64
-        bpCondCmd = QString("bpcnd TranslateMessage, \"4:[arg.get(0)+8] == 0x%1").arg(messages.key(ui->cboxMessages->currentText()), 1, 16);
-        bpCondCmd.append(ui->rbtnBreakCurrent->isChecked() ? QString(" && 4:[arg.get(0)] == 0x%1\"").arg(bpData.wndHandle) : "\"");
+        bpCondCmd = QString("bpcnd TranslateMessage, \"4:[arg.get(0)+8] == 0x%1").arg(msgHex);
+        bpCondCmd.append(breakCur ? QString(" && 4:[arg.get(0)] == 0x%1\"").arg(bpData.wndHandle) : "\"");
 #else //x86
-        bpCondCmd = QString("bpcnd TranslateMessage, \"[arg.get(0)+4] == 0x%1").arg(messages.key(ui->cboxMessages->currentText()), 1, 16);
-        bpCondCmd.append(ui->rbtnBreakCurrent->isChecked() ? QString(" && [arg.get(0)] == 0x%1\"").arg(bpData.wndHandle) : "\"");
+        bpCondCmd = QString("bpcnd TranslateMessage, \"[arg.get(0)+4] == 0x%1").arg(msgHex);
+        bpCondCmd.append(breakCur ? QString(" && [arg.get(0)] == 0x%1\"").arg(bpData.wndHandle) : "\"");
 #endif //_WIN64
     }
 
