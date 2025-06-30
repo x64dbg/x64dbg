@@ -24,7 +24,7 @@ x86 = "CMAKE_SIZEOF_VOID_P EQUAL 4"
 x64 = "CMAKE_SIZEOF_VOID_P EQUAL 8"
 
 [find-package]
-Qt5 = { components = ["Widgets", "Network", "WinExtras"] }
+Qt5 = { components = ["Widgets", "WinExtras"] }
 
 [target.zydis_wrapper]
 type = "static"
@@ -155,11 +155,11 @@ sources = [
 ]
 private-link-libraries = [
     "Qt5::Widgets",
-    "Qt5::Network",
     "Qt5::WinExtras",
     "::zydis_wrapper",
     "::bridge",
     "winmm",
+    "wininet",
 ]
 x86.private-link-libraries = [
     "src/gui/Src/ThirdPartyLibs/ldconvert/ldconvert_x86.lib",

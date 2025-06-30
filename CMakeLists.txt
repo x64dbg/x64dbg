@@ -50,7 +50,6 @@ include("cmake/VSFlags.cmake")
 find_package(Qt5 REQUIRED
 	COMPONENTS
 		Widgets
-		Network
 		WinExtras
 )
 
@@ -831,11 +830,11 @@ endif()
 
 target_link_libraries(gui PRIVATE
 	Qt5::Widgets
-	Qt5::Network
 	Qt5::WinExtras
 	zydis_wrapper
 	bridge
 	winmm
+	wininet
 )
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86

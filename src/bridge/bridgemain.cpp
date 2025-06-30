@@ -236,7 +236,6 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit(BRIDGE_CONFIG* config)
     loadIfExists(L"Qt5Gui.dll");
     loadIfExists(L"Qt5WinExtras.dll");
     loadIfExists(L"Qt5Widgets.dll");
-    loadIfExists(L"Qt5Network.dll");
     loadIfExists(L"platforms\\qwindows.dll");
     loadIfExists(L"imageformats\\qgif.dll");
     loadIfExists(L"imageformats\\qicns.dll");
@@ -251,8 +250,6 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit(BRIDGE_CONFIG* config)
     loadIfExists(L"bearer\\qgenericbearer.dll");
     loadIfExists(L"bearer\\qnativewifibearer.dll");
     loadIfExists(L"iconengines\\qsvgicon.dll");
-    loadIfExists(L"libeay32.dll");
-    loadIfExists(L"ssleay32.dll");
 
     // GUI
     if(config->hGuiModule != nullptr)
