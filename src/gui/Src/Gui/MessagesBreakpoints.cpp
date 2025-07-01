@@ -10,16 +10,16 @@ MessagesBreakpoints::MessagesBreakpoints(MsgBreakpointData pbpData, QWidget* par
     setModal(true);
     bpData = pbpData;
 
-    if (!DbgFunctions()->ValFromString(bpData.procVA.toUtf8().constData(), &procVA) ||
-        !DbgMemIsValidReadPtr(procVA))
+    if(!DbgFunctions()->ValFromString(bpData.procVA.toUtf8().constData(), &procVA) ||
+            !DbgMemIsValidReadPtr(procVA))
     {
         ui->chkTranslateMessage->setDisabled(true);
         ui->chkTranslateMessage->setChecked(true);
     }
 
     duint wndHandle;
-    if (!DbgFunctions()->ValFromString(bpData.wndHandle.toUtf8().constData(), &wndHandle) ||
-        !IsWindow((HWND)wndHandle))
+    if(!DbgFunctions()->ValFromString(bpData.wndHandle.toUtf8().constData(), &wndHandle) ||
+            !IsWindow((HWND)wndHandle))
     {
         ui->rbtnBreakAny->setDisabled(true);
         ui->rbtnBreakCurrent->setDisabled(true);
