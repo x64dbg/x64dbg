@@ -487,32 +487,27 @@ bool InitializeSignatureCheck()
         return false;
 #endif // DEBUG_SIGNATURE_CHECKS
 
-    if(bPerformSignatureChecks)
+    // Safely load the MSVC runtime DLLs (since they cannot be delay loaded)
+    auto loadRuntimeDll = [&szSystemDir](const wchar_t* szDll)
     {
-        // Safely load the MSVC runtime DLLs (since they cannot be delay loaded)
-        auto loadRuntimeDll = [&szSystemDir](const wchar_t* szDll)
+        std::wstring fullDllPath = szApplicationDir;
+        fullDllPath += L'\\';
+        fullDllPath += szDll;
+        if(FileExists(fullDllPath.c_str()))
         {
-            std::wstring fullSystemDllPath;
-            fullSystemDllPath = szSystemDir;
-            fullSystemDllPath += L'\\';
-            fullSystemDllPath += szDll;
-            if(FileExists(fullSystemDllPath.c_str()))
+            if(bPerformSignatureChecks)
             {
-                LoadLibraryW(fullSystemDllPath.c_str());
+                LoadLibraryCheckedW(fullDllPath.c_str(), true);
             }
             else
             {
-                std::wstring fullDllPath = szApplicationDir;
-                fullDllPath += L'\\';
-                fullDllPath += szDll;
-                if(FileExists(fullDllPath.c_str()))
-                    LoadLibraryCheckedW(szDll, true);
+                LoadLibraryW(fullDllPath.c_str());
             }
-        };
-        loadRuntimeDll(L"vcruntime140.dll");
-        loadRuntimeDll(L"vcruntime140_1.dll");
-        loadRuntimeDll(L"msvcp140.dll");
-    }
+        }
+    };
+    loadRuntimeDll(L"vcruntime140.dll");
+    loadRuntimeDll(L"vcruntime140_1.dll");
+    loadRuntimeDll(L"msvcp140.dll");
 
     return true;
 }
