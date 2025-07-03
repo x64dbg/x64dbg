@@ -224,9 +224,9 @@ private:
         bool disasmUppercase = false;
         bool disasmOnlyCipAutoComments = false;
         bool disasmTabBetweenMnemonicAndArguments = false;
-        bool disasmNoHighlightOperands;
+        bool disasmNoHighlightOperands = false;
         bool disasmNoCurrentModuleText = false;
-        bool disasmPermanentHighlightingMode;
+        bool disasmPermanentHighlightingMode = false;
         ValueStyleType disasmValueStyle = ValueStyleDefault;
         bool disasmNoBranchDisasmPreview = false;
         bool disasmNoSourceLineAutoComments = false;
