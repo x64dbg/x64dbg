@@ -165,8 +165,8 @@ private:
         ColAddress,
         ColBytes,
         ColDisassembly,
-        ColComment,
         ColMnemonicBrief,
+        ColComment,
     };
 
     DisassemblyPopup* mDisassemblyPopup = nullptr;
