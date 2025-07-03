@@ -231,16 +231,16 @@ void LocalVarsView::updateSlot()
                     {
                         expr = QString("%1").arg(-j, 0, 16);
 
-                        switch (ValueStyle)
+                        switch(ValueStyle)
                         {
-                            case ValueStyleC:
-                                expr = "0x" + expr;
-                                break;
-                            case ValueStyleMASM:
-                                expr = "0" + expr + "h";
-                                break;
-                            default:
-                                break;
+                        case ValueStyleC:
+                            expr = "0x" + expr;
+                            break;
+                        case ValueStyleMASM:
+                            expr = "0" + expr + "h";
+                            break;
+                        default:
+                            break;
                         }
 
                         if(!MemorySpaces)
@@ -252,16 +252,16 @@ void LocalVarsView::updateSlot()
                     {
                         expr = QString("%1").arg(j, 0, 16);
 
-                        switch (ValueStyle)
+                        switch(ValueStyle)
                         {
-                            case ValueStyleC:
-                                expr = "0x" + expr;
-                                break;
-                            case ValueStyleMASM:
-                                expr = "0" + expr + "h";
-                                break;
-                            default:
-                                break;
+                        case ValueStyleC:
+                            expr = "0x" + expr;
+                            break;
+                        case ValueStyleMASM:
+                            expr = "0" + expr + "h";
+                            break;
+                        default:
+                            break;
                         }
 
                         if(!MemorySpaces)

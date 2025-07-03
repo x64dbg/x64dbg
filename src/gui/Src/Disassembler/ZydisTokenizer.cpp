@@ -444,28 +444,28 @@ QString ZydisTokenizer::printValue(const TokenValue & value, bool expandModule) 
         moduleText += ".";
     QString addrText = ToHexString(addr);
     QString finalText;
-    if (bHasLabel && bHasModule) //<module.label>
+    if(bHasLabel && bHasModule)  //<module.label>
         finalText = QString("<%1%2>").arg(moduleText).arg(labelText);
-    else if (bHasModule) //module.addr
+    else if(bHasModule)  //module.addr
         finalText = QString("%1%2").arg(moduleText).arg(addrText);
-    else if (bHasLabel) //<label>
+    else if(bHasLabel)  //<label>
         finalText = QString("<%1>").arg(labelText);
     else
     {
-        switch (mValueStyle)
+        switch(mValueStyle)
         {
-            case ValueStyleC:
-                finalText = QString("0x") + addrText;
-                break;
-            case ValueStyleMASM:
-                finalText = QString("0") + addrText + QString("h");
-                break;
-            default:
-                finalText = addrText;
-                break;
+        case ValueStyleC:
+            finalText = QString("0x") + addrText;
+            break;
+        case ValueStyleMASM:
+            finalText = QString("0") + addrText + QString("h");
+            break;
+        default:
+            finalText = addrText;
+            break;
         }
     }
-        
+
     return finalText;
 }
 

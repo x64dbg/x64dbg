@@ -240,15 +240,15 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Disassembler", "NoSourceLineAutoComments", &settings.disasmNoSourceLineAutoComments);
     GetSettingBool("Disassembler", "AssembleOnDoubleClick", &settings.disasmAssembleOnDoubleClick);
 
-    if (BridgeSettingGetUint("Disassembler", "0xPrefixValues", &cur))
+    if(BridgeSettingGetUint("Disassembler", "0xPrefixValues", &cur))
     {
-        switch (cur)
+        switch(cur)
         {
-            case ValueStyleDefault:
-            case ValueStyleC:
-            case ValueStyleMASM:
-                settings.disasmValueStyle = (ValueStyleType)cur;
-                break;
+        case ValueStyleDefault:
+        case ValueStyleC:
+        case ValueStyleMASM:
+            settings.disasmValueStyle = (ValueStyleType)cur;
+            break;
         }
     }
 
@@ -1087,13 +1087,13 @@ void SettingsDialog::on_comboValueStyle_currentIndexChanged(int index)
 {
     bTokenizerConfigUpdated = true;
 
-    switch (index)
+    switch(index)
     {
-        case ValueStyleDefault:
-        case ValueStyleC:
-        case ValueStyleMASM:
-            settings.disasmValueStyle = (ValueStyleType)index;
-            break;
+    case ValueStyleDefault:
+    case ValueStyleC:
+    case ValueStyleMASM:
+        settings.disasmValueStyle = (ValueStyleType)index;
+        break;
     }
 }
 
