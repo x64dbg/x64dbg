@@ -1,0 +1,7 @@
+
+; Top-most EditorConfig file
+root = true
+
+; Windows-style newlines
+[*]
+end_of_line = CRLF

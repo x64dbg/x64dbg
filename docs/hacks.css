@@ -1,0 +1,20 @@
+/* Hide search bar */
+div[role=search] {
+    display: none;
+}
+/* This hacks some IE7(?) problems to make all things look decent.
+https://stackoverflow.com/questions/17042914/why-the-page-displays-differently-in-ie8-and-in-chm-css-display-inline-block
+https://stackoverflow.com/questions/6544852/ie7-does-not-understand-display-inline-block */
+.wy-breadcrumbs li {
+    display: inline-block;
+    *display: inline;
+    zoom: 1;
+    padding: 5px;
+    padding-left: 0px;
+}
+.wy-breadcrumbs li a {
+    display: inline-block;
+    *display: inline;
+    zoom: 1;
+    padding: 0px;
+}
