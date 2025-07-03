@@ -621,24 +621,19 @@ bool ZydisTokenizer::tokenizeMemOperand(const ZydisDecodedOperand & op)
         }
         else
         {
+            //ambiguous operand sizes
             for (auto i = 0; i < mZydis.GetInstr()->info.operand_count; i += 1)
             {
                 const auto & op_ = mZydis.GetInstr()->operands[i];
 
                 if (op_.id == op.id)
-                {
                     continue;
-                }
 
                 if (op_.type == ZYDIS_OPERAND_TYPE_REGISTER && op_.size == op.size)
-                {
                     continue;
-                }
 
                 if (op_.type == ZYDIS_OPERAND_TYPE_MEMORY)
-                {
                     continue;
-                }
 
                 addToken(TokenType::MemorySize, QString(sizeText) + " ptr");
                 addToken(TokenType::Space, " ");
