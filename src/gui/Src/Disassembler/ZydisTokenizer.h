@@ -152,7 +152,7 @@ public:
     bool TokenizeData(const QString & datatype, const QString & data, InstructionToken & instruction);
     void UpdateConfig();
     void UpdateArchitecture();
-    void SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bHidePointerSizes, bool bHideNormalSegments, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, bool b0xPrefixValues);
+    void SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bHidePointerSizes, bool bHideNormalSegments, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, ValueStyleType ValueStyle);
     int Size() const;
     const Zydis & GetZydis() const;
 
@@ -187,7 +187,7 @@ private:
     bool mMemorySpaces = false;
     bool mNoHighlightOperands = false;
     bool mNoCurrentModuleText = false;
-    bool m0xPrefixValues = false;
+    ValueStyleType mValueStyle = ValueStyleDefault;
 
     void addToken(TokenType type, QString text, const TokenValue & value);
     void addToken(TokenType type, const QString & text);

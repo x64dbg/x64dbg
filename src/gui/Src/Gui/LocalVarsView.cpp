@@ -135,7 +135,7 @@ void LocalVarsView::baseChangedSlot()
 void LocalVarsView::configUpdatedSlot()
 {
     currentFunc = 0;
-    HexPrefixValues = Config()->getBool("Disassembler", "0xPrefixValues");
+    ValueStyle = (ValueStyleType)Config()->getUint("Disassembler", "0xPrefixValues");
     MemorySpaces = Config()->getBool("Disassembler", "MemorySpaces");
 }
 
@@ -230,8 +230,19 @@ void LocalVarsView::updateSlot()
                     if(j < 0)
                     {
                         expr = QString("%1").arg(-j, 0, 16);
-                        if(HexPrefixValues)
-                            expr = "0x" + expr;
+
+                        switch (ValueStyle)
+                        {
+                            case ValueStyleC:
+                                expr = "0x" + expr;
+                                break;
+                            case ValueStyleMASM:
+                                expr = "0" + expr + "h";
+                                break;
+                            default:
+                                break;
+                        }
+
                         if(!MemorySpaces)
                             expr = "-" + expr;
                         else
@@ -240,8 +251,19 @@ void LocalVarsView::updateSlot()
                     else
                     {
                         expr = QString("%1").arg(j, 0, 16);
-                        if(HexPrefixValues)
-                            expr = "0x" + expr;
+
+                        switch (ValueStyle)
+                        {
+                            case ValueStyleC:
+                                expr = "0x" + expr;
+                                break;
+                            case ValueStyleMASM:
+                                expr = "0" + expr + "h";
+                                break;
+                            default:
+                                break;
+                        }
+
                         if(!MemorySpaces)
                             expr = "+" + expr;
                         else

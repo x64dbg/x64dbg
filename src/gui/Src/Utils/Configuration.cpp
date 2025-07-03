@@ -261,7 +261,6 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     disassemblyBool.insert("LongDataInstruction", false);
     disassemblyBool.insert("NoHighlightOperands", false);
     disassemblyBool.insert("PermanentHighlightingMode", false);
-    disassemblyBool.insert("0xPrefixValues", false);
     disassemblyBool.insert("NoBranchDisasmPreview", false);
     disassemblyBool.insert("NoCurrentModuleText", false);
     disassemblyBool.insert("ShowMnemonicBrief", false);
@@ -353,6 +352,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultBools.insert("HexDump", hexdumpBool);
 
     QMap<QString, duint> disasmUint;
+    disasmUint.insert("0xPrefixValues", ValueStyleDefault);
     disasmUint.insert("MaxModuleSize", -1);
     defaultUints.insert("Disassembler", disasmUint);
 
