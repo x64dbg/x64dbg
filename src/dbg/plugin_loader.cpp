@@ -208,7 +208,7 @@ bool pluginload(const char* pluginName, bool loadall)
     gLoadingPlugin.hPlugin = LoadLibraryW(pluginPath.c_str()); //load the plugin library
     if(!gLoadingPlugin.hPlugin)
     {
-        String error = StringUtils::sprintf("%s (%s)", normalizedName.c_str(), stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()).c_str()));
+        String error = StringUtils::sprintf("%s (%s)", normalizedName.c_str(), stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError())).c_str());
         dprintf(QT_TRANSLATE_NOOP("DBG", "[PLUGIN] Failed to load plugin: %s\n"), error.c_str());
         return false;
     }

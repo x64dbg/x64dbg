@@ -26,6 +26,7 @@ cmake-build*/
 *.pro.user*
 *.orig
 *.pdb
+*.ilk
 .DS_Store
 Makefile
 Makefile.*
