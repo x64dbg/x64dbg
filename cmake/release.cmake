@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.15)
+
 # Get the root directory
 get_filename_component(ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
 set(RELEASE_DIR "${ROOT_DIR}/release")
@@ -55,12 +57,15 @@ file(COPY "${ROOT_DIR}/bin/x64/x64dbg.lib" DESTINATION "${PLUGINSDK_DIR}")
 set(RELEASE_MAIN_DIR "${RELEASE_DIR}/release")
 
 # Handle deps_copied
+set(DEPS_BLACKLIST libGLESV2.dll libEGL.dll d3dcompiler_47.dll)
 function(handle_deps_copied arch)
     file(READ "${ROOT_DIR}/bin/${arch}/.deps_copied" DEPS_COPIED)
     string(REGEX REPLACE "\n" ";" DEPS_COPIED "${DEPS_COPIED}")
     foreach(DEP ${DEPS_COPIED})
-        get_filename_component(reldir ${DEP} DIRECTORY)
-        file(COPY "${ROOT_DIR}/bin/${arch}/${DEP}" DESTINATION "${RELEASE_MAIN_DIR}/${arch}/${reldir}")
+        if(NOT ${DEP} IN_LIST DEPS_BLACKLIST)
+            get_filename_component(reldir ${DEP} DIRECTORY)
+            file(COPY "${ROOT_DIR}/bin/${arch}/${DEP}" DESTINATION "${RELEASE_MAIN_DIR}/${arch}/${reldir}")
+        endif()
     endforeach()
 endfunction()
 
