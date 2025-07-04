@@ -1,9 +1,10 @@
 #pragma once
 
 #include "AbstractTableView.h"
-#include "RichTextPainter.h"
-#include "MemoryPage.h"
-#include "VaHistory.h"
+#include <Utils/RichTextPainter.h>
+#include <Memory/MemoryPage.h>
+#include <Utils/VaHistory.h>
+#include <Disassembler/Architecture.h>
 
 class HexDump : public AbstractTableView
 {
@@ -151,6 +152,7 @@ public slots:
     void copyRvaSlot();
     void gotoPreviousSlot();
     void gotoNextSlot();
+    void updateSelectionUnderline();
 
 private:
     enum GuiState
@@ -206,8 +208,14 @@ private:
     } mUpdateCache;
     std::vector<uint8_t> mUpdateCacheData;
     std::vector<uint8_t> mUpdateCacheTemp;
+    std::vector<uint8_t> mReadBuffer;
+
+    std::vector<uint8_t> mUnderlineBuffer;
+    std::vector<std::pair<duint, duint>> mUnderlineRanges;
 
 protected:
+    void prepareData() override;
+
     Architecture* mArchitecture = nullptr;
     MemoryPage* mMemPage = nullptr;
     dsint mByteOffset = 0;
@@ -222,4 +230,6 @@ protected:
     QAction* mCopySelection;
     duint mUnderlineRangeStartVa = 0;
     duint mUnderlineRangeEndVa = 0;
+    bool mPointerUnderliningEnabled = true;
+    bool mSelectionUnderliningEnabled = false;
 };

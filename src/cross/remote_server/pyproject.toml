@@ -1,0 +1,15 @@
+[project]
+name = "remote-server"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "capstone>=5.0.6",
+    "icicle-emu>=0.0.10",
+    "lief>=0.16.4",
+    "pefile>=2024.8.26",
+    "pyelftools>=0.32",
+    "pyside6>=6.9.0",
+    "websockets>=15.0.1",
+]

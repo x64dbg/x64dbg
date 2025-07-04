@@ -1,0 +1,21 @@
+# Reference: https://build-cpp.github.io/cmkr/cmake-toml
+[project]
+name = "btparser"
+
+[target.btparser]
+type = "static"
+sources = [
+    "btparser/lexer.cpp",
+    "btparser/preprocessor.cpp",
+    "btparser/types.cpp",
+    "btparser/typesparser.cpp",
+]
+headers = ["btparser/*.h"]
+include-directories = ["."]
+compile-features = ["cxx_std_14"]
+
+[target.test]
+condition = "root"
+type = "executable"
+sources = ["btparser/main.cpp"]
+link-libraries = ["btparser"]

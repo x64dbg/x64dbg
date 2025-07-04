@@ -1,12 +1,12 @@
 #include "Disassembly.h"
 #include "Configuration.h"
-#include "CodeFolding.h"
-#include "EncodeMap.h"
+#include <Utils/CodeFolding.h>
+#include <Utils/EncodeMap.h>
 #include "Bridge.h"
-#include "CachedFontMetrics.h"
-#include "QZydis.h"
-#include "MemoryPage.h"
-#include "DisassemblyPopup.h"
+#include <Utils/CachedFontMetrics.h>
+#include <Disassembler/QZydis.h>
+#include <Memory/MemoryPage.h>
+#include <Gui/DisassemblyPopup.h>
 
 Disassembly::Disassembly(Architecture* architecture, bool isMain, QWidget* parent)
     : AbstractTableView(parent),

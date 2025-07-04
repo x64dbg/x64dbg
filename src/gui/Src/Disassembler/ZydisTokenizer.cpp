@@ -1,8 +1,8 @@
 #include "ZydisTokenizer.h"
 #include "Configuration.h"
 #include "StringUtil.h"
-#include "CachedFontMetrics.h"
-#include "Bridge.h"
+#include <Utils/CachedFontMetrics.h>
+#include <Bridge.h>
 
 ZydisTokenizer::ZydisTokenizer(int maxModuleLength, Architecture* architecture)
     : mMaxModuleLength(maxModuleLength),

@@ -1,4 +1,4 @@
-#include "Configuration.h"
+#include <Configuration.h>
 #include <QApplication>
 #include <QFontInfo>
 #include <QMessageBox>
