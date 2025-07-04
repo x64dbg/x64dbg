@@ -241,7 +241,7 @@ void ZydisTokenizer::UpdateConfig()
     mMemorySpaces = ConfigBool("Disassembler", "MemorySpaces");
     mNoHighlightOperands = ConfigBool("Disassembler", "NoHighlightOperands");
     mNoCurrentModuleText = ConfigBool("Disassembler", "NoCurrentModuleText");
-    m0xPrefixValues = ConfigBool("Disassembler", "0xPrefixValues");
+    mValueStyle = (ValueStyleType)ConfigUint("Disassembler", "0xPrefixValues");
     mMaxModuleLength = (int)ConfigUint("Disassembler", "MaxModuleSize");
     UpdateStringPool();
 }
@@ -251,7 +251,7 @@ void ZydisTokenizer::UpdateArchitecture()
     mZydis.Reset(mArchitecture->disasm64());
 }
 
-void ZydisTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bHidePointerSizes, bool bHideNormalSegments, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, bool b0xPrefixValues)
+void ZydisTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bHidePointerSizes, bool bHideNormalSegments, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, ValueStyleType ValueStyle)
 {
     mUppercase = bUppercase;
     mTabbedMnemonic = bTabbedMnemonic;
@@ -261,7 +261,7 @@ void ZydisTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgu
     mMemorySpaces = bMemorySpaces;
     mNoHighlightOperands = bNoHighlightOperands;
     mNoCurrentModuleText = bNoCurrentModuleText;
-    m0xPrefixValues = b0xPrefixValues;
+    mValueStyle = ValueStyle;
 }
 
 int ZydisTokenizer::Size() const
@@ -444,16 +444,28 @@ QString ZydisTokenizer::printValue(const TokenValue & value, bool expandModule) 
         moduleText += ".";
     QString addrText = ToHexString(addr);
     QString finalText;
-    if(bHasLabel && bHasModule) //<module.label>
+    if(bHasLabel && bHasModule)  //<module.label>
         finalText = QString("<%1%2>").arg(moduleText).arg(labelText);
-    else if(bHasModule) //module.addr
+    else if(bHasModule)  //module.addr
         finalText = QString("%1%2").arg(moduleText).arg(addrText);
-    else if(bHasLabel) //<label>
+    else if(bHasLabel)  //<label>
         finalText = QString("<%1>").arg(labelText);
-    else if(m0xPrefixValues)
-        finalText = QString("0x") + addrText;
     else
-        finalText = addrText;
+    {
+        switch(mValueStyle)
+        {
+        case ValueStyleC:
+            finalText = QString("0x") + addrText;
+            break;
+        case ValueStyleMASM:
+            finalText = QString("0") + addrText + QString("h");
+            break;
+        default:
+            finalText = addrText;
+            break;
+        }
+    }
+
     return finalText;
 }
 

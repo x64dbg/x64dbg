@@ -1,7 +1,6 @@
 #include "SettingsDialog.h"
 #include "ui_SettingsDialog.h"
 #include <QMessageBox>
-#include "Configuration.h"
 #include "Bridge.h"
 #include "ExceptionRangeDialog.h"
 #include "MiscUtil.h"
@@ -237,12 +236,25 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Disassembler", "NoHighlightOperands", &settings.disasmNoHighlightOperands);
     GetSettingBool("Disassembler", "PermanentHighlightingMode", &settings.disasmPermanentHighlightingMode);
     GetSettingBool("Disassembler", "NoCurrentModuleText", &settings.disasmNoCurrentModuleText);
-    GetSettingBool("Disassembler", "0xPrefixValues", &settings.disasm0xPrefixValues);
     GetSettingBool("Disassembler", "NoBranchDisasmPreview", &settings.disasmNoBranchDisasmPreview);
     GetSettingBool("Disassembler", "NoSourceLineAutoComments", &settings.disasmNoSourceLineAutoComments);
     GetSettingBool("Disassembler", "AssembleOnDoubleClick", &settings.disasmAssembleOnDoubleClick);
+
+    if(BridgeSettingGetUint("Disassembler", "0xPrefixValues", &cur))
+    {
+        switch(cur)
+        {
+        case ValueStyleDefault:
+        case ValueStyleC:
+        case ValueStyleMASM:
+            settings.disasmValueStyle = (ValueStyleType)cur;
+            break;
+        }
+    }
+
     if(BridgeSettingGetUint("Disassembler", "MaxModuleSize", &cur))
         settings.disasmMaxModuleSize = int(cur);
+
     ui->chkArgumentSpaces->setChecked(settings.disasmArgumentSpaces);
     ui->chkHidePointerSizes->setChecked(settings.disasmHidePointerSizes);
     ui->chkHideNormalSegments->setChecked(settings.disasmHideNormalSegments);
@@ -253,7 +265,7 @@ void SettingsDialog::LoadSettings()
     ui->chkNoHighlightOperands->setChecked(settings.disasmNoHighlightOperands);
     ui->chkPermanentHighlightingMode->setChecked(settings.disasmPermanentHighlightingMode);
     ui->chkNoCurrentModuleText->setChecked(settings.disasmNoCurrentModuleText);
-    ui->chk0xPrefixValues->setChecked(settings.disasm0xPrefixValues);
+    ui->comboValueStyle->setCurrentIndex(settings.disasmValueStyle);
     ui->chkNoBranchDisasmPreview->setChecked(settings.disasmNoBranchDisasmPreview);
     ui->chkNoSourceLinesAutoComments->setChecked(settings.disasmNoSourceLineAutoComments);
     ui->chkDoubleClickAssemble->setChecked(settings.disasmAssembleOnDoubleClick);
@@ -422,7 +434,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "NoHighlightOperands", settings.disasmNoHighlightOperands);
     BridgeSettingSetUint("Disassembler", "PermanentHighlightingMode", settings.disasmPermanentHighlightingMode);
     BridgeSettingSetUint("Disassembler", "NoCurrentModuleText", settings.disasmNoCurrentModuleText);
-    BridgeSettingSetUint("Disassembler", "0xPrefixValues", settings.disasm0xPrefixValues);
+    BridgeSettingSetUint("Disassembler", "0xPrefixValues", settings.disasmValueStyle);
     BridgeSettingSetUint("Disassembler", "NoBranchDisasmPreview", settings.disasmNoBranchDisasmPreview);
     BridgeSettingSetUint("Disassembler", "NoSourceLineAutoComments", settings.disasmNoSourceLineAutoComments);
     BridgeSettingSetUint("Disassembler", "AssembleOnDoubleClick", settings.disasmAssembleOnDoubleClick);
@@ -1071,10 +1083,18 @@ void SettingsDialog::on_chkNoCurrentModuleText_toggled(bool checked)
     settings.disasmNoCurrentModuleText = checked;
 }
 
-void SettingsDialog::on_chk0xPrefixValues_toggled(bool checked)
+void SettingsDialog::on_comboValueStyle_currentIndexChanged(int index)
 {
     bTokenizerConfigUpdated = true;
-    settings.disasm0xPrefixValues = checked;
+
+    switch(index)
+    {
+    case ValueStyleDefault:
+    case ValueStyleC:
+    case ValueStyleMASM:
+        settings.disasmValueStyle = (ValueStyleType)index;
+        break;
+    }
 }
 
 void SettingsDialog::on_chkNoBranchDisasmPreview_toggled(bool checked)

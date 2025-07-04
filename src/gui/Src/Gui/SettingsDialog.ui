@@ -749,11 +749,49 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="chk0xPrefixValues">
-         <property name="text">
-          <string>0x prefix for values</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="layoutValueStyle">
+         <item>
+          <widget class="QLabel" name="labelValueStyle">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Display style for values:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboValueStyle">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="sizeAdjustPolicy">
+            <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
+           </property>
+           <item>
+            <property name="text">
+             <string>Default</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>C style (0x prefix)</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>MASM style (0 prefix, h suffix)</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <widget class="QCheckBox" name="chkNoSourceLinesAutoComments">

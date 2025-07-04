@@ -3,6 +3,7 @@
 #include <QDialog>
 #include <QListWidgetItem>
 #include "Imports.h"
+#include "Configuration.h" // ValueStyleType
 
 namespace Ui
 {
@@ -90,7 +91,7 @@ private slots:
     void on_chkNoHighlightOperands_toggled(bool checked);
     void on_chkNoCurrentModuleText_toggled(bool checked);
     void on_chkPermanentHighlightingMode_toggled(bool checked);
-    void on_chk0xPrefixValues_toggled(bool checked);
+    void on_comboValueStyle_currentIndexChanged(int index);
     void on_chkNoBranchDisasmPreview_toggled(bool checked);
     void on_chkNoSourceLinesAutoComments_toggled(bool checked);
     void on_chkDoubleClickAssemble_toggled(bool checked);
@@ -223,10 +224,10 @@ private:
         bool disasmUppercase = false;
         bool disasmOnlyCipAutoComments = false;
         bool disasmTabBetweenMnemonicAndArguments = false;
-        bool disasmNoHighlightOperands;
+        bool disasmNoHighlightOperands = false;
         bool disasmNoCurrentModuleText = false;
-        bool disasmPermanentHighlightingMode;
-        bool disasm0xPrefixValues = false;
+        bool disasmPermanentHighlightingMode = false;
+        ValueStyleType disasmValueStyle = ValueStyleDefault;
         bool disasmNoBranchDisasmPreview = false;
         bool disasmNoSourceLineAutoComments = false;
         bool disasmAssembleOnDoubleClick = false;

@@ -9,6 +9,13 @@
 #include "Imports.h"
 #include "MenuBuilder.h"
 
+enum ValueStyleType
+{
+    ValueStyleDefault = 0,
+    ValueStyleC = 1,
+    ValueStyleMASM = 2
+};
+
 // TODO: declare AppearanceDialog and SettingsDialog entries here, so that you only have to do it in once place
 #define Config() (Configuration::instance())
 #define ConfigColor(x) (Config()->getColor(x))
