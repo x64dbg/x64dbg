@@ -1,7 +1,7 @@
 [submodule "src/dbg/btparser"]
 	path = src/dbg/btparser
-	url = ../btparser
+	url = ../../x64dbg/btparser
 [submodule "deps"]
 	path = deps
-	url = ../deps
+	url = ../../x64dbg/deps
 	shallow = true
