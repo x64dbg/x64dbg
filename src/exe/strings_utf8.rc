@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Chinese (Simplified, PRC) resources
+// 中文(简体，中国) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
@@ -54,11 +54,7 @@ BEGIN
     IDS_SETUP               "安装"
     IDS_ERROR               "错误"
     IDS_ERRORGETTINGMODULEPATH "获取模块路径时出错!"
-    IDS_QUESTION            "温馨提示"
-    IDS_ASKSHELLEXT         "您想要为调试器注册右键菜单吗?"
-    IDS_ASKDESKTOPSHORTCUT  "您想要创建桌面快捷方式吗?"
     IDS_DONE                "完成!"
-    IDS_NEWCFGWRITTEN       "新的配置已经写入!"
 END
 
 STRINGTABLE
@@ -74,17 +70,16 @@ BEGIN
     IDS_REGOPENKEYFAIL      "RegOpenKeyEx 失败!"
     IDS_BRIDGEINITERR       "BridgeInit 发生错误"
     IDS_SHELLEXTDBG         "用x64dbg调试"
-    IDS_ASKICON             "您想为调试数据库设置图标吗？"
     IDS_BRIDGESTARTERR      "BridgeStart 发生错误"
     IDS_REGDELETEKEYFAIL    "RegDeleteKey 失败!"
 END
 
-#endif    // Chinese (Simplified, PRC) resources
+#endif    // 中文(简体，中国) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
+// 英语(美国) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
@@ -100,7 +95,6 @@ BEGIN
     IDS_ERROR               "Error"
     IDS_ERRORGETTINGMODULEPATH "Error getting module path!"
     IDS_DONE                "Done!"
-    IDS_NEWCFGWRITTEN       "New configuration written! Restart to use x64dbg."
 END
 
 STRINGTABLE
@@ -120,8 +114,7 @@ BEGIN
     IDS_REGDELETEKEYFAIL    "RegDeleteKey failed!"
 END
 
-
-#endif    // English (United States) resources
+#endif    // 英语(美国) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

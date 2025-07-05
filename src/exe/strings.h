@@ -9,7 +9,6 @@
 #define IDS_ASKSHELLEXT                 108
 #define IDS_ASKDESKTOPSHORTCUT          109
 #define IDS_DONE                        110
-#define IDS_NEWCFGWRITTEN               111
 #define IDS_INVDPATH32                  112
 #define IDS_INVDPATH64                  113
 #define IDS_INVDPE                      114
