@@ -19,6 +19,7 @@ void randombytes(uint8_t* buf, uint64_t len)
     __debugbreak();
 }
 
+// Always ends with a backslash
 static wchar_t szApplicationDir[MAX_PATH];
 static bool bPerformSignatureChecks = false;
 static bool bNewerThanXP = false;
@@ -215,8 +216,16 @@ static bool FileExists(const wchar_t* szFullPath)
 
 HMODULE WINAPI LoadLibraryCheckedW(const wchar_t* szDll, bool allowFailure)
 {
-    std::wstring fullDllPath = szApplicationDir;
-    fullDllPath += szDll;
+    std::wstring fullDllPath;
+    if(wcschr(szDll, L'\\') == nullptr)
+    {
+        fullDllPath = szApplicationDir;
+        fullDllPath += szDll;
+    }
+    else
+    {
+        fullDllPath = szDll;
+    }
 
 #ifdef DEBUG_SIGNATURE_CHECKS
     debugMessage(L"LoadLibraryCheckedW");
@@ -488,7 +497,7 @@ bool InitializeSignatureCheck()
 #endif // DEBUG_SIGNATURE_CHECKS
 
     // Safely load the MSVC runtime DLLs (since they cannot be delay loaded)
-    auto loadRuntimeDll = [&szSystemDir](const wchar_t* szDll)
+    auto loadRuntimeDll = [&szSystemDir](const wchar_t* szDll) -> HMODULE
     {
         std::wstring fullDllPath = szApplicationDir;
         fullDllPath += L'\\';
@@ -497,17 +506,22 @@ bool InitializeSignatureCheck()
         {
             if(bPerformSignatureChecks)
             {
-                LoadLibraryCheckedW(fullDllPath.c_str(), true);
+                return LoadLibraryCheckedW(fullDllPath.c_str(), true);
             }
             else
             {
-                LoadLibraryW(fullDllPath.c_str());
+                return LoadLibraryW(fullDllPath.c_str());
             }
         }
+        return nullptr;
     };
     loadRuntimeDll(L"vcruntime140.dll");
     loadRuntimeDll(L"vcruntime140_1.dll");
-    loadRuntimeDll(L"msvcp140.dll");
+    if(!loadRuntimeDll(L"msvcp140.dll"))
+    {
+        MessageBoxW(nullptr, L"Failed to load msvcp140.dll!", L"Error", MB_ICONERROR | MB_SYSTEMMODAL);
+        ExitProcess(ERROR_MOD_NOT_FOUND);
+    }
 
     return true;
 }
