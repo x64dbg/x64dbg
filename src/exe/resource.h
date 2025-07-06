@@ -1,18 +1,16 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by resource.rc
+// Microsoft Visual C++ ���ɵİ����ļ���
+// �� resource.rc ʹ��
 //
+#define IDD_OPTIONS_DIALOG              102
 #define IDD_DIALOGLAUNCHER              105
 #define IDC_BUTTON32                    1001
 #define IDC_BUTTON64                    1002
 #define IDC_BUTTON3                     1003
 #define IDC_BUTTONINSTALL               1003
-
-// Dialog Procedure
-#define IDD_OPTIONS_DIALOG        102
-#define IDC_CHECK_SHELLEXT        2001
-#define IDC_CHECK_DESKTOPSHORTCUT 2002
-#define IDC_CHECK_ICON            2003
+#define IDC_CHECK_SHELLEXT              2001
+#define IDC_CHECK_DESKTOPSHORTCUT       2002
+#define IDC_CHECK_ICON                  2003
 
 // Next default values for new objects
 //
