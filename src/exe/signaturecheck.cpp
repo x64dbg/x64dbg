@@ -497,32 +497,31 @@ bool InitializeSignatureCheck()
 #endif // DEBUG_SIGNATURE_CHECKS
 
     // Safely load the MSVC runtime DLLs (since they cannot be delay loaded)
-    auto loadRuntimeDll = [&szSystemDir](const wchar_t* szDll)
+    auto loadRuntimeDll = [&szSystemDir](const wchar_t* szDll) -> HMODULE
     {
         std::wstring fullDllPath = szApplicationDir;
         fullDllPath += L'\\';
         fullDllPath += szDll;
-        HMODULE hModule = nullptr;
         if(FileExists(fullDllPath.c_str()))
         {
             if(bPerformSignatureChecks)
             {
-                hModule = LoadLibraryCheckedW(fullDllPath.c_str(), true);
+                return LoadLibraryCheckedW(fullDllPath.c_str(), true);
             }
             else
             {
-                hModule = LoadLibraryW(fullDllPath.c_str());
+                return LoadLibraryW(fullDllPath.c_str());
             }
         }
-        if(!hModule)
-        {
-            MessageBoxW(nullptr, fullDllPath.c_str(), L"Failed to load runtime DLL!", MB_ICONERROR | MB_SYSTEMMODAL);
-            ExitProcess(ERROR_MOD_NOT_FOUND);
-        }
+        return nullptr;
     };
     loadRuntimeDll(L"vcruntime140.dll");
     loadRuntimeDll(L"vcruntime140_1.dll");
-    loadRuntimeDll(L"msvcp140.dll");
+    if(!loadRuntimeDll(L"msvcp140.dll"))
+    {
+        MessageBoxW(nullptr, L"Failed to load msvcp140.dll!", L"Error", MB_ICONERROR | MB_SYSTEMMODAL);
+        ExitProcess(ERROR_MOD_NOT_FOUND);
+    }
 
     return true;
 }
