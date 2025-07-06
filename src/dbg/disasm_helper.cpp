@@ -507,18 +507,21 @@ bool disasmgetstringatwrapper(duint addr, char* dest, bool cache)
     char string[MAX_STRING_SIZE];
     duint addrPtr = readValidPtr(addr);
     STRING_TYPE strtype;
-    auto possibleUnicode = disasmispossiblestring(addr, &strtype) && strtype == str_unicode;
-    if(addrPtr && !possibleUnicode)
+    if(addrPtr)
     {
-        if(disasmgetstringat(addrPtr, &strtype, string, string, MAX_STRING_SIZE - 5))
+        auto possibleUnicode = disasmispossiblestring(addr, &strtype) && strtype == str_unicode;
+        if(!possibleUnicode)
         {
-            if(int(strlen(string)) <= (strtype == str_ascii ? 3 : 2) && readValidPtr(addrPtr))
-                return false;
-            if(strtype == str_ascii)
-                sprintf_s(dest, MAX_STRING_SIZE, "&\"%s\"", string);
-            else //unicode
-                sprintf_s(dest, MAX_STRING_SIZE, "&L\"%s\"", string);
-            return true;
+            if(disasmgetstringat(addrPtr, &strtype, string, string, MAX_STRING_SIZE - 5))
+            {
+                if(int(strlen(string)) <= (strtype == str_ascii ? 3 : 2) && readValidPtr(addrPtr))
+                    return false;
+                if(strtype == str_ascii)
+                    sprintf_s(dest, MAX_STRING_SIZE, "&\"%s\"", string);
+                else //unicode
+                    sprintf_s(dest, MAX_STRING_SIZE, "&L\"%s\"", string);
+                return true;
+            }
         }
     }
     if(disasmgetstringat(addr, &strtype, string, string, MAX_STRING_SIZE - 4))
