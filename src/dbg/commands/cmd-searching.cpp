@@ -219,7 +219,7 @@ bool cbInstrFindAll(int argc, char* argv[])
             break;
         i += foundoffset + 1;
         result = addr + i - 1;
-        char msg[deflen] = "";
+        char msg[GUI_MAX_DISASSEMBLY_SIZE] = "";
         sprintf_s(msg, "%p", (void*)result);
         GuiReferenceSetRowCount(refCount + 1);
         GuiReferenceSetCellContent(refCount, 0, msg);
@@ -355,7 +355,7 @@ bool cbInstrFindAllMem(int argc, char* argv[])
     int refCount = 0;
     for(duint result : results)
     {
-        char msg[deflen] = "";
+        char msg[GUI_MAX_DISASSEMBLY_SIZE] = "";
         sprintf_s(msg, "%p", (void*)result);
         GuiReferenceSetRowCount(refCount + 1);
         GuiReferenceSetCellContent(refCount, 0, msg);
@@ -607,7 +607,7 @@ static bool cbRefStr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* 
         sprintf_s(strAddrText, "%p", (void*)strAddr);
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
-        char disassembly[4096] = "";
+        char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
@@ -652,7 +652,7 @@ static bool cbRefFuncPtr(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFIN
         sprintf_s(addrText, "%p", (void*)(duint)disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
-        char disassembly[4096] = "";
+        char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
             GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
         else
@@ -994,7 +994,7 @@ static bool cbGUIDFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
             sprintf_s(addrText, "%p", (void*)(duint)disasm->Address());
             GuiReferenceSetRowCount(refinfo->refcount + 1);
             GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
-            char disassembly[4096] = "";
+            char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
             if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
                 GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
             else
