@@ -354,7 +354,7 @@ bool BpDelete(const BREAKPOINT & Bp)
     // Extract the RVA from the breakpoint
     auto rva = Bp.addr;
     auto loadedBase = ModBaseFromName(Bp.module.c_str());
-    if(loadedBase != 0 && Bp.addr > loadedBase)
+    if(loadedBase != 0 && Bp.addr >= loadedBase)
         rva -= loadedBase;
 
     // Calculate the breakpoint key with the module hash and rva
