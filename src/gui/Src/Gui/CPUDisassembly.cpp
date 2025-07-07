@@ -1905,17 +1905,18 @@ void CPUDisassembly::labelHelpSlot()
         strcpy_s(setting, "https://www.google.com/search?q=@topic");
         BridgeSettingSet("Misc", "HelpOnSymbolicNameUrl", setting);
     }
+
     QString baseUrl(setting);
-    QString fullUrl = baseUrl.replace("@topic", topic);
 
     if(baseUrl.startsWith("execute://"))
     {
-        QString command = fullUrl.right(fullUrl.length() - 10);
+        QString command = baseUrl.right(baseUrl.length() - (sizeof("execute://") - 1)).replace("@topic", topic);
         QProcess::execute(command);
     }
     else
     {
-        QDesktopServices::openUrl(QUrl(fullUrl));
+        QUrl fullUrl(baseUrl.replace("@topic", QString(QUrl::toPercentEncoding(topic))));
+        QDesktopServices::openUrl(fullUrl);
     }
 }
 
