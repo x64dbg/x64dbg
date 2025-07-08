@@ -483,62 +483,62 @@ void BreakpointsView::updateBreakpointsSlot()
                 colored(")", mSummaryParenColor);
             }
 
+            //fast resume skips all other steps if break condition is evaluated to false
             if(bp.fastResume)
             {
                 next();
                 colored(tr("fastresume"), mSummaryKeywordColor);
                 colored("()", mSummaryParenColor);
             }
-            else //fast resume skips all other steps
-            {
-                if(!bp.logText.isEmpty())
-                {
-                    next();
-                    if(!bp.logCondition.isEmpty())
-                    {
-                        colored(tr("logif"), mSummaryKeywordColor);
-                        colored("(", mSummaryParenColor);
-                        text(bp.logCondition);
-                        colored(",", mSummaryParenColor);
-                        text(" ");
-                    }
-                    else
-                    {
-                        colored(tr("log"), mSummaryKeywordColor);
-                        colored("(", mSummaryParenColor);
-                    }
-                    colored(QString("\"%1\"").arg(bp.logText), mSummaryStringColor);
-                    if(!bp.logFile.isEmpty())
-                    {
-                        colored(", ", mSummaryParenColor);
-                        colored("file", mSummaryKeywordColor);
-                        colored("(", mSummaryParenColor);
-                        colored(bp.logFile, mSummaryStringColor);
-                        colored(")", mSummaryParenColor);
-                    }
-                    colored(")", mSummaryParenColor);
-                }
 
-                if(!bp.commandText.isEmpty())
+            if(!bp.logText.isEmpty())
+            {
+                next();
+                if(!bp.logCondition.isEmpty())
                 {
-                    next();
-                    if(!bp.commandCondition.isEmpty())
-                    {
-                        colored(tr("cmdif"), mSummaryKeywordColor);
-                        colored("(", mSummaryParenColor);
-                        text(bp.commandCondition);
-                        colored(",", mSummaryParenColor);
-                        text(" ");
-                    }
-                    else
-                    {
-                        colored(tr("cmd"), mSummaryKeywordColor);
-                        colored("(", mSummaryParenColor);
-                    }
-                    colored(QString("\"%1\"").arg(bp.commandText), mSummaryStringColor);
+                    colored(tr("logif"), mSummaryKeywordColor);
+                    colored("(", mSummaryParenColor);
+                    text(bp.logCondition);
+                    colored(",", mSummaryParenColor);
+                    text(" ");
+                }
+                else
+                {
+                    colored(tr("log"), mSummaryKeywordColor);
+                    colored("(", mSummaryParenColor);
+                }
+                colored(QString("\"%1\"").arg(bp.logText), mSummaryStringColor);
+                if(!bp.logFile.isEmpty())
+                {
+                    colored(", ", mSummaryParenColor);
+                    colored("file", mSummaryKeywordColor);
+                    colored("(", mSummaryParenColor);
+                    colored(bp.logFile, mSummaryStringColor);
                     colored(")", mSummaryParenColor);
                 }
+                colored(")", mSummaryParenColor);
             }
+
+            if(!bp.commandText.isEmpty())
+            {
+                next();
+                if(!bp.commandCondition.isEmpty())
+                {
+                    colored(tr("cmdif"), mSummaryKeywordColor);
+                    colored("(", mSummaryParenColor);
+                    text(bp.commandCondition);
+                    colored(",", mSummaryParenColor);
+                    text(" ");
+                }
+                else
+                {
+                    colored(tr("cmd"), mSummaryKeywordColor);
+                    colored("(", mSummaryParenColor);
+                }
+                colored(QString("\"%1\"").arg(bp.commandText), mSummaryStringColor);
+                colored(")", mSummaryParenColor);
+            }
+
             QString result;
             for(auto & token : richSummary)
                 result += token.text;

@@ -466,51 +466,51 @@ static bool getAutoComment(duint addr, String & comment)
             temp_string += ")";
         }
 
+        //fast resume skips all other steps if break condition is evaluated to false
         if(bp.fastResume)
         {
             next();
             temp_string += GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "fastresume()"));
         }
-        else //fast resume skips all other steps
-        {
-            if(!bp.logText.empty())
-            {
-                next();
-                if(!bp.logCondition.empty())
-                {
-                    temp_string += GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "logif"));
-                    temp_string += "(";
-                    temp_string += bp.logCondition;
-                    temp_string += ", ";
-                }
-                else
-                {
-                    temp_string += GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "log"));
-                    temp_string += "(";
-                }
-                temp_string += bp.logText;
-                temp_string += ")";
-            }
 
-            if(!bp.commandText.empty())
+        if(!bp.logText.empty())
+        {
+            next();
+            if(!bp.logCondition.empty())
             {
-                next();
-                if(!bp.commandCondition.empty())
-                {
-                    temp_string += GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "cmdif"));
-                    temp_string += "(";
-                    temp_string += bp.commandCondition;
-                    temp_string += ", ";
-                }
-                else
-                {
-                    temp_string += GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "cmd"));
-                    temp_string += "(";
-                }
-                temp_string += bp.commandText;
-                temp_string += ")";
+                temp_string += GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "logif"));
+                temp_string += "(";
+                temp_string += bp.logCondition;
+                temp_string += ", ";
             }
+            else
+            {
+                temp_string += GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "log"));
+                temp_string += "(";
+            }
+            temp_string += bp.logText;
+            temp_string += ")";
         }
+
+        if(!bp.commandText.empty())
+        {
+            next();
+            if(!bp.commandCondition.empty())
+            {
+                temp_string += GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "cmdif"));
+                temp_string += "(";
+                temp_string += bp.commandCondition;
+                temp_string += ", ";
+            }
+            else
+            {
+                temp_string += GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "cmd"));
+                temp_string += "(";
+            }
+            temp_string += bp.commandText;
+            temp_string += ")";
+        }
+
         if(!temp_string.empty())
         {
             if(!comment.empty())
