@@ -570,14 +570,10 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRID
         }
         else
         {
-            char label[MAX_LABEL_SIZE] = "";
-            if(!getLabel(addr, label, true)) //comment > label > autocomment
-            {
-                String comment;
-                retval = getAutoComment(addr, comment);
-                strcpy_s(addrinfo->comment, "\1");
-                strncat_s(addrinfo->comment, comment.c_str(), _TRUNCATE);
-            }
+            String comment;
+            retval = getAutoComment(addr, comment);
+            strcpy_s(addrinfo->comment, "\1");
+            strncat_s(addrinfo->comment, comment.c_str(), _TRUNCATE);
         }
     }
     PLUG_CB_ADDRINFO info;
