@@ -366,7 +366,7 @@ bool cbInstrFindAllMem(int argc, char* argv[])
     int refCount = 0;
     for(duint result : results)
     {
-        if ((result < addr) || ((find_size != -1) && (addr + find_size <= result)))
+        if ((result < addr) || ((find_size != -1) && (addr + find_size <= (result + searchpattern.size()))))
         {
             continue;
         }
