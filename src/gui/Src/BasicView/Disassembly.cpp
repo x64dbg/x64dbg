@@ -611,18 +611,28 @@ QString Disassembly::paintContent(QPainter* painter, duint row, duint col, int x
         char label[MAX_LABEL_SIZE] = "";
         if(GetCommentFormat(va, comment, &autoComment))
         {
-            if(autoComment)
+            if(autoComment && DbgGetLabelAt(va, SEG_DEFAULT, label)) // prefer label over auto-comment
             {
-                richComment.textColor = mAutoCommentColor;
-                richComment.textBackground = mAutoCommentBackgroundColor;
+                richComment.textColor = mLabelColor;
+                richComment.textBackground = mLabelBackgroundColor;
+                richComment.text = label;
             }
-            else //user comment
+            else
             {
-                richComment.textColor = mCommentColor;
-                richComment.textBackground = mCommentBackgroundColor;
+                if(autoComment)
+                {
+                    richComment.textColor = mAutoCommentColor;
+                    richComment.textBackground = mAutoCommentBackgroundColor;
+                }
+                else //user comment
+                {
+                    richComment.textColor = mCommentColor;
+                    richComment.textBackground = mCommentBackgroundColor;
+                }
+
+                richComment.text = std::move(comment);
             }
 
-            richComment.text = std::move(comment);
             richText.emplace_back(std::move(richComment));
         }
         else if(DbgGetLabelAt(va, SEG_DEFAULT, label)) // label but no comment
