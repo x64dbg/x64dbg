@@ -135,7 +135,7 @@ void LocalVarsView::baseChangedSlot()
 void LocalVarsView::configUpdatedSlot()
 {
     currentFunc = 0;
-    ValueStyle = (ValueStyleType)Config()->getUint("Disassembler", "0xPrefixValues");
+    ValueNotation = (DisasmValueNotationType)Config()->getUint("Disassembler", "0xPrefixValues");
     MemorySpaces = Config()->getBool("Disassembler", "MemorySpaces");
 }
 
@@ -231,12 +231,12 @@ void LocalVarsView::updateSlot()
                     {
                         expr = QString("%1").arg(-j, 0, 16);
 
-                        switch(ValueStyle)
+                        switch(ValueNotation)
                         {
-                        case ValueStyleC:
+                        case DisasmValueNotationC:
                             expr = "0x" + expr;
                             break;
-                        case ValueStyleMASM:
+                        case DisasmValueNotationMASM:
                             expr = "0" + expr + "h";
                             break;
                         default:
@@ -252,12 +252,12 @@ void LocalVarsView::updateSlot()
                     {
                         expr = QString("%1").arg(j, 0, 16);
 
-                        switch(ValueStyle)
+                        switch(ValueNotation)
                         {
-                        case ValueStyleC:
+                        case DisasmValueNotationC:
                             expr = "0x" + expr;
                             break;
-                        case ValueStyleMASM:
+                        case DisasmValueNotationMASM:
                             expr = "0" + expr + "h";
                             break;
                         default:

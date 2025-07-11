@@ -241,7 +241,7 @@ void ZydisTokenizer::UpdateConfig()
     mMemorySpaces = ConfigBool("Disassembler", "MemorySpaces");
     mNoHighlightOperands = ConfigBool("Disassembler", "NoHighlightOperands");
     mNoCurrentModuleText = ConfigBool("Disassembler", "NoCurrentModuleText");
-    mValueStyle = (ValueStyleType)ConfigUint("Disassembler", "0xPrefixValues");
+    mValueNotation = (DisasmValueNotationType)ConfigUint("Disassembler", "0xPrefixValues");
     mMaxModuleLength = (int)ConfigUint("Disassembler", "MaxModuleSize");
     UpdateStringPool();
 }
@@ -251,7 +251,7 @@ void ZydisTokenizer::UpdateArchitecture()
     mZydis.Reset(mArchitecture->disasm64());
 }
 
-void ZydisTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bHidePointerSizes, bool bHideNormalSegments, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, ValueStyleType ValueStyle)
+void ZydisTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bHidePointerSizes, bool bHideNormalSegments, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, DisasmValueNotationType ValueNotation)
 {
     mUppercase = bUppercase;
     mTabbedMnemonic = bTabbedMnemonic;
@@ -261,7 +261,7 @@ void ZydisTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgu
     mMemorySpaces = bMemorySpaces;
     mNoHighlightOperands = bNoHighlightOperands;
     mNoCurrentModuleText = bNoCurrentModuleText;
-    mValueStyle = ValueStyle;
+    mValueNotation = ValueNotation;
 }
 
 int ZydisTokenizer::Size() const
@@ -452,12 +452,12 @@ QString ZydisTokenizer::printValue(const TokenValue & value, bool expandModule) 
         finalText = QString("<%1>").arg(labelText);
     else
     {
-        switch(mValueStyle)
+        switch(mValueNotation)
         {
-        case ValueStyleC:
+        case DisasmValueNotationC:
             finalText = QString("0x") + addrText;
             break;
-        case ValueStyleMASM:
+        case DisasmValueNotationMASM:
             finalText = QString("0") + addrText + QString("h");
             break;
         default:

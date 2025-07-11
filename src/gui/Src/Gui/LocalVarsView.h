@@ -1,7 +1,7 @@
 #pragma once
 
 #include "StdTable.h"
-#include "Configuration.h" // ValueStyleType
+#include "Configuration.h" // DisasmValueNotationType
 
 class CPUMultiDump;
 
@@ -32,7 +32,7 @@ private:
     void setupContextMenu();
     MenuBuilder* mMenu;
 
-    ValueStyleType ValueStyle;
+    DisasmValueNotationType ValueNotation;
     bool MemorySpaces;
 #ifdef _WIN64
     QAction* baseRegisters[16];
