@@ -18,6 +18,7 @@ namespace Qt
 
 class ReferenceManager;
 class SymbolView;
+class QZydis;
 
 class Bridge : public QObject
 {
@@ -29,6 +30,7 @@ class Bridge : public QObject
 
 private slots:
     void throttleUpdateSlot(GUIMSG msg);
+    void configUpdatedSlot();
 
 public:
     explicit Bridge(QObject* parent = nullptr);
@@ -202,4 +204,5 @@ private:
     volatile bool mDbgStopped = false;
     QMap<GUIMSG, DWORD> mLastUpdates;
     QMap<GUIMSG, QTimer*> mUpdateTimers;
+    QZydis* mDisasm = nullptr;
 };

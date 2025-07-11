@@ -3,6 +3,7 @@
 #include "QZydis.h"
 #include "main.h"
 #include "Exports.h"
+#include "Configuration.h"
 
 #include "ReferenceManager.h"
 #include "SymbolView.h"
@@ -203,7 +204,11 @@ Bridge::Bridge(QObject* parent) : QObject(parent)
         mResultEvents[i] = CreateEventW(nullptr, true, true, nullptr);
     mMainThreadId = GetCurrentThreadId();
 
+    // Initialize QZydis disassembler
+    mDisasm = new QZydis(int(ConfigUint("Disassembler", "MaxModuleSize")), Bridge::getArchitecture());
+
     connect(this, &Bridge::throttleUpdate, this, &Bridge::throttleUpdateSlot);
+    connect(Config(), SIGNAL(tokenizerConfigUpdated()), this, SLOT(configUpdatedSlot()));
 }
 
 Bridge::~Bridge()
@@ -211,6 +216,7 @@ Bridge::~Bridge()
     EnterCriticalSection(&mCsBridge);
     for(size_t i = 0; i < BridgeResult::Last; i++)
         CloseHandle(mResultEvents[i]);
+    delete mDisasm;
     DeleteCriticalSection(&mCsBridge);
 }
 
@@ -274,6 +280,15 @@ void Bridge::emitMenuAddToList(QWidget* parent, QMenu* menu, GUIMENUTYPE hMenu, 
 void Bridge::setDbgStopped()
 {
     mDbgStopped = true;
+}
+
+void Bridge::configUpdatedSlot()
+{
+    if(mDisasm)
+    {
+        mDisasm->UpdateConfig();
+        mDisasm->UpdateArchitecture();
+    }
 }
 
 /************************************************************************************
@@ -520,13 +535,12 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     {
         duint parVA = (duint)param1;
         char* text = (char*)param2;
-        if(!text || !parVA || !DbgIsDebugging())
+        if(!text || !parVA || !DbgIsDebugging() || !mDisasm)
             return 0;
         byte_t buffer[16];
         if(!DbgMemRead(parVA, buffer, 16))
             return 0;
-        QZydis disasm(int(ConfigUint("Disassembler", "MaxModuleSize")), Bridge::getArchitecture());
-        Instruction_t instr = disasm.DisassembleAt(buffer, 16, 0, parVA);
+        Instruction_t instr = mDisasm->DisassembleAt(buffer, 16, 0, parVA);
         QString finalInstruction;
         for(const auto & curToken : instr.tokens.tokens)
             finalInstruction += curToken.text;
