@@ -749,9 +749,9 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="layoutValueStyle">
+        <layout class="QHBoxLayout" name="layoutValueNotation">
          <item>
-          <widget class="QLabel" name="labelValueStyle">
+          <widget class="QLabel" name="labelValueNotation">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>0</horstretch>
@@ -759,14 +759,14 @@
             </sizepolicy>
            </property>
            <property name="text">
-            <string>Display style for values:</string>
+            <string>Hexadecimal value notation:</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="comboValueStyle">
+          <widget class="QComboBox" name="comboValueNotation">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -776,17 +776,17 @@
            </property>
            <item>
             <property name="text">
-             <string>Default</string>
+             <string>None</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>C style (0x prefix)</string>
+             <string>C/C++</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>MASM style (0 prefix, h suffix)</string>
+             <string>MASM</string>
             </property>
            </item>
           </widget>

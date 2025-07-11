@@ -241,7 +241,7 @@ void ZydisTokenizer::UpdateConfig()
     mMemorySpaces = ConfigBool("Disassembler", "MemorySpaces");
     mNoHighlightOperands = ConfigBool("Disassembler", "NoHighlightOperands");
     mNoCurrentModuleText = ConfigBool("Disassembler", "NoCurrentModuleText");
-    mValueStyle = (ValueStyleType)ConfigUint("Disassembler", "0xPrefixValues");
+    mValueNotation = (DisasmValueNotationType)ConfigUint("Disassembler", "0xPrefixValues");
     mMaxModuleLength = (int)ConfigUint("Disassembler", "MaxModuleSize");
     UpdateStringPool();
 }
@@ -251,7 +251,7 @@ void ZydisTokenizer::UpdateArchitecture()
     mZydis.Reset(mArchitecture->disasm64());
 }
 
-void ZydisTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bHidePointerSizes, bool bHideNormalSegments, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, ValueStyleType ValueStyle)
+void ZydisTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgumentSpaces, bool bHidePointerSizes, bool bHideNormalSegments, bool bMemorySpaces, bool bNoHighlightOperands, bool bNoCurrentModuleText, DisasmValueNotationType ValueNotation)
 {
     mUppercase = bUppercase;
     mTabbedMnemonic = bTabbedMnemonic;
@@ -261,7 +261,7 @@ void ZydisTokenizer::SetConfig(bool bUppercase, bool bTabbedMnemonic, bool bArgu
     mMemorySpaces = bMemorySpaces;
     mNoHighlightOperands = bNoHighlightOperands;
     mNoCurrentModuleText = bNoCurrentModuleText;
-    mValueStyle = ValueStyle;
+    mValueNotation = ValueNotation;
 }
 
 int ZydisTokenizer::Size() const
@@ -452,13 +452,16 @@ QString ZydisTokenizer::printValue(const TokenValue & value, bool expandModule) 
         finalText = QString("<%1>").arg(labelText);
     else
     {
-        switch(mValueStyle)
+        switch(mValueNotation)
         {
-        case ValueStyleC:
-            finalText = QString("0x") + addrText;
+        case DisasmValueNotationC:
+            finalText = "0x" + addrText;
             break;
-        case ValueStyleMASM:
-            finalText = QString("0") + addrText + QString("h");
+        case DisasmValueNotationMASM:
+            if((addrText[0] >= 'A' && addrText[0] <= 'F') || (addrText[0] >= 'a' && addrText[0] <= 'f'))
+                finalText = "0" + addrText + "h";
+            else
+                finalText = addrText + "h";
             break;
         default:
             finalText = addrText;

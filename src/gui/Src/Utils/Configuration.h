@@ -9,11 +9,11 @@
 #include "Imports.h"
 #include "MenuBuilder.h"
 
-enum ValueStyleType
+enum DisasmValueNotationType
 {
-    ValueStyleDefault = 0,
-    ValueStyleC = 1,
-    ValueStyleMASM = 2
+    DisasmValueNotationNone = 0,
+    DisasmValueNotationC = 1,
+    DisasmValueNotationMASM = 2
 };
 
 // TODO: declare AppearanceDialog and SettingsDialog entries here, so that you only have to do it in once place

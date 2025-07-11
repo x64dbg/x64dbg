@@ -244,10 +244,10 @@ void SettingsDialog::LoadSettings()
     {
         switch(cur)
         {
-        case ValueStyleDefault:
-        case ValueStyleC:
-        case ValueStyleMASM:
-            settings.disasmValueStyle = (ValueStyleType)cur;
+        case DisasmValueNotationNone:
+        case DisasmValueNotationC:
+        case DisasmValueNotationMASM:
+            settings.disasmValueNotation = (DisasmValueNotationType)cur;
             break;
         }
     }
@@ -265,7 +265,7 @@ void SettingsDialog::LoadSettings()
     ui->chkNoHighlightOperands->setChecked(settings.disasmNoHighlightOperands);
     ui->chkPermanentHighlightingMode->setChecked(settings.disasmPermanentHighlightingMode);
     ui->chkNoCurrentModuleText->setChecked(settings.disasmNoCurrentModuleText);
-    ui->comboValueStyle->setCurrentIndex(settings.disasmValueStyle);
+    ui->comboValueNotation->setCurrentIndex(settings.disasmValueNotation);
     ui->chkNoBranchDisasmPreview->setChecked(settings.disasmNoBranchDisasmPreview);
     ui->chkNoSourceLinesAutoComments->setChecked(settings.disasmNoSourceLineAutoComments);
     ui->chkDoubleClickAssemble->setChecked(settings.disasmAssembleOnDoubleClick);
@@ -434,7 +434,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "NoHighlightOperands", settings.disasmNoHighlightOperands);
     BridgeSettingSetUint("Disassembler", "PermanentHighlightingMode", settings.disasmPermanentHighlightingMode);
     BridgeSettingSetUint("Disassembler", "NoCurrentModuleText", settings.disasmNoCurrentModuleText);
-    BridgeSettingSetUint("Disassembler", "0xPrefixValues", settings.disasmValueStyle);
+    BridgeSettingSetUint("Disassembler", "0xPrefixValues", settings.disasmValueNotation);
     BridgeSettingSetUint("Disassembler", "NoBranchDisasmPreview", settings.disasmNoBranchDisasmPreview);
     BridgeSettingSetUint("Disassembler", "NoSourceLineAutoComments", settings.disasmNoSourceLineAutoComments);
     BridgeSettingSetUint("Disassembler", "AssembleOnDoubleClick", settings.disasmAssembleOnDoubleClick);
@@ -1083,16 +1083,16 @@ void SettingsDialog::on_chkNoCurrentModuleText_toggled(bool checked)
     settings.disasmNoCurrentModuleText = checked;
 }
 
-void SettingsDialog::on_comboValueStyle_currentIndexChanged(int index)
+void SettingsDialog::on_comboValueNotation_currentIndexChanged(int index)
 {
     bTokenizerConfigUpdated = true;
 
     switch(index)
     {
-    case ValueStyleDefault:
-    case ValueStyleC:
-    case ValueStyleMASM:
-        settings.disasmValueStyle = (ValueStyleType)index;
+    case DisasmValueNotationNone:
+    case DisasmValueNotationC:
+    case DisasmValueNotationMASM:
+        settings.disasmValueNotation = (DisasmValueNotationType)index;
         break;
     }
 }
