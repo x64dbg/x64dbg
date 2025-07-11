@@ -455,10 +455,13 @@ QString ZydisTokenizer::printValue(const TokenValue & value, bool expandModule) 
         switch(mValueNotation)
         {
         case DisasmValueNotationC:
-            finalText = QString("0x") + addrText;
+            finalText = "0x" + addrText;
             break;
         case DisasmValueNotationMASM:
-            finalText = QString("0") + addrText + QString("h");
+            if((addrText[0] >= 'A' && addrText[0] <= 'F') || (addrText[0] >= 'a' && addrText[0] <= 'f'))
+                finalText = "0" + addrText + "h";
+            else
+                finalText = addrText + "h";
             break;
         default:
             finalText = addrText;
