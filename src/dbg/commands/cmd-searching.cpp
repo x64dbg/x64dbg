@@ -327,8 +327,19 @@ bool cbInstrFindAllMem(int argc, char* argv[])
             }
         }
 
-        if(page.address >= addr && (find_size == -1 || page.address + page.size <= addr + find_size))
+        if (
+            (page.address <= addr && addr < page.address + page.size) ||
+            (addr <= page.address && page.address < addr + find_size)
+            )
+        {
+            // One (partially or fully) overlaps the other
             searchPages.push_back(page);
+        }
+        else if (find_size == -1 && addr <= page.address)
+        {
+            // Not overlapping, but past the address
+            searchPages.push_back(page);
+        }
     }
     SHARED_RELEASE();
 
@@ -355,6 +366,11 @@ bool cbInstrFindAllMem(int argc, char* argv[])
     int refCount = 0;
     for(duint result : results)
     {
+        if ((result < addr) || ((find_size != -1) && (addr + find_size <= (result + searchpattern.size()))))
+        {
+            continue;
+        }
+
         char msg[deflen] = "";
         sprintf_s(msg, "%p", (void*)result);
         GuiReferenceSetRowCount(refCount + 1);
