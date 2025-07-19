@@ -391,6 +391,7 @@ bool cbDebugPause(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Program is not running"));
         return false;
     }
+    // TODO: get suspend count instead, this can be detected
     // Interesting behavior found by JustMagic, if the active thread is suspended pause would fail
     auto previousSuspendCount = SuspendThread(hActiveThread);
     if(previousSuspendCount != 0)

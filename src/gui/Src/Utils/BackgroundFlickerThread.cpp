@@ -1,5 +1,5 @@
 #include "BackgroundFlickerThread.h"
-#include "Configuration.h"
+#include <Configuration.h>
 #include <Windows.h>
 
 BackgroundFlickerThread::BackgroundFlickerThread(QWidget* widget, QColor & background, QObject* parent) : QThread(parent), background(background)

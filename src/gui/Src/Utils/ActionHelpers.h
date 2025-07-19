@@ -3,7 +3,7 @@
 #include <QAction>
 #include <functional>
 #include <utility>
-#include "Configuration.h"
+#include <Configuration.h>
 
 using SlotFunc = std::function<void()>;
 using MakeMenuFunc1 = std::function<QMenu*(const QString &)>;

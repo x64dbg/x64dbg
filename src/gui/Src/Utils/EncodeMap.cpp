@@ -1,4 +1,5 @@
 #include "EncodeMap.h"
+#include "Bridge.h"
 
 EncodeMap::EncodeMap(QObject* parent)
     : QObject(parent),
@@ -23,7 +24,7 @@ void EncodeMap::setMemoryRegion(duint addr)
 
     if(mBuffer)
         DbgReleaseEncodeTypeBuffer(mBuffer);
-    mBuffer = (byte*)DbgGetEncodeTypeBuffer(addr, &mBufferSize);
+    mBuffer = (uint8_t*)DbgGetEncodeTypeBuffer(addr, &mBufferSize);
 }
 
 void EncodeMap::setDataType(duint va, ENCODETYPE type)

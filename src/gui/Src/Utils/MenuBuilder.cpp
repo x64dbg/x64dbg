@@ -1,6 +1,6 @@
 #include "MenuBuilder.h"
 #include "Bridge.h"
-#include "Configuration.h"
+#include <Configuration.h>
 
 /**
  * @brief MenuBuilder::loadFromConfig Set the menu builder to be customizable
@@ -74,7 +74,7 @@ bool MenuBuilder::build(QMenu* menu) const
     if(_callback && !_callback(menu))
         return false;
     QMenu* submenu;
-    if(id != 0)
+    if(!id.isEmpty())
         submenu = new QMenu(tr("More commands"), menu);
     else
         submenu = nullptr;
@@ -82,7 +82,7 @@ bool MenuBuilder::build(QMenu* menu) const
     {
         const Container & container = _containers.at(i);
         QMenu* _menu;
-        if(id != 0 && container.type != Container::Separator && Config()->getBool("Gui", QString("Menu%1Hidden%2").arg(id).arg(i)))
+        if(!id.isEmpty() && container.type != Container::Separator && Config()->getBool("Gui", QString("Menu%1Hidden%2").arg(id).arg(i)))
             _menu = submenu;
         else
             _menu = menu;
@@ -104,7 +104,7 @@ bool MenuBuilder::build(QMenu* menu) const
             break;
         }
     }
-    if(id != 0 && !submenu->actions().isEmpty())
+    if(!id.isEmpty() && !submenu->actions().isEmpty())
     {
         menu->addSeparator();
         menu->addMenu(submenu);

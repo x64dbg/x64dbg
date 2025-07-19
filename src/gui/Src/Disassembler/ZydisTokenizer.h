@@ -1,8 +1,8 @@
 #pragma once
 
 #include <zydis_wrapper.h>
-#include "RichTextPainter.h"
-#include "Configuration.h"
+#include <Utils/RichTextPainter.h>
+#include <Configuration.h>
 #include <map>
 #include <QHash>
 #include <QtCore>

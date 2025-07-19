@@ -1,10 +1,9 @@
 #pragma once
 
 #include <QFrame>
-#include "Imports.h"
-#include "QZydis.h"
-#include "AbstractTableView.h"
-#include "StdSearchListView.h"
+#include <Imports.h>
+#include <Disassembler/QZydis.h>
+#include <BasicView/AbstractTableView.h>
 
 class CachedFontMetrics;
 

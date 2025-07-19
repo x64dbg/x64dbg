@@ -1,0 +1,18 @@
+*.sdf
+*.opensdf
+*.suo
+Release/
+Debug/
+My Amplifier XE Results */
+actual.out
+expected.out
+.vs/
+cmake-build*/
+build*/
+.idea/
+.cache/
+*.pp.h
+
+# cmkr
+CMakerLists.txt
+CMakeLists.txt.user

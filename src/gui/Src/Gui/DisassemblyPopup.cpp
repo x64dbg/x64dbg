@@ -1,11 +1,11 @@
 #include "DisassemblyPopup.h"
-#include "CachedFontMetrics.h"
-#include "Configuration.h"
-#include "StringUtil.h"
-#include "MiscUtil.h"
+#include <Utils/CachedFontMetrics.h>
+#include <Configuration.h>
+#include <StringUtil.h>
+#include <MiscUtil.h>
 #include <QPainter>
 #include <QStyleOptionFrame>
-#include "Bridge.h"
+#include <Bridge.h>
 
 DisassemblyPopup::DisassemblyPopup(AbstractTableView* parent, Architecture* architecture) :
     QFrame(parent, Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus),

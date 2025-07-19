@@ -216,6 +216,9 @@ bool cbInstrMinidump(int argc, char* argv[])
     if(IsArgumentsLessThan(argc, 2))
         return false;
 
+    // TODO: allow this with all threads suspended
+    // TODO: add an option to only dump modules
+    // TODO: add to the context menu
     if(DbgIsRunning())
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Cannot dump while running..."));

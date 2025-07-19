@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QObject>
-#include "Imports.h"
+#include <Imports.h>
 
 class MemoryPage : public QObject
 {

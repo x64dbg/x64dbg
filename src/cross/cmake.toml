@@ -1,0 +1,80 @@
+# Reference: https://build-cpp.github.io/cmkr/cmake-toml
+[cmake]
+version = "3.19"
+
+[project]
+name = "cross"
+include-after = ["widgets/Qt.cmake"]
+
+[options]
+LIBPL_ENABLE_CLI = false
+LIBPL_ENABLE_TESTS = false
+LIBWOLV_ENABLE_TESTS = false
+
+[subdir.widgets]
+
+[subdir.vendor]
+
+[template.qt_executable]
+type = "executable"
+add-function = "qt_executable"
+pass-sources = true
+compile-features = ["cxx_std_20"]
+
+[target.minidump]
+type = "qt_executable"
+sources = [
+    "minidump/*.cpp",
+    "minidump/*.h",
+    "minidump/*.ui",
+    "minidump/*.qrc",
+]
+link-libraries = [
+    "x64dbg::widgets",
+    "cpp-httplib",
+    "linux-pe",
+]
+
+[target.remote_table]
+type = "qt_executable"
+sources = [
+    "remote_table/*.cpp",
+    "remote_table/*.h",
+    "remote_table/*.ui",
+    "remote_table/*.qrc",
+    "remote_table/json.hpp",
+]
+link-libraries = [
+    "x64dbg::widgets",
+]
+
+[target.struct_viewer]
+type = "qt_executable"
+sources = [
+    "struct_viewer/*.cpp",
+    "struct_viewer/*.h",
+    "struct_viewer/*.ui",
+    "struct_viewer/*.qrc",
+]
+link-libraries = [
+    "x64dbg::widgets",
+    "btparser",
+]
+
+[target.hex_viewer]
+type = "qt_executable"
+sources = [
+    "hex_viewer/*.cpp",
+    "hex_viewer/*.h",
+    "hex_viewer/*.ui",
+    "hex_viewer/*.qrc",
+]
+link-libraries = [
+    "x64dbg::widgets",
+    "::libpl",
+    "::libpl-gen",
+    "fmt::fmt-header-only",
+]
+private-include-directories = [
+    "hex_viewer",
+]

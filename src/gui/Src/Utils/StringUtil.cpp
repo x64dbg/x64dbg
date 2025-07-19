@@ -3,7 +3,7 @@
 #include "StringUtil.h"
 #include "MiscUtil.h"
 #include "ldconvert.h"
-#include "Configuration.h"
+#include <Configuration.h>
 
 QString ToLongDoubleString(const void* buffer)
 {
