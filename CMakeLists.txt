@@ -980,6 +980,8 @@ if(MSVC) # msvc
 		"/DELAYLOAD:user32.dll"
 		"/DELAYLOAD:wintrust.dll"
 		"/DELAYLOAD:$<TARGET_FILE_NAME:bridge>"
+		"/NOIMPLIB"
+		"/NOEXP"
 	)
 endif()
 
