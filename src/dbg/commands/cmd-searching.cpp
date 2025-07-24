@@ -754,6 +754,7 @@ static bool cbModCallFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFI
     {
         GuiReferenceInitialize(refinfo->name);
         GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+        GuiReferenceAddColumn(0 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Module")));
         GuiReferenceAddColumn(50, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
         GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Destination")));
         GuiReferenceSetRowCount(0);
@@ -812,19 +813,25 @@ static bool cbModCallFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFI
     if(foundaddr)
     {
         char addrText[20] = "";
+        char modName[MAX_MODULE_SIZE];
+        if (!ModNameFromAddr(base, modName, sizeof(modName))) {
+            strcpy_s(modName, MAX_MODULE_SIZE, "<no module name");
+        }
+
         sprintf_s(addrText, "%p", (void*)(duint)disasm->Address());
         GuiReferenceSetRowCount(refinfo->refcount + 1);
         GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
+        GuiReferenceSetCellContent(refinfo->refcount, 1, modName);
         char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
         if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
         {
-            GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
+            GuiReferenceSetCellContent(refinfo->refcount, 2, disassembly);
         }
         else
         {
-            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
+            GuiReferenceSetCellContent(refinfo->refcount, 2, disasm->InstructionText().c_str());
         }
-        GuiReferenceSetCellContent(refinfo->refcount, 2, SymGetSymbolicName(foundaddr).c_str());
+        GuiReferenceSetCellContent(refinfo->refcount, 3, SymGetSymbolicName(foundaddr).c_str());
     }
     return foundaddr != 0;
 }
