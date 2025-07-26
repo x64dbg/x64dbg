@@ -27,7 +27,3 @@ qt5_host_tool(moc)
 qt5_host_tool(rcc)
 qt5_host_tool(uic)
 
-# FIX: -external:I not found system includes
-set(CMAKE_INCLUDE_SYSTEM_FLAG_C "-I")
-set(CMAKE_INCLUDE_SYSTEM_FLAG_CXX "-I")
-
