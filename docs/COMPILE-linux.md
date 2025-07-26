@@ -24,5 +24,5 @@ cmake --build build32 -j4
 ## Issues
 ```LINK : fatal error LNK1158: cannot run 'rc.exe'```
 
-Fix: winecfg -> Drives -> Remove non default drives (stay only: C and Z drives).
+Fix: winecfg -> Drives -> Remove drives with alternative path to x64dbg src (like: E: -> ~/src)
 
