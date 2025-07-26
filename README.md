@@ -25,6 +25,8 @@ An open-source binary debugger for Windows, aimed at malware analysis and revers
 
 You can also [compile](https://github.com/x64dbg/x64dbg/wiki/Compiling-the-whole-project) x64dbg yourself with a few easy steps!
 
+You can also [compile](docs/COMPILE-linux.md) x64dbg yourself with a few easy steps under Linux(Wine)!
+
 ## Sponsors
 
 [![](.github/sponsors/malcore.png)](https://sponsors.x64dbg.com/malcore)
