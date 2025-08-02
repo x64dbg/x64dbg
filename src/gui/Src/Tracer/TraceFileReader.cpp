@@ -79,7 +79,7 @@ bool TraceFileReader::Delete()
         parser->requestInterruption();
         parser->wait();
     }
-    bool value = traceFile.remove();
+    bool value = traceFile.moveToTrash();
     progress.store(0);
     length = 0;
     fileIndex.clear();

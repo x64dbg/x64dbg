@@ -8,7 +8,6 @@
 #include "QZydis.h"
 #include "GotoDialog.h"
 #include "CommonActions.h"
-#include "LineEditDialog.h"
 #include "WordEditDialog.h"
 #include "CachedFontMetrics.h"
 #include "MRUList.h"
