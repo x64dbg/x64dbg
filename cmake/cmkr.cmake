@@ -20,7 +20,7 @@ endif()
 if(WIN32)
     set(CMKR_EXECUTABLE_DEFAULT "${CMAKE_CURRENT_LIST_DIR}/cmkr.exe")
 else()
-    set(CMKR_EXECUTABLE_DEFAULT "")
+    set(CMKR_EXECUTABLE_DEFAULT "${CMAKE_CURRENT_LIST_DIR}/cmkr")
 endif()
 
 # Set these from the command line to customize for development/debugging purposes
