@@ -262,6 +262,7 @@ static void registercommands()
     dbgcmdnew("TraceOverBeyondTraceCoverage,TraceOverBeyondTraceRecord,tobt", cbDebugTraceOverBeyondTraceRecord, true); //Trace over beyond trace record
     dbgcmdnew("TraceIntoIntoTraceCoverage,TraceIntoIntoTraceRecord,tiit", cbDebugTraceIntoIntoTraceRecord, true); //Trace into into trace record
     dbgcmdnew("TraceOverIntoTraceCoverage,TraceOverIntoTraceRecord,toit", cbDebugTraceOverIntoTraceRecord, true); //Trace over into trace record
+    dbgcmdnew("TraceWithModules,twm", cbDebugTraceWithModules, true); //Trace with modules
     dbgcmdnew("RunToParty", cbDebugRunToParty, true); //Run to code in a party
     dbgcmdnew("RunToUserCode,rtu", cbDebugRunToUserCode, true); //Run to user code
     dbgcmdnew("TraceSetLog,SetTraceLog", cbDebugTraceSetLog, true); //Set trace log text + condition
@@ -505,6 +506,16 @@ static void registercommands()
     dbgcmdnew("DebugFlags", cbInstrDebugFlags, false); //Set ntdll LdrpDebugFlags
     dbgcmdnew("LabelRuntimeFunctions", cbInstrLabelRuntimeFunctions, true); //Label exception directory entries
     dbgcmdnew("cmdtest", cbInstrCmdTest, false); //log argv verbatim
+    dbgcmdnew("StartTraceRecording,StartRunTrace,opentrace", cbDebugStartTraceRecording, true); //start run trace (Ollyscript command "opentrace" "opens run trace window")
+    dbgcmdnew("StopTraceRecording,StopRunTrace,tc", cbDebugStopTraceRecording, true); //stop run trace (and Ollyscript command)
+    dbgcmdnew("TraceExcludeAdd", cbAddTraceExcludedModule, false);
+    dbgcmdnew("TraceExcludeDel", cbDelTraceExcludedModule, false);
+    dbgcmdnew("TraceExcludeList", cbListTraceExcludedModules, false);
+    dbgcmdnew("TraceExcludeClear", cbClearTraceExcludedModules, false);
+    dbgcmdnew("TraceIncludeAdd", cbAddTraceIncludedModule, false);
+    dbgcmdnew("TraceIncludeDel", cbDelTraceIncludedModule, false);
+    dbgcmdnew("TraceIncludeList", cbListTraceIncludedModules, false);
+    dbgcmdnew("TraceIncludeClear", cbClearTraceIncludedModules, false);
 };
 
 bool cbCommandProvider(char* cmd, int maxlen)

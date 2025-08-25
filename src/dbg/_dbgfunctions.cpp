@@ -112,6 +112,50 @@ static int SymAutoComplete(const char* Search, char** Buffer, int MaxSymbols)
     return count;
 }
 
+static bool dbgtracegetincludedmodules(ListOf(const char*) modules)
+{
+    if(!modules)
+        return false;
+    auto moduleList = TraceRecord.getIncludedModules();
+    modules->count = int(moduleList.size());
+    modules->size = modules->count * sizeof(char*);
+    if(modules->count)
+    {
+        modules->data = (char**)emalloc(modules->size, "dbgtracegetincludedmodules");
+        for(size_t i = 0; i < modules->count; i++)
+        {
+            char* modName = (char*)emalloc(moduleList[i].length() + 1, "dbgtracegetincludedmodules:mod");
+            strcpy_s(modName, moduleList[i].length() + 1, moduleList[i].c_str());
+            ((char**)modules->data)[i] = modName;
+        }
+    }
+    else
+        modules->data = nullptr;
+    return true;
+}
+
+static bool dbgtracegetexcludedmodules(ListOf(const char*) modules)
+{
+    if(!modules)
+        return false;
+    auto moduleList = TraceRecord.getExcludedModules();
+    modules->count = int(moduleList.size());
+    modules->size = modules->count * sizeof(char*);
+    if(modules->count)
+    {
+        modules->data = (char**)emalloc(modules->size, "dbgtracegetexcludedmodules");
+        for(size_t i = 0; i < modules->count; i++)
+        {
+            char* modName = (char*)emalloc(moduleList[i].length() + 1, "dbgtracegetexcludedmodules:mod");
+            strcpy_s(modName, moduleList[i].length() + 1, moduleList[i].c_str());
+            ((char**)modules->data)[i] = modName;
+        }
+    }
+    else
+        modules->data = nullptr;
+    return true;
+}
+
 void dbgfunctionsinit()
 {
     _dbgfunctions.AssembleAtEx = [](duint addr, const char* instruction, char* error, bool fillnop)
@@ -564,5 +608,13 @@ void dbgfunctionsinit()
     _dbgfunctions.BpSetFieldText = [](const BP_REF * ref, BP_FIELD field, const char* value)
     {
         return BpSetFieldText(*ref, field, value);
+    };
+    _dbgfunctions.TraceGetIncludedModules = [](ListOf(const char*) modules)
+    {
+        return dbgtracegetincludedmodules(modules);
+    };
+    _dbgfunctions.TraceGetExcludedModules = [](ListOf(const char*) modules)
+    {
+        return dbgtracegetexcludedmodules(modules);
     };
 }

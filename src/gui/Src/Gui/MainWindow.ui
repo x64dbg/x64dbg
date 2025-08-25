@@ -147,6 +147,9 @@
     <addaction name="separator"/>
     <addaction name="separator"/>
     <addaction name="menuAdvanced"/>
+    <addaction name="separator"/>
+    <addaction name="actionDisplayTraceModules"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -226,6 +229,7 @@
     </widget>
     <addaction name="actionTicnd"/>
     <addaction name="actionTocnd"/>
+    <addaction name="actionTraceWithModules"/>
     <addaction name="menuTrace_record"/>
     <addaction name="separator"/>
     <addaction name="actionAnimateInto"/>
@@ -272,6 +276,7 @@
    <addaction name="separator"/>
    <addaction name="actionTicnd"/>
    <addaction name="actionTocnd"/>
+   <addaction name="actionTraceWithModules"/>
    <addaction name="separator"/>
    <addaction name="actionRtr"/>
    <addaction name="actionRtu"/>
@@ -1030,6 +1035,21 @@
     <string>Step into until a condition becomes true, and optionally log and execute commands when tracing. Equivalent command &quot;ticnd&quot;</string>
    </property>
   </action>
+  <action name="actionTraceWithModules">
+    <property name="icon">
+     <iconset theme="traceinto" resource="../../resource.qrc">
+      <normaloff>:/Default/icons/traceinto.png</normaloff>:/Default/icons/traceinto.png</iconset>
+    </property>
+    <property name="text">
+     <string>Trace with modules...</string>
+    </property>
+    <property name="toolTip">
+     <string>Trace with modules...</string>
+    </property>
+    <property name="statusTip">
+     <string>Step into until a condition becomes true, and optionally log and execute commands when tracing. Equivalent command &quot;ticnd&quot;</string>
+    </property>
+  </action>
   <action name="actionTRBit">
    <property name="icon">
     <iconset theme="bit" resource="../../resource.qrc">
@@ -1560,6 +1580,18 @@
    </property>
    <property name="text">
     <string>Release Notes</string>
+   </property>
+  </action>
+  <action name="actionDisplayTraceModules">
+   <property name="icon">
+    <iconset theme="trace-setting">
+     <normaloff>:/Default/icons/trace-settings.png</normaloff>:/Default/icons/trace-settings.png</iconset>
+   </property>
+   <property name="text">
+    <string>Trace Module Settings</string>
+   </property>
+   <property name="statusTip">
+    <string>Configure modules to include or exclude from tracing</string>
    </property>
   </action>
  </widget>

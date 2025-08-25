@@ -639,6 +639,13 @@ uint64_t Zydis::ResolveOpValue(uint8_t opindex, const std::function<uint64_t(Zyd
     return dest;
 }
 
+bool Zydis::IsMemoryOperand(uint8_t opindex) const
+{
+    if(!Success() || opindex >= mInstr.info.operand_count)
+        return false;
+    return mInstr.operands[opindex].type == ZYDIS_OPERAND_TYPE_MEMORY;
+}
+
 Zydis::VectorElementType Zydis::getVectorElementType(uint8_t opindex) const
 {
     if(!Success())

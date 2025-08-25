@@ -125,6 +125,7 @@ void cbTraceIntoBeyondTraceRecordStep();
 void cbTraceOverBeyondTraceRecordStep();
 void cbTraceIntoIntoTraceRecordStep();
 void cbTraceOverIntoTraceRecordStep();
+void cbTraceWithModulesStep();
 typedef void(*STEPFUNCTION)(TITANCBSTEP);
 void cbTraceXConditionalStep(STEPFUNCTION stepFunction, TITANCBSTEP callback);
 void cbRunToUserCodeBreakpoint(const void* ExceptionAddress);

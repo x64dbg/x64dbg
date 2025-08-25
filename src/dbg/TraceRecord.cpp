@@ -704,6 +704,12 @@ bool TraceRecordManager::isTraceRecordingEnabled()
 
 void dbgtraceexecute(duint CIP)
 {
+    if(!TraceRecord.shouldTrace(CIP))
+    {
+        TraceRecord.increaseInstructionCounter();
+        return;
+    }
+
     if(TraceRecord.getTraceRecordType(CIP) != TraceRecordManager::TraceRecordType::TraceRecordNone)
     {
         Zydis instruction;
@@ -736,4 +742,105 @@ void dbgtraceexecute(duint CIP)
         }
     }
     TraceRecord.increaseInstructionCounter();
+}
+
+bool TraceRecordManager::addExcludedModule(const String& moduleName)
+{
+    EXCLUSIVE_ACQUIRE(LockTraceRecord);
+    excludedModules.insert(moduleName);
+    return true;
+}
+
+bool TraceRecordManager::removeExcludedModule(const String& moduleName)
+{
+    EXCLUSIVE_ACQUIRE(LockTraceRecord);
+    return excludedModules.erase(moduleName) > 0;
+}
+
+void TraceRecordManager::clearExcludedModules()
+{
+    EXCLUSIVE_ACQUIRE(LockTraceRecord);
+    excludedModules.clear();
+}
+
+std::vector<String> TraceRecordManager::getExcludedModules() const
+{
+    SHARED_ACQUIRE(LockTraceRecord);
+    std::vector<String> result(excludedModules.begin(), excludedModules.end());
+    SHARED_RELEASE();
+    return result;
+}
+
+bool TraceRecordManager::addIncludedModule(const String& moduleName)
+{
+    EXCLUSIVE_ACQUIRE(LockTraceRecord);
+    includedModules.insert(moduleName);
+    return true;
+}
+
+bool TraceRecordManager::removeIncludedModule(const String& moduleName)
+{
+    EXCLUSIVE_ACQUIRE(LockTraceRecord);
+    return includedModules.erase(moduleName) > 0;
+}
+
+void TraceRecordManager::clearIncludedModules()
+{
+    EXCLUSIVE_ACQUIRE(LockTraceRecord);
+    includedModules.clear();
+}
+
+std::vector<String> TraceRecordManager::getIncludedModules() const
+{
+    SHARED_ACQUIRE(LockTraceRecord);
+    std::vector<String> result(includedModules.begin(), includedModules.end());
+    SHARED_RELEASE();
+    return result;
+}
+
+bool TraceRecordManager::shouldTrace(duint address) const
+{
+    // This check is performance-critical, so we want to be as fast as possible.
+    SHARED_ACQUIRE(LockTraceRecord);
+
+    // If both lists are empty, trace everything. This is the common case.
+    if (includedModules.empty() && excludedModules.empty())
+    {
+        SHARED_RELEASE();
+        return true;
+    }
+
+    char moduleName[MAX_MODULE_SIZE] = "";
+    // If we can't get a module name, trace it by default to be safe.
+    if (!ModNameFromAddr(address, moduleName, true))
+    {
+        SHARED_RELEASE();
+        return true;
+    }
+
+    bool result = true;
+
+    if (excludedModules.count("*"))
+    {
+        // Exclude all, unless specifically included.
+        result = includedModules.count(moduleName) > 0;
+    }
+    else if (excludedModules.count(moduleName))
+    {
+        // Specifically excluded.
+        result = false;
+    }
+    else if (includedModules.count("*"))
+    {
+        // Include all (that are not excluded).
+        result = true;
+    }
+    else if (!includedModules.empty())
+    {
+        // Only trace modules that are specifically included.
+        result = includedModules.count(moduleName) > 0;
+    }
+
+    SHARED_RELEASE();
+    return result;
 }

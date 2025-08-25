@@ -50,6 +50,7 @@ public:
     const char* MemSizeName(size_t size) const;
     uint64_t BranchDestination() const;
     uint64_t ResolveOpValue(uint8_t opindex, const std::function<uint64_t(ZydisRegister)> & resolveReg) const;
+    bool IsMemoryOperand(uint8_t opindex) const;
     bool IsBranchGoingToExecute(uint32_t eflags, uint64_t ccx) const;
     static bool IsBranchGoingToExecute(ZydisMnemonic id, uint32_t eflags, uint64_t ccx);
     bool IsConditionalGoingToExecute(uint32_t eflags, uint64_t ccx) const;

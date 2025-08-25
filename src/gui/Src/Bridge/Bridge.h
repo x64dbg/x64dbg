@@ -33,6 +33,14 @@ private slots:
     void throttleUpdateSlot(GUIMSG msg);
     void configUpdatedSlot();
 
+public slots:
+    void clearTraceIncludes();
+    void clearTraceExcludes();
+    void addTraceInclude(const QString& module);
+    void addTraceExclude(const QString& module);
+    void getTraceIncludes(ListInfo* list);
+    void getTraceExcludes(ListInfo* list);
+
 public:
     explicit Bridge(QObject* parent = nullptr);
     ~Bridge();

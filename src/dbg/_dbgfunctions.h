@@ -283,6 +283,8 @@ typedef struct DBGFUNCTIONS_
     bool (*BpSetFieldNumber)(const BP_REF* ref, BP_FIELD field, duint value);
     bool (*BpGetFieldText)(const BP_REF* ref, BP_FIELD field, CBSTRING callback, void* userdata);
     bool (*BpSetFieldText)(const BP_REF* ref, BP_FIELD field, const char* value);
+    bool (*TraceGetIncludedModules)(ListOf(const char*) modules);
+    bool (*TraceGetExcludedModules)(ListOf(const char*) modules);
 } DBGFUNCTIONS;
 
 #ifdef __cplusplus

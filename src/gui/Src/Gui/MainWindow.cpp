@@ -58,6 +58,7 @@
 #include "Tracer/TraceManager.h"
 //#include "Tracer/TraceWidget.h"
 #include "Utils/MethodInvoker.h"
+#include "TraceModulesDialog.h"
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
@@ -107,6 +108,12 @@ MainWindow::MainWindow(QWidget* parent)
     connect(Bridge::getBridge(), SIGNAL(showTraceBrowser()), this, SLOT(displayTraceWidget()));
     connect(Bridge::getBridge(), SIGNAL(focusMemmap()), this, SLOT(displayMemMapWidget()));
     connect(Bridge::getBridge(), SIGNAL(focusSymmod()), this, SLOT(displaySymbolWidget()));
+    connect(Bridge::getBridge(), &Bridge::clearTraceIncludes, this, &MainWindow::clearTraceIncludes);
+    connect(Bridge::getBridge(), &Bridge::clearTraceExcludes, this, &MainWindow::clearTraceExcludes);
+    connect(Bridge::getBridge(), &Bridge::addTraceInclude, this, &MainWindow::addTraceInclude);
+    connect(Bridge::getBridge(), &Bridge::addTraceExclude, this, &MainWindow::addTraceExclude);
+    connect(Bridge::getBridge(), &Bridge::getTraceIncludes, this, &MainWindow::getTraceIncludes);
+    connect(Bridge::getBridge(), &Bridge::getTraceExcludes, this, &MainWindow::getTraceExcludes);
 
     // Setup menu API
 
@@ -274,6 +281,9 @@ MainWindow::MainWindow(QWidget* parent)
     mPatchDialog = new PatchDialog(this);
     mCalculatorDialog = new CalculatorDialog(this);
 
+    // Trace modules dialog
+    mTraceModulesDialog = new TraceModulesDialog(this);
+
     // Setup signals/slots
     connect(mCmdLineEdit, SIGNAL(returnPressed()), this, SLOT(executeCommand()));
     makeCommandAction(ui->actionRestartAdmin, "restartadmin");
@@ -298,6 +308,7 @@ MainWindow::MainWindow(QWidget* parent)
     makeCommandAction(ui->actionRtu, "TraceOverConditional mod.user(cip)");
     connect(ui->actionTicnd, SIGNAL(triggered()), this, SLOT(execTicnd()));
     connect(ui->actionTocnd, SIGNAL(triggered()), this, SLOT(execTocnd()));
+    connect(ui->actionTraceWithModules, SIGNAL(triggered()), this, SLOT(execTraceWithModules()));
     connect(ui->actionTRBit, SIGNAL(triggered()), mCpuWidget->getDisasmWidget(), SLOT(traceCoverageBitSlot()));
     connect(ui->actionTRByte, SIGNAL(triggered()), mCpuWidget->getDisasmWidget(), SLOT(traceCoverageByteSlot()));
     connect(ui->actionTRWord, SIGNAL(triggered()), mCpuWidget->getDisasmWidget(), SLOT(traceCoverageWordSlot()));
@@ -366,6 +377,7 @@ MainWindow::MainWindow(QWidget* parent)
     makeCommandAction(ui->actionDbload, "dbload");
     makeCommandAction(ui->actionDbrecovery, "dbload bak");
     makeCommandAction(ui->actionDbclear, "dbclear");
+    connect(ui->actionDisplayTraceModules, SIGNAL(triggered()), this, SLOT(displayModuleTraceSettings()));
 
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(updateWindowTitle(QString)), this, SLOT(updateWindowTitleSlot(QString)));
     connect(mCpuWidget->getDisasmWidget(), SIGNAL(displayReferencesWidget()), this, SLOT(displayReferencesWidget()));
@@ -1299,6 +1311,23 @@ void MainWindow::execTocnd()
     mSimpleTraceDialog->setTraceCommand("TraceOverConditional");
     mSimpleTraceDialog->setWindowTitle(tr("Trace over..."));
     mSimpleTraceDialog->setWindowIcon(DIcon("traceover"));
+    mSimpleTraceDialog->exec();
+}
+
+void MainWindow::execTraceWithModules()
+{
+    if(!DbgIsDebugging())
+        return;
+
+    if(DbgIsRunning())
+    {
+        SimpleErrorBox(this, tr("Error"), tr("Cannot start a trace when running, pause execution first."));
+        return;
+    }
+
+    mSimpleTraceDialog->setTraceCommand("TraceWithModules");
+    mSimpleTraceDialog->setWindowTitle(tr("Trace with modules..."));
+    mSimpleTraceDialog->setWindowIcon(DIcon("tracewithmodules"));
     mSimpleTraceDialog->exec();
 }
 
@@ -2849,4 +2878,44 @@ void MainWindow::updateStyle()
     QPalette appPalette = QApplication::palette();
     appPalette.setColor(QPalette::Link, ConfigColor("LinkColor"));
     QApplication::setPalette(appPalette);
+}
+
+void MainWindow::clearTraceIncludes()
+{
+    DbgCmdExec("TraceIncludeClear");
+}
+
+void MainWindow::clearTraceExcludes()
+{
+    DbgCmdExec("TraceExcludeClear");
+}
+
+void MainWindow::addTraceInclude(const QString& module)
+{
+    DbgCmdExec(QString("TraceIncludeAdd \"%1\"").arg(module));
+}
+
+void MainWindow::addTraceExclude(const QString& module)
+{
+    DbgCmdExec(QString("TraceExcludeAdd \"%1\"").arg(module));
+}
+
+void MainWindow::getTraceIncludes(ListInfo* list)
+{
+    if (!list)
+        return;
+    DbgFunctions()->TraceGetIncludedModules(list);
+}
+
+void MainWindow::getTraceExcludes(ListInfo* list)
+{
+    if (!list)
+        return;
+    DbgFunctions()->TraceGetExcludedModules(list);
+}
+
+void MainWindow::displayModuleTraceSettings()
+{
+    mTraceModulesDialog->loadModules();
+    mTraceModulesDialog->exec();
 }

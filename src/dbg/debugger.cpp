@@ -1491,6 +1491,41 @@ void cbTraceOverIntoTraceRecordStep()
     cbTraceXXTraceRecordStep(STEP_FUNCTION(false), true, cbTraceOverIntoTraceRecordStep);
 }
 
+void cbTraceWithModulesStep()
+{
+    hActiveThread = ThreadGetHandle(((DEBUG_EVENT *)GetDebugData())->dwThreadId);
+    duint cip = GetContextDataEx(hActiveThread, UE_CIP);
+    Zydis zydis;
+    unsigned char data[MAX_DISASM_BUFFER];
+    if (MemRead(cip, data, sizeof(data)))
+    {
+        if (zydis.Disassemble(cip, data) && zydis.IsCall())
+        {
+            auto addr = zydis.Address();
+            duint callAddress = (duint)zydis.ResolveOpValue(0, [&zydis](ZydisRegister reg) -> uint64_t
+            {
+                auto regName = zydis.RegName(reg);
+                return regName ? getregister(nullptr, regName) : 0;
+            });
+            if(callAddress)
+            {
+                duint destination = callAddress;
+                if(zydis.IsMemoryOperand(0))
+                {
+                    if(!MemRead(callAddress, &destination, sizeof(destination)))
+                        destination = 0;
+                }
+                if (!destination || !TraceRecord.shouldTrace(destination))
+                {
+                    cbTraceXConditionalStep(StepOverWrapper, cbTraceWithModulesStep);
+                    return;
+                }
+            }
+        }
+    }
+    cbTraceXConditionalStep(StepIntoWow64, cbTraceWithModulesStep);
+}
+
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 {
     hActiveThread = CreateProcessInfo->hThread;

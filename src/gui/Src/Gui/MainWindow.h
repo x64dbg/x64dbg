@@ -34,6 +34,7 @@ class SimpleTraceDialog;
 class MRUList;
 class UpdateChecker;
 class TraceManager;
+class TraceModulesDialog;
 
 namespace Ui
 {
@@ -71,6 +72,7 @@ public slots:
     void displayAboutWidget();
     void execTocnd();
     void execTicnd();
+    void execTraceWithModules();
     void animateIntoSlot();
     void animateOverSlot();
     void animateCommandSlot();
@@ -153,6 +155,12 @@ public slots:
     void addFavouriteItem(int type, const QString & name, const QString & description);
     void setFavouriteItemShortcut(int type, const QString & name, const QString & shortcut);
     void themeTriggeredSlot();
+    void clearTraceIncludes();
+    void clearTraceExcludes();
+    void addTraceInclude(const QString& module);
+    void addTraceExclude(const QString& module);
+    void getTraceIncludes(ListInfo* list);
+    void getTraceExcludes(ListInfo* list);
 
 private:
     Ui::MainWindow* ui;
@@ -175,6 +183,7 @@ private:
     HandlesView* mHandlesView;
     NotesManager* mNotesManager;
     TraceManager* mTraceWidget;
+    TraceModulesDialog* mTraceModulesDialog;
     SimpleTraceDialog* mSimpleTraceDialog;
     UpdateChecker* mUpdateChecker;
     DebugStatusLabel* mStatusLabel;
@@ -280,6 +289,7 @@ protected:
 private slots:
     void setupLanguagesMenu2();
     void updateStyle();
+    void displayModuleTraceSettings();
 
     void on_actionFaq_triggered();
     void on_actionReloadStylesheet_triggered();

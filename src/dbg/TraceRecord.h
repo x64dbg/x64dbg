@@ -65,6 +65,18 @@ public:
 
     void saveToDb(JSON root);
     void loadFromDb(JSON root);
+
+    bool addExcludedModule(const String& moduleName);
+    bool removeExcludedModule(const String& moduleName);
+    void clearExcludedModules();
+    std::vector<String> getExcludedModules() const;
+
+    bool addIncludedModule(const String& moduleName);
+    bool removeIncludedModule(const String& moduleName);
+    void clearIncludedModules();
+    std::vector<String> getIncludedModules() const;
+
+    bool shouldTrace(duint address) const;
 private:
     enum TraceRecordByteType_2bit
     {
@@ -110,6 +122,9 @@ private:
     unsigned int rtRecordedInstructions;
     unsigned char rtOldOpcodeSize;
     unsigned char rtOldMemoryArrayCount;
+
+    std::unordered_set<String> excludedModules;
+    std::unordered_set<String> includedModules;
 };
 
 extern TraceRecordManager TraceRecord;

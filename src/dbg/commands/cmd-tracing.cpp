@@ -70,6 +70,11 @@ bool cbDebugTraceIntoBeyondTraceRecord(int argc, char* argv[])
         return conditionalTraceIntoCommand(cbTraceIntoBeyondTraceRecordStep, argc, argv);
 }
 
+bool cbDebugTraceWithModules(int argc, char* argv[])
+{
+   return conditionalTraceIntoCommand(cbTraceWithModulesStep, argc, argv);
+}
+
 bool cbDebugTraceOverBeyondTraceRecord(int argc, char* argv[])
 {
     if(argc == 1)
@@ -184,4 +189,116 @@ bool cbDebugStartTraceRecording(int argc, char* argv[])
 bool cbDebugStopTraceRecording(int argc, char* argv[])
 {
     return TraceRecord.enableTraceRecording(false, nullptr);
+}
+
+bool cbAddTraceExcludedModule(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+
+    if(TraceRecord.addExcludedModule(argv[1]))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Added module \"%s\" to trace excluded modules list\n"), argv[1]);
+        if(strcmp(argv[1], "*") == 0)
+            dputs(QT_TRANSLATE_NOOP("DBG", "The wildcard '*' will exclude all modules except those explicitly included"));
+        return true;
+    }
+
+    dputs(QT_TRANSLATE_NOOP("DBG", "Failed to add module to trace excluded modules list"));
+    return false;
+}
+
+bool cbDelTraceExcludedModule(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+
+    if(TraceRecord.removeExcludedModule(argv[1]))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Removed module \"%s\" from trace excluded modules list\n"), argv[1]);
+        return true;
+    }
+
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Module \"%s\" not found in trace excluded modules list\n"), argv[1]);
+    return false;
+}
+
+bool cbListTraceExcludedModules(int argc, char* argv[])
+{
+    auto modules = TraceRecord.getExcludedModules();
+
+    if(modules.empty())
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "No excluded modules for tracing"));
+        return true;
+    }
+
+    dputs(QT_TRANSLATE_NOOP("DBG", "Trace excluded modules:"));
+    for(const auto & module : modules)
+        dprintf(QT_TRANSLATE_NOOP("DBG", "%s\n"), module.c_str());
+
+    return true;
+}
+
+bool cbClearTraceExcludedModules(int argc, char* argv[])
+{
+    TraceRecord.clearExcludedModules();
+    dputs(QT_TRANSLATE_NOOP("DBG", "Trace excluded modules list cleared"));
+    return true;
+}
+
+bool cbAddTraceIncludedModule(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+
+    if(TraceRecord.addIncludedModule(argv[1]))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Added module \"%s\" to trace included modules list\n"), argv[1]);
+        if(strcmp(argv[1], "*") == 0)
+            dputs(QT_TRANSLATE_NOOP("DBG", "The wildcard '*' will include all modules except those explicitly excluded"));
+        return true;
+    }
+
+    dputs(QT_TRANSLATE_NOOP("DBG", "Failed to add module to trace included modules list"));
+    return false;
+}
+
+bool cbDelTraceIncludedModule(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+
+    if(TraceRecord.removeIncludedModule(argv[1]))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Removed module \"%s\" from trace included modules list\n"), argv[1]);
+        return true;
+    }
+
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Module \"%s\" not found in trace included modules list\n"), argv[1]);
+    return false;
+}
+
+bool cbListTraceIncludedModules(int argc, char* argv[])
+{
+    auto modules = TraceRecord.getIncludedModules();
+
+    if(modules.empty())
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "No included modules for tracing"));
+        return true;
+    }
+
+    dputs(QT_TRANSLATE_NOOP("DBG", "Trace included modules:"));
+    for(const auto & module : modules)
+        dprintf(QT_TRANSLATE_NOOP("DBG", "%s\n"), module.c_str());
+
+    return true;
+}
+
+bool cbClearTraceIncludedModules(int argc, char* argv[])
+{
+    TraceRecord.clearIncludedModules();
+    dputs(QT_TRANSLATE_NOOP("DBG", "Trace included modules list cleared"));
+    return true;
 }

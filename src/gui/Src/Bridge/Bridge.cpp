@@ -291,6 +291,43 @@ void Bridge::configUpdatedSlot()
     }
 }
 
+
+void Bridge::clearTraceIncludes()
+{
+    DbgCmdExec("TraceIncludeClear");
+}
+
+void Bridge::clearTraceExcludes()
+{
+    DbgCmdExec("TraceExcludeClear");
+}
+
+void Bridge::addTraceInclude(const QString& module)
+{
+    DbgCmdExec(QString("TraceIncludeAdd \"%1\"").arg(module));
+}
+
+void Bridge::addTraceExclude(const QString& module)
+{
+    DbgCmdExec(QString("TraceExcludeAdd \"%1\"").arg(module));
+}
+
+void Bridge::getTraceIncludes(ListInfo* list)
+{
+    if (!list)
+        return;
+
+    DbgFunctions()->TraceGetIncludedModules(list);
+}
+
+void Bridge::getTraceExcludes(ListInfo* list)
+{
+    if (!list)
+        return;
+
+    DbgFunctions()->TraceGetExcludedModules(list);
+}
+
 /************************************************************************************
                             Message processing
 ************************************************************************************/
