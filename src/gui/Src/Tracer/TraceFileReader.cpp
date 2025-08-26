@@ -406,8 +406,8 @@ void TraceFileParser::readFileHeader(TraceFileReader* that)
         throw std::wstring(L"Unspecified");
     if(header.LowPart != MAKEFOURCC('T', 'R', 'A', 'C'))
         throw std::wstring(L"File type mismatch");
-    if(header.HighPart > 16384)
-        throw std::wstring(L"Header info is too big");
+    //if(header.HighPart > 16384)
+    //    throw std::wstring(L"Header info is too big");
     QByteArray jsonData = that->traceFile.read(header.HighPart);
     if(jsonData.size() != header.HighPart)
         throw std::wstring(L"JSON header is corrupted");
