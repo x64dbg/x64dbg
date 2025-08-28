@@ -580,6 +580,7 @@ typedef enum
     DebugEngineTitanEngine,
     DebugEngineGleeBug,
     DebugEngineStaticEngine,
+    DebugEngineDbgEng,
 } DEBUG_ENGINE;
 
 //Debugger typedefs

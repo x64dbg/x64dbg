@@ -151,6 +151,8 @@ void SettingsDialog::LoadSettings()
         break;
     case DebugEngineStaticEngine:
         break;
+    case DebugEngineDbgEng:
+        break;
     }
     switch(settings.engineBreakpointType)
     {
