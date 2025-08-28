@@ -189,6 +189,8 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit(BRIDGE_CONFIG* config)
             return L"GleeBug\\TitanEngine.dll";
         case DebugEngineStaticEngine:
             return L"StaticEngine\\TitanEngine.dll";
+        case DebugEngineDbgEng:
+            return L"DbgEng\\TitanEngine.dll";
         default:
             return L"TitanEngine.dll";
         }

@@ -77,6 +77,8 @@ MainWindow::MainWindow(QWidget* parent)
                 return "GleeBug";
             case DebugEngineStaticEngine:
                 return "StaticEngine";
+            case DebugEngineDbgEng:
+                return "DbgEng";
             }
             return "";
         }();
