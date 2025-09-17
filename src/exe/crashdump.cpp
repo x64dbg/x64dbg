@@ -35,10 +35,24 @@ BOOL
      _Out_ LPDWORD PolicyFlags
  );
 
+static HMODULE LoadDbgHelp()
+{
+    // https://www.vergiliusproject.com/kernels/x64/Windows%2010%20%7C%202016/1507%20Threshold%201/_KUSER_SHARED_DATA
+    auto NtBuildNumber = *(DWORD*)(0x7FFE0000 + 0x260);
+    if(NtBuildNumber != 0)
+    {
+        // On Windows 10 we can load the latest dbghelp.dll
+        // TODO: make sure this does not re-enable sideloading
+        if(LoadLibraryCheckedW(L"DbgEng\\dbgcore.dll", true))
+            return LoadLibraryCheckedW(L"DbgEng\\dbghelp.dll", false);
+    }
+    return LoadLibraryCheckedW(L"dbghelp.dll", false);
+}
+
 void CrashDumpInitialize()
 {
     // Get handles to kernel32 and dbghelp
-    HMODULE hDbghelp = LoadLibraryCheckedW(L"dbghelp.dll", false);
+    HMODULE hDbghelp = LoadDbgHelp();
 
     if(hDbghelp)
         *(FARPROC*)&MiniDumpWriteDumpPtr = GetProcAddress(hDbghelp, "MiniDumpWriteDump");

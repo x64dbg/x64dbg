@@ -217,14 +217,14 @@ static bool FileExists(const wchar_t* szFullPath)
 HMODULE WINAPI LoadLibraryCheckedW(const wchar_t* szDll, bool allowFailure)
 {
     std::wstring fullDllPath;
-    if(wcschr(szDll, L'\\') == nullptr)
+    if(szDll[1] == L':' || szDll[0] == L'\\')
     {
-        fullDllPath = szApplicationDir;
-        fullDllPath += szDll;
+        fullDllPath = szDll;
     }
     else
     {
-        fullDllPath = szDll;
+        fullDllPath = szApplicationDir;
+        fullDllPath += szDll;
     }
 
 #ifdef DEBUG_SIGNATURE_CHECKS
