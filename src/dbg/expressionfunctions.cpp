@@ -72,6 +72,7 @@ void ExpressionFunctions::Init()
     RegisterEasy("mod.main,mod.mainbase", dbgdebuggedbase);
     RegisterEasy("mod.rva", modrva);
     RegisterEasy("mod.offset,mod.fileoffset", valvatofileoffset);
+    RegisterEasy("mod.fromoffset,mod.fromfileoffset", valfileoffsettova);
     RegisterEasy("mod.headerva", modheaderva);
     RegisterEasy("mod.isexport", modisexport);
     ExpressionFunctions::Register("mod.fromname", ValueTypeNumber, { ValueTypeString }, Exprfunc::modbasefromname);
@@ -302,3 +303,4 @@ bool ExpressionFunctions::isValidName(const String & name)
             return false;
     return true;
 }
+
