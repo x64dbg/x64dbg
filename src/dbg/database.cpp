@@ -4,6 +4,7 @@
 @brief Implements runtime database saving and loading.
 */
 
+#include <thread>
 #include "lz4/lz4file.h"
 #include "console.h"
 #include "breakpoint.h"
@@ -123,30 +124,91 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
 
     auto wdbpath = StringUtils::Utf8ToUtf16(file);
     if(!dbfile)
-        CopyFileW(wdbpath.c_str(), (wdbpath + L".bak").c_str(), FALSE); //make a backup
+        MoveFileExW(wdbpath.c_str(), (wdbpath + L".bak").c_str(), MOVEFILE_REPLACE_EXISTING); //move current file to the backup
     if(json_object_size(root))
     {
+        auto json_dump_callback_func = [](const char* buffer, size_t size, void* data) -> int
+        {
+            return ((BufferedWriter*)data)->Write(buffer, size) ? 0 : -1;
+        };
         auto dumpSuccess = false;
-        auto hFile = CreateFileW(wdbpath.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
-        if(hFile != INVALID_HANDLE_VALUE)
-        {
-            BufferedWriter bufWriter(hFile);
-            dumpSuccess = !json_dump_callback(root, [](const char* buffer, size_t size, void* data) -> int
-            {
-                return ((BufferedWriter*)data)->Write(buffer, size) ? 0 : -1;
-            }, &bufWriter, JSON_INDENT(1));
-        }
-
-        if(!dumpSuccess)
-        {
-            String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()));
-            dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file !(GetLastError() = %s)\n"), error.c_str());
-            json_decref(root);
-            return;
-        }
-
+        HANDLE hFile;
         if(!disablecompression && !settingboolget("Engine", "DisableDatabaseCompression", false))
-            LZ4_compress_fileW(wdbpath.c_str(), wdbpath.c_str());
+        {
+            LZ4_STATUS status;
+            // Create a pipe with random name, 2 max instances, 128KB buffer, 1s wait time
+            WString pipeName = StringUtils::sprintf(L"\\\\.\\pipe\\x64dbg-DbSave-%d", rand());
+            if((hFile = CreateNamedPipeW(pipeName.c_str(), PIPE_ACCESS_OUTBOUND, PIPE_TYPE_BYTE, 2, 128 * 1024, 128 * 1024, 1000, NULL)) == INVALID_HANDLE_VALUE)
+            {
+                String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()));
+                dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file !(GetLastError() = %s)\n"), error.c_str());
+                return;
+            }
+            // Start the compressor to compress and save data
+            std::thread compressThread([&]()
+            {
+                status = LZ4_compress_fileW(pipeName.c_str(), wdbpath.c_str());
+            });
+            // Start the JSON writer. As JSON data is written, compressor will recieve the data through the pipe and save compressed data.
+            {
+                BufferedWriter bufWriter(hFile);
+                dumpSuccess = !json_dump_callback(root, json_dump_callback_func, &bufWriter, JSON_INDENT(1));
+            }
+            // Wait for the compressor to finish
+            compressThread.join();
+            // Check for error conditions
+            if(!dumpSuccess)
+            {
+                String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()));
+                dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file !(GetLastError() = %s)\n"), error.c_str());
+                json_decref(root);
+                return;
+            }
+            const char* errorText;
+            switch(status)
+            {
+            case LZ4_SUCCESS:
+                errorText = nullptr;
+                break;
+            case LZ4_FAILED_OPEN_INPUT:
+                errorText = "LZ4_FAILED_OPEN_INPUT";
+                break;
+            case LZ4_FAILED_OPEN_OUTPUT:
+                errorText = "LZ4_FAILED_OPEN_OUTPUT";
+                break;
+            case LZ4_NOT_ENOUGH_MEMORY:
+                errorText = "LZ4_NOT_ENOUGH_MEMORY";
+                break;
+            case LZ4_INVALID_ARCHIVE:
+                errorText = "LZ4_INVALID_ARCHIVE";
+                break;
+            case LZ4_CORRUPTED_ARCHIVE:
+                errorText = "LZ4_CORRUPTED_ARCHIVE";
+                break;
+            default:
+                errorText = "LZ4(UNKNOWN)";
+                break;
+            }
+            if(errorText)
+            {
+                dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file !(LZ4_compress_fileW() = %s)\n"), errorText);
+                return;
+            }
+        }
+        else   // Uncompressed
+        {
+            hFile = CreateFileW(wdbpath.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
+            BufferedWriter bufWriter(hFile);
+            dumpSuccess = !json_dump_callback(root, json_dump_callback_func, &bufWriter, JSON_INDENT(1));
+
+            if(!dumpSuccess)
+            {
+                String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()));
+                dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file !(GetLastError() = %s)\n"), error.c_str());
+                json_decref(root);
+                return;
+            }
+        }
     }
     else //remove database when nothing is in there
     {
