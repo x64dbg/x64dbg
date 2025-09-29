@@ -154,6 +154,7 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
             status = LZ4_compress_fileW(pipeName.c_str(), wdbpath.c_str());
             // Wait for the compressor to finish
             jsonThread.join();
+            CloseHandle(hFile);
             // Check for error conditions
             if(!dumpSuccess)
             {
