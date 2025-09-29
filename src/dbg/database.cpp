@@ -144,18 +144,16 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
                 dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file !(GetLastError() = %s)\n"), error.c_str());
                 return;
             }
-            // Start the compressor to compress and save data
-            std::thread compressThread([&]()
-            {
-                status = LZ4_compress_fileW(pipeName.c_str(), wdbpath.c_str());
-            });
             // Start the JSON writer. As JSON data is written, compressor will recieve the data through the pipe and save compressed data.
+            std::thread jsonThread([&]()
             {
                 BufferedWriter bufWriter(hFile);
                 dumpSuccess = !json_dump_callback(root, json_dump_callback_func, &bufWriter, JSON_INDENT(1));
-            }
+            });
+            // Start the compressor to compress and save data
+            status = LZ4_compress_fileW(pipeName.c_str(), wdbpath.c_str());
             // Wait for the compressor to finish
-            compressThread.join();
+            jsonThread.join();
             // Check for error conditions
             if(!dumpSuccess)
             {
@@ -282,38 +280,81 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
         }
     }
 
-    // Decompress the file if compression was enabled
+    JSON root;
+
+    // Decompress the file into a pipe if compression was enabled
     bool useCompression = !settingboolget("Engine", "DisableDatabaseCompression", false);
     LZ4_STATUS lzmaStatus = LZ4_INVALID_ARCHIVE;
+    if(useCompression)
     {
-        lzmaStatus = LZ4_decompress_fileW(databasePathW.c_str(), databasePathW.c_str());
-
-        // Check return code
-        if(useCompression && lzmaStatus != LZ4_SUCCESS && lzmaStatus != LZ4_INVALID_ARCHIVE)
+        HANDLE hFile;
+        // Create a pipe with random name, 2 max instances, 128KB buffer, 1s wait time
+        WString pipeNameW = StringUtils::sprintf(L"\\\\.\\pipe\\x64dbg-DbLoad-%d", rand());
+        if((hFile = CreateNamedPipeW(pipeNameW.c_str(), PIPE_ACCESS_INBOUND, PIPE_TYPE_BYTE, 2, 128 * 1024, 128 * 1024, 1000, NULL)) == INVALID_HANDLE_VALUE)
         {
-            dputs(QT_TRANSLATE_NOOP("DBG", "\nInvalid database file!"));
+            String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()));
+            dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file !(GetLastError() = %s)\n"), error.c_str());
             return;
         }
-    }
 
-    // Map the database file
-    FileMap<char> dbMap;
-    if(!dbMap.Map(databasePathW.c_str()))
+        // Deserialize JSON and validate
+        std::thread json_loader([&]()
+        {
+            root = json_load_callback([](void* buffer, size_t buflen, void* data) -> size_t
+            {
+                HANDLE hFile = (HANDLE)data;
+                DWORD n;
+                while(true)
+                {
+                    if(ReadFile(hFile, buffer, buflen, &n, NULL))
+                    {
+                        if(n > 0)
+                            return (size_t)n;
+                        else
+                            continue; // The other end of the pipe wrote 0 bytes
+                    }
+                    else if(GetLastError() == ERROR_BROKEN_PIPE)
+                    {
+                        return 0;
+                    }
+                    else
+                    {
+                        return -1;
+                    }
+                }
+            }, hFile, 0, 0);
+        });
+
+        lzmaStatus = LZ4_decompress_fileW(databasePathW.c_str(), pipeNameW.c_str());
+
+        // Check return code
+        if(lzmaStatus != LZ4_SUCCESS && lzmaStatus != LZ4_INVALID_ARCHIVE)
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "\nInvalid database file!"));
+            json_loader.join();
+            CloseHandle(hFile);
+            return;
+        }
+        json_loader.join();
+        CloseHandle(hFile);
+    }
+    else   // Uncompressed database can be mapped
     {
-        String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()));
-        dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to read database file !(GetLastError() = %s)\n"), error.c_str());
-        return;
+        // Map the database file
+        FileMap<char> dbMap;
+        if(!dbMap.Map(databasePathW.c_str()))
+        {
+            String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()));
+            dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to read database file !(GetLastError() = %s)\n"), error.c_str());
+            return;
+        }
+
+        // Deserialize JSON and validate
+        root = json_loadb(dbMap.Data(), dbMap.Size(), 0, 0);
+
+        // Unmap the database file
+        dbMap.Unmap();
     }
-
-    // Deserialize JSON and validate
-    JSON root = json_loadb(dbMap.Data(), dbMap.Size(), 0, 0);
-
-    // Unmap the database file
-    dbMap.Unmap();
-
-    // Restore the old, compressed file
-    if(lzmaStatus != LZ4_INVALID_ARCHIVE && useCompression)
-        LZ4_compress_fileW(databasePathW.c_str(), databasePathW.c_str());
 
     if(!root)
     {
