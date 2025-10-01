@@ -5,6 +5,7 @@
 */
 
 #include <thread>
+#include <future>
 #include "lz4/lz4file.h"
 #include "console.h"
 #include "breakpoint.h"
@@ -152,9 +153,8 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
             });
             // Start the compressor to compress and save data
             status = LZ4_compress_fileW(pipeName.c_str(), wdbpath.c_str());
-            // Wait for the compressor to finish
+            // Wait for the JSON saver to finish
             jsonThread.join();
-            CloseHandle(hFile);
             // Check for error conditions
             if(!dumpSuccess)
             {
@@ -290,11 +290,11 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
     {
         HANDLE hFile;
         // Create a pipe with random name, 2 max instances, 128KB buffer, 1s wait time
-        WString pipeNameW = StringUtils::sprintf(L"\\\\.\\pipe\\x64dbg-DbLoad-%d", rand());
-        if((hFile = CreateNamedPipeW(pipeNameW.c_str(), PIPE_ACCESS_INBOUND, PIPE_TYPE_BYTE, 2, 128 * 1024, 128 * 1024, 1000, NULL)) == INVALID_HANDLE_VALUE)
+        WString pipeName = StringUtils::sprintf(L"\\\\.\\pipe\\x64dbg-DbLoad-%d", rand());
+        if((hFile = CreateNamedPipeW(pipeName.c_str(), PIPE_ACCESS_INBOUND, PIPE_TYPE_BYTE, 2, 128 * 1024, 128 * 1024, 1000, NULL)) == INVALID_HANDLE_VALUE)
         {
             String error = stringformatinline(StringUtils::sprintf("{winerror@%x}", GetLastError()));
-            dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to write database file !(GetLastError() = %s)\n"), error.c_str());
+            dprintf(QT_TRANSLATE_NOOP("DBG", "\nFailed to read database file !(GetLastError() = %s)\n"), error.c_str());
             return;
         }
 
@@ -326,18 +326,16 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
             }, hFile, 0, 0);
         });
 
-        lzmaStatus = LZ4_decompress_fileW(databasePathW.c_str(), pipeNameW.c_str());
+        lzmaStatus = LZ4_decompress_fileW(databasePathW.c_str(), pipeName.c_str());
 
+        json_loader.join();
+        CloseHandle(hFile);
         // Check return code
         if(lzmaStatus != LZ4_SUCCESS && lzmaStatus != LZ4_INVALID_ARCHIVE)
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "\nInvalid database file!"));
-            json_loader.join();
-            CloseHandle(hFile);
             return;
         }
-        json_loader.join();
-        CloseHandle(hFile);
     }
     else   // Uncompressed database can be mapped
     {
@@ -378,18 +376,21 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
             dbhash = 0;
 
         // Finally load all structures
-        CommentCacheLoad(root);
-        LabelCacheLoad(root);
-        BookmarkCacheLoad(root);
-        FunctionCacheLoad(root);
-        ArgumentCacheLoad(root);
-        LoopCacheLoad(root);
-        XrefCacheLoad(root);
-        EncodeMapCacheLoad(root);
+        std::future<void> parallelLoaders[] =
+        {
+            std::async(std::launch::async, CommentCacheLoad, root),
+            std::async(std::launch::async, LabelCacheLoad, root),
+            std::async(std::launch::async, BookmarkCacheLoad, root),
+            std::async(std::launch::async, FunctionCacheLoad, root),
+            std::async(std::launch::async, ArgumentCacheLoad, root),
+            std::async(std::launch::async, LoopCacheLoad, root),
+            std::async(std::launch::async, XrefCacheLoad, root),
+            std::async(std::launch::async, EncodeMapCacheLoad, root),
+            std::async(std::launch::async, BpCacheLoad, root, migrateBreakpoints),
+            std::async(std::launch::async, ModCacheLoad, root),
+            std::async(std::launch::async, WatchCacheLoad, root)
+        };
         TraceRecord.loadFromDb(root);
-        BpCacheLoad(root, migrateBreakpoints);
-        ModCacheLoad(root);
-        WatchCacheLoad(root);
 
         // Load notes
         const char* text = json_string_value(json_object_get(root, "notes"));
@@ -418,6 +419,11 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
                 break;
             }
             plugincbcall(CB_LOADDB, &pluginLoadDb);
+        }
+
+        for(int n = 0; n < _countof(parallelLoaders); n++)
+        {
+            parallelLoaders[n].wait();
         }
     }
 
