@@ -229,15 +229,3 @@ using SharedSectionLocker = SectionLocker<LockIndex, true, ProcessGuiEvents>;
 
 template <SectionLock LockIndex, bool ProcessGuiEvents = false>
 using ExclusiveSectionLocker = SectionLocker<LockIndex, false, ProcessGuiEvents>;
-
-struct TLSData
-{
-    String moduleHashLower;
-
-    TLSData();
-    TLSData(const TLSData &) = delete;
-    TLSData & operator=(const TLSData &) = delete;
-
-    static bool notify(DWORD fdwReason);
-    static TLSData* get();
-};

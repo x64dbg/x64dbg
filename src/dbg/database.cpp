@@ -360,37 +360,40 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
         dputs(QT_TRANSLATE_NOOP("DBG", "\nInvalid database file (JSON)!"));
         return;
     }
-
-    // Load only command line
-    if(loadType == DbLoadSaveType::CommandLine || loadType == DbLoadSaveType::All)
-    {
-        CmdLineCacheLoad(root);
-    }
-
+    // Load all
     if(loadType == DbLoadSaveType::DebugData || loadType == DbLoadSaveType::All)
     {
-        auto hashalgo = json_string_value(json_object_get(root, "hashAlgorithm"));
-        if(hashalgo && strcmp(hashalgo, "murmurhash") == 0) //Checking checksum of the debuggee.
-            dbhash = duint(json_hex_value(json_object_get(root, "hash")));
-        else
-            dbhash = 0;
-
-        // Finally load all structures
+        // Start all JSON loaders concurrently
         std::future<void> parallelLoaders[] =
         {
             std::async(std::launch::async, CommentCacheLoad, root),
             std::async(std::launch::async, LabelCacheLoad, root),
-            std::async(std::launch::async, BookmarkCacheLoad, root),
             std::async(std::launch::async, FunctionCacheLoad, root),
             std::async(std::launch::async, ArgumentCacheLoad, root),
             std::async(std::launch::async, LoopCacheLoad, root),
             std::async(std::launch::async, XrefCacheLoad, root),
             std::async(std::launch::async, EncodeMapCacheLoad, root),
             std::async(std::launch::async, BpCacheLoad, root, migrateBreakpoints),
-            std::async(std::launch::async, ModCacheLoad, root),
-            std::async(std::launch::async, WatchCacheLoad, root)
+            std::async(std::launch::async, &TraceRecordManager::loadFromDb, TraceRecord, root)
         };
-        TraceRecord.loadFromDb(root);
+
+        if(loadType == DbLoadSaveType::All)
+        {
+            // Load command line
+            CmdLineCacheLoad(root);
+        }
+
+        // Here's some categories that usually have little data.
+        BookmarkCacheLoad(root);
+        ModCacheLoad(root);
+        WatchCacheLoad(root);
+
+        // debuggee hash
+        auto hashalgo = json_string_value(json_object_get(root, "hashAlgorithm"));
+        if(hashalgo && strcmp(hashalgo, "murmurhash") == 0) //Checking checksum of the debuggee.
+            dbhash = duint(json_hex_value(json_object_get(root, "hash")));
+        else
+            dbhash = 0;
 
         // Load notes
         const char* text = json_string_value(json_object_get(root, "notes"));
@@ -399,6 +402,12 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
         // Initialization script
         text = json_string_value(json_object_get(root, "initscript"));
         dbgsetdebuggeeinitscript(text);
+
+        // Finish all loaders, make previous data available to plugins
+        for(int n = 0; n < _countof(parallelLoaders); n++)
+        {
+            parallelLoaders[n].wait();
+        }
 
         // Plugins
         JSON pluginRoot = json_object_get(root, "plugins");
@@ -421,10 +430,11 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
             plugincbcall(CB_LOADDB, &pluginLoadDb);
         }
 
-        for(int n = 0; n < _countof(parallelLoaders); n++)
-        {
-            parallelLoaders[n].wait();
-        }
+    }
+    // Load only command line
+    else if(loadType == DbLoadSaveType::CommandLine)
+    {
+        CmdLineCacheLoad(root);
     }
 
     // Free root

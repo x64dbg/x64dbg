@@ -1119,11 +1119,24 @@ duint ModHashFromName(const char* Module, bool tolower)
     duint hash = 0;
     if(tolower)
     {
-        auto & moduleLower = TLSData::get()->moduleHashLower;
-        moduleLower.clear();
-        for(size_t i = 0; i < len; i++)
-            moduleLower.push_back(StringUtils::ToLower(Module[i]));
-        hash = murmurhash(moduleLower.c_str(), moduleLower.size());
+        char buffer[MAX_MODULE_SIZE];
+        char* moduleLower;
+        if(len < MAX_MODULE_SIZE)
+        {
+            moduleLower = buffer;
+        }
+        else
+        {
+            moduleLower = new char[len + 1];
+        }
+        for(size_t i = 0; i < MIN(len, MAX_MODULE_SIZE - 1); i++)
+            moduleLower[i] = StringUtils::ToLower(Module[i]);
+        moduleLower[len] = '\0';
+        hash = murmurhash(moduleLower, len);
+        if(len >= MAX_MODULE_SIZE)
+        {
+            delete[] moduleLower;
+        }
     }
     else
     {
