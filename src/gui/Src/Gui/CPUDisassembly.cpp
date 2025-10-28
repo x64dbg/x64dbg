@@ -84,7 +84,7 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
         return;
     switch(getColumnIndexFromX(event->x()))
     {
-    case 0: //address
+    case ColAddress: //address
     {
         dsint mSelectedVa = rvaToVa(getInitialSelection());
         if(mRvaDisplayEnabled && mSelectedVa == mRvaDisplayBase)
@@ -100,12 +100,12 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
     break;
 
     // (Opcodes) Set INT3 breakpoint
-    case 1:
+    case ColBytes:
         mCommonActions->toggleInt3BPActionSlot();
         break;
 
     // (Disassembly) Assemble dialog
-    case 2:
+    case ColDisassembly:
     {
         duint assembleOnDoubleClickInt;
         bool assembleOnDoubleClick = (BridgeSettingGetUint("Disassembler", "AssembleOnDoubleClick", &assembleOnDoubleClickInt) && assembleOnDoubleClickInt);
@@ -121,7 +121,7 @@ void CPUDisassembly::mouseDoubleClickEvent(QMouseEvent* event)
     break;
 
     // (Comments) Set comment dialog
-    case 3:
+    case ColComment:
         mCommonActions->setCommentSlot();
         break;
 
