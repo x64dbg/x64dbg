@@ -95,10 +95,11 @@ You can find an exhaustive list of GitHub contributors [here](https://github.com
 Without the help of many people and other open-source projects, it would not have been possible to make x64dbg what it is today, thank you!
 
 
+
 ### How does `x64dbg` work under the hood?
 
 Check out this interactive walkthrough of the `x64dbg` codebase on CodeCanvas [here](https://www.code-canvas.com/?session=unauthenticatedGithub&repo=x64dbg&owner=x64dbg&branch=development&OnboardingTutorial=true).
 
 To refine existing dataflow simulation or create new ones, follow the quick tutorial [here](https://docs.code-canvas.com/updating-diagram).
 
-<img width="1916" alt="CodeCanvas Screenshot" src="https://codecanvas-media-public.s3.amazonaws.com/images/codecanvas-readme-screenshot.png" />
+<img width="1880" height="897" alt="image" src="https://github.com/user-attachments/assets/84587e56-a90e-4d72-ac86-ba9f59df3a22" />
