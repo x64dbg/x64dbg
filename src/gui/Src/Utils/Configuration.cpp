@@ -69,9 +69,9 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("SideBarCipLabelBackgroundColor", QColor("#4040FF"));
     defaultColors.insert("SideBarBulletColor", QColor("#808080"));
     defaultColors.insert("SideBarBulletBreakpointColor", QColor("#FF0000"));
-    defaultColors.insert("SideBarBulletConditionalBreakpointColor", QColor("#FFFF00"));
+    defaultColors.insert("SideBarBulletConditionalBreakpointColor", QColor("#FFA500"));
     defaultColors.insert("SideBarBulletDisabledBreakpointColor", QColor("#00AA00"));
-    defaultColors.insert("SideBarBulletDisabledConditionalBreakpointColor", QColor("#AAAA00"));
+    defaultColors.insert("SideBarBulletDisabledConditionalBreakpointColor", QColor("#008888"));
     defaultColors.insert("SideBarBulletBookmarkColor", QColor("#FEE970"));
     defaultColors.insert("SideBarCheckBoxForeColor", QColor("#000000"));
     defaultColors.insert("SideBarCheckBoxBackColor", QColor("#FFFFFF"));
