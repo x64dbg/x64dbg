@@ -496,6 +496,8 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Bullets"), "SideBarBulletColor", "");
     colorInfoListAppend(tr("Breakpoint bullets"), "SideBarBulletBreakpointColor", "");
     colorInfoListAppend(tr("Disabled Breakpoint bullets"), "SideBarBulletDisabledBreakpointColor", "");
+    colorInfoListAppend(tr("Conditional Breakpoint bullets"), "SideBarBulletConditionalBreakpointColor", "");
+    colorInfoListAppend(tr("Disabled Conditional Breakpoint bullets"), "SideBarBulletDisabledConditionalBreakpointColor", "");
     colorInfoListAppend(tr("Bookmark bullets"), "SideBarBulletBookmarkColor", "");
 
 
