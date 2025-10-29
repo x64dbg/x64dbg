@@ -48,9 +48,11 @@ void CPUSideBar::updateColors()
     mUnconditionalJumpLineTrueBackwardsColor = ConfigColor("SideBarUnconditionalJumpLineTrueBackwardsColor");
 
     mBulletBreakpointColor = ConfigColor("SideBarBulletBreakpointColor");
+    mBulletConditionalBreakpointColor = ConfigColor("SideBarBulletConditionalBreakpointColor");
     mBulletBookmarkColor = ConfigColor("SideBarBulletBookmarkColor");
     mBulletColor = ConfigColor("SideBarBulletColor");
     mBulletDisabledBreakpointColor = ConfigColor("SideBarBulletDisabledBreakpointColor");
+    mBulletDisabledConditionalBreakpointColor = ConfigColor("SideBarBulletDisabledConditionalBreakpointColor");
 
     mCipLabelColor = ConfigColor("SideBarCipLabelColor");
     mCipLabelBackgroundColor = ConfigColor("SideBarCipLabelBackgroundColor");
@@ -222,7 +224,7 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
         duint instrVAEnd = instrVA + instr.length;
 
         // draw bullet
-        drawBullets(&painter, line, DbgGetBpxTypeAt(instrVA) != bp_none, DbgIsBpDisabled(instrVA), DbgGetBookmarkAt(instrVA));
+        drawBullets(&painter, line, DbgGetBpxTypeAt(instrVA) != bp_none, DbgIsBpDisabled(instrVA), DbgGetBookmarkAt(instrVA), DbgIsBpConditional(instrVA));
 
         if(isJump(line)) //handle jumps
         {
@@ -688,12 +690,12 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
     painter->restore();
 }
 
-void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdisabled, bool isbookmark)
+void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdisabled, bool isbookmark, bool isbpconditional)
 {
     painter->save();
 
-    if(isbp)
-        painter->setBrush(QBrush(mBulletBreakpointColor));
+    if (isbp)
+        isbpconditional ? painter->setBrush(QBrush(mBulletConditionalBreakpointColor)) : painter->setBrush(QBrush(mBulletBreakpointColor));
     else if(isbookmark)
         painter->setBrush(QBrush(mBulletBookmarkColor));
     else
@@ -706,7 +708,7 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
 
     painter->setRenderHint(QPainter::Antialiasing, true);
     if(isbpdisabled) //disabled breakpoint
-        painter->setBrush(QBrush(mBulletDisabledBreakpointColor));
+        isbpconditional ? painter->setBrush(QBrush(mBulletDisabledConditionalBreakpointColor)) : painter->setBrush(QBrush(mBulletDisabledBreakpointColor));
 
     painter->drawEllipse(x, y + mBulletYOffset, mBulletRadius, mBulletRadius);
 
