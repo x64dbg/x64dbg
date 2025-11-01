@@ -13,16 +13,6 @@ class Disassembly : public AbstractTableView
 {
     Q_OBJECT
 public:
-
-    enum
-    {
-        ColAddress,
-        ColBytes,
-        ColDisassembly,
-        ColMnemonicBrief,
-        ColComment,
-    };
-
     Disassembly(Architecture* architecture, bool isMain, QWidget* parent = nullptr);
     ~Disassembly() override;
     Architecture* getArchitecture() const;
@@ -173,6 +163,16 @@ private:
     DisassemblyPopup* mDisassemblyPopup = nullptr;
 
 protected:
+
+    enum
+    {
+        ColAddress,
+        ColBytes,
+        ColDisassembly,
+        ColMnemonicBrief,
+        ColComment,
+    };
+
     // Jumps Graphic
     int paintJumpsGraphic(QPainter* painter, int x, int y, const Instruction_t & instruction);
 
