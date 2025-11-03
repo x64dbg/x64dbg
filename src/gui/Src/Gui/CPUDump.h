@@ -52,6 +52,7 @@ public slots:
     void integerUnsignedShortSlot();
     void integerUnsignedLongSlot();
     void integerUnsignedLongLongSlot();
+    void integerHexByteSlot();
     void integerHexShortSlot();
     void integerHexLongSlot();
     void integerHexLongLongSlot();
@@ -125,7 +126,8 @@ private:
         ViewAddressUnicode,
         ViewHexCodepage,
         ViewTextCodepage,
-        ViewFloatHalf
+        ViewFloatHalf,
+        ViewIntegerHexByte,
     };
 
     void setView(ViewEnum_t view);
