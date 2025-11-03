@@ -350,7 +350,6 @@ bool SearchListView::eventFilter(QObject* obj, QEvent* event)
                 return QWidget::eventFilter(obj, event);
             // Search box shortcuts reliant on mSearchBox not being empty
             case Qt::Key_X: //Ctrl+X
-            case Qt::Key_A: //Ctrl+A
                 if(keyEvent->modifiers() == Qt::ControlModifier)
                     return QWidget::eventFilter(obj, event);
             }
