@@ -1654,4 +1654,3 @@ class GuiDisableScope : GuiDisableUpdateScope, GuiDisableLogScope { };
 #pragma pack(pop)
 
 #endif // _BRIDGEMAIN_H_
-
