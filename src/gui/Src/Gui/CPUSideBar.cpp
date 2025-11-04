@@ -223,8 +223,14 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
         duint instrVA = instr.rva + mDisassembly->getBase();
         duint instrVAEnd = instrVA + instr.length;
 
+        BP_REF ref;
+        BPXTYPE type = DbgGetBpxTypeAt(instrVA);
+        DbgFunctions()->BpRefVa(&ref, type, instrVA);
+        std::string bpCondition{};
+        ref.GetField(bpf_breakcondition, bpCondition);
+        
         // draw bullet
-        drawBullets(&painter, line, DbgGetBpxTypeAt(instrVA) != bp_none, DbgIsBpDisabled(instrVA), DbgGetBookmarkAt(instrVA), DbgIsBpConditional(instrVA));
+        drawBullets(&painter, line, type != bp_none, DbgIsBpDisabled(instrVA), DbgGetBookmarkAt(instrVA), !bpCondition.empty());
 
         if(isJump(line)) //handle jumps
         {
@@ -692,6 +698,8 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
 
 void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdisabled, bool isbookmark, bool isbpconditional)
 {
+
+    MessageBox(NULL, "FIND THIS TEXT", "Debug", MB_OK);
     painter->save();
 
     if (isbp)
