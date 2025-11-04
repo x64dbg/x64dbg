@@ -698,8 +698,6 @@ void CPUSideBar::drawJump(QPainter* painter, int startLine, int endLine, int jum
 
 void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdisabled, bool isbookmark, bool isbpconditional)
 {
-
-    MessageBox(NULL, "FIND THIS TEXT", "Debug", MB_OK);
     painter->save();
 
     if (isbp)
