@@ -307,7 +307,7 @@ typedef enum
     DBG_LOOP_OVERLAPS,              // param1=FUNCTION_LOOP_INFO* info,  param2=unused
     DBG_LOOP_ADD,                   // param1=FUNCTION_LOOP_INFO* info,  param2=unused
     DBG_LOOP_DEL,                   // param1=FUNCTION_LOOP_INFO* info,  param2=unused
-    DBG_IS_RUN_LOCKED,              // param1=unused,                param2=unused
+    DBG_IS_RUN_LOCKED,              // param1=unused,                    param2=unused
     DBG_IS_BP_DISABLED,             // param1=duint addr,                param2=unused
     DBG_SET_AUTO_COMMENT_AT,        // param1=duint addr,                param2=const char* text
     DBG_DELETE_AUTO_COMMENT_RANGE,  // param1=duint start,               param2=duint end
