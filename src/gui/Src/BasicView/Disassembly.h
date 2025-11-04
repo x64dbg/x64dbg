@@ -55,6 +55,7 @@ public:
     bool isSelected(duint base, dsint offset);
     bool isSelected(QList<Instruction_t>* buffer, int index) const;
     duint getSelectedVa() const;
+    void followSelectionInView(QKeyEvent* event);
 
     // Update/Reload/Refresh/Repaint
     void prepareData() override;
@@ -260,6 +261,7 @@ protected:
     ZydisTokenizer::SingleToken mHighlightToken;
     bool mPermanentHighlightingMode;
     bool mNoCurrentModuleText;
+    bool mFollowSelectionInView;
     bool mIsMain = false;
 
     struct RichTextInfo

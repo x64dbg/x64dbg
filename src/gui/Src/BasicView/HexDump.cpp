@@ -684,6 +684,31 @@ void HexDump::keyPressEvent(QKeyEvent* event)
                 action = 1;
         }
         break;
+        case Qt::Key_PageUp:
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepSub);
+            mFollowSelectionInView = ConfigBool("Disassembler", "FollowSelectionInView");
+            if (mFollowSelectionInView)
+            {
+                //Taking current view left-top
+                selStart = getTableOffsetRva();
+                action = -2;
+            }
+            break;
+        }
+        case Qt::Key_PageDown:
+        {
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepAdd);
+            mFollowSelectionInView = ConfigBool("Disassembler", "FollowSelectionInView");
+            if (mFollowSelectionInView)
+            {
+                // Taking left-bottom
+                constexpr duint oneRowLess = 1;
+                selStart = (getViewableRowsCount() - oneRowLess) * getBytePerRowCount() + getTableOffsetRva();
+                action = 2;
+            }
+            break;
+        }
         default:
             AbstractTableView::keyPressEvent(event);
         }
@@ -733,6 +758,68 @@ void HexDump::keyPressEvent(QKeyEvent* event)
     else if(modifiers == Qt::ShiftModifier)
     {
         //TODO
+        duint selection;
+        switch (key)
+        {
+        case Qt::Key_Left:
+            selection = getSelectionStart();
+            selection -= granularity;
+            if (0 <= selection)
+                action = -1;
+            break;
+        case Qt::Key_Right:
+            selection = getSelectionEnd();
+            selection += granularity;
+            if (mMemPage->getSize() > selection)
+                action = 1;
+            break;
+        case Qt::Key_Up:
+            selection = getSelectionStart();
+            selection -= getBytePerRowCount();
+            if (0 <= selection)
+                action = -1;
+            break;
+        case Qt::Key_Down:
+            selection = getSelectionEnd();
+            selection += getBytePerRowCount();
+            if (mMemPage->getSize() > selection)
+                action = 1;
+            break;
+        case Qt::Key_PageUp:
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepSub);
+            //Taking top current view
+            selection = getTableOffsetRva();
+            action = -2;
+            break;
+        case Qt::Key_PageDown:
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderPageStepAdd);
+            //Taking end of view
+            selection = getViewableRowsCount() * getBytePerRowCount() + getTableOffsetRva();
+            action = 2;
+            break;
+        case Qt::Key_Home:
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderToMinimum);
+            selection = getTableOffsetRva();
+            action = -2;
+            break;
+        case Qt::Key_End:
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderToMaximum);
+            selection = getViewableRowsCount() * getBytePerRowCount() + getTableOffsetRva();
+            action = 2;
+            break;
+        default:
+            AbstractTableView::keyPressEvent(event);
+        }
+        if (action == 1 && selection >= getViewableRowsCount() * getBytePerRowCount() + getTableOffsetRva())
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepAdd);
+        else if (action == -1 && selection < getTableOffsetRva())
+            verticalScrollBar()->triggerAction(QAbstractSlider::SliderSingleStepSub);
+
+        if(action != 0)
+        {
+            expandSelectionUpTo(selection);
+            reloadData();
+        }
     }
     else
     {

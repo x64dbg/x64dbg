@@ -948,7 +948,19 @@ void Disassembly::keyPressEvent(QKeyEvent* event)
         followInstruction(getInitialSelection());
     }
     else
+    {
         AbstractTableView::keyPressEvent(event);
+        if (key == Qt::Key_PageUp)
+        {
+            followSelectionInView(event);
+        }
+        else if (key == Qt::Key_PageDown)
+        {
+            followSelectionInView(event);
+        }
+    }
+        
+        
 }
 
 /************************************************************************************
@@ -1679,6 +1691,27 @@ duint Disassembly::getSelectedVa() const
     // Converts the selected index to a valid virtual address
     return rvaToVa(getInitialSelection());
 }
+
+void Disassembly::followSelectionInView(QKeyEvent* event)
+{
+    mFollowSelectionInView = ConfigBool("Disassembler", "FollowSelectionInView");
+    if (mFollowSelectionInView)
+    {
+        int key = event->key();
+        if (key == Qt::Key_PageUp)
+        {
+            auto firstVisibleRva = getTableOffset();
+            setSingleSelection(firstVisibleRva);
+        }
+        else if (key == Qt::Key_PageDown)
+        {
+            auto lastVisibleRva = getInstructionRVA(getTableOffset(), getNbrOfLineToPrint() - 1);
+            setSingleSelection(lastVisibleRva);
+        }
+    }
+}
+
+
 
 /************************************************************************************
                          Update/Reload/Refresh/Repaint

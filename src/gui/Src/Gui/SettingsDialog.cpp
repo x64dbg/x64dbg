@@ -239,6 +239,7 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Disassembler", "NoBranchDisasmPreview", &settings.disasmNoBranchDisasmPreview);
     GetSettingBool("Disassembler", "NoSourceLineAutoComments", &settings.disasmNoSourceLineAutoComments);
     GetSettingBool("Disassembler", "AssembleOnDoubleClick", &settings.disasmAssembleOnDoubleClick);
+    GetSettingBool("Disassembler", "FollowSelectionInView", &settings.disasmFollowSelectionInView);
 
     if(BridgeSettingGetUint("Disassembler", "0xPrefixValues", &cur))
     {
@@ -270,6 +271,7 @@ void SettingsDialog::LoadSettings()
     ui->chkNoSourceLinesAutoComments->setChecked(settings.disasmNoSourceLineAutoComments);
     ui->chkDoubleClickAssemble->setChecked(settings.disasmAssembleOnDoubleClick);
     ui->spinMaximumModuleNameSize->setValue(settings.disasmMaxModuleSize);
+    ui->chkFollowSelectionInView->setChecked(settings.disasmFollowSelectionInView);
 
     //Gui tab
     GetSettingBool("Gui", "FpuRegistersLittleEndian", &settings.guiFpuRegistersLittleEndian);
@@ -439,6 +441,7 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Disassembler", "NoSourceLineAutoComments", settings.disasmNoSourceLineAutoComments);
     BridgeSettingSetUint("Disassembler", "AssembleOnDoubleClick", settings.disasmAssembleOnDoubleClick);
     BridgeSettingSetUint("Disassembler", "MaxModuleSize", settings.disasmMaxModuleSize);
+    BridgeSettingSetUint("Disassembler", "FollowSelectionInView", settings.disasmFollowSelectionInView);
 
     //Gui tab
     BridgeSettingSetUint("Gui", "FpuRegistersLittleEndian", settings.guiFpuRegistersLittleEndian);
@@ -1116,6 +1119,11 @@ void SettingsDialog::on_chkDoubleClickAssemble_toggled(bool checked)
 void SettingsDialog::on_spinMaximumModuleNameSize_valueChanged(int arg1)
 {
     settings.disasmMaxModuleSize = arg1;
+}
+
+void SettingsDialog::on_chkFollowSelectionInView_toggled(bool checked)
+{
+    settings.disasmFollowSelectionInView = checked;
 }
 
 void SettingsDialog::on_chkShowGraphRva_toggled(bool checked)

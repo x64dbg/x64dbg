@@ -232,4 +232,5 @@ protected:
     duint mUnderlineRangeEndVa = 0;
     bool mPointerUnderliningEnabled = true;
     bool mSelectionUnderliningEnabled = false;
+    bool mFollowSelectionInView = false;
 };
