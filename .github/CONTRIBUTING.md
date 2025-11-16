@@ -33,6 +33,12 @@ As with any open source project, documentation is lacking and the code can seem 
 
 This is by no means an exhaustive list and we are still working on lowering the barrier for new contributors. The feedback of new contributors is vital to reaching this goal.
 
+#### How does `x64dbg` work under the hood?
+
+Check out this interactive walkthrough of the `x64dbg` codebase on CodeCanvas [here](https://www.code-canvas.com/?session=unauthenticatedGithub&repo=x64dbg&owner=Abdullah85MBA&branch=development&OnboardingTutorial=true).
+
+<img width="3760" height="1794" alt="image" src="https://github.com/user-attachments/assets/8eb6e670-ca6c-496d-865c-00b603223f2b" />
+
 #### Sending a pull request
 
 Here is a little guide on how to do a clean pull request for people who don't yet know how to use git:
