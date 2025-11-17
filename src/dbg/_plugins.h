@@ -239,7 +239,6 @@ typedef struct
 typedef struct
 {
     const char* traceFilePath;
-    void* reserved;
 } PLUG_CB_STARTTRACE;
 
 typedef struct
