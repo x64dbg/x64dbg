@@ -550,7 +550,6 @@ bool TraceRecordManager::enableTraceRecording(bool enabled, const char* fileName
             dprintf(QT_TRANSLATE_NOOP("DBG", "Started trace recording to file: %s\n"), fileName);
             PLUG_CB_STARTTRACE startTraceInfo{};
             startTraceInfo.traceFilePath = fileName;
-            startTraceInfo.reserved = nullptr;
             plugincbcall(CB_STARTTRACE, &startTraceInfo);
             Zydis zydis;
             unsigned char instr[MAX_DISASM_BUFFER];
