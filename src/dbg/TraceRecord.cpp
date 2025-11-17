@@ -548,6 +548,10 @@ bool TraceRecordManager::enableTraceRecording(bool enabled, const char* fileName
             for(size_t i = 0; i < _countof(rtOldContextChanged); i++)
                 rtOldContextChanged[i] = true;
             dprintf(QT_TRANSLATE_NOOP("DBG", "Started trace recording to file: %s\n"), fileName);
+            PLUG_CB_STARTTRACE startTraceInfo{};
+            startTraceInfo.traceFilePath = fileName;
+            startTraceInfo.reserved = nullptr;
+            plugincbcall(CB_STARTTRACE, &startTraceInfo);
             Zydis zydis;
             unsigned char instr[MAX_DISASM_BUFFER];
             auto cip = GetContextDataEx(hActiveThread, UE_CIP);
@@ -574,6 +578,9 @@ bool TraceRecordManager::enableTraceRecording(bool enabled, const char* fileName
             rtPrevInstAvailable = false;
             rtEnabled = false;
             dputs(QT_TRANSLATE_NOOP("DBG", "Trace recording stopped."));
+            PLUG_CB_STOPTRACE stopTraceInfo{};
+            stopTraceInfo.reserved = nullptr;
+            plugincbcall(CB_STOPTRACE, &stopTraceInfo);
         }
         return true;
     }

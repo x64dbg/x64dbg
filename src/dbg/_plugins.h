@@ -236,6 +236,17 @@ typedef struct
     GUIMENUTYPE hMenu;
 } PLUG_CB_MENUPREPARE;
 
+typedef struct
+{
+    const char* traceFilePath;
+    void* reserved;
+} PLUG_CB_STARTTRACE;
+
+typedef struct
+{
+    void* reserved;
+} PLUG_CB_STOPTRACE;
+
 typedef enum
 {
     ValueTypeNumber,
@@ -295,6 +306,8 @@ typedef enum
     CB_VALTOSTRING, //PLUG_CB_VALTOSTRING
     CB_MENUPREPARE, //PLUG_CB_MENUPREPARE
     CB_STOPPINGDEBUG, //PLUG_CB_STOPDEBUG
+    CB_STARTTRACE, //PLUG_CB_STARTTRACE
+    CB_STOPTRACE, //PLUG_CB_STOPTRACE
     CB_LAST
 } CBTYPE;
 
