@@ -86,11 +86,11 @@ bool SimpleChoiceBox(QWidget* parent, const QString & title, QString defaultValu
 void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text, const QString & hideConfigCategory, const QString & hideConfigId)
 {
     bool useHideCheckBox = hideConfigCategory != nullptr
-        && !hideConfigCategory.isEmpty()
-        && hideConfigId != nullptr
-        && !hideConfigId.isEmpty();
+                           && !hideConfigCategory.isEmpty()
+                           && hideConfigId != nullptr
+                           && !hideConfigId.isEmpty();
 
-    if (useHideCheckBox && Config()->getBool(hideConfigCategory, hideConfigId))
+    if(useHideCheckBox && Config()->getBool(hideConfigCategory, hideConfigId))
         return;
 
     QMessageBox msg(QMessageBox::Critical, title, text, QMessageBox::NoButton, parent);
@@ -99,14 +99,16 @@ void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
 
     QCheckBox* checkBox = nullptr;
-    if (useHideCheckBox) {
+    if(useHideCheckBox)
+    {
         checkBox = new QCheckBox(QObject::tr("Don't show this again"));
         msg.setCheckBox(checkBox);
     }
 
     msg.exec();
 
-    if (useHideCheckBox) {
+    if(useHideCheckBox)
+    {
         Config()->setBool(hideConfigCategory, hideConfigId, checkBox->isChecked());
     }
 }
