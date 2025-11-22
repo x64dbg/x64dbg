@@ -1,7 +1,9 @@
 #include "MiscUtil.h"
+#include "Configuration.h"
 #include <QtWin>
 #include <QApplication>
 #include <QMessageBox>
+#include <QCheckBox>
 #include <QDir>
 #include "LineEditDialog.h"
 #include "ComboBoxDialog.h"
@@ -81,13 +83,32 @@ bool SimpleChoiceBox(QWidget* parent, const QString & title, QString defaultValu
         return false;
 }
 
-void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text)
+void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text, const QString & hideConfigCategory, const QString & hideConfigId)
 {
+    bool useHideCheckBox = hideConfigCategory != nullptr
+        && !hideConfigCategory.isEmpty()
+        && hideConfigId != nullptr
+        && !hideConfigId.isEmpty();
+
+    if (useHideCheckBox && Config()->getBool(hideConfigCategory, hideConfigId))
+        return;
+
     QMessageBox msg(QMessageBox::Critical, title, text, QMessageBox::NoButton, parent);
     msg.setWindowIcon(DIcon("fatal-error"));
     msg.setParent(parent, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
+
+    QCheckBox* checkBox = nullptr;
+    if (useHideCheckBox) {
+        checkBox = new QCheckBox(QObject::tr("Don't show this again"));
+        msg.setCheckBox(checkBox);
+    }
+
     msg.exec();
+
+    if (useHideCheckBox) {
+        Config()->setBool(hideConfigCategory, hideConfigId, checkBox->isChecked());
+    }
 }
 
 void SimpleWarningBox(QWidget* parent, const QString & title, const QString & text)

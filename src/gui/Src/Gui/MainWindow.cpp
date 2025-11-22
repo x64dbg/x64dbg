@@ -1060,7 +1060,9 @@ void MainWindow::loadWindowSettings()
         SimpleErrorBox(
             this,
             tr("Unsupported system"),
-            tr("You are running x64dbg on an unsupported operating system version. <b>Future updates will completely stop running on this system.</b><br><br>For more information, see the official <a href=\"%1\">announcement</a>.").arg("https://transition.x64dbg.com")
+            tr("You are running x64dbg on an unsupported operating system version. <b>Future updates will completely stop running on this system.</b><br><br>For more information, see the official <a href=\"%1\">announcement</a>.").arg("https://transition.x64dbg.com"),
+            "Gui",
+            "HideErrorUnsupportedSystem"
         );
     }
 

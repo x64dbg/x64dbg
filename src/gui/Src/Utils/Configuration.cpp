@@ -294,6 +294,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     guiBool.insert("CPUDumpStartFromSelect", true);
     guiBool.insert("CPUStackStartFromSelect", true);
     guiBool.insert("AutoTraceDump", false);
+    guiBool.insert("HideErrorUnsupportedSystem", false);
     //Named menu settings
     insertMenuBuilderBools(&guiBool, "CPUDisassemblyV2", 50); //CPUDisassembly
     insertMenuBuilderBools(&guiBool, "CPUDump", 50); //CPUDump
