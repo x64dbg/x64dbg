@@ -82,12 +82,10 @@ bool SimpleChoiceBox(QWidget* parent, const QString & title, QString defaultValu
         return false;
 }
 
-void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text, const QString & hideConfigId)
+void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text, const char* doNotShowAgainSetting)
 {
-    bool useHideCheckBox = !hideConfigId.isNull();
-
     duint currentSetting = 0;
-    if(useHideCheckBox && BridgeSettingGetUint("Gui", hideConfigId.toUtf8().constData(), &currentSetting) && currentSetting)
+    if(doNotShowAgainSetting && BridgeSettingGetUint("Gui", doNotShowAgainSetting, &currentSetting) && currentSetting)
         return;
 
     QMessageBox msg(QMessageBox::Critical, title, text, QMessageBox::NoButton, parent);
@@ -96,7 +94,7 @@ void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
 
     QCheckBox* checkBox = nullptr;
-    if(useHideCheckBox)
+    if(doNotShowAgainSetting)
     {
         checkBox = new QCheckBox(QObject::tr("Do not show again"));
         msg.setCheckBox(checkBox);
@@ -104,9 +102,9 @@ void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text
 
     msg.exec();
 
-    if(useHideCheckBox)
+    if(doNotShowAgainSetting)
     {
-        BridgeSettingSetUint("Gui", hideConfigId.toUtf8().constData(), checkBox->isChecked());
+        BridgeSettingSetUint("Gui", doNotShowAgainSetting, checkBox->isChecked());
     }
 }
 
