@@ -1,5 +1,4 @@
 #include "MiscUtil.h"
-#include "Configuration.h"
 #include <QtWin>
 #include <QApplication>
 #include <QMessageBox>
@@ -83,14 +82,12 @@ bool SimpleChoiceBox(QWidget* parent, const QString & title, QString defaultValu
         return false;
 }
 
-void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text, const QString & hideConfigCategory, const QString & hideConfigId)
+void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text, const QString & hideConfigId)
 {
-    bool useHideCheckBox = hideConfigCategory != nullptr
-                           && !hideConfigCategory.isEmpty()
-                           && hideConfigId != nullptr
-                           && !hideConfigId.isEmpty();
+    bool useHideCheckBox = !hideConfigId.isNull();
 
-    if(useHideCheckBox && Config()->getBool(hideConfigCategory, hideConfigId))
+    duint currentSetting = 0;
+    if(useHideCheckBox && BridgeSettingGetUint("Gui", hideConfigId.toUtf8().constData(), &currentSetting) && currentSetting)
         return;
 
     QMessageBox msg(QMessageBox::Critical, title, text, QMessageBox::NoButton, parent);
@@ -101,7 +98,7 @@ void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text
     QCheckBox* checkBox = nullptr;
     if(useHideCheckBox)
     {
-        checkBox = new QCheckBox(QObject::tr("Don't show this again"));
+        checkBox = new QCheckBox(QObject::tr("Do not show again"));
         msg.setCheckBox(checkBox);
     }
 
@@ -109,7 +106,7 @@ void SimpleErrorBox(QWidget* parent, const QString & title, const QString & text
 
     if(useHideCheckBox)
     {
-        Config()->setBool(hideConfigCategory, hideConfigId, checkBox->isChecked());
+        BridgeSettingSetUint("Gui", hideConfigId.toUtf8().constData(), checkBox->isChecked());
     }
 }
 
