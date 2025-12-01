@@ -457,14 +457,11 @@ void TraceFileParser::readFileHeader(TraceFileReader* that)
     }
 }
 
-static bool readBlock(QFile & traceFile)
+static bool readBlock(QFile & traceFile, unsigned char blockType)
 {
     if(!traceFile.isReadable())
         throw std::wstring(L"File is not readable");
-    unsigned char blockType;
     unsigned char changedCountFlags[3]; //reg changed count, mem accessed count, flags
-    if(traceFile.read((char*)&blockType, 1) != 1)
-        throw std::wstring(L"Read block type failed");
     if(blockType == 0)
     {
         if(traceFile.read((char*)&changedCountFlags, 3) != 3)
@@ -525,7 +522,10 @@ void TraceFileParser::run()
         while(!that->traceFile.atEnd())
         {
             quint64 blockStart = that->traceFile.pos();
-            bool isPageBoundary = readBlock(that->traceFile);
+            unsigned char blockType;
+            if(that->traceFile.read((char*)&blockType, 1) != 1)
+                throw std::wstring(L"Read block type failed");
+            bool isPageBoundary = readBlock(that->traceFile, blockType);
             if(isPageBoundary)
             {
                 if(lastIndex != 0)
@@ -539,7 +539,9 @@ void TraceFileParser::run()
                 if(this->isInterruptionRequested() && !that->traceFile.atEnd()) //Cancel loading
                     throw std::wstring(L"Canceled");
             }
-            index++;
+            //Increase the index only if the block is an instruction block(0), not a user-defined block(0x80 or higher)
+            if(blockType == 0)
+                index++;
         }
         if(index > 0)
             that->fileIndex.back().second.second = index - (lastIndex - 1);
@@ -591,7 +593,10 @@ void TraceFileReader::purgeLastPage()
         while(!traceFile.atEnd())
         {
             quint64 blockStart = traceFile.pos();
-            bool isPageBoundary = readBlock(traceFile);
+            unsigned char blockType;
+            if(traceFile.read((char*)&blockType, 1) != 1)
+                throw std::wstring(L"Read block type failed");
+            bool isPageBoundary = readBlock(traceFile, blockType);
             if(isPageBoundary)
             {
                 if(lastIndex != 0)
@@ -600,7 +605,9 @@ void TraceFileReader::purgeLastPage()
                 lastIndex = index + 1;
                 isBlockExist = true;
             }
-            index++;
+            //Increase the index only if the block is an instruction block(0), not a user-defined block(0x80 or higher)
+            if(blockType == 0)
+                index++;
         }
         if(isBlockExist)
             fileIndex.back().second.second = index - (lastIndex - 1);
