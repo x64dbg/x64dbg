@@ -526,22 +526,23 @@ void TraceFileParser::run()
             if(that->traceFile.read((char*)&blockType, 1) != 1)
                 throw std::wstring(L"Read block type failed");
             bool isPageBoundary = readBlock(that->traceFile, blockType);
-            if(isPageBoundary)
+            if(blockType < 0x80) //Check whether it is a non-user block
             {
-                if(lastIndex != 0)
-                    that->fileIndex.back().second.second = index - (lastIndex - 1);
-                that->fileIndex.push_back(std::make_pair(index, TraceFileReader::Range(blockStart, 0)));
-                lastIndex = index + 1;
-                //Update progress
-                that->progress.store(that->traceFile.pos() * 100 / filesize);
-                if(that->progress == 100)
-                    that->progress = 99;
-                if(this->isInterruptionRequested() && !that->traceFile.atEnd()) //Cancel loading
-                    throw std::wstring(L"Canceled");
-            }
-            //Increase the index only if the block is an instruction block(0), not a user-defined block(0x80 or higher)
-            if(blockType == 0)
+                if(isPageBoundary)
+                {
+                    if(lastIndex != 0)
+                        that->fileIndex.back().second.second = index - (lastIndex - 1);
+                    that->fileIndex.push_back(std::make_pair(index, TraceFileReader::Range(blockStart, 0)));
+                    lastIndex = index + 1;
+                    //Update progress
+                    that->progress.store(that->traceFile.pos() * 100 / filesize);
+                    if(that->progress == 100)
+                        that->progress = 99;
+                    if(this->isInterruptionRequested() && !that->traceFile.atEnd()) //Cancel loading
+                        throw std::wstring(L"Canceled");
+                }
                 index++;
+            }
         }
         if(index > 0)
             that->fileIndex.back().second.second = index - (lastIndex - 1);
@@ -597,17 +598,18 @@ void TraceFileReader::purgeLastPage()
             if(traceFile.read((char*)&blockType, 1) != 1)
                 throw std::wstring(L"Read block type failed");
             bool isPageBoundary = readBlock(traceFile, blockType);
-            if(isPageBoundary)
+            if(blockType < 0x80) //Check whether it is a non-user block
             {
-                if(lastIndex != 0)
-                    fileIndex.back().second.second = index - (lastIndex - 1);
-                fileIndex.push_back(std::make_pair(index, TraceFileReader::Range(blockStart, 0)));
-                lastIndex = index + 1;
-                isBlockExist = true;
-            }
-            //Increase the index only if the block is an instruction block(0), not a user-defined block(0x80 or higher)
-            if(blockType == 0)
+                if(isPageBoundary)
+                {
+                    if(lastIndex != 0)
+                        fileIndex.back().second.second = index - (lastIndex - 1);
+                    fileIndex.push_back(std::make_pair(index, TraceFileReader::Range(blockStart, 0)));
+                    lastIndex = index + 1;
+                    isBlockExist = true;
+                }
                 index++;
+            }
         }
         if(isBlockExist)
             fileIndex.back().second.second = index - (lastIndex - 1);
