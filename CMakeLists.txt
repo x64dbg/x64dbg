@@ -119,9 +119,10 @@ set(btparser_SOURCES
 	"src/dbg/btparser/btparser/lexer.cpp"
 	"src/dbg/btparser/btparser/lexer.h"
 	"src/dbg/btparser/btparser/operators.h"
-	"src/dbg/btparser/btparser/parser.cpp"
-	"src/dbg/btparser/btparser/parser.h"
+	"src/dbg/btparser/btparser/preprocessor.cpp"
 	"src/dbg/btparser/btparser/testfiles.h"
+	"src/dbg/btparser/btparser/types.cpp"
+	"src/dbg/btparser/btparser/typesparser.cpp"
 )
 
 add_library(btparser STATIC)

@@ -49,13 +49,14 @@ x64.OUTPUT_NAME = "x64bridge"
 type = "static"
 sources = [
     "src/dbg/btparser/btparser/lexer.cpp",
-    "src/dbg/btparser/btparser/parser.cpp",
+    "src/dbg/btparser/btparser/preprocessor.cpp",
+    "src/dbg/btparser/btparser/types.cpp",
+    "src/dbg/btparser/btparser/typesparser.cpp",
     "src/dbg/btparser/btparser/ast.h",
     "src/dbg/btparser/btparser/helpers.h",
     "src/dbg/btparser/btparser/keywords.h",
     "src/dbg/btparser/btparser/lexer.h",
     "src/dbg/btparser/btparser/operators.h",
-    "src/dbg/btparser/btparser/parser.h",
     "src/dbg/btparser/btparser/testfiles.h",
 ]
 include-directories = [
