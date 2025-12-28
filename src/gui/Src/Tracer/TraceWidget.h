@@ -64,6 +64,8 @@ protected slots:
     void followActionSlot();
 
 protected:
+    void closeEvent(QCloseEvent* event) override;
+
     TraceFileReader* mTraceFile;
     TraceBrowser* mTraceBrowser;
     TraceInfoBox* mInfo;

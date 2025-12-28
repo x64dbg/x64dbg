@@ -404,3 +404,9 @@ void TraceWidget::followActionSlot()
 #endif //_WIN64
     mDump->printDumpAt(data, true, true, true);
 }
+
+void TraceWidget::closeEvent(QCloseEvent* event)
+{
+	MessageBoxA(GuiGetWindowHandle(), "Trace file closed", "Info", MB_OK | MB_ICONINFORMATION);
+	QWidget::closeEvent(event);
+}
