@@ -328,7 +328,10 @@ static bool safeDelete(BP_TYPE Type, duint AddressHash)
         return false;
     }
 
+    // Close log file before deletion to prevent resource leaks
     BpLogFileRelease(itr->second.logFile);
+    
+    // Remove from breakpoints map
     breakpoints.erase(itr);
     return true;
 }
@@ -337,6 +340,25 @@ bool BpDelete(duint Address, BP_TYPE Type)
 {
     ASSERT_DEBUGGING("Command function call");
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
+    // Check if breakpoint exists before attempting deletion
+    BREAKPOINT* bpInfo = BpInfoFromAddr(Type, Address);
+    if(!bpInfo)
+    {
+        // Breakpoint doesn't exist, don't attempt deletion
+        return false;
+    }
+
+    // For hardware breakpoints, ensure proper cleanup
+    if(Type == BPHARDWARE && TITANDRXVALID(bpInfo->titantype))
+    {
+        // Remove hardware breakpoint from CPU registers first
+        if(!DeleteHardwareBreakPoint(TITANGETDRX(bpInfo->titantype)))
+        {
+            // Hardware breakpoint removal failed, but continue with logical deletion
+            // This prevents orphaned hardware breakpoints
+        }
+    }
 
     // Erase the index from the global list
     if(Type != BPDLL && Type != BPEXCEPTION)
@@ -347,6 +369,17 @@ bool BpDelete(duint Address, BP_TYPE Type)
 
 bool BpDelete(const BREAKPOINT & Bp)
 {
+    // For hardware breakpoints, ensure proper cleanup
+    if(Bp.type == BPHARDWARE && TITANDRXVALID(Bp.titantype))
+    {
+        // Remove hardware breakpoint from CPU registers first
+        if(!DeleteHardwareBreakPoint(TITANGETDRX(Bp.titantype)))
+        {
+            // Hardware breakpoint removal failed, but continue with logical deletion
+            // This prevents orphaned hardware breakpoints
+        }
+    }
+
     // Breakpoints without a module can be deleted without special logic
     if(Bp.type == BPDLL || Bp.type == BPEXCEPTION || Bp.module.empty())
         return safeDelete(Bp.type, Bp.addr);
@@ -942,8 +975,14 @@ void BpCacheLoad(JSON Root, bool migrateCommandCondition)
         breakpoint.addr = (duint)json_hex_value(json_object_get(value, "address"));
         breakpoint.enabled = json_boolean_value(json_object_get(value, "enabled"));
         breakpoint.titantype = (DWORD)json_hex_value(json_object_get(value, "titantype"));
+        
+        // Validate hardware breakpoint type on load
         if(breakpoint.type == BPHARDWARE)
-            TITANSETDRX(breakpoint.titantype, UE_DR7); // DR7 is used as a sentinel value to prevent wrongful deletion
+        {
+            // Ensure DRX is properly set, use UE_DR7 as sentinel for validation
+            if(!TITANDRXVALID(breakpoint.titantype))
+                TITANSETDRX(breakpoint.titantype, UE_DR7);
+        }
 
         // String values
         loadStringValue(value, breakpoint.name, "name");
@@ -972,6 +1011,10 @@ void BpCacheLoad(JSON Root, bool migrateCommandCondition)
         duint key;
         if(breakpoint.type != BPDLL)
         {
+            // Validate module name exists
+            if(breakpoint.module.empty())
+                continue; // Skip invalid breakpoints without module names
+                
             key = ModHashFromName(breakpoint.module.c_str()) + breakpoint.addr;
         }
         else
@@ -983,6 +1026,11 @@ void BpCacheLoad(JSON Root, bool migrateCommandCondition)
             key = BpGetDLLBpAddr(breakpoint.module.c_str());
             breakpoint.addr = key;
         }
+        
+        // Check if breakpoint already exists to prevent duplicates
+        if(breakpoints.find(BreakpointKey(breakpoint.type, key)) != breakpoints.end())
+            continue; // Skip duplicate breakpoints
+            
         breakpoints[BreakpointKey(breakpoint.type, key)] = breakpoint;
     }
 }

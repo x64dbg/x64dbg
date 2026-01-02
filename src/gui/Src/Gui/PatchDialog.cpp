@@ -97,6 +97,11 @@ void PatchDialog::updatePatches()
     ui->listModules->clear();
     ui->listPatches->clear();
     mPatches.clear();
+    
+    // Force UI refresh to prevent rendering issues
+    ui->listModules->update();
+    ui->listPatches->update();
+    QApplication::processEvents();
 
     //get patches from DBG
     size_t cbsize;

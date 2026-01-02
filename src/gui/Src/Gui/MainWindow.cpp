@@ -2465,6 +2465,14 @@ void MainWindow::updateFavouriteTools()
         if(icon.isNull())
             icon = DIcon("plugin");
         newAction->setIcon(icon);
+        
+        // Ensure icon is properly scaled and displayed
+        newAction->setIconVisibleInMenu(true);
+        if(!icon.isNull())
+        {
+            // Force icon refresh
+            newAction->setIcon(icon);
+        }
         connect(newAction, SIGNAL(triggered()), this, SLOT(clickFavouriteTool()));
         ui->menuFavourites->addAction(newAction);
         mFavouriteToolbar->addAction(newAction);

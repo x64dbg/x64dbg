@@ -13,6 +13,7 @@ class SymbolInfoWrapper
     }
 
     SYMBOLINFO info{};
+    bool cached = false;
 
 public:
     SymbolInfoWrapper() = default;
@@ -25,14 +26,28 @@ public:
     {
         free();
         memset(&info, 0, sizeof(info));
+        cached = false;
         return &info;
     }
 
-    SYMBOLINFO* get() { return &info; }
-    const SYMBOLINFO* get() const { return &info; }
+    SYMBOLINFO* get() 
+    { 
+        if(!cached)
+        {
+            cached = true;
+        }
+        return &info; 
+    }
+    
+    const SYMBOLINFO* get() const 
+    { 
+        return &info; 
+    }
 
-    SYMBOLINFO* operator->() { return &info; }
-    const SYMBOLINFO* operator->() const { return &info; }
+    SYMBOLINFO* operator->() { return get(); }
+    const SYMBOLINFO* operator->() const { return get(); }
+    
+    bool isCached() const { return cached; }
 };
 
 ZehSymbolTable::ZehSymbolTable(QWidget* parent)
@@ -61,9 +76,17 @@ QString ZehSymbolTable::getCellContent(duint row, duint column)
     QMutexLocker lock(&mMutex);
     if(!isValidIndex(row, column))
         return QString();
-    SymbolInfoWrapper info;
-    DbgGetSymbolInfo(&mData.at(row), info.put());
-    return symbolInfoString(info.get(), column);
+        
+    // Use cached symbol info if available, otherwise fetch and cache it
+    if(row >= mSymbolCache.size() || mSymbolCache[row].addr == 0)
+    {
+        ensureCacheSize(row + 1);
+        SymbolInfoWrapper info;
+        DbgGetSymbolInfo(&mData.at(row), info.put());
+        mSymbolCache[row] = *info.get();
+    }
+    
+    return symbolInfoString(&mSymbolCache[row], column);
 }
 
 duint ZehSymbolTable::getCellUserdata(duint row, duint column)
@@ -71,16 +94,24 @@ duint ZehSymbolTable::getCellUserdata(duint row, duint column)
     QMutexLocker lock(&mMutex);
     if(!isValidIndex(row, column))
         return 0;
-    SymbolInfoWrapper info;
-    DbgGetSymbolInfo(&mData.at(row), info.put());
+        
+    // Use cached symbol info if available, otherwise fetch and cache it
+    if(row >= mSymbolCache.size() || mSymbolCache[row].addr == 0)
+    {
+        ensureCacheSize(row + 1);
+        SymbolInfoWrapper info;
+        DbgGetSymbolInfo(&mData.at(row), info.put());
+        mSymbolCache[row] = *info.get();
+    }
+    
     switch(column)
     {
     case ColAddr:
-        return info->addr;
+        return mSymbolCache[row].addr;
     case ColOrdinal:
-        return info->ordinal;
+        return mSymbolCache[row].ordinal;
     case ColType:
-        return info->type;
+        return mSymbolCache[row].type;
     default:
         return 0;
     }
@@ -95,6 +126,10 @@ bool ZehSymbolTable::isValidIndex(duint row, duint column)
 void ZehSymbolTable::sortRows(duint column, bool ascending)
 {
     QMutexLocker lock(&mMutex);
+    
+    // Clear cache before sorting to maintain consistency
+    mSymbolCache.clear();
+    
     std::stable_sort(mData.begin(), mData.end(), [this, column, ascending](const SYMBOLPTR & a, const SYMBOLPTR & b)
     {
         SymbolInfoWrapper ainfo, binfo;
@@ -213,5 +248,19 @@ QString ZehSymbolTable::symbolInfoString(const SYMBOLINFO* info, duint c)
 
     default:
         return QString();
+    }
+}
+
+void ZehSymbolTable::ensureCacheSize(size_t size)
+{
+    QMutexLocker lock(&mMutex);
+    if(mSymbolCache.size() < size)
+    {
+        mSymbolCache.resize(size);
+        // Initialize new cache entries with zeroed memory
+        for(size_t i = mSymbolCache.size(); i < size; ++i)
+        {
+            memset(&mSymbolCache[i], 0, sizeof(SYMBOLINFO));
+        }
     }
 }

@@ -21,6 +21,7 @@ public:
 private:
     std::vector<duint> mModules;
     std::vector<SYMBOLPTR> mData;
+    std::vector<SYMBOLINFO> mSymbolCache; // Performance optimization cache
     QMutex mMutex;
 
     //Caching of translations to fix a bottleneck
@@ -38,4 +39,5 @@ private:
     };
 
     QString symbolInfoString(const SYMBOLINFO* info, duint c);
+    void ensureCacheSize(size_t size); // Cache management helper
 };
