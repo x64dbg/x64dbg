@@ -1,9 +1,10 @@
 ---
 id: task-6
 title: 'TitanEngine Test Suite: Stepping Tests'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-01-11 15:18'
+updated_date: '2026-01-11 20:24'
 labels:
   - testing
 dependencies: []
@@ -29,3 +30,9 @@ Implement tests ST-01 through ST-10 covering StepInto, StepOver, REP instruction
 - [ ] #9 ST-09: Step in multi-threaded
 - [ ] #10 ST-10: Consecutive steps
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented 10 stepping tests (ST-01 to ST-10) covering step-into, step-over, nested calls, loops, and conditional branching.
+<!-- SECTION:NOTES:END -->

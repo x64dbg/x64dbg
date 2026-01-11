@@ -1,9 +1,10 @@
 ---
 id: task-7
 title: 'TitanEngine Test Suite: Exception Handling Tests'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-01-11 15:18'
+updated_date: '2026-01-11 20:24'
 labels:
   - testing
 dependencies: []
@@ -32,3 +33,9 @@ Implement tests EX-01 through EX-13 covering all exception types, first/second c
 - [ ] #12 EX-12: First-chance vs second-chance
 - [ ] #13 EX-13: Exception in SEH handler
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented 13 exception tests (EX-01 to EX-13) covering ACCESS_VIOLATION, INT3, SINGLE_STEP, DIV_BY_ZERO, ILLEGAL_INSTRUCTION, STACK_OVERFLOW, and more.
+<!-- SECTION:NOTES:END -->

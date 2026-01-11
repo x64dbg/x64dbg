@@ -1,9 +1,10 @@
 ---
 id: task-11
 title: 'TitanEngine Test Suite: Attach/Detach Tests'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-01-11 15:19'
+updated_date: '2026-01-11 20:24'
 labels:
   - testing
 dependencies: []
@@ -26,3 +27,9 @@ Implement tests AD-01 through AD-07 covering attach to running process and detac
 - [ ] #6 AD-06: Attach, detach, re-attach
 - [ ] #7 AD-07: Attach to multi-threaded
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented 7 attach/detach tests (AD-01 to AD-07) covering attach to running process, detach, re-attach, BP setting on attached process, and clean termination.
+<!-- SECTION:NOTES:END -->

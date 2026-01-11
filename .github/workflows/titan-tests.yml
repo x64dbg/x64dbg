@@ -1,0 +1,68 @@
+name: TitanEngine Tests
+
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+    branches: [main, development]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, x86]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Install LLVM
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "18"
+          directory: ${{ runner.temp }}/llvm
+
+      - name: Visual Studio Development Environment
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+        with:
+          arch: ${{ matrix.arch }}
+
+      - name: Cache CMake Build
+        uses: actions/cache@v4
+        with:
+          path: build
+          key: titan-build-${{ matrix.arch }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', 'src/**/*.cpp', 'src/**/*.h') }}
+          restore-keys: |
+            titan-build-${{ matrix.arch }}-
+
+      - name: Build
+        run: |
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER="${{ runner.temp }}/llvm/bin/clang-cl.exe" -DCMAKE_CXX_COMPILER="${{ runner.temp }}/llvm/bin/clang-cl.exe"
+          cmake --build build
+
+      - name: Run TitanEngine Tests
+        id: tests
+        run: |
+          $testRunner = if ("${{ matrix.arch }}" -eq "x64") { "bin/x64/TitanTestRunner.exe" } else { "bin/x32/TitanTestRunner.exe" }
+          & $testRunner 2>&1 | Tee-Object -FilePath test-output.txt
+          if ($LASTEXITCODE -ne 0) {
+            echo "::error::TitanEngine tests failed for ${{ matrix.arch }}"
+            exit 1
+          }
+
+      - name: Upload Test Output
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: test-output-${{ matrix.arch }}
+          path: test-output.txt
+          retention-days: 7

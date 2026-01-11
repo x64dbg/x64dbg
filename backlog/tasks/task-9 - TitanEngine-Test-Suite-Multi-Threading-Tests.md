@@ -1,9 +1,10 @@
 ---
 id: task-9
 title: 'TitanEngine Test Suite: Multi-Threading Tests'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-01-11 15:18'
+updated_date: '2026-01-11 20:24'
 labels:
   - testing
 dependencies: []
@@ -29,3 +30,9 @@ Implement tests MT-01 through MT-10 covering multi-threaded breakpoint scenarios
 - [ ] #9 MT-09: 32 threads with same BP
 - [ ] #10 MT-10: Thread-specific BP (TID filter)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented 10 multi-threading tests (MT-01 to MT-10) covering thread creation detection, BPs on multiple threads, simultaneous BPs, and thread-specific stepping.
+<!-- SECTION:NOTES:END -->

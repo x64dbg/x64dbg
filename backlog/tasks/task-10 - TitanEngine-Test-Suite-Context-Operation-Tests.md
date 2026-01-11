@@ -1,9 +1,10 @@
 ---
 id: task-10
 title: 'TitanEngine Test Suite: Context Operation Tests'
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-01-11 15:18'
+updated_date: '2026-01-11 20:24'
 labels:
   - testing
 dependencies: []
@@ -29,3 +30,9 @@ Implement tests CX-01 through CX-10 covering register reading/writing for GPR, F
 - [ ] #9 CX-09: Segment registers
 - [ ] #10 CX-10: Full context round-trip
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented 10 context tests (CX-01 to CX-10) covering get/set CIP, CSP, general purpose registers, flags, and debug registers.
+<!-- SECTION:NOTES:END -->

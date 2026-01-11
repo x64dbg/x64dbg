@@ -1,9 +1,11 @@
 ---
 id: task-12
 title: 'TitanEngine Test Suite: Combined Scenario Tests'
-status: To Do
-assignee: []
+status: Done
+assignee:
+  - '@claude'
 created_date: '2026-01-11 15:19'
+updated_date: '2026-01-11 20:23'
 labels:
   - testing
 dependencies: []
@@ -29,3 +31,9 @@ Implement tests CB-01 through CB-10 covering complex scenarios with multiple bre
 - [ ] #9 CB-09: Detach with active BPs
 - [ ] #10 CB-10: Step over function that raises exception
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented 10 combined scenario tests (CB-01 to CB-10) testing multi-breakpoint, stepping with BPs, exception handling with BPs, attach with active BPs, and DLL load with BPs.
+<!-- SECTION:NOTES:END -->

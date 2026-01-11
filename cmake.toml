@@ -278,3 +278,191 @@ cmake-after = "add_dependencies(exe launcher)"
 OUTPUT_NAME = "x96dbg"
 WIN32_EXECUTABLE = "ON"
 X64DBG_BUILD_IN_TREE.RUNTIME_OUTPUT_DIRECTORY = "${PROJECT_SOURCE_DIR}/bin"
+
+[target.TitanTestRunner]
+type = "executable"
+sources = [
+    "src/titan_tests/*.cpp",
+    "src/titan_tests/*.h",
+    "src/titan_tests/tests/*.cpp",
+]
+private-include-directories = [
+    "src/dbg",
+    "src/titan_tests",
+]
+private-compile-features = ["cxx_std_17"]
+x86.link-libraries = [
+    "src/dbg/TitanEngine/TitanEngine_x86.lib",
+]
+x64.link-libraries = [
+    "src/dbg/TitanEngine/TitanEngine_x64.lib",
+]
+
+[target.TitanTestRunner.properties]
+x86.OUTPUT_NAME = "TitanTestRunner"
+x64.OUTPUT_NAME = "TitanTestRunner"
+
+# ============================================================================
+# TitanEngine Test Executables
+# Each has Static (no ASLR) and ASLR variants for both x86 and x64
+# ============================================================================
+
+# TestDll - Simple DLL for DLL load/unload event testing
+[target.TestDll]
+type = "shared"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestDll.cpp"]
+msvc.link-options = ["/DYNAMICBASE:NO"]
+
+[target.TestDll.properties]
+x86.OUTPUT_NAME = "TestDll_x32"
+x64.OUTPUT_NAME = "TestDll_x64"
+
+[target.TestDll_ASLR]
+type = "shared"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestDll.cpp"]
+
+[target.TestDll_ASLR.properties]
+x86.OUTPUT_NAME = "TestDll_x32_ASLR"
+x64.OUTPUT_NAME = "TestDll_x64_ASLR"
+
+# TestExe_Breakpoints - SW/HW/Memory breakpoint testing
+[target.TestExe_Breakpoints]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_Breakpoints.cpp"]
+msvc.link-options = ["/DYNAMICBASE:NO"]
+
+[target.TestExe_Breakpoints.properties]
+x86.OUTPUT_NAME = "TestExe_Breakpoints_x32"
+x64.OUTPUT_NAME = "TestExe_Breakpoints_x64"
+
+[target.TestExe_Breakpoints_ASLR]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_Breakpoints.cpp"]
+
+[target.TestExe_Breakpoints_ASLR.properties]
+x86.OUTPUT_NAME = "TestExe_Breakpoints_x32_ASLR"
+x64.OUTPUT_NAME = "TestExe_Breakpoints_x64_ASLR"
+
+# TestExe_Threading - Multi-threaded debugging scenarios
+[target.TestExe_Threading]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_Threading.cpp"]
+msvc.link-options = ["/DYNAMICBASE:NO"]
+
+[target.TestExe_Threading.properties]
+x86.OUTPUT_NAME = "TestExe_Threading_x32"
+x64.OUTPUT_NAME = "TestExe_Threading_x64"
+
+[target.TestExe_Threading_ASLR]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_Threading.cpp"]
+
+[target.TestExe_Threading_ASLR.properties]
+x86.OUTPUT_NAME = "TestExe_Threading_x32_ASLR"
+x64.OUTPUT_NAME = "TestExe_Threading_x64_ASLR"
+
+# TestExe_Exceptions - Exception handling testing
+[target.TestExe_Exceptions]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_Exceptions.cpp"]
+msvc.link-options = ["/DYNAMICBASE:NO"]
+
+[target.TestExe_Exceptions.properties]
+x86.OUTPUT_NAME = "TestExe_Exceptions_x32"
+x64.OUTPUT_NAME = "TestExe_Exceptions_x64"
+
+[target.TestExe_Exceptions_ASLR]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_Exceptions.cpp"]
+
+[target.TestExe_Exceptions_ASLR.properties]
+x86.OUTPUT_NAME = "TestExe_Exceptions_x32_ASLR"
+x64.OUTPUT_NAME = "TestExe_Exceptions_x64_ASLR"
+
+# TestExe_Stepping - Step-into/over testing
+[target.TestExe_Stepping]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_Stepping.cpp"]
+msvc.link-options = ["/DYNAMICBASE:NO"]
+
+[target.TestExe_Stepping.properties]
+x86.OUTPUT_NAME = "TestExe_Stepping_x32"
+x64.OUTPUT_NAME = "TestExe_Stepping_x64"
+
+[target.TestExe_Stepping_ASLR]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_Stepping.cpp"]
+
+[target.TestExe_Stepping_ASLR.properties]
+x86.OUTPUT_NAME = "TestExe_Stepping_x32_ASLR"
+x64.OUTPUT_NAME = "TestExe_Stepping_x64_ASLR"
+
+# TestExe_DllLoad - DLL load/unload event testing
+[target.TestExe_DllLoad]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_DllLoad.cpp"]
+msvc.link-options = ["/DYNAMICBASE:NO"]
+
+[target.TestExe_DllLoad.properties]
+x86.OUTPUT_NAME = "TestExe_DllLoad_x32"
+x64.OUTPUT_NAME = "TestExe_DllLoad_x64"
+
+[target.TestExe_DllLoad_ASLR]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_DllLoad.cpp"]
+
+[target.TestExe_DllLoad_ASLR.properties]
+x86.OUTPUT_NAME = "TestExe_DllLoad_x32_ASLR"
+x64.OUTPUT_NAME = "TestExe_DllLoad_x64_ASLR"
+
+# TestExe_Context - Register/context testing
+[target.TestExe_Context]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_Context.cpp"]
+msvc.link-options = ["/DYNAMICBASE:NO"]
+
+[target.TestExe_Context.properties]
+x86.OUTPUT_NAME = "TestExe_Context_x32"
+x64.OUTPUT_NAME = "TestExe_Context_x64"
+
+[target.TestExe_Context_ASLR]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_Context.cpp"]
+
+[target.TestExe_Context_ASLR.properties]
+x86.OUTPUT_NAME = "TestExe_Context_x32_ASLR"
+x64.OUTPUT_NAME = "TestExe_Context_x64_ASLR"
+
+# TestExe_Attach - Attach/detach testing
+[target.TestExe_Attach]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_Attach.cpp"]
+msvc.link-options = ["/DYNAMICBASE:NO"]
+
+[target.TestExe_Attach.properties]
+x86.OUTPUT_NAME = "TestExe_Attach_x32"
+x64.OUTPUT_NAME = "TestExe_Attach_x64"
+
+[target.TestExe_Attach_ASLR]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_Attach.cpp"]
+
+[target.TestExe_Attach_ASLR.properties]
+x86.OUTPUT_NAME = "TestExe_Attach_x32_ASLR"
+x64.OUTPUT_NAME = "TestExe_Attach_x64_ASLR"

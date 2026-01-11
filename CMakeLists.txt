@@ -1117,3 +1117,660 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
 	add_dependencies(exe launcher)
 
 endif()
+# Target: TitanTestRunner
+set(TitanTestRunner_SOURCES
+	cmake.toml
+	"src/titan_tests/TitanTestFramework.h"
+	"src/titan_tests/TitanTestRunner.cpp"
+	"src/titan_tests/tests/ASLRTests.cpp"
+	"src/titan_tests/tests/DebugEventTests.cpp"
+	"src/titan_tests/tests/ExceptionTests.cpp"
+	"src/titan_tests/tests/HardwareBreakpointTests.cpp"
+	"src/titan_tests/tests/MemoryBreakpointTests.cpp"
+	"src/titan_tests/tests/MultiThreadingTests.cpp"
+	"src/titan_tests/tests/SoftwareBreakpointTests.cpp"
+	"src/titan_tests/tests/SteppingTests.cpp"
+)
+
+add_executable(TitanTestRunner)
+
+target_sources(TitanTestRunner PRIVATE ${TitanTestRunner_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TitanTestRunner_SOURCES})
+
+target_compile_features(TitanTestRunner PRIVATE
+	cxx_std_17
+)
+
+target_include_directories(TitanTestRunner PRIVATE
+	"src/dbg"
+	"src/titan_tests"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	target_link_libraries(TitanTestRunner PRIVATE
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/dbg/TitanEngine/TitanEngine_x86.lib"
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	target_link_libraries(TitanTestRunner PRIVATE
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/dbg/TitanEngine/TitanEngine_x64.lib"
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TitanTestRunner PROPERTIES
+		OUTPUT_NAME
+			TitanTestRunner
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TitanTestRunner PROPERTIES
+		OUTPUT_NAME
+			TitanTestRunner
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TitanTestRunner)
+endif()
+
+# Target: TestDll
+set(TestDll_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestDll.cpp"
+)
+
+add_library(TestDll SHARED)
+
+target_sources(TestDll PRIVATE ${TestDll_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestDll_SOURCES})
+
+if(MSVC) # msvc
+	target_link_options(TestDll PUBLIC
+		"/DYNAMICBASE:NO"
+	)
+endif()
+
+set_target_properties(TestDll PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestDll PROPERTIES
+		OUTPUT_NAME
+			TestDll_x32
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestDll PROPERTIES
+		OUTPUT_NAME
+			TestDll_x64
+	)
+endif()
+
+# Target: TestDll_ASLR
+set(TestDll_ASLR_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestDll.cpp"
+)
+
+add_library(TestDll_ASLR SHARED)
+
+target_sources(TestDll_ASLR PRIVATE ${TestDll_ASLR_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestDll_ASLR_SOURCES})
+
+set_target_properties(TestDll_ASLR PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestDll_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestDll_x32_ASLR
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestDll_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestDll_x64_ASLR
+	)
+endif()
+
+# Target: TestExe_Breakpoints
+set(TestExe_Breakpoints_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_Breakpoints.cpp"
+)
+
+add_executable(TestExe_Breakpoints)
+
+target_sources(TestExe_Breakpoints PRIVATE ${TestExe_Breakpoints_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_Breakpoints_SOURCES})
+
+if(MSVC) # msvc
+	target_link_options(TestExe_Breakpoints PRIVATE
+		"/DYNAMICBASE:NO"
+	)
+endif()
+
+set_target_properties(TestExe_Breakpoints PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_Breakpoints PROPERTIES
+		OUTPUT_NAME
+			TestExe_Breakpoints_x32
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_Breakpoints PROPERTIES
+		OUTPUT_NAME
+			TestExe_Breakpoints_x64
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_Breakpoints)
+endif()
+
+# Target: TestExe_Breakpoints_ASLR
+set(TestExe_Breakpoints_ASLR_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_Breakpoints.cpp"
+)
+
+add_executable(TestExe_Breakpoints_ASLR)
+
+target_sources(TestExe_Breakpoints_ASLR PRIVATE ${TestExe_Breakpoints_ASLR_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_Breakpoints_ASLR_SOURCES})
+
+set_target_properties(TestExe_Breakpoints_ASLR PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_Breakpoints_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_Breakpoints_x32_ASLR
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_Breakpoints_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_Breakpoints_x64_ASLR
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_Breakpoints_ASLR)
+endif()
+
+# Target: TestExe_Threading
+set(TestExe_Threading_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_Threading.cpp"
+)
+
+add_executable(TestExe_Threading)
+
+target_sources(TestExe_Threading PRIVATE ${TestExe_Threading_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_Threading_SOURCES})
+
+if(MSVC) # msvc
+	target_link_options(TestExe_Threading PRIVATE
+		"/DYNAMICBASE:NO"
+	)
+endif()
+
+set_target_properties(TestExe_Threading PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_Threading PROPERTIES
+		OUTPUT_NAME
+			TestExe_Threading_x32
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_Threading PROPERTIES
+		OUTPUT_NAME
+			TestExe_Threading_x64
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_Threading)
+endif()
+
+# Target: TestExe_Threading_ASLR
+set(TestExe_Threading_ASLR_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_Threading.cpp"
+)
+
+add_executable(TestExe_Threading_ASLR)
+
+target_sources(TestExe_Threading_ASLR PRIVATE ${TestExe_Threading_ASLR_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_Threading_ASLR_SOURCES})
+
+set_target_properties(TestExe_Threading_ASLR PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_Threading_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_Threading_x32_ASLR
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_Threading_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_Threading_x64_ASLR
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_Threading_ASLR)
+endif()
+
+# Target: TestExe_Exceptions
+set(TestExe_Exceptions_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_Exceptions.cpp"
+)
+
+add_executable(TestExe_Exceptions)
+
+target_sources(TestExe_Exceptions PRIVATE ${TestExe_Exceptions_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_Exceptions_SOURCES})
+
+if(MSVC) # msvc
+	target_link_options(TestExe_Exceptions PRIVATE
+		"/DYNAMICBASE:NO"
+	)
+endif()
+
+set_target_properties(TestExe_Exceptions PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_Exceptions PROPERTIES
+		OUTPUT_NAME
+			TestExe_Exceptions_x32
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_Exceptions PROPERTIES
+		OUTPUT_NAME
+			TestExe_Exceptions_x64
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_Exceptions)
+endif()
+
+# Target: TestExe_Exceptions_ASLR
+set(TestExe_Exceptions_ASLR_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_Exceptions.cpp"
+)
+
+add_executable(TestExe_Exceptions_ASLR)
+
+target_sources(TestExe_Exceptions_ASLR PRIVATE ${TestExe_Exceptions_ASLR_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_Exceptions_ASLR_SOURCES})
+
+set_target_properties(TestExe_Exceptions_ASLR PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_Exceptions_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_Exceptions_x32_ASLR
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_Exceptions_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_Exceptions_x64_ASLR
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_Exceptions_ASLR)
+endif()
+
+# Target: TestExe_Stepping
+set(TestExe_Stepping_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_Stepping.cpp"
+)
+
+add_executable(TestExe_Stepping)
+
+target_sources(TestExe_Stepping PRIVATE ${TestExe_Stepping_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_Stepping_SOURCES})
+
+if(MSVC) # msvc
+	target_link_options(TestExe_Stepping PRIVATE
+		"/DYNAMICBASE:NO"
+	)
+endif()
+
+set_target_properties(TestExe_Stepping PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_Stepping PROPERTIES
+		OUTPUT_NAME
+			TestExe_Stepping_x32
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_Stepping PROPERTIES
+		OUTPUT_NAME
+			TestExe_Stepping_x64
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_Stepping)
+endif()
+
+# Target: TestExe_Stepping_ASLR
+set(TestExe_Stepping_ASLR_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_Stepping.cpp"
+)
+
+add_executable(TestExe_Stepping_ASLR)
+
+target_sources(TestExe_Stepping_ASLR PRIVATE ${TestExe_Stepping_ASLR_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_Stepping_ASLR_SOURCES})
+
+set_target_properties(TestExe_Stepping_ASLR PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_Stepping_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_Stepping_x32_ASLR
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_Stepping_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_Stepping_x64_ASLR
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_Stepping_ASLR)
+endif()
+
+# Target: TestExe_DllLoad
+set(TestExe_DllLoad_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_DllLoad.cpp"
+)
+
+add_executable(TestExe_DllLoad)
+
+target_sources(TestExe_DllLoad PRIVATE ${TestExe_DllLoad_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_DllLoad_SOURCES})
+
+if(MSVC) # msvc
+	target_link_options(TestExe_DllLoad PRIVATE
+		"/DYNAMICBASE:NO"
+	)
+endif()
+
+set_target_properties(TestExe_DllLoad PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_DllLoad PROPERTIES
+		OUTPUT_NAME
+			TestExe_DllLoad_x32
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_DllLoad PROPERTIES
+		OUTPUT_NAME
+			TestExe_DllLoad_x64
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_DllLoad)
+endif()
+
+# Target: TestExe_DllLoad_ASLR
+set(TestExe_DllLoad_ASLR_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_DllLoad.cpp"
+)
+
+add_executable(TestExe_DllLoad_ASLR)
+
+target_sources(TestExe_DllLoad_ASLR PRIVATE ${TestExe_DllLoad_ASLR_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_DllLoad_ASLR_SOURCES})
+
+set_target_properties(TestExe_DllLoad_ASLR PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_DllLoad_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_DllLoad_x32_ASLR
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_DllLoad_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_DllLoad_x64_ASLR
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_DllLoad_ASLR)
+endif()
+
+# Target: TestExe_Context
+set(TestExe_Context_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_Context.cpp"
+)
+
+add_executable(TestExe_Context)
+
+target_sources(TestExe_Context PRIVATE ${TestExe_Context_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_Context_SOURCES})
+
+if(MSVC) # msvc
+	target_link_options(TestExe_Context PRIVATE
+		"/DYNAMICBASE:NO"
+	)
+endif()
+
+set_target_properties(TestExe_Context PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_Context PROPERTIES
+		OUTPUT_NAME
+			TestExe_Context_x32
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_Context PROPERTIES
+		OUTPUT_NAME
+			TestExe_Context_x64
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_Context)
+endif()
+
+# Target: TestExe_Context_ASLR
+set(TestExe_Context_ASLR_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_Context.cpp"
+)
+
+add_executable(TestExe_Context_ASLR)
+
+target_sources(TestExe_Context_ASLR PRIVATE ${TestExe_Context_ASLR_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_Context_ASLR_SOURCES})
+
+set_target_properties(TestExe_Context_ASLR PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_Context_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_Context_x32_ASLR
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_Context_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_Context_x64_ASLR
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_Context_ASLR)
+endif()
+
+# Target: TestExe_Attach
+set(TestExe_Attach_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_Attach.cpp"
+)
+
+add_executable(TestExe_Attach)
+
+target_sources(TestExe_Attach PRIVATE ${TestExe_Attach_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_Attach_SOURCES})
+
+if(MSVC) # msvc
+	target_link_options(TestExe_Attach PRIVATE
+		"/DYNAMICBASE:NO"
+	)
+endif()
+
+set_target_properties(TestExe_Attach PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_Attach PROPERTIES
+		OUTPUT_NAME
+			TestExe_Attach_x32
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_Attach PROPERTIES
+		OUTPUT_NAME
+			TestExe_Attach_x64
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_Attach)
+endif()
+
+# Target: TestExe_Attach_ASLR
+set(TestExe_Attach_ASLR_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_Attach.cpp"
+)
+
+add_executable(TestExe_Attach_ASLR)
+
+target_sources(TestExe_Attach_ASLR PRIVATE ${TestExe_Attach_ASLR_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_Attach_ASLR_SOURCES})
+
+set_target_properties(TestExe_Attach_ASLR PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_Attach_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_Attach_x32_ASLR
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_Attach_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_Attach_x64_ASLR
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_Attach_ASLR)
+endif()
