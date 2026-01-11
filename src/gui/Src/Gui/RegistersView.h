@@ -166,11 +166,11 @@ protected:
     QAction* setupAction(const QIcon & icon, const QString & text);
     QAction* setupAction(const QString & text);
     // events
-    virtual void mousePressEvent(QMouseEvent* event);
-    virtual void mouseDoubleClickEvent(QMouseEvent* event);
-    virtual void mouseMoveEvent(QMouseEvent* event);
-    virtual void paintEvent(QPaintEvent* event);
-    virtual void keyPressEvent(QKeyEvent* event);
+    virtual void mousePressEvent(QMouseEvent* event) override;
+    virtual void mouseDoubleClickEvent(QMouseEvent* event) override;
+    virtual void mouseMoveEvent(QMouseEvent* event) override;
+    virtual void paintEvent(QPaintEvent* event) override;
+    virtual void keyPressEvent(QKeyEvent* event) override;
     virtual void wheelEvent(QWheelEvent* event) override;
 
     // use-in-class-only methods

@@ -578,6 +578,8 @@ typedef MEMORY_SIZE VALUE_SIZE;
 
 typedef struct DBGFUNCTIONS_ DBGFUNCTIONS;
 
+struct SYMBOLPTR_;  // Forward declaration
+
 // Callback declaration:
 // bool cbSymbolEnum(const SYMBOLPTR* symbol, void* user);
 // To get the data from the opaque pointer:
@@ -695,9 +697,8 @@ struct SYMBOLINFOCPP : SYMBOLINFO
     SYMBOLINFOCPP(const SYMBOLINFOCPP &) = delete;
     SYMBOLINFOCPP(SYMBOLINFOCPP &&) = delete;
 
-    SYMBOLINFOCPP()
+    SYMBOLINFOCPP() : SYMBOLINFO{}
     {
-        memset(this, 0, sizeof(SYMBOLINFO));
     }
 
     ~SYMBOLINFOCPP()

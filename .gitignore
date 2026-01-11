@@ -35,3 +35,4 @@ Makefile.*
 
 CMakeLists.txt.user
 /.cache
+CMakeUserPresets.json

@@ -1,8 +1,11 @@
 #pragma once
 
+#include <type_traits>
+
 template<typename T>
 class Memory
 {
+    static_assert(std::is_pointer<T>::value, "Memory template parameter must be a pointer type");
 public:
     //
     // This class guarantees that the returned allocated memory
@@ -46,7 +49,8 @@ public:
         m_Reason = Reason;
 #endif //ENABLE_MEM_TRACE
 
-        return (T)memset(m_Ptr, 0, m_Size);
+        memset(m_Ptr, 0, m_Size);
+        return m_Ptr;
     }
 
     size_t size() const

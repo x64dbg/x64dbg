@@ -85,3 +85,11 @@ if(X64DBG_BUILD_IN_TREE)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_DIRECTORY})
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_DIRECTORY})
 endif()
+
+# Workaround for RC files to be treated as UTF-8 with llvm-rc
+if(CMAKE_RC_COMPILER MATCHES "[\\\\/]llvm-rc(.exe)?$")
+    message(STATUS "Detected llvm-rc, applying UTF-8 workaround")
+    # https://github.com/llvm/llvm-project/issues/63426#issuecomment-2769972658
+  # https://stackoverflow.com/a/38346103/1806760
+  set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> /C 65001 /fo<OBJECT> <SOURCE>")
+endif()
