@@ -27,6 +27,83 @@
 namespace TitanTest
 {
 
+//-----------------------------------------------------------------------------
+// Architecture-aware test executable path helper
+//-----------------------------------------------------------------------------
+
+// Returns the architecture suffix for test executables (_x64 or _x32)
+inline const wchar_t* GetArchSuffix()
+{
+#ifdef _WIN64
+    return L"_x64";
+#else
+    return L"_x32";
+#endif
+}
+
+// Build test executable path with correct architecture suffix
+// Example: GetTestExePath(L"TestExe_Breakpoints") -> "C:\...\TestExe_Breakpoints_x64.exe"
+inline std::wstring GetTestExePath(const wchar_t* baseName)
+{
+    wchar_t modulePath[MAX_PATH];
+    GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
+
+    wchar_t* lastSlash = wcsrchr(modulePath, L'\\');
+    if (lastSlash)
+    {
+        *(lastSlash + 1) = L'\0';
+    }
+
+    return std::wstring(modulePath) + baseName + GetArchSuffix() + L".exe";
+}
+
+// Build test executable path with ASLR suffix
+// Example: GetTestExePathASLR(L"TestExe_Breakpoints") -> "C:\...\TestExe_Breakpoints_x64_ASLR.exe"
+inline std::wstring GetTestExePathASLR(const wchar_t* baseName)
+{
+    wchar_t modulePath[MAX_PATH];
+    GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
+
+    wchar_t* lastSlash = wcsrchr(modulePath, L'\\');
+    if (lastSlash)
+    {
+        *(lastSlash + 1) = L'\0';
+    }
+
+    return std::wstring(modulePath) + baseName + GetArchSuffix() + L"_ASLR.exe";
+}
+
+//-----------------------------------------------------------------------------
+// Module base address helper - avoids toolhelp deadlock during debugging
+//-----------------------------------------------------------------------------
+
+// Global to store the debuggee's image base (set by CREATE_PROCESS handler)
+inline ULONG_PTR g_debuggeeImageBase = 0;
+
+// Call this from your CREATE_PROCESS handler to cache the image base
+// The info parameter is the CREATE_PROCESS_DEBUG_INFO pointer from the callback
+// Example: SetCustomHandler(UE_CH_CREATEPROCESS, [](const void* info) { TitanTest::CacheDebuggeeImageBase(info); });
+inline void CacheDebuggeeImageBase(const void* info)
+{
+    if (info)
+    {
+        const CREATE_PROCESS_DEBUG_INFO* cpdi = static_cast<const CREATE_PROCESS_DEBUG_INFO*>(info);
+        g_debuggeeImageBase = (ULONG_PTR)cpdi->lpBaseOfImage;
+    }
+}
+
+// Get the cached debuggee image base (call CacheDebuggeeImageBase first)
+inline ULONG_PTR GetDebuggeeImageBase()
+{
+    return g_debuggeeImageBase;
+}
+
+// Reset the cached image base (call at start of each test)
+inline void ResetDebuggeeImageBase()
+{
+    g_debuggeeImageBase = 0;
+}
+
 // Forward declarations
 struct TestResult;
 struct TestInfo;

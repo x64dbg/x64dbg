@@ -61,19 +61,10 @@ void ResetTestState()
     g_expectMultipleHits = false;
 }
 
-// Get the test executable path
+// Get the test executable path (uses framework helper with architecture suffix)
 std::wstring GetTestExePath()
 {
-    wchar_t modulePath[MAX_PATH];
-    GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
-
-    wchar_t* lastSlash = wcsrchr(modulePath, L'\\');
-    if (lastSlash)
-    {
-        *(lastSlash + 1) = L'\0';
-    }
-
-    return std::wstring(modulePath) + L"TestExe_Breakpoints.exe";
+    return TitanTest::GetTestExePath(L"TestExe_Breakpoints");
 }
 
 // Get address of exported symbol from debuggee

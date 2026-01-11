@@ -54,49 +54,22 @@ void ResetTestState()
     g_mainThreadId = 0;
 }
 
-// Get the test executable path
+// Get the test executable path (uses framework helper with architecture suffix)
 std::wstring GetTestExePath()
 {
-    wchar_t modulePath[MAX_PATH];
-    GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
-
-    wchar_t* lastSlash = wcsrchr(modulePath, L'\\');
-    if (lastSlash)
-    {
-        *(lastSlash + 1) = L'\0';
-    }
-
-    return std::wstring(modulePath) + L"TestExe_DebugEvents.exe";
+    return TitanTest::GetTestExePath(L"TestExe_DebugEvents");
 }
 
-// Alternative: use TestExe_Threading.exe which already exists
+// Alternative: use TestExe_Threading which already exists
 std::wstring GetThreadingTestExePath()
 {
-    wchar_t modulePath[MAX_PATH];
-    GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
-
-    wchar_t* lastSlash = wcsrchr(modulePath, L'\\');
-    if (lastSlash)
-    {
-        *(lastSlash + 1) = L'\0';
-    }
-
-    return std::wstring(modulePath) + L"TestExe_Threading.exe";
+    return TitanTest::GetTestExePath(L"TestExe_Threading");
 }
 
-// Use TestExe_Breakpoints.exe as fallback (it exists and runs without special setup)
+// Use TestExe_Breakpoints as fallback (it exists and runs without special setup)
 std::wstring GetBreakpointsTestExePath()
 {
-    wchar_t modulePath[MAX_PATH];
-    GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
-
-    wchar_t* lastSlash = wcsrchr(modulePath, L'\\');
-    if (lastSlash)
-    {
-        *(lastSlash + 1) = L'\0';
-    }
-
-    return std::wstring(modulePath) + L"TestExe_Breakpoints.exe";
+    return TitanTest::GetTestExePath(L"TestExe_Breakpoints");
 }
 
 //-----------------------------------------------------------------------------

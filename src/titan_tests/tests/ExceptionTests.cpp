@@ -16,19 +16,10 @@
 
 namespace
 {
-    // Path to test executable
+    // Path to test executable (uses framework helper with architecture suffix)
     std::wstring GetTestExePath()
     {
-        wchar_t path[MAX_PATH];
-        GetModuleFileNameW(nullptr, path, MAX_PATH);
-        std::wstring exePath(path);
-        size_t lastSlash = exePath.find_last_of(L"\\/");
-        if (lastSlash != std::wstring::npos)
-        {
-            exePath = exePath.substr(0, lastSlash + 1);
-        }
-        exePath += L"TestExe_Exceptions.exe";
-        return exePath;
+        return TitanTest::GetTestExePath(L"TestExe_Exceptions");
     }
 
     // Shared state for callbacks

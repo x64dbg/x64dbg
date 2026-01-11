@@ -49,23 +49,13 @@ void ResetTestState()
     g_dllBase = 0;
     g_targetAddress = 0;
     g_deleteBpDuringCallback = false;
+    TitanTest::ResetDebuggeeImageBase();
 }
 
-// Get the test executable path
+// Get the test executable path (uses framework helper with architecture suffix)
 std::wstring GetTestExePath()
 {
-    // The test executable is expected to be in the same directory as the test runner
-    wchar_t modulePath[MAX_PATH];
-    GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
-
-    // Find the last backslash
-    wchar_t* lastSlash = wcsrchr(modulePath, L'\\');
-    if (lastSlash)
-    {
-        *(lastSlash + 1) = L'\0';
-    }
-
-    return std::wstring(modulePath) + L"TestExe_Breakpoints.exe";
+    return TitanTest::GetTestExePath(L"TestExe_Breakpoints");
 }
 
 // Get address of exported function from debuggee
@@ -154,6 +144,13 @@ void OnSystemBreakpoint(const void*)
 void OnProcessCreated(const void* info)
 {
     g_processCreated = true;
+    // Cache the image base to avoid toolhelp deadlock later
+    // Use GetDebugData() to access the CREATE_PROCESS_DEBUG_INFO
+    const DEBUG_EVENT* dbgEvent = GetDebugData();
+    if (dbgEvent && dbgEvent->dwDebugEventCode == CREATE_PROCESS_DEBUG_EVENT)
+    {
+        TitanTest::g_debuggeeImageBase = (ULONG_PTR)dbgEvent->u.CreateProcessInfo.lpBaseOfImage;
+    }
 }
 
 void OnProcessExited(const void* info)
@@ -232,25 +229,30 @@ struct DebugSession
         SetCustomHandler(UE_CH_LOADDLL, OnDllLoaded);
     }
 
-    ULONG_PTR GetExport(const char* name)
+    ULONG_PTR GetModuleBase()
     {
-        // Get the image base from the process
-        ULONG_PTR moduleBase = 0;
+        if (imageBase != 0)
+            return imageBase;
+
         HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pi->dwProcessId);
         if (hSnapshot != INVALID_HANDLE_VALUE)
         {
             MODULEENTRY32W me = {sizeof(me)};
             if (Module32FirstW(hSnapshot, &me))
             {
-                moduleBase = (ULONG_PTR)me.modBaseAddr;
+                imageBase = (ULONG_PTR)me.modBaseAddr;
             }
             CloseHandle(hSnapshot);
         }
+        return imageBase;
+    }
 
+    ULONG_PTR GetExport(const char* name)
+    {
+        ULONG_PTR moduleBase = GetModuleBase();
         if (moduleBase == 0)
             return 0;
 
-        imageBase = moduleBase;
         return GetExportAddress(hProcess, moduleBase, name);
     }
 

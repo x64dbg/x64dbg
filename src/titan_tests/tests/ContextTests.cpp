@@ -65,19 +65,10 @@ void ResetTestState()
     g_modifiedValue = 0;
 }
 
-// Get the test executable path
+// Get the test executable path (uses framework helper with architecture suffix)
 std::wstring GetTestExePath()
 {
-    wchar_t modulePath[MAX_PATH];
-    GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
-
-    wchar_t* lastSlash = wcsrchr(modulePath, L'\\');
-    if (lastSlash)
-    {
-        *(lastSlash + 1) = L'\0';
-    }
-
-    return std::wstring(modulePath) + L"TestExe_Context.exe";
+    return TitanTest::GetTestExePath(L"TestExe_Context");
 }
 
 // Get address of exported function from debuggee

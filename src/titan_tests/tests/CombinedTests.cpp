@@ -73,19 +73,11 @@ void ResetTestState()
     g_hProcess = nullptr;
 }
 
-// Get the test executable path
-std::wstring GetTestExePath(const wchar_t* exeName)
+// Get the test executable path (uses framework helper with architecture suffix)
+// Pass the base name WITHOUT .exe extension - the framework adds _x64/_x32 suffix and .exe
+std::wstring GetTestExePath(const wchar_t* baseName)
 {
-    wchar_t modulePath[MAX_PATH];
-    GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
-
-    wchar_t* lastSlash = wcsrchr(modulePath, L'\\');
-    if (lastSlash)
-    {
-        *(lastSlash + 1) = L'\0';
-    }
-
-    return std::wstring(modulePath) + exeName;
+    return TitanTest::GetTestExePath(baseName);
 }
 
 // Get address of exported function from debuggee
@@ -248,7 +240,7 @@ TITAN_TEST_ID("CB-01", CB_01, "SW BP -> step -> HW BP sequence")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Breakpoints.exe");
+    std::wstring exePath = GetTestExePath(L"TestExe_Breakpoints");
     DebugSession session;
 
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
@@ -328,7 +320,7 @@ TITAN_TEST_ID("CB-02", CB_02, "HW BP -> step -> Memory BP sequence")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Breakpoints.exe");
+    std::wstring exePath = GetTestExePath(L"TestExe_Breakpoints");
     DebugSession session;
 
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
@@ -410,7 +402,7 @@ TITAN_TEST_ID("CB-03", CB_03, "Exception -> continue -> BP sequence")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Exceptions.exe");
+    std::wstring exePath = GetTestExePath(L"TestExe_Exceptions");
     DebugSession session;
 
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
@@ -470,7 +462,7 @@ TITAN_TEST_ID("CB-04", CB_04, "DLL load -> set BP in DLL")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_DllLoad.exe");
+    std::wstring exePath = GetTestExePath(L"TestExe_DllLoad");
     DebugSession session;
 
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
@@ -533,7 +525,7 @@ TITAN_TEST_ID("CB-05", CB_05, "Thread create -> set BP -> thread hits")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Threading.exe");
+    std::wstring exePath = GetTestExePath(L"TestExe_Threading");
     DebugSession session;
 
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
@@ -588,7 +580,7 @@ TITAN_TEST_ID("CB-06", CB_06, "Multiple exception types in sequence")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Exceptions.exe");
+    std::wstring exePath = GetTestExePath(L"TestExe_Exceptions");
     DebugSession session;
 
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
@@ -637,7 +629,7 @@ TITAN_TEST_ID("CB-07", CB_07, "BP + thread exit")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Threading.exe");
+    std::wstring exePath = GetTestExePath(L"TestExe_Threading");
     DebugSession session;
 
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
@@ -687,7 +679,7 @@ TITAN_TEST_ID("CB-08", CB_08, "Memory BP + SW BP same page")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Breakpoints.exe");
+    std::wstring exePath = GetTestExePath(L"TestExe_Breakpoints");
     DebugSession session;
 
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
@@ -750,7 +742,7 @@ TITAN_TEST_ID("CB-09", CB_09, "Detach with active BPs")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Breakpoints.exe");
+    std::wstring exePath = GetTestExePath(L"TestExe_Breakpoints");
     std::wstring cmdLine = L"--loop";  // Make the process loop
     DebugSession session;
 
@@ -841,7 +833,7 @@ TITAN_TEST_ID("CB-10", CB_10, "Step over function that raises exception")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Exceptions.exe");
+    std::wstring exePath = GetTestExePath(L"TestExe_Exceptions");
     DebugSession session;
 
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");

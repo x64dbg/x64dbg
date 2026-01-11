@@ -85,23 +85,10 @@ void CleanupThreadLock()
     DeleteCriticalSection(&g_threadIdLock);
 }
 
-// Get the test executable path
+// Get the test executable path (uses framework helper with architecture suffix)
 std::wstring GetTestExePath()
 {
-    wchar_t modulePath[MAX_PATH];
-    GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
-
-    wchar_t* lastSlash = wcsrchr(modulePath, L'\\');
-    if (lastSlash)
-    {
-        *(lastSlash + 1) = L'\0';
-    }
-
-#ifdef _WIN64
-    return std::wstring(modulePath) + L"TestExe_Threading_x64.exe";
-#else
-    return std::wstring(modulePath) + L"TestExe_Threading_x32.exe";
-#endif
+    return TitanTest::GetTestExePath(L"TestExe_Threading");
 }
 
 // Get address of exported function from debuggee

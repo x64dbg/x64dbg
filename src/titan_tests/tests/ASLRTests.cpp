@@ -67,24 +67,10 @@ void ResetASLRTestState()
     g_memBpHit = false;
 }
 
-// Get the ASLR test executable path
+// Get the ASLR test executable path (uses framework helper with architecture suffix)
 std::wstring GetASLRTestExePath()
 {
-    wchar_t modulePath[MAX_PATH];
-    GetModuleFileNameW(nullptr, modulePath, MAX_PATH);
-
-    // Find the last backslash
-    wchar_t* lastSlash = wcsrchr(modulePath, L'\\');
-    if (lastSlash)
-    {
-        *(lastSlash + 1) = L'\0';
-    }
-
-#ifdef _WIN64
-    return std::wstring(modulePath) + L"TestExe_Breakpoints_x64_ASLR.exe";
-#else
-    return std::wstring(modulePath) + L"TestExe_Breakpoints_x32_ASLR.exe";
-#endif
+    return TitanTest::GetTestExePathASLR(L"TestExe_Breakpoints");
 }
 
 // Get address of exported function from debuggee
