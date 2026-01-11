@@ -407,6 +407,6 @@ void TraceWidget::followActionSlot()
 
 void TraceWidget::closeEvent(QCloseEvent* event)
 {
-	MessageBoxA(GuiGetWindowHandle(), "Trace file closed", "Info", MB_OK | MB_ICONINFORMATION);
-	QWidget::closeEvent(event);
+    MessageBoxA(GuiGetWindowHandle(), "Trace file closed", "Info", MB_OK | MB_ICONINFORMATION);
+    QWidget::closeEvent(event);
 }
