@@ -290,6 +290,26 @@ int main(int argc, char* argv[])
     // Test mixed ops
     result += bp_mixed_ops(1, 2, 3);
 
+    // Load TestDll and call DllBpTarget for SW-10 DLL breakpoint test
+    {
+#ifdef _WIN64
+        const wchar_t* dllName = L"TestDll_x64.dll";
+#else
+        const wchar_t* dllName = L"TestDll_x32.dll";
+#endif
+        HMODULE hDll = LoadLibraryW(dllName);
+        if (hDll)
+        {
+            typedef DWORD(__cdecl* DllBpTargetFunc)(DWORD);
+            auto DllBpTarget = (DllBpTargetFunc)GetProcAddress(hDll, "DllBpTarget");
+            if (DllBpTarget)
+            {
+                result += DllBpTarget(42);
+            }
+            FreeLibrary(hDll);
+        }
+    }
+
     // If command line argument provided, loop forever (for attach testing)
     if (argc > 1 && strcmp(argv[1], "--loop") == 0)
     {

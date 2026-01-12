@@ -63,6 +63,16 @@ extern "C" __declspec(dllexport) DWORD __cdecl dll_compute(DWORD a, DWORD b, DWO
 }
 EXPORT_SYMBOL(dll_compute)
 
+// Target for breakpoint testing in DLL
+extern "C" __declspec(dllexport) volatile DWORD g_DllCounter = 0;
+
+extern "C" __declspec(dllexport) DWORD __cdecl DllBpTarget(DWORD value)
+{
+    g_DllCounter++;
+    return value + 10;
+}
+EXPORT_SYMBOL(DllBpTarget)
+
 // Callback function type for testing
 typedef void (CALLBACK *DLL_CALLBACK)(DWORD value);
 

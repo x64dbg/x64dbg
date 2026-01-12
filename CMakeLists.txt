@@ -1123,6 +1123,9 @@ set(TitanTestRunner_SOURCES
 	"src/titan_tests/TitanTestFramework.h"
 	"src/titan_tests/TitanTestRunner.cpp"
 	"src/titan_tests/tests/ASLRTests.cpp"
+	"src/titan_tests/tests/AttachDetachTests.cpp"
+	"src/titan_tests/tests/CombinedTests.cpp"
+	"src/titan_tests/tests/ContextTests.cpp"
 	"src/titan_tests/tests/DebugEventTests.cpp"
 	"src/titan_tests/tests/ExceptionTests.cpp"
 	"src/titan_tests/tests/HardwareBreakpointTests.cpp"
@@ -1773,4 +1776,80 @@ endif()
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_Attach_ASLR)
+endif()
+
+# Target: TestExe_DebugEvents
+set(TestExe_DebugEvents_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_DebugEvents.cpp"
+)
+
+add_executable(TestExe_DebugEvents)
+
+target_sources(TestExe_DebugEvents PRIVATE ${TestExe_DebugEvents_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_DebugEvents_SOURCES})
+
+if(MSVC) # msvc
+	target_link_options(TestExe_DebugEvents PRIVATE
+		"/DYNAMICBASE:NO"
+	)
+endif()
+
+set_target_properties(TestExe_DebugEvents PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_DebugEvents PROPERTIES
+		OUTPUT_NAME
+			TestExe_DebugEvents_x32
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_DebugEvents PROPERTIES
+		OUTPUT_NAME
+			TestExe_DebugEvents_x64
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_DebugEvents)
+endif()
+
+# Target: TestExe_DebugEvents_ASLR
+set(TestExe_DebugEvents_ASLR_SOURCES
+	cmake.toml
+	"src/titan_tests/targets/TestExe_DebugEvents.cpp"
+)
+
+add_executable(TestExe_DebugEvents_ASLR)
+
+target_sources(TestExe_DebugEvents_ASLR PRIVATE ${TestExe_DebugEvents_ASLR_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TestExe_DebugEvents_ASLR_SOURCES})
+
+set_target_properties(TestExe_DebugEvents_ASLR PROPERTIES
+	MSVC_RUNTIME_LIBRARY
+		"MultiThreaded$<$<CONFIG:Debug>:Debug>"
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(TestExe_DebugEvents_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_DebugEvents_x32_ASLR
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(TestExe_DebugEvents_ASLR PROPERTIES
+		OUTPUT_NAME
+			TestExe_DebugEvents_x64_ASLR
+	)
+endif()
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT TestExe_DebugEvents_ASLR)
 endif()

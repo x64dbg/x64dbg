@@ -466,3 +466,23 @@ sources = ["src/titan_tests/targets/TestExe_Attach.cpp"]
 [target.TestExe_Attach_ASLR.properties]
 x86.OUTPUT_NAME = "TestExe_Attach_x32_ASLR"
 x64.OUTPUT_NAME = "TestExe_Attach_x64_ASLR"
+
+# TestExe_DebugEvents - Debug event testing (threads, DLLs, debug strings)
+[target.TestExe_DebugEvents]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_DebugEvents.cpp"]
+msvc.link-options = ["/DYNAMICBASE:NO"]
+
+[target.TestExe_DebugEvents.properties]
+x86.OUTPUT_NAME = "TestExe_DebugEvents_x32"
+x64.OUTPUT_NAME = "TestExe_DebugEvents_x64"
+
+[target.TestExe_DebugEvents_ASLR]
+type = "executable"
+msvc-runtime = "static"
+sources = ["src/titan_tests/targets/TestExe_DebugEvents.cpp"]
+
+[target.TestExe_DebugEvents_ASLR.properties]
+x86.OUTPUT_NAME = "TestExe_DebugEvents_x32_ASLR"
+x64.OUTPUT_NAME = "TestExe_DebugEvents_x64_ASLR"

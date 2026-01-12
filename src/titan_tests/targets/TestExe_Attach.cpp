@@ -30,6 +30,9 @@ extern "C" {
 // Mutex for signaling
 static HANDLE g_stop_event = NULL;
 
+// Ready event for test synchronization
+static HANDLE g_ready_event = NULL;
+
 // ============================================================================
 // Work Functions - Breakpoint Targets After Attach
 // ============================================================================
@@ -148,6 +151,8 @@ extern "C" __declspec(dllexport) void __cdecl attach_init()
     g_process_id = GetCurrentProcessId();
     g_main_thread = GetCurrentThread();
     g_stop_event = CreateEventW(NULL, TRUE, FALSE, NULL);
+    // Create named event for test synchronization
+    g_ready_event = CreateEventW(NULL, TRUE, FALSE, L"TestExeAttachReady");
     g_running = TRUE;
     g_attached = FALSE;
     g_tick_count = 0;
@@ -161,6 +166,11 @@ extern "C" __declspec(dllexport) void __cdecl attach_cleanup()
     {
         CloseHandle(g_stop_event);
         g_stop_event = NULL;
+    }
+    if (g_ready_event)
+    {
+        CloseHandle(g_ready_event);
+        g_ready_event = NULL;
     }
 }
 EXPORT_SYMBOL(attach_cleanup)
@@ -278,6 +288,12 @@ int main(int argc, char* argv[])
     if (use_worker)
     {
         attach_start_worker(interval);
+    }
+
+    // Signal that we're ready for attach
+    if (g_ready_event)
+    {
+        SetEvent(g_ready_event);
     }
 
     // Main loop
