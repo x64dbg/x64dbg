@@ -11,7 +11,7 @@
 #include "TitanEngine/TitanEngine.h"
 #include <string>
 #include <atomic>
-#include <TlHelp32.h>
+#include <vector>
 
 namespace
 {
@@ -27,6 +27,7 @@ std::atomic<int> g_hwBpHitCount{0};
 std::atomic<int> g_memBpHitCount{0};
 std::atomic<ULONG_PTR> g_lastBpAddress{0};
 std::atomic<bool> g_systemBpHit{false};
+std::atomic<bool> g_processCreated{false};
 std::atomic<bool> g_processExited{false};
 std::atomic<bool> g_exceptionHit{false};
 std::atomic<DWORD> g_lastExceptionCode{0};
@@ -45,9 +46,6 @@ ULONG_PTR g_memoryTarget = 0;
 // Hardware breakpoint register index
 DWORD g_hwBpIndex = 0;
 
-// Process handle for memory operations
-HANDLE g_hProcess = nullptr;
-
 // Reset all test state
 void ResetTestState()
 {
@@ -57,6 +55,7 @@ void ResetTestState()
     g_memBpHitCount = 0;
     g_lastBpAddress = 0;
     g_systemBpHit = false;
+    g_processCreated = false;
     g_processExited = false;
     g_exceptionHit = false;
     g_lastExceptionCode = 0;
@@ -70,155 +69,44 @@ void ResetTestState()
     g_targetAddress2 = 0;
     g_memoryTarget = 0;
     g_hwBpIndex = 0;
-    g_hProcess = nullptr;
-}
-
-// Get the test executable path (uses framework helper with architecture suffix)
-// Pass the base name WITHOUT .exe extension - the framework adds _x64/_x32 suffix and .exe
-std::wstring GetTestExePath(const wchar_t* baseName)
-{
-    return TitanTest::GetTestExePath(baseName);
-}
-
-// Get address of exported function from debuggee
-ULONG_PTR GetExportAddress(HANDLE hProcess, ULONG_PTR moduleBase, const char* exportName)
-{
-    // Read DOS header
-    IMAGE_DOS_HEADER dosHeader;
-    if (!MemoryReadSafe(hProcess, (LPVOID)moduleBase, &dosHeader, sizeof(dosHeader), nullptr))
-        return 0;
-
-    if (dosHeader.e_magic != IMAGE_DOS_SIGNATURE)
-        return 0;
-
-    // Read NT headers
-    ULONG_PTR ntHeadersAddr = moduleBase + dosHeader.e_lfanew;
-
-#ifdef _WIN64
-    IMAGE_NT_HEADERS64 ntHeaders;
-#else
-    IMAGE_NT_HEADERS32 ntHeaders;
-#endif
-
-    if (!MemoryReadSafe(hProcess, (LPVOID)ntHeadersAddr, &ntHeaders, sizeof(ntHeaders), nullptr))
-        return 0;
-
-    if (ntHeaders.Signature != IMAGE_NT_SIGNATURE)
-        return 0;
-
-    // Get export directory
-    DWORD exportDirRVA = ntHeaders.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
-    DWORD exportDirSize = ntHeaders.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size;
-
-    if (exportDirRVA == 0 || exportDirSize == 0)
-        return 0;
-
-    IMAGE_EXPORT_DIRECTORY exportDir;
-    if (!MemoryReadSafe(hProcess, (LPVOID)(moduleBase + exportDirRVA), &exportDir, sizeof(exportDir), nullptr))
-        return 0;
-
-    // Read function addresses, names, and ordinals
-    DWORD numNames = exportDir.NumberOfNames;
-    ULONG_PTR namesAddr = moduleBase + exportDir.AddressOfNames;
-    ULONG_PTR ordinalsAddr = moduleBase + exportDir.AddressOfNameOrdinals;
-    ULONG_PTR functionsAddr = moduleBase + exportDir.AddressOfFunctions;
-
-    for (DWORD i = 0; i < numNames; i++)
-    {
-        // Read name RVA
-        DWORD nameRVA;
-        if (!MemoryReadSafe(hProcess, (LPVOID)(namesAddr + i * sizeof(DWORD)), &nameRVA, sizeof(nameRVA), nullptr))
-            continue;
-
-        // Read name
-        char name[256] = {0};
-        if (!MemoryReadSafe(hProcess, (LPVOID)(moduleBase + nameRVA), name, sizeof(name) - 1, nullptr))
-            continue;
-
-        if (strcmp(name, exportName) == 0)
-        {
-            // Read ordinal
-            WORD ordinal;
-            if (!MemoryReadSafe(hProcess, (LPVOID)(ordinalsAddr + i * sizeof(WORD)), &ordinal, sizeof(ordinal), nullptr))
-                return 0;
-
-            // Read function RVA
-            DWORD funcRVA;
-            if (!MemoryReadSafe(hProcess, (LPVOID)(functionsAddr + ordinal * sizeof(DWORD)), &funcRVA, sizeof(funcRVA), nullptr))
-                return 0;
-
-            return moduleBase + funcRVA;
-        }
-    }
-
-    return 0;
-}
-
-// Get module base from process
-ULONG_PTR GetModuleBase(DWORD processId)
-{
-    ULONG_PTR moduleBase = 0;
-    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, processId);
-    if (hSnapshot != INVALID_HANDLE_VALUE)
-    {
-        MODULEENTRY32W me = {sizeof(me)};
-        if (Module32FirstW(hSnapshot, &me))
-        {
-            moduleBase = (ULONG_PTR)me.modBaseAddr;
-        }
-        CloseHandle(hSnapshot);
-    }
-    return moduleBase;
 }
 
 //-----------------------------------------------------------------------------
-// Debug session helper
+// Common BP hit callbacks using the correct pattern
 //-----------------------------------------------------------------------------
 
-struct DebugSession
+void OnBpHit()
 {
-    PROCESS_INFORMATION* pi = nullptr;
-    HANDLE hProcess = nullptr;
-    ULONG_PTR imageBase = 0;
-
-    bool Start(const wchar_t* exePath, const wchar_t* cmdLine = nullptr)
+    TITAN_TRACK_BP_HIT();
+    g_bpHitCount++;
+    const DEBUG_EVENT* dbgEvent = GetDebugData();
+    if (dbgEvent)
     {
-        pi = InitDebugW(exePath, cmdLine, nullptr);
-        if (!pi)
-            return false;
-
-        hProcess = pi->hProcess;
-        g_hProcess = hProcess;
-        return true;
+        g_lastBpAddress = (ULONG_PTR)dbgEvent->u.Exception.ExceptionRecord.ExceptionAddress;
     }
+}
 
-    ULONG_PTR GetExport(const char* name)
+void OnHwBpHit()
+{
+    TITAN_TRACK_BP_HIT();
+    g_hwBpHitCount++;
+    const DEBUG_EVENT* dbgEvent = GetDebugData();
+    if (dbgEvent)
     {
-        if (imageBase == 0)
-        {
-            imageBase = GetModuleBase(pi->dwProcessId);
-        }
-
-        if (imageBase == 0)
-            return 0;
-
-        return GetExportAddress(hProcess, imageBase, name);
+        g_lastBpAddress = (ULONG_PTR)dbgEvent->u.Exception.ExceptionRecord.ExceptionAddress;
     }
+}
 
-    void Run()
+void OnMemBpHit()
+{
+    TITAN_TRACK_BP_HIT();
+    g_memBpHitCount++;
+    const DEBUG_EVENT* dbgEvent = GetDebugData();
+    if (dbgEvent)
     {
-        DebugLoop();
+        g_lastBpAddress = (ULONG_PTR)dbgEvent->u.Exception.ExceptionRecord.ExceptionAddress;
     }
-
-    void Stop()
-    {
-        StopDebug();
-    }
-};
-
-//-----------------------------------------------------------------------------
-// Common callbacks
-//-----------------------------------------------------------------------------
+}
 
 void OnSystemBreakpoint(const void*)
 {
@@ -228,6 +116,72 @@ void OnSystemBreakpoint(const void*)
 void OnProcessExit(const void*)
 {
     g_processExited = true;
+}
+
+//-----------------------------------------------------------------------------
+// Helper: resolve export using LoadLibraryExW pattern
+//-----------------------------------------------------------------------------
+ULONG_PTR ResolveExportFromCreateProcess(const char* exportName)
+{
+    const DEBUG_EVENT* dbgEvent = GetDebugData();
+    if (!dbgEvent || dbgEvent->dwDebugEventCode != CREATE_PROCESS_DEBUG_EVENT)
+        return 0;
+
+    const auto& createInfo = dbgEvent->u.CreateProcessInfo;
+    if (!createInfo.hFile)
+        return 0;
+
+    wchar_t szFilePath[MAX_PATH] = L"";
+    GetFinalPathNameByHandleW(createInfo.hFile, szFilePath, _countof(szFilePath), VOLUME_NAME_DOS);
+
+    auto base = (ULONG_PTR)createInfo.lpBaseOfImage;
+    auto hLib = LoadLibraryExW(szFilePath, nullptr, DONT_RESOLVE_DLL_REFERENCES);
+    if (!hLib)
+        return 0;
+
+    ULONG_PTR result = 0;
+    auto exportAddr = (ULONG_PTR)GetProcAddress(hLib, exportName);
+    if (exportAddr)
+    {
+        exportAddr -= (ULONG_PTR)hLib;
+        exportAddr += base;
+        result = exportAddr;
+    }
+    FreeLibrary(hLib);
+    return result;
+}
+
+//-----------------------------------------------------------------------------
+// Helper: resolve export from DLL load event
+//-----------------------------------------------------------------------------
+ULONG_PTR ResolveExportFromDllLoad(const char* exportName)
+{
+    const DEBUG_EVENT* dbgEvent = GetDebugData();
+    if (!dbgEvent || dbgEvent->dwDebugEventCode != LOAD_DLL_DEBUG_EVENT)
+        return 0;
+
+    const auto& loadInfo = dbgEvent->u.LoadDll;
+    if (!loadInfo.hFile)
+        return 0;
+
+    wchar_t szFilePath[MAX_PATH] = L"";
+    GetFinalPathNameByHandleW(loadInfo.hFile, szFilePath, _countof(szFilePath), VOLUME_NAME_DOS);
+
+    auto base = (ULONG_PTR)loadInfo.lpBaseOfDll;
+    auto hLib = LoadLibraryExW(szFilePath, nullptr, DONT_RESOLVE_DLL_REFERENCES);
+    if (!hLib)
+        return 0;
+
+    ULONG_PTR result = 0;
+    auto exportAddr = (ULONG_PTR)GetProcAddress(hLib, exportName);
+    if (exportAddr)
+    {
+        exportAddr -= (ULONG_PTR)hLib;
+        exportAddr += base;
+        result = exportAddr;
+    }
+    FreeLibrary(hLib);
+    return result;
 }
 
 } // anonymous namespace
@@ -240,70 +194,71 @@ TITAN_TEST_ID("CB-01", CB_01, "SW BP -> step -> HW BP sequence")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Breakpoints");
-    DebugSession session;
+    std::wstring exePath = TitanTest::GetTestExePath(L"TestExe_Breakpoints");
 
-    TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
+    // Set up CREATE_PROCESS handler to set the initial SW breakpoint
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
 
-    static DebugSession* s_session = &session;
-
-    // Software BP callback - hit first, then set up HW BP and step
-    static auto swBpCallback = [](const void*) {
-        g_stage = 1;
-        g_bpHitCount++;
-
-        // Get address for HW BP (next function)
-        ULONG_PTR hwAddr = s_session->GetExport("bp_target_sw2");
-        if (hwAddr)
-        {
-            g_targetAddress2 = hwAddr;
-
-            // Get an unused hardware breakpoint register
-            if (GetUnusedHardwareBreakPointRegister(&g_hwBpIndex))
-            {
-                // Set HW execution breakpoint
-                SetHardwareBreakPoint(hwAddr, g_hwBpIndex, UE_HARDWARE_EXECUTE, UE_HARDWARE_SIZE_1,
-                    [](const void*) {
-                        g_stage = 2;
-                        g_hwBpHitCount++;
-                        // Clean up HW BP
-                        DeleteHardwareBreakPoint(g_hwBpIndex);
-                    });
-            }
-        }
-
-        // Step into to continue execution
-        StepInto([]() {
-            // After step, we continue - the HW BP will be hit when bp_target_sw2 is called
-        });
-    };
-
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-
-        ULONG_PTR swAddr = s_session->GetExport("bp_target_sw1");
+        ULONG_PTR swAddr = ResolveExportFromCreateProcess("bp_target_sw1");
         if (swAddr)
         {
             g_targetAddress1 = swAddr;
-            SetBPX(swAddr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, swBpCallback);
-        }
-        else
-        {
-            StopDebug();
+
+            // Set software breakpoint - when hit, we'll set up HW BP and step
+            SetBPX(swAddr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
+                TITAN_TRACK_BP_HIT();
+                g_bpHitCount++;
+                g_stage = 1;
+
+                const DEBUG_EVENT* dbgEvent = GetDebugData();
+                if (dbgEvent)
+                {
+                    g_lastBpAddress = (ULONG_PTR)dbgEvent->u.Exception.ExceptionRecord.ExceptionAddress;
+                }
+
+                // Set HW execution breakpoint on next function
+                if (g_targetAddress2 != 0 && GetUnusedHardwareBreakPointRegister(&g_hwBpIndex))
+                {
+                    SetHardwareBreakPoint(g_targetAddress2, g_hwBpIndex, UE_HARDWARE_EXECUTE, UE_HARDWARE_SIZE_1,
+                        [](const void*) {
+                            TITAN_TRACK_BP_HIT();
+                            g_hwBpHitCount++;
+                            g_stage = 2;
+                            DeleteHardwareBreakPoint(g_hwBpIndex);
+                        });
+                }
+
+                // Step into to continue execution
+                StepInto([]() {
+                    // After step, we continue - the HW BP will be hit when bp_target_sw2 is called
+                });
+            });
+
+            // Also resolve the HW BP target address
+            ULONG_PTR hwAddr = ResolveExportFromCreateProcess("bp_target_sw2");
+            if (hwAddr)
+            {
+                g_targetAddress2 = hwAddr;
+            }
         }
     });
 
+    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, OnSystemBreakpoint);
     SetCustomHandler(UE_CH_EXITPROCESS, OnProcessExit);
 
-    session.Run();
+    auto* pi = InitDebugW(exePath.c_str(), nullptr, nullptr);
+    TEST_ASSERT(pi != nullptr, "Failed to start debug session");
 
+    DebugLoop();
+
+    TEST_ASSERT(g_processCreated, "CREATE_PROCESS event was not received");
     TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
     TEST_ASSERT(g_targetAddress1 != 0, "SW BP target address not resolved");
     TEST_ASSERT(g_bpHitCount >= 1, "Software BP was not hit");
     TEST_ASSERT(g_stage >= 1, "Did not reach stage 1 (SW BP hit)");
 
     // HW BP may or may not be hit depending on execution flow
-    // The test verifies the sequence setup works
     if (g_targetAddress2 != 0 && g_hwBpHitCount > 0)
     {
         TEST_ASSERT(g_stage == 2, "Did not complete SW->step->HW sequence");
@@ -320,66 +275,61 @@ TITAN_TEST_ID("CB-02", CB_02, "HW BP -> step -> Memory BP sequence")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Breakpoints");
-    DebugSession session;
+    std::wstring exePath = TitanTest::GetTestExePath(L"TestExe_Breakpoints");
 
-    TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
 
-    static DebugSession* s_session = &session;
+        ULONG_PTR hwAddr = ResolveExportFromCreateProcess("bp_target_hw");
+        ULONG_PTR memAddr = ResolveExportFromCreateProcess("g_memory_write_target");
 
-    // HW BP callback
-    static auto hwBpCallback = [](const void*) {
-        g_stage = 1;
-        g_hwBpHitCount++;
-
-        // Delete HW BP
-        DeleteHardwareBreakPoint(g_hwBpIndex);
-
-        // Get address for memory BP (global variable)
-        ULONG_PTR memAddr = s_session->GetExport("g_memory_write_target");
-        if (memAddr)
-        {
-            g_memoryTarget = memAddr;
-
-            // Set memory write breakpoint
-            SetMemoryBPXEx(memAddr, sizeof(DWORD), UE_MEMORY_WRITE, true,
-                [](const void*) {
-                    g_stage = 2;
-                    g_memBpHitCount++;
-                });
-        }
-
-        // Step to continue
-        StepInto(nullptr);
-    };
-
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-
-        ULONG_PTR hwAddr = s_session->GetExport("bp_target_hw");
         if (hwAddr)
         {
             g_targetAddress1 = hwAddr;
 
             if (GetUnusedHardwareBreakPointRegister(&g_hwBpIndex))
             {
-                SetHardwareBreakPoint(hwAddr, g_hwBpIndex, UE_HARDWARE_EXECUTE, UE_HARDWARE_SIZE_1, hwBpCallback);
-            }
-            else
-            {
-                StopDebug();
+                SetHardwareBreakPoint(hwAddr, g_hwBpIndex, UE_HARDWARE_EXECUTE, UE_HARDWARE_SIZE_1,
+                    [](const void*) {
+                        TITAN_TRACK_BP_HIT();
+                        g_hwBpHitCount++;
+                        g_stage = 1;
+
+                        // Delete HW BP
+                        DeleteHardwareBreakPoint(g_hwBpIndex);
+
+                        // Set memory write breakpoint if address was resolved
+                        if (g_memoryTarget != 0)
+                        {
+                            SetMemoryBPXEx(g_memoryTarget, sizeof(DWORD), UE_MEMORY_WRITE, true,
+                                [](const void*) {
+                                    TITAN_TRACK_BP_HIT();
+                                    g_memBpHitCount++;
+                                    g_stage = 2;
+                                });
+                        }
+
+                        // Step to continue
+                        StepInto(nullptr);
+                    });
             }
         }
-        else
+
+        if (memAddr)
         {
-            StopDebug();
+            g_memoryTarget = memAddr;
         }
     });
 
+    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, OnSystemBreakpoint);
     SetCustomHandler(UE_CH_EXITPROCESS, OnProcessExit);
 
-    session.Run();
+    auto* pi = InitDebugW(exePath.c_str(), nullptr, nullptr);
+    TEST_ASSERT(pi != nullptr, "Failed to start debug session");
 
+    DebugLoop();
+
+    TEST_ASSERT(g_processCreated, "CREATE_PROCESS event was not received");
     TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
     TEST_ASSERT(g_targetAddress1 != 0, "HW BP target address not resolved");
     TEST_ASSERT(g_hwBpHitCount >= 1, "Hardware BP was not hit");
@@ -402,12 +352,23 @@ TITAN_TEST_ID("CB-03", CB_03, "Exception -> continue -> BP sequence")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Exceptions");
-    DebugSession session;
+    std::wstring exePath = TitanTest::GetTestExePath(L"TestExe_Exceptions");
 
-    TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
 
-    static DebugSession* s_session = &session;
+        // Set BP on a function that will be called after exception handling
+        ULONG_PTR bpAddr = ResolveExportFromCreateProcess("safe_trigger_div_by_zero");
+        if (bpAddr)
+        {
+            g_targetAddress1 = bpAddr;
+            SetBPX(bpAddr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
+                TITAN_TRACK_BP_HIT();
+                g_bpHitCount++;
+                g_stage = 1;
+            });
+        }
+    });
 
     // Debug event handler for exceptions
     SetCustomHandler(UE_CH_DEBUGEVENT, [](const void* debugEvent) {
@@ -429,25 +390,15 @@ TITAN_TEST_ID("CB-03", CB_03, "Exception -> continue -> BP sequence")
         }
     });
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-
-        // Set BP on a function that will be called after exception handling
-        ULONG_PTR bpAddr = s_session->GetExport("safe_trigger_div_by_zero");
-        if (bpAddr)
-        {
-            g_targetAddress1 = bpAddr;
-            SetBPX(bpAddr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
-                g_stage = 1;
-                g_bpHitCount++;
-            });
-        }
-    });
-
+    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, OnSystemBreakpoint);
     SetCustomHandler(UE_CH_EXITPROCESS, OnProcessExit);
 
-    session.Run();
+    auto* pi = InitDebugW(exePath.c_str(), nullptr, nullptr);
+    TEST_ASSERT(pi != nullptr, "Failed to start debug session");
 
+    DebugLoop();
+
+    TEST_ASSERT(g_processCreated, "CREATE_PROCESS event was not received");
     TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
     TEST_ASSERT(g_bpHitCount >= 1 || g_exceptionCount >= 1, "Neither BP nor exception was triggered");
 
@@ -462,44 +413,44 @@ TITAN_TEST_ID("CB-04", CB_04, "DLL load -> set BP in DLL")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_DllLoad");
-    DebugSession session;
+    std::wstring exePath = TitanTest::GetTestExePath(L"TestExe_DllLoad");
 
-    TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
+    });
 
-    static DebugSession* s_session = &session;
-
-    SetCustomHandler(UE_CH_LOADDLL, [](const void* info) {
-        auto* loadInfo = static_cast<const LOAD_DLL_DEBUG_INFO*>(info);
-        if (!loadInfo)
-            return;
-
-        ULONG_PTR dllBase = (ULONG_PTR)loadInfo->lpBaseOfDll;
-
+    SetCustomHandler(UE_CH_LOADDLL, [](const void*) {
         // Try to find dll_test_function in the loaded DLL
-        ULONG_PTR funcAddr = GetExportAddress(g_hProcess, dllBase, "dll_test_function");
+        ULONG_PTR funcAddr = ResolveExportFromDllLoad("dll_test_function");
         if (funcAddr)
         {
             g_dllLoaded = true;
-            g_dllBase = dllBase;
             g_targetAddress1 = funcAddr;
+
+            const DEBUG_EVENT* dbgEvent = GetDebugData();
+            if (dbgEvent)
+            {
+                g_dllBase = (ULONG_PTR)dbgEvent->u.LoadDll.lpBaseOfDll;
+            }
 
             // Set BP on the DLL function
             SetBPX(funcAddr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
-                g_stage = 1;
+                TITAN_TRACK_BP_HIT();
                 g_bpHitCount++;
+                g_stage = 1;
             });
         }
     });
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-    });
-
+    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, OnSystemBreakpoint);
     SetCustomHandler(UE_CH_EXITPROCESS, OnProcessExit);
 
-    session.Run();
+    auto* pi = InitDebugW(exePath.c_str(), nullptr, nullptr);
+    TEST_ASSERT(pi != nullptr, "Failed to start debug session");
 
+    DebugLoop();
+
+    TEST_ASSERT(g_processCreated, "CREATE_PROCESS event was not received");
     TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
 
     if (g_dllLoaded)
@@ -525,13 +476,19 @@ TITAN_TEST_ID("CB-05", CB_05, "Thread create -> set BP -> thread hits")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Threading");
-    DebugSession session;
+    std::wstring exePath = TitanTest::GetTestExePath(L"TestExe_Threading");
 
-    TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
-
-    static DebugSession* s_session = &session;
     static bool s_bpSet = false;
+    static ULONG_PTR s_threadTargetAddr = 0;
+    s_bpSet = false;
+    s_threadTargetAddr = 0;
+
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
+
+        // Pre-resolve the thread target function address
+        s_threadTargetAddr = ResolveExportFromCreateProcess("thread_bp_target");
+    });
 
     SetCustomHandler(UE_CH_CREATETHREAD, [](const void* info) {
         auto* threadInfo = static_cast<const CREATE_THREAD_DEBUG_INFO*>(info);
@@ -542,28 +499,22 @@ TITAN_TEST_ID("CB-05", CB_05, "Thread create -> set BP -> thread hits")
         g_newThreadId = GetThreadId(threadInfo->hThread);
 
         // Set BP on thread target function if not already set
-        if (!s_bpSet)
+        if (!s_bpSet && s_threadTargetAddr != 0)
         {
-            ULONG_PTR funcAddr = s_session->GetExport("thread_bp_target");
-            if (funcAddr)
-            {
-                g_targetAddress1 = funcAddr;
-                s_bpSet = SetBPX(funcAddr, UE_BREAKPOINT | UE_BREAKPOINT_TYPE_INT3, []() {
-                    g_stage++;
-                    g_bpHitCount++;
-                });
-            }
+            g_targetAddress1 = s_threadTargetAddr;
+            s_bpSet = SetBPX(s_threadTargetAddr, UE_BREAKPOINT | UE_BREAKPOINT_TYPE_INT3, OnBpHit);
         }
     });
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-    });
-
+    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, OnSystemBreakpoint);
     SetCustomHandler(UE_CH_EXITPROCESS, OnProcessExit);
 
-    session.Run();
+    auto* pi = InitDebugW(exePath.c_str(), nullptr, nullptr);
+    TEST_ASSERT(pi != nullptr, "Failed to start debug session");
 
+    DebugLoop();
+
+    TEST_ASSERT(g_processCreated, "CREATE_PROCESS event was not received");
     TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
     TEST_ASSERT(g_threadCreated, "No thread creation event received");
     TEST_ASSERT(g_targetAddress1 != 0, "Thread BP target address not resolved");
@@ -580,12 +531,14 @@ TITAN_TEST_ID("CB-06", CB_06, "Multiple exception types in sequence")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Exceptions");
-    DebugSession session;
-
-    TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
+    std::wstring exePath = TitanTest::GetTestExePath(L"TestExe_Exceptions");
 
     static std::vector<DWORD> s_exceptionCodes;
+    s_exceptionCodes.clear();
+
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
+    });
 
     SetCustomHandler(UE_CH_DEBUGEVENT, [](const void* debugEvent) {
         auto* de = static_cast<const DEBUG_EVENT*>(debugEvent);
@@ -605,14 +558,15 @@ TITAN_TEST_ID("CB-06", CB_06, "Multiple exception types in sequence")
         }
     });
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-    });
-
+    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, OnSystemBreakpoint);
     SetCustomHandler(UE_CH_EXITPROCESS, OnProcessExit);
 
-    session.Run();
+    auto* pi = InitDebugW(exePath.c_str(), nullptr, nullptr);
+    TEST_ASSERT(pi != nullptr, "Failed to start debug session");
 
+    DebugLoop();
+
+    TEST_ASSERT(g_processCreated, "CREATE_PROCESS event was not received");
     TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
     TEST_ASSERT(g_exceptionCount >= 1, "No exceptions were caught");
 
@@ -629,41 +583,36 @@ TITAN_TEST_ID("CB-07", CB_07, "BP + thread exit")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Threading");
-    DebugSession session;
+    std::wstring exePath = TitanTest::GetTestExePath(L"TestExe_Threading");
 
-    TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
+    static ULONG_PTR s_threadTargetAddr = 0;
+    s_threadTargetAddr = 0;
 
-    static DebugSession* s_session = &session;
-    static DWORD s_threadIdAtBp = 0;
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
 
-    SetCustomHandler(UE_CH_EXITTHREAD, [](const void* info) {
-        auto* exitInfo = static_cast<const EXIT_THREAD_DEBUG_INFO*>(info);
-        (void)exitInfo;
-        g_threadExited = true;
-
-        // Check if this is the thread that hit our BP
-        // Note: Thread ID tracking would require additional state
-    });
-
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-
-        ULONG_PTR funcAddr = s_session->GetExport("thread_bp_target");
-        if (funcAddr)
+        // Pre-resolve the thread target function address
+        s_threadTargetAddr = ResolveExportFromCreateProcess("thread_bp_target");
+        if (s_threadTargetAddr)
         {
-            g_targetAddress1 = funcAddr;
-            SetBPX(funcAddr, UE_BREAKPOINT | UE_BREAKPOINT_TYPE_INT3, []() {
-                g_bpHitCount++;
-                s_threadIdAtBp = GetCurrentThreadId();
-            });
+            g_targetAddress1 = s_threadTargetAddr;
+            SetBPX(s_threadTargetAddr, UE_BREAKPOINT | UE_BREAKPOINT_TYPE_INT3, OnBpHit);
         }
     });
 
+    SetCustomHandler(UE_CH_EXITTHREAD, [](const void*) {
+        g_threadExited = true;
+    });
+
+    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, OnSystemBreakpoint);
     SetCustomHandler(UE_CH_EXITPROCESS, OnProcessExit);
 
-    session.Run();
+    auto* pi = InitDebugW(exePath.c_str(), nullptr, nullptr);
+    TEST_ASSERT(pi != nullptr, "Failed to start debug session");
 
+    DebugLoop();
+
+    TEST_ASSERT(g_processCreated, "CREATE_PROCESS event was not received");
     TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
     TEST_ASSERT(g_bpHitCount >= 1, "BP was not hit");
     TEST_ASSERT(g_threadExited, "No thread exit event received");
@@ -679,36 +628,36 @@ TITAN_TEST_ID("CB-08", CB_08, "Memory BP + SW BP same page")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Breakpoints");
-    DebugSession session;
+    std::wstring exePath = TitanTest::GetTestExePath(L"TestExe_Breakpoints");
 
-    TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
-
-    static DebugSession* s_session = &session;
     static bool s_swBpSet = false;
     static bool s_memBpSet = false;
+    s_swBpSet = false;
+    s_memBpSet = false;
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
 
         // Get address of bp_memory_write function (SW BP target)
-        ULONG_PTR swAddr = s_session->GetExport("bp_memory_write");
+        ULONG_PTR swAddr = ResolveExportFromCreateProcess("bp_memory_write");
         if (swAddr)
         {
             g_targetAddress1 = swAddr;
             s_swBpSet = SetBPX(swAddr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
+                TITAN_TRACK_BP_HIT();
                 g_bpHitCount++;
                 g_stage = 1;
             });
         }
 
         // Get address of memory target variable
-        ULONG_PTR memAddr = s_session->GetExport("g_memory_write_target");
+        ULONG_PTR memAddr = ResolveExportFromCreateProcess("g_memory_write_target");
         if (memAddr)
         {
             g_memoryTarget = memAddr;
             s_memBpSet = SetMemoryBPXEx(memAddr, sizeof(DWORD), UE_MEMORY_WRITE, true,
                 [](const void*) {
+                    TITAN_TRACK_BP_HIT();
                     g_memBpHitCount++;
                     g_stage = 2;
                 });
@@ -720,10 +669,15 @@ TITAN_TEST_ID("CB-08", CB_08, "Memory BP + SW BP same page")
         }
     });
 
+    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, OnSystemBreakpoint);
     SetCustomHandler(UE_CH_EXITPROCESS, OnProcessExit);
 
-    session.Run();
+    auto* pi = InitDebugW(exePath.c_str(), nullptr, nullptr);
+    TEST_ASSERT(pi != nullptr, "Failed to start debug session");
 
+    DebugLoop();
+
+    TEST_ASSERT(g_processCreated, "CREATE_PROCESS event was not received");
     TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
     TEST_ASSERT(s_swBpSet || s_memBpSet, "Neither SW BP nor Memory BP could be set");
 
@@ -742,68 +696,71 @@ TITAN_TEST_ID("CB-09", CB_09, "Detach with active BPs")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Breakpoints");
+    std::wstring exePath = TitanTest::GetTestExePath(L"TestExe_Breakpoints");
     std::wstring cmdLine = L"--loop";  // Make the process loop
-    DebugSession session;
 
-    TEST_ASSERT(session.Start(exePath.c_str(), cmdLine.c_str()), "Failed to start debug session");
-
-    static DebugSession* s_session = &session;
     static DWORD s_processId = 0;
     static bool s_detached = false;
+    s_processId = 0;
+    s_detached = false;
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-        s_processId = s_session->pi->dwProcessId;
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
+
+        const DEBUG_EVENT* dbgEvent = GetDebugData();
+        if (dbgEvent && dbgEvent->dwDebugEventCode == CREATE_PROCESS_DEBUG_EVENT)
+        {
+            s_processId = dbgEvent->dwProcessId;
+        }
 
         // Set multiple breakpoints
-        ULONG_PTR addr1 = s_session->GetExport("bp_target_sw1");
-        ULONG_PTR addr2 = s_session->GetExport("bp_target_sw2");
+        ULONG_PTR addr1 = ResolveExportFromCreateProcess("bp_target_sw1");
+        ULONG_PTR addr2 = ResolveExportFromCreateProcess("bp_target_sw2");
+        ULONG_PTR hwAddr = ResolveExportFromCreateProcess("bp_target_hw");
 
         if (addr1)
         {
             g_targetAddress1 = addr1;
             SetBPX(addr1, UE_BREAKPOINT | UE_BREAKPOINT_TYPE_INT3, []() {
+                TITAN_TRACK_BP_HIT();
                 g_bpHitCount++;
+
+                // On first BP hit, detach
+                if (g_bpHitCount == 1 && s_processId != 0)
+                {
+                    s_detached = DetachDebuggerEx(s_processId);
+                }
             });
         }
 
         if (addr2)
         {
             g_targetAddress2 = addr2;
-            SetBPX(addr2, UE_BREAKPOINT | UE_BREAKPOINT_TYPE_INT3, []() {
-                g_bpHitCount++;
-            });
+            SetBPX(addr2, UE_BREAKPOINT | UE_BREAKPOINT_TYPE_INT3, OnBpHit);
         }
 
         // Also set a HW breakpoint
-        ULONG_PTR hwAddr = s_session->GetExport("bp_target_hw");
         if (hwAddr && GetUnusedHardwareBreakPointRegister(&g_hwBpIndex))
         {
             SetHardwareBreakPoint(hwAddr, g_hwBpIndex, UE_HARDWARE_EXECUTE, UE_HARDWARE_SIZE_1,
                 [](const void*) {
+                    TITAN_TRACK_BP_HIT();
                     g_hwBpHitCount++;
                 });
         }
 
-        // Wait for a BP hit, then detach
         g_stage = 1;
     });
 
-    // On first BP hit, detach
-    static auto originalSwCallback = [](const void*) {
-        g_bpHitCount++;
-        if (g_bpHitCount == 1 && s_processId != 0)
-        {
-            // Detach from process
-            s_detached = DetachDebuggerEx(s_processId);
-        }
-    };
-
+    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, OnSystemBreakpoint);
     SetCustomHandler(UE_CH_EXITPROCESS, OnProcessExit);
 
-    session.Run();
+    auto* pi = InitDebugW(exePath.c_str(), cmdLine.c_str(), nullptr);
+    TEST_ASSERT(pi != nullptr, "Failed to start debug session");
 
+    DebugLoop();
+
+    TEST_ASSERT(g_processCreated, "CREATE_PROCESS event was not received");
     TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
     TEST_ASSERT(g_stage >= 1, "BPs were not set");
 
@@ -833,14 +790,35 @@ TITAN_TEST_ID("CB-10", CB_10, "Step over function that raises exception")
 {
     ResetTestState();
 
-    std::wstring exePath = GetTestExePath(L"TestExe_Exceptions");
-    DebugSession session;
+    std::wstring exePath = TitanTest::GetTestExePath(L"TestExe_Exceptions");
 
-    TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
-
-    static DebugSession* s_session = &session;
     static bool s_stepOverCompleted = false;
     static int s_stepCount = 0;
+    s_stepOverCompleted = false;
+    s_stepCount = 0;
+
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
+
+        // Set BP on safe_trigger_access_violation_read which handles exception internally
+        ULONG_PTR funcAddr = ResolveExportFromCreateProcess("safe_trigger_access_violation_read");
+        if (funcAddr)
+        {
+            g_targetAddress1 = funcAddr;
+            SetBPX(funcAddr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
+                TITAN_TRACK_BP_HIT();
+                g_bpHitCount++;
+                g_stage = 1;
+
+                // Step over the function (which raises and handles an exception)
+                StepOver([]() {
+                    s_stepCount++;
+                    s_stepOverCompleted = true;
+                    g_stage = 2;
+                });
+            });
+        }
+    });
 
     // Track exceptions during step over
     SetCustomHandler(UE_CH_DEBUGEVENT, [](const void* debugEvent) {
@@ -859,36 +837,15 @@ TITAN_TEST_ID("CB-10", CB_10, "Step over function that raises exception")
         }
     });
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-
-        // Set BP on safe_trigger_access_violation_read which handles exception internally
-        ULONG_PTR funcAddr = s_session->GetExport("safe_trigger_access_violation_read");
-        if (funcAddr)
-        {
-            g_targetAddress1 = funcAddr;
-            SetBPX(funcAddr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
-                g_bpHitCount++;
-                g_stage = 1;
-
-                // Step over the function (which raises and handles an exception)
-                StepOver([]() {
-                    s_stepCount++;
-                    s_stepOverCompleted = true;
-                    g_stage = 2;
-                });
-            });
-        }
-        else
-        {
-            StopDebug();
-        }
-    });
-
+    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, OnSystemBreakpoint);
     SetCustomHandler(UE_CH_EXITPROCESS, OnProcessExit);
 
-    session.Run();
+    auto* pi = InitDebugW(exePath.c_str(), nullptr, nullptr);
+    TEST_ASSERT(pi != nullptr, "Failed to start debug session");
 
+    DebugLoop();
+
+    TEST_ASSERT(g_processCreated, "CREATE_PROCESS event was not received");
     TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
     TEST_ASSERT(g_targetAddress1 != 0, "Target function address not resolved");
     TEST_ASSERT(g_bpHitCount >= 1, "Initial BP was not hit");

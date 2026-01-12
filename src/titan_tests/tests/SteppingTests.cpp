@@ -11,7 +11,6 @@
 #include <string>
 #include <atomic>
 #include <vector>
-#include <tlhelp32.h>
 
 namespace
 {
@@ -44,6 +43,14 @@ HANDLE g_hThread = nullptr;
 HANDLE g_hProcess = nullptr;
 DWORD g_processId = 0;
 
+// Export addresses resolved at process creation
+ULONG_PTR g_level1Addr = 0;
+ULONG_PTR g_level2Addr = 0;
+ULONG_PTR g_level4Addr = 0;
+ULONG_PTR g_repTestAddr = 0;
+ULONG_PTR g_mixedInstrAddr = 0;
+ULONG_PTR g_inlineAsmAddr = 0;
+
 // Reset all test state
 void ResetTestState()
 {
@@ -63,6 +70,12 @@ void ResetTestState()
     g_hThread = nullptr;
     g_hProcess = nullptr;
     g_processId = 0;
+    g_level1Addr = 0;
+    g_level2Addr = 0;
+    g_level4Addr = 0;
+    g_repTestAddr = 0;
+    g_mixedInstrAddr = 0;
+    g_inlineAsmAddr = 0;
 }
 
 // Get the test executable path (uses framework helper with architecture suffix)
@@ -71,94 +84,28 @@ std::wstring GetTestExePath()
     return TitanTest::GetTestExePath(L"TestExe_Stepping");
 }
 
-// Get address of exported function from debuggee
-ULONG_PTR GetExportAddress(HANDLE hProcess, ULONG_PTR moduleBase, const char* exportName)
+// Resolve export address using LoadLibraryExW + GetProcAddress pattern
+// This is called from CREATE_PROCESS handler with file handle info
+ULONG_PTR ResolveExportFromFile(const wchar_t* filePath, ULONG_PTR base, const char* exportName)
 {
-    // Read DOS header
-    IMAGE_DOS_HEADER dosHeader;
-    if (!MemoryReadSafe(hProcess, (LPVOID)moduleBase, &dosHeader, sizeof(dosHeader), nullptr))
+    auto hLib = LoadLibraryExW(filePath, nullptr, DONT_RESOLVE_DLL_REFERENCES);
+    if (!hLib)
         return 0;
 
-    if (dosHeader.e_magic != IMAGE_DOS_SIGNATURE)
-        return 0;
-
-    // Read NT headers
-    ULONG_PTR ntHeadersAddr = moduleBase + dosHeader.e_lfanew;
-
-#ifdef _WIN64
-    IMAGE_NT_HEADERS64 ntHeaders;
-#else
-    IMAGE_NT_HEADERS32 ntHeaders;
-#endif
-
-    if (!MemoryReadSafe(hProcess, (LPVOID)ntHeadersAddr, &ntHeaders, sizeof(ntHeaders), nullptr))
-        return 0;
-
-    if (ntHeaders.Signature != IMAGE_NT_SIGNATURE)
-        return 0;
-
-    // Get export directory
-    DWORD exportDirRVA = ntHeaders.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
-    DWORD exportDirSize = ntHeaders.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size;
-
-    if (exportDirRVA == 0 || exportDirSize == 0)
-        return 0;
-
-    IMAGE_EXPORT_DIRECTORY exportDir;
-    if (!MemoryReadSafe(hProcess, (LPVOID)(moduleBase + exportDirRVA), &exportDir, sizeof(exportDir), nullptr))
-        return 0;
-
-    DWORD numNames = exportDir.NumberOfNames;
-    ULONG_PTR namesAddr = moduleBase + exportDir.AddressOfNames;
-    ULONG_PTR ordinalsAddr = moduleBase + exportDir.AddressOfNameOrdinals;
-    ULONG_PTR functionsAddr = moduleBase + exportDir.AddressOfFunctions;
-
-    for (DWORD i = 0; i < numNames; i++)
+    auto exportAddr = (ULONG_PTR)GetProcAddress(hLib, exportName);
+    ULONG_PTR result = 0;
+    if (exportAddr)
     {
-        DWORD nameRVA;
-        if (!MemoryReadSafe(hProcess, (LPVOID)(namesAddr + i * sizeof(DWORD)), &nameRVA, sizeof(nameRVA), nullptr))
-            continue;
-
-        char name[256] = {0};
-        if (!MemoryReadSafe(hProcess, (LPVOID)(moduleBase + nameRVA), name, sizeof(name) - 1, nullptr))
-            continue;
-
-        if (strcmp(name, exportName) == 0)
-        {
-            WORD ordinal;
-            if (!MemoryReadSafe(hProcess, (LPVOID)(ordinalsAddr + i * sizeof(WORD)), &ordinal, sizeof(ordinal), nullptr))
-                return 0;
-
-            DWORD funcRVA;
-            if (!MemoryReadSafe(hProcess, (LPVOID)(functionsAddr + ordinal * sizeof(DWORD)), &funcRVA, sizeof(funcRVA), nullptr))
-                return 0;
-
-            return moduleBase + funcRVA;
-        }
+        exportAddr -= (ULONG_PTR)hLib;
+        exportAddr += base;
+        result = exportAddr;
     }
-
-    return 0;
-}
-
-// Get module base of the main executable
-ULONG_PTR GetModuleBase(DWORD processId)
-{
-    ULONG_PTR moduleBase = 0;
-    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, processId);
-    if (hSnapshot != INVALID_HANDLE_VALUE)
-    {
-        MODULEENTRY32W me = {sizeof(me)};
-        if (Module32FirstW(hSnapshot, &me))
-        {
-            moduleBase = (ULONG_PTR)me.modBaseAddr;
-        }
-        CloseHandle(hSnapshot);
-    }
-    return moduleBase;
+    FreeLibrary(hLib);
+    return result;
 }
 
 //-----------------------------------------------------------------------------
-// Callback handlers
+// Callback handlers - Use GetDebugData() for address retrieval
 //-----------------------------------------------------------------------------
 
 void OnSystemBreakpoint(const void*)
@@ -166,33 +113,30 @@ void OnSystemBreakpoint(const void*)
     g_systemBpHit = true;
 }
 
-void OnProcessCreated(const void* info)
-{
-    g_processCreated = true;
-    auto* createInfo = static_cast<const CREATE_PROCESS_DEBUG_INFO*>(info);
-    if (createInfo)
-    {
-        g_hThread = createInfo->hThread;
-        g_hProcess = createInfo->hProcess;
-    }
-}
-
 void OnStepComplete()
 {
     TITAN_TRACK_STEP();
     g_stepCount++;
-    ULONG_PTR cip = GetContextDataEx(g_hThread, UE_CIP);
-    g_lastStepAddress = cip;
-    g_ipHistory.push_back(cip);
+    const DEBUG_EVENT* dbgEvent = GetDebugData();
+    if (dbgEvent)
+    {
+        ULONG_PTR cip = (ULONG_PTR)dbgEvent->u.Exception.ExceptionRecord.ExceptionAddress;
+        g_lastStepAddress = cip;
+        g_ipHistory.push_back(cip);
+    }
 }
 
 void OnStepAndContinue()
 {
     TITAN_TRACK_STEP();
     g_stepsCompleted++;
-    ULONG_PTR cip = GetContextDataEx(g_hThread, UE_CIP);
-    g_lastStepAddress = cip;
-    g_ipHistory.push_back(cip);
+    const DEBUG_EVENT* dbgEvent = GetDebugData();
+    if (dbgEvent)
+    {
+        ULONG_PTR cip = (ULONG_PTR)dbgEvent->u.Exception.ExceptionRecord.ExceptionAddress;
+        g_lastStepAddress = cip;
+        g_ipHistory.push_back(cip);
+    }
 
     // If we have more steps to do, request another step
     if (g_stepsCompleted < g_stepsRequested)
@@ -206,26 +150,36 @@ void OnSoftwareBpHit()
     TITAN_TRACK_BP_HIT();
     g_swBpHit = true;
     g_bpHitCount++;
-    ULONG_PTR cip = GetContextDataEx(g_hThread, UE_CIP);
-    g_lastStepAddress = cip;
+    const DEBUG_EVENT* dbgEvent = GetDebugData();
+    if (dbgEvent)
+    {
+        g_lastStepAddress = (ULONG_PTR)dbgEvent->u.Exception.ExceptionRecord.ExceptionAddress;
+    }
 }
 
-void OnHardwareBpHit(const void* info)
+void OnHardwareBpHit(const void*)
 {
     TITAN_TRACK_BP_HIT();
     g_hwBpHit = true;
     g_bpHitCount++;
-    ULONG_PTR cip = GetContextDataEx(g_hThread, UE_CIP);
-    g_lastStepAddress = cip;
+    const DEBUG_EVENT* dbgEvent = GetDebugData();
+    if (dbgEvent)
+    {
+        g_lastStepAddress = (ULONG_PTR)dbgEvent->u.Exception.ExceptionRecord.ExceptionAddress;
+    }
 }
 
 void OnStepAfterBp()
 {
     TITAN_TRACK_STEP();
     g_stepCount++;
-    ULONG_PTR cip = GetContextDataEx(g_hThread, UE_CIP);
-    g_lastStepAddress = cip;
-    g_ipHistory.push_back(cip);
+    const DEBUG_EVENT* dbgEvent = GetDebugData();
+    if (dbgEvent)
+    {
+        ULONG_PTR cip = (ULONG_PTR)dbgEvent->u.Exception.ExceptionRecord.ExceptionAddress;
+        g_lastStepAddress = cip;
+        g_ipHistory.push_back(cip);
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -252,17 +206,6 @@ struct DebugSession
     void SetupHandlers()
     {
         SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, OnSystemBreakpoint);
-        SetCustomHandler(UE_CH_CREATEPROCESS, OnProcessCreated);
-    }
-
-    ULONG_PTR GetExport(const char* name)
-    {
-        ULONG_PTR moduleBase = GetModuleBase(pi->dwProcessId);
-        if (moduleBase == 0)
-            return 0;
-
-        imageBase = moduleBase;
-        return GetExportAddress(hProcess, moduleBase, name);
     }
 
     void Run()
@@ -292,22 +235,50 @@ TITAN_TEST_ID("ST-01", ST_01, "StepInto basic - single instruction step")
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
     session.SetupHandlers();
 
-    static DebugSession* s_session = &session;
+    // Set up CREATE_PROCESS handler to resolve exports and set breakpoints
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
+        const DEBUG_EVENT* dbgEvent = GetDebugData();
+        if (!dbgEvent || dbgEvent->dwDebugEventCode != CREATE_PROCESS_DEBUG_EVENT)
+            return;
+        const auto& createInfo = dbgEvent->u.CreateProcessInfo;
+        if (!createInfo.hFile)
+            return;
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
+        g_hThread = createInfo.hThread;
+        g_hProcess = createInfo.hProcess;
 
-        // Get initial IP
-        g_initialIp = GetContextDataEx(g_hThread, UE_CIP);
-        g_ipHistory.push_back(g_initialIp);
+        wchar_t szFilePath[MAX_PATH] = L"";
+        GetFinalPathNameByHandleW(createInfo.hFile, szFilePath, _countof(szFilePath), VOLUME_NAME_DOS);
+        auto base = (ULONG_PTR)createInfo.lpBaseOfImage;
 
-        // Execute a single step
-        StepInto(OnStepComplete);
+        // Resolve the step_level1 export for initial BP
+        g_targetAddress = ResolveExportFromFile(szFilePath, base, "step_level1");
+        if (g_targetAddress)
+        {
+            SetBPX(g_targetAddress, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
+                TITAN_TRACK_BP_HIT();
+                g_bpHitCount++;
+
+                // Get initial IP from debug event
+                const DEBUG_EVENT* evt = GetDebugData();
+                if (evt)
+                {
+                    g_initialIp = (ULONG_PTR)evt->u.Exception.ExceptionRecord.ExceptionAddress;
+                    g_ipHistory.push_back(g_initialIp);
+                }
+
+                // Execute a single step
+                StepInto(OnStepComplete);
+            });
+        }
     });
 
     session.Run();
 
-    TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
+    TEST_ASSERT(g_processCreated, "Process was not created");
+    TEST_ASSERT(g_targetAddress != 0, "Target address not resolved");
+    TEST_ASSERT(g_bpHitCount >= 1, "Initial breakpoint was not hit");
     TEST_ASSERT(g_stepCount == 1, "StepInto should execute exactly once");
     TEST_ASSERT(g_lastStepAddress != g_initialIp, "IP should have changed after step");
     TEST_ASSERT(g_ipHistory.size() == 2, "Should have recorded initial IP and step IP");
@@ -329,73 +300,84 @@ TITAN_TEST_ID("ST-02", ST_02, "StepInto into CALL - enter function")
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
     session.SetupHandlers();
 
-    static DebugSession* s_session = &session;
-    static ULONG_PTR s_level1Addr = 0;
-    static ULONG_PTR s_level2Addr = 0;
     static bool s_enteredLevel2 = false;
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-
-        // Get the addresses of the nested functions
-        s_level1Addr = s_session->GetExport("step_level1");
-        s_level2Addr = s_session->GetExport("step_level2");
-
-        if (s_level1Addr == 0)
-        {
-            StopDebug();
+    // Set up CREATE_PROCESS handler to resolve exports and set breakpoints
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
+        const DEBUG_EVENT* dbgEvent = GetDebugData();
+        if (!dbgEvent || dbgEvent->dwDebugEventCode != CREATE_PROCESS_DEBUG_EVENT)
             return;
-        }
+        const auto& createInfo = dbgEvent->u.CreateProcessInfo;
+        if (!createInfo.hFile)
+            return;
 
-        g_targetAddress = s_level1Addr;
+        g_hThread = createInfo.hThread;
+        g_hProcess = createInfo.hProcess;
 
-        // Set BP at level1 entry
-        SetBPX(s_level1Addr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
-            g_bpHitCount++;
+        wchar_t szFilePath[MAX_PATH] = L"";
+        GetFinalPathNameByHandleW(createInfo.hFile, szFilePath, _countof(szFilePath), VOLUME_NAME_DOS);
+        auto base = (ULONG_PTR)createInfo.lpBaseOfImage;
 
-            // Now step repeatedly until we enter level2
-            // We need to step through the prologue and into the call
-            g_stepsRequested = 20; // Enough steps to get into level2
-            StepInto([]() {
-                g_stepsCompleted++;
-                ULONG_PTR cip = GetContextDataEx(g_hThread, UE_CIP);
-                g_ipHistory.push_back(cip);
+        // Resolve exports
+        g_level1Addr = ResolveExportFromFile(szFilePath, base, "step_level1");
+        g_level2Addr = ResolveExportFromFile(szFilePath, base, "step_level2");
+        g_targetAddress = g_level1Addr;
 
-                // Check if we've entered level2
-                if (cip >= s_level2Addr && cip < s_level2Addr + 0x100)
-                {
-                    s_enteredLevel2 = true;
-                    // We've verified step into works, stop debugging
-                    StopDebug();
-                    return;
-                }
+        if (g_level1Addr)
+        {
+            // Set BP at level1 entry
+            SetBPX(g_level1Addr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
+                TITAN_TRACK_BP_HIT();
+                g_bpHitCount++;
 
-                // Continue stepping if we haven't reached our limit
-                if (g_stepsCompleted < g_stepsRequested && !s_enteredLevel2)
-                {
-                    StepInto(nullptr); // Recursive stepping handled by callback
-                }
-                else
-                {
-                    StopDebug();
-                }
+                // Now step repeatedly until we enter level2
+                g_stepsRequested = 20; // Enough steps to get into level2
+                StepInto([]() {
+                    TITAN_TRACK_STEP();
+                    g_stepsCompleted++;
+                    const DEBUG_EVENT* evt = GetDebugData();
+                    if (!evt)
+                        return;
+
+                    ULONG_PTR cip = (ULONG_PTR)evt->u.Exception.ExceptionRecord.ExceptionAddress;
+                    g_ipHistory.push_back(cip);
+
+                    // Check if we've entered level2
+                    if (g_level2Addr != 0 && cip >= g_level2Addr && cip < g_level2Addr + 0x100)
+                    {
+                        s_enteredLevel2 = true;
+                        StopDebug();
+                        return;
+                    }
+
+                    // Continue stepping if we haven't reached our limit
+                    if (g_stepsCompleted < g_stepsRequested && !s_enteredLevel2)
+                    {
+                        StepInto(nullptr);
+                    }
+                    else
+                    {
+                        StopDebug();
+                    }
+                });
             });
-        });
+        }
     });
 
     session.Run();
 
-    TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
+    TEST_ASSERT(g_processCreated, "Process was not created");
     TEST_ASSERT(g_targetAddress != 0, "Target function address not resolved");
     TEST_ASSERT(g_bpHitCount >= 1, "BP at level1 should have been hit");
     TEST_ASSERT(s_enteredLevel2 || g_stepsCompleted > 0, "Should have stepped at least once");
 
     // Check if any of the recorded IPs are within level2
-    if (s_level2Addr != 0)
+    if (g_level2Addr != 0)
     {
         for (ULONG_PTR ip : g_ipHistory)
         {
-            if (ip >= s_level2Addr && ip < s_level2Addr + 0x100)
+            if (ip >= g_level2Addr && ip < g_level2Addr + 0x100)
             {
                 s_enteredLevel2 = true;
                 break;
@@ -422,74 +404,91 @@ TITAN_TEST_ID("ST-03", ST_03, "StepOver CALL - skip function call")
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
     session.SetupHandlers();
 
-    static DebugSession* s_session = &session;
-    static ULONG_PTR s_level1Addr = 0;
-    static ULONG_PTR s_level2Addr = 0;
     static bool s_steppedOverCall = false;
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-
-        s_level1Addr = s_session->GetExport("step_level1");
-        s_level2Addr = s_session->GetExport("step_level2");
-
-        if (s_level1Addr == 0)
-        {
-            StopDebug();
+    // Set up CREATE_PROCESS handler to resolve exports and set breakpoints
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
+        const DEBUG_EVENT* dbgEvent = GetDebugData();
+        if (!dbgEvent || dbgEvent->dwDebugEventCode != CREATE_PROCESS_DEBUG_EVENT)
             return;
-        }
+        const auto& createInfo = dbgEvent->u.CreateProcessInfo;
+        if (!createInfo.hFile)
+            return;
 
-        g_targetAddress = s_level1Addr;
+        g_hThread = createInfo.hThread;
+        g_hProcess = createInfo.hProcess;
 
-        // Set BP at level1 entry
-        SetBPX(s_level1Addr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
-            g_bpHitCount++;
-            g_initialIp = GetContextDataEx(g_hThread, UE_CIP);
+        wchar_t szFilePath[MAX_PATH] = L"";
+        GetFinalPathNameByHandleW(createInfo.hFile, szFilePath, _countof(szFilePath), VOLUME_NAME_DOS);
+        auto base = (ULONG_PTR)createInfo.lpBaseOfImage;
 
-            // Step over multiple times - this should skip any function calls
-            g_stepsRequested = 10;
-            StepOver([]() {
-                g_stepsCompleted++;
-                ULONG_PTR cip = GetContextDataEx(g_hThread, UE_CIP);
-                g_lastStepAddress = cip;
-                g_ipHistory.push_back(cip);
+        // Resolve exports
+        g_level1Addr = ResolveExportFromFile(szFilePath, base, "step_level1");
+        g_level2Addr = ResolveExportFromFile(szFilePath, base, "step_level2");
+        g_targetAddress = g_level1Addr;
 
-                // If we are still within level1 (not inside level2), step over is working
-                // After enough steps, we should have executed the call and returned
-                if (g_stepsCompleted < g_stepsRequested)
+        if (g_level1Addr)
+        {
+            // Set BP at level1 entry
+            SetBPX(g_level1Addr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
+                TITAN_TRACK_BP_HIT();
+                g_bpHitCount++;
+
+                const DEBUG_EVENT* evt = GetDebugData();
+                if (evt)
                 {
-                    // Check if we are inside level2 - if so, step over failed
-                    if (s_level2Addr != 0 && cip >= s_level2Addr && cip < s_level2Addr + 0x100)
-                    {
-                        // We're inside level2, which means step over didn't work properly
-                        s_steppedOverCall = false;
-                        StopDebug();
+                    g_initialIp = (ULONG_PTR)evt->u.Exception.ExceptionRecord.ExceptionAddress;
+                }
+
+                // Step over multiple times - this should skip any function calls
+                g_stepsRequested = 10;
+                StepOver([]() {
+                    TITAN_TRACK_STEP();
+                    g_stepsCompleted++;
+                    const DEBUG_EVENT* evt = GetDebugData();
+                    if (!evt)
                         return;
+
+                    ULONG_PTR cip = (ULONG_PTR)evt->u.Exception.ExceptionRecord.ExceptionAddress;
+                    g_lastStepAddress = cip;
+                    g_ipHistory.push_back(cip);
+
+                    // If we are still within level1 (not inside level2), step over is working
+                    if (g_stepsCompleted < g_stepsRequested)
+                    {
+                        // Check if we are inside level2 - if so, step over failed
+                        if (g_level2Addr != 0 && cip >= g_level2Addr && cip < g_level2Addr + 0x100)
+                        {
+                            s_steppedOverCall = false;
+                            StopDebug();
+                            return;
+                        }
+                        StepOver(nullptr);
                     }
-                    StepOver(nullptr);
-                }
-                else
-                {
-                    s_steppedOverCall = true;
-                    StopDebug();
-                }
+                    else
+                    {
+                        s_steppedOverCall = true;
+                        StopDebug();
+                    }
+                });
             });
-        });
+        }
     });
 
     session.Run();
 
-    TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
+    TEST_ASSERT(g_processCreated, "Process was not created");
     TEST_ASSERT(g_bpHitCount >= 1, "BP at level1 should have been hit");
     TEST_ASSERT(g_stepsCompleted > 0, "Should have completed at least one step over");
 
     // Verify we never entered level2 during step over operations
     bool enteredLevel2 = false;
-    if (s_level2Addr != 0)
+    if (g_level2Addr != 0)
     {
         for (ULONG_PTR ip : g_ipHistory)
         {
-            if (ip >= s_level2Addr && ip < s_level2Addr + 0x100)
+            if (ip >= g_level2Addr && ip < g_level2Addr + 0x100)
             {
                 enteredLevel2 = true;
                 break;
@@ -516,64 +515,81 @@ TITAN_TEST_ID("ST-04", ST_04, "StepOver REP instruction")
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
     session.SetupHandlers();
 
-    static DebugSession* s_session = &session;
-    static ULONG_PTR s_repTestAddr = 0;
-
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-
-        s_repTestAddr = s_session->GetExport("step_rep_test");
-
-        if (s_repTestAddr == 0)
-        {
-            StopDebug();
+    // Set up CREATE_PROCESS handler to resolve exports and set breakpoints
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
+        const DEBUG_EVENT* dbgEvent = GetDebugData();
+        if (!dbgEvent || dbgEvent->dwDebugEventCode != CREATE_PROCESS_DEBUG_EVENT)
             return;
-        }
+        const auto& createInfo = dbgEvent->u.CreateProcessInfo;
+        if (!createInfo.hFile)
+            return;
 
-        g_targetAddress = s_repTestAddr;
+        g_hThread = createInfo.hThread;
+        g_hProcess = createInfo.hProcess;
 
-        // Set BP at rep_test entry
-        SetBPX(s_repTestAddr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
-            g_bpHitCount++;
-            g_initialIp = GetContextDataEx(g_hThread, UE_CIP);
+        wchar_t szFilePath[MAX_PATH] = L"";
+        GetFinalPathNameByHandleW(createInfo.hFile, szFilePath, _countof(szFilePath), VOLUME_NAME_DOS);
+        auto base = (ULONG_PTR)createInfo.lpBaseOfImage;
 
-            // Step over through the function - should handle REP instructions
-            g_stepsRequested = 50; // Enough to get through the REP operations
-            StepOver([]() {
-                g_stepsCompleted++;
-                ULONG_PTR cip = GetContextDataEx(g_hThread, UE_CIP);
-                g_lastStepAddress = cip;
-                g_ipHistory.push_back(cip);
+        // Resolve exports
+        g_repTestAddr = ResolveExportFromFile(szFilePath, base, "step_rep_test");
+        g_targetAddress = g_repTestAddr;
 
-                if (g_stepsCompleted < g_stepsRequested)
+        if (g_repTestAddr)
+        {
+            // Set BP at rep_test entry
+            SetBPX(g_repTestAddr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
+                TITAN_TRACK_BP_HIT();
+                g_bpHitCount++;
+
+                const DEBUG_EVENT* evt = GetDebugData();
+                if (evt)
                 {
-                    // Check if we've left the function (return)
-                    if (cip < s_repTestAddr || cip > s_repTestAddr + 0x200)
-                    {
-                        // We've returned from the function, test complete
-                        StopDebug();
+                    g_initialIp = (ULONG_PTR)evt->u.Exception.ExceptionRecord.ExceptionAddress;
+                }
+
+                // Step over through the function - should handle REP instructions
+                g_stepsRequested = 50; // Enough to get through the REP operations
+                StepOver([]() {
+                    TITAN_TRACK_STEP();
+                    g_stepsCompleted++;
+                    const DEBUG_EVENT* evt = GetDebugData();
+                    if (!evt)
                         return;
+
+                    ULONG_PTR cip = (ULONG_PTR)evt->u.Exception.ExceptionRecord.ExceptionAddress;
+                    g_lastStepAddress = cip;
+                    g_ipHistory.push_back(cip);
+
+                    if (g_stepsCompleted < g_stepsRequested)
+                    {
+                        // Check if we've left the function (return)
+                        if (cip < g_repTestAddr || cip > g_repTestAddr + 0x200)
+                        {
+                            StopDebug();
+                            return;
+                        }
+                        StepOver(nullptr);
                     }
-                    StepOver(nullptr);
-                }
-                else
-                {
-                    StopDebug();
-                }
+                    else
+                    {
+                        StopDebug();
+                    }
+                });
             });
-        });
+        }
     });
 
     session.Run();
 
-    TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
-    TEST_ASSERT(s_repTestAddr != 0, "step_rep_test address not resolved");
+    TEST_ASSERT(g_processCreated, "Process was not created");
+    TEST_ASSERT(g_repTestAddr != 0, "step_rep_test address not resolved");
     TEST_ASSERT(g_bpHitCount >= 1, "BP at step_rep_test should have been hit");
     TEST_ASSERT(g_stepsCompleted > 0, "Should have completed at least one step");
 
     // The key verification is that we completed stepping without hanging on REP
-    // If StepOver didn't handle REP properly, we'd either hang or take many more steps
-    TEST_ASSERT(g_stepsCompleted < g_stepsRequested || g_lastStepAddress < s_repTestAddr,
+    TEST_ASSERT(g_stepsCompleted < g_stepsRequested || g_lastStepAddress < g_repTestAddr,
                 "StepOver should complete REP instruction efficiently");
 
     return true;
@@ -593,44 +609,64 @@ TITAN_TEST_ID("ST-05", ST_05, "StepInto from INT3 - step after software BP")
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
     session.SetupHandlers();
 
-    static DebugSession* s_session = &session;
-    static ULONG_PTR s_targetAddr = 0;
     static ULONG_PTR s_bpHitIp = 0;
     static ULONG_PTR s_afterStepIp = 0;
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-
-        s_targetAddr = s_session->GetExport("step_level4");
-
-        if (s_targetAddr == 0)
-        {
-            StopDebug();
+    // Set up CREATE_PROCESS handler to resolve exports and set breakpoints
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
+        const DEBUG_EVENT* dbgEvent = GetDebugData();
+        if (!dbgEvent || dbgEvent->dwDebugEventCode != CREATE_PROCESS_DEBUG_EVENT)
             return;
-        }
+        const auto& createInfo = dbgEvent->u.CreateProcessInfo;
+        if (!createInfo.hFile)
+            return;
 
-        g_targetAddress = s_targetAddr;
+        g_hThread = createInfo.hThread;
+        g_hProcess = createInfo.hProcess;
 
-        // Set a software BP
-        SetBPX(s_targetAddr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
-            g_swBpHit = true;
-            s_bpHitIp = GetContextDataEx(g_hThread, UE_CIP);
+        wchar_t szFilePath[MAX_PATH] = L"";
+        GetFinalPathNameByHandleW(createInfo.hFile, szFilePath, _countof(szFilePath), VOLUME_NAME_DOS);
+        auto base = (ULONG_PTR)createInfo.lpBaseOfImage;
 
-            // Now step from the BP location
-            StepInto([]() {
-                g_stepCount++;
-                s_afterStepIp = GetContextDataEx(g_hThread, UE_CIP);
-                StopDebug();
+        // Resolve exports
+        g_level4Addr = ResolveExportFromFile(szFilePath, base, "step_level4");
+        g_targetAddress = g_level4Addr;
+
+        if (g_level4Addr)
+        {
+            // Set a software BP
+            SetBPX(g_level4Addr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
+                TITAN_TRACK_BP_HIT();
+                g_swBpHit = true;
+
+                const DEBUG_EVENT* evt = GetDebugData();
+                if (evt)
+                {
+                    s_bpHitIp = (ULONG_PTR)evt->u.Exception.ExceptionRecord.ExceptionAddress;
+                }
+
+                // Now step from the BP location
+                StepInto([]() {
+                    TITAN_TRACK_STEP();
+                    g_stepCount++;
+                    const DEBUG_EVENT* evt = GetDebugData();
+                    if (evt)
+                    {
+                        s_afterStepIp = (ULONG_PTR)evt->u.Exception.ExceptionRecord.ExceptionAddress;
+                    }
+                    StopDebug();
+                });
             });
-        });
+        }
     });
 
     session.Run();
 
-    TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
-    TEST_ASSERT(s_targetAddr != 0, "Target address not resolved");
+    TEST_ASSERT(g_processCreated, "Process was not created");
+    TEST_ASSERT(g_targetAddress != 0, "Target address not resolved");
     TEST_ASSERT(g_swBpHit, "Software BP should have been hit");
-    TEST_ASSERT(s_bpHitIp == s_targetAddr, "BP should have hit at target address");
+    TEST_ASSERT(s_bpHitIp == g_targetAddress, "BP should have hit at target address");
     TEST_ASSERT(g_stepCount == 1, "Should have completed one step after BP");
     TEST_ASSERT(s_afterStepIp != s_bpHitIp, "IP should have advanced after stepping from BP");
 
@@ -651,55 +687,71 @@ TITAN_TEST_ID("ST-06", ST_06, "StepInto hits SW BP - step lands on breakpoint")
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
     session.SetupHandlers();
 
-    static DebugSession* s_session = &session;
-    static ULONG_PTR s_level1Addr = 0;
-    static ULONG_PTR s_level4Addr = 0;
     static bool s_bpHitDuringStep = false;
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-
-        s_level1Addr = s_session->GetExport("step_level1");
-        s_level4Addr = s_session->GetExport("step_level4");
-
-        if (s_level1Addr == 0 || s_level4Addr == 0)
-        {
-            StopDebug();
+    // Set up CREATE_PROCESS handler to resolve exports and set breakpoints
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
+        const DEBUG_EVENT* dbgEvent = GetDebugData();
+        if (!dbgEvent || dbgEvent->dwDebugEventCode != CREATE_PROCESS_DEBUG_EVENT)
             return;
-        }
+        const auto& createInfo = dbgEvent->u.CreateProcessInfo;
+        if (!createInfo.hFile)
+            return;
 
-        // Set a BP at level1 entry
-        SetBPX(s_level1Addr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
-            g_bpHitCount++;
+        g_hThread = createInfo.hThread;
+        g_hProcess = createInfo.hProcess;
 
-            // Set a BP at level4 (which will be called eventually)
-            SetBPX(s_level4Addr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
-                s_bpHitDuringStep = true;
+        wchar_t szFilePath[MAX_PATH] = L"";
+        GetFinalPathNameByHandleW(createInfo.hFile, szFilePath, _countof(szFilePath), VOLUME_NAME_DOS);
+        auto base = (ULONG_PTR)createInfo.lpBaseOfImage;
+
+        // Resolve exports
+        g_level1Addr = ResolveExportFromFile(szFilePath, base, "step_level1");
+        g_level4Addr = ResolveExportFromFile(szFilePath, base, "step_level4");
+
+        if (g_level1Addr && g_level4Addr)
+        {
+            // Set a BP at level1 entry
+            SetBPX(g_level1Addr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
+                TITAN_TRACK_BP_HIT();
                 g_bpHitCount++;
-                StopDebug();
-            });
 
-            // Step into repeatedly - should eventually hit the level4 BP
-            g_stepsRequested = 100;
-            StepInto([]() {
-                g_stepsCompleted++;
-                g_lastStepAddress = GetContextDataEx(g_hThread, UE_CIP);
-
-                if (g_stepsCompleted < g_stepsRequested && !s_bpHitDuringStep)
-                {
-                    StepInto(nullptr);
-                }
-                else
-                {
+                // Set a BP at level4 (which will be called eventually)
+                SetBPX(g_level4Addr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
+                    TITAN_TRACK_BP_HIT();
+                    s_bpHitDuringStep = true;
+                    g_bpHitCount++;
                     StopDebug();
-                }
+                });
+
+                // Step into repeatedly - should eventually hit the level4 BP
+                g_stepsRequested = 100;
+                StepInto([]() {
+                    TITAN_TRACK_STEP();
+                    g_stepsCompleted++;
+                    const DEBUG_EVENT* evt = GetDebugData();
+                    if (evt)
+                    {
+                        g_lastStepAddress = (ULONG_PTR)evt->u.Exception.ExceptionRecord.ExceptionAddress;
+                    }
+
+                    if (g_stepsCompleted < g_stepsRequested && !s_bpHitDuringStep)
+                    {
+                        StepInto(nullptr);
+                    }
+                    else
+                    {
+                        StopDebug();
+                    }
+                });
             });
-        });
+        }
     });
 
     session.Run();
 
-    TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
+    TEST_ASSERT(g_processCreated, "Process was not created");
     TEST_ASSERT(g_bpHitCount >= 1, "At least one BP should have been hit");
     TEST_ASSERT(s_bpHitDuringStep, "Should have hit SW BP while stepping");
 
@@ -720,63 +772,79 @@ TITAN_TEST_ID("ST-07", ST_07, "StepInto hits HW BP - step lands on hardware brea
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
     session.SetupHandlers();
 
-    static DebugSession* s_session = &session;
-    static ULONG_PTR s_level1Addr = 0;
-    static ULONG_PTR s_level4Addr = 0;
     static DWORD s_hwBpRegister = 0;
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-
-        s_level1Addr = s_session->GetExport("step_level1");
-        s_level4Addr = s_session->GetExport("step_level4");
-
-        if (s_level1Addr == 0 || s_level4Addr == 0)
-        {
-            StopDebug();
+    // Set up CREATE_PROCESS handler to resolve exports and set breakpoints
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
+        const DEBUG_EVENT* dbgEvent = GetDebugData();
+        if (!dbgEvent || dbgEvent->dwDebugEventCode != CREATE_PROCESS_DEBUG_EVENT)
             return;
-        }
+        const auto& createInfo = dbgEvent->u.CreateProcessInfo;
+        if (!createInfo.hFile)
+            return;
 
-        // Set SW BP at level1 entry
-        SetBPX(s_level1Addr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
-            g_bpHitCount++;
+        g_hThread = createInfo.hThread;
+        g_hProcess = createInfo.hProcess;
 
-            // Get an unused HW BP register
-            if (!GetUnusedHardwareBreakPointRegister(&s_hwBpRegister))
-            {
-                StopDebug();
-                return;
-            }
+        wchar_t szFilePath[MAX_PATH] = L"";
+        GetFinalPathNameByHandleW(createInfo.hFile, szFilePath, _countof(szFilePath), VOLUME_NAME_DOS);
+        auto base = (ULONG_PTR)createInfo.lpBaseOfImage;
 
-            // Set HW execute BP at level4
-            if (!SetHardwareBreakPoint(s_level4Addr, s_hwBpRegister,
-                                       UE_HARDWARE_EXECUTE, UE_HARDWARE_SIZE_1,
-                                       [](const void*) {
-                                           g_hwBpHit = true;
-                                           g_bpHitCount++;
-                                           StopDebug();
-                                       }))
-            {
-                StopDebug();
-                return;
-            }
+        // Resolve exports
+        g_level1Addr = ResolveExportFromFile(szFilePath, base, "step_level1");
+        g_level4Addr = ResolveExportFromFile(szFilePath, base, "step_level4");
 
-            // Step into repeatedly - should eventually hit the HW BP
-            g_stepsRequested = 100;
-            StepInto([]() {
-                g_stepsCompleted++;
-                g_lastStepAddress = GetContextDataEx(g_hThread, UE_CIP);
+        if (g_level1Addr && g_level4Addr)
+        {
+            // Set SW BP at level1 entry
+            SetBPX(g_level1Addr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
+                TITAN_TRACK_BP_HIT();
+                g_bpHitCount++;
 
-                if (g_stepsCompleted < g_stepsRequested && !g_hwBpHit)
-                {
-                    StepInto(nullptr);
-                }
-                else
+                // Get an unused HW BP register
+                if (!GetUnusedHardwareBreakPointRegister(&s_hwBpRegister))
                 {
                     StopDebug();
+                    return;
                 }
+
+                // Set HW execute BP at level4
+                if (!SetHardwareBreakPoint(g_level4Addr, s_hwBpRegister,
+                                           UE_HARDWARE_EXECUTE, UE_HARDWARE_SIZE_1,
+                                           [](const void*) {
+                                               TITAN_TRACK_BP_HIT();
+                                               g_hwBpHit = true;
+                                               g_bpHitCount++;
+                                               StopDebug();
+                                           }))
+                {
+                    StopDebug();
+                    return;
+                }
+
+                // Step into repeatedly - should eventually hit the HW BP
+                g_stepsRequested = 100;
+                StepInto([]() {
+                    TITAN_TRACK_STEP();
+                    g_stepsCompleted++;
+                    const DEBUG_EVENT* evt = GetDebugData();
+                    if (evt)
+                    {
+                        g_lastStepAddress = (ULONG_PTR)evt->u.Exception.ExceptionRecord.ExceptionAddress;
+                    }
+
+                    if (g_stepsCompleted < g_stepsRequested && !g_hwBpHit)
+                    {
+                        StepInto(nullptr);
+                    }
+                    else
+                    {
+                        StopDebug();
+                    }
+                });
             });
-        });
+        }
     });
 
     session.Run();
@@ -787,7 +855,7 @@ TITAN_TEST_ID("ST-07", ST_07, "StepInto hits HW BP - step lands on hardware brea
         DeleteHardwareBreakPoint(s_hwBpRegister);
     }
 
-    TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
+    TEST_ASSERT(g_processCreated, "Process was not created");
     TEST_ASSERT(g_bpHitCount >= 1, "At least one BP should have been hit");
     TEST_ASSERT(g_hwBpHit, "Should have hit HW BP while stepping");
 
@@ -808,65 +876,86 @@ TITAN_TEST_ID("ST-08", ST_08, "StepOver function with BP inside")
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
     session.SetupHandlers();
 
-    static DebugSession* s_session = &session;
-    static ULONG_PTR s_level1Addr = 0;
-    static ULONG_PTR s_level4Addr = 0;
     static int s_innerBpHits = 0;
     static bool s_stepOverCompleted = false;
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-
-        s_level1Addr = s_session->GetExport("step_level1");
-        s_level4Addr = s_session->GetExport("step_level4");
-
-        if (s_level1Addr == 0 || s_level4Addr == 0)
-        {
-            StopDebug();
+    // Set up CREATE_PROCESS handler to resolve exports and set breakpoints
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
+        const DEBUG_EVENT* dbgEvent = GetDebugData();
+        if (!dbgEvent || dbgEvent->dwDebugEventCode != CREATE_PROCESS_DEBUG_EVENT)
             return;
-        }
+        const auto& createInfo = dbgEvent->u.CreateProcessInfo;
+        if (!createInfo.hFile)
+            return;
 
-        // Set BP at level1 entry
-        SetBPX(s_level1Addr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
-            g_bpHitCount++;
-            g_initialIp = GetContextDataEx(g_hThread, UE_CIP);
+        g_hThread = createInfo.hThread;
+        g_hProcess = createInfo.hProcess;
 
-            // Set a persistent BP inside level4 (which level1 calls indirectly)
-            SetBPX(s_level4Addr, UE_BREAKPOINT | UE_BREAKPOINT_TYPE_INT3, []() {
-                s_innerBpHits++;
-                // Don't stop, just continue
-            });
+        wchar_t szFilePath[MAX_PATH] = L"";
+        GetFinalPathNameByHandleW(createInfo.hFile, szFilePath, _countof(szFilePath), VOLUME_NAME_DOS);
+        auto base = (ULONG_PTR)createInfo.lpBaseOfImage;
 
-            // Now use StepOver - it should complete even though inner BP fires
-            g_stepsRequested = 20;
-            StepOver([]() {
-                g_stepsCompleted++;
-                ULONG_PTR cip = GetContextDataEx(g_hThread, UE_CIP);
-                g_lastStepAddress = cip;
+        // Resolve exports
+        g_level1Addr = ResolveExportFromFile(szFilePath, base, "step_level1");
+        g_level4Addr = ResolveExportFromFile(szFilePath, base, "step_level4");
 
-                if (g_stepsCompleted < g_stepsRequested)
+        if (g_level1Addr && g_level4Addr)
+        {
+            // Set BP at level1 entry
+            SetBPX(g_level1Addr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
+                TITAN_TRACK_BP_HIT();
+                g_bpHitCount++;
+
+                const DEBUG_EVENT* evt = GetDebugData();
+                if (evt)
                 {
-                    // Check if we've returned from level1
-                    if (cip < s_level1Addr || cip > s_level1Addr + 0x200)
+                    g_initialIp = (ULONG_PTR)evt->u.Exception.ExceptionRecord.ExceptionAddress;
+                }
+
+                // Set a persistent BP inside level4 (which level1 calls indirectly)
+                SetBPX(g_level4Addr, UE_BREAKPOINT | UE_BREAKPOINT_TYPE_INT3, []() {
+                    TITAN_TRACK_BP_HIT();
+                    s_innerBpHits++;
+                    // Don't stop, just continue
+                });
+
+                // Now use StepOver - it should complete even though inner BP fires
+                g_stepsRequested = 20;
+                StepOver([]() {
+                    TITAN_TRACK_STEP();
+                    g_stepsCompleted++;
+                    const DEBUG_EVENT* evt = GetDebugData();
+                    if (!evt)
+                        return;
+
+                    ULONG_PTR cip = (ULONG_PTR)evt->u.Exception.ExceptionRecord.ExceptionAddress;
+                    g_lastStepAddress = cip;
+
+                    if (g_stepsCompleted < g_stepsRequested)
+                    {
+                        // Check if we've returned from level1
+                        if (cip < g_level1Addr || cip > g_level1Addr + 0x200)
+                        {
+                            s_stepOverCompleted = true;
+                            StopDebug();
+                            return;
+                        }
+                        StepOver(nullptr);
+                    }
+                    else
                     {
                         s_stepOverCompleted = true;
                         StopDebug();
-                        return;
                     }
-                    StepOver(nullptr);
-                }
-                else
-                {
-                    s_stepOverCompleted = true;
-                    StopDebug();
-                }
+                });
             });
-        });
+        }
     });
 
     session.Run();
 
-    TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
+    TEST_ASSERT(g_processCreated, "Process was not created");
     TEST_ASSERT(g_bpHitCount >= 1, "Initial BP should have been hit");
     TEST_ASSERT(g_stepsCompleted > 0, "Should have completed at least one step over");
     // The inner BP may or may not fire depending on StepOver implementation
@@ -890,8 +979,6 @@ TITAN_TEST_ID("ST-09", ST_09, "Step in multi-threaded - single thread stepping")
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
     session.SetupHandlers();
 
-    static DebugSession* s_session = &session;
-    static ULONG_PTR s_targetAddr = 0;
     static int s_threadCreateCount = 0;
 
     // Track thread creation
@@ -899,45 +986,69 @@ TITAN_TEST_ID("ST-09", ST_09, "Step in multi-threaded - single thread stepping")
         s_threadCreateCount++;
     });
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-
-        s_targetAddr = s_session->GetExport("step_mixed_instructions");
-
-        if (s_targetAddr == 0)
-        {
-            StopDebug();
+    // Set up CREATE_PROCESS handler to resolve exports and set breakpoints
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
+        const DEBUG_EVENT* dbgEvent = GetDebugData();
+        if (!dbgEvent || dbgEvent->dwDebugEventCode != CREATE_PROCESS_DEBUG_EVENT)
             return;
-        }
+        const auto& createInfo = dbgEvent->u.CreateProcessInfo;
+        if (!createInfo.hFile)
+            return;
 
-        // Set BP at target function
-        SetBPX(s_targetAddr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
-            g_bpHitCount++;
-            g_initialIp = GetContextDataEx(g_hThread, UE_CIP);
+        g_hThread = createInfo.hThread;
+        g_hProcess = createInfo.hProcess;
 
-            // Execute several steps in current thread
-            g_stepsRequested = 10;
-            StepInto([]() {
-                g_stepsCompleted++;
-                ULONG_PTR cip = GetContextDataEx(g_hThread, UE_CIP);
-                g_lastStepAddress = cip;
-                g_ipHistory.push_back(cip);
+        wchar_t szFilePath[MAX_PATH] = L"";
+        GetFinalPathNameByHandleW(createInfo.hFile, szFilePath, _countof(szFilePath), VOLUME_NAME_DOS);
+        auto base = (ULONG_PTR)createInfo.lpBaseOfImage;
 
-                if (g_stepsCompleted < g_stepsRequested)
+        // Resolve exports
+        g_mixedInstrAddr = ResolveExportFromFile(szFilePath, base, "step_mixed_instructions");
+        g_targetAddress = g_mixedInstrAddr;
+
+        if (g_mixedInstrAddr)
+        {
+            // Set BP at target function
+            SetBPX(g_mixedInstrAddr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
+                TITAN_TRACK_BP_HIT();
+                g_bpHitCount++;
+
+                const DEBUG_EVENT* evt = GetDebugData();
+                if (evt)
                 {
-                    StepInto(nullptr);
+                    g_initialIp = (ULONG_PTR)evt->u.Exception.ExceptionRecord.ExceptionAddress;
                 }
-                else
-                {
-                    StopDebug();
-                }
+
+                // Execute several steps in current thread
+                g_stepsRequested = 10;
+                StepInto([]() {
+                    TITAN_TRACK_STEP();
+                    g_stepsCompleted++;
+                    const DEBUG_EVENT* evt = GetDebugData();
+                    if (evt)
+                    {
+                        ULONG_PTR cip = (ULONG_PTR)evt->u.Exception.ExceptionRecord.ExceptionAddress;
+                        g_lastStepAddress = cip;
+                        g_ipHistory.push_back(cip);
+                    }
+
+                    if (g_stepsCompleted < g_stepsRequested)
+                    {
+                        StepInto(nullptr);
+                    }
+                    else
+                    {
+                        StopDebug();
+                    }
+                });
             });
-        });
+        }
     });
 
     session.Run();
 
-    TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
+    TEST_ASSERT(g_processCreated, "Process was not created");
     TEST_ASSERT(g_bpHitCount >= 1, "BP should have been hit");
     TEST_ASSERT(g_stepsCompleted == g_stepsRequested, "Should have completed all requested steps");
 
@@ -976,37 +1087,53 @@ TITAN_TEST_ID("ST-10", ST_10, "Consecutive steps - 10 sequential steps")
     TEST_ASSERT(session.Start(exePath.c_str()), "Failed to start debug session");
     session.SetupHandlers();
 
-    static DebugSession* s_session = &session;
-    static ULONG_PTR s_targetAddr = 0;
     static const int EXPECTED_STEPS = 10;
 
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
-        g_systemBpHit = true;
-
-        // Use step_inline_asm which has predictable NOP instructions
-        s_targetAddr = s_session->GetExport("step_inline_asm");
-
-        if (s_targetAddr == 0)
-        {
-            StopDebug();
+    // Set up CREATE_PROCESS handler to resolve exports and set breakpoints
+    SetCustomHandler(UE_CH_CREATEPROCESS, [](const void*) {
+        g_processCreated = true;
+        const DEBUG_EVENT* dbgEvent = GetDebugData();
+        if (!dbgEvent || dbgEvent->dwDebugEventCode != CREATE_PROCESS_DEBUG_EVENT)
             return;
+        const auto& createInfo = dbgEvent->u.CreateProcessInfo;
+        if (!createInfo.hFile)
+            return;
+
+        g_hThread = createInfo.hThread;
+        g_hProcess = createInfo.hProcess;
+
+        wchar_t szFilePath[MAX_PATH] = L"";
+        GetFinalPathNameByHandleW(createInfo.hFile, szFilePath, _countof(szFilePath), VOLUME_NAME_DOS);
+        auto base = (ULONG_PTR)createInfo.lpBaseOfImage;
+
+        // Resolve exports - use step_inline_asm which has predictable NOP instructions
+        g_inlineAsmAddr = ResolveExportFromFile(szFilePath, base, "step_inline_asm");
+        g_targetAddress = g_inlineAsmAddr;
+
+        if (g_inlineAsmAddr)
+        {
+            // Set BP at target function
+            SetBPX(g_inlineAsmAddr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
+                TITAN_TRACK_BP_HIT();
+                g_bpHitCount++;
+
+                const DEBUG_EVENT* evt = GetDebugData();
+                if (evt)
+                {
+                    g_initialIp = (ULONG_PTR)evt->u.Exception.ExceptionRecord.ExceptionAddress;
+                    g_ipHistory.push_back(g_initialIp);
+                }
+
+                // Execute exactly 10 steps
+                g_stepsRequested = EXPECTED_STEPS;
+                StepInto(OnStepAndContinue);
+            });
         }
-
-        // Set BP at target function
-        SetBPX(s_targetAddr, UE_SINGLESHOOT | UE_BREAKPOINT_TYPE_INT3, []() {
-            g_bpHitCount++;
-            g_initialIp = GetContextDataEx(g_hThread, UE_CIP);
-            g_ipHistory.push_back(g_initialIp);
-
-            // Execute exactly 10 steps
-            g_stepsRequested = EXPECTED_STEPS;
-            StepInto(OnStepAndContinue);
-        });
     });
 
     session.Run();
 
-    TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
+    TEST_ASSERT(g_processCreated, "Process was not created");
     TEST_ASSERT(g_bpHitCount >= 1, "BP should have been hit");
     TEST_ASSERT(g_stepsCompleted == EXPECTED_STEPS, "Should have completed exactly 10 steps");
     TEST_ASSERT(g_ipHistory.size() == EXPECTED_STEPS + 1, "Should have recorded 11 IPs (initial + 10 steps)");

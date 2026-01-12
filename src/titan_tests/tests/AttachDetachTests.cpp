@@ -35,6 +35,13 @@ std::atomic<DWORD> g_attachedPid{0};
 // Target function address for breakpoints after attach
 ULONG_PTR g_targetAddress = 0;
 
+// Module base address of attached process (set in handlers)
+ULONG_PTR g_moduleBase = 0;
+
+// Global to store executable path for attach scenarios
+// (handlers can't capture local variables)
+std::wstring g_attachExePath;
+
 // Reset all test state
 void ResetTestState()
 {
@@ -45,6 +52,8 @@ void ResetTestState()
     g_threadCount = 0;
     g_attachedPid = 0;
     g_targetAddress = 0;
+    g_moduleBase = 0;
+    g_attachExePath.clear();
 }
 
 // Get the test executable path (uses framework helper with architecture suffix)
@@ -143,95 +152,70 @@ void KillProcess(DWORD pid)
     }
 }
 
-// Get address of exported function from external process
-ULONG_PTR GetExportAddress(HANDLE hProcess, ULONG_PTR moduleBase, const char* exportName)
+// Resolve export address from a known executable path
+// Uses LoadLibraryExW + GetProcAddress pattern instead of toolhelp which can deadlock
+ULONG_PTR ResolveExportFromPath(const wchar_t* exePath, ULONG_PTR remoteBase, const char* exportName)
 {
-    // Read DOS header
-    IMAGE_DOS_HEADER dosHeader;
-    if (!MemoryReadSafe(hProcess, (LPVOID)moduleBase, &dosHeader, sizeof(dosHeader), nullptr))
+    HMODULE hLib = LoadLibraryExW(exePath, nullptr, DONT_RESOLVE_DLL_REFERENCES);
+    if (!hLib)
         return 0;
 
-    if (dosHeader.e_magic != IMAGE_DOS_SIGNATURE)
-        return 0;
-
-    // Read NT headers
-    ULONG_PTR ntHeadersAddr = moduleBase + dosHeader.e_lfanew;
-
-#ifdef _WIN64
-    IMAGE_NT_HEADERS64 ntHeaders;
-#else
-    IMAGE_NT_HEADERS32 ntHeaders;
-#endif
-
-    if (!MemoryReadSafe(hProcess, (LPVOID)ntHeadersAddr, &ntHeaders, sizeof(ntHeaders), nullptr))
-        return 0;
-
-    if (ntHeaders.Signature != IMAGE_NT_SIGNATURE)
-        return 0;
-
-    // Get export directory
-    DWORD exportDirRVA = ntHeaders.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
-    DWORD exportDirSize = ntHeaders.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].Size;
-
-    if (exportDirRVA == 0 || exportDirSize == 0)
-        return 0;
-
-    IMAGE_EXPORT_DIRECTORY exportDir;
-    if (!MemoryReadSafe(hProcess, (LPVOID)(moduleBase + exportDirRVA), &exportDir, sizeof(exportDir), nullptr))
-        return 0;
-
-    // Read function addresses, names, and ordinals
-    DWORD numNames = exportDir.NumberOfNames;
-    ULONG_PTR namesAddr = moduleBase + exportDir.AddressOfNames;
-    ULONG_PTR ordinalsAddr = moduleBase + exportDir.AddressOfNameOrdinals;
-    ULONG_PTR functionsAddr = moduleBase + exportDir.AddressOfFunctions;
-
-    for (DWORD i = 0; i < numNames; i++)
+    ULONG_PTR result = 0;
+    auto exportAddr = (ULONG_PTR)GetProcAddress(hLib, exportName);
+    if (exportAddr)
     {
-        // Read name RVA
-        DWORD nameRVA;
-        if (!MemoryReadSafe(hProcess, (LPVOID)(namesAddr + i * sizeof(DWORD)), &nameRVA, sizeof(nameRVA), nullptr))
-            continue;
-
-        // Read name
-        char name[256] = {0};
-        if (!MemoryReadSafe(hProcess, (LPVOID)(moduleBase + nameRVA), name, sizeof(name) - 1, nullptr))
-            continue;
-
-        if (strcmp(name, exportName) == 0)
-        {
-            // Read ordinal
-            WORD ordinal;
-            if (!MemoryReadSafe(hProcess, (LPVOID)(ordinalsAddr + i * sizeof(WORD)), &ordinal, sizeof(ordinal), nullptr))
-                return 0;
-
-            // Read function RVA
-            DWORD funcRVA;
-            if (!MemoryReadSafe(hProcess, (LPVOID)(functionsAddr + ordinal * sizeof(DWORD)), &funcRVA, sizeof(funcRVA), nullptr))
-                return 0;
-
-            return moduleBase + funcRVA;
-        }
+        // Convert from local address to remote address
+        result = exportAddr - (ULONG_PTR)hLib + remoteBase;
     }
 
-    return 0;
+    FreeLibrary(hLib);
+    return result;
 }
 
-// Get module base of a process
-ULONG_PTR GetModuleBase(DWORD pid)
+// Get module base from attached process using NtQueryInformationProcess
+// This avoids toolhelp snapshot which can deadlock when the target is suspended
+ULONG_PTR GetModuleBaseFromPEB(HANDLE hProcess)
 {
-    ULONG_PTR moduleBase = 0;
-    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid);
-    if (hSnapshot != INVALID_HANDLE_VALUE)
-    {
-        MODULEENTRY32W me = {sizeof(me)};
-        if (Module32FirstW(hSnapshot, &me))
-        {
-            moduleBase = (ULONG_PTR)me.modBaseAddr;
-        }
-        CloseHandle(hSnapshot);
-    }
-    return moduleBase;
+    // Define structures we need
+    typedef struct _PROCESS_BASIC_INFORMATION {
+        PVOID Reserved1;
+        PVOID PebBaseAddress;
+        PVOID Reserved2[2];
+        ULONG_PTR UniqueProcessId;
+        PVOID Reserved3;
+    } PROCESS_BASIC_INFORMATION;
+
+    typedef NTSTATUS (NTAPI *NtQueryInformationProcessFn)(
+        HANDLE ProcessHandle,
+        ULONG ProcessInformationClass,
+        PVOID ProcessInformation,
+        ULONG ProcessInformationLength,
+        PULONG ReturnLength
+    );
+
+    static auto NtQueryInformationProcess = (NtQueryInformationProcessFn)
+        GetProcAddress(GetModuleHandleW(L"ntdll.dll"), "NtQueryInformationProcess");
+    if (!NtQueryInformationProcess)
+        return 0;
+
+    PROCESS_BASIC_INFORMATION pbi = {};
+    NTSTATUS status = NtQueryInformationProcess(hProcess, 0 /* ProcessBasicInformation */, &pbi, sizeof(pbi), nullptr);
+    if (status != 0 || !pbi.PebBaseAddress)
+        return 0;
+
+    // Read PEB to get ImageBaseAddress
+    // PEB structure offset for ImageBaseAddress: 0x10 on x64, 0x08 on x86
+#ifdef _WIN64
+    const SIZE_T imageBaseOffset = 0x10;
+#else
+    const SIZE_T imageBaseOffset = 0x08;
+#endif
+
+    ULONG_PTR imageBase = 0;
+    if (!ReadProcessMemory(hProcess, (PBYTE)pbi.PebBaseAddress + imageBaseOffset, &imageBase, sizeof(imageBase), nullptr))
+        return 0;
+
+    return imageBase;
 }
 
 // Count threads in a process
@@ -276,7 +260,12 @@ void OnBpHit()
 {
     TITAN_TRACK_BP_HIT();
     g_bpHitCount++;
-    g_lastBpAddress = GetContextDataEx(GetCurrentThread(), UE_CIP);
+    // Get BP address from debug event (not GetContextDataEx which uses wrong thread handle)
+    const DEBUG_EVENT* dbgEvent = GetDebugData();
+    if (dbgEvent)
+    {
+        g_lastBpAddress = (ULONG_PTR)dbgEvent->u.Exception.ExceptionRecord.ExceptionAddress;
+    }
 }
 
 void OnThreadCreated(const void* info)
@@ -484,12 +473,14 @@ TITAN_TEST_ID("AD-04", AD_04, "DetachDebuggerEx - clean detach from process")
 //-----------------------------------------------------------------------------
 // AD-05: Set BP after attach
 // Attach to process, then set breakpoints
+// Uses LoadLibraryExW + GetProcAddress for export resolution instead of toolhelp
 //-----------------------------------------------------------------------------
 TITAN_TEST_ID("AD-05", AD_05, "Set breakpoint after attach")
 {
     ResetTestState();
 
     std::wstring exePath = GetTestExePath();
+    g_attachExePath = exePath;  // Store for handler access
 
     // Start the external process
     PROCESS_INFORMATION pi = StartExternalProcess(exePath.c_str());
@@ -509,7 +500,7 @@ TITAN_TEST_ID("AD-05", AD_05, "Set breakpoint after attach")
     SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
         g_systemBpHit = true;
 
-        // Get process handle and module base
+        // Get process handle
         s_hProcess = TitanOpenProcess(PROCESS_ALL_ACCESS, FALSE, g_attachedPid);
         if (!s_hProcess)
         {
@@ -517,15 +508,17 @@ TITAN_TEST_ID("AD-05", AD_05, "Set breakpoint after attach")
             return;
         }
 
-        ULONG_PTR moduleBase = GetModuleBase(g_attachedPid);
+        // Get module base from PEB (avoids toolhelp snapshot deadlock)
+        ULONG_PTR moduleBase = GetModuleBaseFromPEB(s_hProcess);
         if (!moduleBase)
         {
             StopDebug();
             return;
         }
+        g_moduleBase = moduleBase;
 
-        // Find the target function
-        ULONG_PTR addr = GetExportAddress(s_hProcess, moduleBase, "attach_periodic_work");
+        // Resolve export using LoadLibraryExW + GetProcAddress pattern
+        ULONG_PTR addr = ResolveExportFromPath(g_attachExePath.c_str(), moduleBase, "attach_periodic_work");
         if (addr)
         {
             g_targetAddress = addr;
@@ -654,12 +647,14 @@ TITAN_TEST_ID("AD-06", AD_06, "Attach, detach, re-attach - multiple cycles")
 //-----------------------------------------------------------------------------
 // AD-07: Attach to multi-threaded process
 // Attach to process with multiple threads running
+// Uses LoadLibraryExW + GetProcAddress for export resolution instead of toolhelp
 //-----------------------------------------------------------------------------
 TITAN_TEST_ID("AD-07", AD_07, "Attach to multi-threaded process")
 {
     ResetTestState();
 
     std::wstring exePath = GetTestExePath();
+    g_attachExePath = exePath;  // Store for handler access
 
     // Start the external process with --worker flag to create additional threads
     PROCESS_INFORMATION pi = StartExternalProcess(exePath.c_str(), L"--worker");
@@ -673,7 +668,7 @@ TITAN_TEST_ID("AD-07", AD_07, "Attach to multi-threaded process")
 
     DWORD targetPid = pi.dwProcessId;
 
-    // Count threads before attach
+    // Count threads before attach (using toolhelp is safe here - process not suspended)
     int threadsBefore = CountProcessThreads(targetPid);
     TEST_ASSERT(threadsBefore > 1, "Process should have multiple threads");
 
@@ -692,17 +687,20 @@ TITAN_TEST_ID("AD-07", AD_07, "Attach to multi-threaded process")
     SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, [](const void*) {
         g_systemBpHit = true;
 
-        // Count threads via snapshot
+        // Count threads via snapshot (safe since we're in debug break)
         s_threadsSeenDuringDebug = CountProcessThreads(g_attachedPid);
 
-        // Try to set a breakpoint on the thread target function
+        // Get process handle
         s_hProcess = TitanOpenProcess(PROCESS_ALL_ACCESS, FALSE, g_attachedPid);
         if (s_hProcess)
         {
-            ULONG_PTR moduleBase = GetModuleBase(g_attachedPid);
+            // Get module base from PEB (avoids toolhelp snapshot deadlock)
+            ULONG_PTR moduleBase = GetModuleBaseFromPEB(s_hProcess);
             if (moduleBase)
             {
-                ULONG_PTR addr = GetExportAddress(s_hProcess, moduleBase, "attach_periodic_work");
+                g_moduleBase = moduleBase;
+                // Resolve export using LoadLibraryExW + GetProcAddress pattern
+                ULONG_PTR addr = ResolveExportFromPath(g_attachExePath.c_str(), moduleBase, "attach_periodic_work");
                 if (addr)
                 {
                     g_targetAddress = addr;
