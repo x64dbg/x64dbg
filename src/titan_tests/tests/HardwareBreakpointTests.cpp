@@ -826,11 +826,11 @@ TITAN_TEST_ID("HW-08", HW_08, "GetUnusedHardwareBreakPointRegister returns unuse
     TEST_ASSERT(g_systemBpHit, "System breakpoint was not hit");
     TEST_ASSERT(s_targetAddr != 0, "Target function address not resolved");
 
-    // Verify registers are 0-3 and all different
-    TEST_ASSERT(s_firstUnused < 4, "First unused register should be 0-3");
-    TEST_ASSERT(s_secondUnused < 4, "Second unused register should be 0-3");
-    TEST_ASSERT(s_thirdUnused < 4, "Third unused register should be 0-3");
-    TEST_ASSERT(s_fourthUnused < 4, "Fourth unused register should be 0-3");
+    // Verify registers are UE_DR0-UE_DR3 (values 11-14) and all different
+    TEST_ASSERT(s_firstUnused >= UE_DR0 && s_firstUnused <= UE_DR3, "First unused register should be UE_DR0-UE_DR3");
+    TEST_ASSERT(s_secondUnused >= UE_DR0 && s_secondUnused <= UE_DR3, "Second unused register should be UE_DR0-UE_DR3");
+    TEST_ASSERT(s_thirdUnused >= UE_DR0 && s_thirdUnused <= UE_DR3, "Third unused register should be UE_DR0-UE_DR3");
+    TEST_ASSERT(s_fourthUnused >= UE_DR0 && s_fourthUnused <= UE_DR3, "Fourth unused register should be UE_DR0-UE_DR3");
 
     TEST_ASSERT(s_firstUnused != s_secondUnused, "First and second registers should be different");
     TEST_ASSERT(s_firstUnused != s_thirdUnused, "First and third registers should be different");

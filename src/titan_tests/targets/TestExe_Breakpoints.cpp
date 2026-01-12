@@ -240,6 +240,24 @@ int main(int argc, char* argv[])
     // Default behavior: call each function once to verify they work
     volatile DWORD result = 0;
 
+    // IMPORTANT: Memory access functions MUST be called FIRST!
+    // Memory breakpoints use PAGE_GUARD which triggers on first access to the page.
+    // If ANY code accesses variables on the same page before the memory BP tests run,
+    // the PAGE_GUARD is consumed and the BP won't fire.
+    // Write operations are called before read operations so write BPs fire first.
+    bp_memory_write(0xCAFEBABE);
+    bp_memory_write(0xDEADBEEF);  // Second write for RestoreOnHit=false tests
+    bp_memory_write(0x12345678);  // Third write for persistent BP tests
+    result += bp_memory_read();
+    result += bp_memory_readwrite(100);
+
+    bp_memory_byte_write(0xFF);
+    result += bp_memory_byte_read();
+
+    // Test qword memory access
+    bp_memory_qword_write(0x123456789ABCDEF0ull);
+    result += (DWORD)bp_memory_qword_read();
+
     // Test software breakpoint targets (SW-01 through SW-09)
     result += bp_target_sw1(10);
     result += bp_target_sw2(20);
@@ -265,14 +283,6 @@ int main(int argc, char* argv[])
     // Test loop function
     bp_loop_func(10);
     result += g_loop_counter;
-
-    // Test memory access functions
-    result += bp_memory_read();
-    bp_memory_write(0xCAFEBABE);
-    result += bp_memory_readwrite(100);
-
-    result += bp_memory_byte_read();
-    bp_memory_byte_write(0xFF);
 
     // Test nop sled
     bp_nop_sled();

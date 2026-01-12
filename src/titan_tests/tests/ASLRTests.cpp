@@ -877,6 +877,7 @@ TITAN_TEST_ID("ASLR-07", ASLR_07, "Memory breakpoint RVA restoration across ASLR
 
     std::wstring exePath = GetASLRTestExePath();
     static ULONG_PTR s_memRva = 0;
+    static ULONG_PTR s_base1 = 0;  // Save base from run 1 before reset
 
     // Run 1: Set memory BP and save RVA
     {
@@ -888,14 +889,14 @@ TITAN_TEST_ID("ASLR-07", ASLR_07, "Memory breakpoint RVA restoration across ASLR
                 return;
 
             const auto& createInfo = dbgEvent->u.CreateProcessInfo;
+            auto base = (ULONG_PTR)createInfo.lpBaseOfImage;
+            g_aslrBase1 = base;
+
             if (!createInfo.hFile)
                 return;
 
             wchar_t szFilePath[MAX_PATH] = L"";
             GetFinalPathNameByHandleW(createInfo.hFile, szFilePath, _countof(szFilePath), VOLUME_NAME_DOS);
-
-            auto base = (ULONG_PTR)createInfo.lpBaseOfImage;
-            g_aslrBase1 = base;
 
             auto hLib = LoadLibraryExW(szFilePath, nullptr, DONT_RESOLVE_DLL_REFERENCES);
             if (hLib)
@@ -930,6 +931,7 @@ TITAN_TEST_ID("ASLR-07", ASLR_07, "Memory breakpoint RVA restoration across ASLR
 
         TEST_ASSERT(s_memRva != 0, "First run: MEM BP RVA not saved");
         // Memory BP may or may not hit depending on test exe behavior
+        s_base1 = g_aslrBase1;  // Save before reset
     }
 
     // Reset for second run
@@ -966,7 +968,7 @@ TITAN_TEST_ID("ASLR-07", ASLR_07, "Memory breakpoint RVA restoration across ASLR
     }
 
     // Verify we got valid bases from both runs (RVA logic works)
-    TEST_ASSERT(g_aslrBase1 != 0 && g_aslrBase2 != 0, "Failed to get module bases from both runs");
+    TEST_ASSERT(s_base1 != 0 && g_aslrBase2 != 0, "Failed to get module bases from both runs");
     TEST_ASSERT(s_memRva != 0, "Memory BP RVA was not calculated");
 
     return true;

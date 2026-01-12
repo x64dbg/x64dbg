@@ -29,8 +29,12 @@ extern "C" {
 // Read from NULL pointer - EXCEPTION_ACCESS_VIOLATION (read)
 extern "C" __declspec(dllexport) DWORD __cdecl trigger_access_violation_read()
 {
+    OutputDebugStringA("[TestExe_Exceptions] trigger_access_violation_read() ENTRY\n");
     volatile DWORD* ptr = NULL;
-    return *ptr;  // Read from NULL - will cause access violation
+    OutputDebugStringA("[TestExe_Exceptions] About to read from NULL\n");
+    DWORD result = *ptr;  // Read from NULL - will cause access violation
+    OutputDebugStringA("[TestExe_Exceptions] After read (should not reach here)\n");
+    return result;
 }
 EXPORT_SYMBOL(trigger_access_violation_read)
 
@@ -384,23 +388,32 @@ int main(int argc, char* argv[])
 {
     g_use_seh_handler = TRUE;
 
-    // Test safe versions (with SEH handlers)
-    safe_trigger_access_violation_read();
-    safe_trigger_access_violation_write();
-    safe_trigger_div_by_zero();
-    safe_trigger_illegal_instruction();
-    safe_trigger_int3();
+    // Debug: output argc/argv to verify command line parsing
+    OutputDebugStringA("[TestExe_Exceptions] main() called\n");
+    char buf[256];
+    wsprintfA(buf, "[TestExe_Exceptions] argc=%d\n", argc);
+    OutputDebugStringA(buf);
+    for (int i = 0; i < argc; i++)
+    {
+        wsprintfA(buf, "[TestExe_Exceptions] argv[%d]=%s\n", i, argv[i]);
+        OutputDebugStringA(buf);
+    }
 
-    // Test nested exceptions
-    nested_exception_outer();
-
-    // If --crash argument, trigger unhandled exception
+    // Check for specific exception trigger arguments FIRST
+    // This avoids having safe_* first-chance exceptions interfere with testing
     if (argc > 1)
     {
         g_use_seh_handler = FALSE;
+        OutputDebugStringA("[TestExe_Exceptions] Has arguments, calling trigger function\n");
+
+        // Debug: show exact argv[1] content
+        wsprintfA(buf, "[TestExe_Exceptions] argv[1] len=%d, strcmp result=%d\n",
+                  (int)strlen(argv[1]), strcmp(argv[1], "--read"));
+        OutputDebugStringA(buf);
 
         if (strcmp(argv[1], "--read") == 0)
         {
+            OutputDebugStringA("[TestExe_Exceptions] Triggering read AV\n");
             trigger_access_violation_read();
         }
         else if (strcmp(argv[1], "--write") == 0)
@@ -427,7 +440,35 @@ int main(int argc, char* argv[])
         {
             trigger_int3();
         }
+        else if (strcmp(argv[1], "--singlestep") == 0)
+        {
+            trigger_single_step();
+        }
+        else if (strcmp(argv[1], "--stackoverflow") == 0)
+        {
+            trigger_stack_overflow(0);
+        }
+        else if (strcmp(argv[1], "--guardpage") == 0)
+        {
+            trigger_guard_page();
+        }
+        else if (strcmp(argv[1], "--nested") == 0)
+        {
+            nested_exception_outer();
+        }
+        // Exit after the specific test - don't run safe_* functions
+        return (int)g_exception_count;
     }
+
+    // If no arguments, run safe self-test versions (with SEH handlers)
+    safe_trigger_access_violation_read();
+    safe_trigger_access_violation_write();
+    safe_trigger_div_by_zero();
+    safe_trigger_illegal_instruction();
+    safe_trigger_int3();
+
+    // Test nested exceptions
+    nested_exception_outer();
 
     return (int)g_exception_count;
 }

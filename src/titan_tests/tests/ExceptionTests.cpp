@@ -51,19 +51,18 @@ namespace
 
     ExceptionTestState g_state;
 
-    // Generic exception callback
-    void ExceptionCallback(const void* /* arg */)
+    // Generic exception callback (takes EXCEPTION_DEBUG_INFO* like x64dbg's cbException)
+    void ExceptionCallback(EXCEPTION_DEBUG_INFO* ExceptionData)
     {
         g_state.exceptionCaught = true;
         g_state.exceptionCount++;
 
-        const DEBUG_EVENT* dbgEvent = GetDebugData();
-        if (dbgEvent && dbgEvent->dwDebugEventCode == EXCEPTION_DEBUG_EVENT)
+        if (ExceptionData)
         {
-            const EXCEPTION_RECORD& rec = dbgEvent->u.Exception.ExceptionRecord;
+            const EXCEPTION_RECORD& rec = ExceptionData->ExceptionRecord;
             g_state.exceptionCode = rec.ExceptionCode;
             g_state.exceptionAddress = (ULONG_PTR)rec.ExceptionAddress;
-            g_state.isFirstChance = dbgEvent->u.Exception.dwFirstChance != 0;
+            g_state.isFirstChance = ExceptionData->dwFirstChance != 0;
 
             // For access violations, capture additional info
             if (rec.ExceptionCode == EXCEPTION_ACCESS_VIOLATION && rec.NumberParameters >= 2)
@@ -130,8 +129,11 @@ namespace
     bool RunDebuggerWithArg(const wchar_t* arg)
     {
         std::wstring exePath = GetTestExePath();
-        std::wstring cmdLine = L"\"" + exePath + L"\" " + arg;
+        // TitanEngine's szCommandLine is JUST the arguments, not the full command line
+        // The exe path is passed separately in szFileName
+        std::wstring cmdLine = arg;
 
+        // InitDebugW internally calls CreateProcessW
         PROCESS_INFORMATION* pi = InitDebugW(exePath.c_str(), cmdLine.c_str(), nullptr);
         if (!pi || pi->hProcess == nullptr)
         {
