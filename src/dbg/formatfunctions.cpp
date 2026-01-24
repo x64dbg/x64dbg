@@ -132,6 +132,43 @@ void FormatFunctions::Init()
         });
     });
 
+    Register("hexdump", [](char* dest, size_t destCount, int argc, char* argv[], duint addr, void* userdata)
+    {
+        return memoryFormatter<unsigned char, 256>(dest, destCount, argc, argv, addr, [addr](std::vector<unsigned char> & data)
+        {
+            String result;
+            // 000001A6E8E25C80: 41 41 41 41 41 41 41 41  41 41 41 41 41 41 41 41  AAAAAAAAAAAAAAAA
+            // per 16 byte of data we have (address/spaces:22 + hex:48 + ascii:16)=86 chars
+            // ratio ~5.375 rounding up to 6
+            result.reserve(data.size() * 6);
+            for(size_t i = 0; i < data.size(); i += 16)
+            {
+                result += StringUtils::sprintf("%p: ", addr + i);
+                for(size_t j = 0; j < 16; j++)
+                {
+                    if(i + j < data.size())
+                        result += StringUtils::sprintf("%02X ", data[i + j]);
+                    else
+                        result += "   ";
+                    if(j == 7)
+                        result += " ";
+                }
+                result += " ";
+                for(size_t j = 0; j < 16; j++)
+                {
+                    if(i + j < data.size())
+                    {
+                        unsigned char ch = data[i + j];
+                        result.push_back(isprint(ch) ? (char)ch : '.');
+                    }
+                }
+                if(i + 16 < data.size())
+                    result += "\n";
+            }
+            return result;
+        });
+    });
+
     Register("utf8", [](char* dest, size_t destCount, int argc, char* argv[], duint addr, void* userdata)
     {
         return memoryFormatter<char, 512>(dest, destCount, argc, argv, addr, [](std::vector<char> & data)
