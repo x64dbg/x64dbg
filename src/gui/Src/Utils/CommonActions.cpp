@@ -10,6 +10,7 @@
 #include "WordEditDialog.h"
 #include "GotoDialog.h"
 #include "DisplayTypeDialog.h"
+#include <BasicView/Disassembly.h>
 
 CommonActions::CommonActions(QWidget* parent, ActionHelperFuncs funcs, GetSelectionFunc getSelection)
     : QObject(parent), ActionHelperProxy(funcs), mGetSelection(getSelection)
@@ -340,6 +341,45 @@ void CommonActions::toggleInt3BPActionSlot()
 {
     if(!DbgIsDebugging())
         return;
+    if(auto disasm = qobject_cast<Disassembly*>(parent()))
+    {
+        auto selectionStart = disasm->getSelectionStart();
+        auto selectionEnd = disasm->getSelectionEnd();
+        duint warningVa = 0;
+
+        disasm->prepareDataRange(selectionStart, selectionEnd, [&](int, const Instruction_t & inst)
+        {
+            duint va = disasm->rvaToVa(inst.rva);
+            BPXTYPE bpType = DbgGetBpxTypeAt(va);
+            if((bpType & bp_normal) != bp_normal && !DbgFunctions()->MemIsCodePage(va, true))
+            {
+                warningVa = va;
+                return false;
+            }
+            return true;
+        });
+
+        if(warningVa)
+        {
+            if(!WarningBoxNotExecutable(tr("Setting software breakpoint here may result in crash. Do you really want to continue?"), warningVa))
+                return;
+        }
+
+        disasm->prepareDataRange(selectionStart, selectionEnd, [&](int, const Instruction_t & inst)
+        {
+            duint va = disasm->rvaToVa(inst.rva);
+            BPXTYPE bpType = DbgGetBpxTypeAt(va);
+            QString cmd;
+            if((bpType & bp_normal) == bp_normal)
+                cmd = "bc " + ToPtrString(va);
+            else
+                cmd = "bp " + ToPtrString(va);
+            DbgCmdExec(cmd);
+            return true;
+        });
+        return;
+    }
+
     duint va = mGetSelection();
     BPXTYPE bpType = DbgGetBpxTypeAt(va);
     QString cmd;
