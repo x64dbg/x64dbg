@@ -164,22 +164,110 @@ bool patternsnr(unsigned char* data, size_t datasize, const char* searchpattern,
     return true;
 }
 
+static bool isByteFullySpecified(const PatternByte & pbyte)
+{
+    return !pbyte.nibble[0].wildcard && !pbyte.nibble[1].wildcard;
+}
+
+static unsigned char getByteValue(const PatternByte & pbyte)
+{
+    return (pbyte.nibble[0].data << 4) | pbyte.nibble[1].data;
+}
+
+// Boyer-Moore-Horspool pattern search with wildcard support
 size_t patternfind(const unsigned char* data, size_t datasize, const std::vector<PatternByte> & pattern)
 {
     size_t searchpatternsize = pattern.size();
-    for(size_t i = 0, pos = 0; i < datasize; i++) //search for the pattern
+
+    if(searchpatternsize == 0 || datasize < searchpatternsize)
+        return -1;
+
+    // Find the rightmost fully-specified byte to use as anchor
+    int anchorPos = -1;
+    unsigned char anchorByte = 0;
+    for(int i = (int)searchpatternsize - 1; i >= 0; i--)
     {
-        if(patternmatchbyte(data[i], pattern.at(pos))) //check if our pattern matches the current byte
+        if(isByteFullySpecified(pattern[i]))
         {
-            pos++;
-            if(pos == searchpatternsize) //everything matched
-                return i - searchpatternsize + 1;
-        }
-        else if(pos > 0) //fix by Computer_Angel
-        {
-            i -= pos;
-            pos = 0; //reset current pattern position
+            anchorPos = i;
+            anchorByte = getByteValue(pattern[i]);
+            break;
         }
     }
+
+    // If no fully-specified byte found, fall back to naive search
+    if(anchorPos == -1)
+    {
+        // All bytes have wildcards - use naive search with early exit
+        for(size_t i = 0; i <= datasize - searchpatternsize; i++)
+        {
+            bool match = true;
+            for(size_t j = 0; j < searchpatternsize; j++)
+            {
+                if(!patternmatchbyte(data[i + j], pattern[j]))
+                {
+                    match = false;
+                    break;
+                }
+            }
+            if(match)
+                return i;
+        }
+        return -1;
+    }
+
+    // Build BMH skip table (256 entries)
+    // skip[byte] = how many positions to shift when 'byte' is seen at anchor position
+    size_t skip[256];
+    size_t suffixLen = searchpatternsize - anchorPos - 1; // Bytes after anchor
+
+    // Default: skip entire pattern length minus suffix
+    size_t defaultSkip = searchpatternsize - suffixLen;
+    for(int i = 0; i < 256; i++)
+        skip[i] = defaultSkip;
+
+    // For bytes that appear in the pattern before anchor, set smaller skip
+    // We only consider fully-specified bytes for the skip table
+    for(size_t i = 0; i < (size_t)anchorPos; i++)
+    {
+        if(isByteFullySpecified(pattern[i]))
+        {
+            unsigned char byte = getByteValue(pattern[i]);
+            skip[byte] = anchorPos - i;
+        }
+    }
+
+    // BMH search loop
+    size_t pos = 0;
+    while(pos <= datasize - searchpatternsize)
+    {
+        // Check anchor byte first (most likely to mismatch)
+        if(data[pos + anchorPos] == anchorByte)
+        {
+            // Anchor matched - verify full pattern
+            bool fullMatch = true;
+            for(size_t i = 0; i < searchpatternsize; i++)
+            {
+                if(!patternmatchbyte(data[pos + i], pattern[i]))
+                {
+                    fullMatch = false;
+                    break;
+                }
+            }
+
+            if(fullMatch)
+                return pos;
+
+            // Mismatch after anchor - shift by 1 to avoid missing matches
+            pos++;
+        }
+        else
+        {
+            // Anchor didn't match - use skip table to jump ahead
+            unsigned char mismatchByte = data[pos + anchorPos];
+            pos += skip[mismatchByte];
+        }
+    }
+
     return -1;
 }
