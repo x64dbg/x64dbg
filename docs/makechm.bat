@@ -17,11 +17,8 @@ if not exist "%~dp0hhc.exe" (
 )
 
 echo Patching Wiki
-if not exist "%~dp0faqs" (
-	echo Initialize and update submodules before building the CHM file. This will download the FAQ content from the x64dbg Wiki.
-	git submodule update --init
-	git submodule update --remote --recursive
-)
+git submodule update --init docs/faqs
+git submodule update --remote --recursive docs/faqs
 cd /d "%~dp0faqs"
 git apply "%~dp0wiki.patch"
 cd /d "%~dp0"
