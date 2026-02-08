@@ -16,7 +16,19 @@ if not exist "%~dp0hhc.exe" (
 	7z x hhc-4.74.8702.7z
 )
 
+echo Patching Wiki
+if not exist "%~dp0faqs" (
+	echo Initialize and update submodules before building the CHM file. This will download the FAQ content from the x64dbg Wiki.
+	exit /b 1
+)
+cd faqs
+git apply ..\wiki.patch
+cd ..
+
 echo Building Help Project
+echo Generating FAQ shim
+call "%PORTABLE_PYTHON%\python.exe" .\md_to_rst_faq.py --out-dir "faqs"
+if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 call make htmlhelp
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 echo Applying CHM hacks

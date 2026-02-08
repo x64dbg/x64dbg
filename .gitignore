@@ -12,6 +12,9 @@
 /src/gui_build/
 /release/
 
+# Generated files
+Frequently-Asked-Questions.rst
+
 # Folders
 .vs/
 .vscode/

@@ -5,3 +5,6 @@
 	path = deps
 	url = ../../x64dbg/deps
 	shallow = true
+[submodule "docs/faqs"]
+	path = docs/faqs
+	url = https://github.com/x64dbg/wiki

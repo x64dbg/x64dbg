@@ -1,0 +1,144 @@
+diff --git a/Compiling-the-whole-project.md b/Compiling-the-whole-project.md
+index f1abb87..1455e4f 100644
+--- a/Compiling-the-whole-project.md
++++ b/Compiling-the-whole-project.md
+@@ -1,3 +1,5 @@
++# Compiling the whole project
++
+ ## Prerequisites
+ 
+ - Install [Visual Studio](https://visualstudio.microsoft.com/vs/)
+diff --git a/Database-format.md b/Database-format.md
+index 781a4c9..a82ba7a 100644
+--- a/Database-format.md
++++ b/Database-format.md
+@@ -1,3 +1,5 @@
++# Database Format
++
+ The databases produced by x64dbg are (optionally lz4 compressed) JSON files. **This format can change, see [DbSave](https://github.com/x64dbg/x64dbg/blob/development/src/dbg/database.cpp#L38) for the code producing these databases.** If you want to export an uncompressed database, use the `File -> Export database` option.
+ 
+ ```python
+diff --git a/Frequently-Asked-Questions.md b/Frequently-Asked-Questions.md
+index 898c266..7557ef3 100644
+--- a/Frequently-Asked-Questions.md
++++ b/Frequently-Asked-Questions.md
+@@ -1,3 +1,5 @@
++# Frequently Asked Questions
++
+ This section contains questions frequently encountered about x64dbg. Feel free to add your own answers to not-so-obvious things.
+ 
+ ***
+@@ -104,8 +106,6 @@ Per default x64dbg will not create any registry entries. However if you use it a
+ 
+ ***
+ 
+-***
+-
+ **Q**: How can inspect/debug .NET/dotnet/C#/Unity programs?
+ 
+ **A**: Use [dnSpy](https://github.com/0xd4d/dnSpy) (no longer developed, try [dnSpyEx](https://github.com/dnSpyEx/dnSpy)).
+diff --git a/Home.md b/Home.md
+index 41c28d9..05ad0f0 100644
+--- a/Home.md
++++ b/Home.md
+@@ -1,4 +1,6 @@
+-# Welcome
++# Home
++
++## Welcome
+ 
+ Welcome to this wiki! It will be about x64dbg coding-wise. To find out about the x64dbg interface and commands, check out the [help](https://help.x64dbg.com).
+ 
+diff --git a/Links.md b/Links.md
+index 342e1f3..eb4fabd 100644
+--- a/Links.md
++++ b/Links.md
+@@ -1,3 +1,5 @@
++# Links
++
+ This page will contain various types of links related to x64dbg.
+ 
+ ## Internal subdomains
+diff --git a/Plugins.md b/Plugins.md
+index e15bde5..ebf3dca 100644
+--- a/Plugins.md
++++ b/Plugins.md
+@@ -1,4 +1,6 @@
+-# You can suggest an edit in the [x64dbg/wiki](https://github.com/x64dbg/wiki) repository.
++# Plugins
++
++## You can suggest an edit in the [x64dbg/wiki](https://github.com/x64dbg/wiki) repository.
+ 
+ ## Official Templates
+ 
+@@ -57,7 +59,7 @@ Plugins with minimal functionality to show how certain APIs can be used.
+ 
+ ## Plugins
+ 
+-# _Check the [x64dbg-plugin](https://github.com/topics/x64dbg-plugin?o=desc&s=updated) GitHub topic for the latest plugins._
++### _Check the [x64dbg-plugin](https://github.com/topics/x64dbg-plugin?o=desc&s=updated) GitHub topic for the latest plugins._
+ 
+ - \[[Download](https://github.com/x64dbg/ScyllaHide/releases)\] [ScyllaHide](https://github.com/x64dbg/ScyllaHide) by Aguila & cypher: Open-source user-mode Anti-Anti-Debug plugin.
+ - \[[Download](https://github.com/mrexodia/TitanHide/releases)\] [TitanHide](https://github.com/mrexodia/TitanHide) by [mrexodia](https://mrexodia.cf): Open-source kernel-mode Anti-Anti-Debug plugin.
+diff --git a/Refactoring-opportunities-in-x64dbg.md b/Refactoring-opportunities-in-x64dbg.md
+index c3fdcdb..10a4a67 100644
+--- a/Refactoring-opportunities-in-x64dbg.md
++++ b/Refactoring-opportunities-in-x64dbg.md
+@@ -1,16 +1,18 @@
++# Refactoring Oppurtunities in x64dbg
++
+ This is just a list of things that could be improved in the code. Feel free to add something if you find anything.
+ 
+-# GUI
++## GUI
+ 
+ - Menu shortcut system (Configuration.cpp contains duplicate descriptions for actions made with `makeShortcutAction`)
+ - Convert everything to `MenuBuilder`
+ 
+-# DBG
++## DBG
+ 
+ - Clean up `debugger.cpp` and `debugger.h`. This file currently serves multiple purposes.
+ - Move the database and dbghelp to a separate component.
+ 
+-# YzDbg
++## YzDbg
+ 
+ - Supports ODBGScript
+ - Supports memory breakpoints
+diff --git a/Transition.md b/Transition.md
+index 43f7999..41d0f22 100644
+--- a/Transition.md
++++ b/Transition.md
+@@ -1,3 +1,5 @@
++# Transition
++
+ Because of the increased maintenance burden and lack of resources, we have decided to _permanently_ drop support for the following operating systems:
+ 
+ |OS|EOL Date|x64dbg|Status|
+diff --git a/index.rst b/index.rst
+new file mode 100644
+index 0000000..82561c7
+--- /dev/null
++++ b/index.rst
+@@ -0,0 +1,20 @@
++.. include:: Frequently-Asked-Questions.rst
++
++**Contents:**
++
++.. toctree::
++   :maxdepth: 2
++
++   Home
++   Coding-Guidelines
++   Color-Schemes
++   Compiling-the-whole-project
++   Contributing
++   Database-format
++   Frequently-Asked-Questions
++   Getting-the-Dependencies
++   Links
++   Plugins
++   Refactoring-opportunities-in-x64dbg
++   Stylesheets
++   Transition
