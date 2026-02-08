@@ -23,12 +23,12 @@ if not exist "%~dp0faqs" (
 	git submodule update --remote --recursive
 )
 cd /d "%~dp0faqs"
-git apply "%~dp0\wiki.patch"
+git apply "%~dp0wiki.patch"
 cd /d "%~dp0"
 
 echo Building Help Project
 echo Generating FAQ shim
-call "%PORTABLE_PYTHON%\python.exe" "%~dp0\md_to_rst_faq.py" --out-dir "faqs"
+call "%PORTABLE_PYTHON%\python.exe" "%~dp0md_to_rst_faq.py" --out-dir "faqs"
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 call make htmlhelp
 if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
