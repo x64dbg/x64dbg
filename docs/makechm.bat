@@ -17,8 +17,8 @@ if not exist "%~dp0hhc.exe" (
 )
 
 echo Patching Wiki
-git submodule update --init docs/faqs
-git submodule update --remote --recursive docs/faqs
+git submodule update --init faqs
+git submodule update --remote --recursive faqs
 cd /d "%~dp0faqs"
 git apply "%~dp0wiki.patch"
 cd /d "%~dp0"
