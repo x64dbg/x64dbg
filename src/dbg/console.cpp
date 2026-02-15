@@ -6,12 +6,16 @@
 #include "console.h"
 #include "taskthread.h"
 
+static StringConcatTaskThread_<void(*)(const std::string &)>* logTask = nullptr;
+static StringConcatTaskThread_<void(*)(const std::string &)>* logHtmlTask = nullptr;
+
 static void GuiAddLogMessageAsync(_In_z_ const char* msg)
 {
     static StringConcatTaskThread_<void(*)(const std::string &)> task([](const std::string & msg)
     {
         GuiAddLogMessage(msg.c_str());
     });
+    logTask = &task;
     task.WakeUp(msg);
 }
 
@@ -21,6 +25,7 @@ static void GuiAddLogMessageHtmlAsync(_In_z_ const char* msg)
     {
         GuiAddLogMessageHtml(msg.c_str());
     });
+    logHtmlTask = &task;
     task.WakeUp(msg);
 }
 
@@ -134,4 +139,12 @@ void dprintf_html(_In_z_ _Printf_format_string_ const char* Format, ...)
 void dlogprint_untranslated(const char* Text)
 {
     GuiAddLogMessageAsync(Text);
+}
+
+// flushing
+
+void dflush()
+{
+    if(logTask) logTask->Flush();
+    if(logHtmlTask) logHtmlTask->Flush();
 }

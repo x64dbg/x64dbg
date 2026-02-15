@@ -56,6 +56,8 @@ static bool cbClearLog(int argc, char* argv[])
 
 static bool cbSaveLog(int argc, char* argv[])
 {
+    dflush();
+
     if(argc < 2)
         GuiLogSave(nullptr);
     else
