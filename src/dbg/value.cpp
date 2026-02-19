@@ -2285,7 +2285,7 @@ static void setfpuvalue(const char* string, duint value)
             }
             else
             {
-                context.Opmask[registerindex] = *(ULONGLONG*)value;
+                context.Opmask[registerindex] = (ULONGLONG)value;
                 SetAVX512Context(hActiveThread, &context);
             }
         }
