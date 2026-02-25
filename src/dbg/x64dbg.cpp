@@ -56,7 +56,14 @@ static bool cbClearLog(int argc, char* argv[])
 
 static bool cbSaveLog(int argc, char* argv[])
 {
+    auto hEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
     dflush();
+    GuiExecuteOnGuiThreadEx([](void* param)
+    {
+        SetEvent((HANDLE)param);
+    }, hEvent);
+    WaitForSingleObject(hEvent, INFINITE);
+    CloseHandle(hEvent);
 
     if(argc < 2)
         GuiLogSave(nullptr);

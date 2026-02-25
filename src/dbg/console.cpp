@@ -7,7 +7,6 @@
 #include "taskthread.h"
 
 static StringConcatTaskThread_<void(*)(const std::string &)>* logTask = nullptr;
-static StringConcatTaskThread_<void(*)(const std::string &)>* logHtmlTask = nullptr;
 
 static void GuiAddLogMessageAsync(_In_z_ const char* msg)
 {
@@ -25,7 +24,6 @@ static void GuiAddLogMessageHtmlAsync(_In_z_ const char* msg)
     {
         GuiAddLogMessageHtml(msg.c_str());
     });
-    logHtmlTask = &task;
     task.WakeUp(msg);
 }
 
@@ -146,5 +144,4 @@ void dlogprint_untranslated(const char* Text)
 void dflush()
 {
     if(logTask) logTask->Flush();
-    if(logHtmlTask) logHtmlTask->Flush();
 }
