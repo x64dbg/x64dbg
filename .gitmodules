@@ -5,3 +5,6 @@
 	path = deps
 	url = ../../x64dbg/deps
 	shallow = true
+[submodule "src/third_party/qtwebdriver"]
+	path = src/third_party/qtwebdriver
+	url = ../../x64dbg/qtwebdriver

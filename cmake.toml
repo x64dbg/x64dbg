@@ -5,6 +5,7 @@ cmkr-include = "cmake/cmkr.cmake"
 [options]
 X64DBG_BUILD_IN_TREE = true
 X64DBG_RELEASE = false
+WD_CONFIG_QUICK = false
 
 [variables]
 CMAKE_MODULE_PATH = "${CMAKE_SOURCE_DIR}/cmake"
@@ -25,10 +26,11 @@ x86 = "CMAKE_SIZEOF_VOID_P EQUAL 4"
 x64 = "CMAKE_SIZEOF_VOID_P EQUAL 8"
 
 [find-package]
-Qt5 = { components = ["Widgets", "WinExtras"] }
+Qt5 = { components = ["Widgets", "WinExtras", "Network", "Xml"] }
 
 [subdir."src/zydis_wrapper"]
 [subdir."src/gui/Src/ThirdPartyLibs/md4c"]
+[subdir."src/third_party/qtwebdriver"]
 
 [target.bridge]
 type = "shared"
@@ -145,6 +147,7 @@ private-link-libraries = [
     "::zydis_wrapper",
     "::bridge",
     "::md4c-html",
+    "::WebDriver_extension_qt_base",
     "winmm",
     "wininet",
     "dwmapi"

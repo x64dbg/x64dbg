@@ -2,6 +2,7 @@
 #include "zydis_wrapper.h"
 #include "MainWindow.h"
 #include "Configuration.h"
+#include "WebDriverSetup.h"
 #include <QTextCodec>
 #include <QFile>
 #include <QTranslator>
@@ -251,6 +252,10 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
+    // Start WebDriver server (default port 9517, override with --port=XXXX)
+    if(startWebDriver(argc, argv) != 0)
+        GuiAddLogMessage("WebDriver: failed to start server\n");
+
     //execute the application
     int result = application.exec();
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
@@ -258,6 +263,7 @@ int main(int argc, char* argv[])
 #else
     QAbstractEventDispatcher::instance(application.thread())->setEventFilter(nullptr);
 #endif
+    stopWebDriver();
     delete mainWindow;
     mConfiguration->save(); //save config on exit
 

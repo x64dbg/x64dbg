@@ -34,6 +34,7 @@ endif()
 # Options
 option(X64DBG_BUILD_IN_TREE "" ON)
 option(X64DBG_RELEASE "" OFF)
+option(WD_CONFIG_QUICK "" OFF)
 
 # Variables
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -55,6 +56,8 @@ find_package(Qt5 REQUIRED
 	COMPONENTS
 		Widgets
 		WinExtras
+		Network
+		Xml
 )
 
 # Subdirectory: src/zydis_wrapper
@@ -75,6 +78,16 @@ else()
 	set(CMAKE_FOLDER "src/gui/Src/ThirdPartyLibs/md4c")
 endif()
 add_subdirectory("src/gui/Src/ThirdPartyLibs/md4c")
+set(CMAKE_FOLDER ${CMKR_CMAKE_FOLDER})
+
+# Subdirectory: src/third_party/qtwebdriver
+set(CMKR_CMAKE_FOLDER ${CMAKE_FOLDER})
+if(CMAKE_FOLDER)
+	set(CMAKE_FOLDER "${CMAKE_FOLDER}/src/third_party/qtwebdriver")
+else()
+	set(CMAKE_FOLDER "src/third_party/qtwebdriver")
+endif()
+add_subdirectory("src/third_party/qtwebdriver")
 set(CMAKE_FOLDER ${CMKR_CMAKE_FOLDER})
 
 # Target: bridge
@@ -823,6 +836,8 @@ set(gui_SOURCES
 	"src/gui/Src/Utils/VaHistory.h"
 	"src/gui/Src/Utils/ValidateExpressionThread.cpp"
 	"src/gui/Src/Utils/ValidateExpressionThread.h"
+	"src/gui/Src/WebDriverSetup.cpp"
+	"src/gui/Src/WebDriverSetup.h"
 	"src/gui/Src/main.cpp"
 	"src/gui/Src/main.h"
 	"src/gui/resource.qrc"
@@ -870,12 +885,17 @@ if(NOT TARGET md4c-html)
 	message(FATAL_ERROR "Target \"md4c-html\" referenced by \"gui\" does not exist!")
 endif()
 
+if(NOT TARGET WebDriver_extension_qt_base)
+	message(FATAL_ERROR "Target \"WebDriver_extension_qt_base\" referenced by \"gui\" does not exist!")
+endif()
+
 target_link_libraries(gui PRIVATE
 	Qt5::Widgets
 	Qt5::WinExtras
 	zydis_wrapper
 	bridge
 	md4c-html
+	WebDriver_extension_qt_base
 	winmm
 	wininet
 	dwmapi
