@@ -41,7 +41,7 @@ bool cbScriptCmd(int argc, char* argv[])
         return false;
     while(isspace(*scriptcmd))
         scriptcmd++;
-    return ScriptCmdExecAwait(scriptcmd, false, nullptr);
+    return ScriptCmdExecAwait(scriptcmd, false, nullptr) != ScriptCommandOutcome::Abort;
 }
 
 bool cbScriptRun(int argc, char* argv[])

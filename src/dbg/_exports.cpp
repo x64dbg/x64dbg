@@ -962,7 +962,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_SCRIPT_CMDEXEC:
     {
-        return ScriptCmdExecAwait((const char*)param1, true, nullptr);
+        return ScriptCmdExecAwait((const char*)param1, true, nullptr) != ScriptCommandOutcome::Abort;
     }
     break;
 

@@ -24,6 +24,13 @@ struct ScriptInterruptState
     bool gui;
 };
 
+enum class ScriptCommandOutcome
+{
+    Continue = 0,
+    Pause,
+    Abort,
+};
+
 bool ScriptLoadAwait(const char* filename, bool gui);
 void ScriptUnloadAwait();
 void ScriptRunAsync(int destline, bool gui);
@@ -31,7 +38,7 @@ bool ScriptRunAwait(int destline, bool gui);
 void ScriptStepAsync(bool gui);
 bool ScriptBpGetLocked(int line);
 bool ScriptBpToggleLocked(int line);
-bool ScriptCmdExecAwait(const char* command, bool gui, const SCRIPTSTATE* interruptState);
+ScriptCommandOutcome ScriptCmdExecAwait(const char* command, bool gui, const SCRIPTSTATE* interruptState);
 void ScriptSetIpAwait(int line);
 ScriptInterruptState ScriptInterruptAwait(ScriptInterrupt reason);
 void ScriptResume();

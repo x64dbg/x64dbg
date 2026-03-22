@@ -56,14 +56,12 @@ static int scriptIp = 0;
 static int scriptIpOld = 0;
 static std::atomic<SCRIPTSTATE> scriptState;
 static std::atomic<ScriptInterrupt> gScriptInterruptReason{ ScriptInterrupt::None };
-enum class ScriptPostYieldAction
+struct ScriptYieldContext
 {
-    None = 0,
-    Pause,
-    Abort,
+    std::atomic_bool active{ false };
+    std::atomic<ScriptCommandOutcome> pendingOutcome{ ScriptCommandOutcome::Continue };
 };
-static std::atomic<ScriptPostYieldAction> gScriptPostYieldAction{ ScriptPostYieldAction::None };
-static std::atomic_bool gScriptYieldActive{ false };
+static ScriptYieldContext gScriptYieldContext;
 static std::atomic_bool bScriptLogEnabled;
 static CMDRESULT scriptLastError = STATUS_ERROR;
 static bool bRunGui = false;
@@ -97,16 +95,16 @@ static bool scriptIsAbortReason(ScriptInterrupt reason)
 static void scriptResetInterruptState()
 {
     gScriptInterruptReason = ScriptInterrupt::None;
-    gScriptPostYieldAction = ScriptPostYieldAction::None;
-    gScriptYieldActive = false;
+    gScriptYieldContext.active = false;
+    gScriptYieldContext.pendingOutcome = ScriptCommandOutcome::Continue;
     ResetEvent(scriptYieldedEvent());
     ResetEvent(scriptResumeEvent());
 }
 
-static void scriptRequestPostYieldAction(ScriptPostYieldAction action)
+static void scriptMergeYieldCommandOutcome(ScriptCommandOutcome outcome)
 {
-    auto current = gScriptPostYieldAction.load();
-    while(current < action && !gScriptPostYieldAction.compare_exchange_weak(current, action))
+    auto current = gScriptYieldContext.pendingOutcome.load();
+    while(current < outcome && !gScriptYieldContext.pendingOutcome.compare_exchange_weak(current, outcome))
     {
     }
 }
@@ -128,11 +126,11 @@ static bool scriptHandleInterrupt()
             return false;
         if(reason == ScriptInterrupt::YieldDebugEvent)
         {
-            gScriptYieldActive = true;
+            gScriptYieldContext.active = true;
             SetEvent(scriptYieldedEvent());
             while(gScriptInterruptReason.load() == ScriptInterrupt::YieldDebugEvent)
                 WaitForSingleObject(scriptResumeEvent(), 100);
-            gScriptYieldActive = false;
+            gScriptYieldContext.active = false;
             ResetEvent(scriptYieldedEvent());
             continue;
         }
@@ -612,10 +610,11 @@ static CMDRESULT scriptInternalCmdExec(const char* cmd, bool gui, SCRIPTSTATE st
     auto debuggingAfter = DbgIsDebugging();
     scriptUpdateDebugSessionOwnership(debuggingBefore, debuggingAfter);
     bScriptLogEnabled = false;
-    auto postYieldAction = gScriptPostYieldAction.exchange(ScriptPostYieldAction::None);
-    if(scriptHandleInterrupt() || postYieldAction == ScriptPostYieldAction::Abort || !res)
+    auto yieldOutcome = gScriptYieldContext.pendingOutcome.exchange(ScriptCommandOutcome::Continue);
+    const auto shouldCheckInterrupt = !gScriptYieldContext.active.load();
+    if((shouldCheckInterrupt && scriptHandleInterrupt()) || yieldOutcome == ScriptCommandOutcome::Abort || !res)
         return STATUS_ERROR;
-    if(postYieldAction == ScriptPostYieldAction::Pause)
+    if(yieldOutcome == ScriptCommandOutcome::Pause)
         return STATUS_PAUSE;
     return state == SCRIPT_RUNNING ? STATUS_CONTINUE : STATUS_PAUSE;
 }
@@ -848,22 +847,18 @@ bool ScriptBpToggleLocked(int line)
     return true;
 }
 
-static bool scriptExecCommand(const char* command, bool gui, SCRIPTSTATE state)
+static ScriptCommandOutcome scriptExecCommand(const char* command, bool gui, SCRIPTSTATE state)
 {
     scriptIpOld = scriptIp;
     scriptLastError = scriptInternalCmdExec(command, gui, state);
     switch(scriptLastError)
     {
     case STATUS_ERROR:
-        if(gScriptYieldActive.load())
-            scriptRequestPostYieldAction(ScriptPostYieldAction::Abort);
-        return false;
+        return ScriptCommandOutcome::Abort;
+    case STATUS_PAUSE:
+        return ScriptCommandOutcome::Pause;
     case STATUS_EXIT:
     case STATUS_CONTINUE:
-        break;
-    case STATUS_PAUSE:
-        if(gScriptYieldActive.load())
-            scriptRequestPostYieldAction(ScriptPostYieldAction::Pause);
         break;
     case STATUS_CONTINUE_BRANCH:
         // If the user executes `scriptcmd call xxx`, start running.
@@ -871,18 +866,22 @@ static bool scriptExecCommand(const char* command, bool gui, SCRIPTSTATE state)
             ScriptRunAsync(scriptIp, gui);
         break;
     }
-    return true;
+    return ScriptCommandOutcome::Continue;
 }
 
-bool ScriptCmdExecAwait(const char* command, bool gui, const SCRIPTSTATE* interruptState)
+ScriptCommandOutcome ScriptCmdExecAwait(const char* command, bool gui, const SCRIPTSTATE* interruptState)
 {
     // Capture the current script now, because this function might be called
     // through a breakpoint command or dbgcmdexecdirect("scriptcmd") from a plugin callback.
     // If we did not capture the script state it will be reset by the queue.
     // NOTE: Relevant if you step over 'erun' and a breakpoint with 'scriptcmd' is hit.
     auto state = interruptState != nullptr ? *interruptState : scriptState.load();
-    if(gScriptYieldActive.load())
-        return scriptExecCommand(command, gui, state);
+    if(gScriptYieldContext.active.load())
+    {
+        auto outcome = scriptExecCommand(command, gui, state);
+        scriptMergeYieldCommandOutcome(outcome);
+        return outcome;
+    }
     return scriptQueue.await([command, state, gui]()
     {
         return scriptExecCommand(command, gui, state);

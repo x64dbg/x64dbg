@@ -1033,7 +1033,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
 
         bool commandSuccess = false;
         if(StringUtils::StartsWith(bp.commandText, "scriptcmd "))
-            commandSuccess = ScriptCmdExecAwait(bp.commandText.substr(10).c_str(), scriptState.gui, &scriptState.state);
+            commandSuccess = ScriptCmdExecAwait(bp.commandText.substr(10).c_str(), scriptState.gui, &scriptState.state) != ScriptCommandOutcome::Abort;
         else
             commandSuccess = cmddirectexec(bp.commandText.c_str());
 
