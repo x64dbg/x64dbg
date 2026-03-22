@@ -1,0 +1,8 @@
+settingset Events, EntryBreakpoint, 0
+init tests/membp.exe
+mbreset
+cip=membp:ExecSequence
+bpmrange membp:ExecSequence, 1, x
+mbexpectexithit membp:ExecSequence
+run
+ret

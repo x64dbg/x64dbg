@@ -56,6 +56,13 @@ static int scriptIp = 0;
 static int scriptIpOld = 0;
 static std::atomic<SCRIPTSTATE> scriptState;
 static std::atomic<ScriptInterrupt> gScriptInterruptReason{ ScriptInterrupt::None };
+enum class ScriptPostYieldAction
+{
+    None = 0,
+    Pause,
+    Abort,
+};
+static std::atomic<ScriptPostYieldAction> gScriptPostYieldAction{ ScriptPostYieldAction::None };
 static std::atomic_bool gScriptYieldActive{ false };
 static std::atomic_bool bScriptLogEnabled;
 static CMDRESULT scriptLastError = STATUS_ERROR;
@@ -90,9 +97,18 @@ static bool scriptIsAbortReason(ScriptInterrupt reason)
 static void scriptResetInterruptState()
 {
     gScriptInterruptReason = ScriptInterrupt::None;
+    gScriptPostYieldAction = ScriptPostYieldAction::None;
     gScriptYieldActive = false;
     ResetEvent(scriptYieldedEvent());
     ResetEvent(scriptResumeEvent());
+}
+
+static void scriptRequestPostYieldAction(ScriptPostYieldAction action)
+{
+    auto current = gScriptPostYieldAction.load();
+    while(current < action && !gScriptPostYieldAction.compare_exchange_weak(current, action))
+    {
+    }
 }
 
 static void scriptUpdateDebugSessionOwnership(bool wasDebugging, bool isDebugging)
@@ -596,8 +612,11 @@ static CMDRESULT scriptInternalCmdExec(const char* cmd, bool gui, SCRIPTSTATE st
     auto debuggingAfter = DbgIsDebugging();
     scriptUpdateDebugSessionOwnership(debuggingBefore, debuggingAfter);
     bScriptLogEnabled = false;
-    if(scriptHandleInterrupt() || !res)
+    auto postYieldAction = gScriptPostYieldAction.exchange(ScriptPostYieldAction::None);
+    if(scriptHandleInterrupt() || postYieldAction == ScriptPostYieldAction::Abort || !res)
         return STATUS_ERROR;
+    if(postYieldAction == ScriptPostYieldAction::Pause)
+        return STATUS_PAUSE;
     return state == SCRIPT_RUNNING ? STATUS_CONTINUE : STATUS_PAUSE;
 }
 
@@ -836,10 +855,15 @@ static bool scriptExecCommand(const char* command, bool gui, SCRIPTSTATE state)
     switch(scriptLastError)
     {
     case STATUS_ERROR:
+        if(gScriptYieldActive.load())
+            scriptRequestPostYieldAction(ScriptPostYieldAction::Abort);
         return false;
     case STATUS_EXIT:
-    case STATUS_PAUSE:
     case STATUS_CONTINUE:
+        break;
+    case STATUS_PAUSE:
+        if(gScriptYieldActive.load())
+            scriptRequestPostYieldAction(ScriptPostYieldAction::Pause);
         break;
     case STATUS_CONTINUE_BRANCH:
         // If the user executes `scriptcmd call xxx`, start running.
@@ -853,11 +877,11 @@ static bool scriptExecCommand(const char* command, bool gui, SCRIPTSTATE state)
 bool ScriptCmdExecAwait(const char* command, bool gui, const SCRIPTSTATE* interruptState)
 {
     // Capture the current script now, because this function might be called
-    // through 'dbgcmdexecdirect("scriptcmd")' from a breakpoint command.
+    // through a breakpoint command or dbgcmdexecdirect("scriptcmd") from a plugin callback.
     // If we did not capture the script state it will be reset by the queue.
     // NOTE: Relevant if you step over 'erun' and a breakpoint with 'scriptcmd' is hit.
     auto state = interruptState != nullptr ? *interruptState : scriptState.load();
-    if(gScriptYieldActive.load() && interruptState != nullptr)
+    if(gScriptYieldActive.load())
         return scriptExecCommand(command, gui, state);
     return scriptQueue.await([command, state, gui]()
     {

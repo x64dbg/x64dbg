@@ -1,0 +1,11 @@
+settingset Events, EntryBreakpoint, 0
+init tests/script_run_exit.exe
+testassert 1, "first session initialized"
+step
+stop
+init tests/script_run_exit.exe
+testassert 1, "second session initialized"
+step
+stop
+testassert 1, "multi session script completed"
+ret

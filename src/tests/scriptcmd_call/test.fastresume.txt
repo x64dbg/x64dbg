@@ -1,0 +1,26 @@
+settingset Events, EntryBreakpoint, 0
+varnew $outer, 0
+varnew $inner, 0
+init tests/scriptcmd_call.exe
+bp scriptcmd_call:OuterHit
+SetBreakpointSilent scriptcmd_call:OuterHit, 1
+SetBreakpointCondition scriptcmd_call:OuterHit, 0
+SetBreakpointCommand scriptcmd_call:OuterHit, "scriptcmd call onouter"
+bp scriptcmd_call:InnerHit
+SetBreakpointSilent scriptcmd_call:InnerHit, 1
+SetBreakpointCondition scriptcmd_call:InnerHit, 0
+SetBreakpointCommand scriptcmd_call:InnerHit, "scriptcmd call oninner"
+run
+testassert $outer == 1, "fast-resume outer callback ran exactly once"
+testassert $inner == 1, "fast-resume inner callback ran exactly once"
+ret
+
+onouter:
+testassert $outer == 0, "fast-resume outer callback entered once"
+mov $outer, 1
+ret
+
+oninner:
+testassert $inner == 0, "fast-resume inner callback entered once"
+mov $inner, 1
+ret

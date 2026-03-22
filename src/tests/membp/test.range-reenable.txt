@@ -4,5 +4,6 @@ mbreset
 cip=membp:ReadSequence
 bpmrange membp:ReadTarget, 1, r
 mbreenable membp:ReadTarget
+mbassertexact membp:ReadTarget, 1
 run
 mbasserthit membp:ReadTarget

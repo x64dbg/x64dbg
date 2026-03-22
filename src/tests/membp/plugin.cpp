@@ -16,6 +16,8 @@ namespace
     std::atomic<bool> gExitObserved{ false };
     std::atomic<unsigned long> gExitCode{ 0 };
     std::atomic<duint> gCachedBpAddr{ 0 };
+    std::atomic<bool> gExpectExitHit{ false };
+    std::atomic<duint> gExpectedExitBpAddr{ 0 };
 
     void resetState()
     {
@@ -25,6 +27,8 @@ namespace
         gExitObserved = false;
         gExitCode = 0;
         gCachedBpAddr = 0;
+        gExpectExitHit = false;
+        gExpectedExitBpAddr = 0;
     }
 
     duint evalExpr(const char* expr)
@@ -62,6 +66,8 @@ namespace
         return found;
     }
 
+    bool assertExpectedHit(duint expectedBp, bool requireProcessAlive);
+
     void cbPlugin(CBTYPE cbType, void* callbackInfo)
     {
         if(cbType == CB_INITDEBUG)
@@ -89,6 +95,8 @@ namespace
             {
                 gExitObserved = true;
                 gExitCode = info->ExitProcess->dwExitCode;
+                if(gExpectExitHit.load())
+                    assertExpectedHit(gExpectedExitBpAddr.load(), false);
             }
         }
     }
@@ -167,6 +175,19 @@ namespace
         return _plugin_testassert(true, "cached breakpoint address 0x%llX", static_cast<unsigned long long>(expectedBp));
     }
 
+    bool assertExpectedHit(duint expectedBp, bool requireProcessAlive)
+    {
+        if(!_plugin_testassert(expectedBp != 0, "failed to resolve expected breakpoint address"))
+            return false;
+        if(!_plugin_testassert(gMemoryHitCount.load() == 1, "expected exactly 1 memory breakpoint callback, got %u", gMemoryHitCount.load()))
+            return false;
+        if(!_plugin_testassert(gLastBpAddr.load() == expectedBp, "expected memory breakpoint address 0x%llX, got 0x%llX", static_cast<unsigned long long>(expectedBp), static_cast<unsigned long long>(gLastBpAddr.load())))
+            return false;
+        if(!requireProcessAlive)
+            return true;
+        return _plugin_testassert(!gExitObserved.load(), "process exited before the memory breakpoint assertion, exitCode=%lu, lastCip=0x%llX", gExitCode.load(), static_cast<unsigned long long>(gLastCip.load()));
+    }
+
     bool cbAssertHit(int argc, char** argv)
     {
         duint expectedBp = 0;
@@ -174,13 +195,7 @@ namespace
             expectedBp = evalExpr(argv[1]);
         if(expectedBp == 0)
             expectedBp = gCachedBpAddr.load();
-        if(!_plugin_testassert(expectedBp != 0, "failed to resolve expected breakpoint address"))
-            return false;
-        if(!_plugin_testassert(gMemoryHitCount.load() == 1, "expected exactly 1 memory breakpoint callback, got %u", gMemoryHitCount.load()))
-            return false;
-        if(!_plugin_testassert(gLastBpAddr.load() == expectedBp, "expected memory breakpoint address 0x%llX, got 0x%llX", static_cast<unsigned long long>(expectedBp), static_cast<unsigned long long>(gLastBpAddr.load())))
-            return false;
-        return _plugin_testassert(!gExitObserved.load(), "process exited before the memory breakpoint assertion, exitCode=%lu, lastCip=0x%llX", gExitCode.load(), static_cast<unsigned long long>(gLastCip.load()));
+        return assertExpectedHit(expectedBp, true);
     }
 
     bool cbAssertNoHit(int argc, char** argv)
@@ -194,6 +209,20 @@ namespace
         if(!_plugin_testassert(gExitObserved.load(), "expected process exit to be observed"))
             return false;
         return _plugin_testassert(gExitCode.load() == expectedExitCode, "expected exit code 0x%llX, got 0x%lX", static_cast<unsigned long long>(expectedExitCode), gExitCode.load());
+    }
+
+    bool cbExpectExitHit(int argc, char** argv)
+    {
+        duint expectedBp = 0;
+        if(argc >= 2)
+            expectedBp = evalExpr(argv[1]);
+        if(expectedBp == 0)
+            expectedBp = gCachedBpAddr.load();
+        if(!_plugin_testassert(expectedBp != 0, "failed to resolve expected exit breakpoint address"))
+            return false;
+        gExpectedExitBpAddr = expectedBp;
+        gExpectExitHit = true;
+        return _plugin_testassert(true, "expecting exit-time memory breakpoint assertion for 0x%llX", static_cast<unsigned long long>(expectedBp));
     }
 
     bool cbReenable(int argc, char** argv)
@@ -223,6 +252,7 @@ extern "C" __declspec(dllexport) bool pluginit(PLUG_INITSTRUCT* initStruct)
     _plugin_registercommand(gPluginHandle, "mbcachebp", cbCacheBp, false);
     _plugin_registercommand(gPluginHandle, "mbasserthit", cbAssertHit, false);
     _plugin_registercommand(gPluginHandle, "mbassertnohit", cbAssertNoHit, false);
+    _plugin_registercommand(gPluginHandle, "mbexpectexithit", cbExpectExitHit, false);
     _plugin_registercommand(gPluginHandle, "mbreenable", cbReenable, false);
     return true;
 }

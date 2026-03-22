@@ -1,0 +1,31 @@
+settingset Events, EntryBreakpoint, 0
+varnew $outer, 0
+varnew $inner, 0
+varnew $after_outer, 0
+init tests/scriptcmd_call_threads.exe
+bp scriptcmd_call_threads:MainThreadOuterHit
+SetBreakpointSilent scriptcmd_call_threads:MainThreadOuterHit, 1
+SetBreakpointCommand scriptcmd_call_threads:MainThreadOuterHit, "scriptcmd call onouter"
+bp scriptcmd_call_threads:WorkerThreadInnerHit
+SetBreakpointSilent scriptcmd_call_threads:WorkerThreadInnerHit, 1
+SetBreakpointCommand scriptcmd_call_threads:WorkerThreadInnerHit, "scriptcmd call oninner"
+run
+testassert $outer == 1, "outer callback ran exactly once"
+testassert $inner == 1, "worker-thread inner callback ran exactly once"
+testassert $after_outer == 1, "outer callback resumed after worker-thread callback"
+ret
+
+onouter:
+testassert $outer == 0, "outer callback entered once"
+mov $outer, 1
+run
+testassert $inner == 1, "worker-thread callback finished before outer resumed"
+mov $after_outer, 1
+run
+ret
+
+oninner:
+testassert $outer == 1, "outer callback frame is active during worker-thread callback"
+testassert $inner == 0, "worker-thread callback entered once"
+mov $inner, 1
+ret
