@@ -106,7 +106,7 @@ static int scriptNextIp(int fromIp) //internal step routine
     int maxIp = (int)scriptLineMap.size(); //maximum ip
     if(fromIp >= maxIp) //script end
         return fromIp;
-    while(isEmptyLine(scriptLineMap.at(fromIp).type) && fromIp < maxIp) //skip empty lines
+    while((fromIp < maxIp) && isEmptyLine(scriptLineMap.at(fromIp).type)) //skip empty lines
         fromIp++;
     fromIp++;
     return fromIp;
