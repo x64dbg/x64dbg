@@ -1,0 +1,5 @@
+settingset Events, EntryBreakpoint, 0
+init tests/script_run_exit.exe
+testassert 1, "before run executed"
+run
+testassert 1, "after run executed"

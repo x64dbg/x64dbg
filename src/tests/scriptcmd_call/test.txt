@@ -1,0 +1,31 @@
+settingset Events, EntryBreakpoint, 0
+varnew $outer, 0
+varnew $inner, 0
+varnew $after_outer, 0
+init tests/scriptcmd_call.exe
+bp scriptcmd_call:OuterHit
+SetBreakpointSilent scriptcmd_call:OuterHit, 1
+SetBreakpointCommand scriptcmd_call:OuterHit, "scriptcmd call onouter"
+bp scriptcmd_call:InnerHit
+SetBreakpointSilent scriptcmd_call:InnerHit, 1
+SetBreakpointCommand scriptcmd_call:InnerHit, "scriptcmd call oninner"
+run
+testassert $outer == 1, "outer callback ran exactly once"
+testassert $inner == 1, "inner callback ran exactly once"
+testassert $after_outer == 1, "outer callback resumed after nested inner callback"
+ret
+
+onouter:
+testassert $outer == 0, "outer callback entered once"
+mov $outer, 1
+run
+testassert $inner == 1, "inner callback finished before outer resumed"
+mov $after_outer, 1
+run
+ret
+
+oninner:
+testassert $outer == 1, "outer callback frame is active during nested inner callback"
+testassert $inner == 0, "inner callback entered once"
+mov $inner, 1
+ret

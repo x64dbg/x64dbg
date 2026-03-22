@@ -327,6 +327,11 @@ bool dbgisrunning()
     return !waitislocked(WAITID_RUN);
 }
 
+bool dbgisdebugging()
+{
+    return bIsDebugging && fdProcessInfo != nullptr && fdProcessInfo->hProcess != nullptr;
+}
+
 bool dbgisdll()
 {
     return bFileIsDll;
@@ -964,8 +969,8 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
             commandCondition = 0; // Don't execute any command if an error occurs
     }
 
-    // Any script loaded right now is either paused or spinning until this lock gets set.
-    auto scriptState = ScriptAbortAwait();
+    // Any script loaded right now is either paused or temporarily yielded until this lock gets set.
+    auto scriptState = ScriptInterruptAwait(ScriptInterrupt::YieldDebugEvent);
 
     // Pause debugger before a potential scriptcmd, which would race otherwise.
     lock(WAITID_RUN);
@@ -1056,22 +1061,14 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
         handleBreakCondition(bp, ExceptionAddress, CIP, breakCondition == -1);
         dbgsetforeground();
         dbgsetskipexceptions(false);
-
-        // Resume script if it was running
-        if(scriptState.state == SCRIPT_RUNNING)
-        {
-            ScriptRunAsync(0, scriptState.gui);
-        }
     }
     else //resume immediately
     {
         unlock(WAITID_RUN);
-
-        if(scriptState.state == SCRIPT_RUNNING)
-        {
-            // TODO: we cannot resume running the script here (they can only be started while paused). How to handle this?
-        }
     }
+
+    if(scriptState.state != SCRIPT_PAUSED)
+        ScriptResume();
 
     // Make sure the log file error is displayed last
     if(logFileError != ERROR_SUCCESS)

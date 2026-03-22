@@ -68,7 +68,7 @@ static bool assertCommon(bool condition, const char* source, const char* express
     else if(expression && *expression)
         setFirstFailureMessage(StringUtils::sprintf("assertion failed: %s", expression));
     logAssertionFailure(source, expression, message);
-    ScriptAbortAwait();
+    ScriptInterruptAwait(ScriptInterrupt::AbortAssertion);
     return false;
 }
 

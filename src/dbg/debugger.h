@@ -74,6 +74,7 @@ void dbgstop();
 duint dbgdebuggedbase();
 duint dbggettimewastedcounter();
 bool dbgisrunning();
+bool dbgisdebugging();
 bool dbgisdll();
 void dbgsetattachevent(HANDLE handle);
 void dbgsetresumetid(duint tid);

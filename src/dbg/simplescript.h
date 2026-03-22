@@ -9,7 +9,16 @@ enum SCRIPTSTATE
     SCRIPT_RUNNING,
 };
 
-struct SCRIPTABORTSTATE
+enum class ScriptInterrupt
+{
+    None = 0,
+    YieldDebugEvent,
+    AbortUser,
+    AbortAssertion,
+    AbortShutdown,
+};
+
+struct ScriptInterruptState
 {
     SCRIPTSTATE state;
     bool gui;
@@ -22,9 +31,10 @@ bool ScriptRunAwait(int destline, bool gui);
 void ScriptStepAsync(bool gui);
 bool ScriptBpGetLocked(int line);
 bool ScriptBpToggleLocked(int line);
-bool ScriptCmdExecAwait(const char* command, bool gui, const SCRIPTSTATE* abortState);
+bool ScriptCmdExecAwait(const char* command, bool gui, const SCRIPTSTATE* interruptState);
 void ScriptSetIpAwait(int line);
-SCRIPTABORTSTATE ScriptAbortAwait();
+ScriptInterruptState ScriptInterruptAwait(ScriptInterrupt reason);
+void ScriptResume();
 SCRIPTLINETYPE ScriptGetLineTypeLocked(int line);
 bool ScriptGetBranchInfoLocked(int line, SCRIPTBRANCH* info);
 void ScriptLogLocked(const char* msg);

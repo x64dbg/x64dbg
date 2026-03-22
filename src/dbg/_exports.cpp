@@ -93,7 +93,7 @@ extern "C" DLL_EXPORT bool _dbg_valfromstring(const char* string, duint* value)
 
 extern "C" DLL_EXPORT bool _dbg_isdebugging()
 {
-    return bIsDebugging;
+    return dbgisdebugging();
 }
 
 extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
@@ -968,7 +968,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
 
     case DBG_SCRIPT_ABORT:
     {
-        ScriptAbortAwait();
+        ScriptInterruptAwait(ScriptInterrupt::AbortUser);
     }
     break;
 
