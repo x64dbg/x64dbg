@@ -144,6 +144,7 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
     auto len = filedata.length();
     String temp;
     LINEMAPENTRY entry = {};
+    size_t rawElements = sizeof(LINEMAPENTRY::raw) / sizeof(LINEMAPENTRY::raw[0]);
     scriptLineMap.clear();
     for(size_t i = 0; i < len; i++) //make raw line map
     {
@@ -169,6 +170,20 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
             strcpy_s(entry.raw, temp.c_str());
             temp = "";
             scriptLineMap.push_back(entry);
+        }
+        else if(temp.length() >= rawElements - 2)
+        {
+            temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch)
+            {
+                return !std::isspace(ch);
+            }));
+            if (temp.length())
+            {
+                entry = {};
+                strcpy_s(entry.raw, temp.c_str());
+                scriptLineMap.push_back(entry);
+            }
+            temp = "";
         }
         else
         {
