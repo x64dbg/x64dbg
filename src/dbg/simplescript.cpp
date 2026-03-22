@@ -147,23 +147,25 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
     scriptLineMap.clear();
     for(size_t i = 0; i < len; i++) //make raw line map
     {
-        if (filedata[i] == '\r' && filedata[i + 1] == '\n') //windows file
+        if(filedata[i] == '\r' && filedata[i + 1] == '\n') //windows file
         {
             entry = {};
-            temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch) {
+            temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch)
+            {
                 return !std::isspace(ch);
-                }));
+            }));
             strcpy_s(entry.raw, temp.c_str());
             temp = "";
             i++;
             scriptLineMap.push_back(entry);
         }
-        else if (filedata[i] == '\n') //other file
+        else if(filedata[i] == '\n') //other file
         {
             entry = {};
-            temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch) {
+            temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch)
+            {
                 return !std::isspace(ch);
-                }));
+            }));
             strcpy_s(entry.raw, temp.c_str());
             temp = "";
             scriptLineMap.push_back(entry);
@@ -174,9 +176,10 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
         }    
     }
 
-    temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch) {
+    temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch)
+    {
         return !std::isspace(ch);
-        }));
+    }));
 
     if(temp.length())
     {
