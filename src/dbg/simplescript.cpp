@@ -144,10 +144,11 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
     auto len = filedata.length();
     String temp;
     LINEMAPENTRY entry = {};
-    size_t rawElements = sizeof(LINEMAPENTRY::raw) / sizeof(LINEMAPENTRY::raw[0]);
+    size_t rawSize = sizeof(LINEMAPENTRY::raw);
     scriptLineMap.clear();
     for(size_t i = 0; i < len; i++) //make raw line map
     {
+        size_t s = temp.size();
         if(filedata[i] == '\r' && filedata[i + 1] == '\n') //windows file
         {
             entry = {};
@@ -171,13 +172,13 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
             temp = "";
             scriptLineMap.push_back(entry);
         }
-        else if(temp.length() >= rawElements - 2)
+        else if(temp.size() >= rawSize - 2)
         {
             temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch)
             {
                 return !std::isspace(ch);
             }));
-            if (temp.length())
+            if(temp.length())
             {
                 entry = {};
                 strcpy_s(entry.raw, temp.c_str());
@@ -188,7 +189,7 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
         else
         {
             temp += filedata[i];
-        }    
+        }
     }
 
     temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch)
