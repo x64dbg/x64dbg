@@ -33,14 +33,12 @@ struct SCRIPTBP
 struct LINEMAPENTRY
 {
     SCRIPTLINETYPE type;
-    char raw[256];
-    union
-    {
-        char command[256];
-        SCRIPTBRANCH branch;
-        char label[256];
-        char comment[256];
-    } u;
+    String raw;
+    // NOTE: one of these (former union)
+    String command;
+    SCRIPTBRANCH branch;
+    String label;
+    String comment;
 };
 
 struct SCRIPTFRAME
@@ -60,37 +58,36 @@ static std::atomic_bool bScriptLogEnabled;
 static CMDRESULT scriptLastError = STATUS_ERROR;
 static bool bRunGui = false;
 
-static SCRIPTBRANCHTYPE scriptGetBranchType(const char* text)
+static SCRIPTBRANCHTYPE scriptGetBranchType(const String &text)
 {
-    char newtext[MAX_SCRIPT_LINE_SIZE] = "";
-    strcpy_s(newtext, StringUtils::Trim(text).c_str());
-    if(!strstr(newtext, " "))
-        strcat_s(newtext, " ");
-    if(!strncmp(newtext, "jmp ", 4) || !strncmp(newtext, "goto ", 5))
+    String newtext = StringUtils::Trim(text);
+    if(newtext.find(" ") == std::string::npos)
+        newtext += " ";
+    if(StringUtils::StartsWith(newtext, "jmp ") || StringUtils::StartsWith(newtext, "goto "))
         return scriptjmp;
-    else if(!strncmp(newtext, "jbe ", 4) || !strncmp(newtext, "ifbe ", 5) || !strncmp(newtext, "ifbeq ", 6) || !strncmp(newtext, "jle ", 4) || !strncmp(newtext, "ifle ", 5) || !strncmp(newtext, "ifleq ", 6))
+    else if(StringUtils::StartsWith(newtext, "jbe ") || StringUtils::StartsWith(newtext, "ifbe ") || StringUtils::StartsWith(newtext, "ifbeq ") || StringUtils::StartsWith(newtext, "jle ") || StringUtils::StartsWith(newtext, "ifle ") || StringUtils::StartsWith(newtext, "ifleq "))
         return scriptjbejle;
-    else if(!strncmp(newtext, "jae ", 4) || !strncmp(newtext, "ifae ", 5) || !strncmp(newtext, "ifaeq ", 6) || !strncmp(newtext, "jge ", 4) || !strncmp(newtext, "ifge ", 5) || !strncmp(newtext, "ifgeq ", 6))
+    else if(StringUtils::StartsWith(newtext, "jae ") || StringUtils::StartsWith(newtext, "ifae ") || StringUtils::StartsWith(newtext, "ifaeq ") || StringUtils::StartsWith(newtext, "jge ") || StringUtils::StartsWith(newtext, "ifge ") || StringUtils::StartsWith(newtext, "ifgeq "))
         return scriptjaejge;
-    else if(!strncmp(newtext, "jne ", 4) || !strncmp(newtext, "ifne ", 5) || !strncmp(newtext, "ifneq ", 6) || !strncmp(newtext, "jnz ", 4) || !strncmp(newtext, "ifnz ", 5))
+    else if(StringUtils::StartsWith(newtext, "jne ") || StringUtils::StartsWith(newtext, "ifne ") || StringUtils::StartsWith(newtext, "ifneq ") || StringUtils::StartsWith(newtext, "jnz ") || StringUtils::StartsWith(newtext, "ifnz "))
         return scriptjnejnz;
-    else if(!strncmp(newtext, "je ", 3)  || !strncmp(newtext, "ife ", 4) || !strncmp(newtext, "ifeq ", 5) || !strncmp(newtext, "jz ", 3) || !strncmp(newtext, "ifz ", 4))
+    else if(StringUtils::StartsWith(newtext, "je ")  || StringUtils::StartsWith(newtext, "ife ") || StringUtils::StartsWith(newtext, "ifeq ") || StringUtils::StartsWith(newtext, "jz ") || StringUtils::StartsWith(newtext, "ifz "))
         return scriptjejz;
-    else if(!strncmp(newtext, "jb ", 3) || !strncmp(newtext, "ifb ", 4) || !strncmp(newtext, "jl ", 3) || !strncmp(newtext, "ifl ", 4))
+    else if(StringUtils::StartsWith(newtext, "jb ") || StringUtils::StartsWith(newtext, "ifb ") || StringUtils::StartsWith(newtext, "jl ") || StringUtils::StartsWith(newtext, "ifl "))
         return scriptjbjl;
-    else if(!strncmp(newtext, "ja ", 3) || !strncmp(newtext, "ifa ", 4) || !strncmp(newtext, "jg ", 3) || !strncmp(newtext, "ifg ", 4))
+    else if(StringUtils::StartsWith(newtext, "ja ") || StringUtils::StartsWith(newtext, "ifa ") || StringUtils::StartsWith(newtext, "jg ") || StringUtils::StartsWith(newtext, "ifg "))
         return scriptjajg;
-    else if(!strncmp(newtext, "call ", 5))
+    else if(StringUtils::StartsWith(newtext, "call "))
         return scriptcall;
     return scriptnobranch;
 }
 
-static int scriptLabelFind(const char* labelname)
+static int scriptLabelFind(const String &labelname)
 {
     SHARED_ACQUIRE(LockScriptLineMap);
     int linecount = (int)scriptLineMap.size();
     for(int i = 0; i < linecount; i++)
-        if(scriptLineMap.at(i).type == linelabel && !strcmp(scriptLineMap.at(i).u.label, labelname))
+        if(scriptLineMap.at(i).type == linelabel && (scriptLineMap.at(i).label == labelname))
             return i + 1;
     return 0;
 }
@@ -112,17 +109,11 @@ static int scriptNextIp(int fromIp) //internal step routine
     return fromIp;
 }
 
-static bool scriptIsInternalCommand(const char* text, const char* cmd)
+static bool scriptIsInternalCommand(const String &text, const String &cmd)
 {
-    int len = (int)strlen(text);
-    int cmdlen = (int)strlen(cmd);
-    if(cmdlen > len)
+    if(cmd.length() > text.length())
         return false;
-    if(cmdlen == len)
-        return scmp(text, cmd);
-    if(text[cmdlen] == ' ')
-        return _strnicmp(text, cmd, cmdlen) == 0;
-    return false;
+    return StringUtils::CaseInsensitiveEqual()(text.substr(0, cmd.length()), cmd);
 }
 
 static void scriptError(int line, const char* error, bool gui)
@@ -144,16 +135,13 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
     auto len = filedata.length();
     String temp;
     LINEMAPENTRY entry = {};
-    size_t rawSize = sizeof(LINEMAPENTRY::raw);
     scriptLineMap.clear();
     for(size_t i = 0; i < len; i++) //make raw line map
     {
-        size_t s = temp.size();
-        if(filedata[i] == '\r' && filedata[i + 1] == '\n') //windows file
+        if(filedata[i] == '\r' && ((i + 1) < len) && filedata[i + 1] == '\n') //windows file
         {
             entry = {};
-            temp = StringUtils::Trim(temp);
-            strcpy_s(entry.raw, temp.c_str());
+            entry.raw = StringUtils::Trim(temp);
             temp = "";
             i++;
             scriptLineMap.push_back(entry);
@@ -161,21 +149,9 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
         else if(filedata[i] == '\n') //other file
         {
             entry = {};
-            temp = StringUtils::Trim(temp);
-            strcpy_s(entry.raw, temp.c_str());
+            entry.raw = StringUtils::Trim(temp);
             temp = "";
             scriptLineMap.push_back(entry);
-        }
-        else if(temp.size() >= rawSize - 2)
-        {
-            temp = StringUtils::Trim(temp);
-            if(temp.length())
-            {
-                entry = {};
-                strcpy_s(entry.raw, temp.c_str());
-                scriptLineMap.push_back(entry);
-            }
-            temp = "";
         }
         else
         {
@@ -188,25 +164,26 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
     if(temp.length())
     {
         entry = {};
-        strcpy_s(entry.raw, temp.c_str());
+        entry.raw = temp;
         scriptLineMap.push_back(entry);
     }
 
     int linemapsize = (int)scriptLineMap.size();
-    while(linemapsize && !*scriptLineMap.at(linemapsize - 1).raw) //remove empty lines from the end
+    while(linemapsize && scriptLineMap.at(linemapsize - 1).raw.length() == 0) //remove empty lines from the end
     {
         linemapsize--;
         scriptLineMap.pop_back();
     }
+
     for(int i = 0; i < linemapsize; i++)
     {
         LINEMAPENTRY cur = scriptLineMap.at(i);
 
         //temp. remove comments from the raw line
-        char line_comment[256] = "";
-        char* comment = nullptr;
+        String line_comment;
+        String comment;
         {
-            auto len = strlen(cur.raw);
+            auto len = cur.raw.length();
             auto inquote = false;
             auto inescape = false;
             for(size_t i = 0; i < len; i++)
@@ -227,49 +204,33 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
                 }
                 if(!inquote && ch == '/' && i + 1 < len && cur.raw[i + 1] == '/')
                 {
-                    comment = cur.raw + i;
+                    comment = cur.raw.substr(i);
                     break;
                 }
             }
         }
 
-        if(comment && comment != cur.raw) //only when the line doesn't start with a comment
+        if(comment.length() && comment != cur.raw) //only when the line doesn't start with a comment
         {
-            if(*(comment - 1) == ' ') //space before comment
-            {
-                strcpy_s(line_comment, comment);
-                *(comment - 1) = '\0';
-            }
-            else //no space before comment
-            {
-                strcpy_s(line_comment, comment);
-                *comment = 0;
-            }
+            line_comment = comment;
+            //Remove the comment from the raw string
+            cur.raw = StringUtils::Trim(cur.raw.substr(0, cur.raw.length() - line_comment.length()));
         }
 
-        int rawlen = (int)strlen(cur.raw);
-        while((rawlen > 0) && isspace(cur.raw[rawlen - 1]))  //Trim trailing whitespace
-        {
-            rawlen--;
-        }
-        cur.raw[rawlen] = '\0'; //// Truncate the string by setting a new null terminator
-        if(!rawlen) //empty
+        if(cur.raw.length() == 0) //empty
         {
             cur.type = lineempty;
         }
-        else if(!strncmp(cur.raw, "//", 2) || *cur.raw == ';') //comment
+        else if(StringUtils::StartsWith(cur.raw, "//") || StringUtils::StartsWith(cur.raw, ";")) //comment
         {
             cur.type = linecomment;
-            strcpy_s(cur.u.comment, cur.raw);
+            cur.comment = cur.raw;
         }
-        else if(cur.raw[rawlen - 1] == ':') //label
+        else if(StringUtils::EndsWith(cur.raw, ":")) //label
         {
             cur.type = linelabel;
-            sprintf_s(cur.u.label, "l %.*s", rawlen - 1, cur.raw); //create a fake command for formatting
-            strcpy_s(cur.u.label, StringUtils::Trim(cur.u.label).c_str());
-            temp = String(cur.u.label + 2);
-            strcpy_s(cur.u.label, temp.c_str()); //remove fake command
-            if(!*cur.u.label || !strcmp(cur.u.label, "\"\"")) //no label text
+            cur.label = cur.raw.substr(0, cur.raw.length() - 1); //remove colon
+            if((cur.label.length() == 0) || (cur.label == "\"\"")) //no label text
             {
                 char message[256] = "";
                 sprintf_s(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Empty label detected on line %d!")), i + 1);
@@ -277,11 +238,11 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
                 scriptLineMap.clear();
                 return false;
             }
-            int foundlabel = scriptLabelFind(cur.u.label);
+            int foundlabel = scriptLabelFind(cur.label);
             if(foundlabel) //label defined twice
             {
                 char message[256] = "";
-                sprintf_s(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Duplicate label \"%s\" detected on lines %d and %d!")), cur.u.label, foundlabel, i + 1);
+                sprintf_s(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Duplicate label \"%s\" detected on lines %d and %d!")), cur.label, foundlabel, i + 1);
                 scriptError(0, message, gui);
                 scriptLineMap.clear();
                 return false;
@@ -290,26 +251,25 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
         else if(scriptGetBranchType(cur.raw) != scriptnobranch) //branch
         {
             cur.type = linebranch;
-            cur.u.branch.type = scriptGetBranchType(cur.raw);
-            char newraw[MAX_SCRIPT_LINE_SIZE] = "";
-            strcpy_s(newraw, StringUtils::Trim(cur.raw).c_str());
-            int rlen = (int)strlen(newraw);
+            cur.branch.type = scriptGetBranchType(cur.raw);
+            int rlen = cur.raw.length();
             for(int j = 0; j < rlen; j++)
-                if(newraw[j] == ' ')
+                if(isspace(cur.raw[j]))
                 {
-                    strcpy_s(cur.u.branch.branchlabel, newraw + j + 1);
+                    String labelname = StringUtils::Trim(cur.raw.substr(j));
+                    strcpy_s(cur.branch.branchlabel, labelname.c_str());
                     break;
                 }
         }
         else
         {
             cur.type = linecommand;
-            strcpy_s(cur.u.command, cur.raw);
+            cur.command = cur.raw;
         }
 
         //append the comment to the raw line again
-        if(*line_comment)
-            sprintf_s(cur.raw + rawlen, sizeof(cur.raw) - rawlen, "\1%s", line_comment);
+        if(line_comment.length())
+            cur.raw += "\1" + line_comment;
         scriptLineMap.at(i) = cur;
     }
     linemapsize = (int)scriptLineMap.size();
@@ -318,17 +278,17 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
         auto & currentLine = scriptLineMap.at(i);
         if(currentLine.type == linebranch) //invalid branch label
         {
-            int labelline = scriptLabelFind(currentLine.u.branch.branchlabel);
+            int labelline = scriptLabelFind(currentLine.branch.branchlabel);
             if(!labelline) //invalid branch label
             {
                 char message[256] = "";
-                sprintf_s(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid branch label \"%s\" detected on line %d!")), currentLine.u.branch.branchlabel, i + 1);
+                sprintf_s(message, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Invalid branch label \"%s\" detected on line %d!")), currentLine.branch.branchlabel, i + 1);
                 scriptError(0, message, gui);
                 scriptLineMap.clear();
                 return false;
             }
             else //set the branch destination line
-                currentLine.u.branch.dest = scriptNextIp(labelline);
+                currentLine.branch.dest = scriptNextIp(labelline);
         }
     }
     // append a ret instruction at the end of the script when appropriate
@@ -336,16 +296,16 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
     {
         entry = {};
         entry.type = linecommand;
-        strcpy_s(entry.raw, "ret");
-        strcpy_s(entry.u.command, "ret");
+        entry.raw = "ret";
+        entry.command = "ret";
 
         const auto & lastline = scriptLineMap.back();
         switch(lastline.type)
         {
         case linecommand:
-            if(scriptIsInternalCommand(lastline.u.command, "ret")
-                    || scriptIsInternalCommand(lastline.u.command, "invalid")
-                    || scriptIsInternalCommand(lastline.u.command, "error"))
+            if(scriptIsInternalCommand(lastline.command, "ret")
+                    || scriptIsInternalCommand(lastline.command, "invalid")
+                    || scriptIsInternalCommand(lastline.command, "error"))
             {
                 // there is already a terminating command at the end of the script
             }
@@ -356,7 +316,7 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
             break;
         case linebranch:
             // an unconditional branch at the end of the script can only go back
-            if(lastline.u.branch.type == scriptjmp)
+            if(lastline.branch.type == scriptjmp)
                 break;
         // fallthough to append the ret
         case linelabel:
@@ -501,7 +461,7 @@ static CMDRESULT scriptInternalCmdExec(const char* cmd, bool gui, SCRIPTSTATE st
         {
             String cmdStr = cmd;
             auto branchlabel = StringUtils::Trim(cmdStr.substr(cmdStr.find(' ')));
-            auto labelIp = scriptLabelFind(branchlabel.c_str());
+            auto labelIp = scriptLabelFind(branchlabel);
             if(!labelIp)
             {
                 char message[256] = "";
@@ -542,7 +502,7 @@ static bool scriptInternalCmd(bool gui, SCRIPTSTATE state)
     scriptIp = scriptNextIp(scriptIp);
     if(cur.type == linecommand)
     {
-        scriptLastError = scriptInternalCmdExec(cur.u.command, gui, state);
+        scriptLastError = scriptInternalCmdExec(cur.command.c_str(), gui, state);
         switch(scriptLastError)
         {
         case STATUS_CONTINUE:
@@ -561,11 +521,11 @@ static bool scriptInternalCmd(bool gui, SCRIPTSTATE state)
     }
     else if(cur.type == linebranch)
     {
-        if(scriptBranchTaken(cur.u.branch.type))
+        if(scriptBranchTaken(cur.branch.type))
         {
-            if(cur.u.branch.type == scriptcall) //calls have a special meaning
+            if(cur.branch.type == scriptcall) //calls have a special meaning
                 scriptStack.push_back({scriptIp, state});
-            scriptIp = scriptLabelFind(cur.u.branch.branchlabel);
+            scriptIp = scriptLabelFind(cur.branch.branchlabel);
             scriptIp = scriptNextIp(scriptIp); //go to the first command after the label
         }
     }
@@ -650,7 +610,7 @@ static bool scriptLoad(const char* filename, bool gui)
     int lines = (int)scriptLineMap.size();
     auto script = (const char**)BridgeAlloc(lines * sizeof(const char*));
     for(int i = 0; i < lines; i++) //add script lines
-        script[i] = scriptLineMap.at(i).raw;
+        script[i] = scriptLineMap.at(i).raw.c_str();
     GuiScriptAdd(lines, script);
     scriptIp = scriptNextIp(0);
     GuiScriptSetIp(scriptIp);
@@ -821,7 +781,7 @@ bool ScriptGetBranchInfoLocked(int line, SCRIPTBRANCH* info)
         return false;
     if(scriptLineMap.at(line - 1).type != linebranch) //no branch
         return false;
-    memcpy(info, &scriptLineMap.at(line - 1).u.branch, sizeof(SCRIPTBRANCH));
+    memcpy(info, &scriptLineMap.at(line - 1).branch, sizeof(SCRIPTBRANCH));
     return true;
 }
 
