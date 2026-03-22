@@ -191,7 +191,7 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
     {
         entry = {};
         int add = 0;
-        while (isspace(temp[add]))
+        while(isspace(temp[add]))
             add++;
         strcpy_s(entry.raw, temp + add);
         scriptLineMap.push_back(entry);
