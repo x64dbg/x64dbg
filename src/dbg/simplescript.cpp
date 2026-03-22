@@ -152,10 +152,7 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
         if(filedata[i] == '\r' && filedata[i + 1] == '\n') //windows file
         {
             entry = {};
-            temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch)
-            {
-                return !std::isspace(ch);
-            }));
+            temp = StringUtils::Trim(temp);
             strcpy_s(entry.raw, temp.c_str());
             temp = "";
             i++;
@@ -164,20 +161,14 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
         else if(filedata[i] == '\n') //other file
         {
             entry = {};
-            temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch)
-            {
-                return !std::isspace(ch);
-            }));
+            temp = StringUtils::Trim(temp);
             strcpy_s(entry.raw, temp.c_str());
             temp = "";
             scriptLineMap.push_back(entry);
         }
         else if(temp.size() >= rawSize - 2)
         {
-            temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch)
-            {
-                return !std::isspace(ch);
-            }));
+            temp = StringUtils::Trim(temp);
             if(temp.length())
             {
                 entry = {};
@@ -192,10 +183,7 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
         }
     }
 
-    temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch)
-    {
-        return !std::isspace(ch);
-    }));
+    temp = StringUtils::Trim(temp);
 
     if(temp.length())
     {
