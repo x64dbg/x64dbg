@@ -202,7 +202,7 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
                 default:
                     inescape = false;
                 }
-                if(!inquote && ch == '/' && i + 1 < len && cur.raw[i + 1] == '/')
+                if(!inquote && ((ch == '/' && i + 1 < len && cur.raw[i + 1] == '/') || (ch == ';')))
                 {
                     comment = cur.raw.substr(i);
                     break;
@@ -254,7 +254,7 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
             cur.branch.type = scriptGetBranchType(cur.raw);
             int rlen = cur.raw.length();
             for(int j = 0; j < rlen; j++)
-                if(isspace(cur.raw[j]))
+                if(cur.raw[j] == ' ')
                 {
                     String labelname = StringUtils::Trim(cur.raw.substr(j));
                     strcpy_s(cur.branch.branchlabel, labelname.c_str());
