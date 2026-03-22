@@ -187,7 +187,10 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
     if(*temp)
     {
         entry = {};
-        strcpy_s(entry.raw, temp);
+        int add = 0;
+        while (isspace(temp[add]))
+            add++;
+        strcpy_s(entry.raw, temp + add);
         scriptLineMap.push_back(entry);
     }
     int linemapsize = (int)scriptLineMap.size();
