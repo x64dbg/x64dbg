@@ -39,7 +39,7 @@ class TestResult:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run x64dbg convention-based headless tests.")
-    parser.add_argument("tests", nargs="*", help="Optional test ids relative to src/tests, for example: issue3808")
+    parser.add_argument("tests", nargs="*", help="Optional test ids relative to src/tests, for example: issue3808 or membp/write")
     parser.add_argument("--arch", choices=["x64", "x32", "x86"], default="x64", help="Architecture to run. Default: x64. x86 is accepted as an alias for x32")
     parser.add_argument("--headless", help="Path to headless.exe. Defaults to bin/<arch>/headless.exe")
     parser.add_argument("--timeout", type=int, default=90, help="Per-test timeout in seconds. Default: 90")
@@ -66,20 +66,57 @@ def path_arg(path: Path, cwd: Path) -> str:
         return str(path)
 
 
+def parse_test_variant(script_name: str) -> str | None:
+    if not script_name.startswith("test") or not script_name.endswith(".txt"):
+        return None
+
+    variant = script_name[4:-4]
+    if variant.startswith("."):
+        variant = variant[1:]
+
+    if variant == "disabled" or variant.startswith("disabled."):
+        return None
+
+    return variant
+
+
+def test_id_from_rel(rel_dir: str, variant: str) -> str:
+    if not variant:
+        return rel_dir
+    return f"{rel_dir}/{variant}" if rel_dir else variant
+
+
+def variant_check_path(source_dir: Path, variant: str) -> Path | None:
+    if variant:
+        check_path = source_dir / f"check.{variant}.py"
+        if check_path.is_file():
+            return check_path
+    check_path = source_dir / "check.py"
+    return check_path if check_path.is_file() else None
+
+
 def discover_tests(repo_root: Path, arch: str, requested: set[str], validate_runtime: bool = True) -> list[TestCase]:
     source_root = repo_root / "src" / "tests"
     runtime_root = repo_root / "bin" / arch / "tests"
     plugin_suffix = ".dp64" if arch == "x64" else ".dp32"
 
     tests: list[TestCase] = []
-    for script in sorted(source_root.rglob("test.txt")):
-        rel = script.parent.relative_to(source_root).as_posix()
+    seen_rel: set[str] = set()
+    for script in sorted(source_root.rglob("test*.txt")):
+        variant = parse_test_variant(script.name)
+        if variant is None:
+            continue
+
+        rel_dir = script.parent.relative_to(source_root).as_posix()
+        rel = test_id_from_rel(rel_dir, variant)
+        if rel in seen_rel:
+            raise FileExistsError(f"Duplicate test id discovered: {rel}")
         if requested and rel not in requested:
             continue
-        runtime_dir = runtime_root / Path(rel)
-        runtime_script = runtime_dir / "test.txt"
-        debuggee = runtime_root / f"{rel}.exe"
-        fallback_check = script.parent / "check.py"
+
+        runtime_dir = runtime_root / Path(rel_dir)
+        runtime_script = runtime_dir / script.name
+        debuggee = runtime_root / f"{rel_dir}.exe"
         tests.append(
             TestCase(
                 rel=rel,
@@ -88,9 +125,10 @@ def discover_tests(repo_root: Path, arch: str, requested: set[str], validate_run
                 runtime_script=runtime_script,
                 debuggee=debuggee,
                 plugins=sorted(runtime_dir.glob(f"*{plugin_suffix}")),
-                fallback_check=fallback_check if fallback_check.is_file() else None,
+                fallback_check=variant_check_path(script.parent, variant),
             )
         )
+        seen_rel.add(rel)
 
     if requested:
         found = {test.rel for test in tests}

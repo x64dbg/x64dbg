@@ -9,9 +9,18 @@ Each test lives under:
 ```text
 src/tests/<rel>/
   test.txt
+  optional test.<variant>.txt
   optional check.py
+  optional check.<variant>.py
   optional *.cpp / plugin sources
 ```
+
+`test.txt` keeps the historical test id `<rel>`.
+
+Additional scripts in the same directory are exposed as `<rel>/<variant>`. For example:
+
+- `src/tests/membp/test.txt` -> `membp`
+- `src/tests/membp/test.write.txt` -> `membp/write`
 
 ## Runtime layout
 
@@ -22,6 +31,7 @@ bin/<arch>/tests/
   <rel>.exe
   <rel>/
     test.txt
+    test.<variant>.txt
     *.dp32 / *.dp64
 ```
 
@@ -37,6 +47,12 @@ Run a single test:
 
 ```powershell
 py src/tests/run.py --arch x64 issue3808
+```
+
+Run a single variant from a shared directory:
+
+```powershell
+py src/tests/run.py --arch x64 membp/write
 ```
 
 List discovered tests:

@@ -1,0 +1,9 @@
+settingset Events, EntryBreakpoint, 0
+init tests/membp.exe
+mbreset
+mbcachebp membp:WriteTarget
+cip=membp:WriteSequence
+bpmrange membp:WriteTarget, 1, w
+mbassertexact membp:WriteTarget, 1
+run
+mbasserthit

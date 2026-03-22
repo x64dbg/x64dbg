@@ -1,0 +1,8 @@
+settingset Events, EntryBreakpoint, 0
+init tests/membp.exe
+mbreset
+cip=membp:WriteSequence
+bpmrange membp:WriteTarget, 1, w
+membpc membp:WriteTarget
+run
+mbassertnohit 0x5A

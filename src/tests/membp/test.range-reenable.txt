@@ -1,0 +1,8 @@
+settingset Events, EntryBreakpoint, 0
+init tests/membp.exe
+mbreset
+cip=membp:ReadSequence
+bpmrange membp:ReadTarget, 1, r
+mbreenable membp:ReadTarget
+run
+mbasserthit membp:ReadTarget

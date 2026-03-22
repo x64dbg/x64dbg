@@ -1,0 +1,14 @@
+Operating System
+Irrelevant
+
+x64dbg Version
+Oct 28 22, 15:36:59
+
+Describe the issue
+Memory access BP aligns to the beginning of a continuous memory region instead of an actually selected range or at least mem page.
+
+Steps to reproduce
+star debugging attached file. Stop at module entry point.
+plase mem access bp on rva +0x2000 (it is an exported symbol "____")
+run
+instead of stopping at +0x1013 (where mov reg, byte [+0x2000] is) it stops at each instruction

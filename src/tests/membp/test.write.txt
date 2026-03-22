@@ -1,0 +1,4 @@
+settingset Events, EntryBreakpoint, 0
+init tests/membp.exe
+membp membp:WriteTarget
+mbassertregion membp:WriteTarget
