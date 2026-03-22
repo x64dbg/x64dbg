@@ -58,7 +58,7 @@ static std::atomic_bool bScriptLogEnabled;
 static CMDRESULT scriptLastError = STATUS_ERROR;
 static bool bRunGui = false;
 
-static SCRIPTBRANCHTYPE scriptGetBranchType(const String &text)
+static SCRIPTBRANCHTYPE scriptGetBranchType(const String & text)
 {
     String newtext = StringUtils::Trim(text);
     if(newtext.find(" ") == std::string::npos)
@@ -82,7 +82,7 @@ static SCRIPTBRANCHTYPE scriptGetBranchType(const String &text)
     return scriptnobranch;
 }
 
-static int scriptLabelFind(const String &labelname)
+static int scriptLabelFind(const String & labelname)
 {
     SHARED_ACQUIRE(LockScriptLineMap);
     int linecount = (int)scriptLineMap.size();
@@ -109,7 +109,7 @@ static int scriptNextIp(int fromIp) //internal step routine
     return fromIp;
 }
 
-static bool scriptIsInternalCommand(const String &text, const String &cmd)
+static bool scriptIsInternalCommand(const String & text, const String & cmd)
 {
     if(cmd.length() > text.length())
         return false;
