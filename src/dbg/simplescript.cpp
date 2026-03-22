@@ -202,7 +202,7 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
                 default:
                     inescape = false;
                 }
-                if(!inquote && ((ch == '/' && i + 1 < len && cur.raw[i + 1] == '/') || (ch == ';')))
+                if(!inquote && ch == '/' && i + 1 < len && cur.raw[i + 1] == '/')
                 {
                     comment = cur.raw.substr(i);
                     break;
