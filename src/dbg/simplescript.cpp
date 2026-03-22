@@ -142,60 +142,49 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
         return false;
     }
     auto len = filedata.length();
-    char temp[256] = "";
+    String temp;
     LINEMAPENTRY entry = {};
     scriptLineMap.clear();
-    for(size_t i = 0, j = 0; i < len; i++) //make raw line map
+    for(size_t i = 0; i < len; i++) //make raw line map
     {
-        if(filedata[i] == '\r' && filedata[i + 1] == '\n') //windows file
+        if (filedata[i] == '\r' && filedata[i + 1] == '\n') //windows file
         {
             entry = {};
-            int add = 0;
-            while(isspace(temp[add]))
-                add++;
-            strcpy_s(entry.raw, temp + add);
-            *temp = 0;
-            j = 0;
+            temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch) {
+                return !std::isspace(ch);
+                }));
+            strcpy_s(entry.raw, temp.c_str());
+            temp = "";
             i++;
             scriptLineMap.push_back(entry);
         }
-        else if(filedata[i] == '\n') //other file
+        else if (filedata[i] == '\n') //other file
         {
             entry = {};
-            int add = 0;
-            while(isspace(temp[add]))
-                add++;
-            strcpy_s(entry.raw, temp + add);
-            *temp = 0;
-            j = 0;
+            temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch) {
+                return !std::isspace(ch);
+                }));
+            strcpy_s(entry.raw, temp.c_str());
+            temp = "";
             scriptLineMap.push_back(entry);
         }
-        else if(j >= 254)
-        {
-            entry = {};
-            int add = 0;
-            while(isspace(temp[add]))
-                add++;
-            if(add < 254)
-            {
-                strcpy_s(entry.raw, temp + add);
-                scriptLineMap.push_back(entry);
-            }
-            *temp = 0;
-            j = 0;
-        }
         else
-            j += sprintf_s(temp + j, sizeof(temp) - j, "%c", filedata[i]);
+        {
+            temp += filedata[i];
+        }    
     }
-    if(*temp)
+
+    temp.erase(temp.begin(), std::find_if(temp.begin(), temp.end(), [](unsigned char ch) {
+        return !std::isspace(ch);
+        }));
+
+    if(temp.length())
     {
         entry = {};
-        int add = 0;
-        while(isspace(temp[add]))
-            add++;
-        strcpy_s(entry.raw, temp + add);
+        strcpy_s(entry.raw, temp.c_str());
         scriptLineMap.push_back(entry);
     }
+
     int linemapsize = (int)scriptLineMap.size();
     while(linemapsize && !*scriptLineMap.at(linemapsize - 1).raw) //remove empty lines from the end
     {
@@ -271,8 +260,8 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
             cur.type = linelabel;
             sprintf_s(cur.u.label, "l %.*s", rawlen - 1, cur.raw); //create a fake command for formatting
             strcpy_s(cur.u.label, StringUtils::Trim(cur.u.label).c_str());
-            strcpy_s(temp, cur.u.label + 2);
-            strcpy_s(cur.u.label, temp); //remove fake command
+            temp = String(cur.u.label + 2);
+            strcpy_s(cur.u.label, temp.c_str()); //remove fake command
             if(!*cur.u.label || !strcmp(cur.u.label, "\"\"")) //no label text
             {
                 char message[256] = "";
