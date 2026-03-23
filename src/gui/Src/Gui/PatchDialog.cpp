@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <QIcon>
 #include <QFileDialog>
+#include <QRegularExpression>
 #include <QTextStream>
 #include "MiscUtil.h"
 #include "StringUtil.h"
@@ -27,6 +28,7 @@ PatchDialog::PatchDialog(QWidget* parent) :
     connect(mGroupSelector, SIGNAL(groupPrevious()), this, SLOT(groupPrevious()));
     connect(mGroupSelector, SIGNAL(groupNext()), this, SLOT(groupNext()));
 
+    mActiveCommentType = ActiveCommentType::None;
     mIsWorking = false;
 }
 
@@ -96,6 +98,8 @@ void PatchDialog::updatePatches()
     //clear GUI
     ui->listModules->clear();
     ui->listPatches->clear();
+    ui->listModules->show();
+    ui->listPatches->show();
     mPatches.clear();
 
     //get patches from DBG
@@ -156,7 +160,11 @@ void PatchDialog::updatePatches()
     }
 
     if(mPatches.size())
+    {
         ui->listModules->item(0)->setSelected(true); //select first module
+        ui->listPatches->item(0)->setSelected(true);
+        syncComment(ui->listModules->item(0), nullptr, ActiveCommentType::Module, ActiveCommentType::Module);
+    }
 
     mIsWorking = false;
 }
@@ -273,6 +281,26 @@ void PatchDialog::on_listModules_itemSelectionChanged()
     mIsWorking = false;
 }
 
+void PatchDialog::on_listModules_currentItemChanged(QListWidgetItem* current, QListWidgetItem* previous)
+{
+    syncComment(current, previous, mActiveCommentType, ActiveCommentType::Module);
+}
+
+void PatchDialog::on_listModules_itemClicked(QListWidgetItem* item)
+{
+    syncComment(item, mActiveCommentType, ActiveCommentType::Module);
+}
+
+void PatchDialog::on_listPatches_currentItemChanged(QListWidgetItem* current, QListWidgetItem* previous)
+{
+    syncComment(current, previous, mActiveCommentType, ActiveCommentType::Address);
+}
+
+void PatchDialog::on_listPatches_itemClicked(QListWidgetItem* item)
+{
+    syncComment(item, mActiveCommentType, ActiveCommentType::Address);
+}
+
 void PatchDialog::on_listPatches_itemChanged(QListWidgetItem* item) //checkbox changed
 {
     if(mIsWorking || !ui->listModules->selectedItems().size())
@@ -384,6 +412,13 @@ void PatchDialog::on_btnRestoreSelected_clicked()
     updatePatches();
     if(removed != total)
         ui->listModules->setCurrentRow(selModIdx);
+    if(ui->listModules->count() > 0)
+        ui->listModules->setCurrentRow(0);
+    else
+    {
+        ui->txtComment->clear();
+        ui->txtComment->setDisabled(true);
+    }
     GuiUpdateAllViews();
 }
 
@@ -528,20 +563,36 @@ void PatchDialog::on_btnImport_clicked()
         }
 
         dsint modbase = 0;
+        QString moduleLevelComment = "";
+        int currentCommentOffsetForModule = 0;
         for(int i = 0; i < lines.size(); i++)
         {
             ULONGLONG rva;
             unsigned int oldbyte;
             unsigned int newbyte;
             QString curLine = lines.at(i);
+            if(curLine.startsWith(";") && curLine.length() > 1) // module-level comment
+            {
+                moduleLevelComment = curLine.mid(1);
+                continue;
+            }
             if(curLine.startsWith(">")) //module
             {
                 strcpy_s(curPatch.mod, curLine.toUtf8().constData() + 1);
                 modbase = DbgFunctions()->ModBaseFromName(curPatch.mod);
+
+                currentCommentOffsetForModule = 0;
+                saveCommentForModule(curPatch, moduleLevelComment);
                 continue;
             }
             if(!modbase)
                 continue;
+
+            QString commentText;
+            int commentTextIndex = curLine.indexOf(';');
+            if(commentTextIndex != -1 && commentTextIndex != curLine.length() - 1)
+                commentText = curLine.mid(commentTextIndex + 1);
+
             curLine = curLine.replace(" ", "");
             if(sscanf_s(curLine.toUtf8().constData(), "%llX:%X->%X", &rva, &oldbyte, &newbyte) != 3)
             {
@@ -567,6 +618,9 @@ void PatchDialog::on_btnImport_clicked()
             curPatch.oldbyte = oldbyte;
             curPatch.newbyte = newbyte;
             patchList.push_back(QPair<DBGPATCHINFO, IMPORTSTATUS>(curPatch, status));
+
+            currentCommentOffsetForModule++;
+            saveCommentForAddress(curPatch, commentText);
         }
     }
 
@@ -652,6 +706,11 @@ void PatchDialog::saveAs1337(const QString & filename)
     QStringList lines;
 
     int patches = 0;
+
+    QListWidgetItem* pendingComment = isCommentForAddress(mActiveCommentType) ?
+                                      getSelectedOrFirst(ui->listPatches) : getSelectedOrFirst(ui->listModules);
+    syncComment(pendingComment, pendingComment, mActiveCommentType, mActiveCommentType);
+
     for(PatchMap::iterator i = mPatches.begin(); i != mPatches.end(); ++i)
     {
         const PatchInfoList & curPatchList = i.value();
@@ -665,11 +724,18 @@ void PatchDialog::saveAs1337(const QString & filename)
                 continue;
             if(!bModPlaced)
             {
+                if(mModulePatchComments.contains(i.key()))
+                    lines.push_back(";" + mModulePatchComments[i.key()].replace(QRegularExpression("\\R"), "\\n").toUtf8());
                 lines.push_back(">" + i.key());
                 bModPlaced = true;
             }
             QString addrText = ToPtrString(curPatchList.at(j).patch.addr - modbase);
-            lines.push_back(addrText + QString().sprintf(":%.2X->%.2X", curPatchList.at(j).patch.oldbyte, curPatchList.at(j).patch.newbyte));
+            QString patchLine = addrText + QString().sprintf(":%.2X->%.2X", curPatchList.at(j).patch.oldbyte, curPatchList.at(j).patch.newbyte);
+            QString commentKey = getCommentKeyForPatchInfo(curPatchList.at(j).patch);
+            if(mAddressPatchComments.contains(i.key()) && mAddressPatchComments[i.key()].contains(commentKey))
+                patchLine += " ;" + mAddressPatchComments[i.key()][commentKey].replace(QRegularExpression("\\R"), "\\n").toUtf8();
+            lines.push_back(patchLine);
+
             patches++;
         }
     }
@@ -716,4 +782,250 @@ bool PatchDialog::showRelocatedBytesWarning()
 {
     auto result = QMessageBox::question(this, tr("Patches overlap with relocation regions"), tr("Your patches overlap with relocation regions. This can cause your code to become corrupted when you load the patched executable. Do you want to continue?"));
     return result == QMessageBox::Yes;
+}
+
+void PatchDialog::showEvent(QShowEvent* event)
+{
+    Q_UNUSED(event);
+    if(!isEligibleForComment(mActiveCommentType) || ui->listModules->count() == 0)
+    {
+        ui->txtComment->setDisabled(true);
+        ui->txtComment->clear();
+    }
+
+    if(ui->listModules->count() > 0)
+    {
+        ActiveCommentType previousCommentType = mActiveCommentType;
+        syncComment(ui->listModules->item(0), nullptr, ActiveCommentType::None, ActiveCommentType::Module);
+        mActiveCommentType = previousCommentType;
+    }
+
+    if(!isCommentStale(mActiveCommentType))
+        mActiveCommentType = ActiveCommentType::None;
+
+    ui->listPatches->show();
+}
+
+void PatchDialog::closeEvent(QCloseEvent* event)
+{
+    Q_UNUSED(event);
+    if(!isEligibleForComment(mActiveCommentType))
+        return;
+
+    if(isCommentForModule(mActiveCommentType))
+        syncComment(nullptr, ui->listModules->currentItem(), mActiveCommentType, mActiveCommentType);
+    else if(isCommentForAddress(mActiveCommentType))
+        syncComment(nullptr, ui->listPatches->currentItem(), mActiveCommentType, mActiveCommentType);
+
+    mActiveCommentType = ActiveCommentType::Stale;
+}
+
+bool PatchDialog::getPatchInfoForModuleFromUi(QListWidgetItem* item, DBGPATCHINFO & patchInfo)
+{
+    if(item == nullptr)
+        return false;
+
+    PatchMap::iterator found = mPatches.find(item->text());
+    if(found == mPatches.end())
+        return false;
+
+    PatchInfoList & curPatchList = found.value();
+    if(curPatchList.size() == 0)
+        return false;
+
+    PatchPair & patch = curPatchList[0];
+    patchInfo = patch.patch;
+    return true;
+}
+
+bool PatchDialog::getPatchInfoForAddressFromUi(QListWidgetItem* item, DBGPATCHINFO & patchInfo)
+{
+    if(item == nullptr)
+        return false;
+
+    if(ui->listModules->selectedItems().size() == 0)
+        return false;
+
+    QString mod = ui->listModules->selectedItems().at(0)->text();
+    PatchMap::iterator found = mPatches.find(mod);
+    if(found == mPatches.end())
+        return false;
+
+    PatchInfoList & curPatchList = found.value();
+    if(curPatchList.size() == 0)
+        return false;
+
+    PatchPair & patch = curPatchList[ui->listPatches->row(item)];
+    patchInfo = patch.patch;
+    return true;
+}
+
+QListWidgetItem* PatchDialog::getSelectedOrFirst(QListWidget* items)
+{
+    if(items == nullptr || items->count() == 0)
+        return nullptr;
+
+    return (items->currentItem() != nullptr) ?
+           items->currentItem() : items->item(0);
+}
+
+QString PatchDialog::getCommentKeyForPatchInfo(const DBGPATCHINFO & patchInfo)
+{
+    return ToPtrString(patchInfo.addr) + QString::asprintf(":%.2X->%.2X", patchInfo.oldbyte, patchInfo.newbyte);
+}
+
+void PatchDialog::loadCommentForModule(const DBGPATCHINFO & patchInfo)
+{
+    QString moduleComment = mModulePatchComments.value(patchInfo.mod, "");
+    ui->txtComment->setPlainText(moduleComment.replace("\\n", "\n"));
+}
+
+void PatchDialog::loadCommentForAddress(const DBGPATCHINFO & patchInfo)
+{
+    QString commentKey = getCommentKeyForPatchInfo(patchInfo);
+    QString commentForAddress = mAddressPatchComments[patchInfo.mod].value(commentKey, "");
+    ui->txtComment->setPlainText(commentForAddress.replace("\\n", "\n"));
+}
+
+void PatchDialog::saveCommentForModule(const DBGPATCHINFO & patchInfo, const QString & comment)
+{
+    if(comment.isEmpty())
+        return;
+
+    mModulePatchComments[patchInfo.mod] = comment;
+    if(!mAddressPatchComments.contains(patchInfo.mod))
+        mAddressPatchComments.insert(patchInfo.mod, QMap<QString, QString>());
+}
+
+void PatchDialog::saveCommentForAddress(const DBGPATCHINFO & patchInfo, const QString & comment)
+{
+    if(comment.isEmpty())
+        return;
+
+    QString commentBytes = getCommentKeyForPatchInfo(patchInfo);
+    mAddressPatchComments[patchInfo.mod][commentBytes] = comment;
+}
+
+void PatchDialog::syncComment(QListWidgetItem* current, QListWidgetItem* previous, ActiveCommentType previousCommentType, ActiveCommentType incomingCommentType)
+{
+    if(!isVisible())
+        return;
+
+    // Patch info is being populated, nothing to do yet
+    if(mIsWorking || !ui->listModules->isVisible())
+    {
+        ui->txtComment->clear();
+        return;
+    }
+
+    // A comment can be shown or made at this point
+    ui->txtComment->setDisabled(false);
+
+    DBGPATCHINFO previousModulePatchInfo;
+    DBGPATCHINFO previousAddressPatchInfo;
+    DBGPATCHINFO currentModulePatchInfo;
+    DBGPATCHINFO currentAddressPatchInfo;
+
+    bool foundPreviousPatchInfo = false;
+    bool foundCurrentPatchInfo = false;
+
+    QListWidgetItem* previousTarget = nullptr;
+    QListWidgetItem* currentTarget = nullptr;
+    if(previousCommentType == incomingCommentType)
+    {
+        // Coming from the same list widget, i.e. module -> module
+        previousTarget = previous;
+        currentTarget = current;
+    }
+    else
+    {
+        if(isCommentStale(mActiveCommentType))
+        {
+            // Window is re-opened and list data was refreshed
+            // Load comment for the module in this case
+            previousTarget = nullptr;
+            currentTarget = ui->listModules->item(0);
+            incomingCommentType = ActiveCommentType::Module;
+        }
+        else if(isCommentUninitialized(previousCommentType))
+        {
+            // First click on a list
+            previousTarget = nullptr;
+            currentTarget = isCommentForModule(incomingCommentType) ?
+                            ui->listModules->currentItem() : ui->listPatches->currentItem();
+        }
+        else if(isCommentForModule(previousCommentType))
+        {
+            // Coming from module -> address
+            previousTarget = ui->listModules->currentItem();
+            currentTarget = ui->listPatches->currentItem();
+        }
+        else
+        {
+            // Coming from address -> module
+            previousTarget = ui->listPatches->currentItem();
+            currentTarget = ui->listModules->currentItem();
+        }
+    }
+
+    foundPreviousPatchInfo = isCommentForModule(previousCommentType) ?
+                             getPatchInfoForModuleFromUi(previousTarget, previousModulePatchInfo) :
+                             getPatchInfoForAddressFromUi(previousTarget, previousAddressPatchInfo);
+
+    foundCurrentPatchInfo = isCommentForModule(incomingCommentType) ?
+                            getPatchInfoForModuleFromUi(currentTarget, currentModulePatchInfo) :
+                            getPatchInfoForAddressFromUi(currentTarget, currentAddressPatchInfo);
+
+    if(foundPreviousPatchInfo)
+    {
+        QString commentText = ui->txtComment->toPlainText();
+        if(isCommentForModule(previousCommentType))
+            saveCommentForModule(previousModulePatchInfo, commentText);
+        else
+            saveCommentForAddress(previousAddressPatchInfo, commentText);
+    }
+
+    if(foundCurrentPatchInfo)
+    {
+        if(isCommentForModule(incomingCommentType))
+            loadCommentForModule(currentModulePatchInfo);
+        else
+            loadCommentForAddress(currentAddressPatchInfo);
+    }
+    else
+        ui->txtComment->clear();
+
+    mActiveCommentType = incomingCommentType;
+}
+
+void PatchDialog::syncComment(QListWidgetItem* item, ActiveCommentType previousCommentType, ActiveCommentType incomingCommentType)
+{
+    QListWidgetItem* previous = isCommentForModule(previousCommentType) ?
+                                ui->listModules->currentItem() : ui->listPatches->currentItem();
+    syncComment(item, previous, previousCommentType, incomingCommentType);
+}
+
+bool PatchDialog::isCommentForModule(ActiveCommentType type)
+{
+    return type == ActiveCommentType::Module;
+}
+
+bool PatchDialog::isCommentForAddress(ActiveCommentType type)
+{
+    return type == ActiveCommentType::Address;
+}
+
+bool PatchDialog::isCommentStale(ActiveCommentType type)
+{
+    return type == ActiveCommentType::Stale;
+}
+
+bool PatchDialog::isCommentUninitialized(ActiveCommentType type)
+{
+    return type == ActiveCommentType::None;
+}
+
+bool PatchDialog::isEligibleForComment(ActiveCommentType type)
+{
+    return !isCommentUninitialized(type);
 }
