@@ -809,13 +809,12 @@ void PatchDialog::showEvent(QShowEvent* event)
 void PatchDialog::closeEvent(QCloseEvent* event)
 {
     Q_UNUSED(event);
-    if(!isEligibleForComment(mActiveCommentType))
-        return;
-
-    if(isCommentForModule(mActiveCommentType))
-        syncComment(nullptr, ui->listModules->currentItem(), mActiveCommentType, mActiveCommentType);
+    if(isCommentUninitialized(mActiveCommentType) || isCommentStale(mActiveCommentType))
+        syncComment(nullptr, getSelectedOrFirst(ui->listModules), mActiveCommentType, mActiveCommentType);
+    else if(isCommentForModule(mActiveCommentType))
+        syncComment(nullptr, getSelectedOrFirst(ui->listModules), mActiveCommentType, mActiveCommentType);
     else if(isCommentForAddress(mActiveCommentType))
-        syncComment(nullptr, ui->listPatches->currentItem(), mActiveCommentType, mActiveCommentType);
+        syncComment(nullptr, getSelectedOrFirst(ui->listPatches), mActiveCommentType, mActiveCommentType);
 
     mActiveCommentType = ActiveCommentType::Stale;
 }
@@ -889,9 +888,6 @@ void PatchDialog::loadCommentForAddress(const DBGPATCHINFO & patchInfo)
 
 void PatchDialog::saveCommentForModule(const DBGPATCHINFO & patchInfo, const QString & comment)
 {
-    if(comment.isEmpty())
-        return;
-
     mModulePatchComments[patchInfo.mod] = comment;
     if(!mAddressPatchComments.contains(patchInfo.mod))
         mAddressPatchComments.insert(patchInfo.mod, QMap<QString, QString>());
@@ -899,9 +895,6 @@ void PatchDialog::saveCommentForModule(const DBGPATCHINFO & patchInfo, const QSt
 
 void PatchDialog::saveCommentForAddress(const DBGPATCHINFO & patchInfo, const QString & comment)
 {
-    if(comment.isEmpty())
-        return;
-
     QString commentBytes = getCommentKeyForPatchInfo(patchInfo);
     mAddressPatchComments[patchInfo.mod][commentBytes] = comment;
 }
