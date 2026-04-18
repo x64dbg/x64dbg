@@ -1,8 +1,14 @@
 import asyncio
 import websockets
 import json
+import os
+import secrets
 import time
 from typing import TypedDict
+
+# Use a token from the environment, or generate a cryptographically secure one at startup.
+# The token is printed to stdout so the legitimate local user can authenticate.
+AUTH_TOKEN = os.environ.get("X64DBG_REMOTE_TOKEN") or secrets.token_hex(32)
 
 rpc_methods = {}
 
@@ -36,6 +42,9 @@ async def table(params: TableParams) -> TableResult:
     return {"rows": rows}
 
 async def handler(websocket):
+    # Each connection must authenticate before executing any RPC methods.
+    authenticated = False
+
     async for message in websocket:
         try:
             request = json.loads(message)
@@ -46,6 +55,25 @@ async def handler(websocket):
             method = request.get("method")
             req_id = request.get("id")
             params = request.get("params", {})
+
+            # No authentication check before accepting commands from remote client
+            # Authentication gate: only the "auth" method is allowed before authentication.
+            if not authenticated:
+                if method == "auth" and params.get("token") == AUTH_TOKEN:
+                    authenticated = True
+                    await websocket.send(json.dumps({
+                        "jsonrpc": "2.0",
+                        "id": req_id,
+                        "result": {"authenticated": True}
+                    }))
+                else:
+                    print("[server] Rejected unauthenticated request")
+                    await websocket.send(json.dumps({
+                        "jsonrpc": "2.0",
+                        "id": req_id,
+                        "error": {"code": -32001, "message": "Authentication required"}
+                    }))
+                continue
 
             response = {
                 "jsonrpc": "2.0",
@@ -65,6 +93,7 @@ async def handler(websocket):
             print(f"[server] JSON error: {e}")
 
 async def main():
+    print(f"[server] Auth token: {AUTH_TOKEN}")
     print("[server] Listening on ws://127.0.0.1:42069")
     async with websockets.serve(handler, "127.0.0.1", 42069):
         await asyncio.Future()
