@@ -2698,14 +2698,14 @@ void RegistersView::onSIMDMode()
 // detect XMM/YMM/ZMM Mode
 static int detectXMMMode(const ZMMREGISTER* ZmmRegisters)
 {
-    __m128 AVX_High = _mm_load_ps((const float*)&ZmmRegisters[0].Low.High);
-    __m128 AVX512_High = _mm_load_ps((const float*)&ZmmRegisters[0].High.Low);
-    AVX512_High = _mm_or_ps(AVX512_High, _mm_load_ps((float*)&ZmmRegisters[0].High.High));
+    __m128 AVX_High = _mm_loadu_ps((const float*)&ZmmRegisters[0].Low.High);
+    __m128 AVX512_High = _mm_loadu_ps((const float*)&ZmmRegisters[0].High.Low);
+    AVX512_High = _mm_or_ps(AVX512_High, _mm_loadu_ps((float*)&ZmmRegisters[0].High.High));
     for(int i = 1; i < ArchValue(8, 32); i++)
     {
-        AVX_High = _mm_or_ps(AVX_High, _mm_load_ps((const float*)&ZmmRegisters[i].Low.High));
-        AVX512_High = _mm_or_ps(AVX512_High, _mm_load_ps((const float*)&ZmmRegisters[i].High.Low));
-        AVX512_High = _mm_or_ps(AVX512_High, _mm_load_ps((const float*)&ZmmRegisters[i].High.High));
+        AVX_High = _mm_or_ps(AVX_High, _mm_loadu_ps((const float*)&ZmmRegisters[i].Low.High));
+        AVX512_High = _mm_or_ps(AVX512_High, _mm_loadu_ps((const float*)&ZmmRegisters[i].High.Low));
+        AVX512_High = _mm_or_ps(AVX512_High, _mm_loadu_ps((const float*)&ZmmRegisters[i].High.High));
     }
     quint64* AVXDetectPtr;
     AVXDetectPtr = (quint64*)&AVX512_High;
@@ -2729,20 +2729,20 @@ static int detectXMMMode(const ZMMREGISTER* ZmmRegisters)
 
 static bool detectAVX512Used(const REGISTERCONTEXT_AVX512* context)
 {
-    __m128 temp = _mm_load_ps((const float*)&context->Opmask[0]);
+    __m128 temp = _mm_loadu_ps((const float*)&context->Opmask[0]);
     quint64* ptr = (quint64*)&temp;
     for(int i = 1; i <= 3; i++)
-        temp = _mm_or_ps(temp, _mm_load_ps((const float*)&context->Opmask[i * 2]));
+        temp = _mm_or_ps(temp, _mm_loadu_ps((const float*)&context->Opmask[i * 2]));
     if(ptr[0] | ptr[1])
         return true;
 #if defined(_WIN64) || defined(__x86_64__)
     for(int i = 16; i <= 31; i++)
     {
         __m128 temp2[2];
-        temp2[0] = _mm_load_ps((const float*)&context->ZmmRegisters[i].Low.Low);
-        temp2[1] = _mm_load_ps((const float*)&context->ZmmRegisters[i].Low.High);
-        temp2[0] = _mm_or_ps(temp2[0], _mm_load_ps((const float*)&context->ZmmRegisters[i].Low.High));
-        temp2[1] = _mm_or_ps(temp2[1], _mm_load_ps((const float*)&context->ZmmRegisters[i].High.High));
+        temp2[0] = _mm_loadu_ps((const float*)&context->ZmmRegisters[i].Low.Low);
+        temp2[1] = _mm_loadu_ps((const float*)&context->ZmmRegisters[i].Low.High);
+        temp2[0] = _mm_or_ps(temp2[0], _mm_loadu_ps((const float*)&context->ZmmRegisters[i].Low.High));
+        temp2[1] = _mm_or_ps(temp2[1], _mm_loadu_ps((const float*)&context->ZmmRegisters[i].High.High));
         temp = _mm_or_ps(temp, temp2[0]);
         temp = _mm_or_ps(temp, temp2[1]);
     }
