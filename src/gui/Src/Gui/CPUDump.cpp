@@ -514,37 +514,20 @@ void CPUDump::modifyValueSlot()
     if(d.itemSize == 4 && d.dwordMode == FloatDword || d.itemSize == 8 && d.qwordMode == DoubleQword)
     {
         auto size = std::min(getSizeOf(mDescriptor.at(0).data.itemSize), sizeof(double));
-        if(size == 4)
+        if (size != 4 && size != 8)
+            return;
+        double value;
+        mMemPage->read(&value, addr, size);
+        QString current = QString::number(value);
+        QString newvalue;
+        if (SimpleInputBox(this, tr("Modify value"), current, newvalue, current))
         {
-            float value;
-            mMemPage->read(&value, addr, size);
-            QString current = QString::number(value);
-            QString newvalue;
-            if(SimpleInputBox(this, tr("Modify value"), current, newvalue, current))
-            {
-                bool ok;
-                value = newvalue.toFloat(&ok);
-                if(ok)
-                    mMemPage->write(&value, addr, size);
-                else
-                    SimpleErrorBox(this, tr("Error"), tr("The input text is not a number!"));
-            }
-        }
-        else if(size == 8)
-        {
-            double value;
-            mMemPage->read(&value, addr, size);
-            QString current = QString::number(value);
-            QString newvalue;
-            if(SimpleInputBox(this, tr("Modify value"), current, newvalue, current))
-            {
-                bool ok;
-                value = newvalue.toDouble(&ok);
-                if(ok)
-                    mMemPage->write(&value, addr, size);
-                else
-                    SimpleErrorBox(this, tr("Error"), tr("The input text is not a number!"));
-            }
+            bool ok;
+            value = size == 8 ? newvalue.toDouble(&ok) : newvalue.toFloat(&ok);
+            if(ok)
+                mMemPage->write(&value, addr, size);
+            else
+                SimpleErrorBox(this, tr("Error"), tr("The input text is not a number!"));
         }
     }
     else
