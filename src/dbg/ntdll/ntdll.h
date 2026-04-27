@@ -9746,6 +9746,13 @@ RtlExitUserThread(
 );
 
 NTSYSAPI
+VOID
+NTAPI
+RtlExitUserProcess(
+    _In_ NTSTATUS ExitStatus
+);
+
+NTSYSAPI
 NTSTATUS
 NTAPI
 RtlDosApplyFileIsolationRedirection_Ustr(
