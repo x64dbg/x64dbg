@@ -704,7 +704,7 @@ void CPUSideBar::drawBullets(QPainter* painter, int line, bool isbp, bool isbpdi
     const int y = line * mFontHeight; //initial y
 
     painter->setRenderHint(QPainter::Antialiasing, true);
-    if(isbpdisabled) //disabled breakpoint
+    if(isbpdisabled && !isbp) //disabled breakpoint only
         painter->setBrush(QBrush(mBulletDisabledBreakpointColor));
 
     painter->drawEllipse(x, y + mBulletYOffset, mBulletRadius, mBulletRadius);
