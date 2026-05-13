@@ -222,7 +222,13 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
         duint instrVAEnd = instrVA + instr.length;
 
         // draw bullet
-        drawBullets(&painter, line, DbgGetBpxTypeAt(instrVA) != bp_none, DbgIsBpDisabled(instrVA), DbgGetBookmarkAt(instrVA));
+        // If a disabled software breakpoint and an enabled hardware breakpoint
+        // exist on the same line, keep the "enabled breakpoint" bullet color.
+        const auto bpType = DbgGetBpxTypeAt(instrVA);
+        const bool hasBreakpoint = bpType != bp_none;
+        const bool hasEnabledHardwareBp = Breakpoints::BPState(bp_hardware, instrVA) == bp_enabled;
+        const bool showDisabledBreakpointColor = hasBreakpoint && DbgIsBpDisabled(instrVA) && !hasEnabledHardwareBp;
+        drawBullets(&painter, line, hasBreakpoint, showDisabledBreakpointColor, DbgGetBookmarkAt(instrVA));
 
         if(isJump(line)) //handle jumps
         {
