@@ -98,21 +98,65 @@ static bool isInstructionPointingToExMemory(duint addr, const unsigned char* des
     return !dbgisdepenabled();
 }
 
-bool assembleat(duint addr, const char* instruction, int* size, char* error, bool fillnop)
+bool assembleat(duint addr, const char* instruction, int* size, char* error, bool fillnop, bool split)
 {
     int destSize = 0;
     Memory<unsigned char*> dest(16 * sizeof(unsigned char), "AssembleBuffer");
     unsigned char* newbuffer = nullptr;
-    if(!assemble(addr, dest(), 16, &destSize, instruction, error))
+    
+    if (split)
     {
-        if(destSize > 16)
+        char* currentInstruction = instruction;
+        char* nextInstruction;
+        char tempInstruction[XEDPARSE_MAXBUFSIZE+1];
+        
+        int destIndex = 0;
+        while(true)
         {
-            dest.realloc(destSize);
-            if(!assemble(addr, dest(), destSize, &destSize, instruction, error))
+            nextInstruction = strchr(currentInstruction, ';');
+            if(nextInstruction)
+            {
+                int instructionLength = nextInstruction - currentInstruction;
+                memcpy(tempInstruction, currentInstruction, instructionLength);
+                tempInstruction[instructionLength] = '\0';
+            }
+            else
+            {
+                strcpy_s(tempInstruction, currentInstruction);
+            }
+            
+            while(!assemble(addr + destIndex, dest() + destIndex, dest.size() - destIndex, &destSize, tempInstruction, error))
+            {
+                // Extend the memory buffer if the new instruction does not fit
+                if(destSize > dest.size() - destIndex)
+                    dest.realloc(dest.size() + 16);
+                    continue;
+
+                // Return false if an unrelated error has occured
+                return false;
+            }
+            
+            origLen += disasmgetsize(addr + destIndex);
+            if(!nextInstruction) {
+                break;
+            }
+            currentInstruction = nextInstruction + 1;
+        }
+    }
+    else {
+        if(!assemble(addr, dest(), 16, &destSize, instruction, error))
+        {
+            if(destSize > 16)
+            {
+                dest.realloc(destSize);
+                if(!assemble(addr, dest(), destSize, &destSize, instruction, error))
+                    return false;
+            }
+            
+            // Return false if an unrelated error has occured
+            else
                 return false;
         }
-        else
-            return false;
     }
 
     //calculate the number of NOPs to insert
