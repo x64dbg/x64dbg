@@ -13,6 +13,6 @@ enum class AssemblerEngine
 extern AssemblerEngine assemblerEngine;
 
 bool assemble(duint addr, unsigned char* dest, int* size, const char* instruction, char* error);
-bool assembleat(duint addr, const char* instruction, int* size, char* error, bool fillnop, bool split = false);
+bool assembleat(duint addr, const char* instruction, int* size, char* error, bool fillnop, bool split = true);
 
 #endif // _ASSEMBLE_H
