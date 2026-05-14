@@ -145,7 +145,7 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString data)
         // SizeDifference < 0 <=> Typed instruction is smaller
         else if(sizeDifference < 0)
         {
-            QString message = tr("<font color='#00cc00'><b>Instruction smaller by %1 %2...</b></font>")
+            QString message = tr("<font color='#00cc00'><b>Instruction(s) smaller by %1 %2...</b></font>")
                               .arg(-sizeDifference)
                               .arg(sizeDifference == -1 ? tr("byte") : tr("bytes")).append(tr("<br>Bytes: %1").arg(data));
 
@@ -155,7 +155,7 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString data)
         // SizeDifference == 0 <=> Both instruction have same size
         else
         {
-            QString message = tr("<font color='#00cc00'><b>Instruction is same size!</b></font>").append(tr("<br>Bytes: %1").arg(data));
+            QString message = tr("<font color='#00cc00'><b>Instruction(s) unchanged in size!</b></font>").append(tr("<br>Bytes: %1").arg(data));
 
             setKeepSizeLabel(message);
             setOkButtonEnabled(true);
@@ -163,7 +163,7 @@ void AssembleDialog::instructionChangedSlot(dsint sizeDifference, QString data)
     }
     else
     {
-        QString message = tr("<font color='#00cc00'><b>Instruction encoded successfully!</b></font>").append(tr("<br>Bytes: %1").arg(data));
+        QString message = tr("<font color='#00cc00'><b>Instruction(s) encoded successfully!</b></font>").append(tr("<br>Bytes: %1").arg(data));
 
         setKeepSizeLabel(message);
         setOkButtonEnabled(true);
