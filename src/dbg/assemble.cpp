@@ -136,7 +136,6 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
                 return false;
             }
             
-            origLen += disasmgetsize(addr + destIndex);
             if(!nextInstruction)
             {
                 break;
