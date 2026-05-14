@@ -104,7 +104,7 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
     Memory<unsigned char*> dest(16 * sizeof(unsigned char), "AssembleBuffer");
     unsigned char* newbuffer = nullptr;
     
-    if (split)
+    if(split)
     {
         const char* currentInstruction = instruction;
         const char* nextInstruction;
@@ -137,7 +137,8 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
             }
             
             origLen += disasmgetsize(addr + destIndex);
-            if(!nextInstruction) {
+            if(!nextInstruction)
+            {
                 break;
             }
             currentInstruction = nextInstruction + 1;
