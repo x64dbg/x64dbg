@@ -76,7 +76,7 @@ bool assemble(duint addr, unsigned char* dest, int destsize, int* size, const ch
 
 bool assemble(duint addr, unsigned char* dest, int* size, const char* instruction, char* error)
 {
-    return assemble(addr, dest, 16, size, instruction, error);
+    return assemble(addr, dest, XEDPARSE_MAXASMSIZE, size, instruction, error);
 }
 
 static bool isInstructionPointingToExMemory(duint addr, const unsigned char* dest)
