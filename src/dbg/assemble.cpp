@@ -137,12 +137,14 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
                 // Return false if an unrelated error has occured
                 return false;
             }
-            
+
             if(!nextInstruction)
             {
                 break;
             }
+         
             currentInstruction = nextInstruction + 1;
+            destIndex += destSize;
         }
     }
     else
