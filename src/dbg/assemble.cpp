@@ -106,8 +106,8 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
     
     if (split)
     {
-        char* currentInstruction = instruction;
-        char* nextInstruction;
+        const char* currentInstruction = instruction;
+        const char* nextInstruction;
         char tempInstruction[XEDPARSE_MAXBUFSIZE+1];
         
         int destIndex = 0;
