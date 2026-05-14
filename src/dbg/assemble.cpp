@@ -129,8 +129,10 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
             {
                 // Extend the memory buffer if the new instruction does not fit
                 if(destSize > dest.size() - destIndex)
+                {
                     dest.realloc(dest.size() + 16);
                     continue;
+                }
 
                 // Return false if an unrelated error has occured
                 return false;
