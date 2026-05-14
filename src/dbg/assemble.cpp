@@ -143,7 +143,8 @@ bool assembleat(duint addr, const char* instruction, int* size, char* error, boo
             currentInstruction = nextInstruction + 1;
         }
     }
-    else {
+    else
+    {
         if(!assemble(addr, dest(), 16, &destSize, instruction, error))
         {
             if(destSize > 16)
