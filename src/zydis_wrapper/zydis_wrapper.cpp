@@ -8,6 +8,21 @@
 #include <cstring>
 #include <cinttypes>
 
+static bool IsShuffleControlMnemonic(ZydisMnemonic mnemonic)
+{
+    return mnemonic == ZYDIS_MNEMONIC_SHUFPS;
+}
+
+static std::string FormatShuffleControlImm(uint8_t imm)
+{
+    char digits[5] = {};
+    digits[0] = char('0' + ((imm >> 6) & 0x3));
+    digits[1] = char('0' + ((imm >> 4) & 0x3));
+    digits[2] = char('0' + ((imm >> 2) & 0x3));
+    digits[3] = char('0' + (imm & 0x3));
+    return digits;
+}
+
 static const char* ZydisMnemonicGetStringHook(ZydisMnemonic mnemonic)
 {
     switch(mnemonic)
@@ -181,6 +196,13 @@ std::string Zydis::OperandText(uint8_t opindex) const
         return {};
 
     auto & op = mInstr.operands[opindex];
+    if(op.type == ZYDIS_OPERAND_TYPE_IMMEDIATE &&
+            IsShuffleControlMnemonic(mInstr.info.mnemonic) &&
+            op.imm.size == 8)
+    {
+        return FormatShuffleControlImm((uint8_t)op.imm.value.u);
+    }
+
     char buf[200] = {};
     if(!ZYAN_SUCCESS(ZydisFormatterFormatOperand(&this->mFormatter, &mInstr.info, &op, buf, sizeof(buf), mAddr, nullptr)))
         return {};
@@ -325,6 +347,16 @@ std::string Zydis::InstructionText(bool replaceRipRelative) const
 {
     if(!Success())
         return "???";
+
+    if(IsShuffleControlMnemonic(mInstr.info.mnemonic) && OpCount() >= 3)
+    {
+        const auto & imm = mInstr.operands[2];
+        if(imm.type == ZYDIS_OPERAND_TYPE_IMMEDIATE && imm.imm.size == 8)
+        {
+            return std::string(ZydisMnemonicGetStringHook(mInstr.info.mnemonic)) + " " +
+                   OperandText(0) + ", " + OperandText(1) + ", " + OperandText(2);
+        }
+    }
 
     std::string result = mInstrText;
 
