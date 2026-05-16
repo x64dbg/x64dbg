@@ -5,6 +5,17 @@
 #include "CachedFontMetrics.h"
 #include <QToolTip>
 
+static bool hasEnabledBreakpointAt(duint va, BPXTYPE bpxtype)
+{
+    const BPXTYPE candidates[] = {bp_normal, bp_hardware, bp_memory, bp_dll, bp_exception};
+    for(const auto type : candidates)
+    {
+        if((bpxtype & type) != 0 && Breakpoints::BPState(type, va) == bp_enabled)
+            return true;
+    }
+    return false;
+}
+
 CPUSideBar::CPUSideBar(CPUDisassembly* disassembly, QWidget* parent)
     : QAbstractScrollArea(parent)
 {
@@ -221,8 +232,14 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
         duint instrVA = instr.rva + mDisassembly->getBase();
         duint instrVAEnd = instrVA + instr.length;
 
+        const auto bpxtype = DbgGetBpxTypeAt(instrVA);
+        const bool hasBreakpoint = bpxtype != bp_none;
+        bool isBreakpointDisabled = hasBreakpoint && DbgIsBpDisabled(instrVA);
+        if(isBreakpointDisabled && hasEnabledBreakpointAt(instrVA, bpxtype))
+            isBreakpointDisabled = false;
+
         // draw bullet
-        drawBullets(&painter, line, DbgGetBpxTypeAt(instrVA) != bp_none, DbgIsBpDisabled(instrVA), DbgGetBookmarkAt(instrVA));
+        drawBullets(&painter, line, hasBreakpoint, isBreakpointDisabled, DbgGetBookmarkAt(instrVA));
 
         if(isJump(line)) //handle jumps
         {
