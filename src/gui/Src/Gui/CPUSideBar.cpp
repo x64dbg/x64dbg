@@ -5,6 +5,46 @@
 #include "CachedFontMetrics.h"
 #include <QToolTip>
 
+namespace
+{
+    struct BreakpointMarkerState
+    {
+        bool hasBreakpoint = false;
+        bool hasEnabledBreakpoint = false;
+    };
+
+    BreakpointMarkerState getBreakpointMarkerState(duint va)
+    {
+        BreakpointMarkerState state;
+        const BPXTYPE types[] = { bp_normal, bp_hardware, bp_memory };
+
+        for(auto type : types)
+        {
+            BP_REF ref = {};
+            if(!DbgFunctions()->BpRefVa(&ref, type, va))
+                continue;
+
+            bool enabled = false;
+            if(ref.GetField(bpf_enabled, enabled))
+            {
+                state.hasBreakpoint = true;
+                state.hasEnabledBreakpoint |= enabled;
+            }
+        }
+
+        // Keep range memory breakpoint support from the bridge helper. The new
+        // reference API resolves exact addresses, while memory breakpoints can
+        // cover a range.
+        if((DbgGetBpxTypeAt(va) & bp_memory) != 0)
+        {
+            state.hasBreakpoint = true;
+            state.hasEnabledBreakpoint = true;
+        }
+
+        return state;
+    }
+}
+
 CPUSideBar::CPUSideBar(CPUDisassembly* disassembly, QWidget* parent)
     : QAbstractScrollArea(parent)
 {
@@ -222,7 +262,10 @@ void CPUSideBar::paintEvent(QPaintEvent* event)
         duint instrVAEnd = instrVA + instr.length;
 
         // draw bullet
-        drawBullets(&painter, line, DbgGetBpxTypeAt(instrVA) != bp_none, DbgIsBpDisabled(instrVA), DbgGetBookmarkAt(instrVA));
+        const auto bpMarker = getBreakpointMarkerState(instrVA);
+        drawBullets(&painter, line, bpMarker.hasEnabledBreakpoint,
+                    bpMarker.hasBreakpoint && !bpMarker.hasEnabledBreakpoint,
+                    DbgGetBookmarkAt(instrVA));
 
         if(isJump(line)) //handle jumps
         {
