@@ -27,6 +27,30 @@
 #include "BrowseDialog.h"
 #include "Tracer/TraceBrowser.h"
 
+static QString NormalizeShufpsLanePatternExpression(const QString & expression)
+{
+    static const QRegularExpression pattern(
+        "^\\s*shufps\\s+([^,]+),\\s*([^,]+),\\s*([0-3]{4})\\s*$",
+        QRegularExpression::CaseInsensitiveOption);
+
+    auto match = pattern.match(expression);
+    if(!match.hasMatch())
+        return expression;
+
+    const auto laneText = match.captured(3);
+    int immediate = 0;
+    for(int i = 0; i < 4; ++i)
+    {
+        immediate <<= 2;
+        immediate |= laneText.at(i).unicode() - '0';
+    }
+
+    return QString("shufps %1, %2, 0x%3")
+           .arg(match.captured(1).trimmed())
+           .arg(match.captured(2).trimmed())
+           .arg(QString::number(immediate, 16).toUpper());
+}
+
 CPUDisassembly::CPUDisassembly(Architecture* architecture, bool isMain, QWidget* parent)
     : Disassembly(architecture, isMain, parent)
 {
@@ -938,12 +962,15 @@ void CPUDisassembly::assembleSlot()
 
             //sanitize the expression (just simplifying it by removing excess whitespaces)
             auto expression = assembleDialog.editText.simplified();
+            auto normalizedExpression = NormalizeShufpsLanePatternExpression(expression);
+            auto normalizedInstruction = NormalizeShufpsLanePatternExpression(instr.instStr.simplified());
 
             //if the instruction its unknown or is the old instruction or empty (easy way to skip from GUI) skipping
-            if(expression == QString("???") || expression.toLower() == instr.instStr.toLower() || expression == QString(""))
+            if(normalizedExpression == QString("???") || normalizedExpression == QString("") ||
+               normalizedExpression.toLower() == normalizedInstruction.toLower())
                 break;
 
-            if(!DbgFunctions()->AssembleAtEx(va, expression.toUtf8().constData(), error, assembleDialog.bFillWithNopsChecked))
+            if(!DbgFunctions()->AssembleAtEx(va, normalizedExpression.toUtf8().constData(), error, assembleDialog.bFillWithNopsChecked))
             {
                 QMessageBox msg(QMessageBox::Critical, tr("Error!"), tr("Failed to assemble instruction \" %1 \" (%2)").arg(expression).arg(error));
                 msg.setWindowIcon(DIcon("compile-error"));
