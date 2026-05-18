@@ -28,7 +28,7 @@ struct DumpMemoryProvider : MemoryProvider
         auto rva = addr - block->BaseAddress;
 
         // TODO: support page alignment zeroes
-        if(rva + size >= block->DataSize)
+        if(block->Data == nullptr || rva >= block->DataSize || size >= block->DataSize - rva)
             return false;
 
         memcpy(dest, block->Data + rva, size);
