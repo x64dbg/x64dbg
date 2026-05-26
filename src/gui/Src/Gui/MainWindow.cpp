@@ -1099,7 +1099,8 @@ void MainWindow::setGlobalShortcut(QAction* action, const QKeySequence & key)
     action->setShortcutContext(Qt::ApplicationShortcut);
 
     QString tooltip = action->text().remove('&');
-    if (!key.isEmpty()) {
+    if(!key.isEmpty())
+    {
         tooltip = QStringLiteral("%1 (%2)").arg(tooltip, key.toString(QKeySequence::NativeText));
     }
     action->setToolTip(tooltip);
