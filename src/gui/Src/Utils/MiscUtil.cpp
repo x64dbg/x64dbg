@@ -383,6 +383,18 @@ QIcon DIconHelper(QString name)
     return QIcon::fromTheme(name);
 }
 
+QString withDateTimeSuffix(const QString & path)
+{
+    QString result = path;
+    auto extensionIdx = result.lastIndexOf('.');
+    if (extensionIdx == -1)
+    {
+        extensionIdx = result.length();
+    }
+    result.insert(extensionIdx, "-" + isoDateTime());
+    return result;
+}
+
 QString getDbPath(const QString & filename, bool addDateTimeSuffix)
 {
     auto path = QString("%1/db").arg(QString::fromWCharArray(BridgeUserDirectory()));
@@ -393,13 +405,7 @@ QString getDbPath(const QString & filename, bool addDateTimeSuffix)
         // Add a date suffix before the extension
         if(addDateTimeSuffix)
         {
-            auto extensionIdx = path.lastIndexOf('.');
-            if(extensionIdx == -1)
-            {
-                extensionIdx = path.length();
-            }
-            auto suffix = "-" + isoDateTime();
-            path.insert(extensionIdx, suffix);
+            path = withDateTimeSuffix(path);
         }
     }
     return QDir::toNativeSeparators(path);
@@ -414,4 +420,32 @@ QString mainModuleName(bool extension)
         return name;
     }
     return QString();
+}
+
+QString mainModulePath()
+{
+    auto base = DbgEval("mod.main()");
+    char name[MAX_MODULE_SIZE] = "";
+    char path[MAX_MODULE_SIZE] = "";
+    if (base && DbgFunctions()->ModNameFromAddr(base, name, false) && DbgFunctions()->ModPathFromName(name, path, MAX_MODULE_SIZE))
+    {
+        return path;
+    }
+    return QString();
+}
+
+QString getProgramPath(const QString & filename, bool addDateTimeSuffix)
+{
+    auto path = QFileInfo(mainModulePath()).dir().path();
+    if (!filename.isEmpty())
+    {
+        path += '/';
+        path += filename;
+        // Add a date suffix before the extension
+        if (addDateTimeSuffix)
+        {
+            path = withDateTimeSuffix(path);
+        }
+    }
+    return QDir::toNativeSeparators(path);
 }

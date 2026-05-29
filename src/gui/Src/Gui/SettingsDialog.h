@@ -126,6 +126,7 @@ private slots:
     void on_chkQueryProcessCookie_toggled(bool checked);
     void on_chkQueryWorkingSet_toggled(bool checked);
     void on_chkTransparentExceptionStepping_toggled(bool checked);
+    void on_chkExportInProgramDirectory_toggled(bool checked);
 
 private:
     //enums
@@ -266,6 +267,7 @@ private:
         bool miscQueryProcessCookie = false;
         bool miscQueryWorkingSet = false;
         bool miscTransparentExceptionStepping = true;
+        bool miscExportInProgramDirectory = false;
     };
 
     //variables
