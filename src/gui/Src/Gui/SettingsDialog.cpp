@@ -368,13 +368,11 @@ void SettingsDialog::LoadSettings()
     GetSettingBool("Misc", "QueryProcessCookie", &settings.miscQueryProcessCookie);
     GetSettingBool("Misc", "QueryWorkingSet", &settings.miscQueryWorkingSet);
     GetSettingBool("Misc", "TransparentExceptionStepping", &settings.miscTransparentExceptionStepping);
-    GetSettingBool("Misc", "ExportInProgramDirectory", &settings.miscExportInProgramDirectory);
     ui->chkUtf16LogRedirect->setChecked(settings.miscUtf16LogRedirect);
     ui->chkUseLocalHelpFile->setChecked(settings.miscUseLocalHelpFile);
     ui->chkQueryProcessCookie->setChecked(settings.miscQueryProcessCookie);
     ui->chkQueryWorkingSet->setChecked(settings.miscQueryWorkingSet);
     ui->chkTransparentExceptionStepping->setChecked(settings.miscTransparentExceptionStepping);
-    ui->chkExportInProgramDirectory->setChecked(settings.miscExportInProgramDirectory);
 }
 
 void SettingsDialog::SaveSettings()
@@ -497,7 +495,6 @@ void SettingsDialog::SaveSettings()
     BridgeSettingSetUint("Misc", "QueryProcessCookie", settings.miscQueryProcessCookie);
     BridgeSettingSetUint("Misc", "QueryWorkingSet", settings.miscQueryWorkingSet);
     BridgeSettingSetUint("Misc", "TransparentExceptionStepping", settings.miscTransparentExceptionStepping);
-    BridgeSettingSetUint("Misc", "ExportInProgramDirectory", settings.miscExportInProgramDirectory);
 
     BridgeSettingFlush();
     Config()->load();
@@ -1199,11 +1196,6 @@ void SettingsDialog::on_chkQueryWorkingSet_toggled(bool checked)
 void SettingsDialog::on_chkTransparentExceptionStepping_toggled(bool checked)
 {
     settings.miscTransparentExceptionStepping = checked;
-}
-
-void SettingsDialog::on_chkExportInProgramDirectory_toggled(bool checked)
-{
-    settings.miscExportInProgramDirectory = checked;
 }
 
 void SettingsDialog::on_chkQtHighDpiScaling_toggled(bool checked)

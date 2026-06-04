@@ -2198,6 +2198,11 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     if(filter.breakOn == ExceptionBreakOn::DoNotBreak)
         return;
 
+    // The trace recorder writes an instruction when the next instruction is
+    // reached. An exception can stop execution before that happens, so flush the
+    // pending instruction before pausing on the exception.
+    TraceRecord.FlushTraceExecuteRecord();
+
     DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
     //lock
     lock(WAITID_RUN);

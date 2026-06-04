@@ -1181,13 +1181,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="chkExportInProgramDirectory">
-         <property name="text">
-          <string>Export in Program Directory</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <spacer name="verticalSpacerMisc">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

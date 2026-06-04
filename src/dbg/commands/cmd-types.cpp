@@ -30,7 +30,7 @@ static bool cbInstrDataGeneric(ENCODETYPE type, int argc, char* argv[])
         DbgCmdExec("disasm dis.sel()");
     else
         GuiUpdateDisassemblyView();
-    return false;
+    return true;
 }
 
 bool cbInstrDataUnknown(int argc, char* argv[])

@@ -28,6 +28,7 @@ void initDataInstMap()
     INSTRUCTION_MAP(enc_mmword, "mmword")
     INSTRUCTION_MAP(enc_xmmword, "xmmword")
     INSTRUCTION_MAP(enc_ymmword, "ymmword")
+    INSTRUCTION_MAP(enc_zmmword, "zmmword")
     INSTRUCTION_MAP(enc_ascii, "ascii")
     INSTRUCTION_MAP(enc_unicode, "unicode")
 
@@ -64,6 +65,7 @@ String GetDataTypeString(void* buffer, duint size, ENCODETYPE type)
     case enc_mmword:
     case enc_xmmword:
     case enc_ymmword:
+    case enc_zmmword:
         return StringUtils::ToHex((unsigned char*)buffer, size, false);
     case enc_real4:
         return StringUtils::ToFloatingString<float>(buffer);

@@ -194,8 +194,10 @@ void CPURegistersView::debugStateChangedSlot(DBGSTATE state)
 {
     if(state == stopped)
     {
-        updateRegistersSlot();
         isActive = false;
+        mSelected = UNKNOWN;
+        mRegisterUpdates.clear();
+        reload();
     }
     else
     {
@@ -205,6 +207,16 @@ void CPURegistersView::debugStateChangedSlot(DBGSTATE state)
 
 void CPURegistersView::updateRegistersSlot()
 {
+    // DbgGetRegDumpEx returns a zeroed dump when the debugger is inactive.
+    if(!DbgIsDebugging())
+    {
+        isActive = false;
+        mSelected = UNKNOWN;
+        mRegisterUpdates.clear();
+        reload();
+        return;
+    }
+
     // read registers
     REGDUMP_AVX512 z;
     if(DbgGetRegDumpEx(&z, sizeof(z)))

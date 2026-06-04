@@ -5,6 +5,7 @@
  */
 
 #include "reference.h"
+#include "encodemap.h"
 #include "memory.h"
 #include "console.h"
 #include "module.h"
@@ -346,19 +347,27 @@ int RefFindInRange(duint scanStart, duint scanSize, CBREF Callback, void* UserDa
         int disasmMaxSize = std::min(MAX_DISASM_BUFFER, (int)(scanSize - i)); // Prevent going past the boundary
         int disasmLen = 1;
 
-        if(zydis.Disassemble(scanStart, data() + i, disasmMaxSize))
+        auto type = EncodeMapGetType(scanStart, 0);
+        switch(type)
         {
-            BASIC_INSTRUCTION_INFO basicinfo;
-            fillbasicinfo(&zydis, &basicinfo, disasmText);
+        case enc_unknown:
+        case enc_code:
+        case enc_junk:
+        case enc_middle:
+            if(zydis.Disassemble(scanStart, data() + i, disasmMaxSize))
+            {
+                BASIC_INSTRUCTION_INFO basicinfo;
+                fillbasicinfo(&zydis, &basicinfo, disasmText);
 
-            if(Callback(&zydis, &basicinfo, &refInfo))
-                refInfo.refcount++;
+                if(Callback(&zydis, &basicinfo, &refInfo))
+                    refInfo.refcount++;
 
-            disasmLen = zydis.Size();
-        }
-        else
-        {
-            // Invalid instruction detected, so just skip the byte
+                disasmLen = zydis.Size();
+            }
+            break;
+        default:
+            disasmLen = (int)GetEncodeTypeSize(type);
+            break;
         }
 
         scanStart += disasmLen;
