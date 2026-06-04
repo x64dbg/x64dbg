@@ -25,6 +25,7 @@ public:
     {
         unsigned char oldData;
         unsigned char newData;
+        bool isReference;
         //unsigned char isWrite;
         //unsigned char isExecute;
     };
@@ -45,7 +46,7 @@ public:
     void getBytes(duint addr, duint size, TRACEINDEX index, void* buffer) const;
     std::vector<TRACEINDEX> getReferences(duint startAddr, duint endAddr) const;
     // Insert memory access records
-    void addMemAccess(duint cip, unsigned char* opcode, int opcodeSize, duint* memAddr, const duint* oldMemory, const duint* newMemory, size_t count);
+    void addMemAccess(duint cip, unsigned char* opcode, int opcodeSize, duint* memAddr, const duint* oldMemory, const duint* newMemory, const unsigned char* memSize, size_t count);
     // Find pattern
     void findAllMem(const unsigned char* data, const unsigned char* mask, size_t size, std::function<bool(duint, TRACEINDEX, TRACEINDEX)> matchFunction) const;
     inline void increaseIndex()

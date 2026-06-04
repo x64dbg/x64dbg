@@ -429,6 +429,23 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
     dbgtracebrowserneedsupdate();
 }
 
+void TraceRecordManager::FlushTraceExecuteRecord()
+{
+    if(!rtEnabled || !rtPrevInstAvailable)
+        return;
+
+    // Trace records are written one instruction late, because the writer needs
+    // the next debug context to compute register and memory changes. When an
+    // exception stops execution there may be no next instruction, so finalize
+    // the pending instruction with the current exception context.
+    Zydis nextInstruction;
+    TraceExecuteRecord(nextInstruction);
+    rtPrevInstAvailable = false;
+    rtNeedThreadId = true;
+    for(size_t i = 0; i < _countof(rtOldContextChanged); i++)
+        rtOldContextChanged[i] = true;
+}
+
 unsigned int TraceRecordManager::getHitCount(duint address)
 {
     SHARED_ACQUIRE(LockTraceRecord);

@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QStyleOptionFrame>
 #include <Bridge.h>
+#include <Utils/EncodeMap.h>
 
 DisassemblyPopup::DisassemblyPopup(AbstractTableView* parent, Architecture* architecture) :
     QFrame(parent, Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint | Qt::WindowDoesNotAcceptFocus),
@@ -185,6 +186,7 @@ void DisassemblyPopup::setAddress(duint addr)
         // Get RVA
         duint size;
         duint base = DbgMemFindBaseAddr(addr, &size);
+        mDisasm.getEncodeMap()->setMemoryRegion(addr);
 
         // Prepare RVA of every instruction
         unsigned int i = 0;

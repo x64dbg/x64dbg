@@ -152,7 +152,8 @@ std::vector<TRACEINDEX> TraceFileDump::getReferences(duint startAddr, duint endA
     auto it = dump.lower_bound({endAddr, maxIndex + 1});
     while(it != dump.end() && it->first.addr >= startAddr && it->first.addr <= endAddr)
     {
-        index.push_back(it->first.index);
+        if(it->second.isReference)
+            index.push_back(it->first.index);
         ++it;
     }
     if(index.empty())
@@ -170,7 +171,7 @@ std::vector<TRACEINDEX> TraceFileDump::getReferences(duint startAddr, duint endA
 }
 
 // Insert memory access records
-void TraceFileDump::addMemAccess(duint cip, unsigned char* opcode, int opcodeSize, duint* memAddr, const duint* oldMemory, const duint* newMemory, size_t count)
+void TraceFileDump::addMemAccess(duint cip, unsigned char* opcode, int opcodeSize, duint* memAddr, const duint* oldMemory, const duint* newMemory, const unsigned char* memSize, size_t count)
 {
     std::array < std::pair<Key, DumpRecord>, MAX_DISASM_BUFFER + MAX_MEMORY_OPERANDS* sizeof(duint) > records;
     // This function used stack memory allocation instead of heap allocation for performance, can't handle more than MAX_MEMORY_OPERANDS elements.
@@ -187,6 +188,7 @@ void TraceFileDump::addMemAccess(duint cip, unsigned char* opcode, int opcodeSiz
             records[base + i - 1].first.index = maxIndex;
             records[base + i - 1].second.oldData = ((const unsigned char*)oldMemory)[b];
             records[base + i - 1].second.newData = ((const unsigned char*)newMemory)[b];
+            records[base + i - 1].second.isReference = b < (memSize ? memSize[j] : sizeof(duint));
             //records[i - 1].second.isWrite = 0; //TODO
             //records[i - 1].second.isExecute = 0;
         }
@@ -200,6 +202,7 @@ void TraceFileDump::addMemAccess(duint cip, unsigned char* opcode, int opcodeSiz
         records[base + i - 1].first.index = maxIndex;
         records[base + i - 1].second.oldData = opcode[b];
         records[base + i - 1].second.newData = opcode[b];
+        records[base + i - 1].second.isReference = true;
         //records[i - 1].second.isWrite = 0; //TODO
         //records[i - 1].second.isExecute = 1;
     }
@@ -402,7 +405,7 @@ void TraceFileDump::findAllMem(const unsigned char* data, const unsigned char* m
                             if(address - m.address + 1 >= size)
                             {
                                 // match success
-                                abortSearching = !matchFunction(m.address - trimmed, m.startIndex, m.endIndex);
+                                abortSearching = !matchFunction(m.address - trimmed, startIndex, endIndex);
                                 if(abortSearching)
                                     break;
                             }
@@ -423,7 +426,7 @@ void TraceFileDump::findAllMem(const unsigned char* data, const unsigned char* m
                         if(address - m.address + 1 >= size)
                         {
                             // match success
-                            abortSearching = !matchFunction(m.address - trimmed, m.startIndex, m.endIndex);
+                            abortSearching = !matchFunction(m.address - trimmed, m.startIndex, endIndex);
                             if(abortSearching)
                                 break;
                         }

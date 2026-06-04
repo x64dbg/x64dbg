@@ -18,12 +18,21 @@ EncodeMap::~EncodeMap()
 
 void EncodeMap::setMemoryRegion(duint addr)
 {
-    mBase = DbgMemFindBaseAddr(addr, &mSize);
+    duint size = 0;
+    auto base = DbgMemFindBaseAddr(addr, &size);
+
+    if(mBuffer)
+    {
+        DbgReleaseEncodeTypeBuffer(mBuffer);
+        mBuffer = nullptr;
+    }
+
+    mBase = base;
+    mSize = size;
+    mBufferSize = 0;
     if(!mBase)
         return;
 
-    if(mBuffer)
-        DbgReleaseEncodeTypeBuffer(mBuffer);
     mBuffer = (uint8_t*)DbgGetEncodeTypeBuffer(addr, &mBufferSize);
 }
 
@@ -41,7 +50,8 @@ void EncodeMap::setDataType(duint va, duint size, ENCODETYPE type)
 
 void EncodeMap::delRange(duint start, duint size)
 {
-    DbgDelEncodeTypeRange(start, size);
+    if(size)
+        DbgDelEncodeTypeRange(start, start + size - 1);
 }
 
 void EncodeMap::delSegment(duint va)
@@ -49,8 +59,9 @@ void EncodeMap::delSegment(duint va)
     DbgDelEncodeTypeSegment(va);
     if(mBuffer && va >= mBase && va < mBase + mSize)
     {
-        mBuffer = nullptr;
         DbgReleaseEncodeTypeBuffer(mBuffer);
+        mBuffer = nullptr;
+        mBufferSize = 0;
     }
 }
 

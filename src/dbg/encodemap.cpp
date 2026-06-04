@@ -215,6 +215,8 @@ duint GetEncodeTypeSize(ENCODETYPE type)
         return 16;
     case enc_ymmword:
         return 32;
+    case enc_zmmword:
+        return 64;
     case enc_real4:
         return 4;
     case enc_real8:
@@ -338,6 +340,8 @@ void EncodeMapDelSegment(duint Start)
 
 void EncodeMapDelRange(duint Start, duint End)
 {
+    if(End < Start)
+        return;
     EncodeMapSetType(Start, End - Start + 1, enc_unknown);
 }
 
