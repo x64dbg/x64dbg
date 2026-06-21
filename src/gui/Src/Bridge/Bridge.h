@@ -158,6 +158,7 @@ signals:
     void getGlobalNotes(void* text);
     void setDebuggeeNotes(const QString text);
     void getDebuggeeNotes(void* text);
+    void getLog(void* text);
     void dumpAtN(duint va, int index);
     void displayWarning(QString title, QString text);
     void registerScriptLang(SCRIPTTYPEINFO* info);

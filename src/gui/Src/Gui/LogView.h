@@ -23,6 +23,7 @@ public slots:
     void addMsgToLogSlot(QByteArray msg); /* Non-HTML Log Function*/
     void addMsgToLogHtmlSlot(QByteArray msg); /* HTML accepting Log Function */
     void stopRedirectLogSlot();
+    void getLogSlot(void* text);
     void redirectLogToFileSlot(QString filename);
     void redirectLogSlot();
     void setLoggingEnabled(bool enabled);

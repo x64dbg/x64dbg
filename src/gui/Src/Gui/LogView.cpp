@@ -42,6 +42,7 @@ LogView::LogView(QWidget* parent) : QTextBrowser(parent), logRedirection(NULL)
     connect(Bridge::getBridge(), SIGNAL(saveLogToFile(QString)), this, SLOT(saveToFileSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(redirectLogToFile(QString)), this, SLOT(redirectLogToFileSlot(QString)));
     connect(Bridge::getBridge(), SIGNAL(redirectLogStop()), this, SLOT(stopRedirectLogSlot()));
+    connect(Bridge::getBridge(), SIGNAL(getLog(void*)), this, SLOT(getLogSlot(void*)));
     connect(Bridge::getBridge(), SIGNAL(setLogEnabled(bool)), this, SLOT(setLoggingEnabled(bool)));
     connect(Bridge::getBridge(), SIGNAL(flushLog()), this, SLOT(flushLogSlot()));
     connect(this, SIGNAL(anchorClicked(QUrl)), this, SLOT(onAnchorClicked(QUrl)));
@@ -458,6 +459,19 @@ bool LogView::getLoggingEnabled()
 void LogView::autoScrollSlot()
 {
     autoScroll = !autoScroll;
+}
+
+void LogView::getLogSlot(void* ptr)
+{
+    QByteArray text = document()->toPlainText().toUtf8();
+    char* result = nullptr;
+    if(text.length())
+    {
+        result = (char*)BridgeAlloc(text.length() + 1);
+        strcpy_s(result, text.length() + 1, text.constData());
+    }
+    *(char**)ptr = result;
+    Bridge::getBridge()->setResult(BridgeResult::GetLog);
 }
 
 void LogView::saveToFileSlot(QString fileName)

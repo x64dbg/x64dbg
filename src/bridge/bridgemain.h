@@ -1393,6 +1393,7 @@ BRIDGE_IMPEXP bool DbgTypeVisit(const TYPEVISITDATA* data);
     msg(GUI_MENU_SET_NAME, int hMenu, const char* name) \
     msg(GUI_MENU_SET_ENTRY_NAME, int hEntry, const char* name) \
     msg(GUI_FLUSH_LOG, unused, unused) \
+    msg(GUI_GET_LOG, char** text, unused) \
     msg(GUI_MENU_SET_ENTRY_HOTKEY, int hEntry, const char* hack) \
     msg(GUI_REF_SEARCH_GETROWCOUNT, unused, unused) \
     msg(GUI_REF_SEARCH_GETCELLCONTENT, int row, int col) \
@@ -1595,6 +1596,7 @@ BRIDGE_IMPEXP void GuiTypeListUpdated();
 BRIDGE_IMPEXP void GuiUpdateTypeWidget();
 BRIDGE_IMPEXP void GuiCloseApplication();
 BRIDGE_IMPEXP void GuiFlushLog();
+BRIDGE_IMPEXP void GuiLogGet(char** text);
 BRIDGE_IMPEXP void GuiReferenceAddCommand(const char* title, const char* command);
 BRIDGE_IMPEXP void GuiUpdateTraceBrowser();
 BRIDGE_IMPEXP void GuiOpenTraceFile(const char* fileName);

@@ -849,6 +849,14 @@ void* Bridge::processMessage(GUIMSG type, void* param1, void* param2)
     }
     break;
 
+    case GUI_GET_LOG:
+    {
+        BridgeResult result(BridgeResult::GetLog);
+        emit getLog(param1);
+        result.Wait();
+    }
+    break;
+
     case GUI_DUMP_AT_N:
         emit dumpAtN((duint)param1, (int)(duint)param2);
         break;

@@ -28,6 +28,7 @@ public:
         MenuSetEntryName,
         GetGlobalNotes,
         GetDebuggeeNotes,
+        GetLog,
         RegisterScriptLang,
         LoadGraph,
         GraphAt,
