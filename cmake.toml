@@ -201,6 +201,9 @@ link-libraries = [
     "Wintrust",
 ]
 msvc.link-options = [
+    # resource.rc already embeds manifest.xml as RT_MANIFEST, so disable the
+    # linker's default manifest to avoid embedding a second one.
+    "/MANIFEST:NO",
     "/DELAYLOAD:user32.dll",
     "/DELAYLOAD:wintrust.dll",
     "/DELAYLOAD:$<TARGET_FILE_NAME:bridge>",
@@ -269,6 +272,11 @@ sources = [
     "src/exe/icon.rc",
     "src/exe/resource.rc",
     "src/exe/strings_utf8.rc",
+]
+msvc.link-options = [
+    # resource.rc already embeds manifest.xml as RT_MANIFEST, so disable the
+    # linker's default manifest to avoid embedding a second one.
+    "/MANIFEST:NO",
 ]
 link-libraries = [
     "Shlwapi",

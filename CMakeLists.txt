@@ -993,6 +993,7 @@ endif()
 
 if(MSVC) # msvc
 	target_link_options(exe PRIVATE
+		"/MANIFEST:NO"
 		"/DELAYLOAD:user32.dll"
 		"/DELAYLOAD:wintrust.dll"
 		"/DELAYLOAD:$<TARGET_FILE_NAME:bridge>"
@@ -1153,6 +1154,12 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
 		Shlwapi
 		Comctl32
 	)
+
+	if(MSVC) # msvc
+		target_link_options(launcher PRIVATE
+			"/MANIFEST:NO"
+		)
+	endif()
 
 	set_target_properties(launcher PROPERTIES
 		MSVC_RUNTIME_LIBRARY
