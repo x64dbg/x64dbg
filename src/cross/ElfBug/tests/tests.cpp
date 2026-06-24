@@ -1,14 +1,22 @@
 #include <catch2/catch_test_macros.hpp>
 #include "TestHarness.h"
 #include "SymbolHelper.h"
+#include <ElfBug/api/elfbug_api.h>
 #include <string>
 #include <chrono>
+#include <cinttypes>
+#include <condition_variable>
 #include <csignal>
 #include <cstdint>
+#include <cstdio>
+#include <cstring>
+#include <fstream>
 #include <future>
+#include <mutex>
 #include <optional>
 #include <set>
 #include <thread>
+#include <vector>
 #include <unistd.h>
 
 #define FIXTURE(name) (std::string(ELFBUG_TESTS_TARGETS_DIR "/") + (name))
@@ -54,6 +62,53 @@ namespace
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         return false;
+    }
+
+    // Reference parse of /proc/<pid>/maps, normalized the same way the engine
+    // normalizes pathnames, so an exact line-by-line comparison is meaningful.
+    std::vector<ElfBugMemRegion> ParseProcMaps(const pid_t pid)
+    {
+        std::vector<ElfBugMemRegion> out;
+        std::ifstream f("/proc/" + std::to_string(pid) + "/maps");
+        std::string line;
+        while(std::getline(f, line))
+        {
+            uint64_t start = 0, end = 0;
+            char perms[8] = {};
+            int pathOffset = 0;
+            if(sscanf(line.c_str(), "%" SCNx64 "-%" SCNx64 " %4s %*x %*x:%*x %*u %n",
+                      &start, &end, perms, &pathOffset) < 3)
+                continue;
+
+            ElfBugMemRegion r{};
+            r.start = start;
+            r.end = end;
+            r.read = perms[0] == 'r';
+            r.write = perms[1] == 'w';
+            r.execute = perms[2] == 'x';
+            r.shared = perms[3] == 's';
+
+            std::string pathname;
+            if(pathOffset > 0 && pathOffset < static_cast<int>(line.size()))
+            {
+                const char* p = line.c_str() + pathOffset;
+                while(*p == ' ' || *p == '\t') ++p;
+                size_t len = strlen(p);
+                while(len > 0 && (p[len - 1] == '\n' || p[len - 1] == '\r' || p[len - 1] == ' '))
+                    --len;
+                if(len > 0 && p[0] != '[')
+                    pathname.assign(p, len);
+
+                const std::string deletedSuffix = " (deleted)";
+                if(pathname.size() >= deletedSuffix.size() &&
+                        pathname.compare(pathname.size() - deletedSuffix.size(), deletedSuffix.size(), deletedSuffix) == 0)
+                    pathname.resize(pathname.size() - deletedSuffix.size());
+            }
+
+            std::snprintf(r.path, sizeof(r.path), "%s", pathname.c_str());
+            out.push_back(r);
+        }
+        return out;
     }
 }
 
@@ -476,4 +531,87 @@ TEST_CASE("Reuse Debugger instance after exit", "[init]")
     REQUIRE(dbg.count(EventType::ExitProcess) == 2);
     REQUIRE(dbg.count(EventType::SystemBreakpoint) == 2);
     REQUIRE(dbg.count(EventType::InternalError) == 0);
+}
+
+TEST_CASE("Memory map matches /proc/<pid>/maps with permissions", "[memmap]")
+{
+    struct MemMapSync
+    {
+        std::mutex m;
+        std::condition_variable cv;
+        bool systemBreakpoint = false;
+    } sync;
+
+    ElfBugCallbacks cb = {};
+    cb.userdata = &sync;
+    cb.onSystemBreakpoint = [](void* userdata)
+    {
+        auto* s = static_cast<MemMapSync*>(userdata);
+        {
+            std::lock_guard<std::mutex> lock(s->m);
+            s->systemBreakpoint = true;
+        }
+        s->cv.notify_all();
+    };
+
+    ElfBugDebugger* dbg = ElfBugCreate(&cb);
+    REQUIRE(dbg != nullptr);
+    REQUIRE(ElfBugInit(dbg, FIXTURE("hello_elfbug").c_str()));
+
+    std::thread loop([&] { ElfBugStart(dbg); });
+
+    {
+        std::unique_lock<std::mutex> lock(sync.m);
+        REQUIRE(sync.cv.wait_for(lock, std::chrono::seconds(5),
+                                 [&] { return sync.systemBreakpoint; }));
+    }
+
+    // The tracee is stopped at the system breakpoint, so its maps cannot change
+    // between the engine's snapshot and our own read of /proc below.
+    const pid_t pid = ElfBugGetPid(dbg);
+    REQUIRE(pid > 0);
+
+    const size_t count = ElfBugGetMemoryMap(dbg, nullptr, 0);
+    REQUIRE(count > 0);
+
+    std::vector<ElfBugMemRegion> regions(count);
+    REQUIRE(ElfBugGetMemoryMap(dbg, regions.data(), regions.size()) == count);
+
+    const auto expected = ParseProcMaps(pid);
+    REQUIRE(regions.size() == expected.size());
+
+    bool sawExecutable = false;
+    bool sawWritable = false;
+    bool sawFixture = false;
+    for(size_t i = 0; i < regions.size(); ++i)
+    {
+        INFO("region " << i);
+        REQUIRE(regions[i].start == expected[i].start);
+        REQUIRE(regions[i].end == expected[i].end);
+        REQUIRE(regions[i].read == expected[i].read);
+        REQUIRE(regions[i].write == expected[i].write);
+        REQUIRE(regions[i].execute == expected[i].execute);
+        REQUIRE(regions[i].shared == expected[i].shared);
+        REQUIRE(std::string(regions[i].path) == std::string(expected[i].path));
+
+        sawExecutable = sawExecutable || regions[i].execute;
+        sawWritable = sawWritable || regions[i].write;
+        sawFixture = sawFixture || std::string(regions[i].path).find("hello_elfbug") != std::string::npos;
+    }
+    REQUIRE(sawExecutable);
+    REQUIRE(sawWritable);
+    REQUIRE(sawFixture);
+
+    // Capacity contract: a short buffer still reports the full total and fills only what fits.
+    std::vector<ElfBugMemRegion> partial(1);
+    REQUIRE(ElfBugGetMemoryMap(dbg, partial.data(), partial.size()) == count);
+    REQUIRE(partial[0].start == regions[0].start);
+
+    ElfBugContinue(dbg);
+    loop.join();
+
+    // The map is cleared once the inferior exits.
+    REQUIRE(ElfBugGetMemoryMap(dbg, nullptr, 0) == 0);
+
+    ElfBugDestroy(dbg);
 }
