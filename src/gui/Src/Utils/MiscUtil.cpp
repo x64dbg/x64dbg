@@ -1,6 +1,7 @@
 #include "MiscUtil.h"
 #include <QtWin>
 #include <QApplication>
+#include <QTextCodec>
 #include <QMessageBox>
 #include <QCheckBox>
 #include <QDir>
@@ -414,4 +415,87 @@ QString mainModuleName(bool extension)
         return name;
     }
     return QString();
+}
+
+// QTextCodec for the real system ANSI code page (queried from the bridge). Qt's
+// built-in "System" codec follows CP_ACP, which the application UTF-8 manifest
+// redirects to UTF-8.
+static const char SystemCodecName[] = "System-ANSI";
+
+namespace
+{
+    class SystemAnsiCodec : public QTextCodec
+    {
+    public:
+        explicit SystemAnsiCodec(UINT codePage) : mCodePage(codePage) {}
+
+        QByteArray name() const override
+        {
+            return SystemCodecName;
+        }
+
+        int mibEnum() const override
+        {
+            return 2; // "unknown" per the IANA registry
+        }
+
+    protected:
+        QString convertToUnicode(const char* in, int length, ConverterState*) const override
+        {
+            if(length <= 0)
+                return QString();
+            int wlen = MultiByteToWideChar(mCodePage, 0, in, length, nullptr, 0);
+            if(wlen <= 0)
+                return QString();
+            QString out;
+            out.resize(wlen);
+            MultiByteToWideChar(mCodePage, 0, in, length, reinterpret_cast<wchar_t*>(out.data()), wlen);
+            return out;
+        }
+
+        QByteArray convertFromUnicode(const QChar* in, int length, ConverterState*) const override
+        {
+            if(length <= 0)
+                return QByteArray();
+            auto win = reinterpret_cast<const wchar_t*>(in);
+            int blen = WideCharToMultiByte(mCodePage, 0, win, length, nullptr, 0, nullptr, nullptr);
+            if(blen <= 0)
+                return QByteArray();
+            QByteArray out;
+            out.resize(blen);
+            WideCharToMultiByte(mCodePage, 0, win, length, out.data(), blen, nullptr, nullptr);
+            return out;
+        }
+
+    private:
+        UINT mCodePage;
+    };
+}
+
+QTextCodec* SystemCodec()
+{
+    // Created once; QTextCodec instances are owned by Qt and live until exit.
+    static QTextCodec* codec = new SystemAnsiCodec(BridgeGetAnsiCodePage());
+    return codec;
+}
+
+QTextCodec* CodepageCodec(const QByteArray & name)
+{
+    // "System" must use the real system ANSI code page, not Qt's built-in System
+    // codec, which follows CP_ACP and is therefore UTF-8 under the UTF-8 manifest.
+    if(name == "System")
+        return SystemCodec();
+    return QTextCodec::codecForName(name);
+}
+
+QList<QByteArray> CodepageList()
+{
+    // availableCodecs() without our internal SystemCodec(). This matches the list
+    // as it was before the system codec was introduced, so the LastCodepage setting
+    // (stored as an index into this list) stays valid for existing users.
+    QList<QByteArray> result;
+    for(const QByteArray & name : QTextCodec::availableCodecs())
+        if(name != SystemCodecName)
+            result.append(name);
+    return result;
 }

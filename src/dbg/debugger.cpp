@@ -2642,11 +2642,11 @@ static bool fixgetcommandlinesbase(duint new_command_line_unicode, duint new_com
 static std::vector<char> Utf16ToAnsi(const wchar_t* wstr)
 {
     std::vector<char> buffer;
-    auto requiredSize = WideCharToMultiByte(CP_ACP, 0, wstr, -1, nullptr, 0, nullptr, nullptr);
+    auto requiredSize = WideCharToMultiByte(BridgeGetAnsiCodePage(), 0, wstr, -1, nullptr, 0, nullptr, nullptr);
     if(requiredSize > 0)
     {
         buffer.resize(requiredSize);
-        WideCharToMultiByte(CP_ACP, 0, wstr, -1, &buffer[0], requiredSize, nullptr, nullptr);
+        WideCharToMultiByte(BridgeGetAnsiCodePage(), 0, wstr, -1, &buffer[0], requiredSize, nullptr, nullptr);
     }
     return buffer;
 }

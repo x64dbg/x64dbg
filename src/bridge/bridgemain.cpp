@@ -7,6 +7,7 @@
 #include "_global.h"
 #include "bridgemain.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <ShlObj.h>
 #include "../dbg/_dbgfunctions.h"
 #include "Utf8Ini.h"
@@ -489,6 +490,35 @@ BRIDGE_IMPEXP unsigned int BridgeGetNtBuildNumber()
         NtBuildNumber = NtBuildNumber7;
     }
     return NtBuildNumber;
+}
+
+BRIDGE_IMPEXP unsigned int BridgeGetAnsiCodePage()
+{
+    // The application uses a UTF-8 manifest, so CP_ACP and GetACP() report code
+    // page 65001 (UTF-8) instead of the real system ANSI code page. Read the
+    // actual ANSI code page from the registry where the system stores it.
+    static unsigned int codePage = []() -> unsigned int
+    {
+        unsigned int result = CP_ACP;
+        HKEY hKey;
+        if(RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage", 0, KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS)
+        {
+            wchar_t value[16];
+            DWORD type = 0;
+            DWORD size = sizeof(value);
+            if(RegQueryValueExW(hKey, L"ACP", nullptr, &type, (LPBYTE)value, &size) == ERROR_SUCCESS &&
+                    type == REG_SZ && size != 0 && size % sizeof(wchar_t) == 0 && value[size / sizeof(wchar_t) - 1] == L'\0')
+            {
+                wchar_t* end = nullptr;
+                auto acp = wcstoul(value, &end, 10);
+                if(*end == L'\0' && acp > 0 && acp <= 0xFFFF)
+                    result = (unsigned int)acp;
+            }
+            RegCloseKey(hKey);
+        }
+        return result;
+    }();
+    return codePage;
 }
 
 BRIDGE_IMPEXP const wchar_t* BridgeWorkingDirectory()

@@ -1,6 +1,7 @@
 #include "stringutils.h"
 #include <windows.h>
 #include <cstdint>
+#include "../bridge/bridgemain.h"
 
 bool StringUtils::convertLongLongNumber(const char* str, unsigned long long & result, int radix)
 {
@@ -367,11 +368,11 @@ WString StringUtils::LocalCpToUtf16(const char* str)
     WString convertedString;
     if(!str || !*str)
         return convertedString;
-    int requiredSize = MultiByteToWideChar(CP_ACP, 0, str, -1, nullptr, 0);
+    int requiredSize = MultiByteToWideChar(BridgeGetAnsiCodePage(), 0, str, -1, nullptr, 0);
     if(requiredSize > 0)
     {
         convertedString.resize(requiredSize - 1);
-        if(!MultiByteToWideChar(CP_ACP, 0, str, -1, (wchar_t*)convertedString.c_str(), requiredSize))
+        if(!MultiByteToWideChar(BridgeGetAnsiCodePage(), 0, str, -1, (wchar_t*)convertedString.c_str(), requiredSize))
             convertedString.clear();
     }
     return convertedString;
@@ -382,11 +383,11 @@ String StringUtils::Utf16ToLocalCp(const WString & str)
     String convertedString;
     if(str.size() == 0)
         return convertedString;
-    int requiredSize = WideCharToMultiByte(CP_ACP, 0, str.c_str(), -1, nullptr, 0, nullptr, nullptr);
+    int requiredSize = WideCharToMultiByte(BridgeGetAnsiCodePage(), 0, str.c_str(), -1, nullptr, 0, nullptr, nullptr);
     if(requiredSize > 0)
     {
         convertedString.resize(requiredSize - 1);
-        if(!WideCharToMultiByte(CP_ACP, 0, str.c_str(), -1, (char*)convertedString.c_str(), requiredSize, nullptr, nullptr))
+        if(!WideCharToMultiByte(BridgeGetAnsiCodePage(), 0, str.c_str(), -1, (char*)convertedString.c_str(), requiredSize, nullptr, nullptr))
             convertedString.clear();
     }
     return convertedString;

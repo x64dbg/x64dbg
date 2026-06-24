@@ -3,6 +3,7 @@
 #include "HexLineEdit.h"
 #include "ui_HexLineEdit.h"
 #include "Bridge.h"
+#include "MiscUtil.h"
 #include <QKeyEvent>
 
 HexLineEdit::HexLineEdit(QWidget* parent) :
@@ -15,7 +16,7 @@ HexLineEdit::HexLineEdit(QWidget* parent) :
     mData = QByteArray();
     mKeepSize = false;
     mOverwriteMode = false;
-    mEncoding = QTextCodec::codecForName("System");
+    mEncoding = SystemCodec();
 
     //setup text fields
     QFont font("Monospace", 8, QFont::Normal, false);

@@ -152,6 +152,15 @@ BRIDGE_IMPEXP bool BridgeIsProcessElevated();
 BRIDGE_IMPEXP unsigned int BridgeGetNtBuildNumber();
 
 /// <summary>
+/// Gets the real system ANSI code page from the registry. Unlike GetACP(), the
+/// result is not affected by the process UTF-8 manifest, so it is the actual
+/// code page used by ANSI functions (for example inside the debuggee). The
+/// value is queried once and cached.
+/// </summary>
+/// <returns>The system ANSI code page, or CP_ACP on failure.</returns>
+BRIDGE_IMPEXP unsigned int BridgeGetAnsiCodePage();
+
+/// <summary>
 /// Returns the original working directory when starting the debugger.
 /// The working directory is changed to the x64dbg directory after initialization.
 /// </summary>

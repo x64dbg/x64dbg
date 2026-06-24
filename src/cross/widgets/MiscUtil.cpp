@@ -11,6 +11,10 @@
 #include "Bridge.h"
 #include <thread>
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#include <QTextCodec>
+#endif // QT_VERSION
+
 #if 0
 void SetApplicationIcon(WId winId)
 {
@@ -419,3 +423,10 @@ QString mainModuleName(bool extension)
     }
     return QString();
 }
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+QTextCodec* CodepageCodec(const QByteArray & name)
+{
+    return QTextCodec::codecForName(name);
+}
+#endif

@@ -1188,7 +1188,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         duint newStringAlgorithm = 0;
         if(!BridgeSettingGetUint("Engine", "NewStringAlgorithm", &newStringAlgorithm))
         {
-            auto acp = GetACP();
+            auto acp = BridgeGetAnsiCodePage();
             newStringAlgorithm = acp == 932 || acp == 936 || acp == 949 || acp == 950 || acp == 951 || acp == 1251;
         }
         bNewStringAlgorithm = !!newStringAlgorithm;

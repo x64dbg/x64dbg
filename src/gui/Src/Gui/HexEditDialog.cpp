@@ -9,6 +9,7 @@
 #include "CodepageSelectionDialog.h"
 #include "LineEditDialog.h"
 #include "StringUtil.h"
+#include "MiscUtil.h"
 
 #ifndef AF_INET6
 #define AF_INET6        23              // Internetwork Version 6
@@ -24,7 +25,7 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     setModal(true); //modal window
 
     //setup text fields
-    ui->lineEditAscii->setEncoding(QTextCodec::codecForName("System"));
+    ui->lineEditAscii->setEncoding(SystemCodec());
     ui->lineEditUnicode->setEncoding(QTextCodec::codecForName("UTF-16"));
     ui->chkKeepSize->setChecked(ConfigBool("HexDump", "KeepSize"));
     ui->chkKeepSize->hide();
@@ -136,21 +137,16 @@ void HexEditDialog::isDataCopiable(bool copyDataEnabled)
 void HexEditDialog::updateCodepage()
 {
     duint lastCodepage;
-    auto allCodecs = QTextCodec::availableCodecs();
-    if(!BridgeSettingGetUint("Misc", "LastCodepage", &lastCodepage) || lastCodepage >= duint(allCodecs.size()))
-        lastCodec = fallbackCodec;
+    auto codecs = CodepageList();
+    if(!BridgeSettingGetUint("Misc", "LastCodepage", &lastCodepage) || lastCodepage >= duint(codecs.size()))
+        updateCodepage(fallbackCodec->name());
     else
-        lastCodec = QTextCodec::codecForName(allCodecs.at(lastCodepage));
-    ui->lineEditCodepage->setEncoding(lastCodec);
-    ui->lineEditCodepage->setData(mHexEdit->data());
-    ui->stringEditor->document()->setPlainText(lastCodec->toUnicode(mHexEdit->data()));
-    ui->labelLastCodepage->setText(lastCodec->name().constData());
-    ui->labelLastCodepage2->setText(ui->labelLastCodepage->text());
+        updateCodepage(codecs.at(lastCodepage));
 }
 
 void HexEditDialog::updateCodepage(const QByteArray & name)
 {
-    lastCodec = QTextCodec::codecForName(name);
+    lastCodec = CodepageCodec(name);
     if(!lastCodec)
         lastCodec = fallbackCodec;
     ui->lineEditCodepage->setEncoding(lastCodec);
@@ -305,7 +301,7 @@ bool HexEditDialog::checkDataRepresentable(int mode)
     QLabel* label;
     if(mode == 1)
     {
-        codec = QTextCodec::codecForName("System");
+        codec = SystemCodec();
         label = ui->labelWarningCodepageASCII;
     }
     else if(mode == 2)
@@ -543,7 +539,7 @@ void HexEditDialog::printData(DataType type)
 
     case DataString:
     {
-        data = QTextCodec::codecForName("System")->makeDecoder()->toUnicode((const char*)(mData.constData()), mData.size());
+        data = SystemCodec()->makeDecoder()->toUnicode((const char*)(mData.constData()), mData.size());
     }
     break;
 

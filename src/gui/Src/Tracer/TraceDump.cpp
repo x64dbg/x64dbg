@@ -116,7 +116,7 @@ void TraceDump::setupContextMenu()
     wHexMenu->addAction(wHexLastCodepage, [wHexLastCodepage](QMenu*)
     {
         duint lastCodepage;
-        auto allCodecs = QTextCodec::availableCodecs();
+        auto allCodecs = CodepageList();
         if(!BridgeSettingGetUint("Misc", "LastCodepage", &lastCodepage) || lastCodepage >= duint(allCodecs.size()))
             return false;
         wHexLastCodepage->setText(QString::fromLocal8Bit(allCodecs.at(lastCodepage)));
@@ -132,7 +132,7 @@ void TraceDump::setupContextMenu()
     wTextMenu->addAction(wTextLastCodepage, [wTextLastCodepage](QMenu*)
     {
         duint lastCodepage;
-        auto allCodecs = QTextCodec::availableCodecs();
+        auto allCodecs = CodepageList();
         if(!BridgeSettingGetUint("Misc", "LastCodepage", &lastCodepage) || lastCodepage >= duint(allCodecs.size()))
             return false;
         wTextLastCodepage->setText(QString::fromLocal8Bit(allCodecs.at(lastCodepage)));
@@ -522,7 +522,7 @@ void TraceDump::hexLastCodepageSlot()
     ColumnDescriptor wColDesc;
     DataDescriptor dDesc;
     duint lastCodepage;
-    auto allCodecs = QTextCodec::availableCodecs();
+    auto allCodecs = CodepageList();
     if(!BridgeSettingGetUint("Misc", "LastCodepage", &lastCodepage) || lastCodepage >= duint(allCodecs.size()))
         return;
 
@@ -553,7 +553,7 @@ void TraceDump::textLastCodepageSlot()
     ColumnDescriptor wColDesc;
     DataDescriptor dDesc;
     duint lastCodepage;
-    auto allCodecs = QTextCodec::availableCodecs();
+    auto allCodecs = CodepageList();
     if(!BridgeSettingGetUint("Misc", "LastCodepage", &lastCodepage) || lastCodepage >= duint(allCodecs.size()))
         return;
 

@@ -2,6 +2,7 @@
 #include "Configuration.h"
 #include "Bridge.h"
 #include "StringUtil.h"
+#include "MiscUtil.h"
 #include <QMessageBox>
 #include <QFloat16>
 #include <QDebug>
@@ -976,7 +977,7 @@ void HexDump::getColumnRichText(duint col, duint rva, RichTextPainter::List & ri
             auto textDecoder = QStringDecoder(desc.textEncoding);
             curData.text = textDecoder.decode(QByteArrayView((const char*)data, (int)bufferByteCount));
 #else
-            auto textCodec = QTextCodec::codecForName(desc.textEncoding);
+            auto textCodec = CodepageCodec(desc.textEncoding);
             curData.text = textCodec->toUnicode((const char*)data, (int)bufferByteCount);
 #endif // QT_VERSION
             //This might produce invalid characters in variables-width encodings. This is currently ignored.

@@ -7,6 +7,9 @@
 
 class QWidget;
 class QByteArray;
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+class QTextCodec;
+#endif
 
 //void SetApplicationIcon(WId winId);
 QByteArray & ByteReverse(QByteArray & array);
@@ -25,5 +28,8 @@ QIcon getFileIcon(QString file);
 QIcon DIconHelper(QString name);
 QString getDbPath(const QString & filename = QString(), bool addDateTimeSuffix = false);
 QString mainModuleName(bool extension = false);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+QTextCodec* CodepageCodec(const QByteArray & name);
+#endif
 
 #define DIcon(name) [](QString arg) { static QIcon icon(DIconHelper(std::move(arg))); return icon; }(name)
