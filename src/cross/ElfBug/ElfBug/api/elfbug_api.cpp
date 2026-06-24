@@ -25,7 +25,7 @@ struct ElfBugDebugger : ElfBug::Debugger
     struct MemRegion
     {
         uint64_t start, end;
-        bool executable;
+        bool read, write, execute, shared;
         std::string pathname;
     };
     mutable std::mutex mapMutex;
@@ -93,7 +93,8 @@ struct ElfBugDebugger : ElfBug::Debugger
                 }
             }
 
-            newMaps.push_back({start, end, perms[2] == 'x', std::move(pathname)});
+            newMaps.push_back({start, end, perms[0] == 'r', perms[1] == 'w',
+                               perms[2] == 'x', perms[3] == 's', std::move(pathname)});
         }
         fclose(f);
 
@@ -491,7 +492,7 @@ extern "C" {
 
         std::lock_guard lock(dbg->mapMutex);
         const auto* region = dbg->findRegion(addr);
-        return region && region->executable;
+        return region && region->execute;
     }
 
     bool ElfBugMemIsValidPtr(const ElfBugDebugger* dbg, const uint64_t addr)
@@ -503,6 +504,33 @@ extern "C" {
 
         std::lock_guard lock(dbg->mapMutex);
         return dbg->findRegion(addr) != nullptr;
+    }
+
+    size_t ElfBugGetMemoryMap(const ElfBugDebugger* dbg, ElfBugMemRegion* out, const size_t maxCount)
+    {
+        if(!dbg)
+            return 0;
+        if(!dbg->active.load(std::memory_order_acquire))
+            return 0;
+
+        std::lock_guard lock(dbg->mapMutex);
+        const size_t total = dbg->memoryMap.size();
+        const size_t n = out ? std::min(total, maxCount) : 0;
+        for(size_t i = 0; i < n; ++i)
+        {
+            const auto & r = dbg->memoryMap[i];
+            ElfBugMemRegion & o = out[i];
+            o.start = r.start;
+            o.end = r.end;
+            o.read = r.read;
+            o.write = r.write;
+            o.execute = r.execute;
+            o.shared = r.shared;
+            const size_t len = std::min(r.pathname.size(), sizeof(o.path) - 1);
+            memcpy(o.path, r.pathname.data(), len);
+            o.path[len] = '\0';
+        }
+        return total;
     }
 
     bool ElfBugModBaseFromAddr(const ElfBugDebugger* dbg, const uint64_t addr, uint64_t* base)

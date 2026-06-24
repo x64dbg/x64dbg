@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstddef>
 #include <sys/types.h>
 
 #ifdef __cplusplus
@@ -75,6 +76,24 @@ ELFBUG_EXPORT bool ElfBugMemWrite(const ElfBugDebugger* dbg, uint64_t addr, cons
 ELFBUG_EXPORT bool ElfBugMemFindBaseAddr(const ElfBugDebugger* dbg, uint64_t addr, uint64_t* base, uint64_t* size);
 ELFBUG_EXPORT bool ElfBugMemIsCodePtr(const ElfBugDebugger* dbg, uint64_t addr);
 ELFBUG_EXPORT bool ElfBugMemIsValidPtr(const ElfBugDebugger* dbg, uint64_t addr);
+
+#define ELFBUG_MAX_PATH 4096
+
+// One region from /proc/<pid>/maps (snapshot refreshed on every stop).
+typedef struct
+{
+    uint64_t start;
+    uint64_t end;
+    bool read;
+    bool write;
+    bool execute;
+    bool shared;                // true = shared ('s'), false = private ('p')
+    char path[ELFBUG_MAX_PATH]; // empty for anonymous/[heap]/[stack]/... regions
+} ElfBugMemRegion;
+
+// Copies up to `maxCount` address-ordered regions into `out` (pass null to query
+// the count) and returns the total number of regions in the map.
+ELFBUG_EXPORT size_t ElfBugGetMemoryMap(const ElfBugDebugger* dbg, ElfBugMemRegion* out, size_t maxCount);
 
 // Lowest mapped start address of the module containing `addr`, or 0 if the
 // region is anonymous (heap/stack/vdso/etc).
