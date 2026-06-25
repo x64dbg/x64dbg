@@ -7,6 +7,7 @@
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
 #include <mutex>
 #include <set>
 #include <shared_mutex>
@@ -53,31 +54,30 @@ struct ElfBugDebugger : ElfBug::Debugger
             return;
         }
 
-        char path[64];
-        snprintf(path, sizeof(path), "/proc/%d/maps", mProcess->pid);
-        FILE* f = fopen(path, "r");
-        if(!f)
+        std::ifstream maps("/proc/" + std::to_string(mProcess->pid) + "/maps");
+        if(!maps)
         {
             std::lock_guard lock(mapMutex);
             memoryMap.clear();
             return;
         }
 
-        char line[512];
-        while(fgets(line, sizeof(line), f))
+        // Read whole lines: a maps pathname can be longer than any fixed buffer.
+        std::string line;
+        while(std::getline(maps, line))
         {
             uint64_t start = 0, end = 0;
             char perms[8] = {};
             int pathOffset = 0;
             // %n captures the byte offset after the fixed prefix so we can take the pathname verbatim (it may contain spaces).
-            if(sscanf(line, "%" SCNx64 "-%" SCNx64 " %4s %*x %*x:%*x %*u %n",
+            if(sscanf(line.c_str(), "%" SCNx64 "-%" SCNx64 " %4s %*x %*x:%*x %*u %n",
                       &start, &end, perms, &pathOffset) < 3)
                 continue;
 
             std::string pathname;
-            if(pathOffset > 0 && pathOffset < static_cast<int>(sizeof(line)))
+            if(pathOffset > 0 && pathOffset <= static_cast<int>(line.size()))
             {
-                const char* p = line + pathOffset;
+                const char* p = line.c_str() + pathOffset;
                 while(*p == ' ' || *p == '\t') ++p;
                 size_t len = strlen(p);
                 while(len > 0 && (p[len - 1] == '\n' || p[len - 1] == '\r' || p[len - 1] == ' '))
@@ -96,7 +96,10 @@ struct ElfBugDebugger : ElfBug::Debugger
             newMaps.push_back({start, end, perms[0] == 'r', perms[1] == 'w',
                                perms[2] == 'x', perms[3] == 's', std::move(pathname)});
         }
-        fclose(f);
+        // findRegion() binary-searches this, so keep it sorted by start address
+        // rather than relying on the kernel emitting /proc/<pid>/maps in order.
+        std::sort(newMaps.begin(), newMaps.end(),
+        [](const MemRegion & a, const MemRegion & b) { return a.start < b.start; });
 
         std::lock_guard lock(mapMutex);
         memoryMap = std::move(newMaps);

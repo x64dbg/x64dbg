@@ -15,6 +15,7 @@
 #include <mutex>
 #include <optional>
 #include <set>
+#include <sstream>
 #include <thread>
 #include <vector>
 #include <unistd.h>
@@ -64,51 +65,65 @@ namespace
         return false;
     }
 
-    // Reference parse of /proc/<pid>/maps, normalized the same way the engine
-    // normalizes pathnames, so an exact line-by-line comparison is meaningful.
-    std::vector<ElfBugMemRegion> ParseProcMaps(const pid_t pid)
+    struct RawMapsLine
     {
-        std::vector<ElfBugMemRegion> out;
+        uint64_t start = 0;
+        uint64_t end = 0;
+        bool read = false, write = false, execute = false, shared = false;
+        std::string rawPath; // exactly as the kernel printed it, no normalization
+    };
+
+    // Independent reference parser for /proc/<pid>/maps. It deliberately shares
+    // neither code nor technique with the engine's refreshMemoryMap: it splits
+    // the line into raw whitespace fields and parses each by hand (no sscanf/%n),
+    // so a bug in the engine's field extraction shows up as a mismatch instead of
+    // being reproduced identically on both sides.
+    std::vector<RawMapsLine> ParseProcMapsRaw(const pid_t pid)
+    {
+        std::vector<RawMapsLine> out;
         std::ifstream f("/proc/" + std::to_string(pid) + "/maps");
         std::string line;
         while(std::getline(f, line))
         {
-            uint64_t start = 0, end = 0;
-            char perms[8] = {};
-            int pathOffset = 0;
-            if(sscanf(line.c_str(), "%" SCNx64 "-%" SCNx64 " %4s %*x %*x:%*x %*u %n",
-                      &start, &end, perms, &pathOffset) < 3)
+            std::istringstream iss(line);
+            std::string range, perms, offset, dev, inode;
+            if(!(iss >> range >> perms >> offset >> dev >> inode))
                 continue;
 
-            ElfBugMemRegion r{};
-            r.start = start;
-            r.end = end;
-            r.read = perms[0] == 'r';
-            r.write = perms[1] == 'w';
-            r.execute = perms[2] == 'x';
-            r.shared = perms[3] == 's';
+            const auto dash = range.find('-');
+            if(dash == std::string::npos)
+                continue;
 
-            std::string pathname;
-            if(pathOffset > 0 && pathOffset < static_cast<int>(line.size()))
-            {
-                const char* p = line.c_str() + pathOffset;
-                while(*p == ' ' || *p == '\t') ++p;
-                size_t len = strlen(p);
-                while(len > 0 && (p[len - 1] == '\n' || p[len - 1] == '\r' || p[len - 1] == ' '))
-                    --len;
-                if(len > 0 && p[0] != '[')
-                    pathname.assign(p, len);
+            RawMapsLine r;
+            r.start = std::stoull(range.substr(0, dash), nullptr, 16);
+            r.end = std::stoull(range.substr(dash + 1), nullptr, 16);
+            r.read = perms.size() > 0 && perms[0] == 'r';
+            r.write = perms.size() > 1 && perms[1] == 'w';
+            r.execute = perms.size() > 2 && perms[2] == 'x';
+            r.shared = perms.size() > 3 && perms[3] == 's';
 
-                const std::string deletedSuffix = " (deleted)";
-                if(pathname.size() >= deletedSuffix.size() &&
-                        pathname.compare(pathname.size() - deletedSuffix.size(), deletedSuffix.size(), deletedSuffix) == 0)
-                    pathname.resize(pathname.size() - deletedSuffix.size());
-            }
-
-            std::snprintf(r.path, sizeof(r.path), "%s", pathname.c_str());
+            // The pathname is the remainder after the five fixed fields; it may
+            // contain spaces, so take everything past the inode column verbatim.
+            std::getline(iss >> std::ws, r.rawPath);
             out.push_back(r);
         }
         return out;
+    }
+
+    // The engine's documented path contract, applied to a raw kernel pathname:
+    // bracketed pseudo-paths ([heap]/[stack]/[vdso]/...) and anonymous regions
+    // report an empty path, and a trailing " (deleted)" marker is stripped.
+    std::string ExpectedEnginePath(const std::string & rawPath)
+    {
+        if(rawPath.empty() || rawPath.front() == '[')
+            return "";
+
+        const std::string deleted = " (deleted)";
+        if(rawPath.size() >= deleted.size() &&
+                rawPath.compare(rawPath.size() - deleted.size(), deleted.size(), deleted) == 0)
+            return rawPath.substr(0, rawPath.size() - deleted.size());
+
+        return rawPath;
     }
 }
 
@@ -577,7 +592,7 @@ TEST_CASE("Memory map matches /proc/<pid>/maps with permissions", "[memmap]")
     std::vector<ElfBugMemRegion> regions(count);
     REQUIRE(ElfBugGetMemoryMap(dbg, regions.data(), regions.size()) == count);
 
-    const auto expected = ParseProcMaps(pid);
+    const auto expected = ParseProcMapsRaw(pid);
     REQUIRE(regions.size() == expected.size());
 
     bool sawExecutable = false;
@@ -592,7 +607,7 @@ TEST_CASE("Memory map matches /proc/<pid>/maps with permissions", "[memmap]")
         REQUIRE(regions[i].write == expected[i].write);
         REQUIRE(regions[i].execute == expected[i].execute);
         REQUIRE(regions[i].shared == expected[i].shared);
-        REQUIRE(std::string(regions[i].path) == std::string(expected[i].path));
+        REQUIRE(std::string(regions[i].path) == ExpectedEnginePath(expected[i].rawPath));
 
         sawExecutable = sawExecutable || regions[i].execute;
         sawWritable = sawWritable || regions[i].write;

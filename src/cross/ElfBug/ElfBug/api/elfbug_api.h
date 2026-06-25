@@ -91,8 +91,8 @@ typedef struct
     char path[ELFBUG_MAX_PATH]; // empty for anonymous/[heap]/[stack]/... regions
 } ElfBugMemRegion;
 
-// Copies up to `maxCount` address-ordered regions into `out` (pass null to query
-// the count) and returns the total number of regions in the map.
+// Copies up to `maxCount` regions into `out` (pass null to query the count) and
+// returns the total number of regions in the map. Regions are sorted by start address.
 ELFBUG_EXPORT size_t ElfBugGetMemoryMap(const ElfBugDebugger* dbg, ElfBugMemRegion* out, size_t maxCount);
 
 // Lowest mapped start address of the module containing `addr`, or 0 if the
