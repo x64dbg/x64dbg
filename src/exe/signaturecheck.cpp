@@ -244,7 +244,7 @@ extern "C" HMODULE LoadLibraryCheckedW(const wchar_t* szDll, bool allowFailure)
 #ifdef DEBUG_SIGNATURE_CHECKS
     debugMessage(L"LoadLibraryCheckedW");
     debugMessage(fullDllPath.c_str());
-    auto checkedPath = (wchar_t*)malloc(sizeof(wchar_t) * (fullDllPath.size() + 1));
+    auto checkedPath = (wchar_t*)calloc(fullDllPath.size() + 1, sizeof(wchar_t));
     wcscpy_s(checkedPath, fullDllPath.size() + 1, fullDllPath.c_str());
     gCheckedList[gCheckedListSize++] = checkedPath;
 #endif // DEBUG_SIGNATURE_CHECKS
