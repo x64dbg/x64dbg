@@ -31,3 +31,13 @@ set_target_properties(libpl PROPERTIES
 git = "https://github.com/0vercl0k/udmp-parser"
 tag = "2fff7ac40f22118cd7e68b1df71dbfd22a4906f6"
 subdir = "src"
+
+[fetch-content.ida-sdk]
+condition = "apple"
+git = "https://github.com/HexRaysSA/ida-sdk"
+tag = "a310de633b6ec16f9a43fd40f9c370b4caa89d1a"
+
+[target.idalib]
+condition = "apple"
+type = "interface"
+include-after = ["idalib.cmake"]

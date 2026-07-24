@@ -94,6 +94,23 @@ link-libraries = [
     "fmt::fmt-header-only",
 ]
 
+[target.ida_playground]
+condition = "apple"
+type = "qt_executable"
+sources = [
+    "ida_playground/*.cpp",
+    "ida_playground/*.h",
+    "ida_playground/*.ui",
+    "ida_playground/*.qrc",
+]
+include-directories = [
+    "ida_playground",
+]
+link-libraries = [
+    "x64dbg::widgets",
+    "::idalib",
+]
+
 [target.ElfBug]
 type = "static"
 condition = "linux-x64"
