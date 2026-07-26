@@ -354,6 +354,8 @@ struct PeFileParser : FileParser, MemoryProvider
                 sectionAlignment = PAGE_SIZE;
             mImageBase = pnth->optional_header.image_base;
             mSizeOfImage = ROUND_TO_PAGES(pnth->optional_header.size_image); // TODO: shouldn't this be regions?
+            if(mSizeOfImage > 0x80000000ULL)
+                mSizeOfImage = 0;
             mEntryPoint = pnth->optional_header.entry_point;
             if(mEntryPoint > 0 || !pnth->file_header.characteristics.dll_file)
                 mEntryPoint += mImageBase;
@@ -403,9 +405,12 @@ struct PeFileParser : FileParser, MemoryProvider
                 if(i + 1 == pnth->file_header.num_sections && sectionAlignment < PAGE_SIZE)
                 {
                     auto totalSize = s.addr + s.size;
-                    totalSize -= mImageBase;
-                    if(mSizeOfImage > totalSize)
-                        s.size += mSizeOfImage - totalSize;
+                    if(totalSize >= mImageBase)
+                    {
+                        totalSize -= mImageBase;
+                        if(mSizeOfImage > totalSize)
+                            s.size += mSizeOfImage - totalSize;
+                    }
                 }
 
                 // TODO: check alignment
