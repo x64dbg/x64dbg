@@ -1,8 +1,8 @@
 #ifndef TIMEWASTEDCOUNTER_H
 #define TIMEWASTEDCOUNTER_H
 
-#include <QObject>
-#include <QLabel>
+#include <QtCore/QObject>
+#include <QtWidgets/QLabel>
 
 class TimeWastedCounter : public QObject
 {
