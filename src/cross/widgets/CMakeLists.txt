@@ -1,11 +1,6 @@
 set(widgets_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../gui/Src")
 
 add_subdirectory(
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../zydis_wrapper
-    ${CMAKE_CURRENT_BINARY_DIR}/zydis_wrapper
-)
-
-add_subdirectory(
     ${widgets_SOURCE_DIR}/ThirdPartyLibs/md4c
     ${CMAKE_CURRENT_BINARY_DIR}/md4c
 )

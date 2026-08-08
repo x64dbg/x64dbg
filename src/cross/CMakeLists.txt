@@ -36,6 +36,7 @@ project(cross
 		CXX
 )
 
+include(zydis.cmake)
 include("widgets/Qt.cmake")
 
 if(ELFBUG_BUILD_TESTS AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -292,6 +293,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_
 
 	target_link_libraries(ElfBug PUBLIC
 		Threads::Threads
+		zydis_wrapper
 	)
 
 endif()
