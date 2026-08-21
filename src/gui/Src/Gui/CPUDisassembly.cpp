@@ -596,12 +596,14 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     // Search in Current Region menu
     mFindCommandRegion = makeShortcutAction(DIcon("search_for_command"), tr("C&ommand"), SLOT(findCommandSlot()), "ActionFind");
+    mFindMnemonicRegion = makeAction(DIcon("search_for_command"), tr("&Mnemonic"), SLOT(findMnemonicSlot()));
     mFindConstantRegion = makeAction(DIcon("search_for_constant"), tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsRegion = makeAction(DIcon("search_for_string"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsRegion = makeAction(DIcon("call"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mFindPatternRegion = makeShortcutAction(DIcon("search_for_pattern"), tr("&Pattern"), SLOT(findPatternSlot()), "ActionFindPattern");
     mFindGUIDRegion = makeAction(DIcon("guid"), tr("&GUID"), SLOT(findGUIDSlot()));
     mSearchRegionMenu->addAction(mFindCommandRegion);
+    mSearchRegionMenu->addAction(mFindMnemonicRegion);
     mSearchRegionMenu->addAction(mFindConstantRegion);
     mSearchRegionMenu->addAction(mFindStringsRegion);
     mSearchRegionMenu->addAction(mFindCallsRegion);
@@ -610,6 +612,7 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     // Search in Current Module menu
     mFindCommandModule = makeShortcutAction(DIcon("search_for_command"), tr("C&ommand"), SLOT(findCommandSlot()), "ActionFindInModule");
+    mFindMnemonicModule = makeAction(DIcon("search_for_command"), tr("&Mnemonic"), SLOT(findMnemonicSlot()));
     mFindConstantModule = makeAction(DIcon("search_for_constant"), tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsModule = makeShortcutAction(DIcon("search_for_string"), tr("&String references"), SLOT(findStringsSlot()), "ActionFindStringsModule");
     mFindCallsModule = makeAction(DIcon("call"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
@@ -617,6 +620,7 @@ void CPUDisassembly::setupRightClickContextMenu()
     mFindGUIDModule = makeAction(DIcon("guid"), tr("&GUID"), SLOT(findGUIDSlot()));
     mFindNamesModule = makeShortcutAction(DIcon("names"), tr("&Names"), SLOT(findNamesSlot()), "ActionFindNamesInModule");
     mSearchModuleMenu->addAction(mFindCommandModule);
+    mSearchModuleMenu->addAction(mFindMnemonicModule);
     mSearchModuleMenu->addAction(mFindConstantModule);
     mSearchModuleMenu->addAction(mFindStringsModule);
     mSearchModuleMenu->addAction(mFindCallsModule);
@@ -626,12 +630,14 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     // Search in Current Function menu
     mFindCommandFunction = makeAction(DIcon("search_for_command"), tr("C&ommand"), SLOT(findCommandSlot()));
+    mFindMnemonicFunction = makeAction(DIcon("search_for_command"), tr("&Mnemonic"), SLOT(findMnemonicSlot()));
     mFindConstantFunction = makeAction(DIcon("search_for_constant"), tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsFunction = makeAction(DIcon("search_for_string"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsFunction = makeAction(DIcon("call"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mFindPatternFunction = makeAction(DIcon("search_for_pattern"), tr("&Pattern"), SLOT(findPatternSlot()));
     mFindGUIDFunction = makeAction(DIcon("guid"), tr("&GUID"), SLOT(findGUIDSlot()));
     mSearchFunctionMenu->addAction(mFindCommandFunction);
+    mSearchFunctionMenu->addAction(mFindMnemonicFunction);
     mSearchFunctionMenu->addAction(mFindConstantFunction);
     mSearchFunctionMenu->addAction(mFindStringsFunction);
     mSearchFunctionMenu->addAction(mFindCallsFunction);
@@ -640,12 +646,14 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     // Search in All User Modules menu
     mFindCommandAllUser = makeAction(DIcon("search_for_command"), tr("C&ommand"), SLOT(findCommandSlot()));
+    mFindMnemonicAllUser = makeAction(DIcon("search_for_command"), tr("&Mnemonic"), SLOT(findMnemonicSlot()));
     mFindConstantAllUser = makeAction(DIcon("search_for_constant"), tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsAllUser = makeAction(DIcon("search_for_string"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsAllUser = makeAction(DIcon("call"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mFindPatternAllUser = makeAction(DIcon("search_for_pattern"), tr("&Pattern"), SLOT(findPatternSlot()));
     mFindGUIDAllUser = makeAction(DIcon("guid"), tr("&GUID"), SLOT(findGUIDSlot()));
     mSearchAllUserMenu->addAction(mFindCommandAllUser);
+    mSearchAllUserMenu->addAction(mFindMnemonicAllUser);
     mSearchAllUserMenu->addAction(mFindConstantAllUser);
     mSearchAllUserMenu->addAction(mFindStringsAllUser);
     mSearchAllUserMenu->addAction(mFindCallsAllUser);
@@ -654,12 +662,14 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     // Search in All System Modules menu
     mFindCommandAllSystem = makeAction(DIcon("search_for_command"), tr("C&ommand"), SLOT(findCommandSlot()));
+    mFindMnemonicAllSystem = makeAction(DIcon("search_for_command"), tr("&Mnemonic"), SLOT(findMnemonicSlot()));
     mFindConstantAllSystem = makeAction(DIcon("search_for_constant"), tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsAllSystem = makeAction(DIcon("search_for_string"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsAllSystem = makeAction(DIcon("call"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mFindPatternAllSystem = makeAction(DIcon("search_for_pattern"), tr("&Pattern"), SLOT(findPatternSlot()));
     mFindGUIDAllSystem = makeAction(DIcon("guid"), tr("&GUID"), SLOT(findGUIDSlot()));
     mSearchAllSystemMenu->addAction(mFindCommandAllSystem);
+    mSearchAllSystemMenu->addAction(mFindMnemonicAllSystem);
     mSearchAllSystemMenu->addAction(mFindConstantAllSystem);
     mSearchAllSystemMenu->addAction(mFindStringsAllSystem);
     mSearchAllSystemMenu->addAction(mFindCallsAllSystem);
@@ -668,12 +678,14 @@ void CPUDisassembly::setupRightClickContextMenu()
 
     // Search in All Modules menu
     mFindCommandAll = makeAction(DIcon("search_for_command"), tr("C&ommand"), SLOT(findCommandSlot()));
+    mFindMnemonicAll = makeAction(DIcon("search_for_command"), tr("&Mnemonic"), SLOT(findMnemonicSlot()));
     mFindConstantAll = makeAction(DIcon("search_for_constant"), tr("&Constant"), SLOT(findConstantSlot()));
     mFindStringsAll = makeAction(DIcon("search_for_string"), tr("&String references"), SLOT(findStringsSlot()));
     mFindCallsAll = makeAction(DIcon("call"), tr("&Intermodular calls"), SLOT(findCallsSlot()));
     mFindPatternAll = makeAction(DIcon("search_for_pattern"), tr("&Pattern"), SLOT(findPatternSlot()));
     mFindGUIDAll = makeAction(DIcon("guid"), tr("&GUID"), SLOT(findGUIDSlot()));
     mSearchAllMenu->addAction(mFindCommandAll);
+    mSearchAllMenu->addAction(mFindMnemonicAll);
     mSearchAllMenu->addAction(mFindConstantAll);
     mSearchAllMenu->addAction(mFindStringsAll);
     mSearchAllMenu->addAction(mFindCallsAll);
@@ -1847,6 +1859,67 @@ void CPUDisassembly::findCommandSlot()
         duint start, end;
         if(DbgFunctionGet(va, &start, &end))
             DbgCmdExec(QString("findasm \"%1\", %2, .%3, 0").arg(mLineEdit.editText).arg(ToPtrString(start)).arg(ToPtrString(end - start)));
+    }
+
+    emit displayReferencesWidget();
+}
+
+void CPUDisassembly::findMnemonicSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+
+    int refFindType = 0;
+    if(sender() == mFindMnemonicRegion)
+        refFindType = 0;
+    else if(sender() == mFindMnemonicModule)
+        refFindType = 1;
+    else if(sender() == mFindMnemonicAll)
+        refFindType = 2;
+    else if(sender() == mFindMnemonicAllUser)
+        refFindType = 3;
+    else if(sender() == mFindMnemonicAllSystem)
+        refFindType = 4;
+    else if(sender() == mFindMnemonicFunction)
+        refFindType = -1;
+
+    duint va = rvaToVa(getInitialSelection());
+
+    LineEditDialog mLineEdit(this);
+    mLineEdit.setWindowTitle(tr("Find Mnemonic"));
+    mLineEdit.setPlaceholderText(tr("Mnemonic and operands, with * ? wildcards and | alternatives"));
+
+    // Offer the mnemonic under the cursor, which is what you usually want when
+    // you right-click an instruction.
+    BASIC_INSTRUCTION_INFO basicinfo;
+    memset(&basicinfo, 0, sizeof(basicinfo));
+    DbgDisasmFastAt(va, &basicinfo);
+    QString mnemonic = QString(basicinfo.instruction).section(' ', 0, 0);
+    if(!mnemonic.isEmpty())
+    {
+        mLineEdit.setText(mnemonic);
+        mLineEdit.selectAllText();
+    }
+
+    if(mLineEdit.exec() != QDialog::Accepted || mLineEdit.editText.isEmpty())
+        return;
+
+    if(refFindType != -1)
+    {
+        DbgCmdExec(QString("findmnem \"%1\", %2, .%3, %4")
+                   .arg(mLineEdit.editText)
+                   .arg(ToPtrString(mMemPage->getBase()))
+                   .arg(mMemPage->getSize())
+                   .arg(refFindType));
+    }
+    else
+    {
+        duint start, end;
+        if(DbgFunctionGet(va, &start, &end))
+            DbgCmdExec(QString("findmnem \"%1\", %2, .%3, 0")
+                       .arg(mLineEdit.editText)
+                       .arg(ToPtrString(start))
+                       .arg(ToPtrString(end - start)));
     }
 
     emit displayReferencesWidget();

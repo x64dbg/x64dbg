@@ -85,6 +85,7 @@ public slots:
     void copyDisassemblySlot();
     void labelCopySlot();
     void findCommandSlot();
+    void findMnemonicSlot();
     void openSourceSlot();
     void mnemonicHelpSlot();
     void mnemonicBriefSlot();
@@ -126,6 +127,7 @@ private:
     // Actions
     QAction* mReferenceSelectedAddressAction;
     QAction* mFindCommandRegion;
+    QAction* mFindMnemonicRegion;
     QAction* mFindConstantRegion;
     QAction* mFindStringsRegion;
     QAction* mFindCallsRegion;
@@ -133,6 +135,7 @@ private:
     QAction* mFindGUIDRegion;
 
     QAction* mFindCommandModule;
+    QAction* mFindMnemonicModule;
     QAction* mFindConstantModule;
     QAction* mFindStringsModule;
     QAction* mFindCallsModule;
@@ -141,6 +144,7 @@ private:
     QAction* mFindNamesModule;
 
     QAction* mFindCommandFunction;
+    QAction* mFindMnemonicFunction;
     QAction* mFindConstantFunction;
     QAction* mFindStringsFunction;
     QAction* mFindCallsFunction;
@@ -148,6 +152,7 @@ private:
     QAction* mFindGUIDFunction;
 
     QAction* mFindCommandAllUser;
+    QAction* mFindMnemonicAllUser;
     QAction* mFindConstantAllUser;
     QAction* mFindStringsAllUser;
     QAction* mFindCallsAllUser;
@@ -155,6 +160,7 @@ private:
     QAction* mFindGUIDAllUser;
 
     QAction* mFindCommandAllSystem;
+    QAction* mFindMnemonicAllSystem;
     QAction* mFindConstantAllSystem;
     QAction* mFindStringsAllSystem;
     QAction* mFindCallsAllSystem;
@@ -162,6 +168,7 @@ private:
     QAction* mFindGUIDAllSystem;
 
     QAction* mFindCommandAll;
+    QAction* mFindMnemonicAll;
     QAction* mFindConstantAll;
     QAction* mFindStringsAll;
     QAction* mFindCallsAll;
