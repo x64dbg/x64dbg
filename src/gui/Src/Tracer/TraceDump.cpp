@@ -1145,7 +1145,7 @@ void TraceDump::selectionSet(const SELECTIONDATA* selection)
 //QString addrStart = ToPtrString(rvaToVa(getSelectionStart()));
 //QString addrEnd = ToPtrString(rvaToVa(getSelectionEnd()));
 //QString addrDisasm = ToPtrString(mDisas->rvaToVa(mDisas->getSelectionStart()));
-//DbgCmdExec(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm));
+//DbgCmdExecAsync(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm));
 //emit displayReferencesWidget();
 //}
 
@@ -1173,7 +1173,7 @@ void TraceDump::binarySaveToFileSlot()
         // Prepare command
         fileName = QDir::toNativeSeparators(fileName);
         QString cmd = QString("savedata \"%1\",%2,%3").arg(fileName, ToHexString(rvaToVa(selStart)), ToHexString(selSize));
-        DbgCmdExec(cmd);
+        DbgCmdExecAsync(cmd);
     }
 }
 

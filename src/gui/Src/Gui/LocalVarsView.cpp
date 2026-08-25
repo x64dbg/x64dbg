@@ -336,33 +336,33 @@ void LocalVarsView::followDumpSlot()
 {
     duint addr;
     if(getAddress(getCellContent(getInitialSelection(), 1), addr))
-        DbgCmdExec(QString("dump %1").arg(ToPtrString(addr)));
+        DbgCmdExecAsync(QString("dump %1").arg(ToPtrString(addr)));
 }
 
 void LocalVarsView::followStackSlot()
 {
     duint addr;
     if(getAddress(getCellContent(getInitialSelection(), 1), addr))
-        DbgCmdExec(QString("sdump %1").arg(ToPtrString(addr)));
+        DbgCmdExecAsync(QString("sdump %1").arg(ToPtrString(addr)));
 }
 
 void LocalVarsView::followMemMapSlot()
 {
     duint addr;
     if(getAddress(getCellContent(getInitialSelection(), 1), addr))
-        DbgCmdExec(QString("memmapdump %1").arg(ToPtrString(addr)));
+        DbgCmdExecAsync(QString("memmapdump %1").arg(ToPtrString(addr)));
 }
 
 void LocalVarsView::followWordInDumpSlot()
 {
     duint addr;
     if(getAddress(getCellContent(getInitialSelection(), 1), addr))
-        DbgCmdExec(QString("dump [%1]").arg(ToPtrString(addr)));
+        DbgCmdExecAsync(QString("dump [%1]").arg(ToPtrString(addr)));
 }
 
 void LocalVarsView::followWordInStackSlot()
 {
     duint addr;
     if(getAddress(getCellContent(getInitialSelection(), 1), addr))
-        DbgCmdExec(QString("sdump [%1]").arg(ToPtrString(addr)));
+        DbgCmdExecAsync(QString("sdump [%1]").arg(ToPtrString(addr)));
 }

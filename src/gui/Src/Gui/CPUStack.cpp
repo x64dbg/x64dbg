@@ -662,12 +662,12 @@ void CPUStack::disasmSelectionChanged(duint parVA)
 
 void CPUStack::gotoCspSlot()
 {
-    DbgCmdExec("sdump csp");
+    DbgCmdExecAsync("sdump csp");
 }
 
 void CPUStack::gotoCbpSlot()
 {
-    DbgCmdExec("sdump cbp");
+    DbgCmdExecAsync("sdump cbp");
 }
 
 int CPUStack::getCurrentFrame(const std::vector<CPUStack::CPUCallStack> & mCallstack, duint va)
@@ -683,21 +683,21 @@ void CPUStack::gotoFrameBaseSlot()
 {
     int frame = getCurrentFrame(mCallstack, rvaToVa(getInitialSelection()));
     if(frame != -1)
-        DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[frame].addr)));
+        DbgCmdExecAsync(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[frame].addr)));
 }
 
 void CPUStack::gotoNextFrameSlot()
 {
     int frame = getCurrentFrame(mCallstack, rvaToVa(getInitialSelection()));
     if(frame != -1 && frame + 1 < int(mCallstack.size()))
-        DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[frame + 1].addr)));
+        DbgCmdExecAsync(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[frame + 1].addr)));
 }
 
 void CPUStack::gotoPreviousFrameSlot()
 {
     int frame = getCurrentFrame(mCallstack, rvaToVa(getInitialSelection()));
     if(frame > 0)
-        DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[frame - 1].addr)));
+        DbgCmdExecAsync(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[frame - 1].addr)));
 }
 
 void CPUStack::gotoExpressionSlot()
@@ -715,7 +715,7 @@ void CPUStack::gotoExpressionSlot()
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
-        DbgCmdExec(QString().sprintf("sdump %p", value));
+        DbgCmdExecAsync(QString().sprintf("sdump %p", value));
     }
 }
 
@@ -774,7 +774,7 @@ void CPUStack::followDisasmSlot()
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
             QString addrText = ToPtrString(selectedData);
-            DbgCmdExec(QString("disasm " + addrText));
+            DbgCmdExecAsync(QString("disasm " + addrText));
         }
 }
 
@@ -785,7 +785,7 @@ void CPUStack::followStackSlot()
         if(DbgMemIsValidReadPtr(selectedData)) //data is a pointer
         {
             QString addrText = ToPtrString(selectedData);
-            DbgCmdExec(QString("sdump " + addrText));
+            DbgCmdExecAsync(QString("sdump " + addrText));
         }
 }
 
@@ -902,7 +902,7 @@ void CPUStack::findPattern()
         addr = stackBase;
 
     QString addrText = ToPtrString(addr);
-    DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&"));
+    DbgCmdExecAsync(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&"));
     emit displayReferencesWidget();
 }
 
@@ -944,9 +944,9 @@ void CPUStack::realignSlot()
 void CPUStack::freezeStackSlot()
 {
     if(bStackFrozen)
-        DbgCmdExec(QString("setfreezestack 0"));
+        DbgCmdExecAsync(QString("setfreezestack 0"));
     else
-        DbgCmdExec(QString("setfreezestack 1"));
+        DbgCmdExecAsync(QString("setfreezestack 1"));
 
     bStackFrozen = !bStackFrozen;
 

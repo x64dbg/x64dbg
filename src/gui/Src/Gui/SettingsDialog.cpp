@@ -478,11 +478,11 @@ void SettingsDialog::SaveSettings()
             if(settings.miscSetJIT)
             {
                 // Since Windows 10 WER will not trigger the JIT debugger at all without this
-                DbgCmdExec("setjitauto on");
-                DbgCmdExec("setjit oldsave");
+                DbgCmdExecAsync("setjitauto on");
+                DbgCmdExecAsync("setjit oldsave");
             }
             else
-                DbgCmdExec("setjit restore");
+                DbgCmdExecAsync("setjit restore");
         }
     }
     if(settings.miscSymbolStore)

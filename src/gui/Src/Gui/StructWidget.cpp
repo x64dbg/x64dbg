@@ -133,21 +133,21 @@ void StructWidget::followDumpSlot()
 {
     if(!hasSelection)
         return;
-    DbgCmdExec(QString("dump %1").arg(ToPtrString(selectedType.addr + selectedType.offset)));
+    DbgCmdExecAsync(QString("dump %1").arg(ToPtrString(selectedType.addr + selectedType.offset)));
 }
 
 void StructWidget::followValueDumpSlot()
 {
     if(!hasSelection)
         return;
-    DbgCmdExec(QString("dump %1").arg(ToPtrString(selectedValue())));
+    DbgCmdExecAsync(QString("dump %1").arg(ToPtrString(selectedValue())));
 }
 
 void StructWidget::followValueDisasmSlot()
 {
     if(!hasSelection)
         return;
-    DbgCmdExec(QString("disasm %1").arg(ToPtrString(selectedValue())));
+    DbgCmdExecAsync(QString("disasm %1").arg(ToPtrString(selectedValue())));
 }
 
 void StructWidget::clearSlot()
@@ -173,7 +173,7 @@ void StructWidget::loadJsonSlot()
     if(!filename.length())
         return;
     filename = QDir::toNativeSeparators(filename);
-    DbgCmdExec(QString("LoadTypes \"%1\"").arg(filename));
+    DbgCmdExecAsync(QString("LoadTypes \"%1\"").arg(filename));
 }
 
 void StructWidget::parseFileSlot()
@@ -182,7 +182,7 @@ void StructWidget::parseFileSlot()
     if(!filename.length())
         return;
     filename = QDir::toNativeSeparators(filename);
-    DbgCmdExec(QString("ParseTypes \"%1\"").arg(filename));
+    DbgCmdExecAsync(QString("ParseTypes \"%1\"").arg(filename));
 }
 
 void StructWidget::reloadTypeSlot()

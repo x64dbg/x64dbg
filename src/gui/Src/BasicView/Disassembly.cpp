@@ -2059,7 +2059,7 @@ void Disassembly::gotoAddress(duint addr)
     if(mIsMain)
     {
         // Update window title
-        DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(addr)));
+        DbgCmdExecAsyncDirect(QString("guiupdatetitle %1").arg(ToPtrString(addr)));
     }
     GuiUpdateAllViews();
 }
@@ -2259,7 +2259,7 @@ void Disassembly::historyPrevious()
     if(mIsMain)
     {
         // Update window title
-        DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));
+        DbgCmdExecAsyncDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));
         GuiUpdateAllViews();
     }
 }
@@ -2277,7 +2277,7 @@ void Disassembly::historyNext()
     if(mIsMain)
     {
         // Update window title
-        DbgCmdExecDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));
+        DbgCmdExecAsyncDirect(QString("guiupdatetitle %1").arg(ToPtrString(va)));
         GuiUpdateAllViews();
     }
 }
@@ -2412,9 +2412,9 @@ bool Disassembly::followInstruction(duint rva)
                 if(DbgFunctions()->MemIsCodePage(dest, true))
                     gotoAddress(dest);
                 else if(instr.arg[op].segment == SEG_SS)
-                    DbgCmdExec(QString("sdump %1").arg(ToPtrString(dest)));
+                    DbgCmdExecAsync(QString("sdump %1").arg(ToPtrString(dest)));
                 else
-                    DbgCmdExec(QString("dump %1").arg(ToPtrString(dest)));
+                    DbgCmdExecAsync(QString("dump %1").arg(ToPtrString(dest)));
                 return true;
             }
         }
@@ -2430,7 +2430,7 @@ bool Disassembly::followInstruction(duint rva)
                 if(DbgFunctions()->MemIsCodePage(dest, true))
                     gotoAddress(dest);
                 else
-                    DbgCmdExec(QString("dump %1").arg(ToPtrString(dest)));
+                    DbgCmdExecAsync(QString("dump %1").arg(ToPtrString(dest)));
                 return true;
             }
         }

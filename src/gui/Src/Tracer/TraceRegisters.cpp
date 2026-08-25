@@ -222,7 +222,7 @@ void TraceRegisters::mouseDoubleClickEvent(QMouseEvent* event)
     if(!identifyRegister(y, x, 0))
         return;
     if(mSelected == CIP) //double clicked on CIP register: follow in disassembly
-        DbgCmdExec(QString("disasm %1").arg(ToPtrString(mRegDumpStruct.regcontext.cip)));
+        DbgCmdExecAsync(QString("disasm %1").arg(ToPtrString(mRegDumpStruct.regcontext.cip)));
     // double clicked on XMM register: open view XMM register dialog
     else if(mFPUXMM.contains(mSelected) || mFPUMMX.contains(mSelected))
         onCopySIMDRegister();

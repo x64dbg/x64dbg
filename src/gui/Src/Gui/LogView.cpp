@@ -190,10 +190,10 @@ void LogView::handleLink(QWidget* parent, const QUrl & link)
                 if(ok && DbgMemIsValidReadPtr(address))
                 {
                     if(DbgFunctions()->MemIsCodePage(address, true))
-                        DbgCmdExec(QString("disasm %1").arg(link.fragment()));
+                        DbgCmdExecAsync(QString("disasm %1").arg(link.fragment()));
                     else
                     {
-                        DbgCmdExecDirect(QString("dump %1").arg(link.fragment()));
+                        DbgCmdExecAsyncDirect(QString("dump %1").arg(link.fragment()));
                         emit Bridge::getBridge()->getDumpAttention();
                     }
                 }
@@ -203,7 +203,7 @@ void LogView::handleLink(QWidget* parent, const QUrl & link)
         }
         else if(path == "command")
         {
-            DbgCmdExec(fragment.toUtf8().constData());
+            DbgCmdExecAsync(fragment.toUtf8().constData());
         }
         else
             SimpleErrorBox(parent, tr("Url is not valid!"), tr("The Url %1 is not supported").arg(link.toString()));

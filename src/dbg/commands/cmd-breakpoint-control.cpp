@@ -110,7 +110,7 @@ bool cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
     if(BpGet(addr, BPNORMAL, bpname, &bp))
     {
         if(!bp.enabled)
-            return DbgCmdExecDirect(StringUtils::sprintf("bpe %p", bp.addr).c_str());
+            return DbgCmdExecAsyncDirect(StringUtils::sprintf("bpe %p", bp.addr).c_str());
         dputs(QT_TRANSLATE_NOOP("DBG", "Breakpoint already set!"));
         return true;
     }
@@ -463,7 +463,7 @@ bool cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     if(BpGet(addr, BPHARDWARE, 0, &bp))
     {
         if(!bp.enabled)
-            return DbgCmdExecDirect(StringUtils::sprintf("bphwe %p", bp.addr).c_str());
+            return DbgCmdExecAsyncDirect(StringUtils::sprintf("bphwe %p", bp.addr).c_str());
         dputs(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint already set!"));
         return true;
     }
@@ -739,7 +739,7 @@ bool cbDebugSetMemoryBpx(int argc, char* argv[])
     if(BpGet(base, BPMEMORY, 0, &bp))
     {
         if(!bp.enabled)
-            return DbgCmdExecDirect(StringUtils::sprintf("bpme %p", bp.addr).c_str());
+            return DbgCmdExecAsyncDirect(StringUtils::sprintf("bpme %p", bp.addr).c_str());
         dputs(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint already set!"));
         return true;
     }
@@ -800,7 +800,7 @@ bool cbDebugSetMemoryRangeBpx(int argc, char* argv[])
     if(BpGet(start, BPMEMORY, 0, &bp))
     {
         if(!bp.enabled)
-            return DbgCmdExecDirect(StringUtils::sprintf("bpme %p", bp.addr).c_str());
+            return DbgCmdExecAsyncDirect(StringUtils::sprintf("bpme %p", bp.addr).c_str());
         dputs(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint already set!"));
         return true;
     }

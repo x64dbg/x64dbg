@@ -264,20 +264,20 @@ void ReferenceView::followAddress()
 {
     auto index = mCurList->getInitialSelection();
     searchSelectionChanged(index);
-    DbgCmdExecDirect(QString("disasm " + mCurList->getCellContent(index, 0)));
+    DbgCmdExecAsyncDirect(QString("disasm " + mCurList->getCellContent(index, 0)));
 }
 
 void ReferenceView::followDumpAddress()
 {
     auto index = mCurList->getInitialSelection();
     searchSelectionChanged(index);
-    DbgCmdExecDirect(QString("dump " + mCurList->getCellContent(index, 0)));
+    DbgCmdExecAsyncDirect(QString("dump " + mCurList->getCellContent(index, 0)));
 }
 
 void ReferenceView::followApiAddress()
 {
     dsint apiValue = apiAddressFromString(mCurList->getCellContent(mCurList->getInitialSelection(), 1));
-    DbgCmdExecDirect(QString("disasm " + ToPtrString(apiValue)));
+    DbgCmdExecAsyncDirect(QString("disasm " + ToPtrString(apiValue)));
 }
 
 void ReferenceView::followGenericAddress()
@@ -325,7 +325,7 @@ void ReferenceView::setBreakpointAt(duint row, BPSetAction action)
         cmd = "bp " + ToPtrString(va);
     }
 
-    DbgCmdExecDirect(cmd);
+    DbgCmdExecAsyncDirect(cmd);
 }
 
 void ReferenceView::toggleBreakpoint()
@@ -450,7 +450,7 @@ void ReferenceView::referenceExecCommand()
                 if(specializedCommand.contains(token))
                     specializedCommand.replace(token, mCurList->getCellContent(selected, i));
             }
-            DbgCmdExec(specializedCommand);
+            DbgCmdExecAsync(specializedCommand);
         }
     }
 }

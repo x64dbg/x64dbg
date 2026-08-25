@@ -208,13 +208,13 @@ void WatchView::addWatchSlot()
 {
     QString name;
     if(SimpleInputBox(this, tr("Enter the expression to watch"), "", name, tr("Example: [EAX]")))
-        DbgCmdExecDirect(QString("AddWatch \"%1\"").arg(DbgCmdEscape(name)));
+        DbgCmdExecAsyncDirect(QString("AddWatch \"%1\"").arg(DbgCmdEscape(name)));
     updateWatch();
 }
 
 void WatchView::delWatchSlot()
 {
-    DbgCmdExecDirect(QString("DelWatch ").append(getSelectedId()));
+    DbgCmdExecAsyncDirect(QString("DelWatch ").append(getSelectedId()));
     updateWatch();
 }
 
@@ -223,7 +223,7 @@ void WatchView::renameWatchSlot()
     QString name;
     QString originalName = getCellContent(getInitialSelection(), ColName);
     if(SimpleInputBox(this, tr("Enter the name of the watch variable"), originalName, name, originalName))
-        DbgCmdExecDirect(QString("SetWatchName %1, \"%2\"").arg(getSelectedId(), DbgCmdEscape(name)));
+        DbgCmdExecAsyncDirect(QString("SetWatchName %1, \"%2\"").arg(getSelectedId(), DbgCmdEscape(name)));
     updateWatch();
 }
 
@@ -250,66 +250,66 @@ void WatchView::editWatchSlot()
     QString originalExpr = getCellContent(getInitialSelection(), ColExpr);
     QString currentType = getCellContent(getInitialSelection(), ColType);
     if(SimpleInputBox(this, tr("Enter the expression to watch"), originalExpr, expr, tr("Example: [EAX]")))
-        DbgCmdExecDirect(QString("SetWatchExpression %1, \"%2\", %3").arg(getSelectedId(), DbgCmdEscape(expr), currentType));
+        DbgCmdExecAsyncDirect(QString("SetWatchExpression %1, \"%2\", %3").arg(getSelectedId(), DbgCmdEscape(expr), currentType));
     updateWatch();
 }
 
 void WatchView::watchdogDisableSlot()
 {
-    DbgCmdExecDirect(QString("SetWatchdog %1, \"disabled\"").arg(getSelectedId()));
+    DbgCmdExecAsyncDirect(QString("SetWatchdog %1, \"disabled\"").arg(getSelectedId()));
     updateWatch();
 }
 
 void WatchView::watchdogChangedSlot()
 {
-    DbgCmdExecDirect(QString("SetWatchdog %1, \"changed\"").arg(getSelectedId()));
+    DbgCmdExecAsyncDirect(QString("SetWatchdog %1, \"changed\"").arg(getSelectedId()));
     updateWatch();
 }
 
 void WatchView::watchdogUnchangedSlot()
 {
-    DbgCmdExecDirect(QString("SetWatchdog %1, \"unchanged\"").arg(getSelectedId()));
+    DbgCmdExecAsyncDirect(QString("SetWatchdog %1, \"unchanged\"").arg(getSelectedId()));
     updateWatch();
 }
 
 void WatchView::watchdogIsTrueSlot()
 {
-    DbgCmdExecDirect(QString("SetWatchdog %1, \"istrue\"").arg(getSelectedId()));
+    DbgCmdExecAsyncDirect(QString("SetWatchdog %1, \"istrue\"").arg(getSelectedId()));
     updateWatch();
 }
 
 void WatchView::watchdogIsFalseSlot()
 {
-    DbgCmdExecDirect(QString("SetWatchdog %1, \"isfalse\"").arg(getSelectedId()));
+    DbgCmdExecAsyncDirect(QString("SetWatchdog %1, \"isfalse\"").arg(getSelectedId()));
     updateWatch();
 }
 
 void WatchView::setTypeUintSlot()
 {
-    DbgCmdExecDirect(QString("SetWatchType %1, \"uint\"").arg(getSelectedId()));
+    DbgCmdExecAsyncDirect(QString("SetWatchType %1, \"uint\"").arg(getSelectedId()));
     updateWatch();
 }
 
 void WatchView::setTypeIntSlot()
 {
-    DbgCmdExecDirect(QString("SetWatchType %1, \"int\"").arg(getSelectedId()));
+    DbgCmdExecAsyncDirect(QString("SetWatchType %1, \"int\"").arg(getSelectedId()));
     updateWatch();
 }
 
 void WatchView::setTypeFloatSlot()
 {
-    DbgCmdExecDirect(QString("SetWatchType %1, \"float\"").arg(getSelectedId()));
+    DbgCmdExecAsyncDirect(QString("SetWatchType %1, \"float\"").arg(getSelectedId()));
     updateWatch();
 }
 
 void WatchView::setTypeAsciiSlot()
 {
-    DbgCmdExecDirect(QString("SetWatchType %1, \"ascii\"").arg(getSelectedId()));
+    DbgCmdExecAsyncDirect(QString("SetWatchType %1, \"ascii\"").arg(getSelectedId()));
     updateWatch();
 }
 
 void WatchView::setTypeUnicodeSlot()
 {
-    DbgCmdExecDirect(QString("SetWatchType %1, \"unicode\"").arg(getSelectedId()));
+    DbgCmdExecAsyncDirect(QString("SetWatchType %1, \"unicode\"").arg(getSelectedId()));
     updateWatch();
 }

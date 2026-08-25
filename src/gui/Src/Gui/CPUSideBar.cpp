@@ -410,7 +410,7 @@ void CPUSideBar::mouseReleaseEvent(QMouseEvent* e)
             break;
         }
         cmd += ToPtrString(va);
-        DbgCmdExec(cmd);
+        DbgCmdExecAsync(cmd);
     }
 }
 

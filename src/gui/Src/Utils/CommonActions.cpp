@@ -63,7 +63,7 @@ void CommonActions::build(MenuBuilder* builder, int actions)
         {
             duint selectedData = mGetSelection();
             if(DbgMemIsValidReadPtr(selectedData))
-                DbgCmdExec(QString("dump [%1], %2").arg(ToPtrString(selectedData)).arg(i + 1));
+                DbgCmdExecAsync(QString("dump [%1], %2").arg(ToPtrString(selectedData)).arg(i + 1));
         }));
         builder->addMenu(makeMenu(DIcon("dump"), ArchValue(tr("Follow DWORD in Dump"), tr("Follow QWORD in Dump"))), followDumpNMenu);
     }
@@ -197,7 +197,7 @@ QAction* CommonActions::makeCommandAction(const QIcon & icon, const QString & te
     // sender() doesn't work in slots
     return makeShortcutAction(icon, text, [cmd, this]()
     {
-        DbgCmdExec(QString(cmd).replace("$", ToPtrString(mGetSelection())));
+        DbgCmdExecAsync(QString(cmd).replace("$", ToPtrString(mGetSelection())));
     }, shortcut);
 }
 
@@ -205,7 +205,7 @@ QAction* CommonActions::makeCommandAction(const QIcon & icon, const QString & te
 {
     return makeAction(icon, text, [cmd, this]()
     {
-        DbgCmdExec(QString(cmd).replace("$", ToPtrString(mGetSelection())));
+        DbgCmdExecAsync(QString(cmd).replace("$", ToPtrString(mGetSelection())));
     });
 }
 
@@ -236,7 +236,7 @@ void CommonActions::followDisassemblySlot()
 {
     duint cip = mGetSelection();
     if(DbgMemIsValidReadPtr(cip))
-        DbgCmdExec(QString("dis ").append(ToPtrString(cip)));
+        DbgCmdExecAsync(QString("dis ").append(ToPtrString(cip)));
     else
         GuiAddStatusBarMessage(tr("Cannot follow %1. Address is invalid.\n").arg(ToPtrString(cip)).toUtf8().constData());
 }
@@ -374,7 +374,7 @@ void CommonActions::toggleInt3BPActionSlot()
                 cmd = "bc " + ToPtrString(va);
             else
                 cmd = "bp " + ToPtrString(va);
-            DbgCmdExec(cmd);
+            DbgCmdExecAsync(cmd);
             return true;
         });
         return;
@@ -393,7 +393,7 @@ void CommonActions::toggleInt3BPActionSlot()
         cmd = "bp " + ToPtrString(va);
     }
 
-    DbgCmdExec(cmd);
+    DbgCmdExecAsync(cmd);
     //emit Disassembly::repainted();
 }
 
@@ -437,7 +437,7 @@ void CommonActions::toggleHwBpActionSlot()
         cmd = "bphws " + ToPtrString(va);
     }
 
-    DbgCmdExec(cmd);
+    DbgCmdExecAsync(cmd);
 }
 
 
@@ -481,17 +481,17 @@ void CommonActions::setHwBpAt(duint va, int slot)
     if(slotIndex < 0) // Slot not used
     {
         cmd = "bphws " + ToPtrString(va);
-        DbgCmdExec(cmd);
+        DbgCmdExecAsync(cmd);
     }
     else // Slot used
     {
         cmd = "bphwc " + ToPtrString((duint)(bpList.bp[slotIndex].addr));
-        DbgCmdExec(cmd);
+        DbgCmdExecAsync(cmd);
 
         Sleep(200);
 
         cmd = "bphws " + ToPtrString(va);
-        DbgCmdExec(cmd);
+        DbgCmdExecAsync(cmd);
     }
     if(bpList.count)
         BridgeFree(bpList.bp);
@@ -499,7 +499,7 @@ void CommonActions::setHwBpAt(duint va, int slot)
 
 void CommonActions::graphSlot()
 {
-    if(DbgCmdExecDirect(QString("graph %1").arg(ToPtrString(mGetSelection()))))
+    if(DbgCmdExecAsyncDirect(QString("graph %1").arg(ToPtrString(mGetSelection()))))
         GuiFocusView(GUI_GRAPH);
 }
 
@@ -516,7 +516,7 @@ void CommonActions::setNewOriginHereActionSlot()
     if(!WarningBoxNotExecutable(tr("Setting new origin here may result in crash. Do you really want to continue?"), va))
         return;
     QString cmd = "cip=" + ToPtrString(va);
-    DbgCmdExec(cmd);
+    DbgCmdExecAsync(cmd);
 }
 
 void CommonActions::createThreadSlot()
@@ -528,5 +528,5 @@ void CommonActions::createThreadSlot()
     argWindow.setup(tr("Argument for the new thread"), 0, sizeof(duint));
     if(argWindow.exec() != QDialog::Accepted)
         return;
-    DbgCmdExec(QString("createthread %1, %2").arg(ToPtrString(va)).arg(ToPtrString(argWindow.getVal())));
+    DbgCmdExecAsync(QString("createthread %1, %2").arg(ToPtrString(va)).arg(ToPtrString(argWindow.getVal())));
 }

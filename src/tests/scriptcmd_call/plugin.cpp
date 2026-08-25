@@ -28,7 +28,7 @@ namespace
     {
         counter.fetch_add(1);
         const auto command = std::string("scriptcmd call ") + label;
-        return _plugin_testassert(DbgCmdExecDirect(command.c_str()), "DbgCmdExecDirect failed for %s", label);
+        return _plugin_testassert(DbgCmdExecAsyncDirect(command.c_str()), "DbgCmdExecAsyncDirect failed for %s", label);
     }
 
     void cbPlugin(CBTYPE cbType, void* callbackInfo)

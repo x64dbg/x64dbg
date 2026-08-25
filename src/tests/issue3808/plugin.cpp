@@ -56,7 +56,7 @@ namespace
     bool cbFlagRepro3808(int, char**)
     {
         _plugin_logputs("[issue3808] Priming ZF=1 CF=0 through the command path");
-        if(!DbgCmdExecDirect("_ZF=1") || !DbgCmdExecDirect("_CF=0"))
+        if(!DbgCmdExecAsyncDirect("_ZF=1") || !DbgCmdExecAsyncDirect("_CF=0"))
             return _plugin_testassert(false, "failed to prime flags through the command path");
 
         const auto primed = TakeSnapshot();

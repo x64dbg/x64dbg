@@ -1,12 +1,12 @@
 #include "Imports.h"
 #include <QString>
 
-bool DbgCmdExec(const QString & cmd)
+bool DbgCmdExecAsync(const QString & cmd)
 {
-    return DbgCmdExec(cmd.toUtf8().constData());
+    return DbgCmdExecAsync(cmd.toUtf8().constData());
 }
 
-bool DbgCmdExecDirect(const QString & cmd)
+bool DbgCmdExecAsyncDirect(const QString & cmd)
 {
-    return DbgCmdExecDirect(cmd.toUtf8().constData());
+    return DbgCmdExecAsyncDirect(cmd.toUtf8().constData());
 }

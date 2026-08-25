@@ -267,13 +267,13 @@ void HandlesView::privilegesTableContextMenuSlot(const QPoint & pos)
 
 void HandlesView::closeHandleSlot()
 {
-    DbgCmdExecDirect(QString("handleclose %1").arg(mHandlesTable->mCurList->getCellContent(mHandlesTable->mCurList->getInitialSelection(), 2)));
+    DbgCmdExecAsyncDirect(QString("handleclose %1").arg(mHandlesTable->mCurList->getCellContent(mHandlesTable->mCurList->getInitialSelection(), 2)));
     enumHandles();
 }
 
 void HandlesView::enablePrivilegeSlot()
 {
-    DbgCmdExecDirect(QString("EnablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 0)));
+    DbgCmdExecAsyncDirect(QString("EnablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 0)));
     enumPrivileges();
 }
 
@@ -281,7 +281,7 @@ void HandlesView::disablePrivilegeSlot()
 {
     if(!DbgIsDebugging())
         return;
-    DbgCmdExecDirect(QString("DisablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 0)));
+    DbgCmdExecAsyncDirect(QString("DisablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(mPrivilegesTable->getInitialSelection(), 0)));
     enumPrivileges();
 }
 
@@ -291,7 +291,7 @@ void HandlesView::enableAllPrivilegesSlot()
         return;
     for(duint i = 0; i < mPrivilegesTable->getRowCount(); i++)
         if(mPrivilegesTable->getCellContent(i, 1) != tr("Unknown"))
-            DbgCmdExecDirect(QString("EnablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(i, 0)));
+            DbgCmdExecAsyncDirect(QString("EnablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(i, 0)));
     enumPrivileges();
 }
 
@@ -301,19 +301,19 @@ void HandlesView::disableAllPrivilegesSlot()
         return;
     for(duint i = 0; i < mPrivilegesTable->getRowCount(); i++)
         if(mPrivilegesTable->getCellContent(i, 1) != tr("Unknown"))
-            DbgCmdExecDirect(QString("DisablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(i, 0)));
+            DbgCmdExecAsyncDirect(QString("DisablePrivilege \"%1\"").arg(mPrivilegesTable->getCellContent(i, 0)));
     enumPrivileges();
 }
 
 void HandlesView::enableWindowSlot()
 {
-    DbgCmdExecDirect(QString("EnableWindow %1").arg(mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 1)));
+    DbgCmdExecAsyncDirect(QString("EnableWindow %1").arg(mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 1)));
     enumWindows();
 }
 
 void HandlesView::disableWindowSlot()
 {
-    DbgCmdExecDirect(QString("DisableWindow %1").arg(mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 1)));
+    DbgCmdExecAsyncDirect(QString("DisableWindow %1").arg(mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 1)));
     enumWindows();
 }
 
@@ -334,13 +334,13 @@ void HandlesView::focusWindowSlot()
 
 void HandlesView::followInDisasmSlot()
 {
-    DbgCmdExec(QString("disasm %1").arg(mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 0)));
+    DbgCmdExecAsync(QString("disasm %1").arg(mWindowsTable->mCurList->getCellContent(mWindowsTable->mCurList->getInitialSelection(), 0)));
 }
 
 void HandlesView::followInThreads()
 {
     auto threadId = mWindowsTable->mCurList->getCellUserdata(mWindowsTable->mCurList->getInitialSelection(), 4);
-    DbgCmdExec(QString("showthreadid %1").arg(ToHexString(threadId)));
+    DbgCmdExecAsync(QString("showthreadid %1").arg(ToHexString(threadId)));
 }
 
 void HandlesView::toggleBPSlot()
@@ -367,7 +367,7 @@ void HandlesView::toggleBPSlot()
     else if(bpType == bp_none)
         cmd = "bp " + ToPtrString(va);
 
-    DbgCmdExecDirect(cmd);
+    DbgCmdExecAsyncDirect(cmd);
 }
 
 void HandlesView::messagesBPSlot()
@@ -500,7 +500,7 @@ void HandlesView::enumPrivileges()
     for(int row = 0; row < _countof(PrivilegeString); row++)
     {
         QString temp(PrivilegeString[row]);
-        DbgCmdExecDirect(QString("GetPrivilegeState \"%1\"").arg(temp).toUtf8().constData());
+        DbgCmdExecAsyncDirect(QString("GetPrivilegeState \"%1\"").arg(temp).toUtf8().constData());
         mPrivilegesTable->setCellContent(row, 0, temp);
         switch(DbgValFromString("$result"))
         {

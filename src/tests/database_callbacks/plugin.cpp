@@ -147,7 +147,7 @@ namespace
                 gReentrantCommentSetPending = false;
                 char command[MAX_SETTING_SIZE];
                 sprintf_s(command, "commentset 0x%llX, \"%s\"", (unsigned long long)gReentrantCommentAddress, gReentrantCommentText.c_str());
-                _plugin_testassert(DbgCmdExecDirect(command), "reentrant command failed: %s", command);
+                _plugin_testassert(DbgCmdExecAsyncDirect(command), "reentrant command failed: %s", command);
             }
 
             if(cbType == CB_DBLOADOPERATION && gDbLoadCommentSetPending)
@@ -155,7 +155,7 @@ namespace
                 gDbLoadCommentSetPending = false;
                 char command[MAX_SETTING_SIZE];
                 sprintf_s(command, "commentset 0x%llX, \"%s\"", (unsigned long long)gDbLoadCommentAddress, gDbLoadCommentText.c_str());
-                _plugin_testassert(DbgCmdExecDirect(command), "database-load reentrant command failed: %s", command);
+                _plugin_testassert(DbgCmdExecAsyncDirect(command), "database-load reentrant command failed: %s", command);
             }
 
             for(size_t i = 0; i < info->count; i ++)

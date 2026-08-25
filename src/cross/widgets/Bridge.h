@@ -141,8 +141,8 @@ bool DbgMemIsValidReadPtr(duint addr);
 bool DbgGetStringAt(duint addr, char* str);
 duint DbgEval(const char* expr, bool* success = nullptr);
 duint DbgValFromString(const char* expr);
-bool DbgCmdExec(const char* cmd);
-bool DbgCmdExecDirect(const char* cmd);
+bool DbgCmdExecAsync(const char* cmd);
+bool DbgCmdExecAsyncDirect(const char* cmd);
 duint DbgMemFindBaseAddr(duint addr, duint* size);
 bool DbgMemRead(duint addr, void* dest, size_t size);
 FUNCTYPE DbgGetFunctionTypeAt(duint addr);
@@ -189,8 +189,8 @@ void GuiUpdateAllViews();
 void GuiUpdatePatches();
 
 // QString helpers
-bool DbgCmdExec(const QString & cmd);
-bool DbgCmdExecDirect(const QString & cmd);
+bool DbgCmdExecAsync(const QString & cmd);
+bool DbgCmdExecAsyncDirect(const QString & cmd);
 
 class Bridge : public QObject
 {

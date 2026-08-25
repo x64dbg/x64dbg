@@ -77,7 +77,7 @@ bool TraceBrowser::toggleTraceRecording(QWidget* parent)
         return false;
     if(isRecording())
     {
-        return DbgCmdExecDirect("StopTraceRecording");
+        return DbgCmdExecAsyncDirect("StopTraceRecording");
     }
     else
     {
@@ -97,7 +97,7 @@ bool TraceBrowser::toggleTraceRecording(QWidget* parent)
             if(browse.path.contains(QChar('"')) || browse.path.contains(QChar('\'')))
                 SimpleErrorBox(parent, tr("Error"), tr("File name contains invalid character."));
             else
-                return DbgCmdExecDirect(QString("StartTraceRecording \"%1\"").arg(browse.path));
+                return DbgCmdExecAsyncDirect(QString("StartTraceRecording \"%1\"").arg(browse.path));
         }
     }
     return false;
@@ -1368,7 +1368,7 @@ void TraceBrowser::toggleTraceRecordingSlot()
 void TraceBrowser::closeFileSlot()
 {
     if(isRecording())
-        DbgCmdExecDirect("StopTraceRecording");
+        DbgCmdExecAsyncDirect("StopTraceRecording");
     emit closeFile();
 }
 
@@ -1378,7 +1378,7 @@ void TraceBrowser::closeDeleteSlot()
     if(msgbox.exec() == QMessageBox::Yes)
     {
         if(isRecording())
-            DbgCmdExecDirect("StopTraceRecording");
+            DbgCmdExecAsyncDirect("StopTraceRecording");
         mTraceFile->Delete();
         emit closeFile();
     }
@@ -1415,7 +1415,7 @@ void TraceBrowser::mnemonicHelpSlot()
     getTraceFile()->OpCode(getInitialSelection(), data, &size);
     Zydis zydis;
     zydis.Disassemble(getTraceFile()->Address(getInitialSelection()), data);
-    DbgCmdExecDirect(QString("mnemonichelp %1").arg(zydis.Mnemonic().c_str()));
+    DbgCmdExecAsyncDirect(QString("mnemonichelp %1").arg(zydis.Mnemonic().c_str()));
     emit displayLogWidget();
 }
 
@@ -1448,7 +1448,7 @@ void TraceBrowser::disasmByAddress(duint address, bool history)
             msg.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
             if(msg.exec() == QMessageBox::Yes)
             {
-                DbgCmdExec(QString("disasm %1").arg(addr));
+                DbgCmdExecAsync(QString("disasm %1").arg(addr));
             }
         }
         else

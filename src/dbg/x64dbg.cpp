@@ -539,10 +539,10 @@ bool cbCommandProvider(char* cmd, int maxlen)
 /**
 \brief Execute command asynchronized.
 */
-extern "C" DLL_EXPORT bool _dbg_dbgcmdexec(const char* cmd)
+extern "C" DLL_EXPORT bool _dbg_dbgcmdexecasync(const char* cmd)
 {
     int len = (int)strlen(cmd);
-    char* newcmd = (char*)emalloc((len + 1) * sizeof(char), "_dbg_dbgcmdexec:newcmd");
+    char* newcmd = (char*)emalloc((len + 1) * sizeof(char), "_dbg_dbgcmdexecasync:newcmd");
     strcpy_s(newcmd, len + 1, cmd);
     return MsgSend(gMsgQueue, 0, (duint)newcmd, 0);
 }
@@ -799,13 +799,13 @@ static const char* applyCommandlineArguments(const CommandlineArguments & args)
         std::string cmdline;
         for(const auto & arg : args.arguments)
             cmdline += StringUtils::sprintf("\"%s\" ", escape(arg).c_str());
-        DbgCmdExec(StringUtils::sprintf(R"(scriptcmd init "%s", "%s", "%s")", escape(args.filename).c_str(), escape(cmdline).c_str(), escape(workingDir).c_str()).c_str());
+        DbgCmdExecAsync(StringUtils::sprintf(R"(scriptcmd init "%s", "%s", "%s")", escape(args.filename).c_str(), escape(cmdline).c_str(), escape(workingDir).c_str()).c_str());
     }
     else if(!args.pid.empty())
     {
         auto event = args.event.empty() ? "0" : args.event;
         auto tid = args.tid.empty() ? "0" : args.tid;
-        DbgCmdExec(StringUtils::sprintf("scriptcmd attach .%s, .%s, .%s", args.pid.c_str(), event.c_str(), tid.c_str()).c_str());
+        DbgCmdExecAsync(StringUtils::sprintf("scriptcmd attach .%s, .%s, .%s", args.pid.c_str(), event.c_str(), tid.c_str()).c_str());
     }
 
     if(!args.command.empty())
@@ -813,7 +813,7 @@ static const char* applyCommandlineArguments(const CommandlineArguments & args)
         StringList commands;
         cmdsplit(args.command.c_str(), commands);
         for(const auto & command : commands)
-            DbgCmdExec(("scriptcmd " + command).c_str());
+            DbgCmdExecAsync(("scriptcmd " + command).c_str());
     }
 
     if(!args.commandFile.empty())
@@ -824,13 +824,13 @@ static const char* applyCommandlineArguments(const CommandlineArguments & args)
         if(!FileExists(commandFile.c_str()))
             return _strdup(StringUtils::sprintf("Error: Command file \"%s\" couldn't be opened.\n", commandFile.c_str()).c_str());
         if(args.testing)
-            DbgCmdExec(StringUtils::sprintf("testscript \"%s\"", commandFile.c_str()).c_str());
+            DbgCmdExecAsync(StringUtils::sprintf("testscript \"%s\"", commandFile.c_str()).c_str());
         else
-            DbgCmdExec(StringUtils::sprintf("scriptexec \"%s\"", commandFile.c_str()).c_str());
+            DbgCmdExecAsync(StringUtils::sprintf("scriptexec \"%s\"", commandFile.c_str()).c_str());
     }
 
     if(args.testing)
-        DbgCmdExec("testfinalize");
+        DbgCmdExecAsync("testfinalize");
 
     return nullptr;
 }
@@ -941,7 +941,7 @@ extern "C" DLL_EXPORT const char* _dbg_dbginit(bool blocking)
     strcpy_s(info.name, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Default")));
     info.execute = [](const char* cmd)
     {
-        if(!DbgCmdExec(cmd))
+        if(!DbgCmdExecAsync(cmd))
             return false;
         GuiFlushLog();
         return true;

@@ -617,10 +617,10 @@ void BreakpointsView::followBreakpointSlot()
         return;
     }
     if(DbgFunctions()->MemIsCodePage(addr, true))
-        DbgCmdExecDirect(QString("disasm %1").arg(ToPtrString(addr)));
+        DbgCmdExecAsyncDirect(QString("disasm %1").arg(ToPtrString(addr)));
     else
     {
-        DbgCmdExecDirect(QString("dump %1").arg(ToPtrString(addr)));
+        DbgCmdExecAsyncDirect(QString("dump %1").arg(ToPtrString(addr)));
         emit Bridge::getBridge()->getDumpAttention();
     }
 }
@@ -669,7 +669,7 @@ void BreakpointsView::resetHitCountBreakpointSlot()
         if(!isValidBp(i))
             continue;
         auto & bp = selectedBp(i);
-        DbgCmdExec([&bp]()
+        DbgCmdExecAsync([&bp]()
         {
             switch(bp.type)
             {
@@ -695,7 +695,7 @@ void BreakpointsView::enableAllBreakpointsSlot()
 {
     if(mBps.empty())
         return;
-    DbgCmdExec([this]()
+    DbgCmdExecAsync([this]()
     {
         switch(selectedBp().type)
         {
@@ -720,7 +720,7 @@ void BreakpointsView::disableAllBreakpointsSlot()
 {
     if(mBps.empty())
         return;
-    DbgCmdExec([this]()
+    DbgCmdExecAsync([this]()
     {
         switch(selectedBp().type)
         {
@@ -745,7 +745,7 @@ void BreakpointsView::removeAllBreakpointsSlot()
 {
     if(mBps.empty())
         return;
-    DbgCmdExec([this]()
+    DbgCmdExecAsync([this]()
     {
         switch(selectedBp().type)
         {
@@ -770,14 +770,14 @@ void BreakpointsView::addDllBreakpointSlot()
 {
     QString fileName;
     if(SimpleInputBox(this, tr("Enter the module name"), "", fileName, tr("Example: mydll.dll"), DIcon("breakpoint")) && !fileName.isEmpty())
-        DbgCmdExec(QString("bpdll \"%1\"").arg(fileName));
+        DbgCmdExecAsync(QString("bpdll \"%1\"").arg(fileName));
 }
 
 void BreakpointsView::addExceptionBreakpointSlot()
 {
     QString exception;
     if(SimpleChoiceBox(this, tr("Enter the exception code"), "", mExceptionList, exception, true, tr("Example: EXCEPTION_ACCESS_VIOLATION"), DIcon("breakpoint"), mExceptionMaxLength) && !exception.isEmpty())
-        DbgCmdExec((QString("SetExceptionBPX ") + exception));
+        DbgCmdExecAsync((QString("SetExceptionBPX ") + exception));
 }
 
 static QString escape(QString data)
@@ -887,6 +887,6 @@ void BreakpointsView::pasteConditionalBreakpointSlot()
         QList<QString> cmds;
         cmds = text1.split("\r\n");
         for(const auto & j : cmds)
-            DbgCmdExecDirect(j.toUtf8().constData());
+            DbgCmdExecAsyncDirect(j.toUtf8().constData());
     }
 }

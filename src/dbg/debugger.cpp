@@ -2294,7 +2294,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         }
     }
     if(bVerboseExceptionLogging && filter.logException)
-        DbgCmdExecDirect("exinfo"); //show extended exception information
+        DbgCmdExecAsyncDirect("exinfo"); //show extended exception information
     auto exceptionName = ExceptionCodeToName(ExceptionCode);
     if(!exceptionName.size()) //if no exception was found, try the error codes (RPC_S_*)
         exceptionName = ErrorCodeToName(ExceptionCode);

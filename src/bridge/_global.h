@@ -19,7 +19,7 @@ typedef const char* (*DBGDBGINIT)(bool blocking);
 typedef duint(*DBGMEMFINDBASEADDR)(duint addr, duint* size);
 typedef bool (*DBGMEMREAD)(duint addr, void* dest, duint size, duint* read);
 typedef bool (*DBGMEMWRITE)(duint addr, const void* src, duint size, duint* written);
-typedef bool (*DBGDBGCMDEXEC)(const char* cmd);
+typedef bool (*DBGDBGCMDEXECASYNC)(const char* cmd);
 typedef bool (*DBGMEMMAP)(MEMMAP* memmap);
 typedef void (*DBGDBGEXITSIGNAL)();
 typedef bool (*DBGVALFROMSTRING)(const char* string, duint* value);
@@ -34,7 +34,7 @@ typedef bool (*DBGVALSETBUFFER)(const char* string, const void* data, size_t siz
 typedef bool (*DBGVALSETSCALAR)(const char* string, duint value);
 typedef bool (*DBGMEMISVALIDREADPTR)(duint addr);
 typedef int (*DBGGETBPLIST)(BPXTYPE type, BPMAP* bplist);
-typedef bool (*DBGDBGCMDEXECDIRECT)(const char* cmd);
+typedef bool (*DBGCMDEXECASYNCDIRECT)(const char* cmd);
 typedef duint(*DBGGETBRANCHDESTINATION)(duint addr);
 typedef duint(*DBGSENDMESSAGE)(DBGMSG type, void* param1, void* param2);
 
@@ -43,7 +43,7 @@ extern DBGDBGINIT _dbg_dbginit;
 extern DBGMEMFINDBASEADDR _dbg_memfindbaseaddr;
 extern DBGMEMREAD _dbg_memread;
 extern DBGMEMWRITE _dbg_memwrite;
-extern DBGDBGCMDEXEC _dbg_dbgcmdexec;
+extern DBGDBGCMDEXECASYNC _dbg_dbgcmdexecasync;
 extern DBGMEMMAP _dbg_memmap;
 extern DBGDBGEXITSIGNAL _dbg_dbgexitsignal;
 extern DBGVALFROMSTRING _dbg_valfromstring;
@@ -58,7 +58,7 @@ extern DBGVALSETBUFFER _dbg_valsetbuffer;
 extern DBGVALSETSCALAR _dbg_valsetscalar;
 extern DBGMEMISVALIDREADPTR _dbg_memisvalidreadptr;
 extern DBGGETBPLIST _dbg_getbplist;
-extern DBGDBGCMDEXECDIRECT _dbg_dbgcmddirectexec;
+extern DBGCMDEXECASYNCDIRECT _dbg_dbgcmddirectexec;
 extern DBGGETBRANCHDESTINATION _dbg_getbranchdestination;
 extern DBGSENDMESSAGE _dbg_sendmessage;
 

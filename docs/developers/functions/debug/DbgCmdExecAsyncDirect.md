@@ -1,9 +1,9 @@
-# DbgCmdExecDirect
+# DbgCmdExecAsyncDirect
 
 Execute the command on the calling thread.
 
 ```c++
-bool DbgCmdExecDirect(const char* cmd)
+bool DbgCmdExecAsyncDirect(const char* cmd)
 ```
 
 ## Parameters
@@ -17,9 +17,9 @@ bool DbgCmdExecDirect(const char* cmd)
 ## Example
 
 ```c++
-DbgCmdExecDirect("run");
+DbgCmdExecAsyncDirect("run");
 ```
 
 ## Related functions
 
-- [DbgCmdExec](./DbgCmdExec.md)
+- [DbgCmdExecAsync](./DbgCmdExecAsync.md)

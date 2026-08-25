@@ -51,7 +51,7 @@ bool cbDebugRunInternal(int argc, char* argv[], HistoryAction history)
     else
         HistoryClear();
     // Set a singleshot breakpoint at the first parameter
-    if(argc >= 2 && !DbgCmdExecDirect(StringUtils::sprintf("bp \"%s\", ss", argv[1]).c_str()))
+    if(argc >= 2 && !DbgCmdExecAsyncDirect(StringUtils::sprintf("bp \"%s\", ss", argv[1]).c_str()))
         return false;
     // Don't "run" twice if the program is already running
     if(dbgisrunning())

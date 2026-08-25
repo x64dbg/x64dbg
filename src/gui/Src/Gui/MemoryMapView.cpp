@@ -431,11 +431,11 @@ void MemoryMapView::execCommandSlot()
             {
                 QString specializedCommand = command;
                 specializedCommand.replace(QChar('$'), ToHexString(getCellUserdata(i, ColAddress))); // $ -> Base address
-                DbgCmdExec(specializedCommand);
+                DbgCmdExecAsync(specializedCommand);
             }
         }
         else
-            DbgCmdExec(command);
+            DbgCmdExecAsync(command);
     }
 }
 
@@ -585,17 +585,17 @@ void MemoryMapView::stateChangedSlot(DBGSTATE state)
 
 void MemoryMapView::followDumpSlot()
 {
-    DbgCmdExecDirect(QString("dump %1").arg(getSelectionText()));
+    DbgCmdExecAsyncDirect(QString("dump %1").arg(getSelectionText()));
 }
 
 void MemoryMapView::followDisassemblerSlot()
 {
-    DbgCmdExec(QString("disasm %1").arg(getSelectionText()));
+    DbgCmdExecAsync(QString("disasm %1").arg(getSelectionText()));
 }
 
 void MemoryMapView::followSymbolsSlot()
 {
-    DbgCmdExec(QString("symfollow %1").arg(getSelectionText()));
+    DbgCmdExecAsync(QString("symfollow %1").arg(getSelectionText()));
 }
 
 void MemoryMapView::doubleClickedSlot()
@@ -619,9 +619,9 @@ void MemoryMapView::memoryExecuteSingleshootToggleSlot()
         QString addrText = getCellContent(i, ColAddress);
         duint selectedAddr = getSelectionAddr();
         if((DbgGetBpxTypeAt(selectedAddr) & bp_memory) == bp_memory) //memory breakpoint set
-            DbgCmdExec(QString("bpmc ") + addrText);
+            DbgCmdExecAsync(QString("bpmc ") + addrText);
         else
-            DbgCmdExec(QString("bpm %1, 0, x").arg(addrText));
+            DbgCmdExecAsync(QString("bpm %1, 0, x").arg(addrText));
     }
 }
 
@@ -663,10 +663,10 @@ void MemoryMapView::memoryAllocateSlot()
             SimpleErrorBox(this, tr("Error"), tr("The size of buffer you're trying to allocate exceeds 1GB. Please check your expression to ensure nothing is wrong."));
             return;
         }
-        DbgCmdExecDirect(QString("alloc %1").arg(ToPtrString(memsize)));
+        DbgCmdExecAsyncDirect(QString("alloc %1").arg(ToPtrString(memsize)));
         duint addr = DbgValFromString("$result");
         if(addr != 0)
-            DbgCmdExec("dump $result");
+            DbgCmdExecAsync("dump $result");
         else
             SimpleErrorBox(this, tr("Error"), tr("Memory allocation failed!"));
     }
@@ -713,11 +713,11 @@ void MemoryMapView::findPatternSlot()
         duint addrFirst = getCellUserdata(selection.first(), ColAddress);
         duint addrLast = getCellUserdata(selection.last(), ColAddress);
         duint size = getCellUserdata(selection.last(), ColSize);
-        DbgCmdExec(QString("findallmem %1, %2, %3").arg(ToPtrString(addrFirst)).arg(hexEdit.mHexEdit->pattern()).arg(ToHexString(addrLast - addrFirst + size)));
+        DbgCmdExecAsync(QString("findallmem %1, %2, %3").arg(ToPtrString(addrFirst)).arg(hexEdit.mHexEdit->pattern()).arg(ToHexString(addrLast - addrFirst + size)));
     }
     else
     {
-        DbgCmdExec(QString("findallmem 0, %1").arg(hexEdit.mHexEdit->pattern()));
+        DbgCmdExecAsync(QString("findallmem 0, %1").arg(hexEdit.mHexEdit->pattern()));
     }
     emit showReferences();
 }
@@ -751,7 +751,7 @@ void MemoryMapView::dumpMemorySlot()
     if(fileName.length())
     {
         fileName = QDir::toNativeSeparators(fileName);
-        DbgCmdExec(QString("savedata \"%1\",%2,%3").arg(fileName, ToPtrString(start), ToHexString(end - start)));
+        DbgCmdExecAsync(QString("savedata \"%1\",%2,%3").arg(fileName, ToPtrString(start), ToHexString(end - start)));
     }
 }
 
@@ -768,7 +768,7 @@ void MemoryMapView::loadMemorySlot()
     {
         fileName = QDir::toNativeSeparators(fileName);
         //TODO: loaddata command (Does ODbgScript support that?)
-        DbgCmdExec(QString("savedata \"%1\",%2,%3").arg(fileName, addr, getCellContent(getInitialSelection(), ColSize)));
+        DbgCmdExecAsync(QString("savedata \"%1\",%2,%3").arg(fileName, addr, getCellContent(getInitialSelection(), ColSize)));
     }
 }
 
@@ -819,14 +819,14 @@ void MemoryMapView::addVirtualModSlot()
     QString modname;
     if(!mDialog.getData(modname, base, size))
         return;
-    DbgCmdExec(QString("virtualmod \"%1\", %2, %3").arg(modname).arg(ToHexString(base)).arg(ToHexString(size)));
+    DbgCmdExecAsync(QString("virtualmod \"%1\", %2, %3").arg(modname).arg(ToHexString(base)).arg(ToHexString(size)));
 }
 
 void MemoryMapView::findReferencesSlot()
 {
     auto base = getSelectionAddr();
     auto size = getCellUserdata(getInitialSelection(), ColSize);
-    DbgCmdExec(QString("reffindrange %1, %2, dis.sel()").arg(ToPtrString(base)).arg(ToPtrString(base + size)));
+    DbgCmdExecAsync(QString("reffindrange %1, %2, dis.sel()").arg(ToPtrString(base)).arg(ToPtrString(base + size)));
     emit showReferences();
 }
 
