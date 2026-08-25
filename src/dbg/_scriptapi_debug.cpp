@@ -7,37 +7,37 @@ SCRIPT_EXPORT void Script::Debug::Wait()
 
 SCRIPT_EXPORT void Script::Debug::Run()
 {
-    if(DbgCmdExecDirect("run"))
+    if(DbgCmdExecAsyncDirect("run"))
         Wait();
 }
 
 SCRIPT_EXPORT void Script::Debug::Pause()
 {
-    if(DbgCmdExecDirect("pause"))
+    if(DbgCmdExecAsyncDirect("pause"))
         Wait();
 }
 
 SCRIPT_EXPORT void Script::Debug::Stop()
 {
-    if(DbgCmdExecDirect("StopDebug"))
+    if(DbgCmdExecAsyncDirect("StopDebug"))
         Wait();
 }
 
 SCRIPT_EXPORT void Script::Debug::StepIn()
 {
-    if(DbgCmdExecDirect("StepInto"))
+    if(DbgCmdExecAsyncDirect("StepInto"))
         Wait();
 }
 
 SCRIPT_EXPORT void Script::Debug::StepOver()
 {
-    if(DbgCmdExecDirect("StepOver"))
+    if(DbgCmdExecAsyncDirect("StepOver"))
         Wait();
 }
 
 SCRIPT_EXPORT void Script::Debug::StepOut()
 {
-    if(DbgCmdExecDirect("StepOut"))
+    if(DbgCmdExecAsyncDirect("StepOut"))
         Wait();
 }
 
@@ -45,21 +45,21 @@ SCRIPT_EXPORT bool Script::Debug::SetBreakpoint(duint address)
 {
     char command[128] = "";
     sprintf_s(command, "bp %p", (void*)address);
-    return DbgCmdExecDirect(command);
+    return DbgCmdExecAsyncDirect(command);
 }
 
 SCRIPT_EXPORT bool Script::Debug::DeleteBreakpoint(duint address)
 {
     char command[128] = "";
     sprintf_s(command, "bc %p", (void*)address);
-    return DbgCmdExecDirect(command);
+    return DbgCmdExecAsyncDirect(command);
 
 }
 SCRIPT_EXPORT bool Script::Debug::DisableBreakpoint(duint address)
 {
     char command[128] = "";
     sprintf_s(command, "bd %p", (void*)address);
-    return DbgCmdExecDirect(command);
+    return DbgCmdExecAsyncDirect(command);
 }
 
 SCRIPT_EXPORT bool Script::Debug::SetHardwareBreakpoint(duint address, HardwareType type)
@@ -67,12 +67,12 @@ SCRIPT_EXPORT bool Script::Debug::SetHardwareBreakpoint(duint address, HardwareT
     char command[128] = "";
     const char* types[] = { "rw", "w", "x" };
     sprintf_s(command, "bphws %p, %s", (void*)address, types[type]);
-    return DbgCmdExecDirect(command);
+    return DbgCmdExecAsyncDirect(command);
 }
 
 SCRIPT_EXPORT bool Script::Debug::DeleteHardwareBreakpoint(duint address)
 {
     char command[128] = "";
     sprintf_s(command, "bphwc %p", (void*)address);
-    return DbgCmdExecDirect(command);
+    return DbgCmdExecAsyncDirect(command);
 }

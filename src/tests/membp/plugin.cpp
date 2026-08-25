@@ -197,7 +197,7 @@ namespace
         {
             const auto deleteAddr = actionAddr != 0 ? actionAddr : currentBpAddr;
             sprintf_s(command, "membpc 0x%llX", static_cast<unsigned long long>(deleteAddr));
-            _plugin_testassert(DbgCmdExecDirect(command), "callback delete failed: %s", command);
+            _plugin_testassert(DbgCmdExecAsyncDirect(command), "callback delete failed: %s", command);
             break;
         }
         case OnHitAction::Add:
@@ -208,7 +208,7 @@ namespace
                       static_cast<unsigned long long>(actionAddr),
                       static_cast<unsigned long long>(addSize),
                       memTypeChar(addType));
-            _plugin_testassert(DbgCmdExecDirect(command), "callback add failed: %s", command);
+            _plugin_testassert(DbgCmdExecAsyncDirect(command), "callback add failed: %s", command);
             break;
         }
         default:
@@ -507,9 +507,9 @@ namespace
             return false;
         const auto disableCommand = std::string("membpd ") + argv[1];
         const auto enableCommand = std::string("membpe ") + argv[1];
-        if(!_plugin_testassert(DbgCmdExecDirect(disableCommand.c_str()), "membpd failed for %s", argv[1]))
+        if(!_plugin_testassert(DbgCmdExecAsyncDirect(disableCommand.c_str()), "membpd failed for %s", argv[1]))
             return false;
-        return _plugin_testassert(DbgCmdExecDirect(enableCommand.c_str()), "membpe failed for %s", argv[1]);
+        return _plugin_testassert(DbgCmdExecAsyncDirect(enableCommand.c_str()), "membpe failed for %s", argv[1]);
     }
 
     bool cbDeleteOnHit(int argc, char** argv)

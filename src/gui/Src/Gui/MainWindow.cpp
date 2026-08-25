@@ -790,7 +790,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
         if(BridgeSettingGetUint("Engine", "DetachOnExit", &detachOnExit) && detachOnExit)
         {
             bExitWhenDetached = true;
-            DbgCmdExec("detach");
+            DbgCmdExecAsync("detach");
             event->ignore();
             return;
         }
@@ -827,7 +827,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
             if(cb->isChecked())
                 BridgeSettingSetUint("Engine", "DetachOnExit", 1);
             bExitWhenDetached = true;
-            DbgCmdExec("detach");
+            DbgCmdExecAsync("detach");
         }
         else if(code == QMessageBox::Yes && cb->isChecked())
         {
@@ -1280,7 +1280,7 @@ void MainWindow::execCommandSlot()
 {
     QAction* action = qobject_cast<QAction*>(sender());
     if(action)
-        DbgCmdExec(action->data().toString());
+        DbgCmdExecAsync(action->data().toString());
 }
 
 void MainWindow::setFocusToCommandBar()
@@ -1329,7 +1329,7 @@ void MainWindow::displayMemMapWidget()
 
 void MainWindow::displayVariables()
 {
-    DbgCmdExec("varlist");
+    DbgCmdExecAsync("varlist");
     showQWidgetTab(mReferenceManager);
 }
 
@@ -1360,13 +1360,13 @@ void MainWindow::openFileSlot()
 
 void MainWindow::openRecentFileSlot(QString filename)
 {
-    DbgCmdExec(QString().sprintf("init \"%s\"", DbgCmdEscape(filename).toUtf8().constData()));
+    DbgCmdExecAsync(QString().sprintf("init \"%s\"", DbgCmdEscape(filename).toUtf8().constData()));
 }
 
 void MainWindow::runSlot()
 {
     if(DbgIsDebugging())
-        DbgCmdExec("run");
+        DbgCmdExecAsync("run");
     else
         restartDebugging();
 }
@@ -1375,7 +1375,7 @@ void MainWindow::restartDebugging()
 {
     auto last = mMRUList->getEntry(0);
     if(!last.isEmpty())
-        DbgCmdExec(QString("init \"%1\"").arg(DbgCmdEscape(last)));
+        DbgCmdExecAsync(QString("init \"%1\"").arg(DbgCmdEscape(last)));
 }
 
 void MainWindow::displayBreakpointWidget()
@@ -1397,7 +1397,7 @@ void MainWindow::dropEvent(QDropEvent* pEvent)
     if(pEvent->mimeData()->hasUrls())
     {
         QString filename = QDir::toNativeSeparators(pEvent->mimeData()->urls()[0].toLocalFile());
-        DbgCmdExec(QString().sprintf("init \"%s\"", DbgCmdEscape(filename).toUtf8().constData()));
+        DbgCmdExecAsync(QString().sprintf("init \"%s\"", DbgCmdEscape(filename).toUtf8().constData()));
         pEvent->acceptProposedAction();
     }
 }
@@ -1579,13 +1579,13 @@ void MainWindow::setLastException(unsigned int exceptionCode)
 
 void MainWindow::findStrings()
 {
-    DbgCmdExec(QString("strref " + ToPtrString(mCpuWidget->getDisasmWidget()->getSelectedVa())));
+    DbgCmdExecAsync(QString("strref " + ToPtrString(mCpuWidget->getDisasmWidget()->getSelectedVa())));
     displayReferencesWidget();
 }
 
 void MainWindow::findModularCalls()
 {
-    DbgCmdExec(QString("modcallfind " + ToPtrString(mCpuWidget->getDisasmWidget()->getSelectedVa())));
+    DbgCmdExecAsync(QString("modcallfind " + ToPtrString(mCpuWidget->getDisasmWidget()->getSelectedVa())));
     displayReferencesWidget();
 }
 
@@ -2083,7 +2083,7 @@ void MainWindow::runSelection()
         else if(mTabWidget->currentWidget() == mCallStackView || (mCallStackView->window() != this && mCallStackView->isActiveWindow()))
             addr = mCallStackView->getSelectionVa();
         if(addr)
-            DbgCmdExec("run " + ToPtrString(addr));
+            DbgCmdExecAsync("run " + ToPtrString(addr));
     }
 }
 
@@ -2097,8 +2097,8 @@ void MainWindow::runExpression()
     if(gotoDialog.exec() != QDialog::Accepted)
         return;
 
-    if(DbgCmdExecDirect(QString("bp \"%1\", ss").arg(gotoDialog.expressionText).toUtf8().constData()))
-        DbgCmdExecDirect("run");
+    if(DbgCmdExecAsyncDirect(QString("bp \"%1\", ss").arg(gotoDialog.expressionText).toUtf8().constData()))
+        DbgCmdExecAsyncDirect("run");
 }
 
 void MainWindow::getStrWindow(const QString title, QString* text)
@@ -2128,7 +2128,7 @@ void MainWindow::displayComments()
 {
     if(!DbgIsDebugging())
         return;
-    DbgCmdExec("commentlist");
+    DbgCmdExecAsync("commentlist");
     displayReferencesWidget();
 }
 
@@ -2136,7 +2136,7 @@ void MainWindow::displayLabels()
 {
     if(!DbgIsDebugging())
         return;
-    DbgCmdExec("labellist");
+    DbgCmdExecAsync("labellist");
     displayReferencesWidget();
 }
 
@@ -2144,7 +2144,7 @@ void MainWindow::displayBookmarks()
 {
     if(!DbgIsDebugging())
         return;
-    DbgCmdExec("bookmarklist");
+    DbgCmdExecAsync("bookmarklist");
     displayReferencesWidget();
 }
 
@@ -2152,7 +2152,7 @@ void MainWindow::displayFunctions()
 {
     if(!DbgIsDebugging())
         return;
-    DbgCmdExec("functionlist");
+    DbgCmdExecAsync("functionlist");
     displayReferencesWidget();
 }
 
@@ -2233,7 +2233,7 @@ void MainWindow::mnemonicHelp()
     QString mnemonic;
     if(SimpleInputBox(this, tr("Mnemonic help"), "", mnemonic, "call"))
     {
-        DbgCmdExec(QString("mnemonichelp ").append(mnemonic).toUtf8().constData());
+        DbgCmdExecAsync(QString("mnemonichelp ").append(mnemonic).toUtf8().constData());
         showQWidgetTab(mLogView);
     }
 }
@@ -2599,7 +2599,7 @@ void MainWindow::clickFavouriteTool()
     }
     else if(data.compare("Command") == 0)
     {
-        DbgCmdExec(action->text());
+        DbgCmdExecAsync(action->text());
     }
 }
 
@@ -2754,7 +2754,7 @@ void MainWindow::on_actionImportdatabase_triggered()
     auto filename = QFileDialog::getOpenFileName(this, tr("Import database"), QString(), tr("Databases (%1);;Database backup (%1.bak);;All files (*.*)").arg(ArchValue("*.dd32", "*.dd64")));
     if(!filename.length())
         return;
-    DbgCmdExec(QString("dbload \"%1\"").arg(QDir::toNativeSeparators(filename)));
+    DbgCmdExecAsync(QString("dbload \"%1\"").arg(QDir::toNativeSeparators(filename)));
 }
 
 void MainWindow::on_actionExportdatabase_triggered()
@@ -2764,7 +2764,7 @@ void MainWindow::on_actionExportdatabase_triggered()
     auto filename = QFileDialog::getSaveFileName(this, tr("Export database"), QString(), tr("Databases (%1);;All files (*.*)").arg(ArchValue("*.dd32", "*.dd64")));
     if(!filename.length())
         return;
-    DbgCmdExec(QString("dbsave \"%1\"").arg(QDir::toNativeSeparators(filename)));
+    DbgCmdExecAsync(QString("dbsave \"%1\"").arg(QDir::toNativeSeparators(filename)));
 }
 
 static void setupMenuCustomizationHelper(QMenu* parentMenu, QList<QAction*> & stringList)

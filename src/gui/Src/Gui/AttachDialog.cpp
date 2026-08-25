@@ -153,7 +153,7 @@ void AttachDialog::attachToProcess(quint32 pid)
     // If not currently debugging, just attach directly
     if(!DbgIsDebugging())
     {
-        DbgCmdExec(QString("attach .%1").arg(pid));
+        DbgCmdExecAsync(QString("attach .%1").arg(pid));
         accept();
         return;
     }
@@ -214,6 +214,6 @@ void AttachDialog::attachToProcess(quint32 pid)
     // If ShowAttachConfirmation is false, backend uses existing DetachOnAttach setting
     // (set by a previous "Remember my choice" selection)
 
-    DbgCmdExec(QString("attach .%1").arg(pid));
+    DbgCmdExecAsync(QString("attach .%1").arg(pid));
     accept();
 }

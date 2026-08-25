@@ -283,16 +283,16 @@ void CalculatorDialog::on_txtUnicode_textEdited(const QString & arg1)
 
 void CalculatorDialog::on_btnGoto_clicked()
 {
-    DbgCmdExecDirect(QString("disasm " + ui->txtHex->text()));
+    DbgCmdExecAsyncDirect(QString("disasm " + ui->txtHex->text()));
 }
 
 void CalculatorDialog::on_btnGotoDump_clicked()
 {
-    DbgCmdExecDirect(QString("dump " + ui->txtHex->text()));
+    DbgCmdExecAsyncDirect(QString("dump " + ui->txtHex->text()));
 }
 
 void CalculatorDialog::on_btnGotoMemoryMap_clicked()
 {
-    DbgCmdExecDirect(QString("memmapdump " + ui->txtHex->text()));
+    DbgCmdExecAsyncDirect(QString("memmapdump " + ui->txtHex->text()));
 }
 

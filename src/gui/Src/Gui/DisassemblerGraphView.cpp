@@ -1236,7 +1236,7 @@ void DisassemblerGraphView::mouseDoubleClickEvent(QMouseEvent* event)
         if(!mHistoryLock)
             mHistory.addVaToHistory(instr);
 
-        DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(instr)));
+        DbgCmdExecAsync(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(instr)));
     }
 }
 
@@ -2416,19 +2416,19 @@ void DisassemblerGraphView::keyPressEvent(QKeyEvent* event)
         return;
     int key = event->key();
     if(key == Qt::Key_Up)
-        DbgCmdExec(QString("graph dis.prev(%1), silent").arg(ToPtrString(cur_instr)));
+        DbgCmdExecAsync(QString("graph dis.prev(%1), silent").arg(ToPtrString(cur_instr)));
     else if(key == Qt::Key_Down)
-        DbgCmdExec(QString("graph dis.next(%1), silent").arg(ToPtrString(cur_instr)));
+        DbgCmdExecAsync(QString("graph dis.next(%1), silent").arg(ToPtrString(cur_instr)));
     else if(key == Qt::Key_Left)
-        DbgCmdExec(QString("graph dis.brtrue(%1), silent").arg(ToPtrString(cur_instr)));
+        DbgCmdExecAsync(QString("graph dis.brtrue(%1), silent").arg(ToPtrString(cur_instr)));
     else if(key == Qt::Key_Right)
-        DbgCmdExec(QString("graph dis.brfalse(%1), silent").arg(ToPtrString(cur_instr)));
+        DbgCmdExecAsync(QString("graph dis.brfalse(%1), silent").arg(ToPtrString(cur_instr)));
     else if(key == Qt::Key_Return || key == Qt::Key_Enter)
     {
         //Add address to history
         if(!mHistoryLock)
             mHistory.addVaToHistory(cur_instr);
-        DbgCmdExec(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(cur_instr)));
+        DbgCmdExecAsync(QString("graph dis.branchdest(%1), silent").arg(ToPtrString(cur_instr)));
     }
 }
 
@@ -2544,13 +2544,13 @@ void DisassemblerGraphView::gotoExpressionSlot()
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
-        DbgCmdExec(QString().sprintf("graph %p, silent", value));
+        DbgCmdExecAsync(QString().sprintf("graph %p, silent", value));
     }
 }
 
 void DisassemblerGraphView::gotoOriginSlot()
 {
-    DbgCmdExec("graph cip, silent");
+    DbgCmdExecAsync("graph cip, silent");
 }
 
 void DisassemblerGraphView::gotoPreviousSlot()
@@ -2558,7 +2558,7 @@ void DisassemblerGraphView::gotoPreviousSlot()
     if(mHistory.historyHasPrev())
     {
         mHistoryLock = true;
-        DbgCmdExecDirect(QString("graph %1, silent").arg(ToPtrString(mHistory.historyPrev())));
+        DbgCmdExecAsyncDirect(QString("graph %1, silent").arg(ToPtrString(mHistory.historyPrev())));
         mHistoryLock = false;
     }
 }
@@ -2568,7 +2568,7 @@ void DisassemblerGraphView::gotoNextSlot()
     if(mHistory.historyHasNext())
     {
         mHistoryLock = true;
-        DbgCmdExecDirect(QString("graph %1, silent").arg(ToPtrString(mHistory.historyNext())));
+        DbgCmdExecAsyncDirect(QString("graph %1, silent").arg(ToPtrString(mHistory.historyNext())));
         mHistoryLock = false;
     }
 }
@@ -2584,7 +2584,7 @@ void DisassemblerGraphView::toggleSyncOriginSlot()
 
 void DisassemblerGraphView::refreshSlot()
 {
-    DbgCmdExec(QString("graph %1, force").arg(ToPtrString(this->cur_instr)));
+    DbgCmdExecAsync(QString("graph %1, force").arg(ToPtrString(this->cur_instr)));
 }
 
 void DisassemblerGraphView::paintImage(QPainter* painter)
@@ -2682,7 +2682,7 @@ void DisassemblerGraphView::xrefSlot()
         mXrefDlg = new XrefBrowseDialog(this);
     mXrefDlg->setup(va, [](duint addr)
     {
-        DbgCmdExec(QString("graph %1").arg(ToPtrString(addr)));
+        DbgCmdExecAsync(QString("graph %1").arg(ToPtrString(addr)));
     });
     mXrefDlg->showNormal();
 }
@@ -2698,7 +2698,7 @@ void DisassemblerGraphView::followActionSlot()
     if(action)
     {
         QString data = action->data().toString();
-        DbgCmdExecDirect(QString("graph %1, silent").arg(data));
+        DbgCmdExecAsyncDirect(QString("graph %1, silent").arg(data));
     }
 }
 
@@ -2709,7 +2709,7 @@ void DisassemblerGraphView::mnemonicHelpSlot()
     DbgMemRead(addr, data, sizeof(data));
     Zydis zydis;
     zydis.Disassemble(addr, data);
-    DbgCmdExecDirect(QString("mnemonichelp %1").arg(zydis.Mnemonic().c_str()));
+    DbgCmdExecAsyncDirect(QString("mnemonichelp %1").arg(zydis.Mnemonic().c_str()));
     emit displayLogWidget();
 }
 

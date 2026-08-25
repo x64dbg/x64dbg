@@ -18,7 +18,7 @@ void ThreadView::contextMenuSlot(const QPoint & pos)
 void ThreadView::gotoThreadEntrySlot()
 {
     QString addrText = getCellContent(getInitialSelection(), ColEntry);
-    DbgCmdExecDirect(QString("disasm " + addrText));
+    DbgCmdExecAsyncDirect(QString("disasm " + addrText));
 }
 
 void ThreadView::setupContextMenu()
@@ -137,11 +137,11 @@ void ThreadView::execCommandSlot()
             {
                 QString specializedCommand = command;
                 specializedCommand.replace(QChar('$'), ToHexString(getCellUserdata(i, 1))); // $ -> Thread Id
-                DbgCmdExec(specializedCommand);
+                DbgCmdExecAsync(specializedCommand);
             }
         }
         else
-            DbgCmdExec(command);
+            DbgCmdExecAsync(command);
     }
 }
 
@@ -404,10 +404,10 @@ QString ThreadView::paintContent(QPainter* painter, duint row, duint col, int x,
 void ThreadView::doubleClickedSlot()
 {
     duint threadId = getCellUserdata(getInitialSelection(), ColThreadId);
-    DbgCmdExecDirect("switchthread " + ToHexString(threadId));
+    DbgCmdExecAsyncDirect("switchthread " + ToHexString(threadId));
 
     QString addrText = getCellContent(getInitialSelection(), ColCip);
-    DbgCmdExec("disasm " + addrText);
+    DbgCmdExecAsync("disasm " + addrText);
 }
 
 void ThreadView::setNameSlot()
@@ -417,5 +417,5 @@ void ThreadView::setNameSlot()
     if(!SimpleInputBox(this, tr("Thread name - %1").arg(threadId), threadName, threadName, QString()))
         return;
 
-    DbgCmdExec(QString("setthreadname %1, \"%2\"").arg(ToHexString(threadId)).arg(DbgCmdEscape(threadName)));
+    DbgCmdExecAsync(QString("setthreadname %1, \"%2\"").arg(ToHexString(threadId)).arg(DbgCmdEscape(threadName)));
 }

@@ -549,12 +549,12 @@ void SymbolView::symbolRefreshCurrent()
 
 void SymbolView::symbolFollow()
 {
-    DbgCmdExec(QString("disasm " + mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 0)));
+    DbgCmdExecAsync(QString("disasm " + mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 0)));
 }
 
 void SymbolView::symbolFollowDump()
 {
-    DbgCmdExecDirect(QString("dump " + mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 0)));
+    DbgCmdExecAsyncDirect(QString("dump " + mSymbolList->mCurList->getCellContent(mSymbolList->mCurList->getInitialSelection(), 0)));
 }
 
 void SymbolView::symbolFollowImport()
@@ -565,11 +565,11 @@ void SymbolView::symbolFollowImport()
         return;
     if(DbgFunctions()->MemIsCodePage(addr, true))
     {
-        DbgCmdExec(QString("disasm %1").arg(ToPtrString(addr)));
+        DbgCmdExecAsync(QString("disasm %1").arg(ToPtrString(addr)));
     }
     else
     {
-        DbgCmdExecDirect(QString("dump %1").arg(ToPtrString(addr)));
+        DbgCmdExecAsyncDirect(QString("dump %1").arg(ToPtrString(addr)));
         emit Bridge::getBridge()->getDumpAttention();
     }
 }
@@ -673,13 +673,13 @@ void SymbolView::moduleContextMenu(QMenu* menu)
 
 void SymbolView::moduleFollow()
 {
-    DbgCmdExec(QString("disasm " + mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColBase) + "+1000"));
+    DbgCmdExecAsync(QString("disasm " + mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColBase) + "+1000"));
 }
 
 void SymbolView::moduleEntryFollow()
 {
     //Test case: libstdc++-6.dll
-    DbgCmdExec(QString("disasm \"" + mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColModule) + "\":entry"));
+    DbgCmdExecAsync(QString("disasm \"" + mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColModule) + "\":entry"));
 }
 
 void SymbolView::moduleCopyPath()
@@ -720,12 +720,12 @@ void SymbolView::moduleDownloadSymbols()
 {
     auto selection = mModuleList->mCurList->getSelection();
     for(auto i : selection)
-        DbgCmdExec(QString("symdownload \"%0\"").arg(mModuleList->mCurList->getCellContent(i, ColModule)));
+        DbgCmdExecAsync(QString("symdownload \"%0\"").arg(mModuleList->mCurList->getCellContent(i, ColModule)));
 }
 
 void SymbolView::moduleDownloadAllSymbols()
 {
-    DbgCmdExec("symdownload");
+    DbgCmdExecAsync("symdownload");
 }
 
 void SymbolView::moduleLoad()
@@ -737,7 +737,7 @@ void SymbolView::moduleLoad()
     if(browse.exec() != QDialog::Accepted && browse.path.length())
         return;
     auto fileName = browse.path;
-    DbgCmdExec(QString("loadlib \"%1\"").arg(DbgCmdEscape(fileName)));
+    DbgCmdExecAsync(QString("loadlib \"%1\"").arg(DbgCmdEscape(fileName)));
 }
 
 void SymbolView::moduleFree()
@@ -758,7 +758,7 @@ void SymbolView::moduleFree()
         {
             auto selection = mModuleList->mCurList->getSelection();
             for(auto module : selection)
-                DbgCmdExec(QString("freelib %1").arg(mModuleList->mCurList->getCellContent(module, ColBase)));
+                DbgCmdExecAsync(QString("freelib %1").arg(mModuleList->mCurList->getCellContent(module, ColBase)));
         }
     }
 }
@@ -799,7 +799,7 @@ void SymbolView::toggleBreakpoint()
             cmd = "bp " + ToPtrString(va);
         }
 
-        DbgCmdExec(cmd);
+        DbgCmdExecAsync(cmd);
     }
 }
 
@@ -888,7 +888,7 @@ void SymbolView::moduleSetParty()
 void SymbolView::moduleFollowMemMap()
 {
     QString base = mModuleList->mCurList->getCellContent(mModuleList->mCurList->getInitialSelection(), ColBase);
-    DbgCmdExec(("memmapdump " + base));
+    DbgCmdExecAsync(("memmapdump " + base));
 }
 
 void SymbolView::emptySearchResultSlot()

@@ -178,7 +178,7 @@ void CPUArgumentWidget::followDisasmSlot()
     QAction* action = qobject_cast<QAction*>(sender());
     if(!action)
         return;
-    DbgCmdExec(QString("disasm \"%1\"").arg(action->objectName()));
+    DbgCmdExecAsync(QString("disasm \"%1\"").arg(action->objectName()));
 }
 
 void CPUArgumentWidget::followDumpSlot()
@@ -186,7 +186,7 @@ void CPUArgumentWidget::followDumpSlot()
     QAction* action = qobject_cast<QAction*>(sender());
     if(!action)
         return;
-    DbgCmdExec(QString("dump \"%1\"").arg(action->objectName()));
+    DbgCmdExecAsync(QString("dump \"%1\"").arg(action->objectName()));
 }
 
 void CPUArgumentWidget::followStackSlot()
@@ -194,7 +194,7 @@ void CPUArgumentWidget::followStackSlot()
     QAction* action = qobject_cast<QAction*>(sender());
     if(!action)
         return;
-    DbgCmdExec(QString("sdump \"%1\"").arg(action->objectName()));
+    DbgCmdExecAsync(QString("sdump \"%1\"").arg(action->objectName()));
 }
 
 void CPUArgumentWidget::onCopyToClipboardAction()

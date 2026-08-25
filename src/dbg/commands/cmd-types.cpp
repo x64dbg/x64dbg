@@ -27,7 +27,7 @@ static bool cbInstrDataGeneric(ENCODETYPE type, int argc, char* argv[])
         return false;
     }
     if(created)
-        DbgCmdExec("disasm dis.sel()");
+        DbgCmdExecAsync("disasm dis.sel()");
     else
         GuiUpdateDisassemblyView();
     return true;

@@ -178,7 +178,7 @@ namespace
     {
         const auto command = std::string("commandparsercompare ") + argumentText;
         gExpectedArgs = expected;
-        return _plugin_testassert(DbgCmdExecDirect(command.c_str()), "differential command failed: %s", command.c_str());
+        return _plugin_testassert(DbgCmdExecAsyncDirect(command.c_str()), "differential command failed: %s", command.c_str());
     }
 
     bool compareWithLegacy(const std::string & argumentText)
@@ -269,7 +269,7 @@ namespace
 
         gExpected = value;
         auto command = std::string("commandparsercapture \"") + escaped.data() + "\"";
-        return _plugin_testassert(DbgCmdExecDirect(command.c_str()), "round-trip command failed: %s", command.c_str());
+        return _plugin_testassert(DbgCmdExecAsyncDirect(command.c_str()), "round-trip command failed: %s", command.c_str());
     }
 
     bool cbRoundTrip(int, char**)

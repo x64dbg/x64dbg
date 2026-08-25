@@ -1135,21 +1135,21 @@ BRIDGE_IMPEXP duint DbgMemFindBaseAddr(duint addr, duint* size);
 /// Note: the command may not have completed before this call returns. Use this
 /// function if you don't care when the command gets executed.
 ///
-/// Example: DbgCmdExec("ClearLog")
+/// Example: DbgCmdExecAsync("ClearLog")
 /// </summary>
 /// <param name="cmd">The command to execute.</param>
 /// <returns>True if the command was successfully submitted to the command queue. False if the submission failed.</returns>
-BRIDGE_IMPEXP bool DbgCmdExec(const char* cmd);
+BRIDGE_IMPEXP bool DbgCmdExecAsync(const char* cmd);
 
 /// <summary>
 /// Performs synchronous execution of a debugger command. This function call only
 /// returns after the command has completed.
 ///
-/// Example: DbgCmdExecDirect("loadlib advapi32.dll")
+/// Example: DbgCmdExecAsyncDirect("loadlib advapi32.dll")
 /// </summary>
 /// <param name="cmd">The command to execute.</param>
 /// <returns>True if the command executed successfully, False if there was a problem.</returns>
-BRIDGE_IMPEXP bool DbgCmdExecDirect(const char* cmd);
+BRIDGE_IMPEXP bool DbgCmdExecAsyncDirect(const char* cmd);
 BRIDGE_IMPEXP bool DbgMemMap(MEMMAP* memmap);
 BRIDGE_IMPEXP bool DbgIsValidExpression(const char* expression);
 BRIDGE_IMPEXP bool DbgIsDebugging();

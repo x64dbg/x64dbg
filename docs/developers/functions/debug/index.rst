@@ -19,8 +19,8 @@ This section contains information about debug functions of x64dbg.
    DbgClearBookmarkRange
    DbgClearCommentRange
    DbgClearLabelRange
-   DbgCmdExec
-   DbgCmdExecDirect
+   DbgCmdExecAsync
+   DbgCmdExecAsyncDirect
    DbgDelEncodeTypeRange
    DbgDelEncodeTypeSegment
    DbgDisasmAt

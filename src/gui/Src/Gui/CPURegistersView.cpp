@@ -164,7 +164,7 @@ void CPURegistersView::mouseDoubleClickEvent(QMouseEvent* event)
     if(!identifyRegister(y, x, 0))
         return;
     if(mSelected == CIP) //double clicked on CIP register, disasm CIP
-        DbgCmdExec("disasm cip");
+        DbgCmdExecAsync("disasm cip");
     // is current register general purposes register or FPU register?
     else if(mMODIFYDISPLAY.contains(mSelected))
         wCM_Modify->trigger();
@@ -173,7 +173,7 @@ void CPURegistersView::mouseDoubleClickEvent(QMouseEvent* event)
     else if(mCANSTOREADDRESS.contains(mSelected))
         wCM_FollowInDisassembly->trigger(); //follow in disassembly
     else if(mSelected == ArchValue(FS, GS)) // double click on FS or GS, follow TEB in dump
-        DbgCmdExec("dump teb()");
+        DbgCmdExecAsync("dump teb()");
 }
 
 void CPURegistersView::keyPressEvent(QKeyEvent* event)
@@ -610,7 +610,7 @@ void CPURegistersView::onFollowInDisassembly()
     {
         QString addr = QString("%1").arg((* ((duint*) registerValue(&mRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
         if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&mRegDumpStruct, mSelected)))))
-            DbgCmdExec(QString().sprintf("disasm \"%s\"", addr.toUtf8().constData()));
+            DbgCmdExecAsync(QString().sprintf("disasm \"%s\"", addr.toUtf8().constData()));
     }
 }
 
@@ -620,7 +620,7 @@ void CPURegistersView::onFollowInDump()
     {
         QString addr = QString("%1").arg((* ((duint*) registerValue(&mRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
         if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&mRegDumpStruct, mSelected)))))
-            DbgCmdExec(QString().sprintf("dump \"%s\"", addr.toUtf8().constData()));
+            DbgCmdExecAsync(QString().sprintf("dump \"%s\"", addr.toUtf8().constData()));
     }
 }
 
@@ -633,7 +633,7 @@ void CPURegistersView::onFollowInDumpN()
         {
             QAction* action = qobject_cast<QAction*>(sender());
             int numDump = action->data().toInt();
-            DbgCmdExec(QString("dump %1, .%2").arg(addr).arg(numDump));
+            DbgCmdExecAsync(QString("dump %1, .%2").arg(addr).arg(numDump));
         }
     }
 }
@@ -644,7 +644,7 @@ void CPURegistersView::onFollowInStack()
     {
         QString addr = QString("%1").arg((* ((duint*) registerValue(&mRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
         if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&mRegDumpStruct, mSelected)))))
-            DbgCmdExec(QString().sprintf("sdump \"%s\"", addr.toUtf8().constData()));
+            DbgCmdExecAsync(QString().sprintf("sdump \"%s\"", addr.toUtf8().constData()));
     }
 }
 
@@ -654,7 +654,7 @@ void CPURegistersView::onFollowInMemoryMap()
     {
         QString addr = QString("%1").arg((* ((duint*) registerValue(&mRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
         if(DbgMemIsValidReadPtr((* ((duint*) registerValue(&mRegDumpStruct, mSelected)))))
-            DbgCmdExec(QString().sprintf("memmapdump \"%s\"", addr.toUtf8().constData()));
+            DbgCmdExecAsync(QString().sprintf("memmapdump \"%s\"", addr.toUtf8().constData()));
     }
 }
 
@@ -663,7 +663,7 @@ void CPURegistersView::onRemoveHardware()
     if(mSelected == DR0 || mSelected == DR1 || mSelected == DR2 || mSelected == DR3)
     {
         QString addr = QString("%1").arg((* ((duint*) registerValue(&mRegDumpStruct, mSelected))), mRegisterPlaces[mSelected].valuesize, 16, QChar('0')).toUpper();
-        DbgCmdExec(QString().sprintf("bphc \"%s\"", addr.toUtf8().constData()));
+        DbgCmdExecAsync(QString().sprintf("bphc \"%s\"", addr.toUtf8().constData()));
     }
 }
 
@@ -786,7 +786,7 @@ void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
         QAction* action = menu.exec(this->mapToGlobal(pos));
 
         if(action == hwbpCsp)
-            DbgCmdExec("bphws csp,rw");
+            DbgCmdExecAsync("bphws csp,rw");
     }
 }
 

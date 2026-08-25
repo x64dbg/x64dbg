@@ -843,7 +843,7 @@ void CPUDisassembly::toggleFunctionSlot()
     if(!DbgFunctionOverlaps(start, end))
     {
         QString cmd = QString("functionadd ") + ToPtrString(start) + "," + ToPtrString(end);
-        DbgCmdExec(cmd);
+        DbgCmdExecAsync(cmd);
     }
     else
     {
@@ -853,7 +853,7 @@ void CPUDisassembly::toggleFunctionSlot()
                 break;
         }
         QString cmd = QString("functiondel ") + ToPtrString(function_start);
-        DbgCmdExec(cmd);
+        DbgCmdExecAsync(cmd);
     }
 }
 
@@ -871,7 +871,7 @@ void CPUDisassembly::toggleArgumentSlot()
         QString end_text = ToPtrString(end);
 
         QString cmd = "argumentadd " + start_text + "," + end_text;
-        DbgCmdExec(cmd);
+        DbgCmdExecAsync(cmd);
     }
     else
     {
@@ -883,7 +883,7 @@ void CPUDisassembly::toggleArgumentSlot()
         QString start_text = ToPtrString(argument_start);
 
         QString cmd = "argumentdel " + start_text;
-        DbgCmdExec(cmd);
+        DbgCmdExecAsync(cmd);
     }
 }
 
@@ -896,7 +896,7 @@ void CPUDisassembly::addLoopSlot()
     if(start == end)
         return;
     auto depth = findDeepestLoopDepth(start);
-    DbgCmdExec(QString("loopadd %1, %2").arg(ToPtrString(start)).arg(ToPtrString(end)).arg(depth));
+    DbgCmdExecAsync(QString("loopadd %1, %2").arg(ToPtrString(start)).arg(ToPtrString(end)).arg(depth));
 }
 
 void CPUDisassembly::deleteLoopSlot()
@@ -907,7 +907,7 @@ void CPUDisassembly::deleteLoopSlot()
     auto depth = findDeepestLoopDepth(start);
     if(depth < 0)
         return;
-    DbgCmdExec(QString("loopdel %1, .%2").arg(ToPtrString(start)).arg(depth));
+    DbgCmdExecAsync(QString("loopdel %1, .%2").arg(ToPtrString(start)).arg(depth));
 }
 
 void CPUDisassembly::assembleSlot()
@@ -1111,12 +1111,12 @@ void CPUDisassembly::followActionSlot()
     if(!action)
         return;
     if(action->objectName().startsWith("DUMP|"))
-        DbgCmdExec(QString().sprintf("dump \"%s\"", action->objectName().mid(5).toUtf8().constData()));
+        DbgCmdExecAsync(QString().sprintf("dump \"%s\"", action->objectName().mid(5).toUtf8().constData()));
     else if(action->objectName().startsWith("REF|"))
     {
         QString addrText = ToPtrString(rvaToVa(getInitialSelection()));
         QString value = action->objectName().mid(4);
-        DbgCmdExec(QString("findref \"" + value +  "\", " + addrText));
+        DbgCmdExecAsync(QString("findref \"" + value +  "\", " + addrText));
         emit displayReferencesWidget();
     }
     else if(action->objectName().startsWith("CPU|"))
@@ -1141,7 +1141,7 @@ void CPUDisassembly::findReferencesSlot()
     QString addrStart = ToPtrString(rvaToVa(getSelectionStart()));
     QString addrEnd = ToPtrString(rvaToVa(getSelectionEnd()));
     QString addrDisasm = ToPtrString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm));
+    DbgCmdExecAsync(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm));
     emit displayReferencesWidget();
 }
 
@@ -1169,12 +1169,12 @@ void CPUDisassembly::findConstantSlot()
     auto addrText = ToHexString(rvaToVa(getInitialSelection()));
     auto constText = ToHexString(wordEdit.getVal());
     if(refFindType != -1)
-        DbgCmdExec(QString("findref %1, %2, 0, %3").arg(constText).arg(addrText).arg(refFindType));
+        DbgCmdExecAsync(QString("findref %1, %2, 0, %3").arg(constText).arg(addrText).arg(refFindType));
     else
     {
         duint start, end;
         if(DbgFunctionGet(rvaToVa(getInitialSelection()), &start, &end))
-            DbgCmdExec(QString("findref %1, %2, %3, 0").arg(constText).arg(ToPtrString(start)).arg(ToPtrString(end - start)));
+            DbgCmdExecAsync(QString("findref %1, %2, %3, 0").arg(constText).arg(ToPtrString(start)).arg(ToPtrString(end - start)));
     }
     emit displayReferencesWidget();
 }
@@ -1196,12 +1196,12 @@ void CPUDisassembly::findStringsSlot()
     {
         duint start, end;
         if(DbgFunctionGet(rvaToVa(getInitialSelection()), &start, &end))
-            DbgCmdExec(QString("strref %1, %2, 0").arg(ToPtrString(start)).arg(ToPtrString(end - start)));
+            DbgCmdExecAsync(QString("strref %1, %2, 0").arg(ToPtrString(start)).arg(ToPtrString(end - start)));
         return;
     }
 
     auto addrText = ToHexString(rvaToVa(getInitialSelection()));
-    DbgCmdExec(QString("strref %1, 0, %2").arg(addrText).arg(refFindType));
+    DbgCmdExecAsync(QString("strref %1, 0, %2").arg(addrText).arg(refFindType));
     emit displayReferencesWidget();
 }
 
@@ -1224,12 +1224,12 @@ void CPUDisassembly::findCallsSlot()
 
     auto addrText = ToHexString(rvaToVa(getInitialSelection()));
     if(refFindType != -1)
-        DbgCmdExec(QString("modcallfind %1, 0, %2").arg(addrText).arg(refFindType));
+        DbgCmdExecAsync(QString("modcallfind %1, 0, %2").arg(addrText).arg(refFindType));
     else
     {
         duint start, end;
         if(DbgFunctionGet(rvaToVa(getInitialSelection()), &start, &end))
-            DbgCmdExec(QString("modcallfind %1, %2, 0").arg(ToPtrString(start)).arg(ToPtrString(end - start)));
+            DbgCmdExecAsync(QString("modcallfind %1, %2, 0").arg(ToPtrString(start)).arg(ToPtrString(end - start)));
     }
     emit displayReferencesWidget();
 }
@@ -1297,7 +1297,7 @@ void CPUDisassembly::findPatternSlot()
     if(!command.length())
         throw std::runtime_error("Implementation error in findPatternSlot()");
 
-    DbgCmdExec(command);
+    DbgCmdExecAsync(command);
     emit displayReferencesWidget();
 }
 
@@ -1320,13 +1320,13 @@ void CPUDisassembly::findGUIDSlot()
     auto addrText = ToHexString(rvaToVa(getInitialSelection()));
     if(refFindType == -1)
     {
-        DbgCmdExec(QString("findguid %1, 0, %2").arg(addrText, refFindType));
+        DbgCmdExecAsync(QString("findguid %1, 0, %2").arg(addrText, refFindType));
     }
     else
     {
         duint start, end;
         if(DbgFunctionGet(rvaToVa(getInitialSelection()), &start, &end))
-            DbgCmdExec(QString("findguid %1, %2, 0").arg(ToPtrString(start), ToPtrString(end - start)));
+            DbgCmdExecAsync(QString("findguid %1, %2, 0").arg(ToPtrString(start), ToPtrString(end - start)));
     }
     emit displayReferencesWidget();
 }
@@ -1339,7 +1339,7 @@ void CPUDisassembly::findNamesSlot()
         if(!base)
             return;
 
-        DbgCmdExec(QString("symfollow %1").arg(ToPtrString(base)));
+        DbgCmdExecAsync(QString("symfollow %1").arg(ToPtrString(base)));
     }
 }
 
@@ -1879,12 +1879,12 @@ void CPUDisassembly::findCommandSlot()
 
     dsint size = mMemPage->getSize();
     if(refFindType != -1)
-        DbgCmdExec(QString("findasm \"%1\", %2, .%3, %4").arg(mLineEdit.editText).arg(addrText).arg(size).arg(refFindType));
+        DbgCmdExecAsync(QString("findasm \"%1\", %2, .%3, %4").arg(mLineEdit.editText).arg(addrText).arg(size).arg(refFindType));
     else
     {
         duint start, end;
         if(DbgFunctionGet(va, &start, &end))
-            DbgCmdExec(QString("findasm \"%1\", %2, .%3, 0").arg(mLineEdit.editText).arg(ToPtrString(start)).arg(ToPtrString(end - start)));
+            DbgCmdExecAsync(QString("findasm \"%1\", %2, .%3, 0").arg(mLineEdit.editText).arg(ToPtrString(start)).arg(ToPtrString(end - start)));
     }
 
     emit displayReferencesWidget();
@@ -1986,7 +1986,7 @@ void CPUDisassembly::traceCoverageBitSlot()
             break;
         }
     }
-    DbgCmdExec("traceexecute cip");
+    DbgCmdExecAsync("traceexecute cip");
 }
 
 void CPUDisassembly::traceCoverageByteSlot()
@@ -2003,7 +2003,7 @@ void CPUDisassembly::traceCoverageByteSlot()
             break;
         }
     }
-    DbgCmdExec("traceexecute cip");
+    DbgCmdExecAsync("traceexecute cip");
 }
 
 void CPUDisassembly::traceCoverageWordSlot()
@@ -2020,7 +2020,7 @@ void CPUDisassembly::traceCoverageWordSlot()
             break;
         }
     }
-    DbgCmdExec("traceexecute cip");
+    DbgCmdExecAsync("traceexecute cip");
 }
 
 void CPUDisassembly::traceCoverageResetSlot()
@@ -2039,7 +2039,7 @@ void CPUDisassembly::traceCoverageResetSlot()
             GuiAddLogMessage(tr("Failed to reset trace coverage for page %1.\n").arg(ToPtrString(i)).toUtf8().constData());
         }
     }
-    DbgCmdExec("traceexecute cip");
+    DbgCmdExecAsync("traceexecute cip");
 }
 
 void CPUDisassembly::traceCoverageDisableSlot()
@@ -2072,13 +2072,13 @@ void CPUDisassembly::mnemonicHelpSlot()
     DbgMemRead(addr, data, sizeof(data));
     Zydis zydis;
     zydis.Disassemble(addr, data);
-    DbgCmdExecDirect(QString("mnemonichelp %1").arg(zydis.Mnemonic().c_str()));
+    DbgCmdExecAsyncDirect(QString("mnemonichelp %1").arg(zydis.Mnemonic().c_str()));
     emit displayLogWidget();
 }
 
 void CPUDisassembly::analyzeSingleFunctionSlot()
 {
-    DbgCmdExec(QString("analr %1").arg(ToHexString(rvaToVa(getInitialSelection()))));
+    DbgCmdExecAsync(QString("analr %1").arg(ToHexString(rvaToVa(getInitialSelection()))));
 }
 
 void CPUDisassembly::removeAnalysisSelectionSlot()
@@ -2127,8 +2127,8 @@ void CPUDisassembly::setEncodeTypeSlot()
 
 void CPUDisassembly::analyzeModuleSlot()
 {
-    DbgCmdExec("cfanal");
-    DbgCmdExec("analx");
+    DbgCmdExecAsync("cfanal");
+    DbgCmdExecAsync("analx");
 }
 
 void CPUDisassembly::copyTokenTextSlot()
@@ -2158,7 +2158,7 @@ void CPUDisassembly::downloadCurrentSymbolsSlot()
 {
     char module[MAX_MODULE_SIZE] = "";
     if(DbgGetModuleAt(rvaToVa(getInitialSelection()), module))
-        DbgCmdExec(QString("symdownload \"%0\"").arg(module));
+        DbgCmdExecAsync(QString("symdownload \"%0\"").arg(module));
 }
 
 void CPUDisassembly::traceCoverageToggleTraceRecordingSlot()

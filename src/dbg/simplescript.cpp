@@ -833,7 +833,7 @@ static ScriptCommandOutcome scriptExecCommand(const char* command, bool gui, SCR
 ScriptCommandOutcome ScriptCmdExecAwait(const char* command, bool gui, const SCRIPTSTATE* interruptState)
 {
     // Capture the current script now, because this function might be called
-    // through a breakpoint command or dbgcmdexecdirect("scriptcmd") from a plugin callback.
+    // through a breakpoint command or dbgcmdexecasyncdirect("scriptcmd") from a plugin callback.
     // If we did not capture the script state it will be reset by the queue.
     // NOTE: Relevant if you step over 'erun' and a breakpoint with 'scriptcmd' is hit.
     auto state = interruptState != nullptr ? *interruptState : scriptState.load();

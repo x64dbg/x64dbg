@@ -588,7 +588,7 @@ void CPUDump::gotoExpressionSlot()
     if(mGoto->exec() == QDialog::Accepted)
     {
         duint value = DbgValFromString(mGoto->expressionText.toUtf8().constData());
-        DbgCmdExec(QString().sprintf("dump %p", value));
+        DbgCmdExecAsync(QString().sprintf("dump %p", value));
     }
 }
 
@@ -615,19 +615,19 @@ void CPUDump::gotoFileOffsetSlot()
         return;
     duint value = DbgValFromString(mGotoOffset->expressionText.toUtf8().constData());
     value = DbgFunctions()->FileOffsetToVa(modname, value);
-    DbgCmdExec(QString().sprintf("dump \"%p\"", value));
+    DbgCmdExecAsync(QString().sprintf("dump \"%p\"", value));
 }
 
 void CPUDump::gotoStartSlot()
 {
     duint dest = mMemPage->getBase();
-    DbgCmdExec(QString().sprintf("dump \"%p\"", dest));
+    DbgCmdExecAsync(QString().sprintf("dump \"%p\"", dest));
 }
 
 void CPUDump::gotoEndSlot()
 {
     duint dest = mMemPage->getBase() + mMemPage->getSize() - (getViewableRowsCount() * getBytePerRowCount());
-    DbgCmdExec(QString().sprintf("dump \"%p\"", dest));
+    DbgCmdExecAsync(QString().sprintf("dump \"%p\"", dest));
 }
 
 void CPUDump::gotoPreviousReferenceSlot()
@@ -637,7 +637,7 @@ void CPUDump::gotoPreviousReferenceSlot()
     {
         if(index > 0 && addr == rvaToVa(getInitialSelection()))
             DbgValSetScalar("$__dump_refindex", index - 1);
-        DbgCmdExec("dump refsearch.addr($__dump_refindex)");
+        DbgCmdExecAsync("dump refsearch.addr($__dump_refindex)");
         GuiReferenceSetSingleSelection(int(DbgEval("$__dump_refindex")), false);
     }
 }
@@ -649,7 +649,7 @@ void CPUDump::gotoNextReferenceSlot()
     {
         if(index + 1 < count && addr == rvaToVa(getInitialSelection()))
             DbgValSetScalar("$__dump_refindex", index + 1);
-        DbgCmdExec("dump refsearch.addr($__dump_refindex)");
+        DbgCmdExecAsync("dump refsearch.addr($__dump_refindex)");
         GuiReferenceSetSingleSelection(int(DbgEval("$__dump_refindex")), false);
     }
 }
@@ -1414,7 +1414,7 @@ void CPUDump::findReferencesSlot()
     QString addrStart = ToPtrString(rvaToVa(getSelectionStart()));
     QString addrEnd = ToPtrString(rvaToVa(getSelectionEnd()));
     QString addrDisasm = ToPtrString(mDisassembly->rvaToVa(mDisassembly->getSelectionStart()));
-    DbgCmdExec(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm));
+    DbgCmdExecAsync(QString("findrefrange " + addrStart + ", " + addrEnd + ", " + addrDisasm));
     emit displayReferencesWidget();
 }
 
@@ -1521,7 +1521,7 @@ void CPUDump::binarySaveToFileSlot()
         // Prepare command
         fileName = QDir::toNativeSeparators(fileName);
         QString cmd = QString("savedata \"%1\",%2,%3").arg(fileName, ToHexString(rvaToVa(selStart)), ToHexString(selSize));
-        DbgCmdExec(cmd);
+        DbgCmdExecAsync(cmd);
     }
 }
 
@@ -1547,7 +1547,7 @@ void CPUDump::findPattern()
     Config()->setBool("Gui", "CPUDumpStartFromSelect", startFromSelection);
     dsint addr = startFromSelection ? selectionStart : regionStart;
     QString addrText = ToPtrString(addr);
-    DbgCmdExec(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&"));
+    DbgCmdExecAsync(QString("findall " + addrText + ", " + hexEdit.mHexEdit->pattern() + ", &data&"));
     emit displayReferencesWidget();
 }
 
@@ -1615,11 +1615,11 @@ void CPUDump::allocMemorySlot()
             SimpleErrorBox(this, tr("Error"), tr("The size of buffer you're trying to allocate exceeds 1GB. Please check your expression to ensure nothing is wrong."));
             return;
         }
-        DbgCmdExecDirect(QString("alloc %1").arg(ToPtrString(memsize)));
+        DbgCmdExecAsyncDirect(QString("alloc %1").arg(ToPtrString(memsize)));
         duint addr = DbgValFromString("$result");
         if(addr != 0)
         {
-            DbgCmdExec("Dump $result");
+            DbgCmdExecAsync("Dump $result");
         }
         else
         {

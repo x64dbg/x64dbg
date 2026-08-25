@@ -64,19 +64,19 @@ void SimpleTraceDialog::on_btnOk_clicked()
     }
     auto logText = ui->editLogText->addHistoryClear();
     auto logCondition = ui->editLogCondition->addHistoryClear();
-    if(!DbgCmdExecDirect(QString("TraceSetLog \"%1\", \"%2\"").arg(escapeText(logText), escapeText(logCondition)).toUtf8().constData()))
+    if(!DbgCmdExecAsyncDirect(QString("TraceSetLog \"%1\", \"%2\"").arg(escapeText(logText), escapeText(logCondition)).toUtf8().constData()))
     {
         SimpleWarningBox(this, tr("Error"), tr("Failed to set log text/condition!"));
         return;
     }
     auto commandText = ui->editCommandText->addHistoryClear();
     auto commandCondition = ui->editCommandCondition->addHistoryClear();
-    if(!DbgCmdExecDirect(QString("TraceSetCommand \"%1\", \"%2\"").arg(escapeText(commandText), escapeText(commandCondition)).toUtf8().constData()))
+    if(!DbgCmdExecAsyncDirect(QString("TraceSetCommand \"%1\", \"%2\"").arg(escapeText(commandText), escapeText(commandCondition)).toUtf8().constData()))
     {
         SimpleWarningBox(this, tr("Error"), tr("Failed to set command text/condition!"));
         return;
     }
-    if(!DbgCmdExecDirect(QString("TraceSetLogFile \"%1\"").arg(escapeText(mLogFile)).toUtf8().constData()))
+    if(!DbgCmdExecAsyncDirect(QString("TraceSetLogFile \"%1\"").arg(escapeText(mLogFile)).toUtf8().constData()))
     {
         SimpleWarningBox(this, tr("Error"), tr("Failed to set log file!"));
         return;
@@ -89,14 +89,14 @@ void SimpleTraceDialog::on_btnOk_clicked()
         filterType = "system";
     else
         filterType = "none";
-    if(!DbgCmdExecDirect(QString("TraceSetStepFilter %1").arg(filterType).toUtf8().constData()))
+    if(!DbgCmdExecAsyncDirect(QString("TraceSetStepFilter %1").arg(filterType).toUtf8().constData()))
     {
         SimpleWarningBox(this, tr("Error"), tr("Failed to set module filter!"));
         return;
     }
     auto breakCondition = ui->editBreakCondition->addHistoryClear();
     auto maxTraceCount = ui->spinMaxTraceCount->value();
-    if(!DbgCmdExecDirect(QString("%1 \"%2\", .%3").arg(mTraceCommand, escapeText(breakCondition)).arg(maxTraceCount).toUtf8().constData()))
+    if(!DbgCmdExecAsyncDirect(QString("%1 \"%2\", .%3").arg(mTraceCommand, escapeText(breakCondition)).arg(maxTraceCount).toUtf8().constData()))
     {
         SimpleWarningBox(this, tr("Error"), tr("Failed to start trace!"));
         return;

@@ -12,13 +12,13 @@ namespace
 
     bool cbIssue3803Assert(int, char**)
     {
-        if(!_plugin_testassert(!DbgCmdExecDirect("_K0=5"), "scalar expression assignment to _K0 should fail"))
+        if(!_plugin_testassert(!DbgCmdExecAsyncDirect("_K0=5"), "scalar expression assignment to _K0 should fail"))
             return false;
-        if(!_plugin_testassert(!DbgCmdExecDirect("_ZMM0=5"), "scalar expression assignment to _ZMM0 should fail"))
+        if(!_plugin_testassert(!DbgCmdExecAsyncDirect("_ZMM0=5"), "scalar expression assignment to _ZMM0 should fail"))
             return false;
-        if(!_plugin_testassert(!DbgCmdExecDirect("mov _K0, 5"), "mov _K0, 5 should fail"))
+        if(!_plugin_testassert(!DbgCmdExecAsyncDirect("mov _K0, 5"), "mov _K0, 5 should fail"))
             return false;
-        if(!_plugin_testassert(!DbgCmdExecDirect("mov _ZMM0, 5"), "mov _ZMM0, 5 should fail"))
+        if(!_plugin_testassert(!DbgCmdExecAsyncDirect("mov _ZMM0, 5"), "mov _ZMM0, 5 should fail"))
             return false;
         if(!_plugin_testassert(!DbgValSetScalar("_K0", 5), "DbgValSetScalar should reject raw K registers"))
             return false;
@@ -39,12 +39,12 @@ namespace
         if(!_plugin_testassert(DbgValSetBuffer("_ZMM0", zmm.data(), zmm.size()), "DbgValSetBuffer failed for _ZMM0"))
             return false;
 
-        if(!_plugin_testassert(DbgCmdExecDirect("alloc 40"), "alloc 40 failed"))
+        if(!_plugin_testassert(DbgCmdExecAsyncDirect("alloc 40"), "alloc 40 failed"))
             return false;
         const auto result = DbgValFromString("$result");
         if(!_plugin_testassert(result != 0, "alloc did not populate $result"))
             return false;
-        if(!_plugin_testassert(DbgCmdExecDirect("vmovdqu [$result], zmm0"), "vmovdqu [$result], zmm0 failed"))
+        if(!_plugin_testassert(DbgCmdExecAsyncDirect("vmovdqu [$result], zmm0"), "vmovdqu [$result], zmm0 failed"))
             return false;
         std::array<unsigned char, sizeof(ZMMREGISTER)> written = {};
         if(!_plugin_testassert(DbgMemRead(result, written.data(), written.size()), "DbgMemRead failed for ZMM spill buffer"))

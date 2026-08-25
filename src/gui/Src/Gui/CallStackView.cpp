@@ -318,7 +318,7 @@ void CallStackView::followAddressSlot()
     if(!addrText.isEmpty() && isSelectionValid())
     {
         switchThread();
-        DbgCmdExecDirect(QString("sdump " + addrText));
+        DbgCmdExecAsyncDirect(QString("sdump " + addrText));
     }
 }
 
@@ -328,7 +328,7 @@ void CallStackView::followToSlot()
     if(!addrText.isEmpty() && isSelectionValid())
     {
         switchThread();
-        DbgCmdExecDirect(QString("disasm " + addrText));
+        DbgCmdExecAsyncDirect(QString("disasm " + addrText));
     }
 }
 
@@ -339,7 +339,7 @@ void CallStackView::followFromSlot()
     if(!addrText.isEmpty() && isSelectionValid())
     {
         switchThread();
-        DbgCmdExecDirect(QString("disasm " + addrText));
+        DbgCmdExecAsyncDirect(QString("disasm " + addrText));
     }
 }
 
@@ -409,7 +409,7 @@ void CallStackView::renameThreadSlot()
     if(!SimpleInputBox(this, tr("Thread name - %1").arg(threadId), threadName, threadName, QString()))
         return;
 
-    DbgCmdExec(QString("setthreadname %1, \"%2\"").arg(ToHexString(threadId)).arg(DbgCmdEscape(threadName)));
+    DbgCmdExecAsync(QString("setthreadname %1, \"%2\"").arg(ToHexString(threadId)).arg(DbgCmdEscape(threadName)));
 }
 
 void CallStackView::loadSymbolsForThreadSlot()
@@ -430,7 +430,7 @@ void CallStackView::loadSymbolsForThreadSlot()
         if(getCellUserdata(row, ColThread) != threadId)
             break;
         if(DbgGetModuleAt(getCellUserdata(row, ColFrom), module))
-            DbgCmdExec(QString("symdownload \"%0\"").arg(module));
+            DbgCmdExecAsync(QString("symdownload \"%0\"").arg(module));
     }
 }
 
@@ -440,7 +440,7 @@ void CallStackView::followInThreadsSlot()
     if(threadIDName[0].size() == 0)
         return;
 
-    DbgCmdExecDirect(QString("showthreadid " + threadIDName[0]));
+    DbgCmdExecAsyncDirect(QString("showthreadid " + threadIDName[0]));
 }
 
 void CallStackView::showSuspectedCallStackSlot()
@@ -478,5 +478,5 @@ duint CallStackView::getSelectionVa()
 void CallStackView::switchThread()
 {
     DWORD newThread = getCellUserdata(getInitialSelection(), ColThread);
-    DbgCmdExecDirect(QString("switchthread %1, quiet").arg(ToHexString(newThread)).toUtf8().constData());
+    DbgCmdExecAsyncDirect(QString("switchthread %1, quiet").arg(ToHexString(newThread)).toUtf8().constData());
 }

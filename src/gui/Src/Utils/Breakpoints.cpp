@@ -41,7 +41,7 @@ void Breakpoints::setBP(BPXTYPE type, duint va)
     break;
     }
 
-    DbgCmdExecDirect(cmd);
+    DbgCmdExecAsyncDirect(cmd);
 }
 
 static QString getBpIdentifier(const Breakpoints::Data & bp)
@@ -87,7 +87,7 @@ void Breakpoints::enableBP(const Data & bp)
         cmd = QString("EnableExceptionBPX \"%1\"").arg(ToPtrString(bp.addr));
     }
 
-    DbgCmdExecDirect(cmd);
+    DbgCmdExecAsyncDirect(cmd);
 }
 
 /**
@@ -122,7 +122,7 @@ void Breakpoints::disableBP(const Data & bp)
         cmd = QString("DisableExceptionBPX \"%1\"").arg(ToPtrString(bp.addr));
     }
 
-    DbgCmdExecDirect(cmd);
+    DbgCmdExecAsyncDirect(cmd);
 }
 
 /**
@@ -162,7 +162,7 @@ void Breakpoints::removeBP(const Data & bp)
         break;
     }
 
-    DbgCmdExecDirect(cmd);
+    DbgCmdExecAsyncDirect(cmd);
 }
 
 /**
@@ -279,7 +279,7 @@ bool Breakpoints::editBP(BPXTYPE type, const QString & module, duint address, QW
     bp = dialog.getBp();
     auto exec = [](const QString & command)
     {
-        return DbgCmdExecDirect(command);
+        return DbgCmdExecAsyncDirect(command);
     };
 
     // Create the breakpoint if it didn't exist yet

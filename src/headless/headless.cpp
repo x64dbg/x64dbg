@@ -13,7 +13,7 @@
 
 #include "stringutils.h"
 
-#define Cmd(x) DbgCmdExecDirect(x)
+#define Cmd(x) DbgCmdExecAsyncDirect(x)
 #define Eval(x) DbgValFromString(x)
 #define dprintf(x, ...) _plugin_logprintf("[" PLUGIN_NAME "] " x, __VA_ARGS__)
 #define dputs(x) _plugin_logprintf("[" PLUGIN_NAME "] %s\n", x)

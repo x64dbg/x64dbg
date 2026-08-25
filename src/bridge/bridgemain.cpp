@@ -223,7 +223,7 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit(BRIDGE_CONFIG* config)
     LOADEXPORT(_dbg_memfindbaseaddr);
     LOADEXPORT(_dbg_memread);
     LOADEXPORT(_dbg_memwrite);
-    LOADEXPORT(_dbg_dbgcmdexec);
+    LOADEXPORT(_dbg_dbgcmdexecasync);
     LOADEXPORT(_dbg_memmap);
     LOADEXPORT(_dbg_dbgexitsignal);
     LOADEXPORT(_dbg_valfromstring);
@@ -571,9 +571,9 @@ BRIDGE_IMPEXP duint DbgMemFindBaseAddr(duint addr, duint* size)
     return _dbg_memfindbaseaddr(addr, size);
 }
 
-BRIDGE_IMPEXP bool DbgCmdExec(const char* cmd)
+BRIDGE_IMPEXP bool DbgCmdExecAsync(const char* cmd)
 {
-    return _dbg_dbgcmdexec(cmd);
+    return _dbg_dbgcmdexecasync(cmd);
 }
 
 // FIXME
@@ -1043,7 +1043,7 @@ BRIDGE_IMPEXP int DbgGetBpList(BPXTYPE type, BPMAP* list)
 }
 
 // FIXME all
-BRIDGE_IMPEXP bool DbgCmdExecDirect(const char* cmd)
+BRIDGE_IMPEXP bool DbgCmdExecAsyncDirect(const char* cmd)
 {
     return _dbg_dbgcmddirectexec(cmd);
 }

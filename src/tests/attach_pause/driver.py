@@ -179,7 +179,7 @@ def main() -> int:
         print("[attach-pause-driver] " + " ".join(command), flush=True)
         headless = Headless(command, headless_dir, creationflags)
 
-        # Attach through the interactive command handler (DbgCmdExec), which is
+        # Attach through the interactive command handler (DbgCmdExecAsync), which is
         # the same code path as the GUI attach dialog. This does not pause.
         headless.send(f"attach .{pid}")
         if headless.wait_for_line(lambda line: "Attached to process!" in line, 30) is None:

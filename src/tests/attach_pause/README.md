@@ -4,7 +4,7 @@ Regression test for pausing an attached debuggee.
 
 The Python driver starts `attach_pause.exe` (a message pump main thread plus
 parked worker threads), then sends `attach .<pid>` and `pause` through the
-headless interactive command handler. This uses `DbgCmdExec` like the GUI, so
+headless interactive command handler. This uses `DbgCmdExecAsync` like the GUI, so
 the attach does not pause the debuggee.
 
 After the attach settles, the driver makes a worker thread emit

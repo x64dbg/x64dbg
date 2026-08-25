@@ -248,26 +248,26 @@ duint DbgValFromString(const char* expr)
     return DbgEval(expr, nullptr);
 }
 
-bool DbgCmdExec(const char* cmd)
+bool DbgCmdExecAsync(const char* cmd)
 {
-    printf("DbgCmdExec(\"%s\")\n", cmd);
+    printf("DbgCmdExecAsync(\"%s\")\n", cmd);
     return false;
 }
 
-bool DbgCmdExecDirect(const char* cmd)
+bool DbgCmdExecAsyncDirect(const char* cmd)
 {
-    printf("DbgCmdExecDirect(\"%s\")\n", cmd);
+    printf("DbgCmdExecAsyncDirect(\"%s\")\n", cmd);
     return false;
 }
 
-bool DbgCmdExec(const QString & cmd)
+bool DbgCmdExecAsync(const QString & cmd)
 {
-    return DbgCmdExec(cmd.toUtf8().constData());
+    return DbgCmdExecAsync(cmd.toUtf8().constData());
 }
 
-bool DbgCmdExecDirect(const QString & cmd)
+bool DbgCmdExecAsyncDirect(const QString & cmd)
 {
-    return DbgCmdExecDirect(cmd.toUtf8().constData());
+    return DbgCmdExecAsyncDirect(cmd.toUtf8().constData());
 }
 
 duint DbgMemFindBaseAddr(duint addr, duint* size)

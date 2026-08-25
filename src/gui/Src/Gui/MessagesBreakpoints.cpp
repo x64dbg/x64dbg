@@ -76,7 +76,7 @@ void MessagesBreakpoints::on_btnOk_clicked()
     {
         BPXTYPE bpType = DbgGetBpxTypeAt(procVA);
         if(bpType == bp_none)
-            DbgCmdExec(QString("bp 0x%1").arg(bpData.procVA));
+            DbgCmdExecAsync(QString("bp 0x%1").arg(bpData.procVA));
 
         bpCondCmd = QString("bpcnd 0x%1, \"arg.get(1) == 0x%2").arg(bpData.procVA).arg(msgHex);
         bpCondCmd.append(breakCur ? QString(" && arg.get(0) == 0x%1\"").arg(bpData.wndHandle) : "\"");
@@ -85,7 +85,7 @@ void MessagesBreakpoints::on_btnOk_clicked()
     {
         BPXTYPE bpType = DbgGetBpxTypeAt(DbgValFromString("TranslateMessage"));
         if(bpType == bp_none)
-            DbgCmdExec("bp TranslateMessage");
+            DbgCmdExecAsync("bp TranslateMessage");
 
 #ifdef _WIN64
         bpCondCmd = QString("bpcnd TranslateMessage, \"4:[arg.get(0)+8] == 0x%1").arg(msgHex);
@@ -96,5 +96,5 @@ void MessagesBreakpoints::on_btnOk_clicked()
 #endif //_WIN64
     }
 
-    DbgCmdExec(bpCondCmd);
+    DbgCmdExecAsync(bpCondCmd);
 }
