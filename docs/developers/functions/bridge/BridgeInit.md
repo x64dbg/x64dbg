@@ -12,7 +12,7 @@ This function has no parameters.
 
 ## Return Value
 
-Returns 0 if successful, otherwise a string indicating the error that occured.
+Returns 0 if successful, otherwise a string indicating the error that occurred.
 
 ## Example
 
