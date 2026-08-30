@@ -1,4 +1,39 @@
 settingset Events, EntryBreakpoint, 0
 init tests/breakpoint_state.exe
-bpstateregression
+
+; Keep debugger command coverage visible in the script. Plugin helpers below only exercise BP_REF APIs.
+bp breakpoint_state:SoftwareSite
+bphws breakpoint_state:HardwareValue, w, 4
+bpmrange breakpoint_state:MemoryValue, 4, w
+bpdll breakpoint-state-probe.dll, l
+SetExceptionBPX E0424242, first
+bprefassertpresent 1
+
+; BP_REF::SetField is not exposed as a script command.
+bprefsetenabled 0
+bprefassertpresent 0
+bprefsetenabled 1
+bprefassertpresent 1
+
+bpd
+bphwd
+bpmd
+bpddll
+DisableExceptionBPX
+bprefassertpresent 0
+
+bpe
+bphwe
+bpme
+bpedll
+EnableExceptionBPX
+bprefassertpresent 1
+
+bc breakpoint_state:SoftwareSite
+bphwc breakpoint_state:HardwareValue
+bpmc breakpoint_state:MemoryValue
+bcdll breakpoint-state-probe.dll
+DeleteExceptionBPX E0424242
+bprefassertabsent
+
 testfinalize

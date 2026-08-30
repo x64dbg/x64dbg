@@ -144,6 +144,21 @@ This keeps these concepts aligned:
 - plugin file name
 - plugin runtime name
 
+### Keep test orchestration in the script
+
+The test script should show the debugger operations being exercised. Put normal x64dbg commands, their ordering, and lifecycle operations such as setup, enable/disable, and cleanup directly in `test.txt`. This makes failures reproducible from the script and keeps command coverage visible during review.
+
+Use plugin commands only for behavior that the script command language cannot express, or when the context of plugin execution is itself part of the test. Plugin helpers should be narrow and named after the specific API action or assertion they provide.
+
+In particular:
+
+- do not hide a sequence of ordinary debugger commands inside one opaque plugin command merely for convenient orchestration
+- do not call `DbgCmdExecDirect` from a plugin helper when the same commands can be written in `test.txt`
+- prefer separate API mutation and assertion helpers so the surrounding command sequence remains visible
+- if commands must run from a callback, reentrant path, or another special API context, keep them in the plugin and document why that context is required
+
+For example, a breakpoint test should create and delete breakpoints in `test.txt`; a plugin helper is appropriate only for inspecting or changing state through an API such as `BP_REF` that has no script equivalent.
+
 ## Running
 
 Run the full suite:

@@ -2,7 +2,6 @@
 
 #include <array>
 #include <cstring>
-#include <string>
 
 #include "_plugins.h"
 #include "bridgemain.h"
@@ -18,141 +17,131 @@ namespace
         const char* name;
         BP_REF ref{};
         BPXTYPE type = bp_none;
+        duint va = 0;
     };
 
-    bool command(const std::string & text)
-    {
-        return _plugin_testassert(DbgCmdExecDirect(text.c_str()), "command failed: %s", text.c_str());
-    }
+    using BreakpointCases = std::array<BreakpointCase, 5>;
 
-    std::string hexAddress(duint address)
-    {
-        char text[32] = {};
-        sprintf_s(text, "%llX", static_cast<unsigned long long>(address));
-        return text;
-    }
-
-    bool readBool(BreakpointCase & test, BP_FIELD field, bool expected, const char* fieldName)
-    {
-        bool value = !expected;
-        const bool read = test.ref.GetField(field, value);
-        return _plugin_testassert(read && value == expected,
-                                  "%s: expected %s=%d, read=%d value=%d",
-                                  test.name, fieldName, expected ? 1 : 0, read ? 1 : 0, value ? 1 : 0);
-    }
-
-    bool assertRef(BreakpointCase & test)
-    {
-        BPXTYPE type = bp_none;
-        const bool exists = DbgFunctions()->BpRefExists(&test.ref);
-        test.ref.GetField(bpf_type, type);
-        return _plugin_testassert(exists && type == test.type,
-                                  "%s: invalid reference (exists=%d type=%d expected=%d)",
-                                  test.name, exists ? 1 : 0, int(type), int(test.type));
-    }
-
-    bool setEnabled(BreakpointCase & test, bool enabled)
-    {
-        const bool changed = test.ref.SetField(bpf_enabled, duint(enabled));
-        if(!_plugin_testassert(changed, "%s: BP_REF failed to set enabled=%d", test.name, enabled ? 1 : 0))
-            return false;
-        return readBool(test, bpf_enabled, enabled, "enabled");
-    }
-
-    bool cbBreakpointStateRegression(int, char**)
+    bool buildReferences(BreakpointCases & tests, duint & moduleBase)
     {
         const duint software = DbgValFromString("breakpoint_state:SoftwareSite");
         const duint hardware = DbgValFromString("breakpoint_state:HardwareValue");
         const duint memory = DbgValFromString("breakpoint_state:MemoryValue");
-        const duint moduleBase = DbgFunctions()->ModBaseFromAddr(software);
+        moduleBase = DbgFunctions()->ModBaseFromAddr(software);
         if(!_plugin_testassert(software && hardware && memory && moduleBase,
                                "failed to resolve breakpoint_state test symbols"))
             return false;
 
-        if(!command("bp breakpoint_state:SoftwareSite") ||
-                !command("bphws breakpoint_state:HardwareValue, w, 4") ||
-                !command("bpmrange breakpoint_state:MemoryValue, 4, w") ||
-                !command(std::string("bpdll ") + TestDll + ", l") ||
-                !command("SetExceptionBPX E0424242, first"))
-            return false;
-
-        std::array<BreakpointCase, 5> tests =
+        tests =
         {
             {
-                { "software", {}, bp_normal },
-                { "hardware", {}, bp_hardware },
-                { "memory", {}, bp_memory },
-                { "DLL", {}, bp_dll },
-                { "exception", {}, bp_exception },
+                { "software", {}, bp_normal, software },
+                { "hardware", {}, bp_hardware, hardware },
+                { "memory", {}, bp_memory, memory },
+                { "DLL", {}, bp_dll, 0 },
+                { "exception", {}, bp_exception, 0 },
             }
         };
 
-        DbgFunctions()->BpRefVa(&tests[0].ref, tests[0].type, software);
-        DbgFunctions()->BpRefVa(&tests[1].ref, tests[1].type, hardware);
-        DbgFunctions()->BpRefVa(&tests[2].ref, tests[2].type, memory);
+        const bool created =
+            DbgFunctions()->BpRefVa(&tests[0].ref, tests[0].type, software) &&
+            DbgFunctions()->BpRefVa(&tests[1].ref, tests[1].type, hardware) &&
+            DbgFunctions()->BpRefVa(&tests[2].ref, tests[2].type, memory);
         DbgFunctions()->BpRefDll(&tests[3].ref, TestDll);
         DbgFunctions()->BpRefException(&tests[4].ref, TestException);
+        return _plugin_testassert(created, "failed to construct address BP_REF values");
+    }
+
+    bool readEnabled(BreakpointCase & test, bool expected)
+    {
+        bool value = !expected;
+        const bool read = test.ref.GetField(bpf_enabled, value);
+        return _plugin_testassert(read && value == expected,
+                                  "%s: expected enabled=%d, read=%d value=%d",
+                                  test.name, expected ? 1 : 0, read ? 1 : 0, value ? 1 : 0);
+    }
+
+    bool assertPresent(BreakpointCase & test, bool expectedEnabled)
+    {
+        duint type = bp_none;
+        const bool exists = DbgFunctions()->BpRefExists(&test.ref);
+        const bool read = test.ref.GetField(bpf_type, type);
+        const bool valid = _plugin_testassert(exists && read && type == duint(test.type),
+                                              "%s: invalid reference (exists=%d read=%d type=%d expected=%d)",
+                                              test.name, exists ? 1 : 0, read ? 1 : 0, int(type), int(test.type));
+        return readEnabled(test, expectedEnabled) && valid;
+    }
+
+    bool parseEnabled(int argc, char** argv, bool & enabled)
+    {
+        const bool valid = argc == 2 && (strcmp(argv[1], "0") == 0 || strcmp(argv[1], "1") == 0);
+        if(!_plugin_testassert(valid, "expected one enabled argument: 0 or 1"))
+            return false;
+        enabled = argv[1][0] == '1';
+        return true;
+    }
+
+    bool cbBpRefAssertPresent(int argc, char** argv)
+    {
+        bool expectedEnabled = false;
+        if(!parseEnabled(argc, argv, expectedEnabled))
+            return false;
+
+        BreakpointCases tests;
+        duint moduleBase = 0;
+        if(!buildReferences(tests, moduleBase))
+            return false;
+
+        bool success = true;
+        for(auto & test : tests)
+            success &= assertPresent(test, expectedEnabled);
+
+        for(auto & test : tests)
+        {
+            if(test.va == 0)
+                continue;
+            BP_REF relative{};
+            const bool created = DbgFunctions()->BpRefRva(&relative, test.type, "breakpoint_state.exe", test.va - moduleBase);
+            const bool exists = created && DbgFunctions()->BpRefExists(&relative);
+            success &= _plugin_testassert(created && exists,
+                                          "%s: BpRefRva failed (created=%d exists=%d)",
+                                          test.name, created ? 1 : 0, exists ? 1 : 0);
+        }
+        return success;
+    }
+
+    bool cbBpRefSetEnabled(int argc, char** argv)
+    {
+        bool enabled = false;
+        if(!parseEnabled(argc, argv, enabled))
+            return false;
+
+        BreakpointCases tests;
+        duint moduleBase = 0;
+        if(!buildReferences(tests, moduleBase))
+            return false;
 
         bool success = true;
         for(auto & test : tests)
         {
-            success &= assertRef(test);
-            success &= readBool(test, bpf_enabled, true, "enabled");
+            const bool changed = test.ref.SetField(bpf_enabled, duint(enabled));
+            success &= _plugin_testassert(changed, "%s: BP_REF failed to set enabled=%d", test.name, enabled ? 1 : 0);
+            success &= readEnabled(test, enabled);
         }
+        return success;
+    }
 
-        const struct
-        {
-            const char* name;
-            BPXTYPE type;
-            duint va;
-        } relativeCases[] =
-        {
-            { "software", bp_normal, software },
-            { "hardware", bp_hardware, hardware },
-            { "memory", bp_memory, memory },
-        };
+    bool cbBpRefAssertAbsent(int, char**)
+    {
+        BreakpointCases tests;
+        duint moduleBase = 0;
+        if(!buildReferences(tests, moduleBase))
+            return false;
 
-        for(const auto & relative : relativeCases)
-        {
-            BP_REF ref{};
-            const auto rva = relative.va - moduleBase;
-            const bool created = DbgFunctions()->BpRefRva(&ref, relative.type, "breakpoint_state.exe", rva);
-            const bool exists = created && DbgFunctions()->BpRefExists(&ref);
-            success &= _plugin_testassert(created && exists,
-                                          "%s: BpRefRva failed (created=%d exists=%d)",
-                                          relative.name, created ? 1 : 0, exists ? 1 : 0);
-        }
-
+        bool success = true;
         for(auto & test : tests)
-            success &= setEnabled(test, false);
-        for(auto & test : tests)
-            success &= setEnabled(test, true);
-
-        success &= command("bpd");
-        success &= command("bphwd");
-        success &= command("bpmd");
-        success &= command("bpddll");
-        success &= command("DisableExceptionBPX");
-        for(auto & test : tests)
-            success &= readBool(test, bpf_enabled, false, "enabled after bulk disable");
-
-        success &= command("bpe");
-        success &= command("bphwe");
-        success &= command("bpme");
-        success &= command("bpedll");
-        success &= command("EnableExceptionBPX");
-        for(auto & test : tests)
-            success &= readBool(test, bpf_enabled, true, "enabled after bulk enable");
-
-        success &= command(std::string("bc ") + hexAddress(software));
-        success &= command(std::string("bphwc ") + hexAddress(hardware));
-        success &= command(std::string("bpmc ") + hexAddress(memory));
-        success &= command(std::string("bcdll ") + TestDll);
-        success &= command("DeleteExceptionBPX E0424242");
-
-        for(const auto & test : tests)
-            success &= _plugin_testassert(!DbgFunctions()->BpRefExists(&test.ref), "%s: reference still exists after deletion", test.name);
-
+            success &= _plugin_testassert(!DbgFunctions()->BpRefExists(&test.ref),
+                                          "%s: reference still exists after deletion", test.name);
         return success;
     }
 }
@@ -163,7 +152,9 @@ extern "C" __declspec(dllexport) bool pluginit(PLUG_INITSTRUCT* initStruct)
     initStruct->sdkVersion = PLUG_SDKVERSION;
     strncpy_s(initStruct->pluginName, sizeof(initStruct->pluginName), X64DBG_TEST_NAME, _TRUNCATE);
     gPluginHandle = initStruct->pluginHandle;
-    _plugin_registercommand(gPluginHandle, "bpstateregression", cbBreakpointStateRegression, true);
+    _plugin_registercommand(gPluginHandle, "bprefassertpresent", cbBpRefAssertPresent, true);
+    _plugin_registercommand(gPluginHandle, "bprefsetenabled", cbBpRefSetEnabled, true);
+    _plugin_registercommand(gPluginHandle, "bprefassertabsent", cbBpRefAssertAbsent, true);
     return true;
 }
 
