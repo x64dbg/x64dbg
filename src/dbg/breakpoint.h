@@ -92,6 +92,10 @@ bool BpRefRva(BP_REF & Ref, BPXTYPE Type, const char* Module, duint Rva);
 void BpRefDll(BP_REF & Ref, const char* Module);
 void BpRefException(BP_REF & Ref, unsigned int ExceptionCode);
 bool BpRefExists(const BP_REF & Ref);
+bool BpRefFromBreakpoint(BP_REF & Ref, const BREAKPOINT & Bp);
+bool BpSetEnabled(const BP_REF & Ref, bool Enabled);
+bool BpSetEnabled(const BREAKPOINT & Bp, bool Enabled);
+bool BpRemove(const BREAKPOINT & Bp);
 
 bool BpGetFieldNumber(const BP_REF & Ref, BP_FIELD Field, duint & Value);
 bool BpSetFieldNumber(const BP_REF & Ref, BP_FIELD Field, duint Value);

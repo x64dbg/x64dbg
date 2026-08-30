@@ -77,13 +77,15 @@ namespace
             return false;
 
         std::array<BreakpointCase, 5> tests =
-        {{
+        {
+            {
                 { "software", {}, bp_normal },
                 { "hardware", {}, bp_hardware },
                 { "memory", {}, bp_memory },
                 { "DLL", {}, bp_dll },
                 { "exception", {}, bp_exception },
-            }};
+            }
+        };
 
         DbgFunctions()->BpRefVa(&tests[0].ref, tests[0].type, software);
         DbgFunctions()->BpRefVa(&tests[1].ref, tests[1].type, hardware);
@@ -125,6 +127,22 @@ namespace
             success &= setEnabled(test, false);
         for(auto & test : tests)
             success &= setEnabled(test, true);
+
+        success &= command("bpd");
+        success &= command("bphwd");
+        success &= command("bpmd");
+        success &= command("bpddll");
+        success &= command("DisableExceptionBPX");
+        for(auto & test : tests)
+            success &= readBool(test, bpf_enabled, false, "enabled after bulk disable");
+
+        success &= command("bpe");
+        success &= command("bphwe");
+        success &= command("bpme");
+        success &= command("bpedll");
+        success &= command("EnableExceptionBPX");
+        for(auto & test : tests)
+            success &= readBool(test, bpf_enabled, true, "enabled after bulk enable");
 
         success &= command(std::string("bc ") + hexAddress(software));
         success &= command(std::string("bphwc ") + hexAddress(hardware));

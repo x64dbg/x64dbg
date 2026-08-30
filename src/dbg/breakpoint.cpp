@@ -374,6 +374,8 @@ bool BpDelete(duint Address, BP_TYPE Type)
 
 bool BpDelete(const BREAKPOINT & Bp)
 {
+    EXCLUSIVE_ACQUIRE(LockBreakpoints);
+
     // Breakpoints without a module can be deleted without special logic
     if(Bp.type == BPDLL || Bp.type == BPEXCEPTION || Bp.module.empty())
         return safeDelete(Bp.type, Bp.addr);
@@ -1199,7 +1201,7 @@ bool BpRefVa(BP_REF & Ref, BPXTYPE Type, duint Va)
 
 bool BpRefRva(BP_REF & Ref, BPXTYPE Type, const char* Module, duint Rva)
 {
-    if(Type == bp_none || Type == bp_dll || Type == bp_exception)
+    if(Module == nullptr || Type == bp_none || Type == bp_dll || Type == bp_exception)
     {
         Ref = { bp_none };
         return false;
@@ -1208,7 +1210,7 @@ bool BpRefRva(BP_REF & Ref, BPXTYPE Type, const char* Module, duint Rva)
     Ref.type = Type;
     Ref.module = BpGetDLLBpAddr(Module);
     Ref.offset = Rva;
-    return false;
+    return true;
 }
 
 void BpRefDll(BP_REF & Ref, const char* Module)
@@ -1229,6 +1231,254 @@ bool BpRefExists(const BP_REF & Ref)
 {
     SHARED_ACQUIRE(LockBreakpoints);
     return BpFromRef(Ref) != nullptr;
+}
+
+bool BpRefFromBreakpoint(BP_REF & Ref, const BREAKPOINT & Bp)
+{
+    switch(Bp.type)
+    {
+    case BPDLL:
+        BpRefDll(Ref, Bp.module.c_str());
+        return true;
+    case BPEXCEPTION:
+        BpRefException(Ref, (unsigned int)Bp.addr);
+        return true;
+    default:
+        break;
+    }
+
+    Ref.type = BpTypeToBridge(Bp.type);
+    Ref.module = ModHashFromName(Bp.module.c_str());
+    Ref.offset = Bp.addr;
+
+    SHARED_ACQUIRE(LockBreakpoints);
+    auto found = breakpoints.find(BreakpointKey(Bp.type, Ref.module + Ref.offset));
+    if(found != breakpoints.end())
+        return true;
+
+    const auto base = ModBaseFromName(Bp.module.c_str());
+    if(base != 0 && Bp.addr >= base)
+    {
+        Ref.offset = Bp.addr - base;
+        found = breakpoints.find(BreakpointKey(Bp.type, Ref.module + Ref.offset));
+        if(found != breakpoints.end())
+            return true;
+    }
+
+    found = breakpoints.find(BreakpointKey(Bp.type, Bp.addr));
+    if(found != breakpoints.end() && Bp.addr >= Ref.module)
+    {
+        Ref.offset = Bp.addr - Ref.module;
+        return true;
+    }
+
+    Ref = { bp_none };
+    return false;
+}
+
+bool BpSetEnabled(const BP_REF & Ref, bool Enabled)
+{
+    BREAKPOINT snapshot;
+    if(!BpRefOperation(Ref, [&](const BREAKPOINT & bp)
+{
+    snapshot = bp;
+    return true;
+}))
+    return false;
+
+    if(snapshot.enabled == Enabled)
+        return true;
+
+    duint address = snapshot.addr;
+    bool applyToEngine = DbgIsDebugging();
+    if(snapshot.type != BPDLL && snapshot.type != BPEXCEPTION)
+    {
+        if(snapshot.module.empty())
+        {
+            applyToEngine &= MemIsValidReadPtr(address);
+        }
+        else
+        {
+            const auto base = ModBaseFromName(snapshot.module.c_str());
+            applyToEngine &= base != 0;
+            address += base;
+            if(snapshot.type != BPHARDWARE)
+                applyToEngine &= MemIsValidReadPtr(address);
+        }
+    }
+    else if(snapshot.type == BPEXCEPTION)
+    {
+        applyToEngine = false;
+    }
+
+    auto commit = [&](auto && update)
+    {
+        return BpRefOperation<true>(Ref, [&](BREAKPOINT & bp)
+        {
+            if(bp.enabled != snapshot.enabled)
+                return false;
+            update(bp);
+            bp.enabled = Enabled;
+            return true;
+        });
+    };
+
+    if(!applyToEngine)
+    {
+        return commit([&](BREAKPOINT & bp)
+        {
+            if(!Enabled && bp.type == BPHARDWARE)
+                TITANSETDRX(bp.titantype, UE_DR7);
+        });
+    }
+
+    if(Enabled)
+    {
+        switch(snapshot.type)
+        {
+        case BPNORMAL:
+        {
+            unsigned short oldbytes = 0;
+            if(!MemRead(address, &oldbytes, sizeof(oldbytes)) ||
+                    !SetBPX(address, snapshot.titantype, cbUserBreakpoint))
+                return false;
+            if(commit([&](BREAKPOINT & bp)
+        {
+            bp.oldbytes = oldbytes;
+        }))
+            return true;
+            DeleteBPX(address);
+            return false;
+        }
+
+        case BPHARDWARE:
+        {
+            DWORD drx = 0;
+            if(!GetUnusedHardwareBreakPointRegister(&drx))
+                return false;
+            auto titantype = snapshot.titantype;
+            TITANSETDRX(titantype, drx);
+            if(!SetHardwareBreakPoint(address, drx, TITANGETTYPE(titantype), TITANGETSIZE(titantype), cbHardwareBreakpoint))
+                return false;
+            if(commit([&](BREAKPOINT & bp)
+        {
+            bp.titantype = titantype;
+        }))
+            return true;
+            DeleteHardwareBreakPoint(drx);
+            return false;
+        }
+
+        case BPMEMORY:
+        {
+            auto size = snapshot.memsize;
+            if(size == 0)
+                MemFindBaseAddr(address, &size);
+            if(size == 0 || !SetMemoryBPXEx(address, size, (TitanMemoryBreakpointType)snapshot.titantype, !snapshot.singleshoot, cbMemoryBreakpoint))
+                return false;
+            if(commit([](BREAKPOINT &) {}))
+            return true;
+            RemoveMemoryBPX(address, size);
+            return false;
+        }
+
+        case BPDLL:
+            if(!dbgsetdllbreakpoint(snapshot.module.c_str(), snapshot.titantype, snapshot.singleshoot))
+                return false;
+            if(commit([](BREAKPOINT &) {}))
+            return true;
+            dbgdeletedllbreakpoint(snapshot.module.c_str(), snapshot.titantype);
+            return false;
+
+        case BPEXCEPTION:
+            break;
+        }
+    }
+    else
+    {
+        switch(snapshot.type)
+        {
+        case BPNORMAL:
+            if(!DeleteBPX(address))
+                return false;
+            if(commit([](BREAKPOINT &) {}))
+            return true;
+            SetBPX(address, snapshot.titantype, cbUserBreakpoint);
+            return false;
+
+        case BPHARDWARE:
+        {
+            if(TITANDRXVALID(snapshot.titantype))
+            {
+                const auto drx = TITANGETDRX(snapshot.titantype);
+                if(!DeleteHardwareBreakPoint(drx))
+                    return false;
+                if(commit([](BREAKPOINT & bp)
+            {
+                TITANSETDRX(bp.titantype, UE_DR7);
+                }))
+                return true;
+                SetHardwareBreakPoint(address, drx, TITANGETTYPE(snapshot.titantype), TITANGETSIZE(snapshot.titantype), cbHardwareBreakpoint);
+                return false;
+            }
+            return commit([](BREAKPOINT &) {});
+        }
+
+        case BPMEMORY:
+        {
+            auto size = snapshot.memsize;
+            if(size == 0)
+                MemFindBaseAddr(address, &size);
+            if(size == 0 || !RemoveMemoryBPX(address, size))
+                return false;
+            if(commit([](BREAKPOINT &) {}))
+            return true;
+            SetMemoryBPXEx(address, size, (TitanMemoryBreakpointType)snapshot.titantype, !snapshot.singleshoot, cbMemoryBreakpoint);
+            return false;
+        }
+
+        case BPDLL:
+            if(!dbgdeletedllbreakpoint(snapshot.module.c_str(), snapshot.titantype))
+                return false;
+            if(commit([](BREAKPOINT &) {}))
+            return true;
+            dbgsetdllbreakpoint(snapshot.module.c_str(), snapshot.titantype, snapshot.singleshoot);
+            return false;
+
+        case BPEXCEPTION:
+            break;
+        }
+    }
+
+    return commit([](BREAKPOINT &) {});
+}
+
+bool BpSetEnabled(const BREAKPOINT & Bp, bool Enabled)
+{
+    BP_REF ref{};
+    return BpRefFromBreakpoint(ref, Bp) && BpSetEnabled(ref, Enabled);
+}
+
+bool BpRemove(const BREAKPOINT & Bp)
+{
+    BP_REF ref{};
+    if(!BpRefFromBreakpoint(ref, Bp))
+        return false;
+
+    duint enabled = 0;
+    if(!BpGetFieldNumber(ref, bpf_enabled, enabled))
+        return false;
+    if(enabled != 0 && !BpSetEnabled(ref, false))
+        return false;
+
+    BREAKPOINT snapshot;
+    if(!BpRefOperation(ref, [&](const BREAKPOINT & current)
+{
+    snapshot = current;
+    return true;
+}))
+    return false;
+    return BpDelete(snapshot);
 }
 
 bool BpGetFieldNumber(const BP_REF & Ref, BP_FIELD Field, duint & Value)
@@ -1297,14 +1547,13 @@ bool BpGetFieldNumber(const BP_REF & Ref, BP_FIELD Field, duint & Value)
 
 bool BpSetFieldNumber(const BP_REF & Ref, BP_FIELD Field, duint Value)
 {
+    if(Field == bpf_enabled)
+        return BpSetEnabled(Ref, !!Value);
+
     return BpRefOperation<true>(Ref, [&](BREAKPOINT & bp)
     {
         switch(Field)
         {
-        case bpf_enabled:
-            // TODO: actually enable/disable the breakpoint (requires further refactoring)
-            //bp.enabled = !!Value;
-            return false;
         case bpf_singleshoot:
             bp.singleshoot = !!Value;
             return true;
