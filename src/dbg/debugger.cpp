@@ -397,7 +397,7 @@ bool dbgspawnbreakinthread()
     // debug events can arrive before DebugBreakProcess returns.
     breakInThreadStartAddress = getBreakInThreadStartAddress();
     dwBreakInThreadId = 0;
-    if(!DebugBreakProcess(fdProcessInfo->hProcess))
+    if(!TitanDebugBreakProcess(fdProcessInfo->hProcess))
     {
         bBreakInExpected = false;
         breakInThreadStartAddress = 0;
@@ -2591,7 +2591,7 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
             continue;
         if(pe32.th32ProcessID == 0 || pe32.th32ProcessID == 4) // System process and Idle process have special PID.
             continue;
-        Handle hProcess = TitanOpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, pe32.th32ProcessID);
+        TitanHandle hProcess = TitanOpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, pe32.th32ProcessID);
         if(!hProcess)
             continue;
         BOOL wow64 = false, mewow64 = false;
@@ -3160,7 +3160,7 @@ static void debugLoopFunction(INIT_STRUCT* init)
 
         //check for WOW64
         BOOL wow64 = false, mewow64 = false;
-        if(!IsWow64Process(fdProcessInfo->hProcess, &wow64) || !IsWow64Process(GetCurrentProcess(), &mewow64))
+        if(!ProcessIsWow64(fdProcessInfo->hProcess, &wow64) || !IsWow64Process(GetCurrentProcess(), &mewow64))
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "IsWow64Process failed!"));
             StopDebug();
@@ -3252,8 +3252,8 @@ static void debugLoopFunction(INIT_STRUCT* init)
     else
     {
         //close the process and thread handles we got back from CreateProcess, to prevent duplicating the ones we will receive in cbCreateProcess
-        CloseHandle(fdProcessInfo->hProcess);
-        CloseHandle(fdProcessInfo->hThread);
+        TitanCloseHandle(fdProcessInfo->hProcess);
+        TitanCloseHandle(fdProcessInfo->hThread);
         fdProcessInfo->hProcess = fdProcessInfo->hThread = nullptr;
         DebugLoop();
     }
@@ -3523,7 +3523,7 @@ bool dbgisdepenabled()
         BOOL bPermanent;
         if(GPDP(hProcess, &lpFlags, &bPermanent))
             depEnabled = lpFlags != 0;
-        CloseHandle(hProcess);
+        TitanCloseHandle(hProcess);
     }
 #else
     depEnabled = true;

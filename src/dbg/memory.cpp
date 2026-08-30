@@ -52,7 +52,7 @@ static std::vector<MEMPAGE> QueryMemPages()
         MEMORY_BASIC_INFORMATION mbi;
         memset(&mbi, 0, sizeof(mbi));
 
-        numBytes = VirtualQueryEx(fdProcessInfo->hProcess, (LPVOID)pageStart, &mbi, sizeof(mbi));
+        numBytes = MemoryQuerySafe(fdProcessInfo->hProcess, (LPVOID)pageStart, &mbi, sizeof(mbi));
 
         // Only allow pages that are committed/reserved (exclude free memory)
         if(mbi.State != MEM_FREE)
@@ -231,7 +231,7 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector, std::vector<S
             if(pageBase == modBase)
             {
                 MEMPAGE headerPage = {};
-                VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)modBase, &headerPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
+                MemoryQuerySafe(fdProcessInfo->hProcess, (LPCVOID)modBase, &headerPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
                 headerPage.mbi.RegionSize = std::min(sections.front().addr - modBase, pageSize);
                 strcpy_s(headerPage.info, currentPage.info);
                 newPages.push_back(headerPage);
@@ -244,7 +244,7 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector, std::vector<S
                 if(section.addr >= pageBase && section.addr + section.size <= pageBase + currentPage.mbi.RegionSize)
                 {
                     MEMPAGE sectionPage = {};
-                    VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)section.addr, &sectionPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
+                    MemoryQuerySafe(fdProcessInfo->hProcess, (LPCVOID)section.addr, &sectionPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));
                     sectionPage.mbi.BaseAddress = (PVOID)section.addr;
                     sectionPage.mbi.RegionSize = section.size;
                     sprintf_s(sectionPage.info, " \"%s\"", section.name);
@@ -578,7 +578,7 @@ static bool IgnoreThisRead(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffe
     if(fnQueryWorkingSetEx(hProcess, &wsi, sizeof(wsi)) && !wsi.VirtualAttributes.Valid)
     {
         MEMORY_BASIC_INFORMATION mbi;
-        if(VirtualQueryEx(hProcess, wsi.VirtualAddress, &mbi, sizeof(mbi)) && mbi.State == MEM_COMMIT/* && mbi.Type == MEM_PRIVATE*/)
+        if(MemoryQuerySafe(hProcess, wsi.VirtualAddress, &mbi, sizeof(mbi)) && mbi.State == MEM_COMMIT/* && mbi.Type == MEM_PRIVATE*/)
         {
             memset(lpBuffer, 0, nSize);
             if(lpNumberOfBytesRead)
@@ -810,7 +810,7 @@ bool MemIsCodePage(duint Address, bool SkipCache)
     if(SkipCache)
     {
         MEMORY_BASIC_INFORMATION mbi = {};
-        if(!VirtualQueryEx(fdProcessInfo->hProcess, (LPVOID)Address, &mbi, sizeof(mbi)))
+        if(!MemoryQuerySafe(fdProcessInfo->hProcess, (LPVOID)Address, &mbi, sizeof(mbi)))
             return false;
         Protect = mbi.Protect;
     }
@@ -827,12 +827,12 @@ bool MemIsCodePage(duint Address, bool SkipCache)
 
 duint MemAllocRemote(duint Address, duint Size, DWORD Type, DWORD Protect)
 {
-    return (duint)VirtualAllocEx(fdProcessInfo->hProcess, (LPVOID)Address, Size, Type, Protect);
+    return (duint)MemoryAllocSafe(fdProcessInfo->hProcess, (LPVOID)Address, Size, Type, Protect);
 }
 
 bool MemFreeRemote(duint Address)
 {
-    return !!VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)Address, 0, MEM_RELEASE);
+    return !!MemoryFreeSafe(fdProcessInfo->hProcess, (LPVOID)Address, 0, MEM_RELEASE);
 }
 
 bool MemGetPageInfo(duint Address, MEMPAGE* PageInfo, bool Refresh)
@@ -1153,7 +1153,7 @@ bool MemGetProtect(duint Address, bool Reserved, bool Cache, unsigned int* Prote
         MEMORY_BASIC_INFORMATION mbi;
         memset(&mbi, 0, sizeof(MEMORY_BASIC_INFORMATION));
 
-        if(!VirtualQueryEx(fdProcessInfo->hProcess, (void*)Address, &mbi, sizeof(mbi)))
+        if(!MemoryQuerySafe(fdProcessInfo->hProcess, (void*)Address, &mbi, sizeof(mbi)))
             return false;
 
         *Protect = mbi.Protect;
@@ -1194,7 +1194,7 @@ bool MemSetProtect(duint Address, unsigned int Protect, duint Size)
     Address = PAGE_ALIGN(Address);
 
     DWORD oldProtect;
-    if(VirtualProtectEx(fdProcessInfo->hProcess, (void*)Address, Size, Protect, &oldProtect) == FALSE)
+    if(MemoryProtectSafe(fdProcessInfo->hProcess, (void*)Address, Size, Protect, &oldProtect) == FALSE)
         return false;
 
     // Update cache.

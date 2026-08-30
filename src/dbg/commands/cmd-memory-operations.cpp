@@ -73,7 +73,7 @@ bool cbDebugFree(int argc, char* argv[])
     }
     if(addr == lastalloc)
         varset("$lastalloc", (duint)0, true);
-    bool ok = !!VirtualFreeEx(fdProcessInfo->hProcess, (void*)addr, 0, MEM_RELEASE);
+    bool ok = !!MemoryFreeSafe(fdProcessInfo->hProcess, (void*)addr, 0, MEM_RELEASE);
     if(!ok)
         dputs(QT_TRANSLATE_NOOP("DBG", "VirtualFreeEx failed"));
     //update memory map

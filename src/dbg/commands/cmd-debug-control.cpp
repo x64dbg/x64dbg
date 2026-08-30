@@ -232,7 +232,7 @@ bool cbDebugStop(int argc, char* argv[])
                 }
             }
             if(TimeElapsed >= 300)
-                TerminateProcess(fdProcessInfo->hProcess, -1);
+                TitanTerminateProcess(fdProcessInfo->hProcess, -1);
         }
         break;
 
@@ -273,7 +273,7 @@ bool cbDebugAttach(int argc, char* argv[])
 
     ASSERT_TRUE(hDebugLoopThread == nullptr);
 
-    Handle hProcess = TitanOpenProcess(PROCESS_ALL_ACCESS, false, (DWORD)pid);
+    TitanHandle hProcess = TitanOpenProcess(PROCESS_ALL_ACCESS, false, (DWORD)pid);
     if(!hProcess)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not open process %X!\n"), DWORD(pid));
@@ -445,14 +445,14 @@ bool cbDebugPause(int argc, char* argv[])
     // As soon as SetBPX plants the INT3, another thread can hit it and the
     // breakpoint callback can reassign hActiveThread. Keep using this local
     // handle so SuspendThread and ResumeThread target the same thread.
-    DWORD dwPauseThreadId = GetThreadId(hPauseThread);
+    DWORD dwPauseThreadId = TitanGetThreadId(hPauseThread);
     // TODO: get suspend count instead, this can be detected
     // Interesting behavior found by JustMagic, if the active thread is suspended pause would fail
-    auto previousSuspendCount = SuspendThread(hPauseThread);
+    auto previousSuspendCount = TitanSuspendThread(hPauseThread);
     if(previousSuspendCount != 0)
     {
         if(previousSuspendCount != -1)
-            ResumeThread(hPauseThread);
+            TitanResumeThread(hPauseThread);
         dputs(QT_TRANSLATE_NOOP("DBG", "The active thread is suspended, switch to a running thread to pause the process"));
         // TODO: perhaps inject an INT3 in the process as an alternative to failing?
         return false;
@@ -461,18 +461,20 @@ bool cbDebugPause(int argc, char* argv[])
     if(!SetBPX(CIP, UE_BREAKPOINT, cbPauseBreakpoint))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting breakpoint at %p! (SetBPX)\n"), CIP);
-        if(ResumeThread(hPauseThread) == -1)
+        if(TitanResumeThread(hPauseThread) == -1)
         {
             dputs(QT_TRANSLATE_NOOP("DBG", "Error resuming thread"));
             return false;
         }
-        return false;
+        // Some engine backends cannot modify their breakpoint table while the
+        // target is running. Fall back to the explicit break-in operation.
+        return dbgspawnbreakinthread();
     }
     //WORKAROUND: If a program is stuck in NtUserGetMessage (GetMessage was called), this
     //will send a WM_NULL to stop the waiting. This only works if the message is not filtered.
     //OllyDbg also does this in a similar way.
     PostThreadMessageA(dwPauseThreadId, WM_NULL, 0, 0);
-    if(ResumeThread(hPauseThread) == -1)
+    if(TitanResumeThread(hPauseThread) == -1)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error resuming thread"));
         return false;

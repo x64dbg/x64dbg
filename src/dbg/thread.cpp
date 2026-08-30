@@ -133,7 +133,7 @@ void ThreadGetList(THREADLIST* List)
         List->list[index].SuspendCount = ThreadGetSuspendCount(threadHandle);
         List->list[index].Priority = ThreadGetPriority(threadHandle);
         List->list[index].LastError = ThreadGetLastErrorTEB(itr.second.ThreadLocalBase);
-        GetThreadTimes(threadHandle, &List->list[index].CreationTime, &threadExitTime, &List->list[index].KernelTime, &List->list[index].UserTime);
+        TitanGetThreadTimes(threadHandle, &List->list[index].CreationTime, &threadExitTime, &List->list[index].KernelTime, &List->list[index].UserTime);
         List->list[index].Cycles = ThreadQueryCycleTime(threadHandle);
         index++;
     }
@@ -215,14 +215,14 @@ int ThreadGetSuspendCount(HANDLE Thread)
 
     // Resume the thread's normal execution
     if(NT_SUCCESS(status))
-        ResumeThread(Thread);
+        TitanResumeThread(Thread);
 
     return suspendCount;
 }
 
 THREADPRIORITY ThreadGetPriority(HANDLE Thread)
 {
-    return (THREADPRIORITY)GetThreadPriority(Thread);
+    return (THREADPRIORITY)TitanGetThreadPriority(Thread);
 }
 
 DWORD ThreadGetLastErrorTEB(ULONG_PTR ThreadLocalBase)
@@ -311,7 +311,7 @@ DWORD ThreadGetId(HANDLE Thread)
     }
 
     // Wasn't found, check with Windows
-    return GetThreadId(Thread);
+    return TitanGetThreadId(Thread);
 }
 
 int ThreadSuspendAll()
@@ -322,7 +322,7 @@ int ThreadSuspendAll()
     int count = 0;
     for(auto & entry : threadList)
     {
-        if(SuspendThread(entry.second.Handle) != -1)
+        if(TitanSuspendThread(entry.second.Handle) != -1)
             count++;
         else
             dprintf(QT_TRANSLATE_NOOP("DBG", "Failed to suspend thread 0x%X...\n"), entry.second.ThreadId);
@@ -339,7 +339,7 @@ int ThreadResumeAll()
     int count = 0;
     for(auto & entry : threadList)
     {
-        if(ResumeThread(entry.second.Handle) != -1)
+        if(TitanResumeThread(entry.second.Handle) != -1)
             count++;
     }
 
@@ -374,7 +374,7 @@ ULONG64 ThreadQueryCycleTime(HANDLE hThread)
 {
     ULONG64 CycleTime;
 
-    if(!QueryThreadCycleTime(hThread, &CycleTime))
+    if(!TitanQueryThreadCycleTime(hThread, &CycleTime))
         CycleTime = 0;
 
     return CycleTime;

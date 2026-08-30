@@ -289,13 +289,13 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
 
     context.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
 
-    if(SuspendThread(hActiveThread) == -1)
+    if(TitanSuspendThread(hActiveThread) == -1)
         return;
 
     if(!GetThreadContext(hActiveThread, &context))
         return;
 
-    if(ResumeThread(hActiveThread) == -1)
+    if(TitanResumeThread(hActiveThread) == -1)
         return;
 
     if(ShowSuspectedCallStack)
@@ -381,13 +381,13 @@ void stackgetcallstackbythread(HANDLE thread, CALLSTACK* callstack)
 
     context.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
 
-    if(SuspendThread(thread) == -1)
+    if(TitanSuspendThread(thread) == -1)
         return;
 
     if(!GetThreadContext(thread, &context))
         return;
 
-    if(ResumeThread(thread) == -1)
+    if(TitanResumeThread(thread) == -1)
         return;
 
     if(ShowSuspectedCallStack)

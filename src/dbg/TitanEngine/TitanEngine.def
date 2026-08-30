@@ -2,6 +2,10 @@ LIBRARY TitanEngine
 EXPORTS
     MemoryReadSafe
     MemoryWriteSafe
+    MemoryQuerySafe
+    MemoryAllocSafe
+    MemoryFreeSafe
+    MemoryProtectSafe
     GetPEBLocation
     GetTEBLocation
     InitDebugW
@@ -35,5 +39,18 @@ EXPORTS
     IsFileBeingDebugged
     TitanOpenProcess
     TitanOpenThread
+    TitanCloseHandle
+    ProcessIsWow64
+    TitanTerminateProcess
+    TitanDebugBreakProcess
+    TitanCreateRemoteThread
+    TitanSuspendThread
+    TitanResumeThread
+    TitanTerminateThread
+    TitanGetThreadId
+    TitanGetThreadPriority
+    TitanSetThreadPriority
+    TitanGetThreadTimes
+    TitanQueryThreadCycleTime
     SetEngineVariable
     EngineCheckStructAlignment

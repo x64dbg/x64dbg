@@ -21,6 +21,23 @@ A larger process/thread identity abstraction can come later. `HANDLE` is
 allowed to be opaque at this stage. The important invariant is that x64dbg must
 not pass an opaque engine handle directly to Win32.
 
+## Implementation status
+
+The compatibility-first live backend is now implemented for x64 launch and
+attach sessions. The implemented surface includes event translation,
+continuation, repeatable sessions, software breakpoints, stepping, memory map
+queries, memory reads/writes/allocation/protection, general-register access and
+writes, non-current thread selection, and common process/thread controls.
+Standard TitanEngine, GleeBug, and StaticEngine export the same required ABI;
+`scripts/check_titanengine_exports.py` verifies it. The x64 dependency bundle
+uses the DbgEng-matched `dbghelp.dll`, because Windows would otherwise bind the
+backend to x64dbg's already-loaded legacy `dbghelp.dll` and fail DbgEng loading
+with `ERROR_PROC_NOT_FOUND`.
+
+Current graceful-failure boundaries are memory breakpoints, hardware
+breakpoints, AVX/AVX-512 transfer, and operations that only make sense for a
+mutable live process. Minidump and TTD sessions remain later milestones.
+
 ## Explicit decisions
 
 ### Use TitanEngine APIs, not WinAPI hooks
