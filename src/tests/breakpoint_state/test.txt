@@ -1,0 +1,4 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_state.exe
+bpstateregression
+testfinalize

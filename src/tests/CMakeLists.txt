@@ -171,6 +171,7 @@ function(x64dbg_add_membp_test)
 endfunction()
 
 set(X64DBG_STANDARD_TESTS
+    breakpoint_state
     commandparser
     issue3803
     issue3808
