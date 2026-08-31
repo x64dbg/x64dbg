@@ -18,10 +18,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     addDebugEngine(QStringLiteral("TitanEngine"), DebugEngineTitanEngine);
     addDebugEngine(QStringLiteral("GleeBug"), DebugEngineGleeBug);
     addDebugEngine(QStringLiteral("StaticEngine"), DebugEngineStaticEngine);
-#ifdef _WIN64
-    // The current DbgEng compatibility shim supports x64dbg only.
     addDebugEngine(QStringLiteral("DbgEng"), DebugEngineDbgEng);
-#endif
     //set window flags
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
     setModal(true);

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import struct
 import sys
 from pathlib import Path
@@ -24,6 +25,112 @@ def canonical_exports(definition: Path) -> set[str]:
     if not exports:
         raise ValueError(f"No exports found in {definition}")
     return exports
+
+
+DECLARATION_RE = re.compile(
+    r"__declspec\(dllexport\)\s+(.+?)\s+(?:TITCALL\s+)?(\w+)\((.*?)\);"
+)
+
+ENUM_TYPES = {
+    "TitanStructureType",
+    "TitanAccessType",
+    "TitanEngineVariable",
+    "TitanBreakpointRemoveOption",
+    "TitanCustomHandler",
+    "TitanBreakpointType",
+    "TitanSoftwareBreakpointType",
+    "TitanMemoryBreakpointType",
+    "TitanHardwareBreakpointType",
+    "TitanHardwareBreakpointSize",
+    "TitanRegister",
+}
+CALLBACK_TYPES = {
+    "TITANCALLBACKARG",
+    "TITANCALLBACK",
+    "TITANCBCH",
+    "TITANCBSTEP",
+    "TITANCBSOFTBP",
+    "TITANCBHWBP",
+    "TITANCBMEMBP",
+}
+
+
+def exported_declarations(path: Path) -> dict[str, tuple[str, tuple[str, ...]]]:
+    text = path.read_text(encoding="utf-8-sig")
+    result: dict[str, tuple[str, tuple[str, ...]]] = {}
+    for return_type, name, raw_arguments in DECLARATION_RE.findall(text):
+        arguments = tuple(arg.strip() for arg in raw_arguments.split(",") if arg.strip())
+        result[name] = (return_type.strip(), arguments)
+    return result
+
+
+def abi_type(declaration: str, *, return_type: bool = False) -> str:
+    """Normalize legacy spelling while preserving the binary call contract.
+
+    The GleeBug and native TitanEngine headers predate the canonical strongly
+    typed enum/callback declarations. Their DWORD/LPVOID spellings are ABI
+    equivalent, so the conformance check accepts those spellings while still
+    checking return class, argument count, pointer/value class and width.
+    """
+    value = re.sub(r"\b(const|volatile)\b", "", declaration)
+    value = re.sub(r"\s+", " ", value).strip()
+    # Drop a normal C parameter name. Pointer stars remain part of the type.
+    value = re.sub(r"\s+[A-Za-z_]\w*$", "", value).strip()
+    words = set(re.findall(r"[A-Za-z_]\w*", value))
+    if words & CALLBACK_TYPES:
+        return "pointer"
+    if "*" in value or value in {
+        "HANDLE", "LPVOID", "LPCVOID", "LPWSTR", "LPCWSTR", "LPDWORD",
+        "PBOOL", "PDWORD", "PULONG64", "LPFILETIME", "LPTHREAD_START_ROUTINE",
+        "PMEMORY_BASIC_INFORMATION",
+    }:
+        return "pointer"
+    if value == "void":
+        return "void"
+    if value == "bool":
+        return "bool"
+    if words & ENUM_TYPES or value in {"DWORD", "long", "int", "BOOL"}:
+        return "i32"
+    if value == "ULONG_PTR":
+        return "pointer"
+    if value == "SIZE_T":
+        return "uintptr"
+    # Named structures returned by value must continue to match by name.
+    return value
+
+
+def abi_signature(signature: tuple[str, tuple[str, ...]]) -> tuple[str, tuple[str, ...]]:
+    return abi_type(signature[0], return_type=True), tuple(abi_type(arg) for arg in signature[1])
+
+
+def check_header_conformance(canonical_header: Path, adapter_headers: list[Path], required: set[str]) -> bool:
+    canonical = exported_declarations(canonical_header)
+    missing_canonical = sorted(required - canonical.keys())
+    if missing_canonical:
+        print(f"FAIL {canonical_header}: missing declarations for {', '.join(missing_canonical)}")
+        return False
+
+    passed = True
+    for header in adapter_headers:
+        try:
+            declarations = exported_declarations(header)
+        except OSError as exc:
+            print(f"FAIL {header}: {exc}")
+            passed = False
+            continue
+        problems: list[str] = []
+        for name in sorted(required):
+            actual = declarations.get(name)
+            if actual is None:
+                problems.append(f"{name} (missing)")
+            elif abi_signature(actual) != abi_signature(canonical[name]):
+                problems.append(f"{name} (signature)")
+        if problems:
+            print(f"FAIL {header}: {', '.join(problems)}")
+            passed = False
+        else:
+            print(f"PASS {header}: {len(required)} canonical ABI signatures conform")
+    return passed
 
 
 def pe_exports(path: Path) -> set[str]:
@@ -96,6 +203,7 @@ def default_dlls(root: Path) -> list[Path]:
         "bin/x32/TitanEngine.dll",
         "bin/x32/GleeBug/TitanEngine.dll",
         "bin/x32/StaticEngine/TitanEngine.dll",
+        "bin/x32/DbgEng/TitanEngine.dll",
     ]
     return [root / item for item in relative if (root / item).is_file()]
 
@@ -117,6 +225,18 @@ def main() -> int:
         default=root / "src/dbg/TitanEngine/TitanEngine.def",
         help="Canonical module definition file",
     )
+    parser.add_argument(
+        "--canonical-header",
+        type=Path,
+        default=root / "src/dbg/TitanEngine/TitanEngine.h",
+        help="Canonical ABI declaration header",
+    )
+    parser.add_argument(
+        "--adapter-header",
+        action="append",
+        type=Path,
+        help="Adapter header to validate (may be repeated; defaults to all in-tree/DbgEng headers)",
+    )
     args = parser.parse_args()
 
     required = canonical_exports(args.definition)
@@ -124,7 +244,13 @@ def main() -> int:
     if not dlls:
         parser.error("no DLLs supplied and no built engine DLLs were found")
 
-    failed = False
+    adapter_headers = args.adapter_header or [
+        root / "src/third_party/TitanEngine/TitanEngine/definitions.h",
+        root / "src/third_party/GleeBug/TitanEngineEmulator/TitanEngine.h",
+        root / "src/third_party/GleeBug/StaticEngine/TitanEngine.h",
+        root.parent / "x64dbg-dbgeng/src/TitanEngine/TitanEngine.h",
+    ]
+    failed = not check_header_conformance(args.canonical_header, adapter_headers, required)
     for dll in dlls:
         try:
             actual = pe_exports(dll)

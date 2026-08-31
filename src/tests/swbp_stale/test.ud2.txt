@@ -1,0 +1,13 @@
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init tests/swbp_stale.exe
+SetBPX swbp_stale:Ready, ud2_breakpoint, ud2
+run
+testassert cip == swbp_stale:Ready, "UD2 breakpoint was reached"
+bc swbp_stale:Ready
+bp swbp_stale:Finish
+run
+testassert cip == swbp_stale:Finish, "continued after UD2"
+bc swbp_stale:Finish
+run
+testfinalize

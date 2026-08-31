@@ -108,18 +108,12 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
         Zydis zydis;
         if(zydis.Disassemble(addr, data))
         {
-            CONTEXT ctx;
-            memset(&ctx, 0, sizeof(ctx));
-            ctx.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
-            GetThreadContext(hActiveThread, &ctx);
-#ifdef _WIN64
-            auto cflags = ctx.EFlags;
-            auto ccx = ctx.Rcx;
-#else
-            auto cflags = ctx.EFlags;
-            auto ccx = ctx.Ecx;
-#endif //_WIN64
-            return zydis.IsBranchGoingToExecute(cflags, ccx);
+            // Fetch once: repeated scalar calls may each cross the selected
+            // engine's thread-selection boundary.
+            TITAN_ENGINE_CONTEXT_t context = {};
+            if(!GetFullContextDataEx(hActiveThread, &context))
+                return false;
+            return zydis.IsBranchGoingToExecute(context.eflags, context.ccx);
         }
     }
     return false;

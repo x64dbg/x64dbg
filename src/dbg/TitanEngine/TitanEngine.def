@@ -1,6 +1,7 @@
 LIBRARY TitanEngine
 EXPORTS
     MemoryReadSafe
+    MemoryReadUnsafe
     MemoryWriteSafe
     MemoryQuerySafe
     MemoryAllocSafe
