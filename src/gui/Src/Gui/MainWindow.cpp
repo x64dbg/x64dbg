@@ -6,6 +6,7 @@
 #include <QIcon>
 #include <QUrl>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QMimeData>
 #include <QDesktopServices>
 #include <QStatusTipEvent>
@@ -1353,7 +1354,7 @@ void MainWindow::displayAboutWidget()
 
 void MainWindow::openFileSlot()
 {
-    auto filename = QFileDialog::getOpenFileName(this, tr("Open file"), mMRUList->getEntry(0), tr("Executables (*.exe *.dll);;All files (*.*)"));
+    auto filename = QFileDialog::getOpenFileName(this, tr("Open file"), mMRUList->getEntry(0), tr("Executables (*.exe *.dll);;Replay artifacts (*.dmp *.mdmp *.run);;All files (*.*)"));
     if(!filename.length())
         return;
     filename = QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
@@ -1362,7 +1363,11 @@ void MainWindow::openFileSlot()
 
 void MainWindow::openRecentFileSlot(QString filename)
 {
-    DbgCmdExec(QString().sprintf("init \"%s\"", DbgCmdEscape(filename).toUtf8().constData()));
+    const auto suffix = QFileInfo(filename).suffix();
+    const auto replay = suffix.compare("dmp", Qt::CaseInsensitive) == 0 ||
+                        suffix.compare("mdmp", Qt::CaseInsensitive) == 0 ||
+                        suffix.compare("run", Qt::CaseInsensitive) == 0;
+    DbgCmdExec(QString().sprintf(replay ? "initreplay \"%s\"" : "init \"%s\"", DbgCmdEscape(filename).toUtf8().constData()));
 }
 
 void MainWindow::runSlot()
@@ -1377,7 +1382,7 @@ void MainWindow::restartDebugging()
 {
     auto last = mMRUList->getEntry(0);
     if(!last.isEmpty())
-        DbgCmdExec(QString("init \"%1\"").arg(DbgCmdEscape(last)));
+        openRecentFileSlot(last);
 }
 
 void MainWindow::displayBreakpointWidget()
@@ -1399,7 +1404,7 @@ void MainWindow::dropEvent(QDropEvent* pEvent)
     if(pEvent->mimeData()->hasUrls())
     {
         QString filename = QDir::toNativeSeparators(pEvent->mimeData()->urls()[0].toLocalFile());
-        DbgCmdExec(QString().sprintf("init \"%s\"", DbgCmdEscape(filename).toUtf8().constData()));
+        openRecentFileSlot(filename);
         pEvent->acceptProposedAction();
     }
 }

@@ -10,6 +10,13 @@ EXPORTS
     GetPEBLocation
     GetTEBLocation
     InitDebugW
+    InitReplayW
+    GetSessionInfo
+    ReplayGetPosition
+    ReplayGetExtent
+    ReplaySetPosition
+    ReplayRun
+    ReplayStep
     StopDebug
     SetBPXOptions
     IsBPXEnabled
@@ -40,6 +47,8 @@ EXPORTS
     IsFileBeingDebugged
     TitanOpenProcess
     TitanOpenThread
+    TitanGetProcessImagePathW
+    TitanGetModulePathW
     TitanCloseHandle
     ProcessIsWow64
     TitanTerminateProcess

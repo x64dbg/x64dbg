@@ -43,6 +43,7 @@ struct INIT_STRUCT
     bool attach = false;
     bool pauseAtAttach = false;
     bool isDll = false;
+    TitanSessionKind replayKind = UE_SESSION_NONE;
 };
 
 struct ExceptionRange
@@ -77,6 +78,8 @@ duint dbggettimewastedcounter();
 bool dbgisrunning();
 bool dbgisdebugging();
 bool dbgisdll();
+TitanSessionKind dbggetsessionkind();
+bool dbghassessioncapability(TitanSessionCapability capability);
 void dbgsetattachevent(HANDLE handle);
 DWORD dbggetattachmainthread();
 void dbgclearattachmainthread();

@@ -131,8 +131,10 @@ used.
 
 ### Canonical surface
 
-The current canonical x64dbg header and definition file declare 55 required
-exports. In addition to the original session, callback, memory, context,
+The completed live milestone used 55 required exports. The replay phase has
+since extended the canonical header and definition file to 64 exports with
+session/replay navigation and engine-backed image-path queries. In addition to the
+original session, callback, memory, context,
 breakpoint, and stepping APIs, the extended surface covers:
 
 - Memory query, allocation, free, and protection.
@@ -144,7 +146,7 @@ breakpoint, and stepping APIs, the extended surface covers:
 are also not live-process parity requirements unless a current x64dbg live call
 site is found to require one.
 
-The 55-export list is not assumed permanently complete. Before declaring live
+The canonical export list is not assumed permanently complete. Before declaring live
 parity, rerun `scripts/live_target_api_audit.py` against the mandatory
 `build/compile_commands.json`, classify every remaining direct target API use,
 and either migrate it to an explicit canonical API or prove that it is
@@ -159,8 +161,8 @@ signature-conformance checks after every ABI change.
 - `GleeBugStaticEngine`, emitted as `StaticEngine/TitanEngine.dll`.
 
 Both still carry copied TitanEngine-facing headers rather than directly
-consuming the canonical x64dbg header. Their implementations now expose all 55
-required names, including explicit unsupported AVX exports in StaticEngine,
+consuming the canonical x64dbg header. Their implementations expose the live 55-export baseline plus nine replay
+boundary exports, including explicit unsupported AVX and replay exports in StaticEngine,
 and `scripts/check_titanengine_exports.py` validates the built DLLs. The
 remaining work is to consume the canonical header or enforce a checked
 generated copy and to compile signature-conformance translation units, so

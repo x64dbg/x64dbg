@@ -19,6 +19,51 @@ enum TitanAccessType
     UE_ACCESS_ALL = 2,
 };
 
+enum TitanSessionKind
+{
+    UE_SESSION_NONE = 0,
+    UE_SESSION_LIVE = 1,
+    UE_SESSION_MINIDUMP = 2,
+    UE_SESSION_TTD = 3,
+    UE_SESSION_STATIC = 4,
+};
+
+enum TitanSessionCapability : uint64_t
+{
+    UE_SESSION_CAP_MEMORY_READ = 1ull << 0,
+    UE_SESSION_CAP_MEMORY_QUERY = 1ull << 1,
+    UE_SESSION_CAP_CONTEXT_READ = 1ull << 2,
+    UE_SESSION_CAP_FORWARD_EXECUTION = 1ull << 3,
+    UE_SESSION_CAP_REVERSE_EXECUTION = 1ull << 4,
+    UE_SESSION_CAP_EXACT_POSITION = 1ull << 5,
+    UE_SESSION_CAP_LOGICAL_CODE_BREAKPOINT = 1ull << 6,
+    UE_SESSION_CAP_LOGICAL_DATA_BREAKPOINT = 1ull << 7,
+    UE_SESSION_CAP_MEMORY_WRITE = 1ull << 8,
+    UE_SESSION_CAP_CONTEXT_WRITE = 1ull << 9,
+    UE_SESSION_CAP_PROCESS_CONTROL = 1ull << 10,
+    UE_SESSION_CAP_THREAD_CONTROL = 1ull << 11,
+    UE_SESSION_CAP_NATIVE_HANDLES = 1ull << 12,
+    UE_SESSION_CAP_EXCEPTION_CONTINUE = 1ull << 13,
+    UE_SESSION_CAP_TIMELINE_STATE = 1ull << 14,
+};
+
+typedef struct
+{
+    DWORD structSize;
+    TitanSessionKind kind;
+    uint64_t capabilities;
+    DWORD machineType;
+    DWORD processId;
+    DWORD threadId;
+    DWORD reserved;
+} TITAN_SESSION_INFO;
+
+typedef struct
+{
+    uint64_t sequence;
+    uint64_t steps;
+} TITAN_REPLAY_POSITION;
+
 enum TitanEngineVariable
 {
     UE_ENGINE_NO_CONSOLE_WINDOW = 4,
@@ -318,6 +363,13 @@ __declspec(dllexport) ULONG_PTR GetPEBLocation(HANDLE hProcess);
 __declspec(dllexport) ULONG_PTR GetTEBLocation(HANDLE hThread);
 // TitanEngine.Debugger.functions:
 __declspec(dllexport) PROCESS_INFORMATION* InitDebugW(const wchar_t* szFileName, const wchar_t* szCommandLine, const wchar_t* szCurrentFolder);
+__declspec(dllexport) PROCESS_INFORMATION* InitReplayW(const wchar_t* szArtifactPath, TitanSessionKind ExpectedKind);
+__declspec(dllexport) bool GetSessionInfo(TITAN_SESSION_INFO* SessionInfo);
+__declspec(dllexport) bool ReplayGetPosition(TITAN_REPLAY_POSITION* Position);
+__declspec(dllexport) bool ReplayGetExtent(TITAN_REPLAY_POSITION* First, TITAN_REPLAY_POSITION* Last);
+__declspec(dllexport) bool ReplaySetPosition(const TITAN_REPLAY_POSITION* Position);
+__declspec(dllexport) bool ReplayRun(bool Reverse);
+__declspec(dllexport) bool ReplayStep(bool Reverse, bool StepOver, TITANCBSTEP StepCallBack);
 __declspec(dllexport) bool StopDebug();
 __declspec(dllexport) void SetBPXOptions(TitanBreakpointType DefaultBreakPointType);
 __declspec(dllexport) bool IsBPXEnabled(ULONG_PTR bpxAddress);
@@ -349,6 +401,8 @@ __declspec(dllexport) bool IsFileBeingDebugged();
 // TitanEngine.Process.functions:
 __declspec(dllexport) HANDLE TitanOpenProcess(DWORD dwDesiredAccess, bool bInheritHandle, DWORD dwProcessId);
 __declspec(dllexport) HANDLE TitanOpenThread(DWORD dwDesiredAccess, bool bInheritHandle, DWORD dwThreadId);
+__declspec(dllexport) bool TitanGetProcessImagePathW(HANDLE hProcess, LPWSTR szPath, SIZE_T cchPath);
+__declspec(dllexport) bool TitanGetModulePathW(HANDLE hProcess, ULONG_PTR ModuleBase, LPWSTR szPath, SIZE_T cchPath);
 __declspec(dllexport) bool TitanCloseHandle(HANDLE hEngineHandle);
 __declspec(dllexport) bool ProcessIsWow64(HANDLE hProcess, PBOOL isWow64);
 __declspec(dllexport) bool TitanTerminateProcess(HANDLE hProcess, DWORD exitCode);
