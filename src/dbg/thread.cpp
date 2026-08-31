@@ -30,7 +30,8 @@ void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
     // The first thread (#0) is always the main program thread
     if(curInfo.ThreadNumber <= 0)
         strncpy_s(curInfo.threadName, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Main Thread")), _TRUNCATE);
-    else if(_GetThreadDescription && SUCCEEDED(_GetThreadDescription(curInfo.Handle, &threadDescription)) && threadDescription)
+    else if(dbghassessioncapability(UE_SESSION_CAP_NATIVE_HANDLES) && _GetThreadDescription &&
+            SUCCEEDED(_GetThreadDescription(curInfo.Handle, &threadDescription)) && threadDescription)
     {
         if(threadDescription[0])
             strncpy_s(curInfo.threadName, StringUtils::Escape(StringUtils::Utf16ToUtf8(threadDescription)).c_str(), _TRUNCATE);

@@ -9,6 +9,7 @@
 #include "disasm_fast.h"
 #include "plugin_loader.h"
 #include "value.h"
+#include "variable.h"
 #include "TraceRecord.h"
 #include "handle.h"
 #include "thread.h"
@@ -45,6 +46,11 @@ static bool skipInt3Stepping(int argc, char* argv[])
 
 bool cbDebugRunInternal(int argc, char* argv[], HistoryAction history)
 {
+    if(dbggetsessionkind() != UE_SESSION_NONE && !dbghassessioncapability(UE_SESSION_CAP_FORWARD_EXECUTION))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "This replay artifact does not support execution."));
+        return false;
+    }
     // History handling
     if(history == history_record)
         HistoryRecord();
@@ -178,6 +184,129 @@ bool cbDebugInit(int argc, char* argv[])
     return true;
 }
 
+bool cbDebugInitReplay(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+
+    EXCLUSIVE_ACQUIRE(LockDebugStartStop);
+    cbDebugStop(argc, argv);
+    ASSERT_TRUE(hDebugLoopThread == nullptr);
+
+    char artifact[deflen] = "";
+    strcpy_s(artifact, argv[1]);
+    if(!FileExists(artifact))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Replay artifact does not exist!"));
+        return false;
+    }
+
+    const auto artifactW = StringUtils::Utf8ToUtf16(artifact);
+    Handle file = CreateFileW(artifactW.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
+    if(file == INVALID_HANDLE_VALUE)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Could not open replay artifact!"));
+        return false;
+    }
+    GetFileNameFromHandle(file, artifact, _countof(artifact));
+    file.Close();
+
+    const auto lower = StringUtils::ToLower(String(artifact));
+    const auto isTtd = lower.size() >= 4 && lower.compare(lower.size() - 4, 4, ".run") == 0;
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Opening replay artifact: %s\n"), artifact);
+
+    static INIT_STRUCT init;
+    init = {};
+    init.exe = artifact;
+    init.replayKind = isTtd ? UE_SESSION_TTD : UE_SESSION_MINIDUMP;
+    dbgcreatedebugthread(&init);
+    return true;
+}
+
+bool cbReplayGetPosition(int argc, char* argv[])
+{
+    TITAN_REPLAY_POSITION position = {};
+    if(!ReplayGetPosition(&position))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Unable to query the replay position (error %lu).\n"), GetLastError());
+        return false;
+    }
+    dprintf("Replay position: %llX:%llX\n", position.sequence, position.steps);
+    varset("$result", (duint)position.sequence, false);
+    varset("$result1", (duint)position.steps, false);
+    return true;
+}
+
+bool cbReplayGetExtent(int argc, char* argv[])
+{
+    TITAN_REPLAY_POSITION first = {}, last = {};
+    if(!ReplayGetExtent(&first, &last))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Unable to query the replay extent (error %lu).\n"), GetLastError());
+        return false;
+    }
+    dprintf("Replay extent: %llX:%llX-%llX:%llX\n", first.sequence, first.steps, last.sequence, last.steps);
+    varset("$result", (duint)first.sequence, false);
+    varset("$result1", (duint)first.steps, false);
+    varset("$result2", (duint)last.sequence, false);
+    varset("$result3", (duint)last.steps, false);
+    return true;
+}
+
+bool cbReplaySetPosition(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+    unsigned long long sequence = 0, steps = 0;
+    char trailing = 0;
+    if(sscanf_s(argv[1], "%llx:%llx%c", &sequence, &steps, &trailing, 1) != 2)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Expected a replay position in sequence:steps hexadecimal form."));
+        return false;
+    }
+    TITAN_REPLAY_POSITION position { sequence, steps };
+    if(!ReplaySetPosition(&position))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Unable to seek to the replay position (error %lu).\n"), GetLastError());
+        return false;
+    }
+    hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
+    DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
+    dprintf("Replay position set: %llX:%llX\n", sequence, steps);
+    return true;
+}
+
+bool cbReplayStepBack(int argc, char* argv[])
+{
+    if(!dbghassessioncapability(UE_SESSION_CAP_REVERSE_EXECUTION))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "This session does not support reverse execution."));
+        return false;
+    }
+    if(!ReplayStep(true, false, cbStep))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Unable to reverse step (error %lu).\n"), GetLastError());
+        return false;
+    }
+    dbgsetsteprepeat(true, 1);
+    return cbDebugRunInternal(1, argv, history_record);
+}
+
+bool cbReplayRunBack(int argc, char* argv[])
+{
+    if(!dbghassessioncapability(UE_SESSION_CAP_REVERSE_EXECUTION))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "This session does not support reverse execution."));
+        return false;
+    }
+    if(!ReplayRun(true))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Unable to start reverse execution (error %lu).\n"), GetLastError());
+        return false;
+    }
+    return cbDebugRunInternal(1, argv, history_record);
+}
+
 bool cbDebugStop(int argc, char* argv[])
 {
     EXCLUSIVE_ACQUIRE(LockDebugStartStop);
@@ -231,7 +360,7 @@ bool cbDebugStop(int argc, char* argv[])
                     return false;
                 }
             }
-            if(TimeElapsed >= 300)
+            if(TimeElapsed >= 300 && dbghassessioncapability(UE_SESSION_CAP_PROCESS_CONTROL))
                 TitanTerminateProcess(fdProcessInfo->hProcess, -1);
         }
         break;
@@ -391,6 +520,11 @@ bool cbDebugSerun(int argc, char* argv[])
 
 bool cbDebugPause(int argc, char* argv[])
 {
+    if(dbggetsessionkind() != UE_SESSION_NONE && !dbghassessioncapability(UE_SESSION_CAP_FORWARD_EXECUTION))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "This replay artifact is already paused."));
+        return false;
+    }
     if(_dbg_isanimating())
     {
         _dbg_animatestop(); // pause when animating
@@ -484,6 +618,11 @@ bool cbDebugPause(int argc, char* argv[])
 
 bool cbDebugContinue(int argc, char* argv[])
 {
+    if(dbggetsessionkind() != UE_SESSION_NONE && !dbghassessioncapability(UE_SESSION_CAP_EXCEPTION_CONTINUE))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Exception continuation is unavailable for this replay artifact."));
+        return false;
+    }
     if(argc < 2)
     {
         dbgsetcontinuestatus(DBG_CONTINUE);
@@ -499,6 +638,11 @@ bool cbDebugContinue(int argc, char* argv[])
 
 bool cbDebugStepInto(int argc, char* argv[])
 {
+    if(dbggetsessionkind() != UE_SESSION_NONE && !dbghassessioncapability(UE_SESSION_CAP_FORWARD_EXECUTION))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "This replay artifact does not support stepping."));
+        return false;
+    }
     duint steprepeat = 1;
     if(argc > 1 && !valfromstring(argv[1], &steprepeat, false))
         return false;
@@ -571,11 +715,44 @@ static bool IsRepeated(const Zydis & zydis)
 
 bool cbDebugStepOver(int argc, char* argv[])
 {
+    if(dbggetsessionkind() != UE_SESSION_NONE && !dbghassessioncapability(UE_SESSION_CAP_FORWARD_EXECUTION))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "This replay artifact does not support stepping."));
+        return false;
+    }
     duint steprepeat = 1;
     if(argc > 1 && !valfromstring(argv[1], &steprepeat, false))
         return false;
     if(!steprepeat) //nothing to be done
         return true;
+    if(dbggetsessionkind() == UE_SESSION_TTD)
+    {
+        if(steprepeat != 1)
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Repeated TTD step-over is not supported."));
+            return false;
+        }
+        Zydis replayInstruction;
+        const auto cip = GetContextDataEx(hActiveThread, UE_CIP);
+        disasm(replayInstruction, cip);
+        if(replayInstruction.IsBranchType(Zydis::BTCallSem) || IsRepeated(replayInstruction))
+        {
+            const auto next = cip + replayInstruction.Size();
+            if(!SetBPX(next, UE_BREAKPOINT | UE_SINGLESHOOT, cbStep) || !ReplayRun(false))
+            {
+                DeleteBPX(next);
+                dputs(QT_TRANSLATE_NOOP("DBG", "Unable to schedule the TTD step-over breakpoint."));
+                return false;
+            }
+        }
+        else if(!ReplayStep(false, false, cbStep))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Unable to step over in this TTD position."));
+            return false;
+        }
+        dbgsetsteprepeat(false, 1);
+        return cbDebugRunInternal(1, argv, history_record);
+    }
     if(skipInt3Stepping(1, argv) && !--steprepeat)
         return true;
     auto history = history_clear;
@@ -605,6 +782,11 @@ bool cbDebugseStepOver(int argc, char* argv[])
 
 bool cbDebugStepOut(int argc, char* argv[])
 {
+    if(dbggetsessionkind() != UE_SESSION_NONE && !dbghassessioncapability(UE_SESSION_CAP_FORWARD_EXECUTION))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "This replay artifact does not support stepping."));
+        return false;
+    }
     duint steprepeat = 1;
     if(argc > 1 && !valfromstring(argv[1], &steprepeat, false))
         return false;
@@ -624,6 +806,11 @@ bool cbDebugeStepOut(int argc, char* argv[])
 
 bool cbDebugSkip(int argc, char* argv[])
 {
+    if(dbggetsessionkind() != UE_SESSION_NONE && !dbghassessioncapability(UE_SESSION_CAP_CONTEXT_WRITE))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Register mutation is unavailable for this replay artifact."));
+        return false;
+    }
     duint skiprepeat = 1;
     if(argc > 1 && !valfromstring(argv[1], &skiprepeat, false))
         return false;
