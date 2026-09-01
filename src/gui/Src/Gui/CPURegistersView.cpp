@@ -40,9 +40,123 @@ CPURegistersView::CPURegistersView(CPUWidget* parent) : RegistersView(parent), m
 
 void CPURegistersView::setupContextMenu()
 {
-    mMenuBuilder = new MenuBuilder(this, [](QMenu*)
+    mMenuBuilder = new MenuBuilder(this, [this](QMenu* menu)
     {
-        return DbgIsDebugging();
+        if(!isActive)
+            return false;
+        QMenu* followInDumpNMenu = nullptr;
+        setupSIMDModeMenu();
+
+        if(mSelected != UNKNOWN)
+        {
+            if(mMODIFYDISPLAY.contains(mSelected))
+            {
+                menu->addAction(wCM_Modify);
+            }
+
+            if(mINCREMENTDECREMET.contains(mSelected))
+            {
+                menu->addAction(wCM_Increment);
+                menu->addAction(wCM_Decrement);
+                menu->addAction(wCM_Zero);
+            }
+
+            if(mCANSTOREADDRESS.contains(mSelected))
+            {
+                duint addr = (* ((duint*) registerValue(&mRegDumpStruct, mSelected)));
+                if(DbgMemIsValidReadPtr(addr))
+                {
+                    menu->addAction(wCM_FollowInDump);
+                    followInDumpNMenu = new QMenu(tr("Follow in &Dump"), menu);
+                    CreateDumpNMenu(followInDumpNMenu);
+                    menu->addMenu(followInDumpNMenu);
+                    menu->addAction(wCM_FollowInDisassembly);
+                    menu->addAction(wCM_FollowInMemoryMap);
+                    duint size = 0;
+                    duint base = DbgMemFindBaseAddr(DbgValFromString("csp"), &size);
+                    if(addr >= base && addr < base + size)
+                        menu->addAction(wCM_FollowInStack);
+                }
+            }
+
+            if(mSelected == DR0 || mSelected == DR1 || mSelected == DR2 || mSelected == DR3)
+            {
+                if(* ((duint*) registerValue(&mRegDumpStruct, mSelected)) != 0)
+                    menu->addAction(wCM_RemoveHardware);
+            }
+
+            menu->addAction(wCM_CopyToClipboard);
+            if(mFPUx87_80BITSDISPLAY.contains(mSelected))
+            {
+                menu->addAction(wCM_CopyFloatingPointValueToClipboard);
+            }
+            if(mLABELDISPLAY.contains(mSelected))
+            {
+                QString symbol = getRegisterLabel(mSelected);
+                if(symbol != "")
+                    menu->addAction(wCM_CopySymbolToClipboard);
+            }
+            menu->addAction(wCM_CopyAll);
+
+            if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mSEGMENTREGISTER.contains(mSelected) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUOpmask.contains(mSelected))
+            {
+                menu->addAction(wCM_Highlight);
+            }
+
+            if(mUNDODISPLAY.contains(mSelected) && CompareRegisters(mSelected, &mRegDumpStruct) != 0)
+            {
+                menu->addAction(wCM_Undo);
+                wCM_CopyPrevious->setData(GetRegStringValueFromValue(mSelected, registerValue(&mCipRegDumpStruct, mSelected)));
+                wCM_CopyPrevious->setText(tr("Copy old value: %1").arg(wCM_CopyPrevious->data().toString()));
+                menu->addAction(wCM_CopyPrevious);
+            }
+
+            if(mBOOLDISPLAY.contains(mSelected))
+            {
+                menu->addAction(wCM_ToggleValue);
+            }
+
+            if(mFPUx87_80BITSDISPLAY.contains(mSelected))
+            {
+                menu->addAction(wCM_Incrementx87Stack);
+                menu->addAction(wCM_Decrementx87Stack);
+            }
+
+            if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUOpmask.contains(mSelected))
+            {
+                menu->addMenu(mSwitchSIMDDispMode);
+            }
+
+            if(mFPUMMX.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
+            {
+                if(mFpuMode != 0)
+                    menu->addAction(mDisplaySTX);
+                if(mFpuMode != 1)
+                    menu->addAction(mDisplayx87rX);
+                if(mFpuMode != 2)
+                    menu->addAction(mDisplayMMX);
+            }
+        }
+        else
+        {
+            menu->addSeparator();
+            menu->addAction(wCM_ChangeFPUView);
+            menu->addAction(wCM_CopyAll);
+            menu->addMenu(mSwitchSIMDDispMode);
+            if(mFpuMode != 0)
+                menu->addAction(mDisplaySTX);
+            if(mFpuMode != 1)
+                menu->addAction(mDisplayx87rX);
+            if(mFpuMode != 2)
+                menu->addAction(mDisplayMMX);
+            menu->addSeparator();
+            QAction* hwbpCsp = menu->addAction(DIcon("breakpoint"), tr("Set Hardware Breakpoint on %1").arg(ArchValue("ESP", "RSP")));
+            connect(hwbpCsp, &QAction::triggered, []()
+            {
+                DbgCmdExec("bphws csp,rw");
+            });
+        }
+        return true;
     });
 
     mCommonActions = new CommonActions(this, getActionHelperFuncs(), [this]() -> duint
@@ -669,125 +783,7 @@ void CPURegistersView::onRemoveHardware()
 
 void CPURegistersView::displayCustomContextMenuSlot(QPoint pos)
 {
-    if(!isActive)
-        return;
-    QMenu menu(this);
-    QMenu* followInDumpNMenu = nullptr;
-    setupSIMDModeMenu();
-
-    if(mSelected != UNKNOWN)
-    {
-        if(mMODIFYDISPLAY.contains(mSelected))
-        {
-            menu.addAction(wCM_Modify);
-        }
-
-        if(mINCREMENTDECREMET.contains(mSelected))
-        {
-            menu.addAction(wCM_Increment);
-            menu.addAction(wCM_Decrement);
-            menu.addAction(wCM_Zero);
-        }
-
-        if(mCANSTOREADDRESS.contains(mSelected))
-        {
-            duint addr = (* ((duint*) registerValue(&mRegDumpStruct, mSelected)));
-            if(DbgMemIsValidReadPtr(addr))
-            {
-                menu.addAction(wCM_FollowInDump);
-                followInDumpNMenu = new QMenu(tr("Follow in &Dump"), &menu);
-                CreateDumpNMenu(followInDumpNMenu);
-                menu.addMenu(followInDumpNMenu);
-                menu.addAction(wCM_FollowInDisassembly);
-                menu.addAction(wCM_FollowInMemoryMap);
-                // TODO: port everything to the MenuBuilder pattern
-                mMenuBuilder->build(&menu);
-                duint size = 0;
-                duint base = DbgMemFindBaseAddr(DbgValFromString("csp"), &size);
-                if(addr >= base && addr < base + size)
-                    menu.addAction(wCM_FollowInStack);
-            }
-        }
-
-        if(mSelected == DR0 || mSelected == DR1 || mSelected == DR2 || mSelected == DR3)
-        {
-            if(* ((duint*) registerValue(&mRegDumpStruct, mSelected)) != 0)
-                menu.addAction(wCM_RemoveHardware);
-        }
-
-        menu.addAction(wCM_CopyToClipboard);
-        if(mFPUx87_80BITSDISPLAY.contains(mSelected))
-        {
-            menu.addAction(wCM_CopyFloatingPointValueToClipboard);
-        }
-        if(mLABELDISPLAY.contains(mSelected))
-        {
-            QString symbol = getRegisterLabel(mSelected);
-            if(symbol != "")
-                menu.addAction(wCM_CopySymbolToClipboard);
-        }
-        menu.addAction(wCM_CopyAll);
-
-        if((mGPR.contains(mSelected) && mSelected != REGISTER_NAME::EFLAGS) || mSEGMENTREGISTER.contains(mSelected) || mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUOpmask.contains(mSelected))
-        {
-            menu.addAction(wCM_Highlight);
-        }
-
-        if(mUNDODISPLAY.contains(mSelected) && CompareRegisters(mSelected, &mRegDumpStruct) != 0)
-        {
-            menu.addAction(wCM_Undo);
-            wCM_CopyPrevious->setData(GetRegStringValueFromValue(mSelected, registerValue(&mCipRegDumpStruct, mSelected)));
-            wCM_CopyPrevious->setText(tr("Copy old value: %1").arg(wCM_CopyPrevious->data().toString()));
-            menu.addAction(wCM_CopyPrevious);
-        }
-
-        if(mBOOLDISPLAY.contains(mSelected))
-        {
-            menu.addAction(wCM_ToggleValue);
-        }
-
-        if(mFPUx87_80BITSDISPLAY.contains(mSelected))
-        {
-            menu.addAction(wCM_Incrementx87Stack);
-            menu.addAction(wCM_Decrementx87Stack);
-        }
-
-        if(mFPUMMX.contains(mSelected) || mFPUXMM.contains(mSelected) || mFPUOpmask.contains(mSelected))
-        {
-            menu.addMenu(mSwitchSIMDDispMode);
-        }
-
-        if(mFPUMMX.contains(mSelected) || mFPUx87_80BITSDISPLAY.contains(mSelected))
-        {
-            if(mFpuMode != 0)
-                menu.addAction(mDisplaySTX);
-            if(mFpuMode != 1)
-                menu.addAction(mDisplayx87rX);
-            if(mFpuMode != 2)
-                menu.addAction(mDisplayMMX);
-        }
-
-        menu.exec(this->mapToGlobal(pos));
-    }
-    else
-    {
-        menu.addSeparator();
-        menu.addAction(wCM_ChangeFPUView);
-        menu.addAction(wCM_CopyAll);
-        menu.addMenu(mSwitchSIMDDispMode);
-        if(mFpuMode != 0)
-            menu.addAction(mDisplaySTX);
-        if(mFpuMode != 1)
-            menu.addAction(mDisplayx87rX);
-        if(mFpuMode != 2)
-            menu.addAction(mDisplayMMX);
-        menu.addSeparator();
-        QAction* hwbpCsp = menu.addAction(DIcon("breakpoint"), tr("Set Hardware Breakpoint on %1").arg(ArchValue("ESP", "RSP")));
-        QAction* action = menu.exec(this->mapToGlobal(pos));
-
-        if(action == hwbpCsp)
-            DbgCmdExec("bphws csp,rw");
-    }
+    mMenuBuilder->show(pos);
 }
 
 QString CPURegistersView::registerNameForSet(REGISTER_NAME reg) const
