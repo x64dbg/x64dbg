@@ -277,6 +277,24 @@ MainWindow::MainWindow(QWidget* parent)
     mPatchDialog = new PatchDialog(this);
     mCalculatorDialog = new CalculatorDialog(this);
 
+    // Reverse replay controls are capability-gated and stay out of live and
+    // immutable snapshot sessions.
+    mActionRunBackward = makeCommandAction(new QAction(DIcon("arrow-run-back"), tr("Run &backward"), this), "replayrunback");
+    mActionRunBackward->setObjectName("actionRunBackward");
+    mActionRunBackward->setStatusTip(tr("Run backward to the previous replay event or logical breakpoint"));
+    mActionRunBackward->setVisible(false);
+    mActionRunBackward->setEnabled(false);
+    ui->menuDebug->insertAction(ui->actionRun, mActionRunBackward);
+    ui->mainToolBar->insertAction(ui->actionRun, mActionRunBackward);
+
+    mActionStepIntoBackward = makeCommandAction(new QAction(DIcon("arrow-step-into-back"), tr("Step into &backward"), this), "replaystepback");
+    mActionStepIntoBackward->setObjectName("actionStepIntoBackward");
+    mActionStepIntoBackward->setStatusTip(tr("Step one recorded instruction backward"));
+    mActionStepIntoBackward->setVisible(false);
+    mActionStepIntoBackward->setEnabled(false);
+    ui->menuDebug->insertAction(ui->actionStepInto, mActionStepIntoBackward);
+    ui->mainToolBar->insertAction(ui->actionStepInto, mActionStepIntoBackward);
+
     // Setup signals/slots
     connect(mCmdLineEdit, SIGNAL(returnPressed()), this, SLOT(executeCommand()));
     makeCommandAction(ui->actionRestartAdmin, "restartadmin");
@@ -1150,6 +1168,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionHideTab, ConfigShortcut("ViewHideTab"));
 
     setGlobalShortcut(ui->actionRun, ConfigShortcut("DebugRun"));
+    setGlobalShortcut(mActionRunBackward, ConfigShortcut("DebugRunBackward"));
     setGlobalShortcut(ui->actioneRun, ConfigShortcut("DebugeRun"));
     setGlobalShortcut(ui->actionseRun, ConfigShortcut("DebugseRun"));
     setGlobalShortcut(ui->actionRunSelection, ConfigShortcut("DebugRunSelection"));
@@ -1158,6 +1177,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionRestart, ConfigShortcut("DebugRestart"));
     setGlobalShortcut(ui->actionClose, ConfigShortcut("DebugClose"));
     setGlobalShortcut(ui->actionStepInto, ConfigShortcut("DebugStepInto"));
+    setGlobalShortcut(mActionStepIntoBackward, ConfigShortcut("DebugStepIntoBackward"));
     setGlobalShortcut(ui->actioneStepInto, ConfigShortcut("DebugeStepInto"));
     setGlobalShortcut(ui->actionseStepInto, ConfigShortcut("DebugseStepInto"));
     setGlobalShortcut(ui->actionStepIntoSource, ConfigShortcut("DebugStepIntoSource"));
@@ -2394,6 +2414,13 @@ void MainWindow::chkSaveloadTabSavedOrderStateChangedSlot(bool state)
 
 void MainWindow::dbgStateChangedSlot(DBGSTATE state)
 {
+    const bool canReplayBackwards = state != stopped && DbgCanReplayBackwards();
+    const bool canNavigateNow = canReplayBackwards && state == paused;
+    mActionRunBackward->setVisible(canReplayBackwards);
+    mActionRunBackward->setEnabled(canNavigateNow);
+    mActionStepIntoBackward->setVisible(canReplayBackwards);
+    mActionStepIntoBackward->setEnabled(canNavigateNow);
+
     if(state == initialized) //fixes a crash when restarting with certain settings in another tab
         displayCpuWidget();
     if(bExitWhenDetached && state == stopped) //detach and exit: the debugger has detached, no exit confirmation dialog this time

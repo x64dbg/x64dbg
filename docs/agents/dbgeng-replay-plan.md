@@ -87,12 +87,36 @@ The minidump implementation and the first complete TTD replay slice are implemen
 - TTD sessions provide synthetic immutable identities, contexts, PEB/TEB,
   memory reads/maps, module paths, exact seeks, forward/reverse stepping,
   forward/reverse runs, trace exceptions, timeline state diffs, and logical
-  code/data breakpoints without patching trace memory.
+  code/data breakpoints without patching trace memory. Reverse watchpoint runs
+  use a finite replay bound because this runtime treats an all-ones reverse
+  count as zero work; GUI Pause and Stop call the cursor interruption API so a
+  long replay cannot strand teardown or leave the next open `ERROR_BUSY`.
+  Recorded process exit is published as a mandatory synthetic replay boundary:
+  the GUI pauses and retains cursor, memory, register, and timeline state until
+  the user seeks/runs backward or explicitly stops the session. The cursor is
+  parked at the final executable instruction before exit because the runtime's
+  post-exit position exposes only a sparse stack. Active NT_TIB stack/TEB ranges
+  are synthesized into the replay memory map, and partial TTD memory ranges are
+  accumulated without claiming unread bytes as valid. The GUI queries one
+  bridge-level `DbgCanReplayBackwards()` boolean (no TitanEngine enums) and
+  conditionally exposes `DebugRunBackward` and `DebugStepIntoBackward` actions
+  in backward/forward order in the Debug menu and toolbar. Forward and reverse
+  single-step ignore TTD's stale zero-step re-notification of an execute
+  watchpoint at the current cursor, so stepping from a reverse-hit logical code
+  breakpoint advances one recorded execution instead of resuming to the next
+  exception. Once a forward run publishes the retained pseudo-exit boundary,
+  ordinary forward step cannot cross into TTD's sparse raw post-exit cursor;
+  reverse step and a subsequent forward step back to the boundary remain valid.
 - `src/tests/replay_ttd` supplies a deterministic target with three worker
   threads, repeated known functions, known memory writes, helper-DLL
   load/unload, and a handled `0xE0424242` exception. The x64 and x32 DbgEng
-  gates each pass 11 assertions, including twenty sessions in one headless
-  process.
+  gates each pass 11 assertions. The transition coverage includes first-position
+  rejection, rapid alternating forward/reverse steps, stepping onto and away
+  from persistent code and data breakpoints in both directions, forward and
+  reverse run round trips through the handled exception, step-over after reverse
+  run, switching directly between step and run modes, long reverse execution to
+  the early image entry point, pseudo-exit boundary navigation, explicit replay
+  interruption, and twenty sessions in one headless process.
 - The 47-test selected live DbgEng matrix passes on both x64 and x32 after the
   TTD changes. TitanEngine/GleeBug x64/x32 memory and multi-session smoke tests
   also pass.

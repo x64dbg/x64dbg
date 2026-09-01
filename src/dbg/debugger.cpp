@@ -1928,7 +1928,13 @@ static void waitAtAttach()
 
 static void cbSystemBreakpoint(const void* ExceptionData) // TODO: System breakpoint event shouldn't be dropped
 {
+    constexpr ULONG_PTR replayExitMarker = 0x54545845u; // "TTXE"
     hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
+    const auto exceptionInfo = static_cast<const EXCEPTION_DEBUG_INFO*>(ExceptionData);
+    const bool replayExit = dbggetsessionkind() == UE_SESSION_TTD && exceptionInfo &&
+                            exceptionInfo->ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT &&
+                            exceptionInfo->ExceptionRecord.NumberParameters == 1 &&
+                            exceptionInfo->ExceptionRecord.ExceptionInformation[0] == replayExitMarker;
     if(dbggetsessionkind() == UE_SESSION_MINIDUMP && ExceptionData)
     {
         lastExceptionInfo = *static_cast<const EXCEPTION_DEBUG_INFO*>(ExceptionData);
@@ -1951,7 +1957,10 @@ static void cbSystemBreakpoint(const void* ExceptionData) // TODO: System breakp
     GuiUpdateAllViews();
 
     //log message
-    dputs(QT_TRANSLATE_NOOP("DBG", "System breakpoint reached!"));
+    if(replayExit)
+        dputs(QT_TRANSLATE_NOOP("DBG", "Replay reached the recorded process exit. The session remains paused; seek or run backward, or use Stop to close it."));
+    else
+        dputs(QT_TRANSLATE_NOOP("DBG", "System breakpoint reached!"));
     dbgsetskipexceptions(false); //we are not skipping first-chance exceptions
 
     //plugin callbacks
@@ -1959,7 +1968,7 @@ static void cbSystemBreakpoint(const void* ExceptionData) // TODO: System breakp
     callbackInfo.reserved = 0;
     plugincbcall(CB_SYSTEMBREAKPOINT, &callbackInfo);
 
-    bool systemBreakpoint = settingboolget("Events", "SystemBreakpoint", true);
+    bool systemBreakpoint = replayExit || settingboolget("Events", "SystemBreakpoint", true);
     if(!systemBreakpoint && bEntryIsInMzHeader)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "It has been detected that the debuggee entry point is in the MZ header of the executable. This will cause strange behavior, so the system breakpoint has been enabled regardless of your setting. Be careful!"));
