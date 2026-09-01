@@ -550,6 +550,15 @@ bool cbDebugPause(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Program is not running"));
         return false;
     }
+    if(dbggetsessionkind() == UE_SESSION_TTD)
+    {
+        if(!TitanDebugBreakProcess(fdProcessInfo->hProcess))
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Unable to interrupt TTD replay."));
+            return false;
+        }
+        return true;
+    }
     // If the previous pause request could not break the debuggee and no debug
     // events happened since, the debuggee is stuck in a wait that the code
     // below cannot interrupt. Requesting a pause again after a few seconds
@@ -650,7 +659,16 @@ bool cbDebugStepInto(int argc, char* argv[])
         return true;
     if(skipInt3Stepping(1, argv) && !--steprepeat)
         return true;
-    StepIntoWow64(cbStep);
+    if(dbggetsessionkind() == UE_SESSION_TTD)
+    {
+        if(!ReplayStep(false, false, cbStep))
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Unable to step forward in this TTD position (error %lu).\n"), GetLastError());
+            return false;
+        }
+    }
+    else
+        StepIntoWow64(cbStep);
     dbgsetsteprepeat(true, steprepeat);
     return cbDebugRunInternal(1, argv, steprepeat == 1 ? history_record : history_clear);
 }

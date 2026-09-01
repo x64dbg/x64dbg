@@ -19,6 +19,12 @@ The automated test reads traces from:
 
 When the variable is unset it uses `build/replay-ttd-fixtures` in the repository.
 The checked manifest records recorder, binary, trace, extent, and milestone data.
+The gate also exercises a deterministic navigation transition matrix: alternating
+forward/reverse steps at the first position; persistent code/data breakpoint
+hits approached and left in both directions; forward/reverse run and step-over
+transitions around the handled exception; rejected movement beyond both trace
+boundaries; pseudo-exit reverse/forward navigation; interruption; and repeated
+session teardown.
 
 The current fixtures were recorded from an elevated command prompt with:
 

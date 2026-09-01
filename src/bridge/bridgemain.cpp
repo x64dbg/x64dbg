@@ -595,6 +595,11 @@ BRIDGE_IMPEXP bool DbgIsDebugging()
     return _dbg_isdebugging();
 }
 
+BRIDGE_IMPEXP bool DbgCanReplayBackwards()
+{
+    return !!_dbg_sendmessage(DBG_CAN_REPLAY_BACKWARDS, nullptr, nullptr);
+}
+
 BRIDGE_IMPEXP bool DbgIsJumpGoingToExecute(duint addr)
 {
     return _dbg_isjumpgoingtoexecute(addr);

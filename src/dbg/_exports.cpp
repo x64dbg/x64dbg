@@ -926,6 +926,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         case DBG_GET_TIME_WASTED_COUNTER:
         case DBG_GET_DEBUG_ENGINE:
         case DBG_IS_TESTING:
+        case DBG_CAN_REPLAY_BACKWARDS:
             break;
         //the rest is unsafe -> throw an exception when people try to call them
         default:
@@ -1206,6 +1207,12 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     case DBG_IS_TESTING:
     {
         return TestIsEnabled() ? 1 : 0;
+    }
+    break;
+
+    case DBG_CAN_REPLAY_BACKWARDS:
+    {
+        return dbghassessioncapability(UE_SESSION_CAP_REVERSE_EXECUTION) ? 1 : 0;
     }
     break;
 
