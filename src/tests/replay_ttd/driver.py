@@ -86,6 +86,24 @@ class Headless:
         with self.condition:
             return [line for line in self.lines if text in line]
 
+    def mark(self) -> int:
+        with self.condition:
+            return len(self.lines)
+
+    def wait_ordered_after(self, first: str, second: str, start: int, timeout: float) -> bool:
+        deadline = time.monotonic() + timeout
+        with self.condition:
+            while True:
+                first_index = next((i for i in range(start, len(self.lines)) if first in self.lines[i]), None)
+                if first_index is not None and any(second in self.lines[i] for i in range(first_index + 1, len(self.lines))):
+                    return True
+                if self.process.poll() is not None:
+                    return False
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    return False
+                self.condition.wait(min(remaining, 0.25))
+
     def output(self) -> str:
         with self.condition:
             return "\n".join(self.lines) + "\n"
@@ -103,7 +121,8 @@ def main() -> int:
     artifacts = Path(args.artifacts_dir).resolve()
     log_path = Path(args.log).resolve()
     repo = Path(__file__).resolve().parents[3]
-    arch = headless.parent.name.lower()
+    output_arch = headless.parent.name.lower()
+    arch = "x64" if output_arch.startswith("x64") else "x32" if output_arch.startswith("x32") else output_arch
     fixture_root = Path(os.environ.get("X64DBG_TTD_FIXTURE_DIR", repo / "build" / "replay-ttd-fixtures"))
     trace = (fixture_root / arch / "replay_ttd.run").resolve()
     output_path = artifacts / "headless-output.txt"
@@ -150,15 +169,28 @@ def main() -> int:
         return 1
 
     def navigate_and_query(command: str, movement_timeout: float = 30) -> tuple[int, int] | None:
-        paused_before = len(debugger.matching("[STATE] paused"))
+        state_mark = debugger.mark()
         positions_before = len(debugger.matching("Replay position:"))
         debugger.send(command)
-        if not debugger.wait_count("[STATE] paused", paused_before + 1, movement_timeout):
+        if not debugger.wait_ordered_after("[STATE] running", "[STATE] paused", state_mark, movement_timeout):
             return None
         debugger.send("replaygetposition")
         if not debugger.wait_count("Replay position:", positions_before + 1, 15):
             return None
         return parse_position(debugger.matching("Replay position:")[-1])
+
+    def seek_and_wait(position: tuple[int, int]) -> bool:
+        seeks_before = len(debugger.matching("Replay position set:"))
+        debugger.send(f"replaysetposition {position[0]:X}:{position[1]:X}")
+        return debugger.wait_count("Replay position set:", seeks_before + 1, 15)
+
+    def query_thread_instruction(marker: str) -> tuple[int, str] | None:
+        debugger.send(f"log {marker} TID={{d:tid()}} INS={{i:cip}}")
+        if not debugger.wait_count(marker, 1, 15):
+            return None
+        line = debugger.matching(marker)[-1]
+        match = re.search(r"TID=(\d+).*INS=(.*)$", line)
+        return (int(match.group(1)), match.group(2).strip()) if match else None
 
     timeout = max(45, args.timeout)
     if not debugger.wait_count("[headless] entering command loop", 1, timeout):
@@ -214,9 +246,12 @@ def main() -> int:
     step_over = parse_position(debugger.matching("Replay position:")[-1])
     if not step_over or step_over <= first:
         return fail("step_over_position", "TTD step-over did not advance")
-    debugger.send(f"replaysetposition {first[0]:X}:{first[1]:X}")
-    if not debugger.wait_count("Replay position set:", 1, 15):
+    if not seek_and_wait(first):
         return fail("step_restore", "TTD could not restore the first position after step-over")
+    if navigate_and_query("sto 2") != (first[0], first[1] + 2):
+        return fail("step_over_repeat", "TTD repeated step-over did not use the standard step-repeat path")
+    if not seek_and_wait(first):
+        return fail("step_over_repeat_restore", "TTD could not restore the first position after repeated step-over")
 
     # Probe the beginning boundary and rapidly alternate directions before any
     # logical breakpoint has been installed.
@@ -241,7 +276,33 @@ def main() -> int:
             return fail("first_transition_matrix", "TTD failed an alternating step transition near the first position")
     if navigate_and_query("replayrunback", timeout) != first:
         return fail("first_reverse_run", "TTD reverse run at the first position did not retain its boundary")
-    assertions.append("TTD first-boundary and alternating step transitions passed")
+
+    # The fixture begins in LdrInitializeThunk and reaches a call shared by
+    # several thread initializations. Step-over must reach the return site on
+    # the selected thread, not the first peer thread that executes that address.
+    call_position = first
+    call_state = None
+    for probe_index in range(32):
+        call_state = query_thread_instruction(f"TTD_STO_THREAD_BEFORE_{probe_index}=")
+        if not call_state:
+            return fail("thread_step_over_probe", "TTD could not query the thread and instruction before step-over")
+        if call_state[1].lower().startswith("call "):
+            break
+        next_position = navigate_and_query("sti")
+        if not next_position or next_position <= call_position:
+            return fail("thread_step_over_seek", "TTD could not step to the loader call used for thread-affinity validation")
+        call_position = next_position
+    else:
+        return fail("thread_step_over_call", "TTD did not find the expected loader call near the first position")
+    step_over_position = navigate_and_query("sto", timeout)
+    after_call_state = query_thread_instruction("TTD_STO_THREAD_AFTER=")
+    if not step_over_position or step_over_position <= call_position or not after_call_state:
+        return fail("thread_step_over", "TTD current-thread step-over did not reach a valid return position")
+    if after_call_state[0] != call_state[0]:
+        return fail("thread_step_over_affinity", "TTD step-over completed on a different thread")
+    if not seek_and_wait(first):
+        return fail("thread_step_over_restore", "TTD could not restore the first position after thread-affinity validation")
+    assertions.append("TTD first-boundary, alternating steps, and current-thread step-over passed")
 
     debugger.send("bp replay_ttd.ReplayTtdMilestone")
     if not debugger.wait_count("Breakpoint at", 1, 15):
@@ -275,8 +336,7 @@ def main() -> int:
     debugger.send("replaygetposition")
     if not debugger.wait_count("Replay position:", position_count + 1, 15) or parse_position(debugger.matching("Replay position:")[-1]) != last:
         return fail("exact_last", "TTD exact seek did not reach the last position")
-    debugger.send(f"replaysetposition {repeated_hit[0]:X}:{repeated_hit[1]:X}")
-    if not debugger.wait_count("Replay position set:", 3, 15):
+    if not seek_and_wait(repeated_hit):
         return fail("reverse_setup_seek", "TTD could not restore the repeated breakpoint position")
     debugger.send("bc replay_ttd.ReplayTtdMilestone")
     paused_before = len(debugger.matching("[STATE] paused"))
@@ -432,8 +492,7 @@ def main() -> int:
         return fail("transition_step_over_final_runback", "TTD final reverse run did not restore the persistent breakpoint")
     assertions.append("TTD mixed forward/reverse step, step-over, and run transition matrix passed")
     debugger.send("bc replay_ttd.entry")
-    debugger.send(f"replaysetposition {first[0]:X}:{first[1]:X}")
-    if not debugger.wait_count("Replay position set:", 7, 15):
+    if not seek_and_wait(first):
         return fail("interrupt_setup", "TTD could not seek for the interrupt test")
     system_breaks_before_interrupt = len(debugger.matching("System breakpoint reached!"))
     debugger.send("run")
@@ -447,8 +506,7 @@ def main() -> int:
     interrupted_position = parse_position(debugger.matching("Replay position:")[-1])
     if not interrupted_position or not (first <= interrupted_position <= exception_position):
         return fail("interrupt_position_range", "TTD pause did not preserve a valid cursor position")
-    debugger.send(f"replaysetposition {exception_position[0]:X}:{exception_position[1]:X}")
-    if not debugger.wait_count("Replay position set:", 8, 15):
+    if not seek_and_wait(exception_position):
         return fail("pseudo_exit_setup", "TTD could not seek to the handled exception for the exit-boundary test")
     exceptions_before_exit_run = len(debugger.matching("First chance exception"))
     debugger.send("run")
@@ -504,8 +562,7 @@ def main() -> int:
     if navigate_and_query("sti") != exit_position:
         return fail("pseudo_exit_step_return", "TTD could not step forward back to its pseudo-exit boundary")
 
-    debugger.send(f"replaysetposition {first[0]:X}:{first[1]:X}")
-    if not debugger.wait_count("Replay position set:", 9, 15):
+    if not seek_and_wait(first):
         return fail("pseudo_exit_seek", "TTD could not seek backward while paused at process exit")
     assertions.append("TTD handled interruption and enforced retained process-exit boundary navigation")
 
@@ -514,13 +571,15 @@ def main() -> int:
         return fail("stop", "TTD session did not stop cleanly")
     system_breaks_before_reopen = len(debugger.matching("System breakpoint reached!"))
     for iteration in range(2, 21):
-        paused_before_reopen = len(debugger.matching("[STATE] paused"))
         debugger.send(f"initreplay {trace_arg}")
         expected_system_breaks = system_breaks_before_reopen + iteration - 1
         if not debugger.wait_count("System breakpoint reached!", expected_system_breaks, timeout):
             return fail("reopen", f"TTD trace did not reopen for session {iteration}")
-        if not debugger.wait_count("[STATE] paused", paused_before_reopen + 1, 30):
-            return fail("reopen_pause", f"TTD trace did not finish pausing for session {iteration}")
+        # The message is emitted immediately before the callback acquires the
+        # run lock. Give that short handoff time to complete before requesting
+        # teardown; a paused-state notification may be coalesced with the
+        # earlier initialization state and is therefore not a reliable marker.
+        time.sleep(0.25)
         debugger.send("stop")
         if not debugger.wait_count("Debugging stopped!", iteration, 45):
             return fail("restop", f"TTD session {iteration} did not stop cleanly")
