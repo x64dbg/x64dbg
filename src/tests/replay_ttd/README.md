@@ -22,7 +22,9 @@ The checked manifest records recorder, binary, trace, extent, and milestone data
 The gate also exercises a deterministic navigation transition matrix: alternating
 forward/reverse steps at the first position; persistent code/data breakpoint
 hits approached and left in both directions; forward/reverse run and step-over
-transitions around the handled exception; rejected movement beyond both trace
+transitions around the handled exception; standard repeated step-over and
+current-thread step-over at the loader call shared by multiple thread
+initializations; rejected movement beyond both trace
 boundaries; pseudo-exit reverse/forward navigation; interruption; and repeated
 session teardown.
 

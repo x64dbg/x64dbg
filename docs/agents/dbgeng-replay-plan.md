@@ -84,6 +84,8 @@ The minidump implementation and the first complete TTD replay slice are implemen
   engine API rather than `IDebugClient::OpenDumpFileWide`. The adapter loads
   architecture-matched `TTDReplay.dll`/`TTDReplayCPU.dll` and supports x64 and
   x86 replay ABIs, including their different x86 structure-return conventions.
+  The x86 call/return callback uses `__fastcall` with a pointer-sized callback
+  value; this is required when engine-owned step-over observes a recorded call.
 - TTD sessions provide synthetic immutable identities, contexts, PEB/TEB,
   memory reads/maps, module paths, exact seeks, forward/reverse stepping,
   forward/reverse runs, trace exceptions, timeline state diffs, and logical
@@ -104,7 +106,14 @@ The minidump implementation and the first complete TTD replay slice are implemen
   single-step ignore TTD's stale zero-step re-notification of an execute
   watchpoint at the current cursor, so stepping from a reverse-hit logical code
   breakpoint advances one recorded execution instead of resuming to the next
-  exception. Once a forward run publishes the retained pseudo-exit boundary,
+  exception. Forward step-over always follows x64dbg's ordinary
+  `StepOverWrapper` -> TitanEngine `StepOver` path. The DbgEng adapter detects
+  TTD calls through the replay engine's call/return callback and owns the
+  current-thread one-shot return watchpoint internally; cursor-global callbacks
+  ignore matching executions from peer threads, while ordinary user
+  breakpoints remain process-global. No replay-only breakpoint flag is exposed
+  through the canonical TitanEngine ABI. Once a forward run publishes the retained
+  pseudo-exit boundary,
   ordinary forward step cannot cross into TTD's sparse raw post-exit cursor;
   reverse step and a subsequent forward step back to the boundary remain valid.
 - `src/tests/replay_ttd` supplies a deterministic target with three worker
@@ -113,7 +122,8 @@ The minidump implementation and the first complete TTD replay slice are implemen
   gates each pass 11 assertions. The transition coverage includes first-position
   rejection, rapid alternating forward/reverse steps, stepping onto and away
   from persistent code and data breakpoints in both directions, forward and
-  reverse run round trips through the handled exception, step-over after reverse
+  reverse run round trips through the handled exception, current-thread
+  step-over at the shared loader initialization call, step-over after reverse
   run, switching directly between step and run modes, long reverse execution to
   the early image entry point, pseudo-exit boundary navigation, explicit replay
   interruption, and twenty sessions in one headless process.

@@ -743,34 +743,6 @@ bool cbDebugStepOver(int argc, char* argv[])
         return false;
     if(!steprepeat) //nothing to be done
         return true;
-    if(dbggetsessionkind() == UE_SESSION_TTD)
-    {
-        if(steprepeat != 1)
-        {
-            dputs(QT_TRANSLATE_NOOP("DBG", "Repeated TTD step-over is not supported."));
-            return false;
-        }
-        Zydis replayInstruction;
-        const auto cip = GetContextDataEx(hActiveThread, UE_CIP);
-        disasm(replayInstruction, cip);
-        if(replayInstruction.IsBranchType(Zydis::BTCallSem) || IsRepeated(replayInstruction))
-        {
-            const auto next = cip + replayInstruction.Size();
-            if(!SetBPX(next, UE_BREAKPOINT | UE_SINGLESHOOT, cbStep) || !ReplayRun(false))
-            {
-                DeleteBPX(next);
-                dputs(QT_TRANSLATE_NOOP("DBG", "Unable to schedule the TTD step-over breakpoint."));
-                return false;
-            }
-        }
-        else if(!ReplayStep(false, false, cbStep))
-        {
-            dputs(QT_TRANSLATE_NOOP("DBG", "Unable to step over in this TTD position."));
-            return false;
-        }
-        dbgsetsteprepeat(false, 1);
-        return cbDebugRunInternal(1, argv, history_record);
-    }
     if(skipInt3Stepping(1, argv) && !--steprepeat)
         return true;
     auto history = history_clear;
