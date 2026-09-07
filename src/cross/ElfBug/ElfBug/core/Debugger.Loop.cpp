@@ -42,9 +42,14 @@ namespace ElfBug
                 mProcess->HasBreakpoint(mThread->registers.Gip()))
         {
             const ptr rip = mThread->registers.Gip();
-            if(stepIntoRequested)
+            ptr next = 0;
+            const bool repeats = mProcess->ClassifyStepOverAt(rip, next) == StepOverKind::Rep;
+
+            // Stepping off would consume the user's step, and for a repeated instruction
+            // it only runs one iteration and leaves RIP in place, so the resume would
+            // trap again immediately. Lift the byte instead and re-arm at the next stop.
+            if(stepIntoRequested || repeats)
             {
-                // stepPastBreakpointByte would consume the user's step; just lift the byte.
                 if(mProcess->DisarmBreakpointByte(rip))
                     mSourceRearms[pid] = rip;
             }

@@ -121,6 +121,22 @@ namespace ElfBug
         return true;
     }
 
+    bool Process::TakeBreakpointDispatch(const ptr address, BreakpointInfo & info,
+                                         BreakpointCallback & callback) const
+    {
+        std::shared_lock lock(mBreakpointMutex);
+        const auto ref = softwareBreakpointReferences.find(address);
+        if(ref == softwareBreakpointReferences.end())
+            return false;
+
+        info = ref->second->second;
+
+        const BreakpointKey key{BreakpointType::Software, address};
+        const auto cbIt = breakpointCallbacks.find(key);
+        callback = cbIt != breakpointCallbacks.end() ? cbIt->second : BreakpointCallback();
+        return true;
+    }
+
     bool Process::HasBreakpoint(const ptr address) const
     {
         std::shared_lock lock(mBreakpointMutex);

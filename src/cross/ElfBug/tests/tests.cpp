@@ -1664,3 +1664,56 @@ TEST_CASE("A breakpoint on the stepped call fires again for inner frames", "[ste
     REQUIRE(exit_ev.exitCode == 0);
     REQUIRE(dbg.count(EventType::Step) == 0);
 }
+
+TEST_CASE("ClassifyStepOver does not treat SSE scalar ops as repeated", "[stepover]")
+{
+    using namespace ElfBug;
+    ptr next = 0;
+
+    // f2 0f 10 c1 : movsd xmm0, xmm1 - F2 is a mandatory prefix, not a rep
+    const uint8 movsdXmm[] = {0xf2, 0x0f, 0x10, 0xc1};
+    REQUIRE(ClassifyStepOver(movsdXmm, sizeof(movsdXmm), 0x1000, next) == StepOverKind::None);
+    REQUIRE(next == 0);
+
+    // f2 0f c2 c1 00 : cmpsd xmm0, xmm1, 0
+    const uint8 cmpsdXmm[] = {0xf2, 0x0f, 0xc2, 0xc1, 0x00};
+    REQUIRE(ClassifyStepOver(cmpsdXmm, sizeof(cmpsdXmm), 0x1000, next) == StepOverKind::None);
+
+    // f3 0f 10 c1 : movss xmm0, xmm1
+    const uint8 movssXmm[] = {0xf3, 0x0f, 0x10, 0xc1};
+    REQUIRE(ClassifyStepOver(movssXmm, sizeof(movssXmm), 0x1000, next) == StepOverKind::None);
+}
+
+TEST_CASE("Continue from a breakpoint on a rep instruction reports one hit", "[breakpoint]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("step_over_targets");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    std::promise<std::optional<ElfBug::ptr>> sitePromise;
+    auto siteFuture = sitePromise.get_future();
+    dbg.OnSystemBreakpoint([&]
+    {
+        const auto site = ResolveRuntimeAddress(path, dbg.process()->pid, "so_rep_insn");
+        if(site)
+            dbg.process()->SetBreakpoint(*site, false, ElfBug::SoftwareType::ShortInt3);
+        sitePromise.set_value(site);
+    });
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    const auto site = siteFuture.get();
+    REQUIRE(site.has_value());
+
+    dbg.Continue();
+    dbg.WaitForBreakpointAt(*site);
+    REQUIRE(dbg.currentThread()->registers.Gcx() == 64);
+
+    // A single step runs one iteration and leaves RIP on the instruction, so a naive
+    // step-off re-traps once per iteration.
+    dbg.Continue();
+    dbg.WaitForExit();
+    dbg.JoinThread();
+    REQUIRE(dbg.count(EventType::Breakpoint) == 1);
+}

@@ -54,6 +54,8 @@ namespace ElfBug
         bool DeleteMemoryBreakpoint(ptr address);
 
         [[nodiscard]] bool HasBreakpoint(ptr address) const;
+        // Copies out what a hit needs so the callback runs without holding the lock.
+        bool TakeBreakpointDispatch(ptr address, BreakpointInfo & info, BreakpointCallback & callback) const;
         [[nodiscard]] StepOverKind ClassifyStepOverAt(ptr rip, ptr & nextAddr) const;
 
         // Drops the /proc/pid/mem descriptor; it is reopened lazily. Needed after execve.

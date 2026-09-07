@@ -202,6 +202,8 @@ namespace ElfBug
             if(stepSig != SIGTRAP)
             {
                 // Not the step's trap: report it like any other stop instead of forwarding it blind.
+                // A handled signal leaves the step at the handler entry with the byte re-armed,
+                // so the breakpoint fires again when the handler returns to the instruction.
                 handleSignal(pid, stepStatus);
                 return false;
             }
@@ -289,7 +291,9 @@ namespace ElfBug
             const ptr bpAddr = mThread->registers.Gip() - 1;
             const bool stepOverHit = mProcess && mStepOver.active && bpAddr == mStepOver.target;
 
-            if(mThread->isSingleStepping() && !stepOverHit)
+            // A step-over always completes under PTRACE_CONT, so a single-step trap is
+            // never one. Letting the address match win would rewind RIP over a real step.
+            if(mThread->isSingleStepping())
             {
                 const bool stepsPushf = mThread->stepsPushf();
                 mThread->clearSingleStep();
@@ -360,10 +364,7 @@ namespace ElfBug
                     }
                 }
 
-                const BreakpointKey key{BreakpointType::Software, bpAddr};
-                const auto it = mProcess->breakpoints.find(key);
-
-                if(it != mProcess->breakpoints.end())
+                if(mProcess->HasBreakpoint(bpAddr))
                 {
                     mThread->registers.Gip() = bpAddr;
                     mThread->registers.Write();

@@ -221,17 +221,15 @@ namespace ElfBug
 
     void Debugger::dispatchBreakpoint(const ptr address)
     {
-        const BreakpointKey key{BreakpointType::Software, address};
-        const auto it = mProcess->breakpoints.find(key);
-        if(it == mProcess->breakpoints.end())
+        // Both are copies: the callback may delete the breakpoint out from under us,
+        // and it must not run while the breakpoint lock is held.
+        BreakpointInfo info;
+        BreakpointCallback callback;
+        if(!mProcess->TakeBreakpointDispatch(address, info, callback))
             return;
 
-        // Copied: the callback may delete the breakpoint.
-        const BreakpointInfo info = it->second;
-
-        const auto cbIt = mProcess->breakpointCallbacks.find(key);
-        if(cbIt != mProcess->breakpointCallbacks.end())
-            cbIt->second(info);
+        if(callback)
+            callback(info);
 
         cbBreakpoint(info);
 
