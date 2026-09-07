@@ -1,6 +1,9 @@
 #pragma once
 #include <QMenu>
 #include <QAction>
+#include <QWidgetAction>
+#include <QPushButton>
+#include <QVBoxLayout>
 #include <QMessageBox>
 #include <QApplication>
 #include <functional>
@@ -186,6 +189,43 @@ protected:
         auto action = makeAction(icon, text, slot);
         action->setStatusTip(description);
         return action;
+    }
+
+    template<typename T>
+    QAction* makeActionColor(const QColor & color, T slot)
+    {
+        auto container = new QWidget(getBase());
+        container->setObjectName("colorItem");
+        container->setStyleSheet(QString("QWidget#colorItem:hover { background-color: %1; }")
+                                 .arg(ConfigColor("AbstractTableViewSelectionColor").name()));
+
+        auto layout = new QVBoxLayout(container);
+        layout->setContentsMargins(4, 4, 4, 4);
+
+        auto swatch = new QPushButton(container);
+        swatch->setFlat(true);
+        swatch->setFixedHeight(20);
+        swatch->setStyleSheet(QString("QPushButton { background-color: %1; border: none; border-radius: 0px; }").arg(color.name()));
+        layout->addWidget(swatch);
+
+        auto action = new QWidgetAction(getBase());
+        action->setDefaultWidget(container);
+
+        QObject::connect(swatch, &QPushButton::clicked, action, [action]()
+        {
+            QWidget* popup = QApplication::activePopupWidget();
+            while(auto menu = qobject_cast<QMenu*>(popup))
+            {
+                menu->close();
+                auto next = QApplication::activePopupWidget();
+                if(next == popup)
+                    break;
+                popup = next;
+            }
+            action->trigger();
+        });
+
+        return connectAction(action, slot);
     }
 
     template<typename T>

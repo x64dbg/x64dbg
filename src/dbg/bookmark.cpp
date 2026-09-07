@@ -1,4 +1,5 @@
 #include "bookmark.h"
+#include "database_cb_batcher.h"
 
 struct BookmarkSerializer : AddrInfoSerializer<BOOKMARKSINFO>
 {
@@ -9,6 +10,16 @@ struct Bookmarks : AddrInfoHashMap<LockBookmarks, BOOKMARKSINFO, BookmarkSeriali
     const char* jsonKey() const override
     {
         return "bookmarks";
+    }
+
+protected:
+    bool populateDbOperation(DbOperation & op, const BOOKMARKSINFO & value) const override
+    {
+        op.itemType = DbItemTypeBookmark;
+        op.manual = value.manual;
+        op.modhash = value.modhash;
+        op.address = value.addr;
+        return true;
     }
 };
 
@@ -37,6 +48,7 @@ bool BookmarkDelete(duint Address)
 
 void BookmarkDelRange(duint Start, duint End, bool Manual)
 {
+    DbCallbackBatcher batcher;
     bookmarks.DeleteRange(Start, End, Manual);
 }
 
@@ -47,6 +59,7 @@ void BookmarkCacheSave(JSON Root)
 
 void BookmarkCacheLoad(JSON Root)
 {
+    DbCallbackBatcher batcher(true);
     bookmarks.CacheLoad(Root);
     bookmarks.CacheLoad(Root, "auto"); //legacy support
 }
@@ -56,9 +69,10 @@ bool BookmarkEnum(BOOKMARKSINFO* List, size_t* Size)
     return bookmarks.Enum(List, Size);
 }
 
-void BookmarkClear()
+void BookmarkClear(bool Terminating)
 {
-    bookmarks.Clear();
+    DbCallbackBatcher batcher;
+    bookmarks.Clear(Terminating);
 }
 
 void BookmarkGetList(std::vector<BOOKMARKSINFO> & list)

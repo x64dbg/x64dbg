@@ -49,7 +49,7 @@ SCRIPT_EXPORT void Script::Comment::DeleteRange(duint start, duint end)
 
 SCRIPT_EXPORT void Script::Comment::Clear()
 {
-    CommentClear();
+    CommentClear(false);
 }
 
 SCRIPT_EXPORT bool Script::Comment::GetList(ListOf(CommentInfo) list)

@@ -1,0 +1,13 @@
+init tests/database_callbacks.exe
+
+_b1 = database_callbacks:VariableTarget
+_b2 = _b1 + 4
+
+bookmarkset _b1
+assertlastop mod.hash(mod.base(_b1)), (_b1-mod.base(_b1)), b, a, 0
+
+bookmarkset _b2
+assertlastop mod.hash(mod.base(_b2)), (_b2-mod.base(_b2)), b, a, 0
+
+bookmarkclear
+assertlastop mod.hash(mod.base(_b2)), (_b2-mod.base(_b2)), b, r, 1

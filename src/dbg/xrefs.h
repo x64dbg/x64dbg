@@ -13,6 +13,6 @@ bool XrefDeleteAll(duint Address);
 void XrefDelRange(duint Start, duint End);
 void XrefCacheSave(JSON Root);
 void XrefCacheLoad(JSON Root);
-void XrefClear();
+void XrefClear(bool Terminating);
 
 #endif // _FUNCTION_H

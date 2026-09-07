@@ -33,6 +33,7 @@
 #include "dbghelp_safe.h"
 #include "types.h"
 #include "label.h"
+#include "commandparser.h"
 
 static DBGFUNCTIONS _dbgfunctions;
 
@@ -564,5 +565,23 @@ void dbgfunctionsinit()
     _dbgfunctions.BpSetFieldText = [](const BP_REF * ref, BP_FIELD field, const char* value)
     {
         return BpSetFieldText(*ref, field, value);
+    };
+    _dbgfunctions.CommandEscape = [](const char* argument, char* result, size_t resultSize)
+    {
+        if(argument == nullptr || result == nullptr)
+            return false;
+        auto escaped = Command::Escape(argument);
+        if(resultSize <= escaped.size())
+            return false;
+        memcpy(result, escaped.c_str(), escaped.size() + 1);
+        return true;
+    };
+    _dbgfunctions.ModNameFromHash = [](duint hash, char* modname)
+    {
+        auto name = ModNameFromHash(hash);
+        if(name.empty())
+            return false;
+        strncpy_s(modname, MAX_MODULE_SIZE, name.c_str(), _TRUNCATE);
+        return true;
     };
 }

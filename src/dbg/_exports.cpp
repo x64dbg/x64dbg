@@ -38,6 +38,7 @@
 #include "symbolinfo.h"
 #include "typevisitor.h"
 #include "testing.h"
+#include "addresscolor.h"
 
 static bool bOnlyCipAutoComments = false;
 static bool bNoSourceLineAutoComments = false;
@@ -577,6 +578,16 @@ extern "C" DLL_EXPORT bool _dbg_addrinfoget(duint addr, SEGMENTREG segment, BRID
             strncat_s(addrinfo->comment, comment.c_str(), _TRUNCATE);
         }
     }
+    if(addrinfo->flags & flagaddresscolor)
+    {
+        duint color;
+        if(AddressColorGet(addr, &color))
+        {
+            addrinfo->color = (unsigned int)color;
+            retval = true;
+        }
+    }
+
     PLUG_CB_ADDRINFO info;
     info.addr = addr;
     info.addrinfo = addrinfo;
@@ -1354,6 +1365,19 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     case DBG_DELETE_AUTO_BOOKMARK_RANGE:
     {
         BookmarkDelRange((duint)param1, (duint)param2, false);
+    }
+    break;
+
+    case DBG_DELETE_ADDRESSCOLOR_RANGE:
+    {
+        AddressColorDelRange((duint)param1, (duint)param2, true);
+    }
+    break;
+
+    case DBG_SET_ADDRESSCOLOR_RANGE:
+    {
+        const auto info = (const ADDRESSCOLOR_RANGE*)param1;
+        return info && AddressColorSetRange(info->start, info->end, info->color, true);
     }
     break;
 

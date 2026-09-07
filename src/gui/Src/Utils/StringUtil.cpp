@@ -306,10 +306,18 @@ bool GetCommentFormat(duint addr, QString & comment, bool* autoComment)
 
 QString DbgCmdEscape(QString argument)
 {
-    // TODO: implement this properly
+    auto commandEscape = DbgFunctions()->CommandEscape;
+    if(commandEscape)
+    {
+        auto utf8 = argument.toUtf8();
+        QByteArray escaped(utf8.size() * 2 + 1, '\0');
+        if(commandEscape(utf8.constData(), escaped.data(), escaped.size()))
+            return QString::fromUtf8(escaped.constData());
+    }
+
+    // Compatibility fallback for partially initialized or mismatched components.
     argument.replace("\"", "\\\"");
     argument.replace("{", "\\{");
-
     return argument;
 }
 

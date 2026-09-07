@@ -171,6 +171,7 @@ function(x64dbg_add_membp_test)
 endfunction()
 
 set(X64DBG_STANDARD_TESTS
+    commandparser
     issue3803
     issue3808
     issue3865
@@ -183,6 +184,7 @@ set(X64DBG_STANDARD_TESTS
     scriptcmd_call_threads
     swbp_stale
     trace_cmd_condition
+    database_callbacks
 )
 
 foreach(test_name IN LISTS X64DBG_STANDARD_TESTS)

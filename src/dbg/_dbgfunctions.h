@@ -283,6 +283,9 @@ typedef struct DBGFUNCTIONS_
     bool (*BpSetFieldNumber)(const BP_REF* ref, BP_FIELD field, duint value);
     bool (*BpGetFieldText)(const BP_REF* ref, BP_FIELD field, CBSTRING callback, void* userdata);
     bool (*BpSetFieldText)(const BP_REF* ref, BP_FIELD field, const char* value);
+    // Escapes argument contents for insertion between double quotes in a debugger command.
+    bool (*CommandEscape)(const char* argument, char* result, size_t resultSize);
+    bool (*ModNameFromHash)(duint hash, char* modname);
 } DBGFUNCTIONS;
 
 #ifdef __cplusplus

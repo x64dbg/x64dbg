@@ -2,51 +2,42 @@
 #include "module.h"
 #include "memory.h"
 #include "threading.h"
+#include "database_cb_batcher.h"
 
-struct ArgumentSerializer : JSONWrapper<ARGUMENTSINFO>
+struct ArgumentSerializer : RangeInfoSerializer<ARGUMENTSINFO>
 {
     bool Save(const ARGUMENTSINFO & value) override
     {
-        setString("module", value.mod());
-        setHex("start", value.start);
-        setHex("end", value.end);
+        RangeInfoSerializer::Save(value);
         setHex("icount", value.instructioncount);
-        setBool("manual", value.manual);
         return true;
     }
 
     bool Load(ARGUMENTSINFO & value) override
     {
-        std::string mod;
-        if(!getString("module", mod))
+        if(!getBool("manual", value.manual) || !RangeInfoSerializer::Load(value))
             return false;
-        value.modhash = ModHashFromName(mod.c_str());
-        return getHex("start", value.start) &&
-               getHex("end", value.end) &&
-               getBool("manual", value.manual) &&
-               getHex("icount", value.instructioncount) &&
-               value.end >= value.start;
+        return getHex("icount", value.instructioncount);
     }
 };
 
-struct Arguments : SerializableModuleRangeMap<LockArguments, ARGUMENTSINFO, ArgumentSerializer>
+struct Arguments : RangeInfoMap<LockArguments, ARGUMENTSINFO, ArgumentSerializer>
 {
-    void AdjustValue(ARGUMENTSINFO & value) const override
-    {
-        auto base = ModBaseFromName(value.mod().c_str());
-        value.start += base;
-        value.end += base;
-    }
-
 protected:
     const char* jsonKey() const override
     {
         return "arguments";
     }
 
-    ModuleRange makeKey(const ARGUMENTSINFO & value) const override
+    bool populateDbOperation(DbOperation & op, const ARGUMENTSINFO & value) const override
     {
-        return ModuleRange(value.modhash, Range(value.start, value.end));
+        op.itemType = DbItemTypeArgument;
+        op.manual = value.manual;
+        op.modhash = value.modhash;
+        op.address = value.start;
+        op.argument.end = value.end;
+        op.argument.icount = value.instructioncount;
+        return true;
     }
 };
 
@@ -54,25 +45,10 @@ static Arguments arguments;
 
 bool ArgumentAdd(duint Start, duint End, bool Manual, duint InstructionCount)
 {
-    // Make sure memory is readable
-    if(!MemIsValidReadPtr(Start))
-        return false;
-
-    // Fail if boundary exceeds module size
-    auto moduleBase = ModBaseFromAddr(Start);
-
-    if(moduleBase != ModBaseFromAddr(End))
-        return false;
-
-    // Fail if 'Start' and 'End' are incompatible
-    if(Start > End || ArgumentOverlaps(Start, End))
-        return false;
-
     ARGUMENTSINFO argument;
-    argument.modhash = ModHashFromAddr(moduleBase);
-    argument.start = Start - moduleBase;
-    argument.end = End - moduleBase;
-    argument.manual = Manual;
+    if(!arguments.PrepareValue(argument, Start, End, Manual) || ArgumentOverlaps(Start, End))
+        return false;
+
     argument.instructioncount = InstructionCount;
 
     return arguments.Add(argument);
@@ -112,7 +88,7 @@ void ArgumentDelRange(duint Start, duint End, bool DeleteManual)
     // 0x00000000 - 0xFFFFFFFF
     if(Start == 0 && End == ~0)
     {
-        ArgumentClear();
+        ArgumentClear(false);
     }
     else
     {
@@ -125,6 +101,8 @@ void ArgumentDelRange(duint Start, duint End, bool DeleteManual)
         // Convert these to a relative offset
         Start -= moduleBase;
         End -= moduleBase;
+
+        DbCallbackBatcher batcher;
 
         arguments.DeleteWhere([ = ](const ARGUMENTSINFO & value)
         {
@@ -142,12 +120,14 @@ void ArgumentCacheSave(JSON Root)
 
 void ArgumentCacheLoad(JSON Root)
 {
+    DbCallbackBatcher batcher(true);
     arguments.CacheLoad(Root);
 }
 
-void ArgumentClear()
+void ArgumentClear(bool Terminating)
 {
-    arguments.Clear();
+    DbCallbackBatcher batcher;
+    arguments.Clear(Terminating);
 }
 
 void ArgumentGetList(std::vector<ARGUMENTSINFO> & list)

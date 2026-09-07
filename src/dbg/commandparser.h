@@ -7,6 +7,7 @@ class Command
 {
 public:
     Command(const String & command);
+    static String Escape(const String & argument);
     const String GetText();
     const String GetArg(const int argnum);
     const int GetArgCount();
@@ -18,9 +19,7 @@ private:
     enum ParseState
     {
         Default,
-        Escaped,
         Text,
-        TextEscaped,
         StringFormat,
     };
 

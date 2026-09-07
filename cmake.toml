@@ -67,6 +67,7 @@ clang-any.compile-options = ["-Wno-self-assign-field"]
 type = "shared"
 sources = [
     "src/dbg/*.cpp",
+    "src/dbg/*.c",
     "src/dbg/*.h",
     "src/dbg/analysis/*.cpp",
     "src/dbg/analysis/*.h",

@@ -170,7 +170,7 @@ MODULEPARTY ModGetParty(duint Address);
 void ModSetParty(duint Address, MODULEPARTY Party);
 void ModCacheSave(JSON root);
 void ModCacheLoad(JSON root);
-void ModCacheClear();
+void ModCacheClear(bool Terminating);
 bool ModRelocationsFromAddr(duint Address, std::vector<MODRELOCATIONINFO> & Relocations);
 bool ModRelocationAtAddr(duint Address, MODRELOCATIONINFO* Relocation);
 bool ModRelocationsInRange(duint Address, duint Size, std::vector<MODRELOCATIONINFO> & Relocations);

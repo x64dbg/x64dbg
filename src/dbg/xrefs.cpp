@@ -1,5 +1,6 @@
 #include "xrefs.h"
 #include "addrinfo.h"
+#include "database_cb_batcher.h"
 
 struct XREFSINFO : AddrInfo
 {
@@ -52,6 +53,12 @@ struct Xrefs : AddrInfoHashMap<LockCrossReferences, XREFSINFO, XrefSerializer>
     const char* jsonKey() const override
     {
         return "xrefs";
+    }
+
+protected:
+    bool populateDbOperation(DbOperation & op, const XREFSINFO & value) const override // Xrefs don't have database notifications
+    {
+        return false;
     }
 };
 
@@ -218,10 +225,11 @@ void XrefCacheSave(JSON Root)
 
 void XrefCacheLoad(JSON Root)
 {
+    DbCallbackBatcher batcher(true);
     xrefs.CacheLoad(Root);
 }
 
-void XrefClear()
+void XrefClear(bool Terminating)
 {
-    xrefs.Clear();
+    xrefs.Clear(Terminating);
 }

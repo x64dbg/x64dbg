@@ -113,7 +113,7 @@ void GuiUpdateWatchViewAsync()
 
 // Global functions
 // Clear all watch
-void WatchClear()
+void WatchClear(bool Terminating)
 {
     if(!watchexpr.empty())
     {

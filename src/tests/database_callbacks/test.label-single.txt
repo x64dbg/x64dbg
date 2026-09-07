@@ -1,0 +1,9 @@
+init tests/database_callbacks.exe
+
+_l1 = database_callbacks:VariableTarget
+
+labelset _l1, test
+assertlastop mod.hash(mod.base(_l1)), (_l1-mod.base(_l1)), l, a, 0, test
+
+labeldel _l1
+assertlastop mod.hash(mod.base(_l1)), (_l1-mod.base(_l1)), l, r, 0

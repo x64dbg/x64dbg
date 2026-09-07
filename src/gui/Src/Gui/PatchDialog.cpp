@@ -158,6 +158,9 @@ void PatchDialog::updatePatches()
     if(mPatches.size())
         ui->listModules->item(0)->setSelected(true); //select first module
 
+    // QListWidget can retain an explicitly hidden state after the dialog is closed
+    // with a patch selected. Make sure the refreshed list is shown again.
+    ui->listPatches->setVisible(true);
     mIsWorking = false;
 }
 

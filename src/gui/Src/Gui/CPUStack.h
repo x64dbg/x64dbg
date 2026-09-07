@@ -56,7 +56,8 @@ public slots:
     void updateSlot();
     void copyPtrColumnSlot();
     void copyCommentsColumnSlot();
-
+    void setAddressColorSlot();
+    void clearAddressColorSlot();
 private:
     duint mCsp = 0;
     bool bStackFrozen = false;

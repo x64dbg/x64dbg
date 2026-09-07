@@ -27,6 +27,6 @@ bool LoopDelete(int Depth, duint Address);
 void LoopCacheSave(JSON Root);
 void LoopCacheLoad(JSON Root);
 bool LoopEnum(LOOPSINFO* List, size_t* Size);
-void LoopClear();
+void LoopClear(bool Terminating);
 
 #endif //_LOOP_H

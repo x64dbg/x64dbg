@@ -2,6 +2,7 @@
 #include "console.h"
 #include "memory.h"
 #include "function.h"
+#include "database_cb_batcher.h"
 #include <algorithm>
 
 LinearAnalysis::LinearAnalysis(duint base, duint size) : Analysis(base, size)
@@ -22,6 +23,8 @@ void LinearAnalysis::Analyse()
 
 void LinearAnalysis::SetMarkers()
 {
+    DbCallbackBatcher batcher;
+
     FunctionDelRange(mBase, mBase + mSize - 1, false);
     for(auto & function : mFunctions)
     {

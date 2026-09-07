@@ -1,6 +1,6 @@
 User Database
 =============
-This section contains commands that manipulate the user database (comments, labels and bookmarks).
+This section contains commands that manipulate the user database (comments, labels, bookmarks and address colors).
 
 .. toctree::
    :maxdepth: 0
@@ -29,3 +29,7 @@ This section contains commands that manipulate the user database (comments, labe
    argumentdel
    argumentlist
    argumentclear
+   addresscolor
+   addresscolorrange
+   addresscolordel
+   addresscolorclear

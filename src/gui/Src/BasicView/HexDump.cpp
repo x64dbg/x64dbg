@@ -94,6 +94,20 @@ void HexDump::updateColors()
     mUnknownCodePointerHighlightColor = ConfigColor("HexDumpUnknownCodePointerHighlightColor");
     mUnknownDataPointerHighlightColor = ConfigColor("HexDumpUnknownDataPointerHighlightColor");
 
+    duint addressColorCount = ConfigUint("Colors", "AddressColorCount");
+    duint addressColorAlpha = ConfigUint("Colors", "AddressColorAlpha");
+    mAddressColorPresets.assign(addressColorCount + 1, QColor(Qt::transparent));
+    for(duint i = 0; i < addressColorCount; i++)
+    {
+        char addressColor[MAX_SETTING_SIZE] = "";
+        if(BridgeSettingGet("Colors", QString("AddressColor%1").arg(i).toUtf8().constData(), addressColor))
+        {
+            QColor color = QColor(addressColor);
+            color.setAlpha(addressColorAlpha);
+            mAddressColorPresets[i + 1] = color;
+        }
+    }
+
     reloadData();
 }
 
@@ -837,7 +851,7 @@ QString HexDump::paintContent(QPainter* painter, duint row, duint col, int x, in
     auto rva = row * bytePerRowCount - mByteOffset;
 
     if(col && mDescriptor.at(col - 1).isData)
-        printSelected(painter, row, col, x, y, w, h);
+        printBackground(painter, row, col, x, y, w, h);
 
     RichTextPainter::List richText;
     getColumnRichText(col, rva, richText);
@@ -846,7 +860,7 @@ QString HexDump::paintContent(QPainter* painter, duint row, duint col, int x, in
     return QString();
 }
 
-void HexDump::printSelected(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
+void HexDump::printBackground(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
 {
     if(col > 0 && col <= (duint)mDescriptor.size())
     {
@@ -861,13 +875,30 @@ void HexDump::printSelected(QPainter* painter, duint row, duint col, int x, int 
         for(int i = 0; i < curDescriptor.itemCount; i++)
         {
             int selectionX = x + i * itemPixWidth;
-            if(isSelected(rva + i * getSizeOf(curDescriptor.data.itemSize)))
+            duint itemRva = rva + i * getSizeOf(curDescriptor.data.itemSize);
+            int selectionWidth = itemPixWidth > w - (selectionX - x) ? w - (selectionX - x) : itemPixWidth;
+            selectionWidth = selectionWidth < 0 ? 0 : selectionWidth;
+            painter->setPen(mTextColor);
+
+            QColor backgroundColor = mBackgroundColor;
+            if(isSelected(itemRva))
+                backgroundColor = mSelectionColor;
+
+            unsigned int linePreset;
+            if(DbgGetAddressColorAt(rvaToVa(itemRva), &linePreset) && linePreset < mAddressColorPresets.size())
             {
-                int selectionWidth = itemPixWidth > w - (selectionX - x) ? w - (selectionX - x) : itemPixWidth;
-                selectionWidth = selectionWidth < 0 ? 0 : selectionWidth;
-                painter->setPen(mTextColor);
-                painter->fillRect(QRect(selectionX, y, selectionWidth, h), QBrush(mSelectionColor));
+                const QColor & color = mAddressColorPresets[linePreset];
+                backgroundColor = QColor(
+                                      (backgroundColor.red()   * (255 - color.alpha()) + color.red()   * color.alpha()) / 255,
+                                      (backgroundColor.green() * (255 - color.alpha()) + color.green() * color.alpha()) / 255,
+                                      (backgroundColor.blue()  * (255 - color.alpha()) + color.blue()  * color.alpha()) / 255,
+                                      backgroundColor.alpha()
+                                  );
             }
+
+            painter->setPen(mTextColor);
+            painter->fillRect(QRect(selectionX, y, selectionWidth, h), QBrush(backgroundColor));
+
             int separator = curDescriptor.separator;
             if(i && separator && !(i % separator))
             {
@@ -1739,4 +1770,16 @@ int HexDump::accessibilitySelectedRow() const
     if(selection >= firstAddress && selection - firstAddress < visibleSize)
         return static_cast<int>((selection - firstAddress) / bytesPerRow);
     return -1;
+}
+
+void HexDump::setAddressColor(duint vaStart, duint vaEnd, unsigned int color)
+{
+    DbgSetAddressColorRange(vaStart, vaEnd, color);
+    updateViewport();
+}
+
+void HexDump::clearAddressColor(duint vaStart, duint vaEnd)
+{
+    DbgDelAddressColorRange(vaStart, vaEnd);
+    updateViewport();
 }

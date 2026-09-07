@@ -166,6 +166,21 @@ bool DbgGetCommentAt(duint addr, char* comment)
     return false;
 }
 
+// TODO: persist address colors in the cross debugger database.
+bool DbgGetAddressColorAt(duint addr, unsigned int* color)
+{
+    return false;
+}
+
+bool DbgSetAddressColorRange(duint start, duint end, unsigned int color)
+{
+    return false;
+}
+
+void DbgDelAddressColorRange(duint start, duint end)
+{
+}
+
 bool DbgGetBookmarkAt(duint addr)
 {
     return false;

@@ -3276,7 +3276,7 @@ static void debugLoopFunction(INIT_STRUCT* init)
     dbgClearRtuBreakpoints();
     ModClear();
     ThreadClear();
-    WatchClear();
+    WatchClear(true);
     TraceRecord.clear();
     TraceRecord.enableTraceRecording(false, nullptr); // Stop trace recording
     bIsDebugging = false;

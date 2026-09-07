@@ -7,6 +7,7 @@
 #include "xrefs.h"
 #include "plugin_loader.h"
 #include "loop.h"
+#include "database_cb_batcher.h"
 #include <set>
 #include <map>
 
@@ -27,6 +28,8 @@ void RecursiveAnalysis::Analyse()
 
 void RecursiveAnalysis::SetMarkers()
 {
+    DbCallbackBatcher batcher;
+
     if(mDump)
         for(const auto & function : mFunctions)
             FileHelper::WriteAllText(StringUtils::sprintf("cfgraph_%p.dot", function.second.entryPoint), GraphToDot(function.second));

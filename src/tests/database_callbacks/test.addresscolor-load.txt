@@ -1,0 +1,15 @@
+init tests/database_callbacks.exe
+
+_a1 = database_callbacks:VariableTarget
+_a2 = _a1 + 3
+
+addresscolorrange _a1, _a2, 4
+assertlastop mod.hash(mod.base(_a1)), (_a1-mod.base(_a1)), o, a, 0, (_a2-mod.base(_a1)), 4
+
+stop
+init tests/database_callbacks.exe
+
+assertlastop mod.hash(mod.base(_a1)), (_a1-mod.base(_a1)), o, a, 0, (_a2-mod.base(_a1)), 4
+assertopsize 1
+assertaddresscolor _a1, 4
+assertaddresscolor _a2, 4

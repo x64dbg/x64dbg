@@ -26,6 +26,7 @@
 #include "filemap.h"
 #include "debugger.h"
 #include "stringformat.h"
+#include "addresscolor.h"
 
 /**
 \brief Directory where program databases are stored (usually in \db). UTF-8 encoding.
@@ -61,6 +62,7 @@ void DbSave(DbLoadSaveType saveType, const char* dbfile, bool disablecompression
 
     if(saveType == DbLoadSaveType::DebugData || saveType == DbLoadSaveType::All)
     {
+        AddressColorCacheSave(root);
         CommentCacheSave(root);
         LabelCacheSave(root);
         BookmarkCacheSave(root);
@@ -274,6 +276,7 @@ void DbLoad(DbLoadSaveType loadType, const char* dbfile)
             dbhash = 0;
 
         // Finally load all structures
+        AddressColorCacheLoad(root);
         CommentCacheLoad(root);
         LabelCacheLoad(root);
         BookmarkCacheLoad(root);
@@ -332,18 +335,19 @@ void DbClose()
 
 void DbClear(bool terminating)
 {
-    CommentClear();
-    LabelClear();
-    BookmarkClear();
-    FunctionClear();
-    ArgumentClear();
-    LoopClear();
-    XrefClear();
-    EncodeMapClear();
+    AddressColorClear(terminating);
+    CommentClear(terminating);
+    LabelClear(terminating);
+    BookmarkClear(terminating);
+    FunctionClear(terminating);
+    ArgumentClear(terminating);
+    LoopClear(terminating);
+    XrefClear(terminating);
+    EncodeMapClear(terminating);
     TraceRecord.clear();
-    BpClear();
-    ModCacheClear();
-    WatchClear();
+    BpClear(terminating);
+    ModCacheClear(terminating);
+    WatchClear(terminating);
     GuiSetDebuggeeNotes("");
 
     if(terminating)

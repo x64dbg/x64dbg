@@ -4,6 +4,7 @@
 #include "memory.h"
 #include "console.h"
 #include "function.h"
+#include "database_cb_batcher.h"
 
 ExceptionDirectoryAnalysis::ExceptionDirectoryAnalysis(duint base, duint size)
     : Analysis(base, size)
@@ -40,6 +41,8 @@ void ExceptionDirectoryAnalysis::Analyse()
 
 void ExceptionDirectoryAnalysis::SetMarkers()
 {
+    DbCallbackBatcher batcher;
+
     FunctionDelRange(mBase, mBase + mSize - 1, false);
     for(const auto & function : mFunctions)
         FunctionAdd(function.first, function.second, false);

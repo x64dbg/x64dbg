@@ -4,6 +4,7 @@
 #include "debugger.h"
 #include "module.h"
 #include "function.h"
+#include "database_cb_batcher.h"
 
 FunctionPass::FunctionPass(duint VirtualStart, duint VirtualEnd, BBlockArray & MainBlocks)
     : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)
@@ -28,6 +29,8 @@ const char* FunctionPass::GetName()
 
 bool FunctionPass::Analyse()
 {
+    DbCallbackBatcher batcher;
+
     // THREAD_WORK = ceil(TOTAL / # THREADS)
     duint workAmount = (m_MainBlocks.size() + (IdealThreadCount() - 1)) / IdealThreadCount();
 

@@ -118,6 +118,19 @@ void Disassembly::updateColors()
     mConditionalJumpLineFalseColor = ConfigColor("DisassemblyConditionalJumpLineFalseColor");
     mLoopColor = ConfigColor("DisassemblyLoopColor");
     mFunctionColor = ConfigColor("DisassemblyFunctionColor");
+    duint addressColorCount = ConfigUint("Colors", "AddressColorCount");
+    duint addressColorAlpha = ConfigUint("Colors", "AddressColorAlpha");
+    mAddressColorPresets.assign(addressColorCount + 1, QColor(Qt::transparent));
+    for(duint i = 0; i < addressColorCount; i++)
+    {
+        char addressColor[MAX_SETTING_SIZE] = "";
+        if(BridgeSettingGet("Colors", QString("AddressColor%1").arg(i).toUtf8().constData(), addressColor))
+        {
+            QColor color = QColor(addressColor);
+            color.setAlpha(addressColorAlpha);
+            mAddressColorPresets[i + 1] = color;
+        }
+    }
 
     auto a = mSelectionColor, b = mTracedAddressBackgroundColor;
     mTracedSelectedAddressBackgroundColor = QColor((a.red() + b.red()) / 2, (a.green() + b.green()) / 2, (a.blue() + b.blue()) / 2);
@@ -235,11 +248,12 @@ QString Disassembly::paintContent(QPainter* painter, duint row, duint col, int x
     auto va = rvaToVa(mInstBuffer.at(rowOffset).rva);
     auto traceCount = DbgFunctions()->GetTraceRecordHitCount(va);
 
+    QColor backgroundColor = mBackgroundColor;
     // Highlight if selected
     if(instSelected && traceCount)
-        painter->fillRect(QRect(x, y, w, h), QBrush(mTracedSelectedAddressBackgroundColor));
+        backgroundColor = mTracedSelectedAddressBackgroundColor;
     else if(instSelected)
-        painter->fillRect(QRect(x, y, w, h), QBrush(mSelectionColor));
+        backgroundColor = mSelectionColor;
     else if(traceCount)
     {
         // Color depending on how often a sequence of code is executed
@@ -252,11 +266,23 @@ QString Disassembly::paintContent(QPainter* painter, duint row, duint col, int x
         if(mTracedAddressBackgroundColor.blue() > 160)
             colorDiff *= -1;
 
-        painter->fillRect(QRect(x, y, w, h),
-                          QBrush(QColor(mTracedAddressBackgroundColor.red(),
-                                        mTracedAddressBackgroundColor.green(),
-                                        std::max(0, std::min(256, mTracedAddressBackgroundColor.blue() + colorDiff)))));
+        backgroundColor = QColor(mTracedAddressBackgroundColor.red(),
+                                 mTracedAddressBackgroundColor.green(),
+                                 std::max(0, std::min(256, mTracedAddressBackgroundColor.blue() + colorDiff)));
     }
+
+    unsigned int linePreset;
+    if(DbgGetAddressColorAt(va, &linePreset) && linePreset < mAddressColorPresets.size())
+    {
+        const QColor & color = mAddressColorPresets[linePreset];
+        backgroundColor = QColor(
+                              (backgroundColor.red()   * (255 - color.alpha()) + color.red()   * color.alpha()) / 255,
+                              (backgroundColor.green() * (255 - color.alpha()) + color.green() * color.alpha()) / 255,
+                              (backgroundColor.blue()  * (255 - color.alpha()) + color.blue()  * color.alpha()) / 255,
+                              backgroundColor.alpha()
+                          );
+    }
+    painter->fillRect(QRect(x, y, w, h), QBrush(backgroundColor));
 
     switch(col)
     {
@@ -2422,4 +2448,16 @@ int Disassembly::accessibilitySelectedRow() const
             return i;
     }
     return -1;
+}
+
+void Disassembly::setAddressColor(duint vaStart, duint vaEnd, unsigned int color)
+{
+    DbgSetAddressColorRange(vaStart, vaEnd, color);
+    updateViewport();
+}
+
+void Disassembly::clearAddressColor(duint vaStart, duint vaEnd)
+{
+    DbgDelAddressColorRange(vaStart, vaEnd);
+    updateViewport();
 }

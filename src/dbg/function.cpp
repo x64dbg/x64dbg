@@ -2,45 +2,34 @@
 #include "module.h"
 #include "memory.h"
 #include "threading.h"
+#include "database_cb_batcher.h"
 
-struct FunctionSerializer : JSONWrapper<FUNCTIONSINFO>
+struct FunctionSerializer : RangeInfoSerializer<FUNCTIONSINFO>
 {
     bool Save(const FUNCTIONSINFO & value) override
     {
-        setString("module", value.mod());
-        setHex("start", value.start);
-        setHex("end", value.end);
+        RangeInfoSerializer::Save(value);
         setHex("icount", value.instructioncount);
-        setBool("manual", value.manual);
         setHex("parent", value.parent);
         return true;
     }
 
     bool Load(FUNCTIONSINFO & value) override
     {
-        //legacy support
-        value.manual = true;
-        getBool("manual", value.manual);
-        std::string mod;
-        if(!getString("module", mod))
+        if(!RangeInfoSerializer::Load(value))
             return false;
-        value.modhash = ModHashFromName(mod.c_str());
         value.parent = 0;
         getHex("parent", value.parent);
-        return getHex("start", value.start) &&
-               getHex("end", value.end) &&
-               getHex("icount", value.instructioncount) &&
-               value.end >= value.start;
+        return getHex("icount", value.instructioncount);
     }
 };
 
-struct Functions : SerializableModuleRangeMap<LockFunctions, FUNCTIONSINFO, FunctionSerializer>
+struct Functions : RangeInfoMap<LockFunctions, FUNCTIONSINFO, FunctionSerializer>
 {
     void AdjustValue(FUNCTIONSINFO & value) const override
     {
         auto base = ModBaseFromName(value.mod().c_str());
-        value.start += base;
-        value.end += base;
+        RangeInfoMap::AdjustValue(value);
         value.parent += base;
     }
 
@@ -50,9 +39,16 @@ protected:
         return "functions";
     }
 
-    ModuleRange makeKey(const FUNCTIONSINFO & value) const override
+    bool populateDbOperation(DbOperation & op, const FUNCTIONSINFO & value) const override
     {
-        return ModuleRange(value.modhash, Range(value.start, value.end));
+        op.itemType = DbItemTypeFunction;
+        op.manual = value.manual;
+        op.modhash = value.modhash;
+        op.address = value.start;
+        op.function.end = value.end;
+        op.function.parent = value.parent;
+        op.function.icount = value.instructioncount;
+        return true;
     }
 };
 
@@ -60,28 +56,12 @@ static Functions functions;
 
 bool FunctionAdd(duint Start, duint End, bool Manual, duint InstructionCount, duint Parent)
 {
-    // Make sure memory is readable
-    if(!MemIsValidReadPtr(Start))
-        return false;
-
-    // Fail if boundary exceeds module size
-    auto moduleBase = ModBaseFromAddr(Start);
-
-    if(moduleBase != ModBaseFromAddr(End))
-        return false;
-
-    // Fail if 'Start' and 'End' are incompatible
-    if(Start > End || FunctionOverlaps(Start, End))
-        return false;
-
     FUNCTIONSINFO function;
-    function.modhash = ModHashFromAddr(moduleBase);
-    function.start = Start - moduleBase;
-    function.end = End - moduleBase;
-    function.manual = Manual;
+    if(!functions.PrepareValue(function, Start, End, Manual) || FunctionOverlaps(Start, End))
+        return false;
+
     function.instructioncount = InstructionCount;
-    function.parent = Parent ? Parent : Start;
-    function.parent -= moduleBase;
+    function.parent = (Parent ? Parent : Start) - ModBaseFromAddr(Start);
 
     return functions.Add(function);
 }
@@ -122,7 +102,7 @@ void FunctionDelRange(duint Start, duint End, bool DeleteManual)
     // 0x00000000 - 0xFFFFFFFF
     if(Start == 0 && End == ~0)
     {
-        FunctionClear();
+        FunctionClear(false);
     }
     else
     {
@@ -135,6 +115,8 @@ void FunctionDelRange(duint Start, duint End, bool DeleteManual)
         // Convert these to a relative offset
         Start -= moduleBase;
         End -= moduleBase;
+
+        DbCallbackBatcher batcher;
 
         functions.DeleteWhere([ = ](const FUNCTIONSINFO & value)
         {
@@ -152,6 +134,7 @@ void FunctionCacheSave(JSON Root)
 
 void FunctionCacheLoad(JSON Root)
 {
+    DbCallbackBatcher batcher(true);
     functions.CacheLoad(Root);
     functions.CacheLoad(Root, "auto"); //legacy support
 }
@@ -161,9 +144,10 @@ bool FunctionEnum(FUNCTIONSINFO* List, size_t* Size)
     return functions.Enum(List, Size);
 }
 
-void FunctionClear()
+void FunctionClear(bool Terminating)
 {
-    functions.Clear();
+    DbCallbackBatcher batcher;
+    functions.Clear(Terminating);
 }
 
 void FunctionGetList(std::vector<FUNCTIONSINFO> & list)

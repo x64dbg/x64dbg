@@ -1,0 +1,9 @@
+init tests/database_callbacks.exe
+
+_f1 = database_callbacks:FunctionTarget
+
+functionadd _f1, _f1 + 1
+assertlastop mod.hash(mod.base(_f1)), (_f1-mod.base(_f1)), f, a, 0, (_f1+1-mod.base(_f1))
+
+functiondel _f1
+assertlastop mod.hash(mod.base(_f1)), (_f1-mod.base(_f1)), f, r, 0

@@ -5,6 +5,7 @@
 #include "function.h"
 #include "xrefs.h"
 #include "encodemap.h"
+#include "database_cb_batcher.h"
 
 AdvancedAnalysis::AdvancedAnalysis(duint base, duint size, bool dump)
     : Analysis(base, size),
@@ -32,6 +33,8 @@ void AdvancedAnalysis::Analyse()
 
 void AdvancedAnalysis::SetMarkers()
 {
+    DbCallbackBatcher batcher;
+
     if(mDump)
         for(const auto & function : mFunctions)
             FileHelper::WriteAllText(StringUtils::sprintf("cfgraph_%p.dot", function.entryPoint), function.ToDot());
@@ -51,7 +54,7 @@ void AdvancedAnalysis::SetMarkers()
         }
     }
 
-    FunctionClear();
+    FunctionClear(false);
     for(const auto & function : mFunctions)
     {
         duint start = ~0;

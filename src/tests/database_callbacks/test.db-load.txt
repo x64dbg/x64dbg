@@ -1,0 +1,28 @@
+init tests/database_callbacks.exe
+
+_f1 = database_callbacks:FunctionTarget
+
+functionadd _f1, _f1 + 1
+assertlastop mod.hash(mod.base(_f1)), (_f1-mod.base(_f1)), f, a, 0, (_f1+1-mod.base(_f1))
+
+labelset _f1, test1
+assertlastop mod.hash(mod.base(_f1)), (_f1-mod.base(_f1)), l, a, 0, test1
+
+commentset _f1, test2
+assertlastop mod.hash(mod.base(_f1)), (_f1-mod.base(_f1)), c, a, 0, test2
+
+bookmarkset _f1
+assertlastop mod.hash(mod.base(_f1)), (_f1-mod.base(_f1)), b, a, 0
+
+argumentadd _f1, _f1 + 1
+assertlastop mod.hash(mod.base(_f1)), (_f1-mod.base(_f1)), g, a, 0, (_f1+1-mod.base(_f1))
+
+loopadd _f1, _f1 + 1
+assertlastop mod.hash(mod.base(_f1)), (_f1-mod.base(_f1)), p, a, 0, (_f1+1-mod.base(_f1)), 0
+
+assertopsize 6
+
+stop
+init tests/database_callbacks.exe // clears the operations vector
+
+assertopsize 6

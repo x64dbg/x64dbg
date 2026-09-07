@@ -2,18 +2,18 @@
 #define _SERIALIZABLEMAP_H
 
 #include "_global.h"
+#include "_plugins.h"
 #include "threading.h"
 #include "module.h"
 #include "memory.h"
 #include "jansson/jansson_x64dbg.h"
+#include "database_cb_batcher.h"
 
 template<class TValue>
 class JSONWrapper
 {
 public:
-    virtual ~JSONWrapper()
-    {
-    }
+    virtual ~JSONWrapper() = default;
 
     void SetJson(JSON json)
     {
@@ -106,14 +106,26 @@ class SerializableTMap
 public:
     using TValuePred = std::function<bool(const TValue & value)>;
 
-    virtual ~SerializableTMap()
-    {
-    }
+    virtual ~SerializableTMap() = default;
 
     bool Add(const TValue & value)
     {
-        EXCLUSIVE_ACQUIRE(TLock);
-        return addNoLock(value);
+        bool added;
+        {
+            EXCLUSIVE_ACQUIRE(TLock);
+            added = addNoLock(value);
+        }
+        if(added && DbCallbackBatcher::IsActive())
+        {
+            DbOperation op {};
+            op.opType = DbOperationTypeAdd;
+
+            if(populateDbOperation(op, value))
+            {
+                DbCallbackBatcher::Add(op);
+            }
+        }
+        return added;
     }
 
     bool Get(const TKey & key, TValue & value) const
@@ -134,19 +146,61 @@ public:
 
     bool Delete(const TKey & key)
     {
-        EXCLUSIVE_ACQUIRE(TLock);
-        return mMap.erase(key) > 0;
+        TValue value;
+        bool erased;
+        {
+            EXCLUSIVE_ACQUIRE(TLock);
+            auto found = mMap.find(key);
+            erased = found != mMap.end();
+            if(erased)
+            {
+                value = std::move(found->second);
+                mMap.erase(found);
+            }
+        }
+        if(erased && DbCallbackBatcher::IsActive())
+        {
+            DbOperation op {};
+            op.opType = DbOperationTypeRemove;
+
+            if(populateDbOperation(op, value))
+            {
+                DbCallbackBatcher::Add(op);
+            }
+        }
+        return erased;
     }
 
     void DeleteWhere(TValuePred predicate)
     {
-        EXCLUSIVE_ACQUIRE(TLock);
-        for(auto itr = mMap.begin(); itr != mMap.end();)
+        std::vector<TValue> erased;
         {
-            if(predicate(itr->second))
-                itr = mMap.erase(itr);
-            else
-                ++itr;
+            EXCLUSIVE_ACQUIRE(TLock);
+            for(auto itr = mMap.begin(); itr != mMap.end();)
+            {
+                if(predicate(itr->second))
+                {
+                    erased.emplace_back(std::move(itr->second));
+
+                    itr = mMap.erase(itr);
+                }
+                else
+                    ++itr;
+            }
+        }
+
+        if(DbCallbackBatcher::IsActive())
+        {
+            for(const TValue & value : erased)
+            {
+                DbOperation op {};
+                op.opType = DbOperationTypeRemove;
+
+                if(populateDbOperation(op, value))
+                {
+                    DbCallbackBatcher::Add(op);
+                }
+            }
         }
     }
 
@@ -160,11 +214,28 @@ public:
         return getWhere(predicate, nullptr);
     }
 
-    void Clear()
+    void Clear(bool terminating)
     {
-        EXCLUSIVE_ACQUIRE(TLock);
         TMap empty;
-        std::swap(mMap, empty);
+        {
+            EXCLUSIVE_ACQUIRE(TLock);
+            std::swap(mMap, empty);
+        }
+
+        // Do not report termination clear or inactive callback as a DbOperation
+        if(terminating || !DbCallbackBatcher::IsActive())
+            return;
+
+        for(const auto & kv : empty)
+        {
+            DbOperation op {};
+            op.opType = DbOperationTypeRemove;
+
+            if(populateDbOperation(op, kv.second))
+            {
+                DbCallbackBatcher::Add(op);
+            }
+        }
     }
 
     void CacheSave(JSON root) const
@@ -187,10 +258,10 @@ public:
 
     void CacheLoad(JSON root, const char* keyprefix = nullptr)
     {
-        EXCLUSIVE_ACQUIRE(TLock);
         auto jsonValues = json_object_get(root, keyprefix ? (keyprefix + String(jsonKey())).c_str() : jsonKey());
         if(!jsonValues)
             return;
+        auto active = DbCallbackBatcher::IsActive(true);
         size_t i;
         JSON jsonValue;
         TSerializer deserializer;
@@ -199,7 +270,24 @@ public:
             deserializer.SetJson(jsonValue);
             TValue value;
             if(deserializer.Load(value))
-                addNoLock(value);
+            {
+                bool added;
+                {
+                    EXCLUSIVE_ACQUIRE(TLock);
+                    added = addNoLock(value);
+                }
+
+                if(added && active)
+                {
+                    DbOperation op {};
+                    op.opType = DbOperationTypeAdd;
+
+                    if(populateDbOperation(op, value))
+                    {
+                        DbCallbackBatcher::Add(op, true);
+                    }
+                }
+            }
         }
     }
 
@@ -250,8 +338,53 @@ public:
     virtual void AdjustValue(TValue & value) const = 0;
 
 protected:
+    template<typename TMutator>
+    bool Modify(TMutator mutator, bool loading = false)
+    {
+        std::vector<TValue> removed;
+        std::vector<TValue> added;
+        bool modified;
+        {
+            EXCLUSIVE_ACQUIRE(TLock);
+            modified = mutator(mMap, removed, added);
+        }
+
+        if(modified && DbCallbackBatcher::IsActive(loading))
+        {
+            auto notify = [&]()
+            {
+                for(const auto & value : removed)
+                {
+                    DbOperation op {};
+                    op.opType = DbOperationTypeRemove;
+                    if(populateDbOperation(op, value))
+                        DbCallbackBatcher::Add(op, loading);
+                }
+                for(const auto & value : added)
+                {
+                    DbOperation op {};
+                    op.opType = DbOperationTypeAdd;
+                    if(populateDbOperation(op, value))
+                        DbCallbackBatcher::Add(op, loading);
+                }
+            };
+
+            if(removed.size() + added.size() > 1)
+            {
+                DbCallbackBatcher batcher(loading);
+                notify();
+            }
+            else
+            {
+                notify();
+            }
+        }
+        return modified;
+    }
+
     virtual const char* jsonKey() const = 0;
     virtual TKey makeKey(const TValue & value) const = 0;
+    virtual bool populateDbOperation(DbOperation & op, const TValue & value) const = 0; // Should return whether a database notification is necessary or not
 
 private:
     TMap mMap;
@@ -307,7 +440,7 @@ struct SerializableModuleHashMap : SerializableUnorderedMap<TLock, duint, TValue
         // 0x00000000 - 0xFFFFFFFF
         if(start == 0 && end == ~0)
         {
-            this->Clear();
+            this->Clear(false);
         }
         else
         {
@@ -333,6 +466,19 @@ struct AddrInfo
 {
     duint modhash;
     duint addr;
+    bool manual;
+
+    std::string mod() const
+    {
+        return ModNameFromHash(modhash);
+    }
+};
+
+struct RangeInfo
+{
+    duint modhash;
+    duint start;
+    duint end;
     bool manual;
 
     std::string mod() const
@@ -402,6 +548,181 @@ protected:
     duint makeKey(const TValue & value) const override
     {
         return value.modhash + value.addr;
+    }
+};
+
+template<class TValue>
+struct RangeInfoSerializer : JSONWrapper<TValue>
+{
+    static_assert(std::is_base_of<RangeInfo, TValue>::value, "TValue is not derived from RangeInfo");
+
+    bool Save(const TValue & value) override
+    {
+        this->setString("module", value.mod());
+        this->setHex("start", value.start);
+        this->setHex("end", value.end);
+        this->setBool("manual", value.manual);
+        return true;
+    }
+
+    bool Load(TValue & value) override
+    {
+        return loadRangeInfo(value, false);
+    }
+
+protected:
+    bool loadRangeInfo(TValue & value, bool allowLegacyAddress)
+    {
+        value.manual = true; // legacy support
+        this->getBool("manual", value.manual);
+        std::string mod;
+        if(!this->getString("module", mod))
+            return false;
+        value.modhash = ModHashFromName(mod.c_str());
+
+        if(!this->getHex("start", value.start))
+        {
+            if(!allowLegacyAddress || !this->getHex("address", value.start))
+                return false;
+            value.end = value.start;
+        }
+        else if(!this->getHex("end", value.end))
+        {
+            return false;
+        }
+        return value.end >= value.start;
+    }
+};
+
+template<SectionLock TLock, class TValue, class TSerializer>
+struct RangeInfoMap : SerializableModuleRangeMap<TLock, TValue, TSerializer>
+{
+    static_assert(std::is_base_of<RangeInfo, TValue>::value, "TValue is not derived from RangeInfo");
+    static_assert(std::is_base_of<RangeInfoSerializer<TValue>, TSerializer>::value, "TSerializer is not derived from RangeInfoSerializer");
+
+    void AdjustValue(TValue & value) const override
+    {
+        auto base = ModBaseFromName(value.mod().c_str());
+        value.start += base;
+        value.end += base;
+    }
+
+    bool PrepareValue(TValue & value, duint start, duint end, bool manual)
+    {
+        if(start > end || !MemIsValidReadPtr(start))
+            return false;
+        auto base = ModBaseFromAddr(start);
+        if(base != ModBaseFromAddr(end))
+            return false;
+        value.modhash = ModHashFromAddr(base);
+        value.start = start - base;
+        value.end = end - base;
+        value.manual = manual;
+        return true;
+    }
+
+protected:
+    ModuleRange makeKey(const TValue & value) const override
+    {
+        return ModuleRange(value.modhash, Range(value.start, value.end));
+    }
+};
+
+template<SectionLock TLock, class TValue, class TSerializer>
+struct SplitRangeInfoMap : RangeInfoMap<TLock, TValue, TSerializer>
+{
+    // Replace an inclusive interval, preserving the non-overlapping fragments
+    // on either side of every interval it intersects.
+    bool ReplaceRange(const TValue & replacement, bool loading = false)
+    {
+        return this->Modify([&](auto & values, std::vector<TValue> & removed, std::vector<TValue> & added)
+        {
+            for(auto itr = values.begin(); itr != values.end();)
+            {
+                const auto & value = itr->second;
+                if(value.modhash != replacement.modhash || value.end < replacement.start || value.start > replacement.end)
+                {
+                    ++itr;
+                    continue;
+                }
+
+                auto old = value;
+                itr = values.erase(itr);
+                removed.push_back(old);
+
+                if(old.start < replacement.start)
+                {
+                    auto left = old;
+                    left.end = replacement.start - 1;
+                    added.push_back(left);
+                }
+                if(old.end > replacement.end)
+                {
+                    auto right = old;
+                    right.start = replacement.end + 1;
+                    added.push_back(right);
+                }
+            }
+
+            for(const auto & value : added)
+                values.emplace(ModuleRange(value.modhash, Range(value.start, value.end)), value);
+            values.emplace(ModuleRange(replacement.modhash, Range(replacement.start, replacement.end)), replacement);
+            added.push_back(replacement);
+            return true;
+        }, loading);
+    }
+
+    template<typename TPredicate>
+    bool DeleteRangeWhere(duint start, duint end, TPredicate predicate, bool loading = false)
+    {
+        if(start > end)
+            return false;
+
+        const bool all = start == 0 && end == ~duint(0);
+        duint modhash = 0;
+        if(!all)
+        {
+            auto base = ModBaseFromAddr(start);
+            if(base != ModBaseFromAddr(end))
+                return false;
+            modhash = ModHashFromAddr(base);
+            start -= base;
+            end -= base;
+        }
+
+        return this->Modify([&](auto & values, std::vector<TValue> & removed, std::vector<TValue> & added)
+        {
+            for(auto itr = values.begin(); itr != values.end();)
+            {
+                const auto & value = itr->second;
+                if((!all && (value.modhash != modhash || value.end < start || value.start > end)) || !predicate(value))
+                {
+                    ++itr;
+                    continue;
+                }
+
+                auto old = value;
+                itr = values.erase(itr);
+                removed.push_back(old);
+
+                if(!all && old.start < start)
+                {
+                    auto left = old;
+                    left.end = start - 1;
+                    added.push_back(left);
+                }
+                if(!all && old.end > end)
+                {
+                    auto right = old;
+                    right.start = end + 1;
+                    added.push_back(right);
+                }
+            }
+
+            for(const auto & value : added)
+                values.emplace(ModuleRange(value.modhash, Range(value.start, value.end)), value);
+            return !removed.empty();
+        }, loading);
     }
 };
 

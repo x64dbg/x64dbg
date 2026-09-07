@@ -17,7 +17,7 @@ bool LabelDelete(duint Address);
 void LabelDelRange(duint Start, duint End, bool Manual);
 void LabelCacheSave(JSON root);
 void LabelCacheLoad(JSON root);
-void LabelClear();
+void LabelClear(bool Terminating);
 void LabelGetList(std::vector<LABELSINFO> & list);
 bool LabelGetInfo(duint Address, LABELSINFO* info);
 std::vector<std::string> LabelFindPrefix(const std::string & prefix, int maxCount, bool isCaseSensitive);

@@ -133,6 +133,8 @@ DBGFUNCTIONS* DbgFunctions();
 bool DbgGetLabelAt(duint addr, SEGTYPE seg, char* label);
 bool DbgGetModuleAt(duint addr, char* module);
 bool DbgGetCommentAt(duint addr, char* comment);
+bool DbgGetAddressColorAt(duint addr, unsigned int* color);
+bool DbgSetAddressColorRange(duint start, duint end, unsigned int color);
 bool DbgGetBookmarkAt(duint addr);
 BPXTYPE DbgGetBpxTypeAt(duint addr);
 bool DbgMemIsValidReadPtr(duint addr);
@@ -155,6 +157,7 @@ void* DbgGetEncodeTypeBuffer(duint addr, duint* size);
 bool DbgSetEncodeType(duint addr, duint size, ENCODETYPE type);
 void DbgDelEncodeTypeRange(duint start, duint end);
 void DbgDelEncodeTypeSegment(duint start);
+void DbgDelAddressColorRange(duint start, duint end);
 
 struct TYPEDESCRIPTOR;
 

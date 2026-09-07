@@ -480,7 +480,6 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Function Lines"), "DisassemblyFunctionColor", "");
     colorInfoListAppend(tr("Loop Lines"), "DisassemblyLoopColor", "");
 
-
     colorInfoListCategory(tr("SideBar:"), "SideBarBackgroundColor", "Disassembly");
     colorInfoListAppend(tr("Background"), "SideBarBackgroundColor", "");
     colorInfoListAppend(tr("Register Labels"), "SideBarCipLabelColor", "SideBarCipLabelBackgroundColor");
@@ -629,6 +628,15 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Symbol Loading Text"), "SymbolLoadingTextColor", "");
     colorInfoListAppend(tr("Symbol Loaded Text"), "SymbolLoadedTextColor", "");
     colorInfoListAppend(tr("Link color"), "LinkColor", "");
+    duint addressColorCount = ConfigUint("Colors", "AddressColorCount");
+    for(duint i = 0; i < addressColorCount; i++)
+    {
+        char addressColor[MAX_SETTING_SIZE] = "";
+        if(BridgeSettingGet("Colors", QString("AddressColor%1").arg(i).toUtf8().constData(), addressColor))
+        {
+            colorInfoListAppend(tr("Address Color %1").arg(i + 1), QString("AddressColor%1").arg(i), "");
+        }
+    }
 
     colorInfoIndex = 0;
 

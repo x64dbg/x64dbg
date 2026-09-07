@@ -48,7 +48,7 @@ SCRIPT_EXPORT void Script::Bookmark::DeleteRange(duint start, duint end)
 
 SCRIPT_EXPORT void Script::Bookmark::Clear()
 {
-    BookmarkClear();
+    BookmarkClear(false);
 }
 
 SCRIPT_EXPORT bool Script::Bookmark::GetList(ListOf(BookmarkInfo) list)

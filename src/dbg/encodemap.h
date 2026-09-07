@@ -12,5 +12,5 @@ void EncodeMapDelRange(duint start, duint end);
 bool EncodeMapSetType(duint addr, duint size, ENCODETYPE type, bool* created = nullptr);
 void EncodeMapCacheSave(JSON Root);
 void EncodeMapCacheLoad(JSON Root);
-void EncodeMapClear();
+void EncodeMapClear(bool Terminating);
 duint GetEncodeTypeSize(ENCODETYPE type);

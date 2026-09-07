@@ -3,6 +3,7 @@
 
 #include <Windows.h>
 #include <stdint.h>
+#include <stddef.h>
 
 #ifndef __cplusplus
 #include <stdbool.h>
@@ -232,7 +233,8 @@ typedef enum
     flagfunction = 0x10,
     flagloop = 0x20,
     flagargs = 0x40,
-    flagNoFuncOffset = 0x80
+    flagNoFuncOffset = 0x80,
+    flagaddresscolor = 0x100,
 } ADDRINFOFLAGS;
 
 typedef enum
@@ -365,6 +367,8 @@ typedef enum
     DBG_TYPE_VISIT,                 // param1=TYPEVISITDATA* data,       param2=unused
     DBG_UPDATE_GUI,                 // param1=disasm_addr,               param2=bool stack
     DBG_IS_TESTING,                 // param1=unused,                    param2=unused
+    DBG_DELETE_ADDRESSCOLOR_RANGE,  // param1=duint start,               param2=duint end
+    DBG_SET_ADDRESSCOLOR_RANGE,     // param1=ADDRESSCOLOR_RANGE* info,  param2=unused
 } DBGMSG;
 
 typedef enum
@@ -676,6 +680,7 @@ typedef struct
     FUNCTION function;
     LOOP loop;
     FUNCTION args;
+    unsigned int color;
 } BRIDGE_ADDRINFO;
 
 typedef struct SYMBOLINFO_
@@ -1069,6 +1074,13 @@ typedef struct
 
 typedef struct
 {
+    duint start;
+    duint end;
+    unsigned int color;
+} ADDRESSCOLOR_RANGE;
+
+typedef struct
+{
     duint addr;
     XREFTYPE type;
 } XREF_RECORD;
@@ -1242,6 +1254,9 @@ BRIDGE_IMPEXP DEBUG_ENGINE DbgGetDebugEngine();
 BRIDGE_IMPEXP bool DbgGetSymbolInfoAt(duint addr, SYMBOLINFO* info);
 BRIDGE_IMPEXP duint DbgXrefAddMulti(const XREF_EDGE* edges, duint count);
 BRIDGE_IMPEXP void DbgUpdateGui(duint disasm_addr, bool stack);
+BRIDGE_IMPEXP bool DbgGetAddressColorAt(duint addr, unsigned int* color);
+BRIDGE_IMPEXP bool DbgSetAddressColorRange(duint start, duint end, unsigned int color);
+BRIDGE_IMPEXP void DbgDelAddressColorRange(duint start, duint end);
 
 typedef enum
 {

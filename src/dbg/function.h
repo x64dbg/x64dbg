@@ -3,19 +3,10 @@
 
 #include "addrinfo.h"
 
-struct FUNCTIONSINFO
+struct FUNCTIONSINFO : RangeInfo
 {
-    duint modhash;
-    duint start;
-    duint end;
-    bool manual;
     duint instructioncount;
     duint parent;
-
-    std::string mod() const
-    {
-        return ModNameFromHash(modhash);
-    }
 };
 
 bool FunctionAdd(duint Start, duint End, bool Manual, duint InstructionCount = 0, duint Parent = 0);
@@ -26,7 +17,7 @@ void FunctionDelRange(duint Start, duint End, bool DeleteManual = false);
 void FunctionCacheSave(JSON Root);
 void FunctionCacheLoad(JSON Root);
 bool FunctionEnum(FUNCTIONSINFO* List, size_t* Size);
-void FunctionClear();
+void FunctionClear(bool Terminating);
 void FunctionGetList(std::vector<FUNCTIONSINFO> & list);
 bool FunctionGetInfo(duint Address, FUNCTIONSINFO & info);
 

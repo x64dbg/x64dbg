@@ -62,7 +62,7 @@ public:
 extern std::map<unsigned int, WatchExpr*> watchexpr;
 
 void GuiUpdateWatchViewAsync();
-void WatchClear();
+void WatchClear(bool Terminating);
 unsigned int WatchAddExpr(const char* expr, WATCHVARTYPE type);
 bool WatchModifyExpr(unsigned int id, const char* expr, WATCHVARTYPE type);
 void WatchModifyName(unsigned int id, const char* newName);

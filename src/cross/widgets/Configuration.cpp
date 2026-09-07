@@ -113,6 +113,12 @@ Configuration::Configuration(const ConfigurationPalette & p) : QObject(), noMore
     defaultColors.insert("DisassemblyMnemonicBriefBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyFunctionColor", black);
     defaultColors.insert("DisassemblyLoopColor", black);
+    defaultColors.insert("AddressColor0", QColor("#C83232"));
+    defaultColors.insert("AddressColor1", QColor("#3CB43C"));
+    defaultColors.insert("AddressColor2", QColor("#3C78C8"));
+    defaultColors.insert("AddressColor3", QColor("#32BEC8"));
+    defaultColors.insert("AddressColor4", QColor("#C04C99"));
+    defaultColors.insert("AddressColor5", QColor("#C8B432"));
 
     defaultColors.insert("SideBarBackgroundColor", background);
     defaultColors.insert("SideBarCipLabelColor", white);
@@ -410,6 +416,11 @@ Configuration::Configuration(const ConfigurationPalette & p) : QObject(), noMore
     disasmUint.insert("0xPrefixValues", DisasmValueNotationNone);
     disasmUint.insert("MaxModuleSize", -1);
     defaultUints.insert("Disassembler", disasmUint);
+
+    QMap<QString, duint> colorsUint;
+    colorsUint.insert("AddressColorCount", 6);
+    colorsUint.insert("AddressColorAlpha", 60);
+    defaultUints.insert("Colors", colorsUint);
 
     QMap<QString, duint> tabOrderUint;
     int curTab = 0;

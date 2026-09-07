@@ -283,6 +283,22 @@ void CPUStack::setupContextMenu()
 
     //Follow PTR in Dump
     mCommonActions->build(mMenuBuilder, CommonActions::ActionDumpN | CommonActions::ActionWatch);
+
+    duint addressColorCount = ConfigUint("Colors", "AddressColorCount");
+    MenuBuilder* colorMenu = new MenuBuilder(this);
+    for(duint i = 0; i < addressColorCount; i++)
+    {
+        char addressColor[MAX_SETTING_SIZE] = "";
+        if(BridgeSettingGet("Colors", QString("AddressColor%1").arg(i).toUtf8().constData(), addressColor))
+        {
+            QAction* action = makeActionColor(QColor(addressColor), SLOT(setAddressColorSlot()));
+            action->setData(uint(i + 1));
+            colorMenu->addAction(action);
+        }
+    }
+    colorMenu->addAction(makeAction(DIcon("eraser"), tr("Clear"), SLOT(clearAddressColorSlot())));
+    mMenuBuilder->addMenu(makeMenu(DIcon("color-swatches"), tr("Color")), colorMenu);
+
     mMenuBuilder->addAction(makeAction(tr("Edit columns..."), SLOT(editColumnDialog())));
 
     mPluginMenu = new QMenu(this);
@@ -992,4 +1008,28 @@ void CPUStack::copyCommentsColumnSlot()
     }
 
     Bridge::CopyToClipboard(clipboard);
+}
+
+
+void CPUStack::setAddressColorSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(!action)
+        return;
+
+    unsigned int color = action->data().toUInt();
+    setAddressColor(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd()), color);
+
+    GuiUpdateAllViews();
+}
+
+void CPUStack::clearAddressColorSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    clearAddressColor(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd()));
+
+    GuiUpdateAllViews();
 }

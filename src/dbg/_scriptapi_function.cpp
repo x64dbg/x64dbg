@@ -60,7 +60,7 @@ SCRIPT_EXPORT void Script::Function::DeleteRange(duint start, duint end)
 
 SCRIPT_EXPORT void Script::Function::Clear()
 {
-    FunctionClear();
+    FunctionClear(false);
 }
 
 SCRIPT_EXPORT bool Script::Function::GetList(ListOf(FunctionInfo) list)

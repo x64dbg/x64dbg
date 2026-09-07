@@ -1014,7 +1014,7 @@ void BpCacheLoad(JSON Root, bool migrateCommandCondition)
     }
 }
 
-void BpClear()
+void BpClear(bool Terminating)
 {
     EXCLUSIVE_ACQUIRE(LockBreakpoints);
     breakpoints.clear();

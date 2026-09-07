@@ -117,7 +117,7 @@ bool cbInstrCommentList(int argc, char* argv[])
 
 bool cbInstrCommentClear(int argc, char* argv[])
 {
-    CommentClear();
+    CommentClear(false);
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "All comments deleted!"));
     return true;
@@ -193,7 +193,7 @@ bool cbInstrLabelList(int argc, char* argv[])
 
 bool cbInstrLabelClear(int argc, char* argv[])
 {
-    LabelClear();
+    LabelClear(false);
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "All labels deleted!"));
     return true;
@@ -276,7 +276,7 @@ bool cbInstrBookmarkList(int argc, char* argv[])
 
 bool cbInstrBookmarkClear(int argc, char* argv[])
 {
-    BookmarkClear();
+    BookmarkClear(false);
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "All bookmarks deleted!"));
     return true;
@@ -370,7 +370,7 @@ bool cbInstrFunctionList(int argc, char* argv[])
 
 bool cbInstrFunctionClear(int argc, char* argv[])
 {
-    FunctionClear();
+    FunctionClear(false);
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "All functions deleted!"));
     return true;
@@ -461,7 +461,7 @@ bool cbInstrArgumentList(int argc, char* argv[])
 
 bool cbInstrArgumentClear(int argc, char* argv[])
 {
-    ArgumentClear();
+    ArgumentClear(false);
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "All arguments deleted!"));
     return true;
@@ -561,7 +561,7 @@ bool cbInstrLoopList(int argc, char* argv[])
 
 bool cbInstrLoopClear(int argc, char* argv[])
 {
-    LoopClear();
+    LoopClear(false);
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "All loops deleted!"));
     return true;

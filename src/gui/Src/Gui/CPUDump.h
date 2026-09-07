@@ -92,6 +92,8 @@ public slots:
     void cycleFloatViewSlot();
     void cycleAddressViewSlot();
 
+    void setAddressColorSlot();
+    void clearAddressColorSlot();
 private:
     MenuBuilder* mMenuBuilder;
     CommonActions* mCommonActions;

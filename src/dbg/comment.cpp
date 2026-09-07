@@ -1,4 +1,5 @@
 #include "comment.h"
+#include "database_cb_batcher.h"
 
 struct CommentSerializer : AddrInfoSerializer<COMMENTSINFO>
 {
@@ -21,6 +22,17 @@ struct Comments : AddrInfoHashMap<LockComments, COMMENTSINFO, CommentSerializer>
     const char* jsonKey() const override
     {
         return "comments";
+    }
+
+protected:
+    bool populateDbOperation(DbOperation & op, const COMMENTSINFO & value) const override
+    {
+        op.itemType = DbItemTypeComment;
+        op.manual = value.manual;
+        op.modhash = value.modhash;
+        op.address = value.addr;
+        op.comment.text = value.text.c_str();
+        return true;
     }
 };
 
@@ -64,6 +76,7 @@ bool CommentDelete(duint Address)
 
 void CommentDelRange(duint Start, duint End, bool Manual)
 {
+    DbCallbackBatcher batcher;
     comments.DeleteRange(Start, End, Manual);
 }
 
@@ -74,6 +87,7 @@ void CommentCacheSave(JSON Root)
 
 void CommentCacheLoad(JSON Root)
 {
+    DbCallbackBatcher batcher(true);
     comments.CacheLoad(Root);
     comments.CacheLoad(Root, "auto"); //legacy support
 }
@@ -83,9 +97,10 @@ bool CommentEnum(COMMENTSINFO* List, size_t* Size)
     return comments.Enum(List, Size);
 }
 
-void CommentClear()
+void CommentClear(bool Terminating)
 {
-    comments.Clear();
+    DbCallbackBatcher batcher;
+    comments.Clear(Terminating);
 }
 
 void CommentGetList(std::vector<COMMENTSINFO> & list)

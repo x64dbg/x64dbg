@@ -64,7 +64,7 @@ SCRIPT_EXPORT void Script::Label::DeleteRange(duint start, duint end)
 
 SCRIPT_EXPORT void Script::Label::Clear()
 {
-    LabelClear();
+    LabelClear(false);
 }
 
 SCRIPT_EXPORT bool Script::Label::GetList(ListOf(LabelInfo) list)

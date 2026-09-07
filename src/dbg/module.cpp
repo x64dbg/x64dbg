@@ -1,3 +1,4 @@
+#include "database_cb_batcher.h"
 #include "ntdll/ntdll.h"
 #include "module.h"
 #include "filemap.h"
@@ -71,7 +72,8 @@ static ULONG64 ModSectionVirtualSize(PIMAGE_SECTION_HEADER section)
 
 static ULONG64 ModSectionRvaSize(PIMAGE_NT_HEADERS ntHeaders, PIMAGE_SECTION_HEADER section, WORD index)
 {
-    auto size = ModSectionVirtualSize(section);
+    // Raw section padding is still backed by the file and can be patched.
+    auto size = std::max<ULONG64>(ModSectionVirtualSize(section), section->SizeOfRawData);
     if(index + 1 < ntHeaders->FileHeader.NumberOfSections)
     {
         auto nextSection = section + 1;
@@ -869,6 +871,12 @@ struct ModulePartyInfo : AddrInfoHashMap<LockModuleHashes, MODULEPARTYINFO, Modu
     {
         return "modules";
     }
+
+protected:
+    bool populateDbOperation(DbOperation & op, const MODULEPARTYINFO & value) const override // Modules don't have database notifications
+    {
+        return false;
+    }
 };
 
 static ModulePartyInfo modulePartyInfo;
@@ -1372,7 +1380,7 @@ std::string ModNameFromHash(duint Hash)
     SHARED_ACQUIRE(LockModuleHashes);
     auto found = hashNameMap.find(Hash);
     if(found == hashNameMap.end())
-        return std::string();
+        return {};
     return found->second;
 }
 
@@ -1473,12 +1481,13 @@ void ModCacheSave(JSON root)
 
 void ModCacheLoad(JSON root)
 {
+    DbCallbackBatcher batcher(true);
     modulePartyInfo.CacheLoad(root);
 }
 
-void ModCacheClear()
+void ModCacheClear(bool Terminating)
 {
-    modulePartyInfo.Clear();
+    modulePartyInfo.Clear(Terminating);
 }
 
 bool ModRelocationsFromAddr(duint Address, std::vector<MODRELOCATIONINFO> & Relocations)

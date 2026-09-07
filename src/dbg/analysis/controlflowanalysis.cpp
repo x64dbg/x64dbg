@@ -4,6 +4,7 @@
 #include "TitanEngine/TitanEngine.h"
 #include "memory.h"
 #include "function.h"
+#include "database_cb_batcher.h"
 
 ControlFlowAnalysis::ControlFlowAnalysis(duint base, duint size, bool exceptionDirectory)
     : Analysis(base, size)
@@ -49,6 +50,8 @@ void ControlFlowAnalysis::Analyse()
 
 void ControlFlowAnalysis::SetMarkers()
 {
+    DbCallbackBatcher batcher;
+
     FunctionDelRange(mBase, mBase + mSize - 1, false);
     auto size = mFunctionRanges.size();
     for(auto i = size - 1; i != -1; i--)

@@ -1,0 +1,7 @@
+commandparserissue3921 "streq(\"a\",\"C:\directory\\\")"
+commandparserlegacyformat "is jmp: {streq(dis.mnemonic(dis.sel()), "jmp")}"
+commandparserlegacyunquoted mod.fromname(\"user32\") + 90B0
+commandparserlegacyescaped one\,two\ three
+commandparserdifferential
+commandparserroundtrip
+testfinalize

@@ -359,7 +359,7 @@ bool cbInstrVisualize(int argc, char* argv[])
         duint _size = maxaddr - start;
         Memory<unsigned char*> _data(_size);
         MemRead(_base, _data(), _size);
-        FunctionClear();
+        FunctionClear(false);
 
         //linear search with some trickery
         duint end = 0;
@@ -367,9 +367,9 @@ bool cbInstrVisualize(int argc, char* argv[])
         for(duint addr = start, fardest = 0; addr < maxaddr;)
         {
             //update GUI
-            BpClear();
-            BookmarkClear();
-            LabelClear();
+            BpClear(false);
+            BookmarkClear(false);
+            LabelClear(false);
             SetContextDataEx(hActiveThread, UE_CIP, addr);
             if(end)
                 BpNew(end, true, false, 0, BPNORMAL, 0, nullptr);
@@ -420,8 +420,8 @@ bool cbInstrVisualize(int argc, char* argv[])
 
         //update GUI
         FunctionAdd(start, end, false);
-        BpClear();
-        BookmarkClear();
+        BpClear(false);
+        BookmarkClear(false);
         SetContextDataEx(hActiveThread, UE_CIP, start);
         DebugUpdateGuiAsync(start, false);
     }

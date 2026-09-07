@@ -90,6 +90,21 @@ void CPUDump::setupContextMenu()
         return getSizeOf(d.itemSize) <= sizeof(duint) || (d.itemSize == 4 && d.dwordMode == FloatDword || d.itemSize == 8 && d.qwordMode == DoubleQword);
     });
 
+    duint addressColorCount = ConfigUint("Colors", "AddressColorCount");
+    MenuBuilder* colorMenu = new MenuBuilder(this);
+    for(duint i = 0; i < addressColorCount; i++)
+    {
+        char addressColor[MAX_SETTING_SIZE] = "";
+        if(BridgeSettingGet("Colors", QString("AddressColor%1").arg(i).toUtf8().constData(), addressColor))
+        {
+            QAction* action = makeActionColor(QColor(addressColor), SLOT(setAddressColorSlot()));
+            action->setData(uint(i + 1));
+            colorMenu->addAction(action);
+        }
+    }
+    colorMenu->addAction(makeAction(DIcon("eraser"), tr("Clear"), SLOT(clearAddressColorSlot())));
+    mMenuBuilder->addMenu(makeMenu(DIcon("color-swatches"), tr("Color")), colorMenu);
+
     MenuBuilder* breakpointMenu = new MenuBuilder(this);
     MenuBuilder* hardwareAccessMenu = new MenuBuilder(this, [this](QMenu*)
     {
@@ -1709,6 +1724,30 @@ void CPUDump::cycleAddressViewSlot()
         setView(ViewAddressUnicode);
     else
         setView(ViewAddressAscii);
+}
+
+
+void CPUDump::setAddressColorSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    QAction* action = qobject_cast<QAction*>(sender());
+    if(!action)
+        return;
+
+    unsigned int color = action->data().toUInt();
+    setAddressColor(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd()), color);
+
+    GuiUpdateAllViews();
+}
+
+void CPUDump::clearAddressColorSlot()
+{
+    if(!DbgIsDebugging())
+        return;
+    clearAddressColor(rvaToVa(getSelectionStart()), rvaToVa(getSelectionEnd()));
+
+    GuiUpdateAllViews();
 }
 
 void CPUDump::setView(ViewEnum_t view)

@@ -77,6 +77,7 @@ enum SectionLock
     LockHandleCache,
     LockScriptLineMap,
     LockScriptBreakpoints,
+    LockAddressColors,
 
     // Number of elements in this enumeration. Must always be the last index.
     LockLast

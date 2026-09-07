@@ -671,6 +671,35 @@ BRIDGE_IMPEXP void DbgClearCommentRange(duint start, duint end)
     _dbg_sendmessage(DBG_DELETE_COMMENT_RANGE, (void*)start, (void*)end);
 }
 
+BRIDGE_IMPEXP bool DbgGetAddressColorAt(duint addr, unsigned int* color)
+{
+    if(!color || !addr)
+        return false;
+    BRIDGE_ADDRINFO info;
+    memset(&info, 0, sizeof(info));
+    info.flags = flagaddresscolor;
+    if(!_dbg_addrinfoget(addr, SEG_DEFAULT, &info))
+        return false;
+    *color = info.color;
+    return true;
+}
+
+BRIDGE_IMPEXP bool DbgSetAddressColorRange(duint start, duint end, unsigned int color)
+{
+    if(!start || start > end)
+        return false;
+    ADDRESSCOLOR_RANGE info;
+    info.start = start;
+    info.end = end;
+    info.color = color;
+    return !!_dbg_sendmessage(DBG_SET_ADDRESSCOLOR_RANGE, &info, nullptr);
+}
+
+BRIDGE_IMPEXP void DbgDelAddressColorRange(duint start, duint end)
+{
+    _dbg_sendmessage(DBG_DELETE_ADDRESSCOLOR_RANGE, (void*)start, (void*)end);
+}
+
 // FIXME required size of arg _text_?
 BRIDGE_IMPEXP bool DbgGetModuleAt(duint addr, char* text)
 {

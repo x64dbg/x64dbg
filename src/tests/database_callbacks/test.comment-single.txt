@@ -1,0 +1,9 @@
+init tests/database_callbacks.exe
+
+_c1 = database_callbacks:VariableTarget
+
+commentset _c1, test
+assertlastop mod.hash(mod.base(_c1)), (_c1-mod.base(_c1)), c, a, 0, test
+
+commentdel _c1
+assertlastop mod.hash(mod.base(_c1)), (_c1-mod.base(_c1)), c, r, 0

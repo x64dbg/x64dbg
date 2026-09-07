@@ -55,7 +55,7 @@ SCRIPT_EXPORT void Script::Argument::DeleteRange(duint start, duint end, bool de
 
 SCRIPT_EXPORT void Script::Argument::Clear()
 {
-    ArgumentClear();
+    ArgumentClear(false);
 }
 
 SCRIPT_EXPORT bool Script::Argument::GetList(ListOf(ArgumentInfo) list)

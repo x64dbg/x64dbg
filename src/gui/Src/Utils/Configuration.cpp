@@ -63,6 +63,12 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultColors.insert("DisassemblyMnemonicBriefBackgroundColor", Qt::transparent);
     defaultColors.insert("DisassemblyFunctionColor", QColor("#000000"));
     defaultColors.insert("DisassemblyLoopColor", QColor("#000000"));
+    defaultColors.insert("AddressColor0", QColor("#C83232"));
+    defaultColors.insert("AddressColor1", QColor("#3CB43C"));
+    defaultColors.insert("AddressColor2", QColor("#3C78C8"));
+    defaultColors.insert("AddressColor3", QColor("#32BEC8"));
+    defaultColors.insert("AddressColor4", QColor("#C04C99"));
+    defaultColors.insert("AddressColor5", QColor("#C8B432"));
 
     defaultColors.insert("SideBarBackgroundColor", QColor("#FFF8F0"));
     defaultColors.insert("SideBarCipLabelColor", QColor("#FFFFFF"));
@@ -362,6 +368,11 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     disasmUint.insert("0xPrefixValues", DisasmValueNotationNone);
     disasmUint.insert("MaxModuleSize", -1);
     defaultUints.insert("Disassembler", disasmUint);
+
+    QMap<QString, duint> colorsUint;
+    colorsUint.insert("AddressColorCount", 6);
+    colorsUint.insert("AddressColorAlpha", 60);
+    defaultUints.insert("Colors", colorsUint);
 
     //font settings
     QFont font("Lucida Console", 8, QFont::Normal, false);
