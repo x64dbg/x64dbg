@@ -68,7 +68,10 @@ namespace ElfBug
         bool pokeByte(ptr address, uint8 byte) const;
         BreakpointInfo* findSoftwareBreakpoint(ptr address);
         void unpatchBreakpointBytes(ptr address, void* buffer, ptr size) const;
-        int memFd() const;
+        // Callers must hold mMemFdMutex; the descriptor is closed on execve.
+        int memFdLocked() const;
+        ssize_t memPread(void* buffer, size_t size, off_t offset) const;
+        ssize_t memPwrite(const void* buffer, size_t size, off_t offset) const;
         mutable std::mutex mMemFdMutex;
         mutable int mMemFd = -1;
     };

@@ -34,14 +34,7 @@ namespace ElfBug
         ssize_t result = process_vm_readv(pid, &local, 1, &remote, 1, 0);
         if(result == -1)
         {
-            const int fd = memFd();
-            if(fd == -1)
-            {
-                memset(buffer, 0, size);
-                return false;
-            }
-
-            result = pread(fd, buffer, size, static_cast<off_t>(address));
+            result = memPread(buffer, size, static_cast<off_t>(address));
             if(result == -1)
             {
                 memset(buffer, 0, size);
@@ -126,11 +119,7 @@ namespace ElfBug
         ssize_t result = process_vm_writev(pid, &local, 1, &remote, 1, 0);
         if(result == -1)
         {
-            const int fd = memFd();
-            if(fd == -1)
-                return false;
-
-            result = pwrite(fd, buffer, size, static_cast<off_t>(address));
+            result = memPwrite(buffer, size, static_cast<off_t>(address));
             if(result == -1)
                 return false;
         }
