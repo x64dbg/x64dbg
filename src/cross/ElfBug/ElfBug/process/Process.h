@@ -69,7 +69,7 @@ namespace ElfBug
         bool setBreakpointLocked(ptr address, bool singleshot, SoftwareType type);
         bool pokeByte(ptr address, uint8 byte) const;
         BreakpointInfo* findSoftwareBreakpoint(ptr address);
-        void unpatchBreakpointBytes(ptr address, void* buffer, ptr size) const;
+        void unpatchBreakpointBytesLocked(ptr address, void* buffer, ptr size) const;
         // Callers must hold mMemFdMutex; the descriptor is closed on execve.
         int memFdLocked() const;
         ssize_t memPread(void* buffer, size_t size, off_t offset) const;

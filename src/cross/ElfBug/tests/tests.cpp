@@ -1717,3 +1717,55 @@ TEST_CASE("Continue from a breakpoint on a rep instruction reports one hit", "[b
     dbg.JoinThread();
     REQUIRE(dbg.count(EventType::Breakpoint) == 1);
 }
+
+// The raw read and the masking step must see the same breakpoint state, or a read that
+// observed an armed 0xCC can be masked against a record that is already gone.
+TEST_CASE("MemRead never returns a breakpoint byte while breakpoints change", "[breakpoint]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("step_over_targets");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    std::promise<std::optional<ElfBug::ptr>> sitePromise;
+    auto siteFuture = sitePromise.get_future();
+    dbg.OnSystemBreakpoint([&]
+    {
+        sitePromise.set_value(ResolveRuntimeAddress(path, dbg.process()->pid, "so_call_site"));
+    });
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    const auto site = siteFuture.get();
+    REQUIRE(site.has_value());
+
+    auto* process = dbg.process();
+    std::atomic<bool> stop{false};
+    std::atomic<int> leaked{0};
+
+    // so_call_site is `call rel32`, so 0xe8. A 0xCC there is always the debugger's.
+    std::thread reader([&]
+    {
+        while(!stop.load(std::memory_order_relaxed))
+    {
+        std::uint8_t byte = 0;
+        if(process->MemRead(*site, &byte, 1) && byte == 0xCC)
+                leaked.fetch_add(1, std::memory_order_relaxed);
+        }
+    });
+
+    for(int i = 0; i < 3000; ++i)
+    {
+        process->SetBreakpoint(*site, false, ElfBug::SoftwareType::ShortInt3);
+        process->DeleteBreakpoint(*site);
+    }
+
+    stop.store(true, std::memory_order_relaxed);
+    reader.join();
+
+    REQUIRE(leaked.load() == 0);
+
+    dbg.Continue();
+    dbg.WaitForExit();
+    dbg.JoinThread();
+}

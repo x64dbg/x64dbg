@@ -10,8 +10,12 @@ namespace ElfBug
     bool Process::MemRead(const ptr address, void* buffer, const ptr size, ptr* bytesRead) const
     {
         ptr read = 0;
-        const bool complete = MemReadRaw(address, buffer, size, &read);
-        unpatchBreakpointBytes(address, buffer, read);
+        bool complete = false;
+        {
+            std::shared_lock lock(mBreakpointMutex);
+            complete = MemReadRaw(address, buffer, size, &read);
+            unpatchBreakpointBytesLocked(address, buffer, read);
+        }
 
         if(bytesRead)
             *bytesRead = read;
@@ -49,9 +53,8 @@ namespace ElfBug
         return static_cast<size_t>(result) == size;
     }
 
-    void Process::unpatchBreakpointBytes(const ptr address, void* buffer, const ptr size) const
+    void Process::unpatchBreakpointBytesLocked(const ptr address, void* buffer, const ptr size) const
     {
-        std::shared_lock lock(mBreakpointMutex);
         if(!buffer || !size || softwareBreakpointReferences.empty())
             return;
 
@@ -75,7 +78,7 @@ namespace ElfBug
         std::unique_lock lock(mBreakpointMutex);
         if(softwareBreakpointReferences.empty())
         {
-            lock.unlock();
+            // Still under the lock
             return MemWriteRaw(address, buffer, size, bytesWritten);
         }
 
