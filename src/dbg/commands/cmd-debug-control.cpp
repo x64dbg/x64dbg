@@ -283,7 +283,7 @@ bool cbReplayStepBack(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "This session does not support reverse execution."));
         return false;
     }
-    if(!ReplayStep(true, false, cbStep))
+    if(!ReplayStepBack(cbStep))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Unable to reverse step (error %lu).\n"), GetLastError());
         return false;
@@ -299,7 +299,7 @@ bool cbReplayRunBack(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "This session does not support reverse execution."));
         return false;
     }
-    if(!ReplayRun(true))
+    if(!ReplayRunBack())
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Unable to start reverse execution (error %lu).\n"), GetLastError());
         return false;
@@ -550,76 +550,14 @@ bool cbDebugPause(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Program is not running"));
         return false;
     }
-    if(dbggetsessionkind() == UE_SESSION_TTD)
+    if(!dbghassessioncapability(UE_SESSION_CAP_PAUSE_EXECUTION))
     {
-        if(!TitanDebugBreakProcess(fdProcessInfo->hProcess))
-        {
-            dputs(QT_TRANSLATE_NOOP("DBG", "Unable to interrupt TTD replay."));
-            return false;
-        }
-        return true;
-    }
-    // If the previous pause request could not break the debuggee and no debug
-    // events happened since, the debuggee is stuck in a wait that the code
-    // below cannot interrupt. Requesting a pause again after a few seconds
-    // falls back to a break-in thread. This is not done right away because the
-    // extra thread can be used by the debuggee to detect the debugger.
-    static ULONGLONG lastPauseRequestTime = 0;
-    static duint lastPauseRequestEventCount = 0;
-    auto now = GetTickCount64();
-    auto eventCount = dbggetdbgeventcount();
-    auto stuck = lastPauseRequestTime != 0
-                 && now - lastPauseRequestTime >= 2000
-                 && eventCount == lastPauseRequestEventCount;
-    lastPauseRequestTime = now;
-    lastPauseRequestEventCount = eventCount;
-    if(stuck && dbgspawnbreakinthread())
-        return true;
-    // After attaching, the active thread is whatever thread reported the last
-    // attach event (usually an idle worker that never wakes up). Target the
-    // main thread instead until a real debug event selects an active thread.
-    HANDLE hPauseThread = hActiveThread;
-    if(auto mainThreadId = dbggetattachmainthread())
-    {
-        auto hMainThread = ThreadGetHandle(mainThreadId);
-        if(hMainThread)
-            hPauseThread = hMainThread;
-    }
-    // As soon as SetBPX plants the INT3, another thread can hit it and the
-    // breakpoint callback can reassign hActiveThread. Keep using this local
-    // handle so SuspendThread and ResumeThread target the same thread.
-    DWORD dwPauseThreadId = TitanGetThreadId(hPauseThread);
-    // TODO: get suspend count instead, this can be detected
-    // Interesting behavior found by JustMagic, if the active thread is suspended pause would fail
-    auto previousSuspendCount = TitanSuspendThread(hPauseThread);
-    if(previousSuspendCount != 0)
-    {
-        if(previousSuspendCount != -1)
-            TitanResumeThread(hPauseThread);
-        dputs(QT_TRANSLATE_NOOP("DBG", "The active thread is suspended, switch to a running thread to pause the process"));
-        // TODO: perhaps inject an INT3 in the process as an alternative to failing?
+        dputs(QT_TRANSLATE_NOOP("DBG", "This session does not support pausing execution."));
         return false;
     }
-    duint CIP = GetContextDataEx(hPauseThread, UE_CIP);
-    if(!SetBPX(CIP, UE_BREAKPOINT, cbPauseBreakpoint))
+    if(!RequestPause(UE_PAUSE_POLICY_AGGRESSIVE, cbPauseDebug))
     {
-        dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting breakpoint at %p! (SetBPX)\n"), CIP);
-        if(TitanResumeThread(hPauseThread) == -1)
-        {
-            dputs(QT_TRANSLATE_NOOP("DBG", "Error resuming thread"));
-            return false;
-        }
-        // Some engine backends cannot modify their breakpoint table while the
-        // target is running. Fall back to the explicit break-in operation.
-        return dbgspawnbreakinthread();
-    }
-    //WORKAROUND: If a program is stuck in NtUserGetMessage (GetMessage was called), this
-    //will send a WM_NULL to stop the waiting. This only works if the message is not filtered.
-    //OllyDbg also does this in a similar way.
-    PostThreadMessageA(dwPauseThreadId, WM_NULL, 0, 0);
-    if(TitanResumeThread(hPauseThread) == -1)
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Error resuming thread"));
+        dprintf(QT_TRANSLATE_NOOP("DBG", "The debug engine could not pause this session (error %lu).\n"), GetLastError());
         return false;
     }
     return true;
@@ -659,16 +597,7 @@ bool cbDebugStepInto(int argc, char* argv[])
         return true;
     if(skipInt3Stepping(1, argv) && !--steprepeat)
         return true;
-    if(dbggetsessionkind() == UE_SESSION_TTD)
-    {
-        if(!ReplayStep(false, false, cbStep))
-        {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Unable to step forward in this TTD position (error %lu).\n"), GetLastError());
-            return false;
-        }
-    }
-    else
-        StepIntoWow64(cbStep);
+    StepIntoWrapper(cbStep);
     dbgsetsteprepeat(true, steprepeat);
     return cbDebugRunInternal(1, argv, steprepeat == 1 ? history_record : history_clear);
 }

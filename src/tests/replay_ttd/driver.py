@@ -494,10 +494,10 @@ def main() -> int:
     debugger.send("bc replay_ttd.entry")
     if not seek_and_wait(first):
         return fail("interrupt_setup", "TTD could not seek for the interrupt test")
-    system_breaks_before_interrupt = len(debugger.matching("System breakpoint reached!"))
+    pauses_before_interrupt = len(debugger.matching("paused!"))
     debugger.send("run")
     debugger.send("pause")
-    if not debugger.wait_count("System breakpoint reached!", system_breaks_before_interrupt + 1, 30):
+    if not debugger.wait_count("paused!", pauses_before_interrupt + 1, 30):
         return fail("interrupt", "TTD replay did not respond to an explicit pause")
     position_count = len(debugger.matching("Replay position:"))
     debugger.send("replaygetposition")
@@ -541,15 +541,14 @@ def main() -> int:
     # A normal forward step must not cross the retained pseudo-exit boundary
     # into TTD's sparse raw post-exit cursor. Reverse navigation remains valid,
     # and stepping forward from the prior instruction may return to the boundary.
-    step_errors_before = len(debugger.matching("Unable to step forward in this TTD position"))
-    running_before_exit_step = len(debugger.matching("[STATE] running"))
+    step_errors_before = len(debugger.matching("Unable to schedule TTD step-into"))
+    state_mark = debugger.mark()
     position_count = len(debugger.matching("Replay position:"))
     debugger.send("sti")
-    if not debugger.wait_count("Unable to step forward in this TTD position", step_errors_before + 1, 15):
-        return fail("pseudo_exit_step", "TTD allowed or stranded a forward step beyond the pseudo-exit boundary")
-    time.sleep(0.1)
-    if len(debugger.matching("[STATE] running")) != running_before_exit_step:
-        return fail("pseudo_exit_step_resume", "A rejected pseudo-exit step unexpectedly resumed replay")
+    if not debugger.wait_count("Unable to schedule TTD step-into", step_errors_before + 1, 15):
+        return fail("pseudo_exit_step", "TTD did not reject a forward step beyond the pseudo-exit boundary")
+    if not debugger.wait_ordered_after("[STATE] running", "[STATE] paused", state_mark, 15):
+        return fail("pseudo_exit_step_resume", "A rejected pseudo-exit step did not complete through the standard step path")
     debugger.send("replaygetposition")
     if not debugger.wait_count("Replay position:", position_count + 1, 15):
         return fail("pseudo_exit_step_position", "TTD pseudo-exit position was unavailable after a rejected step")
@@ -575,11 +574,8 @@ def main() -> int:
         expected_system_breaks = system_breaks_before_reopen + iteration - 1
         if not debugger.wait_count("System breakpoint reached!", expected_system_breaks, timeout):
             return fail("reopen", f"TTD trace did not reopen for session {iteration}")
-        # The message is emitted immediately before the callback acquires the
-        # run lock. Give that short handoff time to complete before requesting
-        # teardown; a paused-state notification may be coalesced with the
-        # earlier initialization state and is therefore not a reliable marker.
-        time.sleep(0.25)
+        # The system-breakpoint message is published after WAITID_RUN is
+        # locked, so it is a deterministic session-readiness marker.
         debugger.send("stop")
         if not debugger.wait_count("Debugging stopped!", iteration, 45):
             return fail("restop", f"TTD session {iteration} did not stop cleanly")

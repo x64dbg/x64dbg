@@ -1069,6 +1069,8 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         SetEngineVariable(UE_ENGINE_MEMBP_ALT, settingboolget("Engine", "MembpAlt", false));
         SetEngineVariable(UE_ENGINE_DISABLE_ASLR, settingboolget("Engine", "DisableAslr", false));
         SetEngineVariable(UE_ENGINE_NO_CONSOLE_WINDOW, settingboolget("Engine", "NoConsoleWindow", false));
+        SetEngineVariable(UE_ENGINE_WOW64_SINGLE_STEP_WORKAROUND,
+                          !settingboolget("Engine", "NoWow64SingleStepWorkaround", false));
         bOnlyCipAutoComments = settingboolget("Disassembler", "OnlyCipAutoComments", false);
         bNoSourceLineAutoComments = settingboolget("Disassembler", "NoSourceLineAutoComments", false);
         bListAllPages = settingboolget("Engine", "ListAllPages", false);
@@ -1078,7 +1080,6 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         bIgnoreInconsistentBreakpoints = settingboolget("Engine", "IgnoreInconsistentBreakpoints", false);
         bNoForegroundWindow = settingboolget("Gui", "NoForegroundWindow", true);
         bVerboseExceptionLogging = settingboolget("Engine", "VerboseExceptionLogging", true);
-        bNoWow64SingleStepWorkaround = settingboolget("Engine", "NoWow64SingleStepWorkaround", false);
         bQueryWorkingSet = settingboolget("Misc", "QueryWorkingSet", false);
         bForceLoadSymbols = settingboolget("Misc", "ForceLoadSymbols", false);
         bTruncateBreakpointLogs = settingboolget("Engine", "TruncateBreakpointLogs", false);

@@ -65,7 +65,7 @@ The minidump implementation and the first complete TTD replay slice are implemen
 - `shim_replay_probe` validates the TitanEngine-compatible minidump boundary,
   including session capabilities, opaque handles, contexts, PEB/TEB, memory
   reads/queries, immutable writes, and teardown.
-- The canonical ABI now has 64 exports. Session, path, exact-position,
+- The canonical ABI now has 65 exports. Session, path, exact-position,
   directional run, and directional step APIs are implemented or explicitly
   unsupported across every selectable engine.
 - DbgEng uses generation-tagged synthetic process/thread handles for minidumps;
@@ -93,8 +93,9 @@ The minidump implementation and the first complete TTD replay slice are implemen
   use a finite replay bound because this runtime treats an all-ones reverse
   count as zero work; GUI Pause and Stop call the cursor interruption API so a
   long replay cannot strand teardown or leave the next open `ERROR_BUSY`.
-  Recorded process exit is published as a mandatory synthetic replay boundary:
-  the GUI pauses and retains cursor, memory, register, and timeline state until
+  Recorded process exit is published through the ordinary `EXIT_PROCESS`
+  callback with `UE_SESSION_CAP_NAVIGABLE_PROCESS_EXIT`: the GUI pauses and
+  retains cursor, memory, register, and timeline state until
   the user seeks/runs backward or explicitly stops the session. The cursor is
   parked at the final executable instruction before exit because the runtime's
   post-exit position exposes only a sparse stack. Active NT_TIB stack/TEB ranges
@@ -106,14 +107,19 @@ The minidump implementation and the first complete TTD replay slice are implemen
   single-step ignore TTD's stale zero-step re-notification of an execute
   watchpoint at the current cursor, so stepping from a reverse-hit logical code
   breakpoint advances one recorded execution instead of resuming to the next
-  exception. Forward step-over always follows x64dbg's ordinary
-  `StepOverWrapper` -> TitanEngine `StepOver` path. The DbgEng adapter detects
+  exception. Forward step-into and step-over always follow x64dbg's ordinary
+  TitanEngine `StepInto` and `StepOver` paths. Each engine owns any WOW64
+  transition mechanics needed by `StepInto`; the legacy disable-workaround
+  preference is forwarded through `UE_ENGINE_WOW64_SINGLE_STEP_WORKAROUND`
+  rather than represented as a session capability. Exception-dispatch policy
+  remains capability-gated. The DbgEng adapter detects
   TTD calls through the replay engine's call/return callback and owns the
   current-thread one-shot return watchpoint internally; cursor-global callbacks
   ignore matching executions from peer threads, while ordinary user
   breakpoints remain process-global. No replay-only breakpoint flag is exposed
-  through the canonical TitanEngine ABI. Once a forward run publishes the retained
-  pseudo-exit boundary,
+  through the canonical TitanEngine ABI. The replay execution ABI exposes only
+  `ReplayRunBack` and `ReplayStepBack`; forward execution is not duplicated.
+  Once a forward run publishes the retained process-exit boundary,
   ordinary forward step cannot cross into TTD's sparse raw post-exit cursor;
   reverse step and a subsequent forward step back to the boundary remain valid.
 - `src/tests/replay_ttd` supplies a deterministic target with three worker
@@ -125,7 +131,7 @@ The minidump implementation and the first complete TTD replay slice are implemen
   reverse run round trips through the handled exception, current-thread
   step-over at the shared loader initialization call, step-over after reverse
   run, switching directly between step and run modes, long reverse execution to
-  the early image entry point, pseudo-exit boundary navigation, explicit replay
+  the early image entry point, navigable process-exit boundary behavior, explicit replay
   interruption, and twenty sessions in one headless process.
 - The 47-test selected live DbgEng matrix passes on both x64 and x32 after the
   TTD changes. TitanEngine/GleeBug x64/x32 memory and multi-session smoke tests
@@ -164,7 +170,8 @@ Expose capabilities separately from the kind. Proposed capability bits include:
 - register write overlay;
 - live process/thread control;
 - native process/thread handles;
-- exception continuation; and
+- exception continuation;
+- asynchronous pause execution; and
 - timeline module/thread updates.
 
 x64dbg must branch on capabilities, not on engine number, extension, or guessed
@@ -273,8 +280,8 @@ bool ReplayGetExtent(
     TITAN_REPLAY_POSITION* first,
     TITAN_REPLAY_POSITION* last);
 bool ReplaySetPosition(const TITAN_REPLAY_POSITION* position);
-bool ReplayRun(bool reverse);
-bool ReplayStep(bool reverse, bool stepOver, TITANCBSTEP callback);
+bool ReplayRunBack();
+bool ReplayStepBack(TITANCBSTEP callback);
 ```
 
 Rules:

@@ -132,7 +132,7 @@ used.
 ### Canonical surface
 
 The completed live milestone used 55 required exports. The replay phase has
-since extended the canonical header and definition file to 64 exports with
+since extended the canonical header and definition file to 65 exports with
 session/replay navigation and engine-backed image-path queries. In addition to the
 original session, callback, memory, context,
 breakpoint, and stepping APIs, the extended surface covers:
@@ -345,8 +345,9 @@ __declspec(dllexport) bool TitanTerminateProcess(
     HANDLE hProcess,
     DWORD exitCode);
 
-__declspec(dllexport) bool TitanDebugBreakProcess(
-    HANDLE hProcess);
+__declspec(dllexport) bool RequestPause(
+    TitanPausePolicy maximumPolicy,
+    TITANCBPAUSE pauseCallback);
 
 __declspec(dllexport) HANDLE TitanCreateRemoteThread(
     HANDLE hProcess,
@@ -553,8 +554,12 @@ Win32 operations.
 
 ### 2.3 Process control
 
-Move target `DebugBreakProcess` and `TerminateProcess` to
-`TitanDebugBreakProcess` and `TitanTerminateProcess`.
+Move target termination to `TitanTerminateProcess`. Route asynchronous pause
+requests through engine-neutral `RequestPause`; each engine owns its native
+interrupt, current-IP breakpoint, wake-up, and break-in-thread fallback logic.
+Each request carries a pause-policy ceiling that limits the maximum permitted
+intrusiveness without selecting a specific mechanism or mutating global engine
+state.
 
 Remote thread creation can use `TitanCreateRemoteThread`. DbgEng may implement it using a
 native live handle initially or return `ERROR_NOT_SUPPORTED` without affecting

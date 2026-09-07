@@ -24,8 +24,8 @@ forward/reverse steps at the first position; persistent code/data breakpoint
 hits approached and left in both directions; forward/reverse run and step-over
 transitions around the handled exception; standard repeated step-over and
 current-thread step-over at the loader call shared by multiple thread
-initializations; rejected movement beyond both trace
-boundaries; pseudo-exit reverse/forward navigation; interruption; and repeated
+initializations; rejected movement beyond both trace boundaries; ordinary
+`EXIT_PROCESS` delivery with reverse/forward navigation; interruption; and repeated
 session teardown.
 
 The current fixtures were recorded from an elevated command prompt with:
