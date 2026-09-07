@@ -63,8 +63,9 @@ ELFBUG_EXPORT bool ElfBugInit(ElfBugDebugger* dbg, const char* path);
 ELFBUG_EXPORT void ElfBugStart(ElfBugDebugger* dbg);      // Blocks - runs debug loop
 ELFBUG_EXPORT void ElfBugContinue(ElfBugDebugger* dbg);    // Thread-safe
 ELFBUG_EXPORT void ElfBugStepInto(ElfBugDebugger* dbg);    // Thread-safe
+ELFBUG_EXPORT void ElfBugStepOver(ElfBugDebugger* dbg);    // Thread-safe
 ELFBUG_EXPORT void ElfBugPause(ElfBugDebugger* dbg);       // Thread-safe
-ELFBUG_EXPORT bool ElfBugStop(ElfBugDebugger* dbg);              // Thread-safe
+ELFBUG_EXPORT bool ElfBugStop(ElfBugDebugger* dbg);        // Thread-safe
 
 ELFBUG_EXPORT bool ElfBugGetRegisters(const ElfBugDebugger* dbg, ElfBugRegisters* regs);
 ELFBUG_EXPORT pid_t ElfBugGetPid(const ElfBugDebugger* dbg);

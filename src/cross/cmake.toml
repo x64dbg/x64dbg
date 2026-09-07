@@ -5,7 +5,7 @@ cmkr-include = "../../cmake/cmkr.cmake"
 
 [project]
 name = "cross"
-include-after = ["widgets/Qt.cmake"]
+include-after = ["zydis.cmake", "widgets/Qt.cmake"]
 cmake-after = """
 if(ELFBUG_BUILD_TESTS AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
     enable_testing()
@@ -101,7 +101,7 @@ sources = ["ElfBug/ElfBug/**.cpp"]
 headers = ["ElfBug/ElfBug/**.h"]
 compile-features = ["cxx_std_17"]
 include-directories = ["ElfBug"]
-link-libraries = ["Threads::Threads"]
+link-libraries = ["Threads::Threads", "zydis_wrapper"]
 
 [target.debugger]
 type = "qt_executable"
