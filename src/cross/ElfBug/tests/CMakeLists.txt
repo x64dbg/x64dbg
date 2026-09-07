@@ -77,6 +77,16 @@ set(CMKR_TARGET ElfBug_tests)
 list(APPEND CMAKE_MODULE_PATH "${catch2_SOURCE_DIR}/extras")
 include(Catch)
 catch_discover_tests(ElfBug_tests)
+add_dependencies(ElfBug_tests
+    elfbug_fixture_end_immediately
+    elfbug_fixture_exit_code_42
+    elfbug_fixture_hello_elfbug
+    elfbug_fixture_run_endlessly
+    elfbug_fixture_segfault
+    elfbug_fixture_multi_threaded
+    elfbug_fixture_step_over_targets
+    elfbug_fixture_exec_target
+)
 
 # Target: elfbug_fixture_end_immediately
 set(elfbug_fixture_end_immediately_SOURCES
@@ -308,6 +318,11 @@ set_target_properties(elfbug_fixture_step_over_targets PROPERTIES
 		"${CMAKE_BINARY_DIR}/tests/targets"
 )
 
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_step_over_targets)
+endif()
+
 # Target: elfbug_fixture_exec_target
 set(elfbug_fixture_exec_target_SOURCES
 	cmake.toml
@@ -338,5 +353,5 @@ set_target_properties(elfbug_fixture_exec_target PROPERTIES
 
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 if(NOT CMKR_VS_STARTUP_PROJECT)
-	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_step_over_targets)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_exec_target)
 endif()

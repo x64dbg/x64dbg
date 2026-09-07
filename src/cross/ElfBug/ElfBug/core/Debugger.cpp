@@ -172,15 +172,21 @@ namespace ElfBug
     {
         {
             std::lock_guard lock(mPauseMutex);
+            mStepPending.store(false, std::memory_order_release);
+            mStepOverPending.store(false, std::memory_order_release);
             mPaused.store(false, std::memory_order_release);
         }
         mPauseCv.notify_one();
     }
 
+    // Step requests only mean something while paused; otherwise they would latch
+    // and turn the next Continue into a step.
     void Debugger::StepInto()
     {
         {
             std::lock_guard lock(mPauseMutex);
+            if(!mPaused.load(std::memory_order_acquire))
+                return;
             mStepPending.store(true, std::memory_order_release);
             mPaused.store(false, std::memory_order_release);
         }
@@ -191,10 +197,46 @@ namespace ElfBug
     {
         {
             std::lock_guard lock(mPauseMutex);
+            if(!mPaused.load(std::memory_order_acquire))
+                return;
             mStepOverPending.store(true, std::memory_order_release);
             mPaused.store(false, std::memory_order_release);
         }
         mPauseCv.notify_one();
+    }
+
+    void Debugger::maskPushedTrapFlag() const
+    {
+        if(!mThread || !mProcess)
+            return;
+
+        // TF is bit 8 of EFLAGS: bit 0 of the second pushed byte for pushf and pushfq alike.
+        const ptr flagsHigh = mThread->registers.Gsp() + 1;
+        uint8 byte = 0;
+        if(!mProcess->MemRead(flagsHigh, &byte, 1))
+            return;
+        byte &= static_cast<uint8>(~0x01);
+        mProcess->MemWrite(flagsHigh, &byte, 1);
+    }
+
+    void Debugger::dispatchBreakpoint(const ptr address)
+    {
+        const BreakpointKey key{BreakpointType::Software, address};
+        const auto it = mProcess->breakpoints.find(key);
+        if(it == mProcess->breakpoints.end())
+            return;
+
+        // Copied: the callback may delete the breakpoint.
+        const BreakpointInfo info = it->second;
+
+        const auto cbIt = mProcess->breakpointCallbacks.find(key);
+        if(cbIt != mProcess->breakpointCallbacks.end())
+            cbIt->second(info);
+
+        cbBreakpoint(info);
+
+        if(info.singleshot)
+            mProcess->DeleteBreakpoint(address);
     }
 
     // Only the lifting thread may re-arm; anyone else would re-trap it in place.
@@ -220,39 +262,56 @@ namespace ElfBug
         mStepOver = {};
     }
 
-    void Debugger::discardStepStateAfterExec(const pid_t pid)
+    void Debugger::cancelStepOverIfOwner(const pid_t pid)
+    {
+        if(mStepOver.active && mStepOver.tid != pid)
+        {
+            restoreSourceByte(pid);
+            return;
+        }
+        cancelStepOver(pid);
+    }
+
+    void Debugger::onExec()
     {
         if(mThread)
             mThread->clearSingleStep();
 
-        // exec killed every other thread and replaced the image; all entries are stale.
+        // exec killed every other thread and replaced the image, so every entry is stale.
+        // A worker's exec is reported under the leader's tid, so the owner is not checked.
         mSourceRearms.clear();
 
-        if(mStepOver.active && mStepOver.tid == pid)
+        if(mStepOver.active)
         {
             // User breakpoints are left to the re-exec TODO in handleSigtrap.
             if(mStepOver.planted && mProcess)
                 mProcess->ForgetBreakpoint(mStepOver.target);
             mStepOver = {};
         }
+
+        // The old /proc/pid/mem descriptor is bound to the replaced address space.
+        if(mProcess)
+            mProcess->ResetMemFd();
     }
 
-    bool Debugger::armStepOver(const pid_t pid)
+    Debugger::StepOverArm Debugger::armStepOver(const pid_t pid)
     {
         cancelStepOver(pid);
 
         if(!mThread || !mProcess)
-            return false;
+            return StepOverArm::SingleStep;
 
         const ptr rip = mThread->registers.Gip();
 
-        if(mProcess->DisarmBreakpointByte(rip))
-            mSourceRearms[pid] = rip;
-
         ptr target = 0;
         const StepOverKind kind = mProcess->ClassifyStepOverAt(rip, target);
-        if(kind == StepOverKind::None)
-            return false;
+        if(kind == StepOverKind::None || kind == StepOverKind::Pushf)
+        {
+            // Plain step: lift the breakpoint under RIP, restored when the step traps.
+            if(mProcess->DisarmBreakpointByte(rip))
+                mSourceRearms[pid] = rip;
+            return StepOverArm::SingleStep;
+        }
 
         bool planted = false;
         if(!mProcess->HasBreakpoint(target))
@@ -263,23 +322,37 @@ namespace ElfBug
                 snprintf(message, sizeof(message), "step-over: failed to set breakpoint at 0x%llx",
                          static_cast<unsigned long long>(target));
                 cbInternalError(message);
-                return false;
+                if(mProcess->DisarmBreakpointByte(rip))
+                    mSourceRearms[pid] = rip;
+                return StepOverArm::SingleStep;
             }
             planted = true;
         }
-        else
+
+        mStepOver.active = true;
+        mStepOver.target = target;
+        mStepOver.tid = pid;
+        mStepOver.rspFloor = mThread->registers.Gsp();
+        mStepOver.planted = planted;
+
+        if(mProcess->HasBreakpoint(rip))
         {
-            mProcess->RearmBreakpointByte(target);
+            if(kind == StepOverKind::Rep)
+            {
+                // A single step runs one iteration and leaves RIP on the instruction, so
+                // the byte stays lifted until the whole loop is done.
+                if(mProcess->DisarmBreakpointByte(rip))
+                    mSourceRearms[pid] = rip;
+            }
+            // Step off the call now so its breakpoint is armed again while the callee
+            // runs, for this thread's deeper frames and for every other thread.
+            else if(!stepPastBreakpointByte(pid, rip))
+            {
+                return StepOverArm::Consumed;
+            }
         }
 
-        mStepOver.active     = true;
-        mStepOver.target     = target;
-        mStepOver.tid        = pid;
-        mStepOver.rspFloor   = mThread->registers.Gsp();
-        // pushf completes with rsp 8 lower; the frame guard would reject its own completion.
-        mStepOver.frameGuard = (kind != StepOverKind::Pushf);
-        mStepOver.planted    = planted;
-        return true;
+        return StepOverArm::Armed;
     }
 
     void Debugger::Pause()

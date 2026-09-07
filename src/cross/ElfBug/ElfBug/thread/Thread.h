@@ -18,7 +18,11 @@ namespace ElfBug
         bool StepInto(int signal = 0);
 
         [[nodiscard]] bool isSingleStepping() const { return mIsSingleStepping; }
-        void clearSingleStep() { mIsSingleStepping = false; }
+        void clearSingleStep() { mIsSingleStepping = false; mStepsPushf = false; }
+
+        // The stepped instruction pushes EFLAGS, so TF has to be scrubbed from the pushed word.
+        void setStepsPushf(const bool stepsPushf) { mStepsPushf = stepsPushf; }
+        [[nodiscard]] bool stepsPushf() const { return mStepsPushf; }
 
         // TODO: implement via PTRACE_POKEUSER on debug register offsets
         [[nodiscard]] bool GetFreeHardwareBreakpointSlot(const HardwareSlot & slot) const;
@@ -28,5 +32,6 @@ namespace ElfBug
 
     private:
         bool mIsSingleStepping = false;
+        bool mStepsPushf = false;
     };
 }

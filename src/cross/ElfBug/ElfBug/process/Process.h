@@ -56,15 +56,20 @@ namespace ElfBug
         [[nodiscard]] bool HasBreakpoint(ptr address) const;
         [[nodiscard]] StepOverKind ClassifyStepOverAt(ptr rip, ptr & nextAddr) const;
 
+        // Drops the /proc/pid/mem descriptor; it is reopened lazily. Needed after execve.
+        void ResetMemFd() const;
+
     private:
         // Guards breakpoints, breakpointCallbacks and softwareBreakpointReferences.
-        // Mutation is tracer-thread only, but MemRead unpatches from any thread.
+        // Callers mutate them from any thread while the tracee is paused; MemRead
+        // unpatches from any thread at any time.
         mutable std::shared_mutex mBreakpointMutex;
         bool setBreakpointLocked(ptr address, bool singleshot, SoftwareType type);
+        bool pokeByte(ptr address, uint8 byte) const;
         BreakpointInfo* findSoftwareBreakpoint(ptr address);
         void unpatchBreakpointBytes(ptr address, void* buffer, ptr size) const;
         int memFd() const;
-        mutable std::once_flag mMemFdOnce;
+        mutable std::mutex mMemFdMutex;
         mutable int mMemFd = -1;
     };
 }

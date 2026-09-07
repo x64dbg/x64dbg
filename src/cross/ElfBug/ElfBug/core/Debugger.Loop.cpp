@@ -34,18 +34,10 @@ namespace ElfBug
 
         bool stepOverRequested = mStepOverPending.exchange(false, std::memory_order_acq_rel);
 
-        // A breakpoint hit leaves its 0xCC armed with RIP on it; every resume except a
-        // step-over must step past that byte first.
         const bool stepIntoRequested = mStepPending.load(std::memory_order_acquire);
 
-        // pushf would observe the single-step TF; use the step-over path instead.
-        if(stepIntoRequested && !stepOverRequested && mThread && mProcess)
-        {
-            ptr next = 0;
-            if(mProcess->ClassifyStepOverAt(mThread->registers.Gip(), next) == StepOverKind::Pushf)
-                stepOverRequested = true;
-        }
-
+        // A breakpoint hit leaves its 0xCC armed with RIP on it; every resume except a
+        // step-over must step past that byte first.
         if(!stepOverRequested && mThread && mProcess &&
                 mProcess->HasBreakpoint(mThread->registers.Gip()))
         {
@@ -62,21 +54,33 @@ namespace ElfBug
             }
         }
 
-        if(stepOverRequested && mThread && armStepOver(pid))
+        if(stepOverRequested && mThread)
         {
             // A StepInto queued just before this StepOver is subsumed by it.
             mStepPending.store(false, std::memory_order_release);
 
-            const int sig = mPendingSignal;
-            mPendingSignal = 0;
-            if(ptrace(PTRACE_CONT, pid, nullptr,
-                      reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
+            switch(armStepOver(pid))
             {
-                if(errno != ESRCH)
-                    cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
-                cancelStepOver(pid);
+            case StepOverArm::Consumed:
+                return false;
+
+            case StepOverArm::Armed:
+            {
+                const int sig = mPendingSignal;
+                mPendingSignal = 0;
+                if(ptrace(PTRACE_CONT, pid, nullptr,
+                          reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
+                {
+                    if(errno != ESRCH)
+                        cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                    cancelStepOver(pid);
+                }
+                return true;
             }
-            return true;
+
+            case StepOverArm::SingleStep:
+                break;
+            }
         }
 
         if((stepIntoRequested || stepOverRequested) && mThread)
@@ -84,7 +88,14 @@ namespace ElfBug
             mStepPending.store(false, std::memory_order_release);
             const int sig = mPendingSignal;
             mPendingSignal = 0;
-            if(!mThread->StepInto(sig))
+            ptr next = 0;
+            const bool stepsPushf = mProcess &&
+                                    mProcess->ClassifyStepOverAt(mThread->registers.Gip(), next) == StepOverKind::Pushf;
+            if(mThread->StepInto(sig))
+            {
+                mThread->setStepsPushf(stepsPushf);
+            }
+            else
             {
                 const int stepErrno = errno;
                 if(stepErrno != ESRCH)

@@ -64,24 +64,33 @@ namespace ElfBug
         // False means the stop was consumed (exit, forwarded signal, error); abandon it.
         bool stepPastBreakpointByte(pid_t pid, ptr addr);
         void abandonSingleStep(pid_t pid);
-        // Post-exec: drops all step state without writing anything back.
-        void discardStepStateAfterExec(pid_t pid);
+        // The image was replaced: drop step state without writing anything back.
+        void onExec();
 
         struct StepOverRequest
         {
-            bool  active     = false;
-            ptr   target     = 0;
-            pid_t tid        = 0;
-            ptr   rspFloor   = 0;
-            bool  frameGuard = false;
-            bool  planted    = false;
+            bool active = false;
+            ptr target = 0;
+            pid_t tid = 0;
+            ptr rspFloor = 0;
+            bool planted = false;
         };
 
-
-        // Returns true when the caller should PTRACE_CONT; false means single-step.
-        bool armStepOver(pid_t pid);
+        enum class StepOverArm
+        {
+            Armed,      // temp breakpoint planted, caller continues the thread
+            SingleStep, // nothing to run to, caller single-steps
+            Consumed    // the stop was used up stepping off the source breakpoint
+        };
+        StepOverArm armStepOver(pid_t pid);
         void cancelStepOver(pid_t pid);
+        // Another thread's stop must not end the stepping thread's step-over.
+        void cancelStepOverIfOwner(pid_t pid);
         void restoreSourceByte(pid_t pid);
+        // A single-stepped pushf pushes EFLAGS with TF set; clear it from the pushed word.
+        void maskPushedTrapFlag() const;
+        // Runs the breakpoint's callback and cbBreakpoint, deleting it when singleshot.
+        void dispatchBreakpoint(ptr address);
         void beginPause();
         void createProcessEvent(pid_t pid, Arch arch);
         void exitProcessEvent(pid_t pid, int exitCode);

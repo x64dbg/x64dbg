@@ -865,8 +865,10 @@ TEST_CASE("StepOver respects the stack frame under recursion", "[stepover]")
 
     dbg.Continue();
     dbg.WaitForBreakpointAt(*site);
+    // Out of the way: only the step-over's own breakpoint at site + 5 is in play now.
+    REQUIRE(dbg.process()->DeleteBreakpoint(*site));
 
-    // The callee re-enters this exact address at a deeper frame; those hits must be ignored.
+    // The callee reaches site + 5 at deeper frames first; those hits must be skipped.
     const ElfBug::ptr rspBefore = dbg.currentThread()->registers.Gsp();
 
     dbg.StepOver();
@@ -874,6 +876,7 @@ TEST_CASE("StepOver respects the stack frame under recursion", "[stepover]")
 
     REQUIRE(step.instructionPointer == *site + 5);
     REQUIRE(dbg.currentThread()->registers.Gsp() >= rspBefore);
+    REQUIRE(dbg.count(EventType::Breakpoint) == 1);
 
     dbg.Continue();
     dbg.WaitForExit();
@@ -894,7 +897,8 @@ TEST_CASE("A user breakpoint at the step-over target still fires for inner frame
         const auto site = ResolveRuntimeAddress(path, dbg.process()->pid, "so_recurse_site");
         if(site)
         {
-            dbg.process()->SetBreakpoint(*site, false, ElfBug::SoftwareType::ShortInt3);
+            // Singleshot: the recursion must not stop at the call site again.
+            dbg.process()->SetBreakpoint(*site, true, ElfBug::SoftwareType::ShortInt3);
             dbg.process()->SetBreakpoint(*site + 5, false, ElfBug::SoftwareType::ShortInt3);
         }
         sitePromise.set_value(site);
@@ -1124,9 +1128,10 @@ TEST_CASE("Continuing past a breakpoint preserves its callback", "[breakpoint]")
     {
         const auto site = ResolveRuntimeAddress(path, dbg.process()->pid, "so_recurse");
         if(site)
-            dbg.process()->SetBreakpoint(*site,
-                                         [&](const ElfBug::BreakpointInfo &) { ++callbackHits; },
-                                         false, ElfBug::SoftwareType::ShortInt3);
+        {
+            const ElfBug::BreakpointCallback onHit = [&](const ElfBug::BreakpointInfo &) { ++callbackHits; };
+            dbg.process()->SetBreakpoint(*site, onHit, false, ElfBug::SoftwareType::ShortInt3);
+        }
         sitePromise.set_value(site);
     });
 
@@ -1163,9 +1168,10 @@ TEST_CASE("StepOver preserves the callback of the breakpoint it stepped off", "[
     {
         const auto site = ResolveRuntimeAddress(path, dbg.process()->pid, "so_call_site");
         if(site)
-            dbg.process()->SetBreakpoint(*site,
-                                         [&](const ElfBug::BreakpointInfo &) { ++callbackHits; },
-                                         false, ElfBug::SoftwareType::ShortInt3);
+        {
+            const ElfBug::BreakpointCallback onHit = [&](const ElfBug::BreakpointInfo &) { ++callbackHits; };
+            dbg.process()->SetBreakpoint(*site, onHit, false, ElfBug::SoftwareType::ShortInt3);
+        }
         sitePromise.set_value(site);
     });
 
@@ -1426,12 +1432,8 @@ TEST_CASE("MemWrite over an armed breakpoint keeps the trap and retargets the re
     dbg.JoinThread();
 }
 
-// Hidden: fails against a pre-existing engine defect, not against step-over.
-// A thread resumes at bpAddr + 1 and skips `push %rbp`, corrupting the tracee.
-// The rewind itself is verified correct; the window is the disarm/re-arm around
-// stepPastBreakpointByte with other threads queued at bpAddr + 1. Needs all-stop
-// (see the TODO in handleSignal). Run explicitly with: ElfBug_tests "[.multithread]"
-TEST_CASE("Breakpoint on a hot path does not lose thread-creation events", "[.multithread]")
+// Breakpoint bytes are poked while a worker, not the leader, is the stopped thread.
+TEST_CASE("Breakpoint on a hot path does not lose thread-creation events", "[multithread]")
 {
     using namespace ElfBug::test;
     RecordingDebugger dbg;
@@ -1448,15 +1450,19 @@ TEST_CASE("Breakpoint on a hot path does not lose thread-creation events", "[.mu
     dbg.StartOnThread();
     dbg.WaitForSystemBreakpoint();
 
-    // Five workers, one breakpoint hit each; resume only after each is reported.
-    for(int i = 0; i < 5; ++i)
+    // The first worker to arrive always traps. A later one can run through while that
+    // thread steps off the lifted byte (no all-stop yet), so resume on every hit until
+    // exit rather than demanding five.
+    dbg.Continue();
+    dbg.WaitFor(EventType::Breakpoint, std::chrono::seconds(10));
+
+    Event exit_ev;
+    do
     {
         dbg.Continue();
-        dbg.WaitFor(EventType::Breakpoint, std::chrono::seconds(10));
+        exit_ev = dbg.WaitForAny({EventType::Breakpoint, EventType::ExitProcess}, std::chrono::seconds(20));
     }
-
-    dbg.Continue();
-    const auto exit_ev = dbg.WaitFor(EventType::ExitProcess, std::chrono::seconds(20));
+    while(exit_ev.type != EventType::ExitProcess);
 
     std::set<pid_t> createdTids;
     for(const auto & e : dbg.events())
@@ -1465,5 +1471,196 @@ TEST_CASE("Breakpoint on a hot path does not lose thread-creation events", "[.mu
 
     REQUIRE(exit_ev.exitCode == 5);
     REQUIRE(createdTids.size() == 5);
+    REQUIRE(dbg.count(EventType::Breakpoint) >= 1);
+    REQUIRE(dbg.count(EventType::Breakpoint) <= 5);
     REQUIRE(dbg.count(EventType::InternalError) == 0);
+}
+
+TEST_CASE("Continue from a breakpoint on pushfq does not leak the trap flag", "[breakpoint]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("step_over_targets");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    std::promise<std::optional<ElfBug::ptr>> sitePromise;
+    auto siteFuture = sitePromise.get_future();
+    dbg.OnSystemBreakpoint([&]
+    {
+        const auto site = ResolveRuntimeAddress(path, dbg.process()->pid, "so_pushf_site");
+        if(site)
+        {
+            // pushfq (1 byte), popq %rax (1 byte), ret
+            dbg.process()->SetBreakpoint(*site, false, ElfBug::SoftwareType::ShortInt3);
+            dbg.process()->SetBreakpoint(*site + 2, false, ElfBug::SoftwareType::ShortInt3);
+        }
+        sitePromise.set_value(site);
+    });
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    const auto site = siteFuture.get();
+    REQUIRE(site.has_value());
+
+    dbg.Continue();
+    dbg.WaitForBreakpointAt(*site);
+
+    // Stepping off the breakpoint executes pushfq under the hardware trap flag.
+    dbg.Continue();
+    dbg.WaitForBreakpointAt(*site + 2);
+    REQUIRE((dbg.currentThread()->registers.Gax() & (1ull << 8)) == 0);
+
+    dbg.Continue();
+    dbg.WaitForExit();
+    dbg.JoinThread();
+}
+
+TEST_CASE("StepOver completing on a singleshot user breakpoint consumes it", "[stepover][breakpoint]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("step_over_targets");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    std::atomic<int> callbackHits{0};
+    std::promise<std::optional<ElfBug::ptr>> sitePromise;
+    auto siteFuture = sitePromise.get_future();
+    dbg.OnSystemBreakpoint([&]
+    {
+        const auto site = ResolveRuntimeAddress(path, dbg.process()->pid, "so_call_site");
+        if(site)
+        {
+            dbg.process()->SetBreakpoint(*site, false, ElfBug::SoftwareType::ShortInt3);
+            const ElfBug::BreakpointCallback onHit = [&](const ElfBug::BreakpointInfo &) { ++callbackHits; };
+            dbg.process()->SetBreakpoint(*site + 5, onHit, true, ElfBug::SoftwareType::ShortInt3);
+        }
+        sitePromise.set_value(site);
+    });
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    const auto site = siteFuture.get();
+    REQUIRE(site.has_value());
+
+    dbg.Continue();
+    dbg.WaitForBreakpointAt(*site);
+
+    dbg.StepOver();
+    const auto step = dbg.WaitForStep();
+    REQUIRE(step.instructionPointer == *site + 5);
+
+    // The user's breakpoint fired: its callback ran, it was reported, and being
+    // singleshot it is gone.
+    REQUIRE(callbackHits.load() == 1);
+    REQUIRE(dbg.count(EventType::Breakpoint) == 2);
+    REQUIRE_FALSE(dbg.process()->HasBreakpoint(*site + 5));
+
+    dbg.Continue();
+    dbg.WaitForExit();
+    dbg.JoinThread();
+}
+
+TEST_CASE("Continue from a breakpoint on a faulting instruction reports the fault", "[exception][breakpoint]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("segfault");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    std::promise<std::optional<ElfBug::ptr>> sitePromise;
+    auto siteFuture = sitePromise.get_future();
+    dbg.OnSystemBreakpoint([&]
+    {
+        const auto site = ResolveRuntimeAddress(path, dbg.process()->pid, "sf_fault_site");
+        if(site)
+            dbg.process()->SetBreakpoint(*site, false, ElfBug::SoftwareType::ShortInt3);
+        sitePromise.set_value(site);
+    });
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    const auto site = siteFuture.get();
+    REQUIRE(site.has_value());
+
+    dbg.Continue();
+    dbg.WaitForBreakpointAt(*site);
+
+    // The instruction under the breakpoint faults while being stepped off.
+    dbg.Continue();
+    const auto exc = dbg.WaitForException(SIGSEGV);
+    REQUIRE(exc.address == 0);
+    REQUIRE(exc.instructionPointer == *site);
+
+    dbg.Continue();
+    const auto exit_ev = dbg.WaitForExit();
+    dbg.JoinThread();
+    REQUIRE(exit_ev.exitCode == -SIGSEGV);
+    REQUIRE(dbg.count(EventType::Breakpoint) == 1);
+}
+
+TEST_CASE("Step requests while running are ignored", "[control]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    REQUIRE(dbg.Init(FIXTURE("run_endlessly").c_str()));
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    dbg.Continue();
+    REQUIRE(dbg.WaitForRunning());
+
+    // Neither request may latch and turn the next Continue into a step.
+    dbg.StepOver();
+    dbg.StepInto();
+
+    dbg.Pause();
+    dbg.WaitForPaused();
+    dbg.Continue();
+    REQUIRE(dbg.WaitForRunning());
+
+    dbg.Stop();
+    dbg.WaitForExit();
+    dbg.JoinThread();
+    REQUIRE(dbg.count(EventType::Step) == 0);
+}
+
+// The call-site breakpoint is stepped off synchronously, so it is armed again while the
+// callee runs. Lifting it for the whole callee would hide it from the recursion and from
+// every other thread.
+TEST_CASE("A breakpoint on the stepped call fires again for inner frames", "[stepover][breakpoint]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("step_over_targets");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    std::promise<std::optional<ElfBug::ptr>> sitePromise;
+    auto siteFuture = sitePromise.get_future();
+    dbg.OnSystemBreakpoint([&]
+    {
+        const auto site = ResolveRuntimeAddress(path, dbg.process()->pid, "so_recurse_site");
+        if(site)
+            dbg.process()->SetBreakpoint(*site, false, ElfBug::SoftwareType::ShortInt3);
+        sitePromise.set_value(site);
+    });
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    const auto site = siteFuture.get();
+    REQUIRE(site.has_value());
+
+    dbg.Continue();
+    dbg.WaitForBreakpointAt(*site);
+    const ElfBug::ptr rspBefore = dbg.currentThread()->registers.Gsp();
+
+    dbg.StepOver();
+    const auto inner = dbg.WaitForBreakpointAt(*site);
+    REQUIRE(inner.instructionPointer == *site);
+    REQUIRE(dbg.currentThread()->registers.Gsp() < rspBefore);
+    REQUIRE(WaitForProcessByte(dbg.process(), *site, 0xCC));
+
+    dbg.Continue();
+    const auto exit_ev = dbg.WaitForExit();
+    dbg.JoinThread();
+    REQUIRE(exit_ev.exitCode == 0);
+    REQUIRE(dbg.count(EventType::Step) == 0);
 }

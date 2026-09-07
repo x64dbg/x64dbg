@@ -39,7 +39,8 @@ namespace ElfBug
                 if(mThread)
                 {
                     mThread->registers.Read();
-                    cancelStepOver(pid);
+                    abandonSingleStep(pid);
+                    cancelStepOverIfOwner(pid);
                     beginPause();
                     cbPaused();
 
@@ -48,6 +49,16 @@ namespace ElfBug
                 }
                 else
                 {
+                    if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
+                        cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                }
+            }
+            else if(mThread && mThread->isSingleStepping())
+            {
+                // Not ours: the step is still owed, so resume it rather than run free.
+                if(!mThread->StepInto())
+                {
+                    abandonSingleStep(pid);
                     if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
                         cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
                 }
@@ -70,7 +81,8 @@ namespace ElfBug
             {
                 mThread->registers.Read();
                 mPendingSignal = sig;
-                cancelStepOver(pid);
+                abandonSingleStep(pid);
+                cancelStepOverIfOwner(pid);
                 beginPause();
                 cbExceptionEvent(sig, faultAddr);
                 if(!pauseAndResume(pid))
@@ -93,15 +105,25 @@ namespace ElfBug
         if(!mProcess || !mThread)
             return false;
 
-        mProcess->DisarmBreakpointByte(addr);
+        ptr next = 0;
+        const bool stepsPushf = mProcess->ClassifyStepOverAt(addr, next) == StepOverKind::Pushf;
 
-        if(!mThread->StepInto())
+        // Only re-arm what this call lifted; another thread may hold the byte for its own step.
+        const bool lifted = mProcess->DisarmBreakpointByte(addr);
+
+        // The pending signal rides the step; otherwise the faulting instruction is retried.
+        const int sig = mPendingSignal;
+        mPendingSignal = 0;
+
+        if(!mThread->StepInto(sig))
         {
             const int stepErrno = errno;
             if(stepErrno != ESRCH)
                 cbInternalError("PTRACE_SINGLESTEP failed: " + std::string(strerror(stepErrno)));
-            mProcess->RearmBreakpointByte(addr);
-            if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
+            if(lifted)
+                mProcess->RearmBreakpointByte(addr);
+            if(ptrace(PTRACE_CONT, pid, nullptr,
+                      reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
             {
                 if(errno != ESRCH)
                     cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
@@ -120,7 +142,8 @@ namespace ElfBug
         if(waited == -1)
         {
             cbInternalError("waitpid(step) failed: " + std::string(strerror(errno)));
-            mProcess->RearmBreakpointByte(addr);
+            if(lifted)
+                mProcess->RearmBreakpointByte(addr);
             if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
             {
                 if(errno != ESRCH)
@@ -155,7 +178,7 @@ namespace ElfBug
             if(stepEvent == PTRACE_EVENT_EXEC)
             {
                 // The image is gone; re-arming would write into the new one.
-                discardStepStateAfterExec(pid);
+                onExec();
                 if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
                 {
                     if(errno != ESRCH)
@@ -164,7 +187,8 @@ namespace ElfBug
                 return false;
             }
 
-            mProcess->RearmBreakpointByte(addr);
+            if(lifted)
+                mProcess->RearmBreakpointByte(addr);
 
             if(stepEvent == PTRACE_EVENT_CLONE)
             {
@@ -177,14 +201,13 @@ namespace ElfBug
 
             if(stepSig != SIGTRAP)
             {
-                if(ptrace(PTRACE_CONT, pid, nullptr,
-                          reinterpret_cast<void*>(static_cast<uintptr_t>(stepSig))) == -1)
-                {
-                    if(errno != ESRCH)
-                        cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
-                }
+                // Not the step's trap: report it like any other stop instead of forwarding it blind.
+                handleSignal(pid, stepStatus);
                 return false;
             }
+
+            if(stepsPushf)
+                maskPushedTrapFlag();
         }
 
         return true;
@@ -206,7 +229,7 @@ namespace ElfBug
         {
         case PTRACE_EVENT_EXEC:
         {
-            discardStepStateAfterExec(pid);
+            onExec();
             // TODO: re-exec handling - re-detect arch and reject if no longer x86_64, clear breakpoints, refresh memory map, fire callback
             if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
                 cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
@@ -268,7 +291,10 @@ namespace ElfBug
 
             if(mThread->isSingleStepping() && !stepOverHit)
             {
+                const bool stepsPushf = mThread->stepsPushf();
                 mThread->clearSingleStep();
+                if(stepsPushf)
+                    maskPushedTrapFlag();
                 restoreSourceByte(pid);
                 beginPause();
                 cbStep();
@@ -289,15 +315,13 @@ namespace ElfBug
                     const ptr rsp = mThread->registers.Gsp();
                     // get-PC idiom: the return address is still pushed when we trap.
                     bool completedWithoutReturn = false;
-                    if(mStepOver.frameGuard && rsp == mStepOver.rspFloor - 8)
+                    if(rsp == mStepOver.rspFloor - 8)
                     {
                         ptr pushed = 0;
                         completedWithoutReturn = mProcess->MemRead(rsp, &pushed, sizeof(pushed)) &&
                                                  pushed == mStepOver.target;
                     }
-                    const bool rightFrame  = !mStepOver.frameGuard ||
-                                             rsp >= mStepOver.rspFloor ||
-                                             completedWithoutReturn;
+                    const bool rightFrame = rsp >= mStepOver.rspFloor || completedWithoutReturn;
 
                     if(rightThread && rightFrame)
                     {
@@ -311,6 +335,9 @@ namespace ElfBug
                         restoreSourceByte(pid);
 
                         beginPause();
+                        // Not ours: the user's own breakpoint fired at the target.
+                        if(!planted)
+                            dispatchBreakpoint(target);
                         cbStep();
                         pauseAndResume(pid);
                         break;
@@ -341,22 +368,9 @@ namespace ElfBug
                     mThread->registers.Gip() = bpAddr;
                     mThread->registers.Write();
 
-                    const auto & info = it->second;
-                    const bool singleshot = info.singleshot;
-
-                    cancelStepOver(pid);
+                    cancelStepOverIfOwner(pid);
                     beginPause();
-
-                    const auto cbIt = mProcess->breakpointCallbacks.find(key);
-                    if(cbIt != mProcess->breakpointCallbacks.end())
-                        cbIt->second(info);
-
-                    cbBreakpoint(info);
-
-                    if(singleshot)
-                    {
-                        mProcess->DeleteBreakpoint(bpAddr);
-                    }
+                    dispatchBreakpoint(bpAddr);
                     // The 0xCC stays armed with RIP on it; the next resume steps past it.
                     pauseAndResume(pid);
                     break;

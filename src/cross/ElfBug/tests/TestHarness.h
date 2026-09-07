@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ElfBug/core/Debugger.h>
+#include <algorithm>
 #include <chrono>
 #include <condition_variable>
 #include <fstream>
@@ -123,6 +124,14 @@ namespace ElfBug::test
         Event WaitForStep()                { return WaitFor(EventType::Step); }
         Event WaitForInternalError()       { return WaitFor(EventType::InternalError); }
 
+        Event WaitForAny(const std::initializer_list<EventType> types, const std::chrono::milliseconds timeout = std::chrono::seconds(5))
+        {
+            const std::vector<EventType> wanted(types);
+            return waitForPredicate(
+            [wanted](const Event & e) { return std::find(wanted.begin(), wanted.end(), e.type) != wanted.end(); },
+            timeout, "WaitForAny timeout");
+        }
+
         Event WaitForException(int sig, const std::chrono::milliseconds timeout = std::chrono::seconds(5))
         {
             return waitForPredicate(
@@ -186,7 +195,9 @@ namespace ElfBug::test
 
         void cbExceptionEvent(const int signal, const ptr address) override
         {
-            push({EventType::Exception, {}, 0, 0, address, signal, {}});
+            push({EventType::Exception, {}, mThread ? mThread->tid : 0, 0, address, signal, {},
+                  mThread ? mThread->registers.Gip() : 0
+                 });
         }
 
         void cbInternalError(const std::string & error) override

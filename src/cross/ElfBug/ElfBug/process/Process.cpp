@@ -18,14 +18,25 @@ namespace ElfBug
 
     int Process::memFd() const
     {
-        std::call_once(mMemFdOnce, [this]()
+        std::lock_guard lock(mMemFdMutex);
+        if(mMemFd == -1)
         {
             char path[64];
             snprintf(path, sizeof(path), "/proc/%d/mem", pid);
             mMemFd = open(path, O_RDWR);
             if(mMemFd == -1)
                 mMemFd = open(path, O_RDONLY);
-        });
+        }
         return mMemFd;
+    }
+
+    void Process::ResetMemFd() const
+    {
+        std::lock_guard lock(mMemFdMutex);
+        if(mMemFd != -1)
+        {
+            close(mMemFd);
+            mMemFd = -1;
+        }
     }
 }

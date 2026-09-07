@@ -1,41 +1,19 @@
 #include <ElfBug/process/Process.h>
-#include <sys/ptrace.h>
-#include <cerrno>
 
 namespace ElfBug
 {
-    namespace
-    {
-        bool peekByte(const pid_t pid, const ptr address, uint8_t & out)
-        {
-            errno = 0;
-            const long word = ptrace(PTRACE_PEEKDATA, pid, reinterpret_cast<void*>(address), nullptr);
-            if(word == -1 && errno != 0)
-                return false;
-
-            out = static_cast<uint8_t>(word & 0xFF);
-            return true;
-        }
-
-        bool pokeByte(const pid_t pid, const ptr address, const uint8_t byte)
-        {
-            errno = 0;
-            const long word = ptrace(PTRACE_PEEKDATA, pid, reinterpret_cast<void*>(address), nullptr);
-            if(word == -1 && errno != 0)
-                return false;
-
-            const long patched = (word & ~0xFFL) | byte;
-            return ptrace(PTRACE_POKEDATA, pid, reinterpret_cast<void*>(address),
-                          reinterpret_cast<void*>(patched)) != -1;
-        }
-    }
-
     BreakpointInfo* Process::findSoftwareBreakpoint(const ptr address)
     {
         const auto it = softwareBreakpointReferences.find(address);
         if(it == softwareBreakpointReferences.end())
             return nullptr;
         return &it->second->second;
+    }
+
+    // ptrace pokes only work while the leader is the stopped task, so go through memory.
+    bool Process::pokeByte(const ptr address, const uint8 byte) const
+    {
+        return MemWriteRaw(address, &byte, 1);
     }
 
     bool Process::SetBreakpoint(const ptr address, bool singleshot, const SoftwareType type)
@@ -51,10 +29,10 @@ namespace ElfBug
             return false;
 
         uint8_t origByte = 0;
-        if(!peekByte(pid, address, origByte))
+        if(!MemReadRaw(address, &origByte, 1))
             return false;
 
-        if(!pokeByte(pid, address, 0xCC))
+        if(!pokeByte(address, 0xCC))
             return false;
 
         BreakpointInfo info;
@@ -92,7 +70,7 @@ namespace ElfBug
         if(it == breakpoints.end())
             return false;
 
-        if(it->second.armed && !pokeByte(pid, address, it->second.internal.software.oldbytes[0]))
+        if(it->second.armed && !pokeByte(address, it->second.internal.software.oldbytes[0]))
             return false;
 
         softwareBreakpointReferences.erase(address);
@@ -108,7 +86,7 @@ namespace ElfBug
         if(!info || !info->armed)
             return false;
 
-        if(!pokeByte(pid, address, info->internal.software.oldbytes[0]))
+        if(!pokeByte(address, info->internal.software.oldbytes[0]))
             return false;
 
         info->armed = false;
@@ -122,7 +100,7 @@ namespace ElfBug
         if(!info || info->armed)
             return false;
 
-        if(!pokeByte(pid, address, info->internal.software.newbytes[0]))
+        if(!pokeByte(address, info->internal.software.newbytes[0]))
             return false;
 
         info->armed = true;

@@ -40,6 +40,7 @@ public:
     bool IsFilling() const;
     bool IsUnusual() const;
     bool IsNop() const;
+    bool IsRepeated() const;
     bool IsPushPop() const;
     ZydisMnemonic GetId() const;
     std::string InstructionText(bool replaceRipRelative = true) const;

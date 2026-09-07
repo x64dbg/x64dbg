@@ -1,8 +1,25 @@
-#include <cstdint>
+// Faults at a known symbol so a test can put a breakpoint on the faulting instruction.
+extern "C"
+{
+    void sf_fault();
+    void sf_fault_site();
+}
+
+asm(R"(
+    .text
+
+    .globl sf_fault
+    .type  sf_fault, @function
+sf_fault:
+    xorl    %eax, %eax
+    .globl sf_fault_site
+sf_fault_site:
+    movl    $42, (%rax)
+    ret
+)");
 
 int main()
 {
-    volatile int* p = reinterpret_cast<int*>(static_cast<std::uintptr_t>(0));
-    *p = 42;
+    sf_fault();
     return 0;
 }
