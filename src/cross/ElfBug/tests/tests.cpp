@@ -1747,9 +1747,9 @@ TEST_CASE("MemRead never returns a breakpoint byte while breakpoints change", "[
     std::thread reader([&]
     {
         while(!stop.load(std::memory_order_relaxed))
-    {
-        std::uint8_t byte = 0;
-        if(process->MemRead(*site, &byte, 1) && byte == 0xCC)
+        {
+            std::uint8_t byte = 0;
+            if(process->MemRead(*site, &byte, 1) && byte == 0xCC)
                 leaked.fetch_add(1, std::memory_order_relaxed);
         }
     });
