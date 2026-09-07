@@ -409,6 +409,13 @@ extern "C" {
         dbg->StepInto();
     }
 
+    void ElfBugStepOver(ElfBugDebugger* dbg)
+    {
+        if(!dbg)
+            return;
+        dbg->StepOver();
+    }
+
     void ElfBugPause(ElfBugDebugger* dbg)
     {
         if(!dbg)

@@ -42,6 +42,8 @@ namespace ElfBug
     {
         ptr address = 0;
         bool singleshot = false;
+        // False while the patch byte is temporarily lifted.
+        bool armed = false;
         BreakpointType type = BreakpointType::Software;
         BreakpointInternalInfo internal = {};
     };

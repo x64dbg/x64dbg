@@ -164,6 +164,11 @@ void DbgAdapter::StepInto() const
     ElfBugStepInto(mDebugger);
 }
 
+void DbgAdapter::StepOver() const
+{
+    ElfBugStepOver(mDebugger);
+}
+
 void DbgAdapter::Pause() const
 {
     ElfBugPause(mDebugger);

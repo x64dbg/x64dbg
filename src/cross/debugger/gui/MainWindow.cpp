@@ -291,8 +291,8 @@ void MainWindow::onStepInto() const
 
 void MainWindow::onStepOver() const
 {
-    onLogMessage("[x64dbg] Step-over not implemented, using step-into");
-    onStepInto();
+    if(mProvider && mProvider->isActive())
+        mProvider->StepOver();
 }
 
 void MainWindow::onToggleBreakpoint() const

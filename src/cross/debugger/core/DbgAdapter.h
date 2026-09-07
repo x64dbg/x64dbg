@@ -29,6 +29,7 @@ public:
     void Start() const;
     void Continue() const;
     void StepInto() const;
+    void StepOver() const;
     void Pause() const;
     bool Stop() const; //discardable
 

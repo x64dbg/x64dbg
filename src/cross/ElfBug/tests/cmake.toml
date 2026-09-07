@@ -68,3 +68,15 @@ sources = ["targets/multi_threaded.cpp"]
 link-libraries = ["pthread"]
 properties.OUTPUT_NAME = "multi_threaded"
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_step_over_targets]
+type = "elfbug_fixture"
+sources = ["targets/step_over_targets.cpp"]
+properties.OUTPUT_NAME = "step_over_targets"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_exec_target]
+type = "elfbug_fixture"
+sources = ["targets/exec_target.cpp"]
+properties.OUTPUT_NAME = "exec_target"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"

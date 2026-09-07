@@ -44,4 +44,12 @@ namespace ElfBug
         Write,
         Execute
     };
+
+    enum class StepOverKind
+    {
+        None,
+        Call,
+        Rep,
+        Pushf
+    };
 }

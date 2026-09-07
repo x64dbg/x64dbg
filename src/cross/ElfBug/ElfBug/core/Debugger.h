@@ -27,6 +27,7 @@ namespace ElfBug
         void Start();
         void Continue();
         void StepInto();
+        void StepOver();
         void Pause();
         bool Stop();
         void Detach();
@@ -60,6 +61,27 @@ namespace ElfBug
         void handleSignal(pid_t pid, int status);
         void handleSigtrap(pid_t pid, int status);
         bool pauseAndResume(pid_t pid);
+        // False means the stop was consumed (exit, forwarded signal, error); abandon it.
+        bool stepPastBreakpointByte(pid_t pid, ptr addr);
+        void abandonSingleStep(pid_t pid);
+        // Post-exec: drops all step state without writing anything back.
+        void discardStepStateAfterExec(pid_t pid);
+
+        struct StepOverRequest
+        {
+            bool  active     = false;
+            ptr   target     = 0;
+            pid_t tid        = 0;
+            ptr   rspFloor   = 0;
+            bool  frameGuard = false;
+            bool  planted    = false;
+        };
+
+
+        // Returns true when the caller should PTRACE_CONT; false means single-step.
+        bool armStepOver(pid_t pid);
+        void cancelStepOver(pid_t pid);
+        void restoreSourceByte(pid_t pid);
         void beginPause();
         void createProcessEvent(pid_t pid, Arch arch);
         void exitProcessEvent(pid_t pid, int exitCode);
@@ -70,6 +92,10 @@ namespace ElfBug
         std::atomic<bool> mIsRunning{false};
         std::atomic<bool> mPaused{false};
         std::atomic<bool> mStepPending{false};
+        std::atomic<bool> mStepOverPending{false};
+        StepOverRequest mStepOver;
+        // Lifted breakpoint bytes, re-armed when the lifting thread next stops.
+        std::unordered_map<pid_t, ptr> mSourceRearms;
         std::atomic<bool> mPauseRequested{false};
         std::atomic<pid_t> mMainPid{0};
         int mPendingSignal = 0;

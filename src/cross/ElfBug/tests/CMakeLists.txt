@@ -279,3 +279,64 @@ get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} D
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_multi_threaded)
 endif()
+
+# Target: elfbug_fixture_step_over_targets
+set(elfbug_fixture_step_over_targets_SOURCES
+	cmake.toml
+	"targets/step_over_targets.cpp"
+)
+
+add_executable(elfbug_fixture_step_over_targets)
+
+target_sources(elfbug_fixture_step_over_targets PRIVATE ${elfbug_fixture_step_over_targets_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_step_over_targets_SOURCES})
+
+target_compile_options(elfbug_fixture_step_over_targets PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_step_over_targets PRIVATE
+	-pie
+)
+
+set_target_properties(elfbug_fixture_step_over_targets PROPERTIES
+	OUTPUT_NAME
+		step_over_targets
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+# Target: elfbug_fixture_exec_target
+set(elfbug_fixture_exec_target_SOURCES
+	cmake.toml
+	"targets/exec_target.cpp"
+)
+
+add_executable(elfbug_fixture_exec_target)
+
+target_sources(elfbug_fixture_exec_target PRIVATE ${elfbug_fixture_exec_target_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_exec_target_SOURCES})
+
+target_compile_options(elfbug_fixture_exec_target PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_exec_target PRIVATE
+	-pie
+)
+
+set_target_properties(elfbug_fixture_exec_target PROPERTIES
+	OUTPUT_NAME
+		exec_target
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_step_over_targets)
+endif()

@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <cerrno>
 #include <csignal>
+#include <cstdio>
 #include <cstring>
 
 namespace ElfBug
@@ -31,6 +32,9 @@ namespace ElfBug
 
         mPaused.store(false, std::memory_order_release);
         mStepPending.store(false, std::memory_order_release);
+        mStepOverPending.store(false, std::memory_order_release);
+        mStepOver = {};
+        mSourceRearms.clear();
         mPauseRequested.store(false, std::memory_order_release);
         mPendingSignal = 0;
 
@@ -181,6 +185,101 @@ namespace ElfBug
             mPaused.store(false, std::memory_order_release);
         }
         mPauseCv.notify_one();
+    }
+
+    void Debugger::StepOver()
+    {
+        {
+            std::lock_guard lock(mPauseMutex);
+            mStepOverPending.store(true, std::memory_order_release);
+            mPaused.store(false, std::memory_order_release);
+        }
+        mPauseCv.notify_one();
+    }
+
+    // Only the lifting thread may re-arm; anyone else would re-trap it in place.
+    void Debugger::restoreSourceByte(const pid_t pid)
+    {
+        const auto it = mSourceRearms.find(pid);
+        if(it == mSourceRearms.end())
+            return;
+
+        if(mProcess)
+            mProcess->RearmBreakpointByte(it->second);
+        mSourceRearms.erase(it);
+    }
+
+    void Debugger::cancelStepOver(const pid_t pid)
+    {
+        restoreSourceByte(pid);
+
+        if(!mStepOver.active)
+            return;
+        if(mStepOver.planted && mProcess)
+            mProcess->DeleteBreakpoint(mStepOver.target);
+        mStepOver = {};
+    }
+
+    void Debugger::discardStepStateAfterExec(const pid_t pid)
+    {
+        if(mThread)
+            mThread->clearSingleStep();
+
+        // exec killed every other thread and replaced the image; all entries are stale.
+        mSourceRearms.clear();
+
+        if(mStepOver.active && mStepOver.tid == pid)
+        {
+            // User breakpoints are left to the re-exec TODO in handleSigtrap.
+            if(mStepOver.planted && mProcess)
+                mProcess->ForgetBreakpoint(mStepOver.target);
+            mStepOver = {};
+        }
+    }
+
+    bool Debugger::armStepOver(const pid_t pid)
+    {
+        cancelStepOver(pid);
+
+        if(!mThread || !mProcess)
+            return false;
+
+        const ptr rip = mThread->registers.Gip();
+
+        if(mProcess->DisarmBreakpointByte(rip))
+            mSourceRearms[pid] = rip;
+
+        ptr target = 0;
+        const StepOverKind kind = mProcess->ClassifyStepOverAt(rip, target);
+        if(kind == StepOverKind::None)
+            return false;
+
+        bool planted = false;
+        if(!mProcess->HasBreakpoint(target))
+        {
+            if(!mProcess->SetBreakpoint(target, false, SoftwareType::ShortInt3))
+            {
+                char message[64];
+                snprintf(message, sizeof(message), "step-over: failed to set breakpoint at 0x%llx",
+                         static_cast<unsigned long long>(target));
+                cbInternalError(message);
+                return false;
+            }
+            planted = true;
+        }
+        else
+        {
+            mProcess->RearmBreakpointByte(target);
+        }
+
+        mStepOver.active     = true;
+        mStepOver.target     = target;
+        mStepOver.tid        = pid;
+        mStepOver.rspFloor   = mThread->registers.Gsp();
+        // pushf completes with rsp 8 lower; the frame guard would reject its own completion.
+        mStepOver.frameGuard = (kind != StepOverKind::Pushf);
+        mStepOver.planted    = planted;
+        return true;
     }
 
     void Debugger::Pause()

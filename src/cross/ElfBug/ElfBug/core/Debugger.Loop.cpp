@@ -32,7 +32,54 @@ namespace ElfBug
         if(!mIsRunning.load(std::memory_order_acquire))
             return false;
 
-        if(mStepPending.load(std::memory_order_acquire) && mThread)
+        bool stepOverRequested = mStepOverPending.exchange(false, std::memory_order_acq_rel);
+
+        // A breakpoint hit leaves its 0xCC armed with RIP on it; every resume except a
+        // step-over must step past that byte first.
+        const bool stepIntoRequested = mStepPending.load(std::memory_order_acquire);
+
+        // pushf would observe the single-step TF; use the step-over path instead.
+        if(stepIntoRequested && !stepOverRequested && mThread && mProcess)
+        {
+            ptr next = 0;
+            if(mProcess->ClassifyStepOverAt(mThread->registers.Gip(), next) == StepOverKind::Pushf)
+                stepOverRequested = true;
+        }
+
+        if(!stepOverRequested && mThread && mProcess &&
+                mProcess->HasBreakpoint(mThread->registers.Gip()))
+        {
+            const ptr rip = mThread->registers.Gip();
+            if(stepIntoRequested)
+            {
+                // stepPastBreakpointByte would consume the user's step; just lift the byte.
+                if(mProcess->DisarmBreakpointByte(rip))
+                    mSourceRearms[pid] = rip;
+            }
+            else if(!stepPastBreakpointByte(pid, rip))
+            {
+                return false;
+            }
+        }
+
+        if(stepOverRequested && mThread && armStepOver(pid))
+        {
+            // A StepInto queued just before this StepOver is subsumed by it.
+            mStepPending.store(false, std::memory_order_release);
+
+            const int sig = mPendingSignal;
+            mPendingSignal = 0;
+            if(ptrace(PTRACE_CONT, pid, nullptr,
+                      reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
+            {
+                if(errno != ESRCH)
+                    cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                cancelStepOver(pid);
+            }
+            return true;
+        }
+
+        if((stepIntoRequested || stepOverRequested) && mThread)
         {
             mStepPending.store(false, std::memory_order_release);
             const int sig = mPendingSignal;
@@ -43,6 +90,7 @@ namespace ElfBug
                 if(stepErrno != ESRCH)
                 {
                     cbInternalError("PTRACE_SINGLESTEP failed: " + std::string(strerror(stepErrno)));
+                    restoreSourceByte(pid);
                     if(ptrace(PTRACE_CONT, pid, nullptr,
                               reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
                     {
@@ -132,8 +180,7 @@ namespace ElfBug
             cbSystemBreakpoint();
         }
 
-        if(!pauseAndResume(mainPid))
-            return;
+        pauseAndResume(mainPid);
 
         while(mIsRunning)
         {
@@ -148,23 +195,12 @@ namespace ElfBug
                 continue;
             }
 
-            if(WIFEXITED(status))
+            if(WIFEXITED(status) || WIFSIGNALED(status))
             {
+                const int code = WIFEXITED(status) ? WEXITSTATUS(status) : -WTERMSIG(status);
                 if(pid == mMainPid.load(std::memory_order_relaxed))
                 {
-                    exitProcessEvent(pid, WEXITSTATUS(status));
-                    mIsRunning.store(false, std::memory_order_release);
-                    break;
-                }
-                exitThreadEvent(pid);
-                continue;
-            }
-
-            if(WIFSIGNALED(status))
-            {
-                if(pid == mMainPid.load(std::memory_order_relaxed))
-                {
-                    exitProcessEvent(pid, -WTERMSIG(status));
+                    exitProcessEvent(pid, code);
                     mIsRunning.store(false, std::memory_order_release);
                     break;
                 }

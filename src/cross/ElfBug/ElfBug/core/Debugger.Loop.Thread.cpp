@@ -19,6 +19,12 @@ namespace ElfBug
         if(!mProcess)
             return;
 
+        // Settle the dead thread's re-arm here or the breakpoint stays disarmed forever.
+        if(mStepOver.active && mStepOver.tid == tid)
+            cancelStepOver(tid);
+        else
+            restoreSourceByte(tid);
+
         cbExitThreadEvent(tid);
 
         std::unique_lock lock(mProcessMutex);

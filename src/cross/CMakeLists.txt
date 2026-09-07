@@ -267,6 +267,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_
 		"ElfBug/ElfBug/process/Process.h"
 		"ElfBug/ElfBug/process/ProcessArch.cpp"
 		"ElfBug/ElfBug/process/ProcessArch.h"
+		"ElfBug/ElfBug/process/StepOver.cpp"
+		"ElfBug/ElfBug/process/StepOver.h"
 		"ElfBug/ElfBug/thread/HardwareBreakpoint.cpp"
 		"ElfBug/ElfBug/thread/Registers.cpp"
 		"ElfBug/ElfBug/thread/Registers.h"
