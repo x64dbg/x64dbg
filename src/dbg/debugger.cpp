@@ -53,10 +53,6 @@ static duint stepRepeat = 0;
 static bool bIsAttached = false;
 static bool bPauseAtAttach = false;
 static INIT_STRUCT* activeDebugLoopInit = nullptr;
-static std::atomic<DWORD> dwAttachMainThread{ 0 };
-static std::atomic_bool bBreakInExpected{ false };
-static std::atomic<DWORD> dwBreakInThreadId{ 0 };
-static std::atomic<duint> breakInThreadStartAddress{ 0 };
 static volatile long DbgEventsTotal = 0;
 static bool bSkipExceptions = false;
 static duint skipExceptionCount = 0;
@@ -98,7 +94,6 @@ bool bSkipInt3Stepping = false;
 bool bIgnoreInconsistentBreakpoints = false;
 bool bNoForegroundWindow = true;
 bool bVerboseExceptionLogging = true;
-bool bNoWow64SingleStepWorkaround = false;
 bool bTraceBrowserNeedsUpdate = false;
 bool bForceLoadSymbols = false;
 bool bNewStringAlgorithm = false;
@@ -372,51 +367,6 @@ static void signalDebugLoopStarted()
         init->event = nullptr;
         SetEvent(event);
     }
-}
-
-DWORD dbggetattachmainthread()
-{
-    return dwAttachMainThread;
-}
-
-void dbgclearattachmainthread()
-{
-    dwAttachMainThread = 0;
-}
-
-duint dbggetdbgeventcount()
-{
-    return (duint)InterlockedCompareExchange(&DbgEventsTotal, 0, 0);
-}
-
-static duint getBreakInThreadStartAddress()
-{
-    auto localNtdll = GetModuleHandleW(L"ntdll.dll");
-    auto localStart = localNtdll ? GetProcAddress(localNtdll, "DbgUiRemoteBreakin") : nullptr;
-    auto remoteNtdll = ModBaseFromName("ntdll.dll");
-    if(!localStart || !remoteNtdll)
-        return 0;
-    return remoteNtdll + (duint)localStart - (duint)localNtdll;
-}
-
-bool dbgspawnbreakinthread()
-{
-    if(bBreakInExpected.exchange(true))
-        return true;
-
-    // Record the remote entry point before creating the thread, because its
-    // debug events can arrive before DebugBreakProcess returns.
-    breakInThreadStartAddress = getBreakInThreadStartAddress();
-    dwBreakInThreadId = 0;
-    if(!TitanDebugBreakProcess(fdProcessInfo->hProcess))
-    {
-        bBreakInExpected = false;
-        breakInThreadStartAddress = 0;
-        dputs(QT_TRANSLATE_NOOP("DBG", "Failed to create a break-in thread (DebugBreakProcess)"));
-        return false;
-    }
-    dputs(QT_TRANSLATE_NOOP("DBG", "Created a break-in thread to pause the debuggee"));
-    return true;
 }
 
 void dbgsetresumetid(duint tid)
@@ -866,12 +816,11 @@ static char getConditionValue(const std::string & expression)
     return getConditionValue(expression.c_str());
 }
 
-void cbPauseBreakpoint()
+void cbPauseDebug()
 {
     dputs(QT_TRANSLATE_NOOP("DBG", "paused!"));
     hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    DeleteBPX(CIP);
     DebugUpdateGuiSetStateAsync(CIP, paused);
     _dbg_animatestop(); // Stop animating when paused
     // Trace record
@@ -1398,7 +1347,7 @@ void cbStep()
     else
     {
         dbgtraceexecute(CIP);
-        (bRepeatIn ? StepIntoWow64 : StepOverWrapper)(cbStep);
+        (bRepeatIn ? StepIntoWrapper : StepOverWrapper)(cbStep);
     }
 }
 
@@ -1544,7 +1493,7 @@ static void cbTraceXXTraceRecordStep(STEPFUNCTION stepFunction, bool bInto, TITA
     cbTraceUniversalConditionalStep(cip, stepFunction, callback, forceBreakTrace);
 }
 
-#define STEP_FUNCTION(into) (into ? StepIntoWow64 : StepOverWrapper)
+#define STEP_FUNCTION(into) (into ? StepIntoWrapper : StepOverWrapper)
 
 void cbTraceOverConditionalStep()
 {
@@ -1719,6 +1668,13 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
 static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
 {
+    const bool navigableExit = dbghassessioncapability(UE_SESSION_CAP_NAVIGABLE_PROCESS_EXIT);
+    if(navigableExit)
+    {
+        hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
+        dputs(QT_TRANSLATE_NOOP("DBG", "Replay reached the recorded process exit. The session remains paused; seek or run backward, or use Stop to close it."));
+    }
+    else
     {
         auto exitCode = ExitProcess->dwExitCode;
         auto exitDescription = StringUtils::sprintf("0x%X (%d)", exitCode, exitCode);
@@ -1731,24 +1687,33 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
         dprintf(QT_TRANSLATE_NOOP("DBG", "Process stopped with exit code %s\n"), exitDescription.c_str());
     }
 
-    const bool breakHere = settingboolget("Events", "NtTerminateProcess", false);
+    const bool breakHere = navigableExit || settingboolget("Events", "NtTerminateProcess", false);
     if(breakHere)
     {
-        // lock
         DebugUpdateGuiSetStateAsync(GetContextDataEx(hActiveThread, UE_CIP), paused);
         lock(WAITID_RUN);
     }
-    // plugin callback
+
     PLUG_CB_EXITPROCESS callbackInfo;
     callbackInfo.ExitProcess = ExitProcess;
     plugincbcall(CB_EXITPROCESS, &callbackInfo);
-    _dbg_animatestop(); // Stop animating
-    //history
-    dbgcleartracestate();
-    dbgClearRtuBreakpoints();
-    HistoryClear();
+    _dbg_animatestop();
+
+    // A recorded process exit is a navigable timeline event, not session
+    // teardown. Preserve cursor-derived state until the user explicitly stops.
+    if(!navigableExit)
+    {
+        dbgcleartracestate();
+        dbgClearRtuBreakpoints();
+        HistoryClear();
+    }
     if(breakHere)
     {
+        if(navigableExit)
+        {
+            PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
+            plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
+        }
         dbgsetforeground();
         dbgsetskipexceptions(false);
         wait(WAITID_RUN);
@@ -1757,10 +1722,6 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
 
 static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
-    if(bBreakInExpected && breakInThreadStartAddress != 0 &&
-            (duint)CreateThread->lpStartAddress == breakInThreadStartAddress)
-        dwBreakInThreadId = GetDebugData()->dwThreadId;
-
     ThreadCreate(CreateThread); //update thread list
     DWORD dwThreadId = GetDebugData()->dwThreadId;
     hActiveThread = ThreadGetHandle(dwThreadId);
@@ -1839,12 +1800,6 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
             dputs(QT_TRANSLATE_NOOP("DBG", "No threads left to switch to (bug?)"));
     }
     DWORD dwThreadId = GetDebugData()->dwThreadId;
-    if(dwThreadId == dwBreakInThreadId)
-    {
-        bBreakInExpected = false;
-        dwBreakInThreadId = 0;
-        breakInThreadStartAddress = 0;
-    }
     PLUG_CB_EXITTHREAD callbackInfo;
     callbackInfo.ExitThread = ExitThread;
     callbackInfo.dwThreadId = dwThreadId;
@@ -1907,6 +1862,10 @@ static void notifyDebugPaused()
 static void waitAtSystemBreakpoint(bool pause)
 {
     prepareToWaitAtDebugEvent(pause);
+    // Publishing this message after prepareToWaitAtDebugEvent makes it a
+    // reliable readiness marker for scripts: when pausing is enabled, the run
+    // lock is already held and Stop/Run commands cannot race the callback.
+    dputs(QT_TRANSLATE_NOOP("DBG", "System breakpoint reached!"));
     if(pause)
         notifyDebugPaused();
     startInitializationScriptThread();
@@ -1928,13 +1887,7 @@ static void waitAtAttach()
 
 static void cbSystemBreakpoint(const void* ExceptionData) // TODO: System breakpoint event shouldn't be dropped
 {
-    constexpr ULONG_PTR replayExitMarker = 0x54545845u; // "TTXE"
     hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
-    const auto exceptionInfo = static_cast<const EXCEPTION_DEBUG_INFO*>(ExceptionData);
-    const bool replayExit = dbggetsessionkind() == UE_SESSION_TTD && exceptionInfo &&
-                            exceptionInfo->ExceptionRecord.ExceptionCode == EXCEPTION_BREAKPOINT &&
-                            exceptionInfo->ExceptionRecord.NumberParameters == 1 &&
-                            exceptionInfo->ExceptionRecord.ExceptionInformation[0] == replayExitMarker;
     if(dbggetsessionkind() == UE_SESSION_MINIDUMP && ExceptionData)
     {
         lastExceptionInfo = *static_cast<const EXCEPTION_DEBUG_INFO*>(ExceptionData);
@@ -1956,11 +1909,6 @@ static void cbSystemBreakpoint(const void* ExceptionData) // TODO: System breakp
     MemInitRemoteProcessCookie(cookie.cookie);
     GuiUpdateAllViews();
 
-    //log message
-    if(replayExit)
-        dputs(QT_TRANSLATE_NOOP("DBG", "Replay reached the recorded process exit. The session remains paused; seek or run backward, or use Stop to close it."));
-    else
-        dputs(QT_TRANSLATE_NOOP("DBG", "System breakpoint reached!"));
     dbgsetskipexceptions(false); //we are not skipping first-chance exceptions
 
     //plugin callbacks
@@ -1968,7 +1916,7 @@ static void cbSystemBreakpoint(const void* ExceptionData) // TODO: System breakp
     callbackInfo.reserved = 0;
     plugincbcall(CB_SYSTEMBREAKPOINT, &callbackInfo);
 
-    bool systemBreakpoint = replayExit || settingboolget("Events", "SystemBreakpoint", true);
+    bool systemBreakpoint = settingboolget("Events", "SystemBreakpoint", true);
     if(!systemBreakpoint && bEntryIsInMzHeader)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "It has been detected that the debuggee entry point is in the MZ header of the executable. This will cause strange behavior, so the system breakpoint has been enabled regardless of your setting. Be careful!"));
@@ -2279,33 +2227,6 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
     GuiSetLastException(ExceptionCode);
     lastExceptionInfo = *ExceptionData;
 
-    if(bBreakInExpected && dwBreakInThreadId != 0 &&
-            GetDebugData()->dwThreadId == dwBreakInThreadId &&
-            ExceptionCode == EXCEPTION_BREAKPOINT && ExceptionData->dwFirstChance)
-    {
-        // The pause command spawned this thread. Treat its breakpoint as a
-        // pause instead of consuming an unrelated debuggee breakpoint.
-        bBreakInExpected = false;
-        dwBreakInThreadId = 0;
-        breakInThreadStartAddress = 0;
-        dbgsetcontinuestatus(DBG_CONTINUE);
-        dputs(QT_TRANSLATE_NOOP("DBG", "paused!"));
-        auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
-        DebugUpdateGuiSetStateAsync(CIP, paused);
-        _dbg_animatestop(); // Stop animating when paused
-        // Trace record
-        dbgtraceexecute(CIP);
-        //lock
-        lock(WAITID_RUN);
-        // Plugin callback
-        PLUG_CB_PAUSEDEBUG pauseInfo = { nullptr };
-        plugincbcall(CB_PAUSEDEBUG, &pauseInfo);
-        dbgsetforeground();
-        dbgsetskipexceptions(false);
-        wait(WAITID_RUN);
-        return;
-    }
-
     duint addr = (duint)ExceptionData->ExceptionRecord.ExceptionAddress;
     {
         BREAKPOINT bp;
@@ -2400,8 +2321,6 @@ static void cbDebugEvent(DEBUG_EVENT* DebugEvent)
 {
     nextContinueStatus = DBG_EXCEPTION_NOT_HANDLED;
     hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
-    if(DebugEvent->dwDebugEventCode == EXCEPTION_DEBUG_EVENT)
-        dwAttachMainThread = 0; //an exception makes the active thread meaningful, stop overriding the pause target
     InterlockedIncrement((volatile long*)&DbgEvents);
     InterlockedIncrement(&DbgEventsTotal);
     PLUG_CB_DEBUGEVENT debugEventInfo;
@@ -2492,21 +2411,17 @@ static void cbAttachDebugger()
     }
     varset("$pid", fdProcessInfo->dwProcessId, true);
 
-    // The attach event storm reports an arbitrary thread last, which would
-    // become the active thread. Remember the main (message pump) thread so
-    // the pause command can target a thread that actually executes.
-    dwAttachMainThread = getMainThreadId(fdProcessInfo->dwProcessId);
-    if(dwAttachMainThread)
+    // The attach event storm reports an arbitrary thread last. Select the
+    // process main thread as the initial frontend and engine pause target.
+    if(auto mainThreadId = getMainThreadId(fdProcessInfo->dwProcessId))
     {
-        auto hMainThread = ThreadGetHandle(dwAttachMainThread);
+        auto hMainThread = ThreadGetHandle(mainThreadId);
         if(hMainThread)
         {
             // TitanEngine leaves the thread id at zero on some attach paths.
-            fdProcessInfo->dwThreadId = dwAttachMainThread;
+            fdProcessInfo->dwThreadId = mainThreadId;
             hActiveThread = hMainThread;
         }
-        else
-            dwAttachMainThread = 0;
     }
 
     //Get on top of things
@@ -3116,11 +3031,7 @@ static void debugLoopFunction(INIT_STRUCT* init)
     activeDebugLoopInit = init;
     bIsAttached = init->attach;
     bPauseAtAttach = init->attach && init->pauseAtAttach;
-    dwAttachMainThread = 0;
-    bBreakInExpected = false;
     gSessionInfo = {};
-    dwBreakInThreadId = 0;
-    breakInThreadStartAddress = 0;
     dbgsetskipexceptions(false);
     bFreezeStack = false;
 
@@ -3350,10 +3261,6 @@ static void debugLoopFunction(INIT_STRUCT* init)
     TraceRecord.enableTraceRecording(false, nullptr); // Stop trace recording
     bIsDebugging = false;
     bPauseAtAttach = false;
-    dwAttachMainThread = 0;
-    bBreakInExpected = false;
-    dwBreakInThreadId = 0;
-    breakInThreadStartAddress = 0;
     GuiSetDebugState(stopped);
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "Debugging stopped!"));
@@ -3479,27 +3386,10 @@ bool dbgrestartadmin()
     return false;
 }
 
-void StepIntoWow64(TITANCBSTEP callback)
+void StepIntoWrapper(TITANCBSTEP callback)
 {
-#ifndef _WIN64
-    //NOTE: this workaround has the potential of detecting x64dbg while tracing, disable it if that happens
-    if(!bNoWow64SingleStepWorkaround)
-    {
-        unsigned char data[7];
-        auto cip = GetContextDataEx(hActiveThread, UE_CIP);
-        if(MemRead(cip, data, sizeof(data)) && data[0] == 0xEA && data[5] == 0x33 && data[6] == 0x00) //ljmp 33,XXXXXXXX
-        {
-            auto csp = GetContextDataEx(hActiveThread, UE_CSP);
-            duint ret;
-            if(MemRead(csp, &ret, sizeof(ret)))
-            {
-                SetBPX(ret, UE_SINGLESHOOT, callback);
-                return;
-            }
-        }
-    }
-#endif //_WIN64
-    if(bPausedOnException && dbggetcontinuestatus() == DBG_EXCEPTION_NOT_HANDLED && exceptionDispatchAddr && !IsBPXEnabled(exceptionDispatchAddr))
+    if(dbghassessioncapability(UE_SESSION_CAP_EXCEPTION_CONTINUE) && bPausedOnException &&
+            dbggetcontinuestatus() == DBG_EXCEPTION_NOT_HANDLED && exceptionDispatchAddr && !IsBPXEnabled(exceptionDispatchAddr))
     {
         SetBPX(exceptionDispatchAddr, UE_SINGLESHOOT, callback);
     }
@@ -3511,7 +3401,8 @@ void StepIntoWow64(TITANCBSTEP callback)
 
 void StepOverWrapper(TITANCBSTEP callback)
 {
-    if(bPausedOnException && dbggetcontinuestatus() == DBG_EXCEPTION_NOT_HANDLED && exceptionDispatchAddr && !IsBPXEnabled(exceptionDispatchAddr))
+    if(dbghassessioncapability(UE_SESSION_CAP_EXCEPTION_CONTINUE) && bPausedOnException &&
+            dbggetcontinuestatus() == DBG_EXCEPTION_NOT_HANDLED && exceptionDispatchAddr && !IsBPXEnabled(exceptionDispatchAddr))
     {
         SetBPX(exceptionDispatchAddr, UE_SINGLESHOOT, callback);
     }
@@ -3531,20 +3422,20 @@ static void cbStepIntoParty()
     }
     else
     {
-        StepIntoWow64(cbStepIntoParty<StopParty>);
+        StepIntoWrapper(cbStepIntoParty<StopParty>);
     }
 }
 
 void StepIntoUser(TITANCBSTEP callback)
 {
     gStepIntoPartyCallback = callback;
-    StepIntoWow64(cbStepIntoParty<mod_user>);
+    StepIntoWrapper(cbStepIntoParty<mod_user>);
 }
 
 void StepIntoSystem(TITANCBSTEP callback)
 {
     gStepIntoPartyCallback = callback;
-    StepIntoWow64(cbStepIntoParty<mod_system>);
+    StepIntoWrapper(cbStepIntoParty<mod_system>);
 }
 
 template<MODULEPARTY StopParty>

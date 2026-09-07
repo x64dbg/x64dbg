@@ -15,8 +15,8 @@ EXPORTS
     ReplayGetPosition
     ReplayGetExtent
     ReplaySetPosition
-    ReplayRun
-    ReplayStep
+    ReplayRunBack
+    ReplayStepBack
     StopDebug
     SetBPXOptions
     IsBPXEnabled
@@ -52,7 +52,7 @@ EXPORTS
     TitanCloseHandle
     ProcessIsWow64
     TitanTerminateProcess
-    TitanDebugBreakProcess
+    RequestPause
     TitanCreateRemoteThread
     TitanSuspendThread
     TitanResumeThread

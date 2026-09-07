@@ -45,6 +45,8 @@ enum TitanSessionCapability : uint64_t
     UE_SESSION_CAP_NATIVE_HANDLES = 1ull << 12,
     UE_SESSION_CAP_EXCEPTION_CONTINUE = 1ull << 13,
     UE_SESSION_CAP_TIMELINE_STATE = 1ull << 14,
+    UE_SESSION_CAP_PAUSE_EXECUTION = 1ull << 16,
+    UE_SESSION_CAP_NAVIGABLE_PROCESS_EXIT = 1ull << 17,
 };
 
 typedef struct
@@ -72,6 +74,14 @@ enum TitanEngineVariable
     UE_ENGINE_MEMBP_ALT = 11,
     UE_ENGINE_DISABLE_ASLR = 12,
     UE_ENGINE_SAFE_STEP = 13,
+    UE_ENGINE_WOW64_SINGLE_STEP_WORKAROUND = 14,
+};
+
+enum TitanPausePolicy
+{
+    UE_PAUSE_POLICY_NONINVASIVE = 0,
+    UE_PAUSE_POLICY_STANDARD = 1,
+    UE_PAUSE_POLICY_AGGRESSIVE = 2,
 };
 
 enum TitanBreakpointRemoveOption
@@ -248,6 +258,7 @@ typedef void(*TITANCALLBACK)();
 
 typedef TITANCALLBACK TITANCBCH;
 typedef TITANCALLBACK TITANCBSTEP;
+typedef TITANCALLBACK TITANCBPAUSE;
 typedef TITANCALLBACK TITANCBSOFTBP;
 typedef TITANCALLBACKARG TITANCBHWBP;
 typedef TITANCALLBACKARG TITANCBMEMBP;
@@ -368,8 +379,8 @@ __declspec(dllexport) bool GetSessionInfo(TITAN_SESSION_INFO* SessionInfo);
 __declspec(dllexport) bool ReplayGetPosition(TITAN_REPLAY_POSITION* Position);
 __declspec(dllexport) bool ReplayGetExtent(TITAN_REPLAY_POSITION* First, TITAN_REPLAY_POSITION* Last);
 __declspec(dllexport) bool ReplaySetPosition(const TITAN_REPLAY_POSITION* Position);
-__declspec(dllexport) bool ReplayRun(bool Reverse);
-__declspec(dllexport) bool ReplayStep(bool Reverse, bool StepOver, TITANCBSTEP StepCallBack);
+__declspec(dllexport) bool ReplayRunBack();
+__declspec(dllexport) bool ReplayStepBack(TITANCBSTEP StepCallBack);
 __declspec(dllexport) bool StopDebug();
 __declspec(dllexport) void SetBPXOptions(TitanBreakpointType DefaultBreakPointType);
 __declspec(dllexport) bool IsBPXEnabled(ULONG_PTR bpxAddress);
@@ -406,7 +417,7 @@ __declspec(dllexport) bool TitanGetModulePathW(HANDLE hProcess, ULONG_PTR Module
 __declspec(dllexport) bool TitanCloseHandle(HANDLE hEngineHandle);
 __declspec(dllexport) bool ProcessIsWow64(HANDLE hProcess, PBOOL isWow64);
 __declspec(dllexport) bool TitanTerminateProcess(HANDLE hProcess, DWORD exitCode);
-__declspec(dllexport) bool TitanDebugBreakProcess(HANDLE hProcess);
+__declspec(dllexport) bool RequestPause(TitanPausePolicy MaximumPolicy, TITANCBPAUSE PauseCallback);
 __declspec(dllexport) HANDLE TitanCreateRemoteThread(HANDLE hProcess, LPTHREAD_START_ROUTINE start, LPVOID argument, DWORD creationFlags, LPDWORD threadId);
 __declspec(dllexport) DWORD TitanSuspendThread(HANDLE hThread);
 __declspec(dllexport) DWORD TitanResumeThread(HANDLE hThread);

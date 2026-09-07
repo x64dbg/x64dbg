@@ -59,7 +59,6 @@ bool cbDebugSwitchthread(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %s\n"), formatpidtid((DWORD)threadid).c_str());
         return false;
     }
-    dbgclearattachmainthread(); //the pause command should respect this explicit choice
     //switch thread
     auto newThread = ThreadGetHandle((DWORD)threadid);
     if(hActiveThread != newThread)
