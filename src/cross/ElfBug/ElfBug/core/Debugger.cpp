@@ -8,7 +8,6 @@
 #include <csignal>
 #include <cstdio>
 #include <cstring>
-#include <ranges>
 
 namespace ElfBug
 {
@@ -288,7 +287,7 @@ namespace ElfBug
         if(mProcess)
         {
             std::shared_lock lock(mProcessMutex);
-            for(const auto &thread: mProcess->threads | std::views::values)
+            for(const auto & [tid, thread] : mProcess->threads)
             {
                 thread->clearPendingBreakpoint();
                 thread->setPendingSignal(0);
