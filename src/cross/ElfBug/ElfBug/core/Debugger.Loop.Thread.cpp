@@ -7,11 +7,20 @@ namespace ElfBug
         if(!mProcess)
             return;
 
+        // Already resumed if its own SIGSTOP was seen before this clone notification.
+        const bool alreadyRunning = mUnregisteredRunning.erase(tid) > 0;
+
+        bool inserted = false;
         {
             std::unique_lock lock(mProcessMutex);
-            mProcess->threads.emplace(tid, std::make_unique<Thread>(tid));
+            const auto result = mProcess->threads.emplace(tid, std::make_unique<Thread>(tid));
+            inserted = result.second;
+            if(alreadyRunning)
+                result.first->second->setRunning(true);
         }
-        cbCreateThreadEvent(tid);
+
+        if(inserted)
+            cbCreateThreadEvent(tid);
     }
 
     void Debugger::exitThreadEvent(const pid_t tid)

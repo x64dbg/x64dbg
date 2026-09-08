@@ -4,9 +4,241 @@
 #include <cerrno>
 #include <cstring>
 #include <csignal>
+#include <vector>
+#include <unistd.h>
 
 namespace ElfBug
 {
+    namespace
+    {
+        // stepPastBreakpointByte can re-enter itself through the stop it reports, so the
+        // previous tid has to come back rather than be cleared.
+        struct ScopedSteppingOff
+        {
+            pid_t & slot;
+            const pid_t previous;
+
+            ScopedSteppingOff(pid_t & steppingOff, const pid_t tid)
+                : slot(steppingOff), previous(steppingOff)
+            {
+                slot = tid;
+            }
+
+            ~ScopedSteppingOff()
+            {
+                slot = previous;
+            }
+
+            ScopedSteppingOff(const ScopedSteppingOff &) = delete;
+            ScopedSteppingOff & operator=(const ScopedSteppingOff &) = delete;
+        };
+
+        bool sweepShouldQueue(const int signal)
+        {
+            switch(signal)
+            {
+            case SIGSTOP:
+            case SIGSEGV:
+            case SIGBUS:
+            case SIGFPE:
+            case SIGILL:
+            case SIGSYS:
+            case SIGTRAP:
+                return false;
+            default:
+                return true;
+            }
+        }
+    }
+
+    void Debugger::repairStoppedThread(Thread* thread, const int status)
+    {
+        if(!thread)
+            return;
+
+        thread->registers.Read();
+
+        const int sig = WSTOPSIG(status);
+
+        // Nothing else records it, so queue it for the resume to forward.
+        if(sweepShouldQueue(sig))
+            thread->setPendingSignal(sig);
+
+        if(!mProcess || sig != SIGTRAP)
+            return;
+        // A ptrace event, not an int3 trap.
+        if(((status >> 16) & 0xffff) != 0)
+            return;
+        if(thread->isSingleStepping())
+            return;
+
+        const ptr bpAddr = thread->registers.Gip() - 1;
+        if(!mProcess->HasBreakpoint(bpAddr))
+            return;
+
+        thread->registers.Gip() = bpAddr;
+        thread->registers.Write();
+        thread->setPendingBreakpoint(bpAddr);
+    }
+
+    bool Debugger::swallowPendingSigstop(const pid_t tid)
+    {
+        if(!mProcess)
+            return true;
+
+        Thread* thread = nullptr;
+        {
+            std::shared_lock lock(mProcessMutex);
+            const auto it = mProcess->threads.find(tid);
+            if(it != mProcess->threads.end())
+                thread = it->second.get();
+        }
+        if(!thread || !thread->pendingSigstop())
+            return true;
+
+        if(ptrace(PTRACE_CONT, tid, nullptr, nullptr) == -1)
+        {
+            thread->setPendingSigstop(false);
+            return true;
+        }
+
+        int status = 0;
+        pid_t waited = -1;
+        do
+        {
+            waited = waitpid(tid, &status, __WALL);
+        }
+        while(waited == -1 && errno == EINTR);
+
+        if(waited == -1)
+        {
+            thread->setPendingSigstop(false);
+            return true;
+        }
+
+        if(WIFEXITED(status) || WIFSIGNALED(status))
+        {
+            const int code = WIFEXITED(status) ? WEXITSTATUS(status) : -WTERMSIG(status);
+            if(tid == mMainPid.load(std::memory_order_relaxed))
+            {
+                exitProcessEvent(tid, code);
+                mIsRunning.store(false, std::memory_order_release);
+            }
+            else
+            {
+                exitThreadEvent(tid);
+            }
+            return false;
+        }
+
+        if(WIFSTOPPED(status) && WSTOPSIG(status) == SIGSTOP)
+            thread->setPendingSigstop(false);
+        return true;
+    }
+
+    void Debugger::stopAllThreads(const pid_t except)
+    {
+        if(!mProcess)
+            return;
+
+        const pid_t tgid = mMainPid.load(std::memory_order_relaxed);
+        if(tgid <= 0)
+            return;
+
+        for(;;)
+        {
+            std::vector<pid_t> running;
+            {
+                std::shared_lock lock(mProcessMutex);
+                for(const auto & [tid, thread] : mProcess->threads)
+                {
+                    if(tid != except && thread->isRunning())
+                        running.push_back(tid);
+                }
+            }
+
+            if(running.empty())
+                return;
+
+            for(const pid_t tid : running)
+            {
+                Thread* thread = nullptr;
+                {
+                    std::shared_lock lock(mProcessMutex);
+                    const auto it = mProcess->threads.find(tid);
+                    if(it != mProcess->threads.end())
+                        thread = it->second.get();
+                }
+                if(!thread)
+                    continue;
+
+                if(tgkill(tgid, tid, SIGSTOP) == -1)
+                {
+                    if(errno != ESRCH)
+                        cbInternalError("tgkill failed: " + std::string(strerror(errno)));
+                    thread->setRunning(false);
+                    continue;
+                }
+
+                int status = 0;
+                pid_t waited = -1;
+                do
+                {
+                    waited = waitpid(tid, &status, __WALL);
+                }
+                while(waited == -1 && errno == EINTR);
+
+                if(waited == -1)
+                {
+                    thread->setRunning(false);
+                    continue;
+                }
+
+                if(WIFEXITED(status) || WIFSIGNALED(status))
+                {
+                    exitThreadEvent(tid);
+                    continue;
+                }
+
+                const int event = (status >> 16) & 0xffff;
+                if(WSTOPSIG(status) == SIGTRAP && event != 0)
+                {
+                    if(event == PTRACE_EVENT_CLONE)
+                    {
+                        unsigned long newTid = 0;
+                        if(ptrace(PTRACE_GETEVENTMSG, tid, nullptr, &newTid) == -1)
+                            cbInternalError("PTRACE_GETEVENTMSG failed: " + std::string(strerror(errno)));
+                        else
+                            createThreadEvent(static_cast<pid_t>(newTid));
+                    }
+                    else if(event == PTRACE_EVENT_EXEC)
+                    {
+                        onExec();
+                    }
+
+                    if(ptrace(PTRACE_CONT, tid, nullptr, nullptr) == -1)
+                    {
+                        if(errno != ESRCH)
+                            cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                        thread->setRunning(false);
+                    }
+                    else if(event == PTRACE_EVENT_EXIT)
+                    {
+                        thread->setRunning(false);
+                    }
+                    continue;
+                }
+
+                thread->setRunning(false);
+
+                const bool ownReason = WSTOPSIG(status) != SIGSTOP;
+                thread->setPendingSigstop(ownReason);
+                if(ownReason)
+                    repairStoppedThread(thread, status);
+            }
+        }
+    }
+
     void Debugger::handleSignal(const pid_t pid, const int status)
     {
         const int sig = WSTOPSIG(status);
@@ -23,6 +255,15 @@ namespace ElfBug
             }
         }
 
+        const bool wasRunning = mThread && mThread->isRunning();
+
+        if(mThread)
+        {
+            mThread->setRunning(false);
+            if(sig == SIGSTOP)
+                mThread->setPendingSigstop(false);
+        }
+
         switch(sig)
         {
         case SIGTRAP:
@@ -34,13 +275,12 @@ namespace ElfBug
             if(mPauseRequested.load(std::memory_order_acquire))
             {
                 mPauseRequested.store(false, std::memory_order_release);
-                // TODO: all-stop mode - send tgkill(mMainPid, tid, SIGSTOP)
-                // to every other thread and waitpid each
                 if(mThread)
                 {
                     mThread->registers.Read();
                     abandonSingleStep(pid);
                     cancelStepOverIfOwner(pid);
+                    stopAllThreads(pid);
                     beginPause();
                     cbPaused();
 
@@ -50,23 +290,45 @@ namespace ElfBug
                 else
                 {
                     if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
-                        cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                    {
+                        if(errno != ESRCH)
+                            cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                    }
+                    else
+                        mUnregisteredRunning.insert(pid);
                 }
             }
             else if(mThread && mThread->isSingleStepping())
             {
-                // Not ours: the step is still owed, so resume it rather than run free.
-                if(!mThread->StepInto())
+                // Not our SIGSTOP: the step is still owed, so re-issue it.
+                if(mThread->StepInto())
+                {
+                    mThread->setRunning(true);
+                }
+                else
                 {
                     abandonSingleStep(pid);
                     if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
-                        cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                    {
+                        if(errno != ESRCH)
+                            cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                    }
+                    else
+                        mThread->setRunning(true);
                 }
             }
-            else
+
+            else if(!mAllStopped || wasRunning || pid == mSteppingOff || !mThread)
             {
                 if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
-                    cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                {
+                    if(errno != ESRCH)
+                        cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                }
+                else if(mThread)
+                    mThread->setRunning(true);
+                else
+                    mUnregisteredRunning.insert(pid);
             }
             break;
         }
@@ -83,6 +345,7 @@ namespace ElfBug
                 mPendingSignal = sig;
                 abandonSingleStep(pid);
                 cancelStepOverIfOwner(pid);
+                stopAllThreads(pid);
                 beginPause();
                 cbExceptionEvent(sig, faultAddr);
                 if(!pauseAndResume(pid))
@@ -93,7 +356,10 @@ namespace ElfBug
                 cbExceptionEvent(sig, faultAddr);
                 if(ptrace(PTRACE_CONT, pid, nullptr,
                           reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
-                    cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                {
+                    if(errno != ESRCH)
+                        cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                }
             }
             break;
         }
@@ -105,6 +371,8 @@ namespace ElfBug
         if(!mProcess || !mThread)
             return false;
 
+        const ScopedSteppingOff scopedSteppingOff(mSteppingOff, pid);
+
         ptr next = 0;
         const bool stepsPushf = mProcess->ClassifyStepOverAt(addr, next) == StepOverKind::Pushf;
 
@@ -114,6 +382,13 @@ namespace ElfBug
         // The pending signal rides the step; otherwise the faulting instruction is retried.
         const int sig = mPendingSignal;
         mPendingSignal = 0;
+
+        if(!swallowPendingSigstop(pid))
+        {
+            if(lifted && mProcess)
+                mProcess->RearmBreakpointByte(addr);
+            return false;
+        }
 
         if(!mThread->StepInto(sig))
         {
@@ -127,6 +402,10 @@ namespace ElfBug
             {
                 if(errno != ESRCH)
                     cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+            }
+            else
+            {
+                mThread->setRunning(true);
             }
             return false;
         }
@@ -149,6 +428,10 @@ namespace ElfBug
                 if(errno != ESRCH)
                     cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
             }
+            else
+            {
+                mThread->setRunning(true);
+            }
             return false;
         }
 
@@ -156,6 +439,9 @@ namespace ElfBug
 
         if(WIFEXITED(stepStatus) || WIFSIGNALED(stepStatus))
         {
+            if(lifted && mProcess)
+                mProcess->RearmBreakpointByte(addr);
+
             const int code = WIFEXITED(stepStatus) ? WEXITSTATUS(stepStatus) : -WTERMSIG(stepStatus);
             if(pid == mMainPid.load(std::memory_order_relaxed))
             {
@@ -184,6 +470,10 @@ namespace ElfBug
                     if(errno != ESRCH)
                         cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
                 }
+                else
+                {
+                    mThread->setRunning(true);
+                }
                 return false;
             }
 
@@ -201,9 +491,8 @@ namespace ElfBug
 
             if(stepSig != SIGTRAP)
             {
-                // Not the step's trap: report it like any other stop instead of forwarding it blind.
-                // A handled signal leaves the step at the handler entry with the byte re-armed,
-                // so the breakpoint fires again when the handler returns to the instruction.
+                // Not the step's trap: report it like any other stop. The byte is re-armed,
+                // so the breakpoint fires again when a handler returns to the instruction.
                 handleSignal(pid, stepStatus);
                 return false;
             }
@@ -234,7 +523,12 @@ namespace ElfBug
             onExec();
             // TODO: re-exec handling - re-detect arch and reject if no longer x86_64, clear breakpoints, refresh memory map, fire callback
             if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
-                cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+            {
+                if(errno != ESRCH)
+                    cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+            }
+            else if(mThread)
+                mThread->setRunning(true);
             break;
         }
 
@@ -257,6 +551,7 @@ namespace ElfBug
             if(wasStepping && mThread)
             {
                 mThread->registers.Read();
+                stopAllThreads(pid);
                 beginPause();
                 cbStep();
                 pauseAndResume(pid);
@@ -264,7 +559,12 @@ namespace ElfBug
             }
 
             if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
-                cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+            {
+                if(errno != ESRCH)
+                    cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+            }
+            else if(mThread)
+                mThread->setRunning(true);
             break;
         }
 
@@ -272,8 +572,12 @@ namespace ElfBug
         {
             abandonSingleStep(pid);
             // Notification only; exit is emitted via WIFEXITED/WIFSIGNALED in debugLoop.
+            // Left marked stopped: it owes no stop, so a sweep would block in waitpid.
             if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
-                cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+            {
+                if(errno != ESRCH)
+                    cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+            }
             break;
         }
 
@@ -282,7 +586,10 @@ namespace ElfBug
             if(!mThread)
             {
                 if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
-                    cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                {
+                    if(errno != ESRCH)
+                        cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                }
                 break;
             }
 
@@ -300,6 +607,7 @@ namespace ElfBug
                 if(stepsPushf)
                     maskPushedTrapFlag();
                 restoreSourceByte(pid);
+                stopAllThreads(pid);
                 beginPause();
                 cbStep();
                 if(!pauseAndResume(pid))
@@ -338,6 +646,7 @@ namespace ElfBug
 
                         restoreSourceByte(pid);
 
+                        stopAllThreads(pid);
                         beginPause();
                         // Not ours: the user's own breakpoint fired at the target.
                         if(!planted)
@@ -353,12 +662,19 @@ namespace ElfBug
                         if(!stepPastBreakpointByte(pid, bpAddr))
                         {
                             cancelStepOver(pid);
+                            // An armed run is still inside a frozen window; this is the last
+                            // chance to lift it.
+                            abandonFreeze(pid);
                             break;
                         }
                         if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
                         {
                             if(errno != ESRCH)
                                 cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                        }
+                        else
+                        {
+                            mThread->setRunning(true);
                         }
                         break;
                     }
@@ -370,6 +686,7 @@ namespace ElfBug
                     mThread->registers.Write();
 
                     cancelStepOverIfOwner(pid);
+                    stopAllThreads(pid);
                     beginPause();
                     dispatchBreakpoint(bpAddr);
                     // The 0xCC stays armed with RIP on it; the next resume steps past it.
@@ -384,7 +701,12 @@ namespace ElfBug
             restoreSourceByte(pid);
 
             if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
-                cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+            {
+                if(errno != ESRCH)
+                    cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+            }
+            else
+                mThread->setRunning(true);
             break;
         }
         }

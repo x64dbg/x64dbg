@@ -8,6 +8,7 @@
 #include <csignal>
 #include <cstdio>
 #include <cstring>
+#include <ranges>
 
 namespace ElfBug
 {
@@ -35,6 +36,8 @@ namespace ElfBug
         mStepOverPending.store(false, std::memory_order_release);
         mStepOver = {};
         mSourceRearms.clear();
+        mUnregisteredRunning.clear();
+        mAllStopped = false;
         mPauseRequested.store(false, std::memory_order_release);
         mPendingSignal = 0;
 
@@ -278,6 +281,19 @@ namespace ElfBug
         // exec killed every other thread and replaced the image, so every entry is stale.
         // A worker's exec is reported under the leader's tid, so the owner is not checked.
         mSourceRearms.clear();
+        mUnregisteredRunning.clear();
+
+        mAllStopped = false;
+
+        if(mProcess)
+        {
+            std::shared_lock lock(mProcessMutex);
+            for(const auto &thread: mProcess->threads | std::views::values)
+            {
+                thread->clearPendingBreakpoint();
+                thread->setPendingSignal(0);
+            }
+        }
 
         if(mStepOver.active)
         {

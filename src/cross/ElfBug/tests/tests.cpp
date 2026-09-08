@@ -1450,19 +1450,16 @@ TEST_CASE("Breakpoint on a hot path does not lose thread-creation events", "[mul
     dbg.StartOnThread();
     dbg.WaitForSystemBreakpoint();
 
-    // The first worker to arrive always traps. A later one can run through while that
-    // thread steps off the lifted byte (no all-stop yet), so resume on every hit until
-    // exit rather than demanding five.
-    dbg.Continue();
-    dbg.WaitFor(EventType::Breakpoint, std::chrono::seconds(10));
-
-    Event exit_ev;
-    do
+    // Every worker must report: all-stop closes the window where one could run past a
+    // breakpoint another thread has lifted.
+    for(int i = 0; i < 5; ++i)
     {
         dbg.Continue();
-        exit_ev = dbg.WaitForAny({EventType::Breakpoint, EventType::ExitProcess}, std::chrono::seconds(20));
+        dbg.WaitFor(EventType::Breakpoint, std::chrono::seconds(10));
     }
-    while(exit_ev.type != EventType::ExitProcess);
+
+    dbg.Continue();
+    const auto exit_ev = dbg.WaitFor(EventType::ExitProcess, std::chrono::seconds(20));
 
     std::set<pid_t> createdTids;
     for(const auto & e : dbg.events())
@@ -1471,8 +1468,7 @@ TEST_CASE("Breakpoint on a hot path does not lose thread-creation events", "[mul
 
     REQUIRE(exit_ev.exitCode == 5);
     REQUIRE(createdTids.size() == 5);
-    REQUIRE(dbg.count(EventType::Breakpoint) >= 1);
-    REQUIRE(dbg.count(EventType::Breakpoint) <= 5);
+    REQUIRE(dbg.count(EventType::Breakpoint) == 5);
     REQUIRE(dbg.count(EventType::InternalError) == 0);
 }
 
@@ -1768,4 +1764,414 @@ TEST_CASE("MemRead never returns a breakpoint byte while breakpoints change", "[
     dbg.Continue();
     dbg.WaitForExit();
     dbg.JoinThread();
+}
+
+TEST_CASE("threads_spin starts four long-lived workers", "[multithread]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("threads_spin");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    dbg.Continue();
+
+    for(int i = 0; i < 4; ++i)
+        dbg.WaitFor(EventType::CreateThread, std::chrono::seconds(10));
+
+    dbg.Stop();
+    dbg.WaitForExit();
+    dbg.JoinThread();
+    REQUIRE(dbg.count(EventType::InternalError) == 0);
+}
+
+namespace
+{
+    // Sum of the fixture's per-worker counters. Each worker writes only its own slot.
+    std::uint64_t ReadSpinCounters(const ElfBug::Process* process, const ElfBug::ptr base)
+    {
+        std::uint64_t slots[4] = {};
+        if(!process->MemRead(base, slots, sizeof(slots)))
+            return 0;
+        return slots[0] + slots[1] + slots[2] + slots[3];
+    }
+}
+
+TEST_CASE("All threads freeze when Pause stops the process", "[multithread]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("threads_spin");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    dbg.Continue();
+
+    for(int i = 0; i < 4; ++i)
+        dbg.WaitFor(EventType::CreateThread, std::chrono::seconds(10));
+
+    const auto counters = ResolveRuntimeAddress(path, dbg.process()->pid, "ts_counters");
+    REQUIRE(counters.has_value());
+
+    dbg.Pause();
+    dbg.WaitForPaused();
+
+    // Pause() signals the whole process, so any thread can take the SIGSTOP, but that one
+    // sits in signal-delivery-stop and stopAllThreads freezes the rest: no counter may move.
+    std::uint64_t before[4] = {};
+    std::uint64_t after[4] = {};
+    REQUIRE(dbg.process()->MemRead(*counters, before, sizeof(before)));
+    REQUIRE(ReadSpinCounters(dbg.process(), *counters) == before[0] + before[1] + before[2] + before[3]);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    REQUIRE(dbg.process()->MemRead(*counters, after, sizeof(after)));
+
+    for(int i = 0; i < 4; ++i)
+        REQUIRE(after[i] == before[i]);
+
+    dbg.Stop();
+    dbg.WaitForExit();
+    dbg.JoinThread();
+}
+
+TEST_CASE("Continue resumes every thread", "[multithread]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("threads_spin");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    std::promise<std::optional<ElfBug::ptr>> promise;
+    auto future = promise.get_future();
+    dbg.OnSystemBreakpoint([&]
+    {
+        const auto started = ResolveRuntimeAddress(path, dbg.process()->pid, "ts_worker_started");
+        if(started)
+            dbg.process()->SetBreakpoint(*started, true, ElfBug::SoftwareType::ShortInt3);
+        promise.set_value(ResolveRuntimeAddress(path, dbg.process()->pid, "ts_counters"));
+    });
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    const auto counters = future.get();
+    REQUIRE(counters.has_value());
+
+    dbg.Continue();
+    dbg.WaitFor(EventType::Breakpoint, std::chrono::seconds(10));
+
+    // All-stop is in effect: the reporting thread is stopped and the sweep froze the
+    // rest, so not one worker's counter may move.
+    std::uint64_t stopped[4] = {};
+    std::uint64_t stillStopped[4] = {};
+    REQUIRE(dbg.process()->MemRead(*counters, stopped, sizeof(stopped)));
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    REQUIRE(dbg.process()->MemRead(*counters, stillStopped, sizeof(stillStopped)));
+
+    for(int i = 0; i < 4; ++i)
+        REQUIRE(stillStopped[i] == stopped[i]);
+
+    // The singleshot breakpoint is gone, so nothing stops the tracee again. Every slot
+    // has to advance on its own: a sum grows even when a single thread was resumed.
+    dbg.Continue();
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    std::uint64_t running[4] = {};
+    REQUIRE(dbg.process()->MemRead(*counters, running, sizeof(running)));
+
+    for(int i = 0; i < 4; ++i)
+        REQUIRE(running[i] > stopped[i]);
+
+    dbg.Stop();
+    dbg.WaitForExit();
+    dbg.JoinThread();
+}
+
+// Four workers reach the same breakpoint at once. Whichever the sweep freezes mid-hit
+// must still be reported rather than absorbed.
+TEST_CASE("Breakpoints absorbed by the stop sweep are still reported", "[multithread]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("threads_spin");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    std::promise<std::optional<ElfBug::ptr>> promise;
+    auto future = promise.get_future();
+    dbg.OnSystemBreakpoint([&]
+    {
+        const auto started = ResolveRuntimeAddress(path, dbg.process()->pid, "ts_worker_started");
+        if(started)
+            dbg.process()->SetBreakpoint(*started, false, ElfBug::SoftwareType::ShortInt3);
+        promise.set_value(started);
+    });
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    REQUIRE(future.get().has_value());
+
+    // ts_worker_started runs exactly once per worker, so exactly four hits exist.
+    for(int i = 0; i < 4; ++i)
+    {
+        dbg.Continue();
+        dbg.WaitFor(EventType::Breakpoint, std::chrono::seconds(10));
+    }
+
+    REQUIRE(dbg.count(EventType::Breakpoint) == 4);
+
+    dbg.Stop();
+    dbg.WaitForExit();
+    dbg.JoinThread();
+    REQUIRE(dbg.count(EventType::InternalError) == 0);
+}
+
+namespace
+{
+    enum class StepShape
+    {
+        Into,
+        Over
+    };
+
+    // Freeze on the main thread with every worker spinning, take one step, prove no worker
+    // moved. Stepping a worker instead would advance the counter the guard reads.
+    void RequireOtherThreadsFrozenAcrossStep(const StepShape shape)
+    {
+        using namespace ElfBug::test;
+        RecordingDebugger dbg;
+        const std::string path = FIXTURE("threads_spin");
+        REQUIRE(dbg.Init(path.c_str()));
+
+        struct Sites
+        {
+            std::optional<ElfBug::ptr> tick;
+            std::optional<ElfBug::ptr> counters;
+        };
+
+        std::promise<Sites> promise;
+        auto future = promise.get_future();
+        dbg.OnSystemBreakpoint([&]
+        {
+            Sites s;
+            s.tick = ResolveRuntimeAddress(path, dbg.process()->pid, "ts_tick");
+            s.counters = ResolveRuntimeAddress(path, dbg.process()->pid, "ts_counters");
+            if(s.tick)
+                dbg.process()->SetBreakpoint(*s.tick, false, ElfBug::SoftwareType::ShortInt3);
+            promise.set_value(s);
+        });
+
+        dbg.StartOnThread();
+        dbg.WaitForSystemBreakpoint();
+        const auto s = future.get();
+        REQUIRE(s.tick.has_value());
+        REQUIRE(s.counters.has_value());
+
+        std::uint64_t before[4] = {};
+        std::uint64_t after[4] = {};
+
+        // Each round gives the workers real running time. Stepping at the first stop would
+        // prove nothing: the counters are all zero there.
+        int spinning = 0;
+        for(int round = 0; round < 50 && spinning < 4; ++round)
+        {
+            dbg.Continue();
+            dbg.WaitFor(EventType::Breakpoint, std::chrono::seconds(10));
+
+            spinning = 0;
+            if(dbg.process()->MemRead(*s.counters, before, sizeof(before)))
+                for(const auto counter : before)
+                    if(counter > 0)
+                        ++spinning;
+        }
+
+        // Without threads that were running, the comparison below proves nothing.
+        REQUIRE(spinning == 4);
+
+        // A failed read looks exactly like a frozen process, so require the read too.
+        REQUIRE(dbg.process()->MemRead(*s.counters, before, sizeof(before)));
+
+        if(shape == StepShape::Over)
+            dbg.StepOver();
+        else
+            dbg.StepInto();
+        dbg.WaitForStep();
+
+        // Nothing lifts the freeze when a step reports, so the counters must not have moved.
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        REQUIRE(dbg.process()->MemRead(*s.counters, after, sizeof(after)));
+        for(int i = 0; i < 4; ++i)
+            REQUIRE(after[i] == before[i]);
+
+        dbg.Stop();
+        dbg.WaitForExit();
+        dbg.JoinThread();
+        REQUIRE(dbg.count(EventType::InternalError) == 0);
+    }
+}
+
+// Freeze-on-step policy: a failure here means stepping now resumes the whole process.
+TEST_CASE("Other threads do not run across a step", "[multithread][step]")
+{
+    RequireOtherThreadsFrozenAcrossStep(StepShape::Into);
+}
+
+// Same policy through the StepOver entry point. ts_tick's prologue classifies as
+// StepOverKind::None, so this covers the request path, not StepOverArm::Armed.
+TEST_CASE("Other threads do not run across a step-over", "[multithread][stepover]")
+{
+    RequireOtherThreadsFrozenAcrossStep(StepShape::Over);
+}
+
+// abandonFreeze must not fire on a step that is still in flight: the fault is reported from
+// inside a step-off, and answering it with StepInto holds the freeze on purpose.
+TEST_CASE("A step answering a fault reported mid-step-off keeps the other threads frozen",
+          "[multithread][step][exception]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("threads_spin");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    struct Sites
+    {
+        std::optional<ElfBug::ptr> tick;
+        std::optional<ElfBug::ptr> fault;
+        std::optional<ElfBug::ptr> armed;
+        std::optional<ElfBug::ptr> counters;
+    };
+
+    std::promise<Sites> promise;
+    auto future = promise.get_future();
+    dbg.OnSystemBreakpoint([&]
+    {
+        Sites s;
+        s.tick = ResolveRuntimeAddress(path, dbg.process()->pid, "ts_tick");
+        s.fault = ResolveRuntimeAddress(path, dbg.process()->pid, "ts_fault_site");
+        s.armed = ResolveRuntimeAddress(path, dbg.process()->pid, "ts_fault_armed");
+        s.counters = ResolveRuntimeAddress(path, dbg.process()->pid, "ts_counters");
+        if(s.tick)
+            dbg.process()->SetBreakpoint(*s.tick, false, ElfBug::SoftwareType::ShortInt3);
+        promise.set_value(s);
+    });
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    const auto s = future.get();
+    REQUIRE(s.tick.has_value());
+    REQUIRE(s.fault.has_value());
+    REQUIRE(s.armed.has_value());
+    REQUIRE(s.counters.has_value());
+
+    std::uint64_t before[4] = {};
+    std::uint64_t after[4] = {};
+
+    // The fault is still disarmed, so these rounds only stop on ts_tick.
+    int spinning = 0;
+    for(int round = 0; round < 50 && spinning < 4; ++round)
+    {
+        dbg.Continue();
+        dbg.WaitFor(EventType::Breakpoint, std::chrono::seconds(10));
+
+        spinning = 0;
+        if(dbg.process()->MemRead(*s.counters, before, sizeof(before)))
+            for(const auto counter : before)
+                if(counter > 0)
+                    ++spinning;
+    }
+    REQUIRE(spinning == 4);
+
+    // Arm the fault and move the breakpoint onto the faulting store itself.
+    const int armed = 1;
+    REQUIRE(dbg.process()->MemWrite(*s.armed, &armed, sizeof(armed)));
+    REQUIRE(dbg.process()->DeleteBreakpoint(*s.tick));
+    REQUIRE(dbg.process()->SetBreakpoint(*s.fault, false, ElfBug::SoftwareType::ShortInt3));
+
+    dbg.Continue();
+    dbg.WaitForBreakpointAt(*s.fault, std::chrono::seconds(10));
+
+    // Stepping off the byte executes the store, which faults from inside
+    // stepPastBreakpointByte and returns false to a caller that must not read it as stranded.
+    dbg.Continue();
+    dbg.WaitForException(SIGSEGV, std::chrono::seconds(10));
+
+    REQUIRE(dbg.process()->MemRead(*s.counters, before, sizeof(before)));
+
+    // Answer the fault with a step, not a continue. A continue routes through
+    // resumeAllThreads and clears the freeze before the abandon path is ever reached.
+    dbg.StepInto();
+    dbg.WaitForStep();
+
+    REQUIRE(dbg.process()->MemRead(*s.counters, after, sizeof(after)));
+    for(int i = 0; i < 4; ++i)
+        REQUIRE(after[i] == before[i]);
+
+    dbg.Stop();
+    dbg.WaitForExit();
+    dbg.JoinThread();
+    REQUIRE(dbg.count(EventType::InternalError) == 0);
+}
+
+// A thread that already reported PTRACE_EVENT_EXIT owes the sweep no stop, so treating it
+// as running costs a waitpid that never returns. Regressions hang this test, not fail it.
+TEST_CASE("A process exit racing the stop sweep is still reported", "[multithread][process]")
+{
+    using namespace ElfBug::test;
+
+    // A race by nature: the sweep only meets the dying leader if a spinner's trap is
+    // dispatched while the exit is in flight, so run several passes to make that land.
+    for(int attempt = 0; attempt < 8; ++attempt)
+    {
+        RecordingDebugger dbg;
+        const std::string path = FIXTURE("exit_race");
+        REQUIRE(dbg.Init(path.c_str()));
+
+        struct Sites
+        {
+            std::optional<ElfBug::ptr> hot;
+            std::optional<ElfBug::ptr> exitNow;
+        };
+
+        std::promise<Sites> promise;
+        auto future = promise.get_future();
+        dbg.OnSystemBreakpoint([&]
+        {
+            Sites s;
+            s.hot = ResolveRuntimeAddress(path, dbg.process()->pid, "er_hot");
+            s.exitNow = ResolveRuntimeAddress(path, dbg.process()->pid, "er_exit_now");
+            if(s.hot)
+                dbg.process()->SetBreakpoint(*s.hot, false, ElfBug::SoftwareType::ShortInt3);
+            promise.set_value(s);
+        });
+
+        dbg.StartOnThread();
+        dbg.WaitForSystemBreakpoint();
+        const auto s = future.get();
+        REQUIRE(s.hot.has_value());
+        REQUIRE(s.exitNow.has_value());
+
+        // Stop on a spinner first, so the exit below starts from a frozen process with
+        // the leader registered, running, and about to be swept.
+        dbg.Continue();
+        dbg.WaitFor(EventType::Breakpoint, std::chrono::seconds(10));
+
+        const int go = 1;
+        REQUIRE(dbg.process()->MemWrite(*s.exitNow, &go, sizeof(go)));
+
+        // The spinners keep trapping while the exit runs, so each of these rounds is
+        // another chance for a sweep to land on the dying leader.
+        Event last;
+        for(int round = 0; round < 400; ++round)
+        {
+            dbg.Continue();
+            last = dbg.WaitForAny({EventType::Breakpoint, EventType::ExitProcess},
+                                  std::chrono::seconds(10));
+            if(last.type == EventType::ExitProcess)
+                break;
+        }
+
+        dbg.JoinThread();
+
+        REQUIRE(last.type == EventType::ExitProcess);
+        REQUIRE(last.exitCode == 7);
+        REQUIRE(dbg.count(EventType::InternalError) == 0);
+    }
 }
