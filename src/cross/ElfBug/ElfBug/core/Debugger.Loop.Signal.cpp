@@ -33,6 +33,25 @@ namespace ElfBug
             ScopedSteppingOff & operator=(const ScopedSteppingOff &) = delete;
         };
 
+        // si_addr only means something for kernel-raised faults; for kill and tkill the
+        // same union bytes hold the sender's pid and uid.
+        ptr faultAddress(const int signal, const siginfo_t & info)
+        {
+            if(info.si_code <= 0)
+                return 0;
+            switch(signal)
+            {
+            case SIGSEGV:
+            case SIGBUS:
+            case SIGILL:
+            case SIGFPE:
+            case SIGTRAP:
+                return reinterpret_cast<ptr>(info.si_addr);
+            default:
+                return 0;
+            }
+        }
+
         bool sweepShouldQueue(const int signal, const bool hardware)
         {
             switch(signal)
@@ -70,7 +89,7 @@ namespace ElfBug
 
         // Nothing else records it, so queue it for pauseAndResume to report and forward.
         if(haveInfo && sweepShouldQueue(sig, hardware))
-            thread->setPendingSignal(sig, reinterpret_cast<ptr>(info.si_addr), true);
+            thread->setPendingSignal(sig, faultAddress(sig, info), true);
 
         if(!mProcess || sig != SIGTRAP)
             return;
@@ -360,7 +379,7 @@ namespace ElfBug
         ptr faultAddr = 0;
         siginfo_t sigInfo;
         if(ptrace(PTRACE_GETSIGINFO, pid, nullptr, &sigInfo) != -1)
-            faultAddr = reinterpret_cast<ptr>(sigInfo.si_addr);
+            faultAddr = faultAddress(sig, sigInfo);
         if(mThread)
         {
             mThread->registers.Read();

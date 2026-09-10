@@ -2298,11 +2298,18 @@ namespace
         REQUIRE(dbg.process()->MemRead(*s.handled, &r.handled, sizeof(r.handled)));
         CAPTURE(r.raised, r.handled);
         REQUIRE(done == 1);
+        std::size_t withAddress = 0;
         for(const auto & e : dbg.events())
         {
             if(e.type == EventType::Exception && e.signal == signal)
+            {
                 ++r.reported;
+                if(e.address != 0)
+                    ++withAddress;
+            }
         }
+        // raise() is not a fault: si_addr aliases the sender there and must not leak.
+        REQUIRE(withAddress == 0);
 
         // Checked before Stop so a wedged debugger cannot hide the numbers.
         REQUIRE(r.raised == quota);
@@ -2385,6 +2392,7 @@ namespace
         std::mutex mutex;
         std::condition_variable cv;
         bool systemBreakpoint = false;
+        bool paused = false;
         std::optional<std::uint64_t> breakpointAddress;
         std::optional<int> exceptionSignal;
         std::uint64_t exceptionAddress = 0;
@@ -2410,6 +2418,13 @@ namespace
             auto* ev = static_cast<ApiEvents*>(userdata);
             std::lock_guard lock(ev->mutex);
             ev->pid = pid;
+        };
+        cb.onPaused = [](void* userdata)
+        {
+            auto* ev = static_cast<ApiEvents*>(userdata);
+            std::lock_guard lock(ev->mutex);
+            ev->paused = true;
+            ev->cv.notify_all();
         };
         cb.onSystemBreakpoint = [](void* userdata)
         {
@@ -2560,6 +2575,21 @@ TEST_CASE("C API arms a breakpoint queued right before Continue", "[api][breakpo
     REQUIRE(s.events.WaitFor([&] { return s.events.exceptionSignal.has_value(); }));
     ElfBugContinue(s.dbg);
     REQUIRE(s.WaitForExit());
+}
+
+TEST_CASE("C API reports no current thread while the debuggee runs", "[api][thread]")
+{
+    ApiSession s(FIXTURE("run_endlessly"));
+    REQUIRE(s.Started());
+    REQUIRE(s.WaitForSystemBreakpoint());
+    REQUIRE(ElfBugGetCurrentTid(s.dbg) == ElfBugGetPid(s.dbg));
+
+    ElfBugContinue(s.dbg);
+    REQUIRE(ElfBugGetCurrentTid(s.dbg) == 0);
+
+    ElfBugPause(s.dbg);
+    REQUIRE(s.events.WaitFor([&] { return s.events.paused; }));
+    REQUIRE(ElfBugGetCurrentTid(s.dbg) == ElfBugGetPid(s.dbg));
 }
 
 TEST_CASE("C API reports thread creation and exit", "[api][thread]")

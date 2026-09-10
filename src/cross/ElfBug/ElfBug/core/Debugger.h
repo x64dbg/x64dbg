@@ -33,6 +33,8 @@ namespace ElfBug
         bool Stop();
         void Detach();
 
+        [[nodiscard]] bool IsPaused() const { return mPaused.load(std::memory_order_acquire); }
+
     protected:
         virtual void cbCreateProcessEvent(pid_t pid, ptr entryPoint);
         virtual void cbExitProcessEvent(int exitCode);

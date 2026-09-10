@@ -243,7 +243,7 @@ struct ElfBugDebugger : ElfBug::Debugger
     pid_t currentTid() const
     {
         std::shared_lock lock(mProcessMutex);
-        if(!active.load(std::memory_order_acquire) || !mThread)
+        if(!active.load(std::memory_order_acquire) || !IsPaused() || !mThread)
             return 0;
         return mThread->tid;
     }
