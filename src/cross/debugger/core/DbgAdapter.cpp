@@ -216,11 +216,20 @@ QString DbgAdapter::threadSuffix() const
     return QString(" [thread %1]").arg(ElfBugGetCurrentTid(mDebugger));
 }
 
-void DbgAdapter::emitStoppedState(const QString & reason)
+REGDUMP DbgAdapter::readRegisters() const
 {
     ElfBugRegisters regs = {};
     ElfBugGetRegisters(mDebugger, &regs);
-    auto dump = toRegDump(regs);
+    return toRegDump(regs);
+}
+
+void DbgAdapter::emitStoppedState(const QString & reason)
+{
+    emitStoppedState(reason, readRegisters());
+}
+
+void DbgAdapter::emitStoppedState(const QString & reason, const REGDUMP & dump)
+{
     emit registersUpdated(dump);
     emit stopped(dump.regcontext.cip, reason + threadSuffix());
 }
@@ -254,14 +263,13 @@ void DbgAdapter::onExitThread(const pid_t tid, void* userdata)
 void DbgAdapter::onSystemBreakpoint(void* userdata)
 {
     auto* self = static_cast<DbgAdapter*>(userdata);
-    ElfBugRegisters regs = {};
-    ElfBugGetRegisters(self->mDebugger, &regs);
-    self->mEntryPoint = regs.rip;
+    const REGDUMP dump = self->readRegisters();
+    self->mEntryPoint = dump.regcontext.cip;
 
     emit self->logMessage(QString("[x64dbg] Entry point: 0x%1").arg(self->mEntryPoint, 0, 16));
-    emit self->registersUpdated(toRegDump(regs));
+    emit self->registersUpdated(dump);
     emit self->processCreated(self->mEntryPoint);
-    emit self->stopped(self->mEntryPoint, tr("System breakpoint"));
+    emit self->stopped(self->mEntryPoint, tr("System breakpoint") + self->threadSuffix());
 }
 
 void DbgAdapter::onBreakpoint(const uint64_t address, void* userdata)
@@ -283,26 +291,60 @@ void DbgAdapter::onPaused(void* userdata)
     self->emitStoppedState(tr("Paused"));
 }
 
+// Own table: sigabbrev_np needs glibc 2.32 and the AppImage builds on 2.31.
 static QString signalName(const int signal)
 {
-    const char* abbrev = sigabbrev_np(signal);
-    if(!abbrev)
+    switch(signal)
+    {
+#define SIGNAL_NAME(name) case name: return QStringLiteral(#name);
+        SIGNAL_NAME(SIGHUP)
+        SIGNAL_NAME(SIGINT)
+        SIGNAL_NAME(SIGQUIT)
+        SIGNAL_NAME(SIGILL)
+        SIGNAL_NAME(SIGTRAP)
+        SIGNAL_NAME(SIGABRT)
+        SIGNAL_NAME(SIGBUS)
+        SIGNAL_NAME(SIGFPE)
+        SIGNAL_NAME(SIGKILL)
+        SIGNAL_NAME(SIGUSR1)
+        SIGNAL_NAME(SIGSEGV)
+        SIGNAL_NAME(SIGUSR2)
+        SIGNAL_NAME(SIGPIPE)
+        SIGNAL_NAME(SIGALRM)
+        SIGNAL_NAME(SIGTERM)
+        SIGNAL_NAME(SIGCHLD)
+        SIGNAL_NAME(SIGCONT)
+        SIGNAL_NAME(SIGSTOP)
+        SIGNAL_NAME(SIGTSTP)
+        SIGNAL_NAME(SIGTTIN)
+        SIGNAL_NAME(SIGTTOU)
+        SIGNAL_NAME(SIGURG)
+        SIGNAL_NAME(SIGXCPU)
+        SIGNAL_NAME(SIGXFSZ)
+        SIGNAL_NAME(SIGVTALRM)
+        SIGNAL_NAME(SIGPROF)
+        SIGNAL_NAME(SIGWINCH)
+        SIGNAL_NAME(SIGIO)
+        SIGNAL_NAME(SIGSYS)
+#undef SIGNAL_NAME
+    default:
+        if(signal >= SIGRTMIN && signal <= SIGRTMAX)
+            return QString("SIGRTMIN+%1").arg(signal - SIGRTMIN);
         return QString("signal %1").arg(signal);
-    return QString("SIG%1").arg(abbrev);
+    }
 }
 
 void DbgAdapter::onException(const int signal, const uint64_t address, void* userdata)
 {
     auto* self = static_cast<DbgAdapter*>(userdata);
-    ElfBugRegisters regs = {};
-    ElfBugGetRegisters(self->mDebugger, &regs);
+    const REGDUMP dump = self->readRegisters();
     const QString name = signalName(signal);
 
-    QString msg = QString("[x64dbg] %1 (%2) at 0x%3").arg(name).arg(signal).arg(regs.rip, 0, 16);
+    QString msg = QString("[x64dbg] %1 (%2) at 0x%3").arg(name).arg(signal).arg(dump.regcontext.cip, 0, 16);
     if(address)
         msg += QString(", address 0x%1").arg(address, 0, 16);
     emit self->logMessage(msg + self->threadSuffix());
-    self->emitStoppedState(name);
+    self->emitStoppedState(name, dump);
 }
 
 void DbgAdapter::onError(const char* error, void* userdata)

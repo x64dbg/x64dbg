@@ -19,6 +19,7 @@ headers = [
     "SymbolHelper.h",
 ]
 link-libraries = ["ElfBug", "Catch2::Catch2WithMain"]
+compile-features = ["cxx_std_20"]
 compile-definitions = ['ELFBUG_TESTS_TARGETS_DIR="${CMAKE_BINARY_DIR}/tests/targets"']
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests"
 cmake-after = """

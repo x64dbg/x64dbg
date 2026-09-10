@@ -64,7 +64,9 @@ private:
     static void onDebugString(const char* text, void* userdata);
 
     [[nodiscard]] QString threadSuffix() const;
+    [[nodiscard]] REGDUMP readRegisters() const;
     void emitStoppedState(const QString & reason);
+    void emitStoppedState(const QString & reason, const REGDUMP & dump);
 
     ElfBugDebugger* mDebugger = nullptr;
     duint mEntryPoint = 0;

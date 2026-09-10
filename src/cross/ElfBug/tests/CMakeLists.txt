@@ -58,6 +58,10 @@ target_compile_definitions(ElfBug_tests PRIVATE
 	"ELFBUG_TESTS_TARGETS_DIR=\"${CMAKE_BINARY_DIR}/tests/targets\""
 )
 
+target_compile_features(ElfBug_tests PRIVATE
+	cxx_std_20
+)
+
 target_link_libraries(ElfBug_tests PRIVATE
 	ElfBug
 	Catch2::Catch2WithMain

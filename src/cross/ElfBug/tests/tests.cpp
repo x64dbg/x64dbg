@@ -2432,9 +2432,13 @@ namespace
         {
             const ElfBugCallbacks cb = MakeApiCallbacks(events);
             dbg = ElfBugCreate(&cb);
-            REQUIRE(dbg != nullptr);
-            REQUIRE(ElfBugInit(dbg, path.c_str()));
-            loop = std::thread([this] { ElfBugStart(dbg); });
+            if(dbg && ElfBugInit(dbg, path.c_str()))
+                loop = std::thread([this] { ElfBugStart(dbg); });
+        }
+
+        [[nodiscard]] bool Started() const
+        {
+            return loop.joinable();
         }
 
         ~ApiSession()
@@ -2471,6 +2475,7 @@ namespace
 TEST_CASE("C API reports a signal stop with the faulting registers", "[api][exception]")
 {
     ApiSession s(FIXTURE("segfault"));
+    REQUIRE(s.Started());
     REQUIRE(s.WaitForSystemBreakpoint());
     const auto site = s.Resolve("sf_fault_site");
     REQUIRE(site.has_value());
@@ -2496,6 +2501,7 @@ TEST_CASE("C API reports a signal stop with the faulting registers", "[api][exce
 TEST_CASE("C API arms a breakpoint queued right before Continue", "[api][breakpoint]")
 {
     ApiSession s(FIXTURE("segfault"));
+    REQUIRE(s.Started());
     REQUIRE(s.WaitForSystemBreakpoint());
     const auto site = s.Resolve("sf_fault_site");
     REQUIRE(site.has_value());
@@ -2520,6 +2526,7 @@ TEST_CASE("C API arms a breakpoint queued right before Continue", "[api][breakpo
 TEST_CASE("C API reports thread creation and exit", "[api][thread]")
 {
     ApiSession s(FIXTURE("multi_threaded"));
+    REQUIRE(s.Started());
     REQUIRE(s.WaitForSystemBreakpoint());
     ElfBugContinue(s.dbg);
     REQUIRE(s.WaitForExit());
@@ -2531,12 +2538,13 @@ TEST_CASE("C API reports thread creation and exit", "[api][thread]")
     REQUIRE(s.events.exitedTids.size() == 5);
     REQUIRE(created.size() == 5);
     REQUIRE(exited == created);
-    REQUIRE(!created.contains(s.events.pid));
+    REQUIRE(created.count(s.events.pid) == 0);
 }
 
 TEST_CASE("C API reports which thread stopped", "[api][thread]")
 {
     ApiSession s(FIXTURE("threads_spin"));
+    REQUIRE(s.Started());
     REQUIRE(s.WaitForSystemBreakpoint());
     REQUIRE(ElfBugGetCurrentTid(s.dbg) == ElfBugGetPid(s.dbg));
 
