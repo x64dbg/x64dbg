@@ -34,6 +34,9 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_multi_threaded
     elfbug_fixture_step_over_targets
     elfbug_fixture_exec_target
+    elfbug_fixture_threads_spin
+    elfbug_fixture_exit_race
+    elfbug_fixture_signal_race
 )
 """
 
@@ -89,4 +92,25 @@ properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
 type = "elfbug_fixture"
 sources = ["targets/exec_target.cpp"]
 properties.OUTPUT_NAME = "exec_target"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_threads_spin]
+type = "elfbug_fixture"
+sources = ["targets/threads_spin.cpp"]
+link-libraries = ["pthread"]
+properties.OUTPUT_NAME = "threads_spin"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_exit_race]
+type = "elfbug_fixture"
+sources = ["targets/exit_race.cpp"]
+link-libraries = ["pthread"]
+properties.OUTPUT_NAME = "exit_race"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_signal_race]
+type = "elfbug_fixture"
+sources = ["targets/signal_race.cpp"]
+link-libraries = ["pthread"]
+properties.OUTPUT_NAME = "signal_race"
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"

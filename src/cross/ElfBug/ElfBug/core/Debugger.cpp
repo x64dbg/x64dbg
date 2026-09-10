@@ -35,7 +35,10 @@ namespace ElfBug
         mStepOverPending.store(false, std::memory_order_release);
         mStepOver = {};
         mSourceRearms.clear();
+        mUnregisteredRunning.clear();
+        mAllStopped = false;
         mPauseRequested.store(false, std::memory_order_release);
+        mStopRequested.store(false, std::memory_order_release);
         mPendingSignal = 0;
 
         if(!szFilePath)
@@ -278,6 +281,19 @@ namespace ElfBug
         // exec killed every other thread and replaced the image, so every entry is stale.
         // A worker's exec is reported under the leader's tid, so the owner is not checked.
         mSourceRearms.clear();
+        mUnregisteredRunning.clear();
+
+        mAllStopped = false;
+
+        if(mProcess)
+        {
+            std::shared_lock lock(mProcessMutex);
+            for(const auto & [tid, thread] : mProcess->threads)
+            {
+                thread->clearPendingBreakpoint();
+                thread->clearPendingSignal();
+            }
+        }
 
         if(mStepOver.active)
         {
@@ -374,6 +390,7 @@ namespace ElfBug
 
         {
             std::lock_guard lock(mPauseMutex);
+            mStopRequested.store(true, std::memory_order_release);
             mPaused.store(false, std::memory_order_release);
         }
         mPauseCv.notify_one();

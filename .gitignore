@@ -18,6 +18,7 @@
 .idea/
 build*/
 cmake-build*/
+dist/
 
 # Extensions/files
 *.sdf

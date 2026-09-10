@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <ElfBug/types/ElfBug.h>
 #include <ElfBug/types/Global.h>
@@ -67,6 +68,15 @@ namespace ElfBug
         // The image was replaced: drop step state without writing anything back.
         void onExec();
 
+        void stopAllThreads(pid_t except);
+        bool swallowPendingSigstop(pid_t tid);
+        void resumeAllThreads(pid_t except);
+        void abandonFreeze(pid_t except);
+        Thread* findPendingBreakpointThread() const;
+        Thread* findPendingSignalThread() const;
+        void repairStoppedThread(Thread* thread, int status) const;
+        void reportSignal(pid_t pid, int sig);
+
         struct StepOverRequest
         {
             bool active = false;
@@ -105,7 +115,12 @@ namespace ElfBug
         StepOverRequest mStepOver;
         // Lifted breakpoint bytes, re-armed when the lifting thread next stops.
         std::unordered_map<pid_t, ptr> mSourceRearms;
+        std::vector<pid_t> mResumeExcept;
+        std::unordered_set<pid_t> mUnregisteredRunning;
+        bool mAllStopped = false;
+        pid_t mSteppingOff = 0;
         std::atomic<bool> mPauseRequested{false};
+        std::atomic<bool> mStopRequested{false};
         std::atomic<pid_t> mMainPid{0};
         int mPendingSignal = 0;
         std::mutex mPauseMutex;

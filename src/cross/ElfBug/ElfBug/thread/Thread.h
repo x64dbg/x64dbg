@@ -24,6 +24,40 @@ namespace ElfBug
         void setStepsPushf(const bool stepsPushf) { mStepsPushf = stepsPushf; }
         [[nodiscard]] bool stepsPushf() const { return mStepsPushf; }
 
+        // Constructed stopped: a clone is reported to us already stopped, and the main
+        // thread stops on exec.
+        void setRunning(const bool running) { mRunning = running; }
+        [[nodiscard]] bool isRunning() const { return mRunning; }
+
+        // Set when our SIGSTOP was still queued because the thread stopped for its own
+        // reason first. It must be consumed before this thread is single-stepped.
+        void setPendingSigstop(const bool pending) { mPendingSigstop = pending; }
+        [[nodiscard]] bool pendingSigstop() const { return mPendingSigstop; }
+
+        // A breakpoint this thread hit just before the sweep froze it. Reported on the
+        // next resume instead of being absorbed.
+        void setPendingBreakpoint(const ptr address)
+        {
+            mHasPendingBreakpoint = true;
+            mPendingBreakpoint = address;
+        }
+        void clearPendingBreakpoint() { mHasPendingBreakpoint = false; mPendingBreakpoint = 0; }
+        [[nodiscard]] bool hasPendingBreakpoint() const { return mHasPendingBreakpoint; }
+        [[nodiscard]] ptr pendingBreakpoint() const { return mPendingBreakpoint; }
+
+        // A signal the sweep read off the wait status, forwarded on the resume that
+        // unfreezes the thread. 0 means none. Unreported until pauseAndResume reports it.
+        void setPendingSignal(const int signal, const ptr address, const bool unreported)
+        {
+            mPendingSignal = signal;
+            mPendingSignalAddress = address;
+            mPendingSignalUnreported = unreported;
+        }
+        void clearPendingSignal() { setPendingSignal(0, 0, false); }
+        [[nodiscard]] int pendingSignal() const { return mPendingSignal; }
+        [[nodiscard]] ptr pendingSignalAddress() const { return mPendingSignalAddress; }
+        [[nodiscard]] bool pendingSignalUnreported() const { return mPendingSignalUnreported; }
+
         // TODO: implement via PTRACE_POKEUSER on debug register offsets
         [[nodiscard]] bool GetFreeHardwareBreakpointSlot(const HardwareSlot & slot) const;
         bool SetHardwareBreakpoint(ptr address, HardwareSlot slot, HardwareType type = HardwareType::Execute, HardwareSize size = HardwareSize::Byte, bool singleshot = false);
@@ -33,5 +67,12 @@ namespace ElfBug
     private:
         bool mIsSingleStepping = false;
         bool mStepsPushf = false;
+        bool mRunning = false;
+        bool mPendingSigstop = false;
+        bool mHasPendingBreakpoint = false;
+        ptr mPendingBreakpoint = 0;
+        int mPendingSignal = 0;
+        ptr mPendingSignalAddress = 0;
+        bool mPendingSignalUnreported = false;
     };
 }
