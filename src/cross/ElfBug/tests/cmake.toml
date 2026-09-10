@@ -19,6 +19,7 @@ headers = [
     "SymbolHelper.h",
 ]
 link-libraries = ["ElfBug", "Catch2::Catch2WithMain"]
+compile-features = ["cxx_std_20"]
 compile-definitions = ['ELFBUG_TESTS_TARGETS_DIR="${CMAKE_BINARY_DIR}/tests/targets"']
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests"
 cmake-after = """
@@ -37,6 +38,7 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_threads_spin
     elfbug_fixture_exit_race
     elfbug_fixture_signal_race
+    elfbug_fixture_clone_trap
 )
 """
 
@@ -113,4 +115,10 @@ type = "elfbug_fixture"
 sources = ["targets/signal_race.cpp"]
 link-libraries = ["pthread"]
 properties.OUTPUT_NAME = "signal_race"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_clone_trap]
+type = "elfbug_fixture"
+sources = ["targets/clone_trap.cpp"]
+properties.OUTPUT_NAME = "clone_trap"
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"

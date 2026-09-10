@@ -33,6 +33,25 @@ namespace ElfBug
             ScopedSteppingOff & operator=(const ScopedSteppingOff &) = delete;
         };
 
+        // si_addr only means something for kernel-raised faults; for kill and tkill the
+        // same union bytes hold the sender's pid and uid.
+        ptr faultAddress(const int signal, const siginfo_t & info)
+        {
+            if(info.si_code <= 0)
+                return 0;
+            switch(signal)
+            {
+            case SIGSEGV:
+            case SIGBUS:
+            case SIGILL:
+            case SIGFPE:
+            case SIGTRAP:
+                return reinterpret_cast<ptr>(info.si_addr);
+            default:
+                return 0;
+            }
+        }
+
         bool sweepShouldQueue(const int signal, const bool hardware)
         {
             switch(signal)
@@ -62,14 +81,15 @@ namespace ElfBug
         const int sig = WSTOPSIG(status);
 
         // si_code is positive when the kernel raised the signal and zero or negative for
-        // kill, tkill and sigqueue. Queue conservatively when it cannot be read.
+        // kill, tkill and sigqueue. Unreadable means the thread already left this stop
+        // (exit_group kicked it out), so there is nothing left to forward.
         siginfo_t info{};
         const bool haveInfo = ptrace(PTRACE_GETSIGINFO, thread->tid, nullptr, &info) != -1;
         const bool hardware = haveInfo && info.si_code > 0;
 
         // Nothing else records it, so queue it for pauseAndResume to report and forward.
-        if(sweepShouldQueue(sig, hardware))
-            thread->setPendingSignal(sig, haveInfo ? reinterpret_cast<ptr>(info.si_addr) : 0, true);
+        if(haveInfo && sweepShouldQueue(sig, hardware))
+            thread->setPendingSignal(sig, faultAddress(sig, info), true);
 
         if(!mProcess || sig != SIGTRAP)
             return;
@@ -85,6 +105,7 @@ namespace ElfBug
 
         thread->registers.Gip() = bpAddr;
         thread->registers.Write();
+        thread->setAtBreakpoint(true);
         thread->setPendingBreakpoint(bpAddr);
     }
 
@@ -358,7 +379,7 @@ namespace ElfBug
         ptr faultAddr = 0;
         siginfo_t sigInfo;
         if(ptrace(PTRACE_GETSIGINFO, pid, nullptr, &sigInfo) != -1)
-            faultAddr = reinterpret_cast<ptr>(sigInfo.si_addr);
+            faultAddr = faultAddress(sig, sigInfo);
         if(mThread)
         {
             mThread->registers.Read();
@@ -601,6 +622,20 @@ namespace ElfBug
         {
             if(!mThread)
             {
+                mUnregisteredRunning.erase(pid);
+                createThreadEvent(pid);
+                {
+                    std::shared_lock lock(mProcessMutex);
+                    if(mProcess)
+                    {
+                        const auto it = mProcess->threads.find(pid);
+                        if(it != mProcess->threads.end())
+                            mThread = it->second.get();
+                    }
+                }
+            }
+            if(!mThread)
+            {
                 if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
                 {
                     if(errno != ESRCH)
@@ -659,6 +694,7 @@ namespace ElfBug
 
                         if(planted)
                             mProcess->DeleteBreakpoint(target);
+                        mThread->setAtBreakpoint(!planted);
 
                         restoreSourceByte(pid);
 
@@ -700,6 +736,7 @@ namespace ElfBug
                 {
                     mThread->registers.Gip() = bpAddr;
                     mThread->registers.Write();
+                    mThread->setAtBreakpoint(true);
 
                     cancelStepOverIfOwner(pid);
                     stopAllThreads(pid);

@@ -15,6 +15,7 @@ namespace ElfBug
                   reinterpret_cast<void*>(static_cast<uintptr_t>(signal))) == -1)
             return false;
         mIsSingleStepping = true;
+        mAtBreakpoint = false;
         return true;
     }
 }

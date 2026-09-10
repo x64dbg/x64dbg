@@ -113,8 +113,10 @@ namespace ElfBug
             if(!thread->registers.Read())
                 continue;
 
+            // A thread frozen just before the byte has not hit it; stepping it off would
+            // skip the hit. Only a rewound thread owes a step.
             const ptr rip = thread->registers.Gip();
-            if(!mProcess->HasBreakpoint(rip))
+            if(!thread->atBreakpoint() || !mProcess->HasBreakpoint(rip))
                 continue;
 
             Thread* previous = nullptr;
@@ -208,6 +210,10 @@ namespace ElfBug
                 cbPauseTick();
         }
 
+        // A resume can wake the wait before the tick that would apply a request queued
+        // just before it. Tick once more while still stopped.
+        cbPauseTick();
+
         lock.unlock();
 
         if(!mIsRunning.load(std::memory_order_acquire))
@@ -276,7 +282,7 @@ namespace ElfBug
 
         // A breakpoint hit leaves its 0xCC armed with RIP on it; every resume except a
         // step-over must step past that byte first.
-        if(!stepOverRequested && mThread && mProcess &&
+        if(!stepOverRequested && mThread && mProcess && mThread->atBreakpoint() &&
                 mProcess->HasBreakpoint(mThread->registers.Gip()))
         {
             const ptr rip = mThread->registers.Gip();

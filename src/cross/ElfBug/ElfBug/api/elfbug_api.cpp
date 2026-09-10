@@ -240,6 +240,14 @@ struct ElfBugDebugger : ElfBug::Debugger
         }
     }
 
+    pid_t currentTid() const
+    {
+        std::shared_lock lock(mProcessMutex);
+        if(!active.load(std::memory_order_acquire) || !IsPaused() || !mThread)
+            return 0;
+        return mThread->tid;
+    }
+
     bool readRegisters(ElfBugRegisters* out) const
     {
         std::shared_lock lock(mProcessMutex);
@@ -309,6 +317,18 @@ protected:
             cb.onExitProcess(exitCode, cb.userdata);
     }
 
+    void cbCreateThreadEvent(const pid_t tid) override
+    {
+        if(cb.onCreateThread)
+            cb.onCreateThread(tid, cb.userdata);
+    }
+
+    void cbExitThreadEvent(const pid_t tid) override
+    {
+        if(cb.onExitThread)
+            cb.onExitThread(tid, cb.userdata);
+    }
+
     void cbSystemBreakpoint() override
     {
         if(mThread)
@@ -346,6 +366,14 @@ protected:
             cb.onPaused(cb.userdata);
     }
 
+    void cbExceptionEvent(const int signal, const ElfBug::ptr address) override
+    {
+        processPendingBreakpoints();
+        refreshMemoryMap();
+        if(cb.onException)
+            cb.onException(signal, address, cb.userdata);
+    }
+
     void cbPauseTick() override
     {
         processPendingBreakpoints();
@@ -374,7 +402,7 @@ extern "C" {
         return dbg;
     }
 
-    void ElfBugDestroy(ElfBugDebugger* dbg)
+    void ElfBugDestroy(const ElfBugDebugger* dbg)
     {
         if(!dbg)
             return;
@@ -442,6 +470,13 @@ extern "C" {
         if(!dbg)
             return 0;
         return dbg->activePid.load(std::memory_order_acquire);
+    }
+
+    pid_t ElfBugGetCurrentTid(const ElfBugDebugger* dbg)
+    {
+        if(!dbg)
+            return 0;
+        return dbg->currentTid();
     }
 
     ElfBugArch ElfBugGetArch(const ElfBugDebugger* dbg)
@@ -616,7 +651,7 @@ extern "C" {
         }
 
         std::lock_guard lock(dbg->bpDataMutex);
-        return dbg->breakpointAddrs.count(addr) > 0;
+        return dbg->breakpointAddrs.contains(addr);
     }
 
 } // extern "C"

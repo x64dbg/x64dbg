@@ -99,7 +99,7 @@ type = "static"
 condition = "linux-x64"
 sources = ["ElfBug/ElfBug/**.cpp"]
 headers = ["ElfBug/ElfBug/**.h"]
-compile-features = ["cxx_std_17"]
+compile-features = ["cxx_std_20"]
 include-directories = ["ElfBug"]
 link-libraries = ["Threads::Threads", "zydis_wrapper"]
 

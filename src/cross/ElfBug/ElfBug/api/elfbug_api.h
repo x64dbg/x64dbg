@@ -36,10 +36,14 @@ typedef struct
 
 typedef void (*ElfBugCbCreateProcess)(pid_t pid, uint64_t entryPoint, void* userdata);
 typedef void (*ElfBugCbExitProcess)(int exitCode, void* userdata);
+typedef void (*ElfBugCbCreateThread)(pid_t tid, void* userdata);
+typedef void (*ElfBugCbExitThread)(pid_t tid, void* userdata);
 typedef void (*ElfBugCbSystemBreakpoint)(void* userdata);
 typedef void (*ElfBugCbBreakpoint)(uint64_t address, void* userdata);
 typedef void (*ElfBugCbStep)(void* userdata);
 typedef void (*ElfBugCbPaused)(void* userdata);
+// Signal delivery stop. `address` is si_addr for faults, 0 otherwise.
+typedef void (*ElfBugCbException)(int signal, uint64_t address, void* userdata);
 typedef void (*ElfBugCbError)(const char* error, void* userdata);
 typedef void (*ElfBugCbDebugString)(const char* text, void* userdata);
 
@@ -47,17 +51,20 @@ typedef struct
 {
     ElfBugCbCreateProcess onCreateProcess;
     ElfBugCbExitProcess onExitProcess;
+    ElfBugCbCreateThread onCreateThread;
+    ElfBugCbExitThread onExitThread;
     ElfBugCbSystemBreakpoint onSystemBreakpoint;
     ElfBugCbBreakpoint onBreakpoint;
     ElfBugCbStep onStep;
     ElfBugCbPaused onPaused;
+    ElfBugCbException onException;
     ElfBugCbError onError;
     ElfBugCbDebugString onDebugString;
     void* userdata;
 } ElfBugCallbacks;
 
 ELFBUG_EXPORT ElfBugDebugger* ElfBugCreate(const ElfBugCallbacks* callbacks);
-ELFBUG_EXPORT void ElfBugDestroy(ElfBugDebugger* dbg);
+ELFBUG_EXPORT void ElfBugDestroy(const ElfBugDebugger* dbg);
 
 ELFBUG_EXPORT bool ElfBugInit(ElfBugDebugger* dbg, const char* path);
 ELFBUG_EXPORT void ElfBugStart(ElfBugDebugger* dbg);      // Blocks - runs debug loop
@@ -69,6 +76,8 @@ ELFBUG_EXPORT bool ElfBugStop(ElfBugDebugger* dbg);        // Thread-safe
 
 ELFBUG_EXPORT bool ElfBugGetRegisters(const ElfBugDebugger* dbg, ElfBugRegisters* regs);
 ELFBUG_EXPORT pid_t ElfBugGetPid(const ElfBugDebugger* dbg);
+// Thread the last stop was reported on. 0 while running or before the first stop.
+ELFBUG_EXPORT pid_t ElfBugGetCurrentTid(const ElfBugDebugger* dbg);
 ELFBUG_EXPORT ElfBugArch ElfBugGetArch(const ElfBugDebugger* dbg);
 
 ELFBUG_EXPORT bool ElfBugMemRead(const ElfBugDebugger* dbg, uint64_t addr, void* dest, uint64_t size);
