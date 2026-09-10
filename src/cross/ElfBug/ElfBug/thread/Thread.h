@@ -1,6 +1,8 @@
 #pragma once
 
 #include <sys/types.h>
+#include <string>
+#include <utility>
 #include <ElfBug/types/ElfBug.h>
 #include <ElfBug/types/Global.h>
 #include <ElfBug/thread/Registers.h>
@@ -30,7 +32,10 @@ namespace ElfBug
         {
             mRunning = running;
             if(running)
+            {
                 mAtBreakpoint = false;
+                mWaitReason.clear();
+            }
         }
         [[nodiscard]] bool isRunning() const { return mRunning; }
 
@@ -39,6 +44,15 @@ namespace ElfBug
         // and must trap when it runs. Cleared by anything that lets the thread run.
         void setAtBreakpoint(const bool at) { mAtBreakpoint = at; }
         [[nodiscard]] bool atBreakpoint() const { return mAtBreakpoint; }
+
+        // Frozen by the user. Every resume leaves it stopped until it is cleared.
+        void setSuspended(const bool suspended) { mSuspended = suspended; }
+        [[nodiscard]] bool isSuspended() const { return mSuspended; }
+
+        // Kernel function the thread was blocked in when the debugger stopped it from
+        // outside. Empty for a thread that was running or stopped on its own.
+        void setWaitReason(std::string reason) { mWaitReason = std::move(reason); }
+        [[nodiscard]] const std::string & waitReason() const { return mWaitReason; }
 
         // Set when our SIGSTOP was still queued because the thread stopped for its own
         // reason first. It must be consumed before this thread is single-stepped.
@@ -80,6 +94,8 @@ namespace ElfBug
         bool mStepsPushf = false;
         bool mRunning = false;
         bool mAtBreakpoint = false;
+        bool mSuspended = false;
+        std::string mWaitReason;
         bool mPendingSigstop = false;
         bool mHasPendingBreakpoint = false;
         ptr mPendingBreakpoint = 0;

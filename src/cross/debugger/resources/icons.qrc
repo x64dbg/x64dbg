@@ -14,6 +14,10 @@
         <file>icons/memory-map.png</file>
         <file>icons/callstack.png</file>
         <file>icons/arrow-threads.png</file>
+        <file>icons/thread-switch.png</file>
+        <file>icons/thread-setname.png</file>
+        <file>icons/thread-pause.png</file>
+        <file>icons/thread-resume.png</file>
         <file>icons/bug.png</file>
         <file>index.theme</file>
     </qresource>

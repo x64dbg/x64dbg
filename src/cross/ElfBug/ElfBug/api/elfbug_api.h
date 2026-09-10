@@ -1,6 +1,7 @@
 #pragma once
 
-#include <cstdint>
+#include <stdint.h>
+#include <stdbool.h>
 #include <sys/types.h>
 
 #ifdef __cplusplus
@@ -33,6 +34,30 @@ typedef struct
     uint16_t cs, ds, es, fs, gs, ss;
     uint64_t fs_base, gs_base;
 } ElfBugRegisters;
+
+#define ELFBUG_THREAD_NAME_SIZE 16
+#define ELFBUG_WAIT_REASON_SIZE 32
+
+typedef struct
+{
+    pid_t tid;
+    uint32_t number; // 0 for the main thread, then creation order
+    uint64_t rip;
+    uint64_t fs_base; // thread pointer
+    uint64_t user_time_ms;
+    uint64_t kernel_time_ms;
+    uint64_t start_time_ms; // unix epoch milliseconds, 0 if unknown
+    int32_t nice;
+    int32_t policy; // SCHED_* value, -1 if unknown
+    int32_t rt_priority; // 1..99 for FIFO and RR, 0 otherwise
+    uint32_t suspend_count; // 0 or 1
+    char name[ELFBUG_THREAD_NAME_SIZE]; // /proc/<pid>/task/<tid>/comm, empty if unreadable
+    // Kernel function the thread was blocked in when the debugger stopped it, empty if
+    // it was running or stopped on its own.
+    char wait_reason[ELFBUG_WAIT_REASON_SIZE];
+    // TODO: entry needs the start routine recorded at clone; last error needs errno
+    // located through libc symbols. Both are Windows thread-list columns.
+} ElfBugThreadInfo;
 
 typedef void (*ElfBugCbCreateProcess)(pid_t pid, uint64_t entryPoint, void* userdata);
 typedef void (*ElfBugCbExitProcess)(int exitCode, void* userdata);
@@ -76,8 +101,22 @@ ELFBUG_EXPORT bool ElfBugStop(ElfBugDebugger* dbg);        // Thread-safe
 
 ELFBUG_EXPORT bool ElfBugGetRegisters(const ElfBugDebugger* dbg, ElfBugRegisters* regs);
 ELFBUG_EXPORT pid_t ElfBugGetPid(const ElfBugDebugger* dbg);
-// Thread the last stop was reported on. 0 while running or before the first stop.
+// Current thread while paused: the one that reported the stop, or the one last switched
+// to. 0 while running or before the first stop.
 ELFBUG_EXPORT pid_t ElfBugGetCurrentTid(const ElfBugDebugger* dbg);
+
+// Threads as of the last stop or thread event, ordered by number. Returns the total
+// count and copies up to `capacity` entries when `list` is non-null. Empty after exit.
+ELFBUG_EXPORT uint32_t ElfBugGetThreadList(const ElfBugDebugger* dbg, ElfBugThreadInfo* list, uint32_t capacity);
+
+// Make `tid` the current thread: registers, steps and the next resume act on it.
+// Fails unless the debuggee is paused and `tid` is one of its stopped threads.
+ELFBUG_EXPORT bool ElfBugSwitchThread(ElfBugDebugger* dbg, pid_t tid);
+
+// Freeze or thaw one thread. A suspended thread stays stopped across Continue and steps
+// until resumed. Paused only.
+ELFBUG_EXPORT bool ElfBugSetThreadSuspended(ElfBugDebugger* dbg, pid_t tid, bool suspended);
+
 ELFBUG_EXPORT ElfBugArch ElfBugGetArch(const ElfBugDebugger* dbg);
 
 ELFBUG_EXPORT bool ElfBugMemRead(const ElfBugDebugger* dbg, uint64_t addr, void* dest, uint64_t size);

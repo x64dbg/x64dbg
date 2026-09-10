@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <vector>
 #include <fcntl.h>
+#include <unistd.h>
 
 struct ElfBugDebugger : ElfBug::Debugger
 {
@@ -42,6 +43,180 @@ struct ElfBugDebugger : ElfBug::Debugger
         bool setOrDelete; // true = set, false = delete
     };
     std::vector<BpRequest> pendingBpRequests;
+
+    mutable std::mutex threadMutex;
+    std::unordered_map<pid_t, uint32_t> threadNumbers;
+    uint32_t nextThreadNumber = 0;
+    std::vector<ElfBugThreadInfo> threadList;
+
+    // Both guarded by threadMutex.
+    std::set<pid_t> suspendedTids;
+    std::unordered_map<pid_t, std::string> pauseWaitReasons;
+
+    static void copyWaitReason(const std::string & reason, char* out, const size_t size)
+    {
+        snprintf(out, size, "%s", reason.c_str());
+    }
+
+    // Pause sends a process-wide SIGSTOP, after which every thread reports a stop of its
+    // own and wchan no longer says where it was. Sample first.
+    void sampleWaitReasonsForPause()
+    {
+        std::lock_guard threads(threadMutex);
+        std::shared_lock lock(mProcessMutex);
+        pauseWaitReasons.clear();
+        if(!mProcess)
+            return;
+        for(const auto & [tid, thread] : mProcess->threads)
+        {
+            if(thread->isRunning())
+                pauseWaitReasons[tid] = readWaitReason(mProcess->pid, tid);
+        }
+    }
+
+    void clearPauseWaitReasons()
+    {
+        std::lock_guard lock(threadMutex);
+        pauseWaitReasons.clear();
+    }
+
+    static void readThreadName(const pid_t pid, const pid_t tid, char* name, const size_t size)
+    {
+        name[0] = '\0';
+        char path[64];
+        snprintf(path, sizeof(path), "/proc/%d/task/%d/comm", pid, tid);
+        FILE* f = fopen(path, "r");
+        if(!f)
+            return;
+        if(fgets(name, static_cast<int>(size), f))
+            name[strcspn(name, "\n")] = '\0';
+        fclose(f);
+    }
+
+    // btime from /proc/stat, in milliseconds. 0 until read, and stays 0 if unreadable.
+    uint64_t bootTimeMs = 0;
+
+    uint64_t readBootTimeMs()
+    {
+        if(bootTimeMs != 0)
+            return bootTimeMs;
+        FILE* f = fopen("/proc/stat", "r");
+        if(!f)
+            return 0;
+        char line[256];
+        while(fgets(line, sizeof(line), f))
+        {
+            uint64_t btime = 0;
+            if(sscanf(line, "btime %" SCNu64, &btime) == 1)
+            {
+                bootTimeMs = btime * 1000u;
+                break;
+            }
+        }
+        fclose(f);
+        return bootTimeMs;
+    }
+
+    // Fields after the last ')' of /proc/<pid>/task/<tid>/stat, so a comm with spaces
+    // or parentheses cannot shift them: utime, stime, nice, starttime, rt_priority, policy.
+    void readThreadStat(const pid_t pid, const pid_t tid, ElfBugThreadInfo & info)
+    {
+        info.policy = -1;
+        char path[64];
+        snprintf(path, sizeof(path), "/proc/%d/task/%d/stat", pid, tid);
+        FILE* f = fopen(path, "r");
+        if(!f)
+            return;
+        char line[1024];
+        const bool ok = fgets(line, sizeof(line), f) != nullptr;
+        fclose(f);
+        if(!ok)
+            return;
+
+        const char* fields = strrchr(line, ')');
+        if(!fields)
+            return;
+        uint64_t utime = 0, stime = 0, starttime = 0;
+        int32_t nice = 0;
+        uint32_t rtPriority = 0, policy = 0;
+        // Field 3 (state) onwards; the starred conversions skip what we do not need.
+        const int matched = sscanf(fields + 1,
+                                   " %*c %*d %*d %*d %*d %*d %*u %*u %*u %*u %*u %" SCNu64 " %" SCNu64
+                                   " %*d %*d %*d %" SCNd32 " %*d %*d %" SCNu64
+                                   " %*u %*d %*u %*u %*u %*u %*u %*u %*u %*u %*u %*u %*u %*u %*u %*d %*d %" SCNu32 " %" SCNu32,
+                                   &utime, &stime, &nice, &starttime, &rtPriority, &policy);
+        if(matched != 6)
+            return;
+
+        const long ticks = sysconf(_SC_CLK_TCK);
+        if(ticks <= 0)
+            return;
+        const auto ticksPerSecond = static_cast<uint64_t>(ticks);
+        info.user_time_ms = utime * 1000u / ticksPerSecond;
+        info.kernel_time_ms = stime * 1000u / ticksPerSecond;
+        const uint64_t boot = readBootTimeMs();
+        info.start_time_ms = boot ? boot + starttime * 1000u / ticksPerSecond : 0;
+        info.nice = nice;
+        info.rt_priority = static_cast<int32_t>(rtPriority);
+        info.policy = static_cast<int32_t>(policy);
+    }
+
+    // Tracer thread only. Registers are reread at a stop, when every thread is in
+    // ptrace-stop; a thread event while running keeps the last values.
+    void refreshThreadList(const bool readRegisters)
+    {
+        std::lock_guard threads(threadMutex);
+        std::vector<ElfBugThreadInfo> list;
+        {
+            std::unique_lock lock(mProcessMutex);
+            if(mProcess)
+            {
+                for(auto & [tid, thread] : mProcess->threads)
+                {
+                    const auto number = threadNumbers.find(tid);
+                    if(number == threadNumbers.end())
+                        continue;
+                    if(readRegisters && !thread->isRunning())
+                        thread->registers.Read();
+                    ElfBugThreadInfo info = {};
+                    info.tid = tid;
+                    info.number = number->second;
+                    info.rip = thread->registers.Native().rip;
+                    info.fs_base = thread->registers.Native().fs_base;
+                    readThreadStat(mProcess->pid, tid, info);
+                    info.suspend_count = suspendedTids.count(tid) ? 1u : 0u;
+                    std::string reason = thread->waitReason();
+                    if(reason.empty())
+                    {
+                        const auto sampled = pauseWaitReasons.find(tid);
+                        if(sampled != pauseWaitReasons.end())
+                            reason = sampled->second;
+                    }
+                    copyWaitReason(reason, info.wait_reason, sizeof(info.wait_reason));
+                    readThreadName(mProcess->pid, tid, info.name, sizeof(info.name));
+                    list.push_back(info);
+                }
+            }
+        }
+        std::sort(list.begin(), list.end(), [](const ElfBugThreadInfo & a, const ElfBugThreadInfo & b)
+        {
+            return a.number < b.number;
+        });
+        threadList = std::move(list);
+    }
+
+    uint32_t getThreadList(ElfBugThreadInfo* list, const uint32_t capacity) const
+    {
+        std::lock_guard lock(threadMutex);
+        const auto count = static_cast<uint32_t>(threadList.size());
+        if(list)
+        {
+            const uint32_t n = std::min(count, capacity);
+            for(uint32_t i = 0; i < n; ++i)
+                list[i] = threadList[i];
+        }
+        return count;
+    }
 
     void refreshMemoryMap()
     {
@@ -290,6 +465,13 @@ protected:
     {
         activePid.store(pid, std::memory_order_release);
         entryPoint = ep;
+        {
+            std::lock_guard lock(threadMutex);
+            threadNumbers.clear();
+            threadNumbers[pid] = 0;
+            nextThreadNumber = 1;
+        }
+        refreshThreadList(false);
         refreshMemoryMap();
         active.store(true, std::memory_order_release);
         if(cb.onCreateProcess)
@@ -313,18 +495,37 @@ protected:
             std::lock_guard lock(bpQueueMutex);
             pendingBpRequests.clear();
         }
+        {
+            std::lock_guard lock(threadMutex);
+            threadNumbers.clear();
+            threadList.clear();
+            suspendedTids.clear();
+            pauseWaitReasons.clear();
+        }
         if(cb.onExitProcess)
             cb.onExitProcess(exitCode, cb.userdata);
     }
 
     void cbCreateThreadEvent(const pid_t tid) override
     {
+        {
+            std::lock_guard lock(threadMutex);
+            threadNumbers[tid] = nextThreadNumber++;
+        }
+        refreshThreadList(false);
         if(cb.onCreateThread)
             cb.onCreateThread(tid, cb.userdata);
     }
 
     void cbExitThreadEvent(const pid_t tid) override
     {
+        {
+            std::lock_guard lock(threadMutex);
+            threadNumbers.erase(tid);
+            suspendedTids.erase(tid);
+            pauseWaitReasons.erase(tid);
+        }
+        refreshThreadList(false);
         if(cb.onExitThread)
             cb.onExitThread(tid, cb.userdata);
     }
@@ -337,6 +538,7 @@ protected:
             entryPoint = mThread->registers.Gip();
             refreshMemoryMap();
             processPendingBreakpoints();
+            refreshThreadList(true);
         }
         if(cb.onSystemBreakpoint)
             cb.onSystemBreakpoint(cb.userdata);
@@ -346,6 +548,7 @@ protected:
     {
         processPendingBreakpoints();
         refreshMemoryMap();
+        refreshThreadList(true);
         if(cb.onBreakpoint)
             cb.onBreakpoint(info.address, cb.userdata);
     }
@@ -354,6 +557,7 @@ protected:
     {
         processPendingBreakpoints();
         refreshMemoryMap();
+        refreshThreadList(true);
         if(cb.onStep)
             cb.onStep(cb.userdata);
     }
@@ -362,6 +566,7 @@ protected:
     {
         processPendingBreakpoints();
         refreshMemoryMap();
+        refreshThreadList(true);
         if(cb.onPaused)
             cb.onPaused(cb.userdata);
     }
@@ -370,6 +575,7 @@ protected:
     {
         processPendingBreakpoints();
         refreshMemoryMap();
+        refreshThreadList(true);
         if(cb.onException)
             cb.onException(signal, address, cb.userdata);
     }
@@ -427,6 +633,7 @@ extern "C" {
     {
         if(!dbg)
             return;
+        dbg->clearPauseWaitReasons();
         dbg->Continue();
     }
 
@@ -434,6 +641,7 @@ extern "C" {
     {
         if(!dbg)
             return;
+        dbg->clearPauseWaitReasons();
         dbg->StepInto();
     }
 
@@ -441,6 +649,7 @@ extern "C" {
     {
         if(!dbg)
             return;
+        dbg->clearPauseWaitReasons();
         dbg->StepOver();
     }
 
@@ -448,6 +657,7 @@ extern "C" {
     {
         if(!dbg)
             return;
+        dbg->sampleWaitReasonsForPause();
         dbg->Pause();
     }
 
@@ -477,6 +687,44 @@ extern "C" {
         if(!dbg)
             return 0;
         return dbg->currentTid();
+    }
+
+    uint32_t ElfBugGetThreadList(const ElfBugDebugger* dbg, ElfBugThreadInfo* list, const uint32_t capacity)
+    {
+        if(!dbg)
+            return 0;
+        return dbg->getThreadList(list, capacity);
+    }
+
+    bool ElfBugSwitchThread(ElfBugDebugger* dbg, const pid_t tid)
+    {
+        if(!dbg)
+            return false;
+        if(!dbg->active.load(std::memory_order_acquire))
+            return false;
+        return dbg->SwitchThread(tid);
+    }
+
+    bool ElfBugSetThreadSuspended(ElfBugDebugger* dbg, const pid_t tid, const bool suspended)
+    {
+        if(!dbg)
+            return false;
+        if(!dbg->active.load(std::memory_order_acquire))
+            return false;
+        if(!dbg->SetThreadSuspended(tid, suspended))
+            return false;
+
+        std::lock_guard lock(dbg->threadMutex);
+        if(suspended)
+            dbg->suspendedTids.insert(tid);
+        else
+            dbg->suspendedTids.erase(tid);
+        for(auto & info : dbg->threadList)
+        {
+            if(info.tid == tid)
+                info.suspend_count = suspended ? 1u : 0u;
+        }
+        return true;
     }
 
     ElfBugArch ElfBugGetArch(const ElfBugDebugger* dbg)

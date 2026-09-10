@@ -9,6 +9,7 @@
 #include <Memory/MemoryPage.h>
 #include "core/LinuxArchitecture.h"
 #include "gui/CPUStack.h"
+#include "gui/ThreadView.h"
 
 static LinuxArchitecture gArch;
 
@@ -43,6 +44,23 @@ MainWindow::MainWindow(QWidget* parent)
     actionOpen->setShortcut(QKeySequence::Open);
     menuFile->addSeparator();
     menuFile->addAction(tr("E&xit"), this, &QWidget::close);
+
+    const auto menuView = menuBar()->addMenu(tr("&View"));
+    const auto actionCpu = menuView->addAction(icon("processor-cpu"), tr("&CPU"), this, [this]
+    {
+        mTabWidget->setCurrentIndex(0);
+    });
+    actionCpu->setShortcut(ConfigShortcut("ViewCpu"));
+    const auto actionLog = menuView->addAction(icon("log"), tr("&Log"), this, [this]
+    {
+        mTabWidget->setCurrentWidget(mLog);
+    });
+    actionLog->setShortcut(ConfigShortcut("ViewLog"));
+    const auto actionThreads = menuView->addAction(icon("arrow-threads"), tr("&Threads"), this, [this]
+    {
+        mTabWidget->setCurrentWidget(mThreadView);
+    });
+    actionThreads->setShortcut(ConfigShortcut("ViewThreads"));
 
     const auto menuDebug = menuBar()->addMenu(tr("&Debug"));
     const auto actionRun = menuDebug->addAction(tr("&Run"), this, &MainWindow::onContinue);
@@ -141,7 +159,9 @@ void MainWindow::setupTabs()
     mTabWidget->addTab(makePlaceholder(tr("Breakpoints view - not yet implemented")), icon("breakpoint"), tr("Breakpoints"));
     mTabWidget->addTab(makePlaceholder(tr("Memory map view - not yet implemented")), icon("memory-map"), tr("Memory Map"));
     mTabWidget->addTab(makePlaceholder(tr("Call stack view - not yet implemented")), icon("callstack"), tr("Call Stack"));
-    mTabWidget->addTab(makePlaceholder(tr("Threads view - not yet implemented")), icon("arrow-threads"), tr("Threads"));
+    mThreadView = new ThreadView(mProvider, this);
+    mThreadView->setAccessibleName(tr("Threads"));
+    mTabWidget->addTab(mThreadView, icon("arrow-threads"), tr("Threads"));
 
     onLogMessage("[x64dbg] Ready. Open an ELF binary to begin debugging.");
 }

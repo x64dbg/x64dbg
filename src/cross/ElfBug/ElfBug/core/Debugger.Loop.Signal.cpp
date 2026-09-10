@@ -200,6 +200,7 @@ namespace ElfBug
                 if(!thread)
                     continue;
 
+                thread->setWaitReason(readWaitReason(tgid, tid));
                 if(tgkill(tgid, tid, SIGSTOP) == -1)
                 {
                     if(errno != ESRCH)
@@ -260,6 +261,8 @@ namespace ElfBug
                 thread->setRunning(false);
 
                 const bool ownReason = WSTOPSIG(status) != SIGSTOP;
+                if(ownReason)
+                    thread->setWaitReason({});
                 thread->setPendingSigstop(ownReason);
                 if(ownReason)
                     repairStoppedThread(thread, status);
@@ -284,6 +287,7 @@ namespace ElfBug
         }
 
         const bool wasRunning = mThread && mThread->isRunning();
+        const bool suspended = mThread && mThread->isSuspended();
 
         if(mThread)
         {
@@ -353,7 +357,9 @@ namespace ElfBug
                 }
             }
 
-            else if(!mAllStopped || wasRunning || pid == mSteppingOff || !mThread)
+            // A stray SIGSTOP for a thread the user froze; leave it stopped rather than
+            // letting this catch-all wake it back up.
+            else if(!suspended && (!mAllStopped || wasRunning || pid == mSteppingOff || !mThread))
             {
                 if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
                 {

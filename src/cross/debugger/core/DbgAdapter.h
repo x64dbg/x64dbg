@@ -1,11 +1,33 @@
 #pragma once
 
 #include <atomic>
+#include <mutex>
+#include <QHash>
+#include <QVector>
 #include <ElfBug/api/elfbug_api.h>
 #include "RegisterContext.h"
 #include "Bridge.h"
 
 Q_DECLARE_METATYPE(REGDUMP)
+
+struct DbgThreadInfo
+{
+    pid_t tid = 0;
+    uint32_t number = 0;
+    duint rip = 0;
+    duint fsBase = 0;
+    uint64_t userTimeMs = 0;
+    uint64_t kernelTimeMs = 0;
+    uint64_t startTimeMs = 0;
+    int32_t nice = 0;
+    int32_t policy = -1;
+    int32_t rtPriority = 0;
+    uint32_t suspendCount = 0;
+    QString name;
+    QString waitReason;
+};
+
+Q_DECLARE_METATYPE(QVector<DbgThreadInfo>)
 
 class DbgAdapter : public QObject, public MemoryProvider
 {
@@ -39,6 +61,13 @@ public:
 
     [[nodiscard]] bool toggleBreakpoint(duint addr) const;
     [[nodiscard]] bool hasBreakpoint(duint addr) const;
+    void refreshThreads();
+    bool switchThread(pid_t tid);
+
+    // Empty name removes the label and shows comm again.
+    void setThreadName(pid_t tid, const QString & name);
+    bool setThreadSuspended(pid_t tid, bool suspended);
+    void setAllThreadsSuspended(bool suspended);
 
 signals:
     void processCreated(duint entryPoint);
@@ -46,6 +75,7 @@ signals:
     void registersUpdated(const REGDUMP & regs);
     void logMessage(const QString & msg);
     void stopped(duint rip, const QString & reason);
+    void threadsUpdated(const QVector<DbgThreadInfo> & threads, pid_t currentTid);
 
 private:
     static BPXTYPE queryBreakpoint(duint addr);
@@ -70,4 +100,7 @@ private:
 
     ElfBugDebugger* mDebugger = nullptr;
     duint mEntryPoint = 0;
+
+    std::mutex mThreadNameMutex;
+    QHash<pid_t, QString> mThreadNames;
 };

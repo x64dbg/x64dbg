@@ -45,6 +45,7 @@ FetchContent_MakeAvailable(Catch2)
 set(ElfBug_tests_SOURCES
 	SymbolHelper.h
 	TestHarness.h
+	api_c_compat.c
 	cmake.toml
 	tests.cpp
 )
@@ -60,6 +61,7 @@ target_compile_definitions(ElfBug_tests PRIVATE
 
 target_compile_features(ElfBug_tests PRIVATE
 	cxx_std_20
+	c_std_11
 )
 
 target_link_libraries(ElfBug_tests PRIVATE
@@ -70,6 +72,10 @@ target_link_libraries(ElfBug_tests PRIVATE
 set_target_properties(ElfBug_tests PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY
 		"${CMAKE_BINARY_DIR}/tests"
+	C_STANDARD
+		11
+	C_STANDARD_REQUIRED
+		ON
 )
 
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)

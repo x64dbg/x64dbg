@@ -16,6 +16,8 @@
 #include <set>
 #include <thread>
 #include <unistd.h>
+#include <sched.h>
+#include <sys/resource.h>
 
 #define FIXTURE(name) (std::string(ELFBUG_TESTS_TARGETS_DIR "/") + (name))
 
@@ -2384,6 +2386,406 @@ TEST_CASE("Stop while a hot-path breakpoint is armed still reports the exit", "[
     }
 }
 
+// The stop that was switched away from still owes the signal it reported. A step on the
+// switched thread must not carry it: the handler has to run on the thread that faulted.
+TEST_CASE("A step after a thread switch keeps the reported signal on its thread", "[multithread][exception]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("threads_spin");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    struct Sites
+    {
+        std::optional<ElfBug::ptr> armed;
+        std::optional<ElfBug::ptr> handlerTid;
+    };
+    std::promise<Sites> promise;
+    auto future = promise.get_future();
+    dbg.OnSystemBreakpoint([&]
+    {
+        const pid_t pid = dbg.process()->pid;
+        promise.set_value({
+            ResolveRuntimeAddress(path, pid, "ts_fault_armed"),
+            ResolveRuntimeAddress(path, pid, "ts_fault_handler_tid")});
+    });
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    const auto s = future.get();
+    REQUIRE(s.armed.has_value());
+    REQUIRE(s.handlerTid.has_value());
+    const pid_t mainTid = dbg.process()->pid;
+
+    dbg.Continue();
+    pid_t workerTid = 0;
+    for(int i = 0; i < 4; ++i)
+        workerTid = dbg.WaitFor(EventType::CreateThread).pid;
+    dbg.Pause();
+    dbg.WaitForPaused();
+
+    constexpr int armed = 1;
+    REQUIRE(dbg.process()->MemWrite(*s.armed, &armed, sizeof(armed)));
+    dbg.Continue();
+    const Event fault = dbg.WaitForException(SIGSEGV, std::chrono::seconds(10));
+    REQUIRE(fault.pid == mainTid);
+
+    SECTION("stepping the switched thread")
+    {
+        REQUIRE(dbg.SwitchThread(workerTid));
+        REQUIRE(dbg.currentThread()->tid == workerTid);
+        dbg.StepInto();
+        REQUIRE(dbg.WaitForStep().pid == workerTid);
+    }
+
+    SECTION("stepping the reporting thread after switching away and back")
+    {
+        REQUIRE(dbg.SwitchThread(workerTid));
+        dbg.StepInto();
+        REQUIRE(dbg.WaitForStep().pid == workerTid);
+        REQUIRE(dbg.SwitchThread(mainTid));
+        REQUIRE(dbg.currentThread()->tid == mainTid);
+        dbg.StepInto();
+        REQUIRE(dbg.WaitForStep().pid == mainTid);
+    }
+
+    constexpr int disarmed = 0;
+    REQUIRE(dbg.process()->MemWrite(*s.armed, &disarmed, sizeof(disarmed)));
+    dbg.Continue();
+    REQUIRE(dbg.WaitForRunning());
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+    dbg.Pause();
+    dbg.WaitForPaused();
+    int handlerTid = 0;
+    REQUIRE(dbg.process()->MemRead(*s.handlerTid, &handlerTid, sizeof(handlerTid)));
+    REQUIRE(handlerTid == mainTid);
+    REQUIRE(dbg.count(EventType::Exception) == 1);
+
+    dbg.Stop();
+    dbg.WaitForExit();
+    dbg.JoinThread();
+}
+
+namespace
+{
+    struct SpinSession
+    {
+        ElfBug::test::RecordingDebugger dbg;
+        std::string path;
+        pid_t mainTid = 0;
+        std::vector<pid_t> workers;
+        ElfBug::ptr counters = 0;
+
+        // Starts threads_spin, waits for its four workers, and pauses the process.
+        SpinSession()
+            : path(FIXTURE("threads_spin"))
+        {
+            using namespace ElfBug::test;
+            REQUIRE(dbg.Init(path.c_str()));
+            std::promise<std::optional<ElfBug::ptr>> promise;
+            auto future = promise.get_future();
+            dbg.OnSystemBreakpoint([&]
+            {
+                promise.set_value(ResolveRuntimeAddress(path, dbg.process()->pid, "ts_counters"));
+            });
+            dbg.StartOnThread();
+            dbg.WaitForSystemBreakpoint();
+            const auto resolved = future.get();
+            REQUIRE(resolved.has_value());
+            counters = *resolved;
+            mainTid = dbg.process()->pid;
+
+            dbg.Continue();
+            for(int i = 0; i < 4; ++i)
+                workers.push_back(dbg.WaitFor(EventType::CreateThread).pid);
+            dbg.Pause();
+            dbg.WaitForPaused();
+        }
+
+        std::uint64_t Sum()
+        {
+            std::uint64_t slots[4] = {};
+            REQUIRE(dbg.process()->MemRead(counters, slots, sizeof(slots)));
+            return slots[0] + slots[1] + slots[2] + slots[3];
+        }
+
+        // Runs the process for a moment and pauses it again.
+        void RunBriefly()
+        {
+            dbg.Continue();
+            REQUIRE(dbg.WaitForRunning());
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            dbg.Pause();
+            dbg.WaitForPaused();
+        }
+
+        ~SpinSession()
+        {
+            dbg.Stop();
+            dbg.WaitForExit();
+            dbg.JoinThread();
+        }
+    };
+}
+
+TEST_CASE("Suspended threads stay frozen across Continue", "[multithread][suspend]")
+{
+    SpinSession s;
+    for(const pid_t tid : s.workers)
+        REQUIRE(s.dbg.SetThreadSuspended(tid, true));
+
+    const std::uint64_t before = s.Sum();
+    s.RunBriefly();
+    REQUIRE(s.Sum() == before);
+
+    for(const pid_t tid : s.workers)
+        REQUIRE(s.dbg.SetThreadSuspended(tid, false));
+    s.RunBriefly();
+    REQUIRE(s.Sum() > before);
+}
+
+TEST_CASE("Continue with every thread suspended reports a pause instead of running nothing", "[multithread][suspend]")
+{
+    SpinSession s;
+    REQUIRE(s.dbg.SetThreadSuspended(s.mainTid, true));
+    for(const pid_t tid : s.workers)
+        REQUIRE(s.dbg.SetThreadSuspended(tid, true));
+
+    const std::uint64_t before = s.Sum();
+    s.dbg.Continue();
+    s.dbg.WaitForPaused();
+    REQUIRE(s.dbg.IsPaused());
+    REQUIRE(s.Sum() == before);
+}
+
+TEST_CASE("A step on a suspended thread is ignored", "[multithread][suspend][step]")
+{
+    SpinSession s;
+    const pid_t worker = s.workers.front();
+    REQUIRE(s.dbg.SetThreadSuspended(worker, true));
+    REQUIRE(s.dbg.SwitchThread(worker));
+
+    s.dbg.StepInto();
+    REQUIRE_THROWS_AS(s.dbg.WaitFor(ElfBug::test::EventType::Step, std::chrono::milliseconds(300)), std::runtime_error);
+    REQUIRE(s.dbg.IsPaused());
+
+    s.dbg.StepOver();
+    REQUIRE_THROWS_AS(s.dbg.WaitFor(ElfBug::test::EventType::Step, std::chrono::milliseconds(300)), std::runtime_error);
+    REQUIRE(s.dbg.IsPaused());
+}
+
+TEST_CASE("SetThreadSuspended refuses while running and for an unknown tid", "[multithread][suspend]")
+{
+    SpinSession s;
+    REQUIRE_FALSE(s.dbg.SetThreadSuspended(1, true));
+    s.dbg.Continue();
+    REQUIRE(s.dbg.WaitForRunning());
+    REQUIRE_FALSE(s.dbg.SetThreadSuspended(s.workers.front(), true));
+    s.dbg.Pause();
+    s.dbg.WaitForPaused();
+}
+
+TEST_CASE("Queued breakpoints on suspended threads wait for the resume", "[multithread][suspend][breakpoint]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("threads_spin");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    dbg.OnSystemBreakpoint([&]
+    {
+        const auto site = ResolveRuntimeAddress(path, dbg.process()->pid, "ts_worker_started");
+        if(site)
+            dbg.process()->SetBreakpoint(*site, false, ElfBug::SoftwareType::ShortInt3);
+    });
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+
+    dbg.Continue();
+    const Event first = dbg.WaitFor(EventType::Breakpoint, std::chrono::seconds(10));
+
+    std::vector<pid_t> others;
+    for(const auto & e : dbg.events())
+        if(e.type == EventType::CreateThread && e.pid != first.pid)
+            others.push_back(e.pid);
+    for(const pid_t tid : others)
+        REQUIRE(dbg.SetThreadSuspended(tid, true));
+
+    // A worker not yet created when `others` was taken could not have been suspended
+    // and may still legitimately reach the breakpoint on its own; nothing in `others` may.
+    // Each hit needs its own Continue, the same as any other stop.
+    for(;;)
+    {
+        dbg.Continue();
+        Event hit{};
+        try
+        {
+            hit = dbg.WaitFor(EventType::Breakpoint, std::chrono::milliseconds(500));
+        }
+        catch(const std::runtime_error &)
+        {
+            break;
+        }
+        REQUIRE(std::find(others.begin(), others.end(), hit.pid) == others.end());
+    }
+
+    dbg.Pause();
+    dbg.WaitForPaused();
+    for(const pid_t tid : others)
+        REQUIRE(dbg.SetThreadSuspended(tid, false));
+
+    std::size_t hits = 0;
+    for(std::size_t i = 0; i < others.size(); ++i)
+    {
+        dbg.Continue();
+        const Event hit = dbg.WaitFor(EventType::Breakpoint, std::chrono::seconds(10));
+        REQUIRE(std::find(others.begin(), others.end(), hit.pid) != others.end());
+        ++hits;
+    }
+    REQUIRE(hits == others.size());
+
+    dbg.Stop();
+    dbg.WaitForExit();
+    dbg.JoinThread();
+}
+
+// Main sleeps one millisecond per loop, so once the workers exist a worker's stop almost
+// always finds it parked in nanosleep. The reporting worker was running, so it has no reason.
+TEST_CASE("The sweep records where a frozen thread was blocked", "[multithread][waitreason]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("threads_spin");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    std::promise<std::optional<ElfBug::ptr>> promise;
+    auto future = promise.get_future();
+    dbg.OnSystemBreakpoint([&]
+    {
+        promise.set_value(ResolveRuntimeAddress(path, dbg.process()->pid, "ts_worker_tick"));
+    });
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    const auto site = future.get();
+    REQUIRE(site.has_value());
+    const pid_t mainTid = dbg.process()->pid;
+
+    // Arm the hot site only once every worker exists and main is in its sleep loop.
+    dbg.Continue();
+    for(int i = 0; i < 4; ++i)
+        dbg.WaitFor(EventType::CreateThread);
+    dbg.Pause();
+    dbg.WaitForPaused();
+    REQUIRE(dbg.process()->SetBreakpoint(*site, false, ElfBug::SoftwareType::ShortInt3));
+
+    std::string mainReason;
+    std::string workerReason = "unset";
+    for(int attempt = 0; attempt < 10 && mainReason.empty(); ++attempt)
+    {
+        dbg.Continue();
+        const Event hit = dbg.WaitFor(EventType::Breakpoint, std::chrono::seconds(10));
+        REQUIRE(hit.pid != mainTid);
+        mainReason = dbg.process()->threads.at(mainTid)->waitReason();
+        workerReason = dbg.process()->threads.at(hit.pid)->waitReason();
+    }
+    CAPTURE(mainReason);
+    REQUIRE(mainReason.find("nanosleep") != std::string::npos);
+    REQUIRE(workerReason.empty());
+
+    REQUIRE(dbg.process()->DeleteBreakpoint(*site));
+    dbg.Stop();
+    dbg.WaitForExit();
+    dbg.JoinThread();
+}
+
+// A hit the sweep queued on a child is consumed when the user steps that child off the
+// address. Only the parent revisits ct_site, so a child reporting it twice is the defect.
+TEST_CASE("Stepping a thread off a queued breakpoint consumes the hit", "[multithread][breakpoint][step]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("clone_trap");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    dbg.OnSystemBreakpoint([&]
+    {
+        const auto site = ResolveRuntimeAddress(path, dbg.process()->pid, "ct_site");
+        if(site)
+            dbg.process()->SetBreakpoint(*site, false, ElfBug::SoftwareType::ShortInt3);
+    });
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    const pid_t mainTid = dbg.process()->pid;
+
+    pid_t queued = 0;
+    Event last;
+    for(int round = 0; round < 1000 && queued == 0; ++round)
+    {
+        dbg.Continue();
+        last = dbg.WaitForAny({EventType::Breakpoint, EventType::ExitProcess, EventType::Exception},
+                              std::chrono::seconds(10));
+        if(last.type != EventType::Breakpoint)
+            break;
+        for(const auto & [tid, thread] : dbg.process()->threads)
+        {
+            if(tid != mainTid && tid != last.pid && thread->hasPendingBreakpoint())
+            {
+                queued = tid;
+                break;
+            }
+        }
+    }
+    REQUIRE(queued != 0);
+
+    REQUIRE(dbg.SwitchThread(queued));
+    dbg.StepInto();
+    REQUIRE(dbg.WaitForStep().pid == queued);
+    const std::size_t hitsBeforeRun = dbg.count(EventType::Breakpoint);
+
+    for(int round = 0; round < 1000; ++round)
+    {
+        dbg.Continue();
+        last = dbg.WaitForAny({EventType::Breakpoint, EventType::ExitProcess, EventType::Exception},
+                              std::chrono::seconds(10));
+        if(last.type == EventType::ExitProcess)
+            break;
+        REQUIRE(last.type == EventType::Breakpoint);
+        REQUIRE(last.pid != queued);
+    }
+    dbg.JoinThread();
+
+    REQUIRE(last.type == EventType::ExitProcess);
+    REQUIRE(last.exitCode == 0);
+    REQUIRE(dbg.count(EventType::Exception) == 0);
+    REQUIRE(dbg.count(EventType::Breakpoint) == 63);
+    REQUIRE(dbg.count(EventType::InternalError) == 0);
+    REQUIRE(hitsBeforeRun >= 1);
+}
+
+TEST_CASE("Pause while already paused does not queue a stop", "[control]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("run_endlessly");
+    REQUIRE(dbg.Init(path.c_str()));
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+
+    dbg.Pause();
+    dbg.Continue();
+    REQUIRE(dbg.WaitForRunning());
+    REQUIRE_THROWS_AS(dbg.WaitFor(EventType::Paused, std::chrono::milliseconds(500)), std::runtime_error);
+
+    dbg.Pause();
+    dbg.WaitForPaused();
+    dbg.Stop();
+    dbg.WaitForExit();
+    dbg.JoinThread();
+}
+
 namespace
 {
     // Records what the C API hands its callbacks.
@@ -2601,6 +3003,7 @@ TEST_CASE("C API reports thread creation and exit", "[api][thread]")
     REQUIRE(s.WaitForExit());
 
     REQUIRE(*s.events.exitCode == 5);
+    REQUIRE(ElfBugGetThreadList(s.dbg, nullptr, 0) == 0);
     const std::set<pid_t> created(s.events.createdTids.begin(), s.events.createdTids.end());
     const std::set<pid_t> exited(s.events.exitedTids.begin(), s.events.exitedTids.end());
     REQUIRE(s.events.createdTids.size() == 5);
@@ -2634,4 +3037,170 @@ TEST_CASE("C API reports which thread stopped", "[api][thread]")
 
     REQUIRE(ElfBugStop(s.dbg));
     REQUIRE(s.WaitForExit(std::chrono::seconds(10)));
+}
+
+TEST_CASE("C API lists every thread of a paused process", "[api][thread]")
+{
+    const auto nowMs = []
+    {
+        return static_cast<std::uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                                              std::chrono::system_clock::now().time_since_epoch()).count());
+    };
+    const std::uint64_t before = nowMs();
+    ApiSession s(FIXTURE("threads_spin"));
+    REQUIRE(s.Started());
+    REQUIRE(s.WaitForSystemBreakpoint());
+
+    ElfBugThreadInfo main = {};
+    REQUIRE(ElfBugGetThreadList(s.dbg, &main, 1) == 1);
+    REQUIRE(main.tid == ElfBugGetPid(s.dbg));
+    REQUIRE(main.number == 0);
+    ElfBugRegisters regs = {};
+    REQUIRE(ElfBugGetRegisters(s.dbg, &regs));
+    REQUIRE(main.rip == regs.rip);
+    REQUIRE(main.fs_base == regs.fs_base);
+    REQUIRE(std::string(main.name) == "threads_spin");
+    REQUIRE(main.policy == sched_getscheduler(0));
+    REQUIRE(main.nice == getpriority(PRIO_PROCESS, 0));
+    REQUIRE(main.rt_priority == 0);
+    REQUIRE(main.start_time_ms + 2000 >= before);
+    REQUIRE(main.start_time_ms <= nowMs() + 2000);
+
+    ElfBugContinue(s.dbg);
+    REQUIRE(s.events.WaitFor([&] { return s.events.createdTids.size() == 4; }, std::chrono::seconds(10)));
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    ElfBugPause(s.dbg);
+    REQUIRE(s.events.WaitFor([&] { return s.events.paused; }));
+
+    REQUIRE(ElfBugGetThreadList(s.dbg, nullptr, 0) == 5);
+    ElfBugThreadInfo three[3] = {};
+    three[2].tid = -1;
+    REQUIRE(ElfBugGetThreadList(s.dbg, three, 2) == 5);
+    REQUIRE(three[0].number == 0);
+    REQUIRE(three[1].number == 1);
+    REQUIRE(three[2].tid == -1);
+
+    ElfBugThreadInfo all[5] = {};
+    REQUIRE(ElfBugGetThreadList(s.dbg, all, 5) == 5);
+    std::uint64_t workerCpuMs = 0;
+    std::lock_guard lock(s.events.mutex);
+    for(uint32_t i = 0; i < 5; ++i)
+    {
+        CAPTURE(i);
+        REQUIRE(all[i].number == i);
+        REQUIRE(all[i].rip != 0);
+        REQUIRE(all[i].fs_base != 0);
+        REQUIRE(std::string(all[i].name) == "threads_spin");
+        REQUIRE(all[i].policy == sched_getscheduler(0));
+        REQUIRE(all[i].start_time_ms >= all[0].start_time_ms);
+        if(i == 0)
+            REQUIRE(all[i].tid == s.events.pid);
+        else
+        {
+            REQUIRE(all[i].tid == s.events.createdTids[i - 1]);
+            workerCpuMs += all[i].user_time_ms + all[i].kernel_time_ms;
+        }
+    }
+    // Four spinners ran for 200 ms; even on two cores that is well past one 10 ms tick.
+    REQUIRE(workerCpuMs > 0);
+}
+
+TEST_CASE("C API switches the current thread", "[api][thread]")
+{
+    ApiSession s(FIXTURE("threads_spin"));
+    REQUIRE(s.Started());
+    REQUIRE(s.WaitForSystemBreakpoint());
+    ElfBugContinue(s.dbg);
+    REQUIRE(s.events.WaitFor([&] { return s.events.createdTids.size() == 4; }, std::chrono::seconds(10)));
+    ElfBugPause(s.dbg);
+    REQUIRE(s.events.WaitFor([&] { return s.events.paused; }));
+
+    ElfBugThreadInfo all[5] = {};
+    REQUIRE(ElfBugGetThreadList(s.dbg, all, 5) == 5);
+    const pid_t before = ElfBugGetCurrentTid(s.dbg);
+    const ElfBugThreadInfo* other = nullptr;
+    for(const auto & t : all)
+    {
+        if(t.tid != before)
+        {
+            other = &t;
+            break;
+        }
+    }
+    REQUIRE(other != nullptr);
+
+    REQUIRE(ElfBugSwitchThread(s.dbg, other->tid));
+    REQUIRE(ElfBugGetCurrentTid(s.dbg) == other->tid);
+    ElfBugRegisters regs = {};
+    REQUIRE(ElfBugGetRegisters(s.dbg, &regs));
+    REQUIRE(regs.rip == other->rip);
+
+    REQUIRE_FALSE(ElfBugSwitchThread(s.dbg, 1));
+
+    ElfBugContinue(s.dbg);
+    REQUIRE_FALSE(ElfBugSwitchThread(s.dbg, before));
+}
+
+TEST_CASE("C API suspends and resumes a thread", "[api][thread][suspend]")
+{
+    ApiSession s(FIXTURE("threads_spin"));
+    REQUIRE(s.Started());
+    REQUIRE(s.WaitForSystemBreakpoint());
+    ElfBugContinue(s.dbg);
+    REQUIRE(s.events.WaitFor([&] { return s.events.createdTids.size() == 4; }, std::chrono::seconds(10)));
+    ElfBugPause(s.dbg);
+    REQUIRE(s.events.WaitFor([&] { return s.events.paused; }));
+
+    ElfBugThreadInfo all[5] = {};
+    REQUIRE(ElfBugGetThreadList(s.dbg, all, 5) == 5);
+    const pid_t worker = all[1].tid;
+
+    REQUIRE(ElfBugSetThreadSuspended(s.dbg, worker, true));
+    REQUIRE(ElfBugGetThreadList(s.dbg, all, 5) == 5);
+    for(const auto & t : all)
+        REQUIRE(t.suspend_count == (t.tid == worker ? 1u : 0u));
+
+    REQUIRE(ElfBugSetThreadSuspended(s.dbg, worker, false));
+    REQUIRE(ElfBugGetThreadList(s.dbg, all, 5) == 5);
+    for(const auto & t : all)
+        REQUIRE(t.suspend_count == 0);
+
+    REQUIRE_FALSE(ElfBugSetThreadSuspended(s.dbg, 1, true));
+    ElfBugContinue(s.dbg);
+    REQUIRE_FALSE(ElfBugSetThreadSuspended(s.dbg, worker, true));
+}
+
+TEST_CASE("C API reports the wait reason at a pause", "[api][thread][waitreason]")
+{
+    ApiSession s(FIXTURE("threads_spin"));
+    REQUIRE(s.Started());
+    REQUIRE(s.WaitForSystemBreakpoint());
+    ElfBugContinue(s.dbg);
+    REQUIRE(s.events.WaitFor([&] { return s.events.createdTids.size() == 4; }, std::chrono::seconds(10)));
+
+    std::string mainReason;
+    ElfBugThreadInfo all[5] = {};
+    for(int attempt = 0; attempt < 3 && mainReason.empty(); ++attempt)
+    {
+        if(attempt > 0)
+        {
+            {
+                std::lock_guard lock(s.events.mutex);
+                s.events.paused = false;
+            }
+            ElfBugContinue(s.dbg);
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
+        ElfBugPause(s.dbg);
+        REQUIRE(s.events.WaitFor([&] { return s.events.paused; }));
+        REQUIRE(ElfBugGetThreadList(s.dbg, all, 5) == 5);
+        mainReason = all[0].wait_reason;
+    }
+    CAPTURE(mainReason);
+    REQUIRE(mainReason.find("nanosleep") != std::string::npos);
+    for(uint32_t i = 1; i < 5; ++i)
+    {
+        CAPTURE(i);
+        REQUIRE(all[i].wait_reason[0] == '\0');
+    }
 }

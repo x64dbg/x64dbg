@@ -190,6 +190,11 @@ namespace ElfBug
             std::lock_guard lock(mPauseMutex);
             if(!mPaused.load(std::memory_order_acquire))
                 return;
+            {
+                std::shared_lock processLock(mProcessMutex);
+                if(mThread && mThread->isSuspended())
+                    return;
+            }
             mStepPending.store(true, std::memory_order_release);
             mPaused.store(false, std::memory_order_release);
         }
@@ -202,10 +207,65 @@ namespace ElfBug
             std::lock_guard lock(mPauseMutex);
             if(!mPaused.load(std::memory_order_acquire))
                 return;
+            {
+                std::shared_lock processLock(mProcessMutex);
+                if(mThread && mThread->isSuspended())
+                    return;
+            }
             mStepOverPending.store(true, std::memory_order_release);
             mPaused.store(false, std::memory_order_release);
         }
         mPauseCv.notify_one();
+    }
+
+    bool Debugger::SwitchThread(const pid_t tid)
+    {
+        std::lock_guard pauseLock(mPauseMutex);
+        if(!mPaused.load(std::memory_order_acquire))
+            return false;
+
+        std::unique_lock lock(mProcessMutex);
+        if(!mProcess)
+            return false;
+        const auto it = mProcess->threads.find(tid);
+        if(it == mProcess->threads.end() || it->second->isRunning())
+            return false;
+        mThread = it->second.get();
+        return true;
+    }
+
+    bool Debugger::SetThreadSuspended(const pid_t tid, const bool suspended)
+    {
+        std::lock_guard pauseLock(mPauseMutex);
+        if(!mPaused.load(std::memory_order_acquire))
+            return false;
+
+        std::unique_lock lock(mProcessMutex);
+        if(!mProcess)
+            return false;
+        const auto it = mProcess->threads.find(tid);
+        if(it == mProcess->threads.end() || it->second->isRunning())
+            return false;
+        it->second->setSuspended(suspended);
+        return true;
+    }
+
+    std::string Debugger::readWaitReason(const pid_t tgid, const pid_t tid)
+    {
+        char path[64];
+        snprintf(path, sizeof(path), "/proc/%d/task/%d/wchan", tgid, tid);
+        const int fd = open(path, O_RDONLY | O_CLOEXEC);
+        if(fd == -1)
+            return {};
+        char buffer[64];
+        const ssize_t n = read(fd, buffer, sizeof(buffer) - 1);
+        close(fd);
+        if(n <= 0)
+            return {};
+        buffer[n] = '\0';
+        if(strcmp(buffer, "0") == 0)
+            return {};
+        return buffer;
     }
 
     void Debugger::maskPushedTrapFlag() const
@@ -375,11 +435,15 @@ namespace ElfBug
     void Debugger::Pause()
     {
         const pid_t pid = mMainPid.load(std::memory_order_acquire);
-        if(pid > 0)
+        if(pid <= 0)
+            return;
         {
+            std::lock_guard lock(mPauseMutex);
+            if(mPaused.load(std::memory_order_acquire))
+                return;
             mPauseRequested.store(true, std::memory_order_release);
-            kill(pid, SIGSTOP);
         }
+        kill(pid, SIGSTOP);
     }
 
     bool Debugger::Stop()

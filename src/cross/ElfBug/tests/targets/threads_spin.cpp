@@ -4,6 +4,7 @@
 #include <csignal>
 #include <ctime>
 #include <sys/mman.h>
+#include <sys/syscall.h>
 #include <unistd.h>
 
 extern "C"
@@ -13,6 +14,8 @@ extern "C"
     volatile int ts_stop = 0;
     // Breakpoint site: every worker passes through it exactly once.
     void ts_worker_started(int index);
+    // Breakpoint site in the spin loop, hit by each worker every 2^20 increments.
+    void ts_worker_tick();
     // Breakpoint site on the main thread, which touches no counter.
     void ts_tick();
 
@@ -24,6 +27,8 @@ extern "C"
     // Labels the faulting store, so a breakpoint can sit on it and the step off that byte
     // is what faults.
     void ts_fault_site();
+    // Thread the SIGSEGV handler ran on, so a test can see where a forwarded signal landed.
+    volatile int ts_fault_handler_tid = 0;
 }
 
 asm(R"(
@@ -44,6 +49,10 @@ extern "C" void ts_worker_started(const int index)
     (void)index;
 }
 
+extern "C" void ts_worker_tick()
+{
+}
+
 extern "C" void ts_tick()
 {
 }
@@ -55,7 +64,11 @@ namespace
         const auto index = static_cast<int>(reinterpret_cast<long>(arg));
         ts_worker_started(index);
         while(ts_stop == 0)
+        {
             ts_counters[index] = ts_counters[index] + 1;
+            if((ts_counters[index] & 0xFFFFF) == 0)
+                ts_worker_tick();
+        }
         return nullptr;
     }
 }
@@ -67,6 +80,7 @@ namespace
     // Make the store land on retry, so a reported fault does not kill the tracee.
     void onFault(int)
     {
+        ts_fault_handler_tid = static_cast<int>(syscall(SYS_gettid));
         mprotect(ts_fault_target, static_cast<size_t>(pageSize), PROT_READ | PROT_WRITE);
     }
 }
