@@ -62,14 +62,15 @@ namespace ElfBug
         const int sig = WSTOPSIG(status);
 
         // si_code is positive when the kernel raised the signal and zero or negative for
-        // kill, tkill and sigqueue. Queue conservatively when it cannot be read.
+        // kill, tkill and sigqueue. Unreadable means the thread already left this stop
+        // (exit_group kicked it out), so there is nothing left to forward.
         siginfo_t info{};
         const bool haveInfo = ptrace(PTRACE_GETSIGINFO, thread->tid, nullptr, &info) != -1;
         const bool hardware = haveInfo && info.si_code > 0;
 
         // Nothing else records it, so queue it for pauseAndResume to report and forward.
-        if(sweepShouldQueue(sig, hardware))
-            thread->setPendingSignal(sig, haveInfo ? reinterpret_cast<ptr>(info.si_addr) : 0, true);
+        if(haveInfo && sweepShouldQueue(sig, hardware))
+            thread->setPendingSignal(sig, reinterpret_cast<ptr>(info.si_addr), true);
 
         if(!mProcess || sig != SIGTRAP)
             return;
@@ -85,6 +86,7 @@ namespace ElfBug
 
         thread->registers.Gip() = bpAddr;
         thread->registers.Write();
+        thread->setAtBreakpoint(true);
         thread->setPendingBreakpoint(bpAddr);
     }
 
@@ -601,6 +603,20 @@ namespace ElfBug
         {
             if(!mThread)
             {
+                mUnregisteredRunning.erase(pid);
+                createThreadEvent(pid);
+                {
+                    std::shared_lock lock(mProcessMutex);
+                    if(mProcess)
+                    {
+                        const auto it = mProcess->threads.find(pid);
+                        if(it != mProcess->threads.end())
+                            mThread = it->second.get();
+                    }
+                }
+            }
+            if(!mThread)
+            {
                 if(ptrace(PTRACE_CONT, pid, nullptr, nullptr) == -1)
                 {
                     if(errno != ESRCH)
@@ -659,6 +675,7 @@ namespace ElfBug
 
                         if(planted)
                             mProcess->DeleteBreakpoint(target);
+                        mThread->setAtBreakpoint(!planted);
 
                         restoreSourceByte(pid);
 
@@ -700,6 +717,7 @@ namespace ElfBug
                 {
                     mThread->registers.Gip() = bpAddr;
                     mThread->registers.Write();
+                    mThread->setAtBreakpoint(true);
 
                     cancelStepOverIfOwner(pid);
                     stopAllThreads(pid);

@@ -26,8 +26,19 @@ namespace ElfBug
 
         // Constructed stopped: a clone is reported to us already stopped, and the main
         // thread stops on exec.
-        void setRunning(const bool running) { mRunning = running; }
+        void setRunning(const bool running)
+        {
+            mRunning = running;
+            if(running)
+                mAtBreakpoint = false;
+        }
         [[nodiscard]] bool isRunning() const { return mRunning; }
+
+        // RIP was rewound onto an armed breakpoint this thread hit. Only such a thread is
+        // stepped off the byte on resume; one frozen just before the byte has not hit it
+        // and must trap when it runs. Cleared by anything that lets the thread run.
+        void setAtBreakpoint(const bool at) { mAtBreakpoint = at; }
+        [[nodiscard]] bool atBreakpoint() const { return mAtBreakpoint; }
 
         // Set when our SIGSTOP was still queued because the thread stopped for its own
         // reason first. It must be consumed before this thread is single-stepped.
@@ -68,6 +79,7 @@ namespace ElfBug
         bool mIsSingleStepping = false;
         bool mStepsPushf = false;
         bool mRunning = false;
+        bool mAtBreakpoint = false;
         bool mPendingSigstop = false;
         bool mHasPendingBreakpoint = false;
         ptr mPendingBreakpoint = 0;

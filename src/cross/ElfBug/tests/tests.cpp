@@ -2115,6 +2115,43 @@ TEST_CASE("A step answering a fault reported mid-step-off keeps the other thread
 
 // A thread that already reported PTRACE_EVENT_EXIT owes the sweep no stop, so treating it
 // as running costs a waitpid that never returns. Regressions hang this test, not fail it.
+// waitpid can report the new thread's own stops before the parent's clone event, so the
+// first thing the core hears from a thread may be its breakpoint hit.
+TEST_CASE("A breakpoint hit before the thread's clone event is still a breakpoint", "[multithread][breakpoint]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("clone_trap");
+    REQUIRE(dbg.Init(path.c_str()));
+
+    dbg.OnSystemBreakpoint([&]
+    {
+        const auto site = ResolveRuntimeAddress(path, dbg.process()->pid, "ct_site");
+        if(site)
+            dbg.process()->SetBreakpoint(*site, false, ElfBug::SoftwareType::ShortInt3);
+    });
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+
+    Event last;
+    for(int round = 0; round < 1000; ++round)
+    {
+        dbg.Continue();
+        last = dbg.WaitForAny({EventType::Breakpoint, EventType::ExitProcess, EventType::Exception},
+                              std::chrono::seconds(10));
+        if(last.type == EventType::ExitProcess)
+            break;
+    }
+    dbg.JoinThread();
+
+    REQUIRE(last.type == EventType::ExitProcess);
+    REQUIRE(last.exitCode == 0);
+    REQUIRE(dbg.count(EventType::Exception) == 0);
+    REQUIRE(dbg.count(EventType::Breakpoint) == 64);
+    REQUIRE(dbg.count(EventType::InternalError) == 0);
+}
+
 TEST_CASE("A process exit racing the stop sweep is still reported", "[multithread][process]")
 {
     using namespace ElfBug::test;
@@ -2165,7 +2202,7 @@ TEST_CASE("A process exit racing the stop sweep is still reported", "[multithrea
         for(int round = 0; round < 400; ++round)
         {
             dbg.Continue();
-            last = dbg.WaitForAny({EventType::Breakpoint, EventType::ExitProcess},
+            last = dbg.WaitForAny({EventType::Breakpoint, EventType::ExitProcess, EventType::Exception},
                                   std::chrono::seconds(10));
             if(last.type == EventType::ExitProcess)
                 break;
@@ -2175,6 +2212,8 @@ TEST_CASE("A process exit racing the stop sweep is still reported", "[multithrea
 
         REQUIRE(last.type == EventType::ExitProcess);
         REQUIRE(last.exitCode == 7);
+        // The fixture raises nothing: a swept int3 must never come back as a signal.
+        REQUIRE(dbg.count(EventType::Exception) == 0);
         REQUIRE(dbg.count(EventType::InternalError) == 0);
     }
 }
