@@ -44,7 +44,8 @@ namespace ElfBug
         mPaused.store(true, std::memory_order_release);
     }
 
-    Thread* Debugger::findPendingBreakpointThread() const {
+    Thread* Debugger::findPendingBreakpointThread() const
+    {
         if(!mProcess)
             return nullptr;
 
@@ -57,7 +58,8 @@ namespace ElfBug
         return nullptr;
     }
 
-    Thread* Debugger::findPendingSignalThread() const {
+    Thread* Debugger::findPendingSignalThread() const
+    {
         if(!mProcess)
             return nullptr;
 

@@ -52,7 +52,8 @@ namespace ElfBug
         }
     }
 
-    void Debugger::repairStoppedThread(Thread* thread, const int status) const {
+    void Debugger::repairStoppedThread(Thread* thread, const int status) const
+    {
         if(!thread)
             return;
 
