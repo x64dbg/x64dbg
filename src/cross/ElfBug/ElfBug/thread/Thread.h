@@ -46,9 +46,17 @@ namespace ElfBug
         [[nodiscard]] ptr pendingBreakpoint() const { return mPendingBreakpoint; }
 
         // A signal the sweep read off the wait status, forwarded on the resume that
-        // unfreezes the thread. 0 means none.
-        void setPendingSignal(const int signal) { mPendingSignal = signal; }
+        // unfreezes the thread. 0 means none. Unreported until pauseAndResume reports it.
+        void setPendingSignal(const int signal, const ptr address, const bool unreported)
+        {
+            mPendingSignal = signal;
+            mPendingSignalAddress = address;
+            mPendingSignalUnreported = unreported;
+        }
+        void clearPendingSignal() { setPendingSignal(0, 0, false); }
         [[nodiscard]] int pendingSignal() const { return mPendingSignal; }
+        [[nodiscard]] ptr pendingSignalAddress() const { return mPendingSignalAddress; }
+        [[nodiscard]] bool pendingSignalUnreported() const { return mPendingSignalUnreported; }
 
         // TODO: implement via PTRACE_POKEUSER on debug register offsets
         [[nodiscard]] bool GetFreeHardwareBreakpointSlot(const HardwareSlot & slot) const;
@@ -64,5 +72,7 @@ namespace ElfBug
         bool mHasPendingBreakpoint = false;
         ptr mPendingBreakpoint = 0;
         int mPendingSignal = 0;
+        ptr mPendingSignalAddress = 0;
+        bool mPendingSignalUnreported = false;
     };
 }

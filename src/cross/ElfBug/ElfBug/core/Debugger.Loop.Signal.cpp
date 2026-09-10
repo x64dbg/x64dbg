@@ -33,26 +33,26 @@ namespace ElfBug
             ScopedSteppingOff & operator=(const ScopedSteppingOff &) = delete;
         };
 
-        bool sweepShouldQueue(const int signal)
+        bool sweepShouldQueue(const int signal, const bool hardware)
         {
             switch(signal)
             {
             case SIGSTOP:
+                return false;
             case SIGSEGV:
             case SIGBUS:
             case SIGFPE:
             case SIGILL:
             case SIGSYS:
             case SIGTRAP:
-                return false;
+                return !hardware;
             default:
                 return true;
             }
         }
     }
 
-    void Debugger::repairStoppedThread(Thread* thread, const int status)
-    {
+    void Debugger::repairStoppedThread(Thread* thread, const int status) const {
         if(!thread)
             return;
 
@@ -60,9 +60,15 @@ namespace ElfBug
 
         const int sig = WSTOPSIG(status);
 
-        // Nothing else records it, so queue it for the resume to forward.
-        if(sweepShouldQueue(sig))
-            thread->setPendingSignal(sig);
+        // si_code is positive when the kernel raised the signal and zero or negative for
+        // kill, tkill and sigqueue. Queue conservatively when it cannot be read.
+        siginfo_t info{};
+        const bool haveInfo = ptrace(PTRACE_GETSIGINFO, thread->tid, nullptr, &info) != -1;
+        const bool hardware = haveInfo && info.si_code > 0;
+
+        // Nothing else records it, so queue it for pauseAndResume to report and forward.
+        if(sweepShouldQueue(sig, hardware))
+            thread->setPendingSignal(sig, haveInfo ? reinterpret_cast<ptr>(info.si_addr) : 0, true);
 
         if(!mProcess || sig != SIGTRAP)
             return;
@@ -267,8 +273,15 @@ namespace ElfBug
         switch(sig)
         {
         case SIGTRAP:
-            handleSigtrap(pid, status);
+        {
+            siginfo_t info{};
+            if(((status >> 16) & 0xffff) == 0 &&
+                    ptrace(PTRACE_GETSIGINFO, pid, nullptr, &info) != -1 && info.si_code <= 0)
+                reportSignal(pid, sig);
+            else
+                handleSigtrap(pid, status);
             break;
+        }
 
         case SIGSTOP:
         {
@@ -334,35 +347,37 @@ namespace ElfBug
         }
 
         default:
-        {
-            ptr faultAddr = 0;
-            siginfo_t sigInfo;
-            if(ptrace(PTRACE_GETSIGINFO, pid, nullptr, &sigInfo) != -1)
-                faultAddr = reinterpret_cast<ptr>(sigInfo.si_addr);
-            if(mThread)
-            {
-                mThread->registers.Read();
-                mPendingSignal = sig;
-                abandonSingleStep(pid);
-                cancelStepOverIfOwner(pid);
-                stopAllThreads(pid);
-                beginPause();
-                cbExceptionEvent(sig, faultAddr);
-                if(!pauseAndResume(pid))
-                    break;
-            }
-            else
-            {
-                cbExceptionEvent(sig, faultAddr);
-                if(ptrace(PTRACE_CONT, pid, nullptr,
-                          reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
-                {
-                    if(errno != ESRCH)
-                        cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
-                }
-            }
+            reportSignal(pid, sig);
             break;
         }
+    }
+
+    void Debugger::reportSignal(const pid_t pid, const int sig)
+    {
+        ptr faultAddr = 0;
+        siginfo_t sigInfo;
+        if(ptrace(PTRACE_GETSIGINFO, pid, nullptr, &sigInfo) != -1)
+            faultAddr = reinterpret_cast<ptr>(sigInfo.si_addr);
+        if(mThread)
+        {
+            mThread->registers.Read();
+            mPendingSignal = sig;
+            abandonSingleStep(pid);
+            cancelStepOverIfOwner(pid);
+            stopAllThreads(pid);
+            beginPause();
+            cbExceptionEvent(sig, faultAddr);
+            pauseAndResume(pid);
+        }
+        else
+        {
+            cbExceptionEvent(sig, faultAddr);
+            if(ptrace(PTRACE_CONT, pid, nullptr,
+                      reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
+            {
+                if(errno != ESRCH)
+                    cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+            }
         }
     }
 

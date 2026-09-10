@@ -88,6 +88,7 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_exec_target
     elfbug_fixture_threads_spin
     elfbug_fixture_exit_race
+    elfbug_fixture_signal_race
 )
 
 # Target: elfbug_fixture_end_immediately
@@ -430,4 +431,41 @@ set_target_properties(elfbug_fixture_exit_race PROPERTIES
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_exit_race)
+endif()
+
+# Target: elfbug_fixture_signal_race
+set(elfbug_fixture_signal_race_SOURCES
+	cmake.toml
+	"targets/signal_race.cpp"
+)
+
+add_executable(elfbug_fixture_signal_race)
+
+target_sources(elfbug_fixture_signal_race PRIVATE ${elfbug_fixture_signal_race_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_signal_race_SOURCES})
+
+target_compile_options(elfbug_fixture_signal_race PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_signal_race PRIVATE
+	-pie
+)
+
+target_link_libraries(elfbug_fixture_signal_race PRIVATE
+	pthread
+)
+
+set_target_properties(elfbug_fixture_signal_race PROPERTIES
+	OUTPUT_NAME
+		signal_race
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_signal_race)
 endif()

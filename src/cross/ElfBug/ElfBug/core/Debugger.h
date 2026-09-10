@@ -72,8 +72,10 @@ namespace ElfBug
         bool swallowPendingSigstop(pid_t tid);
         void resumeAllThreads(pid_t except);
         void abandonFreeze(pid_t except);
-        Thread* findPendingBreakpointThread();
-        void repairStoppedThread(Thread* thread, int status);
+        Thread* findPendingBreakpointThread() const;
+        Thread* findPendingSignalThread() const;
+        void repairStoppedThread(Thread* thread, int status) const;
+        void reportSignal(pid_t pid, int sig);
 
         struct StepOverRequest
         {
@@ -118,6 +120,7 @@ namespace ElfBug
         bool mAllStopped = false;
         pid_t mSteppingOff = 0;
         std::atomic<bool> mPauseRequested{false};
+        std::atomic<bool> mStopRequested{false};
         std::atomic<pid_t> mMainPid{0};
         int mPendingSignal = 0;
         std::mutex mPauseMutex;

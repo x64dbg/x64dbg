@@ -36,6 +36,7 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_exec_target
     elfbug_fixture_threads_spin
     elfbug_fixture_exit_race
+    elfbug_fixture_signal_race
 )
 """
 
@@ -105,4 +106,11 @@ type = "elfbug_fixture"
 sources = ["targets/exit_race.cpp"]
 link-libraries = ["pthread"]
 properties.OUTPUT_NAME = "exit_race"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_signal_race]
+type = "elfbug_fixture"
+sources = ["targets/signal_race.cpp"]
+link-libraries = ["pthread"]
+properties.OUTPUT_NAME = "signal_race"
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"

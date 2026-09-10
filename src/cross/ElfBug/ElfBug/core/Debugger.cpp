@@ -38,6 +38,7 @@ namespace ElfBug
         mUnregisteredRunning.clear();
         mAllStopped = false;
         mPauseRequested.store(false, std::memory_order_release);
+        mStopRequested.store(false, std::memory_order_release);
         mPendingSignal = 0;
 
         if(!szFilePath)
@@ -290,7 +291,7 @@ namespace ElfBug
             for(const auto & [tid, thread] : mProcess->threads)
             {
                 thread->clearPendingBreakpoint();
-                thread->setPendingSignal(0);
+                thread->clearPendingSignal();
             }
         }
 
@@ -389,6 +390,7 @@ namespace ElfBug
 
         {
             std::lock_guard lock(mPauseMutex);
+            mStopRequested.store(true, std::memory_order_release);
             mPaused.store(false, std::memory_order_release);
         }
         mPauseCv.notify_one();

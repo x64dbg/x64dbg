@@ -2175,3 +2175,162 @@ TEST_CASE("A process exit racing the stop sweep is still reported", "[multithrea
         REQUIRE(dbg.count(EventType::InternalError) == 0);
     }
 }
+
+namespace
+{
+    struct SignalRaceResult
+    {
+        int raised = 0;
+        int handled = 0;
+        std::size_t reported = 0;
+    };
+
+    // The raiser sits in signal-delivery-stop almost constantly, so the sweep run by every
+    // spinner hit absorbs a share of its raises that the main loop would otherwise report.
+    SignalRaceResult RunSignalRace(const int signal, const int quota)
+    {
+        using namespace ElfBug::test;
+        RecordingDebugger dbg;
+        const std::string path = FIXTURE("signal_race");
+        REQUIRE(dbg.Init(path.c_str()));
+
+        struct Sites
+        {
+            std::optional<ElfBug::ptr> hot;
+            std::optional<ElfBug::ptr> signal;
+            std::optional<ElfBug::ptr> quota;
+            std::optional<ElfBug::ptr> go;
+            std::optional<ElfBug::ptr> raised;
+            std::optional<ElfBug::ptr> handled;
+            std::optional<ElfBug::ptr> done;
+        };
+
+        std::promise<Sites> promise;
+        auto future = promise.get_future();
+        dbg.OnSystemBreakpoint([&]
+        {
+            Sites s;
+            const pid_t pid = dbg.process()->pid;
+            s.hot = ResolveRuntimeAddress(path, pid, "sr_hot");
+            s.signal = ResolveRuntimeAddress(path, pid, "sr_signal");
+            s.quota = ResolveRuntimeAddress(path, pid, "sr_quota");
+            s.go = ResolveRuntimeAddress(path, pid, "sr_go");
+            s.raised = ResolveRuntimeAddress(path, pid, "sr_raised");
+            s.handled = ResolveRuntimeAddress(path, pid, "sr_handled");
+            s.done = ResolveRuntimeAddress(path, pid, "sr_done");
+            if(s.hot)
+                dbg.process()->SetBreakpoint(*s.hot, false, ElfBug::SoftwareType::ShortInt3);
+            promise.set_value(s);
+        });
+
+        dbg.StartOnThread();
+        dbg.WaitForSystemBreakpoint();
+        const auto s = future.get();
+        REQUIRE(s.hot.has_value());
+        REQUIRE(s.signal.has_value());
+        REQUIRE(s.quota.has_value());
+        REQUIRE(s.go.has_value());
+        REQUIRE(s.raised.has_value());
+        REQUIRE(s.handled.has_value());
+        REQUIRE(s.done.has_value());
+
+        REQUIRE(dbg.process()->MemWrite(*s.signal, &signal, sizeof(signal)));
+        REQUIRE(dbg.process()->MemWrite(*s.quota, &quota, sizeof(quota)));
+
+        // Stop on a spinner first, so every raise below happens under a sweeping process.
+        dbg.Continue();
+        dbg.WaitFor(EventType::Breakpoint, std::chrono::seconds(10));
+        constexpr int go = 1;
+        REQUIRE(dbg.process()->MemWrite(*s.go, &go, sizeof(go)));
+
+        int done = 0;
+        for(int round = 0; round < 4000 && done == 0; ++round)
+        {
+            dbg.Continue();
+            dbg.WaitForAny({EventType::Breakpoint, EventType::Exception}, std::chrono::seconds(10));
+            REQUIRE(dbg.process()->MemRead(*s.done, &done, sizeof(done)));
+        }
+
+        SignalRaceResult r;
+        REQUIRE(dbg.process()->MemRead(*s.raised, &r.raised, sizeof(r.raised)));
+        REQUIRE(dbg.process()->MemRead(*s.handled, &r.handled, sizeof(r.handled)));
+        CAPTURE(r.raised, r.handled);
+        REQUIRE(done == 1);
+        for(const auto & e : dbg.events())
+        {
+            if(e.type == EventType::Exception && e.signal == signal)
+                ++r.reported;
+        }
+
+        // Checked before Stop so a wedged debugger cannot hide the numbers.
+        REQUIRE(r.raised == quota);
+        REQUIRE(r.handled == r.raised);
+        REQUIRE(r.reported == static_cast<std::size_t>(r.raised));
+
+        // Stop() races an in-flight stop: a spinner trapping after the kill is sent would
+        // pause a tracer that then never returns to waitpid. Disarm the site first.
+        REQUIRE(dbg.process()->DeleteBreakpoint(*s.hot));
+        dbg.Stop();
+        dbg.WaitForExit();
+        dbg.JoinThread();
+        REQUIRE(dbg.count(EventType::InternalError) == 0);
+        return r;
+    }
+}
+
+// A queued signal the sweep absorbs is delivered on the resume, but nothing reports it, so
+// whether the user sees a SIGUSR1 depends on which waitpid happened to win.
+TEST_CASE("Signals absorbed by the stop sweep are still reported", "[multithread][exception]")
+{
+    RunSignalRace(SIGUSR1, 200);
+}
+
+// A hardware fault re-raises itself when the instruction runs again, so dropping it is free.
+// A raised SIGSEGV does not, so dropping it on the resume loses it for good.
+TEST_CASE("Raised fatal signals absorbed by the stop sweep are still delivered", "[multithread][exception]")
+{
+    RunSignalRace(SIGSEGV, 200);
+}
+
+// int3 and single-step traps are the debugger's own, but a SIGTRAP the tracee raised at
+// itself is a plain signal, and continuing it with signal 0 loses it exactly like SIGSEGV.
+TEST_CASE("A raised SIGTRAP is delivered and reported", "[multithread][exception]")
+{
+    RunSignalRace(SIGTRAP, 200);
+}
+
+TEST_CASE("Stop while a hot-path breakpoint is armed still reports the exit", "[multithread][process]")
+{
+    using namespace ElfBug::test;
+
+    for(int attempt = 0; attempt < 5; ++attempt)
+    {
+        RecordingDebugger dbg;
+        const std::string path = FIXTURE("exit_race");
+        REQUIRE(dbg.Init(path.c_str()));
+
+        std::promise<std::optional<ElfBug::ptr>> promise;
+        auto future = promise.get_future();
+        dbg.OnSystemBreakpoint([&]
+        {
+            const auto hot = ResolveRuntimeAddress(path, dbg.process()->pid, "er_hot");
+            if(hot)
+                dbg.process()->SetBreakpoint(*hot, false, ElfBug::SoftwareType::ShortInt3);
+            promise.set_value(hot);
+        });
+
+        dbg.StartOnThread();
+        dbg.WaitForSystemBreakpoint();
+        REQUIRE(future.get().has_value());
+
+        dbg.Continue();
+        dbg.WaitFor(EventType::Breakpoint, std::chrono::seconds(10));
+
+        REQUIRE(dbg.Stop());
+        const auto exit_ev = dbg.WaitFor(EventType::ExitProcess, std::chrono::seconds(10));
+        dbg.JoinThread();
+
+        REQUIRE(exit_ev.exitCode == -SIGKILL);
+        REQUIRE(dbg.count(EventType::InternalError) == 0);
+    }
+}

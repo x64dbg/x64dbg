@@ -44,8 +44,7 @@ namespace ElfBug
         mPaused.store(true, std::memory_order_release);
     }
 
-    Thread* Debugger::findPendingBreakpointThread()
-    {
+    Thread* Debugger::findPendingBreakpointThread() const {
         if(!mProcess)
             return nullptr;
 
@@ -53,6 +52,19 @@ namespace ElfBug
         for(const auto & [tid, thread] : mProcess->threads)
         {
             if(thread->hasPendingBreakpoint())
+                return thread.get();
+        }
+        return nullptr;
+    }
+
+    Thread* Debugger::findPendingSignalThread() const {
+        if(!mProcess)
+            return nullptr;
+
+        std::shared_lock lock(mProcessMutex);
+        for(const auto & [tid, thread] : mProcess->threads)
+        {
+            if(thread->pendingSignal() != 0 && thread->pendingSignalUnreported())
                 return thread.get();
         }
         return nullptr;
@@ -111,7 +123,7 @@ namespace ElfBug
             }
 
             mPendingSignal = thread->pendingSignal();
-            thread->setPendingSignal(0);
+            thread->clearPendingSignal();
 
             const bool stepped = stepPastBreakpointByte(tid, rip);
             mPendingSignal = 0;
@@ -144,7 +156,7 @@ namespace ElfBug
 
             // The only delivery this queued signal will ever get.
             const int sig = thread->pendingSignal();
-            thread->setPendingSignal(0);
+            thread->clearPendingSignal();
 
             if(ptrace(PTRACE_CONT, tid, nullptr,
                       reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
@@ -187,7 +199,8 @@ namespace ElfBug
     {
         std::unique_lock lock(mPauseMutex);
 
-        while(mPaused.load(std::memory_order_acquire) && mIsRunning.load(std::memory_order_acquire))
+        while(mPaused.load(std::memory_order_acquire) && mIsRunning.load(std::memory_order_acquire) &&
+                !mStopRequested.load(std::memory_order_acquire))
         {
             if(mPauseCv.wait_for(lock, std::chrono::milliseconds(10)) == std::cv_status::timeout)
                 cbPauseTick();
@@ -199,7 +212,8 @@ namespace ElfBug
             return false;
 
         if(!mStepPending.load(std::memory_order_acquire) &&
-                !mStepOverPending.load(std::memory_order_acquire))
+                !mStepOverPending.load(std::memory_order_acquire) &&
+                !mStopRequested.load(std::memory_order_acquire))
         {
             while(Thread* queued = findPendingBreakpointThread())
             {
@@ -215,7 +229,7 @@ namespace ElfBug
                     std::shared_lock processLock(mProcessMutex);
                     const auto it = mProcess->threads.find(pid);
                     if(it != mProcess->threads.end())
-                        it->second->setPendingSignal(mPendingSignal);
+                        it->second->setPendingSignal(mPendingSignal, 0, false);
                 }
                 mPendingSignal = 0;
 
@@ -225,6 +239,31 @@ namespace ElfBug
                 }
                 beginPause();
                 dispatchBreakpoint(address);
+                return pauseAndResume(queuedTid);
+            }
+
+            while(Thread* queued = findPendingSignalThread())
+            {
+                const int signal = queued->pendingSignal();
+                const ptr address = queued->pendingSignalAddress();
+                const pid_t queuedTid = queued->tid;
+                queued->clearPendingSignal();
+
+                if(mPendingSignal != 0)
+                {
+                    std::shared_lock processLock(mProcessMutex);
+                    const auto it = mProcess->threads.find(pid);
+                    if(it != mProcess->threads.end())
+                        it->second->setPendingSignal(mPendingSignal, 0, false);
+                }
+                mPendingSignal = signal;
+
+                {
+                    std::unique_lock processLock(mProcessMutex);
+                    mThread = queued;
+                }
+                beginPause();
+                cbExceptionEvent(signal, address);
                 return pauseAndResume(queuedTid);
             }
         }
