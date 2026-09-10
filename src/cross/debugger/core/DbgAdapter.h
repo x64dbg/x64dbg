@@ -53,13 +53,17 @@ private:
 
     static void onCreateProcess(pid_t pid, uint64_t entryPoint, void* userdata);
     static void onExitProcess(int exitCode, void* userdata);
+    static void onCreateThread(pid_t tid, void* userdata);
+    static void onExitThread(pid_t tid, void* userdata);
     static void onSystemBreakpoint(void* userdata);
     static void onBreakpoint(uint64_t address, void* userdata);
     static void onStep(void* userdata);
     static void onPaused(void* userdata);
+    static void onException(int signal, uint64_t address, void* userdata);
     static void onError(const char* error, void* userdata);
     static void onDebugString(const char* text, void* userdata);
 
+    [[nodiscard]] QString threadSuffix() const;
     void emitStoppedState(const QString & reason);
 
     ElfBugDebugger* mDebugger = nullptr;

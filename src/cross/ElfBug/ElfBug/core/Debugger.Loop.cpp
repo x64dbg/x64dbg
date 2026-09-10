@@ -208,6 +208,10 @@ namespace ElfBug
                 cbPauseTick();
         }
 
+        // A resume can wake the wait before the tick that would apply a request queued
+        // just before it. Tick once more while still stopped.
+        cbPauseTick();
+
         lock.unlock();
 
         if(!mIsRunning.load(std::memory_order_acquire))

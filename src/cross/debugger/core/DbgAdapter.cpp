@@ -1,5 +1,6 @@
 #include "core/DbgAdapter.h"
 #include <cassert>
+#include <csignal>
 
 static REGDUMP toRegDump(const ElfBugRegisters & regs)
 {
@@ -66,10 +67,13 @@ bool DbgAdapter::loadEngine()
     ElfBugCallbacks cb = {};
     cb.onCreateProcess = &DbgAdapter::onCreateProcess;
     cb.onExitProcess = &DbgAdapter::onExitProcess;
+    cb.onCreateThread = &DbgAdapter::onCreateThread;
+    cb.onExitThread = &DbgAdapter::onExitThread;
     cb.onSystemBreakpoint = &DbgAdapter::onSystemBreakpoint;
     cb.onBreakpoint = &DbgAdapter::onBreakpoint;
     cb.onStep = &DbgAdapter::onStep;
     cb.onPaused = &DbgAdapter::onPaused;
+    cb.onException = &DbgAdapter::onException;
     cb.onError = &DbgAdapter::onError;
     cb.onDebugString = &DbgAdapter::onDebugString;
     cb.userdata = this;
@@ -207,13 +211,18 @@ BPXTYPE DbgAdapter::queryBreakpoint(duint addr)
     return instance->hasBreakpoint(addr) ? bp_normal : bp_none;
 }
 
+QString DbgAdapter::threadSuffix() const
+{
+    return QString(" [thread %1]").arg(ElfBugGetCurrentTid(mDebugger));
+}
+
 void DbgAdapter::emitStoppedState(const QString & reason)
 {
     ElfBugRegisters regs = {};
     ElfBugGetRegisters(mDebugger, &regs);
     auto dump = toRegDump(regs);
     emit registersUpdated(dump);
-    emit stopped(dump.regcontext.cip, reason);
+    emit stopped(dump.regcontext.cip, reason + threadSuffix());
 }
 
 void DbgAdapter::onCreateProcess(const pid_t pid, const uint64_t entryPoint, void* userdata)
@@ -228,6 +237,18 @@ void DbgAdapter::onExitProcess(const int exitCode, void* userdata)
     auto* self = static_cast<DbgAdapter*>(userdata);
     emit self->logMessage(QString("[x64dbg] Process exited: %1").arg(exitCode));
     emit self->processExited(exitCode);
+}
+
+void DbgAdapter::onCreateThread(const pid_t tid, void* userdata)
+{
+    auto* self = static_cast<DbgAdapter*>(userdata);
+    emit self->logMessage(QString("[x64dbg] Thread %1 created").arg(tid));
+}
+
+void DbgAdapter::onExitThread(const pid_t tid, void* userdata)
+{
+    auto* self = static_cast<DbgAdapter*>(userdata);
+    emit self->logMessage(QString("[x64dbg] Thread %1 exited").arg(tid));
 }
 
 void DbgAdapter::onSystemBreakpoint(void* userdata)
@@ -246,7 +267,7 @@ void DbgAdapter::onSystemBreakpoint(void* userdata)
 void DbgAdapter::onBreakpoint(const uint64_t address, void* userdata)
 {
     auto* self = static_cast<DbgAdapter*>(userdata);
-    emit self->logMessage(QString("[x64dbg] Breakpoint hit: 0x%1").arg(address, 0, 16));
+    emit self->logMessage(QString("[x64dbg] Breakpoint hit: 0x%1").arg(address, 0, 16) + self->threadSuffix());
     self->emitStoppedState(QString("Breakpoint at 0x%1").arg(address, 0, 16));
 }
 
@@ -260,6 +281,28 @@ void DbgAdapter::onPaused(void* userdata)
 {
     auto* self = static_cast<DbgAdapter*>(userdata);
     self->emitStoppedState(tr("Paused"));
+}
+
+static QString signalName(const int signal)
+{
+    const char* abbrev = sigabbrev_np(signal);
+    if(!abbrev)
+        return QString("signal %1").arg(signal);
+    return QString("SIG%1").arg(abbrev);
+}
+
+void DbgAdapter::onException(const int signal, const uint64_t address, void* userdata)
+{
+    auto* self = static_cast<DbgAdapter*>(userdata);
+    ElfBugRegisters regs = {};
+    ElfBugGetRegisters(self->mDebugger, &regs);
+    const QString name = signalName(signal);
+
+    QString msg = QString("[x64dbg] %1 (%2) at 0x%3").arg(name).arg(signal).arg(regs.rip, 0, 16);
+    if(address)
+        msg += QString(", address 0x%1").arg(address, 0, 16);
+    emit self->logMessage(msg + self->threadSuffix());
+    self->emitStoppedState(name);
 }
 
 void DbgAdapter::onError(const char* error, void* userdata)

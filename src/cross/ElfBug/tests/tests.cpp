@@ -2,6 +2,9 @@
 #include "TestHarness.h"
 #include "SymbolHelper.h"
 #include <ElfBug/process/StepOver.h>
+#include <ElfBug/api/elfbug_api.h>
+#include <condition_variable>
+#include <mutex>
 #include <string>
 #include <algorithm>
 #include <atomic>
@@ -2333,4 +2336,225 @@ TEST_CASE("Stop while a hot-path breakpoint is armed still reports the exit", "[
         REQUIRE(exit_ev.exitCode == -SIGKILL);
         REQUIRE(dbg.count(EventType::InternalError) == 0);
     }
+}
+
+namespace
+{
+    // Records what the C API hands its callbacks.
+    struct ApiEvents
+    {
+        std::mutex mutex;
+        std::condition_variable cv;
+        bool systemBreakpoint = false;
+        std::optional<std::uint64_t> breakpointAddress;
+        std::optional<int> exceptionSignal;
+        std::uint64_t exceptionAddress = 0;
+        pid_t pid = 0;
+        std::optional<int> exitCode;
+        std::vector<pid_t> createdTids;
+        std::vector<pid_t> exitedTids;
+
+        template<class Pred>
+        bool WaitFor(Pred pred, const std::chrono::milliseconds timeout = std::chrono::seconds(5))
+        {
+            std::unique_lock lock(mutex);
+            return cv.wait_for(lock, timeout, pred);
+        }
+    };
+
+    ElfBugCallbacks MakeApiCallbacks(ApiEvents & events)
+    {
+        ElfBugCallbacks cb = {};
+        cb.userdata = &events;
+        cb.onCreateProcess = [](const pid_t pid, std::uint64_t, void* userdata)
+        {
+            auto* ev = static_cast<ApiEvents*>(userdata);
+            std::lock_guard lock(ev->mutex);
+            ev->pid = pid;
+        };
+        cb.onSystemBreakpoint = [](void* userdata)
+        {
+            auto* ev = static_cast<ApiEvents*>(userdata);
+            std::lock_guard lock(ev->mutex);
+            ev->systemBreakpoint = true;
+            ev->cv.notify_all();
+        };
+        cb.onBreakpoint = [](const std::uint64_t address, void* userdata)
+        {
+            auto* ev = static_cast<ApiEvents*>(userdata);
+            std::lock_guard lock(ev->mutex);
+            ev->breakpointAddress = address;
+            ev->cv.notify_all();
+        };
+        cb.onException = [](const int signal, const std::uint64_t address, void* userdata)
+        {
+            auto* ev = static_cast<ApiEvents*>(userdata);
+            std::lock_guard lock(ev->mutex);
+            ev->exceptionSignal = signal;
+            ev->exceptionAddress = address;
+            ev->cv.notify_all();
+        };
+        cb.onCreateThread = [](const pid_t tid, void* userdata)
+        {
+            auto* ev = static_cast<ApiEvents*>(userdata);
+            std::lock_guard lock(ev->mutex);
+            ev->createdTids.push_back(tid);
+            ev->cv.notify_all();
+        };
+        cb.onExitThread = [](const pid_t tid, void* userdata)
+        {
+            auto* ev = static_cast<ApiEvents*>(userdata);
+            std::lock_guard lock(ev->mutex);
+            ev->exitedTids.push_back(tid);
+            ev->cv.notify_all();
+        };
+        cb.onExitProcess = [](const int exitCode, void* userdata)
+        {
+            auto* ev = static_cast<ApiEvents*>(userdata);
+            std::lock_guard lock(ev->mutex);
+            ev->exitCode = exitCode;
+            ev->cv.notify_all();
+        };
+        return cb;
+    }
+
+    // Drives a fixture through the C API on its own loop thread. A test that fails
+    // mid-run still kills the tracee and joins the loop.
+    struct ApiSession
+    {
+        std::string path;
+        ApiEvents events;
+        ElfBugDebugger* dbg = nullptr;
+        std::thread loop;
+
+        explicit ApiSession(std::string fixturePath)
+            : path(std::move(fixturePath))
+        {
+            const ElfBugCallbacks cb = MakeApiCallbacks(events);
+            dbg = ElfBugCreate(&cb);
+            REQUIRE(dbg != nullptr);
+            REQUIRE(ElfBugInit(dbg, path.c_str()));
+            loop = std::thread([this] { ElfBugStart(dbg); });
+        }
+
+        ~ApiSession()
+        {
+            if(loop.joinable())
+            {
+                ElfBugStop(dbg);
+                loop.join();
+            }
+            ElfBugDestroy(dbg);
+        }
+
+        bool WaitForSystemBreakpoint()
+        {
+            return events.WaitFor([this] { return events.systemBreakpoint; });
+        }
+
+        bool WaitForExit(const std::chrono::milliseconds timeout = std::chrono::seconds(5))
+        {
+            if(!events.WaitFor([this] { return events.exitCode.has_value(); }, timeout))
+                return false;
+            loop.join();
+            return true;
+        }
+
+        std::optional<ElfBug::ptr> Resolve(const std::string & symbol)
+        {
+            std::lock_guard lock(events.mutex);
+            return ElfBug::test::ResolveRuntimeAddress(path, events.pid, symbol);
+        }
+    };
+}
+
+TEST_CASE("C API reports a signal stop with the faulting registers", "[api][exception]")
+{
+    ApiSession s(FIXTURE("segfault"));
+    REQUIRE(s.WaitForSystemBreakpoint());
+    const auto site = s.Resolve("sf_fault_site");
+    REQUIRE(site.has_value());
+
+    ElfBugContinue(s.dbg);
+    REQUIRE(s.events.WaitFor([&] { return s.events.exceptionSignal.has_value(); }));
+
+    ElfBugRegisters regs = {};
+    REQUIRE(ElfBugGetRegisters(s.dbg, &regs));
+    {
+        std::lock_guard lock(s.events.mutex);
+        REQUIRE(*s.events.exceptionSignal == SIGSEGV);
+        REQUIRE(s.events.exceptionAddress == 0);
+    }
+    REQUIRE(regs.rip == *site);
+    REQUIRE(ElfBugMemIsCodePtr(s.dbg, regs.rip));
+
+    ElfBugContinue(s.dbg);
+    REQUIRE(s.WaitForExit());
+    REQUIRE(*s.events.exitCode == -SIGSEGV);
+}
+
+TEST_CASE("C API arms a breakpoint queued right before Continue", "[api][breakpoint]")
+{
+    ApiSession s(FIXTURE("segfault"));
+    REQUIRE(s.WaitForSystemBreakpoint());
+    const auto site = s.Resolve("sf_fault_site");
+    REQUIRE(site.has_value());
+
+    // No delay between the two: the queue must be applied before the resume.
+    REQUIRE(ElfBugSetBreakpoint(s.dbg, *site));
+    ElfBugContinue(s.dbg);
+
+    REQUIRE(s.events.WaitFor([&] { return s.events.breakpointAddress.has_value() || s.events.exceptionSignal.has_value(); }));
+    {
+        std::lock_guard lock(s.events.mutex);
+        REQUIRE(s.events.breakpointAddress == site);
+        REQUIRE_FALSE(s.events.exceptionSignal.has_value());
+    }
+
+    ElfBugContinue(s.dbg);
+    REQUIRE(s.events.WaitFor([&] { return s.events.exceptionSignal.has_value(); }));
+    ElfBugContinue(s.dbg);
+    REQUIRE(s.WaitForExit());
+}
+
+TEST_CASE("C API reports thread creation and exit", "[api][thread]")
+{
+    ApiSession s(FIXTURE("multi_threaded"));
+    REQUIRE(s.WaitForSystemBreakpoint());
+    ElfBugContinue(s.dbg);
+    REQUIRE(s.WaitForExit());
+
+    REQUIRE(*s.events.exitCode == 5);
+    const std::set<pid_t> created(s.events.createdTids.begin(), s.events.createdTids.end());
+    const std::set<pid_t> exited(s.events.exitedTids.begin(), s.events.exitedTids.end());
+    REQUIRE(s.events.createdTids.size() == 5);
+    REQUIRE(s.events.exitedTids.size() == 5);
+    REQUIRE(created.size() == 5);
+    REQUIRE(exited == created);
+    REQUIRE(!created.contains(s.events.pid));
+}
+
+TEST_CASE("C API reports which thread stopped", "[api][thread]")
+{
+    ApiSession s(FIXTURE("threads_spin"));
+    REQUIRE(s.WaitForSystemBreakpoint());
+    REQUIRE(ElfBugGetCurrentTid(s.dbg) == ElfBugGetPid(s.dbg));
+
+    const auto site = s.Resolve("ts_worker_started");
+    REQUIRE(site.has_value());
+    REQUIRE(ElfBugSetBreakpoint(s.dbg, *site));
+
+    ElfBugContinue(s.dbg);
+    REQUIRE(s.events.WaitFor([&] { return s.events.breakpointAddress.has_value(); }, std::chrono::seconds(10)));
+
+    {
+        const pid_t stoppedTid = ElfBugGetCurrentTid(s.dbg);
+        std::lock_guard lock(s.events.mutex);
+        REQUIRE(*s.events.breakpointAddress == *site);
+        REQUIRE(stoppedTid != s.events.pid);
+        REQUIRE(std::find(s.events.createdTids.begin(), s.events.createdTids.end(), stoppedTid) != s.events.createdTids.end());
+    }
+
+    REQUIRE(ElfBugStop(s.dbg));
+    REQUIRE(s.WaitForExit(std::chrono::seconds(10)));
 }
