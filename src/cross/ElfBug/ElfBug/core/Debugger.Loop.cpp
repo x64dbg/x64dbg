@@ -52,7 +52,7 @@ namespace ElfBug
         std::shared_lock lock(mProcessMutex);
         for(const auto & [tid, thread] : mProcess->threads)
         {
-            if(thread->hasPendingBreakpoint())
+            if(!thread->isSuspended() && thread->hasPendingBreakpoint())
                 return thread.get();
         }
         return nullptr;
@@ -66,7 +66,7 @@ namespace ElfBug
         std::shared_lock lock(mProcessMutex);
         for(const auto & [tid, thread] : mProcess->threads)
         {
-            if(thread->pendingSignal() != 0 && thread->pendingSignalUnreported())
+            if(!thread->isSuspended() && thread->pendingSignal() != 0 && thread->pendingSignalUnreported())
                 return thread.get();
         }
         return nullptr;
@@ -86,7 +86,7 @@ namespace ElfBug
             std::shared_lock lock(mProcessMutex);
             for(const auto & [tid, thread] : mProcess->threads)
             {
-                if(tid == except || thread->isRunning())
+                if(tid == except || thread->isRunning() || thread->isSuspended())
                     continue;
                 if(std::find(mResumeExcept.begin(), mResumeExcept.end(), tid) != mResumeExcept.end())
                     continue;
@@ -199,210 +199,278 @@ namespace ElfBug
         resumeAllThreads(except);
     }
 
-    bool Debugger::pauseAndResume(const pid_t pid)
+    bool Debugger::pauseAndResume(const pid_t reported)
     {
-        std::unique_lock lock(mPauseMutex);
-
-        while(mPaused.load(std::memory_order_acquire) && mIsRunning.load(std::memory_order_acquire) &&
-                !mStopRequested.load(std::memory_order_acquire))
+        pid_t reportedTid = reported;
+        for(;;)
         {
-            if(mPauseCv.wait_for(lock, std::chrono::milliseconds(10)) == std::cv_status::timeout)
-                cbPauseTick();
-        }
+            std::unique_lock lock(mPauseMutex);
 
-        // A resume can wake the wait before the tick that would apply a request queued
-        // just before it. Tick once more while still stopped.
-        cbPauseTick();
-
-        lock.unlock();
-
-        if(!mIsRunning.load(std::memory_order_acquire))
-            return false;
-
-        if(!mStepPending.load(std::memory_order_acquire) &&
-                !mStepOverPending.load(std::memory_order_acquire) &&
-                !mStopRequested.load(std::memory_order_acquire))
-        {
-            while(Thread* queued = findPendingBreakpointThread())
+            while(mPaused.load(std::memory_order_acquire) && mIsRunning.load(std::memory_order_acquire) &&
+                    !mStopRequested.load(std::memory_order_acquire))
             {
-                const ptr address = queued->pendingBreakpoint();
-                const pid_t queuedTid = queued->tid;
-                queued->clearPendingBreakpoint();
-
-                if(!mProcess || !mProcess->HasBreakpoint(address))
-                    continue;
-
-                if(mPendingSignal != 0)
-                {
-                    std::shared_lock processLock(mProcessMutex);
-                    const auto it = mProcess->threads.find(pid);
-                    if(it != mProcess->threads.end())
-                        it->second->setPendingSignal(mPendingSignal, 0, false);
-                }
-                mPendingSignal = 0;
-
-                {
-                    std::unique_lock processLock(mProcessMutex);
-                    mThread = queued;
-                }
-                beginPause();
-                dispatchBreakpoint(address);
-                return pauseAndResume(queuedTid);
+                if(mPauseCv.wait_for(lock, std::chrono::milliseconds(10)) == std::cv_status::timeout)
+                    cbPauseTick();
             }
 
-            while(Thread* queued = findPendingSignalThread())
-            {
-                const int signal = queued->pendingSignal();
-                const ptr address = queued->pendingSignalAddress();
-                const pid_t queuedTid = queued->tid;
-                queued->clearPendingSignal();
+            // A resume can wake the wait before the tick that would apply a request queued
+            // just before it. Tick once more while still stopped.
+            cbPauseTick();
 
-                if(mPendingSignal != 0)
-                {
-                    std::shared_lock processLock(mProcessMutex);
-                    const auto it = mProcess->threads.find(pid);
-                    if(it != mProcess->threads.end())
-                        it->second->setPendingSignal(mPendingSignal, 0, false);
-                }
-                mPendingSignal = signal;
+            lock.unlock();
 
-                {
-                    std::unique_lock processLock(mProcessMutex);
-                    mThread = queued;
-                }
-                beginPause();
-                cbExceptionEvent(signal, address);
-                return pauseAndResume(queuedTid);
-            }
-        }
-
-        bool stepOverRequested = mStepOverPending.exchange(false, std::memory_order_acq_rel);
-
-        const bool stepIntoRequested = mStepPending.load(std::memory_order_acquire);
-
-        // A breakpoint hit leaves its 0xCC armed with RIP on it; every resume except a
-        // step-over must step past that byte first.
-        if(!stepOverRequested && mThread && mProcess && mThread->atBreakpoint() &&
-                mProcess->HasBreakpoint(mThread->registers.Gip()))
-        {
-            const ptr rip = mThread->registers.Gip();
-            ptr next = 0;
-            const bool repeats = mProcess->ClassifyStepOverAt(rip, next) == StepOverKind::Rep;
-
-            // Stepping off would consume the user's step, and a rep only advances one
-            // iteration, leaving RIP on the byte. Lift it and re-arm at the next stop.
-            if(stepIntoRequested || repeats)
-            {
-                if(mProcess->DisarmBreakpointByte(rip))
-                    mSourceRearms[pid] = rip;
-            }
-            else if(!stepPastBreakpointByte(pid, rip))
-            {
-                abandonFreeze(pid);
-                return false;
-            }
-        }
-
-        if(stepOverRequested && mThread)
-        {
-            // A StepInto queued just before this StepOver is subsumed by it.
-            mStepPending.store(false, std::memory_order_release);
-
-            switch(armStepOver(pid))
-            {
-            case StepOverArm::Consumed:
-                abandonFreeze(pid);
+            if(!mIsRunning.load(std::memory_order_acquire))
                 return false;
 
-            case StepOverArm::Armed:
+            // A switch while paused makes the current thread the one to resume. The thread
+            // that reported keeps the signal it still owes, and a signal parked on the new
+            // current thread comes back, since the resume skips it.
+            pid_t pid = reportedTid;
             {
-                const int sig = mPendingSignal;
-                mPendingSignal = 0;
-                if(ptrace(PTRACE_CONT, pid, nullptr,
-                          reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
+                std::unique_lock processLock(mProcessMutex);
+                if(mThread && mProcess && mThread->tid != reportedTid)
                 {
-                    if(errno != ESRCH)
-                        cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
-                    cancelStepOver(pid);
+                    if(mPendingSignal != 0)
+                    {
+                        const auto it = mProcess->threads.find(reportedTid);
+                        if(it != mProcess->threads.end())
+                            it->second->setPendingSignal(mPendingSignal, 0, false);
+                        mPendingSignal = 0;
+                    }
+                    pid = mThread->tid;
+                    // mPendingSignal is 0 here: it was either already clear or handed off above.
+                    if(mThread->pendingSignal() != 0 && !mThread->pendingSignalUnreported())
+                    {
+                        mPendingSignal = mThread->pendingSignal();
+                        mThread->clearPendingSignal();
+                    }
                 }
-                else
-                {
-                    mThread->setRunning(true);
-                }
-                return true;
             }
 
-            case StepOverArm::SingleStep:
-                break;
-            }
-        }
-
-        if((stepIntoRequested || stepOverRequested) && mThread)
-        {
-            mStepPending.store(false, std::memory_order_release);
-            const int sig = mPendingSignal;
-            mPendingSignal = 0;
-            ptr next = 0;
-            const bool stepsPushf = mProcess &&
-                                    mProcess->ClassifyStepOverAt(mThread->registers.Gip(), next) == StepOverKind::Pushf;
-            // Otherwise the step is spent delivering the SIGSTOP.
-            if(!swallowPendingSigstop(pid))
+            if(!mStepPending.load(std::memory_order_acquire) &&
+                    !mStepOverPending.load(std::memory_order_acquire) &&
+                    !mStopRequested.load(std::memory_order_acquire))
             {
-                restoreSourceByte(pid);
-                abandonFreeze(pid);
-                return false;
-            }
-            if(mThread->StepInto(sig))
-            {
-                mThread->setStepsPushf(stepsPushf);
-                mThread->setRunning(true);
-            }
-            else
-            {
-                const int stepErrno = errno;
-                if(stepErrno != ESRCH)
+                while(Thread* queued = findPendingBreakpointThread())
                 {
-                    cbInternalError("PTRACE_SINGLESTEP failed: " + std::string(strerror(stepErrno)));
-                    restoreSourceByte(pid);
+                    const ptr address = queued->pendingBreakpoint();
+                    const pid_t queuedTid = queued->tid;
+                    queued->clearPendingBreakpoint();
+
+                    if(!mProcess || !mProcess->HasBreakpoint(address))
+                        continue;
+
+                    if(mPendingSignal != 0)
+                    {
+                        std::shared_lock processLock(mProcessMutex);
+                        const auto it = mProcess->threads.find(pid);
+                        if(it != mProcess->threads.end())
+                            it->second->setPendingSignal(mPendingSignal, 0, false);
+                    }
+                    mPendingSignal = 0;
+
+                    {
+                        std::unique_lock processLock(mProcessMutex);
+                        mThread = queued;
+                    }
+                    beginPause();
+                    dispatchBreakpoint(address);
+                    return pauseAndResume(queuedTid);
+                }
+
+                while(Thread* queued = findPendingSignalThread())
+                {
+                    const int signal = queued->pendingSignal();
+                    const ptr address = queued->pendingSignalAddress();
+                    const pid_t queuedTid = queued->tid;
+                    queued->clearPendingSignal();
+
+                    if(mPendingSignal != 0)
+                    {
+                        std::shared_lock processLock(mProcessMutex);
+                        const auto it = mProcess->threads.find(pid);
+                        if(it != mProcess->threads.end())
+                            it->second->setPendingSignal(mPendingSignal, 0, false);
+                    }
+                    mPendingSignal = signal;
+
+                    {
+                        std::unique_lock processLock(mProcessMutex);
+                        mThread = queued;
+                    }
+                    beginPause();
+                    cbExceptionEvent(signal, address);
+                    return pauseAndResume(queuedTid);
+                }
+            }
+
+            bool stepOverRequested = mStepOverPending.exchange(false, std::memory_order_acq_rel);
+
+            const bool stepIntoRequested = mStepPending.load(std::memory_order_acquire);
+
+            // A breakpoint hit leaves its 0xCC armed with RIP on it; every resume except a
+            // step-over must step past that byte first.
+            if(!stepOverRequested && mThread && mProcess && !mThread->isSuspended() &&
+                    mThread->atBreakpoint() && mProcess->HasBreakpoint(mThread->registers.Gip()))
+            {
+                const ptr rip = mThread->registers.Gip();
+                ptr next = 0;
+                const bool repeats = mProcess->ClassifyStepOverAt(rip, next) == StepOverKind::Rep;
+
+                // Stepping off would consume the user's step, and a rep only advances one
+                // iteration, leaving RIP on the byte. Lift it and re-arm at the next stop.
+                if(stepIntoRequested || repeats)
+                {
+                    if(mProcess->DisarmBreakpointByte(rip))
+                        mSourceRearms[pid] = rip;
+                }
+                else if(!stepPastBreakpointByte(pid, rip))
+                {
+                    abandonFreeze(pid);
+                    return false;
+                }
+            }
+
+            // Stepping a thread off a hit the sweep queued on it consumes that hit.
+            if((stepIntoRequested || stepOverRequested) && mThread)
+                mThread->clearPendingBreakpoint();
+
+            if(stepOverRequested && mThread)
+            {
+                // A StepInto queued just before this StepOver is subsumed by it.
+                mStepPending.store(false, std::memory_order_release);
+
+                switch(armStepOver(pid))
+                {
+                case StepOverArm::Consumed:
+                    abandonFreeze(pid);
+                    return false;
+
+                case StepOverArm::Armed:
+                {
+                    const int sig = mPendingSignal;
+                    mPendingSignal = 0;
                     if(ptrace(PTRACE_CONT, pid, nullptr,
                               reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
                     {
                         if(errno != ESRCH)
                             cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                        cancelStepOver(pid);
                     }
                     else
                     {
                         mThread->setRunning(true);
                     }
+                    return true;
                 }
-                else
+
+                case StepOverArm::SingleStep:
+                    break;
+                }
+            }
+
+            if((stepIntoRequested || stepOverRequested) && mThread)
+            {
+                mStepPending.store(false, std::memory_order_release);
+                const int sig = mPendingSignal;
+                mPendingSignal = 0;
+                ptr next = 0;
+                const bool stepsPushf = mProcess &&
+                                        mProcess->ClassifyStepOverAt(mThread->registers.Gip(), next) == StepOverKind::Pushf;
+                // Otherwise the step is spent delivering the SIGSTOP.
+                if(!swallowPendingSigstop(pid))
                 {
                     restoreSourceByte(pid);
                     abandonFreeze(pid);
+                    return false;
+                }
+                if(mThread->StepInto(sig))
+                {
+                    mThread->setStepsPushf(stepsPushf);
+                    mThread->setRunning(true);
+                }
+                else
+                {
+                    const int stepErrno = errno;
+                    if(stepErrno != ESRCH)
+                    {
+                        cbInternalError("PTRACE_SINGLESTEP failed: " + std::string(strerror(stepErrno)));
+                        restoreSourceByte(pid);
+                        if(ptrace(PTRACE_CONT, pid, nullptr,
+                                  reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
+                        {
+                            if(errno != ESRCH)
+                                cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                        }
+                        else
+                        {
+                            mThread->setRunning(true);
+                        }
+                    }
+                    else
+                    {
+                        restoreSourceByte(pid);
+                        abandonFreeze(pid);
+                    }
                 }
             }
-        }
-        else
-        {
-            const int sig = mPendingSignal;
-            mPendingSignal = 0;
-
-            resumeAllThreads(pid);
-            if(!mProcess || !mIsRunning.load(std::memory_order_acquire))
-                return false;
-
-            if(ptrace(PTRACE_CONT, pid, nullptr,
-                      reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
+            else
             {
-                if(errno != ESRCH)
-                    cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                // With every thread suspended nothing would run, so report the pause again.
+                bool runnable = false;
+                {
+                    std::shared_lock processLock(mProcessMutex);
+                    if(mProcess)
+                    {
+                        for(const auto & [tid, thread] : mProcess->threads)
+                        {
+                            if(!thread->isSuspended())
+                            {
+                                runnable = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if(!runnable)
+                {
+                    // Stop() won't resume anyone either; looping here would spin forever.
+                    if(mStopRequested.load(std::memory_order_acquire))
+                        return false;
+
+                    beginPause();
+                    cbPaused();
+                    reportedTid = pid;
+                    continue;
+                }
+
+                const int sig = mPendingSignal;
+                mPendingSignal = 0;
+
+                resumeAllThreads(pid);
+                if(!mProcess || !mIsRunning.load(std::memory_order_acquire))
+                    return false;
+
+                if(mThread && mThread->isSuspended())
+                {
+                    if(sig != 0)
+                        mThread->setPendingSignal(sig, 0, false);
+                    return true;
+                }
+
+                if(ptrace(PTRACE_CONT, pid, nullptr,
+                          reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
+                {
+                    if(errno != ESRCH)
+                        cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                }
+                else if(mThread)
+                {
+                    mThread->setRunning(true);
+                }
             }
-            else if(mThread)
-            {
-                mThread->setRunning(true);
-            }
+            return true;
         }
-        return true;
     }
 
     void Debugger::debugLoop()

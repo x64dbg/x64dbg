@@ -10,6 +10,7 @@
 
 class QThread;
 class CPUStack;
+class ThreadView;
 
 class MainWindow : public QMainWindow
 {
@@ -43,6 +44,7 @@ private:
     Disassembly* mDisassembly = nullptr;
     HexDump* mHexDump = nullptr;
     CPUStack* mStack = nullptr;
+    ThreadView* mThreadView = nullptr;
     RegistersView* mRegisters = nullptr;
     QTextBrowser* mLog = nullptr;
 };

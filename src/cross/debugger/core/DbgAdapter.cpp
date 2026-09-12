@@ -1,6 +1,8 @@
 #include "core/DbgAdapter.h"
+#include <algorithm>
 #include <cassert>
 #include <csignal>
+#include <vector>
 
 static REGDUMP toRegDump(const ElfBugRegisters & regs)
 {
@@ -203,6 +205,99 @@ bool DbgAdapter::hasBreakpoint(const duint addr) const
     return ElfBugIsBreakpointEffective(mDebugger, addr);
 }
 
+std::vector<ElfBugThreadInfo> DbgAdapter::readThreadList() const
+{
+    const uint32_t count = ElfBugGetThreadList(mDebugger, nullptr, 0);
+    if(!count)
+        return {};
+    std::vector<ElfBugThreadInfo> list(count);
+    list.resize(std::min(count, ElfBugGetThreadList(mDebugger, list.data(), count)));
+    return list;
+}
+
+void DbgAdapter::refreshThreads()
+{
+    const auto list = readThreadList();
+    QVector<DbgThreadInfo> threads;
+    threads.reserve(static_cast<int>(list.size()));
+    for(const auto & entry : list)
+    {
+        DbgThreadInfo info;
+        info.tid = entry.tid;
+        info.number = entry.number;
+        info.rip = entry.rip;
+        info.fsBase = entry.fs_base;
+        info.userTimeMs = entry.user_time_ms;
+        info.kernelTimeMs = entry.kernel_time_ms;
+        info.startTimeMs = entry.start_time_ms;
+        info.nice = entry.nice;
+        info.policy = entry.policy;
+        info.rtPriority = entry.rt_priority;
+        info.suspendCount = entry.suspend_count;
+        info.waitReason = QString::fromUtf8(entry.wait_reason);
+        info.name = QString::fromUtf8(entry.name);
+        {
+            std::lock_guard lock(mThreadNameMutex);
+            const auto label = mThreadNames.constFind(info.tid);
+            if(label != mThreadNames.constEnd())
+                info.name = label.value();
+        }
+        threads.push_back(info);
+    }
+    emit threadsUpdated(threads, ElfBugGetCurrentTid(mDebugger));
+}
+
+bool DbgAdapter::switchThread(const pid_t tid)
+{
+    const bool changed = tid != ElfBugGetCurrentTid(mDebugger);
+    if(!ElfBugSwitchThread(mDebugger, tid))
+        return false;
+    if(changed)
+        emit logMessage(QString("[x64dbg] Thread switched") + threadSuffix());
+    emitStoppedState(tr("Thread switched"));
+    return true;
+}
+
+void DbgAdapter::setThreadName(const pid_t tid, const QString & name)
+{
+    {
+        std::lock_guard lock(mThreadNameMutex);
+        if(name.isEmpty())
+            mThreadNames.remove(tid);
+        else
+            mThreadNames.insert(tid, name);
+    }
+    emit logMessage(QString("[x64dbg] Thread %1 named \"%2\"").arg(tid).arg(name));
+    refreshThreads();
+}
+
+bool DbgAdapter::setThreadSuspended(const pid_t tid, const bool suspended)
+{
+    if(!ElfBugSetThreadSuspended(mDebugger, tid, suspended))
+    {
+        emit logMessage(QString("[x64dbg] Failed to %1 thread %2")
+                        .arg(suspended ? tr("suspend") : tr("resume")).arg(tid));
+        return false;
+    }
+    emit logMessage(QString("[x64dbg] Thread %1 %2").arg(tid).arg(suspended ? tr("suspended") : tr("resumed")));
+    refreshThreads();
+    return true;
+}
+
+void DbgAdapter::setAllThreadsSuspended(const bool suspended)
+{
+    const auto list = readThreadList();
+    uint32_t changed = 0;
+    for(const auto & entry : list)
+    {
+        if(ElfBugSetThreadSuspended(mDebugger, entry.tid, suspended))
+            ++changed;
+    }
+    emit logMessage(QString("[x64dbg] %1/%2 thread(s) %3").arg(changed).arg(list.size())
+                    .arg(suspended ? tr("suspended") : tr("resumed")));
+    refreshThreads();
+}
+
 BPXTYPE DbgAdapter::queryBreakpoint(duint addr)
 {
     auto* instance = sInstance.load();
@@ -232,12 +327,17 @@ void DbgAdapter::emitStoppedState(const QString & reason, const REGDUMP & dump)
 {
     emit registersUpdated(dump);
     emit stopped(dump.regcontext.cip, reason + threadSuffix());
+    refreshThreads();
 }
 
 void DbgAdapter::onCreateProcess(const pid_t pid, const uint64_t entryPoint, void* userdata)
 {
     auto* self = static_cast<DbgAdapter*>(userdata);
     self->mEntryPoint = entryPoint;
+    {
+        std::lock_guard lock(self->mThreadNameMutex);
+        self->mThreadNames.clear();
+    }
     emit self->logMessage(QString("[x64dbg] Process created: PID %1").arg(pid));
 }
 
@@ -245,19 +345,30 @@ void DbgAdapter::onExitProcess(const int exitCode, void* userdata)
 {
     auto* self = static_cast<DbgAdapter*>(userdata);
     emit self->logMessage(QString("[x64dbg] Process exited: %1").arg(exitCode));
+    {
+        std::lock_guard lock(self->mThreadNameMutex);
+        self->mThreadNames.clear();
+    }
     emit self->processExited(exitCode);
+    self->refreshThreads();
 }
 
 void DbgAdapter::onCreateThread(const pid_t tid, void* userdata)
 {
     auto* self = static_cast<DbgAdapter*>(userdata);
     emit self->logMessage(QString("[x64dbg] Thread %1 created").arg(tid));
+    self->refreshThreads();
 }
 
 void DbgAdapter::onExitThread(const pid_t tid, void* userdata)
 {
     auto* self = static_cast<DbgAdapter*>(userdata);
     emit self->logMessage(QString("[x64dbg] Thread %1 exited").arg(tid));
+    {
+        std::lock_guard lock(self->mThreadNameMutex);
+        self->mThreadNames.remove(tid);
+    }
+    self->refreshThreads();
 }
 
 void DbgAdapter::onSystemBreakpoint(void* userdata)
@@ -270,6 +381,7 @@ void DbgAdapter::onSystemBreakpoint(void* userdata)
     emit self->registersUpdated(dump);
     emit self->processCreated(self->mEntryPoint);
     emit self->stopped(self->mEntryPoint, tr("System breakpoint") + self->threadSuffix());
+    self->refreshThreads();
 }
 
 void DbgAdapter::onBreakpoint(const uint64_t address, void* userdata)

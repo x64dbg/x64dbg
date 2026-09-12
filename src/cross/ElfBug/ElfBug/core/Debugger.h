@@ -35,6 +35,14 @@ namespace ElfBug
 
         [[nodiscard]] bool IsPaused() const { return mPaused.load(std::memory_order_acquire); }
 
+        // Makes `tid` the current thread while paused: registers, steps and the next
+        // resume act on it. The thread that reported keeps any signal it still owes.
+        bool SwitchThread(pid_t tid);
+
+        // Suspends or resumes a stopped thread while paused. Suspended threads stay stopped
+        // across Continue and steps.
+        bool SetThreadSuspended(pid_t tid, bool suspended);
+
     protected:
         virtual void cbCreateProcessEvent(pid_t pid, ptr entryPoint);
         virtual void cbExitProcessEvent(int exitCode);
@@ -53,6 +61,9 @@ namespace ElfBug
         virtual void cbPaused(); // called when the debuggee is paused by user
         virtual void cbPauseTick(); // called each iteration of the pause spin loop
 
+        // /proc/<tgid>/task/<tid>/wchan; empty when unreadable or when it reads 0 (running).
+        static std::string readWaitReason(pid_t tgid, pid_t tid);
+
         Process* mProcess = nullptr;
         Thread* mThread = nullptr;
         std::unordered_map<pid_t, Process> mProcesses;
@@ -63,7 +74,7 @@ namespace ElfBug
         bool launchChild();
         void handleSignal(pid_t pid, int status);
         void handleSigtrap(pid_t pid, int status);
-        bool pauseAndResume(pid_t pid);
+        bool pauseAndResume(pid_t reported);
         // False means the stop was consumed (exit, forwarded signal, error); abandon it.
         bool stepPastBreakpointByte(pid_t pid, ptr addr);
         void abandonSingleStep(pid_t pid);
