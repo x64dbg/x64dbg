@@ -360,6 +360,10 @@ void DbgAdapter::onExitThread(const pid_t tid, void* userdata)
 {
     auto* self = static_cast<DbgAdapter*>(userdata);
     emit self->logMessage(QString("[x64dbg] Thread %1 exited").arg(tid));
+    {
+        std::lock_guard lock(self->mThreadNameMutex);
+        self->mThreadNames.remove(tid);
+    }
     self->refreshThreads();
 }
 
