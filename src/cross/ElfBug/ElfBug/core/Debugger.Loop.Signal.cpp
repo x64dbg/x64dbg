@@ -628,6 +628,8 @@ namespace ElfBug
         {
             if(!mThread)
             {
+                // Its stop is being handled here, so drop any stale resumed bit
+                // and let createThreadEvent register the thread as stopped.
                 mUnregisteredRunning.erase(pid);
                 createThreadEvent(pid);
                 {

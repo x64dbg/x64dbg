@@ -205,39 +205,44 @@ bool DbgAdapter::hasBreakpoint(const duint addr) const
     return ElfBugIsBreakpointEffective(mDebugger, addr);
 }
 
+std::vector<ElfBugThreadInfo> DbgAdapter::readThreadList() const
+{
+    const uint32_t count = ElfBugGetThreadList(mDebugger, nullptr, 0);
+    if(!count)
+        return {};
+    std::vector<ElfBugThreadInfo> list(count);
+    list.resize(std::min(count, ElfBugGetThreadList(mDebugger, list.data(), count)));
+    return list;
+}
+
 void DbgAdapter::refreshThreads()
 {
+    const auto list = readThreadList();
     QVector<DbgThreadInfo> threads;
-    const uint32_t count = ElfBugGetThreadList(mDebugger, nullptr, 0);
-    if(count)
+    threads.reserve(static_cast<int>(list.size()));
+    for(const auto & entry : list)
     {
-        std::vector<ElfBugThreadInfo> list(count);
-        const uint32_t n = std::min(count, ElfBugGetThreadList(mDebugger, list.data(), count));
-        threads.reserve(static_cast<int>(n));
-        for(uint32_t i = 0; i < n; ++i)
+        DbgThreadInfo info;
+        info.tid = entry.tid;
+        info.number = entry.number;
+        info.rip = entry.rip;
+        info.fsBase = entry.fs_base;
+        info.userTimeMs = entry.user_time_ms;
+        info.kernelTimeMs = entry.kernel_time_ms;
+        info.startTimeMs = entry.start_time_ms;
+        info.nice = entry.nice;
+        info.policy = entry.policy;
+        info.rtPriority = entry.rt_priority;
+        info.suspendCount = entry.suspend_count;
+        info.waitReason = QString::fromUtf8(entry.wait_reason);
+        info.name = QString::fromUtf8(entry.name);
         {
-            DbgThreadInfo info;
-            info.tid = list[i].tid;
-            info.number = list[i].number;
-            info.rip = list[i].rip;
-            info.fsBase = list[i].fs_base;
-            info.userTimeMs = list[i].user_time_ms;
-            info.kernelTimeMs = list[i].kernel_time_ms;
-            info.startTimeMs = list[i].start_time_ms;
-            info.nice = list[i].nice;
-            info.policy = list[i].policy;
-            info.rtPriority = list[i].rt_priority;
-            info.suspendCount = list[i].suspend_count;
-            info.waitReason = QString::fromUtf8(list[i].wait_reason);
-            info.name = QString::fromUtf8(list[i].name);
-            {
-                std::lock_guard lock(mThreadNameMutex);
-                const auto label = mThreadNames.constFind(info.tid);
-                if(label != mThreadNames.constEnd())
-                    info.name = label.value();
-            }
-            threads.push_back(info);
+            std::lock_guard lock(mThreadNameMutex);
+            const auto label = mThreadNames.constFind(info.tid);
+            if(label != mThreadNames.constEnd())
+                info.name = label.value();
         }
+        threads.push_back(info);
     }
     emit threadsUpdated(threads, ElfBugGetCurrentTid(mDebugger));
 }
@@ -277,15 +282,10 @@ bool DbgAdapter::setThreadSuspended(const pid_t tid, const bool suspended)
 
 void DbgAdapter::setAllThreadsSuspended(const bool suspended)
 {
-    const uint32_t count = ElfBugGetThreadList(mDebugger, nullptr, 0);
-    if(!count)
-        return;
-    std::vector<ElfBugThreadInfo> list(count);
-    const uint32_t n = std::min(count, ElfBugGetThreadList(mDebugger, list.data(), count));
     uint32_t changed = 0;
-    for(uint32_t i = 0; i < n; ++i)
+    for(const auto & entry : readThreadList())
     {
-        if(ElfBugSetThreadSuspended(mDebugger, list[i].tid, suspended))
+        if(ElfBugSetThreadSuspended(mDebugger, entry.tid, suspended))
             ++changed;
     }
     if(!changed)

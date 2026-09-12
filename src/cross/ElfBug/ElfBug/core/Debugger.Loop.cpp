@@ -238,8 +238,8 @@ namespace ElfBug
                         mPendingSignal = 0;
                     }
                     pid = mThread->tid;
-                    if(mPendingSignal == 0 && mThread->pendingSignal() != 0 &&
-                            !mThread->pendingSignalUnreported())
+                    // mPendingSignal is 0 here: it was either already clear or handed off above.
+                    if(mThread->pendingSignal() != 0 && !mThread->pendingSignalUnreported())
                     {
                         mPendingSignal = mThread->pendingSignal();
                         mThread->clearPendingSignal();

@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <vector>
 #include <QHash>
 #include <QVector>
 #include <ElfBug/api/elfbug_api.h>
@@ -95,6 +96,7 @@ private:
 
     [[nodiscard]] QString threadSuffix() const;
     [[nodiscard]] REGDUMP readRegisters() const;
+    [[nodiscard]] std::vector<ElfBugThreadInfo> readThreadList() const;
     void emitStoppedState(const QString & reason);
     void emitStoppedState(const QString & reason, const REGDUMP & dump);
 
