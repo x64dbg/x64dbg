@@ -274,7 +274,11 @@ void DbgAdapter::setThreadName(const pid_t tid, const QString & name)
 bool DbgAdapter::setThreadSuspended(const pid_t tid, const bool suspended)
 {
     if(!ElfBugSetThreadSuspended(mDebugger, tid, suspended))
+    {
+        emit logMessage(QString("[x64dbg] Failed to %1 thread %2")
+                        .arg(suspended ? tr("suspend") : tr("resume")).arg(tid));
         return false;
+    }
     emit logMessage(QString("[x64dbg] Thread %1 %2").arg(tid).arg(suspended ? tr("suspended") : tr("resumed")));
     refreshThreads();
     return true;
@@ -282,15 +286,15 @@ bool DbgAdapter::setThreadSuspended(const pid_t tid, const bool suspended)
 
 void DbgAdapter::setAllThreadsSuspended(const bool suspended)
 {
+    const auto list = readThreadList();
     uint32_t changed = 0;
-    for(const auto & entry : readThreadList())
+    for(const auto & entry : list)
     {
         if(ElfBugSetThreadSuspended(mDebugger, entry.tid, suspended))
             ++changed;
     }
-    if(!changed)
-        return;
-    emit logMessage(QString("[x64dbg] %1 thread(s) %2").arg(changed).arg(suspended ? tr("suspended") : tr("resumed")));
+    emit logMessage(QString("[x64dbg] %1/%2 thread(s) %3").arg(changed).arg(list.size())
+                    .arg(suspended ? tr("suspended") : tr("resumed")));
     refreshThreads();
 }
 
