@@ -70,11 +70,11 @@ namespace
 
     // MemoryImageExtensionInformation (Windows 11 24H2+). Keep the definition
     // local because the bundled NT headers predate this information class.
-    // Layout/types: https://github.com/winsiderss/phnt/blob/master/ntmmapi.h
+    // The query buffer starts with a pointer to extension-type arguments,
+    // followed by the returned RVA and size (not inline type/flags fields).
     struct ImageExtensionInformation
     {
-        ULONG ExtensionType;
-        ULONG Flags;
+        PVOID TypeArguments;
         PVOID ExtensionImageBaseRva;
         SIZE_T ExtensionSize;
     };
@@ -88,12 +88,19 @@ namespace
         // extension from a protection failure, module tail, or OS version.
         for(ULONG type = 0; type != 2; ++type)
         {
+            ULONG arguments[2] = { type, 0 };
             ImageExtensionInformation info = {};
-            info.ExtensionType = type;
-            if(!NT_SUCCESS(NtQueryVirtualMemory(fdProcessInfo->hProcess, (PVOID)allocationBase,
-                                                static_cast<MEMORY_INFORMATION_CLASS>(14), &info, sizeof(info), nullptr)))
+            info.TypeArguments = arguments;
+            SIZE_T returnedSize = 0;
+            auto status = NtQueryVirtualMemory(fdProcessInfo->hProcess, (PVOID)allocationBase,
+                                               static_cast<MEMORY_INFORMATION_CLASS>(14), &info, sizeof(info), &returnedSize);
+            if(!NT_SUCCESS(status))
+            {
+                if(unsigned(status) != 0xC0000003 && unsigned(status) != 0xC00000BB) // unsupported on older Windows
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: CFG/SCP query for %p, type %u failed with status %08X.\n"), allocationBase, type, unsigned(status));
                 continue;
-            if(info.ExtensionType != type || !info.ExtensionImageBaseRva || !info.ExtensionSize)
+            }
+            if(!info.ExtensionImageBaseRva || !info.ExtensionSize)
                 continue;
             auto start = allocationBase + duint(info.ExtensionImageBaseRva);
             auto end = start + info.ExtensionSize;
@@ -222,10 +229,6 @@ bool RunToParty(int party, TITANCBSTEP callback, STEPFUNCTION fallback)
             auto error = GetLastError();
             MEMORY_BASIC_INFORMATION mbi = {};
             VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)range.first, &mbi, sizeof(mbi));
-            ImageExtensionInformation extension = {};
-            auto extensionStatus = NtQueryVirtualMemory(fdProcessInfo->hProcess, mbi.AllocationBase,
-                                   static_cast<MEMORY_INFORMATION_CLASS>(14), &extension, sizeof(extension), nullptr);
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: image extension query status %08X, type %u, flags %X, RVA %p, size %p.\n"), unsigned(extensionStatus), extension.ExtensionType, extension.Flags, duint(extension.ExtensionImageBaseRva), duint(extension.ExtensionSize));
             unsigned char byte = 0;
             auto readable = ReadProcessMemory(fdProcessInfo->hProcess, (LPCVOID)range.first, &byte, sizeof(byte), nullptr);
             dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: execute breakpoint setup failed at %p, size %p (last error %u, allocation %p, protect %X, type %X, readable %u).\n"), range.first, range.second, error, duint(mbi.AllocationBase), mbi.Protect, mbi.Type, unsigned(readable));

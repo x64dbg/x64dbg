@@ -60,12 +60,15 @@ int extensionQueries = 0;
 int NtQueryVirtualMemory(int, void* base, MEMORY_INFORMATION_CLASS infoClass,
                          void* buffer, size_t size, void*)
 {
-    assert(infoClass == 14 && size == sizeof(ImageExtensionReply));
-    auto info = static_cast<ImageExtensionReply*>(buffer);
+    struct QueryBuffer { ULONG* arguments; void* rva; size_t size; };
+    assert(infoClass == 14 && size == sizeof(QueryBuffer));
+    auto info = static_cast<QueryBuffer*>(buffer);
+    assert(info->arguments && info->arguments[0] < 2 && info->arguments[1] == 0);
     ++extensionQueries;
-    auto found = extensions.find({duint(base), info->type});
+    auto found = extensions.find({duint(base), info->arguments[0]});
     if(found == extensions.end()) return -1; // unsupported or no such extension
-    *info = found->second;
+    info->rva = found->second.rva;
+    info->size = found->second.size;
     return 0;
 }
 DWORD lastError = 0;
@@ -216,8 +219,8 @@ int main()
     regions[1].Type = MEM_IMAGE;
     regions[1].AllocationBase = (void*)0x1000;
     extensions[{0x1000, 0}] = {0, 0, (void*)(duint(-1) - 0xFFF), 0x1000};
-    extensions[{0x1000, 1}] = {7, 0, (void*)0x4000, 0x1000};
-    assert(RunToParty(0, done)); // overflow and unknown returned type: omit nothing
+    extensions[{0x1000, 7}] = {7, 0, (void*)0x4000, 0x1000};
+    assert(RunToParty(0, done)); // overflow and unknown extension type: omit nothing
     assert(installed.size() == 3);
     RunToPartyClear();
 
