@@ -24,6 +24,9 @@ using LPCVOID = const void*;
 using TITANCBSTEP = void(*)();
 using STEPFUNCTION = void(*)(TITANCBSTEP);
 using MemCallback = void(*)(const void*);
+#define QT_TRANSLATE_NOOP(context, text) text
+void dprintf(const char*, ...) {}
+void dputs(const char*) {}
 const DWORD PAGE_EXECUTE = 0x10, PAGE_EXECUTE_READ = 0x20,
     PAGE_EXECUTE_READWRITE = 0x40, PAGE_EXECUTE_WRITECOPY = 0x80,
     PAGE_GUARD = 0x100, MEM_COMMIT = 0x1000;
@@ -181,6 +184,14 @@ int main()
     assert(completed == 1 && !RunToPartyIsActive());
 
     reset();
+    cip = 0x1000;
+    assert(RunToParty(0, done, StepOverWrapper));
+    RunToPartyOnModuleChange(); // even a matching loader context is not a trace step
+    assert(completed == 0 && installed.empty() && pendingStep && steppedOver);
+    pendingStep();
+    assert(completed == 1 && !RunToPartyIsActive());
+
+    reset();
     assert(RunToParty(0, done));
     auto staleHit = installed.begin()->second.callback;
     RunToPartyClear(); // manual pause, normal break, or exit
@@ -215,7 +226,7 @@ def main():
         # engine/platform headers with test doubles in this isolated directory.
         shutil.copyfile(ROOT / "src/dbg/runtoparty.cpp", temp / "runtoparty.cpp")
         (temp / "shim.h").write_text(SHIM)
-        for header in ("runtoparty.h", "breakpoint.h", "module.h", "thread.h", "threading.h"):
+        for header in ("runtoparty.h", "breakpoint.h", "console.h", "module.h", "thread.h", "threading.h"):
             (temp / header).write_text('#include "shim.h"\n')
         (temp / "test.cpp").write_text(TEST)
         executable = temp / "test.exe"

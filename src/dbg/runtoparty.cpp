@@ -1,5 +1,6 @@
 #include "runtoparty.h"
 #include "breakpoint.h"
+#include "console.h"
 #include "module.h"
 #include "thread.h"
 #include "threading.h"
@@ -73,7 +74,10 @@ namespace
         BpGetList(&breakpoints);
         for(const auto & bp : breakpoints)
             if(bp.type == BPMEMORY && bp.enabled)
+            {
+                dputs(QT_TRANSLATE_NOOP("DBG", "Run-to-party: an enabled user memory breakpoint prevents setup."));
                 return false;
+            }
 
         // VirtualQuery regions can span module boundaries. Split them so that the
         // same ModGetParty classification as single-stepping is used, including
@@ -94,8 +98,10 @@ namespace
             {
                 // VirtualQueryEx returns ERROR_INVALID_PARAMETER past the target's
                 // address space (also handles large-address-aware WOW64 targets).
-                if(GetLastError() == ERROR_INVALID_PARAMETER)
+                auto error = GetLastError();
+                if(error == ERROR_INVALID_PARAMETER)
                     break;
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: VirtualQueryEx failed at %p (error %u).\n"), address, error);
                 return false;
             }
             auto end = duint(mbi.BaseAddress) + mbi.RegionSize;
@@ -117,7 +123,10 @@ namespace
                     {
                         // Do not consume a guard page belonging to the debuggee.
                         if(mbi.Protect & PAGE_GUARD)
+                        {
+                            dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: target range %p has PAGE_GUARD.\n"), address);
                             return false;
+                        }
                         ranges.emplace_back(address, rangeEnd - address);
                     }
                     address = rangeEnd;
@@ -143,6 +152,8 @@ bool RunToParty(int party, TITANCBSTEP callback, STEPFUNCTION fallback)
     {
         if(!SetMemoryBPXEx(range.first, range.second, UE_MEMORY_EXECUTE, true, cbPartyRunMemory))
         {
+            auto error = GetLastError();
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: execute breakpoint setup failed at %p, size %p (last error %u).\n"), range.first, range.second, error);
             clearPartyRunBreakpoints();
             return false;
         }
@@ -170,11 +181,16 @@ void RunToPartyClear()
 
 void RunToPartyOnModuleChange()
 {
+    STEPFUNCTION fallback;
     {
         EXCLUSIVE_ACQUIRE(LockRunToUserCode);
         if(!partyRun.running)
             return;
+        fallback = partyRun.fallback;
         clearPartyRunBreakpoints();
     }
-    cbPartyRunStep();
+    // A loader event is not an instruction-completion event. In particular,
+    // WOW64 may report a transition context here. Wait for a real step before
+    // checking the party or invoking the trace callback.
+    fallback(cbPartyRunStep);
 }

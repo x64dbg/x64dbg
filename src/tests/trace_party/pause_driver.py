@@ -50,7 +50,8 @@ def run(args, script: str) -> int:
             except queue.Empty:
                 break
             if line is None:
-                raise ValueError("headless exited while waiting for a command result")
+                code = process.wait(timeout=5)
+                raise ValueError(f"headless exited while waiting for a command result (exit={code:#x})")
             if line.startswith("[FAIL]") or "Unknown command/expression" in line:
                 raise ValueError(f"debugger command failed: {line}")
             if predicate(line):
