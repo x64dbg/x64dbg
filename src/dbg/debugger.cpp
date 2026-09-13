@@ -1533,36 +1533,44 @@ static void cbTraceXXTraceRecordStep(STEPFUNCTION stepFunction, bool bInto, TITA
     cbTraceUniversalConditionalStep(cip, stepFunction, callback, forceBreakTrace);
 }
 
-#define STEP_FUNCTION(into) (into ? StepIntoWow64 : StepOverWrapper)
+static STEPFUNCTION getTraceStepFunction(bool stepInto)
+{
+    auto party = dbggettracepartyfilter();
+    if(party == mod_user)
+        return stepInto ? StepIntoUser : StepOverUser;
+    if(party == mod_system)
+        return stepInto ? StepIntoSystem : StepOverSystem;
+    return stepInto ? StepIntoWow64 : StepOverWrapper;
+}
 
 void cbTraceOverConditionalStep()
 {
-    cbTraceXConditionalStep(STEP_FUNCTION(false), cbTraceOverConditionalStep);
+    cbTraceXConditionalStep(getTraceStepFunction(false), cbTraceOverConditionalStep);
 }
 
 void cbTraceIntoConditionalStep()
 {
-    cbTraceXConditionalStep(STEP_FUNCTION(true), cbTraceIntoConditionalStep);
+    cbTraceXConditionalStep(getTraceStepFunction(true), cbTraceIntoConditionalStep);
 }
 
 void cbTraceIntoBeyondTraceRecordStep()
 {
-    cbTraceXXTraceRecordStep(STEP_FUNCTION(true), false, cbTraceIntoBeyondTraceRecordStep);
+    cbTraceXXTraceRecordStep(getTraceStepFunction(true), false, cbTraceIntoBeyondTraceRecordStep);
 }
 
 void cbTraceOverBeyondTraceRecordStep()
 {
-    cbTraceXXTraceRecordStep(STEP_FUNCTION(false), false, cbTraceOverBeyondTraceRecordStep);
+    cbTraceXXTraceRecordStep(getTraceStepFunction(false), false, cbTraceOverBeyondTraceRecordStep);
 }
 
 void cbTraceIntoIntoTraceRecordStep()
 {
-    cbTraceXXTraceRecordStep(STEP_FUNCTION(true), true, cbTraceIntoIntoTraceRecordStep);
+    cbTraceXXTraceRecordStep(getTraceStepFunction(true), true, cbTraceIntoIntoTraceRecordStep);
 }
 
 void cbTraceOverIntoTraceRecordStep()
 {
-    cbTraceXXTraceRecordStep(STEP_FUNCTION(false), true, cbTraceOverIntoTraceRecordStep);
+    cbTraceXXTraceRecordStep(getTraceStepFunction(false), true, cbTraceOverIntoTraceRecordStep);
 }
 
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
@@ -3457,10 +3465,15 @@ static void cbStepIntoParty()
     if(bAbortStepping || ModGetParty(GetContextDataEx(hActiveThread, UE_CIP)) == StopParty)
     {
         bAbortStepping = false;
-        gStepIntoPartyCallback();
+        auto callback = gStepIntoPartyCallback;
+        gStepIntoPartyCallback = nullptr;
+        callback();
     }
     else
     {
+        // Finalize any pending trace instruction before silently skipping
+        // instructions from the other module party.
+        TraceRecord.FlushTraceExecuteRecord();
         StepIntoWow64(cbStepIntoParty<StopParty>);
     }
 }
@@ -3483,10 +3496,15 @@ static void cbStepOverParty()
     if(bAbortStepping || ModGetParty(GetContextDataEx(hActiveThread, UE_CIP)) == StopParty)
     {
         bAbortStepping = false;
-        gStepOverPartyCallback();
+        auto callback = gStepOverPartyCallback;
+        gStepOverPartyCallback = nullptr;
+        callback();
     }
     else
     {
+        // Finalize any pending trace instruction before silently skipping
+        // instructions from the other module party.
+        TraceRecord.FlushTraceExecuteRecord();
         StepOverWrapper(cbStepOverParty<StopParty>);
     }
 }
