@@ -3,10 +3,12 @@ settingset Events, SystemBreakpoint, 1
 settingset Events, EntryBreakpoint, 0
 settingset Events, DllLoadSystem, 0
 settingset Events, DllUnloadSystem, 0
+settingset Events, DllLoad, 0
+settingset Events, DllUnload, 0
 init "@TARGET@", "load"
 bp trace_party:Ready
 run
-testassert dword:[trace_party:gVersionWasLoaded] == 0, "fixture DLL was not already loaded"
+testassert dword:[trace_party:gModuleWasLoaded] == 0, "fixture DLL was not already loaded"
 bpc trace_party:Ready
 bp trace_party:LoadBegin
 run

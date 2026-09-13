@@ -32,7 +32,8 @@ const DWORD PAGE_EXECUTE = 0x10, PAGE_EXECUTE_READ = 0x20,
     PAGE_GUARD = 0x100, MEM_COMMIT = 0x1000;
 const DWORD ERROR_INVALID_PARAMETER = 87, UE_CIP = 1, UE_MEMORY_EXECUTE = 6;
 const int BPMEMORY = 1;
-struct MEMORY_BASIC_INFORMATION { void* BaseAddress; duint RegionSize; DWORD State, Protect; };
+struct MEMORY_BASIC_INFORMATION { void* BaseAddress; duint RegionSize; DWORD State, Protect; void* AllocationBase; DWORD Type; };
+bool ReadProcessMemory(int, LPCVOID, void*, size_t, void*) { return true; }
 struct MODINFO { duint base, size; int party; };
 struct BREAKPOINT { int type; bool enabled; };
 struct ProcessInfo { int hProcess; } processInfo{1};

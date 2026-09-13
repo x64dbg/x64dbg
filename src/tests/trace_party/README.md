@@ -23,7 +23,7 @@ fixture state, not alternate implementations of debugger behavior.
 | `fallback` | Real user memory breakpoint prevents fast setup, survives fallback, and subsequently fires |
 | `breakpoint` | Ordinary software breakpoint interrupts a fast trace; another trace can start afterward |
 | `exception` | Real exception breakpoint interrupts tracing; `erun` dispatches it to the debuggee handler |
-| `module-change` | Actual `version.dll` load/unload invalidates the fast snapshot; subsequent tracing still works |
+| `module-change` | Actual dependency-free fixture DLL load/unload invalidates the fast snapshot; subsequent tracing still works |
 | `pause-step`, `pause-run` | Real `pause` while trapped in an excluded user-code loop, then resume and complete |
 
 The fixture checks original page protections after tracing/running. Tests assert
@@ -84,6 +84,10 @@ be copied beside the isolated host.
 Each artifact directory retains the expanded script, debugger/stdout logs, binary
 trace, text trace, and `runtime.json` (SHA-256 of the host/core/bridge/engine/target).
 Only a test's own child process tree is terminated on timeout.
+
+The loader fixture is `trace_party_module.dll`, built without an entry point or
+CRT imports. This keeps the real loader events while avoiding assumptions about
+system DLL residency, dependencies, and initialization across Windows versions.
 
 ## Negative controls and limits
 

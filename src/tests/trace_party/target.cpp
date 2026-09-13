@@ -11,7 +11,7 @@ extern "C"
     __declspec(dllexport) volatile LONG gSpinIterations = 0;
     __declspec(dllexport) volatile LONG gHandled = 0;
     __declspec(dllexport) volatile LONG gLoadSucceeded = 0;
-    __declspec(dllexport) volatile LONG gVersionWasLoaded = 0;
+    __declspec(dllexport) volatile LONG gModuleWasLoaded = 0;
     __declspec(dllexport) DWORD* gScratch = nullptr;
     __declspec(dllexport) void* gSystemAddress = nullptr;
 
@@ -46,7 +46,7 @@ extern "C"
 
     __declspec(dllexport) __declspec(noinline) void LoadBegin()
     {
-        if(auto module = LoadLibraryW(L"version.dll"))
+        if(auto module = LoadLibraryW(L"trace_party_module.dll"))
         {
             gLoadSucceeded = 1;
             if(FreeLibrary(module))
@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
     // follows ordinary calls/returns; scripts never redirect CIP into helpers.
     TraceBegin();
     gCallbacks = 0;
-    gVersionWasLoaded = GetModuleHandleW(L"version.dll") != nullptr;
+    gModuleWasLoaded = GetModuleHandleW(L"trace_party_module.dll") != nullptr;
     Ready();
     if(argc > 1 && std::strcmp(argv[1], "spin") == 0)
         SpinBegin();

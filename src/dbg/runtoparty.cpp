@@ -153,7 +153,11 @@ bool RunToParty(int party, TITANCBSTEP callback, STEPFUNCTION fallback)
         if(!SetMemoryBPXEx(range.first, range.second, UE_MEMORY_EXECUTE, true, cbPartyRunMemory))
         {
             auto error = GetLastError();
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: execute breakpoint setup failed at %p, size %p (last error %u).\n"), range.first, range.second, error);
+            MEMORY_BASIC_INFORMATION mbi = {};
+            VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)range.first, &mbi, sizeof(mbi));
+            unsigned char byte = 0;
+            auto readable = ReadProcessMemory(fdProcessInfo->hProcess, (LPCVOID)range.first, &byte, sizeof(byte), nullptr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: execute breakpoint setup failed at %p, size %p (last error %u, allocation %p, protect %X, type %X, readable %u).\n"), range.first, range.second, error, duint(mbi.AllocationBase), mbi.Protect, mbi.Type, unsigned(readable));
             clearPartyRunBreakpoints();
             return false;
         }

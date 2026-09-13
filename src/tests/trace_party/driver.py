@@ -110,7 +110,8 @@ def check_recording(trace: Path, trace_log: Path, debug_log: str, script: str):
 
 def write_runtime_metadata(args, artifacts: Path, headless: Path):
     engine = headless.parent / ("TitanEngine.dll" if args.engine == "TitanEngine" else f"{args.engine}/TitanEngine.dll")
-    images = [headless, Path(args.debuggee).resolve(), engine]
+    target = Path(args.debuggee).resolve()
+    images = [headless, target, target.with_name("trace_party_module.dll"), engine]
     images += [headless.parent / name for name in ("x64dbg.dll", "x32dbg.dll", "x64bridge.dll", "x32bridge.dll")
                if (headless.parent / name).is_file()]
     metadata = {"engine": args.engine, "images": {}}
@@ -163,8 +164,8 @@ def main():
             raise ValueError("false log condition still produced trace log text")
         if "; EXPECT_MODULE_CHANGE" in source:
             for event in ("Loaded", "Unloaded"):
-                if not re.search(rf"DLL {event}: [^\r\n]*version\.dll", debug_log, re.I):
-                    raise ValueError(f"missing real DLL {event} event for version.dll")
+                if not re.search(rf"DLL {event}: [^\r\n]*trace_party_module\.dll", debug_log, re.I):
+                    raise ValueError(f"missing real DLL {event} event for trace_party_module.dll")
         return 0
     except (ValueError, OSError, subprocess.TimeoutExpired) as error:
         if process.poll() is None:
