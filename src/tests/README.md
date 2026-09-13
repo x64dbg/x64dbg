@@ -127,6 +127,16 @@ x64dbg_add_test(
 )
 ```
 
+## Prefer real debugger operations
+
+Keep execution control in ordinary debugger commands wherever possible. A test
+plugin should not emulate the feature being tested, manufacture trace hits, or
+hide a sequence of debugger operations inside an opaque assertion command.
+
+The [trace_party](trace_party/README.md) bundle is a plugin-free example: scripts
+drive tracing/run-to-party/breakpoints, Python reads the real binary trace, and an
+external driver issues the actual `pause` command when concurrency is required.
+
 ## Plugin conventions
 
 Test plugins should use the injected `X64DBG_TEST_NAME` compile definition instead of hardcoding their runtime name.

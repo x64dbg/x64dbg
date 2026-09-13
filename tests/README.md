@@ -11,7 +11,7 @@ The trace-filter runner compiles the production startup, pending-record filter, 
 
 The run-to-party runner compiles the unchanged `src/dbg/runtoparty.cpp` against a simulated engine in a temporary directory. It requires `clang++` (or pass `--compiler`). It checks target/private-memory coverage, module-boundary splitting, process-wide hits, exclusive operation ownership, partial-setup rollback, user-memory-breakpoint and guard-page rejection, query failures, module-change fallback with the original step mode, cancellation, and callback reentrancy.
 
-These tests do not exercise real page protections, engine trap-flag handling, or Qt. Live regression checks are still needed on both TitanEngine and GleeBug, x86 and x64:
+These hermetic tests do not exercise real page protections, engine trap-flag handling, or Qt. The plugin-free [trace_party E2E bundle](../src/tests/trace_party/README.md) now covers the main tracing/run-to-party paths on actual TitanEngine/GleeBug processes. The following remains a broader validation checklist (including UI and race cases not yet automated):
 
 1. Open the trace dialog. The new checkbox must be unchecked and disabled for All Modules, enabled for User Only/System Only, and cleared when selecting All Modules again.
 2. Trace through a long excluded-module loop with the checkbox off/on. Included instruction addresses, conditions, logs, and counters should agree for a single-threaded Trace Into target with stable mappings; run mode should avoid a debug event per excluded instruction.

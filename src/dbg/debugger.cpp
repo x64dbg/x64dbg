@@ -1159,7 +1159,7 @@ void cbRunToPartyFinished()
 {
     hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "Requested module party reached at %s"), SymGetSymbolicName(CIP).c_str());
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Requested module party reached at %s\n"), SymGetSymbolicName(CIP).c_str());
     // lock
     lock(WAITID_RUN);
     // Trace record

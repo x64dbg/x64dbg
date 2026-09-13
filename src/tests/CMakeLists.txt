@@ -147,6 +147,9 @@ function(x64dbg_add_test)
         )
         foreach(test_script ${test_scripts})
             get_filename_component(test_script_name "${test_script}" NAME)
+            # Track script-only edits and copy them even when an incremental
+            # build does not relink the debuggee/plugin (notably with MSBuild).
+            configure_file("${test_script}" "${test_runtime_dir}/${test_script_name}" COPYONLY)
             list(APPEND test_copy_commands
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                     "${test_script}"
@@ -184,6 +187,7 @@ set(X64DBG_STANDARD_TESTS
     scriptcmd_call_threads
     swbp_stale
     trace_cmd_condition
+    trace_party
     database_callbacks
 )
 
