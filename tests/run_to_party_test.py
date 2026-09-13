@@ -19,8 +19,13 @@ SHIM = r'''
 #include <map>
 #include <vector>
 using duint = uintptr_t;
-using DWORD = unsigned long;
+using DWORD = uint32_t;
+using ULONG = uint32_t;
+using SIZE_T = size_t;
+using PVOID = void*;
 using LPCVOID = const void*;
+using MEMORY_INFORMATION_CLASS = int;
+#define NT_SUCCESS(status) ((status) >= 0)
 using TITANCBSTEP = void(*)();
 using STEPFUNCTION = void(*)(TITANCBSTEP);
 using MemCallback = void(*)(const void*);
@@ -29,7 +34,7 @@ void dprintf(const char*, ...) {}
 void dputs(const char*) {}
 const DWORD PAGE_EXECUTE = 0x10, PAGE_EXECUTE_READ = 0x20,
     PAGE_EXECUTE_READWRITE = 0x40, PAGE_EXECUTE_WRITECOPY = 0x80,
-    PAGE_GUARD = 0x100, MEM_COMMIT = 0x1000;
+    PAGE_GUARD = 0x100, MEM_COMMIT = 0x1000, MEM_IMAGE = 0x1000000;
 const DWORD ERROR_INVALID_PARAMETER = 87, UE_CIP = 1, UE_MEMORY_EXECUTE = 6;
 const int BPMEMORY = 1;
 struct MEMORY_BASIC_INFORMATION { void* BaseAddress; duint RegionSize; DWORD State, Protect; void* AllocationBase; DWORD Type; };
@@ -49,6 +54,20 @@ std::vector<MODINFO> modules;
 std::vector<BREAKPOINT> userBreakpoints;
 struct Installed { duint size; MemCallback callback; };
 std::map<duint, Installed> installed;
+struct ImageExtensionReply { ULONG type, flags; void* rva; size_t size; };
+std::map<std::pair<duint, ULONG>, ImageExtensionReply> extensions;
+int extensionQueries = 0;
+int NtQueryVirtualMemory(int, void* base, MEMORY_INFORMATION_CLASS infoClass,
+                         void* buffer, size_t size, void*)
+{
+    assert(infoClass == 14 && size == sizeof(ImageExtensionReply));
+    auto info = static_cast<ImageExtensionReply*>(buffer);
+    ++extensionQueries;
+    auto found = extensions.find({duint(base), info->type});
+    if(found == extensions.end()) return -1; // unsupported or no such extension
+    *info = found->second;
+    return 0;
+}
 DWORD lastError = 0;
 duint queryFailure = duint(-1), cip = 0;
 int failInstallAt = -1, installCalls = 0, removeCalls = 0;
@@ -116,6 +135,8 @@ void reset()
                {(void*)0x6000, 0xA000, MEM_COMMIT, 4}};
     modules = {{0x2000, 0x2000, 1}, {0x4000, 0x1000, 0}};
     userBreakpoints.clear();
+    extensions.clear();
+    extensionQueries = 0;
     queryFailure = duint(-1);
     failInstallAt = -1;
     installCalls = removeCalls = completed = 0;
@@ -153,6 +174,75 @@ int main()
     assert(installed.size() == 1 && installed.at(0x2000).size == 0x2000);
     hit(0x2000);
     assert(completed == 1);
+
+    reset();
+    modules.clear();
+    regions[1].Type = MEM_IMAGE;
+    regions[1].AllocationBase = (void*)0x1000;
+    // An OS-reported extension in the middle of a VirtualQuery region must
+    // leave both adjacent executable ranges covered, not drop the whole image.
+    extensions[{0x1000, 0}] = {0, 0, (void*)0x2000, 0x1000};
+    assert(RunToParty(0, done));
+    assert(installed.size() == 2);
+    assert(installed.at(0x1000).size == 0x2000);
+    assert(installed.at(0x4000).size == 0x2000);
+    assert(extensionQueries == 2); // native/emulated queried once per allocation
+    RunToPartyClear();
+
+    reset();
+    regions[1].Type = MEM_IMAGE;
+    regions[1].AllocationBase = (void*)0x1000;
+    extensions[{0x1000, 1}] = {1, 0, (void*)0x4000, 0x1000};
+    assert(RunToParty(0, done)); // emulated extension at the image's tail
+    assert(installed.size() == 2 && !installed.count(0x5000));
+    assert(extensionQueries == 2);
+    RunToPartyClear();
+
+    reset();
+    extensions[{0x1000, 0}] = {0, 0, (void*)0x4000, 0x1000};
+    regions[1].AllocationBase = (void*)0x1000;
+    assert(RunToParty(0, done)); // private/JIT memory is never queried or omitted
+    assert(installed.size() == 3 && extensionQueries == 0);
+    RunToPartyClear();
+
+    reset();
+    regions[1].Type = MEM_IMAGE;
+    regions[1].AllocationBase = (void*)0x1000;
+    assert(RunToParty(0, done)); // unsupported query: keep ordinary image coverage
+    assert(installed.size() == 3 && extensionQueries == 2);
+    RunToPartyClear();
+
+    reset();
+    regions[1].Type = MEM_IMAGE;
+    regions[1].AllocationBase = (void*)0x1000;
+    extensions[{0x1000, 0}] = {0, 0, (void*)(duint(-1) - 0xFFF), 0x1000};
+    extensions[{0x1000, 1}] = {7, 0, (void*)0x4000, 0x1000};
+    assert(RunToParty(0, done)); // overflow and unknown returned type: omit nothing
+    assert(installed.size() == 3);
+    RunToPartyClear();
+
+    for(auto reply : std::vector<ImageExtensionReply>{
+            {0, 0, nullptr, 0x1000}, {0, 0, (void*)0x2000, 0},
+            {0, 0, (void*)0x2001, 0x1000},
+            {0, 0, (void*)0x2000, size_t(-1)}})
+    {
+        reset();
+        regions[1].Type = MEM_IMAGE;
+        regions[1].AllocationBase = (void*)0x1000;
+        extensions[{0x1000, 0}] = reply;
+        assert(RunToParty(0, done)); // empty, unaligned, or wrapping extent
+        assert(installed.size() == 3);
+        RunToPartyClear();
+    }
+
+    reset();
+    modules.clear();
+    regions[1].Type = MEM_IMAGE;
+    regions[1].AllocationBase = (void*)0x1000;
+    extensions[{0x1000, 0}] = {0, 0, (void*)0x2000, 0x1000};
+    failInstallAt = 1;
+    assert(!RunToParty(0, done)); // ordinary setup errors still roll back, not skip
+    assert(installed.empty() && removeCalls == 1);
 
     reset();
     failInstallAt = 1;
@@ -227,11 +317,12 @@ def main():
         # engine/platform headers with test doubles in this isolated directory.
         shutil.copyfile(ROOT / "src/dbg/runtoparty.cpp", temp / "runtoparty.cpp")
         (temp / "shim.h").write_text(SHIM)
-        for header in ("runtoparty.h", "breakpoint.h", "console.h", "module.h", "thread.h", "threading.h"):
+        for header in ("runtoparty.h", "breakpoint.h", "console.h", "module.h", "thread.h", "threading.h", "ntdll/ntdll.h"):
+            (temp / header).parent.mkdir(parents=True, exist_ok=True)
             (temp / header).write_text('#include "shim.h"\n')
         (temp / "test.cpp").write_text(TEST)
         executable = temp / "test.exe"
-        subprocess.run([args.compiler, "-std=c++14", str(temp / "test.cpp"), "-o", str(executable)], check=True)
+        subprocess.run([args.compiler, "-std=c++14", "-I", str(temp), str(temp / "test.cpp"), "-o", str(executable)], check=True)
         subprocess.run([str(executable)], check=True)
 
 

@@ -102,6 +102,12 @@ schedules, and a trace blocked inside a kernel wait still need dedicated E2E cas
 Those are not silently replaced with test-only implementations here. The existing
 hermetic tests retain value for failure injection and the repeated-Pause branch.
 
+On Windows 11 24H2+, the fast path intentionally omits OS-reported CFG/SCP image
+extensions, which cannot accept memory breakpoints. The run tests still reject
+fallback to stepping: this platform exception must not disable ordinary target
+coverage. `tests/run_to_party_test.py` checks exact interval exclusion, adjacent
+code and private/JIT coverage, unsupported queries, and setup-error rollback.
+
 The fast path's documented executable-memory snapshot limitations still apply;
 these tests do not promise to catch new executable allocations/protection changes
 that happen without a DLL event. They are correctness tests, not timing benchmarks.

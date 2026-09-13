@@ -4,7 +4,9 @@
 #include "module.h"
 #include "thread.h"
 #include "threading.h"
+#include "ntdll/ntdll.h"
 #include <algorithm>
+#include <map>
 
 namespace
 {
@@ -66,6 +68,42 @@ namespace
         cbPartyRunStep();
     }
 
+    // MemoryImageExtensionInformation (Windows 11 24H2+). Keep the definition
+    // local because the bundled NT headers predate this information class.
+    // Layout/types: https://github.com/winsiderss/phnt/blob/master/ntmmapi.h
+    struct ImageExtensionInformation
+    {
+        ULONG ExtensionType;
+        ULONG Flags;
+        PVOID ExtensionImageBaseRva;
+        SIZE_T ExtensionSize;
+    };
+
+    using PartyRunRanges = std::vector<std::pair<duint, duint>>;
+
+    PartyRunRanges queryScpRanges(duint allocationBase)
+    {
+        PartyRunRanges ranges;
+        // Native and emulated CFG/SCP extensions only. Do not infer an
+        // extension from a protection failure, module tail, or OS version.
+        for(ULONG type = 0; type != 2; ++type)
+        {
+            ImageExtensionInformation info = {};
+            info.ExtensionType = type;
+            if(!NT_SUCCESS(NtQueryVirtualMemory(fdProcessInfo->hProcess, (PVOID)allocationBase,
+                                                static_cast<MEMORY_INFORMATION_CLASS>(14), &info, sizeof(info), nullptr)))
+                continue;
+            if(info.ExtensionType != type || !info.ExtensionImageBaseRva || !info.ExtensionSize)
+                continue;
+            auto start = allocationBase + duint(info.ExtensionImageBaseRva);
+            auto end = start + info.ExtensionSize;
+            if(start < allocationBase || end <= start || (start & 0xFFF) || (end & 0xFFF))
+                continue;
+            ranges.emplace_back(start, end); // half-open intervals
+        }
+        return ranges;
+    }
+
     bool collectPartyRunRanges(int party, std::vector<std::pair<duint, duint>> & ranges)
     {
         // Memory breakpoints can disguise executable pages by changing protection.
@@ -90,6 +128,9 @@ namespace
         });
         std::sort(boundaries.begin(), boundaries.end());
 
+        // Query each image allocation at most once per snapshot. An unknown
+        // information class on older Windows leaves coverage unchanged.
+        std::map<duint, PartyRunRanges> scpRanges;
         duint address = 0;
         for(;;)
         {
@@ -121,6 +162,32 @@ namespace
                     auto rangeEnd = next == boundaries.end() ? end : std::min(end, *next);
                     if(ModGetParty(address) == party)
                     {
+                        bool scp = false;
+                        if(mbi.Type == MEM_IMAGE && mbi.AllocationBase)
+                        {
+                            auto base = duint(mbi.AllocationBase);
+                            auto found = scpRanges.find(base);
+                            if(found == scpRanges.end())
+                                found = scpRanges.emplace(base, queryScpRanges(base)).first;
+                            for(const auto & extension : found->second)
+                            {
+                                if(address >= extension.first && address < extension.second)
+                                {
+                                    rangeEnd = std::min(rangeEnd, extension.second);
+                                    scp = true;
+                                }
+                                else if(address < extension.first)
+                                    rangeEnd = std::min(rangeEnd, extension.first);
+                            }
+                        }
+                        if(scp)
+                        {
+                            // Windows owns these executable dispatch trampolines
+                            // and rejects both execute and guard breakpoints.
+                            dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: skipping Windows CFG/SCP trampoline at %p, size %p.\n"), address, rangeEnd - address);
+                            address = rangeEnd;
+                            continue;
+                        }
                         // Do not consume a guard page belonging to the debuggee.
                         if(mbi.Protect & PAGE_GUARD)
                         {
