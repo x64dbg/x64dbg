@@ -222,6 +222,10 @@ bool RunToParty(int party, TITANCBSTEP callback, STEPFUNCTION fallback)
             auto error = GetLastError();
             MEMORY_BASIC_INFORMATION mbi = {};
             VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)range.first, &mbi, sizeof(mbi));
+            ImageExtensionInformation extension = {};
+            auto extensionStatus = NtQueryVirtualMemory(fdProcessInfo->hProcess, mbi.AllocationBase,
+                                   static_cast<MEMORY_INFORMATION_CLASS>(14), &extension, sizeof(extension), nullptr);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: image extension query status %08X, type %u, flags %X, RVA %p, size %p.\n"), unsigned(extensionStatus), extension.ExtensionType, extension.Flags, duint(extension.ExtensionImageBaseRva), duint(extension.ExtensionSize));
             unsigned char byte = 0;
             auto readable = ReadProcessMemory(fdProcessInfo->hProcess, (LPCVOID)range.first, &byte, sizeof(byte), nullptr);
             dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: execute breakpoint setup failed at %p, size %p (last error %u, allocation %p, protect %X, type %X, readable %u).\n"), range.first, range.second, error, duint(mbi.AllocationBase), mbi.Protect, mbi.Type, unsigned(readable));
