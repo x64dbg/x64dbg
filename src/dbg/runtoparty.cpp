@@ -4,7 +4,6 @@
 #include "module.h"
 #include "thread.h"
 #include "threading.h"
-#include "ntdll/ntdll.h"
 #include <algorithm>
 #include <map>
 
@@ -68,49 +67,6 @@ namespace
         cbPartyRunStep();
     }
 
-    // MemoryImageExtensionInformation (Windows 11 24H2+). Keep the definition
-    // local because the bundled NT headers predate this information class.
-    // The query buffer starts with a pointer to extension-type arguments,
-    // followed by the returned RVA and size (not inline type/flags fields).
-    struct ImageExtensionInformation
-    {
-        PVOID TypeArguments;
-        PVOID ExtensionImageBaseRva;
-        SIZE_T ExtensionSize;
-    };
-
-    using PartyRunRanges = std::vector<std::pair<duint, duint>>;
-
-    PartyRunRanges queryScpRanges(duint allocationBase)
-    {
-        PartyRunRanges ranges;
-        // Native and emulated CFG/SCP extensions only. Do not infer an
-        // extension from a protection failure, module tail, or OS version.
-        for(ULONG type = 0; type != 2; ++type)
-        {
-            ULONG arguments[2] = { type, 0 };
-            ImageExtensionInformation info = {};
-            info.TypeArguments = arguments;
-            SIZE_T returnedSize = 0;
-            auto status = NtQueryVirtualMemory(fdProcessInfo->hProcess, (PVOID)allocationBase,
-                                               static_cast<MEMORY_INFORMATION_CLASS>(14), &info, sizeof(info), &returnedSize);
-            if(!NT_SUCCESS(status))
-            {
-                if(unsigned(status) != 0xC0000003 && unsigned(status) != 0xC00000BB) // unsupported on older Windows
-                    dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: CFG/SCP query for %p, type %u failed with status %08X.\n"), allocationBase, type, unsigned(status));
-                continue;
-            }
-            if(!info.ExtensionImageBaseRva || !info.ExtensionSize)
-                continue;
-            auto start = allocationBase + duint(info.ExtensionImageBaseRva);
-            auto end = start + info.ExtensionSize;
-            if(start < allocationBase || end <= start || (start & 0xFFF) || (end & 0xFFF))
-                continue;
-            ranges.emplace_back(start, end); // half-open intervals
-        }
-        return ranges;
-    }
-
     bool collectPartyRunRanges(int party, std::vector<std::pair<duint, duint>> & ranges)
     {
         // Memory breakpoints can disguise executable pages by changing protection.
@@ -128,16 +84,17 @@ namespace
         // same ModGetParty classification as single-stepping is used, including
         // executable private/JIT memory (which is user code).
         std::vector<duint> boundaries;
+        std::map<duint, duint> imageEnds;
         ModEnum([&](const MODINFO & mod)
         {
             boundaries.push_back(mod.base);
             boundaries.push_back(mod.base + mod.size);
+            if(mod.size && mod.base + mod.size > mod.base)
+                imageEnds.emplace(mod.base, mod.base + mod.size);
         });
         std::sort(boundaries.begin(), boundaries.end());
 
-        // Query each image allocation at most once per snapshot. An unknown
-        // information class on older Windows leaves coverage unchanged.
-        std::map<duint, PartyRunRanges> scpRanges;
+        const auto supportsScp = BridgeGetNtBuildNumber() >= 26100;
         duint address = 0;
         for(;;)
         {
@@ -169,25 +126,15 @@ namespace
                     auto rangeEnd = next == boundaries.end() ? end : std::min(end, *next);
                     if(ModGetParty(address) == party)
                     {
-                        bool scp = false;
-                        if(mbi.Type == MEM_IMAGE && mbi.AllocationBase)
-                        {
-                            auto base = duint(mbi.AllocationBase);
-                            auto found = scpRanges.find(base);
-                            if(found == scpRanges.end())
-                                found = scpRanges.emplace(base, queryScpRanges(base)).first;
-                            for(const auto & extension : found->second)
-                            {
-                                if(address >= extension.first && address < extension.second)
-                                {
-                                    rangeEnd = std::min(rangeEnd, extension.second);
-                                    scp = true;
-                                }
-                                else if(address < extension.first)
-                                    rangeEnd = std::min(rangeEnd, extension.first);
-                            }
-                        }
-                        if(scp)
+                        // Same ImageExtension layout recognized by memory.cpp:
+                        // exactly one RX image page beyond SizeOfImage, still
+                        // owned by that image allocation, on Windows 11 24H2+.
+                        // The native image-extension query is not usable here
+                        // for remote processes (STATUS_ACCESS_VIOLATION).
+                        auto image = imageEnds.find(duint(mbi.AllocationBase));
+                        if(supportsScp && mbi.Type == MEM_IMAGE && mbi.Protect == PAGE_EXECUTE_READ
+                                && mbi.RegionSize == 0x1000 && image != imageEnds.end()
+                                && duint(mbi.BaseAddress) == image->second)
                         {
                             // Windows owns these executable dispatch trampolines
                             // and rejects both execute and guard breakpoints.

@@ -20,12 +20,9 @@ SHIM = r'''
 #include <vector>
 using duint = uintptr_t;
 using DWORD = uint32_t;
-using ULONG = uint32_t;
-using SIZE_T = size_t;
-using PVOID = void*;
 using LPCVOID = const void*;
-using MEMORY_INFORMATION_CLASS = int;
-#define NT_SUCCESS(status) ((status) >= 0)
+DWORD buildNumber = 26100;
+DWORD BridgeGetNtBuildNumber() { return buildNumber; }
 using TITANCBSTEP = void(*)();
 using STEPFUNCTION = void(*)(TITANCBSTEP);
 using MemCallback = void(*)(const void*);
@@ -54,23 +51,6 @@ std::vector<MODINFO> modules;
 std::vector<BREAKPOINT> userBreakpoints;
 struct Installed { duint size; MemCallback callback; };
 std::map<duint, Installed> installed;
-struct ImageExtensionReply { ULONG type, flags; void* rva; size_t size; };
-std::map<std::pair<duint, ULONG>, ImageExtensionReply> extensions;
-int extensionQueries = 0;
-int NtQueryVirtualMemory(int, void* base, MEMORY_INFORMATION_CLASS infoClass,
-                         void* buffer, size_t size, void*)
-{
-    struct QueryBuffer { ULONG* arguments; void* rva; size_t size; };
-    assert(infoClass == 14 && size == sizeof(QueryBuffer));
-    auto info = static_cast<QueryBuffer*>(buffer);
-    assert(info->arguments && info->arguments[0] < 2 && info->arguments[1] == 0);
-    ++extensionQueries;
-    auto found = extensions.find({duint(base), info->arguments[0]});
-    if(found == extensions.end()) return -1; // unsupported or no such extension
-    info->rva = found->second.rva;
-    info->size = found->second.size;
-    return 0;
-}
 DWORD lastError = 0;
 duint queryFailure = duint(-1), cip = 0;
 int failInstallAt = -1, installCalls = 0, removeCalls = 0;
@@ -138,13 +118,22 @@ void reset()
                {(void*)0x6000, 0xA000, MEM_COMMIT, 4}};
     modules = {{0x2000, 0x2000, 1}, {0x4000, 0x1000, 0}};
     userBreakpoints.clear();
-    extensions.clear();
-    extensionQueries = 0;
+    buildNumber = 26100;
     queryFailure = duint(-1);
     failInstallAt = -1;
     installCalls = removeCalls = completed = 0;
     pendingStep = nullptr;
     cip = 0x2000;
+}
+void scpLayout()
+{
+    reset();
+    modules = {{0x1000, 0x4000, 0}};
+    regions = {{(void*)0, 0x1000, 0, 0},
+               {(void*)0x1000, 0x4000, MEM_COMMIT, PAGE_EXECUTE_READ, (void*)0x1000, MEM_IMAGE},
+               {(void*)0x5000, 0x1000, MEM_COMMIT, PAGE_EXECUTE_READ, (void*)0x1000, MEM_IMAGE},
+               {(void*)0x6000, 0x1000, MEM_COMMIT, PAGE_EXECUTE_READ, (void*)0x6000, 0},
+               {(void*)0x7000, 0x9000, MEM_COMMIT, 4}};
 }
 void hit(duint address)
 {
@@ -178,71 +167,40 @@ int main()
     hit(0x2000);
     assert(completed == 1);
 
-    reset();
-    modules.clear();
-    regions[1].Type = MEM_IMAGE;
-    regions[1].AllocationBase = (void*)0x1000;
-    // An OS-reported extension in the middle of a VirtualQuery region must
-    // leave both adjacent executable ranges covered, not drop the whole image.
-    extensions[{0x1000, 0}] = {0, 0, (void*)0x2000, 0x1000};
+    scpLayout();
     assert(RunToParty(0, done));
-    assert(installed.size() == 2);
-    assert(installed.at(0x1000).size == 0x2000);
-    assert(installed.at(0x4000).size == 0x2000);
-    assert(extensionQueries == 2); // native/emulated queried once per allocation
-    RunToPartyClear();
-
-    reset();
-    regions[1].Type = MEM_IMAGE;
-    regions[1].AllocationBase = (void*)0x1000;
-    extensions[{0x1000, 1}] = {1, 0, (void*)0x4000, 0x1000};
-    assert(RunToParty(0, done)); // emulated extension at the image's tail
     assert(installed.size() == 2 && !installed.count(0x5000));
-    assert(extensionQueries == 2);
-    RunToPartyClear();
+    assert(installed.at(0x1000).size == 0x4000); // image body stays covered
+    assert(installed.at(0x6000).size == 0x1000); // adjacent private/JIT code too
+    hit(0x6000);
+    assert(completed == 1);
 
-    reset();
-    extensions[{0x1000, 0}] = {0, 0, (void*)0x4000, 0x1000};
-    regions[1].AllocationBase = (void*)0x1000;
-    assert(RunToParty(0, done)); // private/JIT memory is never queried or omitted
-    assert(installed.size() == 3 && extensionQueries == 0);
-    RunToPartyClear();
-
-    reset();
-    regions[1].Type = MEM_IMAGE;
-    regions[1].AllocationBase = (void*)0x1000;
-    assert(RunToParty(0, done)); // unsupported query: keep ordinary image coverage
-    assert(installed.size() == 3 && extensionQueries == 2);
-    RunToPartyClear();
-
-    reset();
-    regions[1].Type = MEM_IMAGE;
-    regions[1].AllocationBase = (void*)0x1000;
-    extensions[{0x1000, 0}] = {0, 0, (void*)(duint(-1) - 0xFFF), 0x1000};
-    extensions[{0x1000, 7}] = {7, 0, (void*)0x4000, 0x1000};
-    assert(RunToParty(0, done)); // overflow and unknown extension type: omit nothing
-    assert(installed.size() == 3);
-    RunToPartyClear();
-
-    for(auto reply : std::vector<ImageExtensionReply>{
-            {0, 0, nullptr, 0x1000}, {0, 0, (void*)0x2000, 0},
-            {0, 0, (void*)0x2001, 0x1000},
-            {0, 0, (void*)0x2000, size_t(-1)}})
+    for(int variation = 0; variation < 7; ++variation)
     {
-        reset();
-        regions[1].Type = MEM_IMAGE;
-        regions[1].AllocationBase = (void*)0x1000;
-        extensions[{0x1000, 0}] = reply;
-        assert(RunToParty(0, done)); // empty, unaligned, or wrapping extent
-        assert(installed.size() == 3);
+        scpLayout();
+        switch(variation)
+        {
+        case 0: buildNumber = 26099; break; // no SCP layout on older Windows
+        case 1: regions[2].Type = 0; break; // private memory, even next to an image
+        case 2: regions[2].AllocationBase = (void*)0x5000; break; // different allocation
+        case 3: modules[0].size = 0x5000; break; // page inside the image
+        case 4: modules[0].size = 0x3000; break; // not immediately after the image
+        case 5: regions[2].Protect = PAGE_EXECUTE_READWRITE; break;
+        case 6:
+            regions[2].RegionSize = 0x2000; // not the single-page extension layout
+            regions.erase(regions.begin() + 3);
+            break;
+        }
+        assert(RunToParty(0, done));
+        assert(installed.count(0x5000)); // none of these pages may be silently dropped
         RunToPartyClear();
     }
 
-    reset();
-    modules.clear();
-    regions[1].Type = MEM_IMAGE;
-    regions[1].AllocationBase = (void*)0x1000;
-    extensions[{0x1000, 0}] = {0, 0, (void*)0x2000, 0x1000};
+    scpLayout();
+    regions[2].Protect |= PAGE_GUARD;
+    assert(!RunToParty(0, done) && installed.empty()); // guard ownership preserved
+
+    scpLayout();
     failInstallAt = 1;
     assert(!RunToParty(0, done)); // ordinary setup errors still roll back, not skip
     assert(installed.empty() && removeCalls == 1);
@@ -320,7 +278,7 @@ def main():
         # engine/platform headers with test doubles in this isolated directory.
         shutil.copyfile(ROOT / "src/dbg/runtoparty.cpp", temp / "runtoparty.cpp")
         (temp / "shim.h").write_text(SHIM)
-        for header in ("runtoparty.h", "breakpoint.h", "console.h", "module.h", "thread.h", "threading.h", "ntdll/ntdll.h"):
+        for header in ("runtoparty.h", "breakpoint.h", "console.h", "module.h", "thread.h", "threading.h"):
             (temp / header).parent.mkdir(parents=True, exist_ok=True)
             (temp / header).write_text('#include "shim.h"\n')
         (temp / "test.cpp").write_text(TEST)
