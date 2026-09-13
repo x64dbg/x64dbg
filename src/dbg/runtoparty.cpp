@@ -7,126 +7,126 @@
 
 namespace
 {
-struct PartyRunState
-{
-    int party = 0;
-    TITANCBSTEP callback = nullptr;
-    STEPFUNCTION fallback = StepIntoWow64;
-    bool running = false;
-    std::vector<std::pair<duint, duint>> breakpoints;
-};
-
-PartyRunState partyRun;
-
-// LockRunToUserCode must be held. Only successfully installed breakpoints are
-// owned here; never remove or replace an existing user memory breakpoint.
-void clearPartyRunBreakpoints()
-{
-    for(const auto & range : partyRun.breakpoints)
-        RemoveMemoryBPX(range.first, range.second);
-    partyRun.breakpoints.clear();
-    partyRun.running = false;
-}
-
-void cbPartyRunStep()
-{
-    TITANCBSTEP callback;
-    STEPFUNCTION fallback;
+    struct PartyRunState
     {
-        EXCLUSIVE_ACQUIRE(LockRunToUserCode);
-        if(!partyRun.callback)
-            return;
-        hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
-        auto cip = GetContextDataEx(hActiveThread, UE_CIP);
-        callback = partyRun.callback;
-        fallback = partyRun.fallback;
-        if(ModGetParty(cip) == partyRun.party)
-        {
-            clearPartyRunBreakpoints();
-            partyRun.callback = nullptr;
-        }
-        else
-        {
-            // The page's classification changed, or this is the single-step
-            // fallback after a module load/unload. Do not report a false hit.
-            clearPartyRunBreakpoints();
-            callback = nullptr;
-        }
+        int party = 0;
+        TITANCBSTEP callback = nullptr;
+        STEPFUNCTION fallback = StepIntoWow64;
+        bool running = false;
+        std::vector<std::pair<duint, duint>> breakpoints;
+    };
+
+    PartyRunState partyRun;
+
+    // LockRunToUserCode must be held. Only successfully installed breakpoints are
+    // owned here; never remove or replace an existing user memory breakpoint.
+    void clearPartyRunBreakpoints()
+    {
+        for(const auto & range : partyRun.breakpoints)
+            RemoveMemoryBPX(range.first, range.second);
+        partyRun.breakpoints.clear();
+        partyRun.running = false;
     }
-    // Release the lock before invoking a callback, which may start another run.
-    if(callback)
-        callback();
-    else
-        fallback(cbPartyRunStep);
-}
 
-void cbPartyRunMemory(const void*)
-{
-    cbPartyRunStep();
-}
-
-bool collectPartyRunRanges(int party, std::vector<std::pair<duint, duint>> & ranges)
-{
-    // Memory breakpoints can disguise executable pages by changing protection.
-    // Conservatively fall back rather than miss one or disturb a user BP.
-    std::vector<BREAKPOINT> breakpoints;
-    BpGetList(&breakpoints);
-    for(const auto & bp : breakpoints)
-        if(bp.type == BPMEMORY && bp.enabled)
-            return false;
-
-    // VirtualQuery regions can span module boundaries. Split them so that the
-    // same ModGetParty classification as single-stepping is used, including
-    // executable private/JIT memory (which is user code).
-    std::vector<duint> boundaries;
-    ModEnum([&](const MODINFO & mod)
+    void cbPartyRunStep()
     {
-        boundaries.push_back(mod.base);
-        boundaries.push_back(mod.base + mod.size);
-    });
-    std::sort(boundaries.begin(), boundaries.end());
-
-    duint address = 0;
-    for(;;)
-    {
-        MEMORY_BASIC_INFORMATION mbi;
-        if(!VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)address, &mbi, sizeof(mbi)))
+        TITANCBSTEP callback;
+        STEPFUNCTION fallback;
         {
-            // VirtualQueryEx returns ERROR_INVALID_PARAMETER past the target's
-            // address space (also handles large-address-aware WOW64 targets).
-            if(GetLastError() == ERROR_INVALID_PARAMETER)
-                break;
-            return false;
-        }
-        auto end = duint(mbi.BaseAddress) + mbi.RegionSize;
-        if(end <= address)
-        {
-            // The final free region can end at 4 GiB and wrap on x86.
-            if(mbi.State != MEM_COMMIT)
-                break;
-            return false;
-        }
-        const DWORD executable = PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY;
-        if(mbi.State == MEM_COMMIT && (mbi.Protect & executable))
-        {
-            while(address < end)
+            EXCLUSIVE_ACQUIRE(LockRunToUserCode);
+            if(!partyRun.callback)
+                return;
+            hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
+            auto cip = GetContextDataEx(hActiveThread, UE_CIP);
+            callback = partyRun.callback;
+            fallback = partyRun.fallback;
+            if(ModGetParty(cip) == partyRun.party)
             {
-                auto next = std::upper_bound(boundaries.begin(), boundaries.end(), address);
-                auto rangeEnd = next == boundaries.end() ? end : std::min(end, *next);
-                if(ModGetParty(address) == party)
-                {
-                    // Do not consume a guard page belonging to the debuggee.
-                    if(mbi.Protect & PAGE_GUARD)
-                        return false;
-                    ranges.emplace_back(address, rangeEnd - address);
-                }
-                address = rangeEnd;
+                clearPartyRunBreakpoints();
+                partyRun.callback = nullptr;
+            }
+            else
+            {
+                // The page's classification changed, or this is the single-step
+                // fallback after a module load/unload. Do not report a false hit.
+                clearPartyRunBreakpoints();
+                callback = nullptr;
             }
         }
-        address = end;
+        // Release the lock before invoking a callback, which may start another run.
+        if(callback)
+            callback();
+        else
+            fallback(cbPartyRunStep);
     }
-    return !ranges.empty();
-}
+
+    void cbPartyRunMemory(const void*)
+    {
+        cbPartyRunStep();
+    }
+
+    bool collectPartyRunRanges(int party, std::vector<std::pair<duint, duint>> & ranges)
+    {
+        // Memory breakpoints can disguise executable pages by changing protection.
+        // Conservatively fall back rather than miss one or disturb a user BP.
+        std::vector<BREAKPOINT> breakpoints;
+        BpGetList(&breakpoints);
+        for(const auto & bp : breakpoints)
+            if(bp.type == BPMEMORY && bp.enabled)
+                return false;
+
+        // VirtualQuery regions can span module boundaries. Split them so that the
+        // same ModGetParty classification as single-stepping is used, including
+        // executable private/JIT memory (which is user code).
+        std::vector<duint> boundaries;
+        ModEnum([&](const MODINFO & mod)
+        {
+            boundaries.push_back(mod.base);
+            boundaries.push_back(mod.base + mod.size);
+        });
+        std::sort(boundaries.begin(), boundaries.end());
+
+        duint address = 0;
+        for(;;)
+        {
+            MEMORY_BASIC_INFORMATION mbi;
+            if(!VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)address, &mbi, sizeof(mbi)))
+            {
+                // VirtualQueryEx returns ERROR_INVALID_PARAMETER past the target's
+                // address space (also handles large-address-aware WOW64 targets).
+                if(GetLastError() == ERROR_INVALID_PARAMETER)
+                    break;
+                return false;
+            }
+            auto end = duint(mbi.BaseAddress) + mbi.RegionSize;
+            if(end <= address)
+            {
+                // The final free region can end at 4 GiB and wrap on x86.
+                if(mbi.State != MEM_COMMIT)
+                    break;
+                return false;
+            }
+            const DWORD executable = PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY;
+            if(mbi.State == MEM_COMMIT && (mbi.Protect & executable))
+            {
+                while(address < end)
+                {
+                    auto next = std::upper_bound(boundaries.begin(), boundaries.end(), address);
+                    auto rangeEnd = next == boundaries.end() ? end : std::min(end, *next);
+                    if(ModGetParty(address) == party)
+                    {
+                        // Do not consume a guard page belonging to the debuggee.
+                        if(mbi.Protect & PAGE_GUARD)
+                            return false;
+                        ranges.emplace_back(address, rangeEnd - address);
+                    }
+                    address = rangeEnd;
+                }
+            }
+            address = end;
+        }
+        return !ranges.empty();
+    }
 }
 
 bool RunToParty(int party, TITANCBSTEP callback, STEPFUNCTION fallback)

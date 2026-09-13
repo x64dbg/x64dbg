@@ -3,68 +3,68 @@
 
 extern "C"
 {
-__declspec(dllexport) volatile LONG gCallbacks = 0;
-__declspec(dllexport) volatile LONG gReachedEnd = 0;
-__declspec(dllexport) volatile LONG gScratchWritten = 0;
-__declspec(dllexport) volatile LONG gProtectionFailures = 0;
-__declspec(dllexport) volatile LONG gRelease = 0;
-__declspec(dllexport) volatile LONG gSpinIterations = 0;
-__declspec(dllexport) volatile LONG gHandled = 0;
-__declspec(dllexport) volatile LONG gLoadSucceeded = 0;
-__declspec(dllexport) volatile LONG gVersionWasLoaded = 0;
-__declspec(dllexport) DWORD* gScratch = nullptr;
-__declspec(dllexport) void* gSystemAddress = nullptr;
+    __declspec(dllexport) volatile LONG gCallbacks = 0;
+    __declspec(dllexport) volatile LONG gReachedEnd = 0;
+    __declspec(dllexport) volatile LONG gScratchWritten = 0;
+    __declspec(dllexport) volatile LONG gProtectionFailures = 0;
+    __declspec(dllexport) volatile LONG gRelease = 0;
+    __declspec(dllexport) volatile LONG gSpinIterations = 0;
+    __declspec(dllexport) volatile LONG gHandled = 0;
+    __declspec(dllexport) volatile LONG gLoadSucceeded = 0;
+    __declspec(dllexport) volatile LONG gVersionWasLoaded = 0;
+    __declspec(dllexport) DWORD* gScratch = nullptr;
+    __declspec(dllexport) void* gSystemAddress = nullptr;
 
-__declspec(dllexport) __declspec(noinline) void Ready()
-{
-    gReachedEnd = 0;
-}
-
-__declspec(dllexport) __declspec(noinline) void UserCallback()
-{
-    ++gCallbacks;
-}
-
-__declspec(dllexport) __declspec(noinline) void TraceEnd()
-{
-    ++gReachedEnd;
-}
-
-__declspec(dllexport) __declspec(noinline) void Finished()
-{
-    gReachedEnd += 2;
-}
-
-__declspec(dllexport) __declspec(noinline) void SpinBegin()
-{
-    while(!gRelease)
+    __declspec(dllexport) __declspec(noinline) void Ready()
     {
-        ++gSpinIterations;
-        YieldProcessor();
+        gReachedEnd = 0;
     }
-}
 
-__declspec(dllexport) __declspec(noinline) void LoadBegin()
-{
-    if(auto module = LoadLibraryW(L"version.dll"))
+    __declspec(dllexport) __declspec(noinline) void UserCallback()
     {
-        gLoadSucceeded = 1;
-        if(FreeLibrary(module))
-            gLoadSucceeded = 2;
+        ++gCallbacks;
     }
-}
 
-__declspec(dllexport) __declspec(noinline) void ExceptionBegin()
-{
-    __try
+    __declspec(dllexport) __declspec(noinline) void TraceEnd()
     {
-        RaiseException(0xE0424242, 0, 0, nullptr);
+        ++gReachedEnd;
     }
-    __except(EXCEPTION_EXECUTE_HANDLER)
+
+    __declspec(dllexport) __declspec(noinline) void Finished()
     {
-        gHandled = 1;
+        gReachedEnd += 2;
     }
-}
+
+    __declspec(dllexport) __declspec(noinline) void SpinBegin()
+    {
+        while(!gRelease)
+        {
+            ++gSpinIterations;
+            YieldProcessor();
+        }
+    }
+
+    __declspec(dllexport) __declspec(noinline) void LoadBegin()
+    {
+        if(auto module = LoadLibraryW(L"version.dll"))
+        {
+            gLoadSucceeded = 1;
+            if(FreeLibrary(module))
+                gLoadSucceeded = 2;
+        }
+    }
+
+    __declspec(dllexport) __declspec(noinline) void ExceptionBegin()
+    {
+        __try
+        {
+            RaiseException(0xE0424242, 0, 0, nullptr);
+        }
+        __except(EXCEPTION_EXECUTE_HANDLER)
+        {
+            gHandled = 1;
+        }
+    }
 }
 
 static BOOL CALLBACK OnceCallback(PINIT_ONCE, PVOID, PVOID*)
