@@ -2,6 +2,7 @@
 #include <sys/ptrace.h>
 #include <sys/wait.h>
 #include <sys/personality.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <cerrno>
@@ -49,10 +50,28 @@ namespace ElfBug
         if(!szFilePath)
             return false;
 
-        if(!szCurrentDirectory && access(szFilePath, X_OK) != 0)
+        if(!szCurrentDirectory)
         {
-            cbInternalError("cannot execute '" + std::string(szFilePath) + "': " + std::string(strerror(errno)));
-            return false;
+            const std::string path(szFilePath);
+            struct stat info = {};
+            if(stat(szFilePath, &info) != 0)
+            {
+                cbInternalError("cannot execute '" + path + "': " + std::string(strerror(errno)));
+                return false;
+            }
+            if(!S_ISREG(info.st_mode))
+            {
+                cbInternalError("cannot execute '" + path + "': not a regular file");
+                return false;
+            }
+            if(access(szFilePath, X_OK) != 0)
+            {
+                if(errno == EACCES && (info.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) == 0)
+                    cbInternalError("cannot execute '" + path + "': file is not executable, run chmod +x '" + path + "'");
+                else
+                    cbInternalError("cannot execute '" + path + "': " + std::string(strerror(errno)));
+                return false;
+            }
         }
 
         mFilePath = szFilePath;

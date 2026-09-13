@@ -1,6 +1,8 @@
 #include "gui/MainWindow.h"
 #include <QMenuBar>
+#include <QFile>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QSplitter>
 #include <QStatusBar>
 #include <QToolBar>
@@ -242,6 +244,15 @@ void MainWindow::onOpen()
         return;
 
     onLogMessage(QString("[x64dbg] Launching: %1").arg(path));
+
+    const QFileInfo target(path);
+    if(target.isFile() && !target.isExecutable())
+    {
+        if(target.isWritable() && QFile::setPermissions(path, QFile::permissions(path) | QFile::ExeOwner))
+            onLogMessage(QString("[x64dbg] Added the execute bit to %1").arg(path));
+        else
+            onLogMessage(QString("[x64dbg] %1 is not executable, run chmod +x on it").arg(path));
+    }
 
     stopDebugThread();
 

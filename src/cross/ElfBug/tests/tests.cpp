@@ -11,6 +11,7 @@
 #include <chrono>
 #include <csignal>
 #include <cstdint>
+#include <filesystem>
 #include <future>
 #include <optional>
 #include <set>
@@ -72,6 +73,32 @@ TEST_CASE("Init fails cleanly for missing binary", "[init]")
     RecordingDebugger dbg;
     REQUIRE_FALSE(dbg.Init("/nonexistent/elfbug_missing_fixture"));
     REQUIRE(dbg.count(EventType::InternalError) >= 1);
+}
+
+TEST_CASE("Init explains a missing execute bit", "[init]")
+{
+    using namespace ElfBug::test;
+    namespace fs = std::filesystem;
+
+    const fs::path target = fs::path(ELFBUG_TESTS_TARGETS_DIR) / "elfbug_no_exec_bit";
+    fs::copy_file(FIXTURE("end_immediately"), target, fs::copy_options::overwrite_existing);
+    fs::permissions(target, fs::perms::owner_read | fs::perms::owner_write, fs::perm_options::replace);
+
+    RecordingDebugger dbg;
+    const bool started = dbg.Init(target.c_str());
+
+    std::string message;
+    for(const auto & e : dbg.events())
+    {
+        if(e.type == EventType::InternalError)
+            message = e.message;
+    }
+    fs::remove(target);
+
+    REQUIRE_FALSE(started);
+    CAPTURE(message);
+    REQUIRE(message.find("not executable") != std::string::npos);
+    REQUIRE(message.find("chmod +x") != std::string::npos);
 }
 
 TEST_CASE("Start without Init reports internal error", "[init]")
