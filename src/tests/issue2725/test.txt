@@ -1,0 +1,7 @@
+settingset Engine, HardcoreThreadSwitchWarning, 1
+init tests/issue2725.exe
+testassert $pid != 0, "first session started"
+stop
+init tests/issue2725.exe
+testassert $pid != 0, "second session started"
+stop
