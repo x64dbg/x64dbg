@@ -17,6 +17,7 @@
 #include "exception.h"
 #include "stringformat.h"
 #include "simplescript.h"
+#include "runtoparty.h"
 
 static bool isInt3Exception()
 {
@@ -396,16 +397,6 @@ bool cbDebugPause(int argc, char* argv[])
         _dbg_animatestop(); // pause when animating
         return true;
     }
-    if(dbgtraceactive())
-    {
-        dbgforcebreaktrace(); // pause when tracing
-        return true;
-    }
-    if(dbgstepactive())
-    {
-        dbgforcebreakstep(); // pause when stepping (out/user/system)
-        return true;
-    }
     if(!DbgIsDebugging())
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging!"));
@@ -430,6 +421,21 @@ bool cbDebugPause(int argc, char* argv[])
                  && eventCount == lastPauseRequestEventCount;
     lastPauseRequestTime = now;
     lastPauseRequestEventCount = eventCount;
+    if(dbgtraceactive())
+    {
+        dbgforcebreaktrace(); // pause when tracing
+        dbgforcebreakstep(); // also interrupt a party-aware skip loop
+        if(!RunToPartyIsActive() && !stuck)
+            return true;
+    }
+    if(dbgstepactive())
+    {
+        dbgforcebreakstep(); // pause when stepping (out/user/system)
+        if(!RunToPartyIsActive() && !stuck)
+            return true;
+    }
+    // A step can itself be blocked in a syscall: repeated Pause must also
+    // reach the break-in fallback, rather than only setting abort flags again.
     if(stuck && dbgspawnbreakinthread())
         return true;
     // After attaching, the active thread is whatever thread reported the last

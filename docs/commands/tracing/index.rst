@@ -14,6 +14,8 @@ Tracing
    TraceOverIntoTraceRecord
    RunToParty
    RunToUserCode
+   RunToSystemCode
+   TraceSetStepFilter
    TraceSetLog
    TraceSetCommand
    TraceSetLogFile
