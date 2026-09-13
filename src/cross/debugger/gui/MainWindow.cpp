@@ -267,7 +267,7 @@ void MainWindow::onOpen()
 
 void MainWindow::onContinue() const
 {
-    if(mProvider && mProvider->isActive())
+    if(mProvider && mProvider->isActive() && mProvider->isPaused())
     {
         onLogMessage("[x64dbg] Resuming...");
         mProvider->Continue();

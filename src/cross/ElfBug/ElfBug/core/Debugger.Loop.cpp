@@ -107,7 +107,7 @@ namespace ElfBug
                 if(it != mProcess->threads.end())
                     thread = it->second.get();
             }
-            if(!thread || thread->isRunning())
+            if(!thread || thread->isRunning() || thread->isSuspended())
                 continue;
 
             if(!thread->registers.Read())
@@ -147,29 +147,27 @@ namespace ElfBug
             if(!mProcess || !mIsRunning.load(std::memory_order_acquire))
                 return;
 
-            Thread* thread = nullptr;
+            int contError = 0;
             {
-                std::shared_lock lock(mProcessMutex);
+                std::unique_lock lock(mProcessMutex);
                 const auto it = mProcess->threads.find(tid);
-                if(it != mProcess->threads.end())
-                    thread = it->second.get();
-            }
-            // Pass one can leave a thread running, and it is no longer in ptrace-stop.
-            if(!thread || thread->isRunning())
-                continue;
+                Thread* thread = it != mProcess->threads.end() ? it->second.get() : nullptr;
+                // Pass one can leave a thread running, and it is no longer in ptrace-stop.
+                if(!thread || thread->isRunning() || thread->isSuspended())
+                    continue;
 
-            // The only delivery this queued signal will ever get.
-            const int sig = thread->pendingSignal();
-            thread->clearPendingSignal();
+                // The only delivery this queued signal will ever get.
+                const int sig = thread->pendingSignal();
+                thread->clearPendingSignal();
 
-            if(ptrace(PTRACE_CONT, tid, nullptr,
-                      reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
-            {
-                if(errno != ESRCH)
-                    cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
-                continue;
+                if(ptrace(PTRACE_CONT, tid, nullptr,
+                          reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
+                    contError = errno;
+                else
+                    thread->setRunning(true);
             }
-            thread->setRunning(true);
+            if(contError != 0 && contError != ESRCH)
+                cbInternalError("PTRACE_CONT failed: " + std::string(strerror(contError)));
         }
     }
 
@@ -451,22 +449,41 @@ namespace ElfBug
                 if(!mProcess || !mIsRunning.load(std::memory_order_acquire))
                     return false;
 
-                if(mThread && mThread->isSuspended())
+                bool leftStopped = false;
+                bool anyRunning = false;
+                int contError = 0;
                 {
-                    if(sig != 0)
-                        mThread->setPendingSignal(sig, 0, false);
-                    return true;
+                    std::unique_lock processLock(mProcessMutex);
+                    if(mThread && mThread->isSuspended())
+                    {
+                        if(sig != 0)
+                            mThread->setPendingSignal(sig, 0, false);
+                        leftStopped = true;
+                        for(const auto & [tid, thread] : mProcess->threads)
+                        {
+                            if(thread->isRunning())
+                            {
+                                anyRunning = true;
+                                break;
+                            }
+                        }
+                    }
+                    else if(ptrace(PTRACE_CONT, pid, nullptr,
+                                   reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
+                        contError = errno;
+                    else if(mThread)
+                        mThread->setRunning(true);
                 }
+                if(contError != 0 && contError != ESRCH)
+                    cbInternalError("PTRACE_CONT failed: " + std::string(strerror(contError)));
 
-                if(ptrace(PTRACE_CONT, pid, nullptr,
-                          reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
+                if(leftStopped && !anyRunning)
                 {
-                    if(errno != ESRCH)
-                        cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
-                }
-                else if(mThread)
-                {
-                    mThread->setRunning(true);
+                    mPauseRequested.store(false, std::memory_order_release);
+                    beginPause();
+                    cbPaused();
+                    reportedTid = pid;
+                    continue;
                 }
             }
             return true;

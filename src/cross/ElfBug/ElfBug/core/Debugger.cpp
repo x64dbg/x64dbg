@@ -36,6 +36,11 @@ namespace ElfBug
         mStepOver = {};
         mSourceRearms.clear();
         mUnregisteredRunning.clear();
+        {
+            std::lock_guard pauseLock(mPauseMutex);
+            mPendingSuspend.clear();
+            mPendingResume.clear();
+        }
         mAllStopped = false;
         mPauseRequested.store(false, std::memory_order_release);
         mStopRequested.store(false, std::memory_order_release);
@@ -236,17 +241,69 @@ namespace ElfBug
 
     bool Debugger::SetThreadSuspended(const pid_t tid, const bool suspended)
     {
-        std::lock_guard pauseLock(mPauseMutex);
-        if(!mPaused.load(std::memory_order_acquire))
+        const pid_t tgid = mMainPid.load(std::memory_order_acquire);
+        if(tgid <= 0)
             return false;
+
+        std::lock_guard pauseLock(mPauseMutex);
 
         std::unique_lock lock(mProcessMutex);
         if(!mProcess)
             return false;
         const auto it = mProcess->threads.find(tid);
-        if(it == mProcess->threads.end() || it->second->isRunning())
+        if(it == mProcess->threads.end())
             return false;
-        it->second->setSuspended(suspended);
+
+        if(!suspended)
+        {
+            it->second->resume();
+            if(!it->second->isSuspended())
+                it->second->setWaitReason({});
+            if(it->second->isSuspended() || mPaused.load(std::memory_order_acquire))
+                return true;
+
+            mPendingResume.insert(tid);
+            lock.unlock();
+
+            pid_t poke = 0;
+            {
+                std::shared_lock relock(mProcessMutex);
+                if(mProcess)
+                {
+                    for(const auto & [other, thread] : mProcess->threads)
+                    {
+                        if(other != tid && thread->isRunning())
+                        {
+                            poke = other;
+                            break;
+                        }
+                    }
+                }
+            }
+            if(poke != 0)
+                tgkill(tgid, poke, SIGSTOP);
+            return true;
+        }
+
+        if(!it->second->isRunning())
+        {
+            it->second->suspend();
+            it->second->setWaitReason("Suspended");
+            return true;
+        }
+
+        it->second->suspend();
+        it->second->setWaitReason("Suspended");
+        mPendingSuspend.insert(tid);
+
+        if(tgkill(tgid, tid, SIGSTOP) == -1)
+        {
+            mPendingSuspend.erase(tid);
+            it->second->resume();
+            if(!it->second->isSuspended())
+                it->second->setWaitReason({});
+            return false;
+        }
         return true;
     }
 

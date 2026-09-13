@@ -39,8 +39,9 @@ namespace ElfBug
         // resume act on it. The thread that reported keeps any signal it still owes.
         bool SwitchThread(pid_t tid);
 
-        // Suspends or resumes a stopped thread while paused. Suspended threads stay stopped
-        // across Continue and steps.
+        // Suspends or resumes a thread. Suspended threads stay stopped across Continue and
+        // steps. While running the request is serviced by the loop, so a true return means
+        // the request was accepted, not that the thread has stopped yet.
         bool SetThreadSuspended(pid_t tid, bool suspended);
 
     protected:
@@ -82,6 +83,9 @@ namespace ElfBug
         void onExec();
 
         void stopAllThreads(pid_t except);
+        // Tracer thread only. PTRACE_CONTs every thread whose suspend count reached zero
+        // while the process was running.
+        void drainPendingResumes();
         bool swallowPendingSigstop(pid_t tid);
         void resumeAllThreads(pid_t except);
         void abandonFreeze(pid_t except);
@@ -132,6 +136,14 @@ namespace ElfBug
         std::unordered_set<pid_t> mUnregisteredRunning;
         bool mAllStopped = false;
         pid_t mSteppingOff = 0;
+        // Tids whose next SIGSTOP was sent by SetThreadSuspended. The suspend count is
+        // applied at request time; the loop only leaves that stop in place. Guarded by
+        // mPauseMutex.
+        std::unordered_set<pid_t> mPendingSuspend;
+        // Resume requests from caller threads for a tid whose count reached zero while
+        // running. Idempotent, so membership is all that matters; a set fits. Guarded
+        // by mPauseMutex.
+        std::unordered_set<pid_t> mPendingResume;
         std::atomic<bool> mPauseRequested{false};
         std::atomic<bool> mStopRequested{false};
         std::atomic<pid_t> mMainPid{0};

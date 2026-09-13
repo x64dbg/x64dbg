@@ -23,6 +23,12 @@ namespace ElfBug
     {
         cbExitProcessEvent(exitCode);
 
+        {
+            std::lock_guard pauseLock(mPauseMutex);
+            mPendingSuspend.erase(pid);
+            mPendingResume.erase(pid);
+        }
+
         std::unique_lock lock(mProcessMutex);
         mProcesses.erase(pid);
 

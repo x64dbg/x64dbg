@@ -57,6 +57,7 @@ public:
     bool Stop() const; //discardable
 
     [[nodiscard]] bool isActive() const;
+    [[nodiscard]] bool isPaused() const;
     [[nodiscard]] bool isEngineLoaded() const { return mDebugger != nullptr; }
     [[nodiscard]] duint entryPoint() const { return mEntryPoint; }
 

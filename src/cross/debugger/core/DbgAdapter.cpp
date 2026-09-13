@@ -190,6 +190,11 @@ bool DbgAdapter::isActive() const
     return ElfBugGetPid(mDebugger) > 0;
 }
 
+bool DbgAdapter::isPaused() const
+{
+    return ElfBugIsPaused(mDebugger);
+}
+
 bool DbgAdapter::toggleBreakpoint(const duint addr) const
 {
     if(!isActive())

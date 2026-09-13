@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sys/types.h>
+#include <mutex>
 #include <string>
 #include <utility>
 #include <ElfBug/types/ElfBug.h>
@@ -34,6 +35,7 @@ namespace ElfBug
             if(running)
             {
                 mAtBreakpoint = false;
+                std::lock_guard lock(mWaitReasonMutex);
                 mWaitReason.clear();
             }
         }
@@ -45,14 +47,27 @@ namespace ElfBug
         void setAtBreakpoint(const bool at) { mAtBreakpoint = at; }
         [[nodiscard]] bool atBreakpoint() const { return mAtBreakpoint; }
 
-        // Frozen by the user. Every resume leaves it stopped until it is cleared.
-        void setSuspended(const bool suspended) { mSuspended = suspended; }
-        [[nodiscard]] bool isSuspended() const { return mSuspended; }
+        // Frozen by the user. Suspends nest: every resume leaves it stopped until the
+        // count reaches zero.
+        void suspend() { ++mSuspendCount; }
+        void resume() { if(mSuspendCount > 0) --mSuspendCount; }
+        [[nodiscard]] bool isSuspended() const { return mSuspendCount > 0; }
+        [[nodiscard]] uint32_t suspendCount() const { return mSuspendCount; }
 
         // Kernel function the thread was blocked in when the debugger stopped it from
-        // outside. Empty for a thread that was running or stopped on its own.
-        void setWaitReason(std::string reason) { mWaitReason = std::move(reason); }
-        [[nodiscard]] const std::string & waitReason() const { return mWaitReason; }
+        // outside. Empty for a thread that was running or stopped on its own. The
+        // string is written by the caller and the tracer with no lock in common, so
+        // it has its own. Nothing else is ever taken while it is held.
+        void setWaitReason(std::string reason)
+        {
+            std::lock_guard lock(mWaitReasonMutex);
+            mWaitReason = std::move(reason);
+        }
+        [[nodiscard]] std::string waitReason() const
+        {
+            std::lock_guard lock(mWaitReasonMutex);
+            return mWaitReason;
+        }
 
         // Set when our SIGSTOP was still queued because the thread stopped for its own
         // reason first. It must be consumed before this thread is single-stepped.
@@ -94,7 +109,8 @@ namespace ElfBug
         bool mStepsPushf = false;
         bool mRunning = false;
         bool mAtBreakpoint = false;
-        bool mSuspended = false;
+        uint32_t mSuspendCount = 0;
+        mutable std::mutex mWaitReasonMutex;
         std::string mWaitReason;
         bool mPendingSigstop = false;
         bool mHasPendingBreakpoint = false;

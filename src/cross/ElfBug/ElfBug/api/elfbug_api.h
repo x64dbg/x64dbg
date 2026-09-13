@@ -50,7 +50,7 @@ typedef struct
     int32_t nice;
     int32_t policy; // SCHED_* value, -1 if unknown
     int32_t rt_priority; // 1..99 for FIFO and RR, 0 otherwise
-    uint32_t suspend_count; // 0 or 1
+    uint32_t suspend_count; // nesting count; 0 means running
     char name[ELFBUG_THREAD_NAME_SIZE]; // /proc/<pid>/task/<tid>/comm, empty if unreadable
     // Kernel function the thread was blocked in when the debugger stopped it, empty if
     // it was running or stopped on its own.
@@ -99,6 +99,9 @@ ELFBUG_EXPORT void ElfBugStepOver(ElfBugDebugger* dbg);    // Thread-safe
 ELFBUG_EXPORT void ElfBugPause(ElfBugDebugger* dbg);       // Thread-safe
 ELFBUG_EXPORT bool ElfBugStop(ElfBugDebugger* dbg);        // Thread-safe
 
+// True while the debuggee is stopped and accepting Continue, steps and register writes.
+ELFBUG_EXPORT bool ElfBugIsPaused(const ElfBugDebugger* dbg);
+
 ELFBUG_EXPORT bool ElfBugGetRegisters(const ElfBugDebugger* dbg, ElfBugRegisters* regs);
 ELFBUG_EXPORT pid_t ElfBugGetPid(const ElfBugDebugger* dbg);
 // Current thread while paused: the one that reported the stop, or the one last switched
@@ -113,8 +116,9 @@ ELFBUG_EXPORT uint32_t ElfBugGetThreadList(const ElfBugDebugger* dbg, ElfBugThre
 // Fails unless the debuggee is paused and `tid` is one of its stopped threads.
 ELFBUG_EXPORT bool ElfBugSwitchThread(ElfBugDebugger* dbg, pid_t tid);
 
-// Freeze or thaw one thread. A suspended thread stays stopped across Continue and steps
-// until resumed. Paused only.
+// Freeze or thaw one thread. Suspends nest: a thread runs again once every suspend has a
+// matching resume. Valid whether the debuggee is paused or running; while running the
+// request is serviced by the debug loop, so the snapshot may lag the call by one refresh.
 ELFBUG_EXPORT bool ElfBugSetThreadSuspended(ElfBugDebugger* dbg, pid_t tid, bool suspended);
 
 ELFBUG_EXPORT ElfBugArch ElfBugGetArch(const ElfBugDebugger* dbg);

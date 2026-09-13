@@ -50,7 +50,7 @@ struct ElfBugDebugger : ElfBug::Debugger
     std::vector<ElfBugThreadInfo> threadList;
 
     // Both guarded by threadMutex.
-    std::set<pid_t> suspendedTids;
+    std::unordered_map<pid_t, uint32_t> suspendedTids;
     std::unordered_map<pid_t, std::string> pauseWaitReasons;
 
     static void copyWaitReason(const std::string & reason, char* out, const size_t size)
@@ -78,6 +78,28 @@ struct ElfBugDebugger : ElfBug::Debugger
     {
         std::lock_guard lock(threadMutex);
         pauseWaitReasons.clear();
+    }
+
+    // Caller holds threadMutex.
+    std::string resolveWaitReason(const pid_t tid)
+    {
+        std::string reason;
+        {
+            std::shared_lock lock(mProcessMutex);
+            if(mProcess)
+            {
+                const auto it = mProcess->threads.find(tid);
+                if(it != mProcess->threads.end())
+                    reason = it->second->waitReason();
+            }
+        }
+        if(reason.empty())
+        {
+            const auto sampled = pauseWaitReasons.find(tid);
+            if(sampled != pauseWaitReasons.end())
+                reason = sampled->second;
+        }
+        return reason;
     }
 
     static void readThreadName(const pid_t pid, const pid_t tid, char* name, const size_t size)
@@ -184,7 +206,8 @@ struct ElfBugDebugger : ElfBug::Debugger
                     info.rip = thread->registers.Native().rip;
                     info.fs_base = thread->registers.Native().fs_base;
                     readThreadStat(mProcess->pid, tid, info);
-                    info.suspend_count = suspendedTids.count(tid) ? 1u : 0u;
+                    const auto suspendEntry = suspendedTids.find(tid);
+                    info.suspend_count = suspendEntry != suspendedTids.end() ? suspendEntry->second : 0u;
                     std::string reason = thread->waitReason();
                     if(reason.empty())
                     {
@@ -682,6 +705,13 @@ extern "C" {
         return dbg->activePid.load(std::memory_order_acquire);
     }
 
+    bool ElfBugIsPaused(const ElfBugDebugger* dbg)
+    {
+        if(!dbg)
+            return false;
+        return dbg->IsPaused();
+    }
+
     pid_t ElfBugGetCurrentTid(const ElfBugDebugger* dbg)
     {
         if(!dbg)
@@ -715,14 +745,29 @@ extern "C" {
             return false;
 
         std::lock_guard lock(dbg->threadMutex);
+        uint32_t count = 0;
         if(suspended)
-            dbg->suspendedTids.insert(tid);
+        {
+            count = ++dbg->suspendedTids[tid];
+        }
         else
-            dbg->suspendedTids.erase(tid);
+        {
+            const auto it = dbg->suspendedTids.find(tid);
+            if(it != dbg->suspendedTids.end())
+            {
+                count = it->second > 0 ? --it->second : 0;
+                if(count == 0)
+                    dbg->suspendedTids.erase(it);
+            }
+        }
+        const std::string reason = suspended ? "Suspended" : dbg->resolveWaitReason(tid);
         for(auto & info : dbg->threadList)
         {
             if(info.tid == tid)
-                info.suspend_count = suspended ? 1u : 0u;
+            {
+                info.suspend_count = count;
+                dbg->copyWaitReason(reason, info.wait_reason, sizeof(info.wait_reason));
+            }
         }
         return true;
     }
