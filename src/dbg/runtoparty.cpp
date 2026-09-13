@@ -153,6 +153,15 @@ bool RunToParty(int party, TITANCBSTEP callback, STEPFUNCTION fallback)
         if(!SetMemoryBPXEx(range.first, range.second, UE_MEMORY_EXECUTE, true, cbPartyRunMemory))
         {
             auto error = GetLastError();
+            // Some executable image mappings reject removal of execute access
+            // (ERROR_INVALID_ADDRESS). Try the engine's guard/access mechanism
+            // instead. Its callback still checks the executing instruction's
+            // party; a data access from excluded code falls back to stepping.
+            if(error == ERROR_INVALID_ADDRESS && SetMemoryBPXEx(range.first, range.second, UE_MEMORY, true, cbPartyRunMemory))
+            {
+                partyRun.breakpoints.push_back(range);
+                continue;
+            }
             MEMORY_BASIC_INFORMATION mbi = {};
             VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)range.first, &mbi, sizeof(mbi));
             unsigned char byte = 0;

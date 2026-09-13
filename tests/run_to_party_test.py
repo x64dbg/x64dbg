@@ -30,7 +30,8 @@ void dputs(const char*) {}
 const DWORD PAGE_EXECUTE = 0x10, PAGE_EXECUTE_READ = 0x20,
     PAGE_EXECUTE_READWRITE = 0x40, PAGE_EXECUTE_WRITECOPY = 0x80,
     PAGE_GUARD = 0x100, MEM_COMMIT = 0x1000;
-const DWORD ERROR_INVALID_PARAMETER = 87, UE_CIP = 1, UE_MEMORY_EXECUTE = 6;
+const DWORD ERROR_INVALID_PARAMETER = 87, ERROR_INVALID_ADDRESS = 487,
+    UE_CIP = 1, UE_MEMORY_EXECUTE = 6, UE_MEMORY = 7;
 const int BPMEMORY = 1;
 struct MEMORY_BASIC_INFORMATION { void* BaseAddress; duint RegionSize; DWORD State, Protect; void* AllocationBase; DWORD Type; };
 bool ReadProcessMemory(int, LPCVOID, void*, size_t, void*) { return true; }
@@ -52,6 +53,7 @@ std::map<duint, Installed> installed;
 DWORD lastError = 0;
 duint queryFailure = duint(-1), cip = 0;
 int failInstallAt = -1, installCalls = 0, removeCalls = 0;
+bool failGuard = true;
 TITANCBSTEP pendingStep = nullptr;
 bool steppedOver = false;
 void StepIntoWow64(TITANCBSTEP callback) { pendingStep = callback; steppedOver = false; }
@@ -84,8 +86,9 @@ int ModGetParty(duint addr)
 }
 bool SetMemoryBPXEx(duint addr, duint size, DWORD type, bool restore, MemCallback callback)
 {
-    assert(type == UE_MEMORY_EXECUTE && restore && size);
-    if(installCalls++ == failInstallAt) return false;
+    assert((type == UE_MEMORY_EXECUTE || type == UE_MEMORY) && restore && size);
+    if(installCalls++ == failInstallAt || (type == UE_MEMORY && failGuard))
+    { lastError = ERROR_INVALID_ADDRESS; return false; }
     for(auto bp : installed)
         if(addr < bp.first + bp.second.size && bp.first < addr + size) return false;
     installed.emplace(addr, Installed{size, callback});
@@ -118,6 +121,7 @@ void reset()
     userBreakpoints.clear();
     queryFailure = duint(-1);
     failInstallAt = -1;
+    failGuard = true;
     installCalls = removeCalls = completed = 0;
     pendingStep = nullptr;
     cip = 0x2000;
@@ -158,6 +162,26 @@ int main()
     failInstallAt = 1;
     assert(!RunToParty(0, done));
     assert(!RunToPartyIsActive() && installed.empty() && removeCalls == 1);
+
+    reset();
+    failInstallAt = 1;
+    failGuard = false;
+    assert(RunToParty(0, done)); // guard fallback retains complete target coverage
+    assert(installed.size() == 3);
+    hit(0x4000);
+    assert(completed == 1 && installed.empty());
+
+    reset();
+    failInstallAt = 1;
+    failGuard = false;
+    assert(RunToParty(0, done, StepOverWrapper));
+    auto guardHit = installed.at(0x4000).callback;
+    cip = 0x2000; // excluded code reads a guarded target page: not an execute hit
+    guardHit((void*)0x4000);
+    assert(completed == 0 && installed.empty() && pendingStep && steppedOver);
+    cip = 0x4000;
+    pendingStep();
+    assert(completed == 1 && !RunToPartyIsActive());
 
     reset();
     userBreakpoints.push_back({BPMEMORY, true});
