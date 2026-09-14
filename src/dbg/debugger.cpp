@@ -2573,40 +2573,47 @@ bool dbggetwintext(std::vector<std::string>* winTextList, const DWORD dwProcessI
     return true;
 }
 
-static char* findCaseInsensitive(char* haystack, const char* needle)
+static char* findCaseInsensitive(char* haystack, const char* needle, const char* haystackEnd)
 {
     if(!haystack || !needle || !*needle)
         return nullptr;
+    if(haystackEnd && haystack >= haystackEnd)
+        return nullptr;
 
     const size_t needleLen = strlen(needle);
-    for(char* p = haystack; *p; ++p)
+    for(char* p = haystack; *p && (!haystackEnd || p < haystackEnd); ++p)
     {
+        if(haystackEnd && (size_t)(haystackEnd - p) < needleLen)
+            break;
         if(_strnicmp(p, needle, needleLen) == 0)
             return p;
     }
     return nullptr;
 }
 
-static const char* skipFirstCmdlineArg(const char* cmdline)
+static const char* endOfFirstCmdlineArg(const char* cmdline)
 {
     if(!cmdline || !*cmdline)
         return cmdline ? cmdline : "";
 
-    const char* rest;
     if(*cmdline == '"' || *cmdline == '\'')
     {
         const char quote = *cmdline;
-        rest = strchr(cmdline + 1, quote);
-        if(!rest)
+        const char* close = strchr(cmdline + 1, quote);
+        if(!close)
             return cmdline + strlen(cmdline);
-        rest++;
+        return close + 1;
     }
-    else
-    {
-        rest = cmdline;
-        while(*rest && *rest != ' ' && *rest != '\t')
-            rest++;
-    }
+
+    const char* end = cmdline;
+    while(*end && *end != ' ' && *end != '\t')
+        end++;
+    return end;
+}
+
+static const char* skipFirstCmdlineArg(const char* cmdline)
+{
+    const char* rest = endOfFirstCmdlineArg(cmdline);
     while(*rest == ' ' || *rest == '\t')
         rest++;
     return rest;
@@ -2650,7 +2657,8 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
         else
         {
             cmdline_qoutes_placement_t posEnum = getqoutesplacement(cmdline);
-            char* cmdLineExe = findCaseInsensitive(cmdline, pe32.szExeFile);
+            const char* firstArgEnd = endOfFirstCmdlineArg(cmdline);
+            char* cmdLineExe = findCaseInsensitive(cmdline, pe32.szExeFile, firstArgEnd);
             size_t cmdLineExeSize = cmdLineExe ? strlen(pe32.szExeFile) : 0;
 
             if(!cmdLineExe)
@@ -2659,11 +2667,11 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
                                 strrchr(pe32.szExeFile, '/') ? strrchr(pe32.szExeFile, '/') + 1 : pe32.szExeFile;
                 size_t exeNameLen = strlen(exeName);
 
-                char* peNameInCmd = findCaseInsensitive(cmdline, exeName);
+                char* peNameInCmd = findCaseInsensitive(cmdline, exeName, firstArgEnd);
                 //check for exe name is used in path to exe
                 for(char* exeNameInCmdTmp = peNameInCmd; exeNameInCmdTmp;)
                 {
-                    exeNameInCmdTmp = findCaseInsensitive(exeNameInCmdTmp + exeNameLen, exeName);
+                    exeNameInCmdTmp = findCaseInsensitive(exeNameInCmdTmp + exeNameLen, exeName, firstArgEnd);
                     if(!exeNameInCmdTmp)
                         break;
 
@@ -2707,11 +2715,11 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
                     if(dotInName != nullptr)
                         dotInName[0] = '\0';
                     size_t basicNameLen = strlen(basicName());
-                    peNameInCmd = findCaseInsensitive(cmdline, basicName());
+                    peNameInCmd = findCaseInsensitive(cmdline, basicName(), firstArgEnd);
                     //check for basic name is used in path to exe
                     for(char* basicNameInCmdTmp = peNameInCmd; basicNameInCmdTmp;)
                     {
-                        basicNameInCmdTmp = findCaseInsensitive(basicNameInCmdTmp + basicNameLen, basicName());
+                        basicNameInCmdTmp = findCaseInsensitive(basicNameInCmdTmp + basicNameLen, basicName(), firstArgEnd);
                         if(!basicNameInCmdTmp)
                             break;
 
