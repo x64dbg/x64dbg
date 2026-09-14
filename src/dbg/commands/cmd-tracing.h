@@ -10,6 +10,7 @@ bool cbDebugTraceIntoIntoTraceRecord(int argc, char* argv[]);
 bool cbDebugTraceOverIntoTraceRecord(int argc, char* argv[]);
 bool cbDebugRunToParty(int argc, char* argv[]);
 bool cbDebugRunToUserCode(int argc, char* argv[]);
+bool cbDebugRunToSystemCode(int argc, char* argv[]);
 bool cbDebugTraceSetLog(int argc, char* argv[]);
 bool cbDebugTraceSetCommand(int argc, char* argv[]);
 bool cbDebugTraceSetLogFile(int argc, char* argv[]);

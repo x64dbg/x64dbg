@@ -147,6 +147,9 @@ function(x64dbg_add_test)
         )
         foreach(test_script ${test_scripts})
             get_filename_component(test_script_name "${test_script}" NAME)
+            # Track script-only edits and copy them even when an incremental
+            # build does not relink the debuggee/plugin (notably with MSBuild).
+            configure_file("${test_script}" "${test_runtime_dir}/${test_script_name}" COPYONLY)
             list(APPEND test_copy_commands
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                     "${test_script}"
@@ -184,12 +187,26 @@ set(X64DBG_STANDARD_TESTS
     scriptcmd_call_threads
     swbp_stale
     trace_cmd_condition
+    trace_party
     database_callbacks
 )
 
 foreach(test_name IN LISTS X64DBG_STANDARD_TESTS)
     x64dbg_add_test(NAME "${test_name}")
 endforeach()
+
+# Dependency-free DLL for real loader events without OS-version-specific CRT
+# initialization, background loader work, or pre-existing system DLL residency.
+add_library(test_trace_party_module SHARED trace_party/module.cpp)
+x64dbg_apply_test_defaults(test_trace_party_module)
+set_target_properties(test_trace_party_module PROPERTIES PREFIX "" OUTPUT_NAME trace_party_module)
+if(MSVC)
+    target_link_options(test_trace_party_module PRIVATE /NOENTRY /NODEFAULTLIB)
+else()
+    target_link_options(test_trace_party_module PRIVATE -nostdlib -Wl,--entry,0)
+endif()
+x64dbg_set_output_dir(test_trace_party_module "${X64DBG_TEST_OUTPUT_DIR}")
+add_dependencies(test_trace_party_target test_trace_party_module)
 
 x64dbg_add_test(
     NAME attach_pause
