@@ -1,0 +1,27 @@
+; A configured DLL pause also cancels the deferred fallback from a fast traversal.
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+settingset Events, DllLoad, 0
+settingset Events, DllLoadSystem, 0
+settingset Events, DllUnload, 0
+init "@TARGET@", "load"
+bp trace_party:Ready
+run
+bpc trace_party:Ready
+bp trace_party:LoadBegin
+run
+bpc trace_party:LoadBegin
+settingset Events, DllLoad, 1
+bp trace_party:Finished
+TraceSetStepFilter user, run
+TraceIntoConditional "cip==trace_party:TraceEnd", .50000
+testassert trace_party_module != 0, "the fixture DLL load paused fast tracing"
+testassert dword:[trace_party:gLoadSucceeded] == 0, "LoadLibrary has not returned yet"
+settingset Events, DllLoad, 0
+run
+testassert cip == trace_party:Finished, "the cancelled loader-event fallback did not restart tracing"
+testassert dword:[trace_party:gLoadSucceeded] == 2, "load and unload completed"
+testassert dword:[trace_party:gCallbacks] == 3, "all callbacks executed after cancellation"
+testassert dword:[trace_party:gProtectionFailures] == 0, "protections restored after cancellation"
+bpc trace_party:Finished
+run

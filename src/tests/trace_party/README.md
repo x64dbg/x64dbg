@@ -25,6 +25,9 @@ fixture state, not alternate implementations of debugger behavior.
 | `exception` | Real exception breakpoint interrupts tracing; `erun` dispatches it to the debuggee handler |
 | `module-change` | Actual dependency-free fixture DLL load/unload invalidates the fast snapshot; subsequent tracing still works |
 | `pause-step`, `pause-run` | Real `pause` while trapped in an excluded user-code loop, then resume and complete |
+| `cancel-into`, `cancel-over`, `cancel-run` | Configured DLL pause cancels a pending party step/loader fallback; ordinary Resume must not crash or restart tracing |
+| `initial-over-run` | Trace Over starts on an excluded call and catches its first system callee before any callback executes |
+| `pause-breakin` | Repeated Pause interrupts a blocked syscall; resume and externally release the original wait without hitting a stale Pause INT3 |
 
 The fixture checks original page protections after tracing/running. Tests assert
 stop locations, trace counters, command counts, actual callback side effects,
@@ -58,11 +61,19 @@ external user with running/paused/stopped notifications and a target progress
 counter read through a debugger expression. They do not implement any stepping,
 filtering, breakpoint, or pause logic.
 
-Pause is requested only after observed progress inside the excluded loop, not
-because an arbitrary sleep expired. The driver validates actual expression
+The loop tests request Pause only after observed progress inside the excluded
+loop, not because an arbitrary sleep expired. The driver validates actual expression
 results afterward and writes the runner's final status. It waits for a fresh
 running-to-paused transition so duplicate GUI state notifications cannot make
 it proceed before a real stop.
+
+`pause-breakin` exercises the shared native Pause path under ordinary Run. It
+stops at the actual native wait entry, suspends unrelated threads, resumes into
+the wait, and lets debug events settle. The first Pause must install its pending
+breakpoint without stopping; the second must break in. Only after Resume does
+the driver signal the fixture's named Windows event. The next stop must be
+`Finished`, not the original syscall-return breakpoint. Signaling the event is
+normal external debuggee input; it does not implement any debugger behavior.
 
 ## Build and run
 
@@ -72,7 +83,7 @@ py src/tests/run.py --arch x64 --engine TitanEngine trace_party trace_party/syst
 py src/tests/run.py --arch x64 --engine GleeBug trace_party trace_party/system-run trace_party/pause-run
 ```
 
-All 17 variants are also auto-discovered in a normal full-suite run, including CI's
+All 22 variants are also auto-discovered in a normal full-suite run, including CI's
 x86/x64 and TitanEngine/GleeBug matrix. `x86` is an alias for `x32`.
 
 If the regular GUI is running, use an isolated build with
@@ -94,13 +105,22 @@ system DLL residency, dependencies, and initialization across Windows versions.
 Development validation deliberately disabled the production startup-filter call:
 `system-step` failed at binary record zero with one extra user instruction.
 Disabling the party-step abort in `cbDebugPause` made `pause-step` time out after
-observing progress in the excluded loop. Both mutations were reverted.
+observing progress in the excluded loop.
+
+Review-fix negative controls were also run against a real x64 TitanEngine host:
+removing the Trace Over cancellation guard made `cancel-over` crash with
+`0xC0000005`; restoring the unconditional initial step made `initial-over-run`
+fail because its first callback had already executed; disabling owned Pause
+breakpoint deletion made `pause-breakin` stop before `Finished` when the original
+syscall returned. All mutations were reverted, then all 22 variants passed on
+both x86/x64 and TitanEngine/GleeBug (88 case runs).
 
 This is not exhaustive coverage. The Qt checkbox interaction itself, trace-coverage
 into/beyond stop policies, live partial-setup failures, explicit multithreaded race
 schedules, and a trace blocked inside a kernel wait still need dedicated E2E cases.
 Those are not silently replaced with test-only implementations here. The existing
-hermetic tests retain value for failure injection and the repeated-Pause branch.
+hermetic tests retain value for failure injection, installation/cancellation
+interleavings, user-breakpoint ownership, and the active-trace repeated-Pause branch.
 
 On Windows 11 24H2+, the fast path intentionally omits the single-page CFG/SCP
 image-extension layout recognized by the memory map. These pages cannot accept

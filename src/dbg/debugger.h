@@ -131,6 +131,8 @@ DWORD dbggetcontinuestatus();
 
 void cbStep();
 void cbRtrStep();
+void dbgclearpausebreakpoint();
+bool dbgsetpausebreakpoint(duint address);
 void cbPauseBreakpoint();
 void cbMemoryBreakpoint(const void* ExceptionAddress);
 void cbHardwareBreakpoint(const void* ExceptionAddress);

@@ -25,6 +25,8 @@ def function(path, signature):
 
 SHIM = r'''
 #include <cassert>
+#include <atomic>
+#include <set>
 #include <cstdint>
 #include <cstring>
 #include <vector>
@@ -36,7 +38,7 @@ using TITANCBSTEP = void(*)();
 using STEPFUNCTION = void(*)(TITANCBSTEP);
 using MODULEPARTY = int;
 const int mod_user = 0, mod_system = 1, UE_CIP = 1, UE_BREAKPOINT = 0, WM_NULL = 0;
-const int history_clear = 0;
+const int history_clear = 0, BPNORMAL = 0;
 #ifndef _countof
 #define _countof(a) (sizeof(a) / sizeof((a)[0]))
 #endif
@@ -48,7 +50,22 @@ duint cip = 0x1000;
 int selectedParty = -1;
 HANDLE hActiveThread = 7;
 bool tracing = false, running = false, abortTrace = false, bAbortStepping = false;
-bool partyRun = false, validCondition = true;
+bool partyRun = false, validCondition = true, useRun = false, armRun = true;
+TITANCBSTEP pendingRun = nullptr;
+int runAttempts = 0;
+struct TraceStateDouble
+{
+    bool IsActive() { return tracing; }
+    bool UseRunToParty() { return useRun; }
+    bool ForceBreakTrace() { return abortTrace; }
+    void SetRunToParty(bool value) { useRun = value; }
+} traceState;
+std::atomic<duint> gPauseBreakpointAddress{0};
+std::atomic<unsigned> gPauseBreakpointGeneration{0};
+std::set<duint> softwareBreakpoints, userBreakpoints;
+std::vector<duint> deletedBreakpoints;
+bool cancelDuringInstall = false, resumeFails = false;
+void dbgclearpausebreakpoint();
 TITANCBSTEP pendingStep = nullptr, gStepIntoPartyCallback = nullptr, gStepOverPartyCallback = nullptr;
 bool over = false;
 ULONGLONG clockMs = 100;
@@ -80,7 +97,14 @@ struct TraceRecordManager
 } TraceRecord;
 void StepIntoWow64(TITANCBSTEP callback) { pendingStep = callback; over = false; }
 void StepOverWrapper(TITANCBSTEP callback) { pendingStep = callback; over = true; }
-bool tryTraceRunToParty(int, TITANCBSTEP, STEPFUNCTION) { return false; }
+bool RunToParty(int, TITANCBSTEP callback, STEPFUNCTION)
+{
+    ++runAttempts;
+    if(!armRun) return false;
+    pendingRun = callback;
+    partyRun = true;
+    return true;
+}
 bool IsArgumentsLessThan(int argc, int count) { return argc < count; }
 bool dbgtraceactive() { return tracing; }
 bool dbgisrunning() { return running; }
@@ -98,15 +122,32 @@ void dbgforcebreakstep() { if(dbgstepactive()) bAbortStepping = true; }
 bool RunToPartyIsActive() { return partyRun; }
 ULONGLONG GetTickCount64() { return clockMs; }
 duint dbggetdbgeventcount() { return events; }
-bool dbgspawnbreakinthread() { ++breakins; return true; }
+bool dbgspawnbreakinthread()
+{
+    assert(gPauseBreakpointAddress == 0); // remove the old INT3 BEFORE break-in
+    ++breakins;
+    return true;
+}
 DWORD dbggetattachmainthread() { return 0; }
 HANDLE ThreadGetHandle(DWORD id) { return int(id); }
 DWORD GetThreadId(HANDLE id) { return id; }
 DWORD SuspendThread(HANDLE) { return 0; }
-DWORD ResumeThread(HANDLE) { return 0; }
+DWORD ResumeThread(HANDLE) { return resumeFails ? DWORD(-1) : 0; }
 void PostThreadMessageA(DWORD, int, int, int) {}
 void cbPauseBreakpoint() {}
-bool SetBPX(duint, int, TITANCBSTEP) { ++pauseBreakpoints; return true; }
+bool BpGet(duint address, int, const char*, void*) { return userBreakpoints.count(address); }
+bool DeleteBPX(duint address)
+{
+    deletedBreakpoints.push_back(address);
+    return softwareBreakpoints.erase(address) != 0;
+}
+bool SetBPX(duint address, int, TITANCBSTEP)
+{
+    if(!softwareBreakpoints.insert(address).second) return false;
+    ++pauseBreakpoints;
+    if(cancelDuringInstall) dbgclearpausebreakpoint();
+    return true;
+}
 '''
 
 TEST = r'''
@@ -123,7 +164,15 @@ void reset()
     cip = 0x1000;
     selectedParty = mod_system;
     tracing = running = abortTrace = bAbortStepping = partyRun = false;
-    validCondition = true;
+    validCondition = armRun = true;
+    useRun = cancelDuringInstall = resumeFails = false;
+    pendingRun = nullptr;
+    runAttempts = 0;
+    gPauseBreakpointAddress = 0;
+    ++gPauseBreakpointGeneration;
+    softwareBreakpoints.clear();
+    userBreakpoints.clear();
+    deletedBreakpoints.clear();
     gStepIntoPartyCallback = gStepOverPartyCallback = pendingStep = nullptr;
     logged.clear();
     breakins = pauseBreakpoints = 0;
@@ -163,6 +212,47 @@ int main()
         assert(TraceRecord.written == std::vector<duint>{0x2000});
         assert(logged == std::vector<duint>{0x2000});
     }
+    // Run mode arms BEFORE the first excluded instruction, including Trace Over.
+    for(auto stepFunction : {StepIntoSystem, StepOverSystem, StepIntoUser, StepOverUser})
+    {
+        reset();
+        selectedParty = (stepFunction == StepIntoSystem || stepFunction == StepOverSystem) ? mod_system : mod_user;
+        cip = selectedParty == mod_system ? 0x1000 : 0x2000;
+        TraceRecord.queue(cip);
+        useRun = true;
+        start(stepFunction);
+        assert(runAttempts == 1 && pendingRun && !pendingStep);
+        assert(!TraceRecord.rtPrevInstAvailable);
+        cip = selectedParty == mod_system ? 0x2000 : 0x1000;
+        pendingRun();
+        assert(logged == std::vector<duint>{cip});
+    }
+    reset();
+    cip = 0x2000;
+    useRun = true;
+    start(StepOverSystem); // included calls must still be stepped over
+    assert(!runAttempts && pendingStep && over);
+    reset();
+    useRun = true;
+    armRun = false;
+    start(StepOverSystem);
+    assert(runAttempts == 1 && !useRun && pendingStep && over);
+    step(0x1001);
+    assert(runAttempts == 1 && pendingStep && over); // no repeated failed setup
+
+    // A real pause clears these callback slots. A subsequently delivered engine
+    // completion must do nothing, regardless of the instruction's party.
+    for(auto stepFunction : {StepIntoSystem, StepOverSystem})
+        for(auto address : {0x1001, 0x2000})
+        {
+            reset();
+            start(stepFunction);
+            gStepIntoPartyCallback = gStepOverPartyCallback = nullptr;
+            tracing = false;
+            step(address);
+            assert(logged.empty() && !pendingStep && !runAttempts);
+        }
+
     // Directly crossing parties on the first step must also exclude the seed.
     reset();
     TraceRecord.queue(cip);
@@ -244,6 +334,54 @@ int main()
     clockMs += 2500;
     assert(cbDebugPause(0, nullptr));
     assert(breakins == 1);
+
+    // A blocked fast run installs an INT3 on the first Pause. The second Pause
+    // must remove it before creating the break-in thread.
+    reset();
+    start(StepIntoSystem);
+    partyRun = true;
+    assert(cbDebugPause(0, nullptr));
+    assert(gPauseBreakpointAddress == cip && softwareBreakpoints.count(cip));
+    clockMs += 2500;
+    assert(cbDebugPause(0, nullptr));
+    assert(breakins == 1 && softwareBreakpoints.empty());
+    assert(deletedBreakpoints == std::vector<duint>{cip});
+
+    reset();
+    running = true;
+    assert(dbgsetpausebreakpoint(0x1000));
+    assert(dbgsetpausebreakpoint(0x1001)); // replace, not accumulate, pause INT3s
+    assert(!softwareBreakpoints.count(0x1000) && softwareBreakpoints.count(0x1001));
+    dbgclearpausebreakpoint(); // ordinary breakpoint/DLL pause or shutdown
+    assert(softwareBreakpoints.empty());
+
+    reset();
+    running = true;
+    userBreakpoints.insert(cip);
+    softwareBreakpoints.insert(cip);
+    assert(!dbgsetpausebreakpoint(cip));
+    dbgclearpausebreakpoint();
+    assert(softwareBreakpoints.count(cip) && deletedBreakpoints.empty());
+    reset();
+    running = true;
+    assert(dbgsetpausebreakpoint(cip));
+    userBreakpoints.insert(cip); // user/plugin replaced the breakpoint
+    dbgclearpausebreakpoint();
+    assert(softwareBreakpoints.count(cip) && deletedBreakpoints.empty());
+
+    reset();
+    running = cancelDuringInstall = true;
+    assert(dbgsetpausebreakpoint(cip));
+    assert(!gPauseBreakpointAddress && softwareBreakpoints.empty());
+
+    reset();
+    assert(dbgsetpausebreakpoint(cip)); // the debuggee already paused
+    assert(!gPauseBreakpointAddress && softwareBreakpoints.empty());
+
+    reset();
+    running = resumeFails = true;
+    assert(!cbDebugPause(0, nullptr));
+    assert(!gPauseBreakpointAddress && softwareBreakpoints.empty());
 }
 '''
 
@@ -254,7 +392,9 @@ def main():
     args = parser.parse_args()
     code = SHIM + function("src/dbg/TraceRecord.cpp", "void TraceRecordManager::FilterPendingTraceRecord(")
     code += function("src/dbg/commands/cmd-tracing.cpp", "static bool genericConditionalTraceCommand(")
-    for signature in ("template<MODULEPARTY StopParty>\nstatic void cbStepIntoParty()",
+    for signature in ("void dbgclearpausebreakpoint()", "bool dbgsetpausebreakpoint(",
+                      "static bool tryTraceRunToParty(",
+                      "template<MODULEPARTY StopParty>\nstatic void cbStepIntoParty()",
                       "void StepIntoUser(", "void StepIntoSystem(",
                       "template<MODULEPARTY StopParty>\nstatic void cbStepOverParty()",
                       "void StepOverUser(", "void StepOverSystem("):

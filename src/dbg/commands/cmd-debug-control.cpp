@@ -355,6 +355,7 @@ bool cbDebugDetach(int argc, char* argv[])
     PLUG_CB_DETACH detachInfo;
     detachInfo.fdProcessInfo = fdProcessInfo;
     plugincbcall(CB_DETACH, &detachInfo);
+    dbgclearpausebreakpoint();
     BpEnumAll(dbgdetachDisableAllBreakpoints); // Disable all software breakpoints before detaching.
     if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
         dputs(QT_TRANSLATE_NOOP("DBG", "DetachDebuggerEx failed..."));
@@ -436,8 +437,14 @@ bool cbDebugPause(int argc, char* argv[])
     }
     // A step can itself be blocked in a syscall: repeated Pause must also
     // reach the break-in fallback, rather than only setting abort flags again.
-    if(stuck && dbgspawnbreakinthread())
-        return true;
+    if(stuck)
+    {
+        // The original thread may return from its syscall after we resume
+        // from the break-in thread. Do not leave the first Pause's INT3 there.
+        dbgclearpausebreakpoint();
+        if(dbgspawnbreakinthread())
+            return true;
+    }
     // After attaching, the active thread is whatever thread reported the last
     // attach event (usually an idle worker that never wakes up). Target the
     // main thread instead until a real debug event selects an active thread.
@@ -464,7 +471,7 @@ bool cbDebugPause(int argc, char* argv[])
         return false;
     }
     duint CIP = GetContextDataEx(hPauseThread, UE_CIP);
-    if(!SetBPX(CIP, UE_BREAKPOINT, cbPauseBreakpoint))
+    if(!dbgsetpausebreakpoint(CIP))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting breakpoint at %p! (SetBPX)\n"), CIP);
         if(ResumeThread(hPauseThread) == -1)
@@ -480,6 +487,7 @@ bool cbDebugPause(int argc, char* argv[])
     PostThreadMessageA(dwPauseThreadId, WM_NULL, 0, 0);
     if(ResumeThread(hPauseThread) == -1)
     {
+        dbgclearpausebreakpoint();
         dputs(QT_TRANSLATE_NOOP("DBG", "Error resuming thread"));
         return false;
     }

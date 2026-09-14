@@ -7,7 +7,7 @@ python tests/run_to_party_test.py
 python tests/trace_filter_test.py
 ```
 
-The trace-filter runner compiles the production startup, pending-record filter, party-step callbacks, and Pause functions against test doubles. It covers an excluded initial instruction (including a direct cross-party first step), pre-existing recordings, compression-state reset, failed startup, both skip loops, fast-run Pause, and repeated Pause during a blocked syscall.
+The trace-filter runner compiles the production startup, pending-record filter, fast-path dispatch, party-step callbacks, and Pause/temporary-breakpoint functions against test doubles. It covers an excluded initial instruction (including a direct cross-party first step), pre-existing recordings, compression-state reset, failed startup, both skip loops, cancelled late completions in either party, first-instruction run-mode arming for all four wrappers, included-call stepping, setup fallback, fast-run Pause, and repeated Pause during a blocked syscall. Pause tests require deletion before break-in, cancellation of late installations, cleanup after resume failure, and preservation of existing/replaced user breakpoints.
 
 The run-to-party runner compiles the unchanged `src/dbg/runtoparty.cpp` against a simulated engine in a temporary directory. It requires `clang++` (or pass `--compiler`). It checks target/private-memory coverage, module-boundary splitting, process-wide hits, exclusive operation ownership, partial-setup rollback, user-memory-breakpoint and guard-page rejection, query failures, module-change fallback with the original step mode, cancellation, and callback reentrancy.
 

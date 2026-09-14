@@ -37,6 +37,7 @@ def run(args, script: str) -> int:
     deadline = time.monotonic() + args.timeout
     assertions = 0
     failure = None
+    target_pid = None
 
     def send(command):
         process.stdin.write(command + "\n")
@@ -70,6 +71,57 @@ def run(args, script: str) -> int:
                     wait(lambda text: text == "[STATE] running")
                 wait(lambda text: text == "[STATE] paused")
                 expect_running = False
+            elif line == "; WAIT_QUIET":
+                wait(lambda text: text == "[STATE] running")
+                expect_running = False
+                # The sole runnable target thread has entered a blocking native
+                # wait. Let the debug-event stream settle before requesting Pause.
+                while True:
+                    if time.monotonic() >= deadline:
+                        raise ValueError("debug events did not settle before the blocked Pause")
+                    try:
+                        text = incoming.get(timeout=2)
+                    except queue.Empty:
+                        break
+                    if text is None or text.startswith("[FAIL]") or "Unknown command/expression" in text:
+                        raise ValueError(f"headless exited or a command failed before the blocked Pause: {text}")
+            elif line == "; EXPECT_NO_PAUSE":
+                end = min(deadline, time.monotonic() + 3)
+                installed = False
+                while time.monotonic() < end:
+                    try:
+                        text = incoming.get(timeout=max(0.01, end - time.monotonic()))
+                    except queue.Empty:
+                        break
+                    if (text is None or text == "[STATE] paused" or text.startswith("[FAIL]")
+                            or "Unknown command/expression" in text):
+                        raise ValueError(f"first Pause unexpectedly completed or failed: {text}")
+                    installed |= "Pause breakpoint set at " in text
+                if not installed:
+                    raise ValueError("first Pause did not install its pending syscall-return breakpoint")
+                assertions += 1
+            elif line == "; SIGNAL_WAKE":
+                wait(lambda text: text == "[STATE] running")
+                expect_running = False
+                # This is external input to the debuggee, not a debugger helper:
+                # release its actual kernel wait only AFTER resuming from break-in.
+                import ctypes
+                from ctypes import wintypes
+                kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+                kernel32.OpenEventW.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.LPCWSTR]
+                kernel32.OpenEventW.restype = wintypes.HANDLE
+                kernel32.SetEvent.argtypes = [wintypes.HANDLE]
+                kernel32.SetEvent.restype = wintypes.BOOL
+                kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+                kernel32.CloseHandle.restype = wintypes.BOOL
+                event = kernel32.OpenEventW(2, False, f"Local\\x64dbg_trace_party_{target_pid}")
+                if not event:
+                    raise ctypes.WinError(ctypes.get_last_error())
+                try:
+                    if not kernel32.SetEvent(event):
+                        raise ctypes.WinError(ctypes.get_last_error())
+                finally:
+                    kernel32.CloseHandle(event)
             elif line == "; WAIT_STOPPED":
                 wait(lambda text: text == "[STATE] stopped")
             elif line == "; WAIT_SPIN":
@@ -87,6 +139,9 @@ def run(args, script: str) -> int:
                 send(line)
                 if line == "run" or line.startswith("init "):
                     expect_running = True
+                if line.startswith('log "E2E PID '):
+                    result = wait(lambda text: text.startswith("E2E PID "))
+                    target_pid = int(result.split()[-1])
                 if line.startswith('log "E2E CHECK '):
                     result = wait(lambda text: text.startswith("E2E CHECK "))
                     assertions += 1

@@ -1,5 +1,6 @@
 #include <windows.h>
 #include <cstring>
+#include <cwchar>
 
 extern "C"
 {
@@ -12,6 +13,10 @@ extern "C"
     __declspec(dllexport) volatile LONG gHandled = 0;
     __declspec(dllexport) volatile LONG gLoadSucceeded = 0;
     __declspec(dllexport) volatile LONG gModuleWasLoaded = 0;
+    __declspec(dllexport) volatile DWORD gProcessId = 0;
+    __declspec(dllexport) volatile LONG gWaitEntered = 0;
+    __declspec(dllexport) volatile LONG gWaitReturned = 0;
+    HANDLE gWakeEvent = nullptr;
     __declspec(dllexport) DWORD* gScratch = nullptr;
     __declspec(dllexport) void* gSystemAddress = nullptr;
 
@@ -42,6 +47,13 @@ extern "C"
             ++gSpinIterations;
             YieldProcessor();
         }
+    }
+
+    __declspec(dllexport) __declspec(noinline) void WaitBegin()
+    {
+        gWaitEntered = 1;
+        if(WaitForSingleObject(gWakeEvent, INFINITE) == WAIT_OBJECT_0)
+            gWaitReturned = 1;
     }
 
     __declspec(dllexport) __declspec(noinline) void LoadBegin()
@@ -97,6 +109,16 @@ int main(int argc, char* argv[])
     void* pages[] = { reinterpret_cast<void*>(&TraceBegin), gSystemAddress, gScratch };
     DWORD original[] = { protection(pages[0]), protection(pages[1]), protection(pages[2]) };
 
+    gProcessId = GetCurrentProcessId();
+    if(argc > 1 && std::strcmp(argv[1], "wait") == 0)
+    {
+        wchar_t name[80];
+        swprintf_s(name, L"Local\\x64dbg_trace_party_%u", DWORD(gProcessId));
+        gWakeEvent = CreateEventW(nullptr, TRUE, FALSE, name);
+        if(!gWakeEvent)
+            return 1;
+    }
+
     // Warm up the import/API path before the test starts. Test execution then
     // follows ordinary calls/returns; scripts never redirect CIP into helpers.
     TraceBegin();
@@ -105,6 +127,8 @@ int main(int argc, char* argv[])
     Ready();
     if(argc > 1 && std::strcmp(argv[1], "spin") == 0)
         SpinBegin();
+    else if(argc > 1 && std::strcmp(argv[1], "wait") == 0)
+        WaitBegin();
     else if(argc > 1 && std::strcmp(argv[1], "load") == 0)
         LoadBegin();
     else if(argc > 1 && std::strcmp(argv[1], "exception") == 0)
@@ -119,6 +143,8 @@ int main(int argc, char* argv[])
         if(protection(pages[i]) != original[i])
             ++gProtectionFailures;
     Finished();
+    if(gWakeEvent)
+        CloseHandle(gWakeEvent);
     VirtualFree(gScratch, 0, MEM_RELEASE);
     return 0;
 }
