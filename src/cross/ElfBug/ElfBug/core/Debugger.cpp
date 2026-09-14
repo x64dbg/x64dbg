@@ -2,6 +2,7 @@
 #include <sys/ptrace.h>
 #include <sys/wait.h>
 #include <sys/personality.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <cerrno>
@@ -36,6 +37,11 @@ namespace ElfBug
         mStepOver = {};
         mSourceRearms.clear();
         mUnregisteredRunning.clear();
+        {
+            std::lock_guard pauseLock(mPauseMutex);
+            mPendingSuspend.clear();
+            mPendingResume.clear();
+        }
         mAllStopped = false;
         mPauseRequested.store(false, std::memory_order_release);
         mStopRequested.store(false, std::memory_order_release);
@@ -44,10 +50,28 @@ namespace ElfBug
         if(!szFilePath)
             return false;
 
-        if(!szCurrentDirectory && access(szFilePath, X_OK) != 0)
+        if(!szCurrentDirectory)
         {
-            cbInternalError("cannot execute '" + std::string(szFilePath) + "': " + std::string(strerror(errno)));
-            return false;
+            const std::string path(szFilePath);
+            struct stat info = {};
+            if(stat(szFilePath, &info) != 0)
+            {
+                cbInternalError("cannot execute '" + path + "': " + std::string(strerror(errno)));
+                return false;
+            }
+            if(!S_ISREG(info.st_mode))
+            {
+                cbInternalError("cannot execute '" + path + "': not a regular file");
+                return false;
+            }
+            if(access(szFilePath, X_OK) != 0)
+            {
+                if(errno == EACCES && (info.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) == 0)
+                    cbInternalError("cannot execute '" + path + "': file is not executable, run chmod +x '" + path + "'");
+                else
+                    cbInternalError("cannot execute '" + path + "': " + std::string(strerror(errno)));
+                return false;
+            }
         }
 
         mFilePath = szFilePath;
@@ -190,6 +214,11 @@ namespace ElfBug
             std::lock_guard lock(mPauseMutex);
             if(!mPaused.load(std::memory_order_acquire))
                 return;
+            {
+                std::shared_lock processLock(mProcessMutex);
+                if(mThread && mThread->isSuspended())
+                    return;
+            }
             mStepPending.store(true, std::memory_order_release);
             mPaused.store(false, std::memory_order_release);
         }
@@ -202,10 +231,117 @@ namespace ElfBug
             std::lock_guard lock(mPauseMutex);
             if(!mPaused.load(std::memory_order_acquire))
                 return;
+            {
+                std::shared_lock processLock(mProcessMutex);
+                if(mThread && mThread->isSuspended())
+                    return;
+            }
             mStepOverPending.store(true, std::memory_order_release);
             mPaused.store(false, std::memory_order_release);
         }
         mPauseCv.notify_one();
+    }
+
+    bool Debugger::SwitchThread(const pid_t tid)
+    {
+        std::lock_guard pauseLock(mPauseMutex);
+        if(!mPaused.load(std::memory_order_acquire))
+            return false;
+
+        std::unique_lock lock(mProcessMutex);
+        if(!mProcess)
+            return false;
+        const auto it = mProcess->threads.find(tid);
+        if(it == mProcess->threads.end() || it->second->isRunning())
+            return false;
+        mThread = it->second.get();
+        return true;
+    }
+
+    bool Debugger::SetThreadSuspended(const pid_t tid, const bool suspended)
+    {
+        const pid_t tgid = mMainPid.load(std::memory_order_acquire);
+        if(tgid <= 0)
+            return false;
+
+        std::lock_guard pauseLock(mPauseMutex);
+
+        std::unique_lock lock(mProcessMutex);
+        if(!mProcess)
+            return false;
+        const auto it = mProcess->threads.find(tid);
+        if(it == mProcess->threads.end())
+            return false;
+
+        if(!suspended)
+        {
+            it->second->resume();
+            if(!it->second->isSuspended())
+                it->second->setWaitReason({});
+            if(it->second->isSuspended() || mPaused.load(std::memory_order_acquire))
+                return true;
+
+            mPendingResume.insert(tid);
+            lock.unlock();
+
+            pid_t poke = 0;
+            {
+                std::shared_lock relock(mProcessMutex);
+                if(mProcess)
+                {
+                    for(const auto & [other, thread] : mProcess->threads)
+                    {
+                        if(other != tid && thread->isRunning())
+                        {
+                            poke = other;
+                            break;
+                        }
+                    }
+                }
+            }
+            if(poke != 0)
+                tgkill(tgid, poke, SIGSTOP);
+            return true;
+        }
+
+        if(!it->second->isRunning())
+        {
+            it->second->suspend();
+            it->second->setWaitReason("Suspended");
+            return true;
+        }
+
+        it->second->suspend();
+        it->second->setWaitReason("Suspended");
+        mPendingSuspend.insert(tid);
+
+        if(tgkill(tgid, tid, SIGSTOP) == -1)
+        {
+            mPendingSuspend.erase(tid);
+            it->second->resume();
+            if(!it->second->isSuspended())
+                it->second->setWaitReason({});
+            return false;
+        }
+        return true;
+    }
+
+    std::string Debugger::readWaitReason(const pid_t tgid, const pid_t tid)
+    {
+        char path[64];
+        snprintf(path, sizeof(path), "/proc/%d/task/%d/wchan", tgid, tid);
+        const int fd = open(path, O_RDONLY | O_CLOEXEC);
+        if(fd == -1)
+            return {};
+        char buffer[64];
+        const ssize_t n = read(fd, buffer, sizeof(buffer) - 1);
+        close(fd);
+        if(n <= 0)
+            return {};
+        buffer[n] = '\0';
+        if(strcmp(buffer, "0") == 0)
+            return {};
+        return buffer;
     }
 
     void Debugger::maskPushedTrapFlag() const
@@ -360,12 +496,19 @@ namespace ElfBug
             }
             // Step off the call now so its breakpoint is armed again while the callee
             // runs, for this thread's deeper frames and for every other thread.
-            else if(!stepPastBreakpointByte(pid, rip))
+            else
             {
-                // On an error path nothing else settles it, and a planted 0xCC left
-                // behind would divert every later thread reaching the target.
-                cancelStepOver(pid);
-                return StepOverArm::Consumed;
+                switch(stepPastBreakpointByte(pid, rip))
+                {
+                case StepOff::Stepped:
+                    break;
+                case StepOff::Parked:
+                    cancelStepOver(pid);
+                    return StepOverArm::Parked;
+                case StepOff::Consumed:
+                    cancelStepOver(pid);
+                    return StepOverArm::Consumed;
+                }
             }
         }
 
@@ -375,11 +518,15 @@ namespace ElfBug
     void Debugger::Pause()
     {
         const pid_t pid = mMainPid.load(std::memory_order_acquire);
-        if(pid > 0)
+        if(pid <= 0)
+            return;
         {
+            std::lock_guard lock(mPauseMutex);
+            if(mPaused.load(std::memory_order_acquire))
+                return;
             mPauseRequested.store(true, std::memory_order_release);
-            kill(pid, SIGSTOP);
         }
+        kill(pid, SIGSTOP);
     }
 
     bool Debugger::Stop()

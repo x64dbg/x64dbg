@@ -310,6 +310,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_
 		"debugger/gui/CPUStack.h"
 		"debugger/gui/MainWindow.cpp"
 		"debugger/gui/MainWindow.h"
+		"debugger/gui/ThreadView.cpp"
+		"debugger/gui/ThreadView.h"
 		"debugger/main.cpp"
 		"debugger/resources/icons.qrc"
 	)

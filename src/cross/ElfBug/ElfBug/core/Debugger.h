@@ -35,6 +35,15 @@ namespace ElfBug
 
         [[nodiscard]] bool IsPaused() const { return mPaused.load(std::memory_order_acquire); }
 
+        // Makes `tid` the current thread while paused: registers, steps and the next
+        // resume act on it. The thread that reported keeps any signal it still owes.
+        bool SwitchThread(pid_t tid);
+
+        // Suspends or resumes a thread. Suspended threads stay stopped across Continue and
+        // steps. While running the request is serviced by the loop, so a true return means
+        // the request was accepted, not that the thread has stopped yet.
+        bool SetThreadSuspended(pid_t tid, bool suspended);
+
     protected:
         virtual void cbCreateProcessEvent(pid_t pid, ptr entryPoint);
         virtual void cbExitProcessEvent(int exitCode);
@@ -53,6 +62,9 @@ namespace ElfBug
         virtual void cbPaused(); // called when the debuggee is paused by user
         virtual void cbPauseTick(); // called each iteration of the pause spin loop
 
+        // /proc/<tgid>/task/<tid>/wchan; empty when unreadable or when it reads 0 (running).
+        static std::string readWaitReason(pid_t tgid, pid_t tid);
+
         Process* mProcess = nullptr;
         Thread* mThread = nullptr;
         std::unordered_map<pid_t, Process> mProcesses;
@@ -63,14 +75,30 @@ namespace ElfBug
         bool launchChild();
         void handleSignal(pid_t pid, int status);
         void handleSigtrap(pid_t pid, int status);
-        bool pauseAndResume(pid_t pid);
-        // False means the stop was consumed (exit, forwarded signal, error); abandon it.
-        bool stepPastBreakpointByte(pid_t pid, ptr addr);
+        bool pauseAndResume(pid_t reported);
+        enum class StepOff
+        {
+            Stepped,  // RIP is past the byte and it is armed again
+            Parked,   // the thread is suspended: byte armed again, RIP still on it, signal parked
+            Consumed  // the stop was used up (exit, forwarded signal, error); abandon it
+        };
+        StepOff stepPastBreakpointByte(pid_t pid, ptr addr);
         void abandonSingleStep(pid_t pid);
         // The image was replaced: drop step state without writing anything back.
         void onExec();
 
         void stopAllThreads(pid_t except);
+        // Tracer thread only. PTRACE_CONTs every thread whose suspend count reached zero
+        // while the process was running.
+        void drainPendingResumes();
+        // Tracer thread only. PTRACE_CONTs a stopped tid unless it is suspended or running,
+        // stepping it off its own armed breakpoint byte first. False means the process is gone.
+        bool resumeStoppedThread(pid_t tid);
+        // PTRACE_CONTs pid unless a caller suspended it since its stop was snapshotted; then
+        // it stays parked and, with nothing else running, the pause is reported.
+        void continueUnlessSuspended(pid_t pid);
+        // pid stays in ptrace-stop; with nothing else running the pause is reported.
+        void leaveParked(pid_t pid);
         bool swallowPendingSigstop(pid_t tid);
         void resumeAllThreads(pid_t except);
         void abandonFreeze(pid_t except);
@@ -92,6 +120,7 @@ namespace ElfBug
         {
             Armed,      // temp breakpoint planted, caller continues the thread
             SingleStep, // nothing to run to, caller single-steps
+            Parked,     // the thread is suspended: nothing armed, nothing stepped, caller drops the step
             Consumed    // the stop was used up stepping off the source breakpoint
         };
         StepOverArm armStepOver(pid_t pid);
@@ -121,6 +150,14 @@ namespace ElfBug
         std::unordered_set<pid_t> mUnregisteredRunning;
         bool mAllStopped = false;
         pid_t mSteppingOff = 0;
+        // Tids whose next SIGSTOP was sent by SetThreadSuspended. The suspend count is
+        // applied at request time; the loop only leaves that stop in place. Guarded by
+        // mPauseMutex.
+        std::unordered_set<pid_t> mPendingSuspend;
+        // Resume requests from caller threads for a tid whose count reached zero while
+        // running. Idempotent, so membership is all that matters; a set fits. Guarded
+        // by mPauseMutex.
+        std::unordered_set<pid_t> mPendingResume;
         std::atomic<bool> mPauseRequested{false};
         std::atomic<bool> mStopRequested{false};
         std::atomic<pid_t> mMainPid{0};

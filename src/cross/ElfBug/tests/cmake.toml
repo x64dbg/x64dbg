@@ -13,15 +13,17 @@ shallow = true
 
 [target.ElfBug_tests]
 type = "executable"
-sources = ["tests.cpp"]
+sources = ["tests.cpp", "api_c_compat.c"]
 headers = [
     "TestHarness.h",
     "SymbolHelper.h",
 ]
 link-libraries = ["ElfBug", "Catch2::Catch2WithMain"]
-compile-features = ["cxx_std_20"]
+compile-features = ["cxx_std_20", "c_std_11"]
 compile-definitions = ['ELFBUG_TESTS_TARGETS_DIR="${CMAKE_BINARY_DIR}/tests/targets"']
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests"
+properties.C_STANDARD = 11
+properties.C_STANDARD_REQUIRED = true
 cmake-after = """
 list(APPEND CMAKE_MODULE_PATH "${catch2_SOURCE_DIR}/extras")
 include(Catch)

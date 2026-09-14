@@ -177,6 +177,9 @@ QDarkApplication::QDarkApplication(int & argc, char** argv)
     Config()->Colors["StackSelectionColor"] = hover;
     Config()->Colors["StackReturnToColor"] = QColor("#f55f86");
 
+    Config()->Colors["ThreadCurrentBackgroundColor"] = QColor("#C24000");
+    Config()->Colors["ThreadCurrentColor"] = Qt::white;
+
     // Instruction colors shared by all cross-platform data views.
     const QColor& comment = disabled;
 

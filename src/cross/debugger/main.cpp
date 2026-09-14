@@ -5,6 +5,7 @@
 int main(int argc, char* argv[])
 {
     qRegisterMetaType<REGDUMP>("REGDUMP");
+    qRegisterMetaType<QVector<DbgThreadInfo>>("QVector<DbgThreadInfo>");
 
 #ifndef QT_NO_ACCESSIBILITY
     QAccessible::installFactory(crossAccessibleInterfaceFactory);
