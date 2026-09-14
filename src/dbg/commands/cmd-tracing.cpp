@@ -158,7 +158,8 @@ bool cbDebugRunToParty(int argc, char* argv[])
         dputs(QT_TRANSLATE_NOOP("DBG", "Cannot run to party: busy, no executable target pages, or memory breakpoint conflict/setup failure."));
         return false;
     }
-    TraceRecord.FlushTraceExecuteRecord();
+    // The eventual debug event finalizes the pending record after execution.
+    // Flushing here would capture the starting instruction's memory too early.
     if(!cbDebugRunInternal(1, argv, history_clear))
     {
         RunToPartyClear();

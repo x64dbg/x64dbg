@@ -4,6 +4,7 @@
 
 extern "C"
 {
+    __declspec(dllexport) volatile LONG gRecordedWrite = 0;
     __declspec(dllexport) volatile LONG gCallbacks = 0;
     __declspec(dllexport) volatile LONG gReachedEnd = 0;
     __declspec(dllexport) volatile LONG gScratchWritten = 0;
@@ -20,6 +21,11 @@ extern "C"
     HANDLE gWakeEvent = nullptr;
     __declspec(dllexport) DWORD* gScratch = nullptr;
     __declspec(dllexport) void* gSystemAddress = nullptr;
+
+    __declspec(dllexport) __declspec(noinline) void RecordWrite()
+    {
+        gRecordedWrite = 0x5678;
+    }
 
     __declspec(dllexport) __declspec(noinline) void Ready()
     {
@@ -128,6 +134,8 @@ int main(int argc, char* argv[])
     gCallbacks = 0;
     gModuleWasLoaded = GetModuleHandleW(L"trace_party_module.dll") != nullptr;
     Ready();
+    if(argc > 1 && std::strcmp(argv[1], "record") == 0)
+        RecordWrite();
     if(argc > 1 && std::strcmp(argv[1], "spin") == 0)
         SpinBegin();
     else if(argc > 1 && std::strcmp(argv[1], "wait") == 0)

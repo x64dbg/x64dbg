@@ -18,6 +18,7 @@ fixture state, not alternate implementations of debugger behavior.
 | `over-user-step`, `over-user-run` | Included calls are still stepped over, including their callbacks |
 | `over-system-step`, `over-system-run` | System Only / Trace Over, starting in a real Windows API; exact maximum count |
 | `recording-active` | Existing file history survives filtering an excluded pending instruction |
+| `recording-run` | Standalone `RunSystem` finalizes a queued store after execution; binary memory values must change from `0` to `0x5678` |
 | `commands` | `RunUser`, `RunSystem`, `rtu`, `rts`, `RunToParty`, and all user/system step aliases |
 | `conditions` | Maximum count, command condition, false log condition, and clearing trace settings between traces |
 | `fallback` | Real user memory breakpoint prevents fast setup, survives fallback, and subsequently fires |
@@ -41,13 +42,19 @@ launches headless, and inspects results. `testassert` inside the debugger remain
 mandatory for ordinary script tests. A driver check cannot turn a failed script
 into a pass.
 
-For recording cases the driver independently decodes the actual binary trace
+For filtered recording cases the driver independently decodes the actual binary trace
 using `docs/developers/tracefile.md` and compares every instruction address,
 in order, against the debugger's text trace log. It accounts for the queued
 starting instruction and the unexecuted stop instruction; it also checks any
 explicitly logged pre-existing history. Thus an excluded initial record, a lost
 record across a skipped region, a broken delta/thread reset, or a corrupt/truncated
 record fails even when all script assertions pass. Files must be nonempty.
+
+`recording-run` instead starts recording immediately before a real DWORD store,
+then invokes `RunSystem`. Its oracle requires exactly that instruction and decodes
+its memory address and old/new values. Checking addresses alone would miss an
+incorrect pre-execution flush: the target store succeeds but its recording says
+`0 -> 0` rather than `0 -> 0x5678`.
 
 The run cases reject an unexpected fallback diagnostic. The fallback case requires
 exactly one such diagnostic and then exercises the retained breakpoint with a
@@ -86,7 +93,7 @@ py src/tests/run.py --arch x64 --engine TitanEngine trace_party trace_party/syst
 py src/tests/run.py --arch x64 --engine GleeBug trace_party trace_party/system-run trace_party/pause-run
 ```
 
-All 23 variants are also auto-discovered in a normal full-suite run, including CI's
+All 24 variants are also auto-discovered in a normal full-suite run, including CI's
 x86/x64 and TitanEngine/GleeBug matrix. `x86` is an alias for `x32`.
 
 If the regular GUI is running, use an isolated build with
@@ -117,6 +124,11 @@ assertions still apply. The hermetic tests additionally assert the actual instal
 calls for successful refreshes, including new/unloaded pages and both saved modes.
 
 ## Negative controls and limits
+
+The original pre-run flush fails `recording-run` on both x86 and x64: all eight
+script assertions pass, but the binary memory oracle rejects the unchanged value.
+After removing the flush, all 24 variants passed on both architectures with both
+CI engine DLLs (96 case runs).
 
 Restoring the old unconditional loader-event stepping fallback makes the new
 `module-refresh` regression fail. The refresh oracle rejects the missing re-arm

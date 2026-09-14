@@ -25,7 +25,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def trace_addresses(path: Path) -> list[int]:
+def trace_records(path: Path) -> list[dict]:
     """Strict sequential decoder of docs/developers/tracefile.md (not a writer)."""
     data = path.read_bytes()
     offset = 0
@@ -47,7 +47,7 @@ def trace_addresses(path: Path) -> list[int]:
     cip_index = 16 if width == 8 else 8  # REGISTERCONTEXT in bridgemain.h
     registers = {}
     thread = None
-    addresses = []
+    records = []
     while offset < len(data):
         block_type = take(1)[0]
         if block_type >= 0x80:
@@ -60,7 +60,7 @@ def trace_addresses(path: Path) -> list[int]:
             thread = int.from_bytes(take(4), "little")
         if not thread or flags & 0x70 or not (flags & 0xF):
             raise ValueError("invalid thread/opcode flags in trace")
-        take(flags & 0xF)
+        opcode = take(flags & 0xF)
         positions = take(changes)
         index = -1
         for delta in positions:
@@ -68,15 +68,38 @@ def trace_addresses(path: Path) -> list[int]:
             registers[index] = int.from_bytes(take(width), "little")
         if cip_index not in registers:
             raise ValueError("trace starts without an instruction pointer")
-        addresses.append(registers[cip_index])
         memory_flags = take(accesses)
         if any(flag & ~1 for flag in memory_flags):
             raise ValueError("unsupported memory access flags")
-        take(width * accesses * 2)  # addresses and old values
-        take(width * sum(not (flag & 1) for flag in memory_flags))
-    if not addresses:
+        addresses = [int.from_bytes(take(width), "little") for _ in range(accesses)]
+        before = [int.from_bytes(take(width), "little") for _ in range(accesses)]
+        after = [before[i] if flag & 1 else int.from_bytes(take(width), "little")
+                 for i, flag in enumerate(memory_flags)]
+        records.append({"address": registers[cip_index], "opcode": opcode,
+                        "memory": list(zip(addresses, before, after))})
+    if not records:
         raise ValueError("empty instruction trace")
-    return addresses
+    return records
+
+
+def trace_addresses(path: Path) -> list[int]:
+    return [record["address"] for record in trace_records(path)]
+
+
+def check_run_memory(trace: Path, debug_log: str):
+    marker = re.search(r"^E2E WRITE ([0-9A-Fa-f]+) ([0-9A-Fa-f]+)\s*$", debug_log, re.M)
+    if marker is None:
+        raise ValueError("missing recorded-write marker")
+    records = trace_records(trace)
+    if len(records) != 1 or records[0]["address"] != int(marker[1], 16):
+        raise ValueError("RunToParty did not record exactly the queued starting instruction")
+    record = records[0]
+    if record["opcode"][:2] != b"\xc7\x05" or len(record["memory"]) != 1:
+        raise ValueError("expected the fixture's immediate DWORD store")
+    address, before, after = record["memory"][0]
+    if address != int(marker[2], 16) or before & 0xFFFFFFFF != 0 or after & 0xFFFFFFFF != 0x5678:
+        raise ValueError(f"starting store finalized before execution: {record['memory']}")
+    return len(records)
 
 
 def check_recording(trace: Path, trace_log: Path, debug_log: str, script: str):
@@ -152,8 +175,11 @@ def main():
         if process.returncode != 0 or FINAL.search(debug_log) is None:
             raise ValueError(f"headless/script failed: exit={process.returncode}; see headless.stdout.txt")
         if "@TRACE@" in source:
-            count = check_recording(trace, trace_log, debug_log, script)
-            print(f"Validated {count} real binary records against the debugger text log", flush=True)
+            if "; EXPECT_RUN_MEMORY" in source:
+                count = check_run_memory(trace, debug_log)
+            else:
+                count = check_recording(trace, trace_log, debug_log, script)
+            print(f"Validated {count} real binary records", flush=True)
         if "Run-to-party: snapshot refresh failed" in debug_log:
             raise ValueError("fast traversal fell back to stepping after a module change")
         refreshes = re.search(r"^; EXPECT_REFRESHES (\d+)$", source, re.M)
