@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sys/types.h>
+#include <atomic>
 #include <mutex>
 #include <string>
 #include <utility>
@@ -48,11 +49,22 @@ namespace ElfBug
         [[nodiscard]] bool atBreakpoint() const { return mAtBreakpoint; }
 
         // Frozen by the user. Suspends nest: every resume leaves it stopped until the
-        // count reaches zero.
-        void suspend() { ++mSuspendCount; }
-        void resume() { if(mSuspendCount > 0) --mSuspendCount; }
-        [[nodiscard]] bool isSuspended() const { return mSuspendCount > 0; }
-        [[nodiscard]] uint32_t suspendCount() const { return mSuspendCount; }
+        // count reaches zero. Only written under mProcessMutex; the atomic exists so the
+        // tracer's unlocked pre-checks are defined, the locked recheck at each continue
+        // is what decides.
+        void suspend()
+        {
+            const uint32_t count = mSuspendCount.load(std::memory_order_relaxed);
+            mSuspendCount.store(count + 1, std::memory_order_relaxed);
+        }
+        void resume()
+        {
+            const uint32_t count = mSuspendCount.load(std::memory_order_relaxed);
+            if(count > 0)
+                mSuspendCount.store(count - 1, std::memory_order_relaxed);
+        }
+        [[nodiscard]] bool isSuspended() const { return mSuspendCount.load(std::memory_order_relaxed) > 0; }
+        [[nodiscard]] uint32_t suspendCount() const { return mSuspendCount.load(std::memory_order_relaxed); }
 
         // Kernel function the thread was blocked in when the debugger stopped it from
         // outside. Empty for a thread that was running or stopped on its own. The
@@ -109,7 +121,7 @@ namespace ElfBug
         bool mStepsPushf = false;
         bool mRunning = false;
         bool mAtBreakpoint = false;
-        uint32_t mSuspendCount = 0;
+        std::atomic<uint32_t> mSuspendCount{0};
         mutable std::mutex mWaitReasonMutex;
         std::string mWaitReason;
         bool mPendingSigstop = false;

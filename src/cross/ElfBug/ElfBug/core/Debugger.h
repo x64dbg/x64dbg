@@ -76,8 +76,13 @@ namespace ElfBug
         void handleSignal(pid_t pid, int status);
         void handleSigtrap(pid_t pid, int status);
         bool pauseAndResume(pid_t reported);
-        // False means the stop was consumed (exit, forwarded signal, error); abandon it.
-        bool stepPastBreakpointByte(pid_t pid, ptr addr);
+        enum class StepOff
+        {
+            Stepped,  // RIP is past the byte and it is armed again
+            Parked,   // the thread is suspended: byte armed again, RIP still on it, signal parked
+            Consumed  // the stop was used up (exit, forwarded signal, error); abandon it
+        };
+        StepOff stepPastBreakpointByte(pid_t pid, ptr addr);
         void abandonSingleStep(pid_t pid);
         // The image was replaced: drop step state without writing anything back.
         void onExec();
@@ -86,6 +91,14 @@ namespace ElfBug
         // Tracer thread only. PTRACE_CONTs every thread whose suspend count reached zero
         // while the process was running.
         void drainPendingResumes();
+        // Tracer thread only. PTRACE_CONTs a stopped tid unless it is suspended or running,
+        // stepping it off its own armed breakpoint byte first. False means the process is gone.
+        bool resumeStoppedThread(pid_t tid);
+        // PTRACE_CONTs pid unless a caller suspended it since its stop was snapshotted; then
+        // it stays parked and, with nothing else running, the pause is reported.
+        void continueUnlessSuspended(pid_t pid);
+        // pid stays in ptrace-stop; with nothing else running the pause is reported.
+        void leaveParked(pid_t pid);
         bool swallowPendingSigstop(pid_t tid);
         void resumeAllThreads(pid_t except);
         void abandonFreeze(pid_t except);
@@ -107,6 +120,7 @@ namespace ElfBug
         {
             Armed,      // temp breakpoint planted, caller continues the thread
             SingleStep, // nothing to run to, caller single-steps
+            Parked,     // the thread is suspended: nothing armed, nothing stepped, caller drops the step
             Consumed    // the stop was used up stepping off the source breakpoint
         };
         StepOverArm armStepOver(pid_t pid);

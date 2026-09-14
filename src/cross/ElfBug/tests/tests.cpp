@@ -12,6 +12,7 @@
 #include <csignal>
 #include <cstdint>
 #include <filesystem>
+#include <fstream>
 #include <future>
 #include <optional>
 #include <set>
@@ -2554,6 +2555,19 @@ namespace
             dbg.JoinThread();
         }
     };
+
+    // User-mode pc of a stopped thread from /proc, so a test thread can see where the
+    // tracee is parked without being its tracer. Empty while the thread runs.
+    std::optional<ElfBug::ptr> ReadStoppedPc(const pid_t tgid, const pid_t tid)
+    {
+        std::ifstream file("/proc/" + std::to_string(tgid) + "/task/" + std::to_string(tid) + "/syscall");
+        std::string line;
+        std::getline(file, line);
+        const auto space = line.rfind(' ');
+        if(line.empty() || line == "running" || space == std::string::npos)
+            return std::nullopt;
+        return static_cast<ElfBug::ptr>(std::stoull(line.substr(space + 1), nullptr, 16));
+    }
 }
 
 TEST_CASE("Suspended threads stay frozen across Continue", "[multithread][suspend]")
@@ -2600,6 +2614,50 @@ TEST_CASE("A step on a suspended thread is ignored", "[multithread][suspend][ste
     s.dbg.StepOver();
     REQUIRE_THROWS_AS(s.dbg.WaitFor(ElfBug::test::EventType::Step, std::chrono::milliseconds(300)), std::runtime_error);
     REQUIRE(s.dbg.IsPaused());
+}
+
+// StepInto refuses a suspended thread, but the request only raises a flag the tracer
+// consumes once it wakes. A suspend that lands in between must not let the step run.
+TEST_CASE("A suspend landing on a queued step drops the step and reports a pause", "[multithread][suspend][step]")
+{
+    using namespace ElfBug::test;
+    SpinSession s;
+    const pid_t worker = s.workers.front();
+    REQUIRE(s.dbg.SwitchThread(worker));
+    const ElfBug::Thread* thread = s.dbg.process()->threads.at(worker).get();
+
+    // The caller normally wins mPauseMutex against the tracer the notify just woke, but
+    // a round where the step ran first proves nothing and is retried. Such a round can
+    // leave the worker holding the suspend's SIGSTOP; a Continue/Pause cycle drains it.
+    bool dropped = false;
+    for(int round = 0; round < 50 && !dropped; ++round)
+    {
+        CAPTURE(round);
+        const auto before = ReadStoppedPc(s.mainTid, worker);
+        REQUIRE(before.has_value());
+
+        s.dbg.StepInto();
+        REQUIRE(s.dbg.SetThreadSuspended(worker, true));
+
+        const Event event = s.dbg.WaitForAny({EventType::Step, EventType::Paused});
+        if(event.type == EventType::Paused)
+        {
+            dropped = true;
+            REQUIRE(s.dbg.IsPaused());
+            REQUIRE(thread->isSuspended());
+            const auto after = ReadStoppedPc(s.mainTid, worker);
+            REQUIRE(after.has_value());
+            REQUIRE(*after == *before);
+            REQUIRE(s.dbg.SetThreadSuspended(worker, false));
+            break;
+        }
+
+        REQUIRE(event.pid == worker);
+        REQUIRE(s.dbg.SetThreadSuspended(worker, false));
+        s.RunBriefly();
+        REQUIRE(s.dbg.SwitchThread(worker));
+    }
+    REQUIRE(dropped);
 }
 
 TEST_CASE("SetThreadSuspended refuses an unknown tid", "[multithread][suspend]")

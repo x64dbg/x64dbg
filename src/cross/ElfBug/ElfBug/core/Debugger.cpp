@@ -496,12 +496,19 @@ namespace ElfBug
             }
             // Step off the call now so its breakpoint is armed again while the callee
             // runs, for this thread's deeper frames and for every other thread.
-            else if(!stepPastBreakpointByte(pid, rip))
+            else
             {
-                // On an error path nothing else settles it, and a planted 0xCC left
-                // behind would divert every later thread reaching the target.
-                cancelStepOver(pid);
-                return StepOverArm::Consumed;
+                switch(stepPastBreakpointByte(pid, rip))
+                {
+                case StepOff::Stepped:
+                    break;
+                case StepOff::Parked:
+                    cancelStepOver(pid);
+                    return StepOverArm::Parked;
+                case StepOff::Consumed:
+                    cancelStepOver(pid);
+                    return StepOverArm::Consumed;
+                }
             }
         }
 

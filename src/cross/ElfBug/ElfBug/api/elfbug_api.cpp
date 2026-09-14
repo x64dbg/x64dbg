@@ -49,9 +49,17 @@ struct ElfBugDebugger : ElfBug::Debugger
     uint32_t nextThreadNumber = 0;
     std::vector<ElfBugThreadInfo> threadList;
 
-    // Both guarded by threadMutex.
-    std::unordered_map<pid_t, uint32_t> suspendedTids;
+    // Guarded by threadMutex.
     std::unordered_map<pid_t, std::string> pauseWaitReasons;
+
+    uint32_t suspendCountOf(const pid_t tid) const
+    {
+        std::shared_lock lock(mProcessMutex);
+        if(!mProcess)
+            return 0;
+        const auto it = mProcess->threads.find(tid);
+        return it != mProcess->threads.end() ? it->second->suspendCount() : 0u;
+    }
 
     static void copyWaitReason(const std::string & reason, char* out, const size_t size)
     {
@@ -206,8 +214,7 @@ struct ElfBugDebugger : ElfBug::Debugger
                     info.rip = thread->registers.Native().rip;
                     info.fs_base = thread->registers.Native().fs_base;
                     readThreadStat(mProcess->pid, tid, info);
-                    const auto suspendEntry = suspendedTids.find(tid);
-                    info.suspend_count = suspendEntry != suspendedTids.end() ? suspendEntry->second : 0u;
+                    info.suspend_count = thread->suspendCount();
                     std::string reason = thread->waitReason();
                     if(reason.empty())
                     {
@@ -522,7 +529,6 @@ protected:
             std::lock_guard lock(threadMutex);
             threadNumbers.clear();
             threadList.clear();
-            suspendedTids.clear();
             pauseWaitReasons.clear();
         }
         if(cb.onExitProcess)
@@ -545,7 +551,6 @@ protected:
         {
             std::lock_guard lock(threadMutex);
             threadNumbers.erase(tid);
-            suspendedTids.erase(tid);
             pauseWaitReasons.erase(tid);
         }
         refreshThreadList(false);
@@ -745,21 +750,7 @@ extern "C" {
             return false;
 
         std::lock_guard lock(dbg->threadMutex);
-        uint32_t count = 0;
-        if(suspended)
-        {
-            count = ++dbg->suspendedTids[tid];
-        }
-        else
-        {
-            const auto it = dbg->suspendedTids.find(tid);
-            if(it != dbg->suspendedTids.end())
-            {
-                count = it->second > 0 ? --it->second : 0;
-                if(count == 0)
-                    dbg->suspendedTids.erase(it);
-            }
-        }
+        const uint32_t count = dbg->suspendCountOf(tid);
         const std::string reason = suspended ? "Suspended" : dbg->resolveWaitReason(tid);
         for(auto & info : dbg->threadList)
         {
