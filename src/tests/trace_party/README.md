@@ -23,9 +23,10 @@ fixture state, not alternate implementations of debugger behavior.
 | `fallback` | Real user memory breakpoint prevents fast setup, survives fallback, and subsequently fires |
 | `breakpoint` | Ordinary software breakpoint interrupts a fast trace; another trace can start afterward |
 | `exception` | Real exception breakpoint interrupts tracing; `erun` dispatches it to the debuggee handler |
-| `module-change` | Actual dependency-free fixture DLL load/unload invalidates the fast snapshot; subsequent tracing still works |
+| `module-change` | Actual dependency-free fixture DLL load/unload refreshes an active fast snapshot; subsequent tracing still works |
+| `module-refresh` | Two loader cycles, User Only then System Only / Trace Into; requires actual snapshot re-arming rather than a stepping fallback |
 | `pause-step`, `pause-run` | Real `pause` while trapped in an excluded user-code loop, then resume and complete |
-| `cancel-into`, `cancel-over`, `cancel-run` | Configured DLL pause cancels a pending party step/loader fallback; ordinary Resume must not crash or restart tracing |
+| `cancel-into`, `cancel-over`, `cancel-run` | Configured DLL pause cancels a pending party step or refreshed fast traversal; ordinary Resume must not crash or restart tracing |
 | `initial-over-run` | Trace Over starts on an excluded call and catches its first system callee before any callback executes |
 | `pause-breakin` | Repeated Pause interrupts a blocked syscall; resume and externally release the original wait without hitting a stale Pause INT3 |
 
@@ -83,7 +84,7 @@ py src/tests/run.py --arch x64 --engine TitanEngine trace_party trace_party/syst
 py src/tests/run.py --arch x64 --engine GleeBug trace_party trace_party/system-run trace_party/pause-run
 ```
 
-All 22 variants are also auto-discovered in a normal full-suite run, including CI's
+All 23 variants are also auto-discovered in a normal full-suite run, including CI's
 x86/x64 and TitanEngine/GleeBug matrix. `x86` is an alias for `x32`.
 
 If the regular GUI is running, use an isolated build with
@@ -97,10 +98,25 @@ trace, text trace, and `runtime.json` (SHA-256 of the host/core/bridge/engine/ta
 Only a test's own child process tree is terminated on timeout.
 
 The loader fixture is `trace_party_module.dll`, built without an entry point or
-CRT imports. This keeps the real loader events while avoiding assumptions about
+CRT imports, but with an executable export so snapshot updates also exercise
+newly mapped/unmapped target code pages. This keeps the real loader events while avoiding assumptions about
 system DLL residency, dependencies, and initialization across Windows versions.
 
+`module-refresh` exercises both parties because WOW64 enters user-classified
+transition code before loader events. A User Only trace can therefore have already
+completed its fast traversal before the event on x86, unlike x64. The second,
+System Only phase ensures a fast snapshot spans a loader event there too. The
+driver requires at least one successful refresh and rejects refresh failures on
+either architecture; there is no architecture-specific assertion skip. The
+hermetic tests additionally assert the actual installed ranges and **zero** step
+calls for successful refreshes, including new/unloaded pages and both saved modes.
+
 ## Negative controls and limits
+
+Restoring the old unconditional loader-event stepping fallback makes the new
+`module-refresh` regression fail: on x64 the ordinary script assertions still
+pass but the refresh oracle rejects the missing re-arm; on x86 the second phase
+also fails its expected stopping-point assertion. The mutation was reverted.
 
 Development validation deliberately disabled the production startup-filter call:
 `system-step` failed at binary record zero with one extra user instruction.

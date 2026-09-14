@@ -1,4 +1,4 @@
-; A configured DLL pause also cancels the deferred fallback from a fast traversal.
+; A configured DLL pause clears the refreshed breakpoints of a fast traversal.
 settingset Events, SystemBreakpoint, 1
 settingset Events, EntryBreakpoint, 0
 settingset Events, DllLoad, 0
@@ -19,7 +19,7 @@ testassert trace_party_module != 0, "the fixture DLL load paused fast tracing"
 testassert dword:[trace_party:gLoadSucceeded] == 0, "LoadLibrary has not returned yet"
 settingset Events, DllLoad, 0
 run
-testassert cip == trace_party:Finished, "the cancelled loader-event fallback did not restart tracing"
+testassert cip == trace_party:Finished, "the cancelled loader-event traversal did not restart tracing"
 testassert dword:[trace_party:gLoadSucceeded] == 2, "load and unload completed"
 testassert dword:[trace_party:gCallbacks] == 3, "all callbacks executed after cancellation"
 testassert dword:[trace_party:gProtectionFailures] == 0, "protections restored after cancellation"

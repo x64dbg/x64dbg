@@ -50,7 +50,7 @@ namespace
             else
             {
                 // The page's classification changed, or this is the single-step
-                // fallback after a module load/unload. Do not report a false hit.
+                // fallback after a failed snapshot refresh. Do not report a false hit.
                 clearPartyRunBreakpoints();
                 callback = nullptr;
             }
@@ -157,6 +157,31 @@ namespace
         }
         return !ranges.empty();
     }
+
+    // LockRunToUserCode must be held and the old snapshot must be removed.
+    bool setPartyRunBreakpoints(int party)
+    {
+        std::vector<std::pair<duint, duint>> ranges;
+        if(!collectPartyRunRanges(party, ranges))
+            return false;
+
+        for(const auto & range : ranges)
+        {
+            if(!SetMemoryBPXEx(range.first, range.second, UE_MEMORY_EXECUTE, true, cbPartyRunMemory))
+            {
+                auto error = GetLastError();
+                MEMORY_BASIC_INFORMATION mbi = {};
+                VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)range.first, &mbi, sizeof(mbi));
+                unsigned char byte = 0;
+                auto readable = ReadProcessMemory(fdProcessInfo->hProcess, (LPCVOID)range.first, &byte, sizeof(byte), nullptr);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: execute breakpoint setup failed at %p, size %p (last error %u, allocation %p, protect %X, type %X, readable %u).\n"), range.first, range.second, error, duint(mbi.AllocationBase), mbi.Protect, mbi.Type, unsigned(readable));
+                clearPartyRunBreakpoints();
+                return false;
+            }
+            partyRun.breakpoints.push_back(range);
+        }
+        return true;
+    }
 }
 
 bool RunToParty(int party, TITANCBSTEP callback, STEPFUNCTION fallback)
@@ -164,26 +189,8 @@ bool RunToParty(int party, TITANCBSTEP callback, STEPFUNCTION fallback)
     EXCLUSIVE_ACQUIRE(LockRunToUserCode);
     if(!callback || !fallback || partyRun.callback)
         return false;
-
-    std::vector<std::pair<duint, duint>> ranges;
-    if(!collectPartyRunRanges(party, ranges))
+    if(!setPartyRunBreakpoints(party))
         return false;
-
-    for(const auto & range : ranges)
-    {
-        if(!SetMemoryBPXEx(range.first, range.second, UE_MEMORY_EXECUTE, true, cbPartyRunMemory))
-        {
-            auto error = GetLastError();
-            MEMORY_BASIC_INFORMATION mbi = {};
-            VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)range.first, &mbi, sizeof(mbi));
-            unsigned char byte = 0;
-            auto readable = ReadProcessMemory(fdProcessInfo->hProcess, (LPCVOID)range.first, &byte, sizeof(byte), nullptr);
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: execute breakpoint setup failed at %p, size %p (last error %u, allocation %p, protect %X, type %X, readable %u).\n"), range.first, range.second, error, duint(mbi.AllocationBase), mbi.Protect, mbi.Type, unsigned(readable));
-            clearPartyRunBreakpoints();
-            return false;
-        }
-        partyRun.breakpoints.push_back(range);
-    }
     partyRun.party = party;
     partyRun.callback = callback;
     partyRun.fallback = fallback;
@@ -211,11 +218,22 @@ void RunToPartyOnModuleChange()
         EXCLUSIVE_ACQUIRE(LockRunToUserCode);
         if(!partyRun.running)
             return;
-        fallback = partyRun.fallback;
         clearPartyRunBreakpoints();
+        // The module map has been updated and all debuggee threads are stopped.
+        // Refreshing protections does not inspect the loader's instruction
+        // context or deliver a trace callback: wait for a real execution hit.
+        if(setPartyRunBreakpoints(partyRun.party))
+        {
+            partyRun.running = true;
+            dputs(QT_TRANSLATE_NOOP("DBG", "Run-to-party: breakpoint snapshot refreshed after module change."));
+            return;
+        }
+        // Preserve the callback and its original fallback mode. A failed refresh
+        // rolls back and is not retried on every excluded instruction/DLL event.
+        fallback = partyRun.fallback;
+        dputs(QT_TRANSLATE_NOOP("DBG", "Run-to-party: snapshot refresh failed; single stepping until the requested party is reached."));
     }
-    // A loader event is not an instruction-completion event. In particular,
-    // WOW64 may report a transition context here. Wait for a real step before
-    // checking the party or invoking the trace callback.
+    // A loader event is not an instruction-completion event (especially WOW64).
+    // Only a real step may inspect its party or invoke the pending callback.
     fallback(cbPartyRunStep);
 }

@@ -53,11 +53,11 @@ struct Installed { duint size; MemCallback callback; };
 std::map<duint, Installed> installed;
 DWORD lastError = 0;
 duint queryFailure = duint(-1), cip = 0;
-int failInstallAt = -1, installCalls = 0, removeCalls = 0;
+int failInstallAt = -1, installCalls = 0, removeCalls = 0, stepCalls = 0;
 TITANCBSTEP pendingStep = nullptr;
 bool steppedOver = false;
-void StepIntoWow64(TITANCBSTEP callback) { pendingStep = callback; steppedOver = false; }
-void StepOverWrapper(TITANCBSTEP callback) { pendingStep = callback; steppedOver = true; }
+void StepIntoWow64(TITANCBSTEP callback) { ++stepCalls; pendingStep = callback; steppedOver = false; }
+void StepOverWrapper(TITANCBSTEP callback) { ++stepCalls; pendingStep = callback; steppedOver = true; }
 bool RunToParty(int, TITANCBSTEP, STEPFUNCTION = StepIntoWow64);
 bool RunToPartyIsActive();
 void RunToPartyClear();
@@ -121,7 +121,7 @@ void reset()
     buildNumber = 26100;
     queryFailure = duint(-1);
     failInstallAt = -1;
-    installCalls = removeCalls = completed = 0;
+    installCalls = removeCalls = completed = stepCalls = 0;
     pendingStep = nullptr;
     cip = 0x2000;
 }
@@ -142,6 +142,14 @@ void hit(duint address)
         if(address >= bp.first && address < bp.first + bp.second.size)
         { auto callback = bp.second.callback; callback((void*)address); return; }
     assert(false);
+}
+void stepTo(duint address)
+{
+    assert(pendingStep);
+    auto callback = pendingStep;
+    pendingStep = nullptr;
+    cip = address;
+    callback();
 }
 void again()
 {
@@ -228,7 +236,8 @@ int main()
 
     reset();
     assert(RunToParty(0, done, StepOverWrapper));
-    RunToPartyOnModuleChange(); // excluded CIP: keep operation, use saved step mode
+    queryFailure = 0x6000;
+    RunToPartyOnModuleChange(); // failed refresh: keep callback and original step mode
     assert(installed.empty() && RunToPartyIsActive() && pendingStep && steppedOver);
     auto next = pendingStep;
     cip = 0x1000;
@@ -239,9 +248,75 @@ int main()
     cip = 0x1000;
     assert(RunToParty(0, done, StepOverWrapper));
     RunToPartyOnModuleChange(); // even a matching loader context is not a trace step
-    assert(completed == 0 && installed.empty() && pendingStep && steppedOver);
-    pendingStep();
+    assert(completed == 0 && !installed.empty() && !pendingStep);
+    hit(0x1000);
     assert(completed == 1 && !RunToPartyIsActive());
+
+    // Refresh both party snapshots without inspecting the loader context or
+    // single-stepping. New module pages must be covered; unloaded ones disappear.
+    for(int party : {0, 1})
+        for(auto fallback : {StepIntoWow64, StepOverWrapper})
+        {
+            reset();
+            auto excluded = party == 0 ? 0x2000 : 0x1000;
+            cip = excluded;
+            assert(RunToParty(party, done, fallback));
+            modules.push_back({0x6000, 0x1000, party});
+            regions[2] = {(void*)0x6000, 0x1000, MEM_COMMIT, PAGE_EXECUTE_READ};
+            regions.push_back({(void*)0x7000, 0x9000, MEM_COMMIT, 4});
+            RunToPartyOnModuleChange();
+            assert(installed.count(0x6000) && !pendingStep && stepCalls == 0 && completed == 0);
+            RunToPartyOnModuleChange(); // repeated events still never step or complete
+            assert(installed.count(0x6000) && !pendingStep && stepCalls == 0 && completed == 0);
+            hit(0x6000); // first entry into the newly loaded module
+            assert(completed == 1);
+
+            cip = excluded;
+            assert(RunToParty(party, done, fallback));
+            modules.pop_back();
+            regions[2].Protect = 4;
+            RunToPartyOnModuleChange();
+            assert(!installed.count(0x6000) && !installed.empty() && !pendingStep && stepCalls == 0);
+            hit(party == 0 ? 0x1000 : 0x2000);
+            assert(completed == 2);
+        }
+
+    // A failed refresh rolls back, preserves ownership, and uses the ORIGINAL
+    // step mode without retrying on each excluded instruction or loader event.
+    for(auto fallback : {StepIntoWow64, StepOverWrapper})
+        for(int failure = 0; failure < 5; ++failure)
+        {
+            reset();
+            assert(RunToParty(0, done, fallback));
+            switch(failure)
+            {
+            case 0: failInstallAt = installCalls + 1; break; // partial install
+            case 1: userBreakpoints.push_back({BPMEMORY, true}); break;
+            case 2: regions[1].Protect |= PAGE_GUARD; break;
+            case 3: queryFailure = 0x6000; break;
+            case 4: modules = {{0x1000, 0x5000, 1}}; break; // no target pages
+            }
+            RunToPartyOnModuleChange();
+            assert(installed.empty() && pendingStep && RunToPartyIsActive());
+            assert(steppedOver == (fallback == StepOverWrapper));
+            assert(removeCalls == (failure == 0 ? 4 : 3));
+            auto calls = installCalls;
+            RunToPartyOnModuleChange();
+            stepTo(0x2001);
+            assert(installCalls == calls && installed.empty() && pendingStep);
+            modules = {{0x2000, 0x2000, 1}};
+            stepTo(0x1000);
+            assert(completed == 1 && !RunToPartyIsActive());
+        }
+
+    reset();
+    assert(RunToParty(0, done));
+    failInstallAt = installCalls;
+    RunToPartyOnModuleChange();
+    auto calls = installCalls;
+    RunToPartyClear(); // configured DLL pause before the failed-refresh fallback
+    stepTo(0x2000);
+    assert(installCalls == calls && !pendingStep && completed == 0 && !RunToPartyIsActive());
 
     reset();
     assert(RunToParty(0, done));

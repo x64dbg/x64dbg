@@ -12,6 +12,7 @@ extern "C"
     __declspec(dllexport) volatile LONG gSpinIterations = 0;
     __declspec(dllexport) volatile LONG gHandled = 0;
     __declspec(dllexport) volatile LONG gLoadSucceeded = 0;
+    __declspec(dllexport) volatile LONG gLoadCalls = 0;
     __declspec(dllexport) volatile LONG gModuleWasLoaded = 0;
     __declspec(dllexport) volatile DWORD gProcessId = 0;
     __declspec(dllexport) volatile LONG gWaitEntered = 0;
@@ -58,6 +59,8 @@ extern "C"
 
     __declspec(dllexport) __declspec(noinline) void LoadBegin()
     {
+        ++gLoadCalls;
+        gLoadSucceeded = 0;
         if(auto module = LoadLibraryW(L"trace_party_module.dll"))
         {
             gLoadSucceeded = 1;
@@ -129,8 +132,12 @@ int main(int argc, char* argv[])
         SpinBegin();
     else if(argc > 1 && std::strcmp(argv[1], "wait") == 0)
         WaitBegin();
-    else if(argc > 1 && std::strcmp(argv[1], "load") == 0)
+    else if(argc > 1 && (std::strcmp(argv[1], "load") == 0 || std::strcmp(argv[1], "load-twice") == 0))
+    {
         LoadBegin();
+        if(std::strcmp(argv[1], "load-twice") == 0)
+            LoadBegin();
+    }
     else if(argc > 1 && std::strcmp(argv[1], "exception") == 0)
         ExceptionBegin();
     TraceBegin();

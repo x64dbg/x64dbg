@@ -154,6 +154,11 @@ def main():
         if "@TRACE@" in source:
             count = check_recording(trace, trace_log, debug_log, script)
             print(f"Validated {count} real binary records against the debugger text log", flush=True)
+        if "Run-to-party: snapshot refresh failed" in debug_log:
+            raise ValueError("fast traversal fell back to stepping after a module change")
+        refreshes = re.search(r"^; EXPECT_REFRESHES (\d+)$", source, re.M)
+        if refreshes and debug_log.count("Run-to-party: breakpoint snapshot refreshed after module change.") < int(refreshes[1]):
+            raise ValueError("module change did not re-arm the requested memory-breakpoint snapshots")
         fallbacks = debug_log.count("Run-to-party setup failed")
         if "; EXPECT_FALLBACK" in source:
             if fallbacks != 1:

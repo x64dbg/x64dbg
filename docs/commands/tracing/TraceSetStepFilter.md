@@ -22,8 +22,8 @@ This is an opt-in speed/behavior tradeoff:
 * Running excluded code stops at the first matching execution, including callbacks. For Trace Over, calls in included code are still stepped over, but calls made while running excluded code are not individually stepped over.
 * The breakpoint set is a snapshot of currently executable memory, including executable private memory classified as user code. New allocations or protection changes during the run can introduce code not covered by the snapshot. Use `step` for tracing unpackers/JITs or code that changes executable mappings.
 * Windows-managed CFG/SCP image-extension trampolines are omitted from the temporary breakpoint set because Windows rejects protection changes on them. Running excluded code may pass through these trampolines without a trace callback even if their party matches. This exception is limited to the single-page `ImageExtension` layout recognized by the memory map (see [RunToParty](RunToParty.md)); normal stepping and ordinary private/JIT coverage are unchanged.
-* A DLL load/unload invalidates the snapshot and switches that traversal back to stepping.
-* Enabled user memory breakpoints, guard pages, missing target pages, or setup failures prevent the fast path. Partial setup is rolled back and the remainder of the trace uses stepping instead.
+* A DLL load/unload rebuilds the snapshot from the updated module map and continues running. It does not itself invoke a trace callback. If refreshing fails, newly installed breakpoints are rolled back and that traversal uses the original stepping mode until the selected party is reached; the Log reports the failure. Successful refreshes are logged too.
+* Enabled user memory breakpoints, guard pages, missing target pages, or initial setup failures prevent the fast path. Partial setup is rolled back and the remainder of the trace uses stepping instead.
 * Normal debugger breaks and manual pause still interrupt tracing and remove temporary breakpoints.
 
 The trace dialog's **Run through excluded modules (memory breakpoints)** checkbox selects `run`. It is unchecked by default and disabled for **All Modules**.

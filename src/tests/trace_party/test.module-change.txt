@@ -1,4 +1,4 @@
-; EXPECT_MODULE_CHANGE: invalidate a fast-run snapshot on actual DLL load/unload events.
+; EXPECT_MODULE_CHANGE: refresh a fast-run snapshot on actual DLL load/unload events.
 settingset Events, SystemBreakpoint, 1
 settingset Events, EntryBreakpoint, 0
 settingset Events, DllLoadSystem, 0

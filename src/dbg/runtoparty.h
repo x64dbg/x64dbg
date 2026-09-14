@@ -9,5 +9,6 @@
 bool RunToParty(int party, TITANCBSTEP callback, STEPFUNCTION fallback = StepIntoWow64);
 bool RunToPartyIsActive();
 void RunToPartyClear();
-// A module change invalidates the snapshot. Continue with the saved step mode.
+// Call after updating the module map. Refresh the snapshot without stepping;
+// if refresh fails, roll back and continue with the saved step mode.
 void RunToPartyOnModuleChange();
