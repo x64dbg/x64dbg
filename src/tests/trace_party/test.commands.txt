@@ -30,7 +30,14 @@ testassert dword:[trace_party:gCallbacks] == 2, "second callback executed"
 RunUser
 RunSystem
 StepUser
-testassert mod.party(cip) == 0, "StepUser caught the third callback"
+testassert mod.party(cip) == 0, "StepUser reached user-classified code"
+testassert dword:[trace_party:gCallbacks] == 2, "third callback has not executed yet"
+; Stepping keeps normal party classification, so Windows SCP thunks can be
+; the first match. Reach the actual callback with an ordinary breakpoint.
+bp trace_party:UserCallback
+run
+testassert cip == trace_party:UserCallback, "normal execution entered the third callback"
+bpc trace_party:UserCallback
 StepSystem
 testassert mod.party(cip) == 1, "StepSystem caught its return"
 testassert dword:[trace_party:gCallbacks] == 3, "third callback executed"
