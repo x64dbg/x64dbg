@@ -85,10 +85,8 @@ static std::vector<MEMPAGE> QueryMemPages()
                     {
                         auto bFileNameOnly = false; //TODO: setting for this
                         auto fileStart = wcsrchr(szMappedName, L'\\');
-                        if(bFileNameOnly && fileStart)
-                            strcpy_s(curPage.info, StringUtils::Utf16ToUtf8(fileStart + 1).c_str());
-                        else
-                            strcpy_s(curPage.info, StringUtils::Utf16ToUtf8(szMappedName).c_str());
+                        const auto mappedName = StringUtils::Utf16ToUtf8(bFileNameOnly && fileStart ? fileStart + 1 : szMappedName);
+                        strncpy_s(curPage.info, mappedName.c_str(), _TRUNCATE);
                     }
                 }
 
