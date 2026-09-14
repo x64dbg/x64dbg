@@ -54,6 +54,12 @@ Examples:
 
 ### Driver tests
 
+For interactive synchronization, headless emits `[STATE-FAST] running` and
+`[STATE-FAST] paused` for immediate debugger notifications. Legacy `[STATE]`
+messages are retained, but also contain delayed GUI updates and must not be used
+to acknowledge new run/pause operations. Initialization and termination still
+use `[STATE] initialized` and `[STATE] stopped`.
+
 When a driver is present, `run.py` launches it instead of launching headless directly. The driver receives `--headless`, `--debuggee`, `--script`, `--runtime-dir`, `--userdir`, `--log`, `--artifacts-dir`, `--engine`, `--timeout`, and optionally `--no-console-window`. It is responsible for starting and stopping child processes, writing the canonical `FINAL` line to `--log`, and returning a nonzero exit code on failure. Driver tests that need plugins must load them when starting headless.
 
 ## Runtime layout

@@ -13,6 +13,12 @@ import time
 from pathlib import Path
 
 
+def is_live_state(line: str, state: str) -> bool:
+    # Legacy [STATE] messages also include delayed GUI updates. Even an entire
+    # old running/paused pair may arrive after a new command has been submitted.
+    return line == f"[STATE-FAST] {state}"
+
+
 def run(args, script: str) -> int:
     headless = Path(args.headless).resolve()
     artifacts = Path(args.artifacts_dir).resolve()
@@ -64,15 +70,14 @@ def run(args, script: str) -> int:
         for raw in script.splitlines():
             line = raw.strip()
             if line == "; WAIT_PAUSED":
-                # GUI state updates may contain duplicate paused notifications.
-                # A resume must first announce running; don't consume a stale
-                # pause from the previous stop as completion of this command.
+                # Only immediate state transitions acknowledge this operation;
+                # delayed GUI updates can replay both an old run and an old stop.
                 if expect_running:
-                    wait(lambda text: text == "[STATE] running")
-                wait(lambda text: text == "[STATE] paused")
+                    wait(lambda text: is_live_state(text, "running"))
+                wait(lambda text: is_live_state(text, "paused"))
                 expect_running = False
             elif line == "; WAIT_QUIET":
-                wait(lambda text: text == "[STATE] running")
+                wait(lambda text: is_live_state(text, "running"))
                 expect_running = False
                 # The sole runnable target thread has entered a blocking native
                 # wait. Let the debug-event stream settle before requesting Pause.
@@ -93,7 +98,7 @@ def run(args, script: str) -> int:
                         text = incoming.get(timeout=max(0.01, end - time.monotonic()))
                     except queue.Empty:
                         break
-                    if (text is None or text == "[STATE] paused" or text.startswith("[FAIL]")
+                    if (text is None or is_live_state(text, "paused") or text.startswith("[FAIL]")
                             or "Unknown command/expression" in text):
                         raise ValueError(f"first Pause unexpectedly completed or failed: {text}")
                     installed |= "Pause breakpoint set at " in text
@@ -101,7 +106,7 @@ def run(args, script: str) -> int:
                     raise ValueError("first Pause did not install its pending syscall-return breakpoint")
                 assertions += 1
             elif line == "; SIGNAL_WAKE":
-                wait(lambda text: text == "[STATE] running")
+                wait(lambda text: is_live_state(text, "running"))
                 expect_running = False
                 # This is external input to the debuggee, not a debugger helper:
                 # release its actual kernel wait only AFTER resuming from break-in.

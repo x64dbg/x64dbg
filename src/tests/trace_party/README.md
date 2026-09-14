@@ -65,8 +65,10 @@ filtering, breakpoint, or pause logic.
 The loop tests request Pause only after observed progress inside the excluded
 loop, not because an arbitrary sleep expired. The driver validates actual expression
 results afterward and writes the runner's final status. It waits for a fresh
-running-to-paused transition so duplicate GUI state notifications cannot make
-it proceed before a real stop.
+`[STATE-FAST]` running-to-paused transition. Legacy `[STATE]` output also includes
+delayed GUI notifications, which can replay an entire old running/paused pair;
+those must not acknowledge a new operation. `tests/headless_state_test.py`
+compiles the production state-reporting handler and tests that interleaving.
 
 `pause-breakin` exercises the shared native Pause path under ordinary Run. It
 stops at the actual native wait entry, suspends unrelated threads, resumes into

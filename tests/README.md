@@ -5,7 +5,10 @@ Run the hermetic primitive tests with:
 ```text
 python tests/run_to_party_test.py
 python tests/trace_filter_test.py
+python tests/headless_state_test.py
 ```
+
+The headless-state runner compiles the production state-reporting handler and verifies that the interactive Pause driver distinguishes immediate transitions from delayed GUI state pairs, while retaining legacy output compatibility.
 
 The trace-filter runner compiles the production startup, pending-record filter, fast-path dispatch, party-step callbacks, and Pause/temporary-breakpoint functions against test doubles. It covers an excluded initial instruction (including a direct cross-party first step), pre-existing recordings, compression-state reset, failed startup, both skip loops, cancelled late completions in either party, first-instruction run-mode arming for all four wrappers, included-call stepping, setup fallback, fast-run Pause, and repeated Pause during a blocked syscall. Pause tests require deletion before break-in, cancellation of late installations, cleanup after resume failure, and preservation of existing/replaced user breakpoints.
 
