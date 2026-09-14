@@ -193,7 +193,7 @@
      <item>
       <widget class="QRadioButton" name="radioFilterUser">
        <property name="toolTip">
-        <string>Conditions, logging, and recording only apply when execution is in a User module. System code is stepped through silently.</string>
+        <string>Conditions, logging, and recording only apply in User modules. Traversing excluded System code does not increase the trace counter.</string>
        </property>
        <property name="text">
         <string>&amp;User Only</string>
@@ -203,7 +203,7 @@
      <item>
       <widget class="QRadioButton" name="radioFilterSystem">
        <property name="toolTip">
-        <string>Conditions, logging, and recording only apply when execution is in a System module. User code is stepped through silently.</string>
+        <string>Conditions, logging, and recording only apply in System modules. Traversing excluded User code does not increase the trace counter.</string>
        </property>
        <property name="text">
         <string>&amp;System Only</string>

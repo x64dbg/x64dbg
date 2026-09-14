@@ -108,15 +108,18 @@ completed its fast traversal before the event on x86, unlike x64. The second,
 System Only phase ensures a fast snapshot spans a loader event there too. The
 driver requires at least one successful refresh and rejects refresh failures on
 either architecture; there is no architecture-specific assertion skip. The
-hermetic tests additionally assert the actual installed ranges and **zero** step
+System Only phase stops at the first selected location after the DLL is mapped,
+rather than tracing the platform-dependent remainder of the Windows loader.
+Normal Run then completes the second load/unload cycle and all callback/protection
+assertions still apply. The hermetic tests additionally assert the actual installed ranges and **zero** step
 calls for successful refreshes, including new/unloaded pages and both saved modes.
 
 ## Negative controls and limits
 
 Restoring the old unconditional loader-event stepping fallback makes the new
-`module-refresh` regression fail: on x64 the ordinary script assertions still
-pass but the refresh oracle rejects the missing re-arm; on x86 the second phase
-also fails its expected stopping-point assertion. The mutation was reverted.
+`module-refresh` regression fail. The refresh oracle rejects the missing re-arm
+even when the ordinary script assertions pass; the original longer x86 scenario
+also exposed an incorrect stopping point. The mutation was reverted.
 
 Development validation deliberately disabled the production startup-filter call:
 `system-step` failed at binary record zero with one extra user instruction.

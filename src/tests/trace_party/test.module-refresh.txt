@@ -40,11 +40,14 @@ run
 testassert cip == trace_party:LoadBegin, "naturally reached the second loader call"
 bpc trace_party:LoadBegin
 TraceSetStepFilter system, run
-TraceIntoConditional "dword:[trace_party:gLoadSucceeded]==2", .500000
-testassert mod.party(cip) == 1 && dword:[trace_party:gCallbacks] == 0, "system trace stopped after the second loader call"
-testassert dword:[trace_party:gLoadSucceeded] == 2 && dword:[trace_party:gLoadCalls] == 2, "both actual load/unload cycles completed"
+; Stop at the first selected location after mapping, not after tracing the
+; platform-dependent remainder of the Windows loader (100k+ system instructions).
+TraceIntoConditional "mod.fromname(\"trace_party_module.dll\")!=0", .500000
+testassert mod.party(cip) == 1 && dword:[trace_party:gCallbacks] == 0, "system trace stopped after the second DLL load event"
+testassert trace_party_module != 0 && dword:[trace_party:gLoadCalls] == 2, "the second DLL mapping was observed"
 run
 testassert cip == trace_party:Finished, "normal execution resumed"
+testassert dword:[trace_party:gLoadSucceeded] == 2 && dword:[trace_party:gLoadCalls] == 2, "both actual load/unload cycles completed"
 testassert dword:[trace_party:gCallbacks] == 3, "all callbacks executed afterward"
 testassert dword:[trace_party:gProtectionFailures] == 0, "all temporary protections restored"
 bpc trace_party:Finished
