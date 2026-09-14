@@ -14,6 +14,7 @@
 #include "thread.h"
 #include "plugin_loader.h"
 #include "breakpoint.h"
+#include "BpHook/BpHook.h"
 #include "symbolinfo.h"
 #include "variable.h"
 #include "x64dbg.h"
@@ -1271,7 +1272,7 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
                         ((unsigned char*)&oldbytes)[0], ((unsigned char*)&oldbytes)[1]);
                 BpEnable(bp->addr, BPNORMAL, false);
             }
-            else if(!SetBPX(bp->addr, bp->titantype, cbUserBreakpoint))
+            else if(!SetBPXHooked(bp->addr, bp->titantype, cbUserBreakpoint))
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Could not set breakpoint %p! (SetBPX)\n"), bp->addr);
         }
         else

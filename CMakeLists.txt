@@ -164,6 +164,8 @@ target_include_directories(btparser PUBLIC
 # Target: dbg
 set(dbg_SOURCES
 	cmake.toml
+	"src/dbg/BpHook/BpHook.cpp"
+	"src/dbg/BpHook/BpHook.h"
 	"src/dbg/DeviceNameResolver/DeviceNameResolver.h"
 	"src/dbg/GetPeArch.h"
 	"src/dbg/TitanEngine/TitanEngine.h"
@@ -1190,4 +1192,69 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
 		set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT launcher)
 	endif()
 
+endif()
+# Target: RemapingPlugin
+set(RemapingPlugin_SOURCES
+	cmake.toml
+	"src/plugins/RemapingPlugin/main.cpp"
+	"src/plugins/RemapingPlugin/plugin.cpp"
+)
+
+add_library(RemapingPlugin SHARED)
+
+target_sources(RemapingPlugin PRIVATE ${RemapingPlugin_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${RemapingPlugin_SOURCES})
+
+target_include_directories(RemapingPlugin PUBLIC
+	"src/dbg"
+	"src/bridge"
+)
+
+if(NOT TARGET bridge)
+	message(FATAL_ERROR "Target \"bridge\" referenced by \"RemapingPlugin\" does not exist!")
+endif()
+
+if(NOT TARGET dbg)
+	message(FATAL_ERROR "Target \"dbg\" referenced by \"RemapingPlugin\" does not exist!")
+endif()
+
+target_link_libraries(RemapingPlugin PUBLIC
+	bridge
+	dbg
+)
+
+if(MSVC) # msvc
+	target_link_options(RemapingPlugin PUBLIC
+		"/DEBUG:NONE"
+	)
+endif()
+
+set_target_properties(RemapingPlugin PROPERTIES
+	PREFIX
+		""
+)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86
+	set_target_properties(RemapingPlugin PROPERTIES
+		SUFFIX
+			.dp32
+	)
+endif()
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8) # x64
+	set_target_properties(RemapingPlugin PROPERTIES
+		SUFFIX
+			.dp64
+	)
+endif()
+
+if(X64DBG_BUILD_IN_TREE) # X64DBG_BUILD_IN_TREE
+	set_target_properties(RemapingPlugin PROPERTIES
+		RUNTIME_OUTPUT_DIRECTORY
+			"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/plugins"
+		LIBRARY_OUTPUT_DIRECTORY
+			"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/plugins"
+		ARCHIVE_OUTPUT_DIRECTORY
+			"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/plugins"
+	)
 endif()

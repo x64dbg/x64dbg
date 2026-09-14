@@ -71,6 +71,8 @@ sources = [
     "src/dbg/*.h",
     "src/dbg/analysis/*.cpp",
     "src/dbg/analysis/*.h",
+    "src/dbg/BpHook/*.cpp",
+    "src/dbg/BpHook/*.h",
     "src/dbg/commands/*.cpp",
     "src/dbg/commands/*.h",
     "src/dbg/DeviceNameResolver/*.h",
@@ -294,3 +296,27 @@ link-libraries = [
 OUTPUT_NAME = "x96dbg"
 WIN32_EXECUTABLE = "ON"
 X64DBG_BUILD_IN_TREE.RUNTIME_OUTPUT_DIRECTORY = "${PROJECT_SOURCE_DIR}/bin"
+
+[target.RemapingPlugin]
+type = "shared"
+sources = [
+    "src/plugins/RemapingPlugin/*.cpp",
+]
+include-directories = [
+    "src/dbg",
+    "src/bridge",
+]
+link-libraries = [
+    "::bridge",
+    "::dbg",
+]
+# 不生成 PDB：否则 x64dbg 加载插件时会占住 .pdb，开着调试器就没法热重载
+msvc.link-options = ["/DEBUG:NONE"]
+
+[target.RemapingPlugin.properties]
+PREFIX = ""
+x86.SUFFIX = ".dp32"
+x64.SUFFIX = ".dp64"
+X64DBG_BUILD_IN_TREE.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/plugins"
+X64DBG_BUILD_IN_TREE.LIBRARY_OUTPUT_DIRECTORY = "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/plugins"
+X64DBG_BUILD_IN_TREE.ARCHIVE_OUTPUT_DIRECTORY = "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/plugins"

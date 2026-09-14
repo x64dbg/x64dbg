@@ -4,6 +4,7 @@
 #include "debugger.h"
 #include "exception.h"
 #include "value.h"
+#include "BpHook/BpHook.h"
 
 // breakpoint enumeration callbacks
 static bool cbDeleteAllBreakpoints(const BREAKPOINT* bp)
@@ -28,7 +29,7 @@ static bool cbEnableAllBreakpoints(const BREAKPOINT* bp)
     if(bp->type != BPNORMAL || bp->enabled)
         return true;
 
-    if(!SetBPX(bp->addr, bp->titantype, cbUserBreakpoint))
+    if(!SetBPXHooked(bp->addr, bp->titantype, cbUserBreakpoint))
     {
         if(!MemIsValidReadPtr(bp->addr))
             return true;
@@ -129,7 +130,7 @@ bool cbDebugSetBPX(int argc, char* argv[]) //bp addr [,name [,type]]
         dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting breakpoint at %p! (bpnew)\n"), addr);
         return false;
     }
-    if(!SetBPX(addr, type, cbUserBreakpoint))
+    if(!SetBPXHooked(addr, type, cbUserBreakpoint))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting breakpoint at %p! (SetBPX)\n"), addr);
         if(!BpDelete(addr, BPNORMAL))
@@ -223,7 +224,7 @@ bool cbDebugEnableBPX(int argc, char* argv[])
     BREAKPOINT found;
     if(BpGet(0, BPNORMAL, argv[1], &found)) //found a breakpoint with name
     {
-        if(!SetBPX(found.addr, found.titantype, cbUserBreakpoint))
+        if(!SetBPXHooked(found.addr, found.titantype, cbUserBreakpoint))
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable breakpoint %p (SetBPX)\n"), found.addr);
             return false;
@@ -248,7 +249,7 @@ bool cbDebugEnableBPX(int argc, char* argv[])
         GuiUpdateAllViews();
         return true;
     }
-    if(!SetBPX(found.addr, found.titantype, cbUserBreakpoint))
+    if(!SetBPXHooked(found.addr, found.titantype, cbUserBreakpoint))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable breakpoint %p (SetBPX)\n"), found.addr);
         return false;

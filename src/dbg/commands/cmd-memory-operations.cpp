@@ -7,6 +7,7 @@
 #include "value.h"
 #include "stringformat.h"
 #include "comment.h"
+#include "BpHook/BpHook.h"
 #include <vector>
 
 static bool FillDebugMemory(duint addr, duint size, uint8_t value)
@@ -296,7 +297,7 @@ bool cbInstrMinidump(int argc, char* argv[])
     // Re-enable all breakpoints that were previously disabled
     for(const auto & bp : disabledBreakpoints)
     {
-        SetBPX(bp.addr, bp.titantype, cbUserBreakpoint);
+        SetBPXHooked(bp.addr, bp.titantype, cbUserBreakpoint);
     }
 
     if(dumpSaved)

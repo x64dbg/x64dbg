@@ -148,6 +148,34 @@ typedef struct
     BRIDGEBP* breakpoint;
 } PLUG_CB_BREAKPOINT;
 
+// Fired before x64dbg lets the debug engine set a software breakpoint. The
+// target address still holds its original bytes at this point, nothing has been
+// written to the debuggee yet, and the debuggee is not necessarily suspended.
+//
+// Set cancel to true to make x64dbg give up on this breakpoint: the caller then
+// runs the same rollback it uses for a failed SetBPX.
+//
+// Only user breakpoints reach this callback. Internal ones (pause, the
+// LoadLibrary/FreeLibrary stubs, exception dispatch) do not.
+typedef struct
+{
+    duint addr;              // breakpoint address
+    unsigned int titantype;  // raw type flags handed to the debug engine
+    void* callback;          // engine hit callback, to tell breakpoint kinds apart
+    bool cancel;             // out: true gives up on setting this breakpoint
+} PLUG_CB_BEFORE_SETBPX;
+
+// Fired after the debug engine is done with a software breakpoint, whether or
+// not it succeeded. Pairs with CB_BEFORE_SETBPX and is skipped when a plugin
+// cancelled there.
+typedef struct
+{
+    duint addr;
+    unsigned int titantype;
+    void* callback;
+    bool success;            // false when the engine refused to set it
+} PLUG_CB_AFTER_SETBPX;
+
 typedef struct
 {
     void* reserved;
@@ -421,6 +449,8 @@ typedef enum
     CB_STOPTRACE, //PLUG_CB_STOPTRACE
     CB_DBOPERATION, //PLUG_CB_DBOPERATION
     CB_DBLOADOPERATION, //PLUG_CB_DBOPERATION
+    CB_BEFORE_SETBPX, //PLUG_CB_BEFORE_SETBPX
+    CB_AFTER_SETBPX, //PLUG_CB_AFTER_SETBPX
     CB_LAST
 } CBTYPE;
 
