@@ -6,7 +6,10 @@ Run the hermetic primitive tests with:
 python tests/run_to_party_test.py
 python tests/trace_filter_test.py
 python tests/headless_state_test.py
+python tests/memory_map_lifecycle_test.py
 ```
+
+The memory-map lifecycle runner compiles the production background-scan gate and detach handler. A forced interleaving holds an engine read while teardown attempts to disable updates; teardown must wait, and late wakeups must not read the destroyed process. It also checks restart, disabled debugging, failed-detach rollback, and exit/Stop/shutdown wiring. `--unsafe-negative-control` removes the drain lock and must fail.
 
 The headless-state runner compiles the production state-reporting handler and verifies that the interactive Pause driver distinguishes immediate transitions from delayed GUI state pairs, while retaining legacy output compatibility.
 

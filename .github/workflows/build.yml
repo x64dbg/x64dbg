@@ -107,12 +107,12 @@ jobs:
           Write-Host "Full headless crash dumps will be written to $dumpDir"
           py src/tests/run.py --arch ${{ matrix.arch }} --engine ${{ matrix.engine }} --artifacts-dir $artifactDir
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          # Exercise the intermittent x86 GleeBug shutdown path without masking
+          # Exercise the intermittent x86 GleeBug shutdown paths without masking
           # either a full-suite failure or a failed stress iteration.
           if ("${{ matrix.arch }}" -eq "x86" -and "${{ matrix.engine }}" -eq "GleeBug") {
             for ($attempt = 1; $attempt -le 20; $attempt++) {
               $stressDir = Join-Path $artifactDir "pause-run-stress-$attempt"
-              py src/tests/run.py --arch x86 --engine GleeBug --artifacts-dir $stressDir trace_party/pause-run
+              py src/tests/run.py --arch x86 --engine GleeBug --artifacts-dir $stressDir trace_party/pause-run trace_party/pause-step
               if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             }
           }

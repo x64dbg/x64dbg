@@ -196,6 +196,7 @@ bool cbDebugStop(int argc, char* argv[])
     // HACK: TODO: Don't kill script on debugger ending a process
     //scriptreset(); //reset the currently-loaded script
     _dbg_animatestop();
+    MemSetAutoUpdateEnabled(false);
     StopDebug();
     //history
     HistoryClear();
@@ -356,9 +357,13 @@ bool cbDebugDetach(int argc, char* argv[])
     detachInfo.fdProcessInfo = fdProcessInfo;
     plugincbcall(CB_DETACH, &detachInfo);
     dbgclearpausebreakpoint();
+    auto autoUpdateEnabled = MemSetAutoUpdateEnabled(false);
     BpEnumAll(dbgdetachDisableAllBreakpoints); // Disable all software breakpoints before detaching.
     if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
+    {
+        MemSetAutoUpdateEnabled(autoUpdateEnabled);
         dputs(QT_TRANSLATE_NOOP("DBG", "DetachDebuggerEx failed..."));
+    }
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Detached!"));
     _dbg_animatestop(); // Stop animating

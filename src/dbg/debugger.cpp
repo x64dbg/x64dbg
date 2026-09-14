@@ -307,6 +307,7 @@ void dbginit()
 
 void dbgstop()
 {
+    MemSetAutoUpdateEnabled(false);
     bStopTimeWastedCounterThread = true;
     bStopMemMapThread = true;
     bStopDumpRefreshThread = true;
@@ -1635,6 +1636,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
     //update memory map
     MemUpdateMap();
+    MemSetAutoUpdateEnabled(true);
     GuiUpdateMemoryView();
 
     //dump/disassemble somewhere
@@ -1732,6 +1734,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
 static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
 {
+    MemSetAutoUpdateEnabled(false);
     {
         auto exitCode = ExitProcess->dwExitCode;
         auto exitDescription = StringUtils::sprintf("0x%X (%d)", exitCode, exitCode);

@@ -77,6 +77,14 @@ delayed GUI notifications, which can replay an entire old running/paused pair;
 those must not acknowledge a new operation. `tests/headless_state_test.py`
 compiles the production state-reporting handler and tests that interleaving.
 
+CI additionally repeats both loop Pause variants 20 times on x86 GleeBug, with
+any failed iteration failing the job. This covers an observed shutdown race:
+a background memory-map scan could use the engine process after it was freed.
+The core now drains/disables background scans before process teardown; the
+forced-interleaving companion is `tests/memory_map_lifecycle_test.py`. CI enables
+WER dumps in both HKLM registry views and keeps crash dumps in the managed
+artifact directory, so a recurrence retains its exception context.
+
 `pause-breakin` exercises the shared native Pause path under ordinary Run. It
 stops at the actual native wait entry, suspends unrelated threads, resumes into
 the wait, and lets debug events settle. The first Pause must install its pending
