@@ -90,7 +90,6 @@ jobs:
         run: |
           $artifactDir = Join-Path $PWD "test-artifacts/${{ matrix.arch }}-${{ matrix.engine }}"
           $dumpDir = Join-Path $artifactDir "crash-dumps"
-          New-Item -ItemType Directory -Path $dumpDir -Force | Out-Null
           # WER LocalDumps uses HKLM, not HKCU. Configure both registry views so
           # the x86 host also produces a dump on the 64-bit runner.
           foreach ($view in @([Microsoft.Win32.RegistryView]::Registry64, [Microsoft.Win32.RegistryView]::Registry32)) {
