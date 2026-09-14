@@ -531,9 +531,12 @@ void HexEditDialog::printData(DataType type)
 
     case DataCShellcodeString:
     {
+        const int itemsPerLine = mTypes[mIndex].itemsPerLine;
         data += "\"";
         for(int i = 0; i < mData.size(); i++)
         {
+            if(i && itemsPerLine > 1 && (i % itemsPerLine) == 0)
+                data += "\" \\\n\"";
             byte_t ch = mData.at(i);
             data += QString().sprintf("\\x%02X", ch);
         }
