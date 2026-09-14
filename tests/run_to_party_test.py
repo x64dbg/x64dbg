@@ -244,6 +244,16 @@ int main()
     assert(completed == 1 && !RunToPartyIsActive());
 
     reset();
+    assert(RunToParty(0, done, StepOverWrapper));
+    RunToPartyOnModuleChange();
+    assert(installed.empty() && RunToPartyIsActive() && pendingStep && steppedOver);
+    cip = 0x2000; // loader step completes still in system code
+    pendingStep();
+    assert(!installed.empty() && RunToPartyIsActive());
+    hit(0x4000);
+    assert(completed == 1 && !RunToPartyIsActive() && installed.empty());
+
+    reset();
     assert(RunToParty(0, done));
     auto staleHit = installed.begin()->second.callback;
     RunToPartyClear(); // manual pause, normal break, or exit

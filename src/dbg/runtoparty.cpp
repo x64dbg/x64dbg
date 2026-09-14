@@ -30,6 +30,10 @@ namespace
         partyRun.running = false;
     }
 
+    void cbPartyRunStep();
+    void cbPartyRunMemory(const void*);
+    bool installPartyRunBreakpoints(int party);
+
     void cbPartyRunStep()
     {
         TITANCBSTEP callback;
@@ -52,6 +56,8 @@ namespace
                 // The page's classification changed, or this is the single-step
                 // fallback after a module load/unload. Do not report a false hit.
                 clearPartyRunBreakpoints();
+                if(installPartyRunBreakpoints(partyRun.party))
+                    return;
                 callback = nullptr;
             }
         }
@@ -157,6 +163,31 @@ namespace
         }
         return !ranges.empty();
     }
+
+    bool installPartyRunBreakpoints(int party)
+    {
+        std::vector<std::pair<duint, duint>> ranges;
+        if(!collectPartyRunRanges(party, ranges))
+            return false;
+
+        for(const auto & range : ranges)
+        {
+            if(!SetMemoryBPXEx(range.first, range.second, UE_MEMORY_EXECUTE, true, cbPartyRunMemory))
+            {
+                auto error = GetLastError();
+                MEMORY_BASIC_INFORMATION mbi = {};
+                VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)range.first, &mbi, sizeof(mbi));
+                unsigned char byte = 0;
+                auto readable = ReadProcessMemory(fdProcessInfo->hProcess, (LPCVOID)range.first, &byte, sizeof(byte), nullptr);
+                dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: execute breakpoint setup failed at %p, size %p (last error %u, allocation %p, protect %X, type %X, readable %u).\n"), range.first, range.second, error, duint(mbi.AllocationBase), mbi.Protect, mbi.Type, unsigned(readable));
+                clearPartyRunBreakpoints();
+                return false;
+            }
+            partyRun.breakpoints.push_back(range);
+        }
+        partyRun.running = true;
+        return true;
+    }
 }
 
 bool RunToParty(int party, TITANCBSTEP callback, STEPFUNCTION fallback)
@@ -165,29 +196,12 @@ bool RunToParty(int party, TITANCBSTEP callback, STEPFUNCTION fallback)
     if(!callback || !fallback || partyRun.callback)
         return false;
 
-    std::vector<std::pair<duint, duint>> ranges;
-    if(!collectPartyRunRanges(party, ranges))
+    partyRun.party = party;
+    partyRun.fallback = fallback;
+    if(!installPartyRunBreakpoints(party))
         return false;
 
-    for(const auto & range : ranges)
-    {
-        if(!SetMemoryBPXEx(range.first, range.second, UE_MEMORY_EXECUTE, true, cbPartyRunMemory))
-        {
-            auto error = GetLastError();
-            MEMORY_BASIC_INFORMATION mbi = {};
-            VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)range.first, &mbi, sizeof(mbi));
-            unsigned char byte = 0;
-            auto readable = ReadProcessMemory(fdProcessInfo->hProcess, (LPCVOID)range.first, &byte, sizeof(byte), nullptr);
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Run-to-party: execute breakpoint setup failed at %p, size %p (last error %u, allocation %p, protect %X, type %X, readable %u).\n"), range.first, range.second, error, duint(mbi.AllocationBase), mbi.Protect, mbi.Type, unsigned(readable));
-            clearPartyRunBreakpoints();
-            return false;
-        }
-        partyRun.breakpoints.push_back(range);
-    }
-    partyRun.party = party;
     partyRun.callback = callback;
-    partyRun.fallback = fallback;
-    partyRun.running = true;
     return true;
 }
 
