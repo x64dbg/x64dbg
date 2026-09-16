@@ -146,8 +146,8 @@ void MainWindow::stopDebugThread()
 
     // Continue() breaks any pause spin-loop in the debug thread so
     // Stop()'s SIGKILL can be reaped by waitpid and the loop exits.
-    mProvider->Continue();
-    (void)mProvider->Stop();
+    mProvider->run();
+    (void)mProvider->stop();
     finishDebugThread();
 }
 
@@ -354,7 +354,7 @@ void MainWindow::onOpen()
             emit mProvider->logMessage("[x64dbg] Failed to launch process");
             return;
         }
-        mProvider->Start();
+        mProvider->start();
         // A loop that never reached a session fires no terminal event, so nothing
         // else takes the provider back down.
         DbgSetMemoryProvider(nullptr);
@@ -388,7 +388,7 @@ void MainWindow::onAttach()
             DbgSetMemoryProvider(nullptr);
             return;
         }
-        mProvider->Start();
+        mProvider->start();
         DbgSetMemoryProvider(nullptr);
     });
     mDebugThread->start();
@@ -404,12 +404,12 @@ void MainWindow::onDetach()
     detachDebugThread();
 }
 
-void MainWindow::onContinue() const
+void MainWindow::onContinue()
 {
     if(mProvider && mProvider->isActive() && mProvider->isPaused())
     {
         onLogMessage("[x64dbg] Resuming...");
-        mProvider->Continue();
+        mProvider->run();
         statusBar()->showMessage(tr("Running"));
     }
 }
@@ -421,26 +421,26 @@ void MainWindow::onProcessCreated(const duint entryPoint)
     mHexDump->printDumpAt(entryPoint);
 }
 
-void MainWindow::onProcessExited(const int exitCode) const
+void MainWindow::onProcessExited(const int exitCode)
 {
     onLogMessage(QString("[x64dbg] Process exited with code %1").arg(exitCode));
     statusBar()->showMessage(QString("Process exited with code %1").arg(exitCode));
 }
 
-void MainWindow::onProcessDetached() const
+void MainWindow::onProcessDetached()
 {
     statusBar()->showMessage(tr("Detached"));
 }
 
 // The session is over however it ended. Leaving the provider installed keeps
 // DbgIsDebugging() true, and the views act on a process that is gone.
-void MainWindow::onSessionEnded() const
+void MainWindow::onSessionEnded()
 {
     DbgSetMemoryProvider(nullptr);
     clearDebuggeeViews();
 }
 
-void MainWindow::clearDebuggeeViews() const
+void MainWindow::clearDebuggeeViews()
 {
     mDisassembly->reloadData();
     mHexDump->reloadData();
@@ -462,30 +462,30 @@ void MainWindow::onEngineError(const QString & error)
     QMessageBox::warning(this, tr("Cannot start debugging"), error);
 }
 
-void MainWindow::onLogMessage(const QString & msg) const
+void MainWindow::onLogMessage(const QString & msg)
 {
     mLog->append(msg);
 }
 
-void MainWindow::onPause() const
+void MainWindow::onPause()
 {
     if(mProvider && mProvider->isActive())
-        mProvider->Pause();
+        mProvider->pause();
 }
 
-void MainWindow::onStepInto() const
+void MainWindow::onStepInto()
 {
     if(mProvider && mProvider->isActive())
-        mProvider->StepInto();
+        mProvider->stepInto();
 }
 
-void MainWindow::onStepOver() const
+void MainWindow::onStepOver()
 {
     if(mProvider && mProvider->isActive())
-        mProvider->StepOver();
+        mProvider->stepOver();
 }
 
-void MainWindow::onToggleBreakpoint() const
+void MainWindow::onToggleBreakpoint()
 {
     if(!mProvider || !mProvider->isActive())
         return;
@@ -496,7 +496,7 @@ void MainWindow::onToggleBreakpoint() const
     mDisassembly->reloadData();
 }
 
-void MainWindow::onStopped(const duint rip, const QString & reason) const
+void MainWindow::onStopped(const duint rip, const QString & reason)
 {
     mDisassembly->gotoAddress(rip);
     mDisassembly->reloadData();

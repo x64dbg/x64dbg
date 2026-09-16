@@ -48,23 +48,23 @@ public:
     bool modNameFromAddr(duint addr, char* buf, duint bufSize, bool extension) override;
 
     bool loadEngine();
-    bool launch(const char* path) const;
-    bool attach(pid_t pid) const;
-    void detach() const;
+    bool launch(const char* path);
+    bool attach(pid_t pid);
+    void detach();
     [[nodiscard]] static std::vector<ElfBugProcessInfo> enumProcesses();
-    void Start() const;
-    void Continue() const;
-    void StepInto() const;
-    void StepOver() const;
-    void Pause() const;
-    bool Stop() const; //discardable
+    void start();
+    void run();
+    void stepInto();
+    void stepOver();
+    void pause();
+    bool stop();
 
     [[nodiscard]] bool isActive() const;
     [[nodiscard]] bool isPaused() const;
     [[nodiscard]] bool isEngineLoaded() const { return mDebugger != nullptr; }
     [[nodiscard]] duint entryPoint() const { return mEntryPoint; }
 
-    [[nodiscard]] bool toggleBreakpoint(duint addr) const;
+    bool toggleBreakpoint(duint addr);
     [[nodiscard]] bool hasBreakpoint(duint addr) const;
     void refreshThreads();
     bool switchThread(pid_t tid);

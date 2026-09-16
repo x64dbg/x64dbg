@@ -525,7 +525,7 @@ struct ElfBugDebugger : ElfBug::Debugger
     }
 
 protected:
-    void cbCreateProcessEvent(const pid_t pid, const ElfBug::ptr ep) override
+    void cbCreateProcess(const pid_t pid, const ElfBug::ptr ep) override
     {
         activePid.store(pid, std::memory_order_release);
         entryPoint = ep;
@@ -542,14 +542,14 @@ protected:
             cb.onCreateProcess(pid, ep, cb.userdata);
     }
 
-    void cbExitProcessEvent(const int exitCode) override
+    void cbExitProcess(const int exitCode) override
     {
         clearSessionSnapshot();
         if(cb.onExitProcess)
             cb.onExitProcess(exitCode, cb.userdata);
     }
 
-    void cbCreateThreadEvent(const pid_t tid) override
+    void cbCreateThread(const pid_t tid) override
     {
         {
             std::lock_guard lock(threadMutex);
@@ -560,7 +560,7 @@ protected:
             cb.onCreateThread(tid, cb.userdata);
     }
 
-    void cbExitThreadEvent(const pid_t tid) override
+    void cbExitThread(const pid_t tid) override
     {
         {
             std::lock_guard lock(threadMutex);
@@ -600,7 +600,7 @@ protected:
             cb.onAttachBreakpoint(cb.userdata);
     }
 
-    void cbDetachEvent() override
+    void cbDetach() override
     {
         clearSessionSnapshot();
         if(cb.onDetach)
@@ -634,7 +634,7 @@ protected:
             cb.onPaused(cb.userdata);
     }
 
-    void cbExceptionEvent(const int signal, const ElfBug::ptr address) override
+    void cbException(const int signal, const ElfBug::ptr address) override
     {
         processPendingBreakpoints();
         refreshMemoryMap();
@@ -654,7 +654,7 @@ protected:
             cb.onError(error.c_str(), cb.userdata);
     }
 
-    void cbDebugStringEvent(const std::string & text) override
+    void cbDebugString(const std::string & text) override
     {
         if(cb.onDebugString)
             cb.onDebugString(text.c_str(), cb.userdata);

@@ -1,12 +1,12 @@
 #include <ElfBug/core/Debugger.h>
 #include <ElfBug/process/ProcessArch.h>
 #include <ElfBug/process/ProcessList.h>
-#include <sys/ptrace.h>
-#include <sys/wait.h>
 #include <sys/personality.h>
+#include <sys/ptrace.h>
 #include <sys/stat.h>
-#include <unistd.h>
+#include <sys/wait.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <cerrno>
 #include <csignal>
 #include <cstring>
@@ -67,142 +67,45 @@ namespace ElfBug
         reapDetachedChildren();
     }
 
-    bool Debugger::Init(const char* szFilePath, const char* const* argv, const char* szCurrentDirectory)
+    bool Debugger::Init(const char* path, const char* const* argv, const char* workingDirectory)
     {
         resetSessionState();
 
-        if(!szFilePath)
+        if(!path)
             return false;
 
-        if(!szCurrentDirectory)
+        if(!workingDirectory)
         {
-            const std::string path(szFilePath);
+            const std::string filePath(path);
             struct stat info = {};
-            if(stat(szFilePath, &info) != 0)
+            if(stat(path, &info) != 0)
             {
-                cbInternalError("cannot execute '" + path + "': " + std::string(strerror(errno)));
+                cbInternalError("cannot execute '" + filePath + "': " + std::string(strerror(errno)));
                 return false;
             }
             if(!S_ISREG(info.st_mode))
             {
-                cbInternalError("cannot execute '" + path + "': not a regular file");
+                cbInternalError("cannot execute '" + filePath + "': not a regular file");
                 return false;
             }
-            if(access(szFilePath, X_OK) != 0)
+            if(access(path, X_OK) != 0)
             {
                 if(errno == EACCES && (info.st_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) == 0)
-                    cbInternalError("cannot execute '" + path + "': file is not executable, run chmod +x '" + path + "'");
+                    cbInternalError("cannot execute '" + filePath + "': file is not executable, run chmod +x '" + filePath + "'");
                 else
-                    cbInternalError("cannot execute '" + path + "': " + std::string(strerror(errno)));
+                    cbInternalError("cannot execute '" + filePath + "': " + std::string(strerror(errno)));
                 return false;
             }
         }
 
-        mFilePath = szFilePath;
-        mCwd = szCurrentDirectory ? szCurrentDirectory : "";
+        mFilePath = path;
+        mCwd = workingDirectory ? workingDirectory : "";
         if(argv)
         {
             for(const char* const* p = argv; *p != nullptr; ++p)
                 mArgv.emplace_back(*p);
         }
         mHasLaunchArgs = true;
-        return true;
-    }
-
-    bool Debugger::launchChild()
-    {
-        if(!mHasLaunchArgs)
-        {
-            cbInternalError("launchChild called without Init");
-            return false;
-        }
-
-        int pipeFds[2];
-        if(pipe2(pipeFds, O_CLOEXEC) == -1)
-        {
-            cbInternalError("pipe2() failed: " + std::string(strerror(errno)));
-            return false;
-        }
-
-        const pid_t pid = fork();
-        if(pid == -1)
-        {
-            close(pipeFds[0]);
-            close(pipeFds[1]);
-            cbInternalError("fork() failed: " + std::string(strerror(errno)));
-            return false;
-        }
-
-        if(pid == 0)
-        {
-            close(pipeFds[0]);
-
-            auto childError = [&](const char* msg)
-            {
-                write(pipeFds[1], msg, strlen(msg));
-                _exit(1);
-            };
-
-            if(setpgid(0, 0) < 0)
-                childError("setpgid failed");
-
-            if(!mCwd.empty())
-            {
-                if(chdir(mCwd.c_str()) == -1)
-                    childError("chdir failed");
-            }
-
-            if(personality(ADDR_NO_RANDOMIZE) == -1)
-                childError("personality(ADDR_NO_RANDOMIZE) failed");
-
-            if(ptrace(PTRACE_TRACEME, 0, nullptr, nullptr) == -1)
-                childError("PTRACE_TRACEME failed");
-
-            std::vector<char*> argvPtrs;
-            if(!mArgv.empty())
-            {
-                argvPtrs.reserve(mArgv.size() + 1);
-                for(auto & s : mArgv)
-                    argvPtrs.push_back(s.data());
-                argvPtrs.push_back(nullptr);
-                execv(mFilePath.c_str(), argvPtrs.data());
-            }
-            else
-            {
-                char* defaultArgv[] = { const_cast<char*>(mFilePath.c_str()), nullptr };
-                execv(mFilePath.c_str(), defaultArgv);
-            }
-
-            childError("execv failed");
-        }
-
-        close(pipeFds[1]);
-
-        char errBuf[256] = {};
-        ssize_t n;
-        do
-        {
-            n = read(pipeFds[0], errBuf, sizeof(errBuf) - 1);
-        }
-        while(n == -1 && errno == EINTR);
-        close(pipeFds[0]);
-
-        if(n == -1)
-        {
-            const std::string err = strerror(errno);
-            waitpid(pid, nullptr, 0);
-            cbInternalError("read() from child pipe failed: " + err);
-            return false;
-        }
-
-        if(n > 0)
-        {
-            waitpid(pid, nullptr, 0);
-            cbInternalError("child process failed: " + std::string(errBuf));
-            return false;
-        }
-
-        mMainPid.store(pid, std::memory_order_release);
         return true;
     }
 
@@ -384,20 +287,6 @@ namespace ElfBug
         return buffer;
     }
 
-    void Debugger::maskPushedTrapFlag() const
-    {
-        if(!mThread || !mProcess)
-            return;
-
-        // TF is bit 8 of EFLAGS: bit 0 of the second pushed byte for pushf and pushfq alike.
-        const ptr flagsHigh = mThread->registers.Gsp() + 1;
-        uint8 byte = 0;
-        if(!mProcess->MemRead(flagsHigh, &byte, 1))
-            return;
-        byte &= static_cast<uint8>(~0x01);
-        mProcess->MemWrite(flagsHigh, &byte, 1);
-    }
-
     void Debugger::dispatchBreakpoint(const ptr address)
     {
         // Both are copies: the callback may delete the breakpoint out from under us,
@@ -414,39 +303,6 @@ namespace ElfBug
 
         if(info.singleshot)
             mProcess->DeleteBreakpoint(address);
-    }
-
-    // Only the lifting thread may re-arm; anyone else would re-trap it in place.
-    void Debugger::restoreSourceByte(const pid_t pid)
-    {
-        const auto it = mSourceRearms.find(pid);
-        if(it == mSourceRearms.end())
-            return;
-
-        if(mProcess)
-            mProcess->RearmBreakpointByte(it->second);
-        mSourceRearms.erase(it);
-    }
-
-    void Debugger::cancelStepOver(const pid_t pid)
-    {
-        restoreSourceByte(pid);
-
-        if(!mStepOver.active)
-            return;
-        if(mStepOver.planted && mProcess)
-            mProcess->DeleteBreakpoint(mStepOver.target);
-        mStepOver = {};
-    }
-
-    void Debugger::cancelStepOverIfOwner(const pid_t pid)
-    {
-        if(mStepOver.active && mStepOver.tid != pid)
-        {
-            restoreSourceByte(pid);
-            return;
-        }
-        cancelStepOver(pid);
     }
 
     void Debugger::onExec()
@@ -482,77 +338,6 @@ namespace ElfBug
         // The old /proc/pid/mem descriptor is bound to the replaced address space.
         if(mProcess)
             mProcess->ResetMemFd();
-    }
-
-    Debugger::StepOverArm Debugger::armStepOver(const pid_t pid)
-    {
-        cancelStepOver(pid);
-
-        if(!mThread || !mProcess)
-            return StepOverArm::SingleStep;
-
-        const ptr rip = mThread->registers.Gip();
-
-        ptr target = 0;
-        const StepOverKind kind = mProcess->ClassifyStepOverAt(rip, target);
-        if(kind == StepOverKind::None || kind == StepOverKind::Pushf)
-        {
-            // Plain step: lift the breakpoint under RIP, restored when the step traps.
-            if(mProcess->DisarmBreakpointByte(rip))
-                mSourceRearms[pid] = rip;
-            return StepOverArm::SingleStep;
-        }
-
-        bool planted = false;
-        if(!mProcess->HasBreakpoint(target))
-        {
-            if(!mProcess->SetBreakpoint(target, false, SoftwareType::ShortInt3))
-            {
-                char message[64];
-                snprintf(message, sizeof(message), "step-over: failed to set breakpoint at 0x%llx",
-                         static_cast<unsigned long long>(target));
-                cbInternalError(message);
-                if(mProcess->DisarmBreakpointByte(rip))
-                    mSourceRearms[pid] = rip;
-                return StepOverArm::SingleStep;
-            }
-            planted = true;
-        }
-
-        mStepOver.active = true;
-        mStepOver.target = target;
-        mStepOver.tid = pid;
-        mStepOver.rspFloor = mThread->registers.Gsp();
-        mStepOver.planted = planted;
-
-        if(mProcess->HasBreakpoint(rip))
-        {
-            if(kind == StepOverKind::Rep)
-            {
-                // A single step runs one iteration and leaves RIP on the instruction, so
-                // the byte stays lifted until the whole loop is done.
-                if(mProcess->DisarmBreakpointByte(rip))
-                    mSourceRearms[pid] = rip;
-            }
-            // Step off the call now so its breakpoint is armed again while the callee
-            // runs, for this thread's deeper frames and for every other thread.
-            else
-            {
-                switch(stepPastBreakpointByte(pid, rip))
-                {
-                case StepOff::Stepped:
-                    break;
-                case StepOff::Parked:
-                    cancelStepOver(pid);
-                    return StepOverArm::Parked;
-                case StepOff::Consumed:
-                    cancelStepOver(pid);
-                    return StepOverArm::Consumed;
-                }
-            }
-        }
-
-        return StepOverArm::Armed;
     }
 
     bool Debugger::interruptRunningThreadLocked(const pid_t tgid, const pid_t except)
@@ -648,21 +433,21 @@ namespace ElfBug
             mPauseCv.notify_one();
     }
 
-    void Debugger::cbCreateProcessEvent(const pid_t pid, const ptr entryPoint) { (void)pid; (void)entryPoint; }
-    void Debugger::cbExitProcessEvent(const int exitCode) { (void)exitCode; }
-    void Debugger::cbCreateThreadEvent(const pid_t tid) { (void)tid; }
-    void Debugger::cbExitThreadEvent(const pid_t tid) { (void)tid; }
-    void Debugger::cbLoadDllEvent(const ptr baseAddress, const std::string & path) { (void)baseAddress; (void)path; }
-    void Debugger::cbUnloadDllEvent(const ptr baseAddress) { (void)baseAddress; }
-    void Debugger::cbExceptionEvent(const int signal, const ptr address) { (void)signal; (void)address; }
+    void Debugger::cbCreateProcess(const pid_t pid, const ptr entryPoint) { (void)pid; (void)entryPoint; }
+    void Debugger::cbExitProcess(const int exitCode) { (void)exitCode; }
+    void Debugger::cbCreateThread(const pid_t tid) { (void)tid; }
+    void Debugger::cbExitThread(const pid_t tid) { (void)tid; }
+    void Debugger::cbLoadModule(const ptr baseAddress, const std::string & path) { (void)baseAddress; (void)path; }
+    void Debugger::cbUnloadModule(const ptr baseAddress) { (void)baseAddress; }
+    void Debugger::cbException(const int signal, const ptr address) { (void)signal; (void)address; }
     void Debugger::cbBreakpoint(const BreakpointInfo & info) { (void)info; }
     void Debugger::cbStep() {}
     void Debugger::cbSystemBreakpoint() {}
     void Debugger::cbAttachBreakpoint() {}
-    void Debugger::cbDetachEvent() {}
+    void Debugger::cbDetach() {}
     void Debugger::cbUnhandledException(const int signal, const ptr address) { (void)signal; (void)address; }
     void Debugger::cbInternalError(const std::string & error) { (void)error; }
-    void Debugger::cbDebugStringEvent(const std::string & text) { (void)text; }
+    void Debugger::cbDebugString(const std::string & text) { (void)text; }
     void Debugger::cbPaused() {}
     void Debugger::cbPauseTick() {}
 }

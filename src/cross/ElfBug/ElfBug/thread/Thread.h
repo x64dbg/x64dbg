@@ -19,7 +19,7 @@ namespace ElfBug
 
         explicit Thread(pid_t tid);
 
-        bool StepInto(int signal = 0);
+        bool stepInto(int signal = 0);
 
         [[nodiscard]] bool isSingleStepping() const { return mIsSingleStepping; }
         void clearSingleStep() { mIsSingleStepping = false; mStepsPushf = false; }
@@ -111,10 +111,10 @@ namespace ElfBug
         [[nodiscard]] bool pendingSignalUnreported() const { return mPendingSignalUnreported; }
 
         // TODO: implement via PTRACE_POKEUSER on debug register offsets
-        [[nodiscard]] bool GetFreeHardwareBreakpointSlot(const HardwareSlot & slot) const;
-        bool SetHardwareBreakpoint(ptr address, HardwareSlot slot, HardwareType type = HardwareType::Execute, HardwareSize size = HardwareSize::Byte, bool singleshot = false);
-        bool SetHardwareBreakpoint(ptr address, HardwareSlot slot, const BreakpointCallback & cbBreakpoint, HardwareType type = HardwareType::Execute, HardwareSize size = HardwareSize::Byte, bool singleshot = false);
-        bool DeleteHardwareBreakpoint(ptr address);
+        [[nodiscard]] bool freeHardwareBreakpointSlot(const HardwareSlot & slot) const;
+        bool setHardwareBreakpoint(ptr address, HardwareSlot slot, HardwareType type = HardwareType::Execute, HardwareSize size = HardwareSize::Byte, bool singleshot = false);
+        bool setHardwareBreakpoint(ptr address, HardwareSlot slot, const BreakpointCallback & cbBreakpoint, HardwareType type = HardwareType::Execute, HardwareSize size = HardwareSize::Byte, bool singleshot = false);
+        bool deleteHardwareBreakpoint(ptr address);
 
     private:
         bool mIsSingleStepping = false;

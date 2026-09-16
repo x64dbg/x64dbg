@@ -11,7 +11,7 @@ namespace ElfBug
     }
 
     // ptrace pokes only work while the leader is the stopped task, so go through memory.
-    bool Process::pokeByte(const ptr address, const uint8 byte) const
+    bool Process::pokeByte(const ptr address, const uint8 byte)
     {
         return MemWriteRaw(address, &byte, 1);
     }
@@ -159,6 +159,13 @@ namespace ElfBug
         return softwareBreakpointReferences.find(address) != softwareBreakpointReferences.end();
     }
 
+    bool Process::HasBreakpointCallback(const ptr address) const
+    {
+        std::shared_lock lock(mBreakpointMutex);
+        const BreakpointKey key{BreakpointType::Software, address};
+        return breakpointCallbacks.find(key) != breakpointCallbacks.end();
+    }
+
     bool Process::SetMemoryBreakpoint(const ptr address, const ptr size, const MemoryType type, bool singleshot)
     {
         (void)address;
@@ -178,7 +185,7 @@ namespace ElfBug
         return false;
     }
 
-    bool Process::DeleteMemoryBreakpoint(ptr const address)
+    bool Process::DeleteMemoryBreakpoint(const ptr address)
     {
         (void)address;
         return false;

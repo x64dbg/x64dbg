@@ -42,7 +42,7 @@ namespace ElfBug
         Debugger();
         virtual ~Debugger();
 
-        bool Init(const char* szFilePath, const char* const* argv = nullptr, const char* szCurrentDirectory = nullptr);
+        bool Init(const char* path, const char* const* argv = nullptr, const char* workingDirectory = nullptr);
 
         bool Attach(pid_t processId);
         void Start();
@@ -65,21 +65,21 @@ namespace ElfBug
         bool SetThreadSuspended(pid_t tid, bool suspended);
 
     protected:
-        virtual void cbCreateProcessEvent(pid_t pid, ptr entryPoint);
-        virtual void cbExitProcessEvent(int exitCode);
-        virtual void cbCreateThreadEvent(pid_t tid);
-        virtual void cbExitThreadEvent(pid_t tid);
-        virtual void cbLoadDllEvent(ptr baseAddress, const std::string & path);
-        virtual void cbUnloadDllEvent(ptr baseAddress);
-        virtual void cbExceptionEvent(int signal, ptr address);
+        virtual void cbCreateProcess(pid_t pid, ptr entryPoint);
+        virtual void cbExitProcess(int exitCode);
+        virtual void cbCreateThread(pid_t tid);
+        virtual void cbExitThread(pid_t tid);
+        virtual void cbLoadModule(ptr baseAddress, const std::string & path);
+        virtual void cbUnloadModule(ptr baseAddress);
+        virtual void cbException(int signal, ptr address);
         virtual void cbBreakpoint(const BreakpointInfo & info);
         virtual void cbStep();
         virtual void cbSystemBreakpoint();
         virtual void cbAttachBreakpoint();
-        virtual void cbDetachEvent();
+        virtual void cbDetach();
         virtual void cbUnhandledException(int signal, ptr address);
         virtual void cbInternalError(const std::string & error);
-        virtual void cbDebugStringEvent(const std::string & text);
+        virtual void cbDebugString(const std::string & text);
         virtual void cbPaused(); // called when the debuggee is paused by user
         virtual void cbPauseTick(); // called each iteration of the pause spin loop
 

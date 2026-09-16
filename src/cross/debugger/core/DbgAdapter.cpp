@@ -152,63 +152,52 @@ bool DbgAdapter::modNameFromAddr(const duint addr, char* buf, const duint bufSiz
 
 // -- Debugger control --
 
-bool DbgAdapter::launch(const char* path) const
+bool DbgAdapter::launch(const char* path)
 {
     return ElfBugInit(mDebugger, path);
 }
 
-bool DbgAdapter::attach(const pid_t pid) const
+bool DbgAdapter::attach(const pid_t pid)
 {
     return ElfBugAttach(mDebugger, pid);
 }
 
-void DbgAdapter::detach() const
+void DbgAdapter::detach()
 {
     ElfBugDetach(mDebugger);
 }
 
 std::vector<ElfBugProcessInfo> DbgAdapter::enumProcesses()
 {
-    std::vector<ElfBugProcessInfo> list;
-    for(uint32_t capacity = 512; capacity <= (1u << 20); capacity *= 2)
-    {
-        list.resize(capacity);
-        const uint32_t total = ElfBugEnumProcesses(list.data(), capacity);
-        if(total <= capacity)
-        {
-            list.resize(total);
-            break;
-        }
-    }
-    return list;
+    return ElfBugEnumProcessesList();
 }
 
-void DbgAdapter::Start() const
+void DbgAdapter::start()
 {
     ElfBugStart(mDebugger);
 }
 
-void DbgAdapter::Continue() const
+void DbgAdapter::run()
 {
     ElfBugContinue(mDebugger);
 }
 
-void DbgAdapter::StepInto() const
+void DbgAdapter::stepInto()
 {
     ElfBugStepInto(mDebugger);
 }
 
-void DbgAdapter::StepOver() const
+void DbgAdapter::stepOver()
 {
     ElfBugStepOver(mDebugger);
 }
 
-void DbgAdapter::Pause() const
+void DbgAdapter::pause()
 {
     ElfBugPause(mDebugger);
 }
 
-bool DbgAdapter::Stop() const
+bool DbgAdapter::stop()
 {
     return ElfBugStop(mDebugger);
 }
@@ -223,7 +212,7 @@ bool DbgAdapter::isPaused() const
     return ElfBugIsPaused(mDebugger);
 }
 
-bool DbgAdapter::toggleBreakpoint(const duint addr) const
+bool DbgAdapter::toggleBreakpoint(const duint addr)
 {
     if(!isActive())
         return false;

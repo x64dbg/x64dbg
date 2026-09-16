@@ -179,4 +179,22 @@ ELFBUG_EXPORT bool ElfBugIsBreakpointEffective(const ElfBugDebugger* dbg, uint64
 
 #ifdef __cplusplus
 }
+
+#include <vector>
+
+inline std::vector<ElfBugProcessInfo> ElfBugEnumProcessesList()
+{
+    std::vector<ElfBugProcessInfo> list;
+    for(uint32_t capacity = 512; capacity <= (1u << 20); capacity *= 2)
+    {
+        list.resize(capacity);
+        const uint32_t total = ElfBugEnumProcesses(list.data(), capacity);
+        if(total <= capacity)
+        {
+            list.resize(total);
+            break;
+        }
+    }
+    return list;
+}
 #endif

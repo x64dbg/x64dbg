@@ -2,8 +2,8 @@
 #include <ElfBug/process/ProcessArch.h>
 #include <sys/ptrace.h>
 #include <sys/wait.h>
-#include <csignal>
 #include <cerrno>
+#include <csignal>
 #include <cstring>
 #include <chrono>
 #include <vector>
@@ -322,7 +322,7 @@ namespace ElfBug
                         mThread = queued;
                     }
                     beginPause();
-                    cbExceptionEvent(signal, address);
+                    cbException(signal, address);
                     return pauseAndResume(queuedTid);
                 }
             }
@@ -481,7 +481,7 @@ namespace ElfBug
                         mThread->clearPendingBreakpoint();
                         const int sig = mPendingSignal;
                         mPendingSignal = 0;
-                        if(mThread->StepInto(sig))
+                        if(mThread->stepInto(sig))
                         {
                             mThread->setStepsPushf(stepsPushf);
                             mThread->setRunning(true);
@@ -600,54 +600,6 @@ namespace ElfBug
             }
             return true;
         }
-    }
-
-    bool Debugger::startLaunchedProcess()
-    {
-        if(!launchChild())
-            return false;
-
-        const pid_t mainPid = mMainPid.load(std::memory_order_relaxed);
-
-        int status = 0;
-        if(waitpid(mainPid, &status, __WALL) == -1)
-        {
-            cbInternalError("initial waitpid() failed: " + std::string(strerror(errno)));
-            return false;
-        }
-
-        if(!WIFSTOPPED(status))
-        {
-            const int code = WIFEXITED(status) ? WEXITSTATUS(status) : -WTERMSIG(status);
-            cbInternalError("child exited before reaching first stop (code " + std::to_string(code) + ")");
-            cbExitProcessEvent(code);
-            return false;
-        }
-
-        if(ptrace(PTRACE_SETOPTIONS, mainPid, nullptr, kPtraceOptions) == -1)
-        {
-            cbInternalError("PTRACE_SETOPTIONS failed: " + std::string(strerror(errno)));
-            return false;
-        }
-
-        const Arch detectedArch = detectArchFromProcExe(mainPid);
-        if(detectedArch != Arch::X86_64)
-        {
-            const char* archName = detectedArch == Arch::I386 ? "i386" : "unknown";
-            cbInternalError("unsupported tracee architecture (" + std::string(archName) +
-                            "); only x86_64 is supported");
-            kill(mainPid, SIGKILL);
-            int killStatus = 0;
-            waitpid(mainPid, &killStatus, __WALL);
-            mMainPid.store(0, std::memory_order_release);
-            const int exitCode = WIFEXITED(killStatus) ? WEXITSTATUS(killStatus)
-                                 : -WTERMSIG(killStatus);
-            cbExitProcessEvent(exitCode);
-            return false;
-        }
-
-        createProcessEvent(mainPid, detectedArch);
-        return true;
     }
 
     void Debugger::debugLoop()

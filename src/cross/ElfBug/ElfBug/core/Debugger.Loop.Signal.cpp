@@ -1,13 +1,13 @@
 #include <ElfBug/core/Debugger.h>
 #include <sys/ptrace.h>
 #include <sys/wait.h>
+#include <unistd.h>
 #include <cerrno>
 #include <chrono>
-#include <cstring>
 #include <csignal>
+#include <cstring>
 #include <thread>
 #include <vector>
-#include <unistd.h>
 
 namespace ElfBug
 {
@@ -576,7 +576,7 @@ namespace ElfBug
             else if(mThread && mThread->isSingleStepping())
             {
                 // Not our SIGSTOP: the step is still owed, so re-issue it.
-                if(mThread->StepInto())
+                if(mThread->stepInto())
                 {
                     mThread->setRunning(true);
                 }
@@ -655,12 +655,12 @@ namespace ElfBug
             cancelStepOverIfOwner(pid);
             stopAllThreads(pid);
             beginPause();
-            cbExceptionEvent(sig, faultAddr);
+            cbException(sig, faultAddr);
             pauseAndResume(pid);
         }
         else
         {
-            cbExceptionEvent(sig, faultAddr);
+            cbException(sig, faultAddr);
             if(ptrace(PTRACE_CONT, pid, nullptr,
                       reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
             {
@@ -704,7 +704,7 @@ namespace ElfBug
                 if(sig != 0)
                     mThread->setPendingSignal(sig, 0, false);
             }
-            else if(!mThread->StepInto(sig))
+            else if(!mThread->stepInto(sig))
                 stepErrno = errno;
         }
         if(leftStopped)

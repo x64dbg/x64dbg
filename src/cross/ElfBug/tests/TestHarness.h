@@ -193,22 +193,22 @@ namespace ElfBug::test
         }
 
     protected:
-        void cbCreateProcessEvent(const pid_t pid, const ptr entryPoint) override
+        void cbCreateProcess(const pid_t pid, const ptr entryPoint) override
         {
             push({EventType::CreateProcess, {}, pid, 0, entryPoint, 0, {}});
         }
 
-        void cbExitProcessEvent(const int exitCode) override
+        void cbExitProcess(const int exitCode) override
         {
             push({EventType::ExitProcess, {}, 0, exitCode, 0, 0, {}});
         }
 
-        void cbCreateThreadEvent(const pid_t tid) override
+        void cbCreateThread(const pid_t tid) override
         {
             push({EventType::CreateThread, {}, tid, 0, 0, 0, {}});
         }
 
-        void cbExitThreadEvent(const pid_t tid) override
+        void cbExitThread(const pid_t tid) override
         {
             push({EventType::ExitThread, {}, tid, 0, 0, 0, {}});
         }
@@ -246,7 +246,7 @@ namespace ElfBug::test
             push({EventType::Paused, {}, 0, 0, 0, 0, {}});
         }
 
-        void cbExceptionEvent(const int signal, const ptr address) override
+        void cbException(const int signal, const ptr address) override
         {
             push({EventType::Exception, {}, mThread ? mThread->tid : 0, 0, address, signal, {},
                   mThread ? mThread->registers.Gip() : 0
@@ -258,7 +258,7 @@ namespace ElfBug::test
             push({EventType::InternalError, {}, 0, 0, 0, 0, error});
         }
 
-        void cbDetachEvent() override
+        void cbDetach() override
         {
             push({EventType::Detach, {}, 0, 0, 0, 0, {}});
         }

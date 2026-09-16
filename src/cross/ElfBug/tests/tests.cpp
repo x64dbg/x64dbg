@@ -781,7 +781,7 @@ TEST_CASE("StepOver runs a rep-prefixed instruction to completion", "[stepover]"
         if(site)
         {
             s.address = *site;
-            dbg.process()->MemRead(*s.address, s.bytes, sizeof(s.bytes));
+            (void)dbg.process()->MemRead(*s.address, s.bytes, sizeof(s.bytes));
             dbg.process()->SetBreakpoint(*s.address, false, ElfBug::SoftwareType::ShortInt3);
         }
         promise.set_value(s);
@@ -1279,8 +1279,7 @@ TEST_CASE("StepOver preserves the callback of the breakpoint it stepped off", "[
 
     // so_call_site runs once; assert the registration directly instead of waiting for
     // a second hit.
-    const ElfBug::BreakpointKey key{ElfBug::BreakpointType::Software, *site};
-    REQUIRE(dbg.process()->breakpointCallbacks.count(key) == 1);
+    REQUIRE(dbg.process()->HasBreakpointCallback(*site));
     REQUIRE(dbg.process()->HasBreakpoint(*site));
 
     dbg.Continue();
@@ -1311,10 +1310,10 @@ TEST_CASE("MemRead hides breakpoint patches, MemReadRaw does not", "[breakpoint]
         b.site = ResolveRuntimeAddress(path, dbg.process()->pid, "so_call_site");
         if(b.site)
         {
-            dbg.process()->MemRead(*b.site, b.original, sizeof(b.original));
+            (void)dbg.process()->MemRead(*b.site, b.original, sizeof(b.original));
             dbg.process()->SetBreakpoint(*b.site, false, ElfBug::SoftwareType::ShortInt3);
-            dbg.process()->MemRead(*b.site, b.masked, sizeof(b.masked));
-            dbg.process()->MemReadRaw(*b.site, b.raw, sizeof(b.raw));
+            (void)dbg.process()->MemRead(*b.site, b.masked, sizeof(b.masked));
+            (void)dbg.process()->MemReadRaw(*b.site, b.raw, sizeof(b.raw));
             // Drop it again so the target runs to exit without stopping.
             dbg.process()->DeleteBreakpoint(*b.site);
         }
@@ -1481,19 +1480,19 @@ TEST_CASE("MemWrite over an armed breakpoint keeps the trap and retargets the re
         if(r.site)
         {
             auto* process = dbg.process();
-            process->MemRead(*r.site, r.original, sizeof(r.original));
+            (void)process->MemRead(*r.site, r.original, sizeof(r.original));
             process->SetBreakpoint(*r.site, false, ElfBug::SoftwareType::ShortInt3);
 
             // Two bytes: one lands on the breakpoint, one next to it.
             const std::uint8_t patch[2] = {0x90, 0x90};
             process->MemWrite(*r.site, patch, sizeof(patch));
 
-            process->MemReadRaw(*r.site, &r.rawAfterWrite, 1);
-            process->MemRead(*r.site, &r.maskedAfterWrite, 1);
-            process->MemReadRaw(*r.site + 1, &r.neighbourAfterWrite, 1);
+            (void)process->MemReadRaw(*r.site, &r.rawAfterWrite, 1);
+            (void)process->MemRead(*r.site, &r.maskedAfterWrite, 1);
+            (void)process->MemReadRaw(*r.site + 1, &r.neighbourAfterWrite, 1);
 
             process->DeleteBreakpoint(*r.site);
-            process->MemReadRaw(*r.site, &r.afterDelete, 1);
+            (void)process->MemReadRaw(*r.site, &r.afterDelete, 1);
 
             // Put the real instruction back so the target still runs to a clean exit.
             process->MemWrite(*r.site, r.original, sizeof(r.original));
@@ -3793,31 +3792,13 @@ TEST_CASE("C API shows Suspended as the wait reason for a thread suspended while
     REQUIRE(waitForReason(worker, ""));
 }
 
-// One scan that grows if it came up short, the way the GUI does it. Sizing from a
-// separate counting call would race every process that starts or exits between the two.
-static std::vector<ElfBugProcessInfo> EnumProcessesSnapshot()
-{
-    std::vector<ElfBugProcessInfo> list;
-    for(uint32_t capacity = 512; capacity <= (1u << 20); capacity *= 2)
-    {
-        list.resize(capacity);
-        const uint32_t total = ElfBugEnumProcesses(list.data(), capacity);
-        if(total <= capacity)
-        {
-            list.resize(total);
-            break;
-        }
-    }
-    return list;
-}
-
 TEST_CASE("EnumProcesses reports a spawned process with its name, path and arch", "[api][attach]")
 {
     ElfBug::test::UntracedProcess target(FIXTURE("run_endlessly"));
     REQUIRE(target.pid > 0);
     REQUIRE(target.WaitForRunning());
 
-    const auto list = EnumProcessesSnapshot();
+    const auto list = ElfBugEnumProcessesList();
     REQUIRE(!list.empty());
 
     const auto it = std::find_if(list.begin(), list.end(),
@@ -3917,7 +3898,7 @@ TEST_CASE("Attach refuses a process that is already being debugged", "[attach]")
     REQUIRE_FALSE(second.Attach(target.pid));
 
     // The same fact the dialog greys the row on.
-    const auto list = EnumProcessesSnapshot();
+    const auto list = ElfBugEnumProcessesList();
     const auto it = std::find_if(list.begin(), list.end(),
     [&](const ElfBugProcessInfo & p) { return p.pid == target.pid; });
     REQUIRE(it != list.end());

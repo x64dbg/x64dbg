@@ -3,15 +3,15 @@
 #include <ElfBug/process/ProcessList.h>
 #include <sys/ptrace.h>
 #include <sys/wait.h>
+#include <unistd.h>
 #include <algorithm>
 #include <cerrno>
 #include <chrono>
 #include <csignal>
 #include <cstring>
 #include <fstream>
-#include <unistd.h>
-#include <unordered_map>
 #include <thread>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -285,7 +285,7 @@ namespace ElfBug
             rollback();
             cbInternalError("detached from pid " + std::to_string(pid) +
                             " before the session started");
-            cbDetachEvent();
+            cbDetach();
             return false;
         }
 
@@ -338,7 +338,7 @@ namespace ElfBug
             mPaused.store(false, std::memory_order_release);
             mIsRunning.store(false, std::memory_order_release);
             // Still a session ending, so callers waiting on the event are not left hanging.
-            cbDetachEvent();
+            cbDetach();
             return;
         }
 
@@ -467,6 +467,6 @@ namespace ElfBug
         mIsRunning.store(false, std::memory_order_release);
 
         // Last, so a caller acting inside the callback sees a session that is fully gone.
-        cbDetachEvent();
+        cbDetach();
     }
 }

@@ -1,8 +1,8 @@
 #include <ElfBug/process/Process.h>
-#include <shared_mutex>
 #include <sys/uio.h>
 #include <unistd.h>
 #include <cstring>
+#include <shared_mutex>
 #include <vector>
 
 namespace ElfBug
@@ -106,7 +106,7 @@ namespace ElfBug
         return complete;
     }
 
-    bool Process::MemWriteRaw(const ptr address, const void* buffer, const ptr size, ptr* bytesWritten) const
+    bool Process::MemWriteRaw(const ptr address, const void* buffer, const ptr size, ptr* bytesWritten)
     {
         if(!buffer || !size)
             return false;

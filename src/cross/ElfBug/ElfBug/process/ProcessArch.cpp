@@ -1,9 +1,9 @@
 #include <ElfBug/process/ProcessArch.h>
-#include <cstdio>
-#include <cstdint>
-#include <cstring>
-#include <cerrno>
 #include <fcntl.h>
+#include <cerrno>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
 #include <unistd.h>
 #include <elf.h>
 
