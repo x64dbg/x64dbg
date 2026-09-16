@@ -26,6 +26,9 @@ namespace ElfBug
     // Parent of pid, 0 when unreadable.
     pid_t ParentPid(pid_t pid);
 
+    // Thread group pid belongs to, 0 when unreadable.
+    pid_t ThreadGroupId(pid_t pid);
+
     // Thread ids under /proc/<pid>/task. False means the process is gone.
     bool ReadTaskList(pid_t pid, std::vector<pid_t> & tids);
 }

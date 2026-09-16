@@ -172,6 +172,7 @@ namespace ElfBug
         void exitProcessEvent(pid_t pid, int exitCode);
         void createThreadEvent(pid_t tid);
         void exitThreadEvent(pid_t tid);
+        void releaseForeignClone(pid_t tid, pid_t tgid, bool running);
 
         // Tracer-thread only; caller threads must not write.
         std::atomic<bool> mIsRunning{false};

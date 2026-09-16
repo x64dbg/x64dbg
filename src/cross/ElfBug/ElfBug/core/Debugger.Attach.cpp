@@ -329,6 +329,50 @@ namespace ElfBug
         return true;
     }
 
+    void Debugger::releaseForeignClone(const pid_t tid, const pid_t tgid, const bool running)
+    {
+        int deliver = 0;
+
+        if(running && tgkill(tgid, tid, SIGSTOP) == -1)
+        {
+            if(errno != ESRCH)
+                cbInternalError("tgkill failed: " + std::string(strerror(errno)));
+            return;
+        }
+
+        int status = 0;
+        if(waitForStop(tid, status) != WaitResult::Stopped)
+        {
+            cbInternalError("cloned process " + std::to_string(tid) + " could not be released");
+            return;
+        }
+
+        if(WIFEXITED(status) || WIFSIGNALED(status))
+            return;
+
+        if(WIFSTOPPED(status) && WSTOPSIG(status) != SIGSTOP)
+        {
+            const int sig = WSTOPSIG(status);
+            if(((status >> 16) & 0xffff) == 0)
+            {
+                siginfo_t info{};
+                if(ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1 &&
+                        sweepShouldQueue(sig, info.si_code > 0))
+                    deliver = sig;
+            }
+
+            if(running && !drainQueuedSigstop(tid, deliver))
+            {
+                cbInternalError("cloned process " + std::to_string(tid) + " could not be released");
+                return;
+            }
+        }
+
+        if(ptrace(PTRACE_DETACH, tid, nullptr, reinterpret_cast<void*>(static_cast<long>(deliver))) == -1 &&
+                errno != ESRCH)
+            cbInternalError("PTRACE_DETACH failed: " + std::string(strerror(errno)));
+    }
+
     void Debugger::detachFromProcess(const pid_t reportedTid)
     {
         mDetachRequested.store(false, std::memory_order_release);

@@ -97,9 +97,7 @@ namespace ElfBug
             return raw;
         }
 
-        // One scan for both fields: they live in the same file and every caller pays for
-        // the read either way.
-        bool readStatus(const pid_t pid, pid_t* tracer, pid_t* parent)
+        bool readStatus(const pid_t pid, pid_t* tracer, pid_t* parent, pid_t* group)
         {
             char path[64];
             snprintf(path, sizeof(path), "/proc/%d/status", pid);
@@ -113,6 +111,8 @@ namespace ElfBug
                     *tracer = static_cast<pid_t>(strtol(line + 10, nullptr, 10));
                 else if(parent && strncmp(line, "PPid:", 5) == 0)
                     *parent = static_cast<pid_t>(strtol(line + 5, nullptr, 10));
+                else if(group && strncmp(line, "Tgid:", 5) == 0)
+                    *group = static_cast<pid_t>(strtol(line + 5, nullptr, 10));
 
                 const char* next = strchr(line, '\n');
                 line = next ? next + 1 : nullptr;
@@ -134,15 +134,22 @@ namespace ElfBug
     pid_t TracerPid(const pid_t pid)
     {
         pid_t tracer = 0;
-        readStatus(pid, &tracer, nullptr);
+        readStatus(pid, &tracer, nullptr, nullptr);
         return tracer;
     }
 
     pid_t ParentPid(const pid_t pid)
     {
         pid_t parent = 0;
-        readStatus(pid, nullptr, &parent);
+        readStatus(pid, nullptr, &parent, nullptr);
         return parent;
+    }
+
+    pid_t ThreadGroupId(const pid_t pid)
+    {
+        pid_t group = 0;
+        readStatus(pid, nullptr, nullptr, &group);
+        return group;
     }
 
     bool ReadTaskList(const pid_t pid, std::vector<pid_t> & tids)

@@ -1,4 +1,5 @@
 #include <ElfBug/core/Debugger.h>
+#include <ElfBug/process/ProcessList.h>
 
 namespace ElfBug
 {
@@ -46,6 +47,13 @@ namespace ElfBug
 
         // Already resumed if its own SIGSTOP was seen before this clone notification.
         const bool alreadyRunning = mUnregisteredRunning.erase(tid) > 0;
+
+        const pid_t tgid = ThreadGroupId(tid);
+        if(tgid != 0 && tgid != mMainPid.load(std::memory_order_relaxed))
+        {
+            releaseForeignClone(tid, tgid, alreadyRunning);
+            return;
+        }
 
         bool inserted = false;
         {

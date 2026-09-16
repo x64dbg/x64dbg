@@ -2,6 +2,7 @@
 #include "TestHarness.h"
 #include "SymbolHelper.h"
 #include <ElfBug/process/StepOver.h>
+#include <ElfBug/process/ProcessList.h>
 #include <ElfBug/api/elfbug_api.h>
 #include <condition_variable>
 #include <mutex>
@@ -121,6 +122,26 @@ namespace
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         return false;
+    }
+
+    pid_t WaitForClonedChild(const pid_t parent,
+                             const std::chrono::milliseconds timeout = std::chrono::seconds(5))
+    {
+        const auto start = std::chrono::steady_clock::now();
+        while(std::chrono::steady_clock::now() - start < timeout)
+        {
+            for(const auto & entry : std::filesystem::directory_iterator("/proc"))
+            {
+                const auto name = entry.path().filename().string();
+                if(name.find_first_not_of("0123456789") != std::string::npos)
+                    continue;
+                const auto pid = static_cast<pid_t>(std::stol(name));
+                if(pid != parent && ElfBug::ParentPid(pid) == parent)
+                    return pid;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        }
+        return 0;
     }
 }
 
@@ -3984,6 +4005,44 @@ TEST_CASE("Attach acquires threads the target clones during the sweep", "[attach
     REQUIRE(known.size() > before.size());
     // A single pass would leave the threads cloned after its readdir running and untraced.
     REQUIRE(known == live);
+}
+
+TEST_CASE("A clone outside the thread group is not registered as a thread", "[multithread]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    REQUIRE(dbg.Init(FIXTURE("clone_process").c_str()));
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    dbg.Continue();
+    REQUIRE(dbg.WaitForRunning());
+
+    REQUIRE(dbg.process() != nullptr);
+    const pid_t inferiorPid = dbg.process()->pid;
+
+    const pid_t child = WaitForClonedChild(inferiorPid);
+    CAPTURE(inferiorPid, child);
+    // The precondition: the target really did clone. Without it the case proves nothing.
+    REQUIRE(child > 0);
+
+    dbg.Pause();
+    dbg.WaitForPaused();
+
+    REQUIRE(dbg.process()->threads.size() == 1);
+    REQUIRE(dbg.process()->threads.count(child) == 0);
+    REQUIRE(dbg.count(EventType::CreateThread) == 0);
+
+    REQUIRE(ElfBug::TracerPid(child) == 0);
+
+    REQUIRE(dbg.Stop());
+    dbg.WaitForExit();
+    dbg.JoinThread();
+
+    REQUIRE(StaysRunning(child));
+
+    kill(child, SIGKILL);
+    int status = 0;
+    waitpid(child, &status, __WALL);
 }
 
 TEST_CASE("A signal delivered to an attached process is reported and forwarded", "[attach]")

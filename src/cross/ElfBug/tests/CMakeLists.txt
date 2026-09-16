@@ -104,6 +104,7 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_signal_pending
     elfbug_fixture_signal_storm
     elfbug_fixture_clone_relay
+    elfbug_fixture_clone_process
 )
 
 # Target: elfbug_fixture_end_immediately
@@ -660,4 +661,37 @@ set_target_properties(elfbug_fixture_clone_relay PROPERTIES
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_clone_relay)
+endif()
+
+# Target: elfbug_fixture_clone_process
+set(elfbug_fixture_clone_process_SOURCES
+	cmake.toml
+	"targets/clone_process.cpp"
+)
+
+add_executable(elfbug_fixture_clone_process)
+
+target_sources(elfbug_fixture_clone_process PRIVATE ${elfbug_fixture_clone_process_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_clone_process_SOURCES})
+
+target_compile_options(elfbug_fixture_clone_process PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_clone_process PRIVATE
+	-pie
+)
+
+set_target_properties(elfbug_fixture_clone_process PROPERTIES
+	OUTPUT_NAME
+		clone_process
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_clone_process)
 endif()
