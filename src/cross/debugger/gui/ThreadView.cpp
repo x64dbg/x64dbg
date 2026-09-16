@@ -73,7 +73,7 @@ ThreadView::ThreadView(DbgAdapter* adapter, QWidget* parent)
     setupContextMenu();
 
     connect(mAdapter, &DbgAdapter::threadsUpdated, this, &ThreadView::onThreadsUpdated, Qt::QueuedConnection);
-    connect(mAdapter, &DbgAdapter::processExited, this, &ThreadView::onProcessExited, Qt::QueuedConnection);
+    connect(mAdapter, &DbgAdapter::sessionEnded, this, &ThreadView::onSessionEnded, Qt::QueuedConnection);
     connect(this, &AbstractStdTable::doubleClickedSignal, this, &ThreadView::switchThreadSlot);
     connect(this, &AbstractStdTable::contextMenuSignal, this, &ThreadView::contextMenuSlot);
 }
@@ -130,7 +130,7 @@ void ThreadView::onThreadsUpdated(const QVector<DbgThreadInfo> & threads, const 
     reloadData();
 }
 
-void ThreadView::onProcessExited()
+void ThreadView::onSessionEnded()
 {
     setRowCount(0);
     mCurrentThreadId = 0;

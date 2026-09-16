@@ -1,5 +1,7 @@
 #include "gui/MainWindow.h"
 #include <QMenuBar>
+#include <QCheckBox>
+#include <QMessageBox>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -10,6 +12,7 @@
 #include <QThread>
 #include <Memory/MemoryPage.h>
 #include "core/LinuxArchitecture.h"
+#include "gui/AttachDialog.h"
 #include "gui/CPUStack.h"
 #include "gui/ThreadView.h"
 
@@ -34,16 +37,23 @@ MainWindow::MainWindow(QWidget* parent)
 
     connect(mProvider, &DbgAdapter::processCreated, this, &MainWindow::onProcessCreated, Qt::QueuedConnection);
     connect(mProvider, &DbgAdapter::processExited, this, &MainWindow::onProcessExited, Qt::QueuedConnection);
+    connect(mProvider, &DbgAdapter::processDetached, this, &MainWindow::onProcessDetached, Qt::QueuedConnection);
+    connect(mProvider, &DbgAdapter::sessionEnded, this, &MainWindow::onSessionEnded, Qt::QueuedConnection);
     connect(mProvider, &DbgAdapter::registersUpdated, this, [this](const REGDUMP & dump)
     {
         mRegisters->setRegisters(&dump);
     }, Qt::QueuedConnection);
     connect(mProvider, &DbgAdapter::logMessage, this, &MainWindow::onLogMessage, Qt::QueuedConnection);
+    connect(mProvider, &DbgAdapter::errorMessage, this, &MainWindow::onEngineError, Qt::QueuedConnection);
     connect(mProvider, &DbgAdapter::stopped, this, &MainWindow::onStopped, Qt::QueuedConnection);
 
     const auto menuFile = menuBar()->addMenu(tr("&File"));
     const auto actionOpen = menuFile->addAction(tr("&Open..."), this, &MainWindow::onOpen);
     actionOpen->setShortcut(QKeySequence::Open);
+    const auto actionAttach = menuFile->addAction(icon("attach"), tr("&Attach..."), this, &MainWindow::onAttach);
+    actionAttach->setShortcut(ConfigShortcut("FileAttach"));
+    const auto actionDetach = menuFile->addAction(icon("detach"), tr("&Detach"), this, &MainWindow::onDetach);
+    actionDetach->setShortcut(ConfigShortcut("FileDetach"));
     menuFile->addSeparator();
     menuFile->addAction(tr("E&xit"), this, &QWidget::close);
 
@@ -80,6 +90,55 @@ MainWindow::~MainWindow()
     stopDebugThread();
 }
 
+// A new session ends the live one. Windows asks first and offers to detach instead of
+// terminating (AttachDialog::attachToProcess), and the choice is remembered in the same
+// two settings, so the behaviour matches once a command layer wires cbDebugAttach up.
+bool MainWindow::endCurrentSession()
+{
+    if(!mDebugThread)
+        return true;
+
+    if(!mProvider->isActive())
+    {
+        stopDebugThread();
+        return true;
+    }
+
+    duint detachOnAttach = 0;
+    if(ConfigBool("Gui", "ShowAttachConfirmation"))
+    {
+        const auto remember = new QCheckBox(tr("Remember my choice"));
+        QMessageBox msgbox(this);
+        msgbox.setIcon(QMessageBox::Question);
+        msgbox.setWindowTitle(tr("Already debugging"));
+        msgbox.setText(tr("You are already debugging a process. What would you like to do with the current process?"));
+
+        msgbox.addButton(QMessageBox::Yes)->setText(tr("&Terminate"));
+        msgbox.addButton(QMessageBox::No)->setText(tr("&Detach"));
+        msgbox.addButton(QMessageBox::Cancel)->setText(tr("&Cancel"));
+        msgbox.setDefaultButton(QMessageBox::Cancel);
+        msgbox.setEscapeButton(QMessageBox::Cancel);
+        msgbox.setCheckBox(remember);
+
+        const int code = msgbox.exec();
+        if(code == QMessageBox::Cancel)
+            return false;
+
+        detachOnAttach = code == QMessageBox::No ? 1 : 0;
+        BridgeSettingSetUint("Engine", "DetachOnAttach", detachOnAttach);
+        if(remember->isChecked())
+            Config()->setBool("Gui", "ShowAttachConfirmation", false);
+    }
+    else
+        BridgeSettingGetUint("Engine", "DetachOnAttach", &detachOnAttach);
+
+    if(detachOnAttach)
+        detachDebugThread();
+    else
+        stopDebugThread();
+    return true;
+}
+
 void MainWindow::stopDebugThread()
 {
     if(!mDebugThread)
@@ -89,7 +148,22 @@ void MainWindow::stopDebugThread()
     // Stop()'s SIGKILL can be reaped by waitpid and the loop exits.
     mProvider->Continue();
     (void)mProvider->Stop();
+    finishDebugThread();
+}
 
+void MainWindow::detachDebugThread()
+{
+    if(!mDebugThread)
+        return;
+
+    // Detach() services both a paused and a running loop, so no Continue() here:
+    // resuming first would let the debuggee run on with our breakpoints still armed.
+    mProvider->detach();
+    finishDebugThread();
+}
+
+void MainWindow::finishDebugThread()
+{
     if(!mDebugThread->wait(3000))
     {
         mDebugThread->terminate();
@@ -97,6 +171,12 @@ void MainWindow::stopDebugThread()
     }
     delete mDebugThread;
     mDebugThread = nullptr;
+    mSessionStartPending = false;
+
+    // wait() does not pump the event loop, so the session's queued sessionEnded is still
+    // undelivered. Tear down here or it lands after the next session installs its provider.
+    DbgSetMemoryProvider(nullptr);
+    clearDebuggeeViews();
 }
 
 void MainWindow::setupToolBar()
@@ -254,12 +334,15 @@ void MainWindow::onOpen()
             onLogMessage(QString("[x64dbg] %1 is not executable, run chmod +x on it").arg(path));
     }
 
-    stopDebugThread();
+    if(!endCurrentSession())
+        return;
 
     if(!mProvider->loadEngine())
         return;
 
     DbgSetMemoryProvider(mProvider);
+
+    mSessionStartPending = true;
 
     //? Init and Start must run on the same thread
     auto pathBytes = path.toUtf8();
@@ -272,8 +355,53 @@ void MainWindow::onOpen()
             return;
         }
         mProvider->Start();
+        // A loop that never reached a session fires no terminal event, so nothing
+        // else takes the provider back down.
+        DbgSetMemoryProvider(nullptr);
     });
     mDebugThread->start();
+}
+
+void MainWindow::onAttach()
+{
+    AttachDialog dialog(this);
+    if(dialog.exec() != QDialog::Accepted || dialog.selectedPid() <= 0)
+        return;
+
+    const pid_t pid = dialog.selectedPid();
+
+    if(!endCurrentSession())
+        return;
+
+    if(!mProvider->loadEngine())
+        return;
+
+    DbgSetMemoryProvider(mProvider);
+
+    // The attach runs on the debug thread, so its failure arrives as an error callback.
+    mSessionStartPending = true;
+
+    mDebugThread = QThread::create([this, pid]()
+    {
+        if(!mProvider->attach(pid))
+        {
+            DbgSetMemoryProvider(nullptr);
+            return;
+        }
+        mProvider->Start();
+        DbgSetMemoryProvider(nullptr);
+    });
+    mDebugThread->start();
+}
+
+void MainWindow::onDetach()
+{
+    if(!mDebugThread)
+    {
+        onLogMessage(QString("[x64dbg] %1").arg(tr("Not debugging anything")));
+        return;
+    }
+    detachDebugThread();
 }
 
 void MainWindow::onContinue() const
@@ -286,8 +414,9 @@ void MainWindow::onContinue() const
     }
 }
 
-void MainWindow::onProcessCreated(const duint entryPoint) const
+void MainWindow::onProcessCreated(const duint entryPoint)
 {
+    mSessionStartPending = false;
     onLogMessage(QString("[x64dbg] Process attached, entry: 0x%1").arg(entryPoint, 0, 16));
     mHexDump->printDumpAt(entryPoint);
 }
@@ -295,12 +424,42 @@ void MainWindow::onProcessCreated(const duint entryPoint) const
 void MainWindow::onProcessExited(const int exitCode) const
 {
     onLogMessage(QString("[x64dbg] Process exited with code %1").arg(exitCode));
+    statusBar()->showMessage(QString("Process exited with code %1").arg(exitCode));
+}
+
+void MainWindow::onProcessDetached() const
+{
+    statusBar()->showMessage(tr("Detached"));
+}
+
+// The session is over however it ended. Leaving the provider installed keeps
+// DbgIsDebugging() true, and the views act on a process that is gone.
+void MainWindow::onSessionEnded() const
+{
     DbgSetMemoryProvider(nullptr);
+    clearDebuggeeViews();
+}
+
+void MainWindow::clearDebuggeeViews() const
+{
     mDisassembly->reloadData();
     mHexDump->reloadData();
     constexpr REGDUMP emptyDump{};
     mRegisters->setRegisters(&emptyDump);
-    statusBar()->showMessage(QString("Process exited with code %1").arg(exitCode));
+    // These two subscribe to sessionEnded themselves, but queued, and this runs on the
+    // path where that signal is never delivered.
+    mStack->onSessionEnded();
+    mThreadView->onSessionEnded();
+}
+
+// A session that never starts reports only through this callback, and the log pane is
+// not the tab the user is looking at when they asked for one.
+void MainWindow::onEngineError(const QString & error)
+{
+    if(!mSessionStartPending)
+        return;
+    mSessionStartPending = false;
+    QMessageBox::warning(this, tr("Cannot start debugging"), error);
 }
 
 void MainWindow::onLogMessage(const QString & msg) const

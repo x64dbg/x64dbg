@@ -22,21 +22,30 @@ public:
 
 private slots:
     void onOpen();
+    void onAttach();
+    void onDetach();
     void onContinue() const;
     void onPause() const;
     void onStepInto() const;
     void onStepOver() const;
     void onToggleBreakpoint() const;
-    void onProcessCreated(duint entryPoint) const;
+    void onProcessCreated(duint entryPoint);
     void onProcessExited(int exitCode) const;
+    void onProcessDetached() const;
     void onStopped(duint rip, const QString & reason) const;
     void onLogMessage(const QString & msg) const;
+    void onEngineError(const QString & error);
+    void onSessionEnded() const;
 
 private:
+    bool endCurrentSession();
     void stopDebugThread();
+    void detachDebugThread();
+    void finishDebugThread();
     void setupToolBar();
     void setupTabs();
     QWidget* createCpuTab();
+    void clearDebuggeeViews() const;
 
     DbgAdapter* mProvider = nullptr;
     QThread* mDebugThread = nullptr;
@@ -47,4 +56,5 @@ private:
     ThreadView* mThreadView = nullptr;
     RegistersView* mRegisters = nullptr;
     QTextBrowser* mLog = nullptr;
+    bool mSessionStartPending = false;
 };

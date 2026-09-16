@@ -93,6 +93,22 @@ namespace ElfBug
         return true;
     }
 
+    bool Process::DisarmAllBreakpointBytes()
+    {
+        std::unique_lock lock(mBreakpointMutex);
+        bool all = true;
+        for(auto & [key, info] : breakpoints)
+        {
+            if(key.first != BreakpointType::Software || !info.armed)
+                continue;
+            if(pokeByte(key.second, info.internal.software.oldbytes[0]))
+                info.armed = false;
+            else
+                all = false;
+        }
+        return all;
+    }
+
     bool Process::RearmBreakpointByte(const ptr address)
     {
         std::unique_lock lock(mBreakpointMutex);

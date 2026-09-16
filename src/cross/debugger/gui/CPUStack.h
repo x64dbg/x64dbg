@@ -29,7 +29,7 @@ public slots:
     void stackDumpAt(duint addr, duint csp);
     void onRegistersUpdated(const REGDUMP & regs);
     void onProcessStarted();
-    void onProcessExited();
+    void onSessionEnded();
     void gotoCspSlot();
     void gotoCbpSlot();
     void followDisasmSlot();

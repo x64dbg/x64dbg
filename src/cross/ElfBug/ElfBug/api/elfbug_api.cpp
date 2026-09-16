@@ -1,6 +1,7 @@
 #include "elfbug_api.h"
 #include "../core/Debugger.h"
 #include "../thread/Registers.h"
+#include <ElfBug/process/ProcessList.h>
 
 #include <algorithm>
 #include <atomic>
@@ -14,6 +15,18 @@
 #include <vector>
 #include <fcntl.h>
 #include <unistd.h>
+
+namespace
+{
+    void copyString(char* dest, const size_t size, const std::string & source)
+    {
+        if(size == 0)
+            return;
+        const size_t n = std::min(source.size(), size - 1);
+        std::memcpy(dest, source.data(), n);
+        dest[n] = '\0';
+    }
+}
 
 struct ElfBugDebugger : ElfBug::Debugger
 {
@@ -59,11 +72,6 @@ struct ElfBugDebugger : ElfBug::Debugger
             return 0;
         const auto it = mProcess->threads.find(tid);
         return it != mProcess->threads.end() ? it->second->suspendCount() : 0u;
-    }
-
-    static void copyWaitReason(const std::string & reason, char* out, const size_t size)
-    {
-        snprintf(out, size, "%s", reason.c_str());
     }
 
     // Pause sends a process-wide SIGSTOP, after which every thread reports a stop of its
@@ -222,7 +230,7 @@ struct ElfBugDebugger : ElfBug::Debugger
                         if(sampled != pauseWaitReasons.end())
                             reason = sampled->second;
                     }
-                    copyWaitReason(reason, info.wait_reason, sizeof(info.wait_reason));
+                    copyString(info.wait_reason, sizeof(info.wait_reason), reason);
                     readThreadName(mProcess->pid, tid, info.name, sizeof(info.name));
                     list.push_back(info);
                 }
@@ -490,25 +498,8 @@ struct ElfBugDebugger : ElfBug::Debugger
         return true;
     }
 
-protected:
-    void cbCreateProcessEvent(const pid_t pid, const ElfBug::ptr ep) override
-    {
-        activePid.store(pid, std::memory_order_release);
-        entryPoint = ep;
-        {
-            std::lock_guard lock(threadMutex);
-            threadNumbers.clear();
-            threadNumbers[pid] = 0;
-            nextThreadNumber = 1;
-        }
-        refreshThreadList(false);
-        refreshMemoryMap();
-        active.store(true, std::memory_order_release);
-        if(cb.onCreateProcess)
-            cb.onCreateProcess(pid, ep, cb.userdata);
-    }
-
-    void cbExitProcessEvent(const int exitCode) override
+    // Everything the session published; both ways out of a session drop all of it.
+    void clearSessionSnapshot()
     {
         activePid.store(0, std::memory_order_release);
         active.store(false, std::memory_order_release);
@@ -531,6 +522,29 @@ protected:
             threadList.clear();
             pauseWaitReasons.clear();
         }
+    }
+
+protected:
+    void cbCreateProcessEvent(const pid_t pid, const ElfBug::ptr ep) override
+    {
+        activePid.store(pid, std::memory_order_release);
+        entryPoint = ep;
+        {
+            std::lock_guard lock(threadMutex);
+            threadNumbers.clear();
+            threadNumbers[pid] = 0;
+            nextThreadNumber = 1;
+        }
+        refreshThreadList(false);
+        refreshMemoryMap();
+        active.store(true, std::memory_order_release);
+        if(cb.onCreateProcess)
+            cb.onCreateProcess(pid, ep, cb.userdata);
+    }
+
+    void cbExitProcessEvent(const int exitCode) override
+    {
+        clearSessionSnapshot();
         if(cb.onExitProcess)
             cb.onExitProcess(exitCode, cb.userdata);
     }
@@ -570,6 +584,27 @@ protected:
         }
         if(cb.onSystemBreakpoint)
             cb.onSystemBreakpoint(cb.userdata);
+    }
+
+    void cbAttachBreakpoint() override
+    {
+        if(mThread)
+        {
+            mThread->registers.Read();
+            entryPoint = mThread->registers.Gip();
+            refreshMemoryMap();
+            processPendingBreakpoints();
+            refreshThreadList(true);
+        }
+        if(cb.onAttachBreakpoint)
+            cb.onAttachBreakpoint(cb.userdata);
+    }
+
+    void cbDetachEvent() override
+    {
+        clearSessionSnapshot();
+        if(cb.onDetach)
+            cb.onDetach(cb.userdata);
     }
 
     void cbBreakpoint(const ElfBug::BreakpointInfo & info) override
@@ -626,7 +661,46 @@ protected:
     }
 };
 
+namespace
+{
+    ElfBugArch toApiArch(const ElfBug::Arch arch)
+    {
+        switch(arch)
+        {
+        case ElfBug::Arch::X86_64:
+            return ElfBugArch_X86_64;
+        case ElfBug::Arch::I386:
+            return ElfBugArch_I386;
+        default:
+            return ElfBugArch_Unknown;
+        }
+    }
+}
+
 extern "C" {
+
+    uint32_t ElfBugEnumProcesses(ElfBugProcessInfo* list, const uint32_t capacity)
+    {
+        const auto entries = ElfBug::EnumProcesses();
+        const auto count = static_cast<uint32_t>(entries.size());
+        if(list)
+        {
+            const uint32_t n = std::min(count, capacity);
+            for(uint32_t i = 0; i < n; ++i)
+            {
+                const auto & entry = entries[i];
+                ElfBugProcessInfo & info = list[i];
+                info = {};
+                info.pid = entry.pid;
+                info.arch = toApiArch(entry.arch);
+                info.traced = entry.traced;
+                copyString(info.name, sizeof(info.name), entry.name);
+                copyString(info.path, sizeof(info.path), entry.path);
+                copyString(info.command_line, sizeof(info.command_line), entry.commandLine);
+            }
+        }
+        return count;
+    }
 
     ElfBugDebugger* ElfBugCreate(const ElfBugCallbacks* callbacks)
     {
@@ -648,6 +722,13 @@ extern "C" {
         if(!dbg)
             return false;
         return dbg->Init(path);
+    }
+
+    bool ElfBugAttach(ElfBugDebugger* dbg, const pid_t pid)
+    {
+        if(!dbg)
+            return false;
+        return dbg->Attach(pid);
     }
 
     void ElfBugStart(ElfBugDebugger* dbg)
@@ -694,6 +775,13 @@ extern "C" {
         if(!dbg)
             return false;
         return dbg->Stop();
+    }
+
+    void ElfBugDetach(ElfBugDebugger* dbg)
+    {
+        if(!dbg)
+            return;
+        dbg->Detach();
     }
 
     bool ElfBugGetRegisters(const ElfBugDebugger* dbg, ElfBugRegisters* regs)
@@ -757,7 +845,7 @@ extern "C" {
             if(info.tid == tid)
             {
                 info.suspend_count = count;
-                dbg->copyWaitReason(reason, info.wait_reason, sizeof(info.wait_reason));
+                copyString(info.wait_reason, sizeof(info.wait_reason), reason);
             }
         }
         return true;

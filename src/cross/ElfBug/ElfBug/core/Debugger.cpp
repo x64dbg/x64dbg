@@ -1,4 +1,6 @@
 #include <ElfBug/core/Debugger.h>
+#include <ElfBug/process/ProcessArch.h>
+#include <ElfBug/process/ProcessList.h>
 #include <sys/ptrace.h>
 #include <sys/wait.h>
 #include <sys/personality.h>
@@ -7,7 +9,6 @@
 #include <fcntl.h>
 #include <cerrno>
 #include <csignal>
-#include <cstdio>
 #include <cstring>
 
 namespace ElfBug
@@ -22,9 +23,23 @@ namespace ElfBug
             kill(pid, SIGKILL);
             waitpid(pid, nullptr, __WALL);
         }
+        reapDetachedChildren();
     }
 
-    bool Debugger::Init(const char* szFilePath, const char* const* argv, const char* szCurrentDirectory)
+    void Debugger::reapDetachedChildren()
+    {
+        auto it = mDetachedChildren.begin();
+        while(it != mDetachedChildren.end())
+        {
+            const pid_t reaped = waitpid(*it, nullptr, WNOHANG | __WALL);
+            if(reaped == *it || (reaped == -1 && errno == ECHILD))
+                it = mDetachedChildren.erase(it);
+            else
+                ++it;
+        }
+    }
+
+    void Debugger::resetSessionState()
     {
         mHasLaunchArgs = false;
         mFilePath.clear();
@@ -45,7 +60,16 @@ namespace ElfBug
         mAllStopped = false;
         mPauseRequested.store(false, std::memory_order_release);
         mStopRequested.store(false, std::memory_order_release);
+        mDetachRequested.store(false, std::memory_order_release);
         mPendingSignal = 0;
+        mAttachPid = 0;
+        mWasGroupStopped = false;
+        reapDetachedChildren();
+    }
+
+    bool Debugger::Init(const char* szFilePath, const char* const* argv, const char* szCurrentDirectory)
+    {
+        resetSessionState();
 
         if(!szFilePath)
             return false;
@@ -182,11 +206,43 @@ namespace ElfBug
         return true;
     }
 
-    bool Debugger::Attach(pid_t)
+    bool Debugger::Attach(const pid_t processId)
     {
-        // TODO: implement ptrace attach
-        cbInternalError("Attach not implemented");
-        return false;
+        resetSessionState();
+
+        if(processId <= 0 || processId == getpid())
+        {
+            cbInternalError("cannot attach to pid " + std::to_string(processId) +
+                            ": not a debuggable process");
+            return false;
+        }
+
+        std::vector<pid_t> tids;
+        if(!ReadTaskList(processId, tids) || tids.empty())
+        {
+            cbInternalError("cannot attach to pid " + std::to_string(processId) + ": no such process");
+            return false;
+        }
+
+        if(TracerPid(processId) != 0)
+        {
+            cbInternalError("cannot attach to pid " + std::to_string(processId) +
+                            ": already being debugged");
+            return false;
+        }
+
+        const Arch arch = detectArchFromProcExe(processId);
+        if(arch != Arch::X86_64)
+        {
+            const char* archName = arch == Arch::I386 ? "i386" : "unknown";
+            cbInternalError("cannot attach to pid " + std::to_string(processId) +
+                            ": unsupported architecture (" + std::string(archName) +
+                            "); only x86_64 is supported");
+            return false;
+        }
+
+        mAttachPid = processId;
+        return true;
     }
 
     void Debugger::Start()
@@ -282,25 +338,7 @@ namespace ElfBug
                 return true;
 
             mPendingResume.insert(tid);
-            lock.unlock();
-
-            pid_t poke = 0;
-            {
-                std::shared_lock relock(mProcessMutex);
-                if(mProcess)
-                {
-                    for(const auto & [other, thread] : mProcess->threads)
-                    {
-                        if(other != tid && thread->isRunning())
-                        {
-                            poke = other;
-                            break;
-                        }
-                    }
-                }
-            }
-            if(poke != 0)
-                tgkill(tgid, poke, SIGSTOP);
+            interruptRunningThreadLocked(tgid, tid);
             return true;
         }
 
@@ -315,15 +353,17 @@ namespace ElfBug
         it->second->setWaitReason("Suspended");
         mPendingSuspend.insert(tid);
 
-        if(tgkill(tgid, tid, SIGSTOP) == -1)
+        if(tgkill(tgid, tid, SIGSTOP) == 0)
         {
-            mPendingSuspend.erase(tid);
-            it->second->resume();
-            if(!it->second->isSuspended())
-                it->second->setWaitReason({});
-            return false;
+            it->second->setPendingSigstop(true);
+            return true;
         }
-        return true;
+
+        mPendingSuspend.erase(tid);
+        it->second->resume();
+        if(!it->second->isSuspended())
+            it->second->setWaitReason({});
+        return false;
     }
 
     std::string Debugger::readWaitReason(const pid_t tgid, const pid_t tid)
@@ -423,7 +463,7 @@ namespace ElfBug
 
         if(mProcess)
         {
-            std::shared_lock lock(mProcessMutex);
+            std::unique_lock lock(mProcessMutex);
             for(const auto & [tid, thread] : mProcess->threads)
             {
                 thread->clearPendingBreakpoint();
@@ -515,6 +555,40 @@ namespace ElfBug
         return StepOverArm::Armed;
     }
 
+    bool Debugger::interruptRunningThreadLocked(const pid_t tgid, const pid_t except)
+    {
+        if(!mProcess)
+            return false;
+
+        bool owed = false;
+        for(const auto & [tid, thread] : mProcess->threads)
+        {
+            if(tid == except || !thread->isRunning())
+                continue;
+
+            if(thread->pendingSigstop())
+            {
+                owed = true;
+                continue;
+            }
+            if(tgkill(tgid, tid, SIGSTOP) == -1)
+                continue;
+            thread->setPendingSigstop(true);
+            return true;
+        }
+        return owed;
+    }
+
+    void Debugger::interruptRunningThread(const pid_t pid)
+    {
+        {
+            std::unique_lock lock(mProcessMutex);
+            if(interruptRunningThreadLocked(pid, 0))
+                return;
+        }
+        kill(pid, SIGSTOP);
+    }
+
     void Debugger::Pause()
     {
         const pid_t pid = mMainPid.load(std::memory_order_acquire);
@@ -526,7 +600,7 @@ namespace ElfBug
                 return;
             mPauseRequested.store(true, std::memory_order_release);
         }
-        kill(pid, SIGSTOP);
+        interruptRunningThread(pid);
     }
 
     bool Debugger::Stop()
@@ -547,8 +621,31 @@ namespace ElfBug
 
     void Debugger::Detach()
     {
-        // TODO: implement ptrace detach
-        cbInternalError("Detach not implemented");
+        const pid_t pid = mMainPid.load(std::memory_order_acquire);
+        if(pid <= 0)
+        {
+            if(mIsRunning.load(std::memory_order_acquire))
+                mDetachRequested.store(true, std::memory_order_release);
+            return;
+        }
+
+        bool wasPaused = false;
+        {
+            std::lock_guard lock(mPauseMutex);
+            if(mDetachRequested.load(std::memory_order_acquire))
+                return;
+
+            wasPaused = mPaused.load(std::memory_order_acquire);
+            if(!wasPaused)
+            {
+                mPauseRequested.store(true, std::memory_order_release);
+                interruptRunningThread(pid);
+            }
+            mDetachRequested.store(true, std::memory_order_release);
+        }
+
+        if(wasPaused)
+            mPauseCv.notify_one();
     }
 
     void Debugger::cbCreateProcessEvent(const pid_t pid, const ptr entryPoint) { (void)pid; (void)entryPoint; }
@@ -562,6 +659,7 @@ namespace ElfBug
     void Debugger::cbStep() {}
     void Debugger::cbSystemBreakpoint() {}
     void Debugger::cbAttachBreakpoint() {}
+    void Debugger::cbDetachEvent() {}
     void Debugger::cbUnhandledException(const int signal, const ptr address) { (void)signal; (void)address; }
     void Debugger::cbInternalError(const std::string & error) { (void)error; }
     void Debugger::cbDebugStringEvent(const std::string & text) { (void)text; }

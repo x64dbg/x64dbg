@@ -37,6 +37,9 @@ typedef struct
 
 #define ELFBUG_THREAD_NAME_SIZE 16
 #define ELFBUG_WAIT_REASON_SIZE 32
+#define ELFBUG_PROC_NAME_SIZE 16
+#define ELFBUG_PATH_SIZE 512
+#define ELFBUG_CMDLINE_SIZE 512
 
 typedef struct
 {
@@ -59,11 +62,22 @@ typedef struct
     // located through libc symbols. Both are Windows thread-list columns.
 } ElfBugThreadInfo;
 
+typedef struct
+{
+    pid_t pid;
+    ElfBugArch arch;                        // lets a caller refuse i386 before attaching
+    bool traced;                            // TracerPid != 0: already being debugged
+    char name[ELFBUG_PROC_NAME_SIZE];       // /proc/<pid>/comm
+    char path[ELFBUG_PATH_SIZE];            // readlink /proc/<pid>/exe
+    char command_line[ELFBUG_CMDLINE_SIZE]; // /proc/<pid>/cmdline, NULs replaced by spaces
+} ElfBugProcessInfo;
+
 typedef void (*ElfBugCbCreateProcess)(pid_t pid, uint64_t entryPoint, void* userdata);
 typedef void (*ElfBugCbExitProcess)(int exitCode, void* userdata);
 typedef void (*ElfBugCbCreateThread)(pid_t tid, void* userdata);
 typedef void (*ElfBugCbExitThread)(pid_t tid, void* userdata);
 typedef void (*ElfBugCbSystemBreakpoint)(void* userdata);
+typedef void (*ElfBugCbAttachBreakpoint)(void* userdata);
 typedef void (*ElfBugCbBreakpoint)(uint64_t address, void* userdata);
 typedef void (*ElfBugCbStep)(void* userdata);
 typedef void (*ElfBugCbPaused)(void* userdata);
@@ -71,6 +85,8 @@ typedef void (*ElfBugCbPaused)(void* userdata);
 typedef void (*ElfBugCbException)(int signal, uint64_t address, void* userdata);
 typedef void (*ElfBugCbError)(const char* error, void* userdata);
 typedef void (*ElfBugCbDebugString)(const char* text, void* userdata);
+// The debuggee was released and keeps running; the session is over.
+typedef void (*ElfBugCbDetach)(void* userdata);
 
 typedef struct
 {
@@ -86,18 +102,31 @@ typedef struct
     ElfBugCbError onError;
     ElfBugCbDebugString onDebugString;
     void* userdata;
+    ElfBugCbAttachBreakpoint onAttachBreakpoint;
+    ElfBugCbDetach onDetach;
 } ElfBugCallbacks;
+
+// Every readable process in /proc, excluding kernel threads and other users' processes.
+// Returns the total count; copies up to `capacity` entries when `list` is non-null.
+ELFBUG_EXPORT uint32_t ElfBugEnumProcesses(ElfBugProcessInfo* list, uint32_t capacity);
 
 ELFBUG_EXPORT ElfBugDebugger* ElfBugCreate(const ElfBugCallbacks* callbacks);
 ELFBUG_EXPORT void ElfBugDestroy(const ElfBugDebugger* dbg);
 
 ELFBUG_EXPORT bool ElfBugInit(ElfBugDebugger* dbg, const char* path);
+// Take over a running process. Like ElfBugInit this only records intent; the attaching
+// happens on the debug loop thread once ElfBugStart is called.
+ELFBUG_EXPORT bool ElfBugAttach(ElfBugDebugger* dbg, pid_t pid);
 ELFBUG_EXPORT void ElfBugStart(ElfBugDebugger* dbg);      // Blocks - runs debug loop
 ELFBUG_EXPORT void ElfBugContinue(ElfBugDebugger* dbg);    // Thread-safe
 ELFBUG_EXPORT void ElfBugStepInto(ElfBugDebugger* dbg);    // Thread-safe
 ELFBUG_EXPORT void ElfBugStepOver(ElfBugDebugger* dbg);    // Thread-safe
 ELFBUG_EXPORT void ElfBugPause(ElfBugDebugger* dbg);       // Thread-safe
 ELFBUG_EXPORT bool ElfBugStop(ElfBugDebugger* dbg);        // Thread-safe
+
+// Release the debuggee and leave it running. Valid whether paused or running, and whether the
+// session started by launching or by attaching. Serviced by the debug loop.
+ELFBUG_EXPORT void ElfBugDetach(ElfBugDebugger* dbg);      // Thread-safe
 
 // True while the debuggee is stopped and accepting Continue, steps and register writes.
 ELFBUG_EXPORT bool ElfBugIsPaused(const ElfBugDebugger* dbg);

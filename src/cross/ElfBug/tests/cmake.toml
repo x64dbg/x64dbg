@@ -41,6 +41,10 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_exit_race
     elfbug_fixture_signal_race
     elfbug_fixture_clone_trap
+    elfbug_fixture_thread_storm
+    elfbug_fixture_signal_pending
+    elfbug_fixture_signal_storm
+    elfbug_fixture_clone_relay
 )
 """
 
@@ -123,4 +127,31 @@ properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
 type = "elfbug_fixture"
 sources = ["targets/clone_trap.cpp"]
 properties.OUTPUT_NAME = "clone_trap"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_thread_storm]
+type = "elfbug_fixture"
+sources = ["targets/thread_storm.cpp"]
+link-libraries = ["pthread"]
+properties.OUTPUT_NAME = "thread_storm"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_signal_pending]
+type = "elfbug_fixture"
+sources = ["targets/signal_pending.cpp"]
+properties.OUTPUT_NAME = "signal_pending"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_signal_storm]
+type = "elfbug_fixture"
+sources = ["targets/signal_storm.cpp"]
+link-libraries = ["pthread"]
+properties.OUTPUT_NAME = "signal_storm"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_clone_relay]
+type = "elfbug_fixture"
+sources = ["targets/clone_relay.cpp"]
+link-libraries = ["pthread"]
+properties.OUTPUT_NAME = "clone_relay"
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"

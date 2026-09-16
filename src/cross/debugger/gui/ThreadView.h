@@ -16,7 +16,7 @@ public:
 
 public slots:
     void onThreadsUpdated(const QVector<DbgThreadInfo> & threads, pid_t currentTid);
-    void onProcessExited();
+    void onSessionEnded();
     void switchThreadSlot();
     void setNameSlot();
     void suspendThreadSlot();

@@ -220,7 +220,8 @@ namespace ElfBug
             std::unique_lock lock(mPauseMutex);
 
             while(mPaused.load(std::memory_order_acquire) && mIsRunning.load(std::memory_order_acquire) &&
-                    !mStopRequested.load(std::memory_order_acquire))
+                    !mStopRequested.load(std::memory_order_acquire) &&
+                    !mDetachRequested.load(std::memory_order_acquire))
             {
                 if(mPauseCv.wait_for(lock, std::chrono::milliseconds(10)) == std::cv_status::timeout)
                     cbPauseTick();
@@ -231,6 +232,15 @@ namespace ElfBug
             cbPauseTick();
 
             lock.unlock();
+
+            if(mStopRequested.load(std::memory_order_acquire))
+                return false;
+
+            if(mDetachRequested.load(std::memory_order_acquire))
+            {
+                detachFromProcess(reportedTid);
+                return false;
+            }
 
             if(!mIsRunning.load(std::memory_order_acquire))
                 return false;
@@ -592,44 +602,32 @@ namespace ElfBug
         }
     }
 
-    void Debugger::debugLoop()
+    bool Debugger::startLaunchedProcess()
     {
         if(!launchChild())
-        {
-            mIsRunning.store(false, std::memory_order_release);
-            return;
-        }
+            return false;
 
         const pid_t mainPid = mMainPid.load(std::memory_order_relaxed);
 
         int status = 0;
-        pid_t pid = waitpid(mainPid, &status, __WALL);
-        if(pid == -1)
+        if(waitpid(mainPid, &status, __WALL) == -1)
         {
             cbInternalError("initial waitpid() failed: " + std::string(strerror(errno)));
-            mIsRunning.store(false, std::memory_order_release);
-            return;
+            return false;
         }
 
         if(!WIFSTOPPED(status))
         {
-            int code = WIFEXITED(status) ? WEXITSTATUS(status) : -WTERMSIG(status);
+            const int code = WIFEXITED(status) ? WEXITSTATUS(status) : -WTERMSIG(status);
             cbInternalError("child exited before reaching first stop (code " + std::to_string(code) + ")");
             cbExitProcessEvent(code);
-            mIsRunning.store(false, std::memory_order_release);
-            return;
+            return false;
         }
 
-        if(ptrace(PTRACE_SETOPTIONS, mainPid, nullptr,
-                  PTRACE_O_TRACESYSGOOD |
-                  PTRACE_O_TRACECLONE |
-                  PTRACE_O_TRACEEXEC |
-                  PTRACE_O_TRACEEXIT |
-                  PTRACE_O_EXITKILL) == -1)
+        if(ptrace(PTRACE_SETOPTIONS, mainPid, nullptr, kPtraceOptions) == -1)
         {
             cbInternalError("PTRACE_SETOPTIONS failed: " + std::string(strerror(errno)));
-            mIsRunning.store(false, std::memory_order_release);
-            return;
+            return false;
         }
 
         const Arch detectedArch = detectArchFromProcExe(mainPid);
@@ -642,27 +640,42 @@ namespace ElfBug
             int killStatus = 0;
             waitpid(mainPid, &killStatus, __WALL);
             mMainPid.store(0, std::memory_order_release);
-            mIsRunning.store(false, std::memory_order_release);
             const int exitCode = WIFEXITED(killStatus) ? WEXITSTATUS(killStatus)
                                  : -WTERMSIG(killStatus);
             cbExitProcessEvent(exitCode);
-            return;
+            return false;
         }
 
         createProcessEvent(mainPid, detectedArch);
+        return true;
+    }
+
+    void Debugger::debugLoop()
+    {
+        if(!(mAttachPid != 0 ? attachToProcess() : startLaunchedProcess()))
+        {
+            mIsRunning.store(false, std::memory_order_release);
+            return;
+        }
+
+        const pid_t mainPid = mMainPid.load(std::memory_order_relaxed);
 
         if(mThread)
         {
             mThread->registers.Read();
             beginPause();
-            cbSystemBreakpoint();
+            if(mAttachPid != 0)
+                cbAttachBreakpoint();
+            else
+                cbSystemBreakpoint();
         }
 
         pauseAndResume(mainPid);
 
         while(mIsRunning)
         {
-            pid = waitpid(-1, &status, __WALL);
+            int status = 0;
+            const pid_t pid = waitpid(-1, &status, __WALL);
             if(pid == -1)
             {
                 if(errno == ECHILD)

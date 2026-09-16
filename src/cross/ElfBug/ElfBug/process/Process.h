@@ -45,6 +45,8 @@ namespace ElfBug
 
         bool DisarmBreakpointByte(ptr address);
         bool RearmBreakpointByte(ptr address);
+        // Unpatches every armed software breakpoint. Teardown only: the records stay.
+        bool DisarmAllBreakpointBytes();
         // Drops the record without touching tracee memory (post-exec cleanup).
         bool ForgetBreakpoint(ptr address);
 

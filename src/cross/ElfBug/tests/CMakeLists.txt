@@ -100,6 +100,10 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_exit_race
     elfbug_fixture_signal_race
     elfbug_fixture_clone_trap
+    elfbug_fixture_thread_storm
+    elfbug_fixture_signal_pending
+    elfbug_fixture_signal_storm
+    elfbug_fixture_clone_relay
 )
 
 # Target: elfbug_fixture_end_immediately
@@ -512,4 +516,148 @@ set_target_properties(elfbug_fixture_clone_trap PROPERTIES
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_clone_trap)
+endif()
+
+# Target: elfbug_fixture_thread_storm
+set(elfbug_fixture_thread_storm_SOURCES
+	cmake.toml
+	"targets/thread_storm.cpp"
+)
+
+add_executable(elfbug_fixture_thread_storm)
+
+target_sources(elfbug_fixture_thread_storm PRIVATE ${elfbug_fixture_thread_storm_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_thread_storm_SOURCES})
+
+target_compile_options(elfbug_fixture_thread_storm PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_thread_storm PRIVATE
+	-pie
+)
+
+target_link_libraries(elfbug_fixture_thread_storm PRIVATE
+	pthread
+)
+
+set_target_properties(elfbug_fixture_thread_storm PROPERTIES
+	OUTPUT_NAME
+		thread_storm
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_thread_storm)
+endif()
+
+# Target: elfbug_fixture_signal_pending
+set(elfbug_fixture_signal_pending_SOURCES
+	cmake.toml
+	"targets/signal_pending.cpp"
+)
+
+add_executable(elfbug_fixture_signal_pending)
+
+target_sources(elfbug_fixture_signal_pending PRIVATE ${elfbug_fixture_signal_pending_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_signal_pending_SOURCES})
+
+target_compile_options(elfbug_fixture_signal_pending PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_signal_pending PRIVATE
+	-pie
+)
+
+set_target_properties(elfbug_fixture_signal_pending PROPERTIES
+	OUTPUT_NAME
+		signal_pending
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_signal_pending)
+endif()
+
+# Target: elfbug_fixture_signal_storm
+set(elfbug_fixture_signal_storm_SOURCES
+	cmake.toml
+	"targets/signal_storm.cpp"
+)
+
+add_executable(elfbug_fixture_signal_storm)
+
+target_sources(elfbug_fixture_signal_storm PRIVATE ${elfbug_fixture_signal_storm_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_signal_storm_SOURCES})
+
+target_compile_options(elfbug_fixture_signal_storm PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_signal_storm PRIVATE
+	-pie
+)
+
+target_link_libraries(elfbug_fixture_signal_storm PRIVATE
+	pthread
+)
+
+set_target_properties(elfbug_fixture_signal_storm PROPERTIES
+	OUTPUT_NAME
+		signal_storm
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_signal_storm)
+endif()
+
+# Target: elfbug_fixture_clone_relay
+set(elfbug_fixture_clone_relay_SOURCES
+	cmake.toml
+	"targets/clone_relay.cpp"
+)
+
+add_executable(elfbug_fixture_clone_relay)
+
+target_sources(elfbug_fixture_clone_relay PRIVATE ${elfbug_fixture_clone_relay_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_clone_relay_SOURCES})
+
+target_compile_options(elfbug_fixture_clone_relay PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_clone_relay PRIVATE
+	-pie
+)
+
+target_link_libraries(elfbug_fixture_clone_relay PRIVATE
+	pthread
+)
+
+set_target_properties(elfbug_fixture_clone_relay PROPERTIES
+	OUTPUT_NAME
+		clone_relay
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_clone_relay)
 endif()

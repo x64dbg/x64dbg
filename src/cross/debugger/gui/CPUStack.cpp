@@ -34,8 +34,8 @@ CPUStack::CPUStack(Architecture* architecture, DbgAdapter* adapter, QWidget* par
             this, &CPUStack::onProcessStarted,
             Qt::QueuedConnection);
 
-    connect(mAdapter, &DbgAdapter::processExited,
-            this, &CPUStack::onProcessExited,
+    connect(mAdapter, &DbgAdapter::sessionEnded,
+            this, &CPUStack::onSessionEnded,
             Qt::QueuedConnection);
 }
 
@@ -166,7 +166,7 @@ void CPUStack::onProcessStarted()
         stackDumpAt(mCsp, mCsp);
 }
 
-void CPUStack::onProcessExited()
+void CPUStack::onSessionEnded()
 {
     mCsp = 0;
     mCbp = 0;

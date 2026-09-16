@@ -72,6 +72,8 @@ bool DbgAdapter::loadEngine()
     cb.onCreateThread = &DbgAdapter::onCreateThread;
     cb.onExitThread = &DbgAdapter::onExitThread;
     cb.onSystemBreakpoint = &DbgAdapter::onSystemBreakpoint;
+    cb.onAttachBreakpoint = &DbgAdapter::onAttachBreakpoint;
+    cb.onDetach = &DbgAdapter::onDetach;
     cb.onBreakpoint = &DbgAdapter::onBreakpoint;
     cb.onStep = &DbgAdapter::onStep;
     cb.onPaused = &DbgAdapter::onPaused;
@@ -153,6 +155,32 @@ bool DbgAdapter::modNameFromAddr(const duint addr, char* buf, const duint bufSiz
 bool DbgAdapter::launch(const char* path) const
 {
     return ElfBugInit(mDebugger, path);
+}
+
+bool DbgAdapter::attach(const pid_t pid) const
+{
+    return ElfBugAttach(mDebugger, pid);
+}
+
+void DbgAdapter::detach() const
+{
+    ElfBugDetach(mDebugger);
+}
+
+std::vector<ElfBugProcessInfo> DbgAdapter::enumProcesses()
+{
+    std::vector<ElfBugProcessInfo> list;
+    for(uint32_t capacity = 512; capacity <= (1u << 20); capacity *= 2)
+    {
+        list.resize(capacity);
+        const uint32_t total = ElfBugEnumProcesses(list.data(), capacity);
+        if(total <= capacity)
+        {
+            list.resize(total);
+            break;
+        }
+    }
+    return list;
 }
 
 void DbgAdapter::Start() const
@@ -355,6 +383,7 @@ void DbgAdapter::onExitProcess(const int exitCode, void* userdata)
         self->mThreadNames.clear();
     }
     emit self->processExited(exitCode);
+    emit self->sessionEnded();
     self->refreshThreads();
 }
 
@@ -383,10 +412,30 @@ void DbgAdapter::onSystemBreakpoint(void* userdata)
     self->mEntryPoint = dump.regcontext.cip;
 
     emit self->logMessage(QString("[x64dbg] Entry point: 0x%1").arg(self->mEntryPoint, 0, 16));
-    emit self->registersUpdated(dump);
     emit self->processCreated(self->mEntryPoint);
-    emit self->stopped(self->mEntryPoint, tr("System breakpoint") + self->threadSuffix());
-    self->refreshThreads();
+    self->emitStoppedState(tr("System breakpoint"), dump);
+}
+
+void DbgAdapter::onAttachBreakpoint(void* userdata)
+{
+    const auto self = static_cast<DbgAdapter*>(userdata);
+    emit self->logMessage(QStringLiteral("[x64dbg] %1").arg(tr("Attached to process!")));
+    const REGDUMP dump = self->readRegisters();
+    self->mEntryPoint = dump.regcontext.cip;
+    emit self->processCreated(self->mEntryPoint);
+    self->emitStoppedState(tr("Attached"), dump);
+}
+
+void DbgAdapter::onDetach(void* userdata)
+{
+    const auto self = static_cast<DbgAdapter*>(userdata);
+    {
+        std::lock_guard lock(self->mThreadNameMutex);
+        self->mThreadNames.clear();
+    }
+    emit self->logMessage(QStringLiteral("[x64dbg] %1").arg(tr("Detached!")));
+    emit self->processDetached();
+    emit self->sessionEnded();
 }
 
 void DbgAdapter::onBreakpoint(const uint64_t address, void* userdata)
@@ -468,6 +517,7 @@ void DbgAdapter::onError(const char* error, void* userdata)
 {
     auto* self = static_cast<DbgAdapter*>(userdata);
     emit self->logMessage(QString("[x64dbg] Error: %1").arg(error));
+    emit self->errorMessage(QString::fromUtf8(error));
 }
 
 void DbgAdapter::onDebugString(const char* text, void* userdata)

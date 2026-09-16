@@ -49,6 +49,9 @@ public:
 
     bool loadEngine();
     bool launch(const char* path) const;
+    bool attach(pid_t pid) const;
+    void detach() const;
+    [[nodiscard]] static std::vector<ElfBugProcessInfo> enumProcesses();
     void Start() const;
     void Continue() const;
     void StepInto() const;
@@ -74,8 +77,13 @@ public:
 signals:
     void processCreated(duint entryPoint);
     void processExited(int exitCode);
+    void processDetached();
+    // Raised alongside processExited and processDetached; views that only
+    // care that the session is over can subscribe to this one signal.
+    void sessionEnded();
     void registersUpdated(const REGDUMP & regs);
     void logMessage(const QString & msg);
+    void errorMessage(const QString & error);
     void stopped(duint rip, const QString & reason);
     void threadsUpdated(const QVector<DbgThreadInfo> & threads, pid_t currentTid);
 
@@ -88,6 +96,8 @@ private:
     static void onCreateThread(pid_t tid, void* userdata);
     static void onExitThread(pid_t tid, void* userdata);
     static void onSystemBreakpoint(void* userdata);
+    static void onAttachBreakpoint(void* userdata);
+    static void onDetach(void* userdata);
     static void onBreakpoint(uint64_t address, void* userdata);
     static void onStep(void* userdata);
     static void onPaused(void* userdata);

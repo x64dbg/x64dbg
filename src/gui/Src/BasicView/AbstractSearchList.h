@@ -52,7 +52,7 @@ public:
                     return true;
             break;
         default:
-            __debugbreak();
+            qFatal("unreachable filter type");
         }
         return false;
     }

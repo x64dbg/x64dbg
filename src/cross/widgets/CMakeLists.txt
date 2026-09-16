@@ -51,6 +51,15 @@ set(widgets_SOURCES
     ${widgets_SOURCE_DIR}/BasicView/HistoryLineEdit.h
     ${widgets_SOURCE_DIR}/BasicView/StdTable.cpp
     ${widgets_SOURCE_DIR}/BasicView/StdTable.h
+    ${widgets_SOURCE_DIR}/BasicView/AbstractSearchList.h
+    ${widgets_SOURCE_DIR}/BasicView/SearchListView.cpp
+    ${widgets_SOURCE_DIR}/BasicView/SearchListView.h
+    ${widgets_SOURCE_DIR}/BasicView/StdSearchListView.cpp
+    ${widgets_SOURCE_DIR}/BasicView/StdSearchListView.h
+    ${widgets_SOURCE_DIR}/BasicView/StdIconTable.cpp
+    ${widgets_SOURCE_DIR}/BasicView/StdIconTable.h
+    ${widgets_SOURCE_DIR}/BasicView/StdTableSearchList.cpp
+    ${widgets_SOURCE_DIR}/BasicView/StdTableSearchList.h
     ${widgets_SOURCE_DIR}/Disassembler/Architecture.cpp
     ${widgets_SOURCE_DIR}/Disassembler/Architecture.h
     ${widgets_SOURCE_DIR}/Disassembler/QZydis.cpp
@@ -101,6 +110,8 @@ set(widgets_SOURCES
     ${widgets_SOURCE_DIR}/Utils/ValidateExpressionThread.cpp
     ${widgets_SOURCE_DIR}/Utils/ValidateExpressionThread.h
     ${widgets_SOURCE_DIR}/Utils/VaHistory.h
+    ${widgets_SOURCE_DIR}/Utils/FlickerThread.cpp
+    ${widgets_SOURCE_DIR}/Utils/FlickerThread.h
     ${widgets_SOURCE_DIR}/Gui/RegistersView.cpp
     ${widgets_SOURCE_DIR}/Gui/RegistersView.h
     ${widgets_SOURCE_DIR}/Accessible/AccessibleRegistersView.cpp

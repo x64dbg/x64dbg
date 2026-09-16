@@ -2,8 +2,10 @@
 #include <sys/ptrace.h>
 #include <sys/wait.h>
 #include <cerrno>
+#include <chrono>
 #include <cstring>
 #include <csignal>
+#include <thread>
 #include <vector>
 #include <unistd.h>
 
@@ -32,42 +34,40 @@ namespace ElfBug
             ScopedSteppingOff(const ScopedSteppingOff &) = delete;
             ScopedSteppingOff & operator=(const ScopedSteppingOff &) = delete;
         };
+    }
 
-        // si_addr only means something for kernel-raised faults; for kill and tkill the
-        // same union bytes hold the sender's pid and uid.
-        ptr faultAddress(const int signal, const siginfo_t & info)
+    ptr faultAddress(const int signal, const siginfo_t & info)
+    {
+        if(info.si_code <= 0)
+            return 0;
+        switch(signal)
         {
-            if(info.si_code <= 0)
-                return 0;
-            switch(signal)
-            {
-            case SIGSEGV:
-            case SIGBUS:
-            case SIGILL:
-            case SIGFPE:
-            case SIGTRAP:
-                return reinterpret_cast<ptr>(info.si_addr);
-            default:
-                return 0;
-            }
+        case SIGSEGV:
+        case SIGBUS:
+        case SIGILL:
+        case SIGFPE:
+        case SIGTRAP:
+            return reinterpret_cast<ptr>(info.si_addr);
+        default:
+            return 0;
         }
+    }
 
-        bool sweepShouldQueue(const int signal, const bool hardware)
+    bool sweepShouldQueue(const int signal, const bool hardware)
+    {
+        switch(signal)
         {
-            switch(signal)
-            {
-            case SIGSTOP:
-                return false;
-            case SIGSEGV:
-            case SIGBUS:
-            case SIGFPE:
-            case SIGILL:
-            case SIGSYS:
-            case SIGTRAP:
-                return !hardware;
-            default:
-                return true;
-            }
+        case SIGSTOP:
+            return false;
+        case SIGSEGV:
+        case SIGBUS:
+        case SIGFPE:
+        case SIGILL:
+        case SIGSYS:
+        case SIGTRAP:
+            return !hardware;
+        default:
+            return true;
         }
     }
 
@@ -124,43 +124,74 @@ namespace ElfBug
         if(!thread || !thread->pendingSigstop())
             return true;
 
-        if(ptrace(PTRACE_CONT, tid, nullptr, nullptr) == -1)
+        // A thread that has not stopped yet is not in ptrace-stop, so restarting it fails
+        // and the SIGSTOP is still on its way. Only restart one we know is stopped, and
+        // never clear the flag on a path that did not observe the signal: the caller reads
+        // it to decide whether the released process still needs a SIGCONT.
+        bool inPtraceStop = false;
         {
-            thread->setPendingSigstop(false);
-            return true;
+            std::shared_lock lock(mProcessMutex);
+            inPtraceStop = !thread->isRunning();
         }
 
-        int status = 0;
-        pid_t waited = -1;
-        do
+        constexpr int kDrainAttempts = 32;
+        for(int attempt = 0; attempt < kDrainAttempts; attempt++)
         {
-            waited = waitpid(tid, &status, __WALL);
-        }
-        while(waited == -1 && errno == EINTR);
+            if(inPtraceStop && ptrace(PTRACE_CONT, tid, nullptr, nullptr) == -1)
+                return true;
 
-        if(waited == -1)
-        {
-            thread->setPendingSigstop(false);
-            return true;
-        }
-
-        if(WIFEXITED(status) || WIFSIGNALED(status))
-        {
-            const int code = WIFEXITED(status) ? WEXITSTATUS(status) : -WTERMSIG(status);
-            if(tid == mMainPid.load(std::memory_order_relaxed))
+            int status = 0;
+            pid_t waited = -1;
+            const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
+            for(;;)
             {
-                exitProcessEvent(tid, code);
-                mIsRunning.store(false, std::memory_order_release);
+                waited = waitpid(tid, &status, __WALL | WNOHANG);
+                if(waited == tid)
+                    break;
+                if(waited == -1 && errno == EINTR)
+                    continue;
+                if(waited == -1)
+                    return true;
+                if(std::chrono::steady_clock::now() >= deadline)
+                    return true;
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
-            else
+
+            inPtraceStop = true;
+
+            if(WIFEXITED(status) || WIFSIGNALED(status))
             {
-                exitThreadEvent(tid);
+                const int code = WIFEXITED(status) ? WEXITSTATUS(status) : -WTERMSIG(status);
+                if(tid == mMainPid.load(std::memory_order_relaxed))
+                {
+                    exitProcessEvent(tid, code);
+                    mIsRunning.store(false, std::memory_order_release);
+                }
+                else
+                {
+                    exitThreadEvent(tid);
+                }
+                return false;
             }
-            return false;
+
+            if(!WIFSTOPPED(status))
+                continue;
+
+            const int sig = WSTOPSIG(status);
+            if(sig == SIGSTOP)
+            {
+                thread->setPendingSigstop(false);
+                return true;
+            }
+
+            if(((status >> 16) & 0xffff) == 0 && thread->pendingSignal() == 0)
+            {
+                siginfo_t info{};
+                if(ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1 && info.si_code <= 0)
+                    thread->setPendingSignal(sig, 0, false);
+            }
         }
 
-        if(WIFSTOPPED(status) && WSTOPSIG(status) == SIGSTOP)
-            thread->setPendingSigstop(false);
         return true;
     }
 
@@ -206,13 +237,18 @@ namespace ElfBug
                     thread->setRunning(false);
                 };
 
+                bool alreadyOwed = false;
                 {
                     const std::string reason = readWaitReason(tgid, tid);
                     std::unique_lock lock(mProcessMutex);
                     if(!thread->isSuspended())
                         thread->setWaitReason(reason);
+                    // A suspend already has one on its way to this thread. A second would
+                    // still be queued after we consume the first, and would group-stop the
+                    // process the moment it is detached.
+                    alreadyOwed = thread->pendingSigstop();
                 }
-                if(tgkill(tgid, tid, SIGSTOP) == -1)
+                if(!alreadyOwed && tgkill(tgid, tid, SIGSTOP) == -1)
                 {
                     if(errno != ESRCH)
                         cbInternalError("tgkill failed: " + std::string(strerror(errno)));

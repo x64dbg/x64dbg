@@ -1,7 +1,9 @@
 #pragma once
 
+#include <sys/ptrace.h>
 #include <sys/types.h>
 #include <atomic>
+#include <csignal>
 #include <mutex>
 #include <shared_mutex>
 #include <condition_variable>
@@ -16,6 +18,24 @@
 
 namespace ElfBug
 {
+    constexpr long kPtraceOptions =
+        PTRACE_O_TRACESYSGOOD |
+        PTRACE_O_TRACECLONE |
+        PTRACE_O_TRACEEXEC |
+        PTRACE_O_TRACEEXIT |
+        PTRACE_O_EXITKILL;
+
+    // Split out so the yama branch is testable without an unattachable process to hand.
+    std::string AttachErrorMessage(pid_t pid, int err, int ptraceScope, bool isOurChild);
+
+    // si_addr only means something for kernel-raised faults; for kill and tkill the same
+    // union bytes hold the sender's pid and uid. Shared by the freeze sweep and attach.
+    ptr faultAddress(int signal, const siginfo_t & info);
+
+    // Whether a signal caught outside the normal loop should be queued for later replay,
+    // rather than re-injected (a hardware fault re-raises itself) or dropped (our SIGSTOP).
+    bool sweepShouldQueue(int signal, bool hardware);
+
     class Debugger
     {
     public:
@@ -56,6 +76,7 @@ namespace ElfBug
         virtual void cbStep();
         virtual void cbSystemBreakpoint();
         virtual void cbAttachBreakpoint();
+        virtual void cbDetachEvent();
         virtual void cbUnhandledException(int signal, ptr address);
         virtual void cbInternalError(const std::string & error);
         virtual void cbDebugStringEvent(const std::string & text);
@@ -72,7 +93,21 @@ namespace ElfBug
 
     private:
         void debugLoop();
+        // Shared by Init and Attach: clears everything a previous session left behind.
+        void resetSessionState();
         bool launchChild();
+        // Launch prologue: first stop, options, arch check, process event.
+        bool startLaunchedProcess();
+        // Attach prologue: acquire every thread under /proc/<pid>/task, then the same events.
+        bool attachToProcess();
+        void interruptRunningThread(pid_t pid);
+        bool interruptRunningThreadLocked(pid_t tgid, pid_t except);
+        void reapDetachedChildren();
+        // Tracer thread only, from the fully stopped state: unpatches breakpoints and
+        // PTRACE_DETACHes every thread, delivering whatever signal each still owes.
+        // `reportedTid` is the thread that reported the stop, which owns mPendingSignal.
+        void detachFromProcess(pid_t reportedTid);
+        void reportAttachError(pid_t pid, pid_t tid, int err);
         void handleSignal(pid_t pid, int status);
         void handleSigtrap(pid_t pid, int status);
         bool pauseAndResume(pid_t reported);
@@ -160,7 +195,11 @@ namespace ElfBug
         std::unordered_set<pid_t> mPendingResume;
         std::atomic<bool> mPauseRequested{false};
         std::atomic<bool> mStopRequested{false};
+        std::atomic<bool> mDetachRequested{false};
         std::atomic<pid_t> mMainPid{0};
+        pid_t mAttachPid = 0;
+        bool mWasGroupStopped = false;
+        std::vector<pid_t> mDetachedChildren;
         int mPendingSignal = 0;
         std::mutex mPauseMutex;
         std::condition_variable mPauseCv;
