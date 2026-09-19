@@ -22,7 +22,7 @@ bool FileHelper::ReadAllData(const String & fileName, std::vector<unsigned char>
         DWORD filesize = (DWORD)fileSizeLI.QuadPart;
         content.resize(filesize);
         DWORD read = 0;
-        return !!ReadFile(hFile, content.data(), filesize, &read, nullptr);
+        return !!ReadFile(hFile, content.data(), filesize, &read, nullptr) && read == filesize;
     }
     else
     {
@@ -52,11 +52,13 @@ bool FileHelper::ReadAllData(const String & fileName, std::vector<unsigned char>
 
 bool FileHelper::WriteAllData(const String & fileName, const void* data, size_t size)
 {
+    if(size > MAXDWORD)
+        return false;
     Handle hFile = CreateFileW(StringUtils::Utf8ToUtf16(fileName).c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, 0, nullptr);
     if(hFile == INVALID_HANDLE_VALUE)
         return false;
     DWORD written = 0;
-    return !!WriteFile(hFile, data, DWORD(size), &written, nullptr);
+    return !!WriteFile(hFile, data, DWORD(size), &written, nullptr) && written == size;
 }
 
 bool FileHelper::ReadAllText(const String & fileName, String & content)
