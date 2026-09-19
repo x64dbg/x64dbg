@@ -425,6 +425,9 @@ String StringUtils::Utf16ToLocalCp(const WString & str)
 //Taken from: https://stackoverflow.com/a/24315631
 void StringUtils::ReplaceAll(String & s, const String & from, const String & to)
 {
+    if(from.empty())
+        return;
+
     size_t start_pos = 0;
     while((start_pos = s.find(from, start_pos)) != std::string::npos)
     {
@@ -435,6 +438,9 @@ void StringUtils::ReplaceAll(String & s, const String & from, const String & to)
 
 void StringUtils::ReplaceAll(WString & s, const WString & from, const WString & to)
 {
+    if(from.empty())
+        return;
+
     size_t start_pos = 0;
     while((start_pos = s.find(from, start_pos)) != std::string::npos)
     {
