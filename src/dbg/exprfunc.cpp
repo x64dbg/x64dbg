@@ -721,7 +721,9 @@ namespace Exprfunc
         if(truncate)
         {
             assert(argv[1].type == ValueTypeNumber);
-            temp.resize(argv[1].number + 1);
+            if(argv[1].number >= temp.max_size())
+                return false;
+            temp.resize(size_t(argv[1].number) + 1);
         }
         else
         {
