@@ -3404,7 +3404,7 @@ bool dbgrestartadmin()
         if(!gInitDir.empty())
             params = L"-workingDir \"" + gInitDir + L"\" " + params;
         auto result = ShellExecuteW(NULL, L"runas", file.c_str(), params.c_str(), wszProgramPath, SW_SHOWDEFAULT);
-        return INT_PTR(result) > 32 && GetLastError() == ERROR_SUCCESS;
+        return INT_PTR(result) > 32;
     }
     return false;
 }
