@@ -919,6 +919,11 @@ namespace ElfBug
         if(formerTid != 0 && static_cast<pid_t>(formerTid) != tid)
             replaceExecedThread(static_cast<pid_t>(formerTid), tid);
 
+        // Before the arch check: its rejection detaches, and a detach unpatches every
+        // armed record, which would poke the dead image's bytes into the new one.
+        if(mProcess)
+            mProcess->ReseatBreakpointsAfterExec();
+
         const Arch arch = DetectArchFromProcExe(tid);
         if(arch != Arch::X86_64)
         {
@@ -930,11 +935,8 @@ namespace ElfBug
 
         if(mProcess)
         {
-            {
-                std::unique_lock lock(mProcessMutex);
-                mProcess->arch = arch;
-            }
-            mProcess->ReseatBreakpointsAfterExec();
+            std::unique_lock lock(mProcessMutex);
+            mProcess->arch = arch;
         }
 
         cbExec();

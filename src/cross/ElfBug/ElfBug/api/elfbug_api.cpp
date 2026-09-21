@@ -7,6 +7,9 @@
 
 #include <algorithm>
 #include <atomic>
+#include <condition_variable>
+#include <cstddef>
+#include <memory>
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
@@ -18,6 +21,27 @@
 
 namespace
 {
+    constexpr std::size_t kNoRegister = static_cast<std::size_t>(-1);
+
+    std::size_t registerOffset(const char* name)
+    {
+        static const std::unordered_map<std::string, std::size_t> offsets =
+        {
+            {"csp", offsetof(user_regs_struct, rsp)}, {"rsp", offsetof(user_regs_struct, rsp)},
+            {"cip", offsetof(user_regs_struct, rip)}, {"rip", offsetof(user_regs_struct, rip)},
+            {"rax", offsetof(user_regs_struct, rax)}, {"rbx", offsetof(user_regs_struct, rbx)},
+            {"rcx", offsetof(user_regs_struct, rcx)}, {"rdx", offsetof(user_regs_struct, rdx)},
+            {"rsi", offsetof(user_regs_struct, rsi)}, {"rdi", offsetof(user_regs_struct, rdi)},
+            {"rbp", offsetof(user_regs_struct, rbp)},
+            {"r8", offsetof(user_regs_struct, r8)},   {"r9", offsetof(user_regs_struct, r9)},
+            {"r10", offsetof(user_regs_struct, r10)}, {"r11", offsetof(user_regs_struct, r11)},
+            {"r12", offsetof(user_regs_struct, r12)}, {"r13", offsetof(user_regs_struct, r13)},
+            {"r14", offsetof(user_regs_struct, r14)}, {"r15", offsetof(user_regs_struct, r15)},
+        };
+        const auto it = offsets.find(name);
+        return it == offsets.end() ? kNoRegister : it->second;
+    }
+
     ElfBugArch toApiArch(const ElfBug::Arch arch)
     {
         switch(arch)
@@ -69,6 +93,18 @@ struct ElfBugDebugger : ElfBug::Debugger
         bool setOrDelete; // true = set, false = delete
     };
     std::vector<BpRequest> pendingBpRequests;
+
+    struct RegRequest
+    {
+        std::string name;
+        uint64_t value = 0;
+        bool done = false;
+        bool ok = false;
+        bool abandoned = false;
+    };
+    mutable std::mutex regQueueMutex;
+    mutable std::condition_variable regQueueCv;
+    mutable std::vector<std::shared_ptr<RegRequest>> pendingRegRequests;
 
     mutable std::mutex threadMutex;
     std::unordered_map<pid_t, uint32_t> threadNumbers;
@@ -420,34 +456,69 @@ struct ElfBugDebugger : ElfBug::Debugger
 
     bool setRegister(const char* name, const uint64_t value) const
     {
-        std::shared_lock lock(mProcessMutex);
-        if(!active.load(std::memory_order_acquire) || !mThread)
+        if(!active.load(std::memory_order_acquire) || !IsPaused())
+            return false;
+        if(registerOffset(name) == kNoRegister)
             return false;
 
-        auto & r = mThread->registers;
-        const auto v = static_cast<ElfBug::ptr>(value);
+        auto request = std::make_shared<RegRequest>();
+        request->name = name;
+        request->value = value;
 
-        if(!strcmp(name, "csp") || !strcmp(name, "rsp"))       r.Rsp() = v;
-        else if(!strcmp(name, "cip") || !strcmp(name, "rip"))  r.Rip() = v;
-        else if(!strcmp(name, "rax"))                          r.Rax() = v;
-        else if(!strcmp(name, "rbx"))                          r.Rbx() = v;
-        else if(!strcmp(name, "rcx"))                          r.Rcx() = v;
-        else if(!strcmp(name, "rdx"))                          r.Rdx() = v;
-        else if(!strcmp(name, "rsi"))                          r.Rsi() = v;
-        else if(!strcmp(name, "rdi"))                          r.Rdi() = v;
-        else if(!strcmp(name, "rbp"))                          r.Rbp() = v;
-        else if(!strcmp(name, "r8"))                           r.R8()  = v;
-        else if(!strcmp(name, "r9"))                           r.R9()  = v;
-        else if(!strcmp(name, "r10"))                          r.R10() = v;
-        else if(!strcmp(name, "r11"))                          r.R11() = v;
-        else if(!strcmp(name, "r12"))                          r.R12() = v;
-        else if(!strcmp(name, "r13"))                          r.R13() = v;
-        else if(!strcmp(name, "r14"))                          r.R14() = v;
-        else if(!strcmp(name, "r15"))                          r.R15() = v;
-        else
+        std::unique_lock lock(regQueueMutex);
+        pendingRegRequests.push_back(request);
+        if(!regQueueCv.wait_for(lock, std::chrono::seconds(1), [&] { return request->done; }))
+        {
+            request->abandoned = true;
+            const auto it = std::find(pendingRegRequests.begin(), pendingRegRequests.end(), request);
+            if(it != pendingRegRequests.end())
+                pendingRegRequests.erase(it);
+            return false;
+        }
+        return request->ok;
+    }
+
+    bool writeRegisterOnTracer(const std::string & name, const uint64_t value) const
+    {
+        const std::size_t offset = registerOffset(name.c_str());
+        if(offset == kNoRegister)
             return false;
 
-        return r.Write();
+        std::unique_lock lock(mProcessMutex);
+        if(!mThread)
+            return false;
+
+        errno = 0;
+        if(ptrace(PTRACE_POKEUSER, mThread->tid, reinterpret_cast<void*>(offset),
+                  reinterpret_cast<void*>(static_cast<uintptr_t>(value))) == -1 && errno != 0)
+            return false;
+
+        return mThread->registers.Read();
+    }
+
+    void processPendingRegisters() const
+    {
+        std::vector<std::shared_ptr<RegRequest>> requests;
+        {
+            std::lock_guard lock(regQueueMutex);
+            if(pendingRegRequests.empty())
+                return;
+            requests.swap(pendingRegRequests);
+        }
+
+        for(const auto & request : requests)
+        {
+            {
+                std::lock_guard lock(regQueueMutex);
+                if(request->abandoned)
+                    continue;
+            }
+            const bool ok = writeRegisterOnTracer(request->name, request->value);
+            std::lock_guard lock(regQueueMutex);
+            request->ok = ok;
+            request->done = true;
+        }
+        regQueueCv.notify_all();
     }
 
     ElfBugArch getArch() const
@@ -521,6 +592,13 @@ struct ElfBugDebugger : ElfBug::Debugger
             std::lock_guard lock(bpQueueMutex);
             pendingBpRequests.clear();
         }
+        {
+            std::lock_guard lock(regQueueMutex);
+            for(const auto & request : pendingRegRequests)
+                request->done = true;
+            pendingRegRequests.clear();
+        }
+        regQueueCv.notify_all();
         {
             std::lock_guard lock(threadMutex);
             threadNumbers.clear();
@@ -664,6 +742,7 @@ protected:
     void cbPauseTick() override
     {
         processPendingBreakpoints();
+        processPendingRegisters();
     }
 
     void cbInternalError(const std::string & error) override

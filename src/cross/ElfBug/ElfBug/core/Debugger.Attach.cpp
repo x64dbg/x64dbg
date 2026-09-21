@@ -398,6 +398,13 @@ namespace ElfBug
         std::vector<std::pair<pid_t, int>> targets;
         for(const pid_t tid : mUnregisteredRunning)
         {
+            const pid_t tgid = ThreadGroupId(tid);
+            if(tgid != 0 && tgid != pid)
+            {
+                releaseForeignClone(tid, tgid, true);
+                continue;
+            }
+
             if(tgkill(pid, tid, SIGSTOP) == 0)
             {
                 int status = 0;

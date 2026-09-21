@@ -4176,6 +4176,62 @@ TEST_CASE("A clone outside the thread group is not registered as a thread", "[mu
     waitpid(child, &status, __WALL);
 }
 
+TEST_CASE("ElfBugSetRegister reaches the tracee", "[capi][registers]")
+{
+    using namespace ElfBug::test;
+    ApiSession s(FIXTURE("run_endlessly"));
+    REQUIRE(s.Started());
+    REQUIRE(s.WaitForSystemBreakpoint());
+
+    ElfBugRegisters before{};
+    REQUIRE(ElfBugGetRegisters(s.dbg, &before));
+
+    // Callee-saved, so the entry stub is not about to overwrite it.
+    constexpr uint64_t kValue = 0x1234567890abcdefULL;
+    REQUIRE(kValue != before.r15);
+    REQUIRE(ElfBugSetRegister(s.dbg, "r15", kValue));
+
+    // Read back from the tracee, so a write that never left the cache shows the old one.
+    ElfBugRegisters after{};
+    REQUIRE(ElfBugGetRegisters(s.dbg, &after));
+    CHECK(after.r15 == kValue);
+
+    CHECK_FALSE(ElfBugSetRegister(s.dbg, "nonesuch", 1));
+}
+
+TEST_CASE("Detaching releases a clone outside the thread group", "[multithread][detach]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    REQUIRE(dbg.Init(FIXTURE("clone_process").c_str()));
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    dbg.Continue();
+    REQUIRE(dbg.WaitForRunning());
+
+    REQUIRE(dbg.process() != nullptr);
+    const pid_t inferiorPid = dbg.process()->pid;
+
+    const pid_t child = WaitForClonedChild(inferiorPid);
+    CAPTURE(inferiorPid, child);
+    REQUIRE(child > 0);
+
+    dbg.Detach();
+    dbg.WaitForDetach();
+    dbg.JoinThread();
+
+    // EXITKILL is inherited, so anything still traced dies with the tracer thread.
+    REQUIRE(ElfBug::TracerPid(child) == 0);
+    REQUIRE(StaysRunning(child));
+    REQUIRE(StaysRunning(inferiorPid));
+
+    kill(child, SIGKILL);
+    kill(inferiorPid, SIGKILL);
+    int status = 0;
+    waitpid(child, &status, __WALL);
+    waitpid(inferiorPid, &status, __WALL);
+}
+
 TEST_CASE("A signal delivered to an attached process is reported and forwarded", "[attach]")
 {
     ElfBug::test::UntracedProcess target(FIXTURE("signal_pending"));
