@@ -20,6 +20,9 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override;
 
+protected:
+    void closeEvent(QCloseEvent* event) override;
+
 private slots:
     void onOpen();
     void onAttach();
@@ -39,6 +42,8 @@ private slots:
 
 private:
     bool endCurrentSession();
+    // Terminating a process we only attached to is not ours to do by default.
+    bool mAttachedSession = false;
     void stopDebugThread();
     void detachDebugThread();
     void finishDebugThread();

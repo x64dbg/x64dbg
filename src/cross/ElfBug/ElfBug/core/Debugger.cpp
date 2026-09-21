@@ -17,10 +17,21 @@ namespace ElfBug
     Debugger::~Debugger()
     {
         const pid_t pid = mMainPid.load(std::memory_order_acquire);
-        if(pid > 0)
+        if(pid > 0 && mAttachPid == 0)
         {
             kill(pid, SIGKILL);
             waitpid(pid, nullptr, __WALL);
+        }
+        else if(pid > 0)
+        {
+            // Not ours to kill
+            std::shared_lock lock(mProcessMutex);
+            if(mProcess)
+            {
+                for(const auto & [tid, thread] : mProcess->threads)
+                    ptrace(PTRACE_DETACH, tid, nullptr, nullptr);
+            }
+            ptrace(PTRACE_DETACH, pid, nullptr, nullptr);
         }
         reapDetachedChildren();
     }

@@ -148,13 +148,17 @@ namespace ElfBug
             // The sweep's own SIGSTOPs are still queued on these threads; detaching
             // without taking them back freezes the process we failed to attach to.
             bool undrained = false;
+            std::unordered_set<pid_t> leftRunning;
             std::unordered_map<pid_t, int> deliverOnRelease;
             for(const pid_t tid : owesSigstop)
             {
                 const auto pending = attachPendingSignals.find(tid);
                 int deliver = pending != attachPendingSignals.end() ? pending->second.signal : 0;
                 if(!drainQueuedSigstop(tid, deliver))
+                {
                     undrained = true;
+                    leftRunning.insert(tid);
+                }
                 if(deliver != 0)
                     deliverOnRelease[tid] = deliver;
             }
@@ -162,14 +166,19 @@ namespace ElfBug
             // PTRACE_O_EXITKILL, and our exit would take the whole group with it.
             for(const pid_t tid : attached)
             {
+                if(leftRunning.count(tid) > 0 && !restopForDetach(tid, pid))
+                    cbInternalError("thread " + std::to_string(tid) +
+                                    " stays traced: it could not be stopped to release it");
+
                 // Whatever the drain had to step over is raised again on the way out,
                 // rather than dropped along with the attach we are abandoning.
                 const auto deliver = deliverOnRelease.find(tid);
                 const int signal = deliver != deliverOnRelease.end() ? deliver->second : 0;
-                ptrace(PTRACE_DETACH, tid, nullptr, reinterpret_cast<void*>(
-                           static_cast<unsigned long>(signal)));
+                if(ptrace(PTRACE_DETACH, tid, nullptr, reinterpret_cast<void*>(
+                              static_cast<unsigned long>(signal))) == -1 && errno != ESRCH)
+                    cbInternalError("PTRACE_DETACH failed: " + std::string(strerror(errno)));
             }
-            if(undrained)
+            if(undrained && !mWasGroupStopped)
                 kill(pid, SIGCONT);
         };
 
@@ -306,6 +315,24 @@ namespace ElfBug
         return true;
     }
 
+    bool Debugger::restopForDetach(const pid_t tid, const pid_t tgid)
+    {
+        if(tgkill(tgid, tid, SIGSTOP) == -1)
+            return errno == ESRCH;
+
+        int status = 0;
+        if(WaitForStop(tid, status) != WaitResult::Stopped)
+            return false;
+        if(WIFEXITED(status) || WIFSIGNALED(status))
+            return true;
+        if(WIFSTOPPED(status) && WSTOPSIG(status) == SIGSTOP)
+            return true;
+
+        // Stopped for its own reason first, so our SIGSTOP is still queued.
+        int deliver = 0;
+        return drainQueuedSigstop(tid, deliver);
+    }
+
     void Debugger::releaseForeignClone(const pid_t tid, const pid_t tgid, const bool running)
     {
         int deliver = 0;
@@ -394,25 +421,13 @@ namespace ElfBug
 
         // Traced, carrying PTRACE_O_EXITKILL, and absent from mProcess->threads, so the
         // loop below would miss it and the tracer thread's exit would kill the process.
-        // They are running, so PTRACE_DETACH needs them in ptrace-stop first.
+        // handleSignal records them before anything checks the thread group, so one that
+        // started its own needs that tgid.
         std::vector<std::pair<pid_t, int>> targets;
         for(const pid_t tid : mUnregisteredRunning)
         {
             const pid_t tgid = ThreadGroupId(tid);
-            if(tgid != 0 && tgid != pid)
-            {
-                releaseForeignClone(tid, tgid, true);
-                continue;
-            }
-
-            if(tgkill(pid, tid, SIGSTOP) == 0)
-            {
-                int status = 0;
-                // A thread that never reports leaves its SIGSTOP queued, which the
-                // group-stop check at the end of the release catches.
-                (void)WaitForStop(tid, status);
-            }
-            targets.emplace_back(tid, 0);
+            releaseForeignClone(tid, tgid != 0 ? tgid : pid, true);
         }
         mUnregisteredRunning.clear();
 

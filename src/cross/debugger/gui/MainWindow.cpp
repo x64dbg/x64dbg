@@ -10,6 +10,7 @@
 #include <QToolBar>
 #include <QLabel>
 #include <QThread>
+#include <QCloseEvent>
 #include <QCoreApplication>
 #include <Memory/MemoryPage.h>
 #include "core/LinuxArchitecture.h"
@@ -88,7 +89,20 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
-    stopDebugThread();
+    if(mAttachedSession)
+        detachDebugThread();
+    else
+        stopDebugThread();
+}
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    if(!endCurrentSession())
+    {
+        event->ignore();
+        return;
+    }
+    QMainWindow::closeEvent(event);
 }
 
 // A new session ends the live one. Windows asks first and offers to detach instead of
@@ -165,14 +179,18 @@ void MainWindow::detachDebugThread()
 
 void MainWindow::finishDebugThread()
 {
-    if(!mDebugThread->wait(3000))
+    if(!mDebugThread->wait(10000))
     {
-        mDebugThread->terminate();
-        mDebugThread->wait();
+        connect(mDebugThread, &QThread::finished, mDebugThread, &QObject::deleteLater);
+        onLogMessage(tr("[x64dbg] The debug thread is still releasing the debuggee"));
     }
-    delete mDebugThread;
+    else
+    {
+        delete mDebugThread;
+    }
     mDebugThread = nullptr;
     mSessionStartPending = false;
+    mAttachedSession = false;
 
     QCoreApplication::sendPostedEvents(nullptr, QEvent::MetaCall);
 
@@ -382,6 +400,7 @@ void MainWindow::onAttach()
 
     // The attach runs on the debug thread, so its failure arrives as an error callback.
     mSessionStartPending = true;
+    mAttachedSession = true;
 
     mDebugThread = QThread::create([this, pid]()
     {

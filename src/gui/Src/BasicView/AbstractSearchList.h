@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QRegularExpression>
+
 #include "AbstractStdTable.h"
 
 class AbstractSearchList
@@ -47,10 +49,17 @@ public:
         case FilterRegexCaseSensitive:
             cs = Qt::CaseSensitive;
         case FilterRegexCaseInsensitive:
+        {
+            const QRegularExpression regex(filter, cs == Qt::CaseSensitive
+                                           ? QRegularExpression::NoPatternOption
+                                           : QRegularExpression::CaseInsensitiveOption);
+            if(!regex.isValid())
+                return false;
             for(duint i = startColumn; i < count; i++)
-                if(list()->getCellContent(row, i).contains(QRegExp(filter, cs)))
+                if(list()->getCellContent(row, i).contains(regex))
                     return true;
             break;
+        }
         default:
             qFatal("unreachable filter type");
         }

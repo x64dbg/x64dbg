@@ -206,6 +206,9 @@ namespace ElfBug
         void createThreadEvent(pid_t tid);
         void exitThreadEvent(pid_t tid);
         void releaseForeignClone(pid_t tid, pid_t tgid, bool running);
+        // Brings a thread a failed drain left running back to a stop this thread waited
+        // on, which PTRACE_DETACH needs. False means it stays traced.
+        bool restopForDetach(pid_t tid, pid_t tgid);
 
         // Tracer-thread only; caller threads must not write.
         std::atomic<bool> mIsRunning{false};
