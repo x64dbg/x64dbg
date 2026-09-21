@@ -1,15 +1,15 @@
 #include <ElfBug/process/ProcessArch.h>
 #include <fcntl.h>
+#include <unistd.h>
+#include <elf.h>
 #include <cerrno>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <unistd.h>
-#include <elf.h>
 
 namespace ElfBug
 {
-    Arch detectArchFromElfPath(const char* path)
+    Arch DetectArchFromElfPath(const char* path)
     {
         if(!path)
             return Arch::Unknown;
@@ -50,10 +50,10 @@ namespace ElfBug
         }
     }
 
-    Arch detectArchFromProcExe(const pid_t pid)
+    Arch DetectArchFromProcExe(const pid_t pid)
     {
         char path[64];
         std::snprintf(path, sizeof(path), "/proc/%d/exe", pid);
-        return detectArchFromElfPath(path);
+        return DetectArchFromElfPath(path);
     }
 }

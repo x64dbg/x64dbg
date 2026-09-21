@@ -9,7 +9,7 @@ namespace ElfBug
     class Registers
     {
     public:
-        Registers() : mTid(0) {}
+        Registers() = default;
         explicit Registers(pid_t tid);
 
         bool Read();
@@ -65,7 +65,7 @@ namespace ElfBug
         [[nodiscard]] const user_regs_struct & Native() const { return mRegs; }
 
     private:
-        pid_t mTid;
+        pid_t mTid = 0;
         user_regs_struct mRegs = {};
     };
 }

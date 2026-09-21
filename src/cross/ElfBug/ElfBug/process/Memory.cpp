@@ -55,11 +55,11 @@ namespace ElfBug
 
     void Process::unpatchBreakpointBytesLocked(const ptr address, void* buffer, const ptr size) const
     {
-        if(!buffer || !size || softwareBreakpointReferences.empty())
+        if(!buffer || !size || mSoftwareBreakpointReferences.empty())
             return;
 
         auto* bytes = static_cast<uint8*>(buffer);
-        for(const auto & [bpAddress, it] : softwareBreakpointReferences)
+        for(const auto & [bpAddress, it] : mSoftwareBreakpointReferences)
         {
             const BreakpointInfo & info = it->second;
             if(!info.armed || bpAddress < address || bpAddress - address >= size)
@@ -76,7 +76,7 @@ namespace ElfBug
             return false;
 
         std::unique_lock lock(mBreakpointMutex);
-        if(softwareBreakpointReferences.empty())
+        if(mSoftwareBreakpointReferences.empty())
         {
             // Still under the lock
             return MemWriteRaw(address, buffer, size, bytesWritten);
@@ -84,7 +84,7 @@ namespace ElfBug
 
         std::vector<uint8> patched(static_cast<size_t>(size));
         memcpy(patched.data(), buffer, static_cast<size_t>(size));
-        for(const auto & [bpAddress, it] : softwareBreakpointReferences)
+        for(const auto & [bpAddress, it] : mSoftwareBreakpointReferences)
         {
             const BreakpointInfo & info = it->second;
             if(info.armed && bpAddress >= address && bpAddress - address < size)
@@ -94,7 +94,7 @@ namespace ElfBug
         ptr written = 0;
         const bool complete = MemWriteRaw(address, patched.data(), size, &written);
 
-        for(const auto & [bpAddress, it] : softwareBreakpointReferences)
+        for(const auto & [bpAddress, it] : mSoftwareBreakpointReferences)
         {
             BreakpointInfo & info = it->second;
             if(bpAddress >= address && bpAddress - address < written)

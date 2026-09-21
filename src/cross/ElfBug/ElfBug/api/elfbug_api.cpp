@@ -1,7 +1,9 @@
 #include "elfbug_api.h"
-#include "../core/Debugger.h"
-#include "../thread/Registers.h"
+#include <ElfBug/core/Debugger.h>
+#include <ElfBug/thread/Registers.h>
 #include <ElfBug/process/ProcessList.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <atomic>
@@ -13,11 +15,22 @@
 #include <shared_mutex>
 #include <unordered_map>
 #include <vector>
-#include <fcntl.h>
-#include <unistd.h>
 
 namespace
 {
+    ElfBugArch toApiArch(const ElfBug::Arch arch)
+    {
+        switch(arch)
+        {
+        case ElfBug::Arch::X86_64:
+            return ElfBugArch_X86_64;
+        case ElfBug::Arch::I386:
+            return ElfBugArch_I386;
+        default:
+            return ElfBugArch_Unknown;
+        }
+    }
+
     void copyString(char* dest, const size_t size, const std::string & source)
     {
         if(size == 0)
@@ -442,15 +455,7 @@ struct ElfBugDebugger : ElfBug::Debugger
         std::shared_lock lock(mProcessMutex);
         if(!mProcess)
             return ElfBugArch_Unknown;
-        switch(mProcess->arch)
-        {
-        case ElfBug::Arch::X86_64:
-            return ElfBugArch_X86_64;
-        case ElfBug::Arch::I386:
-            return ElfBugArch_I386;
-        default:
-            return ElfBugArch_Unknown;
-        }
+        return toApiArch(mProcess->arch);
     }
 
     pid_t currentTid() const
@@ -660,22 +665,6 @@ protected:
             cb.onDebugString(text.c_str(), cb.userdata);
     }
 };
-
-namespace
-{
-    ElfBugArch toApiArch(const ElfBug::Arch arch)
-    {
-        switch(arch)
-        {
-        case ElfBug::Arch::X86_64:
-            return ElfBugArch_X86_64;
-        case ElfBug::Arch::I386:
-            return ElfBugArch_I386;
-        default:
-            return ElfBugArch_Unknown;
-        }
-    }
-}
 
 extern "C" {
 

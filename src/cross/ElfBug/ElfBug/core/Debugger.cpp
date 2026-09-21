@@ -1,7 +1,6 @@
 #include <ElfBug/core/Debugger.h>
 #include <ElfBug/process/ProcessArch.h>
 #include <ElfBug/process/ProcessList.h>
-#include <sys/personality.h>
 #include <sys/ptrace.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -134,13 +133,11 @@ namespace ElfBug
             return false;
         }
 
-        const Arch arch = detectArchFromProcExe(processId);
+        const Arch arch = DetectArchFromProcExe(processId);
         if(arch != Arch::X86_64)
         {
-            const char* archName = arch == Arch::I386 ? "i386" : "unknown";
-            cbInternalError("cannot attach to pid " + std::to_string(processId) +
-                            ": unsupported architecture (" + std::string(archName) +
-                            "); only x86_64 is supported");
+            cbInternalError("cannot attach to pid " + std::to_string(processId) + ": " +
+                            ArchRejectMessage(arch));
             return false;
         }
 
@@ -365,14 +362,14 @@ namespace ElfBug
         return owed;
     }
 
-    void Debugger::interruptRunningThread(const pid_t pid)
+    void Debugger::interruptRunningThread(const pid_t tgid)
     {
         {
             std::unique_lock lock(mProcessMutex);
-            if(interruptRunningThreadLocked(pid, 0))
+            if(interruptRunningThreadLocked(tgid, 0))
                 return;
         }
-        kill(pid, SIGSTOP);
+        kill(tgid, SIGSTOP);
     }
 
     void Debugger::Pause()

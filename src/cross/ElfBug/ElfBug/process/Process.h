@@ -59,15 +59,15 @@ namespace ElfBug
         void ResetMemFd() const;
 
     private:
-        // Guards breakpoints, breakpointCallbacks and softwareBreakpointReferences.
+        // Guards mBreakpoints, mBreakpointCallbacks and mSoftwareBreakpointReferences.
         // Callers mutate them from any thread while the tracee is paused; MemRead
         // unpatches from any thread at any time.
         mutable std::shared_mutex mBreakpointMutex;
-        BreakpointMap breakpoints;
-        BreakpointCallbackMap breakpointCallbacks;
-        SoftwareBreakpointMap softwareBreakpointReferences;
-        MemoryBreakpointSet memoryBreakpointRanges;
-        MemoryBreakpointMap memoryBreakpointPages;
+        BreakpointMap mBreakpoints;
+        BreakpointCallbackMap mBreakpointCallbacks;
+        SoftwareBreakpointMap mSoftwareBreakpointReferences;
+        MemoryBreakpointSet mMemoryBreakpointRanges;
+        MemoryBreakpointMap mMemoryBreakpointPages;
         bool setBreakpointLocked(ptr address, bool singleshot, SoftwareType type);
         bool pokeByte(ptr address, uint8 byte);
         BreakpointInfo* findSoftwareBreakpoint(ptr address);

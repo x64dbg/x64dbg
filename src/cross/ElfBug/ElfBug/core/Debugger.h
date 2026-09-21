@@ -29,13 +29,16 @@ namespace ElfBug
     // Split out so the yama branch is testable without an unattachable process to hand.
     std::string AttachErrorMessage(pid_t pid, int err, int ptraceScope, bool isOurChild);
 
+    // Shared by the launch and both attach paths so the wording cannot drift apart.
+    std::string ArchRejectMessage(Arch arch);
+
     // si_addr only means something for kernel-raised faults; for kill and tkill the same
     // union bytes hold the sender's pid and uid. Shared by the freeze sweep and attach.
-    ptr faultAddress(int signal, const siginfo_t & info);
+    ptr FaultAddress(int signal, const siginfo_t & info);
 
     // Whether a signal caught outside the normal loop should be queued for later replay,
     // rather than re-injected (a hardware fault re-raises itself) or dropped (our SIGSTOP).
-    bool sweepShouldQueue(int signal, bool hardware);
+    bool SweepShouldQueue(int signal, bool hardware);
 
     enum class WaitResult
     {
@@ -45,9 +48,9 @@ namespace ElfBug
     };
 
     // Bounded: teardown has no debug loop left to time out a thread that never reports.
-    WaitResult waitForStop(pid_t tid, int & status);
+    WaitResult WaitForStop(pid_t tid, int & status);
 
-    bool stopShouldQueue(int status, bool haveInfo, const siginfo_t & info,
+    bool StopShouldQueue(int status, bool haveInfo, const siginfo_t & info,
                          int & signal, ptr & address);
 
     class Debugger
@@ -115,7 +118,7 @@ namespace ElfBug
         bool startLaunchedProcess();
         // Attach prologue: acquire every thread under /proc/<pid>/task, then the same events.
         bool attachToProcess();
-        void interruptRunningThread(pid_t pid);
+        void interruptRunningThread(pid_t tgid);
         bool interruptRunningThreadLocked(pid_t tgid, pid_t except);
         void reapDetachedChildren();
         // Tracer thread only, from the fully stopped state: unpatches breakpoints and
@@ -123,8 +126,8 @@ namespace ElfBug
         // `reportedTid` is the thread that reported the stop, which owns mPendingSignal.
         void detachFromProcess(pid_t reportedTid);
         void reportAttachError(pid_t pid, pid_t tid, int err);
-        void handleSignal(pid_t pid, int status);
-        void handleSigtrap(pid_t pid, int status);
+        void handleSignal(pid_t tid, int status);
+        void handleSigtrap(pid_t tid, int status);
         bool pauseAndResume(pid_t reported);
         enum class StepOff
         {
@@ -132,8 +135,8 @@ namespace ElfBug
             Parked,   // the thread is suspended: byte armed again, RIP still on it, signal parked
             Consumed  // the stop was used up (exit, forwarded signal, error); abandon it
         };
-        StepOff stepPastBreakpointByte(pid_t pid, ptr addr);
-        void abandonSingleStep(pid_t pid);
+        StepOff stepPastBreakpointByte(pid_t tid, ptr addr);
+        void abandonSingleStep(pid_t tid);
         // The image was replaced: drop step state without writing anything back.
         void onExec();
 
@@ -147,21 +150,21 @@ namespace ElfBug
         // Tracer thread only. PTRACE_CONTs a stopped tid unless it is suspended or running,
         // stepping it off its own armed breakpoint byte first. False means the process is gone.
         bool resumeStoppedThread(pid_t tid);
-        // PTRACE_CONTs pid unless a caller suspended it since its stop was snapshotted; then
+        // PTRACE_CONTs tid unless a caller suspended it since its stop was snapshotted; then
         // it stays parked and, with nothing else running, the pause is reported.
-        void continueUnlessSuspended(pid_t pid);
-        // pid stays in ptrace-stop; with nothing else running the pause is reported.
-        void leaveParked(pid_t pid);
+        void continueUnlessSuspended(pid_t tid);
+        // tid stays in ptrace-stop; with nothing else running the pause is reported.
+        void leaveParked(pid_t tid);
         bool swallowPendingSigstop(pid_t tid);
         void resumeAllThreads(pid_t except);
         void abandonFreeze(pid_t except);
         Thread* findPendingBreakpointThread() const;
         Thread* findPendingSignalThread() const;
-        void repairStoppedThread(Thread* thread, int status) const;
+        void repairStoppedThread(Thread* thread, int status);
         // RIP was one byte past one of ours: put it back and queue the hit. Registers
         // must already be read.
-        bool rewindOntoBreakpoint(Thread* thread, int status) const;
-        void reportSignal(pid_t pid, int sig);
+        bool rewindOntoBreakpoint(Thread* thread, int status);
+        void reportSignal(pid_t tid, int sig);
 
         struct StepOverRequest
         {
@@ -179,13 +182,13 @@ namespace ElfBug
             Parked,     // the thread is suspended: nothing armed, nothing stepped, caller drops the step
             Consumed    // the stop was used up stepping off the source breakpoint
         };
-        StepOverArm armStepOver(pid_t pid);
-        void cancelStepOver(pid_t pid);
+        StepOverArm armStepOver(pid_t tid);
+        void cancelStepOver(pid_t tid);
         // Another thread's stop must not end the stepping thread's step-over.
-        void cancelStepOverIfOwner(pid_t pid);
-        void restoreSourceByte(pid_t pid);
+        void cancelStepOverIfOwner(pid_t tid);
+        void restoreSourceByte(pid_t tid);
         // A single-stepped pushf pushes EFLAGS with TF set; clear it from the pushed word.
-        void maskPushedTrapFlag() const;
+        void maskPushedTrapFlag();
         // Runs the breakpoint's callback and cbBreakpoint, deleting it when singleshot.
         void dispatchBreakpoint(ptr address);
         void beginPause();

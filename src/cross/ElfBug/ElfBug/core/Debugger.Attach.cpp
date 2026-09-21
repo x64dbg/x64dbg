@@ -50,7 +50,7 @@ namespace ElfBug
                     return true;
 
                 int status = 0;
-                switch(waitForStop(tid, status))
+                switch(WaitForStop(tid, status))
                 {
                 case WaitResult::Gone:
                     return true;
@@ -74,7 +74,7 @@ namespace ElfBug
                     const bool haveInfo = ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1;
                     int signal = 0;
                     ptr address = 0;
-                    if(stopShouldQueue(status, haveInfo, info, signal, address))
+                    if(StopShouldQueue(status, haveInfo, info, signal, address))
                         deliver = signal;
                 }
             }
@@ -111,6 +111,12 @@ namespace ElfBug
         }
 
         return prefix + strerror(err);
+    }
+
+    std::string ArchRejectMessage(const Arch arch)
+    {
+        const char* name = arch == Arch::I386 ? "i386" : "unknown";
+        return "unsupported architecture (" + std::string(name) + "); only x86_64 is supported";
     }
 
     void Debugger::reportAttachError(const pid_t pid, const pid_t tid, const int err)
@@ -229,15 +235,15 @@ namespace ElfBug
                     siginfo_t info{};
                     if(ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1)
                     {
-                        if(sweepShouldQueue(sig, info.si_code > 0))
-                            attachPendingSignals[tid] = {sig, faultAddress(sig, info)};
+                        if(SweepShouldQueue(sig, info.si_code > 0))
+                            attachPendingSignals[tid] = {sig, FaultAddress(sig, info)};
                     }
                     else if(errno != EINVAL)
                     {
                         // EINVAL is a group-stop, which carries nothing to re-deliver.
                         // Anything else is a real signal we failed to inspect, and
                         // dropping it loses it for good.
-                        if(sweepShouldQueue(sig, false))
+                        if(SweepShouldQueue(sig, false))
                             attachPendingSignals[tid] = {sig, 0};
                     }
                     owesSigstop.push_back(tid);
@@ -264,14 +270,12 @@ namespace ElfBug
 
         // Attach() checked this on the caller's thread and only recorded intent. An execve
         // in between would leave the session claiming x86_64 over an i386 tracee.
-        const Arch arch = detectArchFromProcExe(pid);
+        const Arch arch = DetectArchFromProcExe(pid);
         if(arch != Arch::X86_64)
         {
             rollback();
-            const char* archName = arch == Arch::I386 ? "i386" : "unknown";
-            cbInternalError("cannot attach to pid " + std::to_string(pid) +
-                            ": unsupported architecture (" + std::string(archName) +
-                            "); only x86_64 is supported");
+            cbInternalError("cannot attach to pid " + std::to_string(pid) + ": " +
+                            ArchRejectMessage(arch));
             return false;
         }
 
@@ -314,7 +318,7 @@ namespace ElfBug
         }
 
         int status = 0;
-        if(waitForStop(tid, status) != WaitResult::Stopped)
+        if(WaitForStop(tid, status) != WaitResult::Stopped)
         {
             cbInternalError("cloned process " + std::to_string(tid) + " could not be released");
             return;
@@ -329,7 +333,7 @@ namespace ElfBug
             const bool haveInfo = ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1;
             int signal = 0;
             ptr address = 0;
-            if(stopShouldQueue(status, haveInfo, info, signal, address))
+            if(StopShouldQueue(status, haveInfo, info, signal, address))
                 deliver = signal;
 
             if(running && !drainQueuedSigstop(tid, deliver))
@@ -399,7 +403,7 @@ namespace ElfBug
                 int status = 0;
                 // A thread that never reports leaves its SIGSTOP queued, which the
                 // group-stop check at the end of the release catches.
-                (void)waitForStop(tid, status);
+                (void)WaitForStop(tid, status);
             }
             targets.emplace_back(tid, 0);
         }

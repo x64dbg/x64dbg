@@ -5,6 +5,6 @@
 
 namespace ElfBug
 {
-    Arch detectArchFromElfPath(const char* path);
-    Arch detectArchFromProcExe(pid_t pid);
+    Arch DetectArchFromElfPath(const char* path);
+    Arch DetectArchFromProcExe(pid_t pid);
 }

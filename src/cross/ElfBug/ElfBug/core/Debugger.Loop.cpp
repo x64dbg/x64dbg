@@ -1,5 +1,4 @@
 #include <ElfBug/core/Debugger.h>
-#include <ElfBug/process/ProcessArch.h>
 #include <sys/ptrace.h>
 #include <sys/wait.h>
 #include <cerrno>

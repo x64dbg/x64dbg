@@ -196,7 +196,7 @@ namespace ElfBug
                 continue;
 
             entry.pid = pid;
-            entry.arch = detectArchFromProcExe(pid);
+            entry.arch = DetectArchFromProcExe(pid);
             entry.traced = TracerPid(pid) != 0;
             entry.name = readComm(pid);
             entry.commandLine = readCmdline(pid);

@@ -4233,7 +4233,7 @@ TEST_CASE("A signal already pending at attach is reported before the tracee runs
     REQUIRE(atException == before);
 }
 
-TEST_CASE("stopShouldQueue keeps kernel-raised non-fault signals", "[signal]")
+TEST_CASE("StopShouldQueue keeps kernel-raised non-fault signals", "[signal]")
 {
     const auto stopped = [](const int sig, const int event = 0)
     {
@@ -4247,7 +4247,7 @@ TEST_CASE("stopShouldQueue keeps kernel-raised non-fault signals", "[signal]")
         info.si_addr = const_cast<void*>(addr);
         int signal = -1;
         ElfBug::ptr address = 0xdeadbeef;
-        const bool keep = ElfBug::stopShouldQueue(status, haveInfo, info, signal, address);
+        const bool keep = ElfBug::StopShouldQueue(status, haveInfo, info, signal, address);
         return std::make_tuple(keep, signal, address);
     };
 

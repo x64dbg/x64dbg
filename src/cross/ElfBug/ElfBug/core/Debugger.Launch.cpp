@@ -137,12 +137,10 @@ namespace ElfBug
             return false;
         }
 
-        const Arch detectedArch = detectArchFromProcExe(mainPid);
+        const Arch detectedArch = DetectArchFromProcExe(mainPid);
         if(detectedArch != Arch::X86_64)
         {
-            const char* archName = detectedArch == Arch::I386 ? "i386" : "unknown";
-            cbInternalError("unsupported tracee architecture (" + std::string(archName) +
-                            "); only x86_64 is supported");
+            cbInternalError("cannot debug " + mFilePath + ": " + ArchRejectMessage(detectedArch));
             kill(mainPid, SIGKILL);
             int killStatus = 0;
             waitpid(mainPid, &killStatus, __WALL);

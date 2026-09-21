@@ -4,7 +4,7 @@
 
 namespace ElfBug
 {
-    void Debugger::maskPushedTrapFlag() const
+    void Debugger::maskPushedTrapFlag()
     {
         if(!mThread || !mProcess)
             return;
@@ -19,9 +19,9 @@ namespace ElfBug
     }
 
     // Only the lifting thread may re-arm; anyone else would re-trap it in place.
-    void Debugger::restoreSourceByte(const pid_t pid)
+    void Debugger::restoreSourceByte(const pid_t tid)
     {
-        const auto it = mSourceRearms.find(pid);
+        const auto it = mSourceRearms.find(tid);
         if(it == mSourceRearms.end())
             return;
 
@@ -30,9 +30,9 @@ namespace ElfBug
         mSourceRearms.erase(it);
     }
 
-    void Debugger::cancelStepOver(const pid_t pid)
+    void Debugger::cancelStepOver(const pid_t tid)
     {
-        restoreSourceByte(pid);
+        restoreSourceByte(tid);
 
         if(!mStepOver.active)
             return;
@@ -41,19 +41,19 @@ namespace ElfBug
         mStepOver = {};
     }
 
-    void Debugger::cancelStepOverIfOwner(const pid_t pid)
+    void Debugger::cancelStepOverIfOwner(const pid_t tid)
     {
-        if(mStepOver.active && mStepOver.tid != pid)
+        if(mStepOver.active && mStepOver.tid != tid)
         {
-            restoreSourceByte(pid);
+            restoreSourceByte(tid);
             return;
         }
-        cancelStepOver(pid);
+        cancelStepOver(tid);
     }
 
-    Debugger::StepOverArm Debugger::armStepOver(const pid_t pid)
+    Debugger::StepOverArm Debugger::armStepOver(const pid_t tid)
     {
-        cancelStepOver(pid);
+        cancelStepOver(tid);
 
         if(!mThread || !mProcess)
             return StepOverArm::SingleStep;
@@ -66,7 +66,7 @@ namespace ElfBug
         {
             // Plain step: lift the breakpoint under RIP, restored when the step traps.
             if(mProcess->DisarmBreakpointByte(rip))
-                mSourceRearms[pid] = rip;
+                mSourceRearms[tid] = rip;
             return StepOverArm::SingleStep;
         }
 
@@ -80,7 +80,7 @@ namespace ElfBug
                          static_cast<unsigned long long>(target));
                 cbInternalError(message);
                 if(mProcess->DisarmBreakpointByte(rip))
-                    mSourceRearms[pid] = rip;
+                    mSourceRearms[tid] = rip;
                 return StepOverArm::SingleStep;
             }
             planted = true;
@@ -88,7 +88,7 @@ namespace ElfBug
 
         mStepOver.active = true;
         mStepOver.target = target;
-        mStepOver.tid = pid;
+        mStepOver.tid = tid;
         mStepOver.rspFloor = mThread->registers.Gsp();
         mStepOver.planted = planted;
 
@@ -99,21 +99,21 @@ namespace ElfBug
                 // A single step runs one iteration and leaves RIP on the instruction, so
                 // the byte stays lifted until the whole loop is done.
                 if(mProcess->DisarmBreakpointByte(rip))
-                    mSourceRearms[pid] = rip;
+                    mSourceRearms[tid] = rip;
             }
             // Step off the call now so its breakpoint is armed again while the callee
             // runs, for this thread's deeper frames and for every other thread.
             else
             {
-                switch(stepPastBreakpointByte(pid, rip))
+                switch(stepPastBreakpointByte(tid, rip))
                 {
                 case StepOff::Stepped:
                     break;
                 case StepOff::Parked:
-                    cancelStepOver(pid);
+                    cancelStepOver(tid);
                     return StepOverArm::Parked;
                 case StepOff::Consumed:
-                    cancelStepOver(pid);
+                    cancelStepOver(tid);
                     return StepOverArm::Consumed;
                 }
             }
