@@ -74,6 +74,7 @@ bool DbgAdapter::loadEngine()
     cb.onSystemBreakpoint = &DbgAdapter::onSystemBreakpoint;
     cb.onAttachBreakpoint = &DbgAdapter::onAttachBreakpoint;
     cb.onDetach = &DbgAdapter::onDetach;
+    cb.onExec = &DbgAdapter::onExec;
     cb.onBreakpoint = &DbgAdapter::onBreakpoint;
     cb.onStep = &DbgAdapter::onStep;
     cb.onPaused = &DbgAdapter::onPaused;
@@ -413,6 +414,13 @@ void DbgAdapter::onAttachBreakpoint(void* userdata)
     self->mEntryPoint = dump.regcontext.cip;
     emit self->processCreated(self->mEntryPoint);
     self->emitStoppedState(tr("Attached"), dump);
+}
+
+void DbgAdapter::onExec(void* userdata)
+{
+    const auto self = static_cast<DbgAdapter*>(userdata);
+    emit self->logMessage(QStringLiteral("[x64dbg] %1").arg(tr("The debuggee replaced its image with execve")));
+    self->refreshThreads();
 }
 
 void DbgAdapter::onDetach(void* userdata)

@@ -1471,7 +1471,7 @@ TEST_CASE("StepInto from a breakpointed instruction executes exactly one instruc
 
 // The image is replaced mid-step-over; nothing may be written back afterwards. With
 // ASLR off, a re-exec puts real code exactly where a stray 0xCC would land.
-TEST_CASE("Step-over across an execve does not write into the new image", "[stepover][exec]")
+TEST_CASE("An execve reseats breakpoint records onto the new image", "[stepover][exec]")
 {
     using namespace ElfBug::test;
     RecordingDebugger dbg;
@@ -1496,17 +1496,59 @@ TEST_CASE("Step-over across an execve does not write into the new image", "[step
     dbg.Continue();
     dbg.WaitForBreakpointAt(*site);
 
+    uint8_t originalByte = 0;
+    REQUIRE(dbg.process()->MemRead(*site, &originalByte, 1));
+    REQUIRE(originalByte != 0xCC);
+
+    const auto scratchVar = ResolveRuntimeAddress(path, dbg.process()->pid, "eo_scratch");
+    REQUIRE(scratchVar.has_value());
+    ElfBug::ptr scratch = 0;
+    REQUIRE(dbg.process()->MemRead(*scratchVar, &scratch, sizeof(scratch)));
+    REQUIRE(scratch != 0);
+    REQUIRE(dbg.process()->SetBreakpoint(scratch, false, ElfBug::SoftwareType::ShortInt3));
+
+    // Only unmapped between the exec and the new image's first instruction.
+    std::promise<std::pair<bool, bool>> scratchPromise;
+    auto scratchFuture = scratchPromise.get_future();
+    dbg.OnExec([&]
+    {
+        const bool deleted = dbg.process()->DeleteBreakpoint(scratch);
+        scratchPromise.set_value({deleted, dbg.process()->HasBreakpoint(scratch)});
+    });
+
     // The callee never returns - it execs. The planted return breakpoint and the lifted
     // source byte both have to be dropped without a poke.
     dbg.StepOver();
 
+    dbg.WaitForExec();
+
+    // Left armed, the delete would poke the dead image's byte, fail, and strand it.
+    const auto [scratchDeleted, scratchStillSet] = scratchFuture.get();
+    CHECK(scratchDeleted);
+    CHECK_FALSE(scratchStillSet);
+
+    // This fixture re-execs itself with ASLR off, so the site is mapped again.
+    const auto second = dbg.WaitForBreakpointAt(*site, std::chrono::seconds(10));
+    CAPTURE(second.address);
+
+    // Armed against the new image: the byte is really in its memory, not just recorded.
+    uint8_t raw = 0;
+    REQUIRE(dbg.process()->MemReadRaw(*site, &raw, 1));
+    CHECK(raw == 0xCC);
+
+    // Zero would mean the reseat armed the record without re-reading the byte.
+    uint8_t shown = 0;
+    REQUIRE(dbg.process()->MemRead(*site, &shown, 1));
+    CHECK(shown == originalByte);
+
+    dbg.Continue();
     const auto exit_ev = dbg.WaitFor(EventType::ExitProcess, std::chrono::seconds(10));
     dbg.JoinThread();
 
     REQUIRE(exit_ev.exitCode == 7);
     REQUIRE(dbg.count(EventType::InternalError) == 0);
-    // A 0xCC left behind would trap the second pass against a stale record.
-    REQUIRE(dbg.count(EventType::Breakpoint) == 1);
+    REQUIRE(dbg.count(EventType::Exec) == 1);
+    REQUIRE(dbg.count(EventType::Breakpoint) == 2);
 }
 
 // MemRead hides the patch byte, so a caller that reads, edits and writes back would

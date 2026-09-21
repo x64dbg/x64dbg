@@ -94,6 +94,7 @@ namespace ElfBug
         virtual void cbSystemBreakpoint();
         virtual void cbAttachBreakpoint();
         virtual void cbDetach();
+        virtual void cbExec();
         virtual void cbUnhandledException(int signal, ptr address);
         virtual void cbInternalError(const std::string & error);
         virtual void cbDebugString(const std::string & text);
@@ -139,6 +140,14 @@ namespace ElfBug
         void abandonSingleStep(pid_t tid);
         // The image was replaced: drop step state without writing anything back.
         void onExec();
+        // Everything bound to the replaced image, shared by the three sites that observe
+        // the event. False means the engine cannot drive the new image and has requested
+        // a detach. May replace the leader's Thread.
+        bool applyExec(pid_t tid);
+        // A clone in its own thread group reports its own execve here.
+        void handleExecEvent(pid_t tid);
+        // A non-leader execve takes over the leader's id, and neither death is reported.
+        void replaceExecedThread(pid_t formerTid, pid_t tid);
 
         // The leader's exit code when it died during the sweep. The caller reports that
         // instead of its own stop: nothing may touch mProcess afterwards.

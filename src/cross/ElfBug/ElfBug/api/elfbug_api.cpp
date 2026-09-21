@@ -554,6 +554,19 @@ protected:
             cb.onExitProcess(exitCode, cb.userdata);
     }
 
+    void cbExec() override
+    {
+        {
+            std::lock_guard lock(bpQueueMutex);
+            pendingBpRequests.clear();
+        }
+        entryPoint = 0;
+        refreshMemoryMap();
+        refreshThreadList(false);
+        if(cb.onExec)
+            cb.onExec(cb.userdata);
+    }
+
     void cbCreateThread(const pid_t tid) override
     {
         {

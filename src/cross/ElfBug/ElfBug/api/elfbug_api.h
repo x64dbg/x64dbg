@@ -87,6 +87,8 @@ typedef void (*ElfBugCbError)(const char* error, void* userdata);
 typedef void (*ElfBugCbDebugString)(const char* text, void* userdata);
 // The debuggee was released and keeps running; the session is over.
 typedef void (*ElfBugCbDetach)(void* userdata);
+// execve replaced the image; every address reported before this belongs to the old one.
+typedef void (*ElfBugCbExec)(void* userdata);
 
 typedef struct
 {
@@ -104,6 +106,7 @@ typedef struct
     void* userdata;
     ElfBugCbAttachBreakpoint onAttachBreakpoint;
     ElfBugCbDetach onDetach;
+    ElfBugCbExec onExec;
 } ElfBugCallbacks;
 
 // Every readable process in /proc, excluding kernel threads and other users' processes.

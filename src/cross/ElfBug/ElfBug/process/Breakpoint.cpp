@@ -137,6 +137,28 @@ namespace ElfBug
         return true;
     }
 
+    void Process::ReseatBreakpointsAfterExec()
+    {
+        std::unique_lock lock(mBreakpointMutex);
+        for(auto & [key, info] : mBreakpoints)
+        {
+            if(key.first != BreakpointType::Software)
+                continue;
+
+            info.armed = false;
+            info.internal.software.oldbytes[0] = 0;
+
+            uint8 origByte = 0;
+            if(!MemReadRaw(key.second, &origByte, 1))
+                continue;
+            if(!pokeByte(key.second, info.internal.software.newbytes[0]))
+                continue;
+
+            info.internal.software.oldbytes[0] = origByte;
+            info.armed = true;
+        }
+    }
+
     bool Process::TakeBreakpointDispatch(const ptr address, BreakpointInfo & info,
                                          BreakpointCallback & callback) const
     {

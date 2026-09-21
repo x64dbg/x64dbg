@@ -71,6 +71,7 @@ namespace ElfBug::test
         Exception,
         InternalError,
         Detach,
+        Exec,
     };
 
     struct Event
@@ -132,6 +133,13 @@ namespace ElfBug::test
             mOnSystemBreakpoint = std::move(fn);
         }
 
+        // Tracer thread, at the exec stop: the only point where the old address space is
+        // provably gone and the new image has not run yet.
+        void OnExec(std::function<void()> fn)
+        {
+            mOnExec = std::move(fn);
+        }
+
         // Runs on the tracer thread, the only one whose ptrace calls do not fail ESRCH.
         void OnAttachBreakpoint(std::function<void()> fn)
         {
@@ -169,6 +177,7 @@ namespace ElfBug::test
         Event WaitForStep()                { return WaitFor(EventType::Step); }
         Event WaitForInternalError()       { return WaitFor(EventType::InternalError); }
         Event WaitForDetach()              { return WaitFor(EventType::Detach); }
+        Event WaitForExec()                { return WaitFor(EventType::Exec); }
 
         Event WaitForAny(const std::initializer_list<EventType> types, const std::chrono::milliseconds timeout = std::chrono::seconds(5))
         {
@@ -263,6 +272,13 @@ namespace ElfBug::test
             push({EventType::Detach, {}, 0, 0, 0, 0, {}});
         }
 
+        void cbExec() override
+        {
+            if(mOnExec)
+                mOnExec();
+            push({EventType::Exec, {}, 0, 0, 0, 0, {}});
+        }
+
     private:
         [[noreturn]] static void throwInternalError(const Event & e)
         {
@@ -325,6 +341,7 @@ namespace ElfBug::test
         std::thread mLoopThread;
         std::function<void()> mOnSystemBreakpoint;
         std::function<void()> mOnAttachBreakpoint;
+        std::function<void()> mOnExec;
     };
 
     // A process the debugger did not spawn. The test process is its parent, which is what

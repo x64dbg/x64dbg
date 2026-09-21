@@ -1,4 +1,5 @@
 #include <ElfBug/core/Debugger.h>
+#include <ElfBug/process/ProcessArch.h>
 #include <sys/ptrace.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -13,8 +14,6 @@ namespace ElfBug
 {
     namespace
     {
-        // stepPastBreakpointByte can re-enter itself through the stop it reports, so the
-        // previous tid has to come back rather than be cleared.
         struct ScopedSteppingOff
         {
             pid_t & slot;
@@ -268,7 +267,9 @@ namespace ElfBug
                 const auto markStopped = [&]
                 {
                     std::unique_lock lock(mProcessMutex);
-                    thread->setRunning(false);
+                    const auto stopped = mProcess->threads.find(tid);
+                    if(stopped != mProcess->threads.end())
+                        stopped->second->setRunning(false);
                 };
 
                 bool alreadyOwed = false;
@@ -277,9 +278,6 @@ namespace ElfBug
                     std::unique_lock lock(mProcessMutex);
                     if(!thread->isSuspended())
                         thread->setWaitReason(reason);
-                    // A suspend already has one on its way to this thread. A second would
-                    // still be queued after we consume the first, and would group-stop the
-                    // process the moment it is detached.
                     alreadyOwed = thread->pendingSigstop();
                 }
                 if(!alreadyOwed && tgkill(tgid, tid, SIGSTOP) == -1)
@@ -327,9 +325,9 @@ namespace ElfBug
                         else
                             createThreadEvent(static_cast<pid_t>(newTid));
                     }
-                    else if(event == PTRACE_EVENT_EXEC)
+                    else if(event == PTRACE_EVENT_EXEC && tid == tgid)
                     {
-                        onExec();
+                        (void)applyExec(tid);
                     }
 
                     if(ptrace(PTRACE_CONT, tid, nullptr, nullptr) == -1)
@@ -834,8 +832,7 @@ namespace ElfBug
 
             if(stepEvent == PTRACE_EVENT_EXEC)
             {
-                // The image is gone; re-arming would write into the new one.
-                onExec();
+                (void)applyExec(tid);
                 if(ptrace(PTRACE_CONT, tid, nullptr, nullptr) == -1)
                 {
                     if(errno != ESRCH)
@@ -886,6 +883,88 @@ namespace ElfBug
         restoreSourceByte(tid);
     }
 
+    void Debugger::replaceExecedThread(const pid_t formerTid, const pid_t tid)
+    {
+        bool known = false;
+        {
+            std::shared_lock lock(mProcessMutex);
+            known = mProcess && mProcess->threads.count(formerTid) > 0;
+        }
+        if(known)
+            exitThreadEvent(formerTid);
+
+        // The leader's record, its suspend count above all, describes a dead thread.
+        std::unique_lock lock(mProcessMutex);
+        if(!mProcess)
+            return;
+        const auto it = mProcess->threads.find(tid);
+        if(it == mProcess->threads.end())
+            return;
+        it->second = std::make_unique<Thread>(tid);
+        mThread = it->second.get();
+    }
+
+    bool Debugger::applyExec(const pid_t tid)
+    {
+        unsigned long formerTid = 0;
+        if(ptrace(PTRACE_GETEVENTMSG, tid, nullptr, &formerTid) == -1)
+        {
+            if(errno != ESRCH)
+                cbInternalError("PTRACE_GETEVENTMSG failed: " + std::string(strerror(errno)));
+            formerTid = 0;
+        }
+
+        onExec();
+
+        if(formerTid != 0 && static_cast<pid_t>(formerTid) != tid)
+            replaceExecedThread(static_cast<pid_t>(formerTid), tid);
+
+        const Arch arch = DetectArchFromProcExe(tid);
+        if(arch != Arch::X86_64)
+        {
+            // Neither the decoder nor the stack arithmetic is 32-bit aware.
+            cbInternalError("cannot follow execve: " + ArchRejectMessage(arch));
+            mDetachRequested.store(true, std::memory_order_release);
+            return false;
+        }
+
+        if(mProcess)
+        {
+            {
+                std::unique_lock lock(mProcessMutex);
+                mProcess->arch = arch;
+            }
+            mProcess->ReseatBreakpointsAfterExec();
+        }
+
+        cbExec();
+        return true;
+    }
+
+    void Debugger::handleExecEvent(const pid_t tid)
+    {
+        if(tid != mMainPid.load(std::memory_order_relaxed))
+        {
+            if(ptrace(PTRACE_CONT, tid, nullptr, nullptr) == -1 && errno != ESRCH)
+                cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+            return;
+        }
+
+        if(!applyExec(tid))
+        {
+            if(const auto leaderExit = stopAllThreads(tid))
+            {
+                reportLeaderExit(*leaderExit);
+                return;
+            }
+            beginPause();
+            pauseAndResume(tid);
+            return;
+        }
+
+        continueUnlessSuspended(tid);
+    }
+
     void Debugger::handleSigtrap(const pid_t tid, const int status)
     {
         const int event = (status >> 16) & 0xffff;
@@ -894,9 +973,7 @@ namespace ElfBug
         {
         case PTRACE_EVENT_EXEC:
         {
-            onExec();
-            // TODO: re-exec handling - re-detect arch and reject if no longer x86_64, clear breakpoints, refresh memory map, fire callback
-            continueUnlessSuspended(tid);
+            handleExecEvent(tid);
             break;
         }
 

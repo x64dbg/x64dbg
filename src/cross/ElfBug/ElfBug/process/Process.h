@@ -43,6 +43,9 @@ namespace ElfBug
         bool DisarmAllBreakpointBytes();
         // Drops the record without touching tracee memory (post-exec cleanup).
         bool ForgetBreakpoint(ptr address);
+        // Drops the original bytes execve invalidated, then re-reads and re-arms at each
+        // address the new image still maps. The rest keep their record and stay unarmed.
+        void ReseatBreakpointsAfterExec();
 
         // TODO: implement via mprotect + SIGSEGV handling
         bool SetMemoryBreakpoint(ptr address, ptr size, MemoryType type = MemoryType::Access, bool singleshot = true);

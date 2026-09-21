@@ -162,8 +162,6 @@ namespace ElfBug
         mPauseCv.notify_one();
     }
 
-    // Step requests only mean something while paused; otherwise they would latch
-    // and turn the next Continue into a step.
     void Debugger::StepInto()
     {
         {
@@ -443,6 +441,7 @@ namespace ElfBug
     void Debugger::cbSystemBreakpoint() {}
     void Debugger::cbAttachBreakpoint() {}
     void Debugger::cbDetach() {}
+    void Debugger::cbExec() {}
     void Debugger::cbUnhandledException(const int signal, const ptr address) { (void)signal; (void)address; }
     void Debugger::cbInternalError(const std::string & error) { (void)error; }
     void Debugger::cbDebugString(const std::string & text) { (void)text; }

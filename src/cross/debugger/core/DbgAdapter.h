@@ -98,6 +98,7 @@ private:
     static void onSystemBreakpoint(void* userdata);
     static void onAttachBreakpoint(void* userdata);
     static void onDetach(void* userdata);
+    static void onExec(void* userdata);
     static void onBreakpoint(uint64_t address, void* userdata);
     static void onStep(void* userdata);
     static void onPaused(void* userdata);
