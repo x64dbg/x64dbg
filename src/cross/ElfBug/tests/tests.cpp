@@ -17,6 +17,7 @@
 #include <fstream>
 #include <future>
 #include <optional>
+#include <tuple>
 #include <set>
 #include <thread>
 #include <unistd.h>
@@ -544,6 +545,43 @@ TEST_CASE("Step fires cbStep on single instruction", "[step]")
 
     REQUIRE(exit_ev.exitCode == 0);
     REQUIRE(dbg.count(EventType::Step) >= 1);
+}
+
+TEST_CASE("StepInto lifts an armed breakpoint byte the thread never hit", "[step][breakpoint]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    REQUIRE(dbg.Init(FIXTURE("hello_elfbug").c_str()));
+
+    std::promise<ElfBug::ptr> sitePromise;
+    auto siteFuture = sitePromise.get_future();
+    dbg.OnSystemBreakpoint([&]
+    {
+        // Parked here without ever trapping on it, so atBreakpoint() stays false.
+        const ElfBug::ptr site = dbg.currentThread()->registers.Gip();
+        dbg.process()->SetBreakpoint(site, false, ElfBug::SoftwareType::ShortInt3);
+        sitePromise.set_value(site);
+    });
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    const auto site = siteFuture.get();
+    REQUIRE(site != 0);
+
+    dbg.StepInto();
+    dbg.WaitForStep();
+
+    // Executing the 0xCC lands one byte in, mid-instruction, and is reported as the step.
+    const ElfBug::ptr stepped = dbg.currentThread()->registers.Gip();
+    CAPTURE(site, stepped);
+    REQUIRE(stepped != site + 1);
+    REQUIRE(stepped != site);
+    REQUIRE(dbg.count(EventType::Breakpoint) == 0);
+
+    dbg.Continue();
+    const auto exit_ev = dbg.WaitForExit();
+    dbg.JoinThread();
+    REQUIRE(exit_ev.exitCode == 0);
 }
 
 TEST_CASE("Pause after process exit is a no-op", "[control]")
@@ -1904,6 +1942,56 @@ namespace
         if(!process->MemRead(base, slots, sizeof(slots)))
             return 0;
         return slots[0] + slots[1] + slots[2] + slots[3];
+    }
+}
+
+// Does not reach the sweep's own reap of the leader: across every timing tried, the kill
+// lands outside the sweep. It pins the invariant that the exit is reported either way.
+TEST_CASE("Killing the group leader during a pause always reports the process exit", "[multithread][exit]")
+{
+    using namespace ElfBug::test;
+    for(int attempt = 0; attempt < 8; ++attempt)
+    {
+        RecordingDebugger dbg;
+        // Many threads, so the sweep is long enough for the kill to land inside it.
+        REQUIRE(dbg.Init(FIXTURE("clone_relay").c_str()));
+        dbg.StartOnThread();
+        dbg.WaitForSystemBreakpoint();
+        dbg.Continue();
+        REQUIRE(dbg.WaitForRunning());
+        REQUIRE(dbg.process() != nullptr);
+        const pid_t leader = dbg.process()->pid;
+
+        std::vector<pid_t> tids;
+        for(int i = 0; i < 200 && tids.size() < 24; ++i)
+        {
+            ElfBug::ReadTaskList(leader, tids);
+            std::this_thread::sleep_for(std::chrono::milliseconds(2));
+        }
+        CAPTURE(tids.size());
+
+        std::thread killer([leader, attempt]
+        {
+            std::this_thread::sleep_for(std::chrono::microseconds(100 + 150 * attempt));
+            kill(leader, SIGKILL);
+        });
+        dbg.Pause();
+        killer.join();
+
+        CAPTURE(attempt);
+        // The sweep either saw the leader die, which ends the session there, or it
+        // completed on a group that is already gone and the pause it reports has to be
+        // resumed before the loop can reap.
+        const auto first = dbg.WaitForAny({EventType::ExitProcess, EventType::Paused},
+                                          std::chrono::seconds(10));
+        if(first.type == EventType::Paused)
+            dbg.Continue();
+
+        const auto exit_ev = first.type == EventType::ExitProcess
+                             ? first
+                             : dbg.WaitFor(EventType::ExitProcess, std::chrono::seconds(10));
+        dbg.JoinThread();
+        REQUIRE(exit_ev.exitCode == -SIGKILL);
     }
 }
 
@@ -3733,7 +3821,8 @@ TEST_CASE("C API reports the wait reason at a pause", "[api][thread][waitreason]
     REQUIRE(mainReason.find("nanosleep") != std::string::npos);
     for(uint32_t i = 1; i < 5; ++i)
     {
-        CAPTURE(i);
+        const std::string workerReason = all[i].wait_reason;
+        CAPTURE(i, workerReason);
         REQUIRE(all[i].wait_reason[0] == '\0');
     }
 }
@@ -4142,6 +4231,50 @@ TEST_CASE("A signal already pending at attach is reported before the tracee runs
     // Nothing ran between attach and the report: the signal came from a stop the sweep
     // captured, not from a tracee that was allowed to resume first.
     REQUIRE(atException == before);
+}
+
+TEST_CASE("stopShouldQueue keeps kernel-raised non-fault signals", "[signal]")
+{
+    const auto stopped = [](const int sig, const int event = 0)
+    {
+        return (event << 16) | (sig << 8) | 0x7f;
+    };
+    const auto ask = [&](const int status, const bool haveInfo, const int code,
+                         const void* addr = nullptr)
+    {
+        siginfo_t info{};
+        info.si_code = code;
+        info.si_addr = const_cast<void*>(addr);
+        int signal = -1;
+        ElfBug::ptr address = 0xdeadbeef;
+        const bool keep = ElfBug::stopShouldQueue(status, haveInfo, info, signal, address);
+        return std::make_tuple(keep, signal, address);
+    };
+
+    auto [keepChld, sigChld, addrChld] = ask(stopped(SIGCHLD), true, CLD_EXITED);
+    REQUIRE(keepChld);
+    REQUIRE(sigChld == SIGCHLD);
+    REQUIRE(addrChld == 0);
+
+    REQUIRE_FALSE(std::get<0>(ask(stopped(SIGTRAP), true, SI_KERNEL)));
+    REQUIRE_FALSE(std::get<0>(ask(stopped(SIGTRAP), true, TRAP_TRACE)));
+    REQUIRE(std::get<0>(ask(stopped(SIGTRAP), true, SI_TKILL)));
+
+    int page = 0;
+    REQUIRE_FALSE(std::get<0>(ask(stopped(SIGSEGV), true, SEGV_MAPERR, &page)));
+    REQUIRE(std::get<0>(ask(stopped(SIGSEGV), true, SI_TKILL)));
+    REQUIRE_FALSE(std::get<0>(ask(stopped(SIGSTOP), true, SI_USER)));
+
+    REQUIRE_FALSE(std::get<0>(ask(stopped(SIGTRAP, PTRACE_EVENT_CLONE), true, SI_USER)));
+    REQUIRE_FALSE(std::get<0>(ask(stopped(SIGCHLD), false, CLD_EXITED)));
+
+    REQUIRE(std::get<0>(ask(stopped(SIGIO), true, POLL_IN)));
+    REQUIRE(std::get<0>(ask(stopped(SIGALRM), true, SI_TIMER)));
+
+    auto [keepNo, sigNo, addrNo] = ask(stopped(SIGTRAP), true, SI_KERNEL);
+    REQUIRE_FALSE(keepNo);
+    REQUIRE(sigNo == -1);
+    REQUIRE(addrNo == 0xdeadbeef);
 }
 
 TEST_CASE("AttachErrorMessage names the yama fix for EPERM", "[attach]")

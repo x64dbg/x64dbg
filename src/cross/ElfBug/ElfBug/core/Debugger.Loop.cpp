@@ -268,6 +268,13 @@ namespace ElfBug
                         mThread->clearPendingSignal();
                     }
                 }
+
+                if(mThread && mProcess && mPendingSignal == 0 &&
+                        mThread->pendingSignal() != 0 && !mThread->pendingSignalUnreported())
+                {
+                    mPendingSignal = mThread->pendingSignal();
+                    mThread->clearPendingSignal();
+                }
             }
 
             if(!mStepPending.load(std::memory_order_acquire) &&
@@ -351,13 +358,12 @@ namespace ElfBug
                 }
             }
 
-            // A breakpoint hit leaves its 0xCC armed with RIP on it; every resume except a
-            // step-over must step past that byte first.
             bool onArmedByte = false;
             if(!stepOverRequested && mThread && mProcess)
             {
                 std::shared_lock processLock(mProcessMutex);
-                onArmedByte = !mThread->isSuspended() && mThread->atBreakpoint() &&
+                onArmedByte = !mThread->isSuspended() &&
+                              (mThread->atBreakpoint() || stepIntoRequested) &&
                               mProcess->HasBreakpoint(mThread->registers.Gip());
             }
             bool parkedOnByte = false;

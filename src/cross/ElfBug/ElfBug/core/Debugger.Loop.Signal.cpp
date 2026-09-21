@@ -71,6 +71,60 @@ namespace ElfBug
         }
     }
 
+    WaitResult waitForStop(const pid_t tid, int & status)
+    {
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
+        for(;;)
+        {
+            const pid_t waited = waitpid(tid, &status, __WALL | WNOHANG);
+            if(waited == tid)
+                return WaitResult::Stopped;
+            if(waited == -1 && errno == EINTR)
+                continue;
+            if(waited == -1)
+                return WaitResult::Gone;
+            if(std::chrono::steady_clock::now() >= deadline)
+                return WaitResult::TimedOut;
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+    }
+
+    bool stopShouldQueue(const int status, const bool haveInfo, const siginfo_t & info,
+                         int & signal, ptr & address)
+    {
+        if(((status >> 16) & 0xffff) != 0 || !haveInfo)
+            return false;
+
+        const int sig = WSTOPSIG(status);
+        if(!sweepShouldQueue(sig, info.si_code > 0))
+            return false;
+
+        signal = sig;
+        address = faultAddress(sig, info);
+        return true;
+    }
+
+    bool Debugger::rewindOntoBreakpoint(Thread* thread, const int status) const
+    {
+        if(!mProcess || !thread || WSTOPSIG(status) != SIGTRAP)
+            return false;
+        // A ptrace event, not an int3 trap.
+        if(((status >> 16) & 0xffff) != 0)
+            return false;
+        if(thread->isSingleStepping())
+            return false;
+
+        const ptr bpAddr = thread->registers.Gip() - 1;
+        if(!mProcess->HasBreakpoint(bpAddr))
+            return false;
+
+        thread->registers.Gip() = bpAddr;
+        thread->registers.Write();
+        thread->setAtBreakpoint(true);
+        thread->setPendingBreakpoint(bpAddr);
+        return true;
+    }
+
     void Debugger::repairStoppedThread(Thread* thread, const int status) const
     {
         if(!thread)
@@ -78,35 +132,16 @@ namespace ElfBug
 
         thread->registers.Read();
 
-        const int sig = WSTOPSIG(status);
-
-        // si_code is positive when the kernel raised the signal and zero or negative for
-        // kill, tkill and sigqueue. Unreadable means the thread already left this stop
-        // (exit_group kicked it out), so there is nothing left to forward.
+        // si_code > 0 means the kernel raised it, not kill/tkill/sigqueue.
         siginfo_t info{};
         const bool haveInfo = ptrace(PTRACE_GETSIGINFO, thread->tid, nullptr, &info) != -1;
-        const bool hardware = haveInfo && info.si_code > 0;
 
-        // Nothing else records it, so queue it for pauseAndResume to report and forward.
-        if(haveInfo && sweepShouldQueue(sig, hardware))
-            thread->setPendingSignal(sig, faultAddress(sig, info), true);
+        int signal = 0;
+        ptr address = 0;
+        if(stopShouldQueue(status, haveInfo, info, signal, address))
+            thread->setPendingSignal(signal, address, true);
 
-        if(!mProcess || sig != SIGTRAP)
-            return;
-        // A ptrace event, not an int3 trap.
-        if(((status >> 16) & 0xffff) != 0)
-            return;
-        if(thread->isSingleStepping())
-            return;
-
-        const ptr bpAddr = thread->registers.Gip() - 1;
-        if(!mProcess->HasBreakpoint(bpAddr))
-            return;
-
-        thread->registers.Gip() = bpAddr;
-        thread->registers.Write();
-        thread->setAtBreakpoint(true);
-        thread->setPendingBreakpoint(bpAddr);
+        rewindOntoBreakpoint(thread, status);
     }
 
     bool Debugger::swallowPendingSigstop(const pid_t tid)
@@ -141,21 +176,8 @@ namespace ElfBug
                 return true;
 
             int status = 0;
-            pid_t waited = -1;
-            const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
-            for(;;)
-            {
-                waited = waitpid(tid, &status, __WALL | WNOHANG);
-                if(waited == tid)
-                    break;
-                if(waited == -1 && errno == EINTR)
-                    continue;
-                if(waited == -1)
-                    return true;
-                if(std::chrono::steady_clock::now() >= deadline)
-                    return true;
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
+            if(waitForStop(tid, status) != WaitResult::Stopped)
+                return true;
 
             inPtraceStop = true;
 
@@ -184,25 +206,37 @@ namespace ElfBug
                 return true;
             }
 
-            if(((status >> 16) & 0xffff) == 0 && thread->pendingSignal() == 0)
+            if(thread->pendingSignal() == 0)
             {
                 siginfo_t info{};
-                if(ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1 && info.si_code <= 0)
-                    thread->setPendingSignal(sig, 0, false);
+                const bool haveInfo = ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1;
+                int signal = 0;
+                ptr address = 0;
+                if(stopShouldQueue(status, haveInfo, info, signal, address))
+                    thread->setPendingSignal(signal, address, false);
             }
+
+            if(sig == SIGTRAP && thread->registers.Read())
+                rewindOntoBreakpoint(thread, status);
         }
 
         return true;
     }
 
-    void Debugger::stopAllThreads(const pid_t except)
+    void Debugger::reportLeaderExit(const int exitCode)
+    {
+        exitProcessEvent(mMainPid.load(std::memory_order_relaxed), exitCode);
+        mIsRunning.store(false, std::memory_order_release);
+    }
+
+    std::optional<int> Debugger::stopAllThreads(const pid_t except)
     {
         if(!mProcess)
-            return;
+            return std::nullopt;
 
         const pid_t tgid = mMainPid.load(std::memory_order_relaxed);
         if(tgid <= 0)
-            return;
+            return std::nullopt;
 
         for(;;)
         {
@@ -217,7 +251,7 @@ namespace ElfBug
             }
 
             if(running.empty())
-                return;
+                return std::nullopt;
 
             for(const pid_t tid : running)
             {
@@ -272,6 +306,9 @@ namespace ElfBug
 
                 if(WIFEXITED(status) || WIFSIGNALED(status))
                 {
+                    const int code = WIFEXITED(status) ? WEXITSTATUS(status) : -WTERMSIG(status);
+                    if(tid == tgid)
+                        return code;
                     exitThreadEvent(tid);
                     continue;
                 }
@@ -283,7 +320,10 @@ namespace ElfBug
                     {
                         unsigned long newTid = 0;
                         if(ptrace(PTRACE_GETEVENTMSG, tid, nullptr, &newTid) == -1)
-                            cbInternalError("PTRACE_GETEVENTMSG failed: " + std::string(strerror(errno)));
+                        {
+                            if(errno != ESRCH)
+                                cbInternalError("PTRACE_GETEVENTMSG failed: " + std::string(strerror(errno)));
+                        }
                         else
                             createThreadEvent(static_cast<pid_t>(newTid));
                     }
@@ -555,7 +595,11 @@ namespace ElfBug
                     mThread->registers.Read();
                     abandonSingleStep(pid);
                     cancelStepOverIfOwner(pid);
-                    stopAllThreads(pid);
+                    if(const auto leaderExit = stopAllThreads(pid))
+                    {
+                        reportLeaderExit(*leaderExit);
+                        return;
+                    }
                     beginPause();
                     cbPaused();
 
@@ -653,7 +697,11 @@ namespace ElfBug
             mPendingSignal = sig;
             abandonSingleStep(pid);
             cancelStepOverIfOwner(pid);
-            stopAllThreads(pid);
+            if(const auto leaderExit = stopAllThreads(pid))
+            {
+                reportLeaderExit(*leaderExit);
+                return;
+            }
             beginPause();
             cbException(sig, faultAddr);
             pauseAndResume(pid);
@@ -807,7 +855,10 @@ namespace ElfBug
             {
                 unsigned long newTid = 0;
                 if(ptrace(PTRACE_GETEVENTMSG, pid, nullptr, &newTid) == -1)
-                    cbInternalError("PTRACE_GETEVENTMSG failed: " + std::string(strerror(errno)));
+                {
+                    if(errno != ESRCH)
+                        cbInternalError("PTRACE_GETEVENTMSG failed: " + std::string(strerror(errno)));
+                }
                 else
                     createThreadEvent(static_cast<pid_t>(newTid));
             }
@@ -857,7 +908,8 @@ namespace ElfBug
             unsigned long newTid = 0;
             if(ptrace(PTRACE_GETEVENTMSG, pid, nullptr, &newTid) == -1)
             {
-                cbInternalError("PTRACE_GETEVENTMSG failed: " + std::string(strerror(errno)));
+                if(errno != ESRCH)
+                    cbInternalError("PTRACE_GETEVENTMSG failed: " + std::string(strerror(errno)));
             }
             else
             {
@@ -868,7 +920,11 @@ namespace ElfBug
             if(wasStepping && mThread)
             {
                 mThread->registers.Read();
-                stopAllThreads(pid);
+                if(const auto leaderExit = stopAllThreads(pid))
+                {
+                    reportLeaderExit(*leaderExit);
+                    return;
+                }
                 beginPause();
                 cbStep();
                 pauseAndResume(pid);
@@ -934,7 +990,11 @@ namespace ElfBug
                 if(stepsPushf)
                     maskPushedTrapFlag();
                 restoreSourceByte(pid);
-                stopAllThreads(pid);
+                if(const auto leaderExit = stopAllThreads(pid))
+                {
+                    reportLeaderExit(*leaderExit);
+                    return;
+                }
                 beginPause();
                 cbStep();
                 if(!pauseAndResume(pid))
@@ -974,7 +1034,11 @@ namespace ElfBug
 
                         restoreSourceByte(pid);
 
-                        stopAllThreads(pid);
+                        if(const auto leaderExit = stopAllThreads(pid))
+                        {
+                            reportLeaderExit(*leaderExit);
+                            return;
+                        }
                         beginPause();
                         // Not ours: the user's own breakpoint fired at the target.
                         if(!planted)
@@ -1013,7 +1077,11 @@ namespace ElfBug
                     mThread->setAtBreakpoint(true);
 
                     cancelStepOverIfOwner(pid);
-                    stopAllThreads(pid);
+                    if(const auto leaderExit = stopAllThreads(pid))
+                    {
+                        reportLeaderExit(*leaderExit);
+                        return;
+                    }
                     beginPause();
                     dispatchBreakpoint(bpAddr);
                     // The 0xCC stays armed with RIP on it; the next resume steps past it.

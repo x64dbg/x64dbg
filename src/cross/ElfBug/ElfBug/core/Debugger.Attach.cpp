@@ -37,33 +37,6 @@ namespace ElfBug
             return line[lastParen + 2];
         }
 
-        enum class WaitResult
-        {
-            Stopped,
-            Gone,
-            TimedOut,
-        };
-
-        // Bounded, so a thread that never reports cannot wedge teardown on the one path
-        // where no debug loop is left to time it out.
-        WaitResult waitForStop(const pid_t tid, int & status)
-        {
-            const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(250);
-            for(;;)
-            {
-                const pid_t waited = waitpid(tid, &status, __WALL | WNOHANG);
-                if(waited == tid)
-                    return WaitResult::Stopped;
-                if(waited == -1 && errno == EINTR)
-                    continue;
-                if(waited == -1)
-                    return WaitResult::Gone;
-                if(std::chrono::steady_clock::now() >= deadline)
-                    return WaitResult::TimedOut;
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
-        }
-
         // Take back a SIGSTOP this debugger queued, before the thread is released. The
         // thread can stop for something else first, so one pass is not a drain. A real
         // signal seen on the way is handed back through deliver for the release to
@@ -92,18 +65,17 @@ namespace ElfBug
                 if(!WIFSTOPPED(status))
                     continue;
 
-                const int sig = WSTOPSIG(status);
-                if(sig == SIGSTOP)
+                if(WSTOPSIG(status) == SIGSTOP)
                     return true;
 
-                // Event stops report SIGTRAP with the event in the high bits and carry
-                // nothing. Only the first signal is kept: the release delivers one.
-                if(deliver == 0 && ((status >> 16) & 0xffff) == 0)
+                if(deliver == 0)
                 {
                     siginfo_t info{};
-                    if(ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1 &&
-                            sweepShouldQueue(sig, info.si_code > 0))
-                        deliver = sig;
+                    const bool haveInfo = ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1;
+                    int signal = 0;
+                    ptr address = 0;
+                    if(stopShouldQueue(status, haveInfo, info, signal, address))
+                        deliver = signal;
                 }
             }
             return false;
@@ -173,7 +145,8 @@ namespace ElfBug
             std::unordered_map<pid_t, int> deliverOnRelease;
             for(const pid_t tid : owesSigstop)
             {
-                int deliver = 0;
+                const auto pending = attachPendingSignals.find(tid);
+                int deliver = pending != attachPendingSignals.end() ? pending->second.signal : 0;
                 if(!drainQueuedSigstop(tid, deliver))
                     undrained = true;
                 if(deliver != 0)
@@ -352,14 +325,12 @@ namespace ElfBug
 
         if(WIFSTOPPED(status) && WSTOPSIG(status) != SIGSTOP)
         {
-            const int sig = WSTOPSIG(status);
-            if(((status >> 16) & 0xffff) == 0)
-            {
-                siginfo_t info{};
-                if(ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1 &&
-                        sweepShouldQueue(sig, info.si_code > 0))
-                    deliver = sig;
-            }
+            siginfo_t info{};
+            const bool haveInfo = ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1;
+            int signal = 0;
+            ptr address = 0;
+            if(stopShouldQueue(status, haveInfo, info, signal, address))
+                deliver = signal;
 
             if(running && !drainQueuedSigstop(tid, deliver))
             {

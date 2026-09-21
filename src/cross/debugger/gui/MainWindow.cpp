@@ -10,6 +10,7 @@
 #include <QToolBar>
 #include <QLabel>
 #include <QThread>
+#include <QCoreApplication>
 #include <Memory/MemoryPage.h>
 #include "core/LinuxArchitecture.h"
 #include "gui/AttachDialog.h"
@@ -104,7 +105,7 @@ bool MainWindow::endCurrentSession()
         return true;
     }
 
-    duint detachOnAttach = 0;
+    bool detachOnAttach = false;
     if(ConfigBool("Gui", "ShowAttachConfirmation"))
     {
         const auto remember = new QCheckBox(tr("Remember my choice"));
@@ -124,13 +125,13 @@ bool MainWindow::endCurrentSession()
         if(code == QMessageBox::Cancel)
             return false;
 
-        detachOnAttach = code == QMessageBox::No ? 1 : 0;
-        BridgeSettingSetUint("Engine", "DetachOnAttach", detachOnAttach);
+        detachOnAttach = code == QMessageBox::No;
+        Config()->setBool("Engine", "DetachOnAttach", detachOnAttach);
         if(remember->isChecked())
             Config()->setBool("Gui", "ShowAttachConfirmation", false);
     }
     else
-        BridgeSettingGetUint("Engine", "DetachOnAttach", &detachOnAttach);
+        detachOnAttach = ConfigBool("Engine", "DetachOnAttach");
 
     if(detachOnAttach)
         detachDebugThread();
@@ -173,8 +174,9 @@ void MainWindow::finishDebugThread()
     mDebugThread = nullptr;
     mSessionStartPending = false;
 
-    // wait() does not pump the event loop, so the session's queued sessionEnded is still
-    // undelivered. Tear down here or it lands after the next session installs its provider.
+    QCoreApplication::sendPostedEvents(nullptr, QEvent::MetaCall);
+
+    // A session that never emitted sessionEnded queues nothing to drain.
     DbgSetMemoryProvider(nullptr);
     clearDebuggeeViews();
 }

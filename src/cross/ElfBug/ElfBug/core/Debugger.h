@@ -5,6 +5,7 @@
 #include <atomic>
 #include <csignal>
 #include <mutex>
+#include <optional>
 #include <shared_mutex>
 #include <condition_variable>
 #include <string>
@@ -35,6 +36,19 @@ namespace ElfBug
     // Whether a signal caught outside the normal loop should be queued for later replay,
     // rather than re-injected (a hardware fault re-raises itself) or dropped (our SIGSTOP).
     bool sweepShouldQueue(int signal, bool hardware);
+
+    enum class WaitResult
+    {
+        Stopped,
+        Gone,
+        TimedOut,
+    };
+
+    // Bounded: teardown has no debug loop left to time out a thread that never reports.
+    WaitResult waitForStop(pid_t tid, int & status);
+
+    bool stopShouldQueue(int status, bool haveInfo, const siginfo_t & info,
+                         int & signal, ptr & address);
 
     class Debugger
     {
@@ -83,7 +97,8 @@ namespace ElfBug
         virtual void cbPaused(); // called when the debuggee is paused by user
         virtual void cbPauseTick(); // called each iteration of the pause spin loop
 
-        // /proc/<tgid>/task/<tid>/wchan; empty when unreadable or when it reads 0 (running).
+        // /proc/<tgid>/task/<tid>/wchan; empty when unreadable, running, or stopped: the
+        // kernel names our own SIGSTOP as a wait, and stopped-ness is tracked elsewhere.
         static std::string readWaitReason(pid_t tgid, pid_t tid);
 
         Process* mProcess = nullptr;
@@ -122,7 +137,10 @@ namespace ElfBug
         // The image was replaced: drop step state without writing anything back.
         void onExec();
 
-        void stopAllThreads(pid_t except);
+        // The leader's exit code when it died during the sweep. The caller reports that
+        // instead of its own stop: nothing may touch mProcess afterwards.
+        std::optional<int> stopAllThreads(pid_t except);
+        void reportLeaderExit(int exitCode);
         // Tracer thread only. PTRACE_CONTs every thread whose suspend count reached zero
         // while the process was running.
         void drainPendingResumes();
@@ -140,6 +158,9 @@ namespace ElfBug
         Thread* findPendingBreakpointThread() const;
         Thread* findPendingSignalThread() const;
         void repairStoppedThread(Thread* thread, int status) const;
+        // RIP was one byte past one of ours: put it back and queue the hit. Registers
+        // must already be read.
+        bool rewindOntoBreakpoint(Thread* thread, int status) const;
         void reportSignal(pid_t pid, int sig);
 
         struct StepOverRequest

@@ -282,7 +282,8 @@ namespace ElfBug
         if(n <= 0)
             return {};
         buffer[n] = '\0';
-        if(strcmp(buffer, "0") == 0)
+        if(strcmp(buffer, "0") == 0 || strcmp(buffer, "ptrace_stop") == 0 ||
+                strcmp(buffer, "do_signal_stop") == 0)
             return {};
         return buffer;
     }
