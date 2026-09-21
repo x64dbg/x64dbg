@@ -400,6 +400,7 @@ namespace ElfBug
         }
 
         std::vector<std::pair<pid_t, int>> targets;
+        std::unordered_set<pid_t> leftRunning;
         for(const pid_t tid : mUnregisteredRunning)
         {
             const pid_t tgid = ThreadGroupId(tid);
@@ -420,7 +421,11 @@ namespace ElfBug
 
             std::shared_lock lock(mProcessMutex);
             for(const auto & [tid, thread] : mProcess->threads)
+            {
                 targets.emplace_back(tid, thread->PendingSignal());
+                if(thread->IsRunning())
+                    leftRunning.insert(tid);
+            }
         }
         else
         {
@@ -433,6 +438,9 @@ namespace ElfBug
 
         for(const auto & [tid, signal] : targets)
         {
+            if(leftRunning.count(tid) > 0 && !restopForDetach(tid, pid))
+                cbInternalError("thread " + std::to_string(tid) +
+                                " stays traced: it could not be stopped to release it");
             if(ptrace(PTRACE_DETACH, tid, nullptr, reinterpret_cast<void*>(
                           static_cast<unsigned long>(signal))) == -1)
             {

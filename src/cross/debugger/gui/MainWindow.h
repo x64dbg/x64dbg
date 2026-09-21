@@ -43,6 +43,7 @@ private slots:
 
 private:
     bool endCurrentSession();
+    bool canStartSession();
     void stopDebugThread();
     void detachDebugThread();
     void finishDebugThread();
@@ -53,6 +54,7 @@ private:
 
     DbgAdapter* mProvider = nullptr;
     QThread* mDebugThread = nullptr;
+    QThread* mRetiringThread = nullptr;
     QTabWidget* mTabWidget = nullptr;
     Disassembly* mDisassembly = nullptr;
     HexDump* mHexDump = nullptr;

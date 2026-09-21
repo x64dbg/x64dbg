@@ -22,6 +22,8 @@
 
 namespace
 {
+    constexpr int kDetachWaitMs = 10000;
+
     LinuxArchitecture gArch;
 
     QIcon icon(const char* name)
@@ -98,6 +100,9 @@ MainWindow::~MainWindow()
         detachDebugThread();
     else
         stopDebugThread();
+
+    if(mRetiringThread)
+        mRetiringThread->wait();
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
@@ -108,6 +113,14 @@ void MainWindow::closeEvent(QCloseEvent* event)
         return;
     }
     QMainWindow::closeEvent(event);
+}
+
+bool MainWindow::canStartSession()
+{
+    if(!mRetiringThread)
+        return true;
+    onLogMessage(tr("[x64dbg] Still releasing the previous debuggee, try again in a moment"));
+    return false;
 }
 
 bool MainWindow::endCurrentSession()
@@ -147,7 +160,7 @@ bool MainWindow::endCurrentSession()
             Config()->setBool("Gui", "ShowAttachConfirmation", false);
     }
     else
-        detachOnAttach = ConfigBool("Engine", "DetachOnAttach");
+        detachOnAttach = mAttachedSession || ConfigBool("Engine", "DetachOnAttach");
 
     if(detachOnAttach)
         detachDebugThread();
@@ -177,9 +190,14 @@ void MainWindow::detachDebugThread()
 
 void MainWindow::finishDebugThread()
 {
-    if(!mDebugThread->wait(10000))
+    if(!mDebugThread->wait(kDetachWaitMs))
     {
-        connect(mDebugThread, &QThread::finished, mDebugThread, &QObject::deleteLater);
+        mRetiringThread = mDebugThread;
+        connect(mDebugThread, &QThread::finished, this, [this]
+        {
+            mRetiringThread->deleteLater();
+            mRetiringThread = nullptr;
+        });
         onLogMessage(tr("[x64dbg] The debug thread is still releasing the debuggee"));
     }
     else
@@ -350,7 +368,7 @@ void MainWindow::onOpen()
             onLogMessage(QString("[x64dbg] %1 is not executable, run chmod +x on it").arg(path));
     }
 
-    if(!endCurrentSession())
+    if(!endCurrentSession() || !canStartSession())
         return;
 
     if(!mProvider->loadEngine())
@@ -386,7 +404,7 @@ void MainWindow::onAttach()
 
     const pid_t pid = dialog.selectedPid();
 
-    if(!endCurrentSession())
+    if(!endCurrentSession() || !canStartSession())
         return;
 
     if(!mProvider->loadEngine())

@@ -626,7 +626,7 @@ namespace ElfBug
         while(mIsRunning)
         {
             int status = 0;
-            const pid_t pid = waitpid(-1, &status, __WALL);
+            const pid_t pid = waitpid(-1, &status, __WALL | __WNOTHREAD);
             if(pid == -1)
             {
                 if(errno == ECHILD)

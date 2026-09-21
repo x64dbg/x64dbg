@@ -819,14 +819,10 @@ private:
 
         for(const auto & request : requests)
         {
-            {
-                std::lock_guard lock(mRegisterQueueMutex);
-                if(request->abandoned)
-                    continue;
-            }
-            const bool ok = writeRegisterOnTracer(request->name, request->value);
             std::lock_guard lock(mRegisterQueueMutex);
-            request->ok = ok;
+            if(request->abandoned)
+                continue;
+            request->ok = writeRegisterOnTracer(request->name, request->value);
             request->done = true;
         }
         mRegisterQueueCv.notify_all();

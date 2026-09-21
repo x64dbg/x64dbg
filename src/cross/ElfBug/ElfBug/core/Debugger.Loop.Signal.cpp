@@ -118,7 +118,8 @@ namespace ElfBug
             return false;
 
         thread->registers.Gip() = bpAddr;
-        thread->registers.Write();
+        if(!thread->registers.Write())
+            return false;
         thread->SetAtBreakpoint(true);
         thread->SetPendingBreakpoint(bpAddr);
         return true;
@@ -172,8 +173,15 @@ namespace ElfBug
                 return true;
 
             int status = 0;
-            if(WaitForStop(tid, status) != WaitResult::Stopped)
-                return true;
+            const WaitResult waited = WaitForStop(tid, status);
+            if(waited == WaitResult::TimedOut)
+            {
+                std::unique_lock lock(mProcessMutex);
+                thread->SetRunning(true);
+                return false;
+            }
+            if(waited != WaitResult::Stopped)
+                return false;
 
             inPtraceStop = true;
 
@@ -619,13 +627,19 @@ namespace ElfBug
     void Debugger::reportSignal(const pid_t tid, const int sig)
     {
         ptr faultAddr = 0;
+        bool groupStop = false;
         siginfo_t sigInfo;
+        errno = 0;
         if(ptrace(PTRACE_GETSIGINFO, tid, nullptr, &sigInfo) != -1)
             faultAddr = FaultAddress(sig, sigInfo);
+        else
+            groupStop = errno == EINVAL;
+
+        const int deliver = groupStop ? 0 : sig;
         if(mThread)
         {
             mThread->registers.Read();
-            mPendingSignal = sig;
+            mPendingSignal = deliver;
             abandonSingleStep(tid);
             cancelStepOverIfOwner(tid);
             if(const auto leaderExit = stopAllThreads(tid))
@@ -641,7 +655,7 @@ namespace ElfBug
         {
             cbException(sig, faultAddr);
             if(ptrace(PTRACE_CONT, tid, nullptr,
-                      reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
+                      reinterpret_cast<void*>(static_cast<uintptr_t>(deliver))) == -1)
             {
                 if(errno != ESRCH)
                     cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
@@ -1090,6 +1104,17 @@ namespace ElfBug
             }
 
             restoreSourceByte(tid);
+
+            if(mProcess && !stepOverHit)
+            {
+                siginfo_t trapInfo{};
+                if(ptrace(PTRACE_GETSIGINFO, tid, nullptr, &trapInfo) != -1 &&
+                        trapInfo.si_code == SI_KERNEL)
+                {
+                    reportSignal(tid, SIGTRAP);
+                    break;
+                }
+            }
 
             continueUnlessSuspended(tid);
             break;

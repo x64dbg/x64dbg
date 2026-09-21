@@ -73,6 +73,12 @@ namespace ElfBug
         if(!mProcess)
             return;
 
+        {
+            std::shared_lock lock(mProcessMutex);
+            if(mProcess->threads.count(tid) == 0)
+                return;
+        }
+
         // Settle the dead thread's re-arm here or the breakpoint stays disarmed forever.
         if(mStepOver.active && mStepOver.tid == tid)
             cancelStepOver(tid);

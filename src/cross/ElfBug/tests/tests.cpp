@@ -529,6 +529,35 @@ TEST_CASE("SIGSEGV pauses and forwards on continue", "[exception]")
     REQUIRE(exit_ev.exitCode == -SIGSEGV);
 }
 
+// An int3 the program wrote itself belongs to the program: reporting it without delivering it
+// makes the debuggee take a path it would not take untraced.
+TEST_CASE("A trap the program raised itself is reported and still delivered", "[exception]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("int3_target");
+    REQUIRE(dbg.Init(path.c_str()));
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    dbg.Continue();
+
+    dbg.WaitForException(SIGTRAP);
+
+    const auto handled = ResolveRuntimeAddress(path, dbg.process()->pid, "i3_handled");
+    REQUIRE(handled);
+    uint32_t before = 1;
+    REQUIRE(dbg.process()->MemRead(*handled, &before, sizeof(before)));
+    REQUIRE(before == 0);
+
+    dbg.Continue();
+    const auto exit_ev = dbg.WaitForExit();
+    dbg.JoinThread();
+
+    // The target exits 1 if its handler never ran, so this is the delivery assertion.
+    REQUIRE(exit_ev.exitCode == 0);
+    REQUIRE(dbg.count(EventType::InternalError) == 0);
+}
+
 TEST_CASE("Step fires cbStep on single instruction", "[step]")
 {
     using namespace ElfBug::test;

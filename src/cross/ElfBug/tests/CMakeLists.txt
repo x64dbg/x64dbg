@@ -94,6 +94,7 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_hello_elfbug
     elfbug_fixture_run_endlessly
     elfbug_fixture_segfault
+    elfbug_fixture_int3_target
     elfbug_fixture_multi_threaded
     elfbug_fixture_step_over_targets
     elfbug_fixture_exec_target
@@ -205,6 +206,39 @@ set_target_properties(elfbug_fixture_hello_elfbug PROPERTIES
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_hello_elfbug)
+endif()
+
+# Target: elfbug_fixture_int3_target
+set(elfbug_fixture_int3_target_SOURCES
+	cmake.toml
+	"targets/int3_target.cpp"
+)
+
+add_executable(elfbug_fixture_int3_target)
+
+target_sources(elfbug_fixture_int3_target PRIVATE ${elfbug_fixture_int3_target_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_int3_target_SOURCES})
+
+target_compile_options(elfbug_fixture_int3_target PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_int3_target PRIVATE
+	-pie
+)
+
+set_target_properties(elfbug_fixture_int3_target PROPERTIES
+	OUTPUT_NAME
+		int3_target
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_int3_target)
 endif()
 
 # Target: elfbug_fixture_segfault

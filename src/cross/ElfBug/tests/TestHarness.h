@@ -11,6 +11,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <sys/prctl.h>
 #include <sys/wait.h>
 #include <thread>
 #include <unistd.h>
@@ -351,9 +352,14 @@ namespace ElfBug::test
     public:
         explicit UntracedProcess(const std::string & path)
         {
+            const pid_t parent = getpid();
             pid = fork();
             if(pid == 0)
             {
+                prctl(PR_SET_PDEATHSIG, SIGKILL);
+                // The parent may already have died above, before the signal was armed.
+                if(getppid() != parent)
+                    _exit(127);
                 execl(path.c_str(), path.c_str(), nullptr);
                 _exit(127);
             }

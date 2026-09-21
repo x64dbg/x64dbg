@@ -55,8 +55,9 @@ namespace ElfBug
                     childError("chdir failed");
             }
 
-            if(personality(ADDR_NO_RANDOMIZE) == -1)
-                childError("personality(ADDR_NO_RANDOMIZE) failed");
+            const int persona = personality(0xffffffff);
+            if(persona != -1)
+                (void)personality(static_cast<unsigned long>(persona) | ADDR_NO_RANDOMIZE);
 
             if(ptrace(PTRACE_TRACEME, 0, nullptr, nullptr) == -1)
                 childError("PTRACE_TRACEME failed");
@@ -131,7 +132,7 @@ namespace ElfBug
             return false;
         }
 
-        if(ptrace(PTRACE_SETOPTIONS, mainPid, nullptr, kPtraceOptions) == -1)
+        if(ptrace(PTRACE_SETOPTIONS, mainPid, nullptr, kLaunchPtraceOptions) == -1)
         {
             cbInternalError("PTRACE_SETOPTIONS failed: " + std::string(strerror(errno)));
             return false;

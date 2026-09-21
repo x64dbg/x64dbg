@@ -35,6 +35,7 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_hello_elfbug
     elfbug_fixture_run_endlessly
     elfbug_fixture_segfault
+    elfbug_fixture_int3_target
     elfbug_fixture_multi_threaded
     elfbug_fixture_step_over_targets
     elfbug_fixture_exec_target
@@ -71,6 +72,12 @@ properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
 type = "elfbug_fixture"
 sources = ["targets/hello_elfbug.cpp"]
 properties.OUTPUT_NAME = "hello_elfbug"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_int3_target]
+type = "elfbug_fixture"
+sources = ["targets/int3_target.cpp"]
+properties.OUTPUT_NAME = "int3_target"
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
 
 [target.elfbug_fixture_segfault]

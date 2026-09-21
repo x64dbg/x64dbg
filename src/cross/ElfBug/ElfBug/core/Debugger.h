@@ -24,8 +24,9 @@ namespace ElfBug
         PTRACE_O_TRACESYSGOOD |
         PTRACE_O_TRACECLONE |
         PTRACE_O_TRACEEXEC |
-        PTRACE_O_TRACEEXIT |
-        PTRACE_O_EXITKILL;
+        PTRACE_O_TRACEEXIT;
+
+    constexpr long kLaunchPtraceOptions = kPtraceOptions | PTRACE_O_EXITKILL;
 
     constexpr auto kPollInterval = std::chrono::milliseconds(1);
     constexpr auto kStopWaitTimeout = std::chrono::milliseconds(250);
