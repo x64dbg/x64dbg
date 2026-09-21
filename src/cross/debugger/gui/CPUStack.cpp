@@ -1,17 +1,15 @@
-#include "CPUStack.h"
+#include "gui/CPUStack.h"
 
-#include <vector>
-
+#include <Configuration.h>
+#include <Disassembler/QZydis.h>
+#include <Gui/WordEditDialog.h>
+#include <Memory/MemoryPage.h>
 #include <QAction>
 #include <QContextMenuEvent>
 #include <QMenu>
 #include <QPainter>
-
-#include <Disassembler/QZydis.h>
-#include <Gui/WordEditDialog.h>
-#include <Memory/MemoryPage.h>
-#include "Configuration.h"
-#include "StringUtil.h"
+#include <StringUtil.h>
+#include <vector>
 
 CPUStack::CPUStack(Architecture* architecture, DbgAdapter* adapter, QWidget* parent)
     : HexDump(architecture, parent)

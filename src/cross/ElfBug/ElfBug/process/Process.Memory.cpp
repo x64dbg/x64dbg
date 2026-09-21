@@ -78,7 +78,6 @@ namespace ElfBug
         std::unique_lock lock(mBreakpointMutex);
         if(mSoftwareBreakpointReferences.empty())
         {
-            // Still under the lock
             return MemWriteRaw(address, buffer, size, bytesWritten);
         }
 
@@ -138,7 +137,7 @@ namespace ElfBug
         return MemRead(address, &byte, 1);
     }
 
-    bool Process::MemProtect(ptr address, ptr size, uint32 newProtect, const uint32* oldProtect)
+    bool Process::MemProtect(const ptr address, const ptr size, const uint32 newProtect, const uint32* oldProtect)
     {
         // TODO: implement via ptrace or /proc/pid/mem mprotect
         (void)address;

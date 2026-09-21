@@ -146,7 +146,7 @@ namespace ElfBug::test
             mOnAttachBreakpoint = std::move(fn);
         }
 
-        // /proc/<pid>/stat state char: R/S = scheduled, t/T = ptrace-stopped.
+        // /proc stat state char: R or S. A stopped or dying process reads as neither.
         bool WaitForRunning(const std::chrono::milliseconds timeout = std::chrono::seconds(5)) const
         {
             const pid_t pid = mProcess ? mProcess->pid : 0;

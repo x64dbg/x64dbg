@@ -1,6 +1,8 @@
-#include "AttachDialog.h"
+#include "gui/AttachDialog.h"
 
 #include <BasicView/StdSearchListView.h>
+#include <Configuration.h>
+#include <MiscUtil.h>
 #include <QAction>
 #include <QHBoxLayout>
 #include <QMessageBox>
@@ -9,8 +11,6 @@
 #include <unistd.h>
 #include <vector>
 
-#include "Configuration.h"
-#include "MiscUtil.h"
 #include "core/DbgAdapter.h"
 
 AttachDialog::AttachDialog(QWidget* parent)
@@ -22,7 +22,7 @@ AttachDialog::AttachDialog(QWidget* parent)
 
     mRefreshAction = new QAction(tr("Refresh"), this);
     mRefreshAction->setShortcut(ConfigShortcut("ActionRefresh"));
-    connect(mRefreshAction, &QAction::triggered, this, &AttachDialog::refresh);
+    connect(mRefreshAction, &QAction::triggered, this, &AttachDialog::onRefresh);
     addAction(mRefreshAction);
 
     mSearchListView = new StdSearchListView(this, false, false);
@@ -35,14 +35,14 @@ AttachDialog::AttachDialog(QWidget* parent)
     mSearchListView->addColumnAt(800, tr("Command Line Arguments"), true);
     mSearchListView->setDrawDebugOnly(false);
 
-    connect(mSearchListView, &SearchListView::enterPressedSignal, this, &AttachDialog::on_btnAttach_clicked);
+    connect(mSearchListView, &SearchListView::enterPressedSignal, this, &AttachDialog::onAttach);
 
     const auto refreshButton = new QPushButton(tr("Refresh") + QStringLiteral(" (%1)").arg(mRefreshAction->shortcut().toString()), this);
-    connect(refreshButton, &QPushButton::clicked, this, &AttachDialog::refresh);
+    connect(refreshButton, &QPushButton::clicked, this, &AttachDialog::onRefresh);
 
     const auto attachButton = new QPushButton(tr("&Attach"), this);
     attachButton->setDefault(true);
-    connect(attachButton, &QPushButton::clicked, this, &AttachDialog::on_btnAttach_clicked);
+    connect(attachButton, &QPushButton::clicked, this, &AttachDialog::onAttach);
 
     const auto cancelButton = new QPushButton(tr("&Cancel"), this);
     connect(cancelButton, &QPushButton::clicked, this, &QDialog::reject);
@@ -59,7 +59,7 @@ AttachDialog::AttachDialog(QWidget* parent)
 
     Config()->loadWindowGeometry(this);
 
-    refresh();
+    onRefresh();
 }
 
 AttachDialog::~AttachDialog()
@@ -67,13 +67,11 @@ AttachDialog::~AttachDialog()
     Config()->saveWindowGeometry(this);
 }
 
-void AttachDialog::refresh()
+void AttachDialog::onRefresh()
 {
     const auto processes = DbgAdapter::enumProcesses();
     const pid_t self = getpid();
 
-    // Filled in place: an entry is a kilobyte, and copying the list to drop one row cost
-    // more than the rest of the refresh.
     mSearchListView->setRowCount(processes.size());
     duint row = 0;
     for(const auto & p : processes)
@@ -110,7 +108,7 @@ void AttachDialog::refresh()
     mSearchListView->refreshSearchList();
 }
 
-void AttachDialog::on_btnAttach_clicked()
+void AttachDialog::onAttach()
 {
     if(!mSearchListView->mCurList->getRowCount())
         return;

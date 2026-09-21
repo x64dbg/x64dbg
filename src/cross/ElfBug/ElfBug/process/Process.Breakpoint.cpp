@@ -10,19 +10,18 @@ namespace ElfBug
         return &it->second->second;
     }
 
-    // ptrace pokes only work while the leader is the stopped task, so go through memory.
     bool Process::pokeByte(const ptr address, const uint8 byte)
     {
         return MemWriteRaw(address, &byte, 1);
     }
 
-    bool Process::SetBreakpoint(const ptr address, bool singleshot, const SoftwareType type)
+    bool Process::SetBreakpoint(const ptr address, const bool singleshot, const SoftwareType type)
     {
         std::unique_lock lock(mBreakpointMutex);
         return setBreakpointLocked(address, singleshot, type);
     }
 
-    bool Process::setBreakpointLocked(const ptr address, bool singleshot, const SoftwareType type)
+    bool Process::setBreakpointLocked(const ptr address, const bool singleshot, const SoftwareType type)
     {
         BreakpointKey key{BreakpointType::Software, address};
         if(mBreakpoints.count(key))
@@ -51,7 +50,7 @@ namespace ElfBug
         return true;
     }
 
-    bool Process::SetBreakpoint(const ptr address, const BreakpointCallback & cbBreakpoint, bool singleshot, const SoftwareType type)
+    bool Process::SetBreakpoint(const ptr address, const BreakpointCallback & cbBreakpoint, const bool singleshot, const SoftwareType type)
     {
         std::unique_lock lock(mBreakpointMutex);
         if(!setBreakpointLocked(address, singleshot, type))
@@ -188,7 +187,7 @@ namespace ElfBug
         return mBreakpointCallbacks.find(key) != mBreakpointCallbacks.end();
     }
 
-    bool Process::SetMemoryBreakpoint(const ptr address, const ptr size, const MemoryType type, bool singleshot)
+    bool Process::SetMemoryBreakpoint(const ptr address, const ptr size, const MemoryType type, const bool singleshot)
     {
         (void)address;
         (void)size;
@@ -197,7 +196,7 @@ namespace ElfBug
         return false;
     }
 
-    bool Process::SetMemoryBreakpoint(const ptr address, const ptr size, const BreakpointCallback & cbBreakpoint, const MemoryType type, bool singleshot)
+    bool Process::SetMemoryBreakpoint(const ptr address, const ptr size, const BreakpointCallback & cbBreakpoint, const MemoryType type, const bool singleshot)
     {
         (void)address;
         (void)size;

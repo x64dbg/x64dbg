@@ -1,28 +1,33 @@
 #include "gui/MainWindow.h"
-#include <QMenuBar>
+
+#include <Memory/MemoryPage.h>
 #include <QCheckBox>
-#include <QMessageBox>
+#include <QCloseEvent>
+#include <QCoreApplication>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
+#include <QLabel>
+#include <QMenuBar>
+#include <QMessageBox>
 #include <QSplitter>
 #include <QStatusBar>
-#include <QToolBar>
-#include <QLabel>
 #include <QThread>
-#include <QCloseEvent>
-#include <QCoreApplication>
-#include <Memory/MemoryPage.h>
+#include <QToolBar>
+
 #include "core/LinuxArchitecture.h"
 #include "gui/AttachDialog.h"
 #include "gui/CPUStack.h"
 #include "gui/ThreadView.h"
 
-static LinuxArchitecture gArch;
-
-static QIcon icon(const char* name)
+namespace
 {
-    return QIcon(QString(":/Default/icons/%1.png").arg(name));
+    LinuxArchitecture gArch;
+
+    QIcon icon(const char* name)
+    {
+        return QIcon(QString(":/Default/icons/%1.png").arg(name));
+    }
 }
 
 MainWindow::MainWindow(QWidget* parent)
@@ -105,9 +110,6 @@ void MainWindow::closeEvent(QCloseEvent* event)
     QMainWindow::closeEvent(event);
 }
 
-// A new session ends the live one. Windows asks first and offers to detach instead of
-// terminating (AttachDialog::attachToProcess), and the choice is remembered in the same
-// two settings, so the behaviour matches once a command layer wires cbDebugAttach up.
 bool MainWindow::endCurrentSession()
 {
     if(!mDebugThread)
@@ -159,8 +161,6 @@ void MainWindow::stopDebugThread()
     if(!mDebugThread)
         return;
 
-    // Continue() breaks any pause spin-loop in the debug thread so
-    // Stop()'s SIGKILL can be reaped by waitpid and the loop exits.
     mProvider->run();
     (void)mProvider->stop();
     finishDebugThread();
@@ -171,9 +171,7 @@ void MainWindow::detachDebugThread()
     if(!mDebugThread)
         return;
 
-    // Detach() services both a paused and a running loop, so no Continue() here:
-    // resuming first would let the debuggee run on with our breakpoints still armed.
-    mProvider->detach();
+    (void)mProvider->detach();
     finishDebugThread();
 }
 
@@ -194,7 +192,6 @@ void MainWindow::finishDebugThread()
 
     QCoreApplication::sendPostedEvents(nullptr, QEvent::MetaCall);
 
-    // A session that never emitted sessionEnded queues nothing to drain.
     DbgSetMemoryProvider(nullptr);
     clearDebuggeeViews();
 }
@@ -277,7 +274,7 @@ QWidget* MainWindow::createCpuTab()
     mHexDump->setAccessibleName(tr("Dump"));
     mStack = new CPUStack(&gArch, mProvider, this);
     mStack->setAccessibleName(tr("Stack"));
-    mRegisters = new RegistersView(this); // Sets its accessible name internally.
+    mRegisters = new RegistersView(this);
 
     {
         const int charwidth = mHexDump->getCharWidth();
@@ -307,7 +304,6 @@ QWidget* MainWindow::createCpuTab()
         mHexDump->appendDescriptor(0, "", false, wColDesc);
     }
 
-    // Allow all widgets to be freely resized by splitters
     mDisassembly->setMinimumHeight(0);
     mHexDump->setMinimumHeight(0);
     mStack->setMinimumHeight(0);
@@ -398,7 +394,6 @@ void MainWindow::onAttach()
 
     DbgSetMemoryProvider(mProvider);
 
-    // The attach runs on the debug thread, so its failure arrives as an error callback.
     mSessionStartPending = true;
     mAttachedSession = true;
 
@@ -453,8 +448,6 @@ void MainWindow::onProcessDetached()
     statusBar()->showMessage(tr("Detached"));
 }
 
-// The session is over however it ended. Leaving the provider installed keeps
-// DbgIsDebugging() true, and the views act on a process that is gone.
 void MainWindow::onSessionEnded()
 {
     DbgSetMemoryProvider(nullptr);
@@ -467,14 +460,10 @@ void MainWindow::clearDebuggeeViews()
     mHexDump->reloadData();
     constexpr REGDUMP emptyDump{};
     mRegisters->setRegisters(&emptyDump);
-    // These two subscribe to sessionEnded themselves, but queued, and this runs on the
-    // path where that signal is never delivered.
     mStack->onSessionEnded();
     mThreadView->onSessionEnded();
 }
 
-// A session that never starts reports only through this callback, and the log pane is
-// not the tab the user is looking at when they asked for one.
 void MainWindow::onEngineError(const QString & error)
 {
     if(!mSessionStartPending)

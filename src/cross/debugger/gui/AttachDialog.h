@@ -17,8 +17,8 @@ public:
     [[nodiscard]] pid_t selectedPid() const { return mSelectedPid; }
 
 private slots:
-    void refresh();
-    void on_btnAttach_clicked();
+    void onRefresh();
+    void onAttach();
 
 private:
     enum

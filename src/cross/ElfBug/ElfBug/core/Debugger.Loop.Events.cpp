@@ -3,7 +3,7 @@
 
 namespace ElfBug
 {
-    void Debugger::createProcessEvent(pid_t pid, const Arch arch)
+    void Debugger::createProcessEvent(const pid_t pid, const Arch arch)
     {
         auto [it, inserted] = mProcesses.try_emplace(pid, pid);
 
@@ -40,7 +40,7 @@ namespace ElfBug
             mMainPid.store(0, std::memory_order_release);
         }
     }
-    void Debugger::createThreadEvent(pid_t tid)
+    void Debugger::createThreadEvent(const pid_t tid)
     {
         if(!mProcess)
             return;
@@ -61,7 +61,7 @@ namespace ElfBug
             const auto result = mProcess->threads.emplace(tid, std::make_unique<Thread>(tid));
             inserted = result.second;
             if(alreadyRunning)
-                result.first->second->setRunning(true);
+                result.first->second->SetRunning(true);
         }
 
         if(inserted)

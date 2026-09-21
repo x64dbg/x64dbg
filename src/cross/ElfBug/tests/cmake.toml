@@ -17,6 +17,7 @@ sources = ["tests.cpp", "api_c_compat.c"]
 headers = [
     "TestHarness.h",
     "SymbolHelper.h",
+    "targets/TargetUtil.h",
 ]
 link-libraries = ["ElfBug", "Catch2::Catch2WithMain"]
 compile-features = ["cxx_std_20", "c_std_11"]

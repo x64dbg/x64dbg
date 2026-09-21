@@ -2,7 +2,7 @@
 // sweep runs with the leader already dying.
 #include <pthread.h>
 #include <unistd.h>
-#include <ctime>
+#include "TargetUtil.h"
 
 extern "C"
 {
@@ -18,16 +18,10 @@ extern "C" void er_hot()
 
 namespace
 {
-    void nap()
-    {
-        timespec ts{0, 100000};
-        nanosleep(&ts, nullptr);
-    }
-
     void* exiter(void*)
     {
         while(er_exit_now == 0)
-            nap();
+            nap(100000);
         _exit(7);
         return nullptr;
     }
@@ -48,6 +42,6 @@ int main()
         pthread_create(&threads[i], nullptr, spinner, nullptr);
 
     for(;;)
-        nap();
+        nap(100000);
     return 0;
 }

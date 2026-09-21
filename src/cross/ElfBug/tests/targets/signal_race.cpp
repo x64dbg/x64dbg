@@ -1,10 +1,9 @@
-// Two spinners hot-loop through a breakpoint site, so every hit sweeps the others, while
-// a third thread raises a signal at itself in a tight loop. Whichever raise the sweep
-// absorbs instead of the main loop is the case under test.
+// Two spinners hot-loop through a breakpoint site while a third raises a signal at
+// itself. Whichever raise the sweep absorbs instead of the main loop is the case.
 #include <pthread.h>
 #include <csignal>
-#include <ctime>
 #include <unistd.h>
+#include "TargetUtil.h"
 
 extern "C"
 {
@@ -31,18 +30,12 @@ namespace
         sr_handled = sr_handled + 1;
     }
 
-    void nap()
-    {
-        constexpr timespec ts{0, 100000};
-        nanosleep(&ts, nullptr);
-    }
-
     // raise() returns only after the handler ran, or at once if the debugger suppressed
     // the signal, so sr_raised counts attempts and sr_handled counts deliveries.
     void* raiser(void*)
     {
         while(sr_go == 0)
-            nap();
+            nap(100000);
         while(sr_raised < sr_quota)
         {
             raise(sr_signal);
@@ -50,7 +43,7 @@ namespace
         }
         sr_done = 1;
         for(;;)
-            nap();
+            nap(100000);
         return nullptr;
     }
 
@@ -78,6 +71,6 @@ int main()
     pthread_create(&threads[2], nullptr, raiser, nullptr);
 
     for(;;)
-        nap();
+        nap(100000);
     return 0;
 }

@@ -1,7 +1,7 @@
 #include <ElfBug/process/ProcessArch.h>
+#include <elf.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <elf.h>
 #include <cerrno>
 #include <cstdint>
 #include <cstdio>

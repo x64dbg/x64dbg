@@ -1,8 +1,8 @@
 #pragma once
 
+#include <BasicView/HexDump.h>
 #include <memory>
 
-#include <BasicView/HexDump.h>
 #include "core/DbgAdapter.h"
 
 class QMenu;

@@ -1,12 +1,13 @@
 #pragma once
 
+#include <BasicView/Disassembly.h>
+#include <BasicView/HexDump.h>
+#include <Gui/RegistersView.h>
 #include <QMainWindow>
 #include <QTabWidget>
 #include <QTextBrowser>
-#include <BasicView/Disassembly.h>
-#include <BasicView/HexDump.h>
+
 #include "core/DbgAdapter.h"
-#include "Gui/RegistersView.h"
 
 class QThread;
 class CPUStack;
@@ -42,8 +43,6 @@ private slots:
 
 private:
     bool endCurrentSession();
-    // Terminating a process we only attached to is not ours to do by default.
-    bool mAttachedSession = false;
     void stopDebugThread();
     void detachDebugThread();
     void finishDebugThread();
@@ -62,4 +61,6 @@ private:
     RegistersView* mRegisters = nullptr;
     QTextBrowser* mLog = nullptr;
     bool mSessionStartPending = false;
+    // Terminating a process we only attached to is not ours to do by default.
+    bool mAttachedSession = false;
 };

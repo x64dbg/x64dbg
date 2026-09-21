@@ -64,7 +64,6 @@ namespace ElfBug
         const StepOverKind kind = mProcess->ClassifyStepOverAt(rip, target);
         if(kind == StepOverKind::None || kind == StepOverKind::Pushf)
         {
-            // Plain step: lift the breakpoint under RIP, restored when the step traps.
             if(mProcess->DisarmBreakpointByte(rip))
                 mSourceRearms[tid] = rip;
             return StepOverArm::SingleStep;
@@ -96,13 +95,9 @@ namespace ElfBug
         {
             if(kind == StepOverKind::Rep)
             {
-                // A single step runs one iteration and leaves RIP on the instruction, so
-                // the byte stays lifted until the whole loop is done.
                 if(mProcess->DisarmBreakpointByte(rip))
                     mSourceRearms[tid] = rip;
             }
-            // Step off the call now so its breakpoint is armed again while the callee
-            // runs, for this thread's deeper frames and for every other thread.
             else
             {
                 switch(stepPastBreakpointByte(tid, rip))

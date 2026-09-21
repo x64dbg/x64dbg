@@ -1,53 +1,55 @@
-#include "ThreadView.h"
+#include "gui/ThreadView.h"
 
+#include <Configuration.h>
+#include <MiscUtil.h>
 #include <QAction>
 #include <QDateTime>
 #include <QLocale>
 #include <QMenu>
 #include <QPainter>
+#include <StringUtil.h>
 #include <sched.h>
 
-#include "Configuration.h"
-#include "MiscUtil.h"
-#include "StringUtil.h"
-
-static QString formatDuration(const uint64_t ms)
+namespace
 {
-    const uint64_t days = ms / (1000ull * 60 * 60 * 24);
-    const QTime time = QTime::fromMSecsSinceStartOfDay(static_cast<int>(ms % (1000ull * 60 * 60 * 24)));
-    const QString clock = time.toString(QStringLiteral("HH:mm:ss.zzz"));
-    return days ? QStringLiteral("%1:%2").arg(days).arg(clock) : clock;
-}
-
-static QString formatCreationTime(const uint64_t ms)
-{
-    if(ms == 0)
-        return QString();
-    const QDateTime when = QDateTime::fromMSecsSinceEpoch(static_cast<qint64>(ms));
-    const QString clock = when.time().toString(QStringLiteral("HH:mm:ss.zzz"));
-    if(when.date() == QDate::currentDate())
-        return clock;
-    return QLocale().toString(when.date(), QLocale::ShortFormat) + ' ' + clock;
-}
-
-static QString formatPriority(const DbgThreadInfo & t)
-{
-    switch(t.policy)
+    QString formatDuration(const uint64_t ms)
     {
-    case SCHED_OTHER:
-        return t.nice == 0 ? ThreadView::tr("Normal") : ThreadView::tr("Nice %1").arg(t.nice);
-    case SCHED_BATCH:
-        return ThreadView::tr("Batch");
-    case SCHED_IDLE:
-        return ThreadView::tr("Idle");
-    case SCHED_FIFO:
-        return ThreadView::tr("FIFO %1").arg(t.rtPriority);
-    case SCHED_RR:
-        return ThreadView::tr("RR %1").arg(t.rtPriority);
-    case 6:
-        return ThreadView::tr("Deadline");
-    default:
-        return ThreadView::tr("Unknown");
+        const uint64_t days = ms / (1000ull * 60 * 60 * 24);
+        const QTime time = QTime::fromMSecsSinceStartOfDay(static_cast<int>(ms % (1000ull * 60 * 60 * 24)));
+        const QString clock = time.toString(QStringLiteral("HH:mm:ss.zzz"));
+        return days ? QStringLiteral("%1:%2").arg(days).arg(clock) : clock;
+    }
+
+    QString formatCreationTime(const uint64_t ms)
+    {
+        if(ms == 0)
+            return QString();
+        const QDateTime when = QDateTime::fromMSecsSinceEpoch(static_cast<qint64>(ms));
+        const QString clock = when.time().toString(QStringLiteral("HH:mm:ss.zzz"));
+        if(when.date() == QDate::currentDate())
+            return clock;
+        return QLocale().toString(when.date(), QLocale::ShortFormat) + ' ' + clock;
+    }
+
+    QString formatPriority(const DbgThreadInfo & t)
+    {
+        switch(t.policy)
+        {
+        case SCHED_OTHER:
+            return t.nice == 0 ? ThreadView::tr("Normal") : ThreadView::tr("Nice %1").arg(t.nice);
+        case SCHED_BATCH:
+            return ThreadView::tr("Batch");
+        case SCHED_IDLE:
+            return ThreadView::tr("Idle");
+        case SCHED_FIFO:
+            return ThreadView::tr("FIFO %1").arg(t.rtPriority);
+        case SCHED_RR:
+            return ThreadView::tr("RR %1").arg(t.rtPriority);
+        case 6:
+            return ThreadView::tr("Deadline");
+        default:
+            return ThreadView::tr("Unknown");
+        }
     }
 }
 
@@ -74,20 +76,20 @@ ThreadView::ThreadView(DbgAdapter* adapter, QWidget* parent)
 
     connect(mAdapter, &DbgAdapter::threadsUpdated, this, &ThreadView::onThreadsUpdated, Qt::QueuedConnection);
     connect(mAdapter, &DbgAdapter::sessionEnded, this, &ThreadView::onSessionEnded, Qt::QueuedConnection);
-    connect(this, &AbstractStdTable::doubleClickedSignal, this, &ThreadView::switchThreadSlot);
-    connect(this, &AbstractStdTable::contextMenuSignal, this, &ThreadView::contextMenuSlot);
+    connect(this, &AbstractStdTable::doubleClickedSignal, this, &ThreadView::onSwitchThread);
+    connect(this, &AbstractStdTable::contextMenuSignal, this, &ThreadView::onContextMenu);
 }
 
 void ThreadView::setupContextMenu()
 {
     mContextMenu = new QMenu(this);
-    mSwitchAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-switch.png")), tr("Switch Thread"), this, &ThreadView::switchThreadSlot);
-    mSuspendAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-pause.png")), tr("Suspend Thread"), this, &ThreadView::suspendThreadSlot);
-    mResumeAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-resume.png")), tr("Resume Thread"), this, &ThreadView::resumeThreadSlot);
-    mSuspendAllAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-pause.png")), tr("Suspend All Threads"), this, &ThreadView::suspendAllSlot);
-    mResumeAllAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-resume.png")), tr("Resume All Threads"), this, &ThreadView::resumeAllSlot);
+    mSwitchAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-switch.png")), tr("Switch Thread"), this, &ThreadView::onSwitchThread);
+    mSuspendAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-pause.png")), tr("Suspend Thread"), this, &ThreadView::onSuspendThread);
+    mResumeAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-resume.png")), tr("Resume Thread"), this, &ThreadView::onResumeThread);
+    mSuspendAllAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-pause.png")), tr("Suspend All Threads"), this, &ThreadView::onSuspendAll);
+    mResumeAllAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-resume.png")), tr("Resume All Threads"), this, &ThreadView::onResumeAll);
     mContextMenu->addSeparator();
-    mSetNameAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-setname.png")), tr("Set Name"), this, &ThreadView::setNameSlot);
+    mSetNameAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-setname.png")), tr("Set Name"), this, &ThreadView::onSetName);
     mContextMenu->addSeparator();
     QMenu* copyMenu = new QMenu(tr("&Copy"), mContextMenu);
     setupCopyMenu(copyMenu);
@@ -137,7 +139,7 @@ void ThreadView::onSessionEnded()
     reloadData();
 }
 
-void ThreadView::switchThreadSlot()
+void ThreadView::onSwitchThread()
 {
     if(!getRowCount() || !mAdapter->isActive())
         return;
@@ -147,7 +149,7 @@ void ThreadView::switchThreadSlot()
     mAdapter->switchThread(tid);
 }
 
-void ThreadView::setNameSlot()
+void ThreadView::onSetName()
 {
     if(!getRowCount() || !mAdapter->isActive())
         return;
@@ -175,29 +177,29 @@ void ThreadView::setSelectedSuspended(const bool suspended)
     }
 }
 
-void ThreadView::suspendThreadSlot()
+void ThreadView::onSuspendThread()
 {
     setSelectedSuspended(true);
 }
 
-void ThreadView::resumeThreadSlot()
+void ThreadView::onResumeThread()
 {
     setSelectedSuspended(false);
 }
 
-void ThreadView::suspendAllSlot()
+void ThreadView::onSuspendAll()
 {
     if(mAdapter->isActive())
         mAdapter->setAllThreadsSuspended(true);
 }
 
-void ThreadView::resumeAllSlot()
+void ThreadView::onResumeAll()
 {
     if(mAdapter->isActive())
         mAdapter->setAllThreadsSuspended(false);
 }
 
-void ThreadView::contextMenuSlot(const QPoint & pos) const
+void ThreadView::onContextMenu(const QPoint & pos) const
 {
     if(!getRowCount())
         return;

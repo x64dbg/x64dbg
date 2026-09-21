@@ -47,6 +47,7 @@ set(ElfBug_tests_SOURCES
 	TestHarness.h
 	api_c_compat.c
 	cmake.toml
+	"targets/TargetUtil.h"
 	tests.cpp
 )
 

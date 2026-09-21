@@ -9,7 +9,7 @@ namespace ElfBug
     {
     }
 
-    bool Thread::stepInto(const int signal)
+    bool Thread::StepInto(const int signal)
     {
         if(ptrace(PTRACE_SINGLESTEP, tid, nullptr,
                   reinterpret_cast<void*>(static_cast<uintptr_t>(signal))) == -1)

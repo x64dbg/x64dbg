@@ -1,6 +1,6 @@
 // A multithreaded target for exercising the attach sweep against real, running threads.
 #include <pthread.h>
-#include <ctime>
+#include "TargetUtil.h"
 
 extern "C"
 {
@@ -9,12 +9,6 @@ extern "C"
 
 namespace
 {
-    void nap(const long nanos)
-    {
-        timespec ts{0, nanos};
-        nanosleep(&ts, nullptr);
-    }
-
     void* worker(void*)
     {
         while(tst_stop == 0)

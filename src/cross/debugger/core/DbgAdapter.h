@@ -1,13 +1,13 @@
 #pragma once
 
+#include <Bridge.h>
+#include <ElfBug/api/elfbug_api.h>
+#include <QHash>
+#include <QVector>
+#include <RegisterContext.h>
 #include <atomic>
 #include <mutex>
 #include <vector>
-#include <QHash>
-#include <QVector>
-#include <ElfBug/api/elfbug_api.h>
-#include "RegisterContext.h"
-#include "Bridge.h"
 
 Q_DECLARE_METATYPE(REGDUMP)
 
@@ -50,7 +50,7 @@ public:
     bool loadEngine();
     bool launch(const char* path);
     bool attach(pid_t pid);
-    void detach();
+    bool detach();
     [[nodiscard]] static std::vector<ElfBugProcessInfo> enumProcesses();
     void start();
     void run();
@@ -108,7 +108,6 @@ private:
 
     [[nodiscard]] QString threadSuffix() const;
     [[nodiscard]] REGDUMP readRegisters() const;
-    [[nodiscard]] std::vector<ElfBugThreadInfo> readThreadList() const;
     void emitStoppedState(const QString & reason);
     void emitStoppedState(const QString & reason, const REGDUMP & dump);
 

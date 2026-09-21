@@ -181,7 +181,7 @@ namespace ElfBug
                 return;
             {
                 std::shared_lock processLock(mProcessMutex);
-                if(mThread && mThread->isSuspended())
+                if(mThread && mThread->IsSuspended())
                     return;
             }
             mStepPending.store(true, std::memory_order_release);
@@ -198,7 +198,7 @@ namespace ElfBug
                 return;
             {
                 std::shared_lock processLock(mProcessMutex);
-                if(mThread && mThread->isSuspended())
+                if(mThread && mThread->IsSuspended())
                     return;
             }
             mStepOverPending.store(true, std::memory_order_release);
@@ -217,7 +217,7 @@ namespace ElfBug
         if(!mProcess)
             return false;
         const auto it = mProcess->threads.find(tid);
-        if(it == mProcess->threads.end() || it->second->isRunning())
+        if(it == mProcess->threads.end() || it->second->IsRunning())
             return false;
         mThread = it->second.get();
         return true;
@@ -240,10 +240,10 @@ namespace ElfBug
 
         if(!suspended)
         {
-            it->second->resume();
-            if(!it->second->isSuspended())
-                it->second->setWaitReason({});
-            if(it->second->isSuspended() || mPaused.load(std::memory_order_acquire))
+            it->second->Resume();
+            if(!it->second->IsSuspended())
+                it->second->SetWaitReason({});
+            if(it->second->IsSuspended() || mPaused.load(std::memory_order_acquire))
                 return true;
 
             mPendingResume.insert(tid);
@@ -251,27 +251,27 @@ namespace ElfBug
             return true;
         }
 
-        if(!it->second->isRunning())
+        if(!it->second->IsRunning())
         {
-            it->second->suspend();
-            it->second->setWaitReason("Suspended");
+            it->second->Suspend();
+            it->second->SetWaitReason("Suspended");
             return true;
         }
 
-        it->second->suspend();
-        it->second->setWaitReason("Suspended");
+        it->second->Suspend();
+        it->second->SetWaitReason("Suspended");
         mPendingSuspend.insert(tid);
 
         if(tgkill(tgid, tid, SIGSTOP) == 0)
         {
-            it->second->setPendingSigstop(true);
+            it->second->SetPendingSigstop(true);
             return true;
         }
 
         mPendingSuspend.erase(tid);
-        it->second->resume();
-        if(!it->second->isSuspended())
-            it->second->setWaitReason({});
+        it->second->Resume();
+        if(!it->second->IsSuspended())
+            it->second->SetWaitReason({});
         return false;
     }
 
@@ -296,8 +296,6 @@ namespace ElfBug
 
     void Debugger::dispatchBreakpoint(const ptr address)
     {
-        // Both are copies: the callback may delete the breakpoint out from under us,
-        // and it must not run while the breakpoint lock is held.
         BreakpointInfo info;
         BreakpointCallback callback;
         if(!mProcess->TakeBreakpointDispatch(address, info, callback))
@@ -315,10 +313,8 @@ namespace ElfBug
     void Debugger::onExec()
     {
         if(mThread)
-            mThread->clearSingleStep();
+            mThread->ClearSingleStep();
 
-        // exec killed every other thread and replaced the image, so every entry is stale.
-        // A worker's exec is reported under the leader's tid, so the owner is not checked.
         mSourceRearms.clear();
         mUnregisteredRunning.clear();
 
@@ -327,16 +323,15 @@ namespace ElfBug
         if(mProcess)
         {
             std::unique_lock lock(mProcessMutex);
-            for(const auto & [tid, thread] : mProcess->threads)
+            for(const auto & entry : mProcess->threads)
             {
-                thread->clearPendingBreakpoint();
-                thread->clearPendingSignal();
+                entry.second->ClearPendingBreakpoint();
+                entry.second->ClearPendingSignal();
             }
         }
 
         if(mStepOver.active)
         {
-            // User breakpoints are left to the re-exec TODO in handleSigtrap.
             if(mStepOver.planted && mProcess)
                 mProcess->ForgetBreakpoint(mStepOver.target);
             mStepOver = {};
@@ -355,17 +350,17 @@ namespace ElfBug
         bool owed = false;
         for(const auto & [tid, thread] : mProcess->threads)
         {
-            if(tid == except || !thread->isRunning())
+            if(tid == except || !thread->IsRunning())
                 continue;
 
-            if(thread->pendingSigstop())
+            if(thread->PendingSigstop())
             {
                 owed = true;
                 continue;
             }
             if(tgkill(tgid, tid, SIGSTOP) == -1)
                 continue;
-            thread->setPendingSigstop(true);
+            thread->SetPendingSigstop(true);
             return true;
         }
         return owed;
@@ -411,21 +406,22 @@ namespace ElfBug
         return kill(pid, SIGKILL) == 0;
     }
 
-    void Debugger::Detach()
+    bool Debugger::Detach()
     {
         const pid_t pid = mMainPid.load(std::memory_order_acquire);
         if(pid <= 0)
         {
-            if(mIsRunning.load(std::memory_order_acquire))
-                mDetachRequested.store(true, std::memory_order_release);
-            return;
+            if(!mIsRunning.load(std::memory_order_acquire))
+                return false;
+            mDetachRequested.store(true, std::memory_order_release);
+            return true;
         }
 
         bool wasPaused = false;
         {
             std::lock_guard lock(mPauseMutex);
             if(mDetachRequested.load(std::memory_order_acquire))
-                return;
+                return false;
 
             wasPaused = mPaused.load(std::memory_order_acquire);
             if(!wasPaused)
@@ -438,6 +434,8 @@ namespace ElfBug
 
         if(wasPaused)
             mPauseCv.notify_one();
+
+        return true;
     }
 
     void Debugger::cbCreateProcess(const pid_t pid, const ptr entryPoint) { (void)pid; (void)entryPoint; }

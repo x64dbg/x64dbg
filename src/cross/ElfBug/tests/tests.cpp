@@ -4,6 +4,7 @@
 #include <ElfBug/process/StepOver.h>
 #include <ElfBug/process/ProcessList.h>
 #include <ElfBug/api/elfbug_api.h>
+#include "targets/TargetUtil.h"
 #include <condition_variable>
 #include <mutex>
 #include <string>
@@ -807,7 +808,6 @@ TEST_CASE("StepOver steps over a call", "[stepover]")
     // `call so_callee` is e8 rel32 == 5 bytes.
     REQUIRE(step.instructionPointer == *s.site + 5);
 
-    // Stepped over, not skipped: the callee really ran.
     std::int32_t ranAfter = -1;
     REQUIRE(dbg.process()->MemRead(*s.ranFlag, &ranAfter, sizeof(ranAfter)));
     REQUIRE(ranAfter == 1);
@@ -981,7 +981,6 @@ TEST_CASE("StepInto of pushfq does not leak the trap flag", "[step]")
     REQUIRE(dbg.process()->MemRead(rsp, &pushed, sizeof(pushed)));
     REQUIRE((pushed & (1ull << 8)) == 0);
 
-    // The breakpoint byte must be re-armed afterwards.
     REQUIRE(WaitForProcessByte(dbg.process(), *site, 0xCC));
 
     dbg.Continue();
@@ -1212,7 +1211,6 @@ TEST_CASE("StepOver re-arms the breakpoint it stepped off", "[stepover]")
     const auto step = dbg.WaitForStep();
     REQUIRE(step.instructionPointer == *site + 5);
 
-    // Completion must re-arm it.
     REQUIRE(dbg.process()->HasBreakpoint(*site));
     REQUIRE(WaitForProcessByte(dbg.process(), *site, 0xCC));
 
@@ -1607,7 +1605,6 @@ TEST_CASE("MemWrite over an armed breakpoint keeps the trap and retargets the re
     REQUIRE(r.site.has_value());
 
     REQUIRE(r.original[0] == 0xe8);
-    // The trap survives the write...
     REQUIRE(r.rawAfterWrite == 0xCC);
     // ...while readers see what was written, not the trap and not the stale original.
     REQUIRE(r.maskedAfterWrite == 0x90);
@@ -1808,9 +1805,8 @@ TEST_CASE("Step requests while running are ignored", "[control]")
     REQUIRE(dbg.count(EventType::Step) == 0);
 }
 
-// The call-site breakpoint is stepped off synchronously, so it is armed again while the
-// callee runs. Lifting it for the whole callee would hide it from the recursion and from
-// every other thread.
+// The call-site breakpoint is armed again while the callee runs. Lifting it for the
+// whole callee would hide it from the recursion and from every other thread.
 TEST_CASE("A breakpoint on the stepped call fires again for inner frames", "[stepover][breakpoint]")
 {
     using namespace ElfBug::test;
@@ -2021,9 +2017,8 @@ TEST_CASE("Killing the group leader during a pause always reports the process ex
         killer.join();
 
         CAPTURE(attempt);
-        // The sweep either saw the leader die, which ends the session there, or it
-        // completed on a group that is already gone and the pause it reports has to be
-        // resumed before the loop can reap.
+        // Either the sweep saw the leader die, ending the session, or it completed on a group
+        // already gone and its pause has to be resumed before the loop can reap.
         const auto first = dbg.WaitForAny({EventType::ExitProcess, EventType::Paused},
                                           std::chrono::seconds(10));
         if(first.type == EventType::Paused)
@@ -2349,10 +2344,8 @@ TEST_CASE("A step answering a fault reported mid-step-off keeps the other thread
     REQUIRE(dbg.count(EventType::InternalError) == 0);
 }
 
-// A thread that already reported PTRACE_EVENT_EXIT owes the sweep no stop, so treating it
-// as running costs a waitpid that never returns. Regressions hang this test, not fail it.
-// waitpid can report the new thread's own stops before the parent's clone event, so the
-// first thing the core hears from a thread may be its breakpoint hit.
+// A thread that reported PTRACE_EVENT_EXIT owes the sweep no stop, so treating it as
+// running costs a waitpid that never returns. A regression hangs this test.
 TEST_CASE("A breakpoint hit before the thread's clone event is still a breakpoint", "[multithread][breakpoint]")
 {
     using namespace ElfBug::test;
@@ -2384,7 +2377,7 @@ TEST_CASE("A breakpoint hit before the thread's clone event is still a breakpoin
     REQUIRE(last.type == EventType::ExitProcess);
     REQUIRE(last.exitCode == 0);
     REQUIRE(dbg.count(EventType::Exception) == 0);
-    REQUIRE(dbg.count(EventType::Breakpoint) == 64);
+    REQUIRE(dbg.count(EventType::Breakpoint) == 2 * kCloneTrapRounds);
     REQUIRE(dbg.count(EventType::InternalError) == 0);
 }
 
@@ -2711,7 +2704,6 @@ namespace
         std::vector<pid_t> workers;
         ElfBug::ptr counters = 0;
 
-        // Starts threads_spin, waits for its four workers, and pauses the process.
         SpinSession()
             : path(FIXTURE("threads_spin"))
         {
@@ -2744,7 +2736,6 @@ namespace
             return slots[0] + slots[1] + slots[2] + slots[3];
         }
 
-        // Runs the process for a moment and pauses it again.
         void RunBriefly()
         {
             dbg.Continue();
@@ -2832,9 +2823,8 @@ TEST_CASE("A suspend landing on a queued step drops the step and reports a pause
     REQUIRE(s.dbg.SwitchThread(worker));
     const ElfBug::Thread* thread = s.dbg.process()->threads.at(worker).get();
 
-    // The caller normally wins mPauseMutex against the tracer the notify just woke, but
-    // a round where the step ran first proves nothing and is retried. Such a round can
-    // leave the worker holding the suspend's SIGSTOP; a Continue/Pause cycle drains it.
+    // A round where the step ran first proves nothing and is retried. Such a round can leave
+    // the worker holding the suspend's SIGSTOP; a Continue/Pause cycle drains it.
     bool dropped = false;
     for(int round = 0; round < 50 && !dropped; ++round)
     {
@@ -2850,7 +2840,7 @@ TEST_CASE("A suspend landing on a queued step drops the step and reports a pause
         {
             dropped = true;
             REQUIRE(s.dbg.IsPaused());
-            REQUIRE(thread->isSuspended());
+            REQUIRE(thread->IsSuspended());
             const auto after = ReadStoppedPc(s.mainTid, worker);
             REQUIRE(after.has_value());
             REQUIRE(*after == *before);
@@ -2925,7 +2915,7 @@ TEST_CASE("Suspending every thread right after Continue still reports a pause", 
         s.dbg.WaitForPaused();
         REQUIRE(s.dbg.IsPaused());
         for(const pid_t tid : s.workers)
-            REQUIRE_FALSE(s.dbg.process()->threads.at(tid)->isRunning());
+            REQUIRE_FALSE(s.dbg.process()->threads.at(tid)->IsRunning());
 
         for(const pid_t tid : s.workers)
             REQUIRE(s.dbg.SetThreadSuspended(tid, false));
@@ -2959,9 +2949,8 @@ TEST_CASE("Resuming a worker while running unfreezes it", "[multithread][suspend
     REQUIRE(s.Sum() > frozen);
 }
 
-// A thread parked exactly on its own armed breakpoint byte must step off it when
-// resumed while running, or a bare PTRACE_CONT replays the INT3 and reports the same
-// hit again.
+// A thread parked on its own armed byte must step off it when resumed, or a bare
+// PTRACE_CONT replays the INT3 and reports the same hit again.
 TEST_CASE("Resuming a thread suspended at its own breakpoint steps off it first", "[multithread][suspend][breakpoint]")
 {
     using namespace ElfBug::test;
@@ -2981,9 +2970,8 @@ TEST_CASE("Resuming a thread suspended at its own breakpoint steps off it first"
     dbg.WaitForSystemBreakpoint();
     REQUIRE(site.has_value());
 
-    // ts_worker_started fires exactly once per worker; draining all four leaves the
-    // last hitter parked, unconsumed, right on the byte, so any later hit there can
-    // only be a re-triggered breakpoint.
+    // Draining all four leaves the last hitter parked on the byte, so any later hit there
+    // can only be a re-triggered breakpoint.
     pid_t target = 0;
     for(int i = 0; i < 4; ++i)
     {
@@ -3006,9 +2994,8 @@ TEST_CASE("Resuming a thread suspended at its own breakpoint steps off it first"
     dbg.JoinThread();
 }
 
-// pauseAndResume stashes a reported signal on mThread when mThread turns out to be
-// suspended, meaning to deliver it once that thread runs again. drainPendingResumes must
-// honor that, not silently drop the signal on its own final continue.
+// pauseAndResume parks a reported signal on a suspended mThread to deliver later.
+// drainPendingResumes must honour that, not drop it on its own final continue.
 TEST_CASE("A signal parked on a thread suspended at resume is delivered when it resumes running", "[multithread][suspend][exception]")
 {
     using namespace ElfBug::test;
@@ -3126,7 +3113,7 @@ TEST_CASE("A resume issued right before a running suspend lands is not lost", "[
     for(const pid_t tid : s.workers)
     {
         CAPTURE(tid);
-        REQUIRE_FALSE(s.dbg.process()->threads.at(tid)->isSuspended());
+        REQUIRE_FALSE(s.dbg.process()->threads.at(tid)->IsSuspended());
     }
     std::uint64_t before[4] = {};
     REQUIRE(s.dbg.process()->MemRead(s.counters, before, sizeof(before)));
@@ -3168,9 +3155,8 @@ TEST_CASE("Queued breakpoints on suspended threads wait for the resume", "[multi
     for(const pid_t tid : others)
         REQUIRE(dbg.SetThreadSuspended(tid, true));
 
-    // A worker not yet created when `others` was taken could not have been suspended
-    // and may still legitimately reach the breakpoint on its own; nothing in `others` may.
-    // Each hit needs its own Continue, the same as any other stop.
+    // A worker created after `others` was taken may legitimately reach the breakpoint;
+    // nothing in `others` may. Each hit needs its own Continue.
     for(;;)
     {
         dbg.Continue();
@@ -3227,9 +3213,9 @@ TEST_CASE("The sweep keeps Suspended for a thread whose requested stop has not l
         REQUIRE(s.dbg.IsPaused());
 
         const ElfBug::Thread* thread = s.dbg.process()->threads.at(worker).get();
-        REQUIRE(thread->isSuspended());
-        CAPTURE(thread->waitReason());
-        REQUIRE(thread->waitReason() == "Suspended");
+        REQUIRE(thread->IsSuspended());
+        CAPTURE(thread->WaitReason());
+        REQUIRE(thread->WaitReason() == "Suspended");
 
         REQUIRE(s.dbg.SetThreadSuspended(worker, false));
     }
@@ -3269,8 +3255,8 @@ TEST_CASE("The sweep records where a frozen thread was blocked", "[multithread][
         dbg.Continue();
         const Event hit = dbg.WaitFor(EventType::Breakpoint, std::chrono::seconds(10));
         REQUIRE(hit.pid != mainTid);
-        mainReason = dbg.process()->threads.at(mainTid)->waitReason();
-        workerReason = dbg.process()->threads.at(hit.pid)->waitReason();
+        mainReason = dbg.process()->threads.at(mainTid)->WaitReason();
+        workerReason = dbg.process()->threads.at(hit.pid)->WaitReason();
     }
     CAPTURE(mainReason);
     REQUIRE(mainReason.find("nanosleep") != std::string::npos);
@@ -3313,7 +3299,7 @@ TEST_CASE("Stepping a thread off a queued breakpoint consumes the hit", "[multit
             break;
         for(const auto & [tid, thread] : dbg.process()->threads)
         {
-            if(tid != mainTid && tid != last.pid && thread->hasPendingBreakpoint())
+            if(tid != mainTid && tid != last.pid && thread->HasPendingBreakpoint())
             {
                 queued = tid;
                 break;
@@ -3342,7 +3328,7 @@ TEST_CASE("Stepping a thread off a queued breakpoint consumes the hit", "[multit
     REQUIRE(last.type == EventType::ExitProcess);
     REQUIRE(last.exitCode == 0);
     REQUIRE(dbg.count(EventType::Exception) == 0);
-    REQUIRE(dbg.count(EventType::Breakpoint) == 63);
+    REQUIRE(dbg.count(EventType::Breakpoint) == 2 * kCloneTrapRounds - 1);
     REQUIRE(dbg.count(EventType::InternalError) == 0);
     REQUIRE(hitsBeforeRun >= 1);
 }
@@ -3370,7 +3356,6 @@ TEST_CASE("Pause while already paused does not queue a stop", "[control]")
 
 namespace
 {
-    // Records what the C API hands its callbacks.
     struct ApiEvents
     {
         std::mutex mutex;
@@ -3490,7 +3475,6 @@ namespace
                 loop = std::thread([this] { ElfBugStart(dbg); });
         }
 
-        // Takes over an already running pid instead of launching the fixture.
         ApiSession(std::string fixturePath, const pid_t attachPid)
             : path(std::move(fixturePath))
         {
@@ -3950,7 +3934,7 @@ TEST_CASE("EnumProcesses reports a spawned process with its name, path and arch"
     REQUIRE(target.pid > 0);
     REQUIRE(target.WaitForRunning());
 
-    const auto list = ElfBugEnumProcessesList();
+    const auto list = ElfBugProcessList();
     REQUIRE(!list.empty());
 
     const auto it = std::find_if(list.begin(), list.end(),
@@ -4050,7 +4034,7 @@ TEST_CASE("Attach refuses a process that is already being debugged", "[attach]")
     REQUIRE_FALSE(second.Attach(target.pid));
 
     // The same fact the dialog greys the row on.
-    const auto list = ElfBugEnumProcessesList();
+    const auto list = ElfBugProcessList();
     const auto it = std::find_if(list.begin(), list.end(),
     [&](const ElfBugProcessInfo & p) { return p.pid == target.pid; });
     REQUIRE(it != list.end());
@@ -4096,7 +4080,6 @@ TEST_CASE("Attach acquires every live thread of a multithreaded process", "[atta
     REQUIRE(unreadable.empty());
     std::sort(known.begin(), known.end());
     std::sort(live.begin(), live.end());
-    // Every thread the process actually has is one we acquired.
     REQUIRE(known == live);
 }
 
@@ -4176,7 +4159,7 @@ TEST_CASE("A clone outside the thread group is not registered as a thread", "[mu
     waitpid(child, &status, __WALL);
 }
 
-TEST_CASE("ElfBugSetRegister reaches the tracee", "[capi][registers]")
+TEST_CASE("ElfBugSetRegister reaches the tracee", "[api][registers]")
 {
     using namespace ElfBug::test;
     ApiSession s(FIXTURE("run_endlessly"));
@@ -4300,7 +4283,7 @@ TEST_CASE("A signal already pending at attach is reported before the tracee runs
     {
         for(const auto & [tid, thread] : dbg.process()->threads)
         {
-            if(thread->pendingSignal() == SIGUSR1)
+            if(thread->PendingSignal() == SIGUSR1)
                 pending = true;
         }
     });
@@ -4572,7 +4555,7 @@ TEST_CASE("Detach drains a SIGSTOP the attach sweep still owes", "[detach]")
     {
         for(const auto & [tid, thread] : dbg.process()->threads)
         {
-            if(thread->pendingSigstop())
+            if(thread->PendingSigstop())
                 owed = true;
         }
     });
@@ -4715,7 +4698,6 @@ TEST_CASE("C API detach clears the session and leaves the process running", "[ap
     ElfBugDetach(s.dbg);
     REQUIRE(s.WaitForDetach());
 
-    // Nothing is stopped and accepting Continue any more, so IsPaused must say so.
     REQUIRE_FALSE(ElfBugIsPaused(s.dbg));
     REQUIRE(ElfBugGetPid(s.dbg) == 0);
     REQUIRE(ElfBugGetThreadList(s.dbg, nullptr, 0) == 0);

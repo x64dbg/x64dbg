@@ -2,7 +2,7 @@
 // still reports through PTRACE_EVENT_CLONE. Every other clone target passes CLONE_THREAD.
 #include <sched.h>
 #include <sys/mman.h>
-#include <ctime>
+#include "TargetUtil.h"
 
 extern "C"
 {
@@ -13,12 +13,6 @@ extern "C"
 namespace
 {
     constexpr std::size_t kStackSize = 128 * 1024;
-
-    void nap(const long nanos)
-    {
-        timespec ts{0, nanos};
-        nanosleep(&ts, nullptr);
-    }
 
     int child(void*)
     {

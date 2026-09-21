@@ -1,8 +1,9 @@
-// Raw clone threads whose first instruction is the breakpoint site, so the child's trap
-// follows its initial stop within one instruction and can reach waitpid before the
-// parent's clone event.
+// Raw clone threads trapping on their first instruction, so the child's trap can reach
+// waitpid before the parent's clone event.
 #include <sched.h>
 #include <sys/mman.h>
+
+#include "TargetUtil.h"
 
 extern "C"
 {
@@ -39,7 +40,7 @@ ct_site:
 
 int main()
 {
-    for(int i = 0; i < 32; ++i)
+    for(int i = 0; i < kCloneTrapRounds; ++i)
     {
         const long size = 64 * 1024;
         void* stack = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0);

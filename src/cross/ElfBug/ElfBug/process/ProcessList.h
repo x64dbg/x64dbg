@@ -20,13 +20,10 @@ namespace ElfBug
     // Excludes kernel threads and other users' processes: their exe link isn't readable.
     std::vector<ProcessListEntry> EnumProcesses();
 
-    // Debugger currently tracing pid, 0 when none or unreadable.
     pid_t TracerPid(pid_t pid);
 
-    // Parent of pid, 0 when unreadable.
     pid_t ParentPid(pid_t pid);
 
-    // Thread group pid belongs to, 0 when unreadable.
     pid_t ThreadGroupId(pid_t pid);
 
     // Thread ids under /proc/<pid>/task. False means the process is gone.

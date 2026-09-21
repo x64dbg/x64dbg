@@ -1,46 +1,50 @@
 #include "core/DbgAdapter.h"
+
 #include <algorithm>
 #include <cassert>
 #include <csignal>
 #include <vector>
 
-static REGDUMP toRegDump(const ElfBugRegisters & regs)
+namespace
 {
-    REGDUMP dump{};
-    dump.regcontext.cax = regs.rax;
-    dump.regcontext.cbx = regs.rbx;
-    dump.regcontext.ccx = regs.rcx;
-    dump.regcontext.cdx = regs.rdx;
-    dump.regcontext.cbp = regs.rbp;
-    dump.regcontext.csp = regs.rsp;
-    dump.regcontext.csi = regs.rsi;
-    dump.regcontext.cdi = regs.rdi;
-    dump.regcontext.r8  = regs.r8;
-    dump.regcontext.r9  = regs.r9;
-    dump.regcontext.r10 = regs.r10;
-    dump.regcontext.r11 = regs.r11;
-    dump.regcontext.r12 = regs.r12;
-    dump.regcontext.r13 = regs.r13;
-    dump.regcontext.r14 = regs.r14;
-    dump.regcontext.r15 = regs.r15;
-    dump.regcontext.cip = regs.rip;
-    dump.regcontext.eflags = regs.eflags;
-    dump.regcontext.cs = regs.cs;
-    dump.regcontext.ds = regs.ds;
-    dump.regcontext.es = regs.es;
-    dump.regcontext.fs = regs.fs;
-    dump.regcontext.gs = regs.gs;
-    dump.regcontext.ss = regs.ss;
-    dump.flags.c = (regs.eflags & 1) != 0;
-    dump.flags.p = (regs.eflags & (1 << 2)) != 0;
-    dump.flags.a = (regs.eflags & (1 << 4)) != 0;
-    dump.flags.z = (regs.eflags & (1 << 6)) != 0;
-    dump.flags.s = (regs.eflags & (1 << 7)) != 0;
-    dump.flags.t = (regs.eflags & (1 << 8)) != 0;
-    dump.flags.i = (regs.eflags & (1 << 9)) != 0;
-    dump.flags.d = (regs.eflags & (1 << 10)) != 0;
-    dump.flags.o = (regs.eflags & (1 << 11)) != 0;
-    return dump;
+    REGDUMP toRegDump(const ElfBugRegisters & regs)
+    {
+        REGDUMP dump{};
+        dump.regcontext.cax = regs.rax;
+        dump.regcontext.cbx = regs.rbx;
+        dump.regcontext.ccx = regs.rcx;
+        dump.regcontext.cdx = regs.rdx;
+        dump.regcontext.cbp = regs.rbp;
+        dump.regcontext.csp = regs.rsp;
+        dump.regcontext.csi = regs.rsi;
+        dump.regcontext.cdi = regs.rdi;
+        dump.regcontext.r8  = regs.r8;
+        dump.regcontext.r9  = regs.r9;
+        dump.regcontext.r10 = regs.r10;
+        dump.regcontext.r11 = regs.r11;
+        dump.regcontext.r12 = regs.r12;
+        dump.regcontext.r13 = regs.r13;
+        dump.regcontext.r14 = regs.r14;
+        dump.regcontext.r15 = regs.r15;
+        dump.regcontext.cip = regs.rip;
+        dump.regcontext.eflags = regs.eflags;
+        dump.regcontext.cs = regs.cs;
+        dump.regcontext.ds = regs.ds;
+        dump.regcontext.es = regs.es;
+        dump.regcontext.fs = regs.fs;
+        dump.regcontext.gs = regs.gs;
+        dump.regcontext.ss = regs.ss;
+        dump.flags.c = (regs.eflags & 1) != 0;
+        dump.flags.p = (regs.eflags & (1 << 2)) != 0;
+        dump.flags.a = (regs.eflags & (1 << 4)) != 0;
+        dump.flags.z = (regs.eflags & (1 << 6)) != 0;
+        dump.flags.s = (regs.eflags & (1 << 7)) != 0;
+        dump.flags.t = (regs.eflags & (1 << 8)) != 0;
+        dump.flags.i = (regs.eflags & (1 << 9)) != 0;
+        dump.flags.d = (regs.eflags & (1 << 10)) != 0;
+        dump.flags.o = (regs.eflags & (1 << 11)) != 0;
+        return dump;
+    }
 }
 
 std::atomic<DbgAdapter*> DbgAdapter::sInstance{nullptr};
@@ -94,7 +98,6 @@ bool DbgAdapter::loadEngine()
     return true;
 }
 
-// -- MemoryProvider interface --
 
 bool DbgAdapter::read(const duint addr, void* dest, const duint size)
 {
@@ -151,7 +154,6 @@ bool DbgAdapter::modNameFromAddr(const duint addr, char* buf, const duint bufSiz
     return ElfBugModNameFromAddr(mDebugger, addr, buf, bufSize, extension);
 }
 
-// -- Debugger control --
 
 bool DbgAdapter::launch(const char* path)
 {
@@ -163,14 +165,14 @@ bool DbgAdapter::attach(const pid_t pid)
     return ElfBugAttach(mDebugger, pid);
 }
 
-void DbgAdapter::detach()
+bool DbgAdapter::detach()
 {
-    ElfBugDetach(mDebugger);
+    return ElfBugDetach(mDebugger);
 }
 
 std::vector<ElfBugProcessInfo> DbgAdapter::enumProcesses()
 {
-    return ElfBugEnumProcessesList();
+    return ElfBugProcessList();
 }
 
 void DbgAdapter::start()
@@ -228,19 +230,9 @@ bool DbgAdapter::hasBreakpoint(const duint addr) const
     return ElfBugIsBreakpointEffective(mDebugger, addr);
 }
 
-std::vector<ElfBugThreadInfo> DbgAdapter::readThreadList() const
-{
-    const uint32_t count = ElfBugGetThreadList(mDebugger, nullptr, 0);
-    if(!count)
-        return {};
-    std::vector<ElfBugThreadInfo> list(count);
-    list.resize(std::min(count, ElfBugGetThreadList(mDebugger, list.data(), count)));
-    return list;
-}
-
 void DbgAdapter::refreshThreads()
 {
-    const auto list = readThreadList();
+    const auto list = ElfBugThreadList(mDebugger);
     QVector<DbgThreadInfo> threads;
     threads.reserve(static_cast<int>(list.size()));
     for(const auto & entry : list)
@@ -309,7 +301,7 @@ bool DbgAdapter::setThreadSuspended(const pid_t tid, const bool suspended)
 
 void DbgAdapter::setAllThreadsSuspended(const bool suspended)
 {
-    const auto list = readThreadList();
+    const auto list = ElfBugThreadList(mDebugger);
     uint32_t changed = 0;
     for(const auto & entry : list)
     {
@@ -321,7 +313,7 @@ void DbgAdapter::setAllThreadsSuspended(const bool suspended)
     refreshThreads();
 }
 
-BPXTYPE DbgAdapter::queryBreakpoint(duint addr)
+BPXTYPE DbgAdapter::queryBreakpoint(const duint addr)
 {
     auto* instance = sInstance.load();
     if(!instance)
@@ -455,45 +447,48 @@ void DbgAdapter::onPaused(void* userdata)
 }
 
 // Own table: sigabbrev_np needs glibc 2.32 and the AppImage builds on 2.31.
-static QString signalName(const int signal)
+namespace
 {
-    switch(signal)
+    QString signalName(const int signal)
     {
+        switch(signal)
+        {
 #define SIGNAL_NAME(name) case name: return QStringLiteral(#name);
-        SIGNAL_NAME(SIGHUP)
-        SIGNAL_NAME(SIGINT)
-        SIGNAL_NAME(SIGQUIT)
-        SIGNAL_NAME(SIGILL)
-        SIGNAL_NAME(SIGTRAP)
-        SIGNAL_NAME(SIGABRT)
-        SIGNAL_NAME(SIGBUS)
-        SIGNAL_NAME(SIGFPE)
-        SIGNAL_NAME(SIGKILL)
-        SIGNAL_NAME(SIGUSR1)
-        SIGNAL_NAME(SIGSEGV)
-        SIGNAL_NAME(SIGUSR2)
-        SIGNAL_NAME(SIGPIPE)
-        SIGNAL_NAME(SIGALRM)
-        SIGNAL_NAME(SIGTERM)
-        SIGNAL_NAME(SIGCHLD)
-        SIGNAL_NAME(SIGCONT)
-        SIGNAL_NAME(SIGSTOP)
-        SIGNAL_NAME(SIGTSTP)
-        SIGNAL_NAME(SIGTTIN)
-        SIGNAL_NAME(SIGTTOU)
-        SIGNAL_NAME(SIGURG)
-        SIGNAL_NAME(SIGXCPU)
-        SIGNAL_NAME(SIGXFSZ)
-        SIGNAL_NAME(SIGVTALRM)
-        SIGNAL_NAME(SIGPROF)
-        SIGNAL_NAME(SIGWINCH)
-        SIGNAL_NAME(SIGIO)
-        SIGNAL_NAME(SIGSYS)
+            SIGNAL_NAME(SIGHUP)
+            SIGNAL_NAME(SIGINT)
+            SIGNAL_NAME(SIGQUIT)
+            SIGNAL_NAME(SIGILL)
+            SIGNAL_NAME(SIGTRAP)
+            SIGNAL_NAME(SIGABRT)
+            SIGNAL_NAME(SIGBUS)
+            SIGNAL_NAME(SIGFPE)
+            SIGNAL_NAME(SIGKILL)
+            SIGNAL_NAME(SIGUSR1)
+            SIGNAL_NAME(SIGSEGV)
+            SIGNAL_NAME(SIGUSR2)
+            SIGNAL_NAME(SIGPIPE)
+            SIGNAL_NAME(SIGALRM)
+            SIGNAL_NAME(SIGTERM)
+            SIGNAL_NAME(SIGCHLD)
+            SIGNAL_NAME(SIGCONT)
+            SIGNAL_NAME(SIGSTOP)
+            SIGNAL_NAME(SIGTSTP)
+            SIGNAL_NAME(SIGTTIN)
+            SIGNAL_NAME(SIGTTOU)
+            SIGNAL_NAME(SIGURG)
+            SIGNAL_NAME(SIGXCPU)
+            SIGNAL_NAME(SIGXFSZ)
+            SIGNAL_NAME(SIGVTALRM)
+            SIGNAL_NAME(SIGPROF)
+            SIGNAL_NAME(SIGWINCH)
+            SIGNAL_NAME(SIGIO)
+            SIGNAL_NAME(SIGSYS)
 #undef SIGNAL_NAME
-    default:
-        if(signal >= SIGRTMIN && signal <= SIGRTMAX)
-            return QString("SIGRTMIN+%1").arg(signal - SIGRTMIN);
-        return QString("signal %1").arg(signal);
+        default:
+            if(signal >= SIGRTMIN && signal <= SIGRTMAX)
+                return QString("SIGRTMIN+%1").arg(signal - SIGRTMIN);
+            return QString("signal %1").arg(signal);
+        }
     }
 }
 

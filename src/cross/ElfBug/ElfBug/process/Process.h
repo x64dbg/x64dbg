@@ -43,8 +43,7 @@ namespace ElfBug
         bool DisarmAllBreakpointBytes();
         // Drops the record without touching tracee memory (post-exec cleanup).
         bool ForgetBreakpoint(ptr address);
-        // Drops the original bytes execve invalidated, then re-reads and re-arms at each
-        // address the new image still maps. The rest keep their record and stay unarmed.
+        // Re-reads and re-arms at each address the new image still maps.
         void ReseatBreakpointsAfterExec();
 
         // TODO: implement via mprotect + SIGSEGV handling
@@ -62,9 +61,7 @@ namespace ElfBug
         void ResetMemFd() const;
 
     private:
-        // Guards mBreakpoints, mBreakpointCallbacks and mSoftwareBreakpointReferences.
-        // Callers mutate them from any thread while the tracee is paused; MemRead
-        // unpatches from any thread at any time.
+        // Guards the breakpoint maps, which any thread touches while the tracee is paused.
         mutable std::shared_mutex mBreakpointMutex;
         BreakpointMap mBreakpoints;
         BreakpointCallbackMap mBreakpointCallbacks;
@@ -75,7 +72,7 @@ namespace ElfBug
         bool pokeByte(ptr address, uint8 byte);
         BreakpointInfo* findSoftwareBreakpoint(ptr address);
         void unpatchBreakpointBytesLocked(ptr address, void* buffer, ptr size) const;
-        // Callers must hold mMemFdMutex; the descriptor is closed on execve.
+
         int memFdLocked() const;
         ssize_t memPread(void* buffer, size_t size, off_t offset) const;
         ssize_t memPwrite(const void* buffer, size_t size, off_t offset) const;

@@ -1,9 +1,5 @@
-// Re-execs itself exactly once, from a call site at a known symbol.
-//
-// The debugger disables ASLR for the tracee and personality() survives execve, so the
-// second image lands at the same base as the first. That makes eo_exec_site the same
-// address on both passes, which is what lets a test observe whether the debugger poked
-// a breakpoint byte into an image that no longer exists.
+// Re-execs itself once from a call site at a known symbol. ASLR is off and personality
+// survives execve, so eo_exec_site is the same address on both passes.
 #include <sys/mman.h>
 #include <cstdlib>
 #include <unistd.h>
@@ -56,9 +52,6 @@ int main()
     void* page = mmap(kScratchHint, 4096, PROT_READ | PROT_WRITE | PROT_EXEC,
                       MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0);
     eo_scratch = page == MAP_FAILED ? nullptr : page;
-
-    // Both passes run this call. A stray byte left at eo_exec_site by the first pass is
-    // therefore executed by the second.
     eo_call_exec();
     return 7;
 }

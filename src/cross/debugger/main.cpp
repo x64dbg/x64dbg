@@ -1,6 +1,7 @@
+#include <CrossAccessible.h>
 #include <QDarkApplication.h>
+
 #include "gui/MainWindow.h"
-#include "CrossAccessible.h"
 
 int main(int argc, char* argv[])
 {

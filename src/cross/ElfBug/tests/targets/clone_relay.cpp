@@ -1,9 +1,8 @@
-// The thread doing the cloning is always the newest one, so an attach sweep that freezes
-// everything its first pass listed still leaves a thread free to clone behind its back.
-// thread_storm clones from the group leader instead, which readdir hands the sweep first.
+// The cloning thread is always the newest, so a sweep that freezes its first pass still
+// leaves one free to clone behind its back. thread_storm clones from the leader.
 #include <pthread.h>
 #include <cstddef>
-#include <ctime>
+#include "TargetUtil.h"
 
 extern "C"
 {
@@ -19,12 +18,6 @@ namespace
     constexpr int kParked = 48;
     constexpr int kRelayLimit = 128;
     constexpr std::size_t kStackSize = 128 * 1024;
-
-    void nap(const long nanos)
-    {
-        timespec ts{0, nanos};
-        nanosleep(&ts, nullptr);
-    }
 
     void park()
     {

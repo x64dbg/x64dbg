@@ -19,6 +19,8 @@ namespace ElfBug
 {
     namespace
     {
+        constexpr auto kReleaseGroupStopTimeout = std::chrono::milliseconds(50);
+
         struct PendingAttachSignal
         {
             int signal = 0;
@@ -37,10 +39,6 @@ namespace ElfBug
             return line[lastParen + 2];
         }
 
-        // Take back a SIGSTOP this debugger queued, before the thread is released. The
-        // thread can stop for something else first, so one pass is not a drain. A real
-        // signal seen on the way is handed back through deliver for the release to
-        // re-raise, because suppressing it here would lose it for good.
         bool drainQueuedSigstop(const pid_t tid, int & deliver)
         {
             constexpr int kDrainAttempts = 32;
@@ -135,8 +133,6 @@ namespace ElfBug
     bool Debugger::attachToProcess()
     {
         const pid_t pid = mAttachPid;
-        // Sampled before we touch it: a target the user had already stopped stays stopped
-        // when we let go, and must not be resumed on our way out.
         mWasGroupStopped = processState(pid) == 'T';
         std::vector<pid_t> attached;
         std::vector<pid_t> acquired;
@@ -170,8 +166,6 @@ namespace ElfBug
                     cbInternalError("thread " + std::to_string(tid) +
                                     " stays traced: it could not be stopped to release it");
 
-                // Whatever the drain had to step over is raised again on the way out,
-                // rather than dropped along with the attach we are abandoning.
                 const auto deliver = deliverOnRelease.find(tid);
                 const int signal = deliver != deliverOnRelease.end() ? deliver->second : 0;
                 if(ptrace(PTRACE_DETACH, tid, nullptr, reinterpret_cast<void*>(
@@ -182,9 +176,8 @@ namespace ElfBug
                 kill(pid, SIGCONT);
         };
 
-        // The target keeps cloning until every thread is stopped, so rescan until a pass
-        // finds nothing new. This terminates: only a running thread can clone and every
-        // pass stops the ones it finds, so the creation rate never rises and reaches zero.
+        // Rescan until a pass finds nothing new. Only a running thread can clone and every pass
+        // stops the ones it finds, so this terminates.
         std::unordered_set<pid_t> seen;
         bool added = true;
         while(added)
@@ -249,9 +242,7 @@ namespace ElfBug
                     }
                     else if(errno != EINVAL)
                     {
-                        // EINVAL is a group-stop, which carries nothing to re-deliver.
-                        // Anything else is a real signal we failed to inspect, and
-                        // dropping it loses it for good.
+                        // EINVAL is a group-stop and carries nothing; anything else is a signal we lost.
                         if(SweepShouldQueue(sig, false))
                             attachPendingSignals[tid] = {sig, 0};
                     }
@@ -277,8 +268,6 @@ namespace ElfBug
             return false;
         }
 
-        // Attach() checked this on the caller's thread and only recorded intent. An execve
-        // in between would leave the session claiming x86_64 over an i386 tracee.
         const Arch arch = DetectArchFromProcExe(pid);
         if(arch != Arch::X86_64)
         {
@@ -304,12 +293,11 @@ namespace ElfBug
             if(it == mProcess->threads.end())
                 continue;
 
-            // The attach SIGSTOP is still queued behind whatever stopped this thread first.
-            it->second->setPendingSigstop(true);
+            it->second->SetPendingSigstop(true);
 
             const auto pending = attachPendingSignals.find(tid);
             if(pending != attachPendingSignals.end())
-                it->second->setPendingSignal(pending->second.signal, pending->second.address, true);
+                it->second->SetPendingSignal(pending->second.signal, pending->second.address, true);
         }
 
         return true;
@@ -328,7 +316,6 @@ namespace ElfBug
         if(WIFSTOPPED(status) && WSTOPSIG(status) == SIGSTOP)
             return true;
 
-        // Stopped for its own reason first, so our SIGSTOP is still queued.
         int deliver = 0;
         return drainQueuedSigstop(tid, deliver);
     }
@@ -340,7 +327,7 @@ namespace ElfBug
         if(running && tgkill(tgid, tid, SIGSTOP) == -1)
         {
             if(errno != ESRCH)
-                cbInternalError("tgkill failed: " + std::string(strerror(errno)));
+                cbInternalError("tgkill() failed: " + std::string(strerror(errno)));
             return;
         }
 
@@ -383,24 +370,17 @@ namespace ElfBug
         {
             mPaused.store(false, std::memory_order_release);
             mIsRunning.store(false, std::memory_order_release);
-            // Still a session ending, so callers waiting on the event are not left hanging.
             cbDetach();
             return;
         }
 
         const pid_t pid = mProcess->pid;
 
-        // Nothing is re-armed at teardown: a lifted byte already holds the original.
         mSourceRearms.clear();
         cancelStepOver(pid);
-        // A byte left patched is an int3 in a process about to lose its tracer.
         if(!mProcess->DisarmAllBreakpointBytes())
             cbInternalError("could not restore every breakpoint byte before detaching");
 
-        // An owed SIGSTOP is still queued behind whatever stopped the thread first, and
-        // delivered after we let go it would group-stop the process we just released.
-        // Snapshotted before the drain because the drain can take the session down, and
-        // the tids are still needed to release threads whose Thread records are gone.
         std::vector<pid_t> acquired;
         std::vector<pid_t> owesSigstop;
         {
@@ -408,7 +388,7 @@ namespace ElfBug
             for(const auto & [tid, thread] : mProcess->threads)
             {
                 acquired.push_back(tid);
-                if(thread->pendingSigstop())
+                if(thread->PendingSigstop())
                     owesSigstop.push_back(tid);
             }
         }
@@ -419,10 +399,6 @@ namespace ElfBug
                 break;
         }
 
-        // Traced, carrying PTRACE_O_EXITKILL, and absent from mProcess->threads, so the
-        // loop below would miss it and the tracer thread's exit would kill the process.
-        // handleSignal records them before anything checks the thread group, so one that
-        // started its own needs that tgid.
         std::vector<std::pair<pid_t, int>> targets;
         for(const pid_t tid : mUnregisteredRunning)
         {
@@ -433,37 +409,30 @@ namespace ElfBug
 
         if(mProcess)
         {
-            // A signal reported but not yet forwarded is held here, and it belongs to the
-            // thread that reported it even if the user has since switched threads.
             if(mPendingSignal != 0)
             {
                 std::unique_lock lock(mProcessMutex);
                 const auto it = mProcess->threads.find(reportedTid);
                 if(it != mProcess->threads.end())
-                    it->second->setPendingSignal(mPendingSignal, 0, false);
+                    it->second->SetPendingSignal(mPendingSignal, 0, false);
                 mPendingSignal = 0;
             }
 
             std::shared_lock lock(mProcessMutex);
             for(const auto & [tid, thread] : mProcess->threads)
-                targets.emplace_back(tid, thread->pendingSignal());
+                targets.emplace_back(tid, thread->PendingSignal());
         }
         else
         {
-            // The drain took the session down. The Thread records are gone, but anything
-            // still traced has to be released or PTRACE_O_EXITKILL kills it with us.
             mPendingSignal = 0;
             for(const pid_t tid : acquired)
                 targets.emplace_back(tid, 0);
         }
 
-        // Cleared before anything is released so a concurrent Stop() cannot SIGKILL the
-        // process we are handing back.
         mMainPid.store(0, std::memory_order_release);
 
         for(const auto & [tid, signal] : targets)
         {
-            // A parked signal is delivered by the detach rather than dropped with the session.
             if(ptrace(PTRACE_DETACH, tid, nullptr, reinterpret_cast<void*>(
                           static_cast<unsigned long>(signal))) == -1)
             {
@@ -473,13 +442,9 @@ namespace ElfBug
             }
         }
 
-        // Interrupting a running debuggee means kill(SIGSTOP), which group-stops the whole
-        // thread group. PTRACE_DETACH restarts a ptrace-stop but not that, so the process
-        // would be handed back frozen with no tracer left to resume it. Every SIGSTOP this
-        // debugger sends ends here, so the end state is checked rather than each sender.
         if(!mWasGroupStopped)
         {
-            const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(50);
+            const auto deadline = std::chrono::steady_clock::now() + kReleaseGroupStopTimeout;
             while(std::chrono::steady_clock::now() < deadline)
             {
                 if(processState(pid) == 'T')
@@ -489,7 +454,7 @@ namespace ElfBug
                     kill(pid, SIGCONT);
                     break;
                 }
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                std::this_thread::sleep_for(kPollInterval);
             }
         }
 
@@ -500,14 +465,12 @@ namespace ElfBug
             mProcesses.clear();
         }
 
-        // Our own child, released but not disowned: it has to be reaped when it exits.
         if(mAttachPid == 0)
             mDetachedChildren.push_back(pid);
 
         mPaused.store(false, std::memory_order_release);
         mIsRunning.store(false, std::memory_order_release);
 
-        // Last, so a caller acting inside the callback sees a session that is fully gone.
         cbDetach();
     }
 }
