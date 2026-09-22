@@ -8,6 +8,7 @@
 #include <csignal>
 #include <fstream>
 #include <functional>
+#include <future>
 #include <mutex>
 #include <stdexcept>
 #include <string>
@@ -99,13 +100,25 @@ namespace ElfBug::test
     public:
         void StartOnThread()
         {
-            mLoopThread = std::thread([this] { Start(); });
+            std::packaged_task<void()> task([this] { Start(); });
+            mLoopDone = task.get_future();
+            mLoopThread = std::thread(std::move(task));
         }
 
-        void JoinThread()
+        void JoinThread(const std::chrono::milliseconds timeout = std::chrono::seconds(10))
         {
-            if(mLoopThread.joinable())
-                mLoopThread.join();
+            if(!mLoopThread.joinable())
+                return;
+
+            std::string stuck;
+            if(mLoopDone.valid() && mLoopDone.wait_for(timeout) != std::future_status::ready)
+            {
+                stuck = loopState();
+                Stop();
+            }
+            mLoopThread.join();
+            if(!stuck.empty())
+                throw std::runtime_error("debug loop did not exit on its own: " + stuck);
         }
 
         ~RecordingDebugger() override
@@ -288,6 +301,24 @@ namespace ElfBug::test
         }
 
     private:
+        std::string loopState() const
+        {
+            std::string state = IsPaused() ? "paused" : "running";
+            if(!mProcess)
+                return state + " process=gone";
+
+            std::string runningTids;
+            std::size_t total = 0;
+            for(const auto & [tid, thread] : mProcess->threads)
+            {
+                ++total;
+                if(thread->IsRunning())
+                    runningTids += (runningTids.empty() ? "" : ",") + std::to_string(tid);
+            }
+            return state + " threads=" + std::to_string(total) +
+                   " stillRunning=[" + runningTids + "]";
+        }
+
         [[noreturn]] static void throwInternalError(const Event & e)
         {
             throw std::runtime_error("InternalError: " + e.message);
@@ -347,6 +378,7 @@ namespace ElfBug::test
         std::vector<Event> mEvents;
         std::size_t mConsumedUpto = 0;
         std::thread mLoopThread;
+        std::future<void> mLoopDone;
         std::function<void()> mOnSystemBreakpoint;
         std::function<void()> mOnAttachBreakpoint;
         std::function<void()> mOnExec;
