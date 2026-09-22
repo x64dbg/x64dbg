@@ -46,7 +46,7 @@ jobs:
         run: |
           sudo sysctl -w kernel.yama.ptrace_scope=0
           cd src/cross/build
-          ctest --output-on-failure --no-tests=error
+          ctest --output-on-failure --no-tests=error --timeout 120
 
   appimage:
     # Skip building pull requests from the same repository
