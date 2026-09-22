@@ -290,7 +290,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_
 	target_sources(ElfBug PRIVATE ${ElfBug_SOURCES})
 	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${ElfBug_SOURCES})
 
-	target_compile_definitions(ElfBug PUBLIC
+	target_compile_definitions(ElfBug PRIVATE
 		ELFBUG_BUILDING
 	)
 

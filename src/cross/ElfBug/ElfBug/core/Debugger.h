@@ -82,8 +82,6 @@ namespace ElfBug
         virtual void cbExitProcess(int exitCode);
         virtual void cbCreateThread(pid_t tid);
         virtual void cbExitThread(pid_t tid);
-        virtual void cbLoadModule(ptr baseAddress, const std::string & path);
-        virtual void cbUnloadModule(ptr baseAddress);
         virtual void cbException(int signal, ptr address);
         virtual void cbBreakpoint(const BreakpointInfo & info);
         virtual void cbStep();
@@ -91,7 +89,6 @@ namespace ElfBug
         virtual void cbAttachBreakpoint();
         virtual void cbDetach();
         virtual void cbExec();
-        virtual void cbUnhandledException(int signal, ptr address);
         virtual void cbInternalError(const std::string & error);
         virtual void cbDebugString(const std::string & text);
         virtual void cbPaused();

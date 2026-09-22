@@ -102,7 +102,7 @@ MainWindow::~MainWindow()
         stopDebugThread();
 
     if(mRetiringThread)
-        mRetiringThread->wait();
+        mRetiringThread->wait(kDetachWaitMs);
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)

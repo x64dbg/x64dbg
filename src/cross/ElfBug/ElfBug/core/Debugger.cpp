@@ -446,8 +446,6 @@ namespace ElfBug
     void Debugger::cbExitProcess(const int exitCode) { (void)exitCode; }
     void Debugger::cbCreateThread(const pid_t tid) { (void)tid; }
     void Debugger::cbExitThread(const pid_t tid) { (void)tid; }
-    void Debugger::cbLoadModule(const ptr baseAddress, const std::string & path) { (void)baseAddress; (void)path; }
-    void Debugger::cbUnloadModule(const ptr baseAddress) { (void)baseAddress; }
     void Debugger::cbException(const int signal, const ptr address) { (void)signal; (void)address; }
     void Debugger::cbBreakpoint(const BreakpointInfo & info) { (void)info; }
     void Debugger::cbStep() {}
@@ -455,7 +453,6 @@ namespace ElfBug
     void Debugger::cbAttachBreakpoint() {}
     void Debugger::cbDetach() {}
     void Debugger::cbExec() {}
-    void Debugger::cbUnhandledException(const int signal, const ptr address) { (void)signal; (void)address; }
     void Debugger::cbInternalError(const std::string & error) { (void)error; }
     void Debugger::cbDebugString(const std::string & text) { (void)text; }
     void Debugger::cbPaused() {}

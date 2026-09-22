@@ -1,5 +1,6 @@
 #include <ElfBug/core/Debugger.h>
 #include <ElfBug/process/StepOver.h>
+#include <cinttypes>
 #include <cstring>
 
 namespace ElfBug
@@ -75,8 +76,7 @@ namespace ElfBug
             if(!mProcess->SetBreakpoint(target, false, SoftwareType::ShortInt3))
             {
                 char message[64];
-                snprintf(message, sizeof(message), "step-over: failed to set breakpoint at 0x%llx",
-                         static_cast<unsigned long long>(target));
+                snprintf(message, sizeof(message), "step-over: failed to set breakpoint at 0x%" PRIx64, target);
                 cbInternalError(message);
                 if(mProcess->DisarmBreakpointByte(rip))
                     mSourceRearms[tid] = rip;

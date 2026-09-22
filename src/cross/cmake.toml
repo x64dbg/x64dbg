@@ -101,7 +101,7 @@ condition = "linux-x64"
 sources = ["ElfBug/ElfBug/**.cpp"]
 headers = ["ElfBug/ElfBug/**.h"]
 compile-features = ["cxx_std_20"]
-compile-definitions = ["ELFBUG_BUILDING"]
+private-compile-definitions = ["ELFBUG_BUILDING"]
 include-directories = ["ElfBug"]
 link-libraries = ["Threads::Threads", "zydis_wrapper"]
 
