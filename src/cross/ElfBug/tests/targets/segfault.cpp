@@ -1,4 +1,9 @@
-// Faults at a known symbol so a test can put a breakpoint on the faulting instruction.
+// Faults at a known symbol and a known address, so a test can breakpoint the faulting
+// instruction and check the address the debugger reports for it.
+#include "TargetUtil.h"
+
+static_assert(kSegfaultAddress == 0xdead0000, "keep in sync with the immediate below");
+
 extern "C"
 {
     void sf_fault();
@@ -11,7 +16,7 @@ asm(R"(
     .globl sf_fault
     .type  sf_fault, @function
 sf_fault:
-    xorl    %eax, %eax
+    movl    $0xdead0000, %eax
     .globl sf_fault_site
 sf_fault_site:
     movl    $42, (%rax)

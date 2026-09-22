@@ -45,10 +45,19 @@ FetchContent_MakeAvailable(Catch2)
 set(ElfBug_tests_SOURCES
 	SymbolHelper.h
 	TestHarness.h
+	TestSupport.h
 	api_c_compat.c
 	cmake.toml
 	"targets/TargetUtil.h"
-	tests.cpp
+	test_api.cpp
+	test_attach.cpp
+	test_breakpoints.cpp
+	test_detach.cpp
+	test_lifecycle.cpp
+	test_multithread.cpp
+	test_signals.cpp
+	test_stepping.cpp
+	test_suspend.cpp
 )
 
 add_executable(ElfBug_tests)
@@ -77,6 +86,8 @@ set_target_properties(ElfBug_tests PROPERTIES
 		11
 	C_STANDARD_REQUIRED
 		ON
+	UNITY_BUILD
+		OFF
 )
 
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)

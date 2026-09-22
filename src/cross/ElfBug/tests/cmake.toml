@@ -13,9 +13,21 @@ shallow = true
 
 [target.ElfBug_tests]
 type = "executable"
-sources = ["tests.cpp", "api_c_compat.c"]
+sources = [
+    "test_api.cpp",
+    "test_attach.cpp",
+    "test_breakpoints.cpp",
+    "test_detach.cpp",
+    "test_lifecycle.cpp",
+    "test_multithread.cpp",
+    "test_signals.cpp",
+    "test_stepping.cpp",
+    "test_suspend.cpp",
+    "api_c_compat.c",
+]
 headers = [
     "TestHarness.h",
+    "TestSupport.h",
     "SymbolHelper.h",
     "targets/TargetUtil.h",
 ]
@@ -25,6 +37,8 @@ compile-definitions = ['ELFBUG_TESTS_TARGETS_DIR="${CMAKE_BINARY_DIR}/tests/targ
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests"
 properties.C_STANDARD = 11
 properties.C_STANDARD_REQUIRED = true
+# The per-file helper namespaces would collide if these were concatenated.
+properties.UNITY_BUILD = false
 cmake-after = """
 list(APPEND CMAKE_MODULE_PATH "${catch2_SOURCE_DIR}/extras")
 include(Catch)

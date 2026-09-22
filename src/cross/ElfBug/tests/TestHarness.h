@@ -87,6 +87,13 @@ namespace ElfBug::test
         ptr instructionPointer = 0;
     };
 
+    // Distinct from the InternalError the waits also throw, so a test can assert that
+    // nothing arrived without also accepting a debugger that fell over.
+    struct WaitTimeout : std::runtime_error
+    {
+        using std::runtime_error::runtime_error;
+    };
+
     class RecordingDebugger : public Debugger
     {
     public:
@@ -319,7 +326,7 @@ namespace ElfBug::test
 
                 const auto remaining = timeout - (std::chrono::steady_clock::now() - start);
                 if(remaining <= std::chrono::milliseconds(0))
-                    throw std::runtime_error(timeoutMessage);
+                    throw WaitTimeout(timeoutMessage);
 
                 mCv.wait_for(lock, remaining);
             }
