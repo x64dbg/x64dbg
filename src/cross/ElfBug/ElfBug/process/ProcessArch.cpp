@@ -1,6 +1,7 @@
 #include <ElfBug/process/ProcessArch.h>
 #include <elf.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <cerrno>
 #include <cstdint>
@@ -55,5 +56,16 @@ namespace ElfBug
         char path[64];
         std::snprintf(path, sizeof(path), "/proc/%d/exe", pid);
         return DetectArchFromElfPath(path);
+    }
+
+    ImageId ReadImageIdFromProcExe(const pid_t pid)
+    {
+        char path[64];
+        std::snprintf(path, sizeof(path), "/proc/%d/exe", pid);
+
+        struct stat info = {};
+        if(stat(path, &info) == -1)
+            return {};
+        return {info.st_dev, info.st_ino};
     }
 }

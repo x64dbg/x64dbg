@@ -61,7 +61,11 @@ public:
             break;
         }
         default:
+#ifdef _WIN32
+            __debugbreak();
+#else
             qFatal("unreachable filter type");
+#endif
         }
         return false;
     }

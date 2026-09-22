@@ -457,7 +457,11 @@ void MainWindow::onProcessCreated(const duint entryPoint)
 
 void MainWindow::onProcessExited(const int exitCode)
 {
-    onLogMessage(QString("[x64dbg] Process exited with code %1").arg(exitCode));
+    if(exitCode < 0)
+    {
+        statusBar()->showMessage(QString("Process terminated by signal %1").arg(-exitCode));
+        return;
+    }
     statusBar()->showMessage(QString("Process exited with code %1").arg(exitCode));
 }
 

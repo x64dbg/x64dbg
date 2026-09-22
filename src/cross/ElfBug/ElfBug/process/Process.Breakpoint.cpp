@@ -158,6 +158,19 @@ namespace ElfBug
         }
     }
 
+    void Process::ForgetBreakpointBytesAfterExec()
+    {
+        std::unique_lock lock(mBreakpointMutex);
+        for(auto & [key, info] : mBreakpoints)
+        {
+            if(key.first != BreakpointType::Software)
+                continue;
+
+            info.armed = false;
+            info.internal.software.oldbytes[0] = 0;
+        }
+    }
+
     bool Process::TakeBreakpointDispatch(const ptr address, BreakpointInfo & info,
                                          BreakpointCallback & callback) const
     {

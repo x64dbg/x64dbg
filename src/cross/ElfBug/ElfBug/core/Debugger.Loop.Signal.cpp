@@ -70,6 +70,13 @@ namespace ElfBug
         }
     }
 
+    bool ForeignTrapShouldQueue(const int signal, const siginfo_t & info)
+    {
+        if(signal != SIGTRAP || info.si_code <= 0)
+            return false;
+        return info.si_code == SI_KERNEL || info.si_code == TRAP_BRKPT;
+    }
+
     WaitResult WaitForStop(const pid_t tid, int & status)
     {
         const auto deadline = std::chrono::steady_clock::now() + kStopWaitTimeout;
@@ -135,12 +142,16 @@ namespace ElfBug
         siginfo_t info{};
         const bool haveInfo = ptrace(PTRACE_GETSIGINFO, thread->tid, nullptr, &info) != -1;
 
+        const bool rewound = rewindOntoBreakpoint(thread, status);
+
         int signal = 0;
         ptr address = 0;
         if(StopShouldQueue(status, haveInfo, info, signal, address))
             thread->SetPendingSignal(signal, address, true);
-
-        rewindOntoBreakpoint(thread, status);
+        else if(!rewound && !thread->IsSingleStepping() && haveInfo &&
+                ((status >> 16) & 0xffff) == 0 &&
+                ForeignTrapShouldQueue(WSTOPSIG(status), info))
+            thread->SetPendingSignal(SIGTRAP, 0, true);
     }
 
     bool Debugger::swallowPendingSigstop(const pid_t tid)
@@ -210,6 +221,10 @@ namespace ElfBug
                 return true;
             }
 
+            bool rewound = false;
+            if(sig == SIGTRAP && thread->registers.Read())
+                rewound = rewindOntoBreakpoint(thread, status);
+
             if(thread->PendingSignal() == 0)
             {
                 siginfo_t info{};
@@ -218,10 +233,10 @@ namespace ElfBug
                 ptr address = 0;
                 if(StopShouldQueue(status, haveInfo, info, signal, address))
                     thread->SetPendingSignal(signal, address, false);
+                else if(!rewound && ((status >> 16) & 0xffff) == 0 && haveInfo &&
+                        ForeignTrapShouldQueue(sig, info))
+                    thread->SetPendingSignal(SIGTRAP, 0, false);
             }
-
-            if(sig == SIGTRAP && thread->registers.Read())
-                rewindOntoBreakpoint(thread, status);
         }
 
         return true;
@@ -294,14 +309,19 @@ namespace ElfBug
                 }
 
                 int status = 0;
-                pid_t waited = -1;
-                do
+                const WaitResult waited = WaitForStop(tid, status);
+                if(waited == WaitResult::TimedOut)
                 {
-                    waited = waitpid(tid, &status, __WALL);
+                    cbInternalError("thread " + std::to_string(tid) +
+                                    " did not stop; it may be stuck in uninterruptible I/O");
+                    {
+                        std::unique_lock lock(mProcessMutex);
+                        thread->SetRunning(false);
+                        thread->SetPendingSigstop(true);
+                    }
+                    continue;
                 }
-                while(waited == -1 && errno == EINTR);
-
-                if(waited == -1)
+                if(waited == WaitResult::Gone)
                 {
                     markStopped();
                     continue;
@@ -861,10 +881,20 @@ namespace ElfBug
         if(formerTid != 0 && static_cast<pid_t>(formerTid) != tid)
             replaceExecedThread(static_cast<pid_t>(formerTid), tid);
 
-        // Before the arch check: its rejection detaches, and a detach unpatches every
-        // armed record, which would poke the dead image's bytes into the new one.
+        const ImageId execedImage = ReadImageIdFromProcExe(tid);
+        const bool sameImage = mImageId.Known() && execedImage.Known() && mImageId == execedImage;
+        mImageId = execedImage;
+
         if(mProcess)
-            mProcess->ReseatBreakpointsAfterExec();
+        {
+            if(sameImage)
+                mProcess->ReseatBreakpointsAfterExec();
+            else
+            {
+                mProcess->ForgetBreakpointBytesAfterExec();
+                cbDebugString("execve replaced the image, breakpoints did not carry over");
+            }
+        }
 
         const Arch arch = DetectArchFromProcExe(tid);
         if(arch != Arch::X86_64)
@@ -1109,7 +1139,7 @@ namespace ElfBug
             {
                 siginfo_t trapInfo{};
                 if(ptrace(PTRACE_GETSIGINFO, tid, nullptr, &trapInfo) != -1 &&
-                        trapInfo.si_code == SI_KERNEL)
+                        ForeignTrapShouldQueue(SIGTRAP, trapInfo))
                 {
                     reportSignal(tid, SIGTRAP);
                     break;

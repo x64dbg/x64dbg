@@ -98,6 +98,8 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_multi_threaded
     elfbug_fixture_step_over_targets
     elfbug_fixture_exec_target
+    elfbug_fixture_exec_peer_a
+    elfbug_fixture_exec_peer_b
     elfbug_fixture_threads_spin
     elfbug_fixture_exit_race
     elfbug_fixture_signal_race
@@ -408,6 +410,72 @@ set_target_properties(elfbug_fixture_exec_target PROPERTIES
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_exec_target)
+endif()
+
+# Target: elfbug_fixture_exec_peer_a
+set(elfbug_fixture_exec_peer_a_SOURCES
+	cmake.toml
+	"targets/exec_peer.cpp"
+)
+
+add_executable(elfbug_fixture_exec_peer_a)
+
+target_sources(elfbug_fixture_exec_peer_a PRIVATE ${elfbug_fixture_exec_peer_a_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_exec_peer_a_SOURCES})
+
+target_compile_options(elfbug_fixture_exec_peer_a PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_exec_peer_a PRIVATE
+	-pie
+)
+
+set_target_properties(elfbug_fixture_exec_peer_a PROPERTIES
+	OUTPUT_NAME
+		exec_peer_a
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_exec_peer_a)
+endif()
+
+# Target: elfbug_fixture_exec_peer_b
+set(elfbug_fixture_exec_peer_b_SOURCES
+	cmake.toml
+	"targets/exec_peer.cpp"
+)
+
+add_executable(elfbug_fixture_exec_peer_b)
+
+target_sources(elfbug_fixture_exec_peer_b PRIVATE ${elfbug_fixture_exec_peer_b_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_exec_peer_b_SOURCES})
+
+target_compile_options(elfbug_fixture_exec_peer_b PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_exec_peer_b PRIVATE
+	-pie
+)
+
+set_target_properties(elfbug_fixture_exec_peer_b PROPERTIES
+	OUTPUT_NAME
+		exec_peer_b
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_exec_peer_b)
 endif()
 
 # Target: elfbug_fixture_threads_spin

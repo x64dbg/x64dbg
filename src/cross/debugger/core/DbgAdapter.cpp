@@ -47,6 +47,52 @@ namespace
     }
 }
 
+// sigabbrev_np needs glibc 2.32 and the AppImage builds on 2.31.
+namespace
+{
+    QString signalName(const int signal)
+    {
+        switch(signal)
+        {
+#define SIGNAL_NAME(name) case name: return QStringLiteral(#name);
+            SIGNAL_NAME(SIGHUP)
+            SIGNAL_NAME(SIGINT)
+            SIGNAL_NAME(SIGQUIT)
+            SIGNAL_NAME(SIGILL)
+            SIGNAL_NAME(SIGTRAP)
+            SIGNAL_NAME(SIGABRT)
+            SIGNAL_NAME(SIGBUS)
+            SIGNAL_NAME(SIGFPE)
+            SIGNAL_NAME(SIGKILL)
+            SIGNAL_NAME(SIGUSR1)
+            SIGNAL_NAME(SIGSEGV)
+            SIGNAL_NAME(SIGUSR2)
+            SIGNAL_NAME(SIGPIPE)
+            SIGNAL_NAME(SIGALRM)
+            SIGNAL_NAME(SIGTERM)
+            SIGNAL_NAME(SIGCHLD)
+            SIGNAL_NAME(SIGCONT)
+            SIGNAL_NAME(SIGSTOP)
+            SIGNAL_NAME(SIGTSTP)
+            SIGNAL_NAME(SIGTTIN)
+            SIGNAL_NAME(SIGTTOU)
+            SIGNAL_NAME(SIGURG)
+            SIGNAL_NAME(SIGXCPU)
+            SIGNAL_NAME(SIGXFSZ)
+            SIGNAL_NAME(SIGVTALRM)
+            SIGNAL_NAME(SIGPROF)
+            SIGNAL_NAME(SIGWINCH)
+            SIGNAL_NAME(SIGIO)
+            SIGNAL_NAME(SIGSYS)
+#undef SIGNAL_NAME
+        default:
+            if(signal >= SIGRTMIN && signal <= SIGRTMAX)
+                return QString("SIGRTMIN+%1").arg(signal - SIGRTMIN);
+            return QString("signal %1").arg(signal);
+        }
+    }
+}
+
 std::atomic<DbgAdapter*> DbgAdapter::sInstance{nullptr};
 
 DbgAdapter::DbgAdapter(QObject* parent)
@@ -359,7 +405,10 @@ void DbgAdapter::onCreateProcess(const pid_t pid, const uint64_t entryPoint, voi
 void DbgAdapter::onExitProcess(const int exitCode, void* userdata)
 {
     auto* self = static_cast<DbgAdapter*>(userdata);
-    emit self->logMessage(QString("[x64dbg] Process exited: %1").arg(exitCode));
+    if(exitCode < 0)
+        emit self->logMessage(QString("[x64dbg] Process terminated by signal %1").arg(signalName(-exitCode)));
+    else
+        emit self->logMessage(QString("[x64dbg] Process exited: %1").arg(exitCode));
     {
         std::lock_guard lock(self->mThreadNameMutex);
         self->mThreadNames.clear();
@@ -444,52 +493,6 @@ void DbgAdapter::onPaused(void* userdata)
 {
     auto* self = static_cast<DbgAdapter*>(userdata);
     self->emitStoppedState(tr("Paused"));
-}
-
-// Own table: sigabbrev_np needs glibc 2.32 and the AppImage builds on 2.31.
-namespace
-{
-    QString signalName(const int signal)
-    {
-        switch(signal)
-        {
-#define SIGNAL_NAME(name) case name: return QStringLiteral(#name);
-            SIGNAL_NAME(SIGHUP)
-            SIGNAL_NAME(SIGINT)
-            SIGNAL_NAME(SIGQUIT)
-            SIGNAL_NAME(SIGILL)
-            SIGNAL_NAME(SIGTRAP)
-            SIGNAL_NAME(SIGABRT)
-            SIGNAL_NAME(SIGBUS)
-            SIGNAL_NAME(SIGFPE)
-            SIGNAL_NAME(SIGKILL)
-            SIGNAL_NAME(SIGUSR1)
-            SIGNAL_NAME(SIGSEGV)
-            SIGNAL_NAME(SIGUSR2)
-            SIGNAL_NAME(SIGPIPE)
-            SIGNAL_NAME(SIGALRM)
-            SIGNAL_NAME(SIGTERM)
-            SIGNAL_NAME(SIGCHLD)
-            SIGNAL_NAME(SIGCONT)
-            SIGNAL_NAME(SIGSTOP)
-            SIGNAL_NAME(SIGTSTP)
-            SIGNAL_NAME(SIGTTIN)
-            SIGNAL_NAME(SIGTTOU)
-            SIGNAL_NAME(SIGURG)
-            SIGNAL_NAME(SIGXCPU)
-            SIGNAL_NAME(SIGXFSZ)
-            SIGNAL_NAME(SIGVTALRM)
-            SIGNAL_NAME(SIGPROF)
-            SIGNAL_NAME(SIGWINCH)
-            SIGNAL_NAME(SIGIO)
-            SIGNAL_NAME(SIGSYS)
-#undef SIGNAL_NAME
-        default:
-            if(signal >= SIGRTMIN && signal <= SIGRTMAX)
-                return QString("SIGRTMIN+%1").arg(signal - SIGRTMIN);
-            return QString("signal %1").arg(signal);
-        }
-    }
 }
 
 void DbgAdapter::onException(const int signal, const uint64_t address, void* userdata)

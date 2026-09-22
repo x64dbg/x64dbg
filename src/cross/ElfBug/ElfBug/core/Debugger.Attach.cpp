@@ -158,8 +158,6 @@ namespace ElfBug
                 if(deliver != 0)
                     deliverOnRelease[tid] = deliver;
             }
-            // attached, not acquired: a thread we traced but never saw stop still carries
-            // PTRACE_O_EXITKILL, and our exit would take the whole group with it.
             for(const pid_t tid : attached)
             {
                 if(leftRunning.count(tid) > 0 && !restopForDetach(tid, pid))
@@ -210,14 +208,16 @@ namespace ElfBug
                 attached.push_back(tid);
 
                 int status = 0;
-                pid_t waited = -1;
-                do
+                const WaitResult waited = WaitForStop(tid, status);
+                if(waited == WaitResult::TimedOut)
                 {
-                    waited = waitpid(tid, &status, __WALL);
+                    rollback();
+                    cbInternalError("cannot attach to pid " + std::to_string(pid) +
+                                    ": thread " + std::to_string(tid) +
+                                    " did not stop; it may be stuck in uninterruptible I/O");
+                    return false;
                 }
-                while(waited == -1 && errno == EINTR);
-
-                if(waited == -1 || !WIFSTOPPED(status))
+                if(waited == WaitResult::Gone || !WIFSTOPPED(status))
                     continue;
 
                 acquired.push_back(tid);
@@ -237,7 +237,8 @@ namespace ElfBug
                     siginfo_t info{};
                     if(ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1)
                     {
-                        if(SweepShouldQueue(sig, info.si_code > 0))
+                        if(SweepShouldQueue(sig, info.si_code > 0) ||
+                                ForeignTrapShouldQueue(sig, info))
                             attachPendingSignals[tid] = {sig, FaultAddress(sig, info)};
                     }
                     else if(errno != EINVAL)

@@ -1578,6 +1578,73 @@ TEST_CASE("An execve reseats breakpoint records onto the new image", "[stepover]
     REQUIRE(dbg.count(EventType::Breakpoint) == 2);
 }
 
+// The two fixtures are one source built twice, so the address survives the exec but the
+// program behind it does not. Reseating there would arm code the user never picked.
+TEST_CASE("An execve into a different image does not carry breakpoints over", "[exec]")
+{
+    using namespace ElfBug::test;
+    RecordingDebugger dbg;
+    const std::string path = FIXTURE("exec_peer_a");
+    const std::string peer = FIXTURE("exec_peer_b");
+    const char* argv[] = {path.c_str(), peer.c_str(), nullptr};
+    REQUIRE(dbg.Init(path.c_str(), argv, nullptr));
+
+    std::promise<std::optional<ElfBug::ptr>> sitePromise;
+    auto siteFuture = sitePromise.get_future();
+    dbg.OnSystemBreakpoint([&]
+    {
+        const auto site = ResolveRuntimeAddress(path, dbg.process()->pid, "ep_site");
+        if(site)
+            dbg.process()->SetBreakpoint(*site, false, ElfBug::SoftwareType::ShortInt3);
+        sitePromise.set_value(site);
+    });
+
+    dbg.StartOnThread();
+    dbg.WaitForSystemBreakpoint();
+    const auto site = siteFuture.get();
+    REQUIRE(site.has_value());
+
+    dbg.Continue();
+    dbg.WaitForBreakpointAt(*site);
+
+    // At the exec stop the new image is mapped and has not run an instruction yet.
+    std::promise<std::tuple<std::optional<ElfBug::ptr>, bool, uint8_t, bool>> afterPromise;
+    auto afterFuture = afterPromise.get_future();
+    dbg.OnExec([&]
+    {
+        const auto peerSite = ResolveRuntimeAddress(peer, dbg.process()->pid, "ep_site");
+        uint8_t raw = 0;
+        const bool read = dbg.process()->MemReadRaw(*site, &raw, 1);
+        afterPromise.set_value({peerSite, read, raw, dbg.process()->HasBreakpoint(*site)});
+    });
+
+    dbg.Continue();
+    dbg.WaitForExec();
+
+    const auto [peerSite, rawRead, raw, stillListed] = afterFuture.get();
+
+    // Without these the test would pass for the wrong reason: an address the new image
+    // does not map is already left alone by the reseat.
+    REQUIRE(peerSite.has_value());
+    REQUIRE(*peerSite == *site);
+    REQUIRE(rawRead);
+
+    CHECK(raw != 0xCC);
+
+    // Dropped bytes, not a dropped record: the user's breakpoint is still theirs.
+    CHECK(stillListed);
+
+    dbg.Continue();
+    const auto exit_ev = dbg.WaitFor(EventType::ExitProcess, std::chrono::seconds(10));
+    dbg.JoinThread();
+
+    // The peer calls ep_site too, so a carried-over 0xCC would show up as a second hit.
+    REQUIRE(exit_ev.exitCode == 9);
+    REQUIRE(dbg.count(EventType::Breakpoint) == 1);
+    REQUIRE(dbg.count(EventType::Exec) == 1);
+    REQUIRE(dbg.count(EventType::InternalError) == 0);
+}
+
 // MemRead hides the patch byte, so a caller that reads, edits and writes back would
 // otherwise hand us the original byte and silently disarm the breakpoint.
 TEST_CASE("MemWrite over an armed breakpoint keeps the trap and retargets the restore", "[breakpoint]")
@@ -4076,6 +4143,39 @@ TEST_CASE("Attach refuses an unknown pid and our own pid", "[attach]")
     REQUIRE_FALSE(dbg.Attach(getpid()));
     REQUIRE_FALSE(dbg.Attach(-1));
     REQUIRE_FALSE(dbg.Attach(0x7FFFFFFF));
+}
+
+TEST_CASE("Attach and Init refuse to run while a debug loop is active", "[attach][init]")
+{
+    ElfBug::test::UntracedProcess target(FIXTURE("threads_spin"));
+    REQUIRE(target.pid > 0);
+    REQUIRE(target.WaitForRunning());
+
+    ElfBug::test::RecordingDebugger dbg;
+    REQUIRE(dbg.Attach(target.pid));
+    dbg.StartOnThread();
+    dbg.WaitForAttachBreakpoint();
+    REQUIRE(dbg.IsPaused());
+
+    ElfBug::test::UntracedProcess other(FIXTURE("threads_spin"));
+    REQUIRE(other.pid > 0);
+    REQUIRE(other.WaitForRunning());
+
+    REQUIRE_FALSE(dbg.Attach(other.pid));
+    REQUIRE_FALSE(dbg.Init(FIXTURE("hello_elfbug").c_str()));
+    REQUIRE(dbg.IsPaused());
+
+    std::size_t guardErrors = 0;
+    for(const auto & e : dbg.events())
+    {
+        if(e.type == ElfBug::test::EventType::InternalError &&
+                e.message.find("debug loop is still running") != std::string::npos)
+            ++guardErrors;
+    }
+    REQUIRE(guardErrors == 2);
+
+    dbg.Stop();
+    dbg.JoinThread();
 }
 
 TEST_CASE("Attach acquires every live thread of a multithreaded process", "[attach]")

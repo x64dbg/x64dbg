@@ -39,6 +39,8 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_multi_threaded
     elfbug_fixture_step_over_targets
     elfbug_fixture_exec_target
+    elfbug_fixture_exec_peer_a
+    elfbug_fixture_exec_peer_b
     elfbug_fixture_threads_spin
     elfbug_fixture_exit_race
     elfbug_fixture_signal_race
@@ -109,6 +111,19 @@ properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
 type = "elfbug_fixture"
 sources = ["targets/exec_target.cpp"]
 properties.OUTPUT_NAME = "exec_target"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+# One source, two binaries: same addresses, different inodes.
+[target.elfbug_fixture_exec_peer_a]
+type = "elfbug_fixture"
+sources = ["targets/exec_peer.cpp"]
+properties.OUTPUT_NAME = "exec_peer_a"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_exec_peer_b]
+type = "elfbug_fixture"
+sources = ["targets/exec_peer.cpp"]
+properties.OUTPUT_NAME = "exec_peer_b"
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
 
 [target.elfbug_fixture_threads_spin]

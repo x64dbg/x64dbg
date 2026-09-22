@@ -45,6 +45,7 @@ namespace ElfBug
         bool ForgetBreakpoint(ptr address);
         // Re-reads and re-arms at each address the new image still maps.
         void ReseatBreakpointsAfterExec();
+        void ForgetBreakpointBytesAfterExec();
 
         // TODO: implement via mprotect + SIGSEGV handling
         bool SetMemoryBreakpoint(ptr address, ptr size, MemoryType type = MemoryType::Access, bool singleshot = true);

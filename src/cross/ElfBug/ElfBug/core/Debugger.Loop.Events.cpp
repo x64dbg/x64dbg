@@ -15,6 +15,8 @@ namespace ElfBug
             mThread = mProcess->threads.at(pid).get();
         }
 
+        mImageId = ReadImageIdFromProcExe(pid);
+
         mThread->registers.Read();
         const ptr entryPoint = mThread->registers.Gip();
         cbCreateProcess(pid, entryPoint);

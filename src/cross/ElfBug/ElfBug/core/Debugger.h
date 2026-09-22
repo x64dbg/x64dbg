@@ -16,6 +16,7 @@
 #include <ElfBug/types/ElfBug.h>
 #include <ElfBug/types/Global.h>
 #include <ElfBug/process/Process.h>
+#include <ElfBug/process/ProcessArch.h>
 #include <ElfBug/thread/Thread.h>
 
 namespace ElfBug
@@ -39,6 +40,8 @@ namespace ElfBug
     ptr FaultAddress(int signal, const siginfo_t & info);
 
     bool SweepShouldQueue(int signal, bool hardware);
+
+    bool ForeignTrapShouldQueue(int signal, const siginfo_t & info);
 
     enum class WaitResult
     {
@@ -206,6 +209,7 @@ namespace ElfBug
         std::atomic<bool> mDetachRequested{false};
         std::atomic<pid_t> mMainPid{0};
         pid_t mAttachPid = 0;
+        ImageId mImageId;
         bool mWasGroupStopped = false;
         std::vector<pid_t> mDetachedChildren;
         int mPendingSignal = 0;

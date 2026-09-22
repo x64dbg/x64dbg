@@ -62,12 +62,20 @@ namespace ElfBug
         mDetachRequested.store(false, std::memory_order_release);
         mPendingSignal = 0;
         mAttachPid = 0;
+        mImageId = {};
         mWasGroupStopped = false;
         reapDetachedChildren();
     }
 
     bool Debugger::Init(const char* path, const char* const* argv, const char* workingDirectory)
     {
+        if(mIsRunning.load(std::memory_order_acquire))
+        {
+            cbInternalError("cannot launch '" + std::string(path ? path : "") +
+                            "': the debug loop is still running");
+            return false;
+        }
+
         resetSessionState();
 
         if(!path)
@@ -110,6 +118,13 @@ namespace ElfBug
 
     bool Debugger::Attach(const pid_t processId)
     {
+        if(mIsRunning.load(std::memory_order_acquire))
+        {
+            cbInternalError("cannot attach to pid " + std::to_string(processId) +
+                            ": the debug loop is still running");
+            return false;
+        }
+
         resetSessionState();
 
         if(processId <= 0 || processId == getpid())
