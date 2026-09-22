@@ -395,6 +395,13 @@ protected:
             std::lock_guard lock(mBreakpointQueueMutex);
             mPendingBreakpoints.clear();
         }
+        {
+            std::lock_guard lock(mBreakpointMutex);
+            std::erase_if(mBreakpointAddresses, [this](const uint64_t addr)
+            {
+                return !mProcess || !mProcess->HasBreakpoint(static_cast<ElfBug::ptr>(addr));
+            });
+        }
         mEntryPoint = 0;
         refreshMemoryMap();
         refreshThreadList(false);

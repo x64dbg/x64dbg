@@ -127,6 +127,7 @@ namespace ElfBug
         if(!WIFSTOPPED(status))
         {
             const int code = WIFEXITED(status) ? WEXITSTATUS(status) : -WTERMSIG(status);
+            mMainPid.store(0, std::memory_order_release);
             cbInternalError("child exited before reaching first stop (code " + std::to_string(code) + ")");
             cbExitProcess(code);
             return false;

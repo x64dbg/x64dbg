@@ -4,6 +4,7 @@
 #include <BasicView/HexDump.h>
 #include <Gui/RegistersView.h>
 #include <QMainWindow>
+#include <QPointer>
 #include <QTabWidget>
 #include <QTextBrowser>
 
@@ -47,6 +48,7 @@ private:
     void stopDebugThread();
     void detachDebugThread();
     void finishDebugThread();
+    void retireThread(const QPointer<QThread> & thread);
     void setupToolBar();
     void setupTabs();
     QWidget* createCpuTab();

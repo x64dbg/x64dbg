@@ -5,6 +5,7 @@
 #include <mutex>
 #include <shared_mutex>
 #include <unordered_map>
+#include <vector>
 #include <ElfBug/types/ElfBug.h>
 #include <ElfBug/types/Global.h>
 #include <ElfBug/thread/Thread.h>
@@ -45,7 +46,7 @@ namespace ElfBug
         bool ForgetBreakpoint(ptr address);
         // Re-reads and re-arms at each address the new image still maps.
         void ReseatBreakpointsAfterExec();
-        void ForgetBreakpointBytesAfterExec();
+        void ForgetBreakpointsAfterExec();
 
         // TODO: implement via mprotect + SIGSEGV handling
         bool SetMemoryBreakpoint(ptr address, ptr size, MemoryType type = MemoryType::Access, bool singleshot = true);
@@ -71,6 +72,7 @@ namespace ElfBug
         MemoryBreakpointMap mMemoryBreakpointPages;
         bool setBreakpointLocked(ptr address, bool singleshot, SoftwareType type);
         bool pokeByte(ptr address, uint8 byte);
+        void forgetSoftwareLocked(ptr address);
         BreakpointInfo* findSoftwareBreakpoint(ptr address);
         void unpatchBreakpointBytesLocked(ptr address, void* buffer, ptr size) const;
 

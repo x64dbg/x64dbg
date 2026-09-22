@@ -19,4 +19,5 @@ namespace ElfBug
     };
 
     ImageId ReadImageIdFromProcExe(pid_t pid);
+    bool AddressesRandomized(pid_t pid);
 }

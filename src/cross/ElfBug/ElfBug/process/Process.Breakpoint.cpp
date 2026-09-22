@@ -10,6 +10,14 @@ namespace ElfBug
         return &it->second->second;
     }
 
+    void Process::forgetSoftwareLocked(const ptr address)
+    {
+        const BreakpointKey key{BreakpointType::Software, address};
+        mSoftwareBreakpointReferences.erase(address);
+        mBreakpointCallbacks.erase(key);
+        mBreakpoints.erase(key);
+    }
+
     bool Process::pokeByte(const ptr address, const uint8 byte)
     {
         return MemWriteRaw(address, &byte, 1);
@@ -72,9 +80,7 @@ namespace ElfBug
         if(it->second.armed && !pokeByte(address, it->second.internal.software.oldbytes[0]))
             return false;
 
-        mSoftwareBreakpointReferences.erase(address);
-        mBreakpointCallbacks.erase(key);
-        mBreakpoints.erase(it);
+        forgetSoftwareLocked(address);
         return true;
     }
 
@@ -125,14 +131,10 @@ namespace ElfBug
     bool Process::ForgetBreakpoint(const ptr address)
     {
         std::unique_lock lock(mBreakpointMutex);
-        const auto ref = mSoftwareBreakpointReferences.find(address);
-        if(ref == mSoftwareBreakpointReferences.end())
+        if(mSoftwareBreakpointReferences.count(address) == 0)
             return false;
 
-        const BreakpointKey key{BreakpointType::Software, address};
-        mSoftwareBreakpointReferences.erase(ref);
-        mBreakpoints.erase(key);
-        mBreakpointCallbacks.erase(key);
+        forgetSoftwareLocked(address);
         return true;
     }
 
@@ -158,17 +160,17 @@ namespace ElfBug
         }
     }
 
-    void Process::ForgetBreakpointBytesAfterExec()
+    void Process::ForgetBreakpointsAfterExec()
     {
         std::unique_lock lock(mBreakpointMutex);
-        for(auto & [key, info] : mBreakpoints)
+        std::vector<ptr> software;
+        for(const auto & [key, info] : mBreakpoints)
         {
-            if(key.first != BreakpointType::Software)
-                continue;
-
-            info.armed = false;
-            info.internal.software.oldbytes[0] = 0;
+            if(key.first == BreakpointType::Software)
+                software.push_back(key.second);
         }
+        for(const ptr address : software)
+            forgetSoftwareLocked(address);
     }
 
     bool Process::TakeBreakpointDispatch(const ptr address, BreakpointInfo & info,

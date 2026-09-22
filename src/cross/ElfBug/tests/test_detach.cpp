@@ -115,21 +115,20 @@ TEST_CASE("A signal parked at detach is delivered to the process", "[detach]")
     ElfBug::test::UntracedProcess target(FIXTURE("signal_pending"));
     REQUIRE(target.pid > 0);
     REQUIRE(ElfBug::test::WaitForExeced(target.pid, FIXTURE("signal_pending")));
+    const auto ready = ElfBug::test::ResolveRuntimeAddress(FIXTURE("signal_pending"), target.pid, "sp_ready");
+    REQUIRE(ready.has_value());
+    REQUIRE(ElfBug::test::WaitForDetachedValue(target.pid, *ready, 1));
 
     ElfBug::test::RecordingDebugger dbg;
     REQUIRE(dbg.Attach(target.pid));
     dbg.StartOnThread();
     dbg.WaitForAttachBreakpoint();
 
-    const auto ready = ElfBug::test::ResolveRuntimeAddress(FIXTURE("signal_pending"),
-                       dbg.process()->pid, "sp_ready");
-    REQUIRE(ready.has_value());
     const auto handled = ElfBug::test::ResolveRuntimeAddress(FIXTURE("signal_pending"),
                          dbg.process()->pid, "sp_handled");
     REQUIRE(handled.has_value());
 
     dbg.Continue();
-    REQUIRE(ElfBug::test::WaitForTraceeValue(dbg.process(), *ready, 1));
 
     kill(target.pid, SIGUSR1);
     dbg.WaitForException(SIGUSR1);
@@ -184,30 +183,32 @@ TEST_CASE("Detach drains a SIGSTOP the attach sweep still owes", "[detach]")
     REQUIRE(ElfBug::test::WaitForExeced(target.pid, FIXTURE("signal_storm")));
     REQUIRE(target.WaitForThreads(9));
 
-    ElfBug::test::RecordingDebugger dbg;
-
     bool owed = false;
-    dbg.OnAttachBreakpoint([&]
+    for(int attempt = 0; attempt < 20 && !owed; ++attempt)
     {
-        for(const auto & [tid, thread] : dbg.process()->threads)
+        ElfBug::test::RecordingDebugger dbg;
+        dbg.OnAttachBreakpoint([&]
         {
-            if(thread->PendingSigstop())
-                owed = true;
-        }
-    });
+            for(const auto & [tid, thread] : dbg.process()->threads)
+            {
+                if(thread->PendingSigstop())
+                    owed = true;
+            }
+        });
 
-    REQUIRE(dbg.Attach(target.pid));
-    dbg.StartOnThread();
-    dbg.WaitForAttachBreakpoint();
+        REQUIRE(dbg.Attach(target.pid));
+        dbg.StartOnThread();
+        dbg.WaitForAttachBreakpoint();
+
+        dbg.Detach();
+        dbg.WaitForDetach();
+        dbg.JoinThread();
+
+        REQUIRE(ElfBug::TracerPid(target.pid) == 0);
+        REQUIRE(ElfBug::test::StaysRunning(target.pid));
+    }
 
     REQUIRE(owed);
-
-    dbg.Detach();
-    dbg.WaitForDetach();
-    dbg.JoinThread();
-
-    REQUIRE(ElfBug::TracerPid(target.pid) == 0);
-    REQUIRE(ElfBug::test::StaysRunning(target.pid));
 }
 
 TEST_CASE("Detach releases a thread the user suspended", "[detach]")

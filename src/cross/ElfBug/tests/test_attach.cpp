@@ -194,18 +194,16 @@ TEST_CASE("A signal delivered to an attached process is reported and forwarded",
     REQUIRE(target.pid > 0);
     REQUIRE(target.WaitForRunning());
     REQUIRE(ElfBug::test::WaitForExeced(target.pid, FIXTURE("signal_pending")));
+    const auto ready = ElfBug::test::ResolveRuntimeAddress(FIXTURE("signal_pending"), target.pid, "sp_ready");
+    REQUIRE(ready.has_value());
+    REQUIRE(ElfBug::test::WaitForDetachedValue(target.pid, *ready, 1));
 
     ElfBug::test::RecordingDebugger dbg;
     REQUIRE(dbg.Attach(target.pid));
     dbg.StartOnThread();
     dbg.WaitForAttachBreakpoint();
 
-    const auto ready = ElfBug::test::ResolveRuntimeAddress(FIXTURE("signal_pending"),
-                       dbg.process()->pid, "sp_ready");
-    REQUIRE(ready.has_value());
-
     dbg.Continue();
-    REQUIRE(ElfBug::test::WaitForTraceeValue(dbg.process(), *ready, 1));
 
     kill(target.pid, SIGUSR1);
 

@@ -372,7 +372,7 @@ TEST_CASE("An execve into a different image does not carry breakpoints over", "[
 
     CHECK(raw != 0xCC);
 
-    CHECK(stillListed);
+    CHECK_FALSE(stillListed);
 
     dbg.Continue();
     const auto exit_ev = dbg.WaitFor(EventType::ExitProcess, std::chrono::seconds(10));

@@ -101,8 +101,8 @@ MainWindow::~MainWindow()
     else
         stopDebugThread();
 
-    if(mRetiringThread)
-        mRetiringThread->wait(kDetachWaitMs);
+    if(mRetiringThread && !mRetiringThread->wait(kDetachWaitMs))
+        mProvider->setParent(nullptr);
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
@@ -193,12 +193,12 @@ void MainWindow::finishDebugThread()
     if(!mDebugThread->wait(kDetachWaitMs))
     {
         mRetiringThread = mDebugThread;
-        connect(mDebugThread, &QThread::finished, this, [this]
-        {
-            mRetiringThread->deleteLater();
-            mRetiringThread = nullptr;
-        });
-        onLogMessage(tr("[x64dbg] The debug thread is still releasing the debuggee"));
+        const QPointer<QThread> retiring(mDebugThread);
+        connect(mDebugThread, &QThread::finished, this, [this, retiring] { retireThread(retiring); });
+        if(retiring->isFinished())
+            retireThread(retiring);
+        else
+            onLogMessage(tr("[x64dbg] The debug thread is still releasing the debuggee"));
     }
     else
     {
@@ -212,6 +212,14 @@ void MainWindow::finishDebugThread()
 
     DbgSetMemoryProvider(nullptr);
     clearDebuggeeViews();
+}
+
+void MainWindow::retireThread(const QPointer<QThread> & thread)
+{
+    if(!thread || thread != mRetiringThread)
+        return;
+    mRetiringThread = nullptr;
+    thread->deleteLater();
 }
 
 void MainWindow::setupToolBar()
@@ -380,15 +388,15 @@ void MainWindow::onOpen()
 
     //? Init and Start must run on the same thread
     auto pathBytes = path.toUtf8();
-    mDebugThread = QThread::create([this, pathBytes]()
+    mDebugThread = QThread::create([provider = mProvider, pathBytes]()
     {
-        if(!mProvider->launch(pathBytes.constData()))
+        if(!provider->launch(pathBytes.constData()))
         {
             DbgSetMemoryProvider(nullptr);
-            emit mProvider->logMessage("[x64dbg] Failed to launch process");
+            emit provider->logMessage("[x64dbg] Failed to launch process");
             return;
         }
-        mProvider->start();
+        provider->start();
         // A loop that never reached a session fires no terminal event, so nothing
         // else takes the provider back down.
         DbgSetMemoryProvider(nullptr);
@@ -415,14 +423,14 @@ void MainWindow::onAttach()
     mSessionStartPending = true;
     mAttachedSession = true;
 
-    mDebugThread = QThread::create([this, pid]()
+    mDebugThread = QThread::create([provider = mProvider, pid]()
     {
-        if(!mProvider->attach(pid))
+        if(!provider->attach(pid))
         {
             DbgSetMemoryProvider(nullptr);
             return;
         }
-        mProvider->start();
+        provider->start();
         DbgSetMemoryProvider(nullptr);
     });
     mDebugThread->start();

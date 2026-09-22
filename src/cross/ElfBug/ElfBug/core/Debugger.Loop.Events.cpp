@@ -1,5 +1,4 @@
 #include <ElfBug/core/Debugger.h>
-#include <ElfBug/process/ProcessList.h>
 
 namespace ElfBug
 {
@@ -42,7 +41,7 @@ namespace ElfBug
             mMainPid.store(0, std::memory_order_release);
         }
     }
-    void Debugger::createThreadEvent(const pid_t tid)
+    void Debugger::createThreadEvent(const pid_t tid, const pid_t tgid, const bool fromClone)
     {
         if(!mProcess)
             return;
@@ -50,7 +49,6 @@ namespace ElfBug
         // Already resumed if its own SIGSTOP was seen before this clone notification.
         const bool alreadyRunning = mUnregisteredRunning.erase(tid) > 0;
 
-        const pid_t tgid = ThreadGroupId(tid);
         if(tgid != 0 && tgid != mMainPid.load(std::memory_order_relaxed))
         {
             releaseForeignClone(tid, tgid, alreadyRunning);
@@ -64,6 +62,12 @@ namespace ElfBug
             inserted = result.second;
             if(alreadyRunning)
                 result.first->second->SetRunning(true);
+            else if(inserted && fromClone)
+            {
+                // Not in ptrace-stop until the kernel's initial SIGSTOP lands.
+                result.first->second->SetRunning(true);
+                result.first->second->SetPendingSigstop(true);
+            }
         }
 
         if(inserted)

@@ -39,7 +39,16 @@ namespace ElfBug
             return line[lastParen + 2];
         }
 
-        bool drainQueuedSigstop(const pid_t tid, int & deliver)
+        void collectClonedChild(const pid_t parent, const int status, std::vector<pid_t> & clones)
+        {
+            if(((status >> 16) & 0xffff) != PTRACE_EVENT_CLONE)
+                return;
+            unsigned long child = 0;
+            if(ptrace(PTRACE_GETEVENTMSG, parent, nullptr, &child) != -1 && child != 0)
+                clones.push_back(static_cast<pid_t>(child));
+        }
+
+        bool drainQueuedSigstop(const pid_t tid, int & deliver, std::vector<pid_t> & clones)
         {
             constexpr int kDrainAttempts = 32;
             for(int attempt = 0; attempt < kDrainAttempts; attempt++)
@@ -66,6 +75,7 @@ namespace ElfBug
                 if(WSTOPSIG(status) == SIGSTOP)
                     return true;
 
+                collectClonedChild(tid, status, clones);
                 if(deliver == 0)
                 {
                     siginfo_t info{};
@@ -146,11 +156,12 @@ namespace ElfBug
             bool undrained = false;
             std::unordered_set<pid_t> leftRunning;
             std::unordered_map<pid_t, int> deliverOnRelease;
+            std::vector<pid_t> clones;
             for(const pid_t tid : owesSigstop)
             {
                 const auto pending = attachPendingSignals.find(tid);
                 int deliver = pending != attachPendingSignals.end() ? pending->second.signal : 0;
-                if(!drainQueuedSigstop(tid, deliver))
+                if(!drainQueuedSigstop(tid, deliver, clones))
                 {
                     undrained = true;
                     leftRunning.insert(tid);
@@ -160,16 +171,16 @@ namespace ElfBug
             }
             for(const pid_t tid : attached)
             {
-                if(leftRunning.count(tid) > 0 && !restopForDetach(tid, pid))
-                    cbInternalError("thread " + std::to_string(tid) +
-                                    " stays traced: it could not be stopped to release it");
-
                 const auto deliver = deliverOnRelease.find(tid);
                 const int signal = deliver != deliverOnRelease.end() ? deliver->second : 0;
-                if(ptrace(PTRACE_DETACH, tid, nullptr, reinterpret_cast<void*>(
-                              static_cast<unsigned long>(signal))) == -1 && errno != ESRCH)
-                    cbInternalError("PTRACE_DETACH failed: " + std::string(strerror(errno)));
+                int raced = 0;
+                if(leftRunning.count(tid) > 0 && !restopForDetach(tid, pid, true, raced))
+                    cbInternalError("thread " + std::to_string(tid) +
+                                    " stays traced: it could not be stopped to release it");
+                releaseThread(tid, pid, signal, raced);
             }
+            for(const pid_t child : clones)
+                releaseForeignClone(child, pid, false);
             if(undrained && !mWasGroupStopped)
                 kill(pid, SIGCONT);
         };
@@ -284,7 +295,7 @@ namespace ElfBug
         for(const pid_t tid : acquired)
         {
             if(tid != pid)
-                createThreadEvent(tid);
+                createThreadEvent(tid, pid, false);
         }
 
         for(const pid_t tid : owesSigstop)
@@ -304,9 +315,9 @@ namespace ElfBug
         return true;
     }
 
-    bool Debugger::restopForDetach(const pid_t tid, const pid_t tgid)
+    bool Debugger::restopForDetach(const pid_t tid, const pid_t tgid, const bool owed, int & deliver)
     {
-        if(tgkill(tgid, tid, SIGSTOP) == -1)
+        if(!owed && tgkill(tgid, tid, SIGSTOP) == -1)
             return errno == ESRCH;
 
         int status = 0;
@@ -317,8 +328,29 @@ namespace ElfBug
         if(WIFSTOPPED(status) && WSTOPSIG(status) == SIGSTOP)
             return true;
 
-        int deliver = 0;
-        return drainQueuedSigstop(tid, deliver);
+        std::vector<pid_t> clones;
+        collectClonedChild(tid, status, clones);
+        siginfo_t info{};
+        const bool haveInfo = ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1;
+        ptr address = 0;
+        (void)StopShouldQueue(status, haveInfo, info, deliver, address);
+        const bool drained = drainQueuedSigstop(tid, deliver, clones);
+        for(const pid_t child : clones)
+            releaseForeignClone(child, tgid, false);
+        return drained;
+    }
+
+    void Debugger::releaseThread(const pid_t tid, const pid_t tgid, const int signal, const int raced)
+    {
+        const int first = signal != 0 ? signal : raced;
+        if(ptrace(PTRACE_DETACH, tid, nullptr, reinterpret_cast<void*>(static_cast<unsigned long>(first))) == -1)
+        {
+            if(errno != ESRCH)
+                cbInternalError("PTRACE_DETACH failed: " + std::string(strerror(errno)));
+            return;
+        }
+        if(signal != 0 && raced != 0 && raced != signal)
+            tgkill(tgid, tid, raced);
     }
 
     void Debugger::releaseForeignClone(const pid_t tid, const pid_t tgid, const bool running)
@@ -351,7 +383,11 @@ namespace ElfBug
             if(StopShouldQueue(status, haveInfo, info, signal, address))
                 deliver = signal;
 
-            if(running && !drainQueuedSigstop(tid, deliver))
+            std::vector<pid_t> clones;
+            const bool drained = !running || drainQueuedSigstop(tid, deliver, clones);
+            for(const pid_t child : clones)
+                releaseForeignClone(child, tgid, false);
+            if(!drained)
             {
                 cbInternalError("cloned process " + std::to_string(tid) + " could not be released");
                 return;
@@ -402,6 +438,7 @@ namespace ElfBug
 
         std::vector<std::pair<pid_t, int>> targets;
         std::unordered_set<pid_t> leftRunning;
+        std::unordered_set<pid_t> owedSigstop;
         for(const pid_t tid : mUnregisteredRunning)
         {
             const pid_t tgid = ThreadGroupId(tid);
@@ -425,7 +462,11 @@ namespace ElfBug
             {
                 targets.emplace_back(tid, thread->PendingSignal());
                 if(thread->IsRunning())
+                {
                     leftRunning.insert(tid);
+                    if(thread->PendingSigstop())
+                        owedSigstop.insert(tid);
+                }
             }
         }
         else
@@ -439,16 +480,11 @@ namespace ElfBug
 
         for(const auto & [tid, signal] : targets)
         {
-            if(leftRunning.count(tid) > 0 && !restopForDetach(tid, pid))
+            int raced = 0;
+            if(leftRunning.count(tid) > 0 && !restopForDetach(tid, pid, owedSigstop.count(tid) > 0, raced))
                 cbInternalError("thread " + std::to_string(tid) +
                                 " stays traced: it could not be stopped to release it");
-            if(ptrace(PTRACE_DETACH, tid, nullptr, reinterpret_cast<void*>(
-                          static_cast<unsigned long>(signal))) == -1)
-            {
-                const int err = errno;
-                if(err != ESRCH)
-                    cbInternalError("PTRACE_DETACH failed: " + std::string(strerror(err)));
-            }
+            releaseThread(tid, pid, signal, raced);
         }
 
         if(!mWasGroupStopped)

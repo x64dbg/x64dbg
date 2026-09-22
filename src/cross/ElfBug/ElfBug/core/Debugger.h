@@ -127,11 +127,13 @@ namespace ElfBug
         void onExec();
         bool applyExec(pid_t tid);
         void handleExecEvent(pid_t tid);
+        void parkForRejectedExec(pid_t tid);
         void replaceExecedThread(pid_t formerTid, pid_t tid);
 
         std::optional<int> stopAllThreads(pid_t except);
         void reportLeaderExit(int exitCode);
         void drainPendingResumes();
+        bool pendingResumeOnBreakpoint();
         bool resumeStoppedThread(pid_t tid);
         void continueUnlessSuspended(pid_t tid);
         void leaveParked(pid_t tid);
@@ -151,7 +153,7 @@ namespace ElfBug
         Thread* findPendingBreakpointThread() const;
         Thread* findPendingSignalThread() const;
         void repairStoppedThread(Thread* thread, int status);
-        bool rewindOntoBreakpoint(Thread* thread, int status);
+        bool claimBreakpointTrap(Thread* thread, int status);
         void reportSignal(pid_t tid, int sig);
 
         struct StepOverRequest
@@ -180,11 +182,13 @@ namespace ElfBug
         void beginPause();
         void createProcessEvent(pid_t pid, Arch arch);
         void exitProcessEvent(pid_t pid, int exitCode);
-        void createThreadEvent(pid_t tid);
+        void createThreadEvent(pid_t tid, pid_t tgid, bool fromClone);
+        void registerClone(pid_t parent);
         void exitThreadEvent(pid_t tid);
         void releaseForeignClone(pid_t tid, pid_t tgid, bool running);
         // Brings a thread a failed drain left running back to a stop we waited on.
-        bool restopForDetach(pid_t tid, pid_t tgid);
+        bool restopForDetach(pid_t tid, pid_t tgid, bool owed, int & deliver);
+        void releaseThread(pid_t tid, pid_t tgid, int signal, int raced);
 
         std::atomic<bool> mIsRunning{false};
         std::atomic<bool> mPaused{false};
