@@ -50,9 +50,10 @@ public:
             cs = Qt::CaseSensitive;
         case FilterRegexCaseInsensitive:
         {
-            const QRegularExpression regex(filter, cs == Qt::CaseSensitive
-                                           ? QRegularExpression::NoPatternOption
-                                           : QRegularExpression::CaseInsensitiveOption);
+            QRegularExpression::PatternOptions options = QRegularExpression::UseUnicodePropertiesOption;
+            if(cs == Qt::CaseInsensitive)
+                options |= QRegularExpression::CaseInsensitiveOption;
+            const QRegularExpression regex(filter, options);
             if(!regex.isValid())
                 return false;
             for(duint i = startColumn; i < count; i++)

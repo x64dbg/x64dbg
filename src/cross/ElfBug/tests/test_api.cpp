@@ -1,4 +1,5 @@
 #include "TestSupport.h"
+#include <functional>
 #include <set>
 #include <mutex>
 #include <condition_variable>
@@ -24,6 +25,7 @@ namespace
         std::optional<int> exitCode;
         std::vector<pid_t> createdTids;
         std::vector<pid_t> exitedTids;
+        std::function<void()> atSystemBreakpoint;
 
         template<class Pred>
         bool WaitFor(Pred pred, const std::chrono::milliseconds timeout = std::chrono::seconds(5))
@@ -53,6 +55,8 @@ namespace
         cb.onSystemBreakpoint = [](void* userdata)
         {
             auto* ev = static_cast<ApiEvents*>(userdata);
+            if(ev->atSystemBreakpoint)
+                ev->atSystemBreakpoint();
             std::lock_guard lock(ev->mutex);
             ev->systemBreakpoint = true;
             ev->cv.notify_all();
@@ -117,9 +121,10 @@ namespace
         ElfBugDebugger* dbg = nullptr;
         std::thread loop;
 
-        explicit ApiSession(std::string fixturePath)
+        explicit ApiSession(std::string fixturePath, std::function<void()> atSystemBreakpoint = {})
             : path(std::move(fixturePath))
         {
+            events.atSystemBreakpoint = std::move(atSystemBreakpoint);
             const ElfBugCallbacks cb = MakeApiCallbacks(events);
             dbg = ElfBugCreate(&cb);
             if(dbg && ElfBugInit(dbg, path.c_str()))
@@ -584,7 +589,7 @@ TEST_CASE("EnumProcesses reports a spawned process with its name, path and arch"
 {
     ElfBug::test::UntracedProcess target(FIXTURE("run_endlessly"));
     REQUIRE(target.pid > 0);
-    REQUIRE(target.WaitForRunning());
+    REQUIRE(ElfBug::test::WaitForExeced(target.pid, FIXTURE("run_endlessly")));
 
     const auto list = ElfBugProcessList();
     REQUIRE(!list.empty());
@@ -627,6 +632,31 @@ TEST_CASE("ElfBugSetRegister reaches the tracee", "[api][registers]")
     CHECK(after.r15 == kValue);
 
     CHECK_FALSE(ElfBugSetRegister(s.dbg, "nonesuch", 1));
+}
+
+TEST_CASE("ElfBugSetRegister works from inside a stop callback", "[api][registers]")
+{
+    using namespace ElfBug::test;
+    constexpr uint64_t kValue = 0x1234567890abcdefULL;
+    ElfBugDebugger* dbg = nullptr;
+    bool ok = false;
+    std::chrono::steady_clock::duration took{};
+
+    ApiSession s(FIXTURE("run_endlessly"), [&]
+    {
+        const auto start = std::chrono::steady_clock::now();
+        ok = ElfBugSetRegister(dbg, "r15", kValue);
+        took = std::chrono::steady_clock::now() - start;
+    });
+    dbg = s.dbg;
+    REQUIRE(s.Started());
+    REQUIRE(s.WaitForSystemBreakpoint());
+
+    CHECK(ok);
+    CHECK(took < std::chrono::milliseconds(500));
+    ElfBugRegisters regs{};
+    REQUIRE(ElfBugGetRegisters(s.dbg, &regs));
+    CHECK(regs.r15 == kValue);
 }
 
 TEST_CASE("C API attach hands the session over with threads and registers", "[api][attach]")

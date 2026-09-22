@@ -72,6 +72,11 @@ void AttachDialog::onRefresh()
     const auto processes = DbgAdapter::enumProcesses();
     const pid_t self = getpid();
 
+    QString selectedPid;
+    const auto previous = mSearchListView->mCurList;
+    if(previous->getRowCount())
+        selectedPid = previous->getCellContent(previous->getInitialSelection(), ColPid);
+
     mSearchListView->setRowCount(processes.size());
     duint row = 0;
     for(const auto & p : processes)
@@ -106,6 +111,17 @@ void AttachDialog::onRefresh()
     mSearchListView->setRowCount(row);
     mSearchListView->reloadData();
     mSearchListView->refreshSearchList();
+
+    const auto current = mSearchListView->mCurList;
+    for(duint i = 0; !selectedPid.isEmpty() && i < current->getRowCount(); i++)
+    {
+        if(current->getCellContent(i, ColPid) == selectedPid)
+        {
+            current->setSingleSelection(i);
+            current->reloadData();
+            break;
+        }
+    }
 }
 
 void AttachDialog::onAttach()

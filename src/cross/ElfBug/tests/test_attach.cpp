@@ -298,3 +298,24 @@ TEST_CASE("AttachErrorMessage names the yama fix for EPERM", "[attach]")
     REQUIRE(disabled.find("ptrace_scope") != std::string::npos);
     REQUIRE(disabled.find("setcap") == std::string::npos);
 }
+
+TEST_CASE("Attach that times out on an uninterruptible thread still releases it", "[attach]")
+{
+    using namespace ElfBug::test;
+    UntracedProcess target(FIXTURE("vfork_wait"));
+    REQUIRE(target.pid > 0);
+    REQUIRE(WaitForExeced(target.pid, FIXTURE("vfork_wait")));
+    const auto rounds = ResolveRuntimeAddress(FIXTURE("vfork_wait"), target.pid, "vw_rounds");
+    REQUIRE(rounds.has_value());
+    REQUIRE(WaitForDetachedValue(target.pid, *rounds, 1));
+
+    RecordingDebugger dbg;
+    REQUIRE(dbg.Attach(target.pid));
+    dbg.StartOnThread();
+    const auto event = dbg.WaitForInternalError();
+    CHECK(event.message.find("did not stop") != std::string::npos);
+    dbg.JoinThread();
+
+    REQUIRE(ElfBug::TracerPid(target.pid) == 0);
+    REQUIRE(WaitForDetachedValue(target.pid, *rounds, 3));
+}

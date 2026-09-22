@@ -187,8 +187,10 @@ namespace ElfBug
         void exitThreadEvent(pid_t tid);
         void releaseForeignClone(pid_t tid, pid_t tgid, bool running);
         // Brings a thread a failed drain left running back to a stop we waited on.
-        bool restopForDetach(pid_t tid, pid_t tgid, bool owed, int & deliver);
-        void releaseThread(pid_t tid, pid_t tgid, int signal, int raced);
+        WaitResult restopForDetach(pid_t tid, pid_t tgid, bool owed, std::vector<int> & signals);
+        // Keeps the thread traced until it reaches a stop it can be detached from.
+        void releaseRunningThread(pid_t tid, pid_t tgid, bool owed, std::vector<int> signals);
+        void releaseThread(pid_t tid, pid_t tgid, const std::vector<int> & signals);
 
         std::atomic<bool> mIsRunning{false};
         std::atomic<bool> mPaused{false};

@@ -120,6 +120,7 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_signal_storm
     elfbug_fixture_clone_relay
     elfbug_fixture_clone_process
+    elfbug_fixture_vfork_wait
 )
 
 # Target: elfbug_fixture_end_immediately
@@ -808,4 +809,37 @@ set_target_properties(elfbug_fixture_clone_process PROPERTIES
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_clone_process)
+endif()
+
+# Target: elfbug_fixture_vfork_wait
+set(elfbug_fixture_vfork_wait_SOURCES
+	cmake.toml
+	"targets/vfork_wait.cpp"
+)
+
+add_executable(elfbug_fixture_vfork_wait)
+
+target_sources(elfbug_fixture_vfork_wait PRIVATE ${elfbug_fixture_vfork_wait_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_vfork_wait_SOURCES})
+
+target_compile_options(elfbug_fixture_vfork_wait PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_vfork_wait PRIVATE
+	-pie
+)
+
+set_target_properties(elfbug_fixture_vfork_wait PROPERTIES
+	OUTPUT_NAME
+		vfork_wait
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_vfork_wait)
 endif()

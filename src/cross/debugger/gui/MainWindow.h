@@ -7,6 +7,9 @@
 #include <QPointer>
 #include <QTabWidget>
 #include <QTextBrowser>
+#include <atomic>
+#include <functional>
+#include <memory>
 
 #include "core/DbgAdapter.h"
 
@@ -48,6 +51,7 @@ private:
     void stopDebugThread();
     void detachDebugThread();
     void finishDebugThread();
+    void requestUntilAccepted(const std::function<bool()> & request);
     void retireThread(const QPointer<QThread> & thread);
     void setupToolBar();
     void setupTabs();
@@ -57,6 +61,7 @@ private:
     DbgAdapter* mProvider = nullptr;
     QThread* mDebugThread = nullptr;
     QThread* mRetiringThread = nullptr;
+    std::shared_ptr<std::atomic<bool>> mSessionCancelled;
     QTabWidget* mTabWidget = nullptr;
     Disassembly* mDisassembly = nullptr;
     HexDump* mHexDump = nullptr;

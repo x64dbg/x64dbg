@@ -304,6 +304,7 @@ namespace ElfBug::test
         std::string loopState() const
         {
             std::string state = IsPaused() ? "paused" : "running";
+            std::shared_lock lock(mProcessMutex);
             if(!mProcess)
                 return state + " process=gone";
 

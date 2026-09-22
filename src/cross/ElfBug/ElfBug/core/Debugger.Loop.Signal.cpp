@@ -1007,7 +1007,7 @@ namespace ElfBug
             {
                 mProcess->ForgetBreakpointsAfterExec();
                 cbDebugString(sameImage ? "execve reloaded the image at a randomized base, breakpoints did not carry over"
-                                        : "execve replaced the image, breakpoints did not carry over");
+                              : "execve replaced the image, breakpoints did not carry over");
             }
         }
 

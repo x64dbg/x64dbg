@@ -4,6 +4,7 @@
 #include <QCheckBox>
 #include <QCloseEvent>
 #include <QCoreApplication>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -23,6 +24,7 @@
 namespace
 {
     constexpr int kDetachWaitMs = 10000;
+    constexpr int kRequestRetryMs = 10;
 
     LinuxArchitecture gArch;
 
@@ -174,8 +176,9 @@ void MainWindow::stopDebugThread()
     if(!mDebugThread)
         return;
 
+    mSessionCancelled->store(true);
     mProvider->run();
-    (void)mProvider->stop();
+    requestUntilAccepted([this] { return mProvider->stop(); });
     finishDebugThread();
 }
 
@@ -184,8 +187,21 @@ void MainWindow::detachDebugThread()
     if(!mDebugThread)
         return;
 
-    (void)mProvider->detach();
+    mSessionCancelled->store(true);
+    requestUntilAccepted([this] { return mProvider->detach(); });
     finishDebugThread();
+}
+
+// The engine refuses requests until the worker is inside its debug loop.
+void MainWindow::requestUntilAccepted(const std::function<bool()> & request)
+{
+    QElapsedTimer timer;
+    timer.start();
+    while(!request())
+    {
+        if(mDebugThread->wait(kRequestRetryMs) || timer.elapsed() >= kDetachWaitMs)
+            return;
+    }
 }
 
 void MainWindow::finishDebugThread()
@@ -365,6 +381,9 @@ void MainWindow::onOpen()
     if(path.isEmpty())
         return;
 
+    if(!endCurrentSession() || !canStartSession())
+        return;
+
     onLogMessage(QString("[x64dbg] Launching: %1").arg(path));
 
     const QFileInfo target(path);
@@ -376,19 +395,17 @@ void MainWindow::onOpen()
             onLogMessage(QString("[x64dbg] %1 is not executable, run chmod +x on it").arg(path));
     }
 
-    if(!endCurrentSession() || !canStartSession())
-        return;
-
     if(!mProvider->loadEngine())
         return;
 
     DbgSetMemoryProvider(mProvider);
 
     mSessionStartPending = true;
+    mSessionCancelled = std::make_shared<std::atomic<bool>>(false);
 
     //? Init and Start must run on the same thread
     auto pathBytes = path.toUtf8();
-    mDebugThread = QThread::create([provider = mProvider, pathBytes]()
+    mDebugThread = QThread::create([provider = mProvider, cancelled = mSessionCancelled, pathBytes]()
     {
         if(!provider->launch(pathBytes.constData()))
         {
@@ -396,7 +413,8 @@ void MainWindow::onOpen()
             emit provider->logMessage("[x64dbg] Failed to launch process");
             return;
         }
-        provider->start();
+        if(!cancelled->load())
+            provider->start();
         // A loop that never reached a session fires no terminal event, so nothing
         // else takes the provider back down.
         DbgSetMemoryProvider(nullptr);
@@ -422,15 +440,17 @@ void MainWindow::onAttach()
 
     mSessionStartPending = true;
     mAttachedSession = true;
+    mSessionCancelled = std::make_shared<std::atomic<bool>>(false);
 
-    mDebugThread = QThread::create([provider = mProvider, pid]()
+    mDebugThread = QThread::create([provider = mProvider, cancelled = mSessionCancelled, pid]()
     {
         if(!provider->attach(pid))
         {
             DbgSetMemoryProvider(nullptr);
             return;
         }
-        provider->start();
+        if(!cancelled->load())
+            provider->start();
         DbgSetMemoryProvider(nullptr);
     });
     mDebugThread->start();

@@ -16,6 +16,7 @@
 #include <mutex>
 #include <set>
 #include <shared_mutex>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -100,6 +101,13 @@ struct ElfBugDebugger : ElfBug::Debugger
     void SetCallbacks(const ElfBugCallbacks & callbacks)
     {
         mCb = callbacks;
+    }
+
+    void RunLoop()
+    {
+        mLoopThread.store(std::this_thread::get_id(), std::memory_order_release);
+        Start();
+        mLoopThread.store({}, std::memory_order_release);
     }
 
     [[nodiscard]] bool IsActive() const
@@ -345,6 +353,8 @@ struct ElfBugDebugger : ElfBug::Debugger
             return false;
         if(registerOffset(name) == kNoRegister)
             return false;
+        if(mLoopThread.load(std::memory_order_acquire) == std::this_thread::get_id())
+            return writeRegisterOnTracer(name, value);
 
         auto request = std::make_shared<RegisterRequest>();
         request->name = name;
@@ -868,6 +878,7 @@ private:
     }
 
     ElfBugCallbacks mCb = {};
+    std::atomic<std::thread::id> mLoopThread{};
     std::atomic<bool> mActive{false};
     std::atomic<pid_t> mActivePid{0};
     uint64_t mEntryPoint = 0;
@@ -952,7 +963,7 @@ extern "C" {
     {
         if(!dbg)
             return;
-        dbg->Start();
+        dbg->RunLoop();
     }
 
     void ElfBugContinue(ElfBugDebugger* dbg)

@@ -424,7 +424,8 @@ TEST_CASE("A process exit racing the stop sweep is still reported", "[multithrea
         REQUIRE(dbg.process()->MemWrite(*s.exitNow, &go, sizeof(go)));
 
         Event last;
-        for(int round = 0; round < 400; ++round)
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(30);
+        while(std::chrono::steady_clock::now() < deadline)
         {
             dbg.Continue();
             last = dbg.WaitForAny({EventType::Breakpoint, EventType::ExitProcess, EventType::Exception},

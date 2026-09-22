@@ -18,10 +18,12 @@ extern "C" void er_hot()
 
 namespace
 {
+    // Spins: a sleeper can miss every short window between sweeps.
     void* exiter(void*)
     {
         while(er_exit_now == 0)
-            nap(100000);
+        {
+        }
         _exit(7);
         return nullptr;
     }
