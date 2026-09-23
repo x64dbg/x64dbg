@@ -39,7 +39,8 @@ project(cross
 include(zydis.cmake)
 include("widgets/Qt.cmake")
 
-if(ELFBUG_BUILD_TESTS AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(ELFBUG_BUILD_TESTS AND CMAKE_SYSTEM_NAME STREQUAL "Linux"
+        AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64|AMD64)$")
     enable_testing()
 endif()
 
@@ -255,23 +256,27 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_
 	set(ElfBug_SOURCES
 		"ElfBug/ElfBug/api/elfbug_api.cpp"
 		"ElfBug/ElfBug/api/elfbug_api.h"
-		"ElfBug/ElfBug/core/Debugger.Loop.Process.cpp"
+		"ElfBug/ElfBug/core/Debugger.Attach.cpp"
+		"ElfBug/ElfBug/core/Debugger.Launch.cpp"
+		"ElfBug/ElfBug/core/Debugger.Loop.Events.cpp"
 		"ElfBug/ElfBug/core/Debugger.Loop.Signal.cpp"
-		"ElfBug/ElfBug/core/Debugger.Loop.Thread.cpp"
 		"ElfBug/ElfBug/core/Debugger.Loop.cpp"
+		"ElfBug/ElfBug/core/Debugger.StepOver.cpp"
 		"ElfBug/ElfBug/core/Debugger.cpp"
 		"ElfBug/ElfBug/core/Debugger.h"
-		"ElfBug/ElfBug/process/Breakpoint.cpp"
-		"ElfBug/ElfBug/process/Memory.cpp"
+		"ElfBug/ElfBug/process/Process.Breakpoint.cpp"
+		"ElfBug/ElfBug/process/Process.Memory.cpp"
 		"ElfBug/ElfBug/process/Process.cpp"
 		"ElfBug/ElfBug/process/Process.h"
 		"ElfBug/ElfBug/process/ProcessArch.cpp"
 		"ElfBug/ElfBug/process/ProcessArch.h"
+		"ElfBug/ElfBug/process/ProcessList.cpp"
+		"ElfBug/ElfBug/process/ProcessList.h"
 		"ElfBug/ElfBug/process/StepOver.cpp"
 		"ElfBug/ElfBug/process/StepOver.h"
-		"ElfBug/ElfBug/thread/HardwareBreakpoint.cpp"
 		"ElfBug/ElfBug/thread/Registers.cpp"
 		"ElfBug/ElfBug/thread/Registers.h"
+		"ElfBug/ElfBug/thread/Thread.HardwareBreakpoint.cpp"
 		"ElfBug/ElfBug/thread/Thread.cpp"
 		"ElfBug/ElfBug/thread/Thread.h"
 		"ElfBug/ElfBug/types/Breakpoint.h"
@@ -284,6 +289,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_
 
 	target_sources(ElfBug PRIVATE ${ElfBug_SOURCES})
 	source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${ElfBug_SOURCES})
+
+	target_compile_definitions(ElfBug PRIVATE
+		ELFBUG_BUILDING
+	)
 
 	target_compile_features(ElfBug PUBLIC
 		cxx_std_20
@@ -306,6 +315,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_
 		"debugger/core/DbgAdapter.cpp"
 		"debugger/core/DbgAdapter.h"
 		"debugger/core/LinuxArchitecture.h"
+		"debugger/gui/AttachDialog.cpp"
+		"debugger/gui/AttachDialog.h"
 		"debugger/gui/CPUStack.cpp"
 		"debugger/gui/CPUStack.h"
 		"debugger/gui/MainWindow.cpp"

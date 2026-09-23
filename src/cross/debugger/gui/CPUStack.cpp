@@ -1,17 +1,15 @@
-#include "CPUStack.h"
+#include "gui/CPUStack.h"
 
-#include <vector>
-
+#include <Configuration.h>
+#include <Disassembler/QZydis.h>
+#include <Gui/WordEditDialog.h>
+#include <Memory/MemoryPage.h>
 #include <QAction>
 #include <QContextMenuEvent>
 #include <QMenu>
 #include <QPainter>
-
-#include <Disassembler/QZydis.h>
-#include <Gui/WordEditDialog.h>
-#include <Memory/MemoryPage.h>
-#include "Configuration.h"
-#include "StringUtil.h"
+#include <StringUtil.h>
+#include <vector>
 
 CPUStack::CPUStack(Architecture* architecture, DbgAdapter* adapter, QWidget* parent)
     : HexDump(architecture, parent)
@@ -34,8 +32,8 @@ CPUStack::CPUStack(Architecture* architecture, DbgAdapter* adapter, QWidget* par
             this, &CPUStack::onProcessStarted,
             Qt::QueuedConnection);
 
-    connect(mAdapter, &DbgAdapter::processExited,
-            this, &CPUStack::onProcessExited,
+    connect(mAdapter, &DbgAdapter::sessionEnded,
+            this, &CPUStack::onSessionEnded,
             Qt::QueuedConnection);
 }
 
@@ -166,7 +164,7 @@ void CPUStack::onProcessStarted()
         stackDumpAt(mCsp, mCsp);
 }
 
-void CPUStack::onProcessExited()
+void CPUStack::onSessionEnded()
 {
     mCsp = 0;
     mCbp = 0;

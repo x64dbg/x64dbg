@@ -1,6 +1,5 @@
 #include "FlickerThread.h"
 #include <QStyle>
-#include <Windows.h>
 
 FlickerThread::FlickerThread(QWidget* widget, QObject* parent) : QThread(parent)
 {
@@ -21,8 +20,8 @@ void FlickerThread::run()
     for(int i = 0; i < count; i++)
     {
         emit setStyleSheet(QString("QWidget { border: %1px solid red; }").arg(width));
-        Sleep(delay);
+        msleep(delay);
         emit setStyleSheet(oldStyle);
-        Sleep(delay);
+        msleep(delay);
     }
 }

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <BasicView/HexDump.h>
 #include <memory>
 
-#include <BasicView/HexDump.h>
 #include "core/DbgAdapter.h"
 
 class QMenu;
@@ -29,7 +29,7 @@ public slots:
     void stackDumpAt(duint addr, duint csp);
     void onRegistersUpdated(const REGDUMP & regs);
     void onProcessStarted();
-    void onProcessExited();
+    void onSessionEnded();
     void gotoCspSlot();
     void gotoCbpSlot();
     void followDisasmSlot();

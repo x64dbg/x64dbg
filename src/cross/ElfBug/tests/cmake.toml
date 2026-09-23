@@ -13,10 +13,23 @@ shallow = true
 
 [target.ElfBug_tests]
 type = "executable"
-sources = ["tests.cpp", "api_c_compat.c"]
+sources = [
+    "test_api.cpp",
+    "test_attach.cpp",
+    "test_breakpoints.cpp",
+    "test_detach.cpp",
+    "test_lifecycle.cpp",
+    "test_multithread.cpp",
+    "test_signals.cpp",
+    "test_stepping.cpp",
+    "test_suspend.cpp",
+    "api_c_compat.c",
+]
 headers = [
     "TestHarness.h",
+    "TestSupport.h",
     "SymbolHelper.h",
+    "targets/TargetUtil.h",
 ]
 link-libraries = ["ElfBug", "Catch2::Catch2WithMain"]
 compile-features = ["cxx_std_20", "c_std_11"]
@@ -24,6 +37,8 @@ compile-definitions = ['ELFBUG_TESTS_TARGETS_DIR="${CMAKE_BINARY_DIR}/tests/targ
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests"
 properties.C_STANDARD = 11
 properties.C_STANDARD_REQUIRED = true
+# The per-file helper namespaces would collide if these were concatenated.
+properties.UNITY_BUILD = false
 cmake-after = """
 list(APPEND CMAKE_MODULE_PATH "${catch2_SOURCE_DIR}/extras")
 include(Catch)
@@ -34,13 +49,22 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_hello_elfbug
     elfbug_fixture_run_endlessly
     elfbug_fixture_segfault
+    elfbug_fixture_int3_target
     elfbug_fixture_multi_threaded
     elfbug_fixture_step_over_targets
     elfbug_fixture_exec_target
+    elfbug_fixture_exec_peer_a
+    elfbug_fixture_exec_peer_b
     elfbug_fixture_threads_spin
     elfbug_fixture_exit_race
     elfbug_fixture_signal_race
     elfbug_fixture_clone_trap
+    elfbug_fixture_thread_storm
+    elfbug_fixture_signal_pending
+    elfbug_fixture_signal_storm
+    elfbug_fixture_clone_relay
+    elfbug_fixture_clone_process
+    elfbug_fixture_vfork_wait
 )
 """
 
@@ -65,6 +89,12 @@ properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
 type = "elfbug_fixture"
 sources = ["targets/hello_elfbug.cpp"]
 properties.OUTPUT_NAME = "hello_elfbug"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_int3_target]
+type = "elfbug_fixture"
+sources = ["targets/int3_target.cpp"]
+properties.OUTPUT_NAME = "int3_target"
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
 
 [target.elfbug_fixture_segfault]
@@ -98,6 +128,19 @@ sources = ["targets/exec_target.cpp"]
 properties.OUTPUT_NAME = "exec_target"
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
 
+# One source, two binaries: same addresses, different inodes.
+[target.elfbug_fixture_exec_peer_a]
+type = "elfbug_fixture"
+sources = ["targets/exec_peer.cpp"]
+properties.OUTPUT_NAME = "exec_peer_a"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_exec_peer_b]
+type = "elfbug_fixture"
+sources = ["targets/exec_peer.cpp"]
+properties.OUTPUT_NAME = "exec_peer_b"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
 [target.elfbug_fixture_threads_spin]
 type = "elfbug_fixture"
 sources = ["targets/threads_spin.cpp"]
@@ -123,4 +166,43 @@ properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
 type = "elfbug_fixture"
 sources = ["targets/clone_trap.cpp"]
 properties.OUTPUT_NAME = "clone_trap"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_thread_storm]
+type = "elfbug_fixture"
+sources = ["targets/thread_storm.cpp"]
+link-libraries = ["pthread"]
+properties.OUTPUT_NAME = "thread_storm"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_signal_pending]
+type = "elfbug_fixture"
+sources = ["targets/signal_pending.cpp"]
+properties.OUTPUT_NAME = "signal_pending"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_signal_storm]
+type = "elfbug_fixture"
+sources = ["targets/signal_storm.cpp"]
+link-libraries = ["pthread"]
+properties.OUTPUT_NAME = "signal_storm"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_clone_relay]
+type = "elfbug_fixture"
+sources = ["targets/clone_relay.cpp"]
+link-libraries = ["pthread"]
+properties.OUTPUT_NAME = "clone_relay"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_clone_process]
+type = "elfbug_fixture"
+sources = ["targets/clone_process.cpp"]
+properties.OUTPUT_NAME = "clone_process"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_vfork_wait]
+type = "elfbug_fixture"
+sources = ["targets/vfork_wait.cpp"]
+properties.OUTPUT_NAME = "vfork_wait"
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"

@@ -38,8 +38,15 @@ jobs:
       - name: Build
         run: |
           cd src/cross
-          cmake -B build -G Ninja -DCMAKE_UNITY_BUILD=ON
+          cmake -B build -G Ninja -DCMAKE_UNITY_BUILD=ON -DELFBUG_BUILD_TESTS=ON
           cmake --build build
+
+      - name: Test ElfBug
+        if: ${{ matrix.platform == 'ubuntu-latest' }}
+        run: |
+          sudo sysctl -w kernel.yama.ptrace_scope=0
+          cd src/cross/build
+          ctest --output-on-failure --no-tests=error --timeout 120
 
   appimage:
     # Skip building pull requests from the same repository

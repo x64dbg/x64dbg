@@ -1,19 +1,64 @@
 #pragma once
 
 #include <ElfBug/core/Debugger.h>
+#include <ElfBug/process/ProcessList.h>
 #include <algorithm>
 #include <chrono>
 #include <condition_variable>
+#include <csignal>
 #include <fstream>
 #include <functional>
+#include <future>
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <sys/prctl.h>
+#include <sys/wait.h>
 #include <thread>
+#include <unistd.h>
 #include <vector>
 
 namespace ElfBug::test
 {
+    // Scheduled or sleeping, so a zombie does not read as alive.
+    [[nodiscard]] inline bool ProcessIsRunning(const pid_t pid)
+    {
+        if(pid <= 0)
+            return false;
+        std::ifstream stat("/proc/" + std::to_string(pid) + "/stat");
+        std::string data;
+        std::getline(stat, data);
+        const auto lastParen = data.rfind(')');
+        if(lastParen == std::string::npos || lastParen + 2 >= data.size())
+            return false;
+        const char state = data[lastParen + 2];
+        return state == 'R' || state == 'S';
+    }
+
+    [[nodiscard]] inline bool WaitForProcessRunning(const pid_t pid,
+            const std::chrono::milliseconds timeout = std::chrono::seconds(5))
+    {
+        const auto start = std::chrono::steady_clock::now();
+        while(std::chrono::steady_clock::now() - start < timeout)
+        {
+            if(ProcessIsRunning(pid))
+                return true;
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        return false;
+    }
+
+    // A process SIGKILLed out of ptrace-stop reads R for a moment on its way out, so one
+    // sample can see a dying process as alive. Require it to still be there afterwards.
+    [[nodiscard]] inline bool StaysRunning(const pid_t pid,
+                                           const std::chrono::milliseconds settle = std::chrono::milliseconds(250))
+    {
+        if(!WaitForProcessRunning(pid))
+            return false;
+        std::this_thread::sleep_for(settle);
+        return ProcessIsRunning(pid);
+    }
+
     enum class EventType
     {
         CreateProcess,
@@ -21,11 +66,14 @@ namespace ElfBug::test
         CreateThread,
         ExitThread,
         SystemBreakpoint,
+        AttachBreakpoint,
         Breakpoint,
         Step,
         Paused,
         Exception,
         InternalError,
+        Detach,
+        Exec,
     };
 
     struct Event
@@ -40,18 +88,37 @@ namespace ElfBug::test
         ptr instructionPointer = 0;
     };
 
+    // Distinct from the InternalError the waits also throw, so a test can assert that
+    // nothing arrived without also accepting a debugger that fell over.
+    struct WaitTimeout : std::runtime_error
+    {
+        using std::runtime_error::runtime_error;
+    };
+
     class RecordingDebugger : public Debugger
     {
     public:
         void StartOnThread()
         {
-            mLoopThread = std::thread([this] { Start(); });
+            std::packaged_task<void()> task([this] { Start(); });
+            mLoopDone = task.get_future();
+            mLoopThread = std::thread(std::move(task));
         }
 
-        void JoinThread()
+        void JoinThread(const std::chrono::milliseconds timeout = std::chrono::seconds(10))
         {
-            if(mLoopThread.joinable())
-                mLoopThread.join();
+            if(!mLoopThread.joinable())
+                return;
+
+            std::string stuck;
+            if(mLoopDone.valid() && mLoopDone.wait_for(timeout) != std::future_status::ready)
+            {
+                stuck = loopState();
+                Stop();
+            }
+            mLoopThread.join();
+            if(!stuck.empty())
+                throw std::runtime_error("debug loop did not exit on its own: " + stuck);
         }
 
         ~RecordingDebugger() override
@@ -87,7 +154,20 @@ namespace ElfBug::test
             mOnSystemBreakpoint = std::move(fn);
         }
 
-        // /proc/<pid>/stat state char: R/S = scheduled, t/T = ptrace-stopped.
+        // Tracer thread, at the exec stop: the only point where the old address space is
+        // provably gone and the new image has not run yet.
+        void OnExec(std::function<void()> fn)
+        {
+            mOnExec = std::move(fn);
+        }
+
+        // Runs on the tracer thread, the only one whose ptrace calls do not fail ESRCH.
+        void OnAttachBreakpoint(std::function<void()> fn)
+        {
+            mOnAttachBreakpoint = std::move(fn);
+        }
+
+        // /proc stat state char: R or S. A stopped or dying process reads as neither.
         bool WaitForRunning(const std::chrono::milliseconds timeout = std::chrono::seconds(5)) const
         {
             const pid_t pid = mProcess ? mProcess->pid : 0;
@@ -97,15 +177,8 @@ namespace ElfBug::test
             {
                 throwIfAnyInternalError();
 
-                std::ifstream stat("/proc/" + std::to_string(pid) + "/stat");
-                std::string data;
-                std::getline(stat, data);
-                const auto lastParen = data.rfind(')');
-                if(lastParen != std::string::npos && lastParen + 2 < data.size())
-                {
-                    const char state = data[lastParen + 2];
-                    if(state == 'R' || state == 'S') return true;
-                }
+                if(ProcessIsRunning(pid))
+                    return true;
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
             return false;
@@ -119,10 +192,13 @@ namespace ElfBug::test
         }
 
         Event WaitForSystemBreakpoint()    { return WaitFor(EventType::SystemBreakpoint); }
+        Event WaitForAttachBreakpoint()    { return WaitFor(EventType::AttachBreakpoint); }
         Event WaitForExit()                { return WaitFor(EventType::ExitProcess); }
         Event WaitForPaused()              { return WaitFor(EventType::Paused); }
         Event WaitForStep()                { return WaitFor(EventType::Step); }
         Event WaitForInternalError()       { return WaitFor(EventType::InternalError); }
+        Event WaitForDetach()              { return WaitFor(EventType::Detach); }
+        Event WaitForExec()                { return WaitFor(EventType::Exec); }
 
         Event WaitForAny(const std::initializer_list<EventType> types, const std::chrono::milliseconds timeout = std::chrono::seconds(5))
         {
@@ -147,22 +223,22 @@ namespace ElfBug::test
         }
 
     protected:
-        void cbCreateProcessEvent(const pid_t pid, const ptr entryPoint) override
+        void cbCreateProcess(const pid_t pid, const ptr entryPoint) override
         {
             push({EventType::CreateProcess, {}, pid, 0, entryPoint, 0, {}});
         }
 
-        void cbExitProcessEvent(const int exitCode) override
+        void cbExitProcess(const int exitCode) override
         {
             push({EventType::ExitProcess, {}, 0, exitCode, 0, 0, {}});
         }
 
-        void cbCreateThreadEvent(const pid_t tid) override
+        void cbCreateThread(const pid_t tid) override
         {
             push({EventType::CreateThread, {}, tid, 0, 0, 0, {}});
         }
 
-        void cbExitThreadEvent(const pid_t tid) override
+        void cbExitThread(const pid_t tid) override
         {
             push({EventType::ExitThread, {}, tid, 0, 0, 0, {}});
         }
@@ -172,6 +248,13 @@ namespace ElfBug::test
             if(mOnSystemBreakpoint)
                 mOnSystemBreakpoint();
             push({EventType::SystemBreakpoint, {}, 0, 0, 0, 0, {}});
+        }
+
+        void cbAttachBreakpoint() override
+        {
+            if(mOnAttachBreakpoint)
+                mOnAttachBreakpoint();
+            push({EventType::AttachBreakpoint, {}, 0, 0, 0, 0, {}});
         }
 
         void cbBreakpoint(const BreakpointInfo & info) override
@@ -193,7 +276,7 @@ namespace ElfBug::test
             push({EventType::Paused, {}, 0, 0, 0, 0, {}});
         }
 
-        void cbExceptionEvent(const int signal, const ptr address) override
+        void cbException(const int signal, const ptr address) override
         {
             push({EventType::Exception, {}, mThread ? mThread->tid : 0, 0, address, signal, {},
                   mThread ? mThread->registers.Gip() : 0
@@ -205,7 +288,38 @@ namespace ElfBug::test
             push({EventType::InternalError, {}, 0, 0, 0, 0, error});
         }
 
+        void cbDetach() override
+        {
+            push({EventType::Detach, {}, 0, 0, 0, 0, {}});
+        }
+
+        void cbExec() override
+        {
+            if(mOnExec)
+                mOnExec();
+            push({EventType::Exec, {}, 0, 0, 0, 0, {}});
+        }
+
     private:
+        std::string loopState() const
+        {
+            std::string state = IsPaused() ? "paused" : "running";
+            std::shared_lock lock(mProcessMutex);
+            if(!mProcess)
+                return state + " process=gone";
+
+            std::string runningTids;
+            std::size_t total = 0;
+            for(const auto & [tid, thread] : mProcess->threads)
+            {
+                ++total;
+                if(thread->IsRunning())
+                    runningTids += (runningTids.empty() ? "" : ",") + std::to_string(tid);
+            }
+            return state + " threads=" + std::to_string(total) +
+                   " stillRunning=[" + runningTids + "]";
+        }
+
         [[noreturn]] static void throwInternalError(const Event & e)
         {
             throw std::runtime_error("InternalError: " + e.message);
@@ -244,7 +358,7 @@ namespace ElfBug::test
 
                 const auto remaining = timeout - (std::chrono::steady_clock::now() - start);
                 if(remaining <= std::chrono::milliseconds(0))
-                    throw std::runtime_error(timeoutMessage);
+                    throw WaitTimeout(timeoutMessage);
 
                 mCv.wait_for(lock, remaining);
             }
@@ -265,6 +379,71 @@ namespace ElfBug::test
         std::vector<Event> mEvents;
         std::size_t mConsumedUpto = 0;
         std::thread mLoopThread;
+        std::future<void> mLoopDone;
         std::function<void()> mOnSystemBreakpoint;
+        std::function<void()> mOnAttachBreakpoint;
+        std::function<void()> mOnExec;
+    };
+
+    // A process the debugger did not spawn. The test process is its parent, which is what
+    // yama ptrace_scope=1 requires of anything that attaches to it.
+    class UntracedProcess
+    {
+    public:
+        explicit UntracedProcess(const std::string & path)
+        {
+            const pid_t parent = getpid();
+            pid = fork();
+            if(pid == 0)
+            {
+                prctl(PR_SET_PDEATHSIG, SIGKILL);
+                // The parent may already have died above, before the signal was armed.
+                if(getppid() != parent)
+                    _exit(127);
+                execl(path.c_str(), path.c_str(), nullptr);
+                _exit(127);
+            }
+        }
+
+        ~UntracedProcess()
+        {
+            if(pid > 0)
+            {
+                kill(pid, SIGKILL);
+                int status = 0;
+                waitpid(pid, &status, __WALL);
+            }
+        }
+
+        UntracedProcess(const UntracedProcess &) = delete;
+        UntracedProcess & operator=(const UntracedProcess &) = delete;
+
+        [[nodiscard]] bool Running() const
+        {
+            return ProcessIsRunning(pid);
+        }
+
+        [[nodiscard]] bool WaitForRunning(const std::chrono::milliseconds timeout = std::chrono::seconds(5)) const
+        {
+            return WaitForProcessRunning(pid, timeout);
+        }
+
+        // Running() goes true microseconds after fork, before exec has even replaced the
+        // image. A fixture with workers is only up once its task list holds them all.
+        [[nodiscard]] bool WaitForThreads(const std::size_t count,
+                                          const std::chrono::milliseconds timeout = std::chrono::seconds(5)) const
+        {
+            const auto start = std::chrono::steady_clock::now();
+            while(std::chrono::steady_clock::now() - start < timeout)
+            {
+                std::vector<pid_t> tids;
+                if(ReadTaskList(pid, tids) && tids.size() >= count)
+                    return true;
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            }
+            return false;
+        }
+
+        pid_t pid = -1;
     };
 }

@@ -1,13 +1,13 @@
 #pragma once
 
+#include <Bridge.h>
+#include <ElfBug/api/elfbug_api.h>
+#include <QHash>
+#include <QVector>
+#include <RegisterContext.h>
 #include <atomic>
 #include <mutex>
 #include <vector>
-#include <QHash>
-#include <QVector>
-#include <ElfBug/api/elfbug_api.h>
-#include "RegisterContext.h"
-#include "Bridge.h"
 
 Q_DECLARE_METATYPE(REGDUMP)
 
@@ -48,20 +48,22 @@ public:
     bool modNameFromAddr(duint addr, char* buf, duint bufSize, bool extension) override;
 
     bool loadEngine();
-    bool launch(const char* path) const;
-    void Start() const;
-    void Continue() const;
-    void StepInto() const;
-    void StepOver() const;
-    void Pause() const;
-    bool Stop() const; //discardable
+    bool launch(const char* path);
+    bool attach(pid_t pid);
+    bool detach();
+    [[nodiscard]] static std::vector<ElfBugProcessInfo> enumProcesses();
+    void start();
+    void run();
+    void stepInto();
+    void stepOver();
+    void pause();
+    bool stop();
 
     [[nodiscard]] bool isActive() const;
     [[nodiscard]] bool isPaused() const;
     [[nodiscard]] bool isEngineLoaded() const { return mDebugger != nullptr; }
-    [[nodiscard]] duint entryPoint() const { return mEntryPoint; }
 
-    [[nodiscard]] bool toggleBreakpoint(duint addr) const;
+    bool toggleBreakpoint(duint addr);
     [[nodiscard]] bool hasBreakpoint(duint addr) const;
     void refreshThreads();
     bool switchThread(pid_t tid);
@@ -74,8 +76,13 @@ public:
 signals:
     void processCreated(duint entryPoint);
     void processExited(int exitCode);
+    void processDetached();
+    // Raised alongside processExited and processDetached; views that only
+    // care that the session is over can subscribe to this one signal.
+    void sessionEnded();
     void registersUpdated(const REGDUMP & regs);
     void logMessage(const QString & msg);
+    void errorMessage(const QString & error);
     void stopped(duint rip, const QString & reason);
     void threadsUpdated(const QVector<DbgThreadInfo> & threads, pid_t currentTid);
 
@@ -88,6 +95,9 @@ private:
     static void onCreateThread(pid_t tid, void* userdata);
     static void onExitThread(pid_t tid, void* userdata);
     static void onSystemBreakpoint(void* userdata);
+    static void onAttachBreakpoint(void* userdata);
+    static void onDetach(void* userdata);
+    static void onExec(void* userdata);
     static void onBreakpoint(uint64_t address, void* userdata);
     static void onStep(void* userdata);
     static void onPaused(void* userdata);
@@ -97,7 +107,6 @@ private:
 
     [[nodiscard]] QString threadSuffix() const;
     [[nodiscard]] REGDUMP readRegisters() const;
-    [[nodiscard]] std::vector<ElfBugThreadInfo> readThreadList() const;
     void emitStoppedState(const QString & reason);
     void emitStoppedState(const QString & reason, const REGDUMP & dump);
 

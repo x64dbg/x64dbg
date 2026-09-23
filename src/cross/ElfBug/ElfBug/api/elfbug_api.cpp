@@ -1,440 +1,52 @@
-#include "elfbug_api.h"
-#include "../core/Debugger.h"
-#include "../thread/Registers.h"
-
+#include <ElfBug/api/elfbug_api.h>
+#include <ElfBug/core/Debugger.h>
+#include <ElfBug/process/ProcessList.h>
+#include <ElfBug/thread/Registers.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <cinttypes>
+#include <condition_variable>
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <mutex>
 #include <set>
 #include <shared_mutex>
+#include <thread>
 #include <unordered_map>
 #include <vector>
-#include <fcntl.h>
-#include <unistd.h>
 
-struct ElfBugDebugger : ElfBug::Debugger
+namespace
 {
-    ElfBugCallbacks cb = {};
+    constexpr std::size_t kNoRegister = static_cast<std::size_t>(-1);
+    constexpr auto kRegisterWriteTimeout = std::chrono::seconds(1);
 
-    std::atomic<bool> active{false};
-    std::atomic<pid_t> activePid{0};
-    uint64_t entryPoint = 0;
-
-    struct MemRegion
+    std::size_t registerOffset(const char* name)
     {
-        uint64_t start, end;
-        bool executable;
-        std::string pathname;
-    };
-    mutable std::mutex mapMutex;
-    std::vector<MemRegion> memoryMap;
-    std::unordered_map<std::string, uint64_t> moduleBases;
-
-    mutable std::mutex bpDataMutex;
-    std::set<uint64_t> breakpointAddrs;
-
-    mutable std::mutex bpQueueMutex;
-    struct BpRequest
-    {
-        uint64_t addr;
-        bool setOrDelete; // true = set, false = delete
-    };
-    std::vector<BpRequest> pendingBpRequests;
-
-    mutable std::mutex threadMutex;
-    std::unordered_map<pid_t, uint32_t> threadNumbers;
-    uint32_t nextThreadNumber = 0;
-    std::vector<ElfBugThreadInfo> threadList;
-
-    // Guarded by threadMutex.
-    std::unordered_map<pid_t, std::string> pauseWaitReasons;
-
-    uint32_t suspendCountOf(const pid_t tid) const
-    {
-        std::shared_lock lock(mProcessMutex);
-        if(!mProcess)
-            return 0;
-        const auto it = mProcess->threads.find(tid);
-        return it != mProcess->threads.end() ? it->second->suspendCount() : 0u;
-    }
-
-    static void copyWaitReason(const std::string & reason, char* out, const size_t size)
-    {
-        snprintf(out, size, "%s", reason.c_str());
-    }
-
-    // Pause sends a process-wide SIGSTOP, after which every thread reports a stop of its
-    // own and wchan no longer says where it was. Sample first.
-    void sampleWaitReasonsForPause()
-    {
-        std::lock_guard threads(threadMutex);
-        std::shared_lock lock(mProcessMutex);
-        pauseWaitReasons.clear();
-        if(!mProcess)
-            return;
-        for(const auto & [tid, thread] : mProcess->threads)
+        static const std::unordered_map<std::string, std::size_t> offsets =
         {
-            if(thread->isRunning())
-                pauseWaitReasons[tid] = readWaitReason(mProcess->pid, tid);
-        }
+            {"csp", offsetof(user_regs_struct, rsp)}, {"rsp", offsetof(user_regs_struct, rsp)},
+            {"cip", offsetof(user_regs_struct, rip)}, {"rip", offsetof(user_regs_struct, rip)},
+            {"rax", offsetof(user_regs_struct, rax)}, {"rbx", offsetof(user_regs_struct, rbx)},
+            {"rcx", offsetof(user_regs_struct, rcx)}, {"rdx", offsetof(user_regs_struct, rdx)},
+            {"rsi", offsetof(user_regs_struct, rsi)}, {"rdi", offsetof(user_regs_struct, rdi)},
+            {"rbp", offsetof(user_regs_struct, rbp)},
+            {"r8", offsetof(user_regs_struct, r8)},   {"r9", offsetof(user_regs_struct, r9)},
+            {"r10", offsetof(user_regs_struct, r10)}, {"r11", offsetof(user_regs_struct, r11)},
+            {"r12", offsetof(user_regs_struct, r12)}, {"r13", offsetof(user_regs_struct, r13)},
+            {"r14", offsetof(user_regs_struct, r14)}, {"r15", offsetof(user_regs_struct, r15)},
+        };
+        const auto it = offsets.find(name);
+        return it == offsets.end() ? kNoRegister : it->second;
     }
 
-    void clearPauseWaitReasons()
+    ElfBugArch toApiArch(const ElfBug::Arch arch)
     {
-        std::lock_guard lock(threadMutex);
-        pauseWaitReasons.clear();
-    }
-
-    // Caller holds threadMutex.
-    std::string resolveWaitReason(const pid_t tid)
-    {
-        std::string reason;
-        {
-            std::shared_lock lock(mProcessMutex);
-            if(mProcess)
-            {
-                const auto it = mProcess->threads.find(tid);
-                if(it != mProcess->threads.end())
-                    reason = it->second->waitReason();
-            }
-        }
-        if(reason.empty())
-        {
-            const auto sampled = pauseWaitReasons.find(tid);
-            if(sampled != pauseWaitReasons.end())
-                reason = sampled->second;
-        }
-        return reason;
-    }
-
-    static void readThreadName(const pid_t pid, const pid_t tid, char* name, const size_t size)
-    {
-        name[0] = '\0';
-        char path[64];
-        snprintf(path, sizeof(path), "/proc/%d/task/%d/comm", pid, tid);
-        FILE* f = fopen(path, "r");
-        if(!f)
-            return;
-        if(fgets(name, static_cast<int>(size), f))
-            name[strcspn(name, "\n")] = '\0';
-        fclose(f);
-    }
-
-    // btime from /proc/stat, in milliseconds. 0 until read, and stays 0 if unreadable.
-    uint64_t bootTimeMs = 0;
-
-    uint64_t readBootTimeMs()
-    {
-        if(bootTimeMs != 0)
-            return bootTimeMs;
-        FILE* f = fopen("/proc/stat", "r");
-        if(!f)
-            return 0;
-        char line[256];
-        while(fgets(line, sizeof(line), f))
-        {
-            uint64_t btime = 0;
-            if(sscanf(line, "btime %" SCNu64, &btime) == 1)
-            {
-                bootTimeMs = btime * 1000u;
-                break;
-            }
-        }
-        fclose(f);
-        return bootTimeMs;
-    }
-
-    // Fields after the last ')' of /proc/<pid>/task/<tid>/stat, so a comm with spaces
-    // or parentheses cannot shift them: utime, stime, nice, starttime, rt_priority, policy.
-    void readThreadStat(const pid_t pid, const pid_t tid, ElfBugThreadInfo & info)
-    {
-        info.policy = -1;
-        char path[64];
-        snprintf(path, sizeof(path), "/proc/%d/task/%d/stat", pid, tid);
-        FILE* f = fopen(path, "r");
-        if(!f)
-            return;
-        char line[1024];
-        const bool ok = fgets(line, sizeof(line), f) != nullptr;
-        fclose(f);
-        if(!ok)
-            return;
-
-        const char* fields = strrchr(line, ')');
-        if(!fields)
-            return;
-        uint64_t utime = 0, stime = 0, starttime = 0;
-        int32_t nice = 0;
-        uint32_t rtPriority = 0, policy = 0;
-        // Field 3 (state) onwards; the starred conversions skip what we do not need.
-        const int matched = sscanf(fields + 1,
-                                   " %*c %*d %*d %*d %*d %*d %*u %*u %*u %*u %*u %" SCNu64 " %" SCNu64
-                                   " %*d %*d %*d %" SCNd32 " %*d %*d %" SCNu64
-                                   " %*u %*d %*u %*u %*u %*u %*u %*u %*u %*u %*u %*u %*u %*u %*u %*d %*d %" SCNu32 " %" SCNu32,
-                                   &utime, &stime, &nice, &starttime, &rtPriority, &policy);
-        if(matched != 6)
-            return;
-
-        const long ticks = sysconf(_SC_CLK_TCK);
-        if(ticks <= 0)
-            return;
-        const auto ticksPerSecond = static_cast<uint64_t>(ticks);
-        info.user_time_ms = utime * 1000u / ticksPerSecond;
-        info.kernel_time_ms = stime * 1000u / ticksPerSecond;
-        const uint64_t boot = readBootTimeMs();
-        info.start_time_ms = boot ? boot + starttime * 1000u / ticksPerSecond : 0;
-        info.nice = nice;
-        info.rt_priority = static_cast<int32_t>(rtPriority);
-        info.policy = static_cast<int32_t>(policy);
-    }
-
-    // Tracer thread only. Registers are reread at a stop, when every thread is in
-    // ptrace-stop; a thread event while running keeps the last values.
-    void refreshThreadList(const bool readRegisters)
-    {
-        std::lock_guard threads(threadMutex);
-        std::vector<ElfBugThreadInfo> list;
-        {
-            std::unique_lock lock(mProcessMutex);
-            if(mProcess)
-            {
-                for(auto & [tid, thread] : mProcess->threads)
-                {
-                    const auto number = threadNumbers.find(tid);
-                    if(number == threadNumbers.end())
-                        continue;
-                    if(readRegisters && !thread->isRunning())
-                        thread->registers.Read();
-                    ElfBugThreadInfo info = {};
-                    info.tid = tid;
-                    info.number = number->second;
-                    info.rip = thread->registers.Native().rip;
-                    info.fs_base = thread->registers.Native().fs_base;
-                    readThreadStat(mProcess->pid, tid, info);
-                    info.suspend_count = thread->suspendCount();
-                    std::string reason = thread->waitReason();
-                    if(reason.empty())
-                    {
-                        const auto sampled = pauseWaitReasons.find(tid);
-                        if(sampled != pauseWaitReasons.end())
-                            reason = sampled->second;
-                    }
-                    copyWaitReason(reason, info.wait_reason, sizeof(info.wait_reason));
-                    readThreadName(mProcess->pid, tid, info.name, sizeof(info.name));
-                    list.push_back(info);
-                }
-            }
-        }
-        std::sort(list.begin(), list.end(), [](const ElfBugThreadInfo & a, const ElfBugThreadInfo & b)
-        {
-            return a.number < b.number;
-        });
-        threadList = std::move(list);
-    }
-
-    uint32_t getThreadList(ElfBugThreadInfo* list, const uint32_t capacity) const
-    {
-        std::lock_guard lock(threadMutex);
-        const auto count = static_cast<uint32_t>(threadList.size());
-        if(list)
-        {
-            const uint32_t n = std::min(count, capacity);
-            for(uint32_t i = 0; i < n; ++i)
-                list[i] = threadList[i];
-        }
-        return count;
-    }
-
-    void refreshMemoryMap()
-    {
-        std::vector<MemRegion> newMaps;
-        if(!mProcess)
-        {
-            std::lock_guard lock(mapMutex);
-            memoryMap.clear();
-            return;
-        }
-
-        char path[64];
-        snprintf(path, sizeof(path), "/proc/%d/maps", mProcess->pid);
-        FILE* f = fopen(path, "r");
-        if(!f)
-        {
-            std::lock_guard lock(mapMutex);
-            memoryMap.clear();
-            return;
-        }
-
-        char line[512];
-        while(fgets(line, sizeof(line), f))
-        {
-            uint64_t start = 0, end = 0;
-            char perms[8] = {};
-            int pathOffset = 0;
-            // %n captures the byte offset after the fixed prefix so we can take the pathname verbatim (it may contain spaces).
-            if(sscanf(line, "%" SCNx64 "-%" SCNx64 " %4s %*x %*x:%*x %*u %n",
-                      &start, &end, perms, &pathOffset) < 3)
-                continue;
-
-            std::string pathname;
-            if(pathOffset > 0 && pathOffset < static_cast<int>(sizeof(line)))
-            {
-                const char* p = line + pathOffset;
-                while(*p == ' ' || *p == '\t') ++p;
-                size_t len = strlen(p);
-                while(len > 0 && (p[len - 1] == '\n' || p[len - 1] == '\r' || p[len - 1] == ' '))
-                    --len;
-                if(len > 0 && p[0] != '[')
-                    pathname.assign(p, len);
-
-                static constexpr std::string_view deletedSuffix{" (deleted)"};
-                if(pathname.size() >= deletedSuffix.size() &&
-                        std::string_view(pathname).substr(pathname.size() - deletedSuffix.size()) == deletedSuffix)
-                {
-                    pathname.resize(pathname.size() - deletedSuffix.size());
-                }
-            }
-
-            newMaps.push_back({start, end, perms[2] == 'x', std::move(pathname)});
-        }
-        fclose(f);
-
-        std::lock_guard lock(mapMutex);
-        memoryMap = std::move(newMaps);
-
-        moduleBases.clear();
-        for(const auto& r : memoryMap)
-        {
-            if(r.pathname.empty())
-                continue;
-            auto it = moduleBases.find(r.pathname);
-            if(it == moduleBases.end() || r.start < it->second)
-                moduleBases[r.pathname] = r.start;
-        }
-    }
-
-    const MemRegion* findRegion(const uint64_t addr) const
-    {
-        auto it = std::upper_bound(memoryMap.begin(), memoryMap.end(), addr,
-        [](const uint64_t a, const MemRegion & r) { return a < r.start; });
-        if(it != memoryMap.begin())
-        {
-            --it;
-            if(addr >= it->start && addr < it->end)
-                return &*it;
-        }
-        return nullptr;
-    }
-
-    bool modLookup(const uint64_t addr, uint64_t* baseOut, std::string* pathOut) const
-    {
-        std::lock_guard lock(mapMutex);
-        const auto* region = findRegion(addr);
-        if(!region || region->pathname.empty())
-            return false;
-
-        const auto it = moduleBases.find(region->pathname);
-        if(it == moduleBases.end())
-            return false;
-
-        if(baseOut)
-            *baseOut = it->second;
-        if(pathOut)
-            *pathOut = region->pathname;
-        return true;
-    }
-
-    void processPendingBreakpoints()
-    {
-        std::lock_guard queueLock(bpQueueMutex);
-        for(const auto & req : pendingBpRequests)
-        {
-            if(!mProcess)
-                continue;
-
-            const auto addr = static_cast<ElfBug::ptr>(req.addr);
-            if(req.setOrDelete)
-            {
-                if(mProcess->SetBreakpoint(addr))
-                {
-                    std::lock_guard lock(bpDataMutex);
-                    breakpointAddrs.insert(req.addr);
-                }
-            }
-            else
-            {
-                if(mProcess->DeleteBreakpoint(addr))
-                {
-                    std::lock_guard lock(bpDataMutex);
-                    breakpointAddrs.erase(req.addr);
-                }
-            }
-        }
-        pendingBpRequests.clear();
-    }
-
-    bool memRead(const uint64_t addr, void* dest, const uint64_t size) const
-    {
-        if(!dest)
-            return false;
-        std::shared_lock lock(mProcessMutex);
-        if(!active.load(std::memory_order_acquire) || !mProcess)
-        {
-            memset(dest, 0, size);
-            return false;
-        }
-        return mProcess->MemRead(static_cast<ElfBug::ptr>(addr), dest, static_cast<ElfBug::ptr>(size));
-    }
-
-    bool memWrite(const uint64_t addr, const void* src, const uint64_t size) const
-    {
-        std::shared_lock lock(mProcessMutex);
-        if(!active.load(std::memory_order_acquire) || !mProcess)
-            return false;
-        return mProcess->MemWrite(static_cast<ElfBug::ptr>(addr), src, static_cast<ElfBug::ptr>(size));
-    }
-
-    bool setRegister(const char* name, const uint64_t value) const
-    {
-        std::shared_lock lock(mProcessMutex);
-        if(!active.load(std::memory_order_acquire) || !mThread)
-            return false;
-
-        auto & r = mThread->registers;
-        const auto v = static_cast<ElfBug::ptr>(value);
-
-        if(!strcmp(name, "csp") || !strcmp(name, "rsp"))       r.Rsp() = v;
-        else if(!strcmp(name, "cip") || !strcmp(name, "rip"))  r.Rip() = v;
-        else if(!strcmp(name, "rax"))                          r.Rax() = v;
-        else if(!strcmp(name, "rbx"))                          r.Rbx() = v;
-        else if(!strcmp(name, "rcx"))                          r.Rcx() = v;
-        else if(!strcmp(name, "rdx"))                          r.Rdx() = v;
-        else if(!strcmp(name, "rsi"))                          r.Rsi() = v;
-        else if(!strcmp(name, "rdi"))                          r.Rdi() = v;
-        else if(!strcmp(name, "rbp"))                          r.Rbp() = v;
-        else if(!strcmp(name, "r8"))                           r.R8()  = v;
-        else if(!strcmp(name, "r9"))                           r.R9()  = v;
-        else if(!strcmp(name, "r10"))                          r.R10() = v;
-        else if(!strcmp(name, "r11"))                          r.R11() = v;
-        else if(!strcmp(name, "r12"))                          r.R12() = v;
-        else if(!strcmp(name, "r13"))                          r.R13() = v;
-        else if(!strcmp(name, "r14"))                          r.R14() = v;
-        else if(!strcmp(name, "r15"))                          r.R15() = v;
-        else
-            return false;
-
-        return r.Write();
-    }
-
-    ElfBugArch getArch() const
-    {
-        std::shared_lock lock(mProcessMutex);
-        if(!mProcess)
-            return ElfBugArch_Unknown;
-        switch(mProcess->arch)
+        switch(arch)
         {
         case ElfBug::Arch::X86_64:
             return ElfBugArch_X86_64;
@@ -445,18 +57,242 @@ struct ElfBugDebugger : ElfBug::Debugger
         }
     }
 
-    pid_t currentTid() const
+    void copyString(char* dest, const size_t size, const std::string & source)
+    {
+        if(size == 0)
+            return;
+        const size_t n = std::min(source.size(), size - 1);
+        std::memcpy(dest, source.data(), n);
+        dest[n] = '\0';
+    }
+}
+
+struct ElfBugDebugger : ElfBug::Debugger
+{
+    enum class BreakpointAction
+    {
+        Set,
+        Delete
+    };
+
+    struct MemRegion
+    {
+        uint64_t start = 0;
+        uint64_t end = 0;
+        bool executable = false;
+        std::string pathname;
+    };
+
+    struct BreakpointRequest
+    {
+        uint64_t addr = 0;
+        BreakpointAction action = BreakpointAction::Set;
+    };
+
+    struct RegisterRequest
+    {
+        std::string name;
+        uint64_t value = 0;
+        bool done = false;
+        bool ok = false;
+        bool abandoned = false;
+    };
+
+    void SetCallbacks(const ElfBugCallbacks & callbacks)
+    {
+        mCb = callbacks;
+    }
+
+    void RunLoop()
+    {
+        mLoopThread.store(std::this_thread::get_id(), std::memory_order_release);
+        Start();
+        mLoopThread.store({}, std::memory_order_release);
+    }
+
+    [[nodiscard]] bool IsActive() const
+    {
+        return mActive.load(std::memory_order_acquire);
+    }
+
+    [[nodiscard]] pid_t Pid() const
+    {
+        return mActivePid.load(std::memory_order_acquire);
+    }
+
+    void NoteThreadSuspended(const pid_t tid, const bool suspended)
+    {
+        std::lock_guard lock(mThreadMutex);
+        const uint32_t count = suspendCountOf(tid);
+        const std::string reason = suspended ? "Suspended" : resolveWaitReason(tid);
+        for(auto & info : mThreadList)
+        {
+            if(info.tid == tid)
+            {
+                info.suspend_count = count;
+                copyString(info.wait_reason, sizeof(info.wait_reason), reason);
+            }
+        }
+    }
+
+    bool FindBaseAddr(const uint64_t addr, uint64_t* base, uint64_t* size) const
+    {
+        if(!IsActive())
+            return false;
+
+        std::lock_guard lock(mMapMutex);
+        const auto* region = findRegion(addr);
+        if(!region)
+            return false;
+
+        *base = region->start;
+        *size = region->end - region->start;
+        return true;
+    }
+
+    [[nodiscard]] bool IsCodePtr(const uint64_t addr) const
+    {
+        if(!IsActive())
+            return false;
+
+        std::lock_guard lock(mMapMutex);
+        const auto* region = findRegion(addr);
+        return region && region->executable;
+    }
+
+    [[nodiscard]] bool IsValidPtr(const uint64_t addr) const
+    {
+        if(!IsActive())
+            return false;
+
+        std::lock_guard lock(mMapMutex);
+        return findRegion(addr) != nullptr;
+    }
+
+    bool ModBase(const uint64_t addr, uint64_t* base) const
+    {
+        if(!IsActive())
+            return false;
+        return modLookup(addr, base, nullptr);
+    }
+
+    bool ModName(const uint64_t addr, std::string & name, const bool extension) const
+    {
+        if(!IsActive())
+            return false;
+
+        std::string path;
+        if(!modLookup(addr, nullptr, &path))
+            return false;
+
+        const size_t slash = path.find_last_of('/');
+        name = (slash == std::string::npos) ? path : path.substr(slash + 1);
+        if(extension)
+            return true;
+
+        size_t soPos = std::string::npos;
+        for(size_t p = name.find(".so"); p != std::string::npos; p = name.find(".so", p + 1))
+        {
+            const size_t after = p + 3;
+            if(after == name.size() || name[after] == '.')
+            {
+                soPos = p;
+                break;
+            }
+        }
+
+        if(soPos == std::string::npos)
+        {
+            const size_t dot = name.find_last_of('.');
+            if(dot != std::string::npos && dot > 0)
+                name.resize(dot);
+        }
+        else if(soPos + 3 == name.size())
+            name.resize(soPos);
+        else
+            name.erase(soPos, 3);
+
+        return true;
+    }
+
+    bool QueueBreakpoint(const uint64_t addr, const BreakpointAction action)
+    {
+        if(!IsActive())
+            return false;
+
+        std::lock_guard lock(mBreakpointQueueMutex);
+        mPendingBreakpoints.push_back({addr, action});
+        return true;
+    }
+
+    [[nodiscard]] bool IsBreakpointEffective(const uint64_t addr) const
+    {
+        {
+            std::lock_guard lock(mBreakpointQueueMutex);
+            for(auto it = mPendingBreakpoints.rbegin(); it != mPendingBreakpoints.rend(); ++it)
+            {
+                if(it->addr == addr)
+                    return it->action == BreakpointAction::Set;
+            }
+        }
+
+        std::lock_guard lock(mBreakpointMutex);
+        return mBreakpointAddresses.contains(addr);
+    }
+
+    void SampleWaitReasonsForPause()
+    {
+        std::lock_guard threads(mThreadMutex);
+        std::shared_lock lock(mProcessMutex);
+        mPauseWaitReasons.clear();
+        if(!mProcess)
+            return;
+        for(const auto & [tid, thread] : mProcess->threads)
+        {
+            if(thread->IsRunning())
+                mPauseWaitReasons[tid] = readWaitReason(mProcess->pid, tid);
+        }
+    }
+
+    void ClearPauseWaitReasons()
+    {
+        std::lock_guard lock(mThreadMutex);
+        mPauseWaitReasons.clear();
+    }
+
+    uint32_t GetThreadList(ElfBugThreadInfo* list, const uint32_t capacity) const
+    {
+        std::lock_guard lock(mThreadMutex);
+        const auto count = static_cast<uint32_t>(mThreadList.size());
+        if(list)
+        {
+            const uint32_t n = std::min(count, capacity);
+            for(uint32_t i = 0; i < n; ++i)
+                list[i] = mThreadList[i];
+        }
+        return count;
+    }
+
+    ElfBugArch GetArch() const
     {
         std::shared_lock lock(mProcessMutex);
-        if(!active.load(std::memory_order_acquire) || !IsPaused() || !mThread)
+        if(!mProcess)
+            return ElfBugArch_Unknown;
+        return toApiArch(mProcess->arch);
+    }
+
+    pid_t CurrentTid() const
+    {
+        std::shared_lock lock(mProcessMutex);
+        if(!mActive.load(std::memory_order_acquire) || !IsPaused() || !mThread)
             return 0;
         return mThread->tid;
     }
 
-    bool readRegisters(ElfBugRegisters* out) const
+    bool ReadRegisters(ElfBugRegisters* out) const
     {
         std::shared_lock lock(mProcessMutex);
-        if(!active.load(std::memory_order_acquire) || !mThread)
+        if(!mActive.load(std::memory_order_acquire) || !mThread)
             return false;
 
         const auto native = mThread->registers.Native();
@@ -490,72 +326,120 @@ struct ElfBugDebugger : ElfBug::Debugger
         return true;
     }
 
-protected:
-    void cbCreateProcessEvent(const pid_t pid, const ElfBug::ptr ep) override
+    bool MemRead(const uint64_t addr, void* dest, const uint64_t size) const
     {
-        activePid.store(pid, std::memory_order_release);
-        entryPoint = ep;
+        if(!dest)
+            return false;
+        std::shared_lock lock(mProcessMutex);
+        if(!mActive.load(std::memory_order_acquire) || !mProcess)
         {
-            std::lock_guard lock(threadMutex);
-            threadNumbers.clear();
-            threadNumbers[pid] = 0;
-            nextThreadNumber = 1;
+            memset(dest, 0, size);
+            return false;
+        }
+        return mProcess->MemRead(static_cast<ElfBug::ptr>(addr), dest, static_cast<ElfBug::ptr>(size));
+    }
+
+    bool MemWrite(const uint64_t addr, const void* src, const uint64_t size) const
+    {
+        std::shared_lock lock(mProcessMutex);
+        if(!mActive.load(std::memory_order_acquire) || !mProcess)
+            return false;
+        return mProcess->MemWrite(static_cast<ElfBug::ptr>(addr), src, static_cast<ElfBug::ptr>(size));
+    }
+
+    bool SetRegister(const char* name, const uint64_t value) const
+    {
+        if(!mActive.load(std::memory_order_acquire) || !IsPaused())
+            return false;
+        if(registerOffset(name) == kNoRegister)
+            return false;
+        if(mLoopThread.load(std::memory_order_acquire) == std::this_thread::get_id())
+            return writeRegisterOnTracer(name, value);
+
+        auto request = std::make_shared<RegisterRequest>();
+        request->name = name;
+        request->value = value;
+
+        std::unique_lock lock(mRegisterQueueMutex);
+        mPendingRegisters.push_back(request);
+        if(!mRegisterQueueCv.wait_for(lock, kRegisterWriteTimeout, [&] { return request->done; }))
+        {
+            request->abandoned = true;
+            const auto it = std::find(mPendingRegisters.begin(), mPendingRegisters.end(), request);
+            if(it != mPendingRegisters.end())
+                mPendingRegisters.erase(it);
+            return false;
+        }
+        return request->ok;
+    }
+
+
+protected:
+    void cbCreateProcess(const pid_t pid, const ElfBug::ptr ep) override
+    {
+        mActivePid.store(pid, std::memory_order_release);
+        mEntryPoint = ep;
+        {
+            std::lock_guard lock(mThreadMutex);
+            mThreadNumbers.clear();
+            mThreadNumbers[pid] = 0;
+            mNextThreadNumber = 1;
         }
         refreshThreadList(false);
         refreshMemoryMap();
-        active.store(true, std::memory_order_release);
-        if(cb.onCreateProcess)
-            cb.onCreateProcess(pid, ep, cb.userdata);
+        mActive.store(true, std::memory_order_release);
+        if(mCb.onCreateProcess)
+            mCb.onCreateProcess(pid, ep, mCb.userdata);
     }
 
-    void cbExitProcessEvent(const int exitCode) override
+    void cbExitProcess(const int exitCode) override
     {
-        activePid.store(0, std::memory_order_release);
-        active.store(false, std::memory_order_release);
-        {
-            std::lock_guard lock(mapMutex);
-            memoryMap.clear();
-            moduleBases.clear();
-        }
-        {
-            std::lock_guard lock(bpDataMutex);
-            breakpointAddrs.clear();
-        }
-        {
-            std::lock_guard lock(bpQueueMutex);
-            pendingBpRequests.clear();
-        }
-        {
-            std::lock_guard lock(threadMutex);
-            threadNumbers.clear();
-            threadList.clear();
-            pauseWaitReasons.clear();
-        }
-        if(cb.onExitProcess)
-            cb.onExitProcess(exitCode, cb.userdata);
+        clearSessionSnapshot();
+        if(mCb.onExitProcess)
+            mCb.onExitProcess(exitCode, mCb.userdata);
     }
 
-    void cbCreateThreadEvent(const pid_t tid) override
+    void cbExec() override
     {
         {
-            std::lock_guard lock(threadMutex);
-            threadNumbers[tid] = nextThreadNumber++;
+            std::lock_guard lock(mBreakpointQueueMutex);
+            mPendingBreakpoints.clear();
+        }
+        {
+            std::lock_guard lock(mBreakpointMutex);
+            std::erase_if(mBreakpointAddresses, [this](const uint64_t addr)
+            {
+                return !mProcess || !mProcess->HasBreakpoint(static_cast<ElfBug::ptr>(addr));
+            });
+        }
+        mEntryPoint = 0;
+        refreshMemoryMap();
+        refreshThreadList(false);
+        if(mCb.onExec)
+            mCb.onExec(mCb.userdata);
+    }
+
+    void cbCreateThread(const pid_t tid) override
+    {
+        {
+            std::lock_guard lock(mThreadMutex);
+            mThreadNumbers[tid] = mNextThreadNumber++;
         }
         refreshThreadList(false);
-        if(cb.onCreateThread)
-            cb.onCreateThread(tid, cb.userdata);
+        if(mCb.onCreateThread)
+            mCb.onCreateThread(tid, mCb.userdata);
     }
 
-    void cbExitThreadEvent(const pid_t tid) override
+    void cbExitThread(const pid_t tid) override
     {
         {
-            std::lock_guard lock(threadMutex);
-            threadNumbers.erase(tid);
-            pauseWaitReasons.erase(tid);
+            std::lock_guard lock(mThreadMutex);
+            mThreadNumbers.erase(tid);
+            mPauseWaitReasons.erase(tid);
         }
         refreshThreadList(false);
-        if(cb.onExitThread)
-            cb.onExitThread(tid, cb.userdata);
+        if(mCb.onExitThread)
+            mCb.onExitThread(tid, mCb.userdata);
     }
 
     void cbSystemBreakpoint() override
@@ -563,13 +447,34 @@ protected:
         if(mThread)
         {
             mThread->registers.Read();
-            entryPoint = mThread->registers.Gip();
+            mEntryPoint = mThread->registers.Gip();
             refreshMemoryMap();
             processPendingBreakpoints();
             refreshThreadList(true);
         }
-        if(cb.onSystemBreakpoint)
-            cb.onSystemBreakpoint(cb.userdata);
+        if(mCb.onSystemBreakpoint)
+            mCb.onSystemBreakpoint(mCb.userdata);
+    }
+
+    void cbAttachBreakpoint() override
+    {
+        if(mThread)
+        {
+            mThread->registers.Read();
+            mEntryPoint = mThread->registers.Gip();
+            refreshMemoryMap();
+            processPendingBreakpoints();
+            refreshThreadList(true);
+        }
+        if(mCb.onAttachBreakpoint)
+            mCb.onAttachBreakpoint(mCb.userdata);
+    }
+
+    void cbDetach() override
+    {
+        clearSessionSnapshot();
+        if(mCb.onDetach)
+            mCb.onDetach(mCb.userdata);
     }
 
     void cbBreakpoint(const ElfBug::BreakpointInfo & info) override
@@ -577,8 +482,8 @@ protected:
         processPendingBreakpoints();
         refreshMemoryMap();
         refreshThreadList(true);
-        if(cb.onBreakpoint)
-            cb.onBreakpoint(info.address, cb.userdata);
+        if(mCb.onBreakpoint)
+            mCb.onBreakpoint(info.address, mCb.userdata);
     }
 
     void cbStep() override
@@ -586,8 +491,8 @@ protected:
         processPendingBreakpoints();
         refreshMemoryMap();
         refreshThreadList(true);
-        if(cb.onStep)
-            cb.onStep(cb.userdata);
+        if(mCb.onStep)
+            mCb.onStep(mCb.userdata);
     }
 
     void cbPaused() override
@@ -595,48 +500,445 @@ protected:
         processPendingBreakpoints();
         refreshMemoryMap();
         refreshThreadList(true);
-        if(cb.onPaused)
-            cb.onPaused(cb.userdata);
+        if(mCb.onPaused)
+            mCb.onPaused(mCb.userdata);
     }
 
-    void cbExceptionEvent(const int signal, const ElfBug::ptr address) override
+    void cbException(const int signal, const ElfBug::ptr address) override
     {
         processPendingBreakpoints();
         refreshMemoryMap();
         refreshThreadList(true);
-        if(cb.onException)
-            cb.onException(signal, address, cb.userdata);
+        if(mCb.onException)
+            mCb.onException(signal, address, mCb.userdata);
     }
 
     void cbPauseTick() override
     {
         processPendingBreakpoints();
+        processPendingRegisters();
     }
 
     void cbInternalError(const std::string & error) override
     {
-        if(cb.onError)
-            cb.onError(error.c_str(), cb.userdata);
+        if(mCb.onError)
+            mCb.onError(error.c_str(), mCb.userdata);
     }
 
-    void cbDebugStringEvent(const std::string & text) override
+    void cbDebugString(const std::string & text) override
     {
-        if(cb.onDebugString)
-            cb.onDebugString(text.c_str(), cb.userdata);
+        if(mCb.onDebugString)
+            mCb.onDebugString(text.c_str(), mCb.userdata);
     }
+
+private:
+    uint32_t suspendCountOf(const pid_t tid) const
+    {
+        std::shared_lock lock(mProcessMutex);
+        if(!mProcess)
+            return 0;
+        const auto it = mProcess->threads.find(tid);
+        return it != mProcess->threads.end() ? it->second->SuspendCount() : 0u;
+    }
+
+    std::string resolveWaitReason(const pid_t tid)
+    {
+        std::string reason;
+        {
+            std::shared_lock lock(mProcessMutex);
+            if(mProcess)
+            {
+                const auto it = mProcess->threads.find(tid);
+                if(it != mProcess->threads.end())
+                    reason = it->second->WaitReason();
+            }
+        }
+        if(reason.empty())
+        {
+            const auto sampled = mPauseWaitReasons.find(tid);
+            if(sampled != mPauseWaitReasons.end())
+                reason = sampled->second;
+        }
+        return reason;
+    }
+
+    static void readThreadName(const pid_t pid, const pid_t tid, char* name, const size_t size)
+    {
+        name[0] = '\0';
+        char path[64];
+        snprintf(path, sizeof(path), "/proc/%d/task/%d/comm", pid, tid);
+        FILE* f = fopen(path, "r");
+        if(!f)
+            return;
+        if(fgets(name, static_cast<int>(size), f))
+            name[strcspn(name, "\n")] = '\0';
+        fclose(f);
+    }
+
+    uint64_t readBootTimeMs()
+    {
+        if(mBootTimeMs != 0)
+            return mBootTimeMs;
+        FILE* f = fopen("/proc/stat", "r");
+        if(!f)
+            return 0;
+        char line[256];
+        while(fgets(line, sizeof(line), f))
+        {
+            uint64_t btime = 0;
+            if(sscanf(line, "btime %" SCNu64, &btime) == 1)
+            {
+                mBootTimeMs = btime * 1000u;
+                break;
+            }
+        }
+        fclose(f);
+        return mBootTimeMs;
+    }
+
+    void readThreadStat(const pid_t pid, const pid_t tid, ElfBugThreadInfo & info)
+    {
+        info.policy = -1;
+        char path[64];
+        snprintf(path, sizeof(path), "/proc/%d/task/%d/stat", pid, tid);
+        FILE* f = fopen(path, "r");
+        if(!f)
+            return;
+        char line[1024];
+        const bool ok = fgets(line, sizeof(line), f) != nullptr;
+        fclose(f);
+        if(!ok)
+            return;
+
+        const char* fields = strrchr(line, ')');
+        if(!fields)
+            return;
+        uint64_t utime = 0, stime = 0, starttime = 0;
+        int32_t nice = 0;
+        uint32_t rtPriority = 0, policy = 0;
+        const int matched = sscanf(fields + 1,
+                                   " %*c %*d %*d %*d %*d %*d %*u %*u %*u %*u %*u %" SCNu64 " %" SCNu64
+                                   " %*d %*d %*d %" SCNd32 " %*d %*d %" SCNu64
+                                   " %*u %*d %*u %*u %*u %*u %*u %*u %*u %*u %*u %*u %*u %*u %*u %*d %*d %" SCNu32 " %" SCNu32,
+                                   &utime, &stime, &nice, &starttime, &rtPriority, &policy);
+        if(matched != 6)
+            return;
+
+        const long ticks = sysconf(_SC_CLK_TCK);
+        if(ticks <= 0)
+            return;
+        const auto ticksPerSecond = static_cast<uint64_t>(ticks);
+        info.user_time_ms = utime * 1000u / ticksPerSecond;
+        info.kernel_time_ms = stime * 1000u / ticksPerSecond;
+        const uint64_t boot = readBootTimeMs();
+        info.start_time_ms = boot ? boot + starttime * 1000u / ticksPerSecond : 0;
+        info.nice = nice;
+        info.rt_priority = static_cast<int32_t>(rtPriority);
+        info.policy = static_cast<int32_t>(policy);
+    }
+
+    void refreshThreadList(const bool withRegisters)
+    {
+        std::lock_guard threads(mThreadMutex);
+        std::vector<ElfBugThreadInfo> list;
+        {
+            std::unique_lock lock(mProcessMutex);
+            if(mProcess)
+            {
+                for(auto & [tid, thread] : mProcess->threads)
+                {
+                    const auto number = mThreadNumbers.find(tid);
+                    if(number == mThreadNumbers.end())
+                        continue;
+                    if(withRegisters && !thread->IsRunning())
+                        thread->registers.Read();
+                    ElfBugThreadInfo info = {};
+                    info.tid = tid;
+                    info.number = number->second;
+                    info.rip = thread->registers.Native().rip;
+                    info.fs_base = thread->registers.Native().fs_base;
+                    readThreadStat(mProcess->pid, tid, info);
+                    info.suspend_count = thread->SuspendCount();
+                    std::string reason = thread->WaitReason();
+                    if(reason.empty())
+                    {
+                        const auto sampled = mPauseWaitReasons.find(tid);
+                        if(sampled != mPauseWaitReasons.end())
+                            reason = sampled->second;
+                    }
+                    copyString(info.wait_reason, sizeof(info.wait_reason), reason);
+                    readThreadName(mProcess->pid, tid, info.name, sizeof(info.name));
+                    list.push_back(info);
+                }
+            }
+        }
+        std::sort(list.begin(), list.end(), [](const ElfBugThreadInfo & a, const ElfBugThreadInfo & b)
+        {
+            return a.number < b.number;
+        });
+        mThreadList = std::move(list);
+    }
+
+    void refreshMemoryMap()
+    {
+        std::vector<MemRegion> newMaps;
+        if(!mProcess)
+        {
+            std::lock_guard lock(mMapMutex);
+            mMemoryMap.clear();
+            return;
+        }
+
+        char path[64];
+        snprintf(path, sizeof(path), "/proc/%d/maps", mProcess->pid);
+        FILE* f = fopen(path, "r");
+        if(!f)
+        {
+            std::lock_guard lock(mMapMutex);
+            mMemoryMap.clear();
+            return;
+        }
+
+        char line[512];
+        while(fgets(line, sizeof(line), f))
+        {
+            uint64_t start = 0, end = 0;
+            char perms[8] = {};
+            int pathOffset = 0;
+            if(sscanf(line, "%" SCNx64 "-%" SCNx64 " %4s %*x %*x:%*x %*u %n",
+                      &start, &end, perms, &pathOffset) < 3)
+                continue;
+
+            std::string pathname;
+            if(pathOffset > 0 && pathOffset < static_cast<int>(sizeof(line)))
+            {
+                const char* p = line + pathOffset;
+                while(*p == ' ' || *p == '\t') ++p;
+                size_t len = strlen(p);
+                while(len > 0 && (p[len - 1] == '\n' || p[len - 1] == '\r' || p[len - 1] == ' '))
+                    --len;
+                if(len > 0 && p[0] != '[')
+                    pathname.assign(p, len);
+
+                static constexpr std::string_view deletedSuffix{" (deleted)"};
+                if(pathname.size() >= deletedSuffix.size() &&
+                        std::string_view(pathname).substr(pathname.size() - deletedSuffix.size()) == deletedSuffix)
+                {
+                    pathname.resize(pathname.size() - deletedSuffix.size());
+                }
+            }
+
+            newMaps.push_back({start, end, perms[2] == 'x', std::move(pathname)});
+        }
+        fclose(f);
+
+        std::lock_guard lock(mMapMutex);
+        mMemoryMap = std::move(newMaps);
+
+        mModuleBases.clear();
+        for(const auto& r : mMemoryMap)
+        {
+            if(r.pathname.empty())
+                continue;
+            auto it = mModuleBases.find(r.pathname);
+            if(it == mModuleBases.end() || r.start < it->second)
+                mModuleBases[r.pathname] = r.start;
+        }
+    }
+
+    const MemRegion* findRegion(const uint64_t addr) const
+    {
+        auto it = std::upper_bound(mMemoryMap.begin(), mMemoryMap.end(), addr,
+        [](const uint64_t a, const MemRegion & r) { return a < r.start; });
+        if(it != mMemoryMap.begin())
+        {
+            --it;
+            if(addr >= it->start && addr < it->end)
+                return &*it;
+        }
+        return nullptr;
+    }
+
+    bool modLookup(const uint64_t addr, uint64_t* baseOut, std::string* pathOut) const
+    {
+        std::lock_guard lock(mMapMutex);
+        const auto* region = findRegion(addr);
+        if(!region || region->pathname.empty())
+            return false;
+
+        const auto it = mModuleBases.find(region->pathname);
+        if(it == mModuleBases.end())
+            return false;
+
+        if(baseOut)
+            *baseOut = it->second;
+        if(pathOut)
+            *pathOut = region->pathname;
+        return true;
+    }
+
+    void processPendingBreakpoints()
+    {
+        std::lock_guard queueLock(mBreakpointQueueMutex);
+        for(const auto & req : mPendingBreakpoints)
+        {
+            if(!mProcess)
+                continue;
+
+            const auto addr = static_cast<ElfBug::ptr>(req.addr);
+            if(req.action == BreakpointAction::Set)
+            {
+                if(mProcess->SetBreakpoint(addr))
+                {
+                    std::lock_guard lock(mBreakpointMutex);
+                    mBreakpointAddresses.insert(req.addr);
+                }
+            }
+            else
+            {
+                if(mProcess->DeleteBreakpoint(addr))
+                {
+                    std::lock_guard lock(mBreakpointMutex);
+                    mBreakpointAddresses.erase(req.addr);
+                }
+            }
+        }
+        mPendingBreakpoints.clear();
+    }
+
+    bool writeRegisterOnTracer(const std::string & name, const uint64_t value) const
+    {
+        const std::size_t offset = registerOffset(name.c_str());
+        if(offset == kNoRegister)
+            return false;
+
+        std::unique_lock lock(mProcessMutex);
+        if(!mThread)
+            return false;
+
+        errno = 0;
+        if(ptrace(PTRACE_POKEUSER, mThread->tid, reinterpret_cast<void*>(offset),
+                  reinterpret_cast<void*>(static_cast<uintptr_t>(value))) == -1 && errno != 0)
+            return false;
+
+        return mThread->registers.Read();
+    }
+
+    void processPendingRegisters() const
+    {
+        std::vector<std::shared_ptr<RegisterRequest>> requests;
+        {
+            std::lock_guard lock(mRegisterQueueMutex);
+            if(mPendingRegisters.empty())
+                return;
+            requests.swap(mPendingRegisters);
+        }
+
+        for(const auto & request : requests)
+        {
+            std::lock_guard lock(mRegisterQueueMutex);
+            if(request->abandoned)
+                continue;
+            request->ok = writeRegisterOnTracer(request->name, request->value);
+            request->done = true;
+        }
+        mRegisterQueueCv.notify_all();
+    }
+
+    void clearSessionSnapshot()
+    {
+        mActivePid.store(0, std::memory_order_release);
+        mActive.store(false, std::memory_order_release);
+        {
+            std::lock_guard lock(mMapMutex);
+            mMemoryMap.clear();
+            mModuleBases.clear();
+        }
+        {
+            std::lock_guard lock(mBreakpointMutex);
+            mBreakpointAddresses.clear();
+        }
+        {
+            std::lock_guard lock(mBreakpointQueueMutex);
+            mPendingBreakpoints.clear();
+        }
+        {
+            std::lock_guard lock(mRegisterQueueMutex);
+            for(const auto & request : mPendingRegisters)
+                request->done = true;
+            mPendingRegisters.clear();
+        }
+        mRegisterQueueCv.notify_all();
+        {
+            std::lock_guard lock(mThreadMutex);
+            mThreadNumbers.clear();
+            mThreadList.clear();
+            mPauseWaitReasons.clear();
+        }
+    }
+
+    ElfBugCallbacks mCb = {};
+    std::atomic<std::thread::id> mLoopThread{};
+    std::atomic<bool> mActive{false};
+    std::atomic<pid_t> mActivePid{0};
+    uint64_t mEntryPoint = 0;
+    uint64_t mBootTimeMs = 0;
+
+    mutable std::mutex mMapMutex;
+    std::vector<MemRegion> mMemoryMap;
+    std::unordered_map<std::string, uint64_t> mModuleBases;
+
+    mutable std::mutex mBreakpointMutex;
+    std::set<uint64_t> mBreakpointAddresses;
+
+    mutable std::mutex mBreakpointQueueMutex;
+    std::vector<BreakpointRequest> mPendingBreakpoints;
+
+    mutable std::mutex mRegisterQueueMutex;
+    mutable std::condition_variable mRegisterQueueCv;
+    mutable std::vector<std::shared_ptr<RegisterRequest>> mPendingRegisters;
+
+    mutable std::mutex mThreadMutex;
+    std::unordered_map<pid_t, uint32_t> mThreadNumbers;
+    uint32_t mNextThreadNumber = 0;
+    std::vector<ElfBugThreadInfo> mThreadList;
+    std::unordered_map<pid_t, std::string> mPauseWaitReasons;
 };
 
 extern "C" {
+
+    uint32_t ElfBugEnumProcesses(ElfBugProcessInfo* list, const uint32_t capacity)
+    {
+        const auto entries = ElfBug::EnumProcesses();
+        const auto count = static_cast<uint32_t>(entries.size());
+        if(list)
+        {
+            const uint32_t n = std::min(count, capacity);
+            for(uint32_t i = 0; i < n; ++i)
+            {
+                const auto & entry = entries[i];
+                ElfBugProcessInfo & info = list[i];
+                info = {};
+                info.pid = entry.pid;
+                info.arch = toApiArch(entry.arch);
+                info.traced = entry.traced;
+                copyString(info.name, sizeof(info.name), entry.name);
+                copyString(info.path, sizeof(info.path), entry.path);
+                copyString(info.command_line, sizeof(info.command_line), entry.commandLine);
+            }
+        }
+        return count;
+    }
 
     ElfBugDebugger* ElfBugCreate(const ElfBugCallbacks* callbacks)
     {
         auto* dbg = new ElfBugDebugger();
         if(callbacks)
-            dbg->cb = *callbacks;
+            dbg->SetCallbacks(*callbacks);
         return dbg;
     }
 
-    void ElfBugDestroy(const ElfBugDebugger* dbg)
+    void ElfBugDestroy(ElfBugDebugger* dbg)
     {
         if(!dbg)
             return;
@@ -650,18 +952,25 @@ extern "C" {
         return dbg->Init(path);
     }
 
+    bool ElfBugAttach(ElfBugDebugger* dbg, const pid_t pid)
+    {
+        if(!dbg)
+            return false;
+        return dbg->Attach(pid);
+    }
+
     void ElfBugStart(ElfBugDebugger* dbg)
     {
         if(!dbg)
             return;
-        dbg->Start();
+        dbg->RunLoop();
     }
 
     void ElfBugContinue(ElfBugDebugger* dbg)
     {
         if(!dbg)
             return;
-        dbg->clearPauseWaitReasons();
+        dbg->ClearPauseWaitReasons();
         dbg->Continue();
     }
 
@@ -669,7 +978,7 @@ extern "C" {
     {
         if(!dbg)
             return;
-        dbg->clearPauseWaitReasons();
+        dbg->ClearPauseWaitReasons();
         dbg->StepInto();
     }
 
@@ -677,7 +986,7 @@ extern "C" {
     {
         if(!dbg)
             return;
-        dbg->clearPauseWaitReasons();
+        dbg->ClearPauseWaitReasons();
         dbg->StepOver();
     }
 
@@ -685,7 +994,7 @@ extern "C" {
     {
         if(!dbg)
             return;
-        dbg->sampleWaitReasonsForPause();
+        dbg->SampleWaitReasonsForPause();
         dbg->Pause();
     }
 
@@ -696,18 +1005,25 @@ extern "C" {
         return dbg->Stop();
     }
 
+    bool ElfBugDetach(ElfBugDebugger* dbg)
+    {
+        if(!dbg)
+            return false;
+        return dbg->Detach();
+    }
+
     bool ElfBugGetRegisters(const ElfBugDebugger* dbg, ElfBugRegisters* regs)
     {
         if(!dbg || !regs)
             return false;
-        return dbg->readRegisters(regs);
+        return dbg->ReadRegisters(regs);
     }
 
     pid_t ElfBugGetPid(const ElfBugDebugger* dbg)
     {
         if(!dbg)
             return 0;
-        return dbg->activePid.load(std::memory_order_acquire);
+        return dbg->Pid();
     }
 
     bool ElfBugIsPaused(const ElfBugDebugger* dbg)
@@ -721,21 +1037,21 @@ extern "C" {
     {
         if(!dbg)
             return 0;
-        return dbg->currentTid();
+        return dbg->CurrentTid();
     }
 
     uint32_t ElfBugGetThreadList(const ElfBugDebugger* dbg, ElfBugThreadInfo* list, const uint32_t capacity)
     {
         if(!dbg)
             return 0;
-        return dbg->getThreadList(list, capacity);
+        return dbg->GetThreadList(list, capacity);
     }
 
     bool ElfBugSwitchThread(ElfBugDebugger* dbg, const pid_t tid)
     {
         if(!dbg)
             return false;
-        if(!dbg->active.load(std::memory_order_acquire))
+        if(!dbg->IsActive())
             return false;
         return dbg->SwitchThread(tid);
     }
@@ -744,22 +1060,12 @@ extern "C" {
     {
         if(!dbg)
             return false;
-        if(!dbg->active.load(std::memory_order_acquire))
+        if(!dbg->IsActive())
             return false;
         if(!dbg->SetThreadSuspended(tid, suspended))
             return false;
 
-        std::lock_guard lock(dbg->threadMutex);
-        const uint32_t count = dbg->suspendCountOf(tid);
-        const std::string reason = suspended ? "Suspended" : dbg->resolveWaitReason(tid);
-        for(auto & info : dbg->threadList)
-        {
-            if(info.tid == tid)
-            {
-                info.suspend_count = count;
-                dbg->copyWaitReason(reason, info.wait_reason, sizeof(info.wait_reason));
-            }
-        }
+        dbg->NoteThreadSuspended(tid, suspended);
         return true;
     }
 
@@ -767,82 +1073,56 @@ extern "C" {
     {
         if(!dbg)
             return ElfBugArch_Unknown;
-        return dbg->getArch();
+        return dbg->GetArch();
     }
 
     bool ElfBugMemRead(const ElfBugDebugger* dbg, const uint64_t addr, void* dest, const uint64_t size)
     {
         if(!dbg)
             return false;
-        return dbg->memRead(addr, dest, size);
+        return dbg->MemRead(addr, dest, size);
     }
 
     bool ElfBugMemWrite(const ElfBugDebugger* dbg, const uint64_t addr, const void* src, const uint64_t size)
     {
         if(!dbg || !src)
             return false;
-        return dbg->memWrite(addr, src, size);
+        return dbg->MemWrite(addr, src, size);
     }
 
-    bool ElfBugSetRegister(const ElfBugDebugger* dbg, const char* name, const uint64_t value)
+    bool ElfBugSetRegister(ElfBugDebugger* dbg, const char* name, const uint64_t value)
     {
         if(!dbg || !name)
             return false;
-        return dbg->setRegister(name, value);
+        return dbg->SetRegister(name, value);
     }
 
     bool ElfBugMemFindBaseAddr(const ElfBugDebugger* dbg, const uint64_t addr, uint64_t* base, uint64_t* size)
     {
         if(!dbg || !base || !size)
             return false;
-        if(!dbg->active.load(std::memory_order_acquire))
-            return false;
-
-        std::lock_guard lock(dbg->mapMutex);
-        const auto* region = dbg->findRegion(addr);
-        if(!region)
-            return false;
-
-        *base = region->start;
-        *size = region->end - region->start;
-        return true;
+        return dbg->FindBaseAddr(addr, base, size);
     }
 
     bool ElfBugMemIsCodePtr(const ElfBugDebugger* dbg, const uint64_t addr)
     {
         if(!dbg)
             return false;
-        if(!dbg->active.load(std::memory_order_acquire))
-            return false;
-
-        std::lock_guard lock(dbg->mapMutex);
-        const auto* region = dbg->findRegion(addr);
-        return region && region->executable;
+        return dbg->IsCodePtr(addr);
     }
 
     bool ElfBugMemIsValidPtr(const ElfBugDebugger* dbg, const uint64_t addr)
     {
         if(!dbg)
             return false;
-        if(!dbg->active.load(std::memory_order_acquire))
-            return false;
-
-        std::lock_guard lock(dbg->mapMutex);
-        return dbg->findRegion(addr) != nullptr;
+        return dbg->IsValidPtr(addr);
     }
 
     bool ElfBugModBaseFromAddr(const ElfBugDebugger* dbg, const uint64_t addr, uint64_t* base)
     {
         if(!dbg || !base)
             return false;
-        if(!dbg->active.load(std::memory_order_acquire))
-            return false;
-
-        uint64_t b = 0;
-        if(!dbg->modLookup(addr, &b, nullptr))
-            return false;
-        *base = b;
-        return true;
+        return dbg->ModBase(addr, base);
     }
 
     bool ElfBugModNameFromAddr(const ElfBugDebugger* dbg, const uint64_t addr,
@@ -850,45 +1130,10 @@ extern "C" {
     {
         if(!dbg || !buf || bufSize == 0)
             return false;
-        if(!dbg->active.load(std::memory_order_acquire))
+
+        std::string base;
+        if(!dbg->ModName(addr, base, extension))
             return false;
-
-        std::string path;
-        if(!dbg->modLookup(addr, nullptr, &path))
-            return false;
-
-        const size_t slash = path.find_last_of('/');
-        std::string base = (slash == std::string::npos) ? path : path.substr(slash + 1);
-
-        if(!extension)
-        {
-            size_t soPos = std::string::npos;
-            for(size_t p = base.find(".so"); p != std::string::npos; p = base.find(".so", p + 1))
-            {
-                const size_t after = p + 3;
-                if(after == base.size() || base[after] == '.')
-                {
-                    soPos = p;
-                    break;
-                }
-            }
-
-            if(soPos != std::string::npos)
-            {
-                const size_t after = soPos + 3;
-                if(after == base.size())
-                    base.resize(soPos);       // "libfoo.so" -> "libfoo"
-                else
-                    base.erase(soPos, 3);     // "libfoo.so.6" -> "libfoo.6"
-            }
-            else
-            {
-                const size_t dot = base.find_last_of('.');
-                if(dot != std::string::npos && dot > 0)
-                    base.resize(dot);
-            }
-        }
-
         if(base.size() + 1 > bufSize)
             return false;
 
@@ -900,42 +1145,21 @@ extern "C" {
     {
         if(!dbg)
             return false;
-        if(!dbg->active.load(std::memory_order_acquire))
-            return false;
-
-        std::lock_guard lock(dbg->bpQueueMutex);
-        dbg->pendingBpRequests.push_back({addr, true});
-        return true;
+        return dbg->QueueBreakpoint(addr, ElfBugDebugger::BreakpointAction::Set);
     }
 
     bool ElfBugDeleteBreakpoint(ElfBugDebugger* dbg, const uint64_t addr)
     {
         if(!dbg)
             return false;
-        if(!dbg->active.load(std::memory_order_acquire))
-            return false;
-
-        std::lock_guard lock(dbg->bpQueueMutex);
-        dbg->pendingBpRequests.push_back({addr, false});
-        return true;
+        return dbg->QueueBreakpoint(addr, ElfBugDebugger::BreakpointAction::Delete);
     }
 
     bool ElfBugIsBreakpointEffective(const ElfBugDebugger* dbg, const uint64_t addr)
     {
         if(!dbg)
             return false;
-
-        {
-            std::lock_guard lock(dbg->bpQueueMutex);
-            for(auto it = dbg->pendingBpRequests.rbegin(); it != dbg->pendingBpRequests.rend(); ++it)
-            {
-                if(it->addr == addr)
-                    return it->setOrDelete;
-            }
-        }
-
-        std::lock_guard lock(dbg->bpDataMutex);
-        return dbg->breakpointAddrs.contains(addr);
+        return dbg->IsBreakpointEffective(addr);
     }
 
 } // extern "C"

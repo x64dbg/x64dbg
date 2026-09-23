@@ -1,8 +1,12 @@
 #pragma once
 
+#include <sys/ptrace.h>
 #include <sys/types.h>
 #include <atomic>
+#include <chrono>
+#include <csignal>
 #include <mutex>
+#include <optional>
 #include <shared_mutex>
 #include <condition_variable>
 #include <string>
@@ -12,17 +16,52 @@
 #include <ElfBug/types/ElfBug.h>
 #include <ElfBug/types/Global.h>
 #include <ElfBug/process/Process.h>
+#include <ElfBug/process/ProcessArch.h>
 #include <ElfBug/thread/Thread.h>
 
 namespace ElfBug
 {
+    constexpr long kPtraceOptions =
+        PTRACE_O_TRACESYSGOOD |
+        PTRACE_O_TRACECLONE |
+        PTRACE_O_TRACEEXEC |
+        PTRACE_O_TRACEEXIT;
+
+    constexpr long kLaunchPtraceOptions = kPtraceOptions | PTRACE_O_EXITKILL;
+
+    constexpr auto kPollInterval = std::chrono::milliseconds(1);
+    constexpr auto kStopWaitTimeout = std::chrono::milliseconds(250);
+
+    std::string AttachErrorMessage(pid_t pid, int err, int ptraceScope, bool isOurChild);
+
+    std::string ArchRejectMessage(Arch arch);
+
+    // si_addr is only a fault address for kernel-raised signals.
+    ptr FaultAddress(int signal, const siginfo_t & info);
+
+    bool SweepShouldQueue(int signal, bool hardware);
+
+    bool ForeignTrapShouldQueue(int signal, const siginfo_t & info);
+
+    enum class WaitResult
+    {
+        Stopped,
+        Gone,
+        TimedOut,
+    };
+
+    WaitResult WaitForStop(pid_t tid, int & status);
+
+    bool StopShouldQueue(int status, bool haveInfo, const siginfo_t & info,
+                         int & signal, ptr & address);
+
     class Debugger
     {
     public:
         Debugger();
         virtual ~Debugger();
 
-        bool Init(const char* szFilePath, const char* const* argv = nullptr, const char* szCurrentDirectory = nullptr);
+        bool Init(const char* path, const char* const* argv = nullptr, const char* workingDirectory = nullptr);
 
         bool Attach(pid_t processId);
         void Start();
@@ -31,38 +70,31 @@ namespace ElfBug
         void StepOver();
         void Pause();
         bool Stop();
-        void Detach();
+        bool Detach();
 
         [[nodiscard]] bool IsPaused() const { return mPaused.load(std::memory_order_acquire); }
 
-        // Makes `tid` the current thread while paused: registers, steps and the next
-        // resume act on it. The thread that reported keeps any signal it still owes.
         bool SwitchThread(pid_t tid);
-
-        // Suspends or resumes a thread. Suspended threads stay stopped across Continue and
-        // steps. While running the request is serviced by the loop, so a true return means
-        // the request was accepted, not that the thread has stopped yet.
         bool SetThreadSuspended(pid_t tid, bool suspended);
 
     protected:
-        virtual void cbCreateProcessEvent(pid_t pid, ptr entryPoint);
-        virtual void cbExitProcessEvent(int exitCode);
-        virtual void cbCreateThreadEvent(pid_t tid);
-        virtual void cbExitThreadEvent(pid_t tid);
-        virtual void cbLoadDllEvent(ptr baseAddress, const std::string & path);
-        virtual void cbUnloadDllEvent(ptr baseAddress);
-        virtual void cbExceptionEvent(int signal, ptr address);
+        virtual void cbCreateProcess(pid_t pid, ptr entryPoint);
+        virtual void cbExitProcess(int exitCode);
+        virtual void cbCreateThread(pid_t tid);
+        virtual void cbExitThread(pid_t tid);
+        virtual void cbException(int signal, ptr address);
         virtual void cbBreakpoint(const BreakpointInfo & info);
         virtual void cbStep();
         virtual void cbSystemBreakpoint();
         virtual void cbAttachBreakpoint();
-        virtual void cbUnhandledException(int signal, ptr address);
+        virtual void cbDetach();
+        virtual void cbExec();
         virtual void cbInternalError(const std::string & error);
-        virtual void cbDebugStringEvent(const std::string & text);
-        virtual void cbPaused(); // called when the debuggee is paused by user
-        virtual void cbPauseTick(); // called each iteration of the pause spin loop
+        virtual void cbDebugString(const std::string & text);
+        virtual void cbPaused();
+        virtual void cbPauseTick();
 
-        // /proc/<tgid>/task/<tid>/wchan; empty when unreadable or when it reads 0 (running).
+        // /proc wchan; empty when unreadable, running, or stopped.
         static std::string readWaitReason(pid_t tgid, pid_t tid);
 
         Process* mProcess = nullptr;
@@ -72,9 +104,17 @@ namespace ElfBug
 
     private:
         void debugLoop();
+        void resetSessionState();
         bool launchChild();
-        void handleSignal(pid_t pid, int status);
-        void handleSigtrap(pid_t pid, int status);
+        bool startLaunchedProcess();
+        bool attachToProcess();
+        void interruptRunningThread(pid_t tgid);
+        bool interruptRunningThreadLocked(pid_t tgid, pid_t except);
+        void reapDetachedChildren();
+        void detachFromProcess(pid_t reportedTid);
+        void reportAttachError(pid_t pid, pid_t tid, int err);
+        void handleSignal(pid_t tid, int status);
+        void handleSigtrap(pid_t tid, int status);
         bool pauseAndResume(pid_t reported);
         enum class StepOff
         {
@@ -82,30 +122,39 @@ namespace ElfBug
             Parked,   // the thread is suspended: byte armed again, RIP still on it, signal parked
             Consumed  // the stop was used up (exit, forwarded signal, error); abandon it
         };
-        StepOff stepPastBreakpointByte(pid_t pid, ptr addr);
-        void abandonSingleStep(pid_t pid);
-        // The image was replaced: drop step state without writing anything back.
+        StepOff stepPastBreakpointByte(pid_t tid, ptr addr);
+        void abandonSingleStep(pid_t tid);
         void onExec();
+        bool applyExec(pid_t tid);
+        void handleExecEvent(pid_t tid);
+        void parkForRejectedExec(pid_t tid);
+        void replaceExecedThread(pid_t formerTid, pid_t tid);
 
-        void stopAllThreads(pid_t except);
-        // Tracer thread only. PTRACE_CONTs every thread whose suspend count reached zero
-        // while the process was running.
+        std::optional<int> stopAllThreads(pid_t except);
+        void reportLeaderExit(int exitCode);
         void drainPendingResumes();
-        // Tracer thread only. PTRACE_CONTs a stopped tid unless it is suspended or running,
-        // stepping it off its own armed breakpoint byte first. False means the process is gone.
+        bool pendingResumeOnBreakpoint();
         bool resumeStoppedThread(pid_t tid);
-        // PTRACE_CONTs pid unless a caller suspended it since its stop was snapshotted; then
-        // it stays parked and, with nothing else running, the pause is reported.
-        void continueUnlessSuspended(pid_t pid);
-        // pid stays in ptrace-stop; with nothing else running the pause is reported.
-        void leaveParked(pid_t pid);
+        void continueUnlessSuspended(pid_t tid);
+        void leaveParked(pid_t tid);
         bool swallowPendingSigstop(pid_t tid);
+        enum class ContinueResult
+        {
+            Continued,
+            ContinuedUntracked,
+            Parked,
+            ParkedAlone
+        };
+        ContinueResult continueOrPark(pid_t tid, int signal, bool forcePark);
+        [[nodiscard]] bool anyThreadRunning() const;
+        [[nodiscard]] bool anyThreadRunningLocked() const;
         void resumeAllThreads(pid_t except);
-        void abandonFreeze(pid_t except);
+        void abandonAllStop(pid_t except);
         Thread* findPendingBreakpointThread() const;
         Thread* findPendingSignalThread() const;
-        void repairStoppedThread(Thread* thread, int status) const;
-        void reportSignal(pid_t pid, int sig);
+        void repairStoppedThread(Thread* thread, int status);
+        bool claimBreakpointTrap(Thread* thread, int status);
+        void reportSignal(pid_t tid, int sig);
 
         struct StepOverRequest
         {
@@ -123,22 +172,26 @@ namespace ElfBug
             Parked,     // the thread is suspended: nothing armed, nothing stepped, caller drops the step
             Consumed    // the stop was used up stepping off the source breakpoint
         };
-        StepOverArm armStepOver(pid_t pid);
-        void cancelStepOver(pid_t pid);
-        // Another thread's stop must not end the stepping thread's step-over.
-        void cancelStepOverIfOwner(pid_t pid);
-        void restoreSourceByte(pid_t pid);
+        StepOverArm armStepOver(pid_t tid);
+        void cancelStepOver(pid_t tid);
+        void cancelStepOverIfOwner(pid_t tid);
+        void restoreSourceByte(pid_t tid);
         // A single-stepped pushf pushes EFLAGS with TF set; clear it from the pushed word.
-        void maskPushedTrapFlag() const;
-        // Runs the breakpoint's callback and cbBreakpoint, deleting it when singleshot.
+        void maskPushedTrapFlag();
         void dispatchBreakpoint(ptr address);
         void beginPause();
         void createProcessEvent(pid_t pid, Arch arch);
         void exitProcessEvent(pid_t pid, int exitCode);
-        void createThreadEvent(pid_t tid);
+        void createThreadEvent(pid_t tid, pid_t tgid, bool fromClone);
+        void registerClone(pid_t parent);
         void exitThreadEvent(pid_t tid);
+        void releaseForeignClone(pid_t tid, pid_t tgid, bool running);
+        // Brings a thread a failed drain left running back to a stop we waited on.
+        WaitResult restopForDetach(pid_t tid, pid_t tgid, bool owed, std::vector<int> & signals);
+        // Keeps the thread traced until it reaches a stop it can be detached from.
+        void releaseRunningThread(pid_t tid, pid_t tgid, bool owed, std::vector<int> signals);
+        void releaseThread(pid_t tid, pid_t tgid, const std::vector<int> & signals);
 
-        // Tracer-thread only; caller threads must not write.
         std::atomic<bool> mIsRunning{false};
         std::atomic<bool> mPaused{false};
         std::atomic<bool> mStepPending{false};
@@ -150,17 +203,18 @@ namespace ElfBug
         std::unordered_set<pid_t> mUnregisteredRunning;
         bool mAllStopped = false;
         pid_t mSteppingOff = 0;
-        // Tids whose next SIGSTOP was sent by SetThreadSuspended. The suspend count is
-        // applied at request time; the loop only leaves that stop in place. Guarded by
-        // mPauseMutex.
+        // Tids whose next SIGSTOP came from SetThreadSuspended. Guarded by mPauseMutex.
         std::unordered_set<pid_t> mPendingSuspend;
-        // Resume requests from caller threads for a tid whose count reached zero while
-        // running. Idempotent, so membership is all that matters; a set fits. Guarded
-        // by mPauseMutex.
+        // Resume requests for a tid whose count reached zero while running. Guarded by mPauseMutex.
         std::unordered_set<pid_t> mPendingResume;
         std::atomic<bool> mPauseRequested{false};
         std::atomic<bool> mStopRequested{false};
+        std::atomic<bool> mDetachRequested{false};
         std::atomic<pid_t> mMainPid{0};
+        pid_t mAttachPid = 0;
+        ImageId mImageId;
+        bool mWasGroupStopped = false;
+        std::vector<pid_t> mDetachedChildren;
         int mPendingSignal = 0;
         std::mutex mPauseMutex;
         std::condition_variable mPauseCv;

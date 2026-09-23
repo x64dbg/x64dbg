@@ -1,7 +1,7 @@
 #include <ElfBug/process/Process.h>
-#include <cstdio>
 #include <fcntl.h>
 #include <unistd.h>
+#include <cstdio>
 
 namespace ElfBug
 {

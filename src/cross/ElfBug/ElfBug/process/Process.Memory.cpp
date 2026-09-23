@@ -1,8 +1,8 @@
 #include <ElfBug/process/Process.h>
-#include <shared_mutex>
 #include <sys/uio.h>
 #include <unistd.h>
 #include <cstring>
+#include <shared_mutex>
 #include <vector>
 
 namespace ElfBug
@@ -55,11 +55,11 @@ namespace ElfBug
 
     void Process::unpatchBreakpointBytesLocked(const ptr address, void* buffer, const ptr size) const
     {
-        if(!buffer || !size || softwareBreakpointReferences.empty())
+        if(!buffer || !size || mSoftwareBreakpointReferences.empty())
             return;
 
         auto* bytes = static_cast<uint8*>(buffer);
-        for(const auto & [bpAddress, it] : softwareBreakpointReferences)
+        for(const auto & [bpAddress, it] : mSoftwareBreakpointReferences)
         {
             const BreakpointInfo & info = it->second;
             if(!info.armed || bpAddress < address || bpAddress - address >= size)
@@ -76,15 +76,14 @@ namespace ElfBug
             return false;
 
         std::unique_lock lock(mBreakpointMutex);
-        if(softwareBreakpointReferences.empty())
+        if(mSoftwareBreakpointReferences.empty())
         {
-            // Still under the lock
             return MemWriteRaw(address, buffer, size, bytesWritten);
         }
 
         std::vector<uint8> patched(static_cast<size_t>(size));
         memcpy(patched.data(), buffer, static_cast<size_t>(size));
-        for(const auto & [bpAddress, it] : softwareBreakpointReferences)
+        for(const auto & [bpAddress, it] : mSoftwareBreakpointReferences)
         {
             const BreakpointInfo & info = it->second;
             if(info.armed && bpAddress >= address && bpAddress - address < size)
@@ -94,7 +93,7 @@ namespace ElfBug
         ptr written = 0;
         const bool complete = MemWriteRaw(address, patched.data(), size, &written);
 
-        for(const auto & [bpAddress, it] : softwareBreakpointReferences)
+        for(const auto & [bpAddress, it] : mSoftwareBreakpointReferences)
         {
             BreakpointInfo & info = it->second;
             if(bpAddress >= address && bpAddress - address < written)
@@ -106,7 +105,7 @@ namespace ElfBug
         return complete;
     }
 
-    bool Process::MemWriteRaw(const ptr address, const void* buffer, const ptr size, ptr* bytesWritten) const
+    bool Process::MemWriteRaw(const ptr address, const void* buffer, const ptr size, ptr* bytesWritten)
     {
         if(!buffer || !size)
             return false;
@@ -138,7 +137,7 @@ namespace ElfBug
         return MemRead(address, &byte, 1);
     }
 
-    bool Process::MemProtect(ptr address, ptr size, uint32 newProtect, const uint32* oldProtect)
+    bool Process::MemProtect(const ptr address, const ptr size, const uint32 newProtect, const uint32* oldProtect)
     {
         // TODO: implement via ptrace or /proc/pid/mem mprotect
         (void)address;

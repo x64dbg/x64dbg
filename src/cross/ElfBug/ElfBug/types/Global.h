@@ -49,7 +49,6 @@ namespace ElfBug
     };
 
     using BreakpointCallback = std::function<void(const BreakpointInfo &)>;
-    using StepCallback = std::function<void()>;
     using BreakpointKey = std::pair<BreakpointType, ptr>;
     using BreakpointMap = std::map<BreakpointKey, BreakpointInfo>;
     using BreakpointCallbackMap = std::map<BreakpointKey, BreakpointCallback>;
@@ -57,10 +56,10 @@ namespace ElfBug
 
     struct MemoryBreakpointData
     {
-        uint32 Refcount = 0;
-        uint32 Type = 0;
-        uint32 OldProtect = 0;
-        uint32 NewProtect = 0;
+        uint32 refcount = 0;
+        uint32 type = 0;
+        uint32 oldProtect = 0;
+        uint32 newProtect = 0;
     };
 
     struct Range

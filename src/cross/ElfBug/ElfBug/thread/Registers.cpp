@@ -1,6 +1,5 @@
 #include <ElfBug/thread/Registers.h>
 #include <sys/ptrace.h>
-#include <cstring>
 
 namespace ElfBug
 {
@@ -11,7 +10,6 @@ namespace ElfBug
     Registers::Registers(const pid_t tid)
         : mTid(tid)
     {
-        memset(&mRegs, 0, sizeof(mRegs));
     }
 
     bool Registers::Read()

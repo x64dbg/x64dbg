@@ -4,16 +4,14 @@
 
 namespace ElfBug
 {
-    typedef uint8_t uint8;
-    typedef uint16_t uint16;
-    typedef uint32_t uint32;
-    typedef uint64_t uint64;
+    using uint8 = uint8_t;
+    using uint16 = uint16_t;
+    using uint32 = uint32_t;
+    using uint64 = uint64_t;
 
-    typedef uint64 ptr;
+    using ptr = uint64;
 
-#define ElfBugArchValue(x32value, x64value) (x64value)
-
-    enum class Arch : uint32_t
+    enum class Arch : uint32
     {
         Unknown = 0,
         X86_64 = 1,

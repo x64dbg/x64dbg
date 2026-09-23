@@ -1,15 +1,17 @@
 #include <ElfBug/process/ProcessArch.h>
-#include <cstdio>
-#include <cstdint>
-#include <cstring>
-#include <cerrno>
-#include <fcntl.h>
-#include <unistd.h>
 #include <elf.h>
+#include <fcntl.h>
+#include <sys/personality.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <cerrno>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
 
 namespace ElfBug
 {
-    Arch detectArchFromElfPath(const char* path)
+    Arch DetectArchFromElfPath(const char* path)
     {
         if(!path)
             return Arch::Unknown;
@@ -50,10 +52,43 @@ namespace ElfBug
         }
     }
 
-    Arch detectArchFromProcExe(const pid_t pid)
+    Arch DetectArchFromProcExe(const pid_t pid)
     {
         char path[64];
         std::snprintf(path, sizeof(path), "/proc/%d/exe", pid);
-        return detectArchFromElfPath(path);
+        return DetectArchFromElfPath(path);
+    }
+
+    ImageId ReadImageIdFromProcExe(const pid_t pid)
+    {
+        char path[64];
+        std::snprintf(path, sizeof(path), "/proc/%d/exe", pid);
+
+        struct stat info = {};
+        if(stat(path, &info) == -1)
+            return {};
+        return {info.st_dev, info.st_ino};
+    }
+
+    bool AddressesRandomized(const pid_t pid)
+    {
+        char path[64];
+        std::snprintf(path, sizeof(path), "/proc/%d/personality", pid);
+        if(FILE* global = std::fopen("/proc/sys/kernel/randomize_va_space", "re"))
+        {
+            int level = -1;
+            const bool read = std::fscanf(global, "%d", &level) == 1;
+            std::fclose(global);
+            if(read && level == 0)
+                return false;
+        }
+
+        FILE* file = std::fopen(path, "re");
+        if(!file)
+            return true;
+        unsigned long persona = 0;
+        const bool read = std::fscanf(file, "%lx", &persona) == 1;
+        std::fclose(file);
+        return !read || (persona & ADDR_NO_RANDOMIZE) == 0;
     }
 }

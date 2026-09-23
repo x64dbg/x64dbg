@@ -1,6 +1,7 @@
 #pragma once
 
 #include <BasicView/StdTable.h>
+
 #include "core/DbgAdapter.h"
 
 class QMenu;
@@ -16,14 +17,16 @@ public:
 
 public slots:
     void onThreadsUpdated(const QVector<DbgThreadInfo> & threads, pid_t currentTid);
-    void onProcessExited();
-    void switchThreadSlot();
-    void setNameSlot();
-    void suspendThreadSlot();
-    void resumeThreadSlot();
-    void suspendAllSlot();
-    void resumeAllSlot();
-    void contextMenuSlot(const QPoint & pos) const;
+    void onSessionEnded();
+
+private slots:
+    void onSwitchThread();
+    void onSetName();
+    void onSuspendThread();
+    void onResumeThread();
+    void onSuspendAll();
+    void onResumeAll();
+    void onContextMenu(const QPoint & pos) const;
 
 private:
     enum

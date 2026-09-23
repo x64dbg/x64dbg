@@ -45,9 +45,19 @@ FetchContent_MakeAvailable(Catch2)
 set(ElfBug_tests_SOURCES
 	SymbolHelper.h
 	TestHarness.h
+	TestSupport.h
 	api_c_compat.c
 	cmake.toml
-	tests.cpp
+	"targets/TargetUtil.h"
+	test_api.cpp
+	test_attach.cpp
+	test_breakpoints.cpp
+	test_detach.cpp
+	test_lifecycle.cpp
+	test_multithread.cpp
+	test_signals.cpp
+	test_stepping.cpp
+	test_suspend.cpp
 )
 
 add_executable(ElfBug_tests)
@@ -76,6 +86,8 @@ set_target_properties(ElfBug_tests PROPERTIES
 		11
 	C_STANDARD_REQUIRED
 		ON
+	UNITY_BUILD
+		OFF
 )
 
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
@@ -93,13 +105,22 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_hello_elfbug
     elfbug_fixture_run_endlessly
     elfbug_fixture_segfault
+    elfbug_fixture_int3_target
     elfbug_fixture_multi_threaded
     elfbug_fixture_step_over_targets
     elfbug_fixture_exec_target
+    elfbug_fixture_exec_peer_a
+    elfbug_fixture_exec_peer_b
     elfbug_fixture_threads_spin
     elfbug_fixture_exit_race
     elfbug_fixture_signal_race
     elfbug_fixture_clone_trap
+    elfbug_fixture_thread_storm
+    elfbug_fixture_signal_pending
+    elfbug_fixture_signal_storm
+    elfbug_fixture_clone_relay
+    elfbug_fixture_clone_process
+    elfbug_fixture_vfork_wait
 )
 
 # Target: elfbug_fixture_end_immediately
@@ -199,6 +220,39 @@ set_target_properties(elfbug_fixture_hello_elfbug PROPERTIES
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_hello_elfbug)
+endif()
+
+# Target: elfbug_fixture_int3_target
+set(elfbug_fixture_int3_target_SOURCES
+	cmake.toml
+	"targets/int3_target.cpp"
+)
+
+add_executable(elfbug_fixture_int3_target)
+
+target_sources(elfbug_fixture_int3_target PRIVATE ${elfbug_fixture_int3_target_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_int3_target_SOURCES})
+
+target_compile_options(elfbug_fixture_int3_target PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_int3_target PRIVATE
+	-pie
+)
+
+set_target_properties(elfbug_fixture_int3_target PROPERTIES
+	OUTPUT_NAME
+		int3_target
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_int3_target)
 endif()
 
 # Target: elfbug_fixture_segfault
@@ -370,6 +424,72 @@ if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_exec_target)
 endif()
 
+# Target: elfbug_fixture_exec_peer_a
+set(elfbug_fixture_exec_peer_a_SOURCES
+	cmake.toml
+	"targets/exec_peer.cpp"
+)
+
+add_executable(elfbug_fixture_exec_peer_a)
+
+target_sources(elfbug_fixture_exec_peer_a PRIVATE ${elfbug_fixture_exec_peer_a_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_exec_peer_a_SOURCES})
+
+target_compile_options(elfbug_fixture_exec_peer_a PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_exec_peer_a PRIVATE
+	-pie
+)
+
+set_target_properties(elfbug_fixture_exec_peer_a PROPERTIES
+	OUTPUT_NAME
+		exec_peer_a
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_exec_peer_a)
+endif()
+
+# Target: elfbug_fixture_exec_peer_b
+set(elfbug_fixture_exec_peer_b_SOURCES
+	cmake.toml
+	"targets/exec_peer.cpp"
+)
+
+add_executable(elfbug_fixture_exec_peer_b)
+
+target_sources(elfbug_fixture_exec_peer_b PRIVATE ${elfbug_fixture_exec_peer_b_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_exec_peer_b_SOURCES})
+
+target_compile_options(elfbug_fixture_exec_peer_b PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_exec_peer_b PRIVATE
+	-pie
+)
+
+set_target_properties(elfbug_fixture_exec_peer_b PROPERTIES
+	OUTPUT_NAME
+		exec_peer_b
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_exec_peer_b)
+endif()
+
 # Target: elfbug_fixture_threads_spin
 set(elfbug_fixture_threads_spin_SOURCES
 	cmake.toml
@@ -512,4 +632,214 @@ set_target_properties(elfbug_fixture_clone_trap PROPERTIES
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_clone_trap)
+endif()
+
+# Target: elfbug_fixture_thread_storm
+set(elfbug_fixture_thread_storm_SOURCES
+	cmake.toml
+	"targets/thread_storm.cpp"
+)
+
+add_executable(elfbug_fixture_thread_storm)
+
+target_sources(elfbug_fixture_thread_storm PRIVATE ${elfbug_fixture_thread_storm_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_thread_storm_SOURCES})
+
+target_compile_options(elfbug_fixture_thread_storm PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_thread_storm PRIVATE
+	-pie
+)
+
+target_link_libraries(elfbug_fixture_thread_storm PRIVATE
+	pthread
+)
+
+set_target_properties(elfbug_fixture_thread_storm PROPERTIES
+	OUTPUT_NAME
+		thread_storm
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_thread_storm)
+endif()
+
+# Target: elfbug_fixture_signal_pending
+set(elfbug_fixture_signal_pending_SOURCES
+	cmake.toml
+	"targets/signal_pending.cpp"
+)
+
+add_executable(elfbug_fixture_signal_pending)
+
+target_sources(elfbug_fixture_signal_pending PRIVATE ${elfbug_fixture_signal_pending_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_signal_pending_SOURCES})
+
+target_compile_options(elfbug_fixture_signal_pending PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_signal_pending PRIVATE
+	-pie
+)
+
+set_target_properties(elfbug_fixture_signal_pending PROPERTIES
+	OUTPUT_NAME
+		signal_pending
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_signal_pending)
+endif()
+
+# Target: elfbug_fixture_signal_storm
+set(elfbug_fixture_signal_storm_SOURCES
+	cmake.toml
+	"targets/signal_storm.cpp"
+)
+
+add_executable(elfbug_fixture_signal_storm)
+
+target_sources(elfbug_fixture_signal_storm PRIVATE ${elfbug_fixture_signal_storm_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_signal_storm_SOURCES})
+
+target_compile_options(elfbug_fixture_signal_storm PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_signal_storm PRIVATE
+	-pie
+)
+
+target_link_libraries(elfbug_fixture_signal_storm PRIVATE
+	pthread
+)
+
+set_target_properties(elfbug_fixture_signal_storm PROPERTIES
+	OUTPUT_NAME
+		signal_storm
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_signal_storm)
+endif()
+
+# Target: elfbug_fixture_clone_relay
+set(elfbug_fixture_clone_relay_SOURCES
+	cmake.toml
+	"targets/clone_relay.cpp"
+)
+
+add_executable(elfbug_fixture_clone_relay)
+
+target_sources(elfbug_fixture_clone_relay PRIVATE ${elfbug_fixture_clone_relay_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_clone_relay_SOURCES})
+
+target_compile_options(elfbug_fixture_clone_relay PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_clone_relay PRIVATE
+	-pie
+)
+
+target_link_libraries(elfbug_fixture_clone_relay PRIVATE
+	pthread
+)
+
+set_target_properties(elfbug_fixture_clone_relay PROPERTIES
+	OUTPUT_NAME
+		clone_relay
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_clone_relay)
+endif()
+
+# Target: elfbug_fixture_clone_process
+set(elfbug_fixture_clone_process_SOURCES
+	cmake.toml
+	"targets/clone_process.cpp"
+)
+
+add_executable(elfbug_fixture_clone_process)
+
+target_sources(elfbug_fixture_clone_process PRIVATE ${elfbug_fixture_clone_process_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_clone_process_SOURCES})
+
+target_compile_options(elfbug_fixture_clone_process PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_clone_process PRIVATE
+	-pie
+)
+
+set_target_properties(elfbug_fixture_clone_process PROPERTIES
+	OUTPUT_NAME
+		clone_process
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_clone_process)
+endif()
+
+# Target: elfbug_fixture_vfork_wait
+set(elfbug_fixture_vfork_wait_SOURCES
+	cmake.toml
+	"targets/vfork_wait.cpp"
+)
+
+add_executable(elfbug_fixture_vfork_wait)
+
+target_sources(elfbug_fixture_vfork_wait PRIVATE ${elfbug_fixture_vfork_wait_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_vfork_wait_SOURCES})
+
+target_compile_options(elfbug_fixture_vfork_wait PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_vfork_wait PRIVATE
+	-pie
+)
+
+set_target_properties(elfbug_fixture_vfork_wait PROPERTIES
+	OUTPUT_NAME
+		vfork_wait
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_vfork_wait)
 endif()

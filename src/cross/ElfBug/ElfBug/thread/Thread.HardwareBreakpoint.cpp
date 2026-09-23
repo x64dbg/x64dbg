@@ -2,13 +2,13 @@
 
 namespace ElfBug
 {
-    bool Thread::GetFreeHardwareBreakpointSlot(const HardwareSlot & slot) const
+    bool Thread::FreeHardwareBreakpointSlot(const HardwareSlot & slot) const
     {
         (void)slot;
         return false;
     }
 
-    bool Thread::SetHardwareBreakpoint(const ptr address, const HardwareSlot slot, HardwareType type, const HardwareSize size, const bool singleshot)
+    bool Thread::SetHardwareBreakpoint(const ptr address, const HardwareSlot slot, const HardwareType type, const HardwareSize size, const bool singleshot)
     {
         (void)address;
         (void)slot;
