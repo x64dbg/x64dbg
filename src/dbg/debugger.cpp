@@ -2573,6 +2573,52 @@ bool dbggetwintext(std::vector<std::string>* winTextList, const DWORD dwProcessI
     return true;
 }
 
+static char* findCaseInsensitive(char* haystack, const char* needle, const char* haystackEnd)
+{
+    if(!haystack || !needle || !*needle)
+        return nullptr;
+    if(haystackEnd && haystack >= haystackEnd)
+        return nullptr;
+
+    const size_t needleLen = strlen(needle);
+    for(char* p = haystack; *p && (!haystackEnd || p < haystackEnd); ++p)
+    {
+        if(haystackEnd && (size_t)(haystackEnd - p) < needleLen)
+            break;
+        if(_strnicmp(p, needle, needleLen) == 0)
+            return p;
+    }
+    return nullptr;
+}
+
+static const char* endOfFirstCmdlineArg(const char* cmdline)
+{
+    if(!cmdline || !*cmdline)
+        return cmdline ? cmdline : "";
+
+    if(*cmdline == '"' || *cmdline == '\'')
+    {
+        const char quote = *cmdline;
+        const char* close = strchr(cmdline + 1, quote);
+        if(!close)
+            return cmdline + strlen(cmdline);
+        return close + 1;
+    }
+
+    const char* end = cmdline;
+    while(*end && *end != ' ' && *end != '\t')
+        end++;
+    return end;
+}
+
+static const char* skipFirstCmdlineArg(const char* cmdline)
+{
+    const char* rest = endOfFirstCmdlineArg(cmdline);
+    while(*rest == ' ' || *rest == '\t')
+        rest++;
+    return rest;
+}
+
 bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::string>* commandList, std::vector<std::string>* winTextList)
 {
     infoList->clear();
@@ -2611,7 +2657,8 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
         else
         {
             cmdline_qoutes_placement_t posEnum = getqoutesplacement(cmdline);
-            char* cmdLineExe = strstr(cmdline, pe32.szExeFile);
+            const char* firstArgEnd = endOfFirstCmdlineArg(cmdline);
+            char* cmdLineExe = findCaseInsensitive(cmdline, pe32.szExeFile, firstArgEnd);
             size_t cmdLineExeSize = cmdLineExe ? strlen(pe32.szExeFile) : 0;
 
             if(!cmdLineExe)
@@ -2620,11 +2667,11 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
                                 strrchr(pe32.szExeFile, '/') ? strrchr(pe32.szExeFile, '/') + 1 : pe32.szExeFile;
                 size_t exeNameLen = strlen(exeName);
 
-                char* peNameInCmd = strstr(cmdline, exeName);
+                char* peNameInCmd = findCaseInsensitive(cmdline, exeName, firstArgEnd);
                 //check for exe name is used in path to exe
                 for(char* exeNameInCmdTmp = peNameInCmd; exeNameInCmdTmp;)
                 {
-                    exeNameInCmdTmp = strstr(exeNameInCmdTmp + exeNameLen, exeName);
+                    exeNameInCmdTmp = findCaseInsensitive(exeNameInCmdTmp + exeNameLen, exeName, firstArgEnd);
                     if(!exeNameInCmdTmp)
                         break;
 
@@ -2668,11 +2715,11 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
                     if(dotInName != nullptr)
                         dotInName[0] = '\0';
                     size_t basicNameLen = strlen(basicName());
-                    peNameInCmd = strstr(cmdline, basicName());
+                    peNameInCmd = findCaseInsensitive(cmdline, basicName(), firstArgEnd);
                     //check for basic name is used in path to exe
                     for(char* basicNameInCmdTmp = peNameInCmd; basicNameInCmdTmp;)
                     {
-                        basicNameInCmdTmp = strstr(basicNameInCmdTmp + basicNameLen, basicName());
+                        basicNameInCmdTmp = findCaseInsensitive(basicNameInCmdTmp + basicNameLen, basicName(), firstArgEnd);
                         if(!basicNameInCmdTmp)
                             break;
 
@@ -2710,24 +2757,31 @@ bool dbglistprocesses(std::vector<PROCESSENTRY32>* infoList, std::vector<std::st
                 }
             }
 
-            switch(posEnum.posEnum)
+            if(!cmdLineExeSize)
             {
-            case NO_CLOSE_QUOTE_FOUND:
-                commandList->push_back(cmdline + cmdLineExeSize + 1);
-                break;
-            case NO_QOUTES:
-                if(!posEnum.secondPos)
-                    commandList->push_back(cmdline + cmdLineExeSize);
-                else
-                    commandList->push_back(cmdline + (cmdLineExeSize > posEnum.secondPos + 1 ? cmdLineExeSize : posEnum.secondPos + 1));
-                break;
-            case QOUTES_AROUND_EXE:
-                commandList->push_back(cmdline + cmdLineExeSize + 2);
-                break;
-            case QOUTES_AT_BEGIN_AND_END:
-                cmdline[strlen(cmdline) - 1] = '\0';
-                commandList->push_back(cmdline + cmdLineExeSize + 1);
-                break;
+                commandList->push_back(skipFirstCmdlineArg(cmdline));
+            }
+            else
+            {
+                switch(posEnum.posEnum)
+                {
+                case NO_CLOSE_QUOTE_FOUND:
+                    commandList->push_back(cmdline + cmdLineExeSize + 1);
+                    break;
+                case NO_QOUTES:
+                    if(!posEnum.secondPos)
+                        commandList->push_back(cmdline + cmdLineExeSize);
+                    else
+                        commandList->push_back(cmdline + (cmdLineExeSize > posEnum.secondPos + 1 ? cmdLineExeSize : posEnum.secondPos + 1));
+                    break;
+                case QOUTES_AROUND_EXE:
+                    commandList->push_back(cmdline + cmdLineExeSize + 2);
+                    break;
+                case QOUTES_AT_BEGIN_AND_END:
+                    cmdline[strlen(cmdline) - 1] = '\0';
+                    commandList->push_back(cmdline + cmdLineExeSize + 1);
+                    break;
+                }
             }
 
             if(!commandList->empty())

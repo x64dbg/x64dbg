@@ -1,0 +1,3 @@
+testassert $pid != 0, "attach command line set $pid"
+issue3932assert
+detach
