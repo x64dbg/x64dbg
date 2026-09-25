@@ -877,7 +877,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--source-root", default="src/dbg")
     parser.add_argument("--compile-commands", default="build/compile_commands.json")
     parser.add_argument("--binary", default="bin/x64/x64dbg.dll")
-    parser.add_argument("--poc", default="../x64dbg-dbgeng")
+    parser.add_argument("--poc", default="src/third_party/DbgEng")
     parser.add_argument("--output", default="build/live-target-api-audit")
     parser.add_argument("--clangd", default=None)
     parser.add_argument("--index-timeout", type=float, default=240.0)

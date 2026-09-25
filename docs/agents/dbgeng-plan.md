@@ -109,7 +109,7 @@ The following must be kept in lockstep with it:
 - `src/third_party/GleeBug/TitanEngineEmulator` exports.
 - `src/third_party/GleeBug/StaticEngine` exports where that engine remains a
   selectable backend.
-- `../x64dbg-dbgeng/src/TitanEngine/TitanEngine.h` and its exports.
+- `src/third_party/DbgEng/src/TitanEngine/TitanEngine.h` and its exports.
 
 The copied full TitanEngine headers currently present in GleeBug and
 StaticEngine are not authoritative. Their x64dbg-facing shim should compile

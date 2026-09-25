@@ -199,7 +199,7 @@ cache while presenting the result as trace state.
 ## Phase 0: capability and deployment spike
 
 Do not freeze a TTD-specific ABI before proving the deployed DbgEng stack.
-Create a small standalone probe in `../x64dbg-dbgeng` that uses the same
+Create a small standalone probe in `src/third_party/DbgEng` that uses the same
 `IDebugClient5` baseline and runtime bundle as the shim.
 
 The probe must establish, for x64 and x86 separately where available:
