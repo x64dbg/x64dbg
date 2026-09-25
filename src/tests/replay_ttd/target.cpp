@@ -52,7 +52,7 @@ static DWORD WINAPI ReplayTtdWorker(void* parameter)
 static LONG HandleReplayException(EXCEPTION_POINTERS* pointers)
 {
     if(pointers && pointers->ExceptionRecord &&
-       pointers->ExceptionRecord->ExceptionCode == 0xE0424242)
+            pointers->ExceptionRecord->ExceptionCode == 0xE0424242)
     {
         InterlockedIncrement(&gReplayTtdState.exceptionCount);
         return EXCEPTION_EXECUTE_HANDLER;
@@ -74,12 +74,12 @@ int main()
         if(!gWorkerStart[worker] || !gWorkerDone[worker])
             return 10 + worker;
         threads[worker] = CreateThread(
-            nullptr,
-            0,
-            ReplayTtdWorker,
-            reinterpret_cast<void*>(static_cast<intptr_t>(worker)),
-            0,
-            nullptr);
+                              nullptr,
+                              0,
+                              ReplayTtdWorker,
+                              reinterpret_cast<void*>(static_cast<intptr_t>(worker)),
+                              0,
+                              nullptr);
         if(!threads[worker])
             return 20 + worker;
     }
@@ -135,8 +135,8 @@ int main()
     }
 
     if(gReplayTtdState.repeatedCalls != 25 ||
-       gReplayTtdState.exceptionCount != 1 ||
-       gReplayTtdState.stage != 6)
+            gReplayTtdState.exceptionCount != 1 ||
+            gReplayTtdState.stage != 6)
         return 60;
     return 0;
 }

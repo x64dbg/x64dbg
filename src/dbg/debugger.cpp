@@ -3110,7 +3110,7 @@ static void debugLoopFunction(INIT_STRUCT* init)
             else if(!isReplay && isElevated)
                 error += ", uiAccess=\"true\"";
             dprintf(isReplay ? QT_TRANSLATE_NOOP("DBG", "Error opening replay artifact (%s)!\n")
-                             : QT_TRANSLATE_NOOP("DBG", "Error starting process (CreateProcess, %s)!\n"), error.c_str());
+                    : QT_TRANSLATE_NOOP("DBG", "Error starting process (CreateProcess, %s)!\n"), error.c_str());
             return;
         }
         fdProcessInfo = processInfo;
@@ -3157,7 +3157,7 @@ static void debugLoopFunction(INIT_STRUCT* init)
 
         varset("$pid", fdProcessInfo->dwProcessId, true);
         if(dbghassessioncapability(UE_SESSION_CAP_NATIVE_HANDLES) &&
-           !OpenProcessToken(fdProcessInfo->hProcess, TOKEN_ALL_ACCESS, &hProcessToken))
+                !OpenProcessToken(fdProcessInfo->hProcess, TOKEN_ALL_ACCESS, &hProcessToken))
             hProcessToken = 0;
     }
     else //attach
