@@ -91,6 +91,10 @@ def main() -> int:
     log_path = Path(args.log).resolve()
     runtime_dir.mkdir(parents=True, exist_ok=True)
     artifacts_dir.mkdir(parents=True, exist_ok=True)
+    if args.engine != "DbgEng":
+        append_log(log_path, f'[x64dbg-test] FINAL status=skip asserts=0 reason=unsupported_engine_{args.engine}')
+        return 0
+
     dump_path = runtime_dir / "fixture.dmp"
     dump_path.unlink(missing_ok=True)
 

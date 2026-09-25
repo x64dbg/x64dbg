@@ -191,10 +191,12 @@ This keeps all temporary test runs under one parent directory for easier cleanup
 
 ## CI and runner behavior
 
-CI runs the active suite for both architectures and both debugger engines:
+CI runs the full active suite for TitanEngine and GleeBug on both architectures.
+It also runs the repeatable DbgEng live gate on x64 and x86; `x86` is accepted
+as an alias for `x32`.
 
-- x64 via `py src/tests/run.py --arch x64 --engine TitanEngine` and `--engine GleeBug`
-- x86 via `py src/tests/run.py --arch x86 --engine TitanEngine` and `--engine GleeBug` (`x86` is accepted as an alias for `x32`)
+Engine-specific tests report `skip` when the selected backend is not applicable.
+Tests requiring external fixtures also skip when those fixtures are unavailable.
 
 The runner launches one `headless.exe -testing` process per test with:
 
@@ -205,9 +207,10 @@ The runner launches one `headless.exe -testing` process per test with:
 - `RedirectLog` to a per-test log file
 - `-cf` pointing at the built `test.txt`
 
-The canonical pass/fail signal is the final log line emitted by `testfinalize`:
+The canonical pass/fail/skip signal is the final log line emitted by a test:
 
 ```text
 [x64dbg-test] FINAL status=pass asserts=3
 [x64dbg-test] FINAL status=fail asserts=0 reason=no_asserts
+[x64dbg-test] FINAL status=skip asserts=0 reason=unsupported_engine_TitanEngine
 ```
