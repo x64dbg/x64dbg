@@ -1,0 +1,12 @@
+settingset Engine, HardcoreThreadSwitchWarning, 1
+settingset Events, TlsCallbacks, 0
+settingset Events, TlsCallbacksSystem, 0
+settingset Events, EntryBreakpoint, 1
+init tests/issue2725.exe
+run
+testassert $pid != 0, "first session started"
+stop
+init tests/issue2725.exe
+run
+testassert $pid != 0, "second session started"
+stop
