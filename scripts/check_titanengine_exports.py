@@ -249,7 +249,7 @@ def main() -> int:
         root / "src/third_party/TitanEngine/TitanEngine/definitions.h",
         root / "src/third_party/GleeBug/TitanEngineEmulator/TitanEngine.h",
         root / "src/third_party/GleeBug/StaticEngine/TitanEngine.h",
-        root.parent / "x64dbg-dbgeng/src/TitanEngine/TitanEngine.h",
+        root / "src/third_party/DbgEng/src/TitanEngine/TitanEngine.h",
     ]
     failed = not check_header_conformance(args.canonical_header, adapter_headers, required)
     for dll in dlls:

@@ -37,7 +37,7 @@ def main() -> int:
     run([python, "-m", "py_compile", "scripts/check_titanengine_exports.py", "src/tests/run.py"], root)
     run([python, "scripts/check_titanengine_exports.py"], root)
     run(["git", "diff", "--check"], root)
-    run(["git", "-C", str(root.parent / "x64dbg-dbgeng"), "-c", "core.whitespace=cr-at-eol", "diff", "--check"], root)
+    run(["git", "-C", str(root / "src/third_party/DbgEng"), "-c", "core.whitespace=cr-at-eol", "diff", "--check"], root)
 
     live_tests = [
         "attach_pause/breakin",
