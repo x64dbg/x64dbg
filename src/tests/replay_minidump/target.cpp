@@ -16,46 +16,46 @@ extern "C" __declspec(dllexport) volatile ULONG_PTR replay_marker =
 namespace
 {
 
-const wchar_t* gDumpPath = nullptr;
-std::array<HANDLE, 2> gWorkerReady = {};
-HANDLE gStopWorkers = nullptr;
+    const wchar_t* gDumpPath = nullptr;
+    std::array<HANDLE, 2> gWorkerReady = {};
+    HANDLE gStopWorkers = nullptr;
 
-DWORD WINAPI worker(void* argument)
-{
-    const auto index = reinterpret_cast<ULONG_PTR>(argument);
-    SetEvent(gWorkerReady[index]);
-    WaitForSingleObject(gStopWorkers, INFINITE);
-    return static_cast<DWORD>(replay_marker + index);
-}
-
-LONG writeDump(EXCEPTION_POINTERS* exception)
-{
-    const auto file = CreateFileW(gDumpPath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-    if(file == INVALID_HANDLE_VALUE)
-        return EXCEPTION_EXECUTE_HANDLER;
-
-    MINIDUMP_EXCEPTION_INFORMATION exceptionInfo = {};
-    exceptionInfo.ThreadId = GetCurrentThreadId();
-    exceptionInfo.ExceptionPointers = exception;
-    exceptionInfo.ClientPointers = FALSE;
-    const auto type = static_cast<MINIDUMP_TYPE>(
-        MiniDumpWithFullMemory |
-        MiniDumpWithFullMemoryInfo |
-        MiniDumpWithThreadInfo |
-        MiniDumpWithUnloadedModules |
-        MiniDumpWithHandleData |
-        MiniDumpIgnoreInaccessibleMemory);
-    const auto written = MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, type,
-                                           &exceptionInfo, nullptr, nullptr);
-    const auto error = GetLastError();
-    CloseHandle(file);
-    if(!written)
+    DWORD WINAPI worker(void* argument)
     {
-        DeleteFileW(gDumpPath);
-        SetLastError(error);
+        const auto index = reinterpret_cast<ULONG_PTR>(argument);
+        SetEvent(gWorkerReady[index]);
+        WaitForSingleObject(gStopWorkers, INFINITE);
+        return static_cast<DWORD>(replay_marker + index);
     }
-    return EXCEPTION_EXECUTE_HANDLER;
-}
+
+    LONG writeDump(EXCEPTION_POINTERS* exception)
+    {
+        const auto file = CreateFileW(gDumpPath, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if(file == INVALID_HANDLE_VALUE)
+            return EXCEPTION_EXECUTE_HANDLER;
+
+        MINIDUMP_EXCEPTION_INFORMATION exceptionInfo = {};
+        exceptionInfo.ThreadId = GetCurrentThreadId();
+        exceptionInfo.ExceptionPointers = exception;
+        exceptionInfo.ClientPointers = FALSE;
+        const auto type = static_cast<MINIDUMP_TYPE>(
+                              MiniDumpWithFullMemory |
+                              MiniDumpWithFullMemoryInfo |
+                              MiniDumpWithThreadInfo |
+                              MiniDumpWithUnloadedModules |
+                              MiniDumpWithHandleData |
+                              MiniDumpIgnoreInaccessibleMemory);
+        const auto written = MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), file, type,
+                                               &exceptionInfo, nullptr, nullptr);
+        const auto error = GetLastError();
+        CloseHandle(file);
+        if(!written)
+        {
+            DeleteFileW(gDumpPath);
+            SetLastError(error);
+        }
+        return EXCEPTION_EXECUTE_HANDLER;
+    }
 
 } // namespace
 
