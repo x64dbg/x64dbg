@@ -76,6 +76,15 @@ jobs:
               },
             );
             for (const pull of associatedPulls) {
+              // The API can also return PRs from other repositories in the same
+              // fork network, where pull request numbers have a different scope.
+              if (pull.base?.repo?.full_name !== `${owner}/${repo}`) {
+                core.info(
+                  `Ignoring ${pull.base?.repo?.full_name || 'unknown repository'} PR #${pull.number}.`,
+                );
+                continue;
+              }
+
               // For push runs, run.head_sha is the source commit that was built.
               // Do not replace the more precise PR head supplied in the event.
               if (!pullHeads.has(pull.number)) {
@@ -96,11 +105,22 @@ jobs:
             const legacySnapshotLink = /(?:\r?\n)*(?:Snapshot:\s*)?\[[^\]\r\n]*snapshot_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}\.zip[^\]\r\n]*\]\(https:\/\/github\.com\/[^)\s]+\/actions\/runs\/\d+\/artifacts\/\d+\)(?:\r?\n)*/gi;
 
             for (const [pull_number, builtHeadSha] of pullHeads) {
-              const { data: pull } = await github.rest.pulls.get({
-                owner,
-                repo,
-                pull_number,
-              });
+              let pull;
+              try {
+                ({ data: pull } = await github.rest.pulls.get({
+                  owner,
+                  repo,
+                  pull_number,
+                }));
+              } catch (error) {
+                if (error.status === 404) {
+                  core.warning(
+                    `Ignoring PR #${pull_number}, which does not exist in ${owner}/${repo}.`,
+                  );
+                  continue;
+                }
+                throw error;
+              }
 
               // Do not let a slower, older run overwrite the newest snapshot.
               if (pull.state !== 'open' || pull.head.sha !== builtHeadSha) {
