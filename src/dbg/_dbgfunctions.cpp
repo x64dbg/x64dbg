@@ -273,17 +273,18 @@ void dbgfunctionsinit()
     _dbgfunctions.IsProcessElevated = BridgeIsProcessElevated;
     _dbgfunctions.GetCmdline = [](char* cmd_line, size_t* cbsize)
     {
-        if(!cmd_line && !cbsize)
+        if(!cbsize)
             return false;
         char* cmdline;
         if(!dbggetcmdline(&cmdline, NULL, fdProcessInfo->hProcess))
             return false;
-        if(!cmd_line && cbsize)
-            *cbsize = strlen(cmdline) + sizeof(char);
-        else if(cmd_line)
-            memcpy(cmd_line, cmdline, strlen(cmdline) + 1);
+        const size_t requiredSize = strlen(cmdline) + sizeof(char);
+        const bool bufferIsLargeEnough = !cmd_line || *cbsize >= requiredSize;
+        *cbsize = requiredSize;
+        if(cmd_line && bufferIsLargeEnough)
+            memcpy(cmd_line, cmdline, requiredSize);
         efree(cmdline, "_getcmdline:cmdline");
-        return true;
+        return bufferIsLargeEnough;
     };
     _dbgfunctions.SetCmdline = [](const char* cmd_line)
     {
