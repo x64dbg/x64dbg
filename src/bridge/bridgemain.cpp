@@ -195,6 +195,8 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit(BRIDGE_CONFIG* config)
             return L"GleeBug\\TitanEngine.dll";
         case DebugEngineStaticEngine:
             return L"StaticEngine\\TitanEngine.dll";
+        case DebugEngineDbgEng:
+            return L"DbgEng\\TitanEngine.dll";
         default:
             return L"TitanEngine.dll";
         }
@@ -591,6 +593,11 @@ BRIDGE_IMPEXP bool DbgIsValidExpression(const char* expression)
 BRIDGE_IMPEXP bool DbgIsDebugging()
 {
     return _dbg_isdebugging();
+}
+
+BRIDGE_IMPEXP bool DbgCanReplayBackwards()
+{
+    return !!_dbg_sendmessage(DBG_CAN_REPLAY_BACKWARDS, nullptr, nullptr);
 }
 
 BRIDGE_IMPEXP bool DbgIsJumpGoingToExecute(duint addr)

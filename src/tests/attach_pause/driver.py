@@ -189,22 +189,30 @@ def main() -> int:
         headless.wait_for_quiescence(idle=2, timeout=30)
 
         if breakin_mode:
-            # Every thread of the target blocks forever, so the first pause
-            # request cannot interrupt anything.
             headless.send("pause")
-            if headless.wait_for_line(lambda line: line == "[STATE] paused", 4) is not None:
-                return fail("unexpected_pause", "first pause request should not break a fully blocked debuggee")
+            if args.engine.lower() == "dbgeng":
+                # DbgEng has a non-invasive native interrupt, so no escalation
+                # is necessary even when every target thread is blocked.
+                if headless.wait_for_line(lambda line: line == "[STATE] paused", 10) is None:
+                    return fail("pause_no_effect", "engine pause request did not stop the blocked debuggee")
+                shutdown_headless()
+                append_log(log_path, '[x64dbg-test] ASSERT PASS source=driver message="native engine pause stopped the blocked debuggee"')
+                append_log(log_path, "[x64dbg-test] FINAL status=pass asserts=1")
+                return 0
 
-            # A repeated pause request after a few seconds must fall back to a
-            # break-in thread and interrupt the debuggee.
-            headless.send("pause")
-            if headless.wait_for_line(lambda line: line == "[STATE] paused", 10) is None:
-                return fail("breakin_no_effect", "repeated pause request did not break in")
-
+            # Win32-based engines prefer a current-IP breakpoint, but may
+            # escalate immediately if that mechanism cannot be armed. If the
+            # request remains pending, a repeated request after the escalation
+            # interval permits the engine-owned break-in-thread fallback.
+            paused = headless.wait_for_line(lambda line: line == "[STATE] paused", 4)
+            if paused is None:
+                headless.send("pause")
+                paused = headless.wait_for_line(lambda line: line == "[STATE] paused", 10)
+            if paused is None:
+                return fail("breakin_no_effect", "engine pause fallback did not break in")
             shutdown_headless()
-            append_log(log_path, '[x64dbg-test] ASSERT PASS source=driver message="first pause request did not pause the blocked debuggee"')
-            append_log(log_path, '[x64dbg-test] ASSERT PASS source=driver message="repeated pause request paused via break-in thread"')
-            append_log(log_path, "[x64dbg-test] FINAL status=pass asserts=2")
+            append_log(log_path, '[x64dbg-test] ASSERT PASS source=driver message="engine pause policy stopped fully blocked threads"')
+            append_log(log_path, "[x64dbg-test] FINAL status=pass asserts=1")
             return 0
 
         # Make a worker thread produce a debug event (OutputDebugString) and

@@ -1098,7 +1098,7 @@ std::unique_ptr<MODINFO> MODINFO::load(duint Base, duint Size, const char* FullP
                 MEMORY_BASIC_INFORMATION mbi;
                 duint regionSize = 0;
                 duint addr = Base;
-                while(VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)addr, &mbi, sizeof(mbi)))
+                while(MemoryQuerySafe(fdProcessInfo->hProcess, (LPCVOID)addr, &mbi, sizeof(mbi)))
                 {
                     if(mbi.AllocationBase != (PVOID)Base)
                         break;

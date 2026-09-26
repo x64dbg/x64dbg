@@ -48,8 +48,7 @@ private slots:
     //Engine tab
     void on_radioUnsigned_clicked();
     void on_radioSigned_clicked();
-    void on_radioTitanEngine_clicked();
-    void on_radioGleeBug_clicked();
+    void on_listDebugEngine_currentRowChanged(int currentRow);
     void on_radioInt3Short_clicked();
     void on_radioInt3Long_clicked();
     void on_radioUd2_clicked();

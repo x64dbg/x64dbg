@@ -108,18 +108,12 @@ extern "C" DLL_EXPORT bool _dbg_isjumpgoingtoexecute(duint addr)
         Zydis zydis;
         if(zydis.Disassemble(addr, data))
         {
-            CONTEXT ctx;
-            memset(&ctx, 0, sizeof(ctx));
-            ctx.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
-            GetThreadContext(hActiveThread, &ctx);
-#ifdef _WIN64
-            auto cflags = ctx.EFlags;
-            auto ccx = ctx.Rcx;
-#else
-            auto cflags = ctx.EFlags;
-            auto ccx = ctx.Ecx;
-#endif //_WIN64
-            return zydis.IsBranchGoingToExecute(cflags, ccx);
+            // Fetch once: repeated scalar calls may each cross the selected
+            // engine's thread-selection boundary.
+            TITAN_ENGINE_CONTEXT_t context = {};
+            if(!GetFullContextDataEx(hActiveThread, &context))
+                return false;
+            return zydis.IsBranchGoingToExecute(context.eflags, context.ccx);
         }
     }
     return false;
@@ -932,6 +926,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         case DBG_GET_TIME_WASTED_COUNTER:
         case DBG_GET_DEBUG_ENGINE:
         case DBG_IS_TESTING:
+        case DBG_CAN_REPLAY_BACKWARDS:
             break;
         //the rest is unsafe -> throw an exception when people try to call them
         default:
@@ -1074,6 +1069,8 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         SetEngineVariable(UE_ENGINE_MEMBP_ALT, settingboolget("Engine", "MembpAlt", false));
         SetEngineVariable(UE_ENGINE_DISABLE_ASLR, settingboolget("Engine", "DisableAslr", false));
         SetEngineVariable(UE_ENGINE_NO_CONSOLE_WINDOW, settingboolget("Engine", "NoConsoleWindow", false));
+        SetEngineVariable(UE_ENGINE_WOW64_SINGLE_STEP_WORKAROUND,
+                          !settingboolget("Engine", "NoWow64SingleStepWorkaround", false));
         bOnlyCipAutoComments = settingboolget("Disassembler", "OnlyCipAutoComments", false);
         bNoSourceLineAutoComments = settingboolget("Disassembler", "NoSourceLineAutoComments", false);
         bListAllPages = settingboolget("Engine", "ListAllPages", false);
@@ -1083,7 +1080,6 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         bIgnoreInconsistentBreakpoints = settingboolget("Engine", "IgnoreInconsistentBreakpoints", false);
         bNoForegroundWindow = settingboolget("Gui", "NoForegroundWindow", true);
         bVerboseExceptionLogging = settingboolget("Engine", "VerboseExceptionLogging", true);
-        bNoWow64SingleStepWorkaround = settingboolget("Engine", "NoWow64SingleStepWorkaround", false);
         bQueryWorkingSet = settingboolget("Misc", "QueryWorkingSet", false);
         bForceLoadSymbols = settingboolget("Misc", "ForceLoadSymbols", false);
         bTruncateBreakpointLogs = settingboolget("Engine", "TruncateBreakpointLogs", false);
@@ -1212,6 +1208,12 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
     case DBG_IS_TESTING:
     {
         return TestIsEnabled() ? 1 : 0;
+    }
+    break;
+
+    case DBG_CAN_REPLAY_BACKWARDS:
+    {
+        return dbghassessioncapability(UE_SESSION_CAP_REVERSE_EXECUTION) ? 1 : 0;
     }
     break;
 
@@ -1580,7 +1582,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         if(hProcess)
         {
             pebAddress = (duint)GetPEBLocation(hProcess);
-            CloseHandle(hProcess);
+            TitanCloseHandle(hProcess);
         }
         return pebAddress;
     }
@@ -1596,7 +1598,7 @@ extern "C" DLL_EXPORT duint _dbg_sendmessage(DBGMSG type, void* param1, void* pa
         if(hThread)
         {
             tebAddress = (duint)GetTEBLocation(hThread);
-            CloseHandle(hThread);
+            TitanCloseHandle(hThread);
         }
         return tebAddress;
     }

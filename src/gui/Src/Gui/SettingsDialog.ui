@@ -252,21 +252,29 @@
            <property name="title">
             <string>Debug Engine*</string>
            </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <layout class="QVBoxLayout" name="verticalLayoutDebugEngine">
             <item>
-             <widget class="QRadioButton" name="radioTitanEngine">
-              <property name="text">
-               <string>TitanEngine</string>
+             <widget class="QListWidget" name="listDebugEngine">
+              <property name="minimumSize">
+               <size>
+                <width>140</width>
+                <height>86</height>
+               </size>
               </property>
-              <property name="checked">
-               <bool>true</bool>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>86</height>
+               </size>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="radioGleeBug">
-              <property name="text">
-               <string>GleeBug</string>
+              <property name="horizontalScrollBarPolicy">
+               <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+              <property name="verticalScrollBarPolicy">
+               <enum>Qt::ScrollBarAlwaysOff</enum>
+              </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SingleSelection</enum>
               </property>
              </widget>
             </item>

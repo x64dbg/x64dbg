@@ -19,6 +19,53 @@ enum TitanAccessType
     UE_ACCESS_ALL = 2,
 };
 
+enum TitanSessionKind
+{
+    UE_SESSION_NONE = 0,
+    UE_SESSION_LIVE = 1,
+    UE_SESSION_MINIDUMP = 2,
+    UE_SESSION_TTD = 3,
+    UE_SESSION_STATIC = 4,
+};
+
+enum TitanSessionCapability : uint64_t
+{
+    UE_SESSION_CAP_MEMORY_READ = 1ull << 0,
+    UE_SESSION_CAP_MEMORY_QUERY = 1ull << 1,
+    UE_SESSION_CAP_CONTEXT_READ = 1ull << 2,
+    UE_SESSION_CAP_FORWARD_EXECUTION = 1ull << 3,
+    UE_SESSION_CAP_REVERSE_EXECUTION = 1ull << 4,
+    UE_SESSION_CAP_EXACT_POSITION = 1ull << 5,
+    UE_SESSION_CAP_LOGICAL_CODE_BREAKPOINT = 1ull << 6,
+    UE_SESSION_CAP_LOGICAL_DATA_BREAKPOINT = 1ull << 7,
+    UE_SESSION_CAP_MEMORY_WRITE = 1ull << 8,
+    UE_SESSION_CAP_CONTEXT_WRITE = 1ull << 9,
+    UE_SESSION_CAP_PROCESS_CONTROL = 1ull << 10,
+    UE_SESSION_CAP_THREAD_CONTROL = 1ull << 11,
+    UE_SESSION_CAP_NATIVE_HANDLES = 1ull << 12,
+    UE_SESSION_CAP_EXCEPTION_CONTINUE = 1ull << 13,
+    UE_SESSION_CAP_TIMELINE_STATE = 1ull << 14,
+    UE_SESSION_CAP_PAUSE_EXECUTION = 1ull << 16,
+    UE_SESSION_CAP_NAVIGABLE_PROCESS_EXIT = 1ull << 17,
+};
+
+typedef struct
+{
+    DWORD structSize;
+    TitanSessionKind kind;
+    uint64_t capabilities;
+    DWORD machineType;
+    DWORD processId;
+    DWORD threadId;
+    DWORD reserved;
+} TITAN_SESSION_INFO;
+
+typedef struct
+{
+    uint64_t sequence;
+    uint64_t steps;
+} TITAN_REPLAY_POSITION;
+
 enum TitanEngineVariable
 {
     UE_ENGINE_NO_CONSOLE_WINDOW = 4,
@@ -27,6 +74,14 @@ enum TitanEngineVariable
     UE_ENGINE_MEMBP_ALT = 11,
     UE_ENGINE_DISABLE_ASLR = 12,
     UE_ENGINE_SAFE_STEP = 13,
+    UE_ENGINE_WOW64_SINGLE_STEP_WORKAROUND = 14,
+};
+
+enum TitanPausePolicy
+{
+    UE_PAUSE_POLICY_NONINVASIVE = 0,
+    UE_PAUSE_POLICY_STANDARD = 1,
+    UE_PAUSE_POLICY_AGGRESSIVE = 2,
 };
 
 enum TitanBreakpointRemoveOption
@@ -203,6 +258,7 @@ typedef void(*TITANCALLBACK)();
 
 typedef TITANCALLBACK TITANCBCH;
 typedef TITANCALLBACK TITANCBSTEP;
+typedef TITANCALLBACK TITANCBPAUSE;
 typedef TITANCALLBACK TITANCBSOFTBP;
 typedef TITANCALLBACKARG TITANCBHWBP;
 typedef TITANCALLBACKARG TITANCBMEMBP;
@@ -307,12 +363,24 @@ extern "C"
 
 // Global.Function.Declaration:
 __declspec(dllexport) bool MemoryReadSafe(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead);
+__declspec(dllexport) bool MemoryReadUnsafe(HANDLE hProcess, LPCVOID lpBaseAddress, LPVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead);
 __declspec(dllexport) bool MemoryWriteSafe(HANDLE hProcess, LPVOID lpBaseAddress, LPCVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesWritten);
+__declspec(dllexport) SIZE_T MemoryQuerySafe(HANDLE hProcess, LPCVOID lpAddress, PMEMORY_BASIC_INFORMATION lpBuffer, SIZE_T dwLength);
+__declspec(dllexport) LPVOID MemoryAllocSafe(HANDLE hProcess, LPVOID lpAddress, SIZE_T dwSize, DWORD flAllocationType, DWORD flProtect);
+__declspec(dllexport) bool MemoryFreeSafe(HANDLE hProcess, LPVOID lpAddress, SIZE_T dwSize, DWORD dwFreeType);
+__declspec(dllexport) bool MemoryProtectSafe(HANDLE hProcess, LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect);
 // TitanEngine.Hider.functions:
 __declspec(dllexport) ULONG_PTR GetPEBLocation(HANDLE hProcess);
 __declspec(dllexport) ULONG_PTR GetTEBLocation(HANDLE hThread);
 // TitanEngine.Debugger.functions:
 __declspec(dllexport) PROCESS_INFORMATION* InitDebugW(const wchar_t* szFileName, const wchar_t* szCommandLine, const wchar_t* szCurrentFolder);
+__declspec(dllexport) PROCESS_INFORMATION* InitReplayW(const wchar_t* szArtifactPath, TitanSessionKind ExpectedKind);
+__declspec(dllexport) bool GetSessionInfo(TITAN_SESSION_INFO* SessionInfo);
+__declspec(dllexport) bool ReplayGetPosition(TITAN_REPLAY_POSITION* Position);
+__declspec(dllexport) bool ReplayGetExtent(TITAN_REPLAY_POSITION* First, TITAN_REPLAY_POSITION* Last);
+__declspec(dllexport) bool ReplaySetPosition(const TITAN_REPLAY_POSITION* Position);
+__declspec(dllexport) bool ReplayRunBack();
+__declspec(dllexport) bool ReplayStepBack(TITANCBSTEP StepCallBack);
 __declspec(dllexport) bool StopDebug();
 __declspec(dllexport) void SetBPXOptions(TitanBreakpointType DefaultBreakPointType);
 __declspec(dllexport) bool IsBPXEnabled(ULONG_PTR bpxAddress);
@@ -344,6 +412,21 @@ __declspec(dllexport) bool IsFileBeingDebugged();
 // TitanEngine.Process.functions:
 __declspec(dllexport) HANDLE TitanOpenProcess(DWORD dwDesiredAccess, bool bInheritHandle, DWORD dwProcessId);
 __declspec(dllexport) HANDLE TitanOpenThread(DWORD dwDesiredAccess, bool bInheritHandle, DWORD dwThreadId);
+__declspec(dllexport) bool TitanGetProcessImagePathW(HANDLE hProcess, LPWSTR szPath, SIZE_T cchPath);
+__declspec(dllexport) bool TitanGetModulePathW(HANDLE hProcess, ULONG_PTR ModuleBase, LPWSTR szPath, SIZE_T cchPath);
+__declspec(dllexport) bool TitanCloseHandle(HANDLE hEngineHandle);
+__declspec(dllexport) bool ProcessIsWow64(HANDLE hProcess, PBOOL isWow64);
+__declspec(dllexport) bool TitanTerminateProcess(HANDLE hProcess, DWORD exitCode);
+__declspec(dllexport) bool RequestPause(TitanPausePolicy MaximumPolicy, TITANCBPAUSE PauseCallback);
+__declspec(dllexport) HANDLE TitanCreateRemoteThread(HANDLE hProcess, LPTHREAD_START_ROUTINE start, LPVOID argument, DWORD creationFlags, LPDWORD threadId);
+__declspec(dllexport) DWORD TitanSuspendThread(HANDLE hThread);
+__declspec(dllexport) DWORD TitanResumeThread(HANDLE hThread);
+__declspec(dllexport) bool TitanTerminateThread(HANDLE hThread, DWORD exitCode);
+__declspec(dllexport) DWORD TitanGetThreadId(HANDLE hThread);
+__declspec(dllexport) int TitanGetThreadPriority(HANDLE hThread);
+__declspec(dllexport) bool TitanSetThreadPriority(HANDLE hThread, int priority);
+__declspec(dllexport) bool TitanGetThreadTimes(HANDLE hThread, LPFILETIME creation, LPFILETIME exit, LPFILETIME kernel, LPFILETIME user);
+__declspec(dllexport) bool TitanQueryThreadCycleTime(HANDLE hThread, PULONG64 cycleTime);
 // TitanEngine.Engine.functions:
 __declspec(dllexport) void SetEngineVariable(TitanEngineVariable VariableId, bool VariableSet);
 __declspec(dllexport) bool EngineCheckStructAlignment(TitanStructureType StructureType, ULONG_PTR StructureSize);

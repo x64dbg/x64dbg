@@ -283,20 +283,45 @@ void stackgetcallstack(duint csp, std::vector<CALLSTACKENTRY> & callstackVector,
         return;
     }
 
-    // Gather context data
-    CONTEXT context;
-    memset(&context, 0, sizeof(CONTEXT));
+    // Gather context data through the selected engine. Engine thread handles
+    // may be opaque and must not be passed to GetThreadContext directly.
+    TITAN_ENGINE_CONTEXT_t titanContext = {};
+    if(!GetFullContextDataEx(hActiveThread, &titanContext))
+        return;
 
+    CONTEXT context = {};
     context.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
-
-    if(SuspendThread(hActiveThread) == -1)
-        return;
-
-    if(!GetThreadContext(hActiveThread, &context))
-        return;
-
-    if(ResumeThread(hActiveThread) == -1)
-        return;
+#ifdef _M_IX86
+    context.Eax = DWORD(titanContext.cax);
+    context.Ebx = DWORD(titanContext.cbx);
+    context.Ecx = DWORD(titanContext.ccx);
+    context.Edx = DWORD(titanContext.cdx);
+    context.Esi = DWORD(titanContext.csi);
+    context.Edi = DWORD(titanContext.cdi);
+    context.Ebp = DWORD(titanContext.cbp);
+    context.Esp = DWORD(titanContext.csp);
+    context.Eip = DWORD(titanContext.cip);
+    context.EFlags = DWORD(titanContext.eflags);
+#elif _M_X64
+    context.Rax = titanContext.cax;
+    context.Rbx = titanContext.cbx;
+    context.Rcx = titanContext.ccx;
+    context.Rdx = titanContext.cdx;
+    context.Rsi = titanContext.csi;
+    context.Rdi = titanContext.cdi;
+    context.Rbp = titanContext.cbp;
+    context.Rsp = titanContext.csp;
+    context.Rip = titanContext.cip;
+    context.EFlags = DWORD(titanContext.eflags);
+    context.R8 = titanContext.r8;
+    context.R9 = titanContext.r9;
+    context.R10 = titanContext.r10;
+    context.R11 = titanContext.r11;
+    context.R12 = titanContext.r12;
+    context.R13 = titanContext.r13;
+    context.R14 = titanContext.r14;
+    context.R15 = titanContext.r15;
+#endif
 
     if(ShowSuspectedCallStack)
     {
@@ -375,20 +400,43 @@ void stackgetcallstackbythread(HANDLE thread, CALLSTACK* callstack)
 {
     std::vector<CALLSTACKENTRY> callstackVector;
     duint csp = GetContextDataEx(thread, UE_CSP);
-    // Gather context data
-    CONTEXT context;
-    memset(&context, 0, sizeof(CONTEXT));
+    TITAN_ENGINE_CONTEXT_t titanContext = {};
+    if(!GetFullContextDataEx(thread, &titanContext))
+        return;
 
+    CONTEXT context = {};
     context.ContextFlags = CONTEXT_CONTROL | CONTEXT_INTEGER;
-
-    if(SuspendThread(thread) == -1)
-        return;
-
-    if(!GetThreadContext(thread, &context))
-        return;
-
-    if(ResumeThread(thread) == -1)
-        return;
+#ifdef _M_IX86
+    context.Eax = DWORD(titanContext.cax);
+    context.Ebx = DWORD(titanContext.cbx);
+    context.Ecx = DWORD(titanContext.ccx);
+    context.Edx = DWORD(titanContext.cdx);
+    context.Esi = DWORD(titanContext.csi);
+    context.Edi = DWORD(titanContext.cdi);
+    context.Ebp = DWORD(titanContext.cbp);
+    context.Esp = DWORD(titanContext.csp);
+    context.Eip = DWORD(titanContext.cip);
+    context.EFlags = DWORD(titanContext.eflags);
+#elif _M_X64
+    context.Rax = titanContext.cax;
+    context.Rbx = titanContext.cbx;
+    context.Rcx = titanContext.ccx;
+    context.Rdx = titanContext.cdx;
+    context.Rsi = titanContext.csi;
+    context.Rdi = titanContext.cdi;
+    context.Rbp = titanContext.cbp;
+    context.Rsp = titanContext.csp;
+    context.Rip = titanContext.cip;
+    context.EFlags = DWORD(titanContext.eflags);
+    context.R8 = titanContext.r8;
+    context.R9 = titanContext.r9;
+    context.R10 = titanContext.r10;
+    context.R11 = titanContext.r11;
+    context.R12 = titanContext.r12;
+    context.R13 = titanContext.r13;
+    context.R14 = titanContext.r14;
+    context.R15 = titanContext.r15;
+#endif
 
     if(ShowSuspectedCallStack)
     {

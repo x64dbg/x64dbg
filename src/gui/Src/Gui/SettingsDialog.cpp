@@ -10,6 +10,15 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     ui(new Ui::SettingsDialog)
 {
     ui->setupUi(this);
+    const auto addDebugEngine = [this](const QString & name, DEBUG_ENGINE engine)
+    {
+        auto item = new QListWidgetItem(name, ui->listDebugEngine);
+        item->setData(Qt::UserRole, int(engine));
+    };
+    addDebugEngine(QStringLiteral("TitanEngine"), DebugEngineTitanEngine);
+    addDebugEngine(QStringLiteral("GleeBug"), DebugEngineGleeBug);
+    addDebugEngine(QStringLiteral("StaticEngine"), DebugEngineStaticEngine);
+    addDebugEngine(QStringLiteral("DbgEng"), DebugEngineDbgEng);
     //set window flags
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
     setModal(true);
@@ -141,17 +150,17 @@ void SettingsDialog::LoadSettings()
         ui->radioUnsigned->setChecked(true);
         break;
     }
-    switch(settings.engineType)
+    for(int i = 0; i < ui->listDebugEngine->count(); i++)
     {
-    case DebugEngineTitanEngine:
-        ui->radioTitanEngine->setChecked(true);
-        break;
-    case DebugEngineGleeBug:
-        ui->radioGleeBug->setChecked(true);
-        break;
-    case DebugEngineStaticEngine:
-        break;
+        const auto item = ui->listDebugEngine->item(i);
+        if(item->data(Qt::UserRole).toInt() == int(settings.engineType))
+        {
+            ui->listDebugEngine->setCurrentRow(i);
+            break;
+        }
     }
+    if(ui->listDebugEngine->currentRow() < 0)
+        ui->listDebugEngine->setCurrentRow(0);
     switch(settings.engineBreakpointType)
     {
     case break_int3short:
@@ -780,14 +789,11 @@ void SettingsDialog::on_radioSigned_clicked()
     settings.engineCalcType = calc_signed;
 }
 
-void SettingsDialog::on_radioTitanEngine_clicked()
+void SettingsDialog::on_listDebugEngine_currentRowChanged(int currentRow)
 {
-    settings.engineType = DebugEngineTitanEngine;
-}
-
-void SettingsDialog::on_radioGleeBug_clicked()
-{
-    settings.engineType = DebugEngineGleeBug;
+    const auto item = ui->listDebugEngine->item(currentRow);
+    if(item != nullptr)
+        settings.engineType = DEBUG_ENGINE(item->data(Qt::UserRole).toInt());
 }
 
 void SettingsDialog::on_radioInt3Short_clicked()
