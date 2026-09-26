@@ -1,0 +1,133 @@
+name: Add snapshot link to pull request
+
+on:
+  workflow_run:
+    workflows: [Build]
+    types: [completed]
+
+# This workflow runs from the default branch, so it can update pull requests even
+# when the Build workflow was triggered by a pull request from a fork.
+permissions:
+  actions: read
+  contents: read
+  pull-requests: write
+
+jobs:
+  update-link:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add snapshot artifact link to pull request
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const run = context.payload.workflow_run;
+
+            const artifacts = await github.paginate(
+              github.rest.actions.listWorkflowRunArtifacts,
+              {
+                owner,
+                repo,
+                run_id: run.id,
+                per_page: 100,
+              },
+            );
+
+            const snapshots = artifacts
+              .filter((artifact) =>
+                /^snapshot_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}$/.test(artifact.name) &&
+                !artifact.expired)
+              .sort((left, right) =>
+                new Date(right.created_at) - new Date(left.created_at));
+
+            if (snapshots.length === 0) {
+              core.info(`Run ${run.id} did not produce a snapshot artifact.`);
+              return;
+            }
+
+            const artifact = snapshots[0];
+            const artifactUrl =
+              `https://github.com/${owner}/${repo}/actions/runs/${run.id}/artifacts/${artifact.id}`;
+            const markerStart = '<!-- x64dbg-snapshot-artifact -->';
+            const markerEnd = '<!-- /x64dbg-snapshot-artifact -->';
+            const snapshotBlock = [
+              markerStart,
+              `Snapshot: [\`${artifact.name}.zip\`](${artifactUrl})`,
+              markerEnd,
+            ].join('\n');
+
+            // workflow_run.pull_requests normally identifies fork PRs. Looking
+            // up the commit also identifies an open same-repository PR when its
+            // build ran for the push event instead of the pull_request event.
+            const pullHeads = new Map(
+              (run.pull_requests || []).map((pull) => [
+                pull.number,
+                pull.head?.sha || run.head_sha,
+              ]),
+            );
+            const associatedPulls = await github.paginate(
+              github.rest.repos.listPullRequestsAssociatedWithCommit,
+              {
+                owner,
+                repo,
+                commit_sha: run.head_sha,
+                per_page: 100,
+              },
+            );
+            for (const pull of associatedPulls) {
+              // For push runs, run.head_sha is the source commit that was built.
+              // Do not replace the more precise PR head supplied in the event.
+              if (!pullHeads.has(pull.number)) {
+                pullHeads.set(pull.number, run.head_sha);
+              }
+            }
+
+            if (pullHeads.size === 0) {
+              core.info(`No pull request is associated with ${run.head_sha}.`);
+              return;
+            }
+
+            const managedBlock = new RegExp(
+              `(?:\\r?\\n)*${markerStart}[\\s\\S]*?${markerEnd}(?:\\r?\\n)*`,
+              'g',
+            );
+            // Also migrate snapshot links that predate the managed markers.
+            const legacySnapshotLink = /(?:\r?\n)*(?:Snapshot:\s*)?\[[^\]\r\n]*snapshot_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}\.zip[^\]\r\n]*\]\(https:\/\/github\.com\/[^)\s]+\/actions\/runs\/\d+\/artifacts\/\d+\)(?:\r?\n)*/gi;
+
+            for (const [pull_number, builtHeadSha] of pullHeads) {
+              const { data: pull } = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number,
+              });
+
+              // Do not let a slower, older run overwrite the newest snapshot.
+              if (pull.state !== 'open' || pull.head.sha !== builtHeadSha) {
+                core.info(
+                  `Skipping PR #${pull_number}: it is closed or its head has moved.`,
+                );
+                continue;
+              }
+
+              const body = (pull.body || '')
+                .replace(managedBlock, '')
+                .replace(legacySnapshotLink, '')
+                .trimEnd();
+              const updatedBody = body
+                ? `${body}\n\n${snapshotBlock}`
+                : snapshotBlock;
+
+              if (updatedBody === pull.body) {
+                core.info(`PR #${pull_number} already has the latest snapshot link.`);
+                continue;
+              }
+
+              await github.rest.pulls.update({
+                owner,
+                repo,
+                pull_number,
+                body: updatedBody,
+              });
+              core.info(`Updated the snapshot link on PR #${pull_number}.`);
+            }
