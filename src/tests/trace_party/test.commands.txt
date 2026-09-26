@@ -1,0 +1,48 @@
+; Exercise public run/step party commands along natural API calls and returns.
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init "@TARGET@"
+bp trace_party:Ready
+run
+testassert cip == trace_party:Ready, "ready after warm-up"
+bpc trace_party:Ready
+bp trace_party:Finished
+RunSystem
+testassert mod.party(cip) == 1, "RunSystem reached the first Windows API"
+RunUser
+testassert mod.party(cip) == 0, "RunUser caught the first callback"
+testassert dword:[trace_party:gCallbacks] == 0, "callback has not executed yet"
+varnew $before, cip
+StepUserInto
+testassert mod.party(cip) == 0 && cip != $before, "StepUserInto performed a real step"
+StepSystemInto
+testassert mod.party(cip) == 1, "StepSystemInto returned from the callback to system code"
+testassert dword:[trace_party:gCallbacks] == 1, "first callback executed"
+rtu
+testassert mod.party(cip) == 0, "rtu returned to the caller"
+rts
+testassert mod.party(cip) == 1, "rts reached the second API call"
+RunToParty 0
+testassert mod.party(cip) == 0, "generic RunToParty caught the second callback"
+RunToParty 1
+testassert mod.party(cip) == 1, "generic RunToParty caught its return"
+testassert dword:[trace_party:gCallbacks] == 2, "second callback executed"
+RunUser
+RunSystem
+StepUser
+testassert mod.party(cip) == 0, "StepUser reached user-classified code"
+testassert dword:[trace_party:gCallbacks] == 2, "third callback has not executed yet"
+; Stepping keeps normal party classification, so Windows SCP thunks can be
+; the first match. Reach the actual callback with an ordinary breakpoint.
+bp trace_party:UserCallback
+run
+testassert cip == trace_party:UserCallback, "normal execution entered the third callback"
+bpc trace_party:UserCallback
+StepSystem
+testassert mod.party(cip) == 1, "StepSystem caught its return"
+testassert dword:[trace_party:gCallbacks] == 3, "third callback executed"
+run
+testassert cip == trace_party:Finished, "all repeated run operations completed"
+testassert dword:[trace_party:gProtectionFailures] == 0, "all execute-memory breakpoints were removed"
+bpc trace_party:Finished
+run

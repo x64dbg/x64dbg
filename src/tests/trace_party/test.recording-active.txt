@@ -1,0 +1,33 @@
+; An already-active recording keeps its earlier history but drops an excluded pending seed.
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init "@TARGET@"
+bp trace_party:Ready
+run
+testassert cip == trace_party:Ready, "ready after API warm-up"
+bpc trace_party:Ready
+StartRunTrace "@TRACE@"
+log "E2E HISTORY {p:cip}"
+sti
+log "E2E HISTORY {p:cip}"
+bp trace_party:TraceBegin
+run
+testassert cip == trace_party:TraceBegin, "existing recording paused in user code"
+bpc trace_party:TraceBegin
+bp trace_party:Finished
+log "E2E START {p:cip} {d:mod.party(cip)}"
+varnew $hits, 0
+varnew $wrong, 0
+TraceSetStepFilter system, run
+TraceSetLog "{p:cip} {d:mod.party(cip)}", 1
+TraceSetLogFile "@TRACELOG@"
+TraceSetCommand "$hits+=1; $wrong+=(mod.party(cip)!=1)", 1
+TraceIntoConditional "dword:[trace_party:gCallbacks]==3", .50000
+testassert mod.party(cip) == 1, "trace stopped in the selected party"
+testassert $tracecounter == $hits && $hits > 1 && $wrong == 0, "existing recording did not change trace filtering"
+StopRunTrace
+run
+testassert cip == trace_party:Finished, "normal execution resumed"
+testassert dword:[trace_party:gProtectionFailures] == 0, "page protections restored"
+bpc trace_party:Finished
+run
