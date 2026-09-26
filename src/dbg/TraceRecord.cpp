@@ -304,12 +304,17 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
           )
         {
             // Discussion: https://github.com/zyantific/zydis/issues/510
-            MemRead(newContext.registers.regcontext.csp - sizeof(duint), &newMemory[newMemoryArrayCount], sizeof(duint));
-            newMemoryAddress[--newMemoryArrayCount] = newContext.registers.regcontext.csp - sizeof(duint);
-            newMemoryArrayCount++;
+            if(newMemoryArrayCount < memoryArrayCount)
+            {
+                auto stackAddress = newContext.registers.regcontext.csp - sizeof(duint);
+                newMemory[newMemoryArrayCount] = 0;
+                MemRead(stackAddress, &newMemory[newMemoryArrayCount], sizeof(duint));
+                newMemoryAddress[newMemoryArrayCount] = stackAddress;
+                newMemoryArrayCount++;
+            }
         }
         //TODO: PUSHAD
-        assert(newMemoryArrayCount < memoryArrayCount);
+        assert(newMemoryArrayCount <= memoryArrayCount);
     }
     if(rtPrevInstAvailable)
     {
