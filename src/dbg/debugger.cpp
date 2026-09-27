@@ -64,6 +64,8 @@ static bool bFreezeStack = false;
 static std::vector<ExceptionFilter> exceptionFilters;
 static HANDLE hEvent = 0;
 static duint tidToResume = 0;
+static DWORD gPausedThreadSwitchPrevId = 0;
+static DWORD gTitleThreadSwitchPrevId = 0;
 static HANDLE hMemMapThread = 0;
 static bool bStopMemMapThread = false;
 static HANDLE hTimeWastedCounterThread = 0;
@@ -288,14 +290,13 @@ void cbDebuggerPaused()
     // Signal thread switch warning
     if(settingboolget("Engine", "HardcoreThreadSwitchWarning", false))
     {
-        static DWORD PrevThreadId = 0;
-        if(PrevThreadId == 0)
-            PrevThreadId = fdProcessInfo->dwThreadId; // Initialize to Main Thread
+        if(gPausedThreadSwitchPrevId == 0)
+            gPausedThreadSwitchPrevId = fdProcessInfo->dwThreadId; // Initialize to Main Thread
         DWORD currentThreadId = GetDebugData()->dwThreadId;
-        if(currentThreadId != PrevThreadId && PrevThreadId != 0)
+        if(currentThreadId != gPausedThreadSwitchPrevId && gPausedThreadSwitchPrevId != 0)
         {
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Thread switched from %X to %X !\n"), PrevThreadId, currentThreadId);
-            PrevThreadId = currentThreadId;
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Thread switched from %X to %X !\n"), gPausedThreadSwitchPrevId, currentThreadId);
+            gPausedThreadSwitchPrevId = currentThreadId;
         }
     }
     // Watchdog
@@ -574,16 +575,15 @@ static void DebugUpdateTitle(duint disasm_addr, bool analyzeThreadSwitch)
     DWORD currentThreadId = GetDebugData()->dwThreadId;
     if(analyzeThreadSwitch)
     {
-        static DWORD PrevThreadId = 0;
-        if(PrevThreadId == 0)
-            PrevThreadId = fdProcessInfo->dwThreadId; // Initialize to Main Thread
-        if(currentThreadId != PrevThreadId && PrevThreadId != 0)
+        if(gTitleThreadSwitchPrevId == 0)
+            gTitleThreadSwitchPrevId = fdProcessInfo->dwThreadId; // Initialize to Main Thread
+        if(currentThreadId != gTitleThreadSwitchPrevId && gTitleThreadSwitchPrevId != 0)
         {
             char threadName2[MAX_THREAD_NAME_SIZE] = "";
-            if(!ThreadGetName(PrevThreadId, threadName2) || threadName2[0] == 0)
-                strcpy_s(threadName2, formatpidtid(PrevThreadId).c_str());
+            if(!ThreadGetName(gTitleThreadSwitchPrevId, threadName2) || threadName2[0] == 0)
+                strcpy_s(threadName2, formatpidtid(gTitleThreadSwitchPrevId).c_str());
             _snprintf_s(threadswitch, _TRUNCATE, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", " (switched from %s)")), threadName2);
-            PrevThreadId = currentThreadId;
+            gTitleThreadSwitchPrevId = currentThreadId;
         }
     }
     char title[deflen] = "";
@@ -1571,6 +1571,8 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     fdProcessInfo->hProcess = CreateProcessInfo->hProcess;
     fdProcessInfo->hThread = CreateProcessInfo->hThread;
     varset("$hp", (duint)fdProcessInfo->hProcess, true);
+    gPausedThreadSwitchPrevId = 0;
+    gTitleThreadSwitchPrevId = 0;
 
     auto base = (duint)CreateProcessInfo->lpBaseOfImage;
     pDebuggedBase = base; //debugged base = executable
