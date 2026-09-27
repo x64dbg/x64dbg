@@ -1,6 +1,4 @@
 #include "TestSupport.h"
-#include <cstring>
-#include <fstream>
 #include <functional>
 #include <set>
 #include <mutex>
@@ -12,6 +10,8 @@
 
 namespace
 {
+    namespace procfs = ElfBug::procfs;
+
     struct ApiEvents
     {
         std::mutex mutex;
@@ -228,16 +228,15 @@ TEST_CASE("Module lookups report the lowest mapping of the image", "[api][memory
     REQUIRE(site.has_value());
 
     const pid_t pid = ElfBugGetPid(s.dbg);
-    char exe[4096] = {};
-    const std::string link = "/proc/" + std::to_string(pid) + "/exe";
-    REQUIRE(readlink(link.c_str(), exe, sizeof(exe) - 1) > 0);
+    const std::string exe = std::filesystem::read_symlink(procfs::Path(pid, "exe")).string();
+    const std::string maps = procfs::ReadFile(procfs::Path(pid, "maps"));
 
     uint64_t lowest = UINT64_MAX;
-    std::ifstream maps("/proc/" + std::to_string(pid) + "/maps");
-    for(std::string line; std::getline(maps, line);)
+    for(const std::string_view line : procfs::Split(maps, '\n'))
     {
-        if(line.size() > strlen(exe) && line.compare(line.size() - strlen(exe), strlen(exe), exe) == 0)
-            lowest = std::min<uint64_t>(lowest, std::stoull(line, nullptr, 16));
+        const auto entry = procfs::ParseMapsLine(line);
+        if(entry && entry->path == exe)
+            lowest = std::min<uint64_t>(lowest, entry->start);
     }
     REQUIRE(lowest != UINT64_MAX);
     REQUIRE(lowest < *site);
@@ -250,6 +249,30 @@ TEST_CASE("Module lookups report the lowest mapping of the image", "[api][memory
     REQUIRE(ElfBugModNameFromAddr(s.dbg, *site, name, sizeof(name), false));
     REQUIRE(std::string(name) == "segfault");
     REQUIRE_FALSE(ElfBugModBaseFromAddr(s.dbg, 0x10, &base));
+}
+
+TEST_CASE("Module lookups name an image whose path is longer than a maps line", "[api][memory]")
+{
+    namespace fs = std::filesystem;
+
+    const fs::path root = fs::path(ELFBUG_TESTS_TARGETS_DIR) / "elfbug_long_path";
+    const ElfBug::test::RemoveOnExit cleanup{root};
+    fs::path dir = root;
+    for(int i = 0; i < 4; i++)
+        dir /= std::string(150, 'd');
+    fs::create_directories(dir);
+    const fs::path target = dir / "long_module";
+    fs::copy_file(FIXTURE("segfault"), target, fs::copy_options::overwrite_existing);
+
+    ApiSession s(target.string());
+    REQUIRE(s.Started());
+    REQUIRE(s.WaitForSystemBreakpoint());
+    const auto site = s.Resolve("sf_fault_site");
+    REQUIRE(site.has_value());
+
+    char name[64] = {};
+    REQUIRE(ElfBugModNameFromAddr(s.dbg, *site, name, sizeof(name), false));
+    REQUIRE(std::string(name) == "long_module");
 }
 
 TEST_CASE("C API arms a breakpoint queued right before Continue", "[api][breakpoint]")

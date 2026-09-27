@@ -55,6 +55,7 @@ set(ElfBug_tests_SOURCES
 	test_detach.cpp
 	test_lifecycle.cpp
 	test_multithread.cpp
+	test_procfs.cpp
 	test_signals.cpp
 	test_stepping.cpp
 	test_suspend.cpp

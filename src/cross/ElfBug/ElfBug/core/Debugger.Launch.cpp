@@ -12,6 +12,16 @@
 
 namespace ElfBug
 {
+    namespace
+    {
+        struct ChildFailure
+        {
+            int err;
+            bool traceme;
+            char step[60];
+        };
+    }
+
     bool Debugger::launchChild()
     {
         if(!mHasLaunchArgs)
@@ -19,6 +29,13 @@ namespace ElfBug
             cbInternalError("launchChild called without Init");
             return false;
         }
+
+        std::vector<char*> argv;
+        if(mArgv.empty())
+            argv.push_back(mFilePath.data());
+        for(auto & arg : mArgv)
+            argv.push_back(arg.data());
+        argv.push_back(nullptr);
 
         int pipeFds[2];
         if(pipe2(pipeFds, O_CLOEXEC) == -1)
@@ -40,9 +57,11 @@ namespace ElfBug
         {
             close(pipeFds[0]);
 
-            auto childError = [&](const char* msg)
+            auto childError = [&](const char* step, const bool traceme = false)
             {
-                write(pipeFds[1], msg, strlen(msg));
+                ChildFailure failure = { errno, traceme, {} };
+                strncpy(failure.step, step, sizeof(failure.step) - 1);
+                write(pipeFds[1], &failure, sizeof(failure));
                 _exit(1);
             };
 
@@ -60,33 +79,19 @@ namespace ElfBug
                 (void)personality(static_cast<unsigned long>(persona) | ADDR_NO_RANDOMIZE);
 
             if(ptrace(PTRACE_TRACEME, 0, nullptr, nullptr) == -1)
-                childError("PTRACE_TRACEME failed");
+                childError("PTRACE_TRACEME failed", true);
 
-            std::vector<char*> argvPtrs;
-            if(!mArgv.empty())
-            {
-                argvPtrs.reserve(mArgv.size() + 1);
-                for(auto & s : mArgv)
-                    argvPtrs.push_back(s.data());
-                argvPtrs.push_back(nullptr);
-                execv(mFilePath.c_str(), argvPtrs.data());
-            }
-            else
-            {
-                char* defaultArgv[] = { const_cast<char*>(mFilePath.c_str()), nullptr };
-                execv(mFilePath.c_str(), defaultArgv);
-            }
-
+            execv(mFilePath.c_str(), argv.data());
             childError("execv failed");
         }
 
         close(pipeFds[1]);
 
-        char errBuf[256] = {};
+        ChildFailure failure = {};
         ssize_t n;
         do
         {
-            n = read(pipeFds[0], errBuf, sizeof(errBuf) - 1);
+            n = read(pipeFds[0], &failure, sizeof(failure));
         }
         while(n == -1 && errno == EINTR);
         close(pipeFds[0]);
@@ -102,7 +107,13 @@ namespace ElfBug
         if(n > 0)
         {
             waitpid(pid, nullptr, 0);
-            cbInternalError("child process failed: " + std::string(errBuf));
+            std::string reason = strerror(failure.err);
+            if(failure.traceme)
+            {
+                const int scope = ReadPtraceScope();
+                reason = PtraceErrorMessage(failure.err, scope >= 2 ? scope : 0);
+            }
+            cbInternalError("child process failed: " + std::string(failure.step) + ": " + reason);
             return false;
         }
 

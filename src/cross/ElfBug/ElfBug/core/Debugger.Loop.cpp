@@ -102,9 +102,7 @@ namespace ElfBug
             Thread* thread = nullptr;
             {
                 std::shared_lock lock(mProcessMutex);
-                const auto it = mProcess->threads.find(tid);
-                if(it != mProcess->threads.end())
-                    thread = it->second.get();
+                thread = mProcess->FindThread(tid);
                 if(!thread || thread->IsRunning() || thread->IsSuspended())
                     continue;
             }
@@ -154,8 +152,7 @@ namespace ElfBug
             int contError = 0;
             {
                 std::unique_lock lock(mProcessMutex);
-                const auto it = mProcess->threads.find(tid);
-                Thread* thread = it != mProcess->threads.end() ? it->second.get() : nullptr;
+                Thread* thread = mProcess->FindThread(tid);
                 // Pass one can leave a thread running, and it is no longer in ptrace-stop.
                 if(!thread || thread->IsRunning() || thread->IsSuspended())
                     continue;
@@ -163,8 +160,7 @@ namespace ElfBug
                 const int sig = thread->PendingSignal();
                 thread->ClearPendingSignal();
 
-                if(ptrace(PTRACE_CONT, tid, nullptr,
-                          reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
+                if(ptrace(PTRACE_CONT, tid, nullptr, PtraceData(sig)) == -1)
                     contError = errno;
                 else
                     thread->SetRunning(true);
@@ -215,8 +211,7 @@ namespace ElfBug
                 parked = true;
                 alone = !anyThreadRunningLocked();
             }
-            else if(ptrace(PTRACE_CONT, tid, nullptr,
-                           reinterpret_cast<void*>(static_cast<uintptr_t>(signal))) == -1)
+            else if(ptrace(PTRACE_CONT, tid, nullptr, PtraceData(signal)) == -1)
                 contError = errno;
             else if(mThread)
                 mThread->SetRunning(true);
@@ -280,9 +275,8 @@ namespace ElfBug
                 {
                     if(mPendingSignal != 0)
                     {
-                        const auto it = mProcess->threads.find(reportedTid);
-                        if(it != mProcess->threads.end())
-                            it->second->SetPendingSignal(mPendingSignal, 0, false);
+                        if(Thread* reportedThread = mProcess->FindThread(reportedTid))
+                            reportedThread->SetPendingSignal(mPendingSignal, 0, false);
                         mPendingSignal = 0;
                     }
                     pid = mThread->tid;
@@ -317,9 +311,8 @@ namespace ElfBug
                     if(mPendingSignal != 0)
                     {
                         std::shared_lock processLock(mProcessMutex);
-                        const auto it = mProcess->threads.find(pid);
-                        if(it != mProcess->threads.end())
-                            it->second->SetPendingSignal(mPendingSignal, 0, false);
+                        if(Thread* previous = mProcess->FindThread(pid))
+                            previous->SetPendingSignal(mPendingSignal, 0, false);
                     }
                     mPendingSignal = 0;
 
@@ -342,9 +335,8 @@ namespace ElfBug
                     if(mPendingSignal != 0)
                     {
                         std::shared_lock processLock(mProcessMutex);
-                        const auto it = mProcess->threads.find(pid);
-                        if(it != mProcess->threads.end())
-                            it->second->SetPendingSignal(mPendingSignal, 0, false);
+                        if(Thread* previous = mProcess->FindThread(pid))
+                            previous->SetPendingSignal(mPendingSignal, 0, false);
                     }
                     mPendingSignal = signal;
 
@@ -452,8 +444,7 @@ namespace ElfBug
                             mThread->ClearPendingBreakpoint();
                             const int sig = mPendingSignal;
                             mPendingSignal = 0;
-                            if(ptrace(PTRACE_CONT, pid, nullptr,
-                                      reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
+                            if(ptrace(PTRACE_CONT, pid, nullptr, PtraceData(sig)) == -1)
                                 contError = errno;
                             else
                                 mThread->SetRunning(true);
@@ -521,8 +512,7 @@ namespace ElfBug
                             if(stepErrno != ESRCH)
                             {
                                 restoreSourceByte(pid);
-                                if(ptrace(PTRACE_CONT, pid, nullptr,
-                                          reinterpret_cast<void*>(static_cast<uintptr_t>(sig))) == -1)
+                                if(ptrace(PTRACE_CONT, pid, nullptr, PtraceData(sig)) == -1)
                                     contError = errno;
                                 else
                                     mThread->SetRunning(true);

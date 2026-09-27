@@ -283,28 +283,18 @@ TEST_CASE("A signal already pending at attach is reported before the tracee runs
     REQUIRE(atException == before);
 }
 
-TEST_CASE("AttachErrorMessage names the yama fix for EPERM", "[attach]")
+TEST_CASE("PtraceErrorMessage names ptrace_scope for EPERM", "[attach]")
 {
-    const auto blocked = ElfBug::AttachErrorMessage(1234, EPERM, 1, false);
-    REQUIRE(blocked.find("ptrace_scope") != std::string::npos);
-    REQUIRE(blocked.find("setcap cap_sys_ptrace=+eip") != std::string::npos);
+    const auto restricted = ElfBug::PtraceErrorMessage(EPERM, 1);
+    REQUIRE(restricted.find(strerror(EPERM)) != std::string::npos);
+    REQUIRE(restricted.find("ptrace_scope is 1") != std::string::npos);
 
-    const auto other = ElfBug::AttachErrorMessage(1234, EPERM, 0, false);
-    REQUIRE(other.find("setcap") == std::string::npos);
+    const auto classic = ElfBug::PtraceErrorMessage(EPERM, 0);
+    REQUIRE(classic.find("ptrace_scope") == std::string::npos);
 
-    const auto child = ElfBug::AttachErrorMessage(1234, EPERM, 1, true);
-    REQUIRE(child.find("setcap") == std::string::npos);
-
-    const auto gone = ElfBug::AttachErrorMessage(1234, ESRCH, 1, false);
-    REQUIRE(gone.find("setcap") == std::string::npos);
-
-    const auto adminOnly = ElfBug::AttachErrorMessage(1234, EPERM, 2, false);
-    REQUIRE(adminOnly.find("setcap cap_sys_ptrace=+eip") != std::string::npos);
-    REQUIRE(adminOnly.find("own children") == std::string::npos);
-
-    const auto disabled = ElfBug::AttachErrorMessage(1234, EPERM, 3, false);
-    REQUIRE(disabled.find("ptrace_scope") != std::string::npos);
-    REQUIRE(disabled.find("setcap") == std::string::npos);
+    const auto gone = ElfBug::PtraceErrorMessage(ESRCH, 1);
+    REQUIRE(gone.find(strerror(ESRCH)) != std::string::npos);
+    REQUIRE(gone.find("ptrace_scope") == std::string::npos);
 }
 
 TEST_CASE("Attach that times out on an uninterruptible thread still releases it", "[attach]")

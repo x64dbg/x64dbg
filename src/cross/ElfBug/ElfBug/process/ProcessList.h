@@ -22,8 +22,6 @@ namespace ElfBug
 
     pid_t TracerPid(pid_t pid);
 
-    pid_t ParentPid(pid_t pid);
-
     pid_t ThreadGroupId(pid_t pid);
 
     // Thread ids under /proc/<pid>/task. False means the process is gone.

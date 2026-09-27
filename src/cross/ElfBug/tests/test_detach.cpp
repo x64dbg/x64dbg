@@ -82,7 +82,7 @@ TEST_CASE("Detach restores every patched breakpoint byte", "[detach]")
     dbg.WaitForDetach();
     dbg.JoinThread();
 
-    std::ifstream mem("/proc/" + std::to_string(target.pid) + "/mem", std::ios::binary);
+    std::ifstream mem(ElfBug::procfs::Path(target.pid, "mem"), std::ios::binary);
     REQUIRE(mem);
     mem.seekg(static_cast<std::streamoff>(*site));
     char after = 0;

@@ -27,6 +27,8 @@ namespace ElfBug
         Process(Process &&) = delete;
         Process & operator=(Process &&) = delete;
 
+        [[nodiscard]] Thread* FindThread(pid_t tid) const;
+
         [[nodiscard]] bool MemRead(ptr address, void* buffer, ptr size, ptr* bytesRead = nullptr) const;
         [[nodiscard]] bool MemReadRaw(ptr address, void* buffer, ptr size, ptr* bytesRead = nullptr) const;
         bool MemWrite(ptr address, const void* buffer, ptr size, ptr* bytesWritten = nullptr);

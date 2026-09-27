@@ -53,6 +53,7 @@ TEST_CASE("Launch setup failure from child is reported cleanly", "[process]")
     const auto err = dbg.WaitForInternalError();
     dbg.JoinThread();
     REQUIRE(err.message.find("chdir failed") != std::string::npos);
+    REQUIRE(err.message.find(strerror(ENOENT)) != std::string::npos);
 }
 
 TEST_CASE("Exit code is propagated", "[process]")

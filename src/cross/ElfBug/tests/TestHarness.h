@@ -2,11 +2,11 @@
 
 #include <ElfBug/core/Debugger.h>
 #include <ElfBug/process/ProcessList.h>
+#include <ElfBug/process/ProcFs.h>
 #include <algorithm>
 #include <chrono>
 #include <condition_variable>
 #include <csignal>
-#include <fstream>
 #include <functional>
 #include <future>
 #include <mutex>
@@ -25,14 +25,10 @@ namespace ElfBug::test
     {
         if(pid <= 0)
             return false;
-        std::ifstream stat("/proc/" + std::to_string(pid) + "/stat");
-        std::string data;
-        std::getline(stat, data);
-        const auto lastParen = data.rfind(')');
-        if(lastParen == std::string::npos || lastParen + 2 >= data.size())
-            return false;
-        const char state = data[lastParen + 2];
-        return state == 'R' || state == 'S';
+        const std::string stat = procfs::ReadFile(procfs::Path(pid, "stat"));
+        const auto fields = procfs::StatFields(stat);
+        return fields.size() > procfs::kStatState &&
+               (fields[procfs::kStatState] == "R" || fields[procfs::kStatState] == "S");
     }
 
     [[nodiscard]] inline bool WaitForProcessRunning(const pid_t pid,

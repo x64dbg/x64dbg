@@ -2,6 +2,8 @@
 
 namespace
 {
+    namespace procfs = ElfBug::procfs;
+
     struct SpinSession
     {
         ElfBug::test::RecordingDebugger dbg;
@@ -67,13 +69,11 @@ namespace
 
     std::optional<ElfBug::ptr> ReadStoppedPc(const pid_t tgid, const pid_t tid)
     {
-        std::ifstream file("/proc/" + std::to_string(tgid) + "/task/" + std::to_string(tid) + "/syscall");
-        std::string line;
-        std::getline(file, line);
-        const auto space = line.rfind(' ');
-        if(line.empty() || line == "running" || space == std::string::npos)
+        const std::string syscall = procfs::ReadLine(procfs::TaskPath(tgid, tid, "syscall"));
+        const auto fields = procfs::Split(syscall, ' ');
+        if(fields.size() < 3 || !fields.back().starts_with("0x"))
             return std::nullopt;
-        return static_cast<ElfBug::ptr>(std::stoull(line.substr(space + 1), nullptr, 16));
+        return procfs::ParseNumber<ElfBug::ptr>(fields.back().substr(2), 16);
     }
 }
 

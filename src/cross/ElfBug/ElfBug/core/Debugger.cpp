@@ -1,10 +1,10 @@
 #include <ElfBug/core/Debugger.h>
 #include <ElfBug/process/ProcessArch.h>
 #include <ElfBug/process/ProcessList.h>
+#include <ElfBug/process/ProcFs.h>
 #include <sys/ptrace.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include <cerrno>
 #include <csignal>
@@ -63,7 +63,6 @@ namespace ElfBug
         mPendingSignal = 0;
         mAttachPid = 0;
         mImageId = {};
-        mWasGroupStopped = false;
         reapDetachedChildren();
     }
 
@@ -220,10 +219,10 @@ namespace ElfBug
         std::unique_lock lock(mProcessMutex);
         if(!mProcess)
             return false;
-        const auto it = mProcess->threads.find(tid);
-        if(it == mProcess->threads.end() || it->second->IsRunning())
+        Thread* thread = mProcess->FindThread(tid);
+        if(!thread || thread->IsRunning())
             return false;
-        mThread = it->second.get();
+        mThread = thread;
         return true;
     }
 
@@ -238,16 +237,16 @@ namespace ElfBug
         std::unique_lock lock(mProcessMutex);
         if(!mProcess)
             return false;
-        const auto it = mProcess->threads.find(tid);
-        if(it == mProcess->threads.end())
+        Thread* thread = mProcess->FindThread(tid);
+        if(!thread)
             return false;
 
         if(!suspended)
         {
-            it->second->Resume();
-            if(!it->second->IsSuspended())
-                it->second->SetWaitReason({});
-            if(it->second->IsSuspended() || mPaused.load(std::memory_order_acquire))
+            thread->Resume();
+            if(!thread->IsSuspended())
+                thread->SetWaitReason({});
+            if(thread->IsSuspended() || mPaused.load(std::memory_order_acquire))
                 return true;
 
             mPendingResume.insert(tid);
@@ -255,47 +254,36 @@ namespace ElfBug
             return true;
         }
 
-        if(!it->second->IsRunning())
+        if(!thread->IsRunning())
         {
-            it->second->Suspend();
-            it->second->SetWaitReason("Suspended");
+            thread->Suspend();
+            thread->SetWaitReason("Suspended");
             return true;
         }
 
-        it->second->Suspend();
-        it->second->SetWaitReason("Suspended");
+        thread->Suspend();
+        thread->SetWaitReason("Suspended");
         mPendingSuspend.insert(tid);
 
         if(tgkill(tgid, tid, SIGSTOP) == 0)
         {
-            it->second->SetPendingSigstop(true);
+            thread->SetPendingSigstop(true);
             return true;
         }
 
         mPendingSuspend.erase(tid);
-        it->second->Resume();
-        if(!it->second->IsSuspended())
-            it->second->SetWaitReason({});
+        thread->Resume();
+        if(!thread->IsSuspended())
+            thread->SetWaitReason({});
         return false;
     }
 
     std::string Debugger::readWaitReason(const pid_t tgid, const pid_t tid)
     {
-        char path[64];
-        snprintf(path, sizeof(path), "/proc/%d/task/%d/wchan", tgid, tid);
-        const int fd = open(path, O_RDONLY | O_CLOEXEC);
-        if(fd == -1)
+        std::string reason = procfs::ReadLine(procfs::TaskPath(tgid, tid, "wchan"));
+        if(reason == "0" || reason == "ptrace_stop" || reason == "do_signal_stop")
             return {};
-        char buffer[64];
-        const ssize_t n = read(fd, buffer, sizeof(buffer) - 1);
-        close(fd);
-        if(n <= 0)
-            return {};
-        buffer[n] = '\0';
-        if(strcmp(buffer, "0") == 0 || strcmp(buffer, "ptrace_stop") == 0 ||
-                strcmp(buffer, "do_signal_stop") == 0)
-            return {};
-        return buffer;
+        return reason;
     }
 
     void Debugger::dispatchBreakpoint(const ptr address)

@@ -264,6 +264,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_
 		"ElfBug/ElfBug/core/Debugger.StepOver.cpp"
 		"ElfBug/ElfBug/core/Debugger.cpp"
 		"ElfBug/ElfBug/core/Debugger.h"
+		"ElfBug/ElfBug/process/ProcFs.cpp"
+		"ElfBug/ElfBug/process/ProcFs.h"
 		"ElfBug/ElfBug/process/Process.Breakpoint.cpp"
 		"ElfBug/ElfBug/process/Process.Memory.cpp"
 		"ElfBug/ElfBug/process/Process.cpp"
@@ -282,6 +284,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_
 		"ElfBug/ElfBug/types/Breakpoint.h"
 		"ElfBug/ElfBug/types/ElfBug.h"
 		"ElfBug/ElfBug/types/Global.h"
+		"ElfBug/ElfBug/types/Ptrace.h"
 		cmake.toml
 	)
 
