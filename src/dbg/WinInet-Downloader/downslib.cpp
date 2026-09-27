@@ -120,8 +120,11 @@ downslib_error downslib_download(const char* url,
     DWORD dwWritten = 0;
     unsigned long long readBytes = 0;
     unsigned long long totalBytes = contentLength;
-    while(InternetReadFile(hUrl, buffer, sizeof(buffer), &dwRead))
+    for(;;)
     {
+        if(!InternetReadFile(hUrl, buffer, sizeof(buffer), &dwRead))
+            return downslib_error::incomplete;
+
         readBytes += dwRead;
 
         // We are done if nothing more to read, so now we can report total size in our final cb call

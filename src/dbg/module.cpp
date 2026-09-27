@@ -53,6 +53,24 @@ NTSTATUS ModImageNtHeaders(duint base, uint64_t size, PIMAGE_NT_HEADERS* outHead
             return STATUS_INVALID_IMAGE_FORMAT;
         if(ntHeaders->Signature != IMAGE_NT_SIGNATURE)
             return STATUS_INVALID_IMAGE_FORMAT;
+
+        const uint64_t optionalOffset = uint64_t(e_lfanew) + sizeOfPeSignature + sizeof(IMAGE_FILE_HEADER);
+        const auto optionalSize = ntHeaders->FileHeader.SizeOfOptionalHeader;
+        if(optionalSize < sizeof(WORD) || optionalSize > size - optionalOffset)
+            return STATUS_INVALID_IMAGE_FORMAT;
+
+        const auto magic = ntHeaders->OptionalHeader.Magic;
+        const uint64_t minimumOptionalSize = magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC
+                                             ? FIELD_OFFSET(IMAGE_OPTIONAL_HEADER32, NumberOfRvaAndSizes) + sizeof(DWORD)
+                                             : magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC
+                                             ? FIELD_OFFSET(IMAGE_OPTIONAL_HEADER64, NumberOfRvaAndSizes) + sizeof(DWORD)
+                                             : 0;
+        if(minimumOptionalSize == 0 || optionalSize < minimumOptionalSize)
+            return STATUS_INVALID_IMAGE_FORMAT;
+
+        const uint64_t sectionOffset = optionalOffset + optionalSize;
+        if(ntHeaders->FileHeader.NumberOfSections > (size - sectionOffset) / sizeof(IMAGE_SECTION_HEADER))
+            return STATUS_INVALID_IMAGE_FORMAT;
     }
 #ifndef __GNUC__
     __except(EXCEPTION_EXECUTE_HANDLER)

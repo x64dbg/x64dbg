@@ -175,6 +175,7 @@ set(X64DBG_STANDARD_TESTS
     issue3803
     issue3808
     issue3865
+    issue2725
     cmdline_attach
     cmdline_init
     cmdline_setcommandline
