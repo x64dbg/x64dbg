@@ -110,6 +110,18 @@ QString ThreadView::paintContent(QPainter* painter, duint row, duint col, int x,
     return ret;
 }
 
+void ThreadView::showEvent(QShowEvent* event)
+{
+    StdTable::showEvent(event);
+    mAdapter->setThreadListVisible(true);
+}
+
+void ThreadView::hideEvent(QHideEvent* event)
+{
+    mAdapter->setThreadListVisible(false);
+    StdTable::hideEvent(event);
+}
+
 void ThreadView::onThreadsUpdated(const QVector<DbgThreadInfo> & threads, const pid_t currentTid)
 {
     setRowCount(threads.size());

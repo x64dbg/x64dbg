@@ -66,6 +66,7 @@ public:
     bool toggleBreakpoint(duint addr);
     [[nodiscard]] bool hasBreakpoint(duint addr) const;
     void refreshThreads();
+    void setThreadListVisible(bool visible);
     bool switchThread(pid_t tid);
 
     // Empty name removes the label and shows comm again.
@@ -114,6 +115,7 @@ private:
     ElfBugDebugger* mDebugger = nullptr;
     duint mEntryPoint = 0;
     std::atomic<bool> mThreadRefreshQueued{false};
+    std::atomic<bool> mThreadListVisible{false};
 
     std::mutex mThreadNameMutex;
     QHash<pid_t, QString> mThreadNames;

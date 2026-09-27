@@ -391,9 +391,16 @@ void DbgAdapter::emitStoppedState(const QString & reason, const REGDUMP & dump)
     scheduleThreadRefresh();
 }
 
+void DbgAdapter::setThreadListVisible(const bool visible)
+{
+    mThreadListVisible = visible;
+    if(visible)
+        scheduleThreadRefresh();
+}
+
 void DbgAdapter::scheduleThreadRefresh()
 {
-    if(mThreadRefreshQueued.exchange(true))
+    if(!mThreadListVisible || mThreadRefreshQueued.exchange(true))
         return;
     QMetaObject::invokeMethod(this, [this]
     {

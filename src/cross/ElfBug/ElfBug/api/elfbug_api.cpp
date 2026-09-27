@@ -72,11 +72,11 @@ namespace
             if(sscanf(line, "btime %" SCNu64, &btime) == 1)
             {
                 result = btime * 1000u;
+                cached.store(result, std::memory_order_relaxed);
                 break;
             }
         }
         fclose(f);
-        cached.store(result, std::memory_order_relaxed);
         return result;
     }
 
