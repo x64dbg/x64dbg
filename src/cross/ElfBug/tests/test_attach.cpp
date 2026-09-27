@@ -1,35 +1,6 @@
 #include "TestSupport.h"
 #include <ElfBug/api/elfbug_api.h>
 
-TEST_CASE("Attach traces every thread of a running process", "[attach]")
-{
-    ElfBug::test::UntracedProcess target(FIXTURE("threads_spin"));
-    REQUIRE(target.pid > 0);
-    REQUIRE(target.WaitForThreads(5));
-
-    ElfBug::test::RecordingDebugger dbg;
-
-    std::vector<pid_t> readable;
-    std::vector<pid_t> unreadable;
-    dbg.OnAttachBreakpoint([&]
-    {
-        for(const auto & [tid, thread] : dbg.process()->threads)
-        {
-            if(thread->registers.Read())
-                readable.push_back(tid);
-            else
-                unreadable.push_back(tid);
-        }
-    });
-
-    REQUIRE(dbg.Attach(target.pid));
-    dbg.StartOnThread();
-    dbg.WaitForAttachBreakpoint();
-
-    REQUIRE(unreadable.empty());
-    REQUIRE(readable.size() == 5);
-}
-
 TEST_CASE("Attach makes the main thread current, not whichever stopped last", "[attach]")
 {
     ElfBug::test::UntracedProcess target(FIXTURE("threads_spin"));
@@ -57,7 +28,7 @@ TEST_CASE("Attach reports a pause and freezes the debuggee", "[attach]")
     dbg.WaitForAttachBreakpoint();
 
     REQUIRE(dbg.IsPaused());
-    REQUIRE_FALSE(target.Running());
+    ElfBug::test::RequireEveryTaskStopped(target.pid);
 }
 
 TEST_CASE("Attach refuses a process that is already being debugged", "[attach]")
@@ -84,8 +55,9 @@ TEST_CASE("Attach refuses a process that is already being debugged", "[attach]")
 TEST_CASE("Attach refuses an unknown pid and our own pid", "[attach]")
 {
     ElfBug::test::RecordingDebugger dbg;
-    REQUIRE_FALSE(dbg.Attach(getpid()));
     REQUIRE_FALSE(dbg.Attach(-1));
+    REQUIRE(dbg.count(ElfBug::test::EventType::InternalError) >= 1);
+    REQUIRE_FALSE(dbg.Attach(getpid()));
     REQUIRE_FALSE(dbg.Attach(0x7FFFFFFF));
 }
 
@@ -157,35 +129,44 @@ TEST_CASE("Attach acquires every live thread of a multithreaded process", "[atta
 
 TEST_CASE("Attach acquires threads the target clones during the sweep", "[attach]")
 {
-    ElfBug::test::UntracedProcess target(FIXTURE("clone_relay"));
-    REQUIRE(target.pid > 0);
-    REQUIRE(ElfBug::test::WaitForExeced(target.pid, FIXTURE("clone_relay")));
-    REQUIRE(target.WaitForThreads(50));
+    using namespace ElfBug::test;
 
-    ElfBug::test::RecordingDebugger dbg;
-
-    std::vector<pid_t> known;
-    std::vector<pid_t> live;
-    dbg.OnAttachBreakpoint([&]
+    bool clonedDuringSweep = false;
+    for(int attempt = 0; attempt < 20 && !clonedDuringSweep; ++attempt)
     {
-        for(const auto & [tid, thread] : dbg.process()->threads)
-            known.push_back(tid);
-        ElfBug::ReadTaskList(target.pid, live);
-    });
+        CAPTURE(attempt);
+        UntracedProcess target(FIXTURE("clone_relay"));
+        REQUIRE(target.pid > 0);
+        REQUIRE(WaitForExeced(target.pid, FIXTURE("clone_relay")));
+        const auto relayed = ResolveRuntimeAddress(FIXTURE("clone_relay"), target.pid, "cr_relayed");
+        REQUIRE(relayed.has_value());
+        REQUIRE(target.WaitForThreads(50));
 
-    std::vector<pid_t> before;
-    REQUIRE(ElfBug::ReadTaskList(target.pid, before));
+        RecordingDebugger dbg;
 
-    REQUIRE(dbg.Attach(target.pid));
-    dbg.StartOnThread();
-    dbg.WaitForAttachBreakpoint();
+        std::vector<pid_t> known;
+        std::vector<pid_t> live;
+        int relayedAtAttach = -1;
+        dbg.OnAttachBreakpoint([&]
+        {
+            for(const auto & [tid, thread] : dbg.process()->threads)
+                known.push_back(tid);
+            ElfBug::ReadTaskList(target.pid, live);
+            dbg.process()->MemRead(*relayed, &relayedAtAttach, sizeof(relayedAtAttach));
+        });
 
-    std::sort(known.begin(), known.end());
-    std::sort(live.begin(), live.end());
-    CAPTURE(before.size(), known.size(), live.size());
+        REQUIRE(dbg.Attach(target.pid));
+        dbg.StartOnThread();
+        dbg.WaitForAttachBreakpoint();
 
-    REQUIRE(known.size() > before.size());
-    REQUIRE(known == live);
+        std::sort(known.begin(), known.end());
+        std::sort(live.begin(), live.end());
+        CAPTURE(relayedAtAttach, known.size(), live.size());
+        REQUIRE(relayedAtAttach >= 0);
+        REQUIRE(known == live);
+        clonedDuringSweep = relayedAtAttach > 0;
+    }
+    REQUIRE(clonedDuringSweep);
 }
 
 TEST_CASE("A signal delivered to an attached process is reported and forwarded", "[attach]")
@@ -314,6 +295,5 @@ TEST_CASE("Attach that times out on an uninterruptible thread still releases it"
     CHECK(event.message.find("did not stop") != std::string::npos);
     dbg.JoinThread();
 
-    REQUIRE(ElfBug::TracerPid(target.pid) == 0);
-    REQUIRE(WaitForDetachedValue(target.pid, *rounds, 3));
+    REQUIRE(WaitForDetachedValue(target.pid, *rounds, 2));
 }

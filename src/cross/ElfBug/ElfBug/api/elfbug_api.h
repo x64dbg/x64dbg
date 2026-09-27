@@ -127,6 +127,8 @@ ELFBUG_EXPORT pid_t ElfBugGetPid(const ElfBugDebugger* dbg);
 ELFBUG_EXPORT pid_t ElfBugGetCurrentTid(const ElfBugDebugger* dbg);
 
 ELFBUG_EXPORT uint32_t ElfBugGetThreadList(const ElfBugDebugger* dbg, ElfBugThreadInfo* list, uint32_t capacity);
+// Same order as ElfBugGetThreadList, without the /proc reads for names and times.
+ELFBUG_EXPORT uint32_t ElfBugGetThreadIds(const ElfBugDebugger* dbg, pid_t* tids, uint32_t capacity);
 ELFBUG_EXPORT bool ElfBugSwitchThread(ElfBugDebugger* dbg, pid_t tid);
 
 ELFBUG_EXPORT bool ElfBugSetThreadSuspended(ElfBugDebugger* dbg, pid_t tid, bool suspended);
@@ -138,6 +140,8 @@ ELFBUG_EXPORT bool ElfBugMemWrite(const ElfBugDebugger* dbg, uint64_t addr, cons
 ELFBUG_EXPORT bool ElfBugMemFindBaseAddr(const ElfBugDebugger* dbg, uint64_t addr, uint64_t* base, uint64_t* size);
 ELFBUG_EXPORT bool ElfBugMemIsCodePtr(const ElfBugDebugger* dbg, uint64_t addr);
 ELFBUG_EXPORT bool ElfBugMemIsValidPtr(const ElfBugDebugger* dbg, uint64_t addr);
+// Parses /proc/<pid>/maps now if it changed since the last stop, instead of on the next lookup.
+ELFBUG_EXPORT void ElfBugLoadMemoryMap(const ElfBugDebugger* dbg);
 
 ELFBUG_EXPORT bool ElfBugModBaseFromAddr(const ElfBugDebugger* dbg, uint64_t addr, uint64_t* base);
 
@@ -188,5 +192,22 @@ inline std::vector<ElfBugThreadInfo> ElfBugThreadList(const ElfBugDebugger* dbg)
         capacity = total;
     }
     return list;
+}
+
+inline std::vector<pid_t> ElfBugThreadIds(const ElfBugDebugger* dbg)
+{
+    std::vector<pid_t> tids;
+    for(uint32_t capacity = ElfBugGetThreadIds(dbg, nullptr, 0); capacity != 0;)
+    {
+        tids.resize(capacity);
+        const uint32_t total = ElfBugGetThreadIds(dbg, tids.data(), capacity);
+        if(total <= capacity)
+        {
+            tids.resize(total);
+            break;
+        }
+        capacity = total;
+    }
+    return tids;
 }
 #endif

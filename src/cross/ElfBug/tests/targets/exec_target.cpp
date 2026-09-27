@@ -1,5 +1,4 @@
-// Re-execs itself once from a call site at a known symbol. ASLR is off and personality
-// survives execve, so eo_exec_site is the same address on both passes.
+// Re-execs itself once from eo_exec_site, at the same address both times.
 #include <sys/mman.h>
 #include <cstdlib>
 #include <unistd.h>
@@ -7,7 +6,6 @@
 namespace
 {
     constexpr const char* kMarker = "ELFBUG_EXEC_TARGET_REEXEC";
-    // Far above anything the loader maps, so the second image cannot land on it.
     void* const kScratchHint = reinterpret_cast<void*>(0x700000000000ULL);
 }
 
@@ -16,7 +14,7 @@ extern "C"
     void eo_exec_once();
     void eo_call_exec();
     void eo_exec_site();
-    // Destroyed by execve, so a breakpoint on it outlives the address it names.
+    // Unmapped by the execve.
     void* eo_scratch = nullptr;
 }
 
@@ -31,7 +29,7 @@ extern "C" void eo_exec_once()
     execv(self, argv);
 }
 
-// Hand-written so eo_exec_site is the exact address of the call, not of a prologue.
+// Hand-written so eo_exec_site is the call itself.
 asm(R"(
     .text
 

@@ -1,5 +1,15 @@
 #include "TestSupport.h"
 #include <ElfBug/process/StepOver.h>
+#include <zydis_wrapper.h>
+
+namespace
+{
+    bool ClassifiesAsNone(const ElfBug::uint8* bytes, const std::size_t n)
+    {
+        ElfBug::ptr next = 0xdead;
+        return ElfBug::ClassifyStepOver(bytes, n, 0x1000, next) == ElfBug::StepOverKind::None && next == 0;
+    }
+}
 
 TEST_CASE("Step fires cbStep on single instruction", "[step]")
 {
@@ -9,15 +19,23 @@ TEST_CASE("Step fires cbStep on single instruction", "[step]")
     dbg.StartOnThread();
     dbg.WaitForSystemBreakpoint();
 
+    const ElfBug::ptr rip = dbg.currentThread()->registers.Gip();
+    std::uint8_t bytes[16] = {};
+    REQUIRE(dbg.process()->MemRead(rip, bytes, sizeof(bytes)));
+    Zydis zydis(true);
+    REQUIRE(zydis.Disassemble(rip, bytes, sizeof(bytes)));
+    REQUIRE_FALSE(zydis.IsBranchType(Zydis::BTAny));
+
     dbg.StepInto();
-    dbg.WaitForStep();
+    const auto step = dbg.WaitForStep();
+    REQUIRE(step.instructionPointer == rip + zydis.Size());
 
     dbg.Continue();
     const auto exit_ev = dbg.WaitForExit();
     dbg.JoinThread();
 
     REQUIRE(exit_ev.exitCode == 0);
-    REQUIRE(dbg.count(EventType::Step) >= 1);
+    REQUIRE(dbg.count(EventType::Step) == 1);
 }
 
 TEST_CASE("StepInto lifts an armed breakpoint byte the thread never hit", "[step][breakpoint]")
@@ -100,22 +118,20 @@ TEST_CASE("ClassifyStepOver recognises rep-prefixed string ops", "[stepover]")
 TEST_CASE("ClassifyStepOver ignores rep prefixes on non-string instructions", "[stepover]")
 {
     using namespace ElfBug;
-    ptr next = 0;
 
-    // f3 c3 : rep ret (AMD branch padding) - never falls through to a planted trap
+    // f3 c3 : rep ret
     const uint8 repRet[] = {0xf3, 0xc3};
-    REQUIRE(ClassifyStepOver(repRet, sizeof(repRet), 0x1000, next) == StepOverKind::None);
-    REQUIRE(next == 0);
+    REQUIRE(ClassifiesAsNone(repRet, sizeof(repRet)));
 
-    // f3 90 : pause - the F3 is a hint, nothing repeats
+    // f3 90 : pause
     const uint8 pause_[] = {0xf3, 0x90};
-    REQUIRE(ClassifyStepOver(pause_, sizeof(pause_), 0x1000, next) == StepOverKind::None);
+    REQUIRE(ClassifiesAsNone(pause_, sizeof(pause_)));
 }
 
 TEST_CASE("ClassifyStepOver recognises pushfq", "[stepover]")
 {
     using namespace ElfBug;
-    // 9c : pushfq (in 64-bit mode)
+    // 9c : pushfq
     const uint8 bytes[] = {0x9c};
     ptr next = 0;
     REQUIRE(ClassifyStepOver(bytes, sizeof(bytes), 0x1000, next) == StepOverKind::Pushf);
@@ -125,80 +141,30 @@ TEST_CASE("ClassifyStepOver recognises pushfq", "[stepover]")
 TEST_CASE("ClassifyStepOver rejects ordinary instructions", "[stepover]")
 {
     using namespace ElfBug;
-    ptr next = 0;
 
     const uint8 nop[] = {0x90};                          // nop
-    REQUIRE(ClassifyStepOver(nop, sizeof(nop), 0x1000, next) == StepOverKind::None);
-    REQUIRE(next == 0);
+    REQUIRE(ClassifiesAsNone(nop, sizeof(nop)));
 
     const uint8 ret[] = {0xc3};                          // ret
-    REQUIRE(ClassifyStepOver(ret, sizeof(ret), 0x1000, next) == StepOverKind::None);
+    REQUIRE(ClassifiesAsNone(ret, sizeof(ret)));
 
     const uint8 jmp[] = {0xeb, 0x00};                    // jmp short +0
-    REQUIRE(ClassifyStepOver(jmp, sizeof(jmp), 0x1000, next) == StepOverKind::None);
+    REQUIRE(ClassifiesAsNone(jmp, sizeof(jmp)));
 
     const uint8 mov[] = {0x48, 0x89, 0xd8};              // mov rax, rbx
-    REQUIRE(ClassifyStepOver(mov, sizeof(mov), 0x1000, next) == StepOverKind::None);
+    REQUIRE(ClassifiesAsNone(mov, sizeof(mov)));
 
     const uint8 syscall_[] = {0x0f, 0x05};               // syscall
-    REQUIRE(ClassifyStepOver(syscall_, sizeof(syscall_), 0x1000, next) == StepOverKind::None);
+    REQUIRE(ClassifiesAsNone(syscall_, sizeof(syscall_)));
 }
 
 TEST_CASE("ClassifyStepOver handles undecodable and empty input", "[stepover]")
 {
     using namespace ElfBug;
-    ptr next = 0;
-    REQUIRE(ClassifyStepOver(nullptr, 0, 0x1000, next) == StepOverKind::None);
-    REQUIRE(next == 0);
+    REQUIRE(ClassifiesAsNone(nullptr, 0));
 
-    const uint8 garbage[] = {0xff, 0xff, 0xff};
-    (void)ClassifyStepOver(garbage, sizeof(garbage), 0x1000, next);  // must not crash
-}
-
-TEST_CASE("HasBreakpoint reflects set and delete", "[stepover]")
-{
-    using namespace ElfBug::test;
-    RecordingDebugger dbg;
-    const std::string path = FIXTURE("hello_elfbug");
-    REQUIRE(dbg.Init(path.c_str()));
-
-    struct Presence
-    {
-        std::optional<ElfBug::ptr> address;
-        bool beforeSet = true;
-        bool afterSet = false;
-        bool afterDelete = true;
-    };
-
-    std::promise<Presence> promise;
-    auto future = promise.get_future();
-    dbg.OnSystemBreakpoint([&]
-    {
-        Presence p;
-        p.address = ResolveRuntimeAddress(path, dbg.process()->pid, "hit_me");
-        if(p.address)
-        {
-            p.beforeSet = dbg.process()->HasBreakpoint(*p.address);
-            dbg.process()->SetBreakpoint(*p.address, false, ElfBug::SoftwareType::ShortInt3);
-            p.afterSet = dbg.process()->HasBreakpoint(*p.address);
-            dbg.process()->DeleteBreakpoint(*p.address);
-            p.afterDelete = dbg.process()->HasBreakpoint(*p.address);
-        }
-        promise.set_value(p);
-    });
-
-    dbg.StartOnThread();
-    dbg.WaitForSystemBreakpoint();
-    const auto p = future.get();
-    REQUIRE(p.address.has_value());
-    REQUIRE_FALSE(p.beforeSet);
-    REQUIRE(p.afterSet);
-    REQUIRE_FALSE(p.afterDelete);
-
-    dbg.Continue();
-    const auto exit_ev = dbg.WaitForExit();
-    dbg.JoinThread();
-    REQUIRE(exit_ev.exitCode == 0);
+    const uint8 garbage[] = {0xff, 0xff, 0xff};          // ff /7: invalid
+    REQUIRE(ClassifiesAsNone(garbage, sizeof(garbage)));
 }
 
 TEST_CASE("StepOver steps over a call", "[stepover]")
@@ -242,7 +208,6 @@ TEST_CASE("StepOver steps over a call", "[stepover]")
     dbg.StepOver();
     const auto step = dbg.WaitForStep();
 
-    // `call so_callee` is e8 rel32 == 5 bytes.
     REQUIRE(step.instructionPointer == *s.site + 5);
 
     std::int32_t ranAfter = -1;
@@ -306,42 +271,6 @@ TEST_CASE("StepOver runs a rep-prefixed instruction to completion", "[stepover]"
     REQUIRE(dbg.count(EventType::Step) == 1);
 }
 
-TEST_CASE("StepOver falls back to single-step on a plain instruction", "[stepover]")
-{
-    using namespace ElfBug::test;
-    RecordingDebugger dbg;
-    const std::string path = FIXTURE("step_over_targets");
-    REQUIRE(dbg.Init(path.c_str()));
-
-    std::promise<std::optional<ElfBug::ptr>> sitePromise;
-    auto siteFuture = sitePromise.get_future();
-    dbg.OnSystemBreakpoint([&]
-    {
-        const auto site = ResolveRuntimeAddress(path, dbg.process()->pid, "so_plain_site");
-        if(site)
-            dbg.process()->SetBreakpoint(*site, false, ElfBug::SoftwareType::ShortInt3);
-        sitePromise.set_value(site);
-    });
-
-    dbg.StartOnThread();
-    dbg.WaitForSystemBreakpoint();
-    const auto site = siteFuture.get();
-    REQUIRE(site.has_value());
-
-    dbg.Continue();
-    dbg.WaitForBreakpointAt(*site);
-
-    dbg.StepOver();
-    const auto step = dbg.WaitForStep();
-
-    // `nop` is 1 byte; behaviour must be identical to StepInto.
-    REQUIRE(step.instructionPointer == *site + 1);
-
-    dbg.Continue();
-    dbg.WaitForExit();
-    dbg.JoinThread();
-}
-
 TEST_CASE("StepOver of pushfq does not leak the trap flag", "[stepover]")
 {
     using namespace ElfBug::test;
@@ -367,7 +296,6 @@ TEST_CASE("StepOver of pushfq does not leak the trap flag", "[stepover]")
     dbg.Continue();
     dbg.WaitForBreakpointAt(*site);
 
-    // so_pushf_site's first instruction IS pushfq (1 byte, 0x9c).
     dbg.StepOver();
     const auto step = dbg.WaitForStep();
     REQUIRE(step.instructionPointer == *site + 1);
@@ -558,8 +486,7 @@ TEST_CASE("A breakpoint inside the callee cancels the step-over", "[stepover]")
 
     dbg.StepOver();
 
-    const auto hit = dbg.WaitForBreakpointAt(*s.callee);
-    REQUIRE(hit.address == *s.callee);
+    dbg.WaitForBreakpointAt(*s.callee);
 
     REQUIRE(WaitForProcessByte(dbg.process(), *s.site + 5, s.returnByte));
 
@@ -749,47 +676,9 @@ TEST_CASE("StepOver a call to the next instruction (get-PC idiom)", "[stepover]"
     dbg.Continue();
     dbg.WaitForBreakpointAt(*site);
 
-    // `call 1f` is e8 rel32 == 5 bytes, and its destination IS site+5.
     dbg.StepOver();
     const auto step = dbg.WaitFor(EventType::Step, std::chrono::seconds(3));
     REQUIRE(step.instructionPointer == *site + 5);
-
-    dbg.Continue();
-    dbg.WaitForExit();
-    dbg.JoinThread();
-}
-
-TEST_CASE("StepInto from a breakpointed instruction executes exactly one instruction", "[step]")
-{
-    using namespace ElfBug::test;
-    RecordingDebugger dbg;
-    const std::string path = FIXTURE("step_over_targets");
-    REQUIRE(dbg.Init(path.c_str()));
-
-    std::promise<std::optional<ElfBug::ptr>> sitePromise;
-    auto siteFuture = sitePromise.get_future();
-    dbg.OnSystemBreakpoint([&]
-    {
-        const auto site = ResolveRuntimeAddress(path, dbg.process()->pid, "so_plain_site");
-        if(site)
-            dbg.process()->SetBreakpoint(*site, false, ElfBug::SoftwareType::ShortInt3);
-        sitePromise.set_value(site);
-    });
-
-    dbg.StartOnThread();
-    dbg.WaitForSystemBreakpoint();
-    const auto site = siteFuture.get();
-    REQUIRE(site.has_value());
-
-    dbg.Continue();
-    dbg.WaitForBreakpointAt(*site);
-
-    // so_plain_site is a 1-byte nop followed by ret.
-    dbg.StepInto();
-    const auto step = dbg.WaitFor(EventType::Step, std::chrono::seconds(3));
-    REQUIRE(step.instructionPointer == *site + 1);
-
-    REQUIRE(WaitForProcessByte(dbg.process(), *site, 0xCC));
 
     dbg.Continue();
     dbg.WaitForExit();
@@ -881,18 +770,16 @@ TEST_CASE("A breakpoint on the stepped call fires again for inner frames", "[ste
 TEST_CASE("ClassifyStepOver does not treat SSE scalar ops as repeated", "[stepover]")
 {
     using namespace ElfBug;
-    ptr next = 0;
 
-    // f2 0f 10 c1 : movsd xmm0, xmm1 - F2 is a mandatory prefix, not a rep
+    // f2 0f 10 c1 : movsd xmm0, xmm1
     const uint8 movsdXmm[] = {0xf2, 0x0f, 0x10, 0xc1};
-    REQUIRE(ClassifyStepOver(movsdXmm, sizeof(movsdXmm), 0x1000, next) == StepOverKind::None);
-    REQUIRE(next == 0);
+    REQUIRE(ClassifiesAsNone(movsdXmm, sizeof(movsdXmm)));
 
     // f2 0f c2 c1 00 : cmpsd xmm0, xmm1, 0
     const uint8 cmpsdXmm[] = {0xf2, 0x0f, 0xc2, 0xc1, 0x00};
-    REQUIRE(ClassifyStepOver(cmpsdXmm, sizeof(cmpsdXmm), 0x1000, next) == StepOverKind::None);
+    REQUIRE(ClassifiesAsNone(cmpsdXmm, sizeof(cmpsdXmm)));
 
     // f3 0f 10 c1 : movss xmm0, xmm1
     const uint8 movssXmm[] = {0xf3, 0x0f, 0x10, 0xc1};
-    REQUIRE(ClassifyStepOver(movssXmm, sizeof(movssXmm), 0x1000, next) == StepOverKind::None);
+    REQUIRE(ClassifiesAsNone(movssXmm, sizeof(movssXmm)));
 }

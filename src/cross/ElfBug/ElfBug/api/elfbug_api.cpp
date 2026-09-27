@@ -195,6 +195,15 @@ struct ElfBugDebugger : ElfBug::Debugger
         }
     }
 
+    void LoadMemoryMap() const
+    {
+        if(!IsActive())
+            return;
+
+        std::lock_guard lock(mMapMutex);
+        loadMemoryMapLocked();
+    }
+
     bool FindBaseAddr(const uint64_t addr, uint64_t* base, uint64_t* size) const
     {
         if(!IsActive())
@@ -339,6 +348,19 @@ struct ElfBugDebugger : ElfBug::Debugger
         {
             readThreadStat(pid, list[i].tid, list[i]);
             readThreadName(pid, list[i].tid, list[i].name, sizeof(list[i].name));
+        }
+        return count;
+    }
+
+    uint32_t GetThreadIds(pid_t* tids, const uint32_t capacity) const
+    {
+        std::lock_guard lock(mThreadMutex);
+        const auto count = static_cast<uint32_t>(mThreadList.size());
+        if(tids)
+        {
+            const uint32_t n = std::min(count, capacity);
+            for(uint32_t i = 0; i < n; ++i)
+                tids[i] = mThreadList[i].tid;
         }
         return count;
     }
@@ -1000,6 +1022,13 @@ extern "C" {
         return dbg->GetThreadList(list, capacity);
     }
 
+    uint32_t ElfBugGetThreadIds(const ElfBugDebugger* dbg, pid_t* tids, const uint32_t capacity)
+    {
+        if(!dbg)
+            return 0;
+        return dbg->GetThreadIds(tids, capacity);
+    }
+
     bool ElfBugSwitchThread(ElfBugDebugger* dbg, const pid_t tid)
     {
         if(!dbg)
@@ -1069,6 +1098,12 @@ extern "C" {
         if(!dbg)
             return false;
         return dbg->IsValidPtr(addr);
+    }
+
+    void ElfBugLoadMemoryMap(const ElfBugDebugger* dbg)
+    {
+        if(dbg)
+            dbg->LoadMemoryMap();
     }
 
     bool ElfBugModBaseFromAddr(const ElfBugDebugger* dbg, const uint64_t addr, uint64_t* base)

@@ -1,4 +1,4 @@
-// Compiled as C11 so the public header stays usable from C.
+// Keeps the public header valid C.
 #include <ElfBug/api/elfbug_api.h>
 
 int elfbug_api_compiles_as_c(void)

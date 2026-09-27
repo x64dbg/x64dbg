@@ -41,6 +41,11 @@ namespace ElfBug
         return readStatusField(pid, "TracerPid:");
     }
 
+    pid_t ParentPid(const pid_t pid)
+    {
+        return readStatusField(pid, "PPid:");
+    }
+
     pid_t ThreadGroupId(const pid_t pid)
     {
         return readStatusField(pid, "Tgid:");

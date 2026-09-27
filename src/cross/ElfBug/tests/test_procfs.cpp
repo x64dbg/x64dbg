@@ -25,7 +25,7 @@ TEST_CASE("Split drops empty pieces", "[procfs]")
 
 TEST_CASE("FindValue matches a key only at the start of a line", "[procfs]")
 {
-    constexpr std::string_view status = "Name:\tcat\nPid:\t42\nPPid:\t1\nTracerPid:\t0\n";
+    constexpr std::string_view status = "Name:\tcat\nPPid:\t1\nTracerPid:\t0\nPid:\t42\n";
     REQUIRE(procfs::FindValue(status, "Pid:") == "42");
     REQUIRE(procfs::FindValue(status, "PPid:") == "1");
     REQUIRE(procfs::FindValue(status, "TracerPid:") == "0");

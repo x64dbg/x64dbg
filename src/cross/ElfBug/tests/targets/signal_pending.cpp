@@ -1,5 +1,4 @@
-// Sits in a sleep loop with a SIGUSR1 handler, so a test can prove a signal raised around
-// attach time still reaches the process.
+// Sleeps with a SIGUSR1 handler.
 #include <csignal>
 #include <ctime>
 

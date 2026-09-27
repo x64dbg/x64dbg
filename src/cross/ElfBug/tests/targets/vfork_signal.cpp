@@ -25,7 +25,6 @@ int main()
     const pid_t child = vfork();
     if(child == 0)
     {
-        // Bounded so a failed test does not leave it behind.
         const timespec ts{10, 0};
         nanosleep(&ts, nullptr);
         _exit(0);

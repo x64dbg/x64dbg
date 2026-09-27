@@ -1,4 +1,4 @@
-// Traps on purpose: the debugger must report the int3 and still deliver it to the handler.
+// Hits its own int3 and handles the SIGTRAP.
 #include <csignal>
 
 extern "C"

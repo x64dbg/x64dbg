@@ -1,4 +1,4 @@
-// A multithreaded target for exercising the attach sweep against real, running threads.
+// Spawns 32 sleeping threads, one every 300us.
 #include <pthread.h>
 #include "TargetUtil.h"
 
@@ -22,7 +22,6 @@ int main()
     pthread_t threads[32];
     for(auto & t : threads)
     {
-        // Exit loudly rather than joining an uninitialised pthread_t below.
         if(pthread_create(&t, nullptr, worker, nullptr) != 0)
             return 1;
         nap(300000);

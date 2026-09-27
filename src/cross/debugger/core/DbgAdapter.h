@@ -3,6 +3,7 @@
 #include <Bridge.h>
 #include <ElfBug/api/elfbug_api.h>
 #include <QHash>
+#include <QThread>
 #include <QVector>
 #include <RegisterContext.h>
 #include <atomic>
@@ -65,7 +66,6 @@ public:
 
     bool toggleBreakpoint(duint addr);
     [[nodiscard]] bool hasBreakpoint(duint addr) const;
-    void refreshThreads();
     void setThreadListVisible(bool visible);
     bool switchThread(pid_t tid);
 
@@ -110,12 +110,15 @@ private:
     [[nodiscard]] REGDUMP readRegisters() const;
     void emitStoppedState(const QString & reason);
     void emitStoppedState(const QString & reason, const REGDUMP & dump);
+    void refreshThreads();
     void scheduleThreadRefresh();
 
     ElfBugDebugger* mDebugger = nullptr;
     duint mEntryPoint = 0;
     std::atomic<bool> mThreadRefreshQueued{false};
     std::atomic<bool> mThreadListVisible{false};
+    QThread mWorkerThread;
+    QObject mWorker;
 
     std::mutex mThreadNameMutex;
     QHash<pid_t, QString> mThreadNames;

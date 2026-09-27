@@ -1,5 +1,4 @@
-// Faults at a known symbol and a known address, so a test can breakpoint the faulting
-// instruction and check the address the debugger reports for it.
+// Stores to kSegfaultAddress at sf_fault_site.
 #include "TargetUtil.h"
 
 static_assert(kSegfaultAddress == 0xdead0000, "keep in sync with the immediate below");

@@ -1,5 +1,4 @@
-// Raw clone threads trapping on their first instruction, so the child's trap can reach
-// waitpid before the parent's clone event.
+// Raw clone children trap at once, often before the parent's clone event.
 #include <sched.h>
 #include <sys/mman.h>
 
@@ -8,7 +7,7 @@
 extern "C"
 {
     volatile int ct_done = 0;
-    // Breakpoint site: the instruction both the parent and the new child return to.
+    // Both parent and child return here.
     void ct_site();
     void ct_spawn(void* stackTop);
 }

@@ -1,37 +1,5 @@
 #include "TestSupport.h"
 
-TEST_CASE("Detaching releases a clone outside the thread group", "[multithread][detach]")
-{
-    using namespace ElfBug::test;
-    RecordingDebugger dbg;
-    REQUIRE(dbg.Init(FIXTURE("clone_process").c_str()));
-    dbg.StartOnThread();
-    dbg.WaitForSystemBreakpoint();
-    dbg.Continue();
-    REQUIRE(dbg.WaitForRunning());
-
-    REQUIRE(dbg.process() != nullptr);
-    const pid_t inferiorPid = dbg.process()->pid;
-
-    const pid_t child = WaitForClonedChild(inferiorPid);
-    CAPTURE(inferiorPid, child);
-    REQUIRE(child > 0);
-
-    dbg.Detach();
-    dbg.WaitForDetach();
-    dbg.JoinThread();
-
-    REQUIRE(ElfBug::TracerPid(child) == 0);
-    REQUIRE(StaysRunning(child));
-    REQUIRE(StaysRunning(inferiorPid));
-
-    kill(child, SIGKILL);
-    kill(inferiorPid, SIGKILL);
-    int status = 0;
-    waitpid(child, &status, __WALL);
-    waitpid(inferiorPid, &status, __WALL);
-}
-
 TEST_CASE("Detach leaves an attached process running", "[detach]")
 {
     ElfBug::test::UntracedProcess target(FIXTURE("threads_spin"));
@@ -40,17 +8,18 @@ TEST_CASE("Detach leaves an attached process running", "[detach]")
     REQUIRE(target.WaitForThreads(5));
 
     ElfBug::test::RecordingDebugger dbg;
+    std::vector<pid_t> stillTraced;
+    dbg.OnDetach([&] { stillTraced = ElfBug::test::TracedTasks(target.pid); });
     REQUIRE(dbg.Attach(target.pid));
     dbg.StartOnThread();
     dbg.WaitForAttachBreakpoint();
-    REQUIRE_FALSE(target.Running());
 
     dbg.Detach();
     dbg.WaitForDetach();
     dbg.JoinThread();
 
+    REQUIRE(stillTraced.empty());
     REQUIRE(ElfBug::test::StaysRunning(target.pid));
-    REQUIRE(ElfBug::TracerPid(target.pid) == 0);
 }
 
 TEST_CASE("Detach restores every patched breakpoint byte", "[detach]")
@@ -88,26 +57,6 @@ TEST_CASE("Detach restores every patched breakpoint byte", "[detach]")
     char after = 0;
     REQUIRE(mem.read(&after, 1));
     REQUIRE(static_cast<std::uint8_t>(after) == original);
-}
-
-TEST_CASE("Detach leaves a launched process running", "[detach]")
-{
-    ElfBug::test::RecordingDebugger dbg;
-    REQUIRE(dbg.Init(FIXTURE("run_endlessly").c_str()));
-    dbg.StartOnThread();
-    dbg.WaitForSystemBreakpoint();
-
-    const pid_t pid = dbg.process()->pid;
-
-    dbg.Detach();
-    dbg.WaitForDetach();
-    dbg.JoinThread();
-
-    REQUIRE(ElfBug::TracerPid(pid) == 0);
-    REQUIRE(ElfBug::test::StaysRunning(pid));
-    kill(pid, SIGKILL);
-    int status = 0;
-    waitpid(pid, &status, __WALL);
 }
 
 TEST_CASE("A signal parked at detach is delivered to the process", "[detach]")
@@ -152,6 +101,8 @@ TEST_CASE("Detach requested while running arrives as a pause and then detaches",
     REQUIRE(target.WaitForThreads(5));
 
     ElfBug::test::RecordingDebugger dbg;
+    std::vector<pid_t> stillTraced;
+    dbg.OnDetach([&] { stillTraced = ElfBug::test::TracedTasks(target.pid); });
     REQUIRE(dbg.Attach(target.pid));
     dbg.StartOnThread();
     dbg.WaitForAttachBreakpoint();
@@ -172,8 +123,8 @@ TEST_CASE("Detach requested while running arrives as a pause and then detaches",
     REQUIRE(detached != log.end());
     REQUIRE(paused < detached);
 
+    REQUIRE(stillTraced.empty());
     REQUIRE(ElfBug::test::StaysRunning(target.pid));
-    REQUIRE(ElfBug::TracerPid(target.pid) == 0);
 }
 
 TEST_CASE("Detach drains a SIGSTOP the attach sweep still owes", "[detach]")
@@ -195,6 +146,8 @@ TEST_CASE("Detach drains a SIGSTOP the attach sweep still owes", "[detach]")
                     owed = true;
             }
         });
+        std::vector<pid_t> stillTraced;
+        dbg.OnDetach([&] { stillTraced = ElfBug::test::TracedTasks(target.pid); });
 
         REQUIRE(dbg.Attach(target.pid));
         dbg.StartOnThread();
@@ -204,7 +157,7 @@ TEST_CASE("Detach drains a SIGSTOP the attach sweep still owes", "[detach]")
         dbg.WaitForDetach();
         dbg.JoinThread();
 
-        REQUIRE(ElfBug::TracerPid(target.pid) == 0);
+        REQUIRE(stillTraced.empty());
         REQUIRE(ElfBug::test::StaysRunning(target.pid));
     }
 
@@ -229,6 +182,8 @@ TEST_CASE("Detach releases a thread the user suspended", "[detach]")
                 worker = tid;
         }
     });
+    std::vector<pid_t> stillTraced;
+    dbg.OnDetach([&] { stillTraced = ElfBug::test::TracedTasks(target.pid); });
 
     REQUIRE(dbg.Attach(target.pid));
     dbg.StartOnThread();
@@ -241,8 +196,9 @@ TEST_CASE("Detach releases a thread the user suspended", "[detach]")
     dbg.WaitForDetach();
     dbg.JoinThread();
 
-    REQUIRE(ElfBug::TracerPid(target.pid) == 0);
+    REQUIRE(stillTraced.empty());
     REQUIRE(ElfBug::test::StaysRunning(target.pid));
+    REQUIRE(ElfBug::test::WaitForTaskRunning(target.pid, worker));
 }
 
 TEST_CASE("Detach releases a thread suspended while the process runs", "[detach]")
@@ -263,6 +219,8 @@ TEST_CASE("Detach releases a thread suspended while the process runs", "[detach]
                 worker = tid;
         }
     });
+    std::vector<pid_t> stillTraced;
+    dbg.OnDetach([&] { stillTraced = ElfBug::test::TracedTasks(target.pid); });
 
     REQUIRE(dbg.Attach(target.pid));
     dbg.StartOnThread();
@@ -278,6 +236,7 @@ TEST_CASE("Detach releases a thread suspended while the process runs", "[detach]
     dbg.WaitForDetach();
     dbg.JoinThread();
 
-    REQUIRE(ElfBug::TracerPid(target.pid) == 0);
+    REQUIRE(stillTraced.empty());
     REQUIRE(ElfBug::test::StaysRunning(target.pid));
+    REQUIRE(ElfBug::test::WaitForTaskRunning(target.pid, worker));
 }

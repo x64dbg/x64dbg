@@ -1,4 +1,4 @@
-// The main thread spends almost all its time in vfork's uninterruptible wait, where SIGSTOP cannot stop it.
+// Main spends nearly all its time in vfork's uninterruptible wait.
 #include <sys/wait.h>
 #include <unistd.h>
 #include "TargetUtil.h"

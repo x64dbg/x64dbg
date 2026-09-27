@@ -1,4 +1,4 @@
-// Hand-written asm because the tests need byte-exact instruction addresses.
+// Hand-written for byte-exact addresses.
 #include <cstdint>
 
 extern "C"

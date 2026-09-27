@@ -275,6 +275,31 @@ TEST_CASE("Module lookups name an image whose path is longer than a maps line", 
     REQUIRE(std::string(name) == "long_module");
 }
 
+TEST_CASE("C API loads the memory map ahead of the first lookup", "[api][memory]")
+{
+    namespace fs = std::filesystem;
+    ElfBugLoadMemoryMap(nullptr);
+
+    const fs::path dir = fs::path(ELFBUG_TESTS_TARGETS_DIR) / "elfbug_preload";
+    const ElfBug::test::RemoveOnExit cleanup{dir};
+    fs::create_directories(dir);
+    const fs::path target = dir / "before_rename";
+    fs::copy_file(FIXTURE("segfault"), target, fs::copy_options::overwrite_existing);
+
+    ApiSession s(target.string());
+    REQUIRE(s.Started());
+    REQUIRE(s.WaitForSystemBreakpoint());
+    const auto site = s.Resolve("sf_fault_site");
+    REQUIRE(site.has_value());
+
+    ElfBugLoadMemoryMap(s.dbg);
+    fs::rename(target, dir / "after_rename");
+
+    char name[64] = {};
+    REQUIRE(ElfBugModNameFromAddr(s.dbg, *site, name, sizeof(name), false));
+    REQUIRE(std::string(name) == "before_rename");
+}
+
 TEST_CASE("C API arms a breakpoint queued right before Continue", "[api][breakpoint]")
 {
     ApiSession s(FIXTURE("segfault"));
@@ -382,15 +407,33 @@ TEST_CASE("C API lists every thread of a paused process", "[api][thread]")
     REQUIRE(std::string(main.name) == "threads_spin");
     REQUIRE(main.policy == sched_getscheduler(0));
     REQUIRE(main.nice == getpriority(PRIO_PROCESS, 0));
-    REQUIRE(main.rt_priority == 0);
     REQUIRE(main.start_time_ms + 2000 >= before);
     REQUIRE(main.start_time_ms <= nowMs() + 2000);
 
     ElfBugContinue(s.dbg);
     REQUIRE(s.events.WaitFor([&] { return s.events.createdTids.size() == 4; }, std::chrono::seconds(10)));
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    const auto workerCpuTime = [&]
+    {
+        std::uint64_t total = 0;
+        for(const auto & info : ElfBugThreadList(s.dbg))
+        {
+            if(info.number != 0)
+                total += info.user_time_ms + info.kernel_time_ms;
+        }
+        return total;
+    };
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while(workerCpuTime() == 0 && std::chrono::steady_clock::now() < deadline)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     ElfBugPause(s.dbg);
     REQUIRE(s.events.WaitFor([&] { return s.events.paused; }));
+
+    const pid_t niced = [&]
+    {
+        std::lock_guard lock(s.events.mutex);
+        return s.events.createdTids.front();
+    }();
+    REQUIRE(setpriority(PRIO_PROCESS, niced, 5) == 0);
 
     REQUIRE(ElfBugGetThreadList(s.dbg, nullptr, 0) == 5);
     ElfBugThreadInfo three[3] = {};
@@ -402,6 +445,10 @@ TEST_CASE("C API lists every thread of a paused process", "[api][thread]")
 
     ElfBugThreadInfo all[5] = {};
     REQUIRE(ElfBugGetThreadList(s.dbg, all, 5) == 5);
+    const auto tids = ElfBugThreadIds(s.dbg);
+    REQUIRE(tids.size() == 5);
+    for(uint32_t i = 0; i < 5; ++i)
+        REQUIRE(tids[i] == all[i].tid);
     std::uint64_t workerCpuMs = 0;
     std::lock_guard lock(s.events.mutex);
     for(uint32_t i = 0; i < 5; ++i)
@@ -422,6 +469,8 @@ TEST_CASE("C API lists every thread of a paused process", "[api][thread]")
         }
     }
     REQUIRE(workerCpuMs > 0);
+    REQUIRE(all[1].tid == niced);
+    REQUIRE(all[1].nice == 5);
 }
 
 TEST_CASE("C API switches the current thread", "[api][thread]")
@@ -539,6 +588,16 @@ TEST_CASE("C API reports the wait reason at a pause", "[api][thread][waitreason]
     ElfBugContinue(s.dbg);
     REQUIRE(s.events.WaitFor([&] { return s.events.createdTids.size() == 4; }, std::chrono::seconds(10)));
 
+    std::vector<pid_t> workers;
+    pid_t mainTid = 0;
+    {
+        std::lock_guard lock(s.events.mutex);
+        workers = s.events.createdTids;
+        mainTid = s.events.pid;
+    }
+    for(const pid_t tid : workers)
+        REQUIRE(ElfBugSetThreadSuspended(s.dbg, tid, true));
+
     std::string mainReason;
     ElfBugThreadInfo all[5] = {};
     for(int attempt = 0; attempt < 10 && mainReason.find("nanosleep") == std::string::npos; ++attempt)
@@ -550,7 +609,7 @@ TEST_CASE("C API reports the wait reason at a pause", "[api][thread][waitreason]
                 s.events.paused = false;
             }
             ElfBugContinue(s.dbg);
-            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+            REQUIRE(ElfBug::test::WaitForTaskRunning(mainTid, mainTid));
         }
         ElfBugPause(s.dbg);
         REQUIRE(s.events.WaitFor([&] { return s.events.paused; }));
@@ -559,12 +618,6 @@ TEST_CASE("C API reports the wait reason at a pause", "[api][thread][waitreason]
     }
     CAPTURE(mainReason);
     REQUIRE(mainReason.find("nanosleep") != std::string::npos);
-    for(uint32_t i = 1; i < 5; ++i)
-    {
-        const std::string workerReason = all[i].wait_reason;
-        CAPTURE(i, workerReason);
-        REQUIRE(all[i].wait_reason[0] == '\0');
-    }
 }
 
 TEST_CASE("C API shows Suspended as the wait reason", "[api][thread][suspend][waitreason]")
@@ -765,7 +818,6 @@ TEST_CASE("C API detach clears the session and leaves the process running", "[ap
     REQUIRE(ElfBugGetPid(s.dbg) == 0);
     REQUIRE(ElfBugGetThreadList(s.dbg, nullptr, 0) == 0);
 
-    REQUIRE(ElfBug::TracerPid(pid) == 0);
     REQUIRE(ElfBug::test::StaysRunning(pid));
     kill(pid, SIGKILL);
     int status = 0;

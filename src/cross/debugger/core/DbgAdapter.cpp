@@ -101,10 +101,14 @@ DbgAdapter::DbgAdapter(QObject* parent)
     assert(!sInstance.load() && "Only one DbgAdapter instance is allowed");
     sInstance.store(this);
     DbgSetBreakpointQuery(&DbgAdapter::queryBreakpoint);
+    mWorker.moveToThread(&mWorkerThread);
+    mWorkerThread.start();
 }
 
 DbgAdapter::~DbgAdapter()
 {
+    mWorkerThread.quit();
+    mWorkerThread.wait();
     DbgSetBreakpointQuery(nullptr);
     sInstance.store(nullptr);
     if(mDebugger)
@@ -329,7 +333,7 @@ void DbgAdapter::setThreadName(const pid_t tid, const QString & name)
             mThreadNames.insert(tid, name);
     }
     emit logMessage(QString("[x64dbg] Thread %1 named \"%2\"").arg(tid).arg(name));
-    refreshThreads();
+    scheduleThreadRefresh();
 }
 
 bool DbgAdapter::setThreadSuspended(const pid_t tid, const bool suspended)
@@ -341,22 +345,22 @@ bool DbgAdapter::setThreadSuspended(const pid_t tid, const bool suspended)
         return false;
     }
     emit logMessage(QString("[x64dbg] Thread %1 %2").arg(tid).arg(suspended ? tr("suspended") : tr("resumed")));
-    refreshThreads();
+    scheduleThreadRefresh();
     return true;
 }
 
 void DbgAdapter::setAllThreadsSuspended(const bool suspended)
 {
-    const auto list = ElfBugThreadList(mDebugger);
+    const auto tids = ElfBugThreadIds(mDebugger);
     uint32_t changed = 0;
-    for(const auto & entry : list)
+    for(const pid_t tid : tids)
     {
-        if(ElfBugSetThreadSuspended(mDebugger, entry.tid, suspended))
+        if(ElfBugSetThreadSuspended(mDebugger, tid, suspended))
             ++changed;
     }
-    emit logMessage(QString("[x64dbg] %1/%2 thread(s) %3").arg(changed).arg(list.size())
+    emit logMessage(QString("[x64dbg] %1/%2 thread(s) %3").arg(changed).arg(tids.size())
                     .arg(suspended ? tr("suspended") : tr("resumed")));
-    refreshThreads();
+    scheduleThreadRefresh();
 }
 
 BPXTYPE DbgAdapter::queryBreakpoint(const duint addr)
@@ -386,6 +390,7 @@ void DbgAdapter::emitStoppedState(const QString & reason)
 
 void DbgAdapter::emitStoppedState(const QString & reason, const REGDUMP & dump)
 {
+    QMetaObject::invokeMethod(&mWorker, [this] { ElfBugLoadMemoryMap(mDebugger); }, Qt::QueuedConnection);
     emit registersUpdated(dump);
     emit stopped(dump.regcontext.cip, reason + threadSuffix());
     scheduleThreadRefresh();
@@ -402,7 +407,7 @@ void DbgAdapter::scheduleThreadRefresh()
 {
     if(!mThreadListVisible || mThreadRefreshQueued.exchange(true))
         return;
-    QMetaObject::invokeMethod(this, [this]
+    QMetaObject::invokeMethod(&mWorker, [this]
     {
         mThreadRefreshQueued = false;
         refreshThreads();
@@ -492,6 +497,7 @@ void DbgAdapter::onDetach(void* userdata)
     emit self->logMessage(QStringLiteral("[x64dbg] %1").arg(tr("Detached!")));
     emit self->processDetached();
     emit self->sessionEnded();
+    self->scheduleThreadRefresh();
 }
 
 void DbgAdapter::onBreakpoint(const uint64_t address, void* userdata)

@@ -1,5 +1,4 @@
-// A clone that shares the address space but starts its own thread group, which the kernel
-// still reports through PTRACE_EVENT_CLONE. Every other clone target passes CLONE_THREAD.
+// clone() without CLONE_THREAD: a separate thread group sharing memory.
 #include <sched.h>
 #include <sys/mman.h>
 #include "TargetUtil.h"

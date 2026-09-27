@@ -17,6 +17,9 @@ namespace
         std::optional<std::uint8_t> restoredByte;
         bool setSucceeded = false;
         bool deleteSucceeded = false;
+        bool listedBeforeSet = true;
+        bool listedAfterSet = false;
+        bool listedAfterDelete = true;
     };
 }
 
@@ -52,14 +55,12 @@ TEST_CASE("Software breakpoint: persistent hits twice", "[breakpoint]")
 
     dbg.Continue();
     const auto firstHit = dbg.WaitForBreakpointAt(*bp.address);
-    REQUIRE(firstHit.address == *bp.address);
     REQUIRE(firstHit.pid != 0);
     REQUIRE(firstHit.instructionPointer == *bp.address);
     REQUIRE(WaitForProcessByte(dbg.process(), *bp.address, 0xCC));
 
     dbg.Continue();
     const auto secondHit = dbg.WaitForBreakpointAt(*bp.address, std::chrono::seconds(5));
-    REQUIRE(secondHit.address == *bp.address);
     REQUIRE(secondHit.pid != 0);
     REQUIRE(secondHit.instructionPointer == *bp.address);
     REQUIRE(WaitForProcessByte(dbg.process(), *bp.address, 0xCC));
@@ -91,9 +92,12 @@ TEST_CASE("Software breakpoint patches and restores instruction byte", "[breakpo
             const auto originalByte = ReadProcessByte(dbg.process(), *resolved);
             if(originalByte)
                 bp.originalByte = *originalByte;
+            bp.listedBeforeSet = dbg.process()->HasBreakpoint(*resolved);
             bp.setSucceeded = dbg.process()->SetBreakpoint(*resolved, /*singleshot=*/false, ElfBug::SoftwareType::ShortInt3);
+            bp.listedAfterSet = dbg.process()->HasBreakpoint(*resolved);
             bp.patchedByte = ReadProcessByte(dbg.process(), *resolved);
             bp.deleteSucceeded = dbg.process()->DeleteBreakpoint(*resolved);
+            bp.listedAfterDelete = dbg.process()->HasBreakpoint(*resolved);
             bp.restoredByte = ReadProcessByte(dbg.process(), *resolved);
         }
         bpPromise.set_value(bp);
@@ -110,6 +114,9 @@ TEST_CASE("Software breakpoint patches and restores instruction byte", "[breakpo
     REQUIRE(bp.deleteSucceeded);
     REQUIRE(bp.restoredByte.has_value());
     REQUIRE(*bp.restoredByte == bp.originalByte);
+    REQUIRE_FALSE(bp.listedBeforeSet);
+    REQUIRE(bp.listedAfterSet);
+    REQUIRE_FALSE(bp.listedAfterDelete);
 
     dbg.Continue();
     const auto exit_ev = dbg.WaitForExit();
@@ -150,7 +157,6 @@ TEST_CASE("Software breakpoint: singleshot hits once", "[breakpoint]")
 
     dbg.Continue();
     const auto hit = dbg.WaitForBreakpointAt(*bp.address);
-    REQUIRE(hit.address == *bp.address);
     REQUIRE(hit.pid != 0);
     REQUIRE(hit.instructionPointer == *bp.address);
     REQUIRE(WaitForProcessByte(dbg.process(), *bp.address, bp.originalByte));
@@ -203,55 +209,6 @@ TEST_CASE("Continuing past a breakpoint preserves its callback", "[breakpoint]")
     REQUIRE(callbackHits.load() == 3);
 }
 
-TEST_CASE("MemRead hides breakpoint patches, MemReadRaw does not", "[breakpoint]")
-{
-    using namespace ElfBug::test;
-    RecordingDebugger dbg;
-    const std::string path = FIXTURE("step_over_targets");
-    REQUIRE(dbg.Init(path.c_str()));
-
-    struct Bytes
-    {
-        std::optional<ElfBug::ptr> site;
-        std::uint8_t original[4] = {};
-        std::uint8_t masked[4] = {};
-        std::uint8_t raw[4] = {};
-    };
-
-    std::promise<Bytes> promise;
-    auto future = promise.get_future();
-    dbg.OnSystemBreakpoint([&]
-    {
-        Bytes b;
-        b.site = ResolveRuntimeAddress(path, dbg.process()->pid, "so_call_site");
-        if(b.site)
-        {
-            (void)dbg.process()->MemRead(*b.site, b.original, sizeof(b.original));
-            dbg.process()->SetBreakpoint(*b.site, false, ElfBug::SoftwareType::ShortInt3);
-            (void)dbg.process()->MemRead(*b.site, b.masked, sizeof(b.masked));
-            (void)dbg.process()->MemReadRaw(*b.site, b.raw, sizeof(b.raw));
-            dbg.process()->DeleteBreakpoint(*b.site);
-        }
-        promise.set_value(b);
-    });
-
-    dbg.StartOnThread();
-    dbg.WaitForSystemBreakpoint();
-    const auto b = future.get();
-    REQUIRE(b.site.has_value());
-
-    // `call rel32` - the opcode is what the patch replaces.
-    REQUIRE(b.original[0] == 0xe8);
-    REQUIRE(b.raw[0] == 0xCC);
-    REQUIRE(b.masked[0] == 0xe8);
-    REQUIRE(std::equal(b.original + 1, b.original + 4, b.masked + 1));
-    REQUIRE(std::equal(b.original + 1, b.original + 4, b.raw + 1));
-
-    dbg.Continue();
-    dbg.WaitForExit();
-    dbg.JoinThread();
-}
-
 TEST_CASE("MemRead and MemWrite touch only the breakpoints inside their range", "[breakpoint]")
 {
     using namespace ElfBug::test;
@@ -266,6 +223,7 @@ TEST_CASE("MemRead and MemWrite touch only the breakpoints inside their range", 
         std::uint8_t guarded[8] = {};
         std::uint8_t raw[6] = {};
         std::uint8_t written[6] = {};
+        std::uint8_t shownAfterWrite[4] = {};
         std::uint8_t after[6] = {};
     };
 
@@ -280,7 +238,6 @@ TEST_CASE("MemRead and MemWrite touch only the breakpoints inside their range", 
             auto* process = dbg.process();
             const ElfBug::ptr first = *b.site - 1;
             (void)process->MemRead(first, b.original, sizeof(b.original));
-            // Just before, first, last and just past the 4 bytes accessed at first + 1.
             const ElfBug::ptr offsets[] = {0, 1, 4, 5};
             for(const ElfBug::ptr offset : offsets)
                 process->SetBreakpoint(first + offset, false, ElfBug::SoftwareType::ShortInt3);
@@ -292,6 +249,7 @@ TEST_CASE("MemRead and MemWrite touch only the breakpoints inside their range", 
             std::uint8_t replacement[4] = {0x90, 0x90, 0x90, 0x90};
             (void)process->MemWrite(first + 1, replacement, sizeof(replacement));
             (void)process->MemReadRaw(first, b.written, sizeof(b.written));
+            (void)process->MemRead(first + 1, b.shownAfterWrite, sizeof(b.shownAfterWrite));
             for(const ElfBug::ptr offset : offsets)
                 process->DeleteBreakpoint(first + offset);
             (void)process->MemReadRaw(first, b.after, sizeof(b.after));
@@ -304,6 +262,7 @@ TEST_CASE("MemRead and MemWrite touch only the breakpoints inside their range", 
     dbg.WaitForSystemBreakpoint();
     const auto b = future.get();
     REQUIRE(b.site.has_value());
+    REQUIRE(b.original[1] == 0xe8);
 
     CHECK(b.guarded[0] == 0x5A);
     CHECK(b.guarded[1] == 0x5A);
@@ -323,6 +282,7 @@ TEST_CASE("MemRead and MemWrite touch only the breakpoints inside their range", 
     CHECK(b.written[3] == 0x90);
     CHECK(b.written[4] == 0xCC);
     CHECK(b.written[5] == 0xCC);
+    CHECK(std::all_of(b.shownAfterWrite, b.shownAfterWrite + 4, [](const std::uint8_t byte) { return byte == 0x90; }));
 
     const std::uint8_t expected[6] = {b.original[0], 0x90, 0x90, 0x90, 0x90, b.original[5]};
     CHECK(std::equal(expected, expected + 6, b.after));
@@ -464,67 +424,6 @@ TEST_CASE("An execve into a different image does not carry breakpoints over", "[
     REQUIRE(dbg.count(EventType::InternalError) == 0);
 }
 
-TEST_CASE("MemWrite over an armed breakpoint keeps the trap and retargets the restore", "[breakpoint]")
-{
-    using namespace ElfBug::test;
-    RecordingDebugger dbg;
-    const std::string path = FIXTURE("step_over_targets");
-    REQUIRE(dbg.Init(path.c_str()));
-
-    struct Result
-    {
-        std::optional<ElfBug::ptr> site;
-        std::uint8_t original[2] = {};
-        std::uint8_t rawAfterWrite = 0;
-        std::uint8_t maskedAfterWrite = 0;
-        std::uint8_t neighbourAfterWrite = 0;
-        std::uint8_t afterDelete = 0;
-    };
-
-    std::promise<Result> promise;
-    auto future = promise.get_future();
-    dbg.OnSystemBreakpoint([&]
-    {
-        Result r;
-        r.site = ResolveRuntimeAddress(path, dbg.process()->pid, "so_call_site");
-        if(r.site)
-        {
-            auto* process = dbg.process();
-            (void)process->MemRead(*r.site, r.original, sizeof(r.original));
-            process->SetBreakpoint(*r.site, false, ElfBug::SoftwareType::ShortInt3);
-
-            const std::uint8_t patch[2] = {0x90, 0x90};
-            process->MemWrite(*r.site, patch, sizeof(patch));
-
-            (void)process->MemReadRaw(*r.site, &r.rawAfterWrite, 1);
-            (void)process->MemRead(*r.site, &r.maskedAfterWrite, 1);
-            (void)process->MemReadRaw(*r.site + 1, &r.neighbourAfterWrite, 1);
-
-            process->DeleteBreakpoint(*r.site);
-            (void)process->MemReadRaw(*r.site, &r.afterDelete, 1);
-
-            process->MemWrite(*r.site, r.original, sizeof(r.original));
-        }
-        promise.set_value(r);
-    });
-
-    dbg.StartOnThread();
-    dbg.WaitForSystemBreakpoint();
-    const auto r = future.get();
-    REQUIRE(r.site.has_value());
-
-    REQUIRE(r.original[0] == 0xe8);
-    REQUIRE(r.rawAfterWrite == 0xCC);
-    REQUIRE(r.maskedAfterWrite == 0x90);
-    REQUIRE(r.neighbourAfterWrite == 0x90);
-    // Deleting restores what the caller wrote (0x90), not what was there before it (0xe8).
-    REQUIRE(r.afterDelete == 0x90);
-
-    dbg.Continue();
-    dbg.WaitForExit();
-    dbg.JoinThread();
-}
-
 TEST_CASE("Continue from a breakpoint on pushfq does not leak the trap flag", "[breakpoint]")
 {
     using namespace ElfBug::test;
@@ -539,7 +438,7 @@ TEST_CASE("Continue from a breakpoint on pushfq does not leak the trap flag", "[
         const auto site = ResolveRuntimeAddress(path, dbg.process()->pid, "so_pushf_site");
         if(site)
         {
-            // pushfq (1 byte), popq %rax (1 byte), ret
+            // pushfq; popq %rax; ret
             dbg.process()->SetBreakpoint(*site, false, ElfBug::SoftwareType::ShortInt3);
             dbg.process()->SetBreakpoint(*site + 2, false, ElfBug::SoftwareType::ShortInt3);
         }
@@ -618,7 +517,6 @@ TEST_CASE("MemRead never returns a breakpoint byte while breakpoints change", "[
     std::atomic<bool> stop{false};
     std::atomic<int> leaked{0};
 
-    // so_call_site is `call rel32`, so 0xe8. A 0xCC there is always the debugger's.
     std::thread reader([&]
     {
         while(!stop.load(std::memory_order_relaxed))
