@@ -236,50 +236,51 @@ TEST_CASE("Attach reports an error when the target dies before the sweep", "[att
 
 TEST_CASE("A signal already pending at attach is reported before the tracee runs", "[attach]")
 {
-    constexpr int kAttempts = 5;
-    for(int attempt = 1;; ++attempt)
+    using namespace ElfBug::test;
+    UntracedProcess target(FIXTURE("vfork_signal"));
+    REQUIRE(target.pid > 0);
+    REQUIRE(WaitForExeced(target.pid, FIXTURE("vfork_signal")));
+
+    const pid_t child = WaitForClonedChild(target.pid);
+    REQUIRE(child > 0);
+    REQUIRE(tgkill(target.pid, target.pid, SIGUSR1) == 0);
+
+    RecordingDebugger dbg;
+
+    bool pending = false;
+    dbg.OnAttachBreakpoint([&]
     {
-        ElfBug::test::UntracedProcess target(FIXTURE("signal_storm"));
-        REQUIRE(target.pid > 0);
-        REQUIRE(ElfBug::test::WaitForExeced(target.pid, FIXTURE("signal_storm")));
-        REQUIRE(target.WaitForThreads(9));
-
-        ElfBug::test::RecordingDebugger dbg;
-
-        bool pending = false;
-        dbg.OnAttachBreakpoint([&]
+        for(const auto & [tid, thread] : dbg.process()->threads)
         {
-            for(const auto & [tid, thread] : dbg.process()->threads)
-            {
-                if(thread->PendingSignal() == SIGUSR1)
-                    pending = true;
-            }
-        });
+            if(thread->PendingSignal() == SIGUSR1)
+                pending = true;
+        }
+    });
 
-        REQUIRE(dbg.Attach(target.pid));
-        dbg.StartOnThread();
-        dbg.WaitForAttachBreakpoint();
+    REQUIRE(dbg.Attach(target.pid));
+    dbg.StartOnThread();
 
-        if(!pending && attempt < kAttempts)
-            continue;
-        REQUIRE(pending);
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while(ElfBug::TracerPid(target.pid) == 0 && std::chrono::steady_clock::now() < deadline)
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    REQUIRE(kill(child, SIGKILL) == 0);
+    dbg.WaitForAttachBreakpoint();
 
-        const auto handled = ElfBug::test::ResolveRuntimeAddress(FIXTURE("signal_storm"),
-                             dbg.process()->pid, "ss_handled");
-        REQUIRE(handled.has_value());
+    REQUIRE(pending);
 
-        int before = 0;
-        REQUIRE(dbg.process()->MemReadRaw(*handled, &before, sizeof(before)));
+    const auto handled = ResolveRuntimeAddress(FIXTURE("vfork_signal"), dbg.process()->pid, "vs_handled");
+    REQUIRE(handled.has_value());
 
-        dbg.Continue();
-        dbg.WaitForException(SIGUSR1);
+    int before = 0;
+    REQUIRE(dbg.process()->MemReadRaw(*handled, &before, sizeof(before)));
 
-        int atException = 0;
-        REQUIRE(dbg.process()->MemReadRaw(*handled, &atException, sizeof(atException)));
+    dbg.Continue();
+    dbg.WaitForException(SIGUSR1);
 
-        REQUIRE(atException == before);
-        break;
-    }
+    int atException = 0;
+    REQUIRE(dbg.process()->MemReadRaw(*handled, &atException, sizeof(atException)));
+
+    REQUIRE(atException == before);
 }
 
 TEST_CASE("AttachErrorMessage names the yama fix for EPERM", "[attach]")

@@ -34,6 +34,7 @@ namespace ElfBug
         [[nodiscard]] bool MemIsValidPtr(ptr address) const;
         bool MemProtect(ptr address, ptr size, uint32 newProtect, const uint32* oldProtect = nullptr);
 
+        // Only ShortInt3 is implemented so far (eventually will be parity with Windows)
         bool SetBreakpoint(ptr address, bool singleshot = false, SoftwareType type = SoftwareType::ShortInt3);
         bool SetBreakpoint(ptr address, const BreakpointCallback & cbBreakpoint, bool singleshot = false, SoftwareType type = SoftwareType::ShortInt3);
         bool DeleteBreakpoint(ptr address);

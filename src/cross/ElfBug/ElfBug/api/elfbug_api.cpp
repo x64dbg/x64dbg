@@ -56,26 +56,28 @@ namespace
 
     uint64_t bootTimeMs()
     {
-        static const uint64_t bootTime = []
+        static std::atomic<uint64_t> cached{0};
+        const uint64_t known = cached.load(std::memory_order_relaxed);
+        if(known != 0)
+            return known;
+
+        FILE* f = fopen("/proc/stat", "r");
+        if(!f)
+            return 0;
+        uint64_t result = 0;
+        char line[256];
+        while(fgets(line, sizeof(line), f))
         {
-            uint64_t result = 0;
-            FILE* f = fopen("/proc/stat", "r");
-            if(!f)
-                return result;
-            char line[256];
-            while(fgets(line, sizeof(line), f))
+            uint64_t btime = 0;
+            if(sscanf(line, "btime %" SCNu64, &btime) == 1)
             {
-                uint64_t btime = 0;
-                if(sscanf(line, "btime %" SCNu64, &btime) == 1)
-                {
-                    result = btime * 1000u;
-                    break;
-                }
+                result = btime * 1000u;
+                break;
             }
-            fclose(f);
-            return result;
-        }();
-        return bootTime;
+        }
+        fclose(f);
+        cached.store(result, std::memory_order_relaxed);
+        return result;
     }
 
     void readThreadName(const pid_t pid, const pid_t tid, char* name, const size_t size)

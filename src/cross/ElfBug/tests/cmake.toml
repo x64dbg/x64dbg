@@ -65,6 +65,7 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_clone_relay
     elfbug_fixture_clone_process
     elfbug_fixture_vfork_wait
+    elfbug_fixture_vfork_signal
 )
 """
 
@@ -205,4 +206,10 @@ properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
 type = "elfbug_fixture"
 sources = ["targets/vfork_wait.cpp"]
 properties.OUTPUT_NAME = "vfork_wait"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_vfork_signal]
+type = "elfbug_fixture"
+sources = ["targets/vfork_signal.cpp"]
+properties.OUTPUT_NAME = "vfork_signal"
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"

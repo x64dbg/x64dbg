@@ -511,7 +511,7 @@ namespace ElfBug
                 return true;
         }
 
-        if(thread->registers.Read() && thread->AtBreakpoint() &&
+        if(thread->AtBreakpoint() && thread->registers.Read() &&
                 mProcess->HasBreakpoint(thread->registers.Gip()))
         {
             const ptr rip = thread->registers.Gip();
