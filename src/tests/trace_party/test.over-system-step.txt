@@ -1,0 +1,28 @@
+; System Only / Trace Over begins in an actual Windows API reached by RunSystem.
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init "@TARGET@"
+bp trace_party:Ready
+run
+bpc trace_party:Ready
+bp trace_party:Finished
+RunSystem
+testassert mod.party(cip) == 1, "RunSystem reached system code"
+log "E2E START {p:cip} {d:mod.party(cip)}"
+varnew $hits, 0
+varnew $wrong, 0
+StartRunTrace "@TRACE@"
+TraceSetStepFilter system, step
+TraceSetLog "{p:cip} {d:mod.party(cip)}", 1
+TraceSetLogFile "@TRACELOG@"
+TraceSetCommand "$hits+=1; $wrong+=(mod.party(cip)!=1)", 1
+TraceOverConditional 0, .4
+testassert mod.party(cip) == 1, "all four steps were in system code"
+testassert $tracecounter == .4 && $hits == .4 && $wrong == 0, "max count and command filtering agree"
+StopRunTrace
+run
+testassert cip == trace_party:Finished, "normal execution resumed"
+testassert dword:[trace_party:gCallbacks] == 3, "all callbacks executed"
+testassert dword:[trace_party:gProtectionFailures] == 0, "page protections restored"
+bpc trace_party:Finished
+run

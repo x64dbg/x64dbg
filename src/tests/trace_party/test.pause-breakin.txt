@@ -1,0 +1,44 @@
+; INTERACTIVE_PAUSE
+; A blocked syscall must not retain the first Pause's INT3 after break-in and resume.
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init "@TARGET@", "wait"
+; WAIT_PAUSED
+bp trace_party:Ready
+run
+; WAIT_PAUSED
+bpc trace_party:Ready
+bp trace_party:WaitBegin
+run
+; WAIT_PAUSED
+bpc trace_party:WaitBegin
+log "E2E CHECK {d:cip==trace_party:WaitBegin}"
+log "E2E PID {d:dword:[trace_party:gProcessId]}"
+; Keep unrelated threads from changing the active thread or generating debug events during the wait.
+suspendallthreads
+resumethread tid()
+bp ntdll:NtWaitForSingleObject
+run
+; WAIT_PAUSED
+log "E2E CHECK {d:cip==ntdll:NtWaitForSingleObject}"
+log "E2E CHECK {d:dword:[trace_party:gWaitEntered]==1}"
+bpc ntdll:NtWaitForSingleObject
+bp trace_party:Finished
+run
+; WAIT_QUIET
+pause
+; EXPECT_NO_PAUSE
+pause
+; WAIT_PAUSED
+log "E2E CHECK {d:dword:[trace_party:gWaitReturned]==0}"
+resumeallthreads
+run
+; SIGNAL_WAKE
+; WAIT_PAUSED
+log "E2E CHECK {d:cip==trace_party:Finished}"
+log "E2E CHECK {d:dword:[trace_party:gWaitReturned]==1}"
+log "E2E CHECK {d:dword:[trace_party:gCallbacks]==3}"
+log "E2E CHECK {d:dword:[trace_party:gProtectionFailures]==0}"
+bpc trace_party:Finished
+run
+; WAIT_STOPPED

@@ -1,0 +1,33 @@
+; A run-mode Trace Over starting ON an excluded call must catch its first selected-party callee.
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init "@TARGET@"
+bp trace_party:Ready
+run
+bpc trace_party:Ready
+bp trace_party:TraceBegin
+run
+bpc trace_party:TraceBegin
+; RunToParty is process-wide. Isolate the main thread for an exact first-entry assertion.
+suspendallthreads
+resumethread tid()
+TraceIntoConditional "dis.iscall(cip)", .1000
+testassert dis.iscall(cip) && mod.party(cip) == 0, "naturally reached the user-to-system call instruction"
+; Use the fixture's actual import pointer: dis.branchdest uses cached registers,
+; which need not reflect x86's register-indirect call during a trace condition.
+varnew $callee, [trace_party:gSystemAddress]
+testassert mod.party($callee) == 1, "the fixture import points to selected system code"
+testassert dword:[trace_party:gCallbacks] == 0, "no callbacks executed before the call"
+TraceSetStepFilter system, run
+TraceOverConditional 1, .50
+testassert cip == $callee, "caught the first callee entry instead of stepping over the excluded call"
+testassert $tracecounter == 1, "first selected location stopped the trace"
+testassert dword:[trace_party:gCallbacks] == 0, "the first callback has not been skipped"
+resumeallthreads
+bp trace_party:Finished
+run
+testassert cip == trace_party:Finished, "normal execution resumed"
+testassert dword:[trace_party:gCallbacks] == 3, "all three callbacks executed afterward"
+testassert dword:[trace_party:gProtectionFailures] == 0, "initial run cleanup restored protections"
+bpc trace_party:Finished
+run

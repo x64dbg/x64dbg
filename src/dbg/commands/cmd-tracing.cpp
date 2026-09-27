@@ -8,7 +8,9 @@
 #include "variable.h"
 #include "TraceRecord.h"
 
-extern std::vector<std::pair<duint, duint>> RunToUserCodeBreakpoints;
+#include "runtoparty.h"
+#include <cerrno>
+#include <climits>
 
 static bool genericConditionalTraceCommand(TITANCBSTEP callback, STEPFUNCTION stepFunction, int argc, char* argv[])
 {
@@ -35,6 +37,9 @@ static bool genericConditionalTraceCommand(TITANCBSTEP callback, STEPFUNCTION st
         return false;
     }
 
+    // Recording can already have queued an instruction before this filter was
+    // selected. Remove an excluded pending entry before even the first step.
+    TraceRecord.FilterPendingTraceRecord(dbggettracepartyfilter());
     stepFunction(callback);
     return cbDebugRunInternal(1, argv, history_clear);
 }
@@ -135,40 +140,43 @@ bool cbDebugRunToParty(int argc, char* argv[])
 {
     if(dbgisrunning())
     {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Cannot start a trace when running, pause execution first."));
-        return false;
-    }
-    EXCLUSIVE_ACQUIRE(LockRunToUserCode);
-    if(!RunToUserCodeBreakpoints.empty())
-    {
-        dputs(QT_TRANSLATE_NOOP("DBG", "Run to party is busy.\n"));
+        dputs(QT_TRANSLATE_NOOP("DBG", "Cannot run to a module party when running, pause execution first."));
         return false;
     }
     if(IsArgumentsLessThan(argc, 2))
         return false;
-    int party = atoi(argv[1]); // party is a signed integer
-    ModEnum([party](const MODINFO & i)
+    char* end;
+    errno = 0;
+    auto party = strtol(argv[1], &end, 10); // party is a signed decimal integer
+    if(end == argv[1] || *end || errno == ERANGE || party < INT_MIN || party > INT_MAX)
     {
-        if(i.party == party)
-        {
-            for(auto j : i.sections)
-            {
-                BREAKPOINT bp;
-                if(!BpGet(j.addr, BPMEMORY, nullptr, &bp))
-                {
-                    size_t size = DbgMemGetPageSize(j.addr);
-                    RunToUserCodeBreakpoints.emplace_back(j.addr, size);
-                    SetMemoryBPXEx(j.addr, size, UE_MEMORY_EXECUTE, false, cbRunToUserCodeBreakpoint);
-                }
-            }
-        }
-    });
-    return cbDebugRunInternal(1, argv, history_clear);
+        dputs(QT_TRANSLATE_NOOP("DBG", "Invalid module party number."));
+        return false;
+    }
+    if(!RunToParty(int(party), cbRunToPartyFinished))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Cannot run to party: busy, no executable target pages, or memory breakpoint conflict/setup failure."));
+        return false;
+    }
+    // The eventual debug event finalizes the pending record after execution.
+    // Flushing here would capture the starting instruction's memory too early.
+    if(!cbDebugRunInternal(1, argv, history_clear))
+    {
+        RunToPartyClear();
+        return false;
+    }
+    return true;
 }
 
 bool cbDebugRunToUserCode(int argc, char* argv[])
 {
     const char* newargv[] = { "RunToParty", "0" };
+    return cbDebugRunToParty(2, (char**)newargv);
+}
+
+bool cbDebugRunToSystemCode(int argc, char* argv[])
+{
+    const char* newargv[] = { "RunToParty", "1" };
     return cbDebugRunToParty(2, (char**)newargv);
 }
 
@@ -207,6 +215,18 @@ bool cbDebugTraceSetStepFilter(int argc, char* argv[])
     if(IsArgumentsLessThan(argc, 2))
         return false;
 
+    if(dbgtraceactive())
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Cannot change the module filter during a trace."));
+        return false;
+    }
+    auto mode = argc > 2 ? argv[2] : "step";
+    bool runToParty = _stricmp(mode, "run") == 0;
+    if(!runToParty && _stricmp(mode, "step") != 0)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Invalid filter mode, valid options are: step, run"));
+        return false;
+    }
     auto filter = argv[1];
     if(_stricmp(filter, "none") == 0)
     {
@@ -215,12 +235,12 @@ bool cbDebugTraceSetStepFilter(int argc, char* argv[])
     }
     else if(_stricmp(filter, "user") == 0)
     {
-        dbgsettracepartyfilter(mod_user);
+        dbgsettracepartyfilter(mod_user, runToParty);
         dputs(QT_TRANSLATE_NOOP("DBG", "Step filter set to: user"));
     }
     else if(_stricmp(filter, "system") == 0)
     {
-        dbgsettracepartyfilter(mod_system);
+        dbgsettracepartyfilter(mod_system, runToParty);
         dputs(QT_TRANSLATE_NOOP("DBG", "Step filter set to: system"));
     }
     else
