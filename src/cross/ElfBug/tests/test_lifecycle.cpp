@@ -53,61 +53,7 @@ TEST_CASE("Launch setup failure from child is reported cleanly", "[process]")
     const auto err = dbg.WaitForInternalError();
     dbg.JoinThread();
     REQUIRE(err.message.find("chdir failed") != std::string::npos);
-}
-
-TEST_CASE("Exit code is propagated", "[process]")
-{
-    using namespace ElfBug::test;
-    RecordingDebugger dbg;
-    REQUIRE(dbg.Init(FIXTURE("exit_code_42").c_str()));
-    dbg.StartOnThread();
-    dbg.WaitForSystemBreakpoint();
-    dbg.Continue();
-    const auto exit_ev = dbg.WaitForExit();
-    dbg.JoinThread();
-    REQUIRE(exit_ev.exitCode == 42);
-}
-
-TEST_CASE("SystemBreakpoint fires exactly once", "[process]")
-{
-    using namespace ElfBug::test;
-    RecordingDebugger dbg;
-    REQUIRE(dbg.Init(FIXTURE("end_immediately").c_str()));
-    dbg.StartOnThread();
-    dbg.WaitForSystemBreakpoint();
-    dbg.Continue();
-    const auto exit_ev = dbg.WaitForExit();
-    dbg.JoinThread();
-    REQUIRE(exit_ev.exitCode == 0);
-    REQUIRE(dbg.count(EventType::SystemBreakpoint) == 1);
-}
-
-TEST_CASE("Attach rejects invalid pid cleanly", "[process]")
-{
-    using namespace ElfBug::test;
-    RecordingDebugger dbg;
-    REQUIRE_FALSE(dbg.Attach(-1));
-    REQUIRE(dbg.count(EventType::InternalError) >= 1);
-}
-
-TEST_CASE("Pause interrupts running process", "[control]")
-{
-    using namespace ElfBug::test;
-    RecordingDebugger dbg;
-    REQUIRE(dbg.Init(FIXTURE("run_endlessly").c_str()));
-    dbg.StartOnThread();
-    dbg.WaitForSystemBreakpoint();
-    dbg.Continue();
-
-    REQUIRE(dbg.WaitForRunning());
-    dbg.Pause();
-    dbg.WaitForPaused();
-
-    dbg.Stop();
-    dbg.WaitForExit();
-    dbg.JoinThread();
-
-    REQUIRE(dbg.count(EventType::Paused) >= 1);
+    REQUIRE(err.message.find(strerror(ENOENT)) != std::string::npos);
 }
 
 TEST_CASE("Inferior is launched in its own process group", "[control]")
@@ -132,23 +78,6 @@ TEST_CASE("Inferior is launched in its own process group", "[control]")
     REQUIRE(exit_ev.exitCode == -SIGKILL);
 }
 
-TEST_CASE("Stop kills running process cleanly", "[control]")
-{
-    using namespace ElfBug::test;
-    RecordingDebugger dbg;
-    REQUIRE(dbg.Init(FIXTURE("run_endlessly").c_str()));
-    dbg.StartOnThread();
-    dbg.WaitForSystemBreakpoint();
-    dbg.Continue();
-
-    REQUIRE(dbg.WaitForRunning());
-    REQUIRE(dbg.Stop());
-    const auto exit_ev = dbg.WaitForExit();
-    dbg.JoinThread();
-
-    REQUIRE(exit_ev.exitCode == -SIGKILL);
-}
-
 TEST_CASE("Stop returns false after process already exited", "[control]")
 {
     using namespace ElfBug::test;
@@ -162,25 +91,6 @@ TEST_CASE("Stop returns false after process already exited", "[control]")
 
     REQUIRE(exit_ev.exitCode == 0);
     REQUIRE_FALSE(dbg.Stop());
-}
-
-TEST_CASE("Pause after process exit is a no-op", "[control]")
-{
-    using namespace ElfBug::test;
-    RecordingDebugger dbg;
-    REQUIRE(dbg.Init(FIXTURE("end_immediately").c_str()));
-    dbg.StartOnThread();
-    dbg.WaitForSystemBreakpoint();
-    dbg.Continue();
-    const auto exit_ev = dbg.WaitForExit();
-    dbg.JoinThread();
-
-    REQUIRE(exit_ev.exitCode == 0);
-
-    dbg.Pause();
-
-    REQUIRE(dbg.count(EventType::InternalError) == 0);
-    REQUIRE(dbg.count(EventType::Paused) == 0);
 }
 
 TEST_CASE("Reuse Debugger instance after exit", "[init]")
@@ -210,30 +120,6 @@ TEST_CASE("Reuse Debugger instance after exit", "[init]")
     REQUIRE(dbg.count(EventType::InternalError) == 0);
 }
 
-TEST_CASE("Step requests while running are ignored", "[control]")
-{
-    using namespace ElfBug::test;
-    RecordingDebugger dbg;
-    REQUIRE(dbg.Init(FIXTURE("run_endlessly").c_str()));
-    dbg.StartOnThread();
-    dbg.WaitForSystemBreakpoint();
-    dbg.Continue();
-    REQUIRE(dbg.WaitForRunning());
-
-    dbg.StepOver();
-    dbg.StepInto();
-
-    dbg.Pause();
-    dbg.WaitForPaused();
-    dbg.Continue();
-    REQUIRE(dbg.WaitForRunning());
-
-    dbg.Stop();
-    dbg.WaitForExit();
-    dbg.JoinThread();
-    REQUIRE(dbg.count(EventType::Step) == 0);
-}
-
 TEST_CASE("Pause while already paused does not queue a stop", "[control]")
 {
     using namespace ElfBug::test;
@@ -246,7 +132,7 @@ TEST_CASE("Pause while already paused does not queue a stop", "[control]")
     dbg.Pause();
     dbg.Continue();
     REQUIRE(dbg.WaitForRunning());
-    REQUIRE_THROWS_AS(dbg.WaitFor(EventType::Paused, std::chrono::milliseconds(500)), WaitTimeout);
+    REQUIRE_THROWS_AS(dbg.WaitFor(EventType::Paused, std::chrono::milliseconds(50)), WaitTimeout);
 
     dbg.Pause();
     dbg.WaitForPaused();

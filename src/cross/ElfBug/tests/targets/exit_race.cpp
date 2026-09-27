@@ -1,14 +1,11 @@
-// One worker calls _exit while the others hot-loop through a breakpoint site, so a stop
-// sweep runs with the leader already dying.
+// One worker exits while the others spin through a breakpoint.
 #include <pthread.h>
 #include <unistd.h>
 #include "TargetUtil.h"
 
 extern "C"
 {
-    // The debugger writes 1 here to start the exit.
     volatile int er_exit_now = 0;
-    // Breakpoint site: the spinners pass through it constantly.
     void er_hot();
 }
 
@@ -18,7 +15,6 @@ extern "C" void er_hot()
 
 namespace
 {
-    // Spins: a sleeper can miss every short window between sweeps.
     void* exiter(void*)
     {
         while(er_exit_now == 0)

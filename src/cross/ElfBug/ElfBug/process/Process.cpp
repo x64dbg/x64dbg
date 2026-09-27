@@ -1,7 +1,7 @@
 #include <ElfBug/process/Process.h>
+#include <ElfBug/process/ProcFs.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <cstdio>
 
 namespace ElfBug
 {
@@ -16,21 +16,24 @@ namespace ElfBug
             close(mMemFd);
     }
 
+    Thread* Process::FindThread(const pid_t tid) const
+    {
+        const auto it = threads.find(tid);
+        return it != threads.end() ? it->second.get() : nullptr;
+    }
+
     int Process::memFdLocked() const
     {
         if(mMemFd == -1)
         {
-            char path[64];
-            snprintf(path, sizeof(path), "/proc/%d/mem", pid);
-            mMemFd = open(path, O_RDWR);
+            const std::string path = procfs::Path(pid, "mem");
+            mMemFd = open(path.c_str(), O_RDWR | O_CLOEXEC);
             if(mMemFd == -1)
-                mMemFd = open(path, O_RDONLY);
+                mMemFd = open(path.c_str(), O_RDONLY | O_CLOEXEC);
         }
         return mMemFd;
     }
 
-    // The lock spans the syscall: ResetMemFd would otherwise close the descriptor
-    // mid-read and the number could be reused by an unrelated open.
     ssize_t Process::memPread(void* buffer, const size_t size, const off_t offset) const
     {
         std::lock_guard lock(mMemFdMutex);

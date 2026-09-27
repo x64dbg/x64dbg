@@ -9,39 +9,41 @@ namespace ElfBug
     class Registers
     {
     public:
+        using Word = decltype(user_regs_struct::rax);
+
         Registers() = default;
         explicit Registers(pid_t tid);
 
         bool Read();
         bool Write();
 
-        ptr & Gax();
-        ptr & Gbx();
-        ptr & Gcx();
-        ptr & Gdx();
-        ptr & Gdi();
-        ptr & Gsi();
-        ptr & Gbp();
-        ptr & Gsp();
-        ptr & Gip();
+        Word & Gax();
+        Word & Gbx();
+        Word & Gcx();
+        Word & Gdx();
+        Word & Gdi();
+        Word & Gsi();
+        Word & Gbp();
+        Word & Gsp();
+        Word & Gip();
 
-        ptr & Rax();
-        ptr & Rbx();
-        ptr & Rcx();
-        ptr & Rdx();
-        ptr & Rsi();
-        ptr & Rdi();
-        ptr & Rbp();
-        ptr & Rsp();
-        ptr & Rip();
-        ptr & R8();
-        ptr & R9();
-        ptr & R10();
-        ptr & R11();
-        ptr & R12();
-        ptr & R13();
-        ptr & R14();
-        ptr & R15();
+        Word & Rax();
+        Word & Rbx();
+        Word & Rcx();
+        Word & Rdx();
+        Word & Rsi();
+        Word & Rdi();
+        Word & Rbp();
+        Word & Rsp();
+        Word & Rip();
+        Word & R8();
+        Word & R9();
+        Word & R10();
+        Word & R11();
+        Word & R12();
+        Word & R13();
+        Word & R14();
+        Word & R15();
 
         [[nodiscard]] bool TrapFlag() const;
         void SetTrapFlag(bool set);

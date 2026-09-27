@@ -3,10 +3,6 @@
 
 namespace ElfBug
 {
-    static_assert(sizeof(ptr) == sizeof(decltype(user_regs_struct{} .rax)),
-                  "ptr and user_regs_struct register fields must have matching size "
-                  "for the reinterpret_cast accessors below to be safe");
-
     Registers::Registers(const pid_t tid)
         : mTid(tid)
     {
@@ -22,33 +18,33 @@ namespace ElfBug
         return ptrace(PTRACE_SETREGS, mTid, nullptr, &mRegs) != -1;
     }
 
-    ptr & Registers::Gax() { return reinterpret_cast<ptr &>(mRegs.rax); }
-    ptr & Registers::Gbx() { return reinterpret_cast<ptr &>(mRegs.rbx); }
-    ptr & Registers::Gcx() { return reinterpret_cast<ptr &>(mRegs.rcx); }
-    ptr & Registers::Gdx() { return reinterpret_cast<ptr &>(mRegs.rdx); }
-    ptr & Registers::Gdi() { return reinterpret_cast<ptr &>(mRegs.rdi); }
-    ptr & Registers::Gsi() { return reinterpret_cast<ptr &>(mRegs.rsi); }
-    ptr & Registers::Gbp() { return reinterpret_cast<ptr &>(mRegs.rbp); }
-    ptr & Registers::Gsp() { return reinterpret_cast<ptr &>(mRegs.rsp); }
-    ptr & Registers::Gip() { return reinterpret_cast<ptr &>(mRegs.rip); }
+    Registers::Word & Registers::Gax() { return mRegs.rax; }
+    Registers::Word & Registers::Gbx() { return mRegs.rbx; }
+    Registers::Word & Registers::Gcx() { return mRegs.rcx; }
+    Registers::Word & Registers::Gdx() { return mRegs.rdx; }
+    Registers::Word & Registers::Gdi() { return mRegs.rdi; }
+    Registers::Word & Registers::Gsi() { return mRegs.rsi; }
+    Registers::Word & Registers::Gbp() { return mRegs.rbp; }
+    Registers::Word & Registers::Gsp() { return mRegs.rsp; }
+    Registers::Word & Registers::Gip() { return mRegs.rip; }
 
-    ptr & Registers::Rax() { return reinterpret_cast<ptr &>(mRegs.rax); }
-    ptr & Registers::Rbx() { return reinterpret_cast<ptr &>(mRegs.rbx); }
-    ptr & Registers::Rcx() { return reinterpret_cast<ptr &>(mRegs.rcx); }
-    ptr & Registers::Rdx() { return reinterpret_cast<ptr &>(mRegs.rdx); }
-    ptr & Registers::Rsi() { return reinterpret_cast<ptr &>(mRegs.rsi); }
-    ptr & Registers::Rdi() { return reinterpret_cast<ptr &>(mRegs.rdi); }
-    ptr & Registers::Rbp() { return reinterpret_cast<ptr &>(mRegs.rbp); }
-    ptr & Registers::Rsp() { return reinterpret_cast<ptr &>(mRegs.rsp); }
-    ptr & Registers::Rip() { return reinterpret_cast<ptr &>(mRegs.rip); }
-    ptr & Registers::R8()  { return reinterpret_cast<ptr &>(mRegs.r8); }
-    ptr & Registers::R9()  { return reinterpret_cast<ptr &>(mRegs.r9); }
-    ptr & Registers::R10() { return reinterpret_cast<ptr &>(mRegs.r10); }
-    ptr & Registers::R11() { return reinterpret_cast<ptr &>(mRegs.r11); }
-    ptr & Registers::R12() { return reinterpret_cast<ptr &>(mRegs.r12); }
-    ptr & Registers::R13() { return reinterpret_cast<ptr &>(mRegs.r13); }
-    ptr & Registers::R14() { return reinterpret_cast<ptr &>(mRegs.r14); }
-    ptr & Registers::R15() { return reinterpret_cast<ptr &>(mRegs.r15); }
+    Registers::Word & Registers::Rax() { return mRegs.rax; }
+    Registers::Word & Registers::Rbx() { return mRegs.rbx; }
+    Registers::Word & Registers::Rcx() { return mRegs.rcx; }
+    Registers::Word & Registers::Rdx() { return mRegs.rdx; }
+    Registers::Word & Registers::Rsi() { return mRegs.rsi; }
+    Registers::Word & Registers::Rdi() { return mRegs.rdi; }
+    Registers::Word & Registers::Rbp() { return mRegs.rbp; }
+    Registers::Word & Registers::Rsp() { return mRegs.rsp; }
+    Registers::Word & Registers::Rip() { return mRegs.rip; }
+    Registers::Word & Registers::R8()  { return mRegs.r8; }
+    Registers::Word & Registers::R9()  { return mRegs.r9; }
+    Registers::Word & Registers::R10() { return mRegs.r10; }
+    Registers::Word & Registers::R11() { return mRegs.r11; }
+    Registers::Word & Registers::R12() { return mRegs.r12; }
+    Registers::Word & Registers::R13() { return mRegs.r13; }
+    Registers::Word & Registers::R14() { return mRegs.r14; }
+    Registers::Word & Registers::R15() { return mRegs.r15; }
 
     bool Registers::TrapFlag() const
     {

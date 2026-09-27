@@ -4,18 +4,8 @@ namespace ElfBug
 {
     BreakpointInfo* Process::findSoftwareBreakpoint(const ptr address)
     {
-        const auto it = mSoftwareBreakpointReferences.find(address);
-        if(it == mSoftwareBreakpointReferences.end())
-            return nullptr;
-        return &it->second->second;
-    }
-
-    void Process::forgetSoftwareLocked(const ptr address)
-    {
-        const BreakpointKey key{BreakpointType::Software, address};
-        mSoftwareBreakpointReferences.erase(address);
-        mBreakpointCallbacks.erase(key);
-        mBreakpoints.erase(key);
+        const auto it = mBreakpoints.find(address);
+        return it == mBreakpoints.end() ? nullptr : &it->second.info;
     }
 
     bool Process::pokeByte(const ptr address, const uint8 byte)
@@ -25,62 +15,56 @@ namespace ElfBug
 
     bool Process::SetBreakpoint(const ptr address, const bool singleshot, const SoftwareType type)
     {
+        (void)type;
         std::unique_lock lock(mBreakpointMutex);
-        return setBreakpointLocked(address, singleshot, type);
+        return setBreakpointLocked(address, singleshot) != nullptr;
     }
 
-    bool Process::setBreakpointLocked(const ptr address, const bool singleshot, const SoftwareType type)
+    SoftwareBreakpoint* Process::setBreakpointLocked(const ptr address, const bool singleshot)
     {
-        BreakpointKey key{BreakpointType::Software, address};
-        if(mBreakpoints.count(key))
-            return false;
+        if(mBreakpoints.count(address))
+            return nullptr;
 
-        uint8_t origByte = 0;
-        if(!MemReadRaw(address, &origByte, 1))
-            return false;
+        uint8 savedByte = 0;
+        if(!MemReadRaw(address, &savedByte, 1))
+            return nullptr;
 
-        if(!pokeByte(address, 0xCC))
-            return false;
+        if(!pokeByte(address, kInt3))
+            return nullptr;
 
-        BreakpointInfo info;
-        info.address = address;
-        info.singleshot = singleshot;
-        info.armed = true;
-        info.type = BreakpointType::Software;
-        info.internal.software.type = type;
-        info.internal.software.oldbytes[0] = origByte;
-        info.internal.software.newbytes[0] = 0xCC;
-        info.internal.software.size = 1;
-
-        const auto it = mBreakpoints.emplace(key, info).first;
-        mSoftwareBreakpointReferences[address] = it;
-
-        return true;
+        SoftwareBreakpoint & bp = mBreakpoints[address];
+        bp.info.address = address;
+        bp.info.singleshot = singleshot;
+        bp.info.armed = true;
+        bp.info.type = BreakpointType::Software;
+        bp.info.savedByte = savedByte;
+        return &bp;
     }
 
     bool Process::SetBreakpoint(const ptr address, const BreakpointCallback & cbBreakpoint, const bool singleshot, const SoftwareType type)
     {
+        (void)type;
         std::unique_lock lock(mBreakpointMutex);
-        if(!setBreakpointLocked(address, singleshot, type))
+        SoftwareBreakpoint* bp = setBreakpointLocked(address, singleshot);
+        if(!bp)
             return false;
 
-        const BreakpointKey key{BreakpointType::Software, address};
-        mBreakpointCallbacks[key] = cbBreakpoint;
+        bp->callback = cbBreakpoint;
         return true;
     }
 
     bool Process::DeleteBreakpoint(const ptr address)
     {
         std::unique_lock lock(mBreakpointMutex);
-        const BreakpointKey key{BreakpointType::Software, address};
-        const auto it = mBreakpoints.find(key);
+        const auto it = mBreakpoints.find(address);
         if(it == mBreakpoints.end())
             return false;
 
-        if(it->second.armed && !pokeByte(address, it->second.internal.software.oldbytes[0]))
+        const BreakpointInfo & info = it->second.info;
+        if(info.armed && !pokeByte(address, info.savedByte))
             return false;
 
-        forgetSoftwareLocked(address);
+        mBreakpoints.erase(it);
         return true;
     }
 
@@ -91,7 +75,7 @@ namespace ElfBug
         if(!info || !info->armed)
             return false;
 
-        if(!pokeByte(address, info->internal.software.oldbytes[0]))
+        if(!pokeByte(address, info->savedByte))
             return false;
 
         info->armed = false;
@@ -102,12 +86,12 @@ namespace ElfBug
     {
         std::unique_lock lock(mBreakpointMutex);
         bool all = true;
-        for(auto & [key, info] : mBreakpoints)
+        for(auto & [address, bp] : mBreakpoints)
         {
-            if(key.first != BreakpointType::Software || !info.armed)
+            if(!bp.info.armed)
                 continue;
-            if(pokeByte(key.second, info.internal.software.oldbytes[0]))
-                info.armed = false;
+            if(pokeByte(address, bp.info.savedByte))
+                bp.info.armed = false;
             else
                 all = false;
         }
@@ -121,7 +105,7 @@ namespace ElfBug
         if(!info || info->armed)
             return false;
 
-        if(!pokeByte(address, info->internal.software.newbytes[0]))
+        if(!pokeByte(address, kInt3))
             return false;
 
         info->armed = true;
@@ -131,75 +115,58 @@ namespace ElfBug
     bool Process::ForgetBreakpoint(const ptr address)
     {
         std::unique_lock lock(mBreakpointMutex);
-        if(mSoftwareBreakpointReferences.count(address) == 0)
-            return false;
-
-        forgetSoftwareLocked(address);
-        return true;
+        return mBreakpoints.erase(address) != 0;
     }
 
     void Process::ReseatBreakpointsAfterExec()
     {
         std::unique_lock lock(mBreakpointMutex);
-        for(auto & [key, info] : mBreakpoints)
+        for(auto & [address, bp] : mBreakpoints)
         {
-            if(key.first != BreakpointType::Software)
+            bp.info.armed = false;
+            bp.info.savedByte = 0;
+
+            uint8 savedByte = 0;
+            if(!MemReadRaw(address, &savedByte, 1))
+                continue;
+            if(!pokeByte(address, kInt3))
                 continue;
 
-            info.armed = false;
-            info.internal.software.oldbytes[0] = 0;
-
-            uint8 origByte = 0;
-            if(!MemReadRaw(key.second, &origByte, 1))
-                continue;
-            if(!pokeByte(key.second, info.internal.software.newbytes[0]))
-                continue;
-
-            info.internal.software.oldbytes[0] = origByte;
-            info.armed = true;
+            bp.info.savedByte = savedByte;
+            bp.info.armed = true;
         }
     }
 
     void Process::ForgetBreakpointsAfterExec()
     {
         std::unique_lock lock(mBreakpointMutex);
-        std::vector<ptr> software;
-        for(const auto & [key, info] : mBreakpoints)
-        {
-            if(key.first == BreakpointType::Software)
-                software.push_back(key.second);
-        }
-        for(const ptr address : software)
-            forgetSoftwareLocked(address);
+        mBreakpoints.clear();
     }
 
     bool Process::TakeBreakpointDispatch(const ptr address, BreakpointInfo & info,
                                          BreakpointCallback & callback) const
     {
         std::shared_lock lock(mBreakpointMutex);
-        const auto ref = mSoftwareBreakpointReferences.find(address);
-        if(ref == mSoftwareBreakpointReferences.end())
+        const auto it = mBreakpoints.find(address);
+        if(it == mBreakpoints.end())
             return false;
 
-        info = ref->second->second;
-
-        const BreakpointKey key{BreakpointType::Software, address};
-        const auto cbIt = mBreakpointCallbacks.find(key);
-        callback = cbIt != mBreakpointCallbacks.end() ? cbIt->second : BreakpointCallback();
+        info = it->second.info;
+        callback = it->second.callback;
         return true;
     }
 
     bool Process::HasBreakpoint(const ptr address) const
     {
         std::shared_lock lock(mBreakpointMutex);
-        return mSoftwareBreakpointReferences.find(address) != mSoftwareBreakpointReferences.end();
+        return mBreakpoints.count(address) != 0;
     }
 
     bool Process::HasBreakpointCallback(const ptr address) const
     {
         std::shared_lock lock(mBreakpointMutex);
-        const BreakpointKey key{BreakpointType::Software, address};
-        return mBreakpointCallbacks.find(key) != mBreakpointCallbacks.end();
+        const auto it = mBreakpoints.find(address);
+        return it != mBreakpoints.end() && it->second.callback;
     }
 
     bool Process::SetMemoryBreakpoint(const ptr address, const ptr size, const MemoryType type, const bool singleshot)

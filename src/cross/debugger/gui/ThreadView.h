@@ -6,6 +6,8 @@
 
 class QMenu;
 class QAction;
+class QShowEvent;
+class QHideEvent;
 
 class ThreadView : public StdTable
 {
@@ -14,6 +16,10 @@ public:
     explicit ThreadView(DbgAdapter* adapter, QWidget* parent = nullptr);
 
     QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
+
+protected:
+    void showEvent(QShowEvent* event) override;
+    void hideEvent(QHideEvent* event) override;
 
 public slots:
     void onThreadsUpdated(const QVector<DbgThreadInfo> & threads, pid_t currentTid);

@@ -1,5 +1,4 @@
-// Long-lived workers, so a test can tell a frozen tracee from a running one by watching
-// the counters. Each worker writes only its own slot.
+// Four workers spin on their own ts_counters slot.
 #include <pthread.h>
 #include <csignal>
 #include <ctime>
@@ -10,24 +9,24 @@
 extern "C"
 {
     volatile unsigned long long ts_counters[4] = {0, 0, 0, 0};
-    // The debugger writes 1 here to let the tracee exit cleanly.
     volatile int ts_stop = 0;
-    // Breakpoint site: every worker passes through it exactly once.
+    // Each worker calls this once.
     void ts_worker_started(int index);
-    // Breakpoint site in the spin loop, hit by each worker every 2^20 increments.
+    // Called every 2^20 increments.
     void ts_worker_tick();
-    // Breakpoint site on the main thread, which touches no counter.
+    // Main thread only.
     void ts_tick();
+    // Labels main's call to ts_tick.
+    void ts_call_tick();
+    void ts_call_site();
 
-    // The debugger writes 1 here to make the main thread fault once per loop.
+    // Set to 1 to make main fault each loop.
     volatile int ts_fault_armed = 0;
-    // Points at a page the main loop keeps read-only while the fault is armed.
     void* ts_fault_target = nullptr;
     void ts_fault();
-    // Labels the faulting store, so a breakpoint can sit on it and the step off that byte
-    // is what faults.
+    // Labels the faulting store.
     void ts_fault_site();
-    // Thread the SIGSEGV handler ran on, so a test can see where a forwarded signal landed.
+    // Thread the SIGSEGV handler ran on.
     volatile int ts_fault_handler_tid = 0;
 }
 
@@ -41,6 +40,16 @@ ts_fault:
     .globl ts_fault_site
 ts_fault_site:
     movl    $1, (%rax)
+    ret
+
+    .globl ts_call_tick
+    .type  ts_call_tick, @function
+ts_call_tick:
+    subq    $8, %rsp
+    .globl ts_call_site
+ts_call_site:
+    call    ts_tick@PLT
+    addq    $8, %rsp
     ret
 )");
 
@@ -77,7 +86,7 @@ namespace
 {
     long pageSize = 4096;
 
-    // Make the store land on retry, so a reported fault does not kill the tracee.
+    // Unprotects the page so the store succeeds on retry.
     void onFault(int)
     {
         ts_fault_handler_tid = static_cast<int>(syscall(SYS_gettid));
@@ -103,7 +112,7 @@ int main()
 
     while(ts_stop == 0)
     {
-        ts_tick();
+        ts_call_tick();
         if(ts_fault_armed)
         {
             mprotect(ts_fault_target, static_cast<size_t>(pageSize), PROT_READ);

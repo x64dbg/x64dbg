@@ -27,6 +27,8 @@ namespace ElfBug
         Process(Process &&) = delete;
         Process & operator=(Process &&) = delete;
 
+        [[nodiscard]] Thread* FindThread(pid_t tid) const;
+
         [[nodiscard]] bool MemRead(ptr address, void* buffer, ptr size, ptr* bytesRead = nullptr) const;
         [[nodiscard]] bool MemReadRaw(ptr address, void* buffer, ptr size, ptr* bytesRead = nullptr) const;
         bool MemWrite(ptr address, const void* buffer, ptr size, ptr* bytesWritten = nullptr);
@@ -34,6 +36,7 @@ namespace ElfBug
         [[nodiscard]] bool MemIsValidPtr(ptr address) const;
         bool MemProtect(ptr address, ptr size, uint32 newProtect, const uint32* oldProtect = nullptr);
 
+        // Only ShortInt3 is implemented so far (eventually will be parity with Windows)
         bool SetBreakpoint(ptr address, bool singleshot = false, SoftwareType type = SoftwareType::ShortInt3);
         bool SetBreakpoint(ptr address, const BreakpointCallback & cbBreakpoint, bool singleshot = false, SoftwareType type = SoftwareType::ShortInt3);
         bool DeleteBreakpoint(ptr address);
@@ -65,14 +68,9 @@ namespace ElfBug
     private:
         // Guards the breakpoint maps, which any thread touches while the tracee is paused.
         mutable std::shared_mutex mBreakpointMutex;
-        BreakpointMap mBreakpoints;
-        BreakpointCallbackMap mBreakpointCallbacks;
-        SoftwareBreakpointMap mSoftwareBreakpointReferences;
-        MemoryBreakpointSet mMemoryBreakpointRanges;
-        MemoryBreakpointMap mMemoryBreakpointPages;
-        bool setBreakpointLocked(ptr address, bool singleshot, SoftwareType type);
+        SoftwareBreakpointMap mBreakpoints;
+        SoftwareBreakpoint* setBreakpointLocked(ptr address, bool singleshot);
         bool pokeByte(ptr address, uint8 byte);
-        void forgetSoftwareLocked(ptr address);
         BreakpointInfo* findSoftwareBreakpoint(ptr address);
         void unpatchBreakpointBytesLocked(ptr address, void* buffer, ptr size) const;
 

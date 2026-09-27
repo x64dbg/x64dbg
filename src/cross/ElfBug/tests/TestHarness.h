@@ -2,11 +2,12 @@
 
 #include <ElfBug/core/Debugger.h>
 #include <ElfBug/process/ProcessList.h>
+#include <ElfBug/process/ProcFs.h>
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <csignal>
-#include <fstream>
 #include <functional>
 #include <future>
 #include <mutex>
@@ -20,19 +21,15 @@
 
 namespace ElfBug::test
 {
-    // Scheduled or sleeping, so a zombie does not read as alive.
+    // R or S, so a zombie does not count.
     [[nodiscard]] inline bool ProcessIsRunning(const pid_t pid)
     {
         if(pid <= 0)
             return false;
-        std::ifstream stat("/proc/" + std::to_string(pid) + "/stat");
-        std::string data;
-        std::getline(stat, data);
-        const auto lastParen = data.rfind(')');
-        if(lastParen == std::string::npos || lastParen + 2 >= data.size())
-            return false;
-        const char state = data[lastParen + 2];
-        return state == 'R' || state == 'S';
+        const std::string stat = procfs::ReadFile(procfs::Path(pid, "stat"));
+        const auto fields = procfs::StatFields(stat);
+        return fields.size() > procfs::kStatState &&
+               (fields[procfs::kStatState] == "R" || fields[procfs::kStatState] == "S");
     }
 
     [[nodiscard]] inline bool WaitForProcessRunning(const pid_t pid,
@@ -48,10 +45,9 @@ namespace ElfBug::test
         return false;
     }
 
-    // A process SIGKILLed out of ptrace-stop reads R for a moment on its way out, so one
-    // sample can see a dying process as alive. Require it to still be there afterwards.
+    // A dying process reads R briefly, so sample again after a settle.
     [[nodiscard]] inline bool StaysRunning(const pid_t pid,
-                                           const std::chrono::milliseconds settle = std::chrono::milliseconds(250))
+                                           const std::chrono::milliseconds settle = std::chrono::milliseconds(20))
     {
         if(!WaitForProcessRunning(pid))
             return false;
@@ -88,8 +84,7 @@ namespace ElfBug::test
         ptr instructionPointer = 0;
     };
 
-    // Distinct from the InternalError the waits also throw, so a test can assert that
-    // nothing arrived without also accepting a debugger that fell over.
+    // Separate from InternalError, so a test can expect silence.
     struct WaitTimeout : std::runtime_error
     {
         using std::runtime_error::runtime_error;
@@ -114,7 +109,7 @@ namespace ElfBug::test
             if(mLoopDone.valid() && mLoopDone.wait_for(timeout) != std::future_status::ready)
             {
                 stuck = loopState();
-                Stop();
+                forceStop();
             }
             mLoopThread.join();
             if(!stuck.empty())
@@ -125,9 +120,17 @@ namespace ElfBug::test
         {
             if(mLoopThread.joinable())
             {
-                Stop();
+                forceStop();
                 mLoopThread.join();
             }
+        }
+
+        bool Attach(const pid_t processId)
+        {
+            if(!Debugger::Attach(processId))
+                return false;
+            mTargetPid.store(processId);
+            return true;
         }
 
         std::vector<Event> events() const
@@ -148,26 +151,30 @@ namespace ElfBug::test
         Process* process() const { return mProcess; }
         Thread* currentThread() const { return mThread; }
 
-        // Runs on the tracer thread, before the event is published.
+        // Runs on the tracer thread.
         void OnSystemBreakpoint(std::function<void()> fn)
         {
             mOnSystemBreakpoint = std::move(fn);
         }
 
-        // Tracer thread, at the exec stop: the only point where the old address space is
-        // provably gone and the new image has not run yet.
+        // Runs on the tracer thread at the exec stop.
         void OnExec(std::function<void()> fn)
         {
             mOnExec = std::move(fn);
         }
 
-        // Runs on the tracer thread, the only one whose ptrace calls do not fail ESRCH.
+        // Runs on the tracer thread.
         void OnAttachBreakpoint(std::function<void()> fn)
         {
             mOnAttachBreakpoint = std::move(fn);
         }
 
-        // /proc stat state char: R or S. A stopped or dying process reads as neither.
+        // Runs on the tracer thread.
+        void OnDetach(std::function<void()> fn)
+        {
+            mOnDetach = std::move(fn);
+        }
+
         bool WaitForRunning(const std::chrono::milliseconds timeout = std::chrono::seconds(5)) const
         {
             const pid_t pid = mProcess ? mProcess->pid : 0;
@@ -225,6 +232,7 @@ namespace ElfBug::test
     protected:
         void cbCreateProcess(const pid_t pid, const ptr entryPoint) override
         {
+            mTargetPid.store(pid);
             push({EventType::CreateProcess, {}, pid, 0, entryPoint, 0, {}});
         }
 
@@ -290,6 +298,8 @@ namespace ElfBug::test
 
         void cbDetach() override
         {
+            if(mOnDetach)
+                mOnDetach();
             push({EventType::Detach, {}, 0, 0, 0, 0, {}});
         }
 
@@ -301,6 +311,13 @@ namespace ElfBug::test
         }
 
     private:
+        // Stop() is a no-op without a main pid.
+        void forceStop()
+        {
+            if(!Stop() && mTargetPid.load() > 0)
+                kill(mTargetPid.load(), SIGKILL);
+        }
+
         std::string loopState() const
         {
             std::string state = IsPaused() ? "paused" : "running";
@@ -383,10 +400,11 @@ namespace ElfBug::test
         std::function<void()> mOnSystemBreakpoint;
         std::function<void()> mOnAttachBreakpoint;
         std::function<void()> mOnExec;
+        std::function<void()> mOnDetach;
+        std::atomic<pid_t> mTargetPid{0};
     };
 
-    // A process the debugger did not spawn. The test process is its parent, which is what
-    // yama ptrace_scope=1 requires of anything that attaches to it.
+    // Forked by the test, so yama ptrace_scope=1 allows attaching.
     class UntracedProcess
     {
     public:
@@ -397,7 +415,6 @@ namespace ElfBug::test
             if(pid == 0)
             {
                 prctl(PR_SET_PDEATHSIG, SIGKILL);
-                // The parent may already have died above, before the signal was armed.
                 if(getppid() != parent)
                     _exit(127);
                 execl(path.c_str(), path.c_str(), nullptr);
@@ -428,8 +445,6 @@ namespace ElfBug::test
             return WaitForProcessRunning(pid, timeout);
         }
 
-        // Running() goes true microseconds after fork, before exec has even replaced the
-        // image. A fixture with workers is only up once its task list holds them all.
         [[nodiscard]] bool WaitForThreads(const std::size_t count,
                                           const std::chrono::milliseconds timeout = std::chrono::seconds(5)) const
         {

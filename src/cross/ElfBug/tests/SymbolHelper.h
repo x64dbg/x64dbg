@@ -1,7 +1,7 @@
 #pragma once
 
+#include <ElfBug/process/ProcFs.h>
 #include <cstdio>
-#include <fstream>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -34,25 +34,14 @@ namespace ElfBug::test
     }
 
     // Runtime-minus-file offset for `path`'s executable mapping in pid's /proc/maps.
-    inline std::optional<ptr> GetExecLoadBias(pid_t pid, const std::string & path)
+    inline std::optional<ptr> GetExecLoadBias(const pid_t pid, const std::string & path)
     {
-        std::ifstream maps("/proc/" + std::to_string(pid) + "/maps");
-        if(!maps) return std::nullopt;
-
-        std::string line;
-        while(std::getline(maps, line))
+        const std::string maps = procfs::ReadFile(procfs::Path(pid, "maps"));
+        for(const std::string_view line : procfs::Split(maps, '\n'))
         {
-            std::istringstream iss(line);
-            unsigned long long low = 0, high = 0, offset = 0, inode = 0;
-            char dash = 0;
-            std::string perms, dev, pathname;
-
-            if(!(iss >> std::hex >> low >> dash >> high >> perms >> offset >> dev >> std::dec >> inode))
-                continue;
-
-            std::getline(iss >> std::ws, pathname);
-            if(perms.find('x') != std::string::npos && pathname == path)
-                return low - offset;
+            const auto entry = procfs::ParseMapsLine(line);
+            if(entry && entry->perms[2] == 'x' && entry->path == path)
+                return entry->start - entry->offset;
         }
         return std::nullopt;
     }

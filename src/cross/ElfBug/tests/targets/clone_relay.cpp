@@ -1,20 +1,20 @@
-// The cloning thread is always the newest, so a sweep that freezes its first pass still
-// leaves one free to clone behind its back. thread_storm clones from the leader.
+// Each relay thread clones the next, so the cloner is always the newest thread.
+#include <fcntl.h>
 #include <pthread.h>
+#include <unistd.h>
 #include <cstddef>
+#include <cstdlib>
+#include <cstring>
 #include "TargetUtil.h"
 
 extern "C"
 {
     volatile int cr_stop = 0;
-    // Hand-offs so far. Only the current relay thread writes it.
     volatile int cr_relayed = 0;
 }
 
 namespace
 {
-    // The parked threads give a sweep pass enough to do that hand-offs keep landing behind
-    // it; the budget is what stops the relay and bounds the thread count.
     constexpr int kParked = 48;
     constexpr int kRelayLimit = 128;
     constexpr std::size_t kStackSize = 128 * 1024;
@@ -33,6 +33,22 @@ namespace
 
     void* relay(void*);
 
+    // The relay starts once an attach sweep has.
+    bool leaderTraced()
+    {
+        char status[4096];
+        const int fd = open("/proc/self/status", O_RDONLY | O_CLOEXEC);
+        if(fd == -1)
+            return false;
+        const ssize_t n = read(fd, status, sizeof(status) - 1);
+        close(fd);
+        if(n <= 0)
+            return false;
+        status[n] = '\0';
+        const char* tracer = strstr(status, "TracerPid:");
+        return tracer && atoi(tracer + 10) != 0;
+    }
+
     void spawn(void* (*entry)(void*))
     {
         pthread_attr_t attr;
@@ -46,6 +62,9 @@ namespace
 
     void* relay(void*)
     {
+        while(cr_relayed == 0 && !leaderTraced())
+            nap(10000);
+
         if(cr_stop == 0 && cr_relayed < kRelayLimit)
         {
             cr_relayed = cr_relayed + 1;

@@ -1,18 +1,16 @@
 #include <ElfBug/core/Debugger.h>
 #include <ElfBug/process/ProcessArch.h>
 #include <ElfBug/process/ProcessList.h>
+#include <ElfBug/process/ProcFs.h>
 #include <sys/ptrace.h>
 #include <sys/user.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <algorithm>
 #include <cerrno>
-#include <chrono>
 #include <cstddef>
 #include <csignal>
 #include <cstring>
-#include <fstream>
-#include <thread>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -21,29 +19,15 @@ namespace ElfBug
 {
     namespace
     {
-        constexpr auto kReleaseGroupStopTimeout = std::chrono::milliseconds(50);
-
         struct PendingAttachSignal
         {
             int signal = 0;
             ptr address = 0;
         };
 
-        // 'T' is group-stop, 't' is any ptrace-stop. Only the first outlives a detach.
-        char processState(const pid_t pid)
-        {
-            std::ifstream file("/proc/" + std::to_string(pid) + "/stat");
-            std::string line;
-            std::getline(file, line);
-            const auto lastParen = line.rfind(')');
-            if(lastParen == std::string::npos || lastParen + 2 >= line.size())
-                return '?';
-            return line[lastParen + 2];
-        }
-
         void collectClonedChild(const pid_t parent, const int status, std::vector<pid_t> & clones)
         {
-            if(((status >> 16) & 0xffff) != PTRACE_EVENT_CLONE)
+            if(PtraceEvent(status) != PTRACE_EVENT_CLONE)
                 return;
             unsigned long child = 0;
             if(ptrace(PTRACE_GETEVENTMSG, parent, nullptr, &child) != -1 && child != 0)
@@ -56,7 +40,6 @@ namespace ElfBug
                 signals.push_back(signal);
         }
 
-        // Our int3 the thread hit before the bytes were disarmed: step it back onto the restored instruction.
         bool rewindOwnTrap(const pid_t tid, const Process* process)
         {
             if(!process)
@@ -72,7 +55,7 @@ namespace ElfBug
 
         void keepReleaseSignal(const pid_t tid, const int status, const Process* process, std::vector<int> & signals)
         {
-            if(((status >> 16) & 0xffff) != 0)
+            if(PtraceEvent(status) != 0)
                 return;
             siginfo_t info{};
             const bool haveInfo = ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1;
@@ -111,35 +94,17 @@ namespace ElfBug
         }
     }
 
-    std::string AttachErrorMessage(const pid_t pid, const int err, const int ptraceScope,
-                                   const bool isOurChild)
+    int ReadPtraceScope()
     {
-        const std::string prefix = "cannot attach to pid " + std::to_string(pid) + ": ";
+        return procfs::ParseNumber<int>(procfs::ReadLine("/proc/sys/kernel/yama/ptrace_scope")).value_or(0);
+    }
 
-        if(err != EPERM)
-            return prefix + strerror(err);
-
-        if(ptraceScope >= 3)
-        {
-            return prefix + "permission denied because /proc/sys/kernel/yama/ptrace_scope is " +
-                   std::to_string(ptraceScope) + ", which disables ptrace system-wide.";
-        }
-
-        if(ptraceScope == 2)
-        {
-            return prefix + "permission denied because /proc/sys/kernel/yama/ptrace_scope is 2, "
-                            "which only allows ptrace for processes with the CAP_SYS_PTRACE capability. "
-                            "Run setcap cap_sys_ptrace=+eip on the x64dbg binary to attach.";
-        }
-
-        if(ptraceScope == 1 && !isOurChild)
-        {
-            return prefix + "permission denied because /proc/sys/kernel/yama/ptrace_scope is 1, "
-                            "which only allows tracing your own children. Run setcap cap_sys_ptrace=+eip "
-                            "on the x64dbg binary to attach to other processes.";
-        }
-
-        return prefix + strerror(err);
+    std::string PtraceErrorMessage(const int err, const int ptraceScope)
+    {
+        std::string message = strerror(err);
+        if(err == EPERM && ptraceScope > 0)
+            message += " (kernel.yama.ptrace_scope is " + std::to_string(ptraceScope) + ")";
+        return message;
     }
 
     std::string ArchRejectMessage(const Arch arch)
@@ -148,23 +113,9 @@ namespace ElfBug
         return "unsupported architecture (" + std::string(name) + "); only x86_64 is supported";
     }
 
-    void Debugger::reportAttachError(const pid_t pid, const pid_t tid, const int err)
-    {
-        int scope = 0;
-        std::ifstream file("/proc/sys/kernel/yama/ptrace_scope");
-        if(file)
-            file >> scope;
-
-        std::string message = AttachErrorMessage(pid, err, scope, ParentPid(pid) == getpid());
-        if(tid != pid)
-            message += " (thread " + std::to_string(tid) + ")";
-        cbInternalError(message);
-    }
-
     bool Debugger::attachToProcess()
     {
         const pid_t pid = mAttachPid;
-        mWasGroupStopped = processState(pid) == 'T';
         std::vector<pid_t> attached;
         std::vector<pid_t> acquired;
         std::vector<pid_t> owesSigstop;
@@ -222,11 +173,15 @@ namespace ElfBug
 
                 if(ptrace(PTRACE_ATTACH, tid, nullptr, nullptr) == -1)
                 {
-                    if(errno == ESRCH)
-                        continue;
                     const int err = errno;
+                    if(err == ESRCH)
+                        continue;
+                    std::string message = "cannot attach to pid " + std::to_string(pid) + ": " +
+                                          PtraceErrorMessage(err, ReadPtraceScope());
+                    if(tid != pid)
+                        message += " (thread " + std::to_string(tid) + ")";
                     rollback();
-                    reportAttachError(pid, tid, err);
+                    cbInternalError(message);
                     return false;
                 }
                 attached.push_back(tid);
@@ -288,8 +243,6 @@ namespace ElfBug
         if(mDetachRequested.load(std::memory_order_acquire))
         {
             rollback();
-            cbInternalError("detached from pid " + std::to_string(pid) +
-                            " before the session started");
             cbDetach();
             return false;
         }
@@ -315,15 +268,15 @@ namespace ElfBug
         for(const pid_t tid : owesSigstop)
         {
             std::unique_lock lock(mProcessMutex);
-            const auto it = mProcess->threads.find(tid);
-            if(it == mProcess->threads.end())
+            Thread* thread = mProcess->FindThread(tid);
+            if(!thread)
                 continue;
 
-            it->second->SetPendingSigstop(true);
+            thread->SetPendingSigstop(true);
 
             const auto pending = attachPendingSignals.find(tid);
             if(pending != attachPendingSignals.end())
-                it->second->SetPendingSignal(pending->second.signal, pending->second.address, true);
+                thread->SetPendingSignal(pending->second.signal, pending->second.address, true);
         }
 
         return true;
@@ -376,7 +329,7 @@ namespace ElfBug
     void Debugger::releaseThread(const pid_t tid, const pid_t tgid, const std::vector<int> & signals)
     {
         const int first = signals.empty() ? 0 : signals.front();
-        if(ptrace(PTRACE_DETACH, tid, nullptr, reinterpret_cast<void*>(static_cast<unsigned long>(first))) == -1)
+        if(ptrace(PTRACE_DETACH, tid, nullptr, PtraceData(first)) == -1)
         {
             if(errno != ESRCH)
                 cbInternalError("PTRACE_DETACH failed: " + std::string(strerror(errno)));
@@ -443,9 +396,8 @@ namespace ElfBug
             if(mPendingSignal != 0)
             {
                 std::unique_lock lock(mProcessMutex);
-                const auto it = mProcess->threads.find(reportedTid);
-                if(it != mProcess->threads.end())
-                    it->second->SetPendingSignal(mPendingSignal, 0, false);
+                if(Thread* reportedThread = mProcess->FindThread(reportedTid))
+                    reportedThread->SetPendingSignal(mPendingSignal, 0, false);
                 mPendingSignal = 0;
             }
 
@@ -478,22 +430,6 @@ namespace ElfBug
                 releaseRunningThread(tid, pid, owedSigstop.count(tid) > 0, std::move(signals));
             else
                 releaseThread(tid, pid, signals);
-        }
-
-        if(!mWasGroupStopped)
-        {
-            const auto deadline = std::chrono::steady_clock::now() + kReleaseGroupStopTimeout;
-            while(std::chrono::steady_clock::now() < deadline)
-            {
-                if(processState(pid) == 'T')
-                {
-                    cbInternalError("pid " + std::to_string(pid) + " was group-stopped on release; "
-                                    "sending SIGCONT so it keeps running");
-                    kill(pid, SIGCONT);
-                    break;
-                }
-                std::this_thread::sleep_for(kPollInterval);
-            }
         }
 
         {

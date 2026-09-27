@@ -15,6 +15,7 @@
 #include <vector>
 #include <ElfBug/types/ElfBug.h>
 #include <ElfBug/types/Global.h>
+#include <ElfBug/types/Ptrace.h>
 #include <ElfBug/process/Process.h>
 #include <ElfBug/process/ProcessArch.h>
 #include <ElfBug/thread/Thread.h>
@@ -30,9 +31,13 @@ namespace ElfBug
     constexpr long kLaunchPtraceOptions = kPtraceOptions | PTRACE_O_EXITKILL;
 
     constexpr auto kPollInterval = std::chrono::milliseconds(1);
+    constexpr auto kStopPollMin = std::chrono::microseconds(10);
+    constexpr int kStopPollYields = 32;
     constexpr auto kStopWaitTimeout = std::chrono::milliseconds(250);
 
-    std::string AttachErrorMessage(pid_t pid, int err, int ptraceScope, bool isOurChild);
+    int ReadPtraceScope();
+
+    std::string PtraceErrorMessage(int err, int ptraceScope);
 
     std::string ArchRejectMessage(Arch arch);
 
@@ -112,7 +117,6 @@ namespace ElfBug
         bool interruptRunningThreadLocked(pid_t tgid, pid_t except);
         void reapDetachedChildren();
         void detachFromProcess(pid_t reportedTid);
-        void reportAttachError(pid_t pid, pid_t tid, int err);
         void handleSignal(pid_t tid, int status);
         void handleSigtrap(pid_t tid, int status);
         bool pauseAndResume(pid_t reported);
@@ -213,7 +217,6 @@ namespace ElfBug
         std::atomic<pid_t> mMainPid{0};
         pid_t mAttachPid = 0;
         ImageId mImageId;
-        bool mWasGroupStopped = false;
         std::vector<pid_t> mDetachedChildren;
         int mPendingSignal = 0;
         std::mutex mPauseMutex;

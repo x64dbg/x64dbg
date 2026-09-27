@@ -2,41 +2,13 @@
 
 #include <functional>
 #include <map>
-#include <unordered_map>
-#include <set>
 
 #include <ElfBug/types/ElfBug.h>
 #include <ElfBug/types/Breakpoint.h>
 
 namespace ElfBug
 {
-    struct BreakpointInternalInfo
-    {
-        union
-        {
-            struct
-            {
-                SoftwareType type;
-                ptr size;
-                uint8 newbytes[2];
-                uint8 oldbytes[2];
-            } software;
-
-            struct
-            {
-                HardwareSlot slot;
-                HardwareType type;
-                HardwareSize size;
-                bool enabled;
-            } hardware;
-
-            struct
-            {
-                MemoryType type;
-                ptr size;
-            } memory;
-        };
-    };
+    constexpr uint8 kInt3 = 0xCC;
 
     struct BreakpointInfo
     {
@@ -45,37 +17,18 @@ namespace ElfBug
         // False while the patch byte is temporarily lifted.
         bool armed = false;
         BreakpointType type = BreakpointType::Software;
-        BreakpointInternalInfo internal = {};
+        // The tracee's own byte under the int3.
+        uint8 savedByte = 0;
     };
 
     using BreakpointCallback = std::function<void(const BreakpointInfo &)>;
-    using BreakpointKey = std::pair<BreakpointType, ptr>;
-    using BreakpointMap = std::map<BreakpointKey, BreakpointInfo>;
-    using BreakpointCallbackMap = std::map<BreakpointKey, BreakpointCallback>;
-    using SoftwareBreakpointMap = std::unordered_map<ptr, BreakpointMap::iterator>;
 
-    struct MemoryBreakpointData
+    struct SoftwareBreakpoint
     {
-        uint32 refcount = 0;
-        uint32 type = 0;
-        uint32 oldProtect = 0;
-        uint32 newProtect = 0;
+        BreakpointInfo info;
+        BreakpointCallback callback;
     };
 
-    struct Range
-    {
-        ptr start = 0;
-        ptr end = 0;
-    };
-
-    struct RangeCompare
-    {
-        bool operator()(const Range & a, const Range & b) const
-        {
-            return a.end < b.start;
-        }
-    };
-
-    using MemoryBreakpointSet = std::set<Range, RangeCompare>;
-    using MemoryBreakpointMap = std::unordered_map<ptr, MemoryBreakpointData>;
+    // Ordered so a memory access can visit only the breakpoints inside its range.
+    using SoftwareBreakpointMap = std::map<ptr, SoftwareBreakpoint>;
 }

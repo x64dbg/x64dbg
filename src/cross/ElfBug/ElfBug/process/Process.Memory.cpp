@@ -55,17 +55,14 @@ namespace ElfBug
 
     void Process::unpatchBreakpointBytesLocked(const ptr address, void* buffer, const ptr size) const
     {
-        if(!buffer || !size || mSoftwareBreakpointReferences.empty())
+        if(!buffer || !size)
             return;
 
         auto* bytes = static_cast<uint8*>(buffer);
-        for(const auto & [bpAddress, it] : mSoftwareBreakpointReferences)
+        for(auto it = mBreakpoints.lower_bound(address); it != mBreakpoints.end() && it->first - address < size; ++it)
         {
-            const BreakpointInfo & info = it->second;
-            if(!info.armed || bpAddress < address || bpAddress - address >= size)
-                continue;
-
-            bytes[bpAddress - address] = info.internal.software.oldbytes[0];
+            if(it->second.info.armed)
+                bytes[it->first - address] = it->second.info.savedByte;
         }
     }
 
@@ -76,29 +73,27 @@ namespace ElfBug
             return false;
 
         std::unique_lock lock(mBreakpointMutex);
-        if(mSoftwareBreakpointReferences.empty())
+        const auto first = mBreakpoints.lower_bound(address);
+        const auto inRange = [&](const SoftwareBreakpointMap::iterator & it, const ptr limit)
         {
+            return it != mBreakpoints.end() && it->first - address < limit;
+        };
+        if(!inRange(first, size))
             return MemWriteRaw(address, buffer, size, bytesWritten);
-        }
 
         std::vector<uint8> patched(static_cast<size_t>(size));
         memcpy(patched.data(), buffer, static_cast<size_t>(size));
-        for(const auto & [bpAddress, it] : mSoftwareBreakpointReferences)
+        for(auto it = first; inRange(it, size); ++it)
         {
-            const BreakpointInfo & info = it->second;
-            if(info.armed && bpAddress >= address && bpAddress - address < size)
-                patched[bpAddress - address] = info.internal.software.newbytes[0];
+            if(it->second.info.armed)
+                patched[it->first - address] = kInt3;
         }
 
         ptr written = 0;
         const bool complete = MemWriteRaw(address, patched.data(), size, &written);
 
-        for(const auto & [bpAddress, it] : mSoftwareBreakpointReferences)
-        {
-            BreakpointInfo & info = it->second;
-            if(bpAddress >= address && bpAddress - address < written)
-                info.internal.software.oldbytes[0] = static_cast<const uint8*>(buffer)[bpAddress - address];
-        }
+        for(auto it = first; inRange(it, written); ++it)
+            it->second.info.savedByte = static_cast<const uint8*>(buffer)[it->first - address];
 
         if(bytesWritten)
             *bytesWritten = written;
