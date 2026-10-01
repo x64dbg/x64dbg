@@ -189,6 +189,8 @@ private:
     unsigned int lastException;
 
     QAction* actionManageFavourites;
+    QAction* mActionRunBackward = nullptr;
+    QAction* mActionStepIntoBackward = nullptr;
 
     void updateMRUMenu();
     void setupLanguagesMenu();

@@ -426,6 +426,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ViewHideTab", Shortcut({tr("View"), tr("Hide Tab")}, "Ctrl+W"));
 
     defaultShortcuts.insert("DebugRun", Shortcut({tr("Debug"), tr("Run")}, "F9", true));
+    defaultShortcuts.insert("DebugRunBackward", Shortcut({tr("Debug"), tr("Run backward")}, "", true));
     defaultShortcuts.insert("DebugeRun", Shortcut({tr("Debug"), tr("Run (pass exception)")}, "Shift+F9", true));
     defaultShortcuts.insert("DebugseRun", Shortcut({tr("Debug"), tr("Run (swallow exception)")}, "Ctrl+Alt+Shift+F9", true));
     defaultShortcuts.insert("DebugRunSelection", Shortcut({tr("Debug"), tr("Run until selection")}, "F4", true));
@@ -434,6 +435,7 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("DebugRestart", Shortcut({tr("Debug"), tr("Restart")}, "Ctrl+F2", true));
     defaultShortcuts.insert("DebugClose", Shortcut({tr("Debug"), tr("Close")}, "Alt+F2", true));
     defaultShortcuts.insert("DebugStepInto", Shortcut({tr("Debug"), tr("Step into")}, "F7", true));
+    defaultShortcuts.insert("DebugStepIntoBackward", Shortcut({tr("Debug"), tr("Step into backward")}, "", true));
     defaultShortcuts.insert("DebugeStepInto", Shortcut({tr("Debug"), tr("Step into (pass exception)")}, "Shift+F7", true));
     defaultShortcuts.insert("DebugseStepInto", Shortcut({tr("Debug"), tr("Step into (swallow exception)")}, "Ctrl+Alt+Shift+F7", true));
     defaultShortcuts.insert("DebugStepIntoSource", Shortcut({tr("Debug"), tr("Step into (source)")}, "F11", true));

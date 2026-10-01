@@ -369,6 +369,7 @@ typedef enum
     DBG_IS_TESTING,                 // param1=unused,                    param2=unused
     DBG_DELETE_ADDRESSCOLOR_RANGE,  // param1=duint start,               param2=duint end
     DBG_SET_ADDRESSCOLOR_RANGE,     // param1=ADDRESSCOLOR_RANGE* info,  param2=unused
+    DBG_CAN_REPLAY_BACKWARDS,       // param1=unused,                    param2=unused
 } DBGMSG;
 
 typedef enum
@@ -580,6 +581,7 @@ typedef enum
     DebugEngineTitanEngine,
     DebugEngineGleeBug,
     DebugEngineStaticEngine,
+    DebugEngineDbgEng,
 } DEBUG_ENGINE;
 
 //Debugger typedefs
@@ -1153,6 +1155,7 @@ BRIDGE_IMPEXP bool DbgCmdExecDirect(const char* cmd);
 BRIDGE_IMPEXP bool DbgMemMap(MEMMAP* memmap);
 BRIDGE_IMPEXP bool DbgIsValidExpression(const char* expression);
 BRIDGE_IMPEXP bool DbgIsDebugging();
+BRIDGE_IMPEXP bool DbgCanReplayBackwards();
 BRIDGE_IMPEXP bool DbgIsJumpGoingToExecute(duint addr);
 BRIDGE_IMPEXP bool DbgGetLabelAt(duint addr, SEGMENTREG segment, char* text);
 BRIDGE_IMPEXP bool DbgSetLabelAt(duint addr, const char* text);

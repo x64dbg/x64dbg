@@ -2,6 +2,7 @@
 #define _HANDLE_H
 
 #include <windows.h>
+#include "TitanEngine/TitanEngine.h"
 
 class Handle
 {
@@ -31,6 +32,36 @@ public:
     }
 
     operator HANDLE()
+    {
+        return mHandle;
+    }
+
+    explicit operator bool() const
+    {
+        return mHandle != nullptr && mHandle != INVALID_HANDLE_VALUE;
+    }
+
+private:
+    HANDLE mHandle;
+};
+
+class TitanHandle
+{
+public:
+    TitanHandle(HANDLE handle = nullptr) : mHandle(handle) { }
+    TitanHandle(const TitanHandle&) = delete;
+    TitanHandle(TitanHandle&& other) noexcept : mHandle(other.mHandle)
+    {
+        other.mHandle = nullptr;
+    }
+
+    ~TitanHandle()
+    {
+        if(*this)
+            TitanCloseHandle(mHandle);
+    }
+
+    operator HANDLE() const
     {
         return mHandle;
     }
