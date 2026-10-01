@@ -19,6 +19,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     addDebugEngine(QStringLiteral("GleeBug"), DebugEngineGleeBug);
     addDebugEngine(QStringLiteral("StaticEngine"), DebugEngineStaticEngine);
     addDebugEngine(QStringLiteral("DbgEng"), DebugEngineDbgEng);
+    addDebugEngine(QStringLiteral("KSword"), DebugEngineKSword);
     //set window flags
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
     setModal(true);

@@ -6,6 +6,8 @@
  */
 #include "_global.h"
 #include "bridgemain.h"
+
+static unsigned long (__stdcall* kswordEngineCall)(KSWORD_DEBUGGER_CALL*) = nullptr;
 #include <stdio.h>
 #include <ShlObj.h>
 #include "../dbg/_dbgfunctions.h"
@@ -197,6 +199,8 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit(BRIDGE_CONFIG* config)
             return L"StaticEngine\\TitanEngine.dll";
         case DebugEngineDbgEng:
             return L"DbgEng\\TitanEngine.dll";
+        case DebugEngineKSword:
+            return L"KSword\\TitanEngine.dll";
         default:
             return L"TitanEngine.dll";
         }
@@ -210,6 +214,8 @@ BRIDGE_IMPEXP const wchar_t* BridgeInit(BRIDGE_CONFIG* config)
 
     // Imported DLLs (DBG)
     LOADLIBRARY(titanEngineDll);
+    if(DbgGetDebugEngine() == DebugEngineKSword)
+        kswordEngineCall = (decltype(kswordEngineCall))GetProcAddress(hInst, "KSwordDebuggerCall");
     LOADLIBRARY(L"LLVMDemangle.dll");
     LOADLIBRARY(L"lz4.dll");
     LOADLIBRARY(L"jansson.dll");
@@ -1635,12 +1641,21 @@ BRIDGE_IMPEXP void DbgGetSymbolInfo(const SYMBOLPTR* symbolptr, SYMBOLINFO* info
 
 BRIDGE_IMPEXP DEBUG_ENGINE DbgGetDebugEngine()
 {
-    duint setting = DebugEngineTitanEngine;
-    if(!BridgeSettingGetUint("Engine", "DebugEngine", &setting))
+    static const auto engine = []()
     {
-        BridgeSettingSetUint("Engine", "DebugEngine", setting);
-    }
-    return (DEBUG_ENGINE)setting;
+        duint setting = DebugEngineTitanEngine;
+        if(!BridgeSettingGetUint("Engine", "DebugEngine", &setting))
+            BridgeSettingSetUint("Engine", "DebugEngine", setting);
+        return (DEBUG_ENGINE)setting;
+    }();
+    return engine;
+}
+
+BRIDGE_IMPEXP unsigned long DbgKSwordCall(KSWORD_DEBUGGER_CALL* call)
+{
+    if(DbgGetDebugEngine() != DebugEngineKSword || kswordEngineCall == nullptr)
+        return ERROR_NOT_SUPPORTED;
+    return kswordEngineCall(call);
 }
 
 BRIDGE_IMPEXP bool DbgGetSymbolInfoAt(duint addr, SYMBOLINFO* info)

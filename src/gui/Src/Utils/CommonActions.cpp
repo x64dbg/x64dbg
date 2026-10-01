@@ -6,6 +6,7 @@
 #include "StringUtil.h"
 #include "MiscUtil.h"
 #include "Breakpoints.h"
+#include "KSwordEngine.h"
 #include "LineEditDialog.h"
 #include "WordEditDialog.h"
 #include "GotoDialog.h"
@@ -100,6 +101,7 @@ void CommonActions::build(MenuBuilder* builder, int actions)
             QAction* editSoftwareBreakpointAction;
             QAction* setHwBreakpointAction;
             QAction* removeHwBreakpointAction;
+            QAction* kswordDetailsAction;
             QMenu* replaceSlotMenu;
             QAction* replaceSlotAction[4];
         } hodl;
@@ -109,7 +111,15 @@ void CommonActions::build(MenuBuilder* builder, int actions)
         hodl.setHwBreakpointAction = makeShortcutAction(DIcon("breakpoint_execute"), tr("Set Hardware on Execution"), std::bind(&CommonActions::toggleHwBpActionSlot, this), "ActionSetHwBpE");
         hodl.removeHwBreakpointAction = makeShortcutAction(DIcon("breakpoint_remove"), tr("Remove Hardware"), std::bind(&CommonActions::toggleHwBpActionSlot, this), "ActionRemoveHwBp");
 
+        hodl.kswordDetailsAction = makeAction(tr("KSword: installed mechanism..."), [this] { KSwordEngine::showAddress(widgetparent(), mGetSelection()); });
+        if(KSwordEngine::selected())
+        {
+            hodl.setHwBreakpointAction->setText(tr("Set execution breakpoint (KSword policy)"));
+            hodl.removeHwBreakpointAction->setText(tr("Remove execution breakpoint (KSword binding)"));
+        }
+
         hodl.replaceSlotMenu = makeMenu(DIcon("breakpoint_execute"), tr("Set Hardware on Execution"));
+        if(KSwordEngine::selected()) hodl.replaceSlotMenu->setTitle(tr("Set execution breakpoint (KSword policy)"));
         // Replacement slot menu are only used when the breakpoints are full, so using "Unknown" as the placeholder. Might want to change this in case we display the menu when there are still free slots.
         hodl.replaceSlotAction[0] = makeMenuAction(hodl.replaceSlotMenu, DIcon("breakpoint_execute_slot1"), tr("Replace Slot %1 (Unknown)").arg(1), std::bind(&CommonActions::setHwBpOnSlot0ActionSlot, this));
         hodl.replaceSlotAction[1] = makeMenuAction(hodl.replaceSlotMenu, DIcon("breakpoint_execute_slot2"), tr("Replace Slot %1 (Unknown)").arg(2), std::bind(&CommonActions::setHwBpOnSlot1ActionSlot, this));
@@ -129,6 +139,7 @@ void CommonActions::build(MenuBuilder* builder, int actions)
             menu->addAction(hodl.editSoftwareBreakpointAction);
 
             menu->addAction(hodl.toggleBreakpointAction);
+            if(KSwordEngine::selected()) menu->addAction(hodl.kswordDetailsAction);
 
             if((bpType & bp_hardware) == bp_hardware)
             {
