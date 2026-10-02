@@ -107,6 +107,7 @@ set(bridge_SOURCES
 	"src/bridge/bridgelist.h"
 	"src/bridge/bridgemain.cpp"
 	"src/bridge/bridgemain.h"
+	"src/bridge/ksword_engine.h"
 	"src/bridge/bridgemain_checker.c"
 	"src/bridge/startupargs.h"
 )
@@ -823,6 +824,8 @@ set(gui_SOURCES
 	"src/gui/Src/Utils/CodeFolding.h"
 	"src/gui/Src/Utils/CommonActions.cpp"
 	"src/gui/Src/Utils/CommonActions.h"
+	"src/gui/Src/Utils/KSwordEngine.cpp"
+	"src/gui/Src/Utils/KSwordEngine.h"
 	"src/gui/Src/Utils/Configuration.cpp"
 	"src/gui/Src/Utils/Configuration.h"
 	"src/gui/Src/Utils/EncodeMap.cpp"

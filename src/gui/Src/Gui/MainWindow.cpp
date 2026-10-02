@@ -59,12 +59,16 @@
 #include "Tracer/TraceManager.h"
 //#include "Tracer/TraceWidget.h"
 #include "Utils/MethodInvoker.h"
+#include "KSwordEngine.h"
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    if(KSwordEngine::selected())
+        KSwordEngine::addMenu(ui->menuBar->addMenu("KSword"), this);
 
     // Build information
     {
@@ -80,6 +84,8 @@ MainWindow::MainWindow(QWidget* parent)
                 return "StaticEngine";
             case DebugEngineDbgEng:
                 return "DbgEng";
+            case DebugEngineKSword:
+                return "KSword";
             }
             return "";
         }();

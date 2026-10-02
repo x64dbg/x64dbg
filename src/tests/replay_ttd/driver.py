@@ -128,7 +128,7 @@ def main() -> int:
     output_path = artifacts / "headless-output.txt"
     assertions: list[str] = []
 
-    if args.engine != "DbgEng":
+    if args.engine not in {"DbgEng", "KSword"}:
         append_log(log_path, f'[x64dbg-test] FINAL status=skip asserts=0 reason=unsupported_engine_{args.engine}')
         return 0
     if not trace.is_file():
