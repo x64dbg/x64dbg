@@ -100,8 +100,8 @@ static bool EncodeMapValidateModuleInfo(duint key, ENCODEMAP & map, duint segsiz
 
         memcpy(newData, map.data, map.size);
 
-        DecreaseReferenceCount(map.data);
-        VirtualFree(map.data, 0, MEM_RELEASE);
+        if(DecreaseReferenceCount(map.data) == 0)
+            VirtualFree(map.data, 0, MEM_RELEASE);
         encmaps.Delete(key);
 
         map.size = segsize;
