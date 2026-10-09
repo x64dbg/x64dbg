@@ -460,6 +460,200 @@ bool cbInstrFindAsm(int argc, char* argv[])
     return true;
 }
 
+// A pattern is "mnemonic" or "mnemonic operands", with '*' and '?' wildcards in either
+// half and '|' between alternatives. The mnemonic half is anchored, so "xor" cannot drift
+// into "xorps"; the operand half carries an implicit trailing wildcard, so "xor eax"
+// matches "xor eax, eax".
+struct MnemonicPattern
+{
+    struct Alternative
+    {
+        String mnemonic;
+        String operands; //empty means match the mnemonic only
+    };
+    std::vector<Alternative> alternatives;
+    bool needsOperands = false; //formatting operands is only worth it when a pattern uses them
+
+    // Case-insensitive glob with '*' and '?'.
+    static bool globMatch(const char* pat, const char* str)
+    {
+        const char* starPat = nullptr;
+        const char* starStr = nullptr;
+        while(*str)
+        {
+            if(*pat == '?' || tolower(*pat) == tolower(*str))
+            {
+                pat++;
+                str++;
+            }
+            else if(*pat == '*')
+            {
+                starPat = pat++;
+                starStr = str;
+            }
+            else if(starPat)
+            {
+                pat = starPat + 1;
+                str = ++starStr;
+            }
+            else
+                return false;
+        }
+        while(*pat == '*')
+            pat++;
+        return !*pat;
+    }
+
+    // Drop whitespace after a comma and collapse the rest to a single space, so that
+    // "eax,  eax", "eax, eax" and "eax,eax" all compare equal.
+    static String normalize(const String & text)
+    {
+        String out;
+        bool pendingSpace = false;
+        for(size_t i = 0; i < text.size(); i++)
+        {
+            const char ch = text[i];
+            if(isspace((unsigned char)ch))
+            {
+                pendingSpace = !out.empty();
+                continue;
+            }
+            if(pendingSpace && ch != ',' && !out.empty() && out[out.size() - 1] != ',')
+                out.push_back(' ');
+            pendingSpace = false;
+            out.push_back(ch);
+        }
+        return out;
+    }
+
+    bool parse(const String & text)
+    {
+        alternatives.clear();
+        needsOperands = false;
+        size_t start = 0;
+        while(start <= text.size())
+        {
+            size_t bar = text.find('|', start);
+            String piece = text.substr(start, bar == String::npos ? String::npos : bar - start);
+            start = bar == String::npos ? text.size() + 1 : bar + 1;
+
+            size_t first = piece.find_first_not_of(" \t");
+            if(first == String::npos)
+                continue;
+            size_t space = piece.find_first_of(" \t", first);
+
+            Alternative alt;
+            alt.mnemonic = piece.substr(first, space == String::npos ? String::npos : space - first);
+            if(alt.mnemonic.empty())
+                continue;
+            if(space != String::npos)
+            {
+                alt.operands = normalize(piece.substr(space));
+                if(!alt.operands.empty())
+                {
+                    if(alt.operands[alt.operands.size() - 1] != '*')
+                        alt.operands.push_back('*'); //"xor eax" means "xor eax..."
+                    needsOperands = true;
+                }
+            }
+            alternatives.push_back(alt);
+        }
+        return !alternatives.empty();
+    }
+
+    bool match(const char* mnemonic, const String & operands) const
+    {
+        for(size_t i = 0; i < alternatives.size(); i++)
+        {
+            const Alternative & alt = alternatives[i];
+            if(!globMatch(alt.mnemonic.c_str(), mnemonic))
+                continue;
+            if(alt.operands.empty() || globMatch(alt.operands.c_str(), operands.c_str()))
+                return true;
+        }
+        return false;
+    }
+};
+
+static bool cbFindMnem(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO* refinfo)
+{
+    if(!disasm || !basicinfo) //initialize
+    {
+        GuiReferenceInitialize(refinfo->name);
+        GuiReferenceAddColumn(2 * sizeof(duint), GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Address")));
+        GuiReferenceAddColumn(0, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Disassembly")));
+        GuiReferenceSetRowCount(0);
+        GuiReferenceReloadData();
+        return true;
+    }
+
+    // findasm compares the whole formatted instruction with _stricmp. This matches the
+    // mnemonic and the operands separately, so "xor" finds every xor.
+    const auto pattern = (const MnemonicPattern*)refinfo->userinfo;
+    const auto mnemonic = disasm->Mnemonic();
+
+    String operands;
+    if(pattern->needsOperands)
+    {
+        // Everything after the mnemonic, which also skips a prefix such as "lock".
+        const auto text = disasm->InstructionText();
+        const auto at = text.find(mnemonic);
+        if(at != String::npos)
+            operands = MnemonicPattern::normalize(text.substr(at + mnemonic.size()));
+    }
+
+    bool found = pattern->match(mnemonic.c_str(), operands);
+    if(found)
+    {
+        char addrText[20] = "";
+        sprintf_s(addrText, "%p", (void*)(duint)disasm->Address());
+        GuiReferenceSetRowCount(refinfo->refcount + 1);
+        GuiReferenceSetCellContent(refinfo->refcount, 0, addrText);
+        char disassembly[GUI_MAX_DISASSEMBLY_SIZE] = "";
+        if(GuiGetDisassembly((duint)disasm->Address(), disassembly))
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disassembly);
+        else
+            GuiReferenceSetCellContent(refinfo->refcount, 1, disasm->InstructionText().c_str());
+    }
+    return found;
+}
+
+bool cbInstrFindMnem(int argc, char* argv[])
+{
+    if(IsArgumentsLessThan(argc, 2))
+        return false;
+
+    duint addr = 0;
+    if(argc < 3 || !valfromstring(argv[2], &addr))
+        addr = GetContextDataEx(hActiveThread, UE_CIP);
+    duint size = 0;
+    if(argc >= 4)
+        if(!valfromstring(argv[3], &size))
+            size = 0;
+
+    duint refFindType = CURRENT_REGION;
+    if(argc >= 5 && valfromstring(argv[4], &refFindType, true))
+        if(refFindType != CURRENT_REGION && refFindType != CURRENT_MODULE && refFindType != USER_MODULES && refFindType != SYSTEM_MODULES && refFindType != ALL_MODULES)
+            refFindType = CURRENT_REGION;
+
+    auto patternText = stringformatinline(argv[1]);
+    MnemonicPattern pattern;
+    if(!pattern.parse(patternText))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Empty mnemonic pattern!"));
+        return false;
+    }
+
+    SearchTimer ticks;
+    char title[256] = "";
+    sprintf_s(title, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Mnemonic: \"%s\"")), patternText.c_str());
+    int found = RefFind(addr, size, cbFindMnem, &pattern, false, title, (REFFINDTYPE)refFindType, true);
+    ticks.StopTimer();
+    dprintf(QT_TRANSLATE_NOOP("DBG", "%u result(s) in %ums\n"), DWORD(found), ticks.GetTicks());
+    varset("$result", found, false);
+    return true;
+}
+
 bool cbInstrRefFind(int argc, char* argv[])
 {
     if(IsArgumentsLessThan(argc, 2))
