@@ -2,9 +2,11 @@
     <qresource prefix="/Default">
         <file>icons/folder-horizontal-open.png</file>
         <file>icons/arrow-step-into.png</file>
+        <file>icons/arrow-step-into-back.png</file>
         <file>icons/arrow-step-over.png</file>
         <file>icons/control-pause.png</file>
         <file>icons/arrow-run.png</file>
+        <file>icons/arrow-run-back.png</file>
         <file>icons/geolocation-goto.png</file>
         <file>icons/arrow-restart.png</file>
         <file>icons/arrow-step-rtr.png</file>

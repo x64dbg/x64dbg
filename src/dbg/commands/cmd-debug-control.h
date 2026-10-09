@@ -10,6 +10,12 @@ enum HistoryAction
 
 bool cbDebugRunInternal(int argc, char* argv[], HistoryAction history);
 bool cbDebugInit(int argc, char* argv[]);
+bool cbDebugInitReplay(int argc, char* argv[]);
+bool cbReplayGetPosition(int argc, char* argv[]);
+bool cbReplayGetExtent(int argc, char* argv[]);
+bool cbReplaySetPosition(int argc, char* argv[]);
+bool cbReplayStepBack(int argc, char* argv[]);
+bool cbReplayRunBack(int argc, char* argv[]);
 bool cbDebugStop(int argc, char* argv[]);
 bool cbDebugAttach(int argc, char* argv[]);
 bool cbDebugDetach(int argc, char* argv[]);

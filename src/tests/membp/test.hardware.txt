@@ -1,0 +1,23 @@
+settingset Events, EntryBreakpoint, 1
+init tests/membp.exe
+run
+mbsetstartmode 3
+bphws membp:WriteSequence, x, 1
+run
+testassert cip == membp:WriteSequence, "hardware execute breakpoint hit"
+bphwc membp:WriteSequence
+bphws membp:WriteTarget, w, 1
+run
+testassert $pid != 0, "hardware write breakpoint hit before process exit"
+bphwc membp:WriteTarget
+run
+
+init tests/membp.exe
+run
+mbsetstartmode 1
+bphws membp:ReadTarget, r, 1
+run
+testassert $pid != 0, "hardware read/write breakpoint hit on read"
+bphwc membp:ReadTarget
+run
+testfinalize

@@ -6,6 +6,7 @@
 #include <QIcon>
 #include <QUrl>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QMimeData>
 #include <QDesktopServices>
 #include <QStatusTipEvent>
@@ -77,6 +78,8 @@ MainWindow::MainWindow(QWidget* parent)
                 return "GleeBug";
             case DebugEngineStaticEngine:
                 return "StaticEngine";
+            case DebugEngineDbgEng:
+                return "DbgEng";
             }
             return "";
         }();
@@ -273,6 +276,24 @@ MainWindow::MainWindow(QWidget* parent)
     // Patch dialog
     mPatchDialog = new PatchDialog(this);
     mCalculatorDialog = new CalculatorDialog(this);
+
+    // Reverse replay controls are capability-gated and stay out of live and
+    // immutable snapshot sessions.
+    mActionRunBackward = makeCommandAction(new QAction(DIcon("arrow-run-back"), tr("Run &backward"), this), "replayrunback");
+    mActionRunBackward->setObjectName("actionRunBackward");
+    mActionRunBackward->setStatusTip(tr("Run backward to the previous replay event or logical breakpoint"));
+    mActionRunBackward->setVisible(false);
+    mActionRunBackward->setEnabled(false);
+    ui->menuDebug->insertAction(ui->actionRun, mActionRunBackward);
+    ui->mainToolBar->insertAction(ui->actionRun, mActionRunBackward);
+
+    mActionStepIntoBackward = makeCommandAction(new QAction(DIcon("arrow-step-into-back"), tr("Step into &backward"), this), "replaystepback");
+    mActionStepIntoBackward->setObjectName("actionStepIntoBackward");
+    mActionStepIntoBackward->setStatusTip(tr("Step one recorded instruction backward"));
+    mActionStepIntoBackward->setVisible(false);
+    mActionStepIntoBackward->setEnabled(false);
+    ui->menuDebug->insertAction(ui->actionStepInto, mActionStepIntoBackward);
+    ui->mainToolBar->insertAction(ui->actionStepInto, mActionStepIntoBackward);
 
     // Setup signals/slots
     connect(mCmdLineEdit, SIGNAL(returnPressed()), this, SLOT(executeCommand()));
@@ -1147,6 +1168,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionHideTab, ConfigShortcut("ViewHideTab"));
 
     setGlobalShortcut(ui->actionRun, ConfigShortcut("DebugRun"));
+    setGlobalShortcut(mActionRunBackward, ConfigShortcut("DebugRunBackward"));
     setGlobalShortcut(ui->actioneRun, ConfigShortcut("DebugeRun"));
     setGlobalShortcut(ui->actionseRun, ConfigShortcut("DebugseRun"));
     setGlobalShortcut(ui->actionRunSelection, ConfigShortcut("DebugRunSelection"));
@@ -1155,6 +1177,7 @@ void MainWindow::refreshShortcuts()
     setGlobalShortcut(ui->actionRestart, ConfigShortcut("DebugRestart"));
     setGlobalShortcut(ui->actionClose, ConfigShortcut("DebugClose"));
     setGlobalShortcut(ui->actionStepInto, ConfigShortcut("DebugStepInto"));
+    setGlobalShortcut(mActionStepIntoBackward, ConfigShortcut("DebugStepIntoBackward"));
     setGlobalShortcut(ui->actioneStepInto, ConfigShortcut("DebugeStepInto"));
     setGlobalShortcut(ui->actionseStepInto, ConfigShortcut("DebugseStepInto"));
     setGlobalShortcut(ui->actionStepIntoSource, ConfigShortcut("DebugStepIntoSource"));
@@ -1351,7 +1374,7 @@ void MainWindow::displayAboutWidget()
 
 void MainWindow::openFileSlot()
 {
-    auto filename = QFileDialog::getOpenFileName(this, tr("Open file"), mMRUList->getEntry(0), tr("Executables (*.exe *.dll);;All files (*.*)"));
+    auto filename = QFileDialog::getOpenFileName(this, tr("Open file"), mMRUList->getEntry(0), tr("Executables (*.exe *.dll);;Replay artifacts (*.dmp *.mdmp *.run);;All files (*.*)"));
     if(!filename.length())
         return;
     filename = QDir::toNativeSeparators(filename); //convert to native path format (with backlashes)
@@ -1360,7 +1383,11 @@ void MainWindow::openFileSlot()
 
 void MainWindow::openRecentFileSlot(QString filename)
 {
-    DbgCmdExec(QString().sprintf("init \"%s\"", DbgCmdEscape(filename).toUtf8().constData()));
+    const auto suffix = QFileInfo(filename).suffix();
+    const auto replay = suffix.compare("dmp", Qt::CaseInsensitive) == 0 ||
+                        suffix.compare("mdmp", Qt::CaseInsensitive) == 0 ||
+                        suffix.compare("run", Qt::CaseInsensitive) == 0;
+    DbgCmdExec(QString().sprintf(replay ? "initreplay \"%s\"" : "init \"%s\"", DbgCmdEscape(filename).toUtf8().constData()));
 }
 
 void MainWindow::runSlot()
@@ -1375,7 +1402,7 @@ void MainWindow::restartDebugging()
 {
     auto last = mMRUList->getEntry(0);
     if(!last.isEmpty())
-        DbgCmdExec(QString("init \"%1\"").arg(DbgCmdEscape(last)));
+        openRecentFileSlot(last);
 }
 
 void MainWindow::displayBreakpointWidget()
@@ -1397,7 +1424,7 @@ void MainWindow::dropEvent(QDropEvent* pEvent)
     if(pEvent->mimeData()->hasUrls())
     {
         QString filename = QDir::toNativeSeparators(pEvent->mimeData()->urls()[0].toLocalFile());
-        DbgCmdExec(QString().sprintf("init \"%s\"", DbgCmdEscape(filename).toUtf8().constData()));
+        openRecentFileSlot(filename);
         pEvent->acceptProposedAction();
     }
 }
@@ -2387,6 +2414,13 @@ void MainWindow::chkSaveloadTabSavedOrderStateChangedSlot(bool state)
 
 void MainWindow::dbgStateChangedSlot(DBGSTATE state)
 {
+    const bool canReplayBackwards = state != stopped && DbgCanReplayBackwards();
+    const bool canNavigateNow = canReplayBackwards && state == paused;
+    mActionRunBackward->setVisible(canReplayBackwards);
+    mActionRunBackward->setEnabled(canNavigateNow);
+    mActionStepIntoBackward->setVisible(canReplayBackwards);
+    mActionStepIntoBackward->setEnabled(canNavigateNow);
+
     if(state == initialized) //fixes a crash when restarting with certain settings in another tab
         displayCpuWidget();
     if(bExitWhenDetached && state == stopped) //detach and exit: the debugger has detached, no exit confirmation dialog this time

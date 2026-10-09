@@ -1,0 +1,11 @@
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init tests/script_run_exit.exe
+alloc 1000
+testassert $lastalloc != 0, "allocate target memory"
+memset $lastalloc, 41, 10
+testassert byte:[$lastalloc] == 41, "write target memory"
+free $lastalloc
+testassert $result == 1, "free target memory"
+run
+testfinalize

@@ -197,6 +197,23 @@ x64dbg_add_test(
     TARGET_LINK_LIBRARIES user32
 )
 
+x64dbg_add_test(
+    NAME replay_minidump
+    TARGET_LINK_LIBRARIES dbghelp
+)
+
+add_library(test_replay_ttd_helper SHARED replay_ttd/helper.cpp)
+x64dbg_apply_test_defaults(test_replay_ttd_helper)
+set_target_properties(test_replay_ttd_helper PROPERTIES
+    PREFIX ""
+    OUTPUT_NAME "replay_ttd_helper"
+)
+x64dbg_set_output_dir(test_replay_ttd_helper "${X64DBG_TEST_OUTPUT_DIR}")
+
+x64dbg_add_test(NAME replay_ttd)
+add_dependencies(test_replay_ttd_target test_replay_ttd_helper)
+add_dependencies(x64dbg_tests test_replay_ttd_helper)
+
 x64dbg_add_membp_test()
 
 # random_dll intentionally remains excluded while its scaffold stays disabled.
