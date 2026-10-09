@@ -962,6 +962,7 @@ int pluginmenuadd(int hMenu, const char* title)
 */
 bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
 {
+    // TODO: check if called during initialization (hMenu == 0) and print a warning
     if(!title || !strlen(title) || hEntry == -1)
         return false;
     EXCLUSIVE_ACQUIRE(LockPluginMenuList);
@@ -975,15 +976,26 @@ bool pluginmenuaddentry(int hMenu, int hEntry, const char* title)
             break;
         }
     }
-    if(pluginHandle == -1) //not found
+    if(pluginHandle == -1)  //not found
+    {
+        dprintf("[PLUGIN] pluginmenuaddentry: hMenu:%d not found\n", hMenu);
         return false;
+    }
     //search if hEntry was previously used
     for(const auto & currentMenu : gPluginMenuEntryList)
+    {
         if(currentMenu.pluginHandle == pluginHandle && currentMenu.hEntryPlugin == hEntry)
+        {
+            dprintf("[PLUGIN] pluginmenuaddentry: hEntry:%d already used\n", hEntry);
             return false;
+        }
+    }
     int hNewEntry = GuiMenuAddEntry(hMenu, title);
     if(hNewEntry == -1)
+    {
+        dprintf("[PLUGIN] pluginmenuaddentry: GuiMenuAddEntry failed\n");
         return false;
+    }
     PLUG_MENUENTRY newMenu;
     newMenu.hEntryMenu = hNewEntry;
     newMenu.hParentMenu = hMenu;
