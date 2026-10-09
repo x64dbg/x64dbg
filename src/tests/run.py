@@ -460,6 +460,10 @@ def main() -> int:
         ensure_managed_dir(artifact_root)
         temporary_root = True
 
+    # Create the WER destination only after claiming the artifact directory;
+    # pre-populating it in CI would trip the unmanaged-directory safety check.
+    (artifact_root / "crash-dumps").mkdir(exist_ok=True)
+
     results: list[TestResult] = []
     overall_success = True
     for test in tests:

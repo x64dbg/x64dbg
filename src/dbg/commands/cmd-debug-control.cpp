@@ -17,6 +17,7 @@
 #include "exception.h"
 #include "stringformat.h"
 #include "simplescript.h"
+#include "runtoparty.h"
 
 static bool isInt3Exception()
 {
@@ -195,6 +196,7 @@ bool cbDebugStop(int argc, char* argv[])
     // HACK: TODO: Don't kill script on debugger ending a process
     //scriptreset(); //reset the currently-loaded script
     _dbg_animatestop();
+    MemSetAutoUpdateEnabled(false);
     StopDebug();
     //history
     HistoryClear();
@@ -354,9 +356,14 @@ bool cbDebugDetach(int argc, char* argv[])
     PLUG_CB_DETACH detachInfo;
     detachInfo.fdProcessInfo = fdProcessInfo;
     plugincbcall(CB_DETACH, &detachInfo);
+    dbgclearpausebreakpoint();
+    auto autoUpdateEnabled = MemSetAutoUpdateEnabled(false);
     BpEnumAll(dbgdetachDisableAllBreakpoints); // Disable all software breakpoints before detaching.
     if(!DetachDebuggerEx(fdProcessInfo->dwProcessId))
+    {
+        MemSetAutoUpdateEnabled(autoUpdateEnabled);
         dputs(QT_TRANSLATE_NOOP("DBG", "DetachDebuggerEx failed..."));
+    }
     else
         dputs(QT_TRANSLATE_NOOP("DBG", "Detached!"));
     _dbg_animatestop(); // Stop animating
@@ -396,16 +403,6 @@ bool cbDebugPause(int argc, char* argv[])
         _dbg_animatestop(); // pause when animating
         return true;
     }
-    if(dbgtraceactive())
-    {
-        dbgforcebreaktrace(); // pause when tracing
-        return true;
-    }
-    if(dbgstepactive())
-    {
-        dbgforcebreakstep(); // pause when stepping (out/user/system)
-        return true;
-    }
     if(!DbgIsDebugging())
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Not debugging!"));
@@ -430,8 +427,29 @@ bool cbDebugPause(int argc, char* argv[])
                  && eventCount == lastPauseRequestEventCount;
     lastPauseRequestTime = now;
     lastPauseRequestEventCount = eventCount;
-    if(stuck && dbgspawnbreakinthread())
-        return true;
+    if(dbgtraceactive())
+    {
+        dbgforcebreaktrace(); // pause when tracing
+        dbgforcebreakstep(); // also interrupt a party-aware skip loop
+        if(!RunToPartyIsActive() && !stuck)
+            return true;
+    }
+    if(dbgstepactive())
+    {
+        dbgforcebreakstep(); // pause when stepping (out/user/system)
+        if(!RunToPartyIsActive() && !stuck)
+            return true;
+    }
+    // A step can itself be blocked in a syscall: repeated Pause must also
+    // reach the break-in fallback, rather than only setting abort flags again.
+    if(stuck)
+    {
+        // The original thread may return from its syscall after we resume
+        // from the break-in thread. Do not leave the first Pause's INT3 there.
+        dbgclearpausebreakpoint();
+        if(dbgspawnbreakinthread())
+            return true;
+    }
     // After attaching, the active thread is whatever thread reported the last
     // attach event (usually an idle worker that never wakes up). Target the
     // main thread instead until a real debug event selects an active thread.
@@ -458,7 +476,7 @@ bool cbDebugPause(int argc, char* argv[])
         return false;
     }
     duint CIP = GetContextDataEx(hPauseThread, UE_CIP);
-    if(!SetBPX(CIP, UE_BREAKPOINT, cbPauseBreakpoint))
+    if(!dbgsetpausebreakpoint(CIP))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Error setting breakpoint at %p! (SetBPX)\n"), CIP);
         if(ResumeThread(hPauseThread) == -1)
@@ -474,6 +492,7 @@ bool cbDebugPause(int argc, char* argv[])
     PostThreadMessageA(dwPauseThreadId, WM_NULL, 0, 0);
     if(ResumeThread(hPauseThread) == -1)
     {
+        dbgclearpausebreakpoint();
         dputs(QT_TRANSLATE_NOOP("DBG", "Error resuming thread"));
         return false;
     }
