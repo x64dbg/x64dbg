@@ -595,11 +595,22 @@ static bool cbFindMnem(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFINFO
     String operands;
     if(pattern->needsOperands)
     {
-        // Everything after the mnemonic, which also skips a prefix such as "lock".
+        // Everything after the mnemonic, which also skips a prefix such as "lock". The
+        // text carries Zydis' own spelling ("jz") where Mnemonic() may return an alias
+        // ("je"), so look for that, as a whole word.
         const auto text = disasm->InstructionText();
-        const auto at = text.find(mnemonic);
-        if(at != String::npos)
-            operands = MnemonicPattern::normalize(text.substr(at + mnemonic.size()));
+        const String printed = ZydisMnemonicGetString(disasm->GetId());
+        size_t at = 0;
+        while((at = text.find(printed, at)) != String::npos)
+        {
+            const size_t end = at + printed.size();
+            if((at == 0 || text[at - 1] == ' ') && (end == text.size() || text[end] == ' '))
+            {
+                operands = MnemonicPattern::normalize(text.substr(end));
+                break;
+            }
+            at = end;
+        }
     }
 
     bool found = pattern->match(mnemonic.c_str(), operands);

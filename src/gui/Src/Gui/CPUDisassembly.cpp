@@ -1890,14 +1890,14 @@ void CPUDisassembly::findMnemonicSlot()
     mLineEdit.setPlaceholderText(tr("Mnemonic and operands, with * ? wildcards and | alternatives"));
 
     // Offer the mnemonic under the cursor, which is what you usually want when
-    // you right-click an instruction.
-    BASIC_INSTRUCTION_INFO basicinfo;
-    memset(&basicinfo, 0, sizeof(basicinfo));
-    DbgDisasmFastAt(va, &basicinfo);
-    QString mnemonic = QString(basicinfo.instruction).section(' ', 0, 0);
-    if(!mnemonic.isEmpty())
+    // you right-click an instruction. Zydis::Mnemonic() is the name findmnem matches.
+    // It has no prefix such as "lock" and uses the CPU view's spelling, "je" for "jz".
+    unsigned char data[16] = { 0xCC };
+    DbgMemRead(va, data, sizeof(data));
+    Zydis zydis;
+    if(zydis.Disassemble(va, data))
     {
-        mLineEdit.setText(mnemonic);
+        mLineEdit.setText(QString::fromStdString(zydis.Mnemonic()));
         mLineEdit.selectAllText();
     }
 
