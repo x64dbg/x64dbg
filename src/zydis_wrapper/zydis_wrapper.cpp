@@ -768,7 +768,8 @@ bool Zydis::IsBranchGoingToExecute(ZydisMnemonic id, uint32_t eflags, uint64_t c
     case ZYDIS_MNEMONIC_LOOPNE: //decrement count; jump short if ecx!=0 and zf=0
         return ccx != 1 && !bZF;
     default:
-        return false;
+        // Not a branch, but it may still be a conditional instruction (CMOV/FCMOV/SETcc)
+        return IsConditionalGoingToExecute(id, eflags, ccx);
     }
 }
 
@@ -869,7 +870,7 @@ bool Zydis::IsConditionalGoingToExecute(ZydisMnemonic id, uint32_t eflags, uint6
     case ZYDIS_MNEMONIC_SETS: //set byte on condition - sign
         return bSF;
     default:
-        return true;
+        return false;
     }
 }
 
