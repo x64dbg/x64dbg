@@ -1,3 +1,4 @@
+#include <limits>
 #include "expressionparser.h"
 #include "value.h"
 #include "console.h"
@@ -586,12 +587,20 @@ static bool operation(ExpressionParser::Token::Type type, T op1, T op2, T & resu
     case ExpressionParser::Token::Type::OperatorDiv:
         if(op2 == 0)
             return false;
-        result = op1 / op2;
+        // MIN / -1 overflows and raises a divide error on x86
+        if(std::numeric_limits<T>::is_signed && op2 == T(-1))
+            result = T(0) - op1;
+        else
+            result = op1 / op2;
         break;
     case ExpressionParser::Token::Type::OperatorMod:
         if(op2 == 0)
             return false;
-        result = op1 % op2;
+        // MIN % -1 overflows and raises a divide error on x86
+        if(std::numeric_limits<T>::is_signed && op2 == T(-1))
+            result = 0;
+        else
+            result = op1 % op2;
         break;
     case ExpressionParser::Token::Type::OperatorAdd:
         result = op1 + op2;
@@ -600,10 +609,17 @@ static bool operation(ExpressionParser::Token::Type type, T op1, T op2, T & resu
         result = op1 - op2;
         break;
     case ExpressionParser::Token::Type::OperatorShl:
-        result = op1 << op2;
+        // Shifting by a negative count or by >= the bit width is undefined behavior
+        if(op2 < 0 || op2 >= T(sizeof(T) * 8))
+            result = 0;
+        else
+            result = op1 << op2;
         break;
     case ExpressionParser::Token::Type::OperatorShr:
-        result = op1 >> op2;
+        if(op2 < 0 || op2 >= T(sizeof(T) * 8))
+            result = op1 < 0 ? T(-1) : 0;
+        else
+            result = op1 >> op2;
         break;
     case ExpressionParser::Token::Type::OperatorRol:
 #ifdef _WIN64
