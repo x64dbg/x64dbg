@@ -254,7 +254,7 @@ static const char* getArgExpressionType(const String & formatString, StringValue
     size_t toSkip = 0;
     type = StringValueType::Default;
     complexArgs.clear();
-    if(formatString.size() > 2 && !isdigit(formatString[0]) && formatString[1] == ':') //simple type
+    if(formatString.size() > 2 && !isdigit((unsigned char)formatString[0]) && formatString[1] == ':') //simple type
     {
         if(!typeFromCh(formatString[0], type))
             return nullptr;

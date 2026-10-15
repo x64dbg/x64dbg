@@ -168,7 +168,7 @@ static char* demanglePE32ExternCFunc(char* SymbolName)
     if(AtPos)
     {
         auto p = AtPos + 1;
-        while(*p && isdigit(*p))
+        while(*p && isdigit((unsigned char)*p))
             p++;
 
         // All characters after '@' were digits
