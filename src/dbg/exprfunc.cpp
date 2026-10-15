@@ -939,7 +939,7 @@ namespace Exprfunc
         String from = argv[1].string.ptr;
         String to = argv[2].string.ptr;
 
-        size_t pos = str.find(from);
+        size_t pos = from.empty() ? String::npos : str.find(from);
         if(pos != String::npos)
             str.replace(pos, from.length(), to);
 
@@ -958,7 +958,7 @@ namespace Exprfunc
         String from = argv[1].string.ptr;
         String to = argv[2].string.ptr;
 
-        size_t pos = str.rfind(from);
+        size_t pos = from.empty() ? String::npos : str.rfind(from);
         if(pos != String::npos)
             str.replace(pos, from.length(), to);
 
