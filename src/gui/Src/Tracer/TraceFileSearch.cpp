@@ -193,7 +193,7 @@ int TraceFileSearchMemPattern(TraceFileReader* file, const QString & pattern)
         if(ch > 0x80)
             return 0;
         char c = ch.toLatin1();
-        if(isspace(c))
+        if(isspace((unsigned char)c))
             continue;
         if(high)
         {
