@@ -404,6 +404,8 @@ void CallStackView::clearHighlightSlot()
 void CallStackView::renameThreadSlot()
 {
     QStringList split = getCellContent(getInitialSelection(), 0).split(" - ", QString::SplitBehavior::SkipEmptyParts);
+    if(split.isEmpty())
+        return;
     duint threadId = split[0].toInt();
     QString threadName = split.length() > 1 ? split[1] : "";
     if(!SimpleInputBox(this, tr("Thread name - %1").arg(threadId), threadName, threadName, QString()))
