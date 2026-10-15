@@ -283,7 +283,7 @@ bool StringUtils::Unescape(const String & s, String & result, bool quoted)
             {
                 auto ch1 = nextChar();
                 auto ch2 = nextChar();
-                if(isxdigit(ch1) && isxdigit(ch2))
+                if(isxdigit((unsigned char)ch1) && isxdigit((unsigned char)ch2))
                 {
                     char byteStr[3] = "";
                     byteStr[0] = ch1;
@@ -616,7 +616,7 @@ bool StringUtils::FromCompressedHex(const String & text, std::vector<unsigned ch
     String repeatStr;
     for(size_t i = 0; i < size;)
     {
-        if(isspace(text[i])) //skip whitespace
+        if(isspace((unsigned char)text[i])) //skip whitespace
         {
             i++;
             continue;

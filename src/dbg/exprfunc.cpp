@@ -839,7 +839,7 @@ namespace Exprfunc
 
         String str = argv[0].string.ptr;
         for(auto & ch : str)
-            ch = toupper(ch);
+            ch = (char)toupper((unsigned char)ch);
 
         *result = ValueString(str);
         return true;
