@@ -146,7 +146,10 @@ void TraceXrefBrowseDialog::on_listWidget_customContextMenuRequested(const QPoin
 
 void TraceXrefBrowseDialog::copyThisSlot()
 {
-    Bridge::CopyToClipboard(ToHexString(mXrefInfo[ui->listWidget->currentRow()].index) + " " + ToPtrString(mXrefInfo[ui->listWidget->currentRow()].addr) + " " + ui->listWidget->selectedItems()[0]->text());
+    auto row = ui->listWidget->currentRow();
+    if(row < 0 || row >= int(mXrefInfo.size()) || !ui->listWidget->item(row))
+        return;
+    Bridge::CopyToClipboard(ToHexString(mXrefInfo[row].index) + " " + ToPtrString(mXrefInfo[row].addr) + " " + ui->listWidget->item(row)->text());
 }
 
 void TraceXrefBrowseDialog::copyAllSlot()
@@ -156,7 +159,7 @@ void TraceXrefBrowseDialog::copyAllSlot()
     {
         temp.append(ToHexString(mXrefInfo[i].index) + " ");
         temp.append(ToPtrString(mXrefInfo[i].addr) + " ");
-        temp.append(ui->listWidget->selectedItems()[0]->text());
+        temp.append(ui->listWidget->item(i)->text());
         temp.append("\r\n");
     }
     Bridge::CopyToClipboard(temp);
