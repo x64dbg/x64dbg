@@ -307,7 +307,7 @@ bool FormatFunctions::Unregister(const String & name)
         return false;
     auto aliases = found->second.aliases;
     mFunctions.erase(found);
-    for(const auto & alias : found->second.aliases)
+    for(const auto & alias : aliases)
         Unregister(alias);
     return true;
 }
