@@ -340,10 +340,10 @@ bool FormatFunctions::isValidName(const String & name)
 {
     if(!name.length())
         return false;
-    if(!(name[0] == '_' || isalpha(name[0])))
+    if(!(name[0] == '_' || isalpha((unsigned char)name[0])))
         return false;
     for(const auto & ch : name)
-        if(!(isalnum(ch) || ch == '_' || ch == '.'))
+        if(!(isalnum((unsigned char)ch) || ch == '_' || ch == '.'))
             return false;
     return true;
 }

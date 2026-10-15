@@ -39,7 +39,7 @@ bool cbScriptCmd(int argc, char* argv[])
     auto scriptcmd = strchr(argv[0], ' ');
     if(scriptcmd == nullptr)
         return false;
-    while(isspace(*scriptcmd))
+    while(isspace((unsigned char)*scriptcmd))
         scriptcmd++;
     return ScriptCmdExecAwait(scriptcmd, false, nullptr) != ScriptCommandOutcome::Abort;
 }

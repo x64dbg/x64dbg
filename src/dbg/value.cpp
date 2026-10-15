@@ -1499,7 +1499,7 @@ static bool isdecnumber(const char* string)
     }
     int len = (int)strlen(string + decAdd);
     for(int i = 0; i < len; i++)
-        if(!isdigit(string[i + decAdd]))
+        if(!isdigit((unsigned char)string[i + decAdd]))
             return false;
     return true;
 }
@@ -1520,7 +1520,7 @@ static bool ishexnumber(const char* string)
         return false;
     int len = (int)strlen(string + add);
     for(int i = 0; i < len; i++)
-        if(!isxdigit(string[i + add])) //all must be hex digits
+        if(!isxdigit((unsigned char)string[i + add])) //all must be hex digits
             return false;
     return true;
 }

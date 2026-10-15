@@ -413,7 +413,7 @@ void CPURegistersView::displayEditDialog()
                                     {
                                         memset(actual_char, 0, sizeof(actual_char));
                                         memcpy(actual_char, (char*) pArray.data() + (i * 2), 2);
-                                        if(! isxdigit(actual_char[0]) || ! isxdigit(actual_char[1]))
+                                        if(! isxdigit((unsigned char)actual_char[0]) || ! isxdigit((unsigned char)actual_char[1]))
                                         {
                                             ok = false;
                                             break;

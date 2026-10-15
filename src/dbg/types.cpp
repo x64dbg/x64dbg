@@ -312,7 +312,7 @@ bool TypeManager::AppendArg(const std::string & type, const std::string & name)
 
 int TypeManager::Sizeof(const std::string & type, std::string* underlyingType)
 {
-    if(!types.empty() && type.back() == '*')
+    if(!type.empty() && type.back() == '*')
     {
         if(underlyingType != nullptr)
             *underlyingType = type;
@@ -500,7 +500,7 @@ bool TypeManager::isDefined(const std::string & id) const
 
 bool TypeManager::validPtr(const std::string & id)
 {
-    if(id[id.length() - 1] == '*')
+    if(!id.empty() && id.back() == '*')
     {
         auto type = id.substr(0, id.length() - 1);
         if(!isDefined(type) && !validPtr(type))
