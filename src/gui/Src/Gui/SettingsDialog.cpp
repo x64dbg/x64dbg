@@ -872,7 +872,11 @@ void SettingsDialog::on_btnDeleteRange_clicked()
 
 void SettingsDialog::on_btnIgnoreLast_clicked()
 {
-    QMessageBox msg(QMessageBox::Question, tr("Question"), QString().sprintf(tr("Are you sure you want to add %.8X?").toUtf8().constData(), lastException));
+    QString exceptionText = QString().asprintf("%.8X", lastException);
+    auto found = exceptionNames.find(lastException);
+    if(found != exceptionNames.end())
+        exceptionText += QString(" (%1)").arg(found->second);
+    QMessageBox msg(QMessageBox::Question, tr("Question"), tr("Are you sure you want to add %1?").arg(exceptionText));
     msg.setWindowIcon(DIcon("question"));
     msg.setParent(this, Qt::Dialog);
     msg.setWindowFlags(msg.windowFlags() & (~Qt::WindowContextHelpButtonHint));
