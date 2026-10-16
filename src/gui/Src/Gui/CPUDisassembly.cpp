@@ -1618,7 +1618,7 @@ void CPUDisassembly::pushSelectionInto(bool copyBytes, QTextStream & stream, QTe
         bool autocomment;
         if(GetCommentFormat(cur_addr, comment, &autocomment))
             fullComment = " " + comment;
-        stream << address.leftJustified(addressLen, QChar(' '), true);
+        stream << address.leftJustified(addressLen, QChar(' '), false);
         if(copyBytes)
             stream << " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
         stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true) + " |" + fullComment;

@@ -1638,7 +1638,7 @@ void TraceBrowser::pushSelectionInto(bool copyBytes, QTextStream & stream, QText
             memoryText = memTokens.toString();
         }
 
-        stream << getTraceFile()->getIndexText(i) + " | " + address.leftJustified(addressLen, QChar(' '), true);
+        stream << getTraceFile()->getIndexText(i) + " | " + address.leftJustified(addressLen, QChar(' '), false);
         if(copyBytes)
             stream << " | " + bytes.leftJustified(bytesLen, QChar(' '), true);
         stream << " | " + disassembly.leftJustified(disassemblyLen, QChar(' '), true);
