@@ -1746,15 +1746,15 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     case x87CW_IM:
         return tr("The invalid operation exception mask (bit 0). When the mask bit is set, its corresponding exception is blocked from being generated.");
     case x87CW_DM:
-        return tr("The denormal-operand exception mask (bit 2). When the mask bit is set, its corresponding exception is blocked from being generated.");
+        return tr("The denormal-operand exception mask (bit 1). When the mask bit is set, its corresponding exception is blocked from being generated.");
     case x87CW_ZM:
-        return tr("The floating-point divide-by-zero exception mask (bit 3). When the mask bit is set, its corresponding exception is blocked from being generated.");
+        return tr("The floating-point divide-by-zero exception mask (bit 2). When the mask bit is set, its corresponding exception is blocked from being generated.");
     case x87CW_OM:
-        return tr("The floating-point numeric overflow exception mask (bit 4). When the mask bit is set, its corresponding exception is blocked from being generated.");
+        return tr("The floating-point numeric overflow exception mask (bit 3). When the mask bit is set, its corresponding exception is blocked from being generated.");
     case x87CW_UM:
-        return tr("The potential floating-point numeric underflow condition mask (bit 5). When the mask bit is set, its corresponding exception is blocked from being generated.");
+        return tr("The potential floating-point numeric underflow condition mask (bit 4). When the mask bit is set, its corresponding exception is blocked from being generated.");
     case x87CW_PM:
-        return tr("The inexact-result/precision exception mask (bit 6). When the mask bit is set, its corresponding exception is blocked from being generated.");
+        return tr("The inexact-result/precision exception mask (bit 5). When the mask bit is set, its corresponding exception is blocked from being generated.");
 
     case x87SW_B:
         return tr("The busy flag (bit 15) indicates if the FPU is busy (B=1) while executing an instruction, or is idle (B=0).\n"
@@ -1777,15 +1777,15 @@ QString RegistersView::helpRegister(REGISTER_NAME reg)
     case x87SW_I:
         return tr("The processor reports an invalid operation exception (bit 0) in response to one or more invalid arithmetic operands.");
     case x87SW_D:
-        return tr("The processor reports the denormal-operand exception (bit 2) if an arithmetic instruction attempts to operate on a denormal operand.");
+        return tr("The processor reports the denormal-operand exception (bit 1) if an arithmetic instruction attempts to operate on a denormal operand.");
     case x87SW_Z:
-        return tr("The processor reports the floating-point divide-by-zero exception (bit 3) whenever an instruction attempts to divide a finite non-zero operand by 0.");
+        return tr("The processor reports the floating-point divide-by-zero exception (bit 2) whenever an instruction attempts to divide a finite non-zero operand by 0.");
     case x87SW_O:
-        return tr("The processor reports a floating-point numeric overflow exception (bit 4) whenever the rounded result of an instruction exceeds the largest allowable finite value that will fit into the destination operand.");
+        return tr("The processor reports a floating-point numeric overflow exception (bit 3) whenever the rounded result of an instruction exceeds the largest allowable finite value that will fit into the destination operand.");
     case x87SW_U:
-        return tr("The processor detects a potential floating-point numeric underflow condition (bit 5) whenever the result of rounding with unbounded exponent is non-zero and tiny.");
+        return tr("The processor detects a potential floating-point numeric underflow condition (bit 4) whenever the result of rounding with unbounded exponent is non-zero and tiny.");
     case x87SW_P:
-        return tr("The inexact-result/precision exception (bit 6) occurs if the result of an operation is not exactly representable in the destination format.");
+        return tr("The inexact-result/precision exception (bit 5) occurs if the result of an operation is not exactly representable in the destination format.");
 
     case MxCsr:
         return tr("The 32-bit MXCSR register contains control and status information for SIMD floating-point operations.");
