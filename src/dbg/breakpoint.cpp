@@ -403,12 +403,20 @@ bool BpEnable(duint Address, BP_TYPE Type, bool Enable)
     bpInfo->enabled = Enable;
 
     //Re-read oldbytes
-    if(Enable && Type == BPNORMAL)
+    if(Enable && Type == BPNORMAL && MemIsValidReadPtr(Address))
     {
         if(!MemRead(Address, &bpInfo->oldbytes, sizeof(bpInfo->oldbytes)))
             return false;
     }
     return true;
+}
+
+bool BpEnable(const BREAKPOINT & Bp, bool Enable)
+{
+    if(Bp.type == BPDLL || Bp.type == BPEXCEPTION || Bp.module.empty() || ModBaseFromName(Bp.module.c_str()))
+        return BpEnable(Bp.addr, Bp.type, Enable);
+
+    return BpEnable(ModHashFromName(Bp.module.c_str()) + Bp.addr, Bp.type, Enable);
 }
 
 bool BpSetName(duint Address, BP_TYPE Type, const char* Name)
