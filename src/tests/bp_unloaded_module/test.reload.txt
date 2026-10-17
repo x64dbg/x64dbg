@@ -1,0 +1,14 @@
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init tests/bp_unloaded_module.exe
+bp bp_unloaded_module:Loaded
+bp bp_unloaded_module:Unloaded
+run
+testassert cip == bp_unloaded_module:Loaded, "winmm.dll was loaded"
+bp winmm.timeGetTime, "unloaded_bp"
+run
+testassert cip == bp_unloaded_module:Unloaded, "winmm.dll was unloaded"
+run
+testassert cip == winmm.timeGetTime, "untoggled breakpoint is armed when its module reloads"
+run
+testfinalize

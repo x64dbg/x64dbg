@@ -58,6 +58,7 @@ bool BpGetAny(BP_TYPE Type, const char* Name, BREAKPOINT* Bp);
 bool BpDelete(duint Address, BP_TYPE Type);
 bool BpDelete(const BREAKPOINT & Bp);
 bool BpEnable(duint Address, BP_TYPE Type, bool Enable);
+bool BpEnable(const BREAKPOINT & Bp, bool Enable);
 bool BpSetName(duint Address, BP_TYPE Type, const char* Name);
 bool BpSetTitanType(duint Address, BP_TYPE Type, int TitanType);
 bool BpSetBreakCondition(duint Address, BP_TYPE Type, const char* Condition);
