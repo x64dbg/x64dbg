@@ -108,6 +108,42 @@ jobs:
           include-hidden-files: true
           retention-days: 7
 
+  dbgeng-test:
+    needs: cmake
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Download x64 Build Artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: build-x64
+          path: bin
+
+      - name: Download x86 Build Artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: build-x86
+          path: bin
+
+      - name: Run DbgEng Tests
+        run: |
+          py scripts/run_dbgeng_live_gate.py --repeats 1 --skip-cross-engine
+
+      - name: Upload Test Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-artifacts-DbgEng
+          path: build/dbgeng-live-gate
+          if-no-files-found: warn
+          include-hidden-files: true
+          retention-days: 7
+
   package:
     needs: [cmake, docs]
     runs-on: windows-latest

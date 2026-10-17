@@ -73,7 +73,7 @@ bool cbDebugFree(int argc, char* argv[])
     }
     if(addr == lastalloc)
         varset("$lastalloc", (duint)0, true);
-    bool ok = !!VirtualFreeEx(fdProcessInfo->hProcess, (void*)addr, 0, MEM_RELEASE);
+    bool ok = !!MemoryFreeSafe(fdProcessInfo->hProcess, (void*)addr, 0, MEM_RELEASE);
     if(!ok)
         dputs(QT_TRANSLATE_NOOP("DBG", "VirtualFreeEx failed"));
     //update memory map
@@ -266,10 +266,44 @@ bool cbInstrMinidump(int argc, char* argv[])
         }
     }
 
+    TITAN_ENGINE_CONTEXT_t titanContext = {};
+    if(!GetFullContextDataEx(DbgGetThreadHandle(), &titanContext))
+    {
+        CloseHandle(hFile);
+        return false;
+    }
     CONTEXT context = {};
     context.ContextFlags = CONTEXT_ALL;
-    GetThreadContext(DbgGetThreadHandle(), &context);
-    context.EFlags &= ~0x100; // remove trap flag
+#ifdef _WIN64
+    context.Rax = titanContext.cax;
+    context.Rbx = titanContext.cbx;
+    context.Rcx = titanContext.ccx;
+    context.Rdx = titanContext.cdx;
+    context.Rsi = titanContext.csi;
+    context.Rdi = titanContext.cdi;
+    context.Rbp = titanContext.cbp;
+    context.Rsp = titanContext.csp;
+    context.Rip = titanContext.cip;
+    context.R8 = titanContext.r8;
+    context.R9 = titanContext.r9;
+    context.R10 = titanContext.r10;
+    context.R11 = titanContext.r11;
+    context.R12 = titanContext.r12;
+    context.R13 = titanContext.r13;
+    context.R14 = titanContext.r14;
+    context.R15 = titanContext.r15;
+#else
+    context.Eax = DWORD(titanContext.cax);
+    context.Ebx = DWORD(titanContext.cbx);
+    context.Ecx = DWORD(titanContext.ccx);
+    context.Edx = DWORD(titanContext.cdx);
+    context.Esi = DWORD(titanContext.csi);
+    context.Edi = DWORD(titanContext.cdi);
+    context.Ebp = DWORD(titanContext.cbp);
+    context.Esp = DWORD(titanContext.csp);
+    context.Eip = DWORD(titanContext.cip);
+#endif
+    context.EFlags = DWORD(titanContext.eflags) & ~0x100; // remove trap flag
 
     EXCEPTION_POINTERS exceptionPointers = {};
     exceptionPointers.ContextRecord = &context;

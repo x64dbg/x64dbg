@@ -144,6 +144,12 @@ static void registercommands()
 
     //debug control
     dbgcmdnew("InitDebug,init,initdbg", cbDebugInit, false); //init debugger arg1:exefile,[arg2:commandline]
+    dbgcmdnew("InitReplay", cbDebugInitReplay, false); //open a user minidump or TTD trace
+    dbgcmdnew("ReplayGetPosition", cbReplayGetPosition, true);
+    dbgcmdnew("ReplayGetExtent", cbReplayGetExtent, true);
+    dbgcmdnew("ReplaySetPosition", cbReplaySetPosition, true);
+    dbgcmdnew("ReplayStepBack", cbReplayStepBack, true);
+    dbgcmdnew("ReplayRunBack", cbReplayRunBack, true);
     dbgcmdnew("StopDebug,stop,dbgstop", cbDebugStop, true); //stop debugger
     dbgcmdnew("AttachDebugger,attach", cbDebugAttach, false); //attach
     dbgcmdnew("DetachDebugger,detach", cbDebugDetach, true); //detach
@@ -796,10 +802,23 @@ static const char* applyCommandlineArguments(const CommandlineArguments & args)
 
     if(!args.filename.empty())
     {
-        std::string cmdline;
-        for(const auto & arg : args.arguments)
-            cmdline += StringUtils::sprintf("\"%s\" ", escape(arg).c_str());
-        DbgCmdExec(StringUtils::sprintf(R"(scriptcmd init "%s", "%s", "%s")", escape(args.filename).c_str(), escape(cmdline).c_str(), escape(workingDir).c_str()).c_str());
+        const auto lower = StringUtils::ToLower(args.filename);
+        const auto hasExtension = [&lower](const char* extension)
+        {
+            const auto length = strlen(extension);
+            return lower.size() >= length && lower.compare(lower.size() - length, length, extension) == 0;
+        };
+        if(hasExtension(".dmp") || hasExtension(".mdmp") || hasExtension(".run"))
+        {
+            DbgCmdExec(StringUtils::sprintf(R"(scriptcmd initreplay "%s")", escape(args.filename).c_str()).c_str());
+        }
+        else
+        {
+            std::string cmdline;
+            for(const auto & arg : args.arguments)
+                cmdline += StringUtils::sprintf("\"%s\" ", escape(arg).c_str());
+            DbgCmdExec(StringUtils::sprintf(R"(scriptcmd init "%s", "%s", "%s")", escape(args.filename).c_str(), escape(cmdline).c_str(), escape(workingDir).c_str()).c_str());
+        }
     }
     else if(!args.pid.empty())
     {

@@ -1,0 +1,13 @@
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init tests/swbp_stale.exe
+SetBPX swbp_stale:Ready, long_breakpoint, long
+run
+testassert cip == swbp_stale:Ready, "long INT3 breakpoint was reached"
+bc swbp_stale:Ready
+bp swbp_stale:Finish
+run
+testassert cip == swbp_stale:Finish, "continued after long INT3"
+bc swbp_stale:Finish
+run
+testfinalize

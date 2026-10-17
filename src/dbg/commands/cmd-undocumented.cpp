@@ -452,7 +452,7 @@ bool cbInstrMeminfo(int argc, char* argv[])
         std::vector<uint8_t> buf;
         buf.resize(size);
         SIZE_T NumberOfBytesRead = 0;
-        ReadProcessMemory(fdProcessInfo->hProcess, (const void*)addr, buf.data(), buf.size(), &NumberOfBytesRead);
+        MemoryReadUnsafe(fdProcessInfo->hProcess, (const void*)addr, buf.data(), buf.size(), &NumberOfBytesRead);
         dprintf_untranslated("Data: %s\n", StringUtils::ToHex(buf.data(), NumberOfBytesRead).c_str());
     }
     else if(argv[1][0] == 'r')

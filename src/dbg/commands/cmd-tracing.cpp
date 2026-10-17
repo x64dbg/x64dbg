@@ -49,7 +49,7 @@ static bool conditionalTraceIntoCommand(TITANCBSTEP callback, int argc, char* ar
     else if(party == mod_system)
         stepFunction = StepIntoSystem;
     else if(party == -1)
-        stepFunction = StepIntoWow64;
+        stepFunction = StepIntoWrapper;
     else
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Unsupported party filter: %d\n"), party);

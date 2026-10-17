@@ -11,3 +11,6 @@
 [submodule "src/third_party/GleeBug"]
 	path = src/third_party/GleeBug
 	url = ../../x64dbg/GleeBug
+[submodule "src/third_party/DbgEng"]
+	path = src/third_party/DbgEng
+	url = ../../x64dbg/DbgEng

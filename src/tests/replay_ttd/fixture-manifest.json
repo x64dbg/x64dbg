@@ -1,0 +1,43 @@
+{
+  "format": 1,
+  "recorder": {
+    "product": "Microsoft TTD",
+    "version": "1.01.11",
+    "release": "1.11.611.0",
+    "bundle": "TTD-1.2506"
+  },
+  "target": {
+    "source": "src/tests/replay_ttd/target.cpp",
+    "helperSource": "src/tests/replay_ttd/helper.cpp",
+    "expectedRepeatedCalls": 25,
+    "expectedExceptionCode": "0xE0424242",
+    "expectedFinalStage": 6,
+    "workerCount": 3
+  },
+  "fixtures": {
+    "x64": {
+      "trace": "x64/replay_ttd.run",
+      "sha256": "85313f31ae5649d12846747565a2cbc0b58c03c35fd70d3270e271fbad6fdff4",
+      "size": 33554432,
+      "first": "D:0",
+      "last": "656:17FB",
+      "firstMilestoneHit": "3F2:5CE",
+      "handledException": "5A1:0",
+      "processExitBoundary": "656:17FA",
+      "targetSha256": "73025b4569913e920bbc0b68834f47e156225d88d62c84378521950fb6d6af7c",
+      "helperSha256": "1711c6911fa4c818f99b48bfbb849d02d2065bf77d1b8b43b60e9ee63cdf8f9a"
+    },
+    "x32": {
+      "trace": "x32/replay_ttd.run",
+      "sha256": "9791310643b0b09f542c8a235721cd1c1dc30de3c5e066c2eb7fd4e88ce86c2f",
+      "size": 29360128,
+      "first": "D:0",
+      "last": "76A:1AE7",
+      "firstMilestoneHit": "490:659",
+      "handledException": "6B6:0",
+      "processExitBoundary": "76A:1AE6",
+      "targetSha256": "6ee2ce7b1f0ca868c8885b596bb898686e9732c884434fa0cedc92e22d04d738",
+      "helperSha256": "cb8942e0406737bc8c4683b374374889261c33f31ed8b467b80885d0e7c29148"
+    }
+  }
+}

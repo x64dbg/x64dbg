@@ -1,0 +1,63 @@
+settingset Events, EntryBreakpoint, 0
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+init tests/script_run_exit.exe
+step
+stop
+testassert 1, "twenty launch/step/stop sessions completed"
+ret

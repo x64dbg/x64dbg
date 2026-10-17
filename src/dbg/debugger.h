@@ -43,6 +43,7 @@ struct INIT_STRUCT
     bool attach = false;
     bool pauseAtAttach = false;
     bool isDll = false;
+    TitanSessionKind replayKind = UE_SESSION_NONE;
 };
 
 struct ExceptionRange
@@ -77,11 +78,9 @@ duint dbggettimewastedcounter();
 bool dbgisrunning();
 bool dbgisdebugging();
 bool dbgisdll();
+TitanSessionKind dbggetsessionkind();
+bool dbghassessioncapability(TitanSessionCapability capability);
 void dbgsetattachevent(HANDLE handle);
-DWORD dbggetattachmainthread();
-void dbgclearattachmainthread();
-duint dbggetdbgeventcount();
-bool dbgspawnbreakinthread();
 void dbgsetresumetid(duint tid);
 void DebugUpdateGui(duint disasm_addr, bool stack);
 void DebugUpdateGuiAsync(duint disasm_addr, bool stack);
@@ -131,7 +130,7 @@ DWORD dbggetcontinuestatus();
 
 void cbStep();
 void cbRtrStep();
-void cbPauseBreakpoint();
+void cbPauseDebug();
 void cbMemoryBreakpoint(const void* ExceptionAddress);
 void cbHardwareBreakpoint(const void* ExceptionAddress);
 void cbUserBreakpoint();
@@ -148,7 +147,7 @@ void cbRunToUserCodeBreakpoint(const void* ExceptionAddress);
 bool cbSetModuleBreakpoints(const BREAKPOINT* bp);
 EXCEPTION_DEBUG_INFO & getLastExceptionInfo();
 bool dbgrestartadmin();
-void StepIntoWow64(TITANCBSTEP callback);
+void StepIntoWrapper(TITANCBSTEP callback);
 void StepOverWrapper(TITANCBSTEP callback);
 void StepIntoUser(TITANCBSTEP callback);
 void StepIntoSystem(TITANCBSTEP callback);
@@ -173,7 +172,6 @@ extern bool bSkipInt3Stepping;
 extern bool bIgnoreInconsistentBreakpoints;
 extern bool bNoForegroundWindow;
 extern bool bVerboseExceptionLogging;
-extern bool bNoWow64SingleStepWorkaround;
 extern bool bForceLoadSymbols;
 extern bool bNewStringAlgorithm;
 extern bool bWindowLongPath;

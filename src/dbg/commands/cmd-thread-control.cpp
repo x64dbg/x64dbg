@@ -24,7 +24,7 @@ bool cbDebugCreatethread(int argc, char* argv[])
             return false;
     }
     DWORD ThreadId = 0;
-    auto hThread = CreateRemoteThread(fdProcessInfo->hProcess, nullptr, 0, LPTHREAD_START_ROUTINE(Entry), LPVOID(Argument), 0, &ThreadId);
+    auto hThread = TitanCreateRemoteThread(fdProcessInfo->hProcess, LPTHREAD_START_ROUTINE(Entry), LPVOID(Argument), 0, &ThreadId);
     if(!hThread)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Create thread failed!"));
@@ -32,7 +32,7 @@ bool cbDebugCreatethread(int argc, char* argv[])
     }
     else
     {
-        CloseHandle(hThread);
+        TitanCloseHandle(hThread);
         char label[MAX_LABEL_SIZE];
         if(!LabelGet(Entry, label))
             label[0] = 0;
@@ -59,7 +59,6 @@ bool cbDebugSwitchthread(int argc, char* argv[])
         dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid thread %s\n"), formatpidtid((DWORD)threadid).c_str());
         return false;
     }
-    dbgclearattachmainthread(); //the pause command should respect this explicit choice
     //switch thread
     auto newThread = ThreadGetHandle((DWORD)threadid);
     if(hActiveThread != newThread)
@@ -93,7 +92,7 @@ bool cbDebugSuspendthread(int argc, char* argv[])
         return false;
     }
     //suspend thread
-    if(SuspendThread(ThreadGetHandle((DWORD)threadid)) == -1)
+    if(TitanSuspendThread(ThreadGetHandle((DWORD)threadid)) == -1)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error suspending thread"));
         return false;
@@ -115,7 +114,7 @@ bool cbDebugResumethread(int argc, char* argv[])
         return false;
     }
     //resume thread
-    if(ResumeThread(ThreadGetHandle((DWORD)threadid)) == -1)
+    if(TitanResumeThread(ThreadGetHandle((DWORD)threadid)) == -1)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error resuming thread"));
         return false;
@@ -141,7 +140,7 @@ bool cbDebugKillthread(int argc, char* argv[])
         return false;
     }
     //terminate thread
-    if(TerminateThread(ThreadGetHandle((DWORD)threadid), (DWORD)exitcode) != 0)
+    if(TitanTerminateThread(ThreadGetHandle((DWORD)threadid), (DWORD)exitcode) != 0)
     {
         GuiUpdateAllViews();
         dputs(QT_TRANSLATE_NOOP("DBG", "Thread terminated"));
@@ -220,7 +219,7 @@ bool cbDebugSetPriority(int argc, char* argv[])
         return false;
     }
     //set thread priority
-    if(SetThreadPriority(ThreadGetHandle((DWORD)threadid), (int)priority) == 0)
+    if(TitanSetThreadPriority(ThreadGetHandle((DWORD)threadid), (int)priority) == 0)
     {
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting thread priority"));
         return false;

@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
-FINAL_RE = re.compile(r"^\[x64dbg-test\] FINAL status=(?P<status>pass|fail) asserts=(?P<asserts>\d+)(?: reason=(?P<reason>\S+))?$")
+FINAL_RE = re.compile(r"^\[x64dbg-test\] FINAL status=(?P<status>pass|fail|skip) asserts=(?P<asserts>\d+)(?: reason=(?P<reason>\S+))?$")
 TEST_LOG_RE = re.compile(r"^\[x64dbg-test\]")
 ARTIFACT_GITIGNORE = ".gitignore"
 ARTIFACT_GITIGNORE_MARKER = "# x64dbg-test\n*"
@@ -21,6 +21,7 @@ DEBUG_ENGINE_VALUES = {
     "TitanEngine": 0,
     "GleeBug": 1,
     "StaticEngine": 2,
+    "DbgEng": 3,
 }
 DEBUG_ENGINE_ALIASES = {name.lower(): name for name in DEBUG_ENGINE_VALUES}
 
@@ -46,6 +47,7 @@ class TestResult:
     asserts: int | None
     returncode: int | None
     artifact_dir: Path
+    skipped: bool = False
 
 
 def normalize_engine(engine: str) -> str:
@@ -195,6 +197,7 @@ def ensure_debug_engine_runtime(headless: Path, engine: str) -> None:
         "TitanEngine": headless.parent / "TitanEngine.dll",
         "GleeBug": headless.parent / "GleeBug" / "TitanEngine.dll",
         "StaticEngine": headless.parent / "StaticEngine" / "TitanEngine.dll",
+        "DbgEng": headless.parent / "DbgEng" / "TitanEngine.dll",
     }[engine]
     ensure_file(engine_runtime, f"{engine} debug engine runtime")
 
@@ -236,9 +239,9 @@ def write_headless_ini(userdir: Path, engine: str, no_console_window: bool) -> N
     )
 
 
-def parse_final_line(log_path: Path) -> tuple[bool, int | None, str]:
+def parse_final_line(log_path: Path) -> tuple[bool, bool, int | None, str]:
     if not log_path.is_file():
-        return False, None, "missing_log"
+        return False, False, None, "missing_log"
 
     final_match: re.Match[str] | None = None
     for line in log_path.read_text(encoding="utf-8", errors="replace").splitlines():
@@ -247,12 +250,12 @@ def parse_final_line(log_path: Path) -> tuple[bool, int | None, str]:
             final_match = match
 
     if final_match is None:
-        return False, None, "missing_final"
+        return False, False, None, "missing_final"
 
     status = final_match.group("status")
     asserts = int(final_match.group("asserts"))
-    reason = final_match.group("reason") or ("pass" if status == "pass" else "fail")
-    return status == "pass", asserts, reason
+    reason = final_match.group("reason") or status
+    return status != "fail", status == "skip", asserts, reason
 
 
 def run_fallback_check(check_path: Path, log_path: Path, userdir: Path, runtime_dir: Path, artifact_dir: Path) -> tuple[bool, str]:
@@ -320,15 +323,16 @@ def run_driver_test(headless: Path, test: TestCase, timeout: int, artifact_dir: 
         stdout_path.write_text(timeout_output(exc.stdout) + "\n[DRIVER TIMEOUT]\n", encoding="utf-8", errors="replace")
         return TestResult(test.rel, False, "driver_timeout", None, None, artifact_dir)
 
-    passed, asserts, reason = parse_final_line(log_path)
+    passed, skipped, asserts, reason = parse_final_line(log_path)
     if completed.returncode != 0:
         passed = False
+        skipped = False
         if reason in {"pass", "missing_final"}:
             reason = process_exit_reason("driver_exit", completed.returncode)
-    if passed and test.fallback_check is not None:
+    if passed and not skipped and test.fallback_check is not None:
         passed, reason = run_fallback_check(test.fallback_check, log_path, userdir, test.runtime_dir, artifact_dir)
 
-    return TestResult(test.rel, passed, reason, asserts, completed.returncode, artifact_dir)
+    return TestResult(test.rel, passed, reason, asserts, completed.returncode, artifact_dir, skipped)
 
 
 def run_test(headless: Path, test: TestCase, timeout: int, artifact_root: Path, engine: str, no_console_window: bool) -> TestResult:
@@ -384,20 +388,21 @@ def run_test(headless: Path, test: TestCase, timeout: int, artifact_root: Path, 
         stdout_path.write_text(timeout_output(exc.stdout) + "\n[TIMEOUT]\n", encoding="utf-8", errors="replace")
         return TestResult(test.rel, False, "timeout", None, None, artifact_dir)
 
-    passed, asserts, reason = parse_final_line(log_path)
+    passed, skipped, asserts, reason = parse_final_line(log_path)
     if completed.returncode != 0:
         passed = False
+        skipped = False
         if reason == "pass":
             reason = process_exit_reason("process_exit", completed.returncode)
-    if passed and test.fallback_check is not None:
+    if passed and not skipped and test.fallback_check is not None:
         passed, reason = run_fallback_check(test.fallback_check, log_path, userdir, test.runtime_dir, artifact_dir)
 
-    return TestResult(test.rel, passed, reason, asserts, completed.returncode, artifact_dir)
+    return TestResult(test.rel, passed, reason, asserts, completed.returncode, artifact_dir, skipped)
 
 
 def print_test_result(result: TestResult) -> None:
     asserts = "?" if result.asserts is None else str(result.asserts)
-    status = "PASS" if result.passed else "FAIL"
+    status = "SKIP" if result.skipped else "PASS" if result.passed else "FAIL"
     print(f"{status:4} {result.rel}  asserts={asserts}  reason={result.reason}", flush=True)
 
 
@@ -422,9 +427,10 @@ def print_failure_logs(result: TestResult) -> None:
 
 def print_results(results: Iterable[TestResult], artifact_root: Path | None) -> None:
     results = list(results)
-    passed = sum(1 for result in results if result.passed)
+    passed = sum(1 for result in results if result.passed and not result.skipped)
+    skipped = sum(1 for result in results if result.skipped)
     total = len(results)
-    print(f"Summary: {passed}/{total} passed")
+    print(f"Summary: {passed}/{total - skipped} passed, {skipped} skipped")
     if artifact_root is not None:
         print(f"Artifacts: {artifact_root}")
 
