@@ -8,6 +8,8 @@ testassert cip == bp_unloaded_module:Loaded, "winmm.dll was loaded"
 bp winmm.timeGetTime, "unloaded_bp"
 run
 testassert cip == bp_unloaded_module:Unloaded, "winmm.dll was unloaded"
+bc bp_unloaded_module:Loaded
+bc bp_unloaded_module:Unloaded
 bd unloaded_bp
 be unloaded_bp
 bd
