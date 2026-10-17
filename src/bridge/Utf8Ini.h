@@ -41,8 +41,15 @@ public:
         //read lines
         std::vector<std::string> lines;
         std::string curLine;
-        for(auto ch : data)
+        size_t offset = 0;
+        if(data.size() >= 3 &&
+                static_cast<unsigned char>(data[0]) == 0xEF &&
+                static_cast<unsigned char>(data[1]) == 0xBB &&
+                static_cast<unsigned char>(data[2]) == 0xBF)
+            offset = 3;
+        for(size_t i = offset; i < data.size(); i++)
         {
+            auto ch = data[i];
             switch(ch)
             {
             case '\r':
@@ -233,17 +240,11 @@ private:
 
     static inline std::string trim(const std::string & str)
     {
-        auto len = str.length();
-        if(!len)
+        auto first = str.find_first_not_of(' ');
+        if(first == std::string::npos)
             return "";
-        size_t pre = 0;
-        while(str[pre] == ' ')
-            pre++;
-        size_t post = 0;
-        while(str[len - post - 1] == ' ' && post < len)
-            post++;
-        auto sublen = len - post - pre;
-        return sublen > 0 ? str.substr(pre, len - post - pre) : "";
+        auto last = str.find_last_not_of(' ');
+        return str.substr(first, last - first + 1);
     }
 
     static inline bool parseKeyValueLine(const std::string & line, std::string & key, std::string & value)
@@ -284,6 +285,7 @@ private:
     {
         auto len = value.length();
         return len && (value[0] == ' ' || value[len - 1] == ' ' ||
+                       value.find('\r') != std::string::npos ||
                        value.find('\n') != std::string::npos ||
                        value.find('\"') != std::string::npos);
     }
