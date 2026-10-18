@@ -42,7 +42,6 @@ sources = [
 private-compile-definitions = [
     "BUILD_BRIDGE",
 ]
-compile-features = ["cxx_std_17"]
 
 [target.bridge.properties]
 x86.OUTPUT_NAME = "x32bridge"
@@ -63,7 +62,6 @@ include-directories = [
     "src/dbg/btparser",
 ]
 clang-any.compile-options = ["-Wno-self-assign-field"]
-compile-features = ["cxx_std_17"]
 
 [target.dbg]
 type = "shared"
@@ -131,7 +129,6 @@ msvc.link-options = [
 msvc.link-libraries = [
     "Delayimp",
 ]
-compile-features = ["cxx_std_17"]
 
 [target.dbg.properties]
 x86.OUTPUT_NAME = "x32dbg"
@@ -180,7 +177,6 @@ private-compile-definitions = [
 ]
 X64DBG_RELEASE.compile-definitions = ["X64DBG_RELEASE"]
 include-after = ["cmake/deps.cmake"]
-compile-features = ["cxx_std_17"]
 
 [target.gui.properties]
 x86.OUTPUT_NAME = "x32gui"
@@ -228,7 +224,6 @@ dependencies = [
     "third_party",
 ]
 x86.dependencies = ["launcher"]
-compile-features = ["cxx_std_17"]
 
 [target.exe.properties]
 x86.OUTPUT_NAME = "x32dbg"
@@ -257,7 +252,6 @@ msvc.link-options = [
 msvc.link-libraries = [
     "Delayimp",
 ]
-compile-features = ["cxx_std_17"]
 
 [target.loaddll.properties]
 WIN32_EXECUTABLE = "ON"
@@ -275,7 +269,6 @@ msvc.link-options = [
     "/LARGEADDRESSAWARE",
 ]
 dependencies = ["exe"]
-compile-features = ["cxx_std_17"]
 
 [target.launcher]
 type = "executable"
@@ -296,7 +289,6 @@ link-libraries = [
     "Shlwapi",
     "Comctl32",
 ]
-compile-features = ["cxx_std_17"]
 
 [target.launcher.properties]
 OUTPUT_NAME = "x96dbg"
