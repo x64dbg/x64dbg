@@ -582,6 +582,7 @@ typedef enum
     DebugEngineGleeBug,
     DebugEngineStaticEngine,
     DebugEngineDbgEng,
+    DebugEngineKSword = 4,
 } DEBUG_ENGINE;
 
 //Debugger typedefs
@@ -1254,6 +1255,9 @@ BRIDGE_IMPEXP bool DbgAnalyzeFunction(duint entry, BridgeCFGraphList* graph);
 BRIDGE_IMPEXP duint DbgEval(const char* expression, bool* DEFAULT_PARAM(success, nullptr));
 BRIDGE_IMPEXP void DbgGetSymbolInfo(const SYMBOLPTR* symbolptr, SYMBOLINFO* info);
 BRIDGE_IMPEXP DEBUG_ENGINE DbgGetDebugEngine();
+// Optional extension, callable only on the engine loaded during BridgeInit.
+#include "ksword_engine.h"
+BRIDGE_IMPEXP unsigned long DbgKSwordCall(KSWORD_DEBUGGER_CALL* call);
 BRIDGE_IMPEXP bool DbgGetSymbolInfoAt(duint addr, SYMBOLINFO* info);
 BRIDGE_IMPEXP duint DbgXrefAddMulti(const XREF_EDGE* edges, duint count);
 BRIDGE_IMPEXP void DbgUpdateGui(duint disasm_addr, bool stack);

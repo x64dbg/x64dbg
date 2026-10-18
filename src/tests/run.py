@@ -22,6 +22,7 @@ DEBUG_ENGINE_VALUES = {
     "GleeBug": 1,
     "StaticEngine": 2,
     "DbgEng": 3,
+    "KSword": 4,
 }
 DEBUG_ENGINE_ALIASES = {name.lower(): name for name in DEBUG_ENGINE_VALUES}
 
@@ -198,6 +199,7 @@ def ensure_debug_engine_runtime(headless: Path, engine: str) -> None:
         "GleeBug": headless.parent / "GleeBug" / "TitanEngine.dll",
         "StaticEngine": headless.parent / "StaticEngine" / "TitanEngine.dll",
         "DbgEng": headless.parent / "DbgEng" / "TitanEngine.dll",
+        "KSword": headless.parent / "KSword" / "TitanEngine.dll",
     }[engine]
     ensure_file(engine_runtime, f"{engine} debug engine runtime")
 

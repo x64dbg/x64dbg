@@ -5,6 +5,7 @@
 #include "Bridge.h"
 #include "MenuBuilder.h"
 #include "Breakpoints.h"
+#include "KSwordEngine.h"
 #include "DisassemblyPopup.h"
 
 BreakpointsView::BreakpointsView(QWidget* parent)
@@ -14,7 +15,7 @@ BreakpointsView::BreakpointsView(QWidget* parent)
     {
         return getCharWidth() * count + 8;
     };
-    addColumnAt(charWidth(9), tr("Type"), false);
+    addColumnAt(charWidth(KSwordEngine::selected() ? 20 : 9), tr("Type"), false);
     addColumnAt(charWidth(sizeof(duint) * 2), tr("Address"), true, "", StdTable::SortBy::AsHex);
     addColumnAt(charWidth(35), tr("Module/Label/Exception"), true);
     addColumnAt(charWidth(8), tr("State"), true);
@@ -85,6 +86,17 @@ void BreakpointsView::setupContextMenu()
         if(!isValidBp())
             return false;
         return selectedBp().hitCount > 0;
+    });
+    auto kswordDetails = makeAction(tr("KSword: installed mechanism..."), [this]
+    {
+        const auto& bp = selectedBp();
+        KSwordEngine::showBreakpoint(this, bp.addr, bp.type);
+    });
+    mMenuBuilder->addAction(kswordDetails, [this](QMenu*)
+    {
+        if(!KSwordEngine::selected() || !isValidBp()) return false;
+        const auto type = selectedBp().type;
+        return type == bp_normal || type == bp_hardware || type == bp_memory;
     });
     mMenuBuilder->addSeparator();
 
@@ -557,7 +569,8 @@ void BreakpointsView::updateBreakpointsSlot()
             return result;
         };
 
-        setCellContent(row, ColType, QString());
+        const auto mechanism = KSwordEngine::breakpointLabel(bp.addr, bp.type);
+        setCellContent(row, ColType, mechanism);
         setCellUserdata(row, ColType, bp.type);
         setCellContent(row, ColAddr, addrText());
         setCellUserdata(row, ColAddr, row);
@@ -565,7 +578,7 @@ void BreakpointsView::updateBreakpointsSlot()
         setCellContent(row, ColState, stateName());
         setCellContent(row, ColDisasm, disasmText());
         setCellContent(row, ColHits, QString("%1").arg(bp.hitCount));
-        setCellContent(row, ColSummary, summaryText());
+        setCellContent(row, ColSummary, mechanism.isEmpty() ? summaryText() : QString("[%1] %2").arg(mechanism, summaryText()));
 
         mRich.push_back(std::make_pair(std::move(richDisasm), std::move(richSummary)));
     }

@@ -364,7 +364,13 @@ static bool cbEnableAllHardwareBreakpoints(const BREAKPOINT* bp)
     }
     if(!SetHardwareBreakPoint(bp->addr, drx, TITANGETTYPE(bp->titantype), TITANGETSIZE(bp->titantype), cbHardwareBreakpoint))
     {
+        const DWORD error = GetLastError();
         dprintf(QT_TRANSLATE_NOOP("DBG", "Could not enable hardware breakpoint %p (SetHardwareBreakPoint)\n"), bp->addr);
+        if(!BpEnable(bp->addr, BPHARDWARE, false))
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not disable hardware breakpoint %p (BpEnable)\n"), bp->addr);
+        BpSetTitanType(bp->addr, BPHARDWARE, bp->titantype);
+        GuiUpdateAllViews();
+        SetLastError(error);
         return false;
     }
     return true;
@@ -474,7 +480,14 @@ bool cbDebugSetHardwareBreakpoint(int argc, char* argv[])
     }
     if(!SetHardwareBreakPoint(addr, drx, type, titsize, cbHardwareBreakpoint))
     {
+        const DWORD error = GetLastError();
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting hardware breakpoint (TitanEngine)!"));
+        // A rejected engine request must not leave an enabled GUI entry. It
+        // would otherwise suppress the next attempt as "already set".
+        if(!BpDelete(addr, BPHARDWARE))
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Error handling invalid hardware breakpoint at %p! (bpdel)\n"), addr);
+        GuiUpdateAllViews();
+        SetLastError(error);
         return false;
     }
     dprintf(QT_TRANSLATE_NOOP("DBG", "Hardware breakpoint at %p set!\n"), addr);
@@ -750,7 +763,12 @@ bool cbDebugSetMemoryBpx(int argc, char* argv[])
     }
     if(!SetMemoryBPXEx(base, size, type, restore, cbMemoryBreakpoint))
     {
+        const DWORD error = GetLastError();
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting memory breakpoint! (SetMemoryBPXEx)"));
+        if(!BpDelete(base, BPMEMORY))
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed: %p (BpDelete)\n"), base);
+        GuiUpdateAllViews();
+        SetLastError(error);
         return false;
     }
     dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint at %p[%p] set!\n"), base, size);
@@ -811,7 +829,12 @@ bool cbDebugSetMemoryRangeBpx(int argc, char* argv[])
     }
     if(!SetMemoryBPXEx(start, size, type, !singleshot, cbMemoryBreakpoint))
     {
+        const DWORD error = GetLastError();
         dputs(QT_TRANSLATE_NOOP("DBG", "Error setting memory breakpoint! (SetMemoryBPXEx)"));
+        if(!BpDelete(start, BPMEMORY))
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Delete memory breakpoint failed: %p (BpDelete)\n"), start);
+        GuiUpdateAllViews();
+        SetLastError(error);
         return false;
     }
     dprintf(QT_TRANSLATE_NOOP("DBG", "Memory breakpoint at %p[%p] set!\n"), start, size);
