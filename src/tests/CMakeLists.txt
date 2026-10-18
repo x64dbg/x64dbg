@@ -180,6 +180,7 @@ set(X64DBG_STANDARD_TESTS
     cmdline_init
     cmdline_setcommandline
     guard_page
+    handles_enum
     script_run_exit
     scriptcmd_call
     scriptcmd_call_threads
