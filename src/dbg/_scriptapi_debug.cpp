@@ -1,4 +1,28 @@
 #include "_scriptapi_debug.h"
+#include "_dbgfunctions.h"
+
+static bool setBreakpoint(duint address, BPXTYPE type, unsigned int typeEx)
+{
+    auto functions = DbgFunctions();
+    BP_REF ref{};
+    if(!functions->BpRefVa(&ref, type, address))
+        return false;
+    if(functions->BpRefExists(&ref))
+        return functions->BpSetFieldNumber(&ref, bpf_enabled, 1);
+    BP_CREATEINFO info{};
+    info.size = sizeof(info);
+    info.type = type;
+    info.address = address;
+    info.enabled = true;
+    info.typeEx = typeEx;
+    return functions->BpCreate(&info, &ref);
+}
+
+static bool removeBreakpoint(duint address, BPXTYPE type)
+{
+    BP_REF ref{};
+    return DbgFunctions()->BpRefVa(&ref, type, address) && DbgFunctions()->BpRemove(&ref);
+}
 
 SCRIPT_EXPORT void Script::Debug::Wait()
 {
@@ -43,36 +67,28 @@ SCRIPT_EXPORT void Script::Debug::StepOut()
 
 SCRIPT_EXPORT bool Script::Debug::SetBreakpoint(duint address)
 {
-    char command[128] = "";
-    sprintf_s(command, "bp %p", (void*)address);
-    return DbgCmdExecDirect(command);
+    return setBreakpoint(address, bp_normal, 0);
 }
 
 SCRIPT_EXPORT bool Script::Debug::DeleteBreakpoint(duint address)
 {
-    char command[128] = "";
-    sprintf_s(command, "bc %p", (void*)address);
-    return DbgCmdExecDirect(command);
-
+    return removeBreakpoint(address, bp_normal);
 }
 SCRIPT_EXPORT bool Script::Debug::DisableBreakpoint(duint address)
 {
-    char command[128] = "";
-    sprintf_s(command, "bd %p", (void*)address);
-    return DbgCmdExecDirect(command);
+    BP_REF ref{};
+    return DbgFunctions()->BpRefVa(&ref, bp_normal, address) &&
+           DbgFunctions()->BpSetFieldNumber(&ref, bpf_enabled, 0);
 }
 
 SCRIPT_EXPORT bool Script::Debug::SetHardwareBreakpoint(duint address, HardwareType type)
 {
-    char command[128] = "";
-    const char* types[] = { "rw", "w", "x" };
-    sprintf_s(command, "bphws %p, %s", (void*)address, types[type]);
-    return DbgCmdExecDirect(command);
+    if(type < HardwareAccess || type > HardwareExecute)
+        return false;
+    return setBreakpoint(address, bp_hardware, static_cast<unsigned int>(type));
 }
 
 SCRIPT_EXPORT bool Script::Debug::DeleteHardwareBreakpoint(duint address)
 {
-    char command[128] = "";
-    sprintf_s(command, "bphwc %p", (void*)address);
-    return DbgCmdExecDirect(command);
+    return removeBreakpoint(address, bp_hardware);
 }

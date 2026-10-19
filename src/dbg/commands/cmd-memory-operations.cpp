@@ -261,7 +261,7 @@ bool cbInstrMinidump(int argc, char* argv[])
         BpGetList(&bplist);
         for(const auto & bp : bplist)
         {
-            if(bp.type == BPNORMAL && bp.active && DeleteBPX(bp.addr))
+            if(bp.type == BPNORMAL && bp.active && BpSetActive(bp, false))
                 disabledBreakpoints.push_back(bp);
         }
     }
@@ -293,10 +293,15 @@ bool cbInstrMinidump(int argc, char* argv[])
     auto dumpSaved = !!MiniDumpWriteDump(DbgGetProcessHandle(), DbgGetProcessId(), hFile, dumpType, &exceptionInfo, nullptr, nullptr);
     auto lastError = GetLastError() & 0xFFFF; // HRESULT_FROM_WIN32
 
-    // Re-enable all breakpoints that were previously disabled
+    // Re-enable all breakpoints that were previously disabled.
+    bool restored = true;
     for(const auto & bp : disabledBreakpoints)
     {
-        SetBPX(bp.addr, bp.titantype, cbUserBreakpoint);
+        if(!BpSetActive(bp, true))
+        {
+            restored = false;
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not restore breakpoint %p after minidump!\n"), bp.addr);
+        }
     }
 
     if(dumpSaved)
@@ -310,5 +315,5 @@ bool cbInstrMinidump(int argc, char* argv[])
     }
 
     CloseHandle(hFile);
-    return true;
+    return dumpSaved && restored;
 }

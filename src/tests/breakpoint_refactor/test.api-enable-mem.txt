@@ -1,0 +1,8 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+alloc 1000
+mov $page, $result
+bpm $page, 1, a
+bprapienable mem, $page
+bpmc $page
+free $page

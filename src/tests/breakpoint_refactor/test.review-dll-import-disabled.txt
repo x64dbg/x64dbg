@@ -1,0 +1,20 @@
+settingset Events, EntryBreakpoint, 0
+settingset Events, DllEntrySystem, 0
+settingset Events, DllEntry, 0
+init tests/breakpoint_refactor.exe
+bp breakpoint_refactor:Unloaded
+bpdll winmm.dll, u
+bpddll winmm.dll
+dbsave tests/breakpoint_refactor/import.json
+bcdll winmm.dll
+bprabsent dll, winmm.dll
+dbload tests/breakpoint_refactor/import.json
+bprstate dll, winmm.dll, 0, 0, list
+bprstate dll, winmm.dll, 0, 0, ref
+bpedll winmm.dll
+bprstate dll, winmm.dll, 1, 1, list
+run
+bprdllhits winmm.dll, 1
+run
+testassert cip == breakpoint_refactor:Unloaded, "disabled import can be enabled to catch unload"
+bcdll winmm.dll

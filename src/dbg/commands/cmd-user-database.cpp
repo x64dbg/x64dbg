@@ -23,7 +23,8 @@ bool cbInstrDbload(int argc, char* argv[])
 {
     if(argc <= 1)
     {
-        DebugRemoveBreakpoints();
+        if(!DebugRemoveBreakpoints())
+            return false;
         DbClear();
     }
     DbLoad(DbLoadSaveType::All, argc > 1 ? argv[1] : nullptr);
@@ -34,7 +35,8 @@ bool cbInstrDbload(int argc, char* argv[])
 
 bool cbInstrDbclear(int argc, char* argv[])
 {
-    DebugRemoveBreakpoints();
+    if(!DebugRemoveBreakpoints())
+        return false;
     DbClear();
     dputs(QT_TRANSLATE_NOOP("DBG", "Database cleared!"));
     GuiUpdateAllViews();

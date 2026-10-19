@@ -31,6 +31,7 @@ struct BREAKPOINT
     bool active = false;          // whether the breakpoint is active (enabled + actually set) or not
     bool silent = false;          // whether the breakpoint diplays a default message when hit
     unsigned short oldbytes = 0;  // original bytes (for software breakpoitns)
+    bool oldbytesValid = false;   // false until a newly-created pending software breakpoint is first mapped
     BP_TYPE type = BPNORMAL;      // breakpoint type
     DWORD titantype = 0;          // type passed to titanengine
     std::string name;             // breakpoint name
@@ -43,7 +44,7 @@ struct BREAKPOINT
     std::string logFile;          // file path to log to
     uint32 hitcount = 0;          // hit counter
     bool fastResume = false;      // if true, debugger resumes without any GUI/Script/Plugin interaction.
-    duint memsize = 0;            // memory breakpoint size (not implemented)
+    duint memsize = 0;            // memory breakpoint size (0 uses the containing region)
 };
 
 // Breakpoint enumeration callback
@@ -55,13 +56,14 @@ bool BpNew(duint Address, bool Enable, bool Singleshot, short OldBytes, BP_TYPE 
 bool BpNewDll(const char* module, bool Enable, bool Singleshot, DWORD TitanType, const char* Name);
 bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp);
 bool BpGetAny(BP_TYPE Type, const char* Name, BREAKPOINT* Bp);
-bool BpDelete(duint Address, BP_TYPE Type);
+// EngineRemoved is only for engine-consumed singleshoot notifications.
+bool BpDelete(duint Address, BP_TYPE Type, bool EngineRemoved = false);
 bool BpDelete(const BREAKPOINT & Bp);
 bool BpEnable(duint Address, BP_TYPE Type, bool Enable);
 bool BpEnable(const BREAKPOINT & Bp, bool Enable);
 bool BpSetName(duint Address, BP_TYPE Type, const char* Name);
-bool BpSetTitanType(duint Address, BP_TYPE Type, int TitanType);
-bool BpSetActive(duint Address, BP_TYPE Type, bool Active);
+// Install/remove the engine registration without changing the requested enabled state.
+bool BpSetActive(const BREAKPOINT & Bp, bool Active);
 bool BpSetBreakCondition(duint Address, BP_TYPE Type, const char* Condition);
 bool BpSetLogText(duint Address, BP_TYPE Type, const char* Log);
 bool BpSetLogCondition(duint Address, BP_TYPE Type, const char* Condition);
@@ -80,7 +82,7 @@ bool BpResetHitCount(duint Address, BP_TYPE Type, uint32 newHitCount);
 void BpToBridge(const BREAKPOINT* Bp, BRIDGEBP* BridgeBp);
 void BpCacheSave(JSON Root);
 void BpCacheLoad(JSON Root, bool migrateCommandCondition);
-void BpClear(bool Terminating);
+bool BpClear(bool Terminating);
 void BpLogFileAcquire(const std::string & logFile);
 void BpLogFileRelease(const std::string & logFile);
 HANDLE BpLogFileOpen(const std::string & logFile);
@@ -94,6 +96,8 @@ bool BpRefRva(BP_REF & Ref, BPXTYPE Type, const char* Module, duint Rva);
 void BpRefDll(BP_REF & Ref, const char* Module);
 void BpRefException(BP_REF & Ref, unsigned int ExceptionCode);
 bool BpRefExists(const BP_REF & Ref);
+bool BpCreate(const BP_CREATEINFO & Info, BP_REF & Ref);
+bool BpRemove(const BP_REF & Ref);
 
 bool BpGetFieldNumber(const BP_REF & Ref, BP_FIELD Field, duint & Value);
 bool BpSetFieldNumber(const BP_REF & Ref, BP_FIELD Field, duint Value);

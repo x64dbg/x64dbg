@@ -206,3 +206,97 @@ GleeBug**, including all 45 breakpoint-refactor cases and the 27 already-fixed
 review regressions. Evidence: `build/pr3994-review-full-green/` and
 `build/pr3994-review-gleebug-green/`, with summary logs alongside each directory.
 x32 was not validated locally.
+
+## DLL database-import review regression
+
+The four earlier review threads were already resolved in `d6bbc6c3`. Eight new
+cases cover the remaining [DLL registration on database import finding](https://github.com/x64dbg/x64dbg/pull/3994#discussion_r4306965626).
+The older `review-dll-reload` case kept the original registration installed, so
+it could not detect a missing registration when importing a new entry.
+
+| Variants (under `breakpoint_refactor/`) | Cases | Checks |
+| --- | ---: | --- |
+| `review-dll-import-{load,unload}` | 2 | Save an enabled breakpoint, delete it, then import the explicit database file. Check both state APIs and require a real DLL event (hit count 1), followed by the unloaded marker. |
+| `review-dll-import-{disable,delete}-{name,all}` | 4 | Import an enabled breakpoint after removing the original. Single and bulk disable/delete must succeed; disable cases also re-enable and delete it. |
+| `review-dll-import-disabled` | 1 | Control: a disabled import remains disabled/inactive through both APIs, then can be enabled and catch an unload event. |
+| `review-dll-import-overwrite-disabled` | 1 | Import a disabled snapshot over an enabled registration. Require no DLL event before the unloaded marker, then re-enable and delete successfully. |
+
+These tests use ordinary debugger commands and the existing debuggee; there is
+no failure injection. The plugin's `bprdllhits` assertion reads `DbgGetBpList` so
+an active flag alone cannot stand in for a real event. Snapshots are written to
+`bin/<arch>/tests/breakpoint_refactor/import.json` and overwritten on each run.
+
+The fix initializes loaded DLL breakpoints inactive and reapplies enabled DLL
+registrations in `DebugSetBreakpoints()`. The lifecycle refactor below additionally
+removes an existing entry's registration before replacing it during import. This
+installs new imports, removes registrations overwritten by disabled entries, and
+applies imported registration settings. Activity is published only after successful
+registration. Exception breakpoints still need no engine registration.
+
+### Run and verified results
+
+```sh
+cmake --build build --target headless x64dbg_tests
+tests=$(py src/tests/run.py --arch x64 --list |
+        tr -d '\r' | grep '^breakpoint_refactor/review-dll-import-' | tr '\n' ' ')
+py src/tests/run.py --arch x64 $tests
+py src/tests/run.py --arch x64 --engine GleeBug $tests
+```
+
+With unchanged production sources at `d6bbc6c3`, the identical eight tests passed
+**1/8** on x64 TitanEngine: the disabled-import control passed and all seven
+regression cases failed with `reason=assert_failed`. Failures were four rejected
+remove commands, two missing DLL events (hit count 0), and one unexpected DLL
+event after importing a disabled snapshot. None were setup failures or timeouts.
+Evidence: `build/pr3994-import-red/` and `build/pr3994-import-red.log`.
+
+After the fix, **8/8 passed**, and the complete x64 suites passed **135/135 on
+both TitanEngine and GleeBug**, including all previously resolved review cases.
+Evidence: `build/pr3994-import-green/`, `build/pr3994-import-full-green/`, and
+`build/pr3994-import-gleebug-green/`, with summary logs alongside each directory.
+x32 was not validated locally.
+
+## Shared lifecycle and direct plugin API
+
+The breakpoint API now owns installation/removal as well as database state.
+Commands and the script API use those operations rather than separately calling
+the engine. Plugins can create/remove through the appended `DBGFUNCTIONS.BpCreate`
+and `BpRemove` functions and enable/disable or change single-shot behavior through
+the existing field setters. See
+[`docs/developers/plugins/breakpoints.md`](../../../docs/developers/plugins/breakpoints.md)
+for the public contract and an example.
+
+| Variants (under `breakpoint_refactor/`) | Cases | Checks |
+| --- | ---: | --- |
+| `api-enable-{sw,hw,mem,dll,ex}` | 5 | Direct field setters perform idempotent disable/enable operations. Check stored state and raw INT3/debug-register/PAGE_GUARD state where applicable. |
+| `api-create-{sw,hw,mem,dll,ex}` | 5 | Create disabled/enabled, reject duplicates and invalid inputs, keep active read-only, allow reentrant mutation from a text getter callback, and remove through the plugin API. |
+| `api-failure-{sw,hw,mem}` | 3 | Inject creation, enable, disable and delete failures through scoped engine-import overrides. Check retained state, actual engine state and successful retries. |
+| `api-reconfigure-{sw,mem}` | 2 | Reject removal during single-shot changes; then reject both replacement and rollback installation. Require truthful inactive state and successful recovery through an enable retry. |
+| `api-pending-{sw,hw}` | 2 | Create and configure module+RVA breakpoints while unloaded, save/reload the database, and catch the actual function on the next module load. |
+| `api-singleshoot-{sw,dll}` | 2 | Require a real first hit, deletion, and no orphan registration on the second invocation/unload. The DLL case must not consume an unload-only registration on load. |
+| `api-singleshoot-{condition,fastresume}` | 2 | Consumed single-shot registrations also lose their database entries when the condition is false, with and without fast resume. |
+| `api-import-sw` | 1 | Import over an installed software breakpoint, require active state, delete it, and execute past its address without an orphan trap. |
+
+The pending tests remove their software marker before reloading the database.
+This avoids testing GleeBug's separate behavior of retriggering a breakpoint that
+is removed and recreated at the current instruction pointer.
+
+Before the lifecycle changes (with the earlier DLL-import fix already applied),
+the identical five `api-enable-*` tests and `api-import-sw` passed **0/6** on x64
+TitanEngine, all with `reason=assert_failed`. Evidence: `build/bp-api-red/` and
+`build/bp-api-red.log`. The other cases exercise the newly added API and lifecycle
+failure/consumption semantics. The expanded targeted suite passed **22/22** on
+x64 TitanEngine (`build/bp-api-targeted-green/`).
+
+After the final build/format check, the complete x64 suites passed **157/157 on
+both TitanEngine and GleeBug**, including all 22 API cases and the prior review
+regressions. Evidence: `build/bp-api-final-full-green/` and
+`build/bp-api-final-gleebug-green/`, with adjacent summary logs. Build and format
+logs are `build/bp-api-final-build.log` and `build/bp-api-format-final-check.log`.
+x32 was not validated locally.
+
+```sh
+cmake --build build
+py src/tests/run.py --arch x64
+py src/tests/run.py --arch x64 --engine GleeBug
+```

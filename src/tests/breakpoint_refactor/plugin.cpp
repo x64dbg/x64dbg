@@ -96,6 +96,18 @@ namespace
                                   static_cast<unsigned long long>(expectedActive), argv[2]);
     }
 
+    bool cbDllHits(int argc, char* argv[])
+    {
+        if(!_plugin_testassert(argc == 3, "usage: bprdllhits module, expected_hits"))
+            return false;
+        BRIDGEBP bp{};
+        if(!_plugin_testassert(findBreakpoint(bp_dll, 0, bp, argv[1]), "DLL breakpoint missing: %s", argv[1]))
+            return false;
+        const auto expected = DbgValFromString(argv[2]);
+        return _plugin_testassert(bp.hitCount == expected, "DLL breakpoint %s hit count=%llu, expected %llu", argv[1],
+                                  static_cast<unsigned long long>(bp.hitCount), static_cast<unsigned long long>(expected));
+    }
+
     bool cbCommand(int argc, char* argv[])
     {
         if(!_plugin_testassert(argc == 3, "usage: bprcommand expected_success, command"))
@@ -124,6 +136,7 @@ namespace
 #include "removal_failure.h"
 #include "installation_failure.h"
 #include "dll_removal_failure.h"
+#include "lifecycle_api.h"
 
 extern "C" __declspec(dllexport) bool pluginit(PLUG_INITSTRUCT* initStruct)
 {
@@ -132,12 +145,19 @@ extern "C" __declspec(dllexport) bool pluginit(PLUG_INITSTRUCT* initStruct)
     strncpy_s(initStruct->pluginName, sizeof(initStruct->pluginName), X64DBG_TEST_NAME, _TRUNCATE);
     _plugin_registercallback(initStruct->pluginHandle, CB_LOADDLL, cbDllRemoval);
     return _plugin_registercommand(initStruct->pluginHandle, "bprstate", cbState, true) &&
+           _plugin_registercommand(initStruct->pluginHandle, "bprdllhits", cbDllHits, true) &&
            _plugin_registercommand(initStruct->pluginHandle, "bprcommand", cbCommand, true) &&
            _plugin_registercommand(initStruct->pluginHandle, "bprabsent", cbAbsent, true) &&
            _plugin_registercommand(initStruct->pluginHandle, "bprremoval", cbRemovalFailure, true) &&
            _plugin_registercommand(initStruct->pluginHandle, "bprinstallation", cbInstallationFailure, true) &&
            _plugin_registercommand(initStruct->pluginHandle, "bprdllarm", cbArmDllRemoval, true) &&
-           _plugin_registercommand(initStruct->pluginHandle, "bprdllcheck", cbCheckDllRemoval, true);
+           _plugin_registercommand(initStruct->pluginHandle, "bprdllcheck", cbCheckDllRemoval, true) &&
+           _plugin_registercommand(initStruct->pluginHandle, "bprapienable", cbApiEnable, true) &&
+           _plugin_registercommand(initStruct->pluginHandle, "bprapicreate", cbApiCreate, true) &&
+           _plugin_registercommand(initStruct->pluginHandle, "bprapifailure", cbApiFailure, true) &&
+           _plugin_registercommand(initStruct->pluginHandle, "bprapisingleshoot", cbApiSingleshoot, true) &&
+           _plugin_registercommand(initStruct->pluginHandle, "bprapireconfigure", cbApiReconfigureFailure, true) &&
+           _plugin_registercommand(initStruct->pluginHandle, "bprapipending", cbApiPending, true);
 }
 
 extern "C" __declspec(dllexport) void plugstop()
