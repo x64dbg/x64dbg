@@ -585,4 +585,5 @@ void dbgfunctionsinit()
         strncpy_s(modname, MAX_MODULE_SIZE, name.c_str(), _TRUNCATE);
         return true;
     };
+    _dbgfunctions.IsTracing = dbgtraceactive;
 }
