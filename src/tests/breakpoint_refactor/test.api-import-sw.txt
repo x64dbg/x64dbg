@@ -1,0 +1,13 @@
+settingset Events, EntryBreakpoint, 0
+settingset Events, DllEntrySystem, 0
+settingset Events, DllEntry, 0
+init tests/breakpoint_refactor.exe
+bp breakpoint_refactor:Unloaded
+dbsave tests/breakpoint_refactor/api-import.json
+dbload tests/breakpoint_refactor/api-import.json
+bprstate sw, breakpoint_refactor:Unloaded, 1, 1, list
+bc breakpoint_refactor:Unloaded
+bprabsent sw, breakpoint_refactor:Unloaded
+bp breakpoint_refactor:Reloaded
+run
+testassert cip == breakpoint_refactor:Reloaded, "deleted imported breakpoint must not remain installed"

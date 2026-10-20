@@ -371,12 +371,13 @@ bool cbInstrVisualize(int argc, char* argv[])
             BookmarkClear(false);
             LabelClear(false);
             SetContextDataEx(hActiveThread, UE_CIP, addr);
+            // These are visualization markers, not live engine breakpoints.
             if(end)
-                BpNew(end, true, false, 0, BPNORMAL, 0, nullptr);
+                BpNew(end, false, false, 0, BPNORMAL, 0, nullptr);
             if(jumpback)
                 BookmarkSet(jumpback, false);
             if(fardest)
-                BpNew(fardest, true, false, 0, BPHARDWARE, 0, nullptr);
+                BpNew(fardest, false, false, 0, BPHARDWARE, 0, nullptr);
             DebugUpdateGuiAsync(addr, false);
             Sleep(300);
 

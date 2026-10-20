@@ -1,0 +1,10 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+bp breakpoint_refactor:BreakpointTarget
+bprstate sw, breakpoint_refactor:BreakpointTarget, 1, 1, list
+bpd breakpoint_refactor:BreakpointTarget
+// A disabled breakpoint must not be shown as installed in the engine.
+bprstate sw, breakpoint_refactor:BreakpointTarget, 0, 0, list
+bpe breakpoint_refactor:BreakpointTarget
+bprstate sw, breakpoint_refactor:BreakpointTarget, 1, 1, list
+bpc breakpoint_refactor:BreakpointTarget

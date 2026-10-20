@@ -1,0 +1,16 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+SetExceptionBPX E0424242
+dbsave
+dbload
+bprstate ex, E0424242, 1, 1, list
+bprstate ex, E0424242, 1, 1, ref
+DisableExceptionBPX E0424242
+dbsave
+dbload
+bprstate ex, E0424242, 0, 0, list
+bprstate ex, E0424242, 0, 0, ref
+EnableExceptionBPX E0424242
+bprstate ex, E0424242, 1, 1, list
+bprstate ex, E0424242, 1, 1, ref
+DeleteExceptionBPX E0424242
