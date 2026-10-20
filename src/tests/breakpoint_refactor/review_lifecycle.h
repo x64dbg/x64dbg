@@ -175,6 +175,56 @@ namespace
         }
     };
 
+    LONG gRejectedDetachCalls = 0;
+
+    bool rejectDetach(DWORD)
+    {
+        InterlockedIncrement(&gRejectedDetachCalls);
+        return false;
+    }
+
+    bool cbFailedDetach(int argc, char* argv[])
+    {
+        if(!_plugin_testassert(argc == 3, "usage: bprfaileddetach removal|detach, software_address"))
+            return false;
+        const bool removal = strcmp(argv[1], "removal") == 0;
+        if(!_plugin_testassert(removal || strcmp(argv[1], "detach") == 0, "unknown detach-failure mode"))
+            return false;
+        const auto address = DbgValFromString(argv[2]);
+        BRIDGEBP before{};
+        if(!_plugin_testassert(findBreakpoint(bp_normal, address, before) && before.enabled && before.active,
+                               "detach test requires an installed software breakpoint") || !engineBreakpointInstalled(before, true))
+            return false;
+#ifdef _WIN64
+        auto base = reinterpret_cast<unsigned char*>(GetModuleHandleW(L"x64dbg.dll"));
+#else
+        auto base = reinterpret_cast<unsigned char*>(GetModuleHandleW(L"x32dbg.dll"));
+#endif
+        bool result;
+        {
+            // Never detach the test process, even if removal unexpectedly succeeds.
+            ScopedRemovalFailure detachFailure;
+            ScopedRemovalFailure removalFailure;
+            if(!_plugin_testassert(detachFailure.installImport(base, "DetachDebuggerEx", reinterpret_cast<void*>(&rejectDetach)),
+                                   "could not reject engine detach"))
+                return false;
+            if(removal && !_plugin_testassert(removalFailure.install(bp_normal), "could not reject pre-detach removal"))
+                return false;
+            gRejectedDetachCalls = 0;
+            result = DbgCmdExecDirect("detach");
+            if(!_plugin_testassert(removalFailure.restore() && detachFailure.restore(), "could not restore detach test imports"))
+                return false;
+        }
+        if(!_plugin_testassert(!result && DbgIsDebugging(), "rejected detach must fail and retain the debug session") ||
+                !_plugin_testassert(gRejectedDetachCalls == (removal ? 0 : 1) && gRemovalCalls == (removal ? 1 : 0),
+                                    "unexpected pre-detach removal/detach calls: %ld/%ld", gRemovalCalls, gRejectedDetachCalls))
+            return false;
+        BRIDGEBP after{};
+        return _plugin_testassert(findBreakpoint(bp_normal, address, after) && after.enabled && after.active,
+                                  "failed detach did not retain/restore software breakpoint state") &&
+               engineBreakpointInstalled(after, true);
+    }
+
     bool cbScriptRefresh(int argc, char* argv[])
     {
         if(!_plugin_testassert(argc == 3, "usage: bprscriptrefresh set|reenable|disable|delete|set-hw|delete-hw|missing, address"))

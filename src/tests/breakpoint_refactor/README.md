@@ -349,3 +349,38 @@ tests=$(py src/tests/run.py --arch x64 --list |
 py src/tests/run.py --arch x64 $tests
 py src/tests/run.py --arch x64 --engine GleeBug $tests
 ```
+
+## Failed-detach rollback review regression
+
+Review [r4324418618](https://github.com/x64dbg/x64dbg/pull/3994#discussion_r4324418618)
+found that `DebugSetBreakpoints()` skipped exception breakpoints after failed
+detach cleanup had marked them inactive. Both new cases use real enabled and
+disabled exception entries plus an installed software breakpoint:
+
+- `review-detach-removal-failure`: reject `DeleteBPX` and verify the engine detach
+  function is never called.
+- `review-detach-engine-failure`: allow breakpoint removal but reject
+  `DetachDebuggerEx`, requiring software reinstallation during rollback.
+
+Scoped delay-import replacements reject only the debugger's engine calls; they
+are restored before state assertions. The test session remains attached, the
+software breakpoint must remain installed in actual process memory, and both
+`DbgGetBpList` and reference getters must report the enabled exception as active
+and the disabled exception as inactive.
+
+Against production sources at `c605aa36`, **0/2 passed**: both failed with
+`list ex breakpoint active=0, expected 1`. Removing the exception exclusion from
+`cbSetModuleBreakpoints` lets the existing `BpSetActive` helper restore its
+activity without an engine call. The targeted tests then passed **2/2**; full x64
+suites passed **170/170 on both TitanEngine and GleeBug**. Evidence:
+`build/pr3994-detach-review-{red,green}/`,
+`build/pr3994-detach-review-full-green/`, and
+`build/pr3994-detach-review-gleebug-green/`, with adjacent summary logs.
+The full build, formatting check, and `git diff --check` also passed. x32 was not
+validated locally; CI covers both architectures and engines.
+
+```sh
+cmake --build build
+py src/tests/run.py --arch x64 breakpoint_refactor/review-detach-removal-failure breakpoint_refactor/review-detach-engine-failure
+py src/tests/run.py --arch x64 --engine GleeBug breakpoint_refactor/review-detach-removal-failure breakpoint_refactor/review-detach-engine-failure
+```

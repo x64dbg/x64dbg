@@ -161,7 +161,8 @@ extern "C" __declspec(dllexport) bool pluginit(PLUG_INITSTRUCT* initStruct)
            _plugin_registercommand(initStruct->pluginHandle, "bprapipending", cbApiPending, true) &&
            _plugin_registercommand(initStruct->pluginHandle, "bprderivedmemory", cbDerivedMemory, true) &&
            _plugin_registercommand(initStruct->pluginHandle, "bprderivedhits", cbDerivedMemoryHits, true) &&
-           _plugin_registercommand(initStruct->pluginHandle, "bprscriptrefresh", cbScriptRefresh, true);
+           _plugin_registercommand(initStruct->pluginHandle, "bprscriptrefresh", cbScriptRefresh, true) &&
+           _plugin_registercommand(initStruct->pluginHandle, "bprfaileddetach", cbFailedDetach, true);
 }
 
 extern "C" __declspec(dllexport) void plugstop()

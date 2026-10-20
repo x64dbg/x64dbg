@@ -1258,7 +1258,7 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE, ULONG ActionCode, ULONG64
 
 bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
 {
-    if(!bp->enabled || bp->active || bp->type == BPDLL || bp->type == BPEXCEPTION)
+    if(!bp->enabled || bp->active || bp->type == BPDLL)
         return true;
     if(!bp->module.empty() && !ModBaseFromName(bp->module.c_str()))
         return true;
