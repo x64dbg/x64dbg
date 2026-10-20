@@ -225,6 +225,50 @@ namespace
                engineBreakpointInstalled(after, true);
     }
 
+    bool cbFailedDatabaseReset(int argc, char* argv[])
+    {
+        if(!_plugin_testassert(argc == 4 && (strcmp(argv[1], "dbload") == 0 || strcmp(argv[1], "dbclear") == 0),
+                               "usage: bprfaileddbreset dbload|dbclear, software_and_hardware_address, memory_address"))
+            return false;
+        const auto address = DbgValFromString(argv[2]);
+        const BPXTYPE types[] = { bp_normal, bp_hardware, bp_memory };
+        BRIDGEBP before[3] {};
+        for(size_t i = 0; i < 3; i++)
+        {
+            const auto bpAddress = i == 2 ? DbgValFromString(argv[3]) : address;
+            if(!_plugin_testassert(findBreakpoint(types[i], bpAddress, before[i]) && before[i].enabled && before[i].active,
+                                   "database reset test requires installed breakpoints") || !engineBreakpointInstalled(before[i], true))
+                return false;
+        }
+        const char* marker = "unsaved database rollback marker";
+        if(!_plugin_testassert(DbgSetCommentAt(address, marker), "could not set unsaved database marker"))
+            return false;
+        bool result;
+        {
+            ScopedRemovalFailure failure;
+            if(!_plugin_testassert(failure.install(bp_hardware), "could not reject database reset hardware removal"))
+                return false;
+            result = DbgCmdExecDirect(argv[1]);
+            if(!_plugin_testassert(failure.restore(), "could not restore database reset removal import"))
+                return false;
+        }
+        if(!_plugin_testassert(!result && DbgIsDebugging() && gRemovalCalls == 1,
+                               "database reset must fail after one rejected removal and retain the debug session"))
+            return false;
+        char comment[MAX_COMMENT_SIZE] {};
+        if(!_plugin_testassert(DbgGetCommentAt(address, comment) && strcmp(comment, marker) == 0,
+                               "failed database reset cleared or reloaded unsaved metadata"))
+            return false;
+        for(const auto & bp : before)
+        {
+            BRIDGEBP after{};
+            if(!_plugin_testassert(findBreakpoint(bp.type, bp.addr, after) && after.enabled && after.active,
+                                   "failed database reset left type %d inactive or missing", bp.type) || !engineBreakpointInstalled(after, true))
+                return false;
+        }
+        return true;
+    }
+
     bool cbScriptRefresh(int argc, char* argv[])
     {
         if(!_plugin_testassert(argc == 3, "usage: bprscriptrefresh set|reenable|disable|delete|set-hw|delete-hw|missing, address"))

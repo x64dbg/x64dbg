@@ -384,3 +384,34 @@ cmake --build build
 py src/tests/run.py --arch x64 breakpoint_refactor/review-detach-removal-failure breakpoint_refactor/review-detach-engine-failure
 py src/tests/run.py --arch x64 --engine GleeBug breakpoint_refactor/review-detach-removal-failure breakpoint_refactor/review-detach-engine-failure
 ```
+
+## Failed database-reset rollback review regressions
+
+Review [r4324709282](https://github.com/x64dbg/x64dbg/pull/3994#discussion_r4324709282)
+identified the same partial-removal gap in `dbload` (without a filename) and
+`dbclear`. Both now call the existing `DebugSetBreakpoints()` rollback before
+returning failure, just like detach; database contents are not cleared or loaded.
+
+`review-dbload-removal-failure` and `review-dbclear-removal-failure` reject one
+hardware removal after a software breakpoint has already been removed. Memory,
+DLL, and exception removal still proceeds, exercising restoration on both sides
+of the failed entry. The checks cover:
+
+- Preserved unsaved comments and the command's failure result.
+- Actual INT3 bytes, hardware debug registers, and memory guard protection.
+- Enabled/active state for all five breakpoint types through list and reference
+  APIs, with a disabled exception entry as a control.
+- A real DLL-load event proving the restored DLL registration fires.
+- A successful retry: `dbload` restores saved entries, while `dbclear` removes
+  every entry, including the disabled control.
+
+Against production sources at `b1a86300`, **0/2 passed**: both detected the removed
+software entry left inactive. After the fix, **2/2 passed on each x64 engine**.
+Full build, formatting, and `git diff --check` passed. Evidence:
+`build/pr3994-db-review-{red,green,gleebug-green}/` and adjacent logs.
+
+```sh
+cmake --build build
+py src/tests/run.py --arch x64 breakpoint_refactor/review-dbload-removal-failure breakpoint_refactor/review-dbclear-removal-failure
+py src/tests/run.py --arch x64 --engine GleeBug breakpoint_refactor/review-dbload-removal-failure breakpoint_refactor/review-dbclear-removal-failure
+```
