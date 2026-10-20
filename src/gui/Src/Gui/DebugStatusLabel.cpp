@@ -9,6 +9,7 @@ DebugStatusLabel::DebugStatusLabel(QStatusBar* parent) : QLabel(parent)
     mStatusTexts[1] = tr("Paused");
     mStatusTexts[2] = tr("Running");
     mStatusTexts[3] = tr("Terminated");
+    mTracingText = tr("Tracing");
     QFontMetrics fm(this->font());
     int maxWidth = 0;
     for(size_t i = 0; i < _countof(mStatusTexts); i++)
@@ -17,6 +18,8 @@ DebugStatusLabel::DebugStatusLabel(QStatusBar* parent) : QLabel(parent)
         if(width > maxWidth)
             maxWidth = width;
     }
+    if(fm.width(mTracingText) > maxWidth)
+        maxWidth = fm.width(mTracingText);
     this->setTextFormat(Qt::RichText); //rich text
     this->setFixedHeight(fm.height() + 5);
     this->setAlignment(Qt::AlignCenter);
@@ -34,7 +37,11 @@ void DebugStatusLabel::debugStateChangedSlot(DBGSTATE state)
 {
     const char* states[4] = { "initialized", "paused", "running", "stopped" };
 
-    this->setText(mStatusTexts[state]);
+    QString text = mStatusTexts[state];
+    if(state == running && DbgFunctions()->IsTracing && DbgFunctions()->IsTracing())
+        text = mTracingText;
+
+    this->setText(text);
     this->mState = states[state];
 
     if(state == stopped)
@@ -51,7 +58,7 @@ void DebugStatusLabel::debugStateChangedSlot(DBGSTATE state)
     // Preserve the explicit ValueChanged event used for live status updates.
     if(QAccessible::isActive())
     {
-        QAccessibleValueChangeEvent updateEvent(this, mStatusTexts[state]);
+        QAccessibleValueChangeEvent updateEvent(this, text);
         QAccessible::updateAccessibility(&updateEvent);
     }
 }
