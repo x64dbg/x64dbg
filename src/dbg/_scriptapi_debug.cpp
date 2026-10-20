@@ -1,6 +1,13 @@
 #include "_scriptapi_debug.h"
 #include "_dbgfunctions.h"
 
+static bool refreshBreakpointViews(bool success)
+{
+    if(success)
+        GuiUpdateAllViews();
+    return success;
+}
+
 static bool setBreakpoint(duint address, BPXTYPE type, unsigned int typeEx)
 {
     auto functions = DbgFunctions();
@@ -67,28 +74,28 @@ SCRIPT_EXPORT void Script::Debug::StepOut()
 
 SCRIPT_EXPORT bool Script::Debug::SetBreakpoint(duint address)
 {
-    return setBreakpoint(address, bp_normal, 0);
+    return refreshBreakpointViews(setBreakpoint(address, bp_normal, 0));
 }
 
 SCRIPT_EXPORT bool Script::Debug::DeleteBreakpoint(duint address)
 {
-    return removeBreakpoint(address, bp_normal);
+    return refreshBreakpointViews(removeBreakpoint(address, bp_normal));
 }
 SCRIPT_EXPORT bool Script::Debug::DisableBreakpoint(duint address)
 {
     BP_REF ref{};
-    return DbgFunctions()->BpRefVa(&ref, bp_normal, address) &&
-           DbgFunctions()->BpSetFieldNumber(&ref, bpf_enabled, 0);
+    return refreshBreakpointViews(DbgFunctions()->BpRefVa(&ref, bp_normal, address) &&
+                                  DbgFunctions()->BpSetFieldNumber(&ref, bpf_enabled, 0));
 }
 
 SCRIPT_EXPORT bool Script::Debug::SetHardwareBreakpoint(duint address, HardwareType type)
 {
     if(type < HardwareAccess || type > HardwareExecute)
         return false;
-    return setBreakpoint(address, bp_hardware, static_cast<unsigned int>(type));
+    return refreshBreakpointViews(setBreakpoint(address, bp_hardware, static_cast<unsigned int>(type)));
 }
 
 SCRIPT_EXPORT bool Script::Debug::DeleteHardwareBreakpoint(duint address)
 {
-    return removeBreakpoint(address, bp_hardware);
+    return refreshBreakpointViews(removeBreakpoint(address, bp_hardware));
 }

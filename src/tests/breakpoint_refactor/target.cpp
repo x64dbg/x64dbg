@@ -6,6 +6,21 @@ extern "C" __declspec(dllexport) __declspec(noinline) int BreakpointTarget()
     return value;
 }
 
+extern "C"
+{
+    __declspec(dllexport) volatile unsigned char* MemoryPage = nullptr;
+}
+
+extern "C" __declspec(dllexport) __declspec(noinline) void MemoryReady()
+{
+    SetLastError(4);
+}
+
+extern "C" __declspec(dllexport) __declspec(noinline) void MemoryAccessed()
+{
+    SetLastError(5);
+}
+
 extern "C" __declspec(dllexport) __declspec(noinline) void ApiHit()
 {
     SetLastError(2);
@@ -30,6 +45,12 @@ int main()
 {
     if(BreakpointTarget() != 42)
         return 1;
+    if(MemoryPage)
+    {
+        MemoryReady();
+        MemoryPage[0x1234] = 42;
+        MemoryAccessed();
+    }
     ApiHit();
     ApiHit();
     // Review regressions consume a one-shot DLL breakpoint during this load.

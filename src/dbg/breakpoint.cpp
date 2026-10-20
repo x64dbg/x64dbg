@@ -148,6 +148,7 @@ static bool installBreakpoint(BREAKPOINT & bp)
         if(!size || size > ~duint(0) - address ||
                 !SetMemoryBPXEx(address, size, (TitanMemoryBreakpointType)bp.titantype, !bp.singleshoot, cbMemoryBreakpoint))
             return false;
+        bp.memsize = size;
         break;
     }
     case BPDLL:

@@ -137,6 +137,7 @@ namespace
 #include "installation_failure.h"
 #include "dll_removal_failure.h"
 #include "lifecycle_api.h"
+#include "review_lifecycle.h"
 
 extern "C" __declspec(dllexport) bool pluginit(PLUG_INITSTRUCT* initStruct)
 {
@@ -157,7 +158,10 @@ extern "C" __declspec(dllexport) bool pluginit(PLUG_INITSTRUCT* initStruct)
            _plugin_registercommand(initStruct->pluginHandle, "bprapifailure", cbApiFailure, true) &&
            _plugin_registercommand(initStruct->pluginHandle, "bprapisingleshoot", cbApiSingleshoot, true) &&
            _plugin_registercommand(initStruct->pluginHandle, "bprapireconfigure", cbApiReconfigureFailure, true) &&
-           _plugin_registercommand(initStruct->pluginHandle, "bprapipending", cbApiPending, true);
+           _plugin_registercommand(initStruct->pluginHandle, "bprapipending", cbApiPending, true) &&
+           _plugin_registercommand(initStruct->pluginHandle, "bprderivedmemory", cbDerivedMemory, true) &&
+           _plugin_registercommand(initStruct->pluginHandle, "bprderivedhits", cbDerivedMemoryHits, true) &&
+           _plugin_registercommand(initStruct->pluginHandle, "bprscriptrefresh", cbScriptRefresh, true);
 }
 
 extern "C" __declspec(dllexport) void plugstop()

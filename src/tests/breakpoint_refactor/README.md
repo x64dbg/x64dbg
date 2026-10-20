@@ -300,3 +300,52 @@ cmake --build build
 py src/tests/run.py --arch x64
 py src/tests/run.py --arch x64 --engine GleeBug
 ```
+
+## Lifecycle API review regressions
+
+Eleven cases cover the two findings on reviewed commit `e1f803d2`:
+
+- [Derived memory-breakpoint size not retained](https://github.com/x64dbg/x64dbg/pull/3994#discussion_r4320016335).
+- [Script helpers no longer refresh all decorated views](https://github.com/x64dbg/x64dbg/pull/3994#discussion_r4320016338).
+
+| Variants (under `breakpoint_refactor/`) | Cases | Checks |
+| --- | ---: | --- |
+| `review-derived-memory-{size,enable}` | 2 | Create with `memsize=0` immediately or enable later (including a rejected installation and retry). Require the stored size and interior lookup to cover the full three-page region. |
+| `review-derived-memory-hit` | 1 | A real interior write must increment hit count, evaluate a false condition and fast-resume to the next marker. |
+| `review-derived-memory-single` | 1 | The same real write must execute the configured breakpoint command and consume the single-shot entry. |
+| `review-script-refresh-{set,reenable,disable,delete,set-hw,delete-hw}` | 6 | Call the exported `Script::Debug` helpers while paused and require one full-view refresh after success, with the expected resulting breakpoint state. |
+| `review-script-refresh-missing` | 1 | Control: deleting a missing breakpoint fails without requesting a full-view refresh. |
+
+The memory event scripts allocate a dedicated region and pass its address through
+an exported debuggee pointer; ordinary tests leave this pointer null. The GUI
+checks observe and forward the debugger's regular `GuiUpdateAllViews` bridge
+import through a scoped test-plugin IAT replacement. Only the initiating thread's
+calls are counted. The pointer and page protection are restored before assertions;
+no engine/GUI code or production test hook is changed. GUI updates, normally
+disabled by headless tests, are temporarily enabled without an initial refresh
+and their previous setting is restored afterward. These checks verify the full
+refresh request, not rendered pixels.
+
+With production sources unchanged at `e1f803d2`, **1/11 passed**: the missing-entry
+control passed and all ten regressions failed with `reason=assert_failed`.
+Failures were two zero stored sizes, two incorrect memory-hit behaviors and six
+missing full-view refreshes. Evidence: `build/pr3994-lifecycle-review-red/` and
+`build/pr3994-lifecycle-review-red.log`.
+
+The fixes store the derived size only after engine installation succeeds and
+request a full-view refresh only after successful script helper operations.
+Afterward **11/11 passed**; the final full x64 suites passed **168/168 on both
+TitanEngine and GleeBug**, including the earlier DLL-import regressions and all
+previous review cases. Evidence: `build/pr3994-lifecycle-review-green/`,
+`build/pr3994-lifecycle-review-full-green/`, and
+`build/pr3994-lifecycle-review-gleebug-green/`, with adjacent summary logs.
+x32 was not validated locally.
+
+```sh
+cmake --build build
+tests=$(py src/tests/run.py --arch x64 --list |
+        tr -d '\r' | grep -E '^breakpoint_refactor/review-(derived-memory-|script-refresh-)' |
+        tr '\n' ' ')
+py src/tests/run.py --arch x64 $tests
+py src/tests/run.py --arch x64 --engine GleeBug $tests
+```
