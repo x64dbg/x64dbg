@@ -1,0 +1,23 @@
+; EXPECT_RUN_MEMORY: validate actual memory effects, not just recorded addresses.
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init "@TARGET@", "record"
+bp trace_party:RecordWrite
+run
+testassert cip == trace_party:RecordWrite, "stopped before the recorded store"
+testassert byte:[cip] == C7 && byte:[cip+1] == 05, "first instruction is the immediate DWORD store"
+testassert dword:[trace_party:gRecordedWrite] == 0, "store has not executed"
+bpc trace_party:RecordWrite
+log "E2E WRITE {p:cip} {p:trace_party:gRecordedWrite}"
+StartRunTrace "@TRACE@"
+RunSystem
+testassert mod.party(cip) == 1, "RunSystem reached system code"
+testassert dword:[trace_party:gRecordedWrite] == 5678, "the pending instruction really executed"
+StopRunTrace
+bp trace_party:Finished
+run
+testassert cip == trace_party:Finished, "normal execution completed"
+testassert dword:[trace_party:gCallbacks] == 3, "callbacks were not skipped"
+testassert dword:[trace_party:gProtectionFailures] == 0, "original protections restored"
+bpc trace_party:Finished
+run

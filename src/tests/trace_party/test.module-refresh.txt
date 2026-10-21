@@ -1,0 +1,54 @@
+; EXPECT_MODULE_CHANGE: a loader event must not turn run-mode tracing into stepping.
+; EXPECT_REFRESHES 1
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+settingset Events, DllLoadSystem, 0
+settingset Events, DllUnloadSystem, 0
+settingset Events, DllLoad, 0
+settingset Events, DllUnload, 0
+init "@TARGET@", "load-twice"
+bp trace_party:Ready
+run
+testassert dword:[trace_party:gModuleWasLoaded] == 0, "fixture DLL was not already loaded"
+bpc trace_party:Ready
+bp trace_party:LoadBegin
+run
+testassert cip == trace_party:LoadBegin, "normal call into the loader scenario"
+bpc trace_party:LoadBegin
+; Start inside excluded loader code, before the actual DLL load.
+RunSystem
+testassert mod.party(cip) == 1 && dword:[trace_party:gLoadSucceeded] == 0, "reached the loader before loading the fixture DLL"
+bp trace_party:Finished
+log "E2E START {p:cip} {d:mod.party(cip)}"
+varnew $hits, 0
+varnew $wrong, 0
+StartRunTrace "@TRACE@"
+TraceSetStepFilter user, run
+TraceSetLog "{p:cip} {d:mod.party(cip)}", 1
+TraceSetLogFile "@TRACELOG@"
+TraceSetCommand "$hits+=1; $wrong+=(mod.party(cip)!=0)", 1
+TraceIntoConditional "dword:[trace_party:gLoadSucceeded]==2", .50000
+testassert mod.party(cip) == 0 && dword:[trace_party:gCallbacks] == 0, "user trace stopped after the first loader call"
+testassert $wrong == 0 && $hits == $tracecounter, "filter and counter survived snapshot refresh"
+testassert dword:[trace_party:gLoadSucceeded] == 2, "real LoadLibrary/FreeLibrary completed"
+StopRunTrace
+; On WOW64, the system loader enters user-classified transition code before
+; mapping the DLL. Exercise System Only too, so an active fast snapshot spans
+; a loader event on both architectures, rather than weakening the refresh oracle.
+bp trace_party:LoadBegin
+run
+testassert cip == trace_party:LoadBegin, "naturally reached the second loader call"
+bpc trace_party:LoadBegin
+TraceSetStepFilter system, run
+; Stop at the first selected location after mapping, not after tracing the
+; platform-dependent remainder of the Windows loader (100k+ system instructions).
+TraceIntoConditional "mod.fromname(\"trace_party_module.dll\")!=0", .500000
+testassert mod.party(cip) == 1 && dword:[trace_party:gCallbacks] == 0, "system trace stopped after the second DLL load event"
+testassert trace_party_module != 0 && dword:[trace_party:gLoadCalls] == 2, "the second DLL mapping was observed"
+run
+testassert cip == trace_party:Finished, "normal execution resumed"
+testassert dword:[trace_party:gLoadSucceeded] == 2 && dword:[trace_party:gLoadCalls] == 2, "both actual load/unload cycles completed"
+testassert dword:[trace_party:gCallbacks] == 3, "all callbacks executed afterward"
+testassert dword:[trace_party:gProtectionFailures] == 0, "all temporary protections restored"
+bpc trace_party:Finished
+run

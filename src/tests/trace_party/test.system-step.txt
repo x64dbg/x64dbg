@@ -1,0 +1,32 @@
+; System Only starts with an excluded user instruction already queued for recording.
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init "@TARGET@"
+bp trace_party:Ready
+run
+testassert cip == trace_party:Ready, "ready after API warm-up"
+bpc trace_party:Ready
+bp trace_party:TraceBegin
+run
+testassert cip == trace_party:TraceBegin, "start in excluded user code"
+bpc trace_party:TraceBegin
+bp trace_party:Finished
+log "E2E START {p:cip} {d:mod.party(cip)}"
+varnew $hits, 0
+varnew $wrong, 0
+StartRunTrace "@TRACE@"
+TraceSetStepFilter system
+TraceSetLog "{p:cip} {d:mod.party(cip)}", 1
+TraceSetLogFile "@TRACELOG@"
+TraceSetCommand "$hits+=1; $wrong+=(mod.party(cip)!=1)", 1
+TraceIntoConditional "dword:[trace_party:gCallbacks]==3", .50000
+testassert mod.party(cip) == 1, "stopped inside a system module"
+testassert $tracecounter == $hits && $hits > 1, "counter matches command executions"
+testassert $wrong == 0, "excluded user instructions did not run trace commands"
+testassert dword:[trace_party:gCallbacks] == 3, "crossed back through user code three times"
+StopRunTrace
+run
+testassert cip == trace_party:Finished, "normal run resumes after filtered trace"
+testassert dword:[trace_party:gProtectionFailures] == 0, "page protections were restored"
+bpc trace_party:Finished
+run

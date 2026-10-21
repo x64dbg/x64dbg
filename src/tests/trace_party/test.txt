@@ -1,0 +1,34 @@
+; Default User Only / Trace Into, including callbacks and binary recording.
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init "@TARGET@"
+bp trace_party:Ready
+run
+testassert cip == trace_party:Ready, "ready after API warm-up"
+bpc trace_party:Ready
+bp trace_party:TraceBegin
+run
+testassert cip == trace_party:TraceBegin, "natural entry into the traced function"
+bpc trace_party:TraceBegin
+bp trace_party:Finished
+log "E2E START {p:cip} {d:mod.party(cip)}"
+varnew $hits, 0
+varnew $wrong, 0
+varnew $callbackhits, 0
+StartRunTrace "@TRACE@"
+TraceSetStepFilter user
+TraceSetLog "{p:cip} {d:mod.party(cip)}", 1
+TraceSetLogFile "@TRACELOG@"
+TraceSetCommand "$hits+=1; $wrong+=(mod.party(cip)!=0); $callbackhits+=(cip==trace_party:UserCallback)", 1
+TraceIntoConditional "cip==trace_party:TraceEnd", .50000
+testassert cip == trace_party:TraceEnd, "trace stopped at the user break condition"
+testassert $tracecounter == $hits && $hits > 1, "counter matches command executions"
+testassert $wrong == 0, "commands only ran in the selected party"
+testassert $callbackhits == 3, "all three callbacks were traced"
+testassert dword:[trace_party:gCallbacks] == 3, "all real callbacks executed"
+StopRunTrace
+run
+testassert cip == trace_party:Finished, "normal run resumes after filtered trace"
+testassert dword:[trace_party:gProtectionFailures] == 0, "page protections were restored"
+bpc trace_party:Finished
+run

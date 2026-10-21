@@ -1,0 +1,33 @@
+; Enabling the fast path must not turn included-code Trace Over into Trace Into.
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init "@TARGET@"
+bp trace_party:Ready
+run
+bpc trace_party:Ready
+bp trace_party:TraceBegin
+run
+testassert cip == trace_party:TraceBegin, "start at the real function entry"
+bpc trace_party:TraceBegin
+bp trace_party:Finished
+log "E2E START {p:cip} {d:mod.party(cip)}"
+varnew $end, [csp]
+varnew $hits, 0
+varnew $wrong, 0
+varnew $callbackhits, 0
+StartRunTrace "@TRACE@"
+TraceSetStepFilter user, run
+TraceSetLog "{p:cip} {d:mod.party(cip)}", 1
+TraceSetLogFile "@TRACELOG@"
+TraceSetCommand "$hits+=1; $wrong+=(mod.party(cip)!=0); $callbackhits+=(cip==trace_party:UserCallback)", 1
+TraceOverConditional "cip==$end", .50000
+testassert cip == $end, "Trace Over returned to the real caller"
+testassert $tracecounter == $hits && $hits > 1, "counter matches commands"
+testassert $wrong == 0 && $callbackhits == 0, "included calls still step over their callbacks"
+testassert dword:[trace_party:gCallbacks] == 3, "callbacks really executed"
+StopRunTrace
+run
+testassert cip == trace_party:Finished, "normal execution resumed"
+testassert dword:[trace_party:gProtectionFailures] == 0, "page protections restored"
+bpc trace_party:Finished
+run

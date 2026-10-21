@@ -163,7 +163,7 @@ static void registercommands()
     dbgcmdnew("skip", cbDebugSkip, true); //skip one instruction
     dbgcmdnew("InstrUndo", cbInstrInstrUndo, true); //Instruction undo
     dbgcmdnew("StepUser,StepUserInto", cbDebugStepUserInto, true); // step into until reaching user code
-    dbgcmdnew("StepSystem,StepUserInto", cbDebugStepSystemInto, true); // step into until reaching system code
+    dbgcmdnew("StepSystem,StepSystemInto", cbDebugStepSystemInto, true); // step into until reaching system code
 
     //breakpoint control
     dbgcmdnew("SetBPX,bp,bpx", cbDebugSetBPX, true); //breakpoint
@@ -265,7 +265,8 @@ static void registercommands()
     dbgcmdnew("TraceIntoIntoTraceCoverage,TraceIntoIntoTraceRecord,tiit", cbDebugTraceIntoIntoTraceRecord, true); //Trace into into trace record
     dbgcmdnew("TraceOverIntoTraceCoverage,TraceOverIntoTraceRecord,toit", cbDebugTraceOverIntoTraceRecord, true); //Trace over into trace record
     dbgcmdnew("RunToParty", cbDebugRunToParty, true); //Run to code in a party
-    dbgcmdnew("RunToUserCode,rtu", cbDebugRunToUserCode, true); //Run to user code
+    dbgcmdnew("RunToUserCode,rtu,RunUser", cbDebugRunToUserCode, true); //Run to user code
+    dbgcmdnew("RunToSystemCode,rts,RunSystem", cbDebugRunToSystemCode, true); //Run to system code
     dbgcmdnew("TraceSetLog,SetTraceLog", cbDebugTraceSetLog, true); //Set trace log text + condition
     dbgcmdnew("TraceSetCommand,SetTraceCommand", cbDebugTraceSetCommand, true); //Set trace command text + condition
     dbgcmdnew("TraceSetLogFile,SetTraceLogFile", cbDebugTraceSetLogFile, true); //Set trace log file

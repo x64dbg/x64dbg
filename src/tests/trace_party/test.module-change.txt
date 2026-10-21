@@ -1,0 +1,36 @@
+; EXPECT_MODULE_CHANGE: refresh a fast-run snapshot on actual DLL load/unload events.
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+settingset Events, DllLoadSystem, 0
+settingset Events, DllUnloadSystem, 0
+settingset Events, DllLoad, 0
+settingset Events, DllUnload, 0
+init "@TARGET@", "load"
+bp trace_party:Ready
+run
+testassert dword:[trace_party:gModuleWasLoaded] == 0, "fixture DLL was not already loaded"
+bpc trace_party:Ready
+bp trace_party:LoadBegin
+run
+testassert cip == trace_party:LoadBegin, "normal call into the loader scenario"
+bpc trace_party:LoadBegin
+bp trace_party:Finished
+log "E2E START {p:cip} {d:mod.party(cip)}"
+varnew $hits, 0
+varnew $wrong, 0
+StartRunTrace "@TRACE@"
+TraceSetStepFilter user, run
+TraceSetLog "{p:cip} {d:mod.party(cip)}", 1
+TraceSetLogFile "@TRACELOG@"
+TraceSetCommand "$hits+=1; $wrong+=(mod.party(cip)!=0)", 1
+TraceIntoConditional "cip==trace_party:TraceEnd", .50000
+testassert cip == trace_party:TraceEnd, "trace resumed after the loader events"
+testassert $wrong == 0 && $hits == $tracecounter, "filter and counter survived snapshot invalidation"
+testassert dword:[trace_party:gLoadSucceeded] == 2, "real LoadLibrary/FreeLibrary completed"
+testassert dword:[trace_party:gCallbacks] == 3, "callbacks after the loader events still executed"
+StopRunTrace
+run
+testassert cip == trace_party:Finished, "normal execution resumed"
+testassert dword:[trace_party:gProtectionFailures] == 0, "all temporary protections restored"
+bpc trace_party:Finished
+run

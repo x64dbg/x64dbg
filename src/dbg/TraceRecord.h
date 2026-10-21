@@ -57,6 +57,7 @@ public:
     //void TraceAccess(duint address, unsigned char size, TraceRecordByteType accessType);
     void TraceExecuteRecord(const Zydis & newInstruction);
     void FlushTraceExecuteRecord();
+    void FilterPendingTraceRecord(int party);
 
     unsigned int getHitCount(duint address);
     TraceRecordByteType getByteType(duint address);

@@ -1,0 +1,29 @@
+; INTERACTIVE_PAUSE: real commands sent over headless stdin; WAIT comments are driver barriers.
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init "@TARGET@", "spin"
+; WAIT_PAUSED
+bp trace_party:SpinBegin
+run
+; WAIT_PAUSED
+log "E2E CHECK {d:cip==trace_party:SpinBegin}"
+bpc trace_party:SpinBegin
+TraceSetStepFilter system, step
+TraceIntoConditional 0, .2147483647
+; WAIT_SPIN
+pause
+; WAIT_PAUSED
+log "E2E CHECK {d:mod.party(cip)==0}"
+log "E2E CHECK {d:$tracecounter<=1}"
+log "E2E CHECK {d:dword:[trace_party:gSpinIterations]>0}"
+log "E2E CHECK {d:dword:[trace_party:gCallbacks]==0}"
+mov dword:[trace_party:gRelease], 1
+bp trace_party:Finished
+run
+; WAIT_PAUSED
+log "E2E CHECK {d:cip==trace_party:Finished}"
+log "E2E CHECK {d:dword:[trace_party:gCallbacks]==3}"
+log "E2E CHECK {d:dword:[trace_party:gProtectionFailures]==0}"
+bpc trace_party:Finished
+run
+; WAIT_STOPPED
