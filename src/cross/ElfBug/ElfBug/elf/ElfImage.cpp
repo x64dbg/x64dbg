@@ -47,11 +47,13 @@ namespace ElfBug
             {
                 if(!(section.sh_flags & SHF_ALLOC) || section.sh_size == 0)
                     continue;
+                // .tbss takes no address space in the image.
                 if((section.sh_flags & SHF_TLS) && section.sh_type == SHT_NOBITS)
                     continue;
                 if(section.sh_name >= table.size())
                     return {};
                 const char* name = table.c_str() + section.sh_name;
+                // lld's .relro_padding only pads RELRO out to a page.
                 if(section.sh_type == SHT_NOBITS && std::strcmp(name, ".relro_padding") == 0)
                     continue;
                 sections.push_back({name, section.sh_addr, section.sh_size});
@@ -81,10 +83,10 @@ namespace ElfBug
             return std::nullopt;
 
         ElfImage image;
-        const auto headerBytes = std::as_bytes(std::span(&header, 1));
-        const auto programBytes = std::as_bytes(std::span(programs));
-        image.mHeaderBytes.assign(headerBytes.begin(), headerBytes.end());
-        image.mHeaderBytes.insert(image.mHeaderBytes.end(), programBytes.begin(), programBytes.end());
+        const auto* headerBytes = reinterpret_cast<const std::byte*>(&header);
+        const auto* programBytes = reinterpret_cast<const std::byte*>(programs.data());
+        image.mHeaderBytes.assign(headerBytes, headerBytes + sizeof(header));
+        image.mHeaderBytes.insert(image.mHeaderBytes.end(), programBytes, programBytes + programs.size() * sizeof(Elf64_Phdr));
         for(const auto & program : programs)
         {
             if(program.p_type != PT_LOAD)
@@ -103,8 +105,8 @@ namespace ElfBug
     {
         for(const auto & segment : mSegments)
         {
-            if(ElfPageFloor(segment.offset) == mappingOffset)
-                return mappingStart - ElfPageFloor(segment.vaddr);
+            if(PageFloor(segment.offset) == mappingOffset)
+                return mappingStart - PageFloor(segment.vaddr);
         }
         return std::nullopt;
     }

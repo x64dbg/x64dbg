@@ -95,7 +95,7 @@ typedef struct
     ElfBugRegionType type;
     ElfBugParty party;
     char perms[ELFBUG_PERMS_SIZE]; // "r-xp"
-    char section[ELFBUG_SECTION_NAME_SIZE]; // what the row is mostly made of, empty if none
+    char section[ELFBUG_SECTION_NAME_SIZE]; // largest section in the row, empty outside module images
     char info[ELFBUG_MEMORY_INFO_SIZE];
 } ElfBugMemoryPage;
 
@@ -244,7 +244,9 @@ inline std::vector<pid_t> ElfBugThreadIds(const ElfBugDebugger* dbg)
 
 inline std::vector<ElfBugMemoryPage> ElfBugMemoryMap(const ElfBugDebugger* dbg, const bool sectionView)
 {
-    return ElfBugCollect<ElfBugMemoryPage>(1024, [dbg, sectionView](ElfBugMemoryPage* pages, const uint32_t capacity)
+    // Counting builds every row anyway, so start from a guess instead of asking for the count first.
+    constexpr uint32_t kFirstGuess = 1024;
+    return ElfBugCollect<ElfBugMemoryPage>(kFirstGuess, [dbg, sectionView](ElfBugMemoryPage* pages, const uint32_t capacity)
     {
         return ElfBugGetMemoryMap(dbg, sectionView, pages, capacity);
     });

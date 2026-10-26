@@ -92,11 +92,7 @@ MemoryMapView::MemoryMapView(DbgAdapter* adapter, QWidget* parent)
     setAddressColumn(ColAddress);
     enableMultiSelection(true);
 
-    mGotoRipAction = new QAction(DIcon("cbp"), QStringLiteral("RIP"), this);
-    mGotoRipAction->setShortcut(ConfigShortcut("ActionGotoOrigin"));
-    mGotoRipAction->setShortcutContext(Qt::WidgetShortcut);
-    connect(mGotoRipAction, &QAction::triggered, this, &MemoryMapView::onGotoRip);
-    addAction(mGotoRipAction);
+    setupContextMenu();
 
     connect(mAdapter, &DbgAdapter::stopped, this, [this](const duint rip) { mRip = rip; }, Qt::QueuedConnection);
     connect(mAdapter, &DbgAdapter::memoryMapUpdated, this, &MemoryMapView::onMemoryMapUpdated, Qt::QueuedConnection);
@@ -109,6 +105,25 @@ MemoryMapView::MemoryMapView(DbgAdapter* adapter, QWidget* parent)
     connect(this, &AbstractStdTable::sortChangedSignal, this, &MemoryMapView::restoreSelection);
 
     mAdapter->setMemoryMapSectionView(!ConfigBool("Engine", "ListAllPages"));
+}
+
+void MemoryMapView::setupContextMenu()
+{
+    mGotoRipAction = new QAction(DIcon("cbp"), tr("Go to &RIP"), this);
+    mGotoRipAction->setShortcut(ConfigShortcut("ActionGotoOrigin"));
+    mGotoRipAction->setShortcutContext(Qt::WidgetShortcut);
+    connect(mGotoRipAction, &QAction::triggered, this, &MemoryMapView::onGotoRip);
+    addAction(mGotoRipAction);
+
+    mContextMenu = new QMenu(this);
+    mContextMenu->addAction(DIcon("processor64"), tr("Follow in &Disassembler"), this, &MemoryMapView::onFollowDisassembly);
+    mContextMenu->addAction(DIcon("dump"), tr("&Follow in Dump"), this, &MemoryMapView::onFollowDump);
+    mDumpMemoryAction = mContextMenu->addAction(DIcon("binary_save"), tr("&Dump Memory to File"), this, &MemoryMapView::onDumpMemory);
+    mSwitchViewAction = mContextMenu->addAction(DIcon("change-view"), QString(), this, &MemoryMapView::onSwitchView);
+    mContextMenu->addSeparator();
+    mContextMenu->addAction(mGotoRipAction);
+    mContextMenu->addSeparator();
+    mCopyMenu = mContextMenu->addMenu(tr("&Copy"));
 }
 
 QString MemoryMapView::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
@@ -157,6 +172,14 @@ QString MemoryMapView::paintContent(QPainter* painter, duint row, duint col, int
             return QString();
         }
         return text;
+    }
+
+    if(col == ColProtection && !ConfigBool("Engine", "ListAllPages"))
+    {
+        const QString text = StdIconTable::paintContent(painter, row, col, x, y, w, h);
+        painter->setPen(ConfigColor("MemoryMapSectionTextColor"));
+        painter->drawText(QRect(x + 4, y, w - 4, h), Qt::AlignVCenter | Qt::AlignLeft, text);
+        return QString();
     }
 
     return StdIconTable::paintContent(painter, row, col, x, y, w, h);
@@ -243,11 +266,6 @@ void MemoryMapView::onDumpMemory()
         if(row >= getRowCount())
             return;
         const duint base = getCellUserdata(row, ColAddress);
-        if(!getCellContent(row, ColProtection).startsWith(QLatin1Char('r')))
-        {
-            SimpleErrorBox(this, tr("Error"), tr("The region at %1 is not readable.").arg(ToPtrString(base)));
-            return;
-        }
         if(end == 0)
             start = base;
         else if(end != base)
@@ -259,8 +277,10 @@ void MemoryMapView::onDumpMemory()
     }
 
     char module[MAX_MODULE_SIZE] = "";
-    const QString name = mAdapter->modNameFromAddr(start, module, sizeof(module), false) ? QString::fromUtf8(module) : QStringLiteral("memory");
-    const QString defaultFile = QString("%1/%2_%3.bin").arg(QDir::currentPath(), name, ToPtrString(start));
+    QString prefix;
+    if(mAdapter->modNameFromAddr(start, module, sizeof(module), false))
+        prefix = QString::fromUtf8(module) + QLatin1Char('_');
+    const QString defaultFile = QString("%1/%2%3.bin").arg(QDir::currentPath(), prefix, ToPtrString(start));
     const QString path = QFileDialog::getSaveFileName(this, tr("Save Memory Region"), defaultFile, tr("Binary files (*.bin);;All files (*)"));
     if(path.isEmpty())
         return;
@@ -270,24 +290,19 @@ void MemoryMapView::onDumpMemory()
     mDumpProgress->setMinimumDuration(500);
     mDumpProgress->setAutoClose(false);
     mDumpProgress->setAutoReset(false);
-    mDumpProgress->setValue(0);
     connect(mDumpProgress, &QProgressDialog::canceled, mAdapter, &DbgAdapter::cancelDump);
     mAdapter->dumpMemory(start, end - start, path);
 }
 
 void MemoryMapView::onDumpProgress(const duint done, const duint total)
 {
-    if(mDumpProgress)
-        mDumpProgress->setValue(static_cast<int>(done * kDumpSteps / total));
+    mDumpProgress->setValue(static_cast<int>(done * kDumpSteps / total));
 }
 
 void MemoryMapView::onDumpFinished()
 {
-    if(mDumpProgress)
-    {
-        mDumpProgress->deleteLater();
-        mDumpProgress = nullptr;
-    }
+    mDumpProgress->deleteLater();
+    mDumpProgress = nullptr;
 }
 
 void MemoryMapView::onSwitchView()
@@ -344,16 +359,11 @@ void MemoryMapView::onContextMenu(const QPoint & pos)
     if(!mAdapter->isActive() || !getRowCount())
         return;
 
-    QMenu menu(this);
-    menu.addAction(DIcon("processor64"), tr("Follow in &Disassembler"), this, &MemoryMapView::onFollowDisassembly);
-    menu.addAction(DIcon("dump"), tr("&Follow in Dump"), this, &MemoryMapView::onFollowDump);
-    menu.addAction(DIcon("binary_save"), tr("&Dump Memory to File"), this, &MemoryMapView::onDumpMemory)->setEnabled(!mDumpProgress);
-    menu.addAction(DIcon("change-view"), ConfigBool("Engine", "ListAllPages") ? tr("Section &view") : tr("Region &view"), this, &MemoryMapView::onSwitchView);
-    menu.addSeparator();
-    menu.addMenu(DIcon("goto"), tr("Go to"))->addAction(mGotoRipAction);
-    menu.addSeparator();
-    setupCopyMenu(menu.addMenu(tr("&Copy")));
-    menu.exec(mapToGlobal(pos));
+    mDumpMemoryAction->setEnabled(!mDumpProgress);
+    mSwitchViewAction->setText(ConfigBool("Engine", "ListAllPages") ? tr("Section &view") : tr("Region &view"));
+    mCopyMenu->clear();
+    setupCopyMenu(mCopyMenu);
+    mContextMenu->exec(mapToGlobal(pos));
 }
 
 bool MemoryMapView::rowHolds(const duint row, const duint address)

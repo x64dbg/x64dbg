@@ -30,20 +30,6 @@ MM_LONG_SECTION(05)
 MM_LONG_SECTION(06)
 MM_LONG_SECTION(07)
 MM_LONG_SECTION(08)
-MM_LONG_SECTION(09)
-MM_LONG_SECTION(10)
-MM_LONG_SECTION(11)
-MM_LONG_SECTION(12)
-MM_LONG_SECTION(13)
-MM_LONG_SECTION(14)
-MM_LONG_SECTION(15)
-MM_LONG_SECTION(16)
-
-#define MM_NAME_PADDING "0123456789abcdef0123456789abcdef"
-
-// A name that alone overflows Info, at the 256 characters readelf -W still prints whole.
-__attribute__((section(".mm_section_past_the_info_limit_" MM_NAME_PADDING MM_NAME_PADDING MM_NAME_PADDING MM_NAME_PADDING
-                       MM_NAME_PADDING MM_NAME_PADDING MM_NAME_PADDING), used)) const char mm_past_limit[16] = "past";
 
 extern "C"
 {
@@ -112,16 +98,15 @@ namespace
     // This executable's header page at both ends of anonymous memory: it looks loaded, but no data segment is there.
     void mapPhantomImage()
     {
-        constexpr size_t kSpan = 4 * 1024 * 1024;
         const int fd = open("/proc/self/exe", O_RDONLY | O_CLOEXEC);
         if(fd == -1)
             return;
-        void* span = mmap(nullptr, kSpan + 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        void* span = mmap(nullptr, kMemMapPhantomSpan + 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
         if(span != MAP_FAILED)
         {
             auto* base = static_cast<char*>(span);
             if(mmap(base, 4096, PROT_READ, MAP_PRIVATE | MAP_FIXED, fd, 0) != MAP_FAILED &&
-                    mmap(base + kSpan, 4096, PROT_READ, MAP_PRIVATE | MAP_FIXED, fd, 0) != MAP_FAILED)
+                    mmap(base + kMemMapPhantomSpan, 4096, PROT_READ, MAP_PRIVATE | MAP_FIXED, fd, 0) != MAP_FAILED)
                 mm_phantom = reinterpret_cast<uintptr_t>(base);
         }
         close(fd);

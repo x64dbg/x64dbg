@@ -58,6 +58,7 @@ private:
     void setupTabs();
     QWidget* createCpuTab();
     void clearDebuggeeViews();
+    void showInCpu(QWidget* focus);
 
     DbgAdapter* mProvider = nullptr;
     QThread* mDebugThread = nullptr;

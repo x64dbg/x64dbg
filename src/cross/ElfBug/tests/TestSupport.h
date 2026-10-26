@@ -19,6 +19,7 @@
 #include <future>
 #include <optional>
 #include <string>
+#include <sys/uio.h>
 #include <thread>
 #include <unistd.h>
 #include <vector>
@@ -48,6 +49,14 @@ namespace ElfBug::test
         return value;
     }
 
+    template<typename T>
+    bool WriteTraceeValue(const pid_t pid, const ElfBug::ptr address, T value)
+    {
+        iovec local{&value, sizeof(value)};
+        iovec remote{reinterpret_cast<void*>(address), sizeof(value)};
+        return process_vm_writev(pid, &local, 1, &remote, 1, 0) == static_cast<ssize_t>(sizeof(value));
+    }
+
     // Unlike MemRead, sees breakpoint bytes.
     inline std::optional<std::uint8_t> ReadProcessByte(const ElfBug::Process* process, const ElfBug::ptr address)
     {
@@ -58,14 +67,6 @@ namespace ElfBug::test
                                    const std::chrono::milliseconds timeout = std::chrono::seconds(1))
     {
         return WaitUntil([&] { return ReadProcessByte(process, address) == expected; }, timeout);
-    }
-
-    // The T at symbol in pid, whose executable is path.
-    template<typename T>
-    std::optional<T> ReadSymbol(const pid_t pid, const std::string & path, const std::string & symbol)
-    {
-        const auto address = ResolveRuntimeAddress(path, pid, symbol);
-        return address ? ReadTraceeValue<T>(pid, *address) : std::nullopt;
     }
 
     // Reads by pid, so it also works after a detach.

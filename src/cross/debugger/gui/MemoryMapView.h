@@ -6,6 +6,7 @@
 
 class QAction;
 class QHideEvent;
+class QMenu;
 class QProgressDialog;
 class QShowEvent;
 
@@ -55,6 +56,7 @@ private:
         ColProtection,
     };
 
+    void setupContextMenu();
     bool rowHolds(duint row, duint address);
     // Returns getRowCount() when no row holds the address.
     duint findRow(duint address);
@@ -64,6 +66,10 @@ private:
     duint mSelectionStart = 0;
     duint mSelectionCount = 0;
     SortData mSelectionSort;
+    QMenu* mContextMenu = nullptr;
+    QMenu* mCopyMenu = nullptr;
+    QAction* mDumpMemoryAction = nullptr;
+    QAction* mSwitchViewAction = nullptr;
     QAction* mGotoRipAction = nullptr;
     QProgressDialog* mDumpProgress = nullptr;
 };

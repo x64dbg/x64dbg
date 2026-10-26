@@ -693,11 +693,10 @@ private:
         return reason;
     }
 
-    std::vector<ElfBug::ThreadPointers> refreshThreadList(const bool withRegisters)
+    void refreshThreadList(const bool withRegisters)
     {
         std::lock_guard threads(mThreadMutex);
         std::vector<ElfBugThreadInfo> list;
-        std::vector<ElfBug::ThreadPointers> pointers;
         {
             std::unique_lock lock(mProcessMutex);
             if(mProcess)
@@ -716,7 +715,6 @@ private:
                     info.rip = native.rip;
                     info.fs_base = native.fs_base;
                     info.suspend_count = thread->SuspendCount();
-                    pointers.push_back({tid, native.rsp, native.fs_base});
                     std::string reason = thread->WaitReason();
                     if(reason.empty())
                     {
@@ -733,17 +731,28 @@ private:
         {
             return a.number < b.number;
         });
-        std::sort(pointers.begin(), pointers.end(), [](const ElfBug::ThreadPointers & a, const ElfBug::ThreadPointers & b)
-        {
-            return a.tid < b.tid;
-        });
         mThreadList = std::move(list);
-        return pointers;
     }
 
     void snapshotStop(const bool withRegisters)
     {
-        const auto threads = refreshThreadList(withRegisters);
+        refreshThreadList(withRegisters);
+        std::vector<ElfBug::ThreadPointers> threads;
+        {
+            std::shared_lock lock(mProcessMutex);
+            if(mProcess)
+            {
+                for(const auto & [tid, thread] : mProcess->threads)
+                {
+                    const auto & native = thread->registers.Native();
+                    threads.push_back({tid, native.rsp, native.fs_base});
+                }
+            }
+        }
+        std::sort(threads.begin(), threads.end(), [](const ElfBug::ThreadPointers & a, const ElfBug::ThreadPointers & b)
+        {
+            return a.tid < b.tid;
+        });
         std::lock_guard lock(mMapMutex);
         mMemoryMap.Rebuild(Pid(), threads);
     }

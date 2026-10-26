@@ -10,8 +10,9 @@ namespace ElfBug
     {
         if(text.size() <= maxBytes)
             return text;
+        constexpr size_t kMaxContinuationBytes = 3;
         size_t end = maxBytes;
-        while(end > 0 && maxBytes - end < 3 && (static_cast<unsigned char>(text[end]) & 0xC0) == 0x80)
+        while(end > 0 && maxBytes - end < kMaxContinuationBytes && (static_cast<unsigned char>(text[end]) & 0xC0) == 0x80)
             --end;
         return text.substr(0, end);
     }

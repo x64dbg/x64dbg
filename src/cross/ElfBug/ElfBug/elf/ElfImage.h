@@ -11,14 +11,16 @@
 
 namespace ElfBug
 {
-    inline uint64_t ElfPageFloor(const uint64_t value)
+    constexpr uint64_t kPageSize = 0x1000;
+
+    inline uint64_t PageFloor(const uint64_t value)
     {
-        return value & ~static_cast<uint64_t>(0xfff);
+        return value & ~(kPageSize - 1);
     }
 
-    inline uint64_t ElfPageCeil(const uint64_t value)
+    inline uint64_t PageCeil(const uint64_t value)
     {
-        return ElfPageFloor(value + 0xfff);
+        return PageFloor(value + kPageSize - 1);
     }
 
     struct ElfSegment
@@ -39,7 +41,7 @@ namespace ElfBug
         uint64_t size = 0;
     };
 
-    // A file offset; a tracee reader reads base + offset, valid only where the image is mapped linearly.
+    // Reads at a file offset. A reader over tracee memory adds the image base, which only holds where the file is mapped linearly.
     using ElfReader = std::function<bool(uint64_t offset, void* buffer, size_t size)>;
 
     class ElfImage

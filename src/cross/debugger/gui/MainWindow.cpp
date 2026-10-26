@@ -309,14 +309,12 @@ void MainWindow::setupTabs()
     connect(mMemoryMapView, &MemoryMapView::followDisasmRequested, this, [this](const duint address)
     {
         mDisassembly->gotoAddress(address);
-        mTabWidget->setCurrentWidget(mCpuTab);
-        mDisassembly->setFocus();
+        showInCpu(mDisassembly);
     });
     connect(mMemoryMapView, &MemoryMapView::followDumpRequested, this, [this](const duint address)
     {
         mHexDump->printDumpAt(address);
-        mTabWidget->setCurrentWidget(mCpuTab);
-        mHexDump->setFocus();
+        showInCpu(mHexDump);
     });
     mTabWidget->addTab(makePlaceholder(tr("Call stack view - not yet implemented")), DIcon("callstack"), tr("Call Stack"));
     mThreadView = new ThreadView(mProvider, this);
@@ -574,6 +572,12 @@ void MainWindow::onToggleBreakpoint()
     if(!mProvider->toggleBreakpoint(addr))
         onLogMessage(QString("[x64dbg] Failed to toggle breakpoint at 0x%1").arg(addr, 0, 16));
     mDisassembly->reloadData();
+}
+
+void MainWindow::showInCpu(QWidget* focus)
+{
+    mTabWidget->setCurrentWidget(mCpuTab);
+    focus->setFocus();
 }
 
 void MainWindow::onStopped(const duint rip, const QString & reason)

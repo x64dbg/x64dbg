@@ -90,7 +90,7 @@ TEST_CASE("Module lookups name an image whose path is longer than a maps line", 
     REQUIRE(std::string(name) == "long_module");
 }
 
-TEST_CASE("C API builds the memory map at the stop before the first lookup", "[api][memory]")
+TEST_CASE("C API builds the memory map at the stop before the first lookup", "[memorymap][api]")
 {
     namespace fs = std::filesystem;
 

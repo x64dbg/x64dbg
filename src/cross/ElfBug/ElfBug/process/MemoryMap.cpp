@@ -14,6 +14,7 @@ namespace ElfBug
         constexpr std::string_view kHeapName = "[heap]";
         constexpr std::string_view kStackName = "[stack]";
         constexpr std::string_view kVdsoName = "[vdso]";
+        constexpr std::string_view kGlibcBssName = "[anon: glibc: .bss ";
         constexpr std::string_view kSystemPrefixes[] =
         {
             "/lib/", "/lib32/", "/lib64/", "/usr/lib/", "/usr/lib32/", "/usr/lib64/",
@@ -35,8 +36,7 @@ namespace ElfBug
                 region.file = entry->file;
                 region.perms = std::string(entry->perms);
                 region.name = std::string(entry->path);
-                const bool shared = region.perms[3] == 's';
-                region.type = region.file.Known() || shared ? RegionType::Mapped : RegionType::Private;
+                region.type = region.file.Known() || region.Shared() ? RegionType::Mapped : RegionType::Private;
                 regions.push_back(std::move(region));
             }
             return regions;
@@ -75,14 +75,16 @@ namespace ElfBug
         // The .bss tail right after the last joined region, or code moved onto huge pages.
         bool joinsAnonymously(const MemoryModule & module, const MemoryRegion & region, const uint64_t joinedEnd)
         {
-            const bool loaderMemory = isAnonymous(region) || (!region.file.Known() && region.name.starts_with("[anon: glibc: .bss "));
-            if(!loaderMemory)
+            if(region.file.Known() || !(region.name.empty() || region.name.starts_with(kGlibcBssName)))
                 return false;
-            const auto & segments = module.headers->Segments();
-            return region.start == joinedEnd || std::any_of(segments.begin(), segments.end(), [&](const ElfSegment & segment)
+            if(region.start == joinedEnd)
+                return true;
+            for(const auto & segment : module.headers->Segments())
             {
-                return (segment.flags & PF_X) && region.start < module.bias + segment.End() && region.end > module.bias + segment.vaddr;
-            });
+                if((segment.flags & PF_X) && region.start < module.bias + segment.End() && region.end > module.bias + segment.vaddr)
+                    return true;
+            }
+            return false;
         }
 
         bool sameFile(const MemoryRegion & region, const ImageId & file)
@@ -105,7 +107,7 @@ namespace ElfBug
         }
 
         // [vdso], or the first mapping of a file the loader split into segments.
-        bool isCandidate(const std::vector<MemoryRegion> & regions, const size_t firstIndex)
+        bool startsModule(const std::vector<MemoryRegion> & regions, const size_t firstIndex)
         {
             const MemoryRegion & first = regions[firstIndex];
             if(first.name == kVdsoName)
@@ -128,20 +130,20 @@ namespace ElfBug
         }
 
         // Each PT_LOAD with file content is mapped from this file at its offset, or is code moved onto anonymous huge pages.
-        bool layoutRealized(const std::vector<MemoryRegion> & regions, const ImageId & file, const ElfImage & image, const uint64_t bias)
+        bool segmentsMapped(const std::vector<MemoryRegion> & regions, const ImageId & file, const ElfImage & image, const uint64_t bias)
         {
             for(const auto & segment : image.Segments())
             {
                 if(segment.filesz == 0)
                     continue;
-                const uint64_t address = bias + ElfPageFloor(segment.vaddr);
+                const uint64_t address = bias + PageFloor(segment.vaddr);
                 const auto index = regionIndex(regions, address);
                 if(!index)
                     return false;
                 const MemoryRegion & region = regions[*index];
                 if(isAnonymous(region) && (segment.flags & PF_X))
                     continue;
-                if(!sameFile(region, file) || region.offset + (address - region.start) != ElfPageFloor(segment.offset))
+                if(!sameFile(region, file) || region.offset + (address - region.start) != PageFloor(segment.offset))
                     return false;
             }
             return true;
@@ -149,6 +151,7 @@ namespace ElfBug
 
         std::optional<MemoryModule> detectModule(const pid_t pid, const std::vector<MemoryRegion> & regions, const MemoryRegion & first)
         {
+            // The vDSO has no file on disk, so its sections are read straight from memory.
             const bool vdso = first.name == kVdsoName;
             const ElfReader read = [pid, base = first.start](const uint64_t offset, void* buffer, const size_t size)
             {
@@ -160,7 +163,7 @@ namespace ElfBug
             const auto bias = image->LoadBias(first.start, first.offset);
             if(!bias)
                 return std::nullopt;
-            if(!vdso && !layoutRealized(regions, first.file, *image, *bias))
+            if(!vdso && !segmentsMapped(regions, first.file, *image, *bias))
                 return std::nullopt;
 
             MemoryModule module;
@@ -186,11 +189,6 @@ namespace ElfBug
 
         void placeLabels(std::vector<MemoryRegion> & regions, const std::span<const ThreadPointers> threads)
         {
-            for(auto & region : regions)
-            {
-                if(region.name == kHeapName)
-                    region.labels.push_back({region.start, "Heap"});
-            }
             const auto place = [&regions](const uint64_t address, std::string text)
             {
                 if(address == 0)
@@ -221,11 +219,18 @@ namespace ElfBug
 
         const ElfSection* sectionAt(const MemoryModule & module, const uint64_t address)
         {
-            const auto sections = sectionsIn(module, address, address + 1);
-            return sections.empty() ? nullptr : sections.back();
+            if(!module.image)
+                return nullptr;
+            const ElfSection* found = nullptr;
+            for(const auto & section : module.image->Sections())
+            {
+                if(address >= module.bias + section.addr && address < module.bias + section.addr + section.size)
+                    found = &section;
+            }
+            return found;
         }
 
-        void appendSection(std::string & info, const ElfSection & section)
+        void appendSectionName(std::string & info, const ElfSection & section)
         {
             info += info.empty() ? " \"" : ", \"";
             info += section.name;
@@ -259,7 +264,7 @@ namespace ElfBug
         {
             std::string info = region.name;
             if(region.name == kHeapName)
-                info.clear();
+                info = "Heap";
             else if(region.name == kStackName)
                 info = region.labels.empty() ? "Stack" : "";
             return pageFor(region, nullptr, region.start, region.end, std::move(info));
@@ -268,21 +273,21 @@ namespace ElfBug
         MemoryPage regionPage(const MemoryRegion & region, const MemoryModule & module)
         {
             std::string info = region.start == module.base ? std::string(module.FileName()) : std::string();
-            std::string mostly;
+            std::string mainSection;
             uint64_t largest = 0;
             for(const ElfSection* section : sectionsIn(module, region.start, region.end))
             {
-                appendSection(info, *section);
+                appendSectionName(info, *section);
                 const uint64_t start = module.bias + section->addr;
                 const uint64_t overlap = std::min(start + section->size, region.end) - std::max(start, region.start);
                 if(overlap > largest)
                 {
                     largest = overlap;
-                    mostly = section->name;
+                    mainSection = section->name;
                 }
             }
             MemoryPage page = pageFor(region, &module, region.start, region.end, std::move(info));
-            page.section = std::move(mostly);
+            page.section = std::move(mainSection);
             return page;
         }
 
@@ -304,7 +309,7 @@ namespace ElfBug
                 const ElfSection* section = sectionAt(module, start);
                 std::string info;
                 if(section)
-                    appendSection(info, *section);
+                    appendSectionName(info, *section);
                 else if(start == module.base)
                     info = module.FileName();
                 MemoryPage page = pageFor(region, &module, start, end, std::move(info));
@@ -332,7 +337,7 @@ namespace ElfBug
         for(size_t i = 0; i < mRegions.size(); ++i)
         {
             const MemoryRegion & first = mRegions[i];
-            if(first.module || !isCandidate(mRegions, i))
+            if(first.module || !startsModule(mRegions, i))
                 continue;
 
             std::optional<MemoryModule> module = reuseModule(previous, first);
@@ -346,16 +351,17 @@ namespace ElfBug
 
             const size_t index = mModules.size();
             const uint64_t end = module->bias + module->headers->End();
-            const uint64_t imageEnd = ElfPageCeil(end);
-            uint64_t joinedEnd = module->base;
-            for(size_t j = i; j < mRegions.size() && mRegions[j].start < end; ++j)
+            mRegions[i].module = index;
+            mRegions[i].type = RegionType::Image;
+            uint64_t joinedEnd = mRegions[i].end;
+            for(size_t j = i + 1; j < mRegions.size() && mRegions[j].start < end; ++j)
             {
-                const MemoryRegion & region = mRegions[j];
-                const bool joins = j == i || sameFile(region, module->file) || joinsAnonymously(*module, region, joinedEnd);
-                if(region.module || !joins)
+                if(mRegions[j].module)
                     continue;
-                if(j != i && !region.file.Known() && region.end > imageEnd)
-                    splitRegion(mRegions, j, imageEnd);
+                if(!sameFile(mRegions[j], module->file) && !joinsAnonymously(*module, mRegions[j], joinedEnd))
+                    continue;
+                if(!mRegions[j].file.Known() && mRegions[j].end > PageCeil(end))
+                    splitRegion(mRegions, j, PageCeil(end));
                 mRegions[j].module = index;
                 mRegions[j].type = RegionType::Image;
                 joinedEnd = mRegions[j].end;
@@ -400,6 +406,7 @@ namespace ElfBug
                 module.imageResolved = true;
                 if(!resolved.image)
                     continue;
+                // A file found by path may not be the one mapped, so it has to match the headers in memory.
                 const auto fileBytes = resolved.image->HeaderBytes();
                 const auto memoryBytes = module.headers->HeaderBytes();
                 if(resolved.exact || std::equal(fileBytes.begin(), fileBytes.end(), memoryBytes.begin(), memoryBytes.end()))

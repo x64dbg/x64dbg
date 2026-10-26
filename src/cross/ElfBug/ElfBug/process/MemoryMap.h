@@ -56,6 +56,7 @@ namespace ElfBug
 
         [[nodiscard]] bool Readable() const { return perms[0] == 'r'; }
         [[nodiscard]] bool Executable() const { return perms[2] == 'x'; }
+        [[nodiscard]] bool Shared() const { return perms[3] == 's'; }
     };
 
     struct MemoryModule
@@ -75,7 +76,6 @@ namespace ElfBug
         [[nodiscard]] std::string_view FileName() const;
     };
 
-    // One row of the view, in the Windows MEMPAGE shape.
     struct MemoryPage
     {
         uint64_t base = 0;
@@ -88,10 +88,12 @@ namespace ElfBug
         std::string info;
     };
 
+    // Modules come from /proc/<pid>/maps rather than r_debug, which is only filled in once ld.so is done.
+    // Maps also works at the first stop, for static binaries and for dlmopen namespaces.
     class MemoryMap
     {
     public:
-        // Reads /proc/<pid>/maps and tracee memory only; modules seen last time are reused.
+        // Reads only /proc and tracee memory. Section names come later, through PendingImages and AttachImages.
         void Rebuild(pid_t pid, std::span<const ThreadPointers> threads);
         void Clear();
 

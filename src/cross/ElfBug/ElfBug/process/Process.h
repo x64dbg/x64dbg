@@ -75,6 +75,8 @@ namespace ElfBug
         BreakpointInfo* findSoftwareBreakpoint(ptr address);
         void unpatchBreakpointBytesLocked(ptr address, void* buffer, ptr size) const;
 
+        int memFdLocked() const;
+        ssize_t memPread(void* buffer, size_t size, off_t offset) const;
         ssize_t memPwrite(const void* buffer, size_t size, off_t offset) const;
         mutable std::mutex mMemFdMutex;
         mutable int mMemFd = -1;

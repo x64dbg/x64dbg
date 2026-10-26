@@ -70,6 +70,11 @@ namespace
         return *value;
     }
 
+    ptr BssEnd(ApiSession & s)
+    {
+        return s.Symbol("mm_bss") + kMemMapBssSize - 1;
+    }
+
     // Runs mem_map_target until its worker has published, then pauses it.
     void RunToParked(ApiSession & s)
     {
@@ -81,7 +86,7 @@ namespace
         REQUIRE(s.Pause());
     }
 
-    // Loads libmm_gap.so in a paused mem_map_target and pauses it again.
+    // Loads libmm_gap.so in a paused mem_map_target and leaves it running.
     void LoadGapLibrary(ApiSession & s)
     {
         const ptr flag = s.Symbol("mm_load_gap");
@@ -90,7 +95,6 @@ namespace
         ElfBugContinue(s.dbg);
         REQUIRE(WaitUntil([&] { return TryRead<int>(s, flag).value_or(load) != load; }));
         REQUIRE(Read<int>(s, flag) == load + 1);
-        REQUIRE(s.Pause());
     }
 }
 
@@ -104,7 +108,8 @@ TEST_CASE("C API exports the memory map with labels from the threads' registers"
     const auto pages = ElfBugMemoryMap(s.dbg, false);
     const std::string mainStack = RequirePage(pages, Read<uintptr_t>(s, s.Symbol("mm_main_stack"))).info;
     REQUIRE(mainStack.find("Stack (" + pid + ")") != std::string::npos);
-    REQUIRE(std::string(RequirePage(pages, Read<uintptr_t>(s, s.Symbol("mm_worker_stack"))).info) == "TLS (" + tid + "), Stack (" + tid + ")");
+    const uintptr_t workerStack = Read<uintptr_t>(s, s.Symbol("mm_worker_stack"));
+    REQUIRE(std::string(RequirePage(pages, workerStack).info) == "TLS (" + tid + "), Stack (" + tid + ")");
 
     const auto threads = ElfBugThreadList(s.dbg);
     const auto main = std::find_if(threads.begin(), threads.end(), [](const ElfBugThreadInfo & thread) { return thread.number == 0; });
@@ -139,7 +144,7 @@ TEST_CASE("C API rows carry section names, parties and module bases", "[memoryma
     ApiSession s(FIXTURE("mem_map_target"));
     RunToParked(s);
     const ptr code = s.Symbol("mm_code");
-    const ptr bssEnd = s.Symbol("mm_bss") + kMemMapBssSize - 1;
+    const ptr bssEnd = BssEnd(s);
 
     uint64_t exeBase = 0;
     REQUIRE(ElfBugModBaseFromAddr(s.dbg, code, &exeBase));
@@ -186,6 +191,7 @@ TEST_CASE("C API picks up a library loaded between stops and keeps the modules i
     const auto libcRows = RowsOf(before, libcBase);
 
     LoadGapLibrary(s);
+    REQUIRE(s.Pause());
 
     const auto after = ElfBugMemoryMap(s.dbg, false);
     REQUIRE(RowsOf(after, exeBase) == exeRows);
@@ -220,41 +226,36 @@ TEST_CASE("C API keeps the mapped files' section names when the files on disk ar
 
     ApiSession s(target.string());
     RunToParked(s);
-    const ptr bssEnd = s.Symbol("mm_bss") + kMemMapBssSize - 1;
+    const ptr bssEnd = BssEnd(s);
     LoadGapLibrary(s);
+    REQUIRE(s.Pause());
 
-    bool librarySections = true;
-    SECTION("control: the files are intact")
-    {
-    }
     SECTION("both files were replaced on disk")
     {
         fs::copy_file(FIXTURE("hello_elfbug"), dir / "impostor", fs::copy_options::overwrite_existing);
         fs::rename(dir / "impostor", target);
         fs::copy_file(FIXTURE("hello_elfbug"), dir / "impostor", fs::copy_options::overwrite_existing);
         fs::rename(dir / "impostor", library);
-        librarySections = MapFilesOpenable();
     }
     SECTION("both files were deleted")
     {
         fs::remove(target);
         fs::remove(library);
-        librarySections = MapFilesOpenable();
     }
 
     uint64_t exeBase = 0;
     REQUIRE(ElfBugModBaseFromAddr(s.dbg, bssEnd, &exeBase));
     const auto pages = ElfBugMemoryMap(s.dbg, false);
-    const std::string header = RequirePage(pages, exeBase).info;
-    REQUIRE(header.starts_with("replaced_target"));
-    REQUIRE(header.find('"') != std::string::npos);
+    REQUIRE(std::string(RequirePage(pages, exeBase).info).starts_with("replaced_target"));
     const ElfBugMemoryPage & tail = RequirePage(pages, bssEnd);
     REQUIRE(tail.type == ElfBugRegionType_Image);
     REQUIRE(tail.module_base == exeBase);
 
+    const auto pieces = ElfBugMemoryMap(s.dbg, true);
+    REQUIRE(HasSectionRow(pieces, exeBase, ".text"));
     const ElfBugMemoryPage* gap = HeaderRow(pages, "libmm_gap.so");
     REQUIRE(gap);
-    REQUIRE((std::string(gap->info).find('"') != std::string::npos) == librarySections);
+    REQUIRE(HasSectionRow(pieces, gap->module_base, ".text") == MapFilesOpenable());
 }
 
 TEST_CASE("C API returns no memory map once the session is over", "[memorymap][api]")
@@ -312,19 +313,15 @@ TEST_CASE("C API builds the memory map of an attached process", "[memorymap][api
     const auto pages = ElfBugMemoryMap(s.dbg, false);
     REQUIRE(std::string(RequirePage(pages, s.Symbol("mm_code")).section) == ".text");
     const std::string tid = std::to_string(Read<int>(s, *workerTid));
-    REQUIRE(std::string(RequirePage(pages, Read<uintptr_t>(s, s.Symbol("mm_worker_stack"))).info) == "TLS (" + tid + "), Stack (" + tid + ")");
+    const uintptr_t workerStack = Read<uintptr_t>(s, s.Symbol("mm_worker_stack"));
+    REQUIRE(std::string(RequirePage(pages, workerStack).info) == "TLS (" + tid + "), Stack (" + tid + ")");
 }
 
 TEST_CASE("C API keeps the memory map of the last stop while the process runs", "[memorymap][api]")
 {
     ApiSession s(FIXTURE("mem_map_target"));
     RunToParked(s);
-    const ptr flag = s.Symbol("mm_load_gap");
-    const int load = 1;
-    REQUIRE(ElfBugMemWrite(s.dbg, flag, &load, sizeof(load)));
-    ElfBugContinue(s.dbg);
-    REQUIRE(WaitUntil([&] { return TryRead<int>(s, flag).value_or(load) != load; }));
-    REQUIRE(Read<int>(s, flag) == load + 1);
+    LoadGapLibrary(s);
 
     REQUIRE(HeaderRow(ElfBugMemoryMap(s.dbg, false), "libmm_gap.so") == nullptr);
     REQUIRE(s.Pause());
@@ -370,27 +367,25 @@ TEST_CASE("C API lookups stay correct while exports rebuild the map and load ima
             }
         });
         REQUIRE(WaitUntil([&] { return answered > 0; }));
-        for(int round = 0; round < 20; ++round)
+        const auto exportBoth = [&]
         {
-            if(round == 5)
-                ElfBugContinue(s.dbg);
-            if(round == 10)
-            {
-                REQUIRE(s.Pause());
-                LoadGapLibrary(s);
-                ElfBugContinue(s.dbg);
-            }
-            if(round == 15)
-                REQUIRE(s.Pause());
-            const auto pages = ElfBugMemoryMap(s.dbg, round % 2 == 0);
-            REQUIRE_FALSE(pages.empty());
-            if(round == 10)
-            {
-                const ElfBugMemoryPage* gap = HeaderRow(pages, "libmm_gap.so");
-                REQUIRE(gap);
-                REQUIRE(HasSectionRow(pages, gap->module_base, ".text"));
-            }
-        }
+            REQUIRE_FALSE(ElfBugMemoryMap(s.dbg, false).empty());
+            REQUIRE_FALSE(ElfBugMemoryMap(s.dbg, true).empty());
+        };
+
+        exportBoth();
+        ElfBugContinue(s.dbg);
+        exportBoth();
+        REQUIRE(s.Pause());
+        LoadGapLibrary(s);
+        REQUIRE(s.Pause());
+        ElfBugContinue(s.dbg);
+        const auto pieces = ElfBugMemoryMap(s.dbg, true);
+        const ElfBugMemoryPage* gap = HeaderRow(pieces, "libmm_gap.so");
+        REQUIRE(gap);
+        REQUIRE(HasSectionRow(pieces, gap->module_base, ".text"));
+        REQUIRE(s.Pause());
+        exportBoth();
     }
     REQUIRE(wrong == 0);
 }

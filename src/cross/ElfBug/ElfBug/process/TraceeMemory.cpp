@@ -6,7 +6,7 @@
 
 namespace ElfBug
 {
-    ssize_t ReadTraceeMemory(const pid_t pid, const ptr address, void* buffer, const ptr size)
+    ssize_t ReadTraceeVm(const pid_t pid, const ptr address, void* buffer, const ptr size)
     {
         iovec local{};
         local.iov_base = buffer;
@@ -16,7 +16,12 @@ namespace ElfBug
         remote.iov_base = reinterpret_cast<void*>(address);
         remote.iov_len = size;
 
-        const ssize_t read = process_vm_readv(pid, &local, 1, &remote, 1, 0);
+        return process_vm_readv(pid, &local, 1, &remote, 1, 0);
+    }
+
+    ssize_t ReadTraceeMemory(const pid_t pid, const ptr address, void* buffer, const ptr size)
+    {
+        const ssize_t read = ReadTraceeVm(pid, address, buffer, size);
         if(read != -1)
             return read;
         const int fd = open(procfs::Path(pid, "mem").c_str(), O_RDONLY | O_CLOEXEC);

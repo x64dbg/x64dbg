@@ -30,16 +30,17 @@ namespace ElfBug
         bool exact = false;
     };
 
-    // Parses each module file once per session with no lock held, so Clear never waits on file I/O; a stale generation returns nothing.
+    // Each file is parsed once per session, with no lock held so Clear never waits on file I/O.
+    // A Load started before the last Clear returns nothing.
     class ElfImageCache
     {
     public:
         std::vector<ResolvedImage> Load(pid_t pid, uint64_t generation, const std::vector<ImageRequest> & requests);
         void Clear();
-        [[nodiscard]] uint64_t Generation();
+        [[nodiscard]] uint64_t Generation() const;
 
     private:
-        std::mutex mMutex;
+        mutable std::mutex mMutex;
         std::map<ImageId, ResolvedImage> mImages;
         uint64_t mGeneration = 0;
         bool mMapFilesDenied = false;

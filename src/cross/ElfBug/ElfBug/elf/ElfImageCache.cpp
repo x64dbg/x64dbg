@@ -31,50 +31,49 @@ namespace ElfBug
             return true;
         }
 
-        // A null image with error set when the file can't be opened; error is 0 once it opened. Only regular files are parsed.
-        std::shared_ptr<const ElfImage> parsePath(const std::string & path, int & error)
+        // O_NONBLOCK so a FIFO at a module's path can't hang the open.
+        constexpr int kOpenFlags = O_RDONLY | O_CLOEXEC | O_NONBLOCK | O_NOCTTY;
+
+        std::shared_ptr<const ElfImage> parseFile(const int fd)
         {
-            const int fd = open(path.c_str(), O_RDONLY | O_CLOEXEC | O_NONBLOCK | O_NOCTTY);
-            error = fd == -1 ? errno : 0;
-            if(fd == -1)
+            struct stat info = {};
+            if(fstat(fd, &info) != 0 || !S_ISREG(info.st_mode))
                 return nullptr;
             const ElfReader read = [fd](const uint64_t offset, void* buffer, const size_t size)
             {
                 return readFully(fd, buffer, size, offset);
             };
-            struct stat info = {};
-            auto image = fstat(fd, &info) == 0 && S_ISREG(info.st_mode) ? ElfImage::Parse(read, ElfImage::Parts::HeadersAndSections) : std::nullopt;
-            close(fd);
+            auto image = ElfImage::Parse(read, ElfImage::Parts::HeadersAndSections);
             return image ? std::make_shared<const ElfImage>(std::move(*image)) : nullptr;
         }
 
         ResolvedImage openImage(const pid_t pid, const ImageRequest & request, bool & mapFilesDenied)
         {
-            ResolvedImage result{request.file, nullptr, false};
-            int error = 0;
+            ResolvedImage result{request.file};
+            int fd = -1;
             if(!mapFilesDenied)
             {
                 char name[64];
                 std::snprintf(name, sizeof(name), "map_files/%" PRIx64 "-%" PRIx64, request.start, request.end);
-                result.image = parsePath(procfs::Path(pid, name), error);
-                if(error == 0)
-                {
+                fd = open(procfs::Path(pid, name).c_str(), kOpenFlags);
+                if(fd != -1)
                     result.exact = true;
-                    return result;
-                }
-                mapFilesDenied = error == EPERM || error == EACCES;
+                else
+                    mapFilesDenied = errno == EPERM || errno == EACCES;
             }
-            if(request.mainProgram)
+            if(fd == -1 && request.mainProgram)
+                fd = open(procfs::Path(pid, "exe").c_str(), kOpenFlags);
+            if(fd == -1 && request.path.starts_with('/'))
             {
-                result.image = parsePath(procfs::Path(pid, "exe"), error);
-                if(error == 0)
-                    return result;
+                // Paths in maps are relative to the tracee's root, which differs inside a container or chroot.
+                fd = open((procfs::Path(pid, "root") + request.path).c_str(), kOpenFlags);
+                if(fd == -1 && errno == ENOENT)
+                    fd = open(request.path.c_str(), kOpenFlags);
             }
-            if(request.path.starts_with('/'))
+            if(fd != -1)
             {
-                result.image = parsePath(procfs::Path(pid, "root") + request.path, error);
-                if(error == ENOENT)
-                    result.image = parsePath(request.path, error);
+                result.image = parseFile(fd);
+                close(fd);
             }
             return result;
         }
@@ -114,7 +113,7 @@ namespace ElfBug
         ++mGeneration;
     }
 
-    uint64_t ElfImageCache::Generation()
+    uint64_t ElfImageCache::Generation() const
     {
         std::lock_guard lock(mMutex);
         return mGeneration;

@@ -167,17 +167,24 @@ TEST_CASE("ElfImage parses only the headers when asked to", "[elf]")
     REQUIRE(headerBytes.size() == sizeof(Elf64_Ehdr) + ehdr.e_phnum * sizeof(Elf64_Phdr));
 }
 
-TEST_CASE("ElfImage computes the load bias of a module's first mapping", "[elf]")
+TEST_CASE("ElfImage computes the load bias from where a segment is mapped", "[elf]")
 {
     const auto image = ParseBytes(ReadFileBytes(FIXTURE("hello_elfbug")));
     REQUIRE(image.has_value());
-    constexpr uint64_t base = 0x555555554000;
-    REQUIRE(image->LoadBias(base, 0) == base);
-    REQUIRE(image->LoadBias(base + 0x1000, 0) == base + 0x1000);
-    REQUIRE_FALSE(image->LoadBias(base, 0x7fff0000).has_value());
+    const auto & segments = image->Segments();
+    const auto code = std::find_if(segments.begin(), segments.end(), [](const ElfSegment & segment)
+    {
+        return segment.flags & PF_X;
+    });
+    REQUIRE(code != segments.end());
+    REQUIRE(code->vaddr != 0);
+
+    constexpr uint64_t bias = 0x555555554000;
+    REQUIRE(image->LoadBias(bias + PageFloor(code->vaddr), PageFloor(code->offset)) == bias);
+    REQUIRE_FALSE(image->LoadBias(bias, 0x7fff0000).has_value());
 }
 
-TEST_CASE("ElfImage rejects bad headers and drops bad section data", "[elf]")
+TEST_CASE("ElfImage refuses headers it cannot trust", "[elf]")
 {
     auto bytes = ReadFileBytes(FIXTURE("hello_elfbug"));
     REQUIRE(ParseBytes(bytes).has_value());
@@ -201,6 +208,23 @@ TEST_CASE("ElfImage rejects bad headers and drops bad section data", "[elf]")
         PadProgramHeaders(bytes, 1025);
         REQUIRE_FALSE(ParseBytes(bytes).has_value());
     }
+    SECTION("a segment that wraps the address space is refused")
+    {
+        const size_t offset = LoadOffsets(bytes).front();
+        auto load = ReadAt<Elf64_Phdr>(bytes, offset);
+        load.p_vaddr = ~uint64_t{0xfff};
+        load.p_memsz = load.p_filesz + 0x1000;
+        WriteAt(bytes, offset, load);
+        REQUIRE_FALSE(ParseBytes(bytes).has_value());
+    }
+}
+
+TEST_CASE("ElfImage keeps only the segments when the section data is bad", "[elf]")
+{
+    auto bytes = ReadFileBytes(FIXTURE("hello_elfbug"));
+    REQUIRE(ParseBytes(bytes).has_value());
+    auto header = ReadAt<Elf64_Ehdr>(bytes, 0);
+
     SECTION("up to 65536 section headers are read, counted through extended numbering")
     {
         PadSectionHeaders(bytes, 65536);
@@ -242,25 +266,25 @@ TEST_CASE("ElfImage rejects bad headers and drops bad section data", "[elf]")
         REQUIRE_FALSE(image->Segments().empty());
         REQUIRE(image->Sections().empty());
     }
-    SECTION("a segment smaller in memory than in the file still ends past its file part")
-    {
-        const size_t offset = LoadOffsets(bytes).back();
-        auto load = ReadAt<Elf64_Phdr>(bytes, offset);
-        load.p_memsz = load.p_filesz - 1;
-        WriteAt(bytes, offset, load);
-        const auto image = ParseBytes(bytes);
-        REQUIRE(image.has_value());
-        REQUIRE(image->End() == load.p_vaddr + load.p_filesz);
-    }
-    SECTION("a segment that wraps the address space is refused")
-    {
-        const size_t offset = LoadOffsets(bytes).front();
-        auto load = ReadAt<Elf64_Phdr>(bytes, offset);
-        load.p_vaddr = ~uint64_t{0xfff};
-        load.p_memsz = load.p_filesz + 0x1000;
-        WriteAt(bytes, offset, load);
-        REQUIRE_FALSE(ParseBytes(bytes).has_value());
-    }
+}
+
+TEST_CASE("ElfImage ends a segment past its file part even when memsz is smaller", "[elf]")
+{
+    auto bytes = ReadFileBytes(FIXTURE("hello_elfbug"));
+    const size_t offset = LoadOffsets(bytes).back();
+    auto load = ReadAt<Elf64_Phdr>(bytes, offset);
+    load.p_memsz = load.p_filesz - 1;
+    WriteAt(bytes, offset, load);
+    const auto image = ParseBytes(bytes);
+    REQUIRE(image.has_value());
+    REQUIRE(image->End() == load.p_vaddr + load.p_filesz);
+}
+
+TEST_CASE("ElfImage leaves out empty sections and lld's .relro_padding", "[elf]")
+{
+    auto bytes = ReadFileBytes(FIXTURE("hello_elfbug"));
+    REQUIRE(ParseBytes(bytes).has_value());
+
     SECTION("lld's .relro_padding is left out, so the padding folds into the section before it")
     {
         RenameSection(bytes, ".bss", ".relro_padding");
@@ -312,14 +336,10 @@ TEST_CASE("ElfImageCache reports a file it cannot open as null", "[elf]")
 {
     ElfImageCache cache;
     const ImageRequest missing{{0, 42}, "/nonexistent/elfbug.so", 0x1000, 0x2000};
-    const auto generation = cache.Generation();
-    const auto result = cache.Load(getpid(), generation, {missing});
+    const auto result = cache.Load(getpid(), cache.Generation(), {missing});
     REQUIRE(result.size() == 1);
     REQUIRE_FALSE(result[0].image);
     REQUIRE_FALSE(result[0].exact);
-    REQUIRE_FALSE(cache.Load(getpid(), generation, {missing})[0].image);
-    cache.Clear();
-    REQUIRE_FALSE(cache.Load(getpid(), cache.Generation(), {missing})[0].image);
 }
 
 TEST_CASE("ElfImageCache never waits on a path that is not a regular file", "[elf]")

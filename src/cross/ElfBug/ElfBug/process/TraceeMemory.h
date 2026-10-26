@@ -5,6 +5,9 @@
 
 namespace ElfBug
 {
-    // Bytes read from another process by pid, or -1; a read process_vm_readv refuses at its first page goes through /proc/<pid>/mem. Needs no Process or engine lock.
+    // Returns the bytes read, or -1.
+    ssize_t ReadTraceeVm(pid_t pid, ptr address, void* buffer, ptr size);
+
+    // Falls back to /proc/<pid>/mem when process_vm_readv can't read the first page, such as a PROT_NONE one.
     ssize_t ReadTraceeMemory(pid_t pid, ptr address, void* buffer, ptr size);
 }

@@ -26,7 +26,9 @@ namespace ElfBug
         if(!buffer || !size)
             return false;
 
-        const ssize_t result = ReadTraceeMemory(pid, address, buffer, size);
+        ssize_t result = ReadTraceeVm(pid, address, buffer, size);
+        if(result == -1)
+            result = memPread(buffer, size, static_cast<off_t>(address));
         const ptr done = result == -1 ? 0 : static_cast<ptr>(result);
         if(bytesRead)
             *bytesRead = done;

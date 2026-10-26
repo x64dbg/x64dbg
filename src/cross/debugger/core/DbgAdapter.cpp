@@ -1,17 +1,20 @@
 #include "core/DbgAdapter.h"
 
+#include <QFile>
 #include <StringUtil.h>
 #include <algorithm>
 #include <cassert>
 #include <csignal>
-#include <cstdio>
-#include <fstream>
-#include <string>
 #include <vector>
 
 namespace
 {
     constexpr duint kMemoryDumpChunkSize = 1024 * 1024;
+
+    QString dumpWriteError(const QFile & file)
+    {
+        return DbgAdapter::tr("Failed to write file \"%1\": %2").arg(file.fileName(), file.errorString());
+    }
 
     REGDUMP toRegDump(const ElfBugRegisters & regs)
     {
@@ -425,15 +428,6 @@ void DbgAdapter::scheduleThreadRefresh()
     scheduleRefresh(mThreadListGate, &DbgAdapter::refreshThreads);
 }
 
-struct DbgAdapter::DumpJob
-{
-    std::string path;
-    std::ofstream out;
-    duint start = 0;
-    duint size = 0;
-    duint done = 0;
-};
-
 void DbgAdapter::setMemoryMapVisible(const bool visible)
 {
     mMemoryMapGate.visible = visible;
@@ -473,21 +467,31 @@ void DbgAdapter::refreshMemoryMap()
     emit memoryMapUpdated(pages);
 }
 
+struct DbgAdapter::DumpJob
+{
+    QFile file;
+    duint start = 0;
+    duint size = 0;
+    duint done = 0;
+};
+
 void DbgAdapter::dumpMemory(const duint start, const duint size, const QString & path)
 {
-    auto job = std::make_shared<DumpJob>();
-    job->path = path.toStdString();
-    job->start = start;
-    job->size = size;
-    job->out.open(job->path, std::ios::binary | std::ios::trunc);
-    if(!job->out)
-    {
-        emit logMessage(QStringLiteral("[x64dbg] %1").arg(tr("Memory dump failed writing %1").arg(path)));
-        emit dumpFinished();
-        return;
-    }
     mDumpCancelled = false;
-    QMetaObject::invokeMethod(&mWorker, [this, job] { dumpChunk(job); }, Qt::QueuedConnection);
+    QMetaObject::invokeMethod(&mWorker, [this, start, size, path]
+    {
+        auto job = std::make_shared<DumpJob>();
+        job->file.setFileName(path);
+        job->start = start;
+        job->size = size;
+        if(!job->file.open(QIODevice::WriteOnly | QIODevice::Truncate))
+        {
+            emit logMessage(QStringLiteral("[x64dbg] %1").arg(dumpWriteError(job->file)));
+            emit dumpFinished();
+            return;
+        }
+        dumpChunk(job);
+    }, Qt::QueuedConnection);
 }
 
 void DbgAdapter::cancelDump()
@@ -499,8 +503,7 @@ void DbgAdapter::dumpChunk(const std::shared_ptr<DumpJob> & job)
 {
     const auto fail = [&](const QString & message)
     {
-        job->out.close();
-        std::remove(job->path.c_str());
+        job->file.remove();
         emit logMessage(QStringLiteral("[x64dbg] %1").arg(message));
         emit dumpFinished();
     };
@@ -516,27 +519,30 @@ void DbgAdapter::dumpChunk(const std::shared_ptr<DumpJob> & job)
     std::vector<char> buffer(chunk);
     if(!ElfBugMemRead(mDebugger, address, buffer.data(), chunk))
     {
-        fail(tr("Memory dump failed reading %1").arg(ToPtrString(address)));
+        fail(tr("Failed to read memory at %1").arg(ToPtrString(address)));
         return;
     }
-    job->out.write(buffer.data(), static_cast<std::streamsize>(chunk));
-    job->done += chunk;
-    if(job->done == job->size)
-        job->out.close();
-    if(!job->out)
+    if(job->file.write(buffer.data(), static_cast<qint64>(chunk)) != static_cast<qint64>(chunk))
     {
-        fail(tr("Memory dump failed writing %1").arg(QString::fromStdString(job->path)));
+        fail(dumpWriteError(job->file));
         return;
     }
-
+    job->done += chunk;
     emit dumpProgress(job->done, job->size);
+
     if(job->done < job->size)
     {
         QMetaObject::invokeMethod(&mWorker, [this, job] { dumpChunk(job); }, Qt::QueuedConnection);
         return;
     }
+    if(!job->file.flush())
+    {
+        fail(dumpWriteError(job->file));
+        return;
+    }
+    job->file.close();
     emit logMessage(QStringLiteral("[x64dbg] %1").arg(tr("%1[%2] written to \"%3\" !")
-                    .arg(ToPtrString(job->start), ToHexString(job->size), QString::fromStdString(job->path))));
+                    .arg(ToPtrString(job->start), ToHexString(job->size), job->file.fileName())));
     emit dumpFinished();
 }
 
