@@ -406,6 +406,29 @@ namespace ElfBug::test
         std::atomic<pid_t> mTargetPid{0};
     };
 
+    // Kills and reaps a child the debugger has let go of, even when an assertion fails first.
+    class ProcessReaper
+    {
+    public:
+        explicit ProcessReaper(const pid_t pid)
+            : mPid(pid)
+        {
+        }
+
+        ~ProcessReaper()
+        {
+            kill(mPid, SIGKILL);
+            int status = 0;
+            waitpid(mPid, &status, __WALL);
+        }
+
+        ProcessReaper(const ProcessReaper &) = delete;
+        ProcessReaper & operator=(const ProcessReaper &) = delete;
+
+    private:
+        pid_t mPid;
+    };
+
     // Forked by the test, so yama ptrace_scope=1 allows attaching.
     class UntracedProcess
     {

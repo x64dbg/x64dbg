@@ -1,9 +1,12 @@
 #include "TestSupport.h"
+#include <catch2/reporters/catch_reporter_event_listener.hpp>
+#include <catch2/reporters/catch_reporter_registrars.hpp>
 #include <ElfBug/elf/ElfImageCache.h>
 #include <ElfBug/process/MemoryMap.h>
 #include <ElfBug/process/TraceeMemory.h>
 #include <ElfBug/types/Utf8.h>
 #include <sys/mman.h>
+#include <sys/personality.h>
 #include <algorithm>
 #include <array>
 #include <string>
@@ -14,6 +17,18 @@ namespace
 {
     using namespace ElfBug;
     using namespace ElfBug::test;
+
+    // Fixtures inherit the runner's environment, and glibc.mem.decorate_maps would rename the anonymous memory the labels are checked on.
+    class GlibcTunablesCleared : public Catch::EventListenerBase
+    {
+    public:
+        using EventListenerBase::EventListenerBase;
+
+        void testRunStarting(const Catch::TestRunInfo &) override
+        {
+            unsetenv("GLIBC_TUNABLES");
+        }
+    };
 
     struct Mapping
     {
@@ -33,6 +48,19 @@ namespace
                 mappings.push_back({entry->start, std::string(entry->perms)});
         }
         return mappings;
+    }
+
+    // The end of the maps entry holding address, or 0.
+    uint64_t MappingEnd(const pid_t pid, const uint64_t address)
+    {
+        const std::string maps = procfs::ReadFile(procfs::Path(pid, "maps"));
+        for(const std::string_view line : procfs::Split(maps, '\n'))
+        {
+            const auto entry = procfs::ParseMapsLine(line);
+            if(entry && address >= entry->start && address < entry->end)
+                return entry->end;
+        }
+        return 0;
     }
 
     const MemoryRegion & RequireRegion(const MemoryMap & map, const uint64_t address)
@@ -135,6 +163,8 @@ namespace
         ElfImageCache mImages;
     };
 }
+
+CATCH_REGISTER_LISTENER(GlibcTunablesCleared)
 
 TEST_CASE("ReadTraceeMemory reads a process by pid", "[memorymap]")
 {
@@ -290,9 +320,100 @@ TEST_CASE("MemoryMap carries modules over between rebuilds", "[memorymap]")
     const ElfImage* image = RequireModule(map, code).image.get();
     REQUIRE(image);
 
+    target.Request("mm_load_gap", 1);
     map.Rebuild(target.Pid(), target.Threads());
     REQUIRE(RequireModule(map, code).image.get() == image);
-    REQUIRE(map.PendingImages().empty());
+    const auto pending = map.PendingImages();
+    REQUIRE(pending.size() == 1);
+    REQUIRE(pending.front().path.ends_with("/libmm_gap.so"));
+}
+
+TEST_CASE("MemoryMap detects a module again when another file sits at its base", "[memorymap]")
+{
+    const std::string original = FIXTURE("mem_map_target");
+    const std::string copy = original + "." + std::to_string(getpid());
+    std::filesystem::copy_file(original, copy, std::filesystem::copy_options::overwrite_existing);
+    struct Remover
+    {
+        std::string path;
+        ~Remover()
+        {
+            std::error_code error;
+            std::filesystem::remove(path, error);
+        }
+    } remover{copy};
+
+    const int persona = personality(0xffffffff);
+    REQUIRE(persona != -1);
+    personality(static_cast<unsigned long>(persona) | ADDR_NO_RANDOMIZE);
+    UntracedProcess first(original);
+    UntracedProcess second(copy);
+    personality(static_cast<unsigned long>(persona));
+    REQUIRE(WaitForExeced(first.pid, original));
+    REQUIRE(WaitForExeced(second.pid, copy));
+    const auto base = GetExecBase(first.pid, original);
+    REQUIRE(base.has_value());
+    REQUIRE(GetExecBase(second.pid, copy) == base);
+
+    MemoryMap map;
+    map.Rebuild(first.pid, {});
+    const ImageId before = RequireModule(map, *base).file;
+    map.Rebuild(second.pid, {});
+    const MemoryModule & module = RequireModule(map, *base);
+    REQUIRE(module.file != before);
+    REQUIRE(module.file == RequireRegion(map, *base).file);
+    REQUIRE(module.path == copy);
+}
+
+TEST_CASE("MemoryMap detects static and static-pie programs", "[memorymap]")
+{
+    // st_bss in static_target.c, which spills past its file-backed page.
+    constexpr size_t kStaticBssSize = 64 * 1024;
+    for(const char* name : {"static_target", "static_pie_target"})
+    {
+        CAPTURE(name);
+        const std::string path = FIXTURE(name);
+        UntracedProcess process(path);
+        REQUIRE(WaitForExeced(process.pid, path));
+        const auto ready = ResolveRuntimeAddress(path, process.pid, "st_ready");
+        const auto bss = ResolveRuntimeAddress(path, process.pid, "st_bss");
+        REQUIRE(ready.has_value());
+        REQUIRE(bss.has_value());
+        REQUIRE(WaitUntil([&] { return ReadTraceeValue<int>(process.pid, *ready).value_or(0) == 1; }));
+
+        MemoryMap map;
+        map.Rebuild(process.pid, {});
+        ElfImageCache cache;
+        map.AttachImages(cache.Load(process.pid, cache.Generation(), map.PendingImages()));
+        const MemoryModule & program = RequireModule(map, *ready);
+        REQUIRE(program.path == path);
+        REQUIRE(program.mainProgram);
+        REQUIRE(program.base == GetExecBase(process.pid, path));
+        REQUIRE(HasImageSection(program, ".text"));
+        REQUIRE(map.FindModule(*bss + kStaticBssSize - 1) == &program);
+    }
+}
+
+TEST_CASE("MemoryMap gives each dlmopen copy of a library its own module", "[memorymap]")
+{
+    MapTarget target;
+    target.Request("mm_load_data", 1);
+    target.Request("mm_isolate_data", 1);
+    MemoryMap map;
+    target.Build(map);
+
+    std::vector<const MemoryModule*> copies;
+    for(const auto & mapping : MappingsOf(target.Pid(), "/libmm_data.so"))
+    {
+        const MemoryModule* module = map.FindModule(mapping.start);
+        REQUIRE(module);
+        if(module->base == mapping.start)
+            copies.push_back(module);
+    }
+    REQUIRE(copies.size() == 2);
+    REQUIRE(copies[0]->file == copies[1]->file);
+    for(const MemoryModule* module : copies)
+        REQUIRE(HasImageSection(*module, ".rodata"));
 }
 
 TEST_CASE("MemoryMap puts loader holes inside their library and drops it when unloaded", "[memorymap]")
@@ -330,6 +451,29 @@ TEST_CASE("MemoryMap puts loader holes inside their library and drops it when un
     map.Rebuild(target.Pid(), target.Threads());
     REQUIRE(MappingsOf(target.Pid(), "/libmm_gap.so").empty());
     REQUIRE(map.FindModule(base) == nullptr);
+}
+
+TEST_CASE("MemoryMap leaves anonymous memory mapped into a loader hole out of the library", "[memorymap]")
+{
+    MapTarget target;
+    target.Request("mm_load_gap", 1);
+    const auto mappings = MappingsOf(target.Pid(), "/libmm_gap.so");
+    REQUIRE_FALSE(mappings.empty());
+    const auto hole = std::find_if(mappings.begin(), mappings.end(), [](const Mapping & mapping)
+    {
+        return mapping.perms == "---p";
+    });
+    REQUIRE(hole != mappings.end());
+    REQUIRE(WriteTraceeValue(target.Pid(), target.Symbol("mm_gap_fill"), static_cast<uintptr_t>(hole->start)));
+    target.Request("mm_fill_gap", 1);
+    MemoryMap map;
+    target.Build(map);
+
+    REQUIRE(map.FindModule(mappings.front().start));
+    const MemoryRegion & filled = RequireRegion(map, hole->start);
+    REQUIRE_FALSE(filled.file.Known());
+    REQUIRE(filled.type == RegionType::Private);
+    REQUIRE(map.FindModule(hole->start) == nullptr);
 }
 
 TEST_CASE("MemoryMap does not mistake a whole-file mapping of an ELF for a module", "[memorymap]")
@@ -411,12 +555,14 @@ TEST_CASE("MemoryMap ends a module's anonymous memory at the first gap", "[memor
 
 TEST_CASE("MemoryMap leaves memory the kernel merged onto a .bss tail out of the module", "[memorymap]")
 {
-    MapTarget target;
-    target.Request("mm_extend_bss", 1);
+    MapTarget target({"MM_EXTEND_BSS=1"});
+    REQUIRE(target.Published<int>("mm_extend_bss") == 2);
+    const uintptr_t extension = target.Published<uintptr_t>("mm_extension");
+    if(MappingEnd(target.Pid(), target.BssEnd()) <= extension)
+        SKIP("the kernel kept the extension apart from the .bss tail");
     MemoryMap map;
     target.Build(map);
 
-    const uintptr_t extension = target.Published<uintptr_t>("mm_extension");
     const MemoryModule & exe = RequireModule(map, target.Symbol("mm_code"));
     REQUIRE(map.FindModule(target.BssEnd()) == &exe);
     REQUIRE(map.FindModule(extension) == nullptr);

@@ -550,6 +550,7 @@ protected:
         mEntryPoint = 0;
         {
             std::lock_guard lock(mMapMutex);
+            mMemoryMap.Clear();
             mImages.Clear();
         }
         snapshotStop(false);

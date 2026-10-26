@@ -5,7 +5,7 @@
 
 namespace ElfBug
 {
-    // A file by device and inode, as stat and /proc/<pid>/maps report it.
+    // A file by device and inode. Only compare ids from the same source: on btrfs and overlayfs, stat and /proc/<pid>/maps report different devices.
     struct ImageId
     {
         dev_t dev = 0;

@@ -86,15 +86,15 @@ namespace
         REQUIRE(s.Pause());
     }
 
-    // Loads libmm_gap.so in a paused mem_map_target and leaves it running.
-    void LoadGapLibrary(ApiSession & s)
+    // Writes 1 to one of a paused mem_map_target's flags, leaves it running and waits for it to answer done.
+    void Request(ApiSession & s, const std::string & name)
     {
-        const ptr flag = s.Symbol("mm_load_gap");
-        const int load = 1;
-        REQUIRE(ElfBugMemWrite(s.dbg, flag, &load, sizeof(load)));
+        const ptr flag = s.Symbol(name);
+        const int request = 1;
+        REQUIRE(ElfBugMemWrite(s.dbg, flag, &request, sizeof(request)));
         ElfBugContinue(s.dbg);
-        REQUIRE(WaitUntil([&] { return TryRead<int>(s, flag).value_or(load) != load; }));
-        REQUIRE(Read<int>(s, flag) == load + 1);
+        REQUIRE(WaitUntil([&] { return TryRead<int>(s, flag).value_or(request) != request; }));
+        REQUIRE(Read<int>(s, flag) == request + 1);
     }
 }
 
@@ -139,6 +139,25 @@ TEST_CASE("C API export returns the full count and fills only up to capacity", "
     REQUIRE(rows[1].base == 0xdead);
 }
 
+TEST_CASE("C API vector helper grows past its first guess at the row count", "[memorymap][api]")
+{
+    ApiSession s(FIXTURE("mem_map_target"));
+    RunToParked(s);
+    Request(s, "mm_split_many");
+    REQUIRE(s.Pause());
+
+    const auto all = ElfBugMemoryMap(s.dbg, false);
+    REQUIRE(all.size() > kMemMapManyRegions);
+    REQUIRE(ElfBugGetMemoryMap(s.dbg, false, nullptr, 0) == all.size());
+    const uintptr_t many = Read<uintptr_t>(s, s.Symbol("mm_many"));
+    for(size_t i = 0; i < kMemMapManyRegions; ++i)
+    {
+        const ElfBugMemoryPage & page = RequirePage(all, many + i * 4096);
+        REQUIRE(page.base == many + i * 4096);
+        REQUIRE(page.size == 4096);
+    }
+}
+
 TEST_CASE("C API rows carry section names, parties and module bases", "[memorymap][api]")
 {
     ApiSession s(FIXTURE("mem_map_target"));
@@ -176,7 +195,7 @@ TEST_CASE("C API rows carry section names, parties and module bases", "[memoryma
     REQUIRE(size == codeRow.size);
 }
 
-TEST_CASE("C API picks up a library loaded between stops and keeps the modules it had", "[memorymap][api]")
+TEST_CASE("C API picks up a library loaded between stops and leaves the other modules' rows alone", "[memorymap][api]")
 {
     ApiSession s(FIXTURE("mem_map_target"));
     RunToParked(s);
@@ -190,7 +209,7 @@ TEST_CASE("C API picks up a library loaded between stops and keeps the modules i
     const auto exeRows = RowsOf(before, exeBase);
     const auto libcRows = RowsOf(before, libcBase);
 
-    LoadGapLibrary(s);
+    Request(s, "mm_load_gap");
     REQUIRE(s.Pause());
 
     const auto after = ElfBugMemoryMap(s.dbg, false);
@@ -227,7 +246,7 @@ TEST_CASE("C API keeps the mapped files' section names when the files on disk ar
     ApiSession s(target.string());
     RunToParked(s);
     const ptr bssEnd = BssEnd(s);
-    LoadGapLibrary(s);
+    Request(s, "mm_load_gap");
     REQUIRE(s.Pause());
 
     SECTION("both files were replaced on disk")
@@ -289,11 +308,8 @@ TEST_CASE("C API returns no memory map once the session is over", "[memorymap][a
 
         ElfBugDetach(s.dbg);
         REQUIRE(s.WaitForDetach());
+        const ProcessReaper reaper(pid);
         REQUIRE(ElfBugMemoryMap(s.dbg, false).empty());
-
-        kill(pid, SIGKILL);
-        int status = 0;
-        waitpid(pid, &status, __WALL);
     }
 }
 
@@ -321,7 +337,7 @@ TEST_CASE("C API keeps the memory map of the last stop while the process runs", 
 {
     ApiSession s(FIXTURE("mem_map_target"));
     RunToParked(s);
-    LoadGapLibrary(s);
+    Request(s, "mm_load_gap");
 
     REQUIRE(HeaderRow(ElfBugMemoryMap(s.dbg, false), "libmm_gap.so") == nullptr);
     REQUIRE(s.Pause());
@@ -377,7 +393,7 @@ TEST_CASE("C API lookups stay correct while exports rebuild the map and load ima
         ElfBugContinue(s.dbg);
         exportBoth();
         REQUIRE(s.Pause());
-        LoadGapLibrary(s);
+        Request(s, "mm_load_gap");
         REQUIRE(s.Pause());
         ElfBugContinue(s.dbg);
         const auto pieces = ElfBugMemoryMap(s.dbg, true);

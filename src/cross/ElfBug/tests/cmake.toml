@@ -75,6 +75,8 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_mm_gap
     elfbug_fixture_mm_data
     elfbug_fixture_huge_text_target
+    elfbug_fixture_static_target
+    elfbug_fixture_static_pie_target
 )
 """
 
@@ -235,6 +237,22 @@ type = "elfbug_fixture"
 sources = ["targets/huge_text_target.cpp"]
 link-options = ["-Wl,-z,max-page-size=0x200000"]
 properties.OUTPUT_NAME = "huge_text_target"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_static_target]
+type = "executable"
+sources = ["targets/static_target.c"]
+compile-options = ["-g", "-O0", "-fno-pie"]
+link-options = ["-static", "-no-pie"]
+properties.OUTPUT_NAME = "static_target"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_static_pie_target]
+type = "executable"
+sources = ["targets/static_target.c"]
+compile-options = ["-g", "-O0", "-fPIE"]
+link-options = ["-static-pie"]
+properties.OUTPUT_NAME = "static_pie_target"
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
 
 [target.elfbug_fixture_mm_gap]

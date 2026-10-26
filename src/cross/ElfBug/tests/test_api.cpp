@@ -595,13 +595,11 @@ TEST_CASE("C API detach clears the session and leaves the process running", "[ap
 
     ElfBugDetach(s.dbg);
     REQUIRE(s.WaitForDetach());
+    const ProcessReaper reaper(pid);
 
     REQUIRE_FALSE(ElfBugIsPaused(s.dbg));
     REQUIRE(ElfBugGetPid(s.dbg) == 0);
     REQUIRE(ElfBugGetThreadList(s.dbg, nullptr, 0) == 0);
 
     REQUIRE(StaysRunning(pid));
-    kill(pid, SIGKILL);
-    int status = 0;
-    waitpid(pid, &status, __WALL);
 }

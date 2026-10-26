@@ -72,16 +72,14 @@ namespace ElfBug
             return !region.file.Known() && region.name.empty();
         }
 
-        // The .bss tail right after the last joined region, or code moved onto huge pages.
         bool joinsAnonymously(const MemoryModule & module, const MemoryRegion & region, const uint64_t joinedEnd)
         {
-            if(region.file.Known() || !(region.name.empty() || region.name.starts_with(kGlibcBssName)))
+            if(region.file.Known() || !(region.name.empty() || region.name == kHeapName || region.name.starts_with(kGlibcBssName)))
                 return false;
-            if(region.start == joinedEnd)
-                return true;
             for(const auto & segment : module.headers->Segments())
             {
-                if((segment.flags & PF_X) && region.start < module.bias + segment.End() && region.end > module.bias + segment.vaddr)
+                const bool inside = region.start < module.bias + segment.End() && region.end > module.bias + segment.vaddr;
+                if(inside && (region.start == joinedEnd || (segment.flags & PF_X)))
                     return true;
             }
             return false;

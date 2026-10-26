@@ -104,7 +104,7 @@ namespace ElfBug::test
         ptr size = 0;
     };
 
-    // The sections an ElfImage lists, by address: allocated, not empty and not TLS NOBITS, via readelf -SW.
+    // The sections an ElfImage lists, by address: allocated, not empty, not TLS NOBITS and not lld's .relro_padding, via readelf -SW.
     inline std::vector<SectionInfo> ReadImageSections(const std::string & path)
     {
         std::vector<SectionInfo> sections;
@@ -134,6 +134,8 @@ namespace ElfBug::test
             if(flags.find_first_not_of("0123456789") == std::string::npos)
                 flags.clear();
             if(flags.find('A') == std::string::npos || info.size == 0 || (type == "NOBITS" && flags.find('T') != std::string::npos))
+                continue;
+            if(type == "NOBITS" && info.name == ".relro_padding")
                 continue;
             sections.push_back(std::move(info));
         }

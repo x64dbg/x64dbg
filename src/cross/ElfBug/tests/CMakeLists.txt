@@ -131,6 +131,8 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_mm_gap
     elfbug_fixture_mm_data
     elfbug_fixture_huge_text_target
+    elfbug_fixture_static_target
+    elfbug_fixture_static_pie_target
 )
 
 # Target: elfbug_fixture_end_immediately
@@ -960,6 +962,73 @@ set_target_properties(elfbug_fixture_huge_text_target PROPERTIES
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_huge_text_target)
+endif()
+
+# Target: elfbug_fixture_static_target
+set(elfbug_fixture_static_target_SOURCES
+	cmake.toml
+	"targets/static_target.c"
+)
+
+add_executable(elfbug_fixture_static_target)
+
+target_sources(elfbug_fixture_static_target PRIVATE ${elfbug_fixture_static_target_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_static_target_SOURCES})
+
+target_compile_options(elfbug_fixture_static_target PRIVATE
+	-g
+	-O0
+	-fno-pie
+)
+
+target_link_options(elfbug_fixture_static_target PRIVATE
+	-static
+	-no-pie
+)
+
+set_target_properties(elfbug_fixture_static_target PROPERTIES
+	OUTPUT_NAME
+		static_target
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_static_target)
+endif()
+
+# Target: elfbug_fixture_static_pie_target
+set(elfbug_fixture_static_pie_target_SOURCES
+	cmake.toml
+	"targets/static_target.c"
+)
+
+add_executable(elfbug_fixture_static_pie_target)
+
+target_sources(elfbug_fixture_static_pie_target PRIVATE ${elfbug_fixture_static_pie_target_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_static_pie_target_SOURCES})
+
+target_compile_options(elfbug_fixture_static_pie_target PRIVATE
+	-g
+	-O0
+	-fPIE
+)
+
+target_link_options(elfbug_fixture_static_pie_target PRIVATE
+	-static-pie
+)
+
+set_target_properties(elfbug_fixture_static_pie_target PROPERTIES
+	OUTPUT_NAME
+		static_pie_target
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_static_pie_target)
 endif()
 
 # Target: elfbug_fixture_mm_gap

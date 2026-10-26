@@ -52,12 +52,20 @@ extern "C"
     volatile uintptr_t mm_self_exec = 0;
     // 1 loads libmm_data.so (2 done, 3 failed).
     volatile int mm_load_data = 0;
+    // 1 loads another libmm_data.so into a new namespace with dlmopen (2 done, 3 failed).
+    volatile int mm_isolate_data = 0;
     volatile uintptr_t mm_phantom = 0;
     // 1 unmaps a page in the middle of mm_bss (2 done, 3 failed).
     volatile int mm_punch_bss = 0;
-    // 1 maps anonymous memory right after the .bss tail (2 done, 3 failed).
+    // With MM_EXTEND_BSS=1, anonymous memory is mapped right after the .bss tail at startup (2 done, 3 failed).
     volatile int mm_extend_bss = 0;
     volatile uintptr_t mm_extension = 0;
+    // 1 maps kMemMapManyRegions pages at mm_many, each its own region (2 done, 3 failed).
+    volatile int mm_split_many = 0;
+    volatile uintptr_t mm_many = 0;
+    // 1 maps an anonymous page at mm_gap_fill (2 done, 3 failed).
+    volatile int mm_fill_gap = 0;
+    volatile uintptr_t mm_gap_fill = 0;
     extern char _end[];
 
     void mm_code()
@@ -146,6 +154,22 @@ namespace
         }
         rmdir(dir);
     }
+
+    // A preinit function runs before any library initializer can malloc, so with ASLR off the heap isn't yet right after the .bss tail.
+    void extendBss(int, char**, char** envp)
+    {
+        for(char** entry = envp; *entry; ++entry)
+        {
+            if(std::strcmp(*entry, "MM_EXTEND_BSS=1") != 0)
+                continue;
+            void* wanted = reinterpret_cast<void*>((reinterpret_cast<uintptr_t>(_end) + 0xfff) & ~uintptr_t{0xfff});
+            const bool placed = mmap(wanted, 4 * 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0) == wanted;
+            mm_extension = placed ? reinterpret_cast<uintptr_t>(wanted) : 0;
+            mm_extend_bss = placed ? 2 : 3;
+        }
+    }
+
+    __attribute__((section(".preinit_array"), used)) void (*const kPreinit)(int, char**, char**) = extendBss;
 }
 
 int main()
@@ -183,17 +207,26 @@ int main()
         }
         if(mm_load_data == 1)
             mm_load_data = dlopen(dataLibrary.c_str(), RTLD_NOW) ? 2 : 3;
+        if(mm_isolate_data == 1)
+            mm_isolate_data = dlmopen(LM_ID_NEWLM, dataLibrary.c_str(), RTLD_NOW) ? 2 : 3;
         if(mm_punch_bss == 1)
         {
             const auto middle = reinterpret_cast<uintptr_t>(mm_bss + sizeof(mm_bss) / 2) & ~uintptr_t{0xfff};
             mm_punch_bss = munmap(reinterpret_cast<void*>(middle), 4096) == 0 ? 2 : 3;
         }
-        if(mm_extend_bss == 1)
+        if(mm_split_many == 1)
         {
-            void* wanted = reinterpret_cast<void*>((reinterpret_cast<uintptr_t>(_end) + 0xfff) & ~uintptr_t{0xfff});
-            const bool placed = mmap(wanted, 4 * 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE, -1, 0) == wanted;
-            mm_extension = placed ? reinterpret_cast<uintptr_t>(wanted) : 0;
-            mm_extend_bss = placed ? 2 : 3;
+            auto* span = static_cast<char*>(mmap(nullptr, kMemMapManyRegions * 4096, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+            bool split = span != MAP_FAILED;
+            for(size_t i = 1; split && i < kMemMapManyRegions; i += 2)
+                split = mprotect(span + i * 4096, 4096, PROT_READ | PROT_WRITE) == 0;
+            mm_many = split ? reinterpret_cast<uintptr_t>(span) : 0;
+            mm_split_many = split ? 2 : 3;
+        }
+        if(mm_fill_gap == 1)
+        {
+            void* wanted = reinterpret_cast<void*>(mm_gap_fill);
+            mm_fill_gap = mmap(wanted, 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0) == wanted ? 2 : 3;
         }
         nap(1000000);
     }
