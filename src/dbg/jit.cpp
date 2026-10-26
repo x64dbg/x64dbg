@@ -62,7 +62,7 @@ static bool readwritejitkey(const wchar_t* jit_key_value, DWORD* jit_key_vale_si
         if(lRv != ERROR_SUCCESS)
             return false;
 
-        lRv = RegSetValueExW(hKey, StringUtils::Utf8ToUtf16(key).c_str(), 0, REG_SZ, (const BYTE*)jit_key_value, (DWORD)(*jit_key_vale_size) + 1);
+        lRv = RegSetValueExW(hKey, StringUtils::Utf8ToUtf16(key).c_str(), 0, REG_SZ, (const BYTE*)jit_key_value, *jit_key_vale_size);
     }
     else
     {
@@ -163,9 +163,10 @@ bool dbggetdefjit(char* jit_entry)
 
 bool dbgsetjit(const char* jit_cmd, arch arch_in, arch* arch_out, readwritejitkey_error_t* rw_error_out)
 {
-    DWORD jit_cmd_size = (DWORD)strlen(jit_cmd) * sizeof(wchar_t);
+    const auto jitCommand = StringUtils::Utf8ToUtf16(jit_cmd);
+    DWORD jit_cmd_size = (DWORD)((jitCommand.size() + 1) * sizeof(wchar_t));
     readwritejitkey_error_t rw_error;
-    if(!readwritejitkey((wchar_t*)StringUtils::Utf8ToUtf16(jit_cmd).c_str(), &jit_cmd_size, "Debugger", arch_in, arch_out, &rw_error, true))
+    if(!readwritejitkey(jitCommand.c_str(), &jit_cmd_size, "Debugger", arch_in, arch_out, &rw_error, true))
     {
         if(rw_error_out != NULL)
             *rw_error_out = rw_error;

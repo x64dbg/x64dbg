@@ -740,7 +740,7 @@ extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP_AVX512* regdump)
 
     TranslateTitanContextToRegContext(titcontext, titcontext_AVX512, regdump->regcontext);
 
-    auto threadId = GetDebugData()->dwThreadId;
+    auto threadId = ThreadGetId(hActiveThread);
     regdump->lastError = ThreadGetLastError(threadId);
     regdump->lastStatus =  ThreadGetLastStatus(threadId);
 

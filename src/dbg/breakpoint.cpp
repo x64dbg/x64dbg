@@ -299,8 +299,11 @@ bool BpGet(duint Address, BP_TYPE Type, const char* Name, BREAKPOINT* Bp)
         if(Bp)
         {
             *Bp = i.second;
-            if(i.second.type != BPDLL && i.second.type != BPEXCEPTION)
-                Bp->addr += ModBaseFromAddr(Address);
+            if(i.second.type != BPDLL && i.second.type != BPEXCEPTION && !i.second.module.empty())
+            {
+                duint base = ModBaseFromName(i.second.module.c_str());
+                Bp->addr += base ? base : ModHashFromName(i.second.module.c_str());
+            }
             setBpActive(*Bp); // address adjusted
         }
 
@@ -403,12 +406,20 @@ bool BpEnable(duint Address, BP_TYPE Type, bool Enable)
     bpInfo->enabled = Enable;
 
     //Re-read oldbytes
-    if(Enable && Type == BPNORMAL)
+    if(Enable && Type == BPNORMAL && MemIsValidReadPtr(Address))
     {
         if(!MemRead(Address, &bpInfo->oldbytes, sizeof(bpInfo->oldbytes)))
             return false;
     }
     return true;
+}
+
+bool BpEnable(const BREAKPOINT & Bp, bool Enable)
+{
+    if(Bp.type == BPDLL || Bp.type == BPEXCEPTION || Bp.module.empty() || ModBaseFromName(Bp.module.c_str()))
+        return BpEnable(Bp.addr, Bp.type, Enable);
+
+    return BpEnable(ModHashFromName(Bp.module.c_str()) + Bp.addr, Bp.type, Enable);
 }
 
 bool BpSetName(duint Address, BP_TYPE Type, const char* Name)

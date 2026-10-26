@@ -609,8 +609,7 @@ bool cbInstrGpa(int argc, char* argv[])
     else
         sprintf_s(newcmd, "%s", argv[1]);
     duint result = 0;
-    if(!valfromstring(newcmd, &result, false))
-        return false;
+    (void)valfromstring(newcmd, &result);
     varset("$RESULT", result, false);
     return true;
 }

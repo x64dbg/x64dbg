@@ -227,6 +227,7 @@ typedef struct DBGFUNCTIONS_
     bool (*SetPageRights)(duint addr, const char* rights);
     bool (*PageRightsToString)(DWORD protect, char* rights);
     bool (*IsProcessElevated)();
+    // With a buffer, cbsize is its capacity on input; it always receives the required size.
     bool (*GetCmdline)(char* cmdline, size_t* cbsize);
     bool (*SetCmdline)(const char* cmdline);
     duint(*FileOffsetToVa)(const char* modname, duint offset);
