@@ -94,7 +94,11 @@ MemoryMapView::MemoryMapView(DbgAdapter* adapter, QWidget* parent)
 
     setupContextMenu();
 
-    connect(mAdapter, &DbgAdapter::stopped, this, [this](const duint rip) { mRip = rip; }, Qt::QueuedConnection);
+    connect(mAdapter, &DbgAdapter::registersUpdated, this, [this](const REGDUMP & regs)
+    {
+        mRip = regs.regcontext.cip;
+        updateViewport();
+    }, Qt::QueuedConnection);
     connect(mAdapter, &DbgAdapter::memoryMapUpdated, this, &MemoryMapView::onMemoryMapUpdated, Qt::QueuedConnection);
     connect(mAdapter, &DbgAdapter::dumpProgress, this, &MemoryMapView::onDumpProgress, Qt::QueuedConnection);
     connect(mAdapter, &DbgAdapter::dumpFinished, this, &MemoryMapView::onDumpFinished, Qt::QueuedConnection);
@@ -109,7 +113,7 @@ MemoryMapView::MemoryMapView(DbgAdapter* adapter, QWidget* parent)
 
 void MemoryMapView::setupContextMenu()
 {
-    mGotoRipAction = new QAction(DIcon("cbp"), tr("Go to &RIP"), this);
+    mGotoRipAction = new QAction(DIcon("cbp"), QStringLiteral("RIP"), this);
     mGotoRipAction->setShortcut(ConfigShortcut("ActionGotoOrigin"));
     mGotoRipAction->setShortcutContext(Qt::WidgetShortcut);
     connect(mGotoRipAction, &QAction::triggered, this, &MemoryMapView::onGotoRip);
@@ -121,9 +125,10 @@ void MemoryMapView::setupContextMenu()
     mDumpMemoryAction = mContextMenu->addAction(DIcon("binary_save"), tr("&Dump Memory to File"), this, &MemoryMapView::onDumpMemory);
     mSwitchViewAction = mContextMenu->addAction(DIcon("change-view"), QString(), this, &MemoryMapView::onSwitchView);
     mContextMenu->addSeparator();
-    mContextMenu->addAction(mGotoRipAction);
+    QMenu* gotoMenu = mContextMenu->addMenu(DIcon("goto"), tr("Go to"));
+    gotoMenu->addAction(mGotoRipAction);
     mContextMenu->addSeparator();
-    mCopyMenu = mContextMenu->addMenu(tr("&Copy"));
+    mCopyMenu = mContextMenu->addMenu(DIcon("copy"), tr("&Copy"));
 }
 
 QString MemoryMapView::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
@@ -219,6 +224,24 @@ void MemoryMapView::onMemoryMapUpdated(const QVector<DbgMemoryPage> & pages)
     }
     reloadData();
     restoreSelection();
+    if(mSelectPending)
+    {
+        mSelectPending = false;
+        const duint row = findRow(mSelectionStart);
+        if(row == getRowCount())
+            SimpleErrorBox(this, tr("Error"), tr("Address %0 not found in memory map...").arg(ToPtrString(mSelectionStart)));
+        else
+            scrollSelect(row);
+        reloadData();
+    }
+}
+
+void MemoryMapView::selectAddress(const duint address)
+{
+    mSelectionStart = address;
+    mSelectionCount = 0;
+    mSelectPending = true;
+    mAdapter->scheduleMemoryMapRefresh();
 }
 
 void MemoryMapView::onSessionEnded()
@@ -363,6 +386,7 @@ void MemoryMapView::onContextMenu(const QPoint & pos)
     mSwitchViewAction->setText(ConfigBool("Engine", "ListAllPages") ? tr("Section &view") : tr("Region &view"));
     mCopyMenu->clear();
     setupCopyMenu(mCopyMenu);
+    mCopyMenu->menuAction()->setVisible(!mCopyMenu->actions().isEmpty());
     mContextMenu->exec(mapToGlobal(pos));
 }
 

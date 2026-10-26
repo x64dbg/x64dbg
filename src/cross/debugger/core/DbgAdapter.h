@@ -46,6 +46,8 @@ struct DbgMemoryPage
 
 Q_DECLARE_METATYPE(QVector<DbgMemoryPage>)
 
+class QTimer;
+
 class DbgAdapter : public QObject, public MemoryProvider
 {
     Q_OBJECT
@@ -88,9 +90,11 @@ public:
     void setThreadName(pid_t tid, const QString & name);
     bool setThreadSuspended(pid_t tid, bool suspended);
     void setAllThreadsSuspended(bool suspended);
+    // Call from the GUI thread; while visible, the map also refreshes on a timer when the target runs.
     void setMemoryMapVisible(bool visible);
     void setMemoryMapSectionView(bool sectionView);
-    // Writes [start, start + size) to path on the worker; the outcome goes to the log.
+    void scheduleMemoryMapRefresh();
+    // Writes [start, start + size) to path on the worker, unreadable pages as zeros like Windows savedata; the outcome goes to the log.
     void dumpMemory(duint start, duint size, const QString & path);
     void cancelDump();
 
@@ -146,7 +150,6 @@ private:
 
     struct DumpJob;
 
-    void scheduleMemoryMapRefresh();
     void refreshMemoryMap();
     void dumpChunk(const std::shared_ptr<DumpJob> & job);
 
@@ -155,6 +158,7 @@ private:
     RefreshGate mThreadListGate;
     RefreshGate mMemoryMapGate;
     std::atomic<bool> mMemoryMapSectionView{false};
+    QTimer* mRunningMemoryMapTimer = nullptr;
     std::atomic<bool> mDumpCancelled{false};
     QThread mWorkerThread;
     QObject mWorker;

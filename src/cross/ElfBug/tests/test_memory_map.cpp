@@ -669,6 +669,21 @@ TEST_CASE("Section view lists every byte of region view exactly once", "[memorym
     REQUIRE(next == pieces.size());
 }
 
+TEST_CASE("Section view names every module row", "[memorymap][pages]")
+{
+    MapTarget target;
+    target.Request("mm_load_gap", 1);
+    MemoryMap map;
+    target.Build(map);
+
+    for(const auto & piece : map.Pages(true))
+    {
+        CAPTURE(piece.base, piece.perms);
+        if(piece.moduleBase != 0)
+            REQUIRE_FALSE(piece.info.empty());
+    }
+}
+
 TEST_CASE("Section view attributes every byte of every section to it", "[memorymap][pages]")
 {
     MapTarget target;

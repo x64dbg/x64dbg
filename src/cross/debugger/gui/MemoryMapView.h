@@ -29,6 +29,7 @@ protected:
 public slots:
     void onMemoryMapUpdated(const QVector<DbgMemoryPage> & pages);
     void onSessionEnded();
+    void selectAddress(duint address);
 
 private slots:
     void onFollow();
@@ -66,6 +67,7 @@ private:
     duint mSelectionStart = 0;
     duint mSelectionCount = 0;
     SortData mSelectionSort;
+    bool mSelectPending = false;
     QMenu* mContextMenu = nullptr;
     QMenu* mCopyMenu = nullptr;
     QAction* mDumpMemoryAction = nullptr;

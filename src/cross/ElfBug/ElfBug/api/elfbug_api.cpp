@@ -221,6 +221,11 @@ struct ElfBugDebugger : ElfBug::Debugger
         if(!IsActive())
             return 0;
 
+        if(!IsPaused())
+        {
+            std::lock_guard lock(mMapMutex);
+            mMemoryMap.Rebuild(Pid(), mThreadPointers);
+        }
         resolveImages();
         std::vector<ElfBug::MemoryPage> rows;
         {
@@ -551,6 +556,7 @@ protected:
         {
             std::lock_guard lock(mMapMutex);
             mMemoryMap.Clear();
+            mThreadPointers.clear();
             mImages.Clear();
         }
         snapshotStop(false);
@@ -755,7 +761,8 @@ private:
             return a.tid < b.tid;
         });
         std::lock_guard lock(mMapMutex);
-        mMemoryMap.Rebuild(Pid(), threads);
+        mThreadPointers = std::move(threads);
+        mMemoryMap.Rebuild(Pid(), mThreadPointers);
     }
 
     void resolveImages() const
@@ -847,6 +854,7 @@ private:
         {
             std::lock_guard lock(mMapMutex);
             mMemoryMap.Clear();
+            mThreadPointers.clear();
             mImages.Clear();
         }
         {
@@ -880,6 +888,8 @@ private:
 
     mutable std::mutex mMapMutex;
     mutable ElfBug::MemoryMap mMemoryMap;
+    // The last stop's stack and TLS anchors, which label rebuilds while the target runs.
+    std::vector<ElfBug::ThreadPointers> mThreadPointers;
     mutable ElfBug::ElfImageCache mImages;
 
     mutable std::mutex mBreakpointMutex;

@@ -1,6 +1,7 @@
 #include "core/DbgAdapter.h"
 
 #include <QFile>
+#include <QTimer>
 #include <StringUtil.h>
 #include <algorithm>
 #include <cassert>
@@ -10,6 +11,9 @@
 namespace
 {
     constexpr duint kMemoryDumpChunkSize = 1024 * 1024;
+    constexpr duint kPageSize = 0x1000;
+    // How often a visible memory map is re-read while the target runs, as Windows does.
+    constexpr int kRunningMemoryMapIntervalMs = 2000;
 
     QString dumpWriteError(const QFile & file)
     {
@@ -112,6 +116,14 @@ DbgAdapter::DbgAdapter(QObject* parent)
     DbgSetBreakpointQuery(&DbgAdapter::queryBreakpoint);
     mWorker.moveToThread(&mWorkerThread);
     mWorkerThread.start();
+
+    mRunningMemoryMapTimer = new QTimer(this);
+    mRunningMemoryMapTimer->setInterval(kRunningMemoryMapIntervalMs);
+    connect(mRunningMemoryMapTimer, &QTimer::timeout, this, [this]
+    {
+        if(isActive() && !isPaused())
+            scheduleMemoryMapRefresh();
+    });
 }
 
 DbgAdapter::~DbgAdapter()
@@ -432,7 +444,12 @@ void DbgAdapter::setMemoryMapVisible(const bool visible)
 {
     mMemoryMapGate.visible = visible;
     if(visible)
+    {
+        mRunningMemoryMapTimer->start();
         scheduleMemoryMapRefresh();
+    }
+    else
+        mRunningMemoryMapTimer->stop();
 }
 
 void DbgAdapter::setMemoryMapSectionView(const bool sectionView)
@@ -473,6 +490,7 @@ struct DbgAdapter::DumpJob
     duint start = 0;
     duint size = 0;
     duint done = 0;
+    bool unreadable = false;
 };
 
 void DbgAdapter::dumpMemory(const duint start, const duint size, const QString & path)
@@ -519,8 +537,18 @@ void DbgAdapter::dumpChunk(const std::shared_ptr<DumpJob> & job)
     std::vector<char> buffer(chunk);
     if(!ElfBugMemRead(mDebugger, address, buffer.data(), chunk))
     {
-        fail(tr("Failed to read memory at %1").arg(ToPtrString(address)));
-        return;
+        if(!isActive())
+        {
+            fail(tr("Failed to read memory at %1").arg(ToPtrString(address)));
+            return;
+        }
+        for(duint offset = 0; offset < chunk;)
+        {
+            const duint size = std::min(kPageSize - (address + offset) % kPageSize, chunk - offset);
+            if(!ElfBugMemRead(mDebugger, address + offset, buffer.data() + offset, size))
+                job->unreadable = true;
+            offset += size;
+        }
     }
     if(job->file.write(buffer.data(), static_cast<qint64>(chunk)) != static_cast<qint64>(chunk))
     {
@@ -541,6 +569,8 @@ void DbgAdapter::dumpChunk(const std::shared_ptr<DumpJob> & job)
         return;
     }
     job->file.close();
+    if(job->unreadable)
+        emit logMessage(QStringLiteral("[x64dbg] %1").arg(tr("Failed to read (all) memory...")));
     emit logMessage(QStringLiteral("[x64dbg] %1").arg(tr("%1[%2] written to \"%3\" !")
                     .arg(ToPtrString(job->start), ToHexString(job->size), job->file.fileName())));
     emit dumpFinished();

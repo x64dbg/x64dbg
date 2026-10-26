@@ -195,6 +195,22 @@ TEST_CASE("C API rows carry section names, parties and module bases", "[memoryma
     REQUIRE(size == codeRow.size);
 }
 
+TEST_CASE("C API reads the map again while the target runs", "[memorymap][api]")
+{
+    ApiSession s(FIXTURE("mem_map_target"));
+    RunToParked(s);
+    REQUIRE(HeaderRow(ElfBugMemoryMap(s.dbg, false), "libmm_gap.so") == nullptr);
+
+    Request(s, "mm_load_gap");
+    REQUIRE_FALSE(ElfBugIsPaused(s.dbg));
+    const auto running = ElfBugMemoryMap(s.dbg, false);
+    const ElfBugMemoryPage* gap = HeaderRow(running, "libmm_gap.so");
+    REQUIRE(gap);
+    uint64_t base = 0;
+    REQUIRE(ElfBugModBaseFromAddr(s.dbg, gap->base, &base));
+    REQUIRE(base == gap->module_base);
+}
+
 TEST_CASE("C API picks up a library loaded between stops and leaves the other modules' rows alone", "[memorymap][api]")
 {
     ApiSession s(FIXTURE("mem_map_target"));
@@ -331,17 +347,6 @@ TEST_CASE("C API builds the memory map of an attached process", "[memorymap][api
     const std::string tid = std::to_string(Read<int>(s, *workerTid));
     const uintptr_t workerStack = Read<uintptr_t>(s, s.Symbol("mm_worker_stack"));
     REQUIRE(std::string(RequirePage(pages, workerStack).info) == "TLS (" + tid + "), Stack (" + tid + ")");
-}
-
-TEST_CASE("C API keeps the memory map of the last stop while the process runs", "[memorymap][api]")
-{
-    ApiSession s(FIXTURE("mem_map_target"));
-    RunToParked(s);
-    Request(s, "mm_load_gap");
-
-    REQUIRE(HeaderRow(ElfBugMemoryMap(s.dbg, false), "libmm_gap.so") == nullptr);
-    REQUIRE(s.Pause());
-    REQUIRE(HeaderRow(ElfBugMemoryMap(s.dbg, false), "libmm_gap.so"));
 }
 
 TEST_CASE("C API counts only readable memory as a valid pointer", "[memorymap][api]")

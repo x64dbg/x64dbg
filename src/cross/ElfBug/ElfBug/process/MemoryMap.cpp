@@ -289,6 +289,7 @@ namespace ElfBug
             return page;
         }
 
+        // One row per section start. Padding before the region's first section joins that section's row, so no row goes unnamed.
         void appendSectionPages(std::vector<MemoryPage> & pages, const MemoryRegion & region, const MemoryModule & module)
         {
             std::vector<uint64_t> cuts{region.start};
@@ -299,12 +300,18 @@ namespace ElfBug
             }
             std::sort(cuts.begin(), cuts.end());
             cuts.erase(std::unique(cuts.begin(), cuts.end()), cuts.end());
+            uint64_t firstSection = region.start;
+            if(cuts.size() > 1 && region.start != module.base && !sectionAt(module, region.start))
+            {
+                firstSection = cuts[1];
+                cuts.erase(cuts.begin() + 1);
+            }
 
             for(size_t i = 0; i < cuts.size(); ++i)
             {
                 const uint64_t start = cuts[i];
                 const uint64_t end = i + 1 < cuts.size() ? cuts[i + 1] : region.end;
-                const ElfSection* section = sectionAt(module, start);
+                const ElfSection* section = sectionAt(module, i == 0 ? firstSection : start);
                 std::string info;
                 if(section)
                     appendSectionName(info, *section);

@@ -311,6 +311,11 @@ void MainWindow::setupTabs()
         mDisassembly->gotoAddress(address);
         showInCpu(mDisassembly);
     });
+    connect(mStack, &CPUStack::followMemoryMapRequested, this, [this](const duint address)
+    {
+        mTabWidget->setCurrentWidget(mMemoryMapView);
+        mMemoryMapView->selectAddress(address);
+    });
     connect(mMemoryMapView, &MemoryMapView::followDumpRequested, this, [this](const duint address)
     {
         mHexDump->printDumpAt(address);
