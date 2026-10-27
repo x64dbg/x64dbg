@@ -1643,6 +1643,12 @@ void MainWindow::addMenuToList(QWidget* parent, QMenu* menu, GUIMENUTYPE hMenu, 
     Bridge::getBridge()->setResult(BridgeResult::MenuAddToList);
 }
 
+static void updateMenuState(QMenu* menu, int hParentMenu, bool empty)
+{
+    menu->menuAction()->setVisible(!empty || hParentMenu == GUI_PLUGIN_MENU);
+    menu->menuAction()->setEnabled(!empty);
+}
+
 void MainWindow::addMenu(int hMenu, QString title)
 {
     QMutexLocker locker(mMenuMutex);
@@ -1677,13 +1683,13 @@ void MainWindow::addMenu(int hMenu, QString title)
         menuInfo->parent = parent;
         QMenu* menu = new QMenu(title, parent);
         menuInfo->mMenu = menu;
-        menu->menuAction()->setVisible(false);
+        updateMenuState(menu, menuInfo->hParentMenu, true);
         if(menuInfo->hParentMenu == -1) //top-level
             ui->menuBar->addMenu(menu);
         else //deeper level
         {
             parentMenu->mMenu->addMenu(menu);
-            parentMenu->mMenu->menuAction()->setVisible(true);
+            updateMenuState(parentMenu->mMenu, parentMenu->hParentMenu, false);
         }
     });
 
@@ -1731,7 +1737,7 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
         else //deeper level
         {
             menu->mMenu->addAction(action);
-            menu->mMenu->menuAction()->setVisible(true);
+            updateMenuState(menu->mMenu, menu->hParentMenu, false);
         }
     });
 
@@ -1824,14 +1830,14 @@ void MainWindow::clearMenuImpl(int hMenu, bool erase)
                 {
                     parentMenu->mMenu->removeAction(curMenu.mMenu->menuAction()); //remove the QMenu from the parent
                     if(parentMenu->mMenu->actions().empty()) //hide the parent if it is now empty
-                        parentMenu->mMenu->menuAction()->setVisible(false);
+                        updateMenuState(parentMenu->mMenu, parentMenu->hParentMenu, true);
                 }
                 it = mMenuList.erase(it);
             }
             else
             {
                 curMenu.mMenu->clear(); //clear the QMenu
-                curMenu.mMenu->menuAction()->setVisible(false);
+                updateMenuState(curMenu.mMenu, curMenu.hParentMenu, true);
             }
             break;
         }
@@ -1885,7 +1891,7 @@ void MainWindow::removeMenuEntry(int hEntryMenu)
                     {
                         parentMenu->mMenu->removeAction(entry.mAction);
                         if(parentMenu->mMenu->actions().empty())
-                            parentMenu->mMenu->menuAction()->setVisible(false);
+                            updateMenuState(parentMenu->mMenu, parentMenu->hParentMenu, true);
                         mEntryList.erase(mEntryList.begin() + i);
                     }
                     break;
