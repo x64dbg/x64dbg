@@ -27,6 +27,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mHandlesTable->addColumnAt(8 + 16 * charWidth, tr("Access"), true, "", StdTable::SortBy::AsHex);
     mHandlesTable->addColumnAt(8 + charWidth * 20, tr("Name"), true);
     mHandlesTable->loadColumnFromConfig("Handle");
+    mHandlesTable->enableMultiSelection(true);
 
     // Add disassembly popups
     new DisassemblyPopup(mHandlesTable->stdList(), Bridge::getArchitecture());
@@ -50,6 +51,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mWindowsTable->addColumnAt(8 + 8 * charWidth, tr("Enable"), true);
     mWindowsTable->loadColumnFromConfig("Window");
     mWindowsTable->setIconColumn(2);
+    mWindowsTable->enableMultiSelection(true);
 
     // Setup tcp list
     mTcpConnectionsTable = new StdSearchListView(this, true, true);
@@ -61,6 +63,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mTcpConnectionsTable->addColumnAt(8 + 64 * charWidth, tr("Local address"), true);
     mTcpConnectionsTable->addColumnAt(8 + 8 * charWidth, tr("State"), true);
     mTcpConnectionsTable->loadColumnFromConfig("TcpConnection");
+    mTcpConnectionsTable->enableMultiSelection(true);
 
     /*
         mHeapsTable = new ReferenceView(this);
@@ -79,6 +82,7 @@ HandlesView::HandlesView(QWidget* parent) : QWidget(parent)
     mPrivilegesTable->addColumnAt(8 + 32 * charWidth, tr("Privilege"), true);
     mPrivilegesTable->addColumnAt(8 + 16 * charWidth, tr("State"), true);
     mPrivilegesTable->loadColumnFromConfig("Privilege");
+    mPrivilegesTable->enableMultiSelection(true);
 
     // Splitter
     mSplitter = new LabeledSplitter(this);
