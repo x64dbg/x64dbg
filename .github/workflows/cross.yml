@@ -14,7 +14,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [windows-latest, ubuntu-latest]
+        platform: [windows-latest, ubuntu-latest, macos-latest]
+        include:
+          # Qt 6.8 links the AGL framework, which the current Xcode SDK no longer ships
+          - platform: macos-latest
+            qt: 6.11.3
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout
@@ -33,6 +37,7 @@ jobs:
         uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
         with:
           cache: true
+          version: ${{ matrix.qt || '6.8.3' }}
           modules: qtwebsockets
 
       - name: Build
