@@ -3216,7 +3216,7 @@ static void debugLoopFunction(INIT_STRUCT* init)
     while(szBaseFileName[len] != '\\' && len)
         len--;
     if(len)
-        strcpy_s(szBaseFileName, szBaseFileName + len + 1);
+        memmove(szBaseFileName, szBaseFileName + len + 1, strlen(szBaseFileName + len + 1) + 1); // overlapping, so strcpy_s is not allowed
     GuiUpdateWindowTitle(szBaseFileName);
 
     //call plugin callback
