@@ -149,7 +149,7 @@ void CPUArgumentWidget::contextMenuSlot(QPoint pos)
         if(DbgMemIsValidReadPtr(valueAddr))
         {
             configAction(menu, DIcon(ArchValue("processor32", "processor64")), mFollowAddrDisasm, valueAddrText, tr("Disassembler"));
-            configAction(menu, DIcon("dump"), mFollowDump, valueAddrText, tr("Dump"));
+            configAction(menu, DIcon("dump"), mFollowAddrDump, valueAddrText, tr("Dump"));
             if(inStackRange(valueAddr))
                 configAction(menu, DIcon("stack"), mFollowAddrStack, valueAddrText, tr("Stack"));
         }
