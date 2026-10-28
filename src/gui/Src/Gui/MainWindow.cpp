@@ -1643,10 +1643,32 @@ void MainWindow::addMenuToList(QWidget* parent, QMenu* menu, GUIMENUTYPE hMenu, 
     Bridge::getBridge()->setResult(BridgeResult::MenuAddToList);
 }
 
-static void updateMenuState(QMenu* menu, int hParentMenu, bool empty)
+void MainWindow::updatePluginMenuState(int hMenu)
 {
-    menu->menuAction()->setVisible(!empty || hParentMenu == GUI_PLUGIN_MENU);
-    menu->menuAction()->setEnabled(!empty);
+    auto menu = findMenu(hMenu);
+    while(menu != nullptr && menu->hParentMenu != GUI_PLUGIN_MENU)
+        menu = findMenu(menu->hParentMenu);
+    auto pluginsMenu = findMenu(GUI_PLUGIN_MENU);
+    if(menu == nullptr || menu->placeholder == nullptr || pluginsMenu == nullptr)
+        return;
+
+    auto actions = menu->mMenu->actions();
+    bool empty = !std::any_of(actions.begin(), actions.end(), [](QAction * action)
+    {
+        return action->isVisible();
+    });
+    QAction* real = menu->mMenu->menuAction();
+    bool showingReal = pluginsMenu->mMenu->actions().contains(real);
+    if(!empty && !showingReal)
+    {
+        pluginsMenu->mMenu->insertAction(menu->placeholder, real);
+        pluginsMenu->mMenu->removeAction(menu->placeholder);
+    }
+    else if(empty && showingReal)
+    {
+        pluginsMenu->mMenu->insertAction(real, menu->placeholder);
+        pluginsMenu->mMenu->removeAction(real);
+    }
 }
 
 void MainWindow::addMenu(int hMenu, QString title)
@@ -1683,13 +1705,22 @@ void MainWindow::addMenu(int hMenu, QString title)
         menuInfo->parent = parent;
         QMenu* menu = new QMenu(title, parent);
         menuInfo->mMenu = menu;
-        updateMenuState(menu, menuInfo->hParentMenu, true);
+        menu->menuAction()->setVisible(false);
         if(menuInfo->hParentMenu == -1) //top-level
             ui->menuBar->addMenu(menu);
         else //deeper level
         {
-            parentMenu->mMenu->addMenu(menu);
-            updateMenuState(parentMenu->mMenu, parentMenu->hParentMenu, false);
+            if(menuInfo->hParentMenu == GUI_PLUGIN_MENU)
+            {
+                menu->menuAction()->setVisible(true);
+                menuInfo->placeholder = new QAction(title, parentMenu->mMenu);
+                menuInfo->placeholder->setEnabled(false);
+                parentMenu->mMenu->addAction(menuInfo->placeholder);
+            }
+            else
+                parentMenu->mMenu->addMenu(menu);
+            parentMenu->mMenu->menuAction()->setVisible(true);
+            updatePluginMenuState(menuInfo->hParentMenu);
         }
     });
 
@@ -1737,7 +1768,8 @@ void MainWindow::addMenuEntry(int hMenu, QString title)
         else //deeper level
         {
             menu->mMenu->addAction(action);
-            updateMenuState(menu->mMenu, menu->hParentMenu, false);
+            menu->mMenu->menuAction()->setVisible(true);
+            updatePluginMenuState(entry->hParentMenu);
         }
     });
 
@@ -1830,14 +1862,18 @@ void MainWindow::clearMenuImpl(int hMenu, bool erase)
                 {
                     parentMenu->mMenu->removeAction(curMenu.mMenu->menuAction()); //remove the QMenu from the parent
                     if(parentMenu->mMenu->actions().empty()) //hide the parent if it is now empty
-                        updateMenuState(parentMenu->mMenu, parentMenu->hParentMenu, true);
+                        parentMenu->mMenu->menuAction()->setVisible(false);
                 }
+                delete curMenu.placeholder;
+                int hParentMenu = curMenu.hParentMenu;
                 it = mMenuList.erase(it);
+                updatePluginMenuState(hParentMenu);
             }
             else
             {
                 curMenu.mMenu->clear(); //clear the QMenu
-                updateMenuState(curMenu.mMenu, curMenu.hParentMenu, true);
+                curMenu.mMenu->menuAction()->setVisible(false);
+                updatePluginMenuState(hMenu);
             }
             break;
         }
@@ -1891,8 +1927,10 @@ void MainWindow::removeMenuEntry(int hEntryMenu)
                     {
                         parentMenu->mMenu->removeAction(entry.mAction);
                         if(parentMenu->mMenu->actions().empty())
-                            updateMenuState(parentMenu->mMenu, parentMenu->hParentMenu, true);
+                            parentMenu->mMenu->menuAction()->setVisible(false);
+                        int hParentMenu = entry.hParentMenu;
                         mEntryList.erase(mEntryList.begin() + i);
+                        updatePluginMenuState(hParentMenu);
                     }
                     break;
                 }
@@ -1949,6 +1987,8 @@ void MainWindow::setIconMenu(int hMenu, QIcon icon)
             return;
 
         menu->mMenu->setIcon(icon);
+        if(menu->placeholder)
+            menu->placeholder->setIcon(icon);
     });
     Bridge::getBridge()->setResult(BridgeResult::MenuSetIcon);
 }
@@ -2029,6 +2069,7 @@ void MainWindow::setVisibleMenuEntry(int hEntry, bool visible)
             return;
 
         entry->mAction->setVisible(visible);
+        updatePluginMenuState(entry->hParentMenu);
     });
     Bridge::getBridge()->setResult(BridgeResult::MenuSetEntryVisible);
 }
@@ -2044,6 +2085,11 @@ void MainWindow::setVisibleMenu(int hMenu, bool visible)
             return;
 
         menu->mMenu->setVisible(visible);
+        if(menu->placeholder)
+        {
+            menu->mMenu->menuAction()->setVisible(visible);
+            menu->placeholder->setVisible(visible);
+        }
     });
     Bridge::getBridge()->setResult(BridgeResult::MenuSetVisible);
 }
@@ -2075,6 +2121,8 @@ void MainWindow::setNameMenu(int hMenu, QString name)
             return;
 
         menu->mMenu->setTitle(name);
+        if(menu->placeholder)
+            menu->placeholder->setText(name);
     });
     Bridge::getBridge()->setResult(BridgeResult::MenuSetName);
 }
