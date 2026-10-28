@@ -641,6 +641,10 @@ static void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
                 entry->AddressOfRawData + entry->SizeOfData > HEADER_FIELD(Info.headers, SizeOfImage))
             return false;
 
+        // The data must also lie within the mapped image (PointerToRawData is an unchecked file offset)
+        if(!ModRangeValid(Info, FileMapVA, FileMapVA + offset, entry->SizeOfData))
+            return false;
+
         // Choose from one of our many supported types such as codeview
         if(entry->Type == IMAGE_DEBUG_TYPE_CODEVIEW) // TODO: support other types (DBG)?
         {
@@ -661,10 +665,14 @@ static void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 
     // Iterate over entries until we find a CV one or the end of the directory
     PIMAGE_DEBUG_DIRECTORY entry = debugDir;
+    bool foundSupported = false;
     while(debugDirSize >= sizeof(IMAGE_DEBUG_DIRECTORY))
     {
         if(supported(entry))
+        {
+            foundSupported = true;
             break;
+        }
 
         const auto typeName = [](DWORD type)
         {
@@ -719,7 +727,7 @@ static void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         debugDirSize -= sizeof(IMAGE_DEBUG_DIRECTORY);
     }
 
-    if(!supported(entry))
+    if(!foundSupported)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Did not find any supported debug types in module %s%s!\n"), Info.name, Info.extension);
         return;
@@ -755,6 +763,19 @@ static void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     }
 
     //dprintf("%s%s pdbSignature: %s, pdbFile: \"%s\"\n", Info.name, Info.extension, Info.pdbSignature.c_str(), Info.pdbFile.c_str());
+
+    // The PDB path comes from the (untrusted) debug directory and is used to build file system paths and
+    // symbol server URLs, so it has to be normalized before anything else looks at it
+    Info.pdbFile = Info.pdbFile.c_str(); // Cut off everything after the first null terminator
+    std::replace(Info.pdbFile.begin(), Info.pdbFile.end(), '/', '\\');
+    if(!Info.pdbFile.empty())
+    {
+        const auto nameStart = Info.pdbFile.find_last_of('\\');
+        const auto fileName = nameStart == String::npos ? Info.pdbFile : Info.pdbFile.substr(nameStart + 1);
+        // Reject empty names, relative directory components and anything that would be an alternate data stream or wildcard
+        if(fileName.empty() || fileName == "." || fileName == ".." || fileName.find_first_of(":*?\"<>|") != String::npos)
+            Info.pdbFile.clear();
+    }
 
     if(!Info.pdbFile.empty())
     {
