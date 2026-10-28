@@ -1,0 +1,14 @@
+settingset Events, EntryBreakpoint, 0
+settingset Events, DllEntrySystem, 0
+settingset Events, DllEntry, 0
+init tests/breakpoint_refactor.exe
+bp breakpoint_refactor:Unloaded
+bp breakpoint_refactor:Finished
+bprapicreate dll, winmm.dll, keep
+bprapisingleshoot dll, winmm.dll
+run
+bprabsent dll, winmm.dll
+run
+testassert cip == breakpoint_refactor:Unloaded, "API single-shot DLL breakpoint fired on the first unload"
+run
+testassert cip == breakpoint_refactor:Finished, "API single-shot DLL registration must not survive the second unload"

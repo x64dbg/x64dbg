@@ -1,0 +1,12 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+alloc 1000
+$page = $result
+testassert $page != 0, "allocated a dedicated memory-breakpoint page"
+bpmrange $page, 1000, w
+SetMemoryBreakpointName $page, disabled_memory
+bpmd $page
+bprcommand 1, "bpmc disabled_memory"
+bprabsent mem, $page
+free $page
+testassert $result == 1, "freed the memory-breakpoint page"
