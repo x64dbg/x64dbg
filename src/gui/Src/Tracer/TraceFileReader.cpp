@@ -882,8 +882,9 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
                         else //out of bounds?
                             throw std::runtime_error("Changes out of bounds?");
                     }
-                    mRegisters.push_back(registers);
                 }
+                // Always store the register state, even when nothing changed, so mRegisters stays aligned with the other per-instruction arrays
+                mRegisters.push_back(registers);
                 if(changedCountFlags[1] > 0) //memory
                 {
                     QByteArray memflags;
