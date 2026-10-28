@@ -3318,7 +3318,7 @@ static void debugLoopFunction(INIT_STRUCT* init)
 void dbgsetdebuggeeinitscript(const char* fileName)
 {
     if(fileName)
-        strcpy_s(szDebuggeeInitializationScript, fileName);
+        strncpy_s(szDebuggeeInitializationScript, fileName, _TRUNCATE);
     else
         szDebuggeeInitializationScript[0] = 0;
 }

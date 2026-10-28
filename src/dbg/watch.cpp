@@ -18,7 +18,7 @@ WatchExpr::WatchExpr(const char* name, const char* expression, WATCHVARTYPE type
 {
     if(!expr.IsValidExpression())
         varType = WATCHVARTYPE::TYPE_INVALID;
-    strcpy_s(this->WatchName, name);
+    strncpy_s(this->WatchName, name, _TRUNCATE);
 }
 
 duint WatchExpr::getIntValue()
@@ -100,7 +100,7 @@ bool WatchExpr::modifyExpr(const char* expression, WATCHVARTYPE type)
 
 void WatchExpr::modifyName(const char* newName)
 {
-    strcpy_s(WatchName, newName);
+    strncpy_s(WatchName, newName, _TRUNCATE);
 }
 
 // Update GUI

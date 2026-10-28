@@ -340,7 +340,7 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
                 if(cur.raw[j] == ' ')
                 {
                     String labelname = StringUtils::Trim(cur.raw.substr(j));
-                    strcpy_s(cur.branch.branchlabel, labelname.c_str());
+                    strncpy_s(cur.branch.branchlabel, labelname.c_str(), _TRUNCATE);
                     break;
                 }
         }

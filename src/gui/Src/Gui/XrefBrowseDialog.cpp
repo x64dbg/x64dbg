@@ -323,7 +323,10 @@ void XrefBrowseDialog::memoryRemoveSlot()
 
 void XrefBrowseDialog::copyThisSlot()
 {
-    Bridge::CopyToClipboard(ToPtrString(mXrefInfo.references[ui->listWidget->currentRow()].addr) + " " + ui->listWidget->selectedItems()[0]->text());
+    auto row = ui->listWidget->currentRow();
+    if(row < 0 || row >= int(mXrefInfo.refcount) || !ui->listWidget->item(row))
+        return;
+    Bridge::CopyToClipboard(ToPtrString(mXrefInfo.references[row].addr) + " " + ui->listWidget->item(row)->text());
 }
 
 void XrefBrowseDialog::breakpointAllSlot()
@@ -344,7 +347,7 @@ void XrefBrowseDialog::copyAllSlot()
     for(int i = 0; i < ui->listWidget->count(); i++)
     {
         temp.append(ToPtrString(mXrefInfo.references[i].addr) + " ");
-        temp.append(ui->listWidget->selectedItems()[0]->text());
+        temp.append(ui->listWidget->item(i)->text());
         temp.append("\r\n");
     }
     Bridge::CopyToClipboard(temp);
