@@ -560,7 +560,12 @@ void TraceFileParser::run()
             }
         }
         if(index > 0)
+        {
+            // Without a single page boundary block (full register dump) the file cannot be indexed
+            if(that->fileIndex.empty())
+                throw std::wstring(L"No page boundary found (corrupt trace file)");
             that->fileIndex.back().second.second = index - (lastIndex - 1);
+        }
         that->error = false;
         that->errorMessage.clear();
         that->length = index;
