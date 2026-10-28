@@ -2,24 +2,12 @@
 #include <ElfBug/process/ProcessArch.h>
 #include <ElfBug/process/ProcFs.h>
 #include <dirent.h>
-#include <unistd.h>
 #include <algorithm>
-#include <climits>
 
 namespace ElfBug
 {
     namespace
     {
-        // The kernel fails with ENAMETOOLONG rather than return a path longer than PATH_MAX.
-        std::string readLink(const std::string & path)
-        {
-            char buffer[PATH_MAX];
-            const ssize_t n = readlink(path.c_str(), buffer, sizeof(buffer));
-            if(n <= 0 || static_cast<size_t>(n) >= sizeof(buffer))
-                return {};
-            return std::string(procfs::StripDeletedSuffix({buffer, static_cast<size_t>(n)}));
-        }
-
         std::string readCmdline(const pid_t pid)
         {
             std::string cmdline = procfs::ReadFile(procfs::Path(pid, "cmdline"));
@@ -85,7 +73,7 @@ namespace ElfBug
                 continue;
 
             ProcessListEntry entry;
-            entry.path = readLink(procfs::Path(pid, "exe"));
+            entry.path = procfs::ReadLink(procfs::Path(pid, "exe"));
             if(entry.path.empty())
                 continue;
 

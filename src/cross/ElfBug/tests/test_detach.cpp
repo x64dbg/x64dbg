@@ -51,12 +51,9 @@ TEST_CASE("Detach restores every patched breakpoint byte", "[detach]")
     dbg.WaitForDetach();
     dbg.JoinThread();
 
-    std::ifstream mem(ElfBug::procfs::Path(target.pid, "mem"), std::ios::binary);
-    REQUIRE(mem);
-    mem.seekg(static_cast<std::streamoff>(*site));
-    char after = 0;
-    REQUIRE(mem.read(&after, 1));
-    REQUIRE(static_cast<std::uint8_t>(after) == original);
+    const auto restored = ElfBug::test::ReadTraceeValue<std::uint8_t>(target.pid, *site);
+    REQUIRE(restored.has_value());
+    REQUIRE(*restored == original);
 }
 
 TEST_CASE("A signal parked at detach is delivered to the process", "[detach]")
@@ -66,7 +63,7 @@ TEST_CASE("A signal parked at detach is delivered to the process", "[detach]")
     REQUIRE(ElfBug::test::WaitForExeced(target.pid, FIXTURE("signal_pending")));
     const auto ready = ElfBug::test::ResolveRuntimeAddress(FIXTURE("signal_pending"), target.pid, "sp_ready");
     REQUIRE(ready.has_value());
-    REQUIRE(ElfBug::test::WaitForDetachedValue(target.pid, *ready, 1));
+    REQUIRE(ElfBug::test::WaitForTraceeValue(target.pid, *ready, 1));
 
     ElfBug::test::RecordingDebugger dbg;
     REQUIRE(dbg.Attach(target.pid));
@@ -90,7 +87,7 @@ TEST_CASE("A signal parked at detach is delivered to the process", "[detach]")
     dbg.WaitForDetach();
     dbg.JoinThread();
 
-    REQUIRE(ElfBug::test::WaitForDetachedValue(target.pid, *handled, 1));
+    REQUIRE(ElfBug::test::WaitForTraceeValue(target.pid, *handled, 1));
 }
 
 TEST_CASE("Detach requested while running arrives as a pause and then detaches", "[detach]")

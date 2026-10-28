@@ -152,7 +152,7 @@ TEST_CASE("Attach acquires threads the target clones during the sweep", "[attach
             for(const auto & [tid, thread] : dbg.process()->threads)
                 known.push_back(tid);
             ElfBug::ReadTaskList(target.pid, live);
-            dbg.process()->MemRead(*relayed, &relayedAtAttach, sizeof(relayedAtAttach));
+            relayedAtAttach = ReadTraceeValue<int>(target.pid, *relayed).value_or(-1);
         });
 
         REQUIRE(dbg.Attach(target.pid));
@@ -177,7 +177,7 @@ TEST_CASE("A signal delivered to an attached process is reported and forwarded",
     REQUIRE(ElfBug::test::WaitForExeced(target.pid, FIXTURE("signal_pending")));
     const auto ready = ElfBug::test::ResolveRuntimeAddress(FIXTURE("signal_pending"), target.pid, "sp_ready");
     REQUIRE(ready.has_value());
-    REQUIRE(ElfBug::test::WaitForDetachedValue(target.pid, *ready, 1));
+    REQUIRE(ElfBug::test::WaitForTraceeValue(target.pid, *ready, 1));
 
     ElfBug::test::RecordingDebugger dbg;
     REQUIRE(dbg.Attach(target.pid));
@@ -194,7 +194,7 @@ TEST_CASE("A signal delivered to an attached process is reported and forwarded",
     const auto handled = ElfBug::test::ResolveRuntimeAddress(FIXTURE("signal_pending"),
                          dbg.process()->pid, "sp_handled");
     REQUIRE(handled.has_value());
-    REQUIRE(ElfBug::test::WaitForTraceeValue(dbg.process(), *handled, 1));
+    REQUIRE(ElfBug::test::WaitForTraceeValue(target.pid, *handled, 1));
 }
 
 TEST_CASE("Attach reports an error when the target dies before the sweep", "[attach]")
@@ -241,9 +241,7 @@ TEST_CASE("A signal already pending at attach is reported before the tracee runs
     REQUIRE(dbg.Attach(target.pid));
     dbg.StartOnThread();
 
-    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
-    while(ElfBug::TracerPid(target.pid) == 0 && std::chrono::steady_clock::now() < deadline)
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    REQUIRE(WaitUntil([&] { return ElfBug::TracerPid(target.pid) != 0; }, std::chrono::seconds(2)));
     REQUIRE(kill(child, SIGKILL) == 0);
     dbg.WaitForAttachBreakpoint();
 
@@ -286,7 +284,7 @@ TEST_CASE("Attach that times out on an uninterruptible thread still releases it"
     REQUIRE(WaitForExeced(target.pid, FIXTURE("vfork_wait")));
     const auto rounds = ResolveRuntimeAddress(FIXTURE("vfork_wait"), target.pid, "vw_rounds");
     REQUIRE(rounds.has_value());
-    REQUIRE(WaitForDetachedValue(target.pid, *rounds, 1));
+    REQUIRE(WaitForTraceeValue(target.pid, *rounds, 1));
 
     RecordingDebugger dbg;
     REQUIRE(dbg.Attach(target.pid));
@@ -295,5 +293,5 @@ TEST_CASE("Attach that times out on an uninterruptible thread still releases it"
     CHECK(event.message.find("did not stop") != std::string::npos);
     dbg.JoinThread();
 
-    REQUIRE(WaitForDetachedValue(target.pid, *rounds, 2));
+    REQUIRE(WaitForTraceeValue(target.pid, *rounds, 2));
 }

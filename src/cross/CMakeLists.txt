@@ -264,6 +264,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_
 		"ElfBug/ElfBug/core/Debugger.StepOver.cpp"
 		"ElfBug/ElfBug/core/Debugger.cpp"
 		"ElfBug/ElfBug/core/Debugger.h"
+		"ElfBug/ElfBug/elf/ElfImage.cpp"
+		"ElfBug/ElfBug/elf/ElfImage.h"
+		"ElfBug/ElfBug/elf/ElfImageCache.cpp"
+		"ElfBug/ElfBug/elf/ElfImageCache.h"
+		"ElfBug/ElfBug/process/MemoryMap.cpp"
+		"ElfBug/ElfBug/process/MemoryMap.h"
 		"ElfBug/ElfBug/process/ProcFs.cpp"
 		"ElfBug/ElfBug/process/ProcFs.h"
 		"ElfBug/ElfBug/process/Process.Breakpoint.cpp"
@@ -276,6 +282,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_
 		"ElfBug/ElfBug/process/ProcessList.h"
 		"ElfBug/ElfBug/process/StepOver.cpp"
 		"ElfBug/ElfBug/process/StepOver.h"
+		"ElfBug/ElfBug/process/TraceeMemory.cpp"
+		"ElfBug/ElfBug/process/TraceeMemory.h"
 		"ElfBug/ElfBug/thread/Registers.cpp"
 		"ElfBug/ElfBug/thread/Registers.h"
 		"ElfBug/ElfBug/thread/Thread.HardwareBreakpoint.cpp"
@@ -284,7 +292,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_
 		"ElfBug/ElfBug/types/Breakpoint.h"
 		"ElfBug/ElfBug/types/ElfBug.h"
 		"ElfBug/ElfBug/types/Global.h"
+		"ElfBug/ElfBug/types/ImageId.h"
 		"ElfBug/ElfBug/types/Ptrace.h"
+		"ElfBug/ElfBug/types/Utf8.h"
 		cmake.toml
 	)
 
@@ -324,6 +334,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_
 		"debugger/gui/CPUStack.h"
 		"debugger/gui/MainWindow.cpp"
 		"debugger/gui/MainWindow.h"
+		"debugger/gui/MemoryMapView.cpp"
+		"debugger/gui/MemoryMapView.h"
 		"debugger/gui/ThreadView.cpp"
 		"debugger/gui/ThreadView.h"
 		"debugger/main.cpp"
@@ -354,5 +366,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_
 	if(NOT CMKR_VS_STARTUP_PROJECT)
 		set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT debugger)
 	endif()
+
+	set(CMKR_TARGET debugger)
+	target_sources(debugger PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../gui/resource.qrc)
 
 endif()

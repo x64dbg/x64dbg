@@ -4,6 +4,7 @@
 #include <Disassembler/QZydis.h>
 #include <Gui/WordEditDialog.h>
 #include <Memory/MemoryPage.h>
+#include <MiscUtil.h>
 #include <QAction>
 #include <QContextMenuEvent>
 #include <QMenu>
@@ -30,10 +31,6 @@ CPUStack::CPUStack(Architecture* architecture, DbgAdapter* adapter, QWidget* par
 
     connect(mAdapter, &DbgAdapter::processCreated,
             this, &CPUStack::onProcessStarted,
-            Qt::QueuedConnection);
-
-    connect(mAdapter, &DbgAdapter::sessionEnded,
-            this, &CPUStack::onSessionEnded,
             Qt::QueuedConnection);
 }
 
@@ -81,6 +78,7 @@ void CPUStack::setupContextMenu()
     mContextMenu->addSeparator();
 
     mFollowDisasmAction = mContextMenu->addAction(tr("Follow in Disassembly"), this, &CPUStack::followDisasmSlot);
+    mFollowMemoryMapAction = mContextMenu->addAction(DIcon("memmap_find_address_page"), tr("Follow in Memory Map"), this, &CPUStack::followMemoryMapSlot);
 
     QMenu* copyMenu = mContextMenu->addMenu(tr("&Copy"));
     copyMenu->addAction(tr("&Selection"), this, &HexDump::copySelectionSlot);
@@ -121,6 +119,7 @@ void CPUStack::refreshActionState() const
     mGotoCspAction->setEnabled(debugging);
     mGotoCbpAction->setEnabled(debugging && mCbp != 0);
     mFollowDisasmAction->setEnabled(debugging);
+    mFollowMemoryMapAction->setEnabled(debugging);
     mFreezeAction->setEnabled(debugging);
     mFreezeAction->setChecked(mStackFrozen);
 }
@@ -184,6 +183,11 @@ void CPUStack::gotoCbpSlot()
 {
     if(mCbp != 0)
         stackDumpAt(mCbp, mCsp);
+}
+
+void CPUStack::followMemoryMapSlot()
+{
+    emit followMemoryMapRequested(mMemPage->va(getInitialSelection()));
 }
 
 void CPUStack::followDisasmSlot()

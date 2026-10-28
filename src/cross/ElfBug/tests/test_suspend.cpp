@@ -113,16 +113,12 @@ namespace
 
     bool WaitForSigstopTaken(const pid_t tgid, const pid_t tid)
     {
-        const auto start = std::chrono::steady_clock::now();
-        while(std::chrono::steady_clock::now() - start < std::chrono::seconds(5))
+        return ElfBug::test::WaitUntil([&]
         {
             const std::string status = procfs::ReadFile(procfs::TaskPath(tgid, tid, "status"));
             const auto pending = procfs::ParseNumber<std::uint64_t>(procfs::FindValue(status, "SigPnd:"), 16);
-            if(pending && (*pending & (1ull << (SIGSTOP - 1))) == 0)
-                return true;
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        return false;
+            return pending && (*pending & (1ull << (SIGSTOP - 1))) == 0;
+        });
     }
 }
 
@@ -389,7 +385,7 @@ TEST_CASE("A signal parked on a thread suspended at resume is delivered when it 
     REQUIRE_FALSE(dbg.IsPaused());
 
     REQUIRE(dbg.SetThreadSuspended(mainTid, false));
-    REQUIRE(WaitForTraceeValue(dbg.process(), *s.handlerTid, mainTid));
+    REQUIRE(WaitForTraceeValue(dbg.process()->pid, *s.handlerTid, mainTid));
 
     dbg.Stop();
     dbg.WaitForExit();

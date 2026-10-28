@@ -18,7 +18,10 @@ sources = [
     "test_attach.cpp",
     "test_breakpoints.cpp",
     "test_detach.cpp",
+    "test_elf_image.cpp",
     "test_lifecycle.cpp",
+    "test_memory_map.cpp",
+    "test_memory_map_api.cpp",
     "test_multithread.cpp",
     "test_procfs.cpp",
     "test_signals.cpp",
@@ -30,6 +33,7 @@ headers = [
     "TestHarness.h",
     "TestSupport.h",
     "SymbolHelper.h",
+    "ApiSession.h",
     "targets/TargetUtil.h",
 ]
 link-libraries = ["ElfBug", "Catch2::Catch2WithMain"]
@@ -67,6 +71,12 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_clone_process
     elfbug_fixture_vfork_wait
     elfbug_fixture_vfork_signal
+    elfbug_fixture_mem_map_target
+    elfbug_fixture_mm_gap
+    elfbug_fixture_mm_data
+    elfbug_fixture_huge_text_target
+    elfbug_fixture_static_target
+    elfbug_fixture_static_pie_target
 )
 """
 
@@ -214,3 +224,49 @@ type = "elfbug_fixture"
 sources = ["targets/vfork_signal.cpp"]
 properties.OUTPUT_NAME = "vfork_signal"
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_mem_map_target]
+type = "elfbug_fixture"
+sources = ["targets/mem_map_target.cpp"]
+link-libraries = ["pthread", "dl"]
+properties.OUTPUT_NAME = "mem_map_target"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_huge_text_target]
+type = "elfbug_fixture"
+sources = ["targets/huge_text_target.cpp"]
+link-options = ["-Wl,-z,max-page-size=0x200000"]
+properties.OUTPUT_NAME = "huge_text_target"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_static_target]
+type = "executable"
+sources = ["targets/static_target.c"]
+compile-options = ["-g", "-O0", "-fno-pie"]
+link-options = ["-static", "-no-pie"]
+properties.OUTPUT_NAME = "static_target"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_static_pie_target]
+type = "executable"
+sources = ["targets/static_target.c"]
+compile-options = ["-g", "-O0", "-fPIE"]
+link-options = ["-static-pie"]
+properties.OUTPUT_NAME = "static_pie_target"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_mm_gap]
+type = "shared"
+sources = ["targets/libmm_gap.cpp"]
+private-compile-options = ["-g", "-O0"]
+private-link-options = ["-Wl,-z,max-page-size=0x10000"]
+properties.OUTPUT_NAME = "mm_gap"
+properties.LIBRARY_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_mm_data]
+type = "shared"
+sources = ["targets/libmm_data.cpp"]
+private-compile-options = ["-g", "-O0"]
+private-link-options = ["-nostdlib"]
+properties.OUTPUT_NAME = "mm_data"
+properties.LIBRARY_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"

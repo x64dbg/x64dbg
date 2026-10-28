@@ -9,6 +9,7 @@
 #include <ElfBug/types/ElfBug.h>
 #include <ElfBug/types/Global.h>
 #include <ElfBug/thread/Thread.h>
+#include <ElfBug/process/TraceeMemory.h>
 
 namespace ElfBug
 {

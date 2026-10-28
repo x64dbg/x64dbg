@@ -17,7 +17,7 @@ namespace
     {
         while(cp_stop == 0)
         {
-            cp_child_ran++;
+            cp_child_ran = cp_child_ran + 1;
             nap(1000000);
         }
         return 0;
