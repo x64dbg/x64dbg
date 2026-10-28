@@ -647,8 +647,19 @@ bool StringUtils::FromCompressedHex(const String & text, std::vector<unsigned ch
             size_t repeat = 0;
             if(!convertNumber(repeatStr.c_str(), repeat, 16) || !repeat) //conversion failed or repeat zero times
                 return false;
-            for(size_t j = 1; j < repeat; j++)
-                data.push_back(lastCh);
+            // The input is untrusted (databases), so do not let a tiny string expand to an unbounded amount of memory
+            const size_t maxDecompressedSize = 0x40000000;
+            if(repeat > maxDecompressedSize || data.size() + (repeat - 1) > maxDecompressedSize)
+                return false;
+            try
+            {
+                data.insert(data.end(), repeat - 1, (unsigned char)lastCh);
+            }
+            catch(const std::bad_alloc &)
+            {
+                data.clear();
+                return false;
+            }
         }
     }
     return true;

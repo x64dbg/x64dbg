@@ -60,8 +60,14 @@ struct EncodeMapSerializer : AddrInfoSerializer<ENCODEMAP>
         auto dataJson = get("data");
         if(!dataJson)
             return false;
+        // The database is untrusted: the value might not be a string
+        auto dataString = json_string_value(dataJson);
+        if(!dataString)
+            return false;
         std::vector<unsigned char> data;
-        if(!StringUtils::FromCompressedHex(json_string_value(dataJson), data))
+        if(!StringUtils::FromCompressedHex(dataString, data))
+            return false;
+        if(data.empty())
             return false;
         value.size = data.size();
         value.data = (uint8_t*)VirtualAlloc(NULL, value.size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
