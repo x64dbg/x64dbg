@@ -1041,20 +1041,18 @@ std::unique_ptr<MODINFO> MODINFO::load(duint Base, duint Size, const char* FullP
     auto & info = *infoPtr;
     info.invalidateSymbolSourceOnDestruction = false;
 
-    // Copy the module path in the struct
-    strcpy_s(info.path, FullPath);
+    // Copy the module path in the struct (paths longer than MAX_PATH are possible, so truncate instead of aborting)
+    strncpy_s(info.path, FullPath, _TRUNCATE);
 
     // Break the module path into a directory and file name
     char file[MAX_MODULE_SIZE];
     {
-        char dir[MAX_PATH] = {};
-
         // Dir <- lowercase(file path)
-        strcpy_s(dir, FullPath);
-        _strlwr_s(dir);
+        std::vector<char> dir(FullPath, FullPath + strlen(FullPath) + 1);
+        _strlwr_s(dir.data(), dir.size());
 
         // Find the last instance of a path delimiter (slash)
-        char* fileStart = strrchr(dir, '\\');
+        char* fileStart = strrchr(dir.data(), '\\');
 
         if(fileStart)
         {
@@ -1074,13 +1072,13 @@ std::unique_ptr<MODINFO> MODINFO::load(duint Base, duint Size, const char* FullP
 
         if(extensionPos)
         {
-            strcpy_s(info.extension, extensionPos);
+            strncpy_s(info.extension, extensionPos, _TRUNCATE);
             extensionPos[0] = '\0';
         }
     }
 
     // Copy information to struct
-    strcpy_s(info.name, file);
+    strncpy_s(info.name, file, _TRUNCATE);
     info.base = Base;
     info.size = Size;
     info.fileHandle = nullptr;
@@ -1160,9 +1158,23 @@ std::unique_ptr<MODINFO> MODINFO::load(duint Base, duint Size, const char* FullP
                 actualSize = regionSize;
             }
 
+            // SizeOfImage comes from the debuggee, so the allocation can fail
+            bool allocated = false;
             if(actualSize > 0)
             {
-                info.mappedData.resize(actualSize);
+                try
+                {
+                    info.mappedData.resize(actualSize);
+                    allocated = true;
+                }
+                catch(const std::bad_alloc &)
+                {
+                    info.mappedData.clear();
+                }
+            }
+
+            if(allocated)
+            {
                 if(MemRead(Base, info.mappedData.data(), info.mappedData.size()))
                 {
                     info.isVirtual = true; // Process memory is SEC_IMAGE mapped
