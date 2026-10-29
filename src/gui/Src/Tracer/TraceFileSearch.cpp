@@ -193,7 +193,7 @@ int TraceFileSearchMemPattern(TraceFileReader* file, const QString & pattern)
         if(ch > 0x80)
             return 0;
         char c = ch.toLatin1();
-        if(isspace(c))
+        if(isspace((unsigned char)c))
             continue;
         if(high)
         {
@@ -252,6 +252,8 @@ int TraceFileSearchMemPattern(TraceFileReader* file, const QString & pattern)
         }
         high = !high;
     }
+    if(data.empty())
+        return 0;
     // Create reference view
     QString patternshort;
     for(int i = 0; i < (data.size() > 16 ? 16 : data.size()); i++)

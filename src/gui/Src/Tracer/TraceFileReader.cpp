@@ -560,7 +560,12 @@ void TraceFileParser::run()
             }
         }
         if(index > 0)
+        {
+            // Without a single page boundary block (full register dump) the file cannot be indexed
+            if(that->fileIndex.empty())
+                throw std::wstring(L"No page boundary found (corrupt trace file)");
             that->fileIndex.back().second.second = index - (lastIndex - 1);
+        }
         that->error = false;
         that->errorMessage.clear();
         that->length = index;
@@ -882,8 +887,9 @@ TraceFilePage::TraceFilePage(TraceFileReader* parent, unsigned long long fileOff
                         else //out of bounds?
                             throw std::runtime_error("Changes out of bounds?");
                     }
-                    mRegisters.push_back(registers);
                 }
+                // Always store the register state, even when nothing changed, so mRegisters stays aligned with the other per-instruction arrays
+                mRegisters.push_back(registers);
                 if(changedCountFlags[1] > 0) //memory
                 {
                     QByteArray memflags;

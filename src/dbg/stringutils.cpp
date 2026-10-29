@@ -283,14 +283,13 @@ bool StringUtils::Unescape(const String & s, String & result, bool quoted)
             {
                 auto ch1 = nextChar();
                 auto ch2 = nextChar();
-                if(isxdigit(ch1) && isxdigit(ch2))
+                if(isxdigit((unsigned char)ch1) && isxdigit((unsigned char)ch2))
                 {
                     char byteStr[3] = "";
                     byteStr[0] = ch1;
                     byteStr[1] = ch2;
                     uint64_t hexData;
-                    auto error = convertLongLongNumber(byteStr, hexData, 16);
-                    if(error)
+                    if(!convertLongLongNumber(byteStr, hexData, 16))
                         return false; //convertNumber failed (%s) for hex sequence \"\\x%c%c\" in string literal
                     mLastChar = hexData & 0xFF;
                 }
@@ -616,7 +615,7 @@ bool StringUtils::FromCompressedHex(const String & text, std::vector<unsigned ch
     String repeatStr;
     for(size_t i = 0; i < size;)
     {
-        if(isspace(text[i])) //skip whitespace
+        if(isspace((unsigned char)text[i])) //skip whitespace
         {
             i++;
             continue;
@@ -648,8 +647,19 @@ bool StringUtils::FromCompressedHex(const String & text, std::vector<unsigned ch
             size_t repeat = 0;
             if(!convertNumber(repeatStr.c_str(), repeat, 16) || !repeat) //conversion failed or repeat zero times
                 return false;
-            for(size_t j = 1; j < repeat; j++)
-                data.push_back(lastCh);
+            // The input is untrusted (databases), so do not let a tiny string expand to an unbounded amount of memory
+            const size_t maxDecompressedSize = 0x40000000;
+            if(repeat > maxDecompressedSize || data.size() + (repeat - 1) > maxDecompressedSize)
+                return false;
+            try
+            {
+                data.insert(data.end(), repeat - 1, (unsigned char)lastCh);
+            }
+            catch(const std::bad_alloc &)
+            {
+                data.clear();
+                return false;
+            }
         }
     }
     return true;

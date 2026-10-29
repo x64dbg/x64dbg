@@ -228,7 +228,7 @@ static void ProcessFileSections(std::vector<MEMPAGE> & pageVector, std::vector<S
             newPages.reserve(sections.size() + 1);
 
             // Insert a page for the header if this is the header page
-            if(pageBase == modBase)
+            if(pageBase == modBase && !sections.empty())
             {
                 MEMPAGE headerPage = {};
                 VirtualQueryEx(fdProcessInfo->hProcess, (LPCVOID)modBase, &headerPage.mbi, sizeof(MEMORY_BASIC_INFORMATION));

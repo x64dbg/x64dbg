@@ -190,7 +190,13 @@ static bool scriptIsInternalCommand(const String & text, const String & cmd)
 {
     if(cmd.length() > text.length())
         return false;
-    return StringUtils::CaseInsensitiveEqual()(text.substr(0, cmd.length()), cmd);
+    if(!StringUtils::CaseInsensitiveEqual()(text.substr(0, cmd.length()), cmd))
+        return false;
+    // The command must end here, otherwise 'retx' would be treated as 'ret'
+    if(text.length() == cmd.length())
+        return true;
+    auto next = (unsigned char)text[cmd.length()];
+    return !(isalnum(next) || next == '_');
 }
 
 static void scriptError(int line, const char* error, bool gui)
@@ -334,7 +340,7 @@ static bool scriptCreateLineMap(const char* filename, bool gui)
                 if(cur.raw[j] == ' ')
                 {
                     String labelname = StringUtils::Trim(cur.raw.substr(j));
-                    strcpy_s(cur.branch.branchlabel, labelname.c_str());
+                    strncpy_s(cur.branch.branchlabel, labelname.c_str(), _TRUNCATE);
                     break;
                 }
         }

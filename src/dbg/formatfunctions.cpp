@@ -73,7 +73,7 @@ static FORMATRESULT memoryFormatter(char* dest, size_t destCount, int argc, char
         strcpy_s(dest, destCount, GuiTranslateText(QT_TRANSLATE_NOOP("DBG", "Failed to read memory...")));
         return FORMAT_ERROR_MESSAGE;
     }
-    data.resize(read);
+    data.resize(read / sizeof(Char)); // read is in bytes
     auto result = format(data);
     if(result.size() >= destCount)
         return FORMAT_BUFFER_TOO_SMALL;
@@ -155,7 +155,7 @@ void FormatFunctions::Init()
     Register("winerrorname", [](char* dest, size_t destCount, int argc, char* argv[], duint code, void* userdata)
     {
         auto name = ErrorCodeToName((unsigned int)code);
-        if(destCount <= name.size() + 1)
+        if(destCount < name.size() + 1)
         {
             return FORMAT_BUFFER_TOO_SMALL;
         }
@@ -191,7 +191,7 @@ void FormatFunctions::Init()
     Register("ntstatusname", [](char* dest, size_t destCount, int argc, char* argv[], duint code, void* userdata)
     {
         auto name = NtStatusCodeToName((unsigned int)code);
-        if(destCount <= name.size() + 1)
+        if(destCount < name.size() + 1)
         {
             return FORMAT_BUFFER_TOO_SMALL;
         }
@@ -307,7 +307,7 @@ bool FormatFunctions::Unregister(const String & name)
         return false;
     auto aliases = found->second.aliases;
     mFunctions.erase(found);
-    for(const auto & alias : found->second.aliases)
+    for(const auto & alias : aliases)
         Unregister(alias);
     return true;
 }
@@ -340,10 +340,10 @@ bool FormatFunctions::isValidName(const String & name)
 {
     if(!name.length())
         return false;
-    if(!(name[0] == '_' || isalpha(name[0])))
+    if(!(name[0] == '_' || isalpha((unsigned char)name[0])))
         return false;
     for(const auto & ch : name)
-        if(!(isalnum(ch) || ch == '_' || ch == '.'))
+        if(!(isalnum((unsigned char)ch) || ch == '_' || ch == '.'))
             return false;
     return true;
 }

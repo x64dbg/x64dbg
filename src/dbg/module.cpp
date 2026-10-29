@@ -196,6 +196,24 @@ bool ModOffsetToRva(PIMAGE_NT_HEADERS ntHeaders, uint64_t loadedSize, ULONG64 of
     return false;
 }
 
+// The helpers below validate pointers into the mapped module image, which is untrusted input
+static bool ModRangeValid(const MODINFO & Info, ULONG_PTR FileMapVA, ULONG_PTR va, size_t size)
+{
+    const ULONG_PTR end = FileMapVA + (ULONG_PTR)Info.loadedSize;
+    return va >= FileMapVA && va <= end && size <= end - va;
+}
+
+// Reads a (possibly unterminated) C string without leaving the mapped module image
+static String ModReadString(const MODINFO & Info, ULONG_PTR FileMapVA, ULONG_PTR va)
+{
+    if(!ModRangeValid(Info, FileMapVA, va, 0))
+        return String();
+    const ULONG_PTR end = FileMapVA + (ULONG_PTR)Info.loadedSize;
+    auto start = (const char*)va;
+    auto terminator = (const char*)memchr(start, 0, end - va);
+    return String(start, terminator ? size_t(terminator - start) : size_t(end - va));
+}
+
 static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 {
     // Get the export directory and its size
@@ -244,9 +262,9 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     {
         // Check if addressOfFunctions[i] is valid
         ULONG_PTR target = (ULONG_PTR)addressOfFunctions + i * sizeof(DWORD);
-        if(target > FileMapVA + Info.loadedSize || target < (ULONG_PTR)addressOfFunctions)
+        if(!ModRangeValid(Info, FileMapVA, target, sizeof(DWORD)) || target < (ULONG_PTR)addressOfFunctions)
         {
-            continue;
+            break; // The table only moves forward, so every following entry is out of bounds too
         }
 
         // It is possible the AddressOfFunctions contain zero RVAs. GetProcAddress for these ordinals returns zero.
@@ -264,7 +282,7 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         {
             auto forwardNameOffset = rva2offset(entry.rva);
             if(forwardNameOffset) // Silent ignore (1) by ntdll loader: invalid forward names or addresses of forward names
-                entry.forwardName = String((const char*)(forwardNameOffset + FileMapVA));
+                entry.forwardName = ModReadString(Info, FileMapVA, forwardNameOffset + FileMapVA);
         }
     }
 
@@ -272,9 +290,9 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     {
         // Check if addressOfNameOrdinals[i] is valid
         ULONG_PTR target = (ULONG_PTR)addressOfNameOrdinals + i * sizeof(WORD);
-        if(target > FileMapVA + Info.loadedSize || target < (ULONG_PTR)addressOfNameOrdinals)
+        if(!ModRangeValid(Info, FileMapVA, target, sizeof(WORD)) || target < (ULONG_PTR)addressOfNameOrdinals)
         {
-            continue;
+            break; // The table only moves forward, so every following entry is out of bounds too
         }
 
         DWORD index = addressOfNameOrdinals[i];
@@ -282,9 +300,9 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         {
             // Check if addressOfNames[i] is valid
             target = (ULONG_PTR)addressOfNames + i * sizeof(DWORD);
-            if(target > FileMapVA + Info.loadedSize || target < (ULONG_PTR)addressOfNames)
+            if(!ModRangeValid(Info, FileMapVA, target, sizeof(DWORD)) || target < (ULONG_PTR)addressOfNames)
             {
-                continue;
+                break;
             }
 
             auto nameOffset = rva2offset(addressOfNames[i]);
@@ -292,14 +310,14 @@ static void ReadExportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
             {
                 // Info.exports has excluded some invalid exports, so addressOfNameOrdinals[i] is not equal to
                 // the index of Info.exports. We need to iterate over Info.exports.
-                for(size_t j = 0; j < Info.exports.size(); j++)
+                // The exports are added in ascending ordinal order, so a binary search finds the entry
+                const DWORD ordinal = index + exportDir->Base;
+                auto found = std::lower_bound(Info.exports.begin(), Info.exports.end(), ordinal, [](const MODEXPORT & e, DWORD value)
                 {
-                    if(index + exportDir->Base == Info.exports[j].ordinal)
-                    {
-                        Info.exports[j].name = String((const char*)(nameOffset + FileMapVA));
-                        break;
-                    }
-                }
+                    return e.ordinal < value;
+                });
+                if(found != Info.exports.end() && found->ordinal == ordinal)
+                    found->name = ModReadString(Info, FileMapVA, nameOffset + FileMapVA);
             }
         }
     }
@@ -360,7 +378,8 @@ static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         return Info.isVirtual ? rva : ModRvaToOffset(0, Info.headers, Info.loadedSize, rva);
     };
 
-    for(size_t moduleIndex = 0; importDescriptor->Name != 0; ++importDescriptor, ++moduleIndex)
+    const size_t thunkSize = IMAGE64(Info.headers) ? sizeof(IMAGE_THUNK_DATA64) : sizeof(IMAGE_THUNK_DATA32);
+    for(size_t moduleIndex = 0; ModRangeValid(Info, FileMapVA, (ULONG_PTR)importDescriptor, sizeof(IMAGE_IMPORT_DESCRIPTOR)) && importDescriptor->Name != 0; ++importDescriptor, ++moduleIndex)
     {
         auto moduleNameOffset = rva2offset(importDescriptor->Name);
         if(!moduleNameOffset) // If the module name VA is invalid, the loader crashes with an access violation. Try to avoid this
@@ -372,14 +391,14 @@ static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
                                       : importDescriptor->FirstThunk);
 
         // If there is no FT, the loader ignores the descriptor and moves on to the next DLL instead of crashing. Wise move
-        if(importDescriptor->FirstThunk == 0)
+        if(importDescriptor->FirstThunk == 0 || !thunkOffset)
             continue;
 
-        Info.importModules.emplace_back((const char*)(moduleNameOffset + FileMapVA));
+        Info.importModules.emplace_back(ModReadString(Info, FileMapVA, moduleNameOffset + FileMapVA));
         unsigned char* thunkData = (unsigned char*)FileMapVA + thunkOffset;
 
         for(auto iatRva = importDescriptor->FirstThunk;
-                THUNK_VAL(Info.headers, thunkData, u1.AddressOfData) != 0;
+                ModRangeValid(Info, FileMapVA, (ULONG_PTR)thunkData, thunkSize) && THUNK_VAL(Info.headers, thunkData, u1.AddressOfData) != 0;
                 thunkData += IMAGE64(Info.headers) ? sizeof(IMAGE_THUNK_DATA64) : sizeof(IMAGE_THUNK_DATA32), iatRva += IMAGE64(Info.headers) ? sizeof(ULONG64) : sizeof(DWORD))
         {
             // Get AddressOfData, check whether the ordinal flag was set, and then strip it because the RVA is not valid with it set
@@ -397,10 +416,13 @@ static void ReadImportDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
             entry.moduleIndex = moduleIndex;
 
             auto importByName = PIMAGE_IMPORT_BY_NAME(addressOfDataOffset + FileMapVA);
-            if(!ordinalFlagSet && importByName->Name[0] != '\0')
+            String importName;
+            if(!ordinalFlagSet)
+                importName = ModReadString(Info, FileMapVA, (ULONG_PTR)importByName->Name);
+            if(!ordinalFlagSet && !importName.empty())
             {
                 // Import by name
-                entry.name = String((const char*)importByName->Name);
+                entry.name = importName;
                 entry.ordinal = -1;
             }
             else
@@ -452,6 +474,10 @@ static void ReadTlsCallbacks(MODINFO & Info, ULONG_PTR FileMapVA)
             (ULONG_PTR)tlsDir + tlsDirSize < (ULONG_PTR)tlsDir) // Check for ULONG_PTR wraparound (e.g. when tlsDirSize == 0xfffff000)
         return;
 
+    // The loader ignores the directory size, so make sure the structure we are about to read is in the mapped image
+    if(!ModRangeValid(Info, FileMapVA, (ULONG_PTR)tlsDir, IMAGE64(Info.headers) ? sizeof(IMAGE_TLS_DIRECTORY64) : sizeof(IMAGE_TLS_DIRECTORY32)))
+        return;
+
     ULONG64 addressOfCallbacks = IMAGE64(Info.headers)
                                  ? ((PIMAGE_TLS_DIRECTORY64)tlsDir)->AddressOfCallBacks
                                  : (ULONG64)((PIMAGE_TLS_DIRECTORY32)tlsDir)->AddressOfCallBacks;
@@ -464,9 +490,8 @@ static void ReadTlsCallbacks(MODINFO & Info, ULONG_PTR FileMapVA)
     if(!tlsArrayOffset)
         return;
 
-    // TODO: proper bounds checking
     auto tlsArray = PULONG_PTR(tlsArrayOffset + FileMapVA);
-    while(*tlsArray)
+    while(ModRangeValid(Info, FileMapVA, (ULONG_PTR)tlsArray, sizeof(ULONG_PTR)) && *tlsArray)
         Info.tlsCallbacks.push_back(duint(*tlsArray++ - imageBase + Info.base));
 }
 
@@ -501,8 +526,14 @@ static void ReadBaseRelocationTable(MODINFO & Info, ULONG_PTR FileMapVA)
     // Until we reach the end of the relocation table
     while(totalBytes > 0)
     {
+        if(totalBytes < sizeof(IMAGE_BASE_RELOCATION))
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid relocation block for module %s%s!\n"), Info.name, Info.extension);
+            return;
+        }
         ULONG blockSize = baseRelocBlock->SizeOfBlock;
-        if(blockSize == 0 || blockSize > totalBytes) // The loader allows incorrect relocation dir sizes/block counts, but it won't relocate the image
+        // A block smaller than its own header would underflow the entry count below
+        if(blockSize < sizeof(IMAGE_BASE_RELOCATION) || blockSize > totalBytes) // The loader allows incorrect relocation dir sizes/block counts, but it won't relocate the image
         {
             dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid relocation block for module %s%s!\n"), Info.name, Info.extension);
             return;
@@ -518,7 +549,7 @@ static void ReadBaseRelocationTable(MODINFO & Info, ULONG_PTR FileMapVA)
             const auto type = (UCHAR)((*nextOffset) >> 12);
             const auto offset = (USHORT)(*nextOffset & 0xfff);
 
-            if(baseRelocBlock->VirtualAddress + offset > FileMapVA + HEADER_FIELD(Info.headers, SizeOfImage))
+            if(baseRelocBlock->VirtualAddress + offset > HEADER_FIELD(Info.headers, SizeOfImage))
             {
                 dprintf(QT_TRANSLATE_NOOP("DBG", "Invalid relocation entry for module %s%s!\n"), Info.name, Info.extension);
                 return;
@@ -610,6 +641,10 @@ static void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
                 entry->AddressOfRawData + entry->SizeOfData > HEADER_FIELD(Info.headers, SizeOfImage))
             return false;
 
+        // The data must also lie within the mapped image (PointerToRawData is an unchecked file offset)
+        if(!ModRangeValid(Info, FileMapVA, FileMapVA + offset, entry->SizeOfData))
+            return false;
+
         // Choose from one of our many supported types such as codeview
         if(entry->Type == IMAGE_DEBUG_TYPE_CODEVIEW) // TODO: support other types (DBG)?
         {
@@ -630,10 +665,14 @@ static void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
 
     // Iterate over entries until we find a CV one or the end of the directory
     PIMAGE_DEBUG_DIRECTORY entry = debugDir;
+    bool foundSupported = false;
     while(debugDirSize >= sizeof(IMAGE_DEBUG_DIRECTORY))
     {
         if(supported(entry))
+        {
+            foundSupported = true;
             break;
+        }
 
         const auto typeName = [](DWORD type)
         {
@@ -688,7 +727,7 @@ static void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
         debugDirSize -= sizeof(IMAGE_DEBUG_DIRECTORY);
     }
 
-    if(!supported(entry))
+    if(!foundSupported)
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Did not find any supported debug types in module %s%s!\n"), Info.name, Info.extension);
         return;
@@ -724,6 +763,19 @@ static void ReadDebugDirectory(MODINFO & Info, ULONG_PTR FileMapVA)
     }
 
     //dprintf("%s%s pdbSignature: %s, pdbFile: \"%s\"\n", Info.name, Info.extension, Info.pdbSignature.c_str(), Info.pdbFile.c_str());
+
+    // The PDB path comes from the (untrusted) debug directory and is used to build file system paths and
+    // symbol server URLs, so it has to be normalized before anything else looks at it
+    Info.pdbFile = Info.pdbFile.c_str(); // Cut off everything after the first null terminator
+    std::replace(Info.pdbFile.begin(), Info.pdbFile.end(), '/', '\\');
+    if(!Info.pdbFile.empty())
+    {
+        const auto nameStart = Info.pdbFile.find_last_of('\\');
+        const auto fileName = nameStart == String::npos ? Info.pdbFile : Info.pdbFile.substr(nameStart + 1);
+        // Reject empty names, relative directory components and anything that would be an alternate data stream or wildcard
+        if(fileName.empty() || fileName == "." || fileName == ".." || fileName.find_first_of(":*?\"<>|") != String::npos)
+            Info.pdbFile.clear();
+    }
 
     if(!Info.pdbFile.empty())
     {
@@ -989,20 +1041,18 @@ std::unique_ptr<MODINFO> MODINFO::load(duint Base, duint Size, const char* FullP
     auto & info = *infoPtr;
     info.invalidateSymbolSourceOnDestruction = false;
 
-    // Copy the module path in the struct
-    strcpy_s(info.path, FullPath);
+    // Copy the module path in the struct (paths longer than MAX_PATH are possible, so truncate instead of aborting)
+    strncpy_s(info.path, FullPath, _TRUNCATE);
 
     // Break the module path into a directory and file name
     char file[MAX_MODULE_SIZE];
     {
-        char dir[MAX_PATH] = {};
-
         // Dir <- lowercase(file path)
-        strcpy_s(dir, FullPath);
-        _strlwr_s(dir);
+        std::vector<char> dir(FullPath, FullPath + strlen(FullPath) + 1);
+        _strlwr_s(dir.data(), dir.size());
 
         // Find the last instance of a path delimiter (slash)
-        char* fileStart = strrchr(dir, '\\');
+        char* fileStart = strrchr(dir.data(), '\\');
 
         if(fileStart)
         {
@@ -1022,13 +1072,13 @@ std::unique_ptr<MODINFO> MODINFO::load(duint Base, duint Size, const char* FullP
 
         if(extensionPos)
         {
-            strcpy_s(info.extension, extensionPos);
+            strncpy_s(info.extension, extensionPos, _TRUNCATE);
             extensionPos[0] = '\0';
         }
     }
 
     // Copy information to struct
-    strcpy_s(info.name, file);
+    strncpy_s(info.name, file, _TRUNCATE);
     info.base = Base;
     info.size = Size;
     info.fileHandle = nullptr;
@@ -1108,9 +1158,23 @@ std::unique_ptr<MODINFO> MODINFO::load(duint Base, duint Size, const char* FullP
                 actualSize = regionSize;
             }
 
+            // SizeOfImage comes from the debuggee, so the allocation can fail
+            bool allocated = false;
             if(actualSize > 0)
             {
-                info.mappedData.resize(actualSize);
+                try
+                {
+                    info.mappedData.resize(actualSize);
+                    allocated = true;
+                }
+                catch(const std::bad_alloc &)
+                {
+                    info.mappedData.clear();
+                }
+            }
+
+            if(allocated)
+            {
                 if(MemRead(Base, info.mappedData.data(), info.mappedData.size()))
                 {
                     info.isVirtual = true; // Process memory is SEC_IMAGE mapped

@@ -699,12 +699,13 @@ void TraceRecordManager::loadFromDb(JSON root)
             currentPage.rawPtr = emalloc(size, "TraceRecordManager");
             const char* p = json_string_value(json_object_get(value, "data"));
             std::vector<unsigned char> data;
-            if(StringUtils::FromCompressedHex(p, data) && data.size() == size)
+            // The database is untrusted, so the keys might be missing or have the wrong type
+            if(p && StringUtils::FromCompressedHex(p, data) && data.size() == size)
             {
                 memcpy(currentPage.rawPtr, data.data(), size);
                 const char* moduleName = json_string_value(json_object_get(value, "module"));
                 duint key;
-                if(*moduleName)
+                if(moduleName && *moduleName)
                 {
                     currentPage.moduleIndex = getModuleIndex(std::string(moduleName));
                     key = currentPage.rva + ModHashFromName(moduleName);
