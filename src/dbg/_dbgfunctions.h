@@ -287,6 +287,7 @@ typedef struct DBGFUNCTIONS_
     // Escapes argument contents for insertion between double quotes in a debugger command.
     bool (*CommandEscape)(const char* argument, char* result, size_t resultSize);
     bool (*ModNameFromHash)(duint hash, char* modname);
+    bool (*IsTracing)();
 } DBGFUNCTIONS;
 
 #ifdef __cplusplus
