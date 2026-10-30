@@ -47,12 +47,12 @@ bool HandlesEnum(std::vector<HANDLEINFO> & handles)
         HandleTypesEnum();
 
     duint pid;
-    Memory<PSYSTEM_HANDLE_INFORMATION> HandleInformation(16 * 1024, "_dbg_enumhandles");
+    Memory<PSYSTEM_HANDLE_INFORMATION_EX> HandleInformation(16 * 1024, "_dbg_enumhandles");
     NTSTATUS ErrorCode = ERROR_SUCCESS;
     pid = fdProcessInfo->dwProcessId;
     for(;;)
     {
-        ErrorCode = NtQuerySystemInformation(SystemHandleInformation, HandleInformation(), ULONG(HandleInformation.size()), nullptr);
+        ErrorCode = NtQuerySystemInformation(SystemExtendedHandleInformation, HandleInformation(), ULONG(HandleInformation.size()), nullptr);
         if(ErrorCode != STATUS_INFO_LENGTH_MISMATCH)
             break;
         HandleInformation.realloc(HandleInformation.size() * 2, "_dbg_enumhandles");
@@ -65,13 +65,13 @@ bool HandlesEnum(std::vector<HANDLEINFO> & handles)
     EXCLUSIVE_ACQUIRE(LockHandleCache);
     HandleTypeCache.clear();
     HANDLEINFO info;
-    for(ULONG i = 0; i < HandleInformation()->NumberOfHandles; i++)
+    for(ULONG_PTR i = 0; i < HandleInformation()->NumberOfHandles; i++)
     {
         const auto & handle = HandleInformation()->Handles[i];
         if(handle.UniqueProcessId != pid)
             continue;
         info.Handle = handle.HandleValue;
-        info.TypeNumber = handle.ObjectTypeIndex;
+        info.TypeNumber = (unsigned char)handle.ObjectTypeIndex;
         info.GrantedAccess = handle.GrantedAccess;
         auto typeNameItr = HandleTypeNames.find(handle.ObjectTypeIndex);
         if(typeNameItr != HandleTypeNames.end())
