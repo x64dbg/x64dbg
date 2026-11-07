@@ -759,7 +759,7 @@ static bool cbModCallFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFI
         size = ModSizeFromAddr(base);
     if(!base || !size)
         return false; //__debugbreak
-    if(basicinfo->call) //we are looking for calls
+    if(basicinfo->call || disasm->GetId() == ZYDIS_MNEMONIC_JMP) //we are looking for calls and tail calls
     {
         if(basicinfo->addr && MemIsValidReadPtr(basicinfo->addr, true))
         {
@@ -784,6 +784,7 @@ static bool cbModCallFind(Zydis* disasm, BASIC_INSTRUCTION_INFO* basicinfo, REFI
     switch(disasm->GetId())
     {
     case ZYDIS_MNEMONIC_CALL: //call dword ptr: [&api]
+    case ZYDIS_MNEMONIC_JMP: //jmp dword ptr: [&api]
     case ZYDIS_MNEMONIC_MOV: //mov reg, dword ptr:[&api]
         if(!foundaddr && basicinfo->memory.value)
         {
