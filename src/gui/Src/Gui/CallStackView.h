@@ -13,6 +13,7 @@ public:
 
 protected:
     QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
+    QColor getCellColor(duint row, duint col) override;
 
 protected slots:
     void updateCallStackSlot();
