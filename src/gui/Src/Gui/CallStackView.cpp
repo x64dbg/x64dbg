@@ -19,6 +19,7 @@ CallStackView::CallStackView(StdTable* parent) : StdIconTable(parent)
     addColumnAt(50 * charwidth, tr("Comment"), false);
     setIconColumn(ColParty);
     loadColumnFromConfig("CallStack");
+    Initialize();
 
     connect(Bridge::getBridge(), SIGNAL(updateCallStack()), this, SLOT(updateCallStackSlot()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
@@ -222,8 +223,14 @@ QString CallStackView::paintContent(QPainter* painter, duint row, duint col, int
 QColor CallStackView::getCellColor(duint row, duint col)
 {
     if(getCellContent(row, ColThread).isEmpty() && getCellUserdata(row, ColTo) && getCellUserdata(row, ColParty) == mod_user)
-        return ConfigColor("CallStackUserColor");
+        return mUserColor;
     return StdIconTable::getCellColor(row, col);
+}
+
+void CallStackView::updateColors()
+{
+    StdIconTable::updateColors();
+    mUserColor = ConfigColor("CallStackUserColor");
 }
 
 void CallStackView::updateCallStackSlot()
