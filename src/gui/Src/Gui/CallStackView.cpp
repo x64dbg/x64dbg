@@ -19,6 +19,7 @@ CallStackView::CallStackView(StdTable* parent) : StdIconTable(parent)
     addColumnAt(50 * charwidth, tr("Comment"), false);
     setIconColumn(ColParty);
     loadColumnFromConfig("CallStack");
+    Initialize();
 
     connect(Bridge::getBridge(), SIGNAL(updateCallStack()), this, SLOT(updateCallStackSlot()));
     connect(this, SIGNAL(contextMenuSignal(QPoint)), this, SLOT(contextMenuSlot(QPoint)));
@@ -219,6 +220,19 @@ QString CallStackView::paintContent(QPainter* painter, duint row, duint col, int
     return StdIconTable::paintContent(painter, row, col, x, y, w, h);
 }
 
+QColor CallStackView::getCellColor(duint row, duint col)
+{
+    if(getCellContent(row, ColThread).isEmpty() && getCellUserdata(row, ColTo) && getCellUserdata(row, ColParty) == mod_user)
+        return mUserColor;
+    return StdIconTable::getCellColor(row, col);
+}
+
+void CallStackView::updateColors()
+{
+    StdIconTable::updateColors();
+    mUserColor = ConfigColor("CallStackUserColor");
+}
+
 void CallStackView::updateCallStackSlot()
 {
     if(!DbgFunctions()->GetCallStackByThread)
@@ -277,6 +291,7 @@ void CallStackView::updateCallStackSlot()
                 setCellContent(currentRow, ColSize, "");
             setCellContent(currentRow, ColComment, callstack.entries[i].comment);
             int party = DbgFunctions()->ModGetParty(callstack.entries[i].to);
+            setCellUserdata(currentRow, ColParty, party);
             switch(party)
             {
             case mod_user:
