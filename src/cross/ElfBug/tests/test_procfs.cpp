@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <ElfBug/process/ProcFs.h>
 #include <sys/prctl.h>
+#include <sys/sysmacros.h>
 #include <unistd.h>
 #include <filesystem>
 #include <string>
@@ -51,17 +52,21 @@ TEST_CASE("StatFields numbers fields like the man page despite a hostile comm", 
 
 TEST_CASE("ParseMapsLine reads file-backed, anonymous and pseudo mappings", "[procfs]")
 {
-    const auto file = procfs::ParseMapsLine("55d0c8a00000-55d0c8a02000 r-xp 00002000 08:01 1234567                    /usr/bin/cat");
-    REQUIRE(file.has_value());
-    REQUIRE(file->start == 0x55d0c8a00000u);
-    REQUIRE(file->end == 0x55d0c8a02000u);
-    REQUIRE(file->offset == 0x2000u);
-    REQUIRE(file->perms == "r-xp");
-    REQUIRE(file->path == "/usr/bin/cat");
+    const auto fileBacked = procfs::ParseMapsLine("55d0c8a00000-55d0c8a02000 r-xp 00002000 08:01 1234567                    /usr/bin/cat");
+    REQUIRE(fileBacked.has_value());
+    REQUIRE(fileBacked->start == 0x55d0c8a00000u);
+    REQUIRE(fileBacked->end == 0x55d0c8a02000u);
+    REQUIRE(fileBacked->offset == 0x2000u);
+    REQUIRE(fileBacked->perms == "r-xp");
+    REQUIRE(fileBacked->path == "/usr/bin/cat");
+    REQUIRE(fileBacked->file.dev == makedev(8, 1));
+    REQUIRE(fileBacked->file.ino == 1234567u);
 
     const auto anonymous = procfs::ParseMapsLine("7f0000000000-7f0000001000 rw-p 00000000 00:00 0");
     REQUIRE(anonymous.has_value());
     REQUIRE(anonymous->path.empty());
+    REQUIRE(anonymous->file.dev == makedev(0, 0));
+    REQUIRE(anonymous->file.ino == 0u);
 
     const auto heap = procfs::ParseMapsLine("55d0c9000000-55d0c9021000 rw-p 00000000 00:00 0                          [heap]");
     REQUIRE(heap.has_value());
@@ -90,4 +95,21 @@ TEST_CASE("ReadFile and ReadLine read /proc and return empty for unreadable file
     REQUIRE(procfs::ReadLine(procfs::Path(getpid(), "comm")) == comm);
     REQUIRE(procfs::ReadFile("/proc/self/exe").size() == std::filesystem::file_size("/proc/self/exe"));
     REQUIRE(procfs::ReadFile("/nonexistent/elfbug").empty());
+}
+
+TEST_CASE("ParseMapsLine reads a hex device and refuses a malformed one", "[procfs]")
+{
+    const auto line = procfs::ParseMapsLine("7f0000000000-7f0000001000 r--p 00000000 fd:1a 98765   /usr/lib/libc.so.6");
+    REQUIRE(line.has_value());
+    REQUIRE(line->file.dev == makedev(0xfd, 0x1a));
+    REQUIRE(line->file.ino == 98765u);
+
+    REQUIRE_FALSE(procfs::ParseMapsLine("7f0000000000-7f0000001000 r--p 00000000 fd1a 98765 /x").has_value());
+    REQUIRE_FALSE(procfs::ParseMapsLine("7f0000000000-7f0000001000 r--p 00000000 fd:1a abc /x").has_value());
+}
+
+TEST_CASE("ReadLink resolves a link and returns empty on failure", "[procfs]")
+{
+    REQUIRE(procfs::ReadLink("/proc/self/exe") == std::filesystem::read_symlink("/proc/self/exe").string());
+    REQUIRE(procfs::ReadLink("/nonexistent/elfbug").empty());
 }

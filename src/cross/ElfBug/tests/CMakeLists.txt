@@ -43,6 +43,7 @@ FetchContent_MakeAvailable(Catch2)
 
 # Target: ElfBug_tests
 set(ElfBug_tests_SOURCES
+	ApiSession.h
 	SymbolHelper.h
 	TestHarness.h
 	TestSupport.h
@@ -53,7 +54,10 @@ set(ElfBug_tests_SOURCES
 	test_attach.cpp
 	test_breakpoints.cpp
 	test_detach.cpp
+	test_elf_image.cpp
 	test_lifecycle.cpp
+	test_memory_map.cpp
+	test_memory_map_api.cpp
 	test_multithread.cpp
 	test_procfs.cpp
 	test_signals.cpp
@@ -123,6 +127,12 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_clone_process
     elfbug_fixture_vfork_wait
     elfbug_fixture_vfork_signal
+    elfbug_fixture_mem_map_target
+    elfbug_fixture_mm_gap
+    elfbug_fixture_mm_data
+    elfbug_fixture_huge_text_target
+    elfbug_fixture_static_target
+    elfbug_fixture_static_pie_target
 )
 
 # Target: elfbug_fixture_end_immediately
@@ -878,3 +888,199 @@ get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} D
 if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_vfork_signal)
 endif()
+
+# Target: elfbug_fixture_mem_map_target
+set(elfbug_fixture_mem_map_target_SOURCES
+	cmake.toml
+	"targets/mem_map_target.cpp"
+)
+
+add_executable(elfbug_fixture_mem_map_target)
+
+target_sources(elfbug_fixture_mem_map_target PRIVATE ${elfbug_fixture_mem_map_target_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_mem_map_target_SOURCES})
+
+target_compile_options(elfbug_fixture_mem_map_target PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_mem_map_target PRIVATE
+	-pie
+)
+
+target_link_libraries(elfbug_fixture_mem_map_target PRIVATE
+	pthread
+	dl
+)
+
+set_target_properties(elfbug_fixture_mem_map_target PROPERTIES
+	OUTPUT_NAME
+		mem_map_target
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_mem_map_target)
+endif()
+
+# Target: elfbug_fixture_huge_text_target
+set(elfbug_fixture_huge_text_target_SOURCES
+	cmake.toml
+	"targets/huge_text_target.cpp"
+)
+
+add_executable(elfbug_fixture_huge_text_target)
+
+target_sources(elfbug_fixture_huge_text_target PRIVATE ${elfbug_fixture_huge_text_target_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_huge_text_target_SOURCES})
+
+target_compile_options(elfbug_fixture_huge_text_target PRIVATE
+	-g
+	-O0
+	-pie
+)
+
+target_link_options(elfbug_fixture_huge_text_target PRIVATE
+	-pie
+)
+
+target_link_options(elfbug_fixture_huge_text_target PRIVATE
+	-Wl,-z,max-page-size=0x200000
+)
+
+set_target_properties(elfbug_fixture_huge_text_target PROPERTIES
+	OUTPUT_NAME
+		huge_text_target
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_huge_text_target)
+endif()
+
+# Target: elfbug_fixture_static_target
+set(elfbug_fixture_static_target_SOURCES
+	cmake.toml
+	"targets/static_target.c"
+)
+
+add_executable(elfbug_fixture_static_target)
+
+target_sources(elfbug_fixture_static_target PRIVATE ${elfbug_fixture_static_target_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_static_target_SOURCES})
+
+target_compile_options(elfbug_fixture_static_target PRIVATE
+	-g
+	-O0
+	-fno-pie
+)
+
+target_link_options(elfbug_fixture_static_target PRIVATE
+	-static
+	-no-pie
+)
+
+set_target_properties(elfbug_fixture_static_target PROPERTIES
+	OUTPUT_NAME
+		static_target
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_static_target)
+endif()
+
+# Target: elfbug_fixture_static_pie_target
+set(elfbug_fixture_static_pie_target_SOURCES
+	cmake.toml
+	"targets/static_target.c"
+)
+
+add_executable(elfbug_fixture_static_pie_target)
+
+target_sources(elfbug_fixture_static_pie_target PRIVATE ${elfbug_fixture_static_pie_target_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_static_pie_target_SOURCES})
+
+target_compile_options(elfbug_fixture_static_pie_target PRIVATE
+	-g
+	-O0
+	-fPIE
+)
+
+target_link_options(elfbug_fixture_static_pie_target PRIVATE
+	-static-pie
+)
+
+set_target_properties(elfbug_fixture_static_pie_target PROPERTIES
+	OUTPUT_NAME
+		static_pie_target
+	RUNTIME_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT elfbug_fixture_static_pie_target)
+endif()
+
+# Target: elfbug_fixture_mm_gap
+set(elfbug_fixture_mm_gap_SOURCES
+	cmake.toml
+	"targets/libmm_gap.cpp"
+)
+
+add_library(elfbug_fixture_mm_gap SHARED)
+
+target_sources(elfbug_fixture_mm_gap PRIVATE ${elfbug_fixture_mm_gap_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_mm_gap_SOURCES})
+
+target_compile_options(elfbug_fixture_mm_gap PRIVATE
+	-g
+	-O0
+)
+
+target_link_options(elfbug_fixture_mm_gap PRIVATE
+	-Wl,-z,max-page-size=0x10000
+)
+
+set_target_properties(elfbug_fixture_mm_gap PROPERTIES
+	OUTPUT_NAME
+		mm_gap
+	LIBRARY_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)
+
+# Target: elfbug_fixture_mm_data
+set(elfbug_fixture_mm_data_SOURCES
+	cmake.toml
+	"targets/libmm_data.cpp"
+)
+
+add_library(elfbug_fixture_mm_data SHARED)
+
+target_sources(elfbug_fixture_mm_data PRIVATE ${elfbug_fixture_mm_data_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${elfbug_fixture_mm_data_SOURCES})
+
+target_compile_options(elfbug_fixture_mm_data PRIVATE
+	-g
+	-O0
+)
+
+target_link_options(elfbug_fixture_mm_data PRIVATE
+	-nostdlib
+)
+
+set_target_properties(elfbug_fixture_mm_data PROPERTIES
+	OUTPUT_NAME
+		mm_data
+	LIBRARY_OUTPUT_DIRECTORY
+		"${CMAKE_BINARY_DIR}/tests/targets"
+)

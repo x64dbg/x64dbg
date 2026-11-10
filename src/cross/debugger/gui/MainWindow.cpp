@@ -1,6 +1,7 @@
 #include "gui/MainWindow.h"
 
 #include <Memory/MemoryPage.h>
+#include <MiscUtil.h>
 #include <QCheckBox>
 #include <QCloseEvent>
 #include <QCoreApplication>
@@ -19,6 +20,7 @@
 #include "core/LinuxArchitecture.h"
 #include "gui/AttachDialog.h"
 #include "gui/CPUStack.h"
+#include "gui/MemoryMapView.h"
 #include "gui/ThreadView.h"
 
 namespace
@@ -27,18 +29,13 @@ namespace
     constexpr int kRequestRetryMs = 10;
 
     LinuxArchitecture gArch;
-
-    QIcon icon(const char* name)
-    {
-        return QIcon(QString(":/Default/icons/%1.png").arg(name));
-    }
 }
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
 {
     setWindowTitle("x64dbg");
-    setWindowIcon(icon("bug"));
+    setWindowIcon(DIcon("bug"));
     resize(1200, 800);
 
     mProvider = new DbgAdapter(this);
@@ -61,25 +58,30 @@ MainWindow::MainWindow(QWidget* parent)
     const auto menuFile = menuBar()->addMenu(tr("&File"));
     const auto actionOpen = menuFile->addAction(tr("&Open..."), this, &MainWindow::onOpen);
     actionOpen->setShortcut(QKeySequence::Open);
-    const auto actionAttach = menuFile->addAction(icon("attach"), tr("&Attach..."), this, &MainWindow::onAttach);
+    const auto actionAttach = menuFile->addAction(DIcon("attach"), tr("&Attach..."), this, &MainWindow::onAttach);
     actionAttach->setShortcut(ConfigShortcut("FileAttach"));
-    const auto actionDetach = menuFile->addAction(icon("detach"), tr("&Detach"), this, &MainWindow::onDetach);
+    const auto actionDetach = menuFile->addAction(DIcon("detach"), tr("&Detach"), this, &MainWindow::onDetach);
     actionDetach->setShortcut(ConfigShortcut("FileDetach"));
     menuFile->addSeparator();
     menuFile->addAction(tr("E&xit"), this, &QWidget::close);
 
     const auto menuView = menuBar()->addMenu(tr("&View"));
-    const auto actionCpu = menuView->addAction(icon("processor-cpu"), tr("&CPU"), this, [this]
+    const auto actionCpu = menuView->addAction(DIcon("processor-cpu"), tr("&CPU"), this, [this]
     {
-        mTabWidget->setCurrentIndex(0);
+        mTabWidget->setCurrentWidget(mCpuTab);
     });
     actionCpu->setShortcut(ConfigShortcut("ViewCpu"));
-    const auto actionLog = menuView->addAction(icon("log"), tr("&Log"), this, [this]
+    const auto actionLog = menuView->addAction(DIcon("log"), tr("&Log"), this, [this]
     {
         mTabWidget->setCurrentWidget(mLog);
     });
     actionLog->setShortcut(ConfigShortcut("ViewLog"));
-    const auto actionThreads = menuView->addAction(icon("arrow-threads"), tr("&Threads"), this, [this]
+    const auto actionMemoryMap = menuView->addAction(DIcon("memory-map"), tr("&Memory Map"), this, [this]
+    {
+        mTabWidget->setCurrentWidget(mMemoryMapView);
+    });
+    actionMemoryMap->setShortcut(ConfigShortcut("ViewMemoryMap"));
+    const auto actionThreads = menuView->addAction(DIcon("arrow-threads"), tr("&Threads"), this, [this]
     {
         mTabWidget->setCurrentWidget(mThreadView);
     });
@@ -92,6 +94,8 @@ MainWindow::MainWindow(QWidget* parent)
     menuDebug->addSeparator();
     const auto actionBp = menuDebug->addAction(tr("Toggle &Breakpoint"), this, &MainWindow::onToggleBreakpoint);
     actionBp->setShortcut(Qt::Key_F2);
+    actionBp->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+    mCpuTab->addAction(actionBp);
 
     statusBar()->showMessage(tr("Ready"));
 }
@@ -246,32 +250,32 @@ void MainWindow::setupToolBar()
     toolBar->setToolButtonStyle(Qt::ToolButtonIconOnly);
     addToolBar(toolBar);
 
-    const auto actionOpen = toolBar->addAction(icon("folder-horizontal-open"), QString(), this, &MainWindow::onOpen);
+    const auto actionOpen = toolBar->addAction(DIcon("folder-horizontal-open"), QString(), this, &MainWindow::onOpen);
     actionOpen->setToolTip(tr("Open (Ctrl+O)"));
 
-    const auto actionRestart = toolBar->addAction(icon("arrow-restart"), QString());
+    const auto actionRestart = toolBar->addAction(DIcon("arrow-restart"), QString());
     actionRestart->setToolTip(tr("Restart"));
     actionRestart->setEnabled(false);
 
-    const auto actionClose = toolBar->addAction(icon("control-stop"), QString());
+    const auto actionClose = toolBar->addAction(DIcon("control-stop"), QString());
     actionClose->setToolTip(tr("Close"));
     actionClose->setEnabled(false);
 
     toolBar->addSeparator();
 
-    const auto actionRun = toolBar->addAction(icon("arrow-run"), QString(), this, &MainWindow::onContinue);
+    const auto actionRun = toolBar->addAction(DIcon("arrow-run"), QString(), this, &MainWindow::onContinue);
     actionRun->setToolTip(tr("Run (F9)"));
 
-    const auto actionPause = toolBar->addAction(icon("control-pause"), QString(), this, &MainWindow::onPause);
+    const auto actionPause = toolBar->addAction(DIcon("control-pause"), QString(), this, &MainWindow::onPause);
     actionPause->setToolTip(tr("Pause"));
 
     toolBar->addSeparator();
 
-    const auto actionStepInto = toolBar->addAction(icon("arrow-step-into"), QString(), this, &MainWindow::onStepInto);
+    const auto actionStepInto = toolBar->addAction(DIcon("arrow-step-into"), QString(), this, &MainWindow::onStepInto);
     actionStepInto->setToolTip(tr("Step Into (F7)"));
     actionStepInto->setShortcut(Qt::Key_F7);
 
-    const auto actionStepOver = toolBar->addAction(icon("arrow-step-over"), QString(), this, &MainWindow::onStepOver);
+    const auto actionStepOver = toolBar->addAction(DIcon("arrow-step-over"), QString(), this, &MainWindow::onStepOver);
     actionStepOver->setToolTip(tr("Step Over (F8)"));
     actionStepOver->setShortcut(Qt::Key_F8);
 }
@@ -282,12 +286,13 @@ void MainWindow::setupTabs()
     mTabWidget->setDocumentMode(true);
     setCentralWidget(mTabWidget);
 
-    mTabWidget->addTab(createCpuTab(), icon("processor-cpu"), tr("CPU"));
+    mCpuTab = createCpuTab();
+    mTabWidget->addTab(mCpuTab, DIcon("processor-cpu"), tr("CPU"));
 
     mLog = new QTextBrowser(this);
     mLog->setAccessibleName(tr("Log"));
     mLog->setFont(ConfigFont("Log"));
-    mTabWidget->addTab(mLog, icon("log"), tr("Log"));
+    mTabWidget->addTab(mLog, DIcon("log"), tr("Log"));
 
     auto makePlaceholder = [this](const QString & text)
     {
@@ -297,12 +302,29 @@ void MainWindow::setupTabs()
         return label;
     };
 
-    mTabWidget->addTab(makePlaceholder(tr("Breakpoints view - not yet implemented")), icon("breakpoint"), tr("Breakpoints"));
-    mTabWidget->addTab(makePlaceholder(tr("Memory map view - not yet implemented")), icon("memory-map"), tr("Memory Map"));
-    mTabWidget->addTab(makePlaceholder(tr("Call stack view - not yet implemented")), icon("callstack"), tr("Call Stack"));
+    mTabWidget->addTab(makePlaceholder(tr("Breakpoints view - not yet implemented")), DIcon("breakpoint"), tr("Breakpoints"));
+    mMemoryMapView = new MemoryMapView(mProvider, this);
+    mMemoryMapView->setAccessibleName(tr("Memory Map"));
+    mTabWidget->addTab(mMemoryMapView, DIcon("memory-map"), tr("Memory Map"));
+    connect(mMemoryMapView, &MemoryMapView::followDisasmRequested, this, [this](const duint address)
+    {
+        mDisassembly->gotoAddress(address);
+        showInCpu(mDisassembly);
+    });
+    connect(mStack, &CPUStack::followMemoryMapRequested, this, [this](const duint address)
+    {
+        mTabWidget->setCurrentWidget(mMemoryMapView);
+        mMemoryMapView->selectAddress(address);
+    });
+    connect(mMemoryMapView, &MemoryMapView::followDumpRequested, this, [this](const duint address)
+    {
+        mHexDump->printDumpAt(address);
+        showInCpu(mHexDump);
+    });
+    mTabWidget->addTab(makePlaceholder(tr("Call stack view - not yet implemented")), DIcon("callstack"), tr("Call Stack"));
     mThreadView = new ThreadView(mProvider, this);
     mThreadView->setAccessibleName(tr("Threads"));
-    mTabWidget->addTab(mThreadView, icon("arrow-threads"), tr("Threads"));
+    mTabWidget->addTab(mThreadView, DIcon("arrow-threads"), tr("Threads"));
 
     onLogMessage("[x64dbg] Ready. Open an ELF binary to begin debugging.");
 }
@@ -512,6 +534,7 @@ void MainWindow::clearDebuggeeViews()
     mRegisters->setRegisters(&emptyDump);
     mStack->onSessionEnded();
     mThreadView->onSessionEnded();
+    mMemoryMapView->onSessionEnded();
 }
 
 void MainWindow::onEngineError(const QString & error)
@@ -556,10 +579,16 @@ void MainWindow::onToggleBreakpoint()
     mDisassembly->reloadData();
 }
 
+void MainWindow::showInCpu(QWidget* focus)
+{
+    mTabWidget->setCurrentWidget(mCpuTab);
+    focus->setFocus();
+}
+
 void MainWindow::onStopped(const duint rip, const QString & reason)
 {
     mDisassembly->gotoAddress(rip);
     mDisassembly->reloadData();
     statusBar()->showMessage(QString("%1 - 0x%2").arg(reason).arg(rip, 0, 16));
-    mTabWidget->setCurrentIndex(0);
+    mTabWidget->setCurrentWidget(mCpuTab);
 }

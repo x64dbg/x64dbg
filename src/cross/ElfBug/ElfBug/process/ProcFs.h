@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ElfBug/types/ImageId.h>
 #include <sys/types.h>
 #include <charconv>
 #include <cstddef>
@@ -24,6 +25,7 @@ namespace ElfBug::procfs
         uint64_t start = 0;
         uint64_t end = 0;
         uint64_t offset = 0;
+        ImageId file;
         std::string_view perms;
         std::string_view path;
     };
@@ -36,6 +38,9 @@ namespace ElfBug::procfs
     std::string ReadFile(const std::string & path);
 
     std::string ReadLine(const std::string & path);
+
+    // Target with " (deleted)" stripped, empty on failure.
+    std::string ReadLink(const std::string & path);
 
     std::string_view Trim(std::string_view text);
 

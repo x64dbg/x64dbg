@@ -1,8 +1,10 @@
 #include <ElfBug/process/ProcFs.h>
 #include <fcntl.h>
+#include <sys/sysmacros.h>
 #include <unistd.h>
 #include <algorithm>
 #include <cerrno>
+#include <climits>
 
 namespace ElfBug::procfs
 {
@@ -75,6 +77,16 @@ namespace ElfBug::procfs
         return text;
     }
 
+    // The kernel fails with ENAMETOOLONG rather than return a path longer than PATH_MAX.
+    std::string ReadLink(const std::string & path)
+    {
+        char buffer[PATH_MAX];
+        const ssize_t n = readlink(path.c_str(), buffer, sizeof(buffer));
+        if(n <= 0 || static_cast<size_t>(n) >= sizeof(buffer))
+            return {};
+        return std::string(StripDeletedSuffix({buffer, static_cast<size_t>(n)}));
+    }
+
     std::string_view Trim(const std::string_view text)
     {
         const size_t first = text.find_first_not_of(kWhitespace);
@@ -114,26 +126,22 @@ namespace ElfBug::procfs
         return path;
     }
 
-    // start-end perms offset device inode [path]
+    // start-end perms offset major:minor inode [path]
     std::optional<MapsLine> ParseMapsLine(std::string_view line)
     {
-        const std::string_view range = takeToken(line);
+        std::string_view range = takeToken(line);
         const std::string_view perms = takeToken(line);
         const auto offset = ParseNumber<uint64_t>(takeToken(line), 16);
-        const std::string_view device = takeToken(line);
-        const std::string_view inode = takeToken(line);
-        if(perms.size() != 4 || !offset || device.empty() || inode.empty())
+        std::string_view device = takeToken(line);
+        const auto inode = ParseNumber<ino_t>(takeToken(line));
+        const auto major = ParseNumber<unsigned>(takePiece(device, ':'), 16);
+        const auto minor = ParseNumber<unsigned>(device, 16);
+        const auto start = ParseNumber<uint64_t>(takePiece(range, '-'), 16);
+        const auto end = ParseNumber<uint64_t>(range, 16);
+        if(perms.size() != 4 || !offset || !inode || !major || !minor || !start || !end)
             return std::nullopt;
 
-        const size_t dash = range.find('-');
-        if(dash == std::string_view::npos)
-            return std::nullopt;
-        const auto start = ParseNumber<uint64_t>(range.substr(0, dash), 16);
-        const auto end = ParseNumber<uint64_t>(range.substr(dash + 1), 16);
-        if(!start || !end)
-            return std::nullopt;
-
-        return MapsLine{*start, *end, *offset, perms, StripDeletedSuffix(Trim(line))};
+        return MapsLine{*start, *end, *offset, {makedev(*major, *minor), *inode}, perms, StripDeletedSuffix(Trim(line))};
     }
 
     // comm (field 2) can hold spaces and parentheses, so it runs to the last ')'.

@@ -1,196 +1,14 @@
-#include "TestSupport.h"
-#include <functional>
+#include "ApiSession.h"
 #include <set>
 #include <mutex>
-#include <condition_variable>
 #include <sched.h>
 #include <sys/resource.h>
-#include <ElfBug/api/elfbug_api.h>
 #include "targets/TargetUtil.h"
 
 namespace
 {
     namespace procfs = ElfBug::procfs;
-
-    struct ApiEvents
-    {
-        std::mutex mutex;
-        std::condition_variable cv;
-        bool systemBreakpoint = false;
-        bool attachBreakpoint = false;
-        bool paused = false;
-        std::optional<std::uint64_t> breakpointAddress;
-        std::optional<int> exceptionSignal;
-        std::uint64_t exceptionAddress = 0;
-        pid_t pid = 0;
-        bool detached = false;
-        std::optional<int> exitCode;
-        std::vector<pid_t> createdTids;
-        std::vector<pid_t> exitedTids;
-        ElfBugDebugger* dbg = nullptr;
-        std::function<void(ElfBugDebugger*)> atSystemBreakpoint;
-
-        template<class Pred>
-        bool WaitFor(Pred pred, const std::chrono::milliseconds timeout = std::chrono::seconds(5))
-        {
-            std::unique_lock lock(mutex);
-            return cv.wait_for(lock, timeout, pred);
-        }
-    };
-
-    ElfBugCallbacks MakeApiCallbacks(ApiEvents & events)
-    {
-        ElfBugCallbacks cb = {};
-        cb.userdata = &events;
-        cb.onCreateProcess = [](const pid_t pid, std::uint64_t, void* userdata)
-        {
-            auto* ev = static_cast<ApiEvents*>(userdata);
-            std::lock_guard lock(ev->mutex);
-            ev->pid = pid;
-        };
-        cb.onPaused = [](void* userdata)
-        {
-            auto* ev = static_cast<ApiEvents*>(userdata);
-            std::lock_guard lock(ev->mutex);
-            ev->paused = true;
-            ev->cv.notify_all();
-        };
-        cb.onSystemBreakpoint = [](void* userdata)
-        {
-            auto* ev = static_cast<ApiEvents*>(userdata);
-            if(ev->atSystemBreakpoint)
-                ev->atSystemBreakpoint(ev->dbg);
-            std::lock_guard lock(ev->mutex);
-            ev->systemBreakpoint = true;
-            ev->cv.notify_all();
-        };
-        cb.onAttachBreakpoint = [](void* userdata)
-        {
-            auto* ev = static_cast<ApiEvents*>(userdata);
-            std::lock_guard lock(ev->mutex);
-            ev->attachBreakpoint = true;
-            ev->cv.notify_all();
-        };
-        cb.onBreakpoint = [](const std::uint64_t address, void* userdata)
-        {
-            auto* ev = static_cast<ApiEvents*>(userdata);
-            std::lock_guard lock(ev->mutex);
-            ev->breakpointAddress = address;
-            ev->cv.notify_all();
-        };
-        cb.onException = [](const int signal, const std::uint64_t address, void* userdata)
-        {
-            auto* ev = static_cast<ApiEvents*>(userdata);
-            std::lock_guard lock(ev->mutex);
-            ev->exceptionSignal = signal;
-            ev->exceptionAddress = address;
-            ev->cv.notify_all();
-        };
-        cb.onCreateThread = [](const pid_t tid, void* userdata)
-        {
-            auto* ev = static_cast<ApiEvents*>(userdata);
-            std::lock_guard lock(ev->mutex);
-            ev->createdTids.push_back(tid);
-            ev->cv.notify_all();
-        };
-        cb.onExitThread = [](const pid_t tid, void* userdata)
-        {
-            auto* ev = static_cast<ApiEvents*>(userdata);
-            std::lock_guard lock(ev->mutex);
-            ev->exitedTids.push_back(tid);
-            ev->cv.notify_all();
-        };
-        cb.onDetach = [](void* userdata)
-        {
-            auto* ev = static_cast<ApiEvents*>(userdata);
-            std::lock_guard lock(ev->mutex);
-            ev->detached = true;
-            ev->cv.notify_all();
-        };
-        cb.onExitProcess = [](const int exitCode, void* userdata)
-        {
-            auto* ev = static_cast<ApiEvents*>(userdata);
-            std::lock_guard lock(ev->mutex);
-            ev->exitCode = exitCode;
-            ev->cv.notify_all();
-        };
-        return cb;
-    }
-
-    struct ApiSession
-    {
-        std::string path;
-        ApiEvents events;
-        ElfBugDebugger* dbg = nullptr;
-        std::thread loop;
-
-        explicit ApiSession(std::string fixturePath, std::function<void(ElfBugDebugger*)> atSystemBreakpoint = {})
-            : path(std::move(fixturePath))
-        {
-            events.atSystemBreakpoint = std::move(atSystemBreakpoint);
-            const ElfBugCallbacks cb = MakeApiCallbacks(events);
-            dbg = ElfBugCreate(&cb);
-            events.dbg = dbg;
-            if(dbg && ElfBugInit(dbg, path.c_str()))
-                loop = std::thread([this] { ElfBugStart(dbg); });
-        }
-
-        ApiSession(std::string fixturePath, const pid_t attachPid)
-            : path(std::move(fixturePath))
-        {
-            const ElfBugCallbacks cb = MakeApiCallbacks(events);
-            dbg = ElfBugCreate(&cb);
-            if(dbg && ElfBugAttach(dbg, attachPid))
-                loop = std::thread([this] { ElfBugStart(dbg); });
-        }
-
-        [[nodiscard]] bool Started() const
-        {
-            return loop.joinable();
-        }
-
-        ~ApiSession()
-        {
-            if(loop.joinable())
-            {
-                ElfBugStop(dbg);
-                loop.join();
-            }
-            ElfBugDestroy(dbg);
-        }
-
-        bool WaitForSystemBreakpoint()
-        {
-            return events.WaitFor([this] { return events.systemBreakpoint; });
-        }
-
-        bool WaitForAttachBreakpoint()
-        {
-            return events.WaitFor([this] { return events.attachBreakpoint; });
-        }
-
-        bool WaitForExit(const std::chrono::milliseconds timeout = std::chrono::seconds(5))
-        {
-            if(!events.WaitFor([this] { return events.exitCode.has_value(); }, timeout))
-                return false;
-            loop.join();
-            return true;
-        }
-
-        bool WaitForDetach(const std::chrono::milliseconds timeout = std::chrono::seconds(5))
-        {
-            if(!events.WaitFor([this] { return events.detached; }, timeout))
-                return false;
-            loop.join();
-            return true;
-        }
-
-        std::optional<ElfBug::ptr> Resolve(const std::string & symbol)
-        {
-            std::lock_guard lock(events.mutex);
-            return ElfBug::test::ResolveRuntimeAddress(path, events.pid, symbol);
-        }
-    };
+    using namespace ElfBug::test;
 }
 
 TEST_CASE("C API reports a signal stop with the faulting registers", "[api][exception]")
@@ -198,8 +16,7 @@ TEST_CASE("C API reports a signal stop with the faulting registers", "[api][exce
     ApiSession s(FIXTURE("segfault"));
     REQUIRE(s.Started());
     REQUIRE(s.WaitForSystemBreakpoint());
-    const auto site = s.Resolve("sf_fault_site");
-    REQUIRE(site.has_value());
+    const auto site = s.Symbol("sf_fault_site");
 
     ElfBugContinue(s.dbg);
     REQUIRE(s.events.WaitFor([&] { return s.events.exceptionSignal.has_value(); }));
@@ -211,7 +28,7 @@ TEST_CASE("C API reports a signal stop with the faulting registers", "[api][exce
         REQUIRE(*s.events.exceptionSignal == SIGSEGV);
         REQUIRE(s.events.exceptionAddress == kSegfaultAddress);
     }
-    REQUIRE(regs.rip == *site);
+    REQUIRE(regs.rip == site);
     REQUIRE(ElfBugMemIsCodePtr(s.dbg, regs.rip));
 
     ElfBugContinue(s.dbg);
@@ -224,11 +41,10 @@ TEST_CASE("Module lookups report the lowest mapping of the image", "[api][memory
     ApiSession s(FIXTURE("segfault"));
     REQUIRE(s.Started());
     REQUIRE(s.WaitForSystemBreakpoint());
-    const auto site = s.Resolve("sf_fault_site");
-    REQUIRE(site.has_value());
+    const auto site = s.Symbol("sf_fault_site");
 
     const pid_t pid = ElfBugGetPid(s.dbg);
-    const std::string exe = std::filesystem::read_symlink(procfs::Path(pid, "exe")).string();
+    const std::string exe = procfs::ReadLink(procfs::Path(pid, "exe"));
     const std::string maps = procfs::ReadFile(procfs::Path(pid, "maps"));
 
     uint64_t lowest = UINT64_MAX;
@@ -239,14 +55,14 @@ TEST_CASE("Module lookups report the lowest mapping of the image", "[api][memory
             lowest = std::min<uint64_t>(lowest, entry->start);
     }
     REQUIRE(lowest != UINT64_MAX);
-    REQUIRE(lowest < *site);
+    REQUIRE(lowest < site);
 
     uint64_t base = 0;
-    REQUIRE(ElfBugModBaseFromAddr(s.dbg, *site, &base));
+    REQUIRE(ElfBugModBaseFromAddr(s.dbg, site, &base));
     REQUIRE(base == lowest);
 
     char name[64] = {};
-    REQUIRE(ElfBugModNameFromAddr(s.dbg, *site, name, sizeof(name), false));
+    REQUIRE(ElfBugModNameFromAddr(s.dbg, site, name, sizeof(name), false));
     REQUIRE(std::string(name) == "segfault");
     REQUIRE_FALSE(ElfBugModBaseFromAddr(s.dbg, 0x10, &base));
 }
@@ -256,7 +72,7 @@ TEST_CASE("Module lookups name an image whose path is longer than a maps line", 
     namespace fs = std::filesystem;
 
     const fs::path root = fs::path(ELFBUG_TESTS_TARGETS_DIR) / "elfbug_long_path";
-    const ElfBug::test::RemoveOnExit cleanup{root};
+    const RemoveOnExit cleanup{root};
     fs::path dir = root;
     for(int i = 0; i < 4; i++)
         dir /= std::string(150, 'd');
@@ -267,21 +83,19 @@ TEST_CASE("Module lookups name an image whose path is longer than a maps line", 
     ApiSession s(target.string());
     REQUIRE(s.Started());
     REQUIRE(s.WaitForSystemBreakpoint());
-    const auto site = s.Resolve("sf_fault_site");
-    REQUIRE(site.has_value());
+    const auto site = s.Symbol("sf_fault_site");
 
     char name[64] = {};
-    REQUIRE(ElfBugModNameFromAddr(s.dbg, *site, name, sizeof(name), false));
+    REQUIRE(ElfBugModNameFromAddr(s.dbg, site, name, sizeof(name), false));
     REQUIRE(std::string(name) == "long_module");
 }
 
-TEST_CASE("C API loads the memory map ahead of the first lookup", "[api][memory]")
+TEST_CASE("C API builds the memory map at the stop before the first lookup", "[memorymap][api]")
 {
     namespace fs = std::filesystem;
-    ElfBugLoadMemoryMap(nullptr);
 
     const fs::path dir = fs::path(ELFBUG_TESTS_TARGETS_DIR) / "elfbug_preload";
-    const ElfBug::test::RemoveOnExit cleanup{dir};
+    const RemoveOnExit cleanup{dir};
     fs::create_directories(dir);
     const fs::path target = dir / "before_rename";
     fs::copy_file(FIXTURE("segfault"), target, fs::copy_options::overwrite_existing);
@@ -289,14 +103,12 @@ TEST_CASE("C API loads the memory map ahead of the first lookup", "[api][memory]
     ApiSession s(target.string());
     REQUIRE(s.Started());
     REQUIRE(s.WaitForSystemBreakpoint());
-    const auto site = s.Resolve("sf_fault_site");
-    REQUIRE(site.has_value());
+    const auto site = s.Symbol("sf_fault_site");
 
-    ElfBugLoadMemoryMap(s.dbg);
     fs::rename(target, dir / "after_rename");
 
     char name[64] = {};
-    REQUIRE(ElfBugModNameFromAddr(s.dbg, *site, name, sizeof(name), false));
+    REQUIRE(ElfBugModNameFromAddr(s.dbg, site, name, sizeof(name), false));
     REQUIRE(std::string(name) == "before_rename");
 }
 
@@ -305,10 +117,9 @@ TEST_CASE("C API arms a breakpoint queued right before Continue", "[api][breakpo
     ApiSession s(FIXTURE("segfault"));
     REQUIRE(s.Started());
     REQUIRE(s.WaitForSystemBreakpoint());
-    const auto site = s.Resolve("sf_fault_site");
-    REQUIRE(site.has_value());
+    const auto site = s.Symbol("sf_fault_site");
 
-    REQUIRE(ElfBugSetBreakpoint(s.dbg, *site));
+    REQUIRE(ElfBugSetBreakpoint(s.dbg, site));
     ElfBugContinue(s.dbg);
 
     REQUIRE(s.events.WaitFor([&] { return s.events.breakpointAddress.has_value() || s.events.exceptionSignal.has_value(); }));
@@ -334,8 +145,7 @@ TEST_CASE("C API reports no current thread while the debuggee runs", "[api][thre
     ElfBugContinue(s.dbg);
     REQUIRE(ElfBugGetCurrentTid(s.dbg) == 0);
 
-    ElfBugPause(s.dbg);
-    REQUIRE(s.events.WaitFor([&] { return s.events.paused; }));
+    REQUIRE(s.Pause());
     REQUIRE(ElfBugGetCurrentTid(s.dbg) == ElfBugGetPid(s.dbg));
 }
 
@@ -365,9 +175,8 @@ TEST_CASE("C API reports which thread stopped", "[api][thread]")
     REQUIRE(s.WaitForSystemBreakpoint());
     REQUIRE(ElfBugGetCurrentTid(s.dbg) == ElfBugGetPid(s.dbg));
 
-    const auto site = s.Resolve("ts_worker_started");
-    REQUIRE(site.has_value());
-    REQUIRE(ElfBugSetBreakpoint(s.dbg, *site));
+    const auto site = s.Symbol("ts_worker_started");
+    REQUIRE(ElfBugSetBreakpoint(s.dbg, site));
 
     ElfBugContinue(s.dbg);
     REQUIRE(s.events.WaitFor([&] { return s.events.breakpointAddress.has_value(); }, std::chrono::seconds(10)));
@@ -375,7 +184,7 @@ TEST_CASE("C API reports which thread stopped", "[api][thread]")
     {
         const pid_t stoppedTid = ElfBugGetCurrentTid(s.dbg);
         std::lock_guard lock(s.events.mutex);
-        REQUIRE(*s.events.breakpointAddress == *site);
+        REQUIRE(*s.events.breakpointAddress == site);
         REQUIRE(stoppedTid != s.events.pid);
         REQUIRE(std::find(s.events.createdTids.begin(), s.events.createdTids.end(), stoppedTid) != s.events.createdTids.end());
     }
@@ -422,11 +231,8 @@ TEST_CASE("C API lists every thread of a paused process", "[api][thread]")
         }
         return total;
     };
-    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
-    while(workerCpuTime() == 0 && std::chrono::steady_clock::now() < deadline)
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    ElfBugPause(s.dbg);
-    REQUIRE(s.events.WaitFor([&] { return s.events.paused; }));
+    REQUIRE(WaitUntil([&] { return workerCpuTime() != 0; }));
+    REQUIRE(s.Pause());
 
     const pid_t niced = [&]
     {
@@ -480,8 +286,7 @@ TEST_CASE("C API switches the current thread", "[api][thread]")
     REQUIRE(s.WaitForSystemBreakpoint());
     ElfBugContinue(s.dbg);
     REQUIRE(s.events.WaitFor([&] { return s.events.createdTids.size() == 4; }, std::chrono::seconds(10)));
-    ElfBugPause(s.dbg);
-    REQUIRE(s.events.WaitFor([&] { return s.events.paused; }));
+    REQUIRE(s.Pause());
 
     ElfBugThreadInfo all[5] = {};
     REQUIRE(ElfBugGetThreadList(s.dbg, all, 5) == 5);
@@ -516,8 +321,7 @@ TEST_CASE("C API suspends and resumes a thread", "[api][thread][suspend]")
     REQUIRE(s.WaitForSystemBreakpoint());
     ElfBugContinue(s.dbg);
     REQUIRE(s.events.WaitFor([&] { return s.events.createdTids.size() == 4; }, std::chrono::seconds(10)));
-    ElfBugPause(s.dbg);
-    REQUIRE(s.events.WaitFor([&] { return s.events.paused; }));
+    REQUIRE(s.Pause());
 
     ElfBugThreadInfo all[5] = {};
     REQUIRE(ElfBugGetThreadList(s.dbg, all, 5) == 5);
@@ -546,8 +350,7 @@ TEST_CASE("C API nests suspend counts", "[api][thread][suspend]")
     REQUIRE(s.WaitForSystemBreakpoint());
     ElfBugContinue(s.dbg);
     REQUIRE(s.events.WaitFor([&] { return s.events.createdTids.size() == 4; }, std::chrono::seconds(10)));
-    ElfBugPause(s.dbg);
-    REQUIRE(s.events.WaitFor([&] { return s.events.paused; }));
+    REQUIRE(s.Pause());
 
     ElfBugThreadInfo all[5] = {};
     REQUIRE(ElfBugGetThreadList(s.dbg, all, 5) == 5);
@@ -604,15 +407,10 @@ TEST_CASE("C API reports the wait reason at a pause", "[api][thread][waitreason]
     {
         if(attempt > 0)
         {
-            {
-                std::lock_guard lock(s.events.mutex);
-                s.events.paused = false;
-            }
             ElfBugContinue(s.dbg);
-            REQUIRE(ElfBug::test::WaitForTaskRunning(mainTid, mainTid));
+            REQUIRE(WaitForTaskRunning(mainTid, mainTid));
         }
-        ElfBugPause(s.dbg);
-        REQUIRE(s.events.WaitFor([&] { return s.events.paused; }));
+        REQUIRE(s.Pause());
         REQUIRE(ElfBugGetThreadList(s.dbg, all, 5) == 5);
         mainReason = all[0].wait_reason;
     }
@@ -627,8 +425,7 @@ TEST_CASE("C API shows Suspended as the wait reason", "[api][thread][suspend][wa
     REQUIRE(s.WaitForSystemBreakpoint());
     ElfBugContinue(s.dbg);
     REQUIRE(s.events.WaitFor([&] { return s.events.createdTids.size() == 4; }, std::chrono::seconds(10)));
-    ElfBugPause(s.dbg);
-    REQUIRE(s.events.WaitFor([&] { return s.events.paused; }));
+    REQUIRE(s.Pause());
 
     ElfBugThreadInfo all[5] = {};
     REQUIRE(ElfBugGetThreadList(s.dbg, all, 5) == 5);
@@ -678,31 +475,18 @@ TEST_CASE("C API shows Suspended as the wait reason for a thread suspended while
         return {};
     };
 
-    const auto waitForReason = [&](const pid_t tid, const std::string & expected,
-                                   const std::chrono::milliseconds timeout = std::chrono::seconds(5))
-    {
-        const auto start = std::chrono::steady_clock::now();
-        while(std::chrono::steady_clock::now() - start < timeout)
-        {
-            if(reasonFor(tid) == expected)
-                return true;
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        return false;
-    };
-
     REQUIRE(ElfBugSetThreadSuspended(s.dbg, worker, true));
-    REQUIRE(waitForReason(worker, "Suspended"));
+    REQUIRE(WaitUntil([&] { return reasonFor(worker) == "Suspended"; }));
 
     REQUIRE(ElfBugSetThreadSuspended(s.dbg, worker, false));
-    REQUIRE(waitForReason(worker, ""));
+    REQUIRE(WaitUntil([&] { return reasonFor(worker).empty(); }));
 }
 
 TEST_CASE("EnumProcesses reports a spawned process with its name, path and arch", "[api][attach]")
 {
-    ElfBug::test::UntracedProcess target(FIXTURE("run_endlessly"));
+    UntracedProcess target(FIXTURE("run_endlessly"));
     REQUIRE(target.pid > 0);
-    REQUIRE(ElfBug::test::WaitForExeced(target.pid, FIXTURE("run_endlessly")));
+    REQUIRE(WaitForExeced(target.pid, FIXTURE("run_endlessly")));
 
     const auto list = ElfBugProcessList();
     REQUIRE(!list.empty());
@@ -728,7 +512,6 @@ TEST_CASE("EnumProcesses truncates at capacity and still reports the total", "[a
 
 TEST_CASE("ElfBugSetRegister reaches the tracee", "[api][registers]")
 {
-    using namespace ElfBug::test;
     ApiSession s(FIXTURE("run_endlessly"));
     REQUIRE(s.Started());
     REQUIRE(s.WaitForSystemBreakpoint());
@@ -749,7 +532,6 @@ TEST_CASE("ElfBugSetRegister reaches the tracee", "[api][registers]")
 
 TEST_CASE("ElfBugSetRegister works from inside a stop callback", "[api][registers]")
 {
-    using namespace ElfBug::test;
     constexpr uint64_t kValue = 0x1234567890abcdefULL;
     bool ok = false;
     std::chrono::steady_clock::duration took{};
@@ -772,9 +554,9 @@ TEST_CASE("ElfBugSetRegister works from inside a stop callback", "[api][register
 
 TEST_CASE("C API attach hands the session over with threads and registers", "[api][attach]")
 {
-    ElfBug::test::UntracedProcess target(FIXTURE("threads_spin"));
+    UntracedProcess target(FIXTURE("threads_spin"));
     REQUIRE(target.pid > 0);
-    REQUIRE(ElfBug::test::WaitForExeced(target.pid, FIXTURE("threads_spin")));
+    REQUIRE(WaitForExeced(target.pid, FIXTURE("threads_spin")));
     REQUIRE(target.WaitForThreads(5));
 
     ApiSession s(FIXTURE("threads_spin"), target.pid);
@@ -813,13 +595,11 @@ TEST_CASE("C API detach clears the session and leaves the process running", "[ap
 
     ElfBugDetach(s.dbg);
     REQUIRE(s.WaitForDetach());
+    const ProcessReaper reaper(pid);
 
     REQUIRE_FALSE(ElfBugIsPaused(s.dbg));
     REQUIRE(ElfBugGetPid(s.dbg) == 0);
     REQUIRE(ElfBugGetThreadList(s.dbg, nullptr, 0) == 0);
 
-    REQUIRE(ElfBug::test::StaysRunning(pid));
-    kill(pid, SIGKILL);
-    int status = 0;
-    waitpid(pid, &status, __WALL);
+    REQUIRE(StaysRunning(pid));
 }

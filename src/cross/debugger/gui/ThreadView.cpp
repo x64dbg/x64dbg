@@ -75,7 +75,6 @@ ThreadView::ThreadView(DbgAdapter* adapter, QWidget* parent)
     setupContextMenu();
 
     connect(mAdapter, &DbgAdapter::threadsUpdated, this, &ThreadView::onThreadsUpdated, Qt::QueuedConnection);
-    connect(mAdapter, &DbgAdapter::sessionEnded, this, &ThreadView::onSessionEnded, Qt::QueuedConnection);
     connect(this, &AbstractStdTable::doubleClickedSignal, this, &ThreadView::onSwitchThread);
     connect(this, &AbstractStdTable::contextMenuSignal, this, &ThreadView::onContextMenu);
 }
@@ -83,17 +82,15 @@ ThreadView::ThreadView(DbgAdapter* adapter, QWidget* parent)
 void ThreadView::setupContextMenu()
 {
     mContextMenu = new QMenu(this);
-    mSwitchAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-switch.png")), tr("Switch Thread"), this, &ThreadView::onSwitchThread);
-    mSuspendAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-pause.png")), tr("Suspend Thread"), this, &ThreadView::onSuspendThread);
-    mResumeAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-resume.png")), tr("Resume Thread"), this, &ThreadView::onResumeThread);
-    mSuspendAllAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-pause.png")), tr("Suspend All Threads"), this, &ThreadView::onSuspendAll);
-    mResumeAllAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-resume.png")), tr("Resume All Threads"), this, &ThreadView::onResumeAll);
+    mSwitchAction = mContextMenu->addAction(DIcon("thread-switch"), tr("Switch Thread"), this, &ThreadView::onSwitchThread);
+    mSuspendAction = mContextMenu->addAction(DIcon("thread-pause"), tr("Suspend Thread"), this, &ThreadView::onSuspendThread);
+    mResumeAction = mContextMenu->addAction(DIcon("thread-resume"), tr("Resume Thread"), this, &ThreadView::onResumeThread);
+    mSuspendAllAction = mContextMenu->addAction(DIcon("thread-pause"), tr("Suspend All Threads"), this, &ThreadView::onSuspendAll);
+    mResumeAllAction = mContextMenu->addAction(DIcon("thread-resume"), tr("Resume All Threads"), this, &ThreadView::onResumeAll);
     mContextMenu->addSeparator();
-    mSetNameAction = mContextMenu->addAction(QIcon(QStringLiteral(":/Default/icons/thread-setname.png")), tr("Set Name"), this, &ThreadView::onSetName);
+    mSetNameAction = mContextMenu->addAction(DIcon("thread-setname"), tr("Set Name"), this, &ThreadView::onSetName);
     mContextMenu->addSeparator();
-    QMenu* copyMenu = new QMenu(tr("&Copy"), mContextMenu);
-    setupCopyMenu(copyMenu);
-    mContextMenu->addMenu(copyMenu);
+    mCopyMenu = mContextMenu->addMenu(tr("&Copy"));
 }
 
 QString ThreadView::paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h)
@@ -211,7 +208,7 @@ void ThreadView::onResumeAll()
         mAdapter->setAllThreadsSuspended(false);
 }
 
-void ThreadView::onContextMenu(const QPoint & pos) const
+void ThreadView::onContextMenu(const QPoint & pos)
 {
     if(!getRowCount())
         return;
@@ -222,5 +219,7 @@ void ThreadView::onContextMenu(const QPoint & pos) const
     mResumeAction->setEnabled(active);
     mSuspendAllAction->setEnabled(active);
     mResumeAllAction->setEnabled(active);
+    mCopyMenu->clear();
+    setupCopyMenu(mCopyMenu);
     mContextMenu->exec(mapToGlobal(pos));
 }

@@ -325,7 +325,7 @@ TEST_CASE("A step after a thread switch keeps the reported signal on its thread"
     constexpr int disarmed = 0;
     REQUIRE(dbg.process()->MemWrite(*s.armed, &disarmed, sizeof(disarmed)));
     dbg.Continue();
-    REQUIRE(WaitForTraceeValue(dbg.process(), *s.handlerTid, mainTid));
+    REQUIRE(WaitForTraceeValue(dbg.process()->pid, *s.handlerTid, mainTid));
     REQUIRE(dbg.count(EventType::Exception) == 1);
 
     dbg.Stop();

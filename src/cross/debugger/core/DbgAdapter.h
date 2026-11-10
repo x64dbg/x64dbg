@@ -7,6 +7,7 @@
 #include <QVector>
 #include <RegisterContext.h>
 #include <atomic>
+#include <memory>
 #include <mutex>
 #include <vector>
 
@@ -30,6 +31,22 @@ struct DbgThreadInfo
 };
 
 Q_DECLARE_METATYPE(QVector<DbgThreadInfo>)
+
+struct DbgMemoryPage
+{
+    duint base = 0;
+    duint size = 0;
+    duint moduleBase = 0;
+    ElfBugRegionType type = ElfBugRegionType_Private;
+    ElfBugParty party = ElfBugParty_User;
+    QString perms;
+    QString section;
+    QString info;
+};
+
+Q_DECLARE_METATYPE(QVector<DbgMemoryPage>)
+
+class QTimer;
 
 class DbgAdapter : public QObject, public MemoryProvider
 {
@@ -73,19 +90,28 @@ public:
     void setThreadName(pid_t tid, const QString & name);
     bool setThreadSuspended(pid_t tid, bool suspended);
     void setAllThreadsSuspended(bool suspended);
+    // Call from the GUI thread; while visible, the map also refreshes on a timer when the target runs.
+    void setMemoryMapVisible(bool visible);
+    void setMemoryMapSectionView(bool sectionView);
+    void scheduleMemoryMapRefresh();
+    // Writes [start, start + size) to path on the worker, unreadable pages as zeros like Windows savedata; the outcome goes to the log.
+    void dumpMemory(duint start, duint size, const QString & path);
+    void cancelDump();
 
 signals:
     void processCreated(duint entryPoint);
     void processExited(int exitCode);
     void processDetached();
-    // Raised alongside processExited and processDetached; views that only
-    // care that the session is over can subscribe to this one signal.
+    // Raised alongside processExited and processDetached; MainWindow resets the debuggee views on it.
     void sessionEnded();
     void registersUpdated(const REGDUMP & regs);
     void logMessage(const QString & msg);
     void errorMessage(const QString & error);
     void stopped(duint rip, const QString & reason);
     void threadsUpdated(const QVector<DbgThreadInfo> & threads, pid_t currentTid);
+    void memoryMapUpdated(const QVector<DbgMemoryPage> & pages);
+    void dumpProgress(duint done, duint total);
+    void dumpFinished();
 
 private:
     static BPXTYPE queryBreakpoint(duint addr);
@@ -110,13 +136,30 @@ private:
     [[nodiscard]] REGDUMP readRegisters() const;
     void emitStoppedState(const QString & reason);
     void emitStoppedState(const QString & reason, const REGDUMP & dump);
+
+    // A worker refresh that runs only while its view is visible, and is queued at most once.
+    struct RefreshGate
+    {
+        std::atomic<bool> visible{false};
+        std::atomic<bool> queued{false};
+    };
+
+    void scheduleRefresh(RefreshGate & gate, void (DbgAdapter::*refresh)());
     void refreshThreads();
     void scheduleThreadRefresh();
 
+    struct DumpJob;
+
+    void refreshMemoryMap();
+    void dumpChunk(const std::shared_ptr<DumpJob> & job);
+
     ElfBugDebugger* mDebugger = nullptr;
     duint mEntryPoint = 0;
-    std::atomic<bool> mThreadRefreshQueued{false};
-    std::atomic<bool> mThreadListVisible{false};
+    RefreshGate mThreadListGate;
+    RefreshGate mMemoryMapGate;
+    std::atomic<bool> mMemoryMapSectionView{false};
+    QTimer* mRunningMemoryMapTimer = nullptr;
+    std::atomic<bool> mDumpCancelled{false};
     QThread mWorkerThread;
     QObject mWorker;
 

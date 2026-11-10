@@ -21,6 +21,20 @@
 
 namespace ElfBug::test
 {
+    // Polls pred every millisecond until it holds or the timeout passes.
+    template<typename Pred>
+    [[nodiscard]] bool WaitUntil(Pred pred, const std::chrono::milliseconds timeout = std::chrono::seconds(5))
+    {
+        const auto start = std::chrono::steady_clock::now();
+        while(std::chrono::steady_clock::now() - start < timeout)
+        {
+            if(pred())
+                return true;
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        return false;
+    }
+
     // R or S, so a zombie does not count.
     [[nodiscard]] inline bool ProcessIsRunning(const pid_t pid)
     {
@@ -35,14 +49,7 @@ namespace ElfBug::test
     [[nodiscard]] inline bool WaitForProcessRunning(const pid_t pid,
             const std::chrono::milliseconds timeout = std::chrono::seconds(5))
     {
-        const auto start = std::chrono::steady_clock::now();
-        while(std::chrono::steady_clock::now() - start < timeout)
-        {
-            if(ProcessIsRunning(pid))
-                return true;
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        return false;
+        return WaitUntil([pid] { return ProcessIsRunning(pid); }, timeout);
     }
 
     // A dying process reads R briefly, so sample again after a settle.
@@ -179,16 +186,11 @@ namespace ElfBug::test
         {
             const pid_t pid = mProcess ? mProcess->pid : 0;
             if(pid <= 0) return false;
-            const auto start = std::chrono::steady_clock::now();
-            while(std::chrono::steady_clock::now() - start < timeout)
+            return WaitUntil([&]
             {
                 throwIfAnyInternalError();
-
-                if(ProcessIsRunning(pid))
-                    return true;
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
-            return false;
+                return ProcessIsRunning(pid);
+            }, timeout);
         }
 
         Event WaitFor(EventType type, std::chrono::milliseconds timeout = std::chrono::seconds(5))
@@ -404,12 +406,44 @@ namespace ElfBug::test
         std::atomic<pid_t> mTargetPid{0};
     };
 
+    // Kills and reaps a child the debugger has let go of, even when an assertion fails first.
+    class ProcessReaper
+    {
+    public:
+        explicit ProcessReaper(const pid_t pid)
+            : mPid(pid)
+        {
+        }
+
+        ~ProcessReaper()
+        {
+            kill(mPid, SIGKILL);
+            int status = 0;
+            waitpid(mPid, &status, __WALL);
+        }
+
+        ProcessReaper(const ProcessReaper &) = delete;
+        ProcessReaper & operator=(const ProcessReaper &) = delete;
+
+    private:
+        pid_t mPid;
+    };
+
     // Forked by the test, so yama ptrace_scope=1 allows attaching.
     class UntracedProcess
     {
     public:
-        explicit UntracedProcess(const std::string & path)
+        // extraEnvironment entries ("NAME=value") take precedence over the inherited ones.
+        explicit UntracedProcess(const std::string & path, std::vector<std::string> extraEnvironment = {})
         {
+            for(char** entry = environ; *entry; ++entry)
+                extraEnvironment.emplace_back(*entry);
+            std::vector<char*> envp;
+            for(auto & entry : extraEnvironment)
+                envp.push_back(entry.data());
+            envp.push_back(nullptr);
+            char* const argv[] = {const_cast<char*>(path.c_str()), nullptr};
+
             const pid_t parent = getpid();
             pid = fork();
             if(pid == 0)
@@ -417,7 +451,7 @@ namespace ElfBug::test
                 prctl(PR_SET_PDEATHSIG, SIGKILL);
                 if(getppid() != parent)
                     _exit(127);
-                execl(path.c_str(), path.c_str(), nullptr);
+                execve(path.c_str(), argv, envp.data());
                 _exit(127);
             }
         }
@@ -448,15 +482,11 @@ namespace ElfBug::test
         [[nodiscard]] bool WaitForThreads(const std::size_t count,
                                           const std::chrono::milliseconds timeout = std::chrono::seconds(5)) const
         {
-            const auto start = std::chrono::steady_clock::now();
-            while(std::chrono::steady_clock::now() - start < timeout)
+            return WaitUntil([&]
             {
                 std::vector<pid_t> tids;
-                if(ReadTaskList(pid, tids) && tids.size() >= count)
-                    return true;
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            }
-            return false;
+                return ReadTaskList(pid, tids) && tids.size() >= count;
+            }, timeout);
         }
 
         pid_t pid = -1;

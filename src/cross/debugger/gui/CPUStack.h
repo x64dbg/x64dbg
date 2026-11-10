@@ -24,6 +24,7 @@ public:
 
 signals:
     void followDisasmRequested(duint addr);
+    void followMemoryMapRequested(duint addr);
 
 public slots:
     void stackDumpAt(duint addr, duint csp);
@@ -33,6 +34,7 @@ public slots:
     void gotoCspSlot();
     void gotoCbpSlot();
     void followDisasmSlot();
+    void followMemoryMapSlot();
     void freezeStackSlot();
     void realignSlot() const;
     void modifySlot();
@@ -69,6 +71,7 @@ private:
     QAction* mGotoCspAction = nullptr;
     QAction* mGotoCbpAction = nullptr;
     QAction* mFollowDisasmAction = nullptr;
+    QAction* mFollowMemoryMapAction = nullptr;
     QAction* mFreezeAction = nullptr;
     QAction* mRealignAction = nullptr;
     QAction* mModifyAction = nullptr;

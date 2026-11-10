@@ -15,6 +15,7 @@
 
 class QThread;
 class CPUStack;
+class MemoryMapView;
 class ThreadView;
 
 class MainWindow : public QMainWindow
@@ -57,16 +58,19 @@ private:
     void setupTabs();
     QWidget* createCpuTab();
     void clearDebuggeeViews();
+    void showInCpu(QWidget* focus);
 
     DbgAdapter* mProvider = nullptr;
     QThread* mDebugThread = nullptr;
     QThread* mRetiringThread = nullptr;
     std::shared_ptr<std::atomic<bool>> mSessionCancelled;
     QTabWidget* mTabWidget = nullptr;
+    QWidget* mCpuTab = nullptr;
     Disassembly* mDisassembly = nullptr;
     HexDump* mHexDump = nullptr;
     CPUStack* mStack = nullptr;
     ThreadView* mThreadView = nullptr;
+    MemoryMapView* mMemoryMapView = nullptr;
     RegistersView* mRegisters = nullptr;
     QTextBrowser* mLog = nullptr;
     bool mSessionStartPending = false;

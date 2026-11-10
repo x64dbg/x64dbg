@@ -123,6 +123,10 @@ link-libraries = [
     "x64dbg::widgets",
     "::ElfBug",
 ]
+# The Windows GUI's icon theme, so DIcon resolves the same icons as on Windows.
+cmake-after = """
+target_sources(debugger PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../gui/resource.qrc)
+"""
 
 [subdir."ElfBug/tests"]
 condition = "elfbug-tests"

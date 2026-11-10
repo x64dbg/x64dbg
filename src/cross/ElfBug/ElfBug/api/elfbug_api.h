@@ -40,6 +40,9 @@ typedef struct
 #define ELFBUG_PROC_NAME_SIZE 16
 #define ELFBUG_PATH_SIZE 512
 #define ELFBUG_CMDLINE_SIZE 512
+#define ELFBUG_PERMS_SIZE 5
+#define ELFBUG_SECTION_NAME_SIZE 64
+#define ELFBUG_MEMORY_INFO_SIZE 256
 
 typedef struct
 {
@@ -69,6 +72,32 @@ typedef struct
     char path[ELFBUG_PATH_SIZE];            // readlink /proc/<pid>/exe
     char command_line[ELFBUG_CMDLINE_SIZE]; // /proc/<pid>/cmdline, NULs replaced by spaces
 } ElfBugProcessInfo;
+
+typedef enum
+{
+    ElfBugRegionType_Private = 0,
+    ElfBugRegionType_Image = 1,
+    ElfBugRegionType_Mapped = 2,
+} ElfBugRegionType;
+
+typedef enum
+{
+    ElfBugParty_User = 0,
+    ElfBugParty_System = 1,
+} ElfBugParty;
+
+// One memory map row, in the Windows MEMPAGE shape.
+typedef struct
+{
+    uint64_t base;
+    uint64_t size;
+    uint64_t module_base; // 0 outside modules
+    ElfBugRegionType type;
+    ElfBugParty party;
+    char perms[ELFBUG_PERMS_SIZE]; // "r-xp"
+    char section[ELFBUG_SECTION_NAME_SIZE]; // largest section in the row, empty outside module images
+    char info[ELFBUG_MEMORY_INFO_SIZE];
+} ElfBugMemoryPage;
 
 typedef void (*ElfBugCbCreateProcess)(pid_t pid, uint64_t entryPoint, void* userdata);
 typedef void (*ElfBugCbExitProcess)(int exitCode, void* userdata);
@@ -140,8 +169,9 @@ ELFBUG_EXPORT bool ElfBugMemWrite(const ElfBugDebugger* dbg, uint64_t addr, cons
 ELFBUG_EXPORT bool ElfBugMemFindBaseAddr(const ElfBugDebugger* dbg, uint64_t addr, uint64_t* base, uint64_t* size);
 ELFBUG_EXPORT bool ElfBugMemIsCodePtr(const ElfBugDebugger* dbg, uint64_t addr);
 ELFBUG_EXPORT bool ElfBugMemIsValidPtr(const ElfBugDebugger* dbg, uint64_t addr);
-// Parses /proc/<pid>/maps now if it changed since the last stop, instead of on the next lookup.
-ELFBUG_EXPORT void ElfBugLoadMemoryMap(const ElfBugDebugger* dbg);
+// Returns the total and fills up to capacity; sectionView splits module regions per section.
+ELFBUG_EXPORT uint32_t ElfBugGetMemoryMap(const ElfBugDebugger* dbg, bool sectionView,
+        ElfBugMemoryPage* pages, uint32_t capacity);
 
 ELFBUG_EXPORT bool ElfBugModBaseFromAddr(const ElfBugDebugger* dbg, uint64_t addr, uint64_t* base);
 
@@ -177,37 +207,48 @@ inline std::vector<ElfBugProcessInfo> ElfBugProcessList()
     return list;
 }
 
-inline std::vector<ElfBugThreadInfo> ElfBugThreadList(const ElfBugDebugger* dbg)
+// Calls fill(items, capacity), which returns the total, with a bigger buffer until everything fits.
+template<typename T, typename Fill>
+std::vector<T> ElfBugCollect(uint32_t capacity, Fill fill)
 {
-    std::vector<ElfBugThreadInfo> list;
-    for(uint32_t capacity = ElfBugGetThreadList(dbg, nullptr, 0); capacity != 0;)
+    std::vector<T> items;
+    while(capacity != 0)
     {
-        list.resize(capacity);
-        const uint32_t total = ElfBugGetThreadList(dbg, list.data(), capacity);
+        items.resize(capacity);
+        const uint32_t total = fill(items.data(), capacity);
         if(total <= capacity)
         {
-            list.resize(total);
+            items.resize(total);
             break;
         }
         capacity = total;
     }
-    return list;
+    return items;
+}
+
+inline std::vector<ElfBugThreadInfo> ElfBugThreadList(const ElfBugDebugger* dbg)
+{
+    return ElfBugCollect<ElfBugThreadInfo>(ElfBugGetThreadList(dbg, nullptr, 0), [dbg](ElfBugThreadInfo* list, const uint32_t capacity)
+    {
+        return ElfBugGetThreadList(dbg, list, capacity);
+    });
 }
 
 inline std::vector<pid_t> ElfBugThreadIds(const ElfBugDebugger* dbg)
 {
-    std::vector<pid_t> tids;
-    for(uint32_t capacity = ElfBugGetThreadIds(dbg, nullptr, 0); capacity != 0;)
+    return ElfBugCollect<pid_t>(ElfBugGetThreadIds(dbg, nullptr, 0), [dbg](pid_t* tids, const uint32_t capacity)
     {
-        tids.resize(capacity);
-        const uint32_t total = ElfBugGetThreadIds(dbg, tids.data(), capacity);
-        if(total <= capacity)
-        {
-            tids.resize(total);
-            break;
-        }
-        capacity = total;
-    }
-    return tids;
+        return ElfBugGetThreadIds(dbg, tids, capacity);
+    });
+}
+
+inline std::vector<ElfBugMemoryPage> ElfBugMemoryMap(const ElfBugDebugger* dbg, const bool sectionView)
+{
+    // Counting builds every row anyway, so start from a guess instead of asking for the count first.
+    constexpr uint32_t kFirstGuess = 1024;
+    return ElfBugCollect<ElfBugMemoryPage>(kFirstGuess, [dbg, sectionView](ElfBugMemoryPage* pages, const uint32_t capacity)
+    {
+        return ElfBugGetMemoryMap(dbg, sectionView, pages, capacity);
+    });
 }
 #endif
