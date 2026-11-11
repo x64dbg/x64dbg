@@ -1,0 +1,36 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+alloc 1000
+$page = $result
+testassert $page != 0, "allocated a dedicated rollback memory page"
+bp breakpoint_refactor:Unloaded
+bphws breakpoint_refactor:Unloaded, x, 1
+bpm $page, 1, a
+bpdll winmm.dll, l
+SetExceptionBPX E0424242
+SetExceptionBPX E0424243
+DisableExceptionBPX E0424243
+dbsave
+bprfaileddbreset dbload, breakpoint_refactor:Unloaded, $page
+bprstate sw, breakpoint_refactor:Unloaded, 1, 1, list
+bprstate sw, breakpoint_refactor:Unloaded, 1, 1, ref
+bprstate hw, breakpoint_refactor:Unloaded, 1, 1, list
+bprstate hw, breakpoint_refactor:Unloaded, 1, 1, ref
+bprstate mem, $page, 1, 1, list
+bprstate mem, $page, 1, 1, ref
+bprstate dll, winmm.dll, 1, 1, list
+bprstate dll, winmm.dll, 1, 1, ref
+bprstate ex, E0424242, 1, 1, list
+bprstate ex, E0424242, 1, 1, ref
+bprstate ex, E0424243, 0, 0, list
+bprstate ex, E0424243, 0, 0, ref
+run
+bprdllhits winmm.dll, 1
+bprcommand 1, "dbload"
+bprstate sw, breakpoint_refactor:Unloaded, 1, 1, ref
+bprstate hw, breakpoint_refactor:Unloaded, 1, 1, ref
+bprstate mem, $page, 1, 1, ref
+bprstate dll, winmm.dll, 1, 1, ref
+bprstate ex, E0424242, 1, 1, ref
+dbclear
+free $page

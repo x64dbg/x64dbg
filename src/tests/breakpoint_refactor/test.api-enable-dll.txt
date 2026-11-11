@@ -1,0 +1,5 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+bpdll pr3994-api.dll, l
+bprapienable dll, pr3994-api.dll
+bcdll pr3994-api.dll

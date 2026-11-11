@@ -1,0 +1,17 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+alloc 1000
+$page = $result
+testassert $page != 0, "allocated a dedicated memory-breakpoint page"
+bpmrange $page, 1000, w
+bpmd $page
+free $page
+testassert $result == 1, "freed the memory-breakpoint page"
+testassert mem.valid($page) == 0, "breakpoint allocation is no longer mapped"
+// The engine must reject enabling the freed range. The database must not
+// claim it was enabled before the engine accepted the breakpoint.
+bprcommand 0, bpme
+bprstate mem, $page, 0, 0, list
+bprstate mem, $page, 0, 0, ref
+bpmc
+bprabsent mem, $page

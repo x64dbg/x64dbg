@@ -85,6 +85,9 @@ jobs:
           name: build-${{ matrix.arch }}
           path: bin
 
+      - name: Test Attach/Pause Driver
+        run: py -m unittest discover -s src/tests/attach_pause -p test_driver.py -q
+
       - name: Run Tests
         shell: pwsh
         run: |

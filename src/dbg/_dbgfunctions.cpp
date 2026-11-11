@@ -557,7 +557,10 @@ void dbgfunctionsinit()
     };
     _dbgfunctions.BpSetFieldNumber = [](const BP_REF * ref, BP_FIELD field, duint value)
     {
-        return BpSetFieldNumber(*ref, field, value);
+        if(!ref || !DbgIsDebugging() || !BpSetFieldNumber(*ref, field, value))
+            return false;
+        DebugUpdateBreakpointsViewAsync();
+        return true;
     };
     _dbgfunctions.BpGetFieldText = [](const BP_REF * ref, BP_FIELD field, CBSTRING callback, void* userdata)
     {
@@ -565,7 +568,10 @@ void dbgfunctionsinit()
     };
     _dbgfunctions.BpSetFieldText = [](const BP_REF * ref, BP_FIELD field, const char* value)
     {
-        return BpSetFieldText(*ref, field, value);
+        if(!ref || !value || !DbgIsDebugging() || !BpSetFieldText(*ref, field, value))
+            return false;
+        DebugUpdateBreakpointsViewAsync();
+        return true;
     };
     _dbgfunctions.CommandEscape = [](const char* argument, char* result, size_t resultSize)
     {
@@ -583,6 +589,23 @@ void dbgfunctionsinit()
         if(name.empty())
             return false;
         strncpy_s(modname, MAX_MODULE_SIZE, name.c_str(), _TRUNCATE);
+        return true;
+    };
+    _dbgfunctions.BpCreate = [](const BP_CREATEINFO * info, BP_REF * ref)
+    {
+        if(!ref)
+            return false;
+        *ref = { bp_none };
+        if(!info || !BpCreate(*info, *ref))
+            return false;
+        DebugUpdateBreakpointsViewAsync();
+        return true;
+    };
+    _dbgfunctions.BpRemove = [](const BP_REF * ref)
+    {
+        if(!ref || !BpRemove(*ref))
+            return false;
+        DebugUpdateBreakpointsViewAsync();
         return true;
     };
 }

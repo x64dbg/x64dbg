@@ -1,0 +1,5 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+bphws breakpoint_refactor:Unloaded
+bprapienable hw, breakpoint_refactor:Unloaded
+bphwc breakpoint_refactor:Unloaded

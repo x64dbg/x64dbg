@@ -1,0 +1,5 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+SetExceptionBPX E0424242
+bprapienable ex, E0424242
+DeleteExceptionBPX E0424242

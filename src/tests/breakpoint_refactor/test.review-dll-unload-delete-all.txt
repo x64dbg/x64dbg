@@ -1,0 +1,17 @@
+settingset Events, EntryBreakpoint, 0
+settingset Events, DllEntrySystem, 0
+settingset Events, DllEntry, 0
+init tests/breakpoint_refactor.exe
+bp breakpoint_refactor:Unloaded
+bp breakpoint_refactor:Reloaded
+bpdll winmm.dll, a
+// Load event, automatic DllMain breakpoint, unload event, marker.
+run
+run
+run
+run
+testassert cip == breakpoint_refactor:Unloaded, "stopped after winmm unload"
+bcdll
+bprabsent dll, winmm.dll
+run
+testassert cip == breakpoint_refactor:Reloaded, "deleted DLL registration must not fire on reload"

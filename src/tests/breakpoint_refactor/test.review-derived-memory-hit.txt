@@ -1,0 +1,15 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+alloc 3000
+mov $page, $result
+mov [breakpoint_refactor:MemoryPage], $page
+bp breakpoint_refactor:MemoryReady
+bp breakpoint_refactor:MemoryAccessed
+run
+testassert cip == breakpoint_refactor:MemoryReady, "stopped before accessing the dedicated allocation"
+bprderivedmemory hit, $page
+run
+testassert cip == breakpoint_refactor:MemoryAccessed, "derived breakpoint must evaluate its false condition and fast-resume"
+bprderivedhits $page
+bpmc $page
+free $page

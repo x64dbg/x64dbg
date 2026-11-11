@@ -1,0 +1,21 @@
+settingset Events, EntryBreakpoint, 0
+settingset Events, DllEntrySystem, 0
+settingset Events, DllEntry, 0
+init tests/breakpoint_refactor.exe
+bp breakpoint_refactor:Unloaded
+bpdll winmm.dll, l
+run
+mov $rva, winmm.timeGetTime-mod.base(winmm.dll)
+bcdll winmm.dll
+// Continue through the automatic DllMain breakpoint, then the unloaded marker.
+run
+run
+testassert cip == breakpoint_refactor:Unloaded, "module is unloaded before API creation"
+bc breakpoint_refactor:Unloaded
+bprapipending sw, winmm.dll, $rva
+dbsave
+dbload
+run
+testassert cip == winmm.timeGetTime, "pending software breakpoint is installed on module reload"
+bprstate sw, winmm.timeGetTime, 1, 1, ref
+bc winmm.timeGetTime

@@ -1,0 +1,20 @@
+settingset Events, EntryBreakpoint, 0
+settingset Events, DllEntrySystem, 0
+settingset Events, DllEntry, 0
+init tests/breakpoint_refactor.exe
+bp breakpoint_refactor:Unloaded
+bpdll winmm.dll, l
+dbsave tests/breakpoint_refactor/import.json
+bcdll winmm.dll
+bprabsent dll, winmm.dll
+dbload tests/breakpoint_refactor/import.json
+bprstate dll, winmm.dll, 1, 1, list
+bprstate dll, winmm.dll, 1, 1, ref
+run
+bprdllhits winmm.dll, 1
+// Continue past the automatic one-shot DllMain breakpoint.
+run
+run
+testassert cip == breakpoint_refactor:Unloaded, "load-only import must not fire on unload"
+bcdll winmm.dll
+bprabsent dll, winmm.dll

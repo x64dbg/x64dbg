@@ -11,6 +11,7 @@ You can install plugins by copying the \*.dp32 (x32 plugins) or \*.dp64 (x64 plu
    
    basics
    notes
+   breakpoints
    API/index
    Structures/index
    Callbacks/index

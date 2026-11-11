@@ -1,0 +1,4 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+bph breakpoint_refactor:BreakpointTarget, x, 1
+bprremoval hw, breakpoint_refactor:BreakpointTarget, "bphc breakpoint_refactor:BreakpointTarget", 1

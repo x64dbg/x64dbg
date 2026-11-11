@@ -1,0 +1,17 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+alloc 3000
+mov $page, $result
+mov [breakpoint_refactor:MemoryPage], $page
+bp breakpoint_refactor:MemoryReady
+bp breakpoint_refactor:MemoryAccessed
+run
+testassert cip == breakpoint_refactor:MemoryReady, "stopped before accessing the dedicated allocation"
+mov $derivedhit, 0
+bprderivedmemory single, $page
+run
+testassert $derivedhit == 1, "derived single-shot breakpoint must execute its configured command"
+bprabsent mem, $page
+run
+testassert cip == breakpoint_refactor:MemoryAccessed, "continued after consuming the derived single-shot breakpoint"
+free $page

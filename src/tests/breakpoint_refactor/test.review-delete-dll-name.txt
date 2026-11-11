@@ -1,0 +1,8 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+bpdll winmm.dll, l, 1
+bprdllarm "bcdll winmm.dll"
+run
+bprdllcheck
+bpc
+run

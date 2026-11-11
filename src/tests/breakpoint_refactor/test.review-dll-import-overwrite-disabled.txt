@@ -1,0 +1,19 @@
+settingset Events, EntryBreakpoint, 0
+settingset Events, DllEntrySystem, 0
+settingset Events, DllEntry, 0
+init tests/breakpoint_refactor.exe
+bp breakpoint_refactor:Unloaded
+bpdll winmm.dll, u
+bpddll winmm.dll
+dbsave tests/breakpoint_refactor/import.json
+bpedll winmm.dll
+// Import the disabled snapshot over an installed registration.
+dbload tests/breakpoint_refactor/import.json
+bprstate dll, winmm.dll, 0, 0, list
+bprstate dll, winmm.dll, 0, 0, ref
+run
+testassert cip == breakpoint_refactor:Unloaded, "disabled import must remove the previous DLL registration"
+bprdllhits winmm.dll, 0
+bpedll winmm.dll
+bprstate dll, winmm.dll, 1, 1, list
+bcdll winmm.dll
