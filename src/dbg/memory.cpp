@@ -12,6 +12,7 @@
 #include "module.h"
 #include "taskthread.h"
 #include "value.h"
+#include <mutex>
 
 #define PAGE_SHIFT              (12)
 //#define PAGE_SIZE               (4096)
@@ -525,9 +526,23 @@ void MemUpdateMap()
     }
 }
 
+static std::mutex memUpdateMapMutex;
+static bool memUpdateMapEnabled = false;
+
+bool MemSetAutoUpdateEnabled(bool enabled)
+{
+    // Disabling waits for an in-flight scan while the engine process still
+    // exists. Queued wakeups must not enter the engine after process teardown.
+    std::lock_guard<std::mutex> lock(memUpdateMapMutex);
+    auto previous = memUpdateMapEnabled;
+    memUpdateMapEnabled = enabled;
+    return previous;
+}
+
 static DWORD WINAPI memUpdateMap()
 {
-    if(DbgIsDebugging())
+    std::lock_guard<std::mutex> lock(memUpdateMapMutex);
+    if(memUpdateMapEnabled && DbgIsDebugging())
     {
         MemUpdateMap();
         GuiUpdateMemoryView();

@@ -1,0 +1,30 @@
+; EXPECT_FALLBACK: retain an enabled user memory breakpoint instead of replacing it.
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init "@TARGET@"
+bp trace_party:Ready
+run
+bpc trace_party:Ready
+bp trace_party:TraceBegin
+run
+bpc trace_party:TraceBegin
+bp trace_party:Finished
+bpmrange [trace_party:gScratch], .4096, w
+varnew $hits, 0
+varnew $wrong, 0
+TraceSetStepFilter user, run
+TraceSetCommand "$hits+=1; $wrong+=(mod.party(cip)!=0)", 1
+TraceIntoConditional "cip==trace_party:TraceEnd", .50000
+testassert cip == trace_party:TraceEnd, "trace completed using the fallback"
+testassert $hits == $tracecounter && $hits > 1 && $wrong == 0, "fallback preserved trace filtering"
+testassert dword:[trace_party:gCallbacks] == 3, "all callbacks executed"
+run
+testassert ex.info(1) == [trace_party:gScratch], "the original memory breakpoint still fires"
+testassert dword:[trace_party:gScratchWritten] == 0, "write has not executed yet"
+bpmc [trace_party:gScratch]
+run
+testassert cip == trace_party:Finished, "resumed after deleting the user breakpoint"
+testassert dword:[trace_party:gScratchWritten] == 1, "real scratch write completed"
+testassert dword:[trace_party:gProtectionFailures] == 0, "original protections restored"
+bpc trace_party:Finished
+run

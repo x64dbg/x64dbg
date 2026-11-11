@@ -435,6 +435,22 @@ void TraceRecordManager::TraceExecuteRecord(const Zydis & newInstruction)
     dbgtracebrowserneedsupdate();
 }
 
+void TraceRecordManager::FilterPendingTraceRecord(int party)
+{
+    if(!rtEnabled || !rtPrevInstAvailable || party == -1
+            || ModGetParty(rtOldContext.registers.regcontext.cip) == party)
+        return;
+
+    // Starting recording (or pausing an existing recording) queues the current
+    // instruction before the trace filter is configured. It has not been
+    // written yet: do not flush an excluded instruction into the trace file.
+    rtPrevInstAvailable = false;
+    rtRecordedInstructions--;
+    rtNeedThreadId = true;
+    for(size_t i = 0; i < _countof(rtOldContextChanged); i++)
+        rtOldContextChanged[i] = true;
+}
+
 void TraceRecordManager::FlushTraceExecuteRecord()
 {
     if(!rtEnabled || !rtPrevInstAvailable)

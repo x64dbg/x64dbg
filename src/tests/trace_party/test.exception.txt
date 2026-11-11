@@ -1,0 +1,31 @@
+; A real exception breakpoint interrupts a filtered fast run; exception dispatch still works afterward.
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init "@TARGET@", "exception"
+bp trace_party:Ready
+run
+bpc trace_party:Ready
+bp trace_party:ExceptionBegin
+run
+bpc trace_party:ExceptionBegin
+bp trace_party:TraceBegin
+SetExceptionBPX E0424242, first
+TraceSetStepFilter user, run
+TraceIntoConditional "cip==trace_party:TraceEnd", .50000
+testassert ex.code() == E0424242, "exception breakpoint interrupted the trace"
+testassert dword:[trace_party:gHandled] == 0, "exception has not been dispatched yet"
+DeleteExceptionBPX E0424242
+erun
+testassert cip == trace_party:TraceBegin, "passed the exception to the debuggee handler"
+testassert dword:[trace_party:gHandled] == 1, "real exception handler executed"
+bpc trace_party:TraceBegin
+bp trace_party:Finished
+TraceSetStepFilter user, run
+TraceIntoConditional "cip==trace_party:TraceEnd", .50000
+testassert cip == trace_party:TraceEnd, "a second trace starts without stale run state"
+testassert dword:[trace_party:gCallbacks] == 3, "all callbacks in the second trace executed"
+run
+testassert cip == trace_party:Finished, "normal run resumes after exception and trace"
+testassert dword:[trace_party:gProtectionFailures] == 0, "exception cleanup restored protections"
+bpc trace_party:Finished
+run

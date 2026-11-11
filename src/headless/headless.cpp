@@ -319,6 +319,10 @@ extern "C" __declspec(dllexport) void* _gui_sendmessage(GUIMSG type, void* param
     case GUI_SET_DEBUG_STATE:
     {
         auto s = DBGSTATE(duint(param1));
+        // Keep legacy output, but distinguish immediate notifications from
+        // delayed GUI updates which can replay an earlier running/paused pair.
+        if(param2)
+            printf("[STATE-FAST] %s\n", dbgstate2str(s));
         printf("[STATE] %s\n", dbgstate2str(s));
     }
     break;
