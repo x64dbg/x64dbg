@@ -1,0 +1,7 @@
+settingset Events, EntryBreakpoint, 0
+init tests/handles_enum.exe
+bp handles_enum:HandlesReady
+run
+handlesenumassert
+stop
+testfinalize
