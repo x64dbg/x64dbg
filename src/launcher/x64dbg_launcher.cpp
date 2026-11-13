@@ -20,16 +20,16 @@
 
 namespace
 {
-struct ComRelease
-{
-    void operator()(IUnknown* object) const
+    struct ComRelease
     {
-        object->Release();
-    }
-};
+        void operator()(IUnknown* object) const
+        {
+            object->Release();
+        }
+    };
 
-template<typename T>
-using ComPtr = std::unique_ptr<T, ComRelease>;
+    template<typename T>
+    using ComPtr = std::unique_ptr<T, ComRelease>;
 }
 
 static bool FileExists(const TCHAR* file)
