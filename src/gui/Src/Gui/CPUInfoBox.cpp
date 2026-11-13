@@ -5,6 +5,15 @@
 #include "Bridge.h"
 #include "QZydis.h"
 
+static QString getValueText(duint value)
+{
+    QString valText = DbgMemIsValidReadPtr(value) ? ToPtrString(value) : ToHexString(value);
+    QString valTextSym = getSymbolicNameStr(value);
+    if(!valTextSym.contains(valText))
+        return QString("%1 %2").arg(valText, valTextSym);
+    return valTextSym;
+}
+
 CPUInfoBox::CPUInfoBox(Architecture* architecture, QWidget* parent)
     : StdTable(parent),
       mArchitecture(architecture)
@@ -208,12 +217,7 @@ void CPUInfoBox::disasmSelectionChanged(duint parVA)
         {
             bool ok;
             argMnemonic.toULongLong(&ok, 16);
-            QString valText = DbgMemIsValidReadPtr(arg.value) ? ToPtrString(arg.value) : ToHexString(arg.value);
-            auto valTextSym = getSymbolicNameStr(arg.value);
-            if(!valTextSym.contains(valText))
-                valText = QString("%1 %2").arg(valText, valTextSym);
-            else
-                valText = valTextSym;
+            QString valText = getValueText(arg.value);
             argMnemonic = !ok ? QString("%1]=[%2").arg(argMnemonic).arg(valText) : valText;
             QString sizeName = "";
             bool knownsize = true;
@@ -281,7 +285,7 @@ void CPUInfoBox::disasmSelectionChanged(duint parVA)
             }
             else if(knownsize && inst.vectorElementType[i] == Zydis::VETDefault) // MOVSD/MOVSS instruction
             {
-                QString addrText = getSymbolicNameStr(arg.memvalue);
+                QString addrText = getValueText(arg.memvalue);
                 setInfoLine(j, sizeName + "[" + argMnemonic + "]=" + addrText);
             }
             else
@@ -303,7 +307,7 @@ void CPUInfoBox::disasmSelectionChanged(duint parVA)
         }
         else
         {
-            QString valText = getSymbolicNameStr(arg.value);
+            QString valText = getValueText(arg.value);
             QString mnemonic(arg.mnemonic);
             bool ok;
             mnemonic.toULongLong(&ok, 16);
