@@ -13,6 +13,8 @@ public:
 
 protected:
     QString paintContent(QPainter* painter, duint row, duint col, int x, int y, int w, int h) override;
+    QColor getCellColor(duint row, duint col) override;
+    void updateColors() override;
 
 protected slots:
     void updateCallStackSlot();
@@ -49,6 +51,7 @@ private:
 
     HighlightMode mHighlightMode;
     QString mHighlightKey;
+    QColor mUserColor;
 
     MenuBuilder* mMenuBuilder;
     CommonActions* mCommonActions;

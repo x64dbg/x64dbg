@@ -612,6 +612,7 @@ void AppearanceDialog::colorInfoListInit()
     colorInfoListAppend(tr("Patch located in relocation region"), "PatchRelocatedByteHighlightColor", "");
     colorInfoListAppend(tr("Current Thread"), "ThreadCurrentColor", "ThreadCurrentBackgroundColor");
     colorInfoListAppend(tr("Call Stack Highlight"), "CallStackHighlightColor", "CallStackHighlightBackgroundColor");
+    colorInfoListAppend(tr("Call Stack User Frame"), "CallStackUserColor", "");
     colorInfoListAppend(tr("Watch (When Watchdog is Triggered)"), "WatchTriggeredColor", "WatchTriggeredBackgroundColor");
     colorInfoListAppend(tr("Memory Map Breakpoint"), "MemoryMapBreakpointColor", "MemoryMapBreakpointBackgroundColor");
     colorInfoListAppend(tr("Memory Map %1").arg(ArchValue(tr("EIP"), tr("RIP"))), "MemoryMapCipColor", "MemoryMapCipBackgroundColor");
