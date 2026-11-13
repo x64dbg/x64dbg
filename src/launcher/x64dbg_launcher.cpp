@@ -1,20 +1,36 @@
 #define UNICODE
+#define _UNICODE
 #include <stdio.h>
+#include <tchar.h>
 #include <windows.h>
 #include <string>
 #include <queue>
+#include <memory>
 #include <shlwapi.h>
 #include <objbase.h>
 #pragma warning(push)
 #pragma warning(disable:4091)
 #include <shlobj.h>
 #pragma warning(pop)
-#include <atlcomcli.h>
 
 #include "../exe/resource.h"
 #include "../exe/LoadResourceString.h"
 #include "../exe/icon.h"
 #include "../dbg/GetPeArch.h"
+
+namespace
+{
+struct ComRelease
+{
+    void operator()(IUnknown* object) const
+    {
+        object->Release();
+    }
+};
+
+template<typename T>
+using ComPtr = std::unique_ptr<T, ComRelease>;
+}
 
 static bool FileExists(const TCHAR* file)
 {
@@ -111,24 +127,25 @@ static HRESULT AddDesktopShortcut(TCHAR* szPathOfFile, const TCHAR* szNameOfLink
     _tcscpy_s(pathFile, szPathOfFile);
     PathRemoveFileSpec(pathFile);
 
-    CComPtr<IShellLink> psl;
-    hRes = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
+    IShellLink* shellLink = nullptr;
+    hRes = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&shellLink));
     if(SUCCEEDED(hRes))
     {
-        CComPtr<IPersistFile> ppf;
+        ComPtr<IShellLink> psl(shellLink);
 
         psl->SetPath(szPathOfFile);
         psl->SetDescription(LoadResString(IDS_SHORTCUTDESC));
         psl->SetIconLocation(szPathOfFile, 0);
         psl->SetWorkingDirectory(pathFile);
 
-        hRes = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
+        IPersistFile* persistFile = nullptr;
+        hRes = psl->QueryInterface(IID_PPV_ARGS(&persistFile));
         if(SUCCEEDED(hRes))
         {
+            ComPtr<IPersistFile> ppf(persistFile);
             TCHAR path[MAX_PATH + 1] = TEXT("");
             _tmakepath_s(path, nullptr, GetDesktopPath(), szNameOfLink, TEXT("lnk"));
-            CComBSTR tmp(path);
-            hRes = ppf->Save(tmp, TRUE);
+            hRes = ppf->Save(path, TRUE);
         }
     }
     return hRes;
@@ -220,18 +237,19 @@ static bool ResolveShortcut(const TCHAR* szShortcutPath, TCHAR* szResolvedPath, 
         return false;
 
     //Get a pointer to the IShellLink interface.
-    CComPtr<IShellLink> psl;
-    auto hres = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID*)&psl);
+    IShellLink* shellLink = nullptr;
+    auto hres = CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&shellLink));
     if(SUCCEEDED(hres))
     {
+        ComPtr<IShellLink> psl(shellLink);
         //Get a pointer to the IPersistFile interface.
-        CComPtr<IPersistFile> ppf;
-        hres = psl->QueryInterface(IID_IPersistFile, (LPVOID*)&ppf);
+        IPersistFile* persistFile = nullptr;
+        hres = psl->QueryInterface(IID_PPV_ARGS(&persistFile));
         if(SUCCEEDED(hres))
         {
+            ComPtr<IPersistFile> ppf(persistFile);
             //Load the shortcut.
-            CComBSTR tmp(szShortcutPath);
-            hres = ppf->Load(tmp, STGM_READ);
+            hres = ppf->Load(szShortcutPath, STGM_READ);
 
             if(SUCCEEDED(hres))
             {
@@ -668,7 +686,16 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     InitCommonControls();
 
     //Initialize COM
-    CoInitialize(nullptr);
+    struct ComInitialization
+    {
+        const HRESULT result = CoInitialize(nullptr);
+
+        ~ComInitialization()
+        {
+            if(SUCCEEDED(result))
+                CoUninitialize();
+        }
+    } comInitialization;
 
     //Get INI file path
     if(!GetModuleFileName(nullptr, szLauncherPath, MAX_PATH))
