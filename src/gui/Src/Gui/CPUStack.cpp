@@ -234,6 +234,12 @@ void CPUStack::setupContextMenu()
     //Go to Next Frame
     gotoMenu->addAction(makeShortcutAction(DIcon("next"), tr("Go to Next Stack Frame"), SLOT(gotoNextFrameSlot()), "ActionGotoNextStackFrame"));
 
+    //Go to Next User Frame
+    gotoMenu->addAction(makeShortcutAction(DIcon("markasuser"), tr("Go to Next User Stack Frame"), SLOT(gotoNextUserFrameSlot()), "ActionGotoNextUserStackFrame"));
+
+    //Go to Next System Frame
+    gotoMenu->addAction(makeShortcutAction(DIcon("markassystem"), tr("Go to Next System Stack Frame"), SLOT(gotoNextSystemFrameSlot()), "ActionGotoNextSystemStackFrame"));
+
     //Go to Previous
     gotoMenu->addAction(makeShortcutAction(DIcon("previous"), tr("Go to Previous"), SLOT(gotoPreviousSlot()), "ActionGotoPrevious"), [this](QMenu*)
     {
@@ -696,6 +702,32 @@ void CPUStack::gotoNextFrameSlot()
     int frame = getCurrentFrame(mCallstack, rvaToVa(getInitialSelection()));
     if(frame != -1 && frame + 1 < int(mCallstack.size()))
         DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[frame + 1].addr)));
+}
+
+void CPUStack::gotoNextPartyFrame(bool user)
+{
+    duint va = rvaToVa(getInitialSelection());
+    int frame = getCurrentFrame(mCallstack, va);
+    if(frame == -1 && (mCallstack.empty() || va >= mCallstack[0].addr))
+        return;
+    for(size_t i = frame + 1; i + 1 < mCallstack.size(); i++)
+    {
+        if((mCallstack[i].party == mod_user) == user)
+        {
+            DbgCmdExec(QString("sdump \"%1\"").arg(ToPtrString(mCallstack[i].addr)));
+            return;
+        }
+    }
+}
+
+void CPUStack::gotoNextUserFrameSlot()
+{
+    gotoNextPartyFrame(true);
+}
+
+void CPUStack::gotoNextSystemFrameSlot()
+{
+    gotoNextPartyFrame(false);
 }
 
 void CPUStack::gotoPreviousFrameSlot()

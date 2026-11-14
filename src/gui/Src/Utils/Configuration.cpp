@@ -629,6 +629,8 @@ Configuration::Configuration() : QObject(), noMoreMsgbox(false)
     defaultShortcuts.insert("ActionGotoBaseOfStackFrame", Shortcut({tr("Actions"), tr("Go to Base of Stack Frame")}));
     defaultShortcuts.insert("ActionGotoPrevStackFrame", Shortcut({tr("Actions"), tr("Go to Previous Stack Frame")}));
     defaultShortcuts.insert("ActionGotoNextStackFrame", Shortcut({tr("Actions"), tr("Go to Next Stack Frame")}));
+    defaultShortcuts.insert("ActionGotoNextUserStackFrame", Shortcut({tr("Actions"), tr("Go to Next User Stack Frame")}));
+    defaultShortcuts.insert("ActionGotoNextSystemStackFrame", Shortcut({tr("Actions"), tr("Go to Next System Stack Frame")}));
     defaultShortcuts.insert("ActionGotoPreviousReference", Shortcut({tr("Actions"), tr("Go to Previous Reference")}, "Ctrl+K"));
     defaultShortcuts.insert("ActionGotoNextReference", Shortcut({tr("Actions"), tr("Go to Next Reference")}, "Ctrl+L"));
     defaultShortcuts.insert("ActionModifyValue", Shortcut({tr("Actions"), tr("Modify value")}, "Space"));

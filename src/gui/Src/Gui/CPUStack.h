@@ -35,6 +35,8 @@ public slots:
     void gotoExpressionSlot();
     void gotoPreviousFrameSlot();
     void gotoNextFrameSlot();
+    void gotoNextUserFrameSlot();
+    void gotoNextSystemFrameSlot();
     void gotoFrameBaseSlot();
     void selectionGet(SELECTIONDATA* selection);
     void selectionSet(const SELECTIONDATA* selection);
@@ -84,4 +86,5 @@ private:
 
     std::vector<CPUCallStack> mCallstack;
     static int getCurrentFrame(const std::vector<CPUStack::CPUCallStack> & mCallstack, duint va);
+    void gotoNextPartyFrame(bool user);
 };
