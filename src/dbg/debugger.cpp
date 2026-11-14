@@ -639,6 +639,16 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
     duint csp = GetContextDataEx(hActiveThread, UE_CSP);
     if(stack)
         DebugUpdateStack(csp, csp);
+    bool sehChanged = false;
+#ifndef _WIN64
+    static duint cacheSehHead = 0;
+    NT_TIB tib;
+    if(ThreadGetTib((duint)GetTEBLocation(hActiveThread), &tib) && (duint)tib.ExceptionList != cacheSehHead)
+    {
+        cacheSehHead = (duint)tib.ExceptionList;
+        sehChanged = true;
+    }
+#endif //_WIN64
     static volatile duint cacheCsp = 0;
     if(csp != cacheCsp)
     {
@@ -650,6 +660,8 @@ void DebugUpdateGui(duint disasm_addr, bool stack)
         updateCallStackAsync(csp);
         updateSEHChainAsync();
     }
+    else if(sehChanged)
+        updateSEHChainAsync();
     DebugUpdateTitle(disasm_addr, true);
     GuiUpdateRegisterView();
     GuiUpdateDisassemblyView();
