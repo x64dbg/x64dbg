@@ -1,0 +1,7 @@
+settingset Events, EntryBreakpoint, 0
+init tests/trace_status.exe
+testassert istracing() == 0, "not tracing before the trace starts"
+TraceIntoConditional "istracing() == 1", .50
+testassert $tracecounter < .50, "IsTracing reported the trace as active while tracing"
+testassert istracing() == 0, "not tracing after the trace stopped"
+run
