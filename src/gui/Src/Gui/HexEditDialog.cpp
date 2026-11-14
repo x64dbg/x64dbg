@@ -108,7 +108,7 @@ void HexEditDialog::showKeepSize(bool show)
     ui->chkKeepSize->setVisible(show);
 }
 
-void HexEditDialog::setupFindMode(duint rangeStart, duint rangeEnd, duint selectionStart, bool startFromSelection)
+void HexEditDialog::setupFindMode(duint rangeStart, duint rangeEnd, duint selectionStart, bool startFromSelection, duint selectionEnd)
 {
     mRangeStart = rangeStart;
     mRangeEnd = rangeEnd;
@@ -119,9 +119,16 @@ void HexEditDialog::setupFindMode(duint rangeStart, duint rangeEnd, duint select
     ui->chkFromSelection->setVisible(hasSelection);
     ui->chkFromSelection->setChecked(hasSelection ? startFromSelection : false);
 
+    // The selection has its own end, so only the selection is searched
+    if(selectionEnd)
+    {
+        ui->chkFromSelection->setText(tr("Search &Selection Only"));
+        ui->chkFromSelection->setToolTip(tr("When enabled, only the selected range is searched; when disabled, the entire range is searched."));
+    }
+
     // Generate range texts using ToPtrString
     mSearchRangeFromStart = tr("Search range: %1 - %2").arg(ToPtrString(rangeStart)).arg(ToPtrString(rangeEnd));
-    mSearchRangeFromSelection = tr("Search range: %1 - %2").arg(ToPtrString(selectionStart)).arg(ToPtrString(rangeEnd));
+    mSearchRangeFromSelection = tr("Search range: %1 - %2").arg(ToPtrString(selectionStart)).arg(ToPtrString(selectionEnd ? selectionEnd : rangeEnd));
 
     // Update the label
     updateSearchRangeLabel();

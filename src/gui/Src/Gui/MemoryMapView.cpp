@@ -696,9 +696,10 @@ void MemoryMapView::findPatternSlot()
 
     QList<duint> selection = getSelection();
     duint selectionStart = selection.isEmpty() ? scopeStart : getCellUserdata(selection.first(), ColAddress);
+    duint selectionEnd = selection.isEmpty() ? scopeEnd : getCellUserdata(selection.last(), ColAddress) + getCellUserdata(selection.last(), ColSize);
 
     // Setup find mode with range information
-    hexEdit.setupFindMode(scopeStart, scopeEnd, selectionStart, BridgeSettingGetUint("Gui", "MemoryMapEntireBlock", 0) == 0);
+    hexEdit.setupFindMode(scopeStart, scopeEnd, selectionStart, BridgeSettingGetUint("Gui", "MemoryMapEntireBlock", 0) == 0, selectionEnd);
 
     if(hexEdit.exec() != QDialog::Accepted)
         return;
