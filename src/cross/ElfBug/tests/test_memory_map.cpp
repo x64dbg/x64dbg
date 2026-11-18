@@ -163,6 +163,20 @@ namespace
         UntracedProcess mProcess;
         ElfImageCache mImages;
     };
+
+    // mem_map_target maps libmm_data.so by hand, counting on libmm_data.ld's layout: linear segments at pages 0 and 3, four pages in all.
+    void RequireDataLibraryLayout()
+    {
+        const auto image = ParseBytes(ReadFileBytes(FIXTURE("libmm_data.so")), ElfImage::Parts::Headers);
+        REQUIRE(image.has_value());
+        const auto & segments = image->Segments();
+        REQUIRE(segments.size() == 2);
+        REQUIRE(segments[0].vaddr == 0);
+        REQUIRE(segments[0].offset == 0);
+        REQUIRE(segments[1].vaddr == 3 * 4096);
+        REQUIRE(segments[1].offset == 3 * 4096);
+        REQUIRE(PageCeil(image->End()) == 4 * 4096);
+    }
 }
 
 CATCH_REGISTER_LISTENER(GlibcTunablesCleared)
@@ -527,6 +541,7 @@ TEST_CASE("MemoryMap does not mistake a whole-file mapping of an ELF for a modul
 
 TEST_CASE("MemoryMap does not mistake a whole-file mapping split away from its segments for a module", "[memorymap]")
 {
+    RequireDataLibraryLayout();
     MapTarget target;
     target.Request("mm_split_data", 1);
     MemoryMap map;
@@ -541,12 +556,7 @@ TEST_CASE("MemoryMap does not mistake a whole-file mapping split away from its s
 
 TEST_CASE("MemoryMap does not mistake a linearly placed ELF mapped whole with PROT_EXEC for a module", "[memorymap]")
 {
-    const auto image = ParseBytes(ReadFileBytes(FIXTURE("libmm_data.so")), ElfImage::Parts::Headers);
-    REQUIRE(image.has_value());
-    REQUIRE(image->Segments().size() >= 2);
-    for(const auto & segment : image->Segments())
-        REQUIRE(segment.vaddr == segment.offset);
-
+    RequireDataLibraryLayout();
     MapTarget target;
     target.Request("mm_split_data", 4);
     MemoryMap map;
@@ -614,6 +624,7 @@ TEST_CASE("MemoryMap ends a module's anonymous memory at the first gap", "[memor
 
 TEST_CASE("MemoryMap ends a module at its image when the file's next pages share its last mapping", "[memorymap]")
 {
+    RequireDataLibraryLayout();
     MapTarget target;
     target.Request("mm_merge_data", 1);
     const uintptr_t base = target.Published<uintptr_t>("mm_merged");
