@@ -18,7 +18,7 @@ public:
     ~HexEditDialog();
 
     void showKeepSize(bool show);
-    void setupFindMode(duint rangeStart, duint rangeEnd, duint selectionStart, bool startFromSelection);
+    void setupFindMode(duint rangeStart, duint rangeEnd, duint selectionStart, bool startFromSelection, duint selectionEnd = 0);
     void isDataCopiable(bool copyDataEnabled);
     void updateCodepage();
 
