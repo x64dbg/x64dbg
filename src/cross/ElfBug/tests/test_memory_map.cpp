@@ -33,6 +33,7 @@ namespace
     struct Mapping
     {
         uint64_t start = 0;
+        uint64_t offset = 0;
         std::string perms;
     };
 
@@ -45,7 +46,7 @@ namespace
         {
             const auto entry = procfs::ParseMapsLine(line);
             if(entry && entry->path.ends_with(suffix))
-                mappings.push_back({entry->start, std::string(entry->perms)});
+                mappings.push_back({entry->start, entry->offset, std::string(entry->perms)});
         }
         return mappings;
     }
@@ -476,13 +477,38 @@ TEST_CASE("MemoryMap leaves anonymous memory mapped into a loader hole out of th
     REQUIRE(map.FindModule(hole->start) == nullptr);
 }
 
+TEST_CASE("MemoryMap leaves the library's own file mapped into its loader hole at another offset out of it", "[memorymap]")
+{
+    MapTarget target;
+    target.Request("mm_load_gap", 1);
+    const auto mappings = MappingsOf(target.Pid(), "/libmm_gap.so");
+    REQUIRE_FALSE(mappings.empty());
+    const auto hole = std::find_if(mappings.begin(), mappings.end(), [](const Mapping & mapping)
+    {
+        return mapping.perms == "---p";
+    });
+    REQUIRE(hole != mappings.end());
+    REQUIRE(WriteTraceeValue(target.Pid(), target.Symbol("mm_gap_fill"), static_cast<uintptr_t>(hole->start)));
+    target.Request("mm_fill_gap", 4);
+    MemoryMap map;
+    target.Build(map);
+
+    const MemoryModule & gap = RequireModule(map, mappings.front().start);
+    const MemoryRegion & filled = RequireRegion(map, hole->start);
+    REQUIRE(filled.file == gap.file);
+    REQUIRE(filled.offset == 0);
+    REQUIRE(map.FindModule(hole->start) == nullptr);
+    REQUIRE(RequireRegion(map, hole->start + 4096).perms == "---p");
+    REQUIRE(map.FindModule(hole->start + 4096) == &gap);
+}
+
 TEST_CASE("MemoryMap does not mistake a whole-file mapping of an ELF for a module", "[memorymap]")
 {
     MapTarget target;
     MemoryMap map;
     target.Build(map);
 
-    for(const char* name : {"mm_self_image", "mm_self_exec"})
+    for(const char* name : {"mm_self_image", "mm_self_exec", "mm_static_exec"})
     {
         CAPTURE(name);
         const uintptr_t address = target.Published<uintptr_t>(name);
@@ -497,6 +523,39 @@ TEST_CASE("MemoryMap does not mistake a whole-file mapping of an ELF for a modul
         return page.base == page.moduleBase && page.info.starts_with("mem_map_target");
     });
     REQUIRE(headers == 1);
+}
+
+TEST_CASE("MemoryMap does not mistake a whole-file mapping split away from its segments for a module", "[memorymap]")
+{
+    MapTarget target;
+    target.Request("mm_split_data", 1);
+    MemoryMap map;
+    target.Build(map);
+
+    const uintptr_t whole = target.Published<uintptr_t>("mm_split_image");
+    REQUIRE(RequireRegion(map, whole).end == whole + 4096);
+    REQUIRE(RequireRegion(map, whole + 4096).perms == "rw-p");
+    REQUIRE(map.FindModule(whole) == nullptr);
+    REQUIRE(map.FindModule(whole + 2 * 4096) == nullptr);
+}
+
+TEST_CASE("MemoryMap does not mistake a linearly placed ELF mapped whole with PROT_EXEC for a module", "[memorymap]")
+{
+    const auto image = ParseBytes(ReadFileBytes(FIXTURE("libmm_data.so")), ElfImage::Parts::Headers);
+    REQUIRE(image.has_value());
+    REQUIRE(image->Segments().size() >= 2);
+    for(const auto & segment : image->Segments())
+        REQUIRE(segment.vaddr == segment.offset);
+
+    MapTarget target;
+    target.Request("mm_split_data", 4);
+    MemoryMap map;
+    target.Build(map);
+
+    const uintptr_t whole = target.Published<uintptr_t>("mm_split_image");
+    REQUIRE(RequireRegion(map, whole).perms == "r-xp");
+    REQUIRE(map.FindModule(whole) == nullptr);
+    REQUIRE(RequireRegion(map, whole).type == RegionType::Mapped);
 }
 
 TEST_CASE("MemoryMap takes anonymous memory only for an image's code", "[memorymap]")
@@ -553,6 +612,27 @@ TEST_CASE("MemoryMap ends a module's anonymous memory at the first gap", "[memor
     REQUIRE(RequireRegion(map, target.BssEnd()).type == RegionType::Private);
 }
 
+TEST_CASE("MemoryMap ends a module at its image when the file's next pages share its last mapping", "[memorymap]")
+{
+    MapTarget target;
+    target.Request("mm_merge_data", 1);
+    const uintptr_t base = target.Published<uintptr_t>("mm_merged");
+    REQUIRE(MappingEnd(target.Pid(), base + 3 * 4096) == base + 5 * 4096);
+    MemoryMap map;
+    target.Build(map);
+
+    const MemoryModule & data = RequireModule(map, base);
+    REQUIRE(data.base == base);
+    REQUIRE(PageCeil(data.bias + data.headers->End()) == base + 4 * 4096);
+    REQUIRE(map.FindModule(base + 3 * 4096) == &data);
+    const MemoryRegion & past = RequireRegion(map, base + 4 * 4096);
+    REQUIRE(past.start == base + 4 * 4096);
+    REQUIRE(past.file == data.file);
+    REQUIRE(past.offset == 4 * 4096);
+    REQUIRE(past.type == RegionType::Mapped);
+    REQUIRE(map.FindModule(base + 4 * 4096) == nullptr);
+}
+
 TEST_CASE("MemoryMap leaves memory the kernel merged onto a .bss tail out of the module", "[memorymap]")
 {
     MapTarget target({"MM_EXTEND_BSS=1"});
@@ -585,7 +665,7 @@ TEST_CASE("MemoryMap joins a .bss tail that glibc names with decorate_maps", "[m
     REQUIRE(RequireRegion(map, tail).type == RegionType::Image);
 }
 
-TEST_CASE("MemoryMap detects a library with no executable mapping", "[memorymap]")
+TEST_CASE("MemoryMap detects a linearly placed library with no executable mapping", "[memorymap]")
 {
     MapTarget target;
     target.Request("mm_load_data", 1);
@@ -594,10 +674,11 @@ TEST_CASE("MemoryMap detects a library with no executable mapping", "[memorymap]
 
     const auto mappings = MappingsOf(target.Pid(), "/libmm_data.so");
     REQUIRE(mappings.size() >= 2);
-    REQUIRE(std::none_of(mappings.begin(), mappings.end(), [](const Mapping & mapping)
+    for(const auto & mapping : mappings)
     {
-        return mapping.perms[2] == 'x';
-    }));
+        REQUIRE(mapping.perms[2] != 'x');
+        REQUIRE(mapping.start - mappings.front().start == mapping.offset);
+    }
 
     const MemoryModule & data = RequireModule(map, mappings.front().start);
     REQUIRE(data.base == mappings.front().start);

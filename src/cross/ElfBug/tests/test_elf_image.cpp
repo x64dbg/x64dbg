@@ -116,6 +116,39 @@ namespace
         WriteAt(bytes, namesOffset, names);
     }
 
+    // Appends count allocated sections that all share one new name of length bytes.
+    void AddSectionsSharingName(std::vector<std::byte> & bytes, const uint32_t count, const size_t length)
+    {
+        const auto header = ReadAt<Elf64_Ehdr>(bytes, 0);
+        const size_t namesOffset = SectionHeaderOffset(bytes, header.e_shstrndx);
+        auto names = ReadAt<Elf64_Shdr>(bytes, namesOffset);
+        const auto name = static_cast<uint32_t>(names.sh_size);
+        names.sh_offset = AppendTable(bytes, names.sh_offset, names.sh_size, names.sh_size + length + 1);
+        std::memset(bytes.data() + names.sh_offset + name, 'x', length);
+        names.sh_size += length + 1;
+        WriteAt(bytes, namesOffset, names);
+
+        const auto existing = static_cast<uint32_t>(header.e_shnum != 0 ? header.e_shnum : ReadAt<Elf64_Shdr>(bytes, header.e_shoff).sh_size);
+        PadSectionHeaders(bytes, existing + count);
+        for(uint32_t i = existing; i < existing + count; ++i)
+        {
+            Elf64_Shdr section{};
+            section.sh_name = name;
+            section.sh_type = SHT_PROGBITS;
+            section.sh_flags = SHF_ALLOC;
+            section.sh_addr = 0x1000 + i;
+            section.sh_size = 1;
+            WriteAt(bytes, SectionHeaderOffset(bytes, i), section);
+        }
+    }
+
+    std::shared_ptr<const ElfImage> HeadersOf(const std::string & path)
+    {
+        auto image = ParseBytes(ReadFileBytes(path), ElfImage::Parts::Headers);
+        REQUIRE(image.has_value());
+        return std::make_shared<const ElfImage>(std::move(*image));
+    }
+
     ImageRequest RequestForOwnExecutable()
     {
         const std::string exe = procfs::ReadLink("/proc/self/exe");
@@ -124,7 +157,7 @@ namespace
         {
             const auto entry = procfs::ParseMapsLine(line);
             if(entry && entry->path == exe && entry->offset == 0)
-                return {entry->file, exe, entry->start, entry->end};
+                return {entry->file, exe, entry->start, entry->end, false, HeadersOf(exe)};
         }
         FAIL("the test binary is not mapped");
         return {};
@@ -160,11 +193,9 @@ TEST_CASE("ElfImage parses only the headers when asked to", "[elf]")
     REQUIRE(headers.has_value());
     REQUIRE(headers->Sections().empty());
     REQUIRE(headers->Segments().size() == full->Segments().size());
-    const auto headerBytes = headers->HeaderBytes();
-    const auto fullBytes = full->HeaderBytes();
-    REQUIRE(std::equal(headerBytes.begin(), headerBytes.end(), fullBytes.begin(), fullBytes.end()));
+    REQUIRE(headers->SameHeaders(*full));
     const auto ehdr = ReadAt<Elf64_Ehdr>(bytes, 0);
-    REQUIRE(headerBytes.size() == sizeof(Elf64_Ehdr) + ehdr.e_phnum * sizeof(Elf64_Phdr));
+    REQUIRE(headers->HeaderBytes().size() == sizeof(Elf64_Ehdr) + ehdr.e_phnum * sizeof(Elf64_Phdr));
 }
 
 TEST_CASE("ElfImage computes the load bias from where a segment is mapped", "[elf]")
@@ -182,6 +213,17 @@ TEST_CASE("ElfImage computes the load bias from where a segment is mapped", "[el
     constexpr uint64_t bias = 0x555555554000;
     REQUIRE(image->LoadBias(bias + PageFloor(code->vaddr), PageFloor(code->offset)) == bias);
     REQUIRE_FALSE(image->LoadBias(bias, 0x7fff0000).has_value());
+}
+
+TEST_CASE("ElfImage places an ET_EXEC image only at its link address", "[elf]")
+{
+    const auto image = ParseBytes(ReadFileBytes(FIXTURE("static_target")));
+    REQUIRE(image.has_value());
+    const ElfSegment & first = image->Segments().front();
+    REQUIRE(first.offset == 0);
+
+    REQUIRE(image->LoadBias(PageFloor(first.vaddr), 0) == uint64_t{0});
+    REQUIRE_FALSE(image->LoadBias(PageFloor(first.vaddr) + 0x10000, 0).has_value());
 }
 
 TEST_CASE("ElfImage refuses headers it cannot trust", "[elf]")
@@ -246,6 +288,19 @@ TEST_CASE("ElfImage keeps only the segments when the section data is bad", "[elf
         PadNameTable(bytes, 1024 * 1024 + 1);
         const auto over = ParseBytes(bytes);
         REQUIRE(over.has_value());
+        REQUIRE(over->Sections().empty());
+    }
+    SECTION("up to 1MB of section names is kept in total, however many sections share one name")
+    {
+        auto shared = bytes;
+        AddSectionsSharingName(shared, 8, 64 * 1024);
+        const auto within = ParseBytes(shared);
+        REQUIRE(within.has_value());
+        REQUIRE(HasSection(*within, ".text"));
+        AddSectionsSharingName(bytes, 32, 64 * 1024);
+        const auto over = ParseBytes(bytes);
+        REQUIRE(over.has_value());
+        REQUIRE_FALSE(over->Segments().empty());
         REQUIRE(over->Sections().empty());
     }
     SECTION("a section count past the end keeps the segments only")
@@ -318,6 +373,39 @@ TEST_CASE("ElfImageCache parses a mapped file once and shares it", "[elf]")
     REQUIRE(cache.Load(getpid(), cache.Generation(), {request})[0].image == first[0].image);
     cache.Clear();
     REQUIRE(cache.Load(getpid(), cache.Generation(), {request})[0].image != first[0].image);
+}
+
+TEST_CASE("ElfImageCache opens a file again when its device and inode come back with other headers", "[elf]")
+{
+    ElfImageCache cache;
+    ImageRequest request{{0, 99}, FIXTURE("hello_elfbug"), 0, 0};
+    request.headers = HeadersOf(request.path);
+    const auto first = cache.Load(getpid(), cache.Generation(), {request});
+    REQUIRE(first.size() == 1);
+    REQUIRE(first[0].image);
+    REQUIRE(cache.Load(getpid(), cache.Generation(), {request})[0].image == first[0].image);
+
+    request.path = FIXTURE("segfault");
+    request.headers = HeadersOf(request.path);
+    const auto second = cache.Load(getpid(), cache.Generation(), {request});
+    REQUIRE(second.size() == 1);
+    REQUIRE(second[0].image);
+    REQUIRE(second[0].image->SameHeaders(*request.headers));
+}
+
+TEST_CASE("ElfImageCache tries a file it could not open again on the next request", "[elf]")
+{
+    namespace fs = std::filesystem;
+    const fs::path dir = fs::path(ELFBUG_TESTS_TARGETS_DIR) / ("elfbug_retry_" + std::to_string(getpid()));
+    const RemoveOnExit cleanup{dir};
+    fs::create_directories(dir);
+    const fs::path library = dir / "libretry.so";
+    const ImageRequest request{{0, 98}, library.string(), 0, 0};
+
+    ElfImageCache cache;
+    REQUIRE_FALSE(cache.Load(getpid(), cache.Generation(), {request})[0].image);
+    fs::copy_file(FIXTURE("hello_elfbug"), library);
+    REQUIRE(cache.Load(getpid(), cache.Generation(), {request})[0].image);
 }
 
 TEST_CASE("ElfImageCache discards a load made with a stale generation", "[elf]")

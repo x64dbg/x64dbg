@@ -50,6 +50,10 @@ extern "C"
     volatile int mm_load_gap = 0;
     volatile uintptr_t mm_self_image = 0;
     volatile uintptr_t mm_self_exec = 0;
+    volatile uintptr_t mm_static_exec = 0;
+    // 1 maps libmm_data.so whole, split by an mprotect away from its segment starts (2 done, 3 failed); 4 maps it whole with PROT_EXEC (5 done, 6 failed).
+    volatile int mm_split_data = 0;
+    volatile uintptr_t mm_split_image = 0;
     // 1 loads libmm_data.so (2 done, 3 failed).
     volatile int mm_load_data = 0;
     // 1 loads another libmm_data.so into a new namespace with dlmopen (2 done, 3 failed).
@@ -63,9 +67,12 @@ extern "C"
     // 1 maps kMemMapManyRegions pages at mm_many, each its own region (2 done, 3 failed).
     volatile int mm_split_many = 0;
     volatile uintptr_t mm_many = 0;
-    // 1 maps an anonymous page at mm_gap_fill (2 done, 3 failed).
+    // 1 maps an anonymous page at mm_gap_fill (2 done, 3 failed); 4 maps libmm_gap.so's first page there instead (5 done, 6 failed).
     volatile int mm_fill_gap = 0;
     volatile uintptr_t mm_gap_fill = 0;
+    // 1 maps libmm_data.so's segments by hand at mm_merged, the last running on a page past the image, as when the kernel merges the file's next mapping into it (2 done, 3 failed).
+    volatile int mm_merge_data = 0;
+    volatile uintptr_t mm_merged = 0;
     extern char _end[];
 
     void mm_code()
@@ -83,24 +90,18 @@ namespace
         return exe.substr(0, exe.find_last_of('/') + 1);
     }
 
-    // Maps this executable whole from offset 0, the way a symbolizer reads an ELF.
-    void mapOwnImage()
+    // Maps a file whole from offset 0, the way a symbolizer reads an ELF, and returns where, or 0.
+    uintptr_t mapWhole(const std::string & path, const int protection)
     {
-        const int fd = open("/proc/self/exe", O_RDONLY | O_CLOEXEC);
+        const int fd = open(path.c_str(), O_RDONLY | O_CLOEXEC);
         if(fd == -1)
-            return;
+            return 0;
         struct stat info = {};
+        void* mapping = MAP_FAILED;
         if(fstat(fd, &info) == 0 && info.st_size > 0)
-        {
-            const auto size = static_cast<size_t>(info.st_size);
-            void* image = mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
-            void* exec = mmap(nullptr, size, PROT_READ | PROT_EXEC, MAP_PRIVATE, fd, 0);
-            if(image != MAP_FAILED)
-                mm_self_image = reinterpret_cast<uintptr_t>(image);
-            if(exec != MAP_FAILED)
-                mm_self_exec = reinterpret_cast<uintptr_t>(exec);
-        }
+            mapping = mmap(nullptr, static_cast<size_t>(info.st_size), protection, MAP_PRIVATE, fd, 0);
         close(fd);
+        return mapping == MAP_FAILED ? 0 : reinterpret_cast<uintptr_t>(mapping);
     }
 
     // This executable's header page at both ends of anonymous memory: it looks loaded, but no data segment is there.
@@ -183,13 +184,15 @@ int main()
     mm_named = reinterpret_cast<uintptr_t>(named);
     mm_named_ok = prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, named, 4096, "elfbug") == 0;
     mapLongPathFile();
-    mapOwnImage();
+    const std::string dir = ownDirectory();
+    mm_self_image = mapWhole("/proc/self/exe", PROT_READ);
+    mm_self_exec = mapWhole("/proc/self/exe", PROT_READ | PROT_EXEC);
+    mm_static_exec = mapWhole(dir + "static_target", PROT_READ | PROT_EXEC);
     mapPhantomImage();
 
     pthread_t thread;
     pthread_create(&thread, nullptr, worker, nullptr);
 
-    const std::string dir = ownDirectory();
     const std::string gapLibrary = dir + "libmm_gap.so";
     const std::string dataLibrary = dir + "libmm_data.so";
     void* gap = nullptr;
@@ -209,6 +212,18 @@ int main()
             mm_load_data = dlopen(dataLibrary.c_str(), RTLD_NOW) ? 2 : 3;
         if(mm_isolate_data == 1)
             mm_isolate_data = dlmopen(LM_ID_NEWLM, dataLibrary.c_str(), RTLD_NOW) ? 2 : 3;
+        if(mm_split_data == 1)
+        {
+            const uintptr_t whole = mapWhole(dataLibrary, PROT_READ);
+            const bool split = whole && mprotect(reinterpret_cast<void*>(whole + 4096), 4096, PROT_READ | PROT_WRITE) == 0;
+            mm_split_image = split ? whole : 0;
+            mm_split_data = split ? 2 : 3;
+        }
+        else if(mm_split_data == 4)
+        {
+            mm_split_image = mapWhole(dataLibrary, PROT_READ | PROT_EXEC);
+            mm_split_data = mm_split_image ? 5 : 6;
+        }
         if(mm_punch_bss == 1)
         {
             const auto middle = reinterpret_cast<uintptr_t>(mm_bss + sizeof(mm_bss) / 2) & ~uintptr_t{0xfff};
@@ -227,6 +242,27 @@ int main()
         {
             void* wanted = reinterpret_cast<void*>(mm_gap_fill);
             mm_fill_gap = mmap(wanted, 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0) == wanted ? 2 : 3;
+        }
+        else if(mm_fill_gap == 4)
+        {
+            void* wanted = reinterpret_cast<void*>(mm_gap_fill);
+            const int fd = open(gapLibrary.c_str(), O_RDONLY | O_CLOEXEC);
+            const bool placed = fd != -1 && mmap(wanted, 4096, PROT_READ, MAP_PRIVATE | MAP_FIXED, fd, 0) == wanted;
+            if(fd != -1)
+                close(fd);
+            mm_fill_gap = placed ? 5 : 6;
+        }
+        if(mm_merge_data == 1)
+        {
+            auto* span = static_cast<char*>(mmap(nullptr, 6 * 4096, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
+            const int fd = open(dataLibrary.c_str(), O_RDONLY | O_CLOEXEC);
+            const bool mapped = span != MAP_FAILED && fd != -1 &&
+                                mmap(span, 3 * 4096, PROT_READ, MAP_PRIVATE | MAP_FIXED, fd, 0) == span &&
+                                mmap(span + 3 * 4096, 2 * 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_FIXED, fd, 3 * 4096) == span + 3 * 4096;
+            if(fd != -1)
+                close(fd);
+            mm_merged = mapped ? reinterpret_cast<uintptr_t>(span) : 0;
+            mm_merge_data = mapped ? 2 : 3;
         }
         nap(1000000);
     }

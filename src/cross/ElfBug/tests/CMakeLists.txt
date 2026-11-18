@@ -1076,11 +1076,14 @@ target_compile_options(elfbug_fixture_mm_data PRIVATE
 
 target_link_options(elfbug_fixture_mm_data PRIVATE
 	-nostdlib
+	"-Wl,-T,${CMAKE_CURRENT_SOURCE_DIR}/targets/libmm_data.ld"
 )
 
 set_target_properties(elfbug_fixture_mm_data PROPERTIES
 	OUTPUT_NAME
 		mm_data
+	LINK_DEPENDS
+		"${CMAKE_CURRENT_SOURCE_DIR}/targets/libmm_data.ld"
 	LIBRARY_OUTPUT_DIRECTORY
 		"${CMAKE_BINARY_DIR}/tests/targets"
 )

@@ -66,6 +66,8 @@ private:
     duint mRip = 0;
     duint mSelectionStart = 0;
     duint mSelectionCount = 0;
+    // Selected rows above the anchor, so a selection made upward is restored the same way.
+    duint mSelectionAbove = 0;
     SortData mSelectionSort;
     bool mSelectPending = false;
     QMenu* mContextMenu = nullptr;

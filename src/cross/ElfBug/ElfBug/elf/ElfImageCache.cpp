@@ -47,6 +47,12 @@ namespace ElfBug
             return image ? std::make_shared<const ElfImage>(std::move(*image)) : nullptr;
         }
 
+        bool holdsInode(const int fd, const ImageId & file)
+        {
+            struct stat info = {};
+            return fstat(fd, &info) == 0 && info.st_ino == file.ino;
+        }
+
         ResolvedImage openImage(const pid_t pid, const ImageRequest & request, bool & mapFilesDenied)
         {
             ResolvedImage result{request.file};
@@ -56,10 +62,15 @@ namespace ElfBug
                 char name[64];
                 std::snprintf(name, sizeof(name), "map_files/%" PRIx64 "-%" PRIx64, request.start, request.end);
                 fd = open(procfs::Path(pid, name).c_str(), kOpenFlags);
-                if(fd != -1)
+                if(fd == -1)
+                    mapFilesDenied = errno == EPERM;
+                else if(holdsInode(fd, request.file))
                     result.exact = true;
                 else
-                    mapFilesDenied = errno == EPERM || errno == EACCES;
+                {
+                    close(fd);
+                    fd = -1;
+                }
             }
             if(fd == -1 && request.mainProgram)
                 fd = open(procfs::Path(pid, "exe").c_str(), kOpenFlags);
@@ -77,6 +88,11 @@ namespace ElfBug
             }
             return result;
         }
+
+        bool matches(const ElfImage & image, const ImageRequest & request)
+        {
+            return request.headers && image.SameHeaders(*request.headers);
+        }
     }
 
     std::vector<ResolvedImage> ElfImageCache::Load(const pid_t pid, const uint64_t generation, const std::vector<ImageRequest> & requests)
@@ -88,19 +104,22 @@ namespace ElfBug
             std::unique_lock lock(mMutex);
             if(generation != mGeneration)
                 return {};
-            auto found = mImages.find(request.file);
-            if(found == mImages.end())
+            const auto found = mImages.find(request.file);
+            if(found != mImages.end() && matches(*found->second.image, request))
             {
-                bool mapFilesDenied = mMapFilesDenied;
-                lock.unlock();
-                ResolvedImage image = openImage(pid, request, mapFilesDenied);
-                lock.lock();
-                if(generation != mGeneration)
-                    return {};
-                mMapFilesDenied |= mapFilesDenied;
-                found = mImages.emplace(request.file, std::move(image)).first;
+                results.push_back(found->second);
+                continue;
             }
-            results.push_back(found->second);
+            bool mapFilesDenied = mMapFilesDenied;
+            lock.unlock();
+            ResolvedImage image = openImage(pid, request, mapFilesDenied);
+            lock.lock();
+            if(generation != mGeneration)
+                return {};
+            mMapFilesDenied |= mapFilesDenied;
+            if(image.image && matches(*image.image, request))
+                mImages.insert_or_assign(request.file, image);
+            results.push_back(std::move(image));
         }
         return results;
     }

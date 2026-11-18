@@ -10,6 +10,7 @@ namespace ElfBug
         constexpr size_t kMaxProgramHeaders = 1024;
         constexpr uint64_t kMaxSectionTable = 4 * 1024 * 1024;
         constexpr uint64_t kMaxNameTable = 1024 * 1024;
+        constexpr size_t kMaxNameBytes = 1024 * 1024;
 
         std::vector<ElfSection> readSections(const ElfReader & read, const Elf64_Ehdr & header)
         {
@@ -43,6 +44,7 @@ namespace ElfBug
                 return {};
 
             std::vector<ElfSection> sections;
+            size_t nameBytes = 0;
             for(const auto & section : headers)
             {
                 if(!(section.sh_flags & SHF_ALLOC) || section.sh_size == 0)
@@ -56,7 +58,12 @@ namespace ElfBug
                 // lld's .relro_padding only pads RELRO out to a page.
                 if(section.sh_type == SHT_NOBITS && std::strcmp(name, ".relro_padding") == 0)
                     continue;
-                sections.push_back({name, section.sh_addr, section.sh_size});
+                const size_t room = std::min(kMaxNameBytes - nameBytes, table.size() - section.sh_name - 1);
+                const auto* nameEnd = static_cast<const char*>(std::memchr(name, '\0', room + 1));
+                if(!nameEnd)
+                    return {};
+                nameBytes += static_cast<size_t>(nameEnd - name);
+                sections.push_back({std::string(name, nameEnd), section.sh_addr, section.sh_size});
             }
             std::sort(sections.begin(), sections.end(), [](const ElfSection & a, const ElfSection & b)
             {
@@ -83,6 +90,7 @@ namespace ElfBug
             return std::nullopt;
 
         ElfImage image;
+        image.mType = header.e_type;
         const auto* headerBytes = reinterpret_cast<const std::byte*>(&header);
         const auto* programBytes = reinterpret_cast<const std::byte*>(programs.data());
         image.mHeaderBytes.assign(headerBytes, headerBytes + sizeof(header));
@@ -105,8 +113,12 @@ namespace ElfBug
     {
         for(const auto & segment : mSegments)
         {
-            if(PageFloor(segment.offset) == mappingOffset)
-                return mappingStart - PageFloor(segment.vaddr);
+            if(PageFloor(segment.offset) != mappingOffset)
+                continue;
+            const uint64_t bias = mappingStart - PageFloor(segment.vaddr);
+            if(mType == ET_EXEC && bias != 0)
+                return std::nullopt;
+            return bias;
         }
         return std::nullopt;
     }

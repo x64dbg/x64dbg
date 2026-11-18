@@ -20,18 +20,17 @@ namespace ElfBug
         uint64_t end = 0;
         // The main program, so /proc/<pid>/exe can open it without root.
         bool mainProgram = false;
+        std::shared_ptr<const ElfImage> headers;
     };
 
     struct ResolvedImage
     {
         ImageId file;
         std::shared_ptr<const ElfImage> image;
-        // Opened through map_files: the mapped inode itself, so no validation is needed.
+        // Opened through map_files and still the mapped inode, so no validation is needed.
         bool exact = false;
     };
 
-    // Each file is parsed once per session, with no lock held so Clear never waits on file I/O.
-    // A Load started before the last Clear returns nothing.
     class ElfImageCache
     {
     public:
@@ -43,6 +42,7 @@ namespace ElfBug
         mutable std::mutex mMutex;
         std::map<ImageId, ResolvedImage> mImages;
         uint64_t mGeneration = 0;
+        // Set by EPERM, the capability check that refuses every mapping; EACCES is about one file.
         bool mMapFilesDenied = false;
     };
 }

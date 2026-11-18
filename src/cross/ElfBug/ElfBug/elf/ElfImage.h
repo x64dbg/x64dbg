@@ -58,10 +58,12 @@ namespace ElfBug
         [[nodiscard]] const std::vector<ElfSegment> & Segments() const { return mSegments; }
         [[nodiscard]] const std::vector<ElfSection> & Sections() const { return mSections; }
         [[nodiscard]] std::span<const std::byte> HeaderBytes() const { return mHeaderBytes; }
+        [[nodiscard]] bool SameHeaders(const ElfImage & other) const { return mHeaderBytes == other.mHeaderBytes; }
         [[nodiscard]] std::optional<uint64_t> LoadBias(uint64_t mappingStart, uint64_t mappingOffset) const;
         [[nodiscard]] uint64_t End() const;
 
     private:
+        uint16_t mType = 0;
         std::vector<ElfSegment> mSegments;
         std::vector<ElfSection> mSections;
         std::vector<std::byte> mHeaderBytes;

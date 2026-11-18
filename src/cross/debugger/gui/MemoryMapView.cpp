@@ -240,6 +240,7 @@ void MemoryMapView::selectAddress(const duint address)
 {
     mSelectionStart = address;
     mSelectionCount = 0;
+    mSelectionAbove = 0;
     mSelectPending = true;
     mAdapter->scheduleMemoryMapRefresh();
 }
@@ -356,6 +357,7 @@ void MemoryMapView::onSelectionChanged()
 {
     mSelectionStart = getCellUserdata(mSelection.firstSelectedIndex, ColAddress);
     mSelectionCount = mSelection.toIndex - mSelection.fromIndex;
+    mSelectionAbove = mSelection.firstSelectedIndex - mSelection.fromIndex;
     mSelectionSort = mSort;
 }
 
@@ -372,8 +374,8 @@ void MemoryMapView::restoreSelection()
     }
     mSelectionStart = getCellUserdata(row, ColAddress);
     mSelection.firstSelectedIndex = row;
-    mSelection.fromIndex = row;
-    mSelection.toIndex = std::min(row + mSelectionCount, getRowCount() - 1);
+    mSelection.fromIndex = row - std::min(mSelectionAbove, row);
+    mSelection.toIndex = std::min(row + (mSelectionCount - mSelectionAbove), getRowCount() - 1);
     updateViewport();
 }
 

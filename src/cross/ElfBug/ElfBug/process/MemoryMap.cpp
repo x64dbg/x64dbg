@@ -90,6 +90,23 @@ namespace ElfBug
             return file.Known() && region.file == file;
         }
 
+        // The loader maps a segment at its file offset and reserves the span between segments linearly from the base, so other offsets aren't the module's.
+        bool joinsByFile(const MemoryModule & module, const MemoryRegion & region)
+        {
+            if(!sameFile(region, module.file))
+                return false;
+            if(region.offset == region.start - module.base)
+                return true;
+            for(const auto & segment : module.headers->Segments())
+            {
+                const uint64_t start = module.bias + PageFloor(segment.vaddr);
+                const bool inside = region.start >= start && region.start < module.bias + segment.End();
+                if(inside && region.offset == PageFloor(segment.offset) + (region.start - start))
+                    return true;
+            }
+            return false;
+        }
+
         std::optional<size_t> regionIndex(const std::vector<MemoryRegion> & regions, const uint64_t address)
         {
             auto found = std::upper_bound(regions.begin(), regions.end(), address, [](const uint64_t value, const MemoryRegion & region)
@@ -104,7 +121,7 @@ namespace ElfBug
             return static_cast<size_t>(found - regions.begin());
         }
 
-        // [vdso], or the first mapping of a file the loader split into segments.
+        // [vdso], or the first mapping of a file that is executable or mapped again next, as the loader maps each segment by itself.
         bool startsModule(const std::vector<MemoryRegion> & regions, const size_t firstIndex)
         {
             const MemoryRegion & first = regions[firstIndex];
@@ -116,35 +133,34 @@ namespace ElfBug
                 return true;
             for(size_t i = firstIndex + 1; i < regions.size(); ++i)
             {
-                const MemoryRegion & region = regions[i];
-                if(isAnonymous(region))
-                    continue;
-                if(!sameFile(region, first.file))
-                    return false;
-                if(region.Executable() || region.start - first.start != region.offset)
-                    return true;
+                if(!isAnonymous(regions[i]))
+                    return sameFile(regions[i], first.file);
             }
             return false;
         }
 
         // Each PT_LOAD with file content is mapped from this file at its offset, or is code moved onto anonymous huge pages.
-        bool segmentsMapped(const std::vector<MemoryRegion> & regions, const ImageId & file, const ElfImage & image, const uint64_t bias)
+        bool segmentsMapped(const std::vector<MemoryRegion> & regions, const MemoryRegion & first, const ElfImage & image, const uint64_t bias)
         {
+            size_t withContent = 0;
+            bool mappedApart = false;
             for(const auto & segment : image.Segments())
             {
                 if(segment.filesz == 0)
                     continue;
+                ++withContent;
                 const uint64_t address = bias + PageFloor(segment.vaddr);
                 const auto index = regionIndex(regions, address);
                 if(!index)
                     return false;
                 const MemoryRegion & region = regions[*index];
+                mappedApart = mappedApart || (region.start == address && address != first.start);
                 if(isAnonymous(region) && (segment.flags & PF_X))
                     continue;
-                if(!sameFile(region, file) || region.offset + (address - region.start) != PageFloor(segment.offset))
+                if(!sameFile(region, first.file) || region.offset + (address - region.start) != PageFloor(segment.offset))
                     return false;
             }
-            return true;
+            return mappedApart || (withContent == 1 && first.Executable());
         }
 
         std::optional<MemoryModule> detectModule(const pid_t pid, const std::vector<MemoryRegion> & regions, const MemoryRegion & first)
@@ -161,7 +177,7 @@ namespace ElfBug
             const auto bias = image->LoadBias(first.start, first.offset);
             if(!bias)
                 return std::nullopt;
-            if(!vdso && !segmentsMapped(regions, first.file, *image, *bias))
+            if(!vdso && !segmentsMapped(regions, first, *image, *bias))
                 return std::nullopt;
 
             MemoryModule module;
@@ -181,6 +197,8 @@ namespace ElfBug
         {
             MemoryRegion rest = regions[index];
             rest.start = at;
+            if(rest.file.Known())
+                rest.offset += at - regions[index].start;
             regions[index].end = at;
             regions.insert(regions.begin() + static_cast<std::ptrdiff_t>(index) + 1, std::move(rest));
         }
@@ -355,7 +373,7 @@ namespace ElfBug
             module->party = partyOf(first.name, module->mainProgram);
 
             const size_t index = mModules.size();
-            const uint64_t end = module->bias + module->headers->End();
+            const uint64_t end = PageCeil(module->bias + module->headers->End());
             mRegions[i].module = index;
             mRegions[i].type = RegionType::Image;
             uint64_t joinedEnd = mRegions[i].end;
@@ -363,10 +381,10 @@ namespace ElfBug
             {
                 if(mRegions[j].module)
                     continue;
-                if(!sameFile(mRegions[j], module->file) && !joinsAnonymously(*module, mRegions[j], joinedEnd))
+                if(!joinsByFile(*module, mRegions[j]) && !joinsAnonymously(*module, mRegions[j], joinedEnd))
                     continue;
-                if(!mRegions[j].file.Known() && mRegions[j].end > PageCeil(end))
-                    splitRegion(mRegions, j, PageCeil(end));
+                if(mRegions[j].end > end)
+                    splitRegion(mRegions, j, end);
                 mRegions[j].module = index;
                 mRegions[j].type = RegionType::Image;
                 joinedEnd = mRegions[j].end;
@@ -395,7 +413,7 @@ namespace ElfBug
             });
             if(asked)
                 continue;
-            requests.push_back({module.file, module.path, module.base, FindRegion(module.base)->end, module.mainProgram});
+            requests.push_back({module.file, module.path, module.base, FindRegion(module.base)->end, module.mainProgram, module.headers});
         }
         return requests;
     }
@@ -412,9 +430,7 @@ namespace ElfBug
                 if(!resolved.image)
                     continue;
                 // A file found by path may not be the one mapped, so it has to match the headers in memory.
-                const auto fileBytes = resolved.image->HeaderBytes();
-                const auto memoryBytes = module.headers->HeaderBytes();
-                if(resolved.exact || std::equal(fileBytes.begin(), fileBytes.end(), memoryBytes.begin(), memoryBytes.end()))
+                if(resolved.exact || resolved.image->SameHeaders(*module.headers))
                     module.image = resolved.image;
             }
         }
