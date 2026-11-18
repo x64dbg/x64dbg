@@ -20,7 +20,7 @@ bool StdTable::SortBy::AsInt(const QString & a, const QString & b)
 
 bool StdTable::SortBy::AsHex(const QString & a, const QString & b)
 {
-    return a.toLongLong(0, 16) < b.toLongLong(0, 16);
+    return a.toULongLong(0, 16) < b.toULongLong(0, 16);
 }
 
 /************************************************************************************

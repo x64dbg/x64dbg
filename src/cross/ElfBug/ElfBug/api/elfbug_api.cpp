@@ -1,8 +1,11 @@
 #include <ElfBug/api/elfbug_api.h>
 #include <ElfBug/core/Debugger.h>
+#include <ElfBug/elf/ElfImageCache.h>
+#include <ElfBug/process/MemoryMap.h>
 #include <ElfBug/process/ProcessList.h>
 #include <ElfBug/process/ProcFs.h>
 #include <ElfBug/thread/Registers.h>
+#include <ElfBug/types/Utf8.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <algorithm>
@@ -55,13 +58,13 @@ namespace
         return kNoRegister;
     }
 
-    void copyString(char* dest, const size_t size, const std::string & source)
+    void copyString(char* dest, const size_t size, const std::string_view source)
     {
         if(size == 0)
             return;
-        const size_t n = std::min(source.size(), size - 1);
-        std::memcpy(dest, source.data(), n);
-        dest[n] = '\0';
+        const std::string_view kept = ElfBug::Utf8Prefix(source, size - 1);
+        std::memcpy(dest, kept.data(), kept.size());
+        dest[kept.size()] = '\0';
     }
 
     uint64_t bootTimeMs()
@@ -124,6 +127,33 @@ namespace
             return ElfBugArch_Unknown;
         }
     }
+
+    ElfBugRegionType toApiRegionType(const ElfBug::RegionType type)
+    {
+        switch(type)
+        {
+        case ElfBug::RegionType::Image:
+            return ElfBugRegionType_Image;
+        case ElfBug::RegionType::Mapped:
+            return ElfBugRegionType_Mapped;
+        default:
+            return ElfBugRegionType_Private;
+        }
+    }
+
+    ElfBugMemoryPage toApiPage(const ElfBug::MemoryPage & row)
+    {
+        ElfBugMemoryPage page = {};
+        page.base = row.base;
+        page.size = row.size;
+        page.module_base = row.moduleBase;
+        page.type = toApiRegionType(row.type);
+        page.party = row.party == ElfBug::Party::System ? ElfBugParty_System : ElfBugParty_User;
+        copyString(page.perms, sizeof(page.perms), row.perms);
+        copyString(page.section, sizeof(page.section), row.section);
+        copyString(page.info, sizeof(page.info), row.info);
+        return page;
+    }
 }
 
 struct ElfBugDebugger : ElfBug::Debugger
@@ -132,15 +162,6 @@ struct ElfBugDebugger : ElfBug::Debugger
     {
         Set,
         Delete
-    };
-
-    struct MemRegion
-    {
-        uint64_t start = 0;
-        uint64_t end = 0;
-        uint64_t moduleBase = 0;
-        bool executable = false;
-        std::string pathname;
     };
 
     struct BreakpointRequest
@@ -195,13 +216,31 @@ struct ElfBugDebugger : ElfBug::Debugger
         }
     }
 
-    void LoadMemoryMap() const
+    uint32_t GetMemoryMap(const bool sectionView, ElfBugMemoryPage* pages, const uint32_t capacity) const
     {
         if(!IsActive())
-            return;
+            return 0;
 
-        std::lock_guard lock(mMapMutex);
-        loadMemoryMapLocked();
+        if(!IsPaused())
+        {
+            std::lock_guard lock(mMapMutex);
+            mMemoryMap.Rebuild(Pid(), mThreadPointers);
+        }
+        resolveImages();
+        std::vector<ElfBug::MemoryPage> rows;
+        {
+            std::lock_guard lock(mMapMutex);
+            rows = mMemoryMap.Pages(sectionView);
+        }
+
+        const auto count = static_cast<uint32_t>(rows.size());
+        if(pages)
+        {
+            const uint32_t n = std::min(count, capacity);
+            for(uint32_t i = 0; i < n; ++i)
+                pages[i] = toApiPage(rows[i]);
+        }
+        return count;
     }
 
     bool FindBaseAddr(const uint64_t addr, uint64_t* base, uint64_t* size) const
@@ -210,7 +249,7 @@ struct ElfBugDebugger : ElfBug::Debugger
             return false;
 
         std::lock_guard lock(mMapMutex);
-        const auto* region = findRegion(addr);
+        const auto* region = mMemoryMap.FindRegion(addr);
         if(!region)
             return false;
 
@@ -225,8 +264,8 @@ struct ElfBugDebugger : ElfBug::Debugger
             return false;
 
         std::lock_guard lock(mMapMutex);
-        const auto* region = findRegion(addr);
-        return region && region->executable;
+        const auto* region = mMemoryMap.FindRegion(addr);
+        return region && region->Executable();
     }
 
     [[nodiscard]] bool IsValidPtr(const uint64_t addr) const
@@ -235,14 +274,21 @@ struct ElfBugDebugger : ElfBug::Debugger
             return false;
 
         std::lock_guard lock(mMapMutex);
-        return findRegion(addr) != nullptr;
+        const auto* region = mMemoryMap.FindRegion(addr);
+        return region && region->Readable();
     }
 
     bool ModBase(const uint64_t addr, uint64_t* base) const
     {
         if(!IsActive())
             return false;
-        return modLookup(addr, base, nullptr);
+
+        std::lock_guard lock(mMapMutex);
+        const auto* module = mMemoryMap.FindModule(addr);
+        if(!module)
+            return false;
+        *base = module->base;
+        return true;
     }
 
     bool ModName(const uint64_t addr, std::string & name, const bool extension) const
@@ -250,12 +296,14 @@ struct ElfBugDebugger : ElfBug::Debugger
         if(!IsActive())
             return false;
 
-        std::string path;
-        if(!modLookup(addr, nullptr, &path))
-            return false;
+        {
+            std::lock_guard lock(mMapMutex);
+            const auto* module = mMemoryMap.FindModule(addr);
+            if(!module)
+                return false;
+            name = module->FileName();
+        }
 
-        const size_t slash = path.find_last_of('/');
-        name = (slash == std::string::npos) ? path : path.substr(slash + 1);
         if(extension)
             return true;
 
@@ -478,8 +526,7 @@ protected:
             mThreadNumbers[pid] = 0;
             mNextThreadNumber = 1;
         }
-        refreshThreadList(false);
-        refreshMemoryMap();
+        snapshotStop(false);
         mActive.store(true, std::memory_order_release);
         if(mCb.onCreateProcess)
             mCb.onCreateProcess(pid, ep, mCb.userdata);
@@ -506,8 +553,13 @@ protected:
             });
         }
         mEntryPoint = 0;
-        refreshMemoryMap();
-        refreshThreadList(false);
+        {
+            std::lock_guard lock(mMapMutex);
+            mMemoryMap.Clear();
+            mThreadPointers.clear();
+            mImages.Clear();
+        }
+        snapshotStop(false);
         if(mCb.onExec)
             mCb.onExec(mCb.userdata);
     }
@@ -541,9 +593,8 @@ protected:
         {
             mThread->registers.Read();
             mEntryPoint = mThread->registers.Gip();
-            refreshMemoryMap();
             processPendingBreakpoints();
-            refreshThreadList(true);
+            snapshotStop(true);
         }
         if(mCb.onSystemBreakpoint)
             mCb.onSystemBreakpoint(mCb.userdata);
@@ -555,9 +606,8 @@ protected:
         {
             mThread->registers.Read();
             mEntryPoint = mThread->registers.Gip();
-            refreshMemoryMap();
             processPendingBreakpoints();
-            refreshThreadList(true);
+            snapshotStop(true);
         }
         if(mCb.onAttachBreakpoint)
             mCb.onAttachBreakpoint(mCb.userdata);
@@ -573,8 +623,7 @@ protected:
     void cbBreakpoint(const ElfBug::BreakpointInfo & info) override
     {
         processPendingBreakpoints();
-        refreshMemoryMap();
-        refreshThreadList(true);
+        snapshotStop(true);
         if(mCb.onBreakpoint)
             mCb.onBreakpoint(info.address, mCb.userdata);
     }
@@ -582,8 +631,7 @@ protected:
     void cbStep() override
     {
         processPendingBreakpoints();
-        refreshMemoryMap();
-        refreshThreadList(true);
+        snapshotStop(true);
         if(mCb.onStep)
             mCb.onStep(mCb.userdata);
     }
@@ -591,8 +639,7 @@ protected:
     void cbPaused() override
     {
         processPendingBreakpoints();
-        refreshMemoryMap();
-        refreshThreadList(true);
+        snapshotStop(true);
         if(mCb.onPaused)
             mCb.onPaused(mCb.userdata);
     }
@@ -600,8 +647,7 @@ protected:
     void cbException(const int signal, const ElfBug::ptr address) override
     {
         processPendingBreakpoints();
-        refreshMemoryMap();
-        refreshThreadList(true);
+        snapshotStop(true);
         if(mCb.onException)
             mCb.onException(signal, address, mCb.userdata);
     }
@@ -669,11 +715,12 @@ private:
                         continue;
                     if(withRegisters && !thread->IsRunning())
                         thread->registers.Read();
+                    const auto & native = thread->registers.Native();
                     ElfBugThreadInfo info = {};
                     info.tid = tid;
                     info.number = number->second;
-                    info.rip = thread->registers.Native().rip;
-                    info.fs_base = thread->registers.Native().fs_base;
+                    info.rip = native.rip;
+                    info.fs_base = native.fs_base;
                     info.suspend_count = thread->SuspendCount();
                     std::string reason = thread->WaitReason();
                     if(reason.empty())
@@ -694,68 +741,47 @@ private:
         mThreadList = std::move(list);
     }
 
-    void refreshMemoryMap()
+    void snapshotStop(const bool withRegisters)
     {
+        refreshThreadList(withRegisters);
+        std::vector<ElfBug::ThreadPointers> threads;
+        {
+            std::shared_lock lock(mProcessMutex);
+            if(mProcess)
+            {
+                for(const auto & [tid, thread] : mProcess->threads)
+                {
+                    const auto & native = thread->registers.Native();
+                    threads.push_back({tid, native.rsp, native.fs_base});
+                }
+            }
+        }
+        std::sort(threads.begin(), threads.end(), [](const ElfBug::ThreadPointers & a, const ElfBug::ThreadPointers & b)
+        {
+            return a.tid < b.tid;
+        });
         std::lock_guard lock(mMapMutex);
-        mMapDirty = true;
+        mThreadPointers = std::move(threads);
+        mMemoryMap.Rebuild(Pid(), mThreadPointers);
     }
 
-    void loadMemoryMapLocked() const
+    void resolveImages() const
     {
-        if(!mMapDirty)
+        std::vector<ElfBug::ImageRequest> requests;
+        pid_t pid = 0;
+        uint64_t generation = 0;
+        {
+            std::lock_guard lock(mMapMutex);
+            requests = mMemoryMap.PendingImages();
+            pid = Pid();
+            generation = mImages.Generation();
+        }
+        if(requests.empty() || pid <= 0)
             return;
-        mMapDirty = false;
-        mMemoryMap.clear();
-
-        const pid_t pid = Pid();
-        if(pid <= 0)
-            return;
-
-        const std::string maps = procfs::ReadFile(procfs::Path(pid, "maps"));
-        for(const std::string_view line : procfs::Split(maps, '\n'))
-        {
-            const auto entry = procfs::ParseMapsLine(line);
-            if(!entry)
-                continue;
-
-            std::string pathname(entry->path.starts_with('[') ? std::string_view() : entry->path);
-            mMemoryMap.push_back({entry->start, entry->end, 0, entry->perms[2] == 'x', std::move(pathname)});
-        }
-
-        std::unordered_map<std::string_view, uint64_t> bases;
-        for(auto & region : mMemoryMap)
-        {
-            if(!region.pathname.empty())
-                region.moduleBase = bases.try_emplace(region.pathname, region.start).first->second;
-        }
-    }
-
-    const MemRegion* findRegion(const uint64_t addr) const
-    {
-        loadMemoryMapLocked();
-        auto it = std::upper_bound(mMemoryMap.begin(), mMemoryMap.end(), addr,
-        [](const uint64_t a, const MemRegion & r) { return a < r.start; });
-        if(it != mMemoryMap.begin())
-        {
-            --it;
-            if(addr >= it->start && addr < it->end)
-                return &*it;
-        }
-        return nullptr;
-    }
-
-    bool modLookup(const uint64_t addr, uint64_t* baseOut, std::string* pathOut) const
-    {
+        const auto images = mImages.Load(pid, generation, requests);
         std::lock_guard lock(mMapMutex);
-        const auto* region = findRegion(addr);
-        if(!region || region->pathname.empty())
-            return false;
-
-        if(baseOut)
-            *baseOut = region->moduleBase;
-        if(pathOut)
-            *pathOut = region->pathname;
-        return true;
+        if(generation == mImages.Generation())
+            mMemoryMap.AttachImages(images);
     }
 
     void processPendingBreakpoints()
@@ -827,8 +853,9 @@ private:
         mActive.store(false, std::memory_order_release);
         {
             std::lock_guard lock(mMapMutex);
-            mMemoryMap.clear();
-            mMapDirty = false;
+            mMemoryMap.Clear();
+            mThreadPointers.clear();
+            mImages.Clear();
         }
         {
             std::lock_guard lock(mBreakpointMutex);
@@ -860,8 +887,10 @@ private:
     uint64_t mEntryPoint = 0;
 
     mutable std::mutex mMapMutex;
-    mutable std::vector<MemRegion> mMemoryMap;
-    mutable bool mMapDirty = false;
+    mutable ElfBug::MemoryMap mMemoryMap;
+    // The last stop's stack and TLS anchors, which label rebuilds while the target runs.
+    std::vector<ElfBug::ThreadPointers> mThreadPointers;
+    mutable ElfBug::ElfImageCache mImages;
 
     mutable std::mutex mBreakpointMutex;
     std::set<uint64_t> mBreakpointAddresses;
@@ -1100,10 +1129,11 @@ extern "C" {
         return dbg->IsValidPtr(addr);
     }
 
-    void ElfBugLoadMemoryMap(const ElfBugDebugger* dbg)
+    uint32_t ElfBugGetMemoryMap(const ElfBugDebugger* dbg, const bool sectionView, ElfBugMemoryPage* pages, const uint32_t capacity)
     {
-        if(dbg)
-            dbg->LoadMemoryMap();
+        if(!dbg)
+            return 0;
+        return dbg->GetMemoryMap(sectionView, pages, capacity);
     }
 
     bool ElfBugModBaseFromAddr(const ElfBugDebugger* dbg, const uint64_t addr, uint64_t* base)

@@ -108,6 +108,7 @@ QDarkApplication::QDarkApplication(int & argc, char** argv)
     const QColor number("#d19a66");
     const QColor reg("#e06c75");
     const QColor constant("#56b6c2");
+    const QColor cip("#a6f93e");
 
     QPalette palette;
     palette.setColor(QPalette::Window, background);
@@ -168,7 +169,7 @@ QDarkApplication::QDarkApplication(int & argc, char** argv)
     Config()->Colors["RegistersExtraInfoColor"] = disabled;
 
     Config()->Colors["StackCspBackgroundColor"] = Qt::transparent;
-    Config()->Colors["StackCspColor"] = QColor("#a6f93e");
+    Config()->Colors["StackCspColor"] = cip;
     Config()->Colors["StackAddressColor"] = QColor("#a0a0a0");
     Config()->Colors["StackAddressBackgroundColor"] = Qt::transparent;
     Config()->Colors["StackSelectedAddressColor"] = text;
@@ -179,6 +180,10 @@ QDarkApplication::QDarkApplication(int & argc, char** argv)
 
     Config()->Colors["ThreadCurrentBackgroundColor"] = QColor("#C24000");
     Config()->Colors["ThreadCurrentColor"] = Qt::white;
+
+    Config()->Colors["MemoryMapCipBackgroundColor"] = Qt::transparent;
+    Config()->Colors["MemoryMapCipColor"] = cip;
+    Config()->Colors["MemoryMapSectionTextColor"] = accent;
 
     // Instruction colors shared by all cross-platform data views.
     const QColor& comment = disabled;

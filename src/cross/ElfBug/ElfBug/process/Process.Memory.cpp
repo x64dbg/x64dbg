@@ -1,6 +1,5 @@
 #include <ElfBug/process/Process.h>
 #include <sys/uio.h>
-#include <unistd.h>
 #include <cstring>
 #include <shared_mutex>
 #include <vector>
@@ -27,30 +26,14 @@ namespace ElfBug
         if(!buffer || !size)
             return false;
 
-        iovec local{};
-        local.iov_base = buffer;
-        local.iov_len = size;
-
-        iovec remote{};
-        remote.iov_base = reinterpret_cast<void*>(address);
-        remote.iov_len = size;
-
-        ssize_t result = process_vm_readv(pid, &local, 1, &remote, 1, 0);
+        ssize_t result = ReadTraceeVm(pid, address, buffer, size);
         if(result == -1)
-        {
             result = memPread(buffer, size, static_cast<off_t>(address));
-            if(result == -1)
-            {
-                memset(buffer, 0, size);
-                return false;
-            }
-        }
-
+        const ptr done = result == -1 ? 0 : static_cast<ptr>(result);
         if(bytesRead)
-            *bytesRead = static_cast<ptr>(result);
-        if(static_cast<size_t>(result) < size)
-            memset(static_cast<char*>(buffer) + result, 0, size - result);
-        return static_cast<size_t>(result) == size;
+            *bytesRead = done;
+        memset(static_cast<char*>(buffer) + done, 0, size - done);
+        return done == size;
     }
 
     void Process::unpatchBreakpointBytesLocked(const ptr address, void* buffer, const ptr size) const

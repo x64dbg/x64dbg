@@ -32,7 +32,7 @@ private slots:
     void onResumeThread();
     void onSuspendAll();
     void onResumeAll();
-    void onContextMenu(const QPoint & pos) const;
+    void onContextMenu(const QPoint & pos);
 
 private:
     enum
@@ -56,6 +56,7 @@ private:
     DbgAdapter* mAdapter = nullptr;
     pid_t mCurrentThreadId = 0;
     QMenu* mContextMenu = nullptr;
+    QMenu* mCopyMenu = nullptr;
     QAction* mSwitchAction = nullptr;
     QAction* mSetNameAction = nullptr;
     QAction* mSuspendAction = nullptr;

@@ -3,16 +3,23 @@
 #include <catch2/catch_test_macros.hpp>
 #include "TestHarness.h"
 #include "SymbolHelper.h"
+#include <ElfBug/elf/ElfImage.h>
 #include <ElfBug/process/ProcFs.h>
+#include <ElfBug/process/TraceeMemory.h>
+#include <algorithm>
 #include <array>
 #include <atomic>
 #include <chrono>
+#include <cinttypes>
 #include <cstdint>
+#include <cstdio>
+#include <cstring>
+#include <fcntl.h>
 #include <filesystem>
-#include <fstream>
 #include <future>
 #include <optional>
 #include <string>
+#include <sys/uio.h>
 #include <thread>
 #include <unistd.h>
 #include <vector>
@@ -32,84 +39,48 @@ namespace ElfBug::test
         }
     };
 
+    // The T at address in pid, read with no Process.
+    template<typename T>
+    std::optional<T> ReadTraceeValue(const pid_t pid, const ElfBug::ptr address)
+    {
+        T value{};
+        if(ReadTraceeMemory(pid, address, &value, sizeof(value)) != static_cast<ssize_t>(sizeof(value)))
+            return std::nullopt;
+        return value;
+    }
+
+    template<typename T>
+    bool WriteTraceeValue(const pid_t pid, const ElfBug::ptr address, T value)
+    {
+        iovec local{&value, sizeof(value)};
+        iovec remote{reinterpret_cast<void*>(address), sizeof(value)};
+        return process_vm_writev(pid, &local, 1, &remote, 1, 0) == static_cast<ssize_t>(sizeof(value));
+    }
+
     // Unlike MemRead, sees breakpoint bytes.
     inline std::optional<std::uint8_t> ReadProcessByte(const ElfBug::Process* process, const ElfBug::ptr address)
     {
-        if(!process)
-            return std::nullopt;
-
-        std::uint8_t byte = 0;
-        if(!process->MemReadRaw(address, &byte, 1))
-            return std::nullopt;
-        return byte;
+        return process ? ReadTraceeValue<std::uint8_t>(process->pid, address) : std::nullopt;
     }
 
     inline bool WaitForProcessByte(const ElfBug::Process* process, const ElfBug::ptr address, const std::uint8_t expected,
                                    const std::chrono::milliseconds timeout = std::chrono::seconds(1))
     {
-        const auto start = std::chrono::steady_clock::now();
-        while(std::chrono::steady_clock::now() - start < timeout)
-        {
-            const auto byte = ReadProcessByte(process, address);
-            if(byte && *byte == expected)
-                return true;
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        return false;
+        return WaitUntil([&] { return ReadProcessByte(process, address) == expected; }, timeout);
     }
 
-    inline bool WaitForTraceeValue(const ElfBug::Process* process, const ElfBug::ptr address,
-                                   const int expected,
+    // Reads by pid, so it also works after a detach.
+    inline bool WaitForTraceeValue(const pid_t pid, const ElfBug::ptr address, const int expected,
                                    const std::chrono::milliseconds timeout = std::chrono::seconds(2))
     {
-        const auto start = std::chrono::steady_clock::now();
-        while(std::chrono::steady_clock::now() - start < timeout)
-        {
-            int value = 0;
-            if(process && process->MemReadRaw(address, &value, sizeof(value)) && value == expected)
-                return true;
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        return false;
+        return WaitUntil([&] { return ReadTraceeValue<int>(pid, address) == expected; }, timeout);
     }
 
-    // Reads /proc directly, since the Process is gone after a detach.
-    inline bool WaitForDetachedValue(const pid_t pid, const ElfBug::ptr address, const int expected,
-                                     const std::chrono::milliseconds timeout = std::chrono::seconds(2))
-    {
-        const auto start = std::chrono::steady_clock::now();
-        while(std::chrono::steady_clock::now() - start < timeout)
-        {
-            std::ifstream mem(procfs::Path(pid, "mem"), std::ios::binary);
-            if(mem)
-            {
-                mem.seekg(static_cast<std::streamoff>(address));
-                int value = 0;
-                if(mem.read(reinterpret_cast<char*>(&value), sizeof(value)) && value == expected)
-                    return true;
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        return false;
-    }
-
+    // Until pid runs path with its aux vector in place, so its symbols resolve.
     inline bool WaitForExeced(const pid_t pid, const std::string & path,
                               const std::chrono::milliseconds timeout = std::chrono::seconds(2))
     {
-        std::error_code ec;
-        const auto want = std::filesystem::canonical(path, ec);
-        if(ec)
-            return false;
-        const auto start = std::chrono::steady_clock::now();
-        while(std::chrono::steady_clock::now() - start < timeout)
-        {
-            std::error_code linkEc;
-            const auto have = std::filesystem::canonical(procfs::Path(pid, "exe"), linkEc);
-            if(!linkEc && have == want)
-                return true;
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        return false;
+        return WaitUntil([&] { return ReadExecAuxv(pid, path, AT_ENTRY).has_value(); }, timeout);
     }
 
     // threads_spin's ts_counters.
@@ -126,14 +97,7 @@ namespace ElfBug::test
     bool WaitForSpinSlots(const ElfBug::Process* process, const ElfBug::ptr counters, Pred pred,
                           const std::chrono::milliseconds timeout = std::chrono::seconds(5))
     {
-        const auto start = std::chrono::steady_clock::now();
-        while(std::chrono::steady_clock::now() - start < timeout)
-        {
-            if(pred(ReadSpinSlots(process, counters)))
-                return true;
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        return false;
+        return WaitUntil([&] { return pred(ReadSpinSlots(process, counters)); }, timeout);
     }
 
     inline bool WaitForEverySlotPast(const ElfBug::Process* process, const ElfBug::ptr counters, const SpinSlots & since)
@@ -162,14 +126,7 @@ namespace ElfBug::test
     bool WaitForTaskState(const pid_t pid, const pid_t tid, Pred pred,
                           const std::chrono::milliseconds timeout = std::chrono::seconds(5))
     {
-        const auto start = std::chrono::steady_clock::now();
-        while(std::chrono::steady_clock::now() - start < timeout)
-        {
-            if(pred(TaskState(pid, tid)))
-                return true;
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        return false;
+        return WaitUntil([&] { return pred(TaskState(pid, tid)); }, timeout);
     }
 
     inline bool WaitForTaskStopped(const pid_t pid, const pid_t tid)
@@ -212,17 +169,72 @@ namespace ElfBug::test
     inline pid_t WaitForClonedChild(const pid_t parent,
                                     const std::chrono::milliseconds timeout = std::chrono::seconds(5))
     {
-        const auto start = std::chrono::steady_clock::now();
-        while(std::chrono::steady_clock::now() - start < timeout)
+        pid_t child = 0;
+        const bool found = WaitUntil([&]
         {
             for(const auto & entry : std::filesystem::directory_iterator("/proc"))
             {
-                const pid_t pid = procfs::ParseNumber<pid_t>(entry.path().filename().string()).value_or(0);
-                if(pid > 0 && pid != parent && ElfBug::ParentPid(pid) == parent)
-                    return pid;
+                child = procfs::ParseNumber<pid_t>(entry.path().filename().string()).value_or(0);
+                if(child > 0 && child != parent && ElfBug::ParentPid(child) == parent)
+                    return true;
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
-        }
-        return 0;
+            return false;
+        }, timeout);
+        return found ? child : 0;
+    }
+
+    // The row holding address, from MemoryMap::Pages or the C API export.
+    template<typename Page>
+    const Page & RequirePage(const std::vector<Page> & pages, const uint64_t address)
+    {
+        const auto found = std::find_if(pages.begin(), pages.end(), [&](const Page & page)
+        {
+            return address >= page.base && address - page.base < page.size;
+        });
+        REQUIRE(found != pages.end());
+        return *found;
+    }
+
+    inline std::vector<std::byte> ReadFileBytes(const std::string & path)
+    {
+        const std::string text = procfs::ReadFile(path);
+        const auto* data = reinterpret_cast<const std::byte*>(text.data());
+        return {data, data + text.size()};
+    }
+
+    inline std::optional<ElfBug::ElfImage> ParseBytes(const std::vector<std::byte> & bytes,
+            const ElfBug::ElfImage::Parts parts = ElfBug::ElfImage::Parts::HeadersAndSections)
+    {
+        return ElfBug::ElfImage::Parse([&bytes](const uint64_t offset, void* buffer, const size_t size)
+        {
+            if(offset > bytes.size() || size > bytes.size() - offset)
+                return false;
+            std::memcpy(buffer, bytes.data() + offset, size);
+            return true;
+        }, parts);
+    }
+
+    inline bool HasSection(const ElfBug::ElfImage & image, const std::string & name)
+    {
+        const auto & sections = image.Sections();
+        return std::any_of(sections.begin(), sections.end(), [&](const ElfBug::ElfSection & section)
+        {
+            return section.name == name;
+        });
+    }
+
+    inline bool MapFilesOpenable()
+    {
+        const std::string line = procfs::ReadLine("/proc/self/maps");
+        const auto first = procfs::ParseMapsLine(line);
+        if(!first)
+            return false;
+        char path[96];
+        std::snprintf(path, sizeof(path), "/proc/self/map_files/%" PRIx64 "-%" PRIx64, first->start, first->end);
+        const int fd = open(path, O_RDONLY | O_CLOEXEC);
+        if(fd == -1)
+            return false;
+        close(fd);
+        return true;
     }
 }
