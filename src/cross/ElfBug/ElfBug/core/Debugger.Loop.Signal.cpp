@@ -10,6 +10,7 @@
 #include <csignal>
 #include <cstring>
 #include <thread>
+#include <utility>
 #include <vector>
 
 namespace ElfBug
@@ -35,6 +36,36 @@ namespace ElfBug
             ScopedSteppingOff(const ScopedSteppingOff &) = delete;
             ScopedSteppingOff & operator=(const ScopedSteppingOff &) = delete;
         };
+    }
+
+    bool KernelFault(const int signal, const siginfo_t & info)
+    {
+        return info.si_code > 0 && IsFaultSignal(signal);
+    }
+
+    bool OwedFault(const OwedSignal & owed)
+    {
+        const siginfo_t* info = owed.Info();
+        return info && info->si_signo == owed.Signal() ? KernelFault(owed.Signal(), *info) : IsFaultSignal(owed.Signal());
+    }
+
+    bool HidesHandler(const OwedSignal & owed)
+    {
+        return owed.Signal() != 0 && owed.State() == ParkedSignal::Filtered && !OwedFault(owed);
+    }
+
+    bool IsFaultSignal(const int signal)
+    {
+        switch(signal)
+        {
+        case SIGSEGV:
+        case SIGBUS:
+        case SIGILL:
+        case SIGFPE:
+            return true;
+        default:
+            return false;
+        }
     }
 
     ptr FaultAddress(const int signal, const siginfo_t & info)
@@ -142,7 +173,8 @@ namespace ElfBug
             return dying;
         }
         thread->SetAtBreakpoint(true);
-        thread->SetPendingBreakpoint(bpAddr);
+        if(!takeSilentStepOff(thread->tid, bpAddr, thread->registers.Gsp()))
+            thread->SetPendingBreakpoint(bpAddr);
         return true;
     }
 
@@ -161,11 +193,11 @@ namespace ElfBug
         int signal = 0;
         ptr address = 0;
         if(StopShouldQueue(status, haveInfo, info, signal, address))
-            thread->SetPendingSignal(signal, address, true);
+            thread->SetPendingSignal(signal, address, ParkedSignal::Unreported, haveInfo ? &info : nullptr);
         else if(!ours && !thread->IsSingleStepping() && haveInfo &&
                 PtraceEvent(status) == 0 &&
                 ForeignTrapShouldQueue(WSTOPSIG(status), info))
-            thread->SetPendingSignal(SIGTRAP, 0, true);
+            thread->SetPendingSignal(SIGTRAP, 0, ParkedSignal::Unreported, &info);
     }
 
     void Debugger::registerClone(const pid_t parent)
@@ -299,11 +331,19 @@ namespace ElfBug
                 const bool haveInfo = ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1;
                 int signal = 0;
                 ptr address = 0;
-                if(StopShouldQueue(status, haveInfo, info, signal, address))
-                    thread->SetPendingSignal(signal, address, false);
-                else if(!ours && PtraceEvent(status) == 0 && haveInfo &&
-                        ForeignTrapShouldQueue(sig, info))
-                    thread->SetPendingSignal(SIGTRAP, 0, false);
+                if(!StopShouldQueue(status, haveInfo, info, signal, address) && !ours &&
+                        PtraceEvent(status) == 0 && haveInfo && ForeignTrapShouldQueue(sig, info))
+                    signal = SIGTRAP;
+                if(signal != 0)
+                {
+                    const SignalDecision decision = decideSignal(signal, haveInfo && KernelFault(signal, info), false);
+                    if(!decision.stop && decision.log)
+                        cbSignalFiltered(signal, tid, decision.deliver != 0);
+                    if(decision.deliver != 0)
+                        thread->SetPendingSignal(decision.deliver, address,
+                                                 decision.stop ? ParkedSignal::Reported : ParkedSignal::Filtered,
+                                                 haveInfo ? &info : nullptr);
+                }
             }
         }
 
@@ -506,11 +546,12 @@ namespace ElfBug
                 mThread = thread;
             }
 
-            mPendingSignal = thread->PendingSignal();
-            thread->ClearPendingSignal();
+            mOwedSignal = thread->TakePendingSignal();
 
-            const StepOff stepped = stepPastBreakpointByte(tid, rip);
-            mPendingSignal = 0;
+            StepOff stepped = stepPastBreakpointByte(tid, rip);
+            if(stepped == StepOff::Deferred)
+                stepped = holdDeferred(tid);
+            mOwedSignal = {};
 
             if(stepped == StepOff::Consumed && (!mProcess || !mIsRunning.load(std::memory_order_acquire)))
                 return false;
@@ -533,10 +574,10 @@ namespace ElfBug
             if(!thread || thread->IsSuspended() || thread->IsRunning())
                 return true;
 
-            const int sig = thread->PendingSignal();
-            thread->ClearPendingSignal();
+            const OwedSignal owed = thread->TakePendingSignal();
+            restoreSignalInfo(tid, owed.Signal(), owed.Info());
 
-            if(ptrace(PTRACE_CONT, tid, nullptr, PtraceData(sig)) == -1)
+            if(ptrace(PTRACE_CONT, tid, nullptr, PtraceData(owed.Signal())) == -1)
                 contError = errno;
             else
                 thread->SetRunning(true);
@@ -548,7 +589,7 @@ namespace ElfBug
 
     void Debugger::continueUnlessSuspended(const pid_t tid)
     {
-        const ContinueResult continued = continueOrPark(tid, 0, false);
+        const ContinueResult continued = continueOrPark(tid, {}, false);
         if(continued == ContinueResult::Parked || continued == ContinueResult::ParkedAlone)
             leaveParked(tid);
     }
@@ -573,7 +614,7 @@ namespace ElfBug
     void Debugger::handleSignal(const pid_t tid, const int status)
     {
         const int sig = WSTOPSIG(status);
-        mPendingSignal = 0;
+        mOwedSignal = {};
 
         if(sig == SIGSTOP && mProcess)
         {
@@ -612,9 +653,9 @@ namespace ElfBug
             siginfo_t info{};
             if(PtraceEvent(status) == 0 &&
                     ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1 && info.si_code <= 0)
-                reportSignal(tid, sig);
+                reportSignal(tid, sig, wasRunning);
             else
-                handleSigtrap(tid, status);
+                handleSigtrap(tid, status, wasRunning);
             break;
         }
 
@@ -728,7 +769,7 @@ namespace ElfBug
 
             else if(!suspended && (!mAllStopped || wasRunning || tid == mSteppingOff || !mThread))
             {
-                const ContinueResult continued = continueOrPark(tid, 0, false);
+                const ContinueResult continued = continueOrPark(tid, {}, false);
                 if(continued == ContinueResult::ContinuedUntracked)
                     mUnregisteredRunning.insert(tid);
                 else if(continued == ContinueResult::ParkedAlone)
@@ -743,27 +784,72 @@ namespace ElfBug
         }
 
         default:
-            reportSignal(tid, sig);
+            reportSignal(tid, sig, wasRunning);
             break;
         }
     }
 
-    void Debugger::reportSignal(const pid_t tid, const int sig)
+    Debugger::SignalDecision Debugger::decideSignal(const int signal, const bool fault, const bool groupStop) const
+    {
+        const SignalFilter filter = mSignals.Get(signal);
+        const bool deliver = !groupStop && (filter.pass || (fault && !filter.stop));
+        return {filter.stop, filter.log && !groupStop, deliver ? signal : 0};
+    }
+
+    Debugger::SignalDecision Debugger::decideParkedSignal(const Thread* thread)
+    {
+        const int signal = thread->PendingSignal();
+        const SignalDecision decision = decideSignal(signal, false, false);
+        if(!decision.stop && decision.log)
+            cbSignalFiltered(signal, thread->tid, decision.deliver != 0);
+        return decision;
+    }
+
+    void Debugger::takeOwedSignal()
+    {
+        if(!mThread || mOwedSignal.Signal() != 0 || mThread->PendingSignal() == 0 ||
+                mThread->Owed().State() != ParkedSignal::Unreported)
+            return;
+
+        const SignalDecision decision = decideParkedSignal(mThread);
+        if(decision.stop)
+            return;
+
+        std::unique_lock lock(mProcessMutex);
+        const OwedSignal owed = mThread->TakePendingSignal();
+        mOwedSignal = OwedSignal(decision.deliver, ParkedSignal::Filtered, owed.Info());
+    }
+
+    void Debugger::reportSignal(const pid_t tid, const int sig, const bool wasRunning)
     {
         ptr faultAddr = 0;
+        bool fault = false;
         bool groupStop = false;
         siginfo_t sigInfo;
         errno = 0;
-        if(ptrace(PTRACE_GETSIGINFO, tid, nullptr, &sigInfo) != -1)
+        const bool haveInfo = ptrace(PTRACE_GETSIGINFO, tid, nullptr, &sigInfo) != -1;
+        if(haveInfo)
+        {
             faultAddr = FaultAddress(sig, sigInfo);
+            fault = KernelFault(sig, sigInfo);
+        }
         else
             groupStop = errno == EINVAL;
 
-        const int deliver = groupStop ? 0 : sig;
+        const SignalDecision decision = decideSignal(sig, fault, groupStop);
+        const int deliver = decision.deliver;
+        if(!decision.stop)
+        {
+            if(decision.log)
+                cbSignalFiltered(sig, tid, deliver != 0);
+            resumeFilteredSignal(tid, deliver, fault, haveInfo ? &sigInfo : nullptr, wasRunning);
+            return;
+        }
+
         if(mThread)
         {
             mThread->registers.Read();
-            mPendingSignal = deliver;
+            mOwedSignal = OwedSignal(deliver, ParkedSignal::Reported, haveInfo ? &sigInfo : nullptr);
             abandonSingleStep(tid);
             cancelStepOverIfOwner(tid);
             if(const auto leaderExit = stopAllThreads(tid))
@@ -786,19 +872,69 @@ namespace ElfBug
         }
     }
 
+    void Debugger::restoreSignalInfo(const pid_t tid, const int signal, const siginfo_t* info) const
+    {
+        if(!info || info->si_signo != signal)
+            return;
+        siginfo_t restored = *info;
+        ptrace(PTRACE_SETSIGINFO, tid, nullptr, &restored);
+    }
+
+    void Debugger::resumeFilteredSignal(const pid_t tid, const int deliver, const bool fault, const siginfo_t* info, const bool wasRunning)
+    {
+        if(mThread && mThread->IsSingleStepping())
+        {
+            if(deliver != 0 && !fault)
+            {
+                abandonSingleStep(tid);
+                if(armStepResume(tid, deliver, info))
+                    return;
+            }
+            if(mThread->StepInto(deliver))
+            {
+                mThread->SetRunning(true);
+            }
+            else
+            {
+                abandonSingleStep(tid);
+                if(ptrace(PTRACE_CONT, tid, nullptr, PtraceData(deliver)) == -1)
+                {
+                    if(errno != ESRCH)
+                        cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                }
+                else
+                    mThread->SetRunning(true);
+            }
+            return;
+        }
+
+        const ContinueResult continued = continueOrPark(tid, OwedSignal(deliver, ParkedSignal::Filtered, info), mAllStopped && !wasRunning);
+        if(continued == ContinueResult::ContinuedUntracked)
+            mUnregisteredRunning.insert(tid);
+        else if(continued == ContinueResult::ParkedAlone)
+        {
+            mPauseRequested.store(false, std::memory_order_release);
+            beginPause();
+            cbPaused();
+            pauseAndResume(tid);
+        }
+    }
+
     Debugger::StepOff Debugger::stepPastBreakpointByte(const pid_t tid, const ptr addr)
     {
         if(!mProcess || !mThread)
             return StepOff::Consumed;
 
         const ScopedSteppingOff scopedSteppingOff(mSteppingOff, tid);
+        const ptr rsp = mThread->registers.Gsp();
+
+        OwedSignal owed = std::exchange(mOwedSignal, {});
+        if(HidesHandler(owed))
+            return deferStepOff(tid, addr, owed.Signal(), owed.Info());
 
         ptr next = 0;
         const bool stepsPushf = mProcess->ClassifyStepOverAt(addr, next) == StepOverKind::Pushf;
         const bool lifted = mProcess->DisarmBreakpointByte(addr);
-
-        const int sig = mPendingSignal;
-        mPendingSignal = 0;
 
         if(!swallowPendingSigstop(tid))
         {
@@ -807,102 +943,78 @@ namespace ElfBug
             return StepOff::Consumed;
         }
 
-        bool leftStopped = false;
-        int stepErrno = 0;
+        if(owed.Signal() == 0 && mThread->PendingSignal() != 0 && mThread->Owed().State() != ParkedSignal::Unreported &&
+                !OwedFault(mThread->Owed()))
         {
-            std::unique_lock lock(mProcessMutex);
-            if(mThread->IsSuspended())
+            OwedSignal drained;
             {
-                leftStopped = true;
-                if(sig != 0)
-                    mThread->SetPendingSignal(sig, 0, false);
+                std::unique_lock lock(mProcessMutex);
+                drained = mThread->TakePendingSignal();
             }
-            else if(!mThread->StepInto(sig))
-                stepErrno = errno;
-        }
-        if(leftStopped)
-        {
             if(lifted)
                 mProcess->RearmBreakpointByte(addr);
-            return StepOff::Parked;
+            return deferStepOff(tid, addr, drained.Signal(), drained.Info());
         }
 
-        if(stepErrno != 0)
+        bool intoHandler = false;
+        for(;;)
         {
-            if(stepErrno != ESRCH)
-                cbInternalError("PTRACE_SINGLESTEP failed: " + std::string(strerror(stepErrno)));
-            if(lifted)
-                mProcess->RearmBreakpointByte(addr);
-            if(ptrace(PTRACE_CONT, tid, nullptr, PtraceData(sig)) == -1)
+            bool leftStopped = false;
+            int stepErrno = 0;
             {
-                if(errno != ESRCH)
-                    cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
-            }
-            else
-            {
-                mThread->SetRunning(true);
-            }
-            return StepOff::Consumed;
-        }
-
-        int stepStatus = 0;
-        pid_t waited = -1;
-        do
-        {
-            waited = waitpid(tid, &stepStatus, __WALL);
-        }
-        while(waited == -1 && errno == EINTR);
-
-        if(waited == -1)
-        {
-            cbInternalError("waitpid(step) failed: " + std::string(strerror(errno)));
-            if(lifted)
-                mProcess->RearmBreakpointByte(addr);
-            if(ptrace(PTRACE_CONT, tid, nullptr, nullptr) == -1)
-            {
-                if(errno != ESRCH)
-                    cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
-            }
-            else
-            {
-                mThread->SetRunning(true);
-            }
-            return StepOff::Consumed;
-        }
-
-        mThread->ClearSingleStep();
-
-        if(WIFEXITED(stepStatus) || WIFSIGNALED(stepStatus))
-        {
-            if(lifted && mProcess)
-                mProcess->RearmBreakpointByte(addr);
-
-            const int code = WIFEXITED(stepStatus) ? WEXITSTATUS(stepStatus) : -WTERMSIG(stepStatus);
-            if(tid == mMainPid.load(std::memory_order_relaxed))
-            {
-                exitProcessEvent(tid, code);
-                mIsRunning.store(false, std::memory_order_release);
-            }
-            else
-            {
-                exitThreadEvent(tid);
-            }
-            return StepOff::Consumed;
-        }
-
-        if(WIFSTOPPED(stepStatus))
-        {
-            const int stepSig = WSTOPSIG(stepStatus);
-            const int stepEvent = PtraceEvent(stepStatus);
-            mThread->registers.Read();
-
-            if(stepEvent == PTRACE_EVENT_EXEC)
-            {
-                if(!applyExec(tid))
+                std::unique_lock lock(mProcessMutex);
+                if(mThread->IsSuspended())
                 {
-                    parkForRejectedExec(tid);
-                    return StepOff::Consumed;
+                    leftStopped = true;
+                    mThread->SetAtBreakpoint(mThread->registers.Gip() == addr);
+                    if(owed.Signal() != 0)
+                        mThread->SetPendingSignal(owed);
                 }
+                else
+                {
+                    restoreSignalInfo(tid, owed.Signal(), owed.Info());
+                    if(!mThread->StepInto(owed.Signal()))
+                        stepErrno = errno;
+                }
+            }
+            if(leftStopped)
+            {
+                if(lifted)
+                    mProcess->RearmBreakpointByte(addr);
+                return StepOff::Parked;
+            }
+
+            if(stepErrno != 0)
+            {
+                if(stepErrno != ESRCH)
+                    cbInternalError("PTRACE_SINGLESTEP failed: " + std::string(strerror(stepErrno)));
+                if(lifted)
+                    mProcess->RearmBreakpointByte(addr);
+                if(ptrace(PTRACE_CONT, tid, nullptr, PtraceData(owed.Signal())) == -1)
+                {
+                    if(errno != ESRCH)
+                        cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                }
+                else
+                {
+                    mThread->SetRunning(true);
+                }
+                return StepOff::Consumed;
+            }
+
+            int stepStatus = 0;
+            pid_t waited = -1;
+            do
+            {
+                waited = waitpid(tid, &stepStatus, __WALL);
+            }
+            while(waited == -1 && errno == EINTR);
+
+            if(waited == -1)
+            {
+                cbInternalError("waitpid(step) failed: " + std::string(strerror(errno)));
+                if(lifted)
+                    mProcess->RearmBreakpointByte(addr);
                 if(ptrace(PTRACE_CONT, tid, nullptr, nullptr) == -1)
                 {
                     if(errno != ESRCH)
@@ -915,23 +1027,171 @@ namespace ElfBug
                 return StepOff::Consumed;
             }
 
-            if(lifted)
-                mProcess->RearmBreakpointByte(addr);
+            mThread->ClearSingleStep();
 
-            if(stepEvent == PTRACE_EVENT_CLONE)
-                registerClone(tid);
-
-            if(stepSig != SIGTRAP)
+            if(WIFEXITED(stepStatus) || WIFSIGNALED(stepStatus))
             {
-                handleSignal(tid, stepStatus);
+                if(lifted && mProcess)
+                    mProcess->RearmBreakpointByte(addr);
+
+                const int code = WIFEXITED(stepStatus) ? WEXITSTATUS(stepStatus) : -WTERMSIG(stepStatus);
+                if(tid == mMainPid.load(std::memory_order_relaxed))
+                {
+                    exitProcessEvent(tid, code);
+                    mIsRunning.store(false, std::memory_order_release);
+                }
+                else
+                {
+                    exitThreadEvent(tid);
+                }
                 return StepOff::Consumed;
             }
 
-            if(stepsPushf)
-                maskPushedTrapFlag();
-        }
+            if(WIFSTOPPED(stepStatus))
+            {
+                const int stepSig = WSTOPSIG(stepStatus);
+                const int stepEvent = PtraceEvent(stepStatus);
+                mThread->registers.Read();
 
-        return StepOff::Stepped;
+                if(stepEvent == PTRACE_EVENT_EXEC)
+                {
+                    if(!applyExec(tid))
+                    {
+                        parkForRejectedExec(tid);
+                        return StepOff::Consumed;
+                    }
+                    if(ptrace(PTRACE_CONT, tid, nullptr, nullptr) == -1)
+                    {
+                        if(errno != ESRCH)
+                            cbInternalError("PTRACE_CONT failed: " + std::string(strerror(errno)));
+                    }
+                    else
+                    {
+                        mThread->SetRunning(true);
+                    }
+                    return StepOff::Consumed;
+                }
+
+                if(stepSig != SIGTRAP)
+                {
+                    siginfo_t info{};
+                    errno = 0;
+                    const bool haveInfo = ptrace(PTRACE_GETSIGINFO, tid, nullptr, &info) != -1;
+                    const bool fault = haveInfo && KernelFault(stepSig, info);
+                    const SignalDecision decision = decideSignal(stepSig, fault, !haveInfo && errno == EINVAL);
+                    if(!decision.stop)
+                    {
+                        if(decision.log)
+                            cbSignalFiltered(stepSig, tid, decision.deliver != 0);
+                        owed = {};
+                        if(decision.deliver == 0)
+                            continue;
+                        if(fault)
+                        {
+                            owed = OwedSignal(decision.deliver, ParkedSignal::Filtered, &info);
+                            intoHandler = true;
+                            continue;
+                        }
+                        if(lifted)
+                            mProcess->RearmBreakpointByte(addr);
+                        return deferStepOff(tid, addr, decision.deliver, haveInfo ? &info : nullptr);
+                    }
+                }
+
+                if(lifted)
+                    mProcess->RearmBreakpointByte(addr);
+
+                if(stepEvent == PTRACE_EVENT_CLONE)
+                    registerClone(tid);
+
+                if(stepSig != SIGTRAP)
+                {
+                    handleSignal(tid, stepStatus);
+                    return StepOff::Consumed;
+                }
+
+                if(stepsPushf && !intoHandler)
+                    maskPushedTrapFlag();
+            }
+
+            takeSilentStepOff(tid, addr, rsp);
+            return StepOff::Stepped;
+        }
+    }
+
+    Debugger::StepOff Debugger::deferStepOff(const pid_t tid, const ptr addr, const int signal, const siginfo_t* info)
+    {
+        mOwedSignal = OwedSignal(signal, ParkedSignal::Filtered, info);
+
+        const bool onByte = mThread->registers.Gip() == addr;
+        if(onByte)
+            mSilentStepOffs[tid] = {addr, mThread->registers.Gsp()};
+
+        std::unique_lock lock(mProcessMutex);
+        mThread->SetAtBreakpoint(onByte);
+        return StepOff::Deferred;
+    }
+
+    Debugger::StepOff Debugger::resumeDeferred(const pid_t tid)
+    {
+        const OwedSignal owed = std::exchange(mOwedSignal, {});
+
+        int contError = 0;
+        {
+            std::unique_lock lock(mProcessMutex);
+            if(mThread->IsSuspended() && mThread->PendingSignal() == 0)
+            {
+                mThread->SetPendingSignal(OwedSignal(owed.Signal(), ParkedSignal::Filtered, owed.Info()));
+                return StepOff::Parked;
+            }
+            restoreSignalInfo(tid, owed.Signal(), owed.Info());
+            if(ptrace(PTRACE_CONT, tid, nullptr, PtraceData(owed.Signal())) == -1)
+                contError = errno;
+            else
+                mThread->SetRunning(true);
+        }
+        if(contError == 0)
+            return StepOff::Deferred;
+        if(contError != ESRCH)
+            cbInternalError("PTRACE_CONT failed: " + std::string(strerror(contError)));
+        return StepOff::Consumed;
+    }
+
+    Debugger::StepOff Debugger::stepOffAlone(const pid_t tid, const ptr addr)
+    {
+        const StepOff stepped = stepPastBreakpointByte(tid, addr);
+        return stepped == StepOff::Deferred ? resumeDeferred(tid) : stepped;
+    }
+
+    bool Debugger::stepOffAndRun(const pid_t tid, const ptr addr)
+    {
+        switch(stepOffAlone(tid, addr))
+        {
+        case StepOff::Stepped:
+            continueUnlessSuspended(tid);
+            return true;
+        case StepOff::Parked:
+            leaveParked(tid);
+            return true;
+        case StepOff::Deferred:
+            return true;
+        case StepOff::Consumed:
+            break;
+        }
+        return false;
+    }
+
+    Debugger::StepOff Debugger::holdDeferred(const pid_t tid)
+    {
+        {
+            std::unique_lock lock(mProcessMutex);
+            if(mThread->PendingSignal() == 0)
+            {
+                mThread->SetPendingSignal(std::exchange(mOwedSignal, {}));
+                return StepOff::Deferred;
+            }
+        }
+        return resumeDeferred(tid);
     }
 
     void Debugger::abandonSingleStep(const pid_t tid)
@@ -1043,7 +1303,7 @@ namespace ElfBug
         pauseAndResume(tid);
     }
 
-    void Debugger::handleSigtrap(const pid_t tid, const int status)
+    void Debugger::handleSigtrap(const pid_t tid, const int status, const bool wasRunning)
     {
         const int event = PtraceEvent(status);
 
@@ -1164,7 +1424,7 @@ namespace ElfBug
                         mStepOver = {};
 
                         if(planted)
-                            mProcess->DeleteBreakpoint(target);
+                            deleteBreakpoint(target);
                         mThread->SetAtBreakpoint(!planted);
 
                         restoreSourceByte(tid);
@@ -1184,28 +1444,36 @@ namespace ElfBug
 
                     if(mStepOver.planted)
                     {
-                        switch(stepPastBreakpointByte(tid, bpAddr))
+                        if(!stepOffAndRun(tid, bpAddr))
                         {
-                        case StepOff::Stepped:
-                            continueUnlessSuspended(tid);
-                            break;
-                        case StepOff::Parked:
-                            leaveParked(tid);
-                            break;
-                        case StepOff::Consumed:
                             cancelStepOver(tid);
                             abandonAllStop(tid);
-                            break;
                         }
                         break;
                     }
                 }
+
+                if(takeStepResumeTrap(tid, bpAddr))
+                    break;
 
                 if(mProcess->HasBreakpoint(bpAddr))
                 {
                     mThread->registers.Gip() = bpAddr;
                     mThread->registers.Write();
                     mThread->SetAtBreakpoint(true);
+
+                    if(const auto silent = takeSilentStepOff(tid, bpAddr, mThread->registers.Gsp()))
+                    {
+                        if(const auto leaderExit = stopAllThreads(tid))
+                        {
+                            reportLeaderExit(*leaderExit);
+                            return;
+                        }
+                        if(silent->stepOver)
+                            mStepOverPending.store(true, std::memory_order_release);
+                        pauseAndResume(tid);
+                        break;
+                    }
 
                     cancelStepOverIfOwner(tid);
                     if(const auto leaderExit = stopAllThreads(tid))
@@ -1231,7 +1499,7 @@ namespace ElfBug
                 if(ptrace(PTRACE_GETSIGINFO, tid, nullptr, &trapInfo) != -1 &&
                         ForeignTrapShouldQueue(SIGTRAP, trapInfo))
                 {
-                    reportSignal(tid, SIGTRAP);
+                    reportSignal(tid, SIGTRAP, wasRunning);
                     break;
                 }
             }

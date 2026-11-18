@@ -90,6 +90,9 @@ namespace ElfBug
             cancelStepOver(tid);
         else
             restoreSourceByte(tid);
+        if(mStepResume.active && mStepResume.tid == tid)
+            cancelStepResume();
+        mSilentStepOffs.erase(tid);
 
         cbExitThread(tid);
 

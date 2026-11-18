@@ -38,7 +38,7 @@ namespace ElfBug
         if(!mStepOver.active)
             return;
         if(mStepOver.planted && mProcess)
-            mProcess->DeleteBreakpoint(mStepOver.target);
+            deleteBreakpoint(mStepOver.target);
         mStepOver = {};
     }
 
@@ -100,7 +100,7 @@ namespace ElfBug
             }
             else
             {
-                switch(stepPastBreakpointByte(tid, rip))
+                switch(stepOffAlone(tid, rip))
                 {
                 case StepOff::Stepped:
                     break;
@@ -110,10 +110,110 @@ namespace ElfBug
                 case StepOff::Consumed:
                     cancelStepOver(tid);
                     return StepOverArm::Consumed;
+                case StepOff::Deferred:
+                    cancelStepOver(tid);
+                    if(const auto silent = mSilentStepOffs.find(tid); silent != mSilentStepOffs.end())
+                        silent->second.stepOver = true;
+                    return StepOverArm::Consumed;
                 }
             }
         }
 
         return StepOverArm::Armed;
+    }
+
+    void Debugger::cancelStepResume()
+    {
+        if(!mStepResume.active)
+            return;
+        if(mStepResume.planted && mProcess)
+            deleteBreakpoint(mStepResume.address);
+        mStepResume = {};
+        mStepPending.store(false, std::memory_order_release);
+    }
+
+    bool Debugger::armStepResume(const pid_t tid, const int signal, const siginfo_t* info)
+    {
+        cancelStepResume();
+
+        if(!mThread || !mProcess || !mThread->registers.Read())
+            return false;
+
+        const ptr rip = mThread->registers.Gip();
+        const bool planted = !mProcess->HasBreakpoint(rip);
+        if(planted && !mProcess->SetBreakpoint(rip, false, SoftwareType::ShortInt3))
+        {
+            char message[64];
+            snprintf(message, sizeof(message), "step: failed to set breakpoint at 0x%" PRIx64, rip);
+            cbInternalError(message);
+            return false;
+        }
+
+        bool resumed = false;
+        {
+            std::unique_lock lock(mProcessMutex);
+            if(!mThread->IsSuspended())
+            {
+                mThread->ClearPendingBreakpoint();
+                restoreSignalInfo(tid, signal, info);
+                if(ptrace(PTRACE_CONT, tid, nullptr, PtraceData(signal)) != -1)
+                {
+                    mThread->SetRunning(true);
+                    resumed = true;
+                }
+            }
+        }
+        if(!resumed)
+        {
+            if(planted)
+                deleteBreakpoint(rip);
+            return false;
+        }
+
+        takeSilentStepOff(tid, rip, mThread->registers.Gsp());
+        mStepResume.active = true;
+        mStepResume.tid = tid;
+        mStepResume.address = rip;
+        mStepResume.rsp = mThread->registers.Gsp();
+        mStepResume.planted = planted;
+        return true;
+    }
+
+    // sigreturn restores RSP exactly; a handler on an alternate stack can run above it, so no floor test.
+    bool Debugger::takeStepResumeTrap(const pid_t tid, const ptr address)
+    {
+        if(!mStepResume.active || address != mStepResume.address || !mThread || !mProcess)
+            return false;
+
+        const bool arrived = tid == mStepResume.tid && mThread->registers.Gsp() == mStepResume.rsp;
+        if(!arrived && !mStepResume.planted)
+            return false;
+
+        mThread->registers.Gip() = address;
+        mThread->registers.Write();
+
+        if(!arrived)
+        {
+            if(!stepOffAndRun(tid, address))
+                abandonAllStop(tid);
+            return true;
+        }
+
+        const bool planted = mStepResume.planted;
+        cancelStepResume();
+        mThread->SetAtBreakpoint(!planted);
+        mStepPending.store(true, std::memory_order_release);
+        pauseAndResume(tid);
+        return true;
+    }
+
+    std::optional<Debugger::SilentStepOff> Debugger::takeSilentStepOff(const pid_t tid, const ptr address, const ptr rsp)
+    {
+        const auto it = mSilentStepOffs.find(tid);
+        if(it == mSilentStepOffs.end() || it->second.address != address || it->second.rsp != rsp)
+            return std::nullopt;
+        const SilentStepOff taken = it->second;
+        mSilentStepOffs.erase(it);
+        return taken;
     }
 }

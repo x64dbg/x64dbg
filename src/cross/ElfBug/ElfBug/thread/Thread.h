@@ -2,7 +2,9 @@
 
 #include <sys/types.h>
 #include <atomic>
+#include <csignal>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <utility>
 #include <ElfBug/types/ElfBug.h>
@@ -11,6 +13,50 @@
 
 namespace ElfBug
 {
+    enum class ParkedSignal
+    {
+        Unreported, // seen by the engine, the decision is still to be made
+        Reported,   // the user was shown it; a step after it steps into its handler
+        Filtered    // decided not to stop; its handler is hidden from a step
+    };
+
+    inline std::optional<siginfo_t> KeepSignalInfo(const siginfo_t* info)
+    {
+        return info ? std::optional<siginfo_t>(*info) : std::nullopt;
+    }
+
+    inline const siginfo_t* SignalInfoOrNull(const std::optional<siginfo_t> & info)
+    {
+        return info ? &*info : nullptr;
+    }
+
+    // A signal held back for a later resume. No signal means no state, no siginfo and no address.
+    class OwedSignal
+    {
+    public:
+        OwedSignal() = default;
+        OwedSignal(const int signal, const ParkedSignal state, const siginfo_t* info, const ptr address = 0)
+        {
+            if(signal == 0)
+                return;
+            mSignal = signal;
+            mState = state;
+            mInfo = KeepSignalInfo(info);
+            mAddress = address;
+        }
+
+        [[nodiscard]] int Signal() const { return mSignal; }
+        [[nodiscard]] ParkedSignal State() const { return mState; }
+        [[nodiscard]] const siginfo_t* Info() const { return SignalInfoOrNull(mInfo); }
+        [[nodiscard]] ptr Address() const { return mAddress; }
+
+    private:
+        int mSignal = 0;
+        ParkedSignal mState = ParkedSignal::Reported;
+        std::optional<siginfo_t> mInfo;
+        ptr mAddress = 0;
+    };
+
     class Thread
     {
     public:
@@ -86,16 +132,15 @@ namespace ElfBug
         [[nodiscard]] ptr PendingBreakpoint() const { return mPendingBreakpoint; }
 
         // Read off the wait status by the sweep, forwarded on the resume that unfreezes it.
-        void SetPendingSignal(const int signal, const ptr address, const bool unreported)
+        void SetPendingSignal(OwedSignal signal) { mPendingSignal = std::move(signal); }
+        void SetPendingSignal(const int signal, const ptr address, const ParkedSignal state, const siginfo_t* info)
         {
-            mPendingSignal = signal;
-            mPendingSignalAddress = address;
-            mPendingSignalUnreported = unreported;
+            SetPendingSignal(OwedSignal(signal, state, info, address));
         }
-        void ClearPendingSignal() { SetPendingSignal(0, 0, false); }
-        [[nodiscard]] int PendingSignal() const { return mPendingSignal; }
-        [[nodiscard]] ptr PendingSignalAddress() const { return mPendingSignalAddress; }
-        [[nodiscard]] bool PendingSignalUnreported() const { return mPendingSignalUnreported; }
+        void ClearPendingSignal() { mPendingSignal = {}; }
+        [[nodiscard]] OwedSignal TakePendingSignal() { return std::exchange(mPendingSignal, {}); }
+        [[nodiscard]] const OwedSignal & Owed() const { return mPendingSignal; }
+        [[nodiscard]] int PendingSignal() const { return mPendingSignal.Signal(); }
 
         // TODO: implement via PTRACE_POKEUSER on debug register offsets
         [[nodiscard]] bool FreeHardwareBreakpointSlot(const HardwareSlot & slot) const;
@@ -114,8 +159,6 @@ namespace ElfBug
         bool mPendingSigstop = false;
         bool mHasPendingBreakpoint = false;
         ptr mPendingBreakpoint = 0;
-        int mPendingSignal = 0;
-        ptr mPendingSignalAddress = 0;
-        bool mPendingSignalUnreported = false;
+        OwedSignal mPendingSignal;
     };
 }

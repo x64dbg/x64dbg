@@ -1,5 +1,7 @@
 #include "TestSupport.h"
 #include "targets/TargetUtil.h"
+#include <ElfBug/core/SignalFilters.h>
+#include <optional>
 
 TEST_CASE("A trap the program raised itself is reported and still delivered", "[exception]")
 {
@@ -154,10 +156,12 @@ namespace
         std::size_t reported = 0;
     };
 
-    SignalRaceResult RunSignalRace(const int signal, const int quota)
+    SignalRaceResult RunSignalRace(const int signal, const int quota, const std::optional<ElfBug::SignalFilter> filter)
     {
         using namespace ElfBug::test;
         RecordingDebugger dbg;
+        if(filter)
+            dbg.Signals().Set(signal, *filter);
         const std::string path = FIXTURE("signal_race");
         REQUIRE(dbg.Init(path.c_str()));
 
@@ -223,6 +227,8 @@ namespace
         CAPTURE(r.raised, r.handled);
         REQUIRE(done == 1);
         std::size_t withAddress = 0;
+        std::size_t logged = 0;
+        std::size_t loggedPassed = 0;
         for(const auto & e : dbg.events())
         {
             if(e.type == EventType::Exception && e.signal == signal)
@@ -231,11 +237,22 @@ namespace
                 if(e.address != 0)
                     ++withAddress;
             }
+            if(e.type == EventType::SignalFiltered && e.signal == signal)
+            {
+                ++logged;
+                if(e.exitCode == 1)
+                    ++loggedPassed;
+            }
         }
         REQUIRE(withAddress == 0);
 
-        REQUIRE(r.handled == r.raised);
-        REQUIRE(r.reported == static_cast<std::size_t>(r.raised));
+        const bool stops = !filter || filter->stop;
+        const bool passes = !filter || filter->pass;
+        const auto raised = static_cast<std::size_t>(r.raised);
+        REQUIRE(r.handled == (passes ? r.raised : 0));
+        REQUIRE(r.reported == (stops ? raised : 0));
+        REQUIRE(logged == (!stops && filter->log ? raised : 0));
+        REQUIRE(loggedPassed == (passes ? logged : 0));
 
         REQUIRE(dbg.process()->DeleteBreakpoint(*s.hot));
         dbg.Stop();
@@ -248,17 +265,32 @@ namespace
 
 TEST_CASE("Signals absorbed by the stop sweep are still reported", "[multithread][exception]")
 {
-    RunSignalRace(SIGUSR1, 200);
+    RunSignalRace(SIGUSR1, 200, std::nullopt);
 }
 
 TEST_CASE("Raised fatal signals absorbed by the stop sweep are still delivered", "[multithread][exception]")
 {
-    RunSignalRace(SIGSEGV, 200);
+    RunSignalRace(SIGSEGV, 200, std::nullopt);
 }
 
 TEST_CASE("A raised SIGTRAP is delivered and reported", "[multithread][exception]")
 {
-    RunSignalRace(SIGTRAP, 200);
+    RunSignalRace(SIGTRAP, 200, std::nullopt);
+}
+
+TEST_CASE("Signals set not to stop that a stop sweep absorbs are delivered without a report", "[signalfilter][multithread][exception]")
+{
+    RunSignalRace(SIGUSR1, 200, ElfBug::SignalFilter{false, false, true});
+}
+
+TEST_CASE("Signals set not to stop that a stop sweep absorbs are logged once each", "[signalfilter][multithread][exception]")
+{
+    RunSignalRace(SIGUSR1, 200, ElfBug::SignalFilter{false, true, true});
+}
+
+TEST_CASE("Signals set not to stop or pass that a stop sweep absorbs never reach the handler", "[signalfilter][multithread][exception]")
+{
+    RunSignalRace(SIGUSR1, 200, ElfBug::SignalFilter{false, true, false});
 }
 
 TEST_CASE("A step after a thread switch keeps the reported signal on its thread", "[multithread][exception]")

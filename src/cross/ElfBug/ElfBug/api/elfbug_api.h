@@ -99,6 +99,13 @@ typedef struct
     char info[ELFBUG_MEMORY_INFO_SIZE];
 } ElfBugMemoryPage;
 
+typedef struct
+{
+    bool stop;
+    bool log;
+    bool pass;
+} ElfBugSignalFilter;
+
 typedef void (*ElfBugCbCreateProcess)(pid_t pid, uint64_t entryPoint, void* userdata);
 typedef void (*ElfBugCbExitProcess)(int exitCode, void* userdata);
 typedef void (*ElfBugCbCreateThread)(pid_t tid, void* userdata);
@@ -109,6 +116,8 @@ typedef void (*ElfBugCbBreakpoint)(uint64_t address, void* userdata);
 typedef void (*ElfBugCbStep)(void* userdata);
 typedef void (*ElfBugCbPaused)(void* userdata);
 typedef void (*ElfBugCbException)(int signal, uint64_t address, void* userdata);
+// A signal that did not stop and has log on.
+typedef void (*ElfBugCbSignalFiltered)(int signal, pid_t tid, bool passed, void* userdata);
 typedef void (*ElfBugCbError)(const char* error, void* userdata);
 typedef void (*ElfBugCbDebugString)(const char* text, void* userdata);
 typedef void (*ElfBugCbDetach)(void* userdata);
@@ -126,6 +135,7 @@ typedef struct
     ElfBugCbStep onStep;
     ElfBugCbPaused onPaused;
     ElfBugCbException onException;
+    ElfBugCbSignalFiltered onSignalFiltered;
     ElfBugCbDetach onDetach;
     ElfBugCbExec onExec;
     ElfBugCbError onError;
@@ -185,6 +195,11 @@ ELFBUG_EXPORT bool ElfBugDeleteBreakpoint(ElfBugDebugger* dbg, uint64_t addr);
 
 // True if `addr` has a breakpoint.
 ELFBUG_EXPORT bool ElfBugIsBreakpointEffective(const ElfBugDebugger* dbg, uint64_t addr);
+
+// Resets every signal to its default, then applies `text`. Thread-safe.
+ELFBUG_EXPORT void ElfBugSetSignalFilters(ElfBugDebugger* dbg, const char* text);
+// False for a signal outside 1 to 64, or when dbg or filter is null.
+ELFBUG_EXPORT bool ElfBugGetSignalFilter(const ElfBugDebugger* dbg, int signal, ElfBugSignalFilter* filter);
 
 #ifdef __cplusplus
 }

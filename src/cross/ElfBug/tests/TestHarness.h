@@ -77,6 +77,8 @@ namespace ElfBug::test
         InternalError,
         Detach,
         Exec,
+        // exitCode is 1 when the signal was passed, 0 when it was swallowed.
+        SignalFiltered,
     };
 
     struct Event
@@ -157,6 +159,7 @@ namespace ElfBug::test
 
         Process* process() const { return mProcess; }
         Thread* currentThread() const { return mThread; }
+        bool DeleteBreakpoint(const ptr address) { return deleteBreakpoint(address); }
 
         // Runs on the tracer thread.
         void OnSystemBreakpoint(std::function<void()> fn)
@@ -291,6 +294,11 @@ namespace ElfBug::test
             push({EventType::Exception, {}, mThread ? mThread->tid : 0, 0, address, signal, {},
                   mThread ? mThread->registers.Gip() : 0
                  });
+        }
+
+        void cbSignalFiltered(const int signal, const pid_t tid, const bool passed) override
+        {
+            push({EventType::SignalFiltered, {}, tid, passed ? 1 : 0, 0, signal, {}});
         }
 
         void cbInternalError(const std::string & error) override

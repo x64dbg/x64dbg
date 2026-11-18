@@ -24,6 +24,7 @@ sources = [
     "test_memory_map_api.cpp",
     "test_multithread.cpp",
     "test_procfs.cpp",
+    "test_signal_filters.cpp",
     "test_signals.cpp",
     "test_stepping.cpp",
     "test_suspend.cpp",
@@ -66,6 +67,7 @@ add_dependencies(ElfBug_tests
     elfbug_fixture_clone_trap
     elfbug_fixture_thread_storm
     elfbug_fixture_signal_pending
+    elfbug_fixture_signal_filter
     elfbug_fixture_signal_storm
     elfbug_fixture_clone_relay
     elfbug_fixture_clone_process
@@ -191,6 +193,13 @@ properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
 type = "elfbug_fixture"
 sources = ["targets/signal_pending.cpp"]
 properties.OUTPUT_NAME = "signal_pending"
+properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
+
+[target.elfbug_fixture_signal_filter]
+type = "elfbug_fixture"
+sources = ["targets/signal_filter.cpp"]
+link-libraries = ["pthread"]
+properties.OUTPUT_NAME = "signal_filter"
 properties.RUNTIME_OUTPUT_DIRECTORY = "${CMAKE_BINARY_DIR}/tests/targets"
 
 [target.elfbug_fixture_signal_storm]
