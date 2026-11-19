@@ -18,6 +18,7 @@
 #include <ElfBug/types/Ptrace.h>
 #include <ElfBug/process/Process.h>
 #include <ElfBug/process/ProcessArch.h>
+#include <ElfBug/core/SignalFilters.h>
 #include <ElfBug/thread/Thread.h>
 
 namespace ElfBug
@@ -43,6 +44,9 @@ namespace ElfBug
 
     // si_addr is only a fault address for kernel-raised signals.
     ptr FaultAddress(int signal, const siginfo_t & info);
+
+    // Filtered and no fault: a step does not show its handler.
+    bool HidesHandler(const OwedSignal & owed);
 
     bool SweepShouldQueue(int signal, bool hardware);
 
@@ -82,6 +86,9 @@ namespace ElfBug
         bool SwitchThread(pid_t tid);
         bool SetThreadSuspended(pid_t tid, bool suspended);
 
+        [[nodiscard]] SignalFilters & Signals() { return mSignals; }
+        [[nodiscard]] const SignalFilters & Signals() const { return mSignals; }
+
     protected:
         virtual void cbCreateProcess(pid_t pid, ptr entryPoint);
         virtual void cbExitProcess(int exitCode);
@@ -98,9 +105,14 @@ namespace ElfBug
         virtual void cbDebugString(const std::string & text);
         virtual void cbPaused();
         virtual void cbPauseTick();
+        // A signal that did not stop and has log on.
+        virtual void cbSignalFiltered(int signal, pid_t tid, bool passed);
 
         // /proc wchan; empty when unreadable, running, or stopped.
         static std::string readWaitReason(pid_t tgid, pid_t tid);
+
+        // Also forgets any silent step-off owed at the address.
+        bool deleteBreakpoint(ptr address);
 
         Process* mProcess = nullptr;
         Thread* mThread = nullptr;
@@ -118,15 +130,27 @@ namespace ElfBug
         void reapDetachedChildren();
         void detachFromProcess(pid_t reportedTid);
         void handleSignal(pid_t tid, int status);
-        void handleSigtrap(pid_t tid, int status);
+        void handleSigtrap(pid_t tid, int status, bool wasRunning);
         bool pauseAndResume(pid_t reported);
         enum class StepOff
         {
             Stepped,  // RIP is past the byte and it is armed again
             Parked,   // the thread is suspended: byte armed again, RIP still on it, signal parked
-            Consumed  // the stop was used up (exit, forwarded signal, error); abandon it
+            Consumed, // the stop was used up (exit, forwarded signal, error); abandon it
+            Deferred  // byte armed, thread still stopped: the caller continues it with mOwedSignal
         };
         StepOff stepPastBreakpointByte(pid_t tid, ptr addr);
+        StepOff deferStepOff(pid_t tid, ptr addr, int signal, const siginfo_t* info);
+        // A suspended thread whose slot is taken is continued anyway, so neither signal is lost.
+        StepOff resumeDeferred(pid_t tid);
+        // Parks the signal for the caller's continue; a slot already in use continues it now.
+        StepOff holdDeferred(pid_t tid);
+        // Steps the thread off its breakpoint with the signal parked on it.
+        StepOff stepOffHeld(Thread* thread, ptr addr);
+        // A Deferred thread is continued at once.
+        StepOff stepOffAlone(pid_t tid, ptr addr);
+        // False when the stop was used up.
+        bool stepOffAndRun(pid_t tid, ptr addr);
         void abandonSingleStep(pid_t tid);
         void onExec();
         bool applyExec(pid_t tid);
@@ -137,7 +161,7 @@ namespace ElfBug
         std::optional<int> stopAllThreads(pid_t except);
         void reportLeaderExit(int exitCode);
         void drainPendingResumes();
-        bool pendingResumeOnBreakpoint();
+        bool pendingResumeNeedsAllStop();
         bool resumeStoppedThread(pid_t tid);
         void continueUnlessSuspended(pid_t tid);
         void leaveParked(pid_t tid);
@@ -149,7 +173,7 @@ namespace ElfBug
             Parked,
             ParkedAlone
         };
-        ContinueResult continueOrPark(pid_t tid, int signal, bool forcePark);
+        ContinueResult continueOrPark(pid_t tid, const OwedSignal & signal, bool forcePark);
         [[nodiscard]] bool anyThreadRunning() const;
         [[nodiscard]] bool anyThreadRunningLocked() const;
         void resumeAllThreads(pid_t except);
@@ -158,7 +182,32 @@ namespace ElfBug
         Thread* findPendingSignalThread() const;
         void repairStoppedThread(Thread* thread, int status);
         bool claimBreakpointTrap(Thread* thread, int status);
-        void reportSignal(pid_t tid, int sig);
+        void reportSignal(pid_t tid, int sig, bool wasRunning);
+        void resumeFilteredSignal(pid_t tid, const OwedSignal & owed, bool fault, bool wasRunning);
+        // Single-steps the current thread again, or continues it when the step fails.
+        void reissueStep(pid_t tid, int signal);
+        // Reports a pause when the park leaves nothing running.
+        void continueOrPause(pid_t tid, const OwedSignal & signal, bool forcePark);
+        // Injected at a later stop, the kernel would otherwise build an SI_USER siginfo.
+        void restoreSignalInfo(pid_t tid, const OwedSignal & owed) const;
+        // PTRACE_CONT with the signal and its siginfo. False with errno set when it fails.
+        bool continueWith(pid_t tid, const OwedSignal & owed) const;
+
+        struct SignalDecision
+        {
+            bool stop = true;
+            int deliver = 0; // the signal to inject on resume, or 0
+        };
+        // Logs a signal that does not stop and has log on.
+        [[nodiscard]] SignalDecision decideSignal(int signal, pid_t tid, bool fault, bool groupStop);
+        // A sweep never parks a kernel fault, so it is decided as no fault.
+        [[nodiscard]] SignalDecision decideParkedSignal(const Thread* thread);
+        // Before a step, the current thread's undecided signal is delivered unless it is to stop.
+        void takeUndecidedSignal();
+        // Moves the current thread's decided signal into mOwedSignal when nothing is held there.
+        void takeDecidedSignal();
+        // Dropped when the thread is gone. Caller holds mProcessMutex.
+        void parkOwedSignal(pid_t tid);
 
         struct StepOverRequest
         {
@@ -179,7 +228,30 @@ namespace ElfBug
         StepOverArm armStepOver(pid_t tid);
         void cancelStepOver(pid_t tid);
         void cancelStepOverIfOwner(pid_t tid);
+
+        // A thread running a hidden handler back to the instruction a step was interrupted at.
+        struct StepResume
+        {
+            bool active = false;
+            pid_t tid = 0;
+            ptr address = 0;
+            ptr rsp = 0;
+            bool planted = false;
+        };
+        bool armStepResume(pid_t tid, const OwedSignal & owed);
+        void cancelStepResume();
+        // sigreturn restores RSP exactly; a handler on an alternate stack can run above it, so no floor test.
+        bool takeStepResumeTrap(pid_t tid, ptr address);
         void restoreSourceByte(pid_t tid);
+        // A thread returning from a hidden handler to a breakpoint it was already reported at.
+        struct SilentStepOff
+        {
+            pid_t tid = 0;
+            ptr address = 0;
+            ptr rsp = 0;
+            bool stepOver = false; // the user's step over is made again after it
+        };
+        std::optional<SilentStepOff> takeSilentStepOff(pid_t tid, ptr address, ptr rsp);
         // A single-stepped pushf pushes EFLAGS with TF set; clear it from the pushed word.
         void maskPushedTrapFlag();
         void dispatchBreakpoint(ptr address);
@@ -191,16 +263,18 @@ namespace ElfBug
         void exitThreadEvent(pid_t tid);
         void releaseForeignClone(pid_t tid, pid_t tgid, bool running);
         // Brings a thread a failed drain left running back to a stop we waited on.
-        WaitResult restopForDetach(pid_t tid, pid_t tgid, bool owed, std::vector<int> & signals);
+        WaitResult restopForDetach(pid_t tid, pid_t tgid, bool owed, std::vector<OwedSignal> & signals);
         // Keeps the thread traced until it reaches a stop it can be detached from.
-        void releaseRunningThread(pid_t tid, pid_t tgid, bool owed, std::vector<int> signals);
-        void releaseThread(pid_t tid, pid_t tgid, const std::vector<int> & signals);
+        void releaseRunningThread(pid_t tid, pid_t tgid, bool owed, std::vector<OwedSignal> signals);
+        void releaseThread(pid_t tid, pid_t tgid, const std::vector<OwedSignal> & signals);
 
         std::atomic<bool> mIsRunning{false};
         std::atomic<bool> mPaused{false};
         std::atomic<bool> mStepPending{false};
         std::atomic<bool> mStepOverPending{false};
         StepOverRequest mStepOver;
+        StepResume mStepResume;
+        std::vector<SilentStepOff> mSilentStepOffs;
         // Lifted breakpoint bytes, re-armed when the lifting thread next stops.
         std::unordered_map<pid_t, ptr> mSourceRearms;
         std::vector<pid_t> mResumeExcept;
@@ -218,9 +292,11 @@ namespace ElfBug
         pid_t mAttachPid = 0;
         ImageId mImageId;
         std::vector<pid_t> mDetachedChildren;
-        int mPendingSignal = 0;
+        // What the current thread is continued with; parked on its slot when another thread becomes current.
+        OwedSignal mOwedSignal;
         std::mutex mPauseMutex;
         std::condition_variable mPauseCv;
+        SignalFilters mSignals;
 
         std::string mFilePath;
         std::vector<std::string> mArgv;

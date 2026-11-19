@@ -11,6 +11,13 @@
 
 namespace ElfBug::test
 {
+    struct FilteredSignal
+    {
+        int signal = 0;
+        pid_t tid = 0;
+        bool passed = false;
+    };
+
     struct ApiEvents
     {
         std::mutex mutex;
@@ -21,6 +28,7 @@ namespace ElfBug::test
         std::optional<std::uint64_t> breakpointAddress;
         std::optional<int> exceptionSignal;
         std::uint64_t exceptionAddress = 0;
+        std::vector<FilteredSignal> filteredSignals;
         pid_t pid = 0;
         bool detached = false;
         std::optional<int> exitCode;
@@ -83,6 +91,13 @@ namespace ElfBug::test
             std::lock_guard lock(ev->mutex);
             ev->exceptionSignal = signal;
             ev->exceptionAddress = address;
+            ev->cv.notify_all();
+        };
+        cb.onSignalFiltered = [](const int signal, const pid_t tid, const bool passed, void* userdata)
+        {
+            auto* ev = static_cast<ApiEvents*>(userdata);
+            std::lock_guard lock(ev->mutex);
+            ev->filteredSignals.push_back({signal, tid, passed});
             ev->cv.notify_all();
         };
         cb.onCreateThread = [](const pid_t tid, void* userdata)

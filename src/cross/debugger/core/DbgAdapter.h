@@ -66,6 +66,8 @@ public:
     bool modNameFromAddr(duint addr, char* buf, duint bufSize, bool extension) override;
 
     bool loadEngine();
+    // Re-reads [Signals] Filters; a missing key restores the defaults.
+    void reloadSignalFilters();
     bool launch(const char* path);
     bool attach(pid_t pid);
     bool detach();
@@ -129,6 +131,7 @@ private:
     static void onStep(void* userdata);
     static void onPaused(void* userdata);
     static void onException(int signal, uint64_t address, void* userdata);
+    static void onSignalFiltered(int signal, pid_t tid, bool passed, void* userdata);
     static void onError(const char* error, void* userdata);
     static void onDebugString(const char* text, void* userdata);
 

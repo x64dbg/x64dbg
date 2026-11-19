@@ -652,6 +652,12 @@ protected:
             mCb.onException(signal, address, mCb.userdata);
     }
 
+    void cbSignalFiltered(const int signal, const pid_t tid, const bool passed) override
+    {
+        if(mCb.onSignalFiltered)
+            mCb.onSignalFiltered(signal, tid, passed, mCb.userdata);
+    }
+
     void cbPauseTick() override
     {
         processPendingBreakpoints();
@@ -803,7 +809,7 @@ private:
             }
             else
             {
-                if(mProcess->DeleteBreakpoint(addr))
+                if(deleteBreakpoint(addr))
                 {
                     std::lock_guard lock(mBreakpointMutex);
                     mBreakpointAddresses.erase(req.addr);
@@ -1178,6 +1184,24 @@ extern "C" {
         if(!dbg)
             return false;
         return dbg->IsBreakpointEffective(addr);
+    }
+
+    void ElfBugSetSignalFilters(ElfBugDebugger* dbg, const char* text)
+    {
+        if(!dbg)
+            return;
+        dbg->Signals().Load(text ? text : "");
+    }
+
+    bool ElfBugGetSignalFilter(const ElfBugDebugger* dbg, const int signal, ElfBugSignalFilter* filter)
+    {
+        if(!dbg || !filter || signal < 1 || signal > ElfBug::SignalFilters::kMaxSignal)
+            return false;
+        const ElfBug::SignalFilter effective = dbg->Signals().Get(signal);
+        filter->stop = effective.stop;
+        filter->log = effective.log;
+        filter->pass = effective.pass;
+        return true;
     }
 
 } // extern "C"

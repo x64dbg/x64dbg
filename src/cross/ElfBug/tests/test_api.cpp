@@ -1,4 +1,5 @@
 #include "ApiSession.h"
+#include <memory>
 #include <set>
 #include <mutex>
 #include <sched.h>
@@ -602,4 +603,53 @@ TEST_CASE("C API detach clears the session and leaves the process running", "[ap
     REQUIRE(ElfBugGetThreadList(s.dbg, nullptr, 0) == 0);
 
     REQUIRE(StaysRunning(pid));
+}
+
+TEST_CASE("C API sets and reads signal filters before a session starts", "[api][signalfilter]")
+{
+    const std::unique_ptr<ElfBugDebugger, decltype(&ElfBugDestroy)> dbg(ElfBugCreate(nullptr), &ElfBugDestroy);
+    REQUIRE(dbg);
+
+    const ElfBugDebugger* readOnly = dbg.get();
+    ElfBugSignalFilter filter = {};
+    REQUIRE(ElfBugGetSignalFilter(readOnly, SIGCHLD, &filter));
+    REQUIRE((!filter.stop && !filter.log && filter.pass));
+
+    ElfBugSetSignalFilters(dbg.get(), "0000000A-0000000A:nobreak:log:debuggee");
+    REQUIRE(ElfBugGetSignalFilter(dbg.get(), SIGUSR1, &filter));
+    REQUIRE((!filter.stop && filter.log && filter.pass));
+
+    filter = {};
+    REQUIRE(ElfBugGetSignalFilter(dbg.get(), SIGKILL, &filter));
+    REQUIRE((filter.stop && filter.log && filter.pass));
+
+    filter = {true, false, true};
+    REQUIRE_FALSE(ElfBugGetSignalFilter(dbg.get(), 0, &filter));
+    REQUIRE_FALSE(ElfBugGetSignalFilter(dbg.get(), 65, &filter));
+    REQUIRE((filter.stop && !filter.log && filter.pass));
+    REQUIRE_FALSE(ElfBugGetSignalFilter(dbg.get(), SIGUSR1, nullptr));
+    REQUIRE_FALSE(ElfBugGetSignalFilter(nullptr, SIGUSR1, &filter));
+
+    ElfBugSetSignalFilters(dbg.get(), nullptr);
+    REQUIRE(ElfBugGetSignalFilter(dbg.get(), SIGUSR1, &filter));
+    REQUIRE((filter.stop && filter.log && filter.pass));
+}
+
+TEST_CASE("C API reports a filtered signal that is logged", "[api][signalfilter]")
+{
+    ApiSession s(FIXTURE("signal_filter"));
+    REQUIRE(s.Started());
+    REQUIRE(s.WaitForSystemBreakpoint());
+
+    ElfBugSetSignalFilters(s.dbg, "0000000A-0000000A:nobreak:log:debuggee");
+    ElfBugContinue(s.dbg);
+    REQUIRE(s.WaitForExit());
+
+    std::lock_guard lock(s.events.mutex);
+    REQUIRE(*s.events.exitCode == 0);
+    REQUIRE_FALSE(s.events.exceptionSignal.has_value());
+    REQUIRE(s.events.filteredSignals.size() == 1);
+    REQUIRE(s.events.filteredSignals[0].signal == SIGUSR1);
+    REQUIRE(s.events.filteredSignals[0].passed);
+    REQUIRE(s.events.filteredSignals[0].tid == s.events.pid);
 }

@@ -6,6 +6,7 @@
 #include <chrono>
 #include <csignal>
 #include <cstring>
+#include <utility>
 #include <vector>
 
 namespace ElfBug
@@ -36,10 +37,30 @@ namespace ElfBug
 
     void Debugger::beginPause()
     {
+        cancelStepResume();
+        for(SilentStepOff & silent : mSilentStepOffs)
+            silent.stepOver = false;
         mAllStopped = true;
 
         std::lock_guard lock(mPauseMutex);
         mPaused.store(true, std::memory_order_release);
+    }
+
+    void Debugger::takeDecidedSignal()
+    {
+        std::unique_lock lock(mProcessMutex);
+        if(!mThread || !mProcess || mOwedSignal.Signal() != 0 || !mThread->Owed().Decided())
+            return;
+        mOwedSignal = mThread->TakePendingSignal();
+    }
+
+    void Debugger::parkOwedSignal(const pid_t tid)
+    {
+        OwedSignal owed = std::exchange(mOwedSignal, {});
+        if(owed.Signal() == 0 || !mProcess)
+            return;
+        if(Thread* thread = mProcess->FindThread(tid))
+            thread->SetPendingSignal(std::move(owed));
     }
 
     Thread* Debugger::findPendingBreakpointThread() const
@@ -64,7 +85,7 @@ namespace ElfBug
         std::shared_lock lock(mProcessMutex);
         for(const auto & entry : mProcess->threads)
         {
-            if(!entry.second->IsSuspended() && entry.second->PendingSignal() != 0 && entry.second->PendingSignalUnreported())
+            if(!entry.second->IsSuspended() && entry.second->Owed().Undecided())
                 return entry.second.get();
         }
         return nullptr;
@@ -123,12 +144,7 @@ namespace ElfBug
                 mThread = thread;
             }
 
-            mPendingSignal = thread->PendingSignal();
-            thread->ClearPendingSignal();
-
-            const StepOff stepped = stepPastBreakpointByte(tid, rip);
-            mPendingSignal = 0;
-
+            const StepOff stepped = stepOffHeld(thread, rip);
             if(stepped == StepOff::Consumed && (!mProcess || !mIsRunning.load(std::memory_order_acquire)))
                 return;
             if(stepped == StepOff::Parked)
@@ -157,13 +173,10 @@ namespace ElfBug
                 if(!thread || thread->IsRunning() || thread->IsSuspended())
                     continue;
 
-                const int sig = thread->PendingSignal();
-                thread->ClearPendingSignal();
-
-                if(ptrace(PTRACE_CONT, tid, nullptr, PtraceData(sig)) == -1)
-                    contError = errno;
-                else
+                if(continueWith(tid, thread->TakePendingSignal()))
                     thread->SetRunning(true);
+                else
+                    contError = errno;
             }
             if(contError != 0 && contError != ESRCH)
                 cbInternalError("PTRACE_CONT failed: " + std::string(strerror(contError)));
@@ -196,7 +209,7 @@ namespace ElfBug
         return anyThreadRunningLocked();
     }
 
-    Debugger::ContinueResult Debugger::continueOrPark(const pid_t tid, const int signal, const bool forcePark)
+    Debugger::ContinueResult Debugger::continueOrPark(const pid_t tid, const OwedSignal & signal, const bool forcePark)
     {
         bool parked = false;
         bool alone = false;
@@ -206,17 +219,20 @@ namespace ElfBug
             std::unique_lock lock(mProcessMutex);
             if(mThread && (forcePark || mThread->IsSuspended()))
             {
-                if(signal != 0)
-                    mThread->SetPendingSignal(signal, 0, false);
+                if(signal.Signal() != 0)
+                    mThread->SetPendingSignal(signal);
                 parked = true;
                 alone = !anyThreadRunningLocked();
             }
-            else if(ptrace(PTRACE_CONT, tid, nullptr, PtraceData(signal)) == -1)
-                contError = errno;
-            else if(mThread)
-                mThread->SetRunning(true);
             else
-                untracked = true;
+            {
+                if(!continueWith(tid, signal))
+                    contError = errno;
+                else if(mThread)
+                    mThread->SetRunning(true);
+                else
+                    untracked = true;
+            }
         }
         if(contError != 0 && contError != ESRCH)
             cbInternalError("PTRACE_CONT failed: " + std::string(strerror(contError)));
@@ -273,25 +289,8 @@ namespace ElfBug
                 std::unique_lock processLock(mProcessMutex);
                 if(mThread && mProcess && mThread->tid != reportedTid)
                 {
-                    if(mPendingSignal != 0)
-                    {
-                        if(Thread* reportedThread = mProcess->FindThread(reportedTid))
-                            reportedThread->SetPendingSignal(mPendingSignal, 0, false);
-                        mPendingSignal = 0;
-                    }
+                    parkOwedSignal(reportedTid);
                     pid = mThread->tid;
-                    if(mThread->PendingSignal() != 0 && !mThread->PendingSignalUnreported())
-                    {
-                        mPendingSignal = mThread->PendingSignal();
-                        mThread->ClearPendingSignal();
-                    }
-                }
-
-                if(mThread && mProcess && mPendingSignal == 0 &&
-                        mThread->PendingSignal() != 0 && !mThread->PendingSignalUnreported())
-                {
-                    mPendingSignal = mThread->PendingSignal();
-                    mThread->ClearPendingSignal();
                 }
             }
 
@@ -308,16 +307,9 @@ namespace ElfBug
                     if(!mProcess || !mProcess->HasBreakpoint(address))
                         continue;
 
-                    if(mPendingSignal != 0)
-                    {
-                        std::shared_lock processLock(mProcessMutex);
-                        if(Thread* previous = mProcess->FindThread(pid))
-                            previous->SetPendingSignal(mPendingSignal, 0, false);
-                    }
-                    mPendingSignal = 0;
-
                     {
                         std::unique_lock processLock(mProcessMutex);
+                        parkOwedSignal(pid);
                         mThread = queued;
                     }
                     beginPause();
@@ -327,28 +319,30 @@ namespace ElfBug
 
                 while(Thread* queued = findPendingSignalThread())
                 {
-                    const int signal = queued->PendingSignal();
-                    const ptr address = queued->PendingSignalAddress();
+                    const OwedSignal owed = queued->Owed();
                     const pid_t queuedTid = queued->tid;
-                    queued->ClearPendingSignal();
-
-                    if(mPendingSignal != 0)
+                    const SignalDecision decision = decideParkedSignal(queued);
+                    if(!decision.stop)
                     {
-                        std::shared_lock processLock(mProcessMutex);
-                        if(Thread* previous = mProcess->FindThread(pid))
-                            previous->SetPendingSignal(mPendingSignal, 0, false);
+                        std::unique_lock processLock(mProcessMutex);
+                        queued->SetPendingSignal(OwedSignal(decision.deliver, ParkedSignal::Filtered, owed.Info(), owed.Address()));
+                        continue;
                     }
-                    mPendingSignal = signal;
+                    queued->ClearPendingSignal();
 
                     {
                         std::unique_lock processLock(mProcessMutex);
+                        parkOwedSignal(pid);
                         mThread = queued;
                     }
+                    mOwedSignal = OwedSignal(decision.deliver, ParkedSignal::Reported, owed.Info());
                     beginPause();
-                    cbException(signal, address);
+                    cbException(owed.Signal(), owed.Address());
                     return pauseAndResume(queuedTid);
                 }
             }
+
+            takeDecidedSignal();
 
             bool stepOverRequested = mStepOverPending.exchange(false, std::memory_order_acq_rel);
 
@@ -408,13 +402,17 @@ namespace ElfBug
                     case StepOff::Consumed:
                         abandonAllStop(pid);
                         return false;
+                    case StepOff::Deferred:
+                        break;
                     }
+                    takeDecidedSignal();
                 }
             }
 
             if(stepOverRequested && mThread)
             {
                 mStepPending.store(false, std::memory_order_release);
+                takeUndecidedSignal();
 
                 switch(armStepOver(pid))
                 {
@@ -433,6 +431,7 @@ namespace ElfBug
 
                 case StepOverArm::Armed:
                 {
+                    takeDecidedSignal();
                     bool leftStopped = false;
                     int contError = 0;
                     {
@@ -442,12 +441,10 @@ namespace ElfBug
                         else
                         {
                             mThread->ClearPendingBreakpoint();
-                            const int sig = mPendingSignal;
-                            mPendingSignal = 0;
-                            if(ptrace(PTRACE_CONT, pid, nullptr, PtraceData(sig)) == -1)
-                                contError = errno;
-                            else
+                            if(continueWith(pid, std::exchange(mOwedSignal, {})))
                                 mThread->SetRunning(true);
+                            else
+                                contError = errno;
                         }
                     }
                     if(leftStopped)
@@ -475,19 +472,37 @@ namespace ElfBug
                 }
             }
 
-            if((stepIntoRequested || stepOverRequested) && mThread)
+            const bool stepping = (stepIntoRequested || stepOverRequested) && mThread;
+            if(stepping)
             {
                 mStepPending.store(false, std::memory_order_release);
-                ptr next = 0;
-                const bool stepsPushf = mProcess &&
-                                        mProcess->ClassifyStepOverAt(mThread->registers.Gip(), next) == StepOverKind::Pushf;
-                // A queued SIGSTOP would be delivered by the step instead of an instruction.
+                takeUndecidedSignal();
+
                 if(!swallowPendingSigstop(pid))
                 {
                     restoreSourceByte(pid);
                     abandonAllStop(pid);
                     return false;
                 }
+                if(HidesHandler(mThread->Owed()))
+                    takeDecidedSignal();
+            }
+
+            if(stepping && HidesHandler(mOwedSignal))
+            {
+                restoreSourceByte(pid);
+                if(armStepResume(pid, mOwedSignal))
+                {
+                    mOwedSignal = {};
+                    return true;
+                }
+            }
+
+            if(stepping)
+            {
+                ptr next = 0;
+                const bool stepsPushf = mProcess &&
+                                        mProcess->ClassifyStepOverAt(mThread->registers.Gip(), next) == StepOverKind::Pushf;
 
                 bool leftStopped = false;
                 int stepErrno = 0;
@@ -499,11 +514,13 @@ namespace ElfBug
                     else
                     {
                         mThread->ClearPendingBreakpoint();
-                        const int sig = mPendingSignal;
-                        mPendingSignal = 0;
+                        const OwedSignal owed = std::exchange(mOwedSignal, {});
+                        const int sig = owed.Signal();
+                        takeSilentStepOff(pid, mThread->registers.Gip(), mThread->registers.Gsp());
+                        restoreSignalInfo(pid, owed);
                         if(mThread->StepInto(sig))
                         {
-                            mThread->SetStepsPushf(stepsPushf);
+                            mThread->SetStepsPushf(stepsPushf && sig == 0);
                             mThread->SetRunning(true);
                         }
                         else
@@ -571,14 +588,13 @@ namespace ElfBug
                     continue;
                 }
 
-                const int sig = mPendingSignal;
-                mPendingSignal = 0;
+                const OwedSignal owed = std::exchange(mOwedSignal, {});
 
                 resumeAllThreads(pid);
                 if(!mProcess || !mIsRunning.load(std::memory_order_acquire))
                     return false;
 
-                if(continueOrPark(pid, sig, parkedOnByte) == ContinueResult::ParkedAlone)
+                if(continueOrPark(pid, owed, parkedOnByte) == ContinueResult::ParkedAlone)
                 {
                     mPauseRequested.store(false, std::memory_order_release);
                     beginPause();

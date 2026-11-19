@@ -19,12 +19,6 @@ namespace ElfBug
 {
     namespace
     {
-        struct PendingAttachSignal
-        {
-            int signal = 0;
-            ptr address = 0;
-        };
-
         void collectClonedChild(const pid_t parent, const int status, std::vector<pid_t> & clones)
         {
             if(PtraceEvent(status) != PTRACE_EVENT_CLONE)
@@ -34,9 +28,10 @@ namespace ElfBug
                 clones.push_back(static_cast<pid_t>(child));
         }
 
-        void addReleaseSignal(std::vector<int> & signals, const int signal)
+        void addReleaseSignal(std::vector<OwedSignal> & signals, const OwedSignal & signal)
         {
-            if(signal != 0 && std::find(signals.begin(), signals.end(), signal) == signals.end())
+            const auto same = [&signal](const OwedSignal & kept) { return kept.Signal() == signal.Signal(); };
+            if(signal.Signal() != 0 && std::none_of(signals.begin(), signals.end(), same))
                 signals.push_back(signal);
         }
 
@@ -53,7 +48,7 @@ namespace ElfBug
                           reinterpret_cast<void*>(rip - 1)) != -1;
         }
 
-        void keepReleaseSignal(const pid_t tid, const int status, const Process* process, std::vector<int> & signals)
+        void keepReleaseSignal(const pid_t tid, const int status, const Process* process, std::vector<OwedSignal> & signals)
         {
             if(PtraceEvent(status) != 0)
                 return;
@@ -62,12 +57,12 @@ namespace ElfBug
             int signal = 0;
             ptr address = 0;
             if(StopShouldQueue(status, haveInfo, info, signal, address))
-                addReleaseSignal(signals, signal);
+                addReleaseSignal(signals, OwedSignal(signal, ParkedSignal::Unreported, &info));
             else if(haveInfo && ForeignTrapShouldQueue(WSTOPSIG(status), info) && !rewindOwnTrap(tid, process))
-                addReleaseSignal(signals, SIGTRAP);
+                addReleaseSignal(signals, OwedSignal(SIGTRAP, ParkedSignal::Unreported, &info));
         }
 
-        WaitResult drainQueuedSigstop(const pid_t tid, const Process* process, std::vector<int> & signals,
+        WaitResult drainQueuedSigstop(const pid_t tid, const Process* process, std::vector<OwedSignal> & signals,
                                       std::vector<pid_t> & clones)
         {
             for(;;)
@@ -120,21 +115,21 @@ namespace ElfBug
         std::vector<pid_t> acquired;
         std::vector<pid_t> owesSigstop;
         std::vector<pid_t> unstopped;
-        std::unordered_map<pid_t, PendingAttachSignal> attachPendingSignals;
+        std::unordered_map<pid_t, OwedSignal> attachPendingSignals;
 
         auto rollback = [&]
         {
             // The sweep's own SIGSTOPs are still queued on these threads; detaching
             // without taking them back freezes the process we failed to attach to.
             std::unordered_set<pid_t> leftRunning(unstopped.begin(), unstopped.end());
-            std::unordered_map<pid_t, std::vector<int>> signals;
+            std::unordered_map<pid_t, std::vector<OwedSignal>> signals;
             std::vector<pid_t> clones;
             for(const pid_t tid : owesSigstop)
             {
                 auto & kept = signals[tid];
                 const auto pending = attachPendingSignals.find(tid);
                 if(pending != attachPendingSignals.end())
-                    addReleaseSignal(kept, pending->second.signal);
+                    addReleaseSignal(kept, pending->second);
                 if(drainQueuedSigstop(tid, nullptr, kept, clones) == WaitResult::TimedOut)
                     leftRunning.insert(tid);
             }
@@ -219,13 +214,13 @@ namespace ElfBug
                     {
                         if(SweepShouldQueue(sig, info.si_code > 0) ||
                                 ForeignTrapShouldQueue(sig, info))
-                            attachPendingSignals[tid] = {sig, FaultAddress(sig, info)};
+                            attachPendingSignals[tid] = OwedSignal(sig, ParkedSignal::Unreported, &info, FaultAddress(sig, info));
                     }
                     else if(errno != EINVAL)
                     {
                         // EINVAL is a group-stop and carries nothing; anything else is a signal we lost.
                         if(SweepShouldQueue(sig, false))
-                            attachPendingSignals[tid] = {sig, 0};
+                            attachPendingSignals[tid] = OwedSignal(sig, ParkedSignal::Unreported, nullptr);
                     }
                     owesSigstop.push_back(tid);
                 }
@@ -276,13 +271,13 @@ namespace ElfBug
 
             const auto pending = attachPendingSignals.find(tid);
             if(pending != attachPendingSignals.end())
-                thread->SetPendingSignal(pending->second.signal, pending->second.address, true);
+                thread->SetPendingSignal(pending->second);
         }
 
         return true;
     }
 
-    WaitResult Debugger::restopForDetach(const pid_t tid, const pid_t tgid, const bool owed, std::vector<int> & signals)
+    WaitResult Debugger::restopForDetach(const pid_t tid, const pid_t tgid, const bool owed, std::vector<OwedSignal> & signals)
     {
         if(!owed && tgkill(tgid, tid, SIGSTOP) == -1)
             return WaitResult::Gone;
@@ -305,7 +300,7 @@ namespace ElfBug
         return drained;
     }
 
-    void Debugger::releaseRunningThread(const pid_t tid, const pid_t tgid, bool owed, std::vector<int> signals)
+    void Debugger::releaseRunningThread(const pid_t tid, const pid_t tgid, bool owed, std::vector<OwedSignal> signals)
     {
         bool reported = false;
         for(;;)
@@ -326,17 +321,18 @@ namespace ElfBug
         releaseThread(tid, tgid, signals);
     }
 
-    void Debugger::releaseThread(const pid_t tid, const pid_t tgid, const std::vector<int> & signals)
+    void Debugger::releaseThread(const pid_t tid, const pid_t tgid, const std::vector<OwedSignal> & signals)
     {
-        const int first = signals.empty() ? 0 : signals.front();
-        if(ptrace(PTRACE_DETACH, tid, nullptr, PtraceData(first)) == -1)
+        const OwedSignal first = signals.empty() ? OwedSignal() : signals.front();
+        restoreSignalInfo(tid, first);
+        if(ptrace(PTRACE_DETACH, tid, nullptr, PtraceData(first.Signal())) == -1)
         {
             if(errno != ESRCH)
                 cbInternalError("PTRACE_DETACH failed: " + std::string(strerror(errno)));
             return;
         }
         for(std::size_t i = 1; i < signals.size(); i++)
-            tgkill(tgid, tid, signals[i]);
+            tgkill(tgid, tid, signals[i].Signal());
     }
 
     void Debugger::releaseForeignClone(const pid_t tid, const pid_t tgid, const bool running)
@@ -381,7 +377,7 @@ namespace ElfBug
                 break;
         }
 
-        std::vector<std::pair<pid_t, int>> targets;
+        std::vector<std::pair<pid_t, OwedSignal>> targets;
         std::unordered_set<pid_t> leftRunning;
         std::unordered_set<pid_t> owedSigstop;
         for(const pid_t tid : mUnregisteredRunning)
@@ -393,18 +389,16 @@ namespace ElfBug
 
         if(mProcess)
         {
-            if(mPendingSignal != 0)
+            if(mOwedSignal.Signal() != 0)
             {
                 std::unique_lock lock(mProcessMutex);
-                if(Thread* reportedThread = mProcess->FindThread(reportedTid))
-                    reportedThread->SetPendingSignal(mPendingSignal, 0, false);
-                mPendingSignal = 0;
+                parkOwedSignal(reportedTid);
             }
 
             std::shared_lock lock(mProcessMutex);
             for(const auto & [tid, thread] : mProcess->threads)
             {
-                targets.emplace_back(tid, thread->PendingSignal());
+                targets.emplace_back(tid, thread->Owed());
                 if(thread->IsRunning())
                 {
                     leftRunning.insert(tid);
@@ -415,16 +409,16 @@ namespace ElfBug
         }
         else
         {
-            mPendingSignal = 0;
+            mOwedSignal = {};
             for(const pid_t tid : acquired)
-                targets.emplace_back(tid, 0);
+                targets.emplace_back(tid, OwedSignal());
         }
 
         mMainPid.store(0, std::memory_order_release);
 
         for(const auto & [tid, signal] : targets)
         {
-            std::vector<int> signals;
+            std::vector<OwedSignal> signals;
             addReleaseSignal(signals, signal);
             if(leftRunning.count(tid) > 0)
                 releaseRunningThread(tid, pid, owedSigstop.count(tid) > 0, std::move(signals));
