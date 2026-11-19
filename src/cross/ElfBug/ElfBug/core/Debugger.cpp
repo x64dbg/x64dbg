@@ -308,7 +308,7 @@ namespace ElfBug
     {
         if(!mProcess || !mProcess->DeleteBreakpoint(address))
             return false;
-        std::erase_if(mSilentStepOffs, [address](const auto & entry) { return entry.second.address == address; });
+        std::erase_if(mSilentStepOffs, [address](const SilentStepOff & silent) { return silent.address == address; });
         return true;
     }
 

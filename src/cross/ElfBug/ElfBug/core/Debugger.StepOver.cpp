@@ -1,5 +1,6 @@
 #include <ElfBug/core/Debugger.h>
 #include <ElfBug/process/StepOver.h>
+#include <algorithm>
 #include <cinttypes>
 #include <cstring>
 
@@ -112,8 +113,8 @@ namespace ElfBug
                     return StepOverArm::Consumed;
                 case StepOff::Deferred:
                     cancelStepOver(tid);
-                    if(const auto silent = mSilentStepOffs.find(tid); silent != mSilentStepOffs.end())
-                        silent->second.stepOver = true;
+                    if(!mSilentStepOffs.empty() && mSilentStepOffs.back().tid == tid && mSilentStepOffs.back().address == rip)
+                        mSilentStepOffs.back().stepOver = true;
                     return StepOverArm::Consumed;
                 }
             }
@@ -207,10 +208,10 @@ namespace ElfBug
 
     std::optional<Debugger::SilentStepOff> Debugger::takeSilentStepOff(const pid_t tid, const ptr address, const ptr rsp)
     {
-        const auto it = mSilentStepOffs.find(tid);
-        if(it == mSilentStepOffs.end() || it->second.address != address || it->second.rsp != rsp)
+        const auto it = std::find_if(mSilentStepOffs.begin(), mSilentStepOffs.end(), [&](const SilentStepOff & silent) { return silent.tid == tid && silent.address == address && silent.rsp == rsp; });
+        if(it == mSilentStepOffs.end())
             return std::nullopt;
-        const SilentStepOff taken = it->second;
+        const SilentStepOff taken = *it;
         mSilentStepOffs.erase(it);
         return taken;
     }

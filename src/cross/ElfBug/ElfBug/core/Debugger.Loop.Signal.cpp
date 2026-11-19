@@ -496,7 +496,7 @@ namespace ElfBug
         }
     }
 
-    bool Debugger::pendingResumeOnBreakpoint()
+    bool Debugger::pendingResumeNeedsAllStop()
     {
         std::lock_guard pauseLock(mPauseMutex);
         std::shared_lock lock(mProcessMutex);
@@ -505,8 +505,9 @@ namespace ElfBug
         for(const pid_t tid : mPendingResume)
         {
             Thread* thread = mProcess->FindThread(tid);
-            if(thread && !thread->IsSuspended() && !thread->IsRunning() && thread->AtBreakpoint() &&
-                    mProcess->HasBreakpoint(thread->registers.Gip()))
+            if(!thread || thread->IsSuspended() || thread->IsRunning())
+                continue;
+            if(thread->Owed().Undecided() || (thread->AtBreakpoint() && mProcess->HasBreakpoint(thread->registers.Gip())))
                 return true;
         }
         return false;
@@ -678,7 +679,7 @@ namespace ElfBug
                 }
                 if((hasResumes || resumedMeanwhile) && !mPauseRequested.load(std::memory_order_acquire))
                 {
-                    if(pendingResumeOnBreakpoint())
+                    if(pendingResumeNeedsAllStop())
                     {
                         {
                             std::lock_guard pauseLock(mPauseMutex);
@@ -846,6 +847,13 @@ namespace ElfBug
             return;
         }
 
+        if(mThread->IsSuspended())
+        {
+            abandonSingleStep(tid);
+            continueOrPause(tid, owed, true);
+            return;
+        }
+
         if(owed.Signal() != 0 && !fault)
         {
             abandonSingleStep(tid);
@@ -857,6 +865,8 @@ namespace ElfBug
 
     void Debugger::reissueStep(const pid_t tid, const int signal)
     {
+        if(signal != 0)
+            mThread->SetStepsPushf(false);
         if(mThread->StepInto(signal))
         {
             mThread->SetRunning(true);
@@ -922,7 +932,6 @@ namespace ElfBug
             return deferStepOff(tid, addr, drained.Signal(), drained.Info());
         }
 
-        bool intoHandler = false;
         for(;;)
         {
             bool leftStopped = false;
@@ -1053,7 +1062,6 @@ namespace ElfBug
                         if(fault)
                         {
                             owed = OwedSignal(decision.deliver, ParkedSignal::Filtered, &info);
-                            intoHandler = true;
                             continue;
                         }
                         if(lifted)
@@ -1074,7 +1082,7 @@ namespace ElfBug
                     return StepOff::Consumed;
                 }
 
-                if(stepsPushf && !intoHandler)
+                if(stepsPushf && owed.Signal() == 0)
                     maskPushedTrapFlag();
             }
 
@@ -1089,7 +1097,11 @@ namespace ElfBug
 
         const bool onByte = mThread->registers.Gip() == addr;
         if(onByte)
-            mSilentStepOffs[tid] = {addr, mThread->registers.Gsp()};
+        {
+            const ptr rsp = mThread->registers.Gsp();
+            takeSilentStepOff(tid, addr, rsp);
+            mSilentStepOffs.push_back({tid, addr, rsp});
+        }
 
         std::unique_lock lock(mProcessMutex);
         mThread->SetAtBreakpoint(onByte);

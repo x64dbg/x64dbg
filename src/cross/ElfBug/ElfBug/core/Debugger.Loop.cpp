@@ -38,7 +38,7 @@ namespace ElfBug
     void Debugger::beginPause()
     {
         cancelStepResume();
-        for(auto & [tid, silent] : mSilentStepOffs)
+        for(SilentStepOff & silent : mSilentStepOffs)
             silent.stepOver = false;
         mAllStopped = true;
 
@@ -474,17 +474,23 @@ namespace ElfBug
 
             const bool stepping = (stepIntoRequested || stepOverRequested) && mThread;
             if(stepping)
-                takeUndecidedSignal();
-
-            if(stepping && HidesHandler(mOwedSignal))
             {
                 mStepPending.store(false, std::memory_order_release);
-                restoreSourceByte(pid);
+                takeUndecidedSignal();
+
                 if(!swallowPendingSigstop(pid))
                 {
+                    restoreSourceByte(pid);
                     abandonAllStop(pid);
                     return false;
                 }
+                if(HidesHandler(mThread->Owed()))
+                    takeDecidedSignal();
+            }
+
+            if(stepping && HidesHandler(mOwedSignal))
+            {
+                restoreSourceByte(pid);
                 if(armStepResume(pid, mOwedSignal))
                 {
                     mOwedSignal = {};
@@ -494,17 +500,9 @@ namespace ElfBug
 
             if(stepping)
             {
-                mStepPending.store(false, std::memory_order_release);
                 ptr next = 0;
                 const bool stepsPushf = mProcess &&
                                         mProcess->ClassifyStepOverAt(mThread->registers.Gip(), next) == StepOverKind::Pushf;
-                // A queued SIGSTOP would be delivered by the step instead of an instruction.
-                if(!swallowPendingSigstop(pid))
-                {
-                    restoreSourceByte(pid);
-                    abandonAllStop(pid);
-                    return false;
-                }
 
                 bool leftStopped = false;
                 int stepErrno = 0;
@@ -522,7 +520,7 @@ namespace ElfBug
                         restoreSignalInfo(pid, owed);
                         if(mThread->StepInto(sig))
                         {
-                            mThread->SetStepsPushf(stepsPushf);
+                            mThread->SetStepsPushf(stepsPushf && sig == 0);
                             mThread->SetRunning(true);
                         }
                         else

@@ -5,8 +5,11 @@
 #include <cerrno>
 #include <cstring>
 #include <initializer_list>
+#include <sys/mman.h>
+#include <sys/syscall.h>
 #include <sys/time.h>
 #include <sys/wait.h>
+#include <ucontext.h>
 #include <unistd.h>
 
 extern "C"
@@ -26,6 +29,10 @@ extern "C"
     void flt_on_fault(int signal, siginfo_t* info, void* context);
     void flt_fault();
     void flt_group_exit();
+    void* flt_bad_stack = nullptr;
+    void flt_pushf();
+    void flt_restorer();
+    void flt_on_pushf_fault(int signal, siginfo_t* info, void* context);
     void flt_done();
 }
 
@@ -73,6 +80,29 @@ flt_group_exit:
 flt_group_exit_site:
     syscall
     .size flt_group_exit, .-flt_group_exit
+
+    .globl flt_pushf
+    .type flt_pushf, @function
+flt_pushf:
+    push %r12
+    mov %rsp, %r12
+    mov flt_bad_stack(%rip), %rsp
+    .globl flt_pushf_site
+flt_pushf_site:
+    pushfq
+    mov %r12, %rsp
+    pop %r12
+    ret
+    .size flt_pushf, .-flt_pushf
+
+    .balign 512
+    .fill 256, 1, 0xcc
+    .globl flt_restorer
+    .type flt_restorer, @function
+flt_restorer:
+    mov $15, %eax
+    syscall
+    .size flt_restorer, .-flt_restorer
     .popsection
 )");
 
@@ -285,6 +315,29 @@ namespace
             flt_fault();
     }
 
+    // Faults on a pushfq with the stack pointer on an unwritable page; the handler runs on the alternate stack.
+    void runPushf()
+    {
+        struct KernelSigaction
+        {
+            void (*handler)(int, siginfo_t*, void*);
+            unsigned long flags;
+            void (*restorer)();
+            unsigned long mask;
+        };
+        constexpr unsigned long kRestorer = 0x04000000;
+        const auto installRaw = [](const int signal, void (*handler)(int, siginfo_t*, void*))
+        {
+            const KernelSigaction action{handler, SA_SIGINFO | SA_ONSTACK | kRestorer, flt_restorer, 0};
+            syscall(SYS_rt_sigaction, signal, &action, nullptr, sizeof(action.mask));
+        };
+        useAltStack();
+        installRaw(SIGSEGV, flt_on_pushf_fault);
+        installRaw(SIGUSR1, onSignal);
+        flt_bad_stack = static_cast<char*>(mmap(nullptr, 4096, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)) + 4096;
+        flt_pushf();
+    }
+
     bool is(const char* mode, const char* name)
     {
         return std::strcmp(mode, name) == 0;
@@ -295,6 +348,14 @@ extern "C" void flt_on_fault(const int signal, siginfo_t* info, void*)
 {
     record(signal, info);
     siglongjmp(faultReturn, 1);
+}
+
+extern "C" void flt_on_pushf_fault(const int signal, siginfo_t* info, void* context)
+{
+    auto* user = static_cast<ucontext_t*>(context);
+    user->uc_mcontext.gregs[REG_RSP] = user->uc_mcontext.gregs[REG_R12];
+    user->uc_mcontext.gregs[REG_RIP] += 1;
+    record(signal, info);
 }
 
 int main(int argc, char** argv)
@@ -329,6 +390,8 @@ int main(int argc, char** argv)
         raise(SIGTSTP);
     else if(is(mode, "fault"))
         runFault();
+    else if(is(mode, "pushf"))
+        runPushf();
     else if(is(mode, "wait"))
         runWait();
     else if(is(mode, "threads"))

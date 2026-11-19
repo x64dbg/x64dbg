@@ -275,6 +275,14 @@ namespace
         target.dbg.WaitForBreakpointAt(target.Site("flt_in_handler"));
     }
 
+    // What the thread stopped at a handler's first instruction will return to.
+    ptr HandlerReturnAddress(FilterTarget & target)
+    {
+        ptr address = 0;
+        REQUIRE(target.dbg.process()->MemRead(target.dbg.currentThread()->registers.Gsp(), &address, sizeof(address)));
+        return address;
+    }
+
     void ContinueToDone(FilterTarget & target)
     {
         target.dbg.Continue();
@@ -1246,4 +1254,153 @@ TEST_CASE("A signal picked up while a queued thread steps off its breakpoint is 
         REQUIRE(target.Finish().exitCode == 0);
     }
     REQUIRE(probed);
+}
+
+TEST_CASE("A step onto a faulting pushf set not to stop leaves the handler's return address alone", "[signalfilter][stepping]")
+{
+    FilterTarget target({"pushf"}, {"flt_pushf_site"});
+    target.dbg.Signals().Set(SIGSEGV, kQuiet);
+    target.dbg.Continue();
+    target.dbg.WaitForBreakpointAt(target.Site("flt_pushf_site"));
+
+    target.dbg.StepInto();
+    REQUIRE(target.dbg.WaitForStep().instructionPointer == target.Site("flt_on_pushf_fault"));
+    REQUIRE(HandlerReturnAddress(target) == target.Site("flt_restorer"));
+
+    REQUIRE(target.Finish().exitCode == 0);
+}
+
+TEST_CASE("A reported signal entered from a pushf leaves the handler's return address alone", "[signalfilter][stepping]")
+{
+    FilterTarget target({"pushf"}, {"flt_pushf_site", "flt_done"});
+    target.dbg.Signals().Set(SIGSEGV, kQuiet);
+    target.dbg.Continue();
+    target.dbg.WaitForBreakpointAt(target.Site("flt_pushf_site"));
+    target.dbg.currentThread()->SetPendingSignal(OwedSignal(SIGUSR1, ParkedSignal::Reported, nullptr));
+
+    SECTION("stepped into")
+    {
+        target.dbg.StepInto();
+        target.dbg.WaitForStep();
+        REQUIRE(HandlerReturnAddress(target) == target.Site("flt_restorer"));
+    }
+    SECTION("continued")
+    {
+    }
+
+    ContinueToDone(target);
+    REQUIRE(target.Handled(SIGUSR1) == 1);
+    REQUIRE(target.Handled(SIGSEGV) == 1);
+    REQUIRE(target.dbg.count(EventType::Exception) == 0);
+
+    REQUIRE(target.Finish().exitCode == 0);
+}
+
+TEST_CASE("A signal queued on a thread suspended before the resume is decided when the thread resumes", "[signalfilter][exception][multithread]")
+{
+    FilterTarget target({"wait"});
+    target.dbg.Continue();
+    const pid_t worker = SpinningWorker(target);
+
+    target.dbg.Pause();
+    target.dbg.WaitForPaused();
+    target.dbg.process()->FindThread(worker)->SetPendingSignal(OwedSignal(SIGUSR1, ParkedSignal::Unreported, nullptr));
+    REQUIRE(target.dbg.SetThreadSuspended(worker, true));
+
+    int handled = 0;
+    SECTION("stopping")
+    {
+        target.dbg.Continue();
+        REQUIRE(target.dbg.WaitForRunning());
+        REQUIRE(target.dbg.SetThreadSuspended(worker, false));
+        target.dbg.WaitForException(SIGUSR1);
+        REQUIRE(target.Handled(SIGUSR1) == 0);
+        target.Release();
+        target.dbg.Continue();
+        handled = 1;
+    }
+    SECTION("not stopping and not passed")
+    {
+        target.dbg.Signals().Set(SIGUSR1, SignalFilter{false, true, false});
+        target.dbg.Continue();
+        REQUIRE(target.dbg.WaitForRunning());
+        REQUIRE(target.dbg.SetThreadSuspended(worker, false));
+        REQUIRE(WaitUntil([&] { return target.dbg.count(EventType::SignalFiltered) == 1; }));
+        REQUIRE(target.dbg.count(EventType::Exception) == 0);
+        target.Release();
+    }
+
+    target.dbg.WaitForBreakpointAt(target.Site("flt_done"));
+    REQUIRE(target.Handled(SIGUSR1) == handled);
+
+    REQUIRE(target.Finish().exitCode == 0);
+}
+
+TEST_CASE("A thread suspended while a filtered signal interrupts its step stays parked", "[signalfilter][stepping]")
+{
+    FilterTarget target({"sites"}, {"flt_step_site", "flt_done"});
+    target.dbg.Signals().Set(SIGUSR1, kLogged);
+    target.dbg.Continue();
+    target.dbg.WaitForBreakpointAt(target.Site("flt_step_site"));
+    const pid_t tid = target.dbg.currentThread()->tid;
+
+    target.dbg.OnSignalFiltered([&](const pid_t filtered) { target.dbg.SetThreadSuspended(filtered, true); });
+    SendPending(target);
+    target.dbg.StepInto();
+    REQUIRE(target.dbg.WaitForAny({EventType::Step, EventType::Paused}).type == EventType::Paused);
+    REQUIRE(target.dbg.currentThread()->SuspendCount() == 1);
+    REQUIRE(target.dbg.currentThread()->PendingSignal() == SIGUSR1);
+    REQUIRE(target.Handled(SIGUSR1) == 0);
+
+    target.dbg.OnSignalFiltered({});
+    REQUIRE(target.dbg.SetThreadSuspended(tid, false));
+    ContinueToDone(target);
+    REQUIRE(HitsAt(target.dbg, target.Site("flt_done")) == 1);
+    REQUIRE(target.Handled(SIGUSR1) == 1);
+    REQUIRE(target.dbg.count(EventType::Step) == 0);
+
+    REQUIRE(target.Finish().exitCode == 0);
+}
+
+TEST_CASE("A filtered signal picked up while a step drains a stop runs its handler before the step", "[signalfilter][stepping]")
+{
+    FilterTarget target({"sites"}, {"flt_step_site"});
+    const pid_t pid = target.dbg.process()->pid;
+    const ptr site = target.Site("flt_step_site");
+    target.dbg.Signals().Set(SIGUSR1, kQuiet);
+    target.dbg.Continue();
+    target.dbg.WaitForBreakpointAt(site);
+
+    REQUIRE(tgkill(pid, pid, SIGSTOP) == 0);
+    target.dbg.currentThread()->SetPendingSigstop(true);
+    SendPending(target);
+    REQUIRE(Step(target, false).instructionPointer == site + 1);
+    REQUIRE(target.Handled(SIGUSR1) == 1);
+    REQUIRE(target.dbg.currentThread()->PendingSignal() == 0);
+
+    REQUIRE(Step(target, false).instructionPointer == site + 2);
+    REQUIRE(target.Handled(SIGUSR1) == 1);
+    REQUIRE(target.dbg.count(EventType::Step) == 2);
+
+    REQUIRE(target.Finish().exitCode == 0);
+}
+
+TEST_CASE("A filtered signal at a breakpoint inside a hidden handler keeps the silent return to the breakpoint it left", "[signalfilter][breakpoint]")
+{
+    FilterTarget target({"sites"}, {"flt_loop_site", "flt_in_handler", "flt_done"});
+    const pid_t pid = target.dbg.process()->pid;
+    target.dbg.Signals().Set(SIGUSR2, kQuiet);
+    StopInHiddenHandler(target);
+
+    REQUIRE(tgkill(pid, pid, SIGUSR2) == 0);
+    ContinueToDone(target);
+    REQUIRE(HitsAt(target.dbg, target.Site("flt_loop_site")) == 3);
+    REQUIRE(HitsAt(target.dbg, target.Site("flt_in_handler")) == 2);
+    REQUIRE(HitsAt(target.dbg, target.Site("flt_done")) == 1);
+    REQUIRE(target.Handled(SIGUSR1) == 1);
+    REQUIRE(target.Handled(SIGUSR2) == 1);
+    REQUIRE(target.dbg.count(EventType::Exception) == 0);
+    REQUIRE(target.dbg.count(EventType::Paused) == 0);
+
+    REQUIRE(target.Finish().exitCode == 0);
 }

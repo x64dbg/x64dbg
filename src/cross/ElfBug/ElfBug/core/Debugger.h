@@ -161,7 +161,7 @@ namespace ElfBug
         std::optional<int> stopAllThreads(pid_t except);
         void reportLeaderExit(int exitCode);
         void drainPendingResumes();
-        bool pendingResumeOnBreakpoint();
+        bool pendingResumeNeedsAllStop();
         bool resumeStoppedThread(pid_t tid);
         void continueUnlessSuspended(pid_t tid);
         void leaveParked(pid_t tid);
@@ -246,6 +246,7 @@ namespace ElfBug
         // A thread returning from a hidden handler to a breakpoint it was already reported at.
         struct SilentStepOff
         {
+            pid_t tid = 0;
             ptr address = 0;
             ptr rsp = 0;
             bool stepOver = false; // the user's step over is made again after it
@@ -273,7 +274,7 @@ namespace ElfBug
         std::atomic<bool> mStepOverPending{false};
         StepOverRequest mStepOver;
         StepResume mStepResume;
-        std::unordered_map<pid_t, SilentStepOff> mSilentStepOffs;
+        std::vector<SilentStepOff> mSilentStepOffs;
         // Lifted breakpoint bytes, re-armed when the lifting thread next stops.
         std::unordered_map<pid_t, ptr> mSourceRearms;
         std::vector<pid_t> mResumeExcept;

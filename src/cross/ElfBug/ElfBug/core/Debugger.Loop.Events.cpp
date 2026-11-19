@@ -92,7 +92,7 @@ namespace ElfBug
             restoreSourceByte(tid);
         if(mStepResume.active && mStepResume.tid == tid)
             cancelStepResume();
-        mSilentStepOffs.erase(tid);
+        std::erase_if(mSilentStepOffs, [tid](const SilentStepOff & silent) { return silent.tid == tid; });
 
         cbExitThread(tid);
 
