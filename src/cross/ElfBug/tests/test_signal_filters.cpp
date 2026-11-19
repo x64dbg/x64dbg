@@ -574,31 +574,29 @@ TEST_CASE("A filtered signal for a suspended thread waits for its resume", "[sig
 
 TEST_CASE("A filtered signal parked at detach still reaches the program", "[signalfilter][detach]")
 {
-    bool parked = false;
-    for(int attempt = 0; attempt < 20 && !parked; ++attempt)
-    {
-        FilterTarget target({"wait"});
-        const pid_t pid = target.dbg.process()->pid;
-        const ptr handled = target.Site("flt_handled") + SIGUSR1 * sizeof(int);
-        target.dbg.Signals().Set(SIGUSR1, {false, true, true});
+    FilterTarget target({"wait"});
+    const pid_t pid = target.dbg.process()->pid;
+    const ptr handled = target.Site("flt_handled") + SIGUSR1 * sizeof(int);
+    target.dbg.Signals().Set(SIGUSR1, {false, true, true});
 
-        target.dbg.Continue();
-        const pid_t worker = SpinningWorker(target);
+    bool suspended = false;
+    target.dbg.OnSignalFiltered([&](const pid_t tid) { suspended = target.dbg.SetThreadSuspended(tid, true); });
 
-        REQUIRE(target.dbg.SetThreadSuspended(worker, true));
-        REQUIRE(tgkill(pid, worker, SIGUSR1) == 0);
-        parked = WaitUntil([&] { return target.dbg.count(EventType::SignalFiltered) == 1; }, std::chrono::milliseconds(100));
-        REQUIRE(target.Handled(SIGUSR1) == 0);
+    target.dbg.Continue();
+    const pid_t worker = SpinningWorker(target);
 
-        target.dbg.Detach();
-        target.dbg.WaitForDetach();
-        target.dbg.JoinThread();
-        const ProcessReaper reaper(pid);
+    REQUIRE(tgkill(pid, worker, SIGUSR1) == 0);
+    REQUIRE(WaitUntil([&] { return target.dbg.count(EventType::SignalFiltered) == 1; }));
+    REQUIRE(suspended);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    REQUIRE(target.Handled(SIGUSR1) == 0);
 
-        REQUIRE(WaitForTraceeValue(pid, handled, 1));
-    }
+    target.dbg.Detach();
+    target.dbg.WaitForDetach();
+    target.dbg.JoinThread();
+    const ProcessReaper reaper(pid);
 
-    REQUIRE(parked);
+    REQUIRE(WaitForTraceeValue(pid, handled, 1));
 }
 
 TEST_CASE("A parked signal reaches its handler with the siginfo the kernel gave it", "[signalfilter][exception]")

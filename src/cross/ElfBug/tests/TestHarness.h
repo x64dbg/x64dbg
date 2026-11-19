@@ -185,6 +185,12 @@ namespace ElfBug::test
             mOnDetach = std::move(fn);
         }
 
+        // Runs on the tracer thread with the signal's tid, before the thread is continued or parked.
+        void OnSignalFiltered(std::function<void(pid_t)> fn)
+        {
+            mOnSignalFiltered = std::move(fn);
+        }
+
         bool WaitForRunning(const std::chrono::milliseconds timeout = std::chrono::seconds(5)) const
         {
             const pid_t pid = mProcess ? mProcess->pid : 0;
@@ -298,6 +304,8 @@ namespace ElfBug::test
 
         void cbSignalFiltered(const int signal, const pid_t tid, const bool passed) override
         {
+            if(mOnSignalFiltered)
+                mOnSignalFiltered(tid);
             push({EventType::SignalFiltered, {}, tid, passed ? 1 : 0, 0, signal, {}});
         }
 
@@ -411,6 +419,7 @@ namespace ElfBug::test
         std::function<void()> mOnAttachBreakpoint;
         std::function<void()> mOnExec;
         std::function<void()> mOnDetach;
+        std::function<void(pid_t)> mOnSignalFiltered;
         std::atomic<pid_t> mTargetPid{0};
     };
 
