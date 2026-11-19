@@ -3,7 +3,6 @@
 #include <csetjmp>
 #include <csignal>
 #include <cerrno>
-#include <cstdlib>
 #include <cstring>
 #include <initializer_list>
 #include <sys/time.h>
@@ -102,6 +101,7 @@ namespace
     constexpr int kRealtimeSignal = 40;
     constexpr int kBurstCount = 16;
     constexpr int kTimerTicks = 300;
+    constexpr suseconds_t kTimerInterval = 1000;
     constexpr int kLoopThreads = 3;
     constexpr int kLoopIterations = 5;
 
@@ -154,6 +154,25 @@ namespace
         while(!workerStop)
             flt_spin[1] = flt_spin[1] + 1;
         return nullptr;
+    }
+
+    pthread_t startWorker()
+    {
+        pthread_t thread;
+        pthread_create(&thread, nullptr, worker, nullptr);
+        return thread;
+    }
+
+    void stopWorker(const pthread_t thread)
+    {
+        workerStop = true;
+        pthread_join(thread, nullptr);
+    }
+
+    void setTimer(const suseconds_t interval)
+    {
+        const itimerval timer{{0, interval}, {0, interval}};
+        setitimer(ITIMER_REAL, &timer, nullptr);
     }
 
     pthread_barrier_t loopStart;
@@ -221,33 +240,25 @@ namespace
 
     void runTimer()
     {
-        pthread_t thread;
-        pthread_create(&thread, nullptr, worker, nullptr);
-        itimerval timer{{0, 1000}, {0, 1000}};
-        setitimer(ITIMER_REAL, &timer, nullptr);
+        const pthread_t thread = startWorker();
+        setTimer(kTimerInterval);
         while(flt_handled[SIGALRM] < kTimerTicks)
             flt_spin[0] = flt_spin[0] + 1;
-        timer = {};
-        setitimer(ITIMER_REAL, &timer, nullptr);
-        workerStop = true;
-        pthread_join(thread, nullptr);
+        setTimer(0);
+        stopWorker(thread);
     }
 
     void runTimerLoop()
     {
-        pthread_t thread;
-        pthread_create(&thread, nullptr, worker, nullptr);
-        itimerval timer{{0, 1000}, {0, 1000}};
-        setitimer(ITIMER_REAL, &timer, nullptr);
+        const pthread_t thread = startWorker();
+        setTimer(kTimerInterval);
         while(flt_go != 1)
         {
             flt_spin[0] = flt_spin[0] + 1;
             flt_loop_site();
         }
-        timer = {};
-        setitimer(ITIMER_REAL, &timer, nullptr);
-        workerStop = true;
-        pthread_join(thread, nullptr);
+        setTimer(0);
+        stopWorker(thread);
     }
 
     void runChild()
@@ -262,12 +273,10 @@ namespace
 
     void runWait()
     {
-        pthread_t thread;
-        pthread_create(&thread, nullptr, worker, nullptr);
+        const pthread_t thread = startWorker();
         while(flt_go != 1)
             flt_spin[0] = flt_spin[0] + 1;
-        workerStop = true;
-        pthread_join(thread, nullptr);
+        stopWorker(thread);
     }
 
     void runFault()
@@ -279,11 +288,6 @@ namespace
     bool is(const char* mode, const char* name)
     {
         return std::strcmp(mode, name) == 0;
-    }
-
-    int number(const int argc, char** argv)
-    {
-        return argc > 2 ? std::atoi(argv[2]) : SIGUSR1;
     }
 }
 
@@ -307,11 +311,11 @@ int main(int argc, char** argv)
     if(is(mode, "sites") || altstack || exitInHandler)
         runSites();
     else if(is(mode, "raise"))
-        raise(number(argc, argv));
+        raise(SIGUSR1);
     else if(is(mode, "nohandler"))
     {
-        signal(number(argc, argv), SIG_DFL);
-        raise(number(argc, argv));
+        signal(SIGSEGV, SIG_DFL);
+        raise(SIGSEGV);
     }
     else if(is(mode, "burst"))
         runBurst();

@@ -20,16 +20,6 @@ namespace ElfBug
         Filtered    // decided not to stop; its handler is hidden from a step
     };
 
-    inline std::optional<siginfo_t> KeepSignalInfo(const siginfo_t* info)
-    {
-        return info ? std::optional<siginfo_t>(*info) : std::nullopt;
-    }
-
-    inline const siginfo_t* SignalInfoOrNull(const std::optional<siginfo_t> & info)
-    {
-        return info ? &*info : nullptr;
-    }
-
     // A signal held back for a later resume. No signal means no state, no siginfo and no address.
     class OwedSignal
     {
@@ -41,14 +31,17 @@ namespace ElfBug
                 return;
             mSignal = signal;
             mState = state;
-            mInfo = KeepSignalInfo(info);
+            if(info)
+                mInfo = *info;
             mAddress = address;
         }
 
         [[nodiscard]] int Signal() const { return mSignal; }
         [[nodiscard]] ParkedSignal State() const { return mState; }
-        [[nodiscard]] const siginfo_t* Info() const { return SignalInfoOrNull(mInfo); }
+        [[nodiscard]] const siginfo_t* Info() const { return mInfo ? &*mInfo : nullptr; }
         [[nodiscard]] ptr Address() const { return mAddress; }
+        [[nodiscard]] bool Undecided() const { return mSignal != 0 && mState == ParkedSignal::Unreported; }
+        [[nodiscard]] bool Decided() const { return mSignal != 0 && mState != ParkedSignal::Unreported; }
 
     private:
         int mSignal = 0;
@@ -133,10 +126,6 @@ namespace ElfBug
 
         // Read off the wait status by the sweep, forwarded on the resume that unfreezes it.
         void SetPendingSignal(OwedSignal signal) { mPendingSignal = std::move(signal); }
-        void SetPendingSignal(const int signal, const ptr address, const ParkedSignal state, const siginfo_t* info)
-        {
-            SetPendingSignal(OwedSignal(signal, state, info, address));
-        }
         void ClearPendingSignal() { mPendingSignal = {}; }
         [[nodiscard]] OwedSignal TakePendingSignal() { return std::exchange(mPendingSignal, {}); }
         [[nodiscard]] const OwedSignal & Owed() const { return mPendingSignal; }

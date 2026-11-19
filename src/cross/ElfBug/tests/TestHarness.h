@@ -77,7 +77,6 @@ namespace ElfBug::test
         InternalError,
         Detach,
         Exec,
-        // exitCode is 1 when the signal was passed, 0 when it was swallowed.
         SignalFiltered,
     };
 
@@ -91,6 +90,7 @@ namespace ElfBug::test
         int signal = 0;
         std::string message;
         ptr instructionPointer = 0;
+        bool passed = false;
     };
 
     // Separate from InternalError, so a test can expect silence.
@@ -306,7 +306,7 @@ namespace ElfBug::test
         {
             if(mOnSignalFiltered)
                 mOnSignalFiltered(tid);
-            push({EventType::SignalFiltered, {}, tid, passed ? 1 : 0, 0, signal, {}});
+            push({EventType::SignalFiltered, {}, tid, 0, 0, signal, {}, 0, passed});
         }
 
         void cbInternalError(const std::string & error) override

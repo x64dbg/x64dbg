@@ -132,7 +132,7 @@ namespace ElfBug
         mStepPending.store(false, std::memory_order_release);
     }
 
-    bool Debugger::armStepResume(const pid_t tid, const int signal, const siginfo_t* info)
+    bool Debugger::armStepResume(const pid_t tid, const OwedSignal & owed)
     {
         cancelStepResume();
 
@@ -155,8 +155,7 @@ namespace ElfBug
             if(!mThread->IsSuspended())
             {
                 mThread->ClearPendingBreakpoint();
-                restoreSignalInfo(tid, signal, info);
-                if(ptrace(PTRACE_CONT, tid, nullptr, PtraceData(signal)) != -1)
+                if(continueWith(tid, owed))
                 {
                     mThread->SetRunning(true);
                     resumed = true;
@@ -179,7 +178,6 @@ namespace ElfBug
         return true;
     }
 
-    // sigreturn restores RSP exactly; a handler on an alternate stack can run above it, so no floor test.
     bool Debugger::takeStepResumeTrap(const pid_t tid, const ptr address)
     {
         if(!mStepResume.active || address != mStepResume.address || !mThread || !mProcess)

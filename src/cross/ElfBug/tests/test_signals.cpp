@@ -1,7 +1,5 @@
 #include "TestSupport.h"
 #include "targets/TargetUtil.h"
-#include <ElfBug/core/SignalFilters.h>
-#include <optional>
 
 TEST_CASE("A trap the program raised itself is reported and still delivered", "[exception]")
 {
@@ -156,7 +154,7 @@ namespace
         std::size_t reported = 0;
     };
 
-    SignalRaceResult RunSignalRace(const int signal, const int quota, const std::optional<ElfBug::SignalFilter> filter)
+    SignalRaceResult RunSignalRace(const int signal, const int quota, const std::optional<ElfBug::SignalFilter> filter = std::nullopt)
     {
         using namespace ElfBug::test;
         RecordingDebugger dbg;
@@ -240,7 +238,7 @@ namespace
             if(e.type == EventType::SignalFiltered && e.signal == signal)
             {
                 ++logged;
-                if(e.exitCode == 1)
+                if(e.passed)
                     ++loggedPassed;
             }
         }
@@ -265,17 +263,17 @@ namespace
 
 TEST_CASE("Signals absorbed by the stop sweep are still reported", "[multithread][exception]")
 {
-    RunSignalRace(SIGUSR1, 200, std::nullopt);
+    RunSignalRace(SIGUSR1, 200);
 }
 
 TEST_CASE("Raised fatal signals absorbed by the stop sweep are still delivered", "[multithread][exception]")
 {
-    RunSignalRace(SIGSEGV, 200, std::nullopt);
+    RunSignalRace(SIGSEGV, 200);
 }
 
 TEST_CASE("A raised SIGTRAP is delivered and reported", "[multithread][exception]")
 {
-    RunSignalRace(SIGTRAP, 200, std::nullopt);
+    RunSignalRace(SIGTRAP, 200);
 }
 
 TEST_CASE("Signals set not to stop that a stop sweep absorbs are delivered without a report", "[signalfilter][multithread][exception]")
