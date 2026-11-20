@@ -2320,7 +2320,10 @@ static bool getCmdLine(QString & cmdLine)
 void MainWindow::changeCommandLine()
 {
     if(!DbgIsDebugging())
+    {
+        SimpleErrorBox(this, tr("Error!"), tr("The command line can only be changed while debugging."));
         return;
+    }
 
     LineEditDialog mLineEdit(this);
     mLineEdit.setText("");
