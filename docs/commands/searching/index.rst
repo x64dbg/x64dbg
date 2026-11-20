@@ -12,6 +12,7 @@ This section contains commands that are used to search data.
    findall
    findallmem
    findasm
+   findmnem
    findguid
    reffind
    reffindrange
