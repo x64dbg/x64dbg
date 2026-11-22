@@ -15,10 +15,11 @@ protected:
     F fn;
     std::tuple<Args...> args;
     bool active = true;
+    bool flushRequested = false;
     HANDLE hThread;
     CRITICAL_SECTION access;
     HANDLE wakeupSemaphore;
-
+    HANDLE flushEvent = nullptr;
     size_t minSleepTimeMs = 0;
     size_t wakeups = 0;
     size_t execs = 0;
@@ -31,6 +32,7 @@ protected:
     virtual void ResetArgs() { }
 public:
     void WakeUp(Args...);
+    void Flush();
     explicit TaskThread_(F, size_t minSleepTimeMs = TASK_THREAD_DEFAULT_SLEEP_TIME);
     virtual ~TaskThread_();
 };
@@ -123,13 +125,34 @@ template <typename F, typename... Args> void TaskThread_<F, Args...>::Loop()
             Sleep((DWORD)this->minSleepTimeMs);
             ++this->execs;
         }
+        bool doFlush = false;
+        EnterCriticalSection(&this->access);
+        doFlush = this->flushRequested;
+        if(doFlush)
+            this->flushRequested = false;
+        LeaveCriticalSection(&this->access);
+
+        if(doFlush)
+            SetEvent(this->flushEvent);
     }
+}
+template <typename F, typename... Args> void TaskThread_<F, Args...>::Flush()
+{
+    EnterCriticalSection(&this->access);
+    flushRequested = true;
+    LeaveCriticalSection(&this->access);
+
+    ReleaseSemaphore(this->wakeupSemaphore, 1, nullptr);
+
+    WaitForSingleObject(flushEvent, INFINITE);
+    ResetEvent(flushEvent);
 }
 
 template <typename F, typename... Args>
 TaskThread_<F, Args...>::TaskThread_(F fn,
                                      size_t minSleepTimeMs) : fn(fn), minSleepTimeMs(minSleepTimeMs)
 {
+    this->flushEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
     this->wakeupSemaphore = CreateSemaphoreW(nullptr, 0, 1, nullptr);
     InitializeCriticalSection(&this->access);
 
@@ -153,6 +176,7 @@ TaskThread_<F, Args...>::~TaskThread_()
 
     DeleteCriticalSection(&this->access);
     CloseHandle(this->wakeupSemaphore);
+    CloseHandle(this->flushEvent);
 }
 
 #endif // _TASKTHREAD_H
