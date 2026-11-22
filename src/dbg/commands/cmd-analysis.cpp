@@ -73,10 +73,30 @@ bool cbInstrAnalyseNukem(int argc, char* argv[])
 
 bool cbInstrAnalxrefs(int argc, char* argv[])
 {
-    SELECTIONDATA sel;
-    GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+    duint base = 0;
     duint size = 0;
-    auto base = MemFindBaseAddr(sel.start, &size);
+    if(argc > 1) //[addr] [, size]: analyse this range instead of the disassembly selection
+    {
+        duint addr = 0;
+        if(!valfromstring(argv[1], &addr, false) || !addr)
+            return false;
+        base = MemFindBaseAddr(addr, &size);
+        if(!base)
+            return false;
+        if(argc > 2)
+        {
+            if(!valfromstring(argv[2], &size, false) || !size)
+                return false;
+        }
+    }
+    else
+    {
+        SELECTIONDATA sel;
+        GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+        base = MemFindBaseAddr(sel.start, &size);
+        if(!base)
+            return false;
+    }
     XrefsAnalysis anal(base, size);
     anal.Analyse();
     anal.SetMarkers();
