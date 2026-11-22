@@ -6,12 +6,18 @@
 extern "C"
 {
     volatile int vs_handled = 0;
+    volatile int vs_code = 0;
+    volatile int vs_pid = 0;
+    volatile int vs_value = 0;
 }
 
 namespace
 {
-    void onUsr1(int)
+    void onUsr1(int, siginfo_t* info, void*)
     {
+        vs_code = info->si_code;
+        vs_pid = info->si_pid;
+        vs_value = info->si_value.sival_int;
         vs_handled = vs_handled + 1;
     }
 }
@@ -19,7 +25,8 @@ namespace
 int main()
 {
     struct sigaction sa = {};
-    sa.sa_handler = onUsr1;
+    sa.sa_sigaction = onUsr1;
+    sa.sa_flags = SA_SIGINFO;
     sigaction(SIGUSR1, &sa, nullptr);
 
     const pid_t child = vfork();

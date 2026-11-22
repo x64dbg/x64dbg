@@ -49,6 +49,8 @@ namespace ElfBug
         mStepPending.store(false, std::memory_order_release);
         mStepOverPending.store(false, std::memory_order_release);
         mStepOver = {};
+        mStepResume = {};
+        mSilentStepOffs.clear();
         mSourceRearms.clear();
         mUnregisteredRunning.clear();
         {
@@ -60,7 +62,7 @@ namespace ElfBug
         mPauseRequested.store(false, std::memory_order_release);
         mStopRequested.store(false, std::memory_order_release);
         mDetachRequested.store(false, std::memory_order_release);
-        mPendingSignal = 0;
+        mOwedSignal = {};
         mAttachPid = 0;
         mImageId = {};
         reapDetachedChildren();
@@ -299,7 +301,15 @@ namespace ElfBug
         cbBreakpoint(info);
 
         if(info.singleshot)
-            mProcess->DeleteBreakpoint(address);
+            deleteBreakpoint(address);
+    }
+
+    bool Debugger::deleteBreakpoint(const ptr address)
+    {
+        if(!mProcess || !mProcess->DeleteBreakpoint(address))
+            return false;
+        std::erase_if(mSilentStepOffs, [address](const SilentStepOff & silent) { return silent.address == address; });
+        return true;
     }
 
     void Debugger::onExec()
@@ -308,6 +318,7 @@ namespace ElfBug
             mThread->ClearSingleStep();
 
         mSourceRearms.clear();
+        mSilentStepOffs.clear();
         mUnregisteredRunning.clear();
 
         mAllStopped = false;
@@ -327,6 +338,13 @@ namespace ElfBug
             if(mStepOver.planted && mProcess)
                 mProcess->ForgetBreakpoint(mStepOver.target);
             mStepOver = {};
+        }
+
+        if(mStepResume.active)
+        {
+            if(mStepResume.planted && mProcess)
+                mProcess->ForgetBreakpoint(mStepResume.address);
+            mStepResume = {};
         }
 
         // The old /proc/pid/mem descriptor is bound to the replaced address space.
@@ -445,4 +463,5 @@ namespace ElfBug
     void Debugger::cbDebugString(const std::string & text) { (void)text; }
     void Debugger::cbPaused() {}
     void Debugger::cbPauseTick() {}
+    void Debugger::cbSignalFiltered(const int signal, const pid_t tid, const bool passed) { (void)signal; (void)tid; (void)passed; }
 }

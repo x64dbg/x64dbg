@@ -154,6 +154,7 @@ bool DbgAdapter::loadEngine()
     cb.onStep = &DbgAdapter::onStep;
     cb.onPaused = &DbgAdapter::onPaused;
     cb.onException = &DbgAdapter::onException;
+    cb.onSignalFiltered = &DbgAdapter::onSignalFiltered;
     cb.onError = &DbgAdapter::onError;
     cb.onDebugString = &DbgAdapter::onDebugString;
     cb.userdata = this;
@@ -164,9 +165,17 @@ bool DbgAdapter::loadEngine()
         emit logMessage("[x64dbg] ElfBugCreate failed");
         return false;
     }
+    reloadSignalFilters();
 
     emit logMessage("[x64dbg] Engine loaded");
     return true;
+}
+
+void DbgAdapter::reloadSignalFilters()
+{
+    char setting[MAX_SETTING_SIZE] = "";
+    BridgeSettingGet("Signals", "Filters", setting);
+    ElfBugSetSignalFilters(mDebugger, setting);
 }
 
 
@@ -690,11 +699,22 @@ void DbgAdapter::onException(const int signal, const uint64_t address, void* use
     const REGDUMP dump = self->readRegisters();
     const QString name = signalName(signal);
 
-    QString msg = QString("[x64dbg] %1 (%2) at 0x%3").arg(name).arg(signal).arg(dump.regcontext.cip, 0, 16);
-    if(address)
-        msg += QString(", address 0x%1").arg(address, 0, 16);
-    emit self->logMessage(msg + self->threadSuffix());
+    ElfBugSignalFilter filter = {};
+    if(!ElfBugGetSignalFilter(self->mDebugger, signal, &filter) || filter.log)
+    {
+        QString msg = QString("[x64dbg] %1 (%2) at 0x%3").arg(name).arg(signal).arg(dump.regcontext.cip, 0, 16);
+        if(address)
+            msg += QString(", address 0x%1").arg(address, 0, 16);
+        emit self->logMessage(msg + self->threadSuffix());
+    }
     self->emitStoppedState(name, dump);
+}
+
+void DbgAdapter::onSignalFiltered(const int signal, const pid_t tid, const bool passed, void* userdata)
+{
+    auto* self = static_cast<DbgAdapter*>(userdata);
+    const QString outcome = passed ? QStringLiteral("passed to") : QStringLiteral("discarded for");
+    emit self->logMessage(QString("[x64dbg] %1 (%2) %3 thread %4").arg(signalName(signal)).arg(signal).arg(outcome).arg(tid));
 }
 
 void DbgAdapter::onError(const char* error, void* userdata)

@@ -77,6 +77,7 @@ namespace ElfBug::test
         InternalError,
         Detach,
         Exec,
+        SignalFiltered,
     };
 
     struct Event
@@ -89,6 +90,7 @@ namespace ElfBug::test
         int signal = 0;
         std::string message;
         ptr instructionPointer = 0;
+        bool passed = false;
     };
 
     // Separate from InternalError, so a test can expect silence.
@@ -157,6 +159,7 @@ namespace ElfBug::test
 
         Process* process() const { return mProcess; }
         Thread* currentThread() const { return mThread; }
+        bool DeleteBreakpoint(const ptr address) { return deleteBreakpoint(address); }
 
         // Runs on the tracer thread.
         void OnSystemBreakpoint(std::function<void()> fn)
@@ -180,6 +183,12 @@ namespace ElfBug::test
         void OnDetach(std::function<void()> fn)
         {
             mOnDetach = std::move(fn);
+        }
+
+        // Runs on the tracer thread with the signal's tid, before the thread is continued or parked.
+        void OnSignalFiltered(std::function<void(pid_t)> fn)
+        {
+            mOnSignalFiltered = std::move(fn);
         }
 
         bool WaitForRunning(const std::chrono::milliseconds timeout = std::chrono::seconds(5)) const
@@ -293,6 +302,13 @@ namespace ElfBug::test
                  });
         }
 
+        void cbSignalFiltered(const int signal, const pid_t tid, const bool passed) override
+        {
+            if(mOnSignalFiltered)
+                mOnSignalFiltered(tid);
+            push({EventType::SignalFiltered, {}, tid, 0, 0, signal, {}, 0, passed});
+        }
+
         void cbInternalError(const std::string & error) override
         {
             push({EventType::InternalError, {}, 0, 0, 0, 0, error});
@@ -403,6 +419,7 @@ namespace ElfBug::test
         std::function<void()> mOnAttachBreakpoint;
         std::function<void()> mOnExec;
         std::function<void()> mOnDetach;
+        std::function<void(pid_t)> mOnSignalFiltered;
         std::atomic<pid_t> mTargetPid{0};
     };
 
