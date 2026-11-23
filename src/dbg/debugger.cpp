@@ -57,6 +57,8 @@ static std::atomic<DWORD> dwAttachMainThread{ 0 };
 static std::atomic_bool bBreakInExpected{ false };
 static std::atomic<DWORD> dwBreakInThreadId{ 0 };
 static std::atomic<duint> breakInThreadStartAddress{ 0 };
+static std::atomic<duint> breakInStubAddress{ 0 }; // injected INT3 stub (C3 ScyllaHide-safe break-in)
+static std::atomic<DWORD> breakInStubThreadId{ 0 }; // thread running that stub, for safe cleanup at exit
 static volatile long DbgEventsTotal = 0;
 static bool bSkipExceptions = false;
 static duint skipExceptionCount = 0;
@@ -378,6 +380,13 @@ duint dbggetdbgeventcount()
     return (duint)InterlockedCompareExchange(&DbgEventsTotal, 0, 0);
 }
 
+static void freeBreakInStub()
+{
+    auto stub = breakInStubAddress.exchange(0);
+    if(stub)
+        VirtualFreeEx(fdProcessInfo->hProcess, (LPVOID)stub, 0, MEM_RELEASE);
+}
+
 static duint getBreakInThreadStartAddress()
 {
     auto localNtdll = GetModuleHandleW(L"ntdll.dll");
@@ -388,15 +397,66 @@ static duint getBreakInThreadStartAddress()
     return remoteNtdll + (duint)localStart - (duint)localNtdll;
 }
 
+// C3 fix: DebugBreakProcess creates a thread whose entry point is
+// ntdll!DbgUiRemoteBreakin. Anti-debug plugins (ScyllaHide) hook exactly this
+// path and swallow the breakpoint exception, so the break-in thread exits
+// without ever pausing the debuggee. Inject our own tiny INT3 stub instead:
+// its entry is a heap address, not the ntdll routine those hooks watch. The
+// stub is `int3; ret` (x86/x64 encoding CC C3), so hitting it raises a first-
+// chance EXCEPTION_BREAKPOINT that cbException recognizes as our break-in.
+static duint injectBreakInStub()
+{
+    // Reuse a pending stub if a previous break-in never consumed it.
+    auto existing = breakInStubAddress.load();
+    if(existing)
+        return existing;
+    // PAGE_EXECUTE_READWRITE: the stub is written once, then executed as code.
+    auto stub = VirtualAllocEx(fdProcessInfo->hProcess, nullptr, 4096,
+                               MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    if(!stub)
+        return 0;
+    static const unsigned char int3Stub[] = {0xCC, 0xC3}; // int3; ret
+    SIZE_T written = 0;
+    if(!WriteProcessMemory(fdProcessInfo->hProcess, stub, int3Stub, sizeof(int3Stub), &written)
+            || written != sizeof(int3Stub))
+    {
+        VirtualFreeEx(fdProcessInfo->hProcess, stub, 0, MEM_RELEASE);
+        return 0;
+    }
+    breakInStubAddress = (duint)stub;
+    return (duint)stub;
+}
+
 bool dbgspawnbreakinthread()
 {
     if(bBreakInExpected.exchange(true))
         return true;
 
     // Record the remote entry point before creating the thread, because its
-    // debug events can arrive before DebugBreakProcess returns.
-    breakInThreadStartAddress = getBreakInThreadStartAddress();
+    // debug events can arrive before the create call returns. Prefer our own
+    // injected INT3 stub (ScyllaHide-safe); fall back to DebugBreakProcess if
+    // injection is unavailable (e.g. target blocks RWX allocation).
     dwBreakInThreadId = 0;
+    auto stub = injectBreakInStub();
+    if(stub)
+    {
+        breakInThreadStartAddress = stub;
+        DWORD threadId = 0;
+        auto hThread = CreateRemoteThread(fdProcessInfo->hProcess, nullptr, 0,
+                                          (LPTHREAD_START_ROUTINE)stub, nullptr, 0, &threadId);
+        if(hThread)
+        {
+            CloseHandle(hThread);
+            breakInStubThreadId = threadId;
+            dputs(QT_TRANSLATE_NOOP("DBG", "Created an INT3 break-in thread to pause the debuggee"));
+            return true;
+        }
+        // Thread creation failed: drop the stub and fall through to the stock path.
+        freeBreakInStub();
+        dputs(QT_TRANSLATE_NOOP("DBG", "INT3 break-in thread failed, falling back to DebugBreakProcess"));
+    }
+
+    breakInThreadStartAddress = getBreakInThreadStartAddress();
     if(!DebugBreakProcess(fdProcessInfo->hProcess))
     {
         bBreakInExpected = false;
@@ -1825,6 +1885,13 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
         bBreakInExpected = false;
         dwBreakInThreadId = 0;
         breakInThreadStartAddress = 0;
+    }
+    // Release the injected stub only after its thread has exited (the thread
+    // may still be returning through the stub page while it is alive).
+    if(dwThreadId == breakInStubThreadId)
+    {
+        breakInStubThreadId = 0;
+        freeBreakInStub();
     }
     PLUG_CB_EXITTHREAD callbackInfo;
     callbackInfo.ExitThread = ExitThread;
@@ -3287,6 +3354,8 @@ static void debugLoopFunction(INIT_STRUCT* init)
     bBreakInExpected = false;
     dwBreakInThreadId = 0;
     breakInThreadStartAddress = 0;
+    breakInStubThreadId = 0;
+    freeBreakInStub();
     GuiSetDebugState(stopped);
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "Debugging stopped!"));
