@@ -1,0 +1,10 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+bp breakpoint_refactor:Unloaded
+bprapicreate sw, breakpoint_refactor:ApiHit, keep
+bprapisingleshoot sw, breakpoint_refactor:ApiHit
+SetBreakpointCondition breakpoint_refactor:ApiHit, 0
+SetBreakpointFastResume breakpoint_refactor:ApiHit, 1
+run
+testassert cip == breakpoint_refactor:Unloaded, "fast-resume single-shot does not pause"
+bprabsent sw, breakpoint_refactor:ApiHit

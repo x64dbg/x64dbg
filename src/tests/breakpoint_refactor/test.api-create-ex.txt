@@ -1,0 +1,3 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+bprapicreate ex, E0424242

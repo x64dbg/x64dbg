@@ -1,0 +1,10 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+alloc 1000
+$page = $result
+testassert $page != 0, "allocated dedicated breakpoint page"
+bpmrange $page, 1000, a
+bprremoval mem, $page, bpmd, 0
+bpmc
+free $page
+testassert $result == 1, "freed breakpoint page"

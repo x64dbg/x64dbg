@@ -1,0 +1,6 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+bpc
+bp breakpoint_refactor:BreakpointTarget, review_sw, short
+bprremoval sw, breakpoint_refactor:BreakpointTarget, "bpd breakpoint_refactor:BreakpointTarget", 0
+bpc

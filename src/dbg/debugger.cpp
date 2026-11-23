@@ -527,7 +527,7 @@ bool dbghandledllbreakpoint(const char* mod, bool loadDll)
     {
         if(found->second.first == UE_ON_LIB_ALL || found->second.first == (loadDll ? UE_ON_LIB_LOAD : UE_ON_LIB_UNLOAD))
             shouldBreak = true;
-        if(found->second.second)
+        if(shouldBreak && found->second.second)
             dllBreakpoints.erase(found);
     }
     return shouldBreak;
@@ -875,17 +875,17 @@ void cbPauseBreakpoint()
     wait(WAITID_RUN);
 }
 
+static void consumeSingleshootBreakpoint(const BREAKPOINT & bp)
+{
+    // Software, memory and DLL registrations are consumed by the engine
+    // before this callback. Hardware registrations still need removal.
+    if(bp.singleshoot && !BpDelete(bp.addr, bp.type, bp.type != BPHARDWARE))
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete singleshoot breakpoint %p!\n"), bp.addr);
+}
+
 static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAddress, duint CIP, bool forceSilent)
 {
-    if(bp.singleshoot)
-    {
-        BpDelete(bp.addr, bp.type);
-        if(bp.type == BPHARDWARE)  // Remove this singleshoot hardware breakpoint
-        {
-            if(TITANDRXVALID(bp.titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(bp.titantype)))
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Delete hardware breakpoint failed: %p (DeleteHardwareBreakPoint)\n"), bp.addr);
-        }
-    }
+    consumeSingleshootBreakpoint(bp);
     if(!forceSilent && !bp.silent)
     {
         switch(bp.type)
@@ -999,7 +999,10 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
         breakCondition = 1; //break if no condition is set
 
     if(bp.fastResume && breakCondition == 0) // fast resume: ignore GUI/Script/Plugin/Other if the debugger would not break
+    {
+        consumeSingleshootBreakpoint(bp);
         return;
+    }
 
     if(!bp.logCondition.empty())
     {
@@ -1129,6 +1132,7 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
     }
     else //resume immediately
     {
+        consumeSingleshootBreakpoint(bp);
         unlock(WAITID_RUN);
     }
 
@@ -1254,61 +1258,28 @@ static BOOL CALLBACK SymRegisterCallbackProc64(HANDLE, ULONG ActionCode, ULONG64
 
 bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
 {
-    if(!bp->enabled)
+    if(!bp->enabled || bp->active || bp->type == BPDLL)
         return true;
-    switch(bp->type)
-    {
-    case BPNORMAL:
+    if(!bp->module.empty() && !ModBaseFromName(bp->module.c_str()))
+        return true;
+    if(bp->type == BPNORMAL)
     {
         unsigned short oldbytes;
-        if(MemRead(bp->addr, &oldbytes, sizeof(oldbytes)))
-        {
-            if(oldbytes != bp->oldbytes && !bIgnoreInconsistentBreakpoints)
-            {
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Breakpoint %p has been disabled because the bytes don't match! Expected: %02X %02X, Found: %02X %02X\n"),
-                        bp->addr,
-                        ((unsigned char*)&bp->oldbytes)[0], ((unsigned char*)&bp->oldbytes)[1],
-                        ((unsigned char*)&oldbytes)[0], ((unsigned char*)&oldbytes)[1]);
-                BpEnable(bp->addr, BPNORMAL, false);
-            }
-            else if(!SetBPX(bp->addr, bp->titantype, cbUserBreakpoint))
-                dprintf(QT_TRANSLATE_NOOP("DBG", "Could not set breakpoint %p! (SetBPX)\n"), bp->addr);
-        }
-        else
-            dprintf(QT_TRANSLATE_NOOP("DBG", "MemRead failed on breakpoint address %p!\n"), bp->addr);
-    }
-    break;
-
-    case BPMEMORY:
-    {
-        auto size = bp->memsize;
-        if(size == 0)
-            MemFindBaseAddr(bp->addr, &size);
-        if(!SetMemoryBPXEx(bp->addr, size, (TitanMemoryBreakpointType)bp->titantype, !bp->singleshoot, cbMemoryBreakpoint))
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not set memory breakpoint %p! (SetMemoryBPXEx)\n"), bp->addr);
-    }
-    break;
-
-    case BPHARDWARE:
-    {
-        DWORD drx = 0;
-        if(!GetUnusedHardwareBreakPointRegister(&drx))
-        {
-            dputs(QT_TRANSLATE_NOOP("DBG", "You can only set 4 hardware breakpoints"));
+        if(!MemRead(bp->addr, &oldbytes, sizeof(oldbytes)))
             return false;
+        if(bp->oldbytesValid && oldbytes != bp->oldbytes && !bIgnoreInconsistentBreakpoints)
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Breakpoint %p has been disabled because the bytes don't match! Expected: %02X %02X, Found: %02X %02X\n"),
+                    bp->addr,
+                    ((unsigned char*)&bp->oldbytes)[0], ((unsigned char*)&bp->oldbytes)[1],
+                    ((unsigned char*)&oldbytes)[0], ((unsigned char*)&oldbytes)[1]);
+            return BpEnable(*bp, false);
         }
-        int titantype = bp->titantype;
-        TITANSETDRX(titantype, drx);
-        BpSetTitanType(bp->addr, BPHARDWARE, titantype);
-        if(!SetHardwareBreakPoint(bp->addr, drx, TITANGETTYPE(bp->titantype), TITANGETSIZE(bp->titantype), cbHardwareBreakpoint))
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not set hardware breakpoint %p! (SetHardwareBreakPoint)\n"), bp->addr);
-        else
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Set hardware breakpoint on %p!\n"), bp->addr);
     }
-    break;
-
-    default:
-        break;
+    if(!BpSetActive(*bp, true))
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Could not install breakpoint %p!\n"), bp->addr);
+        return false;
     }
     return true;
 }
@@ -1319,8 +1290,7 @@ bool cbSetDLLBreakpoints(const BREAKPOINT* bp)
         return true;
     if(bp->type != BPDLL)
         return true;
-    dbgsetdllbreakpoint(bp->module.c_str(), bp->titantype, bp->singleshoot);
-    return true;
+    return BpSetActive(*bp, true);
 }
 
 EXCEPTION_DEBUG_INFO & getLastExceptionInfo()
@@ -1330,35 +1300,23 @@ EXCEPTION_DEBUG_INFO & getLastExceptionInfo()
 
 static bool cbRemoveModuleBreakpoints(const BREAKPOINT* bp)
 {
-    if(!bp->enabled)
+    // DLL and exception registrations are not tied to a module mapping.
+    if(bp->type == BPDLL || bp->type == BPEXCEPTION)
         return true;
-    switch(bp->type)
-    {
-    case BPNORMAL:
-        if(!DeleteBPX(bp->addr))
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete breakpoint %p! (DeleteBPX)\n"), bp->addr);
-        break;
-    case BPMEMORY:
-        if(!RemoveMemoryBPX(bp->addr, 0))
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete memory breakpoint %p! (RemoveMemoryBPX)\n"), bp->addr);
-        break;
-    case BPHARDWARE:
-        if(TITANDRXVALID(bp->titantype) && !DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype)))
-            dprintf(QT_TRANSLATE_NOOP("DBG", "Could not delete hardware breakpoint %p! (DeleteHardwareBreakPoint)\n"), bp->addr);
-        break;
-    default:
-        break;
-    }
-    return true;
+    return BpSetActive(*bp, false);
 }
 
-void DebugRemoveBreakpoints()
+bool DebugRemoveBreakpoints()
 {
-    BpEnumAll(cbRemoveModuleBreakpoints);
+    return BpEnumAll([](const BREAKPOINT* bp)
+    {
+        return BpSetActive(*bp, false);
+    });
 }
 
 void DebugSetBreakpoints()
 {
+    BpEnumAll(cbSetDLLBreakpoints);
     BpEnumAll(cbSetModuleBreakpoints);
 }
 

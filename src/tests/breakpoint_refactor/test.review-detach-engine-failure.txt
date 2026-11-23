@@ -1,0 +1,14 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+bp breakpoint_refactor:Unloaded
+SetExceptionBPX E0424242
+SetExceptionBPX E0424243
+DisableExceptionBPX E0424243
+bprstate ex, E0424242, 1, 1, list
+bprfaileddetach detach, breakpoint_refactor:Unloaded
+bprstate ex, E0424242, 1, 1, list
+bprstate ex, E0424242, 1, 1, ref
+bprstate ex, E0424243, 0, 0, list
+bprstate ex, E0424243, 0, 0, ref
+bc breakpoint_refactor:Unloaded
+DeleteExceptionBPX

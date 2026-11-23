@@ -1,0 +1,10 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+bp breakpoint_refactor:Unloaded
+bprapicreate sw, breakpoint_refactor:ApiHit, keep
+bprapisingleshoot sw, breakpoint_refactor:ApiHit
+run
+testassert cip == breakpoint_refactor:ApiHit, "API single-shot software breakpoint fired"
+bprabsent sw, breakpoint_refactor:ApiHit
+run
+testassert cip == breakpoint_refactor:Unloaded, "API single-shot registration must not survive for the second call"

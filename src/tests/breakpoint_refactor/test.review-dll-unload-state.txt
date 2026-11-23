@@ -1,0 +1,15 @@
+settingset Events, EntryBreakpoint, 0
+settingset Events, DllEntrySystem, 0
+settingset Events, DllEntry, 0
+init tests/breakpoint_refactor.exe
+bp breakpoint_refactor:Unloaded
+bpdll winmm.dll, l
+run
+bprstate dll, winmm.dll, 1, 1, list
+// DLL load breakpoints also install a one-shot DllMain breakpoint.
+run
+run
+testassert cip == breakpoint_refactor:Unloaded, "stopped after winmm unload"
+bprstate dll, winmm.dll, 1, 1, list
+bprstate dll, winmm.dll, 1, 1, ref
+bcdll winmm.dll

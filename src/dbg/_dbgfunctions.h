@@ -143,9 +143,9 @@ typedef enum
     bpf_type, // number (read-only, BPXTYPE)
     bpf_offset, // number (read-only)
     bpf_address, // number (read-only)
-    bpf_enabled, // number (bool)
-    bpf_singleshoot, // number (bool)
-    bpf_active, // number (read-only)
+    bpf_enabled, // number (bool, setter installs/removes the engine registration)
+    bpf_singleshoot, // number (bool, setter also updates the engine)
+    bpf_active, // number (read-only, logical registration state)
     bpf_silent, // number (bool)
     bpf_typeex, // number (read-only, BPHWTYPE/BPMEMTYPE/BPDLLTYPE/BPEXTYPE)
     bpf_hwsize, // number (read-only, BPHWSIZE)
@@ -191,6 +191,24 @@ struct BP_REF
 };
 
 typedef struct BP_REF BP_REF;
+
+// Zero-initialize and set size=sizeof(BP_CREATEINFO). Creation never overwrites
+// an existing breakpoint. Enabled breakpoints in unloaded modules stay pending.
+// For address breakpoints, module=nullptr means a VA; otherwise address is an RVA.
+// For DLL/exception breakpoints, use module/address respectively.
+typedef struct
+{
+    size_t size;
+    BPXTYPE type;
+    const char* module;
+    duint address;
+    bool enabled;
+    bool singleshoot;
+    unsigned int typeEx; // 0 for software; BPHWTYPE/BPMEMTYPE/BPDLLTYPE/BPEXTYPE otherwise
+    BPHWSIZE hwSize;
+    duint memsize; // memory range size; 0 derives the region size (address must be its base)
+    const char* name;
+} BP_CREATEINFO;
 
 typedef void(*CBSTRING)(const char* str, void* userdata);
 
@@ -287,6 +305,8 @@ typedef struct DBGFUNCTIONS_
     // Escapes argument contents for insertion between double quotes in a debugger command.
     bool (*CommandEscape)(const char* argument, char* result, size_t resultSize);
     bool (*ModNameFromHash)(duint hash, char* modname);
+    bool (*BpCreate)(const BP_CREATEINFO* info, BP_REF* ref);
+    bool (*BpRemove)(const BP_REF* ref);
 } DBGFUNCTIONS;
 
 #ifdef __cplusplus

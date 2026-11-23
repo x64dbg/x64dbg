@@ -195,10 +195,14 @@ def main() -> int:
             if headless.wait_for_line(lambda line: line == "[STATE] paused", 4) is not None:
                 return fail("unexpected_pause", "first pause request should not break a fully blocked debuggee")
 
-            # A repeated pause request after a few seconds must fall back to a
-            # break-in thread and interrupt the debuggee.
-            headless.send("pause")
-            if headless.wait_for_line(lambda line: line == "[STATE] paused", 10) is None:
+            # Late worker-thread events can reset the debugger's no-event
+            # interval between requests. Retry within the same 10-second budget,
+            # leaving more than the required two seconds between pause requests.
+            for _ in range(4):
+                headless.send("pause")
+                if headless.wait_for_line(lambda line: line == "[STATE] paused", 2.5) is not None:
+                    break
+            else:
                 return fail("breakin_no_effect", "repeated pause request did not break in")
 
             shutdown_headless()

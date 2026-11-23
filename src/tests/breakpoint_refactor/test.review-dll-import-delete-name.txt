@@ -1,0 +1,9 @@
+settingset Events, EntryBreakpoint, 0
+init tests/breakpoint_refactor.exe
+bpdll pr3994-unused.dll, l
+dbsave tests/breakpoint_refactor/import.json
+bcdll pr3994-unused.dll
+bprabsent dll, pr3994-unused.dll
+dbload tests/breakpoint_refactor/import.json
+bprcommand 1, "bcdll pr3994-unused.dll"
+bprabsent dll, pr3994-unused.dll
