@@ -483,6 +483,27 @@
       </widget>
      </item>
      <item>
+      <widget class="QRadioButton" name="radioEntireRange">
+       <property name="text">
+        <string>Entire &amp;memory</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radioFromSelection">
+       <property name="text">
+        <string>From selection to &amp;end</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="radioSelectionOnly">
+       <property name="text">
+        <string>&amp;Selection only</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
