@@ -696,25 +696,31 @@ void MemoryMapView::findPatternSlot()
 
     QList<duint> selection = getSelection();
     duint selectionStart = selection.isEmpty() ? scopeStart : getCellUserdata(selection.first(), ColAddress);
-    duint selectionEnd = selection.isEmpty() ? scopeEnd : getCellUserdata(selection.last(), ColAddress) + getCellUserdata(selection.last(), ColSize);
+    duint selectionEnd = selection.isEmpty() ? 0 : getCellUserdata(selection.last(), ColAddress) + getCellUserdata(selection.last(), ColSize);
+
+    duint lastScope = BridgeSettingGetUint("Gui", "MemoryMapEntireBlock", 0);
+    HexEditDialog::FindScope scope = HexEditDialog::FindSelectionOnly;
+    if(lastScope == 1)
+        scope = HexEditDialog::FindAll;
+    else if(lastScope == 2)
+        scope = HexEditDialog::FindFromSelection;
 
     // Setup find mode with range information
-    hexEdit.setupFindMode(scopeStart, scopeEnd, selectionStart, BridgeSettingGetUint("Gui", "MemoryMapEntireBlock", 0) == 0, selectionEnd);
+    hexEdit.setupFindScope(scopeStart, scopeEnd, selectionStart, selectionEnd, scope);
 
     if(hexEdit.exec() != QDialog::Accepted)
         return;
 
-    bool startFromSelection = hexEdit.startFromSelection();
-    BridgeSettingSetUint("Gui", "MemoryMapEntireBlock", startFromSelection ? 0 : 1);
+    scope = hexEdit.findScope();
+    BridgeSettingSetUint("Gui", "MemoryMapEntireBlock", scope == HexEditDialog::FindAll ? 1 : scope == HexEditDialog::FindFromSelection ? 2 : 0);
 
-    if(startFromSelection)
+    if(scope == HexEditDialog::FindSelectionOnly)
     {
-        if(selection.isEmpty())
-            return;
-        duint addrFirst = getCellUserdata(selection.first(), ColAddress);
-        duint addrLast = getCellUserdata(selection.last(), ColAddress);
-        duint size = getCellUserdata(selection.last(), ColSize);
-        DbgCmdExec(QString("findallmem %1, %2, %3").arg(ToPtrString(addrFirst)).arg(hexEdit.mHexEdit->pattern()).arg(ToHexString(addrLast - addrFirst + size)));
+        DbgCmdExec(QString("findallmem %1, %2, %3").arg(ToPtrString(selectionStart)).arg(hexEdit.mHexEdit->pattern()).arg(ToHexString(selectionEnd - selectionStart)));
+    }
+    else if(scope == HexEditDialog::FindFromSelection)
+    {
+        DbgCmdExec(QString("findallmem %1, %2").arg(ToPtrString(selectionStart)).arg(hexEdit.mHexEdit->pattern()));
     }
     else
     {

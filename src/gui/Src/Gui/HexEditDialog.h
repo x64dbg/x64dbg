@@ -18,11 +18,20 @@ public:
     ~HexEditDialog();
 
     void showKeepSize(bool show);
-    void setupFindMode(duint rangeStart, duint rangeEnd, duint selectionStart, bool startFromSelection, duint selectionEnd = 0);
+    enum FindScope
+    {
+        FindAll,
+        FindFromSelection,
+        FindSelectionOnly
+    };
+
+    void setupFindMode(duint rangeStart, duint rangeEnd, duint selectionStart, bool startFromSelection);
+    void setupFindScope(duint rangeStart, duint rangeEnd, duint selectionStart, duint selectionEnd, FindScope scope);
     void isDataCopiable(bool copyDataEnabled);
     void updateCodepage();
 
     bool startFromSelection();
+    FindScope findScope();
 
     QHexEdit* mHexEdit;
 
@@ -56,6 +65,7 @@ private:
     bool mDataInitialized;
     QString mSearchRangeFromStart;
     QString mSearchRangeFromSelection;
+    QString mSearchRangeSelectionOnly;
     duint mRangeStart;
     duint mRangeEnd;
     duint mSelectionStart;

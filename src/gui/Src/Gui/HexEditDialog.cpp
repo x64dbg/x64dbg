@@ -30,6 +30,11 @@ HexEditDialog::HexEditDialog(QWidget* parent) : QDialog(parent), ui(new Ui::HexE
     ui->chkKeepSize->hide();
     ui->chkEntireBlock->hide();
     ui->chkFromSelection->hide();
+    ui->radioEntireRange->hide();
+    ui->radioFromSelection->hide();
+    ui->radioSelectionOnly->hide();
+    for(auto radio : { ui->radioEntireRange, ui->radioFromSelection, ui->radioSelectionOnly })
+        connect(radio, &QRadioButton::toggled, this, [this] { updateSearchRangeLabel(); });
 
     mDataInitialized = false;
     stringEditorLock = false;
@@ -108,7 +113,7 @@ void HexEditDialog::showKeepSize(bool show)
     ui->chkKeepSize->setVisible(show);
 }
 
-void HexEditDialog::setupFindMode(duint rangeStart, duint rangeEnd, duint selectionStart, bool startFromSelection, duint selectionEnd)
+void HexEditDialog::setupFindMode(duint rangeStart, duint rangeEnd, duint selectionStart, bool startFromSelection)
 {
     mRangeStart = rangeStart;
     mRangeEnd = rangeEnd;
@@ -119,18 +124,38 @@ void HexEditDialog::setupFindMode(duint rangeStart, duint rangeEnd, duint select
     ui->chkFromSelection->setVisible(hasSelection);
     ui->chkFromSelection->setChecked(hasSelection ? startFromSelection : false);
 
-    // The selection has its own end, so only the selection is searched
-    if(selectionEnd)
-    {
-        ui->chkFromSelection->setText(tr("Search &Selection Only"));
-        ui->chkFromSelection->setToolTip(tr("When enabled, only the selected range is searched; when disabled, the entire range is searched."));
-    }
-
     // Generate range texts using ToPtrString
     mSearchRangeFromStart = tr("Search range: %1 - %2").arg(ToPtrString(rangeStart)).arg(ToPtrString(rangeEnd));
-    mSearchRangeFromSelection = tr("Search range: %1 - %2").arg(ToPtrString(selectionStart)).arg(ToPtrString(selectionEnd ? selectionEnd : rangeEnd));
+    mSearchRangeFromSelection = tr("Search range: %1 - %2").arg(ToPtrString(selectionStart)).arg(ToPtrString(rangeEnd));
 
     // Update the label
+    updateSearchRangeLabel();
+}
+
+void HexEditDialog::setupFindScope(duint rangeStart, duint rangeEnd, duint selectionStart, duint selectionEnd, FindScope scope)
+{
+    mRangeStart = rangeStart;
+    mRangeEnd = rangeEnd;
+    mSelectionStart = selectionStart;
+
+    bool hasSelection = selectionEnd != 0;
+    ui->radioEntireRange->show();
+    ui->radioFromSelection->setVisible(hasSelection);
+    ui->radioSelectionOnly->setVisible(hasSelection);
+    if(!hasSelection)
+        scope = FindAll;
+
+    mSearchRangeFromStart = tr("Search range: %1 - %2").arg(ToPtrString(rangeStart)).arg(ToPtrString(rangeEnd));
+    mSearchRangeFromSelection = tr("Search range: %1 - %2").arg(ToPtrString(selectionStart)).arg(ToPtrString(rangeEnd));
+    mSearchRangeSelectionOnly = tr("Search range: %1 - %2").arg(ToPtrString(selectionStart)).arg(ToPtrString(selectionEnd));
+
+    if(scope == FindFromSelection)
+        ui->radioFromSelection->setChecked(true);
+    else if(scope == FindSelectionOnly)
+        ui->radioSelectionOnly->setChecked(true);
+    else
+        ui->radioEntireRange->setChecked(true);
+
     updateSearchRangeLabel();
 }
 
@@ -170,6 +195,15 @@ void HexEditDialog::updateCodepage(const QByteArray & name)
 bool HexEditDialog::startFromSelection()
 {
     return ui->chkFromSelection->isChecked();
+}
+
+HexEditDialog::FindScope HexEditDialog::findScope()
+{
+    if(ui->radioFromSelection->isChecked())
+        return FindFromSelection;
+    if(ui->radioSelectionOnly->isChecked())
+        return FindSelectionOnly;
+    return FindAll;
 }
 
 void HexEditDialog::updateStyle()
@@ -883,7 +917,16 @@ void HexEditDialog::updateSearchRangeLabel()
     if(mRangeStart == 0 && mRangeEnd == 0)
         return;
 
-    const QString & text = ui->chkFromSelection->isChecked() ? mSearchRangeFromSelection : mSearchRangeFromStart;
+    const QString* text = &mSearchRangeFromStart;
+    if(!ui->radioEntireRange->isHidden())
+    {
+        if(ui->radioFromSelection->isChecked())
+            text = &mSearchRangeFromSelection;
+        else if(ui->radioSelectionOnly->isChecked())
+            text = &mSearchRangeSelectionOnly;
+    }
+    else if(ui->chkFromSelection->isChecked())
+        text = &mSearchRangeFromSelection;
     if(ui->labelSearchRange)
-        ui->labelSearchRange->setText(text);
+        ui->labelSearchRange->setText(*text);
 }
