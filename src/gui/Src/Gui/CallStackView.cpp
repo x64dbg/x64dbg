@@ -19,6 +19,7 @@ CallStackView::CallStackView(StdTable* parent) : StdIconTable(parent)
     addColumnAt(50 * charwidth, tr("Comment"), false);
     setIconColumn(ColParty);
     loadColumnFromConfig("CallStack");
+    enableMultiSelection(true);
     Initialize();
 
     connect(Bridge::getBridge(), SIGNAL(updateCallStack()), this, SLOT(updateCallStackSlot()));
