@@ -2,11 +2,11 @@
 
 <img width="100" src="https://github.com/x64dbg/x64dbg/raw/development/src/bug_black.png"/>
 
-[![Crowdin](https://d322cqt584bo4o.cloudfront.net/x64dbg/localized.svg)](https://translate.x64dbg.com) [![Download x64dbg](https://img.shields.io/sourceforge/dm/x64dbg.svg)](https://sourceforge.net/projects/x64dbg/files/latest/download) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/x64dbg/x64dbg)
+[![Crowdin](https://d322cqt584bo4o.cloudfront.net/x64dbg/localized.svg)](https://translate.x64dbg.com) [![Download x64dbg](https://img.shields.io/sourceforge/dm/x64dbg.svg)](https://sourceforge.net/projects/x64dbg/files/latest/download) [![Ask DeepWiki](https://img.shields.io/badge/Ask_DeepWiki-007ec6?labelColor=000000)](https://deepwiki.com/x64dbg/x64dbg)
 
 [![Discord](https://img.shields.io/badge/chat-on%20Discord-green.svg)](https://discord.x64dbg.com) [![Slack](https://img.shields.io/badge/chat-on%20Slack-red.svg)](https://slack.x64dbg.com) [![Gitter](https://img.shields.io/badge/chat-on%20Gitter-lightseagreen.svg)](https://gitter.im/x64dbg/x64dbg) [![Matrix](https://img.shields.io/badge/chat-on%20Matrix-yellowgreen.svg)](https://matrix.to/#/#x64dbg:matrix.org) [![IRC](https://img.shields.io/badge/chat-on%20IRC-purple.svg)](https://web.libera.chat/#x64dbg)
 
-An open-source binary debugger for Windows, aimed at malware analysis and reverse engineering of executables you do not have the source code for. There are many features available and a comprehensive [plugin system](https://plugins.x64dbg.com) to add your own. You can find more information on the [blog](https://x64dbg.com/blog)!
+An open-source binary debugger for Windows, aimed at malware analysis and reverse engineering of executables you do not have the source code for. There are many features available, as well as a comprehensive [plugin system](https://plugins.x64dbg.com) to add your own. You can find more information on the [blog](https://x64dbg.com/blog)!
 
 ## Screenshots
 
@@ -19,9 +19,9 @@ An open-source binary debugger for Windows, aimed at malware analysis and revers
 
 ## Installation & Usage
 
-1. Download a snapshot from [GitHub](https://github.com/x64dbg/x64dbg/releases) or [SourceForge](https://sourceforge.net/projects/x64dbg/files/snapshots) and extract it in a location your user has write access to.
+1. Download a snapshot from [GitHub](https://github.com/x64dbg/x64dbg/releases) or [SourceForge](https://sourceforge.net/projects/x64dbg/files/snapshots) and extract it to a location your user has write access to.
 2. _Optionally_ use `x96dbg.exe` to register a shell extension and add shortcuts to your desktop.
-3. You can now run `x32\x32dbg.exe` if you want to debug a 32-bit executable or `x64\x64dbg.exe` to debug a 64-bit executable! If you are unsure you can always run `x96dbg.exe` and choose your architecture there.
+3. You can now run `x32\x32dbg.exe` if you want to debug a 32-bit executable or `x64\x64dbg.exe` to debug a 64-bit executable! If you are unsure, you can always run `x96dbg.exe` and choose your architecture there.
 
 You can also [compile](https://github.com/x64dbg/x64dbg/wiki/Compiling-the-whole-project) x64dbg yourself with a few easy steps!
 
@@ -43,7 +43,7 @@ You can also [compile](https://github.com/x64dbg/x64dbg/wiki/Compiling-the-whole
 
 ## Contributing
 
-This is a community effort and we accept pull requests! See the [CONTRIBUTING](.github/CONTRIBUTING.md) document for more information. If you have any questions you can always [contact us](https://x64dbg.com/#contact) or open an [issue](https://github.com/x64dbg/x64dbg/issues). You can take a look at the [good first issues](https://easy.x64dbg.com/) to get started.
+This is a community effort, and we accept pull requests! See the [CONTRIBUTING](.github/CONTRIBUTING.md) document for more information. If you have any questions, you can always [contact us](https://x64dbg.com/#contact) or open an [issue](https://github.com/x64dbg/x64dbg/issues). You can take a look at the [good first issues](https://easy.x64dbg.com/) to get started.
 
 ## Credits
 
@@ -75,7 +75,7 @@ You can find an exhaustive list of GitHub contributors [here](https://github.com
 
 - Sigma for developing the initial GUI
 - All the donators!
-- Everybody adding issues!
+- Everybody who adds issues!
 - People I forgot to add to this list
 - [Writers of the blog](https://x64dbg.com/blog/2016/07/09/Looking-for-writers.html)!
 - [EXETools community](https://forum.exetools.com)
@@ -100,7 +100,7 @@ You can find an exhaustive list of GitHub contributors [here](https://github.com
 - [mrfearless](https://twitter.com/fearless0)
 - [JustMagic](https://github.com/JustasMasiulis)
 
-Without the help of many people and other open-source projects, it would not have been possible to make x64dbg what it is today, thank you!
+Without the help of many people and other open-source projects, it would not have been possible to make x64dbg what it is today. Thank you!
 
 ## Historical Donors
 
