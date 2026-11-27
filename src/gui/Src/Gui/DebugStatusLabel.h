@@ -21,5 +21,6 @@ signals:
 
 private:
     QString mStatusTexts[4];
+    QString mTracingText;
     QString mState;
 };
