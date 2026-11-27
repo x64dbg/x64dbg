@@ -187,6 +187,16 @@ struct TraceState
         return partyFilter;
     }
 
+    void SetRunToParty(bool enabled)
+    {
+        runToParty = enabled;
+    }
+
+    bool UseRunToParty() const
+    {
+        return runToParty;
+    }
+
     void Clear()
     {
         delete traceCondition;
@@ -202,6 +212,7 @@ struct TraceState
         writeUtf16 = false;
         forceBreakTrace = false;
         partyFilter = -1;
+        runToParty = false;
     }
 
 private:
@@ -215,4 +226,5 @@ private:
     bool writeUtf16 = false;
     bool forceBreakTrace = false;
     int partyFilter = -1;  // -1 = none, mod_user = 0, mod_system = 1
+    bool runToParty = false;
 };

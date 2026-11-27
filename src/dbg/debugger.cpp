@@ -36,6 +36,7 @@
 #include "exprfunc.h"
 #include "debugger_cookie.h"
 #include "debugger_tracing.h"
+#include "runtoparty.h"
 #include "handles.h"
 #include <shellapi.h>
 #include <tlhelp32.h>
@@ -87,7 +88,6 @@ char szUserDir[MAX_PATH] = "";
 char szDebuggeePath[MAX_PATH] = "";
 char szDllLoaderPath[MAX_PATH] = "";
 char szSymbolCachePath[MAX_PATH] = "";
-std::vector<std::pair<duint, duint>> RunToUserCodeBreakpoints;
 PROCESS_INFORMATION* fdProcessInfo = &g_pi;
 HANDLE hActiveThread;
 HANDLE hProcessToken;
@@ -111,6 +111,8 @@ duint gRtrPreviousCSP = 0;
 static bool bAbortStepping = false;
 static TITANCBSTEP gStepIntoPartyCallback;
 static TITANCBSTEP gStepOverPartyCallback;
+static std::atomic<duint> gPauseBreakpointAddress{0};
+static std::atomic<unsigned> gPauseBreakpointGeneration{0};
 HANDLE hDebugLoopThread = nullptr;
 DWORD dwDebugFlags = 0;
 std::atomic_bool bIsDebugging;
@@ -120,18 +122,6 @@ static duint dbgcleartracestate()
     auto steps = traceState.StepCount();
     traceState.Clear();
     return steps;
-}
-
-static void dbgClearRtuBreakpoints()
-{
-    EXCLUSIVE_ACQUIRE(LockRunToUserCode);
-    for(auto & i : RunToUserCodeBreakpoints)
-    {
-        BREAKPOINT bp;
-        if(!BpGet(i.first, BPMEMORY, nullptr, &bp))
-            RemoveMemoryBPX(i.first, i.second);
-    }
-    RunToUserCodeBreakpoints.clear();
 }
 
 bool dbgsettracecondition(const String & expression, duint maxSteps)
@@ -190,9 +180,10 @@ bool dbgsettracelogfile(const char* fileName)
     return true;
 }
 
-void dbgsettracepartyfilter(int party)
+void dbgsettracepartyfilter(int party, bool runToParty)
 {
     traceState.SetPartyFilter(party);
+    traceState.SetRunToParty(runToParty);
 }
 
 int dbggettracepartyfilter()
@@ -283,8 +274,11 @@ void cbDebuggerPaused()
 {
     // Clear tracing conditions
     dbgcleartracestate();
-    dbgClearRtuBreakpoints();
+    dbgclearpausebreakpoint();
+    RunToPartyClear();
     bAbortStepping = false;
+    gStepIntoPartyCallback = nullptr;
+    gStepOverPartyCallback = nullptr;
     stepRepeat = 0;
     // Trace record is not handled by this function currently.
     // Signal thread switch warning
@@ -314,6 +308,7 @@ void dbginit()
 
 void dbgstop()
 {
+    MemSetAutoUpdateEnabled(false);
     bStopTimeWastedCounterThread = true;
     bStopMemMapThread = true;
     bStopDumpRefreshThread = true;
@@ -855,12 +850,44 @@ static char getConditionValue(const std::string & expression)
     return getConditionValue(expression.c_str());
 }
 
+void dbgclearpausebreakpoint()
+{
+    // Also cancel an installation racing with a pause on the debug thread.
+    ++gPauseBreakpointGeneration;
+    auto address = gPauseBreakpointAddress.exchange(0);
+    if(address && !BpGet(address, BPNORMAL, nullptr, nullptr))
+        DeleteBPX(address);
+}
+
+bool dbgsetpausebreakpoint(duint address)
+{
+    // Account for our own clear, but detect any concurrent cancellation too.
+    auto generation = gPauseBreakpointGeneration.load() + 1;
+    dbgclearpausebreakpoint();
+    // Never claim an existing user breakpoint, including a disabled one which
+    // some engines would enable rather than installing our callback.
+    if(BpGet(address, BPNORMAL, nullptr, nullptr))
+        return false;
+    if(!SetBPX(address, UE_BREAKPOINT, cbPauseBreakpoint))
+        return false;
+    gPauseBreakpointAddress = address;
+    // SetBPX can wake another thread before it returns. If that thread already
+    // paused, remove the late installation rather than leaving an unowned INT3.
+    if(gPauseBreakpointGeneration.load() != generation || !dbgisrunning())
+        dbgclearpausebreakpoint();
+    else
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Pause breakpoint set at %p.\n"), address);
+    return true;
+}
+
 void cbPauseBreakpoint()
 {
     dputs(QT_TRANSLATE_NOOP("DBG", "paused!"));
     hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    DeleteBPX(CIP);
+    // The callback can arrive before dbgsetpausebreakpoint publishes ownership.
+    if(!BpGet(CIP, BPNORMAL, nullptr, nullptr))
+        DeleteBPX(CIP);
     DebugUpdateGuiSetStateAsync(CIP, paused);
     _dbg_animatestop(); // Stop animating when paused
     // Trace record
@@ -1164,11 +1191,11 @@ void cbMemoryBreakpoint(const void* ExceptionAddress)
     cbGenericBreakpoint(BPMEMORY, ExceptionAddress);
 }
 
-void cbRunToUserCodeBreakpoint(const void* ExceptionAddress)
+void cbRunToPartyFinished()
 {
     hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
-    dprintf(QT_TRANSLATE_NOOP("DBG", "User code reached at %s"), SymGetSymbolicName(CIP).c_str());
+    dprintf(QT_TRANSLATE_NOOP("DBG", "Requested module party reached at %s\n"), SymGetSymbolicName(CIP).c_str());
     // lock
     lock(WAITID_RUN);
     // Trace record
@@ -1533,36 +1560,44 @@ static void cbTraceXXTraceRecordStep(STEPFUNCTION stepFunction, bool bInto, TITA
     cbTraceUniversalConditionalStep(cip, stepFunction, callback, forceBreakTrace);
 }
 
-#define STEP_FUNCTION(into) (into ? StepIntoWow64 : StepOverWrapper)
+static STEPFUNCTION getTraceStepFunction(bool stepInto)
+{
+    auto party = dbggettracepartyfilter();
+    if(party == mod_user)
+        return stepInto ? StepIntoUser : StepOverUser;
+    if(party == mod_system)
+        return stepInto ? StepIntoSystem : StepOverSystem;
+    return stepInto ? StepIntoWow64 : StepOverWrapper;
+}
 
 void cbTraceOverConditionalStep()
 {
-    cbTraceXConditionalStep(STEP_FUNCTION(false), cbTraceOverConditionalStep);
+    cbTraceXConditionalStep(getTraceStepFunction(false), cbTraceOverConditionalStep);
 }
 
 void cbTraceIntoConditionalStep()
 {
-    cbTraceXConditionalStep(STEP_FUNCTION(true), cbTraceIntoConditionalStep);
+    cbTraceXConditionalStep(getTraceStepFunction(true), cbTraceIntoConditionalStep);
 }
 
 void cbTraceIntoBeyondTraceRecordStep()
 {
-    cbTraceXXTraceRecordStep(STEP_FUNCTION(true), false, cbTraceIntoBeyondTraceRecordStep);
+    cbTraceXXTraceRecordStep(getTraceStepFunction(true), false, cbTraceIntoBeyondTraceRecordStep);
 }
 
 void cbTraceOverBeyondTraceRecordStep()
 {
-    cbTraceXXTraceRecordStep(STEP_FUNCTION(false), false, cbTraceOverBeyondTraceRecordStep);
+    cbTraceXXTraceRecordStep(getTraceStepFunction(false), false, cbTraceOverBeyondTraceRecordStep);
 }
 
 void cbTraceIntoIntoTraceRecordStep()
 {
-    cbTraceXXTraceRecordStep(STEP_FUNCTION(true), true, cbTraceIntoIntoTraceRecordStep);
+    cbTraceXXTraceRecordStep(getTraceStepFunction(true), true, cbTraceIntoIntoTraceRecordStep);
 }
 
 void cbTraceOverIntoTraceRecordStep()
 {
-    cbTraceXXTraceRecordStep(STEP_FUNCTION(false), true, cbTraceOverIntoTraceRecordStep);
+    cbTraceXXTraceRecordStep(getTraceStepFunction(false), true, cbTraceOverIntoTraceRecordStep);
 }
 
 static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
@@ -1603,6 +1638,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
     //update memory map
     MemUpdateMap();
+    MemSetAutoUpdateEnabled(true);
     GuiUpdateMemoryView();
 
     //dump/disassemble somewhere
@@ -1700,6 +1736,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
 
 static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
 {
+    MemSetAutoUpdateEnabled(false);
     {
         auto exitCode = ExitProcess->dwExitCode;
         auto exitDescription = StringUtils::sprintf("0x%X (%d)", exitCode, exitCode);
@@ -1726,7 +1763,8 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
     _dbg_animatestop(); // Stop animating
     //history
     dbgcleartracestate();
-    dbgClearRtuBreakpoints();
+    dbgclearpausebreakpoint();
+    RunToPartyClear();
     HistoryClear();
     if(breakHere)
     {
@@ -2118,6 +2156,8 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
     callbackInfo.modname = modname;
     plugincbcall(CB_LOADDLL, &callbackInfo);
 
+    RunToPartyOnModuleChange();
+
     auto dllLoadSetting = party == mod_system ? "DllLoadSystem" : "DllLoad";
     if(shouldBreakOnDll)
     {
@@ -2173,6 +2213,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
     }
 
     ModUnload((duint)base);
+    RunToPartyOnModuleChange();
 
     //update memory map
     MemUpdateMapAsync();
@@ -3275,7 +3316,11 @@ static void debugLoopFunction(INIT_STRUCT* init)
 
     //cleanup
     dbgcleartracestate();
-    dbgClearRtuBreakpoints();
+    dbgclearpausebreakpoint();
+    RunToPartyClear();
+    gStepIntoPartyCallback = nullptr;
+    gStepOverPartyCallback = nullptr;
+    bAbortStepping = false;
     ModClear();
     ThreadClear();
     WatchClear(true);
@@ -3453,16 +3498,42 @@ void StepOverWrapper(TITANCBSTEP callback)
     }
 }
 
+static bool tryTraceRunToParty(int party, TITANCBSTEP callback, STEPFUNCTION fallback)
+{
+    if(!traceState.IsActive() || !traceState.UseRunToParty() || traceState.ForceBreakTrace())
+        return false;
+    if(ModGetParty(GetContextDataEx(hActiveThread, UE_CIP)) == party)
+        return false;
+    if(RunToParty(party, callback, fallback))
+        return true;
+    // Avoid retrying an expensive failed setup on every excluded instruction.
+    traceState.SetRunToParty(false);
+    dputs(QT_TRANSLATE_NOOP("DBG", "Run-to-party setup failed; using single stepping for the remainder of this trace."));
+    return false;
+}
+
 template<MODULEPARTY StopParty>
 static void cbStepIntoParty()
 {
+    // A breakpoint/DLL pause can cancel us while an engine step is pending.
+    // Ignore that stale completion rather than calling null or rearming a skip.
+    if(!gStepIntoPartyCallback)
+        return;
     if(bAbortStepping || ModGetParty(GetContextDataEx(hActiveThread, UE_CIP)) == StopParty)
     {
         bAbortStepping = false;
-        gStepIntoPartyCallback();
+        auto callback = gStepIntoPartyCallback;
+        gStepIntoPartyCallback = nullptr;
+        if(callback)
+            callback();
     }
     else
     {
+        // Finalize any pending trace instruction before silently skipping
+        // instructions from the other module party.
+        TraceRecord.FlushTraceExecuteRecord();
+        if(tryTraceRunToParty(StopParty, cbStepIntoParty<StopParty>, StepIntoWow64))
+            return;
         StepIntoWow64(cbStepIntoParty<StopParty>);
     }
 }
@@ -3470,25 +3541,37 @@ static void cbStepIntoParty()
 void StepIntoUser(TITANCBSTEP callback)
 {
     gStepIntoPartyCallback = callback;
-    StepIntoWow64(cbStepIntoParty<mod_user>);
+    if(!tryTraceRunToParty(mod_user, cbStepIntoParty<mod_user>, StepIntoWow64))
+        StepIntoWow64(cbStepIntoParty<mod_user>);
 }
 
 void StepIntoSystem(TITANCBSTEP callback)
 {
     gStepIntoPartyCallback = callback;
-    StepIntoWow64(cbStepIntoParty<mod_system>);
+    if(!tryTraceRunToParty(mod_system, cbStepIntoParty<mod_system>, StepIntoWow64))
+        StepIntoWow64(cbStepIntoParty<mod_system>);
 }
 
 template<MODULEPARTY StopParty>
 static void cbStepOverParty()
 {
+    if(!gStepOverPartyCallback)
+        return;
     if(bAbortStepping || ModGetParty(GetContextDataEx(hActiveThread, UE_CIP)) == StopParty)
     {
         bAbortStepping = false;
-        gStepOverPartyCallback();
+        auto callback = gStepOverPartyCallback;
+        gStepOverPartyCallback = nullptr;
+        if(callback)
+            callback();
     }
     else
     {
+        // Finalize any pending trace instruction before silently skipping
+        // instructions from the other module party.
+        TraceRecord.FlushTraceExecuteRecord();
+        if(tryTraceRunToParty(StopParty, cbStepOverParty<StopParty>, StepOverWrapper))
+            return;
         StepOverWrapper(cbStepOverParty<StopParty>);
     }
 }
@@ -3496,13 +3579,15 @@ static void cbStepOverParty()
 void StepOverUser(TITANCBSTEP callback)
 {
     gStepOverPartyCallback = callback;
-    StepOverWrapper(cbStepOverParty<mod_user>);
+    if(!tryTraceRunToParty(mod_user, cbStepOverParty<mod_user>, StepOverWrapper))
+        StepOverWrapper(cbStepOverParty<mod_user>);
 }
 
 void StepOverSystem(TITANCBSTEP callback)
 {
     gStepOverPartyCallback = callback;
-    StepOverWrapper(cbStepOverParty<mod_system>);
+    if(!tryTraceRunToParty(mod_system, cbStepOverParty<mod_system>, StepOverWrapper))
+        StepOverWrapper(cbStepOverParty<mod_system>);
 }
 
 bool dbgisdepenabled()

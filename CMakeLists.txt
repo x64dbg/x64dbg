@@ -388,6 +388,8 @@ set(dbg_SOURCES
 	"src/dbg/plugin_loader.h"
 	"src/dbg/reference.cpp"
 	"src/dbg/reference.h"
+	"src/dbg/runtoparty.cpp"
+	"src/dbg/runtoparty.h"
 	"src/dbg/serializablemap.h"
 	"src/dbg/simplescript.cpp"
 	"src/dbg/simplescript.h"

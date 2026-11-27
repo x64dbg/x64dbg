@@ -30,7 +30,7 @@
      </property>
     </widget>
    </item>
-   <item row="8" column="0" colspan="2">
+   <item row="9" column="0" colspan="2">
     <widget class="QLabel" name="lblHint">
      <property name="text">
       <string>Hint: History is available in every text field with the Up/Down arrows!</string>
@@ -41,6 +41,22 @@
     </widget>
    </item>
    <item row="7" column="1">
+    <widget class="QCheckBox" name="chkRunToParty">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>Run through excluded modules (memory breakpoints)</string>
+     </property>
+     <property name="toolTip">
+      <string>Run instead of single-stepping excluded code until any thread reaches the selected module party. Uses temporary execute-memory breakpoints on currently executable pages. Newly allocated or newly executable code may be missed. Falls back to stepping if setup fails. Unchecked by default.</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <spacer name="horizontalSpacer">
@@ -177,7 +193,7 @@
      <item>
       <widget class="QRadioButton" name="radioFilterUser">
        <property name="toolTip">
-        <string>Conditions, logging, and recording only apply when execution is in a User module. System code is stepped through silently.</string>
+        <string>Conditions, logging, and recording only apply in User modules. Traversing excluded System code does not increase the trace counter.</string>
        </property>
        <property name="text">
         <string>&amp;User Only</string>
@@ -187,7 +203,7 @@
      <item>
       <widget class="QRadioButton" name="radioFilterSystem">
        <property name="toolTip">
-        <string>Conditions, logging, and recording only apply when execution is in a System module. User code is stepped through silently.</string>
+        <string>Conditions, logging, and recording only apply in System modules. Traversing excluded User code does not increase the trace counter.</string>
        </property>
        <property name="text">
         <string>&amp;System Only</string>
@@ -254,6 +270,7 @@
   <tabstop>radioFilterNone</tabstop>
   <tabstop>radioFilterUser</tabstop>
   <tabstop>radioFilterSystem</tabstop>
+  <tabstop>chkRunToParty</tabstop>
   <tabstop>chkRecordTrace</tabstop>
   <tabstop>btnLogFile</tabstop>
   <tabstop>btnOk</tabstop>

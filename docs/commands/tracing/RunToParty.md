@@ -1,6 +1,14 @@
 # RunToParty
 
-Run the program until the program reaches somewhere belonging to the party number. This works by putting temporary memory breakpoints on all memory pages with matching party number.
+Run until any thread executes code belonging to the requested module party. Temporary execute-memory breakpoints are placed on currently committed executable pages with that party, including executable private memory (classified as user code).
+
+Windows-managed CFG/SCP image-extension trampolines (Windows 11 24H2+) are omitted from the temporary breakpoint set. Windows reports these executable pages but does not allow changing their protections. They may run through without stopping, even if their module-party classification matches. The exclusion uses the same image-extension layout recognized by the memory map: on Windows 11 24H2+, exactly one executable-read image page immediately after a known image's `SizeOfImage`, with the same allocation base. Other image pages and ordinary private/JIT code remain covered. Normal stepping and module-party classification are unchanged.
+
+The breakpoint set is a snapshot. New executable allocations and protection changes during the run may not be covered. A DLL load/unload rebuilds the breakpoint snapshot after updating the module map, without single-stepping or reporting the loader notification as an execution hit. If refreshing fails, partial setup is rolled back and that traversal switches to single-stepping until the requested party is reached. The Log reports successful refreshes and refresh failures. Use `StepUser` or `StepSystem` when executable memory changes need to be followed reliably.
+
+The command fails without resuming if another party run is active, no target pages exist, or the full breakpoint set cannot be installed. Enabled user memory breakpoints and target guard pages prevent setup; user breakpoints are not removed or replaced. Partial setup is rolled back.
+
+On a hit the temporary breakpoints are removed and the debugger pauses. Manual pause, other debugger breaks, and process termination also clear the temporary state.
 
 ## arguments
 
@@ -13,3 +21,7 @@ This command does not set any result variables.
 ## see also
 
 [RunToUserCode](RunToUserCode.md)
+
+[RunToSystemCode](RunToSystemCode.md)
+
+[TraceSetStepFilter](TraceSetStepFilter.md)

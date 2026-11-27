@@ -7,6 +7,9 @@
 struct SimplePage;
 void MemUpdateMap();
 void MemUpdateMapAsync();
+// Disable and drain background scans before destroying the engine process.
+// Returns the previous state, for rollback when detach fails.
+bool MemSetAutoUpdateEnabled(bool enabled);
 duint MemFindBaseAddr(duint Address, duint* Size = nullptr, bool Refresh = false, bool FindReserved = false);
 bool MemoryReadSafePage(HANDLE hProcess, LPVOID lpBaseAddress, LPVOID lpBuffer, SIZE_T nSize, SIZE_T* lpNumberOfBytesRead);
 bool MemRead(duint BaseAddress, void* Buffer, duint Size, duint* NumberOfBytesRead = nullptr, bool cache = false);

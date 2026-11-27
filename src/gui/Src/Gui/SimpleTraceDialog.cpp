@@ -11,6 +11,12 @@ SimpleTraceDialog::SimpleTraceDialog(QWidget* parent) :
     ui(new Ui::SimpleTraceDialog)
 {
     ui->setupUi(this);
+    connect(ui->radioFilterNone, &QRadioButton::toggled, this, [this](bool allModules)
+    {
+        ui->chkRunToParty->setEnabled(!allModules);
+        if(allModules)
+            ui->chkRunToParty->setChecked(false);
+    });
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint | Qt::MSWindowsFixedSizeDialogHint);
     resize(SimpleTraceDialog::minimumSizeHint());
     duint setting;
@@ -89,7 +95,8 @@ void SimpleTraceDialog::on_btnOk_clicked()
         filterType = "system";
     else
         filterType = "none";
-    if(!DbgCmdExecDirect(QString("TraceSetStepFilter %1").arg(filterType).toUtf8().constData()))
+    auto filterMode = ui->chkRunToParty->isEnabled() && ui->chkRunToParty->isChecked() ? "run" : "step";
+    if(!DbgCmdExecDirect(QString("TraceSetStepFilter %1, %2").arg(filterType).arg(filterMode).toUtf8().constData()))
     {
         SimpleWarningBox(this, tr("Error"), tr("Failed to set module filter!"));
         return;

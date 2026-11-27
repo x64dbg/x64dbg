@@ -1,0 +1,366 @@
+"""Hermetic tests of the real runtoparty.cpp with a simulated debug engine.
+
+Run: python tests/run_to_party_test.py [--compiler clang++]
+No debuggee is launched. This tests ownership, fallback and callback behavior;
+it does not substitute for live TitanEngine/GleeBug integration testing.
+"""
+import argparse
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+
+ROOT = Path(__file__).resolve().parents[1]
+SHIM = r'''
+#pragma once
+#include <algorithm>
+#include <cassert>
+#include <cstdint>
+#include <map>
+#include <vector>
+using duint = uintptr_t;
+using DWORD = uint32_t;
+using LPCVOID = const void*;
+DWORD buildNumber = 26100;
+DWORD BridgeGetNtBuildNumber() { return buildNumber; }
+using TITANCBSTEP = void(*)();
+using STEPFUNCTION = void(*)(TITANCBSTEP);
+using MemCallback = void(*)(const void*);
+#define QT_TRANSLATE_NOOP(context, text) text
+void dprintf(const char*, ...) {}
+void dputs(const char*) {}
+const DWORD PAGE_EXECUTE = 0x10, PAGE_EXECUTE_READ = 0x20,
+    PAGE_EXECUTE_READWRITE = 0x40, PAGE_EXECUTE_WRITECOPY = 0x80,
+    PAGE_GUARD = 0x100, MEM_COMMIT = 0x1000, MEM_IMAGE = 0x1000000;
+const DWORD ERROR_INVALID_PARAMETER = 87, UE_CIP = 1, UE_MEMORY_EXECUTE = 6;
+const int BPMEMORY = 1;
+struct MEMORY_BASIC_INFORMATION { void* BaseAddress; duint RegionSize; DWORD State, Protect; void* AllocationBase; DWORD Type; };
+bool ReadProcessMemory(int, LPCVOID, void*, size_t, void*) { return true; }
+struct MODINFO { duint base, size; int party; };
+struct BREAKPOINT { int type; bool enabled; };
+struct ProcessInfo { int hProcess; } processInfo{1};
+auto fdProcessInfo = &processInfo;
+struct DebugData { DWORD dwThreadId; } debugData{7};
+int hActiveThread = 0;
+int lockDepth = 0;
+struct Guard { Guard() { ++lockDepth; } ~Guard() { --lockDepth; } };
+#define EXCLUSIVE_ACQUIRE(x) Guard guard
+#define SHARED_ACQUIRE(x) Guard guard
+std::vector<MEMORY_BASIC_INFORMATION> regions;
+std::vector<MODINFO> modules;
+std::vector<BREAKPOINT> userBreakpoints;
+struct Installed { duint size; MemCallback callback; };
+std::map<duint, Installed> installed;
+DWORD lastError = 0;
+duint queryFailure = duint(-1), cip = 0;
+int failInstallAt = -1, installCalls = 0, removeCalls = 0, stepCalls = 0;
+TITANCBSTEP pendingStep = nullptr;
+bool steppedOver = false;
+void StepIntoWow64(TITANCBSTEP callback) { ++stepCalls; pendingStep = callback; steppedOver = false; }
+void StepOverWrapper(TITANCBSTEP callback) { ++stepCalls; pendingStep = callback; steppedOver = true; }
+bool RunToParty(int, TITANCBSTEP, STEPFUNCTION = StepIntoWow64);
+bool RunToPartyIsActive();
+void RunToPartyClear();
+void RunToPartyOnModuleChange();
+DebugData* GetDebugData() { return &debugData; }
+int ThreadGetHandle(DWORD tid) { return int(tid); }
+duint GetContextDataEx(int, DWORD) { return cip; }
+DWORD GetLastError() { return lastError; }
+size_t VirtualQueryEx(int, LPCVOID address, MEMORY_BASIC_INFORMATION* mbi, size_t)
+{
+    auto addr = duint(address);
+    if(addr == queryFailure) { lastError = 5; return 0; }
+    for(auto region : regions)
+        if(addr >= duint(region.BaseAddress) && addr < duint(region.BaseAddress) + region.RegionSize)
+        { *mbi = region; return sizeof(*mbi); }
+    lastError = ERROR_INVALID_PARAMETER;
+    return 0;
+}
+void BpGetList(std::vector<BREAKPOINT>* result) { *result = userBreakpoints; }
+template<class F> void ModEnum(F f) { for(auto mod : modules) f(mod); }
+int ModGetParty(duint addr)
+{
+    for(auto mod : modules)
+        if(addr >= mod.base && addr < mod.base + mod.size) return mod.party;
+    return 0;
+}
+bool SetMemoryBPXEx(duint addr, duint size, DWORD type, bool restore, MemCallback callback)
+{
+    assert(type == UE_MEMORY_EXECUTE && restore && size);
+    if(installCalls++ == failInstallAt) return false;
+    for(auto bp : installed)
+        if(addr < bp.first + bp.second.size && bp.first < addr + size) return false;
+    installed.emplace(addr, Installed{size, callback});
+    return true;
+}
+bool RemoveMemoryBPX(duint addr, duint size)
+{
+    assert(installed.count(addr) && installed.at(addr).size == size);
+    installed.erase(addr);
+    ++removeCalls;
+    return true;
+}
+'''
+TEST = r'''
+#include "runtoparty.cpp"
+#include <iostream>
+int completed = 0;
+void done()
+{
+    assert(lockDepth == 0 && !RunToPartyIsActive() && installed.empty());
+    ++completed;
+}
+void reset()
+{
+    RunToPartyClear();
+    regions = {{(void*)0, 0x1000, 0, 0},
+               {(void*)0x1000, 0x5000, MEM_COMMIT, PAGE_EXECUTE_READ},
+               {(void*)0x6000, 0xA000, MEM_COMMIT, 4}};
+    modules = {{0x2000, 0x2000, 1}, {0x4000, 0x1000, 0}};
+    userBreakpoints.clear();
+    buildNumber = 26100;
+    queryFailure = duint(-1);
+    failInstallAt = -1;
+    installCalls = removeCalls = completed = stepCalls = 0;
+    pendingStep = nullptr;
+    cip = 0x2000;
+}
+void scpLayout()
+{
+    reset();
+    modules = {{0x1000, 0x4000, 0}};
+    regions = {{(void*)0, 0x1000, 0, 0},
+               {(void*)0x1000, 0x4000, MEM_COMMIT, PAGE_EXECUTE_READ, (void*)0x1000, MEM_IMAGE},
+               {(void*)0x5000, 0x1000, MEM_COMMIT, PAGE_EXECUTE_READ, (void*)0x1000, MEM_IMAGE},
+               {(void*)0x6000, 0x1000, MEM_COMMIT, PAGE_EXECUTE_READ, (void*)0x6000, 0},
+               {(void*)0x7000, 0x9000, MEM_COMMIT, 4}};
+}
+void hit(duint address)
+{
+    cip = address;
+    for(auto bp : installed)
+        if(address >= bp.first && address < bp.first + bp.second.size)
+        { auto callback = bp.second.callback; callback((void*)address); return; }
+    assert(false);
+}
+void stepTo(duint address)
+{
+    assert(pendingStep);
+    auto callback = pendingStep;
+    pendingStep = nullptr;
+    cip = address;
+    callback();
+}
+void again()
+{
+    done();
+    assert(RunToParty(1, done)); // cleanup and unlock must precede the callback
+}
+int main()
+{
+    reset();
+    assert(RunToParty(0, done));
+    assert(installed.size() == 3); // module boundaries plus private executable memory
+    assert(installed.at(0x1000).size == 0x1000);
+    assert(installed.at(0x4000).size == 0x1000);
+    assert(installed.at(0x5000).size == 0x1000);
+    assert(!RunToParty(1, done)); // cannot replace an active operation
+    debugData.dwThreadId = 99;
+    hit(0x5000);
+    assert(completed == 1 && hActiveThread == 99);
+
+    reset();
+    assert(RunToParty(1, done));
+    assert(installed.size() == 1 && installed.at(0x2000).size == 0x2000);
+    hit(0x2000);
+    assert(completed == 1);
+
+    scpLayout();
+    assert(RunToParty(0, done));
+    assert(installed.size() == 2 && !installed.count(0x5000));
+    assert(installed.at(0x1000).size == 0x4000); // image body stays covered
+    assert(installed.at(0x6000).size == 0x1000); // adjacent private/JIT code too
+    hit(0x6000);
+    assert(completed == 1);
+
+    for(int variation = 0; variation < 7; ++variation)
+    {
+        scpLayout();
+        switch(variation)
+        {
+        case 0: buildNumber = 26099; break; // no SCP layout on older Windows
+        case 1: regions[2].Type = 0; break; // private memory, even next to an image
+        case 2: regions[2].AllocationBase = (void*)0x5000; break; // different allocation
+        case 3: modules[0].size = 0x5000; break; // page inside the image
+        case 4: modules[0].size = 0x3000; break; // not immediately after the image
+        case 5: regions[2].Protect = PAGE_EXECUTE_READWRITE; break;
+        case 6:
+            regions[2].RegionSize = 0x2000; // not the single-page extension layout
+            regions.erase(regions.begin() + 3);
+            break;
+        }
+        assert(RunToParty(0, done));
+        assert(installed.count(0x5000)); // none of these pages may be silently dropped
+        RunToPartyClear();
+    }
+
+    scpLayout();
+    regions[2].Protect |= PAGE_GUARD;
+    assert(!RunToParty(0, done) && installed.empty()); // guard ownership preserved
+
+    scpLayout();
+    failInstallAt = 1;
+    assert(!RunToParty(0, done)); // ordinary setup errors still roll back, not skip
+    assert(installed.empty() && removeCalls == 1);
+
+    reset();
+    failInstallAt = 1;
+    assert(!RunToParty(0, done));
+    assert(!RunToPartyIsActive() && installed.empty() && removeCalls == 1);
+
+    reset();
+    userBreakpoints.push_back({BPMEMORY, true});
+    assert(!RunToParty(0, done) && installCalls == 0);
+    userBreakpoints[0].enabled = false;
+    assert(RunToParty(0, done));
+    RunToPartyClear();
+
+    reset();
+    regions[1].Protect |= PAGE_GUARD;
+    assert(!RunToParty(0, done) && installCalls == 0);
+    reset();
+    queryFailure = 0x6000;
+    assert(!RunToParty(0, done) && installCalls == 0);
+    reset();
+    assert(!RunToParty(42, done) && !RunToPartyIsActive());
+
+    reset();
+    assert(RunToParty(0, done, StepOverWrapper));
+    queryFailure = 0x6000;
+    RunToPartyOnModuleChange(); // failed refresh: keep callback and original step mode
+    assert(installed.empty() && RunToPartyIsActive() && pendingStep && steppedOver);
+    auto next = pendingStep;
+    cip = 0x1000;
+    next();
+    assert(completed == 1 && !RunToPartyIsActive());
+
+    reset();
+    cip = 0x1000;
+    assert(RunToParty(0, done, StepOverWrapper));
+    RunToPartyOnModuleChange(); // even a matching loader context is not a trace step
+    assert(completed == 0 && !installed.empty() && !pendingStep);
+    hit(0x1000);
+    assert(completed == 1 && !RunToPartyIsActive());
+
+    // Refresh both party snapshots without inspecting the loader context or
+    // single-stepping. New module pages must be covered; unloaded ones disappear.
+    for(int party : {0, 1})
+        for(auto fallback : {StepIntoWow64, StepOverWrapper})
+        {
+            reset();
+            auto excluded = party == 0 ? 0x2000 : 0x1000;
+            cip = excluded;
+            assert(RunToParty(party, done, fallback));
+            modules.push_back({0x6000, 0x1000, party});
+            regions[2] = {(void*)0x6000, 0x1000, MEM_COMMIT, PAGE_EXECUTE_READ};
+            regions.push_back({(void*)0x7000, 0x9000, MEM_COMMIT, 4});
+            RunToPartyOnModuleChange();
+            assert(installed.count(0x6000) && !pendingStep && stepCalls == 0 && completed == 0);
+            RunToPartyOnModuleChange(); // repeated events still never step or complete
+            assert(installed.count(0x6000) && !pendingStep && stepCalls == 0 && completed == 0);
+            hit(0x6000); // first entry into the newly loaded module
+            assert(completed == 1);
+
+            cip = excluded;
+            assert(RunToParty(party, done, fallback));
+            modules.pop_back();
+            regions[2].Protect = 4;
+            RunToPartyOnModuleChange();
+            assert(!installed.count(0x6000) && !installed.empty() && !pendingStep && stepCalls == 0);
+            hit(party == 0 ? 0x1000 : 0x2000);
+            assert(completed == 2);
+        }
+
+    // A failed refresh rolls back, preserves ownership, and uses the ORIGINAL
+    // step mode without retrying on each excluded instruction or loader event.
+    for(auto fallback : {StepIntoWow64, StepOverWrapper})
+        for(int failure = 0; failure < 5; ++failure)
+        {
+            reset();
+            assert(RunToParty(0, done, fallback));
+            switch(failure)
+            {
+            case 0: failInstallAt = installCalls + 1; break; // partial install
+            case 1: userBreakpoints.push_back({BPMEMORY, true}); break;
+            case 2: regions[1].Protect |= PAGE_GUARD; break;
+            case 3: queryFailure = 0x6000; break;
+            case 4: modules = {{0x1000, 0x5000, 1}}; break; // no target pages
+            }
+            RunToPartyOnModuleChange();
+            assert(installed.empty() && pendingStep && RunToPartyIsActive());
+            assert(steppedOver == (fallback == StepOverWrapper));
+            assert(removeCalls == (failure == 0 ? 4 : 3));
+            auto calls = installCalls;
+            RunToPartyOnModuleChange();
+            stepTo(0x2001);
+            assert(installCalls == calls && installed.empty() && pendingStep);
+            modules = {{0x2000, 0x2000, 1}};
+            stepTo(0x1000);
+            assert(completed == 1 && !RunToPartyIsActive());
+        }
+
+    reset();
+    assert(RunToParty(0, done));
+    failInstallAt = installCalls;
+    RunToPartyOnModuleChange();
+    auto calls = installCalls;
+    RunToPartyClear(); // configured DLL pause before the failed-refresh fallback
+    stepTo(0x2000);
+    assert(installCalls == calls && !pendingStep && completed == 0 && !RunToPartyIsActive());
+
+    reset();
+    assert(RunToParty(0, done));
+    auto staleHit = installed.begin()->second.callback;
+    RunToPartyClear(); // manual pause, normal break, or exit
+    staleHit(nullptr);
+    assert(!RunToPartyIsActive() && completed == 0 && !pendingStep);
+
+    reset();
+    assert(RunToParty(0, again));
+    hit(0x1000);
+    assert(completed == 1 && RunToPartyIsActive());
+    hit(0x2000);
+    assert(completed == 2);
+
+    reset();
+    assert(RunToParty(1, done));
+    modules[0].party = 0; // no longer the requested party: don't deliver a false hit
+    hit(0x2000);
+    assert(completed == 0 && pendingStep && !steppedOver && installed.empty());
+    RunToPartyClear();
+    std::cout << "RunToParty primitive tests passed\n";
+}
+'''
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--compiler", default="clang++")
+    args = parser.parse_args()
+    with tempfile.TemporaryDirectory(prefix="x64dbg-runtoparty-") as directory:
+        temp = Path(directory)
+        # Copy the production implementation unchanged; replace only its external
+        # engine/platform headers with test doubles in this isolated directory.
+        shutil.copyfile(ROOT / "src/dbg/runtoparty.cpp", temp / "runtoparty.cpp")
+        (temp / "shim.h").write_text(SHIM)
+        for header in ("runtoparty.h", "breakpoint.h", "console.h", "module.h", "thread.h", "threading.h"):
+            (temp / header).parent.mkdir(parents=True, exist_ok=True)
+            (temp / header).write_text('#include "shim.h"\n')
+        (temp / "test.cpp").write_text(TEST)
+        executable = temp / "test.exe"
+        subprocess.run([args.compiler, "-std=c++14", "-I", str(temp), str(temp / "test.cpp"), "-o", str(executable)], check=True)
+        subprocess.run([str(executable)], check=True)
+
+
+if __name__ == "__main__":
+    main()

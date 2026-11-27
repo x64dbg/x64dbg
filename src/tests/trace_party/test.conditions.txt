@@ -1,0 +1,29 @@
+; EXPECT_EMPTY_LOG: max count, conditional commands/logging, and clearing trace state.
+settingset Events, SystemBreakpoint, 1
+settingset Events, EntryBreakpoint, 0
+init "@TARGET@"
+bp trace_party:Ready
+run
+bpc trace_party:Ready
+bp trace_party:TraceBegin
+run
+bpc trace_party:TraceBegin
+bp trace_party:Finished
+varnew $commands, 0
+TraceSetStepFilter user, run
+TraceSetLog "unexpected log line", 0
+TraceSetLogFile "@TRACELOG@"
+TraceSetCommand "$commands+=1", "$tracecounter%2==0"
+TraceIntoConditional 0, .6
+testassert $tracecounter == .6, "maximum count stops at exactly six included instructions"
+testassert $commands == 3, "command condition ran on the three even counters"
+testassert mod.party(cip) == 0, "the max-count stop is in user code"
+; No TraceSet* calls: the previous filter, log and command settings must be cleared.
+TraceIntoConditional "mod.party(cip)==1", .1000
+testassert mod.party(cip) == 1, "the next trace is unfiltered by default"
+testassert $commands == 3, "the previous command was cleared"
+run
+testassert cip == trace_party:Finished, "continued normally after both traces"
+testassert dword:[trace_party:gProtectionFailures] == 0, "no temporary breakpoints leaked"
+bpc trace_party:Finished
+run
