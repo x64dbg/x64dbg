@@ -288,9 +288,8 @@ bool StringUtils::Unescape(const String & s, String & result, bool quoted)
                     char byteStr[3] = "";
                     byteStr[0] = ch1;
                     byteStr[1] = ch2;
-                    uint64_t hexData;
-                    auto error = convertLongLongNumber(byteStr, hexData, 16);
-                    if(error)
+                    unsigned long long hexData;
+                    if(!convertLongLongNumber(byteStr, hexData, 16))
                         return false; //convertNumber failed (%s) for hex sequence \"\\x%c%c\" in string literal
                     mLastChar = hexData & 0xFF;
                 }
